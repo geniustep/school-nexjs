@@ -11,6 +11,7 @@ import { Badge, Card } from '@/components/ui/primitives';
 import { endpoints } from '@/lib/api/endpoints';
 import { CHANNEL_TYPE_LABEL } from '@/lib/utils/labels';
 import { formatDateTime } from '@/lib/utils/format';
+import { cn } from '@/lib/utils/cn';
 import type { Channel } from '@/types/channel';
 
 export function ChannelsList({ basePath }: { basePath: string }) {
@@ -24,7 +25,7 @@ export function ChannelsList({ basePath }: { basePath: string }) {
       isEmpty={(d) => d.length === 0}
       empty={
         <EmptyState
-          icon="💬"
+          icon="✉"
           title="No channels yet"
           description="Channels you can access will appear here."
         />
@@ -35,29 +36,45 @@ export function ChannelsList({ basePath }: { basePath: string }) {
           {channels.map((ch) => (
             <Card
               key={ch.id}
-              className="row-link"
+              className={cn('row-link', `channel-card--${ch.type}`)}
               pad
             >
               <div
                 onClick={() => router.push(`${basePath}/${ch.id}`)}
                 style={{ cursor: 'pointer' }}
               >
-                <div className="between">
-                  <strong>{ch.name}</strong>
-                  {ch.unread_count > 0 && <Badge tone="blue">{ch.unread_count} new</Badge>}
+                {/* Header row: channel name + unread count */}
+                <div className="between" style={{ marginBlockEnd: 8 }}>
+                  <strong style={{ fontSize: 14 }}>{ch.name}</strong>
+                  {ch.unread_count > 0 && (
+                    <Badge tone="blue">{ch.unread_count} new</Badge>
+                  )}
                 </div>
-                <div className="wrap-gap mt-2">
+
+                {/* Type + read-only badges */}
+                <div className="wrap-gap" style={{ marginBlockEnd: 8 }}>
                   <Badge tone="slate">
                     {CHANNEL_TYPE_LABEL[ch.type] ?? ch.type}
                   </Badge>
                   {ch.read_only && <Badge tone="amber">Read-only</Badge>}
-                  {!ch.can_send && !ch.read_only && <Badge tone="slate">View only</Badge>}
+                  {!ch.can_send && !ch.read_only && (
+                    <Badge tone="slate">View only</Badge>
+                  )}
                 </div>
-                {ch.description && <p className="muted tiny mt-2">{ch.description}</p>}
-                <div className="tiny faint mt-2">
-                  {ch.member_count} members ·{' '}
+
+                {/* Description */}
+                {ch.description && (
+                  <p className="muted tiny" style={{ marginBlock: '4px 6px' }}>
+                    {ch.description}
+                  </p>
+                )}
+
+                {/* Footer meta */}
+                <div className="tiny faint">
+                  {ch.member_count} {ch.member_count === 1 ? 'member' : 'members'}
+                  {' · '}
                   {ch.last_message_date
-                    ? `Last activity ${formatDateTime(ch.last_message_date)}`
+                    ? `Active ${formatDateTime(ch.last_message_date)}`
                     : 'No messages yet'}
                 </div>
               </div>

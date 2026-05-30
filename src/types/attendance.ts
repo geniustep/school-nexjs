@@ -2,8 +2,9 @@
 
 import type { Ref } from './api';
 
-// API values (DB `excused` is surfaced as `excused_absence`). See §10.
-export type AttendanceStatus = 'present' | 'absent' | 'late' | 'excused_absence';
+// API attendance status values (Odoo API v1 contract).
+// Final MVP statuses: present, absent, late, left_early.
+export type AttendanceStatus = 'present' | 'absent' | 'late' | 'left_early';
 
 export type AttendancePeriod = 'full_day' | 'morning' | 'afternoon' | string;
 
@@ -22,7 +23,10 @@ export interface AttendanceSummary {
   present: number;
   absent: number;
   late: number;
-  excused_absence: number;
+  left_early: number;
+  total: number;
+  // Some payloads still surface these aggregate fields; kept optional so the
+  // UI can render them when present without diverging from the core contract.
   total_recorded?: number;
   total_days?: number;
 }

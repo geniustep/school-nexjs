@@ -17,29 +17,49 @@ export default function ParentDashboardPage() {
 
   return (
     <>
-      <PageHeader title={`Welcome, ${user.name}`} subtitle="Your family overview" />
+      <PageHeader
+        title={`Welcome, ${user.name}`}
+        subtitle="Your family overview"
+      />
       <ResourceView state={state} loadingLabel="Loading your dashboard…">
         {(d) => (
           <>
-            <SectionHead title="My children" />
+            {/* Children section */}
+            <SectionHead
+              title="My children"
+              action={
+                <Link className="btn btn--ghost btn--sm" href="/parent/children">
+                  View all
+                </Link>
+              }
+            />
             {d.children?.length ? (
               <div className="grid grid--cards">
                 {d.children.map((c) => (
                   <Link key={c.id} href={`/parent/children/${c.id}`}>
                     <Card className="row-link">
-                      <div className="row">
+                      {/* Child identity */}
+                      <div className="row" style={{ gap: 12 }}>
                         <Avatar name={c.full_name} />
-                        <div className="col" style={{ gap: 2 }}>
-                          <strong>{c.full_name}</strong>
-                          <span className="tiny muted">{c.class?.name ?? '—'}</span>
+                        <div className="col" style={{ gap: 2, flex: 1 }}>
+                          <strong style={{ fontSize: 14 }}>{c.full_name}</strong>
+                          <span className="tiny muted">{c.class?.name ?? 'No class assigned'}</span>
                         </div>
                       </div>
-                      <div className="between mt-4">
-                        <span className="tiny faint">Today</span>
+
+                      {/* Today's attendance */}
+                      <div
+                        className="between mt-4"
+                        style={{
+                          paddingBlockStart: 12,
+                          borderBlockStart: '1px solid var(--c-border)',
+                        }}
+                      >
+                        <span className="tiny muted">Today's attendance</span>
                         {c.today_attendance ? (
                           <AttendanceBadge status={c.today_attendance} />
                         ) : (
-                          <span className="tiny muted">Not recorded</span>
+                          <span className="tiny muted">Not recorded yet</span>
                         )}
                       </div>
                     </Card>
@@ -47,27 +67,37 @@ export default function ParentDashboardPage() {
                 ))}
               </div>
             ) : (
-              <EmptyState icon="👧" title="No children linked" description="No children are linked to your account yet." />
+              <EmptyState
+                icon="👧"
+                title="No children linked"
+                description="No children are linked to your account yet. Contact your school administrator."
+              />
             )}
 
+            {/* Latest messages */}
             {d.latest_messages?.length ? (
               <div className="section">
-                <SectionHead title="Latest messages" />
+                <SectionHead
+                  title="Latest messages"
+                  action={
+                    <Link className="btn btn--ghost btn--sm" href="/parent/channels">
+                      All channels
+                    </Link>
+                  }
+                />
                 <Card pad={false}>
-                  {d.latest_messages.map((m, i) => (
-                    <div
-                      key={m.id}
-                      className="card--pad"
-                      style={i ? { borderTop: '1px solid var(--c-border)' } : undefined}
-                    >
-                      <div className="between">
-                        <strong className="tiny">{m.channel}</strong>
-                        <span className="tiny faint">{formatDateTime(m.created_at)}</span>
+                  <div className="msg-feed">
+                    {d.latest_messages.map((m) => (
+                      <div key={m.id} className="msg-feed__item">
+                        <div className="msg-feed__meta">
+                          <span className="msg-feed__channel">{m.channel}</span>
+                          <span className="msg-feed__time">{formatDateTime(m.created_at)}</span>
+                        </div>
+                        <div className="msg-feed__sender">{m.sender}</div>
+                        <div className="msg-feed__body">{m.body}</div>
                       </div>
-                      <div className="tiny muted">{m.sender}</div>
-                      <div className="mt-2">{m.body}</div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </Card>
               </div>
             ) : null}

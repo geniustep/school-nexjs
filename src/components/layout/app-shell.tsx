@@ -16,11 +16,29 @@ import { isScopedAdmin, isSuperAdmin } from '@/lib/permissions/scope';
 
 function roleSubtitle(user: CurrentUser): string {
   if (user.role === 'admin') {
-    if (isSuperAdmin(user)) return 'Administrator · Full school';
-    if (isScopedAdmin(user)) return 'Administrator · Limited access';
+    if (isSuperAdmin(user)) return 'Full school access';
+    if (isScopedAdmin(user)) return 'Limited access';
     return 'Administrator';
   }
   return ROLE_LABEL[user.role];
+}
+
+function scopeDescription(user: CurrentUser): string | null {
+  if (user.role !== 'admin' || !isScopedAdmin(user)) return null;
+  const scope = user.scope;
+  if (!scope) return null;
+  switch (scope.type) {
+    case 'channels':
+      return 'You can access communication channels only.';
+    case 'levels':
+      return 'You can view students in your assigned grade levels.';
+    case 'classes':
+      return 'You can view students in your assigned classes.';
+    case 'level_group':
+      return 'You can view students in your assigned level group.';
+    default:
+      return 'Your access is limited to a specific part of the school.';
+  }
 }
 
 export function AppShell({
@@ -35,6 +53,7 @@ export function AppShell({
   const [open, setOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const sections = navForUser(user);
+  const scopeDesc = scopeDescription(user);
 
   async function logout() {
     setLoggingOut(true);
@@ -50,10 +69,16 @@ export function AppShell({
     <div className="app-shell">
       {open && <div className="scrim" onClick={() => setOpen(false)} />}
       <aside className={cn('sidebar', open && 'sidebar--open')}>
+        {/* Brand */}
         <div className="sidebar__brand">
-          <span className="brand-mark">S</span>
-          <span>Smart School</span>
+          <span className="brand-mark" aria-hidden="true">S</span>
+          <span className="brand-name">
+            <span className="brand-name__main">Smart School</span>
+            <span className="brand-name__sub">Connect</span>
+          </span>
         </div>
+
+        {/* Navigation */}
         <nav className="sidebar__nav">
           {sections.map((section, i) => (
             <div key={i}>
@@ -65,13 +90,21 @@ export function AppShell({
                   className={cn('nav-link', isActive(item.href) && 'nav-link--active')}
                   onClick={() => setOpen(false)}
                 >
-                  <span className="nav-link__icon">{item.icon}</span>
+                  <span className="nav-link__icon" aria-hidden="true">{item.icon}</span>
                   {item.label}
                 </Link>
               ))}
             </div>
           ))}
         </nav>
+
+        {/* Scope notice for scoped admins */}
+        {scopeDesc && (
+          <div className="sidebar__scope">
+            <span className="sidebar__scope-label">Limited access</span>
+            <span className="sidebar__scope-desc">{scopeDesc}</span>
+          </div>
+        )}
       </aside>
 
       <div className="main">
@@ -82,7 +115,7 @@ export function AppShell({
               onClick={() => setOpen((v) => !v)}
               aria-label="Toggle menu"
             >
-              ☰
+              ≡
             </button>
             <span className="topbar__title">{user.school?.name ?? 'Smart School'}</span>
           </div>

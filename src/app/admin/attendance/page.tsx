@@ -13,7 +13,7 @@ import { formatDate } from '@/lib/utils/format';
 import type { AttendanceRecord, AttendanceStatus } from '@/types/attendance';
 import type { SchoolClass } from '@/types/class';
 
-const STATUSES: AttendanceStatus[] = ['present', 'absent', 'late', 'excused_absence'];
+const STATUSES: AttendanceStatus[] = ['present', 'absent', 'late', 'left_early'];
 
 const columns: Column<AttendanceRecord>[] = [
   { key: 'date', header: 'Date', render: (a) => formatDate(a.date) },

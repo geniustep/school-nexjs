@@ -4,6 +4,8 @@ import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils/cn';
 import { initials } from '@/lib/utils/format';
 
+export type StatTone = 'green' | 'red' | 'amber' | 'blue' | 'slate' | 'none';
+
 export type Tone = 'green' | 'red' | 'amber' | 'blue' | 'slate';
 
 export function Badge({ tone = 'slate', children }: { tone?: Tone; children: ReactNode }) {
@@ -34,18 +36,42 @@ export function StatCard({
   label,
   value,
   icon,
+  tone = 'none',
 }: {
   label: string;
   value: ReactNode;
   icon?: ReactNode;
+  tone?: StatTone;
 }) {
   return (
-    <div className="card stat-card">
+    <div className={cn('card stat-card', tone !== 'none' && `stat-card--${tone}`)}>
       <div className="stat-card__label">
         {icon && <span>{icon}</span>}
         {label}
       </div>
       <div className="stat-card__value">{value}</div>
+    </div>
+  );
+}
+
+export function InfoBanner({
+  title,
+  description,
+  icon = 'ℹ',
+  tone = 'blue',
+}: {
+  title: string;
+  description?: string;
+  icon?: string;
+  tone?: 'blue' | 'amber' | 'green';
+}) {
+  return (
+    <div className={cn('info-banner', tone === 'amber' && 'info-banner--amber', tone === 'green' && 'info-banner--green')}>
+      <span className="info-banner__icon" aria-hidden="true">{icon}</span>
+      <div className="info-banner__body">
+        <span className="info-banner__title">{title}</span>
+        {description && <span className="info-banner__desc">{description}</span>}
+      </div>
     </div>
   );
 }

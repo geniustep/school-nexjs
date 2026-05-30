@@ -56,31 +56,36 @@ export function Pagination({
   page,
   totalPages,
   total,
+  pageSize = 20,
   onPage,
 }: {
   page: number;
   totalPages: number;
   total: number;
+  pageSize?: number;
   onPage: (page: number) => void;
 }) {
+  const from = Math.min((page - 1) * pageSize + 1, total);
+  const to = Math.min(page * pageSize, total);
+
   if (totalPages <= 1) {
     return (
       <div className="pagination">
-        <span>{total} total</span>
+        <span>{total} {total === 1 ? 'record' : 'records'}</span>
       </div>
     );
   }
   return (
     <div className="pagination">
       <span>
-        Page {page} of {totalPages} · {total} total
+        Showing {from}–{to} of {total} records
       </span>
       <button
         className="btn btn--ghost btn--sm"
         disabled={page <= 1}
         onClick={() => onPage(page - 1)}
       >
-        ‹ Prev
+        ‹ Previous
       </button>
       <button
         className="btn btn--ghost btn--sm"

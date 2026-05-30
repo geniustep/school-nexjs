@@ -17,7 +17,7 @@ export function LoadingState({ label = 'Loading…' }: { label?: string }) {
 }
 
 export function EmptyState({
-  icon = '📭',
+  icon = '—',
   title = 'Nothing here yet',
   description,
   action,
@@ -29,7 +29,7 @@ export function EmptyState({
 }) {
   return (
     <div className="state">
-      <div className="state__icon">{icon}</div>
+      <div className="state-icon state-icon--empty" aria-hidden="true">{icon}</div>
       <div className="state__title">{title}</div>
       {description && <div className="state__desc">{description}</div>}
       {action}
@@ -44,7 +44,7 @@ export function PermissionDeniedState({
 }) {
   return (
     <div className="state">
-      <div className="state__icon">🔒</div>
+      <div className="state-icon state-icon--lock" aria-hidden="true">&#128274;</div>
       <div className="state__title">Access restricted</div>
       <div className="state__desc">{description}</div>
     </div>
@@ -52,13 +52,13 @@ export function PermissionDeniedState({
 }
 
 export function NotFoundState({
-  description = 'We couldn’t find what you were looking for.',
+  description = "We couldn’t find what you were looking for.",
 }: {
   description?: string;
 }) {
   return (
     <div className="state">
-      <div className="state__icon">🔍</div>
+      <div className="state-icon state-icon--empty" aria-hidden="true">&#8709;</div>
       <div className="state__title">Not found</div>
       <div className="state__desc">{description}</div>
     </div>
@@ -81,9 +81,9 @@ export function SessionExpiredState() {
 
   return (
     <div className="state">
-      <div className="state__icon">⌛</div>
+      <div className="state-icon state-icon--session" aria-hidden="true">&#8987;</div>
       <div className="state__title">Session expired</div>
-      <div className="state__desc">Redirecting you to the sign-in page…</div>
+      <div className="state__desc">Your session has ended. Redirecting you to sign in…</div>
     </div>
   );
 }
@@ -97,9 +97,13 @@ export function ErrorState({
 }) {
   return (
     <div className="state">
-      <div className="state__icon">⚠️</div>
+      <div className="state-icon state-icon--error" aria-hidden="true">!</div>
       <div className="state__title">Something went wrong</div>
-      <div className="state__desc">{error.message || 'Please try again.'}</div>
+      <div className="state__desc">
+        {error.message && !error.message.startsWith('Error:')
+          ? error.message
+          : 'There was a problem loading this content. Please try again.'}
+      </div>
       {onRetry && (
         <button className="btn btn--ghost btn--sm mt-2" onClick={onRetry}>
           Try again

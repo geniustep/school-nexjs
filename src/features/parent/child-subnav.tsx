@@ -12,25 +12,26 @@ export function ChildSubnav({ id }: { id: string }) {
   const base = `/parent/children/${id}`;
   const tabs = [
     { label: 'Overview', href: base },
-    { label: 'Student view', href: `${base}/student-view` },
+    { label: "Child's view", href: `${base}/student-view` },
     { label: 'Attendance', href: `${base}/attendance` },
     { label: 'Channels', href: `${base}/channels` },
     { label: 'Announcements', href: `${base}/announcements` },
   ];
   return (
-    <div className="wrap-gap" style={{ marginBlockEnd: 16 }}>
+    <nav className="tabs" aria-label="Child sections">
       {tabs.map((t) => {
         const active = pathname === t.href;
         return (
           <Link
             key={t.href}
             href={t.href}
-            className={cn('btn btn--sm', active ? 'btn--primary' : 'btn--ghost')}
+            className={cn('tab', active && 'tab--active')}
+            aria-current={active ? 'page' : undefined}
           >
             {t.label}
           </Link>
         );
       })}
-    </div>
+    </nav>
   );
 }

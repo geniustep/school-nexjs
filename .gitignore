@@ -23,6 +23,9 @@ yarn-error.log*
 .env*.local
 .env
 
+# local credentials / connection notes (contains passwords — do NOT commit)
+user.md
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts.bak

@@ -16,13 +16,22 @@ import { Card } from '@/components/ui/primitives';
 import { endpoints } from '@/lib/api/endpoints';
 import { ATTENDANCE_LABEL } from '@/lib/utils/labels';
 import { isoDate } from '@/lib/utils/format';
+import { cn } from '@/lib/utils/cn';
 import type {
   AttendanceToday,
   AttendanceStatus,
   AttendanceBatchResult,
 } from '@/types/attendance';
 
-const STATUSES: AttendanceStatus[] = ['present', 'absent', 'late', 'excused_absence'];
+const STATUSES: AttendanceStatus[] = ['present', 'absent', 'late', 'left_early'];
+
+// Maps each attendance status to a semantic button color class.
+const STATUS_BTN: Record<AttendanceStatus, string> = {
+  present: 'btn--status-green',
+  absent: 'btn--status-red',
+  late: 'btn--status-amber',
+  left_early: 'btn--status-blue',
+};
 
 interface RosterRow {
   student_id: number;
@@ -117,7 +126,6 @@ export function AttendanceBatch({ classId }: { classId: number }) {
     const { saved, failed, errors } = res.data;
     if (failed > 0) {
       toast.error(`Saved ${saved}, but ${failed} could not be saved.`);
-      // Surface the first couple of specific errors.
       errors.slice(0, 2).forEach((e) => toast.error(`Student ${e.student_id}: ${e.error}`));
     } else {
       toast.success(`Attendance saved for ${saved} student${saved === 1 ? '' : 's'}.`);
@@ -130,6 +138,7 @@ export function AttendanceBatch({ classId }: { classId: number }) {
     <ResourceView state={state} loadingLabel="Loading roster…">
       {() => (
         <>
+          {/* Toolbar: date picker + mark-all quick actions */}
           <div className="toolbar">
             <label className="row tiny" style={{ gap: 6 }}>
               <span className="muted">Date</span>
@@ -141,12 +150,17 @@ export function AttendanceBatch({ classId }: { classId: number }) {
               />
             </label>
             <span className="spacer" />
-            <span className="tiny muted">Mark all:</span>
-            {STATUSES.map((s) => (
-              <button key={s} className="btn btn--ghost btn--sm" onClick={() => setAll(s)}>
-                {ATTENDANCE_LABEL[s]}
-              </button>
-            ))}
+            {/* Safe default only: everyone is present unless marked otherwise.
+                No "mark all absent/late/left early" shortcut by design. */}
+            <span className="tiny muted">Everyone present by default —</span>
+            <button
+              className={cn('btn btn--sm', STATUS_BTN.present)}
+              onClick={() => setAll('present')}
+              type="button"
+              title="Set every student to Present, then mark exceptions"
+            >
+              Mark all present
+            </button>
           </div>
 
           {roster.length === 0 ? (
@@ -155,6 +169,7 @@ export function AttendanceBatch({ classId }: { classId: number }) {
             </Card>
           ) : (
             <>
+              {/* Status counts summary */}
               <div className="wrap-gap" style={{ marginBlockEnd: 12 }}>
                 {STATUSES.map((s) => (
                   <span key={s} className="tiny muted">
@@ -163,12 +178,13 @@ export function AttendanceBatch({ classId }: { classId: number }) {
                 ))}
               </div>
 
+              {/* Roster table */}
               <div className="table-wrap card" style={{ padding: 0 }}>
                 <table className="data">
                   <thead>
                     <tr>
                       <th>Student</th>
-                      <th style={{ width: 320 }}>Status</th>
+                      <th style={{ width: 340 }}>Attendance status</th>
                       <th>Note</th>
                     </tr>
                   </thead>
@@ -184,9 +200,11 @@ export function AttendanceBatch({ classId }: { classId: number }) {
                               <button
                                 key={s}
                                 type="button"
-                                className={`btn btn--sm ${
-                                  r.status === s ? 'btn--primary' : 'btn--ghost'
-                                }`}
+                                className={cn(
+                                  'btn btn--sm',
+                                  STATUS_BTN[s],
+                                  r.status === s && 'btn--status-active',
+                                )}
                                 onClick={() => setStatus(r.student_id, s)}
                               >
                                 {ATTENDANCE_LABEL[s]}
@@ -217,9 +235,14 @@ export function AttendanceBatch({ classId }: { classId: number }) {
                 </table>
               </div>
 
-              <div className="between mt-4">
-                <span className="tiny faint">
-                  {touched ? 'Unsaved changes' : 'Saved'}
+              {/* Save bar — shows unsaved state prominently */}
+              <div className={cn('save-bar', touched && 'save-bar--dirty')}>
+                <span className="save-bar__status">
+                  {touched ? (
+                    <>&#9679; Unsaved changes — remember to save</>
+                  ) : (
+                    <>&#10003; All changes saved</>
+                  )}
                 </span>
                 <button
                   className="btn btn--primary"

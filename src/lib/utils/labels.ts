@@ -18,14 +18,14 @@ export const ATTENDANCE_LABEL: Record<AttendanceStatus, string> = {
   present: 'Present',
   absent: 'Absent',
   late: 'Late',
-  excused_absence: 'Excused',
+  left_early: 'Left early',
 };
 
 export const ATTENDANCE_TONE: Record<AttendanceStatus, 'green' | 'red' | 'amber' | 'blue'> = {
   present: 'green',
   absent: 'red',
   late: 'amber',
-  excused_absence: 'blue',
+  left_early: 'blue',
 };
 
 export const CHANNEL_TYPE_LABEL: Record<ChannelType, string> = {
