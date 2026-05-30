@@ -43,6 +43,15 @@ export interface AttendanceBatchRequest {
   items: AttendanceBatchItem[];
 }
 
+// Admin past-date correction — POST /admin/attendance/correct.
+export interface AttendanceCorrectRequest {
+  date: string;
+  class_id: number;
+  student_id: number;
+  status: AttendanceStatus;
+  note?: string;
+}
+
 export interface AttendanceBatchResult {
   saved: number;
   failed: number;

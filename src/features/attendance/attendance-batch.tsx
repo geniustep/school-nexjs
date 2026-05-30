@@ -66,9 +66,18 @@ function buildRoster(today: AttendanceToday): RosterRow[] {
   return rows.sort((a, b) => a.full_name.localeCompare(b.full_name));
 }
 
+// Detects the backend's teacher_today_only policy rejection (422). The policy
+// hint may arrive in error.details.policy or be implied by the message.
+function isTeacherTodayOnly(error: { code: string; message?: string; details?: Record<string, unknown> }): boolean {
+  if (error.code !== 'validation_error') return false;
+  if (error.details?.policy === 'teacher_today_only') return true;
+  return /today/i.test(error.message ?? '');
+}
+
 export function AttendanceBatch({ classId }: { classId: number }) {
   const toast = useToast();
-  const [date, setDate] = useState(isoDate());
+  const today = isoDate();
+  const [date, setDate] = useState(today);
   const state = useResource<AttendanceToday>(endpoints.teacher.attendanceToday(classId));
   const [roster, setRoster] = useState<RosterRow[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -117,6 +126,10 @@ export function AttendanceBatch({ classId }: { classId: number }) {
     if (!res.success) {
       if (res.error.code === 'permission_denied') {
         toast.error('You can only record attendance for your assigned classes.');
+      } else if (isTeacherTodayOnly(res.error)) {
+        toast.error(
+          'Attendance can only be recorded for today. Contact an admin to correct past records.',
+        );
       } else {
         toast.error(res.error.message || 'Could not save attendance.');
       }
@@ -138,16 +151,22 @@ export function AttendanceBatch({ classId }: { classId: number }) {
     <ResourceView state={state} loadingLabel="Loading roster…">
       {() => (
         <>
-          {/* Toolbar: date picker + mark-all quick actions */}
+          {/* Toolbar: date picker (today only) + mark-all quick actions */}
           <div className="toolbar">
             <label className="row tiny" style={{ gap: 6 }}>
               <span className="muted">Date</span>
+              {/* Policy: teachers record attendance for today only. The picker
+                  is locked to today (min === max); past/future are disabled. */}
               <input
                 className="input"
                 type="date"
                 value={date}
+                min={today}
+                max={today}
                 onChange={(e) => setDate(e.target.value)}
+                title="Attendance can only be recorded for today"
               />
+              <span className="tiny muted">Today only</span>
             </label>
             <span className="spacer" />
             {/* Safe default only: everyone is present unless marked otherwise.

@@ -5,8 +5,12 @@ import { useResource } from '@/lib/hooks/use-resource';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
-import { PageHeader } from '@/components/ui/primitives';
+import { PageHeader, SectionHead } from '@/components/ui/primitives';
 import { AttendanceBadge } from '@/components/badges/attendance-badge';
+import { AttendanceCorrectPanel } from '@/features/attendance/attendance-correct';
+import { useSession } from '@/features/auth/session-context';
+import { hasPermission } from '@/lib/permissions/permissions';
+import { canSeeStudentData } from '@/lib/permissions/scope';
 import { endpoints } from '@/lib/api/endpoints';
 import { ATTENDANCE_LABEL } from '@/lib/utils/labels';
 import { formatDate } from '@/lib/utils/format';
@@ -25,6 +29,9 @@ const columns: Column<AttendanceRecord>[] = [
 ];
 
 export default function AdminAttendancePage() {
+  const user = useSession();
+  const canCorrect = canSeeStudentData(user) && hasPermission(user, 'manage_attendance');
+  const [showCorrect, setShowCorrect] = useState(false);
   const [page, setPage] = useState(1);
   const [date, setDate] = useState('');
   const [status, setStatus] = useState('');
@@ -50,7 +57,32 @@ export default function AdminAttendancePage() {
 
   return (
     <>
-      <PageHeader title="Attendance" subtitle="Daily attendance within your access" />
+      <PageHeader
+        title="Attendance"
+        subtitle="Daily attendance within your access"
+        actions={
+          canCorrect ? (
+            <button
+              className={showCorrect ? 'btn btn--ghost' : 'btn btn--primary'}
+              onClick={() => setShowCorrect((v) => !v)}
+            >
+              {showCorrect ? 'Close correction' : 'Correct a record'}
+            </button>
+          ) : undefined
+        }
+      />
+
+      {canCorrect && showCorrect && (
+        <div className="section">
+          <SectionHead title="Correct a past attendance record" />
+          <AttendanceCorrectPanel
+            onSuccess={() => {
+              setShowCorrect(false);
+              state.reload();
+            }}
+          />
+        </div>
+      )}
 
       <div className="toolbar">
         <input

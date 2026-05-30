@@ -28,6 +28,8 @@ export const endpoints = {
     classes: '/admin/classes',
     subjects: '/admin/subjects',
     attendance: '/admin/attendance',
+    // Admin-only past-date attendance correction (within admin scope).
+    attendanceCorrect: '/admin/attendance/correct',
     importStudents: '/admin/import/students',
   },
 
