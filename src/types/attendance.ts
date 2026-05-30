@@ -60,8 +60,9 @@ export interface AttendanceBatchResult {
 }
 
 // Teacher "attendance today" view.
+// NOTE: The API returns `id` (not `student_id`) in the not_recorded array.
 export interface AttendanceTodayStudent {
-  student_id: number;
+  id: number;
   full_name: string;
   status?: AttendanceStatus;
 }

@@ -44,6 +44,7 @@ function buildRoster(today: AttendanceToday): RosterRow[] {
   const rows: RosterRow[] = [];
   const seen = new Set<number>();
   for (const r of today.recorded ?? []) {
+    if (!r.student?.id) continue;
     if (seen.has(r.student.id)) continue;
     seen.add(r.student.id);
     rows.push({
@@ -53,11 +54,13 @@ function buildRoster(today: AttendanceToday): RosterRow[] {
       note: r.note ?? '',
     });
   }
+  // API returns `id` (not `student_id`) in the not_recorded array.
   for (const n of today.not_recorded ?? []) {
-    if (seen.has(n.student_id)) continue;
-    seen.add(n.student_id);
+    if (!n.id) continue;
+    if (seen.has(n.id)) continue;
+    seen.add(n.id);
     rows.push({
-      student_id: n.student_id,
+      student_id: n.id,
       full_name: n.full_name,
       status: n.status ?? 'present',
       note: '',
@@ -109,6 +112,13 @@ export function AttendanceBatch({ classId }: { classId: number }) {
   }
 
   async function submit() {
+    const invalidRows = roster.filter((r) => !r.student_id);
+    if (invalidRows.length > 0) {
+      toast.error(
+        `${invalidRows.length} student(s) have no valid ID and cannot be saved. Please reload.`,
+      );
+      return;
+    }
     setSubmitting(true);
     const res = await api.post<AttendanceBatchResult>(
       endpoints.teacher.attendanceBatch(classId),
