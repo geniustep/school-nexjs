@@ -1,0 +1,65 @@
+// BFF login route. Implements step 1+2 of API_REPORT.md §8:
+//   1. POST /web/session/authenticate to obtain the Odoo session cookie.
+//   2. GET /api/v1/me to resolve role + scope.
+// The Odoo session id is stored in an httpOnly cookie owned by Next.js, so the
+// browser never sees or handles it directly.
+
+import { NextResponse } from 'next/server';
+import { config, isProd } from '@/lib/config';
+import { authenticateOdoo, odooApiFetch } from '@/lib/api/odoo-server';
+import { endpoints } from '@/lib/api/endpoints';
+import type { MeResponse } from '@/types/user';
+
+export const dynamic = 'force-dynamic';
+
+function err(code: string, message: string, status: number) {
+  return NextResponse.json(
+    { success: false, error: { code, message, details: {} }, meta: {} },
+    { status },
+  );
+}
+
+export async function POST(request: Request) {
+  let payload: { login?: string; password?: string };
+  try {
+    payload = await request.json();
+  } catch {
+    return err('validation_error', 'Invalid request body.', 422);
+  }
+
+  const login = payload.login?.trim();
+  const password = payload.password;
+  if (!login || !password) {
+    return err('validation_error', 'Login and password are required.', 422);
+  }
+
+  const auth = await authenticateOdoo(login, password);
+  if (!auth.ok || !auth.sessionId) {
+    if (auth.errorName === 'network_error') {
+      return err('network_error', 'Could not reach the server. Please try again.', 502);
+    }
+    return err('invalid_credentials', 'Invalid login or password.', 401);
+  }
+
+  // Resolve the current user (role, permissions, scope) before responding so
+  // the client can redirect immediately.
+  const me = await odooApiFetch<MeResponse>(endpoints.auth.me, {
+    sessionId: auth.sessionId,
+  });
+
+  if (!me.body.success) {
+    // A valid Odoo user without a school role surfaces here.
+    return NextResponse.json(me.body, { status: me.status });
+  }
+
+  const response = NextResponse.json(me.body, { status: 200 });
+  response.cookies.set(config.sessionCookieName, auth.sessionId, {
+    httpOnly: true,
+    secure: isProd(),
+    sameSite: 'lax',
+    path: '/',
+    // Mirror Odoo's typical 7-day inactivity window.
+    maxAge: 60 * 60 * 24 * 7,
+  });
+  return response;
+}

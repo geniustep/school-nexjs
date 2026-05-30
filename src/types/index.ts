@@ -1,0 +1,13 @@
+// Barrel for all domain types.
+export * from './api';
+export * from './permissions';
+export * from './scope';
+export * from './user';
+export * from './student';
+export * from './parent';
+export * from './teacher';
+export * from './class';
+export * from './attendance';
+export * from './channel';
+export * from './message';
+export * from './dashboard';

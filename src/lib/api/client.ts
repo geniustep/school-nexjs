@@ -1,0 +1,108 @@
+'use client';
+
+// Browser API client. All calls go to the same-origin BFF proxy (/api/odoo/*)
+// which attaches the Odoo session cookie server-side. Components never see the
+// session id and never call Odoo directly.
+
+import type { ApiResponse, ListParams } from '@/types/api';
+
+const PROXY_BASE = '/api/odoo';
+
+function buildUrl(path: string, query?: ListParams): string {
+  const clean = path.startsWith('/') ? path : `/${path}`;
+  const url = `${PROXY_BASE}${clean}`;
+  if (!query) return url;
+  const sp = new URLSearchParams();
+  for (const [k, v] of Object.entries(query)) {
+    if (v !== undefined && v !== null && v !== '') sp.set(k, String(v));
+  }
+  const qs = sp.toString();
+  return qs ? `${url}?${qs}` : url;
+}
+
+async function parse<T>(res: Response): Promise<ApiResponse<T>> {
+  try {
+    return (await res.json()) as ApiResponse<T>;
+  } catch {
+    return {
+      success: false,
+      error: { code: 'server_error', message: 'Unexpected server response.', details: {} },
+      meta: {},
+    };
+  }
+}
+
+export const api = {
+  async get<T>(path: string, query?: ListParams): Promise<ApiResponse<T>> {
+    try {
+      const res = await fetch(buildUrl(path, query), {
+        method: 'GET',
+        headers: { Accept: 'application/json' },
+      });
+      return parse<T>(res);
+    } catch {
+      return {
+        success: false,
+        error: {
+          code: 'network_error',
+          message: 'Could not reach the server. Please check your connection.',
+          details: {},
+        },
+        meta: {},
+      };
+    }
+  },
+
+  async post<T>(path: string, body?: unknown): Promise<ApiResponse<T>> {
+    try {
+      const res = await fetch(buildUrl(path), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: body === undefined ? undefined : JSON.stringify(body),
+      });
+      return parse<T>(res);
+    } catch {
+      return {
+        success: false,
+        error: {
+          code: 'network_error',
+          message: 'Could not reach the server. Please check your connection.',
+          details: {},
+        },
+        meta: {},
+      };
+    }
+  },
+};
+
+// Auth helpers (talk to the dedicated BFF auth routes, not the proxy).
+export const authApi = {
+  async login(login: string, password: string) {
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ login, password }),
+      });
+      return parse<import('@/types/user').MeResponse>(res);
+    } catch {
+      return {
+        success: false as const,
+        error: {
+          code: 'network_error',
+          message: 'Could not reach the server. Please check your connection.',
+          details: {},
+        },
+        meta: {},
+      };
+    }
+  },
+
+  async logout() {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch {
+      /* ignore */
+    }
+  },
+};
