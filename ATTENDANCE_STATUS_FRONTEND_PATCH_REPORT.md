@@ -205,11 +205,106 @@ remains entirely absent from the MVP.
 
 ---
 
-## 13. Final Recommendation
+## 13. Live Smoke Test (against live `alwah` API)
+
+**Date:** 2026-05-30 · **Target:** `https://app.propanel.ma` · **DB:** `alwah`
+**Method:** authenticated Odoo session → `GET/POST /api/v1/...` (same contract
+the BFF proxies). Roles tested by login (passwords not recorded here):
+Teacher, Admin, Student, Parent.
+
+### 13.1 Teacher attendance — PASS
+
+- `GET /teacher/classes` → returned only the teacher's **assigned** classes
+  (`32 — 1A Primaire`, `33 — 2A Primaire`). Scope respected.
+- `GET /teacher/classes/32/attendance/today` → summary keys:
+  `{ present, absent, late, left_early, total_students }`. `left_early` present;
+  **no** `excused`/`excused_absence` anywhere.
+- `POST /teacher/classes/32/attendance/batch` with
+  `items:[{ student_id:21, status:"left_early" }]` →
+  **HTTP 200**, response `{ saved:1, failed:0, items:[{...status:"left_early"}], errors:[] }`.
+  - ✅ Payload sent `left_early`.
+  - ✅ Payload did **not** send `excused_absence`.
+  - ✅ `saved` / `failed` / `errors` response shape intact (drives the UI toasts).
+- Re-read `attendance/today` → summary became `left_early: 1` and student 21
+  status = `left_early`. ✅ Summary reads `left_early`.
+- **Cleanup:** student 21 was restored to `present` (saved:1) so live data was
+  left in its original state.
+
+### 13.2 Attendance summaries — PASS
+
+| Role | Endpoint | Summary keys returned | `left_early`? | `excused_absence`? |
+|------|----------|-----------------------|:---:|:---:|
+| Admin | `/admin/dashboard` → `attendance_today` | `present, absent, late, left_early, total_recorded` | ✅ yes | ❌ none |
+| Student | `/student/dashboard` → `attendance_summary` | `present, absent, late, left_early, total` | ✅ yes | ❌ none |
+| Parent | `/parent/children/21/student-view` → `attendance_summary` | `present, absent, late, left_early, total_days` | ✅ yes | ❌ none |
+
+- The live student summary matches the new contract shape exactly
+  (`…, left_early, total`). Admin still uses `total_recorded`, parent uses
+  `total_days`, and the teacher "today" view uses `total_students` — all three
+  legacy/aggregate keys are handled by the frontend (`total_recorded?` /
+  `total_days?` optional, with `total` fallback). No breakage.
+- ✅ Every summary reads `left_early`; **none** read `excused_absence`.
+
+### 13.3 UX regression — PASS
+
+- Login works (teacher/admin/student/parent all authenticated; `/me` returns
+  correct `role` + `permissions`).
+- BFF auth/session behavior untouched (same `session_id` → `scc_session` flow).
+- Logout untouched.
+- Role routing untouched.
+- Admin scope respected (teacher saw only assigned classes; parent saw only
+  linked child id 21).
+- Parent child-view remains read-only (no composer; read-only banner).
+- Composer appears only when `can_send=true` (channel gating unchanged).
+- No weekly scoring page / nav / API call exists (confirmed by full-source
+  search and by the absence of any such route in the live responses).
+
+### 13.4 Past attendance date behavior — ⚠️ OPEN (backend policy)
+
+- `POST /teacher/classes/32/attendance/batch` with `date: "2026-05-20"`
+  (10 days in the past), benign `status: "present"` →
+  **HTTP 200**, `{ saved:1, ... }`, creating a new `attendance_id` for the past
+  date. **Result: ALLOWED — unrestricted, no warning, API accepted.**
+- **Documented behavior:** `allowed` = yes · `blocked` = no · `warning shown` =
+  no · `API accepted/rejected` = **accepted**.
+- Per instructions, behavior was **not changed** and **no frontend-only
+  restriction was added**. The UI's native `<input type="date">` does not cap
+  the maximum/minimum date, and the backend imposes no past-date guard.
+- 🔒 **Product/security concern (for later Odoo policy decision):** any teacher
+  can create or overwrite attendance for arbitrary past dates with no audit
+  prompt or restriction. This should be governed by an **Odoo-side** policy
+  (allowed window, lock after N days, or admin-only back-dating), not a
+  frontend-only block.
+- **Note:** the probe left one benign `present` record for student 21 on
+  `2026-05-20`. There is no documented DELETE endpoint to remove it; `present`
+  is the expected default state, so impact is negligible.
+
+### 13.5 Issues found
+
+1. **Past-date editing is unrestricted** (see 13.4) — backend policy concern,
+   not a frontend bug.
+2. **Inconsistent "total" key across summary endpoints** (`total_recorded` /
+   `total` / `total_days` / `total_students`). The frontend tolerates all four,
+   but the backend may wish to standardize on `total` per the stated contract.
+   Non-blocking.
+
+---
+
+## 14. Final Recommendation
+
+**Ready for deploy** (Next.js side).
 
 The frontend is aligned with the final Odoo API v1 attendance contract
-(`present` / `absent` / `late` / `left_early`) with no residual `excused`
-references, no weekly scoring, and all Live-QA behaviors preserved. Recommended
-next: a quick manual smoke test of the teacher batch save (verify `left_early`
-in the network payload) and the admin/parent/student summary cards against the
-live `alwah` database, then deploy to Vercel `main`.
+(`present` / `absent` / `late` / `left_early`), the live API accepts and returns
+`left_early`, no `excused_absence` remains in MVP UI/API code, no weekly scoring
+was added, and all Live-QA behaviors (auth, BFF, logout, role routing, admin
+scope, parent read-only, `can_send` composer gating) are preserved.
+
+Two items are **backend/product** decisions, not Next.js blockers:
+
+- Unrestricted past-date attendance editing → recommend a **Backend (Odoo)
+  policy** decision in a later phase. Do **not** patch this on the frontend only.
+- Optional summary-key standardization on `total`.
+
+Recommended path: **deploy the Next.js patch now**; track past-date policy as a
+separate Odoo backend ticket.
