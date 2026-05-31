@@ -21,23 +21,37 @@ export async function serverGet<T>(
   query?: ListParams,
 ): Promise<ApiResponse<T>> {
   const sid = await sessionId();
-  const { body } = await odooApiFetch<T>(path, {
+  const result = await odooApiFetch<T>(path, {
     method: 'GET',
     sessionId: sid,
     query: query as Record<string, string | number | undefined>,
   });
-  return body;
+  if (result.kind === 'file') {
+    return {
+      success: false,
+      error: { code: 'server_error', message: 'Unexpected file response.', details: {} },
+      meta: {},
+    };
+  }
+  return result.body;
 }
 
 /** Low-level server POST returning the full envelope. */
 export async function serverPost<T>(path: string, body?: unknown): Promise<ApiResponse<T>> {
   const sid = await sessionId();
-  const { body: res } = await odooApiFetch<T>(path, {
+  const result = await odooApiFetch<T>(path, {
     method: 'POST',
     sessionId: sid,
     body,
   });
-  return res;
+  if (result.kind === 'file') {
+    return {
+      success: false,
+      error: { code: 'server_error', message: 'Unexpected file response.', details: {} },
+      meta: {},
+    };
+  }
+  return result.body;
 }
 
 /**

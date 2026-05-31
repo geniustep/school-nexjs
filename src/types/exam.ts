@@ -57,7 +57,14 @@ export interface ExamResult {
     exam_date?: string | null;
     exam_type?: string | null;
   };
-  student: { id: number; name: string; massar_code?: string | null };
+  student: {
+    id: number;
+    first_name?: string | null;
+    last_name?: string | null;
+    full_name?: string | null;
+    name?: string | null;
+    massar_code?: string | null;
+  };
   class: Ref;
   subject?: ExamSubject | null;
   teacher?: Ref | null;

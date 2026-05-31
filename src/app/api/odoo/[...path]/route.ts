@@ -44,14 +44,24 @@ async function handle(request: NextRequest, segments: string[]) {
     }
   }
 
-  const { status, body: responseBody } = await odooApiFetch(path, {
+  const result = await odooApiFetch(path, {
     method,
     sessionId,
     query,
     body,
   });
 
-  return NextResponse.json(responseBody, { status });
+  if (result.kind === 'file') {
+    const headers = new Headers();
+    if (result.headers.contentType) headers.set('Content-Type', result.headers.contentType);
+    if (result.headers.contentDisposition) {
+      headers.set('Content-Disposition', result.headers.contentDisposition);
+    }
+    if (result.headers.cacheControl) headers.set('Cache-Control', result.headers.cacheControl);
+    return new NextResponse(result.data, { status: result.status, headers });
+  }
+
+  return NextResponse.json(result.body, { status: result.status });
 }
 
 type Ctx = { params: Promise<{ path: string[] }> };

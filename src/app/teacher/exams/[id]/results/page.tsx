@@ -12,6 +12,7 @@ import { PageHeader, Card, InfoBanner } from '@/components/ui/primitives';
 import { useToast } from '@/components/ui/toast';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
+import { getStudentDisplayName } from '@/lib/utils/student';
 import type { ExamResult } from '@/types/exam';
 
 function ResultEditRow({
@@ -107,7 +108,7 @@ export default function ExamResultsPage({
       {
         key: 'student',
         header: t('actions.students'),
-        render: (r) => <strong>{r.student?.name ?? t('common.dash')}</strong>,
+        render: (r) => <strong>{getStudentDisplayName(r.student)}</strong>,
       },
       {
         key: 'score',

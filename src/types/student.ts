@@ -20,8 +20,13 @@ export interface ParentLink {
 
 export interface Student {
   id: number;
+  first_name?: string | null;
+  last_name?: string | null;
   full_name: string;
+  name?: string | null;
   code: string | null;
+  massar_code?: string | null;
+  matricule?: string | null;
   level: Ref | null;
   class: Ref | null;
   parents: ParentLink[];
@@ -36,7 +41,10 @@ export interface Student {
 // Compact child shape used by parent endpoints.
 export interface ChildSummary {
   id: number;
+  first_name?: string | null;
+  last_name?: string | null;
   full_name: string;
+  name?: string | null;
   code?: string | null;
   level?: Ref | null;
   class: Ref | null;

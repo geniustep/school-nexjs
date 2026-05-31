@@ -23,6 +23,15 @@ export interface AdminDashboard {
   attendance_today: AttendanceSummary;
   latest_messages: LatestMessage[];
   important_alerts: unknown[];
+  published_homeworks?: number;
+  published_resources?: number;
+  upcoming_exams_count?: number;
+  next_exam?: ExamSummary | null;
+  exams_this_week?: number;
+  exams_today?: number;
+  draft_exam_results_count?: number;
+  published_exam_results_count?: number;
+  exams_missing_results?: number;
 }
 
 export interface TeacherDashboardClass {
@@ -78,7 +87,10 @@ export interface ParentDashboard {
 
 export interface StudentProfileSummary {
   id: number;
+  first_name?: string | null;
+  last_name?: string | null;
   full_name: string;
+  name?: string | null;
   code: string | null;
   level: Ref | null;
   class: Ref | null;

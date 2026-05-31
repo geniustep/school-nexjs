@@ -11,6 +11,7 @@ import { PageHeader, Card } from '@/components/ui/primitives';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
+import { getStudentDisplayName } from '@/lib/utils/student';
 import type { HomeworkSubmission } from '@/types/homework';
 
 export default function HomeworkSubmissionsPage({
@@ -42,7 +43,7 @@ export default function HomeworkSubmissionsPage({
             {items.map((sub) => (
               <Card key={sub.id}>
                 <div className="between">
-                  <strong>{sub.student?.name ?? t('common.dash')}</strong>
+                  <strong>{getStudentDisplayName(sub.student)}</strong>
                   <WorkflowBadge state={sub.state} />
                 </div>
                 <div className="mt-2 tiny muted">

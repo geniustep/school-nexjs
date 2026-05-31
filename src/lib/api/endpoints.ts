@@ -1,14 +1,8 @@
 // Central endpoint registry — the ONLY place API v1 paths are defined.
-// Every path here is taken verbatim from API_REPORT.md §3. Do not invent,
-// rename, or assume endpoints elsewhere in the codebase.
-//
-// Paths are relative to the API v1 prefix (/api/v1). The BFF proxy and the
-// browser client both build on top of these.
+// Paths are relative to the API v1 prefix (/api/v1).
 
 export const endpoints = {
   auth: {
-    // Note: real login uses Odoo's /web/session/authenticate first (handled
-    // by the BFF login route). These are the documented API v1 auth paths.
     login: '/auth/login',
     logout: '/auth/logout',
     refresh: '/auth/refresh',
@@ -17,20 +11,89 @@ export const endpoints = {
 
   admin: {
     dashboard: '/admin/dashboard',
+
     students: '/admin/students',
-    // Students are the ONLY admin resource with a documented detail endpoint
-    // (API_REPORT.md §3). Parents/teachers/classes expose list endpoints only,
-    // so their detail views are derived from the (rich) list payloads.
     student: (id: number | string) => `/admin/students/${id}`,
+    studentUpdate: (id: number | string) => `/admin/students/${id}/update`,
+    studentArchive: (id: number | string) => `/admin/students/${id}/archive`,
+    studentsImport: '/admin/students/import',
+    studentsExport: '/admin/students/export',
+
     parents: '/admin/parents',
+    parent: (id: number | string) => `/admin/parents/${id}`,
+    parentUpdate: (id: number | string) => `/admin/parents/${id}/update`,
+    parentArchive: (id: number | string) => `/admin/parents/${id}/archive`,
+    parentsImport: '/admin/parents/import',
+    parentsExport: '/admin/parents/export',
+
     teachers: '/admin/teachers',
-    levels: '/admin/levels',
+    teacher: (id: number | string) => `/admin/teachers/${id}`,
+    teacherUpdate: (id: number | string) => `/admin/teachers/${id}/update`,
+    teacherArchive: (id: number | string) => `/admin/teachers/${id}/archive`,
+    teachersImport: '/admin/teachers/import',
+    teachersExport: '/admin/teachers/export',
+
     classes: '/admin/classes',
+    class: (id: number | string) => `/admin/classes/${id}`,
+    classUpdate: (id: number | string) => `/admin/classes/${id}/update`,
+    classArchive: (id: number | string) => `/admin/classes/${id}/archive`,
+    classesImport: '/admin/classes/import',
+    classesExport: '/admin/classes/export',
+
+    levels: '/admin/levels',
+    level: (id: number | string) => `/admin/levels/${id}`,
+    levelUpdate: (id: number | string) => `/admin/levels/${id}/update`,
+    levelArchive: (id: number | string) => `/admin/levels/${id}/archive`,
+    levelsExport: '/admin/levels/export',
+
     subjects: '/admin/subjects',
+    subject: (id: number | string) => `/admin/subjects/${id}`,
+    subjectUpdate: (id: number | string) => `/admin/subjects/${id}/update`,
+    subjectArchive: (id: number | string) => `/admin/subjects/${id}/archive`,
+    subjectsImport: '/admin/subjects/import',
+    subjectsExport: '/admin/subjects/export',
+
     attendance: '/admin/attendance',
-    // Admin-only past-date attendance correction (within admin scope).
     attendanceCorrect: '/admin/attendance/correct',
-    importStudents: '/admin/import/students',
+
+    homeworks: '/admin/homeworks',
+    homeworksExport: '/admin/homeworks/export',
+    homework: (id: number | string) => `/admin/homeworks/${id}`,
+    homeworkUpdate: (id: number | string) => `/admin/homeworks/${id}/update`,
+    homeworkPublish: (id: number | string) => `/admin/homeworks/${id}/publish`,
+    homeworkClose: (id: number | string) => `/admin/homeworks/${id}/close`,
+    homeworkArchive: (id: number | string) => `/admin/homeworks/${id}/archive`,
+    homeworkSubmissions: (id: number | string) => `/admin/homeworks/${id}/submissions`,
+
+    resources: '/admin/resources',
+    resourcesExport: '/admin/resources/export',
+    resource: (id: number | string) => `/admin/resources/${id}`,
+    resourceUpdate: (id: number | string) => `/admin/resources/${id}/update`,
+    resourcePublish: (id: number | string) => `/admin/resources/${id}/publish`,
+    resourceArchive: (id: number | string) => `/admin/resources/${id}/archive`,
+
+    timetable: '/admin/timetable',
+    timetableSlots: '/admin/timetable/slots',
+    timetableSlotUpdate: (id: number | string) => `/admin/timetable/slots/${id}/update`,
+    timetableSlotArchive: (id: number | string) => `/admin/timetable/slots/${id}/archive`,
+
+    exams: '/admin/exams',
+    examsExport: '/admin/exams/export',
+    exam: (id: number | string) => `/admin/exams/${id}`,
+    examUpdate: (id: number | string) => `/admin/exams/${id}/update`,
+    examPublish: (id: number | string) => `/admin/exams/${id}/publish`,
+    examDone: (id: number | string) => `/admin/exams/${id}/done`,
+    examCancel: (id: number | string) => `/admin/exams/${id}/cancel`,
+    examArchive: (id: number | string) => `/admin/exams/${id}/archive`,
+
+    examResults: '/admin/exam-results',
+    examResultsExport: '/admin/exam-results/export',
+    examResult: (id: number | string) => `/admin/exam-results/${id}`,
+    examResultsByExam: (examId: number | string) => `/admin/exams/${examId}/results`,
+    examResultsInit: (examId: number | string) => `/admin/exams/${examId}/results/init`,
+    examResultUpdate: (id: number | string) => `/admin/exam-results/${id}/update`,
+    examResultPublish: (id: number | string) => `/admin/exam-results/${id}/publish`,
+    examResultArchive: (id: number | string) => `/admin/exam-results/${id}/archive`,
   },
 
   teacher: {

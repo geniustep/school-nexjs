@@ -19,6 +19,7 @@ import {
 import { AttendanceBadge } from '@/components/badges/attendance-badge';
 import { ChildSubnav } from '@/features/parent/child-subnav';
 import { endpoints } from '@/lib/api/endpoints';
+import { getStudentDisplayName } from '@/lib/utils/student';
 import { CHANNEL_TYPE_LABEL, ATTENDANCE_LABEL } from '@/lib/utils/labels';
 import { formatDate, formatDateTime } from '@/lib/utils/format';
 import type { ChildStudentView } from '@/types/dashboard';
@@ -51,7 +52,7 @@ export default function ChildStudentViewPage({
         {(d) => (
           <>
             <PageHeader
-              title={d.student.full_name}
+              title={getStudentDisplayName(d.student)}
               subtitle="Viewing as parent"
             />
 

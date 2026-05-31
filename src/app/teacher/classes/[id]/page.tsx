@@ -10,10 +10,10 @@ import { PageHeader, Badge } from '@/components/ui/primitives';
 import { ClassActionGrid } from '@/features/teacher/class-actions';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
+import { getStudentDisplayName, type StudentNameFields } from '@/lib/utils/student';
 
-interface ClassStudent {
+interface ClassStudent extends StudentNameFields {
   id: number;
-  full_name: string;
   code?: string | null;
   status?: string;
 }
@@ -39,7 +39,7 @@ export default function TeacherClassDetailPage({
       {
         key: 'name',
         header: t('actions.students'),
-        render: (s) => <strong>{s.full_name}</strong>,
+        render: (s) => <strong>{getStudentDisplayName(s)}</strong>,
       },
       {
         key: 'code',

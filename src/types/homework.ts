@@ -41,6 +41,20 @@ export interface HomeworkDetail extends HomeworkSummary {
   my_submission?: MySubmission | null;
 }
 
+/** Admin list row — GET /admin/homeworks */
+export interface AdminHomeworkSummary {
+  id: number;
+  name: string;
+  class: Ref;
+  subject?: Ref | null;
+  teacher?: Ref | null;
+  state: HomeworkState | string;
+  publish_date?: string | null;
+  deadline?: string | null;
+  submission_count?: number;
+  require_submission?: boolean;
+}
+
 export interface HomeworkSubmission {
   id: number;
   submission_id?: number;

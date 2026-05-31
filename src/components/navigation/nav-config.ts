@@ -29,25 +29,39 @@ function adminNav(user: CurrentUser): NavSection[] {
   const dataItems: NavItem[] = [];
   if (canSeeStudentData(user)) {
     if (hasPermission(user, 'view_students'))
-      dataItems.push({ labelKey: 'nav.myChildren', href: '/admin/students', icon: '🎓' });
+      dataItems.push({ labelKey: 'nav.students', href: '/admin/students', icon: '🎓' });
     if (hasPermission(user, 'view_parents'))
-      dataItems.push({ labelKey: 'nav.myChildren', href: '/admin/parents', icon: '👪' });
+      dataItems.push({ labelKey: 'nav.parents', href: '/admin/parents', icon: '👪' });
     if (hasPermission(user, 'view_teachers'))
-      dataItems.push({ labelKey: 'roles.teacher', href: '/admin/teachers', icon: '👩‍🏫' });
+      dataItems.push({ labelKey: 'nav.teachers', href: '/admin/teachers', icon: '👩‍🏫' });
     if (hasPermission(user, 'view_classes')) {
-      dataItems.push({ labelKey: 'nav.resources', href: '/admin/levels', icon: '📚' });
-      dataItems.push({ labelKey: 'nav.myClasses', href: '/admin/classes', icon: '🏫' });
-      dataItems.push({ labelKey: 'academic.subject', href: '/admin/subjects', icon: '📖' });
+      dataItems.push({ labelKey: 'nav.levels', href: '/admin/levels', icon: '📚' });
+      dataItems.push({ labelKey: 'nav.classes', href: '/admin/classes', icon: '🏫' });
+      dataItems.push({ labelKey: 'nav.subjects', href: '/admin/subjects', icon: '📖' });
     }
     if (hasPermission(user, 'view_attendance'))
       dataItems.push({ labelKey: 'nav.attendance', href: '/admin/attendance', icon: '🗓️' });
   }
-  if (dataItems.length) sections.push({ titleKey: 'nav.teaching', items: dataItems });
+  if (dataItems.length) sections.push({ titleKey: 'nav.school', items: dataItems });
 
   if (canSeeChannels(user) && hasPermission(user, 'view_channels')) {
     sections.push({
       titleKey: 'nav.communication',
       items: [{ labelKey: 'nav.channels', href: '/admin/channels', icon: '💬' }],
+    });
+  }
+
+  if (canSeeStudentData(user) && hasPermission(user, 'view_classes')) {
+    sections.push({
+      titleKey: 'nav.academic',
+      items: [
+        { labelKey: 'nav.academicCenter', href: '/admin/academic', icon: '📐' },
+        { labelKey: 'nav.homework', href: '/admin/homeworks', icon: '📝' },
+        { labelKey: 'nav.resources', href: '/admin/resources', icon: '📚' },
+        { labelKey: 'nav.timetable', href: '/admin/timetable', icon: '📅' },
+        { labelKey: 'nav.exams', href: '/admin/exams', icon: '📋' },
+        { labelKey: 'nav.results', href: '/admin/exam-results', icon: '📊' },
+      ],
     });
   }
 

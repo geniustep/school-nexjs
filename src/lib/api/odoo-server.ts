@@ -94,17 +94,46 @@ function errorEnvelope(code: ApiErrorCode, message: string): ApiResponse<never> 
   return { success: false, error: { code, message, details: {} }, meta: {} };
 }
 
+export interface OdooFileHeaders {
+  contentType: string | null;
+  contentDisposition: string | null;
+  cacheControl: string | null;
+}
+
+export type OdooApiResult<T> =
+  | { kind: 'json'; status: number; body: ApiResponse<T> }
+  | { kind: 'file'; status: number; data: ArrayBuffer; headers: OdooFileHeaders };
+
+function isFileResponse(res: Response): boolean {
+  const contentType = res.headers.get('content-type')?.toLowerCase() ?? '';
+  const disposition = res.headers.get('content-disposition')?.toLowerCase() ?? '';
+  if (disposition.includes('attachment')) return true;
+  if (contentType.includes('text/csv')) return true;
+  if (contentType.includes('application/csv')) return true;
+  if (contentType.includes('application/octet-stream')) return true;
+  return false;
+}
+
+function fileHeadersFrom(res: Response): OdooFileHeaders {
+  return {
+    contentType: res.headers.get('content-type'),
+    contentDisposition: res.headers.get('content-disposition'),
+    cacheControl: res.headers.get('cache-control'),
+  };
+}
+
 /**
  * Forward an API v1 request to Odoo using a previously obtained session id.
  * `path` is relative to the API v1 prefix (e.g. "/admin/students").
- * Always resolves to a parsed ApiResponse plus the HTTP status.
+ * JSON endpoints return a parsed ApiResponse; CSV/binary exports return raw bytes.
  */
 export async function odooApiFetch<T = unknown>(
   path: string,
   opts: OdooFetchOptions,
-): Promise<{ status: number; body: ApiResponse<T> }> {
+): Promise<OdooApiResult<T>> {
   if (!opts.sessionId) {
     return {
+      kind: 'json',
       status: 401,
       body: errorEnvelope('unauthenticated', 'No active session.') as ApiResponse<T>,
     };
@@ -129,11 +158,21 @@ export async function odooApiFetch<T = unknown>(
     });
   } catch {
     return {
+      kind: 'json',
       status: 502,
       body: errorEnvelope(
         'network_error',
         'Could not reach the server. Please try again.',
       ) as ApiResponse<T>,
+    };
+  }
+
+  if (isFileResponse(res)) {
+    return {
+      kind: 'file',
+      status: res.status,
+      data: await res.arrayBuffer(),
+      headers: fileHeadersFrom(res),
     };
   }
 
@@ -154,5 +193,5 @@ export async function odooApiFetch<T = unknown>(
     body = errorEnvelope(code, `Unexpected response (${res.status}).`) as ApiResponse<T>;
   }
 
-  return { status: res.status, body };
+  return { kind: 'json', status: res.status, body };
 }

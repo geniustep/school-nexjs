@@ -47,9 +47,14 @@ export async function POST(request: Request) {
     sessionId: auth.sessionId,
   });
 
-  if (!me.body.success) {
+  if (me.kind !== 'json' || !me.body.success) {
     // A valid Odoo user without a school role surfaces here.
-    return NextResponse.json(me.body, { status: me.status });
+    const body = me.kind === 'json' ? me.body : {
+      success: false,
+      error: { code: 'server_error', message: 'Unexpected response.', details: {} },
+      meta: {},
+    };
+    return NextResponse.json(body, { status: me.status });
   }
 
   const response = NextResponse.json(me.body, { status: 200 });

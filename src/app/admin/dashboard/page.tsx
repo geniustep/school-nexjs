@@ -1,5 +1,7 @@
 'use client';
 
+import type { ReactNode } from 'react';
+import Link from 'next/link';
 import { useResource } from '@/lib/hooks/use-resource';
 import { ResourceView } from '@/components/states/resource';
 import { PermissionDeniedState } from '@/components/states/states';
@@ -11,17 +13,17 @@ import {
   InfoBanner,
 } from '@/components/ui/primitives';
 import { useSession } from '@/features/auth/session-context';
+import { useFormat } from '@/features/i18n/use-format';
+import { useT } from '@/features/i18n/locale-context';
 import { isConfiguredAdmin, isScopedAdmin } from '@/lib/permissions/scope';
 import { endpoints } from '@/lib/api/endpoints';
 import { ATTENDANCE_LABEL } from '@/lib/utils/labels';
-import { formatDateTime } from '@/lib/utils/format';
 import type { AdminDashboard } from '@/types/dashboard';
 import type { AttendanceStatus } from '@/types/attendance';
 import type { StatTone } from '@/components/ui/primitives';
 
 const ATT_KEYS: AttendanceStatus[] = ['present', 'absent', 'late', 'left_early'];
 
-// Maps each attendance status to a stat card accent color.
 const ATT_TONE: Record<AttendanceStatus, StatTone> = {
   present: 'green',
   absent: 'red',
@@ -29,19 +31,40 @@ const ATT_TONE: Record<AttendanceStatus, StatTone> = {
   left_early: 'blue',
 };
 
+function LinkedStatCard({
+  href,
+  label,
+  value,
+  icon,
+  tone = 'none',
+}: {
+  href: string;
+  label: string;
+  value: ReactNode;
+  icon?: React.ReactNode;
+  tone?: StatTone;
+}) {
+  return (
+    <Link href={href} className="stat-link">
+      <StatCard label={label} value={value} icon={icon} tone={tone} />
+    </Link>
+  );
+}
+
 export default function AdminDashboardPage() {
   const user = useSession();
+  const t = useT();
+  const { formatDate, formatDateTime } = useFormat();
   const state = useResource<AdminDashboard>(
     isConfiguredAdmin(user) ? endpoints.admin.dashboard : null,
   );
 
-  // Unconfigured admin (no scope, not super) — blocked, per API spec.
   if (!isConfiguredAdmin(user)) {
     return (
       <>
-        <PageHeader title="Dashboard" subtitle={user.school?.name ?? undefined} />
+        <PageHeader title={t('nav.dashboard')} subtitle={user.school?.name ?? undefined} />
         <Card>
-          <PermissionDeniedState description="Your administrator account has no access scope configured yet. Please contact your school's main administrator to be granted access." />
+          <PermissionDeniedState description={t('admin.noScopeDesc')} />
         </Card>
       </>
     );
@@ -49,55 +72,128 @@ export default function AdminDashboardPage() {
 
   return (
     <>
-      <PageHeader
-        title="Dashboard"
-        subtitle={user.school?.name ?? 'School overview'}
-      />
+      <PageHeader title={t('nav.dashboard')} subtitle={user.school?.name ?? t('admin.dashboardSubtitle')} />
 
-      {/* Scope notice for limited admins — appears inline, not as a tiny badge */}
       {isScopedAdmin(user) && (
         <InfoBanner
           tone="amber"
           icon="&#128274;"
-          title="Limited access account"
-          description="You are viewing data within your assigned scope only. Some students, classes, or sections may not be visible to you."
+          title={t('admin.limitedAccess')}
+          description={t('admin.limitedAccessDesc')}
         />
       )}
 
-      <ResourceView state={state} loadingLabel="Loading overview…">
+      <ResourceView state={state} loadingLabel={t('common.loading')}>
         {(d) => (
           <>
-            {/* School totals */}
             <div className="grid grid--stats">
-              <StatCard label="Students" value={d.total_students} icon="🎓" />
-              <StatCard label="Teachers" value={d.total_teachers} icon="👩‍🏫" />
-              <StatCard label="Parents" value={d.total_parents} icon="👪" />
-              <StatCard label="Classes" value={d.total_classes} icon="🏫" />
+              <LinkedStatCard href="/admin/students" label={t('nav.students')} value={d.total_students} icon="🎓" />
+              <LinkedStatCard href="/admin/teachers" label={t('nav.teachers')} value={d.total_teachers} icon="👩‍🏫" />
+              <LinkedStatCard href="/admin/parents" label={t('nav.parents')} value={d.total_parents} icon="👪" />
+              <LinkedStatCard href="/admin/classes" label={t('nav.classes')} value={d.total_classes} icon="🏫" />
             </div>
 
-            {/* Today's attendance — color-coded per status */}
             <div className="section">
-              <SectionHead title="Today's attendance" />
+              <SectionHead title={t('dashboard.todayAttendance')} />
               <div className="grid grid--stats">
                 {ATT_KEYS.map((k) => (
-                  <StatCard
+                  <LinkedStatCard
                     key={k}
+                    href="/admin/attendance"
                     label={ATTENDANCE_LABEL[k]}
                     value={d.attendance_today?.[k] ?? 0}
                     tone={ATT_TONE[k]}
                   />
                 ))}
-                <StatCard
-                  label="Total recorded"
+                <LinkedStatCard
+                  href="/admin/attendance"
+                  label={t('admin.totalRecorded')}
                   value={d.attendance_today?.total_recorded ?? d.attendance_today?.total ?? 0}
                   tone="slate"
                 />
               </div>
             </div>
 
-            {/* Latest messages */}
             <div className="section">
-              <SectionHead title="Latest messages" />
+              <SectionHead
+                title={t('admin.academicOverview')}
+                action={
+                  <Link className="btn btn--ghost btn--sm" href="/admin/academic">
+                    {t('admin.academicCenter')}
+                  </Link>
+                }
+              />
+              <div className="grid grid--stats">
+                <LinkedStatCard
+                  href="/admin/homeworks"
+                  label={t('dashboard.publishedHomeworks')}
+                  value={d.published_homeworks ?? 0}
+                  icon="📝"
+                />
+                <LinkedStatCard
+                  href="/admin/resources"
+                  label={t('dashboard.publishedResources')}
+                  value={d.published_resources ?? 0}
+                  icon="📚"
+                />
+                <LinkedStatCard
+                  href="/admin/exams"
+                  label={t('dashboard.upcomingExams')}
+                  value={d.upcoming_exams_count ?? 0}
+                  icon="📋"
+                />
+                <LinkedStatCard
+                  href="/admin/exam-results"
+                  label={t('dashboard.draftExamResults')}
+                  value={d.draft_exam_results_count ?? 0}
+                  icon="✏️"
+                  tone={(d.draft_exam_results_count ?? 0) > 0 ? 'amber' : 'none'}
+                />
+                <LinkedStatCard
+                  href="/admin/exam-results"
+                  label={t('dashboard.publishedExamResults')}
+                  value={d.published_exam_results_count ?? 0}
+                  icon="✅"
+                />
+                <LinkedStatCard
+                  href="/admin/exams"
+                  label={t('dashboard.examsMissingResults')}
+                  value={d.exams_missing_results ?? 0}
+                  icon="⚠️"
+                  tone={(d.exams_missing_results ?? 0) > 0 ? 'amber' : 'none'}
+                />
+              </div>
+            </div>
+
+            {d.next_exam && (
+              <div className="section">
+                <SectionHead title={t('dashboard.nextExam')} />
+                <Card>
+                  <div className="between">
+                    <div>
+                      <strong>{d.next_exam.name}</strong>
+                      <p className="tiny muted mt-2">
+                        {d.next_exam.class?.name}
+                        {d.next_exam.exam_date && ` · ${formatDate(d.next_exam.exam_date)}`}
+                      </p>
+                    </div>
+                    <Link className="btn btn--ghost btn--sm" href={`/admin/exams/${d.next_exam.id}`}>
+                      {t('dashboard.details')}
+                    </Link>
+                  </div>
+                </Card>
+              </div>
+            )}
+
+            <div className="section">
+              <SectionHead
+                title={t('dashboard.latestMessages')}
+                action={
+                  <Link className="btn btn--ghost btn--sm" href="/admin/channels">
+                    {t('dashboard.allChannels')}
+                  </Link>
+                }
+              />
               {d.latest_messages?.length ? (
                 <Card pad={false}>
                   <div className="msg-feed">
@@ -115,15 +211,14 @@ export default function AdminDashboardPage() {
                 </Card>
               ) : (
                 <Card>
-                  <p className="muted">No recent messages.</p>
+                  <p className="muted">{t('empty.messages')}</p>
                 </Card>
               )}
             </div>
 
-            {/* Important alerts */}
             {Array.isArray(d.important_alerts) && d.important_alerts.length > 0 && (
               <div className="section">
-                <SectionHead title="Alerts" />
+                <SectionHead title={t('admin.alerts')} />
                 <Card>
                   <ul>
                     {d.important_alerts.map((a, i) => (

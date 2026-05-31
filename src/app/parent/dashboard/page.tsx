@@ -11,6 +11,7 @@ import { useSession } from '@/features/auth/session-context';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
+import { getStudentDisplayName } from '@/lib/utils/student';
 import type { ParentDashboard } from '@/types/dashboard';
 
 export default function ParentDashboardPage() {
@@ -42,9 +43,9 @@ export default function ParentDashboardPage() {
                   <Card key={c.id}>
                     <Link href={`/parent/children/${c.id}`} className="row-link">
                       <div className="row" style={{ gap: 12 }}>
-                        <Avatar name={c.full_name} />
+                        <Avatar name={getStudentDisplayName(c)} />
                         <div className="col" style={{ gap: 2, flex: 1 }}>
-                          <strong style={{ fontSize: 14 }}>{c.full_name}</strong>
+                          <strong style={{ fontSize: 14 }}>{getStudentDisplayName(c)}</strong>
                           <span className="tiny muted">
                             {c.class?.name ?? t('dashboard.noClass')}
                           </span>

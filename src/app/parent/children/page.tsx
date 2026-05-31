@@ -7,6 +7,7 @@ import { EmptyState } from '@/components/states/states';
 import { PageHeader, Card, Avatar, Badge } from '@/components/ui/primitives';
 import { endpoints } from '@/lib/api/endpoints';
 import { statusLabel } from '@/lib/utils/labels';
+import { getStudentDisplayName } from '@/lib/utils/student';
 import type { ChildSummary } from '@/types/student';
 
 export default function ParentChildrenPage() {
@@ -28,9 +29,9 @@ export default function ParentChildrenPage() {
               <Link key={c.id} href={`/parent/children/${c.id}`}>
                 <Card className="row-link">
                   <div className="row">
-                    <Avatar name={c.full_name} />
+                    <Avatar name={getStudentDisplayName(c)} />
                     <div className="col" style={{ gap: 2 }}>
-                      <strong>{c.full_name}</strong>
+                      <strong>{getStudentDisplayName(c)}</strong>
                       <span className="tiny muted">{c.class?.name ?? '—'}</span>
                     </div>
                   </div>

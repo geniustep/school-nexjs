@@ -9,6 +9,7 @@ import { useSession } from '@/features/auth/session-context';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
+import { getStudentDisplayName } from '@/lib/utils/student';
 import type { StudentDashboard } from '@/types/dashboard';
 import type { AttendanceStatus } from '@/types/attendance';
 import type { StatTone } from '@/components/ui/primitives';
@@ -59,9 +60,9 @@ export default function StudentDashboardPage() {
               <Card>
                 <div className="between">
                   <div className="row" style={{ gap: 14 }}>
-                    <Avatar name={d.profile.full_name} />
+                    <Avatar name={getStudentDisplayName(d.profile)} />
                     <div className="col" style={{ gap: 3 }}>
-                      <strong style={{ fontSize: 16 }}>{d.profile.full_name}</strong>
+                      <strong style={{ fontSize: 16 }}>{getStudentDisplayName(d.profile)}</strong>
                       <span className="tiny muted">
                         {d.profile.class?.name ?? t('common.dash')}
                         {d.profile.level?.name ? ` · ${d.profile.level.name}` : ''}

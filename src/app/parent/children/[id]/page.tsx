@@ -9,6 +9,7 @@ import { ChildSubnav } from '@/features/parent/child-subnav';
 import { ChildAcademicActions } from '@/features/parent/child-academic-actions';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
+import { getStudentDisplayName } from '@/lib/utils/student';
 import type { ChildSummary } from '@/types/student';
 
 function statusText(t: ReturnType<typeof useT>, status: string | undefined) {
@@ -36,7 +37,7 @@ export default function ParentChildDetailPage({
         {(c) => (
           <>
             <PageHeader
-              title={c.full_name}
+              title={getStudentDisplayName(c)}
               subtitle={
                 [c.class?.name, c.level?.name].filter(Boolean).join(' · ') ||
                 (c.code ? String(c.code) : undefined)
@@ -53,7 +54,7 @@ export default function ParentChildDetailPage({
             <ChildAcademicActions childId={id} />
             <Card>
               <div className="row" style={{ marginBlockEnd: 16 }}>
-                <Avatar name={c.full_name} />
+                <Avatar name={getStudentDisplayName(c)} />
                 <SectionHead title={t('nav.overview')} />
               </div>
               <DefinitionList

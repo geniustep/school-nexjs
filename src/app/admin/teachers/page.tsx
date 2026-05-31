@@ -1,65 +1,60 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useResource } from '@/lib/hooks/use-resource';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
 import { PageHeader, Badge } from '@/components/ui/primitives';
+import { AdminListActions } from '@/features/admin/admin-list-actions';
+import { CsvImportPanel } from '@/features/admin/csv-import-panel';
+import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { statusLabel } from '@/lib/utils/labels';
 import type { Teacher } from '@/types/teacher';
 
-const columns: Column<Teacher>[] = [
-  { key: 'name', header: 'Name', render: (t) => <strong>{t.name}</strong> },
-  { key: 'code', header: 'Code', render: (t) => <span className="mono">{t.code ?? '—'}</span> },
-  {
-    key: 'classes',
-    header: 'Classes',
-    render: (t) => (t.classes.length ? t.classes.map((c) => c.name).join(', ') : '—'),
-  },
-  {
-    key: 'subjects',
-    header: 'Subjects',
-    render: (t) => (t.subjects.length ? t.subjects.map((s) => s.name).join(', ') : '—'),
-  },
-  {
-    key: 'status',
-    header: 'Status',
-    render: (t) => (
-      <Badge tone={t.status === 'active' ? 'green' : 'slate'}>{statusLabel(t.status)}</Badge>
-    ),
-  },
-];
-
 export default function AdminTeachersPage() {
   const router = useRouter();
+  const t = useT();
   const [page, setPage] = useState(1);
-
+  const [importOpen, setImportOpen] = useState(false);
   const state = useResource<Teacher[]>(endpoints.admin.teachers, { page, page_size: 20 });
   const pg = state.meta?.pagination;
 
+  const columns: Column<Teacher>[] = useMemo(
+    () => [
+      { key: 'name', header: t('admin.fullName'), render: (te) => <strong>{te.name}</strong> },
+      { key: 'code', header: t('admin.code'), render: (te) => <span className="mono">{te.code ?? t('common.dash')}</span> },
+      { key: 'classes', header: t('nav.classes'), render: (te) => (te.classes.length ? te.classes.map((c) => c.name).join(', ') : t('common.dash')) },
+      { key: 'subjects', header: t('nav.subjects'), render: (te) => (te.subjects.length ? te.subjects.map((s) => s.name).join(', ') : t('common.dash')) },
+      { key: 'status', header: t('academic.status'), render: (te) => <Badge tone={te.status === 'active' ? 'green' : 'slate'}>{statusLabel(te.status)}</Badge> },
+    ],
+    [t],
+  );
+
   return (
     <>
-      <PageHeader title="Teachers" subtitle="All teachers within your access" />
-      <ResourceView
-        state={state}
-        loadingLabel="Loading teachers…"
-        isEmpty={(d) => d.length === 0}
-        empty={<EmptyState icon="👩‍🏫" title="No teachers found" />}
-      >
+      <PageHeader
+        title={t('nav.teachers')}
+        subtitle={t('admin.teachersListDesc')}
+        actions={
+          <AdminListActions
+            addHref="/admin/teachers/new"
+            exportPath={endpoints.admin.teachersExport}
+            exportFilename="teachers.csv"
+            showImport
+            importOpen={importOpen}
+            onToggleImport={() => setImportOpen((v) => !v)}
+          />
+        }
+      />
+      {importOpen && <CsvImportPanel importPath={endpoints.admin.teachersImport} onDone={() => state.reload()} />}
+      <ResourceView state={state} loadingLabel={t('common.loading')} isEmpty={(d) => d.length === 0} empty={<EmptyState icon="👩‍🏫" title={t('empty.classes')} />}>
         {(teachers) => (
           <>
-            <DataTable
-              columns={columns}
-              rows={teachers}
-              rowKey={(t) => t.id}
-              onRowClick={(t) => router.push(`/admin/teachers/${t.id}`)}
-            />
-            {pg && (
-              <Pagination page={pg.page} totalPages={pg.total_pages} total={pg.total} onPage={setPage} />
-            )}
+            <DataTable columns={columns} rows={teachers} rowKey={(te) => te.id} onRowClick={(te) => router.push(`/admin/teachers/${te.id}`)} />
+            {pg && <Pagination page={pg.page} totalPages={pg.total_pages} total={pg.total} onPage={setPage} />}
           </>
         )}
       </ResourceView>

@@ -8,6 +8,7 @@ export interface Teacher {
   code: string | null;
   phone: string | null;
   email: string | null;
+  user_id?: number | null;
   classes: Ref[];
   subjects: Ref[];
   status: string;

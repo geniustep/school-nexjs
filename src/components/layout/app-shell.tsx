@@ -124,7 +124,7 @@ export function AppShell({
               <Avatar name={user.name} />
               <div className="col" style={{ gap: 0 }}>
                 <span style={{ fontWeight: 600, fontSize: 13 }}>{user.name}</span>
-                <span className="tiny faint">{roleSubtitle(user, t)}</span>
+                <span className="topbar__role">{roleSubtitle(user, t)}</span>
               </div>
             </div>
             <button
