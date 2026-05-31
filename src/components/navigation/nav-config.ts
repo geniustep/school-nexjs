@@ -1,6 +1,6 @@
 // Role-based navigation model. Items are filtered by permission AND admin
 // scope so inaccessible sections never render (defence-in-depth alongside the
-// server). The labels are plain school terms — no backend/Odoo vocabulary.
+// server). Labels are i18n keys resolved in the shell via useT().
 
 import type { CurrentUser } from '@/types/user';
 import { hasPermission } from '@/lib/permissions/permissions';
@@ -11,44 +11,43 @@ import {
 } from '@/lib/permissions/scope';
 
 export interface NavItem {
-  label: string;
+  labelKey: string;
   href: string;
   icon: string;
 }
 
 export interface NavSection {
-  title?: string;
+  titleKey?: string;
   items: NavItem[];
 }
 
 function adminNav(user: CurrentUser): NavSection[] {
   const sections: NavSection[] = [
-    { items: [{ label: 'Dashboard', href: '/admin/dashboard', icon: '🏠' }] },
+    { items: [{ labelKey: 'nav.dashboard', href: '/admin/dashboard', icon: '🏠' }] },
   ];
 
-  // School-data sections require a scope that exposes student data.
   const dataItems: NavItem[] = [];
   if (canSeeStudentData(user)) {
     if (hasPermission(user, 'view_students'))
-      dataItems.push({ label: 'Students', href: '/admin/students', icon: '🎓' });
+      dataItems.push({ labelKey: 'nav.myChildren', href: '/admin/students', icon: '🎓' });
     if (hasPermission(user, 'view_parents'))
-      dataItems.push({ label: 'Parents', href: '/admin/parents', icon: '👪' });
+      dataItems.push({ labelKey: 'nav.myChildren', href: '/admin/parents', icon: '👪' });
     if (hasPermission(user, 'view_teachers'))
-      dataItems.push({ label: 'Teachers', href: '/admin/teachers', icon: '👩‍🏫' });
+      dataItems.push({ labelKey: 'roles.teacher', href: '/admin/teachers', icon: '👩‍🏫' });
     if (hasPermission(user, 'view_classes')) {
-      dataItems.push({ label: 'Levels', href: '/admin/levels', icon: '📚' });
-      dataItems.push({ label: 'Classes', href: '/admin/classes', icon: '🏫' });
-      dataItems.push({ label: 'Subjects', href: '/admin/subjects', icon: '📖' });
+      dataItems.push({ labelKey: 'nav.resources', href: '/admin/levels', icon: '📚' });
+      dataItems.push({ labelKey: 'nav.myClasses', href: '/admin/classes', icon: '🏫' });
+      dataItems.push({ labelKey: 'academic.subject', href: '/admin/subjects', icon: '📖' });
     }
     if (hasPermission(user, 'view_attendance'))
-      dataItems.push({ label: 'Attendance', href: '/admin/attendance', icon: '🗓️' });
+      dataItems.push({ labelKey: 'nav.attendance', href: '/admin/attendance', icon: '🗓️' });
   }
-  if (dataItems.length) sections.push({ title: 'School', items: dataItems });
+  if (dataItems.length) sections.push({ titleKey: 'nav.teaching', items: dataItems });
 
   if (canSeeChannels(user) && hasPermission(user, 'view_channels')) {
     sections.push({
-      title: 'Communication',
-      items: [{ label: 'Channels', href: '/admin/channels', icon: '💬' }],
+      titleKey: 'nav.communication',
+      items: [{ labelKey: 'nav.channels', href: '/admin/channels', icon: '💬' }],
     });
   }
 
@@ -57,50 +56,52 @@ function adminNav(user: CurrentUser): NavSection[] {
 
 function teacherNav(): NavSection[] {
   return [
-    { items: [{ label: 'Dashboard', href: '/teacher/dashboard', icon: '🏠' }] },
+    { items: [{ labelKey: 'nav.dashboard', href: '/teacher/dashboard', icon: '🏠' }] },
     {
-      title: 'Teaching',
+      titleKey: 'nav.teaching',
       items: [
-        { label: 'My Classes', href: '/teacher/classes', icon: '🏫' },
-        { label: 'Attendance', href: '/teacher/attendance', icon: '🗓️' },
+        { labelKey: 'nav.myClasses', href: '/teacher/classes', icon: '🏫' },
+        { labelKey: 'nav.attendance', href: '/teacher/attendance', icon: '🗓️' },
+        { labelKey: 'nav.timetable', href: '/teacher/timetable', icon: '📅' },
       ],
     },
     {
-      title: 'Communication',
-      items: [{ label: 'Channels', href: '/teacher/channels', icon: '💬' }],
+      titleKey: 'nav.communication',
+      items: [{ labelKey: 'nav.channels', href: '/teacher/channels', icon: '💬' }],
     },
   ];
 }
 
 function parentNav(): NavSection[] {
   return [
-    { items: [{ label: 'Dashboard', href: '/parent/dashboard', icon: '🏠' }] },
+    { items: [{ labelKey: 'nav.dashboard', href: '/parent/dashboard', icon: '🏠' }] },
     {
-      title: 'Family',
-      items: [{ label: 'My Children', href: '/parent/children', icon: '👧' }],
+      titleKey: 'nav.family',
+      items: [{ labelKey: 'nav.myChildren', href: '/parent/children', icon: '👧' }],
     },
     {
-      title: 'Communication',
-      items: [{ label: 'Channels', href: '/parent/channels', icon: '💬' }],
+      titleKey: 'nav.communication',
+      items: [{ labelKey: 'nav.channels', href: '/parent/channels', icon: '💬' }],
     },
   ];
 }
 
 function studentNav(): NavSection[] {
   return [
-    { items: [{ label: 'Dashboard', href: '/student/dashboard', icon: '🏠' }] },
+    { items: [{ labelKey: 'nav.dashboard', href: '/student/dashboard', icon: '🏠' }] },
     {
-      title: 'Me',
+      titleKey: 'nav.me',
       items: [
-        { label: 'My Profile', href: '/student/profile', icon: '🧑‍🎓' },
-        { label: 'My Attendance', href: '/student/attendance', icon: '🗓️' },
+        { labelKey: 'nav.myProfile', href: '/student/profile', icon: '🧑‍🎓' },
+        { labelKey: 'nav.attendance', href: '/student/attendance', icon: '🗓️' },
+        { labelKey: 'nav.timetable', href: '/student/timetable', icon: '📅' },
       ],
     },
     {
-      title: 'Communication',
+      titleKey: 'nav.communication',
       items: [
-        { label: 'Channels', href: '/student/channels', icon: '💬' },
-        { label: 'Announcements', href: '/student/announcements', icon: '📣' },
+        { labelKey: 'nav.channels', href: '/student/channels', icon: '💬' },
+        { labelKey: 'nav.announcements', href: '/student/announcements', icon: '📣' },
       ],
     },
   ];
@@ -109,11 +110,9 @@ function studentNav(): NavSection[] {
 export function navForUser(user: CurrentUser): NavSection[] {
   switch (user.role) {
     case 'admin':
-      // Unconfigured admin (no scope, not super): only the dashboard, which
-      // itself shows a blocked state. Prevents linking into restricted data.
       return isConfiguredAdmin(user)
         ? adminNav(user)
-        : [{ items: [{ label: 'Dashboard', href: '/admin/dashboard', icon: '🏠' }] }];
+        : [{ items: [{ labelKey: 'nav.dashboard', href: '/admin/dashboard', icon: '🏠' }] }];
     case 'teacher':
       return teacherNav();
     case 'parent':

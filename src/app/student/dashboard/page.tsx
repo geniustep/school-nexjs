@@ -6,14 +6,21 @@ import { ResourceView } from '@/components/states/resource';
 import { PageHeader, Card, StatCard, SectionHead, Badge, Avatar } from '@/components/ui/primitives';
 import { AttendanceBadge } from '@/components/badges/attendance-badge';
 import { useSession } from '@/features/auth/session-context';
+import { useFormat } from '@/features/i18n/use-format';
+import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
-import { ATTENDANCE_LABEL } from '@/lib/utils/labels';
-import { formatDateTime } from '@/lib/utils/format';
 import type { StudentDashboard } from '@/types/dashboard';
 import type { AttendanceStatus } from '@/types/attendance';
 import type { StatTone } from '@/components/ui/primitives';
 
 const ATT_KEYS: AttendanceStatus[] = ['present', 'absent', 'late', 'left_early'];
+
+const ATT_LABEL_KEY: Record<AttendanceStatus, string> = {
+  present: 'attendance.present',
+  absent: 'attendance.absent',
+  late: 'attendance.late',
+  left_early: 'attendance.leftEarly',
+};
 
 const ATT_TONE: Record<AttendanceStatus, StatTone> = {
   present: 'green',
@@ -22,99 +29,142 @@ const ATT_TONE: Record<AttendanceStatus, StatTone> = {
   left_early: 'blue',
 };
 
+function todayStatus(
+  att: StudentDashboard['today_attendance'],
+): AttendanceStatus | null {
+  if (!att) return null;
+  if (typeof att === 'string') return att;
+  return att.status ?? null;
+}
+
 export default function StudentDashboardPage() {
   const user = useSession();
+  const t = useT();
+  const { formatDateTime } = useFormat();
   const state = useResource<StudentDashboard>(endpoints.student.dashboard);
 
   return (
     <>
-      <PageHeader title={`Welcome, ${user.name}`} subtitle="Your school overview" />
-      <ResourceView state={state} loadingLabel="Loading your dashboard…">
-        {(d) => (
-          <>
-            {/* Profile card */}
-            <Card>
-              <div className="between">
-                <div className="row" style={{ gap: 14 }}>
-                  <Avatar name={d.profile.full_name} />
-                  <div className="col" style={{ gap: 3 }}>
-                    <strong style={{ fontSize: 16 }}>{d.profile.full_name}</strong>
-                    <span className="tiny muted">
-                      {d.profile.class?.name ?? '—'}
-                      {d.profile.level?.name ? ` · ${d.profile.level.name}` : ''}
-                    </span>
+      <PageHeader
+        title={t('dashboard.welcome', { name: user.name })}
+        subtitle={t('dashboard.studentSubtitle')}
+      />
+      <ResourceView state={state} loadingLabel={t('common.loading')}>
+        {(d) => {
+          const announcements = d.announcements ?? d.latest_announcements ?? [];
+          const status = todayStatus(d.today_attendance);
+
+          return (
+            <>
+              <Card>
+                <div className="between">
+                  <div className="row" style={{ gap: 14 }}>
+                    <Avatar name={d.profile.full_name} />
+                    <div className="col" style={{ gap: 3 }}>
+                      <strong style={{ fontSize: 16 }}>{d.profile.full_name}</strong>
+                      <span className="tiny muted">
+                        {d.profile.class?.name ?? t('common.dash')}
+                        {d.profile.level?.name ? ` · ${d.profile.level.name}` : ''}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="col" style={{ gap: 4, alignItems: 'flex-end' }}>
+                    <span className="tiny muted">{t('attendance.today')}</span>
+                    {status ? (
+                      <AttendanceBadge status={status} />
+                    ) : (
+                      <Badge tone="slate">{t('attendance.notRecorded')}</Badge>
+                    )}
                   </div>
                 </div>
-                <div className="col" style={{ gap: 4, alignItems: 'flex-end' }}>
-                  <span className="tiny muted">Today</span>
-                  {d.today_attendance ? (
-                    <AttendanceBadge status={d.today_attendance} />
-                  ) : (
-                    <Badge tone="slate">Not recorded</Badge>
-                  )}
+              </Card>
+
+              <div className="section">
+                <SectionHead title={t('dashboard.shortcuts')} />
+                <div className="class-actions">
+                  <Link href="/student/homeworks" className="btn btn--ghost btn--sm class-actions__btn">
+                    <span aria-hidden="true">📝</span>
+                    {t('dashboard.myHomework')}
+                    {(d.pending_homeworks ?? 0) > 0 && ` (${d.pending_homeworks})`}
+                  </Link>
+                  <Link href="/student/resources" className="btn btn--ghost btn--sm class-actions__btn">
+                    <span aria-hidden="true">📚</span>
+                    {t('dashboard.myResources')}
+                    {(d.unread_resources ?? 0) > 0 && ` (${d.unread_resources})`}
+                  </Link>
+                  <Link href="/student/exams" className="btn btn--ghost btn--sm class-actions__btn">
+                    <span aria-hidden="true">📋</span>
+                    {t('dashboard.myExams')}
+                  </Link>
+                  <Link href="/student/exam-results" className="btn btn--ghost btn--sm class-actions__btn">
+                    <span aria-hidden="true">📊</span>
+                    {t('dashboard.myResults')}
+                  </Link>
+                  <Link href="/student/timetable" className="btn btn--ghost btn--sm class-actions__btn">
+                    <span aria-hidden="true">📅</span>
+                    {t('nav.timetable')}
+                  </Link>
                 </div>
               </div>
-            </Card>
 
-            {/* Attendance summary */}
-            {d.attendance_summary && (
+              {d.attendance_summary && (
+                <div className="section">
+                  <SectionHead
+                    title={t('dashboard.attendanceSummary')}
+                    action={
+                      <Link className="btn btn--ghost btn--sm" href="/student/attendance">
+                        {t('dashboard.fullHistory')}
+                      </Link>
+                    }
+                  />
+                  <div className="grid grid--stats">
+                    {ATT_KEYS.map((k) => (
+                      <StatCard
+                        key={k}
+                        label={t(ATT_LABEL_KEY[k])}
+                        value={d.attendance_summary?.[k] ?? 0}
+                        tone={ATT_TONE[k]}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="section">
                 <SectionHead
-                  title="Attendance summary"
+                  title={t('dashboard.recentAnnouncements')}
                   action={
-                    <Link className="btn btn--ghost btn--sm" href="/student/attendance">
-                      Full history
+                    <Link className="btn btn--ghost btn--sm" href="/student/announcements">
+                      {t('common.viewAll')}
                     </Link>
                   }
                 />
-                <div className="grid grid--stats">
-                  {ATT_KEYS.map((k) => (
-                    <StatCard
-                      key={k}
-                      label={ATTENDANCE_LABEL[k]}
-                      value={d.attendance_summary?.[k] ?? 0}
-                      tone={ATT_TONE[k]}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Announcements */}
-            <div className="section">
-              <SectionHead
-                title="Recent announcements"
-                action={
-                  <Link className="btn btn--ghost btn--sm" href="/student/announcements">
-                    View all
-                  </Link>
-                }
-              />
-              {d.announcements?.length ? (
-                <Card pad={false}>
-                  <div className="msg-feed">
-                    {d.announcements.map((a) => (
-                      <div key={a.id} className="msg-feed__item">
-                        <div className="msg-feed__meta">
-                          <span className="msg-feed__channel">
-                            {typeof a.channel === 'string' ? a.channel : a.channel?.name}
-                          </span>
-                          <span className="msg-feed__time">{formatDateTime(a.created_at)}</span>
+                {announcements.length ? (
+                  <Card pad={false}>
+                    <div className="msg-feed">
+                      {announcements.map((a) => (
+                        <div key={a.id} className="msg-feed__item">
+                          <div className="msg-feed__meta">
+                            <span className="msg-feed__channel">
+                              {typeof a.channel === 'string' ? a.channel : a.channel?.name}
+                            </span>
+                            <span className="msg-feed__time">{formatDateTime(a.created_at)}</span>
+                          </div>
+                          <div className="msg-feed__sender">{a.sender}</div>
+                          <div className="msg-feed__body">{a.body}</div>
                         </div>
-                        <div className="msg-feed__sender">{a.sender}</div>
-                        <div className="msg-feed__body">{a.body}</div>
-                      </div>
-                    ))}
-                  </div>
-                </Card>
-              ) : (
-                <Card>
-                  <p className="muted">No announcements yet.</p>
-                </Card>
-              )}
-            </div>
-          </>
-        )}
+                      ))}
+                    </div>
+                  </Card>
+                ) : (
+                  <Card>
+                    <p className="muted">{t('dashboard.noAnnouncements')}</p>
+                  </Card>
+                )}
+              </div>
+            </>
+          );
+        }}
       </ResourceView>
     </>
   );

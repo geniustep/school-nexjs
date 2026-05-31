@@ -11,3 +11,8 @@ export * from './attendance';
 export * from './channel';
 export * from './message';
 export * from './dashboard';
+export * from './attachment';
+export * from './homework';
+export * from './resource';
+export * from './exam';
+export * from './timetable';

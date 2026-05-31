@@ -1,24 +1,23 @@
 'use client';
 
-// Canonical UI states. Every data view composes these so loading / empty /
-// error / permission-denied / unauthenticated look consistent everywhere.
-
 import { useEffect } from 'react';
 import { authApi } from '@/lib/api/client';
+import { useT } from '@/features/i18n/locale-context';
 import type { ApiErrorBody } from '@/types/api';
 
-export function LoadingState({ label = 'Loading…' }: { label?: string }) {
+export function LoadingState({ label }: { label?: string }) {
+  const t = useT();
   return (
     <div className="state">
       <div className="spinner" />
-      <div className="muted">{label}</div>
+      <div className="muted">{label ?? t('common.loading')}</div>
     </div>
   );
 }
 
 export function EmptyState({
   icon = '—',
-  title = 'Nothing here yet',
+  title,
   description,
   action,
 }: {
@@ -27,63 +26,55 @@ export function EmptyState({
   description?: string;
   action?: React.ReactNode;
 }) {
+  const t = useT();
   return (
     <div className="state">
       <div className="state-icon state-icon--empty" aria-hidden="true">{icon}</div>
-      <div className="state__title">{title}</div>
+      <div className="state__title">{title ?? t('empty.default')}</div>
       {description && <div className="state__desc">{description}</div>}
       {action}
     </div>
   );
 }
 
-export function PermissionDeniedState({
-  description = 'You do not have access to this content. If you believe this is a mistake, contact your school administrator.',
-}: {
-  description?: string;
-}) {
+export function PermissionDeniedState({ description }: { description?: string }) {
+  const t = useT();
   return (
     <div className="state">
       <div className="state-icon state-icon--lock" aria-hidden="true">&#128274;</div>
-      <div className="state__title">Access restricted</div>
-      <div className="state__desc">{description}</div>
+      <div className="state__title">{t('errors.forbiddenTitle')}</div>
+      <div className="state__desc">{description ?? t('errors.forbidden')}</div>
     </div>
   );
 }
 
-export function NotFoundState({
-  description = "We couldn’t find what you were looking for.",
-}: {
-  description?: string;
-}) {
+export function NotFoundState({ description }: { description?: string }) {
+  const t = useT();
   return (
     <div className="state">
       <div className="state-icon state-icon--empty" aria-hidden="true">&#8709;</div>
-      <div className="state__title">Not found</div>
-      <div className="state__desc">{description}</div>
+      <div className="state__title">{t('errors.notFoundTitle')}</div>
+      <div className="state__desc">{description ?? t('errors.notFound')}</div>
     </div>
   );
 }
 
-/**
- * Session-expired handler. When the API reports `unauthenticated` we clear the
- * local session and bounce to login.
- */
 export function SessionExpiredState() {
+  const t = useT();
   useEffect(() => {
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       authApi.logout().finally(() => {
         window.location.href = '/login?expired=1';
       });
     }, 1200);
-    return () => clearTimeout(t);
+    return () => clearTimeout(timer);
   }, []);
 
   return (
     <div className="state">
       <div className="state-icon state-icon--session" aria-hidden="true">&#8987;</div>
-      <div className="state__title">Session expired</div>
-      <div className="state__desc">Your session has ended. Redirecting you to sign in…</div>
+      <div className="state__title">{t('errors.sessionExpired')}</div>
+      <div className="state__desc">{t('errors.sessionExpiredDesc')}</div>
     </div>
   );
 }
@@ -95,28 +86,25 @@ export function ErrorState({
   error: ApiErrorBody;
   onRetry?: () => void;
 }) {
+  const t = useT();
   return (
     <div className="state">
       <div className="state-icon state-icon--error" aria-hidden="true">!</div>
-      <div className="state__title">Something went wrong</div>
+      <div className="state__title">{t('errors.serverErrorTitle')}</div>
       <div className="state__desc">
         {error.message && !error.message.startsWith('Error:')
           ? error.message
-          : 'There was a problem loading this content. Please try again.'}
+          : t('errors.serverError')}
       </div>
       {onRetry && (
         <button className="btn btn--ghost btn--sm mt-2" onClick={onRetry}>
-          Try again
+          {t('common.retry')}
         </button>
       )}
     </div>
   );
 }
 
-/**
- * Dispatch the right state for an API error code. Returns null for codes that
- * the caller should handle as a normal error.
- */
 export function ApiErrorView({
   error,
   onRetry,

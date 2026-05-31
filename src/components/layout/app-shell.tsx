@@ -10,17 +10,13 @@ import { cn } from '@/lib/utils/cn';
 import { authApi } from '@/lib/api/client';
 import { navForUser } from '@/components/navigation/nav-config';
 import { Avatar } from '@/components/ui/primitives';
-import { ROLE_LABEL } from '@/lib/utils/labels';
+import { LocaleSwitcher } from '@/components/i18n/locale-switcher';
+import { useT } from '@/features/i18n/locale-context';
 import type { CurrentUser } from '@/types/user';
 import { isScopedAdmin, isSuperAdmin } from '@/lib/permissions/scope';
 
-function roleSubtitle(user: CurrentUser): string {
-  if (user.role === 'admin') {
-    if (isSuperAdmin(user)) return 'Full school access';
-    if (isScopedAdmin(user)) return 'Limited access';
-    return 'Administrator';
-  }
-  return ROLE_LABEL[user.role];
+function roleSubtitle(user: CurrentUser, t: (k: string) => string): string {
+  return t(`roles.${user.role}`);
 }
 
 function scopeDescription(user: CurrentUser): string | null {
@@ -54,6 +50,7 @@ export function AppShell({
   const [loggingOut, setLoggingOut] = useState(false);
   const sections = navForUser(user);
   const scopeDesc = scopeDescription(user);
+  const t = useT();
 
   async function logout() {
     setLoggingOut(true);
@@ -82,7 +79,9 @@ export function AppShell({
         <nav className="sidebar__nav">
           {sections.map((section, i) => (
             <div key={i}>
-              {section.title && <div className="nav-section-title">{section.title}</div>}
+              {section.titleKey && (
+                <div className="nav-section-title">{t(section.titleKey)}</div>
+              )}
               {section.items.map((item) => (
                 <Link
                   key={item.href}
@@ -91,7 +90,7 @@ export function AppShell({
                   onClick={() => setOpen(false)}
                 >
                   <span className="nav-link__icon" aria-hidden="true">{item.icon}</span>
-                  {item.label}
+                  {t(item.labelKey)}
                 </Link>
               ))}
             </div>
@@ -120,11 +119,12 @@ export function AppShell({
             <span className="topbar__title">{user.school?.name ?? 'Smart School'}</span>
           </div>
           <div className="topbar__right">
+            <LocaleSwitcher compact />
             <div className="user-chip">
               <Avatar name={user.name} />
               <div className="col" style={{ gap: 0 }}>
                 <span style={{ fontWeight: 600, fontSize: 13 }}>{user.name}</span>
-                <span className="tiny faint">{roleSubtitle(user)}</span>
+                <span className="tiny faint">{roleSubtitle(user, t)}</span>
               </div>
             </div>
             <button
@@ -132,7 +132,7 @@ export function AppShell({
               onClick={logout}
               disabled={loggingOut}
             >
-              {loggingOut ? '…' : 'Sign out'}
+              {loggingOut ? '…' : t('common.signOut')}
             </button>
           </div>
         </header>

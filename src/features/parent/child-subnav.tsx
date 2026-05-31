@@ -1,34 +1,38 @@
 'use client';
 
-// Tab strip shared across a child's pages (detail / student-view / attendance /
-// channels / announcements). All are read-only parent views.
-
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils/cn';
+import { useT } from '@/features/i18n/locale-context';
 
 export function ChildSubnav({ id }: { id: string }) {
+  const t = useT();
   const pathname = usePathname();
   const base = `/parent/children/${id}`;
   const tabs = [
-    { label: 'Overview', href: base },
-    { label: "Child's view", href: `${base}/student-view` },
-    { label: 'Attendance', href: `${base}/attendance` },
-    { label: 'Channels', href: `${base}/channels` },
-    { label: 'Announcements', href: `${base}/announcements` },
+    { labelKey: 'nav.overview', href: base },
+    { labelKey: 'nav.childView', href: `${base}/student-view` },
+    { labelKey: 'nav.attendance', href: `${base}/attendance` },
+    { labelKey: 'nav.homework', href: `${base}/homeworks` },
+    { labelKey: 'nav.resources', href: `${base}/resources` },
+    { labelKey: 'nav.exams', href: `${base}/exams` },
+    { labelKey: 'nav.results', href: `${base}/exam-results` },
+    { labelKey: 'nav.timetable', href: `${base}/timetable` },
+    { labelKey: 'nav.channels', href: `${base}/channels` },
+    { labelKey: 'nav.announcements', href: `${base}/announcements` },
   ];
   return (
-    <nav className="tabs" aria-label="Child sections">
-      {tabs.map((t) => {
-        const active = pathname === t.href;
+    <nav className="tabs" aria-label={t('nav.myChildren')}>
+      {tabs.map((tab) => {
+        const active = pathname === tab.href;
         return (
           <Link
-            key={t.href}
-            href={t.href}
+            key={tab.href}
+            href={tab.href}
             className={cn('tab', active && 'tab--active')}
             aria-current={active ? 'page' : undefined}
           >
-            {t.label}
+            {t(tab.labelKey)}
           </Link>
         );
       })}

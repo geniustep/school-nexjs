@@ -6,48 +6,50 @@ import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
 import { PageHeader, Card, SectionHead, Avatar } from '@/components/ui/primitives';
 import { AttendanceBadge } from '@/components/badges/attendance-badge';
+import { ChildAcademicActions } from '@/features/parent/child-academic-actions';
 import { useSession } from '@/features/auth/session-context';
+import { useFormat } from '@/features/i18n/use-format';
+import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
-import { formatDateTime } from '@/lib/utils/format';
 import type { ParentDashboard } from '@/types/dashboard';
 
 export default function ParentDashboardPage() {
   const user = useSession();
+  const t = useT();
+  const { formatDateTime } = useFormat();
   const state = useResource<ParentDashboard>(endpoints.parent.dashboard);
 
   return (
     <>
       <PageHeader
-        title={`Welcome, ${user.name}`}
-        subtitle="Your family overview"
+        title={t('dashboard.welcome', { name: user.name })}
+        subtitle={t('dashboard.parentSubtitle')}
       />
-      <ResourceView state={state} loadingLabel="Loading your dashboard…">
+      <ResourceView state={state} loadingLabel={t('common.loading')}>
         {(d) => (
           <>
-            {/* Children section */}
             <SectionHead
-              title="My children"
+              title={t('dashboard.myChildren')}
               action={
                 <Link className="btn btn--ghost btn--sm" href="/parent/children">
-                  View all
+                  {t('common.viewAll')}
                 </Link>
               }
             />
             {d.children?.length ? (
               <div className="grid grid--cards">
                 {d.children.map((c) => (
-                  <Link key={c.id} href={`/parent/children/${c.id}`}>
-                    <Card className="row-link">
-                      {/* Child identity */}
+                  <Card key={c.id}>
+                    <Link href={`/parent/children/${c.id}`} className="row-link">
                       <div className="row" style={{ gap: 12 }}>
                         <Avatar name={c.full_name} />
                         <div className="col" style={{ gap: 2, flex: 1 }}>
                           <strong style={{ fontSize: 14 }}>{c.full_name}</strong>
-                          <span className="tiny muted">{c.class?.name ?? 'No class assigned'}</span>
+                          <span className="tiny muted">
+                            {c.class?.name ?? t('dashboard.noClass')}
+                          </span>
                         </div>
                       </div>
-
-                      {/* Today's attendance */}
                       <div
                         className="between mt-4"
                         style={{
@@ -55,33 +57,39 @@ export default function ParentDashboardPage() {
                           borderBlockStart: '1px solid var(--c-border)',
                         }}
                       >
-                        <span className="tiny muted">Today's attendance</span>
+                        <span className="tiny muted">{t('dashboard.todayAttendance')}</span>
                         {c.today_attendance ? (
-                          <AttendanceBadge status={c.today_attendance} />
+                          <AttendanceBadge
+                            status={
+                              typeof c.today_attendance === 'string'
+                                ? c.today_attendance
+                                : c.today_attendance.status
+                            }
+                          />
                         ) : (
-                          <span className="tiny muted">Not recorded yet</span>
+                          <span className="tiny muted">{t('dashboard.notRecorded')}</span>
                         )}
                       </div>
-                    </Card>
-                  </Link>
+                    </Link>
+                    <ChildAcademicActions childId={String(c.id)} />
+                  </Card>
                 ))}
               </div>
             ) : (
               <EmptyState
                 icon="👧"
-                title="No children linked"
-                description="No children are linked to your account yet. Contact your school administrator."
+                title={t('empty.children')}
+                description={t('empty.children')}
               />
             )}
 
-            {/* Latest messages */}
             {d.latest_messages?.length ? (
               <div className="section">
                 <SectionHead
-                  title="Latest messages"
+                  title={t('dashboard.latestMessages')}
                   action={
                     <Link className="btn btn--ghost btn--sm" href="/parent/channels">
-                      All channels
+                      {t('dashboard.allChannels')}
                     </Link>
                   }
                 />

@@ -4,6 +4,8 @@ import type { Ref } from './api';
 import type { AttendanceSummary, AttendanceStatus } from './attendance';
 import type { Announcement } from './message';
 import type { ChildSummary } from './student';
+import type { ExamSummary } from './exam';
+import type { TimetableSlot } from './timetable';
 
 export interface LatestMessage {
   id: number;
@@ -26,17 +28,47 @@ export interface AdminDashboard {
 export interface TeacherDashboardClass {
   id: number;
   name: string;
+  level?: string | { id: number; name: string };
   student_count?: number;
   attendance_pending?: number;
 }
 
+export interface TeacherAttendancePending {
+  class_id: number;
+  class_name: string;
+  students: number;
+  recorded: number;
+  pending: number;
+}
+
 export interface TeacherDashboard {
   assigned_classes: TeacherDashboardClass[];
+  today_attendance_pending?: TeacherAttendancePending[];
   latest_messages: LatestMessage[];
+  published_homeworks?: number;
+  submissions_to_review?: number;
+  published_resources?: number;
+  today_slots_count?: number;
+  next_class?: TimetableSlot | null;
+  classes_today?: number;
+  upcoming_exams_count?: number;
+  next_exam?: ExamSummary | null;
+  exams_this_week?: number;
+  draft_exam_results_count?: number;
+  published_exam_results_count?: number;
+  exams_missing_results?: number;
 }
 
 export interface ParentChildDashboard extends ChildSummary {
-  today_attendance?: AttendanceStatus | null;
+  today_attendance?:
+    | AttendanceStatus
+    | { status: AttendanceStatus; recorded?: boolean }
+    | null;
+  pending_homeworks?: number;
+  unread_resources?: number;
+  upcoming_exams_count?: number;
+  next_exam?: ExamSummary | null;
+  latest_exam_result?: import('./exam').ExamResult | null;
 }
 
 export interface ParentDashboard {
@@ -56,8 +88,17 @@ export interface StudentProfileSummary {
 export interface StudentDashboard {
   profile: StudentProfileSummary;
   attendance_summary?: AttendanceSummary;
-  today_attendance?: AttendanceStatus | null;
+  today_attendance?:
+    | AttendanceStatus
+    | { status: AttendanceStatus; recorded?: boolean; date?: string }
+    | null;
   announcements: Announcement[];
+  latest_announcements?: Announcement[];
+  pending_homeworks?: number;
+  unread_resources?: number;
+  upcoming_exams_count?: number;
+  next_exam?: ExamSummary | null;
+  latest_exam_result?: import('./exam').ExamResult | null;
 }
 
 // Parent read-only child student-view — API_REPORT.md §5.

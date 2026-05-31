@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { LocaleProvider } from '@/features/i18n/locale-context';
 
 export const metadata: Metadata = {
   title: 'Smart School Connect',
@@ -7,11 +8,11 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  // dir is fixed to ltr for v1; the stylesheet uses logical properties so
-  // switching to rtl (Arabic) later only requires changing this attribute.
   return (
-    <html lang="en" dir="ltr">
-      <body>{children}</body>
+    <html lang="ar" dir="rtl" suppressHydrationWarning>
+      <body>
+        <LocaleProvider>{children}</LocaleProvider>
+      </body>
     </html>
   );
 }

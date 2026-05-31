@@ -56,3 +56,40 @@ export function titleCase(s: string): string {
     .replace(/[_-]+/g, ' ')
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
+
+/** Workflow states shared by homework, resources, exams, submissions, results. */
+type WorkflowTone = 'green' | 'red' | 'amber' | 'blue' | 'slate';
+
+export const WORKFLOW_LABEL: Record<string, string> = {
+  draft: 'مسودة',
+  published: 'منشور',
+  closed: 'مغلق',
+  done: 'منتهٍ',
+  cancelled: 'ملغى',
+  archived: 'مؤرشف',
+  submitted: 'مُسلَّم',
+  reviewed: 'مُراجع',
+  active: 'نشط',
+};
+
+export const WORKFLOW_TONE: Record<string, WorkflowTone> = {
+  draft: 'slate',
+  published: 'green',
+  closed: 'amber',
+  done: 'green',
+  cancelled: 'red',
+  archived: 'slate',
+  submitted: 'blue',
+  reviewed: 'green',
+  active: 'green',
+};
+
+export function workflowLabel(state: string | null | undefined): string {
+  if (!state) return '—';
+  return WORKFLOW_LABEL[state] ?? titleCase(state);
+}
+
+export function workflowTone(state: string | null | undefined): WorkflowTone {
+  if (!state) return 'slate';
+  return WORKFLOW_TONE[state] ?? 'slate';
+}

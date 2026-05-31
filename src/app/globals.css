@@ -956,6 +956,110 @@ table.data tbody tr:hover {
 .dl dt { color: var(--c-text-muted); }
 .dl dd { margin: 0; font-weight: 500; }
 
+.class-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block-start: 12px;
+}
+.class-actions__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.attachment-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.attachment-list__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--c-surface-2);
+  border-radius: var(--radius-sm);
+}
+.attachment-list__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.attachment-list__name {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.input--sm {
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+.result-edit {
+  align-items: center;
+}
+
+.locale-switcher {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.locale-switcher--compact .locale-switcher__select {
+  font-size: 12px;
+  padding: 4px 8px;
+  max-width: 120px;
+}
+
+.timetable-slot__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-block-start: 8px;
+  font-size: 13px;
+  color: var(--c-text-muted);
+}
+
+.timetable-slot--current {
+  border-color: var(--c-green);
+  background: var(--c-green-soft);
+}
+
+.timetable-slot--next {
+  border-color: var(--c-blue);
+  background: var(--c-blue-soft);
+}
+
+.timetable-day {
+  margin-block-end: 20px;
+}
+
+.timetable-day__title {
+  font-size: 15px;
+  margin-block: 0 10px;
+  color: var(--c-text);
+}
+
+.timetable-day__slots {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.timetable-week {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .back-link {
   display: inline-flex;
   align-items: center;
