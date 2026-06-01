@@ -14,6 +14,8 @@ export interface NavItem {
   labelKey: string;
   href: string;
   icon: string;
+  /** Optional custom active matcher; defaults to href prefix match. */
+  isActive?: (pathname: string) => boolean;
 }
 
 export interface NavSection {
@@ -77,6 +79,36 @@ function teacherNav(): NavSection[] {
         { labelKey: 'nav.myClasses', href: '/teacher/classes', icon: '🏫' },
         { labelKey: 'nav.attendance', href: '/teacher/attendance', icon: '🗓️' },
         { labelKey: 'nav.timetable', href: '/teacher/timetable', icon: '📅' },
+      ],
+    },
+    {
+      titleKey: 'nav.content',
+      items: [
+        { labelKey: 'nav.homework', href: '/teacher/homeworks', icon: '📝' },
+        { labelKey: 'nav.teacherResources', href: '/teacher/resources', icon: '📚' },
+      ],
+    },
+    {
+      titleKey: 'nav.assessment',
+      items: [
+        {
+          labelKey: 'nav.exams',
+          href: '/teacher/exams',
+          icon: '📋',
+          isActive: (pathname) =>
+            pathname === '/teacher/exams' ||
+            (pathname.startsWith('/teacher/exams/') && !pathname.endsWith('/results')),
+        },
+        {
+          labelKey: 'nav.results',
+          href: '/teacher/exam-results',
+          icon: '📊',
+          isActive: (pathname) =>
+            pathname === '/teacher/exam-results' ||
+            pathname.startsWith('/teacher/exam-results/') ||
+            /\/teacher\/exams\/\d+\/results/.test(pathname),
+        },
+        { labelKey: 'nav.submissions', href: '/teacher/submissions', icon: '📥' },
       ],
     },
     {

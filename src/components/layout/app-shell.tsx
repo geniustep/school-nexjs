@@ -58,7 +58,8 @@ export function AppShell({
     router.replace('/login');
   }
 
-  function isActive(href: string): boolean {
+  function linkActive(href: string, item?: { isActive?: (pathname: string) => boolean }): boolean {
+    if (item?.isActive) return item.isActive(pathname);
     return pathname === href || pathname.startsWith(href + '/');
   }
 
@@ -86,7 +87,7 @@ export function AppShell({
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={cn('nav-link', isActive(item.href) && 'nav-link--active')}
+                  className={cn('nav-link', linkActive(item.href, item) && 'nav-link--active')}
                   onClick={() => setOpen(false)}
                 >
                   <span className="nav-link__icon" aria-hidden="true">{item.icon}</span>
