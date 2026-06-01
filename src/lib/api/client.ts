@@ -73,6 +73,28 @@ export const api = {
       };
     }
   },
+
+  /** Multipart upload — do not set Content-Type; the browser adds the boundary. */
+  async uploadForm<T>(path: string, formData: FormData): Promise<ApiResponse<T>> {
+    try {
+      const res = await fetch(buildUrl(path), {
+        method: 'POST',
+        headers: { Accept: 'application/json' },
+        body: formData,
+      });
+      return parse<T>(res);
+    } catch {
+      return {
+        success: false,
+        error: {
+          code: 'network_error',
+          message: 'Could not reach the server. Please check your connection.',
+          details: {},
+        },
+        meta: {},
+      };
+    }
+  },
 };
 
 // Auth helpers (talk to the dedicated BFF auth routes, not the proxy).

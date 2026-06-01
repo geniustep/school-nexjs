@@ -7,3 +7,8 @@ export interface AttachmentMeta {
   size?: number | null;
   download_url?: string | null;
 }
+
+export interface HomeworkAttachmentsUploadData {
+  homework_id: number;
+  attachments: AttachmentMeta[];
+}

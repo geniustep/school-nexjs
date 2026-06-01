@@ -6,11 +6,20 @@ import { useResource } from '@/lib/hooks/use-resource';
 import { ResourceView } from '@/components/states/resource';
 import { AttachmentList } from '@/components/attachments/attachment-list';
 import { WorkflowBadge } from '@/components/badges/workflow-badge';
-import { PageHeader, Card, DefinitionList } from '@/components/ui/primitives';
+import { ConfirmActionButton } from '@/features/admin/confirm-action-button';
+import { PageHeader, Card, DefinitionList, InfoBanner } from '@/components/ui/primitives';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import type { ResourceDetail } from '@/types/resource';
+
+const FILE_TYPES = new Set(['pdf', 'image', 'document']);
+
+function isMetadataOnlyResource(r: ResourceDetail): boolean {
+  if (r.resource_type === 'link' || r.url) return false;
+  if (!r.resource_type || !FILE_TYPES.has(r.resource_type)) return false;
+  return !r.attachments?.length && !(r.attachment_count && r.attachment_count > 0);
+}
 
 export default function ResourceDetailPage({
   params,
@@ -37,7 +46,28 @@ export default function ResourceDetailPage({
       <ResourceView state={state} loadingLabel={t('common.loading')}>
         {(r) => (
           <>
-            <PageHeader title={r.name} subtitle={r.class?.name} />
+            <PageHeader
+              title={r.name}
+              subtitle={r.class?.name}
+              actions={
+                r.state === 'draft' ? (
+                  <ConfirmActionButton
+                    label={t('teacher.publishResource')}
+                    confirmMessage={t('teacher.confirmPublishResource')}
+                    path={endpoints.teacher.resourcePublish(id)}
+                    variant="primary"
+                    onSuccess={() => state.reload()}
+                  />
+                ) : undefined
+              }
+            />
+            {isMetadataOnlyResource(r) && (
+              <InfoBanner
+                tone="amber"
+                title={t('teacher.resourceMetadataOnlyTitle')}
+                description={t('teacher.resourceMetadataOnlyDesc')}
+              />
+            )}
             <Card>
               <DefinitionList
                 items={[

@@ -6,12 +6,14 @@ import { api } from '@/lib/api/client';
 import { useResource } from '@/lib/hooks/use-resource';
 import { ResourceView } from '@/components/states/resource';
 import { AttachmentList } from '@/components/attachments/attachment-list';
+import { TeacherHomeworkAttachmentsUpload } from '@/features/teacher/teacher-homework-attachments-upload';
 import { WorkflowBadge } from '@/components/badges/workflow-badge';
 import { PageHeader, Card, DefinitionList, InfoBanner } from '@/components/ui/primitives';
 import { useToast } from '@/components/ui/toast';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
+import { stripHtml } from '@/lib/utils/format';
 import type { HomeworkDetail } from '@/types/homework';
 
 export default function HomeworkDetailPage({
@@ -94,7 +96,7 @@ export default function HomeworkDetailPage({
                     className="btn btn--ghost btn--sm"
                     href={`/teacher/homeworks/${id}/submissions`}
                   >
-                    {t('academic.homeworkSubmissions')}
+                    {t('academic.viewSubmissions')}
                   </Link>
                 </div>
               }
@@ -120,20 +122,29 @@ export default function HomeworkDetailPage({
                 <div className="mt-2">
                   <h3 style={{ fontSize: 14, marginBottom: 6 }}>{t('academic.description')}</h3>
                   <p className="muted" style={{ whiteSpace: 'pre-wrap' }}>
-                    {hw.description}
+                    {stripHtml(hw.description)}
                   </p>
                 </div>
               )}
             </Card>
 
-            {hw.attachments && hw.attachments.length > 0 && (
-              <div className="section">
-                <h2 style={{ fontSize: 15, marginBottom: 8 }}>{t('academic.attachments')}</h2>
-                <Card>
+            <div className="section">
+              <h2 style={{ fontSize: 15, marginBottom: 8 }}>{t('teacher.homeworkAttachments')}</h2>
+              <Card>
+                {hw.attachments && hw.attachments.length > 0 ? (
                   <AttachmentList attachments={hw.attachments} />
-                </Card>
-              </div>
-            )}
+                ) : (
+                  <p className="tiny muted">{t('teacher.noAttachmentsYet')}</p>
+                )}
+                {hw.state !== 'closed' && (
+                  <TeacherHomeworkAttachmentsUpload
+                    homeworkId={hw.id}
+                    existingCount={hw.attachments?.length ?? 0}
+                    onUploaded={() => state.reload()}
+                  />
+                )}
+              </Card>
+            </div>
 
             {hw.state === 'closed' && (
               <InfoBanner

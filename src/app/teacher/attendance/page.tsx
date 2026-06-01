@@ -7,12 +7,14 @@ import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
 import { PageHeader, Card } from '@/components/ui/primitives';
 import { AttendanceBatch } from '@/features/attendance/attendance-batch';
+import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import type { SchoolClass } from '@/types/class';
 
 type TeacherClass = Partial<SchoolClass> & { id: number; name: string };
 
 function AttendanceInner() {
+  const t = useT();
   const params = useSearchParams();
   const preset = params.get('class');
   const [selected, setSelected] = useState<string>(preset ?? '');
@@ -20,12 +22,18 @@ function AttendanceInner() {
 
   return (
     <>
-      <PageHeader title="Attendance" subtitle="Record attendance for your classes" />
+      <PageHeader title={t('attendance.title')} subtitle={t('attendance.subtitle')} />
       <ResourceView
         state={state}
-        loadingLabel="Loading your classes…"
+        loadingLabel={t('attendance.loadingClasses')}
         isEmpty={(d) => d.length === 0}
-        empty={<EmptyState icon="🏫" title="No assigned classes" description="You have no classes to record." />}
+        empty={
+          <EmptyState
+            icon="🏫"
+            title={t('attendance.noClasses')}
+            description={t('attendance.noClassesDesc')}
+          />
+        }
       >
         {(classes) => {
           const current = selected || String(classes[0]?.id ?? '');
@@ -33,7 +41,7 @@ function AttendanceInner() {
             <>
               <div className="toolbar">
                 <label className="row tiny" style={{ gap: 6 }}>
-                  <span className="muted">Class</span>
+                  <span className="muted">{t('attendance.classLabel')}</span>
                   <select
                     className="select"
                     value={current}
@@ -51,7 +59,7 @@ function AttendanceInner() {
                 <AttendanceBatch key={current} classId={Number(current)} />
               ) : (
                 <Card>
-                  <p className="muted">Select a class to begin.</p>
+                  <p className="muted">{t('attendance.selectClass')}</p>
                 </Card>
               )}
             </>

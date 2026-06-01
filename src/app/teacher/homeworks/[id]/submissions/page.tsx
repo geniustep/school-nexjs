@@ -7,7 +7,7 @@ import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
 import { AttachmentList } from '@/components/attachments/attachment-list';
 import { WorkflowBadge } from '@/components/badges/workflow-badge';
-import { PageHeader, Card } from '@/components/ui/primitives';
+import { PageHeader, Card, InfoBanner } from '@/components/ui/primitives';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
@@ -30,6 +30,11 @@ export default function HomeworkSubmissionsPage({
         ‹ {t('academic.homeworkDetail')}
       </Link>
       <PageHeader title={t('academic.homeworkSubmissions')} subtitle={`#${id}`} />
+      <InfoBanner
+        tone="blue"
+        title={t('academic.submissionsReadOnlyTitle')}
+        description={t('academic.submissionsReadOnlyDesc')}
+      />
       <ResourceView
         state={state}
         loadingLabel={t('common.loading')}

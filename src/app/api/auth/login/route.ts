@@ -5,7 +5,7 @@
 // browser never sees or handles it directly.
 
 import { NextResponse } from 'next/server';
-import { config, isProd } from '@/lib/config';
+import { config, cookieSecure } from '@/lib/config';
 import { authenticateOdoo, odooApiFetch } from '@/lib/api/odoo-server';
 import { endpoints } from '@/lib/api/endpoints';
 import type { MeResponse } from '@/types/user';
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
   const response = NextResponse.json(me.body, { status: 200 });
   response.cookies.set(config.sessionCookieName, auth.sessionId, {
     httpOnly: true,
-    secure: isProd(),
+    secure: cookieSecure(),
     sameSite: 'lax',
     path: '/',
     // Mirror Odoo's typical 7-day inactivity window.

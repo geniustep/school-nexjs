@@ -6,7 +6,7 @@ import { api } from '@/lib/api/client';
 import { useResource } from '@/lib/hooks/use-resource';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState, LoadingState } from '@/components/states/states';
-import { PageHeader, Card } from '@/components/ui/primitives';
+import { PageHeader, Card, InfoBanner } from '@/components/ui/primitives';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import type { SchoolClass } from '@/types/class';
@@ -66,8 +66,13 @@ export default function TeacherSubmissionsPage() {
   return (
     <>
       <PageHeader
-        title={t('academic.reviewSubmissionsPage')}
-        subtitle={t('academic.reviewSubmissionsDesc')}
+        title={t('academic.viewSubmissionsPage')}
+        subtitle={t('academic.viewSubmissionsDesc')}
+      />
+      <InfoBanner
+        tone="blue"
+        title={t('academic.submissionsReadOnlyTitle')}
+        description={t('academic.submissionsReadOnlyDesc')}
       />
       <ResourceView
         state={classesState}

@@ -12,9 +12,9 @@ import { api } from '@/lib/api/client';
 import { ResourceView } from '@/components/states/resource';
 import { useResource } from '@/lib/hooks/use-resource';
 import { useToast } from '@/components/ui/toast';
+import { useT } from '@/features/i18n/locale-context';
 import { Card } from '@/components/ui/primitives';
 import { endpoints } from '@/lib/api/endpoints';
-import { ATTENDANCE_LABEL } from '@/lib/utils/labels';
 import { isoDate } from '@/lib/utils/format';
 import { cn } from '@/lib/utils/cn';
 import type {
@@ -78,6 +78,7 @@ function isTeacherTodayOnly(error: { code: string; message?: string; details?: R
 }
 
 export function AttendanceBatch({ classId }: { classId: number }) {
+  const t = useT();
   const toast = useToast();
   const today = isoDate();
   const [date, setDate] = useState(today);
@@ -111,12 +112,15 @@ export function AttendanceBatch({ classId }: { classId: number }) {
     setRoster((rows) => rows.map((r) => ({ ...r, status })));
   }
 
+  function statusLabel(status: AttendanceStatus): string {
+    const key = status === 'left_early' ? 'leftEarly' : status;
+    return t(`attendance.${key}`);
+  }
+
   async function submit() {
     const invalidRows = roster.filter((r) => !r.student_id);
     if (invalidRows.length > 0) {
-      toast.error(
-        `${invalidRows.length} student(s) have no valid ID and cannot be saved. Please reload.`,
-      );
+      toast.error(t('attendance.invalidStudentIds'));
       return;
     }
     setSubmitting(true);
@@ -135,36 +139,36 @@ export function AttendanceBatch({ classId }: { classId: number }) {
 
     if (!res.success) {
       if (res.error.code === 'permission_denied') {
-        toast.error('You can only record attendance for your assigned classes.');
+        toast.error(t('attendance.permissionDenied'));
       } else if (isTeacherTodayOnly(res.error)) {
-        toast.error(
-          'Attendance can only be recorded for today. Contact an admin to correct past records.',
-        );
+        toast.error(t('attendance.todayOnlyError'));
       } else {
-        toast.error(res.error.message || 'Could not save attendance.');
+        toast.error(res.error.message || t('attendance.saveFailed'));
       }
       return;
     }
 
     const { saved, failed, errors } = res.data;
     if (failed > 0) {
-      toast.error(`Saved ${saved}, but ${failed} could not be saved.`);
-      errors.slice(0, 2).forEach((e) => toast.error(`Student ${e.student_id}: ${e.error}`));
+      toast.error(t('attendance.partialSave', { saved, failed }));
+      errors.slice(0, 2).forEach((e) =>
+        toast.error(t('attendance.studentError', { id: e.student_id, error: e.error })),
+      );
     } else {
-      toast.success(`Attendance saved for ${saved} student${saved === 1 ? '' : 's'}.`);
+      toast.success(t('attendance.saveSuccess', { count: saved }));
     }
     setTouched(false);
     state.reload();
   }
 
   return (
-    <ResourceView state={state} loadingLabel="Loading roster…">
+    <ResourceView state={state} loadingLabel={t('attendance.loadingRoster')}>
       {() => (
         <>
           {/* Toolbar: date picker (today only) + mark-all quick actions */}
           <div className="toolbar">
             <label className="row tiny" style={{ gap: 6 }}>
-              <span className="muted">Date</span>
+              <span className="muted">{t('attendance.dateLabel')}</span>
               {/* Policy: teachers record attendance for today only. The picker
                   is locked to today (min === max); past/future are disabled. */}
               <input
@@ -174,27 +178,27 @@ export function AttendanceBatch({ classId }: { classId: number }) {
                 min={today}
                 max={today}
                 onChange={(e) => setDate(e.target.value)}
-                title="Attendance can only be recorded for today"
+                title={t('attendance.todayOnlyTitle')}
               />
-              <span className="tiny muted">Today only</span>
+              <span className="tiny muted">{t('attendance.todayOnly')}</span>
             </label>
             <span className="spacer" />
             {/* Safe default only: everyone is present unless marked otherwise.
                 No "mark all absent/late/left early" shortcut by design. */}
-            <span className="tiny muted">Everyone present by default —</span>
+            <span className="tiny muted">{t('attendance.defaultPresent')}</span>
             <button
               className={cn('btn btn--sm', STATUS_BTN.present)}
               onClick={() => setAll('present')}
               type="button"
-              title="Set every student to Present, then mark exceptions"
+              title={t('attendance.markAllPresentTitle')}
             >
-              Mark all present
+              {t('attendance.markAllPresent')}
             </button>
           </div>
 
           {roster.length === 0 ? (
             <Card>
-              <p className="muted">No students to record for this class.</p>
+              <p className="muted">{t('attendance.noStudents')}</p>
             </Card>
           ) : (
             <>
@@ -202,7 +206,7 @@ export function AttendanceBatch({ classId }: { classId: number }) {
               <div className="wrap-gap" style={{ marginBlockEnd: 12 }}>
                 {STATUSES.map((s) => (
                   <span key={s} className="tiny muted">
-                    {ATTENDANCE_LABEL[s]}: <strong>{counts[s] ?? 0}</strong>
+                    {statusLabel(s)}: <strong>{counts[s] ?? 0}</strong>
                   </span>
                 ))}
               </div>
@@ -212,9 +216,9 @@ export function AttendanceBatch({ classId }: { classId: number }) {
                 <table className="data">
                   <thead>
                     <tr>
-                      <th>Student</th>
-                      <th style={{ width: 340 }}>Attendance status</th>
-                      <th>Note</th>
+                      <th>{t('attendance.student')}</th>
+                      <th style={{ width: 340 }}>{t('attendance.statusColumn')}</th>
+                      <th>{t('attendance.note')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -236,7 +240,7 @@ export function AttendanceBatch({ classId }: { classId: number }) {
                                 )}
                                 onClick={() => setStatus(r.student_id, s)}
                               >
-                                {ATTENDANCE_LABEL[s]}
+                                {statusLabel(s)}
                               </button>
                             ))}
                           </div>
@@ -244,7 +248,7 @@ export function AttendanceBatch({ classId }: { classId: number }) {
                         <td>
                           <input
                             className="input"
-                            placeholder="Optional note"
+                            placeholder={t('attendance.optionalNote')}
                             value={r.note}
                             onChange={(e) => {
                               setTouched(true);
@@ -268,9 +272,9 @@ export function AttendanceBatch({ classId }: { classId: number }) {
               <div className={cn('save-bar', touched && 'save-bar--dirty')}>
                 <span className="save-bar__status">
                   {touched ? (
-                    <>&#9679; Unsaved changes — remember to save</>
+                    <>{t('attendance.unsavedChanges')}</>
                   ) : (
-                    <>&#10003; All changes saved</>
+                    <>{t('attendance.allSaved')}</>
                   )}
                 </span>
                 <button
@@ -278,7 +282,7 @@ export function AttendanceBatch({ classId }: { classId: number }) {
                   onClick={submit}
                   disabled={submitting || roster.length === 0}
                 >
-                  {submitting ? 'Saving…' : 'Save attendance'}
+                  {submitting ? t('common.saving') : t('attendance.saveAttendance')}
                 </button>
               </div>
             </>

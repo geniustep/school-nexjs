@@ -29,6 +29,21 @@ export function isoDate(d: Date = new Date()): string {
   return d.toISOString().slice(0, 10);
 }
 
+/** Strip HTML tags for plain-text display (e.g. Odoo rich-text descriptions). */
+export function stripHtml(value: string | null | undefined): string {
+  if (!value) return '';
+  return value
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 export function initials(name: string | null | undefined): string {
   if (!name) return '?';
   const parts = name.trim().split(/\s+/).slice(0, 2);

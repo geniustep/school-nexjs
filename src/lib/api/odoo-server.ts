@@ -78,6 +78,8 @@ export interface OdooFetchOptions {
   sessionId: string | null;
   query?: Record<string, string | number | undefined>;
   body?: unknown;
+  /** When set, body is forwarded as multipart/form-data (Content-Type with boundary is auto-set). */
+  formData?: FormData;
 }
 
 function buildQuery(query?: Record<string, string | number | undefined>): string {
@@ -144,18 +146,27 @@ export async function odooApiFetch<T = unknown>(
 
   let res: Response;
   try {
-    res = await fetch(url, {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-        Cookie: `session_id=${opts.sessionId}`,
-      },
-      cache: 'no-store',
-      body:
-        method === 'GET' || method === 'HEAD' || opts.body === undefined
-          ? undefined
-          : JSON.stringify(opts.body),
-    });
+    if (opts.formData) {
+      res = await fetch(url, {
+        method,
+        headers: { Cookie: `session_id=${opts.sessionId}` },
+        cache: 'no-store',
+        body: opts.formData,
+      });
+    } else {
+      res = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: `session_id=${opts.sessionId}`,
+        },
+        cache: 'no-store',
+        body:
+          method === 'GET' || method === 'HEAD' || opts.body === undefined
+            ? undefined
+            : JSON.stringify(opts.body),
+      });
+    }
   } catch {
     return {
       kind: 'json',

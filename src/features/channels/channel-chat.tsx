@@ -11,6 +11,7 @@ import { ResourceView } from '@/components/states/resource';
 import { ApiErrorView, EmptyState, LoadingState } from '@/components/states/states';
 import { Badge } from '@/components/ui/primitives';
 import { useToast } from '@/components/ui/toast';
+import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { CHANNEL_TYPE_LABEL } from '@/lib/utils/labels';
 import { formatDateTime } from '@/lib/utils/format';
@@ -27,6 +28,7 @@ export function ChannelChat({
   channelId: number;
   forceReadOnly?: boolean;
 }) {
+  const t = useT();
   const toast = useToast();
   const channelState = useResource<Channel>(endpoints.channels.detail(channelId));
 
@@ -57,8 +59,8 @@ export function ChannelChat({
 
   useEffect(() => {
     loadMessages(true);
-    const t = setInterval(() => loadMessages(false), POLL_MS);
-    return () => clearInterval(t);
+    const timer = setInterval(() => loadMessages(false), POLL_MS);
+    return () => clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [channelId]);
 
@@ -75,20 +77,19 @@ export function ChannelChat({
       setBody('');
       await loadMessages(true);
     } else if (res.error.code === 'permission_denied') {
-      toast.error('You cannot send messages in this channel.');
+      toast.error(t('channels.permissionDenied'));
     } else {
-      toast.error(res.error.message || 'Could not send your message.');
+      toast.error(res.error.message || t('channels.sendFailed'));
     }
   }
 
   return (
-    <ResourceView state={channelState} loadingLabel="Loading channel…">
+    <ResourceView state={channelState} loadingLabel={t('channels.loadingChannel')}>
       {(channel) => {
         const canSend = !forceReadOnly && channel.can_send;
         const typeLabel = CHANNEL_TYPE_LABEL[channel.type] ?? channel.type;
         return (
           <div className="card chat" style={{ padding: 0 }}>
-            {/* Channel header */}
             <div
               className="card--pad between"
               style={{ borderBottom: '1px solid var(--c-border)' }}
@@ -96,34 +97,37 @@ export function ChannelChat({
               <div>
                 <div className="row" style={{ gap: 8, marginBlockEnd: 6 }}>
                   <strong style={{ fontSize: 15 }}>{channel.name}</strong>
-                  {!canSend && <Badge tone="amber">Read-only</Badge>}
+                  {!canSend && <Badge tone="amber">{t('channels.readOnly')}</Badge>}
                 </div>
                 <div className="wrap-gap">
                   <Badge tone="slate">{typeLabel}</Badge>
                 </div>
               </div>
-              <span className="tiny faint">{channel.member_count} members</span>
+              <span className="tiny faint">
+                {channel.member_count} {t('channels.members')}
+              </span>
             </div>
 
-            {/* Messages */}
             <div className="chat__messages" ref={scrollRef}>
               {loadingMsgs ? (
-                <LoadingState label="Loading messages…" />
+                <LoadingState label={t('channels.loadingMessages')} />
               ) : msgError ? (
                 <ApiErrorView error={msgError} onRetry={() => loadMessages(false)} />
               ) : messages.length === 0 ? (
                 <EmptyState
                   icon="✉"
-                  title="No messages yet"
-                  description={canSend ? 'Be the first to post a message.' : 'No messages in this channel yet.'}
+                  title={t('channels.noMessagesTitle')}
+                  description={
+                    canSend ? t('channels.noMessagesCanSend') : t('channels.noMessagesReadOnly')
+                  }
                 />
               ) : (
                 messages.map((m) => (
                   <div className="msg" key={m.id}>
                     <div className="msg__meta">
                       <span className="msg__sender">{m.sender.name}</span>
-                      {m.is_important && <Badge tone="red">Important</Badge>}
-                      {m.is_pinned && <Badge tone="amber">Pinned</Badge>}
+                      {m.is_important && <Badge tone="red">{t('channels.important')}</Badge>}
+                      {m.is_pinned && <Badge tone="amber">{t('channels.pinned')}</Badge>}
                       <span className="msg__time">{formatDateTime(m.created_at)}</span>
                     </div>
                     <div className="msg__body">{m.body}</div>
@@ -132,13 +136,12 @@ export function ChannelChat({
               )}
             </div>
 
-            {/* Composer — shown only when can_send is true */}
             {canSend ? (
               <form className="chat__composer" onSubmit={send}>
                 <textarea
                   className="textarea"
                   rows={2}
-                  placeholder="Write a message…"
+                  placeholder={t('channels.writeMessage')}
                   value={body}
                   onChange={(e) => setBody(e.target.value)}
                   onKeyDown={(e) => {
@@ -153,15 +156,13 @@ export function ChannelChat({
                   type="submit"
                   disabled={sending || !body.trim()}
                 >
-                  {sending ? 'Sending…' : 'Send'}
+                  {sending ? t('channels.sending') : t('channels.send')}
                 </button>
               </form>
             ) : (
               <div className="chat__readonly">
                 <span className="chat__readonly-icon" aria-hidden="true">&#128274;</span>
-                {forceReadOnly
-                  ? 'You are viewing this channel as a parent. Messages cannot be sent from here.'
-                  : 'This channel is read-only. You cannot send messages here.'}
+                {forceReadOnly ? t('channels.parentReadOnly') : t('channels.readOnlyChannel')}
               </div>
             )}
           </div>

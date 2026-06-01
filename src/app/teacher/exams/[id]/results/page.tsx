@@ -9,6 +9,7 @@ import { EmptyState } from '@/components/states/states';
 import { WorkflowBadge } from '@/components/badges/workflow-badge';
 import { DataTable, type Column } from '@/components/tables/data-table';
 import { PageHeader, Card, InfoBanner } from '@/components/ui/primitives';
+import { InitExamResultsButton } from '@/features/teacher/init-exam-results-button';
 import { useToast } from '@/components/ui/toast';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
@@ -164,7 +165,14 @@ export default function ExamResultsPage({
         loadingLabel={t('common.loading')}
         isEmpty={(d) => d.length === 0}
         empty={
-          <EmptyState icon="📊" title={t('empty.results')} description={t('empty.results')} />
+          <EmptyState
+            icon="📊"
+            title={t('empty.results')}
+            description={t('teacher.initResultsHint')}
+            action={
+              <InitExamResultsButton examId={id} onSuccess={() => state.reload()} />
+            }
+          />
         }
       >
         {(rows) => (

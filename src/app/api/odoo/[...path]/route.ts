@@ -35,12 +35,18 @@ async function handle(request: NextRequest, segments: string[]) {
   });
 
   let body: unknown;
+  let formData: FormData | undefined;
   const method = request.method.toUpperCase();
+  const contentType = request.headers.get('content-type') ?? '';
   if (method !== 'GET' && method !== 'HEAD') {
-    try {
-      body = await request.json();
-    } catch {
-      body = undefined;
+    if (contentType.includes('multipart/form-data')) {
+      formData = await request.formData();
+    } else {
+      try {
+        body = await request.json();
+      } catch {
+        body = undefined;
+      }
     }
   }
 
@@ -49,6 +55,7 @@ async function handle(request: NextRequest, segments: string[]) {
     sessionId,
     query,
     body,
+    formData,
   });
 
   if (result.kind === 'file') {

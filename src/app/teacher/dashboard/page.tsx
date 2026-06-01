@@ -49,7 +49,7 @@ export default function TeacherDashboardPage() {
                   icon="📝"
                 />
                 <StatCard
-                  label={t('dashboard.submissionsToReview')}
+                  label={t('dashboard.submissionsNew')}
                   value={d.submissions_to_review ?? 0}
                   icon="📥"
                   tone={(d.submissions_to_review ?? 0) > 0 ? 'amber' : 'none'}
@@ -94,7 +94,7 @@ export default function TeacherDashboardPage() {
                 </Link>
                 {(d.submissions_to_review ?? 0) > 0 && (
                   <Link className="btn btn--primary btn--sm" href="/teacher/submissions">
-                    {t('dashboard.reviewSubmissions', { count: d.submissions_to_review ?? 0 })}
+                    {t('dashboard.viewSubmissions', { count: d.submissions_to_review ?? 0 })}
                   </Link>
                 )}
                 {(d.draft_exam_results_count ?? 0) > 0 && (

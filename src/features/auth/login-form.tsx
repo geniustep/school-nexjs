@@ -6,16 +6,10 @@ import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { authApi } from '@/lib/api/client';
 import { homeForRole } from '@/lib/routes/role-routes';
-
-const FRIENDLY_ERROR: Record<string, string> = {
-  invalid_credentials: 'The login or password is incorrect.',
-  inactive_user: 'This account is disabled. Please contact your school.',
-  unsupported_role: 'This account does not have a school role assigned.',
-  validation_error: 'Please enter both your login and password.',
-  network_error: 'Could not reach the server. Please try again.',
-};
+import { useT } from '@/features/i18n/locale-context';
 
 export function LoginForm() {
+  const t = useT();
   const router = useRouter();
   const params = useSearchParams();
   const expired = params.get('expired') === '1';
@@ -24,6 +18,14 @@ export function LoginForm() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  const friendlyError: Record<string, string> = {
+    invalid_credentials: t('auth.invalidCredentials'),
+    inactive_user: t('auth.inactiveUser'),
+    unsupported_role: t('auth.unsupportedRole'),
+    validation_error: t('auth.validationError'),
+    network_error: t('auth.networkError'),
+  };
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -36,7 +38,7 @@ export function LoginForm() {
       router.refresh();
       return;
     }
-    setError(FRIENDLY_ERROR[res.error.code] ?? res.error.message ?? 'Sign-in failed.');
+    setError(friendlyError[res.error.code] ?? res.error.message ?? t('auth.signInFailed'));
     setSubmitting(false);
   }
 
@@ -45,21 +47,21 @@ export function LoginForm() {
       <div className="login-card">
         <div className="login-card__brand">
           <span className="brand-mark">S</span>
-          <strong>Smart School Connect</strong>
+          <strong>{t('auth.brand')}</strong>
         </div>
-        <h1>Welcome back</h1>
-        <p className="sub">Sign in to your school account</p>
+        <h1>{t('auth.welcome')}</h1>
+        <p className="sub">{t('auth.subtitle')}</p>
 
         {expired && (
           <div className="form-error" style={{ background: 'var(--c-amber-soft)', color: 'var(--c-amber)' }}>
-            Your session has expired. Please sign in again.
+            {t('auth.sessionExpired')}
           </div>
         )}
         {error && <div className="form-error">{error}</div>}
 
         <form onSubmit={onSubmit}>
           <div className="field">
-            <label htmlFor="login">Login</label>
+            <label htmlFor="login">{t('auth.loginLabel')}</label>
             <input
               id="login"
               className="input"
@@ -67,12 +69,12 @@ export function LoginForm() {
               autoComplete="username"
               value={login}
               onChange={(e) => setLogin(e.target.value)}
-              placeholder="you@school.ma"
+              placeholder={t('auth.loginPlaceholder')}
               required
             />
           </div>
           <div className="field">
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">{t('auth.passwordLabel')}</label>
             <input
               id="password"
               className="input"
@@ -85,7 +87,7 @@ export function LoginForm() {
             />
           </div>
           <button className="btn btn--primary btn--block mt-2" type="submit" disabled={submitting}>
-            {submitting ? 'Signing in…' : 'Sign in'}
+            {submitting ? t('auth.signingIn') : t('auth.signIn')}
           </button>
         </form>
       </div>

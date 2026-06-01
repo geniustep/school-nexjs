@@ -16,3 +16,16 @@ export const config = {
 export function isProd(): boolean {
   return process.env.NODE_ENV === 'production';
 }
+
+/** httpOnly session cookie Secure flag — false on localhost even in production builds. */
+export function cookieSecure(): boolean {
+  if (process.env.COOKIE_SECURE === 'false') return false;
+  if (!isProd()) return false;
+  try {
+    const host = new URL(config.odooBaseUrl).hostname;
+    if (host === 'localhost' || host === '127.0.0.1') return false;
+  } catch {
+    /* ignore malformed URL */
+  }
+  return true;
+}
