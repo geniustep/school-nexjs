@@ -64,6 +64,11 @@ export const endpoints = {
     homeworkClose: (id: number | string) => `/admin/homeworks/${id}/close`,
     homeworkArchive: (id: number | string) => `/admin/homeworks/${id}/archive`,
     homeworkSubmissions: (id: number | string) => `/admin/homeworks/${id}/submissions`,
+    homeworkAttachments: (id: number | string) => `/admin/homeworks/${id}/attachments`,
+
+    attachmentDelete: (id: number | string) => `/admin/attachments/${id}`,
+    attachmentReplace: (id: number | string) => `/admin/attachments/${id}/replace`,
+    examAttachments: (id: number | string) => `/admin/exams/${id}/attachments`,
 
     resources: '/admin/resources',
     resourcesExport: '/admin/resources/export',
@@ -71,6 +76,7 @@ export const endpoints = {
     resourceUpdate: (id: number | string) => `/admin/resources/${id}/update`,
     resourcePublish: (id: number | string) => `/admin/resources/${id}/publish`,
     resourceArchive: (id: number | string) => `/admin/resources/${id}/archive`,
+    resourceAttachments: (id: number | string) => `/admin/resources/${id}/attachments`,
 
     timetable: '/admin/timetable',
     timetableSlots: '/admin/timetable/slots',
@@ -113,10 +119,14 @@ export const endpoints = {
       `/teacher/classes/${classId}/attendance/batch`,
     homework: (id: number | string) => `/teacher/homeworks/${id}`,
     homeworkAttachments: (id: number | string) => `/teacher/homeworks/${id}/attachments`,
+    attachmentDelete: (id: number | string) => `/teacher/attachments/${id}`,
+    attachmentReplace: (id: number | string) => `/teacher/attachments/${id}/replace`,
+    examAttachments: (id: number | string) => `/teacher/exams/${id}/attachments`,
     homeworkPublish: (id: number | string) => `/teacher/homeworks/${id}/publish`,
     homeworkClose: (id: number | string) => `/teacher/homeworks/${id}/close`,
     homeworkSubmissions: (id: number | string) => `/teacher/homeworks/${id}/submissions`,
     resource: (id: number | string) => `/teacher/resources/${id}`,
+    resourceAttachments: (id: number | string) => `/teacher/resources/${id}/attachments`,
     resourcePublish: (id: number | string) => `/teacher/resources/${id}/publish`,
     exam: (id: number | string) => `/teacher/exams/${id}`,
     examResults: (examId: number | string) => `/teacher/exams/${examId}/results`,
@@ -129,6 +139,8 @@ export const endpoints = {
 
   attachments: {
     download: (id: number | string) => `/attachments/${id}/download`,
+    preview: (id: number | string) => `/attachments/${id}/preview`,
+    thumbnail: (id: number | string) => `/attachments/${id}/thumbnail`,
   },
 
   parent: {

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useResource } from '@/lib/hooks/use-resource';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
+import { AttachmentListIndicator } from '@/components/attachments/attachment-list-indicator';
 import { WorkflowBadge } from '@/components/badges/workflow-badge';
 import { PageHeader, Card, Badge } from '@/components/ui/primitives';
 import { useFormat } from '@/features/i18n/use-format';
@@ -50,6 +51,7 @@ export default function StudentHomeworksPage() {
                     {hw.submitted && <Badge tone="green">{t('states.submitted')}</Badge>}
                     {hw.is_late && <Badge tone="red">{t('badges.late')}</Badge>}
                   </div>
+                  <AttachmentListIndicator item={hw} />
                 </Card>
               </Link>
             ))}

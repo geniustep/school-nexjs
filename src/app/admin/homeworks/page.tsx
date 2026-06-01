@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useResource } from '@/lib/hooks/use-resource';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
+import { AttachmentListIndicator } from '@/components/attachments/attachment-list-indicator';
 import { WorkflowBadge } from '@/components/badges/workflow-badge';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
 import { PageHeader } from '@/components/ui/primitives';
@@ -67,6 +68,11 @@ export default function AdminHomeworksPage() {
         key: 'submissions',
         header: t('academic.homeworkSubmissions'),
         render: (h) => h.submission_count ?? 0,
+      },
+      {
+        key: 'attachments',
+        header: t('academic.attachments'),
+        render: (h) => <AttachmentListIndicator item={h} showName={false} compact />,
       },
     ],
     [t, formatDate],

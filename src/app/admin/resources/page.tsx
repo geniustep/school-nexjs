@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useResource } from '@/lib/hooks/use-resource';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
+import { AttachmentListIndicator } from '@/components/attachments/attachment-list-indicator';
 import { WorkflowBadge } from '@/components/badges/workflow-badge';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
 import { PageHeader } from '@/components/ui/primitives';
@@ -60,6 +61,11 @@ export default function AdminResourcesPage() {
         key: 'date',
         header: t('academic.publishDate'),
         render: (r) => (r.publish_date ? formatDate(r.publish_date) : t('common.dash')),
+      },
+      {
+        key: 'attachments',
+        header: t('academic.attachments'),
+        render: (r) => <AttachmentListIndicator item={r} showName={false} compact />,
       },
     ],
     [t, formatDate],

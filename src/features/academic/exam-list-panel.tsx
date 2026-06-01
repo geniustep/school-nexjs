@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useResource } from '@/lib/hooks/use-resource';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
+import { AttachmentListIndicator } from '@/components/attachments/attachment-list-indicator';
 import { WorkflowBadge } from '@/components/badges/workflow-badge';
 import { Card } from '@/components/ui/primitives';
 import { cn } from '@/lib/utils/cn';
@@ -79,6 +80,7 @@ export function ExamListPanel({ allPath, upcomingPath, detailHref }: ExamListPan
                         <span>{t('academic.daysLeft', { count: exam.days_left })}</span>
                       )}
                     </div>
+                    <AttachmentListIndicator item={exam} />
                   </Card>
                 </Link>
               ))}

@@ -95,6 +95,26 @@ export const api = {
       };
     }
   },
+
+  async delete<T>(path: string): Promise<ApiResponse<T>> {
+    try {
+      const res = await fetch(buildUrl(path), {
+        method: 'DELETE',
+        headers: { Accept: 'application/json' },
+      });
+      return parse<T>(res);
+    } catch {
+      return {
+        success: false,
+        error: {
+          code: 'network_error',
+          message: 'Could not reach the server. Please check your connection.',
+          details: {},
+        },
+        meta: {},
+      };
+    }
+  },
 };
 
 // Auth helpers (talk to the dedicated BFF auth routes, not the proxy).

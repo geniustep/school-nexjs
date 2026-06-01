@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useResource } from '@/lib/hooks/use-resource';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState, LoadingState } from '@/components/states/states';
+import { AttachmentListIndicator } from '@/components/attachments/attachment-list-indicator';
 import { WorkflowBadge } from '@/components/badges/workflow-badge';
 import { PageHeader, Card, InfoBanner } from '@/components/ui/primitives';
 import { useFormat } from '@/features/i18n/use-format';
@@ -86,6 +87,7 @@ export default function TeacherHomeworksPage() {
                       {hw.subject?.name && <span>{hw.subject.name}</span>}
                       {hw.publish_date && <span>{formatDate(hw.publish_date)}</span>}
                     </div>
+                    <AttachmentListIndicator item={hw} />
                   </Card>
                 </Link>
               ))}

@@ -1,11 +1,11 @@
 // Teacher homework resources — mirrors live API v1 teacher/homeworks payloads.
 
 import type { Ref } from './api';
-import type { AttachmentMeta } from './attachment';
+import type { AttachmentListMeta, AttachmentMeta } from './attachment';
 
 export type HomeworkState = 'draft' | 'published' | 'closed';
 
-export interface HomeworkSummary {
+export interface HomeworkSummary extends AttachmentListMeta {
   id: number;
   name: string;
   description_short?: string | null;
@@ -18,7 +18,6 @@ export interface HomeworkSummary {
   visible_to_parent?: boolean;
   visible_to_student?: boolean;
   require_submission?: boolean;
-  attachment_count?: number;
   is_read?: boolean;
   submitted?: boolean;
   submission_state?: string | null;
@@ -42,7 +41,7 @@ export interface HomeworkDetail extends HomeworkSummary {
 }
 
 /** Admin list row — GET /admin/homeworks */
-export interface AdminHomeworkSummary {
+export interface AdminHomeworkSummary extends AttachmentListMeta {
   id: number;
   name: string;
   class: Ref;

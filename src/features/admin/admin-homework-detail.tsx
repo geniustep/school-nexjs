@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { api } from '@/lib/api/client';
 import { AttachmentList } from '@/components/attachments/attachment-list';
+import { AttachmentsUpload } from '@/features/attachments/attachments-upload';
 import { WorkflowBadge } from '@/components/badges/workflow-badge';
 import { Card, DefinitionList, SectionHead } from '@/components/ui/primitives';
 import { DataTable, type Column } from '@/components/tables/data-table';
@@ -11,6 +12,7 @@ import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { HomeworkWorkflowActions } from '@/features/admin/admin-workflow-actions';
 import { endpoints } from '@/lib/api/endpoints';
+import { canUploadAdminAttachments } from '@/lib/attachments/admin-upload';
 import { getStudentDisplayName } from '@/lib/utils/student';
 import type { HomeworkDetail, HomeworkSubmission } from '@/types/homework';
 
@@ -82,11 +84,27 @@ export function AdminHomeworkDetailPanel({ hw, onUpdated }: AdminHomeworkDetailP
         )}
       </Card>
 
-      {hw.attachments && hw.attachments.length > 0 && (
+      {(hw.attachments?.length || canUploadAdminAttachments(hw.state)) && (
         <div className="section">
-          <SectionHead title={t('academic.attachments')} />
+          <SectionHead title={t('admin.homeworkAttachments')} />
           <Card>
-            <AttachmentList attachments={hw.attachments} />
+            {hw.attachments && hw.attachments.length > 0 ? (
+              <AttachmentList
+                attachments={hw.attachments}
+                manageRole="admin"
+                onChanged={onUpdated}
+              />
+            ) : (
+              <p className="tiny muted">{t('admin.noAttachmentsYet')}</p>
+            )}
+            {canUploadAdminAttachments(hw.state) && (
+              <AttachmentsUpload
+                uploadPath={endpoints.admin.homeworkAttachments(hw.id)}
+                existingCount={hw.attachments?.length ?? 0}
+                messageScope="admin"
+                onUploaded={onUpdated}
+              />
+            )}
           </Card>
         </div>
       )}

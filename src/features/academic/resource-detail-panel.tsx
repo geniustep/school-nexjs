@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { api } from '@/lib/api/client';
 import { AttachmentList } from '@/components/attachments/attachment-list';
+import { ResourceLinkSection } from '@/components/attachments/resource-link-section';
 import { WorkflowBadge } from '@/components/badges/workflow-badge';
 import { Card, DefinitionList, Badge } from '@/components/ui/primitives';
 import { useToast } from '@/components/ui/toast';
@@ -23,8 +24,8 @@ export function ResourceDetailPanel({
 }: ResourceDetailPanelProps) {
   const t = useT();
   const { formatDate } = useFormat();
-  const toast = useToast();
   const [acting, setActing] = useState(false);
+  const toast = useToast();
 
   async function markRead() {
     if (resource.is_read) return;
@@ -60,16 +61,6 @@ export function ResourceDetailPanel({
                 <Badge tone="amber">{t('common.no')}</Badge>
               ),
             },
-            {
-              label: t('academic.externalLink'),
-              value: resource.url ? (
-                <a href={resource.url} target="_blank" rel="noopener noreferrer">
-                  {t('academic.openLink')}
-                </a>
-              ) : (
-                t('common.dash')
-              ),
-            },
           ]}
         />
         {resource.description && (
@@ -81,6 +72,8 @@ export function ResourceDetailPanel({
           </div>
         )}
       </Card>
+
+      <ResourceLinkSection url={resource.url} urlMeta={resource.url_meta} />
 
       {resource.attachments && resource.attachments.length > 0 && (
         <div className="section">

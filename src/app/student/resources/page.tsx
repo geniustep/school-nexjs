@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useResource } from '@/lib/hooks/use-resource';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
+import { AttachmentListIndicator } from '@/components/attachments/attachment-list-indicator';
 import { WorkflowBadge } from '@/components/badges/workflow-badge';
 import { PageHeader, Card, Badge } from '@/components/ui/primitives';
 import { useFormat } from '@/features/i18n/use-format';
@@ -44,6 +45,7 @@ export default function StudentResourcesPage() {
                     {r.publish_date && <span>{formatDate(r.publish_date)}</span>}
                     {!r.is_read && <Badge tone="amber">{t('badges.unread')}</Badge>}
                   </div>
+                  <AttachmentListIndicator item={r} />
                 </Card>
               </Link>
             ))}

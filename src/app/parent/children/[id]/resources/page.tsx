@@ -5,6 +5,7 @@ import { use } from 'react';
 import { useResource } from '@/lib/hooks/use-resource';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
+import { AttachmentListIndicator } from '@/components/attachments/attachment-list-indicator';
 import { WorkflowBadge } from '@/components/badges/workflow-badge';
 import { PageHeader, Card, Badge } from '@/components/ui/primitives';
 import { ChildSubnav } from '@/features/parent/child-subnav';
@@ -54,6 +55,7 @@ export default function ParentChildResourcesPage({
                     {r.publish_date && <span>{formatDate(r.publish_date)}</span>}
                     {!r.is_read && <Badge tone="amber">{t('badges.unread')}</Badge>}
                   </div>
+                  <AttachmentListIndicator item={r} />
                 </Card>
               </Link>
             ))}

@@ -5,18 +5,25 @@ import { use } from 'react';
 import { useResource } from '@/lib/hooks/use-resource';
 import { ResourceView } from '@/components/states/resource';
 import { AttachmentList } from '@/components/attachments/attachment-list';
+import { ResourceLinkSection } from '@/components/attachments/resource-link-section';
+import { TeacherResourceAttachmentsUpload } from '@/features/teacher/teacher-resource-attachments-upload';
 import { WorkflowBadge } from '@/components/badges/workflow-badge';
 import { ConfirmActionButton } from '@/features/admin/confirm-action-button';
 import { PageHeader, Card, DefinitionList, InfoBanner } from '@/components/ui/primitives';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
+import { canUploadResourceAttachments } from '@/lib/attachments/resource-upload';
 import type { ResourceDetail } from '@/types/resource';
 
 const FILE_TYPES = new Set(['pdf', 'image', 'document']);
 
+function isLinkResource(r: ResourceDetail): boolean {
+  return r.resource_type === 'link' || Boolean(r.url);
+}
+
 function isMetadataOnlyResource(r: ResourceDetail): boolean {
-  if (r.resource_type === 'link' || r.url) return false;
+  if (isLinkResource(r)) return false;
   if (!r.resource_type || !FILE_TYPES.has(r.resource_type)) return false;
   return !r.attachments?.length && !(r.attachment_count && r.attachment_count > 0);
 }
@@ -61,7 +68,14 @@ export default function ResourceDetailPage({
                 ) : undefined
               }
             />
-            {isMetadataOnlyResource(r) && (
+            {isLinkResource(r) && canUploadResourceAttachments(r) && (
+              <InfoBanner
+                tone="blue"
+                title={t('teacher.resourceLinkAttachmentsTitle')}
+                description={t('teacher.resourceLinkAttachmentsDesc')}
+              />
+            )}
+            {isMetadataOnlyResource(r) && canUploadResourceAttachments(r) && (
               <InfoBanner
                 tone="amber"
                 title={t('teacher.resourceMetadataOnlyTitle')}
@@ -75,16 +89,6 @@ export default function ResourceDetailPage({
                   { label: t('academic.type'), value: r.resource_type?.toUpperCase() },
                   { label: t('academic.subject'), value: r.subject?.name ?? t('common.dash') },
                   { label: t('academic.publishDate'), value: formatDate(r.publish_date) },
-                  {
-                    label: t('academic.externalLink'),
-                    value: r.url ? (
-                      <a href={r.url} target="_blank" rel="noopener noreferrer">
-                        {t('academic.openLink')}
-                      </a>
-                    ) : (
-                      t('common.dash')
-                    ),
-                  },
                 ]}
               />
               {r.description && (
@@ -96,11 +100,27 @@ export default function ResourceDetailPage({
                 </div>
               )}
             </Card>
-            {r.attachments && r.attachments.length > 0 && (
+            <ResourceLinkSection url={r.url} urlMeta={r.url_meta} />
+            {(r.attachments?.length || canUploadResourceAttachments(r)) && (
               <div className="section">
-                <h2 style={{ fontSize: 15, marginBottom: 8 }}>{t('academic.attachments')}</h2>
+                <h2 style={{ fontSize: 15, marginBottom: 8 }}>{t('teacher.resourceAttachments')}</h2>
                 <Card>
-                  <AttachmentList attachments={r.attachments} />
+                  {r.attachments && r.attachments.length > 0 ? (
+                    <AttachmentList
+                      attachments={r.attachments}
+                      manageRole="teacher"
+                      onChanged={() => state.reload()}
+                    />
+                  ) : (
+                    <p className="tiny muted">{t('teacher.noAttachmentsYet')}</p>
+                  )}
+                  {canUploadResourceAttachments(r) && (
+                    <TeacherResourceAttachmentsUpload
+                      resourceId={r.id}
+                      existingCount={r.attachments?.length ?? 0}
+                      onUploaded={() => state.reload()}
+                    />
+                  )}
                 </Card>
               </div>
             )}

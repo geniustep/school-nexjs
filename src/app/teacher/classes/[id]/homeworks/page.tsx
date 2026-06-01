@@ -5,6 +5,7 @@ import { use, useState } from 'react';
 import { useResource } from '@/lib/hooks/use-resource';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
+import { AttachmentListIndicator } from '@/components/attachments/attachment-list-indicator';
 import { WorkflowBadge } from '@/components/badges/workflow-badge';
 import { PageHeader, Card } from '@/components/ui/primitives';
 import { ClassActionGrid } from '@/features/teacher/class-actions';
@@ -87,6 +88,7 @@ export default function ClassHomeworksPage({
                       </span>
                     )}
                   </div>
+                  <AttachmentListIndicator item={hw} />
                 </Card>
               </Link>
             ))}

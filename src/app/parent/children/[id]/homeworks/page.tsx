@@ -5,6 +5,7 @@ import { use } from 'react';
 import { useResource } from '@/lib/hooks/use-resource';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
+import { AttachmentListIndicator } from '@/components/attachments/attachment-list-indicator';
 import { WorkflowBadge } from '@/components/badges/workflow-badge';
 import { PageHeader, Card, Badge } from '@/components/ui/primitives';
 import { ChildSubnav } from '@/features/parent/child-subnav';
@@ -60,6 +61,7 @@ export default function ParentChildHomeworksPage({
                     {hw.submitted && <Badge tone="green">{t('states.submitted')}</Badge>}
                     {hw.is_late && <Badge tone="red">{t('badges.late')}</Badge>}
                   </div>
+                  <AttachmentListIndicator item={hw} />
                 </Card>
               </Link>
             ))}

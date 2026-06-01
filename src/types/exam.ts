@@ -1,7 +1,7 @@
 // Teacher exams and results — mirrors live API v1 teacher/exams payloads.
 
 import type { Ref } from './api';
-import type { AttachmentMeta } from './attachment';
+import type { AttachmentListMeta, AttachmentMeta } from './attachment';
 
 export type ExamState = 'draft' | 'published' | 'cancelled' | 'done' | 'archived';
 export type ExamResultState = 'draft' | 'published' | 'archived';
@@ -10,7 +10,7 @@ export interface ExamSubject extends Ref {
   color?: string | null;
 }
 
-export interface ExamSummary {
+export interface ExamSummary extends AttachmentListMeta {
   id: number;
   name: string;
   exam_type?: string | null;
@@ -25,7 +25,6 @@ export interface ExamSummary {
   subject?: ExamSubject | null;
   teacher?: Ref | null;
   term?: Ref | null;
-  attachment_count?: number;
   is_upcoming?: boolean;
   days_left?: number | null;
 }

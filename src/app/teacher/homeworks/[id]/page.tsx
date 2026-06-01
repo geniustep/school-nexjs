@@ -132,7 +132,11 @@ export default function HomeworkDetailPage({
               <h2 style={{ fontSize: 15, marginBottom: 8 }}>{t('teacher.homeworkAttachments')}</h2>
               <Card>
                 {hw.attachments && hw.attachments.length > 0 ? (
-                  <AttachmentList attachments={hw.attachments} />
+              <AttachmentList
+                attachments={hw.attachments}
+                manageRole="teacher"
+                onChanged={() => state.reload()}
+              />
                 ) : (
                   <p className="tiny muted">{t('teacher.noAttachmentsYet')}</p>
                 )}

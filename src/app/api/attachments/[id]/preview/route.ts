@@ -1,6 +1,3 @@
-// Binary attachment download BFF. Forwards session cookie to Odoo and streams
-// the file back to the browser (JSON proxy cannot handle binary payloads).
-
 import { forwardAttachmentBinary } from '@/lib/attachments/bff-binary';
 
 export const dynamic = 'force-dynamic';
@@ -9,5 +6,5 @@ type Ctx = { params: Promise<{ id: string }> };
 
 export async function GET(_request: Request, ctx: Ctx) {
   const { id } = await ctx.params;
-  return forwardAttachmentBinary(id, 'download');
+  return forwardAttachmentBinary(id, 'preview');
 }

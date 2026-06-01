@@ -5,6 +5,7 @@ import { use } from 'react';
 import { useResource } from '@/lib/hooks/use-resource';
 import { ResourceView } from '@/components/states/resource';
 import { AttachmentList } from '@/components/attachments/attachment-list';
+import { ExamAttachmentsUpload } from '@/features/attachments/exam-attachments-upload';
 import { WorkflowBadge } from '@/components/badges/workflow-badge';
 import { PageHeader, Card, DefinitionList } from '@/components/ui/primitives';
 import { useFormat } from '@/features/i18n/use-format';
@@ -76,14 +77,26 @@ export default function ExamDetailPage({
                 </div>
               )}
             </Card>
-            {exam.attachments && exam.attachments.length > 0 && (
-              <div className="section">
-                <h2 style={{ fontSize: 15, marginBottom: 8 }}>{t('academic.attachments')}</h2>
-                <Card>
-                  <AttachmentList attachments={exam.attachments} />
-                </Card>
-              </div>
-            )}
+            <div className="section">
+              <h2 style={{ fontSize: 15, marginBottom: 8 }}>{t('attachments.examAttachments')}</h2>
+              <Card>
+                {exam.attachments && exam.attachments.length > 0 ? (
+                  <AttachmentList
+                    attachments={exam.attachments}
+                    manageRole="teacher"
+                    onChanged={() => state.reload()}
+                  />
+                ) : (
+                  <p className="tiny muted">{t('attachments.noAttachments')}</p>
+                )}
+                <ExamAttachmentsUpload
+                  examId={exam.id}
+                  existingCount={exam.attachments?.length ?? 0}
+                  messageScope="teacher"
+                  onUploaded={() => state.reload()}
+                />
+              </Card>
+            </div>
           </>
         )}
       </ResourceView>

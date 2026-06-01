@@ -91,7 +91,12 @@ export default function AdminExamDetailPage({
                 <div className="section row" style={{ gap: 8, flexWrap: 'wrap' }}>
                   <ExamWorkflowActions id={exam.id} state={exam.state} onUpdated={() => state.reload()} />
                 </div>
-                <ExamDetailPanel exam={exam} />
+                <ExamDetailPanel
+                  exam={exam}
+                  manageRole="admin"
+                  allowExamUpload
+                  onAttachmentsChanged={() => state.reload()}
+                />
               </>
             )}
           </>

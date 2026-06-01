@@ -1,16 +1,32 @@
 'use client';
 
 import { AttachmentList } from '@/components/attachments/attachment-list';
+import { ExamAttachmentsUpload } from '@/features/attachments/exam-attachments-upload';
 import { WorkflowBadge } from '@/components/badges/workflow-badge';
 import { Card, DefinitionList } from '@/components/ui/primitives';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { formatTimeRange } from '@/features/timetable/utils';
+import type { AttachmentManageRole } from '@/lib/api/attachments';
 import type { ExamDetail } from '@/types/exam';
 
-export function ExamDetailPanel({ exam }: { exam: ExamDetail }) {
+interface ExamDetailPanelProps {
+  exam: ExamDetail;
+  manageRole?: AttachmentManageRole | null;
+  onAttachmentsChanged?: () => void;
+  allowExamUpload?: boolean;
+}
+
+export function ExamDetailPanel({
+  exam,
+  manageRole = null,
+  onAttachmentsChanged,
+  allowExamUpload = false,
+}: ExamDetailPanelProps) {
   const t = useT();
   const { formatDate } = useFormat();
+  const showAttachmentsSection =
+    (exam.attachments?.length ?? 0) > 0 || (allowExamUpload && manageRole);
 
   return (
     <>
@@ -41,11 +57,27 @@ export function ExamDetailPanel({ exam }: { exam: ExamDetail }) {
           </div>
         )}
       </Card>
-      {exam.attachments && exam.attachments.length > 0 && (
+      {showAttachmentsSection && (
         <div className="section">
-          <h2 style={{ fontSize: 15, marginBottom: 8 }}>{t('academic.attachments')}</h2>
+          <h2 style={{ fontSize: 15, marginBottom: 8 }}>{t('attachments.examAttachments')}</h2>
           <Card>
-            <AttachmentList attachments={exam.attachments} />
+            {exam.attachments && exam.attachments.length > 0 ? (
+              <AttachmentList
+                attachments={exam.attachments}
+                manageRole={manageRole}
+                onChanged={onAttachmentsChanged}
+              />
+            ) : (
+              <p className="tiny muted">{t('attachments.noAttachments')}</p>
+            )}
+            {allowExamUpload && manageRole && onAttachmentsChanged && (
+              <ExamAttachmentsUpload
+                examId={exam.id}
+                existingCount={exam.attachments?.length ?? 0}
+                messageScope={manageRole}
+                onUploaded={onAttachmentsChanged}
+              />
+            )}
           </Card>
         </div>
       )}
