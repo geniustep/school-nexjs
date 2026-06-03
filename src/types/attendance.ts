@@ -1,6 +1,7 @@
 // Attendance resources — mirrors API_REPORT.md §3, §10.
 
 import type { Ref } from './api';
+import type { StudentNameFields } from './student';
 
 // API attendance status values (Odoo API v1 contract).
 // Final MVP statuses: present, absent, late, left_early.
@@ -11,7 +12,7 @@ export type AttendancePeriod = 'full_day' | 'morning' | 'afternoon' | string;
 export interface AttendanceRecord {
   id: number;
   date: string;
-  student: { id: number; full_name: string };
+  student: { id: number } & StudentNameFields;
   class: Ref | null;
   status: AttendanceStatus;
   period: AttendancePeriod;
@@ -61,9 +62,8 @@ export interface AttendanceBatchResult {
 
 // Teacher "attendance today" view.
 // NOTE: The API returns `id` (not `student_id`) in the not_recorded array.
-export interface AttendanceTodayStudent {
+export interface AttendanceTodayStudent extends StudentNameFields {
   id: number;
-  full_name: string;
   status?: AttendanceStatus;
 }
 

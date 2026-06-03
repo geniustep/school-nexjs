@@ -4,6 +4,8 @@
    UX/UI Polish v2 — semantic status colors, info banners, tabs, msg-feed,
    save bar, improved shell. No API or logic changes. */
 
+@import './teacher-workspace.css';
+
 :root {
   /* Core backgrounds */
   --c-bg: #F8FAFC;
@@ -191,18 +193,18 @@ h4 {
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--c-text-faint);
-  padding: 14px 12px 6px;
+  padding: 10px 12px 4px;
 }
 
 .nav-link {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 9px 12px;
+  padding: 8px 12px;
   border-radius: var(--radius-sm);
   color: var(--c-text-muted);
   font-weight: 500;
-  margin-block-end: 2px;
+  margin-block-end: 1px;
   transition: background 0.1s ease, color 0.1s ease;
 }
 
@@ -215,6 +217,8 @@ h4 {
   background: var(--c-primary-soft);
   color: var(--c-navy);
   font-weight: 600;
+  border-inline-start: 3px solid var(--c-primary);
+  padding-inline-start: 9px;
 }
 
 .nav-link__icon {
@@ -1037,6 +1041,587 @@ table.data tbody tr:hover {
   gap: 6px;
 }
 
+/* ---------- Sidebar profile (teacher) ---------- */
+.sidebar__profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-block-end: 1px solid var(--c-border);
+  background: var(--c-surface-2);
+}
+
+.sidebar__profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sidebar__profile-name {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--c-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar__profile-role {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--c-primary-soft);
+  color: var(--c-primary);
+}
+
+.sidebar__profile-school {
+  font-size: 11px;
+  color: var(--c-text-faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- Teacher workspace / dashboard ---------- */
+.teacher-workspace {
+  width: 100%;
+}
+
+.teacher-workspace .page-header {
+  margin-block-end: 12px;
+  padding-block-end: 10px;
+}
+
+.teacher-workspace .page-header h1 {
+  font-size: 20px;
+}
+
+.teacher-workspace .page-header p {
+  font-size: 13px;
+  margin-block-start: 2px;
+}
+
+.teacher-workspace--classes .page-header {
+  margin-block-end: 8px;
+}
+
+.teacher-dash-header {
+  margin-block-end: 14px;
+}
+
+.teacher-dash-header h1 {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.teacher-dash-header p {
+  margin: 2px 0 0;
+  color: var(--c-text-muted);
+  font-size: 13px;
+}
+
+.teacher-dash-header__school {
+  display: inline-block;
+  margin-block-start: 4px;
+  font-size: 12px;
+  color: var(--c-text-faint);
+}
+
+/* Grouped top panel: stats + actions */
+.teacher-dash-panel {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-sm);
+}
+
+.teacher-dash-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.teacher-workspace .stat-card {
+  padding: 12px 14px;
+  gap: 4px;
+}
+
+.teacher-workspace .stat-card__label {
+  font-size: 10px;
+}
+
+.teacher-workspace .stat-card__value {
+  font-size: 22px;
+}
+
+.stat-card-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  border-radius: var(--radius-sm);
+  transition: transform 0.12s ease;
+}
+.stat-card-link:hover {
+  transform: translateY(-1px);
+}
+.stat-card-link .stat-card {
+  height: 100%;
+}
+
+.teacher-dash-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block-start: 12px;
+  padding-block-start: 12px;
+  border-block-start: 1px solid var(--c-border);
+}
+
+.teacher-dash-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 14px;
+  align-items: start;
+  margin-block-start: 14px;
+}
+
+.teacher-dash-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.teacher-dash-aside {
+  min-width: 0;
+}
+
+.teacher-dash-aside .section__head {
+  margin-block-end: 8px;
+}
+
+.teacher-section {
+  margin-block-start: 0;
+}
+
+.teacher-section .section__head {
+  margin-block-end: 8px;
+}
+
+.teacher-section .section__head h2 {
+  font-size: 14px;
+}
+
+.grid--class-preview {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 280px));
+  justify-content: start;
+  gap: 10px;
+}
+
+.grid--class-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 300px));
+  justify-content: start;
+  gap: 12px;
+}
+
+/* Sparse: 1–2 classes stay left-aligned, not stretched */
+.grid--class-cards[data-count='1'],
+.grid--class-cards[data-count='2'] {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 300px));
+  max-width: 640px;
+}
+
+.grid--content-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 320px));
+  justify-content: start;
+  gap: 10px;
+}
+
+/* Next lesson card */
+.next-lesson-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-inline-start: 4px solid var(--c-primary);
+  margin-block-end: 0;
+}
+
+.next-lesson-card--empty {
+  border-inline-start-color: var(--c-border);
+}
+
+.next-lesson-card__badge {
+  flex-shrink: 0;
+}
+
+.next-lesson-card__body {
+  flex: 1;
+  min-width: 140px;
+}
+
+.next-lesson-card__subject {
+  font-size: 16px;
+  display: block;
+}
+
+.next-lesson-card__class {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--c-text-muted);
+}
+
+.next-lesson-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.msg-feed-card {
+  margin-block-start: 0;
+}
+
+.msg-empty-card {
+  margin-block-start: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+.msg-empty-card .state--compact {
+  background: var(--c-surface-2);
+  border-radius: var(--radius-sm);
+}
+
+.teacher-dash-aside .msg-feed__item {
+  padding: 10px 12px;
+}
+
+/* Class card */
+.class-card {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  padding: 14px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.class-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.class-card__name {
+  font-size: 14px;
+  display: block;
+}
+
+.class-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-block-start: 3px;
+  font-size: 11px;
+  color: var(--c-text-muted);
+}
+
+.class-card__actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding-block-start: 2px;
+  border-block-start: 1px solid var(--c-border);
+}
+
+.class-card__action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 2px;
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  color: var(--c-text-muted);
+  text-align: center;
+  transition: background 0.1s ease, color 0.1s ease;
+}
+
+.class-card__action:hover {
+  background: var(--c-surface-2);
+  color: var(--c-primary);
+}
+
+.class-card__action-label {
+  line-height: 1.15;
+}
+
+/* Class hub */
+.class-hub {
+  width: 100%;
+}
+
+.class-hub__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-block-end: 10px;
+  flex-wrap: wrap;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  box-shadow: var(--shadow-sm);
+}
+
+.class-hub__header h1 {
+  font-size: 18px;
+  line-height: 1.3;
+}
+
+.class-hub__section-title {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--c-text-muted);
+  font-weight: 500;
+}
+
+.class-hub__meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block-start: 4px;
+}
+
+.class-hub__stat {
+  font-size: 12px;
+  color: var(--c-text-muted);
+}
+
+.class-hub__actions {
+  flex-shrink: 0;
+}
+
+.class-hub__tabs {
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  margin-block-end: 12px;
+  padding: 4px;
+  gap: 3px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.class-hub__tabs .tab {
+  flex: 1 1 0;
+  justify-content: center;
+  padding: 7px 8px;
+  min-width: 72px;
+  font-size: 12px;
+  white-space: nowrap;
+  border-radius: 6px;
+}
+
+.class-hub__tabs .tab__icon {
+  flex-shrink: 0;
+  font-size: 13px;
+}
+
+.class-hub__tabs .tab__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.class-hub__tabs .tab--active {
+  background: var(--c-primary-soft);
+  color: var(--c-navy);
+  border: 1px solid #bfdbfe;
+  box-shadow: none;
+}
+
+.class-hub__body {
+  min-width: 0;
+}
+
+.class-hub-quick {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 8px;
+  margin-block-end: 14px;
+}
+
+.class-hub-quick__item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--c-text-body);
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.class-hub-quick__item:hover {
+  border-color: #bfdbfe;
+  box-shadow: var(--shadow-sm);
+}
+
+.class-hub-section-title {
+  font-size: 14px;
+  font-weight: 700;
+  margin-block-end: 8px;
+  color: var(--c-text);
+}
+
+.create-panel {
+  margin-block-end: 12px;
+  padding: 14px 16px;
+}
+
+.content-card {
+  padding: 12px 14px;
+  height: 100%;
+}
+
+.content-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block-start: 6px;
+  font-size: 11px;
+  color: var(--c-text-muted);
+}
+
+.back-link--compact {
+  margin-block-end: 8px;
+}
+
+/* Compact empty states inside teacher workspace */
+.state--compact {
+  padding: 18px 14px;
+  gap: 6px;
+}
+
+.state--compact .state-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  font-size: 18px;
+}
+
+.state--compact .state__title {
+  font-size: 14px;
+}
+
+.state--compact .state__desc {
+  font-size: 12px;
+  max-width: 360px;
+}
+
+/* Attendance polish */
+.attendance-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  margin-block-end: 12px;
+}
+
+.attendance-toolbar__field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.attendance-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-block-end: 10px;
+}
+
+.attendance-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+  border: 1px solid var(--c-border);
+  background: var(--c-surface);
+}
+
+.class-hub .table-wrap table.data td {
+  padding: 9px 12px;
+}
+
+.class-hub .table-wrap table.data th {
+  padding: 9px 12px;
+}
+
+.attendance-chip--present {
+  background: var(--c-green-soft);
+  border-color: #bbf7d0;
+  color: var(--c-green);
+}
+
+.attendance-chip--absent {
+  background: var(--c-red-soft);
+  border-color: #fecaca;
+  color: var(--c-red);
+}
+
+.attendance-chip--late {
+  background: var(--c-amber-soft);
+  border-color: #fde68a;
+  color: var(--c-amber);
+}
+
+.attendance-chip--left_early {
+  background: var(--c-blue-soft);
+  border-color: #bfdbfe;
+  color: var(--c-blue);
+}
+
+.save-bar--sticky {
+  position: sticky;
+  inset-block-end: 12px;
+  z-index: 10;
+  box-shadow: var(--shadow);
+}
+
 .attachment-list {
   list-style: none;
   margin: 0;
@@ -1343,4 +1928,11 @@ table.data tbody tr:hover {
   .info-banner { flex-direction: column; gap: 6px; }
   .save-bar { flex-wrap: wrap; }
   .grid--stats { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .teacher-dash-grid { grid-template-columns: 1fr; gap: 12px; }
+  .teacher-dash-aside { order: -1; }
+  .class-card__actions { grid-template-columns: repeat(2, 1fr); }
+  .class-hub__tabs .tab { min-width: 64px; font-size: 11px; padding: 6px 6px; }
+  .class-hub__tabs .tab__label { display: none; }
+  .grid--class-cards[data-count='1'],
+  .grid--class-cards[data-count='2'] { max-width: none; }
 }

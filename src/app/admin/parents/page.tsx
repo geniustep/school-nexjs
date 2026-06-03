@@ -33,7 +33,10 @@ export default function AdminParentsPage() {
       {
         key: 'children',
         header: t('admin.linkedChildren'),
-        render: (p) => (p.children.length ? p.children.map((c) => getStudentDisplayName(c)).join(', ') : t('common.dash')),
+        render: (p) =>
+          (p.children ?? []).length
+            ? (p.children ?? []).map((c) => getStudentDisplayName(c)).join(', ')
+            : t('common.dash'),
       },
       {
         key: 'lang',

@@ -16,6 +16,7 @@ import { PermissionDeniedState } from '@/components/states/states';
 import { endpoints } from '@/lib/api/endpoints';
 import { ATTENDANCE_LABEL } from '@/lib/utils/labels';
 import { isoDate } from '@/lib/utils/format';
+import { getStudentDisplayName } from '@/lib/utils/student';
 import { cn } from '@/lib/utils/cn';
 import type { SchoolClass } from '@/types/class';
 import type { Student } from '@/types/student';
@@ -91,7 +92,8 @@ export function AttendanceCorrectPanel({ onSuccess }: { onSuccess?: () => void }
       return;
     }
 
-    const studentName = students.find((s) => String(s.id) === studentId)?.full_name ?? 'student';
+    const studentName =
+      getStudentDisplayName(students.find((s) => String(s.id) === studentId)) || 'student';
     toast.success(`Attendance corrected for ${studentName} on ${date}.`);
     setNote('');
     onSuccess?.();
@@ -156,7 +158,7 @@ export function AttendanceCorrectPanel({ onSuccess }: { onSuccess?: () => void }
               </option>
               {students.map((s) => (
                 <option key={s.id} value={s.id}>
-                  {s.full_name}
+                  {getStudentDisplayName(s)}
                 </option>
               ))}
             </select>

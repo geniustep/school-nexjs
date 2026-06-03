@@ -1,16 +1,17 @@
 'use client';
 
-import Link from 'next/link';
 import { useResource } from '@/lib/hooks/use-resource';
-import { ResourceView } from '@/components/states/resource';
-import { EmptyState, LoadingState } from '@/components/states/states';
 import { AttachmentListIndicator } from '@/components/attachments/attachment-list-indicator';
 import { WorkflowBadge } from '@/components/badges/workflow-badge';
-import { PageHeader, Card, InfoBanner } from '@/components/ui/primitives';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { useTeacherClassAggregate } from '@/features/teacher/use-teacher-class-aggregate';
+import {
+  TeacherOverviewClassLabel,
+  TeacherOverviewLayout,
+} from '@/features/teacher/teacher-global-overview';
+import { TeacherContentCard } from '@/features/teacher/ui/teacher-primitives';
 import type { SchoolClass } from '@/types/class';
 import type { ResourceSummary } from '@/types/resource';
 
@@ -27,74 +28,41 @@ export default function TeacherResourcesPage() {
   );
 
   return (
-    <>
-      <PageHeader
-        title={t('nav.teacherResources')}
-        subtitle={t('teacher.navResourcesDesc')}
-      />
-      <InfoBanner
-        tone="blue"
-        title={t('teacher.navResourcesHintTitle')}
-        description={t('teacher.navResourcesHintDesc')}
-      />
-      <ResourceView
-        state={classesState}
-        loadingLabel={t('common.loading')}
-        isEmpty={(d) => d.length === 0}
-        empty={
-          <EmptyState
-            icon="🏫"
-            title={t('empty.classes')}
-            action={
-              <Link className="btn btn--primary btn--sm mt-2" href="/teacher/classes">
-                {t('nav.myClasses')}
-              </Link>
-            }
-          />
-        }
-      >
-        {() => {
-          if (loading) return <LoadingState label={t('common.loading')} />;
-          if (loadError) {
-            return (
-              <EmptyState icon="!" title={t('errors.serverErrorTitle')} description={loadError} />
-            );
-          }
-          if (items.length === 0) {
-            return (
-              <EmptyState
-                icon="📚"
-                title={t('empty.resources')}
-                action={
-                  <Link className="btn btn--ghost btn--sm mt-2" href="/teacher/classes">
-                    {t('nav.myClasses')}
-                  </Link>
-                }
-              />
-            );
-          }
-          return (
-            <div className="grid grid--cards">
-              {items.map(({ item: r, className }) => (
-                <Link key={r.id} href={`/teacher/resources/${r.id}`}>
-                  <Card className="row-link">
-                    <div className="between">
-                      <strong>{r.name}</strong>
-                      <WorkflowBadge state={r.state} />
-                    </div>
-                    <p className="tiny muted mt-2">{className}</p>
-                    <div className="row mt-2 tiny muted" style={{ gap: 12, flexWrap: 'wrap' }}>
-                      {r.resource_type && <span>{r.resource_type}</span>}
-                      {r.publish_date && <span>{formatDate(r.publish_date)}</span>}
-                    </div>
-                    <AttachmentListIndicator item={r} />
-                  </Card>
-                </Link>
-              ))}
-            </div>
-          );
-        }}
-      </ResourceView>
-    </>
+    <TeacherOverviewLayout
+      title={t('teacher.allResources')}
+      subtitle={t('teacher.overviewAllClasses')}
+      classesState={classesState}
+      contentLoading={loading}
+      contentError={loadError}
+      items={items}
+      emptyIcon="📚"
+      emptyTitle={t('teacher.emptyResourcesTitle')}
+      emptyHint={t('teacher.emptyResourcesHint')}
+    >
+      {(filtered) => (
+        <div className="grid grid--content-cards">
+          {filtered.map(({ item: r, classId, className }) => (
+            <TeacherContentCard
+              key={r.id}
+              href={`/teacher/resources/${r.id}`}
+              title={r.name}
+              badge={<WorkflowBadge state={r.state} />}
+              meta={
+                <>
+                  <TeacherOverviewClassLabel classId={classId} className={className} />
+                  {r.resource_type && <span>{r.resource_type.toUpperCase()}</span>}
+                  {r.publish_date && (
+                    <span>
+                      {t('academic.publishDate')} {formatDate(r.publish_date)}
+                    </span>
+                  )}
+                </>
+              }
+              footer={<AttachmentListIndicator item={r} />}
+            />
+          ))}
+        </div>
+      )}
+    </TeacherOverviewLayout>
   );
 }

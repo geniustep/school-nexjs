@@ -18,18 +18,23 @@ export interface ParentLink {
   phone: string | null;
 }
 
-export interface Student {
-  id: number;
+/** Name fields returned by Odoo (structured + legacy). All optional at runtime. */
+export interface StudentNameFields {
   first_name?: string | null;
   last_name?: string | null;
-  full_name: string;
+  full_name?: string | null;
   name?: string | null;
+}
+
+export interface Student extends StudentNameFields {
+  id: number;
   code: string | null;
   massar_code?: string | null;
   matricule?: string | null;
   level: Ref | null;
   class: Ref | null;
-  parents: ParentLink[];
+  /** May be omitted when no guardian is linked (data-quality in Odoo). */
+  parents?: ParentLink[];
   status: StudentStatus;
   gender: Gender | null;
   date_of_birth: string | null;
@@ -38,13 +43,9 @@ export interface Student {
   phone: string | null;
 }
 
-// Compact child shape used by parent endpoints.
-export interface ChildSummary {
+// Compact child shape used by parent endpoints (GET /parent/children).
+export interface ChildSummary extends StudentNameFields {
   id: number;
-  first_name?: string | null;
-  last_name?: string | null;
-  full_name: string;
-  name?: string | null;
   code?: string | null;
   level?: Ref | null;
   class: Ref | null;

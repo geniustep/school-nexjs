@@ -20,15 +20,17 @@ export function EmptyState({
   title,
   description,
   action,
+  compact = false,
 }: {
   icon?: string;
   title?: string;
   description?: string;
   action?: React.ReactNode;
+  compact?: boolean;
 }) {
   const t = useT();
   return (
-    <div className="state">
+    <div className={compact ? 'state state--compact' : 'state'}>
       <div className="state-icon state-icon--empty" aria-hidden="true">{icon}</div>
       <div className="state__title">{title ?? t('empty.default')}</div>
       {description && <div className="state__desc">{description}</div>}
@@ -116,6 +118,7 @@ export function ApiErrorView({
     case 'unauthenticated':
       return <SessionExpiredState />;
     case 'permission_denied':
+    case 'forbidden':
       return <PermissionDeniedState description={error.message} />;
     case 'not_found':
       return <NotFoundState description={error.message} />;

@@ -14,6 +14,7 @@ import { canSeeStudentData } from '@/lib/permissions/scope';
 import { endpoints } from '@/lib/api/endpoints';
 import { ATTENDANCE_LABEL } from '@/lib/utils/labels';
 import { formatDate } from '@/lib/utils/format';
+import { getStudentDisplayName } from '@/lib/utils/student';
 import type { AttendanceRecord, AttendanceStatus } from '@/types/attendance';
 import type { SchoolClass } from '@/types/class';
 
@@ -21,7 +22,7 @@ const STATUSES: AttendanceStatus[] = ['present', 'absent', 'late', 'left_early']
 
 const columns: Column<AttendanceRecord>[] = [
   { key: 'date', header: 'Date', render: (a) => formatDate(a.date) },
-  { key: 'student', header: 'Student', render: (a) => <strong>{a.student.full_name}</strong> },
+  { key: 'student', header: 'Student', render: (a) => <strong>{getStudentDisplayName(a.student)}</strong> },
   { key: 'class', header: 'Class', render: (a) => a.class?.name ?? '—' },
   { key: 'status', header: 'Status', render: (a) => <AttendanceBadge status={a.status} /> },
   { key: 'recorded_by', header: 'Recorded by', render: (a) => a.recorded_by?.name ?? '—' },

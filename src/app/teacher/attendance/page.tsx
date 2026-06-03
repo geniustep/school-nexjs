@@ -4,9 +4,13 @@ import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useResource } from '@/lib/hooks/use-resource';
 import { ResourceView } from '@/components/states/resource';
-import { EmptyState } from '@/components/states/states';
-import { PageHeader, Card } from '@/components/ui/primitives';
 import { AttendanceBatch } from '@/features/attendance/attendance-batch';
+import { ClassHubShell } from '@/features/teacher/class-hub-shell';
+import {
+  TeacherEmptyState,
+  TeacherPageHeader,
+  TeacherWorkspaceCard,
+} from '@/features/teacher/ui/teacher-primitives';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import type { SchoolClass } from '@/types/class';
@@ -21,27 +25,41 @@ function AttendanceInner() {
   const state = useResource<TeacherClass[]>(endpoints.teacher.classes);
 
   return (
-    <>
-      <PageHeader title={t('attendance.title')} subtitle={t('attendance.subtitle')} />
-      <ResourceView
-        state={state}
-        loadingLabel={t('attendance.loadingClasses')}
-        isEmpty={(d) => d.length === 0}
-        empty={
-          <EmptyState
-            icon="🏫"
-            title={t('attendance.noClasses')}
-            description={t('attendance.noClassesDesc')}
-          />
-        }
-      >
-        {(classes) => {
-          const current = selected || String(classes[0]?.id ?? '');
+    <ResourceView
+      state={state}
+      loadingLabel={t('attendance.loadingClasses')}
+      isEmpty={(d) => d.length === 0}
+      empty={
+        <TeacherEmptyState
+          icon="🏫"
+          title={t('attendance.noClasses')}
+          description={t('attendance.noClassesDesc')}
+        />
+      }
+    >
+      {(classes) => {
+        const current = selected || String(classes[0]?.id ?? '');
+        const classId = Number(current);
+
+        if (!current) {
           return (
-            <>
-              <div className="toolbar">
-                <label className="row tiny" style={{ gap: 6 }}>
-                  <span className="muted">{t('attendance.classLabel')}</span>
+            <div className="teacher-workspace">
+              <TeacherPageHeader title={t('attendance.title')} subtitle={t('attendance.subtitle')} />
+              <TeacherEmptyState
+                icon="🏫"
+                title={t('attendance.selectClass')}
+                description={t('attendance.noClassesDesc')}
+              />
+            </div>
+          );
+        }
+
+        return (
+          <ClassHubShell classId={classId} activeTab="attendance">
+            <TeacherWorkspaceCard title={t('attendance.title')} icon="🗓️" className="t-attendance-ws">
+              <div className="attendance-toolbar attendance-toolbar--premium">
+                <label className="attendance-toolbar__field">
+                  <span className="attendance-toolbar__label">{t('attendance.classLabel')}</span>
                   <select
                     className="select"
                     value={current}
@@ -55,18 +73,12 @@ function AttendanceInner() {
                   </select>
                 </label>
               </div>
-              {current ? (
-                <AttendanceBatch key={current} classId={Number(current)} />
-              ) : (
-                <Card>
-                  <p className="muted">{t('attendance.selectClass')}</p>
-                </Card>
-              )}
-            </>
-          );
-        }}
-      </ResourceView>
-    </>
+              <AttendanceBatch key={current} classId={classId} />
+            </TeacherWorkspaceCard>
+          </ClassHubShell>
+        );
+      }}
+    </ResourceView>
   );
 }
 

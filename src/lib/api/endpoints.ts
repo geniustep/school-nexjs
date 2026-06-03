@@ -1,5 +1,10 @@
 // Central endpoint registry — the ONLY place API v1 paths are defined.
 // Paths are relative to the API v1 prefix (/api/v1).
+//
+// Synced with Odoo smart_school_connect 18.0.1.0.10 (see ODOO_BACKEND_SYNC.md).
+// Do not add school.class.assignment / school.student.enrollment routes until
+// they exist on API v1. Teacher class scope: GET /teacher/classes (+ 403 on detail).
+// Parent children: GET /parent/children only. Student homework: /student/homeworks.
 
 export const endpoints = {
   auth: {

@@ -4,10 +4,13 @@ import Link from 'next/link';
 import { use } from 'react';
 import { useResource } from '@/lib/hooks/use-resource';
 import { ResourceView } from '@/components/states/resource';
-import { EmptyState } from '@/components/states/states';
 import { WorkflowBadge } from '@/components/badges/workflow-badge';
-import { PageHeader, Card } from '@/components/ui/primitives';
-import { ClassActionGrid } from '@/features/teacher/class-actions';
+import { ClassHubShell } from '@/features/teacher/class-hub-shell';
+import {
+  TeacherContentCard,
+  TeacherContentToolbar,
+  TeacherEmptyState,
+} from '@/features/teacher/ui/teacher-primitives';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
@@ -21,48 +24,51 @@ export default function ClassExamResultsPage({
   const { id } = use(params);
   const t = useT();
   const { formatDate } = useFormat();
+  const classId = Number(id);
   const state = useResource<ExamSummary[]>(endpoints.teacher.classExams(id));
 
   return (
-    <>
-      <Link href="/teacher/classes" className="back-link">
-        ‹ {t('academic.backToClasses')}
-      </Link>
-      <PageHeader title={t('academic.classResults')} subtitle={`#${id}`} />
-      <ClassActionGrid classId={Number(id)} />
+    <ClassHubShell classId={classId} activeTab="results" title={t('academic.classResults')}>
+      <TeacherContentToolbar>
+        <span className="muted t-content-count">
+          {state.data ? t('teacher.itemCount', { count: state.data.length }) : null}
+        </span>
+      </TeacherContentToolbar>
+
       <ResourceView
         state={state}
         loadingLabel={t('common.loading')}
         isEmpty={(d) => d.length === 0}
         empty={
-          <EmptyState icon="📊" title={t('empty.exams')} description={t('empty.results')} />
+          <TeacherEmptyState icon="📊" title={t('empty.exams')} description={t('empty.results')} />
         }
       >
         {(items) => (
-          <div className="grid grid--cards mt-2">
+          <div className="grid grid--content-cards">
             {items.map((exam) => (
-              <Card key={exam.id}>
-                <div className="between">
-                  <strong>{exam.name}</strong>
-                  <WorkflowBadge state={exam.state} />
-                </div>
-                <div className="row mt-2 tiny muted" style={{ gap: 12, flexWrap: 'wrap' }}>
-                  {exam.exam_date && <span>{formatDate(exam.exam_date)}</span>}
-                  {exam.subject?.name && <span>{exam.subject.name}</span>}
-                </div>
-                <div className="mt-2">
+              <TeacherContentCard
+                key={exam.id}
+                title={exam.name}
+                badge={<WorkflowBadge state={exam.state} />}
+                meta={
+                  <>
+                    {exam.exam_date && <span>{formatDate(exam.exam_date)}</span>}
+                    {exam.subject?.name && <span>{exam.subject.name}</span>}
+                  </>
+                }
+                footer={
                   <Link
                     className="btn btn--primary btn--sm"
                     href={`/teacher/exams/${exam.id}/results`}
                   >
                     {t('academic.examResultsBtn')}
                   </Link>
-                </div>
-              </Card>
+                }
+              />
             ))}
           </div>
         )}
       </ResourceView>
-    </>
+    </ClassHubShell>
   );
 }

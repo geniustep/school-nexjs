@@ -1,15 +1,18 @@
 'use client';
 
-import Link from 'next/link';
 import { use, useState } from 'react';
 import { useResource } from '@/lib/hooks/use-resource';
 import { ResourceView } from '@/components/states/resource';
-import { EmptyState } from '@/components/states/states';
 import { AttachmentListIndicator } from '@/components/attachments/attachment-list-indicator';
 import { WorkflowBadge } from '@/components/badges/workflow-badge';
-import { PageHeader, Card } from '@/components/ui/primitives';
-import { ClassActionGrid } from '@/features/teacher/class-actions';
+import { ClassHubShell } from '@/features/teacher/class-hub-shell';
 import { TeacherExamCreateForm } from '@/features/teacher/teacher-exam-create-form';
+import {
+  TeacherContentCard,
+  TeacherContentToolbar,
+  TeacherEmptyState,
+  TeacherWorkspaceCard,
+} from '@/features/teacher/ui/teacher-primitives';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
@@ -28,26 +31,22 @@ export default function ClassExamsPage({
   const state = useResource<ExamSummary[]>(endpoints.teacher.classExams(id));
 
   return (
-    <>
-      <Link href="/teacher/classes" className="back-link">
-        ‹ {t('academic.backToClasses')}
-      </Link>
-      <PageHeader
-        title={t('academic.classExams')}
-        subtitle={`#${id}`}
-        actions={
-          <button
-            type="button"
-            className="btn btn--primary btn--sm"
-            onClick={() => setShowCreate((v) => !v)}
-          >
-            {showCreate ? t('common.cancel') : t('teacher.createExam')}
-          </button>
-        }
-      />
-      <ClassActionGrid classId={classId} />
+    <ClassHubShell
+      classId={classId}
+      activeTab="exams"
+      title={t('academic.classExams')}
+      actions={
+        <button
+          type="button"
+          className="btn btn--primary btn--sm"
+          onClick={() => setShowCreate((v) => !v)}
+        >
+          {showCreate ? t('common.cancel') : t('teacher.createExam')}
+        </button>
+      }
+    >
       {showCreate && (
-        <div className="section">
+        <TeacherWorkspaceCard title={t('teacher.createExam')} className="t-form-panel">
           <TeacherExamCreateForm
             classId={classId}
             onCancel={() => setShowCreate(false)}
@@ -56,26 +55,33 @@ export default function ClassExamsPage({
               state.reload();
             }}
           />
-        </div>
+        </TeacherWorkspaceCard>
       )}
+
+      <TeacherContentToolbar>
+        <span className="muted t-content-count">
+          {state.data ? t('teacher.itemCount', { count: state.data.length }) : null}
+        </span>
+      </TeacherContentToolbar>
+
       <ResourceView
         state={state}
         loadingLabel={t('common.loading')}
         isEmpty={(d) => d.length === 0}
         empty={
-          <EmptyState icon="📋" title={t('empty.exams')} description={t('empty.exams')} />
+          <TeacherEmptyState icon="📋" title={t('empty.exams')} description={t('empty.exams')} />
         }
       >
         {(items) => (
-          <div className="grid grid--cards mt-2">
+          <div className="grid grid--content-cards">
             {items.map((exam) => (
-              <Link key={exam.id} href={`/teacher/exams/${exam.id}`}>
-                <Card className="row-link">
-                  <div className="between">
-                    <strong>{exam.name}</strong>
-                    <WorkflowBadge state={exam.state} />
-                  </div>
-                  <div className="row mt-2 tiny muted" style={{ gap: 12, flexWrap: 'wrap' }}>
+              <TeacherContentCard
+                key={exam.id}
+                href={`/teacher/exams/${exam.id}`}
+                title={exam.name}
+                badge={<WorkflowBadge state={exam.state} />}
+                meta={
+                  <>
                     {exam.exam_type_label && <span>{exam.exam_type_label}</span>}
                     {exam.exam_date && <span>{formatDate(exam.exam_date)}</span>}
                     {exam.start_time && exam.end_time && (
@@ -83,14 +89,14 @@ export default function ClassExamsPage({
                         {exam.start_time} – {exam.end_time}
                       </span>
                     )}
-                  </div>
-                  <AttachmentListIndicator item={exam} />
-                </Card>
-              </Link>
+                  </>
+                }
+                footer={<AttachmentListIndicator item={exam} />}
+              />
             ))}
           </div>
         )}
       </ResourceView>
-    </>
+    </ClassHubShell>
   );
 }

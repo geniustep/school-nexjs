@@ -5,23 +5,25 @@ import { useResource } from '@/lib/hooks/use-resource';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
 import { PageHeader, Card, Avatar, Badge } from '@/components/ui/primitives';
+import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { statusLabel } from '@/lib/utils/labels';
 import { getStudentDisplayName } from '@/lib/utils/student';
 import type { ChildSummary } from '@/types/student';
 
 export default function ParentChildrenPage() {
-  // Only linked children are returned (server-enforced).
+  const t = useT();
+  // Only linked children are returned (server-enforced) — never infer from email/phone.
   const state = useResource<ChildSummary[]>(endpoints.parent.children);
 
   return (
     <>
-      <PageHeader title="My Children" subtitle="Children linked to your account" />
+      <PageHeader title={t('dashboard.myChildren')} subtitle={t('dashboard.parentSubtitle')} />
       <ResourceView
         state={state}
-        loadingLabel="Loading your children…"
+        loadingLabel={t('common.loading')}
         isEmpty={(d) => d.length === 0}
-        empty={<EmptyState icon="👧" title="No children linked" description="No children are linked to your account yet." />}
+        empty={<EmptyState icon="👧" title={t('empty.children')} description={t('empty.children')} />}
       >
         {(children) => (
           <div className="grid grid--cards">

@@ -69,9 +69,9 @@ export default function AdminParentDetailPage({ params }: { params: Promise<{ id
                 </Card>
                 <Card>
                   <SectionHead title={t('admin.linkedChildren')} />
-                  {parent.children.length ? (
+                  {(parent.children ?? []).length ? (
                     <div className="col" style={{ gap: 10 }}>
-                      {parent.children.map((c) => (
+                      {(parent.children ?? []).map((c) => (
                         <Link key={c.id} href={`/admin/students/${c.id}`} className="between row-link">
                           <span>{getStudentDisplayName(c)}</span>
                           <span className="tiny faint">{c.class?.name ?? t('common.dash')}</span>

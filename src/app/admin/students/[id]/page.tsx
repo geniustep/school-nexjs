@@ -99,9 +99,9 @@ export default function AdminStudentDetailPage({
                 </Card>
                 <Card>
                   <SectionHead title={t('admin.linkedParents')} />
-                  {s.parents.length ? (
+                  {(s.parents ?? []).length ? (
                     <div className="col" style={{ gap: 10 }}>
-                      {s.parents.map((p) => (
+                      {(s.parents ?? []).map((p) => (
                         <div key={p.id} className="between">
                           <span>{p.name}</span>
                           <span className="tiny faint mono">{p.phone ?? t('common.dash')}</span>

@@ -3,7 +3,7 @@
 import type { Ref } from './api';
 import type { AttendanceSummary, AttendanceStatus } from './attendance';
 import type { Announcement } from './message';
-import type { ChildSummary } from './student';
+import type { ChildSummary, StudentNameFields } from './student';
 import type { ExamSummary } from './exam';
 import type { TimetableSlot } from './timetable';
 
@@ -85,12 +85,8 @@ export interface ParentDashboard {
   latest_messages?: LatestMessage[];
 }
 
-export interface StudentProfileSummary {
+export interface StudentProfileSummary extends StudentNameFields {
   id: number;
-  first_name?: string | null;
-  last_name?: string | null;
-  full_name: string;
-  name?: string | null;
   code: string | null;
   level: Ref | null;
   class: Ref | null;

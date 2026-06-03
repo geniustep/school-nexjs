@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
 import { useToast } from '@/components/ui/toast';
-import { Card } from '@/components/ui/primitives';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { useClassSubjects } from '@/features/teacher/use-class-subjects';
@@ -60,15 +59,14 @@ export function TeacherHomeworkCreateForm({
   }
 
   return (
-    <Card>
-      <form className="col" style={{ gap: 12 }} onSubmit={submit}>
-        <h3 style={{ fontSize: 15, margin: 0 }}>{t('teacher.createHomework')}</h3>
-        <label className="col" style={{ gap: 4 }}>
-          <span className="tiny muted">{t('academic.homework')}</span>
+    <form className="t-form" onSubmit={submit}>
+      <div className="t-form__grid">
+        <label className="t-form__field t-form__field--wide">
+          <span className="t-form__label">{t('academic.homework')}</span>
           <input className="input" value={name} onChange={(e) => setName(e.target.value)} required />
         </label>
-        <label className="col" style={{ gap: 4 }}>
-          <span className="tiny muted">{t('academic.description')}</span>
+        <label className="t-form__field t-form__field--wide">
+          <span className="t-form__label">{t('academic.description')}</span>
           <textarea
             className="textarea"
             rows={3}
@@ -76,8 +74,8 @@ export function TeacherHomeworkCreateForm({
             onChange={(e) => setDescription(e.target.value)}
           />
         </label>
-        <label className="col" style={{ gap: 4 }}>
-          <span className="tiny muted">{t('academic.subject')}</span>
+        <label className="t-form__field">
+          <span className="t-form__label">{t('academic.subject')}</span>
           <select
             className="input"
             value={subjectId}
@@ -93,13 +91,13 @@ export function TeacherHomeworkCreateForm({
             ))}
           </select>
           {statusMessage && (
-            <span className="tiny muted" style={{ color: blocked ? 'var(--c-red)' : undefined }}>
+            <span className="t-form__hint" style={{ color: blocked ? 'var(--c-red)' : undefined }}>
               {statusMessage}
             </span>
           )}
         </label>
-        <label className="col" style={{ gap: 4 }}>
-          <span className="tiny muted">{t('academic.deadline')}</span>
+        <label className="t-form__field">
+          <span className="t-form__label">{t('academic.deadline')}</span>
           <input
             className="input"
             type="datetime-local"
@@ -107,7 +105,7 @@ export function TeacherHomeworkCreateForm({
             onChange={(e) => setDeadline(e.target.value)}
           />
         </label>
-        <label className="row tiny" style={{ gap: 8 }}>
+        <label className="t-form__check">
           <input
             type="checkbox"
             checked={requireSubmission}
@@ -115,19 +113,19 @@ export function TeacherHomeworkCreateForm({
           />
           {t('academic.requiresSubmission')}
         </label>
-        <div className="row" style={{ gap: 8 }}>
-          <button
-            type="submit"
-            className="btn btn--primary btn--sm"
-            disabled={saving || subjectsLoading || subjectBlocked}
-          >
-            {saving ? t('common.saving') : t('teacher.createHomework')}
-          </button>
-          <button type="button" className="btn btn--ghost btn--sm" onClick={onCancel}>
-            {t('common.cancel')}
-          </button>
-        </div>
-      </form>
-    </Card>
+      </div>
+      <div className="t-form__actions">
+        <button
+          type="submit"
+          className="btn btn--primary btn--sm"
+          disabled={saving || subjectsLoading || subjectBlocked}
+        >
+          {saving ? t('common.saving') : t('teacher.createHomework')}
+        </button>
+        <button type="button" className="btn btn--ghost btn--sm" onClick={onCancel}>
+          {t('common.cancel')}
+        </button>
+      </div>
+    </form>
   );
 }

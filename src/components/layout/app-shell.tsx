@@ -64,9 +64,9 @@ export function AppShell({
   }
 
   return (
-    <div className="app-shell">
+    <div className={cn('app-shell', user.role === 'teacher' && 'app-shell--teacher')}>
       {open && <div className="scrim" onClick={() => setOpen(false)} />}
-      <aside className={cn('sidebar', open && 'sidebar--open')}>
+      <aside className={cn('sidebar', user.role === 'teacher' && 'sidebar--teacher', open && 'sidebar--open')}>
         {/* Brand */}
         <div className="sidebar__brand">
           <span className="brand-mark" aria-hidden="true">S</span>
@@ -75,6 +75,20 @@ export function AppShell({
             <span className="brand-name__sub">Connect</span>
           </span>
         </div>
+
+        {/* Teacher profile block */}
+        {user.role === 'teacher' && (
+          <div className="sidebar__profile">
+            <Avatar name={user.name} />
+            <div className="sidebar__profile-info">
+              <span className="sidebar__profile-name">{user.name}</span>
+              <span className="sidebar__profile-role">{roleSubtitle(user, t)}</span>
+              {user.school?.name && (
+                <span className="sidebar__profile-school">{user.school.name}</span>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Navigation */}
         <nav className="sidebar__nav">
@@ -108,7 +122,7 @@ export function AppShell({
       </aside>
 
       <div className="main">
-        <header className="topbar">
+        <header className={cn('topbar', user.role === 'teacher' && 'topbar--teacher')}>
           <div className="row">
             <button
               className="btn btn--ghost btn--sm menu-toggle"
@@ -117,17 +131,21 @@ export function AppShell({
             >
               ≡
             </button>
-            <span className="topbar__title">{user.school?.name ?? 'Smart School'}</span>
+            <span className="topbar__title">
+              {user.role === 'teacher' ? t('teacher.workspaceTitle') : (user.school?.name ?? 'Smart School')}
+            </span>
           </div>
           <div className="topbar__right">
             <LocaleSwitcher compact />
-            <div className="user-chip">
-              <Avatar name={user.name} />
-              <div className="col" style={{ gap: 0 }}>
-                <span style={{ fontWeight: 600, fontSize: 13 }}>{user.name}</span>
-                <span className="topbar__role">{roleSubtitle(user, t)}</span>
+            {user.role !== 'teacher' && (
+              <div className="user-chip">
+                <Avatar name={user.name} />
+                <div className="col" style={{ gap: 0 }}>
+                  <span style={{ fontWeight: 600, fontSize: 13 }}>{user.name}</span>
+                  <span className="topbar__role">{roleSubtitle(user, t)}</span>
+                </div>
               </div>
-            </div>
+            )}
             <button
               className="btn btn--ghost btn--sm"
               onClick={logout}

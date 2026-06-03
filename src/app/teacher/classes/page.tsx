@@ -1,11 +1,10 @@
 'use client';
 
-import Link from 'next/link';
-import { useResource } from '@/lib/hooks/use-resource';
+import { useMemo, useState } from 'react';
 import { ResourceView } from '@/components/states/resource';
-import { EmptyState } from '@/components/states/states';
-import { PageHeader, Card, Badge } from '@/components/ui/primitives';
-import { ClassActionGrid } from '@/features/teacher/class-actions';
+import { ClassCard } from '@/features/teacher/class-card';
+import { TeacherPageHeader, TeacherEmptyState } from '@/features/teacher/ui/teacher-primitives';
+import { useResource } from '@/lib/hooks/use-resource';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import type { SchoolClass } from '@/types/class';
@@ -14,42 +13,62 @@ type TeacherClass = Partial<SchoolClass> & { id: number; name: string };
 
 export default function TeacherClassesPage() {
   const t = useT();
+  const [query, setQuery] = useState('');
   const state = useResource<TeacherClass[]>(endpoints.teacher.classes);
 
+  const filtered = useMemo(() => {
+    if (!state.data) return [];
+    const q = query.trim().toLowerCase();
+    if (!q) return state.data;
+    return state.data.filter((c) => c.name.toLowerCase().includes(q));
+  }, [state.data, query]);
+
   return (
-    <>
-      <PageHeader title={t('nav.myClasses')} />
+    <div className="teacher-workspace teacher-workspace--classes">
+      <TeacherPageHeader
+        title={t('nav.myClasses')}
+        subtitle={t('teacher.myClassesDesc')}
+        actions={
+          state.data && state.data.length > 2 ? (
+            <input
+              className="input t-search"
+              type="search"
+              placeholder={t('teacher.searchClasses')}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              aria-label={t('teacher.searchClasses')}
+            />
+          ) : undefined
+        }
+      />
       <ResourceView
         state={state}
         loadingLabel={t('common.loading')}
         isEmpty={(d) => d.length === 0}
         empty={
-          <EmptyState
-            icon="🏫"
-            title={t('empty.classes')}
-            description={t('empty.classes')}
-          />
+          <TeacherEmptyState icon="🏫" title={t('empty.classes')} description={t('empty.classes')} />
         }
       >
-        {(classes) => (
-          <div className="grid grid--cards">
-            {classes.map((c) => (
-              <Card key={c.id}>
-                <div className="between">
-                  <strong style={{ fontSize: 15 }}>{c.name}</strong>
-                  {c.level?.name && <Badge tone="slate">{c.level.name}</Badge>}
-                </div>
-                <p className="muted tiny mt-2">
-                  {typeof c.student_count === 'number'
-                    ? t('academic.pupilCount', { count: c.student_count })
-                    : t('common.view')}
-                </p>
-                <ClassActionGrid classId={c.id} />
-              </Card>
-            ))}
-          </div>
-        )}
+        {() =>
+          filtered.length === 0 ? (
+            <TeacherEmptyState
+              compact
+              icon="🔍"
+              title={t('teacher.noClassMatch')}
+              description={t('admin.adjustSearch')}
+            />
+          ) : (
+            <div
+              className="grid grid--class-cards"
+              data-count={filtered.length <= 2 ? filtered.length : undefined}
+            >
+              {filtered.map((c) => (
+                <ClassCard key={c.id} classInfo={c} variant="full" />
+              ))}
+            </div>
+          )
+        }
       </ResourceView>
-    </>
+    </div>
   );
 }

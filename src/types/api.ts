@@ -23,6 +23,7 @@ export interface ApiSuccess<T> {
 export type ApiErrorCode =
   | 'unauthenticated'
   | 'permission_denied'
+  | 'forbidden'
   | 'not_found'
   | 'validation_error'
   | 'conflict'

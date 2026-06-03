@@ -1,13 +1,11 @@
-/** Shared student name fields returned by Odoo APIs (with legacy fallbacks). */
-export interface StudentNameFields {
-  first_name?: string | null;
-  last_name?: string | null;
-  full_name?: string | null;
-  name?: string | null;
-}
+import type { StudentNameFields } from '@/types/student';
+
+export type { StudentNameFields };
 
 /** Display name priority: full_name → name → first_name + last_name → — */
-export function getStudentDisplayName(student: StudentNameFields | null | undefined): string {
+export function getStudentDisplayName(
+  student: StudentNameFields | null | undefined,
+): string {
   if (!student) return '—';
 
   const full = student.full_name?.trim();

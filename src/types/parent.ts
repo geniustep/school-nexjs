@@ -1,15 +1,12 @@
 // Parent resources — mirrors API_REPORT.md §3 (admin/parents).
 
 import type { Ref } from './api';
+import type { StudentNameFields } from './student';
 
 export type ParentRelation = 'father' | 'mother' | 'guardian' | string;
 
-export interface ParentChild {
+export interface ParentChild extends StudentNameFields {
   id: number;
-  first_name?: string | null;
-  last_name?: string | null;
-  full_name: string;
-  name?: string | null;
   class: Ref | null;
 }
 
@@ -21,6 +18,7 @@ export interface Parent {
   relation: ParentRelation | null;
   preferred_language?: string | null;
   notification_opt_in?: boolean;
-  children: ParentChild[];
+  /** Linked pupils via M2M; may be empty. */
+  children?: ParentChild[];
   status: string;
 }

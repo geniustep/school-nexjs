@@ -16,6 +16,7 @@ import { useT } from '@/features/i18n/locale-context';
 import { Card } from '@/components/ui/primitives';
 import { endpoints } from '@/lib/api/endpoints';
 import { isoDate } from '@/lib/utils/format';
+import { getStudentDisplayName } from '@/lib/utils/student';
 import { cn } from '@/lib/utils/cn';
 import type {
   AttendanceToday,
@@ -49,7 +50,7 @@ function buildRoster(today: AttendanceToday): RosterRow[] {
     seen.add(r.student.id);
     rows.push({
       student_id: r.student.id,
-      full_name: r.student.full_name,
+      full_name: getStudentDisplayName(r.student),
       status: r.status,
       note: r.note ?? '',
     });
@@ -61,7 +62,7 @@ function buildRoster(today: AttendanceToday): RosterRow[] {
     seen.add(n.id);
     rows.push({
       student_id: n.id,
-      full_name: n.full_name,
+      full_name: getStudentDisplayName(n),
       status: n.status ?? 'present',
       note: '',
     });
@@ -166,11 +167,9 @@ export function AttendanceBatch({ classId }: { classId: number }) {
       {() => (
         <>
           {/* Toolbar: date picker (today only) + mark-all quick actions */}
-          <div className="toolbar">
-            <label className="row tiny" style={{ gap: 6 }}>
+          <div className="attendance-toolbar">
+            <label className="attendance-toolbar__field">
               <span className="muted">{t('attendance.dateLabel')}</span>
-              {/* Policy: teachers record attendance for today only. The picker
-                  is locked to today (min === max); past/future are disabled. */}
               <input
                 className="input"
                 type="date"
@@ -183,8 +182,6 @@ export function AttendanceBatch({ classId }: { classId: number }) {
               <span className="tiny muted">{t('attendance.todayOnly')}</span>
             </label>
             <span className="spacer" />
-            {/* Safe default only: everyone is present unless marked otherwise.
-                No "mark all absent/late/left early" shortcut by design. */}
             <span className="tiny muted">{t('attendance.defaultPresent')}</span>
             <button
               className={cn('btn btn--sm', STATUS_BTN.present)}
@@ -202,10 +199,10 @@ export function AttendanceBatch({ classId }: { classId: number }) {
             </Card>
           ) : (
             <>
-              {/* Status counts summary */}
-              <div className="wrap-gap" style={{ marginBlockEnd: 12 }}>
+              {/* Status counts summary chips */}
+              <div className="attendance-chips">
                 {STATUSES.map((s) => (
-                  <span key={s} className="tiny muted">
+                  <span key={s} className={cn('attendance-chip', `attendance-chip--${s}`)}>
                     {statusLabel(s)}: <strong>{counts[s] ?? 0}</strong>
                   </span>
                 ))}
@@ -268,8 +265,8 @@ export function AttendanceBatch({ classId }: { classId: number }) {
                 </table>
               </div>
 
-              {/* Save bar — shows unsaved state prominently */}
-              <div className={cn('save-bar', touched && 'save-bar--dirty')}>
+              {/* Save bar — sticky when unsaved */}
+              <div className={cn('save-bar save-bar--sticky', touched && 'save-bar--dirty')}>
                 <span className="save-bar__status">
                   {touched ? (
                     <>{t('attendance.unsavedChanges')}</>
