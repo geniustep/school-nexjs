@@ -1,7 +1,7 @@
 // Authenticated user — mirrors API_REPORT.md §3 and RBAC Admin-1.
 
 import type { Permission } from './permissions';
-import type { AdminScope } from './scope';
+import type { AdminScope, ScopeType } from './scope';
 import type { SchoolRef } from './api';
 
 export type Role = 'admin' | 'teacher' | 'parent' | 'student';
@@ -11,6 +11,7 @@ export type AdminKind =
   | 'school_manager'
   | 'general_supervisor'
   | 'admin_staff'
+  | 'legacy_admin'
   | 'super_admin'
   | string;
 
@@ -32,6 +33,8 @@ export interface CurrentUser {
   admin_kind?: AdminKind;
   school_ids?: number[];
   schools?: SchoolRef[];
+  /** When returned by /me; used only if active_school_id is unset. */
+  default_school_id?: number;
   active_school_id?: number;
   scopes?: AdminScope[];
   bindings?: AdminBinding[];
@@ -39,6 +42,9 @@ export interface CurrentUser {
   profile_id?: number;
   code?: string;
   scope?: AdminScope;
+  /** Top-level /me fields when returned by Odoo (mirrors scope.type / scopes.length). */
+  scope_type?: ScopeType;
+  scopes_count?: number;
   is_super_admin?: boolean;
 }
 

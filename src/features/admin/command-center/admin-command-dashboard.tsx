@@ -279,35 +279,39 @@ export function AdminCommandDashboard({
         </AdminOperationCard>
       </div>
 
-      {canSeeStudentData(effectiveUser) && (
+      {canSeeStudentData(effectiveUser) &&
+        (hasPermission(effectiveUser, 'view_students') ||
+          hasPermission(effectiveUser, 'view_teachers') ||
+          hasPermission(effectiveUser, 'view_parents') ||
+          hasPermission(effectiveUser, 'view_classes')) && (
         <AdminSection title={t('admin.cmd.schoolStructureTitle')}>
           <AdminSchoolStrip
             cells={[
-              {
+              hasPermission(effectiveUser, 'view_students') && {
                 href: '/admin/students',
                 label: t('nav.students'),
                 value: d.total_students,
                 icon: '🎓',
               },
-              {
+              hasPermission(effectiveUser, 'view_teachers') && {
                 href: '/admin/teachers',
                 label: t('nav.teachers'),
                 value: d.total_teachers,
                 icon: '👩‍🏫',
               },
-              {
+              hasPermission(effectiveUser, 'view_parents') && {
                 href: '/admin/parents',
                 label: t('nav.parents'),
                 value: d.total_parents,
                 icon: '👪',
               },
-              {
+              hasPermission(effectiveUser, 'view_classes') && {
                 href: '/admin/classes',
                 label: t('nav.classes'),
                 value: d.total_classes,
                 icon: '🏫',
               },
-            ]}
+            ].filter(Boolean) as { href: string; label: string; value: number | undefined; icon: string }[]}
           />
         </AdminSection>
       )}

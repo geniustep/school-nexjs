@@ -22,6 +22,14 @@ yarn-error.log*
 # local env files
 .env*.local
 .env
+.env.qa.local
+
+# QA generated output (may contain session cookies)
+scripts/qa-rbac-output.json
+scripts/qa-f1-live-results.json
+scripts/*output*.json
+*.cookies
+*.cookiejar
 
 # local credentials / connection notes (contains passwords — do NOT commit)
 user.md

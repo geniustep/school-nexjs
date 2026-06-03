@@ -17,6 +17,11 @@ import type { CurrentUser } from '@/types/user';
 import { isScopedAdmin } from '@/lib/permissions/scope';
 
 function roleSubtitle(user: CurrentUser, t: (k: string) => string): string {
+  if (user.role === 'admin' && user.admin_kind) {
+    const kindKey = `roles.adminKind.${user.admin_kind}`;
+    const kindLabel = t(kindKey);
+    if (kindLabel !== kindKey) return kindLabel;
+  }
   return t(`roles.${user.role}`);
 }
 

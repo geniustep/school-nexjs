@@ -17,6 +17,7 @@ import { hasPermission } from '@/lib/permissions/permissions';
 export function isSuperAdmin(user: CurrentUser | null): boolean {
   if (!user || user.role !== 'admin') return false;
   if (user.is_super_admin) return true;
+  if (user.admin_kind === 'legacy_admin' || user.admin_kind === 'super_admin') return true;
   return user.scope?.type === 'school';
 }
 

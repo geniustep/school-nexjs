@@ -27,7 +27,15 @@
     "admin": "مدير",
     "teacher": "أستاذ",
     "parent": "ولي الأمر",
-    "student": "تلميذ"
+    "student": "تلميذ",
+    "adminKind": {
+      "project_manager": "مدير مشروع",
+      "school_manager": "مدير مدرسة",
+      "general_supervisor": "مشرف عام",
+      "admin_staff": "موظف إداري",
+      "legacy_admin": "مدير (قديم)",
+      "super_admin": "مدير عام"
+    }
   },
   "nav": {
     "dashboard": "لوحة التحكم",

@@ -55,12 +55,18 @@ export function resolveSchoolCatalog(
 }
 
 export function resolveActiveSchoolId(
-  user: Pick<CurrentUser, 'active_school_id' | 'school_ids' | 'school' | 'bindings'>,
+  user: Pick<
+    CurrentUser,
+    'active_school_id' | 'default_school_id' | 'school_ids' | 'school' | 'bindings'
+  >,
   cookieSchoolId?: number | null,
 ): number | null {
   const allowed = resolveSchoolIds(user);
   const fallback =
-    user.active_school_id ?? user.school?.id ?? (allowed.length === 1 ? allowed[0] : null);
+    user.active_school_id ??
+    user.default_school_id ??
+    user.school?.id ??
+    (allowed.length === 1 ? allowed[0] : null);
 
   if (cookieSchoolId != null && allowed.includes(cookieSchoolId)) return cookieSchoolId;
   if (fallback != null && allowed.includes(fallback)) return fallback;

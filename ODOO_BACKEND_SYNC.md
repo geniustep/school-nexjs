@@ -60,14 +60,19 @@ All remain existing v1 paths. Key routes for regression:
 
 ## QA accounts (smoke test when Odoo is up)
 
-| Role | Login | Password |
-|------|-------|----------|
-| admin | `done` | `admin123` |
-| teacher | `qa.teacher` | `teacher123` |
-| parent | `qa.parent` | `parent123` |
-| student | `qa.student` | `student123` |
+| Role | Login |
+|------|-------|
+| project manager | `qa.pm` |
+| school manager | `qa.schoolmgr` |
+| supervisor | `qa.supervisor` |
+| staff | `qa.staff` |
+| teacher | `qa.teacher` |
+| parent | `qa.parent` |
+| student | `qa.student` |
 
-Run locally: `npm run typecheck`, `npm run build`, then exercise admin/teacher/parent/student dashboards and attachment download with session cookie.
+Passwords: set `QA_PASSWORD` or `.env.qa.local` (see `.env.qa.local.example`). Do not commit credentials.
+
+Run locally: `npm run typecheck`, `npm run build`, then `node scripts/qa-f1-probe.mjs http://localhost:3001`.
 
 ## Confirmation
 

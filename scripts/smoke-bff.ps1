@@ -161,7 +161,17 @@ function Test-AttachmentDownload([string]$Role, $Session, [int]$AttachmentId) {
 }
 
 # --- Admin ---
-$admin = Api-Login 'admin' 'done' 'admin123'
+$qaPass = $env:QA_PASSWORD
+if (-not $qaPass -and (Test-Path (Join-Path $PSScriptRoot '..\.env.qa.local'))) {
+  $line = Get-Content (Join-Path $PSScriptRoot '..\.env.qa.local') | Where-Object { $_ -match '^\s*QA_PASSWORD=' } | Select-Object -First 1
+  if ($line -match '^\s*QA_PASSWORD=(.+)$') { $qaPass = $matches[1].Trim().Trim('"').Trim("'") }
+}
+if (-not $qaPass) {
+  Write-Error 'Set QA_PASSWORD or create .env.qa.local (see .env.qa.local.example).'
+  exit 1
+}
+$legacyPass = if ($env:QA_PASSWORD_LEGACY) { $env:QA_PASSWORD_LEGACY } else { $qaPass }
+$admin = Api-Login 'admin' 'done' $legacyPass
 if ($admin) {
   $dash = Bff-Get 'admin' $admin.Session '/admin/dashboard' 'GET /admin/dashboard'
   $students = Bff-Get 'admin' $admin.Session '/admin/students?page_size=5' 'GET /admin/students'
@@ -177,7 +187,7 @@ if ($admin) {
 }
 
 # --- Teacher ---
-$teacher = Api-Login 'teacher' 'qa.teacher' 'teacher123'
+$teacher = Api-Login 'teacher' 'qa.teacher' $qaPass
 if ($teacher) {
   $tdash = Bff-Get 'teacher' $teacher.Session '/teacher/dashboard' 'GET /teacher/dashboard'
   $tclasses = Bff-Get 'teacher' $teacher.Session '/teacher/classes' 'GET /teacher/classes'
@@ -209,7 +219,7 @@ if ($teacher) {
 }
 
 # --- Parent ---
-$parent = Api-Login 'parent' 'qa.parent' 'parent123'
+$parent = Api-Login 'parent' 'qa.parent' $qaPass
 if ($parent) {
   $pdash = Bff-Get 'parent' $parent.Session '/parent/dashboard' 'GET /parent/dashboard'
   $children = Bff-Get 'parent' $parent.Session '/parent/children' 'GET /parent/children'
@@ -229,7 +239,7 @@ if ($parent) {
 }
 
 # --- Student ---
-$student = Api-Login 'student' 'qa.student' 'student123'
+$student = Api-Login 'student' 'qa.student' $qaPass
 if ($student) {
   $sdash = Bff-Get 'student' $student.Session '/student/dashboard' 'GET /student/dashboard'
   $profile = Bff-Get 'student' $student.Session '/student/profile' 'GET /student/profile'
