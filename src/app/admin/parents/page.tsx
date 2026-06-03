@@ -48,7 +48,7 @@ export default function AdminParentsPage() {
         key: 'status',
         header: t('academic.status'),
         render: (p) => (
-          <Badge tone={p.status === 'active' ? 'green' : 'slate'}>{statusLabel(p.status)}</Badge>
+          <Badge tone={p.status === 'active' ? 'green' : 'slate'}>{statusLabel(t, p.status)}</Badge>
         ),
       },
     ],

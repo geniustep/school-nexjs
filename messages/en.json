@@ -21,7 +21,16 @@
     "room": "Room {room}",
     "saving": "Saving…",
     "submitting": "Submitting…",
-    "downloading": "Downloading…"
+    "downloading": "Downloading…",
+    "toggleMenu": "Toggle menu",
+    "language": "Language",
+    "dismissNotification": "Dismiss notification",
+    "allStatuses": "All statuses",
+    "backToChild": "Back to child",
+    "note": "Note",
+    "status": "Status",
+    "date": "Date",
+    "class": "Class"
   },
   "roles": {
     "admin": "Administrator",
@@ -140,7 +149,10 @@
     "classes": "No assigned classes.",
     "students": "No pupils in this class.",
     "children": "No linked children.",
-    "messages": "No messages."
+    "messages": "No messages.",
+    "attendanceRecords": "No attendance records",
+    "attendanceRecordsYet": "No attendance records yet.",
+    "noChannelsAvailable": "No channels available."
   },
   "dashboard": {
     "welcome": "Welcome, {name}",
@@ -309,8 +321,8 @@
     "defaultPresent": "Everyone present by default —",
     "markAllPresent": "Mark all present",
     "markAllPresentTitle": "Set every student to Present, then mark exceptions",
-    "noStudents": "No students to record for this class.",
-    "student": "Student",
+    "noStudents": "No pupils to record for this class.",
+    "student": "Pupil",
     "statusColumn": "Attendance status",
     "note": "Note",
     "optionalNote": "Optional note",
@@ -329,7 +341,22 @@
     "late": "Late",
     "leftEarly": "Left early",
     "today": "Today",
-    "notRecorded": "Not recorded"
+    "notRecorded": "Not recorded",
+    "correctPanel": {
+      "dateHelp": "Date (today or earlier)",
+      "selectClass": "Select a class…",
+      "selectClassFirst": "Select a class first",
+      "loadingStudents": "Loading pupils…",
+      "noStudentsInClass": "No pupils in this class",
+      "selectStudent": "Select a pupil…",
+      "notePlaceholder": "Reason for correction (optional)",
+      "saveCorrection": "Save correction",
+      "scopeHint": "Corrections apply only within your administrative scope.",
+      "permissionDesc": "You do not have permission to correct attendance for this scope. Contact your school's main administrator.",
+      "validationError": "That correction is not valid. Check the pupil belongs to the selected class.",
+      "saveFailed": "Could not save the correction.",
+      "success": "Attendance corrected for {name} on {date}."
+    }
   },
   "auth": {
     "brand": "Smart School Connect",
@@ -375,7 +402,43 @@
     "permissionDenied": "You cannot send messages in this channel.",
     "sendFailed": "Could not send your message.",
     "readOnlyChannel": "This channel is read-only. You cannot send messages here.",
-    "parentReadOnly": "You are viewing this channel as a parent. Messages cannot be sent from here."
+    "parentReadOnly": "You are viewing this channel as a parent. Messages cannot be sent from here.",
+    "type": {
+      "public": "General",
+      "class": "Class",
+      "teachers": "Teachers",
+      "parents": "Parents",
+      "announcement": "Announcements",
+      "private": "Private"
+    }
+  },
+  "announcements": {
+    "loading": "Loading announcements…"
+  },
+  "parent": {
+    "viewingAsParent": "Viewing as parent",
+    "readOnlyBannerTitle": "Read-only view",
+    "readOnlyBannerDesc": "You are viewing your child's school information as a parent. You cannot send messages or take actions from this view.",
+    "childChannelsSubtitle": "Channels visible to your child (read-only)",
+    "childAnnouncementsSubtitle": "Messages visible to your child (read-only)",
+    "attendanceReadOnlySubtitle": "Read-only attendance history",
+    "loadingChildInfo": "Loading child information…",
+    "attendanceSummary": "Attendance summary",
+    "recentAttendance": "Recent attendance",
+    "totalDays": "Total days",
+    "backToChildOverview": "Back to child overview"
+  },
+  "studentPortal": {
+    "myAttendance": "My attendance",
+    "attendanceSubtitle": "Your attendance history",
+    "loadingAttendance": "Loading your attendance…",
+    "channelsSubtitle": "Channels available to you",
+    "announcementsSubtitle": "Announcements visible to you"
+  },
+  "studentStatus": {
+    "graduated": "Graduated",
+    "expelled": "Expelled",
+    "transferred": "Transferred"
   },
   "teacher": {
     "createHomework": "Create homework",
@@ -723,6 +786,8 @@
     "fileTooLarge": "File is too large (max 10 MB)",
     "tooManyAttachments": "Cannot upload more than 5 attachments",
     "pickAtLeastOneFile": "Select at least one file",
-    "noAttachmentsYet": "No attachments yet"
+    "noAttachmentsYet": "No attachments yet",
+    "exportFailed": "Export failed.",
+    "exportForbidden": "You do not have permission to export this data."
   }
 }

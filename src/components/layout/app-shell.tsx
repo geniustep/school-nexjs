@@ -144,7 +144,7 @@ export function AppShell({
             <button
               className="btn btn--ghost btn--sm menu-toggle"
               onClick={() => setOpen((v) => !v)}
-              aria-label="Toggle menu"
+              aria-label={t('common.toggleMenu')}
             >
               ≡
             </button>

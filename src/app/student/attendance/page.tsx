@@ -1,32 +1,40 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useResource } from '@/lib/hooks/use-resource';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
 import { PageHeader } from '@/components/ui/primitives';
 import { AttendanceBadge } from '@/components/badges/attendance-badge';
+import { useT } from '@/features/i18n/locale-context';
+import { attendanceStatusLabel } from '@/lib/utils/labels';
 import { endpoints } from '@/lib/api/endpoints';
-import { ATTENDANCE_LABEL } from '@/lib/utils/labels';
 import { formatDate } from '@/lib/utils/format';
 import type { AttendanceRecord, AttendanceStatus } from '@/types/attendance';
 
 const STATUSES: AttendanceStatus[] = ['present', 'absent', 'late', 'left_early'];
 
-const columns: Column<AttendanceRecord>[] = [
-  { key: 'date', header: 'Date', render: (a) => formatDate(a.date) },
-  { key: 'status', header: 'Status', render: (a) => <AttendanceBadge status={a.status} /> },
-  { key: 'class', header: 'Class', render: (a) => a.class?.name ?? '—' },
-  { key: 'note', header: 'Note', render: (a) => a.note ?? '—' },
-];
-
 export default function StudentAttendancePage() {
+  const t = useT();
   const [page, setPage] = useState(1);
   const [date, setDate] = useState('');
   const [status, setStatus] = useState('');
 
-  // Own attendance only (server-enforced), read-only.
+  const columns: Column<AttendanceRecord>[] = useMemo(
+    () => [
+      { key: 'date', header: t('common.date'), render: (a) => formatDate(a.date) },
+      {
+        key: 'status',
+        header: t('common.status'),
+        render: (a) => <AttendanceBadge status={a.status} />,
+      },
+      { key: 'class', header: t('common.class'), render: (a) => a.class?.name ?? '—' },
+      { key: 'note', header: t('common.note'), render: (a) => a.note ?? '—' },
+    ],
+    [t],
+  );
+
   const state = useResource<AttendanceRecord[]>(endpoints.student.attendance, {
     page,
     page_size: 20,
@@ -37,7 +45,10 @@ export default function StudentAttendancePage() {
 
   return (
     <>
-      <PageHeader title="My Attendance" subtitle="Your attendance history" />
+      <PageHeader
+        title={t('studentPortal.myAttendance')}
+        subtitle={t('studentPortal.attendanceSubtitle')}
+      />
 
       <div className="toolbar">
         <input
@@ -57,10 +68,10 @@ export default function StudentAttendancePage() {
             setPage(1);
           }}
         >
-          <option value="">All statuses</option>
+          <option value="">{t('common.allStatuses')}</option>
           {STATUSES.map((s) => (
             <option key={s} value={s}>
-              {ATTENDANCE_LABEL[s]}
+              {attendanceStatusLabel(t, s)}
             </option>
           ))}
         </select>
@@ -68,9 +79,9 @@ export default function StudentAttendancePage() {
 
       <ResourceView
         state={state}
-        loadingLabel="Loading your attendance…"
+        loadingLabel={t('studentPortal.loadingAttendance')}
         isEmpty={(d) => d.length === 0}
-        empty={<EmptyState icon="🗓️" title="No attendance records" />}
+        empty={<EmptyState icon="🗓️" title={t('empty.attendanceRecords')} />}
       >
         {(records) => (
           <>

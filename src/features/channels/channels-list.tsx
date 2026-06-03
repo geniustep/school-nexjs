@@ -13,7 +13,7 @@ import { EmptyState } from '@/components/states/states';
 import { Badge, Card } from '@/components/ui/primitives';
 import { useT } from '@/features/i18n/locale-context';
 
-import { CHANNEL_TYPE_LABEL } from '@/lib/utils/labels';
+import { channelTypeLabel } from '@/lib/utils/labels';
 import { formatDateTime } from '@/lib/utils/format';
 import { cn } from '@/lib/utils/cn';
 import type { Channel } from '@/types/channel';
@@ -62,7 +62,7 @@ export function ChannelsList({ basePath }: { basePath: string }) {
 
                 <div className="wrap-gap" style={{ marginBlockEnd: 8 }}>
                   <Badge tone="slate">
-                    {CHANNEL_TYPE_LABEL[ch.type] ?? ch.type}
+                    {channelTypeLabel(t, ch.type)}
                   </Badge>
                   {ch.read_only && <Badge tone="amber">{t('channels.readOnly')}</Badge>}
                   {!ch.can_send && !ch.read_only && (

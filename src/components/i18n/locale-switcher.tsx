@@ -4,7 +4,7 @@ import { LOCALES, LOCALE_LABELS } from '@/lib/i18n/config';
 import { useLocale } from '@/features/i18n/locale-context';
 
 export function LocaleSwitcher({ compact = false }: { compact?: boolean }) {
-  const { locale, setLocale } = useLocale();
+  const { locale, setLocale, t } = useLocale();
 
   return (
     <label className={compact ? 'locale-switcher locale-switcher--compact' : 'locale-switcher'}>
@@ -13,7 +13,7 @@ export function LocaleSwitcher({ compact = false }: { compact?: boolean }) {
         className="select locale-switcher__select"
         value={locale}
         onChange={(e) => setLocale(e.target.value as typeof locale)}
-        aria-label="Language"
+        aria-label={t('common.language')}
       >
         {LOCALES.map((l) => (
           <option key={l} value={l}>

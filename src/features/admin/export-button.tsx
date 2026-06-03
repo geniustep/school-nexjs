@@ -29,7 +29,13 @@ export function ExportButton({
     if (res.ok) {
       toast.success(t('academic.downloadStarted'));
     } else {
-      toast.error(res.message);
+      const fallback =
+        res.reason === 'forbidden'
+          ? t('admin.exportForbidden')
+          : res.reason === 'network'
+            ? t('errors.network')
+            : t('admin.exportFailed');
+      toast.error(res.message ?? fallback);
     }
   }
 

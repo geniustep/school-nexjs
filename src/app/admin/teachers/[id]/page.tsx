@@ -42,7 +42,7 @@ export default function AdminTeacherDetailPage({ params }: { params: Promise<{ i
               subtitle={teacher.code ?? undefined}
               actions={
                 <div className="row" style={{ gap: 8 }}>
-                  <Badge tone={teacher.status === 'active' ? 'green' : 'slate'}>{statusLabel(teacher.status)}</Badge>
+                  <Badge tone={teacher.status === 'active' ? 'green' : 'slate'}>{statusLabel(t, teacher.status)}</Badge>
                   {!editing && teacher.status !== 'archived' && (
                     <>
                       <button type="button" className="btn btn--ghost btn--sm" onClick={() => setEditing(true)}>{t('common.edit')}</button>

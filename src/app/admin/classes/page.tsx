@@ -25,7 +25,7 @@ export default function AdminClassesPage() {
       { key: 'name', header: t('nav.classes'), render: (c) => <strong>{c.name}</strong> },
       { key: 'level', header: t('nav.levels'), render: (c) => c.level?.name ?? t('common.dash') },
       { key: 'students', header: t('nav.students'), render: (c) => <span className="mono">{c.student_count}{c.capacity ? ` / ${c.capacity}` : ''}</span> },
-      { key: 'status', header: t('academic.status'), render: (c) => <Badge tone={c.status === 'active' ? 'green' : 'slate'}>{statusLabel(c.status)}</Badge> },
+      { key: 'status', header: t('academic.status'), render: (c) => <Badge tone={c.status === 'active' ? 'green' : 'slate'}>{statusLabel(t, c.status)}</Badge> },
     ],
     [t],
   );

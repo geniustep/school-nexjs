@@ -43,7 +43,7 @@ export default function AdminParentDetailPage({ params }: { params: Promise<{ id
               subtitle={parent.relation ? titleCase(parent.relation) : undefined}
               actions={
                 <div className="row" style={{ gap: 8 }}>
-                  <Badge tone={parent.status === 'active' ? 'green' : 'slate'}>{statusLabel(parent.status)}</Badge>
+                  <Badge tone={parent.status === 'active' ? 'green' : 'slate'}>{statusLabel(t, parent.status)}</Badge>
                   {!editing && parent.status !== 'archived' && (
                     <>
                       <button type="button" className="btn btn--ghost btn--sm" onClick={() => setEditing(true)}>{t('common.edit')}</button>

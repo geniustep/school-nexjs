@@ -18,9 +18,10 @@ import {
 } from '@/components/ui/primitives';
 import { AttendanceBadge } from '@/components/badges/attendance-badge';
 import { ChildSubnav } from '@/features/parent/child-subnav';
+import { useT } from '@/features/i18n/locale-context';
+import { channelTypeLabel, attendanceStatusLabel } from '@/lib/utils/labels';
 import { endpoints } from '@/lib/api/endpoints';
 import { getStudentDisplayName } from '@/lib/utils/student';
-import { CHANNEL_TYPE_LABEL, ATTENDANCE_LABEL } from '@/lib/utils/labels';
 import { formatDate, formatDateTime } from '@/lib/utils/format';
 import type { ChildStudentView } from '@/types/dashboard';
 import type { AttendanceStatus } from '@/types/attendance';
@@ -41,52 +42,50 @@ export default function ChildStudentViewPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const t = useT();
   const state = useResource<ChildStudentView>(endpoints.parent.childStudentView(id));
 
   return (
     <>
       <Link href={`/parent/children/${id}`} className="back-link">
-        ‹ Back to child overview
+        ‹ {t('parent.backToChildOverview')}
       </Link>
-      <ResourceView state={state} loadingLabel="Loading child information…">
+      <ResourceView state={state} loadingLabel={t('parent.loadingChildInfo')}>
         {(d) => (
           <>
             <PageHeader
               title={getStudentDisplayName(d.student)}
-              subtitle="Viewing as parent"
+              subtitle={t('parent.viewingAsParent')}
             />
 
             <ChildSubnav id={id} />
 
-            {/* Read-only context banner — clear, non-alarming */}
             <InfoBanner
               tone="blue"
               icon="ℹ"
-              title="Read-only view"
-              description="You are viewing your child's school information as a parent. You cannot send messages or take actions from this view."
+              title={t('parent.readOnlyBannerTitle')}
+              description={t('parent.readOnlyBannerDesc')}
             />
 
-            {/* Attendance summary — color-coded per status */}
-            <SectionHead title="Attendance summary" />
+            <SectionHead title={t('parent.attendanceSummary')} />
             <div className="grid grid--stats">
               {ATT_KEYS.map((k) => (
                 <StatCard
                   key={k}
-                  label={ATTENDANCE_LABEL[k]}
+                  label={attendanceStatusLabel(t, k)}
                   value={d.attendance_summary?.[k] ?? 0}
                   tone={ATT_TONE[k]}
                 />
               ))}
               <StatCard
-                label="Total days"
+                label={t('parent.totalDays')}
                 value={d.attendance_summary?.total_days ?? d.attendance_summary?.total ?? 0}
                 tone="slate"
               />
             </div>
 
-            {/* Recent attendance list */}
             <div className="section">
-              <SectionHead title="Recent attendance" />
+              <SectionHead title={t('parent.recentAttendance')} />
               {d.latest_attendance?.length ? (
                 <Card pad={false}>
                   {d.latest_attendance.map((a, i) => (
@@ -102,41 +101,36 @@ export default function ChildStudentViewPage({
                 </Card>
               ) : (
                 <Card>
-                  <p className="muted">No attendance records yet.</p>
+                  <p className="muted">{t('empty.attendanceRecordsYet')}</p>
                 </Card>
               )}
             </div>
 
-            {/* Child's channels — listed read-only, no links to chat composer */}
             <div className="section">
-              <SectionHead title="Channels" />
+              <SectionHead title={t('channels.title')} />
               {d.channels?.length ? (
                 <div className="grid grid--cards">
                   {d.channels.map((ch) => (
                     <Card key={ch.id}>
                       <div className="between">
                         <strong>{ch.name}</strong>
-                        <Badge tone="slate">
-                          {CHANNEL_TYPE_LABEL[ch.type as never] ?? ch.type}
-                        </Badge>
+                        <Badge tone="slate">{channelTypeLabel(t, ch.type)}</Badge>
                       </div>
-                      {/* can_send is always false in child-view — no composer link. */}
                       <div className="mt-2">
-                        <Badge tone="amber">Read-only</Badge>
+                        <Badge tone="amber">{t('channels.readOnly')}</Badge>
                       </div>
                     </Card>
                   ))}
                 </div>
               ) : (
                 <Card>
-                  <p className="muted">No channels available.</p>
+                  <p className="muted">{t('empty.noChannelsAvailable')}</p>
                 </Card>
               )}
             </div>
 
-            {/* Announcements */}
             <div className="section">
-              <SectionHead title="Announcements" />
+              <SectionHead title={t('nav.announcements')} />
               {d.announcements?.length ? (
                 <Card pad={false}>
                   <div className="msg-feed">
@@ -156,7 +150,7 @@ export default function ChildStudentViewPage({
                 </Card>
               ) : (
                 <Card>
-                  <p className="muted">No announcements yet.</p>
+                  <p className="muted">{t('dashboard.noAnnouncements')}</p>
                 </Card>
               )}
             </div>

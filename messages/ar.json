@@ -21,7 +21,16 @@
     "room": "ق.{room}",
     "saving": "جاري الحفظ…",
     "submitting": "جاري الإرسال…",
-    "downloading": "جاري التحميل…"
+    "downloading": "جاري التحميل…",
+    "toggleMenu": "فتح القائمة",
+    "language": "اللغة",
+    "dismissNotification": "إغلاق الإشعار",
+    "allStatuses": "كل الحالات",
+    "backToChild": "العودة إلى الابن",
+    "note": "ملاحظة",
+    "status": "الحالة",
+    "date": "التاريخ",
+    "class": "القسم"
   },
   "roles": {
     "admin": "مدير",
@@ -140,7 +149,10 @@
     "classes": "لا توجد أقسام مسندة.",
     "students": "لا يوجد تلاميذ في هذا القسم.",
     "children": "لا يوجد أبناء مرتبطون.",
-    "messages": "لا توجد رسائل."
+    "messages": "لا توجد رسائل.",
+    "attendanceRecords": "لا توجد سجلات حضور",
+    "attendanceRecordsYet": "لا توجد سجلات حضور بعد.",
+    "noChannelsAvailable": "لا توجد قنوات متاحة."
   },
   "dashboard": {
     "welcome": "مرحبًا، {name}",
@@ -329,7 +341,22 @@
     "late": "متأخر",
     "leftEarly": "غادر مبكرًا",
     "today": "اليوم",
-    "notRecorded": "لم يُسجّل"
+    "notRecorded": "لم يُسجّل",
+    "correctPanel": {
+      "dateHelp": "التاريخ (اليوم أو سابق)",
+      "selectClass": "اختر قسمًا…",
+      "selectClassFirst": "اختر قسمًا أولًا",
+      "loadingStudents": "جاري تحميل التلاميذ…",
+      "noStudentsInClass": "لا يوجد تلاميذ في هذا القسم",
+      "selectStudent": "اختر تلميذًا…",
+      "notePlaceholder": "سبب التصحيح (اختياري)",
+      "saveCorrection": "حفظ التصحيح",
+      "scopeHint": "التصحيحات تُطبَّق ضمن نطاقك الإداري فقط.",
+      "permissionDesc": "لا تملك صلاحية تصحيح الحضور في هذا النطاق. تواصل مع مدير مدرستك.",
+      "validationError": "هذا التصحيح غير صالح. تأكد أن التلميذ ينتمي إلى القسم المحدد.",
+      "saveFailed": "تعذّر حفظ التصحيح.",
+      "success": "تم تصحيح حضور {name} بتاريخ {date}."
+    }
   },
   "auth": {
     "brand": "Smart School Connect",
@@ -375,7 +402,43 @@
     "permissionDenied": "لا يمكنك إرسال رسائل في هذه القناة.",
     "sendFailed": "تعذّر إرسال رسالتك.",
     "readOnlyChannel": "هذه القناة للقراءة فقط. لا يمكنك إرسال رسائل هنا.",
-    "parentReadOnly": "تعرض هذه القناة كولي أمر. لا يمكن إرسال رسائل من هنا."
+    "parentReadOnly": "تعرض هذه القناة كولي أمر. لا يمكن إرسال رسائل من هنا.",
+    "type": {
+      "public": "عام",
+      "class": "قسم",
+      "teachers": "أساتذة",
+      "parents": "أولياء الأمور",
+      "announcement": "إعلانات",
+      "private": "خاص"
+    }
+  },
+  "announcements": {
+    "loading": "جاري تحميل الإعلانات…"
+  },
+  "parent": {
+    "viewingAsParent": "عرض كولي أمر",
+    "readOnlyBannerTitle": "عرض للقراءة فقط",
+    "readOnlyBannerDesc": "أنت تعرض معلومات ابنك المدرسية كولي أمر. لا يمكنك إرسال رسائل أو تنفيذ إجراءات من هذا العرض.",
+    "childChannelsSubtitle": "القنوات الظاهرة لابنك (للقراءة فقط)",
+    "childAnnouncementsSubtitle": "الرسائل الظاهرة لابنك (للقراءة فقط)",
+    "attendanceReadOnlySubtitle": "سجل حضور للقراءة فقط",
+    "loadingChildInfo": "جاري تحميل معلومات الابن…",
+    "attendanceSummary": "ملخص الحضور",
+    "recentAttendance": "آخر سجلات الحضور",
+    "totalDays": "إجمالي الأيام",
+    "backToChildOverview": "العودة إلى نظرة الابن"
+  },
+  "studentPortal": {
+    "myAttendance": "حضوري",
+    "attendanceSubtitle": "سجل حضورك",
+    "loadingAttendance": "جاري تحميل حضورك…",
+    "channelsSubtitle": "القنوات المتاحة لك",
+    "announcementsSubtitle": "الإعلانات الظاهرة لك"
+  },
+  "studentStatus": {
+    "graduated": "متخرج",
+    "expelled": "مطرود",
+    "transferred": "منقول"
   },
   "teacher": {
     "createHomework": "إنشاء واجب",
@@ -723,6 +786,8 @@
     "fileTooLarge": "حجم الملف كبير جدًا (الحد 10 م.ب)",
     "tooManyAttachments": "لا يمكن رفع أكثر من 5 مرفقات",
     "pickAtLeastOneFile": "اختر ملفًا واحدًا على الأقل",
-    "noAttachmentsYet": "لا توجد مرفقات بعد"
+    "noAttachmentsYet": "لا توجد مرفقات بعد",
+    "exportFailed": "فشل التصدير.",
+    "exportForbidden": "لا تملك صلاحية تصدير هذه البيانات."
   }
 }

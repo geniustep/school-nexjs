@@ -13,8 +13,9 @@ import { useResource } from '@/lib/hooks/use-resource';
 import { useToast } from '@/components/ui/toast';
 import { Card } from '@/components/ui/primitives';
 import { PermissionDeniedState } from '@/components/states/states';
+import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
-import { ATTENDANCE_LABEL } from '@/lib/utils/labels';
+import { attendanceStatusLabel } from '@/lib/utils/labels';
 import { isoDate } from '@/lib/utils/format';
 import { getStudentDisplayName } from '@/lib/utils/student';
 import { cn } from '@/lib/utils/cn';
@@ -32,6 +33,7 @@ const STATUS_BTN: Record<AttendanceStatus, string> = {
 };
 
 export function AttendanceCorrectPanel({ onSuccess }: { onSuccess?: () => void }) {
+  const t = useT();
   const toast = useToast();
   const today = isoDate();
 
@@ -46,14 +48,12 @@ export function AttendanceCorrectPanel({ onSuccess }: { onSuccess?: () => void }
   const classesState = useResource<SchoolClass[]>(endpoints.admin.classes);
   const classes = classesState.data ?? [];
 
-  // Students for the selected class (already scope-filtered by the API).
   const studentsState = useResource<Student[]>(
     classId ? endpoints.admin.students : null,
     classId ? { class_id: classId, page_size: 200 } : undefined,
   );
   const students = studentsState.data ?? [];
 
-  // Reset the chosen student whenever the class changes.
   useEffect(() => {
     setStudentId('');
   }, [classId]);
@@ -82,19 +82,18 @@ export function AttendanceCorrectPanel({ onSuccess }: { onSuccess?: () => void }
         return;
       }
       if (res.error.code === 'validation_error') {
-        toast.error(
-          res.error.message ||
-            'That correction is not valid. Check the student belongs to the selected class.',
-        );
+        toast.error(res.error.message || t('attendance.correctPanel.validationError'));
         return;
       }
-      toast.error(res.error.message || 'Could not save the correction.');
+      toast.error(res.error.message || t('attendance.correctPanel.saveFailed'));
       return;
     }
 
     const studentName =
-      getStudentDisplayName(students.find((s) => String(s.id) === studentId)) || 'student';
-    toast.success(`Attendance corrected for ${studentName} on ${date}.`);
+      getStudentDisplayName(students.find((s) => String(s.id) === studentId)) || '—';
+    toast.success(
+      t('attendance.correctPanel.success', { name: studentName, date }),
+    );
     setNote('');
     onSuccess?.();
   }
@@ -102,7 +101,7 @@ export function AttendanceCorrectPanel({ onSuccess }: { onSuccess?: () => void }
   if (denied) {
     return (
       <Card>
-        <PermissionDeniedState description="You do not have permission to correct attendance for this scope. Contact your school's main administrator." />
+        <PermissionDeniedState description={t('attendance.correctPanel.permissionDesc')} />
       </Card>
     );
   }
@@ -112,25 +111,25 @@ export function AttendanceCorrectPanel({ onSuccess }: { onSuccess?: () => void }
       <div className="col" style={{ gap: 14 }}>
         <div className="grid grid--form">
           <label className="col tiny" style={{ gap: 4 }}>
-            <span className="muted">Date (today or earlier)</span>
-            {/* Admin may back-date; future dates are blocked (max = today). */}
+            <span className="muted">{t('common.date')}</span>
             <input
               className="input"
               type="date"
               value={date}
               max={today}
               onChange={(e) => setDate(e.target.value)}
+              title={t('attendance.correctPanel.dateHelp')}
             />
           </label>
 
           <label className="col tiny" style={{ gap: 4 }}>
-            <span className="muted">Class</span>
+            <span className="muted">{t('common.class')}</span>
             <select
               className="select"
               value={classId}
               onChange={(e) => setClassId(e.target.value)}
             >
-              <option value="">Select a class…</option>
+              <option value="">{t('attendance.correctPanel.selectClass')}</option>
               {classes.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
@@ -140,7 +139,7 @@ export function AttendanceCorrectPanel({ onSuccess }: { onSuccess?: () => void }
           </label>
 
           <label className="col tiny" style={{ gap: 4 }}>
-            <span className="muted">Student</span>
+            <span className="muted">{t('attendance.student')}</span>
             <select
               className="select"
               value={studentId}
@@ -149,12 +148,12 @@ export function AttendanceCorrectPanel({ onSuccess }: { onSuccess?: () => void }
             >
               <option value="">
                 {!classId
-                  ? 'Select a class first'
+                  ? t('attendance.correctPanel.selectClassFirst')
                   : studentsState.loading
-                    ? 'Loading students…'
+                    ? t('attendance.correctPanel.loadingStudents')
                     : students.length === 0
-                      ? 'No students in this class'
-                      : 'Select a student…'}
+                      ? t('attendance.correctPanel.noStudentsInClass')
+                      : t('attendance.correctPanel.selectStudent')}
               </option>
               {students.map((s) => (
                 <option key={s.id} value={s.id}>
@@ -166,7 +165,7 @@ export function AttendanceCorrectPanel({ onSuccess }: { onSuccess?: () => void }
         </div>
 
         <div className="col tiny" style={{ gap: 6 }}>
-          <span className="muted">Status</span>
+          <span className="muted">{t('common.status')}</span>
           <div className="wrap-gap">
             {STATUSES.map((s) => (
               <button
@@ -179,17 +178,17 @@ export function AttendanceCorrectPanel({ onSuccess }: { onSuccess?: () => void }
                 )}
                 onClick={() => setStatus(s)}
               >
-                {ATTENDANCE_LABEL[s]}
+                {attendanceStatusLabel(t, s)}
               </button>
             ))}
           </div>
         </div>
 
         <label className="col tiny" style={{ gap: 4 }}>
-          <span className="muted">Note</span>
+          <span className="muted">{t('common.note')}</span>
           <input
             className="input"
-            placeholder="Reason for correction (optional)"
+            placeholder={t('attendance.correctPanel.notePlaceholder')}
             value={note}
             onChange={(e) => setNote(e.target.value)}
           />
@@ -197,11 +196,9 @@ export function AttendanceCorrectPanel({ onSuccess }: { onSuccess?: () => void }
 
         <div className="row" style={{ gap: 10, alignItems: 'center' }}>
           <button className="btn btn--primary" onClick={submit} disabled={!canSubmit}>
-            {submitting ? 'Saving…' : 'Save correction'}
+            {submitting ? t('common.saving') : t('attendance.correctPanel.saveCorrection')}
           </button>
-          <span className="tiny muted">
-            Corrections apply only within your administrative scope.
-          </span>
+          <span className="tiny muted">{t('attendance.correctPanel.scopeHint')}</span>
         </div>
       </div>
     </Card>

@@ -56,7 +56,7 @@ export default function AdminClassDetailPage({ params }: { params: Promise<{ id:
               subtitle={cls.level?.name ?? undefined}
               actions={
                 <div className="row" style={{ gap: 8 }}>
-                  <Badge tone={cls.status === 'active' ? 'green' : 'slate'}>{statusLabel(cls.status)}</Badge>
+                  <Badge tone={cls.status === 'active' ? 'green' : 'slate'}>{statusLabel(t, cls.status)}</Badge>
                   {!editing && cls.status !== 'archived' && (
                     <>
                       <button type="button" className="btn btn--ghost btn--sm" onClick={() => setEditing(true)}>{t('common.edit')}</button>

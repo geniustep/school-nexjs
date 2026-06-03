@@ -4,6 +4,7 @@
 // Each toast has a dismiss button; auto-dismisses after 4s on success, 6s on error.
 
 import { createContext, useCallback, useContext, useState } from 'react';
+import { useT } from '@/features/i18n/locale-context';
 
 type ToastTone = 'success' | 'error' | 'info';
 interface Toast {
@@ -19,6 +20,38 @@ interface ToastApi {
 }
 
 const ToastContext = createContext<ToastApi | null>(null);
+
+function ToastHost({
+  toasts,
+  dismiss,
+}: {
+  toasts: Toast[];
+  dismiss: (id: number) => void;
+}) {
+  const t = useT();
+  return (
+    <div className="toast-host" aria-live="polite" aria-atomic="false">
+      {toasts.map((toast) => (
+        <div
+          key={toast.id}
+          role="alert"
+          className={`toast ${toast.tone === 'error' ? 'toast--error' : ''} ${
+            toast.tone === 'success' ? 'toast--success' : ''
+          }`}
+        >
+          <span className="toast__body">{toast.message}</span>
+          <button
+            className="toast__dismiss"
+            onClick={() => dismiss(toast.id)}
+            aria-label={t('common.dismissNotification')}
+          >
+            ×
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -46,26 +79,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={api}>
       {children}
-      <div className="toast-host" aria-live="polite" aria-atomic="false">
-        {toasts.map((t) => (
-          <div
-            key={t.id}
-            role="alert"
-            className={`toast ${t.tone === 'error' ? 'toast--error' : ''} ${
-              t.tone === 'success' ? 'toast--success' : ''
-            }`}
-          >
-            <span className="toast__body">{t.message}</span>
-            <button
-              className="toast__dismiss"
-              onClick={() => dismiss(t.id)}
-              aria-label="Dismiss notification"
-            >
-              ×
-            </button>
-          </div>
-        ))}
-      </div>
+      <ToastHost toasts={toasts} dismiss={dismiss} />
     </ToastContext.Provider>
   );
 }

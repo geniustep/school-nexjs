@@ -21,7 +21,16 @@
     "room": "Salle {room}",
     "saving": "Enregistrement…",
     "submitting": "Envoi…",
-    "downloading": "Téléchargement…"
+    "downloading": "Téléchargement…",
+    "toggleMenu": "Ouvrir le menu",
+    "language": "Langue",
+    "dismissNotification": "Fermer la notification",
+    "allStatuses": "Tous les statuts",
+    "backToChild": "Retour à l'élève",
+    "note": "Note",
+    "status": "Statut",
+    "date": "Date",
+    "class": "Classe"
   },
   "roles": {
     "admin": "Administrateur",
@@ -140,7 +149,10 @@
     "classes": "Aucune classe assignée.",
     "students": "Aucun élève dans cette classe.",
     "children": "Aucun enfant lié.",
-    "messages": "Aucun message."
+    "messages": "Aucun message.",
+    "attendanceRecords": "Aucun enregistrement de présence",
+    "attendanceRecordsYet": "Aucun enregistrement de présence pour l'instant.",
+    "noChannelsAvailable": "Aucun canal disponible."
   },
   "dashboard": {
     "welcome": "Bienvenue, {name}",
@@ -329,7 +341,22 @@
     "late": "En retard",
     "leftEarly": "Parti tôt",
     "today": "Aujourd'hui",
-    "notRecorded": "Non enregistré"
+    "notRecorded": "Non enregistré",
+    "correctPanel": {
+      "dateHelp": "Date (aujourd'hui ou antérieure)",
+      "selectClass": "Sélectionnez une classe…",
+      "selectClassFirst": "Sélectionnez d'abord une classe",
+      "loadingStudents": "Chargement des élèves…",
+      "noStudentsInClass": "Aucun élève dans cette classe",
+      "selectStudent": "Sélectionnez un élève…",
+      "notePlaceholder": "Motif de correction (optionnel)",
+      "saveCorrection": "Enregistrer la correction",
+      "scopeHint": "Les corrections s'appliquent uniquement dans votre périmètre administratif.",
+      "permissionDesc": "Vous n'avez pas la permission de corriger la présence dans ce périmètre. Contactez l'administrateur principal.",
+      "validationError": "Cette correction n'est pas valide. Vérifiez que l'élève appartient à la classe sélectionnée.",
+      "saveFailed": "Impossible d'enregistrer la correction.",
+      "success": "Présence corrigée pour {name} le {date}."
+    }
   },
   "auth": {
     "brand": "Smart School Connect",
@@ -375,7 +402,43 @@
     "permissionDenied": "Vous ne pouvez pas envoyer de messages dans ce canal.",
     "sendFailed": "Impossible d'envoyer votre message.",
     "readOnlyChannel": "Ce canal est en lecture seule.",
-    "parentReadOnly": "Vue parent — envoi de messages impossible."
+    "parentReadOnly": "Vue parent — envoi de messages impossible.",
+    "type": {
+      "public": "Général",
+      "class": "Classe",
+      "teachers": "Enseignants",
+      "parents": "Parents",
+      "announcement": "Annonces",
+      "private": "Privé"
+    }
+  },
+  "announcements": {
+    "loading": "Chargement des annonces…"
+  },
+  "parent": {
+    "viewingAsParent": "Vue parent",
+    "readOnlyBannerTitle": "Vue en lecture seule",
+    "readOnlyBannerDesc": "Vous consultez les informations scolaires de votre enfant en tant que parent. Vous ne pouvez pas envoyer de messages ni effectuer d'actions depuis cette vue.",
+    "childChannelsSubtitle": "Canaux visibles pour votre enfant (lecture seule)",
+    "childAnnouncementsSubtitle": "Messages visibles pour votre enfant (lecture seule)",
+    "attendanceReadOnlySubtitle": "Historique de présence en lecture seule",
+    "loadingChildInfo": "Chargement des informations de l'élève…",
+    "attendanceSummary": "Résumé de présence",
+    "recentAttendance": "Présence récente",
+    "totalDays": "Total des jours",
+    "backToChildOverview": "Retour à l'aperçu de l'élève"
+  },
+  "studentPortal": {
+    "myAttendance": "Ma présence",
+    "attendanceSubtitle": "Votre historique de présence",
+    "loadingAttendance": "Chargement de votre présence…",
+    "channelsSubtitle": "Canaux disponibles pour vous",
+    "announcementsSubtitle": "Annonces visibles pour vous"
+  },
+  "studentStatus": {
+    "graduated": "Diplômé",
+    "expelled": "Exclu",
+    "transferred": "Transféré"
   },
   "teacher": {
     "createHomework": "Créer un devoir",
@@ -723,6 +786,8 @@
     "fileTooLarge": "Fichier trop volumineux (max. 10 Mo)",
     "tooManyAttachments": "Impossible de téléverser plus de 5 pièces jointes",
     "pickAtLeastOneFile": "Sélectionnez au moins un fichier",
-    "noAttachmentsYet": "Aucune pièce jointe pour l'instant"
+    "noAttachmentsYet": "Aucune pièce jointe pour l'instant",
+    "exportFailed": "Échec de l'export.",
+    "exportForbidden": "Vous n'avez pas la permission d'exporter ces données."
   }
 }

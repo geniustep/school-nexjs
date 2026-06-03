@@ -40,7 +40,7 @@ export default function ParentChildrenPage() {
                   {c.status && (
                     <div className="mt-4">
                       <Badge tone={c.status === 'active' ? 'green' : 'slate'}>
-                        {statusLabel(c.status)}
+                        {statusLabel(t, c.status)}
                       </Badge>
                     </div>
                   )}

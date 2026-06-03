@@ -16,7 +16,7 @@ import { Badge } from '@/components/ui/primitives';
 import { useToast } from '@/components/ui/toast';
 import { useT } from '@/features/i18n/locale-context';
 import { hasPermission } from '@/lib/permissions/permissions';
-import { CHANNEL_TYPE_LABEL } from '@/lib/utils/labels';
+import { channelTypeLabel } from '@/lib/utils/labels';
 import { formatDateTime } from '@/lib/utils/format';
 import type { Channel } from '@/types/channel';
 import type { Message } from '@/types/message';
@@ -100,7 +100,7 @@ export function ChannelChat({
           !forceReadOnly &&
           channel.can_send &&
           (user.role !== 'admin' || hasPermission(user, 'send_messages'));
-        const typeLabel = CHANNEL_TYPE_LABEL[channel.type] ?? channel.type;
+        const typeLabel = channelTypeLabel(t, channel.type);
         return (
           <div className="card chat" style={{ padding: 0 }}>
             <div

@@ -75,7 +75,7 @@ export default function AdminStudentsPage() {
         key: 'status',
         header: t('academic.status'),
         render: (s) => (
-          <Badge tone={s.status === 'active' ? 'green' : 'slate'}>{statusLabel(s.status)}</Badge>
+          <Badge tone={s.status === 'active' ? 'green' : 'slate'}>{statusLabel(t, s.status)}</Badge>
         ),
       },
     ],

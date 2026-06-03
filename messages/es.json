@@ -21,7 +21,16 @@
     "room": "Aula {room}",
     "saving": "Guardando…",
     "submitting": "Enviando…",
-    "downloading": "Descargando…"
+    "downloading": "Descargando…",
+    "toggleMenu": "Abrir menú",
+    "language": "Idioma",
+    "dismissNotification": "Cerrar notificación",
+    "allStatuses": "Todos los estados",
+    "backToChild": "Volver al hijo/a",
+    "note": "Nota",
+    "status": "Estado",
+    "date": "Fecha",
+    "class": "Clase"
   },
   "roles": {
     "admin": "Administrador",
@@ -140,7 +149,10 @@
     "classes": "No hay clases asignadas.",
     "students": "No hay alumnos en esta clase.",
     "children": "No hay hijos vinculados.",
-    "messages": "No hay mensajes."
+    "messages": "No hay mensajes.",
+    "attendanceRecords": "No hay registros de asistencia",
+    "attendanceRecordsYet": "Aún no hay registros de asistencia.",
+    "noChannelsAvailable": "No hay canales disponibles."
   },
   "dashboard": {
     "welcome": "Bienvenido, {name}",
@@ -329,7 +341,22 @@
     "late": "Tarde",
     "leftEarly": "Salió temprano",
     "today": "Hoy",
-    "notRecorded": "Sin registrar"
+    "notRecorded": "Sin registrar",
+    "correctPanel": {
+      "dateHelp": "Fecha (hoy o anterior)",
+      "selectClass": "Selecciona una clase…",
+      "selectClassFirst": "Selecciona una clase primero",
+      "loadingStudents": "Cargando alumnos…",
+      "noStudentsInClass": "No hay alumnos en esta clase",
+      "selectStudent": "Selecciona un alumno…",
+      "notePlaceholder": "Motivo de la corrección (opcional)",
+      "saveCorrection": "Guardar corrección",
+      "scopeHint": "Las correcciones solo se aplican dentro de tu ámbito administrativo.",
+      "permissionDesc": "No tienes permiso para corregir la asistencia en este ámbito. Contacta con el administrador principal.",
+      "validationError": "Esa corrección no es válida. Comprueba que el alumno pertenece a la clase seleccionada.",
+      "saveFailed": "No se pudo guardar la corrección.",
+      "success": "Asistencia corregida para {name} el {date}."
+    }
   },
   "auth": {
     "brand": "Smart School Connect",
@@ -375,7 +402,43 @@
     "permissionDenied": "No puedes enviar mensajes en este canal.",
     "sendFailed": "No se pudo enviar tu mensaje.",
     "readOnlyChannel": "Este canal es de solo lectura.",
-    "parentReadOnly": "Vista de padre — no se pueden enviar mensajes."
+    "parentReadOnly": "Vista de padre — no se pueden enviar mensajes.",
+    "type": {
+      "public": "General",
+      "class": "Clase",
+      "teachers": "Profesores",
+      "parents": "Padres",
+      "announcement": "Anuncios",
+      "private": "Privado"
+    }
+  },
+  "announcements": {
+    "loading": "Cargando anuncios…"
+  },
+  "parent": {
+    "viewingAsParent": "Vista de padre/madre",
+    "readOnlyBannerTitle": "Vista de solo lectura",
+    "readOnlyBannerDesc": "Está viendo la información escolar de su hijo/a como padre/madre. No puede enviar mensajes ni realizar acciones desde esta vista.",
+    "childChannelsSubtitle": "Canales visibles para su hijo/a (solo lectura)",
+    "childAnnouncementsSubtitle": "Mensajes visibles para su hijo/a (solo lectura)",
+    "attendanceReadOnlySubtitle": "Historial de asistencia de solo lectura",
+    "loadingChildInfo": "Cargando información del alumno…",
+    "attendanceSummary": "Resumen de asistencia",
+    "recentAttendance": "Asistencia reciente",
+    "totalDays": "Total de días",
+    "backToChildOverview": "Volver al resumen del hijo/a"
+  },
+  "studentPortal": {
+    "myAttendance": "Mi asistencia",
+    "attendanceSubtitle": "Tu historial de asistencia",
+    "loadingAttendance": "Cargando tu asistencia…",
+    "channelsSubtitle": "Canales disponibles para ti",
+    "announcementsSubtitle": "Anuncios visibles para ti"
+  },
+  "studentStatus": {
+    "graduated": "Graduado",
+    "expelled": "Expulsado",
+    "transferred": "Transferido"
   },
   "teacher": {
     "createHomework": "Crear tarea",
@@ -723,6 +786,8 @@
     "fileTooLarge": "Archivo demasiado grande (máx. 10 MB)",
     "tooManyAttachments": "No se pueden subir más de 5 adjuntos",
     "pickAtLeastOneFile": "Selecciona al menos un archivo",
-    "noAttachmentsYet": "Aún no hay adjuntos"
+    "noAttachmentsYet": "Aún no hay adjuntos",
+    "exportFailed": "Error al exportar.",
+    "exportForbidden": "No tienes permiso para exportar estos datos."
   }
 }

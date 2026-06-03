@@ -27,7 +27,7 @@ export default function StudentProfilePage() {
                 <strong style={{ fontSize: 16 }}>{getStudentDisplayName(s)}</strong>
                 {s.status && (
                   <Badge tone={s.status === 'active' ? 'green' : 'slate'}>
-                    {statusLabel(s.status)}
+                    {statusLabel(t, s.status)}
                   </Badge>
                 )}
               </div>
@@ -42,7 +42,15 @@ export default function StudentProfilePage() {
                 { label: t('admin.matriculeNumber'), value: s.matricule ?? s.code ?? t('common.dash') },
                 { label: t('nav.classes'), value: s.class?.name ?? t('common.dash') },
                 { label: t('nav.levels'), value: s.level?.name ?? t('common.dash') },
-                { label: t('admin.gender'), value: s.gender ? statusLabel(s.gender) : t('common.dash') },
+                {
+                  label: t('admin.gender'),
+                  value:
+                    s.gender === 'male'
+                      ? t('admin.male')
+                      : s.gender === 'female'
+                        ? t('admin.female')
+                        : t('common.dash'),
+                },
                 { label: t('admin.dateOfBirth'), value: formatDate(s.date_of_birth) },
                 { label: t('admin.admissionDate'), value: formatDate(s.admission_date) },
                 { label: t('admin.email'), value: s.email ?? t('common.dash') },

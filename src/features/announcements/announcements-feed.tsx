@@ -9,10 +9,12 @@ import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
 import { Card } from '@/components/ui/primitives';
 import { Pagination } from '@/components/tables/data-table';
+import { useT } from '@/features/i18n/locale-context';
 import { formatDateTime } from '@/lib/utils/format';
 import type { Announcement } from '@/types/message';
 
 export function AnnouncementsFeed({ path }: { path: string }) {
+  const t = useT();
   const [page, setPage] = useState(1);
   const state = useResource<Announcement[]>(path, { page, page_size: 20 });
   const pg = state.meta?.pagination;
@@ -20,9 +22,15 @@ export function AnnouncementsFeed({ path }: { path: string }) {
   return (
     <ResourceView
       state={state}
-      loadingLabel="Loading announcements…"
+      loadingLabel={t('announcements.loading')}
       isEmpty={(d) => d.length === 0}
-      empty={<EmptyState icon="📣" title="No announcements" description="There are no announcements yet." />}
+      empty={
+        <EmptyState
+          icon="📣"
+          title={t('nav.announcements')}
+          description={t('dashboard.noAnnouncements')}
+        />
+      }
     >
       {(items) => (
         <>

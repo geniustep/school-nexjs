@@ -27,24 +27,26 @@ function filenameFromDisposition(header: string | null, fallback: string): strin
   return plain?.[1] ?? fallback;
 }
 
-async function readJsonError(res: Response): Promise<string> {
+export type ExportFailReason = 'forbidden' | 'failed' | 'network';
+
+async function readJsonError(res: Response): Promise<{ reason: ExportFailReason; message?: string }> {
   try {
     const json = (await res.json()) as {
       error?: { code?: string; message?: string };
     };
     if (json.error?.code === 'permission_denied' || json.error?.code === 'forbidden') {
-      return json.error.message ?? 'You do not have permission to export this data.';
+      return { reason: 'forbidden', message: json.error.message };
     }
-    return json.error?.message ?? 'Export failed.';
+    return { reason: 'failed', message: json.error?.message };
   } catch {
-    return 'Export failed.';
+    return { reason: 'failed' };
   }
 }
 
 export async function downloadOfficialExport(
   path: string,
   filename: string,
-): Promise<{ ok: true } | { ok: false; message: string }> {
+): Promise<{ ok: true } | { ok: false; reason: ExportFailReason; message?: string }> {
   try {
     const clean = path.startsWith('/') ? path : `/${path}`;
     const res = await fetch(`${PROXY_BASE}${clean}`, {
@@ -72,16 +74,18 @@ export async function downloadOfficialExport(
     }
 
     if (!res.ok) {
-      return { ok: false, message: await readJsonError(res) };
+      const err = await readJsonError(res);
+      return { ok: false, ...err };
     }
 
     if (contentType.includes('application/json')) {
-      return { ok: false, message: await readJsonError(res) };
+      const err = await readJsonError(res);
+      return { ok: false, ...err };
     }
 
-    return { ok: false, message: 'Export failed.' };
+    return { ok: false, reason: 'failed' };
   } catch {
-    return { ok: false, message: 'Could not reach the server.' };
+    return { ok: false, reason: 'network' };
   }
 }
 

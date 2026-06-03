@@ -28,7 +28,7 @@ export default function AdminTeachersPage() {
       { key: 'code', header: t('admin.code'), render: (te) => <span className="mono">{te.code ?? t('common.dash')}</span> },
       { key: 'classes', header: t('nav.classes'), render: (te) => (te.classes.length ? te.classes.map((c) => c.name).join(', ') : t('common.dash')) },
       { key: 'subjects', header: t('nav.subjects'), render: (te) => (te.subjects.length ? te.subjects.map((s) => s.name).join(', ') : t('common.dash')) },
-      { key: 'status', header: t('academic.status'), render: (te) => <Badge tone={te.status === 'active' ? 'green' : 'slate'}>{statusLabel(te.status)}</Badge> },
+      { key: 'status', header: t('academic.status'), render: (te) => <Badge tone={te.status === 'active' ? 'green' : 'slate'}>{statusLabel(t, te.status)}</Badge> },
     ],
     [t],
   );

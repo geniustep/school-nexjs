@@ -59,17 +59,17 @@ export default function ParentDashboardPage() {
                         }}
                       >
                         <span className="tiny muted">{t('dashboard.todayAttendance')}</span>
-                        {c.today_attendance ? (
-                          <AttendanceBadge
-                            status={
-                              typeof c.today_attendance === 'string'
-                                ? c.today_attendance
-                                : c.today_attendance.status
-                            }
-                          />
-                        ) : (
-                          <span className="tiny muted">{t('dashboard.notRecorded')}</span>
-                        )}
+                        {(() => {
+                          const att =
+                            typeof c.today_attendance === 'string'
+                              ? c.today_attendance
+                              : c.today_attendance?.status;
+                          return att ? (
+                            <AttendanceBadge status={att} />
+                          ) : (
+                            <span className="tiny muted">{t('dashboard.notRecorded')}</span>
+                          );
+                        })()}
                       </div>
                     </Link>
                     <ChildAcademicActions childId={String(c.id)} />

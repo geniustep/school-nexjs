@@ -8,7 +8,16 @@ import { ATTENDANCE_TONE } from '@/lib/utils/labels';
 import { attendanceStatusLabelKey } from '@/features/admin/attendance/admin-attendance-utils';
 import type { AttendanceStatus } from '@/types/attendance';
 
-export function AttendanceBadge({ status }: { status: AttendanceStatus }) {
+const VALID: AttendanceStatus[] = ['present', 'absent', 'late', 'left_early'];
+
+function isAttendanceStatus(v: string): v is AttendanceStatus {
+  return (VALID as string[]).includes(v);
+}
+
+export function AttendanceBadge({ status }: { status: AttendanceStatus | string }) {
   const t = useT();
+  if (!isAttendanceStatus(status)) {
+    return <Badge tone="slate">{t('dashboard.notRecorded')}</Badge>;
+  }
   return <Badge tone={ATTENDANCE_TONE[status]}>{t(attendanceStatusLabelKey(status))}</Badge>;
 }

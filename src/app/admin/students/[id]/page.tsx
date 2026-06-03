@@ -52,7 +52,7 @@ export default function AdminStudentDetailPage({
               subtitle={s.matricule ?? s.code ?? undefined}
               actions={
                 <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
-                  <Badge tone={s.status === 'active' ? 'green' : 'slate'}>{statusLabel(s.status)}</Badge>
+                  <Badge tone={s.status === 'active' ? 'green' : 'slate'}>{statusLabel(t, s.status)}</Badge>
                   {!editing && (s.status as string) !== 'archived' && (
                     <>
                       <button type="button" className="btn btn--ghost btn--sm" onClick={() => setEditing(true)}>
@@ -89,7 +89,15 @@ export default function AdminStudentDetailPage({
                       { label: t('admin.matriculeNumber'), value: <span className="mono">{s.matricule ?? s.code ?? t('common.dash')}</span> },
                       { label: t('nav.classes'), value: s.class?.name ?? t('common.dash') },
                       { label: t('nav.levels'), value: s.level?.name ?? t('common.dash') },
-                      { label: t('admin.gender'), value: s.gender ? statusLabel(s.gender) : t('common.dash') },
+                      {
+                        label: t('admin.gender'),
+                        value:
+                          s.gender === 'male'
+                            ? t('admin.male')
+                            : s.gender === 'female'
+                              ? t('admin.female')
+                              : t('common.dash'),
+                      },
                       { label: t('admin.dateOfBirth'), value: formatDate(s.date_of_birth) },
                       { label: t('admin.admissionDate'), value: formatDate(s.admission_date) },
                       { label: t('admin.email'), value: s.email ?? t('common.dash') },
