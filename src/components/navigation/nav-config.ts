@@ -1,8 +1,8 @@
-// Role-based navigation — admin items filtered by permissions[] (Admin-1).
+// Role-based navigation — admin items filtered by permissions[] + admin_kind UX (RBAC-UX-2A).
 
 import type { CurrentUser } from '@/types/user';
 import type { Permission } from '@/types/permissions';
-import { hasPermission } from '@/lib/permissions/permissions';
+import { canShowAdminNavPermission, useScopedNavLabels } from '@/lib/admin/admin-ux';
 import { isConfiguredAdmin } from '@/lib/permissions/scope';
 
 export interface NavItem {
@@ -23,62 +23,66 @@ function pushIf(items: NavItem[], allowed: boolean, item: NavItem): void {
 
 function adminNav(user: CurrentUser): NavSection[] {
   const sections: NavSection[] = [];
+  const scopedLabels = useScopedNavLabels(user);
+  const opsTitle = scopedLabels ? 'nav.adminScopedOperations' : 'nav.adminOperations';
+  const schoolTitle = scopedLabels ? 'nav.adminScopedSchool' : 'nav.adminSchool';
+  const contentTitle = scopedLabels ? 'nav.adminScopedContent' : 'nav.adminContentAssessment';
 
   const opsItems: NavItem[] = [];
-  pushIf(opsItems, hasPermission(user, 'view_dashboard'), {
+  pushIf(opsItems, canShowAdminNavPermission(user, 'view_dashboard'), {
     labelKey: 'nav.dashboard',
     href: '/admin/dashboard',
     icon: '🏠',
   });
-  pushIf(opsItems, hasPermission(user, 'view_attendance'), {
+  pushIf(opsItems, canShowAdminNavPermission(user, 'view_attendance'), {
     labelKey: 'nav.attendance',
     href: '/admin/attendance?date=today',
     icon: '🗓️',
   });
-  if (opsItems.length) sections.push({ titleKey: 'nav.adminOperations', items: opsItems });
+  if (opsItems.length) sections.push({ titleKey: opsTitle, items: opsItems });
 
   const schoolItems: NavItem[] = [];
-  pushIf(schoolItems, hasPermission(user, 'view_students'), {
+  pushIf(schoolItems, canShowAdminNavPermission(user, 'view_students'), {
     labelKey: 'nav.students',
     href: '/admin/students',
     icon: '🎓',
   });
-  pushIf(schoolItems, hasPermission(user, 'view_parents'), {
+  pushIf(schoolItems, canShowAdminNavPermission(user, 'view_parents'), {
     labelKey: 'nav.parents',
     href: '/admin/parents',
     icon: '👪',
   });
-  pushIf(schoolItems, hasPermission(user, 'view_teachers'), {
+  pushIf(schoolItems, canShowAdminNavPermission(user, 'view_teachers'), {
     labelKey: 'nav.teachers',
     href: '/admin/teachers',
     icon: '👩‍🏫',
   });
-  if (hasPermission(user, 'view_classes')) {
+  if (canShowAdminNavPermission(user, 'view_classes')) {
     schoolItems.push(
       { labelKey: 'nav.classes', href: '/admin/classes', icon: '🏫' },
       { labelKey: 'nav.levels', href: '/admin/levels', icon: '📚' },
       { labelKey: 'nav.subjects', href: '/admin/subjects', icon: '📖' },
     );
   }
-  if (schoolItems.length) sections.push({ titleKey: 'nav.adminSchool', items: schoolItems });
+  if (schoolItems.length) sections.push({ titleKey: schoolTitle, items: schoolItems });
 
   const contentItems: NavItem[] = [];
-  pushIf(contentItems, hasPermission(user, 'view_homeworks'), {
+  pushIf(contentItems, canShowAdminNavPermission(user, 'view_homeworks'), {
     labelKey: 'nav.homework',
     href: '/admin/homeworks',
     icon: '📝',
   });
-  pushIf(contentItems, hasPermission(user, 'view_resources'), {
+  pushIf(contentItems, canShowAdminNavPermission(user, 'view_resources'), {
     labelKey: 'nav.resources',
     href: '/admin/resources',
     icon: '📚',
   });
-  pushIf(contentItems, hasPermission(user, 'view_timetable'), {
+  pushIf(contentItems, canShowAdminNavPermission(user, 'view_timetable'), {
     labelKey: 'nav.timetable',
     href: '/admin/timetable',
     icon: '📅',
   });
-  pushIf(contentItems, hasPermission(user, 'view_exams'), {
+  pushIf(contentItems, canShowAdminNavPermission(user, 'view_exams'), {
     labelKey: 'nav.exams',
     href: '/admin/exams',
     icon: '📋',
@@ -86,7 +90,7 @@ function adminNav(user: CurrentUser): NavSection[] {
       pathname === '/admin/exams' ||
       (pathname.startsWith('/admin/exams/') && !pathname.includes('/results')),
   });
-  pushIf(contentItems, hasPermission(user, 'view_exam_results'), {
+  pushIf(contentItems, canShowAdminNavPermission(user, 'view_exam_results'), {
     labelKey: 'nav.examResultsNav',
     href: '/admin/exam-results',
     icon: '📊',
@@ -96,12 +100,12 @@ function adminNav(user: CurrentUser): NavSection[] {
       /\/admin\/exams\/\d+\/results/.test(pathname),
   });
   if (contentItems.length) {
-    sections.push({ titleKey: 'nav.adminContentAssessment', items: contentItems });
+    sections.push({ titleKey: contentTitle, items: contentItems });
   }
 
-  if (hasPermission(user, 'view_channels')) {
+  if (canShowAdminNavPermission(user, 'view_channels')) {
     sections.push({
-      titleKey: 'nav.communication',
+      titleKey: scopedLabels ? 'nav.adminScopedCommunication' : 'nav.communication',
       items: [{ labelKey: 'nav.channels', href: '/admin/channels', icon: '💬' }],
     });
   }
@@ -211,7 +215,7 @@ export function navForUser(user: CurrentUser): NavSection[] {
   switch (user.role) {
     case 'admin':
       if (!isConfiguredAdmin(user)) {
-        return hasPermission(user, 'view_dashboard')
+        return canShowAdminNavPermission(user, 'view_dashboard')
           ? [{ items: [{ labelKey: 'nav.dashboard', href: '/admin/dashboard', icon: '🏠' }] }]
           : [];
       }

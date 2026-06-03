@@ -1,14 +1,9 @@
 import { redirect } from 'next/navigation';
 import { requireRole } from '@/lib/auth/guards';
-import { ADMIN_NAV_BY_PERMISSION } from '@/components/navigation/nav-config';
-import { hasPermission } from '@/lib/permissions/permissions';
+import { adminLandingPath } from '@/lib/admin/admin-ux';
 
-/** Send admins to the first module they can access (not always dashboard). */
+/** Send admins to the best landing route by admin_kind + permissions. */
 export default async function AdminIndexPage() {
   const user = await requireRole('admin');
-  if (hasPermission(user, 'view_dashboard')) {
-    redirect('/admin/dashboard');
-  }
-  const first = ADMIN_NAV_BY_PERMISSION.find((item) => hasPermission(user, item.permission));
-  redirect(first?.href ?? '/admin/dashboard');
+  redirect(adminLandingPath(user));
 }

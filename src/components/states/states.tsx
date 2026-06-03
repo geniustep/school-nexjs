@@ -39,12 +39,18 @@ export function EmptyState({
   );
 }
 
-export function PermissionDeniedState({ description }: { description?: string }) {
+export function PermissionDeniedState({
+  title,
+  description,
+}: {
+  title?: string;
+  description?: string;
+}) {
   const t = useT();
   return (
     <div className="state">
       <div className="state-icon state-icon--lock" aria-hidden="true">&#128274;</div>
-      <div className="state__title">{t('errors.forbiddenTitle')}</div>
+      <div className="state__title">{title ?? t('errors.forbiddenTitle')}</div>
       <div className="state__desc">{description ?? t('errors.forbidden')}</div>
     </div>
   );

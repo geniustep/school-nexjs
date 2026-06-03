@@ -1,14 +1,16 @@
 'use client';
 
 import { useAdminSession } from '@/features/auth/admin-session-context';
+import { useSession } from '@/features/auth/session-context';
+import { shouldShowSchoolSwitcher } from '@/lib/admin/admin-ux';
 import { useT } from '@/features/i18n/locale-context';
 
 export function SchoolSwitcher() {
   const t = useT();
-  const { schools, activeSchoolId, requiresActiveSchool, switching, setActiveSchool } =
-    useAdminSession();
+  const user = useSession();
+  const { schools, activeSchoolId, switching, setActiveSchool } = useAdminSession();
 
-  if (!requiresActiveSchool || schools.length <= 1) return null;
+  if (!shouldShowSchoolSwitcher(user) || schools.length <= 1) return null;
 
   return (
     <label className="school-switcher">

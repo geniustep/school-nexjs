@@ -14,6 +14,7 @@ import { LocaleSwitcher } from '@/components/i18n/locale-switcher';
 import { SchoolSwitcher } from '@/components/admin/school-switcher';
 import { useT } from '@/features/i18n/locale-context';
 import type { CurrentUser } from '@/types/user';
+import { isMultiSchoolAdmin, isAdminKind } from '@/lib/admin/admin-ux';
 import { isScopedAdmin } from '@/lib/permissions/scope';
 
 function roleSubtitle(user: CurrentUser, t: (k: string) => string): string {
@@ -59,6 +60,13 @@ export function AppShell({
   const scopeDesc = scopeDescription(user, t);
   const isTeacher = user.role === 'teacher';
   const isAdmin = user.role === 'admin';
+  const multiSchoolPm =
+    isAdmin && isMultiSchoolAdmin(user) && isAdminKind(user, 'project_manager');
+  const topbarTitle = isTeacher
+    ? t('teacher.workspaceTitle')
+    : multiSchoolPm
+      ? t('admin.multiSchoolContext')
+      : (user.school?.name ?? t('auth.brand'));
 
   async function logout() {
     setLoggingOut(true);
@@ -149,7 +157,7 @@ export function AppShell({
               ≡
             </button>
             <span className="topbar__title">
-              {isTeacher ? t('teacher.workspaceTitle') : (user.school?.name ?? 'Smart School')}
+              {topbarTitle}
             </span>
           </div>
           <div className="topbar__right">

@@ -8,7 +8,8 @@ import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { useSession } from '@/features/auth/session-context';
 import { hasPermission } from '@/lib/permissions/permissions';
-import { canSeeChannels, canSeeStudentData } from '@/lib/permissions/scope';
+import { canSeeChannels, canSeeStudentData, isScopedAdmin } from '@/lib/permissions/scope';
+import { shouldHideSchoolWideDashboardKpis } from '@/lib/admin/admin-ux';
 import type { AdminDashboard } from '@/types/dashboard';
 import type { AttendanceStatus } from '@/types/attendance';
 import type { CurrentUser } from '@/types/user';
@@ -120,6 +121,8 @@ export function AdminCommandDashboard({
     canSeeStudentData(effectiveUser) && hasPermission(effectiveUser, 'manage_attendance');
   const canViewChannels =
     canSeeChannels(effectiveUser) && hasPermission(effectiveUser, 'view_channels');
+  const hideSchoolWideKpis = shouldHideSchoolWideDashboardKpis(effectiveUser);
+  const scopedMode = isScopedAdmin(effectiveUser);
 
   const actionItems = useMemo(() => buildActionItems(d, t), [d, t]);
 
@@ -132,7 +135,9 @@ export function AdminCommandDashboard({
         href: '/admin/students/new',
         icon: '🎓',
         label: t('admin.addStudent'),
-        show: hasPermission(effectiveUser, 'view_students'),
+        show:
+          hasPermission(effectiveUser, 'manage_students') &&
+          hasPermission(effectiveUser, 'view_students'),
       },
       {
         id: 'attendance',
@@ -153,7 +158,7 @@ export function AdminCommandDashboard({
         href: '/admin/students',
         icon: '📥',
         label: t('admin.importCsv'),
-        show: hasPermission(effectiveUser, 'view_students'),
+        show: hasPermission(effectiveUser, 'import_data'),
       },
       {
         id: 'channels',
@@ -177,7 +182,7 @@ export function AdminCommandDashboard({
             <span>{formatDate(today)}</span>
           </>
         }
-        summary={t('admin.cmd.operationsSummary')}
+        summary={scopedMode ? t('admin.cmd.scopedOperationsSummary') : t('admin.cmd.operationsSummary')}
         kpis={
           canViewAttendance && hasAttendance ? (
             <>
@@ -262,7 +267,11 @@ export function AdminCommandDashboard({
 
         <AdminOperationCard
           title={t('admin.cmd.interventionTitle')}
-          description={t('admin.cmd.interventionDesc')}
+          description={
+            hideSchoolWideKpis
+              ? t('admin.cmd.scopedInterventionDesc')
+              : t('admin.cmd.interventionDesc')
+          }
           intervention
           footer={
             canSeeStudentData(effectiveUser) && hasPermission(effectiveUser, 'view_students') ? (
@@ -280,6 +289,7 @@ export function AdminCommandDashboard({
       </div>
 
       {canSeeStudentData(effectiveUser) &&
+        !hideSchoolWideKpis &&
         (hasPermission(effectiveUser, 'view_students') ||
           hasPermission(effectiveUser, 'view_teachers') ||
           hasPermission(effectiveUser, 'view_parents') ||
@@ -317,7 +327,9 @@ export function AdminCommandDashboard({
       )}
 
       <div className="admin-dashboard-tail">
-      {hasPermission(effectiveUser, 'view_classes') && canSeeStudentData(effectiveUser) && (
+      {hasPermission(effectiveUser, 'view_classes') &&
+        canSeeStudentData(effectiveUser) &&
+        !hideSchoolWideKpis && (
         <AdminSection
           className="admin-section--academic"
           title={t('admin.cmd.academicActivityTitle')}

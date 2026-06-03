@@ -21,7 +21,15 @@ export function RequireAdminPermission({
 
   if (user.role !== 'admin') return <PermissionDeniedState />;
   if (!hasPermission(user, permission)) {
-    return <PermissionDeniedState description={t('admin.pageForbidden')} />;
+    const description =
+      permission === 'view_dashboard' && user.admin_kind === 'admin_staff'
+        ? t('admin.staffNoDashboardDesc')
+        : t('admin.pageForbidden');
+    const title =
+      permission === 'view_dashboard' && user.admin_kind === 'admin_staff'
+        ? t('admin.staffNoDashboardTitle')
+        : undefined;
+    return <PermissionDeniedState title={title} description={description} />;
   }
   if (requiresActiveSchool && activeSchoolId == null) {
     return <NoActiveSchoolState />;

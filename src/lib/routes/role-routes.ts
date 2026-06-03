@@ -4,7 +4,7 @@
 import type { Role } from '@/types/user';
 
 export const ROLE_HOME: Record<Role, string> = {
-  admin: '/admin/dashboard',
+  admin: '/admin',
   teacher: '/teacher/dashboard',
   parent: '/parent/dashboard',
   student: '/student/dashboard',
