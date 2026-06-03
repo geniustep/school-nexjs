@@ -5,6 +5,7 @@
    save bar, improved shell. No API or logic changes. */
 
 @import './teacher-workspace.css';
+@import './admin-workspace.css';
 
 :root {
   /* Core backgrounds */

@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useResource } from '@/lib/hooks/use-resource';
+import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
 import { AttachmentListIndicator } from '@/components/attachments/attachment-list-indicator';
@@ -31,8 +31,8 @@ export default function AdminExamsPage() {
     class_id: classId || undefined,
     state: stateFilter || undefined,
   };
-  const state = useResource<ExamSummary[]>(endpoints.admin.exams, params);
-  const classesState = useResource<import('@/types/class').SchoolClass[]>(endpoints.admin.classes);
+  const state = useAdminResource<ExamSummary[]>(endpoints.admin.exams, params);
+  const classesState = useAdminResource<import('@/types/class').SchoolClass[]>(endpoints.admin.classes);
   const pg = state.meta?.pagination;
 
   const columns: Column<ExamSummary>[] = useMemo(

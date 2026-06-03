@@ -2,7 +2,7 @@
 
 import { use, useMemo } from 'react';
 import Link from 'next/link';
-import { useResource } from '@/lib/hooks/use-resource';
+import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
 import { WorkflowBadge } from '@/components/badges/workflow-badge';
@@ -27,7 +27,7 @@ export default function AdminExamResultsByExamPage({
 }) {
   const { id } = use(params);
   const t = useT();
-  const state = useResource<ExamResult[]>(endpoints.admin.examResultsByExam(id));
+  const state = useAdminResource<ExamResult[]>(endpoints.admin.examResultsByExam(id));
 
   const columns: Column<ExamResult>[] = useMemo(
     () => [

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useResource } from '@/lib/hooks/use-resource';
+import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
 import { DataTable, type Column } from '@/components/tables/data-table';
@@ -17,7 +17,7 @@ export default function AdminSubjectsPage() {
   const router = useRouter();
   const t = useT();
   const [importOpen, setImportOpen] = useState(false);
-  const state = useResource<Subject[]>(endpoints.admin.subjects);
+  const state = useAdminResource<Subject[]>(endpoints.admin.subjects);
 
   const columns: Column<Subject>[] = useMemo(
     () => [
@@ -35,6 +35,7 @@ export default function AdminSubjectsPage() {
         actions={
           <AdminListActions
             addHref="/admin/subjects/new"
+            managePermission="manage_classes"
             exportPath={endpoints.admin.subjectsExport}
             exportFilename="subjects.csv"
             showImport

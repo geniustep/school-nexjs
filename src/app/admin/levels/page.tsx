@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useResource } from '@/lib/hooks/use-resource';
+import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
 import { PageHeader, Card, Badge, SectionHead } from '@/components/ui/primitives';
@@ -12,7 +12,7 @@ import type { Level } from '@/types/class';
 
 export default function AdminLevelsPage() {
   const t = useT();
-  const state = useResource<Level[]>(endpoints.admin.levels);
+  const state = useAdminResource<Level[]>(endpoints.admin.levels);
 
   return (
     <>
@@ -22,6 +22,7 @@ export default function AdminLevelsPage() {
         actions={
           <AdminListActions
             addHref="/admin/levels/new"
+            managePermission="manage_classes"
             exportPath={endpoints.admin.levelsExport}
             exportFilename="levels.csv"
           />

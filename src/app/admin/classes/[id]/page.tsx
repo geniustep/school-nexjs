@@ -3,7 +3,7 @@
 import { use, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useResource } from '@/lib/hooks/use-resource';
+import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { ResourceView } from '@/components/states/resource';
 import { PageHeader, Badge, Card, SectionHead } from '@/components/ui/primitives';
 import { ConfirmActionButton } from '@/features/admin/confirm-action-button';
@@ -15,7 +15,7 @@ import { statusLabel } from '@/lib/utils/labels';
 import type { Student } from '@/types/student';
 
 const QUICK_LINKS = (classId: number) => [
-  { href: `/admin/attendance?class_id=${classId}`, labelKey: 'nav.attendance' as const, icon: '🗓️' },
+  { href: `/admin/attendance?date=today&class_id=${classId}`, labelKey: 'nav.attendance' as const, icon: '🗓️' },
   { href: `/admin/homeworks?class_id=${classId}`, labelKey: 'nav.homework' as const, icon: '📝' },
   { href: `/admin/resources?class_id=${classId}`, labelKey: 'nav.resources' as const, icon: '📚' },
   { href: `/admin/timetable?class_id=${classId}`, labelKey: 'nav.timetable' as const, icon: '📅' },
@@ -29,8 +29,8 @@ export default function AdminClassDetailPage({ params }: { params: Promise<{ id:
   const router = useRouter();
   const isNew = id === 'new';
   const [editing, setEditing] = useState(isNew);
-  const state = useResource<ClassDetail>(isNew ? null : endpoints.admin.class(id));
-  const studentsState = useResource<Student[]>(
+  const state = useAdminResource<ClassDetail>(isNew ? null : endpoints.admin.class(id));
+  const studentsState = useAdminResource<Student[]>(
     isNew ? null : endpoints.admin.students,
     isNew ? undefined : { class_id: id, page_size: 50 },
   );

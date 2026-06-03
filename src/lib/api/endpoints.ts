@@ -105,6 +105,10 @@ export const endpoints = {
     examResultUpdate: (id: number | string) => `/admin/exam-results/${id}/update`,
     examResultPublish: (id: number | string) => `/admin/exam-results/${id}/publish`,
     examResultArchive: (id: number | string) => `/admin/exam-results/${id}/archive`,
+
+    channels: '/admin/channels',
+    channel: (id: number | string) => `/admin/channels/${id}`,
+    channelMessages: (id: number | string) => `/admin/channels/${id}/messages`,
   },
 
   teacher: {

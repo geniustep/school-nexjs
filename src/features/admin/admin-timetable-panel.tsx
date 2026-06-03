@@ -2,7 +2,9 @@
 
 import { useMemo, useState } from 'react';
 import { api } from '@/lib/api/client';
-import { useResource } from '@/lib/hooks/use-resource';
+import { useAdminResource } from '@/lib/hooks/use-admin-resource';
+import { useSession } from '@/features/auth/session-context';
+import { hasPermission } from '@/lib/permissions/permissions';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
 import { Card, SectionHead } from '@/components/ui/primitives';
@@ -20,12 +22,14 @@ import type { Teacher } from '@/types/teacher';
 const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as const;
 
 export function AdminTimetablePanel() {
+  const user = useSession();
   const t = useT();
   const toast = useToast();
-  const state = useResource<TimetableSlot[]>(endpoints.admin.timetable);
-  const classesState = useResource<SchoolClass[]>(endpoints.admin.classes);
-  const subjectsState = useResource<Ref[]>(endpoints.admin.subjects);
-  const teachersState = useResource<Teacher[]>(endpoints.admin.teachers, {
+  const canManage = hasPermission(user, 'manage_timetable');
+  const state = useAdminResource<TimetableSlot[]>(endpoints.admin.timetable);
+  const classesState = useAdminResource<SchoolClass[]>(endpoints.admin.classes);
+  const subjectsState = useAdminResource<Ref[]>(endpoints.admin.subjects);
+  const teachersState = useAdminResource<Teacher[]>(endpoints.admin.teachers, {
     page_size: 100,
   });
 
@@ -111,24 +115,28 @@ export function AdminTimetablePanel() {
       render: (s) => s.teacher?.name ?? t('common.dash'),
     },
     { key: 'room', header: t('academic.room'), render: (s) => s.room ?? t('common.dash') },
-    {
-      key: 'actions',
-      header: t('admin.actions'),
-      render: (s) => (
-        <div className="row" style={{ gap: 6, flexWrap: 'wrap' }}>
-          <button type="button" className="btn btn--ghost btn--sm" onClick={() => startEdit(s)}>
-            {t('common.edit')}
-          </button>
-          <ConfirmActionButton
-            label={t('admin.archive')}
-            confirmMessage={t('admin.confirmArchiveSlot')}
-            path={endpoints.admin.timetableSlotArchive(s.id)}
-            variant="danger"
-            onSuccess={() => state.reload()}
-          />
-        </div>
-      ),
-    },
+    ...(canManage
+      ? [
+          {
+            key: 'actions',
+            header: t('admin.actions'),
+            render: (s: TimetableSlot) => (
+              <div className="row" style={{ gap: 6, flexWrap: 'wrap' }}>
+                <button type="button" className="btn btn--ghost btn--sm" onClick={() => startEdit(s)}>
+                  {t('common.edit')}
+                </button>
+                <ConfirmActionButton
+                  label={t('admin.archive')}
+                  confirmMessage={t('admin.confirmArchiveSlot')}
+                  path={endpoints.admin.timetableSlotArchive(s.id)}
+                  variant="danger"
+                  onSuccess={() => state.reload()}
+                />
+              </div>
+            ),
+          } as Column<TimetableSlot>,
+        ]
+      : []),
   ];
 
   async function createSlot(e: React.FormEvent) {
@@ -250,7 +258,7 @@ export function AdminTimetablePanel() {
         </Card>
       )}
 
-      {showForm && (
+      {canManage && showForm && (
         <Card className="mb-2">
           <SectionHead title={t('admin.addSlot')} />
           <form className="col mt-2" style={{ gap: 12 }} onSubmit={createSlot}>

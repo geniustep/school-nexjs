@@ -3,7 +3,7 @@
 import { use, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useResource } from '@/lib/hooks/use-resource';
+import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { ResourceView } from '@/components/states/resource';
 import { PageHeader } from '@/components/ui/primitives';
 import { AdminHomeworkDetailPanel } from '@/features/admin/admin-homework-detail';
@@ -18,7 +18,7 @@ export default function AdminHomeworkDetailPage({ params }: { params: Promise<{ 
   const router = useRouter();
   const isNew = id === 'new';
   const [editing, setEditing] = useState(isNew);
-  const state = useResource<HomeworkDetail>(isNew ? null : endpoints.admin.homework(id));
+  const state = useAdminResource<HomeworkDetail>(isNew ? null : endpoints.admin.homework(id));
 
   if (isNew) {
     return (

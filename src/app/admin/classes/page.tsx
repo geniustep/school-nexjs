@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useResource } from '@/lib/hooks/use-resource';
+import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
 import { DataTable, type Column } from '@/components/tables/data-table';
@@ -18,7 +18,7 @@ export default function AdminClassesPage() {
   const router = useRouter();
   const t = useT();
   const [importOpen, setImportOpen] = useState(false);
-  const state = useResource<SchoolClass[]>(endpoints.admin.classes);
+  const state = useAdminResource<SchoolClass[]>(endpoints.admin.classes);
 
   const columns: Column<SchoolClass>[] = useMemo(
     () => [
@@ -38,6 +38,7 @@ export default function AdminClassesPage() {
         actions={
           <AdminListActions
             addHref="/admin/classes/new"
+            managePermission="manage_classes"
             exportPath={endpoints.admin.classesExport}
             exportFilename="classes.csv"
             showImport

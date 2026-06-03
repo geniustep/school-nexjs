@@ -3,7 +3,7 @@
 import { use, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useResource } from '@/lib/hooks/use-resource';
+import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { ResourceView } from '@/components/states/resource';
 import { PageHeader, Badge, Card, DefinitionList, SectionHead } from '@/components/ui/primitives';
 import { ConfirmActionButton } from '@/features/admin/confirm-action-button';
@@ -26,7 +26,7 @@ export default function AdminStudentDetailPage({
   const { formatDate } = useFormat();
   const isNew = id === 'new';
   const [editing, setEditing] = useState(isNew);
-  const state = useResource<Student>(isNew ? null : endpoints.admin.student(id));
+  const state = useAdminResource<Student>(isNew ? null : endpoints.admin.student(id));
 
   if (isNew) {
     return (

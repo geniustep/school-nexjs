@@ -50,6 +50,28 @@ export function PermissionDeniedState({ description }: { description?: string })
   );
 }
 
+export function NoActiveSchoolState() {
+  const t = useT();
+  return (
+    <div className="state">
+      <div className="state-icon state-icon--lock" aria-hidden="true">&#127979;</div>
+      <div className="state__title">{t('admin.chooseSchoolTitle')}</div>
+      <div className="state__desc">{t('admin.chooseSchoolDesc')}</div>
+    </div>
+  );
+}
+
+export function SchoolEmptyState({ description }: { description?: string }) {
+  const t = useT();
+  return (
+    <div className="state">
+      <div className="state-icon state-icon--empty" aria-hidden="true">&#127979;</div>
+      <div className="state__title">{t('admin.noScopeTitle')}</div>
+      <div className="state__desc">{description ?? t('admin.noScopeDesc')}</div>
+    </div>
+  );
+}
+
 export function NotFoundState({ description }: { description?: string }) {
   const t = useT();
   return (

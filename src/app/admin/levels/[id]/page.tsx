@@ -3,7 +3,7 @@
 import { use, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useResource } from '@/lib/hooks/use-resource';
+import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { ResourceView } from '@/components/states/resource';
 import { PageHeader, Card } from '@/components/ui/primitives';
 import { ConfirmActionButton } from '@/features/admin/confirm-action-button';
@@ -17,7 +17,7 @@ export default function AdminLevelDetailPage({ params }: { params: Promise<{ id:
   const router = useRouter();
   const isNew = id === 'new';
   const [editing, setEditing] = useState(isNew);
-  const state = useResource<LevelDetail>(isNew ? null : endpoints.admin.level(id));
+  const state = useAdminResource<LevelDetail>(isNew ? null : endpoints.admin.level(id));
 
   if (isNew) {
     return (

@@ -7,12 +7,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { api } from '@/lib/api/client';
 import { useResource } from '@/lib/hooks/use-resource';
+import { useAdminResource } from '@/lib/hooks/use-admin-resource';
+import { useSession } from '@/features/auth/session-context';
+import { channelsEndpointsForRole } from '@/lib/api/channel-endpoints';
 import { ResourceView } from '@/components/states/resource';
 import { ApiErrorView, EmptyState, LoadingState } from '@/components/states/states';
 import { Badge } from '@/components/ui/primitives';
 import { useToast } from '@/components/ui/toast';
 import { useT } from '@/features/i18n/locale-context';
-import { endpoints } from '@/lib/api/endpoints';
+import { hasPermission } from '@/lib/permissions/permissions';
 import { CHANNEL_TYPE_LABEL } from '@/lib/utils/labels';
 import { formatDateTime } from '@/lib/utils/format';
 import type { Channel } from '@/types/channel';
@@ -30,7 +33,14 @@ export function ChannelChat({
 }) {
   const t = useT();
   const toast = useToast();
-  const channelState = useResource<Channel>(endpoints.channels.detail(channelId));
+  const user = useSession();
+  const ch = channelsEndpointsForRole(user.role);
+  const isAdmin = user.role === 'admin';
+  const adminChannelState = useAdminResource<Channel>(
+    isAdmin ? ch.detail(channelId) : null,
+  );
+  const portalChannelState = useResource<Channel>(!isAdmin ? ch.detail(channelId) : null);
+  const channelState = isAdmin ? adminChannelState : portalChannelState;
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [msgError, setMsgError] = useState<ApiErrorBody | null>(null);
@@ -40,7 +50,7 @@ export function ChannelChat({
   const scrollRef = useRef<HTMLDivElement>(null);
 
   async function loadMessages(scroll = false) {
-    const res = await api.get<Message[]>(endpoints.channels.messages(channelId), {
+    const res = await api.get<Message[]>(ch.messages(channelId), {
       page_size: 100,
     });
     if (res.success) {
@@ -69,7 +79,7 @@ export function ChannelChat({
     const text = body.trim();
     if (!text) return;
     setSending(true);
-    const res = await api.post<Message>(endpoints.channels.messages(channelId), {
+    const res = await api.post<Message>(ch.messages(channelId), {
       body: text,
     });
     setSending(false);
@@ -86,7 +96,10 @@ export function ChannelChat({
   return (
     <ResourceView state={channelState} loadingLabel={t('channels.loadingChannel')}>
       {(channel) => {
-        const canSend = !forceReadOnly && channel.can_send;
+        const canSend =
+          !forceReadOnly &&
+          channel.can_send &&
+          (user.role !== 'admin' || hasPermission(user, 'send_messages'));
         const typeLabel = CHANNEL_TYPE_LABEL[channel.type] ?? channel.type;
         return (
           <div className="card chat" style={{ padding: 0 }}>

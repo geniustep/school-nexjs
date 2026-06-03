@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useResource } from '@/lib/hooks/use-resource';
+import { useAdminResource } from '@/lib/hooks/use-admin-resource';
+import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
@@ -22,7 +23,7 @@ export default function AdminParentsPage() {
   const [search, setSearch] = useState('');
   const [query, setQuery] = useState('');
   const [importOpen, setImportOpen] = useState(false);
-  const state = useResource<Parent[]>(endpoints.admin.parents, { page, page_size: 20, search: query || undefined });
+  const state = useAdminResource<Parent[]>(endpoints.admin.parents, { page, page_size: 20, search: query || undefined });
   const pg = state.meta?.pagination;
 
   const columns: Column<Parent>[] = useMemo(
@@ -62,6 +63,7 @@ export default function AdminParentsPage() {
         actions={
           <AdminListActions
             addHref="/admin/parents/new"
+            managePermission="manage_parents"
             exportPath={endpoints.admin.parentsExport}
             exportFilename="parents.csv"
             showImport

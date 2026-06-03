@@ -3,7 +3,8 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useResource } from '@/lib/hooks/use-resource';
+import { useAdminResource } from '@/lib/hooks/use-admin-resource';
+import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
@@ -36,9 +37,9 @@ export default function AdminStudentsPage() {
     level_id: levelId || undefined,
     status: statusFilter || undefined,
   };
-  const state = useResource<Student[]>(endpoints.admin.students, params);
-  const classesState = useResource<import('@/types/class').SchoolClass[]>(endpoints.admin.classes);
-  const levelsState = useResource<import('@/types/api').Ref[]>(endpoints.admin.levels);
+  const state = useAdminResource<Student[]>(endpoints.admin.students, params);
+  const classesState = useAdminResource<import('@/types/class').SchoolClass[]>(endpoints.admin.classes);
+  const levelsState = useAdminResource<import('@/types/api').Ref[]>(endpoints.admin.levels);
   const pg = state.meta?.pagination;
 
   const columns: Column<Student>[] = useMemo(
@@ -89,6 +90,7 @@ export default function AdminStudentsPage() {
         actions={
           <AdminListActions
             addHref="/admin/students/new"
+            managePermission="manage_students"
             exportPath={endpoints.admin.studentsExport}
             exportFilename="students.csv"
             showImport

@@ -1,0 +1,87 @@
+'use client';
+
+import { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { resolveSchoolCatalog, resolveSchoolIds } from '@/lib/auth/normalize-user';
+import type { SchoolRef } from '@/types/api';
+import type { CurrentUser } from '@/types/user';
+
+interface AdminSessionValue {
+  activeSchoolId: number | null;
+  schools: SchoolRef[];
+  requiresActiveSchool: boolean;
+  switching: boolean;
+  setActiveSchool: (schoolId: number) => Promise<boolean>;
+}
+
+const AdminSessionContext = createContext<AdminSessionValue | null>(null);
+
+export function AdminSessionProvider({
+  user,
+  children,
+}: {
+  user: CurrentUser;
+  children: React.ReactNode;
+}) {
+  const router = useRouter();
+  const schools = useMemo(() => resolveSchoolCatalog(user), [user]);
+  const schoolIds = useMemo(() => resolveSchoolIds(user), [user]);
+  const requiresActiveSchool = schoolIds.length > 1;
+
+  const [activeSchoolId, setActiveSchoolId] = useState<number | null>(
+    user.active_school_id ?? user.school?.id ?? (schoolIds.length === 1 ? schoolIds[0] : null),
+  );
+  const [switching, setSwitching] = useState(false);
+
+  const setActiveSchool = useCallback(
+    async (schoolId: number) => {
+      setSwitching(true);
+      try {
+        const res = await fetch('/api/auth/active-school', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({ school_id: schoolId }),
+        });
+        const body = (await res.json()) as { success?: boolean };
+        if (!res.ok || !body.success) return false;
+        setActiveSchoolId(schoolId);
+        router.refresh();
+        return true;
+      } catch {
+        return false;
+      } finally {
+        setSwitching(false);
+      }
+    },
+    [router],
+  );
+
+  const value = useMemo(
+    () => ({
+      activeSchoolId,
+      schools,
+      requiresActiveSchool,
+      switching,
+      setActiveSchool,
+    }),
+    [activeSchoolId, schools, requiresActiveSchool, switching, setActiveSchool],
+  );
+
+  return (
+    <AdminSessionContext.Provider value={value}>{children}</AdminSessionContext.Provider>
+  );
+}
+
+export function useAdminSession(): AdminSessionValue {
+  const ctx = useContext(AdminSessionContext);
+  if (!ctx) {
+    return {
+      activeSchoolId: null,
+      schools: [],
+      requiresActiveSchool: false,
+      switching: false,
+      setActiveSchool: async () => false,
+    };
+  }
+  return ctx;
+}

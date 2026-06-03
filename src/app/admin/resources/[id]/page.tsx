@@ -3,7 +3,7 @@
 import { use, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useResource } from '@/lib/hooks/use-resource';
+import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { ResourceView } from '@/components/states/resource';
 import { AttachmentList } from '@/components/attachments/attachment-list';
 import { ResourceLinkSection } from '@/components/attachments/resource-link-section';
@@ -25,7 +25,7 @@ export default function AdminResourceDetailPage({ params }: { params: Promise<{ 
   const { formatDate } = useFormat();
   const isNew = id === 'new';
   const [editing, setEditing] = useState(isNew);
-  const state = useResource<ResourceDetail>(isNew ? null : endpoints.admin.resource(id));
+  const state = useAdminResource<ResourceDetail>(isNew ? null : endpoints.admin.resource(id));
 
   if (isNew) {
     return (

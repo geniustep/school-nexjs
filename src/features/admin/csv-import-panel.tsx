@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { api } from '@/lib/api/client';
 import { Card, SectionHead } from '@/components/ui/primitives';
 import { useToast } from '@/components/ui/toast';
+import { useSession } from '@/features/auth/session-context';
+import { hasPermission } from '@/lib/permissions/permissions';
 import { useT } from '@/features/i18n/locale-context';
 
 export interface ImportRowError {
@@ -27,8 +29,13 @@ interface CsvImportPanelProps {
 }
 
 export function CsvImportPanel({ importPath, instructions, onDone }: CsvImportPanelProps) {
+  const user = useSession();
   const t = useT();
   const toast = useToast();
+
+  if (user.role === 'admin' && !hasPermission(user, 'import_data')) {
+    return null;
+  }
   const [csv, setCsv] = useState('');
   const [validateOnly, setValidateOnly] = useState(true);
   const [loading, setLoading] = useState(false);

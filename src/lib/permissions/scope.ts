@@ -12,6 +12,7 @@
 
 import type { CurrentUser } from '@/types/user';
 import type { AdminScope } from '@/types/scope';
+import { hasPermission } from '@/lib/permissions/permissions';
 
 export function isSuperAdmin(user: CurrentUser | null): boolean {
   if (!user || user.role !== 'admin') return false;
@@ -19,10 +20,15 @@ export function isSuperAdmin(user: CurrentUser | null): boolean {
   return user.scope?.type === 'school';
 }
 
-/** An admin who can reach data endpoints at all (super, or has a scope record). */
+/** An admin who can use the admin portal (RBAC schools/permissions or legacy scope). */
 export function isConfiguredAdmin(user: CurrentUser | null): boolean {
   if (!user || user.role !== 'admin') return false;
-  return isSuperAdmin(user) || !!user.scope;
+  if (isSuperAdmin(user)) return true;
+  if ((user.school_ids?.length ?? 0) > 0) return true;
+  if (user.school) return true;
+  if (user.scope || (user.scopes?.length ?? 0) > 0) return true;
+  if ((user.permissions?.length ?? 0) > 0) return true;
+  return false;
 }
 
 /** A scoped (non-super) admin restricted to part of the school. */
@@ -48,6 +54,15 @@ const STUDENT_DATA_SCOPES: AdminScope['type'][] = [
 export function canSeeStudentData(user: CurrentUser | null): boolean {
   if (!isConfiguredAdmin(user)) return false;
   if (isSuperAdmin(user)) return true;
+  if (
+    hasPermission(user, 'view_students') ||
+    hasPermission(user, 'view_parents') ||
+    hasPermission(user, 'view_teachers') ||
+    hasPermission(user, 'view_classes') ||
+    hasPermission(user, 'view_attendance')
+  ) {
+    return true;
+  }
   const type = user?.scope?.type;
   return !!type && STUDENT_DATA_SCOPES.includes(type);
 }
@@ -55,7 +70,7 @@ export function canSeeStudentData(user: CurrentUser | null): boolean {
 /** Whether this admin can see channels/messaging. */
 export function canSeeChannels(user: CurrentUser | null): boolean {
   if (!isConfiguredAdmin(user)) return false;
-  return true;
+  return hasPermission(user, 'view_channels');
 }
 
 /** Is a given class id within the admin's scope? (UX pre-filter only.) */

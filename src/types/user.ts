@@ -1,10 +1,25 @@
-// Authenticated user — mirrors API_REPORT.md §3 (auth/login, /me) and §8.
+// Authenticated user — mirrors API_REPORT.md §3 and RBAC Admin-1.
 
 import type { Permission } from './permissions';
 import type { AdminScope } from './scope';
 import type { SchoolRef } from './api';
 
 export type Role = 'admin' | 'teacher' | 'parent' | 'student';
+
+export type AdminKind =
+  | 'project_manager'
+  | 'school_manager'
+  | 'general_supervisor'
+  | 'admin_staff'
+  | 'super_admin'
+  | string;
+
+export interface AdminBinding {
+  school_id: number;
+  school_name?: string;
+  admin_kind?: AdminKind;
+  [key: string]: unknown;
+}
 
 export interface CurrentUser {
   id: number;
@@ -14,13 +29,15 @@ export interface CurrentUser {
   permissions: Permission[];
   school: SchoolRef | null;
 
-  // Teacher: school.teacher id + code. Parent: school.parent id.
-  // Student: school.student id + code. Absent for plain admin.
+  admin_kind?: AdminKind;
+  school_ids?: number[];
+  schools?: SchoolRef[];
+  active_school_id?: number;
+  scopes?: AdminScope[];
+  bindings?: AdminBinding[];
+
   profile_id?: number;
   code?: string;
-
-  // Admin only — see API_REPORT.md §4. Also includes the super-admin flag
-  // when the backend exposes it.
   scope?: AdminScope;
   is_super_admin?: boolean;
 }

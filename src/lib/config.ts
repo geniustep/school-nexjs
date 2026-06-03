@@ -9,6 +9,7 @@ export const config = {
   apiPrefix: '/api/v1',
   /** httpOnly cookie that stores the Odoo session id on the Next.js side. */
   sessionCookieName: process.env.SESSION_COOKIE_NAME ?? 'scc_session',
+  activeSchoolCookieName: process.env.ACTIVE_SCHOOL_COOKIE_NAME ?? 'scc_active_school',
   /** Odoo's own session cookie name. */
   odooSessionCookieName: 'session_id',
 };

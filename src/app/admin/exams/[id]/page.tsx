@@ -3,7 +3,7 @@
 import { use, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useResource } from '@/lib/hooks/use-resource';
+import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { ResourceView } from '@/components/states/resource';
 import { ExamDetailPanel } from '@/features/academic/exam-detail-panel';
 import { ExamForm } from '@/features/admin/exam-form';
@@ -24,7 +24,7 @@ export default function AdminExamDetailPage({
   const router = useRouter();
   const isNew = id === 'new';
   const [editing, setEditing] = useState(false);
-  const state = useResource<ExamDetail>(isNew ? null : endpoints.admin.exam(id));
+  const state = useAdminResource<ExamDetail>(isNew ? null : endpoints.admin.exam(id));
 
   if (isNew) {
     return (

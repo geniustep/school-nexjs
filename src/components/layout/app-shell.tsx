@@ -11,29 +11,30 @@ import { authApi } from '@/lib/api/client';
 import { navForUser } from '@/components/navigation/nav-config';
 import { Avatar } from '@/components/ui/primitives';
 import { LocaleSwitcher } from '@/components/i18n/locale-switcher';
+import { SchoolSwitcher } from '@/components/admin/school-switcher';
 import { useT } from '@/features/i18n/locale-context';
 import type { CurrentUser } from '@/types/user';
-import { isScopedAdmin, isSuperAdmin } from '@/lib/permissions/scope';
+import { isScopedAdmin } from '@/lib/permissions/scope';
 
 function roleSubtitle(user: CurrentUser, t: (k: string) => string): string {
   return t(`roles.${user.role}`);
 }
 
-function scopeDescription(user: CurrentUser): string | null {
+function scopeDescription(user: CurrentUser, t: (k: string) => string): string | null {
   if (user.role !== 'admin' || !isScopedAdmin(user)) return null;
   const scope = user.scope;
   if (!scope) return null;
   switch (scope.type) {
     case 'channels':
-      return 'You can access communication channels only.';
+      return t('admin.scope.channelsOnly');
     case 'levels':
-      return 'You can view students in your assigned grade levels.';
+      return t('admin.scope.levels');
     case 'classes':
-      return 'You can view students in your assigned classes.';
+      return t('admin.scope.classes');
     case 'level_group':
-      return 'You can view students in your assigned level group.';
+      return t('admin.scope.levelGroup');
     default:
-      return 'Your access is limited to a specific part of the school.';
+      return t('admin.scope.custom');
   }
 }
 
@@ -49,8 +50,10 @@ export function AppShell({
   const [open, setOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const sections = navForUser(user);
-  const scopeDesc = scopeDescription(user);
   const t = useT();
+  const scopeDesc = scopeDescription(user, t);
+  const isTeacher = user.role === 'teacher';
+  const isAdmin = user.role === 'admin';
 
   async function logout() {
     setLoggingOut(true);
@@ -64,10 +67,22 @@ export function AppShell({
   }
 
   return (
-    <div className={cn('app-shell', user.role === 'teacher' && 'app-shell--teacher')}>
+    <div
+      className={cn(
+        'app-shell',
+        isTeacher && 'app-shell--teacher',
+        isAdmin && 'app-shell--admin',
+      )}
+    >
       {open && <div className="scrim" onClick={() => setOpen(false)} />}
-      <aside className={cn('sidebar', user.role === 'teacher' && 'sidebar--teacher', open && 'sidebar--open')}>
-        {/* Brand */}
+      <aside
+        className={cn(
+          'sidebar',
+          isTeacher && 'sidebar--teacher',
+          isAdmin && 'sidebar--admin',
+          open && 'sidebar--open',
+        )}
+      >
         <div className="sidebar__brand">
           <span className="brand-mark" aria-hidden="true">S</span>
           <span className="brand-name">
@@ -76,8 +91,7 @@ export function AppShell({
           </span>
         </div>
 
-        {/* Teacher profile block */}
-        {user.role === 'teacher' && (
+        {(isTeacher || isAdmin) && (
           <div className="sidebar__profile">
             <Avatar name={user.name} />
             <div className="sidebar__profile-info">
@@ -90,7 +104,6 @@ export function AppShell({
           </div>
         )}
 
-        {/* Navigation */}
         <nav className="sidebar__nav">
           {sections.map((section, i) => (
             <div key={i}>
@@ -112,17 +125,16 @@ export function AppShell({
           ))}
         </nav>
 
-        {/* Scope notice for scoped admins */}
         {scopeDesc && (
           <div className="sidebar__scope">
-            <span className="sidebar__scope-label">Limited access</span>
+            <span className="sidebar__scope-label">{t('admin.limitedAccess')}</span>
             <span className="sidebar__scope-desc">{scopeDesc}</span>
           </div>
         )}
       </aside>
 
       <div className="main">
-        <header className={cn('topbar', user.role === 'teacher' && 'topbar--teacher')}>
+        <header className={cn('topbar', isTeacher && 'topbar--teacher')}>
           <div className="row">
             <button
               className="btn btn--ghost btn--sm menu-toggle"
@@ -132,12 +144,13 @@ export function AppShell({
               ≡
             </button>
             <span className="topbar__title">
-              {user.role === 'teacher' ? t('teacher.workspaceTitle') : (user.school?.name ?? 'Smart School')}
+              {isTeacher ? t('teacher.workspaceTitle') : (user.school?.name ?? 'Smart School')}
             </span>
           </div>
           <div className="topbar__right">
+            {isAdmin && <SchoolSwitcher />}
             <LocaleSwitcher compact />
-            {user.role !== 'teacher' && (
+            {!isTeacher && (
               <div className="user-chip">
                 <Avatar name={user.name} />
                 <div className="col" style={{ gap: 0 }}>
@@ -155,7 +168,7 @@ export function AppShell({
             </button>
           </div>
         </header>
-        <main className="content">{children}</main>
+        <main className={cn('content', isAdmin && 'content--admin')}>{children}</main>
       </div>
     </div>
   );

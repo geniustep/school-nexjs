@@ -1,5 +1,4 @@
-// Permission keys — mirrors the Role & Permission matrix in API_REPORT.md §6.
-// The /api/v1/me response returns a subset of these in user.permissions.
+// Permission keys — RBAC matrix + legacy API_REPORT §6.
 
 export type Permission =
   | 'view_dashboard'
@@ -18,4 +17,21 @@ export type Permission =
   | 'manage_channels'
   | 'send_messages'
   | 'view_messages'
-  | 'import_data';
+  | 'view_homeworks'
+  | 'manage_homeworks'
+  | 'view_resources'
+  | 'manage_resources'
+  | 'view_exams'
+  | 'manage_exams'
+  | 'view_exam_results'
+  | 'manage_exam_results'
+  | 'view_timetable'
+  | 'manage_timetable'
+  | 'view_attachments'
+  | 'manage_attachments'
+  | 'view_reports'
+  | 'import_data'
+  | 'export_data'
+  | 'print_documents'
+  | 'receive_teacher_exams_print'
+  | 'manage_complaints';

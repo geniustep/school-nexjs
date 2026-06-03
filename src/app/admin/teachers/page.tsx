@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useResource } from '@/lib/hooks/use-resource';
+import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
@@ -19,7 +19,7 @@ export default function AdminTeachersPage() {
   const t = useT();
   const [page, setPage] = useState(1);
   const [importOpen, setImportOpen] = useState(false);
-  const state = useResource<Teacher[]>(endpoints.admin.teachers, { page, page_size: 20 });
+  const state = useAdminResource<Teacher[]>(endpoints.admin.teachers, { page, page_size: 20 });
   const pg = state.meta?.pagination;
 
   const columns: Column<Teacher>[] = useMemo(
@@ -41,6 +41,7 @@ export default function AdminTeachersPage() {
         actions={
           <AdminListActions
             addHref="/admin/teachers/new"
+            managePermission="manage_teachers"
             exportPath={endpoints.admin.teachersExport}
             exportFilename="teachers.csv"
             showImport

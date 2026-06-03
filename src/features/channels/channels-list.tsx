@@ -5,11 +5,14 @@
 
 import { useRouter } from 'next/navigation';
 import { useResource } from '@/lib/hooks/use-resource';
+import { useAdminResource } from '@/lib/hooks/use-admin-resource';
+import { useSession } from '@/features/auth/session-context';
+import { channelsEndpointsForRole } from '@/lib/api/channel-endpoints';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
 import { Badge, Card } from '@/components/ui/primitives';
 import { useT } from '@/features/i18n/locale-context';
-import { endpoints } from '@/lib/api/endpoints';
+
 import { CHANNEL_TYPE_LABEL } from '@/lib/utils/labels';
 import { formatDateTime } from '@/lib/utils/format';
 import { cn } from '@/lib/utils/cn';
@@ -18,7 +21,12 @@ import type { Channel } from '@/types/channel';
 export function ChannelsList({ basePath }: { basePath: string }) {
   const t = useT();
   const router = useRouter();
-  const state = useResource<Channel[]>(endpoints.channels.list, { page_size: 100 });
+  const user = useSession();
+  const ch = channelsEndpointsForRole(user.role);
+  const isAdmin = user.role === 'admin';
+  const adminState = useAdminResource<Channel[]>(isAdmin ? ch.list : null, { page_size: 100 });
+  const portalState = useResource<Channel[]>(!isAdmin ? ch.list : null, { page_size: 100 });
+  const state = isAdmin ? adminState : portalState;
 
   return (
     <ResourceView
