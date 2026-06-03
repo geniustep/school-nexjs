@@ -24,8 +24,16 @@ export function AdminSessionProvider({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const schools = useMemo(() => resolveSchoolCatalog(user), [user]);
-  const schoolIds = useMemo(() => resolveSchoolIds(user), [user]);
+  const schools = useMemo(() => {
+    if (Array.isArray(user.schools) && user.schools.length > 0) {
+      return user.schools;
+    }
+    return resolveSchoolCatalog(user);
+  }, [user]);
+  const schoolIds = useMemo(
+    () => (schools.length ? schools.map((s) => s.id) : resolveSchoolIds(user)),
+    [schools, user],
+  );
   const requiresActiveSchool = schoolIds.length > 1;
 
   const [activeSchoolId, setActiveSchoolId] = useState<number | null>(

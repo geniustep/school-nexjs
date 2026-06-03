@@ -573,7 +573,7 @@
     "multiSchoolContext": "Gestión multi-centro",
     "multiSchoolPortfolioPending": "La vista general multi-centro estará disponible cuando la API del panel portfolio esté lista.",
     "activeSchoolWorking": "Centro activo: {school}",
-    "schoolFallback": "Centro n.º {id}",
+    "schoolFallback": "Escuela #{id}",
     "scopedDashboardDesc": "Las cifras y acciones siguientes son solo de su ámbito — no de la administración completa del centro.",
     "staffNoDashboardTitle": "Panel no disponible",
     "staffNoDashboardDesc": "Su cuenta tiene permisos limitados. Use el menú para abrir las páginas permitidas.",

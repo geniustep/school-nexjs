@@ -573,7 +573,7 @@
     "multiSchoolContext": "Gestion multi-établissements",
     "multiSchoolPortfolioPending": "Une vue d'ensemble multi-établissements sera disponible lorsque l'API du tableau de bord portfolio sera prête.",
     "activeSchoolWorking": "Établissement actif : {school}",
-    "schoolFallback": "École n°{id}",
+    "schoolFallback": "École #{id}",
     "scopedDashboardDesc": "Les chiffres et actions ci-dessous concernent votre périmètre uniquement — pas l'administration complète.",
     "staffNoDashboardTitle": "Tableau de bord indisponible",
     "staffNoDashboardDesc": "Votre compte a des droits limités. Utilisez le menu pour ouvrir les pages autorisées.",

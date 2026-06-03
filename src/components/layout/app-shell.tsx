@@ -15,6 +15,7 @@ import { SchoolSwitcher } from '@/components/admin/school-switcher';
 import { useT } from '@/features/i18n/locale-context';
 import type { CurrentUser } from '@/types/user';
 import { isMultiSchoolAdmin, isAdminKind } from '@/lib/admin/admin-ux';
+import { formatSchoolLabel } from '@/lib/admin/school-label';
 import { isScopedAdmin } from '@/lib/permissions/scope';
 
 function roleSubtitle(user: CurrentUser, t: (k: string) => string): string {
@@ -66,7 +67,7 @@ export function AppShell({
     ? t('teacher.workspaceTitle')
     : multiSchoolPm
       ? t('admin.multiSchoolContext')
-      : (user.school?.name ?? t('auth.brand'));
+      : formatSchoolLabel(user.school, t);
 
   async function logout() {
     setLoggingOut(true);
@@ -110,8 +111,10 @@ export function AppShell({
             <div className="sidebar__profile-info">
               <span className="sidebar__profile-name">{user.name}</span>
               <span className="sidebar__profile-role">{roleSubtitle(user, t)}</span>
-              {user.school?.name && (
-                <span className="sidebar__profile-school">{user.school.name}</span>
+              {user.school && (
+                <span className="sidebar__profile-school">
+                  {formatSchoolLabel(user.school, t)}
+                </span>
               )}
             </div>
           </div>

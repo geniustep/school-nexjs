@@ -12,26 +12,15 @@ import {
   isMultiSchoolAdmin,
   shouldShowMultiSchoolPortfolioNotice,
 } from '@/lib/admin/admin-ux';
+import { formatSchoolLabel } from '@/lib/admin/school-label';
 import { hasPermission } from '@/lib/permissions/permissions';
 import { isConfiguredAdmin, isScopedAdmin } from '@/lib/permissions/scope';
 import { endpoints } from '@/lib/api/endpoints';
 import type { AdminDashboard } from '@/types/dashboard';
-import type { CurrentUser } from '@/types/user';
-
-function activeSchoolLabel(
-  user: CurrentUser,
-  activeSchoolId: number | null,
-  t: (k: string, p?: Record<string, string | number>) => string,
-): string {
-  if (user.school?.name) return user.school.name;
-  const id = activeSchoolId ?? user.active_school_id ?? user.school?.id;
-  if (id != null) return t('admin.schoolFallback', { id });
-  return t('admin.cmd.defaultSchool');
-}
 
 export default function AdminDashboardPage() {
   const user = useSession();
-  const { activeSchoolId } = useAdminSession();
+  const { activeSchoolId, schools } = useAdminSession();
   const t = useT();
   const state = useAdminResource<AdminDashboard>(
     hasPermission(user, 'view_dashboard') ? endpoints.admin.dashboard : null,
@@ -49,7 +38,9 @@ export default function AdminDashboardPage() {
 
   const scoped = isScopedAdmin(user);
   const multiSchool = isMultiSchoolAdmin(user);
-  const schoolLabel = activeSchoolLabel(user, activeSchoolId, t);
+  const activeRef =
+    schools.find((s) => s.id === activeSchoolId) ?? user.school ?? null;
+  const schoolLabel = formatSchoolLabel(activeRef, t);
 
   return (
     <div className="admin-workspace admin-workspace--dashboard">

@@ -3,6 +3,7 @@
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useSession } from '@/features/auth/session-context';
 import { shouldShowSchoolSwitcher } from '@/lib/admin/admin-ux';
+import { formatSchoolLabel } from '@/lib/admin/school-label';
 import { useT } from '@/features/i18n/locale-context';
 
 export function SchoolSwitcher() {
@@ -30,7 +31,7 @@ export function SchoolSwitcher() {
         </option>
         {schools.map((s) => (
           <option key={s.id} value={s.id}>
-            {s.name}
+            {formatSchoolLabel(s, t)}
           </option>
         ))}
       </select>

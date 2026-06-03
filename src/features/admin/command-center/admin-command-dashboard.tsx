@@ -10,6 +10,7 @@ import { useSession } from '@/features/auth/session-context';
 import { hasPermission } from '@/lib/permissions/permissions';
 import { canSeeChannels, canSeeStudentData, isScopedAdmin } from '@/lib/permissions/scope';
 import { shouldHideSchoolWideDashboardKpis } from '@/lib/admin/admin-ux';
+import { formatSchoolLabel } from '@/lib/admin/school-label';
 import type { AdminDashboard } from '@/types/dashboard';
 import type { AttendanceStatus } from '@/types/attendance';
 import type { CurrentUser } from '@/types/user';
@@ -126,7 +127,7 @@ export function AdminCommandDashboard({
 
   const actionItems = useMemo(() => buildActionItems(d, t), [d, t]);
 
-  const schoolName = effectiveUser.school?.name ?? t('admin.cmd.defaultSchool');
+  const schoolName = formatSchoolLabel(effectiveUser.school, t);
 
   const quickActions = useMemo(() => {
     const actions: { id: string; href: string; icon: string; label: string; show: boolean }[] = [

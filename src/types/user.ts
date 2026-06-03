@@ -32,6 +32,7 @@ export interface CurrentUser {
 
   admin_kind?: AdminKind;
   school_ids?: number[];
+  /** Allowed schools from GET /me — [{ id, name }]. Primary source for switcher labels. */
   schools?: SchoolRef[];
   /** When returned by /me; used only if active_school_id is unset. */
   default_school_id?: number;

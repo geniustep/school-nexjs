@@ -6,21 +6,70 @@ function uniqueSchoolIds(ids: number[]): number[] {
   return [...new Set(ids.filter((id) => Number.isFinite(id) && id > 0))];
 }
 
-function schoolIdsFromBindings(bindings?: AdminBinding[]): number[] {
-  if (!bindings?.length) return [];
-  return uniqueSchoolIds(bindings.map((b) => b.school_id));
+/** Odoo may return bindings as an array or a keyed object — normalize to array. */
+function asBindingList(bindings: unknown): AdminBinding[] {
+  if (!bindings) return [];
+  if (Array.isArray(bindings)) return bindings;
+  if (typeof bindings === 'object') {
+    return Object.values(bindings).filter(
+      (b): b is AdminBinding =>
+        !!b && typeof b === 'object' && typeof (b as AdminBinding).school_id === 'number',
+    );
+  }
+  return [];
 }
 
-function schoolsFromBindings(bindings?: AdminBinding[]): SchoolRef[] {
-  if (!bindings?.length) return [];
+/** Odoo may return schools as an array or a keyed object — normalize to array. */
+function asSchoolList(schools: unknown): SchoolRef[] {
+  if (!schools) return [];
+  if (Array.isArray(schools)) return schools;
+  if (typeof schools === 'object') {
+    return Object.values(schools).filter(
+      (s): s is SchoolRef => !!s && typeof s === 'object' && typeof (s as SchoolRef).id === 'number',
+    );
+  }
+  return [];
+}
+
+function schoolIdsFromBindings(bindings?: AdminBinding[] | unknown): number[] {
+  const list = asBindingList(bindings);
+  if (!list.length) return [];
+  return uniqueSchoolIds(list.map((b) => b.school_id));
+}
+
+function schoolNameFromSources(
+  user: Pick<CurrentUser, 'schools' | 'bindings' | 'school'>,
+  schoolId: number,
+): string {
+  const fromSchools = asSchoolList(user.schools)
+    .find((s) => s.id === schoolId)
+    ?.name?.trim();
+  if (fromSchools && !/^School #\d+$/.test(fromSchools)) return fromSchools;
+
+  const fromBinding = asBindingList(user.bindings)
+    .find((b) => b.school_id === schoolId)
+    ?.school_name?.trim();
+  if (fromBinding) return fromBinding;
+
+  if (user.school?.id === schoolId) {
+    const n = user.school.name?.trim();
+    if (n && !/^School #\d+$/.test(n)) return n;
+  }
+
+  return '';
+}
+
+function schoolsFromBindings(bindings?: AdminBinding[] | unknown): SchoolRef[] {
+  const list = asBindingList(bindings);
+  if (!list.length) return [];
   const seen = new Set<number>();
   const out: SchoolRef[] = [];
-  for (const b of bindings) {
+  for (const b of list) {
     if (!b.school_id || seen.has(b.school_id)) continue;
     seen.add(b.school_id);
     out.push({
       id: b.school_id,
-      name: b.school_name?.trim() || `School #${b.school_id}`,
+      name: b.school_name?.trim() || '',
     });
   }
   return out;
@@ -33,7 +82,11 @@ export function resolvePrimaryScope(user: Pick<CurrentUser, 'scope' | 'scopes'>)
   return scopes.find((s) => s.type === 'school') ?? scopes[0];
 }
 
-export function resolveSchoolIds(user: Pick<CurrentUser, 'school_ids' | 'school' | 'bindings'>): number[] {
+export function resolveSchoolIds(
+  user: Pick<CurrentUser, 'school_ids' | 'school' | 'bindings' | 'schools'>,
+): number[] {
+  const fromSchools = uniqueSchoolIds(asSchoolList(user.schools).map((s) => s.id));
+  if (fromSchools.length) return fromSchools;
   if (user.school_ids?.length) return uniqueSchoolIds(user.school_ids);
   const fromBindings = schoolIdsFromBindings(user.bindings);
   if (fromBindings.length) return fromBindings;
@@ -41,17 +94,39 @@ export function resolveSchoolIds(user: Pick<CurrentUser, 'school_ids' | 'school'
   return [];
 }
 
+/** Admin school list for switcher/labels — prefers `/me` schools[], then fallbacks. */
 export function resolveSchoolCatalog(
   user: Pick<CurrentUser, 'schools' | 'bindings' | 'school_ids' | 'school'>,
 ): SchoolRef[] {
-  if (user.schools?.length) return user.schools;
+  const schoolList = asSchoolList(user.schools);
+  const allowedIds = resolveSchoolIds(user);
+
+  if (schoolList.length) {
+    const byId = new Map(schoolList.map((s) => [s.id, s]));
+    const ids = allowedIds.length ? allowedIds : [...byId.keys()];
+    return ids.map((id) => {
+      const entry = byId.get(id);
+      const apiName = entry?.name?.trim();
+      if (apiName && hasResolvedSchoolName(apiName)) {
+        return { id, name: apiName };
+      }
+      return { id, name: schoolNameFromSources(user, id) };
+    });
+  }
+
   const fromBindings = schoolsFromBindings(user.bindings);
   if (fromBindings.length) return fromBindings;
-  const ids = resolveSchoolIds(user);
-  if (user.school && ids.includes(user.school.id)) {
-    return ids.map((id) => (id === user.school!.id ? user.school! : { id, name: `School #${id}` }));
-  }
-  return ids.map((id) => ({ id, name: `School #${id}` }));
+
+  return allowedIds.map((id) => ({
+    id,
+    name: schoolNameFromSources(user, id),
+  }));
+}
+
+function hasResolvedSchoolName(name: string | null | undefined): boolean {
+  const trimmed = name?.trim();
+  if (!trimmed) return false;
+  return !/^School #\d+$/.test(trimmed);
 }
 
 export function resolveActiveSchoolId(
@@ -62,33 +137,46 @@ export function resolveActiveSchoolId(
   cookieSchoolId?: number | null,
 ): number | null {
   const allowed = resolveSchoolIds(user);
-  const fallback =
-    user.active_school_id ??
+  const fallbackWithoutCookie =
     user.default_school_id ??
+    user.active_school_id ??
     user.school?.id ??
     (allowed.length === 1 ? allowed[0] : null);
 
   if (cookieSchoolId != null && allowed.includes(cookieSchoolId)) return cookieSchoolId;
-  if (fallback != null && allowed.includes(fallback)) return fallback;
+  if (fallbackWithoutCookie != null && allowed.includes(fallbackWithoutCookie)) {
+    return fallbackWithoutCookie;
+  }
   if (allowed.length === 1) return allowed[0];
-  return allowed.length ? null : fallback;
+  return allowed.length ? null : fallbackWithoutCookie;
 }
 
 export function schoolRefForId(catalog: SchoolRef[], id: number | null): SchoolRef | null {
   if (id == null) return null;
-  return catalog.find((s) => s.id === id) ?? { id, name: `School #${id}` };
+  return catalog.find((s) => s.id === id) ?? { id, name: '' };
 }
 
 export function normalizeMeUser(raw: CurrentUser): CurrentUser {
-  const school_ids = resolveSchoolIds(raw);
-  const schools = resolveSchoolCatalog({ ...raw, school_ids });
+  const bindings = asBindingList(raw.bindings);
+  const schoolsFromMe = asSchoolList(raw.schools);
+  const base = {
+    ...raw,
+    bindings: bindings.length ? bindings : undefined,
+    schools: schoolsFromMe.length ? schoolsFromMe : undefined,
+  };
+  const school_ids = resolveSchoolIds(base);
+  const schools = resolveSchoolCatalog({ ...base, school_ids });
   const scopes = raw.scopes?.length ? raw.scopes : raw.scope ? [raw.scope] : [];
   const scope = resolvePrimaryScope({ scope: raw.scope, scopes });
-  const active_school_id = resolveActiveSchoolId(raw);
-  const school = schoolRefForId(schools, active_school_id) ?? raw.school ?? null;
+  const active_school_id = resolveActiveSchoolId({ ...base, school_ids });
+  const school =
+    schoolRefForId(schools, active_school_id) ??
+    (raw.school?.id != null ? schoolRefForId(schools, raw.school.id) : null) ??
+    raw.school ??
+    null;
 
   return {
-    ...raw,
+    ...base,
     admin_kind: raw.admin_kind as AdminKind | undefined,
     school_ids,
     schools,
