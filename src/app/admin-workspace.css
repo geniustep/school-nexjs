@@ -114,6 +114,8 @@
   font-weight: 800;
   line-height: 1.25;
   margin: 0;
+  /* Override globals.css h1 { color: var(--c-text) } on dark hero gradient */
+  color: #fff;
 }
 
 .admin-hero__meta {
@@ -630,6 +632,7 @@
   font-weight: 800;
   margin: 4px 0 0;
   line-height: 1.2;
+  color: #fff;
 }
 
 .admin-att-ops-header__subtitle {
