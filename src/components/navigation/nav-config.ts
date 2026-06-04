@@ -2,7 +2,7 @@
 
 import type { CurrentUser } from '@/types/user';
 import type { Permission } from '@/types/permissions';
-import { canShowAdminNavPermission, useScopedNavLabels } from '@/lib/admin/admin-ux';
+import { canAccessAdminDashboard, canShowAdminNavPermission, useScopedNavLabels } from '@/lib/admin/admin-ux';
 import { isConfiguredAdmin } from '@/lib/permissions/scope';
 
 export interface NavItem {
@@ -215,7 +215,7 @@ export function navForUser(user: CurrentUser): NavSection[] {
   switch (user.role) {
     case 'admin':
       if (!isConfiguredAdmin(user)) {
-        return canShowAdminNavPermission(user, 'view_dashboard')
+        return canAccessAdminDashboard(user)
           ? [{ items: [{ labelKey: 'nav.dashboard', href: '/admin/dashboard', icon: '🏠' }] }]
           : [];
       }

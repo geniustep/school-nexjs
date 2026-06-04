@@ -123,7 +123,8 @@ export function AdminCommandDashboard({
   const canViewChannels =
     canSeeChannels(effectiveUser) && hasPermission(effectiveUser, 'view_channels');
   const hideSchoolWideKpis = shouldHideSchoolWideDashboardKpis(effectiveUser);
-  const scopedMode = isScopedAdmin(effectiveUser);
+  const scopedMode =
+    isScopedAdmin(effectiveUser) || effectiveUser.admin_kind === 'general_supervisor';
 
   const actionItems = useMemo(() => buildActionItems(d, t), [d, t]);
 

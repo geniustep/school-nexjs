@@ -3,6 +3,7 @@
 // round-trip back through the proxy route.
 
 import 'server-only';
+import { cache } from 'react';
 import { cookies } from 'next/headers';
 import { config } from '@/lib/config';
 import { odooApiFetch } from './odoo-server';
@@ -10,11 +11,22 @@ import { endpoints } from './endpoints';
 import type { ApiResponse, ListParams } from '@/types/api';
 import type { MeResponse, CurrentUser } from '@/types/user';
 import { normalizeMeUser } from '@/lib/auth/normalize-user';
-import { applyActiveSchoolToUser, getActiveSchoolCookie } from '@/lib/auth/active-school';
+import { applyActiveSchoolToUser } from '@/lib/auth/active-school';
 
 async function sessionId(): Promise<string | null> {
   const store = await cookies();
   return store.get(config.sessionCookieName)?.value ?? null;
+}
+
+async function fetchMeUser(): Promise<CurrentUser | null> {
+  const sid = await sessionId();
+  if (!sid) return null;
+  const result = await odooApiFetch<MeResponse>(endpoints.auth.me, {
+    method: 'GET',
+    sessionId: sid,
+  });
+  if (result.kind !== 'json' || !result.body.success) return null;
+  return result.body.data.user;
 }
 
 async function mergeAdminQuery(
@@ -23,7 +35,8 @@ async function mergeAdminQuery(
 ): Promise<Record<string, string | number | undefined> | undefined> {
   const base = query as Record<string, string | number | undefined> | undefined;
   if (!path.startsWith('/admin/')) return base;
-  const activeSchool = await getActiveSchoolCookie();
+  const user = await getCurrentUser();
+  const activeSchool = user?.active_school_id;
   if (!activeSchool) return base;
   return { ...base, active_school_id: activeSchool };
 }
@@ -55,7 +68,8 @@ export async function serverPost<T>(path: string, body?: unknown): Promise<ApiRe
   const sid = await sessionId();
   let mergedBody = body;
   if (path.startsWith('/admin/') && body && typeof body === 'object' && !Array.isArray(body)) {
-    const activeSchool = await getActiveSchoolCookie();
+    const user = await getCurrentUser();
+    const activeSchool = user?.active_school_id;
     if (activeSchool) {
       mergedBody = { ...body, active_school_id: activeSchool };
     }
@@ -79,10 +93,8 @@ export async function serverPost<T>(path: string, body?: unknown): Promise<ApiRe
  * Resolve the authenticated user, or null if there is no valid session.
  * This is the canonical server-side session check used by guards/layouts.
  */
-export async function getCurrentUser(): Promise<CurrentUser | null> {
-  const sid = await sessionId();
-  if (!sid) return null;
-  const res = await serverGet<MeResponse>(endpoints.auth.me);
-  if (!res.success) return null;
-  return applyActiveSchoolToUser(normalizeMeUser(res.data.user));
-}
+export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
+  const raw = await fetchMeUser();
+  if (!raw) return null;
+  return applyActiveSchoolToUser(normalizeMeUser(raw));
+});

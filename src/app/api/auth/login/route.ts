@@ -8,6 +8,11 @@ import { NextResponse } from 'next/server';
 import { config, cookieSecure } from '@/lib/config';
 import { authenticateOdoo, odooApiFetch } from '@/lib/api/odoo-server';
 import { endpoints } from '@/lib/api/endpoints';
+import {
+  activeSchoolCookieOptions,
+  getActiveSchoolCookie,
+} from '@/lib/auth/active-school';
+import { normalizeMeUser, resolveActiveSchoolId } from '@/lib/auth/normalize-user';
 import type { MeResponse } from '@/types/user';
 
 export const dynamic = 'force-dynamic';
@@ -57,14 +62,48 @@ export async function POST(request: Request) {
     return NextResponse.json(body, { status: me.status });
   }
 
-  const response = NextResponse.json(me.body, { status: 200 });
+  const rawUser = me.body.data.user;
+  const normalized = normalizeMeUser(rawUser);
+  const cookieSchoolId = await getActiveSchoolCookie();
+  const activeId =
+    normalized.role === 'admin'
+      ? resolveActiveSchoolId(normalized, cookieSchoolId)
+      : null;
+
+  const response = NextResponse.json(
+    {
+      ...me.body,
+      data: {
+        ...me.body.data,
+        user: {
+          ...normalized,
+          active_school_id: activeId ?? undefined,
+        },
+      },
+    },
+    { status: 200 },
+  );
   response.cookies.set(config.sessionCookieName, auth.sessionId, {
     httpOnly: true,
     secure: cookieSecure(),
     sameSite: 'lax',
     path: '/',
-    // Mirror Odoo's typical 7-day inactivity window.
     maxAge: 60 * 60 * 24 * 7,
   });
+  if (normalized.role === 'admin') {
+    if (activeId != null) {
+      response.cookies.set(
+        config.activeSchoolCookieName,
+        String(activeId),
+        activeSchoolCookieOptions(),
+      );
+    } else {
+      response.cookies.set(config.activeSchoolCookieName, '', {
+        httpOnly: true,
+        path: '/',
+        maxAge: 0,
+      });
+    }
+  }
   return response;
 }

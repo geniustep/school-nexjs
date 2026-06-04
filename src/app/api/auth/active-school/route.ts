@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { config, cookieSecure } from '@/lib/config';
 import { getCurrentUser } from '@/lib/api/server';
-import { isActiveSchoolAllowed } from '@/lib/auth/active-school';
+import { isActiveSchoolAllowed, setActiveSchoolCookieValue } from '@/lib/auth/active-school';
 
 export const dynamic = 'force-dynamic';
 
@@ -60,14 +58,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const store = await cookies();
-  store.set(config.activeSchoolCookieName, String(schoolId), {
-    httpOnly: true,
-    secure: cookieSecure(),
-    sameSite: 'lax',
-    path: '/',
-    maxAge: 60 * 60 * 24 * 7,
-  });
+  await setActiveSchoolCookieValue(schoolId);
 
   return NextResponse.json({
     success: true,

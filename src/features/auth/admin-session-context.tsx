@@ -1,8 +1,12 @@
 'use client';
 
-import { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { resolveSchoolCatalog, resolveSchoolIds } from '@/lib/auth/normalize-user';
+import {
+  resolveActiveSchoolId,
+  resolveSchoolCatalog,
+  resolveSchoolIds,
+} from '@/lib/auth/normalize-user';
 import type { SchoolRef } from '@/types/api';
 import type { CurrentUser } from '@/types/user';
 
@@ -36,10 +40,34 @@ export function AdminSessionProvider({
   );
   const requiresActiveSchool = schoolIds.length > 1;
 
-  const [activeSchoolId, setActiveSchoolId] = useState<number | null>(
-    user.active_school_id ?? user.school?.id ?? (schoolIds.length === 1 ? schoolIds[0] : null),
+  const resolvedActiveSchoolId = useMemo(
+    () =>
+      resolveActiveSchoolId(
+        {
+          active_school_id: user.active_school_id,
+          default_school_id: user.default_school_id,
+          school_ids: schoolIds,
+          school: user.school,
+          bindings: user.bindings,
+          schools: user.schools,
+        },
+        null,
+      ),
+    [user, schoolIds],
   );
+
+  const [activeSchoolId, setActiveSchoolId] = useState<number | null>(resolvedActiveSchoolId);
   const [switching, setSwitching] = useState(false);
+
+  useEffect(() => {
+    if (resolvedActiveSchoolId == null) {
+      if (activeSchoolId != null && !schoolIds.includes(activeSchoolId)) setActiveSchoolId(null);
+      return;
+    }
+    if (activeSchoolId == null || !schoolIds.includes(activeSchoolId)) {
+      setActiveSchoolId(resolvedActiveSchoolId);
+    }
+  }, [resolvedActiveSchoolId, activeSchoolId, schoolIds]);
 
   const setActiveSchool = useCallback(
     async (schoolId: number) => {

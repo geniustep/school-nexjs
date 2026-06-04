@@ -135,6 +135,11 @@ export function ErrorState({
   );
 }
 
+function isStaleActiveSchoolMessage(message: string | undefined): boolean {
+  const m = message?.toLowerCase() ?? '';
+  return m.includes('active_school') && (m.includes('allowed') || m.includes('permitted'));
+}
+
 export function ApiErrorView({
   error,
   onRetry,
@@ -142,6 +147,17 @@ export function ApiErrorView({
   error: ApiErrorBody;
   onRetry?: () => void;
 }) {
+  const t = useT();
+
+  if (isStaleActiveSchoolMessage(error.message)) {
+    return (
+      <PermissionDeniedState
+        title={t('admin.activeSchoolResetTitle')}
+        description={t('admin.activeSchoolResetDesc')}
+      />
+    );
+  }
+
   switch (error.code) {
     case 'unauthenticated':
       return <SessionExpiredState />;

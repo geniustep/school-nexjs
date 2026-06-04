@@ -13,15 +13,18 @@ export function useAdminResource<T>(
   path: string | null,
   query?: ListParams,
 ): ResourceState<T> {
-  const { activeSchoolId, requiresActiveSchool } = useAdminSession();
+  const { activeSchoolId, requiresActiveSchool, schools } = useAdminSession();
+  const allowedSchoolIds = useMemo(() => schools.map((s) => s.id), [schools]);
+  const safeActiveSchoolId =
+    activeSchoolId != null && allowedSchoolIds.includes(activeSchoolId) ? activeSchoolId : null;
 
   const mergedQuery = useMemo(() => {
-    if (!isAdminApiPath(path) || activeSchoolId == null) return query;
-    return { ...query, active_school_id: activeSchoolId };
-  }, [path, query, activeSchoolId]);
+    if (!isAdminApiPath(path) || safeActiveSchoolId == null) return query;
+    return { ...query, active_school_id: safeActiveSchoolId };
+  }, [path, query, safeActiveSchoolId]);
 
   const effectivePath =
-    isAdminApiPath(path) && requiresActiveSchool && activeSchoolId == null ? null : path;
+    isAdminApiPath(path) && requiresActiveSchool && safeActiveSchoolId == null ? null : path;
 
   return useResource<T>(effectivePath, mergedQuery);
 }

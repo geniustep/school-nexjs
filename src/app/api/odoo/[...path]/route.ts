@@ -10,7 +10,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { config } from '@/lib/config';
 import { odooApiFetch } from '@/lib/api/odoo-server';
-import { getActiveSchoolCookie } from '@/lib/auth/active-school';
+import { getCurrentUser } from '@/lib/api/server';
+import { getActiveSchoolCookie, setActiveSchoolCookieValue } from '@/lib/auth/active-school';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,8 +37,15 @@ async function handle(request: NextRequest, segments: string[]) {
   });
 
   if (path.startsWith('/admin/')) {
-    const activeSchool = await getActiveSchoolCookie();
-    if (activeSchool) query.active_school_id = String(activeSchool);
+    const user = await getCurrentUser();
+    const activeId = user?.active_school_id;
+    if (activeId) {
+      query.active_school_id = String(activeId);
+      const cookieId = await getActiveSchoolCookie();
+      if (cookieId !== activeId) {
+        await setActiveSchoolCookieValue(activeId);
+      }
+    }
   }
 
   let body: unknown;

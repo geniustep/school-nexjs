@@ -129,26 +129,34 @@ function hasResolvedSchoolName(name: string | null | undefined): boolean {
   return !/^School #\d+$/.test(trimmed);
 }
 
+function firstAllowedSchoolId(allowed: number[]): number | null {
+  return allowed.length > 0 ? allowed[0] : null;
+}
+
+/** Pick active school: valid cookie → default → /me active → school ref → first allowed. */
 export function resolveActiveSchoolId(
   user: Pick<
     CurrentUser,
-    'active_school_id' | 'default_school_id' | 'school_ids' | 'school' | 'bindings'
+    'active_school_id' | 'default_school_id' | 'school_ids' | 'school' | 'bindings' | 'schools'
   >,
   cookieSchoolId?: number | null,
 ): number | null {
   const allowed = resolveSchoolIds(user);
-  const fallbackWithoutCookie =
-    user.default_school_id ??
-    user.active_school_id ??
-    user.school?.id ??
-    (allowed.length === 1 ? allowed[0] : null);
+  if (!allowed.length) return null;
 
   if (cookieSchoolId != null && allowed.includes(cookieSchoolId)) return cookieSchoolId;
-  if (fallbackWithoutCookie != null && allowed.includes(fallbackWithoutCookie)) {
-    return fallbackWithoutCookie;
+
+  const candidates = [
+    user.default_school_id,
+    user.active_school_id,
+    user.school?.id,
+  ];
+  for (const id of candidates) {
+    if (id != null && allowed.includes(id)) return id;
   }
+
   if (allowed.length === 1) return allowed[0];
-  return allowed.length ? null : fallbackWithoutCookie;
+  return firstAllowedSchoolId(allowed);
 }
 
 export function schoolRefForId(catalog: SchoolRef[], id: number | null): SchoolRef | null {

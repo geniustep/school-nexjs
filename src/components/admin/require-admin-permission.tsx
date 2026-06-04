@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { canAccessAdminDashboard } from '@/lib/admin/admin-ux';
 import { hasPermission } from '@/lib/permissions/permissions';
 import { useSession } from '@/features/auth/session-context';
 import { useAdminSession } from '@/features/auth/admin-session-context';
@@ -20,7 +21,12 @@ export function RequireAdminPermission({
   const t = useT();
 
   if (user.role !== 'admin') return <PermissionDeniedState />;
-  if (!hasPermission(user, permission)) {
+  const allowed =
+    permission === 'view_dashboard'
+      ? canAccessAdminDashboard(user)
+      : hasPermission(user, permission);
+
+  if (!allowed) {
     const description =
       permission === 'view_dashboard' && user.admin_kind === 'admin_staff'
         ? t('admin.staffNoDashboardDesc')

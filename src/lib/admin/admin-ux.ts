@@ -3,10 +3,23 @@
 
 import { resolveSchoolIds } from '@/lib/auth/normalize-user';
 import { ADMIN_NAV_BY_PERMISSION } from '@/components/navigation/nav-config';
-import { hasPermission } from '@/lib/permissions/permissions';
-import { isScopedAdmin } from '@/lib/permissions/scope';
+import { hasAnyPermission, hasPermission } from '@/lib/permissions/permissions';
+import { isConfiguredAdmin, isScopedAdmin } from '@/lib/permissions/scope';
 import type { Permission } from '@/types/permissions';
 import type { AdminKind, CurrentUser } from '@/types/user';
+
+/** Permissions that justify a scoped (non–view_dashboard) admin home. */
+const SCOPED_DASHBOARD_PERMISSIONS: Permission[] = [
+  'view_students',
+  'view_classes',
+  'view_attendance',
+  'view_homeworks',
+  'view_resources',
+  'view_exams',
+  'view_exam_results',
+  'view_timetable',
+  'view_channels',
+];
 
 export function adminSchoolCount(user: CurrentUser | null): number {
   if (!user) return 0;
@@ -25,8 +38,25 @@ export function isAdminKind(user: CurrentUser | null, kind: AdminKind): boolean 
   return !!user && user.admin_kind === kind;
 }
 
+export function hasScopedDashboardPermissions(user: CurrentUser | null): boolean {
+  return hasAnyPermission(user, SCOPED_DASHBOARD_PERMISSIONS);
+}
+
+/** Limited dashboard for general_supervisor / scoped admins without view_dashboard. */
+export function canAccessScopedAdminDashboard(user: CurrentUser | null): boolean {
+  if (!user || user.role !== 'admin') return false;
+  if (user.admin_kind === 'admin_staff') return false;
+  if (!isConfiguredAdmin(user) || !hasScopedDashboardPermissions(user)) return false;
+
+  if (user.admin_kind === 'general_supervisor') {
+    return !!(user.scope || (user.scopes?.length ?? 0) > 0);
+  }
+
+  return isScopedAdmin(user);
+}
+
 export function canAccessAdminDashboard(user: CurrentUser | null): boolean {
-  return hasPermission(user, 'view_dashboard');
+  return hasPermission(user, 'view_dashboard') || canAccessScopedAdminDashboard(user);
 }
 
 /** Whether a nav item should appear for this admin (permission + admin_kind UX). */
@@ -35,8 +65,8 @@ export function canShowAdminNavPermission(
   permission: Permission,
 ): boolean {
   if (!user || user.role !== 'admin') return false;
-  if (!hasPermission(user, permission)) return false;
-  return true;
+  if (permission === 'view_dashboard') return canAccessAdminDashboard(user);
+  return hasPermission(user, permission);
 }
 
 /** First admin module href the user may open (sidebar order). */
@@ -51,8 +81,8 @@ export function firstAllowedAdminPath(user: CurrentUser): string {
 export function adminLandingPath(user: CurrentUser): string {
   if (user.role !== 'admin') return '/admin';
 
-  if (user.admin_kind === 'admin_staff' && !canAccessAdminDashboard(user)) {
-    return firstAllowedAdminPath(user);
+  if (user.admin_kind === 'admin_staff') {
+    return canAccessAdminDashboard(user) ? '/admin/dashboard' : firstAllowedAdminPath(user);
   }
 
   if (canAccessAdminDashboard(user)) {
