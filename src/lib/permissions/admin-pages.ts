@@ -1,5 +1,6 @@
 import { hasAnyPermission } from '@/lib/permissions/permissions';
 import type { CurrentUser } from '@/types/user';
+import { FINANCE_VIEW } from '@/lib/permissions/finance';
 import type { Permission } from '@/types/permissions';
 
 /** Any one of these grants access to `/admin/academic` (hub, not a single view_*). */
@@ -72,6 +73,7 @@ export const ADMIN_PAGE_PERMISSION: Record<string, Permission> = {
   '/admin/exams': 'view_exams',
   '/admin/exam-results': 'view_exam_results',
   '/admin/timetable': 'view_timetable',
+  '/admin/finance': FINANCE_VIEW,
 };
 
 export function permissionForAdminPath(pathname: string): Permission | null {
@@ -96,5 +98,6 @@ export function permissionForAdminPath(pathname: string): Permission | null {
     return 'view_exam_results';
   }
   if (base.startsWith('/admin/exams')) return 'view_exams';
+  if (base.startsWith('/admin/finance')) return FINANCE_VIEW;
   return null;
 }

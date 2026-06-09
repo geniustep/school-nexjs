@@ -3,6 +3,7 @@
 import type { CurrentUser } from '@/types/user';
 import type { Permission } from '@/types/permissions';
 import { canAccessAdminDashboard, canShowAdminNavPermission, useScopedNavLabels } from '@/lib/admin/admin-ux';
+import { FINANCE_VIEW } from '@/lib/permissions/finance';
 import { isConfiguredAdmin } from '@/lib/permissions/scope';
 
 export interface NavItem {
@@ -110,6 +111,20 @@ function adminNav(user: CurrentUser): NavSection[] {
     });
   }
 
+  if (canShowAdminNavPermission(user, FINANCE_VIEW)) {
+    sections.push({
+      titleKey: scopedLabels ? 'nav.adminScopedFinance' : 'nav.financeSection',
+      items: [
+        {
+          labelKey: 'nav.finance',
+          href: '/admin/finance',
+          icon: '💰',
+          isActive: (pathname) => pathname.startsWith('/admin/finance'),
+        },
+      ],
+    });
+  }
+
   return sections;
 }
 
@@ -209,6 +224,7 @@ export const ADMIN_NAV_BY_PERMISSION: { permission: Permission; href: string; la
   { permission: 'view_exams', href: '/admin/exams', labelKey: 'nav.exams' },
   { permission: 'view_exam_results', href: '/admin/exam-results', labelKey: 'nav.examResultsNav' },
   { permission: 'view_timetable', href: '/admin/timetable', labelKey: 'nav.timetable' },
+  { permission: FINANCE_VIEW, href: '/admin/finance', labelKey: 'nav.finance' },
 ];
 
 export function navForUser(user: CurrentUser): NavSection[] {

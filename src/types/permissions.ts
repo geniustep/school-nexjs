@@ -34,4 +34,17 @@ export type Permission =
   | 'export_data'
   | 'print_documents'
   | 'receive_teacher_exams_print'
-  | 'manage_complaints';
+  | 'manage_complaints'
+  | 'finance.view'
+  | 'finance.manage_fee_catalog'
+  | 'finance.manage_fee_plans'
+  | 'finance.assign_fees'
+  | 'finance.manage_discounts'
+  | 'finance.approve_discounts'
+  | 'finance.collect_payments'
+  | 'finance.cancel_payments'
+  | 'finance.manage_billing_profile'
+  | 'finance.view_billing_profile'
+  | 'finance.view_payments'
+  | 'finance.view_student_balance'
+  | 'finance.manage_settings';

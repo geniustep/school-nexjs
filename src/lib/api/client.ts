@@ -74,6 +74,27 @@ export const api = {
     }
   },
 
+  async put<T>(path: string, body?: unknown): Promise<ApiResponse<T>> {
+    try {
+      const res = await fetch(buildUrl(path), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: body === undefined ? undefined : JSON.stringify(body),
+      });
+      return parse<T>(res);
+    } catch {
+      return {
+        success: false,
+        error: {
+          code: 'network_error',
+          message: 'Could not reach the server. Please check your connection.',
+          details: {},
+        },
+        meta: {},
+      };
+    }
+  },
+
   /** Multipart upload — do not set Content-Type; the browser adds the boundary. */
   async uploadForm<T>(path: string, formData: FormData): Promise<ApiResponse<T>> {
     try {

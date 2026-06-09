@@ -109,6 +109,25 @@ export const endpoints = {
     channels: '/admin/channels',
     channel: (id: number | string) => `/admin/channels/${id}`,
     channelMessages: (id: number | string) => `/admin/channels/${id}/messages`,
+
+    financeFeeTypes: '/admin/finance/fee-types',
+    financeFeePlans: '/admin/finance/fee-plans',
+    financeFeePlan: (id: number | string) => `/admin/finance/fee-plans/${id}`,
+    financeFeePlanConfirm: (id: number | string) => `/admin/finance/fee-plans/${id}/confirm`,
+    financeFeePlanArchive: (id: number | string) => `/admin/finance/fee-plans/${id}/archive`,
+    financeStudentFees: (id: number | string) => `/admin/finance/student-fees/${id}`,
+    financeStudentFeesForStudent: (studentId: number | string) =>
+      `/admin/finance/students/${studentId}/fees`,
+    financeAssignStudentFee: (studentId: number | string) =>
+      `/admin/finance/students/${studentId}/fees`,
+    financeBillingProfile: (studentId: number | string) =>
+      `/admin/finance/students/${studentId}/billing-profile`,
+    financePaymentCollections: '/admin/finance/payment-collections',
+    financePaymentCollection: (id: number | string) => `/admin/finance/payment-collections/${id}`,
+    financePaymentCollectionConfirm: (id: number | string) =>
+      `/admin/finance/payment-collections/${id}/confirm`,
+    financePaymentCollectionCancel: (id: number | string) =>
+      `/admin/finance/payment-collections/${id}/cancel`,
   },
 
   teacher: {

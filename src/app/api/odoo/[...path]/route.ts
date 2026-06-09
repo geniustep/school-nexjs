@@ -97,6 +97,11 @@ export async function POST(request: NextRequest, ctx: Ctx) {
   return handle(request, path);
 }
 
+export async function PUT(request: NextRequest, ctx: Ctx) {
+  const { path } = await ctx.params;
+  return handle(request, path);
+}
+
 export async function DELETE(request: NextRequest, ctx: Ctx) {
   const { path } = await ctx.params;
   return handle(request, path);
