@@ -126,10 +126,6 @@ export default function AdminFinanceStudentProfilePage({
                     <dt>{t('nav.levels')}</dt>
                     <dd>{student.level?.name ?? t('common.dash')}</dd>
                   </div>
-                  <div>
-                    <dt>{t('nav.school')}</dt>
-                    <dd>{student.school?.name ?? t('common.dash')}</dd>
-                  </div>
                 </dl>
               </div>
               <div className="card">
@@ -187,7 +183,7 @@ export default function AdminFinanceStudentProfilePage({
 
             {showBillingForm && canManageBillingProfile(user) && (
               <FinanceBillingProfileForm
-                studentId={Number(studentId)}
+                student={student}
                 onDone={() => {
                   setShowBillingForm(false);
                   billingState.reload();
@@ -199,6 +195,7 @@ export default function AdminFinanceStudentProfilePage({
             {showAssignForm && canAssignFees(user) && (
               <FinanceAssignFeeForm
                 studentId={Number(studentId)}
+                classId={student.class?.id}
                 onDone={() => {
                   setShowAssignForm(false);
                   feesState.reload();
@@ -216,10 +213,11 @@ export default function AdminFinanceStudentProfilePage({
                     <DataTable
                       columns={feeColumns}
                       rows={rows}
+                      rowKey={(row) => row.id}
                       onRowClick={(row) => window.location.assign(`/admin/finance/student-fees/${row.id}`)}
                     />
                     {feesPg && (
-                      <Pagination page={feesPg.page} totalPages={feesPg.total_pages} onPageChange={setFeesPage} />
+                      <Pagination page={feesPg.page} totalPages={feesPg.total_pages} total={feesPg.total} onPage={setFeesPage} />
                     )}
                   </>
                 )}

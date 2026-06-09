@@ -36,12 +36,12 @@ export default function AdminFinanceCollectionDetailPage({
       {
         key: 'fee',
         header: t('admin.finance.studentFee'),
-        render: (row) => refName(row.student_fee) ?? row.student_fee_id ?? t('common.dash'),
+        render: (row) => refName(row.student_fee) ?? t('common.dash'),
       },
       {
         key: 'installment',
         header: t('admin.finance.installment'),
-        render: (row) => refName(row.installment) ?? row.installment_id ?? t('common.dash'),
+        render: (row) => refName(row.installment) ?? t('common.dash'),
       },
       {
         key: 'amount',
@@ -131,7 +131,11 @@ export default function AdminFinanceCollectionDetailPage({
             {(coll.allocations?.length ?? 0) > 0 && (
               <section className="card">
                 <h3>{t('admin.finance.allocations')}</h3>
-                <DataTable columns={allocationColumns} rows={coll.allocations ?? []} />
+                <DataTable
+                  columns={allocationColumns}
+                  rows={coll.allocations ?? []}
+                  rowKey={(row) => row.id ?? `${row.student_fee_id}-${row.installment_id}-${row.amount}`}
+                />
               </section>
             )}
 

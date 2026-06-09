@@ -5,6 +5,8 @@ import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
+import { useAcademicYearOptions, useFeeTypeOptions } from '@/features/admin/finance/use-finance-lookups';
+import { isPositiveAmount } from '@/lib/utils/finance';
 import type { CreateFeePlanPayload, FeePlan } from '@/types/finance';
 
 export function FinanceFeePlanForm({
@@ -23,6 +25,8 @@ export function FinanceFeePlanForm({
   const [amount, setAmount] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const { options: yearOptions, loading: yearsLoading } = useAcademicYearOptions();
+  const { feeTypes, loading: typesLoading } = useFeeTypeOptions();
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -30,7 +34,7 @@ export function FinanceFeePlanForm({
     const year = Number(academicYearId);
     const lineAmount = Number(amount);
     const typeId = Number(feeTypeId);
-    if (!year || !typeId || !lineAmount || lineAmount <= 0) {
+    if (!year || !typeId || !isPositiveAmount(lineAmount)) {
       setError(t('admin.finance.feePlanFormIncomplete'));
       return;
     }
@@ -65,16 +69,53 @@ export function FinanceFeePlanForm({
         <input className="input" required value={code} onChange={(e) => setCode(e.target.value)} />
       </label>
       <label>
-        {t('admin.finance.academicYearId')}
-        <input className="input" required type="number" min="1" value={academicYearId} onChange={(e) => setAcademicYearId(e.target.value)} />
+        {t('admin.finance.academicYear')}
+        <select
+          className="input"
+          required
+          value={academicYearId}
+          onChange={(e) => setAcademicYearId(e.target.value)}
+          disabled={yearsLoading || yearOptions.length === 0}
+        >
+          <option value="">{yearsLoading ? t('common.loading') : t('admin.finance.selectAcademicYear')}</option>
+          {yearOptions.map((y) => (
+            <option key={y.id} value={y.id}>
+              {y.name}
+            </option>
+          ))}
+        </select>
       </label>
+      {yearOptions.length === 0 && !yearsLoading && (
+        <p className="muted">{t('admin.finance.academicYearHintFromPlans')}</p>
+      )}
       <label>
-        {t('admin.finance.lineFeeTypeId')}
-        <input className="input" required type="number" min="1" value={feeTypeId} onChange={(e) => setFeeTypeId(e.target.value)} />
+        {t('admin.finance.feeTypeName')}
+        <select
+          className="input"
+          required
+          value={feeTypeId}
+          onChange={(e) => setFeeTypeId(e.target.value)}
+          disabled={typesLoading}
+        >
+          <option value="">{typesLoading ? t('common.loading') : t('admin.finance.selectFeeType')}</option>
+          {feeTypes.map((ft) => (
+            <option key={ft.id} value={ft.id}>
+              {ft.name} ({ft.code})
+            </option>
+          ))}
+        </select>
       </label>
       <label>
         {t('admin.finance.lineAmount')}
-        <input className="input" required type="number" min="0.01" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} />
+        <input
+          className="input"
+          required
+          type="number"
+          min="0.01"
+          step="0.01"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+        />
       </label>
       <div className="row" style={{ gap: 8 }}>
         <button type="submit" className="btn btn--primary" disabled={submitting}>

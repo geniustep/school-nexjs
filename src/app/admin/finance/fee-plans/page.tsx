@@ -15,10 +15,12 @@ import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { FINANCE_VIEW, canManageFeePlans } from '@/lib/permissions/finance';
 import { useSession } from '@/features/auth/session-context';
-import { feePlanState } from '@/lib/utils/finance';
+import { feePlanState, refName } from '@/lib/utils/finance';
+import { academicYearFromSource } from '@/lib/utils/academic-years';
 import type { FeePlan } from '@/types/finance';
 import type { ListParams } from '@/types/api';
 import { FinanceFeePlanForm } from '@/features/admin/finance/fee-plan-form';
+import { useAcademicYearOptions } from '@/features/admin/finance/use-finance-lookups';
 
 export default function AdminFinanceFeePlansPage() {
   const t = useT();
@@ -36,6 +38,7 @@ export default function AdminFinanceFeePlansPage() {
     academic_year_id: yearId || undefined,
   };
   const state = useAdminResource<FeePlan[]>(endpoints.admin.financeFeePlans, params);
+  const { options: yearOptions, loading: yearsLoading } = useAcademicYearOptions(null);
   const pg = state.meta?.pagination;
   const canManage = canManageFeePlans(user);
 
@@ -47,9 +50,9 @@ export default function AdminFinanceFeePlansPage() {
         key: 'academic_year',
         header: t('admin.finance.academicYear'),
         render: (row) =>
-          typeof row.academic_year === 'string'
-            ? row.academic_year
-            : row.academic_year?.name ?? String(row.academic_year_id ?? t('common.dash')),
+          academicYearFromSource(row)?.name ??
+          refName(typeof row.academic_year === 'object' ? row.academic_year : null) ??
+          (typeof row.academic_year === 'string' ? row.academic_year : t('common.dash')),
       },
       {
         key: 'total',
@@ -93,16 +96,23 @@ export default function AdminFinanceFeePlansPage() {
         />
       )}
 
-      <form className="toolbar">
-        <input
+      <div className="toolbar">
+        <select
           className="input"
-          placeholder={t('admin.finance.academicYearIdFilter')}
           value={yearId}
           onChange={(e) => {
             setYearId(e.target.value);
             setPage(1);
           }}
-        />
+          disabled={yearsLoading}
+        >
+          <option value="">{t('admin.finance.allAcademicYears')}</option>
+          {yearOptions.map((y) => (
+            <option key={y.id} value={y.id}>
+              {y.name}
+            </option>
+          ))}
+        </select>
         <select
           className="input"
           value={stateFilter}
@@ -115,7 +125,7 @@ export default function AdminFinanceFeePlansPage() {
           <option value="draft">{t('admin.finance.states.draft')}</option>
           <option value="confirmed">{t('admin.finance.states.confirmed')}</option>
         </select>
-      </form>
+      </div>
 
       <ResourceView state={state} loadingLabel={t('common.loading')} empty={<EmptyState title={t('admin.finance.noFeePlans')} />}>
         {(rows) => (
@@ -123,9 +133,10 @@ export default function AdminFinanceFeePlansPage() {
             <DataTable
               columns={columns}
               rows={rows}
+              rowKey={(row) => row.id}
               onRowClick={(row) => router.push(`/admin/finance/fee-plans/${row.id}`)}
             />
-            {pg && <Pagination page={pg.page} totalPages={pg.total_pages} onPageChange={setPage} />}
+            {pg && <Pagination page={pg.page} totalPages={pg.total_pages} total={pg.total} onPage={setPage} />}
           </>
         )}
       </ResourceView>

@@ -15,6 +15,7 @@ import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { FINANCE_VIEW, canCollectPayments } from '@/lib/permissions/finance';
+import { FINANCE_JOURNAL_LOOKUP_AVAILABLE } from '@/features/admin/finance/use-finance-lookups';
 import { useSession } from '@/features/auth/session-context';
 import { collectionState, refName } from '@/lib/utils/finance';
 import type { PaymentCollection } from '@/types/finance';
@@ -95,7 +96,7 @@ export default function AdminFinanceCollectionsPage() {
         title={t('admin.finance.collectionsTitle')}
         subtitle={t('admin.finance.collectionsDesc')}
         actions={
-          canCollectPayments(user) ? (
+          canCollectPayments(user) && FINANCE_JOURNAL_LOOKUP_AVAILABLE ? (
             <Link href="/admin/finance/collections/new" className="btn btn--primary btn--sm">
               {t('admin.finance.recordCollection')}
             </Link>
@@ -129,8 +130,8 @@ export default function AdminFinanceCollectionsPage() {
       <ResourceView state={state} loadingLabel={t('common.loading')} empty={<EmptyState title={t('admin.finance.noCollections')} />}>
         {(rows) => (
           <>
-            <DataTable columns={columns} rows={rows} onRowClick={(row) => router.push(`/admin/finance/collections/${row.id}`)} />
-            {pg && <Pagination page={pg.page} totalPages={pg.total_pages} onPageChange={setPage} />}
+            <DataTable columns={columns} rows={rows} rowKey={(row) => row.id} onRowClick={(row) => router.push(`/admin/finance/collections/${row.id}`)} />
+            {pg && <Pagination page={pg.page} totalPages={pg.total_pages} total={pg.total} onPage={setPage} />}
           </>
         )}
       </ResourceView>

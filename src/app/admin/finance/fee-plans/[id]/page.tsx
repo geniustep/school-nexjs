@@ -15,7 +15,8 @@ import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { FINANCE_VIEW, canManageFeePlans } from '@/lib/permissions/finance';
 import { useSession } from '@/features/auth/session-context';
-import { feePlanState } from '@/lib/utils/finance';
+import { feePlanState, refName } from '@/lib/utils/finance';
+import { academicYearFromSource } from '@/lib/utils/academic-years';
 import type { FeePlan, FeePlanLine } from '@/types/finance';
 
 export default function AdminFinanceFeePlanDetailPage({
@@ -31,7 +32,7 @@ export default function AdminFinanceFeePlanDetailPage({
   const canManage = canManageFeePlans(user);
 
   const lineColumns: Column<FeePlanLine>[] = [
-    { key: 'fee_type', header: t('admin.finance.feeTypeName'), render: (l) => l.fee_type_name ?? l.fee_type_id },
+    { key: 'fee_type', header: t('admin.finance.feeTypeName'), render: (l) => l.fee_type_name ?? t('common.dash') },
     {
       key: 'amount',
       header: t('admin.finance.lineAmount'),
@@ -61,7 +62,7 @@ export default function AdminFinanceFeePlanDetailPage({
               title={plan.name}
               subtitle={plan.code}
               actions={
-                canManage && feePlanState(plan) === 'draft' ? (
+                canManage && feePlanState(plan) === 'draft' && (plan.lines?.length ?? 0) > 0 ? (
                   <ConfirmActionButton
                     label={t('admin.finance.confirmPlan')}
                     confirmMessage={t('admin.finance.confirmPlanMessage')}
@@ -71,6 +72,9 @@ export default function AdminFinanceFeePlanDetailPage({
                 ) : undefined
               }
             />
+            {canManage && feePlanState(plan) === 'draft' && (plan.lines?.length ?? 0) === 0 && (
+              <p className="muted">{t('admin.finance.confirmPlanNeedsLines')}</p>
+            )}
             <div className="detail-grid">
               <div className="card">
                 <dl className="detail-list">
@@ -82,7 +86,11 @@ export default function AdminFinanceFeePlanDetailPage({
                   </div>
                   <div>
                     <dt>{t('admin.finance.academicYear')}</dt>
-                    <dd>{plan.academic_year_id ?? t('common.dash')}</dd>
+                    <dd>
+                      {academicYearFromSource(plan)?.name ??
+                        refName(typeof plan.academic_year === 'object' ? plan.academic_year : null) ??
+                        t('common.dash')}
+                    </dd>
                   </div>
                   <div>
                     <dt>{t('admin.finance.totalAmount')}</dt>
@@ -108,7 +116,7 @@ export default function AdminFinanceFeePlanDetailPage({
             {(plan.lines?.length ?? 0) > 0 && (
               <section className="card">
                 <h3>{t('admin.finance.planLines')}</h3>
-                <DataTable columns={lineColumns} rows={plan.lines ?? []} />
+                <DataTable columns={lineColumns} rows={plan.lines ?? []} rowKey={(row) => row.id} />
               </section>
             )}
             {plan.notes && (

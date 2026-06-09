@@ -10,6 +10,7 @@ import {
   canManageFeePlans,
   canViewFinanceSetup,
 } from '@/lib/permissions/finance';
+import { FINANCE_JOURNAL_LOOKUP_AVAILABLE } from '@/features/admin/finance/use-finance-lookups';
 
 type HubLink = {
   href: string;
@@ -43,7 +44,7 @@ export function FinanceHubLinks() {
       icon: '➕',
       labelKey: 'admin.finance.hubRecordCollection',
       descKey: 'admin.finance.hubRecordCollectionDesc',
-      show: canCollectPayments(user),
+      show: canCollectPayments(user) && FINANCE_JOURNAL_LOOKUP_AVAILABLE,
     },
     {
       href: '/admin/finance/fee-types',

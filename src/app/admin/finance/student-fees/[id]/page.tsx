@@ -141,14 +141,22 @@ export default function AdminFinanceStudentFeeDetailPage({
             {(fee.installments?.length ?? fee.lines?.length ?? 0) > 0 && (
               <section className="card">
                 <h3>{t('admin.finance.installments')}</h3>
-                <DataTable columns={installmentColumns} rows={fee.installments ?? fee.lines ?? []} />
+                <DataTable
+                  columns={installmentColumns}
+                  rows={fee.installments ?? fee.lines ?? []}
+                  rowKey={(row) => row.id ?? `${row.sequence ?? 0}-${row.due_date ?? ''}`}
+                />
               </section>
             )}
 
             {(fee.discounts?.length ?? 0) > 0 && (
               <section className="card">
                 <h3>{t('admin.finance.discounts')}</h3>
-                <DataTable columns={discountColumns} rows={fee.discounts ?? []} />
+                <DataTable
+                  columns={discountColumns}
+                  rows={fee.discounts ?? []}
+                  rowKey={(row) => row.id ?? `${row.name ?? 'd'}-${row.effective_date ?? ''}`}
+                />
               </section>
             )}
           </>

@@ -2,7 +2,13 @@ import type { StudentFeeState, FeePlanState, PaymentCollectionState } from '@/ty
 
 export function formatMoney(amount: number | null | undefined, currency?: string | null): string {
   if (amount == null || Number.isNaN(amount)) return '—';
-  const cur = currency?.trim() || 'MAD';
+  const cur = currency?.trim();
+  if (!cur) {
+    return new Intl.NumberFormat(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  }
   try {
     return new Intl.NumberFormat(undefined, {
       style: 'currency',
@@ -13,6 +19,10 @@ export function formatMoney(amount: number | null | undefined, currency?: string
   } catch {
     return `${amount.toFixed(2)} ${cur}`;
   }
+}
+
+export function isPositiveAmount(value: number | null | undefined): boolean {
+  return value != null && !Number.isNaN(value) && value > 0;
 }
 
 export function studentFeeState(fee: { state?: string; status?: string }): StudentFeeState | string {

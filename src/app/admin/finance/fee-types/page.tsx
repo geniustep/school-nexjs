@@ -112,8 +112,8 @@ export default function AdminFinanceFeeTypesPage() {
       <ResourceView state={state} loadingLabel={t('common.loading')} empty={<EmptyState title={t('admin.finance.noFeeTypes')} />}>
         {(rows) => (
           <>
-            <DataTable columns={columns} rows={rows} onRowClick={(row) => router.push(`/admin/finance/fee-types#${row.id}`)} />
-            {pg && <Pagination page={pg.page} totalPages={pg.total_pages} onPageChange={setPage} />}
+            <DataTable columns={columns} rows={rows} rowKey={(row) => row.id} onRowClick={(row) => router.push(`/admin/finance/fee-types#${row.id}`)} />
+            {pg && <Pagination page={pg.page} totalPages={pg.total_pages} total={pg.total} onPage={setPage} />}
           </>
         )}
       </ResourceView>

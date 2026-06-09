@@ -17,6 +17,7 @@ import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { FINANCE_VIEW } from '@/lib/permissions/finance';
 import { getStudentDisplayName } from '@/lib/utils/student';
 import { refName, studentFeeState } from '@/lib/utils/finance';
+import { useAcademicYearOptions } from '@/features/admin/finance/use-finance-lookups';
 import type { StudentFee } from '@/types/finance';
 import type { Student } from '@/types/student';
 import type { ListParams } from '@/types/api';
@@ -28,7 +29,7 @@ export default function AdminFinanceStudentFeesPage() {
   const [page, setPage] = useState(1);
   const [studentSearch, setStudentSearch] = useState('');
   const [studentQuery, setStudentQuery] = useState('');
-  const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [statusFilter, setStatusFilter] = useState('');
   const [overdueOnly, setOverdueOnly] = useState(false);
   const [yearId, setYearId] = useState('');
@@ -39,8 +40,11 @@ export default function AdminFinanceStudentFeesPage() {
     search: studentQuery || undefined,
   };
   const studentsState = useAdminResource<Student[]>(
-    selectedStudentId ? null : endpoints.admin.students,
+    selectedStudent ? null : endpoints.admin.students,
     studentParams,
+  );
+  const { options: yearOptions, loading: yearsLoading } = useAcademicYearOptions(
+    selectedStudent?.class?.id ?? null,
   );
 
   const feeParams: ListParams = {
@@ -51,7 +55,7 @@ export default function AdminFinanceStudentFeesPage() {
     academic_year_id: yearId || undefined,
   };
   const feesState = useAdminResource<StudentFee[]>(
-    selectedStudentId ? endpoints.admin.financeStudentFeesForStudent(selectedStudentId) : null,
+    selectedStudent ? endpoints.admin.financeStudentFeesForStudent(selectedStudent.id) : null,
     feeParams,
   );
   const pg = feesState.meta?.pagination;
@@ -66,7 +70,7 @@ export default function AdminFinanceStudentFeesPage() {
       {
         key: 'year',
         header: t('admin.finance.academicYear'),
-        render: (row) => refName(row.academic_year) ?? row.academic_year_id ?? t('common.dash'),
+        render: (row) => refName(row.academic_year) ?? t('common.dash'),
       },
       {
         key: 'original',
@@ -118,7 +122,7 @@ export default function AdminFinanceStudentFeesPage() {
 
       <div className="card form-stack">
         <p className="muted">{t('admin.finance.studentFeesListNote')}</p>
-        {!selectedStudentId ? (
+        {!selectedStudent ? (
           <>
             <form
               className="toolbar"
@@ -146,7 +150,7 @@ export default function AdminFinanceStudentFeesPage() {
                 <ul className="finance-student-pick-list">
                   {students.map((s) => (
                     <li key={s.id}>
-                      <button type="button" className="btn btn--ghost" onClick={() => setSelectedStudentId(s.id)}>
+                      <button type="button" className="btn btn--ghost" onClick={() => setSelectedStudent(s)}>
                         {getStudentDisplayName(s)}
                         {s.class?.name ? ` · ${s.class.name}` : ''}
                       </button>
@@ -158,28 +162,35 @@ export default function AdminFinanceStudentFeesPage() {
           </>
         ) : (
           <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
-            <Link href={`/admin/finance/students/${selectedStudentId}`} className="btn btn--primary btn--sm">
+            <Link href={`/admin/finance/students/${selectedStudent.id}`} className="btn btn--primary btn--sm">
               {t('admin.finance.openFinanceProfile')}
             </Link>
-            <button type="button" className="btn btn--ghost btn--sm" onClick={() => setSelectedStudentId(null)}>
+            <button type="button" className="btn btn--ghost btn--sm" onClick={() => setSelectedStudent(null)}>
               {t('admin.finance.changeStudent')}
             </button>
           </div>
         )}
       </div>
 
-      {selectedStudentId && (
+      {selectedStudent && (
         <>
-          <form className="toolbar">
-            <input
+          <div className="toolbar">
+            <select
               className="input"
-              placeholder={t('admin.finance.academicYearIdFilter')}
               value={yearId}
               onChange={(e) => {
                 setYearId(e.target.value);
                 setPage(1);
               }}
-            />
+              disabled={yearsLoading}
+            >
+              <option value="">{t('admin.finance.allAcademicYears')}</option>
+              {yearOptions.map((y) => (
+                <option key={y.id} value={y.id}>
+                  {y.name}
+                </option>
+              ))}
+            </select>
             <select
               className="input"
               value={statusFilter}
@@ -205,7 +216,7 @@ export default function AdminFinanceStudentFeesPage() {
               />
               {t('admin.finance.overdueOnly')}
             </label>
-          </form>
+          </div>
 
           <ResourceView
             state={feesState}
@@ -217,9 +228,10 @@ export default function AdminFinanceStudentFeesPage() {
                 <DataTable
                   columns={columns}
                   rows={rows}
+                  rowKey={(row) => row.id}
                   onRowClick={(row) => router.push(`/admin/finance/student-fees/${row.id}`)}
                 />
-                {pg && <Pagination page={pg.page} totalPages={pg.total_pages} onPageChange={setPage} />}
+                {pg && <Pagination page={pg.page} totalPages={pg.total_pages} total={pg.total} onPage={setPage} />}
               </>
             )}
           </ResourceView>
