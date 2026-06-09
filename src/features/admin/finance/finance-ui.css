@@ -1,0 +1,36 @@
+.finance-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  margin-block: 16px;
+}
+
+.finance-metric-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px;
+}
+
+.finance-parent-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.finance-parent-card {
+  text-align: start;
+  cursor: pointer;
+  width: 100%;
+}
+
+.finance-overview-filters {
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+  margin-block-end: 16px;
+}
+
+.detail-list.compact {
+  margin-block-start: 12px;
+}

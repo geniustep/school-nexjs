@@ -15,7 +15,7 @@ import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { FINANCE_VIEW, canCollectPayments } from '@/lib/permissions/finance';
-import { FINANCE_JOURNAL_LOOKUP_AVAILABLE } from '@/features/admin/finance/use-finance-lookups';
+import { useFinanceJournalsAvailable } from '@/features/admin/finance/use-finance-lookups';
 import { useSession } from '@/features/auth/session-context';
 import { collectionState, refName } from '@/lib/utils/finance';
 import type { PaymentCollection } from '@/types/finance';
@@ -26,11 +26,11 @@ export default function AdminFinanceCollectionsPage() {
   const user = useSession();
   const router = useRouter();
   const { formatDate } = useFormat();
+  const { available: journalsAvailable } = useFinanceJournalsAvailable();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-  const [studentId, setStudentId] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
 
@@ -39,7 +39,6 @@ export default function AdminFinanceCollectionsPage() {
     page_size: 20,
     search: query || undefined,
     status: statusFilter || undefined,
-    student_id: studentId || undefined,
     date_from: dateFrom || undefined,
     date_to: dateTo || undefined,
   };
@@ -96,7 +95,7 @@ export default function AdminFinanceCollectionsPage() {
         title={t('admin.finance.collectionsTitle')}
         subtitle={t('admin.finance.collectionsDesc')}
         actions={
-          canCollectPayments(user) && FINANCE_JOURNAL_LOOKUP_AVAILABLE ? (
+          canCollectPayments(user) && journalsAvailable ? (
             <Link href="/admin/finance/collections/new" className="btn btn--primary btn--sm">
               {t('admin.finance.recordCollection')}
             </Link>
@@ -113,7 +112,6 @@ export default function AdminFinanceCollectionsPage() {
         }}
       >
         <input className="input" placeholder={t('admin.finance.searchCollections')} value={search} onChange={(e) => setSearch(e.target.value)} />
-        <input className="input" placeholder={t('admin.finance.studentIdFilter')} value={studentId} onChange={(e) => setStudentId(e.target.value)} />
         <select className="input" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
           <option value="">{t('common.allStatuses')}</option>
           <option value="draft">{t('admin.finance.states.draft')}</option>

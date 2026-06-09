@@ -13,9 +13,14 @@ export const FINANCE_CANCEL_PAYMENTS: Permission = 'finance.cancel_payments';
 export const FINANCE_MANAGE_BILLING: Permission = 'finance.manage_billing_profile';
 export const FINANCE_VIEW_BILLING: Permission = 'finance.view_billing_profile';
 export const FINANCE_VIEW_PAYMENTS: Permission = 'finance.view_payments';
+export const FINANCE_VIEW_STUDENT_BALANCE: Permission = 'finance.view_student_balance';
 
 export function canViewFinance(user: CurrentUser | null): boolean {
   return hasPermission(user, FINANCE_VIEW);
+}
+
+export function canViewStudentBalance(user: CurrentUser | null): boolean {
+  return hasAnyPermission(user, [FINANCE_VIEW, FINANCE_VIEW_STUDENT_BALANCE]);
 }
 
 export function canManageFeeCatalog(user: CurrentUser | null): boolean {

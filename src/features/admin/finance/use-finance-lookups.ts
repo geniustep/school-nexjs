@@ -9,13 +9,58 @@ import {
   mergeAcademicYearOptions,
   type AcademicYearOption,
 } from '@/lib/utils/academic-years';
+import { parseFinanceList } from '@/lib/utils/finance-normalize';
 import type { ClassDetail } from '@/features/admin/entity-forms';
-import type { FeePlan, FeeType } from '@/types/finance';
+import type {
+  AcademicYearReference,
+  FeePlan,
+  FeeType,
+  FinanceReferenceData,
+  PaymentJournal,
+} from '@/types/finance';
+
+export function useFinanceReferenceData(): {
+  data: FinanceReferenceData | null;
+  journals: PaymentJournal[];
+  academicYears: AcademicYearReference[];
+  loading: boolean;
+  error: import('@/types/api').ApiErrorBody | null;
+  reload: () => void;
+} {
+  const state = useAdminResource<FinanceReferenceData>(endpoints.admin.financeReferenceData);
+  const data = state.data;
+  const journals = useMemo(
+    () => parseFinanceList<PaymentJournal>(data?.payment_journals ?? data?.journals),
+    [data],
+  );
+  const academicYears = useMemo(
+    () => parseFinanceList<AcademicYearReference>(data?.academic_years),
+    [data],
+  );
+  return {
+    data,
+    journals,
+    academicYears,
+    loading: state.loading,
+    error: state.error,
+    reload: state.reload,
+  };
+}
 
 export function useAcademicYearOptions(classId?: number | null): {
   options: AcademicYearOption[];
   loading: boolean;
 } {
+  const refState = useAdminResource<FinanceReferenceData>(endpoints.admin.financeReferenceData);
+  const refYears = useMemo(
+    () =>
+      parseFinanceList<AcademicYearReference>(refState.data?.academic_years).map((y) => ({
+        id: y.id,
+        name: y.name,
+      })),
+    [refState.data],
+  );
+
   const plansState = useAdminResource<FeePlan[]>(endpoints.admin.financeFeePlans, {
     page: 1,
     page_size: 100,
@@ -24,18 +69,17 @@ export function useAcademicYearOptions(classId?: number | null): {
     classId ? endpoints.admin.class(classId) : null,
   );
 
-  const options = useMemo(
-    () =>
-      mergeAcademicYearOptions(
-        ...academicYearsFromFeePlans(plansState.data),
-        academicYearFromSource(classState.data),
-      ),
-    [plansState.data, classState.data],
-  );
+  const options = useMemo(() => {
+    if (refYears.length) return refYears;
+    return mergeAcademicYearOptions(
+      ...academicYearsFromFeePlans(plansState.data),
+      academicYearFromSource(classState.data),
+    );
+  }, [refYears, plansState.data, classState.data]);
 
   return {
     options,
-    loading: plansState.loading || (classId != null && classState.loading),
+    loading: refState.loading || plansState.loading || (classId != null && classState.loading),
   };
 }
 
@@ -63,5 +107,11 @@ export function useFeeTypeOptions(): {
   return { feeTypes: state.data ?? [], loading: state.loading };
 }
 
-/** Finance payment journals are not exposed on API v1 — collection create stays blocked. */
-export const FINANCE_JOURNAL_LOOKUP_AVAILABLE = false;
+/** Journals are loaded dynamically from reference-data (FIN-WEB-2). */
+export function useFinanceJournalsAvailable(): {
+  available: boolean;
+  loading: boolean;
+} {
+  const { journals, loading } = useFinanceReferenceData();
+  return { available: journals.length > 0, loading };
+}

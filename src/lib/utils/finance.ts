@@ -63,3 +63,34 @@ export function refName(value: { name?: string } | string | null | undefined): s
   if (typeof value === 'string') return value;
   return value.name ?? null;
 }
+
+export function installmentIsOverdue(row: {
+  is_overdue?: boolean;
+  overdue?: boolean;
+  state?: string;
+  status?: string;
+}): boolean {
+  if (row.is_overdue === true || row.overdue === true) return true;
+  const s = (row.state ?? row.status ?? '').toLowerCase();
+  return s === 'overdue';
+}
+
+export function financeStudentDisplayName(row: {
+  name?: string;
+  full_name?: string;
+}): string {
+  return row.full_name?.trim() || row.name?.trim() || '—';
+}
+
+export function paymentMethodLabel(
+  method: string | undefined,
+  t: (key: string) => string,
+): string {
+  if (!method) return '—';
+  const key = `admin.finance.method${method.charAt(0).toUpperCase()}${method.slice(1)}`;
+  const mapped = t(key);
+  if (mapped !== key) return mapped;
+  const parentKey = `parent.finance.method${method.charAt(0).toUpperCase()}${method.slice(1)}`;
+  const parentMapped = t(parentKey);
+  return parentMapped !== parentKey ? parentMapped : method;
+}

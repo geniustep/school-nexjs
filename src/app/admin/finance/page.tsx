@@ -1,9 +1,11 @@
 'use client';
 
+import '@/features/admin/finance/finance-ui.css';
 import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
 import { PageHeader } from '@/components/ui/primitives';
-import { useAdminSession } from '@/features/auth/admin-session-context';
 import { FinanceHubLinks } from '@/features/admin/finance/finance-hub-links';
+import { FinanceOverviewPanel } from '@/features/admin/finance/finance-overview-panel';
+import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { FINANCE_VIEW } from '@/lib/permissions/finance';
 
@@ -14,10 +16,7 @@ export default function AdminFinancePage() {
 
   return (
     <RequireAdminPermission permission={FINANCE_VIEW}>
-      <PageHeader
-        title={t('admin.finance.title')}
-        subtitle={t('admin.finance.hubSubtitle')}
-      />
+      <PageHeader title={t('admin.finance.title')} subtitle={t('admin.finance.hubSubtitle')} />
 
       {activeSchool && (
         <p className="muted finance-context-line">
@@ -25,10 +24,7 @@ export default function AdminFinancePage() {
         </p>
       )}
 
-      <div className="card finance-notice-card">
-        <p>{t('admin.finance.overviewUnavailable')}</p>
-      </div>
-
+      <FinanceOverviewPanel />
       <FinanceHubLinks />
     </RequireAdminPermission>
   );

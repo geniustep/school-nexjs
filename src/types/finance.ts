@@ -67,7 +67,7 @@ export interface FeePlanLineInput {
   description?: string;
 }
 
-export interface Installment {
+export interface FinanceInstallment {
   id?: number;
   name?: string;
   sequence?: number;
@@ -77,9 +77,14 @@ export interface Installment {
   remaining_amount?: number;
   state?: string;
   status?: string;
+  is_overdue?: boolean;
+  overdue?: boolean;
 }
 
-export interface Discount {
+/** @deprecated Use FinanceInstallment — kept for FIN-WEB-1 compatibility */
+export type Installment = FinanceInstallment;
+
+export interface FinanceDiscount {
   id?: number;
   name?: string;
   type?: string;
@@ -90,6 +95,170 @@ export interface Discount {
   status?: string;
   effective_date?: string;
   date_from?: string;
+}
+
+/** @deprecated Use FinanceDiscount */
+export type Discount = FinanceDiscount;
+
+export interface PaymentJournal {
+  id: number;
+  name: string;
+  code?: string;
+  type?: string;
+  journal_type?: string;
+  currency?: string;
+  currency_code?: string;
+  active?: boolean;
+  allowed_payment_methods?: PaymentMethod[] | string[];
+}
+
+export interface PaymentMethodReference {
+  code: PaymentMethod | string;
+  name?: string;
+  label?: string;
+}
+
+export interface AcademicYearReference {
+  id: number;
+  name: string;
+  is_current?: boolean;
+  code?: string;
+}
+
+export interface CurrencyReference {
+  code: string;
+  name?: string;
+  symbol?: string;
+}
+
+export interface FinanceReferenceData {
+  payment_journals?: PaymentJournal[];
+  journals?: PaymentJournal[];
+  academic_years?: AcademicYearReference[];
+  payment_methods?: PaymentMethodReference[];
+  currencies?: CurrencyReference[];
+}
+
+export interface FinanceOverviewTotals {
+  total_due?: number;
+  total_collected?: number;
+  total_remaining?: number;
+  total_overdue?: number;
+  students_with_balance?: number;
+  overdue_installments_count?: number;
+  collections_count?: number;
+  collections_amount?: number;
+  period_collections_count?: number;
+  period_collections_amount?: number;
+  currency?: string;
+}
+
+export interface FinanceFollowupStudent {
+  id: number;
+  name?: string;
+  student?: { id: number; name: string };
+  code?: string;
+  class?: { id: number; name: string } | null;
+  level?: { id: number; name: string } | null;
+  remaining_amount?: number;
+  overdue_amount?: number;
+  currency?: string;
+}
+
+export interface AdminFinanceOverview {
+  totals?: FinanceOverviewTotals;
+  summary?: FinanceOverviewTotals;
+  recent_collections?: PaymentCollection[];
+  followup_students?: FinanceFollowupStudent[];
+  students_needing_followup?: FinanceFollowupStudent[];
+}
+
+export interface FinanceStudentSearchResult {
+  id: number;
+  name?: string;
+  full_name?: string;
+  code?: string | null;
+  class?: { id: number; name: string } | null;
+  level?: { id: number; name: string } | null;
+  school?: { id: number; name: string } | null;
+  total_due?: number;
+  total_amount?: number;
+  paid_amount?: number;
+  remaining_amount?: number;
+  overdue_amount?: number;
+  balance?: number;
+  currency?: string;
+}
+
+export interface FinanceStudentSearchResponse {
+  items?: FinanceStudentSearchResult[];
+  results?: FinanceStudentSearchResult[];
+}
+
+export interface EligibleBillingPartner {
+  id: number;
+  name: string;
+  type?: string;
+  billing_partner_type?: string;
+  phone?: string | null;
+  payer_name?: string;
+}
+
+export interface ParentFinanceChildSummary {
+  id: number;
+  name?: string;
+  full_name?: string;
+  school?: { id: number; name: string } | null;
+  class?: { id: number; name: string } | null;
+  level?: { id: number; name: string } | null;
+  academic_year?: { id: number; name: string } | string | null;
+  total_due?: number;
+  total_amount?: number;
+  paid_amount?: number;
+  remaining_amount?: number;
+  overdue_amount?: number;
+  next_due_date?: string | null;
+  currency?: string;
+}
+
+export interface ParentFinanceOverview {
+  children?: ParentFinanceChildSummary[];
+}
+
+export interface ParentChildFinanceDetails {
+  student?: { id: number; name: string; code?: string | null };
+  school?: { id: number; name: string } | null;
+  class?: { id: number; name: string } | null;
+  level?: { id: number; name: string } | null;
+  academic_year?: { id: number; name: string } | string | null;
+  summary?: {
+    total_due?: number;
+    paid_amount?: number;
+    remaining_amount?: number;
+    overdue_amount?: number;
+    currency?: string;
+  };
+  billing_partner?: { name?: string; type?: string } | null;
+  payer_name?: string;
+  fees?: StudentFee[];
+  recent_collections?: ParentFinanceCollection[];
+  collections?: ParentFinanceCollection[];
+}
+
+export interface ParentFinanceCollection {
+  id: number;
+  reference?: string;
+  name?: string;
+  receipt_number?: string;
+  collection_date?: string;
+  date?: string;
+  amount?: number;
+  total_amount?: number;
+  payment_method?: PaymentMethod | string;
+  state?: PaymentCollectionState;
+  status?: PaymentCollectionState;
+  currency?: string;
+  allocations?: PaymentAllocation[];
 }
 
 export interface PaymentAllocation {
@@ -124,9 +293,9 @@ export interface StudentFee {
   due_date?: string | null;
   next_due_date?: string | null;
   currency?: string;
-  installments?: Installment[];
-  discounts?: Discount[];
-  lines?: Installment[];
+  installments?: FinanceInstallment[];
+  discounts?: FinanceDiscount[];
+  lines?: FinanceInstallment[];
 }
 
 export interface PaymentCollection {
@@ -148,6 +317,7 @@ export interface PaymentCollection {
   date?: string;
   state?: PaymentCollectionState;
   status?: PaymentCollectionState;
+  currency?: string;
   notes?: string;
   journal_id?: number;
   created_by?: Ref;
@@ -176,8 +346,8 @@ export interface StudentFinanceProfile {
   balance?: number;
   currency?: string;
   fees?: StudentFee[];
-  installments?: Installment[];
-  discounts?: Discount[];
+  installments?: FinanceInstallment[];
+  discounts?: FinanceDiscount[];
   collections?: PaymentCollection[];
 }
 

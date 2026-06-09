@@ -18,6 +18,7 @@ export function ChildSubnav({ id }: { id: string }) {
     { labelKey: 'nav.exams', href: `${base}/exams` },
     { labelKey: 'nav.results', href: `${base}/exam-results` },
     { labelKey: 'nav.timetable', href: `${base}/timetable` },
+    { labelKey: 'nav.finance', href: `${base}/finance` },
     { labelKey: 'nav.channels', href: `${base}/channels` },
     { labelKey: 'nav.announcements', href: `${base}/announcements` },
   ];

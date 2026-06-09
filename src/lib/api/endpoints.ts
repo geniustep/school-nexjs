@@ -128,6 +128,13 @@ export const endpoints = {
       `/admin/finance/payment-collections/${id}/confirm`,
     financePaymentCollectionCancel: (id: number | string) =>
       `/admin/finance/payment-collections/${id}/cancel`,
+    financeOverview: '/admin/finance/overview',
+    financePaymentJournals: '/admin/finance/payment-journals',
+    financeAcademicYears: '/admin/finance/academic-years',
+    financeReferenceData: '/admin/finance/reference-data',
+    financeStudentsSearch: '/admin/finance/students/search',
+    financeEligibleBillingPartners: (studentId: number | string) =>
+      `/admin/finance/students/${studentId}/eligible-billing-partners`,
   },
 
   teacher: {
@@ -212,6 +219,14 @@ export const endpoints = {
       `/parent/children/${studentId}/timetable/today`,
     childTimetableWeek: (studentId: number | string) =>
       `/parent/children/${studentId}/timetable/week`,
+    finance: '/parent/finance',
+    childFinance: (studentId: number | string) => `/parent/children/${studentId}/finance`,
+    childFinanceFee: (studentId: number | string, feeId: number | string) =>
+      `/parent/children/${studentId}/finance/fees/${feeId}`,
+    childFinanceCollections: (studentId: number | string) =>
+      `/parent/children/${studentId}/finance/collections`,
+    childFinanceCollection: (studentId: number | string, collectionId: number | string) =>
+      `/parent/children/${studentId}/finance/collections/${collectionId}`,
   },
 
   student: {

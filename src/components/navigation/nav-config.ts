@@ -181,7 +181,10 @@ function parentNav(): NavSection[] {
     { items: [{ labelKey: 'nav.dashboard', href: '/parent/dashboard', icon: '🏠' }] },
     {
       titleKey: 'nav.family',
-      items: [{ labelKey: 'nav.myChildren', href: '/parent/children', icon: '👧' }],
+      items: [
+        { labelKey: 'nav.myChildren', href: '/parent/children', icon: '👧' },
+        { labelKey: 'nav.finance', href: '/parent/finance', icon: '💰' },
+      ],
     },
     {
       titleKey: 'nav.communication',
