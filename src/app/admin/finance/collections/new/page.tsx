@@ -6,7 +6,7 @@ import { RequireAdminPermission } from '@/components/admin/require-admin-permiss
 import { PageHeader } from '@/components/ui/primitives';
 import { FinanceCollectionForm } from '@/features/admin/finance/collection-form';
 import { useT } from '@/features/i18n/locale-context';
-import { FINANCE_VIEW, canCollectPayments } from '@/lib/permissions/finance';
+import { FINANCE_VIEW_PAYMENTS, canCollectPayments } from '@/lib/permissions/finance';
 import { useSession } from '@/features/auth/session-context';
 import { PermissionDeniedState } from '@/components/states/states';
 
@@ -20,7 +20,7 @@ export default function AdminFinanceCollectionNewPage() {
   }
 
   return (
-    <RequireAdminPermission permission={FINANCE_VIEW}>
+    <RequireAdminPermission permission={FINANCE_VIEW_PAYMENTS}>
       <Link href="/admin/finance/collections" className="back-link">
         ‹ {t('admin.finance.backToCollections')}
       </Link>

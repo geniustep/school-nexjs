@@ -20,7 +20,11 @@ export function canViewFinance(user: CurrentUser | null): boolean {
 }
 
 export function canViewStudentBalance(user: CurrentUser | null): boolean {
-  return hasAnyPermission(user, [FINANCE_VIEW, FINANCE_VIEW_STUDENT_BALANCE]);
+  return hasPermission(user, FINANCE_VIEW_STUDENT_BALANCE);
+}
+
+export function canViewPayments(user: CurrentUser | null): boolean {
+  return hasPermission(user, FINANCE_VIEW_PAYMENTS);
 }
 
 export function canManageFeeCatalog(user: CurrentUser | null): boolean {

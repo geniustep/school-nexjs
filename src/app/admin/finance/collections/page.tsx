@@ -14,7 +14,7 @@ import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
-import { FINANCE_VIEW, canCollectPayments } from '@/lib/permissions/finance';
+import { FINANCE_VIEW, FINANCE_VIEW_PAYMENTS, canCollectPayments } from '@/lib/permissions/finance';
 import { useFinanceJournalsAvailable } from '@/features/admin/finance/use-finance-lookups';
 import { useSession } from '@/features/auth/session-context';
 import { collectionState, refName } from '@/lib/utils/finance';
@@ -87,7 +87,7 @@ export default function AdminFinanceCollectionsPage() {
   );
 
   return (
-    <RequireAdminPermission permission={FINANCE_VIEW}>
+    <RequireAdminPermission permission={FINANCE_VIEW_PAYMENTS}>
       <Link href="/admin/finance" className="back-link">
         ‹ {t('admin.finance.backToFinance')}
       </Link>

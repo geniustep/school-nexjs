@@ -13,7 +13,7 @@ import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
-import { FINANCE_VIEW, canCancelPayments, canCollectPayments } from '@/lib/permissions/finance';
+import { FINANCE_VIEW_PAYMENTS, canCancelPayments, canCollectPayments } from '@/lib/permissions/finance';
 import { useSession } from '@/features/auth/session-context';
 import { collectionState, refName } from '@/lib/utils/finance';
 import type { PaymentAllocation, PaymentCollection } from '@/types/finance';
@@ -53,7 +53,7 @@ export default function AdminFinanceCollectionDetailPage({
   );
 
   return (
-    <RequireAdminPermission permission={FINANCE_VIEW}>
+    <RequireAdminPermission permission={FINANCE_VIEW_PAYMENTS}>
       <Link href="/admin/finance/collections" className="back-link">
         ‹ {t('admin.finance.backToCollections')}
       </Link>
