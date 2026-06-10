@@ -135,6 +135,12 @@ export const endpoints = {
     financeStudentsSearch: '/admin/finance/students/search',
     financeEligibleBillingPartners: (studentId: number | string) =>
       `/admin/finance/students/${studentId}/eligible-billing-partners`,
+    financeCheques: '/admin/finance/cheques',
+    financeCheque: (id: number | string) => `/admin/finance/cheques/${id}`,
+    financeChequeDeposit: (id: number | string) => `/admin/finance/cheques/${id}/deposit`,
+    financeChequeClear: (id: number | string) => `/admin/finance/cheques/${id}/clear`,
+    financeChequeReject: (id: number | string) => `/admin/finance/cheques/${id}/reject`,
+    financeChequeCancel: (id: number | string) => `/admin/finance/cheques/${id}/cancel`,
   },
 
   teacher: {

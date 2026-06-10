@@ -8,6 +8,7 @@ import {
   canCollectPayments,
   canManageFeeCatalog,
   canManageFeePlans,
+  canViewCheques,
   canViewFinanceSetup,
   canViewPayments,
 } from '@/lib/permissions/finance';
@@ -16,8 +17,20 @@ import { useFinanceJournalsAvailable } from '@/features/admin/finance/use-financ
 type HubLink = {
   href: string;
   icon: string;
-  labelKey: 'admin.finance.hubStudentFees' | 'admin.finance.hubCollections' | 'admin.finance.hubFeeTypes' | 'admin.finance.hubFeePlans' | 'admin.finance.hubRecordCollection';
-  descKey: 'admin.finance.hubStudentFeesDesc' | 'admin.finance.hubCollectionsDesc' | 'admin.finance.hubFeeTypesDesc' | 'admin.finance.hubFeePlansDesc' | 'admin.finance.hubRecordCollectionDesc';
+  labelKey:
+    | 'admin.finance.hubStudentFees'
+    | 'admin.finance.hubCollections'
+    | 'admin.finance.hubCheques'
+    | 'admin.finance.hubFeeTypes'
+    | 'admin.finance.hubFeePlans'
+    | 'admin.finance.hubRecordCollection';
+  descKey:
+    | 'admin.finance.hubStudentFeesDesc'
+    | 'admin.finance.hubCollectionsDesc'
+    | 'admin.finance.hubChequesDesc'
+    | 'admin.finance.hubFeeTypesDesc'
+    | 'admin.finance.hubFeePlansDesc'
+    | 'admin.finance.hubRecordCollectionDesc';
   show: boolean;
 };
 
@@ -40,6 +53,13 @@ export function FinanceHubLinks() {
       labelKey: 'admin.finance.hubCollections',
       descKey: 'admin.finance.hubCollectionsDesc',
       show: canViewPayments(user),
+    },
+    {
+      href: '/admin/finance/cheques',
+      icon: '📝',
+      labelKey: 'admin.finance.hubCheques',
+      descKey: 'admin.finance.hubChequesDesc',
+      show: canViewCheques(user),
     },
     {
       href: '/admin/finance/collections/new',

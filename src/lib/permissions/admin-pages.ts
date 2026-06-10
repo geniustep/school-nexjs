@@ -1,6 +1,6 @@
 import { hasAnyPermission } from '@/lib/permissions/permissions';
 import type { CurrentUser } from '@/types/user';
-import { FINANCE_VIEW } from '@/lib/permissions/finance';
+import { FINANCE_VIEW, FINANCE_VIEW_CHEQUES } from '@/lib/permissions/finance';
 import type { Permission } from '@/types/permissions';
 
 /** Any one of these grants access to `/admin/academic` (hub, not a single view_*). */
@@ -98,6 +98,7 @@ export function permissionForAdminPath(pathname: string): Permission | null {
     return 'view_exam_results';
   }
   if (base.startsWith('/admin/exams')) return 'view_exams';
+  if (base.startsWith('/admin/finance/cheques')) return FINANCE_VIEW_CHEQUES;
   if (base.startsWith('/admin/finance')) return FINANCE_VIEW;
   return null;
 }

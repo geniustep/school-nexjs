@@ -477,9 +477,17 @@
       "net": "Montant net",
       "allocations": "Affectations",
       "methodCash": "Espèces",
+      "methodCheque": "Chèque",
       "methodCheck": "Chèque",
       "methodTransfer": "Virement",
-      "methodCard": "Carte"
+      "methodCard": "Carte",
+      "cheques": {
+        "pending": "Payé par chèque — en cours",
+        "deposited": "Payé par chèque — déposé",
+        "cleared": "Payé par chèque — encaissé",
+        "rejected": "Chèque rejeté",
+        "cancelled": "Chèque annulé"
+      }
     }
   },
   "studentPortal": {
@@ -870,6 +878,8 @@
       "hubStudentFeesDesc": "Consulter les frais par élève",
       "hubCollections": "Encaissements",
       "hubCollectionsDesc": "Opérations d'encaissement enregistrées",
+      "hubCheques": "Chèques",
+      "hubChequesDesc": "Suivi des chèques différés et du cycle d'encaissement",
       "hubRecordCollection": "Enregistrer un encaissement",
       "hubRecordCollectionDesc": "Créer une nouvelle opération",
       "hubFeeTypes": "Types de frais",
@@ -941,6 +951,7 @@
       "payer": "Payeur",
       "paymentMethod": "Mode de paiement",
       "methodCash": "Espèces",
+      "methodCheque": "Chèque",
       "methodCheck": "Chèque",
       "methodTransfer": "Virement",
       "reference": "Référence",
@@ -1001,6 +1012,8 @@
       "overviewOverdueInstallments": "Échéances en retard",
       "overviewPeriodCollections": "Encaissements sur la période",
       "overviewPeriodCollectedAmount": "Montant encaissé sur la période",
+      "overviewRegisteredCollectionsPeriod": "Total des encaissements enregistrés",
+      "overviewClearedLiquidityPeriod": "Liquidité réellement encaissée",
       "recentCollections": "Encaissements récents",
       "studentsNeedingFollowup": "Élèves à suivre",
       "dateFrom": "Date de début",
@@ -1020,6 +1033,109 @@
         "journalInactive": "Le journal sélectionné est inactif.",
         "journalNotAllowed": "Ce journal n'est pas autorisé pour les encaissements.",
         "journalCompanyMismatch": "Le journal n'appartient pas à l'école active."
+      },
+      "cheques": {
+        "title": "Chèques",
+        "subtitle": "Suivi des chèques différés et du cycle d'encaissement",
+        "backToList": "Retour aux chèques",
+        "detailTitle": "Détail du chèque",
+        "viewDetail": "Voir le détail",
+        "viewCollection": "Voir l'encaissement",
+        "chequeNumber": "Numéro de chèque",
+        "bankName": "Banque",
+        "holderName": "Titulaire",
+        "receivedDate": "Date de réception",
+        "dueDate": "Date d'échéance",
+        "dueFrom": "Échéance du",
+        "dueTo": "Échéance au",
+        "dueStatus": "Statut d'échéance",
+        "searchPlaceholder": "Rechercher par numéro ou élève…",
+        "empty": "Aucun chèque",
+        "registrationTitle": "Données du chèque",
+        "reason": "Motif",
+        "reasonRequired": "Le motif est obligatoire",
+        "overdue": "Chèque en retard",
+        "dueToday": "Échéance aujourd'hui",
+        "dueSoon": "Échéance dans {days} jours",
+        "reversalApplied": "Paiement inversé sur le solde de l'élève",
+        "collectionReversed": "Paiement inversé — voir le statut du chèque",
+        "markerPending": "Payé par chèque — en cours",
+        "markerDeposited": "Payé par chèque — déposé",
+        "markerCleared": "Payé par chèque — encaissé",
+        "markerReversalRejected": "Paiement inversé — chèque rejeté",
+        "markerReversalCancelled": "Paiement inversé — chèque annulé",
+        "overviewPending": "Chèques en cours",
+        "overviewDue": "Chèques à échéance",
+        "overviewDeposited": "Chèques déposés",
+        "overviewCleared": "Chèques encaissés",
+        "overviewRejected": "Chèques rejetés",
+        "overviewPendingCount": "Nombre de chèques en cours",
+        "overviewDueCount": "Nombre de chèques à échéance",
+        "overviewDepositedCount": "Nombre de chèques déposés",
+        "overviewClearedCount": "Nombre de chèques encaissés",
+        "overviewRejectedCount": "Nombre de chèques rejetés",
+        "filters": {
+          "pending": "En cours",
+          "dueToday": "Échéance aujourd'hui",
+          "overdue": "En retard",
+          "deposited": "Déposés",
+          "cleared": "Encaissés",
+          "rejected": "Rejetés",
+          "cancelled": "Annulés",
+          "overdueOnly": "En retard uniquement"
+        },
+        "alerts": {
+          "dueSoon": "Échéance sous 3 jours",
+          "overdue": "Chèques en retard",
+          "depositedNotCleared": "Déposés, non encaissés"
+        },
+        "states": {
+          "received": "En cours",
+          "deposited": "Déposé",
+          "cleared": "Encaissé",
+          "rejected": "Rejeté",
+          "cancelled": "Annulé"
+        },
+        "actions": {
+          "deposit": {
+            "button": "Déposer le chèque",
+            "title": "Déposer le chèque",
+            "confirm": "Confirmer le dépôt",
+            "dateLabel": "Date de dépôt",
+            "warning": "La liquidité n'est pas mise à jour tant que le chèque n'est pas encaissé."
+          },
+          "clear": {
+            "button": "Confirmer l'encaissement bancaire",
+            "title": "Confirmer l'encaissement bancaire",
+            "confirm": "Confirmer l'encaissement",
+            "dateLabel": "Date d'encaissement",
+            "warning": "Le montant entrera dans la liquidité bancaire réelle.",
+            "bankConfirm": "Confirmer que le montant est apparu sur le compte bancaire."
+          },
+          "reject": {
+            "button": "Rejeter le chèque",
+            "title": "Rejeter le chèque",
+            "confirm": "Confirmer le rejet",
+            "dateLabel": "Date de rejet",
+            "warning": "Le paiement sera inversé et le montant rétabli au solde de l'élève."
+          },
+          "cancel": {
+            "button": "Annuler le chèque",
+            "title": "Annuler le chèque",
+            "confirm": "Confirmer l'annulation",
+            "dateLabel": "Date d'annulation",
+            "warning": "Le paiement sera inversé et le montant rétabli au solde de l'élève."
+          }
+        },
+        "errors": {
+          "invalidChequeData": "Données de chèque invalides.",
+          "chequeRequired": "Les données du chèque sont obligatoires.",
+          "invalidChequeState": "L'état du chèque n'autorise pas cette action.",
+          "chequeAlreadyCleared": "Le chèque est déjà encaissé.",
+          "reversalAlreadyApplied": "L'inversion a déjà été appliquée.",
+          "chequeSchoolMismatch": "Le chèque n'appartient pas à l'école active.",
+          "chequeAmountMismatch": "Le montant du chèque ne correspond pas à l'encaissement."
+        }
       },
       "states": {
         "draft": "Brouillon",

@@ -8,6 +8,7 @@ import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { useT } from '@/features/i18n/locale-context';
 import { financeStudentDisplayName, isPositiveAmount, paymentMethodLabel, refName } from '@/lib/utils/finance';
 import { journalErrorMessageKey, parseFinanceList } from '@/lib/utils/finance-normalize';
+import { isChequePayment } from '@/lib/utils/cheque';
 import { FinanceStudentSearch } from '@/features/admin/finance/finance-student-search';
 import { useFinanceReferenceData } from '@/features/admin/finance/use-finance-lookups';
 import type {
@@ -81,6 +82,11 @@ function FinanceCollectionFormReady({
   const [reference, setReference] = useState('');
   const [notes, setNotes] = useState('');
   const [allocationFeeId, setAllocationFeeId] = useState('');
+  const [chequeNumber, setChequeNumber] = useState('');
+  const [chequeBank, setChequeBank] = useState('');
+  const [chequeHolder, setChequeHolder] = useState('');
+  const [chequeReceivedDate, setChequeReceivedDate] = useState('');
+  const [chequeDueDate, setChequeDueDate] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -121,12 +127,20 @@ function FinanceCollectionFormReady({
     }
   }, [allowedMethods, paymentMethod]);
 
+  const isCheque = isChequePayment(paymentMethod);
+
   const canSubmit = useMemo(() => {
     if (!selectedStudent || !journalId || !academicYearId || !billingPartnerId || !collectionDate.trim()) {
       return false;
     }
     if (!paymentMethod || !allowedMethods.includes(paymentMethod)) return false;
-    return isPositiveAmount(Number(amount));
+    if (!isPositiveAmount(Number(amount))) return false;
+    if (isCheque) {
+      if (!chequeNumber.trim() || !chequeBank.trim() || !chequeHolder.trim()) return false;
+      if (!chequeReceivedDate.trim() || !chequeDueDate.trim()) return false;
+      if (chequeDueDate < chequeReceivedDate) return false;
+    }
+    return true;
   }, [
     selectedStudent,
     journalId,
@@ -136,6 +150,12 @@ function FinanceCollectionFormReady({
     paymentMethod,
     allowedMethods,
     amount,
+    isCheque,
+    chequeNumber,
+    chequeBank,
+    chequeHolder,
+    chequeReceivedDate,
+    chequeDueDate,
   ]);
 
   async function onSubmit(e: React.FormEvent) {
@@ -161,6 +181,16 @@ function FinanceCollectionFormReady({
     };
     if (allocationFeeId) {
       payload.allocations = [{ student_fee_id: Number(allocationFeeId), amount: parsedAmount }];
+    }
+    if (isCheque) {
+      payload.payment_method = 'cheque';
+      payload.cheque = {
+        cheque_number: chequeNumber.trim(),
+        bank_name: chequeBank.trim(),
+        holder_name: chequeHolder.trim(),
+        received_date: chequeReceivedDate,
+        due_date: chequeDueDate,
+      };
     }
     const res = await api.post<PaymentCollection>(endpoints.admin.financePaymentCollections, payload);
     setSubmitting(false);
@@ -287,6 +317,45 @@ function FinanceCollectionFormReady({
               ))}
             </select>
           </label>
+
+          {isCheque && (
+            <fieldset className="finance-cheque-fields">
+              <legend>{t('admin.finance.cheques.registrationTitle')}</legend>
+              <label>
+                {t('admin.finance.cheques.chequeNumber')}
+                <input className="input" required value={chequeNumber} onChange={(e) => setChequeNumber(e.target.value)} />
+              </label>
+              <label>
+                {t('admin.finance.cheques.bankName')}
+                <input className="input" required value={chequeBank} onChange={(e) => setChequeBank(e.target.value)} />
+              </label>
+              <label>
+                {t('admin.finance.cheques.holderName')}
+                <input className="input" required value={chequeHolder} onChange={(e) => setChequeHolder(e.target.value)} />
+              </label>
+              <label>
+                {t('admin.finance.cheques.receivedDate')}
+                <input
+                  className="input"
+                  type="date"
+                  required
+                  value={chequeReceivedDate}
+                  onChange={(e) => setChequeReceivedDate(e.target.value)}
+                />
+              </label>
+              <label>
+                {t('admin.finance.cheques.dueDate')}
+                <input
+                  className="input"
+                  type="date"
+                  required
+                  min={chequeReceivedDate || undefined}
+                  value={chequeDueDate}
+                  onChange={(e) => setChequeDueDate(e.target.value)}
+                />
+              </label>
+            </fieldset>
+          )}
 
           <label>
             {t('admin.finance.collectionDate')}

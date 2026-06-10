@@ -10,6 +10,7 @@ import { DataTable, Pagination, type Column } from '@/components/tables/data-tab
 import { PageHeader } from '@/components/ui/primitives';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { FinanceStatusBadge } from '@/features/admin/finance/finance-status-badge';
+import { ChequePaymentMarker } from '@/features/admin/finance/cheque-payment-marker';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
@@ -17,7 +18,8 @@ import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { FINANCE_VIEW, FINANCE_VIEW_PAYMENTS, canCollectPayments } from '@/lib/permissions/finance';
 import { useFinanceJournalsAvailable } from '@/features/admin/finance/use-finance-lookups';
 import { useSession } from '@/features/auth/session-context';
-import { collectionState, refName } from '@/lib/utils/finance';
+import { collectionState, paymentMethodLabel, refName } from '@/lib/utils/finance';
+import { isCollectionChequeReversed } from '@/lib/utils/cheque';
 import type { PaymentCollection } from '@/types/finance';
 import type { ListParams } from '@/types/api';
 
@@ -70,12 +72,27 @@ export default function AdminFinanceCollectionsPage() {
       {
         key: 'method',
         header: t('admin.finance.paymentMethod'),
-        render: (row) => row.payment_method ?? t('common.dash'),
+        render: (row) => paymentMethodLabel(row.payment_method, t),
+      },
+      {
+        key: 'cheque',
+        header: t('admin.finance.cheques.title'),
+        render: (row) =>
+          row.cheque || row.payment_method === 'cheque' || row.payment_method === 'check' ? (
+            <ChequePaymentMarker collection={row} />
+          ) : (
+            t('common.dash')
+          ),
       },
       {
         key: 'status',
         header: t('academic.status'),
-        render: (row) => <FinanceStatusBadge state={collectionState(row)} />,
+        render: (row) =>
+          isCollectionChequeReversed(row) ? (
+            <ChequePaymentMarker collection={row} />
+          ) : (
+            <FinanceStatusBadge state={collectionState(row)} />
+          ),
       },
       {
         key: 'user',

@@ -9,13 +9,15 @@ import { PageHeader } from '@/components/ui/primitives';
 import { ConfirmActionButton } from '@/features/admin/confirm-action-button';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { FinanceStatusBadge } from '@/features/admin/finance/finance-status-badge';
+import { ChequePaymentMarker } from '@/features/admin/finance/cheque-payment-marker';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { FINANCE_VIEW_PAYMENTS, canCancelPayments, canCollectPayments } from '@/lib/permissions/finance';
 import { useSession } from '@/features/auth/session-context';
-import { collectionState, refName } from '@/lib/utils/finance';
+import { collectionState, paymentMethodLabel, refName } from '@/lib/utils/finance';
+import { isCollectionChequeReversed, isChequePayment } from '@/lib/utils/cheque';
 import type { PaymentAllocation, PaymentCollection } from '@/types/finance';
 
 export default function AdminFinanceCollectionDetailPage({
@@ -91,12 +93,26 @@ export default function AdminFinanceCollectionDetailPage({
               <p className="muted finance-readonly-note">{t('admin.finance.collectionReadOnly')}</p>
             )}
 
+            {(isChequePayment(coll.payment_method) || coll.cheque) && (
+              <div className="card">
+                <h3>{t('admin.finance.cheques.title')}</h3>
+                <ChequePaymentMarker collection={coll} />
+                {isCollectionChequeReversed(coll) && (
+                  <p className="finance-cheque-reversal-note">{t('admin.finance.cheques.collectionReversed')}</p>
+                )}
+              </div>
+            )}
+
             <div className="card">
               <dl className="detail-list">
                 <div>
                   <dt>{t('academic.status')}</dt>
                   <dd>
-                    <FinanceStatusBadge state={collectionState(coll)} />
+                    {isCollectionChequeReversed(coll) ? (
+                      <ChequePaymentMarker collection={coll} />
+                    ) : (
+                      <FinanceStatusBadge state={collectionState(coll)} />
+                    )}
                   </dd>
                 </div>
                 <div>
@@ -107,7 +123,7 @@ export default function AdminFinanceCollectionDetailPage({
                 </div>
                 <div>
                   <dt>{t('admin.finance.paymentMethod')}</dt>
-                  <dd>{coll.payment_method ?? t('common.dash')}</dd>
+                  <dd>{paymentMethodLabel(coll.payment_method, t)}</dd>
                 </div>
                 <div>
                   <dt>{t('admin.finance.collectionDate')}</dt>

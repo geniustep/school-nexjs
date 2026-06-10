@@ -8,6 +8,7 @@ import { DataTable, type Column } from '@/components/tables/data-table';
 import { PageHeader } from '@/components/ui/primitives';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { FinanceStatusBadge } from '@/features/admin/finance/finance-status-badge';
+import { ChequePaymentMarker } from '@/features/admin/finance/cheque-payment-marker';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
@@ -96,6 +97,11 @@ export default function AdminFinanceStudentFeeDetailPage({
                 ) : undefined
               }
             />
+            {(fee.cheque || fee.paid_by_cheque) && (
+              <div className="card">
+                <ChequePaymentMarker fee={fee} />
+              </div>
+            )}
             <div className="card">
               <dl className="detail-list">
                 <div>

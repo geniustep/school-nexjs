@@ -15,6 +15,13 @@ export const FINANCE_VIEW_BILLING: Permission = 'finance.view_billing_profile';
 export const FINANCE_VIEW_PAYMENTS: Permission = 'finance.view_payments';
 export const FINANCE_VIEW_STUDENT_BALANCE: Permission = 'finance.view_student_balance';
 
+export const FINANCE_VIEW_CHEQUES: Permission = 'finance.view_cheques';
+export const FINANCE_MANAGE_CHEQUES: Permission = 'finance.manage_cheques';
+export const FINANCE_DEPOSIT_CHEQUES: Permission = 'finance.deposit_cheques';
+export const FINANCE_CLEAR_CHEQUES: Permission = 'finance.clear_cheques';
+export const FINANCE_REJECT_CHEQUES: Permission = 'finance.reject_cheques';
+export const FINANCE_CANCEL_CHEQUES: Permission = 'finance.cancel_cheques';
+
 export function canViewFinance(user: CurrentUser | null): boolean {
   return hasPermission(user, FINANCE_VIEW);
 }
@@ -61,4 +68,24 @@ export function canViewBillingProfile(user: CurrentUser | null): boolean {
 
 export function canViewFinanceSetup(user: CurrentUser | null): boolean {
   return hasAnyPermission(user, [FINANCE_MANAGE_CATALOG, FINANCE_MANAGE_PLANS]);
+}
+
+export function canViewCheques(user: CurrentUser | null): boolean {
+  return hasPermission(user, FINANCE_VIEW_CHEQUES);
+}
+
+export function canDepositCheques(user: CurrentUser | null): boolean {
+  return hasPermission(user, FINANCE_DEPOSIT_CHEQUES);
+}
+
+export function canClearCheques(user: CurrentUser | null): boolean {
+  return hasPermission(user, FINANCE_CLEAR_CHEQUES);
+}
+
+export function canRejectCheques(user: CurrentUser | null): boolean {
+  return hasPermission(user, FINANCE_REJECT_CHEQUES);
+}
+
+export function canCancelCheques(user: CurrentUser | null): boolean {
+  return hasPermission(user, FINANCE_CANCEL_CHEQUES);
 }

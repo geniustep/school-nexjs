@@ -477,9 +477,17 @@
       "net": "Importe neto",
       "allocations": "Asignaciones",
       "methodCash": "Efectivo",
+      "methodCheque": "Cheque",
       "methodCheck": "Cheque",
       "methodTransfer": "Transferencia",
-      "methodCard": "Tarjeta"
+      "methodCard": "Tarjeta",
+      "cheques": {
+        "pending": "Pagado con cheque — pendiente",
+        "deposited": "Pagado con cheque — depositado",
+        "cleared": "Pagado con cheque — cobrado",
+        "rejected": "Cheque rechazado",
+        "cancelled": "Cheque cancelado"
+      }
     }
   },
   "studentPortal": {
@@ -870,6 +878,8 @@
       "hubStudentFeesDesc": "Consultar cuotas por alumno",
       "hubCollections": "Cobros",
       "hubCollectionsDesc": "Operaciones de cobro registradas",
+      "hubCheques": "Cheques",
+      "hubChequesDesc": "Seguimiento de cheques diferidos y ciclo de cobro",
       "hubRecordCollection": "Registrar cobro",
       "hubRecordCollectionDesc": "Crear una nueva operación de cobro",
       "hubFeeTypes": "Tipos de cuota",
@@ -941,6 +951,7 @@
       "payer": "Pagador",
       "paymentMethod": "Medio de pago",
       "methodCash": "Efectivo",
+      "methodCheque": "Cheque",
       "methodCheck": "Cheque",
       "methodTransfer": "Transferencia",
       "reference": "Referencia",
@@ -1001,6 +1012,8 @@
       "overviewOverdueInstallments": "Cuotas vencidas",
       "overviewPeriodCollections": "Cobros del periodo",
       "overviewPeriodCollectedAmount": "Importe cobrado en el periodo",
+      "overviewRegisteredCollectionsPeriod": "Total de cobros registrados",
+      "overviewClearedLiquidityPeriod": "Liquidez realmente cobrada",
       "recentCollections": "Cobros recientes",
       "studentsNeedingFollowup": "Alumnos que requieren seguimiento",
       "dateFrom": "Desde",
@@ -1020,6 +1033,109 @@
         "journalInactive": "El diario seleccionado está inactivo.",
         "journalNotAllowed": "Este diario no está permitido para cobros.",
         "journalCompanyMismatch": "El diario no pertenece a la escuela activa."
+      },
+      "cheques": {
+        "title": "Cheques",
+        "subtitle": "Seguimiento de cheques diferidos y ciclo de cobro",
+        "backToList": "Volver a cheques",
+        "detailTitle": "Detalle del cheque",
+        "viewDetail": "Ver detalle",
+        "viewCollection": "Ver cobro",
+        "chequeNumber": "Número de cheque",
+        "bankName": "Banco",
+        "holderName": "Titular",
+        "receivedDate": "Fecha de recepción",
+        "dueDate": "Fecha de vencimiento",
+        "dueFrom": "Vencimiento desde",
+        "dueTo": "Vencimiento hasta",
+        "dueStatus": "Estado de vencimiento",
+        "searchPlaceholder": "Buscar por número o alumno…",
+        "empty": "No hay cheques",
+        "registrationTitle": "Datos del cheque",
+        "reason": "Motivo",
+        "reasonRequired": "El motivo es obligatorio",
+        "overdue": "Cheque vencido",
+        "dueToday": "Vence hoy",
+        "dueSoon": "Vence en {days} días",
+        "reversalApplied": "Pago revertido en el saldo del alumno",
+        "collectionReversed": "Pago revertido — ver estado del cheque",
+        "markerPending": "Pagado con cheque — pendiente",
+        "markerDeposited": "Pagado con cheque — depositado",
+        "markerCleared": "Pagado con cheque — cobrado",
+        "markerReversalRejected": "Pago revertido — cheque rechazado",
+        "markerReversalCancelled": "Pago revertido — cheque cancelado",
+        "overviewPending": "Cheques pendientes",
+        "overviewDue": "Cheques vencidos",
+        "overviewDeposited": "Cheques depositados",
+        "overviewCleared": "Cheques cobrados",
+        "overviewRejected": "Cheques rechazados",
+        "overviewPendingCount": "Cantidad de cheques pendientes",
+        "overviewDueCount": "Cantidad de cheques vencidos",
+        "overviewDepositedCount": "Cantidad de cheques depositados",
+        "overviewClearedCount": "Cantidad de cheques cobrados",
+        "overviewRejectedCount": "Cantidad de cheques rechazados",
+        "filters": {
+          "pending": "Pendientes",
+          "dueToday": "Vencen hoy",
+          "overdue": "Vencidos",
+          "deposited": "Depositados",
+          "cleared": "Cobrados",
+          "rejected": "Rechazados",
+          "cancelled": "Cancelados",
+          "overdueOnly": "Solo vencidos"
+        },
+        "alerts": {
+          "dueSoon": "Vencen en 3 días",
+          "overdue": "Cheques vencidos",
+          "depositedNotCleared": "Depositados, no cobrados"
+        },
+        "states": {
+          "received": "Pendiente",
+          "deposited": "Depositado",
+          "cleared": "Cobrado",
+          "rejected": "Rechazado",
+          "cancelled": "Cancelado"
+        },
+        "actions": {
+          "deposit": {
+            "button": "Depositar cheque",
+            "title": "Depositar cheque",
+            "confirm": "Confirmar depósito",
+            "dateLabel": "Fecha de depósito",
+            "warning": "La liquidez no se actualiza hasta que el cheque se cobre."
+          },
+          "clear": {
+            "button": "Confirmar cobro bancario",
+            "title": "Confirmar cobro bancario",
+            "confirm": "Confirmar cobro",
+            "dateLabel": "Fecha de cobro",
+            "warning": "El importe entrará en la liquidez bancaria real.",
+            "bankConfirm": "Confirme que el importe apareció en la cuenta bancaria."
+          },
+          "reject": {
+            "button": "Rechazar cheque",
+            "title": "Rechazar cheque",
+            "confirm": "Confirmar rechazo",
+            "dateLabel": "Fecha de rechazo",
+            "warning": "El pago se revertirá y el importe volverá al saldo del alumno."
+          },
+          "cancel": {
+            "button": "Cancelar cheque",
+            "title": "Cancelar cheque",
+            "confirm": "Confirmar cancelación",
+            "dateLabel": "Fecha de cancelación",
+            "warning": "El pago se revertirá y el importe volverá al saldo del alumno."
+          }
+        },
+        "errors": {
+          "invalidChequeData": "Datos de cheque no válidos.",
+          "chequeRequired": "Los datos del cheque son obligatorios.",
+          "invalidChequeState": "El estado del cheque no permite esta acción.",
+          "chequeAlreadyCleared": "El cheque ya está cobrado.",
+          "reversalAlreadyApplied": "La reversión ya se aplicó.",
+          "chequeSchoolMismatch": "El cheque no pertenece a la escuela activa.",
+          "chequeAmountMismatch": "El importe del cheque no coincide con el cobro."
+        }
       },
       "states": {
         "draft": "Borrador",

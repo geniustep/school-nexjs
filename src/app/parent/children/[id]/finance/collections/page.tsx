@@ -9,12 +9,14 @@ import { DataTable, type Column } from '@/components/tables/data-table';
 import { PageHeader } from '@/components/ui/primitives';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { FinanceStatusBadge } from '@/features/admin/finance/finance-status-badge';
+import { ChequePaymentMarker } from '@/features/admin/finance/cheque-payment-marker';
 import { ChildFinanceSubnav } from '@/features/parent/finance/child-finance-subnav';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { useResource } from '@/lib/hooks/use-resource';
 import { endpoints } from '@/lib/api/endpoints';
 import { collectionState, paymentMethodLabel, refName } from '@/lib/utils/finance';
+import { isChequePayment } from '@/lib/utils/cheque';
 import { parseFinanceList } from '@/lib/utils/finance-normalize';
 import type { ParentFinanceCollection } from '@/types/finance';
 
@@ -57,7 +59,12 @@ export default function ParentChildFinanceCollectionsPage({
       {
         key: 'status',
         header: t('academic.status'),
-        render: (row) => <FinanceStatusBadge state={collectionState(row)} />,
+        render: (row) =>
+          isChequePayment(row.payment_method) || row.cheque ? (
+            <ChequePaymentMarker collection={row} variant="parent" />
+          ) : (
+            <FinanceStatusBadge state={collectionState(row)} />
+          ),
       },
     ],
     [t, formatDate],

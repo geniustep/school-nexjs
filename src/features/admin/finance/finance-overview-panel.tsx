@@ -141,6 +141,59 @@ export function FinanceOverviewPanel() {
       label: t('admin.finance.overviewPeriodCollectedAmount'),
       value: totals?.period_collections_amount ?? totals?.collections_amount,
     },
+    {
+      label: t('admin.finance.overviewRegisteredCollectionsPeriod'),
+      value: totals?.total_collected_period,
+    },
+    {
+      label: t('admin.finance.overviewClearedLiquidityPeriod'),
+      value: totals?.total_cleared_liquidity_period,
+    },
+    {
+      label: t('admin.finance.cheques.overviewPending'),
+      value: totals?.cheques_pending_amount,
+    },
+    {
+      label: t('admin.finance.cheques.overviewDue'),
+      value: totals?.cheques_due_amount,
+    },
+    {
+      label: t('admin.finance.cheques.overviewDeposited'),
+      value: totals?.cheques_deposited_amount,
+    },
+    {
+      label: t('admin.finance.cheques.overviewCleared'),
+      value: totals?.cheques_cleared_amount,
+    },
+    {
+      label: t('admin.finance.cheques.overviewRejected'),
+      value: totals?.cheques_rejected_amount,
+    },
+    {
+      label: t('admin.finance.cheques.overviewPendingCount'),
+      value: totals?.cheques_pending_count,
+      isCount: true,
+    },
+    {
+      label: t('admin.finance.cheques.overviewDueCount'),
+      value: totals?.cheques_due_count,
+      isCount: true,
+    },
+    {
+      label: t('admin.finance.cheques.overviewDepositedCount'),
+      value: totals?.cheques_deposited_count,
+      isCount: true,
+    },
+    {
+      label: t('admin.finance.cheques.overviewClearedCount'),
+      value: totals?.cheques_cleared_count,
+      isCount: true,
+    },
+    {
+      label: t('admin.finance.cheques.overviewRejectedCount'),
+      value: totals?.cheques_rejected_count,
+      isCount: true,
+    },
   ];
 
   return (

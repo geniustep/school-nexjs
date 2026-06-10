@@ -12,6 +12,7 @@ import { FinanceBillingProfileForm } from '@/features/admin/finance/billing-prof
 import { FinanceAssignFeeForm } from '@/features/admin/finance/assign-fee-form';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { FinanceStatusBadge } from '@/features/admin/finance/finance-status-badge';
+import { ChequePaymentMarker } from '@/features/admin/finance/cheque-payment-marker';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
@@ -108,7 +109,12 @@ export default function AdminFinanceStudentProfilePage({
     {
       key: 'status',
       header: t('academic.status'),
-      render: (row) => <FinanceStatusBadge state={studentFeeState(row)} />,
+      render: (row) => (
+        <div className="row" style={{ gap: 6, flexWrap: 'wrap' }}>
+          <FinanceStatusBadge state={studentFeeState(row)} />
+          {(row.cheque || row.paid_by_cheque) && <ChequePaymentMarker fee={row} />}
+        </div>
+      ),
     },
     {
       key: 'due',

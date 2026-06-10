@@ -477,9 +477,17 @@
       "net": "المبلغ الصافي",
       "allocations": "التوزيعات",
       "methodCash": "نقدًا",
+      "methodCheque": "شيك",
       "methodCheck": "شيك",
       "methodTransfer": "تحويل",
-      "methodCard": "بطاقة"
+      "methodCard": "بطاقة",
+      "cheques": {
+        "pending": "مؤدى بشيك — قيد التحصيل",
+        "deposited": "مؤدى بشيك — مودع",
+        "cleared": "مؤدى بشيك — محصل",
+        "rejected": "الشيك مرفوض",
+        "cancelled": "الشيك ملغى"
+      }
     }
   },
   "studentPortal": {
@@ -870,6 +878,8 @@
       "hubStudentFeesDesc": "استعراض رسوم التلاميذ حسب التلميذ",
       "hubCollections": "التحصيلات",
       "hubCollectionsDesc": "قائمة عمليات التحصيل المسجّلة",
+      "hubCheques": "الشيكات",
+      "hubChequesDesc": "متابعة الشيكات المؤجلة ودورة التحصيل",
       "hubRecordCollection": "تسجيل تحصيل",
       "hubRecordCollectionDesc": "إنشاء عملية تحصيل جديدة",
       "hubFeeTypes": "الرسوم",
@@ -941,6 +951,7 @@
       "payer": "جهة الأداء",
       "paymentMethod": "وسيلة الأداء",
       "methodCash": "نقدًا",
+      "methodCheque": "شيك",
       "methodCheck": "شيك",
       "methodTransfer": "تحويل",
       "reference": "المرجع",
@@ -1001,6 +1012,8 @@
       "overviewOverdueInstallments": "أقساط متأخرة",
       "overviewPeriodCollections": "تحصيلات الفترة",
       "overviewPeriodCollectedAmount": "محصل الفترة",
+      "overviewRegisteredCollectionsPeriod": "إجمالي التحصيلات المسجلة",
+      "overviewClearedLiquidityPeriod": "السيولة المحصلة فعليًا",
       "recentCollections": "آخر التحصيلات",
       "studentsNeedingFollowup": "تلاميذ يحتاجون متابعة",
       "dateFrom": "من تاريخ",
@@ -1020,6 +1033,109 @@
         "journalInactive": "دفتر الأداء المختار غير نشط.",
         "journalNotAllowed": "هذا الدفتر غير مسموح للتحصيل.",
         "journalCompanyMismatch": "الدفتر لا ينتمي إلى المدرسة النشطة."
+      },
+      "cheques": {
+        "title": "الشيكات",
+        "subtitle": "متابعة الشيكات المؤجلة ودورة التحصيل",
+        "backToList": "العودة إلى الشيكات",
+        "detailTitle": "تفاصيل الشيك",
+        "viewDetail": "عرض التفاصيل",
+        "viewCollection": "عرض التحصيل",
+        "chequeNumber": "رقم الشيك",
+        "bankName": "البنك",
+        "holderName": "صاحب الشيك",
+        "receivedDate": "تاريخ الاستلام",
+        "dueDate": "تاريخ الاستحقاق",
+        "dueFrom": "استحقاق من",
+        "dueTo": "استحقاق إلى",
+        "dueStatus": "حالة الاستحقاق",
+        "searchPlaceholder": "بحث برقم الشيك أو التلميذ…",
+        "empty": "لا توجد شيكات",
+        "registrationTitle": "بيانات الشيك",
+        "reason": "السبب",
+        "reasonRequired": "السبب مطلوب",
+        "overdue": "شيك متأخر",
+        "dueToday": "مستحق اليوم",
+        "dueSoon": "يستحق خلال {days} أيام",
+        "reversalApplied": "تم عكس الأداء على التلميذ",
+        "collectionReversed": "الأداء معكوس — راجع حالة الشيك",
+        "markerPending": "مؤدى بشيك — قيد التحصيل",
+        "markerDeposited": "مؤدى بشيك — مودع",
+        "markerCleared": "مؤدى بشيك — محصل",
+        "markerReversalRejected": "الأداء معكوس — الشيك مرفوض",
+        "markerReversalCancelled": "الأداء معكوس — الشيك ملغى",
+        "overviewPending": "شيكات قيد التحصيل",
+        "overviewDue": "شيكات مستحقة",
+        "overviewDeposited": "شيكات مودعة",
+        "overviewCleared": "شيكات محصلة",
+        "overviewRejected": "شيكات مرفوضة",
+        "overviewPendingCount": "عدد الشيكات قيد التحصيل",
+        "overviewDueCount": "عدد الشيكات المستحقة",
+        "overviewDepositedCount": "عدد الشيكات المودعة",
+        "overviewClearedCount": "عدد الشيكات المحصلة",
+        "overviewRejectedCount": "عدد الشيكات المرفوضة",
+        "filters": {
+          "pending": "قيد التحصيل",
+          "dueToday": "مستحقة اليوم",
+          "overdue": "متأخرة",
+          "deposited": "مودعة",
+          "cleared": "محصلة",
+          "rejected": "مرفوضة",
+          "cancelled": "ملغاة",
+          "overdueOnly": "المتأخرة فقط"
+        },
+        "alerts": {
+          "dueSoon": "تستحق خلال 3 أيام",
+          "overdue": "شيكات متأخرة",
+          "depositedNotCleared": "مودعة ولم تُحصّل"
+        },
+        "states": {
+          "received": "قيد التحصيل",
+          "deposited": "مودع بالبنك",
+          "cleared": "محصل",
+          "rejected": "مرفوض",
+          "cancelled": "ملغى"
+        },
+        "actions": {
+          "deposit": {
+            "button": "إيداع الشيك",
+            "title": "إيداع الشيك",
+            "confirm": "تأكيد الإيداع",
+            "dateLabel": "تاريخ الإيداع",
+            "warning": "لن تدخل السيولة البنكية الفعلية حتى تأكيد التحصيل."
+          },
+          "clear": {
+            "button": "تأكيد ظهوره في الحساب البنكي",
+            "title": "تأكيد التحصيل البنكي",
+            "confirm": "تأكيد التحصيل",
+            "dateLabel": "تاريخ التحصيل",
+            "warning": "سيدخل مبلغ الشيك ضمن السيولة البنكية الفعلية.",
+            "bankConfirm": "تأكيد أن مبلغ الشيك ظهر فعليًا في الحساب البنكي."
+          },
+          "reject": {
+            "button": "رفض الشيك",
+            "title": "رفض الشيك",
+            "confirm": "تأكيد الرفض",
+            "dateLabel": "تاريخ الرفض",
+            "warning": "سيتم عكس الأداء وإعادة المبلغ إلى المتبقي على التلميذ."
+          },
+          "cancel": {
+            "button": "إلغاء الشيك",
+            "title": "إلغاء الشيك",
+            "confirm": "تأكيد الإلغاء",
+            "dateLabel": "تاريخ الإلغاء",
+            "warning": "سيتم عكس الأداء وإعادة المبلغ إلى المتبقي على التلميذ."
+          }
+        },
+        "errors": {
+          "invalidChequeData": "بيانات الشيك غير صالحة.",
+          "chequeRequired": "بيانات الشيك مطلوبة.",
+          "invalidChequeState": "حالة الشيك لا تسمح بهذه العملية.",
+          "chequeAlreadyCleared": "الشيك محصّل مسبقًا.",
+          "reversalAlreadyApplied": "تم عكس الأداء مسبقًا.",
+          "chequeSchoolMismatch": "الشيك لا ينتمي إلى المدرسة النشطة.",
+          "chequeAmountMismatch": "مبلغ الشيك لا يطابق التحصيل."
+        }
       },
       "states": {
         "draft": "مسودة",

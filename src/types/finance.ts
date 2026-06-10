@@ -7,7 +7,93 @@ export type FeeTypeFrequency = 'annual' | 'term' | 'monthly' | 'once' | string;
 export type FeePlanState = 'draft' | 'confirmed' | 'archived' | string;
 export type StudentFeeState = 'draft' | 'open' | 'partial' | 'paid' | 'overdue' | 'cancelled' | string;
 export type PaymentCollectionState = 'draft' | 'confirmed' | 'cancelled' | string;
-export type PaymentMethod = 'cash' | 'check' | 'transfer' | 'card' | string;
+export type PaymentMethod = 'cash' | 'cheque' | 'check' | 'transfer' | 'card' | 'bank' | string;
+
+export type ChequeState = 'received' | 'deposited' | 'cleared' | 'rejected' | 'cancelled';
+
+export interface ChequeRegistrationPayload {
+  cheque_number: string;
+  bank_name: string;
+  holder_name: string;
+  received_date: string;
+  due_date: string;
+}
+
+export interface ChequeDepositPayload {
+  deposited_date: string;
+}
+
+export interface ChequeClearPayload {
+  cleared_date: string;
+}
+
+export interface ChequeRejectPayload {
+  rejected_date: string;
+  reason: string;
+}
+
+export interface ChequeCancelPayload {
+  cancelled_date: string;
+  reason: string;
+}
+
+export interface FinanceCheque {
+  id: number;
+  collection_id?: number;
+  student_id?: number;
+  student_name?: string;
+  student?: Ref;
+  school_id?: number;
+  school?: SchoolRef | { id: number; name: string };
+  amount?: number;
+  currency?: string;
+  cheque_number?: string;
+  bank_name?: string;
+  holder_name?: string;
+  received_date?: string;
+  due_date?: string;
+  deposited_date?: string;
+  cleared_date?: string;
+  rejected_date?: string;
+  cancelled_date?: string;
+  state?: ChequeState | string;
+  state_label?: string;
+  is_due?: boolean;
+  is_overdue?: boolean;
+  days_until_due?: number;
+  rejection_reason?: string;
+  cancellation_reason?: string;
+  reversal_applied?: boolean;
+  collection?: Ref;
+}
+
+export interface FinanceChequeSummary {
+  pending_count?: number;
+  due_count?: number;
+  overdue_count?: number;
+  deposited_count?: number;
+  cleared_count?: number;
+  rejected_count?: number;
+  due_soon_count?: number;
+}
+
+export interface ParentChequeInfo {
+  id?: number;
+  state?: ChequeState | string;
+  state_label?: string;
+  cheque_number?: string;
+  bank_name?: string;
+  holder_name?: string;
+  received_date?: string;
+  due_date?: string;
+  deposited_date?: string;
+  cleared_date?: string;
+  rejected_date?: string;
+  cancelled_date?: string;
+  reversal_applied?: boolean;
+  is_due?: boolean;
+  is_overdue?: boolean;
+}
 
 export interface FeeType {
   id: number;
@@ -150,6 +236,19 @@ export interface FinanceOverviewTotals {
   collections_amount?: number;
   period_collections_count?: number;
   period_collections_amount?: number;
+  collection_count_period?: number;
+  total_collected_period?: number;
+  total_cleared_liquidity_period?: number;
+  cheques_pending_amount?: number;
+  cheques_due_amount?: number;
+  cheques_deposited_amount?: number;
+  cheques_cleared_amount?: number;
+  cheques_rejected_amount?: number;
+  cheques_pending_count?: number;
+  cheques_due_count?: number;
+  cheques_deposited_count?: number;
+  cheques_cleared_count?: number;
+  cheques_rejected_count?: number;
   currency?: string;
 }
 
@@ -259,6 +358,8 @@ export interface ParentFinanceCollection {
   status?: PaymentCollectionState;
   currency?: string;
   allocations?: PaymentAllocation[];
+  cheque?: ParentChequeInfo;
+  reversal_applied?: boolean;
 }
 
 export interface PaymentAllocation {
@@ -298,6 +399,8 @@ export interface StudentFee {
   installments?: FinanceInstallment[];
   discounts?: FinanceDiscount[];
   lines?: FinanceInstallment[];
+  cheque?: FinanceCheque | ParentChequeInfo;
+  paid_by_cheque?: boolean;
 }
 
 export interface PaymentCollection {
@@ -326,6 +429,8 @@ export interface PaymentCollection {
   user?: Ref;
   allocations?: PaymentAllocation[];
   status_history?: { state?: string; date?: string; user?: Ref }[];
+  cheque?: FinanceCheque | ParentChequeInfo;
+  reversal_applied?: boolean;
 }
 
 export interface StudentFinanceProfile {
@@ -402,6 +507,7 @@ export interface CreatePaymentCollectionPayload {
   reference?: string;
   notes?: string;
   allocations?: { student_fee_id?: number; installment_id?: number; amount: number }[];
+  cheque?: ChequeRegistrationPayload;
 }
 
 export interface UpdateBillingProfilePayload {

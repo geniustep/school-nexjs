@@ -477,9 +477,17 @@
       "net": "Net amount",
       "allocations": "Allocations",
       "methodCash": "Cash",
+      "methodCheque": "Cheque",
       "methodCheck": "Check",
       "methodTransfer": "Transfer",
-      "methodCard": "Card"
+      "methodCard": "Card",
+      "cheques": {
+        "pending": "Paid by cheque — pending",
+        "deposited": "Paid by cheque — deposited",
+        "cleared": "Paid by cheque — cleared",
+        "rejected": "Cheque rejected",
+        "cancelled": "Cheque cancelled"
+      }
     }
   },
   "studentPortal": {
@@ -870,6 +878,8 @@
       "hubStudentFeesDesc": "Browse student fees by student",
       "hubCollections": "Collections",
       "hubCollectionsDesc": "Recorded payment collections",
+      "hubCheques": "Cheques",
+      "hubChequesDesc": "Deferred cheques and collection lifecycle",
       "hubRecordCollection": "Record collection",
       "hubRecordCollectionDesc": "Create a new payment collection",
       "hubFeeTypes": "Fee types",
@@ -941,6 +951,7 @@
       "payer": "Payer",
       "paymentMethod": "Payment method",
       "methodCash": "Cash",
+      "methodCheque": "Cheque",
       "methodCheck": "Check",
       "methodTransfer": "Transfer",
       "reference": "Reference",
@@ -1001,6 +1012,8 @@
       "overviewOverdueInstallments": "Overdue installments",
       "overviewPeriodCollections": "Collections in period",
       "overviewPeriodCollectedAmount": "Collected in period",
+      "overviewRegisteredCollectionsPeriod": "Total registered collections",
+      "overviewClearedLiquidityPeriod": "Actually cleared liquidity",
       "recentCollections": "Recent collections",
       "studentsNeedingFollowup": "Students needing follow-up",
       "dateFrom": "From date",
@@ -1020,6 +1033,109 @@
         "journalInactive": "The selected journal is inactive.",
         "journalNotAllowed": "This journal is not allowed for collections.",
         "journalCompanyMismatch": "The journal does not belong to the active school."
+      },
+      "cheques": {
+        "title": "Cheques",
+        "subtitle": "Deferred cheques and collection lifecycle",
+        "backToList": "Back to cheques",
+        "detailTitle": "Cheque details",
+        "viewDetail": "View details",
+        "viewCollection": "View collection",
+        "chequeNumber": "Cheque number",
+        "bankName": "Bank",
+        "holderName": "Cheque holder",
+        "receivedDate": "Received date",
+        "dueDate": "Due date",
+        "dueFrom": "Due from",
+        "dueTo": "Due to",
+        "dueStatus": "Due status",
+        "searchPlaceholder": "Search by cheque number or student…",
+        "empty": "No cheques",
+        "registrationTitle": "Cheque details",
+        "reason": "Reason",
+        "reasonRequired": "Reason is required",
+        "overdue": "Overdue cheque",
+        "dueToday": "Due today",
+        "dueSoon": "Due in {days} days",
+        "reversalApplied": "Payment reversed on student balance",
+        "collectionReversed": "Payment reversed — see cheque status",
+        "markerPending": "Paid by cheque — pending",
+        "markerDeposited": "Paid by cheque — deposited",
+        "markerCleared": "Paid by cheque — cleared",
+        "markerReversalRejected": "Payment reversed — cheque rejected",
+        "markerReversalCancelled": "Payment reversed — cheque cancelled",
+        "overviewPending": "Cheques pending",
+        "overviewDue": "Cheques due",
+        "overviewDeposited": "Cheques deposited",
+        "overviewCleared": "Cheques cleared",
+        "overviewRejected": "Cheques rejected",
+        "overviewPendingCount": "Pending cheques count",
+        "overviewDueCount": "Due cheques count",
+        "overviewDepositedCount": "Deposited cheques count",
+        "overviewClearedCount": "Cleared cheques count",
+        "overviewRejectedCount": "Rejected cheques count",
+        "filters": {
+          "pending": "Pending",
+          "dueToday": "Due today",
+          "overdue": "Overdue",
+          "deposited": "Deposited",
+          "cleared": "Cleared",
+          "rejected": "Rejected",
+          "cancelled": "Cancelled",
+          "overdueOnly": "Overdue only"
+        },
+        "alerts": {
+          "dueSoon": "Due within 3 days",
+          "overdue": "Overdue cheques",
+          "depositedNotCleared": "Deposited, not cleared"
+        },
+        "states": {
+          "received": "Pending",
+          "deposited": "Deposited",
+          "cleared": "Cleared",
+          "rejected": "Rejected",
+          "cancelled": "Cancelled"
+        },
+        "actions": {
+          "deposit": {
+            "button": "Deposit cheque",
+            "title": "Deposit cheque",
+            "confirm": "Confirm deposit",
+            "dateLabel": "Deposit date",
+            "warning": "Liquidity is not updated until the cheque is cleared."
+          },
+          "clear": {
+            "button": "Confirm bank clearance",
+            "title": "Confirm bank clearance",
+            "confirm": "Confirm clearance",
+            "dateLabel": "Clearance date",
+            "warning": "The cheque amount will enter actual bank liquidity.",
+            "bankConfirm": "Confirm that the cheque amount appeared in the bank account."
+          },
+          "reject": {
+            "button": "Reject cheque",
+            "title": "Reject cheque",
+            "confirm": "Confirm rejection",
+            "dateLabel": "Rejection date",
+            "warning": "Payment will be reversed and the amount returned to the student balance."
+          },
+          "cancel": {
+            "button": "Cancel cheque",
+            "title": "Cancel cheque",
+            "confirm": "Confirm cancellation",
+            "dateLabel": "Cancellation date",
+            "warning": "Payment will be reversed and the amount returned to the student balance."
+          }
+        },
+        "errors": {
+          "invalidChequeData": "Invalid cheque data.",
+          "chequeRequired": "Cheque details are required.",
+          "invalidChequeState": "Cheque state does not allow this action.",
+          "chequeAlreadyCleared": "Cheque is already cleared.",
+          "reversalAlreadyApplied": "Reversal was already applied.",
+          "chequeSchoolMismatch": "Cheque does not belong to the active school.",
+          "chequeAmountMismatch": "Cheque amount does not match the collection."
+        }
       },
       "states": {
         "draft": "Draft",

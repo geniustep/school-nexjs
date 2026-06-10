@@ -7,12 +7,14 @@ import { DataTable, type Column } from '@/components/tables/data-table';
 import { PageHeader } from '@/components/ui/primitives';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { FinanceStatusBadge } from '@/features/admin/finance/finance-status-badge';
+import { ChequePaymentMarker } from '@/features/admin/finance/cheque-payment-marker';
 import { ChildFinanceSubnav } from '@/features/parent/finance/child-finance-subnav';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { useResource } from '@/lib/hooks/use-resource';
 import { endpoints } from '@/lib/api/endpoints';
 import { collectionState, paymentMethodLabel, refName } from '@/lib/utils/finance';
+import { isCollectionChequeReversed, isChequePayment } from '@/lib/utils/cheque';
 import type { ParentFinanceCollection, PaymentAllocation } from '@/types/finance';
 
 export default function ParentChildFinanceCollectionDetailPage({
@@ -87,7 +89,11 @@ export default function ParentChildFinanceCollectionDetailPage({
                 <div>
                   <dt>{t('academic.status')}</dt>
                   <dd>
-                    <FinanceStatusBadge state={collectionState(coll)} />
+                    {isCollectionChequeReversed(coll) || isChequePayment(coll.payment_method) || coll.cheque ? (
+                      <ChequePaymentMarker collection={coll} variant="parent" />
+                    ) : (
+                      <FinanceStatusBadge state={collectionState(coll)} />
+                    )}
                   </dd>
                 </div>
               </dl>
