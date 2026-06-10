@@ -56,6 +56,12 @@ function journalErrorMessageKey(code) {
   switch (code) {
     case 'invalid_journal':
       return 'admin.finance.errors.invalidJournal';
+    case 'journal_inactive':
+      return 'admin.finance.errors.journalInactive';
+    case 'journal_not_allowed':
+      return 'admin.finance.errors.journalNotAllowed';
+    case 'journal_company_mismatch':
+      return 'admin.finance.errors.journalCompanyMismatch';
     default:
       return null;
   }
@@ -69,5 +75,8 @@ assert.equal(installmentIsOverdue({ state: 'overdue' }), true);
 assert.equal(normalizeMoneyValue('12.5'), 12.5);
 assert.deepEqual(parseFinanceList({ items: [{ id: 1 }] }), [{ id: 1 }]);
 assert.equal(journalErrorMessageKey('invalid_journal'), 'admin.finance.errors.invalidJournal');
+assert.equal(journalErrorMessageKey('journal_inactive'), 'admin.finance.errors.journalInactive');
+assert.equal(journalErrorMessageKey('journal_not_allowed'), 'admin.finance.errors.journalNotAllowed');
+assert.equal(journalErrorMessageKey('journal_company_mismatch'), 'admin.finance.errors.journalCompanyMismatch');
 
 console.log('finance-web-2-tests: PASS');

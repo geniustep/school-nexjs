@@ -17,7 +17,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const target = loadOdooTarget();
 const nextBase = (process.argv[2] ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000').replace(/\/$/, '');
 
-const ACCOUNTS = ['qa.schoolmgr', 'qa.staff', 'qa.parent'];
+const ACCOUNTS = ['qa.pm', 'done', 'qa.parent'];
 
 function mergeCookies(prev, res) {
   const jar = new Map();

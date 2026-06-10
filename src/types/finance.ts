@@ -293,6 +293,8 @@ export interface StudentFee {
   due_date?: string | null;
   next_due_date?: string | null;
   currency?: string;
+  /** Display label from API (e.g. "Student — Fee type"). */
+  name?: string;
   installments?: FinanceInstallment[];
   discounts?: FinanceDiscount[];
   lines?: FinanceInstallment[];

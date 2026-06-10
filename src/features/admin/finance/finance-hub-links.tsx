@@ -9,6 +9,7 @@ import {
   canManageFeeCatalog,
   canManageFeePlans,
   canViewFinanceSetup,
+  canViewPayments,
 } from '@/lib/permissions/finance';
 import { useFinanceJournalsAvailable } from '@/features/admin/finance/use-finance-lookups';
 
@@ -38,7 +39,7 @@ export function FinanceHubLinks() {
       icon: '💵',
       labelKey: 'admin.finance.hubCollections',
       descKey: 'admin.finance.hubCollectionsDesc',
-      show: true,
+      show: canViewPayments(user),
     },
     {
       href: '/admin/finance/collections/new',
