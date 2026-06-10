@@ -121,6 +121,11 @@ function chequeErrorMessageKey(code) {
   }
 }
 
+function feeBalanceAmount(row) {
+  const v = row.remaining_amount ?? row.balance_amount ?? row.balance;
+  return v == null || Number.isNaN(v) ? undefined : v;
+}
+
 // Types/parsing
 assert.equal(isChequePayment('cheque'), true);
 assert.equal(isChequePayment('check'), true);
@@ -197,5 +202,8 @@ assert.ok(overview.includes('cheques_pending_amount'));
 
 // Errors
 assert.equal(chequeErrorMessageKey('cheque_already_cleared'), 'admin.finance.cheques.errors.chequeAlreadyCleared');
+
+assert.equal(feeBalanceAmount({ balance_amount: 1000 }), 1000);
+assert.equal(feeBalanceAmount({ remaining_amount: 500, balance_amount: 1000 }), 500);
 
 console.log('finance-cheque-web-tests: PASS');

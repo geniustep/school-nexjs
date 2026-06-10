@@ -25,7 +25,7 @@ import {
 } from '@/lib/permissions/finance';
 import { useSession } from '@/features/auth/session-context';
 import { getStudentDisplayName } from '@/lib/utils/student';
-import { refName, studentFeeState } from '@/lib/utils/finance';
+import { refName, studentFeeState, feeBalanceAmount } from '@/lib/utils/finance';
 import type { StudentFinanceProfile, StudentFee } from '@/types/finance';
 import type { Student } from '@/types/student';
 import type { ListParams } from '@/types/api';
@@ -104,7 +104,7 @@ export default function AdminFinanceStudentProfilePage({
     {
       key: 'remaining',
       header: t('admin.finance.remainingAmount'),
-      render: (row) => <FinanceMoney amount={row.remaining_amount ?? row.balance} currency={row.currency} />,
+      render: (row) => <FinanceMoney amount={feeBalanceAmount(row)} currency={row.currency} />,
     },
     {
       key: 'status',
@@ -194,7 +194,7 @@ export default function AdminFinanceStudentProfilePage({
                   <dt>{t('admin.finance.remainingAmount')}</dt>
                   <dd>
                     <FinanceMoney
-                      amount={billingState.data.remaining_amount ?? billingState.data.balance}
+                      amount={feeBalanceAmount(billingState.data)}
                       currency={billingState.data.currency}
                     />
                   </dd>

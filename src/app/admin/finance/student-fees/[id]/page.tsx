@@ -14,7 +14,7 @@ import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { FINANCE_VIEW } from '@/lib/permissions/finance';
-import { refName, studentFeeState, installmentIsOverdue } from '@/lib/utils/finance';
+import { refName, studentFeeState, installmentIsOverdue, feeBalanceAmount } from '@/lib/utils/finance';
 import type { FinanceDiscount, FinanceInstallment, StudentFee } from '@/types/finance';
 
 export default function AdminFinanceStudentFeeDetailPage({
@@ -139,7 +139,7 @@ export default function AdminFinanceStudentFeeDetailPage({
                 <div>
                   <dt>{t('admin.finance.remainingAmount')}</dt>
                   <dd>
-                    <FinanceMoney amount={fee.remaining_amount ?? fee.balance} currency={fee.currency} />
+                    <FinanceMoney amount={feeBalanceAmount(fee)} currency={fee.currency} />
                   </dd>
                 </div>
                 {fee.due_date && (

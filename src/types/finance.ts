@@ -388,6 +388,7 @@ export interface StudentFee {
   amount?: number;
   paid_amount?: number;
   remaining_amount?: number;
+  balance_amount?: number;
   balance?: number;
   state?: StudentFeeState;
   status?: StudentFeeState;

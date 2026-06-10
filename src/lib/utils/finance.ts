@@ -82,6 +82,16 @@ export function financeStudentDisplayName(row: {
   return row.full_name?.trim() || row.name?.trim() || '—';
 }
 
+/** Remaining balance from API variants (Odoo may send balance_amount). */
+export function feeBalanceAmount(row: {
+  remaining_amount?: number;
+  balance_amount?: number;
+  balance?: number;
+}): number | undefined {
+  const v = row.remaining_amount ?? row.balance_amount ?? row.balance;
+  return v == null || Number.isNaN(v) ? undefined : v;
+}
+
 export function paymentMethodLabel(
   method: string | undefined,
   t: (key: string) => string,
