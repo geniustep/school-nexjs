@@ -55,11 +55,13 @@ export const api = {
     }
   },
 
-  async post<T>(path: string, body?: unknown): Promise<ApiResponse<T>> {
+  async post<T>(path: string, body?: unknown, query?: ListParams): Promise<ApiResponse<T>> {
     try {
-      const res = await fetch(buildUrl(path), {
+      const res = await fetch(buildUrl(path, query), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        credentials: 'same-origin',
+        cache: 'no-store',
         body: body === undefined ? undefined : JSON.stringify(body),
       });
       return parse<T>(res);
@@ -76,11 +78,13 @@ export const api = {
     }
   },
 
-  async put<T>(path: string, body?: unknown): Promise<ApiResponse<T>> {
+  async put<T>(path: string, body?: unknown, query?: ListParams): Promise<ApiResponse<T>> {
     try {
-      const res = await fetch(buildUrl(path), {
+      const res = await fetch(buildUrl(path, query), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        credentials: 'same-origin',
+        cache: 'no-store',
         body: body === undefined ? undefined : JSON.stringify(body),
       });
       return parse<T>(res);
@@ -103,6 +107,8 @@ export const api = {
       const res = await fetch(buildUrl(path), {
         method: 'POST',
         headers: { Accept: 'application/json' },
+        credentials: 'same-origin',
+        cache: 'no-store',
         body: formData,
       });
       return parse<T>(res);
@@ -124,6 +130,8 @@ export const api = {
       const res = await fetch(buildUrl(path), {
         method: 'DELETE',
         headers: { Accept: 'application/json' },
+        credentials: 'same-origin',
+        cache: 'no-store',
       });
       return parse<T>(res);
     } catch {

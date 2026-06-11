@@ -1130,6 +1130,7 @@
         "nextStepCreateClassesDesc": "أضف قسمًا داخل المستوى الذي فعّلته للتو.",
         "enableSelectedLevels": "تفعيل المستويات المحددة",
         "alreadyEnabled": "مفعّل",
+        "levelAlreadyInSchool": "موجود في المؤسسة — يحتاج ربطًا من Odoo",
         "supportsTracks": "يدعم الشعب",
         "levelsEnabledSuccess": "تم تفعيل {count} مستويات. الخطوة التالية: إنشاء الأقسام.",
         "levelsEnabledPartial": "نجح {success} وفشل {failed}. أعد المحاولة للمستويات الفاشلة.",

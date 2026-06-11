@@ -1130,6 +1130,7 @@
         "nextStepCreateClassesDesc": "Add a class inside the level you just enabled.",
         "enableSelectedLevels": "Enable selected levels",
         "alreadyEnabled": "Enabled",
+        "levelAlreadyInSchool": "Already in school — needs linking in Odoo",
         "supportsTracks": "Supports tracks",
         "levelsEnabledSuccess": "Enabled {count} levels. Next: create classes.",
         "levelsEnabledPartial": "{success} succeeded, {failed} failed. Retry failed levels.",

@@ -1130,6 +1130,7 @@
         "nextStepCreateClassesDesc": "Añada un grupo en el nivel que acaba de activar.",
         "enableSelectedLevels": "Activar niveles seleccionados",
         "alreadyEnabled": "Activado",
+        "levelAlreadyInSchool": "Ya existe en el centro — requiere enlace en Odoo",
         "supportsTracks": "Admite itinerarios",
         "levelsEnabledSuccess": "Se activaron {count} niveles. Siguiente: crear grupos.",
         "levelsEnabledPartial": "{success} correctos, {failed} fallidos. Reintente los fallidos.",

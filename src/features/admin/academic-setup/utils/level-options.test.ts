@@ -4,8 +4,10 @@ import { normalizeLevelOptionsPayload } from '../hooks/use-level-options';
 import {
   aggregateEnableResults,
   buildEnablePayload,
+  buildOrphanLevelCodes,
   filterReferenceLevels,
   groupReferenceLevelsByCycle,
+  isReferenceLevelOrphan,
   isReferenceLevelSelectable,
   selectableIdsInCycle,
   sortReferenceLevels,
@@ -113,5 +115,14 @@ describe('level-options utils', () => {
     ];
     expect(selectableIdsInCycle(list, cyclePrimary.id)).toEqual([1]);
     expect(isReferenceLevelSelectable(list[1]!)).toBe(false);
+  });
+
+  it('blocks orphan reference levels already present in school', () => {
+    const orphans = buildOrphanLevelCodes([{ code: 'P1' }, { code: 'P2' }]);
+    const p1 = refLevel({ id: 1, code: 'P1' });
+    expect(isReferenceLevelOrphan(p1, orphans)).toBe(true);
+    expect(isReferenceLevelSelectable(p1, orphans)).toBe(false);
+    expect(buildEnablePayload([1, 2], [p1, refLevel({ id: 2, code: 'P3' })], orphans)).toEqual([2]);
+    expect(selectableIdsInCycle([p1, refLevel({ id: 2, code: 'P3' })], cyclePrimary.id, orphans)).toEqual([2]);
   });
 });

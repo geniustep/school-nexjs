@@ -1130,6 +1130,7 @@
         "nextStepCreateClassesDesc": "Ajoutez une classe dans le niveau que vous venez d'activer.",
         "enableSelectedLevels": "Activer les niveaux sélectionnés",
         "alreadyEnabled": "Activé",
+        "levelAlreadyInSchool": "Déjà dans l'établissement — liaison Odoo requise",
         "supportsTracks": "Filières supportées",
         "levelsEnabledSuccess": "{count} niveaux activés. Prochaine étape : créer les classes.",
         "levelsEnabledPartial": "{success} réussis, {failed} échoués. Réessayez les échecs.",
