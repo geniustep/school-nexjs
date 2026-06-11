@@ -39,6 +39,7 @@ export interface Level {
   id: number;
   name: string;
   code?: string | null;
+  sequence?: number;
   ref_level_id?: number | null;
   supports_tracks?: boolean;
   cycle?: LevelCycle | null;

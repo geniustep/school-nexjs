@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { ErrorState, LoadingState, EmptyState } from '@/components/states/states';
 import { BatchClassDrawer } from '@/features/admin/academic-setup/components/batch-class-drawer';
 import { ClassDrawer } from '@/features/admin/academic-setup/components/class-drawer';
-import { LevelClassGroup } from '@/features/admin/academic-setup/components/level-class-group';
+import { LevelsByCycleList } from '@/features/admin/academic-setup/components/levels-by-cycle-list';
 import { LevelsToolbar } from '@/features/admin/academic-setup/components/levels-toolbar';
 import { ReferenceLevelsDrawer } from '@/features/admin/academic-setup/components/reference-levels-drawer';
 import { useAcademicSetupLists } from '@/features/admin/academic-setup/hooks/use-academic-setup-data';
@@ -236,30 +236,19 @@ export default function AcademicSetupClassesPage() {
 
       <LevelsToolbar groups={levelGroups} />
 
-      <div className="academic-setup-levels-list">
-        {filteredGroups.length === 0 ? (
-          <EmptyState
-            icon="🔍"
-            title={t('admin.academicSetup.guided.noLevelsFilterMatch')}
-            description={t('admin.academicSetup.levelsFilterEmpty')}
-          />
-        ) : (
-          filteredGroups.map((group) => (
-            <LevelClassGroup
-              key={group.id}
-              group={group}
-              selectedClassId={filterClassId}
-              canManage={canManage}
-              trackLevels={trackOptionsState.options?.levels ?? []}
-              subjectCount={subjectCountsByLevel.get(group.id) ?? 0}
-              onAddClass={(levelId) => setDrawer({ mode: 'create', levelId })}
-              onBatchClasses={canManage ? (levelId) => setBatchLevelId(levelId) : undefined}
-              onLevelRemoved={refreshAll}
-              onSelectClass={(cls) => setDrawer({ mode: 'view', cls })}
-            />
-          ))
-        )}
-      </div>
+      <LevelsByCycleList
+        groups={filteredGroups}
+        searchQuery={searchQuery}
+        focusLevelId={filterLevelId}
+        selectedClassId={filterClassId}
+        canManage={canManage}
+        trackLevels={trackOptionsState.options?.levels ?? []}
+        subjectCountsByLevel={subjectCountsByLevel}
+        onAddClass={(levelId) => setDrawer({ mode: 'create', levelId })}
+        onBatchClasses={canManage ? (levelId) => setBatchLevelId(levelId) : undefined}
+        onLevelRemoved={refreshAll}
+        onSelectClass={(cls) => setDrawer({ mode: 'view', cls })}
+      />
 
       <ClassDrawer
         open={!!drawer || openFromAction}

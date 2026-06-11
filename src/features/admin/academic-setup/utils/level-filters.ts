@@ -1,4 +1,6 @@
+import type { LevelCycle } from '@/types/class';
 import type { LevelGroup } from '../types';
+import { uniqueSortedCycles } from './group-and-sort-levels';
 
 export type LevelFilterMode =
   | 'all'
@@ -49,10 +51,6 @@ export function filterLevelGroups(
   });
 }
 
-export function uniqueCycles(groups: LevelGroup[]): { id: number; name: string }[] {
-  const seen = new Map<number, string>();
-  for (const g of groups) {
-    if (g.cycle?.id != null) seen.set(g.cycle.id, g.cycle.name);
-  }
-  return [...seen.entries()].map(([id, name]) => ({ id, name }));
+export function uniqueCycles(groups: LevelGroup[]): LevelCycle[] {
+  return uniqueSortedCycles(groups);
 }

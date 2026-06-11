@@ -874,6 +874,7 @@
       "classesPageTitle": "Niveaux et classes",
       "classesPageSubtitle": "Gérez les niveaux activés et créez leurs classes.",
       "classesPageStats": "{levels} niveaux · {classes} classes · {students} élèves",
+      "cycleGroupStats": "{levels} niveaux · {classes} classes",
       "levelsSearchPlaceholder": "Rechercher par nom ou code de niveau…",
       "levelsFilterLabel": "Filtre des niveaux",
       "levelsFilterEmpty": "Essayez de modifier la recherche ou le filtre.",

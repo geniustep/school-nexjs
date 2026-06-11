@@ -874,6 +874,7 @@
       "classesPageTitle": "المستويات والأقسام",
       "classesPageSubtitle": "إدارة المستويات المفعلة وإنشاء الأقسام التابعة لها.",
       "classesPageStats": "{levels} مستوى · {classes} قسم · {students} تلميذ",
+      "cycleGroupStats": "{levels} مستويات · {classes} أقسام",
       "levelsSearchPlaceholder": "ابحث باسم المستوى أو الرمز…",
       "levelsFilterLabel": "فلتر المستويات",
       "levelsFilterEmpty": "جرّب تغيير البحث أو الفلتر.",

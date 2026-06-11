@@ -874,6 +874,7 @@
       "classesPageTitle": "Levels & classes",
       "classesPageSubtitle": "Manage enabled levels and create their classes.",
       "classesPageStats": "{levels} levels · {classes} classes · {students} pupils",
+      "cycleGroupStats": "{levels} levels · {classes} classes",
       "levelsSearchPlaceholder": "Search by level name or code…",
       "levelsFilterLabel": "Level filter",
       "levelsFilterEmpty": "Try changing your search or filter.",
