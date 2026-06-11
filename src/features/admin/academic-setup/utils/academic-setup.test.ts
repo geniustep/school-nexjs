@@ -9,6 +9,7 @@ import { mapAcademicSetupApiError, mapSuggestionReason } from '@/features/admin/
 import {
   readinessScoreLabel,
   readinessStatusLabel,
+  readinessTone,
   isStaffDomainUnavailable,
 } from '@/features/admin/academic-setup/utils/readiness-present';
 import {
@@ -130,6 +131,14 @@ describe('readiness presentation', () => {
   it('detects unavailable staff domain', () => {
     expect(isStaffDomainUnavailable({})).toBe(true);
     expect(isStaffDomainUnavailable({ staff: { score: 0, status: 'incomplete', summary: {} } })).toBe(false);
+  });
+
+  it('maps readiness tones without red for not_started', () => {
+    expect(readinessTone('not_started', 0)).toBe('slate');
+    expect(readinessTone('incomplete', 40)).toBe('blue');
+    expect(readinessTone('needs_attention', 60)).toBe('amber');
+    expect(readinessTone('blocked', 10)).toBe('red');
+    expect(readinessTone('ready', 100)).toBe('green');
   });
 });
 

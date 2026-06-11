@@ -867,8 +867,46 @@
         "teacherHighLoad": "{name} — {count} clases (carga alta)"
       },
       "levelMeta": "{classes} clases · {students} alumnos",
+      "levelStats": "{classes} clases · {students} alumnos · {subjects} materias",
       "classMeta": "{students} alumnos · {subjects} materias",
-      "noClassesInLevel": "No hay clases en este nivel.",
+      "noClassesInLevel": "Aún no se han creado clases para este nivel.",
+      "viewIssues": "Ver problemas",
+      "classesPageTitle": "Niveles y clases",
+      "classesPageSubtitle": "Gestione los niveles activados y cree sus clases.",
+      "classesPageStats": "{levels} niveles · {classes} clases · {students} alumnos",
+      "levelsSearchPlaceholder": "Buscar por nombre o código de nivel…",
+      "levelsFilterLabel": "Filtro de niveles",
+      "levelsFilterEmpty": "Pruebe a cambiar la búsqueda o el filtro.",
+      "addClasses": "Añadir clases",
+      "createFirstClass": "Crear la primera clase",
+      "addClassesTitle": "Añadir clases",
+      "addClassesDesc": "Elija cómo crear clases para {level}.",
+      "addSingleClass": "Añadir una clase",
+      "addSingleClassDesc": "Crear una sola clase con un nombre concreto.",
+      "addMultipleClasses": "Crear varias clases",
+      "addMultipleClassesDesc": "Crear varias clases de una vez.",
+      "tracksAvailable": "Itinerarios y modalidades disponibles",
+      "viewLevelDetails": "Ver detalles",
+      "manageTracks": "Gestionar itinerarios",
+      "levelsFilter": {
+        "all": "Todos",
+        "with_classes": "Con clases",
+        "without_classes": "Sin clases",
+        "supports_tracks": "Con itinerarios",
+        "needs_review": "Requiere revisión"
+      },
+      "levelStatus": {
+        "active": "Activo",
+        "needs_classes": "Necesita clases",
+        "needs_subjects": "Necesita materias",
+        "needs_review": "Requiere revisión",
+        "complete": "Completo"
+      },
+      "classStatus": {
+        "active": "Activo",
+        "inactive": "Inactivo",
+        "suspended": "Suspendido"
+      },
       "statusComplete": "Completo",
       "statusNeedsTeacher": "Necesita profesor",
       "editClass": "Editar clase",
@@ -1062,10 +1100,10 @@
       "adoptSuggestion": "Confirmar sugerencia",
       "readinessStatus": {
         "not_started": "No iniciado",
-        "incomplete": "Incompleto",
-        "needs_attention": "Requiere atención",
-        "ready": "Listo",
-        "blocked": "Bloqueado"
+        "incomplete": "En configuración",
+        "needs_attention": "Requiere revisión",
+        "ready": "Completo",
+        "blocked": "Bloqueante"
       },
       "adminKind": {
         "project_manager": "Director general",
@@ -1108,6 +1146,7 @@
         "nextStepTitle": "Siguiente paso",
         "stepLabel": "Paso {number}",
         "showDetails": "Mostrar detalles",
+        "showAllDetails": "Mostrar todos los detalles",
         "hideDetails": "Ocultar detalles",
         "openTimetable": "Abrir horario",
         "addLevels": "Añadir niveles",
@@ -1237,11 +1276,11 @@
         },
         "states": {
           "not_started": "Sin empezar",
-          "in_progress": "En curso",
-          "needs_attention": "Requiere atención",
+          "in_progress": "En configuración",
+          "needs_attention": "Requiere revisión",
           "completed": "Completado",
-          "blocked": "Bloqueado",
-          "locked": "Bloqueado"
+          "blocked": "Bloqueante",
+          "locked": "Aún no disponible"
         },
         "summaryLevels": "{count} niveles activados",
         "summaryClasses": "{count} grupos",

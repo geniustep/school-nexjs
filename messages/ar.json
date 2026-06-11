@@ -867,8 +867,46 @@
         "teacherHighLoad": "{name} — {count} أقسام (عبء مرتفع)"
       },
       "levelMeta": "{classes} أقسام · {students} تلميذ",
+      "levelStats": "{classes} قسم · {students} تلميذ · {subjects} مادة",
       "classMeta": "{students} تلميذ · {subjects} مواد",
-      "noClassesInLevel": "لا توجد أقسام في هذا المستوى.",
+      "noClassesInLevel": "لم تُنشأ أقسام لهذا المستوى بعد.",
+      "viewIssues": "عرض المشكلات",
+      "classesPageTitle": "المستويات والأقسام",
+      "classesPageSubtitle": "إدارة المستويات المفعلة وإنشاء الأقسام التابعة لها.",
+      "classesPageStats": "{levels} مستوى · {classes} قسم · {students} تلميذ",
+      "levelsSearchPlaceholder": "ابحث باسم المستوى أو الرمز…",
+      "levelsFilterLabel": "فلتر المستويات",
+      "levelsFilterEmpty": "جرّب تغيير البحث أو الفلتر.",
+      "addClasses": "إضافة أقسام",
+      "createFirstClass": "إنشاء أول قسم",
+      "addClassesTitle": "إضافة أقسام",
+      "addClassesDesc": "اختر طريقة إنشاء الأقسام للمستوى {level}.",
+      "addSingleClass": "إضافة قسم واحد",
+      "addSingleClassDesc": "إنشاء قسم واحد باسم محدد.",
+      "addMultipleClasses": "إنشاء عدة أقسام",
+      "addMultipleClassesDesc": "إنشاء عدة أقسام دفعة واحدة.",
+      "tracksAvailable": "الشعب والمسارات متاحة",
+      "viewLevelDetails": "عرض التفاصيل",
+      "manageTracks": "إدارة الشعب",
+      "levelsFilter": {
+        "all": "الكل",
+        "with_classes": "بها أقسام",
+        "without_classes": "دون أقسام",
+        "supports_tracks": "تدعم الشعب",
+        "needs_review": "تحتاج مراجعة"
+      },
+      "levelStatus": {
+        "active": "مفعّل",
+        "needs_classes": "يحتاج أقسامًا",
+        "needs_subjects": "يحتاج مواد",
+        "needs_review": "يحتاج مراجعة",
+        "complete": "مكتمل"
+      },
+      "classStatus": {
+        "active": "نشط",
+        "inactive": "غير مفعّل",
+        "suspended": "موقوف"
+      },
       "statusComplete": "مكتمل",
       "statusNeedsTeacher": "يحتاج أستاذًا",
       "editClass": "تعديل القسم",
@@ -1062,10 +1100,10 @@
       "adoptSuggestion": "تأكيد الاقتراح",
       "readinessStatus": {
         "not_started": "لم يبدأ",
-        "incomplete": "غير مكتمل",
-        "needs_attention": "يحتاج انتباه",
-        "ready": "جاهز",
-        "blocked": "محظور"
+        "incomplete": "قيد الإعداد",
+        "needs_attention": "يحتاج مراجعة",
+        "ready": "مكتمل",
+        "blocked": "مانع"
       },
       "adminKind": {
         "project_manager": "مدير عام",
@@ -1108,6 +1146,7 @@
         "nextStepTitle": "الخطوة التالية",
         "stepLabel": "المرحلة {number}",
         "showDetails": "عرض التفاصيل",
+        "showAllDetails": "عرض جميع التفاصيل",
         "hideDetails": "إخفاء التفاصيل",
         "openTimetable": "الانتقال إلى استعمال الزمن",
         "addLevels": "إضافة مستويات",
@@ -1237,11 +1276,11 @@
         },
         "states": {
           "not_started": "لم يبدأ",
-          "in_progress": "قيد التنفيذ",
-          "needs_attention": "يحتاج انتباه",
+          "in_progress": "قيد الإعداد",
+          "needs_attention": "يحتاج مراجعة",
           "completed": "مكتمل",
-          "blocked": "محظور",
-          "locked": "مقفل"
+          "blocked": "مانع",
+          "locked": "غير متاح بعد"
         },
         "summaryLevels": "{count} مستوى مفعّل",
         "summaryClasses": "{count} قسم",

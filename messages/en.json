@@ -867,8 +867,46 @@
         "teacherHighLoad": "{name} — {count} classes (high load)"
       },
       "levelMeta": "{classes} classes · {students} pupils",
+      "levelStats": "{classes} classes · {students} pupils · {subjects} subjects",
       "classMeta": "{students} pupils · {subjects} subjects",
-      "noClassesInLevel": "No classes in this level.",
+      "noClassesInLevel": "No classes have been created for this level yet.",
+      "viewIssues": "View issues",
+      "classesPageTitle": "Levels & classes",
+      "classesPageSubtitle": "Manage enabled levels and create their classes.",
+      "classesPageStats": "{levels} levels · {classes} classes · {students} pupils",
+      "levelsSearchPlaceholder": "Search by level name or code…",
+      "levelsFilterLabel": "Level filter",
+      "levelsFilterEmpty": "Try changing your search or filter.",
+      "addClasses": "Add classes",
+      "createFirstClass": "Create first class",
+      "addClassesTitle": "Add classes",
+      "addClassesDesc": "Choose how to create classes for {level}.",
+      "addSingleClass": "Add one class",
+      "addSingleClassDesc": "Create a single class with a specific name.",
+      "addMultipleClasses": "Create multiple classes",
+      "addMultipleClassesDesc": "Create several classes at once.",
+      "tracksAvailable": "Tracks & pathways available",
+      "viewLevelDetails": "View details",
+      "manageTracks": "Manage tracks",
+      "levelsFilter": {
+        "all": "All",
+        "with_classes": "With classes",
+        "without_classes": "Without classes",
+        "supports_tracks": "Supports tracks",
+        "needs_review": "Needs review"
+      },
+      "levelStatus": {
+        "active": "Active",
+        "needs_classes": "Needs classes",
+        "needs_subjects": "Needs subjects",
+        "needs_review": "Needs review",
+        "complete": "Complete"
+      },
+      "classStatus": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "suspended": "Suspended"
+      },
       "statusComplete": "Complete",
       "statusNeedsTeacher": "Needs teacher",
       "editClass": "Edit class",
@@ -1062,10 +1100,10 @@
       "adoptSuggestion": "Confirm suggestion",
       "readinessStatus": {
         "not_started": "Not started",
-        "incomplete": "Incomplete",
-        "needs_attention": "Needs attention",
-        "ready": "Ready",
-        "blocked": "Blocked"
+        "incomplete": "In setup",
+        "needs_attention": "Needs review",
+        "ready": "Complete",
+        "blocked": "Blocking issue"
       },
       "adminKind": {
         "project_manager": "Project manager",
@@ -1108,6 +1146,7 @@
         "nextStepTitle": "Next step",
         "stepLabel": "Step {number}",
         "showDetails": "Show details",
+        "showAllDetails": "Show all details",
         "hideDetails": "Hide details",
         "openTimetable": "Open timetable",
         "addLevels": "Add levels",
@@ -1237,11 +1276,11 @@
         },
         "states": {
           "not_started": "Not started",
-          "in_progress": "In progress",
-          "needs_attention": "Needs attention",
+          "in_progress": "In setup",
+          "needs_attention": "Needs review",
           "completed": "Completed",
-          "blocked": "Blocked",
-          "locked": "Locked"
+          "blocked": "Blocking issue",
+          "locked": "Not available yet"
         },
         "summaryLevels": "{count} enabled levels",
         "summaryClasses": "{count} classes",

@@ -14,56 +14,83 @@ const STATE_TONE: Record<GuidedStepState, string> = {
   locked: 'slate',
 };
 
+const STATE_ICON: Record<GuidedStepState, string> = {
+  not_started: '○',
+  in_progress: '◐',
+  needs_attention: '!',
+  completed: '✓',
+  blocked: '✕',
+  locked: '🔒',
+};
+
 export function GuidedFlowJourney({ steps }: { steps: GuidedStep[] }) {
   const t = useT();
 
   return (
-    <section aria-labelledby="guided-flow-title">
+    <section className="academic-setup-journey-section" aria-labelledby="guided-flow-title">
       <h2 id="guided-flow-title" className="admin-section__title">
         {t('admin.academicSetup.guided.journeyTitle')}
       </h2>
-      <ol className="academic-setup-journey">
+      <ol className="academic-setup-journey academic-setup-journey--timeline">
         {steps.map((step, index) => (
           <li key={step.id} className="academic-setup-journey__item">
-            {index > 0 && <span className="academic-setup-journey__connector" aria-hidden />}
-            <Link
-              href={step.available ? step.href : '#'}
+            <div className="academic-setup-journey__rail" aria-hidden>
+              <span
+                className={cn(
+                  'academic-setup-journey__num',
+                  step.state === 'completed' && 'academic-setup-journey__num--done',
+                  step.state === 'blocked' && 'academic-setup-journey__num--blocked',
+                  !step.available && step.state === 'locked' && 'academic-setup-journey__num--locked',
+                )}
+              >
+                {step.number}
+              </span>
+              {index < steps.length - 1 && <span className="academic-setup-journey__line" />}
+            </div>
+            <div
               className={cn(
                 'academic-setup-journey__card',
                 !step.available && 'academic-setup-journey__card--locked',
                 step.state === 'completed' && 'academic-setup-journey__card--done',
               )}
-              aria-disabled={!step.available}
-              onClick={(e) => {
-                if (!step.available) e.preventDefault();
-              }}
             >
-              <span className="academic-setup-journey__num" aria-hidden>
-                {step.number}
-              </span>
               <div className="academic-setup-journey__body">
-                <strong>{t(`admin.academicSetup.guided.steps.${step.id}`)}</strong>
-                <span className={`badge badge--${STATE_TONE[step.state]}`}>
-                  {t(`admin.academicSetup.guided.states.${step.state}`)}
-                </span>
-                <p className="tiny muted mt-2">
+                <div className="academic-setup-journey__title-row">
+                  <strong>{t(`admin.academicSetup.guided.steps.${step.id}`)}</strong>
+                  <span className={`badge badge--${STATE_TONE[step.state]}`}>
+                    <span aria-hidden>{STATE_ICON[step.state]} </span>
+                    {t(`admin.academicSetup.guided.states.${step.state}`)}
+                  </span>
+                </div>
+                <p className="academic-setup-journey__summary">
                   {t(step.summaryKey, step.summaryParams)}
                 </p>
                 {step.missingCount > 0 && step.state !== 'completed' && (
-                  <p className="tiny">
+                  <p className="academic-setup-journey__missing">
                     {t('admin.academicSetup.guided.missingCount', { count: step.missingCount })}
                   </p>
                 )}
                 {step.lockReasonKey && (
-                  <p className="tiny academic-setup-journey__lock">{t(step.lockReasonKey)}</p>
+                  <p className="academic-setup-journey__lock">{t(step.lockReasonKey)}</p>
                 )}
               </div>
-              {step.available && (
-                <span className="academic-setup-journey__action tiny">
-                  {t(step.actionKey)} →
-                </span>
+              {step.available ? (
+                <Link href={step.href} className="btn btn--ghost btn--sm academic-setup-journey__cta">
+                  {t(step.actionKey)}
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  className="btn btn--ghost btn--sm"
+                  disabled
+                  aria-disabled
+                >
+                  {step.state === 'locked'
+                    ? t('admin.academicSetup.guided.states.locked')
+                    : t(step.actionKey)}
+                </button>
               )}
-            </Link>
+            </div>
           </li>
         ))}
       </ol>

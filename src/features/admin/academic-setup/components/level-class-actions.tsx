@@ -9,12 +9,12 @@ import { LevelRemoveDialog } from './level-remove-dialog';
 export function LevelClassActions({
   group,
   canManage,
-  onAddClass,
+  supportsTracks = false,
   onRemoved,
 }: {
   group: LevelGroup;
   canManage: boolean;
-  onAddClass?: (levelId: number) => void;
+  supportsTracks?: boolean;
   onRemoved: () => void;
 }) {
   const t = useT();
@@ -47,19 +47,6 @@ export function LevelClassActions({
       </button>
       {menuOpen && (
         <div className="academic-setup-level-actions__menu" role="menu">
-          {onAddClass && (
-            <button
-              type="button"
-              role="menuitem"
-              className="academic-setup-level-actions__item"
-              onClick={() => {
-                setMenuOpen(false);
-                onAddClass(group.id);
-              }}
-            >
-              + {t('admin.addClass')}
-            </button>
-          )}
           <Link
             href={`/admin/levels/${group.id}`}
             role="menuitem"
@@ -68,6 +55,24 @@ export function LevelClassActions({
           >
             {t('admin.academicSetup.guided.editLevelAction')}
           </Link>
+          <Link
+            href={`/admin/levels/${group.id}`}
+            role="menuitem"
+            className="academic-setup-level-actions__item"
+            onClick={() => setMenuOpen(false)}
+          >
+            {t('admin.academicSetup.viewLevelDetails')}
+          </Link>
+          {supportsTracks && (
+            <Link
+              href={`/admin/settings/academic-setup/subjects?tab=tracks&level=${group.id}`}
+              role="menuitem"
+              className="academic-setup-level-actions__item"
+              onClick={() => setMenuOpen(false)}
+            >
+              {t('admin.academicSetup.manageTracks')}
+            </Link>
+          )}
           <button
             type="button"
             role="menuitem"
