@@ -1138,6 +1138,7 @@
         "levelsApiBlockedTitle": "Reference level activation unavailable",
         "levelsApiBlockedDesc": "API v1 has no /admin/levels/options or /admin/levels/enable. Enable reference levels via Odoo Backend.",
         "noReferenceLevels": "No reference levels returned from server.",
+        "noLevelsFilterMatch": "No levels match the current search or filters.",
         "noLevelsTitle": "Start by adding levels",
         "noLevelsDesc": "Pick levels from the national reference before creating classes.",
         "subjectsApiBlockedTitle": "Reference subject activation unavailable",

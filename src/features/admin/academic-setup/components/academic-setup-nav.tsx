@@ -25,6 +25,9 @@ export function AcademicSetupNav() {
 
   return (
     <nav className="academic-setup-nav" aria-label={t('admin.academicSetup.navLabel')}>
+      <Link href="/admin/settings" className="academic-setup-nav__back">
+        ‹ {t('admin.settings.backToSettings')}
+      </Link>
       {NAV.filter((item) => canViewAcademicSetupSection(user, item.section)).map((item) => {
         const active = item.exact
           ? pathname === item.href

@@ -1138,6 +1138,7 @@
         "levelsApiBlockedTitle": "تفعيل المستويات المرجعية غير متاح",
         "levelsApiBlockedDesc": "لا يوجد endpoint /admin/levels/options أو /admin/levels/enable على API v1. يجب تفعيل المستويات من المرجع عبر Odoo Backend.",
         "noReferenceLevels": "لا توجد مستويات مرجعية متاحة من الخادم.",
+        "noLevelsFilterMatch": "لا توجد مستويات تطابق البحث أو الفلاتر الحالية.",
         "noLevelsTitle": "ابدأ بإضافة المستويات",
         "noLevelsDesc": "اختر المستويات من المرجع الوطني قبل إنشاء الأقسام.",
         "subjectsApiBlockedTitle": "تفعيل المواد المرجعية غير متاح",
