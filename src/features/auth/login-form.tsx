@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { authApi } from '@/lib/api/client';
 import { homeForRole } from '@/lib/routes/role-routes';
 import { useT } from '@/features/i18n/locale-context';
+import { BrandLogo } from '@/components/brand/brand-logo';
 
 export function LoginForm() {
   const t = useT();
@@ -46,8 +47,7 @@ export function LoginForm() {
     <div className="login-wrap">
       <div className="login-card">
         <div className="login-card__brand">
-          <span className="brand-mark">S</span>
-          <strong>{t('auth.brand')}</strong>
+          <BrandLogo variant="full" />
         </div>
         <h1>{t('auth.welcome')}</h1>
         <p className="sub">{t('auth.subtitle')}</p>

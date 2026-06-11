@@ -17,6 +17,7 @@ import type { CurrentUser } from '@/types/user';
 import { isMultiSchoolAdmin, isAdminKind } from '@/lib/admin/admin-ux';
 import { formatSchoolLabel } from '@/lib/admin/school-label';
 import { isScopedAdmin } from '@/lib/permissions/scope';
+import { BrandLogo } from '@/components/brand/brand-logo';
 
 function roleSubtitle(user: CurrentUser, t: (k: string) => string): string {
   if (user.role === 'admin' && user.admin_kind) {
@@ -98,11 +99,7 @@ export function AppShell({
         )}
       >
         <div className="sidebar__brand">
-          <span className="brand-mark" aria-hidden="true">S</span>
-          <span className="brand-name">
-            <span className="brand-name__main">Smart School</span>
-            <span className="brand-name__sub">Connect</span>
-          </span>
+          <BrandLogo variant="full" />
         </div>
 
         {(isTeacher || isAdmin) && (

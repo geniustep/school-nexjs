@@ -2,9 +2,9 @@
    Not class-first; distinct from teacher-workspace. */
 
 .admin-workspace {
-  --admin-accent: #1e3a5f;
-  --admin-accent-soft: #e8eef6;
-  --admin-hero-bg: linear-gradient(135deg, #1e3a5f 0%, #2563eb 55%, #1d4ed8 100%);
+  --admin-accent: var(--raqeem-primary);
+  --admin-accent-soft: #e8edf5;
+  --admin-hero-bg: linear-gradient(135deg, var(--raqeem-primary) 0%, #2d4f82 100%);
   display: flex;
   flex-direction: column;
   gap: 10px;

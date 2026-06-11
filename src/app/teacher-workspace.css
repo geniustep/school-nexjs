@@ -40,19 +40,12 @@
 .sidebar--teacher .sidebar__brand {
   height: 72px;
   padding-inline: 22px;
-  background: linear-gradient(135deg, #0F2A44 0%, #1a3d5c 100%);
+  background: var(--raqeem-primary);
 }
 
-.sidebar--teacher .brand-mark {
+.sidebar--teacher .brand-logo__mark {
   width: 36px;
   height: 36px;
-  border-radius: 10px;
-  font-size: 16px;
-}
-
-.sidebar--teacher .brand-name__main {
-  font-size: 15px;
-  letter-spacing: -0.02em;
 }
 
 .sidebar--teacher .sidebar__profile {
