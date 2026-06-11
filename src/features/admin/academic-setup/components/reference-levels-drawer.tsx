@@ -44,18 +44,26 @@ export function ReferenceLevelsDrawer({
   const [saving, setSaving] = useState(false);
   const [rowErrors, setRowErrors] = useState<Map<number, string>>(new Map());
 
-  const optionsState = useLevelOptions(true, {
-    include_enabled: 'true',
-    ...(cycleId !== '' ? { cycle: cycleId } : {}),
-  });
+  // Always fetch the full catalog — server-side `cycle` filter returns empty (IDs mismatch).
+  const optionsState = useLevelOptions(true, { include_enabled: 'true' });
 
   useEffect(() => {
-    if (open) optionsState.reload();
+    if (!open) {
+      setSearch('');
+      setCycleId('');
+      setFilterMode('all');
+      setSelected(new Set());
+      setRowErrors(new Map());
+      return;
+    }
+    if (!optionsState.options && !optionsState.loading) {
+      optionsState.reload();
+    }
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const optionsLoaded = optionsState.options !== null;
   const allLevels = optionsState.options?.reference_levels ?? [];
-  const showLoading = open && (optionsState.loading || !optionsLoaded);
+  const showLoading = open && optionsState.loading && !optionsLoaded;
   const cycles = optionsState.options?.cycles ?? [];
   const canEnable = optionsState.options?.permissions?.can_enable ?? false;
 
@@ -189,8 +197,17 @@ export function ReferenceLevelsDrawer({
         <p className="muted">{t('admin.academicSetup.guided.noReferenceLevels')}</p>
       )}
 
-      {!showLoading && !optionsState.error && optionsLoaded && allLevels.length > 0 && (
+      {!showLoading && !optionsState.error && optionsLoaded && allLevels.length > 0 && !filteredLevels.length && (
+        <p className="muted">{t('admin.academicSetup.guided.noLevelsFilterMatch')}</p>
+      )}
+
+      {!showLoading && !optionsState.error && optionsLoaded && allLevels.length > 0 && filteredLevels.length > 0 && (
         <div className="col" style={{ gap: 16 }}>
+          {optionsState.loading && (
+            <p className="tiny muted" aria-live="polite">
+              {t('common.loading')}
+            </p>
+          )}
           {!canEnable && (
             <div className="academic-setup-gap-banner" role="status">
               {t('admin.academicSetup.guided.cannotEnableLevels')}

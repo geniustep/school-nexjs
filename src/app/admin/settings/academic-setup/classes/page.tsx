@@ -111,11 +111,23 @@ export default function AcademicSetupClassesPage() {
     </div>
   ) : undefined;
 
+  const levelsDrawer = (
+    <ReferenceLevelsDrawer
+      open={levelsOpen}
+      onClose={() => {
+        setLevelsDrawerOpen(false);
+        levelsAction.dismissActionParam();
+      }}
+      onEnabled={handleLevelsEnabled}
+    />
+  );
+
   if (lists.loading) {
     return (
       <>
         <PageHeader title={t('admin.academicSetup.nav.classes')} />
         <LoadingState label={t('common.loading')} />
+        {levelsDrawer}
       </>
     );
   }
@@ -125,6 +137,7 @@ export default function AcademicSetupClassesPage() {
       <>
         <PageHeader title={t('admin.academicSetup.nav.classes')} />
         <ErrorState error={lists.error} onRetry={refreshAll} />
+        {levelsDrawer}
       </>
     );
   }
@@ -138,14 +151,7 @@ export default function AcademicSetupClassesPage() {
           title={t('admin.academicSetup.guided.noLevelsTitle')}
           description={t('admin.academicSetup.guided.noLevelsDesc')}
         />
-        <ReferenceLevelsDrawer
-          open={levelsOpen}
-          onClose={() => {
-            setLevelsDrawerOpen(false);
-            levelsAction.dismissActionParam();
-          }}
-          onEnabled={handleLevelsEnabled}
-        />
+        {levelsDrawer}
       </>
     );
   }
@@ -197,14 +203,6 @@ export default function AcademicSetupClassesPage() {
         onClose={closeDrawer}
         onSaved={refreshAll}
       />
-      <ReferenceLevelsDrawer
-        open={levelsOpen}
-        onClose={() => {
-          setLevelsDrawerOpen(false);
-          levelsAction.dismissActionParam();
-        }}
-        onEnabled={handleLevelsEnabled}
-      />
       {batchLevel && (
         <BatchClassDrawer
           open={!!batchLevel}
@@ -214,6 +212,7 @@ export default function AcademicSetupClassesPage() {
           onSaved={refreshAll}
         />
       )}
+      {levelsDrawer}
     </>
   );
 }

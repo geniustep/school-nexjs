@@ -1138,6 +1138,7 @@
         "levelsApiBlockedTitle": "Activación de niveles de referencia no disponible",
         "levelsApiBlockedDesc": "La API v1 no expone /admin/levels/options ni /admin/levels/enable. Active niveles desde Odoo Backend.",
         "noReferenceLevels": "El servidor no devolvió niveles de referencia.",
+        "noLevelsFilterMatch": "Ningún nivel coincide con la búsqueda o los filtros actuales.",
         "noLevelsTitle": "Empiece añadiendo niveles",
         "noLevelsDesc": "Elija niveles del referente nacional antes de crear grupos.",
         "subjectsApiBlockedTitle": "Activación de asignaturas de referencia no disponible",

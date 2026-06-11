@@ -19,8 +19,28 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  align-items: center;
   padding: 4px 0 8px;
   border-bottom: 1px solid var(--c-border);
+}
+
+.academic-setup-nav__back {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  margin-inline-end: 4px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-primary);
+  text-decoration: none;
+  border: 1px solid var(--c-border);
+  background: var(--c-surface, #fff);
+}
+
+.academic-setup-nav__back:hover {
+  text-decoration: underline;
+  background: var(--c-surface-2, #f4f6f9);
 }
 
 .academic-setup-nav__link {
