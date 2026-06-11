@@ -12,7 +12,9 @@ import {
   activeSchoolCookieOptions,
   getActiveSchoolCookie,
 } from '@/lib/auth/active-school';
+import { setTenantCookie } from '@/lib/auth/tenant-guard';
 import { normalizeMeUser, resolveActiveSchoolId } from '@/lib/auth/normalize-user';
+import { resolveTenantFromRequest } from '@/lib/tenant';
 import type { MeResponse } from '@/types/user';
 
 export const dynamic = 'force-dynamic';
@@ -25,7 +27,7 @@ function err(code: string, message: string, status: number) {
 }
 
 export async function POST(request: Request) {
-  let payload: { login?: string; password?: string };
+  let payload: { login?: string; password?: string; db?: string };
   try {
     payload = await request.json();
   } catch {
@@ -38,7 +40,12 @@ export async function POST(request: Request) {
     return err('validation_error', 'Login and password are required.', 422);
   }
 
-  const auth = await authenticateOdoo(login, password);
+  const tenant = resolveTenantFromRequest(request);
+  if (!tenant.ok) {
+    return err('invalid_tenant', 'Invalid or unsupported host.', 400);
+  }
+
+  const auth = await authenticateOdoo(tenant.tenant, login, password);
   if (!auth.ok || !auth.sessionId) {
     if (auth.errorName === 'network_error') {
       return err('network_error', 'Could not reach the server. Please try again.', 502);
@@ -90,6 +97,7 @@ export async function POST(request: Request) {
     path: '/',
     maxAge: 60 * 60 * 24 * 7,
   });
+  setTenantCookie(response, tenant.tenant);
   if (normalized.role === 'admin') {
     if (activeId != null) {
       response.cookies.set(

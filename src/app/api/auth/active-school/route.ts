@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/api/server';
 import { isActiveSchoolAllowed, setActiveSchoolCookieValue } from '@/lib/auth/active-school';
+import { guardTenantFromRequest } from '@/lib/auth/tenant-guard';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
+  const tenantGuard = await guardTenantFromRequest(request);
+  if (!tenantGuard.ok) return tenantGuard.response;
+
   const user = await getCurrentUser();
   if (!user || user.role !== 'admin') {
     return NextResponse.json(

@@ -12,23 +12,16 @@ import { config } from '@/lib/config';
 import { odooApiFetch } from '@/lib/api/odoo-server';
 import { getCurrentUser } from '@/lib/api/server';
 import { getActiveSchoolCookie, setActiveSchoolCookieValue } from '@/lib/auth/active-school';
+import { guardTenantFromRequest } from '@/lib/auth/tenant-guard';
 
 export const dynamic = 'force-dynamic';
 
 async function handle(request: NextRequest, segments: string[]) {
+  const tenantGuard = await guardTenantFromRequest(request);
+  if (!tenantGuard.ok) return tenantGuard.response;
+
   const store = await cookies();
   const sessionId = store.get(config.sessionCookieName)?.value ?? null;
-
-  if (!sessionId) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: { code: 'unauthenticated', message: 'No active session.', details: {} },
-        meta: {},
-      },
-      { status: 401 },
-    );
-  }
 
   const path = '/' + segments.map(encodeURIComponent).join('/');
   const query: Record<string, string> = {};

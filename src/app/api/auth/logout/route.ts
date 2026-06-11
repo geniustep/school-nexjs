@@ -6,6 +6,7 @@ import { cookies } from 'next/headers';
 import { config } from '@/lib/config';
 import { odooApiFetch } from '@/lib/api/odoo-server';
 import { endpoints } from '@/lib/api/endpoints';
+import { clearAuthCookies } from '@/lib/auth/tenant-guard';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,15 +26,6 @@ export async function POST() {
     { success: true, data: { message: 'Logged out successfully.' }, meta: {} },
     { status: 200 },
   );
-  response.cookies.set(config.sessionCookieName, '', {
-    httpOnly: true,
-    path: '/',
-    maxAge: 0,
-  });
-  response.cookies.set(config.activeSchoolCookieName, '', {
-    httpOnly: true,
-    path: '/',
-    maxAge: 0,
-  });
+  clearAuthCookies(response);
   return response;
 }

@@ -32,6 +32,7 @@ function extractSessionId(setCookie: string | null): string | null {
  * Odoo's standard endpoint to obtain a session cookie.
  */
 export async function authenticateOdoo(
+  database: string,
   login: string,
   password: string,
 ): Promise<OdooAuthResult> {
@@ -45,7 +46,7 @@ export async function authenticateOdoo(
         jsonrpc: '2.0',
         id: 1,
         method: 'call',
-        params: { db: config.odooDb, login, password },
+        params: { db: database, login, password },
       }),
     });
   } catch {

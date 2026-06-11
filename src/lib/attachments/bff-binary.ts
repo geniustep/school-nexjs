@@ -3,6 +3,7 @@ import 'server-only';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { config } from '@/lib/config';
+import { guardTenantFromServerHeaders } from '@/lib/auth/tenant-guard';
 
 export type AttachmentBinaryKind = 'download' | 'preview' | 'thumbnail';
 
@@ -10,15 +11,11 @@ export async function forwardAttachmentBinary(
   id: string,
   kind: AttachmentBinaryKind,
 ): Promise<NextResponse> {
+  const tenantGuard = await guardTenantFromServerHeaders();
+  if (!tenantGuard.ok) return tenantGuard.response;
+
   const store = await cookies();
   const sessionId = store.get(config.sessionCookieName)?.value ?? null;
-
-  if (!sessionId) {
-    return NextResponse.json(
-      { success: false, error: { code: 'unauthenticated', message: 'No active session.' } },
-      { status: 401 },
-    );
-  }
 
   const url = `${config.odooBaseUrl}${config.apiPrefix}/attachments/${encodeURIComponent(id)}/${kind}`;
 

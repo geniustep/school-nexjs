@@ -12,10 +12,14 @@ import type { ApiResponse, ListParams } from '@/types/api';
 import type { MeResponse, CurrentUser } from '@/types/user';
 import { normalizeMeUser } from '@/lib/auth/normalize-user';
 import { applyActiveSchoolToUser } from '@/lib/auth/active-school';
+import { isTenantSessionValid } from '@/lib/auth/tenant-guard';
 
 async function sessionId(): Promise<string | null> {
   const store = await cookies();
-  return store.get(config.sessionCookieName)?.value ?? null;
+  const sid = store.get(config.sessionCookieName)?.value ?? null;
+  if (!sid) return null;
+  if (!(await isTenantSessionValid())) return null;
+  return sid;
 }
 
 async function fetchMeUser(): Promise<CurrentUser | null> {
