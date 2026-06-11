@@ -114,7 +114,6 @@ export default function AcademicSetupClassesPage() {
   const levelsDrawer = (
     <ReferenceLevelsDrawer
       open={levelsOpen}
-      schoolLevels={lists.levels}
       onClose={() => {
         setLevelsDrawerOpen(false);
         levelsAction.dismissActionParam();

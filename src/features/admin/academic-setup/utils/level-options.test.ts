@@ -27,6 +27,7 @@ function refLevel(
     cycle: cyclePrimary,
     enabled: false,
     can_enable: true,
+    link_status: 'not_enabled',
     ...partial,
   };
 }
@@ -117,14 +118,17 @@ describe('level-options utils', () => {
   });
 
   it('blocks legacy unlinked levels from enable selection', () => {
-    const schoolLevels = [{ id: 77, name: 'P1', code: 'P1', ref_level_id: null }];
-    const p1 = refLevel({ id: 1, code: 'P1' });
-    expect(isLegacyUnlinkedLevel(p1, schoolLevels)).toBe(true);
-    expect(isReferenceLevelSelectable(p1, schoolLevels)).toBe(false);
-    expect(buildEnablePayload([1, 2], [p1, refLevel({ id: 2, code: 'P3' })], schoolLevels)).toEqual([2]);
-    expect(
-      selectableIdsInCycle([p1, refLevel({ id: 2, code: 'P3' })], cyclePrimary.id, schoolLevels),
-    ).toEqual([2]);
+    const p1 = refLevel({
+      id: 1,
+      code: 'P1',
+      link_status: 'legacy_unlinked',
+      can_enable: false,
+      school_level_id: 77,
+    });
+    expect(isLegacyUnlinkedLevel(p1)).toBe(true);
+    expect(isReferenceLevelSelectable(p1)).toBe(false);
+    expect(buildEnablePayload([1, 2], [p1, refLevel({ id: 2, code: 'P3' })])).toEqual([2]);
+    expect(selectableIdsInCycle([p1, refLevel({ id: 2, code: 'P3' })], cyclePrimary.id)).toEqual([2]);
   });
 
   it('counts linked_existing as enabled in aggregate', () => {

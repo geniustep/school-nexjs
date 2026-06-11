@@ -1,11 +1,6 @@
-import type { ReferenceLevelOption } from '@/types/academic-levels';
-import type { Level } from '@/types/class';
+import type { ReferenceLevelLinkStatus, ReferenceLevelOption } from '@/types/academic-levels';
 
-export type LevelLinkStatus =
-  | 'not_enabled'
-  | 'enabled'
-  | 'legacy_unlinked'
-  | 'legacy_ambiguous';
+export type LevelLinkStatus = ReferenceLevelLinkStatus;
 
 export interface ResolvedReferenceLevelState {
   linkStatus: LevelLinkStatus;
@@ -15,71 +10,25 @@ export interface ResolvedReferenceLevelState {
   canSelect: boolean;
 }
 
-function normalizeCode(code?: string | null): string {
-  return code?.trim().toUpperCase() ?? '';
-}
+/** Backend-only — uses fields from GET /admin/levels/options. */
+export function resolveReferenceLevelState(level: ReferenceLevelOption): ResolvedReferenceLevelState {
+  const linkStatus: LevelLinkStatus =
+    level.link_status ?? (level.enabled ? 'enabled' : 'not_enabled');
 
-function findUnlinkedSchoolMatches(level: ReferenceLevelOption, schoolLevels: Level[]): Level[] {
-  const code = normalizeCode(level.code);
-  if (!code) return [];
-  return schoolLevels.filter(
-    (sl) => normalizeCode(sl.code) === code && (sl.ref_level_id == null || sl.ref_level_id === 0),
-  );
-}
+  const canLink =
+    linkStatus === 'legacy_unlinked' &&
+    level.can_link === true &&
+    level.school_level_id != null;
 
-/** Prefer API link_status; infer legacy rows when backend has not shipped yet. */
-export function resolveReferenceLevelState(
-  level: ReferenceLevelOption,
-  schoolLevels: Level[],
-): ResolvedReferenceLevelState {
-  if (level.link_status) {
-    const linkStatus = level.link_status;
-    return {
-      linkStatus,
-      schoolLevelId: level.school_level_id ?? null,
-      canLink: level.can_link ?? linkStatus === 'legacy_unlinked',
-      canEnable: level.can_enable && linkStatus === 'not_enabled',
-      canSelect: level.can_enable && linkStatus === 'not_enabled',
-    };
-  }
-
-  if (level.enabled || level.school_level_id) {
-    return {
-      linkStatus: 'enabled',
-      schoolLevelId: level.school_level_id ?? null,
-      canLink: false,
-      canEnable: false,
-      canSelect: false,
-    };
-  }
-
-  const matches = findUnlinkedSchoolMatches(level, schoolLevels);
-  if (matches.length === 1) {
-    return {
-      linkStatus: 'legacy_unlinked',
-      schoolLevelId: matches[0]!.id,
-      canLink: true,
-      canEnable: false,
-      canSelect: false,
-    };
-  }
-
-  if (matches.length > 1) {
-    return {
-      linkStatus: 'legacy_ambiguous',
-      schoolLevelId: null,
-      canLink: false,
-      canEnable: false,
-      canSelect: false,
-    };
-  }
+  const canEnable = linkStatus === 'not_enabled' && level.can_enable && level.active;
+  const canSelect = canEnable;
 
   return {
-    linkStatus: 'not_enabled',
-    schoolLevelId: null,
-    canLink: false,
-    canEnable: level.can_enable && level.active,
-    canSelect: level.can_enable && level.active,
+    linkStatus,
+    schoolLevelId: level.school_level_id ?? null,
+    canLink,
+    canEnable,
+    canSelect,
   };
 }
 

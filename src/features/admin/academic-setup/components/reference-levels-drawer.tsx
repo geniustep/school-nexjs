@@ -6,8 +6,6 @@ import { useToast } from '@/components/ui/toast';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
 import type { ReferenceLevelOption } from '@/types/academic-levels';
-import type { Level } from '@/types/class';
-import { linkLegacySchoolLevel } from '../hooks/use-level-actions';
 import {
   enableReferenceLevels,
   useLevelOptions,
@@ -28,6 +26,7 @@ import {
   resolveReferenceLevelState,
   type LevelLinkStatus,
 } from '../utils/level-link-status';
+import { LevelLinkDialog } from './level-link-dialog';
 import { SetupDrawer } from './setup-drawer';
 
 function badgeTone(status: LevelLinkStatus): 'green' | 'amber' | 'slate' | 'blue' {
@@ -47,7 +46,6 @@ export function ReferenceLevelsDrawer({
   open,
   onClose,
   onEnabled,
-  schoolLevels = [],
 }: {
   open: boolean;
   onClose: () => void;
@@ -56,7 +54,6 @@ export function ReferenceLevelsDrawer({
     newSchoolLevelIds: number[];
     fullSuccess: boolean;
   }) => void;
-  schoolLevels?: Level[];
 }) {
   const t = useT();
   const toast = useToast();
@@ -66,7 +63,7 @@ export function ReferenceLevelsDrawer({
   const [filterMode, setFilterMode] = useState<LevelFilterMode>('all');
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [saving, setSaving] = useState(false);
-  const [linkingId, setLinkingId] = useState<number | null>(null);
+  const [linkTarget, setLinkTarget] = useState<ReferenceLevelOption | null>(null);
   const [rowErrors, setRowErrors] = useState<Map<number, string>>(new Map());
 
   const optionsState = useLevelOptions(true, { include_enabled: 'true' });
@@ -78,7 +75,7 @@ export function ReferenceLevelsDrawer({
       setFilterMode('all');
       setSelected(new Set());
       setRowErrors(new Map());
-      setLinkingId(null);
+      setLinkTarget(null);
       return;
     }
     if (!optionsState.options && !optionsState.loading) {
@@ -108,7 +105,7 @@ export function ReferenceLevelsDrawer({
   );
 
   function toggleLevel(level: ReferenceLevelOption) {
-    if (!isReferenceLevelSelectable(level, schoolLevels)) return;
+    if (!isReferenceLevelSelectable(level)) return;
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(level.id)) next.delete(level.id);
@@ -118,7 +115,7 @@ export function ReferenceLevelsDrawer({
   }
 
   function toggleCycle(cycleRefId: number) {
-    const ids = selectableIdsInCycle(allLevels, cycleRefId, schoolLevels);
+    const ids = selectableIdsInCycle(allLevels, cycleRefId);
     if (!ids.length) return;
     setSelected((prev) => {
       const allSelected = ids.every((id) => prev.has(id));
@@ -129,42 +126,23 @@ export function ReferenceLevelsDrawer({
     });
   }
 
-  async function handleLink(level: ReferenceLevelOption) {
-    const state = resolveReferenceLevelState(level, schoolLevels);
-    if (!state.canLink || state.schoolLevelId == null) return;
-
-    const confirmed = window.confirm(t('admin.academicSetup.guided.linkLevelConfirm'));
-    if (!confirmed) return;
-
-    setLinkingId(level.id);
+  function handleLinkClick(level: ReferenceLevelOption) {
     setRowErrors((prev) => {
       const next = new Map(prev);
       next.delete(level.id);
       return next;
     });
+    setLinkTarget(level);
+  }
 
-    const res = await linkLegacySchoolLevel(state.schoolLevelId, level.id, activeSchoolId);
-    setLinkingId(null);
-
-    if (!res.ok) {
-      const msg = mapAcademicSetupApiError(res.error, t, 'level');
-      setRowErrors((prev) => new Map(prev).set(level.id, msg));
-      toast.error(msg);
-      return;
-    }
-
-    toast.success(t('admin.academicSetup.guided.linkLevelSuccess'));
-    onEnabled({
-      enabledCount: 1,
-      newSchoolLevelIds: [res.data.item.id],
-      fullSuccess: true,
-    });
+  function handleLinked() {
+    onEnabled({ enabledCount: 1, newSchoolLevelIds: [], fullSuccess: true });
     optionsState.reload();
   }
 
   async function handleSave() {
     if (!selected.size || saving || !canEnable) return;
-    const payloadIds = buildEnablePayload(selected, allLevels, schoolLevels);
+    const payloadIds = buildEnablePayload(selected, allLevels);
     if (!payloadIds.length) return;
 
     setSaving(true);
@@ -313,7 +291,7 @@ export function ReferenceLevelsDrawer({
           )}
 
           {grouped.map(({ cycle, levels }) => {
-            const selectable = selectableIdsInCycle(allLevels, cycle.id, schoolLevels).filter((id) =>
+            const selectable = selectableIdsInCycle(allLevels, cycle.id).filter((id) =>
               levels.some((l) => l.id === id),
             );
             const allCycleSelected =
@@ -339,7 +317,7 @@ export function ReferenceLevelsDrawer({
                 </div>
                 <ul className="academic-setup-ref-levels" role="list">
                   {levels.map((level) => {
-                    const state = resolveReferenceLevelState(level, schoolLevels);
+                    const state = resolveReferenceLevelState(level);
                     const selectableLevel = state.canSelect;
                     const checked = selected.has(level.id);
                     const err = rowErrors.get(level.id);
@@ -366,12 +344,10 @@ export function ReferenceLevelsDrawer({
                                 <button
                                   type="button"
                                   className="btn btn--primary btn--sm mt-2"
-                                  disabled={linkingId === level.id || saving}
-                                  onClick={() => handleLink(level)}
+                                  disabled={saving}
+                                  onClick={() => handleLinkClick(level)}
                                 >
-                                  {linkingId === level.id
-                                    ? t('common.saving')
-                                    : t('admin.academicSetup.guided.completeLinkAction')}
+                                  {t('admin.academicSetup.guided.completeLinkAction')}
                                 </button>
                               )}
                             </div>
@@ -388,7 +364,10 @@ export function ReferenceLevelsDrawer({
                                 <span className="tiny muted block">{referenceLevelSubtitle(level)}</span>
                                 <span className="tiny muted block">{level.cycle.name}</span>
                                 {state.linkStatus === 'legacy_ambiguous' && (
-                                  <p className="tiny mt-2">{t('admin.academicSetup.guided.legacyAmbiguousDesc')}</p>
+                                  <>
+                                    <p className="tiny mt-2">{t('admin.academicSetup.guided.legacyAmbiguousDesc')}</p>
+                                    <p className="tiny muted">{t('admin.academicSetup.guided.legacyAmbiguousHelp')}</p>
+                                  </>
                                 )}
                                 <span className="row mt-2" style={{ gap: 6, flexWrap: 'wrap' }}>
                                   {badgeKey && <Badge tone={badgeTone(state.linkStatus)}>{t(badgeKey)}</Badge>}
@@ -423,6 +402,12 @@ export function ReferenceLevelsDrawer({
           </button>
         </div>
       )}
+      <LevelLinkDialog
+        level={linkTarget}
+        open={!!linkTarget}
+        onClose={() => setLinkTarget(null)}
+        onLinked={handleLinked}
+      />
     </SetupDrawer>
   );
 }

@@ -63,7 +63,12 @@ export function LevelClassGroup({
         <span aria-hidden>{open ? '▾' : '▸'}</span>
         </button>
         {onLevelRemoved && (
-          <LevelClassActions group={group} canManage={canManage} onRemoved={onLevelRemoved} />
+          <LevelClassActions
+            group={group}
+            canManage={canManage}
+            onAddClass={onAddClass}
+            onRemoved={onLevelRemoved}
+          />
         )}
       </div>
       {open && (

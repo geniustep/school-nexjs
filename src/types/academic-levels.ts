@@ -26,7 +26,7 @@ export interface ReferenceLevelOption {
   enabled: boolean;
   school_level_id?: number | null;
   can_enable: boolean;
-  link_status?: ReferenceLevelLinkStatus;
+  link_status: ReferenceLevelLinkStatus;
   can_link?: boolean;
 }
 
@@ -46,23 +46,35 @@ export type EnableLevelResultStatus =
   | 'linked_existing'
   | 'failed';
 
-export interface LevelUsage {
+export interface SchoolLevelUsage {
   classes: number;
   subjects: number;
   tracks: number;
   students: number;
+  enrollments: number;
   assignments: number;
+  timetable_slots: number;
+  exams: number;
+}
+
+export type LinkReferenceAction = 'linked_existing' | 'already_linked';
+
+export type DeleteLevelAction = 'deleted' | 'deactivated';
+
+export interface SchoolLevelItem extends EnableLevelSchoolLevel {
+  ref_level_id?: number | null;
+  usage?: SchoolLevelUsage;
+  can_delete?: boolean;
+  can_deactivate?: boolean;
 }
 
 export interface LevelLinkResponse {
-  action: 'linked_existing';
-  item: EnableLevelSchoolLevel & { ref_level_id?: number | null };
+  action: LinkReferenceAction;
+  item: SchoolLevelItem;
 }
 
-export type LevelRemovalAction = 'deleted' | 'deactivated' | 'blocked';
-
 export interface LevelRemovalResponse {
-  action: LevelRemovalAction;
+  action: DeleteLevelAction;
   id: number;
   reason?: string;
 }

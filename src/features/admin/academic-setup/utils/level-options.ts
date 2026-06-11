@@ -5,7 +5,6 @@ import type {
   LevelCycleOption,
   ReferenceLevelOption,
 } from '@/types/academic-levels';
-import type { Level } from '@/types/class';
 import { resolveReferenceLevelState } from './level-link-status';
 
 export type LevelFilterMode = 'all' | 'available' | 'enabled';
@@ -94,28 +93,21 @@ export function filterReferenceLevels(
   });
 }
 
-export function isReferenceLevelSelectable(
-  level: ReferenceLevelOption,
-  schoolLevels: Level[] = [],
-): boolean {
-  return resolveReferenceLevelState(level, schoolLevels).canSelect;
+export function isReferenceLevelSelectable(level: ReferenceLevelOption): boolean {
+  return resolveReferenceLevelState(level).canSelect;
 }
 
-export function isLegacyUnlinkedLevel(
-  level: ReferenceLevelOption,
-  schoolLevels: Level[] = [],
-): boolean {
-  return resolveReferenceLevelState(level, schoolLevels).linkStatus === 'legacy_unlinked';
+export function isLegacyUnlinkedLevel(level: ReferenceLevelOption): boolean {
+  return resolveReferenceLevelState(level).linkStatus === 'legacy_unlinked';
 }
 
 export function buildEnablePayload(
   selectedIds: Iterable<number>,
   levels: ReferenceLevelOption[],
-  schoolLevels: Level[] = [],
 ): number[] {
   return [...selectedIds].filter((id) => {
     const level = levels.find((l) => l.id === id);
-    return level ? isReferenceLevelSelectable(level, schoolLevels) : false;
+    return level ? isReferenceLevelSelectable(level) : false;
   });
 }
 
@@ -203,10 +195,9 @@ export function aggregateEnableResults(results: EnableLevelResult[]): EnableOutc
 export function selectableIdsInCycle(
   levels: ReferenceLevelOption[],
   cycleId: number,
-  schoolLevels: Level[] = [],
 ): number[] {
   return levels
-    .filter((l) => l.cycle.id === cycleId && isReferenceLevelSelectable(l, schoolLevels))
+    .filter((l) => l.cycle.id === cycleId && isReferenceLevelSelectable(l))
     .map((l) => l.id);
 }
 

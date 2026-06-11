@@ -1,34 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useToast } from '@/components/ui/toast';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
 import type { Level } from '@/types/class';
+import type { SchoolLevelUsage } from '@/types/academic-levels';
 import { removeSchoolLevel } from '../hooks/use-level-actions';
 import { mapAcademicSetupApiError } from '../utils/api-errors';
 import {
-  levelHasOperationalUsage,
+  formatUsageLines,
+  mergeUsageFromError,
+  primaryLinkedItemsRoute,
   resolveLevelRemovalFlags,
-  resolveLevelUsage,
 } from '../utils/level-usage';
-
-function usageLines(
-  level: Level,
-  t: (key: string, vars?: Record<string, string | number>) => string,
-): string[] {
-  const usage = resolveLevelUsage(level);
-  const lines: string[] = [];
-  if (usage.classes > 0) lines.push(t('admin.academicSetup.guided.usageClasses', { count: usage.classes }));
-  if (usage.subjects > 0) lines.push(t('admin.academicSetup.guided.usageSubjects', { count: usage.subjects }));
-  if (usage.tracks > 0) lines.push(t('admin.academicSetup.guided.usageTracks', { count: usage.tracks }));
-  if (usage.students > 0) lines.push(t('admin.academicSetup.guided.usageStudents', { count: usage.students }));
-  if (usage.assignments > 0) {
-    lines.push(t('admin.academicSetup.guided.usageAssignments', { count: usage.assignments }));
-  }
-  return lines;
-}
 
 export function LevelRemoveDialog({
   level,
@@ -45,9 +31,20 @@ export function LevelRemoveDialog({
   const toast = useToast();
   const { activeSchoolId } = useAdminSession();
   const [saving, setSaving] = useState(false);
-  const { canDelete, usage } = resolveLevelRemovalFlags(level);
-  const inUse = levelHasOperationalUsage(usage);
-  const usageDetail = usageLines(level, t);
+  const [usage, setUsage] = useState<SchoolLevelUsage>(() => resolveLevelRemovalFlags(level).usage);
+  const [blocked, setBlocked] = useState(false);
+
+  const { canDelete } = resolveLevelRemovalFlags(level);
+  const usageLines = formatUsageLines(usage, t);
+  const linkedRoute = primaryLinkedItemsRoute(level.id, usage);
+  const showBlocked = blocked || canDelete === false;
+
+  useEffect(() => {
+    if (!open) return;
+    const flags = resolveLevelRemovalFlags(level);
+    setUsage(flags.usage);
+    setBlocked(flags.blockedByBackend);
+  }, [open, level]);
 
   if (!open) return null;
 
@@ -57,6 +54,11 @@ export function LevelRemoveDialog({
     setSaving(false);
 
     if (!res.ok) {
+      const merged = mergeUsageFromError(level, res.error);
+      setUsage(merged);
+      if (res.error.code === 'level_in_use') {
+        setBlocked(true);
+      }
       toast.error(mapAcademicSetupApiError(res.error, t, 'level'));
       return;
     }
@@ -87,26 +89,24 @@ export function LevelRemoveDialog({
           {t('admin.academicSetup.guided.removeLevelTitle')}
         </h2>
 
-        {inUse || !canDelete ? (
+        {showBlocked ? (
           <>
             <p>{t('admin.academicSetup.guided.levelInUseBlocked')}</p>
-            {usageDetail.length > 0 && (
+            {usageLines.length > 0 && (
               <ul className="academic-setup-usage-list">
-                {usageDetail.map((line) => (
-                  <li key={line}>{line}</li>
+                {usageLines.map((line) => (
+                  <li key={line.key}>{line.label}</li>
                 ))}
               </ul>
             )}
             <div className="row mt-2" style={{ gap: 8, flexWrap: 'wrap' }}>
-              <Link
-                href={`/admin/settings/academic-setup/classes?level=${level.id}`}
-                className="btn btn--primary btn--sm"
-                onClick={onClose}
-              >
-                {t('admin.academicSetup.guided.viewLinkedItems')}
-              </Link>
+              {linkedRoute && (
+                <Link href={linkedRoute} className="btn btn--primary btn--sm" onClick={onClose}>
+                  {t('admin.academicSetup.guided.viewLinkedItems')}
+                </Link>
+              )}
               <button type="button" className="btn btn--ghost btn--sm" onClick={onClose}>
-                {t('common.cancel')}
+                {t('common.close')}
               </button>
             </div>
           </>

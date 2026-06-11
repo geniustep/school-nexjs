@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { useT } from '@/features/i18n/locale-context';
 import type { LevelGroup } from '../types';
 import { LevelRemoveDialog } from './level-remove-dialog';
@@ -8,10 +9,12 @@ import { LevelRemoveDialog } from './level-remove-dialog';
 export function LevelClassActions({
   group,
   canManage,
+  onAddClass,
   onRemoved,
 }: {
   group: LevelGroup;
   canManage: boolean;
+  onAddClass?: (levelId: number) => void;
   onRemoved: () => void;
 }) {
   const t = useT();
@@ -44,6 +47,27 @@ export function LevelClassActions({
       </button>
       {menuOpen && (
         <div className="academic-setup-level-actions__menu" role="menu">
+          {onAddClass && (
+            <button
+              type="button"
+              role="menuitem"
+              className="academic-setup-level-actions__item"
+              onClick={() => {
+                setMenuOpen(false);
+                onAddClass(group.id);
+              }}
+            >
+              + {t('admin.addClass')}
+            </button>
+          )}
+          <Link
+            href={`/admin/levels/${group.id}`}
+            role="menuitem"
+            className="academic-setup-level-actions__item"
+            onClick={() => setMenuOpen(false)}
+          >
+            {t('admin.academicSetup.guided.editLevelAction')}
+          </Link>
           <button
             type="button"
             role="menuitem"
