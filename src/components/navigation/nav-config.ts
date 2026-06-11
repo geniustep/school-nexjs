@@ -3,6 +3,7 @@
 import type { CurrentUser } from '@/types/user';
 import type { Permission } from '@/types/permissions';
 import { canAccessAdminDashboard, canShowAdminNavPermission, useScopedNavLabels } from '@/lib/admin/admin-ux';
+import { canViewSettings } from '@/lib/permissions/academic-setup';
 import { FINANCE_VIEW } from '@/lib/permissions/finance';
 import { isConfiguredAdmin } from '@/lib/permissions/scope';
 
@@ -120,6 +121,19 @@ function adminNav(user: CurrentUser): NavSection[] {
           href: '/admin/finance',
           icon: '💰',
           isActive: (pathname) => pathname.startsWith('/admin/finance'),
+        },
+      ],
+    });
+  }
+
+  if (canViewSettings(user)) {
+    sections.push({
+      items: [
+        {
+          labelKey: 'nav.settings',
+          href: '/admin/settings',
+          icon: '⚙️',
+          isActive: (pathname) => pathname.startsWith('/admin/settings'),
         },
       ],
     });

@@ -92,7 +92,8 @@
     "examResultsNav": "Exam results",
     "finance": "Finance",
     "financeSection": "Finance",
-    "adminScopedFinance": "Finance (scoped)"
+    "adminScopedFinance": "Finance (scoped)",
+    "settings": "Settings"
   },
   "states": {
     "draft": "Draft",
@@ -932,6 +933,98 @@
       "scopedReadinessDesc": "This result is limited to your permission scope and does not represent full school readiness.",
       "readyForTimetable": "Ready for timetable setup",
       "quickActionsTitle": "Quick actions",
+      "quickActionCodes": {
+        "level_without_classes": "Levels without classes",
+        "academic_context_missing": "Missing academic context",
+        "assignment_missing": "Missing teaching assignments",
+        "subject_without_teacher": "Subjects without teacher",
+        "class_without_subjects": "Classes without subjects",
+        "teacher_without_assignments": "Teachers without assignments",
+        "teacher_incomplete_profile": "Incomplete teacher profiles",
+        "teacher_high_workload": "High teaching workload",
+        "staff_without_account": "Staff without account",
+        "no_levels": "No levels",
+        "no_classes": "No classes",
+        "no_teachers": "No teachers"
+      },
+      "readinessIssues": {
+        "no_active_levels": {
+          "title": "No active levels",
+          "description": "The school has no active educational levels in scope."
+        },
+        "no_levels": {
+          "title": "No active levels",
+          "description": "The school has no active educational levels in scope."
+        },
+        "no_active_academic_year": {
+          "title": "No active academic year",
+          "description": "No active academic year was found for this school."
+        },
+        "academic_year_missing": {
+          "title": "No active academic year",
+          "description": "No active academic year was found for this school."
+        },
+        "single_active_manager": {
+          "title": "Single active manager",
+          "description": "Only one active manager account exists — consider a backup manager."
+        },
+        "level_without_classes": {
+          "title": "Level {name} has no classes",
+          "description": "This level has no active classes."
+        },
+        "class_without_subjects": {
+          "title": "Class {name} has no subjects",
+          "description": "This class is not linked to any subjects."
+        },
+        "subject_without_teacher": {
+          "title": "{subject} — {class} has no teacher",
+          "description": "No teacher is assigned to this subject in this class."
+        },
+        "assignment_missing": {
+          "title": "Missing teaching assignment",
+          "description": "{subject} — {class} has no assigned teacher."
+        },
+        "teacher_without_subjects": {
+          "title": "{name} has no subjects",
+          "description": "This teacher is not linked to any subjects."
+        },
+        "teacher_without_assignments": {
+          "title": "{name} has no assignments",
+          "description": "This teacher has no teaching assignments."
+        },
+        "teacher_incomplete_profile": {
+          "title": "{name} profile incomplete",
+          "description": "This teacher's profile is incomplete."
+        },
+        "teacher_inactive": {
+          "title": "{name} account inactive",
+          "description": "This teacher's account is not active."
+        },
+        "teacher_high_workload": {
+          "title": "{name} — high workload ({count} classes)",
+          "description": "This teacher is assigned to many classes."
+        },
+        "staff_without_account": {
+          "title": "Staff {name} has no account",
+          "description": "This staff member has no active account."
+        },
+        "class_without_room": {
+          "title": "Class {name} has no room",
+          "description": "No room has been assigned to this class."
+        },
+        "no_classes": {
+          "title": "No classes yet",
+          "description": "No classes have been created yet."
+        },
+        "no_teachers": {
+          "title": "No teachers yet",
+          "description": "No teachers have been registered yet."
+        },
+        "academic_context_missing": {
+          "title": "Missing academic context",
+          "description": "Academic year or level data is incomplete."
+        }
+      },
       "staffDomainUnavailable": "Not available within your permissions",
       "noAssignments": "No assignments",
       "addStaff": "Add staff member",

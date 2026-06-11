@@ -92,7 +92,8 @@
     "examResultsNav": "نتائج الامتحانات",
     "finance": "المالية",
     "financeSection": "المالية",
-    "adminScopedFinance": "المالية (نطاق محدود)"
+    "adminScopedFinance": "المالية (نطاق محدود)",
+    "settings": "الإعدادات"
   },
   "states": {
     "draft": "مسودة",
@@ -932,6 +933,98 @@
       "scopedReadinessDesc": "هذه النتيجة محدودة بنطاق صلاحياتك، ولا تمثل جاهزية المؤسسة كاملة.",
       "readyForTimetable": "جاهز لإعداد الجدول الزمني",
       "quickActionsTitle": "إجراءات سريعة",
+      "quickActionCodes": {
+        "level_without_classes": "مستويات بدون أقسام",
+        "academic_context_missing": "سياق أكاديمي مفقود",
+        "assignment_missing": "إسنادات تدريس ناقصة",
+        "subject_without_teacher": "مواد بدون أستاذ",
+        "class_without_subjects": "أقسام بدون مواد",
+        "teacher_without_assignments": "أساتذة بدون إسنادات",
+        "teacher_incomplete_profile": "ملفات أساتذة ناقصة",
+        "teacher_high_workload": "عبء تدريس مرتفع",
+        "staff_without_account": "طاقم بدون حساب",
+        "no_levels": "لا مستويات",
+        "no_classes": "لا أقسام",
+        "no_teachers": "لا أساتذة"
+      },
+      "readinessIssues": {
+        "no_active_levels": {
+          "title": "لا توجد مستويات نشطة",
+          "description": "لا توجد مستويات تعليمية نشطة ضمن نطاق المدرسة."
+        },
+        "no_levels": {
+          "title": "لا توجد مستويات نشطة",
+          "description": "لا توجد مستويات تعليمية نشطة ضمن نطاق المدرسة."
+        },
+        "no_active_academic_year": {
+          "title": "لا توجد سنة دراسية نشطة",
+          "description": "لم يُعثر على سنة دراسية نشطة لهذه المدرسة."
+        },
+        "academic_year_missing": {
+          "title": "لا توجد سنة دراسية نشطة",
+          "description": "لم يُعثر على سنة دراسية نشطة لهذه المدرسة."
+        },
+        "single_active_manager": {
+          "title": "مدير واحد نشط فقط",
+          "description": "يوجد حساب مدير نشط واحد فقط — يُنصح بتعيين مدير احتياطي."
+        },
+        "level_without_classes": {
+          "title": "مستوى {name} دون أقسام",
+          "description": "هذا المستوى لا يحتوي على أي قسم نشط."
+        },
+        "class_without_subjects": {
+          "title": "قسم {name} دون مواد",
+          "description": "هذا القسم غير مرتبط بأي مادة دراسية."
+        },
+        "subject_without_teacher": {
+          "title": "{subject} — {class} دون أستاذ",
+          "description": "لا يوجد أستاذ مسند لهذه المادة في هذا القسم."
+        },
+        "assignment_missing": {
+          "title": "إسناد تدريس ناقص",
+          "description": "{subject} — {class} دون أستاذ مسند."
+        },
+        "teacher_without_subjects": {
+          "title": "{name} دون مواد محددة",
+          "description": "هذا الأستاذ غير مرتبط بأي مادة دراسية."
+        },
+        "teacher_without_assignments": {
+          "title": "{name} دون إسنادات",
+          "description": "هذا الأستاذ لا يملك أي إسناد تدريسي."
+        },
+        "teacher_incomplete_profile": {
+          "title": "ملف {name} ناقص",
+          "description": "بيانات هذا الأستاذ غير مكتملة."
+        },
+        "teacher_inactive": {
+          "title": "حساب {name} غير مفعل",
+          "description": "حساب هذا الأستاذ غير نشط."
+        },
+        "teacher_high_workload": {
+          "title": "{name} — عبء مرتفع ({count} أقسام)",
+          "description": "هذا الأستاذ يدرّس عددًا كبيرًا من الأقسام."
+        },
+        "staff_without_account": {
+          "title": "موظف {name} بدون حساب",
+          "description": "هذا العضو من الطاقم لا يملك حسابًا نشطًا."
+        },
+        "class_without_room": {
+          "title": "قسم {name} دون قاعة",
+          "description": "لم تُحدَّد قاعة لهذا القسم."
+        },
+        "no_classes": {
+          "title": "لا توجد أقسام بعد",
+          "description": "لم يُنشأ أي قسم دراسي بعد."
+        },
+        "no_teachers": {
+          "title": "لا يوجد أساتذة بعد",
+          "description": "لم يُسجَّل أي أستاذ بعد."
+        },
+        "academic_context_missing": {
+          "title": "سياق أكاديمي مفقود",
+          "description": "بيانات السنة الدراسية أو المستويات غير مكتملة."
+        }
+      },
       "staffDomainUnavailable": "غير متاح ضمن صلاحياتك",
       "noAssignments": "لا توجد إسنادات",
       "addStaff": "إضافة موظف",

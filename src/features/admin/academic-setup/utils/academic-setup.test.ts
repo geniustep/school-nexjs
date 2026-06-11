@@ -11,7 +11,13 @@ import {
   readinessStatusLabel,
   isStaffDomainUnavailable,
 } from '@/features/admin/academic-setup/utils/readiness-present';
+import {
+  quickActionLabel,
+  readinessIssueDescription,
+  readinessIssueTitle,
+} from '@/features/admin/academic-setup/utils/readiness-i18n';
 import { globalSetupSearch, buildHref } from '@/features/admin/academic-setup/utils/search';
+import { translate } from '@/lib/i18n/messages';
 import { buildClassPayload } from '@/features/admin/class-form-utils';
 import {
   canManageStaff,
@@ -113,6 +119,48 @@ describe('readiness presentation', () => {
   it('detects unavailable staff domain', () => {
     expect(isStaffDomainUnavailable({})).toBe(true);
     expect(isStaffDomainUnavailable({ staff: { score: 0, status: 'incomplete', summary: {} } })).toBe(false);
+  });
+});
+
+describe('readiness i18n', () => {
+  const tAr = (key: string, params?: Record<string, string | number>) => translate('ar', key, params);
+
+  it('translates known issue codes', () => {
+    const issue: SetupReadinessIssue = {
+      id: '1',
+      code: 'no_active_levels',
+      severity: 'error',
+      blocking: true,
+      title: 'No active levels',
+      description: 'The school has no active educational levels in scope.',
+      domain: 'levels',
+      target: { section: 'classes' },
+    };
+    expect(readinessIssueTitle(issue, tAr)).toBe('لا توجد مستويات نشطة');
+    expect(readinessIssueDescription(issue, tAr)).toBe(
+      'لا توجد مستويات تعليمية نشطة ضمن نطاق المدرسة.',
+    );
+  });
+
+  it('falls back to API text for unknown issue codes', () => {
+    const issue: SetupReadinessIssue = {
+      id: '2',
+      code: 'custom_issue',
+      severity: 'info',
+      blocking: false,
+      title: 'Custom title',
+      description: 'Custom description',
+      domain: 'other',
+      target: { section: 'overview' },
+    };
+    expect(readinessIssueTitle(issue, tAr)).toBe('Custom title');
+    expect(readinessIssueDescription(issue, tAr)).toBe('Custom description');
+  });
+
+  it('translates quick action codes', () => {
+    expect(
+      quickActionLabel({ code: 'level_without_classes', section: 'classes', count: 1 }, tAr),
+    ).toBe('مستويات بدون أقسام (1)');
   });
 });
 

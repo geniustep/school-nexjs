@@ -3,6 +3,10 @@
 import { useState } from 'react';
 import { useT } from '@/features/i18n/locale-context';
 import type { SetupReadinessIssue, TeachingAssignmentSuggestionsResponse } from '@/types/academic-setup';
+import {
+  readinessIssueDescription,
+  readinessIssueTitle,
+} from '../utils/readiness-i18n';
 import { SetupDrawer } from './setup-drawer';
 
 export function MissingAssignmentsDrawer({
@@ -60,10 +64,12 @@ export function MissingAssignmentsDrawer({
     <SetupDrawer open={open} title={t('admin.academicSetup.completeMissing')} onClose={onClose}>
       <p className="muted tiny">{t('admin.academicSetup.missingCount', { count: issues.length })}</p>
       <div className="col" style={{ gap: 8, marginTop: 12 }}>
-        {issues.map((issue) => (
+        {issues.map((issue) => {
+          const description = readinessIssueDescription(issue, t);
+          return (
           <div key={issue.id} className="academic-setup-class-row" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
-            <strong>{issue.title}</strong>
-            {issue.description && <span className="tiny muted">{issue.description}</span>}
+            <strong>{readinessIssueTitle(issue, t)}</strong>
+            {description && <span className="tiny muted">{description}</span>}
             <div className="row mt-2" style={{ gap: 8 }}>
               <button
                 type="button"
@@ -85,7 +91,8 @@ export function MissingAssignmentsDrawer({
               )}
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
     </SetupDrawer>
   );

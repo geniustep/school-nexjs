@@ -92,7 +92,8 @@
     "examResultsNav": "Resultados de exámenes",
     "finance": "Finanzas",
     "financeSection": "Finanzas",
-    "adminScopedFinance": "Finanzas (ámbito limitado)"
+    "adminScopedFinance": "Finanzas (ámbito limitado)",
+    "settings": "Configuración"
   },
   "states": {
     "draft": "Borrador",
@@ -932,6 +933,98 @@
       "scopedReadinessDesc": "Este resultado está limitado a su ámbito de permisos y no representa la preparación completa del centro.",
       "readyForTimetable": "Listo para el horario",
       "quickActionsTitle": "Acciones rápidas",
+      "quickActionCodes": {
+        "level_without_classes": "Niveles sin clases",
+        "academic_context_missing": "Contexto académico faltante",
+        "assignment_missing": "Asignaciones faltantes",
+        "subject_without_teacher": "Materias sin profesor",
+        "class_without_subjects": "Clases sin materias",
+        "teacher_without_assignments": "Profesores sin asignaciones",
+        "teacher_incomplete_profile": "Perfiles de profesores incompletos",
+        "teacher_high_workload": "Carga docente alta",
+        "staff_without_account": "Personal sin cuenta",
+        "no_levels": "Sin niveles",
+        "no_classes": "Sin clases",
+        "no_teachers": "Sin profesores"
+      },
+      "readinessIssues": {
+        "no_active_levels": {
+          "title": "No hay niveles activos",
+          "description": "El centro no tiene niveles educativos activos en el ámbito."
+        },
+        "no_levels": {
+          "title": "No hay niveles activos",
+          "description": "El centro no tiene niveles educativos activos en el ámbito."
+        },
+        "no_active_academic_year": {
+          "title": "No hay año académico activo",
+          "description": "No se encontró un año académico activo para este centro."
+        },
+        "academic_year_missing": {
+          "title": "No hay año académico activo",
+          "description": "No se encontró un año académico activo para este centro."
+        },
+        "single_active_manager": {
+          "title": "Un solo gestor activo",
+          "description": "Solo existe una cuenta de gestor activa — considere un gestor de respaldo."
+        },
+        "level_without_classes": {
+          "title": "Nivel {name} sin clases",
+          "description": "Este nivel no tiene clases activas."
+        },
+        "class_without_subjects": {
+          "title": "Clase {name} sin materias",
+          "description": "Esta clase no está vinculada a ninguna materia."
+        },
+        "subject_without_teacher": {
+          "title": "{subject} — {class} sin profesor",
+          "description": "No hay profesor asignado a esta materia en esta clase."
+        },
+        "assignment_missing": {
+          "title": "Asignación docente faltante",
+          "description": "{subject} — {class} no tiene profesor asignado."
+        },
+        "teacher_without_subjects": {
+          "title": "{name} sin materias",
+          "description": "Este profesor no está vinculado a ninguna materia."
+        },
+        "teacher_without_assignments": {
+          "title": "{name} sin asignaciones",
+          "description": "Este profesor no tiene asignaciones docentes."
+        },
+        "teacher_incomplete_profile": {
+          "title": "Perfil de {name} incompleto",
+          "description": "Los datos de este profesor están incompletos."
+        },
+        "teacher_inactive": {
+          "title": "Cuenta de {name} inactiva",
+          "description": "La cuenta de este profesor no está activa."
+        },
+        "teacher_high_workload": {
+          "title": "{name} — carga alta ({count} clases)",
+          "description": "Este profesor está asignado a muchas clases."
+        },
+        "staff_without_account": {
+          "title": "Personal {name} sin cuenta",
+          "description": "Este miembro del personal no tiene cuenta activa."
+        },
+        "class_without_room": {
+          "title": "Clase {name} sin aula",
+          "description": "No se ha asignado aula a esta clase."
+        },
+        "no_classes": {
+          "title": "Aún no hay clases",
+          "description": "Aún no se han creado clases."
+        },
+        "no_teachers": {
+          "title": "Aún no hay profesores",
+          "description": "Aún no se han registrado profesores."
+        },
+        "academic_context_missing": {
+          "title": "Contexto académico faltante",
+          "description": "Los datos del año académico o niveles están incompletos."
+        }
+      },
       "staffDomainUnavailable": "No disponible en sus permisos",
       "noAssignments": "Sin asignaciones",
       "addStaff": "Añadir miembro",
