@@ -6,6 +6,7 @@ import { ErrorState, LoadingState, EmptyState } from '@/components/states/states
 import { PageHeader } from '@/components/ui/primitives';
 import { StaffCardGrid } from '@/features/admin/academic-setup/components/staff-card';
 import { StaffFormDrawer } from '@/features/admin/academic-setup/components/staff-form-drawer';
+import { useDrawerActionParam } from '@/features/admin/academic-setup/hooks/use-drawer-action-param';
 import { useStaffList, useStaffOptions } from '@/features/admin/academic-setup/hooks/use-staff';
 import { canManageStaff } from '@/lib/permissions/academic-setup';
 import { useSession } from '@/features/auth/session-context';
@@ -16,7 +17,8 @@ export default function AcademicSetupStaffPage() {
   const user = useSession();
   const searchParams = useSearchParams();
   const [search, setSearch] = useState(searchParams.get('search') ?? '');
-  const [drawerOpen, setDrawerOpen] = useState(searchParams.get('action') === 'add');
+  const { openFromAction, dismissActionParam } = useDrawerActionParam('add');
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(
     searchParams.get('id') ? Number(searchParams.get('id')) : null,
   );
@@ -82,18 +84,20 @@ export default function AcademicSetupStaffPage() {
         />
       )}
       <StaffFormDrawer
-        open={drawerOpen || editId != null}
+        open={drawerOpen || openFromAction || editId != null}
         memberId={drawerOpen && !editId ? null : editId}
         options={optionsState.options ?? undefined}
         canManage={canManage}
         onClose={() => {
           setDrawerOpen(false);
           setEditId(null);
+          dismissActionParam();
         }}
         onSaved={() => {
           listState.reload();
           setDrawerOpen(false);
           setEditId(null);
+          dismissActionParam();
         }}
       />
     </>

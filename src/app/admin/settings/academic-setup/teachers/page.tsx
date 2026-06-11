@@ -7,6 +7,7 @@ import { PageHeader } from '@/components/ui/primitives';
 import { TeacherCardGrid } from '@/features/admin/academic-setup/components/teacher-card';
 import { TeacherFormDrawer } from '@/features/admin/academic-setup/components/teacher-form-drawer';
 import { useAcademicSetupLists } from '@/features/admin/academic-setup/hooks/use-academic-setup-data';
+import { useDrawerActionParam } from '@/features/admin/academic-setup/hooks/use-drawer-action-param';
 import { buildTeacherCards } from '@/features/admin/academic-setup/utils/summary';
 import { parseNumericFilter } from '@/features/admin/academic-setup/utils/search';
 import { canManageTeachers } from '@/lib/permissions/academic-setup';
@@ -20,7 +21,8 @@ export default function AcademicSetupTeachersPage() {
   const lists = useAcademicSetupLists();
   const canManage = canManageTeachers(user);
   const [search, setSearch] = useState(searchParams.get('search') ?? '');
-  const [drawerOpen, setDrawerOpen] = useState(searchParams.get('action') === 'add');
+  const { openFromAction, dismissActionParam } = useDrawerActionParam('add');
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const filterTeacherId = parseNumericFilter(searchParams, 'teacher_id') ?? parseNumericFilter(searchParams, 'teacher');
 
   const cards = useMemo(() => {
@@ -83,8 +85,11 @@ export default function AcademicSetupTeachersPage() {
         <TeacherCardGrid models={cards} selectedId={filterTeacherId} />
       )}
       <TeacherFormDrawer
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
+        open={drawerOpen || openFromAction}
+        onClose={() => {
+          setDrawerOpen(false);
+          dismissActionParam();
+        }}
         onSaved={() => lists.reload()}
       />
     </>

@@ -7,6 +7,7 @@ import { PageHeader } from '@/components/ui/primitives';
 import { ClassDrawer } from '@/features/admin/academic-setup/components/class-drawer';
 import { LevelClassGroup } from '@/features/admin/academic-setup/components/level-class-group';
 import { useAcademicSetupLists } from '@/features/admin/academic-setup/hooks/use-academic-setup-data';
+import { useDrawerActionParam } from '@/features/admin/academic-setup/hooks/use-drawer-action-param';
 import { buildLevelGroups } from '@/features/admin/academic-setup/utils/summary';
 import { parseNumericFilter } from '@/features/admin/academic-setup/utils/search';
 import { canManageClasses } from '@/lib/permissions/academic-setup';
@@ -34,7 +35,14 @@ export default function AcademicSetupClassesPage() {
 
   const filterLevelId = parseNumericFilter(searchParams, 'level');
   const filterClassId = parseNumericFilter(searchParams, 'class_id') ?? parseNumericFilter(searchParams, 'class');
-  const actionAdd = searchParams.get('action') === 'add';
+  const { openFromAction, dismissActionParam } = useDrawerActionParam('add');
+
+  function closeDrawer() {
+    setDrawer(null);
+    dismissActionParam();
+  }
+
+  const createMode = drawer?.mode === 'create' || openFromAction;
 
   const visibleGroups = filterLevelId
     ? levelGroups.filter((g) => g.id === filterLevelId)
@@ -73,9 +81,9 @@ export default function AcademicSetupClassesPage() {
         />
         <EmptyState icon="🏫" title={t('admin.academicSetup.noClassesInLevel')} />
         <ClassDrawer
-          open={!!drawer || actionAdd}
+          open={!!drawer || openFromAction}
           mode="create"
-          onClose={() => setDrawer(null)}
+          onClose={closeDrawer}
           onSaved={() => lists.reload()}
         />
       </>
@@ -107,11 +115,11 @@ export default function AcademicSetupClassesPage() {
         ))}
       </div>
       <ClassDrawer
-        open={!!drawer || actionAdd}
-        mode={drawer?.mode === 'create' || actionAdd ? 'create' : drawer?.mode ?? 'view'}
+        open={!!drawer || openFromAction}
+        mode={createMode ? 'create' : drawer?.mode ?? 'view'}
         cls={drawer && 'cls' in drawer ? drawer.cls : undefined}
         defaultLevelId={drawer && 'levelId' in drawer ? drawer.levelId : undefined}
-        onClose={() => setDrawer(null)}
+        onClose={closeDrawer}
         onSaved={() => lists.reload()}
       />
     </>
