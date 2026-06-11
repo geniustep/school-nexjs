@@ -3,8 +3,16 @@
 export const config = {
   /** Base URL of the Odoo backend (no trailing slash). */
   odooBaseUrl: (process.env.ODOO_BASE_URL ?? 'http://localhost:8069').replace(/\/$/, ''),
-  /** Odoo database name used during /web/session/authenticate. */
+  /**
+   * Fallback Odoo database for localhost, Vercel preview URLs and legacy hosts.
+   * Production *.raqeem.ma requests resolve the database from the subdomain.
+   */
   odooDb: process.env.ODOO_DB ?? 'alwah',
+  /** Root domain used to resolve tenant databases from <tenant>.raqeem.ma. */
+  tenantRootDomain: (process.env.TENANT_ROOT_DOMAIN ?? 'raqeem.ma')
+    .trim()
+    .toLowerCase()
+    .replace(/^\.+|\.+$/g, ''),
   /** API v1 prefix. Frozen — see API_REPORT.md. */
   apiPrefix: '/api/v1',
   /** httpOnly cookie that stores the Odoo session id on the Next.js side. */
