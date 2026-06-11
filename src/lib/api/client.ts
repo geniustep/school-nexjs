@@ -38,6 +38,8 @@ export const api = {
       const res = await fetch(buildUrl(path, query), {
         method: 'GET',
         headers: { Accept: 'application/json' },
+        credentials: 'same-origin',
+        cache: 'no-store',
       });
       return parse<T>(res);
     } catch {

@@ -20,6 +20,17 @@ import { globalSetupSearch, buildHref } from '@/features/admin/academic-setup/ut
 import { translate } from '@/lib/i18n/messages';
 import { buildClassPayload } from '@/features/admin/class-form-utils';
 import {
+  aggregateBatchResults,
+  buildGuidedSteps,
+  clearTrackOnLevelChange,
+  hasTrackSupportingLevel,
+  isLevelAlreadyEnabled,
+  levelSupportsTracks,
+  primaryCtaFromSteps,
+  resolveNextStep,
+  suggestClassNames,
+} from '@/features/admin/academic-setup/utils/guided-flow';
+import {
   canManageStaff,
   canManageTeachingAssignments,
   canViewAcademicSetup,
@@ -224,6 +235,119 @@ describe('globalSetupSearch', () => {
     );
     expect(results[0]?.type).toBe('staff');
     expect(buildHref(results[0]!.href, results[0]!.query)).toContain('staff');
+  });
+});
+
+describe('guided flow', () => {
+  const baseReadiness: SetupReadinessPayload = {
+    school: { id: 1, name: 'School' },
+    scope: { type: 'school', is_full_school: true },
+    readiness: {
+      score: 10,
+      status: 'not_started',
+      blocking_issues: 2,
+      warnings: 0,
+      information: 0,
+      ready_for_timetable_setup: false,
+    },
+    domains: {
+      levels_classes: { score: 0, status: 'not_started', summary: { levels: 0, classes: 0 } },
+      subjects_tracks: { score: 0, status: 'not_started', summary: { subjects: 0, tracks: 0 } },
+      teachers: { score: 0, status: 'not_started', summary: { teachers: 0, without_assignments: 0 } },
+      staff: { score: 100, status: 'ready', summary: { staff: 1, incomplete: 0 } },
+      assignments: { score: 0, status: 'not_started', summary: { assigned: 0, missing: 0 } },
+    },
+    issues: [],
+  };
+
+  const ctx = {
+    levels: [] as { id: number; name: string; code?: string | null }[],
+    classesCount: 0,
+    subjectsCount: 0,
+    tracksCount: 0,
+    teachersCount: 0,
+    staffCount: 1,
+    trackLevels: [{ id: 10, supports_tracks: true }],
+    canManageClasses: true,
+    canManageTeachers: true,
+    canManageStaff: true,
+    canManageAssignments: true,
+    readiness: baseReadiness,
+  };
+
+  it('locks subjects and classes without levels', () => {
+    const steps = buildGuidedSteps(ctx);
+    expect(steps.find((s) => s.id === 'classes')?.state).toBe('locked');
+    expect(steps.find((s) => s.id === 'subjects')?.state).toBe('locked');
+    expect(resolveNextStep(steps)?.id).toBe('levels');
+  });
+
+  it('locks assignments without class subject teacher', () => {
+    const steps = buildGuidedSteps({
+      ...ctx,
+      levels: [{ id: 1, name: 'P1', code: 'P1' }],
+      classesCount: 0,
+      subjectsCount: 0,
+      teachersCount: 0,
+      readiness: {
+        ...baseReadiness,
+        domains: {
+          ...baseReadiness.domains,
+          levels_classes: { score: 20, status: 'incomplete', summary: { levels: 1, classes: 0 } },
+        },
+      },
+    });
+    const assignments = steps.find((s) => s.id === 'assignments');
+    expect(assignments?.state).toBe('locked');
+    expect(assignments?.lockReasonKey).toContain('lockAssignments');
+  });
+
+  it('detects track-supporting levels', () => {
+    expect(hasTrackSupportingLevel([{ id: 1, supports_tracks: false }, { id: 2, supports_tracks: true }])).toBe(true);
+    expect(levelSupportsTracks(2, [{ id: 2, supports_tracks: true }])).toBe(true);
+    expect(levelSupportsTracks(1, [{ id: 2, supports_tracks: true }])).toBe(false);
+  });
+
+  it('clears track_id when level no longer supports tracks', () => {
+    const trackLevels = [
+      { id: 1, supports_tracks: false },
+      { id: 2, supports_tracks: true },
+    ];
+    expect(clearTrackOnLevelChange('5', '1', '2', trackLevels)).toBe('');
+    expect(clearTrackOnLevelChange('5', '2', '1', trackLevels)).toBe('5');
+  });
+
+  it('detects already enabled reference code', () => {
+    expect(isLevelAlreadyEnabled('P1', [{ id: 1, name: 'A', code: 'p1' }])).toBe(true);
+    expect(isLevelAlreadyEnabled('P2', [{ id: 1, name: 'A', code: 'P1' }])).toBe(false);
+  });
+
+  it('suggests class names and aggregates batch results', () => {
+    expect(suggestClassNames('الأولى ابتدائي', 3)).toEqual([
+      'الأولى ابتدائي أ',
+      'الأولى ابتدائي ب',
+      'الأولى ابتدائي ج',
+    ]);
+    expect(aggregateBatchResults([{ ok: true }, { ok: false }])).toEqual({
+      allOk: false,
+      successCount: 1,
+      failCount: 1,
+    });
+  });
+
+  it('picks next step after levels exist', () => {
+    const steps = buildGuidedSteps({
+      ...ctx,
+      levels: [{ id: 1, name: 'P1', code: 'P1' }],
+      readiness: {
+        ...baseReadiness,
+        domains: {
+          ...baseReadiness.domains,
+          levels_classes: { score: 30, status: 'incomplete', summary: { levels: 1, classes: 0 } },
+        },
+      },
+    });
+    expect(primaryCtaFromSteps(steps)?.id).toBe('classes');
   });
 });
 

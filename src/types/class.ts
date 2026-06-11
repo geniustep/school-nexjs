@@ -19,10 +19,23 @@ export interface Subject {
   code?: string | null;
 }
 
+export interface LevelCycle {
+  id: number;
+  code: string;
+  name: string;
+  sequence?: number;
+}
+
 export interface Level {
   id: number;
   name: string;
   code?: string | null;
+  ref_level_id?: number | null;
+  supports_tracks?: boolean;
+  cycle?: LevelCycle | null;
+  active?: boolean;
+  classes_count?: number;
+  subjects_count?: number;
   subjects?: Subject[];
 }
 

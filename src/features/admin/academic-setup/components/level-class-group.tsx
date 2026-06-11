@@ -5,34 +5,55 @@ import { Badge } from '@/components/ui/primitives';
 import { useT } from '@/features/i18n/locale-context';
 import type { LevelGroup } from '../types';
 import type { SchoolClass } from '@/types/class';
+import { levelSupportsTracks } from '../utils/guided-flow';
 
 export function LevelClassGroup({
   group,
   selectedClassId,
   onSelectClass,
   onAddClass,
+  onBatchClasses,
   canManage,
+  trackLevels,
+  subjectCount = 0,
 }: {
   group: LevelGroup;
   selectedClassId: number | null;
   onSelectClass: (cls: SchoolClass) => void;
   onAddClass?: (levelId: number) => void;
+  onBatchClasses?: (levelId: number) => void;
   canManage: boolean;
+  trackLevels?: import('../utils/guided-flow').TrackLevelRef[];
+  subjectCount?: number;
 }) {
   const t = useT();
   const [open, setOpen] = useState(true);
+  const supportsTracks =
+    group.supports_tracks ??
+    (trackLevels ? levelSupportsTracks(group.id, trackLevels) : false);
+  const classCount = group.classes_count ?? group.classes.length;
+  const subjectCountDisplay = group.subjects_count ?? subjectCount;
 
   return (
     <div className="academic-setup-level">
       <button type="button" className="academic-setup-level__head" onClick={() => setOpen((v) => !v)}>
         <span>
           <strong>{group.name}</strong>
-          <span className="tiny muted">
-            {' '}
-            · {t('admin.academicSetup.levelMeta', {
-              classes: group.classes.length,
+          {group.code && <span className="tiny muted"> {group.code}</span>}
+          {group.cycle?.name && (
+            <span className="tiny muted block mt-2">{group.cycle.name}</span>
+          )}
+          <span className="tiny muted block mt-2">
+            {t('admin.academicSetup.levelMeta', {
+              classes: classCount,
               students: group.studentCount,
             })}
+          </span>
+          <span className="row tiny muted mt-2" style={{ gap: 8, flexWrap: 'wrap' }}>
+            <span>{t('admin.academicSetup.guided.levelSubjectCount', { count: subjectCountDisplay })}</span>
+            {supportsTracks && (
+              <Badge tone="blue">{t('admin.academicSetup.guided.supportsTracks')}</Badge>
+            )}
           </span>
         </span>
         <span aria-hidden>{open ? '▾' : '▸'}</span>
@@ -68,14 +89,27 @@ export function LevelClassGroup({
                 </button>
               ))
           )}
-          {canManage && onAddClass && (
-            <button
-              type="button"
-              className="btn btn--ghost btn--sm"
-              onClick={() => onAddClass(group.id)}
-            >
-              + {t('admin.addClass')}
-            </button>
+          {canManage && (
+            <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+              {onAddClass && (
+                <button
+                  type="button"
+                  className="btn btn--ghost btn--sm"
+                  onClick={() => onAddClass(group.id)}
+                >
+                  + {t('admin.addClass')}
+                </button>
+              )}
+              {onBatchClasses && (
+                <button
+                  type="button"
+                  className="btn btn--ghost btn--sm"
+                  onClick={() => onBatchClasses(group.id)}
+                >
+                  + {t('admin.academicSetup.guided.batchClasses')}
+                </button>
+              )}
+            </div>
           )}
         </div>
       )}
