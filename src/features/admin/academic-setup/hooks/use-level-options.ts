@@ -14,6 +14,17 @@ export type LevelOptionsQuery = {
   page_size?: number;
 };
 
+export function normalizeLevelOptionsPayload(
+  data: LevelOptionsPayload | null | undefined,
+): LevelOptionsPayload | null {
+  if (!data || typeof data !== 'object') return null;
+  const reference_levels = Array.isArray(data.reference_levels) ? data.reference_levels : [];
+  const cycles = Array.isArray(data.cycles) ? data.cycles : [];
+  const permissions = data.permissions ?? { can_enable: false };
+  return { reference_levels, cycles, permissions };
+}
+
+/** Always pass active=true on pages that show the drawer — avoids null data when opening. */
 export function useLevelOptions(active = true, query?: LevelOptionsQuery) {
   const mergedQuery: LevelOptionsQuery = {
     include_enabled: 'true',
@@ -28,7 +39,7 @@ export function useLevelOptions(active = true, query?: LevelOptionsQuery) {
   const reload = useCallback(() => state.reload(), [state]);
 
   return {
-    options: state.data,
+    options: normalizeLevelOptionsPayload(state.data),
     loading: state.loading,
     error: state.error,
     reload,

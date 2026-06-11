@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { EnableLevelResult, ReferenceLevelOption } from '@/types/academic-levels';
+import { normalizeLevelOptionsPayload } from '../hooks/use-level-options';
 import {
   aggregateEnableResults,
   buildEnablePayload,
@@ -28,6 +29,23 @@ function refLevel(
     ...partial,
   };
 }
+
+describe('normalizeLevelOptionsPayload', () => {
+  it('returns null when data missing', () => {
+    expect(normalizeLevelOptionsPayload(null)).toBeNull();
+    expect(normalizeLevelOptionsPayload(undefined)).toBeNull();
+  });
+
+  it('normalizes partial payloads', () => {
+    const out = normalizeLevelOptionsPayload({
+      reference_levels: [{ id: 1 } as never],
+      cycles: [],
+      permissions: { can_enable: true },
+    });
+    expect(out?.reference_levels).toHaveLength(1);
+    expect(out?.permissions.can_enable).toBe(true);
+  });
+});
 
 describe('level-options utils', () => {
   const levels: ReferenceLevelOption[] = [

@@ -44,7 +44,7 @@ export function ReferenceLevelsDrawer({
   const [saving, setSaving] = useState(false);
   const [rowErrors, setRowErrors] = useState<Map<number, string>>(new Map());
 
-  const optionsState = useLevelOptions(open, {
+  const optionsState = useLevelOptions(true, {
     include_enabled: 'true',
     ...(cycleId !== '' ? { cycle: cycleId } : {}),
   });
@@ -53,7 +53,9 @@ export function ReferenceLevelsDrawer({
     if (open) optionsState.reload();
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const optionsLoaded = optionsState.options !== null;
   const allLevels = optionsState.options?.reference_levels ?? [];
+  const showLoading = open && (optionsState.loading || !optionsLoaded);
   const cycles = optionsState.options?.cycles ?? [];
   const canEnable = optionsState.options?.permissions?.can_enable ?? false;
 
@@ -172,9 +174,9 @@ export function ReferenceLevelsDrawer({
     >
       <p className="muted tiny mb-2">{t('admin.academicSetup.guided.addLevelsDesc')}</p>
 
-      {optionsState.loading && <p className="muted">{t('common.loading')}</p>}
+      {showLoading && <p className="muted">{t('common.loading')}</p>}
 
-      {optionsState.error && !optionsState.loading && (
+      {optionsState.error && !showLoading && (
         <div className="academic-setup-gap-banner" role="alert">
           <p>{mapAcademicSetupApiError(optionsState.error, t, 'level')}</p>
           <button type="button" className="btn btn--ghost btn--sm mt-2" onClick={() => optionsState.reload()}>
@@ -183,11 +185,11 @@ export function ReferenceLevelsDrawer({
         </div>
       )}
 
-      {!optionsState.loading && !optionsState.error && !allLevels.length && (
+      {!showLoading && !optionsState.error && optionsLoaded && !allLevels.length && (
         <p className="muted">{t('admin.academicSetup.guided.noReferenceLevels')}</p>
       )}
 
-      {!optionsState.loading && !optionsState.error && allLevels.length > 0 && (
+      {!showLoading && !optionsState.error && optionsLoaded && allLevels.length > 0 && (
         <div className="col" style={{ gap: 16 }}>
           {!canEnable && (
             <div className="academic-setup-gap-banner" role="status">

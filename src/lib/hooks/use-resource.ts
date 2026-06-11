@@ -31,6 +31,8 @@ export function useResource<T>(
   useEffect(() => {
     if (!path) {
       setLoading(false);
+      setData(null);
+      setError(null);
       return;
     }
     let active = true;
