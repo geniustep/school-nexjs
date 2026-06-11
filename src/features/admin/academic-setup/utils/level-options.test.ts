@@ -4,10 +4,9 @@ import { normalizeLevelOptionsPayload } from '../hooks/use-level-options';
 import {
   aggregateEnableResults,
   buildEnablePayload,
-  buildOrphanLevelCodes,
   filterReferenceLevels,
   groupReferenceLevelsByCycle,
-  isReferenceLevelOrphan,
+  isLegacyUnlinkedLevel,
   isReferenceLevelSelectable,
   selectableIdsInCycle,
   sortReferenceLevels,
@@ -117,12 +116,26 @@ describe('level-options utils', () => {
     expect(isReferenceLevelSelectable(list[1]!)).toBe(false);
   });
 
-  it('blocks orphan reference levels already present in school', () => {
-    const orphans = buildOrphanLevelCodes([{ code: 'P1' }, { code: 'P2' }]);
+  it('blocks legacy unlinked levels from enable selection', () => {
+    const schoolLevels = [{ id: 77, name: 'P1', code: 'P1', ref_level_id: null }];
     const p1 = refLevel({ id: 1, code: 'P1' });
-    expect(isReferenceLevelOrphan(p1, orphans)).toBe(true);
-    expect(isReferenceLevelSelectable(p1, orphans)).toBe(false);
-    expect(buildEnablePayload([1, 2], [p1, refLevel({ id: 2, code: 'P3' })], orphans)).toEqual([2]);
-    expect(selectableIdsInCycle([p1, refLevel({ id: 2, code: 'P3' })], cyclePrimary.id, orphans)).toEqual([2]);
+    expect(isLegacyUnlinkedLevel(p1, schoolLevels)).toBe(true);
+    expect(isReferenceLevelSelectable(p1, schoolLevels)).toBe(false);
+    expect(buildEnablePayload([1, 2], [p1, refLevel({ id: 2, code: 'P3' })], schoolLevels)).toEqual([2]);
+    expect(
+      selectableIdsInCycle([p1, refLevel({ id: 2, code: 'P3' })], cyclePrimary.id, schoolLevels),
+    ).toEqual([2]);
+  });
+
+  it('counts linked_existing as enabled in aggregate', () => {
+    const outcome = aggregateEnableResults([
+      {
+        reference_level_id: 4,
+        status: 'linked_existing',
+        school_level: { id: 77, name: 'P1', code: 'P1', supports_tracks: false },
+      },
+    ]);
+    expect(outcome.enabledCount).toBe(1);
+    expect(outcome.newSchoolLevelIds).toEqual([77]);
   });
 });

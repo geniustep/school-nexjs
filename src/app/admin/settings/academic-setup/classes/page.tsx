@@ -192,6 +192,7 @@ export default function AcademicSetupClassesPage() {
             subjectCount={subjectCountsByLevel.get(group.id) ?? 0}
             onAddClass={(levelId) => setDrawer({ mode: 'create', levelId })}
             onBatchClasses={canManage ? (levelId) => setBatchLevelId(levelId) : undefined}
+            onLevelRemoved={refreshAll}
             onSelectClass={(cls) => setDrawer({ mode: 'view', cls })}
           />
         ))}

@@ -47,6 +47,14 @@ const LEVEL_ERRORS: Record<string, string> = {
   invalid_payload: 'admin.academicSetup.errors.invalidPayload',
   duplicate_record: 'admin.academicSetup.errors.levelDuplicateCode',
   level_out_of_scope: 'admin.academicSetup.errors.levelOutOfScope',
+  level_already_linked: 'admin.academicSetup.errors.levelAlreadyLinked',
+  reference_level_already_enabled: 'admin.academicSetup.errors.alreadyEnabled',
+  legacy_level_ambiguous: 'admin.academicSetup.errors.legacyLevelAmbiguous',
+  legacy_level_code_mismatch: 'admin.academicSetup.errors.legacyLevelCodeMismatch',
+  legacy_level_cycle_mismatch: 'admin.academicSetup.errors.legacyLevelCycleMismatch',
+  level_in_use: 'admin.academicSetup.errors.levelInUse',
+  protected_level: 'admin.academicSetup.errors.protectedLevel',
+  cannot_delete_level: 'admin.academicSetup.errors.cannotDeleteLevel',
 };
 
 const SUBJECT_ERRORS: Record<string, string> = {
