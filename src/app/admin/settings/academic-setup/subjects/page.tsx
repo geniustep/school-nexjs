@@ -5,6 +5,8 @@ import { useSearchParams } from 'next/navigation';
 import { ErrorState, LoadingState } from '@/components/states/states';
 import { PageHeader } from '@/components/ui/primitives';
 import { SubjectsByLevel } from '@/features/admin/academic-setup/components/subjects-by-level';
+import { SubjectsLevelPanel } from '@/features/admin/academic-setup/components/subjects-level-panel';
+import { useSetupReadiness } from '@/features/admin/academic-setup/hooks/use-setup-readiness';
 import { TracksPanel } from '@/features/admin/academic-setup/components/tracks-panel';
 import { useAcademicSetupLists } from '@/features/admin/academic-setup/hooks/use-academic-setup-data';
 import { groupSubjectsByLevel } from '@/features/admin/academic-setup/utils/summary';
@@ -19,7 +21,13 @@ export default function AcademicSetupSubjectsPage() {
   const user = useSession();
   const searchParams = useSearchParams();
   const lists = useAcademicSetupLists();
+  const readinessState = useSetupReadiness();
   const canManage = canManageClasses(user);
+
+  function refreshAll() {
+    lists.reload();
+    readinessState.reload();
+  }
   const initialTab: Tab = searchParams.get('tab') === 'tracks' ? 'tracks' : 'subjects';
   const [tab, setTab] = useState<Tab>(initialTab);
 
@@ -41,7 +49,7 @@ export default function AcademicSetupSubjectsPage() {
     return (
       <>
         <PageHeader title={t('admin.academicSetup.nav.subjects')} />
-        <ErrorState error={lists.error} onRetry={lists.reload} />
+        <ErrorState error={lists.error} onRetry={refreshAll} />
       </>
     );
   }
@@ -69,7 +77,26 @@ export default function AcademicSetupSubjectsPage() {
           {t('admin.academicSetup.tabTracks')}
         </button>
       </div>
-      {tab === 'subjects' ? <SubjectsByLevel groups={groups} /> : <TracksPanel canManage={canManage} />}
+      {tab === 'subjects' ? (
+        lists.levels.length ? (
+          <>
+            <SubjectsLevelPanel
+              levels={lists.levels}
+              subjects={lists.subjects}
+              classes={lists.classes}
+              canManage={canManage}
+            />
+            <hr style={{ margin: '16px 0', border: 'none', borderTop: '1px solid var(--c-border)' }} />
+            <SubjectsByLevel groups={groups} />
+          </>
+        ) : (
+          <div className="academic-setup-gap-banner">
+            <p>{t('admin.academicSetup.guided.lockNoLevels')}</p>
+          </div>
+        )
+      ) : (
+        <TracksPanel canManage={canManage} />
+      )}
     </>
   );
 }

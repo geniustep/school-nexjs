@@ -4,11 +4,15 @@ import { useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ErrorState, LoadingState, EmptyState } from '@/components/states/states';
 import { PageHeader } from '@/components/ui/primitives';
+import { BatchClassDrawer } from '@/features/admin/academic-setup/components/batch-class-drawer';
 import { ClassDrawer } from '@/features/admin/academic-setup/components/class-drawer';
 import { LevelClassGroup } from '@/features/admin/academic-setup/components/level-class-group';
+import { ReferenceLevelsDrawer } from '@/features/admin/academic-setup/components/reference-levels-drawer';
 import { useAcademicSetupLists } from '@/features/admin/academic-setup/hooks/use-academic-setup-data';
 import { useDrawerActionParam } from '@/features/admin/academic-setup/hooks/use-drawer-action-param';
-import { buildLevelGroups } from '@/features/admin/academic-setup/utils/summary';
+import { useSetupReadiness } from '@/features/admin/academic-setup/hooks/use-setup-readiness';
+import { useTrackOptions } from '@/features/admin/academic-setup/hooks/use-tracks';
+import { buildLevelGroups, groupSubjectsByLevel } from '@/features/admin/academic-setup/utils/summary';
 import { parseNumericFilter } from '@/features/admin/academic-setup/utils/search';
 import { canManageClasses } from '@/lib/permissions/academic-setup';
 import { useSession } from '@/features/auth/session-context';
@@ -20,6 +24,8 @@ export default function AcademicSetupClassesPage() {
   const user = useSession();
   const searchParams = useSearchParams();
   const lists = useAcademicSetupLists();
+  const readinessState = useSetupReadiness();
+  const trackOptionsState = useTrackOptions();
   const canManage = canManageClasses(user);
 
   const [drawer, setDrawer] = useState<
@@ -27,26 +33,71 @@ export default function AcademicSetupClassesPage() {
     | { mode: 'edit' | 'view'; cls: SchoolClass }
     | null
   >(null);
+  const [levelsDrawerOpen, setLevelsDrawerOpen] = useState(false);
+  const [batchLevelId, setBatchLevelId] = useState<number | null>(null);
 
   const levelGroups = useMemo(
     () => buildLevelGroups(lists.levels, lists.classes),
     [lists.levels, lists.classes],
   );
 
+  const subjectCountsByLevel = useMemo(() => {
+    const groups = groupSubjectsByLevel(lists.levels, lists.classes, lists.subjects);
+    const map = new Map<number, number>();
+    for (const g of groups) {
+      if (g.levelId != null) map.set(g.levelId, g.subjects.length);
+    }
+    return map;
+  }, [lists.levels, lists.classes, lists.subjects]);
+
   const filterLevelId = parseNumericFilter(searchParams, 'level');
   const filterClassId = parseNumericFilter(searchParams, 'class_id') ?? parseNumericFilter(searchParams, 'class');
   const { openFromAction, dismissActionParam } = useDrawerActionParam('add');
+  const levelsAction = useDrawerActionParam('add-levels');
 
   function closeDrawer() {
     setDrawer(null);
     dismissActionParam();
   }
 
+  function refreshAll() {
+    lists.reload();
+    readinessState.reload();
+    trackOptionsState.reload();
+  }
+
   const createMode = drawer?.mode === 'create' || openFromAction;
+  const levelsOpen = levelsDrawerOpen || levelsAction.openFromAction;
 
   const visibleGroups = filterLevelId
     ? levelGroups.filter((g) => g.id === filterLevelId)
     : levelGroups;
+
+  const batchLevel = batchLevelId
+    ? lists.levels.find((l) => l.id === batchLevelId) ?? null
+    : null;
+
+  const headerActions = canManage ? (
+    <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+      <button
+        type="button"
+        className="btn btn--primary btn--sm"
+        onClick={() => setLevelsDrawerOpen(true)}
+      >
+        + {t('admin.academicSetup.guided.addLevels')}
+      </button>
+      {lists.levels.length > 0 && (
+        <button
+          type="button"
+          className="btn btn--ghost btn--sm"
+          onClick={() => setDrawer({ mode: 'create' })}
+          disabled={!lists.levels.length}
+        >
+          + {t('admin.addClass')}
+        </button>
+      )}
+    </div>
+  ) : undefined;
 
   if (lists.loading) {
     return (
@@ -61,30 +112,28 @@ export default function AcademicSetupClassesPage() {
     return (
       <>
         <PageHeader title={t('admin.academicSetup.nav.classes')} />
-        <ErrorState error={lists.error} onRetry={lists.reload} />
+        <ErrorState error={lists.error} onRetry={refreshAll} />
       </>
     );
   }
 
-  if (!levelGroups.length && !lists.classes.length) {
+  if (!lists.levels.length) {
     return (
       <>
-        <PageHeader
-          title={t('admin.academicSetup.nav.classes')}
-          actions={
-            canManage ? (
-              <button type="button" className="btn btn--primary btn--sm" onClick={() => setDrawer({ mode: 'create' })}>
-                + {t('admin.addClass')}
-              </button>
-            ) : undefined
-          }
+        <PageHeader title={t('admin.academicSetup.nav.classes')} actions={headerActions} />
+        <EmptyState
+          icon="📚"
+          title={t('admin.academicSetup.guided.noLevelsTitle')}
+          description={t('admin.academicSetup.guided.noLevelsDesc')}
         />
-        <EmptyState icon="🏫" title={t('admin.academicSetup.noClassesInLevel')} />
-        <ClassDrawer
-          open={!!drawer || openFromAction}
-          mode="create"
-          onClose={closeDrawer}
-          onSaved={() => lists.reload()}
+        <ReferenceLevelsDrawer
+          open={levelsOpen}
+          enabledLevels={lists.levels}
+          onClose={() => {
+            setLevelsDrawerOpen(false);
+            levelsAction.dismissActionParam();
+          }}
+          onEnabled={() => refreshAll()}
         />
       </>
     );
@@ -92,16 +141,7 @@ export default function AcademicSetupClassesPage() {
 
   return (
     <>
-      <PageHeader
-        title={t('admin.academicSetup.nav.classes')}
-        actions={
-          canManage ? (
-            <button type="button" className="btn btn--primary btn--sm" onClick={() => setDrawer({ mode: 'create' })}>
-              + {t('admin.addClass')}
-            </button>
-          ) : undefined
-        }
-      />
+      <PageHeader title={t('admin.academicSetup.nav.classes')} actions={headerActions} />
       <div className="col" style={{ gap: 12 }}>
         {visibleGroups.map((group) => (
           <LevelClassGroup
@@ -109,7 +149,10 @@ export default function AcademicSetupClassesPage() {
             group={group}
             selectedClassId={filterClassId}
             canManage={canManage}
+            trackLevels={trackOptionsState.options?.levels ?? []}
+            subjectCount={subjectCountsByLevel.get(group.id) ?? 0}
             onAddClass={(levelId) => setDrawer({ mode: 'create', levelId })}
+            onBatchClasses={canManage ? (levelId) => setBatchLevelId(levelId) : undefined}
             onSelectClass={(cls) => setDrawer({ mode: 'view', cls })}
           />
         ))}
@@ -120,8 +163,26 @@ export default function AcademicSetupClassesPage() {
         cls={drawer && 'cls' in drawer ? drawer.cls : undefined}
         defaultLevelId={drawer && 'levelId' in drawer ? drawer.levelId : undefined}
         onClose={closeDrawer}
-        onSaved={() => lists.reload()}
+        onSaved={refreshAll}
       />
+      <ReferenceLevelsDrawer
+        open={levelsOpen}
+        enabledLevels={lists.levels}
+        onClose={() => {
+          setLevelsDrawerOpen(false);
+          levelsAction.dismissActionParam();
+        }}
+        onEnabled={() => refreshAll()}
+      />
+      {batchLevel && (
+        <BatchClassDrawer
+          open={!!batchLevel}
+          level={batchLevel}
+          trackLevels={trackOptionsState.options?.levels ?? []}
+          onClose={() => setBatchLevelId(null)}
+          onSaved={refreshAll}
+        />
+      )}
     </>
   );
 }

@@ -398,3 +398,128 @@
 .academic-setup-suggest-tier--review { background: #fef3c7; color: #92400e; }
 .academic-setup-suggest-tier--not_recommended { background: #ffedd5; color: #9a3412; }
 .academic-setup-suggest-tier--ineligible { background: #f1f5f9; color: #64748b; }
+
+.academic-setup-primary-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.academic-setup-next-step__card {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-radius: 12px;
+  border: 2px solid var(--c-primary);
+  background: linear-gradient(180deg, #f8fafc 0%, #fff 100%);
+}
+
+.academic-setup-journey {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.academic-setup-journey__item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.academic-setup-journey__connector {
+  display: block;
+  width: 2px;
+  height: 12px;
+  margin-inline-start: 22px;
+  background: var(--c-border);
+}
+
+.academic-setup-journey__card {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid var(--c-border);
+  background: #fff;
+  text-decoration: none;
+  color: inherit;
+}
+
+.academic-setup-journey__card:hover:not(.academic-setup-journey__card--locked) {
+  border-color: var(--c-primary);
+}
+
+.academic-setup-journey__card--locked {
+  opacity: 0.72;
+  cursor: not-allowed;
+}
+
+.academic-setup-journey__card--done {
+  border-inline-start: 4px solid #15803d;
+}
+
+.academic-setup-journey__num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: var(--c-surface-2, #f4f6f9);
+  font-weight: 800;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.academic-setup-journey__body {
+  flex: 1;
+  min-width: 180px;
+}
+
+.academic-setup-journey__action {
+  color: var(--c-primary);
+  font-weight: 600;
+  align-self: center;
+}
+
+.academic-setup-journey__lock {
+  color: #b45309;
+}
+
+.academic-setup-ref-levels {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.academic-setup-ref-level {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.academic-setup-ref-level--disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+
+.academic-setup-ref-level__main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}

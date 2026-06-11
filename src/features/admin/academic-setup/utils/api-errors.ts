@@ -39,10 +39,16 @@ const CLASS_TRACK_ERRORS: Record<string, string> = {
   track_level_mismatch: 'admin.academicSetup.errors.trackLevelMismatch',
 };
 
+const LEVEL_ERRORS: Record<string, string> = {
+  already_enabled: 'admin.academicSetup.errors.alreadyEnabled',
+  invalid_reference_level: 'admin.academicSetup.errors.invalidReferenceLevel',
+  level_out_of_scope: 'admin.academicSetup.errors.levelOutOfScope',
+};
+
 export function mapAcademicSetupApiError(
   error: ApiErrorBody,
   t: (key: string) => string,
-  domain: 'assignment' | 'staff' | 'track' | 'class' = 'assignment',
+  domain: 'assignment' | 'staff' | 'track' | 'class' | 'level' = 'assignment',
 ): string {
   const code = String(error.code ?? '');
   const table =
@@ -52,7 +58,9 @@ export function mapAcademicSetupApiError(
         ? TRACK_ERRORS
         : domain === 'class'
           ? CLASS_TRACK_ERRORS
-          : ASSIGNMENT_ERRORS;
+          : domain === 'level'
+            ? LEVEL_ERRORS
+            : ASSIGNMENT_ERRORS;
 
   const key = table[code];
   if (key) {

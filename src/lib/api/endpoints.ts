@@ -49,6 +49,8 @@ export const endpoints = {
     levelUpdate: (id: number | string) => `/admin/levels/${id}/update`,
     levelArchive: (id: number | string) => `/admin/levels/${id}/archive`,
     levelsExport: '/admin/levels/export',
+    levelsOptions: '/admin/levels/options',
+    levelsEnable: '/admin/levels/enable',
 
     subjects: '/admin/subjects',
     subject: (id: number | string) => `/admin/subjects/${id}`,
