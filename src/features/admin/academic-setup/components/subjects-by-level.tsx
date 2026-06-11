@@ -35,7 +35,6 @@ export function SubjectsByLevel({ groups }: { groups: SubjectLevelGroup[] }) {
           </div>
         </div>
       ))}
-      <p className="academic-setup-gap-banner">{t('admin.academicSetup.tracksReadOnlyGap')}</p>
     </div>
   );
 }

@@ -63,15 +63,15 @@ function ClassDetailView({
   onEdit: () => void;
 }) {
   const t = useT();
-  const unassignedSubjects = (cls.subjects ?? []).filter(
-    (s) => !(cls.teachers ?? []).some(() => false),
-  );
 
   return (
     <div className="col" style={{ gap: 12 }}>
       <div>
         <SectionHead title={cls.name} />
-        <p className="muted tiny">{cls.level?.name ?? t('common.dash')}</p>
+        <p className="muted tiny">
+          {cls.level?.name ?? t('common.dash')}
+          {cls.track?.name ? ` · ${cls.track.name}` : ''}
+        </p>
       </div>
       <div className="row" style={{ gap: 8 }}>
         <Badge tone={cls.status === 'active' ? 'green' : 'slate'}>{cls.status}</Badge>
@@ -96,9 +96,7 @@ function ClassDetailView({
           <p>{cls.room_number}</p>
         </div>
       )}
-      {unassignedSubjects.length > 0 && (
-        <p className="tiny muted">{t('admin.academicSetup.viewAssignmentsHint')}</p>
-      )}
+      <p className="tiny muted">{t('admin.academicSetup.viewAssignmentsHint')}</p>
     </div>
   );
 }

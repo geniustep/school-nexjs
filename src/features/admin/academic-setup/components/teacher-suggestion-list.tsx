@@ -57,9 +57,6 @@ export function TeacherSuggestionList({
           {t('admin.academicSetup.confirmAssignment')}
         </button>
       )}
-      {!canConfirm && (
-        <p className="academic-setup-gap-banner">{t('admin.academicSetup.assignmentsMutationGap')}</p>
-      )}
     </div>
   );
 }

@@ -1,9 +1,8 @@
 // Central endpoint registry — the ONLY place API v1 paths are defined.
 // Paths are relative to the API v1 prefix (/api/v1).
 //
-// Synced with Odoo smart_school_connect 18.0.1.0.10 (see ODOO_BACKEND_SYNC.md).
-// Do not add school.class.assignment / school.student.enrollment routes until
-// they exist on API v1. Teacher class scope: GET /teacher/classes (+ 403 on detail).
+// Synced with Odoo smart_school_connect — includes academic setup API (teaching assignments,
+// staff, tracks, setup readiness). Teacher class scope: GET /teacher/classes (+ 403 on detail).
 // Parent children: GET /parent/children only. Student homework: /student/homeworks.
 
 export const endpoints = {
@@ -57,6 +56,24 @@ export const endpoints = {
     subjectArchive: (id: number | string) => `/admin/subjects/${id}/archive`,
     subjectsImport: '/admin/subjects/import',
     subjectsExport: '/admin/subjects/export',
+
+    setupReadiness: '/admin/setup/readiness',
+
+    teachingAssignments: '/admin/teaching-assignments',
+    teachingAssignment: (id: number | string) => `/admin/teaching-assignments/${id}`,
+    teachingAssignmentUpdate: (id: number | string) =>
+      `/admin/teaching-assignments/${id}/update`,
+    teachingAssignmentSuggestions: '/admin/teaching-assignments/suggestions',
+
+    staff: '/admin/staff',
+    staffMember: (id: number | string) => `/admin/staff/${id}`,
+    staffUpdate: (id: number | string) => `/admin/staff/${id}/update`,
+    staffOptions: '/admin/staff/options',
+
+    tracks: '/admin/tracks',
+    track: (id: number | string) => `/admin/tracks/${id}`,
+    trackUpdate: (id: number | string) => `/admin/tracks/${id}/update`,
+    trackOptions: '/admin/tracks/options',
 
     attendance: '/admin/attendance',
     attendanceCorrect: '/admin/attendance/correct',

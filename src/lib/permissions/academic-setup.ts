@@ -65,6 +65,22 @@ export function canManageTeachingAssignments(user: CurrentUser | null): boolean 
   return canManageClasses(user) && canManageTeachers(user);
 }
 
+/** Staff write access — backend is authoritative; UI hides mutations for admin_staff by default. */
+export function canManageStaff(user: CurrentUser | null): boolean {
+  if (!user || user.role !== 'admin') return false;
+  const kind = user.admin_kind;
+  return (
+    kind === 'project_manager' ||
+    kind === 'school_manager' ||
+    kind === 'legacy_admin' ||
+    kind === 'super_admin'
+  );
+}
+
+export function canViewStaff(user: CurrentUser | null): boolean {
+  return canViewAcademicSetup(user);
+}
+
 export function canViewSettings(user: CurrentUser | null): boolean {
   return canViewAcademicSetup(user);
 }

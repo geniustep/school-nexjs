@@ -1,19 +1,31 @@
 import { describe, expect, it } from 'vitest';
-import { deriveAssignments, findAssignedTeacher } from '@/features/admin/academic-setup/utils/assignments-derive';
-import { detectSetupIssues } from '@/features/admin/academic-setup/utils/issues';
-import { computeReadiness } from '@/features/admin/academic-setup/utils/readiness';
-import { rankTeachersForAssignment, isHighLoadTeacher } from '@/features/admin/academic-setup/utils/teacher-ranking';
 import {
+  filterAssignmentMissingIssues,
+  filterIssuesByQuery,
+  issueTargetHref,
+  setupSectionHref,
+} from '@/features/admin/academic-setup/utils/section-routes';
+import { mapAcademicSetupApiError, mapSuggestionReason } from '@/features/admin/academic-setup/utils/api-errors';
+import {
+  readinessScoreLabel,
+  readinessStatusLabel,
+  isStaffDomainUnavailable,
+} from '@/features/admin/academic-setup/utils/readiness-present';
+import { globalSetupSearch, buildHref } from '@/features/admin/academic-setup/utils/search';
+import { buildClassPayload } from '@/features/admin/class-form-utils';
+import {
+  canManageStaff,
   canManageTeachingAssignments,
   canViewAcademicSetup,
   isAcademicSetupPath,
 } from '@/lib/permissions/academic-setup';
-import type { SchoolClass } from '@/types/class';
-import type { Teacher } from '@/types/teacher';
+import type { SetupReadinessIssue, SetupReadinessPayload } from '@/types/academic-setup';
 import type { CurrentUser } from '@/types/user';
 
-const t = (key: string, params?: Record<string, string | number>) =>
-  params ? `${key}:${JSON.stringify(params)}` : key;
+const t = (key: string, params?: Record<string, string | number>) => {
+  const base = `tr:${key}`;
+  return params ? `${base}:${JSON.stringify(params)}` : base;
+};
 
 function adminUser(perms: string[]): CurrentUser {
   return {
@@ -27,153 +39,143 @@ function adminUser(perms: string[]): CurrentUser {
   };
 }
 
-describe('deriveAssignments', () => {
-  const teachers: Teacher[] = [
-    {
-      id: 10,
-      name: 'Ahmed',
-      code: null,
-      phone: null,
-      email: null,
-      classes: [{ id: 1, name: '1A' }],
-      subjects: [{ id: 100, name: 'Math' }],
-      status: 'active',
-      qualification: null,
-      specialization: null,
-    },
-  ];
-
-  const classes: SchoolClass[] = [
-    {
-      id: 1,
-      name: '1A',
-      code: null,
-      level: { id: 5, name: 'Primary 1' },
-      academic_year: null,
-      student_count: 20,
-      capacity: 30,
-      teachers: [{ id: 10, name: 'Ahmed' }],
-      subjects: [
-        { id: 100, name: 'Math' },
-        { id: 101, name: 'Arabic' },
-      ],
-      status: 'active',
-    },
-  ];
-
-  it('marks subject as assigned when class teacher teaches it', () => {
-    const rows = deriveAssignments(classes, teachers);
-    const math = rows.find((r) => r.subjectId === 100);
-    const arabic = rows.find((r) => r.subjectId === 101);
-    expect(math?.status).toBe('assigned');
-    expect(math?.teacherId).toBe(10);
-    expect(arabic?.status).toBe('unassigned');
+describe('setupSectionHref', () => {
+  it('maps assignments section with query params', () => {
+    expect(
+      setupSectionHref('assignments', { class_id: 42, subject_id: 8, status: 'missing' }),
+    ).toBe('/admin/settings/academic-setup/assignments?class_id=42&subject_id=8&status=missing');
   });
 
-  it('findAssignedTeacher returns match', () => {
-    const map = new Map(teachers.map((te) => [te.id, te]));
-    expect(findAssignedTeacher(classes[0], 100, map)?.name).toBe('Ahmed');
+  it('builds issue target href', () => {
+    const issue: Pick<SetupReadinessIssue, 'target'> = {
+      target: { section: 'classes', query: { class_id: 5 } },
+    };
+    expect(issueTargetHref(issue)).toBe('/admin/settings/academic-setup/classes?class_id=5');
   });
 });
 
-describe('computeReadiness', () => {
-  it('returns 100% when no blocking issues', () => {
-    const levels = [{ id: 1, name: 'L1' }];
-    const teachers: Teacher[] = [
-      {
-        id: 10,
-        name: 'T',
-        code: null,
-        phone: '1',
-        email: null,
-        classes: [{ id: 1, name: 'C1' }],
-        subjects: [{ id: 100, name: 'S' }],
-        status: 'active',
-        qualification: null,
-        specialization: null,
-      },
-    ];
-    const classes: SchoolClass[] = [
-      {
-        id: 1,
-        name: 'C1',
-        code: null,
-        level: { id: 1, name: 'L1' },
-        academic_year: null,
-        student_count: 1,
-        capacity: 30,
-        teachers: [{ id: 10, name: 'T' }],
-        subjects: [{ id: 100, name: 'S' }],
-        status: 'active',
-      },
-    ];
-    const issues = detectSetupIssues(levels, classes, teachers, t);
-    const readiness = computeReadiness(issues, true);
-    expect(readiness.percent).toBe(100);
-    expect(readiness.blockingCount).toBe(0);
+describe('filterIssuesByQuery', () => {
+  const issues: SetupReadinessIssue[] = [
+    {
+      id: '1',
+      code: 'assignment_missing',
+      severity: 'error',
+      blocking: true,
+      title: 'Missing',
+      domain: 'assignments',
+      target: { section: 'assignments', query: { class_id: 1, subject_id: 2 } },
+    },
+    {
+      id: '2',
+      code: 'assignment_missing',
+      severity: 'error',
+      blocking: true,
+      title: 'Other',
+      domain: 'assignments',
+      target: { section: 'assignments', query: { class_id: 3 } },
+    },
+  ];
+
+  it('filters by class_id from URL params', () => {
+    const params = new URLSearchParams('class_id=1');
+    expect(filterIssuesByQuery(issues, params)).toHaveLength(1);
   });
 
-  it('returns 0% when no baseline data', () => {
-    const readiness = computeReadiness([], false);
-    expect(readiness.percent).toBe(0);
-    expect(readiness.hasData).toBe(false);
+  it('returns assignment missing issues', () => {
+    expect(filterAssignmentMissingIssues(issues)).toHaveLength(2);
   });
 });
 
-describe('rankTeachersForAssignment', () => {
-  const cls: SchoolClass = {
-    id: 1,
-    name: '1A',
-    code: null,
-    level: { id: 5, name: 'P1' },
-    academic_year: null,
-    student_count: 20,
-    capacity: 30,
-    teachers: [{ id: 10, name: 'Ahmed' }],
-    subjects: [{ id: 100, name: 'Math' }],
-    status: 'active',
+describe('readiness presentation', () => {
+  const basePayload: SetupReadinessPayload = {
+    school: { id: 1, name: 'School' },
+    scope: { type: 'school', is_full_school: true },
+    readiness: {
+      score: 93,
+      status: 'blocked',
+      blocking_issues: 3,
+      warnings: 1,
+      information: 0,
+      ready_for_timetable_setup: false,
+    },
+    domains: {},
+    issues: [],
   };
 
-  const teachers: Teacher[] = [
-    {
-      id: 10,
-      name: 'Ahmed',
-      code: null,
-      phone: 'x',
-      email: null,
-      classes: [{ id: 1, name: '1A' }],
-      subjects: [{ id: 100, name: 'Math' }],
-      status: 'active',
-      qualification: null,
-      specialization: null,
-    },
-    {
-      id: 11,
-      name: 'Other',
-      code: null,
-      phone: null,
-      email: null,
-      classes: [],
-      subjects: [{ id: 200, name: 'French' }],
-      status: 'active',
-      qualification: null,
-      specialization: null,
-    },
-  ];
+  it('shows blocked score label when status is blocked', () => {
+    expect(readinessScoreLabel(basePayload, t)).toContain('readinessScoreBlocked');
+  });
 
-  it('ranks in-class subject teacher as best', () => {
-    const ranked = rankTeachersForAssignment(cls, 100, teachers, t);
-    expect(ranked[0].teacher.id).toBe(10);
-    expect(ranked[0].tier).toBe('best');
+  it('translates readiness status key', () => {
+    expect(readinessStatusLabel('ready', t)).toBe('tr:admin.academicSetup.readinessStatus.ready');
+  });
+
+  it('detects unavailable staff domain', () => {
+    expect(isStaffDomainUnavailable({})).toBe(true);
+    expect(isStaffDomainUnavailable({ staff: { score: 0, status: 'incomplete', summary: {} } })).toBe(false);
   });
 });
 
-describe('isHighLoadTeacher', () => {
-  it('detects high class count', () => {
-    const teacher = {
-      classes: Array.from({ length: 6 }, (_, i) => ({ id: i, name: `C${i}` })),
-    } as Teacher;
-    expect(isHighLoadTeacher(teacher)).toBe(true);
+describe('api error mapping', () => {
+  it('maps assignment_in_use', () => {
+    const msg = mapAcademicSetupApiError({ code: 'assignment_in_use', message: '', details: {} }, t, 'assignment');
+    expect(msg).toBe('tr:admin.academicSetup.errors.assignmentInUse');
+  });
+
+  it('maps privilege_escalation for staff', () => {
+    const msg = mapAcademicSetupApiError({ code: 'privilege_escalation', message: '', details: {} }, t, 'staff');
+    expect(msg).toBe('tr:admin.academicSetup.errors.privilegeEscalation');
+  });
+
+  it('maps suggestion reason codes', () => {
+    expect(mapSuggestionReason('teaches_subject', t)).toBe('tr:admin.academicSetup.suggestReasons.teaches_subject');
+  });
+});
+
+describe('class track_id payload', () => {
+  it('includes track_id when set', () => {
+    const payload = buildClassPayload({
+      name: 'Class A',
+      levelId: '5',
+      trackId: '12',
+      academicYearId: '',
+      capacity: '',
+      room: '',
+      teacherIds: [],
+      subjectIds: [],
+      creating: true,
+    });
+    expect(payload.track_id).toBe(12);
+  });
+
+  it('clears track_id on update when empty', () => {
+    const payload = buildClassPayload({
+      name: 'Class A',
+      levelId: '5',
+      trackId: '',
+      academicYearId: '',
+      capacity: '',
+      room: '',
+      teacherIds: [],
+      subjectIds: [],
+      creating: false,
+    });
+    expect(payload.track_id).toBeNull();
+  });
+});
+
+describe('globalSetupSearch', () => {
+  it('finds staff and builds href', () => {
+    const results = globalSetupSearch(
+      'ali',
+      [],
+      [],
+      [],
+      [],
+      [{ id: 9, name: 'Ali Staff', email: null, phone: null, job_title: null, admin_kind: 'admin_staff', active: true, account_status: 'active', schools: [], default_school: null, permissions: [] }],
+    );
+    expect(results[0]?.type).toBe('staff');
+    expect(buildHref(results[0]!.href, results[0]!.query)).toContain('staff');
   });
 });
 
@@ -196,6 +198,10 @@ describe('academic-setup permissions', () => {
     expect(
       canManageTeachingAssignments(adminUser(['manage_classes', 'manage_teachers'])),
     ).toBe(true);
+  });
+
+  it('allows school_manager to manage staff', () => {
+    expect(canManageStaff(adminUser([]))).toBe(true);
   });
 
   it('detects academic setup paths', () => {

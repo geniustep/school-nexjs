@@ -42,9 +42,7 @@ export function LevelClassGroup({
           {group.classes.length === 0 ? (
             <p className="muted tiny">{t('admin.academicSetup.noClassesInLevel')}</p>
           ) : (
-            group.classes.map((cls) => {
-              const needsTeacher = (cls.subjects?.length ?? 0) > (cls.teachers?.length ?? 0);
-              return (
+            group.classes.map((cls) => (
                 <button
                   key={cls.id}
                   type="button"
@@ -54,6 +52,9 @@ export function LevelClassGroup({
                 >
                   <span>
                     <strong>{cls.name}</strong>
+                    {cls.track?.name && (
+                      <span className="tiny muted block">{cls.track.name}</span>
+                    )}
                     <span className="tiny muted block mt-2">
                       {t('admin.academicSetup.classMeta', {
                         students: cls.student_count ?? 0,
@@ -61,14 +62,11 @@ export function LevelClassGroup({
                       })}
                     </span>
                   </span>
-                  <Badge tone={needsTeacher ? 'amber' : 'green'}>
-                    {needsTeacher
-                      ? t('admin.academicSetup.statusNeedsTeacher')
-                      : t('admin.academicSetup.statusComplete')}
+                  <Badge tone={cls.status === 'active' ? 'green' : 'slate'}>
+                    {cls.status}
                   </Badge>
                 </button>
-              );
-            })
+              ))
           )}
           {canManage && onAddClass && (
             <button

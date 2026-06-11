@@ -9,6 +9,7 @@ export interface ClassAcademicYearSource {
 export interface ClassFormInput {
   name: string;
   levelId: string;
+  trackId: string;
   academicYearId: string;
   capacity: string;
   room: string;
@@ -30,6 +31,12 @@ export function buildClassPayload(input: ClassFormInput): Record<string, unknown
     name: input.name.trim(),
     level_id: Number(input.levelId),
   };
+
+  if (input.trackId.trim()) {
+    payload.track_id = Number(input.trackId);
+  } else if (!input.creating) {
+    payload.track_id = null;
+  }
 
   const year = input.academicYearId.trim();
   if (year) payload.academic_year_id = Number(year);
@@ -80,6 +87,9 @@ export function mapClassApiError(
       msgIncludes(message, 'teacher', 'subject', 'أستاذ', 'مادة', 'teacher_ids', 'subject_ids')
     ) {
       return t('admin.classInvalidTeachersSubjects');
+    }
+    if (msgIncludes(message, 'track', 'شعبة', 'track_id', 'class_track', 'track_level')) {
+      return t('admin.academicSetup.errors.classTrackMismatch');
     }
     if (message && !msgIncludes(message, '<', 'traceback', 'html')) {
       return message;

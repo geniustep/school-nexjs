@@ -4,7 +4,9 @@ import { useMemo, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useT } from '@/features/i18n/locale-context';
 import type { Level, SchoolClass, Subject } from '@/types/class';
+import type { AcademicTrack, StaffMember } from '@/types/academic-setup';
 import type { Teacher } from '@/types/teacher';
+import { useTracksList } from '../hooks/use-tracks';
 import { globalSetupSearch, buildHref } from '../utils/search';
 
 export function GlobalSetupSearch({
@@ -12,20 +14,32 @@ export function GlobalSetupSearch({
   classes,
   subjects,
   teachers,
+  staff = [],
 }: {
   levels: Level[];
   classes: SchoolClass[];
   subjects: Subject[];
   teachers: Teacher[];
+  staff?: StaffMember[];
 }) {
   const t = useT();
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
+  const tracksState = useTracksList({ limit: 200 });
 
   const results = useMemo(
-    () => globalSetupSearch(query, levels, classes, subjects, teachers),
-    [query, levels, classes, subjects, teachers],
+    () =>
+      globalSetupSearch(
+        query,
+        levels,
+        classes,
+        subjects,
+        teachers,
+        staff,
+        tracksState.tracks,
+      ),
+    [query, levels, classes, subjects, teachers, staff, tracksState.tracks],
   );
 
   const navigate = useCallback(
@@ -36,6 +50,12 @@ export function GlobalSetupSearch({
     },
     [router],
   );
+
+  const typeLabel = (type: string) => {
+    const key = `admin.academicSetup.searchType.${type}`;
+    const msg = t(key);
+    return msg !== key ? msg : type;
+  };
 
   return (
     <div className="academic-setup-search">
@@ -69,6 +89,7 @@ export function GlobalSetupSearch({
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => navigate(r.href, r.query)}
               >
+                <span className="tiny muted">{typeLabel(r.type)} · </span>
                 <strong>{r.label}</strong>
                 {r.hint && <span className="tiny muted"> · {r.hint}</span>}
               </button>

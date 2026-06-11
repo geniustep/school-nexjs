@@ -9,6 +9,10 @@
 
 import type { Ref } from './api';
 
+export interface TrackRef extends Ref {
+  code?: string | null;
+}
+
 export interface Subject {
   id: number;
   name: string;
@@ -27,6 +31,8 @@ export interface SchoolClass {
   name: string;
   code: string | null;
   level: Ref | null;
+  track?: TrackRef | null;
+  track_id?: number | null;
   academic_year: string | null;
   student_count: number;
   capacity: number | null;

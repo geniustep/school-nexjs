@@ -2,14 +2,14 @@
 
 import Link from 'next/link';
 import { cn } from '@/lib/utils/cn';
-import type { SetupIssue } from '../types';
-import { buildHref } from '../utils/search';
+import type { SetupQuickAction, SetupReadinessIssue } from '@/types/academic-setup';
+import { issueTargetHref, quickActionHref } from '../utils/section-routes';
 
 export function SetupIssuesList({
   issues,
   limit = 5,
 }: {
-  issues: SetupIssue[];
+  issues: SetupReadinessIssue[];
   limit?: number;
 }) {
   const visible = issues.slice(0, limit);
@@ -20,7 +20,7 @@ export function SetupIssuesList({
       {visible.map((issue) => (
         <Link
           key={issue.id}
-          href={buildHref(issue.targetRoute, issue.query)}
+          href={issueTargetHref(issue)}
           className={cn('academic-setup-issue', `academic-setup-issue--${issue.severity}`)}
         >
           <span aria-hidden>{severityIcon(issue.severity)}</span>
@@ -34,7 +34,24 @@ export function SetupIssuesList({
   );
 }
 
-function severityIcon(severity: SetupIssue['severity']): string {
+export function SetupQuickActionsList({ actions }: { actions: SetupQuickAction[] }) {
+  if (!actions.length) return null;
+  return (
+    <div className="academic-setup-shortcuts">
+      {actions.map((action) => (
+        <Link
+          key={`${action.code}-${action.section}`}
+          href={quickActionHref(action)}
+          className="btn btn--ghost btn--sm"
+        >
+          {action.code} ({action.count})
+        </Link>
+      ))}
+    </div>
+  );
+}
+
+function severityIcon(severity: SetupReadinessIssue['severity']): string {
   switch (severity) {
     case 'error':
       return '⛔';

@@ -2,62 +2,43 @@
 
 import { useMemo } from 'react';
 import { useT } from '@/features/i18n/locale-context';
-import type { Teacher } from '@/types/teacher';
-import type { DerivedAssignment } from '../types';
+import type { TeachingAssignment } from '@/types/academic-setup';
 
-export function AssignmentByTeacher({
-  assignments,
-  teachers,
-}: {
-  assignments: DerivedAssignment[];
-  teachers: Teacher[];
-}) {
+export function AssignmentByTeacher({ assignments }: { assignments: TeachingAssignment[] }) {
   const t = useT();
 
   const grouped = useMemo(() => {
-    const map = new Map<number, DerivedAssignment[]>();
-    for (const row of assignments.filter((a) => a.status === 'assigned' && a.teacherId)) {
-      const id = row.teacherId!;
-      const list = map.get(id) ?? [];
-      list.push(row);
-      map.set(id, list);
+    const map = new Map<number, { name: string; rows: TeachingAssignment[] }>();
+    for (const row of assignments) {
+      const entry = map.get(row.teacher.id) ?? { name: row.teacher.name, rows: [] };
+      entry.rows.push(row);
+      map.set(row.teacher.id, entry);
     }
-    return map;
+    return [...map.values()].sort((a, b) => a.name.localeCompare(b.name));
   }, [assignments]);
+
+  if (!grouped.length) {
+    return <p className="muted" style={{ padding: 14 }}>{t('admin.academicSetup.noTeacherAssignments')}</p>;
+  }
 
   return (
     <div>
-      {teachers.map((teacher) => {
-        const rows = grouped.get(teacher.id) ?? [];
-        return (
-          <div
-            key={teacher.id}
-            style={{ padding: '12px 14px', borderBottom: '1px solid var(--c-border)' }}
-          >
-            <div className="between mb-2">
-              <strong>{teacher.name}</strong>
-              <span className="tiny muted">
-                {t('admin.academicSetup.teacherAssignmentCount', { count: rows.length })}
-              </span>
-            </div>
-            {rows.length === 0 ? (
-              <p className="tiny muted">{t('admin.academicSetup.noTeacherAssignments')}</p>
-            ) : (
-              rows.map((row) => (
-                <div key={row.id} className="academic-setup-assignment-row">
-                  <span>{row.className}</span>
-                  <span>{row.subjectName}</span>
-                </div>
-              ))
-            )}
+      {grouped.map(({ name, rows }) => (
+        <div key={name} style={{ padding: '12px 14px', borderBottom: '1px solid var(--c-border)' }}>
+          <div className="between mb-2">
+            <strong>{name}</strong>
+            <span className="tiny muted">
+              {t('admin.academicSetup.teacherAssignmentCount', { count: rows.length })}
+            </span>
           </div>
-        );
-      })}
-      {teachers.length === 0 && (
-        <p className="muted" style={{ padding: 14 }}>
-          {t('empty.classes')}
-        </p>
-      )}
+          {rows.map((row) => (
+            <div key={row.id} className="academic-setup-assignment-row">
+              <span>{row.class.name}</span>
+              <span>{row.subject.name}</span>
+            </div>
+          ))}
+        </div>
+      ))}
     </div>
   );
 }

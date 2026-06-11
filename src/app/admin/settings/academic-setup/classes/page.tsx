@@ -6,7 +6,7 @@ import { ErrorState, LoadingState, EmptyState } from '@/components/states/states
 import { PageHeader } from '@/components/ui/primitives';
 import { ClassDrawer } from '@/features/admin/academic-setup/components/class-drawer';
 import { LevelClassGroup } from '@/features/admin/academic-setup/components/level-class-group';
-import { useAcademicSetupData } from '@/features/admin/academic-setup/hooks/use-academic-setup-data';
+import { useAcademicSetupLists } from '@/features/admin/academic-setup/hooks/use-academic-setup-data';
 import { buildLevelGroups } from '@/features/admin/academic-setup/utils/summary';
 import { parseNumericFilter } from '@/features/admin/academic-setup/utils/search';
 import { canManageClasses } from '@/lib/permissions/academic-setup';
@@ -18,7 +18,7 @@ export default function AcademicSetupClassesPage() {
   const t = useT();
   const user = useSession();
   const searchParams = useSearchParams();
-  const data = useAcademicSetupData(t);
+  const lists = useAcademicSetupLists();
   const canManage = canManageClasses(user);
 
   const [drawer, setDrawer] = useState<
@@ -28,19 +28,19 @@ export default function AcademicSetupClassesPage() {
   >(null);
 
   const levelGroups = useMemo(
-    () => buildLevelGroups(data.levels, data.classes),
-    [data.levels, data.classes],
+    () => buildLevelGroups(lists.levels, lists.classes),
+    [lists.levels, lists.classes],
   );
 
   const filterLevelId = parseNumericFilter(searchParams, 'level');
-  const filterClassId = parseNumericFilter(searchParams, 'class');
+  const filterClassId = parseNumericFilter(searchParams, 'class_id') ?? parseNumericFilter(searchParams, 'class');
   const actionAdd = searchParams.get('action') === 'add';
 
   const visibleGroups = filterLevelId
     ? levelGroups.filter((g) => g.id === filterLevelId)
     : levelGroups;
 
-  if (data.loading) {
+  if (lists.loading) {
     return (
       <>
         <PageHeader title={t('admin.academicSetup.nav.classes')} />
@@ -49,19 +49,16 @@ export default function AcademicSetupClassesPage() {
     );
   }
 
-  if (data.error) {
+  if (lists.error) {
     return (
       <>
         <PageHeader title={t('admin.academicSetup.nav.classes')} />
-        <ErrorState
-          error={{ code: 'server_error', message: t('admin.academicSetup.loadError'), details: {} }}
-          onRetry={data.reload}
-        />
+        <ErrorState error={lists.error} onRetry={lists.reload} />
       </>
     );
   }
 
-  if (!levelGroups.length && !data.classes.length) {
+  if (!levelGroups.length && !lists.classes.length) {
     return (
       <>
         <PageHeader
@@ -79,7 +76,7 @@ export default function AcademicSetupClassesPage() {
           open={!!drawer || actionAdd}
           mode="create"
           onClose={() => setDrawer(null)}
-          onSaved={() => data.reload()}
+          onSaved={() => lists.reload()}
         />
       </>
     );
@@ -115,7 +112,7 @@ export default function AcademicSetupClassesPage() {
         cls={drawer && 'cls' in drawer ? drawer.cls : undefined}
         defaultLevelId={drawer && 'levelId' in drawer ? drawer.levelId : undefined}
         onClose={() => setDrawer(null)}
-        onSaved={() => data.reload()}
+        onSaved={() => lists.reload()}
       />
     </>
   );

@@ -1,81 +1,92 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useT } from '@/features/i18n/locale-context';
-import type { SchoolClass } from '@/types/class';
-import type { Teacher } from '@/types/teacher';
-import type { DerivedAssignment } from '../types';
-import { rankTeachersForAssignment } from '../utils/teacher-ranking';
+import type { SetupReadinessIssue, TeachingAssignmentSuggestionsResponse } from '@/types/academic-setup';
 import { SetupDrawer } from './setup-drawer';
-import { TeacherSuggestionList } from './teacher-suggestion-list';
 
 export function MissingAssignmentsDrawer({
   open,
   onClose,
-  unassigned,
-  classes,
-  teachers,
+  issues,
   canManage,
+  fetchSuggestions,
+  onPickIssue,
+  onConfirmCreate,
 }: {
   open: boolean;
   onClose: () => void;
-  unassigned: DerivedAssignment[];
-  classes: SchoolClass[];
-  teachers: Teacher[];
+  issues: SetupReadinessIssue[];
   canManage: boolean;
+  fetchSuggestions: (classId: number, subjectId: number) => Promise<TeachingAssignmentSuggestionsResponse | null>;
+  onPickIssue: (issue: SetupReadinessIssue) => void;
+  onConfirmCreate: (payload: {
+    class_id: number;
+    subject_id: number;
+    teacher_id: number;
+    weekly_hours?: number;
+    role?: string;
+  }) => void;
 }) {
   const t = useT();
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const classMap = useMemo(() => new Map(classes.map((c) => [c.id, c])), [classes]);
-  const active = unassigned.find((u) => u.id === activeId) ?? null;
-  const activeClass = active ? classMap.get(active.classId) : null;
-  const suggestions =
-    active && activeClass
-      ? rankTeachersForAssignment(activeClass, active.subjectId, teachers, t)
-      : [];
-  const top = suggestions.find((s) => s.tier === 'best' || s.tier === 'suitable');
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  async function adoptTopSuggestion(issue: SetupReadinessIssue) {
+    const classId = Number(issue.target.query?.class_id);
+    const subjectId = Number(issue.target.query?.subject_id);
+    if (!classId || !subjectId) {
+      onPickIssue(issue);
+      return;
+    }
+    setBusyId(issue.id);
+    const res = await fetchSuggestions(classId, subjectId);
+    const top = res?.suggestions?.find((s) => s.eligible && s.label === 'recommended')
+      ?? res?.suggestions?.find((s) => s.eligible);
+    setBusyId(null);
+    if (top) {
+      onConfirmCreate({
+        class_id: classId,
+        subject_id: subjectId,
+        teacher_id: top.teacher.id,
+        weekly_hours: 2,
+        role: 'main',
+      });
+    } else {
+      onPickIssue(issue);
+    }
+  }
 
   return (
-    <SetupDrawer
-      open={open}
-      title={t('admin.academicSetup.completeMissing')}
-      onClose={onClose}
-    >
-      <p className="muted tiny">
-        {t('admin.academicSetup.missingCount', { count: unassigned.length })}
-      </p>
+    <SetupDrawer open={open} title={t('admin.academicSetup.completeMissing')} onClose={onClose}>
+      <p className="muted tiny">{t('admin.academicSetup.missingCount', { count: issues.length })}</p>
       <div className="col" style={{ gap: 8, marginTop: 12 }}>
-        {unassigned.map((row) => (
-          <button
-            key={row.id}
-            type="button"
-            className="academic-setup-class-row"
-            onClick={() => setActiveId(row.id)}
-          >
-            <span>
-              <strong>
-                {row.subjectName} — {row.className}
-              </strong>
-              {top && row.id !== activeId && (
-                <span className="tiny muted block mt-2">
-                  {t('admin.academicSetup.suggestedTeacher', { name: top.teacher.name })}
-                </span>
+        {issues.map((issue) => (
+          <div key={issue.id} className="academic-setup-class-row" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
+            <strong>{issue.title}</strong>
+            {issue.description && <span className="tiny muted">{issue.description}</span>}
+            <div className="row mt-2" style={{ gap: 8 }}>
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm"
+                disabled={!canManage || busyId === issue.id}
+                onClick={() => onPickIssue(issue)}
+              >
+                {t('admin.academicSetup.chooseTeacher')}
+              </button>
+              {canManage && (
+                <button
+                  type="button"
+                  className="btn btn--primary btn--sm"
+                  disabled={busyId === issue.id}
+                  onClick={() => adoptTopSuggestion(issue)}
+                >
+                  {t('admin.academicSetup.adoptSuggestion')}
+                </button>
               )}
-            </span>
-          </button>
+            </div>
+          </div>
         ))}
       </div>
-      {active && activeClass && (
-        <div style={{ marginTop: 16 }}>
-          <strong>{t('admin.academicSetup.pickTeacherHint')}</strong>
-          <TeacherSuggestionList
-            suggestions={suggestions}
-            selectedTeacherId={top?.teacher.id}
-            canConfirm={canManage}
-            onConfirm={() => {}}
-          />
-        </div>
-      )}
     </SetupDrawer>
   );
 }

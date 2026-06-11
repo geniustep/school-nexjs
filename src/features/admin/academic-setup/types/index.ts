@@ -18,7 +18,7 @@ export type SetupIssueType =
   | 'no_classes'
   | 'no_teachers';
 
-export type SetupEntityType = 'level' | 'class' | 'subject' | 'teacher' | 'staff';
+export type SetupEntityType = 'level' | 'class' | 'subject' | 'teacher' | 'staff' | 'track';
 
 export interface SetupIssue {
   id: string;

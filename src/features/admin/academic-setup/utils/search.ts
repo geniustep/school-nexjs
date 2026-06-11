@@ -1,6 +1,16 @@
 import type { Level, SchoolClass, Subject } from '@/types/class';
+import type { StaffMember } from '@/types/academic-setup';
+import type { AcademicTrack } from '@/types/academic-setup';
 import type { Teacher } from '@/types/teacher';
 import type { GlobalSearchResult } from '../types';
+
+export type SearchEntityType =
+  | 'level'
+  | 'class'
+  | 'subject'
+  | 'teacher'
+  | 'staff'
+  | 'track';
 
 export function globalSetupSearch(
   query: string,
@@ -8,6 +18,8 @@ export function globalSetupSearch(
   classes: SchoolClass[],
   subjects: Subject[],
   teachers: Teacher[],
+  staff: StaffMember[] = [],
+  tracks: AcademicTrack[] = [],
 ): GlobalSearchResult[] {
   const q = query.trim().toLowerCase();
   if (q.length < 2) return [];
@@ -37,7 +49,7 @@ export function globalSetupSearch(
         label: cls.name,
         hint: cls.level?.name ?? undefined,
         href: '/admin/settings/academic-setup/classes',
-        query: { class: String(cls.id) },
+        query: { class_id: String(cls.id) },
       });
     }
   }
@@ -50,7 +62,21 @@ export function globalSetupSearch(
         entityId: subject.id,
         label: subject.name,
         href: '/admin/settings/academic-setup/subjects',
-        query: { subject: String(subject.id) },
+        query: { subject_id: String(subject.id) },
+      });
+    }
+  }
+
+  for (const track of tracks) {
+    if (track.name.toLowerCase().includes(q) || track.code.toLowerCase().includes(q)) {
+      results.push({
+        id: `track-${track.id}`,
+        type: 'track',
+        entityId: track.id,
+        label: track.name,
+        hint: track.level.name,
+        href: '/admin/settings/academic-setup/subjects',
+        query: { tab: 'tracks', id: String(track.id) },
       });
     }
   }
@@ -68,7 +94,25 @@ export function globalSetupSearch(
         label: teacher.name,
         hint: teacher.subjects?.map((s) => s.name).join(', ') || undefined,
         href: '/admin/settings/academic-setup/teachers',
-        query: { teacher: String(teacher.id) },
+        query: { teacher_id: String(teacher.id) },
+      });
+    }
+  }
+
+  for (const member of staff) {
+    if (
+      member.name.toLowerCase().includes(q) ||
+      member.email?.toLowerCase().includes(q) ||
+      member.job_title?.toLowerCase().includes(q)
+    ) {
+      results.push({
+        id: `staff-${member.id}`,
+        type: 'staff',
+        entityId: member.id,
+        label: member.name,
+        hint: member.job_title ?? undefined,
+        href: '/admin/settings/academic-setup/staff',
+        query: { id: String(member.id) },
       });
     }
   }

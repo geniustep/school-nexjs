@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { api } from '@/lib/api/client';
 import { useResource } from '@/lib/hooks/use-resource';
+import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { useToast } from '@/components/ui/toast';
 import { Card } from '@/components/ui/primitives';
 import { useT } from '@/features/i18n/locale-context';
@@ -15,6 +16,7 @@ import type { SchoolClass } from '@/types/class';
 import type { Student } from '@/types/student';
 import type { Parent } from '@/types/parent';
 import type { Teacher } from '@/types/teacher';
+import type { AcademicTrack, TrackOptions } from '@/types/academic-setup';
 
 function FormShell({
   children,
@@ -425,6 +427,8 @@ export interface ClassDetail {
   code: string | null;
   level: Ref | null;
   level_id?: number;
+  track?: Ref | null;
+  track_id?: number | null;
   academic_year: string | Ref | { id: number; name: string } | null;
   academic_year_id?: number;
   student_count: number;
@@ -450,11 +454,13 @@ export function ClassForm({
   const t = useT();
   const toast = useToast();
   const levelsState = useResource<Ref[]>(endpoints.admin.levels);
+  const trackOptionsState = useAdminResource<TrackOptions>(endpoints.admin.trackOptions);
   const teachersState = useResource<Teacher[]>(endpoints.admin.teachers, { page_size: 200 });
   const subjectsState = useResource<Ref[]>(endpoints.admin.subjects);
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState(cls?.name ?? '');
   const [levelId, setLevelId] = useState(String(cls?.level_id ?? cls?.level?.id ?? ''));
+  const [trackId, setTrackId] = useState(String(cls?.track_id ?? cls?.track?.id ?? ''));
   const [academicYearId, setAcademicYearId] = useState(resolveAcademicYearId(cls));
   const [capacity, setCapacity] = useState(cls?.capacity != null ? String(cls.capacity) : '');
   const [room, setRoom] = useState(cls?.room_number ?? '');
@@ -464,6 +470,28 @@ export function ClassForm({
   const [subjectIds, setSubjectIds] = useState<number[]>(
     cls?.subject_ids ?? cls?.subjects?.map((s) => s.id) ?? [],
   );
+
+  const trackLevels = useMemo(
+    () => new Set((trackOptionsState.data?.levels ?? []).filter((l) => l.supports_tracks).map((l) => l.id)),
+    [trackOptionsState.data],
+  );
+  const levelSupportsTracks = levelId ? trackLevels.has(Number(levelId)) : false;
+  const tracksState = useAdminResource<AcademicTrack[]>(
+    levelSupportsTracks ? endpoints.admin.tracks : null,
+    levelId ? { level_id: Number(levelId), limit: 200 } : undefined,
+  );
+  const tracksForLevel = tracksState.data ?? [];
+
+  function handleLevelChange(nextLevelId: string) {
+    if (trackId && nextLevelId !== levelId) {
+      const hadTrack = trackId.trim().length > 0;
+      if (hadTrack && cls && !window.confirm(t('admin.academicSetup.trackClearConfirm'))) {
+        return;
+      }
+      setTrackId('');
+    }
+    setLevelId(nextLevelId);
+  }
 
   function toggleId(id: number, list: number[], set: (v: number[]) => void) {
     set(list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
@@ -478,6 +506,7 @@ export function ClassForm({
     const payload = buildClassPayload({
       name,
       levelId,
+      trackId,
       academicYearId,
       capacity,
       room,
@@ -505,13 +534,27 @@ export function ClassForm({
       </Field>
       <div className="row" style={{ gap: 12, flexWrap: 'wrap' }}>
         <Field label={t('nav.levels')}>
-          <select className="input" value={levelId} onChange={(e) => setLevelId(e.target.value)} required>
+          <select className="input" value={levelId} onChange={(e) => handleLevelChange(e.target.value)} required>
             <option value="">{t('admin.selectLevel')}</option>
             {(levelsState.data ?? []).map((l) => (
               <option key={l.id} value={l.id}>{l.name}</option>
             ))}
           </select>
         </Field>
+        {levelSupportsTracks && (
+          <Field label={t('admin.academicSetup.classTrackLabel')}>
+            <select
+              className="input"
+              value={trackId}
+              onChange={(e) => setTrackId(e.target.value)}
+            >
+              <option value="">{t('common.dash')}</option>
+              {tracksForLevel.map((tr) => (
+                <option key={tr.id} value={tr.id}>{tr.name}</option>
+              ))}
+            </select>
+          </Field>
+        )}
         <Field label={t('admin.academicYearIdOptional')}>
           <input
             className="input"
