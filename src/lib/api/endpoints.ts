@@ -53,6 +53,8 @@ export const endpoints = {
     levelsEnable: '/admin/levels/enable',
 
     subjects: '/admin/subjects',
+    subjectsOptions: '/admin/subjects/options',
+    subjectsEnable: '/admin/subjects/enable',
     subject: (id: number | string) => `/admin/subjects/${id}`,
     subjectUpdate: (id: number | string) => `/admin/subjects/${id}/update`,
     subjectArchive: (id: number | string) => `/admin/subjects/${id}/archive`,

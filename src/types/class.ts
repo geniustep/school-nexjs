@@ -17,6 +17,14 @@ export interface Subject {
   id: number;
   name: string;
   code?: string | null;
+  level_id?: number | null;
+  track_id?: number | null;
+  source?: 'level' | 'track';
+  required?: boolean;
+  optional?: boolean;
+  sequence?: number;
+  weekly_hours?: number | null;
+  assignments_count?: number;
 }
 
 export interface LevelCycle {
