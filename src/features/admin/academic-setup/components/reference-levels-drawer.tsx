@@ -1,84 +1,79 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/primitives';
 import { useToast } from '@/components/ui/toast';
 import { useT } from '@/features/i18n/locale-context';
-import type { Level } from '@/types/class';
+import type { ReferenceLevelOption } from '@/types/academic-levels';
 import {
   enableReferenceLevels,
   useLevelOptions,
-  type ReferenceLevel,
-} from '../hooks/use-reference-levels';
-import { aggregateBatchResults, isLevelAlreadyEnabled } from '../utils/guided-flow';
-import { mapAcademicSetupApiError } from '../utils/api-errors';
+} from '../hooks/use-level-options';
+import {
+  aggregateEnableResults,
+  buildEnablePayload,
+  filterReferenceLevels,
+  groupReferenceLevelsByCycle,
+  isReferenceLevelSelectable,
+  referenceLevelSubtitle,
+  selectableIdsInCycle,
+  type LevelFilterMode,
+} from '../utils/level-options';
+import { mapAcademicSetupApiError, mapEnableLevelError } from '../utils/api-errors';
 import { SetupDrawer } from './setup-drawer';
-
-const CATEGORY_ORDER = ['preschool', 'primary', 'middle', 'high', 'other'];
-
-function categorySortKey(code: string): number {
-  const idx = CATEGORY_ORDER.indexOf(code);
-  return idx === -1 ? CATEGORY_ORDER.length : idx;
-}
-
-function groupByCategory(levels: ReferenceLevel[]): Map<string, ReferenceLevel[]> {
-  const map = new Map<string, ReferenceLevel[]>();
-  for (const level of levels) {
-    const key = level.category || 'other';
-    const list = map.get(key) ?? [];
-    list.push(level);
-    map.set(key, list);
-  }
-  for (const [, list] of map) {
-    list.sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0));
-  }
-  return map;
-}
 
 export function ReferenceLevelsDrawer({
   open,
-  enabledLevels,
   onClose,
   onEnabled,
 }: {
   open: boolean;
-  enabledLevels: Level[];
   onClose: () => void;
-  onEnabled: (result: { successCount: number; failCount: number }) => void;
+  onEnabled: (outcome: {
+    enabledCount: number;
+    newSchoolLevelIds: number[];
+    fullSuccess: boolean;
+  }) => void;
 }) {
   const t = useT();
   const toast = useToast();
-  const optionsState = useLevelOptions();
+  const [search, setSearch] = useState('');
+  const [cycleId, setCycleId] = useState<number | ''>('');
+  const [filterMode, setFilterMode] = useState<LevelFilterMode>('all');
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [saving, setSaving] = useState(false);
-  const [partialErrors, setPartialErrors] = useState<Map<number, string>>(new Map());
+  const [rowErrors, setRowErrors] = useState<Map<number, string>>(new Map());
 
-  const referenceLevels = optionsState.options?.reference_levels ?? [];
-  const categories = optionsState.options?.categories ?? [];
+  const optionsState = useLevelOptions(open, {
+    include_enabled: 'true',
+    ...(cycleId !== '' ? { cycle: cycleId } : {}),
+  });
 
-  const grouped = useMemo(() => groupByCategory(referenceLevels), [referenceLevels]);
-  const sortedCategories = useMemo(
+  useEffect(() => {
+    if (open) optionsState.reload();
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const allLevels = optionsState.options?.reference_levels ?? [];
+  const cycles = optionsState.options?.cycles ?? [];
+  const canEnable = optionsState.options?.permissions?.can_enable ?? false;
+
+  const filteredLevels = useMemo(
     () =>
-      [...grouped.keys()].sort(
-        (a, b) => categorySortKey(a) - categorySortKey(b),
-      ),
-    [grouped],
+      filterReferenceLevels(allLevels, {
+        search,
+        cycleId: cycleId === '' ? null : cycleId,
+        mode: filterMode,
+      }),
+    [allLevels, search, cycleId, filterMode],
   );
 
-  function categoryLabel(code: string): string {
-    const fromApi = categories.find((c) => c.code === code)?.label;
-    if (fromApi) return fromApi;
-    const key = `admin.academicSetup.guided.category.${code}`;
-    const translated = t(key);
-    return translated !== key ? translated : code;
-  }
+  const grouped = useMemo(
+    () => groupReferenceLevelsByCycle(filteredLevels, cycles),
+    [filteredLevels, cycles],
+  );
 
-  function displayName(level: ReferenceLevel): string {
-    return level.name_ar?.trim() || level.name;
-  }
-
-  function toggleLevel(level: ReferenceLevel) {
-    if (level.enabled || isLevelAlreadyEnabled(level.code, enabledLevels)) return;
+  function toggleLevel(level: ReferenceLevelOption) {
+    if (!isReferenceLevelSelectable(level)) return;
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(level.id)) next.delete(level.id);
@@ -87,51 +82,87 @@ export function ReferenceLevelsDrawer({
     });
   }
 
+  function toggleCycle(cycleRefId: number) {
+    const ids = selectableIdsInCycle(allLevels, cycleRefId);
+    if (!ids.length) return;
+    setSelected((prev) => {
+      const allSelected = ids.every((id) => prev.has(id));
+      const next = new Set(prev);
+      if (allSelected) ids.forEach((id) => next.delete(id));
+      else ids.forEach((id) => next.add(id));
+      return next;
+    });
+  }
+
   async function handleSave() {
-    if (!selected.size || saving) return;
+    if (!selected.size || saving || !canEnable) return;
+    const payloadIds = buildEnablePayload(selected, allLevels);
+    if (!payloadIds.length) return;
+
     setSaving(true);
-    setPartialErrors(new Map());
-    const ids = [...selected];
-    const results = await enableReferenceLevels(ids);
-    const agg = aggregateBatchResults(results.map((r) => ({ ok: r.ok })));
-    const failed = new Map<number, string>();
-    const stillSelected = new Set<number>();
-    for (const r of results) {
-      if (!r.ok) {
-        stillSelected.add(r.reference_level_id);
-        failed.set(
-          r.reference_level_id,
-          r.error
-            ? mapAcademicSetupApiError(r.error, t, 'level')
-            : t('admin.academicSetup.guided.enableFailed'),
-        );
+    setRowErrors(new Map());
+
+    const res = await enableReferenceLevels(payloadIds);
+    setSaving(false);
+
+    if (!res.ok) {
+      toast.error(mapAcademicSetupApiError(res.error, t, 'level'));
+      return;
+    }
+
+    const outcome = aggregateEnableResults(res.data.results);
+    const errors = new Map<number, string>();
+    for (const [refId, msg] of outcome.errorsByRefId) {
+      errors.set(refId, mapEnableLevelError(msg, t));
+    }
+    for (const r of res.data.results) {
+      if (r.error?.code) {
+        errors.set(r.reference_level_id, mapEnableLevelError(r.error.code, t, r.error.message));
       }
     }
-    setSaving(false);
-    setPartialErrors(failed);
+    setRowErrors(errors);
+
+    const stillSelected = new Set(
+      [...selected].filter((id) => outcome.failedIds.includes(id)),
+    );
     setSelected(stillSelected);
 
-    if (agg.allOk) {
-      toast.success(
-        t('admin.academicSetup.guided.levelsEnabledSuccess', { count: agg.successCount }),
-      );
-      onEnabled(agg);
+    if (outcome.enabledCount > 0 || outcome.alreadyEnabledCount > 0) {
+      onEnabled({
+        enabledCount: outcome.enabledCount,
+        newSchoolLevelIds: outcome.newSchoolLevelIds,
+        fullSuccess: outcome.fullSuccess && outcome.enabledCount > 0,
+      });
+      optionsState.reload();
+    }
+
+    if (outcome.fullSuccess && outcome.failedCount === 0) {
+      if (outcome.enabledCount > 0) {
+        toast.success(t('admin.academicSetup.guided.levelsEnableFullSuccess'));
+      } else if (outcome.alreadyEnabledCount > 0) {
+        toast.success(t('admin.academicSetup.guided.levelAlreadyEnabledNotice'));
+      }
+      setSelected(new Set());
       onClose();
       return;
     }
 
-    if (agg.successCount > 0) {
+    if (outcome.partialSuccess) {
       toast.error(
         t('admin.academicSetup.guided.levelsEnabledPartial', {
-          success: agg.successCount,
-          failed: agg.failCount,
+          success: outcome.enabledCount,
+          failed: outcome.failedCount,
         }),
       );
-      onEnabled(agg);
-    } else {
+      return;
+    }
+
+    if (outcome.failedCount > 0 && outcome.enabledCount === 0) {
       toast.error(t('admin.academicSetup.guided.levelsEnableAllFailed'));
     }
   }
+
+  const selectedCount = selected.size;
 
   return (
     <SetupDrawer
@@ -139,65 +170,143 @@ export function ReferenceLevelsDrawer({
       title={t('admin.academicSetup.guided.addLevelsTitle')}
       onClose={onClose}
     >
+      <p className="muted tiny mb-2">{t('admin.academicSetup.guided.addLevelsDesc')}</p>
+
       {optionsState.loading && <p className="muted">{t('common.loading')}</p>}
 
-      {optionsState.unavailable && (
+      {optionsState.error && !optionsState.loading && (
         <div className="academic-setup-gap-banner" role="alert">
-          <strong>{t('admin.academicSetup.guided.levelsApiBlockedTitle')}</strong>
-          <p className="tiny mt-2">{t('admin.academicSetup.guided.levelsApiBlockedDesc')}</p>
+          <p>{mapAcademicSetupApiError(optionsState.error, t, 'level')}</p>
+          <button type="button" className="btn btn--ghost btn--sm mt-2" onClick={() => optionsState.reload()}>
+            {t('common.retry')}
+          </button>
         </div>
       )}
 
-      {!optionsState.loading && !optionsState.unavailable && !referenceLevels.length && (
+      {!optionsState.loading && !optionsState.error && !allLevels.length && (
         <p className="muted">{t('admin.academicSetup.guided.noReferenceLevels')}</p>
       )}
 
-      {referenceLevels.length > 0 && (
-        <div className="col" style={{ gap: 20 }}>
-          {sortedCategories.map((category) => (
-            <section key={category} aria-labelledby={`ref-cat-${category}`}>
-              <h3 id={`ref-cat-${category}`} className="admin-section__title">
-                {categoryLabel(category)}
-              </h3>
-              <ul className="academic-setup-ref-levels" role="list">
-                {(grouped.get(category) ?? []).map((level) => {
-                  const already =
-                    level.enabled || isLevelAlreadyEnabled(level.code, enabledLevels);
-                  const checked = selected.has(level.id);
-                  const err = partialErrors.get(level.id);
-                  return (
-                    <li key={level.id}>
-                      <label
-                        className={`academic-setup-ref-level${already ? ' academic-setup-ref-level--disabled' : ''}`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          disabled={already || saving}
-                          onChange={() => toggleLevel(level)}
-                        />
-                        <span className="academic-setup-ref-level__main">
-                          <strong>{displayName(level)}</strong>
-                          <span className="tiny muted block">{level.code}</span>
-                          {level.supports_tracks && (
-                            <Badge tone="blue">{t('admin.academicSetup.guided.supportsTracks')}</Badge>
-                          )}
-                          {already && (
-                            <Badge tone="green">{t('admin.academicSetup.guided.alreadyEnabled')}</Badge>
-                          )}
-                        </span>
-                      </label>
-                      {err && <p className="tiny" style={{ color: '#b91c1c' }}>{err}</p>}
-                    </li>
-                  );
-                })}
-              </ul>
-            </section>
-          ))}
+      {!optionsState.loading && !optionsState.error && allLevels.length > 0 && (
+        <div className="col" style={{ gap: 16 }}>
+          {!canEnable && (
+            <div className="academic-setup-gap-banner" role="status">
+              {t('admin.academicSetup.guided.cannotEnableLevels')}
+            </div>
+          )}
+
+          <div className="academic-setup-filters">
+            <input
+              className="input"
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={t('admin.academicSetup.guided.searchLevels')}
+              aria-label={t('admin.academicSetup.guided.searchLevels')}
+            />
+            <select
+              className="input"
+              value={cycleId === '' ? '' : String(cycleId)}
+              onChange={(e) => setCycleId(e.target.value ? Number(e.target.value) : '')}
+              aria-label={t('admin.academicSetup.guided.cycleFilter')}
+            >
+              <option value="">{t('admin.academicSetup.guided.allCycles')}</option>
+              {cycles.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+            <select
+              className="input"
+              value={filterMode}
+              onChange={(e) => setFilterMode(e.target.value as LevelFilterMode)}
+              aria-label={t('admin.academicSetup.guided.statusFilter')}
+            >
+              <option value="all">{t('admin.academicSetup.guided.filterAll')}</option>
+              <option value="available">{t('admin.academicSetup.guided.filterAvailable')}</option>
+              <option value="enabled">{t('admin.academicSetup.guided.filterEnabled')}</option>
+            </select>
+          </div>
+
+          {selectedCount > 0 && (
+            <p className="tiny">
+              {t('admin.academicSetup.guided.selectedCount', { count: selectedCount })}
+            </p>
+          )}
+
+          {grouped.map(({ cycle, levels }) => {
+            const selectable = selectableIdsInCycle(allLevels, cycle.id).filter((id) =>
+              levels.some((l) => l.id === id),
+            );
+            const allCycleSelected =
+              selectable.length > 0 && selectable.every((id) => selected.has(id));
+
+            return (
+              <section key={cycle.id} aria-labelledby={`ref-cycle-${cycle.id}`}>
+                <div className="row" style={{ justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+                  <h3 id={`ref-cycle-${cycle.id}`} className="admin-section__title" style={{ margin: 0 }}>
+                    {cycle.name}
+                  </h3>
+                  {canEnable && selectable.length > 0 && (
+                    <button
+                      type="button"
+                      className="btn btn--ghost btn--sm"
+                      onClick={() => toggleCycle(cycle.id)}
+                    >
+                      {allCycleSelected
+                        ? t('admin.academicSetup.guided.deselectCycle')
+                        : t('admin.academicSetup.guided.selectCycle')}
+                    </button>
+                  )}
+                </div>
+                <ul className="academic-setup-ref-levels" role="list">
+                  {levels.map((level) => {
+                    const selectableLevel = isReferenceLevelSelectable(level);
+                    const checked = selected.has(level.id);
+                    const err = rowErrors.get(level.id);
+                    return (
+                      <li key={level.id}>
+                        <label
+                          className={`academic-setup-ref-level${!selectableLevel ? ' academic-setup-ref-level--disabled' : ''}`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            disabled={!selectableLevel || saving || !canEnable}
+                            onChange={() => toggleLevel(level)}
+                          />
+                          <span className="academic-setup-ref-level__main">
+                            <strong>{level.name}</strong>
+                            <span className="tiny muted block">{referenceLevelSubtitle(level)}</span>
+                            <span className="tiny muted block">{level.cycle.name}</span>
+                            <span className="row mt-2" style={{ gap: 6, flexWrap: 'wrap' }}>
+                              {level.supports_tracks && (
+                                <Badge tone="blue">{t('admin.academicSetup.guided.supportsTracks')}</Badge>
+                              )}
+                              {level.enabled && (
+                                <Badge tone="green">{t('admin.academicSetup.guided.alreadyEnabled')}</Badge>
+                              )}
+                            </span>
+                          </span>
+                        </label>
+                        {err && (
+                          <p className="tiny" style={{ color: '#b91c1c' }}>
+                            {err}
+                          </p>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            );
+          })}
+
           <button
             type="button"
             className="btn btn--primary"
-            disabled={!selected.size || saving || optionsState.unavailable}
+            disabled={!selectedCount || saving || !canEnable}
             onClick={handleSave}
           >
             {saving ? t('common.saving') : t('admin.academicSetup.guided.enableSelectedLevels')}

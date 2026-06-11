@@ -42,8 +42,29 @@ const CLASS_TRACK_ERRORS: Record<string, string> = {
 const LEVEL_ERRORS: Record<string, string> = {
   already_enabled: 'admin.academicSetup.errors.alreadyEnabled',
   invalid_reference_level: 'admin.academicSetup.errors.invalidReferenceLevel',
+  reference_level_not_found: 'admin.academicSetup.errors.referenceLevelNotFound',
+  reference_level_inactive: 'admin.academicSetup.errors.referenceLevelInactive',
+  invalid_payload: 'admin.academicSetup.errors.invalidPayload',
+  duplicate_record: 'admin.academicSetup.errors.levelDuplicateCode',
   level_out_of_scope: 'admin.academicSetup.errors.levelOutOfScope',
 };
+
+export function mapEnableLevelError(
+  codeOrMessage: string,
+  t: (key: string) => string,
+  fallbackMessage?: string,
+): string {
+  const code = codeOrMessage.trim();
+  const key = LEVEL_ERRORS[code];
+  if (key) {
+    const msg = t(key);
+    if (msg !== key) return msg;
+  }
+  if (fallbackMessage && !fallbackMessage.includes('DETAIL:') && !fallbackMessage.includes('Traceback')) {
+    return fallbackMessage;
+  }
+  return mapAcademicSetupApiError({ code, message: fallbackMessage ?? code, details: {} }, t, 'level');
+}
 
 export function mapAcademicSetupApiError(
   error: ApiErrorBody,

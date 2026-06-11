@@ -28,9 +28,11 @@ export function LevelClassGroup({
 }) {
   const t = useT();
   const [open, setOpen] = useState(true);
-  const supportsTracks = trackLevels
-    ? levelSupportsTracks(group.id, trackLevels)
-    : false;
+  const supportsTracks =
+    group.supports_tracks ??
+    (trackLevels ? levelSupportsTracks(group.id, trackLevels) : false);
+  const classCount = group.classes_count ?? group.classes.length;
+  const subjectCountDisplay = group.subjects_count ?? subjectCount;
 
   return (
     <div className="academic-setup-level">
@@ -38,14 +40,17 @@ export function LevelClassGroup({
         <span>
           <strong>{group.name}</strong>
           {group.code && <span className="tiny muted"> {group.code}</span>}
+          {group.cycle?.name && (
+            <span className="tiny muted block mt-2">{group.cycle.name}</span>
+          )}
           <span className="tiny muted block mt-2">
             {t('admin.academicSetup.levelMeta', {
-              classes: group.classes.length,
+              classes: classCount,
               students: group.studentCount,
             })}
           </span>
           <span className="row tiny muted mt-2" style={{ gap: 8, flexWrap: 'wrap' }}>
-            <span>{t('admin.academicSetup.guided.levelSubjectCount', { count: subjectCount })}</span>
+            <span>{t('admin.academicSetup.guided.levelSubjectCount', { count: subjectCountDisplay })}</span>
             {supportsTracks && (
               <Badge tone="blue">{t('admin.academicSetup.guided.supportsTracks')}</Badge>
             )}

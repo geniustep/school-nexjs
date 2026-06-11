@@ -35,6 +35,7 @@ export default function AcademicSetupClassesPage() {
   >(null);
   const [levelsDrawerOpen, setLevelsDrawerOpen] = useState(false);
   const [batchLevelId, setBatchLevelId] = useState<number | null>(null);
+  const [nextClassLevelId, setNextClassLevelId] = useState<number | null>(null);
 
   const levelGroups = useMemo(
     () => buildLevelGroups(lists.levels, lists.classes),
@@ -64,6 +65,17 @@ export default function AcademicSetupClassesPage() {
     lists.reload();
     readinessState.reload();
     trackOptionsState.reload();
+  }
+
+  function handleLevelsEnabled(outcome: {
+    enabledCount: number;
+    newSchoolLevelIds: number[];
+    fullSuccess: boolean;
+  }) {
+    refreshAll();
+    if (outcome.newSchoolLevelIds[0]) {
+      setNextClassLevelId(outcome.newSchoolLevelIds[0]);
+    }
   }
 
   const createMode = drawer?.mode === 'create' || openFromAction;
@@ -128,12 +140,11 @@ export default function AcademicSetupClassesPage() {
         />
         <ReferenceLevelsDrawer
           open={levelsOpen}
-          enabledLevels={lists.levels}
           onClose={() => {
             setLevelsDrawerOpen(false);
             levelsAction.dismissActionParam();
           }}
-          onEnabled={() => refreshAll()}
+          onEnabled={handleLevelsEnabled}
         />
       </>
     );
@@ -142,6 +153,27 @@ export default function AcademicSetupClassesPage() {
   return (
     <>
       <PageHeader title={t('admin.academicSetup.nav.classes')} actions={headerActions} />
+      {nextClassLevelId && (
+        <div
+          className="academic-setup-next-step__card"
+          role="status"
+        >
+          <div>
+            <strong>{t('admin.academicSetup.guided.nextStepCreateClasses')}</strong>
+            <p className="tiny muted mt-2">{t('admin.academicSetup.guided.nextStepCreateClassesDesc')}</p>
+          </div>
+          <button
+            type="button"
+            className="btn btn--primary btn--sm"
+            onClick={() => {
+              setDrawer({ mode: 'create', levelId: nextClassLevelId });
+              setNextClassLevelId(null);
+            }}
+          >
+            {t('admin.academicSetup.guided.actionAddClasses')}
+          </button>
+        </div>
+      )}
       <div className="col" style={{ gap: 12 }}>
         {visibleGroups.map((group) => (
           <LevelClassGroup
@@ -167,12 +199,11 @@ export default function AcademicSetupClassesPage() {
       />
       <ReferenceLevelsDrawer
         open={levelsOpen}
-        enabledLevels={lists.levels}
         onClose={() => {
           setLevelsDrawerOpen(false);
           levelsAction.dismissActionParam();
         }}
-        onEnabled={() => refreshAll()}
+        onEnabled={handleLevelsEnabled}
       />
       {batchLevel && (
         <BatchClassDrawer
