@@ -27,11 +27,23 @@ function err(code: string, message: string, status: number) {
 }
 
 export async function POST(request: Request) {
-  let payload: { login?: string; password?: string; db?: string };
+  let payload: { login?: string; password?: string; db?: string; database?: string; odoo_url?: string };
   try {
     payload = await request.json();
   } catch {
     return err('validation_error', 'Invalid request body.', 422);
+  }
+
+  if (
+    payload.db !== undefined ||
+    payload.database !== undefined ||
+    payload.odoo_url !== undefined
+  ) {
+    return err(
+      'validation_error',
+      'Database selection is determined by the host; do not send db, database, or odoo_url.',
+      422,
+    );
   }
 
   const login = payload.login?.trim();

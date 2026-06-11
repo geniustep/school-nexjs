@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { tenantDisplayName } from '@/lib/tenant-public';
 import {
   getHostFromHeaders,
   isFallbackHost,
@@ -114,5 +115,11 @@ describe('tenantSessionMatches', () => {
   it('accepts matching tenant', () => {
     const alwah = resolveTenantFromHost('alwah.raqeem.ma', ROOT, FALLBACK);
     expect(tenantSessionMatches('alwah', alwah)).toBe(true);
+  });
+});
+
+describe('tenantDisplayName', () => {
+  it('defaults to the tenant slug', () => {
+    expect(tenantDisplayName('school')).toBe('school');
   });
 });
