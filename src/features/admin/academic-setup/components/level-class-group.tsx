@@ -6,6 +6,7 @@ import { useT } from '@/features/i18n/locale-context';
 import type { LevelGroup } from '../types';
 import type { SchoolClass } from '@/types/class';
 import { levelSupportsTracks } from '../utils/guided-flow';
+import { LevelClassActions } from './level-class-actions';
 
 export function LevelClassGroup({
   group,
@@ -13,6 +14,7 @@ export function LevelClassGroup({
   onSelectClass,
   onAddClass,
   onBatchClasses,
+  onLevelRemoved,
   canManage,
   trackLevels,
   subjectCount = 0,
@@ -22,6 +24,7 @@ export function LevelClassGroup({
   onSelectClass: (cls: SchoolClass) => void;
   onAddClass?: (levelId: number) => void;
   onBatchClasses?: (levelId: number) => void;
+  onLevelRemoved?: () => void;
   canManage: boolean;
   trackLevels?: import('../utils/guided-flow').TrackLevelRef[];
   subjectCount?: number;
@@ -36,7 +39,8 @@ export function LevelClassGroup({
 
   return (
     <div className="academic-setup-level">
-      <button type="button" className="academic-setup-level__head" onClick={() => setOpen((v) => !v)}>
+      <div className="academic-setup-level__head">
+        <button type="button" className="academic-setup-level__head-main" onClick={() => setOpen((v) => !v)}>
         <span>
           <strong>{group.name}</strong>
           {group.code && <span className="tiny muted"> {group.code}</span>}
@@ -57,7 +61,16 @@ export function LevelClassGroup({
           </span>
         </span>
         <span aria-hidden>{open ? '▾' : '▸'}</span>
-      </button>
+        </button>
+        {onLevelRemoved && (
+          <LevelClassActions
+            group={group}
+            canManage={canManage}
+            onAddClass={onAddClass}
+            onRemoved={onLevelRemoved}
+          />
+        )}
+      </div>
       {open && (
         <div className="academic-setup-level__body">
           {group.classes.length === 0 ? (

@@ -125,9 +125,9 @@ export const api = {
     }
   },
 
-  async delete<T>(path: string): Promise<ApiResponse<T>> {
+  async delete<T>(path: string, query?: ListParams): Promise<ApiResponse<T>> {
     try {
-      const res = await fetch(buildUrl(path), {
+      const res = await fetch(buildUrl(path, query), {
         method: 'DELETE',
         headers: { Accept: 'application/json' },
         credentials: 'same-origin',

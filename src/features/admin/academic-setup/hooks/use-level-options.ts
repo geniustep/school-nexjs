@@ -9,6 +9,7 @@ import type {
   EnableLevelResult,
   EnableLevelsResponse,
   LevelOptionsPayload,
+  ReferenceLevelOption,
 } from '@/types/academic-levels';
 import type { ApiError, ApiErrorBody, ApiResponse, ListParams } from '@/types/api';
 export type LevelOptionsQuery = {
@@ -23,7 +24,12 @@ export function normalizeLevelOptionsPayload(
   data: LevelOptionsPayload | null | undefined,
 ): LevelOptionsPayload | null {
   if (!data || typeof data !== 'object') return null;
-  const reference_levels = Array.isArray(data.reference_levels) ? data.reference_levels : [];
+  const reference_levels = (Array.isArray(data.reference_levels) ? data.reference_levels : []).map(
+    (level: ReferenceLevelOption) => ({
+      ...level,
+      link_status: level.link_status ?? (level.enabled ? 'enabled' : 'not_enabled'),
+    }),
+  );
   const cycles = Array.isArray(data.cycles) ? data.cycles : [];
   const permissions = data.permissions ?? { can_enable: false };
   return { reference_levels, cycles, permissions };

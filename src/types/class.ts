@@ -7,6 +7,7 @@
 // TODO: when assignment/enrollment list APIs ship, add paths in endpoints.ts
 // and class detail UI for subject–teacher assignments and enrollment history.
 
+import type { SchoolLevelUsage } from './academic-levels';
 import type { Ref } from './api';
 
 export interface TrackRef extends Ref {
@@ -17,6 +18,14 @@ export interface Subject {
   id: number;
   name: string;
   code?: string | null;
+  level_id?: number | null;
+  track_id?: number | null;
+  source?: 'level' | 'track';
+  required?: boolean;
+  optional?: boolean;
+  sequence?: number;
+  weekly_hours?: number | null;
+  assignments_count?: number;
 }
 
 export interface LevelCycle {
@@ -37,6 +46,9 @@ export interface Level {
   classes_count?: number;
   subjects_count?: number;
   subjects?: Subject[];
+  can_delete?: boolean;
+  can_deactivate?: boolean;
+  usage?: SchoolLevelUsage;
 }
 
 export interface SchoolClass {

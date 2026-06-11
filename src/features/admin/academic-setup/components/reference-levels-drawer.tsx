@@ -6,7 +6,6 @@ import { useToast } from '@/components/ui/toast';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
 import type { ReferenceLevelOption } from '@/types/academic-levels';
-import type { Level } from '@/types/class';
 import {
   enableReferenceLevels,
   useLevelOptions,
@@ -14,23 +13,39 @@ import {
 import {
   aggregateEnableResults,
   buildEnablePayload,
-  buildOrphanLevelCodes,
   filterReferenceLevels,
   groupReferenceLevelsByCycle,
-  isReferenceLevelOrphan,
   isReferenceLevelSelectable,
   referenceLevelSubtitle,
   selectableIdsInCycle,
   type LevelFilterMode,
 } from '../utils/level-options';
 import { mapAcademicSetupApiError, mapEnableLevelError } from '../utils/api-errors';
+import {
+  referenceLevelBadgeKey,
+  resolveReferenceLevelState,
+  type LevelLinkStatus,
+} from '../utils/level-link-status';
+import { LevelLinkDialog } from './level-link-dialog';
 import { SetupDrawer } from './setup-drawer';
+
+function badgeTone(status: LevelLinkStatus): 'green' | 'amber' | 'slate' | 'blue' {
+  switch (status) {
+    case 'enabled':
+      return 'green';
+    case 'legacy_unlinked':
+      return 'amber';
+    case 'legacy_ambiguous':
+      return 'slate';
+    default:
+      return 'blue';
+  }
+}
 
 export function ReferenceLevelsDrawer({
   open,
   onClose,
   onEnabled,
-  schoolLevels = [],
 }: {
   open: boolean;
   onClose: () => void;
@@ -39,7 +54,6 @@ export function ReferenceLevelsDrawer({
     newSchoolLevelIds: number[];
     fullSuccess: boolean;
   }) => void;
-  schoolLevels?: Level[];
 }) {
   const t = useT();
   const toast = useToast();
@@ -49,9 +63,9 @@ export function ReferenceLevelsDrawer({
   const [filterMode, setFilterMode] = useState<LevelFilterMode>('all');
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [saving, setSaving] = useState(false);
+  const [linkTarget, setLinkTarget] = useState<ReferenceLevelOption | null>(null);
   const [rowErrors, setRowErrors] = useState<Map<number, string>>(new Map());
 
-  // Always fetch the full catalog — server-side `cycle` filter returns empty (IDs mismatch).
   const optionsState = useLevelOptions(true, { include_enabled: 'true' });
 
   useEffect(() => {
@@ -61,6 +75,7 @@ export function ReferenceLevelsDrawer({
       setFilterMode('all');
       setSelected(new Set());
       setRowErrors(new Map());
+      setLinkTarget(null);
       return;
     }
     if (!optionsState.options && !optionsState.loading) {
@@ -73,7 +88,6 @@ export function ReferenceLevelsDrawer({
   const showLoading = open && optionsState.loading && !optionsLoaded;
   const cycles = optionsState.options?.cycles ?? [];
   const canEnable = optionsState.options?.permissions?.can_enable ?? false;
-  const orphanCodes = useMemo(() => buildOrphanLevelCodes(schoolLevels), [schoolLevels]);
 
   const filteredLevels = useMemo(
     () =>
@@ -91,7 +105,7 @@ export function ReferenceLevelsDrawer({
   );
 
   function toggleLevel(level: ReferenceLevelOption) {
-    if (!isReferenceLevelSelectable(level, orphanCodes)) return;
+    if (!isReferenceLevelSelectable(level)) return;
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(level.id)) next.delete(level.id);
@@ -101,7 +115,7 @@ export function ReferenceLevelsDrawer({
   }
 
   function toggleCycle(cycleRefId: number) {
-    const ids = selectableIdsInCycle(allLevels, cycleRefId, orphanCodes);
+    const ids = selectableIdsInCycle(allLevels, cycleRefId);
     if (!ids.length) return;
     setSelected((prev) => {
       const allSelected = ids.every((id) => prev.has(id));
@@ -112,9 +126,23 @@ export function ReferenceLevelsDrawer({
     });
   }
 
+  function handleLinkClick(level: ReferenceLevelOption) {
+    setRowErrors((prev) => {
+      const next = new Map(prev);
+      next.delete(level.id);
+      return next;
+    });
+    setLinkTarget(level);
+  }
+
+  function handleLinked() {
+    onEnabled({ enabledCount: 1, newSchoolLevelIds: [], fullSuccess: true });
+    optionsState.reload();
+  }
+
   async function handleSave() {
     if (!selected.size || saving || !canEnable) return;
-    const payloadIds = buildEnablePayload(selected, allLevels, orphanCodes);
+    const payloadIds = buildEnablePayload(selected, allLevels);
     if (!payloadIds.length) return;
 
     setSaving(true);
@@ -263,7 +291,7 @@ export function ReferenceLevelsDrawer({
           )}
 
           {grouped.map(({ cycle, levels }) => {
-            const selectable = selectableIdsInCycle(allLevels, cycle.id, orphanCodes).filter((id) =>
+            const selectable = selectableIdsInCycle(allLevels, cycle.id).filter((id) =>
               levels.some((l) => l.id === id),
             );
             const allCycleSelected =
@@ -289,38 +317,68 @@ export function ReferenceLevelsDrawer({
                 </div>
                 <ul className="academic-setup-ref-levels" role="list">
                   {levels.map((level) => {
-                    const orphan = isReferenceLevelOrphan(level, orphanCodes);
-                    const selectableLevel = isReferenceLevelSelectable(level, orphanCodes);
+                    const state = resolveReferenceLevelState(level);
+                    const selectableLevel = state.canSelect;
                     const checked = selected.has(level.id);
                     const err = rowErrors.get(level.id);
+                    const badgeKey = referenceLevelBadgeKey(state.linkStatus);
+
                     return (
                       <li key={level.id}>
-                        <label
-                          className={`academic-setup-ref-level${!selectableLevel ? ' academic-setup-ref-level--disabled' : ''}`}
+                        <div
+                          className={`academic-setup-ref-level${!selectableLevel && state.linkStatus !== 'legacy_unlinked' ? ' academic-setup-ref-level--disabled' : ''}`}
                         >
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            disabled={!selectableLevel || saving || !canEnable}
-                            onChange={() => toggleLevel(level)}
-                          />
-                          <span className="academic-setup-ref-level__main">
-                            <strong>{level.name}</strong>
-                            <span className="tiny muted block">{referenceLevelSubtitle(level)}</span>
-                            <span className="tiny muted block">{level.cycle.name}</span>
-                            <span className="row mt-2" style={{ gap: 6, flexWrap: 'wrap' }}>
-                              {level.supports_tracks && (
-                                <Badge tone="blue">{t('admin.academicSetup.guided.supportsTracks')}</Badge>
+                          {state.linkStatus === 'legacy_unlinked' ? (
+                            <div className="academic-setup-ref-level__main academic-setup-ref-level__main--full">
+                              <strong>{level.name}</strong>
+                              <span className="tiny muted block">{referenceLevelSubtitle(level)}</span>
+                              <span className="tiny muted block">{level.cycle.name}</span>
+                              <p className="tiny mt-2">{t('admin.academicSetup.guided.legacyLevelDesc')}</p>
+                              <span className="row mt-2" style={{ gap: 6, flexWrap: 'wrap' }}>
+                                {badgeKey && <Badge tone={badgeTone(state.linkStatus)}>{t(badgeKey)}</Badge>}
+                                {level.supports_tracks && (
+                                  <Badge tone="blue">{t('admin.academicSetup.guided.supportsTracks')}</Badge>
+                                )}
+                              </span>
+                              {state.canLink && canEnable && (
+                                <button
+                                  type="button"
+                                  className="btn btn--primary btn--sm mt-2"
+                                  disabled={saving}
+                                  onClick={() => handleLinkClick(level)}
+                                >
+                                  {t('admin.academicSetup.guided.completeLinkAction')}
+                                </button>
                               )}
-                              {level.enabled && (
-                                <Badge tone="green">{t('admin.academicSetup.guided.alreadyEnabled')}</Badge>
-                              )}
-                              {orphan && (
-                                <Badge tone="amber">{t('admin.academicSetup.guided.levelAlreadyInSchool')}</Badge>
-                              )}
-                            </span>
-                          </span>
-                        </label>
+                            </div>
+                          ) : (
+                            <label className="academic-setup-ref-level__row">
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                disabled={!selectableLevel || saving || !canEnable}
+                                onChange={() => toggleLevel(level)}
+                              />
+                              <span className="academic-setup-ref-level__main">
+                                <strong>{level.name}</strong>
+                                <span className="tiny muted block">{referenceLevelSubtitle(level)}</span>
+                                <span className="tiny muted block">{level.cycle.name}</span>
+                                {state.linkStatus === 'legacy_ambiguous' && (
+                                  <>
+                                    <p className="tiny mt-2">{t('admin.academicSetup.guided.legacyAmbiguousDesc')}</p>
+                                    <p className="tiny muted">{t('admin.academicSetup.guided.legacyAmbiguousHelp')}</p>
+                                  </>
+                                )}
+                                <span className="row mt-2" style={{ gap: 6, flexWrap: 'wrap' }}>
+                                  {badgeKey && <Badge tone={badgeTone(state.linkStatus)}>{t(badgeKey)}</Badge>}
+                                  {level.supports_tracks && (
+                                    <Badge tone="blue">{t('admin.academicSetup.guided.supportsTracks')}</Badge>
+                                  )}
+                                </span>
+                              </span>
+                            </label>
+                          )}
+                        </div>
                         {err && (
                           <p className="tiny" style={{ color: '#b91c1c' }}>
                             {err}
@@ -344,6 +402,12 @@ export function ReferenceLevelsDrawer({
           </button>
         </div>
       )}
+      <LevelLinkDialog
+        level={linkTarget}
+        open={!!linkTarget}
+        onClose={() => setLinkTarget(null)}
+        onLinked={handleLinked}
+      />
     </SetupDrawer>
   );
 }

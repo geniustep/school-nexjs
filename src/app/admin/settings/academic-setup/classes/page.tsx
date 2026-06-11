@@ -114,7 +114,6 @@ export default function AcademicSetupClassesPage() {
   const levelsDrawer = (
     <ReferenceLevelsDrawer
       open={levelsOpen}
-      schoolLevels={lists.levels}
       onClose={() => {
         setLevelsDrawerOpen(false);
         levelsAction.dismissActionParam();
@@ -192,6 +191,7 @@ export default function AcademicSetupClassesPage() {
             subjectCount={subjectCountsByLevel.get(group.id) ?? 0}
             onAddClass={(levelId) => setDrawer({ mode: 'create', levelId })}
             onBatchClasses={canManage ? (levelId) => setBatchLevelId(levelId) : undefined}
+            onLevelRemoved={refreshAll}
             onSelectClass={(cls) => setDrawer({ mode: 'view', cls })}
           />
         ))}

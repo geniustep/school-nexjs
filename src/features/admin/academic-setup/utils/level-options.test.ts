@@ -4,10 +4,9 @@ import { normalizeLevelOptionsPayload } from '../hooks/use-level-options';
 import {
   aggregateEnableResults,
   buildEnablePayload,
-  buildOrphanLevelCodes,
   filterReferenceLevels,
   groupReferenceLevelsByCycle,
-  isReferenceLevelOrphan,
+  isLegacyUnlinkedLevel,
   isReferenceLevelSelectable,
   selectableIdsInCycle,
   sortReferenceLevels,
@@ -28,6 +27,7 @@ function refLevel(
     cycle: cyclePrimary,
     enabled: false,
     can_enable: true,
+    link_status: 'not_enabled',
     ...partial,
   };
 }
@@ -117,12 +117,29 @@ describe('level-options utils', () => {
     expect(isReferenceLevelSelectable(list[1]!)).toBe(false);
   });
 
-  it('blocks orphan reference levels already present in school', () => {
-    const orphans = buildOrphanLevelCodes([{ code: 'P1' }, { code: 'P2' }]);
-    const p1 = refLevel({ id: 1, code: 'P1' });
-    expect(isReferenceLevelOrphan(p1, orphans)).toBe(true);
-    expect(isReferenceLevelSelectable(p1, orphans)).toBe(false);
-    expect(buildEnablePayload([1, 2], [p1, refLevel({ id: 2, code: 'P3' })], orphans)).toEqual([2]);
-    expect(selectableIdsInCycle([p1, refLevel({ id: 2, code: 'P3' })], cyclePrimary.id, orphans)).toEqual([2]);
+  it('blocks legacy unlinked levels from enable selection', () => {
+    const p1 = refLevel({
+      id: 1,
+      code: 'P1',
+      link_status: 'legacy_unlinked',
+      can_enable: false,
+      school_level_id: 77,
+    });
+    expect(isLegacyUnlinkedLevel(p1)).toBe(true);
+    expect(isReferenceLevelSelectable(p1)).toBe(false);
+    expect(buildEnablePayload([1, 2], [p1, refLevel({ id: 2, code: 'P3' })])).toEqual([2]);
+    expect(selectableIdsInCycle([p1, refLevel({ id: 2, code: 'P3' })], cyclePrimary.id)).toEqual([2]);
+  });
+
+  it('counts linked_existing as enabled in aggregate', () => {
+    const outcome = aggregateEnableResults([
+      {
+        reference_level_id: 4,
+        status: 'linked_existing',
+        school_level: { id: 77, name: 'P1', code: 'P1', supports_tracks: false },
+      },
+    ]);
+    expect(outcome.enabledCount).toBe(1);
+    expect(outcome.newSchoolLevelIds).toEqual([77]);
   });
 });

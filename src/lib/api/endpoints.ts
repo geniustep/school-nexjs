@@ -51,8 +51,12 @@ export const endpoints = {
     levelsExport: '/admin/levels/export',
     levelsOptions: '/admin/levels/options',
     levelsEnable: '/admin/levels/enable',
+    levelLinkReference: (id: number | string) => `/admin/levels/${id}/link-reference`,
+    levelDelete: (id: number | string) => `/admin/levels/${id}`,
 
     subjects: '/admin/subjects',
+    subjectsOptions: '/admin/subjects/options',
+    subjectsEnable: '/admin/subjects/enable',
     subject: (id: number | string) => `/admin/subjects/${id}`,
     subjectUpdate: (id: number | string) => `/admin/subjects/${id}/update`,
     subjectArchive: (id: number | string) => `/admin/subjects/${id}/archive`,

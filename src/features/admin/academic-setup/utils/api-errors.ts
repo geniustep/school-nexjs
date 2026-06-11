@@ -47,7 +47,46 @@ const LEVEL_ERRORS: Record<string, string> = {
   invalid_payload: 'admin.academicSetup.errors.invalidPayload',
   duplicate_record: 'admin.academicSetup.errors.levelDuplicateCode',
   level_out_of_scope: 'admin.academicSetup.errors.levelOutOfScope',
+  level_already_linked: 'admin.academicSetup.errors.levelAlreadyLinked',
+  reference_level_already_enabled: 'admin.academicSetup.errors.alreadyEnabled',
+  legacy_level_ambiguous: 'admin.academicSetup.errors.legacyLevelAmbiguous',
+  legacy_level_code_mismatch: 'admin.academicSetup.errors.legacyLevelCodeMismatch',
+  legacy_level_cycle_mismatch: 'admin.academicSetup.errors.legacyLevelCycleMismatch',
+  level_in_use: 'admin.academicSetup.errors.levelInUse',
+  protected_level: 'admin.academicSetup.errors.protectedLevel',
+  cannot_delete_level: 'admin.academicSetup.errors.cannotDeleteLevel',
 };
+
+const SUBJECT_ERRORS: Record<string, string> = {
+  reference_subject_not_found: 'admin.academicSetup.errors.referenceSubjectNotFound',
+  reference_subject_inactive: 'admin.academicSetup.errors.referenceSubjectInactive',
+  reference_subject_level_mismatch: 'admin.academicSetup.errors.referenceSubjectLevelMismatch',
+  legacy_match_requires_review: 'admin.academicSetup.errors.legacyMatchRequiresReview',
+  track_not_found: 'admin.academicSetup.errors.trackNotFound',
+  track_level_mismatch: 'admin.academicSetup.errors.trackLevelMismatch',
+  track_school_mismatch: 'admin.academicSetup.errors.trackSchoolMismatch',
+  forbidden: 'admin.academicSetup.errors.subjectForbidden',
+  level_out_of_scope: 'admin.academicSetup.errors.levelOutOfScope',
+  invalid_payload: 'admin.academicSetup.errors.invalidPayload',
+  already_enabled: 'admin.academicSetup.errors.subjectAlreadyEnabled',
+};
+
+export function mapEnableSubjectError(
+  codeOrMessage: string,
+  t: (key: string) => string,
+  fallbackMessage?: string,
+): string {
+  const code = codeOrMessage.trim();
+  const key = SUBJECT_ERRORS[code];
+  if (key) {
+    const msg = t(key);
+    if (msg !== key) return msg;
+  }
+  if (fallbackMessage && !fallbackMessage.includes('DETAIL:') && !fallbackMessage.includes('Traceback')) {
+    return fallbackMessage;
+  }
+  return mapAcademicSetupApiError({ code, message: fallbackMessage ?? code, details: {} }, t, 'subject');
+}
 
 export function mapEnableLevelError(
   codeOrMessage: string,
@@ -69,7 +108,7 @@ export function mapEnableLevelError(
 export function mapAcademicSetupApiError(
   error: ApiErrorBody,
   t: (key: string) => string,
-  domain: 'assignment' | 'staff' | 'track' | 'class' | 'level' = 'assignment',
+  domain: 'assignment' | 'staff' | 'track' | 'class' | 'level' | 'subject' = 'assignment',
 ): string {
   const code = String(error.code ?? '');
   const table =
@@ -81,7 +120,9 @@ export function mapAcademicSetupApiError(
           ? CLASS_TRACK_ERRORS
           : domain === 'level'
             ? LEVEL_ERRORS
-            : ASSIGNMENT_ERRORS;
+            : domain === 'subject'
+              ? SUBJECT_ERRORS
+              : ASSIGNMENT_ERRORS;
 
   const key = table[code];
   if (key) {

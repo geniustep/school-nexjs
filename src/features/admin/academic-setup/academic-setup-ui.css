@@ -259,12 +259,65 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 12px 14px;
+  gap: 8px;
+  padding: 8px 10px 8px 14px;
   background: var(--c-surface-2, #f4f6f9);
+}
+
+.academic-setup-level__head-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
   border: none;
+  background: transparent;
   cursor: pointer;
   text-align: start;
+}
+
+.academic-setup-level-actions {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.academic-setup-level-actions__trigger {
+  min-width: 36px;
+}
+
+.academic-setup-level-actions__menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  inset-inline-end: 0;
+  z-index: 5;
+  min-width: 180px;
+  padding: 6px;
+  border-radius: 10px;
+  border: 1px solid var(--c-border);
+  background: var(--c-surface, #fff);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+}
+
+.academic-setup-level-actions__item {
+  display: block;
+  width: 100%;
+  text-align: start;
+  padding: 8px 10px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.academic-setup-level-actions__item:hover {
+  background: var(--c-surface-2, #f4f6f9);
+}
+
+.academic-setup-level-actions__item--danger {
+  color: #b91c1c;
 }
 
 .academic-setup-level__body {
@@ -524,22 +577,51 @@
 }
 
 .academic-setup-ref-level {
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
   padding: 10px 12px;
   border: 1px solid var(--c-border);
   border-radius: 10px;
-  cursor: pointer;
 }
 
 .academic-setup-ref-level--disabled {
   opacity: 0.65;
-  cursor: default;
+}
+
+.academic-setup-ref-level__row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  cursor: pointer;
 }
 
 .academic-setup-ref-level__main {
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.academic-setup-ref-level__main--full {
+  width: 100%;
+}
+
+.academic-setup-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 60;
+  width: min(440px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  padding: 20px;
+  border-radius: 14px;
+  border: 1px solid var(--c-border);
+  background: var(--c-surface, #fff);
+  box-shadow: 0 16px 48px rgba(15, 23, 42, 0.18);
+}
+
+.academic-setup-usage-list {
+  margin: 8px 0 0;
+  padding-inline-start: 20px;
+  color: var(--c-muted);
+  font-size: 13px;
 }

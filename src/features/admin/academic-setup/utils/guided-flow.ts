@@ -161,7 +161,7 @@ export function buildGuidedSteps(ctx: GuidedStepContext): GuidedStep[] {
       missingCount: countIssuesForSection(readiness, ['subjects', 'tracks']),
       summaryKey: 'admin.academicSetup.guided.summarySubjects',
       summaryParams: { subjects: subjectsCount, tracks: tracksCount },
-      href: STEP_ROUTES.subjects,
+      href: `${STEP_ROUTES.subjects}?action=enable-subjects`,
       available: hasLevels && ctx.canManageClasses,
       actionKey: 'admin.academicSetup.guided.actionEnableSubjects',
     },

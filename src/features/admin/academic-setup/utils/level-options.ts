@@ -5,6 +5,7 @@ import type {
   LevelCycleOption,
   ReferenceLevelOption,
 } from '@/types/academic-levels';
+import { resolveReferenceLevelState } from './level-link-status';
 
 export type LevelFilterMode = 'all' | 'available' | 'enabled';
 
@@ -92,47 +93,21 @@ export function filterReferenceLevels(
   });
 }
 
-export function buildOrphanLevelCodes(
-  schoolLevels: { code?: string | null }[],
-): Set<string> {
-  const codes = new Set<string>();
-  for (const level of schoolLevels) {
-    const code = level.code?.trim().toUpperCase();
-    if (code) codes.add(code);
-  }
-  return codes;
+export function isReferenceLevelSelectable(level: ReferenceLevelOption): boolean {
+  return resolveReferenceLevelState(level).canSelect;
 }
 
-/** Reference level not linked in API but a school level with the same code already exists. */
-export function isReferenceLevelOrphan(
-  level: ReferenceLevelOption,
-  orphanCodes: Set<string>,
-): boolean {
-  if (level.enabled || level.school_level_id) return false;
-  const code = level.code?.trim().toUpperCase();
-  return !!(code && orphanCodes.has(code));
-}
-
-export function isReferenceLevelSelectable(
-  level: ReferenceLevelOption,
-  orphanCodes?: Set<string>,
-): boolean {
-  if (level.enabled || !level.can_enable || !level.active) return false;
-  if (orphanCodes?.size && isReferenceLevelOrphan(level, orphanCodes)) return false;
-  return true;
+export function isLegacyUnlinkedLevel(level: ReferenceLevelOption): boolean {
+  return resolveReferenceLevelState(level).linkStatus === 'legacy_unlinked';
 }
 
 export function buildEnablePayload(
   selectedIds: Iterable<number>,
   levels: ReferenceLevelOption[],
-  orphanCodes?: Set<string>,
 ): number[] {
-  const enabledIds = new Set(
-    levels.filter((l) => l.enabled).map((l) => l.id),
-  );
   return [...selectedIds].filter((id) => {
     const level = levels.find((l) => l.id === id);
-    return level ? isReferenceLevelSelectable(level, orphanCodes) && !enabledIds.has(id) : false;
+    return level ? isReferenceLevelSelectable(level) : false;
   });
 }
 
@@ -144,7 +119,7 @@ export function buildEnableSummary(
   let already_enabled = 0;
   let failed = 0;
   for (const r of results) {
-    if (r.status === 'enabled') enabled += 1;
+    if (r.status === 'enabled' || r.status === 'linked_existing') enabled += 1;
     else if (r.status === 'already_enabled') already_enabled += 1;
     else failed += 1;
   }
@@ -185,7 +160,7 @@ export function aggregateEnableResults(results: EnableLevelResult[]): EnableOutc
   const errorsByRefId = new Map<number, string>();
 
   for (const r of results) {
-    if (r.status === 'enabled') {
+    if (r.status === 'enabled' || r.status === 'linked_existing') {
       enabledCount += 1;
       if (r.school_level?.id) newSchoolLevelIds.push(r.school_level.id);
     } else if (r.status === 'already_enabled') {
@@ -220,10 +195,9 @@ export function aggregateEnableResults(results: EnableLevelResult[]): EnableOutc
 export function selectableIdsInCycle(
   levels: ReferenceLevelOption[],
   cycleId: number,
-  orphanCodes?: Set<string>,
 ): number[] {
   return levels
-    .filter((l) => l.cycle.id === cycleId && isReferenceLevelSelectable(l, orphanCodes))
+    .filter((l) => l.cycle.id === cycleId && isReferenceLevelSelectable(l))
     .map((l) => l.id);
 }
 
