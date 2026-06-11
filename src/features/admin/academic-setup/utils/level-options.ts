@@ -92,18 +92,63 @@ export function filterReferenceLevels(
   });
 }
 
-export function isReferenceLevelSelectable(level: ReferenceLevelOption): boolean {
-  return !level.enabled && level.can_enable && level.active;
+export function buildOrphanLevelCodes(
+  schoolLevels: { code?: string | null }[],
+): Set<string> {
+  const codes = new Set<string>();
+  for (const level of schoolLevels) {
+    const code = level.code?.trim().toUpperCase();
+    if (code) codes.add(code);
+  }
+  return codes;
 }
 
-export function buildEnablePayload(selectedIds: Iterable<number>, levels: ReferenceLevelOption[]): number[] {
+/** Reference level not linked in API but a school level with the same code already exists. */
+export function isReferenceLevelOrphan(
+  level: ReferenceLevelOption,
+  orphanCodes: Set<string>,
+): boolean {
+  if (level.enabled || level.school_level_id) return false;
+  const code = level.code?.trim().toUpperCase();
+  return !!(code && orphanCodes.has(code));
+}
+
+export function isReferenceLevelSelectable(
+  level: ReferenceLevelOption,
+  orphanCodes?: Set<string>,
+): boolean {
+  if (level.enabled || !level.can_enable || !level.active) return false;
+  if (orphanCodes?.size && isReferenceLevelOrphan(level, orphanCodes)) return false;
+  return true;
+}
+
+export function buildEnablePayload(
+  selectedIds: Iterable<number>,
+  levels: ReferenceLevelOption[],
+  orphanCodes?: Set<string>,
+): number[] {
   const enabledIds = new Set(
     levels.filter((l) => l.enabled).map((l) => l.id),
   );
   return [...selectedIds].filter((id) => {
     const level = levels.find((l) => l.id === id);
-    return level ? isReferenceLevelSelectable(level) && !enabledIds.has(id) : false;
+    return level ? isReferenceLevelSelectable(level, orphanCodes) && !enabledIds.has(id) : false;
   });
+}
+
+export function buildEnableSummary(
+  results: EnableLevelResult[],
+  requested: number,
+): EnableLevelsSummary {
+  let enabled = 0;
+  let already_enabled = 0;
+  let failed = 0;
+  for (const r of results) {
+    if (r.status === 'enabled') enabled += 1;
+    else if (r.status === 'already_enabled') already_enabled += 1;
+    else failed += 1;
+  }
+  return { requested, enabled, already_enabled, failed };
 }
 
 export function parseEnableLevelsResponse(data: EnableLevelsResponse | null | undefined): {
@@ -175,9 +220,10 @@ export function aggregateEnableResults(results: EnableLevelResult[]): EnableOutc
 export function selectableIdsInCycle(
   levels: ReferenceLevelOption[],
   cycleId: number,
+  orphanCodes?: Set<string>,
 ): number[] {
   return levels
-    .filter((l) => l.cycle.id === cycleId && isReferenceLevelSelectable(l))
+    .filter((l) => l.cycle.id === cycleId && isReferenceLevelSelectable(l, orphanCodes))
     .map((l) => l.id);
 }
 

@@ -3,8 +3,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/primitives';
 import { useToast } from '@/components/ui/toast';
+import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
 import type { ReferenceLevelOption } from '@/types/academic-levels';
+import type { Level } from '@/types/class';
 import {
   enableReferenceLevels,
   useLevelOptions,
@@ -12,8 +14,10 @@ import {
 import {
   aggregateEnableResults,
   buildEnablePayload,
+  buildOrphanLevelCodes,
   filterReferenceLevels,
   groupReferenceLevelsByCycle,
+  isReferenceLevelOrphan,
   isReferenceLevelSelectable,
   referenceLevelSubtitle,
   selectableIdsInCycle,
@@ -26,6 +30,7 @@ export function ReferenceLevelsDrawer({
   open,
   onClose,
   onEnabled,
+  schoolLevels = [],
 }: {
   open: boolean;
   onClose: () => void;
@@ -34,9 +39,11 @@ export function ReferenceLevelsDrawer({
     newSchoolLevelIds: number[];
     fullSuccess: boolean;
   }) => void;
+  schoolLevels?: Level[];
 }) {
   const t = useT();
   const toast = useToast();
+  const { activeSchoolId } = useAdminSession();
   const [search, setSearch] = useState('');
   const [cycleId, setCycleId] = useState<number | ''>('');
   const [filterMode, setFilterMode] = useState<LevelFilterMode>('all');
@@ -66,6 +73,7 @@ export function ReferenceLevelsDrawer({
   const showLoading = open && optionsState.loading && !optionsLoaded;
   const cycles = optionsState.options?.cycles ?? [];
   const canEnable = optionsState.options?.permissions?.can_enable ?? false;
+  const orphanCodes = useMemo(() => buildOrphanLevelCodes(schoolLevels), [schoolLevels]);
 
   const filteredLevels = useMemo(
     () =>
@@ -83,7 +91,7 @@ export function ReferenceLevelsDrawer({
   );
 
   function toggleLevel(level: ReferenceLevelOption) {
-    if (!isReferenceLevelSelectable(level)) return;
+    if (!isReferenceLevelSelectable(level, orphanCodes)) return;
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(level.id)) next.delete(level.id);
@@ -93,7 +101,7 @@ export function ReferenceLevelsDrawer({
   }
 
   function toggleCycle(cycleRefId: number) {
-    const ids = selectableIdsInCycle(allLevels, cycleRefId);
+    const ids = selectableIdsInCycle(allLevels, cycleRefId, orphanCodes);
     if (!ids.length) return;
     setSelected((prev) => {
       const allSelected = ids.every((id) => prev.has(id));
@@ -106,13 +114,13 @@ export function ReferenceLevelsDrawer({
 
   async function handleSave() {
     if (!selected.size || saving || !canEnable) return;
-    const payloadIds = buildEnablePayload(selected, allLevels);
+    const payloadIds = buildEnablePayload(selected, allLevels, orphanCodes);
     if (!payloadIds.length) return;
 
     setSaving(true);
     setRowErrors(new Map());
 
-    const res = await enableReferenceLevels(payloadIds);
+    const res = await enableReferenceLevels(payloadIds, activeSchoolId);
     setSaving(false);
 
     if (!res.ok) {
@@ -255,7 +263,7 @@ export function ReferenceLevelsDrawer({
           )}
 
           {grouped.map(({ cycle, levels }) => {
-            const selectable = selectableIdsInCycle(allLevels, cycle.id).filter((id) =>
+            const selectable = selectableIdsInCycle(allLevels, cycle.id, orphanCodes).filter((id) =>
               levels.some((l) => l.id === id),
             );
             const allCycleSelected =
@@ -281,7 +289,8 @@ export function ReferenceLevelsDrawer({
                 </div>
                 <ul className="academic-setup-ref-levels" role="list">
                   {levels.map((level) => {
-                    const selectableLevel = isReferenceLevelSelectable(level);
+                    const orphan = isReferenceLevelOrphan(level, orphanCodes);
+                    const selectableLevel = isReferenceLevelSelectable(level, orphanCodes);
                     const checked = selected.has(level.id);
                     const err = rowErrors.get(level.id);
                     return (
@@ -305,6 +314,9 @@ export function ReferenceLevelsDrawer({
                               )}
                               {level.enabled && (
                                 <Badge tone="green">{t('admin.academicSetup.guided.alreadyEnabled')}</Badge>
+                              )}
+                              {orphan && (
+                                <Badge tone="amber">{t('admin.academicSetup.guided.levelAlreadyInSchool')}</Badge>
                               )}
                             </span>
                           </span>

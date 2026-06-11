@@ -4,8 +4,13 @@ import { useCallback } from 'react';
 import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
-import type { EnableLevelsResponse, LevelOptionsPayload } from '@/types/academic-levels';
-import type { ApiErrorBody } from '@/types/api';
+import { buildEnableSummary } from '../utils/level-options';
+import type {
+  EnableLevelResult,
+  EnableLevelsResponse,
+  LevelOptionsPayload,
+} from '@/types/academic-levels';
+import type { ApiError, ApiErrorBody, ApiResponse, ListParams } from '@/types/api';
 export type LevelOptionsQuery = {
   include_enabled?: string;
   cycle?: string | number;
@@ -46,8 +51,30 @@ export function useLevelOptions(active = true, query?: LevelOptionsQuery) {
   };
 }
 
+function failedResult(id: number, error: ApiErrorBody): EnableLevelResult {
+  return {
+    reference_level_id: id,
+    status: 'failed',
+    error: { code: String(error.code), message: error.message },
+  };
+}
+
+function collectResultsFromError(
+  id: number,
+  res: ApiResponse<EnableLevelsResponse>,
+): EnableLevelResult[] {
+  if (!res.success) {
+    const partial = (res as ApiError & { data?: EnableLevelsResponse }).data;
+    if (partial?.results?.length) return partial.results;
+    return [failedResult(id, res.error)];
+  }
+  return res.data.results ?? [];
+}
+
+/** Enable levels one-by-one so a duplicate/orphan does not fail the whole batch. */
 export async function enableReferenceLevels(
   referenceLevelIds: number[],
+  activeSchoolId?: number | null,
 ): Promise<
   | { ok: true; data: EnableLevelsResponse }
   | { ok: false; error: ApiErrorBody }
@@ -62,13 +89,32 @@ export async function enableReferenceLevels(
     };
   }
 
-  const res = await api.post<EnableLevelsResponse>(endpoints.admin.levelsEnable, {
-    reference_level_ids: referenceLevelIds,
-  });
+  const query: ListParams | undefined =
+    activeSchoolId != null ? { active_school_id: activeSchoolId } : undefined;
 
-  if (res.success) {
-    return { ok: true, data: res.data };
+  const results: EnableLevelResult[] = [];
+  let lastError: ApiErrorBody | null = null;
+
+  for (const id of referenceLevelIds) {
+    const res = await api.post<EnableLevelsResponse>(
+      endpoints.admin.levelsEnable,
+      { reference_level_ids: [id] },
+      query,
+    );
+
+    if (res.success) {
+      results.push(...(res.data.results ?? []));
+      continue;
+    }
+
+    lastError = res.error;
+    results.push(...collectResultsFromError(id, res));
   }
 
-  return { ok: false, error: res.error };
+  const summary = buildEnableSummary(results, referenceLevelIds.length);
+  if (summary.enabled === 0 && summary.already_enabled === 0 && lastError) {
+    return { ok: false, error: lastError };
+  }
+
+  return { ok: true, data: { results, summary } };
 }
