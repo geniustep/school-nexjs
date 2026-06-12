@@ -918,9 +918,9 @@
       "noClassesInLevel": "Aún no se han creado clases para este nivel.",
       "levelNeedsClassesWithTracksHint": "Este nivel aún necesita clases aunque tenga itinerarios vinculados.",
       "countPlural": {
-        "class": { "one": "1 clase", "other": "{count} clases" },
-        "student": { "one": "1 alumno", "other": "{count} alumnos" },
-        "subject": { "one": "1 materia", "other": "{count} materias" },
+        "class": { "zero": "0 clases", "one": "1 clase", "other": "{count} clases" },
+        "student": { "zero": "0 alumnos", "one": "1 alumno", "other": "{count} alumnos" },
+        "subject": { "zero": "0 materias", "one": "1 materia", "other": "{count} materias" },
         "track": { "one": "1 itinerario", "other": "{count} itinerarios" },
         "assignment": { "one": "1 asignación docente", "other": "{count} asignaciones docentes" },
         "enrollment": { "one": "1 matrícula", "other": "{count} matrículas" },

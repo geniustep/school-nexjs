@@ -25,8 +25,19 @@ describe('level card presentation', () => {
       subjects: 0,
       tracks: 1,
     });
-    expect(summary).toContain('شعبة واحدة مرتبطة');
+    expect(summary).toBe('0 أقسام · 0 تلاميذ · 0 مواد · شعبة واحدة مرتبطة');
     expect(summary).not.toContain('supports_tracks');
+  });
+
+  it('matches live backend sample for level with one linked track', () => {
+    const summary = buildLevelStatsSummary(tAr, 'ar', {
+      classes: 0,
+      students: 0,
+      subjects: 0,
+      tracks: 1,
+    });
+    expect(summary).toContain('شعبة واحدة مرتبطة');
+    expect(summary).toContain('0 أقسام');
   });
 
   it('does not show tracks in card summary when tracks_count is zero', () => {
@@ -36,6 +47,7 @@ describe('level card presentation', () => {
       subjects: 0,
       tracks: 0,
     });
+    expect(summary).toBe('0 أقسام · 0 تلاميذ · 0 مواد');
     expect(summary).not.toContain('شعبة');
   });
 

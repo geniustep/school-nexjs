@@ -48,3 +48,15 @@ export function formatCountLabel(
   }
   return t(key, { count });
 }
+
+export function formatCardStatCount(
+  t: TranslateFn,
+  locale: Locale,
+  entity: Extract<CountEntity, 'class' | 'student' | 'subject'>,
+  count: number,
+): string {
+  if (count === 0) {
+    return t(`admin.academicSetup.countPlural.${entity}.zero`);
+  }
+  return formatCountLabel(t, locale, entity, count);
+}

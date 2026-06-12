@@ -1,6 +1,6 @@
 import type { Locale } from '@/lib/i18n/config';
 import type { TranslateFn } from '@/features/i18n/locale-context';
-import { formatCountLabel } from '@/lib/i18n/count-plural';
+import { formatCardStatCount, formatCountLabel } from '@/lib/i18n/count-plural';
 import type { Level } from '@/types/class';
 import { resolveTracksCount } from './normalize-level';
 
@@ -29,10 +29,10 @@ export function buildLevelStatsSummary(
   },
 ): string {
   const parts = [
-    formatCountLabel(t, locale, 'class', params.classes),
-    formatCountLabel(t, locale, 'student', params.students),
-    formatCountLabel(t, locale, 'subject', params.subjects),
-  ].filter(Boolean);
+    formatCardStatCount(t, locale, 'class', params.classes),
+    formatCardStatCount(t, locale, 'student', params.students),
+    formatCardStatCount(t, locale, 'subject', params.subjects),
+  ];
 
   if (params.tracks != null && params.tracks > 0) {
     parts.push(formatCountLabel(t, locale, 'track', params.tracks, 'linked'));

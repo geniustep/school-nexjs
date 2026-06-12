@@ -918,9 +918,9 @@
       "noClassesInLevel": "Aucune classe n'a encore été créée pour ce niveau.",
       "levelNeedsClassesWithTracksHint": "Ce niveau a encore besoin de classes même si des filières y sont liées.",
       "countPlural": {
-        "class": { "one": "1 classe", "other": "{count} classes" },
-        "student": { "one": "1 élève", "other": "{count} élèves" },
-        "subject": { "one": "1 matière", "other": "{count} matières" },
+        "class": { "zero": "0 classes", "one": "1 classe", "other": "{count} classes" },
+        "student": { "zero": "0 élèves", "one": "1 élève", "other": "{count} élèves" },
+        "subject": { "zero": "0 matières", "one": "1 matière", "other": "{count} matières" },
         "track": { "one": "1 filière", "other": "{count} filières" },
         "assignment": { "one": "1 affectation", "other": "{count} affectations" },
         "enrollment": { "one": "1 inscription", "other": "{count} inscriptions" },

@@ -918,9 +918,9 @@
       "noClassesInLevel": "No classes have been created for this level yet.",
       "levelNeedsClassesWithTracksHint": "This level still needs classes even though tracks are linked.",
       "countPlural": {
-        "class": { "one": "1 class", "other": "{count} classes" },
-        "student": { "one": "1 pupil", "other": "{count} pupils" },
-        "subject": { "one": "1 subject", "other": "{count} subjects" },
+        "class": { "zero": "0 classes", "one": "1 class", "other": "{count} classes" },
+        "student": { "zero": "0 pupils", "one": "1 pupil", "other": "{count} pupils" },
+        "subject": { "zero": "0 subjects", "one": "1 subject", "other": "{count} subjects" },
         "track": { "one": "1 track", "other": "{count} tracks" },
         "assignment": { "one": "1 teaching assignment", "other": "{count} teaching assignments" },
         "enrollment": { "one": "1 enrollment", "other": "{count} enrollments" },
