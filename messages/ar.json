@@ -51,6 +51,7 @@
     }
   },
   "nav": {
+    "main": "التنقل الرئيسي",
     "dashboard": "لوحة التحكم",
     "myClasses": "أقسامي",
     "attendance": "الحضور",
@@ -623,6 +624,7 @@
     "noScopeTitle": "لا يوجد نطاق إداري",
     "pageForbidden": "ليست لديك صلاحية عرض هذه الصفحة.",
     "activeSchool": "المدرسة النشطة",
+    "accountMenu": "حسابي",
     "activeSchoolResetTitle": "تم تحديث مدارسك",
     "activeSchoolResetDesc": "المدرسة النشطة السابقة لم تعد متاحة. تم اختيار مدرستك الحالية تلقائيًا — حدّث الصفحة أو سجّل الدخول من جديد إن استمر الخطأ.",
     "chooseSchool": "اختر مدرسة",
@@ -814,6 +816,18 @@
       "title": "الإعداد الأكاديمي والطاقم",
       "subtitle": "نظّم البنية الأكاديمية والطاقم وتوزيع التدريس من مكان واحد.",
       "navLabel": "تنقل الإعداد الأكاديمي",
+      "currentSection": "القسم الحالي",
+      "parallelSettingsTitle": "إعدادات موازية",
+      "finalReadinessTitle": "التحقق النهائي",
+      "heroProgressHeadline": "اكتمل {score}% من إعداد المؤسسة",
+      "heroProgressSubline": "بقيت خطوات أساسية قبل الجاهزية",
+      "heroProgressComplete": "اكتمل الإعداد الأساسي للمؤسسة",
+      "heroBlockingCount": "{count} مشكلة أساسية",
+      "heroIssueCounts": "{blocking} مشكلة أساسية · {warnings} تحتاج مراجعة · {info} ملاحظات",
+      "issueGroupCount": "{count} {label}",
+      "issueGroupAndMore": "، والمزيد",
+      "issueGroupView": "عرض",
+      "viewMore": "عرض المزيد",
       "activeSchool": "المدرسة النشطة",
       "readinessTitle": "جاهزية الإعداد",
       "readinessRemaining": "بقيت {count} أمور لإكمال التنظيم",
@@ -1300,7 +1314,7 @@
           "teachers": "الأساتذة",
           "staff": "الطاقم الإداري",
           "assignments": "توزيع التدريس",
-          "review": "مراجعة الجاهزية"
+          "review": "مراجعة جاهزية المؤسسة"
         },
         "states": {
           "not_started": "لم يبدأ",
@@ -1309,6 +1323,15 @@
           "completed": "مكتمل",
           "blocked": "مانع",
           "locked": "غير متاح بعد"
+        },
+        "displayStates": {
+          "not_started": "لم يبدأ",
+          "in_progress": "قيد الإعداد",
+          "needs_completion": "يحتاج استكمالًا",
+          "needs_review": "يحتاج مراجعة",
+          "complete": "مكتمل",
+          "unavailable": "غير متاح بعد",
+          "blocker": "مانع"
         },
         "summaryLevels": "{count} مستوى مفعّل",
         "summaryClasses": "{count} قسم",

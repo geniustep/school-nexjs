@@ -249,7 +249,9 @@ export function resolveNextStep(steps: GuidedStep[]): GuidedStep | null {
   ];
 
   for (const state of priority) {
-    const step = steps.find((s) => s.state === state && s.available && s.id !== 'review');
+    const step = steps.find(
+      (s) => s.state === state && s.available && s.id !== 'review' && s.id !== 'staff',
+    );
     if (step) return step;
   }
 

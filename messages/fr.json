@@ -51,6 +51,7 @@
     }
   },
   "nav": {
+    "main": "Navigation principale",
     "dashboard": "Tableau de bord",
     "myClasses": "Mes classes",
     "attendance": "Présence",
@@ -623,6 +624,7 @@
     "noScopeTitle": "Aucun périmètre admin",
     "pageForbidden": "Vous n'avez pas la permission d'afficher cette page.",
     "activeSchool": "École active",
+    "accountMenu": "Mon compte",
     "activeSchoolResetTitle": "Vos établissements ont été mis à jour",
     "activeSchoolResetDesc": "L'établissement précédemment sélectionné n'est plus disponible. Votre établissement actuel a été choisi automatiquement — actualisez ou reconnectez-vous si le problème persiste.",
     "chooseSchool": "Choisir l'école",
@@ -814,6 +816,18 @@
       "title": "Configuration académique et équipe",
       "subtitle": "Organisez la structure académique, l'équipe et les affectations depuis un seul endroit.",
       "navLabel": "Navigation configuration académique",
+      "currentSection": "Section actuelle",
+      "parallelSettingsTitle": "Paramètres parallèles",
+      "finalReadinessTitle": "Vérification finale",
+      "heroProgressHeadline": "{score} % de la configuration de l'établissement est terminée",
+      "heroProgressSubline": "Des étapes essentielles restent avant la pleine préparation",
+      "heroProgressComplete": "La configuration de base est terminée",
+      "heroBlockingCount": "{count} problème(s) critique(s)",
+      "heroIssueCounts": "{blocking} critique(s) · {warnings} à revoir · {info} note(s)",
+      "issueGroupCount": "{count} {label}",
+      "issueGroupAndMore": ", et plus",
+      "issueGroupView": "Voir",
+      "viewMore": "Voir plus",
       "activeSchool": "Établissement actif",
       "readinessTitle": "Préparation de la configuration",
       "readinessRemaining": "Il reste {count} éléments pour finaliser l'organisation",
@@ -1300,7 +1314,7 @@
           "teachers": "Enseignants",
           "staff": "Personnel administratif",
           "assignments": "Affectations",
-          "review": "Revue de préparation"
+          "review": "Revue de préparation de l'établissement"
         },
         "states": {
           "not_started": "Non commencé",
@@ -1309,6 +1323,15 @@
           "completed": "Terminé",
           "blocked": "Bloquant",
           "locked": "Pas encore disponible"
+        },
+        "displayStates": {
+          "not_started": "Non commencé",
+          "in_progress": "En cours de configuration",
+          "needs_completion": "À compléter",
+          "needs_review": "À revoir",
+          "complete": "Terminé",
+          "unavailable": "Pas encore disponible",
+          "blocker": "Bloquant"
         },
         "summaryLevels": "{count} niveaux activés",
         "summaryClasses": "{count} classes",

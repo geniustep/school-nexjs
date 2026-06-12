@@ -1,8 +1,5 @@
 'use client';
 
-// The portal shell: sidebar (role nav) + topbar (title, user, logout) + mobile
-// drawer. Receives the server-resolved user and renders navigation for it.
-
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -18,6 +15,9 @@ import { isMultiSchoolAdmin, isAdminKind } from '@/lib/admin/admin-ux';
 import { formatSchoolLabel } from '@/lib/admin/school-label';
 import { isScopedAdmin } from '@/lib/permissions/scope';
 import { BrandLogo } from '@/components/brand/brand-logo';
+import { IconMenu } from '@/components/icons/admin-icons';
+import { AdminAccountSheet } from '@/components/layout/admin-account-sheet';
+import { useBodyScrollLock } from '@/hooks/use-body-scroll-lock';
 
 function roleSubtitle(user: CurrentUser, t: (k: string) => string): string {
   if (user.role === 'admin' && user.admin_kind) {
@@ -69,6 +69,9 @@ export function AppShell({
     : multiSchoolPm
       ? t('admin.multiSchoolContext')
       : formatSchoolLabel(user.school, t);
+  const roleLabel = roleSubtitle(user, t);
+
+  useBodyScrollLock(open);
 
   async function logout() {
     setLoggingOut(true);
@@ -89,14 +92,23 @@ export function AppShell({
         isAdmin && 'app-shell--admin',
       )}
     >
-      {open && <div className="scrim" onClick={() => setOpen(false)} />}
+      {open && (
+        <button
+          type="button"
+          className="scrim"
+          aria-label={t('common.close')}
+          onClick={() => setOpen(false)}
+        />
+      )}
       <aside
+        id="admin-sidebar"
         className={cn(
           'sidebar',
           isTeacher && 'sidebar--teacher',
           isAdmin && 'sidebar--admin',
           open && 'sidebar--open',
         )}
+        aria-hidden={!open ? undefined : false}
       >
         <div className="sidebar__brand">
           <BrandLogo variant="full" />
@@ -107,7 +119,7 @@ export function AppShell({
             <Avatar name={user.name} />
             <div className="sidebar__profile-info">
               <span className="sidebar__profile-name">{user.name}</span>
-              <span className="sidebar__profile-role">{roleSubtitle(user, t)}</span>
+              <span className="sidebar__profile-role">{roleLabel}</span>
               {user.school && (
                 <span className="sidebar__profile-school">
                   {formatSchoolLabel(user.school, t)}
@@ -117,7 +129,7 @@ export function AppShell({
           </div>
         )}
 
-        <nav className="sidebar__nav">
+        <nav id="admin-sidebar-nav" className="sidebar__nav" aria-label={t('nav.main')}>
           {sections.map((section, i) => (
             <div key={i}>
               {section.titleKey && (
@@ -128,6 +140,7 @@ export function AppShell({
                   key={item.href}
                   href={item.href}
                   className={cn('nav-link', linkActive(item.href, item) && 'nav-link--active')}
+                  aria-current={linkActive(item.href, item) ? 'page' : undefined}
                   onClick={() => setOpen(false)}
                 >
                   <span className="nav-link__icon" aria-hidden="true">{item.icon}</span>
@@ -144,23 +157,41 @@ export function AppShell({
             <span className="sidebar__scope-desc">{scopeDesc}</span>
           </div>
         )}
+
+        <div className="sidebar__footer sidebar__footer--mobile">
+          <div className="sidebar__footer-field">
+            <span className="sidebar__footer-label">{t('common.language')}</span>
+            <LocaleSwitcher />
+          </div>
+          <button
+            type="button"
+            className="btn btn--ghost sidebar__footer-logout"
+            onClick={logout}
+            disabled={loggingOut}
+          >
+            {loggingOut ? '…' : t('common.signOut')}
+          </button>
+        </div>
       </aside>
 
       <div className="main">
-        <header className={cn('topbar', isTeacher && 'topbar--teacher')}>
-          <div className="row">
+        <header className={cn('topbar', isTeacher && 'topbar--teacher', 'admin-mobile-header')}>
+          <div className="topbar__start">
             <button
-              className="btn btn--ghost btn--sm menu-toggle"
+              type="button"
+              className="btn btn--ghost btn--sm menu-toggle admin-mobile-menu-trigger"
               onClick={() => setOpen((v) => !v)}
+              aria-expanded={open}
+              aria-controls="admin-sidebar-nav"
               aria-label={t('common.toggleMenu')}
             >
-              ≡
+              <IconMenu size={20} />
             </button>
-            <span className="topbar__title">
+            <span className="topbar__title admin-mobile-header__title">
               {topbarTitle}
             </span>
           </div>
-          <div className="topbar__right">
+          <div className="topbar__right topbar__right--desktop">
             {isAdmin && <SchoolSwitcher />}
             <LocaleSwitcher compact />
             {!isTeacher && (
@@ -168,11 +199,12 @@ export function AppShell({
                 <Avatar name={user.name} />
                 <div className="col" style={{ gap: 0 }}>
                   <span style={{ fontWeight: 600, fontSize: 13 }}>{user.name}</span>
-                  <span className="topbar__role">{roleSubtitle(user, t)}</span>
+                  <span className="topbar__role">{roleLabel}</span>
                 </div>
               </div>
             )}
             <button
+              type="button"
               className="btn btn--ghost btn--sm"
               onClick={logout}
               disabled={loggingOut}
@@ -180,6 +212,16 @@ export function AppShell({
               {loggingOut ? '…' : t('common.signOut')}
             </button>
           </div>
+          {!isTeacher && (
+            <div className="topbar__right topbar__right--mobile">
+              <AdminAccountSheet
+                user={user}
+                roleLabel={roleLabel}
+                loggingOut={loggingOut}
+                onLogout={logout}
+              />
+            </div>
+          )}
         </header>
         <main className={cn('content', isAdmin && 'content--admin')}>{children}</main>
       </div>

@@ -51,6 +51,7 @@
     }
   },
   "nav": {
+    "main": "Main navigation",
     "dashboard": "Dashboard",
     "myClasses": "My classes",
     "attendance": "Attendance",
@@ -623,6 +624,7 @@
     "noScopeTitle": "No admin scope",
     "pageForbidden": "You do not have permission to view this page.",
     "activeSchool": "Active school",
+    "accountMenu": "My account",
     "activeSchoolResetTitle": "Your schools were updated",
     "activeSchoolResetDesc": "The previously selected school is no longer available. Your current school was selected automatically — refresh or sign in again if the issue persists.",
     "chooseSchool": "Choose school",
@@ -814,6 +816,18 @@
       "title": "Academic setup & staff",
       "subtitle": "Organise academic structure, staff and teaching assignments in one place.",
       "navLabel": "Academic setup navigation",
+      "currentSection": "Current section",
+      "parallelSettingsTitle": "Parallel setup",
+      "finalReadinessTitle": "Final check",
+      "heroProgressHeadline": "{score}% of school setup is complete",
+      "heroProgressSubline": "Essential steps remain before full readiness",
+      "heroProgressComplete": "Core school setup is complete",
+      "heroBlockingCount": "{count} critical issues",
+      "heroIssueCounts": "{blocking} critical · {warnings} need review · {info} notes",
+      "issueGroupCount": "{count} {label}",
+      "issueGroupAndMore": ", and more",
+      "issueGroupView": "View",
+      "viewMore": "Show more",
       "activeSchool": "Active school",
       "readinessTitle": "Setup readiness",
       "readinessRemaining": "{count} items left to complete organisation",
@@ -1300,7 +1314,7 @@
           "teachers": "Teachers",
           "staff": "Administrative staff",
           "assignments": "Teaching assignments",
-          "review": "Readiness review"
+          "review": "School readiness review"
         },
         "states": {
           "not_started": "Not started",
@@ -1309,6 +1323,15 @@
           "completed": "Completed",
           "blocked": "Blocking issue",
           "locked": "Not available yet"
+        },
+        "displayStates": {
+          "not_started": "Not started",
+          "in_progress": "In setup",
+          "needs_completion": "Needs completion",
+          "needs_review": "Needs review",
+          "complete": "Complete",
+          "unavailable": "Not available yet",
+          "blocker": "Blocking"
         },
         "summaryLevels": "{count} enabled levels",
         "summaryClasses": "{count} classes",

@@ -3,97 +3,99 @@
 import Link from 'next/link';
 import { cn } from '@/lib/utils/cn';
 import { useT } from '@/features/i18n/locale-context';
-import type { GuidedStep, GuidedStepState } from '../utils/guided-flow';
+import { JOURNEY_STEP_ICONS } from '@/components/icons/admin-icons';
+import type { GuidedStep } from '../utils/guided-flow';
+import {
+  JOURNEY_DISPLAY_TONE,
+  journeyDisplayState,
+  partitionGuidedSteps,
+} from '../utils/overview-present';
 
-const STATE_TONE: Record<GuidedStepState, string> = {
-  not_started: 'slate',
-  in_progress: 'blue',
-  needs_attention: 'amber',
-  completed: 'green',
-  blocked: 'red',
-  locked: 'slate',
-};
+function JourneyStepCard({ step, displayNumber }: { step: GuidedStep; displayNumber: number }) {
+  const t = useT();
+  const displayState = journeyDisplayState(step);
+  const tone = JOURNEY_DISPLAY_TONE[displayState];
+  const Icon = JOURNEY_STEP_ICONS[step.id];
 
-const STATE_ICON: Record<GuidedStepState, string> = {
-  not_started: '○',
-  in_progress: '◐',
-  needs_attention: '!',
-  completed: '✓',
-  blocked: '✕',
-  locked: '🔒',
-};
+  return (
+    <div
+      className={cn(
+        'academic-journey-step',
+        !step.available && 'academic-journey-step--locked',
+        step.state === 'completed' && 'academic-journey-step--done',
+      )}
+    >
+      <div className="academic-journey-step__main">
+        {displayNumber > 0 && (
+          <span className="academic-journey-step__num" aria-hidden>
+            {displayNumber}
+          </span>
+        )}
+        <span className="academic-journey-step__icon" aria-hidden>
+          <Icon size={16} />
+        </span>
+        <div className="academic-journey-step__copy">
+          <div className="academic-journey-step__title-row">
+            <strong>{t(`admin.academicSetup.guided.steps.${step.id}`)}</strong>
+            <span className={`academic-setup-badge academic-setup-badge--${tone} academic-setup-badge--status`}>
+              {t(`admin.academicSetup.guided.displayStates.${displayState}`)}
+            </span>
+          </div>
+          <p className="academic-journey-step__summary">
+            {t(step.summaryKey, step.summaryParams)}
+          </p>
+        </div>
+      </div>
+      {step.available ? (
+        <Link href={step.href} className="btn btn--ghost btn--sm academic-journey-step__cta">
+          {t(step.actionKey)}
+        </Link>
+      ) : (
+        <button type="button" className="btn btn--ghost btn--sm" disabled aria-disabled>
+          {step.state === 'locked'
+            ? t('admin.academicSetup.guided.displayStates.unavailable')
+            : t(step.actionKey)}
+        </button>
+      )}
+    </div>
+  );
+}
 
 export function GuidedFlowJourney({ steps }: { steps: GuidedStep[] }) {
   const t = useT();
+  const { core, staff, review } = partitionGuidedSteps(steps);
 
   return (
-    <section className="academic-setup-journey-section" aria-labelledby="guided-flow-title">
+    <section className="academic-journey" aria-labelledby="guided-flow-title">
       <h2 id="guided-flow-title" className="admin-section__title">
         {t('admin.academicSetup.guided.journeyTitle')}
       </h2>
-      <ol className="academic-setup-journey academic-setup-journey--timeline">
-        {steps.map((step, index) => (
-          <li key={step.id} className="academic-setup-journey__item">
-            <div className="academic-setup-journey__rail" aria-hidden>
-              <span
-                className={cn(
-                  'academic-setup-journey__num',
-                  step.state === 'completed' && 'academic-setup-journey__num--done',
-                  step.state === 'blocked' && 'academic-setup-journey__num--blocked',
-                  !step.available && step.state === 'locked' && 'academic-setup-journey__num--locked',
-                )}
-              >
-                {step.number}
-              </span>
-              {index < steps.length - 1 && <span className="academic-setup-journey__line" />}
-            </div>
-            <div
-              className={cn(
-                'academic-setup-journey__card',
-                !step.available && 'academic-setup-journey__card--locked',
-                step.state === 'completed' && 'academic-setup-journey__card--done',
-              )}
-            >
-              <div className="academic-setup-journey__body">
-                <div className="academic-setup-journey__title-row">
-                  <strong>{t(`admin.academicSetup.guided.steps.${step.id}`)}</strong>
-                  <span className={`badge badge--${STATE_TONE[step.state]}`}>
-                    <span aria-hidden>{STATE_ICON[step.state]} </span>
-                    {t(`admin.academicSetup.guided.states.${step.state}`)}
-                  </span>
-                </div>
-                <p className="academic-setup-journey__summary">
-                  {t(step.summaryKey, step.summaryParams)}
-                </p>
-                {step.missingCount > 0 && step.state !== 'completed' && (
-                  <p className="academic-setup-journey__missing">
-                    {t('admin.academicSetup.guided.missingCount', { count: step.missingCount })}
-                  </p>
-                )}
-                {step.lockReasonKey && (
-                  <p className="academic-setup-journey__lock">{t(step.lockReasonKey)}</p>
-                )}
-              </div>
-              {step.available ? (
-                <Link href={step.href} className="btn btn--ghost btn--sm academic-setup-journey__cta">
-                  {t(step.actionKey)}
-                </Link>
-              ) : (
-                <button
-                  type="button"
-                  className="btn btn--ghost btn--sm"
-                  disabled
-                  aria-disabled
-                >
-                  {step.state === 'locked'
-                    ? t('admin.academicSetup.guided.states.locked')
-                    : t(step.actionKey)}
-                </button>
-              )}
-            </div>
+
+      <ol className="academic-journey__list">
+        {core.map((step, index) => (
+          <li key={step.id}>
+            <JourneyStepCard step={step} displayNumber={index + 1} />
           </li>
         ))}
       </ol>
+
+      {staff && (
+        <div className="academic-journey__parallel">
+          <h3 className="academic-journey__parallel-title">
+            {t('admin.academicSetup.parallelSettingsTitle')}
+          </h3>
+          <JourneyStepCard step={staff} displayNumber={0} />
+        </div>
+      )}
+
+      {review && (
+        <div className="academic-journey__final">
+          <h3 className="academic-journey__final-title">
+            {t('admin.academicSetup.finalReadinessTitle')}
+          </h3>
+          <JourneyStepCard step={review} displayNumber={core.length + 1} />
+        </div>
+      )}
     </section>
   );
 }

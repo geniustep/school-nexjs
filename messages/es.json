@@ -51,6 +51,7 @@
     }
   },
   "nav": {
+    "main": "Navegación principal",
     "dashboard": "Panel",
     "myClasses": "Mis clases",
     "attendance": "Asistencia",
@@ -623,6 +624,7 @@
     "noScopeTitle": "Sin ámbito administrativo",
     "pageForbidden": "No tiene permiso para ver esta página.",
     "activeSchool": "Centro activo",
+    "accountMenu": "Mi cuenta",
     "activeSchoolResetTitle": "Se actualizaron tus centros",
     "activeSchoolResetDesc": "El centro seleccionado antes ya no está disponible. Se eligió tu centro actual automáticamente — actualiza o vuelve a iniciar sesión si el problema continúa.",
     "chooseSchool": "Elegir centro",
@@ -814,6 +816,18 @@
       "title": "Configuración académica y equipo",
       "subtitle": "Organice la estructura académica, el equipo y las asignaciones desde un solo lugar.",
       "navLabel": "Navegación configuración académica",
+      "currentSection": "Sección actual",
+      "parallelSettingsTitle": "Configuración paralela",
+      "finalReadinessTitle": "Verificación final",
+      "heroProgressHeadline": "Se completó el {score} % de la configuración del centro",
+      "heroProgressSubline": "Quedan pasos esenciales antes de la plena preparación",
+      "heroProgressComplete": "La configuración básica está completa",
+      "heroBlockingCount": "{count} problema(s) crítico(s)",
+      "heroIssueCounts": "{blocking} crítico(s) · {warnings} requieren revisión · {info} notas",
+      "issueGroupCount": "{count} {label}",
+      "issueGroupAndMore": ", y más",
+      "issueGroupView": "Ver",
+      "viewMore": "Ver más",
       "activeSchool": "Centro activo",
       "readinessTitle": "Preparación de la configuración",
       "readinessRemaining": "Quedan {count} elementos por completar",
@@ -1300,7 +1314,7 @@
           "teachers": "Profesores",
           "staff": "Personal administrativo",
           "assignments": "Asignación docente",
-          "review": "Revisión de preparación"
+          "review": "Revisión de preparación del centro"
         },
         "states": {
           "not_started": "Sin empezar",
@@ -1309,6 +1323,15 @@
           "completed": "Completado",
           "blocked": "Bloqueante",
           "locked": "Aún no disponible"
+        },
+        "displayStates": {
+          "not_started": "Sin empezar",
+          "in_progress": "En configuración",
+          "needs_completion": "Requiere completar",
+          "needs_review": "Requiere revisión",
+          "complete": "Completado",
+          "unavailable": "Aún no disponible",
+          "blocker": "Bloqueante"
         },
         "summaryLevels": "{count} niveles activados",
         "summaryClasses": "{count} grupos",

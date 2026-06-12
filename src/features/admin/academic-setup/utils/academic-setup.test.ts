@@ -373,6 +373,28 @@ describe('guided flow', () => {
     });
     expect(primaryCtaFromSteps(steps)?.id).toBe('classes');
   });
+
+  it('skips staff when resolving next step', () => {
+    const steps = buildGuidedSteps({
+      ...ctx,
+      levels: [{ id: 1, name: 'P1', code: 'P1' }],
+      classesCount: 2,
+      subjectsCount: 3,
+      teachersCount: 2,
+      staffCount: 0,
+      readiness: {
+        ...baseReadiness,
+        domains: {
+          ...baseReadiness.domains,
+          levels_classes: { score: 80, status: 'needs_attention', summary: { levels: 1, classes: 2 } },
+          subjects_tracks: { score: 70, status: 'needs_attention', summary: { subjects: 3, tracks: 0 } },
+          teachers: { score: 60, status: 'needs_attention', summary: { teachers: 2, without_assignments: 1 } },
+          staff: { score: 0, status: 'not_started', summary: { staff: 0, incomplete: 0 } },
+        },
+      },
+    });
+    expect(primaryCtaFromSteps(steps)?.id).not.toBe('staff');
+  });
 });
 
 describe('academic-setup permissions', () => {

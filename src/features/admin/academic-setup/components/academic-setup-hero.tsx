@@ -9,11 +9,7 @@ import { formatSchoolLabel } from '@/lib/admin/school-label';
 import { useT } from '@/features/i18n/locale-context';
 import type { SetupReadinessPayload } from '@/types/academic-setup';
 import type { GuidedStep } from '../utils/guided-flow';
-import {
-  readinessScoreLabel,
-  readinessStatusLabel,
-  readinessTone,
-} from '../utils/readiness-present';
+import { readinessTone } from '../utils/readiness-present';
 
 export function AcademicSetupHero({
   data,
@@ -34,6 +30,7 @@ export function AcademicSetupHero({
   const tone = readinessTone(readiness.status, readiness.score);
   const hasIssues =
     readiness.blocking_issues > 0 || readiness.warnings > 0 || readiness.information > 0;
+  const progressTone = readiness.blocking_issues > 0 ? 'amber' : tone === 'red' ? 'amber' : 'blue';
 
   function handleViewIssues() {
     if (onViewIssues) {
@@ -44,15 +41,15 @@ export function AcademicSetupHero({
   }
 
   return (
-    <section className="academic-setup-hero" aria-labelledby="academic-setup-hero-title">
-      <div className="academic-setup-hero__top">
-        <div className="academic-setup-hero__titles">
-          <h1 id="academic-setup-hero-title" className="academic-setup-hero__title">
+    <section className="academic-overview-hero" aria-labelledby="academic-setup-hero-title">
+      <div className="academic-overview-hero__top">
+        <div className="academic-overview-hero__titles">
+          <h1 id="academic-setup-hero-title" className="academic-overview-hero__title">
             {t('admin.academicSetup.title')}
           </h1>
-          <p className="academic-setup-hero__subtitle">{t('admin.academicSetup.subtitle')}</p>
+          <p className="academic-overview-hero__subtitle">{t('admin.academicSetup.subtitle')}</p>
         </div>
-        <span className="academic-setup-hero__school badge badge--blue">{schoolLabel}</span>
+        <span className="academic-overview-hero__school badge badge--blue">{schoolLabel}</span>
       </div>
 
       {!scope.is_full_school && (
@@ -64,27 +61,18 @@ export function AcademicSetupHero({
         />
       )}
 
-      <div className="academic-setup-hero__readiness" role="status">
-        <div className="academic-setup-hero__readiness-head">
-          <div className={`academic-setup-hero__score academic-setup-hero__score--${tone}`}>
-            <span className="academic-setup-hero__score-value">{readiness.score}%</span>
-            <span className="academic-setup-hero__score-label">
-              {t('admin.academicSetup.readinessTitle')}
-            </span>
-          </div>
-          <div className="academic-setup-hero__readiness-meta">
-            <Badge tone={tone === 'red' ? 'red' : tone === 'green' ? 'green' : tone === 'amber' ? 'amber' : tone === 'blue' ? 'blue' : 'slate'}>
-              {readinessStatusLabel(readiness.status, t)}
-            </Badge>
-            {readiness.ready_for_timetable_setup && (
-              <Badge tone="green">{t('admin.academicSetup.readyForTimetable')}</Badge>
-            )}
-            <p className="academic-setup-hero__score-desc">{readinessScoreLabel(data, t)}</p>
-          </div>
-        </div>
+      <div className="academic-overview-hero__readiness" role="status">
+        <p className="academic-overview-hero__headline">
+          {t('admin.academicSetup.heroProgressHeadline', { score: readiness.score })}
+        </p>
+        <p className="academic-overview-hero__subline">
+          {readiness.score >= 100
+            ? t('admin.academicSetup.heroProgressComplete')
+            : t('admin.academicSetup.heroProgressSubline')}
+        </p>
 
         <div
-          className={`academic-setup-hero__progress academic-setup-hero__progress--${tone}`}
+          className={`academic-overview-hero__progress academic-overview-hero__progress--${progressTone}`}
           role="progressbar"
           aria-valuenow={readiness.score}
           aria-valuemin={0}
@@ -92,42 +80,56 @@ export function AcademicSetupHero({
           aria-label={t('admin.academicSetup.readinessTitle')}
         >
           <span
-            className="academic-setup-hero__progress-fill"
+            className="academic-overview-hero__progress-fill"
             style={{ width: `${Math.min(100, Math.max(0, readiness.score))}%` }}
           />
         </div>
 
         {hasIssues && (
-          <p className="academic-setup-hero__counts">
-            {t('admin.academicSetup.readinessCounts', {
-              blocking: readiness.blocking_issues,
-              warnings: readiness.warnings,
-              info: readiness.information,
-            })}
-          </p>
+          <div className="academic-overview-hero__counts">
+            {readiness.blocking_issues > 0 && (
+              <Badge tone="red">
+                {t('admin.academicSetup.heroBlockingCount', { count: readiness.blocking_issues })}
+              </Badge>
+            )}
+            <span className="academic-overview-hero__counts-text">
+              {t('admin.academicSetup.heroIssueCounts', {
+                blocking: readiness.blocking_issues,
+                warnings: readiness.warnings,
+                info: readiness.information,
+              })}
+            </span>
+          </div>
+        )}
+
+        {hasIssues && (
+          <button
+            type="button"
+            className="btn btn--ghost btn--sm academic-overview-hero__details-btn"
+            onClick={handleViewIssues}
+          >
+            {t('admin.academicSetup.viewIssues')}
+          </button>
         )}
       </div>
 
       {nextStep && (
-        <div className="academic-setup-hero__next">
-          <div className="academic-setup-hero__next-copy">
-            <span className="academic-setup-hero__next-label">
+        <div className="academic-overview-hero__next">
+          <div className="academic-overview-hero__next-copy">
+            <span className="academic-overview-hero__next-label">
               {t('admin.academicSetup.guided.nextStepTitle')}
             </span>
-            <div className="academic-setup-hero__next-headline">
-              <Badge tone="blue">
-                {t('admin.academicSetup.guided.stepLabel', { number: nextStep.number })}
-              </Badge>
-              <strong>{t(`admin.academicSetup.guided.steps.${nextStep.id}`)}</strong>
-            </div>
-            <p className="academic-setup-hero__next-summary">
+            <strong className="academic-overview-hero__next-title">
+              {t(`admin.academicSetup.guided.steps.${nextStep.id}`)}
+            </strong>
+            <p className="academic-overview-hero__next-summary">
               {t(nextStep.summaryKey, nextStep.summaryParams)}
             </p>
             {nextStep.lockReasonKey && !nextStep.available && (
-              <p className="academic-setup-hero__next-lock">{t(nextStep.lockReasonKey)}</p>
+              <p className="academic-overview-hero__next-lock">{t(nextStep.lockReasonKey)}</p>
             )}
           </div>
-          <div className="academic-setup-hero__next-actions">
+          <div className="academic-overview-hero__next-actions">
             {nextStep.available ? (
               <Link href={nextStep.href} className="btn btn--primary">
                 {t(nextStep.actionKey)}
@@ -139,14 +141,14 @@ export function AcademicSetupHero({
             )}
             {hasIssues && (
               <button type="button" className="btn btn--ghost" onClick={handleViewIssues}>
-                {t('admin.academicSetup.viewIssues')}
+                {t('admin.academicSetup.guided.showDetails')}
               </button>
             )}
           </div>
         </div>
       )}
 
-      <div ref={issuesRef} className="academic-setup-hero__anchor" aria-hidden />
+      <div ref={issuesRef} className="academic-overview-hero__anchor" aria-hidden />
     </section>
   );
 }
