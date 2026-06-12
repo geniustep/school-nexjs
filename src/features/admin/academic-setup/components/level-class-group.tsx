@@ -1,11 +1,16 @@
 'use client';
 
 import { useState, type ReactNode } from 'react';
-import { useT } from '@/features/i18n/locale-context';
+import { useLocale, useT } from '@/features/i18n/locale-context';
 import type { LevelGroup } from '../types';
 import type { SchoolClass } from '@/types/class';
 import { levelSupportsTracks } from '../utils/guided-flow';
-import { levelCtaI18nKey } from '../utils/level-card-present';
+import {
+  buildLevelStatsSummary,
+  levelCardEmptyHintKey,
+  levelCardStatsInput,
+  levelCtaI18nKey,
+} from '../utils/level-card-present';
 import {
   classStatusLabel,
   computeLevelStatus,
@@ -59,6 +64,7 @@ export function LevelClassGroup({
   subjectCount?: number;
 }) {
   const t = useT();
+  const { locale } = useLocale();
   const [open, setOpen] = useState(group.classes.length > 0);
   const [addDrawerOpen, setAddDrawerOpen] = useState(false);
   const supportsTracks =
@@ -66,6 +72,7 @@ export function LevelClassGroup({
     (trackLevels ? levelSupportsTracks(group.id, trackLevels) : false);
   const classCount = group.classes_count ?? group.classes.length;
   const subjectCountDisplay = group.subjects_count ?? subjectCount;
+  const statsInput = levelCardStatsInput(group, subjectCountDisplay);
   const levelStatus = computeLevelStatus(group, subjectCountDisplay);
   const hasClasses = group.classes.length > 0;
   const ctaKey = levelCtaI18nKey(classCount);
@@ -119,16 +126,12 @@ export function LevelClassGroup({
           </div>
 
           <p className="academic-level-card__stats">
-            {t('admin.academicSetup.levelStats', {
-              classes: classCount,
-              students: group.studentCount,
-              subjects: subjectCountDisplay,
-            })}
+            {buildLevelStatsSummary(t, locale, statsInput)}
           </p>
 
           {!hasClasses && (
             <p className="academic-level-card__empty-hint">
-              {t('admin.academicSetup.noClassesInLevel')}
+              {t(levelCardEmptyHintKey(statsInput.tracks))}
             </p>
           )}
         </div>

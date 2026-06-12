@@ -5,6 +5,7 @@ import { endpoints } from '@/lib/api/endpoints';
 import type { LevelLinkResponse, LevelRemovalResponse } from '@/types/academic-levels';
 import type { Level } from '@/types/class';
 import type { ApiErrorBody, ListParams } from '@/types/api';
+import { normalizeLevel } from '../utils/normalize-level';
 
 function adminQuery(activeSchoolId?: number | null): ListParams | undefined {
   return activeSchoolId != null ? { active_school_id: activeSchoolId } : undefined;
@@ -47,6 +48,6 @@ export async function fetchSchoolLevelDetail(
     adminQuery(activeSchoolId),
   );
 
-  if (res.success) return { ok: true, data: res.data };
+  if (res.success) return { ok: true, data: normalizeLevel(res.data) };
   return { ok: false, error: res.error };
 }

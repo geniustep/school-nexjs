@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { ErrorState, LoadingState } from '@/components/states/states';
 import { AcademicPageHeader } from '@/features/admin/academic-setup/components/academic-page-header';
 import { AcademicSegmentedControl } from '@/features/admin/academic-setup/components/academic-segmented-control';
@@ -18,9 +18,15 @@ import { useT } from '@/features/i18n/locale-context';
 
 type Tab = 'subjects' | 'tracks';
 
+function tabFromParam(value: string | null): Tab {
+  return value === 'tracks' ? 'tracks' : 'subjects';
+}
+
 export default function AcademicSetupSubjectsPage() {
   const t = useT();
   const user = useSession();
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const lists = useAcademicSetupLists();
   const readinessState = useSetupReadiness();
@@ -31,17 +37,40 @@ export default function AcademicSetupSubjectsPage() {
   const [drawerLevelId, setDrawerLevelId] = useState<number | null>(null);
   const enableAction = useDrawerActionParam('enable-subjects');
 
+  const tabFromUrl = tabFromParam(searchParams.get('tab'));
+  const [tab, setTab] = useState<Tab>(tabFromUrl);
+
+  useEffect(() => {
+    setTab(tabFromUrl);
+  }, [tabFromUrl]);
+
+  const syncQuery = useCallback(
+    (updates: Record<string, string | null>) => {
+      const params = new URLSearchParams(searchParams.toString());
+      for (const [key, value] of Object.entries(updates)) {
+        if (value == null || value === '') params.delete(key);
+        else params.set(key, value);
+      }
+      const qs = params.toString();
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    },
+    [pathname, router, searchParams],
+  );
+
+  function handleTabChange(next: Tab) {
+    setTab(next);
+    syncQuery({ tab: next === 'tracks' ? 'tracks' : null });
+  }
+
   function refreshAll() {
     lists.reload();
     readinessState.reload();
     assignmentsState.reload();
   }
 
-  const initialTab: Tab = searchParams.get('tab') === 'tracks' ? 'tracks' : 'subjects';
-  const [tab, setTab] = useState<Tab>(initialTab);
-
   const filterLevelId = searchParams.get('level_id');
-  const initialLevelId = filterLevelId ? Number(filterLevelId) : lists.levels[0]?.id ?? null;
+  const focusLevelId = filterLevelId ? Number(filterLevelId) : null;
+  const initialLevelId = focusLevelId ?? lists.levels[0]?.id ?? null;
 
   const drawerLevel =
     lists.levels.find((l) => l.id === (drawerLevelId ?? initialLevelId)) ??
@@ -94,7 +123,7 @@ export default function AcademicSetupSubjectsPage() {
       <AcademicSegmentedControl
         ariaLabel={t('admin.academicSetup.subjectsTabLabel')}
         value={tab}
-        onChange={setTab}
+        onChange={handleTabChange}
         options={[
           { value: 'subjects', label: t('admin.academicSetup.tabSubjects') },
           { value: 'tracks', label: t('admin.academicSetup.tabTracks') },
@@ -117,7 +146,11 @@ export default function AcademicSetupSubjectsPage() {
           </div>
         )
       ) : (
-        <TracksPanel canManage={canManage} />
+        <TracksPanel
+          canManage={canManage}
+          focusLevelId={Number.isFinite(focusLevelId) ? focusLevelId : null}
+          onDataChanged={refreshAll}
+        />
       )}
 
       <ReferenceSubjectsDrawer

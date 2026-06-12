@@ -46,15 +46,25 @@ export type EnableLevelResultStatus =
   | 'linked_existing'
   | 'failed';
 
+export interface LinkedTrack {
+  id: number;
+  name: string;
+  active?: boolean;
+}
+
+export interface LevelLinkedItems {
+  tracks?: LinkedTrack[];
+}
+
 export interface SchoolLevelUsage {
-  classes: number;
-  subjects: number;
-  tracks: number;
-  students: number;
-  enrollments: number;
-  assignments: number;
-  timetable_slots: number;
-  exams: number;
+  classes?: number;
+  subjects?: number;
+  tracks?: number;
+  students?: number;
+  enrollments?: number;
+  assignments?: number;
+  timetable_slots?: number;
+  exams?: number;
 }
 
 export type LinkReferenceAction = 'linked_existing' | 'already_linked';

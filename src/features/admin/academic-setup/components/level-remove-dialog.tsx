@@ -4,15 +4,20 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useToast } from '@/components/ui/toast';
 import { useAdminSession } from '@/features/auth/admin-session-context';
-import { useT } from '@/features/i18n/locale-context';
+import { useLocale, useT } from '@/features/i18n/locale-context';
 import type { Level } from '@/types/class';
 import type { SchoolLevelUsage } from '@/types/academic-levels';
 import { fetchSchoolLevelDetail, removeSchoolLevel } from '../hooks/use-level-actions';
 import { mapAcademicSetupApiError } from '../utils/api-errors';
 import {
+  formatLinkedTrackNames,
   formatUsageLines,
+  levelRemoveDialogDescriptionKey,
+  levelRemoveDialogState,
+  levelRemoveDialogTitleKey,
+  linkedItemsCta,
+  mergeLinkedItems,
   mergeUsageFromError,
-  primaryLinkedItemsRoute,
   resolveLevelRemovalFlags,
 } from '../utils/level-usage';
 
@@ -28,6 +33,7 @@ export function LevelRemoveDialog({
   onRemoved: (action: 'deleted' | 'deactivated') => void;
 }) {
   const t = useT();
+  const { locale } = useLocale();
   const toast = useToast();
   const { activeSchoolId } = useAdminSession();
   const [saving, setSaving] = useState(false);
@@ -38,10 +44,12 @@ export function LevelRemoveDialog({
 
   const activeLevel = detail ?? level;
   const flags = resolveLevelRemovalFlags(activeLevel);
-  const usageLines = formatUsageLines(usage, t);
-  const linkedRoute = primaryLinkedItemsRoute(activeLevel.id, usage);
+  const linkedItems = mergeLinkedItems(level, detail);
   const showBlocked = blocked || flags.blockedByBackend;
-  const showHistorical = !showBlocked && flags.isHistorical;
+  const dialogState = levelRemoveDialogState(showBlocked, flags.isHistorical);
+  const usageLines = formatUsageLines(usage, t, locale);
+  const cta = linkedItemsCta(activeLevel.id, usage);
+  const trackNames = formatLinkedTrackNames(linkedItems);
 
   useEffect(() => {
     if (!open) {
@@ -108,13 +116,13 @@ export function LevelRemoveDialog({
     <>
       <div className="academic-setup-drawer-backdrop" role="presentation" onClick={saving ? undefined : onClose} />
       <aside
-        className="academic-setup-dialog"
+        className="academic-setup-dialog academic-setup-dialog--level-remove"
         role="dialog"
         aria-modal="true"
         aria-labelledby="level-remove-title"
       >
         <h2 id="level-remove-title" className="admin-section__title">
-          {t('admin.academicSetup.guided.removeLevelTitle')}
+          {t(levelRemoveDialogTitleKey(dialogState))}
         </h2>
 
         {loading ? (
@@ -123,41 +131,71 @@ export function LevelRemoveDialog({
             <div className="academic-setup-skeleton academic-setup-skeleton--bar" style={{ width: '60%' }} />
           </div>
         ) : showBlocked ? (
-          <>
-            <p>{t('admin.academicSetup.guided.levelInUseBlocked')}</p>
+          <div className="academic-setup-dialog__body">
+            <p className="academic-setup-dialog__desc">
+              {t(levelRemoveDialogDescriptionKey(dialogState))}
+            </p>
+
             {usageLines.length > 0 && (
-              <ul className="academic-setup-usage-list">
-                {usageLines.map((line) => (
-                  <li key={line.key}>{line.label}</li>
-                ))}
-              </ul>
+              <section className="academic-setup-linked-items" aria-labelledby="level-linked-items-title">
+                <h3 id="level-linked-items-title" className="academic-setup-linked-items__title">
+                  {t('admin.academicSetup.guided.linkedItems')}
+                </h3>
+                <ul className="academic-setup-usage-list academic-setup-linked-items__counts">
+                  {usageLines.map((line) => (
+                    <li key={line.key}>{line.label}</li>
+                  ))}
+                </ul>
+              </section>
             )}
-            <div className="row mt-2" style={{ gap: 8, flexWrap: 'wrap' }}>
-              {linkedRoute && (
-                <Link href={linkedRoute} className="btn btn--primary btn--sm" onClick={onClose}>
-                  {t('admin.academicSetup.guided.viewLinkedItems')}
+
+            {trackNames.items.length > 0 && (
+              <section className="academic-setup-linked-items" aria-labelledby="level-linked-tracks-title">
+                <h3 id="level-linked-tracks-title" className="academic-setup-linked-items__title">
+                  {t('admin.academicSetup.guided.linkedTracksTitle')}
+                </h3>
+                <ul className="academic-setup-linked-items__names">
+                  {trackNames.items.map((track) => (
+                    <li key={track.id}>{track.name}</li>
+                  ))}
+                </ul>
+                {trackNames.overflow && (
+                  <p className="academic-setup-linked-items__overflow muted tiny">
+                    {t('admin.academicSetup.guided.linkedTracksOverflow')}
+                  </p>
+                )}
+              </section>
+            )}
+
+            <div className="academic-setup-dialog__actions">
+              {cta && (
+                <Link href={cta.href} className="btn btn--primary btn--sm" onClick={onClose}>
+                  {t(cta.labelKey)}
                 </Link>
               )}
               <button type="button" className="btn btn--ghost btn--sm" onClick={onClose}>
                 {t('common.close')}
               </button>
             </div>
-          </>
+          </div>
         ) : (
-          <>
-            <p className="muted">
-              {showHistorical
-                ? t('admin.academicSetup.guided.removeLevelHistoricalDesc')
-                : t('admin.academicSetup.guided.removeLevelEmptyDesc')}
+          <div className="academic-setup-dialog__body">
+            <p className="academic-setup-dialog__desc muted">
+              {t(levelRemoveDialogDescriptionKey(dialogState))}
             </p>
             {usageLines.length > 0 && (
-              <ul className="academic-setup-usage-list">
-                {usageLines.map((line) => (
-                  <li key={line.key}>{line.label}</li>
-                ))}
-              </ul>
+              <section className="academic-setup-linked-items" aria-labelledby="level-linked-items-confirm-title">
+                <h3 id="level-linked-items-confirm-title" className="academic-setup-linked-items__title">
+                  {t('admin.academicSetup.guided.linkedItems')}
+                </h3>
+                <ul className="academic-setup-usage-list academic-setup-linked-items__counts">
+                  {usageLines.map((line) => (
+                    <li key={line.key}>{line.label}</li>
+                  ))}
+                </ul>
+              </section>
             )}
-            <div className="row mt-2" style={{ gap: 8, flexWrap: 'wrap' }}>
+            <div className="academic-setup-dialog__actions">
               <button
                 type="button"
                 className="btn btn--sm"
@@ -167,7 +205,7 @@ export function LevelRemoveDialog({
               >
                 {saving
                   ? t('common.saving')
-                  : showHistorical
+                  : dialogState === 'deactivate'
                     ? t('admin.academicSetup.guided.deactivateLevelConfirm')
                     : t('admin.academicSetup.guided.removeLevelConfirm')}
               </button>
@@ -175,7 +213,7 @@ export function LevelRemoveDialog({
                 {t('common.cancel')}
               </button>
             </div>
-          </>
+          </div>
         )}
       </aside>
     </>

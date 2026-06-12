@@ -1,4 +1,5 @@
 import type { LevelGroup } from '../types';
+import { resolveTracksCount } from './normalize-level';
 
 export type LevelStatusKey =
   | 'active'
@@ -18,6 +19,11 @@ export function computeLevelStatus(
   if (subjectCount === 0) return 'needs_subjects';
   if (group.needsReview === 0 && classCount > 0 && subjectCount > 0) return 'complete';
   return 'active';
+}
+
+export function levelHasLinkedTracks(group: LevelGroup): boolean {
+  const tracksCount = resolveTracksCount(group);
+  return tracksCount != null && tracksCount > 0;
 }
 
 export const LEVEL_STATUS_TONE: Record<LevelStatusKey, 'green' | 'blue' | 'amber' | 'slate'> = {

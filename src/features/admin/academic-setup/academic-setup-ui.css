@@ -662,6 +662,58 @@
   box-shadow: 0 16px 48px rgba(15, 23, 42, 0.18);
 }
 
+.academic-setup-dialog__body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.academic-setup-dialog__desc {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.academic-setup-dialog__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.academic-setup-linked-items__title {
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0 0 6px;
+}
+
+.academic-setup-linked-items__names {
+  margin: 0;
+  padding-inline-start: 20px;
+  font-size: 13px;
+}
+
+.academic-setup-linked-items__overflow {
+  margin: 6px 0 0;
+}
+
+.academic-setup-level[data-focused] {
+  outline: 2px solid var(--c-primary);
+  outline-offset: 2px;
+  border-radius: 12px;
+}
+
+@media (max-width: 640px) {
+  .academic-setup-dialog__actions .btn--primary {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .academic-setup-dialog__actions .btn {
+    min-height: 44px;
+  }
+}
+
 .academic-setup-usage-list {
   margin: 8px 0 0;
   padding-inline-start: 20px;

@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Badge } from '@/components/ui/primitives';
 import { useToast } from '@/components/ui/toast';
-import { useT } from '@/features/i18n/locale-context';
+import { useLocale, useT } from '@/features/i18n/locale-context';
+import { formatCountLabel } from '@/lib/i18n/count-plural';
 import type { AcademicTrack } from '@/types/academic-setup';
 import {
   createTrack,
@@ -16,10 +17,20 @@ import {
 import { mapAcademicSetupApiError } from '../utils/api-errors';
 import { SetupDrawer } from './setup-drawer';
 
-export function TracksPanel({ canManage }: { canManage: boolean }) {
+export function TracksPanel({
+  canManage,
+  focusLevelId = null,
+  onDataChanged,
+}: {
+  canManage: boolean;
+  focusLevelId?: number | null;
+  onDataChanged?: () => void;
+}) {
   const t = useT();
+  const { locale } = useLocale();
   const toast = useToast();
   const searchParams = useSearchParams();
+  const levelRefs = useRef<Map<number, HTMLDivElement>>(new Map());
   const [search, setSearch] = useState(searchParams.get('search') ?? '');
   const [drawerOpen, setDrawerOpen] = useState(searchParams.get('action') === 'add-track');
   const [editTrack, setEditTrack] = useState<AcademicTrack | null>(null);
@@ -42,6 +53,18 @@ export function TracksPanel({ canManage }: { canManage: boolean }) {
 
   const trackLevels = (optionsState.options?.levels ?? []).filter((l) => l.supports_tracks);
 
+  useEffect(() => {
+    if (focusLevelId == null || !Number.isFinite(focusLevelId)) return;
+    const node = levelRefs.current.get(focusLevelId);
+    node?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, [focusLevelId, trackLevels.length, listState.tracks.length]);
+
+  function notifyChanged() {
+    listState.reload();
+    optionsState.reload();
+    onDataChanged?.();
+  }
+
   async function submitTrack(payload: Record<string, unknown>, id?: number) {
     setSaving(true);
     const res = id ? await updateTrack(id, payload) : await createTrack(payload);
@@ -51,7 +74,7 @@ export function TracksPanel({ canManage }: { canManage: boolean }) {
       return false;
     }
     toast.success(t('admin.saveSuccess'));
-    listState.reload();
+    notifyChanged();
     return true;
   }
 
@@ -65,7 +88,7 @@ export function TracksPanel({ canManage }: { canManage: boolean }) {
       return;
     }
     toast.success(t('admin.actionSuccess'));
-    listState.reload();
+    notifyChanged();
     setEditTrack(null);
   }
 
@@ -104,13 +127,21 @@ export function TracksPanel({ canManage }: { canManage: boolean }) {
         trackLevels.map((level) => {
           const tracks = tracksByLevel.get(level.id) ?? [];
           return (
-            <div key={level.id} className="academic-setup-level">
+            <div
+              key={level.id}
+              className="academic-setup-level"
+              data-focused={focusLevelId === level.id || undefined}
+              ref={(node) => {
+                if (node) levelRefs.current.set(level.id, node);
+                else levelRefs.current.delete(level.id);
+              }}
+            >
               <div className="academic-setup-level__head" style={{ cursor: 'default' }}>
                 <span>
                   <strong>{level.name}</strong>
                   <span className="tiny muted">
                     {' '}
-                    · {t('admin.academicSetup.tracksCount', { count: tracks.length })}
+                    · {formatCountLabel(t, locale, 'track', tracks.length)}
                   </span>
                 </span>
               </div>
@@ -153,6 +184,7 @@ export function TracksPanel({ canManage }: { canManage: boolean }) {
         options={optionsState.options ?? undefined}
         canManage={canManage}
         saving={saving}
+        initialLevelId={focusLevelId}
         onClose={() => {
           setDrawerOpen(false);
           setEditTrack(null);
@@ -170,6 +202,7 @@ function TrackFormDrawer({
   options,
   canManage,
   saving,
+  initialLevelId,
   onClose,
   onSubmit,
   onDelete,
@@ -179,6 +212,7 @@ function TrackFormDrawer({
   options?: import('@/types/academic-setup').TrackOptions;
   canManage: boolean;
   saving: boolean;
+  initialLevelId?: number | null;
   onClose: () => void;
   onSubmit: (payload: Record<string, unknown>, id?: number) => Promise<boolean>;
   onDelete?: () => void;
@@ -198,13 +232,17 @@ function TrackFormDrawer({
       setCode(track.code);
       setReferenceTrackId('');
     } else {
-      const first = options?.levels.find((l) => l.supports_tracks);
-      setLevelId(first ? String(first.id) : '');
+      const preferred =
+        initialLevelId != null &&
+        options?.levels.some((l) => l.supports_tracks && l.id === initialLevelId)
+          ? initialLevelId
+          : options?.levels.find((l) => l.supports_tracks)?.id;
+      setLevelId(preferred ? String(preferred) : '');
       setName('');
       setCode('');
       setReferenceTrackId('');
     }
-  }, [track, options, open]);
+  }, [track, options, open, initialLevelId]);
 
   const trackLevels = (options?.levels ?? []).filter((l) => l.supports_tracks);
   const refs = (options?.reference_tracks ?? []).filter(

@@ -73,7 +73,7 @@ export function LevelClassActions({
           </Link>
           {supportsTracks && (
             <Link
-              href={`/admin/settings/academic-setup/subjects?tab=tracks&level=${group.id}`}
+              href={`/admin/settings/academic-setup/subjects?tab=tracks&level_id=${group.id}`}
               role="menuitem"
               className="academic-setup-level-actions__item"
               onClick={() => setMenuOpen(false)}

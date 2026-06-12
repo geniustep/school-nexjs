@@ -21,6 +21,7 @@ describe('level-usage utils', () => {
         exams: 0,
       },
       (key, vars) => `${key}:${vars?.count ?? ''}`,
+      'en',
     );
     expect(lines).toHaveLength(1);
     expect(lines[0]?.key).toBe('classes');
@@ -70,6 +71,18 @@ describe('level-usage utils', () => {
         timetable_slots: 0,
         exams: 0,
       }),
-    ).toContain('subjects?level=5');
+    ).toContain('subjects?level_id=5');
+    expect(
+      primaryLinkedItemsRoute(5, {
+        classes: 0,
+        subjects: 0,
+        tracks: 1,
+        students: 0,
+        enrollments: 0,
+        assignments: 0,
+        timetable_slots: 0,
+        exams: 0,
+      }),
+    ).toBe('/admin/settings/academic-setup/subjects?tab=tracks&level_id=5');
   });
 });
