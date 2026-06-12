@@ -35,6 +35,7 @@ export default function AcademicSetupStaffPage() {
   const listState = useStaffList(query);
   const optionsState = useStaffOptions();
   const canManage = canManageStaff(user);
+  const editMember = editId != null ? listState.staff.find((m) => m.id === editId) : undefined;
 
   const headerActions = canManage ? (
     <button type="button" className="btn btn--primary" onClick={() => setDrawerOpen(true)}>
@@ -90,6 +91,7 @@ export default function AcademicSetupStaffPage() {
       <StaffFormDrawer
         open={drawerOpen || openFromAction || editId != null}
         memberId={drawerOpen && !editId ? null : editId}
+        member={editMember}
         options={optionsState.options ?? undefined}
         canManage={canManage}
         onClose={() => {

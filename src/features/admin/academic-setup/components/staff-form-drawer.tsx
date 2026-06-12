@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useToast } from '@/components/ui/toast';
 import { useLocale, useT } from '@/features/i18n/locale-context';
 import { getMessage, MESSAGES } from '@/lib/i18n/messages';
-import type { StaffCapabilityOption, StaffOptions } from '@/types/academic-setup';
+import type { StaffCapabilityOption, StaffMember, StaffOptions } from '@/types/academic-setup';
 import {
   createStaffMember,
   deactivateStaffMember,
@@ -25,6 +25,7 @@ function staffCapabilityLabel(
 export function StaffFormDrawer({
   open,
   memberId,
+  member: memberFromList,
   options,
   canManage,
   onClose,
@@ -32,6 +33,8 @@ export function StaffFormDrawer({
 }: {
   open: boolean;
   memberId: number | null;
+  /** List row used to prefill edit form (detail GET may omit fields). */
+  member?: StaffMember;
   options?: StaffOptions;
   canManage: boolean;
   onClose: () => void;
@@ -40,8 +43,8 @@ export function StaffFormDrawer({
   const t = useT();
   const { locale } = useLocale();
   const toast = useToast();
-  const memberState = useStaffMember(memberId);
-  const member = memberState.data;
+  const memberState = useStaffMember(memberFromList ? null : memberId);
+  const member = memberFromList ?? memberState.data;
   const creating = memberId == null;
 
   const [name, setName] = useState('');
@@ -53,26 +56,30 @@ export function StaffFormDrawer({
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (member) {
-      setName(member.name);
-      setEmail(member.email ?? '');
-      setPhone(member.phone ?? '');
-      setJobTitle(member.job_title ?? '');
-      setAdminKind(member.admin_kind);
-      setCapabilityIds(
-        (member.capabilities ?? [])
-          .map((code) => options?.capabilities.find((c) => c.code === code)?.id)
-          .filter((id): id is number => id != null),
-      );
-    } else if (creating) {
+    if (creating) {
       setName('');
       setEmail('');
       setPhone('');
       setJobTitle('');
       setAdminKind(options?.admin_kinds[0]?.value ?? 'admin_staff');
       setCapabilityIds([]);
+      return;
     }
-  }, [member, creating, options]);
+    if (!member) return;
+    setName(member.name);
+    setEmail(member.email ?? '');
+    setPhone(member.phone ?? '');
+    setJobTitle(member.job_title ?? '');
+    setAdminKind(member.admin_kind);
+    const capabilityCodes = member.capabilities?.length
+      ? member.capabilities
+      : (member.permissions ?? []);
+    setCapabilityIds(
+      capabilityCodes
+        .map((code) => options?.capabilities.find((c) => c.code === code)?.id)
+        .filter((id): id is number => id != null),
+    );
+  }, [member, creating, options, memberId]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -127,7 +134,7 @@ export function StaffFormDrawer({
       title={creating ? t('admin.academicSetup.addStaff') : t('admin.academicSetup.editStaff')}
       onClose={onClose}
     >
-      {memberState.loading && !creating ? (
+      {memberState.loading && !creating && !member ? (
         <p className="muted">{t('common.loading')}</p>
       ) : (
         <form className="col" style={{ gap: 12 }} onSubmit={submit}>
