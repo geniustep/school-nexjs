@@ -7,7 +7,7 @@ import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
 import type { Level } from '@/types/class';
 import type { SchoolLevelUsage } from '@/types/academic-levels';
-import { removeSchoolLevel } from '../hooks/use-level-actions';
+import { fetchSchoolLevelDetail, removeSchoolLevel } from '../hooks/use-level-actions';
 import { mapAcademicSetupApiError } from '../utils/api-errors';
 import {
   formatUsageLines,
@@ -31,20 +31,48 @@ export function LevelRemoveDialog({
   const toast = useToast();
   const { activeSchoolId } = useAdminSession();
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [detail, setDetail] = useState<Level | null>(null);
   const [usage, setUsage] = useState<SchoolLevelUsage>(() => resolveLevelRemovalFlags(level).usage);
   const [blocked, setBlocked] = useState(false);
 
-  const { canDelete } = resolveLevelRemovalFlags(level);
+  const activeLevel = detail ?? level;
+  const flags = resolveLevelRemovalFlags(activeLevel);
   const usageLines = formatUsageLines(usage, t);
-  const linkedRoute = primaryLinkedItemsRoute(level.id, usage);
-  const showBlocked = blocked || canDelete === false;
+  const linkedRoute = primaryLinkedItemsRoute(activeLevel.id, usage);
+  const showBlocked = blocked || flags.blockedByBackend;
+  const showHistorical = !showBlocked && flags.isHistorical;
 
   useEffect(() => {
-    if (!open) return;
-    const flags = resolveLevelRemovalFlags(level);
-    setUsage(flags.usage);
-    setBlocked(flags.blockedByBackend);
-  }, [open, level]);
+    if (!open) {
+      setDetail(null);
+      setBlocked(false);
+      return;
+    }
+
+    const initial = resolveLevelRemovalFlags(level);
+    setUsage(initial.usage);
+    setBlocked(initial.blockedByBackend);
+    setLoading(true);
+    setDetail(null);
+
+    let cancelled = false;
+    void (async () => {
+      const res = await fetchSchoolLevelDetail(level.id, activeSchoolId);
+      if (cancelled) return;
+      setLoading(false);
+      if (res.ok) {
+        setDetail(res.data);
+        const fetched = resolveLevelRemovalFlags(res.data);
+        setUsage(fetched.usage);
+        setBlocked(fetched.blockedByBackend);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, level, activeSchoolId]);
 
   if (!open) return null;
 
@@ -54,7 +82,7 @@ export function LevelRemoveDialog({
     setSaving(false);
 
     if (!res.ok) {
-      const merged = mergeUsageFromError(level, res.error);
+      const merged = mergeUsageFromError(activeLevel, res.error);
       setUsage(merged);
       if (res.error.code === 'level_in_use') {
         setBlocked(true);
@@ -78,7 +106,7 @@ export function LevelRemoveDialog({
 
   return (
     <>
-      <div className="academic-setup-drawer-backdrop" role="presentation" onClick={onClose} />
+      <div className="academic-setup-drawer-backdrop" role="presentation" onClick={saving ? undefined : onClose} />
       <aside
         className="academic-setup-dialog"
         role="dialog"
@@ -89,7 +117,12 @@ export function LevelRemoveDialog({
           {t('admin.academicSetup.guided.removeLevelTitle')}
         </h2>
 
-        {showBlocked ? (
+        {loading ? (
+          <div className="academic-setup-dialog-skeleton" aria-busy="true" aria-live="polite">
+            <div className="academic-setup-skeleton academic-setup-skeleton--bar" />
+            <div className="academic-setup-skeleton academic-setup-skeleton--bar" style={{ width: '60%' }} />
+          </div>
+        ) : showBlocked ? (
           <>
             <p>{t('admin.academicSetup.guided.levelInUseBlocked')}</p>
             {usageLines.length > 0 && (
@@ -112,7 +145,18 @@ export function LevelRemoveDialog({
           </>
         ) : (
           <>
-            <p className="muted">{t('admin.academicSetup.guided.removeLevelEmptyDesc')}</p>
+            <p className="muted">
+              {showHistorical
+                ? t('admin.academicSetup.guided.removeLevelHistoricalDesc')
+                : t('admin.academicSetup.guided.removeLevelEmptyDesc')}
+            </p>
+            {usageLines.length > 0 && (
+              <ul className="academic-setup-usage-list">
+                {usageLines.map((line) => (
+                  <li key={line.key}>{line.label}</li>
+                ))}
+              </ul>
+            )}
             <div className="row mt-2" style={{ gap: 8, flexWrap: 'wrap' }}>
               <button
                 type="button"
@@ -121,7 +165,11 @@ export function LevelRemoveDialog({
                 disabled={saving}
                 onClick={handleConfirm}
               >
-                {saving ? t('common.saving') : t('admin.academicSetup.guided.removeLevelConfirm')}
+                {saving
+                  ? t('common.saving')
+                  : showHistorical
+                    ? t('admin.academicSetup.guided.deactivateLevelConfirm')
+                    : t('admin.academicSetup.guided.removeLevelConfirm')}
               </button>
               <button type="button" className="btn btn--ghost btn--sm" onClick={onClose} disabled={saving}>
                 {t('common.cancel')}

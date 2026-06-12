@@ -143,12 +143,12 @@ export function LevelClassGroup({
               {t(ctaKey)}
             </button>
           )}
-          {onLevelRemoved && (
+          {canManage && (
             <LevelClassActions
               group={group}
               canManage={canManage}
               supportsTracks={supportsTracks}
-              onRemoved={onLevelRemoved}
+              onRemoved={onLevelRemoved ?? (() => {})}
             />
           )}
         </div>

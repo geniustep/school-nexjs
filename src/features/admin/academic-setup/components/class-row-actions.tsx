@@ -80,7 +80,7 @@ export function ClassRowActions({
               {t('common.edit')}
             </button>
           )}
-          {onRemoved && (
+          {canManage && (
             <button
               type="button"
               role="menuitem"
@@ -95,13 +95,13 @@ export function ClassRowActions({
           )}
         </div>
       )}
-      {onRemoved && (
+      {canManage && (
         <ClassRemoveDialog
           cls={cls}
           open={removeOpen}
           onClose={() => setRemoveOpen(false)}
           onRemoved={() => {
-            onRemoved();
+            onRemoved?.();
             setRemoveOpen(false);
           }}
         />

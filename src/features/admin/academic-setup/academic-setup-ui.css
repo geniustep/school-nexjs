@@ -323,7 +323,7 @@
   position: absolute;
   top: calc(100% + 4px);
   inset-inline-end: 0;
-  z-index: 5;
+  z-index: 40;
   min-width: 180px;
   padding: 6px;
   border-radius: 10px;
@@ -951,7 +951,7 @@
   border: 1px solid var(--c-border);
   border-radius: 12px;
   background: var(--c-surface-2, #f1f5f9);
-  overflow: hidden;
+  overflow: visible;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
@@ -1173,9 +1173,19 @@
 .academic-level-card {
   border: 1px solid var(--c-border);
   border-radius: 10px;
-  overflow: hidden;
+  overflow: visible;
   background: var(--c-surface, #fff);
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+.academic-level-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
 }
 
 .academic-level-card__header {
@@ -1261,14 +1271,6 @@
   color: var(--c-text-muted, var(--c-muted));
 }
 
-.academic-level-card__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-items: center;
-  flex-shrink: 0;
-}
-
 .academic-level-card__body {
   padding: 6px 8px 8px;
   display: flex;
@@ -1285,6 +1287,8 @@
   gap: 6px 8px;
   align-items: center;
   justify-content: space-between;
+  position: relative;
+  overflow: visible;
   padding: 8px 10px;
   border-radius: 8px;
   border: 1px solid var(--c-border);
@@ -1335,6 +1339,7 @@
 .academic-setup-class-actions {
   position: relative;
   flex-shrink: 0;
+  z-index: 2;
 }
 
 .academic-setup-class-actions__trigger {

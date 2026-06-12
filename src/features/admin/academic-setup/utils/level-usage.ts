@@ -51,15 +51,19 @@ export function resolveLevelRemovalFlags(level: Level): {
   canDeactivate: boolean | null;
   usage: SchoolLevelUsage;
   blockedByBackend: boolean;
+  isHistorical: boolean;
 } {
   const usage = resolveLevelUsage(level);
   const hasFlags = level.can_delete != null || level.can_deactivate != null;
+  const canDelete = level.can_delete ?? null;
+  const canDeactivate = level.can_deactivate ?? null;
 
   return {
-    canDelete: level.can_delete ?? null,
-    canDeactivate: level.can_deactivate ?? null,
+    canDelete,
+    canDeactivate,
     usage,
-    blockedByBackend: hasFlags && level.can_delete === false && levelHasOperationalUsage(usage),
+    blockedByBackend: hasFlags && canDelete === false && canDeactivate === false,
+    isHistorical: hasFlags && canDeactivate === true && canDelete !== true,
   };
 }
 
