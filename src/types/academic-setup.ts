@@ -1,6 +1,7 @@
 // Academic setup API types — synced with School API v1 admin setup endpoints.
 
 import type { Ref, SchoolRef } from './api';
+import type { UserAccountInfo } from './account';
 
 export type ApiWarning = {
   code: string;
@@ -77,6 +78,7 @@ export interface StaffMember {
   id: number;
   name: string;
   email: string | null;
+  login?: string | null;
   phone: string | null;
   job_title: string | null;
   admin_kind: StaffAdminKind;
@@ -91,6 +93,8 @@ export interface StaffMember {
     classes_count?: number;
   };
   capabilities?: string[];
+  user_id?: number | null;
+  account?: UserAccountInfo | null;
 }
 
 export interface StaffCapabilityOption {

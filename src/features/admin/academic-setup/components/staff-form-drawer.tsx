@@ -1,9 +1,20 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { AccountFieldsSection } from '@/features/admin/account/account-fields-section';
+import { AccountStatusBadge } from '@/features/admin/account/account-status-badge';
 import { useToast } from '@/components/ui/toast';
 import { useLocale, useT } from '@/features/i18n/locale-context';
 import { getMessage, MESSAGES } from '@/lib/i18n/messages';
+import {
+  applyAccountMutationToasts,
+  resolveAccountMutationFeedback,
+} from '@/lib/account/account-mutation-feedback';
+import { mapAccountApiError } from '@/lib/account/account-errors';
+import {
+  buildAccountIdentityPayload,
+  validateCreateAccountInput,
+} from '@/lib/account/account-utils';
 import type { StaffCapabilityOption, StaffMember, StaffOptions } from '@/types/academic-setup';
 import {
   createStaffMember,
@@ -22,6 +33,10 @@ function staffCapabilityLabel(
   return getMessage(MESSAGES[locale], key) ?? getMessage(MESSAGES.en, key) ?? cap.label;
 }
 
+function resolveStaffLogin(member: StaffMember): string {
+  return member.login?.trim() || member.account?.login?.trim() || member.email?.trim() || '';
+}
+
 export function StaffFormDrawer({
   open,
   memberId,
@@ -33,7 +48,6 @@ export function StaffFormDrawer({
 }: {
   open: boolean;
   memberId: number | null;
-  /** List row used to prefill edit form (detail GET may omit fields). */
   member?: StaffMember;
   options?: StaffOptions;
   canManage: boolean;
@@ -49,6 +63,10 @@ export function StaffFormDrawer({
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [login, setLogin] = useState('');
+  const [useDifferentLogin, setUseDifferentLogin] = useState(false);
+  const [originalEmail, setOriginalEmail] = useState('');
+  const [originalLogin, setOriginalLogin] = useState('');
   const [phone, setPhone] = useState('');
   const [jobTitle, setJobTitle] = useState('');
   const [adminKind, setAdminKind] = useState('');
@@ -59,6 +77,10 @@ export function StaffFormDrawer({
     if (creating) {
       setName('');
       setEmail('');
+      setLogin('');
+      setUseDifferentLogin(false);
+      setOriginalEmail('');
+      setOriginalLogin('');
       setPhone('');
       setJobTitle('');
       setAdminKind(options?.admin_kinds[0]?.value ?? 'admin_staff');
@@ -66,8 +88,14 @@ export function StaffFormDrawer({
       return;
     }
     if (!member) return;
+    const memberEmail = member.email ?? '';
+    const memberLogin = resolveStaffLogin(member);
     setName(member.name);
-    setEmail(member.email ?? '');
+    setEmail(memberEmail);
+    setLogin(memberLogin);
+    setOriginalEmail(memberEmail);
+    setOriginalLogin(memberLogin);
+    setUseDifferentLogin(Boolean(memberLogin && memberEmail && memberLogin !== memberEmail));
     setPhone(member.phone ?? '');
     setJobTitle(member.job_title ?? '');
     setAdminKind(member.admin_kind);
@@ -81,27 +109,56 @@ export function StaffFormDrawer({
     );
   }, [member, creating, options, memberId]);
 
+  const accountEntity = useMemo(() => member ?? undefined, [member]);
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!canManage) return;
+
+    if (creating && !validateCreateAccountInput(email, login, useDifferentLogin)) {
+      toast.error(t('admin.account.errors.loginRequired'));
+      return;
+    }
+
+    const identity = buildAccountIdentityPayload({
+      email,
+      login,
+      originalEmail,
+      originalLogin,
+      useDifferentLogin,
+      isCreate: creating,
+    });
+
     const payload = {
       name: name.trim(),
-      email: email.trim() || undefined,
+      ...identity,
       phone: phone.trim() || undefined,
       job_title: jobTitle.trim() || undefined,
       admin_kind: adminKind,
       capability_ids: capabilityIds,
     };
+
     setSaving(true);
     const res = creating
       ? await createStaffMember(payload)
       : await updateStaffMember(memberId!, payload);
     setSaving(false);
+
     if (!res.success) {
-      toast.error(mapAcademicSetupApiError(res.error, t, 'staff'));
+      const staffMsg = mapAcademicSetupApiError(res.error, t, 'staff');
+      const accountMsg = mapAccountApiError(res.error, t);
+      toast.error(staffMsg !== t('errors.serverError') ? staffMsg : accountMsg);
       return;
     }
-    toast.success(t('admin.saveSuccess'));
+
+    const feedback = resolveAccountMutationFeedback(res, t, {
+      createdKey: 'admin.account.accountCreated',
+      updatedKey: 'admin.saveSuccess',
+      alreadyExistsKey: 'admin.account.accountAlreadyExists',
+    });
+    if (feedback) applyAccountMutationToasts(feedback, toast);
+    else toast.success(t('admin.saveSuccess'));
+
     onSaved();
   }
 
@@ -138,20 +195,27 @@ export function StaffFormDrawer({
         <p className="muted">{t('common.loading')}</p>
       ) : (
         <form className="col" style={{ gap: 12 }} onSubmit={submit}>
+          {!creating && accountEntity ? (
+            <AccountStatusBadge entity={accountEntity} showLogin />
+          ) : null}
           <label className="col" style={{ gap: 4 }}>
             <span className="tiny muted">{t('admin.fullName')}</span>
             <input className="input" value={name} onChange={(e) => setName(e.target.value)} required />
           </label>
-          <div className="row" style={{ gap: 12, flexWrap: 'wrap' }}>
-            <label className="col" style={{ gap: 4, flex: 1 }}>
-              <span className="tiny muted">{t('admin.email')}</span>
-              <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-            </label>
-            <label className="col" style={{ gap: 4, flex: 1 }}>
-              <span className="tiny muted">{t('admin.phone')}</span>
-              <input className="input" value={phone} onChange={(e) => setPhone(e.target.value)} />
-            </label>
-          </div>
+          <AccountFieldsSection
+            mode={creating ? 'create' : 'edit'}
+            email={email}
+            login={login}
+            useDifferentLogin={useDifferentLogin}
+            onEmailChange={setEmail}
+            onLoginChange={setLogin}
+            onUseDifferentLoginChange={setUseDifferentLogin}
+            disabled={!canManage || saving}
+          />
+          <label className="col" style={{ gap: 4 }}>
+            <span className="tiny muted">{t('admin.phone')}</span>
+            <input className="input" value={phone} onChange={(e) => setPhone(e.target.value)} />
+          </label>
           <label className="col" style={{ gap: 4 }}>
             <span className="tiny muted">{t('admin.academicSetup.jobTitle')}</span>
             <input className="input" value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} />
@@ -183,9 +247,9 @@ export function StaffFormDrawer({
               ))}
             </fieldset>
           ))}
-          <div className="row" style={{ gap: 8 }}>
+          <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
             {canManage && (
-              <button type="submit" className="btn btn--primary btn--sm" disabled={saving}>
+              <button type="submit" className="btn btn--primary btn--sm" disabled={saving} style={{ minHeight: 44 }}>
                 {saving ? t('common.saving') : t('common.save')}
               </button>
             )}
