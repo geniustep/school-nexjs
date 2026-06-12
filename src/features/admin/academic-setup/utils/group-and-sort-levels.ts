@@ -23,6 +23,17 @@ export const FALLBACK_LEVEL_ORDER: Record<string, number> = {
 export const ORPHAN_CYCLE_ID = 0;
 const ORPHAN_CYCLE_SEQUENCE = 999_999;
 
+/** Explicit academic cycle order when API omits or mislabels `cycle.sequence`. */
+export const CYCLE_ORDER: Record<string, number> = {
+  preschool: 10,
+  primary: 20,
+  middle_school: 30,
+  middle: 30,
+  secondary: 40,
+  high_school: 40,
+  high: 40,
+};
+
 export interface CycleSortable {
   id: number;
   code: string;
@@ -75,18 +86,29 @@ export function sortLevels(levels: LevelGroup[]): LevelGroup[] {
   });
 }
 
+export function normalizeCycleCode(code?: string | null): string {
+  return (code ?? '').trim().toLowerCase();
+}
+
+export function getCycleSortOrder(cycle: CycleSortable): number {
+  if (
+    cycle.sequence != null &&
+    Number.isFinite(cycle.sequence) &&
+    cycle.sequence !== ORPHAN_CYCLE_SEQUENCE
+  ) {
+    return cycle.sequence;
+  }
+  const fromCode = CYCLE_ORDER[normalizeCycleCode(cycle.code)];
+  if (fromCode != null) return fromCode;
+  return 999;
+}
+
 export function sortCycles<T extends CycleSortable>(cycles: T[]): T[] {
   return [...cycles].sort((a, b) => {
-    const seqA =
-      a.sequence != null && Number.isFinite(a.sequence)
-        ? a.sequence
-        : Number.POSITIVE_INFINITY;
-    const seqB =
-      b.sequence != null && Number.isFinite(b.sequence)
-        ? b.sequence
-        : Number.POSITIVE_INFINITY;
-    if (seqA !== seqB) return seqA - seqB;
-    return a.code.localeCompare(b.code);
+    const orderA = getCycleSortOrder(a);
+    const orderB = getCycleSortOrder(b);
+    if (orderA !== orderB) return orderA - orderB;
+    return normalizeCycleCode(a.code).localeCompare(normalizeCycleCode(b.code));
   });
 }
 

@@ -113,6 +113,29 @@ describe('sortCycles', () => {
       'high',
     ]);
   });
+
+  it('orders backend cycle codes without sequence', () => {
+    const cycles = [
+      { id: 4, code: 'high_school', name: 'الثانوي التأهيلي' },
+      { id: 3, code: 'middle_school', name: 'الثانوي الإعدادي' },
+      { id: 1, code: 'preschool', name: 'التعليم الأولي' },
+      { id: 2, code: 'primary', name: 'التعليم الابتدائي' },
+    ];
+    expect(sortCycles(cycles).map((c) => c.code)).toEqual([
+      'preschool',
+      'primary',
+      'middle_school',
+      'high_school',
+    ]);
+  });
+
+  it('does not alphabetically rank high_school before middle_school', () => {
+    const cycles = [
+      { id: 1, code: 'high_school', name: 'High' },
+      { id: 2, code: 'middle_school', name: 'Middle' },
+    ];
+    expect(sortCycles(cycles).map((c) => c.code)).toEqual(['middle_school', 'high_school']);
+  });
 });
 
 describe('groupLevelsByCycle', () => {
@@ -130,6 +153,21 @@ describe('groupLevelsByCycle', () => {
     expect(groups[0]?.levels.map((l) => l.code)).toEqual(['PRE1']);
     expect(groups[1]?.levels.map((l) => l.code)).toEqual(['P1', 'P2']);
     expect(groups[3]?.levels.map((l) => l.code)).toEqual(['H_TC']);
+  });
+
+  it('orders cycle groups when API uses middle_school and high_school without sequence', () => {
+    const apiLevels = [
+      level({ id: 1, code: 'H1', name: 'H1', cycle: { id: 40, code: 'high_school', name: 'الثانوي التأهيلي' } }),
+      level({ id: 2, code: 'M1', name: 'M1', cycle: { id: 30, code: 'middle_school', name: 'الثانوي الإعدادي' } }),
+      level({ id: 3, code: 'PRE1', name: 'PRE1', cycle: { id: 10, code: 'preschool', name: 'التعليم الأولي' } }),
+      level({ id: 4, code: 'P1', name: 'P1', cycle: { id: 20, code: 'primary', name: 'التعليم الابتدائي' } }),
+    ];
+    expect(groupLevelsByCycle(apiLevels).map((g) => g.cycle.code)).toEqual([
+      'preschool',
+      'primary',
+      'middle_school',
+      'high_school',
+    ]);
   });
 
   it('preserves order after search filter', () => {
