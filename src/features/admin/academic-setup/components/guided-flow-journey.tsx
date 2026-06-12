@@ -44,19 +44,19 @@ function JourneyStepCard({ step, displayNumber }: { step: GuidedStep; displayNum
           <p className="academic-journey-step__summary">
             {t(step.summaryKey, step.summaryParams)}
           </p>
+          {step.available ? (
+            <Link href={step.href} className="btn btn--ghost btn--sm academic-journey-step__cta">
+              {t(step.actionKey)}
+            </Link>
+          ) : (
+            <button type="button" className="btn btn--ghost btn--sm academic-journey-step__cta" disabled aria-disabled>
+              {step.state === 'locked'
+                ? t('admin.academicSetup.guided.displayStates.unavailable')
+                : t(step.actionKey)}
+            </button>
+          )}
         </div>
       </div>
-      {step.available ? (
-        <Link href={step.href} className="btn btn--ghost btn--sm academic-journey-step__cta">
-          {t(step.actionKey)}
-        </Link>
-      ) : (
-        <button type="button" className="btn btn--ghost btn--sm" disabled aria-disabled>
-          {step.state === 'locked'
-            ? t('admin.academicSetup.guided.displayStates.unavailable')
-            : t(step.actionKey)}
-        </button>
-      )}
     </div>
   );
 }

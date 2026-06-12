@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useT } from '@/features/i18n/locale-context';
 import type { SetupReadinessIssue } from '@/types/academic-setup';
 import { IconAlertTriangle } from '@/components/icons/admin-icons';
-import { groupSetupIssues } from '../utils/issue-grouping';
+import { groupSetupIssues, issueGroupCtaKey } from '../utils/issue-grouping';
 
 export function GroupedSetupIssues({
   issues,
@@ -51,7 +51,7 @@ export function GroupedSetupIssues({
               )}
             </span>
             <span className="academic-issues-groups__cta">
-              {t('admin.academicSetup.issueGroupView')}
+              {t(issueGroupCtaKey(group.code))}
             </span>
           </Link>
         );

@@ -109,18 +109,16 @@ export default function AcademicSetupOverviewPage() {
         <section ref={issuesSectionRef} className="academic-issues-groups-section">
           <div className="academic-issues-groups-section__head">
             <h2 className="admin-section__title">{t('admin.alerts')}</h2>
-            {allIssues.length > 3 && (
-              <button
-                type="button"
-                className="btn btn--ghost btn--sm"
-                aria-expanded={allIssuesOpen}
-                onClick={() => setAllIssuesOpen((v) => !v)}
-              >
-                {allIssuesOpen
-                  ? t('admin.academicSetup.guided.hideDetails')
-                  : t('admin.academicSetup.guided.showAllDetails')}
-              </button>
-            )}
+            <button
+              type="button"
+              className="btn btn--ghost btn--sm"
+              aria-expanded={allIssuesOpen}
+              onClick={() => setAllIssuesOpen((v) => !v)}
+            >
+              {allIssuesOpen
+                ? t('admin.academicSetup.guided.hideDetails')
+                : t('admin.academicSetup.guided.showAllDetails')}
+            </button>
           </div>
           <GroupedSetupIssues issues={allIssues} maxGroups={allIssuesOpen ? 99 : 3} />
         </section>

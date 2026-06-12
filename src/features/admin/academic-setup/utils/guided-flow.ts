@@ -240,29 +240,7 @@ export function buildGuidedSteps(ctx: GuidedStepContext): GuidedStep[] {
   return steps;
 }
 
-export function resolveNextStep(steps: GuidedStep[]): GuidedStep | null {
-  const priority: GuidedStepState[] = [
-    'not_started',
-    'in_progress',
-    'needs_attention',
-    'blocked',
-  ];
-
-  for (const state of priority) {
-    const step = steps.find(
-      (s) => s.state === state && s.available && s.id !== 'review' && s.id !== 'staff',
-    );
-    if (step) return step;
-  }
-
-  const review = steps.find((s) => s.id === 'review');
-  if (review && review.missingCount > 0) return review;
-  return review ?? null;
-}
-
-export function primaryCtaFromSteps(steps: GuidedStep[]): GuidedStep | null {
-  return resolveNextStep(steps);
-}
+export { primaryCtaFromSteps, resolveNextStep } from './next-action-present';
 
 export function aggregateBatchResults<T extends { ok: boolean }>(
   results: T[],

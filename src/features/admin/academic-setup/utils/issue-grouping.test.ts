@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { groupSetupIssues } from './issue-grouping';
+import { groupSetupIssues, issueGroupCtaKey } from './issue-grouping';
 import type { SetupReadinessIssue } from '@/types/academic-setup';
 
 function issue(partial: Partial<SetupReadinessIssue> & Pick<SetupReadinessIssue, 'id' | 'code'>): SetupReadinessIssue {
@@ -12,6 +12,20 @@ function issue(partial: Partial<SetupReadinessIssue> & Pick<SetupReadinessIssue,
     ...partial,
   };
 }
+
+describe('issueGroupCtaKey', () => {
+  it('returns specific CTA keys per issue code', () => {
+    expect(issueGroupCtaKey('level_without_classes')).toBe(
+      'admin.academicSetup.issueGroupViewLevels',
+    );
+    expect(issueGroupCtaKey('assignment_missing')).toBe(
+      'admin.academicSetup.issueGroupViewAssignments',
+    );
+    expect(issueGroupCtaKey('unknown_code')).toBe(
+      'admin.academicSetup.issueGroupViewDetails',
+    );
+  });
+});
 
 describe('groupSetupIssues', () => {
   it('groups issues by code with count and samples', () => {

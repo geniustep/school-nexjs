@@ -26,6 +26,22 @@ const SEVERITY_RANK: Record<SetupReadinessIssue['severity'], number> = {
   info: 2,
 };
 
+const ISSUE_GROUP_CTA_KEYS: Record<string, string> = {
+  level_without_classes: 'admin.academicSetup.issueGroupViewLevels',
+  no_classes: 'admin.academicSetup.issueGroupViewLevels',
+  level_without_subjects: 'admin.academicSetup.issueGroupViewSubjects',
+  class_without_subjects: 'admin.academicSetup.issueGroupViewSubjects',
+  subject_without_teacher: 'admin.academicSetup.issueGroupViewAssignments',
+  assignment_missing: 'admin.academicSetup.issueGroupViewAssignments',
+  no_teachers: 'admin.academicSetup.issueGroupViewTeachers',
+  teacher_without_assignments: 'admin.academicSetup.issueGroupViewAssignments',
+  complete_assignments: 'admin.academicSetup.issueGroupViewAssignments',
+};
+
+export function issueGroupCtaKey(code: string): string {
+  return ISSUE_GROUP_CTA_KEYS[code] ?? 'admin.academicSetup.issueGroupViewDetails';
+}
+
 export function groupSetupIssues(
   issues: SetupReadinessIssue[],
   maxGroups = 3,
