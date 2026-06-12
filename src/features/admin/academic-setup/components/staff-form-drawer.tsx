@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useToast } from '@/components/ui/toast';
-import { useT } from '@/features/i18n/locale-context';
+import { useLocale, useT } from '@/features/i18n/locale-context';
+import { getMessage, MESSAGES } from '@/lib/i18n/messages';
 import type { StaffCapabilityOption, StaffOptions } from '@/types/academic-setup';
 import {
   createStaffMember,
@@ -12,6 +13,14 @@ import {
 } from '../hooks/use-staff';
 import { mapAcademicSetupApiError } from '../utils/api-errors';
 import { SetupDrawer } from './setup-drawer';
+
+function staffCapabilityLabel(
+  locale: keyof typeof MESSAGES,
+  cap: StaffCapabilityOption,
+): string {
+  const key = `admin.academicSetup.capabilities.${cap.code}`;
+  return getMessage(MESSAGES[locale], key) ?? getMessage(MESSAGES.en, key) ?? cap.label;
+}
 
 export function StaffFormDrawer({
   open,
@@ -29,6 +38,7 @@ export function StaffFormDrawer({
   onSaved: () => void;
 }) {
   const t = useT();
+  const { locale } = useLocale();
   const toast = useToast();
   const memberState = useStaffMember(memberId);
   const member = memberState.data;
@@ -161,7 +171,7 @@ export function StaffFormDrawer({
                       )
                     }
                   />
-                  <span>{cap.label}</span>
+                  <span>{staffCapabilityLabel(locale, cap)}</span>
                 </label>
               ))}
             </fieldset>
