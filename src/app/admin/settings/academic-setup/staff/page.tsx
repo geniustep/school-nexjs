@@ -3,7 +3,8 @@
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ErrorState, LoadingState, EmptyState } from '@/components/states/states';
-import { PageHeader } from '@/components/ui/primitives';
+import { AcademicPageHeader } from '@/features/admin/academic-setup/components/academic-page-header';
+import { AcademicSearchField, AcademicToolbar } from '@/features/admin/academic-setup/components/academic-toolbar';
 import { StaffCardGrid } from '@/features/admin/academic-setup/components/staff-card';
 import { StaffFormDrawer } from '@/features/admin/academic-setup/components/staff-form-drawer';
 import { useDrawerActionParam } from '@/features/admin/academic-setup/hooks/use-drawer-action-param';
@@ -35,10 +36,16 @@ export default function AcademicSetupStaffPage() {
   const optionsState = useStaffOptions();
   const canManage = canManageStaff(user);
 
+  const headerActions = canManage ? (
+    <button type="button" className="btn btn--primary" onClick={() => setDrawerOpen(true)}>
+      {t('admin.academicSetup.addStaff')}
+    </button>
+  ) : undefined;
+
   if (listState.loading || optionsState.loading) {
     return (
       <>
-        <PageHeader title={t('admin.academicSetup.nav.staff')} />
+        <AcademicPageHeader title={t('admin.academicSetup.staffPageTitle')} skeleton />
         <LoadingState label={t('common.loading')} />
       </>
     );
@@ -47,7 +54,7 @@ export default function AcademicSetupStaffPage() {
   if (listState.error || optionsState.error) {
     return (
       <>
-        <PageHeader title={t('admin.academicSetup.nav.staff')} />
+        <AcademicPageHeader title={t('admin.academicSetup.staffPageTitle')} />
         <ErrorState error={listState.error ?? optionsState.error!} onRetry={() => { listState.reload(); optionsState.reload(); }} />
       </>
     );
@@ -55,27 +62,24 @@ export default function AcademicSetupStaffPage() {
 
   return (
     <>
-      <PageHeader
-        title={t('admin.academicSetup.nav.staff')}
-        subtitle={t('admin.academicSetup.staffDesc')}
-        actions={
-          canManage ? (
-            <button type="button" className="btn btn--primary btn--sm" onClick={() => setDrawerOpen(true)}>
-              + {t('admin.academicSetup.addStaff')}
-            </button>
-          ) : undefined
-        }
+      <AcademicPageHeader
+        title={t('admin.academicSetup.staffPageTitle')}
+        subtitle={t('admin.academicSetup.staffPageSubtitle')}
+        stats={t('admin.academicSetup.staffPageStats', { count: listState.staff.length })}
+        actions={headerActions}
       />
-      <input
-        className="input"
-        type="search"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder={t('admin.academicSetup.searchStaff')}
-        aria-label={t('admin.academicSetup.searchStaff')}
-      />
+
+      <AcademicToolbar>
+        <AcademicSearchField
+          value={search}
+          onChange={setSearch}
+          placeholder={t('admin.academicSetup.searchStaff')}
+          label={t('admin.academicSetup.searchStaff')}
+        />
+      </AcademicToolbar>
+
       {listState.staff.length === 0 ? (
-        <EmptyState icon="🧑‍💼" title={t('admin.academicSetup.noStaff')} />
+        <EmptyState title={t('admin.academicSetup.noStaff')} />
       ) : (
         <StaffCardGrid
           members={listState.staff}

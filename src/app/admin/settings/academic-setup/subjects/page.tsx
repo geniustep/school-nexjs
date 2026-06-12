@@ -3,16 +3,15 @@
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ErrorState, LoadingState } from '@/components/states/states';
-import { PageHeader } from '@/components/ui/primitives';
+import { AcademicPageHeader } from '@/features/admin/academic-setup/components/academic-page-header';
+import { AcademicSegmentedControl } from '@/features/admin/academic-setup/components/academic-segmented-control';
 import { ReferenceSubjectsDrawer } from '@/features/admin/academic-setup/components/reference-subjects-drawer';
-import { SubjectsByLevel } from '@/features/admin/academic-setup/components/subjects-by-level';
 import { SubjectsLevelPanel } from '@/features/admin/academic-setup/components/subjects-level-panel';
 import { useSetupReadiness } from '@/features/admin/academic-setup/hooks/use-setup-readiness';
 import { TracksPanel } from '@/features/admin/academic-setup/components/tracks-panel';
 import { useAcademicSetupLists } from '@/features/admin/academic-setup/hooks/use-academic-setup-data';
 import { useDrawerActionParam } from '@/features/admin/academic-setup/hooks/use-drawer-action-param';
 import { useTeachingAssignments } from '@/features/admin/academic-setup/hooks/use-teaching-assignments';
-import { groupSubjectsByLevel } from '@/features/admin/academic-setup/utils/summary';
 import { canManageClasses } from '@/lib/permissions/academic-setup';
 import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
@@ -49,12 +48,9 @@ export default function AcademicSetupSubjectsPage() {
     lists.levels[0] ??
     null;
 
-  const groups = useMemo(
-    () => groupSubjectsByLevel(lists.levels, lists.classes, lists.subjects),
-    [lists.levels, lists.classes, lists.subjects],
-  );
-
   const subjectsOpen = subjectsDrawerOpen || enableAction.openFromAction;
+
+  const subjectCount = useMemo(() => lists.subjects.length, [lists.subjects]);
 
   function openSubjectsDrawer(levelId: number) {
     setDrawerLevelId(levelId);
@@ -69,7 +65,7 @@ export default function AcademicSetupSubjectsPage() {
   if (lists.loading) {
     return (
       <>
-        <PageHeader title={t('admin.academicSetup.nav.subjects')} />
+        <AcademicPageHeader title={t('admin.academicSetup.nav.subjects')} skeleton />
         <LoadingState label={t('common.loading')} />
       </>
     );
@@ -78,7 +74,7 @@ export default function AcademicSetupSubjectsPage() {
   if (lists.error) {
     return (
       <>
-        <PageHeader title={t('admin.academicSetup.nav.subjects')} />
+        <AcademicPageHeader title={t('admin.academicSetup.nav.subjects')} />
         <ErrorState error={lists.error} onRetry={refreshAll} />
       </>
     );
@@ -86,43 +82,35 @@ export default function AcademicSetupSubjectsPage() {
 
   return (
     <>
-      <PageHeader title={t('admin.academicSetup.nav.subjects')} subtitle={t('admin.academicSetup.subjectsDesc')} />
-      <div className="row" style={{ gap: 8, marginBottom: 16 }} role="tablist">
-        <button
-          type="button"
-          role="tab"
-          aria-selected={tab === 'subjects'}
-          className={`btn btn--sm ${tab === 'subjects' ? 'btn--primary' : 'btn--ghost'}`}
-          onClick={() => setTab('subjects')}
-        >
-          {t('admin.academicSetup.tabSubjects')}
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={tab === 'tracks'}
-          className={`btn btn--sm ${tab === 'tracks' ? 'btn--primary' : 'btn--ghost'}`}
-          onClick={() => setTab('tracks')}
-        >
-          {t('admin.academicSetup.tabTracks')}
-        </button>
-      </div>
+      <AcademicPageHeader
+        title={t('admin.academicSetup.nav.subjects')}
+        subtitle={t('admin.academicSetup.subjectsPageSubtitle')}
+        stats={t('admin.academicSetup.subjectsPageStats', {
+          subjects: subjectCount,
+          levels: lists.levels.length,
+        })}
+      />
+
+      <AcademicSegmentedControl
+        ariaLabel={t('admin.academicSetup.subjectsTabLabel')}
+        value={tab}
+        onChange={setTab}
+        options={[
+          { value: 'subjects', label: t('admin.academicSetup.tabSubjects') },
+          { value: 'tracks', label: t('admin.academicSetup.tabTracks') },
+        ]}
+      />
+
       {tab === 'subjects' ? (
         lists.levels.length ? (
-          <>
-            <SubjectsLevelPanel
-              levels={lists.levels}
-              subjects={lists.subjects}
-              classes={lists.classes}
-              canManage={canManage}
-              onEnableSubjects={openSubjectsDrawer}
-            />
-            <hr style={{ margin: '16px 0', border: 'none', borderTop: '1px solid var(--c-border)' }} />
-            <SubjectsByLevel
-              groups={groups}
-              readinessIssues={readinessState.data?.issues ?? []}
-            />
-          </>
+          <SubjectsLevelPanel
+            levels={lists.levels}
+            subjects={lists.subjects}
+            classes={lists.classes}
+            canManage={canManage}
+            onEnableSubjects={openSubjectsDrawer}
+            readinessIssues={readinessState.data?.issues ?? []}
+          />
         ) : (
           <div className="academic-setup-gap-banner">
             <p>{t('admin.academicSetup.guided.lockNoLevels')}</p>

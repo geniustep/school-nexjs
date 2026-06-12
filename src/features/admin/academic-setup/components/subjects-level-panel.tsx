@@ -2,13 +2,27 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
-import { Badge } from '@/components/ui/primitives';
+import { IconChevronDown } from '@/components/icons/admin-icons';
 import { useT } from '@/features/i18n/locale-context';
 import type { Level, SchoolClass, Subject } from '@/types/class';
+import type { SetupReadinessIssue } from '@/types/academic-setup';
+import { AcademicSubjectCard } from './academic-subject-card';
+import { dedupeSubjectsForDisplay } from '../utils/subject-present';
 import { groupSubjectsByLevel } from '../utils/summary';
 
 function countClassesForLevel(classes: SchoolClass[], levelId: number): number {
   return classes.filter((c) => c.level?.id === levelId).length;
+}
+
+function subjectHasAssignmentGap(
+  subjectId: number,
+  issues: SetupReadinessIssue[],
+): boolean {
+  return issues.some(
+    (i) =>
+      i.code === 'assignment_missing' &&
+      (i.entity?.type === 'subject' ? Number(i.entity.id) === subjectId : false),
+  );
 }
 
 export function SubjectsLevelPanel({
@@ -17,15 +31,18 @@ export function SubjectsLevelPanel({
   classes,
   canManage,
   onEnableSubjects,
+  readinessIssues = [],
 }: {
   levels: Level[];
   subjects: Subject[];
   classes: SchoolClass[];
   canManage: boolean;
   onEnableSubjects: (levelId: number) => void;
+  readinessIssues?: SetupReadinessIssue[];
 }) {
   const t = useT();
   const [levelId, setLevelId] = useState<string>(levels[0] ? String(levels[0].id) : '');
+  const [advancedOpen, setAdvancedOpen] = useState(false);
 
   const groups = useMemo(
     () => groupSubjectsByLevel(levels, classes, subjects),
@@ -34,10 +51,10 @@ export function SubjectsLevelPanel({
 
   const activeLevel = levels.find((l) => String(l.id) === levelId) ?? null;
   const activeGroup = groups.find((g) => String(g.levelId) === levelId) ?? null;
-  const subjectCount =
-    activeGroup?.subjects.length ??
-    activeLevel?.subjects_count ??
-    subjects.filter((s) => s.level_id === activeLevel?.id).length;
+  const displaySubjects = useMemo(
+    () => dedupeSubjectsForDisplay(activeGroup?.subjects ?? []),
+    [activeGroup?.subjects],
+  );
   const classCount = activeLevel ? countClassesForLevel(classes, activeLevel.id) : 0;
 
   if (!levels.length) {
@@ -52,71 +69,101 @@ export function SubjectsLevelPanel({
   }
 
   return (
-    <div className="col" style={{ gap: 16 }}>
-      <label className="col" style={{ gap: 6 }}>
-        <span className="tiny muted">{t('admin.selectLevel')}</span>
-        <select
-          className="input"
-          value={levelId}
-          onChange={(e) => setLevelId(e.target.value)}
-        >
-          {levels.map((l) => {
-            const group = groups.find((g) => g.levelId === l.id);
-            const count = group?.subjects.length ?? l.subjects_count ?? 0;
-            const clsCount = countClassesForLevel(classes, l.id);
-            return (
+    <div className="academic-subjects-panel">
+      <div className="academic-subjects-panel__toolbar">
+        <label className="academic-subjects-panel__level-select">
+          <span className="academic-setup-sr-only">{t('admin.selectLevel')}</span>
+          <select
+            className="input academic-subjects-panel__level-input"
+            value={levelId}
+            onChange={(e) => setLevelId(e.target.value)}
+            aria-label={t('admin.selectLevel')}
+          >
+            {levels.map((l) => (
               <option key={l.id} value={l.id}>
                 {l.name}
-                {l.code ? ` (${l.code})` : ''}
-                {l.cycle?.name ? ` · ${l.cycle.name}` : ''}
-                {` · ${t('admin.academicSetup.guided.levelSubjectCount', { count })}`}
-                {` · ${t('admin.academicSetup.guided.levelClassCount', { count: clsCount })}`}
-                {l.supports_tracks ? ` · ${t('admin.academicSetup.guided.supportsTracks')}` : ''}
               </option>
-            );
-          })}
-        </select>
-      </label>
+            ))}
+          </select>
+          <IconChevronDown size={16} className="academic-subjects-panel__level-chevron" aria-hidden />
+        </label>
 
-      {activeLevel && (
-        <div className="row" style={{ gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          <span className="tiny muted">
-            {t('admin.academicSetup.subjectsActive', { count: subjectCount })}
-          </span>
-          {activeLevel.supports_tracks && (
-            <Badge tone="blue">{t('admin.academicSetup.guided.supportsTracks')}</Badge>
-          )}
-          {canManage && (
+        {activeLevel && (
+          <div className="academic-subjects-panel__level-context">
+            <strong className="academic-subjects-panel__level-name">{activeLevel.name}</strong>
+            <span className="academic-subjects-panel__level-meta">
+              {activeLevel.code && <span>{activeLevel.code}</span>}
+              {activeLevel.cycle?.name && (
+                <span>
+                  {activeLevel.code ? ' · ' : ''}
+                  {activeLevel.cycle.name}
+                </span>
+              )}
+            </span>
+            <span className="academic-subjects-panel__level-stats">
+              {t('admin.academicSetup.subjectsActive', { count: displaySubjects.length })}
+              {' · '}
+              {t('admin.academicSetup.guided.levelClassCount', { count: classCount })}
+            </span>
+          </div>
+        )}
+
+        {canManage && activeLevel && (
+          <button
+            type="button"
+            className="btn btn--primary btn--sm academic-subjects-panel__enable-btn"
+            onClick={() => onEnableSubjects(activeLevel.id)}
+          >
+            {t('admin.academicSetup.enableSubjects')}
+          </button>
+        )}
+      </div>
+
+      {displaySubjects.length > 0 ? (
+        <ul className="academic-subjects-panel__list" role="list">
+          {displaySubjects
+            .sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0) || a.name.localeCompare(b.name))
+            .map((subject) => (
+              <li key={subject.id}>
+                <AcademicSubjectCard
+                  subject={subject}
+                  missingAssignment={subjectHasAssignmentGap(subject.id, readinessIssues)}
+                />
+              </li>
+            ))}
+        </ul>
+      ) : (
+        <div className="academic-empty-state">
+          <p className="academic-empty-state__title">{t('admin.academicSetup.noSubjectsForLevel')}</p>
+          <p className="academic-empty-state__desc">{t('admin.academicSetup.noSubjectsForLevelDesc')}</p>
+          {canManage && activeLevel && (
             <button
               type="button"
-              className="btn btn--primary btn--sm"
+              className="btn btn--primary"
               onClick={() => onEnableSubjects(activeLevel.id)}
             >
-              {t('admin.academicSetup.guided.actionEnableSubjects')}
+              {t('admin.academicSetup.enableSubjects')}
             </button>
           )}
         </div>
       )}
 
-      {activeGroup ? (
-        <div>
-          <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
-            {activeGroup.subjects.map((subject) => (
-              <Badge key={subject.id} tone="blue">
-                {subject.name}
-              </Badge>
-            ))}
-            {!activeGroup.subjects.length && (
-              <p className="muted tiny">{t('admin.noSubjects')}</p>
-            )}
-          </div>
-        </div>
-      ) : (
-        <p className="muted">{t('admin.noSubjects')}</p>
-      )}
-
       {canManage && (
-        <p className="tiny muted">{t('admin.academicSetup.guided.subjectsSecondaryHint')}</p>
+        <div className="academic-subjects-panel__advanced">
+          <button
+            type="button"
+            className="btn btn--ghost btn--sm"
+            aria-expanded={advancedOpen}
+            onClick={() => setAdvancedOpen((v) => !v)}
+          >
+            {t('admin.academicSetup.advancedOptions')}
+          </button>
+          {advancedOpen && (
+            <p className="academic-subjects-panel__advanced-hint">
+              {t('admin.academicSetup.guided.subjectsSecondaryHint')}
+            </p>
+          )}
+        </div>
       )}
     </div>
   );
