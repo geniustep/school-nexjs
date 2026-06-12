@@ -984,7 +984,12 @@
         "staff_without_account": "Personal sin cuenta",
         "no_levels": "Sin niveles",
         "no_classes": "Sin clases",
-        "no_teachers": "Sin profesores"
+        "no_teachers": "Sin profesores",
+        "complete_assignments": "Completar asignaciones docentes",
+        "level_without_subjects": "Niveles sin materias",
+        "level_supports_tracks_but_has_none": "Niveles con itinerarios sin itinerario activo",
+        "subject_without_eligible_teacher": "Materias sin profesor elegible",
+        "subject_without_level_or_track": "Materias sin nivel o itinerario"
       },
       "readinessIssues": {
         "no_active_levels": {
@@ -1062,6 +1067,26 @@
         "academic_context_missing": {
           "title": "Contexto académico faltante",
           "description": "Los datos del año académico o niveles están incompletos."
+        },
+        "complete_assignments": {
+          "title": "Asignaciones docentes por completar",
+          "description": "Hay asignaciones docentes incompletas en el centro."
+        },
+        "level_without_subjects": {
+          "title": "Nivel {name} sin materias",
+          "description": "Este nivel no tiene materias activas."
+        },
+        "level_supports_tracks_but_has_none": {
+          "title": "Nivel {name} con itinerarios pero sin ninguno",
+          "description": "Este nivel admite itinerarios pero aún no se ha creado ninguno."
+        },
+        "subject_without_eligible_teacher": {
+          "title": "{subject} — {class} sin profesor elegible",
+          "description": "No hay profesor elegible para asignar esta materia."
+        },
+        "subject_without_level_or_track": {
+          "title": "{subject} no vinculada a nivel o itinerario",
+          "description": "Esta materia no está vinculada a un nivel educativo ni a un itinerario."
         }
       },
       "staffDomainUnavailable": "No disponible en sus permisos",

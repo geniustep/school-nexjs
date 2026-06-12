@@ -984,7 +984,12 @@
         "staff_without_account": "Personnel sans compte",
         "no_levels": "Aucun niveau",
         "no_classes": "Aucune classe",
-        "no_teachers": "Aucun enseignant"
+        "no_teachers": "Aucun enseignant",
+        "complete_assignments": "Compléter les affectations",
+        "level_without_subjects": "Niveaux sans matières",
+        "level_supports_tracks_but_has_none": "Niveaux à filières sans filière active",
+        "subject_without_eligible_teacher": "Matières sans enseignant éligible",
+        "subject_without_level_or_track": "Matières non liées à un niveau ou une filière"
       },
       "readinessIssues": {
         "no_active_levels": {
@@ -1062,6 +1067,26 @@
         "academic_context_missing": {
           "title": "Contexte académique manquant",
           "description": "Les données de l'année scolaire ou des niveaux sont incomplètes."
+        },
+        "complete_assignments": {
+          "title": "Affectations à compléter",
+          "description": "Certaines affectations d'enseignement sont incomplètes."
+        },
+        "level_without_subjects": {
+          "title": "Niveau {name} sans matières",
+          "description": "Ce niveau n'a aucune matière active."
+        },
+        "level_supports_tracks_but_has_none": {
+          "title": "Niveau {name} avec filières mais sans filière",
+          "description": "Ce niveau accepte les filières mais aucune filière n'a encore été créée."
+        },
+        "subject_without_eligible_teacher": {
+          "title": "{subject} — {class} sans enseignant éligible",
+          "description": "Aucun enseignant éligible n'est disponible pour cette matière."
+        },
+        "subject_without_level_or_track": {
+          "title": "{subject} non liée à un niveau ou une filière",
+          "description": "Cette matière n'est liée à aucun niveau ni filière."
         }
       },
       "staffDomainUnavailable": "Non disponible dans vos permissions",

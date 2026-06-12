@@ -182,6 +182,21 @@ describe('readiness i18n', () => {
       quickActionLabel({ code: 'level_without_classes', section: 'classes', count: 1 }, tAr),
     ).toBe('مستويات بدون أقسام (1)');
   });
+
+  it('translates newer quick action codes from API', () => {
+    expect(
+      quickActionLabel({ code: 'level_without_subjects', section: 'subjects', count: 12 }, tAr),
+    ).toBe('مستويات بدون مواد (12)');
+    expect(
+      quickActionLabel({ code: 'complete_assignments', section: 'assignments', count: 1 }, tAr),
+    ).toBe('استكمال إسنادات التدريس (1)');
+    expect(
+      quickActionLabel(
+        { code: 'subject_without_level_or_track', section: 'subjects', count: 1 },
+        tAr,
+      ),
+    ).toBe('مواد غير مرتبطة بمستوى أو شعبة (1)');
+  });
 });
 
 describe('api error mapping', () => {

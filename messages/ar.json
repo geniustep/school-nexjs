@@ -984,7 +984,12 @@
         "staff_without_account": "طاقم بدون حساب",
         "no_levels": "لا مستويات",
         "no_classes": "لا أقسام",
-        "no_teachers": "لا أساتذة"
+        "no_teachers": "لا أساتذة",
+        "complete_assignments": "استكمال إسنادات التدريس",
+        "level_without_subjects": "مستويات بدون مواد",
+        "level_supports_tracks_but_has_none": "مستويات بشعب دون مسارات مفعّلة",
+        "subject_without_eligible_teacher": "مواد بدون أستاذ مؤهل",
+        "subject_without_level_or_track": "مواد غير مرتبطة بمستوى أو شعبة"
       },
       "readinessIssues": {
         "no_active_levels": {
@@ -1062,6 +1067,26 @@
         "academic_context_missing": {
           "title": "سياق أكاديمي مفقود",
           "description": "بيانات السنة الدراسية أو المستويات غير مكتملة."
+        },
+        "complete_assignments": {
+          "title": "إسنادات تدريس تحتاج استكمال",
+          "description": "يوجد إسنادات تدريس غير مكتملة في المؤسسة."
+        },
+        "level_without_subjects": {
+          "title": "مستوى {name} دون مواد",
+          "description": "هذا المستوى لا يحتوي على أي مادة مفعلة."
+        },
+        "level_supports_tracks_but_has_none": {
+          "title": "مستوى {name} يدعم الشعب دون شعب",
+          "description": "هذا المستوى يدعم الشعب والمسارات لكن لم تُنشأ أي شعبة بعد."
+        },
+        "subject_without_eligible_teacher": {
+          "title": "{subject} — {class} دون أستاذ مؤهل",
+          "description": "لا يوجد أستاذ مؤهل لإسناد هذه المادة في هذا القسم."
+        },
+        "subject_without_level_or_track": {
+          "title": "{subject} غير مرتبطة بمستوى أو شعبة",
+          "description": "هذه المادة غير مرتبطة بمستوى دراسي أو شعبة."
         }
       },
       "staffDomainUnavailable": "غير متاح ضمن صلاحياتك",

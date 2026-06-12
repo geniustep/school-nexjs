@@ -984,7 +984,12 @@
         "staff_without_account": "Staff without account",
         "no_levels": "No levels",
         "no_classes": "No classes",
-        "no_teachers": "No teachers"
+        "no_teachers": "No teachers",
+        "complete_assignments": "Complete teaching assignments",
+        "level_without_subjects": "Levels without subjects",
+        "level_supports_tracks_but_has_none": "Track levels without tracks",
+        "subject_without_eligible_teacher": "Subjects without eligible teacher",
+        "subject_without_level_or_track": "Subjects not linked to level or track"
       },
       "readinessIssues": {
         "no_active_levels": {
@@ -1062,6 +1067,26 @@
         "academic_context_missing": {
           "title": "Missing academic context",
           "description": "Academic year or level data is incomplete."
+        },
+        "complete_assignments": {
+          "title": "Teaching assignments need completion",
+          "description": "Some teaching assignments are incomplete."
+        },
+        "level_without_subjects": {
+          "title": "Level {name} has no subjects",
+          "description": "This level has no active subjects."
+        },
+        "level_supports_tracks_but_has_none": {
+          "title": "Level {name} supports tracks but has none",
+          "description": "This level supports tracks but no track has been created yet."
+        },
+        "subject_without_eligible_teacher": {
+          "title": "{subject} — {class} has no eligible teacher",
+          "description": "No eligible teacher is available to assign this subject."
+        },
+        "subject_without_level_or_track": {
+          "title": "{subject} is not linked to a level or track",
+          "description": "This subject is not linked to an educational level or track."
         }
       },
       "staffDomainUnavailable": "Not available within your permissions",
