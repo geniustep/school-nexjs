@@ -41,8 +41,8 @@ export function LevelsToolbar({ groups }: { groups: LevelGroup[] }) {
   );
 
   return (
-    <div className="academic-setup-levels-toolbar" role="search">
-      <label className="academic-setup-levels-toolbar__search">
+    <div className="academic-toolbar academic-setup-levels-toolbar" role="search">
+      <label className="academic-toolbar__search">
         <span className="academic-setup-sr-only">{t('admin.academicSetup.levelsSearchPlaceholder')}</span>
         <input
           type="search"
@@ -52,7 +52,7 @@ export function LevelsToolbar({ groups }: { groups: LevelGroup[] }) {
           onChange={(e) => updateParams({ q: e.target.value || null })}
         />
       </label>
-      <div className="academic-setup-levels-toolbar__filters">
+      <div className="academic-toolbar__filters">
         {cycles.length > 1 && (
           <select
             className="input"

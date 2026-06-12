@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ErrorState, LoadingState, EmptyState } from '@/components/states/states';
+import { AcademicPageHeader } from '@/features/admin/academic-setup/components/academic-page-header';
 import { BatchClassDrawer } from '@/features/admin/academic-setup/components/batch-class-drawer';
 import { ClassDrawer } from '@/features/admin/academic-setup/components/class-drawer';
 import { LevelsByCycleList } from '@/features/admin/academic-setup/components/levels-by-cycle-list';
@@ -117,6 +118,16 @@ export default function AcademicSetupClassesPage() {
     ? lists.levels.find((l) => l.id === batchLevelId) ?? null
     : null;
 
+  const headerActions = canManage ? (
+    <button
+      type="button"
+      className="btn btn--primary"
+      onClick={() => setLevelsDrawerOpen(true)}
+    >
+      {t('admin.academicSetup.guided.addLevels')}
+    </button>
+  ) : undefined;
+
   const levelsDrawer = (
     <ReferenceLevelsDrawer
       open={levelsOpen}
@@ -131,9 +142,7 @@ export default function AcademicSetupClassesPage() {
   if (lists.loading) {
     return (
       <>
-        <header className="academic-setup-page-header academic-setup-page-header--skeleton" aria-busy="true">
-          <div className="academic-setup-skeleton academic-setup-skeleton--title" />
-        </header>
+        <AcademicPageHeader title={t('admin.academicSetup.classesPageTitle')} skeleton />
         <LoadingState label={t('common.loading')} />
         {levelsDrawer}
       </>
@@ -143,11 +152,7 @@ export default function AcademicSetupClassesPage() {
   if (lists.error) {
     return (
       <>
-        <header className="academic-setup-page-header">
-          <h1 className="academic-setup-page-header__title">
-            {t('admin.academicSetup.classesPageTitle')}
-          </h1>
-        </header>
+        <AcademicPageHeader title={t('admin.academicSetup.classesPageTitle')} />
         <ErrorState error={lists.error} onRetry={refreshAll} />
         {levelsDrawer}
       </>
@@ -157,27 +162,12 @@ export default function AcademicSetupClassesPage() {
   if (!lists.levels.length) {
     return (
       <>
-        <header className="academic-setup-page-header">
-          <div className="academic-setup-page-header__copy">
-            <h1 className="academic-setup-page-header__title">
-              {t('admin.academicSetup.classesPageTitle')}
-            </h1>
-            <p className="academic-setup-page-header__subtitle">
-              {t('admin.academicSetup.classesPageSubtitle')}
-            </p>
-          </div>
-          {canManage && (
-            <button
-              type="button"
-              className="btn btn--primary btn--sm"
-              onClick={() => setLevelsDrawerOpen(true)}
-            >
-              {t('admin.academicSetup.guided.addLevels')}
-            </button>
-          )}
-        </header>
+        <AcademicPageHeader
+          title={t('admin.academicSetup.classesPageTitle')}
+          subtitle={t('admin.academicSetup.classesPageSubtitle')}
+          actions={headerActions}
+        />
         <EmptyState
-          icon="📚"
           title={t('admin.academicSetup.guided.noLevelsTitle')}
           description={t('admin.academicSetup.guided.noLevelsDesc')}
         />
@@ -188,32 +178,16 @@ export default function AcademicSetupClassesPage() {
 
   return (
     <>
-      <header className="academic-setup-page-header">
-        <div className="academic-setup-page-header__copy">
-          <h1 className="academic-setup-page-header__title">
-            {t('admin.academicSetup.classesPageTitle')}
-          </h1>
-          <p className="academic-setup-page-header__subtitle">
-            {t('admin.academicSetup.classesPageSubtitle')}
-          </p>
-          <p className="academic-setup-page-header__stats">
-            {t('admin.academicSetup.classesPageStats', {
-              levels: levelGroups.length,
-              classes: lists.classes.length,
-              students: totalStudents,
-            })}
-          </p>
-        </div>
-        {canManage && (
-          <button
-            type="button"
-            className="btn btn--primary btn--sm"
-            onClick={() => setLevelsDrawerOpen(true)}
-          >
-            {t('admin.academicSetup.guided.addLevels')}
-          </button>
-        )}
-      </header>
+      <AcademicPageHeader
+        title={t('admin.academicSetup.classesPageTitle')}
+        subtitle={t('admin.academicSetup.classesPageSubtitle')}
+        stats={t('admin.academicSetup.classesPageStats', {
+          levels: levelGroups.length,
+          classes: lists.classes.length,
+          students: totalStudents,
+        })}
+        actions={headerActions}
+      />
 
       {nextClassLevelId && (
         <div className="academic-setup-next-step__card" role="status">
