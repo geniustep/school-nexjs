@@ -23,6 +23,13 @@ import {
   useStaffMember,
 } from '../hooks/use-staff';
 import { mapAcademicSetupApiError } from '../utils/api-errors';
+import {
+  staffMutationSuccessKey,
+} from '../utils/staff-utils';
+import {
+  staffShowsDeactivate,
+  staffShowsReactivate,
+} from './staff-reactivate-dialog';
 import { SetupDrawer } from './setup-drawer';
 
 function staffCapabilityLabel(
@@ -45,6 +52,7 @@ export function StaffFormDrawer({
   canManage,
   onClose,
   onSaved,
+  onReactivate,
 }: {
   open: boolean;
   memberId: number | null;
@@ -53,6 +61,7 @@ export function StaffFormDrawer({
   canManage: boolean;
   onClose: () => void;
   onSaved: () => void;
+  onReactivate?: (member: StaffMember) => void;
 }) {
   const t = useT();
   const { locale } = useLocale();
@@ -163,7 +172,9 @@ export function StaffFormDrawer({
   }
 
   async function deactivate() {
-    if (!memberId || !window.confirm(t('admin.academicSetup.confirmDeactivateStaff'))) return;
+    if (!memberId || !member) return;
+    const message = `${t('admin.academicSetup.confirmDeactivateStaff')}\n\n${t('admin.academicSetup.deactivationPreservesAccount')}`;
+    if (!window.confirm(message)) return;
     setSaving(true);
     const res = await deactivateStaffMember(memberId);
     setSaving(false);
@@ -171,7 +182,8 @@ export function StaffFormDrawer({
       toast.error(mapAcademicSetupApiError(res.error, t, 'staff'));
       return;
     }
-    toast.success(t('admin.actionSuccess'));
+    const key = staffMutationSuccessKey(res.data?.action);
+    toast.success(key ? t(key) : t('admin.actionSuccess'));
     onSaved();
   }
 
@@ -253,9 +265,20 @@ export function StaffFormDrawer({
                 {saving ? t('common.saving') : t('common.save')}
               </button>
             )}
-            {!creating && canManage && (
+            {!creating && canManage && member && staffShowsDeactivate(member, canManage) && (
               <button type="button" className="btn btn--ghost btn--sm" disabled={saving} onClick={deactivate}>
                 {t('admin.academicSetup.deactivateStaff')}
+              </button>
+            )}
+            {!creating && canManage && member && staffShowsReactivate(member, canManage) && onReactivate && (
+              <button
+                type="button"
+                className="btn btn--primary btn--sm"
+                disabled={saving}
+                style={{ minHeight: 44 }}
+                onClick={() => onReactivate(member)}
+              >
+                {t('admin.academicSetup.reactivateStaff')}
               </button>
             )}
             <button type="button" className="btn btn--ghost btn--sm" onClick={onClose}>

@@ -74,6 +74,21 @@ export type StaffAdminKind =
 
 export type StaffAccountStatus = 'active' | 'suspended' | 'inactive' | 'no_school';
 
+export type StaffStatusFilter = 'active' | 'inactive' | 'all';
+
+export type StaffAction =
+  | 'deactivated'
+  | 'already_inactive'
+  | 'reactivated'
+  | 'already_active';
+
+export interface StaffMutationResult {
+  action?: StaffAction;
+  item?: Partial<StaffMember>;
+  account?: UserAccountInfo;
+  warnings?: ApiWarning[];
+}
+
 export interface StaffMember {
   id: number;
   name: string;
@@ -84,6 +99,8 @@ export interface StaffMember {
   admin_kind: StaffAdminKind;
   active: boolean;
   account_status: StaffAccountStatus;
+  can_deactivate?: boolean;
+  can_reactivate?: boolean;
   schools: SchoolRef[];
   default_school: SchoolRef | null;
   permissions: string[];

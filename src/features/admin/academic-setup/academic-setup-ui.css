@@ -2412,6 +2412,22 @@
   color: var(--c-text-muted);
 }
 
+.academic-staff-card--inactive {
+  border-color: color-mix(in srgb, var(--c-warning, #d97706) 35%, var(--c-border));
+  background: color-mix(in srgb, var(--c-warning, #d97706) 4%, var(--c-surface, #fff));
+}
+
+.academic-staff-card--inactive .academic-staff-card__name,
+.academic-staff-card--inactive .academic-staff-card__email,
+.academic-staff-card--inactive .academic-staff-card__login {
+  color: var(--c-text);
+}
+
+.academic-staff-card__login {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
 .academic-staff-card__kind {
   margin: 0;
   font-size: 11px;
