@@ -1312,15 +1312,74 @@
         "staff": "Staff"
       },
       "capCategory": {
+        "dashboard": "Dashboard",
+        "registration": "Registration",
         "students": "Students",
+        "parents": "Parents",
         "classes": "Classes",
         "teachers": "Teachers",
         "attendance": "Attendance",
         "academics": "Academics",
+        "content": "Content",
         "communication": "Communication",
         "exams": "Exams",
         "finance": "Finance",
+        "operations": "Operations",
+        "reporting": "Reporting",
+        "settings": "Settings",
         "other": "Other"
+      },
+      "staffCapabilities": {
+        "sectionTitle": "Permissions",
+        "sectionSubtitle": "Choose what this staff member can access within the school.",
+        "searchPlaceholder": "Search permissions…",
+        "selectedCount": "{count} permissions selected",
+        "expandAll": "Expand all",
+        "collapseAll": "Collapse all",
+        "loadError": "Could not load permissions. Try again.",
+        "retry": "Retry",
+        "emptyCatalog": "No permissions available for this role.",
+        "emptySearch": "No permissions match your search.",
+        "autoGrantedBadge": "Granted automatically",
+        "sensitiveBadge": "Sensitive permission",
+        "baseSectionTitle": "Core role permissions",
+        "additionalSectionTitle": "Additional permissions",
+        "categorySelected": "{selected} of {total} permissions",
+        "selectAllCategory": "Select all",
+        "deselectAllCategory": "Clear all",
+        "roleChangeWarning": "Changing the role type may update this user's core permissions.",
+        "catalogUnavailableWarning": "The permission catalog could not be loaded. Permission changes will not be sent until loading completes."
+      },
+      "roleCapabilities": {
+        "school_manager": {
+          "title": "School manager permissions",
+          "description": "School managers automatically receive the core permissions needed to run their school.",
+          "autoGrantedLabel": "Granted automatically by role",
+          "highlight1": "Manage levels and classes",
+          "highlight2": "Manage teachers and staff",
+          "highlight3": "Manage students and parents",
+          "highlight4": "View essential reports"
+        },
+        "project_manager": {
+          "title": "Platform manager permissions",
+          "description": "A platform manager's scope is limited to assigned schools.",
+          "autoGrantedLabel": "Granted automatically by role",
+          "highlight1": "Manage assigned school portfolio",
+          "highlight2": "Oversee academic setup",
+          "highlight3": "Monitor reports and operations",
+          "highlight4": "Manage administrative staff within scope"
+        },
+        "general_supervisor": {
+          "title": "General supervisor permissions",
+          "description": "Supervision permissions within assigned schools and levels.",
+          "autoGrantedLabel": "Granted automatically by role",
+          "scopeTitle": "Supervision scope",
+          "scopeDescription": "Access is limited to schools and levels assigned to this supervisor.",
+          "highlight1": "Monitor attendance and daily operations",
+          "highlight2": "View reports within scope",
+          "highlight3": "Communication and class oversight",
+          "highlight4": "Additional permissions when customization is needed"
+        }
       },
       "capabilities": {
         "view_dashboard": "View Dashboard",

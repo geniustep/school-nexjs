@@ -1315,15 +1315,74 @@
         "staff": "موظف"
       },
       "capCategory": {
+        "dashboard": "لوحة التحكم",
+        "registration": "التسجيل",
         "students": "التلاميذ",
+        "parents": "أولياء الأمور",
         "classes": "الأقسام",
         "teachers": "الأساتذة",
         "attendance": "الحضور",
         "academics": "أكاديمي",
+        "content": "المحتوى",
         "communication": "التواصل",
         "exams": "الامتحانات",
         "finance": "المالية",
+        "operations": "العمليات",
+        "reporting": "التقارير",
+        "settings": "الإعدادات",
         "other": "أخرى"
+      },
+      "staffCapabilities": {
+        "sectionTitle": "الصلاحيات",
+        "sectionSubtitle": "حدد ما يستطيع هذا الموظف الوصول إليه داخل المؤسسة.",
+        "searchPlaceholder": "ابحث عن صلاحية…",
+        "selectedCount": "{count} صلاحية محددة",
+        "expandAll": "توسيع الكل",
+        "collapseAll": "طي الكل",
+        "loadError": "تعذر تحميل الصلاحيات. أعد المحاولة.",
+        "retry": "إعادة المحاولة",
+        "emptyCatalog": "لا توجد صلاحيات متاحة لهذا الدور.",
+        "emptySearch": "لا توجد صلاحيات تطابق البحث.",
+        "autoGrantedBadge": "ممنوحة تلقائيًا",
+        "sensitiveBadge": "صلاحية حساسة",
+        "baseSectionTitle": "صلاحيات الدور الأساسية",
+        "additionalSectionTitle": "صلاحيات إضافية",
+        "categorySelected": "{selected} من {total} صلاحيات",
+        "selectAllCategory": "تحديد الكل",
+        "deselectAllCategory": "إلغاء الكل",
+        "roleChangeWarning": "قد يؤدي تغيير نوع الدور إلى تعديل الصلاحيات الأساسية لهذا المستخدم.",
+        "catalogUnavailableWarning": "تعذر تحميل قائمة الصلاحيات. لن يتم إرسال تعديلات الصلاحيات حتى اكتمال التحميل."
+      },
+      "roleCapabilities": {
+        "school_manager": {
+          "title": "صلاحيات مدير المؤسسة",
+          "description": "يحصل مدير المؤسسة تلقائيًا على الصلاحيات الأساسية اللازمة لإدارة مؤسسته.",
+          "autoGrantedLabel": "ممنوحة تلقائيًا حسب الدور",
+          "highlight1": "إدارة المستويات والأقسام",
+          "highlight2": "إدارة الأساتذة والطاقم",
+          "highlight3": "إدارة التلاميذ وأولياء الأمور",
+          "highlight4": "الاطلاع على التقارير الأساسية"
+        },
+        "project_manager": {
+          "title": "صلاحيات مدير المنصة",
+          "description": "نطاق مدير المنصة مرتبط بالمدارس الممنوحة له.",
+          "autoGrantedLabel": "ممنوحة تلقائيًا حسب الدور",
+          "highlight1": "إدارة محفظة المدارس الممنوحة",
+          "highlight2": "الإشراف على الإعداد الأكاديمي",
+          "highlight3": "متابعة التقارير والعمليات",
+          "highlight4": "إدارة الطاقم الإداري ضمن النطاق"
+        },
+        "general_supervisor": {
+          "title": "صلاحيات المشرف العام",
+          "description": "صلاحيات الإشراف العام ضمن نطاق المدارس والمستويات المحددة.",
+          "autoGrantedLabel": "ممنوحة تلقائيًا حسب الدور",
+          "scopeTitle": "نطاق الإشراف",
+          "scopeDescription": "يقتصر الوصول على المدارس والمستويات المسندة لهذا المشرف.",
+          "highlight1": "متابعة الحضور والعمليات اليومية",
+          "highlight2": "الاطلاع على التقارير ضمن النطاق",
+          "highlight3": "التواصل والإشراف على الأقسام",
+          "highlight4": "صلاحيات إضافية قابلة للتخصيص عند الحاجة"
+        }
       },
       "capabilities": {
         "view_dashboard": "عرض لوحة التحكم",

@@ -1312,15 +1312,74 @@
         "staff": "Personal"
       },
       "capCategory": {
+        "dashboard": "Panel",
+        "registration": "Matrícula",
         "students": "Alumnos",
+        "parents": "Padres",
         "classes": "Clases",
         "teachers": "Profesores",
         "attendance": "Asistencia",
         "academics": "Académico",
+        "content": "Contenido",
         "communication": "Comunicación",
         "exams": "Exámenes",
         "finance": "Finanzas",
+        "operations": "Operaciones",
+        "reporting": "Informes",
+        "settings": "Configuración",
         "other": "Otro"
+      },
+      "staffCapabilities": {
+        "sectionTitle": "Permisos",
+        "sectionSubtitle": "Defina a qué puede acceder este miembro del personal dentro del centro.",
+        "searchPlaceholder": "Buscar permiso…",
+        "selectedCount": "{count} permisos seleccionados",
+        "expandAll": "Expandir todo",
+        "collapseAll": "Contraer todo",
+        "loadError": "No se pudieron cargar los permisos. Inténtelo de nuevo.",
+        "retry": "Reintentar",
+        "emptyCatalog": "No hay permisos disponibles para este rol.",
+        "emptySearch": "Ningún permiso coincide con la búsqueda.",
+        "autoGrantedBadge": "Concedido automáticamente",
+        "sensitiveBadge": "Permiso sensible",
+        "baseSectionTitle": "Permisos básicos del rol",
+        "additionalSectionTitle": "Permisos adicionales",
+        "categorySelected": "{selected} de {total} permisos",
+        "selectAllCategory": "Seleccionar todo",
+        "deselectAllCategory": "Deseleccionar todo",
+        "roleChangeWarning": "Cambiar el tipo de rol puede modificar los permisos básicos de este usuario.",
+        "catalogUnavailableWarning": "No se pudo cargar el catálogo de permisos. Los cambios no se enviarán hasta completar la carga."
+      },
+      "roleCapabilities": {
+        "school_manager": {
+          "title": "Permisos del director del centro",
+          "description": "El director recibe automáticamente los permisos básicos necesarios para gestionar su centro.",
+          "autoGrantedLabel": "Concedidos automáticamente según el rol",
+          "highlight1": "Gestionar niveles y clases",
+          "highlight2": "Gestionar profesores y personal",
+          "highlight3": "Gestionar alumnos y padres",
+          "highlight4": "Consultar informes esenciales"
+        },
+        "project_manager": {
+          "title": "Permisos del gestor de plataforma",
+          "description": "El ámbito del gestor de plataforma está limitado a los centros asignados.",
+          "autoGrantedLabel": "Concedidos automáticamente según el rol",
+          "highlight1": "Gestionar la cartera de centros asignados",
+          "highlight2": "Supervisar la configuración académica",
+          "highlight3": "Seguir informes y operaciones",
+          "highlight4": "Gestionar personal administrativo en el ámbito"
+        },
+        "general_supervisor": {
+          "title": "Permisos del supervisor general",
+          "description": "Permisos de supervisión en los centros y niveles asignados.",
+          "autoGrantedLabel": "Concedidos automáticamente según el rol",
+          "scopeTitle": "Ámbito de supervisión",
+          "scopeDescription": "El acceso se limita a los centros y niveles asignados a este supervisor.",
+          "highlight1": "Seguir asistencia y operaciones diarias",
+          "highlight2": "Consultar informes en el ámbito",
+          "highlight3": "Comunicación y supervisión de clases",
+          "highlight4": "Permisos adicionales cuando se necesite personalización"
+        }
       },
       "capabilities": {
         "view_dashboard": "Ver panel",

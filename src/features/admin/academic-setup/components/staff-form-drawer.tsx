@@ -4,8 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { AccountFieldsSection } from '@/features/admin/account/account-fields-section';
 import { AccountStatusBadge } from '@/features/admin/account/account-status-badge';
 import { useToast } from '@/components/ui/toast';
-import { useLocale, useT } from '@/features/i18n/locale-context';
-import { getMessage, MESSAGES } from '@/lib/i18n/messages';
+import { useT } from '@/features/i18n/locale-context';
 import {
   applyAccountMutationToasts,
   resolveAccountMutationFeedback,
@@ -15,7 +14,8 @@ import {
   buildAccountIdentityPayload,
   validateCreateAccountInput,
 } from '@/lib/account/account-utils';
-import type { StaffCapabilityOption, StaffMember, StaffOptions } from '@/types/academic-setup';
+import type { StaffAdminKind, StaffMember, StaffOptions } from '@/types/academic-setup';
+import { buildStaffCapabilityPayload } from '../utils/capability-present';
 import {
   createStaffMember,
   deactivateStaffMember,
@@ -30,15 +30,8 @@ import {
   staffShowsDeactivate,
   staffShowsReactivate,
 } from './staff-reactivate-dialog';
+import { StaffCapabilitiesSection } from './staff-capabilities-section';
 import { SetupDrawer } from './setup-drawer';
-
-function staffCapabilityLabel(
-  locale: keyof typeof MESSAGES,
-  cap: StaffCapabilityOption,
-): string {
-  const key = `admin.academicSetup.capabilities.${cap.code}`;
-  return getMessage(MESSAGES[locale], key) ?? getMessage(MESSAGES.en, key) ?? cap.label;
-}
 
 function resolveStaffLogin(member: StaffMember): string {
   return member.login?.trim() || member.account?.login?.trim() || member.email?.trim() || '';
@@ -49,6 +42,9 @@ export function StaffFormDrawer({
   memberId,
   member: memberFromList,
   options,
+  optionsLoading = false,
+  optionsError = null,
+  onRetryOptions,
   canManage,
   onClose,
   onSaved,
@@ -58,13 +54,15 @@ export function StaffFormDrawer({
   memberId: number | null;
   member?: StaffMember;
   options?: StaffOptions;
+  optionsLoading?: boolean;
+  optionsError?: string | null;
+  onRetryOptions?: () => void;
   canManage: boolean;
   onClose: () => void;
   onSaved: () => void;
   onReactivate?: (member: StaffMember) => void;
 }) {
   const t = useT();
-  const { locale } = useLocale();
   const toast = useToast();
   const memberState = useStaffMember(memberFromList ? null : memberId);
   const member = memberFromList ?? memberState.data;
@@ -78,9 +76,14 @@ export function StaffFormDrawer({
   const [originalLogin, setOriginalLogin] = useState('');
   const [phone, setPhone] = useState('');
   const [jobTitle, setJobTitle] = useState('');
-  const [adminKind, setAdminKind] = useState('');
+  const [adminKind, setAdminKind] = useState<StaffAdminKind | ''>('');
+  const [originalAdminKind, setOriginalAdminKind] = useState<StaffAdminKind | ''>('');
   const [capabilityIds, setCapabilityIds] = useState<number[]>([]);
+  const [originalCapabilityIds, setOriginalCapabilityIds] = useState<number[]>([]);
+  const [capabilitiesTouched, setCapabilitiesTouched] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  const catalogReady = Boolean(options?.capabilities?.length);
 
   useEffect(() => {
     if (creating) {
@@ -93,7 +96,10 @@ export function StaffFormDrawer({
       setPhone('');
       setJobTitle('');
       setAdminKind(options?.admin_kinds[0]?.value ?? 'admin_staff');
+      setOriginalAdminKind('');
       setCapabilityIds([]);
+      setOriginalCapabilityIds([]);
+      setCapabilitiesTouched(false);
       return;
     }
     if (!member) return;
@@ -108,15 +114,19 @@ export function StaffFormDrawer({
     setPhone(member.phone ?? '');
     setJobTitle(member.job_title ?? '');
     setAdminKind(member.admin_kind);
+    setOriginalAdminKind(member.admin_kind);
     const capabilityCodes = member.capabilities?.length
       ? member.capabilities
       : (member.permissions ?? []);
-    setCapabilityIds(
-      capabilityCodes
-        .map((code) => options?.capabilities.find((c) => c.code === code)?.id)
-        .filter((id): id is number => id != null),
-    );
+    const resolvedIds = capabilityCodes
+      .map((code) => options?.capabilities.find((c) => c.code === code)?.id)
+      .filter((id): id is number => id != null);
+    setCapabilityIds(resolvedIds);
+    setOriginalCapabilityIds(resolvedIds);
+    setCapabilitiesTouched(false);
   }, [member, creating, options, memberId]);
+
+  const adminKindChanged = !creating && originalAdminKind !== '' && adminKind !== originalAdminKind;
 
   const accountEntity = useMemo(() => member ?? undefined, [member]);
 
@@ -138,14 +148,33 @@ export function StaffFormDrawer({
       isCreate: creating,
     });
 
-    const payload = {
+    const capPayload = buildStaffCapabilityPayload({
+      isCreate: creating,
+      capabilityIds,
+      originalCapabilityIds,
+      capabilitiesTouched,
+      catalogReady,
+    });
+
+    if (capPayload.blockSaveDueToCatalog) {
+      toast.error(t('admin.academicSetup.staffCapabilities.catalogUnavailableWarning'));
+      return;
+    }
+
+    const payload: Record<string, unknown> = {
       name: name.trim(),
       ...identity,
       phone: phone.trim() || undefined,
       job_title: jobTitle.trim() || undefined,
-      admin_kind: adminKind,
-      capability_ids: capabilityIds,
     };
+
+    if (creating || adminKind !== originalAdminKind) {
+      payload.admin_kind = adminKind;
+    }
+
+    if (!capPayload.omitCapabilities && capPayload.capability_ids) {
+      payload.capability_ids = capPayload.capability_ids;
+    }
 
     setSaving(true);
     const res = creating
@@ -187,16 +216,6 @@ export function StaffFormDrawer({
     onSaved();
   }
 
-  const capabilitiesByCategory = (options?.capabilities ?? []).reduce<Record<string, StaffCapabilityOption[]>>(
-    (acc, cap) => {
-      const cat = cap.category || 'other';
-      if (!acc[cat]) acc[cat] = [];
-      acc[cat]!.push(cap);
-      return acc;
-    },
-    {},
-  );
-
   return (
     <SetupDrawer
       open={open}
@@ -234,31 +253,33 @@ export function StaffFormDrawer({
           </label>
           <label className="col" style={{ gap: 4 }}>
             <span className="tiny muted">{t('admin.academicSetup.adminKindLabel')}</span>
-            <select className="input" value={adminKind} onChange={(e) => setAdminKind(e.target.value)}>
+            <select
+              className="input"
+              value={adminKind}
+              onChange={(e) => setAdminKind(e.target.value as StaffAdminKind)}
+            >
               {(options?.admin_kinds ?? []).map((k) => (
                 <option key={k.value} value={k.value}>{k.label}</option>
               ))}
             </select>
           </label>
-          {Object.entries(capabilitiesByCategory).map(([cat, caps]) => (
-            <fieldset key={cat} className="col" style={{ gap: 6 }}>
-              <legend className="tiny muted">{t(`admin.academicSetup.capCategory.${cat}`)}</legend>
-              {(caps ?? []).filter((c) => c.grantable).map((cap) => (
-                <label key={cap.id} className="row" style={{ gap: 8 }}>
-                  <input
-                    type="checkbox"
-                    checked={capabilityIds.includes(cap.id)}
-                    onChange={() =>
-                      setCapabilityIds((prev) =>
-                        prev.includes(cap.id) ? prev.filter((x) => x !== cap.id) : [...prev, cap.id],
-                      )
-                    }
-                  />
-                  <span>{staffCapabilityLabel(locale, cap)}</span>
-                </label>
-              ))}
-            </fieldset>
-          ))}
+          {adminKindChanged ? (
+            <p className="staff-cap-role-change-warn" role="status">
+              {t('admin.academicSetup.staffCapabilities.roleChangeWarning')}
+            </p>
+          ) : null}
+          <StaffCapabilitiesSection
+            adminKind={adminKind || 'admin_staff'}
+            capabilities={options?.capabilities ?? []}
+            capabilityIds={capabilityIds}
+            onCapabilityIdsChange={setCapabilityIds}
+            catalogReady={catalogReady}
+            catalogLoading={optionsLoading}
+            catalogError={optionsError}
+            onRetryCatalog={onRetryOptions}
+            disabled={!canManage || saving}
+            onCapabilitiesTouched={() => setCapabilitiesTouched(true)}
+          />
           <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
             {canManage && (
               <button type="submit" className="btn btn--primary btn--sm" disabled={saving} style={{ minHeight: 44 }}>

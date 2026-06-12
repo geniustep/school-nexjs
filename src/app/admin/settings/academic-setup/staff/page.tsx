@@ -176,6 +176,9 @@ export default function AcademicSetupStaffPage() {
         memberId={drawerOpen && !editId ? null : editId}
         member={editMember}
         options={optionsState.options ?? undefined}
+        optionsLoading={false}
+        optionsError={null}
+        onRetryOptions={() => optionsState.reload()}
         canManage={canManage}
         onClose={() => {
           setDrawerOpen(false);

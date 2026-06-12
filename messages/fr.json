@@ -1312,15 +1312,74 @@
         "staff": "Personnel"
       },
       "capCategory": {
+        "dashboard": "Tableau de bord",
+        "registration": "Inscription",
         "students": "Élèves",
+        "parents": "Parents",
         "classes": "Classes",
         "teachers": "Enseignants",
         "attendance": "Présence",
         "academics": "Académique",
+        "content": "Contenu",
         "communication": "Communication",
         "exams": "Examens",
         "finance": "Finance",
+        "operations": "Opérations",
+        "reporting": "Rapports",
+        "settings": "Paramètres",
         "other": "Autre"
+      },
+      "staffCapabilities": {
+        "sectionTitle": "Permissions",
+        "sectionSubtitle": "Définissez ce à quoi ce membre du personnel peut accéder dans l'établissement.",
+        "searchPlaceholder": "Rechercher une permission…",
+        "selectedCount": "{count} permissions sélectionnées",
+        "expandAll": "Tout développer",
+        "collapseAll": "Tout réduire",
+        "loadError": "Impossible de charger les permissions. Réessayez.",
+        "retry": "Réessayer",
+        "emptyCatalog": "Aucune permission disponible pour ce rôle.",
+        "emptySearch": "Aucune permission ne correspond à la recherche.",
+        "autoGrantedBadge": "Accordée automatiquement",
+        "sensitiveBadge": "Permission sensible",
+        "baseSectionTitle": "Permissions de base du rôle",
+        "additionalSectionTitle": "Permissions supplémentaires",
+        "categorySelected": "{selected} sur {total} permissions",
+        "selectAllCategory": "Tout sélectionner",
+        "deselectAllCategory": "Tout désélectionner",
+        "roleChangeWarning": "Changer le type de rôle peut modifier les permissions de base de cet utilisateur.",
+        "catalogUnavailableWarning": "La liste des permissions n'a pas pu être chargée. Les modifications ne seront pas envoyées tant que le chargement n'est pas terminé."
+      },
+      "roleCapabilities": {
+        "school_manager": {
+          "title": "Permissions du directeur d'établissement",
+          "description": "Le directeur reçoit automatiquement les permissions essentielles pour gérer son établissement.",
+          "autoGrantedLabel": "Accordées automatiquement selon le rôle",
+          "highlight1": "Gérer les niveaux et les classes",
+          "highlight2": "Gérer les enseignants et le personnel",
+          "highlight3": "Gérer les élèves et les parents",
+          "highlight4": "Consulter les rapports essentiels"
+        },
+        "project_manager": {
+          "title": "Permissions du gestionnaire de plateforme",
+          "description": "Le périmètre du gestionnaire de plateforme est limité aux écoles assignées.",
+          "autoGrantedLabel": "Accordées automatiquement selon le rôle",
+          "highlight1": "Gérer le portefeuille d'écoles assignées",
+          "highlight2": "Superviser la configuration académique",
+          "highlight3": "Suivre les rapports et opérations",
+          "highlight4": "Gérer le personnel administratif dans le périmètre"
+        },
+        "general_supervisor": {
+          "title": "Permissions du superviseur général",
+          "description": "Permissions de supervision dans les écoles et niveaux assignés.",
+          "autoGrantedLabel": "Accordées automatiquement selon le rôle",
+          "scopeTitle": "Périmètre de supervision",
+          "scopeDescription": "L'accès est limité aux écoles et niveaux assignés à ce superviseur.",
+          "highlight1": "Suivre la présence et les opérations quotidiennes",
+          "highlight2": "Consulter les rapports dans le périmètre",
+          "highlight3": "Communication et supervision des classes",
+          "highlight4": "Permissions supplémentaires si personnalisation nécessaire"
+        }
       },
       "capabilities": {
         "view_dashboard": "Voir le tableau de bord",
