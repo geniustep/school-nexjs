@@ -21,6 +21,17 @@ import { globalSetupSearch, buildHref } from '@/features/admin/academic-setup/ut
 import { translate } from '@/lib/i18n/messages';
 import { buildClassPayload } from '@/features/admin/class-form-utils';
 import {
+  aggregateEnableResults,
+  buildEnableSummary,
+  buildFirstClassRows,
+  resolveSchoolLevelId,
+} from '@/features/admin/academic-setup/utils/level-options';
+import {
+  classHasOperationalUsage,
+  formatClassUsageLines,
+  resolveClassRemovalFlags,
+} from '@/features/admin/academic-setup/utils/class-usage';
+import {
   aggregateBatchResults,
   buildGuidedSteps,
   clearTrackOnLevelChange,
@@ -425,5 +436,104 @@ describe('academic-setup permissions', () => {
   it('detects academic setup paths', () => {
     expect(isAcademicSetupPath('/admin/settings/academic-setup/classes')).toBe(true);
     expect(isAcademicSetupPath('/admin/classes')).toBe(false);
+  });
+});
+
+describe('class safe delete helpers', () => {
+  it('blocks removal when backend denies delete and deactivate', () => {
+    const flags = resolveClassRemovalFlags({
+      id: 1,
+      name: 'Class A',
+      code: 'P1A',
+      level: { id: 2, name: 'P1' },
+      academic_year: null,
+      student_count: 3,
+      capacity: 30,
+      teachers: [],
+      subjects: [],
+      status: 'active',
+      can_delete: false,
+      can_deactivate: false,
+    });
+    expect(flags.blockedByBackend).toBe(true);
+    expect(classHasOperationalUsage(flags.usage)).toBe(true);
+  });
+
+  it('marks historical removal when deactivate is allowed', () => {
+    const flags = resolveClassRemovalFlags({
+      id: 1,
+      name: 'Class A',
+      code: 'P1A',
+      level: { id: 2, name: 'P1' },
+      academic_year: null,
+      student_count: 0,
+      capacity: 30,
+      teachers: [],
+      subjects: [],
+      status: 'active',
+      can_delete: false,
+      can_deactivate: true,
+    });
+    expect(flags.blockedByBackend).toBe(false);
+    expect(flags.isHistorical).toBe(true);
+  });
+
+  it('formats only non-zero usage lines', () => {
+    const lines = formatClassUsageLines(
+      { students: 22, enrollments: 22, assignments: 0, timetable_slots: 4, exams: 0 },
+      t,
+    );
+    expect(lines.map((l) => l.key)).toEqual(['students', 'timetable_slots']);
+  });
+});
+
+describe('enable levels with first class', () => {
+  it('aggregates classes created and failed counts', () => {
+    const results = [
+      {
+        reference_level_id: 4,
+        status: 'enabled' as const,
+        school_level: { id: 40, name: 'P2', code: 'P2', supports_tracks: false },
+        first_class: { status: 'created' as const, id: 51, name: 'P2A', code: '2025-P2-P2A' },
+      },
+      {
+        reference_level_id: 5,
+        status: 'enabled' as const,
+        school_level_id: 41,
+        first_class: { status: 'failed' as const, reason: 'duplicate_record' },
+      },
+      {
+        reference_level_id: 6,
+        status: 'already_enabled' as const,
+        school_level: { id: 42, name: 'P3', code: 'P3', supports_tracks: false },
+        first_class: { status: 'skipped' as const, reason: 'level_already_enabled' },
+      },
+    ];
+    const summary = buildEnableSummary(results, 3);
+    expect(summary.classes_created).toBe(1);
+    expect(summary.classes_skipped).toBe(1);
+    expect(summary.classes_failed).toBe(1);
+    expect(resolveSchoolLevelId(results[1]!)).toBe(41);
+
+    const outcome = aggregateEnableResults(results);
+    expect(outcome.classesCreated).toBe(1);
+    expect(outcome.firstClassFailedCount).toBe(1);
+
+    const rows = buildFirstClassRows(results, [
+      {
+        id: 4,
+        code: 'P2',
+        name: 'P2',
+        display_name: 'P2',
+        sequence: 1,
+        active: true,
+        supports_tracks: false,
+        cycle: { id: 1, code: 'P', name: 'Primary', sequence: 1 },
+        enabled: true,
+        can_enable: false,
+        link_status: 'enabled',
+      },
+    ]);
+    expect(rows[0]?.firstClass?.status).toBe('created');
   });
 });

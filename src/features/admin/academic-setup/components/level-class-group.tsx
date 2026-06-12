@@ -40,6 +40,8 @@ export function LevelClassGroup({
   onAddClass,
   onBatchClasses,
   onLevelRemoved,
+  onClassRemoved,
+  onEditClass,
   canManage,
   trackLevels,
   subjectCount = 0,
@@ -50,6 +52,8 @@ export function LevelClassGroup({
   onAddClass?: (levelId: number) => void;
   onBatchClasses?: (levelId: number) => void;
   onLevelRemoved?: () => void;
+  onClassRemoved?: () => void;
+  onEditClass?: (cls: SchoolClass) => void;
   canManage: boolean;
   trackLevels?: import('../utils/guided-flow').TrackLevelRef[];
   subjectCount?: number;
@@ -186,8 +190,11 @@ export function LevelClassGroup({
                   {t('common.view')}
                 </button>
                 <ClassRowActions
+                  cls={cls}
                   canManage={canManage}
                   onView={() => onSelectClass(cls)}
+                  onEdit={onEditClass ? () => onEditClass(cls) : undefined}
+                  onRemoved={onClassRemoved}
                 />
               </div>
             </div>

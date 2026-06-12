@@ -2,6 +2,7 @@ import type {
   EnableLevelResult,
   EnableLevelsResponse,
   EnableLevelsSummary,
+  FirstClassResult,
   LevelCycleOption,
   ReferenceLevelOption,
 } from '@/types/academic-levels';
@@ -118,12 +119,66 @@ export function buildEnableSummary(
   let enabled = 0;
   let already_enabled = 0;
   let failed = 0;
+  let classes_created = 0;
+  let classes_already_exist = 0;
+  let classes_skipped = 0;
+  let classes_failed = 0;
   for (const r of results) {
     if (r.status === 'enabled' || r.status === 'linked_existing') enabled += 1;
     else if (r.status === 'already_enabled') already_enabled += 1;
     else failed += 1;
+
+    const fc = r.first_class;
+    if (fc?.status === 'created') classes_created += 1;
+    else if (fc?.status === 'already_exists') classes_already_exist += 1;
+    else if (fc?.status === 'skipped') classes_skipped += 1;
+    else if (fc?.status === 'failed') classes_failed += 1;
   }
-  return { requested, enabled, already_enabled, failed };
+  return {
+    requested,
+    enabled,
+    already_enabled,
+    failed,
+    classes_created,
+    classes_already_exist,
+    classes_skipped,
+    classes_failed,
+  };
+}
+
+export function resolveSchoolLevelId(result: EnableLevelResult): number | null {
+  return result.school_level_id ?? result.school_level?.id ?? null;
+}
+
+export type EnableFirstClassRow = {
+  referenceLevelId: number;
+  levelName: string;
+  levelStatus: EnableLevelResult['status'];
+  schoolLevelId: number | null;
+  schoolLevelName: string;
+  schoolLevelCode?: string | null;
+  firstClass: FirstClassResult | null;
+};
+
+export function buildFirstClassRows(
+  results: EnableLevelResult[],
+  referenceLevels: ReferenceLevelOption[],
+): EnableFirstClassRow[] {
+  return results
+    .filter((r) => r.status === 'enabled' || r.status === 'linked_existing')
+    .map((r) => {
+      const ref = referenceLevels.find((l) => l.id === r.reference_level_id);
+      const schoolLevelId = resolveSchoolLevelId(r);
+      return {
+        referenceLevelId: r.reference_level_id,
+        levelName: ref?.name ?? r.code ?? String(r.reference_level_id),
+        levelStatus: r.status,
+        schoolLevelId,
+        schoolLevelName: r.school_level?.name ?? ref?.name ?? '',
+        schoolLevelCode: r.school_level?.code ?? ref?.code ?? null,
+        firstClass: r.first_class ?? null,
+      };
+    });
 }
 
 export function parseEnableLevelsResponse(data: EnableLevelsResponse | null | undefined): {
@@ -148,6 +203,11 @@ export type EnableOutcome = {
   failedCount: number;
   failedIds: number[];
   newSchoolLevelIds: number[];
+  classesCreated: number;
+  classesAlreadyExist: number;
+  classesSkipped: number;
+  classesFailed: number;
+  firstClassFailedCount: number;
   errorsByRefId: Map<number, string>;
 };
 
@@ -155,6 +215,11 @@ export function aggregateEnableResults(results: EnableLevelResult[]): EnableOutc
   let enabledCount = 0;
   let alreadyEnabledCount = 0;
   let failedCount = 0;
+  let classesCreated = 0;
+  let classesAlreadyExist = 0;
+  let classesSkipped = 0;
+  let classesFailed = 0;
+  let firstClassFailedCount = 0;
   const failedIds: number[] = [];
   const newSchoolLevelIds: number[] = [];
   const errorsByRefId = new Map<number, string>();
@@ -162,9 +227,19 @@ export function aggregateEnableResults(results: EnableLevelResult[]): EnableOutc
   for (const r of results) {
     if (r.status === 'enabled' || r.status === 'linked_existing') {
       enabledCount += 1;
-      if (r.school_level?.id) newSchoolLevelIds.push(r.school_level.id);
+      const sid = resolveSchoolLevelId(r);
+      if (sid) newSchoolLevelIds.push(sid);
+      if (r.first_class?.status === 'created') classesCreated += 1;
+      else if (r.first_class?.status === 'already_exists') classesAlreadyExist += 1;
+      else if (r.first_class?.status === 'skipped') classesSkipped += 1;
+      else if (r.first_class?.status === 'failed') {
+        classesFailed += 1;
+        firstClassFailedCount += 1;
+      }
     } else if (r.status === 'already_enabled') {
       alreadyEnabledCount += 1;
+      if (r.first_class?.status === 'skipped') classesSkipped += 1;
+      else if (r.first_class?.status === 'already_exists') classesAlreadyExist += 1;
     } else {
       failedCount += 1;
       failedIds.push(r.reference_level_id);
@@ -177,8 +252,13 @@ export function aggregateEnableResults(results: EnableLevelResult[]): EnableOutc
     }
   }
 
-  const fullSuccess = failedCount === 0 && (enabledCount > 0 || alreadyEnabledCount > 0);
-  const partialSuccess = enabledCount > 0 && failedCount > 0;
+  const fullSuccess =
+    failedCount === 0 &&
+    classesFailed === 0 &&
+    (enabledCount > 0 || alreadyEnabledCount > 0);
+  const partialSuccess =
+    (enabledCount > 0 && failedCount > 0) ||
+    (enabledCount > 0 && classesFailed > 0);
 
   return {
     fullSuccess,
@@ -188,6 +268,11 @@ export function aggregateEnableResults(results: EnableLevelResult[]): EnableOutc
     failedCount,
     failedIds,
     newSchoolLevelIds,
+    classesCreated,
+    classesAlreadyExist,
+    classesSkipped,
+    classesFailed,
+    firstClassFailedCount,
     errorsByRefId,
   };
 }
@@ -208,4 +293,105 @@ export function referenceLevelSubtitle(level: ReferenceLevelOption): string {
   if (alias && alias !== level.name) parts.push(alias);
   else if (display && display !== level.name && display !== level.code) parts.push(display);
   return parts.join(' · ');
+}
+
+export type LevelEnableOutcomeLine = {
+  referenceLevelId: number;
+  levelLabel: string;
+  messageKey: string;
+  messageVars?: Record<string, string | number>;
+  canCreateClass?: boolean;
+  schoolLevelId?: number | null;
+};
+
+const SKIPPED_REASON_KEYS: Record<string, string> = {
+  level_already_enabled: 'admin.academicSetup.guided.firstClassSkippedAlreadyEnabled',
+  create_first_class_disabled: 'admin.academicSetup.guided.firstClassSkippedNoOption',
+  option_disabled: 'admin.academicSetup.guided.firstClassSkippedNoOption',
+};
+
+export function mapFirstClassSkippedReason(reason?: string): string | null {
+  if (!reason?.trim()) return null;
+  return SKIPPED_REASON_KEYS[reason.trim()] ?? 'admin.academicSetup.guided.firstClassSkipped';
+}
+
+export function buildLevelEnableOutcomeLines(
+  results: EnableLevelResult[],
+  referenceLevels: ReferenceLevelOption[],
+  createFirstClassRequested: boolean,
+): LevelEnableOutcomeLine[] {
+  return results.map((r) => {
+    const ref = referenceLevels.find((l) => l.id === r.reference_level_id);
+    const levelLabel = ref?.name ?? r.school_level?.name ?? r.code ?? String(r.reference_level_id);
+    const schoolLevelId = resolveSchoolLevelId(r);
+
+    if (r.status === 'failed') {
+      return {
+        referenceLevelId: r.reference_level_id,
+        levelLabel,
+        messageKey: 'admin.academicSetup.guided.enableLevelOutcomeLevelFailed',
+        messageVars: { level: levelLabel } as Record<string, string | number>,
+      };
+    }
+
+    const fc = r.first_class;
+    if (
+      createFirstClassRequested &&
+      fc?.status === 'created' &&
+      fc.name
+    ) {
+      return {
+        referenceLevelId: r.reference_level_id,
+        levelLabel,
+        messageKey: 'admin.academicSetup.guided.enableLevelOutcomeCreated',
+        messageVars: { level: levelLabel, className: fc.name } as Record<string, string | number>,
+      };
+    }
+
+    if (createFirstClassRequested && fc?.status === 'failed') {
+      return {
+        referenceLevelId: r.reference_level_id,
+        levelLabel,
+        messageKey: 'admin.academicSetup.guided.enableLevelOutcomeClassFailed',
+        messageVars: { level: levelLabel } as Record<string, string | number>,
+        canCreateClass: true,
+        schoolLevelId,
+      };
+    }
+
+    if (createFirstClassRequested && fc?.status === 'already_exists') {
+      return {
+        referenceLevelId: r.reference_level_id,
+        levelLabel,
+        messageKey: 'admin.academicSetup.guided.enableLevelOutcomeClassExists',
+        messageVars: { level: levelLabel } as Record<string, string | number>,
+      };
+    }
+
+    if (createFirstClassRequested && fc?.status === 'skipped') {
+      const reasonKey = mapFirstClassSkippedReason(fc.reason);
+      return {
+        referenceLevelId: r.reference_level_id,
+        levelLabel,
+        messageKey: reasonKey ?? 'admin.academicSetup.guided.enableLevelOutcomeLevelAdded',
+        messageVars: { level: levelLabel } as Record<string, string | number>,
+      };
+    }
+
+    if (r.status === 'enabled' || r.status === 'linked_existing' || r.status === 'already_enabled') {
+      return {
+        referenceLevelId: r.reference_level_id,
+        levelLabel,
+        messageKey: 'admin.academicSetup.guided.enableLevelOutcomeLevelAdded',
+        messageVars: { level: levelLabel } as Record<string, string | number>,
+      };
+    }
+
+    return {
+      referenceLevelId: r.reference_level_id,
+      levelLabel,
+      messageKey: 'admin.academicSetup.guided.enableLevelOutcomeLevelFailed',
+      messageVars: { level: levelLabel } as Record<string, string | number>,
+    };
+  });
 }

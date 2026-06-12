@@ -2,16 +2,25 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useT } from '@/features/i18n/locale-context';
+import type { SchoolClass } from '@/types/class';
+import { ClassRemoveDialog } from './class-remove-dialog';
 
 export function ClassRowActions({
+  cls,
   onView,
+  onEdit,
   canManage,
+  onRemoved,
 }: {
+  cls: SchoolClass;
   onView: () => void;
+  onEdit?: () => void;
   canManage: boolean;
+  onRemoved?: () => void;
 }) {
   const t = useT();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [removeOpen, setRemoveOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -58,7 +67,44 @@ export function ClassRowActions({
           >
             {t('common.view')}
           </button>
+          {onEdit && (
+            <button
+              type="button"
+              role="menuitem"
+              className="academic-setup-level-actions__item"
+              onClick={() => {
+                setMenuOpen(false);
+                onEdit();
+              }}
+            >
+              {t('common.edit')}
+            </button>
+          )}
+          {onRemoved && (
+            <button
+              type="button"
+              role="menuitem"
+              className="academic-setup-level-actions__item academic-setup-level-actions__item--danger"
+              onClick={() => {
+                setMenuOpen(false);
+                setRemoveOpen(true);
+              }}
+            >
+              {t('admin.academicSetup.guided.removeClassAction')}
+            </button>
+          )}
         </div>
+      )}
+      {onRemoved && (
+        <ClassRemoveDialog
+          cls={cls}
+          open={removeOpen}
+          onClose={() => setRemoveOpen(false)}
+          onRemoved={() => {
+            onRemoved();
+            setRemoveOpen(false);
+          }}
+        />
       )}
     </div>
   );

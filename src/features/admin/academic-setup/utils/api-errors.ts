@@ -34,9 +34,24 @@ const TRACK_ERRORS: Record<string, string> = {
   class_track_mismatch: 'admin.academicSetup.errors.classTrackMismatch',
 };
 
+const CLASS_ERRORS: Record<string, string> = {
+  class_in_use: 'admin.academicSetup.errors.classInUse',
+  cannot_delete_class: 'admin.academicSetup.errors.cannotDeleteClass',
+  class_out_of_scope: 'admin.academicSetup.errors.classOutOfScope',
+  not_found: 'admin.academicSetup.errors.classNotFound',
+  forbidden: 'admin.pageForbidden',
+  duplicate_record: 'admin.classDuplicateName',
+  conflict: 'admin.classDuplicateName',
+  validation_error: 'errors.validationFailed',
+  class_already_exists: 'admin.academicSetup.errors.classAlreadyExists',
+  academic_context_missing: 'admin.academicSetup.errors.academicContextMissing',
+  class_creation_failed: 'admin.academicSetup.errors.classCreationFailed',
+};
+
 const CLASS_TRACK_ERRORS: Record<string, string> = {
   class_track_mismatch: 'admin.academicSetup.errors.classTrackMismatch',
   track_level_mismatch: 'admin.academicSetup.errors.trackLevelMismatch',
+  ...CLASS_ERRORS,
 };
 
 const LEVEL_ERRORS: Record<string, string> = {

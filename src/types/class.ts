@@ -52,6 +52,24 @@ export interface Level {
   usage?: SchoolLevelUsage;
 }
 
+export interface SchoolClassUsage {
+  students: number;
+  enrollments: number;
+  assignments: number;
+  timetable_slots: number;
+  exams: number;
+  homeworks?: number;
+  attendance_records?: number;
+}
+
+export type DeleteClassAction = 'deleted' | 'deactivated';
+
+export interface ClassRemovalResponse {
+  action: DeleteClassAction;
+  id: number;
+  reason?: string;
+}
+
 export interface SchoolClass {
   id: number;
   name: string;
@@ -65,4 +83,7 @@ export interface SchoolClass {
   teachers: Ref[];
   subjects: Subject[];
   status: string;
+  can_delete?: boolean;
+  can_deactivate?: boolean;
+  usage?: SchoolClassUsage;
 }

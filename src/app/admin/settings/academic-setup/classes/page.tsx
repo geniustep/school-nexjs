@@ -86,11 +86,16 @@ export default function AcademicSetupClassesPage() {
     enabledCount: number;
     newSchoolLevelIds: number[];
     fullSuccess: boolean;
+    classesCreated?: number;
+    createFirstClass?: boolean;
   }) {
     refreshAll();
-    if (outcome.newSchoolLevelIds[0]) {
-      setNextClassLevelId(outcome.newSchoolLevelIds[0]);
-    }
+    const autoCreated = (outcome.classesCreated ?? 0) > 0;
+    const shouldPromptManualClass =
+      !autoCreated && outcome.createFirstClass !== true && outcome.enabledCount > 0;
+    setNextClassLevelId(
+      shouldPromptManualClass ? (outcome.newSchoolLevelIds[0] ?? null) : null,
+    );
   }
 
   const createMode = drawer?.mode === 'create' || openFromAction;
@@ -136,6 +141,12 @@ export default function AcademicSetupClassesPage() {
         levelsAction.dismissActionParam();
       }}
       onEnabled={handleLevelsEnabled}
+      canManageClasses={canManage}
+      onCreateClassForLevel={(schoolLevelId) => {
+        setLevelsDrawerOpen(false);
+        levelsAction.dismissActionParam();
+        setDrawer({ mode: 'create', levelId: schoolLevelId });
+      }}
     />
   );
 
@@ -222,6 +233,8 @@ export default function AcademicSetupClassesPage() {
           onAddClass={(levelId) => setDrawer({ mode: 'create', levelId })}
           onBatchClasses={canManage ? (levelId) => setBatchLevelId(levelId) : undefined}
           onLevelRemoved={refreshAll}
+          onClassRemoved={refreshAll}
+          onEditClass={(cls) => setDrawer({ mode: 'edit', cls })}
           onSelectClass={(cls) => setDrawer({ mode: 'view', cls })}
         />
       </div>

@@ -4,10 +4,14 @@ import { normalizeLevelOptionsPayload } from '../hooks/use-level-options';
 import {
   aggregateEnableResults,
   buildEnablePayload,
+  buildEnableSummary,
+  buildFirstClassRows,
+  buildLevelEnableOutcomeLines,
   filterReferenceLevels,
   groupReferenceLevelsByCycle,
   isLegacyUnlinkedLevel,
   isReferenceLevelSelectable,
+  mapFirstClassSkippedReason,
   selectableIdsInCycle,
   sortReferenceLevels,
 } from './level-options';
@@ -141,5 +145,66 @@ describe('level-options utils', () => {
     ]);
     expect(outcome.enabledCount).toBe(1);
     expect(outcome.newSchoolLevelIds).toEqual([77]);
+  });
+
+  it('builds enable summary with class failure counts', () => {
+    const summary = buildEnableSummary(
+      [
+        {
+          reference_level_id: 1,
+          status: 'enabled',
+          first_class: { status: 'created', name: 'P2A' },
+        },
+        {
+          reference_level_id: 2,
+          status: 'enabled',
+          first_class: { status: 'failed' },
+        },
+        {
+          reference_level_id: 3,
+          status: 'enabled',
+          first_class: { status: 'already_exists' },
+        },
+      ],
+      3,
+    );
+    expect(summary.classes_created).toBe(1);
+    expect(summary.classes_failed).toBe(1);
+    expect(summary.classes_already_exist).toBe(1);
+  });
+
+  it('builds outcome lines from backend first_class names only', () => {
+    const ref = refLevel({ id: 4, code: 'P2', name: 'الثانية ابتدائي' });
+    const lines = buildLevelEnableOutcomeLines(
+      [
+        {
+          reference_level_id: 4,
+          status: 'enabled',
+          school_level: { id: 140, name: 'الثانية ابتدائي', code: 'P2', supports_tracks: false },
+          first_class: { status: 'created', id: 51, name: 'P2A', code: '2025-P2-P2A' },
+        },
+        {
+          reference_level_id: 5,
+          status: 'enabled',
+          school_level_id: 141,
+          first_class: { status: 'failed' },
+        },
+      ],
+      [ref],
+      true,
+    );
+    expect(lines[0]?.messageKey).toBe('admin.academicSetup.guided.enableLevelOutcomeCreated');
+    expect(lines[0]?.messageVars?.className).toBe('P2A');
+    expect(lines[1]?.canCreateClass).toBe(true);
+    expect(lines[1]?.schoolLevelId).toBe(141);
+  });
+
+  it('maps skipped first class reasons to i18n keys', () => {
+    expect(mapFirstClassSkippedReason('level_already_enabled')).toBe(
+      'admin.academicSetup.guided.firstClassSkippedAlreadyEnabled',
+    );
+    expect(mapFirstClassSkippedReason('create_first_class_disabled')).toBe(
+      'admin.academicSetup.guided.firstClassSkippedNoOption',
+    );
   });
 });

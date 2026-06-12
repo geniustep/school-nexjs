@@ -41,6 +41,7 @@ export const endpoints = {
     class: (id: number | string) => `/admin/classes/${id}`,
     classUpdate: (id: number | string) => `/admin/classes/${id}/update`,
     classArchive: (id: number | string) => `/admin/classes/${id}/archive`,
+    classDelete: (id: number | string) => `/admin/classes/${id}`,
     classesImport: '/admin/classes/import',
     classesExport: '/admin/classes/export',
 

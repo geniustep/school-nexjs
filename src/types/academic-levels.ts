@@ -87,11 +87,25 @@ export interface EnableLevelSchoolLevel {
   active?: boolean;
 }
 
+export type FirstClassStatus = 'created' | 'already_exists' | 'skipped' | 'failed';
+
+export interface FirstClassResult {
+  status: FirstClassStatus;
+  id?: number;
+  name?: string;
+  code?: string;
+  reason?: string;
+  error_code?: string;
+  message?: string;
+}
+
 export interface EnableLevelResult {
   reference_level_id: number;
   code?: string;
   status: EnableLevelResultStatus;
   school_level?: EnableLevelSchoolLevel;
+  school_level_id?: number;
+  first_class?: FirstClassResult;
   error?: {
     code: string;
     message: string;
@@ -103,6 +117,10 @@ export interface EnableLevelsSummary {
   enabled: number;
   already_enabled: number;
   failed: number;
+  classes_created?: number;
+  classes_already_exist?: number;
+  classes_skipped?: number;
+  classes_failed?: number;
 }
 
 export interface EnableLevelsResponse {

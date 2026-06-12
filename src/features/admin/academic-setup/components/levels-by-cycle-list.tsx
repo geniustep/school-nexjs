@@ -26,6 +26,8 @@ export function LevelsByCycleList({
   onAddClass,
   onBatchClasses,
   onLevelRemoved,
+  onClassRemoved,
+  onEditClass,
   onSelectClass,
 }: {
   groups: LevelGroup[];
@@ -38,6 +40,8 @@ export function LevelsByCycleList({
   onAddClass: (levelId: number) => void;
   onBatchClasses?: (levelId: number) => void;
   onLevelRemoved: () => void;
+  onClassRemoved?: () => void;
+  onEditClass?: (cls: SchoolClass) => void;
   onSelectClass: (cls: SchoolClass) => void;
 }) {
   const t = useT();
@@ -145,6 +149,8 @@ export function LevelsByCycleList({
                     onAddClass={onAddClass}
                     onBatchClasses={onBatchClasses}
                     onLevelRemoved={onLevelRemoved}
+                    onClassRemoved={onClassRemoved}
+                    onEditClass={onEditClass}
                     onSelectClass={onSelectClass}
                   />
                 ))}

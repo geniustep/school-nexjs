@@ -13,11 +13,14 @@ import {
 import {
   aggregateEnableResults,
   buildEnablePayload,
+  buildFirstClassRows,
+  buildLevelEnableOutcomeLines,
   filterReferenceLevels,
   groupReferenceLevelsByCycle,
   isReferenceLevelSelectable,
   referenceLevelSubtitle,
   selectableIdsInCycle,
+  type EnableFirstClassRow,
   type LevelFilterMode,
 } from '../utils/level-options';
 import { mapAcademicSetupApiError, mapEnableLevelError } from '../utils/api-errors';
@@ -28,6 +31,7 @@ import {
 } from '../utils/level-link-status';
 import { LevelLinkDialog } from './level-link-dialog';
 import { SetupDrawer } from './setup-drawer';
+import type { LevelEnableOutcomeLine } from '../utils/level-options';
 
 function badgeTone(status: LevelLinkStatus): 'green' | 'amber' | 'slate' | 'blue' {
   switch (status) {
@@ -46,6 +50,8 @@ export function ReferenceLevelsDrawer({
   open,
   onClose,
   onEnabled,
+  canManageClasses = false,
+  onCreateClassForLevel,
 }: {
   open: boolean;
   onClose: () => void;
@@ -53,7 +59,11 @@ export function ReferenceLevelsDrawer({
     enabledCount: number;
     newSchoolLevelIds: number[];
     fullSuccess: boolean;
+    classesCreated?: number;
+    createFirstClass?: boolean;
   }) => void;
+  canManageClasses?: boolean;
+  onCreateClassForLevel?: (schoolLevelId: number) => void;
 }) {
   const t = useT();
   const toast = useToast();
@@ -63,6 +73,9 @@ export function ReferenceLevelsDrawer({
   const [filterMode, setFilterMode] = useState<LevelFilterMode>('all');
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [saving, setSaving] = useState(false);
+  const [createFirstClass, setCreateFirstClass] = useState(true);
+  const [firstClassRows, setFirstClassRows] = useState<EnableFirstClassRow[]>([]);
+  const [outcomeLines, setOutcomeLines] = useState<LevelEnableOutcomeLine[]>([]);
   const [linkTarget, setLinkTarget] = useState<ReferenceLevelOption | null>(null);
   const [rowErrors, setRowErrors] = useState<Map<number, string>>(new Map());
 
@@ -76,6 +89,9 @@ export function ReferenceLevelsDrawer({
       setSelected(new Set());
       setRowErrors(new Map());
       setLinkTarget(null);
+      setFirstClassRows([]);
+      setOutcomeLines([]);
+      setCreateFirstClass(true);
       return;
     }
     if (!optionsState.options && !optionsState.loading) {
@@ -140,6 +156,10 @@ export function ReferenceLevelsDrawer({
     optionsState.reload();
   }
 
+  function handleCreateClassNow(schoolLevelId: number) {
+    onCreateClassForLevel?.(schoolLevelId);
+  }
+
   async function handleSave() {
     if (!selected.size || saving || !canEnable) return;
     const payloadIds = buildEnablePayload(selected, allLevels);
@@ -147,8 +167,13 @@ export function ReferenceLevelsDrawer({
 
     setSaving(true);
     setRowErrors(new Map());
+    setFirstClassRows([]);
+    setOutcomeLines([]);
 
-    const res = await enableReferenceLevels(payloadIds, activeSchoolId);
+    const shouldCreateFirstClass = canManageClasses && createFirstClass;
+    const res = await enableReferenceLevels(payloadIds, activeSchoolId, {
+      createFirstClass: shouldCreateFirstClass,
+    });
     setSaving(false);
 
     if (!res.ok) {
@@ -173,22 +198,49 @@ export function ReferenceLevelsDrawer({
     );
     setSelected(stillSelected);
 
+    const firstClassOutcomeRows = shouldCreateFirstClass
+      ? buildFirstClassRows(res.data.results, allLevels)
+      : [];
+    setFirstClassRows(firstClassOutcomeRows);
+
+    const lines = buildLevelEnableOutcomeLines(
+      res.data.results,
+      allLevels,
+      shouldCreateFirstClass,
+    );
+    setOutcomeLines(lines);
+
     if (outcome.enabledCount > 0 || outcome.alreadyEnabledCount > 0) {
       onEnabled({
         enabledCount: outcome.enabledCount,
         newSchoolLevelIds: outcome.newSchoolLevelIds,
-        fullSuccess: outcome.fullSuccess && outcome.enabledCount > 0,
+        fullSuccess: outcome.fullSuccess,
+        classesCreated: outcome.classesCreated,
+        createFirstClass: shouldCreateFirstClass,
       });
       optionsState.reload();
     }
 
-    if (outcome.fullSuccess && outcome.failedCount === 0) {
+    const hasPartialOutcome =
+      outcome.failedCount > 0 || outcome.classesFailed > 0;
+
+    if (!hasPartialOutcome) {
       if (outcome.enabledCount > 0) {
-        toast.success(t('admin.academicSetup.guided.levelsEnableFullSuccess'));
+        if (shouldCreateFirstClass && outcome.classesCreated > 0) {
+          toast.success(t('admin.academicSetup.guided.levelsAndClassesCreated'));
+        } else if (shouldCreateFirstClass && outcome.classesAlreadyExist > 0) {
+          toast.success(t('admin.academicSetup.guided.levelsEnabledWithClassesSkipped'));
+        } else if (shouldCreateFirstClass) {
+          toast.success(t('admin.academicSetup.guided.levelsEnabledWithoutClasses'));
+        } else {
+          toast.success(t('admin.academicSetup.guided.levelsEnableFullSuccess'));
+        }
       } else if (outcome.alreadyEnabledCount > 0) {
         toast.success(t('admin.academicSetup.guided.levelAlreadyEnabledNotice'));
       }
       setSelected(new Set());
+      setFirstClassRows([]);
+      setOutcomeLines([]);
       onClose();
       return;
     }
@@ -200,10 +252,9 @@ export function ReferenceLevelsDrawer({
           failed: outcome.failedCount,
         }),
       );
-      return;
-    }
-
-    if (outcome.failedCount > 0 && outcome.enabledCount === 0) {
+    } else if (outcome.classesFailed > 0 && outcome.enabledCount > 0) {
+      toast.error(t('admin.academicSetup.guided.firstClassPartialFailure'));
+    } else if (outcome.failedCount > 0 && outcome.enabledCount === 0) {
       toast.error(t('admin.academicSetup.guided.levelsEnableAllFailed'));
     }
   }
@@ -288,6 +339,77 @@ export function ReferenceLevelsDrawer({
             <p className="tiny">
               {t('admin.academicSetup.guided.selectedCount', { count: selectedCount })}
             </p>
+          )}
+
+          {canEnable && canManageClasses && (
+            <label className="academic-setup-ref-level__row">
+              <input
+                type="checkbox"
+                checked={createFirstClass}
+                disabled={saving}
+                onChange={(e) => setCreateFirstClass(e.target.checked)}
+              />
+              <span className="academic-setup-ref-level__main">
+                <strong>{t('admin.academicSetup.guided.createFirstClassAutomatically')}</strong>
+                <span className="tiny muted block">
+                  {t('admin.academicSetup.guided.createFirstClassAutomaticallyDescription')}
+                </span>
+              </span>
+            </label>
+          )}
+
+          {outcomeLines.length > 0 && (
+            <div className="academic-setup-gap-banner" role="status">
+              <p className="tiny">{t('admin.academicSetup.guided.enableOutcomeSummaryTitle')}</p>
+              <ul className="academic-setup-ref-levels" role="list">
+                {outcomeLines.map((line) => (
+                  <li key={line.referenceLevelId} className="row mt-2" style={{ gap: 8, flexWrap: 'wrap' }}>
+                    <span className="tiny">
+                      {t(line.messageKey, line.messageVars)}
+                    </span>
+                    {line.canCreateClass && line.schoolLevelId && onCreateClassForLevel && (
+                      <button
+                        type="button"
+                        className="btn btn--primary btn--sm"
+                        disabled={saving}
+                        onClick={() => handleCreateClassNow(line.schoolLevelId!)}
+                      >
+                        {t('admin.academicSetup.guided.createClassNow')}
+                      </button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {firstClassRows.some((r) => r.firstClass?.status === 'failed') && !outcomeLines.length && (
+            <div className="academic-setup-gap-banner" role="status">
+              <p>{t('admin.academicSetup.guided.firstClassPartialFailure')}</p>
+              <ul className="academic-setup-ref-levels" role="list">
+                {firstClassRows
+                  .filter((r) => r.firstClass?.status === 'failed')
+                  .map((row) => (
+                    <li key={row.referenceLevelId} className="row mt-2" style={{ gap: 8, flexWrap: 'wrap' }}>
+                      <span className="tiny">
+                        {t('admin.academicSetup.guided.enableFirstClassRow', {
+                          level: row.levelName,
+                        })}
+                      </span>
+                      {row.schoolLevelId && onCreateClassForLevel && (
+                        <button
+                          type="button"
+                          className="btn btn--primary btn--sm"
+                          disabled={saving}
+                          onClick={() => handleCreateClassNow(row.schoolLevelId!)}
+                        >
+                          {t('admin.academicSetup.guided.createClassNow')}
+                        </button>
+                      )}
+                    </li>
+                  ))}
+              </ul>
+            </div>
           )}
 
           {grouped.map(({ cycle, levels }) => {

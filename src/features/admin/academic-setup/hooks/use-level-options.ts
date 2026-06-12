@@ -81,6 +81,7 @@ function collectResultsFromError(
 export async function enableReferenceLevels(
   referenceLevelIds: number[],
   activeSchoolId?: number | null,
+  options?: { createFirstClass?: boolean },
 ): Promise<
   | { ok: true; data: EnableLevelsResponse }
   | { ok: false; error: ApiErrorBody }
@@ -102,9 +103,13 @@ export async function enableReferenceLevels(
   let lastError: ApiErrorBody | null = null;
 
   for (const id of referenceLevelIds) {
+    const body: Record<string, unknown> = {
+      reference_level_ids: [id],
+      create_first_class: options?.createFirstClass ?? false,
+    };
     const res = await api.post<EnableLevelsResponse>(
       endpoints.admin.levelsEnable,
-      { reference_level_ids: [id] },
+      body,
       query,
     );
 
