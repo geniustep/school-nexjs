@@ -147,13 +147,15 @@ export default function AcademicSetupStaffPage() {
               ))}
             </select>
           </label>
-          <AcademicSegmentedControl
-            className="academic-segmented-control--staff"
-            ariaLabel={t('admin.academicSetup.staffStatusFilter')}
-            options={statusOptions}
-            value={statusFilter}
-            onChange={handleStatusChange}
-          />
+          <div className="academic-staff-filter--desktop">
+            <AcademicSegmentedControl
+              className="academic-segmented-control--staff"
+              ariaLabel={t('admin.academicSetup.staffStatusFilter')}
+              options={statusOptions}
+              value={statusFilter}
+              onChange={handleStatusChange}
+            />
+          </div>
         </AcademicFilterGroup>
       </AcademicToolbar>
 
