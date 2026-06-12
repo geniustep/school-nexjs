@@ -27,8 +27,15 @@ export function LevelClassActions({
     function onDoc(e: MouseEvent) {
       if (!rootRef.current?.contains(e.target as Node)) setMenuOpen(false);
     }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setMenuOpen(false);
+    }
     document.addEventListener('mousedown', onDoc);
-    return () => document.removeEventListener('mousedown', onDoc);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDoc);
+      document.removeEventListener('keydown', onKey);
+    };
   }, [menuOpen]);
 
   if (!canManage) return null;
@@ -37,10 +44,11 @@ export function LevelClassActions({
     <div className="academic-setup-level-actions" ref={rootRef}>
       <button
         type="button"
-        className="btn btn--ghost btn--sm academic-setup-level-actions__trigger"
+        className="academic-setup-level-actions__trigger"
         aria-haspopup="menu"
         aria-expanded={menuOpen}
         aria-label={t('admin.academicSetup.guided.levelActionsMenu')}
+        title={t('admin.academicSetup.guided.levelActionsMenu')}
         onClick={() => setMenuOpen((v) => !v)}
       >
         ⋯
@@ -53,7 +61,7 @@ export function LevelClassActions({
             className="academic-setup-level-actions__item"
             onClick={() => setMenuOpen(false)}
           >
-            {t('admin.academicSetup.guided.editLevelAction')}
+            {t('admin.academicSetup.viewLevelDetails')}
           </Link>
           <Link
             href={`/admin/levels/${group.id}`}
@@ -61,7 +69,7 @@ export function LevelClassActions({
             className="academic-setup-level-actions__item"
             onClick={() => setMenuOpen(false)}
           >
-            {t('admin.academicSetup.viewLevelDetails')}
+            {t('admin.academicSetup.guided.editLevelAction')}
           </Link>
           {supportsTracks && (
             <Link

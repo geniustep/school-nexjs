@@ -1,18 +1,37 @@
 'use client';
 
-import { useState } from 'react';
-import { Badge } from '@/components/ui/primitives';
+import { useState, type ReactNode } from 'react';
 import { useT } from '@/features/i18n/locale-context';
 import type { LevelGroup } from '../types';
 import type { SchoolClass } from '@/types/class';
 import { levelSupportsTracks } from '../utils/guided-flow';
+import { levelCtaI18nKey } from '../utils/level-card-present';
 import {
   classStatusLabel,
   computeLevelStatus,
   LEVEL_STATUS_TONE,
 } from '../utils/level-status';
 import { AddClassesDrawer } from './add-classes-drawer';
+import { ClassRowActions } from './class-row-actions';
 import { LevelClassActions } from './level-class-actions';
+
+function CompactBadge({
+  tone,
+  variant,
+  children,
+}: {
+  tone: 'green' | 'blue' | 'amber' | 'slate';
+  variant: 'status' | 'feature';
+  children: ReactNode;
+}) {
+  return (
+    <span
+      className={`academic-setup-badge academic-setup-badge--${tone} academic-setup-badge--${variant}`}
+    >
+      {children}
+    </span>
+  );
+}
 
 export function LevelClassGroup({
   group,
@@ -45,62 +64,79 @@ export function LevelClassGroup({
   const subjectCountDisplay = group.subjects_count ?? subjectCount;
   const levelStatus = computeLevelStatus(group, subjectCountDisplay);
   const hasClasses = group.classes.length > 0;
+  const ctaKey = levelCtaI18nKey(classCount);
+  const bodyId = `level-body-${group.id}`;
 
   return (
-    <article className="academic-setup-level">
-      <header className="academic-setup-level__head">
-        <button
-          type="button"
-          className="academic-setup-level__head-main"
-          onClick={() => hasClasses && setOpen((v) => !v)}
-          aria-expanded={hasClasses ? open : undefined}
-          disabled={!hasClasses}
-        >
-          <div className="academic-setup-level__info">
-            <div className="academic-setup-level__title-row">
-              <strong className="academic-setup-level__name">{group.name}</strong>
-              {hasClasses && (
-                <span className="academic-setup-level__chevron" aria-hidden>
-                  {open ? '▾' : '▸'}
-                </span>
-              )}
-            </div>
-            {(group.code || group.cycle?.name) && (
-              <p className="academic-setup-level__code">
-                {group.code && <span dir="ltr">{group.code}</span>}
-                {group.code && group.cycle?.name && <span aria-hidden> · </span>}
-                {group.cycle?.name}
-              </p>
-            )}
-            <p className="academic-setup-level__stats">
-              {t('admin.academicSetup.levelStats', {
-                classes: classCount,
-                students: group.studentCount,
-                subjects: subjectCountDisplay,
-              })}
-            </p>
-            <div className="academic-setup-level__badges">
-              <Badge tone={LEVEL_STATUS_TONE[levelStatus]}>
-                {t(`admin.academicSetup.levelStatus.${levelStatus}`)}
-              </Badge>
-              {supportsTracks && (
-                <Badge tone="blue">
-                  <span aria-hidden>◇ </span>
-                  {t('admin.academicSetup.tracksAvailable')}
-                </Badge>
-              )}
-            </div>
-          </div>
-        </button>
+    <article className="academic-level-card">
+      <header className="academic-level-card__header">
+        <div className="academic-level-card__main">
+          {hasClasses ? (
+            <button
+              type="button"
+              className="academic-level-card__toggle"
+              aria-expanded={open}
+              aria-controls={bodyId}
+              onClick={() => setOpen((v) => !v)}
+            >
+              <span
+                className="academic-level-card__chevron"
+                data-open={open || undefined}
+                aria-hidden
+              />
+              <span className="academic-level-card__title">{group.name}</span>
+            </button>
+          ) : (
+            <strong className="academic-level-card__title">{group.name}</strong>
+          )}
 
-        <div className="academic-setup-level__actions">
+          {(group.code || group.cycle?.name) && (
+            <p className="academic-level-card__code">
+              {group.code && <span dir="ltr">{group.code}</span>}
+              {group.code && group.cycle?.name && <span aria-hidden> · </span>}
+              {group.cycle?.name}
+            </p>
+          )}
+
+          <div className="academic-level-card__badges">
+            <CompactBadge tone={LEVEL_STATUS_TONE[levelStatus]} variant="status">
+              {t(`admin.academicSetup.levelStatus.${levelStatus}`)}
+            </CompactBadge>
+            {supportsTracks && (
+              <CompactBadge tone="blue" variant="feature">
+                <span className="academic-setup-badge__full">
+                  {t('admin.academicSetup.tracksAvailable')}
+                </span>
+                <span className="academic-setup-badge__short">
+                  {t('admin.academicSetup.tracksAvailableShort')}
+                </span>
+              </CompactBadge>
+            )}
+          </div>
+
+          <p className="academic-level-card__stats">
+            {t('admin.academicSetup.levelStats', {
+              classes: classCount,
+              students: group.studentCount,
+              subjects: subjectCountDisplay,
+            })}
+          </p>
+
+          {!hasClasses && (
+            <p className="academic-level-card__empty-hint">
+              {t('admin.academicSetup.noClassesInLevel')}
+            </p>
+          )}
+        </div>
+
+        <div className="academic-level-card__actions">
           {canManage && onAddClass && (
             <button
               type="button"
               className="btn btn--primary btn--sm"
               onClick={() => setAddDrawerOpen(true)}
             >
-              {t('admin.academicSetup.addClasses')}
+              {t(ctaKey)}
             </button>
           )}
           {onLevelRemoved && (
@@ -115,30 +151,33 @@ export function LevelClassGroup({
       </header>
 
       {open && hasClasses && (
-        <div className="academic-setup-level__body">
+        <div id={bodyId} className="academic-level-card__body">
           {group.classes.map((cls) => (
-            <div key={cls.id} className="academic-setup-class-card">
+            <div key={cls.id} className="academic-class-card">
               <button
                 type="button"
-                className="academic-setup-class-card__main"
+                className="academic-class-card__main"
                 data-selected={selectedClassId === cls.id || undefined}
                 onClick={() => onSelectClass(cls)}
               >
-                <strong>{cls.name}</strong>
+                <strong className="academic-class-card__name">{cls.name}</strong>
                 {cls.track?.name && (
-                  <span className="academic-setup-class-card__track">{cls.track.name}</span>
+                  <span className="academic-class-card__track">{cls.track.name}</span>
                 )}
-                <span className="academic-setup-class-card__meta">
+                <span className="academic-class-card__meta">
                   {t('admin.academicSetup.classMeta', {
                     students: cls.student_count ?? 0,
                     subjects: cls.subjects?.length ?? 0,
                   })}
                 </span>
               </button>
-              <div className="academic-setup-class-card__actions">
-                <Badge tone={cls.status === 'active' ? 'green' : 'slate'}>
+              <div className="academic-class-card__actions">
+                <CompactBadge
+                  tone={cls.status === 'active' ? 'green' : 'slate'}
+                  variant="status"
+                >
                   {classStatusLabel(cls.status, t)}
-                </Badge>
+                </CompactBadge>
                 <button
                   type="button"
                   className="btn btn--ghost btn--sm"
@@ -146,26 +185,13 @@ export function LevelClassGroup({
                 >
                   {t('common.view')}
                 </button>
+                <ClassRowActions
+                  canManage={canManage}
+                  onView={() => onSelectClass(cls)}
+                />
               </div>
             </div>
           ))}
-        </div>
-      )}
-
-      {!hasClasses && (
-        <div className="academic-setup-level__empty">
-          <p className="academic-setup-level__empty-text">
-            {t('admin.academicSetup.noClassesInLevel')}
-          </p>
-          {canManage && onAddClass && (
-            <button
-              type="button"
-              className="btn btn--primary btn--sm"
-              onClick={() => setAddDrawerOpen(true)}
-            >
-              {t('admin.academicSetup.createFirstClass')}
-            </button>
-          )}
         </div>
       )}
 

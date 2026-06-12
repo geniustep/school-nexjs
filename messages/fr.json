@@ -887,6 +887,8 @@
       "addMultipleClasses": "Créer plusieurs classes",
       "addMultipleClassesDesc": "Créer plusieurs classes en une fois.",
       "tracksAvailable": "Filières et parcours disponibles",
+      "tracksAvailableShort": "Filières disponibles",
+      "classActionsMenu": "Actions de la classe",
       "viewLevelDetails": "Voir les détails",
       "manageTracks": "Gérer les filières",
       "levelsFilter": {

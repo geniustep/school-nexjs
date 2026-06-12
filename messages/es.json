@@ -887,6 +887,8 @@
       "addMultipleClasses": "Crear varias clases",
       "addMultipleClassesDesc": "Crear varias clases de una vez.",
       "tracksAvailable": "Itinerarios y modalidades disponibles",
+      "tracksAvailableShort": "Itinerarios disponibles",
+      "classActionsMenu": "Acciones de la clase",
       "viewLevelDetails": "Ver detalles",
       "manageTracks": "Gestionar itinerarios",
       "levelsFilter": {

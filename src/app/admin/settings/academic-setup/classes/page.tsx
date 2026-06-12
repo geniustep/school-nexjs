@@ -234,21 +234,23 @@ export default function AcademicSetupClassesPage() {
         </div>
       )}
 
-      <LevelsToolbar groups={levelGroups} />
+      <div className="academic-setup-classes-surface">
+        <LevelsToolbar groups={levelGroups} />
 
-      <LevelsByCycleList
-        groups={filteredGroups}
-        searchQuery={searchQuery}
-        focusLevelId={filterLevelId}
-        selectedClassId={filterClassId}
-        canManage={canManage}
-        trackLevels={trackOptionsState.options?.levels ?? []}
-        subjectCountsByLevel={subjectCountsByLevel}
-        onAddClass={(levelId) => setDrawer({ mode: 'create', levelId })}
-        onBatchClasses={canManage ? (levelId) => setBatchLevelId(levelId) : undefined}
-        onLevelRemoved={refreshAll}
-        onSelectClass={(cls) => setDrawer({ mode: 'view', cls })}
-      />
+        <LevelsByCycleList
+          groups={filteredGroups}
+          searchQuery={searchQuery}
+          focusLevelId={filterLevelId}
+          selectedClassId={filterClassId}
+          canManage={canManage}
+          trackLevels={trackOptionsState.options?.levels ?? []}
+          subjectCountsByLevel={subjectCountsByLevel}
+          onAddClass={(levelId) => setDrawer({ mode: 'create', levelId })}
+          onBatchClasses={canManage ? (levelId) => setBatchLevelId(levelId) : undefined}
+          onLevelRemoved={refreshAll}
+          onSelectClass={(cls) => setDrawer({ mode: 'view', cls })}
+        />
+      </div>
 
       <ClassDrawer
         open={!!drawer || openFromAction}

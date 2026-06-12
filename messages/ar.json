@@ -887,6 +887,8 @@
       "addMultipleClasses": "إنشاء عدة أقسام",
       "addMultipleClassesDesc": "إنشاء عدة أقسام دفعة واحدة.",
       "tracksAvailable": "الشعب والمسارات متاحة",
+      "tracksAvailableShort": "الشعب متاحة",
+      "classActionsMenu": "إجراءات القسم",
       "viewLevelDetails": "عرض التفاصيل",
       "manageTracks": "إدارة الشعب",
       "levelsFilter": {
@@ -905,7 +907,7 @@
       },
       "classStatus": {
         "active": "نشط",
-        "inactive": "غير مفعّل",
+        "inactive": "غير نشط",
         "suspended": "موقوف"
       },
       "statusComplete": "مكتمل",

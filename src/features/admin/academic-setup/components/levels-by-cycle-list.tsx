@@ -94,7 +94,7 @@ export function LevelsByCycleList({
   }
 
   return (
-    <div className="academic-setup-cycle-groups">
+    <div className="academic-cycle-groups">
       {cycleGroups.map((section) => {
         const open = openCycleIds.has(section.cycle.id);
         const panelId = `cycle-panel-${section.cycle.id}`;
@@ -102,36 +102,38 @@ export function LevelsByCycleList({
         return (
           <section
             key={section.cycle.id}
-            className="academic-setup-cycle-group"
+            className="academic-cycle-group"
             data-open={open || undefined}
           >
-            <header className="academic-setup-cycle-group__head">
+            <header className="academic-cycle-group__header">
               <button
                 type="button"
-                className="academic-setup-cycle-group__toggle"
+                className="academic-cycle-group__toggle"
                 aria-expanded={open}
                 aria-controls={panelId}
                 onClick={() => toggleCycle(section.cycle.id)}
               >
-                <span className="academic-setup-cycle-group__title-wrap">
-                  <strong className="academic-setup-cycle-group__title">
+                <span
+                  className="academic-cycle-group__chevron"
+                  data-open={open || undefined}
+                  aria-hidden
+                />
+                <span className="academic-cycle-group__copy">
+                  <strong className="academic-cycle-group__title">
                     {cycleTitle(section.cycle)}
                   </strong>
-                  <span className="academic-setup-cycle-group__stats">
+                  <span className="academic-cycle-group__stats">
                     {t('admin.academicSetup.cycleGroupStats', {
                       levels: section.levelCount,
                       classes: section.classCount,
                     })}
                   </span>
                 </span>
-                <span className="academic-setup-cycle-group__chevron" aria-hidden>
-                  {open ? '▾' : '▸'}
-                </span>
               </button>
             </header>
 
             {open && (
-              <div id={panelId} className="academic-setup-cycle-group__body">
+              <div id={panelId} className="academic-cycle-group__body">
                 {section.levels.map((group) => (
                   <LevelClassGroup
                     key={group.id}
