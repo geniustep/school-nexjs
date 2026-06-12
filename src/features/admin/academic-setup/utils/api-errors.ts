@@ -14,6 +14,12 @@ const STAFF_ERRORS: Record<string, string> = {
   duplicate_login: 'admin.academicSetup.errors.duplicateLogin',
   invalid_admin_kind: 'admin.academicSetup.errors.invalidAdminKind',
   school_out_of_scope: 'admin.academicSetup.errors.schoolOutOfScope',
+  staff_out_of_scope: 'admin.academicSetup.errors.staffOutOfScope',
+  staff_not_found: 'admin.academicSetup.errors.staffNotFound',
+  account_not_found: 'admin.academicSetup.errors.accountNotFound',
+  already_active: 'admin.academicSetup.staffAlreadyActive',
+  already_inactive: 'admin.academicSetup.staffAlreadyInactive',
+  cannot_reactivate: 'admin.academicSetup.errors.cannotReactivate',
   default_school_mismatch: 'admin.academicSetup.errors.defaultSchoolMismatch',
   scope_school_mismatch: 'admin.academicSetup.errors.scopeSchoolMismatch',
   scope_level_mismatch: 'admin.academicSetup.errors.scopeLevelMismatch',
@@ -34,9 +40,24 @@ const TRACK_ERRORS: Record<string, string> = {
   class_track_mismatch: 'admin.academicSetup.errors.classTrackMismatch',
 };
 
+const CLASS_ERRORS: Record<string, string> = {
+  class_in_use: 'admin.academicSetup.errors.classInUse',
+  cannot_delete_class: 'admin.academicSetup.errors.cannotDeleteClass',
+  class_out_of_scope: 'admin.academicSetup.errors.classOutOfScope',
+  not_found: 'admin.academicSetup.errors.classNotFound',
+  forbidden: 'admin.pageForbidden',
+  duplicate_record: 'admin.classDuplicateName',
+  conflict: 'admin.classDuplicateName',
+  validation_error: 'errors.validationFailed',
+  class_already_exists: 'admin.academicSetup.errors.classAlreadyExists',
+  academic_context_missing: 'admin.academicSetup.errors.academicContextMissing',
+  class_creation_failed: 'admin.academicSetup.errors.classCreationFailed',
+};
+
 const CLASS_TRACK_ERRORS: Record<string, string> = {
   class_track_mismatch: 'admin.academicSetup.errors.classTrackMismatch',
   track_level_mismatch: 'admin.academicSetup.errors.trackLevelMismatch',
+  ...CLASS_ERRORS,
 };
 
 const LEVEL_ERRORS: Record<string, string> = {
@@ -55,6 +76,18 @@ const LEVEL_ERRORS: Record<string, string> = {
   level_in_use: 'admin.academicSetup.errors.levelInUse',
   protected_level: 'admin.academicSetup.errors.protectedLevel',
   cannot_delete_level: 'admin.academicSetup.errors.cannotDeleteLevel',
+  track_not_selected: 'admin.academicSetup.guided.selectAtLeastOneTrack',
+  reference_track_not_found: 'admin.academicSetup.errors.referenceTrackNotFound',
+  reference_track_inactive: 'admin.academicSetup.errors.referenceTrackInactive',
+  reference_track_mismatch: 'admin.academicSetup.errors.referenceTrackMismatch',
+  track_duplicate: 'admin.academicSetup.errors.trackDuplicate',
+  track_already_enabled: 'admin.academicSetup.guided.trackAlreadyEnabled',
+  track_level_mismatch: 'admin.academicSetup.errors.trackLevelMismatch',
+  level_does_not_support_tracks: 'admin.academicSetup.errors.levelNoTracks',
+  academic_context_missing: 'admin.academicSetup.errors.academicContextMissing',
+  class_creation_failed: 'admin.academicSetup.errors.classCreationFailed',
+  validation_error: 'errors.validationFailed',
+  forbidden: 'admin.pageForbidden',
 };
 
 const SUBJECT_ERRORS: Record<string, string> = {

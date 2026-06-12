@@ -11,6 +11,7 @@ export function ClassDrawer({
   mode,
   cls,
   defaultLevelId,
+  defaultTrackId,
   onClose,
   onSaved,
 }: {
@@ -18,6 +19,7 @@ export function ClassDrawer({
   mode: 'view' | 'edit' | 'create';
   cls?: SchoolClass | ClassDetail | null;
   defaultLevelId?: number;
+  defaultTrackId?: number;
   onClose: () => void;
   onSaved: () => void;
 }) {
@@ -41,7 +43,9 @@ export function ClassDrawer({
               : defaultLevelId
                 ? ({
                     level_id: defaultLevelId,
+                    track_id: defaultTrackId,
                     level: { id: defaultLevelId, name: '' },
+                    track: defaultTrackId ? { id: defaultTrackId, name: '' } : null,
                   } as ClassDetail)
                 : undefined
           }

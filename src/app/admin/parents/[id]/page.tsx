@@ -7,6 +7,7 @@ import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { ResourceView } from '@/components/states/resource';
 import { PageHeader, Badge, Card, DefinitionList, SectionHead } from '@/components/ui/primitives';
 import { ConfirmActionButton } from '@/features/admin/confirm-action-button';
+import { EntityAccountPanel } from '@/features/admin/account/entity-account-panel';
 import { ParentForm } from '@/features/admin/entity-forms';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
@@ -66,6 +67,17 @@ export default function AdminParentDetailPage({ params }: { params: Promise<{ id
                     { label: t('admin.preferredLanguage'), value: parent.preferred_language ?? t('common.dash') },
                     { label: t('admin.notificationOptIn'), value: parent.notification_opt_in ? t('common.yes') : t('common.no') },
                   ]} />
+                </Card>
+                <Card>
+                  <SectionHead title={t('admin.account.accountInformation')} />
+                  <EntityAccountPanel
+                    entity={parent}
+                    entityLabel={parent.name}
+                    accountEndpoint={endpoints.admin.parentAccount(parent.id)}
+                    managePermission="manage_parents"
+                    defaultEmail={parent.email ?? ''}
+                    onAccountChanged={() => state.reload()}
+                  />
                 </Card>
                 <Card>
                   <SectionHead title={t('admin.linkedChildren')} />

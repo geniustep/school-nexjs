@@ -1,9 +1,21 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { AccountFieldsSection } from '@/features/admin/account/account-fields-section';
+import { AccountStatusBadge } from '@/features/admin/account/account-status-badge';
 import { useToast } from '@/components/ui/toast';
-import { useT } from '@/features/i18n/locale-context';
-import type { StaffCapabilityOption, StaffOptions } from '@/types/academic-setup';
+import { useLocale, useT } from '@/features/i18n/locale-context';
+import { getMessage, MESSAGES } from '@/lib/i18n/messages';
+import {
+  applyAccountMutationToasts,
+  resolveAccountMutationFeedback,
+} from '@/lib/account/account-mutation-feedback';
+import { mapAccountApiError } from '@/lib/account/account-errors';
+import {
+  buildAccountIdentityPayload,
+  validateCreateAccountInput,
+} from '@/lib/account/account-utils';
+import type { StaffCapabilityOption, StaffMember, StaffOptions } from '@/types/academic-setup';
 import {
   createStaffMember,
   deactivateStaffMember,
@@ -11,31 +23,59 @@ import {
   useStaffMember,
 } from '../hooks/use-staff';
 import { mapAcademicSetupApiError } from '../utils/api-errors';
+import {
+  staffMutationSuccessKey,
+} from '../utils/staff-utils';
+import {
+  staffShowsDeactivate,
+  staffShowsReactivate,
+} from './staff-reactivate-dialog';
 import { SetupDrawer } from './setup-drawer';
+
+function staffCapabilityLabel(
+  locale: keyof typeof MESSAGES,
+  cap: StaffCapabilityOption,
+): string {
+  const key = `admin.academicSetup.capabilities.${cap.code}`;
+  return getMessage(MESSAGES[locale], key) ?? getMessage(MESSAGES.en, key) ?? cap.label;
+}
+
+function resolveStaffLogin(member: StaffMember): string {
+  return member.login?.trim() || member.account?.login?.trim() || member.email?.trim() || '';
+}
 
 export function StaffFormDrawer({
   open,
   memberId,
+  member: memberFromList,
   options,
   canManage,
   onClose,
   onSaved,
+  onReactivate,
 }: {
   open: boolean;
   memberId: number | null;
+  member?: StaffMember;
   options?: StaffOptions;
   canManage: boolean;
   onClose: () => void;
   onSaved: () => void;
+  onReactivate?: (member: StaffMember) => void;
 }) {
   const t = useT();
+  const { locale } = useLocale();
   const toast = useToast();
-  const memberState = useStaffMember(memberId);
-  const member = memberState.data;
+  const memberState = useStaffMember(memberFromList ? null : memberId);
+  const member = memberFromList ?? memberState.data;
   const creating = memberId == null;
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [login, setLogin] = useState('');
+  const [useDifferentLogin, setUseDifferentLogin] = useState(false);
+  const [originalEmail, setOriginalEmail] = useState('');
+  const [originalLogin, setOriginalLogin] = useState('');
   const [phone, setPhone] = useState('');
   const [jobTitle, setJobTitle] = useState('');
   const [adminKind, setAdminKind] = useState('');
@@ -43,53 +83,98 @@ export function StaffFormDrawer({
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (member) {
-      setName(member.name);
-      setEmail(member.email ?? '');
-      setPhone(member.phone ?? '');
-      setJobTitle(member.job_title ?? '');
-      setAdminKind(member.admin_kind);
-      setCapabilityIds(
-        (member.capabilities ?? [])
-          .map((code) => options?.capabilities.find((c) => c.code === code)?.id)
-          .filter((id): id is number => id != null),
-      );
-    } else if (creating) {
+    if (creating) {
       setName('');
       setEmail('');
+      setLogin('');
+      setUseDifferentLogin(false);
+      setOriginalEmail('');
+      setOriginalLogin('');
       setPhone('');
       setJobTitle('');
       setAdminKind(options?.admin_kinds[0]?.value ?? 'admin_staff');
       setCapabilityIds([]);
+      return;
     }
-  }, [member, creating, options]);
+    if (!member) return;
+    const memberEmail = member.email ?? '';
+    const memberLogin = resolveStaffLogin(member);
+    setName(member.name);
+    setEmail(memberEmail);
+    setLogin(memberLogin);
+    setOriginalEmail(memberEmail);
+    setOriginalLogin(memberLogin);
+    setUseDifferentLogin(Boolean(memberLogin && memberEmail && memberLogin !== memberEmail));
+    setPhone(member.phone ?? '');
+    setJobTitle(member.job_title ?? '');
+    setAdminKind(member.admin_kind);
+    const capabilityCodes = member.capabilities?.length
+      ? member.capabilities
+      : (member.permissions ?? []);
+    setCapabilityIds(
+      capabilityCodes
+        .map((code) => options?.capabilities.find((c) => c.code === code)?.id)
+        .filter((id): id is number => id != null),
+    );
+  }, [member, creating, options, memberId]);
+
+  const accountEntity = useMemo(() => member ?? undefined, [member]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!canManage) return;
+
+    if (creating && !validateCreateAccountInput(email, login, useDifferentLogin)) {
+      toast.error(t('admin.account.errors.loginRequired'));
+      return;
+    }
+
+    const identity = buildAccountIdentityPayload({
+      email,
+      login,
+      originalEmail,
+      originalLogin,
+      useDifferentLogin,
+      isCreate: creating,
+    });
+
     const payload = {
       name: name.trim(),
-      email: email.trim() || undefined,
+      ...identity,
       phone: phone.trim() || undefined,
       job_title: jobTitle.trim() || undefined,
       admin_kind: adminKind,
       capability_ids: capabilityIds,
     };
+
     setSaving(true);
     const res = creating
       ? await createStaffMember(payload)
       : await updateStaffMember(memberId!, payload);
     setSaving(false);
+
     if (!res.success) {
-      toast.error(mapAcademicSetupApiError(res.error, t, 'staff'));
+      const staffMsg = mapAcademicSetupApiError(res.error, t, 'staff');
+      const accountMsg = mapAccountApiError(res.error, t);
+      toast.error(staffMsg !== t('errors.serverError') ? staffMsg : accountMsg);
       return;
     }
-    toast.success(t('admin.saveSuccess'));
+
+    const feedback = resolveAccountMutationFeedback(res, t, {
+      createdKey: 'admin.account.accountCreated',
+      updatedKey: 'admin.saveSuccess',
+      alreadyExistsKey: 'admin.account.accountAlreadyExists',
+    });
+    if (feedback) applyAccountMutationToasts(feedback, toast);
+    else toast.success(t('admin.saveSuccess'));
+
     onSaved();
   }
 
   async function deactivate() {
-    if (!memberId || !window.confirm(t('admin.academicSetup.confirmDeactivateStaff'))) return;
+    if (!memberId || !member) return;
+    const message = `${t('admin.academicSetup.confirmDeactivateStaff')}\n\n${t('admin.academicSetup.deactivationPreservesAccount')}`;
+    if (!window.confirm(message)) return;
     setSaving(true);
     const res = await deactivateStaffMember(memberId);
     setSaving(false);
@@ -97,7 +182,8 @@ export function StaffFormDrawer({
       toast.error(mapAcademicSetupApiError(res.error, t, 'staff'));
       return;
     }
-    toast.success(t('admin.actionSuccess'));
+    const key = staffMutationSuccessKey(res.data?.action);
+    toast.success(key ? t(key) : t('admin.actionSuccess'));
     onSaved();
   }
 
@@ -117,24 +203,31 @@ export function StaffFormDrawer({
       title={creating ? t('admin.academicSetup.addStaff') : t('admin.academicSetup.editStaff')}
       onClose={onClose}
     >
-      {memberState.loading && !creating ? (
+      {memberState.loading && !creating && !member ? (
         <p className="muted">{t('common.loading')}</p>
       ) : (
         <form className="col" style={{ gap: 12 }} onSubmit={submit}>
+          {!creating && accountEntity ? (
+            <AccountStatusBadge entity={accountEntity} showLogin />
+          ) : null}
           <label className="col" style={{ gap: 4 }}>
             <span className="tiny muted">{t('admin.fullName')}</span>
             <input className="input" value={name} onChange={(e) => setName(e.target.value)} required />
           </label>
-          <div className="row" style={{ gap: 12, flexWrap: 'wrap' }}>
-            <label className="col" style={{ gap: 4, flex: 1 }}>
-              <span className="tiny muted">{t('admin.email')}</span>
-              <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-            </label>
-            <label className="col" style={{ gap: 4, flex: 1 }}>
-              <span className="tiny muted">{t('admin.phone')}</span>
-              <input className="input" value={phone} onChange={(e) => setPhone(e.target.value)} />
-            </label>
-          </div>
+          <AccountFieldsSection
+            mode={creating ? 'create' : 'edit'}
+            email={email}
+            login={login}
+            useDifferentLogin={useDifferentLogin}
+            onEmailChange={setEmail}
+            onLoginChange={setLogin}
+            onUseDifferentLoginChange={setUseDifferentLogin}
+            disabled={!canManage || saving}
+          />
+          <label className="col" style={{ gap: 4 }}>
+            <span className="tiny muted">{t('admin.phone')}</span>
+            <input className="input" value={phone} onChange={(e) => setPhone(e.target.value)} />
+          </label>
           <label className="col" style={{ gap: 4 }}>
             <span className="tiny muted">{t('admin.academicSetup.jobTitle')}</span>
             <input className="input" value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} />
@@ -161,20 +254,31 @@ export function StaffFormDrawer({
                       )
                     }
                   />
-                  <span>{cap.label}</span>
+                  <span>{staffCapabilityLabel(locale, cap)}</span>
                 </label>
               ))}
             </fieldset>
           ))}
-          <div className="row" style={{ gap: 8 }}>
+          <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
             {canManage && (
-              <button type="submit" className="btn btn--primary btn--sm" disabled={saving}>
+              <button type="submit" className="btn btn--primary btn--sm" disabled={saving} style={{ minHeight: 44 }}>
                 {saving ? t('common.saving') : t('common.save')}
               </button>
             )}
-            {!creating && canManage && (
+            {!creating && canManage && member && staffShowsDeactivate(member, canManage) && (
               <button type="button" className="btn btn--ghost btn--sm" disabled={saving} onClick={deactivate}>
                 {t('admin.academicSetup.deactivateStaff')}
+              </button>
+            )}
+            {!creating && canManage && member && staffShowsReactivate(member, canManage) && onReactivate && (
+              <button
+                type="button"
+                className="btn btn--primary btn--sm"
+                disabled={saving}
+                style={{ minHeight: 44 }}
+                onClick={() => onReactivate(member)}
+              >
+                {t('admin.academicSetup.reactivateStaff')}
               </button>
             )}
             <button type="button" className="btn btn--ghost btn--sm" onClick={onClose}>

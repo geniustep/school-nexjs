@@ -1,6 +1,7 @@
 // Student resources — mirrors API_REPORT.md §3 (admin/students, student-view).
 
 import type { Ref } from './api';
+import type { UserAccountInfo } from './account';
 
 export type StudentStatus =
   | 'draft'
@@ -41,6 +42,9 @@ export interface Student extends StudentNameFields {
   admission_date: string | null;
   email: string | null;
   phone: string | null;
+  login?: string | null;
+  user_id?: number | null;
+  account?: UserAccountInfo | null;
 }
 
 // Compact child shape used by parent endpoints (GET /parent/children).

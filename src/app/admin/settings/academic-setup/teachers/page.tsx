@@ -3,7 +3,8 @@
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ErrorState, LoadingState, EmptyState } from '@/components/states/states';
-import { PageHeader } from '@/components/ui/primitives';
+import { AcademicPageHeader } from '@/features/admin/academic-setup/components/academic-page-header';
+import { AcademicSearchField, AcademicToolbar } from '@/features/admin/academic-setup/components/academic-toolbar';
 import { TeacherCardGrid } from '@/features/admin/academic-setup/components/teacher-card';
 import { TeacherFormDrawer } from '@/features/admin/academic-setup/components/teacher-form-drawer';
 import { useAcademicSetupLists } from '@/features/admin/academic-setup/hooks/use-academic-setup-data';
@@ -41,10 +42,16 @@ export default function AcademicSetupTeachersPage() {
     return models;
   }, [lists.teachers, search, filterTeacherId]);
 
+  const headerActions = canManage ? (
+    <button type="button" className="btn btn--primary" onClick={() => setDrawerOpen(true)}>
+      {t('admin.addTeacher')}
+    </button>
+  ) : undefined;
+
   if (lists.loading) {
     return (
       <>
-        <PageHeader title={t('admin.academicSetup.nav.teachers')} />
+        <AcademicPageHeader title={t('admin.academicSetup.nav.teachers')} skeleton />
         <LoadingState label={t('common.loading')} />
       </>
     );
@@ -53,7 +60,7 @@ export default function AcademicSetupTeachersPage() {
   if (lists.error) {
     return (
       <>
-        <PageHeader title={t('admin.academicSetup.nav.teachers')} />
+        <AcademicPageHeader title={t('admin.academicSetup.nav.teachers')} />
         <ErrorState error={lists.error} onRetry={lists.reload} />
       </>
     );
@@ -61,26 +68,24 @@ export default function AcademicSetupTeachersPage() {
 
   return (
     <>
-      <PageHeader
+      <AcademicPageHeader
         title={t('admin.academicSetup.nav.teachers')}
-        actions={
-          canManage ? (
-            <button type="button" className="btn btn--primary btn--sm" onClick={() => setDrawerOpen(true)}>
-              + {t('admin.addTeacher')}
-            </button>
-          ) : undefined
-        }
+        subtitle={t('admin.academicSetup.teachersPageSubtitle')}
+        stats={t('admin.academicSetup.teachersPageStats', { count: lists.teachers.length })}
+        actions={headerActions}
       />
-      <input
-        className="input"
-        type="search"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder={t('admin.academicSetup.searchTeachers')}
-        aria-label={t('admin.academicSetup.searchTeachers')}
-      />
+
+      <AcademicToolbar>
+        <AcademicSearchField
+          value={search}
+          onChange={setSearch}
+          placeholder={t('admin.academicSetup.searchTeachers')}
+          label={t('admin.academicSetup.searchTeachers')}
+        />
+      </AcademicToolbar>
+
       {cards.length === 0 ? (
-        <EmptyState icon="👩‍🏫" title={t('empty.classes')} />
+        <EmptyState title={t('empty.classes')} />
       ) : (
         <TeacherCardGrid models={cards} selectedId={filterTeacherId} />
       )}

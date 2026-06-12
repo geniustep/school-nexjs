@@ -1,10 +1,16 @@
 import type { ReadinessStatus, SetupReadinessPayload } from '@/types/academic-setup';
 
-export function readinessTone(status: ReadinessStatus, score: number): 'green' | 'amber' | 'red' {
+export function readinessTone(
+  status: ReadinessStatus,
+  score: number,
+): 'green' | 'amber' | 'red' | 'blue' | 'slate' {
   if (status === 'ready') return 'green';
-  if (status === 'blocked' || status === 'not_started') return 'red';
+  if (status === 'blocked') return 'red';
+  if (status === 'needs_attention') return 'amber';
+  if (status === 'incomplete') return 'blue';
+  if (status === 'not_started') return 'slate';
   if (score >= 90) return 'amber';
-  return 'amber';
+  return 'blue';
 }
 
 export function readinessScoreLabel(

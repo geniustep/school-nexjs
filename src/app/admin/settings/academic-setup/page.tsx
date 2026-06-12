@@ -1,18 +1,12 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ErrorState, LoadingState } from '@/components/states/states';
-import { PageHeader } from '@/components/ui/primitives';
-import { AcademicSetupHeader } from '@/features/admin/academic-setup/components/academic-setup-header';
+import { AcademicSetupHero } from '@/features/admin/academic-setup/components/academic-setup-hero';
 import { GuidedFlowJourney } from '@/features/admin/academic-setup/components/guided-flow-journey';
-import { GuidedFlowNextStep } from '@/features/admin/academic-setup/components/guided-flow-next-step';
-import { GlobalSetupSearch } from '@/features/admin/academic-setup/components/global-setup-search';
-import {
-  SetupIssuesList,
-  SetupQuickActionsList,
-} from '@/features/admin/academic-setup/components/setup-issues-list';
-import { SetupDomainCards } from '@/features/admin/academic-setup/components/setup-summary-card';
+import { GroupedSetupIssues } from '@/features/admin/academic-setup/components/grouped-setup-issues';
+import { AcademicQuickActions } from '@/features/admin/academic-setup/components/academic-quick-actions';
 import { useAcademicSetupLists } from '@/features/admin/academic-setup/hooks/use-academic-setup-data';
 import { useSetupReadiness } from '@/features/admin/academic-setup/hooks/use-setup-readiness';
 import { useTrackOptions } from '@/features/admin/academic-setup/hooks/use-tracks';
@@ -36,7 +30,8 @@ export default function AcademicSetupOverviewPage() {
   const readinessState = useSetupReadiness();
   const lists = useAcademicSetupLists();
   const trackOptionsState = useTrackOptions();
-  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [allIssuesOpen, setAllIssuesOpen] = useState(false);
+  const issuesSectionRef = useRef<HTMLElement>(null);
 
   const loading = readinessState.loading || lists.loading || trackOptionsState.loading;
   const error = readinessState.error ?? lists.error ?? trackOptionsState.error;
@@ -69,7 +64,10 @@ export default function AcademicSetupOverviewPage() {
   if (loading) {
     return (
       <>
-        <PageHeader title={t('admin.academicSetup.title')} subtitle={t('admin.academicSetup.subtitle')} />
+        <div className="academic-overview-hero academic-overview-hero--skeleton" aria-busy="true">
+          <div className="academic-setup-skeleton academic-setup-skeleton--title" />
+          <div className="academic-setup-skeleton academic-setup-skeleton--bar" />
+        </div>
         <LoadingState label={t('common.loading')} />
       </>
     );
@@ -78,7 +76,9 @@ export default function AcademicSetupOverviewPage() {
   if (error || !readinessState.data) {
     return (
       <>
-        <PageHeader title={t('admin.academicSetup.title')} subtitle={t('admin.academicSetup.subtitle')} />
+        <div className="academic-overview-hero">
+          <h1 className="academic-overview-hero__title">{t('admin.academicSetup.title')}</h1>
+        </div>
         <ErrorState
           error={error ?? { code: 'server_error', message: t('admin.academicSetup.loadError'), details: {} }}
           onRetry={() => {
@@ -92,76 +92,53 @@ export default function AcademicSetupOverviewPage() {
   }
 
   const data = readinessState.data;
-  const topIssues = data.issues.slice(0, 5);
+  const allIssues = data.issues;
+  const quickActions = data.quick_actions ?? [];
 
   return (
     <>
-      <PageHeader title={t('admin.academicSetup.title')} subtitle={t('admin.academicSetup.subtitle')} />
-      <AcademicSetupHeader data={data} />
-
-      {nextStep && (
-        <div className="academic-setup-primary-cta">
-          {nextStep.available ? (
-            <Link href={nextStep.href} className="btn btn--primary">
-              {t(nextStep.actionKey)}
-            </Link>
-          ) : (
-            <button type="button" className="btn btn--primary" disabled>
-              {t(nextStep.actionKey)}
-            </button>
-          )}
-        </div>
-      )}
-
-      <GuidedFlowNextStep step={nextStep} />
-      <GuidedFlowJourney steps={steps} />
-
-      <GlobalSetupSearch
-        levels={lists.levels}
-        classes={lists.classes}
-        subjects={lists.subjects}
-        teachers={lists.teachers}
-        staff={lists.staff}
+      <AcademicSetupHero
+        data={data}
+        nextStep={nextStep}
+        onViewIssues={() => issuesSectionRef.current?.scrollIntoView({ behavior: 'smooth' })}
       />
 
-      {topIssues.length > 0 && (
-        <section>
-          <h2 className="admin-section__title">{t('admin.alerts')}</h2>
-          <SetupIssuesList issues={topIssues} limit={5} />
+      <GuidedFlowJourney steps={steps} />
+
+      {allIssues.length > 0 && (
+        <section ref={issuesSectionRef} className="academic-issues-groups-section">
+          <div className="academic-issues-groups-section__head">
+            <h2 className="admin-section__title">{t('admin.alerts')}</h2>
+            <button
+              type="button"
+              className="btn btn--ghost btn--sm"
+              aria-expanded={allIssuesOpen}
+              onClick={() => setAllIssuesOpen((v) => !v)}
+            >
+              {allIssuesOpen
+                ? t('admin.academicSetup.guided.hideDetails')
+                : t('admin.academicSetup.guided.showAllDetails')}
+            </button>
+          </div>
+          <GroupedSetupIssues issues={allIssues} maxGroups={allIssuesOpen ? 99 : 3} />
         </section>
       )}
 
-      <section>
-        <button
-          type="button"
-          className="btn btn--ghost btn--sm"
-          aria-expanded={detailsOpen}
-          onClick={() => setDetailsOpen((v) => !v)}
-        >
-          {detailsOpen
-            ? t('admin.academicSetup.guided.hideDetails')
-            : t('admin.academicSetup.guided.showDetails')}
-        </button>
-        {detailsOpen && (
-          <div className="col mt-2" style={{ gap: 16 }}>
-            {(data.quick_actions?.length ?? 0) > 0 && (
-              <section>
-                <h2 className="admin-section__title">{t('admin.academicSetup.quickActionsTitle')}</h2>
-                <SetupQuickActionsList actions={data.quick_actions ?? []} />
-              </section>
-            )}
-            {data.readiness.ready_for_timetable_setup && (
-              <div className="academic-setup-gap-banner" style={{ borderColor: '#15803d', background: '#f0fdf4', color: '#166534' }}>
-                <p>{t('admin.academicSetup.readyForTimetable')}</p>
-                <Link href="/admin/timetable" className="btn btn--ghost btn--sm mt-2">
-                  {t('admin.academicSetup.guided.openTimetable')}
-                </Link>
-              </div>
-            )}
-            <SetupDomainCards data={data} />
-          </div>
-        )}
-      </section>
+      {quickActions.length > 0 && (
+        <section className="academic-quick-actions-section">
+          <h2 className="admin-section__title">{t('admin.academicSetup.quickActionsTitle')}</h2>
+          <AcademicQuickActions actions={quickActions} limit={4} />
+        </section>
+      )}
+
+      {data.readiness.ready_for_timetable_setup && (
+        <div className="academic-setup-gap-banner academic-setup-gap-banner--success">
+          <p>{t('admin.academicSetup.readyForTimetable')}</p>
+          <Link href="/admin/timetable" className="btn btn--ghost btn--sm mt-2">
+            {t('admin.academicSetup.guided.openTimetable')}
+          </Link>
+        </div>
+      )}
     </>
   );
 }

@@ -27,6 +27,7 @@ export default function AdminStudentsPage() {
   const [classId, setClassId] = useState('');
   const [levelId, setLevelId] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [accountFilter, setAccountFilter] = useState('');
   const [importOpen, setImportOpen] = useState(false);
 
   const params: ListParams = {
@@ -36,6 +37,13 @@ export default function AdminStudentsPage() {
     class_id: classId || undefined,
     level_id: levelId || undefined,
     status: statusFilter || undefined,
+    has_account:
+      accountFilter === 'has_account'
+        ? 'true'
+        : accountFilter === 'no_account'
+          ? 'false'
+          : undefined,
+    account_status: accountFilter === 'inactive_account' ? 'inactive' : undefined,
   };
   const state = useAdminResource<Student[]>(endpoints.admin.students, params);
   const classesState = useAdminResource<import('@/types/class').SchoolClass[]>(endpoints.admin.classes);
@@ -138,6 +146,12 @@ export default function AdminStudentsPage() {
           <option value="">{t('admin.allStates')}</option>
           <option value="active">{t('states.active')}</option>
           <option value="suspended">{t('states.suspended')}</option>
+        </select>
+        <select className="input" value={accountFilter} onChange={(e) => { setAccountFilter(e.target.value); setPage(1); }}>
+          <option value="">{t('admin.account.filterAll')}</option>
+          <option value="has_account">{t('admin.account.filterHasAccount')}</option>
+          <option value="no_account">{t('admin.account.filterNoAccount')}</option>
+          <option value="inactive_account">{t('admin.account.filterInactiveAccount')}</option>
         </select>
         <button className="btn btn--primary" type="submit">{t('admin.search')}</button>
       </form>

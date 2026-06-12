@@ -1,17 +1,22 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { api } from '@/lib/api/client';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { endpoints } from '@/lib/api/endpoints';
-import type { StaffMember, StaffOptions } from '@/types/academic-setup';
+import { normalizeStaffMember } from '@/features/admin/academic-setup/utils/staff-utils';
+import type { StaffMember, StaffMutationResult, StaffOptions } from '@/types/academic-setup';
 import type { ListParams } from '@/types/api';
 
 export function useStaffList(query?: ListParams) {
   const state = useAdminResource<StaffMember[]>(endpoints.admin.staff, query);
   const reload = useCallback(() => state.reload(), [state]);
+  const staff = useMemo(
+    () => (state.data ?? []).map(normalizeStaffMember),
+    [state.data],
+  );
   return {
-    staff: state.data ?? [],
+    staff,
     loading: state.loading,
     error: state.error,
     meta: state.meta,
@@ -31,7 +36,11 @@ export function useStaffOptions() {
 
 export function useStaffMember(id: number | null) {
   const state = useAdminResource<StaffMember>(id ? endpoints.admin.staffMember(id) : null);
-  return state;
+  const data = useMemo(
+    () => (state.data ? normalizeStaffMember(state.data) : null),
+    [state.data],
+  );
+  return { ...state, data };
 }
 
 export async function createStaffMember(payload: Record<string, unknown>) {
@@ -43,5 +52,9 @@ export async function updateStaffMember(id: number, payload: Record<string, unkn
 }
 
 export async function deactivateStaffMember(id: number) {
-  return api.delete<{ action?: string }>(endpoints.admin.staffMember(id));
+  return api.post<StaffMutationResult>(endpoints.admin.staffDeactivate(id), {});
+}
+
+export async function reactivateStaffMember(id: number) {
+  return api.post<StaffMutationResult>(endpoints.admin.staffReactivate(id), {});
 }

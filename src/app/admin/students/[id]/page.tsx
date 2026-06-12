@@ -7,6 +7,7 @@ import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { ResourceView } from '@/components/states/resource';
 import { PageHeader, Badge, Card, DefinitionList, SectionHead } from '@/components/ui/primitives';
 import { ConfirmActionButton } from '@/features/admin/confirm-action-button';
+import { EntityAccountPanel } from '@/features/admin/account/entity-account-panel';
 import { StudentForm } from '@/features/admin/entity-forms';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
@@ -103,6 +104,17 @@ export default function AdminStudentDetailPage({
                       { label: t('admin.email'), value: s.email ?? t('common.dash') },
                       { label: t('admin.phone'), value: s.phone ?? t('common.dash') },
                     ]}
+                  />
+                </Card>
+                <Card>
+                  <SectionHead title={t('admin.account.accountInformation')} />
+                  <EntityAccountPanel
+                    entity={s}
+                    entityLabel={getStudentDisplayName(s)}
+                    accountEndpoint={endpoints.admin.studentAccount(s.id)}
+                    managePermission="manage_students"
+                    defaultEmail={s.email ?? ''}
+                    onAccountChanged={() => state.reload()}
                   />
                 </Card>
                 <Card>

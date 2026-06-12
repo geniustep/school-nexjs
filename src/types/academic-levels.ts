@@ -13,15 +13,26 @@ export type ReferenceLevelLinkStatus =
   | 'legacy_unlinked'
   | 'legacy_ambiguous';
 
+export interface ReferenceTrackOption {
+  id: number;
+  code: string;
+  name: string;
+  sequence: number;
+  enabled: boolean;
+  school_track_id: number | null;
+  can_enable: boolean;
+}
+
 export interface ReferenceLevelOption {
   id: number;
   code: string;
   name: string;
-  display_name: string;
+  display_name?: string;
   moroccan_display_alias?: string | null;
   sequence: number;
   active: boolean;
   supports_tracks: boolean;
+  reference_tracks?: ReferenceTrackOption[];
   cycle: LevelCycleOption;
   enabled: boolean;
   school_level_id?: number | null;
@@ -46,15 +57,25 @@ export type EnableLevelResultStatus =
   | 'linked_existing'
   | 'failed';
 
+export interface LinkedTrack {
+  id: number;
+  name: string;
+  active?: boolean;
+}
+
+export interface LevelLinkedItems {
+  tracks?: LinkedTrack[];
+}
+
 export interface SchoolLevelUsage {
-  classes: number;
-  subjects: number;
-  tracks: number;
-  students: number;
-  enrollments: number;
-  assignments: number;
-  timetable_slots: number;
-  exams: number;
+  classes?: number;
+  subjects?: number;
+  tracks?: number;
+  students?: number;
+  enrollments?: number;
+  assignments?: number;
+  timetable_slots?: number;
+  exams?: number;
 }
 
 export type LinkReferenceAction = 'linked_existing' | 'already_linked';
@@ -87,15 +108,61 @@ export interface EnableLevelSchoolLevel {
   active?: boolean;
 }
 
+export type FirstClassStatus = 'created' | 'already_exists' | 'skipped' | 'failed';
+
+export interface FirstClassResult {
+  status: FirstClassStatus;
+  id?: number;
+  name?: string;
+  code?: string;
+  reason?: string;
+  error_code?: string;
+  message?: string;
+}
+
+export type TrackFirstClassResult = FirstClassResult;
+
+export type EnabledTrackResultStatus =
+  | 'enabled'
+  | 'already_enabled'
+  | 'reactivated'
+  | 'skipped'
+  | 'failed';
+
+export interface EnabledTrackResult {
+  reference_track_id: number;
+  status: EnabledTrackResultStatus;
+  school_track_id?: number;
+  school_track?: {
+    id: number;
+    name: string;
+    code: string;
+  };
+  first_class?: TrackFirstClassResult;
+  reason?: string;
+  message?: string;
+}
+
 export interface EnableLevelResult {
   reference_level_id: number;
   code?: string;
   status: EnableLevelResultStatus;
   school_level?: EnableLevelSchoolLevel;
+  school_level_id?: number;
+  first_class?: FirstClassResult;
+  tracks?: EnabledTrackResult[];
   error?: {
     code: string;
     message: string;
   };
+}
+
+export interface EnableLevelsRequest {
+  reference_level_ids: number[];
+  create_first_class: boolean;
+  enable_reference_tracks: boolean;
+  create_first_class_per_track: boolean;
+  track_selections: Record<string, number[]>;
 }
 
 export interface EnableLevelsSummary {
@@ -103,6 +170,10 @@ export interface EnableLevelsSummary {
   enabled: number;
   already_enabled: number;
   failed: number;
+  classes_created?: number;
+  classes_already_exist?: number;
+  classes_skipped?: number;
+  classes_failed?: number;
 }
 
 export interface EnableLevelsResponse {

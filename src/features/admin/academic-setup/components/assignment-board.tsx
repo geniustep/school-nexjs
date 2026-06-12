@@ -123,7 +123,7 @@ export function AssignmentBoard({
 
   return (
     <div className="academic-setup-assignment-board">
-      <div className="between academic-setup-filters">
+      <div className="academic-toolbar academic-setup-assignment-toolbar">
         <div className="academic-setup-view-tabs" role="tablist">
           {(['class', 'teacher', 'subject'] as const).map((mode) => (
             <button
@@ -138,8 +138,8 @@ export function AssignmentBoard({
             </button>
           ))}
         </div>
-        {missingIssues.length > 0 && (
-          <button type="button" className="btn btn--primary btn--sm" onClick={() => setMissingOpen(true)}>
+        {missingIssues.length > 0 && canManage && (
+          <button type="button" className="btn btn--primary btn--sm academic-setup-assignment-toolbar__cta" onClick={() => setMissingOpen(true)}>
             {t('admin.academicSetup.completeMissing')} ({missingIssues.length})
           </button>
         )}

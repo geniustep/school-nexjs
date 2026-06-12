@@ -90,11 +90,11 @@ export function AssignmentByClass({
                 <span>{issue.context?.subject_name as string ?? issue.title}</span>
                 <button
                   type="button"
-                  className="academic-setup-unassigned"
+                  className="btn btn--ghost btn--sm academic-setup-assign-cta"
                   onClick={() => canManage && onPickMissing(issue)}
                   disabled={!canManage}
                 >
-                  {t('admin.academicSetup.unassigned')}
+                  {t('admin.academicSetup.assignTeacher')}
                 </button>
               </div>
             ))}

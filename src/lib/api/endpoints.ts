@@ -19,6 +19,7 @@ export const endpoints = {
     students: '/admin/students',
     student: (id: number | string) => `/admin/students/${id}`,
     studentUpdate: (id: number | string) => `/admin/students/${id}/update`,
+    studentAccount: (id: number | string) => `/admin/students/${id}/account`,
     studentArchive: (id: number | string) => `/admin/students/${id}/archive`,
     studentsImport: '/admin/students/import',
     studentsExport: '/admin/students/export',
@@ -26,6 +27,7 @@ export const endpoints = {
     parents: '/admin/parents',
     parent: (id: number | string) => `/admin/parents/${id}`,
     parentUpdate: (id: number | string) => `/admin/parents/${id}/update`,
+    parentAccount: (id: number | string) => `/admin/parents/${id}/account`,
     parentArchive: (id: number | string) => `/admin/parents/${id}/archive`,
     parentsImport: '/admin/parents/import',
     parentsExport: '/admin/parents/export',
@@ -41,6 +43,7 @@ export const endpoints = {
     class: (id: number | string) => `/admin/classes/${id}`,
     classUpdate: (id: number | string) => `/admin/classes/${id}/update`,
     classArchive: (id: number | string) => `/admin/classes/${id}/archive`,
+    classDelete: (id: number | string) => `/admin/classes/${id}`,
     classesImport: '/admin/classes/import',
     classesExport: '/admin/classes/export',
 
@@ -74,6 +77,8 @@ export const endpoints = {
     staff: '/admin/staff',
     staffMember: (id: number | string) => `/admin/staff/${id}`,
     staffUpdate: (id: number | string) => `/admin/staff/${id}/update`,
+    staffDeactivate: (id: number | string) => `/admin/staff/${id}/deactivate`,
+    staffReactivate: (id: number | string) => `/admin/staff/${id}/reactivate`,
     staffOptions: '/admin/staff/options',
 
     tracks: '/admin/tracks',

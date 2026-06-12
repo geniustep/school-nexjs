@@ -10,6 +10,14 @@ import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { buildClassPayload, mapClassApiError, resolveAcademicYearId } from '@/features/admin/class-form-utils';
 import { buildStudentPayload, mapStudentApiError } from '@/features/admin/student-form-utils';
+import { AccountFieldsSection } from '@/features/admin/account/account-fields-section';
+import { AccountStatusBadge } from '@/features/admin/account/account-status-badge';
+import { mapAccountApiError } from '@/lib/account/account-errors';
+import {
+  applyAccountMutationToasts,
+  resolveAccountMutationFeedback,
+} from '@/lib/account/account-mutation-feedback';
+import { buildAccountIdentityPayload } from '@/lib/account/account-utils';
 import { getStudentDisplayName } from '@/lib/utils/student';
 import type { Ref } from '@/types/api';
 import type { SchoolClass } from '@/types/class';
@@ -339,6 +347,13 @@ export function TeacherForm({
   const [code, setCode] = useState(teacher?.code ?? '');
   const [phone, setPhone] = useState(teacher?.phone ?? '');
   const [email, setEmail] = useState(teacher?.email ?? '');
+  const [login, setLogin] = useState(
+    teacher?.login?.trim() || teacher?.account?.login?.trim() || teacher?.email?.trim() || '',
+  );
+  const [useDifferentLogin, setUseDifferentLogin] = useState(false);
+  const originalEmail = teacher?.email ?? '';
+  const originalLogin =
+    teacher?.login?.trim() || teacher?.account?.login?.trim() || teacher?.email?.trim() || '';
   const [classIds, setClassIds] = useState<number[]>(teacher?.classes?.map((c) => c.id) ?? []);
   const [subjectIds, setSubjectIds] = useState<number[]>(teacher?.subjects?.map((s) => s.id) ?? []);
 
@@ -352,11 +367,22 @@ export function TeacherForm({
       toast.error(t('errors.validationFailed'));
       return;
     }
+    const identity = teacher
+      ? buildAccountIdentityPayload({
+          email,
+          login,
+          originalEmail,
+          originalLogin,
+          useDifferentLogin: true,
+          isCreate: false,
+        })
+      : { email: email.trim() || undefined };
+
     const payload = {
       name: name.trim(),
       code: code.trim() || undefined,
       phone: phone.trim() || undefined,
-      email: email.trim() || undefined,
+      ...identity,
       class_ids: classIds,
       subject_ids: subjectIds,
     };
@@ -366,10 +392,18 @@ export function TeacherForm({
       : await api.post(endpoints.admin.teachers, payload);
     setSaving(false);
     if (res.success && res.data) {
-      toast.success(t('admin.saveSuccess'));
+      const feedback = teacher
+        ? resolveAccountMutationFeedback(res, t, {
+            createdKey: 'admin.account.accountCreated',
+            updatedKey: 'admin.saveSuccess',
+            alreadyExistsKey: 'admin.account.accountAlreadyExists',
+          })
+        : null;
+      if (feedback) applyAccountMutationToasts(feedback, toast);
+      else toast.success(t('admin.saveSuccess'));
       onSaved((res.data as Teacher).id);
     } else if (!res.success) {
-      toast.error(res.error.message);
+      toast.error(mapAccountApiError(res.error, t) || res.error.message);
     }
   }
 
@@ -378,6 +412,7 @@ export function TeacherForm({
       <Field label={t('admin.fullName')}>
         <input className="input" value={name} onChange={(e) => setName(e.target.value)} required />
       </Field>
+      {teacher ? <AccountStatusBadge entity={teacher} showLogin /> : null}
       <div className="row" style={{ gap: 12, flexWrap: 'wrap' }}>
         <Field label={t('admin.code')}>
           <input className="input" value={code} onChange={(e) => setCode(e.target.value)} />
@@ -385,10 +420,29 @@ export function TeacherForm({
         <Field label={t('admin.phone')}>
           <input className="input" value={phone} onChange={(e) => setPhone(e.target.value)} />
         </Field>
-        <Field label={t('admin.email')}>
-          <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        </Field>
       </div>
+      {teacher ? (
+        <AccountFieldsSection
+          mode="edit"
+          email={email}
+          login={login}
+          useDifferentLogin={useDifferentLogin}
+          onEmailChange={setEmail}
+          onLoginChange={setLogin}
+          onUseDifferentLoginChange={setUseDifferentLogin}
+          disabled={saving}
+        />
+      ) : (
+        <Field label={t('admin.email')}>
+          <input
+            className="input"
+            type="text"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </Field>
+      )}
       <Field label={t('nav.classes')}>
         <div className="col" style={{ gap: 6, maxHeight: 120, overflow: 'auto' }}>
           {(classesState.data ?? []).map((c) => (
@@ -493,6 +547,13 @@ export function ClassForm({
     setLevelId(nextLevelId);
   }
 
+  function handleTrackChange(nextTrackId: string) {
+    if (cls && trackId && nextTrackId !== trackId && !window.confirm(t('admin.academicSetup.trackChangeWarning'))) {
+      return;
+    }
+    setTrackId(nextTrackId);
+  }
+
   function toggleId(id: number, list: number[], set: (v: number[]) => void) {
     set(list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
   }
@@ -546,13 +607,18 @@ export function ClassForm({
             <select
               className="input"
               value={trackId}
-              onChange={(e) => setTrackId(e.target.value)}
+              onChange={(e) => handleTrackChange(e.target.value)}
             >
               <option value="">{t('common.dash')}</option>
               {tracksForLevel.map((tr) => (
                 <option key={tr.id} value={tr.id}>{tr.name}</option>
               ))}
             </select>
+            {cls && (
+              <span className="tiny muted block mt-2">
+                {t('admin.academicSetup.trackChangeHint')}
+              </span>
+            )}
           </Field>
         )}
         <Field label={t('admin.academicYearIdOptional')}>
