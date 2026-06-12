@@ -493,6 +493,13 @@ export function ClassForm({
     setLevelId(nextLevelId);
   }
 
+  function handleTrackChange(nextTrackId: string) {
+    if (cls && trackId && nextTrackId !== trackId && !window.confirm(t('admin.academicSetup.trackChangeWarning'))) {
+      return;
+    }
+    setTrackId(nextTrackId);
+  }
+
   function toggleId(id: number, list: number[], set: (v: number[]) => void) {
     set(list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
   }
@@ -546,13 +553,18 @@ export function ClassForm({
             <select
               className="input"
               value={trackId}
-              onChange={(e) => setTrackId(e.target.value)}
+              onChange={(e) => handleTrackChange(e.target.value)}
             >
               <option value="">{t('common.dash')}</option>
               {tracksForLevel.map((tr) => (
                 <option key={tr.id} value={tr.id}>{tr.name}</option>
               ))}
             </select>
+            {cls && (
+              <span className="tiny muted block mt-2">
+                {t('admin.academicSetup.trackChangeHint')}
+              </span>
+            )}
           </Field>
         )}
         <Field label={t('admin.academicYearIdOptional')}>

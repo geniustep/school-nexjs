@@ -31,7 +31,7 @@ export default function AcademicSetupClassesPage() {
   const canManage = canManageClasses(user);
 
   const [drawer, setDrawer] = useState<
-    | { mode: 'create'; levelId?: number }
+    | { mode: 'create'; levelId?: number; trackId?: number }
     | { mode: 'edit' | 'view'; cls: SchoolClass }
     | null
   >(null);
@@ -142,10 +142,14 @@ export default function AcademicSetupClassesPage() {
       }}
       onEnabled={handleLevelsEnabled}
       canManageClasses={canManage}
-      onCreateClassForLevel={(schoolLevelId) => {
+      onCreateClassForLevel={(schoolLevelId, schoolTrackId) => {
         setLevelsDrawerOpen(false);
         levelsAction.dismissActionParam();
-        setDrawer({ mode: 'create', levelId: schoolLevelId });
+        setDrawer({
+          mode: 'create',
+          levelId: schoolLevelId,
+          trackId: schoolTrackId,
+        });
       }}
     />
   );
@@ -244,6 +248,7 @@ export default function AcademicSetupClassesPage() {
         mode={createMode ? 'create' : drawer?.mode ?? 'view'}
         cls={drawer && 'cls' in drawer ? drawer.cls : undefined}
         defaultLevelId={drawer && 'levelId' in drawer ? drawer.levelId : undefined}
+        defaultTrackId={drawer && 'trackId' in drawer ? drawer.trackId : undefined}
         onClose={closeDrawer}
         onSaved={refreshAll}
       />

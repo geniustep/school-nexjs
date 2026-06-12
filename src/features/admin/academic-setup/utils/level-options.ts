@@ -1,10 +1,14 @@
 import type {
   EnableLevelResult,
+  EnableLevelsRequest,
   EnableLevelsResponse,
   EnableLevelsSummary,
+  EnabledTrackResult,
   FirstClassResult,
   LevelCycleOption,
   ReferenceLevelOption,
+  ReferenceTrackOption,
+  TrackFirstClassResult,
 } from '@/types/academic-levels';
 import { resolveReferenceLevelState } from './level-link-status';
 
@@ -112,6 +116,106 @@ export function buildEnablePayload(
   });
 }
 
+export function sortReferenceTracks(tracks: ReferenceTrackOption[]): ReferenceTrackOption[] {
+  return [...tracks].sort(
+    (a, b) => a.sequence - b.sequence || a.code.localeCompare(b.code),
+  );
+}
+
+export function selectableReferenceTracks(level: ReferenceLevelOption): ReferenceTrackOption[] {
+  return sortReferenceTracks(level.reference_tracks ?? []);
+}
+
+export function selectableTrackIdsForLevel(level: ReferenceLevelOption): number[] {
+  return selectableReferenceTracks(level)
+    .filter((track) => track.can_enable && !track.enabled)
+    .map((track) => track.id);
+}
+
+export function countSelectedTracks(
+  level: ReferenceLevelOption,
+  trackSelections: Map<number, Set<number>>,
+): { selected: number; total: number } {
+  const selectable = selectableTrackIdsForLevel(level);
+  const selected = [...(trackSelections.get(level.id) ?? [])].filter((id) =>
+    selectable.includes(id),
+  ).length;
+  return { selected, total: selectable.length };
+}
+
+export function selectedLevelsIncludeTracks(
+  selectedIds: Iterable<number>,
+  levels: ReferenceLevelOption[],
+): boolean {
+  return [...selectedIds].some((id) => {
+    const level = levels.find((l) => l.id === id);
+    return Boolean(level?.supports_tracks);
+  });
+}
+
+export function selectedLevelsIncludeNormal(
+  selectedIds: Iterable<number>,
+  levels: ReferenceLevelOption[],
+): boolean {
+  return [...selectedIds].some((id) => {
+    const level = levels.find((l) => l.id === id);
+    return level ? !level.supports_tracks : false;
+  });
+}
+
+export function validateTrackSelections(
+  selectedIds: Iterable<number>,
+  levels: ReferenceLevelOption[],
+  trackSelections: Map<number, Set<number>>,
+): { valid: boolean; invalidLevelIds: number[] } {
+  const invalidLevelIds: number[] = [];
+  for (const id of selectedIds) {
+    const level = levels.find((l) => l.id === id);
+    if (!level?.supports_tracks || !isReferenceLevelSelectable(level)) continue;
+    const selected = [...(trackSelections.get(id) ?? [])].filter((trackId) =>
+      selectableTrackIdsForLevel(level).includes(trackId),
+    );
+    if (selected.length === 0) invalidLevelIds.push(id);
+  }
+  return { valid: invalidLevelIds.length === 0, invalidLevelIds };
+}
+
+export function buildEnableLevelsWithTracksPayload(
+  selectedIds: Iterable<number>,
+  levels: ReferenceLevelOption[],
+  trackSelections: Map<number, Set<number>>,
+  options: { createFirstClass: boolean; createFirstClassPerTrack: boolean },
+): EnableLevelsRequest {
+  const reference_level_ids = buildEnablePayload(selectedIds, levels);
+  let hasNormalLevels = false;
+  let hasTrackSelections = false;
+  const track_selections: Record<string, number[]> = {};
+
+  for (const id of reference_level_ids) {
+    const level = levels.find((l) => l.id === id);
+    if (!level) continue;
+    if (level.supports_tracks) {
+      const selected = [...(trackSelections.get(id) ?? [])].filter((trackId) =>
+        selectableTrackIdsForLevel(level).includes(trackId),
+      );
+      if (selected.length > 0) {
+        hasTrackSelections = true;
+        track_selections[String(id)] = selected;
+      }
+    } else {
+      hasNormalLevels = true;
+    }
+  }
+
+  return {
+    reference_level_ids,
+    create_first_class: hasNormalLevels && options.createFirstClass,
+    enable_reference_tracks: hasTrackSelections,
+    create_first_class_per_track: hasTrackSelections && options.createFirstClassPerTrack,
+    track_selections,
+  };
+}
+
 export function buildEnableSummary(
   results: EnableLevelResult[],
   requested: number,
@@ -128,11 +232,16 @@ export function buildEnableSummary(
     else if (r.status === 'already_enabled') already_enabled += 1;
     else failed += 1;
 
-    const fc = r.first_class;
-    if (fc?.status === 'created') classes_created += 1;
-    else if (fc?.status === 'already_exists') classes_already_exist += 1;
-    else if (fc?.status === 'skipped') classes_skipped += 1;
-    else if (fc?.status === 'failed') classes_failed += 1;
+    const firstClasses: Array<TrackFirstClassResult | FirstClassResult | undefined> = [
+      r.first_class,
+      ...(r.tracks ?? []).map((track) => track.first_class),
+    ];
+    for (const fc of firstClasses) {
+      if (fc?.status === 'created') classes_created += 1;
+      else if (fc?.status === 'already_exists') classes_already_exist += 1;
+      else if (fc?.status === 'skipped') classes_skipped += 1;
+      else if (fc?.status === 'failed') classes_failed += 1;
+    }
   }
   return {
     requested,
@@ -208,18 +317,64 @@ export type EnableOutcome = {
   classesSkipped: number;
   classesFailed: number;
   firstClassFailedCount: number;
+  tracksEnabled: number;
+  tracksFailed: number;
   errorsByRefId: Map<number, string>;
 };
+
+type EnableAggregateCounters = {
+  classesCreated: number;
+  classesAlreadyExist: number;
+  classesSkipped: number;
+  classesFailed: number;
+  firstClassFailedCount: number;
+  tracksEnabled: number;
+  tracksFailed: number;
+};
+
+function accumulateFirstClassCounts(
+  fc: TrackFirstClassResult | FirstClassResult | undefined,
+  counters: EnableAggregateCounters,
+): void {
+  if (fc?.status === 'created') counters.classesCreated += 1;
+  else if (fc?.status === 'already_exists') counters.classesAlreadyExist += 1;
+  else if (fc?.status === 'skipped') counters.classesSkipped += 1;
+  else if (fc?.status === 'failed') {
+    counters.classesFailed += 1;
+    counters.firstClassFailedCount += 1;
+  }
+}
+
+function accumulateTrackResults(
+  tracks: EnabledTrackResult[] | undefined,
+  counters: EnableAggregateCounters,
+): void {
+  for (const track of tracks ?? []) {
+    if (track.status === 'failed') counters.tracksFailed += 1;
+    else if (
+      track.status === 'enabled' ||
+      track.status === 'already_enabled' ||
+      track.status === 'reactivated'
+    ) {
+      counters.tracksEnabled += 1;
+    }
+    accumulateFirstClassCounts(track.first_class, counters);
+  }
+}
 
 export function aggregateEnableResults(results: EnableLevelResult[]): EnableOutcome {
   let enabledCount = 0;
   let alreadyEnabledCount = 0;
   let failedCount = 0;
-  let classesCreated = 0;
-  let classesAlreadyExist = 0;
-  let classesSkipped = 0;
-  let classesFailed = 0;
-  let firstClassFailedCount = 0;
+  const counters: EnableAggregateCounters = {
+    classesCreated: 0,
+    classesAlreadyExist: 0,
+    classesSkipped: 0,
+    classesFailed: 0,
+    firstClassFailedCount: 0,
+    tracksEnabled: 0,
+    tracksFailed: 0,
+  };
   const failedIds: number[] = [];
   const newSchoolLevelIds: number[] = [];
   const errorsByRefId = new Map<number, string>();
@@ -229,17 +384,12 @@ export function aggregateEnableResults(results: EnableLevelResult[]): EnableOutc
       enabledCount += 1;
       const sid = resolveSchoolLevelId(r);
       if (sid) newSchoolLevelIds.push(sid);
-      if (r.first_class?.status === 'created') classesCreated += 1;
-      else if (r.first_class?.status === 'already_exists') classesAlreadyExist += 1;
-      else if (r.first_class?.status === 'skipped') classesSkipped += 1;
-      else if (r.first_class?.status === 'failed') {
-        classesFailed += 1;
-        firstClassFailedCount += 1;
-      }
+      accumulateFirstClassCounts(r.first_class, counters);
+      accumulateTrackResults(r.tracks, counters);
     } else if (r.status === 'already_enabled') {
       alreadyEnabledCount += 1;
-      if (r.first_class?.status === 'skipped') classesSkipped += 1;
-      else if (r.first_class?.status === 'already_exists') classesAlreadyExist += 1;
+      accumulateFirstClassCounts(r.first_class, counters);
+      accumulateTrackResults(r.tracks, counters);
     } else {
       failedCount += 1;
       failedIds.push(r.reference_level_id);
@@ -254,11 +404,13 @@ export function aggregateEnableResults(results: EnableLevelResult[]): EnableOutc
 
   const fullSuccess =
     failedCount === 0 &&
-    classesFailed === 0 &&
+    counters.tracksFailed === 0 &&
+    counters.classesFailed === 0 &&
     (enabledCount > 0 || alreadyEnabledCount > 0);
   const partialSuccess =
     (enabledCount > 0 && failedCount > 0) ||
-    (enabledCount > 0 && classesFailed > 0);
+    (enabledCount > 0 && counters.classesFailed > 0) ||
+    (enabledCount > 0 && counters.tracksFailed > 0);
 
   return {
     fullSuccess,
@@ -268,11 +420,13 @@ export function aggregateEnableResults(results: EnableLevelResult[]): EnableOutc
     failedCount,
     failedIds,
     newSchoolLevelIds,
-    classesCreated,
-    classesAlreadyExist,
-    classesSkipped,
-    classesFailed,
-    firstClassFailedCount,
+    classesCreated: counters.classesCreated,
+    classesAlreadyExist: counters.classesAlreadyExist,
+    classesSkipped: counters.classesSkipped,
+    classesFailed: counters.classesFailed,
+    firstClassFailedCount: counters.firstClassFailedCount,
+    tracksEnabled: counters.tracksEnabled,
+    tracksFailed: counters.tracksFailed,
     errorsByRefId,
   };
 }
@@ -308,6 +462,29 @@ const SKIPPED_REASON_KEYS: Record<string, string> = {
   level_already_enabled: 'admin.academicSetup.guided.firstClassSkippedAlreadyEnabled',
   create_first_class_disabled: 'admin.academicSetup.guided.firstClassSkippedNoOption',
   option_disabled: 'admin.academicSetup.guided.firstClassSkippedNoOption',
+  track_not_selected: 'admin.academicSetup.guided.selectAtLeastOneTrack',
+  level_does_not_support_tracks: 'admin.academicSetup.errors.levelNoTracks',
+  reference_track_mismatch: 'admin.academicSetup.errors.referenceTrackMismatch',
+  track_already_enabled: 'admin.academicSetup.guided.trackAlreadyEnabled',
+  class_already_exists: 'admin.academicSetup.guided.trackClassAlreadyExists',
+  academic_context_missing: 'admin.academicSetup.errors.academicContextMissing',
+  class_creation_failed: 'admin.academicSetup.errors.classCreationFailed',
+  track_classes_created: 'admin.academicSetup.guided.trackClassCreated',
+};
+
+const TRACK_STATUS_MESSAGE_KEYS: Record<EnabledTrackResult['status'], string> = {
+  enabled: 'admin.academicSetup.guided.trackEnabled',
+  already_enabled: 'admin.academicSetup.guided.trackAlreadyEnabled',
+  reactivated: 'admin.academicSetup.guided.trackReactivated',
+  skipped: 'admin.academicSetup.guided.trackSkipped',
+  failed: 'admin.academicSetup.guided.trackFailed',
+};
+
+const TRACK_FIRST_CLASS_MESSAGE_KEYS: Record<FirstClassResult['status'], string> = {
+  created: 'admin.academicSetup.guided.trackClassCreated',
+  already_exists: 'admin.academicSetup.guided.trackClassAlreadyExists',
+  skipped: 'admin.academicSetup.guided.firstClassSkipped',
+  failed: 'admin.academicSetup.guided.trackClassFailed',
 };
 
 export function mapFirstClassSkippedReason(reason?: string): string | null {
@@ -392,6 +569,125 @@ export function buildLevelEnableOutcomeLines(
       levelLabel,
       messageKey: 'admin.academicSetup.guided.enableLevelOutcomeLevelFailed',
       messageVars: { level: levelLabel } as Record<string, string | number>,
+    };
+  });
+}
+
+export type EnableOutcomeTrackLine = {
+  referenceTrackId: number;
+  trackName: string;
+  status: EnabledTrackResult['status'];
+  messageKey: string;
+  messageVars?: Record<string, string | number>;
+  firstClassMessageKey?: string;
+  firstClassMessageVars?: Record<string, string | number>;
+  canCreateClass?: boolean;
+  schoolLevelId?: number | null;
+  schoolTrackId?: number | null;
+};
+
+export type EnableOutcomeSection = {
+  referenceLevelId: number;
+  levelName: string;
+  levelMessageKey: string;
+  levelMessageVars?: Record<string, string | number>;
+  tracks: EnableOutcomeTrackLine[];
+  canCreateClass?: boolean;
+  schoolLevelId?: number | null;
+};
+
+export function resolveTrackDisplayName(
+  trackResult: EnabledTrackResult,
+  referenceTracks: ReferenceTrackOption[],
+): string {
+  const ref = referenceTracks.find((track) => track.id === trackResult.reference_track_id);
+  return trackResult.school_track?.name ?? ref?.name ?? String(trackResult.reference_track_id);
+}
+
+export function mapTrackFirstClassMessage(
+  firstClass: TrackFirstClassResult,
+): { key: string; vars?: Record<string, string | number> } {
+  const reasonKey = firstClass.reason ? mapFirstClassSkippedReason(firstClass.reason) : null;
+  if (firstClass.status === 'skipped' && reasonKey) {
+    return { key: reasonKey };
+  }
+  const key = TRACK_FIRST_CLASS_MESSAGE_KEYS[firstClass.status];
+  if (firstClass.status === 'created' && firstClass.name) {
+    return { key, vars: { className: firstClass.name } };
+  }
+  return { key };
+}
+
+export function buildEnableOutcomeSections(
+  results: EnableLevelResult[],
+  referenceLevels: ReferenceLevelOption[],
+  options: { createFirstClass: boolean; createFirstClassPerTrack: boolean },
+): EnableOutcomeSection[] {
+  return results.map((result) => {
+    const ref = referenceLevels.find((level) => level.id === result.reference_level_id);
+    const levelName =
+      ref?.name ?? result.school_level?.name ?? result.code ?? String(result.reference_level_id);
+    const schoolLevelId = resolveSchoolLevelId(result);
+    const referenceTracks = ref?.reference_tracks ?? [];
+
+    let levelMessageKey = 'admin.academicSetup.guided.enableLevelOutcomeLevelAdded';
+    let levelMessageVars: Record<string, string | number> | undefined = { level: levelName };
+    let canCreateClass = false;
+
+    if (result.status === 'failed') {
+      levelMessageKey = 'admin.academicSetup.guided.enableLevelOutcomeLevelFailed';
+    } else if (
+      options.createFirstClass &&
+      !ref?.supports_tracks &&
+      result.first_class?.status === 'created' &&
+      result.first_class.name
+    ) {
+      levelMessageKey = 'admin.academicSetup.guided.enableLevelOutcomeCreated';
+      levelMessageVars = { level: levelName, className: result.first_class.name };
+    } else if (
+      options.createFirstClass &&
+      !ref?.supports_tracks &&
+      result.first_class?.status === 'failed'
+    ) {
+      levelMessageKey = 'admin.academicSetup.guided.enableLevelOutcomeClassFailed';
+      canCreateClass = true;
+    } else if (
+      options.createFirstClass &&
+      !ref?.supports_tracks &&
+      result.first_class?.status === 'already_exists'
+    ) {
+      levelMessageKey = 'admin.academicSetup.guided.enableLevelOutcomeClassExists';
+    }
+
+    const tracks: EnableOutcomeTrackLine[] = (result.tracks ?? []).map((trackResult) => {
+      const trackName = resolveTrackDisplayName(trackResult, referenceTracks);
+      const firstClassMessage = trackResult.first_class
+        ? mapTrackFirstClassMessage(trackResult.first_class)
+        : undefined;
+      const schoolTrackId = trackResult.school_track_id ?? trackResult.school_track?.id ?? null;
+      return {
+        referenceTrackId: trackResult.reference_track_id,
+        trackName,
+        status: trackResult.status,
+        messageKey: TRACK_STATUS_MESSAGE_KEYS[trackResult.status],
+        messageVars: { track: trackName },
+        firstClassMessageKey: firstClassMessage?.key,
+        firstClassMessageVars: firstClassMessage?.vars,
+        canCreateClass:
+          options.createFirstClassPerTrack && trackResult.first_class?.status === 'failed',
+        schoolLevelId,
+        schoolTrackId,
+      };
+    });
+
+    return {
+      referenceLevelId: result.reference_level_id,
+      levelName,
+      levelMessageKey,
+      levelMessageVars,
+      tracks,
+      canCreateClass,
+      schoolLevelId,
     };
   });
 }

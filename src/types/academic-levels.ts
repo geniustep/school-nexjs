@@ -13,15 +13,26 @@ export type ReferenceLevelLinkStatus =
   | 'legacy_unlinked'
   | 'legacy_ambiguous';
 
+export interface ReferenceTrackOption {
+  id: number;
+  code: string;
+  name: string;
+  sequence: number;
+  enabled: boolean;
+  school_track_id: number | null;
+  can_enable: boolean;
+}
+
 export interface ReferenceLevelOption {
   id: number;
   code: string;
   name: string;
-  display_name: string;
+  display_name?: string;
   moroccan_display_alias?: string | null;
   sequence: number;
   active: boolean;
   supports_tracks: boolean;
+  reference_tracks?: ReferenceTrackOption[];
   cycle: LevelCycleOption;
   enabled: boolean;
   school_level_id?: number | null;
@@ -109,6 +120,29 @@ export interface FirstClassResult {
   message?: string;
 }
 
+export type TrackFirstClassResult = FirstClassResult;
+
+export type EnabledTrackResultStatus =
+  | 'enabled'
+  | 'already_enabled'
+  | 'reactivated'
+  | 'skipped'
+  | 'failed';
+
+export interface EnabledTrackResult {
+  reference_track_id: number;
+  status: EnabledTrackResultStatus;
+  school_track_id?: number;
+  school_track?: {
+    id: number;
+    name: string;
+    code: string;
+  };
+  first_class?: TrackFirstClassResult;
+  reason?: string;
+  message?: string;
+}
+
 export interface EnableLevelResult {
   reference_level_id: number;
   code?: string;
@@ -116,10 +150,19 @@ export interface EnableLevelResult {
   school_level?: EnableLevelSchoolLevel;
   school_level_id?: number;
   first_class?: FirstClassResult;
+  tracks?: EnabledTrackResult[];
   error?: {
     code: string;
     message: string;
   };
+}
+
+export interface EnableLevelsRequest {
+  reference_level_ids: number[];
+  create_first_class: boolean;
+  enable_reference_tracks: boolean;
+  create_first_class_per_track: boolean;
+  track_selections: Record<string, number[]>;
 }
 
 export interface EnableLevelsSummary {

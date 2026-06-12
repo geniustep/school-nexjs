@@ -646,6 +646,115 @@
   width: 100%;
 }
 
+.academic-setup-ref-levels-drawer {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.academic-setup-ref-levels-drawer__content {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding-bottom: 8px;
+}
+
+.academic-setup-ref-levels-drawer__footer {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  position: sticky;
+  bottom: 0;
+  padding-top: 12px;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  margin-top: 8px;
+  border-top: 1px solid var(--c-border);
+  background: var(--c-surface, #fff);
+}
+
+.academic-setup-ref-level__tracks {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--c-border);
+}
+
+.academic-setup-ref-level__tracks-toggle {
+  display: flex;
+  width: 100%;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 0;
+  border: 0;
+  background: transparent;
+  text-align: start;
+  cursor: pointer;
+  font: inherit;
+}
+
+.academic-setup-ref-level__tracks-panel {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.academic-setup-ref-level__tracks-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.academic-setup-ref-level__track-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.academic-setup-ref-level__track-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.academic-setup-ref-level__track-row--disabled {
+  opacity: 0.72;
+  cursor: default;
+}
+
+.academic-setup-ref-level__track-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.academic-setup-ref-level__tracks-error {
+  color: #b91c1c;
+  margin-top: 6px;
+}
+
+.academic-setup-ref-level-outcome {
+  margin-top: 8px;
+}
+
+.academic-setup-ref-level-outcome__tracks {
+  list-style: none;
+  margin: 6px 0 0;
+  padding-inline-start: 16px;
+}
+
 .academic-setup-dialog {
   position: fixed;
   top: 50%;

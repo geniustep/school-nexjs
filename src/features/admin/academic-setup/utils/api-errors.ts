@@ -70,6 +70,18 @@ const LEVEL_ERRORS: Record<string, string> = {
   level_in_use: 'admin.academicSetup.errors.levelInUse',
   protected_level: 'admin.academicSetup.errors.protectedLevel',
   cannot_delete_level: 'admin.academicSetup.errors.cannotDeleteLevel',
+  track_not_selected: 'admin.academicSetup.guided.selectAtLeastOneTrack',
+  reference_track_not_found: 'admin.academicSetup.errors.referenceTrackNotFound',
+  reference_track_inactive: 'admin.academicSetup.errors.referenceTrackInactive',
+  reference_track_mismatch: 'admin.academicSetup.errors.referenceTrackMismatch',
+  track_duplicate: 'admin.academicSetup.errors.trackDuplicate',
+  track_already_enabled: 'admin.academicSetup.guided.trackAlreadyEnabled',
+  track_level_mismatch: 'admin.academicSetup.errors.trackLevelMismatch',
+  level_does_not_support_tracks: 'admin.academicSetup.errors.levelNoTracks',
+  academic_context_missing: 'admin.academicSetup.errors.academicContextMissing',
+  class_creation_failed: 'admin.academicSetup.errors.classCreationFailed',
+  validation_error: 'errors.validationFailed',
+  forbidden: 'admin.pageForbidden',
 };
 
 const SUBJECT_ERRORS: Record<string, string> = {
