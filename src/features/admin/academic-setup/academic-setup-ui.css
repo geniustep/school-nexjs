@@ -2364,19 +2364,109 @@
 /* Staff cards */
 .academic-staff-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 12px;
+}
+
+/* Staff page layout */
+.academic-staff-page .academic-page-header {
+  margin-block-end: 20px;
+}
+
+.academic-staff-page__add-btn {
+  white-space: nowrap;
+}
+
+.academic-toolbar--staff {
+  align-items: stretch;
+  gap: 12px;
+  margin-block-end: 16px;
+}
+
+.academic-toolbar--staff .academic-toolbar__search {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+
+.academic-toolbar--staff .academic-toolbar__filters {
+  flex: 0 0 auto;
+  align-items: center;
+}
+
+.academic-staff-status-select {
+  display: none;
+  width: 100%;
+}
+
+.academic-staff-status-select .input {
+  width: 100%;
+  min-height: 44px;
+}
+
+.academic-segmented-control--staff {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  grid-template-columns: unset;
+  max-width: none;
+  width: max-content;
+  margin-block-end: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.academic-segmented-control--staff::-webkit-scrollbar {
+  display: none;
+}
+
+.academic-segmented-control--staff .academic-segmented-control__item {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  padding-inline: 14px;
+}
+
+@media (max-width: 639px) {
+  .academic-toolbar--staff {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .academic-staff-status-select {
+    display: block;
+  }
+
+  .academic-segmented-control--staff {
+    display: none;
+  }
+}
+
+@media (min-width: 640px) {
+  .academic-toolbar--staff {
+    flex-wrap: nowrap;
+  }
+
+  .academic-toolbar--staff .academic-toolbar__filters {
+    margin-inline-start: auto;
+  }
 }
 
 .academic-staff-card {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 14px;
+  gap: 10px;
+  padding: 12px 14px;
   border-radius: 12px;
   border: 1px solid var(--c-border);
   background: var(--c-surface, #fff);
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+  min-height: 0;
+}
+
+.academic-staff-card--inactive {
+  border-color: color-mix(in srgb, var(--c-warning, #d97706) 35%, var(--c-border));
+  background: color-mix(in srgb, var(--c-warning, #d97706) 4%, var(--c-surface, #fff));
+  border-inline-start-width: 3px;
+  border-inline-start-color: var(--c-warning, #d97706);
 }
 
 .academic-staff-card--selected {
@@ -2385,8 +2475,17 @@
 
 .academic-staff-card__head {
   display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.academic-staff-card__head-main {
+  display: flex;
   gap: 10px;
   align-items: flex-start;
+  flex: 1;
+  min-width: 0;
 }
 
 .academic-staff-card__identity {
@@ -2394,9 +2493,17 @@
   min-width: 0;
 }
 
+.academic-staff-card__badge {
+  flex-shrink: 0;
+}
+
 .academic-staff-card__name {
   display: block;
   font-size: 14px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .academic-staff-card__role {
@@ -2404,17 +2511,25 @@
   font-size: 12px;
   color: var(--c-text-muted);
   margin-block-start: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.academic-staff-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
 }
 
 .academic-staff-card__email {
   margin: 0;
   font-size: 12px;
   color: var(--c-text-muted);
-}
-
-.academic-staff-card--inactive {
-  border-color: color-mix(in srgb, var(--c-warning, #d97706) 35%, var(--c-border));
-  background: color-mix(in srgb, var(--c-warning, #d97706) 4%, var(--c-surface, #fff));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .academic-staff-card--inactive .academic-staff-card__name,
@@ -2425,26 +2540,101 @@
 
 .academic-staff-card__login {
   margin: 0;
-  overflow-wrap: anywhere;
-}
-
-.academic-staff-card__kind {
-  margin: 0;
-  font-size: 11px;
-  color: var(--c-text-muted);
-}
-
-.academic-staff-card__actions {
+  min-width: 0;
   display: flex;
-  gap: 6px;
+  gap: 4px;
+  align-items: baseline;
+}
+
+.academic-staff-card__login-value {
+  direction: ltr;
+  unicode-bidi: plaintext;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.academic-staff-card__footer {
+  display: flex;
+  gap: 8px;
   align-items: center;
-  margin-block-start: 4px;
+  margin-block-start: auto;
+  padding-block-start: 8px;
+  border-block-start: 1px solid var(--c-border);
+}
+
+.academic-staff-card__details-btn {
+  flex: 1;
+  justify-content: center;
+}
+
+.academic-staff-card__menu-wrap {
+  position: relative;
+  flex-shrink: 0;
 }
 
 .academic-staff-card__menu {
-  margin-inline-start: auto;
-  min-width: 36px;
-  padding-inline: 8px;
+  min-width: 44px;
+  padding-inline: 10px;
+}
+
+.academic-staff-card__dropdown {
+  inset-inline-end: 0;
+  inset-block-start: calc(100% + 4px);
+  z-index: 20;
+}
+
+.staff-reactivate-dialog__desc {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.staff-reactivate-summary {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.staff-reactivate-summary__row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.staff-reactivate-summary__row dd {
+  margin: 0;
+  word-break: break-word;
+}
+
+.staff-reactivate-dialog__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-block-start: 4px;
+}
+
+.staff-reactivate-dialog__actions .btn {
+  min-width: 120px;
+}
+
+@media (max-width: 639px) {
+  .staff-reactivate-dialog__actions {
+    flex-direction: column-reverse;
+  }
+
+  .staff-reactivate-dialog__actions .btn {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .academic-staff-card__details-btn {
+    flex: 1 1 auto;
+  }
 }
 
 /* Empty state */

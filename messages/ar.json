@@ -1207,7 +1207,7 @@
       "addStaff": "إضافة موظف",
       "editStaff": "تعديل موظف",
       "searchStaff": "بحث في الطاقم…",
-      "noStaff": "لا يوجد طاقم إداري",
+      "noStaff": "لا يوجد أعضاء في الطاقم الإداري",
       "noActiveStaff": "لا يوجد موظفون نشطون حاليًا.",
       "noInactiveStaff": "لا توجد حسابات موظفين معطّلة.",
       "noStaffSearchResults": "لم يتم العثور على موظفين يطابقون البحث ضمن هذا الفلتر.",
@@ -1215,11 +1215,42 @@
       "activeStaff": "النشطون",
       "inactiveStaff": "المعطّلون",
       "allStaff": "الجميع",
+      "staffCount": {
+        "active": {
+          "zero": "لا يوجد موظفون نشطون",
+          "one": "موظف واحد نشط",
+          "two": "موظفان نشطان",
+          "few": "{count} موظفين نشطين",
+          "many": "{count} موظفًا نشطًا"
+        },
+        "inactive": {
+          "zero": "لا توجد حسابات معطّلة",
+          "one": "حساب موظف واحد معطّل",
+          "two": "موظفان معطّلان",
+          "few": "{count} موظفين معطّلين",
+          "many": "{count} موظفًا معطّلًا"
+        },
+        "all": {
+          "zero": "لا يوجد أعضاء في الطاقم",
+          "one": "موظف واحد",
+          "two": "موظفان",
+          "few": "{count} موظفين",
+          "many": "{count} موظفًا"
+        }
+      },
+      "technicalRole": {
+        "administrator": "مدير المؤسسة",
+        "admin": "مدير المؤسسة",
+        "project_manager": "مدير المنصة",
+        "school_manager": "مدير المؤسسة",
+        "general_supervisor": "مشرف عام",
+        "admin_staff": "موظف إداري"
+      },
       "staffAccountActive": "نشط",
       "staffAccountInactive": "الحساب معطّل",
       "reactivateStaff": "إعادة تفعيل الموظف",
       "reactivateStaffTitle": "إعادة تفعيل الموظف؟",
-      "reactivateStaffDescription": "سيتمكن الموظف من استخدام الحساب نفسه مجددًا. لن يتغير البريد أو اسم تسجيل الدخول أو الصلاحيات.",
+      "reactivateStaffDescription": "سيتمكن الموظف من تسجيل الدخول بالحساب نفسه مجددًا، دون تغيير البريد أو اسم الدخول أو الصلاحيات.",
       "staffReactivated": "تمت إعادة تفعيل حساب الموظف بنجاح.",
       "staffAlreadyActive": "الحساب مفعّل بالفعل.",
       "staffDeactivated": "تم تعطيل حساب الموظف.",

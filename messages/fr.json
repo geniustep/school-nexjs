@@ -1204,7 +1204,7 @@
       "addStaff": "Ajouter un membre",
       "editStaff": "Modifier le membre",
       "searchStaff": "Rechercher personnel…",
-      "noStaff": "Aucun personnel administratif",
+      "noStaff": "Aucun membre du personnel administratif",
       "noActiveStaff": "Aucun membre du personnel actif pour le moment.",
       "noInactiveStaff": "Aucun compte de personnel désactivé.",
       "noStaffSearchResults": "Aucun personnel ne correspond à la recherche dans ce filtre.",
@@ -1212,11 +1212,42 @@
       "activeStaff": "Actifs",
       "inactiveStaff": "Désactivés",
       "allStaff": "Tous",
+      "staffCount": {
+        "active": {
+          "zero": "Aucun personnel actif",
+          "one": "1 membre actif",
+          "two": "2 membres actifs",
+          "few": "{count} membres actifs",
+          "many": "{count} membres actifs"
+        },
+        "inactive": {
+          "zero": "Aucun compte désactivé",
+          "one": "1 compte désactivé",
+          "two": "2 comptes désactivés",
+          "few": "{count} comptes désactivés",
+          "many": "{count} comptes désactivés"
+        },
+        "all": {
+          "zero": "Aucun membre du personnel",
+          "one": "1 membre du personnel",
+          "two": "2 membres du personnel",
+          "few": "{count} membres du personnel",
+          "many": "{count} membres du personnel"
+        }
+      },
+      "technicalRole": {
+        "administrator": "Directeur d'établissement",
+        "admin": "Directeur d'établissement",
+        "project_manager": "Responsable plateforme",
+        "school_manager": "Directeur d'établissement",
+        "general_supervisor": "Superviseur général",
+        "admin_staff": "Personnel administratif"
+      },
       "staffAccountActive": "Actif",
       "staffAccountInactive": "Compte désactivé",
       "reactivateStaff": "Réactiver le personnel",
       "reactivateStaffTitle": "Réactiver ce membre du personnel ?",
-      "reactivateStaffDescription": "Le membre pourra réutiliser le même compte. L'e-mail, l'identifiant et les permissions ne changeront pas.",
+      "reactivateStaffDescription": "Le membre pourra se reconnecter avec le même compte, sans modifier l'e-mail, l'identifiant ni les permissions.",
       "staffReactivated": "Compte du personnel réactivé avec succès.",
       "staffAlreadyActive": "Ce compte est déjà actif.",
       "staffDeactivated": "Compte du personnel désactivé.",

@@ -1204,7 +1204,7 @@
       "addStaff": "Add staff member",
       "editStaff": "Edit staff member",
       "searchStaff": "Search staff…",
-      "noStaff": "No administrative staff",
+      "noStaff": "No administrative staff members",
       "noActiveStaff": "No active staff members right now.",
       "noInactiveStaff": "No deactivated staff accounts.",
       "noStaffSearchResults": "No staff match your search in this filter.",
@@ -1212,11 +1212,42 @@
       "activeStaff": "Active",
       "inactiveStaff": "Inactive",
       "allStaff": "All",
+      "staffCount": {
+        "active": {
+          "zero": "No active staff",
+          "one": "1 active staff member",
+          "two": "2 active staff members",
+          "few": "{count} active staff members",
+          "many": "{count} active staff members"
+        },
+        "inactive": {
+          "zero": "No deactivated staff",
+          "one": "1 deactivated staff account",
+          "two": "2 deactivated staff accounts",
+          "few": "{count} deactivated staff accounts",
+          "many": "{count} deactivated staff accounts"
+        },
+        "all": {
+          "zero": "No staff members",
+          "one": "1 staff member",
+          "two": "2 staff members",
+          "few": "{count} staff members",
+          "many": "{count} staff members"
+        }
+      },
+      "technicalRole": {
+        "administrator": "School manager",
+        "admin": "School manager",
+        "project_manager": "Platform manager",
+        "school_manager": "School manager",
+        "general_supervisor": "General supervisor",
+        "admin_staff": "Administrative staff"
+      },
       "staffAccountActive": "Active",
       "staffAccountInactive": "Account deactivated",
       "reactivateStaff": "Reactivate staff",
       "reactivateStaffTitle": "Reactivate this staff member?",
-      "reactivateStaffDescription": "The staff member will be able to use the same account again. Email, login, and permissions will not change.",
+      "reactivateStaffDescription": "The staff member will be able to sign in with the same account again, without changing email, login, or permissions.",
       "staffReactivated": "Staff account reactivated successfully.",
       "staffAlreadyActive": "This account is already active.",
       "staffDeactivated": "Staff account deactivated.",

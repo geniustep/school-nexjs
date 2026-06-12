@@ -5,6 +5,7 @@ import { SetupDrawer } from '@/features/admin/academic-setup/components/setup-dr
 import { useToast } from '@/components/ui/toast';
 import { useT } from '@/features/i18n/locale-context';
 import { mapAcademicSetupApiError } from '@/features/admin/academic-setup/utils/api-errors';
+import { resolveStaffAdminKindLabel } from '@/features/admin/academic-setup/utils/staff-present';
 import {
   isStaffInactive,
   resolveStaffLogin,
@@ -28,7 +29,7 @@ export function StaffReactivateDialog({
 }) {
   const t = useT();
   const toast = useToast();
-  const titleId = useId();
+  const descId = useId();
   const [saving, setSaving] = useState(false);
 
   if (!open || !member) return null;
@@ -56,48 +57,53 @@ export function StaffReactivateDialog({
       title={t('admin.academicSetup.reactivateStaffTitle')}
       onClose={onClose}
     >
-      <div className="col" style={{ gap: 12 }} role="dialog" aria-labelledby={titleId}>
-        <p id={titleId} className="tiny muted">
+      <div
+        className="col staff-reactivate-dialog"
+        style={{ gap: 12 }}
+        role="dialog"
+        aria-describedby={descId}
+      >
+        <p id={descId} className="staff-reactivate-dialog__desc tiny muted">
           {t('admin.academicSetup.reactivateStaffDescription')}
         </p>
-        <dl className="col staff-reactivate-summary" style={{ gap: 8 }}>
-          <div className="col" style={{ gap: 2 }}>
+        <dl className="staff-reactivate-summary">
+          <div className="staff-reactivate-summary__row">
             <dt className="tiny muted">{t('admin.fullName')}</dt>
             <dd>{member.name}</dd>
           </div>
-          <div className="col" style={{ gap: 2 }}>
+          <div className="staff-reactivate-summary__row">
+            <dt className="tiny muted">{t('admin.academicSetup.adminKindLabel')}</dt>
+            <dd>{resolveStaffAdminKindLabel(member.admin_kind, t)}</dd>
+          </div>
+          <div className="staff-reactivate-summary__row">
             <dt className="tiny muted">{t('admin.email')}</dt>
             <dd>{member.email ?? t('common.dash')}</dd>
           </div>
           {login ? (
-            <div className="col" style={{ gap: 2 }}>
+            <div className="staff-reactivate-summary__row">
               <dt className="tiny muted">{t('admin.account.loginName')}</dt>
-              <dd className="mono">{login}</dd>
+              <dd className="academic-staff-card__login-value mono" title={login}>{login}</dd>
             </div>
           ) : null}
-          <div className="col" style={{ gap: 2 }}>
-            <dt className="tiny muted">{t('admin.academicSetup.adminKindLabel')}</dt>
-            <dd>{t(`admin.academicSetup.adminKind.${member.admin_kind}`)}</dd>
-          </div>
         </dl>
-        <div className="col" style={{ gap: 8 }}>
-          <button
-            type="button"
-            className="btn btn--primary"
-            style={{ minHeight: 44, width: '100%' }}
-            disabled={saving}
-            onClick={confirmReactivate}
-          >
-            {saving ? t('common.saving') : t('admin.academicSetup.reactivateStaff')}
-          </button>
+        <div className="staff-reactivate-dialog__actions">
           <button
             type="button"
             className="btn btn--ghost"
-            style={{ minHeight: 44, width: '100%' }}
+            style={{ minHeight: 44 }}
             disabled={saving}
             onClick={onClose}
           >
             {t('common.cancel')}
+          </button>
+          <button
+            type="button"
+            className="btn btn--primary"
+            style={{ minHeight: 44 }}
+            disabled={saving}
+            onClick={confirmReactivate}
+          >
+            {saving ? t('common.saving') : t('admin.academicSetup.reactivateStaff')}
           </button>
         </div>
       </div>

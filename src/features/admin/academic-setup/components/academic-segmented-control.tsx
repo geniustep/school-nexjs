@@ -7,14 +7,20 @@ export function AcademicSegmentedControl<T extends string>({
   value,
   onChange,
   ariaLabel,
+  className,
 }: {
   options: Array<{ value: T; label: string }>;
   value: T;
   onChange: (value: T) => void;
   ariaLabel: string;
+  className?: string;
 }) {
   return (
-    <div className="academic-segmented-control" role="tablist" aria-label={ariaLabel}>
+    <div
+      className={cn('academic-segmented-control', className)}
+      role="tablist"
+      aria-label={ariaLabel}
+    >
       {options.map((opt) => {
         const active = opt.value === value;
         return (
