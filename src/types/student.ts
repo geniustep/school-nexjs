@@ -6,10 +6,13 @@ import type { UserAccountInfo } from './account';
 export type StudentStatus =
   | 'draft'
   | 'active'
+  | 'inactive'
   | 'graduated'
   | 'suspended'
   | 'expelled'
-  | 'transferred';
+  | 'transferred'
+  | 'withdrawn'
+  | string;
 
 export type Gender = 'male' | 'female';
 
@@ -30,6 +33,7 @@ export interface StudentNameFields {
 export interface Student extends StudentNameFields {
   id: number;
   code: string | null;
+  school_number?: string | null;
   massar_code?: string | null;
   matricule?: string | null;
   level: Ref | null;
