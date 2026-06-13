@@ -25,6 +25,9 @@ import type { Student } from '@/types/student';
 import type { Parent } from '@/types/parent';
 import type { Teacher } from '@/types/teacher';
 import type { AcademicTrack, TrackOptions } from '@/types/academic-setup';
+import { TeacherSetupForm } from '@/features/admin/academic-setup/components/teacher-setup-form';
+import { canManageTeachingAssignments } from '@/lib/permissions/academic-setup';
+import { useSession } from '@/features/auth/session-context';
 
 function FormShell({
   children,
@@ -338,140 +341,17 @@ export function TeacherForm({
   onSaved: (id: number) => void;
   onCancel: () => void;
 }) {
-  const t = useT();
-  const toast = useToast();
-  const classesState = useResource<SchoolClass[]>(endpoints.admin.classes);
-  const subjectsState = useResource<Ref[]>(endpoints.admin.subjects);
-  const [saving, setSaving] = useState(false);
-  const [name, setName] = useState(teacher?.name ?? '');
-  const [code, setCode] = useState(teacher?.code ?? '');
-  const [phone, setPhone] = useState(teacher?.phone ?? '');
-  const [email, setEmail] = useState(teacher?.email ?? '');
-  const [login, setLogin] = useState(
-    teacher?.login?.trim() || teacher?.account?.login?.trim() || teacher?.email?.trim() || '',
-  );
-  const [useDifferentLogin, setUseDifferentLogin] = useState(false);
-  const originalEmail = teacher?.email ?? '';
-  const originalLogin =
-    teacher?.login?.trim() || teacher?.account?.login?.trim() || teacher?.email?.trim() || '';
-  const [classIds, setClassIds] = useState<number[]>(teacher?.classes?.map((c) => c.id) ?? []);
-  const [subjectIds, setSubjectIds] = useState<number[]>(teacher?.subjects?.map((s) => s.id) ?? []);
-
-  function toggle(id: number, list: number[], set: (v: number[]) => void) {
-    set(list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
-  }
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!name.trim()) {
-      toast.error(t('errors.validationFailed'));
-      return;
-    }
-    const identity = teacher
-      ? buildAccountIdentityPayload({
-          email,
-          login,
-          originalEmail,
-          originalLogin,
-          useDifferentLogin: true,
-          isCreate: false,
-        })
-      : { email: email.trim() || undefined };
-
-    const payload = {
-      name: name.trim(),
-      code: code.trim() || undefined,
-      phone: phone.trim() || undefined,
-      ...identity,
-      class_ids: classIds,
-      subject_ids: subjectIds,
-    };
-    setSaving(true);
-    const res = teacher
-      ? await api.post(endpoints.admin.teacherUpdate(teacher.id), payload)
-      : await api.post(endpoints.admin.teachers, payload);
-    setSaving(false);
-    if (res.success && res.data) {
-      const feedback = teacher
-        ? resolveAccountMutationFeedback(res, t, {
-            createdKey: 'admin.account.accountCreated',
-            updatedKey: 'admin.saveSuccess',
-            alreadyExistsKey: 'admin.account.accountAlreadyExists',
-          })
-        : null;
-      if (feedback) applyAccountMutationToasts(feedback, toast);
-      else toast.success(t('admin.saveSuccess'));
-      onSaved((res.data as Teacher).id);
-    } else if (!res.success) {
-      toast.error(mapAccountApiError(res.error, t) || res.error.message);
-    }
-  }
+  const user = useSession();
+  const canManageAssignments = canManageTeachingAssignments(user);
 
   return (
-    <FormShell saving={saving} onSubmit={submit} onCancel={onCancel}>
-      <Field label={t('admin.fullName')}>
-        <input className="input" value={name} onChange={(e) => setName(e.target.value)} required />
-      </Field>
-      {teacher ? <AccountStatusBadge entity={teacher} showLogin /> : null}
-      <div className="row" style={{ gap: 12, flexWrap: 'wrap' }}>
-        <Field label={t('admin.code')}>
-          <input className="input" value={code} onChange={(e) => setCode(e.target.value)} />
-        </Field>
-        <Field label={t('admin.phone')}>
-          <input className="input" value={phone} onChange={(e) => setPhone(e.target.value)} />
-        </Field>
-      </div>
-      {teacher ? (
-        <AccountFieldsSection
-          mode="edit"
-          email={email}
-          login={login}
-          useDifferentLogin={useDifferentLogin}
-          onEmailChange={setEmail}
-          onLoginChange={setLogin}
-          onUseDifferentLoginChange={setUseDifferentLogin}
-          disabled={saving}
-        />
-      ) : (
-        <Field label={t('admin.email')}>
-          <input
-            className="input"
-            type="text"
-            autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </Field>
-      )}
-      <Field label={t('nav.classes')}>
-        <div className="col" style={{ gap: 6, maxHeight: 120, overflow: 'auto' }}>
-          {(classesState.data ?? []).map((c) => (
-            <label key={c.id} className="row" style={{ gap: 8 }}>
-              <input
-                type="checkbox"
-                checked={classIds.includes(c.id)}
-                onChange={() => toggle(c.id, classIds, setClassIds)}
-              />
-              <span>{c.name}</span>
-            </label>
-          ))}
-        </div>
-      </Field>
-      <Field label={t('nav.subjects')}>
-        <div className="col" style={{ gap: 6, maxHeight: 120, overflow: 'auto' }}>
-          {(subjectsState.data ?? []).map((s) => (
-            <label key={s.id} className="row" style={{ gap: 8 }}>
-              <input
-                type="checkbox"
-                checked={subjectIds.includes(s.id)}
-                onChange={() => toggle(s.id, subjectIds, setSubjectIds)}
-              />
-              <span>{s.name}</span>
-            </label>
-          ))}
-        </div>
-      </Field>
-    </FormShell>
+    <TeacherSetupForm
+      teacher={teacher}
+      layout="page"
+      canManageAssignments={canManageAssignments}
+      onSaved={onSaved}
+      onCancel={onCancel}
+    />
   );
 }
 

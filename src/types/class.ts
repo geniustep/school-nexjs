@@ -21,13 +21,16 @@ export interface Subject {
   name: string;
   code?: string | null;
   level_id?: number | null;
+  level_ids?: number[];
   track_id?: number | null;
+  ref_subject_id?: number | null;
   source?: SubjectSource;
   required?: boolean;
   optional?: boolean;
   sequence?: number;
   weekly_hours?: number | null;
   assignments_count?: number;
+  active?: boolean;
 }
 
 export type ClassSubjectsSource = 'inherited' | 'direct' | 'mixed' | 'none';
