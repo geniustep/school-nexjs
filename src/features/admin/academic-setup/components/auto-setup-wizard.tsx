@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Badge, InfoBanner } from '@/components/ui/primitives';
 import { ErrorState, LoadingState } from '@/components/states/states';
 import { useToast } from '@/components/ui/toast';
@@ -20,38 +20,28 @@ import {
   ASSIGNMENTS_CTA_HREF,
   CLASSES_SUBJECTS_HREF,
   aggregateInitializeResults,
+  AUTO_SETUP_WIZARD_STEPS,
   buildAcademicInitializePayload,
   buildRetryInitializePayload,
   buildReviewPlans,
   filterWizardReferenceLevels,
   groupReferenceLevelsByCycle,
-  isInitializeLevelSelectable,
+  isLevelAlreadyEnabled,
+  isLevelSelectable,
   levelReadinessBadgeKey,
+  levelSelectionStatusBadgeKey,
   mapTrackMappingPresentation,
-  referenceLevelSubtitle,
   selectedLevelsNeedTrackStep,
   validateInitializeTrackSelections,
-  wizardStepsForSelection,
   type AutoSetupWizardStep,
 } from '../utils/academic-initialize';
-import { referenceLevelBadgeKey, resolveReferenceLevelState } from '../utils/level-link-status';
 import { selectableReferenceTracks } from '../utils/level-options';
 import { mapInitializeError } from '../utils/api-errors';
 import { isAcademicAutoSetupAvailable } from '../utils/academic-auto-setup-availability';
 
-const STEP_ORDER: AutoSetupWizardStep[] = ['levels', 'tracks', 'review', 'execute', 'complete'];
+const STEP_ORDER: AutoSetupWizardStep[] = AUTO_SETUP_WIZARD_STEPS;
 
-function stepIndex(step: AutoSetupWizardStep): number {
-  return STEP_ORDER.indexOf(step);
-}
-
-function AutoSetupStepper({
-  activeStep,
-  visibleSteps,
-}: {
-  activeStep: AutoSetupWizardStep;
-  visibleSteps: AutoSetupWizardStep[];
-}) {
+function AutoSetupStepper({ activeStep }: { activeStep: AutoSetupWizardStep }) {
   const t = useT();
   const labels: Record<AutoSetupWizardStep, string> = {
     levels: t('admin.academicSetup.autoSetup.steps.levels'),
@@ -63,7 +53,7 @@ function AutoSetupStepper({
 
   return (
     <ol className="auto-setup-stepper" aria-label={t('admin.academicSetup.autoSetup.stepperLabel')}>
-      {visibleSteps.map((step, index) => {
+      {STEP_ORDER.map((step, index) => {
         const active = step === activeStep;
         const done = stepIndex(step) < stepIndex(activeStep);
         return (
@@ -80,6 +70,10 @@ function AutoSetupStepper({
       })}
     </ol>
   );
+}
+
+function stepIndex(step: AutoSetupWizardStep): number {
+  return STEP_ORDER.indexOf(step);
 }
 
 function LevelSelectionStep({
@@ -106,9 +100,12 @@ function LevelSelectionStep({
       <p className="auto-setup-step__intro">{t('admin.academicSetup.autoSetup.levelsIntro')}</p>
       <div className="auto-setup-cycle-groups">
         {grouped.map(({ cycle, levels: cycleLevels }) => {
-          const selectable = cycleLevels.filter(isInitializeLevelSelectable);
-          const selectedInCycle = selectable.filter((level) => selected.has(level.id)).length;
-          const allSelected = selectable.length > 0 && selectedInCycle === selectable.length;
+          const selectableLevels = cycleLevels.filter(isLevelSelectable);
+          const selectedInCycle = selectableLevels.filter((level) => selected.has(level.id)).length;
+          const allSelected =
+            selectableLevels.length > 0 && selectedInCycle === selectableLevels.length;
+          const availableCount = selectableLevels.length;
+          const alreadyEnabledCount = cycleLevels.filter(isLevelAlreadyEnabled).length;
 
           return (
             <section key={cycle.id} className="auto-setup-cycle-group">
@@ -118,58 +115,109 @@ function LevelSelectionStep({
                   <p className="tiny muted">
                     {t('admin.academicSetup.autoSetup.cycleLevelCount', { count: cycleLevels.length })}
                   </p>
+                  {(availableCount > 0 || alreadyEnabledCount > 0) && (
+                    <p className="tiny muted auto-setup-cycle-group__counts">
+                      {availableCount > 0
+                        ? t('admin.academicSetup.autoSetup.cycleAvailableCount', {
+                            count: availableCount,
+                          })
+                        : null}
+                      {availableCount > 0 && alreadyEnabledCount > 0 ? ' · ' : null}
+                      {alreadyEnabledCount > 0
+                        ? t('admin.academicSetup.autoSetup.cycleAlreadyEnabledCount', {
+                            count: alreadyEnabledCount,
+                          })
+                        : null}
+                    </p>
+                  )}
                 </div>
                 <button
                   type="button"
                   className="btn btn--ghost btn--sm"
-                  disabled={selectable.length === 0}
+                  disabled={selectableLevels.length === 0}
                   onClick={() => onToggleCycle(cycle.id, !allSelected)}
                 >
                   {allSelected
-                    ? t('admin.academicSetup.guided.deselectCycle')
+                    ? t('admin.academicSetup.autoSetup.deselectAvailableLevels')
                     : t('admin.academicSetup.guided.selectCycle')}
                 </button>
               </header>
               <ul className="auto-setup-level-list" role="list">
                 {cycleLevels.map((level) => {
-                  const state = resolveReferenceLevelState(level);
-                  const badgeKey = referenceLevelBadgeKey(state.linkStatus);
+                  const statusBadgeKey = levelSelectionStatusBadgeKey(level);
                   const readinessKey = levelReadinessBadgeKey(level);
-                  const selectable = isInitializeLevelSelectable(level);
+                  const selectable = isLevelSelectable(level);
+                  const alreadyEnabled = isLevelAlreadyEnabled(level);
                   const trackCount =
                     level.reference_tracks_count ?? level.reference_tracks?.length ?? 0;
+                  const rowClass = [
+                    'auto-setup-level-row',
+                    selectable ? 'auto-setup-level-row--selectable' : '',
+                    alreadyEnabled ? 'auto-setup-level-row--enabled' : '',
+                    !selectable && !alreadyEnabled ? 'auto-setup-level-row--locked' : '',
+                  ]
+                    .filter(Boolean)
+                    .join(' ');
+
+                  const handleRowClick = () => {
+                    if (selectable) onToggleLevel(level);
+                  };
 
                   return (
                     <li key={level.id}>
-                      <label
-                        className={`auto-setup-level-row${!selectable ? ' auto-setup-level-row--disabled' : ''}`}
+                      <div
+                        className={rowClass}
+                        role={selectable ? 'button' : undefined}
+                        tabIndex={selectable ? 0 : undefined}
+                        onClick={handleRowClick}
+                        onKeyDown={(event) => {
+                          if (!selectable) return;
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            onToggleLevel(level);
+                          }
+                        }}
                       >
-                        <input
-                          type="checkbox"
-                          checked={selected.has(level.id)}
-                          disabled={!selectable}
-                          onChange={() => onToggleLevel(level)}
-                        />
-                        <span className="auto-setup-level-row__main">
-                          <strong>{level.name}</strong>
-                          <span className="tiny muted ltr-inline">{referenceLevelSubtitle(level)}</span>
-                          <span className="row mt-2" style={{ gap: 6, flexWrap: 'wrap' }}>
-                            {badgeKey && (
-                              <Badge tone={level.enabled ? 'green' : 'blue'}>{t(badgeKey)}</Badge>
-                            )}
-                            {level.supports_tracks && (
-                              <Badge tone="blue">
-                                {t('admin.academicSetup.autoSetup.supportsTracksBadge', {
-                                  count: trackCount,
-                                })}
-                              </Badge>
-                            )}
-                            {readinessKey && (
-                              <Badge tone="slate">{t(readinessKey)}</Badge>
+                        <div className="auto-setup-level-row__start">
+                          <span className="auto-setup-level-row__control" aria-hidden="true">
+                            {alreadyEnabled ? (
+                              <span className="auto-setup-level-row__check">✓</span>
+                            ) : (
+                              <input
+                                type="checkbox"
+                                checked={selected.has(level.id)}
+                                disabled={!selectable}
+                                readOnly
+                                tabIndex={-1}
+                              />
                             )}
                           </span>
-                        </span>
-                      </label>
+                          <div className="auto-setup-level-row__text">
+                            <span className="auto-setup-level-row__name">{level.name}</span>
+                            <span className="auto-setup-level-row__code ltr-inline">{level.code}</span>
+                            {alreadyEnabled && (
+                              <span className="auto-setup-level-row__hint tiny muted">
+                                {t('admin.academicSetup.autoSetup.alreadyEnabledInSchool')}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="auto-setup-level-row__status">
+                          {statusBadgeKey && (
+                            <Badge tone={alreadyEnabled ? 'green' : 'blue'}>{t(statusBadgeKey)}</Badge>
+                          )}
+                          {level.supports_tracks && (
+                            <Badge tone="blue">
+                              {t('admin.academicSetup.autoSetup.supportsTracksBadge', {
+                                count: trackCount,
+                              })}
+                            </Badge>
+                          )}
+                          {readinessKey && !alreadyEnabled && (
+                            <Badge tone="slate">{t(readinessKey)}</Badge>
+                          )}
+                        </div>
+                      </div>
                     </li>
                   );
                 })}
@@ -208,7 +256,10 @@ function TrackSelectionStep({
   return (
     <div className="auto-setup-step">
       <p className="auto-setup-step__intro">{t('admin.academicSetup.autoSetup.tracksIntro')}</p>
-      {trackLevels.map((level) => {
+      {trackLevels.length === 0 ? (
+        <p className="muted">{t('admin.academicSetup.autoSetup.noTracksRequired')}</p>
+      ) : (
+        trackLevels.map((level) => {
         const tracks = selectableReferenceTracks(level);
         const selected = trackSelections.get(level.id) ?? new Set<number>();
         const selectableIds = tracks.filter((track) => track.can_enable && !track.enabled).map((t) => t.id);
@@ -290,7 +341,8 @@ function TrackSelectionStep({
             )}
           </section>
         );
-      })}
+        })
+      )}
     </div>
   );
 }
@@ -491,10 +543,17 @@ export function AutoSetupWizard({ onFinished }: { onFinished?: () => void }) {
   );
   const cycles = optionsState.options?.cycles ?? [];
 
-  const visibleSteps = useMemo(
-    () => wizardStepsForSelection(selected, allLevels),
-    [selected, allLevels],
-  );
+  useEffect(() => {
+    setSelected((prev) => {
+      const next = new Set(
+        [...prev].filter((id) => {
+          const level = allLevels.find((item) => item.id === id);
+          return level ? isLevelSelectable(level) : false;
+        }),
+      );
+      return next.size === prev.size ? prev : next;
+    });
+  }, [allLevels]);
 
   const reviewPlans = useMemo(
     () =>
@@ -606,7 +665,7 @@ export function AutoSetupWizard({ onFinished }: { onFinished?: () => void }) {
   }
 
   function toggleLevel(level: ReferenceLevelOption) {
-    if (!isInitializeLevelSelectable(level)) return;
+    if (!isLevelSelectable(level)) return;
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(level.id)) {
@@ -625,7 +684,7 @@ export function AutoSetupWizard({ onFinished }: { onFinished?: () => void }) {
 
   function toggleCycle(cycleId: number, select: boolean) {
     const ids = allLevels
-      .filter((level) => level.cycle.id === cycleId && isInitializeLevelSelectable(level))
+      .filter((level) => level.cycle.id === cycleId && isLevelSelectable(level))
       .map((level) => level.id);
     setSelected((prev) => {
       const next = new Set(prev);
@@ -694,7 +753,7 @@ export function AutoSetupWizard({ onFinished }: { onFinished?: () => void }) {
         </Link>
       </header>
 
-      <AutoSetupStepper activeStep={step} visibleSteps={visibleSteps} />
+      <AutoSetupStepper activeStep={step} />
 
       {step === 'levels' && (
         <LevelSelectionStep

@@ -5,7 +5,7 @@ import type {
   InitializeLevelResult,
 } from '@/types/academic-initialize';
 import type { ReferenceLevelOption, ReferenceTrackOption } from '@/types/academic-levels';
-import { resolveReferenceLevelState } from './level-link-status';
+import { referenceLevelBadgeKey, resolveReferenceLevelState } from './level-link-status';
 import {
   groupReferenceLevelsByCycle,
   referenceLevelSubtitle,
@@ -27,11 +27,38 @@ export function filterWizardReferenceLevels(
   return levels.filter((level) => level.active && !isQaTestLevelCode(level.code));
 }
 
-export function isInitializeLevelSelectable(level: ReferenceLevelOption): boolean {
+/** Wizard-only — enabled reference levels are never re-selected for initialize. */
+export function isLevelSelectable(level: ReferenceLevelOption): boolean {
   if (!level.active || isQaTestLevelCode(level.code)) return false;
-  if (level.enabled) return true;
+  if (level.enabled) return false;
   const state = resolveReferenceLevelState(level);
   return state.canEnable || level.can_enable;
+}
+
+export const isInitializeLevelSelectable = isLevelSelectable;
+
+export function isLevelAlreadyEnabled(level: ReferenceLevelOption): boolean {
+  return level.enabled || resolveReferenceLevelState(level).linkStatus === 'enabled';
+}
+
+export function enabledLevelNeedsCompletion(level: ReferenceLevelOption): boolean {
+  if (!isLevelAlreadyEnabled(level)) return false;
+  const status = level.readiness_status?.trim();
+  return status === 'needs_classes' || status === 'needs_subjects';
+}
+
+export function levelSelectionStatusBadgeKey(level: ReferenceLevelOption): string | null {
+  if (enabledLevelNeedsCompletion(level)) {
+    return 'admin.academicSetup.autoSetup.statusEnabledNeedsCompletion';
+  }
+  if (isLevelAlreadyEnabled(level)) {
+    return 'admin.academicSetup.autoSetup.statusAlreadyEnabled';
+  }
+  const badgeKey = referenceLevelBadgeKey(resolveReferenceLevelState(level).linkStatus);
+  if (badgeKey === 'admin.academicSetup.guided.statusEnabled') {
+    return 'admin.academicSetup.autoSetup.statusAlreadyEnabled';
+  }
+  return badgeKey;
 }
 
 export function selectableInitializeLevelIds(levels: ReferenceLevelOption[]): number[] {
@@ -248,16 +275,16 @@ export function mapTrackMappingPresentation(
   }
 }
 
-export function wizardStepsForSelection(
-  selectedIds: Iterable<number>,
-  levels: ReferenceLevelOption[],
-): AutoSetupWizardStep[] {
-  const base: AutoSetupWizardStep[] = ['levels'];
-  if (selectedLevelsNeedTrackStep(selectedIds, levels)) {
-    base.push('tracks');
-  }
-  base.push('review', 'execute', 'complete');
-  return base;
+export const AUTO_SETUP_WIZARD_STEPS: AutoSetupWizardStep[] = [
+  'levels',
+  'tracks',
+  'review',
+  'execute',
+  'complete',
+];
+
+export function wizardStepsForSelection(): AutoSetupWizardStep[] {
+  return AUTO_SETUP_WIZARD_STEPS;
 }
 
 export function levelReadinessBadgeKey(level: ReferenceLevelOption): string | null {
