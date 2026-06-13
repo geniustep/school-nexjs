@@ -31,6 +31,7 @@ import {
   levelReadinessBadgeKey,
   levelSelectionStatusBadgeKey,
   mapTrackMappingPresentation,
+  reconcileSelectedLevelIds,
   selectedLevelsNeedTrackStep,
   validateInitializeTrackSelections,
   type AutoSetupWizardStep,
@@ -544,13 +545,13 @@ export function AutoSetupWizard({ onFinished }: { onFinished?: () => void }) {
   const cycles = optionsState.options?.cycles ?? [];
 
   useEffect(() => {
+    optionsState.reload();
+    readinessState.reload();
+  }, [optionsState.reload, readinessState.reload]);
+
+  useEffect(() => {
     setSelected((prev) => {
-      const next = new Set(
-        [...prev].filter((id) => {
-          const level = allLevels.find((item) => item.id === id);
-          return level ? isLevelSelectable(level) : false;
-        }),
-      );
+      const next = new Set(reconcileSelectedLevelIds(allLevels, prev));
       return next.size === prev.size ? prev : next;
     });
   }, [allLevels]);
