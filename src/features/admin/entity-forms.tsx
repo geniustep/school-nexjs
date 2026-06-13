@@ -492,6 +492,14 @@ export interface ClassDetail {
   subjects: import('@/types/class').Subject[];
   teacher_ids?: number[];
   subject_ids?: number[];
+  effective_subjects_count?: number;
+  subjects_count?: number;
+  inherited_level_subjects_count?: number;
+  inherited_track_subjects_count?: number;
+  direct_class_subjects_count?: number;
+  excluded_subjects_count?: number;
+  subjects_source?: import('@/types/class').ClassSubjectsSource;
+  missing_teacher_assignments_count?: number;
   school?: Ref;
   status: string;
 }

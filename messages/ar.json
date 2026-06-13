@@ -963,6 +963,74 @@
       "levelMeta": "{classes} أقسام · {students} تلميذ",
       "levelStats": "{classes} قسم · {students} تلميذ · {subjects} مادة",
       "classMeta": "{students} تلميذ · {subjects} مواد",
+      "classEffectiveSubjects": {
+        "zero": "0 مواد فعّالة",
+        "one": "مادة واحدة فعّالة",
+        "two": "مادتان فعّالتان",
+        "few": "{count} مواد فعّالة",
+        "many": "{count} مادة فعّالة",
+        "other": "{count} مادة فعّالة"
+      },
+      "classSubjectsInheritedLevel": {
+        "one": "مادة واحدة موروثة من المستوى",
+        "two": "مادتان موروثتان من المستوى",
+        "few": "{count} مواد موروثة من المستوى",
+        "many": "{count} مادة موروثة من المستوى",
+        "other": "{count} مادة موروثة من المستوى"
+      },
+      "classSubjectsInheritedTrackOnly": "مواد موروثة من الشعبة",
+      "classSubjectsInheritedLevelAndTrack": "مواد موروثة من المستوى والشعبة",
+      "classSubjectsFromLevel": {
+        "one": "مادة واحدة من المستوى",
+        "two": "مادتان من المستوى",
+        "few": "{count} من المستوى",
+        "many": "{count} من المستوى",
+        "other": "{count} من المستوى"
+      },
+      "classSubjectsFromTrack": {
+        "one": "مادة واحدة من الشعبة",
+        "two": "مادتان من الشعبة",
+        "few": "{count} من الشعبة",
+        "many": "{count} من الشعبة",
+        "other": "{count} من الشعبة"
+      },
+      "classSubjectsLevelAndTrackBreakdown": "{levelPart} · {trackPart}",
+      "classSubjectsDirectOnly": "مواد خاصة بالقسم",
+      "classSubjectsInheritedShort": {
+        "one": "موروثة واحدة",
+        "two": "موروثتان",
+        "few": "{count} موروثة",
+        "many": "{count} موروثة",
+        "other": "{count} موروثة"
+      },
+      "classSubjectsAdditional": {
+        "one": "مادة إضافية",
+        "two": "مادتان إضافيتان",
+        "few": "{count} مواد إضافية",
+        "many": "{count} مادة إضافية",
+        "other": "{count} مادة إضافية"
+      },
+      "classSubjectsInheritedPlusDirect": "{inherited} · {direct}",
+      "classSubjectsWithExcluded": "{effective} · {excluded} مستثناة",
+      "classSubjectsMixWithExcluded": "{line} · {excluded} مستثناة",
+      "classNeedsTeacherAssignments": {
+        "one": "يحتاج تعيين أستاذ لمادة واحدة",
+        "two": "يحتاج تعيين أساتذة لمادتين",
+        "few": "يحتاج تعيين أساتذة لـ {count} مواد",
+        "many": "يحتاج تعيين أساتذة لـ {count} مادة",
+        "other": "يحتاج تعيين أساتذة لـ {count} مادة"
+      },
+      "classMissingAssignmentsShort": {
+        "one": "إسناد ناقص",
+        "two": "إسنادان ناقصان",
+        "few": "{count} إسنادات ناقصة",
+        "many": "{count} إسناد ناقص",
+        "other": "{count} إسناد ناقص"
+      },
+      "classSubjectsReadyNeedsTeachers": "اكتمل إعداد المواد، وبقي تعيين الأساتذة.",
+      "classSubjectSourceLevel": "من المستوى",
+      "classSubjectSourceTrack": "من الشعبة",
+      "classSubjectSourceClass": "مضافة إلى القسم",
       "noClassesInLevel": "لم تُنشأ أقسام لهذا المستوى بعد.",
       "levelNeedsClassesWithTracksHint": "هذا المستوى ما زال يحتاج أقسامًا رغم وجود شعب مرتبطة.",
       "countPlural": {

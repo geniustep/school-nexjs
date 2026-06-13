@@ -963,6 +963,74 @@
       "levelMeta": "{classes} clases · {students} alumnos",
       "levelStats": "{classes} clases · {students} alumnos · {subjects} materias",
       "classMeta": "{students} alumnos · {subjects} materias",
+      "classEffectiveSubjects": {
+        "zero": "0 materias efectivas",
+        "one": "1 materia efectiva",
+        "two": "2 materias efectivas",
+        "few": "{count} materias efectivas",
+        "many": "{count} materias efectivas",
+        "other": "{count} materias efectivas"
+      },
+      "classSubjectsInheritedLevel": {
+        "one": "1 materia heredada del nivel",
+        "two": "2 materias heredadas del nivel",
+        "few": "{count} materias heredadas del nivel",
+        "many": "{count} materias heredadas del nivel",
+        "other": "{count} materias heredadas del nivel"
+      },
+      "classSubjectsInheritedTrackOnly": "Materias heredadas de la rama",
+      "classSubjectsInheritedLevelAndTrack": "Materias heredadas del nivel y la rama",
+      "classSubjectsFromLevel": {
+        "one": "1 del nivel",
+        "two": "2 del nivel",
+        "few": "{count} del nivel",
+        "many": "{count} del nivel",
+        "other": "{count} del nivel"
+      },
+      "classSubjectsFromTrack": {
+        "one": "1 de la rama",
+        "two": "2 de la rama",
+        "few": "{count} de la rama",
+        "many": "{count} de la rama",
+        "other": "{count} de la rama"
+      },
+      "classSubjectsLevelAndTrackBreakdown": "{levelPart} · {trackPart}",
+      "classSubjectsDirectOnly": "Materias propias de la clase",
+      "classSubjectsInheritedShort": {
+        "one": "1 heredada",
+        "two": "2 heredadas",
+        "few": "{count} heredadas",
+        "many": "{count} heredadas",
+        "other": "{count} heredadas"
+      },
+      "classSubjectsAdditional": {
+        "one": "1 materia adicional",
+        "two": "2 materias adicionales",
+        "few": "{count} materias adicionales",
+        "many": "{count} materias adicionales",
+        "other": "{count} materias adicionales"
+      },
+      "classSubjectsInheritedPlusDirect": "{inherited} · {direct}",
+      "classSubjectsWithExcluded": "{effective} · {excluded} excluida(s)",
+      "classSubjectsMixWithExcluded": "{line} · {excluded} excluida(s)",
+      "classNeedsTeacherAssignments": {
+        "one": "Falta asignar profesor para 1 materia",
+        "two": "Faltan asignar profesores para 2 materias",
+        "few": "Faltan asignar profesores para {count} materias",
+        "many": "Faltan asignar profesores para {count} materias",
+        "other": "Faltan asignar profesores para {count} materias"
+      },
+      "classMissingAssignmentsShort": {
+        "one": "1 asignación pendiente",
+        "two": "2 asignaciones pendientes",
+        "few": "{count} asignaciones pendientes",
+        "many": "{count} asignaciones pendientes",
+        "other": "{count} asignaciones pendientes"
+      },
+      "classSubjectsReadyNeedsTeachers": "Las materias están listas; faltan las asignaciones de profesores.",
+      "classSubjectSourceLevel": "Del nivel",
+      "classSubjectSourceTrack": "De la rama",
+      "classSubjectSourceClass": "Añadida a la clase",
       "noClassesInLevel": "Aún no se han creado clases para este nivel.",
       "levelNeedsClassesWithTracksHint": "Este nivel aún necesita clases aunque tenga itinerarios vinculados.",
       "countPlural": {

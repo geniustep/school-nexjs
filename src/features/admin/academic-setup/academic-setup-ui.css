@@ -1935,11 +1935,24 @@
 }
 
 .academic-class-card__track,
-.academic-class-card__meta {
+.academic-class-card__meta,
+.academic-class-card__subjects-primary,
+.academic-class-card__subjects-source,
+.academic-class-card__readiness {
   display: block;
   font-size: 11px;
   color: var(--c-text-muted, var(--c-muted));
   margin-block-start: 2px;
+}
+
+.academic-class-card__subjects-primary {
+  font-weight: 600;
+  color: var(--c-text);
+}
+
+.academic-class-card__readiness {
+  color: var(--c-warning, #b45309);
+  font-weight: 600;
 }
 
 .academic-class-card__actions {
