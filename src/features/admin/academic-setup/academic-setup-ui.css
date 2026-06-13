@@ -334,12 +334,18 @@
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
 }
 
-/* Inside stacked level/class cards, open upward so delete is not clipped below the row */
-.academic-level-card .academic-setup-level-actions__menu,
+/* Inside class rows, open upward so delete is not clipped below the row */
 .academic-class-card .academic-setup-level-actions__menu {
   top: auto;
   bottom: calc(100% + 4px);
   z-index: 50;
+}
+
+/* Level header actions open downward — upward is clipped by card/stacking */
+.academic-level-card__actions .academic-setup-level-actions__menu {
+  top: calc(100% + 4px);
+  bottom: auto;
+  z-index: 60;
 }
 
 .academic-setup-level-actions__item {
@@ -1348,7 +1354,7 @@
   position: relative;
   border: 1px solid color-mix(in srgb, var(--level-accent) 18%, var(--c-border));
   border-radius: 14px;
-  overflow: hidden;
+  overflow: visible;
   background: linear-gradient(
     165deg,
     color-mix(in srgb, var(--level-accent) 7%, var(--c-surface, #fff)) 0%,
@@ -1359,12 +1365,18 @@
     0 10px 28px rgba(15, 42, 68, 0.05);
 }
 
+.academic-level-card:has(.academic-setup-level-actions__menu) {
+  z-index: 20;
+}
+
 .academic-level-card::before {
   content: '';
   position: absolute;
   inset-block: 0;
   inset-inline-start: 0;
   width: 5px;
+  border-start-start-radius: 14px;
+  border-end-start-radius: 14px;
   background: linear-gradient(
     180deg,
     color-mix(in srgb, var(--level-accent) 88%, #fff),
@@ -1392,6 +1404,9 @@
   padding: 14px 16px 14px 20px;
   border-block-end: 1px solid color-mix(in srgb, var(--c-border) 72%, transparent);
   background: color-mix(in srgb, var(--c-surface, #fff) 82%, transparent);
+  border-start-start-radius: 14px;
+  border-start-end-radius: 14px;
+  overflow: hidden;
 }
 
 .academic-level-card__main {
@@ -1502,6 +1517,9 @@
   gap: 0;
   border-block-start: none;
   background: color-mix(in srgb, var(--c-bg, #f8fafc) 62%, var(--c-surface, #fff));
+  border-end-start-radius: 14px;
+  border-end-end-radius: 14px;
+  overflow: hidden;
 }
 
 .academic-level-card__classes-rail {

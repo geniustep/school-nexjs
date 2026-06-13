@@ -44,4 +44,11 @@ describe('level and class visual hierarchy', () => {
     expect(css).toMatch(/\.academic-level-card__title[\s\S]*font-size:\s*16px/);
     expect(css).toMatch(/\.academic-class-card__name[\s\S]*font-size:\s*13px/);
   });
+
+  it('opens level action menu downward to avoid header clipping', () => {
+    const css = readFileSync(cssPath, 'utf8');
+    expect(css).toMatch(/\.academic-level-card__actions \.academic-setup-level-actions__menu[\s\S]*top:\s*calc\(100% \+ 4px\)/);
+    expect(css).toContain('overflow: visible');
+    expect(css).toContain('.academic-level-card:has(.academic-setup-level-actions__menu)');
+  });
 });
