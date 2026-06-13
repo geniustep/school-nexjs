@@ -1,5 +1,6 @@
 import type {
   Teacher,
+  TeacherOption,
   TeacherOptions,
   TeacherProfileFormState,
   TeacherProfileFieldErrors,
@@ -395,6 +396,23 @@ export function validateTeacherProfileForm(
   return { valid: Object.keys(errors).length === 0, errors };
 }
 
+const GENDER_I18N_KEYS: Record<string, string> = {
+  male: 'admin.male',
+  female: 'admin.female',
+};
+
+export function localizeTeacherGenderOptions(
+  options: TeacherOptions | null,
+  t: (key: string) => string,
+): TeacherOption[] {
+  return (options?.genders ?? []).map((item) => {
+    const i18nKey = GENDER_I18N_KEYS[item.value];
+    if (!i18nKey) return item;
+    const translated = t(i18nKey);
+    return translated !== i18nKey ? { ...item, label: translated } : item;
+  });
+}
+
 export function resolveGenderLabel(
   value: string | null | undefined,
   options: TeacherOptions | null,
@@ -402,6 +420,11 @@ export function resolveGenderLabel(
 ): string {
   const code = value?.trim();
   if (!code) return t('common.dash');
+  const i18nKey = GENDER_I18N_KEYS[code];
+  if (i18nKey) {
+    const translated = t(i18nKey);
+    if (translated !== i18nKey) return translated;
+  }
   const match = options?.genders.find((item) => item.value === code);
   return match?.label ?? code;
 }

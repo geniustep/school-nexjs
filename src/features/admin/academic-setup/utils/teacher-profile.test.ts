@@ -7,6 +7,8 @@ import {
   isTeacherProfileFormDirty,
   resolveStatusActiveConsistency,
   resolveTeacherLegacyGender,
+  resolveGenderLabel,
+  localizeTeacherGenderOptions,
   teacherProfileFormStateFromTeacher,
   validateTeacherProfileForm,
 } from './teacher-profile';
@@ -217,6 +219,21 @@ describe('validateTeacherProfileForm', () => {
     const state = { ...defaultTeacherProfileFormState(options), name: 'Teacher' };
     const result = validateTeacherProfileForm(state, options, t);
     expect(result.valid).toBe(true);
+  });
+});
+
+describe('gender label localization', () => {
+  const tAr = (key: string) =>
+    key === 'admin.male' ? 'ذكر' : key === 'admin.female' ? 'أنثى' : key;
+
+  it('localizes gender options for select fields', () => {
+    const localized = localizeTeacherGenderOptions(options, tAr);
+    expect(localized.map((item) => item.label)).toEqual(['ذكر', 'أنثى']);
+  });
+
+  it('resolves gender label via i18n keys', () => {
+    expect(resolveGenderLabel('male', options, tAr)).toBe('ذكر');
+    expect(resolveGenderLabel('female', options, tAr)).toBe('أنثى');
   });
 });
 

@@ -2,7 +2,7 @@
 
 import type { TeacherOption, TeacherOptions, TeacherProfileFieldErrors, TeacherProfileFormState } from '@/types/teacher';
 import { useT } from '@/features/i18n/locale-context';
-import { SPECIALIZATION_DEFAULT_MAX, hasTeacherGenderOptions, resolveGenderLabel } from '../utils/teacher-profile';
+import { SPECIALIZATION_DEFAULT_MAX, hasTeacherGenderOptions, localizeTeacherGenderOptions, resolveGenderLabel } from '../utils/teacher-profile';
 
 function FieldGroup({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -88,6 +88,7 @@ export function TeacherProfileFields({
       : SPECIALIZATION_DEFAULT_MAX;
   const showSchoolPicker = (options?.schools.length ?? 0) > 1;
   const genderOptionsAvailable = hasTeacherGenderOptions(options);
+  const genderOptions = localizeTeacherGenderOptions(options, t);
   const today = (() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -121,7 +122,7 @@ export function TeacherProfileFields({
               label={t('admin.academicSetup.teacherForm.gender')}
               value={state.gender}
               onChange={(gender) => onChange({ gender })}
-              options={options?.genders ?? []}
+              options={genderOptions}
               disabled={saving || !options}
               error={errors.gender}
               allowEmpty
