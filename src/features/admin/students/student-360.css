@@ -1,0 +1,57 @@
+.student-360-header {
+  margin-bottom: 16px;
+  padding: 16px;
+}
+
+.student-360-header__avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--surface-2, #eef2f7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-muted, #64748b);
+  flex-shrink: 0;
+}
+
+.student-360-header__title {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.student-360-tabs {
+  margin-bottom: 16px;
+}
+
+.student-360-form__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.student-360-form__actions {
+  position: sticky;
+  bottom: 0;
+  background: var(--bg, #fff);
+  padding: 12px 0;
+  z-index: 2;
+}
+
+.student-360-guardian-card--ended {
+  opacity: 0.85;
+}
+
+.student-360-overview {
+  margin-top: 0;
+}
+
+@media (max-width: 640px) {
+  .student-360-header__main {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

@@ -4,13 +4,13 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
-import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
 import { PageHeader, Badge } from '@/components/ui/primitives';
 import { AdminListActions } from '@/features/admin/admin-list-actions';
 import { CsvImportPanel } from '@/features/admin/csv-import-panel';
+import { studentClassLabel, studentLevelLabel } from '@/features/admin/students/utils/student-academic-labels';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { statusLabel } from '@/lib/utils/labels';
@@ -77,8 +77,8 @@ export default function AdminStudentsPage() {
         header: t('admin.matriculeNumber'),
         render: (s) => <span className="mono">{s.matricule ?? s.code ?? t('common.dash')}</span>,
       },
-      { key: 'class', header: t('nav.classes'), render: (s) => s.class?.name ?? t('common.dash') },
-      { key: 'level', header: t('nav.levels'), render: (s) => s.level?.name ?? t('common.dash') },
+      { key: 'class', header: t('nav.classes'), render: (s) => studentClassLabel(s.class) },
+      { key: 'level', header: t('nav.levels'), render: (s) => studentLevelLabel(s.level) },
       {
         key: 'status',
         header: t('academic.status'),

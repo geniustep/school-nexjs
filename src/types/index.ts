@@ -4,6 +4,7 @@ export * from './permissions';
 export * from './scope';
 export * from './user';
 export * from './student';
+export * from './student-360';
 export * from './parent';
 export * from './teacher';
 export * from './class';

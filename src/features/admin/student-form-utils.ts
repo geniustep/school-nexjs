@@ -13,7 +13,6 @@ export interface StudentFormInput {
   phone: string;
   dob: string;
   admission: string;
-  parentIds: number[];
   /** When true, include active/state fields suitable for create. */
   creating?: boolean;
 }
@@ -40,10 +39,6 @@ export function buildStudentPayload(input: StudentFormInput): Record<string, unk
   if (matricule) payload.matricule = matricule;
 
   if (input.classId) payload.class_id = Number(input.classId);
-
-  if (input.parentIds.length > 0) {
-    payload.parent_ids = input.parentIds.filter((id) => Number.isInteger(id) && id > 0);
-  }
 
   if (input.creating) payload.active = true;
 
