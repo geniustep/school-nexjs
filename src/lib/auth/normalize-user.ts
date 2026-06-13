@@ -186,6 +186,9 @@ export function normalizeMeUser(raw: CurrentUser): CurrentUser {
   return {
     ...base,
     admin_kind: raw.admin_kind as AdminKind | undefined,
+    permissions_mode: raw.permissions_mode,
+    capabilities_editable: raw.capabilities_editable,
+    effective_permissions: raw.effective_permissions,
     school_ids,
     schools,
     scopes,

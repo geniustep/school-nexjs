@@ -1,5 +1,6 @@
 // Authenticated user — mirrors API_REPORT.md §3 and RBAC Admin-1.
 
+import type { PermissionsMode } from '@/types/academic-setup';
 import type { Permission } from './permissions';
 import type { AdminScope, ScopeType } from './scope';
 import type { SchoolRef } from './api';
@@ -28,6 +29,10 @@ export interface CurrentUser {
   email: string | null;
   role: Role;
   permissions: Permission[];
+  /** When returned by /me — authoritative effective grants for the active school. */
+  effective_permissions?: Permission[];
+  permissions_mode?: PermissionsMode;
+  capabilities_editable?: boolean;
   school: SchoolRef | null;
 
   admin_kind?: AdminKind;
