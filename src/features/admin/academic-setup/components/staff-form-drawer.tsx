@@ -17,6 +17,10 @@ import {
 import type { StaffAdminKind, StaffMember, StaffOptions } from '@/types/academic-setup';
 import { buildStaffCapabilityPayload } from '../utils/capability-present';
 import {
+  resolveRoleChangeWarningKey,
+  resolveStaffPermissionMetadata,
+} from '../utils/staff-permissions-meta';
+import {
   createStaffMember,
   deactivateStaffMember,
   updateStaffMember,
@@ -128,6 +132,27 @@ export function StaffFormDrawer({
 
   const adminKindChanged = !creating && originalAdminKind !== '' && adminKind !== originalAdminKind;
 
+  const permissionsContext = useMemo(
+    () =>
+      resolveStaffPermissionMetadata({
+        adminKind: (adminKind || 'admin_staff') as StaffAdminKind,
+        member: creating ? null : member,
+        options,
+        preferMemberMetadata:
+          !creating && !adminKindChanged && member?.admin_kind === adminKind,
+      }),
+    [adminKind, member, options, creating, adminKindChanged],
+  );
+
+  const roleChangeWarningKey =
+    adminKindChanged && originalAdminKind
+      ? resolveRoleChangeWarningKey(
+          originalAdminKind as StaffAdminKind,
+          (adminKind || 'admin_staff') as StaffAdminKind,
+          options,
+        )
+      : null;
+
   const accountEntity = useMemo(() => member ?? undefined, [member]);
 
   async function submit(e: React.FormEvent) {
@@ -154,6 +179,7 @@ export function StaffFormDrawer({
       originalCapabilityIds,
       capabilitiesTouched,
       catalogReady,
+      permissionsMeta: permissionsContext,
     });
 
     if (capPayload.blockSaveDueToCatalog) {
@@ -263,13 +289,15 @@ export function StaffFormDrawer({
               ))}
             </select>
           </label>
-          {adminKindChanged ? (
-            <p className="staff-cap-role-change-warn" role="status">
-              {t('admin.academicSetup.staffCapabilities.roleChangeWarning')}
+          {roleChangeWarningKey ? (
+            <p className="staff-cap-role-change-warn" role="alert" aria-live="polite">
+              {t(roleChangeWarningKey)}
             </p>
           ) : null}
           <StaffCapabilitiesSection
             adminKind={adminKind || 'admin_staff'}
+            permissionsMeta={permissionsContext}
+            displayMode={permissionsContext.displayMode}
             capabilities={options?.capabilities ?? []}
             capabilityIds={capabilityIds}
             onCapabilityIdsChange={setCapabilityIds}

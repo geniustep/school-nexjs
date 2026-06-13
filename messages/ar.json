@@ -1351,7 +1351,28 @@
         "selectAllCategory": "تحديد الكل",
         "deselectAllCategory": "إلغاء الكل",
         "roleChangeWarning": "قد يؤدي تغيير نوع الدور إلى تعديل الصلاحيات الأساسية لهذا المستخدم.",
-        "catalogUnavailableWarning": "تعذر تحميل قائمة الصلاحيات. لن يتم إرسال تعديلات الصلاحيات حتى اكتمال التحميل."
+        "roleChangeToFullSchoolWarning": "سيحصل المستخدم على صلاحيات مدير المؤسسة تلقائيًا داخل نطاق مؤسسته.",
+        "roleChangeFromFullSchoolWarning": "بعد تغيير الدور ستعتمد صلاحيات المستخدم على الاختيارات المحددة يدويًا.",
+        "catalogUnavailableWarning": "تعذر تحميل قائمة الصلاحيات. لن يتم إرسال تعديلات الصلاحيات حتى اكتمال التحميل.",
+        "fullSchoolPermissions": "صلاحيات شاملة داخل المؤسسة",
+        "fullSchoolPermissionsDescription": "يمتلك مدير المؤسسة تلقائيًا جميع الصلاحيات الإدارية والتشغيلية داخل مؤسسته، مع بقاء الوصول مقيدًا بالمدارس المرتبطة بحسابه.",
+        "fullPlatformPermissions": "صلاحيات المنصة",
+        "roleInheritedPermissions": "ممنوحة تلقائيًا حسب الدور",
+        "inheritedPermissionsLabel": "موروثة من الدور",
+        "permissionsRestrictedToAssignedSchools": "تطبق هذه الصلاحيات داخل المؤسسة أو المؤسسات المرتبطة بالحساب فقط، ولا تمنح الوصول إلى إعدادات المنصة أو مؤسسات أخرى.",
+        "platformPermissionsExcluded": "لا تشمل هذه الصلاحيات إعدادات مزود الدفع أو إعدادات المنصة العامة.",
+        "manualCapabilitiesNotRequired": "لا يلزم تحديد صلاحيات يدوية لهذا الدور.",
+        "schoolManagerPermissionGroups": {
+          "group1": "المستويات والأقسام",
+          "group2": "المواد والشعب",
+          "group3": "الأساتذة والطاقم",
+          "group4": "التلاميذ وأولياء الأمور",
+          "group5": "الحضور والامتحانات",
+          "group6": "استعمال الزمن",
+          "group7": "التواصل والتقارير",
+          "group8": "المالية المدرسية",
+          "group9": "إعداد المؤسسة"
+        }
       },
       "roleCapabilities": {
         "school_manager": {

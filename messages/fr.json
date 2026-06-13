@@ -1348,7 +1348,28 @@
         "selectAllCategory": "Tout sélectionner",
         "deselectAllCategory": "Tout désélectionner",
         "roleChangeWarning": "Changer le type de rôle peut modifier les permissions de base de cet utilisateur.",
-        "catalogUnavailableWarning": "La liste des permissions n'a pas pu être chargée. Les modifications ne seront pas envoyées tant que le chargement n'est pas terminé."
+        "roleChangeToFullSchoolWarning": "L'utilisateur recevra automatiquement les permissions de directeur d'établissement dans le périmètre de son école.",
+        "roleChangeFromFullSchoolWarning": "Après le changement de rôle, les permissions dépendront des choix manuels.",
+        "catalogUnavailableWarning": "La liste des permissions n'a pas pu être chargée. Les modifications ne seront pas envoyées tant que le chargement n'est pas terminé.",
+        "fullSchoolPermissions": "Permissions complètes dans l'établissement",
+        "fullSchoolPermissionsDescription": "Le directeur d'établissement reçoit automatiquement toutes les permissions administratives et opérationnelles de son école, limitées aux établissements liés à son compte.",
+        "fullPlatformPermissions": "Permissions plateforme",
+        "roleInheritedPermissions": "Accordées automatiquement selon le rôle",
+        "inheritedPermissionsLabel": "Héritées du rôle",
+        "permissionsRestrictedToAssignedSchools": "Ces permissions s'appliquent uniquement à l'établissement ou aux établissements liés au compte, pas aux autres écoles ni aux paramètres plateforme.",
+        "platformPermissionsExcluded": "Ces permissions n'incluent pas les paramètres du prestataire de paiement ni la configuration globale de la plateforme.",
+        "manualCapabilitiesNotRequired": "Aucune sélection manuelle de permissions n'est requise pour ce rôle.",
+        "schoolManagerPermissionGroups": {
+          "group1": "Niveaux et classes",
+          "group2": "Matières et filières",
+          "group3": "Enseignants et personnel",
+          "group4": "Élèves et parents",
+          "group5": "Présence et examens",
+          "group6": "Emploi du temps",
+          "group7": "Communication et rapports",
+          "group8": "Finance scolaire",
+          "group9": "Configuration de l'établissement"
+        }
       },
       "roleCapabilities": {
         "school_manager": {

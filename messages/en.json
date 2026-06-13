@@ -1348,7 +1348,28 @@
         "selectAllCategory": "Select all",
         "deselectAllCategory": "Clear all",
         "roleChangeWarning": "Changing the role type may update this user's core permissions.",
-        "catalogUnavailableWarning": "The permission catalog could not be loaded. Permission changes will not be sent until loading completes."
+        "roleChangeToFullSchoolWarning": "The user will automatically receive school manager permissions within their school scope.",
+        "roleChangeFromFullSchoolWarning": "After changing the role, permissions will depend on manually selected capabilities.",
+        "catalogUnavailableWarning": "The permission catalog could not be loaded. Permission changes will not be sent until loading completes.",
+        "fullSchoolPermissions": "Full permissions within the school",
+        "fullSchoolPermissionsDescription": "School managers automatically receive all administrative and operational permissions within their school, limited to schools linked to their account.",
+        "fullPlatformPermissions": "Platform permissions",
+        "roleInheritedPermissions": "Granted automatically by role",
+        "inheritedPermissionsLabel": "Inherited from role",
+        "permissionsRestrictedToAssignedSchools": "These permissions apply only within the school or schools linked to this account, not to other schools or platform settings.",
+        "platformPermissionsExcluded": "These permissions do not include payment provider settings or global platform configuration.",
+        "manualCapabilitiesNotRequired": "Manual capability selection is not required for this role.",
+        "schoolManagerPermissionGroups": {
+          "group1": "Levels and classes",
+          "group2": "Subjects and tracks",
+          "group3": "Teachers and staff",
+          "group4": "Students and parents",
+          "group5": "Attendance and exams",
+          "group6": "Timetable",
+          "group7": "Communication and reports",
+          "group8": "School finance",
+          "group9": "School setup"
+        }
       },
       "roleCapabilities": {
         "school_manager": {

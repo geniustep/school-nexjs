@@ -1,7 +1,11 @@
 import type { TranslateFn } from '@/features/i18n/locale-context';
 import type { Locale } from '@/lib/i18n/config';
 import { getMessage, MESSAGES } from '@/lib/i18n/messages';
-import type { StaffAdminKind, StaffCapabilityOption } from '@/types/academic-setup';
+import type { StaffAdminKind, StaffCapabilityOption, RolePermissionMetadata } from '@/types/academic-setup';
+import {
+  requiresCapabilityCatalogForCreate,
+  shouldOmitCapabilityIds,
+} from './staff-permissions-meta';
 
 const CAPABILITY_KEY_PREFIX = 'admin.academicSetup.capabilities';
 const CATEGORY_KEY_PREFIX = 'admin.academicSetup.capCategory';
@@ -246,6 +250,7 @@ export interface StaffCapabilityPayloadInput {
   originalCapabilityIds: number[];
   capabilitiesTouched: boolean;
   catalogReady: boolean;
+  permissionsMeta: RolePermissionMetadata;
 }
 
 export interface StaffCapabilityPayloadResult {
@@ -258,10 +263,18 @@ export interface StaffCapabilityPayloadResult {
 export function buildStaffCapabilityPayload(
   input: StaffCapabilityPayloadInput,
 ): StaffCapabilityPayloadResult {
-  if (!input.catalogReady) {
+  if (shouldOmitCapabilityIds(input.permissionsMeta)) {
     return {
       omitCapabilities: true,
-      blockSaveDueToCatalog: input.isCreate || input.capabilitiesTouched,
+      blockSaveDueToCatalog: false,
+    };
+  }
+
+  if (!input.catalogReady) {
+    const needsCatalog = input.isCreate && requiresCapabilityCatalogForCreate(input.permissionsMeta);
+    return {
+      omitCapabilities: true,
+      blockSaveDueToCatalog: needsCatalog || input.capabilitiesTouched,
     };
   }
 

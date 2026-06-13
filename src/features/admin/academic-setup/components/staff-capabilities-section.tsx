@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useLocale, useT } from '@/features/i18n/locale-context';
 import type { StaffCapabilityOption } from '@/types/academic-setup';
+import type { RolePermissionMetadata } from '@/types/academic-setup';
 import {
   ROLE_CAPABILITY_HIGHLIGHT_COUNT,
   countSelectedGrantable,
@@ -15,6 +16,12 @@ import {
   roleCapabilityHighlightKey,
   splitCapabilitiesByGrantable,
 } from '../utils/capability-present';
+import {
+  SCHOOL_MANAGER_PERMISSION_GROUP_COUNT,
+  isCapabilitiesEditable,
+  schoolManagerPermissionGroupKey,
+  type StaffCapabilityDisplayMode,
+} from '../utils/staff-permissions-meta';
 
 function CapabilityCheckboxRow({
   cap,
@@ -170,6 +177,99 @@ function CategoryAccordion({
   );
 }
 
+function FullSchoolPermissionsCard() {
+  const t = useT();
+  const groups = Array.from({ length: SCHOOL_MANAGER_PERMISSION_GROUP_COUNT }, (_, i) => {
+    const key = schoolManagerPermissionGroupKey(i + 1);
+    const label = t(key);
+    return label !== key ? label : null;
+  }).filter((x): x is string => Boolean(x));
+
+  return (
+    <article className="staff-cap-full-school" aria-labelledby="staff-cap-full-school-title">
+      <div className="staff-cap-full-school__icon" aria-hidden="true">
+        🛡
+      </div>
+      <div className="staff-cap-full-school__body">
+        <div className="staff-cap-full-school__head">
+          <h3 id="staff-cap-full-school-title" className="staff-cap-full-school__title">
+            {t('admin.academicSetup.staffCapabilities.fullSchoolPermissions')}
+          </h3>
+          <span className="staff-cap-badge staff-cap-badge--auto">
+            {t('admin.academicSetup.staffCapabilities.roleInheritedPermissions')}
+          </span>
+        </div>
+        <p className="staff-cap-full-school__desc">
+          {t('admin.academicSetup.staffCapabilities.fullSchoolPermissionsDescription')}
+        </p>
+        <p className="staff-cap-full-school__status tiny muted">
+          {t('admin.academicSetup.staffCapabilities.inheritedPermissionsLabel')}
+        </p>
+        {groups.length ? (
+          <ul className="staff-cap-full-school__groups">
+            {groups.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        ) : null}
+        <p className="staff-cap-full-school__scope tiny muted">
+          {t('admin.academicSetup.staffCapabilities.permissionsRestrictedToAssignedSchools')}
+        </p>
+        <p className="staff-cap-full-school__scope tiny muted">
+          {t('admin.academicSetup.staffCapabilities.platformPermissionsExcluded')}
+        </p>
+        <p className="staff-cap-full-school__note tiny muted">
+          {t('admin.academicSetup.staffCapabilities.manualCapabilitiesNotRequired')}
+        </p>
+      </div>
+    </article>
+  );
+}
+
+function PlatformPermissionsCard() {
+  const t = useT();
+  const titleKey = 'admin.academicSetup.roleCapabilities.project_manager.title';
+  const descKey = 'admin.academicSetup.roleCapabilities.project_manager.description';
+  const title = t(titleKey);
+  const description = t(descKey);
+  const highlights = Array.from({ length: ROLE_CAPABILITY_HIGHLIGHT_COUNT }, (_, i) => {
+    const key = roleCapabilityHighlightKey('project_manager', i + 1);
+    const text = t(key);
+    return text !== key ? text : null;
+  }).filter((x): x is string => Boolean(x));
+
+  return (
+    <article className="staff-cap-full-school staff-cap-full-school--platform" aria-labelledby="staff-cap-platform-title">
+      <div className="staff-cap-full-school__icon" aria-hidden="true">
+        🛡
+      </div>
+      <div className="staff-cap-full-school__body">
+        <div className="staff-cap-full-school__head">
+          <h3 id="staff-cap-platform-title" className="staff-cap-full-school__title">
+            {title !== titleKey ? title : t('admin.academicSetup.staffCapabilities.fullPlatformPermissions')}
+          </h3>
+          <span className="staff-cap-badge staff-cap-badge--auto">
+            {t('admin.academicSetup.staffCapabilities.roleInheritedPermissions')}
+          </span>
+        </div>
+        {description !== descKey ? (
+          <p className="staff-cap-full-school__desc">{description}</p>
+        ) : null}
+        {highlights.length ? (
+          <ul className="staff-cap-full-school__groups">
+            {highlights.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        ) : null}
+        <p className="staff-cap-full-school__scope tiny muted">
+          {t('admin.academicSetup.staffCapabilities.permissionsRestrictedToAssignedSchools')}
+        </p>
+      </div>
+    </article>
+  );
+}
+
 function RoleSummaryPanel({ adminKind }: { adminKind: string }) {
   const t = useT();
   const titleKey = `admin.academicSetup.roleCapabilities.${adminKind}.title`;
@@ -226,6 +326,8 @@ function SupervisorScopePanel() {
 
 export function StaffCapabilitiesSection({
   adminKind,
+  permissionsMeta,
+  displayMode,
   capabilities,
   capabilityIds,
   onCapabilityIdsChange,
@@ -237,6 +339,8 @@ export function StaffCapabilitiesSection({
   onCapabilitiesTouched,
 }: {
   adminKind: string;
+  permissionsMeta: RolePermissionMetadata;
+  displayMode: StaffCapabilityDisplayMode;
   capabilities: StaffCapabilityOption[];
   capabilityIds: number[];
   onCapabilityIdsChange: (ids: number[]) => void;
@@ -249,7 +353,36 @@ export function StaffCapabilitiesSection({
 }) {
   const t = useT();
   const { locale } = useLocale();
-  const mode = getStaffCapabilityUxMode(adminKind);
+
+  if (displayMode === 'full_school_readonly') {
+    return (
+      <section className="staff-cap-section" aria-labelledby="staff-cap-section-title">
+        <h3 id="staff-cap-section-title" className="staff-cap-section__title">
+          {t('admin.academicSetup.staffCapabilities.sectionTitle')}
+        </h3>
+        <FullSchoolPermissionsCard />
+      </section>
+    );
+  }
+
+  if (displayMode === 'platform_readonly') {
+    return (
+      <section className="staff-cap-section" aria-labelledby="staff-cap-section-title">
+        <h3 id="staff-cap-section-title" className="staff-cap-section__title">
+          {t('admin.academicSetup.staffCapabilities.sectionTitle')}
+        </h3>
+        <PlatformPermissionsCard />
+      </section>
+    );
+  }
+
+  const capabilitiesEditable = isCapabilitiesEditable(permissionsMeta);
+  const mode =
+    displayMode === 'assigned_editor'
+      ? 'full_editor'
+      : displayMode === 'supervisor_scoped'
+        ? 'supervisor'
+        : getStaffCapabilityUxMode(adminKind);
   const [search, setSearch] = useState('');
   const [additionalOpen, setAdditionalOpen] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
@@ -361,10 +494,10 @@ export function StaffCapabilitiesSection({
     );
   }
 
-  const showFullEditor = mode === 'full_editor';
+  const showFullEditor = mode === 'full_editor' && capabilitiesEditable;
   const showRoleSummary = mode === 'role_summary' || mode === 'supervisor';
-  const hasAdditional = additional.length > 0;
-  const hasBase = base.length > 0;
+  const hasAdditional = additional.length > 0 && capabilitiesEditable;
+  const hasBase = base.length > 0 && capabilitiesEditable;
 
   return (
     <section className="staff-cap-section" aria-labelledby="staff-cap-section-title">
@@ -390,7 +523,12 @@ export function StaffCapabilitiesSection({
         <>
           <RoleSummaryPanel adminKind={adminKind} />
           {mode === 'supervisor' ? <SupervisorScopePanel /> : null}
-          {hasBase && !hasAdditional ? (
+          {!capabilitiesEditable ? (
+            <p className="staff-cap-full-school__status tiny muted">
+              {t('admin.academicSetup.staffCapabilities.inheritedPermissionsLabel')}
+            </p>
+          ) : null}
+          {hasBase ? (
             <div className="staff-cap-base-readonly">
               <h4 className="staff-cap-subsection__title">
                 {t('admin.academicSetup.staffCapabilities.baseSectionTitle')}
@@ -526,7 +664,7 @@ export function StaffCapabilitiesSection({
             </>
           ) : null}
         </div>
-      ) : showRoleSummary && !hasBase ? (
+      ) : showRoleSummary && capabilitiesEditable && !hasBase && !hasAdditional ? (
         <p className="muted tiny">{t('admin.academicSetup.staffCapabilities.emptyCatalog')}</p>
       ) : null}
     </section>

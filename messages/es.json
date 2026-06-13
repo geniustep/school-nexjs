@@ -1348,7 +1348,28 @@
         "selectAllCategory": "Seleccionar todo",
         "deselectAllCategory": "Deseleccionar todo",
         "roleChangeWarning": "Cambiar el tipo de rol puede modificar los permisos básicos de este usuario.",
-        "catalogUnavailableWarning": "No se pudo cargar el catálogo de permisos. Los cambios no se enviarán hasta completar la carga."
+        "roleChangeToFullSchoolWarning": "El usuario recibirá automáticamente los permisos de director del centro dentro del ámbito de su escuela.",
+        "roleChangeFromFullSchoolWarning": "Tras cambiar el rol, los permisos dependerán de las capacidades seleccionadas manualmente.",
+        "catalogUnavailableWarning": "No se pudo cargar el catálogo de permisos. Los cambios no se enviarán hasta completar la carga.",
+        "fullSchoolPermissions": "Permisos completos dentro del centro",
+        "fullSchoolPermissionsDescription": "El director del centro recibe automáticamente todos los permisos administrativos y operativos de su escuela, limitados a los centros vinculados a su cuenta.",
+        "fullPlatformPermissions": "Permisos de plataforma",
+        "roleInheritedPermissions": "Concedidos automáticamente según el rol",
+        "inheritedPermissionsLabel": "Heredados del rol",
+        "permissionsRestrictedToAssignedSchools": "Estos permisos se aplican solo dentro del centro o centros vinculados a la cuenta, no a otros centros ni a la configuración de la plataforma.",
+        "platformPermissionsExcluded": "Estos permisos no incluyen ajustes del proveedor de pagos ni la configuración global de la plataforma.",
+        "manualCapabilitiesNotRequired": "No se requiere selección manual de permisos para este rol.",
+        "schoolManagerPermissionGroups": {
+          "group1": "Niveles y clases",
+          "group2": "Asignaturas e itinerarios",
+          "group3": "Profesores y personal",
+          "group4": "Alumnos y padres",
+          "group5": "Asistencia y exámenes",
+          "group6": "Horario",
+          "group7": "Comunicación e informes",
+          "group8": "Finanzas escolares",
+          "group9": "Configuración del centro"
+        }
       },
       "roleCapabilities": {
         "school_manager": {

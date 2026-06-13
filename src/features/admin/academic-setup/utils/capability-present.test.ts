@@ -9,6 +9,16 @@ import {
   resolveCapabilityLabel,
   sortCategoryCodes,
 } from './capability-present';
+
+const fullSchoolMeta = {
+  permissions_mode: 'full_school' as const,
+  capabilities_editable: false,
+};
+
+const assignedMeta = {
+  permissions_mode: 'assigned' as const,
+  capabilities_editable: true,
+};
 import type { StaffCapabilityOption } from '@/types/academic-setup';
 
 const t = (key: string) => {
@@ -107,16 +117,44 @@ describe('areCapabilityIdsDirty', () => {
 });
 
 describe('buildStaffCapabilityPayload', () => {
-  it('always sends capability_ids on create when catalog is ready', () => {
+  it('always sends capability_ids on create when catalog is ready for assigned roles', () => {
     const result = buildStaffCapabilityPayload({
       isCreate: true,
       capabilityIds: [1, 2],
       originalCapabilityIds: [],
       capabilitiesTouched: false,
       catalogReady: true,
+      permissionsMeta: assignedMeta,
     });
     expect(result.capability_ids).toEqual([1, 2]);
     expect(result.omitCapabilities).toBe(false);
+  });
+
+  it('never sends capability_ids for full_school manager updates', () => {
+    const result = buildStaffCapabilityPayload({
+      isCreate: false,
+      capabilityIds: [],
+      originalCapabilityIds: [],
+      capabilitiesTouched: true,
+      catalogReady: true,
+      permissionsMeta: fullSchoolMeta,
+    });
+    expect(result.omitCapabilities).toBe(true);
+    expect(result.capability_ids).toBeUndefined();
+    expect(result.blockSaveDueToCatalog).toBe(false);
+  });
+
+  it('never sends capability_ids for full_school manager create', () => {
+    const result = buildStaffCapabilityPayload({
+      isCreate: true,
+      capabilityIds: [],
+      originalCapabilityIds: [],
+      capabilitiesTouched: false,
+      catalogReady: false,
+      permissionsMeta: fullSchoolMeta,
+    });
+    expect(result.omitCapabilities).toBe(true);
+    expect(result.blockSaveDueToCatalog).toBe(false);
   });
 
   it('omits capability_ids on update when unchanged', () => {
@@ -126,6 +164,7 @@ describe('buildStaffCapabilityPayload', () => {
       originalCapabilityIds: [2, 1],
       capabilitiesTouched: false,
       catalogReady: true,
+      permissionsMeta: assignedMeta,
     });
     expect(result.omitCapabilities).toBe(true);
     expect(result.capability_ids).toBeUndefined();
@@ -138,18 +177,20 @@ describe('buildStaffCapabilityPayload', () => {
       originalCapabilityIds: [1],
       capabilitiesTouched: true,
       catalogReady: true,
+      permissionsMeta: assignedMeta,
     });
     expect(result.capability_ids).toEqual([1]);
     expect(result.omitCapabilities).toBe(false);
   });
 
-  it('blocks create when catalog is unavailable', () => {
+  it('blocks create when catalog is unavailable for assigned roles', () => {
     const result = buildStaffCapabilityPayload({
       isCreate: true,
       capabilityIds: [],
       originalCapabilityIds: [],
       capabilitiesTouched: false,
       catalogReady: false,
+      permissionsMeta: assignedMeta,
     });
     expect(result.blockSaveDueToCatalog).toBe(true);
     expect(result.omitCapabilities).toBe(true);
@@ -162,6 +203,7 @@ describe('buildStaffCapabilityPayload', () => {
       originalCapabilityIds: [1],
       capabilitiesTouched: false,
       catalogReady: false,
+      permissionsMeta: assignedMeta,
     });
     expect(result.blockSaveDueToCatalog).toBe(false);
     expect(result.omitCapabilities).toBe(true);
