@@ -73,9 +73,9 @@ export default function AdminStudentsPage() {
         render: (s) => <span className="mono">{s.massar_code ?? t('common.dash')}</span>,
       },
       {
-        key: 'matricule',
-        header: t('admin.matriculeNumber'),
-        render: (s) => <span className="mono">{s.matricule ?? s.code ?? t('common.dash')}</span>,
+        key: 'school_number',
+        header: t('admin.student360.schoolNumber'),
+        render: (s) => <span className="mono">{s.school_number ?? s.code ?? t('common.dash')}</span>,
       },
       { key: 'class', header: t('nav.classes'), render: (s) => studentClassLabel(s.class) },
       { key: 'level', header: t('nav.levels'), render: (s) => studentLevelLabel(s.level) },

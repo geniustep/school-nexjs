@@ -5,8 +5,13 @@ import { EmptyState } from '@/components/states/states';
 import { DataTable, type Column } from '@/components/tables/data-table';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
+import { optionLabel } from '../utils/student-profile';
 import { studentClassLabel, studentLevelLabel, refOrStringLabel } from '../utils/student-academic-labels';
 import type { StudentDetailsData, StudentEnrollment } from '@/types/student-360';
+
+function dash(t: (k: string) => string, value: string | null | undefined): string {
+  return value?.trim() ? value : t('common.dash');
+}
 
 export function StudentEnrollmentTab({ details }: { details: StudentDetailsData }) {
   const t = useT();
@@ -35,6 +40,11 @@ export function StudentEnrollmentTab({ details }: { details: StudentDetailsData 
       render: (row) => studentClassLabel(row.class),
     },
     {
+      key: 'registration',
+      header: t('admin.student360.registrationType'),
+      render: (row) => optionLabel(undefined, row.registration_type) || dash(t, row.registration_type),
+    },
+    {
       key: 'state',
       header: t('academic.status'),
       render: (row) => row.state,
@@ -43,6 +53,11 @@ export function StudentEnrollmentTab({ details }: { details: StudentDetailsData 
       key: 'start',
       header: t('admin.student360.dateStart'),
       render: (row) => formatDate(row.date_start) || t('common.dash'),
+    },
+    {
+      key: 'join',
+      header: t('admin.student360.actualJoinDate'),
+      render: (row) => formatDate(row.actual_join_date) || t('common.dash'),
     },
     {
       key: 'end',
@@ -64,6 +79,16 @@ export function StudentEnrollmentTab({ details }: { details: StudentDetailsData 
           <DefinitionList
             items={[
               { label: t('academic.status'), value: current.state },
+              {
+                label: t('admin.student360.registrationType'),
+                value: optionLabel(undefined, current.registration_type) || dash(t, current.registration_type),
+              },
+              { label: t('admin.student360.previousSchool'), value: dash(t, current.previous_school) },
+              {
+                label: t('admin.student360.isRepeating'),
+                value: current.is_repeating ? t('common.yes') : t('common.no'),
+              },
+              { label: t('admin.student360.actualJoinDate'), value: formatDate(current.actual_join_date) },
               { label: t('admin.student360.dateStart'), value: formatDate(current.date_start) },
               { label: t('admin.student360.dateEnd'), value: formatDate(current.date_end) },
               { label: t('admin.finance.activeSchool'), value: refOrStringLabel(current.school) },
@@ -71,6 +96,8 @@ export function StudentEnrollmentTab({ details }: { details: StudentDetailsData 
               { label: t('nav.levels'), value: studentLevelLabel(current.level) },
               { label: t('nav.classes'), value: studentClassLabel(current.class) },
               { label: t('admin.student360.track'), value: refOrStringLabel(current.track) },
+              { label: t('admin.student360.registrationNotes'), value: dash(t, current.registration_notes) },
+              { label: t('admin.student360.departureReason'), value: dash(t, current.departure_reason) },
               {
                 label: t('admin.student360.isCurrent'),
                 value: current.is_current ? t('common.yes') : t('common.no'),
