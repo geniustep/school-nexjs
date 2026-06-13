@@ -33,6 +33,7 @@ export const endpoints = {
     parentsExport: '/admin/parents/export',
 
     teachers: '/admin/teachers',
+    teachersOptions: '/admin/teachers/options',
     teacher: (id: number | string) => `/admin/teachers/${id}`,
     teacherUpdate: (id: number | string) => `/admin/teachers/${id}/update`,
     teacherArchive: (id: number | string) => `/admin/teachers/${id}/archive`,

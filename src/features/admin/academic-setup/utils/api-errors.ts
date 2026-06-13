@@ -1,5 +1,16 @@
 import type { ApiErrorBody } from '@/types/api';
 
+const TEACHER_ERRORS: Record<string, string> = {
+  invalid_teacher_type: 'admin.academicSetup.teacherForm.errors.invalidTeacherType',
+  invalid_qualification: 'admin.academicSetup.teacherForm.errors.invalidQualification',
+  invalid_weekly_hours: 'admin.academicSetup.teacherForm.errors.invalidWeeklyHours',
+  invalid_max_continuous_minutes: 'admin.academicSetup.teacherForm.errors.invalidMaxContinuousMinutes',
+  school_not_allowed: 'admin.academicSetup.teacherForm.errors.schoolNotAllowed',
+  duplicate_login: 'admin.academicSetup.errors.duplicateLogin',
+  validation_error: 'errors.validationFailed',
+  forbidden: 'admin.pageForbidden',
+};
+
 const ASSIGNMENT_ERRORS: Record<string, string> = {
   assignment_duplicate: 'admin.academicSetup.errors.assignmentDuplicate',
   assignment_in_use: 'admin.academicSetup.errors.assignmentInUse',
@@ -169,24 +180,33 @@ export function mapEnableLevelError(
   return mapAcademicSetupApiError({ code, message: fallbackMessage ?? code, details: {} }, t, 'level');
 }
 
+export function mapTeacherApiError(
+  error: ApiErrorBody,
+  t: (key: string) => string,
+): string {
+  return mapAcademicSetupApiError(error, t, 'teacher');
+}
+
 export function mapAcademicSetupApiError(
   error: ApiErrorBody,
   t: (key: string) => string,
-  domain: 'assignment' | 'staff' | 'track' | 'class' | 'level' | 'subject' = 'assignment',
+  domain: 'assignment' | 'staff' | 'track' | 'class' | 'level' | 'subject' | 'teacher' = 'assignment',
 ): string {
   const code = String(error.code ?? '');
   const table =
-    domain === 'staff'
-      ? STAFF_ERRORS
-      : domain === 'track'
-        ? TRACK_ERRORS
-        : domain === 'class'
-          ? CLASS_TRACK_ERRORS
-          : domain === 'level'
-            ? LEVEL_ERRORS
-            : domain === 'subject'
-              ? SUBJECT_ERRORS
-              : ASSIGNMENT_ERRORS;
+    domain === 'teacher'
+      ? TEACHER_ERRORS
+      : domain === 'staff'
+        ? STAFF_ERRORS
+        : domain === 'track'
+          ? TRACK_ERRORS
+          : domain === 'class'
+            ? CLASS_TRACK_ERRORS
+            : domain === 'level'
+              ? LEVEL_ERRORS
+              : domain === 'subject'
+                ? SUBJECT_ERRORS
+                : ASSIGNMENT_ERRORS;
 
   const key = table[code];
   if (key) {
