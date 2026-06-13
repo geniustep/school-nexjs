@@ -1083,6 +1083,336 @@
   color: var(--c-text-body, var(--c-text));
 }
 
+/* Classes page hero */
+.academic-classes-page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.academic-classes-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: 18px 18px 14px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--c-primary, #243b6b) 12%, var(--c-border));
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--c-primary, #243b6b) 10%, transparent), transparent 42%),
+    radial-gradient(circle at 0% 100%, color-mix(in srgb, #0d9488 8%, transparent), transparent 38%),
+    linear-gradient(180deg, var(--c-surface, #fff) 0%, color-mix(in srgb, var(--c-bg, #f8fafc) 72%, var(--c-surface, #fff)) 100%);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--c-primary, #243b6b) 8%, transparent),
+    0 14px 34px color-mix(in srgb, var(--c-navy, #1e293b) 8%, transparent);
+}
+
+.academic-classes-hero__backdrop {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.55;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--c-border) 28%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--c-border) 28%, transparent) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.35), transparent 72%);
+}
+
+.academic-classes-hero__head {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 14px;
+  align-items: start;
+}
+
+.academic-classes-hero__identity {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+}
+
+.academic-classes-hero__mark {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  color: var(--c-primary, #243b6b);
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--c-primary-soft, #e8edf5) 92%, #fff),
+    color-mix(in srgb, var(--c-primary, #243b6b) 12%, #fff)
+  );
+  border: 1px solid color-mix(in srgb, var(--c-primary, #243b6b) 16%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+.academic-classes-hero__copy {
+  min-width: 0;
+}
+
+.academic-classes-hero__title {
+  margin: 0;
+  font-size: clamp(1.2rem, 2.4vw, 1.55rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--c-navy, var(--c-text));
+}
+
+.academic-classes-hero__subtitle {
+  margin: 6px 0 0;
+  max-width: 52ch;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--c-text-muted, var(--c-muted));
+}
+
+.academic-classes-hero__stats {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.academic-classes-hero__stat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--c-border);
+  background: color-mix(in srgb, var(--c-surface, #fff) 88%, transparent);
+  backdrop-filter: blur(4px);
+}
+
+.academic-classes-hero__stat-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+}
+
+.academic-classes-hero__stat--levels .academic-classes-hero__stat-icon {
+  color: var(--c-primary, #243b6b);
+  background: var(--c-primary-soft, #e8edf5);
+}
+
+.academic-classes-hero__stat--classes .academic-classes-hero__stat-icon {
+  color: #0f766e;
+  background: #ecfdf5;
+}
+
+.academic-classes-hero__stat--students .academic-classes-hero__stat-icon {
+  color: #b45309;
+  background: #fffbeb;
+}
+
+.academic-classes-hero__stat-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.academic-classes-hero__stat-value {
+  font-size: 1.15rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--c-text);
+}
+
+.academic-classes-hero__stat-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-text-muted, var(--c-muted));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.academic-classes-hero__actions {
+  display: flex;
+  justify-content: stretch;
+}
+
+.academic-classes-hero__add-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding-inline: 18px;
+  border-radius: 999px;
+  box-shadow:
+    0 10px 24px color-mix(in srgb, var(--c-primary, #243b6b) 24%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.academic-classes-hero__toolbar-panel {
+  position: relative;
+  z-index: 1;
+  margin-block-start: 14px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--c-border) 88%, var(--c-primary) 12%);
+  background: color-mix(in srgb, var(--c-surface, #fff) 92%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+}
+
+.academic-classes-hero--skeleton {
+  min-height: 140px;
+  padding: 18px;
+}
+
+.academic-toolbar--levels {
+  margin-block-end: 0;
+  align-items: stretch;
+  gap: 12px;
+}
+
+.academic-toolbar__search--leading-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1 1 280px;
+  min-width: 0;
+}
+
+.academic-toolbar__search-icon {
+  position: absolute;
+  inset-inline-start: 12px;
+  display: grid;
+  place-items: center;
+  color: var(--c-text-muted, var(--c-muted));
+  pointer-events: none;
+}
+
+.academic-toolbar__search-input {
+  width: 100%;
+  min-height: 44px;
+  padding-inline-start: 40px;
+  border-radius: 12px;
+  background: var(--c-surface, #fff);
+}
+
+.academic-toolbar__filters--levels {
+  flex: 0 1 auto;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.academic-toolbar__filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 148px;
+}
+
+.academic-toolbar__filter-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--c-text-muted, var(--c-muted));
+}
+
+.academic-toolbar__filter-input {
+  min-height: 44px;
+  border-radius: 12px;
+  background: var(--c-surface, #fff);
+}
+
+.academic-toolbar__clear {
+  align-self: end;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px dashed color-mix(in srgb, var(--c-primary, #243b6b) 28%, var(--c-border));
+  background: color-mix(in srgb, var(--c-primary-soft, #e8edf5) 42%, var(--c-surface, #fff));
+  color: var(--c-primary, #243b6b);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.academic-toolbar__clear:hover {
+  background: var(--c-primary-soft, #e8edf5);
+}
+
+@media (min-width: 768px) {
+  .academic-classes-hero__head {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'identity actions'
+      'stats stats';
+    column-gap: 16px;
+  }
+
+  .academic-classes-hero__identity {
+    grid-area: identity;
+  }
+
+  .academic-classes-hero__stats {
+    grid-area: stats;
+  }
+
+  .academic-classes-hero__actions {
+    grid-area: actions;
+    justify-content: flex-end;
+    align-self: center;
+  }
+
+  .academic-toolbar--levels {
+    flex-wrap: nowrap;
+  }
+
+  .academic-toolbar__filters--levels {
+    margin-inline-start: auto;
+    flex-wrap: nowrap;
+  }
+}
+
+@media (max-width: 767px) {
+  .academic-classes-hero {
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  .academic-classes-hero__stats {
+    grid-template-columns: 1fr;
+  }
+
+  .academic-classes-hero__add-btn {
+    width: 100%;
+  }
+
+  .academic-toolbar--levels {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .academic-toolbar__filter-field {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .academic-toolbar__clear {
+    align-self: stretch;
+  }
+}
+
 /* Levels toolbar */
 .academic-setup-levels-toolbar {
   display: flex;
@@ -1112,10 +1442,11 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 12px;
-  margin-inline: -12px;
-  border-radius: 14px;
-  background: var(--c-bg, #f8fafc);
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid var(--c-border);
+  background: var(--c-surface, #fff);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--c-navy, #1e293b) 5%, transparent);
 }
 
 .academic-cycle-groups {

@@ -148,6 +148,40 @@ export function IconMoreHorizontal(props: IconProps) {
   ) });
 }
 
+export function IconSearch(props: IconProps) {
+  return base({ ...props, children: (
+    <>
+      <circle cx="11" cy="11" r="8" />
+      <path d="m21 21-4.3-4.3" />
+    </>
+  ) });
+}
+
+export function IconPlus(props: IconProps) {
+  return base({ ...props, children: (
+    <>
+      <path d="M5 12h14" />
+      <path d="M12 5v14" />
+    </>
+  ) });
+}
+
+export function IconSlidersHorizontal(props: IconProps) {
+  return base({ ...props, children: (
+    <>
+      <path d="M10 4h11" />
+      <path d="M3 4h3" />
+      <path d="M3 20h3" />
+      <path d="M10 20h11" />
+      <path d="M17 12h4" />
+      <path d="M3 12h8" />
+      <circle cx="8" cy="4" r="2" />
+      <circle cx="14" cy="12" r="2" />
+      <circle cx="8" cy="20" r="2" />
+    </>
+  ) });
+}
+
 export const JOURNEY_STEP_ICONS = {
   levels: IconLayers,
   classes: IconBuilding,

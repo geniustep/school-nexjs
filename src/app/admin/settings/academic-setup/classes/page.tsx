@@ -3,6 +3,8 @@
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ErrorState, LoadingState, EmptyState } from '@/components/states/states';
+import { IconPlus } from '@/components/icons/admin-icons';
+import { ClassesPageHero } from '@/features/admin/academic-setup/components/classes-page-hero';
 import { AcademicPageHeader } from '@/features/admin/academic-setup/components/academic-page-header';
 import { BatchClassDrawer } from '@/features/admin/academic-setup/components/batch-class-drawer';
 import { ClassDrawer } from '@/features/admin/academic-setup/components/class-drawer';
@@ -126,12 +128,31 @@ export default function AcademicSetupClassesPage() {
   const headerActions = canManage ? (
     <button
       type="button"
-      className="btn btn--primary"
+      className="btn btn--primary academic-classes-hero__add-btn"
       onClick={() => setLevelsDrawerOpen(true)}
     >
+      <IconPlus size={18} aria-hidden />
       {t('admin.academicSetup.guided.addLevels')}
     </button>
   ) : undefined;
+
+  const statChips = [
+    {
+      tone: 'levels' as const,
+      value: levelGroups.length,
+      label: t('admin.academicSetup.classesStatLevels'),
+    },
+    {
+      tone: 'classes' as const,
+      value: lists.classes.length,
+      label: t('admin.academicSetup.classesStatClasses'),
+    },
+    {
+      tone: 'students' as const,
+      value: totalStudents,
+      label: t('admin.academicSetup.classesStatStudents'),
+    },
+  ];
 
   const levelsDrawer = (
     <ReferenceLevelsDrawer
@@ -157,7 +178,7 @@ export default function AcademicSetupClassesPage() {
   if (lists.loading) {
     return (
       <>
-        <AcademicPageHeader title={t('admin.academicSetup.classesPageTitle')} skeleton />
+        <ClassesPageHero title={t('admin.academicSetup.classesPageTitle')} skeleton />
         <LoadingState label={t('common.loading')} />
         {levelsDrawer}
       </>
@@ -177,7 +198,7 @@ export default function AcademicSetupClassesPage() {
   if (!lists.levels.length) {
     return (
       <>
-        <AcademicPageHeader
+        <ClassesPageHero
           title={t('admin.academicSetup.classesPageTitle')}
           subtitle={t('admin.academicSetup.classesPageSubtitle')}
           actions={headerActions}
@@ -192,16 +213,13 @@ export default function AcademicSetupClassesPage() {
   }
 
   return (
-    <>
-      <AcademicPageHeader
+    <div className="academic-classes-page">
+      <ClassesPageHero
         title={t('admin.academicSetup.classesPageTitle')}
         subtitle={t('admin.academicSetup.classesPageSubtitle')}
-        stats={t('admin.academicSetup.classesPageStats', {
-          levels: levelGroups.length,
-          classes: lists.classes.length,
-          students: totalStudents,
-        })}
+        statChips={statChips}
         actions={headerActions}
+        toolbar={<LevelsToolbar groups={levelGroups} />}
       />
 
       {nextClassLevelId && (
@@ -224,8 +242,6 @@ export default function AcademicSetupClassesPage() {
       )}
 
       <div className="academic-setup-classes-surface">
-        <LevelsToolbar groups={levelGroups} />
-
         <LevelsByCycleList
           groups={filteredGroups}
           searchQuery={searchQuery}
@@ -262,6 +278,6 @@ export default function AcademicSetupClassesPage() {
         />
       )}
       {levelsDrawer}
-    </>
+    </div>
   );
 }

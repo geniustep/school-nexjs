@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { IconSearch, IconSlidersHorizontal } from '@/components/icons/admin-icons';
 import { useT } from '@/features/i18n/locale-context';
 import type { LevelGroup } from '../types';
 import { uniqueCycles, type LevelFilterMode } from '../utils/level-filters';
@@ -40,48 +41,84 @@ export function LevelsToolbar({ groups }: { groups: LevelGroup[] }) {
     [pathname, router, searchParams],
   );
 
+  const hasActiveFilters =
+    Boolean(search.trim()) || filter !== 'all' || cycleId != null;
+
   return (
-    <div className="academic-toolbar academic-setup-levels-toolbar" role="search">
-      <label className="academic-toolbar__search">
-        <span className="academic-setup-sr-only">{t('admin.academicSetup.levelsSearchPlaceholder')}</span>
+    <div
+      className="academic-toolbar academic-toolbar--levels academic-setup-levels-toolbar"
+      role="search"
+    >
+      <label className="academic-toolbar__search academic-toolbar__search--leading-icon">
+        <span className="academic-toolbar__search-icon" aria-hidden>
+          <IconSearch size={18} />
+        </span>
+        <span className="academic-setup-sr-only">
+          {t('admin.academicSetup.levelsSearchPlaceholder')}
+        </span>
         <input
           type="search"
-          className="input"
+          className="input academic-toolbar__search-input"
           placeholder={t('admin.academicSetup.levelsSearchPlaceholder')}
           value={search}
           onChange={(e) => updateParams({ q: e.target.value || null })}
         />
       </label>
-      <div className="academic-toolbar__filters">
+
+      <div className="academic-toolbar__filters academic-toolbar__filters--levels">
         {cycles.length > 1 && (
+          <div className="academic-toolbar__filter-field">
+            <span className="academic-toolbar__filter-label">
+              {t('admin.academicSetup.guided.cycleFilter')}
+            </span>
+            <select
+              className="input academic-toolbar__filter-input"
+              value={cycleId ?? ''}
+              onChange={(e) =>
+                updateParams({ cycle: e.target.value ? e.target.value : null })
+              }
+              aria-label={t('admin.academicSetup.guided.cycleFilter')}
+            >
+              <option value="">{t('admin.academicSetup.guided.allCycles')}</option>
+              {cycles.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        <div className="academic-toolbar__filter-field">
+          <span className="academic-toolbar__filter-label">
+            <IconSlidersHorizontal size={14} aria-hidden />
+            {t('admin.academicSetup.levelsFilterLabel')}
+          </span>
           <select
-            className="input"
-            value={cycleId ?? ''}
+            className="input academic-toolbar__filter-input"
+            value={filter}
             onChange={(e) =>
-              updateParams({ cycle: e.target.value ? e.target.value : null })
+              updateParams({ filter: e.target.value === 'all' ? null : e.target.value })
             }
-            aria-label={t('admin.academicSetup.guided.cycleFilter')}
+            aria-label={t('admin.academicSetup.levelsFilterLabel')}
           >
-            <option value="">{t('admin.academicSetup.guided.allCycles')}</option>
-            {cycles.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
+            {FILTER_MODES.map((mode) => (
+              <option key={mode} value={mode}>
+                {t(`admin.academicSetup.levelsFilter.${mode}`)}
               </option>
             ))}
           </select>
+        </div>
+
+        {hasActiveFilters && (
+          <button
+            type="button"
+            className="academic-toolbar__clear"
+            onClick={() => updateParams({ q: null, filter: null, cycle: null })}
+          >
+            {t('admin.academicSetup.levelsFilterClear')}
+          </button>
         )}
-        <select
-          className="input"
-          value={filter}
-          onChange={(e) => updateParams({ filter: e.target.value === 'all' ? null : e.target.value })}
-          aria-label={t('admin.academicSetup.levelsFilterLabel')}
-        >
-          {FILTER_MODES.map((mode) => (
-            <option key={mode} value={mode}>
-              {t(`admin.academicSetup.levelsFilter.${mode}`)}
-            </option>
-          ))}
-        </select>
       </div>
     </div>
   );
