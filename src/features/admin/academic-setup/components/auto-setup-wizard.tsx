@@ -540,14 +540,9 @@ export function AutoSetupWizard({ onFinished }: { onFinished?: () => void }) {
 
   const allLevels = useMemo(
     () => filterWizardReferenceLevels(optionsState.options?.reference_levels ?? []),
-    [optionsState.options],
+    [optionsState.options?.reference_levels],
   );
   const cycles = optionsState.options?.cycles ?? [];
-
-  useEffect(() => {
-    optionsState.reload();
-    readinessState.reload();
-  }, [optionsState.reload, readinessState.reload]);
 
   useEffect(() => {
     setSelected((prev) => {

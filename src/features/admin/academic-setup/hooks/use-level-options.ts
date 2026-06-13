@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
@@ -74,10 +74,14 @@ export function useLevelOptions(active = true, query?: LevelOptionsQuery) {
     active ? mergedQuery : undefined,
   );
 
-  const reload = useCallback(() => state.reload(), [state]);
+  const options = useMemo(
+    () => normalizeLevelOptionsPayload(state.data),
+    [state.data],
+  );
+  const reload = useCallback(() => state.reload(), [state.reload]);
 
   return {
-    options: normalizeLevelOptionsPayload(state.data),
+    options,
     loading: state.loading,
     error: state.error,
     reload,
