@@ -5,7 +5,6 @@ import type {
   InitializeLevelResult,
 } from '@/types/academic-initialize';
 import type { ReferenceLevelOption, ReferenceTrackOption } from '@/types/academic-levels';
-import { referenceLevelBadgeKey, resolveReferenceLevelState } from './level-link-status';
 import {
   groupReferenceLevelsByCycle,
   referenceLevelSubtitle,
@@ -27,38 +26,49 @@ export function filterWizardReferenceLevels(
   return levels.filter((level) => level.active && !isQaTestLevelCode(level.code));
 }
 
+export function isLevelEnabled(level: ReferenceLevelOption): boolean {
+  return level.enabled === true;
+}
+
 /** Wizard-only — enabled reference levels are never re-selected for initialize. */
 export function isLevelSelectable(level: ReferenceLevelOption): boolean {
-  if (!level.active || isQaTestLevelCode(level.code)) return false;
-  if (level.enabled) return false;
-  const state = resolveReferenceLevelState(level);
-  return state.canEnable || level.can_enable;
+  if (level.active === false || isQaTestLevelCode(level.code)) return false;
+  if (isLevelEnabled(level)) return false;
+  if (level.can_enable === false) return false;
+  return true;
 }
 
 export const isInitializeLevelSelectable = isLevelSelectable;
 
 export function isLevelAlreadyEnabled(level: ReferenceLevelOption): boolean {
-  return level.enabled || resolveReferenceLevelState(level).linkStatus === 'enabled';
+  return isLevelEnabled(level);
 }
 
 export function enabledLevelNeedsCompletion(level: ReferenceLevelOption): boolean {
-  if (!isLevelAlreadyEnabled(level)) return false;
+  if (!isLevelEnabled(level)) return false;
   const status = level.readiness_status?.trim();
   return status === 'needs_classes' || status === 'needs_subjects';
 }
 
 export function levelSelectionStatusBadgeKey(level: ReferenceLevelOption): string | null {
-  if (enabledLevelNeedsCompletion(level)) {
-    return 'admin.academicSetup.autoSetup.statusEnabledNeedsCompletion';
-  }
-  if (isLevelAlreadyEnabled(level)) {
+  if (isLevelEnabled(level)) {
+    if (enabledLevelNeedsCompletion(level)) {
+      return 'admin.academicSetup.autoSetup.statusEnabledNeedsCompletion';
+    }
     return 'admin.academicSetup.autoSetup.statusAlreadyEnabled';
   }
-  const badgeKey = referenceLevelBadgeKey(resolveReferenceLevelState(level).linkStatus);
-  if (badgeKey === 'admin.academicSetup.guided.statusEnabled') {
-    return 'admin.academicSetup.autoSetup.statusAlreadyEnabled';
-  }
-  return badgeKey;
+  return 'admin.academicSetup.guided.statusNotEnabled';
+}
+
+export function reconcileSelectedLevelIds(
+  levels: ReferenceLevelOption[],
+  selectedIds: Iterable<number>,
+): number[] {
+  const levelById = new Map(levels.map((item) => [item.id, item]));
+  return [...selectedIds].filter((id) => {
+    const level = levelById.get(id);
+    return level != null && isLevelSelectable(level);
+  });
 }
 
 export function selectableInitializeLevelIds(levels: ReferenceLevelOption[]): number[] {
@@ -111,12 +121,7 @@ export function buildAcademicInitializePayload(
   trackSelections: Map<number, Set<number>>,
   options: { createFirstClasses: boolean; enableReferenceSubjects: boolean },
 ): AcademicInitializeRequest {
-  const reference_level_ids = [...selectedIds]
-    .filter((id) => {
-      const level = levels.find((l) => l.id === id);
-      return level ? isInitializeLevelSelectable(level) : false;
-    })
-    .sort((a, b) => a - b);
+  const reference_level_ids = reconcileSelectedLevelIds(levels, selectedIds).sort((a, b) => a - b);
 
   const track_selections: Record<string, number[]> = {};
   for (const id of reference_level_ids) {
@@ -169,7 +174,8 @@ export function buildReviewPlans(
   trackSelections: Map<number, Set<number>>,
   options: { createFirstClasses: boolean; enableReferenceSubjects: boolean },
 ): ReviewLevelPlan[] {
-  return [...selectedIds]
+  const validIds = reconcileSelectedLevelIds(levels, selectedIds);
+  return validIds
     .map((id) => levels.find((l) => l.id === id))
     .filter((level): level is ReferenceLevelOption => Boolean(level))
     .sort(

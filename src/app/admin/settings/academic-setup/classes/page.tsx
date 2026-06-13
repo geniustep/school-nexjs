@@ -12,9 +12,11 @@ import { LevelsByCycleList } from '@/features/admin/academic-setup/components/le
 import { LevelsToolbar } from '@/features/admin/academic-setup/components/levels-toolbar';
 import { ReferenceLevelsDrawer } from '@/features/admin/academic-setup/components/reference-levels-drawer';
 import { useAcademicSetupLists } from '@/features/admin/academic-setup/hooks/use-academic-setup-data';
+import { useLevelOptions } from '@/features/admin/academic-setup/hooks/use-level-options';
 import { useDrawerActionParam } from '@/features/admin/academic-setup/hooks/use-drawer-action-param';
 import { useSetupReadiness } from '@/features/admin/academic-setup/hooks/use-setup-readiness';
 import { useTrackOptions } from '@/features/admin/academic-setup/hooks/use-tracks';
+import { refreshAcademicSetupData } from '@/features/admin/academic-setup/utils/academic-setup-data-refresh';
 import { filterLevelGroups, type LevelFilterMode } from '@/features/admin/academic-setup/utils/level-filters';
 import { buildLevelGroups, groupSubjectsByLevel } from '@/features/admin/academic-setup/utils/summary';
 import { parseNumericFilter } from '@/features/admin/academic-setup/utils/search';
@@ -28,6 +30,7 @@ export default function AcademicSetupClassesPage() {
   const user = useSession();
   const searchParams = useSearchParams();
   const lists = useAcademicSetupLists();
+  const levelOptionsState = useLevelOptions(true, { include_enabled: 'true' });
   const readinessState = useSetupReadiness();
   const trackOptionsState = useTrackOptions();
   const canManage = canManageClasses(user);
@@ -79,9 +82,13 @@ export default function AcademicSetupClassesPage() {
   }
 
   function refreshAll() {
-    lists.reload();
-    readinessState.reload();
-    trackOptionsState.reload();
+    refreshAcademicSetupData({
+      levels: lists.reload,
+      levelOptions: levelOptionsState.reload,
+      classes: lists.reload,
+      readiness: readinessState.reload,
+      tracks: trackOptionsState.reload,
+    });
   }
 
   function handleLevelsEnabled(outcome: {

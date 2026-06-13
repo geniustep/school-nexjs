@@ -8,10 +8,12 @@ import {
   filterWizardReferenceLevels,
   isIdempotentSuccessStatus,
   isLevelAlreadyEnabled,
+  isLevelEnabled,
   isLevelSelectable,
   isQaTestLevelCode,
   levelSelectionStatusBadgeKey,
   mapTrackMappingPresentation,
+  reconcileSelectedLevelIds,
   selectableInitializeLevelIds,
   trackIdsForInitializePayload,
   validateInitializeTrackSelections,
@@ -252,7 +254,7 @@ describe('initialize selection rules', () => {
     );
   });
 
-  it('shows already enabled badge for complete enabled levels', () => {
+  it('shows not enabled badge for complete enabled levels', () => {
     const complete = level({
       id: 7,
       code: 'P4',
@@ -265,6 +267,82 @@ describe('initialize selection rules', () => {
     expect(levelSelectionStatusBadgeKey(complete)).toBe(
       'admin.academicSetup.autoSetup.statusAlreadyEnabled',
     );
+  });
+
+  it('ignores stale link_status when enabled is false', () => {
+    const stale = level({
+      id: 1,
+      code: 'P1',
+      name: 'P1',
+      enabled: false,
+      can_enable: true,
+      link_status: 'enabled',
+      school_level_id: 42,
+    });
+    expect(isLevelEnabled(stale)).toBe(false);
+    expect(isLevelAlreadyEnabled(stale)).toBe(false);
+    expect(isLevelSelectable(stale)).toBe(true);
+    expect(levelSelectionStatusBadgeKey(stale)).toBe(
+      'admin.academicSetup.guided.statusNotEnabled',
+    );
+  });
+
+  it('keeps selectable when school_level_id is stale but enabled is false', () => {
+    const stale = level({
+      id: 2,
+      code: 'P2',
+      name: 'P2',
+      enabled: false,
+      can_enable: true,
+      link_status: 'not_enabled',
+      school_level_id: 99,
+    });
+    expect(isLevelSelectable(stale)).toBe(true);
+  });
+
+  it('reconcileSelectedLevelIds drops enabled, missing, and locked ids', () => {
+    const enabled = level({
+      id: 5,
+      code: 'P3',
+      name: 'P3',
+      enabled: true,
+      can_enable: false,
+      link_status: 'enabled',
+    });
+    const available = level({ id: 4, code: 'P4', name: 'P4', enabled: false, can_enable: true });
+    const locked = level({
+      id: 6,
+      code: 'P5',
+      name: 'P5',
+      enabled: false,
+      can_enable: false,
+    });
+    const ids = reconcileSelectedLevelIds([available, enabled, locked], [4, 5, 6, 99]);
+    expect(ids).toEqual([4]);
+  });
+
+  it('payload uses latest options only via reconcile', () => {
+    const p1 = level({ id: 1, code: 'P1', name: 'P1', enabled: false, can_enable: true });
+    const payload = buildAcademicInitializePayload([1, 2], [p1], new Map(), {
+      createFirstClasses: true,
+      enableReferenceSubjects: true,
+    });
+    expect(payload.reference_level_ids).toEqual([1]);
+  });
+
+  it('treats P1 P2 P3 as selectable after backend 82 reset shape', () => {
+    const levels = [
+      level({ id: 1, code: 'P1', name: 'P1', enabled: false, can_enable: true, link_status: 'not_enabled' }),
+      level({ id: 2, code: 'P2', name: 'P2', enabled: false, can_enable: true, link_status: 'not_enabled' }),
+      level({ id: 3, code: 'P3', name: 'P3', enabled: false, can_enable: true, link_status: 'not_enabled' }),
+    ];
+    expect(levels.every((item) => isLevelSelectable(item))).toBe(true);
+    expect(levels.every((item) => !isLevelAlreadyEnabled(item))).toBe(true);
+    expect(levels.map((item) => levelSelectionStatusBadgeKey(item))).toEqual([
+      'admin.academicSetup.guided.statusNotEnabled',
+      'admin.academicSetup.guided.statusNotEnabled',
+      'admin.academicSetup.guided.statusNotEnabled',
+    ]);
   });
 
   it('filters QA/TST levels out of wizard', () => {
