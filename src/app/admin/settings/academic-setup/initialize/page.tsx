@@ -6,7 +6,6 @@ import {
   AutoSetupUnavailable,
   AutoSetupWizard,
 } from '@/features/admin/academic-setup/components/auto-setup-wizard';
-import { useLevelOptions } from '@/features/admin/academic-setup/hooks/use-level-options';
 import { useSetupReadiness } from '@/features/admin/academic-setup/hooks/use-setup-readiness';
 import { isAcademicAutoSetupAvailable } from '@/features/admin/academic-setup/utils/academic-auto-setup-availability';
 import { useSession } from '@/features/auth/session-context';
@@ -20,12 +19,11 @@ export default function AcademicAutoSetupInitializePage() {
   const user = useSession();
   const router = useRouter();
   const canManage = canManageClasses(user);
-  const optionsState = useLevelOptions(true, { include_enabled: 'true' });
   const readinessState = useSetupReadiness();
 
   const available = useMemo(
-    () => isAcademicAutoSetupAvailable(optionsState.options, readinessState.data),
-    [optionsState.options, readinessState.data],
+    () => isAcademicAutoSetupAvailable(readinessState.data),
+    [readinessState.data],
   );
 
   useEffect(() => {
@@ -38,9 +36,7 @@ export default function AcademicAutoSetupInitializePage() {
     return null;
   }
 
-  const loading = optionsState.loading || readinessState.loading;
-
-  if (loading && !optionsState.options && !readinessState.data) {
+  if (readinessState.loading && !readinessState.data) {
     return <LoadingState label={t('common.loading')} />;
   }
 

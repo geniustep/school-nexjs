@@ -287,28 +287,73 @@ describe('navigation constants', () => {
 });
 
 describe('isAcademicAutoSetupAvailable', () => {
-  it('returns false when backend does not advertise feature', () => {
-    expect(isAcademicAutoSetupAvailable({ reference_levels: [], cycles: [], permissions: { can_enable: true } }, null)).toBe(false);
+  const baseReadiness = {
+    school: { id: 1, name: 'School' },
+    scope: { type: 'full_school', is_full_school: true },
+    readiness: {
+      score: 0,
+      status: 'blocked' as const,
+      blocking_issues: 0,
+      warnings: 0,
+      information: 0,
+      ready_for_timetable_setup: false,
+    },
+    domains: {},
+    issues: [],
+  };
+
+  it('returns false when readiness lacks metadata (Production 77 behavior)', () => {
+    expect(isAcademicAutoSetupAvailable(baseReadiness)).toBe(false);
   });
 
-  it('returns true when readiness advertises capability', () => {
+  it('returns true when readiness.features.academic_auto_setup is true', () => {
     expect(
-      isAcademicAutoSetupAvailable(null, {
-        school: { id: 1, name: 'School' },
-        scope: { type: 'full_school', is_full_school: true },
-        readiness: {
-          score: 0,
-          status: 'blocked',
-          blocking_issues: 0,
-          warnings: 0,
-          information: 0,
-          ready_for_timetable_setup: false,
-        },
-        domains: {},
-        issues: [],
+      isAcademicAutoSetupAvailable({
+        ...baseReadiness,
+        features: { academic_auto_setup: true },
+      }),
+    ).toBe(true);
+  });
+
+  it('returns false when readiness.features.academic_auto_setup is false', () => {
+    expect(
+      isAcademicAutoSetupAvailable({
+        ...baseReadiness,
+        features: { academic_auto_setup: false },
+      }),
+    ).toBe(false);
+  });
+
+  it('returns true when setup_capabilities includes academic_auto_setup alias', () => {
+    expect(
+      isAcademicAutoSetupAvailable({
+        ...baseReadiness,
         setup_capabilities: ['academic_auto_setup'],
       }),
     ).toBe(true);
+  });
+
+  it('ignores level options metadata (readiness-only contract)', () => {
+    expect(
+      isAcademicAutoSetupAvailable({
+        ...baseReadiness,
+        features: { academic_auto_setup: true },
+      }),
+    ).toBe(true);
+  });
+
+  it('does not enable wizard from dev flag outside local development', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('NEXT_PUBLIC_ACADEMIC_AUTO_SETUP', '1');
+    expect(isAcademicAutoSetupAvailable(baseReadiness)).toBe(false);
+    vi.unstubAllEnvs();
+  });
+
+  it('allows local development override only in NODE_ENV=development', () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    vi.stubEnv('NEXT_PUBLIC_ACADEMIC_AUTO_SETUP', '1');
+    expect(isAcademicAutoSetupAvailable(baseReadiness)).toBe(true);
+    vi.unstubAllEnvs();
   });
 });
 

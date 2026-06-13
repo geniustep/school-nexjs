@@ -37,6 +37,7 @@ import {
 import { referenceLevelBadgeKey, resolveReferenceLevelState } from '../utils/level-link-status';
 import { selectableReferenceTracks } from '../utils/level-options';
 import { mapInitializeError } from '../utils/api-errors';
+import { isAcademicAutoSetupAvailable } from '../utils/academic-auto-setup-availability';
 
 const STEP_ORDER: AutoSetupWizardStep[] = ['levels', 'tracks', 'review', 'execute', 'complete'];
 
@@ -553,6 +554,11 @@ export function AutoSetupWizard({ onFinished }: { onFinished?: () => void }) {
   }
 
   async function runInitialize(payload: ReturnType<typeof buildAcademicInitializePayload>) {
+    if (!isAcademicAutoSetupAvailable(readinessState.data)) {
+      setExecuteError(t('admin.academicSetup.autoSetup.unavailable'));
+      setStep('execute');
+      return;
+    }
     setExecuting(true);
     setExecuteError(null);
     setStep('execute');

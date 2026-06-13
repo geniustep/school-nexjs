@@ -8,7 +8,6 @@ import { GuidedFlowJourney } from '@/features/admin/academic-setup/components/gu
 import { GroupedSetupIssues } from '@/features/admin/academic-setup/components/grouped-setup-issues';
 import { AcademicQuickActions } from '@/features/admin/academic-setup/components/academic-quick-actions';
 import { AutoSetupCtaBanner } from '@/features/admin/academic-setup/components/auto-setup-cta-banner';
-import { useLevelOptions } from '@/features/admin/academic-setup/hooks/use-level-options';
 import { useAcademicSetupLists } from '@/features/admin/academic-setup/hooks/use-academic-setup-data';
 import { useSetupReadiness } from '@/features/admin/academic-setup/hooks/use-setup-readiness';
 import { useTrackOptions } from '@/features/admin/academic-setup/hooks/use-tracks';
@@ -31,14 +30,13 @@ export default function AcademicSetupOverviewPage() {
   const t = useT();
   const user = useSession();
   const readinessState = useSetupReadiness();
-  const levelOptionsState = useLevelOptions(true, { include_enabled: 'true' });
   const lists = useAcademicSetupLists();
   const trackOptionsState = useTrackOptions();
   const [allIssuesOpen, setAllIssuesOpen] = useState(false);
   const issuesSectionRef = useRef<HTMLElement>(null);
 
-  const loading = readinessState.loading || lists.loading || trackOptionsState.loading || levelOptionsState.loading;
-  const error = readinessState.error ?? lists.error ?? trackOptionsState.error ?? levelOptionsState.error;
+  const loading = readinessState.loading || lists.loading || trackOptionsState.loading;
+  const error = readinessState.error ?? lists.error ?? trackOptionsState.error;
 
   const guidedContext = useMemo((): GuidedStepContext | null => {
     if (!readinessState.data) return null;
@@ -65,8 +63,8 @@ export default function AcademicSetupOverviewPage() {
   );
   const nextStep = useMemo(() => primaryCtaFromSteps(steps), [steps]);
   const autoSetupAvailable = useMemo(
-    () => isAcademicAutoSetupAvailable(levelOptionsState.options, readinessState.data),
-    [levelOptionsState.options, readinessState.data],
+    () => isAcademicAutoSetupAvailable(readinessState.data),
+    [readinessState.data],
   );
   const showAutoSetupCta = autoSetupAvailable && canManageClasses(user);
 
@@ -94,7 +92,6 @@ export default function AcademicSetupOverviewPage() {
             readinessState.reload();
             lists.reload();
             trackOptionsState.reload();
-            levelOptionsState.reload();
           }}
         />
       </>
