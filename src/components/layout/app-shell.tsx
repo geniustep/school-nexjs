@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useMobileNavCoordinator } from '@/hooks/mobile-nav-coordinator';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils/cn';
@@ -55,7 +56,7 @@ export function AppShell({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const { mainDrawerOpen, setMainDrawerOpen } = useMobileNavCoordinator();
   const [loggingOut, setLoggingOut] = useState(false);
   const sections = navForUser(user);
   const t = useT();
@@ -71,7 +72,7 @@ export function AppShell({
       : formatSchoolLabel(user.school, t);
   const roleLabel = roleSubtitle(user, t);
 
-  useBodyScrollLock(open);
+  useBodyScrollLock(mainDrawerOpen);
 
   async function logout() {
     setLoggingOut(true);
@@ -92,12 +93,12 @@ export function AppShell({
         isAdmin && 'app-shell--admin',
       )}
     >
-      {open && (
+      {mainDrawerOpen && (
         <button
           type="button"
           className="scrim"
           aria-label={t('common.close')}
-          onClick={() => setOpen(false)}
+          onClick={() => setMainDrawerOpen(false)}
         />
       )}
       <aside
@@ -106,9 +107,9 @@ export function AppShell({
           'sidebar',
           isTeacher && 'sidebar--teacher',
           isAdmin && 'sidebar--admin',
-          open && 'sidebar--open',
+          mainDrawerOpen && 'sidebar--open',
         )}
-        aria-hidden={!open ? undefined : false}
+        aria-hidden={!mainDrawerOpen ? undefined : false}
       >
         <div className="sidebar__brand">
           <BrandLogo variant="full" />
@@ -141,7 +142,7 @@ export function AppShell({
                   href={item.href}
                   className={cn('nav-link', linkActive(item.href, item) && 'nav-link--active')}
                   aria-current={linkActive(item.href, item) ? 'page' : undefined}
-                  onClick={() => setOpen(false)}
+                  onClick={() => setMainDrawerOpen(false)}
                 >
                   <span className="nav-link__icon" aria-hidden="true">{item.icon}</span>
                   {t(item.labelKey)}
@@ -180,8 +181,8 @@ export function AppShell({
             <button
               type="button"
               className="btn btn--ghost btn--sm menu-toggle admin-mobile-menu-trigger"
-              onClick={() => setOpen((v) => !v)}
-              aria-expanded={open}
+              onClick={() => setMainDrawerOpen(!mainDrawerOpen)}
+              aria-expanded={mainDrawerOpen}
               aria-controls="admin-sidebar-nav"
               aria-label={t('common.toggleMenu')}
             >

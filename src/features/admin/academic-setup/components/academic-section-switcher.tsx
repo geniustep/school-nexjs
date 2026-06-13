@@ -2,10 +2,10 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
 import { cn } from '@/lib/utils/cn';
 import { MobileBottomSheet } from '@/components/ui/mobile-bottom-sheet';
 import { IconChevronDown } from '@/components/icons/admin-icons';
+import { useMobileNavCoordinator } from '@/hooks/mobile-nav-coordinator';
 import { useT } from '@/features/i18n/locale-context';
 import { canViewAcademicSetupSection } from '@/lib/permissions/academic-setup';
 import { useSession } from '@/features/auth/session-context';
@@ -23,7 +23,7 @@ export function AcademicSectionSwitcher() {
   const pathname = usePathname();
   const t = useT();
   const user = useSession();
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const { contextNavOpen, setContextNavOpen } = useMobileNavCoordinator();
 
   const items = ACADEMIC_NAV_ITEMS.filter((item) =>
     canViewAcademicSetupSection(user, item.section),
@@ -61,9 +61,9 @@ export function AcademicSectionSwitcher() {
       <button
         type="button"
         className="academic-section-switcher__mobile"
-        aria-expanded={sheetOpen}
+        aria-expanded={contextNavOpen}
         aria-haspopup="dialog"
-        onClick={() => setSheetOpen(true)}
+        onClick={() => setContextNavOpen(true)}
       >
         <span className="academic-section-switcher__mobile-label">
           {t('admin.academicSetup.currentSection')}
@@ -75,8 +75,8 @@ export function AcademicSectionSwitcher() {
       </button>
 
       <MobileBottomSheet
-        open={sheetOpen}
-        onClose={() => setSheetOpen(false)}
+        open={contextNavOpen}
+        onClose={() => setContextNavOpen(false)}
         title={t('admin.academicSetup.navLabel')}
         closeLabel={t('common.close')}
       >
@@ -92,7 +92,7 @@ export function AcademicSectionSwitcher() {
                     active && 'academic-section-switcher__sheet-link--active',
                   )}
                   aria-current={active ? 'page' : undefined}
-                  onClick={() => setSheetOpen(false)}
+                  onClick={() => setContextNavOpen(false)}
                 >
                   {t(`admin.academicSetup.nav.${item.key}`)}
                 </Link>

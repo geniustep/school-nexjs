@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useId, useRef, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { useBodyScrollLock } from '@/hooks/use-body-scroll-lock';
 
 export function MobileBottomSheet({
@@ -21,7 +22,13 @@ export function MobileBottomSheet({
   const fallbackId = useId();
   const titleId = labelledBy ?? `sheet-title-${fallbackId}`;
   const panelRef = useRef<HTMLDivElement>(null);
+  const historyPushedRef = useRef(false);
+  const [mounted, setMounted] = useState(false);
   useBodyScrollLock(open);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -33,12 +40,30 @@ export function MobileBottomSheet({
   }, [open, onClose]);
 
   useEffect(() => {
+    if (!open) return;
+    history.pushState({ mobileSheet: true }, '');
+    historyPushedRef.current = true;
+    function onPopState() {
+      historyPushedRef.current = false;
+      onClose();
+    }
+    window.addEventListener('popstate', onPopState);
+    return () => {
+      window.removeEventListener('popstate', onPopState);
+      if (historyPushedRef.current) {
+        historyPushedRef.current = false;
+        history.back();
+      }
+    };
+  }, [open, onClose]);
+
+  useEffect(() => {
     if (open) panelRef.current?.focus();
   }, [open]);
 
-  if (!open) return null;
+  if (!open || !mounted) return null;
 
-  return (
+  return createPortal(
     <>
       <button
         type="button"
@@ -64,7 +89,7 @@ export function MobileBottomSheet({
               type="button"
               className="mobile-sheet__close"
               onClick={onClose}
-              aria-label="Close"
+              aria-label={closeLabel}
             >
               ×
             </button>
@@ -72,6 +97,7 @@ export function MobileBottomSheet({
         )}
         <div className="mobile-sheet__body">{children}</div>
       </div>
-    </>
+    </>,
+    document.body,
   );
 }
