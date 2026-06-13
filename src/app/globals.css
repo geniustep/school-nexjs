@@ -922,11 +922,14 @@ table.data tbody tr:hover {
 
 .login-card__brand {
   margin-block-end: 6px;
+  display: flex;
+  justify-content: center;
 }
 
 .login-card__brand .brand-logo__full {
   height: 52px;
   max-width: 100%;
+  object-position: center center;
 }
 
 .login-card h1 {
