@@ -13,11 +13,15 @@ import {
   resolveAccountMutationFeedback,
 } from '@/lib/account/account-mutation-feedback';
 import { buildAccountIdentityPayload } from '@/lib/account/account-utils';
-import { useT } from '@/features/i18n/locale-context';
+import { useLocale, useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import type { Level, SchoolClass, Subject } from '@/types/class';
 import type { Teacher, TeacherProfileFieldErrors, TeacherProfileFormState } from '@/types/teacher';
 import { mapTeacherApiError } from '../utils/api-errors';
+import {
+  formatAcademicClassLabel,
+  formatAcademicLabelLine,
+} from '../utils/format-academic-label';
 import {
   buildLevelsById,
   buildSubjectDisplayLabel,
@@ -41,6 +45,7 @@ import {
   isTeacherProfileFormDirty,
   mapTeacherApiFieldError,
   resolveStatusActiveConsistency,
+  resolveTeacherLegacyGender,
   teacherProfileFormStateFromTeacher,
   validateTeacherProfileForm,
 } from '../utils/teacher-profile';
@@ -144,6 +149,7 @@ export function TeacherSetupForm({
   canManageAssignments = true,
   layout = 'drawer',
   onRegisterClose,
+  initialStep = 'profile',
 }: {
   teacher?: Teacher;
   onSaved: (id: number) => void;
@@ -151,11 +157,13 @@ export function TeacherSetupForm({
   canManageAssignments?: boolean;
   layout?: 'drawer' | 'page';
   onRegisterClose?: (handler: () => void) => void;
+  initialStep?: TeacherFormStep;
 }) {
   const t = useT();
+  const { locale } = useLocale();
   const toast = useToast();
   const creating = !teacher;
-  const [step, setStep] = useState<TeacherFormStep>('profile');
+  const [step, setStep] = useState<TeacherFormStep>(initialStep);
   const [saving, setSaving] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<TeacherProfileFieldErrors>({});
   const [useDifferentLogin, setUseDifferentLogin] = useState(false);
@@ -196,6 +204,13 @@ export function TeacherSetupForm({
       .sort()
       .join('|');
   }
+
+  useEffect(() => {
+    setStep(initialStep);
+    defaultsAppliedRef.current = false;
+    teacherHydratedRef.current = false;
+    setAssignmentsInitialized(false);
+  }, [teacher?.id, initialStep, creating]);
 
   useEffect(() => {
     if (!options || defaultsAppliedRef.current) return;
@@ -255,9 +270,9 @@ export function TeacherSetupForm({
     () =>
       (classesState.data ?? []).map((cls) => ({
         id: cls.id,
-        label: cls.level?.name ? `${cls.name} — ${cls.level.name}` : cls.name,
+        label: formatAcademicLabelLine(formatAcademicClassLabel(cls, locale)),
       })),
-    [classesState.data],
+    [classesState.data, locale],
   );
 
   const lookupLoading = classesState.loading || subjectsState.loading || levelsState.loading;
@@ -478,6 +493,7 @@ export function TeacherSetupForm({
             saving={saving}
             onChange={patchProfile}
             showEmailField={creating}
+            legacyGender={resolvedTeacher ? resolveTeacherLegacyGender(resolvedTeacher, options) : null}
           />
 
           {teacher ? (

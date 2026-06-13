@@ -463,7 +463,76 @@
   padding: 14px;
   display: flex;
   flex-direction: column;
+  gap: 10px;
+  background: var(--c-surface, #fff);
+}
+
+.academic-setup-teacher-card--selected {
+  border-color: var(--c-primary);
+}
+
+.academic-setup-teacher-card__name {
+  font-size: 15px;
+}
+
+.academic-setup-teacher-card__empty-action {
+  margin-top: 4px;
+}
+
+.academic-teacher-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 8px;
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--c-border);
+}
+
+.academic-teacher-card__details-btn {
+  flex: 1;
+}
+
+.academic-teacher-card__menu-wrap {
+  position: relative;
+}
+
+.academic-teacher-card__dropdown {
+  inset-inline-end: 0;
+  top: calc(100% + 4px);
+}
+
+.academic-teacher-card__link {
+  display: inline-block;
+  margin-top: 2px;
+}
+
+.teacher-detail-drawer__section h3 {
+  font-size: 14px;
+  margin: 0 0 8px;
+}
+
+.teacher-detail-drawer__empty {
+  margin: 0;
+  color: var(--c-muted);
+  font-size: 13px;
+}
+
+.teacher-detail-drawer__table-wrap {
+  overflow-x: auto;
+}
+
+.teacher-detail-drawer__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.teacher-detail-drawer__table th,
+.teacher-detail-drawer__table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--c-border);
+  text-align: start;
 }
 
 .academic-setup-gap-banner {

@@ -1095,6 +1095,14 @@
       "statusNeedsTeacher": "Necesita profesor",
       "editClass": "Editar clase",
       "editTeacher": "Editar profesor",
+      "viewTeacherDetails": "Ver detalles",
+      "manageAssignments": "Gestionar asignaciones",
+      "teacherActionsMenu": "Acciones del profesor",
+      "noTeachingAssignments": "Sin asignaciones docentes",
+      "noTeachingAssignmentsHint": "Añada una asignación para vincular este profesor a una clase y materia.",
+      "teachersEmptyTitle": "Aún no hay profesores",
+      "teachersEmptyDesc": "Añada su primer profesor para empezar la distribución docente.",
+      "searchTeachersExtended": "Buscar por nombre, código, especialización, materia o clase",
       "viewAssignmentsHint": "Revise las asignaciones docentes.",
       "subjectsActive": "{count} materias activas",
       "tracksReadOnlyGap": "Itinerarios: solo lectura — no hay endpoint /admin/tracks en API v1.",
@@ -1146,14 +1154,24 @@
         "preferCompactScheduleHint": "Preferir agrupar sesiones en menos días cuando sea posible.",
         "groups": {
           "account": "Información de cuenta",
+          "personal": "Información personal",
           "professional": "Información profesional",
           "workload": "Carga horaria y planificación"
         },
+        "gender": "Género",
+        "genderEmpty": "Sin especificar",
+        "dateOfBirth": "Fecha de nacimiento",
+        "specialization": "Especialización",
         "units": {
           "hours": "horas",
           "minutes": "minutos"
         },
         "errors": {
+          "invalidGender": "Género no válido.",
+          "genderOptionsUnavailable": "Las opciones de género no están disponibles en el servidor por ahora.",
+          "invalidDateOfBirth": "Fecha de nacimiento no válida.",
+          "futureDateOfBirth": "La fecha de nacimiento no puede ser futura.",
+          "invalidSpecialization": "Especialización no válida.",
           "invalidTeacherType": "Tipo de profesor no válido.",
           "invalidQualification": "Cualificación no válida.",
           "invalidWeeklyHours": "Valor de horas no válido.",
@@ -1166,6 +1184,9 @@
         "assignmentsColumnSubject": "Materia",
         "assignmentsColumnHours": "Horas",
         "assignmentsColumnAction": "Acción"
+      },
+      "teacherDetail": {
+        "level": "Nivel"
       },
       "staffApiGapTitle": "Gestión de personal no disponible",
       "staffApiGapDesc": "No hay endpoint /admin/staff en API v1. Página de solo lectura hasta Backend.",

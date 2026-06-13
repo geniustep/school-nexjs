@@ -10,6 +10,46 @@ import { normalizeTeacherOptions } from './teacher-options';
 
 export { normalizeTeacherOptions };
 
+export const SPECIALIZATION_DEFAULT_MAX = 128;
+
+export function hasTeacherGenderOptions(options: TeacherOptions | null): boolean {
+  return (options?.genders.length ?? 0) > 0;
+}
+
+export function isOfficialGenderValue(value: string, options: TeacherOptions | null): boolean {
+  const code = value.trim();
+  if (!code) return true;
+  if (!hasTeacherGenderOptions(options)) return false;
+  return options!.genders.some((item) => item.value === code);
+}
+
+/** Legacy gender from API that is not in current official options (read-only on edit). */
+export function resolveTeacherLegacyGender(
+  teacher: Pick<Teacher, 'gender'> | null | undefined,
+  options: TeacherOptions | null,
+): string | null {
+  const raw = teacher?.gender?.trim();
+  if (!raw || isOfficialGenderValue(raw, options)) return null;
+  return raw;
+}
+
+function normalizeGenderFormValue(
+  raw: string | null | undefined,
+  options: TeacherOptions | null,
+): string {
+  const code = raw?.trim() ?? '';
+  if (!code) return '';
+  return isOfficialGenderValue(code, options) ? code : '';
+}
+
+function todayDateOnlyString(): string {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 export function defaultTeacherProfileFormState(options: TeacherOptions | null): TeacherProfileFormState {
   const defaults = options?.defaults;
   return {
@@ -17,6 +57,9 @@ export function defaultTeacherProfileFormState(options: TeacherOptions | null): 
     code: '',
     phone: '',
     email: '',
+    gender: '',
+    dateOfBirth: '',
+    specialization: '',
     login: '',
     teacherType:
       defaults?.teacherType && options?.teacherTypes.some((o) => o.value === defaults.teacherType)
@@ -42,6 +85,9 @@ export function teacherProfileFormStateFromTeacher(
     code: teacher.code ?? '',
     phone: teacher.phone ?? '',
     email: teacher.email ?? '',
+    gender: normalizeGenderFormValue(teacher.gender, options),
+    dateOfBirth: teacher.date_of_birth ?? '',
+    specialization: teacher.specialization ?? '',
     login: teacher.login?.trim() || teacher.account?.login?.trim() || teacher.email?.trim() || '',
     teacherType: teacher.teacher_type ?? options?.defaults.teacherType ?? '',
     qualification: teacher.qualification ?? '',
@@ -65,6 +111,13 @@ function parseOptionalNumber(raw: string): number | null | undefined {
   return parsed;
 }
 
+function resolveSpecializationMax(options: TeacherOptions | null): number {
+  const max = options?.constraints.specialization?.max;
+  return typeof max === 'number' && Number.isFinite(max) && max > 0
+    ? max
+    : SPECIALIZATION_DEFAULT_MAX;
+}
+
 export function buildTeacherCreatePayload(
   state: TeacherProfileFormState,
   identity: Record<string, unknown>,
@@ -80,6 +133,18 @@ export function buildTeacherCreatePayload(
 
   const phone = state.phone.trim();
   if (phone) payload.phone = phone;
+
+  if (hasTeacherGenderOptions(options)) {
+    const gender = state.gender.trim();
+    if (gender && isOfficialGenderValue(gender, options)) {
+      payload.gender = gender;
+    }
+  }
+
+  if (state.dateOfBirth.trim()) payload.date_of_birth = state.dateOfBirth.trim();
+
+  const specialization = state.specialization.trim();
+  if (specialization) payload.specialization = specialization;
 
   if (state.teacherType) payload.teacher_type = state.teacherType;
 
@@ -121,6 +186,22 @@ export function buildTeacherUpdatePayload(
 
   if (current.phone.trim() !== original.phone.trim()) {
     payload.phone = current.phone.trim() || '';
+  }
+
+  if (
+    hasTeacherGenderOptions(options) &&
+    current.gender !== original.gender &&
+    isOfficialGenderValue(current.gender, options)
+  ) {
+    payload.gender = current.gender.trim() ? current.gender.trim() : '';
+  }
+
+  if (current.dateOfBirth.trim() !== original.dateOfBirth.trim()) {
+    payload.date_of_birth = current.dateOfBirth.trim() ? current.dateOfBirth.trim() : null;
+  }
+
+  if (current.specialization !== original.specialization) {
+    payload.specialization = current.specialization.trim() ? current.specialization.trim() : '';
   }
 
   if (current.teacherType !== original.teacherType && current.teacherType) {
@@ -186,6 +267,13 @@ export function mapTeacherApiFieldError(
   t: (key: string) => string,
 ): TeacherProfileFieldErrors & { global?: string } {
   switch (code) {
+    case 'invalid_gender':
+      return { gender: t('admin.academicSetup.teacherForm.errors.invalidGender') };
+    case 'invalid_date_of_birth':
+    case 'future_date_of_birth':
+      return { dateOfBirth: t('admin.academicSetup.teacherForm.errors.invalidDateOfBirth') };
+    case 'invalid_specialization':
+      return { specialization: t('admin.academicSetup.teacherForm.errors.invalidSpecialization') };
     case 'invalid_teacher_type':
       return { teacherType: t('admin.academicSetup.teacherForm.errors.invalidTeacherType') };
     case 'invalid_qualification':
@@ -214,9 +302,33 @@ export function validateTeacherProfileForm(
   const errors: TeacherProfileFieldErrors = {};
   const minHours = options?.constraints.weeklyHours?.min ?? 0;
   const minContinuous = options?.constraints.maxContinuousMinutes?.min ?? 1;
+  const specializationMax = resolveSpecializationMax(options);
+  const today = todayDateOnlyString();
 
   if (!state.name.trim()) {
     errors.name = t('errors.validationFailed');
+  }
+
+  if (hasTeacherGenderOptions(options)) {
+    if (state.gender.trim() && !isOfficialGenderValue(state.gender, options)) {
+      errors.gender = t('admin.academicSetup.teacherForm.errors.invalidGender');
+    }
+  } else if (state.gender.trim()) {
+    errors.gender = t('admin.academicSetup.teacherForm.errors.genderOptionsUnavailable');
+  }
+
+  const dob = state.dateOfBirth.trim();
+  if (dob) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dob)) {
+      errors.dateOfBirth = t('admin.academicSetup.teacherForm.errors.invalidDateOfBirth');
+    } else if (dob > today) {
+      errors.dateOfBirth = t('admin.academicSetup.teacherForm.errors.futureDateOfBirth');
+    }
+  }
+
+  const specialization = state.specialization.trim();
+  if (specialization.length > specializationMax) {
+    errors.specialization = t('admin.academicSetup.teacherForm.errors.invalidSpecialization');
   }
 
   if (state.teacherType && options && !options.teacherTypes.some((o) => o.value === state.teacherType)) {
@@ -281,4 +393,19 @@ export function validateTeacherProfileForm(
   }
 
   return { valid: Object.keys(errors).length === 0, errors };
+}
+
+export function resolveGenderLabel(
+  value: string | null | undefined,
+  options: TeacherOptions | null,
+  t: (key: string) => string,
+): string {
+  const code = value?.trim();
+  if (!code) return t('common.dash');
+  const match = options?.genders.find((item) => item.value === code);
+  return match?.label ?? code;
+}
+
+export function trimSpecialization(value: string): string {
+  return value.trim();
 }

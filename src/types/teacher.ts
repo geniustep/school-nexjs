@@ -28,6 +28,7 @@ export type TeacherOptionsDefaults = {
 export type TeacherOptionsConstraints = {
   weeklyHours?: TeacherOptionsConstraint;
   maxContinuousMinutes?: TeacherOptionsConstraint;
+  specialization?: TeacherOptionsConstraint;
 };
 
 /** Normalized teacher form options from GET /admin/teachers/options. */
@@ -36,6 +37,7 @@ export type TeacherOptions = {
   qualifications: TeacherOption[];
   contractTypes: TeacherOption[];
   statuses: TeacherOption[];
+  genders: TeacherOption[];
   schools: TeacherOptionsSchool[];
   defaults: TeacherOptionsDefaults;
   constraints: TeacherOptionsConstraints;
@@ -47,6 +49,7 @@ export type TeacherOptionsPayload = {
   qualifications?: TeacherOption[];
   contract_types?: TeacherOption[];
   statuses?: TeacherOption[];
+  genders?: TeacherOption[];
   schools?: TeacherOptionsSchool[];
   defaults?: {
     teacher_type?: string;
@@ -57,6 +60,7 @@ export type TeacherOptionsPayload = {
   constraints?: {
     weekly_hours?: TeacherOptionsConstraint;
     max_continuous_minutes?: TeacherOptionsConstraint;
+    specialization?: TeacherOptionsConstraint;
   };
 };
 
@@ -75,6 +79,8 @@ export interface Teacher {
   code: string | null;
   phone: string | null;
   email: string | null;
+  gender?: string | null;
+  date_of_birth?: string | null;
   login?: string | null;
   user_id?: number | null;
   account?: UserAccountInfo | null;
@@ -102,6 +108,9 @@ export type TeacherProfileFormState = {
   code: string;
   phone: string;
   email: string;
+  gender: string;
+  dateOfBirth: string;
+  specialization: string;
   login: string;
   teacherType: string;
   qualification: string;
@@ -117,6 +126,9 @@ export type TeacherProfileFormState = {
 export type TeacherProfileFieldErrors = Partial<
   Record<
     | 'name'
+    | 'gender'
+    | 'dateOfBirth'
+    | 'specialization'
     | 'teacherType'
     | 'qualification'
     | 'weeklyHoursTarget'

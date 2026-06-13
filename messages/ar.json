@@ -1098,6 +1098,14 @@
       "statusNeedsTeacher": "يحتاج أستاذًا",
       "editClass": "تعديل القسم",
       "editTeacher": "تعديل الأستاذ",
+      "viewTeacherDetails": "عرض التفاصيل",
+      "manageAssignments": "إدارة الإسنادات",
+      "teacherActionsMenu": "إجراءات الأستاذ",
+      "noTeachingAssignments": "لا توجد إسنادات تعليمية",
+      "noTeachingAssignmentsHint": "أضف إسنادًا لربط هذا الأستاذ بقسم ومادة.",
+      "teachersEmptyTitle": "لا يوجد أساتذة بعد",
+      "teachersEmptyDesc": "أضف أول أستاذ لبدء توزيع التدريس.",
+      "searchTeachersExtended": "بحث بالاسم، الرمز، التخصص، المادة، أو القسم",
       "viewAssignmentsHint": "راجع توزيع التدريس لإسناد المواد.",
       "subjectsActive": "{count} مادة مفعلة",
       "tracksReadOnlyGap": "الشعب والمسارات: العرض فقط — لا يوجد endpoint /admin/tracks على API v1 حاليًا.",
@@ -1149,14 +1157,24 @@
         "preferCompactScheduleHint": "يفضّل تجميع الحصص في أقل عدد من الأيام عند الإمكان.",
         "groups": {
           "account": "معلومات الحساب",
+          "personal": "المعلومات الشخصية",
           "professional": "المعلومات المهنية",
           "workload": "عبء العمل واستعمال الزمن"
         },
+        "gender": "الجنس",
+        "genderEmpty": "بدون تحديد",
+        "dateOfBirth": "تاريخ الازدياد",
+        "specialization": "التخصص",
         "units": {
           "hours": "ساعة",
           "minutes": "دقيقة"
         },
         "errors": {
+          "invalidGender": "الجنس غير صالح.",
+          "genderOptionsUnavailable": "خيارات الجنس غير متاحة حاليًا من الخادم.",
+          "invalidDateOfBirth": "تاريخ الازدياد غير صالح.",
+          "futureDateOfBirth": "لا يمكن أن يكون تاريخ الازدياد في المستقبل.",
+          "invalidSpecialization": "التخصص غير صالح.",
           "invalidTeacherType": "نوع الأستاذ غير صالح.",
           "invalidQualification": "المؤهل غير صالح.",
           "invalidWeeklyHours": "قيمة الساعات غير صالحة.",
@@ -1169,6 +1187,9 @@
         "assignmentsColumnSubject": "المادة",
         "assignmentsColumnHours": "الساعات",
         "assignmentsColumnAction": "إجراء"
+      },
+      "teacherDetail": {
+        "level": "المستوى"
       },
       "staffApiGapTitle": "إدارة الطاقم غير متاحة بعد",
       "staffApiGapDesc": "لا يوجد endpoint /admin/staff على API v1. هذه الصفحة read-only حتى جاهزية Backend.",

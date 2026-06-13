@@ -1095,6 +1095,14 @@
       "statusNeedsTeacher": "Enseignant requis",
       "editClass": "Modifier la classe",
       "editTeacher": "Modifier l'enseignant",
+      "viewTeacherDetails": "Voir les détails",
+      "manageAssignments": "Gérer les affectations",
+      "teacherActionsMenu": "Actions enseignant",
+      "noTeachingAssignments": "Aucune affectation pédagogique",
+      "noTeachingAssignmentsHint": "Ajoutez une affectation pour lier cet enseignant à une classe et une matière.",
+      "teachersEmptyTitle": "Aucun enseignant pour l'instant",
+      "teachersEmptyDesc": "Ajoutez votre premier enseignant pour commencer la répartition.",
+      "searchTeachersExtended": "Rechercher par nom, code, spécialité, matière ou classe",
       "viewAssignmentsHint": "Consultez les affectations pour assigner les matières.",
       "subjectsActive": "{count} matières actives",
       "tracksReadOnlyGap": "Filières : lecture seule — pas d'endpoint /admin/tracks sur l'API v1 actuelle.",
@@ -1146,14 +1154,24 @@
         "preferCompactScheduleHint": "Privilégier le regroupement des séances sur moins de jours si possible.",
         "groups": {
           "account": "Informations du compte",
+          "personal": "Informations personnelles",
           "professional": "Informations professionnelles",
           "workload": "Charge horaire et planning"
         },
+        "gender": "Genre",
+        "genderEmpty": "Non renseigné",
+        "dateOfBirth": "Date de naissance",
+        "specialization": "Spécialisation",
         "units": {
           "hours": "heures",
           "minutes": "minutes"
         },
         "errors": {
+          "invalidGender": "Genre invalide.",
+          "genderOptionsUnavailable": "Les options de genre ne sont pas disponibles côté serveur pour le moment.",
+          "invalidDateOfBirth": "Date de naissance invalide.",
+          "futureDateOfBirth": "La date de naissance ne peut pas être dans le futur.",
+          "invalidSpecialization": "Spécialisation invalide.",
           "invalidTeacherType": "Type d'enseignant invalide.",
           "invalidQualification": "Qualification invalide.",
           "invalidWeeklyHours": "Valeur d'heures invalide.",
@@ -1166,6 +1184,9 @@
         "assignmentsColumnSubject": "Matière",
         "assignmentsColumnHours": "Heures",
         "assignmentsColumnAction": "Action"
+      },
+      "teacherDetail": {
+        "level": "Niveau"
       },
       "staffApiGapTitle": "Gestion du personnel indisponible",
       "staffApiGapDesc": "Pas d'endpoint /admin/staff sur l'API v1. Page en lecture seule jusqu'au Backend.",

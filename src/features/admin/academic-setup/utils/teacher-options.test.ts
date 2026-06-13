@@ -8,6 +8,7 @@ describe('normalizeTeacherOptions', () => {
       qualifications: [{ value: 'master', label: 'Master' }],
       contract_types: [{ value: 'contract', label: 'Contract' }],
       statuses: [{ value: 'active', label: 'Active' }],
+      genders: [{ value: 'male', label: 'Male' }, { value: 'female', label: 'Female' }],
       schools: [{ id: 3, name: 'School', code: 'S1' }],
       defaults: {
         teacher_type: 'unknown',
@@ -22,6 +23,7 @@ describe('normalizeTeacherOptions', () => {
     });
 
     expect(result?.teacherTypes[0].value).toBe('vacataire');
+    expect(result?.genders).toHaveLength(2);
     expect(result?.defaults.teacherType).toBe('unknown');
     expect(result?.constraints.weeklyHours?.min).toBe(0);
     expect(result?.schools).toHaveLength(1);

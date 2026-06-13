@@ -1,6 +1,10 @@
 import type { ApiErrorBody } from '@/types/api';
 
 const TEACHER_ERRORS: Record<string, string> = {
+  invalid_gender: 'admin.academicSetup.teacherForm.errors.invalidGender',
+  invalid_date_of_birth: 'admin.academicSetup.teacherForm.errors.invalidDateOfBirth',
+  future_date_of_birth: 'admin.academicSetup.teacherForm.errors.futureDateOfBirth',
+  invalid_specialization: 'admin.academicSetup.teacherForm.errors.invalidSpecialization',
   invalid_teacher_type: 'admin.academicSetup.teacherForm.errors.invalidTeacherType',
   invalid_qualification: 'admin.academicSetup.teacherForm.errors.invalidQualification',
   invalid_weekly_hours: 'admin.academicSetup.teacherForm.errors.invalidWeeklyHours',

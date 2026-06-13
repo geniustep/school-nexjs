@@ -9,6 +9,8 @@ import { PageHeader, Badge, Card, DefinitionList, SectionHead } from '@/componen
 import { ConfirmActionButton } from '@/features/admin/confirm-action-button';
 import { AccountStatusBadge } from '@/features/admin/account/account-status-badge';
 import { TeacherForm } from '@/features/admin/entity-forms';
+import { useTeacherOptions } from '@/features/admin/academic-setup/hooks/use-teacher-options';
+import { resolveGenderLabel } from '@/features/admin/academic-setup/utils/teacher-profile';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { statusLabel } from '@/lib/utils/labels';
@@ -21,6 +23,8 @@ export default function AdminTeacherDetailPage({ params }: { params: Promise<{ i
   const isNew = id === 'new';
   const [editing, setEditing] = useState(isNew);
   const state = useAdminResource<Teacher>(isNew ? null : endpoints.admin.teacher(id));
+  const optionsState = useTeacherOptions(!isNew);
+  const options = optionsState.options;
 
   if (isNew) {
     return (
@@ -56,14 +60,22 @@ export default function AdminTeacherDetailPage({ params }: { params: Promise<{ i
             {editing ? (
               <TeacherForm teacher={teacher} onSaved={() => { setEditing(false); state.reload(); }} onCancel={() => setEditing(false)} />
             ) : (
-              <Card>
-                <SectionHead title={t('admin.account.accountInformation')} />
-                <div className="col" style={{ gap: 12 }}>
-                  <AccountStatusBadge entity={teacher} showLogin />
+              <>
+                <Card>
+                  <SectionHead title={t('admin.academicSetup.teacherForm.groups.personal')} />
                   <DefinitionList items={[
+                    { label: t('admin.fullName'), value: teacher.name },
                     { label: t('admin.code'), value: teacher.code ?? t('common.dash') },
+                    { label: t('admin.academicSetup.teacherForm.gender'), value: resolveGenderLabel(teacher.gender, options, t) },
+                    { label: t('admin.academicSetup.teacherForm.dateOfBirth'), value: teacher.date_of_birth ?? t('common.dash') },
                     { label: t('admin.phone'), value: teacher.phone ?? t('common.dash') },
                     { label: t('admin.email'), value: teacher.email ?? t('common.dash') },
+                  ]} />
+                </Card>
+                <Card>
+                  <SectionHead title={t('admin.academicSetup.teacherForm.groups.professional')} />
+                  <DefinitionList items={[
+                    { label: t('admin.academicSetup.teacherForm.specialization'), value: teacher.specialization?.trim() || t('common.dash') },
                     { label: t('admin.academicSetup.teacherForm.teacherType'), value: teacher.teacher_type ?? t('common.dash') },
                     { label: t('admin.academicSetup.teacherForm.qualification'), value: teacher.qualification ?? t('common.dash') },
                     { label: t('admin.academicSetup.teacherForm.weeklyHoursTarget'), value: teacher.weekly_hours_target != null ? String(teacher.weekly_hours_target) : t('common.dash') },
@@ -73,8 +85,8 @@ export default function AdminTeacherDetailPage({ params }: { params: Promise<{ i
                     { label: t('nav.classes'), value: teacher.classes.map((c) => c.name).join(', ') || t('common.dash') },
                     { label: t('nav.subjects'), value: teacher.subjects.map((s) => s.name).join(', ') || t('common.dash') },
                   ]} />
-                </div>
-              </Card>
+                </Card>
+              </>
             )}
           </>
         )}

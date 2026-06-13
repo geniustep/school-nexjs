@@ -23,6 +23,7 @@ export function normalizeTeacherOptions(
     qualifications: list(data.qualifications),
     contractTypes: list(data.contract_types),
     statuses: list(data.statuses),
+    genders: list(data.genders),
     schools: Array.isArray(data.schools) ? data.schools : [],
     defaults: {
       teacherType: data.defaults?.teacher_type,
@@ -33,6 +34,7 @@ export function normalizeTeacherOptions(
     constraints: {
       weeklyHours: data.constraints?.weekly_hours,
       maxContinuousMinutes: data.constraints?.max_continuous_minutes,
+      specialization: data.constraints?.specialization,
     },
   };
 }

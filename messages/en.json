@@ -1095,6 +1095,14 @@
       "statusNeedsTeacher": "Needs teacher",
       "editClass": "Edit class",
       "editTeacher": "Edit teacher",
+      "viewTeacherDetails": "View details",
+      "manageAssignments": "Manage assignments",
+      "teacherActionsMenu": "Teacher actions",
+      "noTeachingAssignments": "No teaching assignments",
+      "noTeachingAssignmentsHint": "Add an assignment to link this teacher to a class and subject.",
+      "teachersEmptyTitle": "No teachers yet",
+      "teachersEmptyDesc": "Add your first teacher to start scheduling.",
+      "searchTeachersExtended": "Search by name, code, specialization, subject, or class",
       "viewAssignmentsHint": "Review teaching assignments to assign subjects.",
       "subjectsActive": "{count} active subjects",
       "tracksReadOnlyGap": "Tracks: read-only — no /admin/tracks endpoint on current API v1.",
@@ -1146,14 +1154,24 @@
         "preferCompactScheduleHint": "Prefer grouping sessions into fewer days when possible.",
         "groups": {
           "account": "Account information",
+          "personal": "Personal information",
           "professional": "Professional information",
           "workload": "Workload & scheduling"
         },
+        "gender": "Gender",
+        "genderEmpty": "Not specified",
+        "dateOfBirth": "Date of birth",
+        "specialization": "Specialization",
         "units": {
           "hours": "hours",
           "minutes": "minutes"
         },
         "errors": {
+          "invalidGender": "Invalid gender.",
+          "genderOptionsUnavailable": "Gender options are not available from the server right now.",
+          "invalidDateOfBirth": "Invalid date of birth.",
+          "futureDateOfBirth": "Date of birth cannot be in the future.",
+          "invalidSpecialization": "Invalid specialization.",
           "invalidTeacherType": "Invalid teacher type.",
           "invalidQualification": "Invalid qualification.",
           "invalidWeeklyHours": "Invalid hours value.",
@@ -1166,6 +1184,9 @@
         "assignmentsColumnSubject": "Subject",
         "assignmentsColumnHours": "Hours",
         "assignmentsColumnAction": "Action"
+      },
+      "teacherDetail": {
+        "level": "Level"
       },
       "staffApiGapTitle": "Staff management not available yet",
       "staffApiGapDesc": "No /admin/staff endpoint on API v1. This page is read-only until Backend ships.",

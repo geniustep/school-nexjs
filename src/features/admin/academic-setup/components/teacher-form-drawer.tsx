@@ -13,11 +13,13 @@ export function TeacherFormDrawer({
   teacher,
   onClose,
   onSaved,
+  initialStep,
 }: {
   open: boolean;
   teacher?: Teacher;
   onClose: () => void;
   onSaved: (id: number) => void;
+  initialStep?: 'profile' | 'assignments';
 }) {
   const t = useT();
   const user = useSession();
@@ -36,6 +38,7 @@ export function TeacherFormDrawer({
       <TeacherSetupForm
         teacher={teacher}
         layout="drawer"
+        initialStep={initialStep}
         canManageAssignments={canManageAssignments}
         onRegisterClose={registerClose}
         onSaved={(id) => {
