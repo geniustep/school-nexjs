@@ -334,10 +334,10 @@
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
 }
 
-/* Inside class rows, open upward so delete is not clipped below the row */
+/* Class row actions open downward — upward is clipped by level body/header */
 .academic-class-card .academic-setup-level-actions__menu {
-  top: auto;
-  bottom: calc(100% + 4px);
+  top: calc(100% + 4px);
+  bottom: auto;
   z-index: 50;
 }
 
@@ -1696,7 +1696,8 @@
     0 10px 28px rgba(15, 42, 68, 0.05);
 }
 
-.academic-level-card:has(.academic-setup-level-actions__menu) {
+.academic-level-card:has(.academic-setup-level-actions__menu),
+.academic-level-card:has(.academic-setup-class-actions .academic-setup-level-actions__menu) {
   z-index: 20;
 }
 
@@ -1850,7 +1851,7 @@
   background: color-mix(in srgb, var(--c-bg, #f8fafc) 62%, var(--c-surface, #fff));
   border-end-start-radius: 14px;
   border-end-end-radius: 14px;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .academic-level-card__classes-rail {
@@ -1886,6 +1887,10 @@
   border: 1px solid color-mix(in srgb, var(--c-border) 92%, transparent);
   background: var(--c-surface, #fff);
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.035);
+}
+
+.academic-class-card:has(.academic-setup-level-actions__menu) {
+  z-index: 35;
 }
 
 .academic-class-card::before {

@@ -51,4 +51,11 @@ describe('level and class visual hierarchy', () => {
     expect(css).toContain('overflow: visible');
     expect(css).toContain('.academic-level-card:has(.academic-setup-level-actions__menu)');
   });
+
+  it('opens class action menu downward and keeps level body overflow visible', () => {
+    const css = readFileSync(cssPath, 'utf8');
+    expect(css).toMatch(/\.academic-class-card \.academic-setup-level-actions__menu[\s\S]*top:\s*calc\(100% \+ 4px\)/);
+    expect(css).toMatch(/\.academic-level-card__body[\s\S]*overflow:\s*visible/);
+    expect(css).toContain('.academic-class-card:has(.academic-setup-level-actions__menu)');
+  });
 });
