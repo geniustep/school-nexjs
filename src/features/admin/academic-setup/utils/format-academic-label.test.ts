@@ -45,8 +45,8 @@ describe('formatAcademicClassLabel', () => {
     const parts = formatAcademicClassLabel(
       {
         name: 'M1A',
-        code: 'M1A',
-        level: { id: 1, name: 'M1', code: 'M1', moroccan_display_alias: 'الأولى إعدادي' },
+        code: '2025-M1-M1A',
+        level: { id: 1, name: 'الأولى إعدادي' },
       },
       'ar',
     );

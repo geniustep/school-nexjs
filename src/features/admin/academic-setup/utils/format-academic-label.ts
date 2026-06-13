@@ -33,41 +33,89 @@ function sectionSuffixFromCode(classCode: string, levelCode: string | null): str
   return suffix;
 }
 
-function latinSectionLetterToArabic(letter: string): string {
-  const map: Record<string, string> = {
-    A: 'أ',
-    B: 'ب',
-    C: 'ج',
-    D: 'د',
-    E: 'ه',
-    F: 'و',
-    G: 'ز',
-    H: 'ح',
-    I: 'ط',
-    J: 'ي',
-    K: 'ك',
-    L: 'ل',
-    M: 'م',
-    N: 'ن',
-    O: 'و',
-    P: 'ب',
-    Q: 'ق',
-    R: 'ر',
-    S: 'س',
-    T: 'ت',
-    U: 'ع',
-    V: 'ف',
-    W: 'و',
-    X: 'كس',
-    Y: 'ي',
-    Z: 'ز',
-  };
-  return map[letter] ?? letter;
+function sectionSuffixFromShortName(shortName: string, levelCode: string | null): string | null {
+  if (!shortName) return null;
+  if (levelCode && shortName.startsWith(levelCode) && shortName.length > levelCode.length) {
+    const suffix = shortName.slice(levelCode.length);
+    if (/^[A-Za-z]$/.test(suffix)) return suffix.toUpperCase();
+  }
+  const match = shortName.match(/^[A-Z]+\d*([A-Z])$/i);
+  if (match) return match[1].toUpperCase();
+  return null;
 }
+
+function resolveClassSectionLabel(
+  cls: AcademicClassLabelSource,
+  locale: Locale,
+  levelCode: string | null,
+): string | null {
+  const sectionName = nonEmpty(cls.section_name ?? null);
+  if (sectionName) return sectionName;
+
+  const code = nonEmpty(cls.code ?? null);
+  const name = nonEmpty(cls.name ?? null);
+
+  const suffixFromCode = code && levelCode ? sectionSuffixFromCode(code, levelCode) : null;
+  if (suffixFromCode) return formatSectionLabel(suffixFromCode, locale);
+
+  if (code?.includes('-')) {
+    const tail = code.split('-').pop() ?? '';
+    const suffixFromTail = sectionSuffixFromShortName(tail, levelCode);
+    if (suffixFromTail) return formatSectionLabel(suffixFromTail, locale);
+  }
+
+  const suffixFromName = name ? sectionSuffixFromShortName(name, levelCode) : null;
+  if (suffixFromName) return formatSectionLabel(suffixFromName, locale);
+
+  return null;
+}
+
+function resolveClassSecondaryLabel(
+  primary: string,
+  code: string | null,
+  name: string | null,
+): string | null {
+  if (name && name !== primary && name.length <= 8) return name;
+  if (code && code !== primary && code !== name) return code;
+  if (name && name !== primary) return name;
+  return null;
+}
+
+const LATIN_SECTION_TO_ARABIC: Record<string, string> = {
+  A: 'أ',
+  B: 'ب',
+  C: 'ج',
+  D: 'د',
+  E: 'ه',
+  F: 'و',
+  G: 'ز',
+  H: 'ح',
+  I: 'ط',
+  J: 'ي',
+  K: 'ك',
+  L: 'ل',
+  M: 'م',
+  N: 'ن',
+  O: 'و',
+  P: 'ب',
+  Q: 'ق',
+  R: 'ر',
+  S: 'س',
+  T: 'ت',
+  U: 'ع',
+  V: 'ف',
+  W: 'و',
+  X: 'كس',
+  Y: 'ي',
+  Z: 'ز',
+};
 
 function formatSectionLabel(section: string, locale: Locale): string {
   if (/^[A-Z]$/.test(section)) {
-    if (locale === 'ar') return `القسم ${latinSectionLetterToArabic(section)}`;
+    if (locale === 'ar') {
+      const arabicLetter = LATIN_SECTION_TO_ARABIC[section] ?? section;
+      return `القسم ${arabicLetter}`;
+    }
     if (locale === 'fr') return `Section ${section}`;
     if (locale === 'es') return `Sección ${section}`;
     return `Section ${section}`;
@@ -111,7 +159,6 @@ export function formatAcademicClassLabel(
   const name = nonEmpty(cls.name ?? null);
   const displayAlias = nonEmpty(cls.display_alias ?? null);
   const displayName = nonEmpty(cls.display_name ?? null);
-  const sectionName = nonEmpty(cls.section_name ?? null);
   const levelParts = formatAcademicLevelLabel(cls.level ?? null, locale);
   const levelCode = nonEmpty(cls.level?.code ?? null);
 
@@ -121,12 +168,7 @@ export function formatAcademicClassLabel(
   } else if (displayName && displayName !== code) {
     primary = displayName;
   } else {
-    const section =
-      sectionName ??
-      (() => {
-        const suffix = sectionSuffixFromCode(code ?? name ?? '', levelCode);
-        return suffix ? formatSectionLabel(suffix, locale) : null;
-      })();
+    const section = resolveClassSectionLabel(cls, locale, levelCode);
 
     if (levelParts.primary !== '—' && section) {
       primary = `${levelParts.primary} — ${section}`;
@@ -139,11 +181,7 @@ export function formatAcademicClassLabel(
     }
   }
 
-  let secondary: string | null = null;
-  if (code && code !== primary) secondary = code;
-  else if (name && name !== primary && name !== code) secondary = name;
-  else if (code && !secondary) secondary = code;
-
+  let secondary = resolveClassSecondaryLabel(primary, code, name);
   if (secondary === primary) secondary = null;
 
   return { primary, secondary };
