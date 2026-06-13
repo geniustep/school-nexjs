@@ -72,6 +72,22 @@ export type StaffAdminKind =
   | 'general_supervisor'
   | 'admin_staff';
 
+export type PermissionsMode =
+  | 'full_school'
+  | 'assigned'
+  | 'scoped'
+  | 'full_platform';
+
+export interface RolePermissionMetadata {
+  permissions_mode?: PermissionsMode;
+  capabilities_editable?: boolean;
+}
+
+export interface StaffAdminKindOption extends RolePermissionMetadata {
+  value: StaffAdminKind;
+  label: string;
+}
+
 export type StaffAccountStatus = 'active' | 'suspended' | 'inactive' | 'no_school';
 
 export type StaffStatusFilter = 'active' | 'inactive' | 'all';
@@ -97,6 +113,10 @@ export interface StaffMember {
   phone: string | null;
   job_title: string | null;
   admin_kind: StaffAdminKind;
+  permissions_mode?: PermissionsMode;
+  capabilities_editable?: boolean;
+  assigned_capabilities?: string[];
+  effective_permissions?: string[];
   active: boolean;
   account_status: StaffAccountStatus;
   can_deactivate?: boolean;
@@ -123,13 +143,18 @@ export interface StaffCapabilityOption {
 }
 
 export interface StaffOptions {
-  admin_kinds: { value: StaffAdminKind; label: string }[];
+  admin_kinds: StaffAdminKindOption[];
   schools: (SchoolRef & { code?: string })[];
   levels?: Ref[];
   classes?: Ref[];
   capabilities: StaffCapabilityOption[];
-  role_templates?: unknown[];
+  role_templates?: StaffRoleTemplate[];
   scope_types?: { value: string; label: string }[];
+}
+
+export interface StaffRoleTemplate extends RolePermissionMetadata {
+  admin_kind: StaffAdminKind;
+  label?: string;
 }
 
 export interface AcademicTrack {

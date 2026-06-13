@@ -1,7 +1,13 @@
 import type { ReactNode } from 'react';
 
-export function AcademicToolbar({ children }: { children: ReactNode }) {
-  return <div className="academic-toolbar">{children}</div>;
+export function AcademicToolbar({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return <div className={className ? `academic-toolbar ${className}` : 'academic-toolbar'}>{children}</div>;
 }
 
 export function AcademicSearchField({

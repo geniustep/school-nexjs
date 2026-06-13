@@ -2,12 +2,12 @@
 // enforces security server-side (API_REPORT.md §6, "Never rely on permissions
 // alone for security").
 
+import { hasEffectivePermission } from '@/lib/permissions/effective-permissions';
 import type { CurrentUser } from '@/types/user';
 import type { Permission } from '@/types/permissions';
 
 export function hasPermission(user: CurrentUser | null, perm: Permission): boolean {
-  if (!user) return false;
-  return user.permissions?.includes(perm) ?? false;
+  return hasEffectivePermission(user, perm);
 }
 
 export function hasAnyPermission(

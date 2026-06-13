@@ -1204,7 +1204,7 @@
       "addStaff": "Add staff member",
       "editStaff": "Edit staff member",
       "searchStaff": "Search staff…",
-      "noStaff": "No administrative staff",
+      "noStaff": "No administrative staff members",
       "noActiveStaff": "No active staff members right now.",
       "noInactiveStaff": "No deactivated staff accounts.",
       "noStaffSearchResults": "No staff match your search in this filter.",
@@ -1212,11 +1212,42 @@
       "activeStaff": "Active",
       "inactiveStaff": "Inactive",
       "allStaff": "All",
+      "staffCount": {
+        "active": {
+          "zero": "No active staff",
+          "one": "1 active staff member",
+          "two": "2 active staff members",
+          "few": "{count} active staff members",
+          "many": "{count} active staff members"
+        },
+        "inactive": {
+          "zero": "No deactivated staff",
+          "one": "1 deactivated staff account",
+          "two": "2 deactivated staff accounts",
+          "few": "{count} deactivated staff accounts",
+          "many": "{count} deactivated staff accounts"
+        },
+        "all": {
+          "zero": "No staff members",
+          "one": "1 staff member",
+          "two": "2 staff members",
+          "few": "{count} staff members",
+          "many": "{count} staff members"
+        }
+      },
+      "technicalRole": {
+        "administrator": "School manager",
+        "admin": "School manager",
+        "project_manager": "Platform manager",
+        "school_manager": "School manager",
+        "general_supervisor": "General supervisor",
+        "admin_staff": "Administrative staff"
+      },
       "staffAccountActive": "Active",
       "staffAccountInactive": "Account deactivated",
       "reactivateStaff": "Reactivate staff",
       "reactivateStaffTitle": "Reactivate this staff member?",
-      "reactivateStaffDescription": "The staff member will be able to use the same account again. Email, login, and permissions will not change.",
+      "reactivateStaffDescription": "The staff member will be able to sign in with the same account again, without changing email, login, or permissions.",
       "staffReactivated": "Staff account reactivated successfully.",
       "staffAlreadyActive": "This account is already active.",
       "staffDeactivated": "Staff account deactivated.",
@@ -1281,15 +1312,95 @@
         "staff": "Staff"
       },
       "capCategory": {
+        "dashboard": "Dashboard",
+        "registration": "Registration",
         "students": "Students",
+        "parents": "Parents",
         "classes": "Classes",
         "teachers": "Teachers",
         "attendance": "Attendance",
         "academics": "Academics",
+        "content": "Content",
         "communication": "Communication",
         "exams": "Exams",
         "finance": "Finance",
+        "operations": "Operations",
+        "reporting": "Reporting",
+        "settings": "Settings",
         "other": "Other"
+      },
+      "staffCapabilities": {
+        "sectionTitle": "Permissions",
+        "sectionSubtitle": "Choose what this staff member can access within the school.",
+        "searchPlaceholder": "Search permissions…",
+        "selectedCount": "{count} permissions selected",
+        "expandAll": "Expand all",
+        "collapseAll": "Collapse all",
+        "loadError": "Could not load permissions. Try again.",
+        "retry": "Retry",
+        "emptyCatalog": "No permissions available for this role.",
+        "emptySearch": "No permissions match your search.",
+        "autoGrantedBadge": "Granted automatically",
+        "sensitiveBadge": "Sensitive permission",
+        "baseSectionTitle": "Core role permissions",
+        "additionalSectionTitle": "Additional permissions",
+        "categorySelected": "{selected} of {total} permissions",
+        "selectAllCategory": "Select all",
+        "deselectAllCategory": "Clear all",
+        "roleChangeWarning": "Changing the role type may update this user's core permissions.",
+        "roleChangeToFullSchoolWarning": "The user will automatically receive school manager permissions within their school scope.",
+        "roleChangeFromFullSchoolWarning": "After changing the role, permissions will depend on manually selected capabilities.",
+        "catalogUnavailableWarning": "The permission catalog could not be loaded. Permission changes will not be sent until loading completes.",
+        "fullSchoolPermissions": "Full permissions within the school",
+        "fullSchoolPermissionsDescription": "School managers automatically receive all administrative and operational permissions within their school, limited to schools linked to their account.",
+        "fullPlatformPermissions": "Platform permissions",
+        "roleInheritedPermissions": "Granted automatically by role",
+        "inheritedPermissionsLabel": "Inherited from role",
+        "permissionsRestrictedToAssignedSchools": "These permissions apply only within the school or schools linked to this account, not to other schools or platform settings.",
+        "platformPermissionsExcluded": "These permissions do not include payment provider settings or global platform configuration.",
+        "manualCapabilitiesNotRequired": "Manual capability selection is not required for this role.",
+        "schoolManagerPermissionGroups": {
+          "group1": "Levels and classes",
+          "group2": "Subjects and tracks",
+          "group3": "Teachers and staff",
+          "group4": "Students and parents",
+          "group5": "Attendance and exams",
+          "group6": "Timetable",
+          "group7": "Communication and reports",
+          "group8": "School finance",
+          "group9": "School setup"
+        }
+      },
+      "roleCapabilities": {
+        "school_manager": {
+          "title": "School manager permissions",
+          "description": "School managers automatically receive the core permissions needed to run their school.",
+          "autoGrantedLabel": "Granted automatically by role",
+          "highlight1": "Manage levels and classes",
+          "highlight2": "Manage teachers and staff",
+          "highlight3": "Manage students and parents",
+          "highlight4": "View essential reports"
+        },
+        "project_manager": {
+          "title": "Platform manager permissions",
+          "description": "A platform manager's scope is limited to assigned schools.",
+          "autoGrantedLabel": "Granted automatically by role",
+          "highlight1": "Manage assigned school portfolio",
+          "highlight2": "Oversee academic setup",
+          "highlight3": "Monitor reports and operations",
+          "highlight4": "Manage administrative staff within scope"
+        },
+        "general_supervisor": {
+          "title": "General supervisor permissions",
+          "description": "Supervision permissions within assigned schools and levels.",
+          "autoGrantedLabel": "Granted automatically by role",
+          "scopeTitle": "Supervision scope",
+          "scopeDescription": "Access is limited to schools and levels assigned to this supervisor.",
+          "highlight1": "Monitor attendance and daily operations",
+          "highlight2": "View reports within scope",
+          "highlight3": "Communication and class oversight",
+          "highlight4": "Additional permissions when customization is needed"
+        }
       },
       "capabilities": {
         "view_dashboard": "View Dashboard",

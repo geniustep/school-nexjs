@@ -1204,7 +1204,7 @@
       "addStaff": "Añadir miembro",
       "editStaff": "Editar miembro",
       "searchStaff": "Buscar personal…",
-      "noStaff": "Sin personal administrativo",
+      "noStaff": "No hay miembros en el personal administrativo",
       "noActiveStaff": "No hay personal activo en este momento.",
       "noInactiveStaff": "No hay cuentas de personal desactivadas.",
       "noStaffSearchResults": "Ningún miembro coincide con la búsqueda en este filtro.",
@@ -1212,11 +1212,42 @@
       "activeStaff": "Activos",
       "inactiveStaff": "Desactivados",
       "allStaff": "Todos",
+      "staffCount": {
+        "active": {
+          "zero": "Sin personal activo",
+          "one": "1 miembro activo",
+          "two": "2 miembros activos",
+          "few": "{count} miembros activos",
+          "many": "{count} miembros activos"
+        },
+        "inactive": {
+          "zero": "Sin cuentas desactivadas",
+          "one": "1 cuenta desactivada",
+          "two": "2 cuentas desactivadas",
+          "few": "{count} cuentas desactivadas",
+          "many": "{count} cuentas desactivadas"
+        },
+        "all": {
+          "zero": "Sin miembros del personal",
+          "one": "1 miembro del personal",
+          "two": "2 miembros del personal",
+          "few": "{count} miembros del personal",
+          "many": "{count} miembros del personal"
+        }
+      },
+      "technicalRole": {
+        "administrator": "Director del centro",
+        "admin": "Director del centro",
+        "project_manager": "Responsable de plataforma",
+        "school_manager": "Director del centro",
+        "general_supervisor": "Supervisor general",
+        "admin_staff": "Personal administrativo"
+      },
       "staffAccountActive": "Activo",
       "staffAccountInactive": "Cuenta desactivada",
       "reactivateStaff": "Reactivar personal",
       "reactivateStaffTitle": "¿Reactivar este miembro del personal?",
-      "reactivateStaffDescription": "El miembro podrá usar la misma cuenta de nuevo. No cambiarán el correo, el acceso ni los permisos.",
+      "reactivateStaffDescription": "El miembro podrá iniciar sesión con la misma cuenta, sin cambiar correo, acceso ni permisos.",
       "staffReactivated": "Cuenta del personal reactivada correctamente.",
       "staffAlreadyActive": "Esta cuenta ya está activa.",
       "staffDeactivated": "Cuenta del personal desactivada.",
@@ -1281,15 +1312,95 @@
         "staff": "Personal"
       },
       "capCategory": {
+        "dashboard": "Panel",
+        "registration": "Matrícula",
         "students": "Alumnos",
+        "parents": "Padres",
         "classes": "Clases",
         "teachers": "Profesores",
         "attendance": "Asistencia",
         "academics": "Académico",
+        "content": "Contenido",
         "communication": "Comunicación",
         "exams": "Exámenes",
         "finance": "Finanzas",
+        "operations": "Operaciones",
+        "reporting": "Informes",
+        "settings": "Configuración",
         "other": "Otro"
+      },
+      "staffCapabilities": {
+        "sectionTitle": "Permisos",
+        "sectionSubtitle": "Defina a qué puede acceder este miembro del personal dentro del centro.",
+        "searchPlaceholder": "Buscar permiso…",
+        "selectedCount": "{count} permisos seleccionados",
+        "expandAll": "Expandir todo",
+        "collapseAll": "Contraer todo",
+        "loadError": "No se pudieron cargar los permisos. Inténtelo de nuevo.",
+        "retry": "Reintentar",
+        "emptyCatalog": "No hay permisos disponibles para este rol.",
+        "emptySearch": "Ningún permiso coincide con la búsqueda.",
+        "autoGrantedBadge": "Concedido automáticamente",
+        "sensitiveBadge": "Permiso sensible",
+        "baseSectionTitle": "Permisos básicos del rol",
+        "additionalSectionTitle": "Permisos adicionales",
+        "categorySelected": "{selected} de {total} permisos",
+        "selectAllCategory": "Seleccionar todo",
+        "deselectAllCategory": "Deseleccionar todo",
+        "roleChangeWarning": "Cambiar el tipo de rol puede modificar los permisos básicos de este usuario.",
+        "roleChangeToFullSchoolWarning": "El usuario recibirá automáticamente los permisos de director del centro dentro del ámbito de su escuela.",
+        "roleChangeFromFullSchoolWarning": "Tras cambiar el rol, los permisos dependerán de las capacidades seleccionadas manualmente.",
+        "catalogUnavailableWarning": "No se pudo cargar el catálogo de permisos. Los cambios no se enviarán hasta completar la carga.",
+        "fullSchoolPermissions": "Permisos completos dentro del centro",
+        "fullSchoolPermissionsDescription": "El director del centro recibe automáticamente todos los permisos administrativos y operativos de su escuela, limitados a los centros vinculados a su cuenta.",
+        "fullPlatformPermissions": "Permisos de plataforma",
+        "roleInheritedPermissions": "Concedidos automáticamente según el rol",
+        "inheritedPermissionsLabel": "Heredados del rol",
+        "permissionsRestrictedToAssignedSchools": "Estos permisos se aplican solo dentro del centro o centros vinculados a la cuenta, no a otros centros ni a la configuración de la plataforma.",
+        "platformPermissionsExcluded": "Estos permisos no incluyen ajustes del proveedor de pagos ni la configuración global de la plataforma.",
+        "manualCapabilitiesNotRequired": "No se requiere selección manual de permisos para este rol.",
+        "schoolManagerPermissionGroups": {
+          "group1": "Niveles y clases",
+          "group2": "Asignaturas e itinerarios",
+          "group3": "Profesores y personal",
+          "group4": "Alumnos y padres",
+          "group5": "Asistencia y exámenes",
+          "group6": "Horario",
+          "group7": "Comunicación e informes",
+          "group8": "Finanzas escolares",
+          "group9": "Configuración del centro"
+        }
+      },
+      "roleCapabilities": {
+        "school_manager": {
+          "title": "Permisos del director del centro",
+          "description": "El director recibe automáticamente los permisos básicos necesarios para gestionar su centro.",
+          "autoGrantedLabel": "Concedidos automáticamente según el rol",
+          "highlight1": "Gestionar niveles y clases",
+          "highlight2": "Gestionar profesores y personal",
+          "highlight3": "Gestionar alumnos y padres",
+          "highlight4": "Consultar informes esenciales"
+        },
+        "project_manager": {
+          "title": "Permisos del gestor de plataforma",
+          "description": "El ámbito del gestor de plataforma está limitado a los centros asignados.",
+          "autoGrantedLabel": "Concedidos automáticamente según el rol",
+          "highlight1": "Gestionar la cartera de centros asignados",
+          "highlight2": "Supervisar la configuración académica",
+          "highlight3": "Seguir informes y operaciones",
+          "highlight4": "Gestionar personal administrativo en el ámbito"
+        },
+        "general_supervisor": {
+          "title": "Permisos del supervisor general",
+          "description": "Permisos de supervisión en los centros y niveles asignados.",
+          "autoGrantedLabel": "Concedidos automáticamente según el rol",
+          "scopeTitle": "Ámbito de supervisión",
+          "scopeDescription": "El acceso se limita a los centros y niveles asignados a este supervisor.",
+          "highlight1": "Seguir asistencia y operaciones diarias",
+          "highlight2": "Consultar informes en el ámbito",
+          "highlight3": "Comunicación y supervisión de clases",
+          "highlight4": "Permisos adicionales cuando se necesite personalización"
+        }
       },
       "capabilities": {
         "view_dashboard": "Ver panel",
