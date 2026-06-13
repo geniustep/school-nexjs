@@ -3,10 +3,11 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { IconChevronDown } from '@/components/icons/admin-icons';
-import { useT } from '@/features/i18n/locale-context';
+import { useLocale, useT } from '@/features/i18n/locale-context';
 import type { Level, SchoolClass, Subject } from '@/types/class';
 import type { SetupReadinessIssue } from '@/types/academic-setup';
 import { AcademicSubjectCard } from './academic-subject-card';
+import { formatAcademicLevelLabel } from '../utils/format-academic-label';
 import { dedupeSubjectsForDisplay } from '../utils/subject-present';
 import { groupSubjectsByLevel } from '../utils/summary';
 
@@ -41,6 +42,7 @@ export function SubjectsLevelPanel({
   readinessIssues?: SetupReadinessIssue[];
 }) {
   const t = useT();
+  const { locale } = useLocale();
   const [levelId, setLevelId] = useState<string>(levels[0] ? String(levels[0].id) : '');
   const [advancedOpen, setAdvancedOpen] = useState(false);
 
@@ -56,6 +58,7 @@ export function SubjectsLevelPanel({
     [activeGroup?.subjects],
   );
   const classCount = activeLevel ? countClassesForLevel(classes, activeLevel.id) : 0;
+  const activeLevelLabel = activeLevel ? formatAcademicLevelLabel(activeLevel, locale) : null;
 
   if (!levels.length) {
     return (
@@ -79,23 +82,26 @@ export function SubjectsLevelPanel({
             onChange={(e) => setLevelId(e.target.value)}
             aria-label={t('admin.selectLevel')}
           >
-            {levels.map((l) => (
+            {levels.map((l) => {
+              const label = formatAcademicLevelLabel(l, locale);
+              return (
               <option key={l.id} value={l.id}>
-                {l.name}
+                {label.secondary ? `${label.primary} (${label.secondary})` : label.primary}
               </option>
-            ))}
+              );
+            })}
           </select>
           <IconChevronDown size={16} className="academic-subjects-panel__level-chevron" aria-hidden />
         </label>
 
         {activeLevel && (
           <div className="academic-subjects-panel__level-context">
-            <strong className="academic-subjects-panel__level-name">{activeLevel.name}</strong>
+            <strong className="academic-subjects-panel__level-name">{activeLevelLabel?.primary ?? activeLevel.name}</strong>
             <span className="academic-subjects-panel__level-meta">
-              {activeLevel.code && <span>{activeLevel.code}</span>}
+              {activeLevelLabel?.secondary && <span dir="ltr">{activeLevelLabel.secondary}</span>}
               {activeLevel.cycle?.name && (
                 <span>
-                  {activeLevel.code ? ' · ' : ''}
+                  {activeLevelLabel?.secondary ? ' · ' : ''}
                   {activeLevel.cycle.name}
                 </span>
               )}

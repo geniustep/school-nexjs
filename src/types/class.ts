@@ -46,6 +46,8 @@ export interface Level {
   id: number;
   name: string;
   code?: string | null;
+  display_name?: string | null;
+  moroccan_display_alias?: string | null;
   sequence?: number;
   ref_level_id?: number | null;
   supports_tracks?: boolean;
@@ -83,7 +85,14 @@ export interface SchoolClass {
   id: number;
   name: string;
   code: string | null;
-  level: Ref | null;
+  display_name?: string | null;
+  display_alias?: string | null;
+  section_name?: string | null;
+  level: (Ref & {
+    code?: string | null;
+    display_name?: string | null;
+    moroccan_display_alias?: string | null;
+  }) | null;
   track?: TrackRef | null;
   track_id?: number | null;
   academic_year: string | null;

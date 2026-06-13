@@ -1,9 +1,10 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useT } from '@/features/i18n/locale-context';
+import { useLocale, useT } from '@/features/i18n/locale-context';
 import type { SchoolClass } from '@/types/class';
 import type { SetupReadinessIssue, TeachingAssignment } from '@/types/academic-setup';
+import { formatAcademicClassLabel } from '../utils/format-academic-label';
 
 export function AssignmentByClass({
   classes,
@@ -21,6 +22,7 @@ export function AssignmentByClass({
   onEdit: (assignment: TeachingAssignment) => void;
 }) {
   const t = useT();
+  const { locale } = useLocale();
 
   const byClass = useMemo(() => {
     const map = new Map<number, TeachingAssignment[]>();
@@ -59,10 +61,18 @@ export function AssignmentByClass({
         const rows = byClass.get(cls.id) ?? [];
         const missing = missingByClass.get(cls.id) ?? [];
         const assigned = rows.length;
+        const classLabel = formatAcademicClassLabel(cls, locale);
         return (
           <div key={cls.id} style={{ padding: '12px 14px', borderBottom: '1px solid var(--c-border)' }}>
             <div className="between mb-2">
-              <strong>{cls.name}</strong>
+              <div>
+                <strong>{classLabel.primary}</strong>
+                {classLabel.secondary ? (
+                  <span className="tiny muted mono block" dir="ltr">
+                    {classLabel.secondary}
+                  </span>
+                ) : null}
+              </div>
               <span className="tiny muted">
                 {t('admin.academicSetup.classAssignmentMeta', {
                   total: assigned + missing.length,
