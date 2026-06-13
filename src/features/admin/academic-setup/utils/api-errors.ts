@@ -104,6 +104,37 @@ const SUBJECT_ERRORS: Record<string, string> = {
   already_enabled: 'admin.academicSetup.errors.subjectAlreadyEnabled',
 };
 
+const INITIALIZE_ERRORS: Record<string, string> = {
+  academic_year_required: 'admin.academicSetup.autoSetup.errors.academicYearRequired',
+  track_selection_required: 'admin.academicSetup.autoSetup.errors.trackSelectionRequired',
+  school_out_of_scope: 'admin.academicSetup.errors.schoolOutOfScope',
+  forbidden: 'admin.pageForbidden',
+  reference_level_not_found: 'admin.academicSetup.errors.referenceLevelNotFound',
+  reference_track_not_found: 'admin.academicSetup.errors.referenceTrackNotFound',
+  partial_failure: 'admin.academicSetup.autoSetup.errors.partialFailure',
+  endpoint_unavailable: 'admin.academicSetup.autoSetup.unavailable',
+  not_found: 'admin.academicSetup.autoSetup.unavailable',
+  ...LEVEL_ERRORS,
+  ...SUBJECT_ERRORS,
+};
+
+export function mapInitializeError(
+  codeOrMessage: string,
+  t: (key: string) => string,
+  fallbackMessage?: string,
+): string {
+  const code = codeOrMessage.trim();
+  const key = INITIALIZE_ERRORS[code];
+  if (key) {
+    const msg = t(key);
+    if (msg !== key) return msg;
+  }
+  if (fallbackMessage && !fallbackMessage.includes('DETAIL:') && !fallbackMessage.includes('Traceback')) {
+    return fallbackMessage;
+  }
+  return mapAcademicSetupApiError({ code, message: fallbackMessage ?? code, details: {} }, t, 'level');
+}
+
 export function mapEnableSubjectError(
   codeOrMessage: string,
   t: (key: string) => string,

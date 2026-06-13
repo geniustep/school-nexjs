@@ -239,6 +239,8 @@ export interface SetupReadinessDomain {
 
 export interface SetupReadinessPayload {
   school: SchoolRef;
+  features?: import('./academic-initialize').AcademicSetupFeatures;
+  setup_capabilities?: string[];
   scope: {
     type: string;
     is_full_school: boolean;

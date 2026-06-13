@@ -13,6 +13,13 @@ export type ReferenceLevelLinkStatus =
   | 'legacy_unlinked'
   | 'legacy_ambiguous';
 
+export type ReferenceTrackMappingStatus = 'fully_mapped' | 'level_only_verified';
+
+export interface ReferenceTrackSubjectPreview {
+  name: string;
+  code?: string;
+}
+
 export interface ReferenceTrackOption {
   id: number;
   code: string;
@@ -21,6 +28,9 @@ export interface ReferenceTrackOption {
   enabled: boolean;
   school_track_id: number | null;
   can_enable: boolean;
+  mapping_status?: ReferenceTrackMappingStatus;
+  track_specific_subjects?: ReferenceTrackSubjectPreview[];
+  track_specific_subjects_count?: number;
 }
 
 export interface ReferenceLevelOption {
@@ -33,6 +43,9 @@ export interface ReferenceLevelOption {
   active: boolean;
   supports_tracks: boolean;
   reference_tracks?: ReferenceTrackOption[];
+  reference_tracks_count?: number;
+  shared_subjects_count?: number;
+  readiness_status?: string;
   cycle: LevelCycleOption;
   enabled: boolean;
   school_level_id?: number | null;
@@ -49,6 +62,8 @@ export interface LevelOptionsPayload {
   reference_levels: ReferenceLevelOption[];
   cycles: LevelCycleOption[];
   permissions: LevelOptionsPermissions;
+  features?: import('./academic-initialize').AcademicSetupFeatures;
+  setup_capabilities?: string[];
 }
 
 export type EnableLevelResultStatus =

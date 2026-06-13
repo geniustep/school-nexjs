@@ -67,6 +67,7 @@ export const endpoints = {
     subjectsExport: '/admin/subjects/export',
 
     setupReadiness: '/admin/setup/readiness',
+    setupAcademicInitialize: '/admin/setup/academic/initialize',
 
     teachingAssignments: '/admin/teaching-assignments',
     teachingAssignment: (id: number | string) => `/admin/teaching-assignments/${id}`,
