@@ -6,7 +6,8 @@ import { useToast } from '@/components/ui/toast';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { mapGuardianApiError } from '../utils/guardian-api-errors';
-import type { GuardianDuplicateMatch, GuardianQuickCreateResponse, GuardianSummary } from '@/types/student-360';
+import { normalizeGuardianQuickCreateResponse } from '../utils/normalize-guardian';
+import type { GuardianDuplicateMatch, GuardianSummary } from '@/types/student-360';
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -49,12 +50,13 @@ export function GuardianQuickCreateForm({
       email: email.trim() || undefined,
       address: address.trim() || undefined,
     };
-    const res = await api.post<GuardianQuickCreateResponse>(endpoints.admin.guardiansQuickCreate, payload);
+    const res = await api.post<unknown>(endpoints.admin.guardiansQuickCreate, payload);
     setSaving(false);
 
-    if (res.success && res.data?.guardian) {
+    const guardian = res.success ? normalizeGuardianQuickCreateResponse(res.data) : null;
+    if (guardian) {
       toast.success(t('admin.student360.guardianCreated'));
-      onCreated(res.data.guardian);
+      onCreated(guardian);
       return;
     }
 

@@ -94,6 +94,24 @@ async function bffPost(jar, path, payload) {
   return { status: res.status, success: body.success, data: body.data, error: body.error };
 }
 
+function resolveGuardianId(data) {
+  if (!data || typeof data !== 'object') return null;
+  if (data.guardian?.id) return data.guardian.id;
+  if (typeof data.id === 'number') return data.id;
+  return null;
+}
+
+function isGuardianList(data) {
+  if (Array.isArray(data)) return true;
+  return Array.isArray(data?.items);
+}
+
+function guardianListCount(data) {
+  if (Array.isArray(data)) return data.length;
+  if (Array.isArray(data?.items)) return data.items.length;
+  return 0;
+}
+
 function schoolQuery(schoolId) {
   return schoolId ? `?active_school_id=${schoolId}` : '';
 }
@@ -153,14 +171,14 @@ async function main() {
   const direct = await odooAuthSchool(LOGIN, password);
   record('odoo_auth_school', direct.ok, { uid: direct.uid, error: direct.error });
   if (!direct.ok) {
-    console.log(JSON.stringify({ status: 'BLOCKED_BY_AUTHENTICATION', results }, null, 2));
+    console.log(JSON.stringify({ status: 'BLOCKED_BY_BACKEND_AUTHENTICATION', results }, null, 2));
     process.exit(1);
   }
 
   auth = await bffLogin(LOGIN, password);
   record('bff_login', auth.ok, { tenant: auth.tenant, error: auth.error, status: auth.status });
   if (!auth.ok) {
-    console.log(JSON.stringify({ status: 'BLOCKED_BY_AUTHENTICATION', results }, null, 2));
+    console.log(JSON.stringify({ status: 'BLOCKED_BY_BFF_AUTHENTICATION', results }, null, 2));
     process.exit(1);
   }
 
@@ -213,7 +231,8 @@ async function main() {
   });
 
   const guardians = await bffGet(auth.jar, `/admin/students/${studentId}/guardians${sq}`);
-  record('guardian_list', guardians.success && Array.isArray(guardians.data), {
+  record('guardian_list', guardians.success && isGuardianList(guardians.data), {
+    count: guardianListCount(guardians.data),
     error: guardians.error?.code,
   });
 
@@ -234,7 +253,7 @@ async function main() {
     phone: qaPhone,
     email: `ssc360qa+${ts}@example.invalid`,
   });
-  record('guardian_quick_create', create.success && !!create.data?.guardian?.id, {
+  record('guardian_quick_create', create.success && !!resolveGuardianId(create.data), {
     status: create.status,
     error: create.error?.code,
   });
@@ -244,7 +263,7 @@ async function main() {
     record('guardian_duplicate', Array.isArray(matches), { matchCount: matches?.length ?? 0 });
     if (matches?.[0]?.id) qaGuardianId = matches[0].id;
   } else if (create.success) {
-    qaGuardianId = create.data.guardian.id;
+    qaGuardianId = resolveGuardianId(create.data);
   }
 
   if (qaGuardianId) {

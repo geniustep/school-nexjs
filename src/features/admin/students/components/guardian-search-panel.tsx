@@ -6,6 +6,7 @@ import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { useDebouncedValue } from '../hooks/use-debounced-value';
+import { normalizeGuardianList } from '../utils/normalize-guardian';
 import type { GuardianSummary } from '@/types/student-360';
 
 export function GuardianSearchPanel({
@@ -44,7 +45,7 @@ export function GuardianSearchPanel({
       })
       .then((res) => {
         if (!active) return;
-        setResults(res.success && Array.isArray(res.data) ? res.data : []);
+        setResults(res.success ? normalizeGuardianList(res.data) : []);
         setLoading(false);
       });
 
