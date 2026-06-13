@@ -21,12 +21,17 @@ export function AcademicSubjectCard({
         <div className="academic-subject-card__meta">
           {subject.source === 'level' && (
             <span className="academic-subject-card__source">
-              {t('admin.academicSetup.guided.badgeLevelSubject')}
+              {t('admin.academicSetup.classSubjectSourceLevel')}
             </span>
           )}
           {subject.source === 'track' && (
             <span className="academic-subject-card__source academic-subject-card__source--track">
-              {t('admin.academicSetup.guided.badgeTrackSubject')}
+              {t('admin.academicSetup.classSubjectSourceTrack')}
+            </span>
+          )}
+          {subject.source === 'class' && (
+            <span className="academic-subject-card__source academic-subject-card__source--class">
+              {t('admin.academicSetup.classSubjectSourceClass')}
             </span>
           )}
           {subject.required && (

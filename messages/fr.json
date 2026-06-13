@@ -963,6 +963,74 @@
       "levelMeta": "{classes} classes · {students} élèves",
       "levelStats": "{classes} classes · {students} élèves · {subjects} matières",
       "classMeta": "{students} élèves · {subjects} matières",
+      "classEffectiveSubjects": {
+        "zero": "0 matières effectives",
+        "one": "1 matière effective",
+        "two": "2 matières effectives",
+        "few": "{count} matières effectives",
+        "many": "{count} matières effectives",
+        "other": "{count} matières effectives"
+      },
+      "classSubjectsInheritedLevel": {
+        "one": "1 matière héritée du niveau",
+        "two": "2 matières héritées du niveau",
+        "few": "{count} matières héritées du niveau",
+        "many": "{count} matières héritées du niveau",
+        "other": "{count} matières héritées du niveau"
+      },
+      "classSubjectsInheritedTrackOnly": "Matières héritées de la filière",
+      "classSubjectsInheritedLevelAndTrack": "Matières héritées du niveau et de la filière",
+      "classSubjectsFromLevel": {
+        "one": "1 du niveau",
+        "two": "2 du niveau",
+        "few": "{count} du niveau",
+        "many": "{count} du niveau",
+        "other": "{count} du niveau"
+      },
+      "classSubjectsFromTrack": {
+        "one": "1 de la filière",
+        "two": "2 de la filière",
+        "few": "{count} de la filière",
+        "many": "{count} de la filière",
+        "other": "{count} de la filière"
+      },
+      "classSubjectsLevelAndTrackBreakdown": "{levelPart} · {trackPart}",
+      "classSubjectsDirectOnly": "Matières propres à la classe",
+      "classSubjectsInheritedShort": {
+        "one": "1 héritée",
+        "two": "2 héritées",
+        "few": "{count} héritées",
+        "many": "{count} héritées",
+        "other": "{count} héritées"
+      },
+      "classSubjectsAdditional": {
+        "one": "1 matière supplémentaire",
+        "two": "2 matières supplémentaires",
+        "few": "{count} matières supplémentaires",
+        "many": "{count} matières supplémentaires",
+        "other": "{count} matières supplémentaires"
+      },
+      "classSubjectsInheritedPlusDirect": "{inherited} · {direct}",
+      "classSubjectsWithExcluded": "{effective} · {excluded} exclue(s)",
+      "classSubjectsMixWithExcluded": "{line} · {excluded} exclue(s)",
+      "classNeedsTeacherAssignments": {
+        "one": "Affectation d'enseignant requise pour 1 matière",
+        "two": "Affectations d'enseignants requises pour 2 matières",
+        "few": "Affectations d'enseignants requises pour {count} matières",
+        "many": "Affectations d'enseignants requises pour {count} matières",
+        "other": "Affectations d'enseignants requises pour {count} matières"
+      },
+      "classMissingAssignmentsShort": {
+        "one": "1 affectation manquante",
+        "two": "2 affectations manquantes",
+        "few": "{count} affectations manquantes",
+        "many": "{count} affectations manquantes",
+        "other": "{count} affectations manquantes"
+      },
+      "classSubjectsReadyNeedsTeachers": "Les matières sont prêtes ; il reste à affecter les enseignants.",
+      "classSubjectSourceLevel": "Du niveau",
+      "classSubjectSourceTrack": "De la filière",
+      "classSubjectSourceClass": "Ajoutée à la classe",
       "noClassesInLevel": "Aucune classe n'a encore été créée pour ce niveau.",
       "levelNeedsClassesWithTracksHint": "Ce niveau a encore besoin de classes même si des filières y sont liées.",
       "countPlural": {

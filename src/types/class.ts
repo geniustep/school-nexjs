@@ -14,19 +14,23 @@ export interface TrackRef extends Ref {
   code?: string | null;
 }
 
+export type SubjectSource = 'level' | 'track' | 'class';
+
 export interface Subject {
   id: number;
   name: string;
   code?: string | null;
   level_id?: number | null;
   track_id?: number | null;
-  source?: 'level' | 'track';
+  source?: SubjectSource;
   required?: boolean;
   optional?: boolean;
   sequence?: number;
   weekly_hours?: number | null;
   assignments_count?: number;
 }
+
+export type ClassSubjectsSource = 'inherited' | 'direct' | 'mixed' | 'none';
 
 export interface LevelCycle {
   id: number;
@@ -84,6 +88,14 @@ export interface SchoolClass {
   capacity: number | null;
   teachers: Ref[];
   subjects: Subject[];
+  subjects_count?: number;
+  effective_subjects_count?: number;
+  inherited_level_subjects_count?: number;
+  inherited_track_subjects_count?: number;
+  direct_class_subjects_count?: number;
+  excluded_subjects_count?: number;
+  subjects_source?: ClassSubjectsSource;
+  missing_teacher_assignments_count?: number;
   status: string;
   can_delete?: boolean;
   can_deactivate?: boolean;

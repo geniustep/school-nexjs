@@ -1,6 +1,7 @@
 import type { Level, SchoolClass, Subject } from '@/types/class';
 import type { Teacher } from '@/types/teacher';
 import type { LevelGroup, SubjectLevelGroup, TeacherCardModel, TeacherStatusKey } from '../types';
+import { resolveEffectiveSubjectsCount } from './normalize-class';
 
 const HIGH_LOAD_CLASS_COUNT = 6;
 
@@ -12,7 +13,7 @@ export function buildLevelGroups(levels: Level[], classes: SchoolClass[]): Level
   return levels.map((level) => {
     const levelClasses = classes.filter((c) => c.level?.id === level.id);
     const studentCount = levelClasses.reduce((sum, c) => sum + (c.student_count ?? 0), 0);
-    const needsReview = levelClasses.filter((c) => (c.subjects?.length ?? 0) === 0).length;
+    const needsReview = levelClasses.filter((c) => resolveEffectiveSubjectsCount(c) === 0).length;
     return { ...level, classes: levelClasses, studentCount, needsReview };
   });
 }

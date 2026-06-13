@@ -6,6 +6,12 @@ import type { LevelGroup } from '../types';
 import type { SchoolClass } from '@/types/class';
 import { levelSupportsTracks } from '../utils/guided-flow';
 import {
+  classEffectiveSubjectsLine,
+  classReadinessBadge,
+  classStudentCountLine,
+  classSubjectsSourceLine,
+} from '../utils/class-display';
+import {
   buildLevelStatsSummary,
   levelCardEmptyHintKey,
   levelCardStatsInput,
@@ -176,12 +182,24 @@ export function LevelClassGroup({
                 {cls.track?.name && (
                   <span className="academic-class-card__track">{cls.track.name}</span>
                 )}
-                <span className="academic-class-card__meta">
-                  {t('admin.academicSetup.classMeta', {
-                    students: cls.student_count ?? 0,
-                    subjects: cls.subjects?.length ?? 0,
-                  })}
+                <span className="academic-class-card__subjects-primary">
+                  {classEffectiveSubjectsLine(t, locale, cls)}
                 </span>
+                {(() => {
+                  const sourceLine = classSubjectsSourceLine(t, locale, cls);
+                  return sourceLine ? (
+                    <span className="academic-class-card__subjects-source">{sourceLine}</span>
+                  ) : null;
+                })()}
+                <span className="academic-class-card__meta">
+                  {classStudentCountLine(t, locale, cls.student_count ?? 0)}
+                </span>
+                {(() => {
+                  const readiness = classReadinessBadge(t, locale, cls);
+                  return readiness ? (
+                    <span className="academic-class-card__readiness">{readiness}</span>
+                  ) : null;
+                })()}
               </button>
               <div className="academic-class-card__actions">
                 <CompactBadge

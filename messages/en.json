@@ -963,6 +963,74 @@
       "levelMeta": "{classes} classes · {students} pupils",
       "levelStats": "{classes} classes · {students} pupils · {subjects} subjects",
       "classMeta": "{students} pupils · {subjects} subjects",
+      "classEffectiveSubjects": {
+        "zero": "0 effective subjects",
+        "one": "1 effective subject",
+        "two": "2 effective subjects",
+        "few": "{count} effective subjects",
+        "many": "{count} effective subjects",
+        "other": "{count} effective subjects"
+      },
+      "classSubjectsInheritedLevel": {
+        "one": "1 subject inherited from level",
+        "two": "2 subjects inherited from level",
+        "few": "{count} subjects inherited from level",
+        "many": "{count} subjects inherited from level",
+        "other": "{count} subjects inherited from level"
+      },
+      "classSubjectsInheritedTrackOnly": "Subjects inherited from track",
+      "classSubjectsInheritedLevelAndTrack": "Subjects inherited from level and track",
+      "classSubjectsFromLevel": {
+        "one": "1 from level",
+        "two": "2 from level",
+        "few": "{count} from level",
+        "many": "{count} from level",
+        "other": "{count} from level"
+      },
+      "classSubjectsFromTrack": {
+        "one": "1 from track",
+        "two": "2 from track",
+        "few": "{count} from track",
+        "many": "{count} from track",
+        "other": "{count} from track"
+      },
+      "classSubjectsLevelAndTrackBreakdown": "{levelPart} · {trackPart}",
+      "classSubjectsDirectOnly": "Class-specific subjects",
+      "classSubjectsInheritedShort": {
+        "one": "1 inherited",
+        "two": "2 inherited",
+        "few": "{count} inherited",
+        "many": "{count} inherited",
+        "other": "{count} inherited"
+      },
+      "classSubjectsAdditional": {
+        "one": "1 additional subject",
+        "two": "2 additional subjects",
+        "few": "{count} additional subjects",
+        "many": "{count} additional subjects",
+        "other": "{count} additional subjects"
+      },
+      "classSubjectsInheritedPlusDirect": "{inherited} · {direct}",
+      "classSubjectsWithExcluded": "{effective} · {excluded} excluded",
+      "classSubjectsMixWithExcluded": "{line} · {excluded} excluded",
+      "classNeedsTeacherAssignments": {
+        "one": "Needs a teacher for 1 subject",
+        "two": "Needs teachers for 2 subjects",
+        "few": "Needs teachers for {count} subjects",
+        "many": "Needs teachers for {count} subjects",
+        "other": "Needs teachers for {count} subjects"
+      },
+      "classMissingAssignmentsShort": {
+        "one": "1 missing assignment",
+        "two": "2 missing assignments",
+        "few": "{count} missing assignments",
+        "many": "{count} missing assignments",
+        "other": "{count} missing assignments"
+      },
+      "classSubjectsReadyNeedsTeachers": "Subjects are set up; teacher assignments are still pending.",
+      "classSubjectSourceLevel": "From level",
+      "classSubjectSourceTrack": "From track",
+      "classSubjectSourceClass": "Added to class",
       "noClassesInLevel": "No classes have been created for this level yet.",
       "levelNeedsClassesWithTracksHint": "This level still needs classes even though tracks are linked.",
       "countPlural": {

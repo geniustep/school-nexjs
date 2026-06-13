@@ -6,6 +6,8 @@ import { endpoints } from '@/lib/api/endpoints';
 import type { StaffMember } from '@/types/academic-setup';
 import type { Level, SchoolClass, Subject } from '@/types/class';
 import type { Teacher } from '@/types/teacher';
+import { normalizeSchoolClass } from '../utils/normalize-class';
+import { normalizeLevel } from '../utils/normalize-level';
 
 /** Lightweight bundle for search and shared list data — no derived readiness/assignments. */
 export function useAcademicSetupLists() {
@@ -40,8 +42,8 @@ export function useAcademicSetupLists() {
 
   return useMemo(
     () => ({
-      levels: levelsState.data ?? [],
-      classes: classesState.data ?? [],
+      levels: (levelsState.data ?? []).map(normalizeLevel),
+      classes: (classesState.data ?? []).map(normalizeSchoolClass),
       subjects: subjectsState.data ?? [],
       teachers: teachersState.data ?? [],
       staff: staffState.data ?? [],
