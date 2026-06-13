@@ -1132,8 +1132,36 @@
         "unsavedWarning": "Modifications non enregistrées. Fermer quand même ?",
         "partialAssignmentsSaved": "Profil enseignant enregistré, mais certaines affectations ont échoué.",
         "assignmentsForbidden": "Vos droits permettent de gérer l'enseignant sans modifier les affectations.",
-        "apiLimitsNotice": "Certains champs professionnels (type, charge horaire, disponibilité) ne sont pas exposés via l'API v1.",
-        "specialization": "Spécialisation",
+        "optionsLoading": "Chargement des options enseignant…",
+        "teacherType": "Type d'enseignant",
+        "qualification": "Qualification",
+        "qualificationEmpty": "Sans qualification",
+        "school": "École",
+        "status": "Statut",
+        "active": "Actif",
+        "weeklyHoursTarget": "Objectif hebdomadaire",
+        "weeklyHoursMax": "Maximum hebdomadaire",
+        "maxContinuousMinutes": "Durée maximale continue",
+        "preferCompactSchedule": "Préférer un emploi du temps compact",
+        "preferCompactScheduleHint": "Privilégier le regroupement des séances sur moins de jours si possible.",
+        "groups": {
+          "account": "Informations du compte",
+          "professional": "Informations professionnelles",
+          "workload": "Charge horaire et planning"
+        },
+        "units": {
+          "hours": "heures",
+          "minutes": "minutes"
+        },
+        "errors": {
+          "invalidTeacherType": "Type d'enseignant invalide.",
+          "invalidQualification": "Qualification invalide.",
+          "invalidWeeklyHours": "Valeur d'heures invalide.",
+          "maxBelowTarget": "Le max hebdo doit être ≥ l'objectif hebdo.",
+          "invalidMaxContinuousMinutes": "Durée continue invalide.",
+          "invalidStatus": "Statut invalide.",
+          "schoolNotAllowed": "École sélectionnée non autorisée."
+        },
         "assignmentsColumnClass": "Classe",
         "assignmentsColumnSubject": "Matière",
         "assignmentsColumnHours": "Heures",

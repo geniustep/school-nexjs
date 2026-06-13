@@ -1132,8 +1132,36 @@
         "unsavedWarning": "Hay cambios sin guardar. ¿Cerrar de todos modos?",
         "partialAssignmentsSaved": "Perfil del profesor guardado, pero algunas asignaciones fallaron.",
         "assignmentsForbidden": "Sus permisos permiten gestionar al profesor sin editar asignaciones.",
-        "apiLimitsNotice": "Algunos campos profesionales (tipo, carga horaria, disponibilidad) no están expuestos en API v1.",
-        "specialization": "Especialización",
+        "optionsLoading": "Cargando opciones del profesor…",
+        "teacherType": "Tipo de profesor",
+        "qualification": "Cualificación",
+        "qualificationEmpty": "Sin cualificación",
+        "school": "Escuela",
+        "status": "Estado",
+        "active": "Activo",
+        "weeklyHoursTarget": "Objetivo semanal",
+        "weeklyHoursMax": "Máximo semanal",
+        "maxContinuousMinutes": "Máximo continuo de enseñanza",
+        "preferCompactSchedule": "Preferir horario compacto",
+        "preferCompactScheduleHint": "Preferir agrupar sesiones en menos días cuando sea posible.",
+        "groups": {
+          "account": "Información de cuenta",
+          "professional": "Información profesional",
+          "workload": "Carga horaria y planificación"
+        },
+        "units": {
+          "hours": "horas",
+          "minutes": "minutos"
+        },
+        "errors": {
+          "invalidTeacherType": "Tipo de profesor no válido.",
+          "invalidQualification": "Cualificación no válida.",
+          "invalidWeeklyHours": "Valor de horas no válido.",
+          "maxBelowTarget": "El máximo semanal debe ser ≥ el objetivo semanal.",
+          "invalidMaxContinuousMinutes": "Duración continua no válida.",
+          "invalidStatus": "Estado no válido.",
+          "schoolNotAllowed": "Escuela seleccionada no permitida."
+        },
         "assignmentsColumnClass": "Clase",
         "assignmentsColumnSubject": "Materia",
         "assignmentsColumnHours": "Horas",

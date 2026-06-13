@@ -146,34 +146,6 @@ export function extractTeachingAssignmentFromMutation(data: unknown): TeachingAs
   return null;
 }
 
-export function isTeacherProfilePayloadDirty(
-  current: {
-    name: string;
-    code: string;
-    phone: string;
-    email: string;
-    login: string;
-    specialization: string;
-  },
-  original: {
-    name: string;
-    code: string;
-    phone: string;
-    email: string;
-    login: string;
-    specialization: string;
-  },
-): boolean {
-  return (
-    current.name.trim() !== original.name.trim() ||
-    current.code.trim() !== original.code.trim() ||
-    current.phone.trim() !== original.phone.trim() ||
-    current.email.trim() !== original.email.trim() ||
-    current.login.trim() !== original.login.trim() ||
-    current.specialization.trim() !== original.specialization.trim()
-  );
-}
-
 export function collectApiErrors(responses: ApiResponse<unknown>[]): string[] {
   return responses.filter((res) => !res.success).map((res) => res.error.message);
 }

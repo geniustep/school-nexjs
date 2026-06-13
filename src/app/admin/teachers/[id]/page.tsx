@@ -64,6 +64,12 @@ export default function AdminTeacherDetailPage({ params }: { params: Promise<{ i
                     { label: t('admin.code'), value: teacher.code ?? t('common.dash') },
                     { label: t('admin.phone'), value: teacher.phone ?? t('common.dash') },
                     { label: t('admin.email'), value: teacher.email ?? t('common.dash') },
+                    { label: t('admin.academicSetup.teacherForm.teacherType'), value: teacher.teacher_type ?? t('common.dash') },
+                    { label: t('admin.academicSetup.teacherForm.qualification'), value: teacher.qualification ?? t('common.dash') },
+                    { label: t('admin.academicSetup.teacherForm.weeklyHoursTarget'), value: teacher.weekly_hours_target != null ? String(teacher.weekly_hours_target) : t('common.dash') },
+                    { label: t('admin.academicSetup.teacherForm.weeklyHoursMax'), value: teacher.weekly_hours_max != null ? String(teacher.weekly_hours_max) : t('common.dash') },
+                    { label: t('admin.academicSetup.teacherForm.maxContinuousMinutes'), value: teacher.max_continuous_minutes != null ? String(teacher.max_continuous_minutes) : t('common.dash') },
+                    { label: t('admin.academicSetup.teacherForm.preferCompactSchedule'), value: teacher.prefer_compact_schedule ? t('common.yes') : t('common.no') },
                     { label: t('nav.classes'), value: teacher.classes.map((c) => c.name).join(', ') || t('common.dash') },
                     { label: t('nav.subjects'), value: teacher.subjects.map((s) => s.name).join(', ') || t('common.dash') },
                   ]} />

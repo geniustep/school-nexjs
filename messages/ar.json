@@ -1135,8 +1135,36 @@
         "unsavedWarning": "لديك تغييرات غير محفوظة. هل تريد الإغلاق؟",
         "partialAssignmentsSaved": "تم حفظ بيانات الأستاذ، لكن بعض الإسنادات لم تُحفظ.",
         "assignmentsForbidden": "صلاحياتك تسمح بإدارة الأستاذ دون تعديل الإسنادات.",
-        "apiLimitsNotice": "بعض الحقول المهنية (نوع الأستاذ، ساعات العمل، التوفر) غير متاحة حاليًا عبر API v1.",
-        "specialization": "التخصص",
+        "optionsLoading": "جاري تحميل خيارات الأستاذ…",
+        "teacherType": "نوع الأستاذ",
+        "qualification": "المؤهل",
+        "qualificationEmpty": "بدون مؤهل",
+        "school": "المدرسة",
+        "status": "الحالة",
+        "active": "نشط",
+        "weeklyHoursTarget": "الهدف الأسبوعي",
+        "weeklyHoursMax": "الحد الأسبوعي الأقصى",
+        "maxContinuousMinutes": "الحد الأقصى للتدريس المتواصل",
+        "preferCompactSchedule": "تفضيل جدول مدمج",
+        "preferCompactScheduleHint": "يفضّل تجميع الحصص في أقل عدد من الأيام عند الإمكان.",
+        "groups": {
+          "account": "معلومات الحساب",
+          "professional": "المعلومات المهنية",
+          "workload": "عبء العمل واستعمال الزمن"
+        },
+        "units": {
+          "hours": "ساعة",
+          "minutes": "دقيقة"
+        },
+        "errors": {
+          "invalidTeacherType": "نوع الأستاذ غير صالح.",
+          "invalidQualification": "المؤهل غير صالح.",
+          "invalidWeeklyHours": "قيمة الساعات غير صالحة.",
+          "maxBelowTarget": "الحد الأسبوعي يجب أن يكون ≥ الهدف الأسبوعي.",
+          "invalidMaxContinuousMinutes": "المدة المتواصلة غير صالحة.",
+          "invalidStatus": "الحالة غير صالحة.",
+          "schoolNotAllowed": "المدرسة المختارة غير مسموحة."
+        },
         "assignmentsColumnClass": "القسم",
         "assignmentsColumnSubject": "المادة",
         "assignmentsColumnHours": "الساعات",

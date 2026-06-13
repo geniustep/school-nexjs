@@ -16,50 +16,42 @@ import { buildAccountIdentityPayload } from '@/lib/account/account-utils';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import type { Level, SchoolClass, Subject } from '@/types/class';
-import type { Teacher } from '@/types/teacher';
-import { mapAcademicSetupApiError } from '../utils/api-errors';
+import type { Teacher, TeacherProfileFieldErrors, TeacherProfileFormState } from '@/types/teacher';
+import { mapTeacherApiError } from '../utils/api-errors';
 import {
   buildLevelsById,
   buildSubjectDisplayLabel,
   countSubjectsByName,
-  filterSubjectsByQuery,
   type SubjectLevelRef,
 } from '../utils/subject-display';
 import {
   createEmptyAssignmentDraft,
   findDuplicateAssignmentKey,
   isAssignmentDraftComplete,
-  isTeacherProfilePayloadDirty,
   normalizeAssignmentDrafts,
   syncTeacherAssignments,
   teachingAssignmentToDraft,
   type TeacherAssignmentDraft,
 } from '../utils/teacher-assignments';
 import { extractTeacherIdFromMutation } from '../utils/teacher-mutation';
+import {
+  buildTeacherCreatePayload,
+  buildTeacherUpdatePayload,
+  defaultTeacherProfileFormState,
+  isTeacherProfileFormDirty,
+  mapTeacherApiFieldError,
+  resolveStatusActiveConsistency,
+  teacherProfileFormStateFromTeacher,
+  validateTeacherProfileForm,
+} from '../utils/teacher-profile';
 import { useTeacherAssignments } from '../hooks/use-teacher-assignments';
+import { useTeacherOptions } from '../hooks/use-teacher-options';
+import { TeacherProfileFields } from './teacher-profile-fields';
 
 type TeacherFormStep = 'profile' | 'assignments';
 
 function resolveTeacherLogin(teacher?: Teacher): string {
   return teacher?.login?.trim() || teacher?.account?.login?.trim() || teacher?.email?.trim() || '';
-}
-
-function buildProfileSnapshot(
-  name: string,
-  code: string,
-  phone: string,
-  email: string,
-  login: string,
-  specialization: string,
-) {
-  return {
-    name,
-    code,
-    phone,
-    email,
-    login,
-    specialization,
-  };
 }
 
 function TeacherFormStepper({ step }: { step: TeacherFormStep }) {
@@ -165,7 +157,10 @@ export function TeacherSetupForm({
   const creating = !teacher;
   const [step, setStep] = useState<TeacherFormStep>('profile');
   const [saving, setSaving] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<TeacherProfileFieldErrors>({});
+  const [useDifferentLogin, setUseDifferentLogin] = useState(false);
 
+  const optionsState = useTeacherOptions(true);
   const classesState = useAdminResource<SchoolClass[]>(endpoints.admin.classes, { page_size: 500 });
   const subjectsState = useAdminResource<Subject[]>(endpoints.admin.subjects, { page_size: 500 });
   const levelsState = useAdminResource<Level[]>(endpoints.admin.levels, { page_size: 200 });
@@ -175,14 +170,19 @@ export function TeacherSetupForm({
   const assignmentsState = useTeacherAssignments(teacher?.id ?? null);
 
   const resolvedTeacher = teacherDetailState.data ?? teacher;
+  const options = optionsState.options;
 
-  const [name, setName] = useState(teacher?.name ?? '');
-  const [code, setCode] = useState(teacher?.code ?? '');
-  const [phone, setPhone] = useState(teacher?.phone ?? '');
-  const [email, setEmail] = useState(teacher?.email ?? '');
-  const [login, setLogin] = useState(resolveTeacherLogin(teacher));
-  const [useDifferentLogin, setUseDifferentLogin] = useState(false);
-  const [specialization, setSpecialization] = useState(teacher?.specialization ?? '');
+  const [profile, setProfile] = useState<TeacherProfileFormState>(() =>
+    teacher
+      ? teacherProfileFormStateFromTeacher(teacher, null)
+      : defaultTeacherProfileFormState(null),
+  );
+  const originalProfileRef = useRef(profile);
+  const originalEmail = teacher?.email ?? '';
+  const originalLogin = resolveTeacherLogin(teacher);
+  const defaultsAppliedRef = useRef(false);
+  const teacherHydratedRef = useRef(false);
+
   const [assignmentRows, setAssignmentRows] = useState<TeacherAssignmentDraft[]>([]);
   const [assignmentsInitialized, setAssignmentsInitialized] = useState(false);
   const originalAssignmentsRef = useRef('');
@@ -197,37 +197,23 @@ export function TeacherSetupForm({
       .join('|');
   }
 
-  const originalEmail = teacher?.email ?? '';
-  const originalLogin = resolveTeacherLogin(teacher);
-  const originalProfileRef = useRef(
-    buildProfileSnapshot(
-      teacher?.name ?? '',
-      teacher?.code ?? '',
-      teacher?.phone ?? '',
-      teacher?.email ?? '',
-      resolveTeacherLogin(teacher),
-      teacher?.specialization ?? '',
-    ),
-  );
+  useEffect(() => {
+    if (!options || defaultsAppliedRef.current) return;
+    if (creating) {
+      const next = defaultTeacherProfileFormState(options);
+      setProfile(next);
+      originalProfileRef.current = next;
+      defaultsAppliedRef.current = true;
+    }
+  }, [options, creating]);
 
   useEffect(() => {
-    if (!resolvedTeacher || creating) return;
-    setName(resolvedTeacher.name);
-    setCode(resolvedTeacher.code ?? '');
-    setPhone(resolvedTeacher.phone ?? '');
-    setEmail(resolvedTeacher.email ?? '');
-    const resolvedLogin = resolveTeacherLogin(resolvedTeacher);
-    setLogin(resolvedLogin);
-    setSpecialization(resolvedTeacher.specialization ?? '');
-    originalProfileRef.current = buildProfileSnapshot(
-      resolvedTeacher.name,
-      resolvedTeacher.code ?? '',
-      resolvedTeacher.phone ?? '',
-      resolvedTeacher.email ?? '',
-      resolvedLogin,
-      resolvedTeacher.specialization ?? '',
-    );
-  }, [resolvedTeacher, creating]);
+    if (!resolvedTeacher || creating || teacherHydratedRef.current) return;
+    const next = teacherProfileFormStateFromTeacher(resolvedTeacher, options);
+    setProfile(next);
+    originalProfileRef.current = next;
+    teacherHydratedRef.current = true;
+  }, [resolvedTeacher, creating, options]);
 
   useEffect(() => {
     if (creating || assignmentsInitialized || assignmentsState.loading) return;
@@ -236,6 +222,17 @@ export function TeacherSetupForm({
     originalAssignmentsRef.current = serializeAssignments(drafts);
     setAssignmentsInitialized(true);
   }, [creating, assignmentsInitialized, assignmentsState.loading, assignmentsState.assignments]);
+
+  const patchProfile = useCallback((patch: Partial<TeacherProfileFormState>) => {
+    setProfile((current) => resolveStatusActiveConsistency({ ...current, ...patch }));
+    setFieldErrors((current) => {
+      const next = { ...current };
+      for (const key of Object.keys(patch) as (keyof TeacherProfileFormState)[]) {
+        if (key in next) delete next[key as keyof TeacherProfileFieldErrors];
+      }
+      return next;
+    });
+  }, []);
 
   const levelsById = useMemo(
     () => buildLevelsById((levelsState.data ?? []) as SubjectLevelRef[]),
@@ -267,10 +264,7 @@ export function TeacherSetupForm({
   const lookupError =
     classesState.error ?? subjectsState.error ?? levelsState.error ?? assignmentsState.error;
 
-  const profileDirty = isTeacherProfilePayloadDirty(
-    buildProfileSnapshot(name, code, phone, email, login, specialization),
-    originalProfileRef.current,
-  );
+  const profileDirty = isTeacherProfileFormDirty(profile, originalProfileRef.current);
   const assignmentsDirty =
     creating
       ? normalizeAssignmentDrafts(assignmentRows).length > 0
@@ -301,13 +295,16 @@ export function TeacherSetupForm({
     setAssignmentRows((rows) => rows.filter((row) => row.key !== key));
   }
 
-  const validateProfile = useCallback(() => {
-    if (!name.trim()) {
-      toast.error(t('errors.validationFailed'));
+  const validateProfileStep = useCallback(() => {
+    const validation = validateTeacherProfileForm(profile, options, t);
+    setFieldErrors(validation.errors);
+    if (!validation.valid) {
+      if (validation.globalError) toast.error(validation.globalError);
+      else toast.error(t('errors.validationFailed'));
       return false;
     }
     return true;
-  }, [name, t, toast]);
+  }, [profile, options, t, toast]);
 
   const validateAssignments = useCallback(() => {
     const incomplete = assignmentRows.some(
@@ -325,12 +322,12 @@ export function TeacherSetupForm({
   }, [assignmentRows, t, toast]);
 
   function goNext() {
-    if (!validateProfile()) return;
+    if (!validateProfileStep()) return;
     setStep('assignments');
   }
 
   async function saveAll() {
-    if (!validateProfile()) {
+    if (!validateProfileStep()) {
       setStep('profile');
       return;
     }
@@ -341,48 +338,82 @@ export function TeacherSetupForm({
 
     const identity = teacher
       ? buildAccountIdentityPayload({
-          email,
-          login,
+          email: profile.email,
+          login: profile.login,
           originalEmail,
           originalLogin,
           useDifferentLogin: true,
           isCreate: false,
         })
-      : { email: email.trim() || undefined };
+      : { email: profile.email.trim() || undefined };
 
-    const profilePayload = {
-      name: name.trim(),
-      code: code.trim() || undefined,
-      phone: phone.trim() || undefined,
-      specialization: specialization.trim() || undefined,
-      ...identity,
-    };
+    let teacherId = teacher?.id ?? null;
 
-    setSaving(true);
-    const profileRes = teacher
-      ? await api.post(endpoints.admin.teacherUpdate(teacher.id), profilePayload)
-      : await api.post(endpoints.admin.teachers, profilePayload);
-    setSaving(false);
+    if (creating || profileDirty || Object.keys(identity).length > 0) {
+      const profilePayload = creating
+        ? buildTeacherCreatePayload(profile, identity as Record<string, unknown>, options)
+        : buildTeacherUpdatePayload(profile, originalProfileRef.current, identity as Record<string, unknown>, options);
 
-    if (!profileRes.success) {
-      toast.error(mapAccountApiError(profileRes.error, t) || profileRes.error.message);
-      setStep('profile');
-      return;
+      if (!creating && Object.keys(profilePayload).length === 0) {
+        teacherId = teacher!.id;
+      } else {
+        setSaving(true);
+        const profileRes = creating
+          ? await api.post(endpoints.admin.teachers, profilePayload)
+          : await api.post(endpoints.admin.teacherUpdate(teacher!.id), profilePayload);
+        setSaving(false);
+
+        if (!profileRes.success) {
+          const mapped = mapTeacherApiFieldError(String(profileRes.error.code ?? ''), t);
+          if (Object.keys(mapped).length) setFieldErrors((prev) => ({ ...prev, ...mapped }));
+          toast.error(mapTeacherApiError(profileRes.error, t) || mapAccountApiError(profileRes.error, t));
+          setStep('profile');
+          return;
+        }
+
+        teacherId = extractTeacherIdFromMutation(profileRes.data) ?? teacher?.id ?? null;
+        if (!teacherId) {
+          toast.error(t('errors.serverError'));
+          return;
+        }
+
+        const feedback = resolveAccountMutationFeedback(profileRes, t, {
+          createdKey: 'admin.account.accountCreated',
+          updatedKey: 'admin.saveSuccess',
+          alreadyExistsKey: 'admin.account.accountAlreadyExists',
+        });
+
+        if (canManageAssignments && assignmentsDirty) {
+          setSaving(true);
+          const syncResult = await syncTeacherAssignments(
+            teacherId,
+            assignmentRows,
+            assignmentsState.assignments,
+          );
+          setSaving(false);
+
+          if (!syncResult.ok) {
+            if (feedback) applyAccountMutationToasts(feedback, toast);
+            else toast.success(t('admin.saveSuccess'));
+            toast.error(t('admin.academicSetup.teacherForm.partialAssignmentsSaved'));
+            for (const message of syncResult.errors.slice(0, 3)) {
+              toast.show(message, 'info');
+            }
+            await teacherDetailState.reload();
+            onSaved(teacherId);
+            return;
+          }
+        }
+
+        if (feedback) applyAccountMutationToasts(feedback, toast);
+        else toast.success(t('admin.saveSuccess'));
+        await teacherDetailState.reload();
+        onSaved(teacherId);
+        return;
+      }
     }
 
-    const teacherId = extractTeacherIdFromMutation(profileRes.data);
-    if (!teacherId) {
-      toast.error(t('errors.serverError'));
-      return;
-    }
-
-    const feedback = resolveAccountMutationFeedback(profileRes, t, {
-      createdKey: 'admin.account.accountCreated',
-      updatedKey: 'admin.saveSuccess',
-      alreadyExistsKey: 'admin.account.accountAlreadyExists',
-    });
-
-    if (canManageAssignments) {
+    if (canManageAssignments && assignmentsDirty && teacherId) {
       setSaving(true);
       const syncResult = await syncTeacherAssignments(
         teacherId,
@@ -390,22 +421,23 @@ export function TeacherSetupForm({
         assignmentsState.assignments,
       );
       setSaving(false);
-
       if (!syncResult.ok) {
-        if (feedback) applyAccountMutationToasts(feedback, toast);
-        else toast.success(t('admin.saveSuccess'));
         toast.error(t('admin.academicSetup.teacherForm.partialAssignmentsSaved'));
         for (const message of syncResult.errors.slice(0, 3)) {
           toast.show(message, 'info');
         }
+        await teacherDetailState.reload();
         onSaved(teacherId);
         return;
       }
+      toast.success(t('admin.saveSuccess'));
+      await teacherDetailState.reload();
+      onSaved(teacherId);
+      return;
     }
 
-    if (feedback) applyAccountMutationToasts(feedback, toast);
-    else toast.success(t('admin.saveSuccess'));
-    onSaved(teacherId);
+    toast.success(t('admin.saveSuccess'));
+    onSaved(teacherId!);
   }
 
   const completeAssignments = normalizeAssignmentDrafts(assignmentRows);
@@ -415,76 +447,51 @@ export function TeacherSetupForm({
     <div className={shellClass}>
       <TeacherFormStepper step={step} />
 
+      {optionsState.loading ? (
+        <p className="muted">{t('admin.academicSetup.teacherForm.optionsLoading')}</p>
+      ) : null}
+
+      {optionsState.error ? (
+        <div className="teacher-setup-form__options-error" role="alert">
+          <p>{mapTeacherApiError(optionsState.error, t)}</p>
+          <button type="button" className="btn btn--ghost btn--sm" onClick={optionsState.reload}>
+            {t('common.retry')}
+          </button>
+        </div>
+      ) : null}
+
       {lookupError ? (
         <p className="teacher-setup-form__error" role="alert">
-          {mapAcademicSetupApiError(lookupError, t, 'assignment')}
+          {mapTeacherApiError(lookupError, t)}
         </p>
       ) : null}
 
       {step === 'profile' ? (
         <div className="teacher-setup-form__section">
-          <p className="teacher-setup-form__notice">{t('admin.academicSetup.teacherForm.apiLimitsNotice')}</p>
-
-          <label className="teacher-setup-field">
-            <span className="teacher-setup-field__label">
-              {t('admin.fullName')} <span aria-hidden="true">*</span>
-            </span>
-            <input
-              className="input"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              autoFocus
-            />
-          </label>
-
           {!creating && resolvedTeacher ? <AccountStatusBadge entity={resolvedTeacher} showLogin /> : null}
 
-          <div className="teacher-setup-form__grid">
-            <label className="teacher-setup-field">
-              <span className="teacher-setup-field__label">{t('admin.code')}</span>
-              <input className="input" value={code} onChange={(e) => setCode(e.target.value)} />
-            </label>
-            <label className="teacher-setup-field">
-              <span className="teacher-setup-field__label">{t('admin.phone')}</span>
-              <input className="input" value={phone} onChange={(e) => setPhone(e.target.value)} />
-            </label>
-          </div>
+          <TeacherProfileFields
+            state={profile}
+            options={options}
+            errors={fieldErrors}
+            creating={creating}
+            saving={saving}
+            onChange={patchProfile}
+            showEmailField={creating}
+          />
 
           {teacher ? (
             <AccountFieldsSection
               mode="edit"
-              email={email}
-              login={login}
+              email={profile.email}
+              login={profile.login}
               useDifferentLogin={useDifferentLogin}
-              onEmailChange={setEmail}
-              onLoginChange={setLogin}
+              onEmailChange={(email) => patchProfile({ email })}
+              onLoginChange={(login) => patchProfile({ login })}
               onUseDifferentLoginChange={setUseDifferentLogin}
               disabled={saving}
             />
-          ) : (
-            <label className="teacher-setup-field">
-              <span className="teacher-setup-field__label">{t('admin.email')}</span>
-              <input
-                className="input"
-                type="text"
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </label>
-          )}
-
-          <label className="teacher-setup-field">
-            <span className="teacher-setup-field__label">
-              {t('admin.academicSetup.teacherForm.specialization')}
-            </span>
-            <input
-              className="input"
-              value={specialization}
-              onChange={(e) => setSpecialization(e.target.value)}
-            />
-          </label>
+          ) : null}
         </div>
       ) : (
         <div className="teacher-setup-form__section">
@@ -573,11 +580,11 @@ export function TeacherSetupForm({
           </button>
         ) : null}
         {step === 'profile' ? (
-          <button type="button" className="btn btn--primary btn--sm" onClick={goNext} disabled={saving}>
+          <button type="button" className="btn btn--primary btn--sm" onClick={goNext} disabled={saving || optionsState.loading}>
             {t('admin.academicSetup.teacherForm.next')}
           </button>
         ) : (
-          <button type="button" className="btn btn--primary btn--sm" onClick={saveAll} disabled={saving}>
+          <button type="button" className="btn btn--primary btn--sm" onClick={saveAll} disabled={saving || optionsState.loading}>
             {saving ? t('common.saving') : t('common.save')}
           </button>
         )}

@@ -1132,8 +1132,36 @@
         "unsavedWarning": "You have unsaved changes. Close anyway?",
         "partialAssignmentsSaved": "Teacher profile saved, but some assignments could not be saved.",
         "assignmentsForbidden": "Your permissions allow managing the teacher but not assignments.",
-        "apiLimitsNotice": "Some professional fields (teacher type, workload, availability) are not exposed on API v1 yet.",
-        "specialization": "Specialization",
+        "optionsLoading": "Loading teacher options…",
+        "teacherType": "Teacher type",
+        "qualification": "Qualification",
+        "qualificationEmpty": "No qualification",
+        "school": "School",
+        "status": "Status",
+        "active": "Active",
+        "weeklyHoursTarget": "Weekly target",
+        "weeklyHoursMax": "Weekly maximum",
+        "maxContinuousMinutes": "Max continuous teaching",
+        "preferCompactSchedule": "Prefer compact schedule",
+        "preferCompactScheduleHint": "Prefer grouping sessions into fewer days when possible.",
+        "groups": {
+          "account": "Account information",
+          "professional": "Professional information",
+          "workload": "Workload & scheduling"
+        },
+        "units": {
+          "hours": "hours",
+          "minutes": "minutes"
+        },
+        "errors": {
+          "invalidTeacherType": "Invalid teacher type.",
+          "invalidQualification": "Invalid qualification.",
+          "invalidWeeklyHours": "Invalid hours value.",
+          "maxBelowTarget": "Weekly max must be ≥ weekly target.",
+          "invalidMaxContinuousMinutes": "Invalid continuous duration.",
+          "invalidStatus": "Invalid status.",
+          "schoolNotAllowed": "Selected school is not allowed."
+        },
         "assignmentsColumnClass": "Class",
         "assignmentsColumnSubject": "Subject",
         "assignmentsColumnHours": "Hours",
