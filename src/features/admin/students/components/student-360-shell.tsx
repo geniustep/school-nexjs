@@ -74,6 +74,8 @@ export function Student360Shell({ studentId }: { studentId: string }) {
       {editing ? (
         <StudentForm
           student={s}
+          enrollment={details.current_enrollment}
+          guardianRelationships={details.guardian_relationships}
           onSaved={() => {
             setEditing(false);
             state.reload();
