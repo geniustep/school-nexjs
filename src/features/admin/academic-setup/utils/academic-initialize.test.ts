@@ -1,15 +1,21 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import {
   aggregateInitializeResults,
+  AUTO_SETUP_WIZARD_STEPS,
   buildAcademicInitializePayload,
   buildRetryInitializePayload,
+  enabledLevelNeedsCompletion,
   filterWizardReferenceLevels,
   isIdempotentSuccessStatus,
-  isInitializeLevelSelectable,
+  isLevelAlreadyEnabled,
+  isLevelSelectable,
   isQaTestLevelCode,
+  levelSelectionStatusBadgeKey,
   mapTrackMappingPresentation,
+  selectableInitializeLevelIds,
   trackIdsForInitializePayload,
   validateInitializeTrackSelections,
+  wizardStepsForSelection,
   ASSIGNMENTS_CTA_HREF,
 } from './academic-initialize';
 import { isAcademicAutoSetupAvailable } from './academic-auto-setup-availability';
@@ -123,13 +129,20 @@ describe('buildAcademicInitializePayload', () => {
     expect(payload).not.toHaveProperty('academic_year_id');
   });
 
-  it('defaults create_first_classes and enable_reference_subjects to true', () => {
-    const payload = buildAcademicInitializePayload([4], [normal], new Map(), {
+  it('excludes enabled level ids from payload even when present in selection state', () => {
+    const enabled = level({
+      id: 5,
+      code: 'P1',
+      name: 'First primary',
+      enabled: true,
+      can_enable: false,
+      link_status: 'enabled',
+    });
+    const payload = buildAcademicInitializePayload([4, 5], [normal, enabled], new Map(), {
       createFirstClasses: true,
       enableReferenceSubjects: true,
     });
-    expect(payload.create_first_classes).toBe(true);
-    expect(payload.enable_reference_subjects).toBe(true);
+    expect(payload.reference_level_ids).toEqual([4]);
   });
 });
 
@@ -179,15 +192,98 @@ describe('track normalization', () => {
 });
 
 describe('initialize selection rules', () => {
-  it('allows already enabled level for idempotent review', () => {
-    const enabled = level({ id: 4, code: 'P2', name: 'P2', enabled: true, can_enable: false, link_status: 'enabled' });
-    expect(isInitializeLevelSelectable(enabled)).toBe(true);
+  it('treats enabled levels as not selectable', () => {
+    const enabled = level({
+      id: 4,
+      code: 'P2',
+      name: 'P2',
+      enabled: true,
+      can_enable: false,
+      link_status: 'enabled',
+    });
+    expect(isLevelSelectable(enabled)).toBe(false);
+    expect(isLevelAlreadyEnabled(enabled)).toBe(true);
+  });
+
+  it('allows non-enabled level with can_enable', () => {
+    const available = level({ id: 4, code: 'P2', name: 'P2', enabled: false, can_enable: true });
+    expect(isLevelSelectable(available)).toBe(true);
+  });
+
+  it('blocks level when can_enable is false and not enabled', () => {
+    const locked = level({
+      id: 4,
+      code: 'P2',
+      name: 'P2',
+      enabled: false,
+      can_enable: false,
+      link_status: 'legacy_ambiguous',
+    });
+    expect(isLevelSelectable(locked)).toBe(false);
+  });
+
+  it('select all helper ids ignore enabled levels', () => {
+    const available = level({ id: 4, code: 'P2', name: 'P2', enabled: false, can_enable: true });
+    const enabled = level({
+      id: 5,
+      code: 'P1',
+      name: 'P1',
+      enabled: true,
+      can_enable: false,
+      link_status: 'enabled',
+    });
+    const ids = selectableInitializeLevelIds([available, enabled]);
+    expect(ids).toEqual([4]);
+  });
+
+  it('marks enabled levels with readiness gaps as needing completion', () => {
+    const needsClass = level({
+      id: 6,
+      code: 'P3',
+      name: 'P3',
+      enabled: true,
+      can_enable: false,
+      link_status: 'enabled',
+      readiness_status: 'needs_classes',
+    });
+    expect(enabledLevelNeedsCompletion(needsClass)).toBe(true);
+    expect(levelSelectionStatusBadgeKey(needsClass)).toBe(
+      'admin.academicSetup.autoSetup.statusEnabledNeedsCompletion',
+    );
+  });
+
+  it('shows already enabled badge for complete enabled levels', () => {
+    const complete = level({
+      id: 7,
+      code: 'P4',
+      name: 'P4',
+      enabled: true,
+      can_enable: false,
+      link_status: 'enabled',
+      readiness_status: 'ready',
+    });
+    expect(levelSelectionStatusBadgeKey(complete)).toBe(
+      'admin.academicSetup.autoSetup.statusAlreadyEnabled',
+    );
   });
 
   it('filters QA/TST levels out of wizard', () => {
     const qa = level({ id: 99, code: 'QA_TEST', name: 'QA' });
     expect(isQaTestLevelCode(qa.code)).toBe(true);
     expect(filterWizardReferenceLevels([qa]).length).toBe(0);
+  });
+});
+
+describe('wizard stepper', () => {
+  it('always exposes five fixed steps', () => {
+    expect(wizardStepsForSelection()).toEqual(AUTO_SETUP_WIZARD_STEPS);
+    expect(AUTO_SETUP_WIZARD_STEPS).toEqual([
+      'levels',
+      'tracks',
+      'review',
+      'execute',
+      'complete',
+    ]);
   });
 });
 
