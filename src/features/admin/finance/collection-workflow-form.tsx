@@ -38,6 +38,33 @@ import {
 
 type WorkflowStep = 'payment' | 'allocation' | 'success';
 
+function CollectionWorkflowSteps({
+  step,
+  showAllocation,
+}: {
+  step: WorkflowStep;
+  showAllocation: boolean;
+}) {
+  const t = useT();
+  if (!showAllocation) return null;
+  const steps: { id: WorkflowStep; label: string }[] = [
+    { id: 'payment', label: t('admin.finance.collectionWorkflow.stepPayment') },
+    { id: 'allocation', label: t('admin.finance.collectionWorkflow.stepAllocation') },
+  ];
+  return (
+    <nav className="finance-collection-workflow__steps" aria-label={t('admin.finance.recordCollection')}>
+      {steps.map((item, index) => (
+        <span
+          key={item.id}
+          className={`finance-collection-workflow__step${step === item.id ? ' is-active' : ''}${step === 'success' || (step === 'allocation' && item.id === 'payment') ? ' is-done' : ''}`}
+        >
+          {index + 1}. {item.label}
+        </span>
+      ))}
+    </nav>
+  );
+}
+
 export function CollectionWorkflowForm({
   onDone,
   onCancel,
@@ -335,10 +362,12 @@ function CollectionWorkflowFormReady({
   }
 
   const wrapperClass = embedded ? 'form-stack finance-collection-workflow' : 'card form-stack finance-collection-workflow';
+  const pageMode = !embedded;
 
   if (step === 'success' && createdCollection) {
     return (
       <div className={wrapperClass}>
+        {pageMode ? <CollectionWorkflowSteps step={step} showAllocation={showAllocationStep} /> : null}
         <h3>{t('admin.finance.collectionWorkflow.successTitle')}</h3>
         <p>{t('admin.finance.collectionWorkflow.successBody')}</p>
         <dl className="detail-list">
@@ -376,6 +405,7 @@ function CollectionWorkflowFormReady({
   if (step === 'allocation') {
     return (
       <div className={wrapperClass}>
+        {pageMode ? <CollectionWorkflowSteps step={step} showAllocation={showAllocationStep} /> : null}
         <h3>{t('admin.finance.collectionWorkflow.allocationTitle')}</h3>
         <p className="muted">{t('admin.finance.collectionWorkflow.allocationDesc')}</p>
         {error ? <p className="form-error">{error}</p> : null}
@@ -471,8 +501,13 @@ function CollectionWorkflowFormReady({
 
   return (
     <form className={wrapperClass} onSubmit={onPaymentContinue}>
-      <h3>{t('admin.finance.recordCollection')}</h3>
-      <p className="muted">{t('admin.finance.collectionWorkflow.paymentStepDesc')}</p>
+      {pageMode ? <CollectionWorkflowSteps step={step} showAllocation={showAllocationStep} /> : null}
+      <h3 className={pageMode ? 'finance-collection-workflow__section-title' : undefined}>
+        {t('admin.finance.recordCollection')}
+      </h3>
+      <p className={`muted${pageMode ? ' finance-collection-workflow__intro' : ''}`}>
+        {t('admin.finance.collectionWorkflow.paymentStepDesc')}
+      </p>
       {error ? <p className="form-error">{error}</p> : null}
 
       {!selectedStudent ? (

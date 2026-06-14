@@ -3199,6 +3199,8 @@
         "detailTitle": "Détail de l'encaissement",
         "chequeDetailTitle": "Détail du chèque",
         "paymentStepDesc": "Choisissez le mode et le montant, puis répartissez sur les créances.",
+        "stepPayment": "Paiement",
+        "stepAllocation": "Répartition",
         "continueToAllocation": "Continuer vers la répartition",
         "allocationTitle": "Répartir le montant",
         "allocationDesc": "Répartir le montant sur les échéances ouvertes.",

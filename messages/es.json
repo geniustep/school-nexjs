@@ -3199,6 +3199,8 @@
         "detailTitle": "Detalle del cobro",
         "chequeDetailTitle": "Detalle del cheque",
         "paymentStepDesc": "Elija método e importe, luego asigne a deudas.",
+        "stepPayment": "Pago",
+        "stepAllocation": "Asignación",
         "continueToAllocation": "Continuar a asignación",
         "allocationTitle": "Asignar importe",
         "allocationDesc": "Asigne el importe a cuotas abiertas.",
