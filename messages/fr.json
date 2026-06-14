@@ -2423,7 +2423,12 @@
         "badgeComplete": "Complet",
         "badgeIncomplete": "Incomplet",
         "badgeAction": "Action requise",
-        "badgeNeutral": "Indisponible"
+        "badgeNeutral": "Indisponible",
+        "actionCreate": "Créer",
+        "actionAdd": "Ajouter",
+        "actionComplete": "Compléter",
+        "pendingCount": "{count} en attente",
+        "allComplete": "Complet"
       },
       "loading": {
         "refreshing": "Actualisation…",

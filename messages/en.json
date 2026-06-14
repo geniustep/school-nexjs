@@ -2462,7 +2462,12 @@
         "badgeComplete": "Complete",
         "badgeIncomplete": "Incomplete",
         "badgeAction": "Action needed",
-        "badgeNeutral": "Unavailable"
+        "badgeNeutral": "Unavailable",
+        "actionCreate": "Create",
+        "actionAdd": "Add",
+        "actionComplete": "Complete",
+        "pendingCount": "{count} pending",
+        "allComplete": "Complete"
       },
       "loading": {
         "refreshing": "Refreshing…",

@@ -16,7 +16,6 @@ type ReadinessItem = {
   icon: string;
   title: string;
   value: string;
-  badge: string;
   action?: { label: string; tab?: Student360TabId; onClick?: () => void };
   priority: number;
 };
@@ -26,13 +25,6 @@ function toneIcon(tone: ReadinessTone): string {
   if (tone === 'bad') return '!';
   if (tone === 'warn') return '!';
   return '—';
-}
-
-function toneBadgeKey(tone: ReadinessTone): string {
-  if (tone === 'ok') return 'admin.student360.readiness.badgeComplete';
-  if (tone === 'bad') return 'admin.student360.readiness.badgeAction';
-  if (tone === 'warn') return 'admin.student360.readiness.badgeIncomplete';
-  return 'admin.student360.readiness.badgeNeutral';
 }
 
 function toneClass(tone: ReadinessTone): string {
@@ -85,12 +77,11 @@ export function StudentStatusSummary({
       icon: toneIcon(enrollment ? 'ok' : 'warn'),
       title: t('admin.student360.statusSummary.enrollment'),
       value: enrollmentValue,
-      badge: t(toneBadgeKey(enrollment ? 'ok' : 'warn')),
       priority: enrollment ? 2 : 0,
       action: !enrollment && canManage
-        ? { label: t('admin.student360.statusSummary.createEnrollment'), onClick: onEditProfile }
+        ? { label: t('admin.student360.readiness.actionCreate'), onClick: onEditProfile }
         : enrollment
-          ? { label: t('admin.student360.statusSummary.viewEnrollment'), tab: 'enrollment' }
+          ? { label: t('common.view'), tab: 'enrollment' }
           : undefined,
     });
 
@@ -106,13 +97,12 @@ export function StudentStatusSummary({
       icon: toneIcon(activeGuardians.length > 0 ? 'ok' : 'warn'),
       title: t('admin.student360.statusSummary.guardian'),
       value: guardianValue,
-      badge: t(toneBadgeKey(activeGuardians.length > 0 ? 'ok' : 'warn')),
       priority: activeGuardians.length > 0 ? 2 : 0,
       action:
         activeGuardians.length === 0 && canManage
-          ? { label: t('admin.student360.addGuardian'), tab: 'guardians' }
+          ? { label: t('admin.student360.readiness.actionAdd'), tab: 'guardians' }
           : activeGuardians.length > 0
-            ? { label: t('admin.student360.statusSummary.viewGuardians'), tab: 'guardians' }
+            ? { label: t('common.view'), tab: 'guardians' }
             : undefined,
     });
 
@@ -130,11 +120,10 @@ export function StudentStatusSummary({
           : hasProfile
             ? t('admin.student360.statusSummary.healthRecorded')
             : t('admin.student360.statusSummary.noHealth'),
-        badge: t(toneBadgeKey(tone)),
         priority: tone === 'ok' ? 2 : 0,
         action: !hasProfile
-          ? { label: t('admin.student360.health.createProfile'), tab: 'health' }
-          : { label: t('admin.student360.statusSummary.viewHealth'), tab: 'health' },
+          ? { label: t('admin.student360.readiness.actionCreate'), tab: 'health' }
+          : { label: t('common.view'), tab: 'health' },
       });
     }
 
@@ -149,12 +138,11 @@ export function StudentStatusSummary({
           docSummary.missing_required > 0
             ? t('admin.student360.statusSummary.missingDocs', { count: docSummary.missing_required })
             : t('admin.student360.statusSummary.docsComplete'),
-        badge: t(toneBadgeKey(tone)),
         priority: tone === 'ok' ? 2 : 0,
         action:
           docSummary.missing_required > 0
-            ? { label: t('admin.student360.documents.openTab'), tab: 'documents' }
-            : { label: t('admin.student360.statusSummary.viewDocuments'), tab: 'documents' },
+            ? { label: t('admin.student360.readiness.actionComplete'), tab: 'documents' }
+            : { label: t('common.view'), tab: 'documents' },
       });
     }
 
@@ -166,15 +154,12 @@ export function StudentStatusSummary({
         icon: toneIcon(financeStatus.tone),
         title: t('admin.student360.statusSummary.financeAgreement'),
         value: financeStatus.status,
-        badge: t(toneBadgeKey(financeStatus.tone)),
         priority: financeStatus.tone === 'ok' ? 2 : 0,
         action: {
           label:
-            financeStatus.actionTab === 'financial-agreement'
-              ? financeStatus.tone === 'warn'
-                ? t('admin.student360.financialAgreement.create')
-                : t('admin.student360.statusSummary.viewAgreement')
-              : t('admin.student360.statusSummary.viewFinance'),
+            financeStatus.actionTab === 'financial-agreement' && financeStatus.tone === 'warn'
+              ? t('admin.student360.readiness.actionCreate')
+              : t('common.view'),
           tab: financeStatus.actionTab,
         },
       });
@@ -188,11 +173,10 @@ export function StudentStatusSummary({
       value: hasAccount
         ? t(`admin.account.status.${s.account?.status ?? 'active'}`)
         : t('admin.student360.statusSummary.noAccount'),
-      badge: t(toneBadgeKey(hasAccount ? 'ok' : 'neutral')),
       priority: hasAccount ? 3 : 1,
       action:
         !hasAccount && canManage && onCreateAccount
-          ? { label: t('admin.account.createAccount'), onClick: onCreateAccount }
+          ? { label: t('admin.student360.readiness.actionCreate'), onClick: onCreateAccount }
           : undefined,
     });
 
@@ -215,10 +199,23 @@ export function StudentStatusSummary({
     t,
   ]);
 
+  const pendingCount = items.filter((item) => item.tone !== 'ok').length;
+
   return (
-    <section className="student-readiness" aria-label={t('admin.student360.readiness.title')}>
-      <h2 className="student-readiness__heading">{t('admin.student360.readiness.title')}</h2>
-      <ul className="student-readiness__list card">
+    <section className="student-readiness student-readiness--compact" aria-label={t('admin.student360.readiness.title')}>
+      <div className="student-readiness__head">
+        <h2 className="student-readiness__heading">{t('admin.student360.readiness.title')}</h2>
+        {pendingCount > 0 ? (
+          <span className="student-readiness__meta">
+            {t('admin.student360.readiness.pendingCount', { count: pendingCount })}
+          </span>
+        ) : (
+          <span className="student-readiness__meta student-readiness__meta--ok">
+            {t('admin.student360.readiness.allComplete')}
+          </span>
+        )}
+      </div>
+      <ul className="student-readiness__list">
         {items.map((item) => (
           <li key={item.key} className={`student-readiness-item ${toneClass(item.tone)}`}>
             <span className="student-readiness-item__icon" aria-hidden="true">
@@ -226,13 +223,13 @@ export function StudentStatusSummary({
             </span>
             <div className="student-readiness-item__body">
               <span className="student-readiness-item__title">{item.title}</span>
+              <span className="student-readiness-item__sep" aria-hidden="true">
+                ·
+              </span>
               <span className="student-readiness-item__value" dir="auto" title={item.value}>
                 {item.value}
               </span>
             </div>
-            <span className={`student-readiness-item__badge student-readiness-item__badge--${item.tone}`}>
-              {item.badge}
-            </span>
             {item.action ? (
               item.action.onClick ? (
                 <button

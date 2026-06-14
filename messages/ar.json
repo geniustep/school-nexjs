@@ -2460,7 +2460,12 @@
         "badgeComplete": "مكتمل",
         "badgeIncomplete": "ناقص",
         "badgeAction": "يتطلب إجراء",
-        "badgeNeutral": "غير متاح"
+        "badgeNeutral": "غير متاح",
+        "actionCreate": "إنشاء",
+        "actionAdd": "إضافة",
+        "actionComplete": "استكمال",
+        "pendingCount": "{count} بانتظار",
+        "allComplete": "مكتمل"
       },
       "loading": {
         "refreshing": "جارٍ التحديث…",
