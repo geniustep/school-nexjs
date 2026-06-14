@@ -622,6 +622,39 @@
   margin-top: 0;
 }
 
+.student-finance-assign-drawer__desc {
+  margin: 0 0 1rem;
+}
+
+.student-finance-assign-form__plans {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.student-finance-assign-form__state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.75rem 0;
+}
+
+.student-finance-assign-form__summary {
+  padding: 0.75rem 1rem;
+}
+
+.student-finance-assign-form__actions {
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+[dir='rtl'] .student-finance-assign-form__actions {
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;

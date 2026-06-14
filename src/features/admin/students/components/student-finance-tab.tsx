@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ApiErrorView, LoadingState } from '@/components/states/states';
 import { ResourceView } from '@/components/states/resource';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
 import { Card } from '@/components/ui/primitives';
 import { useToast } from '@/components/ui/toast';
-import { FinanceAssignFeeForm } from '@/features/admin/finance/assign-fee-form';
+import { StudentFinanceAssignFeeDrawer } from './student-finance-assign-fee-drawer';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { FinanceStatusBadge } from '@/features/admin/finance/finance-status-badge';
 import { ChequePaymentMarker } from '@/features/admin/finance/cheque-payment-marker';
@@ -75,6 +75,7 @@ export function StudentFinanceTab({
   const [feeDetailId, setFeeDetailId] = useState<number | null>(null);
   const [showAssignForm, setShowAssignForm] = useState(false);
   const [receiptLoadingId, setReceiptLoadingId] = useState<number | null>(null);
+  const feesSectionRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (!academicYearId && academicYears.length) {
@@ -261,6 +262,21 @@ export function StudentFinanceTab({
       />
     );
   }
+
+  function handleAssignSuccess() {
+    setShowAssignForm(false);
+    toast.success(t('admin.student360.finance.assignDrawer.success'));
+    summaryState.reload();
+    feesState.reload();
+    onChanged();
+    requestAnimationFrame(() => {
+      feesSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
+  const classId =
+    details.current_enrollment?.class?.id ??
+    (typeof details.student.class === 'object' ? details.student.class?.id : undefined);
 
   const headerActions = (
     <div className="student-finance-header-actions">
@@ -471,7 +487,7 @@ export function StudentFinanceTab({
             </div>
           </section>
 
-          <section className="student-360-section">
+          <section className="student-360-section" ref={feesSectionRef}>
             <h3 className="student-360-section__title">{t('admin.student360.finance.feesSection')}</h3>
             <ResourceView state={feesState} loadingLabel={t('common.loading')}>
               {(fees) =>
@@ -551,24 +567,14 @@ export function StudentFinanceTab({
         </>
       ) : null}
 
-      {showAssignForm && canAssign ? (
-        <Card className="student-finance-assign-card">
-          <FinanceAssignFeeForm
-            studentId={studentId}
-            classId={
-              details.current_enrollment?.class?.id ??
-              (typeof details.student.class === 'object' ? details.student.class?.id : undefined)
-            }
-            onDone={() => {
-              setShowAssignForm(false);
-              summaryState.reload();
-              feesState.reload();
-              onChanged();
-            }}
-            onCancel={() => setShowAssignForm(false)}
-          />
-        </Card>
-      ) : null}
+      <StudentFinanceAssignFeeDrawer
+        open={showAssignForm && canAssign}
+        studentId={studentId}
+        classId={classId}
+        initialAcademicYearId={academicYearId}
+        onClose={() => setShowAssignForm(false)}
+        onAssigned={handleAssignSuccess}
+      />
 
       <StudentFinanceFeeDetailDialog
         feeId={feeDetailId}
