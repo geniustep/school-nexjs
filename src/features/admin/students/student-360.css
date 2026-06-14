@@ -341,13 +341,50 @@
 
 .student-360-metric-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
 }
 
 .student-360-metric-card {
   text-align: center;
-  padding: 12px 10px;
+  padding: 14px 12px;
+  border-inline-start: 3px solid var(--c-border, #e2e8f0);
+}
+
+.student-360-metric-card--red {
+  border-inline-start-color: var(--c-red, #dc2626);
+  background: var(--c-red-soft, #fef2f2);
+}
+
+.student-360-metric-card--red .student-360-metric-card__value {
+  color: var(--c-red, #dc2626);
+}
+
+.student-360-metric-card--amber {
+  border-inline-start-color: var(--c-amber, #d97706);
+  background: var(--c-amber-soft, #fffbeb);
+}
+
+.student-360-metric-card--amber .student-360-metric-card__value {
+  color: var(--c-amber, #d97706);
+}
+
+.student-360-metric-card--blue {
+  border-inline-start-color: var(--c-blue, #2563eb);
+  background: var(--c-blue-soft, #eff6ff);
+}
+
+.student-360-metric-card--blue .student-360-metric-card__value {
+  color: var(--c-blue, #2563eb);
+}
+
+.student-360-metric-card--green {
+  border-inline-start-color: var(--c-green, #16a34a);
+  background: var(--c-green-soft, #f0fdf4);
+}
+
+.student-360-metric-card--green .student-360-metric-card__value {
+  color: var(--c-green, #16a34a);
 }
 
 .student-360-metric-card__value {
@@ -799,23 +836,55 @@
 
 .student-finance-section {
   margin-top: var(--space-4);
+  padding: 16px;
 }
 
 .student-finance-table-wrap {
   overflow-x: auto;
+  margin-top: 4px;
+}
+
+.student-finance-table-wrap table.data th,
+.student-finance-table-wrap table.data td {
+  padding: 11px 12px;
+  vertical-align: top;
 }
 
 .student-finance-filters {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--space-3);
-  margin-bottom: var(--space-3);
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 14px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 10px;
+  background: var(--c-surface-2, #f8fafc);
+}
+
+.student-finance-filters label {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.student-finance-filters .input {
+  width: 100%;
+  font-weight: 400;
 }
 
 .student-finance-quick-filter {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: 8px;
+  grid-column: 1 / -1;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+[dir='rtl'] .student-finance-quick-filter {
+  flex-direction: row-reverse;
 }
 
 .student-finance-dual-badges,
@@ -823,7 +892,13 @@
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2);
+  gap: 6px;
+}
+
+.student-finance-dual-badges .badge,
+.student-finance-status-group .badge {
+  font-size: 0.75rem;
+  padding: 3px 8px;
 }
 
 .student-finance-hidden-indicator {

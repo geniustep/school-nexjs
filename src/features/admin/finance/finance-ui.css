@@ -144,17 +144,93 @@
   overflow: auto;
 }
 
+.modal-panel--wide {
+  width: min(640px, 100%);
+}
+
+.modal-panel--form {
+  width: min(720px, 100%);
+}
+
+.confirmation-dialog {
+  padding: 20px;
+}
+
+.confirmation-dialog h3 {
+  margin: 0 0 4px;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--c-text, #0f172a);
+}
+
+.confirmation-dialog__body {
+  white-space: normal;
+}
+
+.confirmation-dialog__actions {
+  margin-top: 16px;
+  gap: 8px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+[dir='rtl'] .confirmation-dialog__actions {
+  flex-direction: row-reverse;
+}
+
 .finance-cheque-dialog-warning {
   color: var(--color-warning, #b54708);
 }
 
-.confirmation-dialog__body {
-  white-space: pre-wrap;
+.finance-collection-workflow {
+  max-width: min(720px, 100%);
 }
 
-.confirmation-dialog__actions {
-  margin-top: 12px;
+.finance-collection-workflow.card {
+  padding: 20px;
+}
+
+.finance-collection-workflow h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.finance-collection-workflow > .muted {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.finance-collection-workflow__student-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 8px;
+  background: var(--c-surface-2, #f8fafc);
+}
+
+.finance-collection-workflow__fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 16px;
+}
+
+.finance-collection-workflow__fields > label,
+.finance-collection-workflow__fields > fieldset {
+  margin: 0;
+}
+
+.finance-collection-workflow__fields > .finance-cheque-fields,
+.finance-collection-workflow__fields > .muted,
+.finance-collection-workflow__fields > label:has(textarea) {
+  grid-column: 1 / -1;
+}
+
+.finance-collection-workflow .form-actions {
+  margin-top: 8px;
 }
 
 .finance-collection-workflow .finance-allocation-summary {
@@ -424,6 +500,10 @@
   flex-shrink: 0;
 }
 
+[dir='rtl'] .fee-plan-form__actions {
+  flex-direction: row-reverse;
+}
+
 .fee-plan-lines-editor__head {
   display: flex;
   align-items: center;
@@ -506,6 +586,13 @@
   display: flex;
   gap: 10px;
   align-items: flex-start;
+  cursor: pointer;
+  font-weight: 400;
+}
+
+.fee-plan-line-dialog__optional input[type='checkbox'] {
+  margin-top: 3px;
+  flex-shrink: 0;
 }
 
 .fee-plan-line-dialog__optional span {
@@ -513,9 +600,45 @@
   gap: 4px;
 }
 
+.fee-plan-line-dialog__optional strong {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-text, #0f172a);
+}
+
+.fee-plan-line-dialog__optional .muted {
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+[dir='rtl'] .fee-plan-line-dialog__optional {
+  flex-direction: row-reverse;
+}
+
+.fee-plan-line-dialog label:not(.fee-plan-line-dialog__optional) {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-text, #0f172a);
+}
+
+.fee-plan-installment-editor__table-wrap {
+  overflow-x: auto;
+  margin-block: 8px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 8px;
+}
+
 .fee-plan-installment-editor__table {
   width: 100%;
-  margin-block: 8px;
+  margin: 0;
+}
+
+.fee-plan-installment-editor__table th,
+.fee-plan-installment-editor__table td {
+  padding: 8px 10px;
+  white-space: nowrap;
 }
 
 .fee-plan-installment-editor__footer {
@@ -553,6 +676,10 @@
 
 @media (max-width: 768px) {
   .finance-allocation-row__amounts {
+    grid-template-columns: 1fr;
+  }
+
+  .finance-collection-workflow__fields {
     grid-template-columns: 1fr;
   }
 

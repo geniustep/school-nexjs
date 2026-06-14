@@ -141,15 +141,17 @@ export function StudentFinanceOperationsTab({
         key: 'confirmed_paid',
         label: t('admin.student360.financeOps.confirmedPaid'),
         value: s.confirmed_paid,
+        tone: 'green' as const,
       },
       {
         key: 'pending_cheques',
         label: t('admin.student360.financeOps.pendingCheques'),
         value: s.pending_cheques,
+        tone: 'blue' as const,
       },
-      { key: 'remaining', label: t('admin.student360.financeOps.remaining'), value: s.remaining },
-      { key: 'uncovered', label: t('admin.student360.financeOps.uncovered'), value: s.uncovered },
-      { key: 'overdue', label: t('admin.student360.financeOps.overdue'), value: s.overdue },
+      { key: 'remaining', label: t('admin.student360.financeOps.remaining'), value: s.remaining, tone: 'amber' as const },
+      { key: 'uncovered', label: t('admin.student360.financeOps.uncovered'), value: s.uncovered, tone: 'amber' as const },
+      { key: 'overdue', label: t('admin.student360.financeOps.overdue'), value: s.overdue, tone: 'red' as const },
     ];
   }, [workspace?.summary, t]);
 
@@ -416,6 +418,7 @@ export function StudentFinanceOperationsTab({
               value: (
                 <FinanceMoney amount={item.value} currency={currency?.name} />
               ),
+              tone: 'tone' in item ? item.tone : undefined,
             }))}
           />
 

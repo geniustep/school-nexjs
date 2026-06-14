@@ -14,6 +14,7 @@ import { journalErrorMessageKey, parseFinanceList } from '@/lib/utils/finance-no
 import { collectionErrorMessageKey } from '@/lib/utils/collection-errors';
 import { isChequePayment } from '@/lib/utils/cheque';
 import { FinanceStudentSearch } from '@/features/admin/finance/finance-student-search';
+import '@/features/admin/finance/finance-ui.css';
 import { useFinanceReferenceData } from '@/features/admin/finance/use-finance-lookups';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { InstallmentStatusBadges } from '@/features/admin/student-finance/components/installment-status-badges';
@@ -62,7 +63,7 @@ export function CollectionWorkflowForm({
       <div className={embedded ? 'form-stack' : 'card form-stack'}>
         <h3>{t('admin.finance.recordCollection')}</h3>
         <p>{t('admin.finance.noPaymentJournalDesc')}</p>
-        <div className="row" style={{ gap: 8 }}>
+        <div className="row form-actions">
           <Link href="/admin/finance/collections" className="btn btn--ghost">
             {t('admin.finance.backToCollections')}
           </Link>
@@ -363,7 +364,7 @@ function CollectionWorkflowFormReady({
         {isChequePayment(createdCollection.payment_method) ? (
           <p className="finance-cheque-pending-note">{t('admin.finance.collectionWorkflow.chequePendingNote')}</p>
         ) : null}
-        <div className="row">
+        <div className="row form-actions">
           <button type="button" className="btn btn--primary btn--sm" onClick={onCancel}>
             {t('common.close')}
           </button>
@@ -396,7 +397,7 @@ function CollectionWorkflowFormReady({
             <strong>{selectedAllocationCount}</strong>
           </div>
         </div>
-        <div className="row">
+        <div className="row" style={{ gap: 8 }}>
           <button
             type="button"
             className="btn btn--ghost btn--sm"
@@ -448,7 +449,7 @@ function CollectionWorkflowFormReady({
             );
           })}
         </div>
-        <div className="row">
+        <div className="row form-actions">
           <button
             type="button"
             className="btn btn--primary btn--sm"
@@ -477,7 +478,7 @@ function CollectionWorkflowFormReady({
       {!selectedStudent ? (
         <FinanceStudentSearch onSelect={setSelectedStudent} showProfileLink={false} />
       ) : (
-        <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+        <div className="finance-collection-workflow__student-bar">
           <strong>{financeStudentDisplayName(selectedStudent)}</strong>
           {!lockStudent && (
             <button type="button" className="btn btn--ghost btn--sm" onClick={() => setSelectedStudent(null)}>
@@ -488,7 +489,7 @@ function CollectionWorkflowFormReady({
       )}
 
       {selectedStudent ? (
-        <>
+        <div className="finance-collection-workflow__fields">
           <label>
             {t('admin.finance.paymentJournal')}
             <select
@@ -673,11 +674,11 @@ function CollectionWorkflowFormReady({
             {t('common.note')}
             <textarea className="input" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
           </label>
-        </>
+        </div>
       ) : null}
 
       {selectedStudent ? (
-        <div className="row" style={{ gap: 8 }}>
+        <div className="form-actions">
           <button type="submit" className="btn btn--primary" disabled={submitting || !canProceedPayment}>
             {submitting
               ? t('common.submitting')

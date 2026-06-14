@@ -101,6 +101,8 @@ export function FeePlanLineDialog({
   return (
     <ConfirmationDialog
       open={open}
+      size="wide"
+      closeOnBackdrop={false}
       title={
         line?.feeTypeId
           ? t('admin.finance.feePlansWorkspace.editLine')

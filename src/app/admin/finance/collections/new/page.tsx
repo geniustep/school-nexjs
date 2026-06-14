@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
 import { PageHeader } from '@/components/ui/primitives';
 import { FinanceCollectionForm } from '@/features/admin/finance/collection-form';
+import '@/features/admin/finance/finance-ui.css';
 import { useT } from '@/features/i18n/locale-context';
 import { FINANCE_VIEW_PAYMENTS, canCollectPayments } from '@/lib/permissions/finance';
 import { useSession } from '@/features/auth/session-context';

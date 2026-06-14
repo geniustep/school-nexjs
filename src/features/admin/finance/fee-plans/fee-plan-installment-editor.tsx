@@ -31,7 +31,8 @@ export function FeePlanInstallmentEditor({
 
   return (
     <div className="fee-plan-installment-editor">
-      <table className="data fee-plan-installment-editor__table">
+      <div className="fee-plan-installment-editor__table-wrap">
+        <table className="data fee-plan-installment-editor__table">
         <thead>
           <tr>
             <th>{t('admin.finance.feePlansWorkspace.installmentNumber')}</th>
@@ -67,6 +68,7 @@ export function FeePlanInstallmentEditor({
           ))}
         </tbody>
       </table>
+      </div>
       <div className="fee-plan-installment-editor__footer">
         <span className="muted">
           {t('admin.finance.feePlansWorkspace.scheduleTotal')}:{' '}

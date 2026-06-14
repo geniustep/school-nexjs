@@ -573,6 +573,44 @@ table.data tbody tr:hover {
   box-shadow: 0 0 0 3px var(--c-primary-soft);
 }
 
+.form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-stack.card {
+  padding: 20px;
+}
+
+.form-stack > label,
+.form-stack .form-field {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-text);
+}
+
+.form-stack .form-error {
+  margin-block-end: 0;
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding-top: 12px;
+  margin-top: 4px;
+  border-top: 1px solid var(--c-border);
+}
+
+[dir='rtl'] .form-actions {
+  flex-direction: row-reverse;
+  justify-content: flex-start;
+}
+
 .toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -1881,8 +1919,13 @@ table.data tbody tr:hover {
   color: var(--c-text-muted);
   font-size: 13px;
   margin-block-end: 12px;
+  text-decoration: none;
 }
 .back-link:hover { color: var(--c-primary); }
+
+[dir='rtl'] .back-link {
+  flex-direction: row-reverse;
+}
 
 .pagination {
   display: flex;

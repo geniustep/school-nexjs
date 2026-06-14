@@ -10,6 +10,8 @@ export function ConfirmationDialog({
   confirmLabel,
   cancelLabel,
   variant = 'primary',
+  size = 'default',
+  closeOnBackdrop = true,
   loading = false,
   onConfirm,
   onClose,
@@ -20,6 +22,8 @@ export function ConfirmationDialog({
   confirmLabel?: string;
   cancelLabel?: string;
   variant?: 'primary' | 'danger';
+  size?: 'default' | 'wide' | 'form';
+  closeOnBackdrop?: boolean;
   loading?: boolean;
   onConfirm: () => void | Promise<void>;
   onClose: () => void;
@@ -40,11 +44,17 @@ export function ConfirmationDialog({
   }
 
   const busy = submitting || loading;
+  const panelSizeClass =
+    size === 'form' ? 'modal-panel--form' : size === 'wide' ? 'modal-panel--wide' : '';
 
   return (
-    <div className="modal-backdrop" role="presentation" onClick={onClose}>
+    <div
+      className="modal-backdrop"
+      role="presentation"
+      onClick={closeOnBackdrop ? onClose : undefined}
+    >
       <div
-        className="card modal-panel confirmation-dialog"
+        className={`card modal-panel confirmation-dialog${panelSizeClass ? ` ${panelSizeClass}` : ''}`}
         role="dialog"
         aria-modal="true"
         onClick={(e) => e.stopPropagation()}
