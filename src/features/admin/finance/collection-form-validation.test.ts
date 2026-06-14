@@ -7,7 +7,9 @@ const base = {
   academicYearId: '2',
   billingPartnerId: '3',
   partnersLoading: false,
+  partnersLoadFailed: false,
   partnersCount: 1,
+  requiresBillingPartnerChoice: false,
   amount: 100,
   paymentMethod: 'cash',
   allowedMethodCodes: ['cash'],
@@ -26,9 +28,24 @@ const base = {
 
 describe('collection form validation', () => {
   it('lists blockers when billing partner missing', () => {
-    expect(getCollectionSubmitBlockers({ ...base, billingPartnerId: '' })).toContain(
-      'selectBillingPartner',
-    );
+    expect(
+      getCollectionSubmitBlockers({
+        ...base,
+        billingPartnerId: '',
+        requiresBillingPartnerChoice: true,
+      }),
+    ).toContain('selectBillingPartner');
+  });
+
+  it('blocks submit when billing partners cannot be resolved', () => {
+    expect(
+      getCollectionSubmitBlockers({
+        ...base,
+        billingPartnerId: '',
+        partnersCount: 0,
+        partnersLoadFailed: false,
+      }),
+    ).toContain('billingPartnerUnavailable');
   });
 
   it('requires allocation or skip when receivables exist', () => {

@@ -1,12 +1,11 @@
 import { isPositiveAmount } from '@/lib/utils/finance';
 import { isChequePayment } from '@/lib/utils/cheque';
-import type { EligibleBillingPartner } from '@/types/finance';
-
 export type CollectionFormBlockerKey =
   | 'selectStudent'
   | 'selectJournal'
   | 'selectAcademicYear'
   | 'selectBillingPartner'
+  | 'billingPartnerUnavailable'
   | 'enterAmount'
   | 'selectPaymentMethod'
   | 'enterCollectionDate'
@@ -20,7 +19,9 @@ export function getCollectionSubmitBlockers(input: {
   academicYearId: string;
   billingPartnerId: string;
   partnersLoading: boolean;
+  partnersLoadFailed: boolean;
   partnersCount: number;
+  requiresBillingPartnerChoice: boolean;
   amount: number;
   paymentMethod: string;
   allowedMethodCodes: string[];
@@ -40,8 +41,13 @@ export function getCollectionSubmitBlockers(input: {
   if (!input.hasStudent) blockers.push('selectStudent');
   if (!input.journalId) blockers.push('selectJournal');
   if (!input.academicYearId) blockers.push('selectAcademicYear');
-  if (!input.partnersLoading && input.partnersCount === 0) blockers.push('selectBillingPartner');
-  else if (!input.billingPartnerId) blockers.push('selectBillingPartner');
+  if (!input.partnersLoading && (input.partnersLoadFailed || input.partnersCount === 0)) {
+    blockers.push('billingPartnerUnavailable');
+  } else if (input.requiresBillingPartnerChoice && !input.billingPartnerId) {
+    blockers.push('selectBillingPartner');
+  } else if (!input.billingPartnerId) {
+    blockers.push('selectBillingPartner');
+  }
   if (!isPositiveAmount(input.collectionAmount)) blockers.push('enterAmount');
   if (!input.paymentMethod || !input.allowedMethodCodes.includes(input.paymentMethod)) {
     blockers.push('selectPaymentMethod');
@@ -66,6 +72,3 @@ export function getCollectionSubmitBlockers(input: {
   return blockers;
 }
 
-export function billingPartnerLabel(partner: EligibleBillingPartner): string {
-  return partner.name?.trim() || partner.payer_name?.trim() || `#${partner.id}`;
-}

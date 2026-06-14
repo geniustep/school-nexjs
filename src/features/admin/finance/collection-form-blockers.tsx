@@ -8,6 +8,7 @@ const BLOCKER_KEYS: Record<CollectionFormBlockerKey, string> = {
   selectJournal: 'admin.finance.collections.blockers.selectJournal',
   selectAcademicYear: 'admin.finance.collections.blockers.selectAcademicYear',
   selectBillingPartner: 'admin.finance.collections.blockers.selectBillingPartner',
+  billingPartnerUnavailable: 'admin.finance.collections.blockers.billingPartnerUnavailable',
   enterAmount: 'admin.finance.collections.blockers.enterAmount',
   selectPaymentMethod: 'admin.finance.collections.blockers.selectPaymentMethod',
   enterCollectionDate: 'admin.finance.collections.blockers.enterCollectionDate',

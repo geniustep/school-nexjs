@@ -8,11 +8,15 @@ import { useT } from '@/features/i18n/locale-context';
 import { currencyCode, paymentMethodLabel } from '@/lib/utils/finance';
 import { getStudentDisplayName } from '@/lib/utils/student';
 import { normalizeStudentDetailsResponse } from '@/features/admin/students/utils/normalize-student-details';
-import { journalErrorMessageKey, normalizePaymentMethodOptions, parseFinanceList } from '@/lib/utils/finance-normalize';
+import { journalErrorMessageKey, normalizePaymentMethodOptions } from '@/lib/utils/finance-normalize';
 import { collectionErrorMessageKey } from '@/lib/utils/collection-errors';
 import { isChequePayment } from '@/lib/utils/cheque';
 import { FinanceStudentSearch } from '@/features/admin/finance/finance-student-search';
 import { BillingPartnerSelect } from '@/features/admin/finance/billing-partner-select';
+import {
+  parseEligibleBillingPartners,
+  resolveBillingPartnerSelection,
+} from '@/features/admin/finance/billing-partner-resolve';
 import { CollectionFormBlockers } from '@/features/admin/finance/collection-form-blockers';
 import { getCollectionSubmitBlockers } from '@/features/admin/finance/collection-form-validation';
 import { ReceivableAllocationSection } from '@/features/admin/finance/receivable-allocation-section';
@@ -23,7 +27,6 @@ import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import type { StudentInstallment } from '@/features/admin/student-finance/types';
 import type {
   CreatePaymentCollectionPayload,
-  EligibleBillingPartner,
   FinanceStudentSearchResult,
   PaymentCollection,
   PaymentJournal,
@@ -186,13 +189,15 @@ function CollectionWorkflowFormReady({
   const journalCurrency = currencyCode(selectedJournal?.currency ?? selectedJournal?.currency_code);
   const parsedAmount = Number(amount);
 
-  const partnersState = useAdminResource<EligibleBillingPartner[]>(
+  const partnersState = useAdminResource<unknown>(
     selectedStudent ? endpoints.admin.financeEligibleBillingPartners(selectedStudent.id) : null,
   );
-  const partners = useMemo(
-    () => parseFinanceList<EligibleBillingPartner>(partnersState.data),
+  const billingPartnerSelection = useMemo(
+    () => resolveBillingPartnerSelection(parseEligibleBillingPartners(partnersState.data)),
     [partnersState.data],
   );
+  const { partners, defaultId, hintKey, requiresUserChoice } = billingPartnerSelection;
+  const partnersLoadFailed = !!partnersState.error || (!partnersState.loading && partners.length === 0);
 
   const installmentParams = useMemo(
     () =>
@@ -229,8 +234,26 @@ function CollectionWorkflowFormReady({
   }, [academicYears, academicYearId]);
 
   useEffect(() => {
-    if (partners.length === 1 && !billingPartnerId) setBillingPartnerId(String(partners[0].id));
-  }, [partners, billingPartnerId]);
+    if (!selectedStudent || partnersState.loading) return;
+    if (partnersLoadFailed) {
+      setBillingPartnerId('');
+      return;
+    }
+    if (defaultId && !requiresUserChoice) {
+      setBillingPartnerId((current) => current || String(defaultId));
+      return;
+    }
+    setBillingPartnerId((current) =>
+      current && partners.some((p) => String(p.id) === current) ? current : '',
+    );
+  }, [
+    selectedStudent?.id,
+    partnersState.loading,
+    partnersLoadFailed,
+    defaultId,
+    requiresUserChoice,
+    partners,
+  ]);
 
   useEffect(() => {
     if (!allowedMethods.length) return;
@@ -257,7 +280,9 @@ function CollectionWorkflowFormReady({
         academicYearId,
         billingPartnerId,
         partnersLoading: partnersState.loading,
+        partnersLoadFailed,
         partnersCount: partners.length,
+        requiresBillingPartnerChoice: requiresUserChoice,
         amount: parsedAmount,
         paymentMethod,
         allowedMethodCodes: allowedMethods.map((m) => m.code),
@@ -279,7 +304,9 @@ function CollectionWorkflowFormReady({
       academicYearId,
       billingPartnerId,
       partnersState.loading,
+      partnersLoadFailed,
       partners.length,
+      requiresUserChoice,
       parsedAmount,
       paymentMethod,
       allowedMethods,
@@ -517,7 +544,9 @@ function CollectionWorkflowFormReady({
               <BillingPartnerSelect
                 partners={partners}
                 loading={partnersState.loading}
-                error={partnersState.error?.message ?? null}
+                loadFailed={partnersLoadFailed}
+                hintKey={hintKey}
+                requiresUserChoice={requiresUserChoice}
                 value={billingPartnerId}
                 onChange={setBillingPartnerId}
                 onRetry={() => partnersState.reload?.()}

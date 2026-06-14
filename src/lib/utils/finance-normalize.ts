@@ -18,7 +18,7 @@ export function parseFinanceList<T>(data: unknown): T[] {
   if (Array.isArray(data)) return data as T[];
   if (!data || typeof data !== 'object') return [];
   const o = data as Record<string, unknown>;
-  for (const key of ['items', 'results', 'children', 'students', 'data']) {
+  for (const key of ['options', 'items', 'results', 'children', 'students', 'data']) {
     if (Array.isArray(o[key])) return o[key] as T[];
   }
   return [];
