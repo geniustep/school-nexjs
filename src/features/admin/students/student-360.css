@@ -796,3 +796,108 @@
     grid-template-columns: 1fr;
   }
 }
+
+.student-finance-section {
+  margin-top: var(--space-4);
+}
+
+.student-finance-table-wrap {
+  overflow-x: auto;
+}
+
+.student-finance-filters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.student-finance-quick-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.student-finance-dual-badges,
+.student-finance-status-group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.student-finance-hidden-indicator {
+  font-style: italic;
+}
+
+.student-finance-agreement-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.student-finance-agreement-actions {
+  margin-top: var(--space-4);
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.student-finance-agreement-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--space-4);
+}
+
+.student-finance-agreement-steps li {
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+}
+
+.student-finance-agreement-steps li.is-active {
+  border-color: var(--brand-primary);
+  font-weight: 600;
+}
+
+.student-finance-agreement-steps li.is-done {
+  opacity: 0.7;
+}
+
+.student-finance-schedule-policy ul {
+  margin: 0.5rem 0 0;
+  padding-inline-start: 1.25rem;
+}
+
+.student-finance-service-details {
+  list-style: none;
+  margin: 0.35rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.student-finance-service-details__label {
+  color: var(--muted, #64748b);
+  margin-inline-end: 0.35rem;
+}
+
+.student-finance-service-details__label::after {
+  content: ':';
+}
+
+.student-finance-cancel-future-drawer .detail-list {
+  margin: 0.75rem 0;
+}
+
+@media (max-width: 768px) {
+  .student-finance-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .student-finance-agreement-meta {
+    grid-template-columns: 1fr;
+  }
+}
