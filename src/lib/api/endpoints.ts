@@ -42,6 +42,9 @@ export const endpoints = {
     guardiansSearch: '/admin/guardians/search',
     guardiansQuickCreate: '/admin/guardians/quick-create',
     studentsImport: '/admin/students/import',
+    studentImportValidate: '/admin/students/import/validate',
+    studentImportExecute: (jobId: number | string) => `/admin/students/import/${jobId}/execute`,
+    studentImportJob: (jobId: number | string) => `/admin/students/import/${jobId}`,
     studentsExport: '/admin/students/export',
 
     parents: '/admin/parents',

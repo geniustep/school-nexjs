@@ -215,7 +215,17 @@ export async function buildStudentImportErrorReportWorkbook(
     message: string;
     originalValue: string;
     status: string;
+    source: string;
   },
+  mergedIssues?: Array<{
+    rowNumber: number;
+    field?: string;
+    severity: 'error' | 'warning';
+    code: string;
+    message: string;
+    source: 'local' | 'server';
+    originalValue?: string;
+  }>,
 ): Promise<ArrayBuffer> {
   const workbook = new ExcelJS.Workbook();
   const issuesSheet = workbook.addWorksheet('Issues');
@@ -226,23 +236,39 @@ export async function buildStudentImportErrorReportWorkbook(
     headers.errorCode,
     headers.message,
     headers.originalValue,
+    headers.source,
   ];
   issuesSheet.addRow(issueHeaders);
 
-  for (const fileError of result.fileErrors) {
-    issuesSheet.addRow(['—', fileError.field ?? '—', fileError.severity, fileError.code, fileError.message, '']);
-  }
-
-  for (const row of result.rows) {
-    for (const item of [...row.errors, ...row.warnings]) {
+  if (mergedIssues?.length) {
+    for (const issue of mergedIssues) {
       issuesSheet.addRow([
-        row.rowNumber,
-        item.field ?? '—',
-        item.severity,
-        item.code,
-        item.message,
-        item.field ? String(row.raw[item.field] ?? '') : '',
+        issue.rowNumber,
+        issue.field ?? '—',
+        issue.severity,
+        issue.code,
+        issue.message,
+        issue.originalValue ?? '',
+        issue.source,
       ]);
+    }
+  } else {
+    for (const fileError of result.fileErrors) {
+      issuesSheet.addRow(['—', fileError.field ?? '—', fileError.severity, fileError.code, fileError.message, '', 'local']);
+    }
+
+    for (const row of result.rows) {
+      for (const item of [...row.errors, ...row.warnings]) {
+        issuesSheet.addRow([
+          row.rowNumber,
+          item.field ?? '—',
+          item.severity,
+          item.code,
+          item.message,
+          item.field ? String(row.raw[item.field] ?? '') : '',
+          'local',
+        ]);
+      }
     }
   }
 
