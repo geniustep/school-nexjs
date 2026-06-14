@@ -1204,10 +1204,27 @@
   gap: 8px;
 }
 
+.cheque-details__summary.card,
+.cheque-details__section.card {
+  padding: 20px 24px;
+}
+
 .cheque-details__summary-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
+  padding-bottom: 4px;
+}
+
+.cheque-details__summary-grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cheque-details__read-only {
+  margin: 0;
+  padding: 0 4px;
 }
 
 .cheque-details__alert {
@@ -1413,6 +1430,14 @@
 
 .cheque-details__actions--footer {
   margin-top: 0;
+}
+
+.cheque-details__party-block h3 {
+  margin: 0 0 8px;
+}
+
+.cheque-details__party-block p {
+  margin: 0;
 }
 
 .collection-details-page {

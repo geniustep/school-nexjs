@@ -2,6 +2,13 @@ import { appendReturnTo, isSafeInternalReturnPath } from '@/lib/utils/safe-retur
 
 export type StudentFinanceTab = 'finance' | 'financial-agreement';
 
+export function buildFinanceStudentProfileLink(
+  studentId: number | string,
+  returnTo?: string | null,
+): string {
+  return appendReturnTo(`/admin/finance/students/${studentId}`, returnTo);
+}
+
 export function buildStudentFinanceLink(
   studentId: number | string,
   tab: StudentFinanceTab = 'finance',

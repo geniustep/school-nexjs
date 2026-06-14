@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { financeStudentDisplayName } from '@/lib/utils/finance';
-import { buildStudentFinanceLink } from '@/lib/utils/finance-navigation';
+import { buildFinanceStudentProfileLink } from '@/lib/utils/finance-navigation';
 import type { Ref } from '@/types/api';
 
 export function CollectionStudentCell({
@@ -39,9 +39,10 @@ export function CollectionStudentCell({
   if (!sid) return content;
   return (
     <Link
-      href={buildStudentFinanceLink(sid, 'finance', returnTo)}
+      href={buildFinanceStudentProfileLink(sid, returnTo)}
       onClick={(e) => e.stopPropagation()}
       className="collection-student-cell__link"
+      prefetch={false}
     >
       {content}
     </Link>

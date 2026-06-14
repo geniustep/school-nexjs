@@ -30,7 +30,7 @@ import { availableChequeTransitions } from '@/lib/utils/cheque';
 import type { ChequeTransitionAction } from '@/lib/utils/cheque';
 import { isRejectedCheque } from '@/lib/utils/cheque-status';
 import { collectionState } from '@/lib/utils/finance';
-import { buildStudentFinanceLink } from '@/lib/utils/finance-navigation';
+import { buildFinanceStudentProfileLink } from '@/lib/utils/finance-navigation';
 import { appendReturnTo } from '@/lib/utils/safe-return-url';
 import type { FinanceCheque, PaymentCollection } from '@/types/finance';
 import type { ResourceState } from '@/lib/hooks/use-resource';
@@ -82,7 +82,7 @@ function ChequeDetailsActionBar({
     ? appendReturnTo(`/admin/finance/collections/${detail.collectionId}`, chequeSelfPath)
     : null;
   const studentHref = detail.studentId
-    ? buildStudentFinanceLink(detail.studentId, 'finance', chequeSelfPath)
+    ? buildFinanceStudentProfileLink(detail.studentId, chequeSelfPath)
     : null;
 
   const secondaryActions = (
@@ -98,16 +98,16 @@ function ChequeDetailsActionBar({
         </button>
       ))}
       {collectionHref ? (
-        <Link href={collectionHref} className="btn btn--ghost btn--sm">
+        <Link href={collectionHref} className="btn btn--ghost btn--sm" prefetch={false}>
           {t('admin.finance.cheques.details.openCollection')}
         </Link>
       ) : null}
       {studentHref ? (
-        <Link href={studentHref} className="btn btn--ghost btn--sm">
+        <Link href={studentHref} className="btn btn--ghost btn--sm" prefetch={false}>
           {t('admin.finance.collections.openStudentProfile')}
         </Link>
       ) : null}
-      <Link href={listReturnTo} className="btn btn--ghost btn--sm">
+      <Link href={listReturnTo} className="btn btn--ghost btn--sm" prefetch={false}>
         {t('admin.finance.cheques.backToList')}
       </Link>
     </>
@@ -117,7 +117,7 @@ function ChequeDetailsActionBar({
     <div className="cheque-details__action-bar">
       <div className="cheque-details__action-bar-primary">
         {canReplace ? (
-          <Link href={replaceHref} className="btn btn--primary btn--sm">
+          <Link href={replaceHref} className="btn btn--primary btn--sm" prefetch={false}>
             {t('admin.finance.cheques.details.replaceCollection')}
           </Link>
         ) : null}
@@ -234,9 +234,9 @@ export function ChequeDetailsView({
   return (
     <div className="cheque-details">
       <nav className="cheque-details__breadcrumb muted" aria-label={t('admin.finance.cheques.details.breadcrumb')}>
-        <Link href="/admin/finance">{t('admin.finance.hub.title')}</Link>
+        <Link href="/admin/finance" prefetch={false}>{t('admin.finance.hub.title')}</Link>
         <span aria-hidden> / </span>
-        <Link href={returnTo}>{t('admin.finance.cheques.title')}</Link>
+        <Link href={returnTo} prefetch={false}>{t('admin.finance.cheques.title')}</Link>
         <span aria-hidden> / </span>
         <span>{t('admin.finance.cheques.details.breadcrumbCurrent')}</span>
       </nav>
@@ -354,14 +354,6 @@ export function ChequeDetailsView({
                 <span className="mono muted"> · {detail.studentCode}</span>
               ) : null}
             </p>
-            {detail.studentId ? (
-              <Link
-                href={buildStudentFinanceLink(detail.studentId, 'finance', chequeSelfPath)}
-                className="btn btn--ghost btn--sm"
-              >
-                {t('admin.finance.collections.openStudentProfile')}
-              </Link>
-            ) : null}
           </div>
           {detail.school ? (
             <div className="cheque-details__party-block">
@@ -392,15 +384,11 @@ export function ChequeDetailsView({
                     <span dir="auto">{getCollectionPayerLabel(collection, t('admin.finance.unavailable'))}</span>
                   </DetailField>
                 </dl>
+              ) : collectionStateRes.error ? (
+                <p className="muted">#{detail.collectionId}</p>
               ) : (
                 <p className="muted">#{detail.collectionId}</p>
               )}
-              <Link
-                href={appendReturnTo(`/admin/finance/collections/${detail.collectionId}`, chequeSelfPath)}
-                className="btn btn--ghost btn--sm"
-              >
-                {t('admin.finance.cheques.details.openCollection')}
-              </Link>
             </div>
           ) : null}
         </section>
@@ -423,14 +411,6 @@ export function ChequeDetailsView({
                   }`
                 : ` ${t('admin.finance.cheques.details.reversalSummarySuffix')}`}
             </p>
-          ) : null}
-          {detail.collectionId ? (
-            <Link
-              href={appendReturnTo(`/admin/finance/collections/${detail.collectionId}`, chequeSelfPath)}
-              className="btn btn--ghost btn--sm"
-            >
-              {t('admin.finance.cheques.details.openCollection')}
-            </Link>
           ) : null}
           {!detail.reversalApplied ? (
             <p className="muted">{t('admin.finance.cheques.details.impactUnavailable')}</p>
@@ -460,14 +440,6 @@ export function ChequeDetailsView({
                 {event.reason ? (
                   <p className="muted">{t('admin.finance.cheques.reason')}: {event.reason}</p>
                 ) : null}
-                {event.id === 'reversal' && detail.collectionId ? (
-                  <Link
-                    href={appendReturnTo(`/admin/finance/collections/${detail.collectionId}`, chequeSelfPath)}
-                    className="btn btn--ghost btn--sm"
-                  >
-                    {t('admin.finance.cheques.details.openCollection')}
-                  </Link>
-                ) : null}
               </div>
             </li>
             );
@@ -475,24 +447,9 @@ export function ChequeDetailsView({
         </ol>
       </section>
 
-      <section
-        className="card cheque-details__section cheque-details__actions cheque-details__actions--footer"
-        aria-label={t('admin.finance.cheques.details.actionsSection')}
-      >
-        <ChequeDetailsActionBar
-          detail={detail}
-          chequeSelfPath={chequeSelfPath}
-          listReturnTo={returnTo}
-          transitionActions={transitionActions}
-          canReplace={canReplace}
-          onTransition={setDialogAction}
-          showReturnNote={showReturnNote}
-          t={t}
-        />
-        {showReadOnlyNotice ? (
-          <p className="muted">{t('admin.finance.cheques.details.readOnlyNotice')}</p>
-        ) : null}
-      </section>
+      {showReadOnlyNotice ? (
+        <p className="muted cheque-details__read-only">{t('admin.finance.cheques.details.readOnlyNotice')}</p>
+      ) : null}
 
       {dialogAction ? (
         <ChequeTransitionDialog

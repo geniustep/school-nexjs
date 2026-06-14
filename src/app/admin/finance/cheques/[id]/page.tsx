@@ -27,7 +27,7 @@ export default function AdminFinanceChequeDetailPage({
   return (
     <RequireAdminPermission permission={FINANCE_VIEW_CHEQUES}>
       <div className="cheque-details-page">
-        <Link href={returnTo} className="back-link">
+        <Link href={returnTo} className="back-link" prefetch={false}>
           ‹ {t('admin.finance.cheques.backToList')}
         </Link>
         <ChequeDetailsView state={state} returnTo={returnTo} chequeSelfPath={`/admin/finance/cheques/${id}`} />

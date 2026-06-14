@@ -21,7 +21,7 @@ import { endpoints } from '@/lib/api/endpoints';
 import { canCancelPayments, canCollectPayments } from '@/lib/permissions/finance';
 import { isCollectionChequeReversed, isChequePayment } from '@/lib/utils/cheque';
 import { collectionState, formatMoney, paymentMethodLabel } from '@/lib/utils/finance';
-import { buildStudentFinanceLink } from '@/lib/utils/finance-navigation';
+import { buildFinanceStudentProfileLink } from '@/lib/utils/finance-navigation';
 import { appendReturnTo } from '@/lib/utils/safe-return-url';
 import type { PaymentAllocation, PaymentCollection } from '@/types/finance';
 import type { ResourceState } from '@/lib/hooks/use-resource';
@@ -139,8 +139,9 @@ export function CollectionDetailsView({
         ) : null}
         {detail.studentId ? (
           <Link
-            href={buildStudentFinanceLink(detail.studentId, 'finance', returnTo)}
+            href={buildFinanceStudentProfileLink(detail.studentId, returnTo)}
             className="btn btn--ghost btn--sm"
+            prefetch={false}
           >
             {t('admin.finance.collections.openStudentProfile')}
           </Link>
@@ -225,16 +226,6 @@ export function CollectionDetailsView({
                 studentId={detail.studentId}
                 unavailableLabel={t('admin.finance.unavailable')}
               />
-              {detail.studentId ? (
-                <div className="collection-details__inline-action">
-                  <Link
-                    href={buildStudentFinanceLink(detail.studentId, 'finance', returnTo)}
-                    className="btn btn--ghost btn--sm"
-                  >
-                    {t('admin.finance.collections.openStudentProfile')}
-                  </Link>
-                </div>
-              ) : null}
             </DetailField>
             <DetailField label={t('admin.finance.collections.columns.payer')}>
               <span dir="auto">{getCollectionPayerLabel(coll, t('admin.finance.unavailable'))}</span>
