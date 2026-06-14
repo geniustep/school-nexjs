@@ -159,15 +159,15 @@ export function StudentDocumentsTab({
     }
   }
 
-  if (docsState.loading && !docsState.data) {
-    return <LoadingState label={t('common.loading')} />;
-  }
-
-  if (docsState.error) {
+  if (docsState.error && !docsState.data) {
     return <ApiErrorView error={docsState.error} onRetry={docsState.reload} />;
   }
 
-  const data = docsState.data!;
+  if (!docsState.data) {
+    return <LoadingState label={t('common.loading')} />;
+  }
+
+  const data = docsState.data;
   const activeItems = data.items.filter(isDocumentActive);
   const missingTypes = missingRequiredDocumentTypes(documentTypes, data.items);
   const missingCount = data.summary.missing_required;

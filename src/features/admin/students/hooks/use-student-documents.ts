@@ -20,7 +20,9 @@ export function useStudentDocuments(
   enabled: boolean,
 ): StudentDocumentsState {
   const { activeSchoolId } = useAdminSession();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(
+    () => Boolean(enabled && studentId && studentId !== 'new'),
+  );
   const [data, setData] = useState<StudentDocumentsData | null>(null);
   const [error, setError] = useState<ApiErrorBody | null>(null);
   const [nonce, setNonce] = useState(0);
