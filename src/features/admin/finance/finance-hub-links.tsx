@@ -1,36 +1,36 @@
 'use client';
 
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
 import {
-  canAssignFees,
+  IconBookOpen,
+  IconCheckCircle,
+  IconClipboard,
+  IconLayers,
+  IconSlidersHorizontal,
+} from '@/components/icons/admin-icons';
+import {
   canCollectPayments,
-  canManageFeeCatalog,
-  canManageFeePlans,
   canViewCheques,
-  canViewFinanceSetup,
+  canViewFinanceAgreements,
+  canViewFinanceInstallments,
+  canViewFinanceServices,
   canViewPayments,
 } from '@/lib/permissions/finance';
 import { useFinanceJournalsAvailable } from '@/features/admin/finance/use-finance-lookups';
+import { useAdminResource } from '@/lib/hooks/use-admin-resource';
+import { endpoints } from '@/lib/api/endpoints';
+import { normalizeFinanceOverview } from '@/lib/utils/finance-normalize';
+import type { AdminFinanceOverview } from '@/types/finance';
 
 type HubLink = {
   href: string;
-  icon: string;
-  labelKey:
-    | 'admin.finance.hubStudentFees'
-    | 'admin.finance.hubCollections'
-    | 'admin.finance.hubCheques'
-    | 'admin.finance.hubFeeTypes'
-    | 'admin.finance.hubFeePlans'
-    | 'admin.finance.hubRecordCollection';
-  descKey:
-    | 'admin.finance.hubStudentFeesDesc'
-    | 'admin.finance.hubCollectionsDesc'
-    | 'admin.finance.hubChequesDesc'
-    | 'admin.finance.hubFeeTypesDesc'
-    | 'admin.finance.hubFeePlansDesc'
-    | 'admin.finance.hubRecordCollectionDesc';
+  icon: ReactNode;
+  labelKey: string;
+  descKey: string;
+  hint?: string | null;
   show: boolean;
 };
 
@@ -38,49 +38,51 @@ export function FinanceHubLinks() {
   const user = useSession();
   const t = useT();
   const { available: journalsAvailable } = useFinanceJournalsAvailable();
+  const overviewState = useAdminResource<AdminFinanceOverview>(endpoints.admin.financeOverview);
+  const overview = normalizeFinanceOverview(overviewState.data);
+  const totals = overview?.totals;
 
   const links: HubLink[] = [
     {
-      href: '/admin/finance/student-fees',
-      icon: '📋',
-      labelKey: 'admin.finance.hubStudentFees',
-      descKey: 'admin.finance.hubStudentFeesDesc',
-      show: true,
+      href: '/admin/finance/agreements',
+      icon: <IconClipboard size={22} />,
+      labelKey: 'admin.finance.hub.linkAgreements',
+      descKey: 'admin.finance.hub.linkAgreementsDesc',
+      hint: totals?.active_agreements_count != null ? String(totals.active_agreements_count) : null,
+      show: canViewFinanceAgreements(user),
+    },
+    {
+      href: '/admin/finance/installments',
+      icon: <IconLayers size={22} />,
+      labelKey: 'admin.finance.hub.linkInstallments',
+      descKey: 'admin.finance.hub.linkInstallmentsDesc',
+      hint:
+        totals?.overdue_installments_count != null
+          ? String(totals.overdue_installments_count)
+          : null,
+      show: canViewFinanceInstallments(user),
     },
     {
       href: '/admin/finance/collections',
-      icon: '💵',
-      labelKey: 'admin.finance.hubCollections',
-      descKey: 'admin.finance.hubCollectionsDesc',
+      icon: <IconCheckCircle size={22} />,
+      labelKey: 'admin.finance.hub.linkCollections',
+      descKey: 'admin.finance.hub.linkCollectionsDesc',
       show: canViewPayments(user),
     },
     {
       href: '/admin/finance/cheques',
-      icon: '📝',
-      labelKey: 'admin.finance.hubCheques',
-      descKey: 'admin.finance.hubChequesDesc',
+      icon: <IconBookOpen size={22} />,
+      labelKey: 'admin.finance.hub.linkCheques',
+      descKey: 'admin.finance.hub.linkChequesDesc',
+      hint: totals?.cheques_pending_count != null ? String(totals.cheques_pending_count) : null,
       show: canViewCheques(user),
     },
     {
-      href: '/admin/finance/collections/new',
-      icon: '➕',
-      labelKey: 'admin.finance.hubRecordCollection',
-      descKey: 'admin.finance.hubRecordCollectionDesc',
-      show: canCollectPayments(user) && journalsAvailable,
-    },
-    {
-      href: '/admin/finance/fee-types',
-      icon: '🏷️',
-      labelKey: 'admin.finance.hubFeeTypes',
-      descKey: 'admin.finance.hubFeeTypesDesc',
-      show: canViewFinanceSetup(user) || canManageFeeCatalog(user),
-    },
-    {
-      href: '/admin/finance/fee-plans',
-      icon: '📅',
-      labelKey: 'admin.finance.hubFeePlans',
-      descKey: 'admin.finance.hubFeePlansDesc',
-      show: canViewFinanceSetup(user) || canManageFeePlans(user),
+      href: '/admin/finance/services',
+      icon: <IconSlidersHorizontal size={22} />,
+      labelKey: 'admin.finance.hub.linkServices',
+      descKey: 'admin.finance.hub.linkServicesDesc',
+      show: canViewFinanceServices(user),
     },
   ];
 
@@ -88,19 +90,28 @@ export function FinanceHubLinks() {
   if (!visible.length) return null;
 
   return (
-    <div className="finance-hub-grid">
-      {visible.map((link) => (
-        <Link key={link.href} href={link.href} className="card finance-hub-card">
-          <span className="finance-hub-icon" aria-hidden>
-            {link.icon}
-          </span>
-          <strong>{t(link.labelKey)}</strong>
-          <p className="muted">{t(link.descKey)}</p>
-        </Link>
-      ))}
-      {canAssignFees(user) && (
-        <p className="muted finance-hub-note">{t('admin.finance.assignViaProfileNote')}</p>
-      )}
-    </div>
+    <section className="finance-hub-links-section">
+      <h2 className="finance-hub-links-title">{t('admin.finance.hub.sectionsTitle')}</h2>
+      <div className="finance-hub-grid">
+        {visible.map((link) => (
+          <Link key={link.href} href={link.href} className="card finance-hub-card">
+            <span className="finance-hub-icon" aria-hidden>
+              {link.icon}
+            </span>
+            <div className="finance-hub-card-body">
+              <strong>{t(link.labelKey)}</strong>
+              <p className="muted">{t(link.descKey)}</p>
+            </div>
+            {link.hint ? <span className="finance-hub-card-hint mono">{link.hint}</span> : null}
+          </Link>
+        ))}
+      </div>
+      {canCollectPayments(user) && journalsAvailable ? (
+        <p className="muted finance-hub-note">
+          {t('admin.finance.hub.recordCollectionHint')}{' '}
+          <Link href="/admin/finance/collections/new">{t('admin.finance.recordCollection')}</Link>
+        </p>
+      ) : null}
+    </section>
   );
 }

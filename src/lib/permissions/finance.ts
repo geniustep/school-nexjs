@@ -89,3 +89,19 @@ export function canRejectCheques(user: CurrentUser | null): boolean {
 export function canCancelCheques(user: CurrentUser | null): boolean {
   return hasPermission(user, FINANCE_CANCEL_CHEQUES);
 }
+
+export function canViewFinanceAgreements(user: CurrentUser | null): boolean {
+  return hasAnyPermission(user, [FINANCE_VIEW, FINANCE_VIEW_STUDENT_BALANCE]);
+}
+
+export function canViewFinanceInstallments(user: CurrentUser | null): boolean {
+  return hasAnyPermission(user, [FINANCE_VIEW, FINANCE_VIEW_STUDENT_BALANCE]);
+}
+
+export function canViewFinanceServices(user: CurrentUser | null): boolean {
+  return hasAnyPermission(user, [
+    FINANCE_VIEW,
+    FINANCE_MANAGE_CATALOG,
+    FINANCE_MANAGE_PLANS,
+  ]);
+}

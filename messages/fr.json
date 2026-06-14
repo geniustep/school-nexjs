@@ -3033,6 +3033,145 @@
       "hubChequesDesc": "Suivi des chèques différés et du cycle d'encaissement",
       "hubRecordCollection": "Enregistrer un encaissement",
       "hubRecordCollectionDesc": "Créer une nouvelle opération",
+      "hub": {
+        "title": "Centre financier",
+        "description": "Point d'entrée unifié pour accords, échéances, encaissements et chèques.",
+        "sectionsTitle": "Espaces de travail",
+        "linkAgreements": "Accords financiers",
+        "linkAgreementsDesc": "Consulter et gérer les accords financiers",
+        "linkInstallments": "Échéances et créances",
+        "linkInstallmentsDesc": "Suivre les échéances avec statuts de paiement et calendrier",
+        "linkCollections": "Encaissements",
+        "linkCollectionsDesc": "Opérations d'encaissement enregistrées",
+        "linkCheques": "Chèques",
+        "linkChequesDesc": "Cycle de vie et échéance des chèques",
+        "linkServices": "Services et tarifs",
+        "linkServicesDesc": "Référentiel financier de l'établissement",
+        "recordCollectionHint": "Pour enregistrer un encaissement :",
+        "legacySetupNote": "Configuration legacy :",
+        "currentAcademicYear": "Année scolaire",
+        "overviewYearFilter": "Filtre de synthèse",
+        "kpiTotalDue": "Total dû",
+        "kpiConfirmedPaid": "Encaissé confirmé",
+        "kpiPendingCheques": "Chèques en attente",
+        "kpiRemaining": "Reste à payer",
+        "kpiUncovered": "Non couvert",
+        "kpiOverdue": "En retard",
+        "alertOverdueInstallments": "{count} échéance(s) en retard",
+        "alertOverdueCheques": "{count} chèque(s) en retard",
+        "alertRejectedCheques": "{count} chèque(s) rejeté(s)",
+        "alertDraftAgreements": "{count} accord(s) brouillon non activé(s)",
+        "selectStudentTitle": "Choisir un élève",
+        "selectStudentDesc": "Pas de liste d'accords au niveau établissement. Recherchez un élève.",
+        "selectedStudent": "Élève sélectionné",
+        "openStudent360": "Ouvrir Student 360",
+        "backToPrevious": "Retour à la page précédente"
+      },
+      "agreements": {
+        "title": "Accords financiers",
+        "subtitle": "Accords listés par élève",
+        "scopeNote": "Pas d'API d'accords globale. Choisissez un élève puis filtrez.",
+        "detailTitle": "Détail de l'accord",
+        "backToList": "Retour aux accords",
+        "notFound": "Accord introuvable ou inaccessible.",
+        "emptyTitle": "Aucun accord financier n'a encore été créé.",
+        "emptyDesc": "Commencez depuis le profil élève.",
+        "openStudent360": "Ouvrir le profil élève",
+        "searchPlaceholder": "Rechercher un accord…",
+        "columns": {
+          "number": "N° accord",
+          "academicYear": "Année scolaire",
+          "billingParty": "Payeur",
+          "agreementDate": "Date d'accord",
+          "period": "Période",
+          "netAmount": "Montant net",
+          "installmentCount": "Échéances"
+        },
+        "states": {
+          "draft": "Brouillon",
+          "pendingApproval": "En attente",
+          "approved": "Approuvé",
+          "active": "Actif",
+          "cancelled": "Annulé"
+        }
+      },
+      "installments": {
+        "title": "Échéances et créances",
+        "subtitle": "Échéances opérationnelles par élève",
+        "scopeNote": "Pas de liste globale. Choisissez un élève et utilisez les filtres API.",
+        "emptyTitle": "Aucune échéance pour cet élève",
+        "emptyDesc": "Ajustez les filtres ou ouvrez le profil élève.",
+        "searchPlaceholder": "Rechercher une échéance…",
+        "columns": {
+          "service": "Service",
+          "period": "Période",
+          "displayFrom": "Visible à partir de",
+          "dueDate": "Échéance",
+          "amount": "Montant",
+          "paid": "Payé",
+          "pendingCheque": "Chèque en attente",
+          "remaining": "Reste",
+          "status": "Statut"
+        },
+        "filters": {
+          "allPaymentStatuses": "Tous les statuts de paiement",
+          "allTimingStatuses": "Tous les statuts calendaires",
+          "allCategories": "Toutes les catégories",
+          "visibleOnly": "Visible parent uniquement",
+          "overdueOnly": "En retard uniquement"
+        },
+        "paymentStatuses": {
+          "unpaid": "Impayé",
+          "partiallyPaid": "Partiellement payé",
+          "paid": "Payé"
+        },
+        "timingStatuses": {
+          "upcoming": "À venir",
+          "due": "Échu",
+          "overdue": "En retard",
+          "hidden": "Masqué"
+        },
+        "quick": {
+          "overdueUnpaid": "En retard et impayé",
+          "partiallyPaid": "Partiellement payé",
+          "dueToday": "Échu aujourd'hui",
+          "dueSevenDays": "7 prochains jours",
+          "hiddenFromParent": "Masqué du parent"
+        }
+      },
+      "services": {
+        "title": "Services et tarifs",
+        "subtitle": "Référentiel des services et tarifs",
+        "searchPlaceholder": "Rechercher…",
+        "emptyServicesTitle": "Aucun service",
+        "emptyTariffsTitle": "Aucun tarif",
+        "emptyDesc": "Aucun service ou tarif configuré.",
+        "tabs": {
+          "services": "Services",
+          "tariffs": "Tarifs"
+        },
+        "columns": {
+          "code": "Code",
+          "name": "Nom",
+          "category": "Catégorie",
+          "requiresSubscription": "Abonnement requis",
+          "requiresUsageTracking": "Suivi d'usage requis",
+          "service": "Service",
+          "academicYear": "Année scolaire",
+          "commitmentType": "Type d'engagement",
+          "pricingUnit": "Unité de tarification",
+          "unitPrice": "Prix unitaire"
+        }
+      },
+      "collections": {
+        "columns": {
+          "reference": "Référence",
+          "payer": "Payeur",
+          "allocations": "Affectations"
+        },
+        "filteredByStudent": "Filtré par élève #{id}",
+        "clearStudentFilter": "Retirer le filtre"
+      },
       "hubFeeTypes": "Types de frais",
       "hubFeeTypesDesc": "Catalogue des frais",
       "hubFeePlans": "Plans de frais",
@@ -3293,6 +3432,14 @@
         "dueStatus": "Statut d'échéance",
         "searchPlaceholder": "Rechercher par numéro ou élève…",
         "empty": "Aucun chèque",
+        "summary": {
+          "received": "Reçus",
+          "deposited": "Déposés",
+          "dueToday": "Échus aujourd'hui",
+          "overdue": "En retard",
+          "cleared": "Encaissés",
+          "rejected": "Rejetés"
+        },
         "registrationTitle": "Données du chèque",
         "reason": "Motif",
         "reasonRequired": "Le motif est obligatoire",

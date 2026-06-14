@@ -3033,6 +3033,145 @@
       "hubChequesDesc": "Seguimiento de cheques diferidos y ciclo de cobro",
       "hubRecordCollection": "Registrar cobro",
       "hubRecordCollectionDesc": "Crear una nueva operación de cobro",
+      "hub": {
+        "title": "Centro financiero",
+        "description": "Punto de entrada unificado para acuerdos, cuotas, cobros y cheques.",
+        "sectionsTitle": "Espacios de trabajo",
+        "linkAgreements": "Acuerdos financieros",
+        "linkAgreementsDesc": "Consultar y gestionar acuerdos financieros",
+        "linkInstallments": "Cuotas y adeudos",
+        "linkInstallmentsDesc": "Seguimiento con estados de pago y calendario",
+        "linkCollections": "Cobros",
+        "linkCollectionsDesc": "Operaciones de cobro registradas",
+        "linkCheques": "Cheques",
+        "linkChequesDesc": "Ciclo de vida y vencimiento de cheques",
+        "linkServices": "Servicios y tarifas",
+        "linkServicesDesc": "Referencia financiera del centro",
+        "recordCollectionHint": "Para registrar un cobro:",
+        "legacySetupNote": "Configuración legacy:",
+        "currentAcademicYear": "Año académico",
+        "overviewYearFilter": "Filtro de resumen",
+        "kpiTotalDue": "Total adeudado",
+        "kpiConfirmedPaid": "Cobrado confirmado",
+        "kpiPendingCheques": "Cheques pendientes",
+        "kpiRemaining": "Pendiente",
+        "kpiUncovered": "No cubierto",
+        "kpiOverdue": "Vencido",
+        "alertOverdueInstallments": "{count} cuota(s) vencida(s)",
+        "alertOverdueCheques": "{count} cheque(s) vencido(s)",
+        "alertRejectedCheques": "{count} cheque(s) rechazado(s)",
+        "alertDraftAgreements": "{count} acuerdo(s) borrador sin activar",
+        "selectStudentTitle": "Seleccionar alumno",
+        "selectStudentDesc": "No hay lista global de acuerdos. Busque un alumno primero.",
+        "selectedStudent": "Alumno seleccionado",
+        "openStudent360": "Abrir Student 360",
+        "backToPrevious": "Volver a la página anterior"
+      },
+      "agreements": {
+        "title": "Acuerdos financieros",
+        "subtitle": "Acuerdos por alumno",
+        "scopeNote": "Sin API global. Elija un alumno y aplique filtros.",
+        "detailTitle": "Detalle del acuerdo",
+        "backToList": "Volver a acuerdos",
+        "notFound": "Acuerdo no encontrado o no accesible.",
+        "emptyTitle": "Aún no se han creado acuerdos financieros.",
+        "emptyDesc": "Comience desde el perfil del alumno.",
+        "openStudent360": "Abrir perfil del alumno",
+        "searchPlaceholder": "Buscar acuerdos…",
+        "columns": {
+          "number": "N.º acuerdo",
+          "academicYear": "Año académico",
+          "billingParty": "Responsable de pago",
+          "agreementDate": "Fecha del acuerdo",
+          "period": "Periodo",
+          "netAmount": "Importe neto",
+          "installmentCount": "Cuotas"
+        },
+        "states": {
+          "draft": "Borrador",
+          "pendingApproval": "Pendiente de aprobación",
+          "approved": "Aprobado",
+          "active": "Activo",
+          "cancelled": "Cancelado"
+        }
+      },
+      "installments": {
+        "title": "Cuotas y adeudos",
+        "subtitle": "Cuotas operativas por alumno",
+        "scopeNote": "Sin lista global. Elija un alumno y use filtros API.",
+        "emptyTitle": "Sin cuotas para este alumno",
+        "emptyDesc": "Ajuste filtros o abra el perfil del alumno.",
+        "searchPlaceholder": "Buscar cuotas…",
+        "columns": {
+          "service": "Servicio",
+          "period": "Periodo",
+          "displayFrom": "Visible desde",
+          "dueDate": "Vencimiento",
+          "amount": "Importe",
+          "paid": "Pagado",
+          "pendingCheque": "Cheque pendiente",
+          "remaining": "Pendiente",
+          "status": "Estado"
+        },
+        "filters": {
+          "allPaymentStatuses": "Todos los estados de pago",
+          "allTimingStatuses": "Todos los estados temporales",
+          "allCategories": "Todas las categorías",
+          "visibleOnly": "Solo visible para padre",
+          "overdueOnly": "Solo vencidas"
+        },
+        "paymentStatuses": {
+          "unpaid": "Impagado",
+          "partiallyPaid": "Parcialmente pagado",
+          "paid": "Pagado"
+        },
+        "timingStatuses": {
+          "upcoming": "Próximo",
+          "due": "Vencido hoy",
+          "overdue": "Vencido",
+          "hidden": "Oculto"
+        },
+        "quick": {
+          "overdueUnpaid": "Vencido e impagado",
+          "partiallyPaid": "Parcialmente pagado",
+          "dueToday": "Vence hoy",
+          "dueSevenDays": "Próximos 7 días",
+          "hiddenFromParent": "Oculto al padre"
+        }
+      },
+      "services": {
+        "title": "Servicios y tarifas",
+        "subtitle": "Referencia de servicios y tarifas",
+        "searchPlaceholder": "Buscar…",
+        "emptyServicesTitle": "Sin servicios",
+        "emptyTariffsTitle": "Sin tarifas",
+        "emptyDesc": "Aún no hay servicios o tarifas configurados.",
+        "tabs": {
+          "services": "Servicios",
+          "tariffs": "Tarifas"
+        },
+        "columns": {
+          "code": "Código",
+          "name": "Nombre",
+          "category": "Categoría",
+          "requiresSubscription": "Requiere suscripción",
+          "requiresUsageTracking": "Requiere seguimiento de uso",
+          "service": "Servicio",
+          "academicYear": "Año académico",
+          "commitmentType": "Tipo de compromiso",
+          "pricingUnit": "Unidad de precio",
+          "unitPrice": "Precio unitario"
+        }
+      },
+      "collections": {
+        "columns": {
+          "reference": "Referencia",
+          "payer": "Pagador",
+          "allocations": "Asignaciones"
+        },
+        "filteredByStudent": "Filtrado por alumno #{id}",
+        "clearStudentFilter": "Quitar filtro"
+      },
       "hubFeeTypes": "Tipos de cuota",
       "hubFeeTypesDesc": "Catálogo de cuotas",
       "hubFeePlans": "Planes de cuotas",
@@ -3293,6 +3432,14 @@
         "dueStatus": "Estado de vencimiento",
         "searchPlaceholder": "Buscar por número o alumno…",
         "empty": "No hay cheques",
+        "summary": {
+          "received": "Recibidos",
+          "deposited": "Depositados",
+          "dueToday": "Vencen hoy",
+          "overdue": "Vencidos",
+          "cleared": "Cobrados",
+          "rejected": "Rechazados"
+        },
         "registrationTitle": "Datos del cheque",
         "reason": "Motivo",
         "reasonRequired": "El motivo es obligatorio",

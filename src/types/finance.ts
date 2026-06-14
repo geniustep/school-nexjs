@@ -250,10 +250,19 @@ export interface FinanceReferenceData {
 export interface FinanceOverviewTotals {
   total_due?: number;
   total_collected?: number;
+  total_paid?: number;
+  confirmed_paid?: number;
   total_remaining?: number;
+  remaining_amount?: number;
   total_overdue?: number;
+  overdue_amount?: number;
+  uncovered_amount?: number;
+  pending_cheques?: number;
   students_with_balance?: number;
   overdue_installments_count?: number;
+  overdue_installments?: number;
+  draft_agreements_count?: number;
+  active_agreements_count?: number;
   collections_count?: number;
   collections_amount?: number;
   period_collections_count?: number;
@@ -286,12 +295,21 @@ export interface FinanceFollowupStudent {
   currency?: string;
 }
 
-export interface AdminFinanceOverview {
+export interface AdminFinanceOverview extends Partial<FinanceOverviewTotals> {
   totals?: FinanceOverviewTotals;
   summary?: FinanceOverviewTotals;
+  cheques?: {
+    received?: number;
+    deposited?: number;
+    cleared?: number;
+    bounced?: number;
+    rejected?: number;
+    overdue?: number;
+  };
   recent_collections?: PaymentCollection[];
   followup_students?: FinanceFollowupStudent[];
   students_needing_followup?: FinanceFollowupStudent[];
+  upcoming_installments?: unknown[];
 }
 
 export interface FinanceStudentSearchResult {

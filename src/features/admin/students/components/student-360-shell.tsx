@@ -38,6 +38,7 @@ import { StudentHealthTab } from './student-health-tab';
 import { StudentFinancialAgreementTab } from '@/features/admin/student-finance/components/student-financial-agreement-tab';
 import { StudentFinanceOperationsTab } from '@/features/admin/student-finance/components/student-finance-operations-tab';
 import { StudentForm } from './student-form';
+import { sanitizeReturnTo, isSafeInternalReturnPath } from '@/lib/utils/safe-return-url';
 import type { StudentDetailsData } from '@/types/student-360';
 import '../student-360.css';
 import '@/features/admin/academic-setup/academic-setup-ui.css';
@@ -77,6 +78,8 @@ export function Student360Shell({ studentId }: { studentId: string }) {
 
   const tabParam = searchParams.get('tab');
   const tab = parseStudent360Tab(tabParam, availableTabs);
+  const returnTo = searchParams.get('returnTo');
+  const safeReturnTo = isSafeInternalReturnPath(returnTo) ? sanitizeReturnTo(returnTo) : null;
   const studentName = details ? getStudentDisplayName(details.student) : '';
 
   useEffect(() => {
@@ -108,6 +111,11 @@ export function Student360Shell({ studentId }: { studentId: string }) {
   return (
     <div className="student-360-shell">
       <Student360Breadcrumb studentId={studentId} studentName={studentName} tab={tab} />
+      {safeReturnTo ? (
+        <Link href={safeReturnTo} className="back-link">
+          ‹ {t('admin.finance.hub.backToPrevious')}
+        </Link>
+      ) : null}
 
       <Student360Header
         details={resolvedDetails}

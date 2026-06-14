@@ -3072,6 +3072,145 @@
       "hubChequesDesc": "Deferred cheques and collection lifecycle",
       "hubRecordCollection": "Record collection",
       "hubRecordCollectionDesc": "Create a new payment collection",
+      "hub": {
+        "title": "Finance hub",
+        "description": "Unified entry point for agreements, installments, collections, and cheques.",
+        "sectionsTitle": "Workspaces",
+        "linkAgreements": "Financial agreements",
+        "linkAgreementsDesc": "Browse and manage financial agreements",
+        "linkInstallments": "Installments & receivables",
+        "linkInstallmentsDesc": "Track installments with payment and timing status",
+        "linkCollections": "Collections",
+        "linkCollectionsDesc": "Recorded payment collections",
+        "linkCheques": "Cheques",
+        "linkChequesDesc": "Cheque lifecycle and maturity",
+        "linkServices": "Services & tariffs",
+        "linkServicesDesc": "Reference financial setup for the school",
+        "recordCollectionHint": "To record a new collection:",
+        "legacySetupNote": "Legacy fee setup:",
+        "currentAcademicYear": "Academic year",
+        "overviewYearFilter": "Overview filter",
+        "kpiTotalDue": "Total due",
+        "kpiConfirmedPaid": "Confirmed paid",
+        "kpiPendingCheques": "Cheques pending clearance",
+        "kpiRemaining": "Remaining",
+        "kpiUncovered": "Uncovered",
+        "kpiOverdue": "Overdue",
+        "alertOverdueInstallments": "{count} overdue installment(s) need follow-up",
+        "alertOverdueCheques": "{count} overdue cheque(s)",
+        "alertRejectedCheques": "{count} rejected cheque(s)",
+        "alertDraftAgreements": "{count} draft agreement(s) not activated",
+        "selectStudentTitle": "Select a student",
+        "selectStudentDesc": "There is no school-wide agreements list. Search for a student first.",
+        "selectedStudent": "Selected student",
+        "openStudent360": "Open Student 360",
+        "backToPrevious": "Back to previous page"
+      },
+      "agreements": {
+        "title": "Financial agreements",
+        "subtitle": "Agreements listed per student",
+        "scopeNote": "No school-wide agreements API. Pick a student, then apply filters.",
+        "detailTitle": "Agreement details",
+        "backToList": "Back to agreements",
+        "notFound": "Agreement not found or not accessible.",
+        "emptyTitle": "No financial agreements have been created for this school yet.",
+        "emptyDesc": "Start from the student profile to create a new agreement.",
+        "openStudent360": "Open student profile",
+        "searchPlaceholder": "Search agreements…",
+        "columns": {
+          "number": "Agreement #",
+          "academicYear": "Academic year",
+          "billingParty": "Billing party",
+          "agreementDate": "Agreement date",
+          "period": "Period",
+          "netAmount": "Net amount",
+          "installmentCount": "Installments"
+        },
+        "states": {
+          "draft": "Draft",
+          "pendingApproval": "Pending approval",
+          "approved": "Approved",
+          "active": "Active",
+          "cancelled": "Cancelled"
+        }
+      },
+      "installments": {
+        "title": "Installments & receivables",
+        "subtitle": "Operational installments per student",
+        "scopeNote": "No school-wide installments API. Pick a student and use API filters.",
+        "emptyTitle": "No installments for this student",
+        "emptyDesc": "Adjust filters or open the student profile.",
+        "searchPlaceholder": "Search installments…",
+        "columns": {
+          "service": "Service",
+          "period": "Period",
+          "displayFrom": "Visible from",
+          "dueDate": "Due date",
+          "amount": "Amount",
+          "paid": "Paid",
+          "pendingCheque": "Pending cheque",
+          "remaining": "Remaining",
+          "status": "Status"
+        },
+        "filters": {
+          "allPaymentStatuses": "All payment statuses",
+          "allTimingStatuses": "All timing statuses",
+          "allCategories": "All categories",
+          "visibleOnly": "Visible to parent only",
+          "overdueOnly": "Overdue only"
+        },
+        "paymentStatuses": {
+          "unpaid": "Unpaid",
+          "partiallyPaid": "Partially paid",
+          "paid": "Paid"
+        },
+        "timingStatuses": {
+          "upcoming": "Upcoming",
+          "due": "Due",
+          "overdue": "Overdue",
+          "hidden": "Hidden"
+        },
+        "quick": {
+          "overdueUnpaid": "Overdue & unpaid",
+          "partiallyPaid": "Partially paid",
+          "dueToday": "Due today",
+          "dueSevenDays": "Next 7 days",
+          "hiddenFromParent": "Hidden from parent"
+        }
+      },
+      "services": {
+        "title": "Services & tariffs",
+        "subtitle": "Reference financial services and tariffs",
+        "searchPlaceholder": "Search…",
+        "emptyServicesTitle": "No services",
+        "emptyTariffsTitle": "No tariffs",
+        "emptyDesc": "No services or tariffs configured yet.",
+        "tabs": {
+          "services": "Services",
+          "tariffs": "Tariffs"
+        },
+        "columns": {
+          "code": "Code",
+          "name": "Name",
+          "category": "Category",
+          "requiresSubscription": "Requires subscription",
+          "requiresUsageTracking": "Requires usage tracking",
+          "service": "Service",
+          "academicYear": "Academic year",
+          "commitmentType": "Commitment type",
+          "pricingUnit": "Pricing unit",
+          "unitPrice": "Unit price"
+        }
+      },
+      "collections": {
+        "columns": {
+          "reference": "Reference",
+          "payer": "Payer",
+          "allocations": "Allocations"
+        },
+        "filteredByStudent": "Filtered by student #{id}",
+        "clearStudentFilter": "Clear filter"
+      },
       "hubFeeTypes": "Fee types",
       "hubFeeTypesDesc": "School fee catalog",
       "hubFeePlans": "Fee plans",
@@ -3332,6 +3471,14 @@
         "dueStatus": "Due status",
         "searchPlaceholder": "Search by cheque number or student…",
         "empty": "No cheques",
+        "summary": {
+          "received": "Received",
+          "deposited": "Deposited",
+          "dueToday": "Due today",
+          "overdue": "Overdue",
+          "cleared": "Cleared",
+          "rejected": "Rejected"
+        },
         "registrationTitle": "Cheque details",
         "reason": "Reason",
         "reasonRequired": "Reason is required",

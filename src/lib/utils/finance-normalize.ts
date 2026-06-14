@@ -1,4 +1,5 @@
 import type { Pagination } from '@/types/api';
+import type { AdminFinanceOverview, FinanceOverviewTotals } from '@/types/finance';
 
 /** Coerce API money fields that may arrive as string or number. */
 export function normalizeMoneyValue(value: unknown): number | null {
@@ -36,6 +37,47 @@ export function normalizePagination(meta: unknown): Pagination | null {
     page_size: page_size || 20,
     total: total || 0,
     total_pages,
+  };
+}
+
+/** Map flat overview payloads and legacy nested totals into one shape. */
+export function normalizeFinanceOverview(data: AdminFinanceOverview | null | undefined): AdminFinanceOverview | null {
+  if (!data) return null;
+  const raw = data as AdminFinanceOverview & FinanceOverviewTotals & Record<string, unknown>;
+  const nested = raw.totals ?? raw.summary;
+  if (nested && typeof nested === 'object') {
+    return { ...raw, totals: nested as FinanceOverviewTotals };
+  }
+
+  const cheques = (raw.cheques ?? {}) as Record<string, unknown>;
+  const totals: FinanceOverviewTotals = {
+    total_due: raw.total_due,
+    total_collected: raw.total_collected ?? raw.confirmed_paid ?? raw.total_paid,
+    total_remaining: raw.total_remaining ?? raw.remaining_amount,
+    total_overdue: raw.total_overdue ?? raw.overdue_amount,
+    students_with_balance: raw.students_with_balance,
+    overdue_installments_count: raw.overdue_installments_count ?? raw.overdue_installments,
+    cheques_pending_amount: raw.cheques_pending_amount ?? raw.pending_cheques,
+    cheques_due_amount: raw.cheques_due_amount,
+    cheques_deposited_amount: raw.cheques_deposited_amount,
+    cheques_cleared_amount: raw.cheques_cleared_amount,
+    cheques_rejected_amount: raw.cheques_rejected_amount,
+    cheques_pending_count: raw.cheques_pending_count ?? (cheques.received as number | undefined),
+    cheques_due_count: raw.cheques_due_count,
+    cheques_deposited_count: raw.cheques_deposited_count ?? (cheques.deposited as number | undefined),
+    cheques_cleared_count: raw.cheques_cleared_count ?? (cheques.cleared as number | undefined),
+    cheques_rejected_count:
+      raw.cheques_rejected_count ?? (cheques.bounced as number | undefined) ?? (cheques.rejected as number | undefined),
+    uncovered_amount: raw.uncovered_amount,
+    draft_agreements_count: raw.draft_agreements_count,
+    currency: raw.currency,
+  };
+
+  return {
+    ...raw,
+    totals,
+    recent_collections: raw.recent_collections,
+    followup_students: raw.followup_students ?? raw.students_needing_followup,
   };
 }
 

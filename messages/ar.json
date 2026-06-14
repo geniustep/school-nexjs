@@ -3070,6 +3070,145 @@
       "hubChequesDesc": "متابعة الشيكات المؤجلة ودورة التحصيل",
       "hubRecordCollection": "تسجيل تحصيل",
       "hubRecordCollectionDesc": "إنشاء عملية تحصيل جديدة",
+      "hub": {
+        "title": "مركز المالية",
+        "description": "نقطة الدخول الموحّدة للاتفاقات والأقساط والتحصيلات والشيكات.",
+        "sectionsTitle": "مساحات العمل",
+        "linkAgreements": "الاتفاقات المالية",
+        "linkAgreementsDesc": "استعراض وإدارة الاتفاقات المالية",
+        "linkInstallments": "الأقساط والمستحقات",
+        "linkInstallmentsDesc": "متابعة الأقساط وحالات الأداء والزمن",
+        "linkCollections": "التحصيلات",
+        "linkCollectionsDesc": "عمليات التحصيل المسجّلة",
+        "linkCheques": "الشيكات",
+        "linkChequesDesc": "دورة حياة الشيكات والاستحقاق",
+        "linkServices": "الخدمات والتعريفات",
+        "linkServicesDesc": "الإعداد المالي المرجعي للمدرسة",
+        "recordCollectionHint": "لتسجيل تحصيل جديد:",
+        "legacySetupNote": "إعداد الرسوم القديم:",
+        "currentAcademicYear": "السنة الدراسية",
+        "overviewYearFilter": "تصفية النظرة العامة",
+        "kpiTotalDue": "إجمالي المستحق",
+        "kpiConfirmedPaid": "المحصل فعليًا",
+        "kpiPendingCheques": "شيكات قيد التحصيل",
+        "kpiRemaining": "المتبقي",
+        "kpiUncovered": "غير المغطى",
+        "kpiOverdue": "المتأخر",
+        "alertOverdueInstallments": "{count} قسط متأخر يحتاج متابعة",
+        "alertOverdueCheques": "{count} شيك متأخر",
+        "alertRejectedCheques": "{count} شيك مرفوض",
+        "alertDraftAgreements": "{count} اتفاق مسودة لم يُفعّل",
+        "selectStudentTitle": "اختر تلميذًا",
+        "selectStudentDesc": "لا توجد قائمة اتفاقات على مستوى المدرسة. ابحث عن تلميذ لعرض سجلاته.",
+        "selectedStudent": "التلميذ المحدد",
+        "openStudent360": "فتح Student 360",
+        "backToPrevious": "العودة إلى الصفحة السابقة"
+      },
+      "agreements": {
+        "title": "الاتفاقات المالية",
+        "subtitle": "قائمة الاتفاقات المالية حسب التلميذ",
+        "scopeNote": "لا يوفّر Backend قائمة اتفاقات على مستوى المدرسة. اختر تلميذًا ثم طبّق الفلاتر.",
+        "detailTitle": "تفاصيل الاتفاق",
+        "backToList": "العودة إلى الاتفاقات",
+        "notFound": "الاتفاق غير موجود أو غير متاح.",
+        "emptyTitle": "لم يتم إنشاء اتفاقات مالية في هذه المدرسة بعد.",
+        "emptyDesc": "ابدأ من ملف التلميذ لإنشاء اتفاق جديد.",
+        "openStudent360": "فتح ملف التلميذ",
+        "searchPlaceholder": "بحث في الاتفاقات…",
+        "columns": {
+          "number": "رقم الاتفاق",
+          "academicYear": "السنة الدراسية",
+          "billingParty": "المسؤول عن الأداء",
+          "agreementDate": "تاريخ الاتفاق",
+          "period": "الفترة",
+          "netAmount": "المبلغ الصافي",
+          "installmentCount": "عدد الأقساط"
+        },
+        "states": {
+          "draft": "مسودة",
+          "pendingApproval": "بانتظار الموافقة",
+          "approved": "معتمد",
+          "active": "نشط",
+          "cancelled": "ملغى"
+        }
+      },
+      "installments": {
+        "title": "الأقساط والمستحقات",
+        "subtitle": "قائمة الأقساط التشغيلية حسب التلميذ",
+        "scopeNote": "لا توجد قائمة أقساط على مستوى المدرسة. اختر تلميذًا ثم استخدم فلاتر API.",
+        "emptyTitle": "لا توجد أقساط لهذا التلميذ",
+        "emptyDesc": "عدّل الفلاتر أو افتح ملف التلميذ.",
+        "searchPlaceholder": "بحث في الأقساط…",
+        "columns": {
+          "service": "الخدمة",
+          "period": "الفترة",
+          "displayFrom": "تاريخ الظهور",
+          "dueDate": "تاريخ الاستحقاق",
+          "amount": "المبلغ",
+          "paid": "المؤدى",
+          "pendingCheque": "شيك معلق",
+          "remaining": "المتبقي",
+          "status": "الحالة"
+        },
+        "filters": {
+          "allPaymentStatuses": "كل حالات الأداء",
+          "allTimingStatuses": "كل الحالات الزمنية",
+          "allCategories": "كل الفئات",
+          "visibleOnly": "الظاهر للولي فقط",
+          "overdueOnly": "المتأخر فقط"
+        },
+        "paymentStatuses": {
+          "unpaid": "غير مؤدى",
+          "partiallyPaid": "مؤدى جزئيًا",
+          "paid": "مؤدى بالكامل"
+        },
+        "timingStatuses": {
+          "upcoming": "قادم",
+          "due": "مستحق",
+          "overdue": "متأخر",
+          "hidden": "مخفي"
+        },
+        "quick": {
+          "overdueUnpaid": "متأخر وغير مؤدى",
+          "partiallyPaid": "مؤدى جزئيًا",
+          "dueToday": "مستحق اليوم",
+          "dueSevenDays": "خلال 7 أيام",
+          "hiddenFromParent": "مخفي عن الولي"
+        }
+      },
+      "services": {
+        "title": "الخدمات والتعريفات",
+        "subtitle": "مرجع الخدمات والتعريفات المالية للمدرسة",
+        "searchPlaceholder": "بحث…",
+        "emptyServicesTitle": "لا توجد خدمات",
+        "emptyTariffsTitle": "لا توجد تعريفات",
+        "emptyDesc": "لم يتم إعداد خدمات أو تعريفات بعد.",
+        "tabs": {
+          "services": "الخدمات",
+          "tariffs": "التعريفات"
+        },
+        "columns": {
+          "code": "الرمز",
+          "name": "الاسم",
+          "category": "الفئة",
+          "requiresSubscription": "يتطلب اشتراكًا",
+          "requiresUsageTracking": "يتطلب تتبع استخدام",
+          "service": "الخدمة",
+          "academicYear": "السنة الدراسية",
+          "commitmentType": "نوع الالتزام",
+          "pricingUnit": "وحدة التسعير",
+          "unitPrice": "سعر الوحدة"
+        }
+      },
+      "collections": {
+        "columns": {
+          "reference": "رقم العملية",
+          "payer": "الدافع",
+          "allocations": "عدد التوزيعات"
+        },
+        "filteredByStudent": "مفلتر حسب التلميذ #{id}",
+        "clearStudentFilter": "إزالة الفلتر"
+      },
       "hubFeeTypes": "الرسوم",
       "hubFeeTypesDesc": "كتالوج أنواع الرسوم",
       "hubFeePlans": "خطط الرسوم",
@@ -3330,6 +3469,14 @@
         "dueStatus": "حالة الاستحقاق",
         "searchPlaceholder": "بحث برقم الشيك أو التلميذ…",
         "empty": "لا توجد شيكات",
+        "summary": {
+          "received": "مستلمة",
+          "deposited": "مودعة",
+          "dueToday": "تستحق اليوم",
+          "overdue": "متأخرة",
+          "cleared": "محصلة",
+          "rejected": "مرفوضة"
+        },
         "registrationTitle": "بيانات الشيك",
         "reason": "السبب",
         "reasonRequired": "السبب مطلوب",
