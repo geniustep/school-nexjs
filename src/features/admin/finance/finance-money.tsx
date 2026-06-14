@@ -8,7 +8,7 @@ export function FinanceMoney({
   className,
 }: {
   amount?: number | null;
-  currency?: string | null;
+  currency?: unknown;
   className?: string;
 }) {
   return (

@@ -23,7 +23,7 @@ import {
 } from '@/lib/utils/cheque-status';
 import { buildStudentFinanceLink } from '@/lib/utils/finance-navigation';
 import { parseFinanceList } from '@/lib/utils/finance-normalize';
-import { sanitizeReturnTo } from '@/lib/utils/safe-return-url';
+import { appendReturnTo, sanitizeReturnTo } from '@/lib/utils/safe-return-url';
 import type { FinanceCheque } from '@/types/finance';
 import type { ListParams } from '@/types/api';
 
@@ -135,6 +135,11 @@ export default function AdminFinanceChequesPage() {
   const state = useAdminResource<FinanceCheque[]>(endpoints.admin.financeCheques, params);
   const rows = parseFinanceList<FinanceCheque>(state.data);
   const pg = state.meta?.pagination;
+
+  const listReturnTo = useMemo(() => {
+    const qs = quickFilter ? `?quick=${quickFilter}` : '';
+    return `/admin/finance/cheques${qs}`;
+  }, [quickFilter]);
 
   const hasFilters = !!(query || dueFrom || dueTo || overdueOnly || quickFilter);
 
@@ -377,7 +382,9 @@ export default function AdminFinanceChequesPage() {
               columns={columns}
               rows={list}
               rowKey={(row) => row.id}
-              onRowClick={(row) => router.push(`/admin/finance/cheques/${row.id}`)}
+              onRowClick={(row) =>
+                router.push(appendReturnTo(`/admin/finance/cheques/${row.id}`, listReturnTo))
+              }
             />
             {pg ? (
               <Pagination page={pg.page} totalPages={pg.total_pages} total={pg.total} onPage={setPage} />

@@ -39,32 +39,69 @@ export interface ChequeCancelPayload {
 
 export interface FinanceCheque {
   id: number;
+  number?: string;
   collection_id?: number;
   student_id?: number;
   student_name?: string;
-  student?: Ref;
+  student?: Ref & { code?: string; school_number?: string; full_name?: string };
   school_id?: number;
   school?: SchoolRef | { id: number; name: string };
+  academic_year_id?: number;
+  payer?: Ref;
+  billing_partner_id?: number;
   amount?: number;
-  currency?: string;
+  currency?: string | { id?: number; name?: string; symbol?: string; decimal_places?: number };
   cheque_number?: string;
   bank_name?: string;
+  bank?: string | { name?: string };
+  bank_name_snapshot?: string;
   holder_name?: string;
+  drawer_name?: string;
   received_date?: string;
+  cheque_date?: string;
   due_date?: string;
+  maturity_date?: string;
   deposited_date?: string;
+  deposit_date?: string;
   cleared_date?: string;
   rejected_date?: string;
+  bounced_date?: string;
+  returned_date?: string;
   cancelled_date?: string;
   state?: ChequeState | string;
   state_label?: string;
+  maturity_status?: string;
+  lifecycle_state?: string;
   is_due?: boolean;
   is_overdue?: boolean;
   days_until_due?: number;
+  bounce_reason?: string;
   rejection_reason?: string;
+  return_reason?: string;
   cancellation_reason?: string;
   reversal_applied?: boolean;
-  collection?: Ref;
+  allowed_actions?: string[];
+  allocations?: FinanceChequeAllocation[];
+  replaces_cheque_id?: number | null;
+  replaced_by_cheque_id?: number | null;
+  collection?: Ref & {
+    reference?: string;
+    amount?: number;
+    state?: string;
+    date?: string;
+    collection_date?: string;
+    receipt_number?: string;
+  };
+  public_notes?: string | null;
+}
+
+export interface FinanceChequeAllocation {
+  id?: number;
+  student_fee_id?: number;
+  installment_id?: number;
+  amount?: number;
+  settlement_state?: string;
+  state?: string;
 }
 
 export interface FinanceChequeSummary {

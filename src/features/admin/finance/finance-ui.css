@@ -1160,3 +1160,192 @@
 .finance-collection-new-page {
   max-width: 1024px;
 }
+
+.cheque-details-page {
+  max-width: 1200px;
+  margin-inline: auto;
+}
+
+.cheque-details {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.cheque-details__breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-size: 0.875rem;
+}
+
+.cheque-details__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.cheque-details__title {
+  margin: 0;
+  font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+  line-height: 1.3;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.cheque-details__subtitle {
+  margin: 8px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.cheque-details__summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.cheque-details__alert {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: 8px;
+}
+
+.cheque-details__alert--rejected {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.cheque-details__alert-reason {
+  margin: 6px 0 0;
+  font-weight: 600;
+}
+
+.cheque-details__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.cheque-details__section h2 {
+  margin: 0 0 16px;
+  font-size: 1.05rem;
+}
+
+.cheque-details__section h3 {
+  margin: 0 0 6px;
+  font-size: 0.95rem;
+}
+
+.cheque-details__fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 20px;
+  margin: 0;
+}
+
+.cheque-details__fields--compact {
+  margin-bottom: 12px;
+}
+
+.cheque-details__field dt {
+  margin: 0 0 4px;
+  font-size: 0.8rem;
+  color: var(--c-muted, #64748b);
+}
+
+.cheque-details__field dd {
+  margin: 0;
+}
+
+.cheque-details__party-block + .cheque-details__party-block {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--c-border, #e2e8f0);
+}
+
+.cheque-details__timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cheque-details__timeline-item {
+  display: grid;
+  grid-template-columns: 12px 1fr;
+  gap: 12px;
+}
+
+.cheque-details__timeline-marker {
+  width: 12px;
+  height: 12px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: var(--primary, #2563eb);
+}
+
+.cheque-details__timeline-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.cheque-details__actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cheque-details__skeleton {
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: cheque-details-shimmer 1.2s infinite;
+  border-radius: 8px;
+}
+
+.cheque-details__skeleton--title {
+  height: 32px;
+  width: min(420px, 100%);
+}
+
+.cheque-details__skeleton--subtitle {
+  height: 20px;
+  width: min(280px, 100%);
+}
+
+.cheque-details__skeleton--card {
+  min-height: 160px;
+}
+
+.cheque-details__skeleton--timeline {
+  min-height: 220px;
+}
+
+.cheque-details__skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+@keyframes cheque-details-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@media (max-width: 900px) {
+  .cheque-details__summary-grid,
+  .cheque-details__grid,
+  .cheque-details__fields,
+  .cheque-details__skeleton-grid {
+    grid-template-columns: 1fr;
+  }
+}
