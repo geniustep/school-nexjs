@@ -2376,6 +2376,43 @@
     "student360": {
       "tabsAria": "Student profile sections",
       "tabs": { "overview": "Overview", "enrollment": "Enrollment", "guardians": "Guardians", "documents": "Documents", "health": "Health", "finance": "Finance" },
+      "breadcrumb": {
+        "aria": "Student profile navigation",
+        "students": "Students",
+        "fallbackName": "Student profile"
+      },
+      "documentTitle": { "brand": "Raqeem" },
+      "pages": {
+        "overview": {
+          "title": "Overview",
+          "description": "Summary of identity, enrollment, family, and contact details for this student."
+        },
+        "enrollment": {
+          "title": "Enrollment",
+          "description": "View the current enrollment and prior academic history for this student."
+        },
+        "guardians": {
+          "title": "Guardians & contacts",
+          "description": "Manage family relationships, contacts, and related responsibilities for this student."
+        },
+        "finance": {
+          "title": "Finance",
+          "description": "Manage billing profile, fees, receivables, and collections for this student."
+        },
+        "health": {
+          "title": "Health profile",
+          "description": "View health, emergency, insurance, and medical notes for this student."
+        },
+        "documents": {
+          "title": "Documents",
+          "description": "Manage student documents, attachments, statuses, and expiry dates."
+        }
+      },
+      "tabErrors": {
+        "boundaryTitle": "This section could not be displayed",
+        "boundaryDesc": "An error occurred while rendering this tab. You can retry or choose another tab."
+      },
+      "emptyStates": { "documentsTitle": "No documents" },
       "sections": {
         "basic": "Basic information",
         "enrollment": "Enrollment",

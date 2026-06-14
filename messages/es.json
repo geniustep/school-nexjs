@@ -2358,6 +2358,25 @@
     "student360": {
       "tabsAria": "Secciones del expediente del alumno",
       "tabs": { "overview": "Resumen", "enrollment": "Matrícula", "guardians": "Tutores", "documents": "Documentos", "health": "Salud", "finance": "Finanzas" },
+      "breadcrumb": {
+        "aria": "Navegación del perfil del alumno",
+        "students": "Alumnos",
+        "fallbackName": "Perfil del alumno"
+      },
+      "documentTitle": { "brand": "Raqeem" },
+      "pages": {
+        "overview": { "title": "Resumen", "description": "Resumen de identidad, matrícula, familia y contacto." },
+        "enrollment": { "title": "Matrícula", "description": "Consulte la matrícula actual y el historial académico." },
+        "guardians": { "title": "Tutores y contactos", "description": "Gestione relaciones familiares y contactos." },
+        "finance": { "title": "Finanzas", "description": "Gestione facturación, tasas y cobros." },
+        "health": { "title": "Perfil de salud", "description": "Consulte información de salud y emergencias." },
+        "documents": { "title": "Documentos", "description": "Gestione documentos, adjuntos y vencimientos." }
+      },
+      "tabErrors": {
+        "boundaryTitle": "No se pudo mostrar esta sección",
+        "boundaryDesc": "Ocurrió un error. Reintente o elija otra pestaña."
+      },
+      "emptyStates": { "documentsTitle": "Sin documentos" },
       "sections": {
         "basic": "Información básica",
         "enrollment": "Matrícula",

@@ -2358,6 +2358,25 @@
     "student360": {
       "tabsAria": "Sections du dossier élève",
       "tabs": { "overview": "Aperçu", "enrollment": "Inscription", "guardians": "Responsables", "documents": "Documents", "health": "Santé", "finance": "Finance" },
+      "breadcrumb": {
+        "aria": "Navigation du dossier élève",
+        "students": "Élèves",
+        "fallbackName": "Dossier élève"
+      },
+      "documentTitle": { "brand": "Raqeem" },
+      "pages": {
+        "overview": { "title": "Aperçu", "description": "Résumé de l'identité, de l'inscription, de la famille et des contacts." },
+        "enrollment": { "title": "Inscription", "description": "Consultez l'inscription actuelle et l'historique scolaire." },
+        "guardians": { "title": "Responsables et contacts", "description": "Gérez les relations familiales et les contacts." },
+        "finance": { "title": "Finance", "description": "Gérez la facturation, les frais et les encaissements." },
+        "health": { "title": "Profil de santé", "description": "Consultez les informations de santé et d'urgence." },
+        "documents": { "title": "Documents", "description": "Gérez les documents, pièces jointes et dates d'expiration." }
+      },
+      "tabErrors": {
+        "boundaryTitle": "Impossible d'afficher cette section",
+        "boundaryDesc": "Une erreur s'est produite. Réessayez ou choisissez un autre onglet."
+      },
+      "emptyStates": { "documentsTitle": "Aucun document" },
       "sections": {
         "basic": "Informations de base",
         "enrollment": "Inscription",
