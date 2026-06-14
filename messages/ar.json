@@ -3349,7 +3349,10 @@
         "allocationUnknown": "غير معروف",
         "allocationSingle": "مستحق واحد",
         "allocationCount": "{count} مستحقات",
-        "detailTitleAmount": "تحصيل بقيمة {amount} {currency}",
+        "detailTitleAmount": "تحصيل بقيمة {amount}",
+        "openLinkedCheque": "فتح الشيك المرتبط",
+        "backToChequeDetails": "العودة إلى تفاصيل الشيك",
+        "reversedByChequeAlert": "تم عكس هذا التحصيل بسبب رفض الشيك المرتبط.",
         "copyReference": "نسخ المرجع",
         "copied": "تم النسخ",
         "detailPaymentSection": "بيانات التحصيل",
@@ -3422,6 +3425,10 @@
       "recordCollectionDesc": "حدد طريقة الأداء والمبلغ، ثم وزّع التحصيل على المستحقات.",
       "billingPartner": "جهة الفوترة",
       "unavailable": "غير متاح",
+      "details": {
+        "moreActions": "المزيد",
+        "actionUnavailable": "هذا الإجراء غير متاح حاليًا."
+      },
       "collectionWorkflow": {
         "drawerTitle": "تسجيل تحصيل",
         "detailTitle": "تفاصيل التحصيل",
@@ -3675,6 +3682,8 @@
           "noRejectionReason": "لم يُسجَّل سبب الرفض.",
           "reversalSummaryPrefix": "تم عكس تحصيل بقيمة",
           "reversalSummarySuffix": "وإعادة فتح المستحقات المرتبطة.",
+          "reversalSummaryOne": "وإعادة فتح مستحق واحد.",
+          "reversalSummaryMany": "وإعادة فتح {count} مستحقات.",
           "reversedAllocations": "عدد المستحقات المتأثرة: {count}",
           "rejectionNote": "ملاحظة الرفض: {reason}",
           "impactUnavailable": "لا تتوفر تفاصيل إضافية عن الأثر المالي.",

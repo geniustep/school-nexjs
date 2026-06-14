@@ -53,12 +53,99 @@ function DetailField({
   );
 }
 
+function ChequeDetailsActionBar({
+  detail,
+  chequeSelfPath,
+  listReturnTo,
+  transitionActions,
+  canReplace,
+  onTransition,
+  showReturnNote,
+  t,
+}: {
+  detail: NonNullable<ReturnType<typeof normalizeChequeDetail>>;
+  chequeSelfPath: string;
+  listReturnTo: string;
+  transitionActions: ChequeTransitionAction[];
+  canReplace: boolean;
+  onTransition: (action: ChequeTransitionAction) => void;
+  showReturnNote: boolean;
+  t: (key: string, vars?: Record<string, string | number>) => string;
+}) {
+  const replaceHref = appendReturnTo(
+    detail.studentId
+      ? `/admin/finance/collections/new?studentId=${detail.studentId}`
+      : '/admin/finance/collections/new',
+    chequeSelfPath,
+  );
+  const collectionHref = detail.collectionId
+    ? appendReturnTo(`/admin/finance/collections/${detail.collectionId}`, chequeSelfPath)
+    : null;
+  const studentHref = detail.studentId
+    ? buildStudentFinanceLink(detail.studentId, 'finance', chequeSelfPath)
+    : null;
+
+  const secondaryActions = (
+    <>
+      {transitionActions.map((action) => (
+        <button
+          key={action}
+          type="button"
+          className={action === 'reject' || action === 'cancel' ? 'btn btn--sm' : 'btn btn--primary btn--sm'}
+          onClick={() => onTransition(action)}
+        >
+          {t(`admin.finance.cheques.actions.${action}.button`)}
+        </button>
+      ))}
+      {collectionHref ? (
+        <Link href={collectionHref} className="btn btn--ghost btn--sm">
+          {t('admin.finance.cheques.details.openCollection')}
+        </Link>
+      ) : null}
+      {studentHref ? (
+        <Link href={studentHref} className="btn btn--ghost btn--sm">
+          {t('admin.finance.collections.openStudentProfile')}
+        </Link>
+      ) : null}
+      <Link href={listReturnTo} className="btn btn--ghost btn--sm">
+        {t('admin.finance.cheques.backToList')}
+      </Link>
+    </>
+  );
+
+  return (
+    <div className="cheque-details__action-bar">
+      <div className="cheque-details__action-bar-primary">
+        {canReplace ? (
+          <Link href={replaceHref} className="btn btn--primary btn--sm">
+            {t('admin.finance.cheques.details.replaceCollection')}
+          </Link>
+        ) : null}
+      </div>
+      <div className="cheque-details__action-bar-secondary cheque-details__action-bar-secondary--desktop">
+        {secondaryActions}
+      </div>
+      <details className="cheque-details__more cheque-details__action-bar-secondary--mobile">
+        <summary className="btn btn--ghost btn--sm">{t('admin.finance.details.moreActions')}</summary>
+        <div className="cheque-details__more-menu">
+          {secondaryActions}
+          {showReturnNote ? (
+            <p className="tiny muted">{t('admin.finance.details.actionUnavailable')}</p>
+          ) : null}
+        </div>
+      </details>
+    </div>
+  );
+}
+
 export function ChequeDetailsView({
   state,
   returnTo,
+  chequeSelfPath,
 }: {
   state: ResourceState<FinanceCheque>;
   returnTo: string;
+  chequeSelfPath: string;
 }) {
   const t = useT();
   const toast = useToast();
@@ -125,12 +212,10 @@ export function ChequeDetailsView({
     apiTransitions.length ? apiTransitions : fallbackTransitions
   ).filter(canRun);
 
-  const canReplace =
-    detail.allowedActions.includes('replace') &&
-    canCollectPayments(user) &&
-    !!detail.studentId;
+  const canReplace = detail.allowedActions.includes('replace') && canCollectPayments(user);
 
-  const showReadOnlyNotice = !transitionActions.length && !canReplace;
+  const showReturnNote = detail.allowedActions.includes('return');
+  const showReadOnlyNotice = !transitionActions.length && !canReplace && !showReturnNote;
 
   async function copyNumber() {
     if (!detail) return;
@@ -174,6 +259,17 @@ export function ChequeDetailsView({
         </div>
         {state.loading ? <span className="tiny muted">{t('admin.finance.cheques.details.refreshing')}</span> : null}
       </header>
+
+      <ChequeDetailsActionBar
+        detail={detail}
+        chequeSelfPath={chequeSelfPath}
+        listReturnTo={returnTo}
+        transitionActions={transitionActions}
+        canReplace={canReplace}
+        onTransition={setDialogAction}
+        showReturnNote={showReturnNote}
+        t={t}
+      />
 
       <section className="cheque-details__summary card">
         <div className="cheque-details__summary-grid">
@@ -260,7 +356,7 @@ export function ChequeDetailsView({
             </p>
             {detail.studentId ? (
               <Link
-                href={buildStudentFinanceLink(detail.studentId, 'finance', returnTo)}
+                href={buildStudentFinanceLink(detail.studentId, 'finance', chequeSelfPath)}
                 className="btn btn--ghost btn--sm"
               >
                 {t('admin.finance.collections.openStudentProfile')}
@@ -300,7 +396,7 @@ export function ChequeDetailsView({
                 <p className="muted">#{detail.collectionId}</p>
               )}
               <Link
-                href={appendReturnTo(`/admin/finance/collections/${detail.collectionId}`, returnTo)}
+                href={appendReturnTo(`/admin/finance/collections/${detail.collectionId}`, chequeSelfPath)}
                 className="btn btn--ghost btn--sm"
               >
                 {t('admin.finance.cheques.details.openCollection')}
@@ -318,17 +414,25 @@ export function ChequeDetailsView({
               {t('admin.finance.cheques.details.reversalSummaryPrefix')}{' '}
               <FinanceMoney amount={detail.amount} currency={detail.currency} />
               {detail.reversedAllocations > 0
-                ? ` ${t('admin.finance.cheques.details.reversalSummarySuffix')}`
-                : null}
+                ? ` ${
+                    detail.reversedAllocations === 1
+                      ? t('admin.finance.cheques.details.reversalSummaryOne')
+                      : t('admin.finance.cheques.details.reversalSummaryMany', {
+                          count: detail.reversedAllocations,
+                        })
+                  }`
+                : ` ${t('admin.finance.cheques.details.reversalSummarySuffix')}`}
             </p>
           ) : null}
-          {detail.reversedAllocations > 0 ? (
-            <p>{t('admin.finance.cheques.details.reversedAllocations', { count: detail.reversedAllocations })}</p>
+          {detail.collectionId ? (
+            <Link
+              href={appendReturnTo(`/admin/finance/collections/${detail.collectionId}`, chequeSelfPath)}
+              className="btn btn--ghost btn--sm"
+            >
+              {t('admin.finance.cheques.details.openCollection')}
+            </Link>
           ) : null}
-          {detail.rejectionReason ? (
-            <p className="muted">{t('admin.finance.cheques.details.rejectionNote', { reason: detail.rejectionReason })}</p>
-          ) : null}
-          {!detail.reversalApplied && !detail.reversedAllocations ? (
+          {!detail.reversalApplied ? (
             <p className="muted">{t('admin.finance.cheques.details.impactUnavailable')}</p>
           ) : null}
         </section>
@@ -337,8 +441,16 @@ export function ChequeDetailsView({
       <section className="card cheque-details__section">
         <h2>{t('admin.finance.cheques.details.timelineSection')}</h2>
         <ol className="cheque-details__timeline">
-          {detail.timeline.map((event) => (
-            <li key={event.id} className="cheque-details__timeline-item">
+          {detail.timeline.map((event) => {
+            const isCurrent =
+              (event.id === 'rejected' && isRejectedCheque(cheque.state)) ||
+              (event.id === 'cleared' && cheque.state === 'cleared') ||
+              (event.id === 'deposited' && cheque.state === 'deposited');
+            return (
+            <li
+              key={event.id}
+              className={`cheque-details__timeline-item${isCurrent ? ' is-current' : ''}`}
+            >
               <div className="cheque-details__timeline-marker" aria-hidden />
               <div className="cheque-details__timeline-body">
                 <div className="cheque-details__timeline-head">
@@ -348,58 +460,37 @@ export function ChequeDetailsView({
                 {event.reason ? (
                   <p className="muted">{t('admin.finance.cheques.reason')}: {event.reason}</p>
                 ) : null}
+                {event.id === 'reversal' && detail.collectionId ? (
+                  <Link
+                    href={appendReturnTo(`/admin/finance/collections/${detail.collectionId}`, chequeSelfPath)}
+                    className="btn btn--ghost btn--sm"
+                  >
+                    {t('admin.finance.cheques.details.openCollection')}
+                  </Link>
+                ) : null}
               </div>
             </li>
-          ))}
+            );
+          })}
         </ol>
       </section>
 
-      <section className="card cheque-details__section cheque-details__actions">
-        <h2>{t('admin.finance.cheques.details.actionsSection')}</h2>
-        <div className="cheque-details__actions-row">
-          {transitionActions.map((action) => (
-            <button
-              key={action}
-              type="button"
-              className={action === 'reject' || action === 'cancel' ? 'btn btn--sm' : 'btn btn--primary btn--sm'}
-              onClick={() => setDialogAction(action)}
-            >
-              {t(`admin.finance.cheques.actions.${action}.button`)}
-            </button>
-          ))}
-          {canReplace ? (
-            <Link
-              href={appendReturnTo(
-                `/admin/finance/collections/new?studentId=${detail.studentId}`,
-                returnTo,
-              )}
-              className="btn btn--primary btn--sm"
-            >
-              {t('admin.finance.cheques.details.replaceCollection')}
-            </Link>
-          ) : null}
-          {detail.studentId ? (
-            <Link
-              href={buildStudentFinanceLink(detail.studentId, 'finance', returnTo)}
-              className="btn btn--ghost btn--sm"
-            >
-              {t('admin.finance.collections.openStudentProfile')}
-            </Link>
-          ) : null}
-          {detail.collectionId ? (
-            <Link
-              href={appendReturnTo(`/admin/finance/collections/${detail.collectionId}`, returnTo)}
-              className="btn btn--ghost btn--sm"
-            >
-              {t('admin.finance.cheques.details.openCollection')}
-            </Link>
-          ) : null}
-        </div>
+      <section
+        className="card cheque-details__section cheque-details__actions cheque-details__actions--footer"
+        aria-label={t('admin.finance.cheques.details.actionsSection')}
+      >
+        <ChequeDetailsActionBar
+          detail={detail}
+          chequeSelfPath={chequeSelfPath}
+          listReturnTo={returnTo}
+          transitionActions={transitionActions}
+          canReplace={canReplace}
+          onTransition={setDialogAction}
+          showReturnNote={showReturnNote}
+          t={t}
+        />
         {showReadOnlyNotice ? (
           <p className="muted">{t('admin.finance.cheques.details.readOnlyNotice')}</p>
-        ) : null}
-        {detail.allowedActions.includes('return') ? (
-          <p className="tiny muted">{t('admin.finance.cheques.details.returnActionGap')}</p>
         ) : null}
       </section>
 

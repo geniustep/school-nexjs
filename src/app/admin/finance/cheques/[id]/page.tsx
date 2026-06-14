@@ -30,7 +30,7 @@ export default function AdminFinanceChequeDetailPage({
         <Link href={returnTo} className="back-link">
           ‹ {t('admin.finance.cheques.backToList')}
         </Link>
-        <ChequeDetailsView state={state} returnTo={returnTo} />
+        <ChequeDetailsView state={state} returnTo={returnTo} chequeSelfPath={`/admin/finance/cheques/${id}`} />
       </div>
     </RequireAdminPermission>
   );

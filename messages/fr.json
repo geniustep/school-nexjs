@@ -3312,7 +3312,10 @@
         "allocationUnknown": "Inconnu",
         "allocationSingle": "1 créance",
         "allocationCount": "{count} créances",
-        "detailTitleAmount": "Encaissement de {amount} {currency}",
+        "detailTitleAmount": "Encaissement de {amount}",
+        "openLinkedCheque": "Ouvrir le chèque lié",
+        "backToChequeDetails": "Retour aux détails du chèque",
+        "reversedByChequeAlert": "Cet encaissement a été inversé suite au rejet du chèque lié.",
         "copyReference": "Copier la référence",
         "copied": "Copié",
         "detailPaymentSection": "Détails de l'encaissement",
@@ -3385,6 +3388,10 @@
       "recordCollectionDesc": "Choisissez le mode et le montant, puis affectez aux créances.",
       "billingPartner": "Tiers de facturation",
       "unavailable": "Indisponible",
+      "details": {
+        "moreActions": "Plus",
+        "actionUnavailable": "Cette action n'est pas disponible pour le moment."
+      },
       "collectionWorkflow": {
         "drawerTitle": "Enregistrer un encaissement",
         "detailTitle": "Détail de l'encaissement",
@@ -3634,7 +3641,9 @@
           "rejectionReason": "Motif du rejet : {reason}",
           "noRejectionReason": "Aucun motif de rejet enregistré.",
           "reversalSummaryPrefix": "Un encaissement de",
-          "reversalSummarySuffix": "a été annulé et les créances liées ont été rouvertes.",
+          "reversalSummarySuffix": "et les créances liées ont été rouvertes.",
+          "reversalSummaryOne": "et une créance a été rouverte.",
+          "reversalSummaryMany": "et {count} créances ont été rouvertes.",
           "reversedAllocations": "Créances concernées : {count}",
           "rejectionNote": "Note de rejet : {reason}",
           "impactUnavailable": "Aucun détail d'impact financier supplémentaire.",

@@ -1,6 +1,11 @@
 import type { StudentFeeState, FeePlanState, PaymentCollectionState } from '@/types/finance';
 
 /** Normalize API currency fields that may arrive as a code string or `{ name, symbol }` ref. */
+export function getCurrencyCode(value: unknown): string | null {
+  return currencyCode(value);
+}
+
+/** @deprecated Prefer {@link getCurrencyCode} — kept for existing imports. */
 export function currencyCode(value: unknown): string | null {
   if (value == null) return null;
   if (typeof value === 'string') return value.trim() || null;

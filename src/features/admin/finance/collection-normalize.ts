@@ -1,5 +1,5 @@
 import type { TranslateFn } from '@/features/i18n/locale-context';
-import { collectionState, financeStudentDisplayName, refName } from '@/lib/utils/finance';
+import { collectionState, currencyCode, financeStudentDisplayName, refName } from '@/lib/utils/finance';
 import { normalizeMoneyValue } from '@/lib/utils/finance-normalize';
 import type { PaymentAllocation, PaymentCollection } from '@/types/finance';
 
@@ -123,7 +123,7 @@ export function normalizePaymentCollection(
     payerName: getCollectionPayerLabel(coll, unavailable) === unavailable ? null : getCollectionPayerLabel(coll, unavailable),
     date: coll.collection_date ?? coll.date ?? null,
     amount: normalizeMoneyValue(coll.amount ?? coll.total_amount),
-    currency: coll.currency ?? null,
+    currency: currencyCode(coll.currency),
     paymentMethod: typeof coll.payment_method === 'string' ? coll.payment_method : coll.payment_method ?? null,
     status: collectionState(coll) || 'unknown',
     allocatedAmount,

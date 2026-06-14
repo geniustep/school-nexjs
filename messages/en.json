@@ -3351,7 +3351,10 @@
         "allocationUnknown": "Unknown",
         "allocationSingle": "1 receivable",
         "allocationCount": "{count} receivables",
-        "detailTitleAmount": "Collection of {amount} {currency}",
+        "detailTitleAmount": "Collection of {amount}",
+        "openLinkedCheque": "Open linked cheque",
+        "backToChequeDetails": "Back to cheque details",
+        "reversedByChequeAlert": "This collection was reversed because the linked cheque was rejected.",
         "copyReference": "Copy reference",
         "copied": "Copied",
         "detailPaymentSection": "Collection details",
@@ -3424,6 +3427,10 @@
       "recordCollectionDesc": "Choose payment method and amount, then allocate to receivables.",
       "billingPartner": "Billing partner",
       "unavailable": "Unavailable",
+      "details": {
+        "moreActions": "More",
+        "actionUnavailable": "This action is not available right now."
+      },
       "collectionWorkflow": {
         "drawerTitle": "Record collection",
         "detailTitle": "Collection details",
@@ -3673,7 +3680,9 @@
           "rejectionReason": "Rejection reason: {reason}",
           "noRejectionReason": "No rejection reason was recorded.",
           "reversalSummaryPrefix": "A collection of",
-          "reversalSummarySuffix": "was reversed and linked receivables were reopened.",
+          "reversalSummarySuffix": "and linked receivables were reopened.",
+          "reversalSummaryOne": "and one receivable was reopened.",
+          "reversalSummaryMany": "and {count} receivables were reopened.",
           "reversedAllocations": "Affected receivables: {count}",
           "rejectionNote": "Rejection note: {reason}",
           "impactUnavailable": "No additional financial impact details are available.",

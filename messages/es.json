@@ -3312,7 +3312,10 @@
         "allocationUnknown": "Desconocido",
         "allocationSingle": "1 adeudo",
         "allocationCount": "{count} adeudos",
-        "detailTitleAmount": "Cobro de {amount} {currency}",
+        "detailTitleAmount": "Cobro de {amount}",
+        "openLinkedCheque": "Abrir cheque vinculado",
+        "backToChequeDetails": "Volver a detalles del cheque",
+        "reversedByChequeAlert": "Este cobro se revirtió porque se rechazó el cheque vinculado.",
         "copyReference": "Copiar referencia",
         "copied": "Copiado",
         "detailPaymentSection": "Datos del cobro",
@@ -3385,6 +3388,10 @@
       "recordCollectionDesc": "Elija método e importe, luego asigne a los adeudos.",
       "billingPartner": "Tercero de facturación",
       "unavailable": "No disponible",
+      "details": {
+        "moreActions": "Más",
+        "actionUnavailable": "Esta acción no está disponible en este momento."
+      },
       "collectionWorkflow": {
         "drawerTitle": "Registrar cobro",
         "detailTitle": "Detalle del cobro",
@@ -3635,6 +3642,8 @@
           "noRejectionReason": "No se registró motivo de rechazo.",
           "reversalSummaryPrefix": "Se revirtió un cobro de",
           "reversalSummarySuffix": "y se reabrieron los adeudos vinculados.",
+          "reversalSummaryOne": "y se reabrió un adeudo.",
+          "reversalSummaryMany": "y se reabrieron {count} adeudos.",
           "reversedAllocations": "Adeudos afectados: {count}",
           "rejectionNote": "Nota de rechazo: {reason}",
           "impactUnavailable": "No hay más detalles de impacto financiero.",

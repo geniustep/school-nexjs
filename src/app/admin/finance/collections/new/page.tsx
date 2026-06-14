@@ -13,6 +13,7 @@ import { PermissionDeniedState } from '@/components/states/states';
 import { appendReturnTo, sanitizeReturnTo } from '@/lib/utils/safe-return-url';
 
 function resolveBackLabel(returnTo: string, t: (key: string) => string): string {
+  if (/\/admin\/finance\/cheques\/\d+/.test(returnTo)) return t('admin.finance.collections.backToChequeDetails');
   if (returnTo.includes('/students/')) return t('common.back');
   if (returnTo === '/admin/finance') return t('admin.finance.backToFinance');
   return t('admin.finance.backToCollections');
