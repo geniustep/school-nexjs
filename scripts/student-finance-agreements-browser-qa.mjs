@@ -134,7 +134,8 @@ async function main() {
   const financeBody = await page.locator('.student-finance-tab').innerText().catch(() => '');
   record('617_finance_load', page.url().includes('tab=finance'), { url: page.url() });
   record('617_finance_kpis', /إجمالي المستحق|المحصل فعليًا|شيكات قيد التحصيل/.test(financeBody));
-  record('617_dual_status_badges', (await page.locator('.student-finance-dual-badges, .student-finance-status-group').count()) > 0);
+  const badgeCount = await page.locator('.student-finance-dual-badges, .student-finance-status-group').count();
+  record('617_dual_status_badges', badgeCount > 0, { badgeCount });
   record('617_no_placeholder_finance', !/placeholder/i.test(financeBody));
   const shotFinanceDesktop = await capture(page, 'student-finance-desktop-ar', { width: 1440, height: 900 });
   record('screenshot_finance_desktop_ar', fs.existsSync(shotFinanceDesktop), { path: shotFinanceDesktop });
@@ -144,6 +145,13 @@ async function main() {
   const overflowMobile = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 2);
   record('617_mobile_no_overflow', !overflowMobile, { viewport: '390x844' });
   record('screenshot_finance_mobile_ar', fs.existsSync(shotFinanceMobile), { path: shotFinanceMobile });
+
+  // Tablet finance layout
+  await page.setViewportSize({ width: 768, height: 1024 });
+  await page.goto(financeUrl, { waitUntil: 'domcontentloaded' });
+  await waitFinancePanel(page);
+  const overflowTablet = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 2);
+  record('617_tablet_no_overflow', !overflowTablet, { viewport: '768x1024' });
 
   // Back / forward between tabs
   await page.goto(agreementUrl, { waitUntil: 'domcontentloaded' });
