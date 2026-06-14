@@ -9,7 +9,7 @@ import { useFormat } from '@/features/i18n/use-format';
 import { financeStudentDisplayName, isPositiveAmount, paymentMethodLabel, refName } from '@/lib/utils/finance';
 import { getStudentDisplayName } from '@/lib/utils/student';
 import { normalizeStudentDetailsResponse } from '@/features/admin/students/utils/normalize-student-details';
-import { journalErrorMessageKey, parseFinanceList } from '@/lib/utils/finance-normalize';
+import { journalErrorMessageKey, normalizePaymentMethodOptions, parseFinanceList } from '@/lib/utils/finance-normalize';
 import { collectionErrorMessageKey } from '@/lib/utils/collection-errors';
 import { isChequePayment } from '@/lib/utils/cheque';
 import { FinanceStudentSearch } from '@/features/admin/finance/finance-student-search';
@@ -225,10 +225,10 @@ function CollectionWorkflowFormReady({
     [installmentsState.data],
   );
 
-  const allowedMethods = useMemo(() => {
-    const raw = selectedJournal?.allowed_payment_methods ?? [];
-    return raw.map((m) => (typeof m === 'string' ? m : m));
-  }, [selectedJournal]);
+  const allowedMethods = useMemo(
+    () => normalizePaymentMethodOptions(selectedJournal?.allowed_payment_methods),
+    [selectedJournal],
+  );
 
   useEffect(() => {
     const current = academicYears.find((y) => y.is_current);
@@ -240,9 +240,14 @@ function CollectionWorkflowFormReady({
   }, [partners, billingPartnerId]);
 
   useEffect(() => {
-    if (!paymentMethod && allowedMethods.length) setPaymentMethod(String(allowedMethods[0]));
-    else if (paymentMethod && allowedMethods.length && !allowedMethods.includes(paymentMethod)) {
-      setPaymentMethod(String(allowedMethods[0]));
+    if (!allowedMethods.length) return;
+    const codes = allowedMethods.map((m) => m.code);
+    if (!paymentMethod) {
+      setPaymentMethod(codes[0]);
+      return;
+    }
+    if (!codes.includes(paymentMethod)) {
+      setPaymentMethod(codes[0]);
     }
   }, [allowedMethods, paymentMethod]);
 
@@ -256,7 +261,7 @@ function CollectionWorkflowFormReady({
     if (!selectedStudent || !journalId || !academicYearId || !billingPartnerId || !collectionDate.trim()) {
       return false;
     }
-    if (!paymentMethod || !allowedMethods.includes(paymentMethod)) return false;
+    if (!paymentMethod || !allowedMethods.some((m) => m.code === paymentMethod)) return false;
     if (!isPositiveAmount(parsedAmount)) return false;
     if (isCheque) {
       if (!chequeNumber.trim() || !chequeBank.trim() || !chequeHolder.trim()) return false;
@@ -631,8 +636,8 @@ function CollectionWorkflowFormReady({
             >
               <option value="">{t('admin.finance.selectPaymentMethod')}</option>
               {allowedMethods.map((m) => (
-                <option key={m} value={m}>
-                  {paymentMethodLabel(m, t)}
+                <option key={m.code} value={m.code}>
+                  {m.label ?? paymentMethodLabel(m.code, t)}
                 </option>
               ))}
             </select>

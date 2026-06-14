@@ -95,3 +95,36 @@ export function journalErrorMessageKey(code: string | undefined): string | null 
       return null;
   }
 }
+
+/** Coerce journal payment method entries from string or `{ code, name }` API shapes. */
+export function normalizePaymentMethodCode(method: unknown): string {
+  if (!method) return '';
+  if (typeof method === 'string') return method;
+  if (typeof method === 'object') {
+    const row = method as Record<string, unknown>;
+    const code = row.code ?? row.value ?? row.id;
+    if (typeof code === 'string') return code;
+    if (code != null) return String(code);
+    if (typeof row.name === 'string') return row.name;
+  }
+  return String(method);
+}
+
+export function normalizePaymentMethodOptions(
+  methods: unknown[] | null | undefined,
+): { code: string; label?: string }[] {
+  if (!methods?.length) return [];
+  const out: { code: string; label?: string }[] = [];
+  const seen = new Set<string>();
+  for (const raw of methods) {
+    const code = normalizePaymentMethodCode(raw);
+    if (!code || seen.has(code)) continue;
+    seen.add(code);
+    const label =
+      typeof raw === 'object' && raw && typeof (raw as Record<string, unknown>).name === 'string'
+        ? ((raw as Record<string, unknown>).name as string)
+        : undefined;
+    out.push({ code, label });
+  }
+  return out;
+}

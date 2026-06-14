@@ -103,14 +103,20 @@ export function feeBalanceAmount(row: {
 }
 
 export function paymentMethodLabel(
-  method: string | undefined,
+  method: string | { code?: string; name?: string; label?: string } | undefined | null,
   t: (key: string) => string,
 ): string {
   if (!method) return '—';
-  const key = `admin.finance.method${method.charAt(0).toUpperCase()}${method.slice(1)}`;
+  const code = typeof method === 'string' ? method : method.code ?? method.name ?? method.label ?? '';
+  if (!code) return '—';
+  const key = `admin.finance.method${code.charAt(0).toUpperCase()}${code.slice(1)}`;
   const mapped = t(key);
   if (mapped !== key) return mapped;
-  const parentKey = `parent.finance.method${method.charAt(0).toUpperCase()}${method.slice(1)}`;
+  const parentKey = `parent.finance.method${code.charAt(0).toUpperCase()}${code.slice(1)}`;
   const parentMapped = t(parentKey);
-  return parentMapped !== parentKey ? parentMapped : method;
+  if (parentMapped !== parentKey) return parentMapped;
+  if (typeof method === 'object' && (method.name || method.label)) {
+    return method.name ?? method.label ?? code;
+  }
+  return code;
 }
