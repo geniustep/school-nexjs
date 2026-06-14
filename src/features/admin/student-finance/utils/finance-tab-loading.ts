@@ -9,7 +9,7 @@ export function resolveFinanceTabLoadPhase(input: {
   agreementId: number | null;
   agreementDetailInitialLoading: boolean;
 }): FinanceTabLoadPhase {
-  if (input.yearsLoading || !input.effectiveYearId) return 'years';
+  if (!input.effectiveYearId) return 'years';
   if (input.workspaceInitialLoading) return 'workspace';
   if (input.agreementId && input.agreementDetailInitialLoading) return 'agreement-detail';
   return 'ready';

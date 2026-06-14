@@ -401,7 +401,7 @@ export function StudentFinanceOperationsTab({
 
   const headerActions = (
     <div className="student-finance-header-actions">
-      {refState.loading || !effectiveYearId ? (
+      {refState.loading && !academicYears.length ? (
         <StudentYearSelectSkeleton />
       ) : (
         <label className="student-finance-year-select">

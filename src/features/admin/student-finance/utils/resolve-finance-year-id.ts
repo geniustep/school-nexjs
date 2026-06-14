@@ -7,10 +7,10 @@ export function resolveFinanceYearId(
   workspaceYearId?: number,
 ): string {
   if (selectedYearId) return selectedYearId;
-  if (!years.length) return '';
-  if (workspaceYearId) return String(workspaceYearId);
   const enrollYear = details.current_enrollment?.academic_year;
   if (enrollYear && typeof enrollYear === 'object') return String(enrollYear.id);
+  if (workspaceYearId) return String(workspaceYearId);
+  if (!years.length) return '';
   const current = years.find((y) => y.is_current);
   if (current) return String(current.id);
   return String(years[0].id);
