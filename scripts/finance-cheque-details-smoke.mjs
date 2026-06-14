@@ -51,8 +51,13 @@ async function main() {
   }
 
   const listUrl = `${BASE}/admin/finance/cheques?quick=rejected`;
-  await page.goto(listUrl, { waitUntil: 'domcontentloaded' });
-  record('cheques_list', /الشيكات|Cheques/i.test(await page.title()));
+  await page.goto(listUrl, { waitUntil: 'networkidle' });
+  const listText = await page.locator('body').innerText();
+  record(
+    'cheques_list',
+    /\/admin\/finance\/cheques/.test(page.url()) &&
+      /الشيكات|Cheques|Chèques|Cheques rejetés/i.test(listText),
+  );
 
   const detailUrl = `${BASE}/admin/finance/cheques/${CHEQUE_ID}?returnTo=${encodeURIComponent('/admin/finance/cheques?quick=rejected')}`;
   await page.goto(detailUrl, { waitUntil: 'networkidle' });
