@@ -475,6 +475,9 @@ export interface StudentFee {
   currency?: string;
   /** Display label from API (e.g. "Student — Fee type"). */
   name?: string;
+  fee_type_name?: string;
+  service?: Ref | { id?: number; name?: string; code?: string };
+  description?: string | null;
   installments?: FinanceInstallment[];
   discounts?: FinanceDiscount[];
   lines?: FinanceInstallment[];

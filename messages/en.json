@@ -3354,6 +3354,7 @@
         "detailTitleAmount": "Collection of {amount}",
         "openLinkedCheque": "Open linked cheque",
         "backToChequeDetails": "Back to cheque details",
+        "backToCollectionDetails": "Back to collection details",
         "reversedByChequeAlert": "This collection was reversed because the linked cheque was rejected.",
         "copyReference": "Copy reference",
         "copied": "Copied",

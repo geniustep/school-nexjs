@@ -3352,6 +3352,7 @@
         "detailTitleAmount": "تحصيل بقيمة {amount}",
         "openLinkedCheque": "فتح الشيك المرتبط",
         "backToChequeDetails": "العودة إلى تفاصيل الشيك",
+        "backToCollectionDetails": "العودة إلى تفاصيل التحصيل",
         "reversedByChequeAlert": "تم عكس هذا التحصيل بسبب رفض الشيك المرتبط.",
         "copyReference": "نسخ المرجع",
         "copied": "تم النسخ",

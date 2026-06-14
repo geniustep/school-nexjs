@@ -1550,4 +1550,62 @@
     margin-inline-start: 0;
     width: 100%;
   }
+
+  .finance-student-profile__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.finance-student-profile-page {
+  max-width: 1200px;
+  margin-inline: auto;
+}
+
+.finance-student-profile {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.finance-student-profile__header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.finance-student-profile__title {
+  margin: 0;
+  font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+}
+
+.finance-student-profile__subtitle {
+  margin: 6px 0 0;
+  color: var(--c-muted, #64748b);
+}
+
+.finance-student-profile__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.finance-student-profile__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.finance-student-profile__section {
+  padding: 20px 24px;
+}
+
+.finance-student-profile__section h2 {
+  margin: 0 0 16px;
+  font-size: 1.05rem;
+}
+
+.finance-student-profile__fees {
+  margin-top: 0;
 }
