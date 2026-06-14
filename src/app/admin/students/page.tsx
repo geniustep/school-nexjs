@@ -14,6 +14,7 @@ import { studentClassLabel, studentLevelLabel } from '@/features/admin/students/
 import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
+import { hasStudentImportCapability } from '@/features/admin/students/import/student-import-capability';
 import { hasPermission } from '@/lib/permissions/permissions';
 import { statusLabel } from '@/lib/utils/labels';
 import { getStudentDisplayName } from '@/lib/utils/student';
@@ -25,6 +26,7 @@ export default function AdminStudentsPage() {
   const t = useT();
   const user = useSession();
   const canManageStudents = hasPermission(user, 'manage_students');
+  const canImportStudents = hasStudentImportCapability(user);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [query, setQuery] = useState('');
@@ -109,7 +111,7 @@ export default function AdminStudentsPage() {
             importOpen={importOpen}
             onToggleImport={() => setImportOpen((v) => !v)}
             extra={
-              canManageStudents ? (
+              canImportStudents ? (
                 <Link href="/admin/students/import" className="btn btn--ghost btn--sm">
                   {t('admin.studentImport.openImport')}
                 </Link>

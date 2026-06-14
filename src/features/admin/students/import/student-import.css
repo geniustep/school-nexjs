@@ -174,3 +174,30 @@
     flex-basis: 100%;
   }
 }
+
+.student-import-results-banner {
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border, #dbe3ef);
+  background: #f8fafc;
+}
+
+.student-import-results-banner[data-state='completed'] {
+  border-color: #86efac;
+  background: #f0fdf4;
+}
+
+.student-import-results-banner[data-state='completed_with_errors'] {
+  border-color: #fcd34d;
+  background: #fffbeb;
+}
+
+.student-import-results-banner[data-state='failed'] {
+  border-color: #fca5a5;
+  background: #fef2f2;
+}
+
+.student-import-confirmation-list {
+  margin: 0;
+  padding-inline-start: 18px;
+}

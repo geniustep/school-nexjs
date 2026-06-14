@@ -2043,10 +2043,10 @@
     "studentInvalidParents": "Compruebe que ha seleccionado padres válidos.",
     "studentImport": {
       "title": "Importar alumnos",
-      "subtitle": "Descargue la plantilla Excel, complétela y valídela localmente antes de la siguiente fase.",
+      "subtitle": "Descargue la plantilla Excel, valídela localmente y confirme la importación masiva.",
       "openImport": "Importar desde Excel",
       "backToStudents": "Volver a alumnos",
-      "notPersistedNotice": "Los archivos se procesan solo en su navegador. Nada se envía al servidor ni a Odoo en esta fase.",
+      "privacyNotice": "El archivo Excel se analiza en su navegador. Solo se envían campos normalizados al servidor.",
       "stepperLabel": "Pasos de importación de alumnos",
       "executeFutureHint": "Disponible tras la validación en la fase siguiente",
       "validating": "Validando archivo…",
@@ -2059,9 +2059,11 @@
         "download": "Descargar plantilla",
         "fill": "Completar archivo",
         "upload": "Subir archivo",
-        "validate": "Validar datos",
-        "preview": "Revisar vista previa",
-        "execute": "Ejecutar importación"
+        "localValidate": "Validación local",
+        "serverValidate": "Validación del sistema",
+        "review": "Revisión final",
+        "execute": "Ejecutar importación",
+        "results": "Resultados"
       },
       "download": {
         "title": "1. Descargar plantilla",
@@ -2111,7 +2113,110 @@
         "errorCode": "error_code",
         "message": "message",
         "originalValue": "original_value",
-        "status": "status"
+        "status": "status",
+        "source": "source"
+      },
+      "server": {
+        "title": "Validación del sistema",
+        "description": "Envíe filas válidas al servidor para comprobaciones finales.",
+        "runValidation": "Validar con el sistema",
+        "validating": "Validando con el sistema…",
+        "validRows": "Filas válidas",
+        "invalidRows": "Filas inválidas",
+        "warningRows": "Advertencias",
+        "expiresAt": "La validación expira",
+        "validationExpired": "La validación expiró. Revalide el archivo antes de importar.",
+        "noPermissionTitle": "Importación no permitida",
+        "noPermission": "No tiene permiso para importar alumnos.",
+        "fixBeforeExecute": "Corrija errores del servidor antes de ejecutar la importación.",
+        "executeFailed": "No se pudo completar la importación. Inténtelo de nuevo."
+      },
+      "confirmation": {
+        "title": "Revisión final",
+        "description": "Revise el resumen antes de crear alumnos e inscripciones.",
+        "file": "Archivo",
+        "school": "Centro",
+        "rowCount": "Filas a crear",
+        "warningCount": "Advertencias",
+        "createsStudents": "Cada fila creará un alumno y una inscripción académica.",
+        "excludes": "Esta importación no creará tutores, documentos, salud ni finanzas.",
+        "checkbox": "Confirmo que revisé los datos y deseo crear los alumnos e inscripciones.",
+        "continue": "Continuar a la importación"
+      },
+      "execute": {
+        "title": "Ejecutar importación",
+        "button": "Ejecutar importación",
+        "running": "Ejecutando importación…",
+        "doNotClose": "Importación en curso. No cierre esta página."
+      },
+      "results": {
+        "openStudent": "Abrir alumno",
+        "downloadReport": "Descargar informe de importación",
+        "backToList": "Volver a la lista de alumnos",
+        "startNew": "Nueva importación",
+        "banner": {
+          "completed": "Todos los alumnos se importaron correctamente.",
+          "completedWithErrors": "Importación parcial. Se crearon algunos alumnos; otras filas fallaron.",
+          "failed": "No se pudo completar la importación."
+        },
+        "summary": {
+          "total": "Filas totales",
+          "created": "Creadas",
+          "failed": "Fallidas",
+          "skipped": "Duplicados omitidos"
+        },
+        "columns": {
+          "rowNumber": "Fila",
+          "action": "Acción",
+          "errors": "Errores"
+        },
+        "status": {
+          "created": "Creado",
+          "failed": "Fallido",
+          "skipped_duplicate": "Duplicado omitido",
+          "valid": "Válido"
+        },
+        "report": {
+          "filename": "filename",
+          "school": "school",
+          "date": "date",
+          "state": "state",
+          "rowNumber": "row_number",
+          "studentId": "student_id",
+          "enrollmentId": "enrollment_id",
+          "errorCodes": "error_codes",
+          "errorMessages": "error_messages",
+          "warningCodes": "warning_codes",
+          "warningMessages": "warning_messages"
+        }
+      },
+      "serverIssueCodes": {
+        "missing_required_field": "Campo obligatorio faltante: {field}.",
+        "invalid_birth_date": "Fecha de nacimiento inválida en {field}.",
+        "invalid_enrollment_date": "Fecha de inscripción inválida en {field}.",
+        "invalid_email": "Correo inválido en {field}.",
+        "invalid_gender": "Género desconocido en {field}.",
+        "invalid_student_status": "Estado de alumno desconocido en {field}.",
+        "invalid_registration_type": "Tipo de inscripción desconocido en {field}.",
+        "invalid_emergency_relationship": "Relación de emergencia desconocida en {field}.",
+        "invalid_nationality": "Nacionalidad desconocida en {field}.",
+        "school_out_of_scope": "Centro fuera del alcance.",
+        "academic_year_out_of_scope": "Año académico fuera del alcance.",
+        "level_school_mismatch": "El nivel no pertenece al centro seleccionado.",
+        "class_school_mismatch": "La clase no pertenece al centro seleccionado.",
+        "class_year_mismatch": "La clase no pertenece al año académico.",
+        "class_level_mismatch": "La clase no pertenece al nivel.",
+        "duplicate_school_number": "Número escolar ya existente.",
+        "duplicate_massar_code": "Código Massar ya existente.",
+        "student_already_exists": "Ya existe un alumno coincidente (advertencia).",
+        "student_create_failed": "No se pudo crear el alumno.",
+        "enrollment_create_failed": "No se pudo crear la inscripción.",
+        "validation_error": "Error de validación.",
+        "validation_expired": "Validación expirada.",
+        "duplicate_request": "Solicitud de importación duplicada.",
+        "forbidden": "Permiso denegado.",
+        "not_found": "Trabajo de importación no encontrado.",
+        "import_failed": "Importación fallida."
       },
       "errors": {
         "unsupportedExtension": "Solo se admiten archivos .xlsx.",

@@ -1,133 +1,69 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useMemo, useState } from 'react';
-import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
+import { useRouter } from 'next/navigation';
+import { useMemo } from 'react';
 import { ApiErrorView, LoadingState } from '@/components/states/states';
 import { Card, InfoBanner, PageHeader, SectionHead } from '@/components/ui/primitives';
-import { useToast } from '@/components/ui/toast';
 import { useStudentOptions } from '@/features/admin/students/hooks/use-student-options';
+import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
-import {
-  STUDENT_IMPORT_ERROR_REPORT_FILENAME,
-  STUDENT_IMPORT_TEMPLATE_FILENAME,
-} from './student-import-constants';
 import { buildStudentImportReferenceData } from './student-import-reference';
-import { buildStudentImportTemplateLabels } from './student-import-labels';
-import { StudentImportPreview } from './student-import-preview';
-import { StudentImportRowDetails } from './student-import-row-details';
 import {
-  resolveStudentImportStep,
+  StudentImportConfirmationPanel,
+  StudentImportExecutePanel,
+} from './student-import-confirmation';
+import { StudentImportPreview } from './student-import-preview';
+import { RequireStudentImportCapability } from './require-student-import-capability';
+import { StudentImportResultsPanel } from './student-import-results';
+import { StudentImportRowDetails } from './student-import-row-details';
+import { StudentImportServerValidationPanel } from './student-import-server-panel';
+import {
+  resolveStudentImportUiStep,
   StudentImportStepper,
 } from './student-import-stepper';
 import { StudentImportSummaryCards } from './student-import-summary';
-import {
-  buildStudentImportErrorReportWorkbook,
-  buildStudentImportTemplateWorkbook,
-  downloadArrayBuffer,
-} from './student-import-template';
-import { StudentImportUpload, validateStudentImportFile } from './student-import-upload';
-import type { StudentImportPreviewFilter, StudentImportRowResult, StudentImportValidationResult } from './student-import-types';
-import { filterStudentImportRows, validateStudentImportWorkbook } from './student-import-validator';
+import { StudentImportUpload } from './student-import-upload';
+import { toRowDetails, useStudentImportFlow } from './use-student-import-flow';
 import './student-import.css';
+
+function resolveSchoolLabel(
+  reference: ReturnType<typeof buildStudentImportReferenceData>,
+  activeSchoolId: number | null,
+): string {
+  if (!reference || activeSchoolId == null) return '';
+  for (const school of reference.schools.values()) {
+    if (school.id === activeSchoolId) return school.name;
+  }
+  return String(activeSchoolId);
+}
 
 export function StudentImportPage() {
   const t = useT();
-  const toast = useToast();
+  const router = useRouter();
+  const { activeSchoolId } = useAdminSession();
   const optionsState = useStudentOptions();
   const reference = useMemo(
     () => buildStudentImportReferenceData(optionsState.options),
     [optionsState.options],
   );
 
-  const [downloading, setDownloading] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const [validating, setValidating] = useState(false);
-  const [result, setResult] = useState<StudentImportValidationResult | null>(null);
-  const [filter, setFilter] = useState<StudentImportPreviewFilter>('all');
-  const [search, setSearch] = useState('');
-  const [selectedRow, setSelectedRow] = useState<StudentImportRowResult | null>(null);
+  const flow = useStudentImportFlow(reference);
+  const activeStep = resolveStudentImportUiStep(flow.activePhase);
+  const schoolName = resolveSchoolLabel(reference, activeSchoolId);
+  const rowDetails = toRowDetails(flow.selectedRow);
 
-  const issueMessage = useCallback(
-    (code: string, field?: string) => t(`admin.studentImport.issueCodes.${code}`, { field: field ?? '' }),
-    [t],
+  const executableCount = useMemo(
+    () => flow.mergedRows.filter((row) => row.executable).length,
+    [flow.mergedRows],
   );
 
-  const filteredRows = useMemo(() => {
-    if (!result) return [];
-    return filterStudentImportRows(result.rows, filter, search);
-  }, [result, filter, search]);
+  const showLocalSection =
+    flow.localResult &&
+    !['completed', 'completed_with_errors', 'failed'].includes(flow.activePhase);
 
-  const activeStep = resolveStudentImportStep({
-    hasFile: !!file,
-    validating,
-    hasResult: !!result,
-  });
-
-  async function handleDownloadTemplate() {
-    if (!reference) {
-      toast.error(t('admin.studentImport.errors.referenceUnavailable'));
-      return;
-    }
-    setDownloading(true);
-    try {
-      const labels = buildStudentImportTemplateLabels(t, reference);
-      const buffer = await buildStudentImportTemplateWorkbook(reference, labels);
-      downloadArrayBuffer(buffer, STUDENT_IMPORT_TEMPLATE_FILENAME);
-    } catch {
-      toast.error(t('admin.studentImport.errors.templateDownloadFailed'));
-    } finally {
-      setDownloading(false);
-    }
-  }
-
-  async function handleFileSelected(next: File) {
-    const validationError = validateStudentImportFile(next, t);
-    if (validationError) {
-      setUploadError(validationError);
-      setFile(null);
-      setResult(null);
-      return;
-    }
-    if (!reference) {
-      setUploadError(t('admin.studentImport.errors.referenceUnavailable'));
-      return;
-    }
-
-    setFile(next);
-    setUploadError(null);
-    setResult(null);
-    setValidating(true);
-
-    try {
-      const buffer = await next.arrayBuffer();
-      const validation = await validateStudentImportWorkbook(buffer, reference, issueMessage);
-      setResult(validation);
-      if (validation.fileErrors.some((e) => e.code === 'invalid_template_version')) {
-        toast.error(t('admin.studentImport.errors.outdatedTemplate'));
-      }
-    } catch {
-      setUploadError(t('admin.studentImport.errors.parseFailed'));
-      setResult(null);
-    } finally {
-      setValidating(false);
-    }
-  }
-
-  async function handleDownloadErrorReport() {
-    if (!result) return;
-    const buffer = await buildStudentImportErrorReportWorkbook(result, {
-      rowNumber: t('admin.studentImport.report.rowNumber'),
-      field: t('admin.studentImport.report.field'),
-      severity: t('admin.studentImport.report.severity'),
-      errorCode: t('admin.studentImport.report.errorCode'),
-      message: t('admin.studentImport.report.message'),
-      originalValue: t('admin.studentImport.report.originalValue'),
-      status: t('admin.studentImport.report.status'),
-    });
-    downloadArrayBuffer(buffer, STUDENT_IMPORT_ERROR_REPORT_FILENAME);
-  }
+  const showResults = flow.execution && ['completed', 'completed_with_errors', 'failed'].includes(flow.activePhase);
+  const localResult = flow.localResult;
 
   if (optionsState.loading && !optionsState.options) {
     return <LoadingState label={t('common.loading')} />;
@@ -149,47 +85,47 @@ export function StudentImportPage() {
         }
       />
 
-      <InfoBanner title={t('admin.studentImport.notPersistedNotice')} />
+      <InfoBanner title={t('admin.studentImport.privacyNotice')} />
 
       <StudentImportStepper activeStep={activeStep} />
 
-      <Card>
-        <SectionHead title={t('admin.studentImport.download.title')} />
-        <p className="tiny muted">{t('admin.studentImport.download.description')}</p>
-        <button
-          type="button"
-          className="btn btn--primary btn--sm"
-          disabled={downloading || !reference}
-          onClick={() => void handleDownloadTemplate()}
-        >
-          {downloading ? t('common.downloading') : t('admin.studentImport.download.button')}
-        </button>
-      </Card>
-
-      <Card>
-        <SectionHead title={t('admin.studentImport.fill.title')} />
-        <p className="tiny muted">{t('admin.studentImport.fill.description')}</p>
-      </Card>
-
-      <StudentImportUpload
-        file={file}
-        error={uploadError}
-        parsing={validating}
-        onFileSelected={(next) => void handleFileSelected(next)}
-        onClear={() => {
-          setFile(null);
-          setUploadError(null);
-          setResult(null);
-        }}
-      />
-
-      {result ? (
+      {!showResults ? (
         <>
-          {result.fileErrors.length > 0 ? (
+          <Card>
+            <SectionHead title={t('admin.studentImport.download.title')} />
+            <p className="tiny muted">{t('admin.studentImport.download.description')}</p>
+            <button
+              type="button"
+              className="btn btn--primary btn--sm"
+              disabled={flow.downloading || !reference}
+              onClick={() => void flow.handleDownloadTemplate()}
+            >
+              {flow.downloading ? t('common.downloading') : t('admin.studentImport.download.button')}
+            </button>
+          </Card>
+
+          <Card>
+            <SectionHead title={t('admin.studentImport.fill.title')} />
+            <p className="tiny muted">{t('admin.studentImport.fill.description')}</p>
+          </Card>
+
+          <StudentImportUpload
+            file={flow.file}
+            error={flow.uploadError}
+            parsing={flow.busy && flow.activePhase === 'local_validating'}
+            onFileSelected={(next) => void flow.handleFileSelected(next)}
+            onClear={() => flow.resetAll()}
+          />
+        </>
+      ) : null}
+
+      {showLocalSection && localResult ? (
+        <>
+          {localResult.fileErrors.length > 0 ? (
             <Card>
               <SectionHead title={t('admin.studentImport.fileErrors.title')} />
               <div className="col" style={{ gap: 6 }}>
-                {result.fileErrors.map((issue, index) => (
+                {localResult.fileErrors.map((issue, index) => (
                   <div key={index} className="tiny" style={{ color: 'var(--danger)' }}>
                     {issue.message}
                   </div>
@@ -198,50 +134,101 @@ export function StudentImportPage() {
             </Card>
           ) : null}
 
-          <StudentImportSummaryCards summary={result.summary} />
+          <StudentImportSummaryCards summary={localResult.summary} />
+
+          {localResult.summary.invalidRows === 0 && localResult.fileErrors.length === 0 ? (
+            <StudentImportServerValidationPanel
+              busy={flow.busy && flow.activePhase === 'server_validating'}
+              canRun={flow.canRunServerValidation}
+              validation={flow.serverValidation}
+              validationExpired={flow.validationExpired}
+              onValidate={() => void flow.runServerValidation()}
+            />
+          ) : null}
 
           <Card>
             <SectionHead title={t('admin.studentImport.preview.title')} />
             <StudentImportPreview
-              rows={filteredRows}
-              filter={filter}
-              search={search}
-              onFilterChange={setFilter}
-              onSearchChange={setSearch}
-              onSelectRow={setSelectedRow}
+              rows={flow.previewRows}
+              filter={flow.filter}
+              search={flow.search}
+              onFilterChange={flow.setFilter}
+              onSearchChange={flow.setSearch}
+              onSelectRow={(row) => {
+                const merged = flow.mergedRows.find((m) => m.rowNumber === row.rowNumber);
+                flow.setSelectedRow(merged ?? row);
+              }}
             />
           </Card>
 
-          <div className="student-import-actions row" style={{ gap: 8, flexWrap: 'wrap' }}>
-            {(result.summary.totalErrors > 0 || result.summary.totalWarnings > 0) && (
-              <button type="button" className="btn btn--ghost btn--sm" onClick={() => void handleDownloadErrorReport()}>
-                {t('admin.studentImport.downloadErrorReport')}
-              </button>
-            )}
-            <button type="button" className="btn btn--primary btn--sm" disabled>
-              {t('admin.studentImport.executeDisabled')}
+          {(localResult.summary.totalErrors > 0 ||
+            localResult.summary.totalWarnings > 0 ||
+            flow.mergedRows.some((r) => r.serverErrors.length > 0 || r.serverWarnings.length > 0)) && (
+            <button
+              type="button"
+              className="btn btn--ghost btn--sm"
+              onClick={() => void flow.handleDownloadErrorReport()}
+            >
+              {t('admin.studentImport.downloadErrorReport')}
             </button>
-          </div>
-
-          {result.readyForImport ? (
-            <InfoBanner title={t('admin.studentImport.readyForImport')} tone="green" />
-          ) : (
-            <InfoBanner title={t('admin.studentImport.fixBeforeImport')} tone="amber" />
           )}
 
-          <p className="tiny muted">{t('admin.studentImport.importNotExecuted')}</p>
+          {flow.canConfirm ? (
+            <StudentImportConfirmationPanel
+              fileName={flow.file?.name ?? null}
+              schoolName={schoolName}
+              rowCount={executableCount}
+              warningCount={flow.serverValidation?.summary.warning_rows ?? 0}
+              confirmed={flow.confirmed}
+              canConfirm={flow.canConfirm}
+              onConfirmedChange={flow.setConfirmed}
+              onContinue={() => flow.setPhase('confirming')}
+            />
+          ) : null}
+
+          {flow.canConfirm && (flow.activePhase === 'confirming' || flow.confirmed) ? (
+            <StudentImportExecutePanel
+              busy={flow.busy && (flow.activePhase === 'executing' || flow.activePhase === 'polling')}
+              canExecute={flow.canExecute}
+              onExecute={() => void flow.executeImport()}
+            />
+          ) : null}
+
+          {flow.serverValidation && flow.serverValidation.summary.invalid_rows > 0 ? (
+            <InfoBanner title={t('admin.studentImport.server.fixBeforeExecute')} tone="amber" />
+          ) : null}
+
+          {flow.validationExpired && flow.serverValidation ? (
+            <InfoBanner title={t('admin.studentImport.server.validationExpired')} tone="amber" />
+          ) : null}
+
+          {flow.activePhase === 'executing' || flow.activePhase === 'polling' ? (
+            <InfoBanner title={t('admin.studentImport.execute.doNotClose')} tone="blue" />
+          ) : null}
         </>
       ) : null}
 
-      <StudentImportRowDetails row={selectedRow} onClose={() => setSelectedRow(null)} />
+      {showResults && flow.execution ? (
+        <StudentImportResultsPanel
+          execution={flow.execution}
+          page={flow.resultsPage}
+          busy={flow.busy}
+          onPageChange={(page) => void flow.loadResultsPage(page)}
+          onDownloadReport={() => void flow.handleDownloadResultReport()}
+          onBackToList={() => router.push('/admin/students')}
+          onStartNew={() => flow.resetAll()}
+        />
+      ) : null}
+
+      <StudentImportRowDetails row={rowDetails} onClose={() => flow.setSelectedRow(null)} />
     </div>
   );
 }
 
 export function StudentImportPageShell() {
   return (
-    <RequireAdminPermission permission="manage_students">
+    <RequireStudentImportCapability>
       <StudentImportPage />
-    </RequireAdminPermission>
+    </RequireStudentImportCapability>
   );
 }

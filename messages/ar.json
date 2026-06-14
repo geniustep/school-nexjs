@@ -2046,10 +2046,10 @@
     "studentInvalidParents": "تأكد من اختيار أولياء صحيحين.",
     "studentImport": {
       "title": "استيراد التلاميذ",
-      "subtitle": "حمّل نموذج Excel، عبّئه، ثم تحقق محليًا قبل مرحلة الاستيراد التالية.",
+      "subtitle": "حمّل نموذج Excel، تحقق محليًا، ثم أكّد ونفّذ الاستيراد الجماعي.",
       "openImport": "استيراد من Excel",
       "backToStudents": "العودة إلى التلاميذ",
-      "notPersistedNotice": "تُعالَج الملفات في متصفحك فقط. لا يُرسل شيء إلى الخادم أو Odoo في هذه المرحلة.",
+      "privacyNotice": "يُحلَّل ملف Excel في متصفحك. تُرسَل إلى الخادم حقول التلاميذ المطبّعة فقط للتحقق والاستيراد.",
       "stepperLabel": "خطوات استيراد التلاميذ",
       "executeFutureHint": "متاح بعد التحقق في المرحلة التالية",
       "validating": "جاري التحقق من الملف…",
@@ -2062,9 +2062,11 @@
         "download": "تحميل النموذج",
         "fill": "تعبئة الملف",
         "upload": "رفع الملف",
-        "validate": "التحقق من البيانات",
-        "preview": "مراجعة المعاينة",
-        "execute": "تنفيذ الاستيراد"
+        "localValidate": "التحقق المحلي",
+        "serverValidate": "التحقق من النظام",
+        "review": "مراجعة نهائية",
+        "execute": "تنفيذ الاستيراد",
+        "results": "النتائج"
       },
       "download": {
         "title": "1. تحميل النموذج",
@@ -2119,7 +2121,110 @@
         "errorCode": "error_code",
         "message": "message",
         "originalValue": "original_value",
-        "status": "status"
+        "status": "status",
+        "source": "source"
+      },
+      "server": {
+        "title": "التحقق من النظام",
+        "description": "أرسل الصفوف الصحيحة إلى الخادم للتحقق النهائي قبل الاستيراد.",
+        "runValidation": "التحقق من النظام",
+        "validating": "جاري التحقق من النظام…",
+        "validRows": "صفوف صالحة",
+        "invalidRows": "صفوف غير صالحة",
+        "warningRows": "تحذيرات",
+        "expiresAt": "تنتهي صلاحية التحقق",
+        "validationExpired": "انتهت صلاحية التحقق. أعد التحقق من الملف قبل تنفيذ الاستيراد.",
+        "noPermissionTitle": "الاستيراد غير مسموح",
+        "noPermission": "لا تملك صلاحية استيراد التلاميذ.",
+        "fixBeforeExecute": "صحّح أخطاء التحقق الخادمي قبل تنفيذ الاستيراد.",
+        "executeFailed": "تعذّر إكمال الاستيراد. أعد المحاولة أو تحقق من حالة المهمة."
+      },
+      "confirmation": {
+        "title": "مراجعة نهائية",
+        "description": "راجع الملخص أدناه قبل إنشاء التلاميذ والتسجيلات.",
+        "file": "الملف",
+        "school": "المؤسسة",
+        "rowCount": "صفوف سيتم إنشاؤها",
+        "warningCount": "تحذيرات",
+        "createsStudents": "كل صف سينشئ تلميذًا وتسجيلًا دراسيًا.",
+        "excludes": "لن يُنشئ هذا الاستيراد أولياء أو وثائق أو ملفات صحية أو بيانات مالية.",
+        "checkbox": "أؤكد أنني راجعت البيانات وأرغب في إنشاء التلاميذ والتسجيلات الدراسية.",
+        "continue": "المتابعة إلى الاستيراد"
+      },
+      "execute": {
+        "title": "تنفيذ الاستيراد",
+        "button": "تنفيذ الاستيراد",
+        "running": "جاري تنفيذ الاستيراد…",
+        "doNotClose": "الاستيراد قيد التنفيذ. لا تغلق هذه الصفحة."
+      },
+      "results": {
+        "openStudent": "فتح التلميذ",
+        "downloadReport": "تنزيل تقرير الاستيراد",
+        "backToList": "العودة إلى قائمة التلاميذ",
+        "startNew": "بدء استيراد جديد",
+        "banner": {
+          "completed": "تم استيراد جميع التلاميذ بنجاح.",
+          "completedWithErrors": "اكتمل الاستيراد جزئيًا. تم إنشاء بعض التلاميذ وتعذر إنشاء صفوف أخرى.",
+          "failed": "تعذر تنفيذ الاستيراد."
+        },
+        "summary": {
+          "total": "إجمالي الصفوف",
+          "created": "منشأ",
+          "failed": "فاشل",
+          "skipped": "متجاوز كتكرار"
+        },
+        "columns": {
+          "rowNumber": "الصف",
+          "action": "إجراء",
+          "errors": "أخطاء"
+        },
+        "status": {
+          "created": "منشأ",
+          "failed": "فاشل",
+          "skipped_duplicate": "تكرار متجاوز",
+          "valid": "صالح"
+        },
+        "report": {
+          "filename": "filename",
+          "school": "school",
+          "date": "date",
+          "state": "state",
+          "rowNumber": "row_number",
+          "studentId": "student_id",
+          "enrollmentId": "enrollment_id",
+          "errorCodes": "error_codes",
+          "errorMessages": "error_messages",
+          "warningCodes": "warning_codes",
+          "warningMessages": "warning_messages"
+        }
+      },
+      "serverIssueCodes": {
+        "missing_required_field": "حقل مطلوب مفقود: {field}.",
+        "invalid_birth_date": "تاريخ ميلاد غير صالح في {field}.",
+        "invalid_enrollment_date": "تاريخ تسجيل غير صالح في {field}.",
+        "invalid_email": "بريد إلكتروني غير صالح في {field}.",
+        "invalid_gender": "جنس غير معروف في {field}.",
+        "invalid_student_status": "حالة تلميذ غير معروفة في {field}.",
+        "invalid_registration_type": "نوع تسجيل غير معروف في {field}.",
+        "invalid_emergency_relationship": "علاقة طوارئ غير معروفة في {field}.",
+        "invalid_nationality": "جنسية غير معروفة في {field}.",
+        "school_out_of_scope": "المؤسسة خارج نطاق هذا الاستيراد.",
+        "academic_year_out_of_scope": "السنة الدراسية خارج النطاق.",
+        "level_school_mismatch": "المستوى لا ينتمي إلى المؤسسة المختارة.",
+        "class_school_mismatch": "القسم لا ينتمي إلى المؤسسة المختارة.",
+        "class_year_mismatch": "القسم لا ينتمي إلى السنة الدراسية المختارة.",
+        "class_level_mismatch": "القسم لا ينتمي إلى المستوى المختار.",
+        "duplicate_school_number": "الرقم المدرسي موجود مسبقًا.",
+        "duplicate_massar_code": "رمز Massar موجود مسبقًا.",
+        "student_already_exists": "يوجد تلميذ مطابق مسبقًا (تحذير).",
+        "student_create_failed": "تعذّر إنشاء التلميذ.",
+        "enrollment_create_failed": "تعذّر إنشاء التسجيل الدراسي.",
+        "validation_error": "خطأ في التحقق.",
+        "validation_expired": "انتهت صلاحية التحقق.",
+        "duplicate_request": "طلب استيراد مكرر.",
+        "forbidden": "لا تملك صلاحية هذا الإجراء.",
+        "not_found": "مهمة الاستيراد غير موجودة.",
+        "import_failed": "فشل الاستيراد."
       },
       "errors": {
         "unsupportedExtension": "يُقبل فقط ملفات .xlsx.",

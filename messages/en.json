@@ -2043,10 +2043,10 @@
     "studentInvalidParents": "Please select valid parents.",
     "studentImport": {
       "title": "Import students",
-      "subtitle": "Download the Excel template, fill it in, then validate locally before the next import phase.",
+      "subtitle": "Download the Excel template, validate locally, then confirm and run the bulk import.",
       "openImport": "Import from Excel",
       "backToStudents": "Back to students",
-      "notPersistedNotice": "Files are processed in your browser only. Nothing is sent to the server or Odoo in this phase.",
+      "privacyNotice": "The Excel file is parsed in your browser. Only normalized student fields are sent to the server for validation and import.",
       "stepperLabel": "Student import steps",
       "executeFutureHint": "Available after validation in the next phase",
       "validating": "Validating file…",
@@ -2059,9 +2059,11 @@
         "download": "Download template",
         "fill": "Fill the file",
         "upload": "Upload file",
-        "validate": "Validate data",
-        "preview": "Review preview",
-        "execute": "Run import"
+        "localValidate": "Local validation",
+        "serverValidate": "System validation",
+        "review": "Final review",
+        "execute": "Run import",
+        "results": "Results"
       },
       "download": {
         "title": "1. Download template",
@@ -2125,7 +2127,110 @@
         "errorCode": "error_code",
         "message": "message",
         "originalValue": "original_value",
-        "status": "status"
+        "status": "status",
+        "source": "source"
+      },
+      "server": {
+        "title": "System validation",
+        "description": "Send valid rows to the server for final checks before import.",
+        "runValidation": "Validate with system",
+        "validating": "Validating with system…",
+        "validRows": "Valid rows",
+        "invalidRows": "Invalid rows",
+        "warningRows": "Warnings",
+        "expiresAt": "Validation expires",
+        "validationExpired": "Validation has expired. Re-validate the file before running the import.",
+        "noPermissionTitle": "Import not allowed",
+        "noPermission": "You do not have permission to import students.",
+        "fixBeforeExecute": "Fix server validation errors before running the import.",
+        "executeFailed": "Could not complete the import. Try again or check job status."
+      },
+      "confirmation": {
+        "title": "Final review",
+        "description": "Review the summary below before creating students and enrollments.",
+        "file": "File",
+        "school": "School",
+        "rowCount": "Rows to create",
+        "warningCount": "Warnings",
+        "createsStudents": "Each row will create a student and an academic enrollment.",
+        "excludes": "This import will not create guardians, documents, health records, or finance data.",
+        "checkbox": "I confirm that I reviewed the data and want to create the students and enrollments.",
+        "continue": "Continue to import"
+      },
+      "execute": {
+        "title": "Run import",
+        "button": "Run import",
+        "running": "Running import…",
+        "doNotClose": "Import in progress. Do not close this page."
+      },
+      "results": {
+        "openStudent": "Open student",
+        "downloadReport": "Download import report",
+        "backToList": "Back to students list",
+        "startNew": "Start new import",
+        "banner": {
+          "completed": "All students were imported successfully.",
+          "completedWithErrors": "Import completed partially. Some students were created; other rows failed.",
+          "failed": "The import could not be completed."
+        },
+        "summary": {
+          "total": "Total rows",
+          "created": "Created",
+          "failed": "Failed",
+          "skipped": "Skipped duplicates"
+        },
+        "columns": {
+          "rowNumber": "Row",
+          "action": "Action",
+          "errors": "Errors"
+        },
+        "status": {
+          "created": "Created",
+          "failed": "Failed",
+          "skipped_duplicate": "Skipped duplicate",
+          "valid": "Valid"
+        },
+        "report": {
+          "filename": "filename",
+          "school": "school",
+          "date": "date",
+          "state": "state",
+          "rowNumber": "row_number",
+          "studentId": "student_id",
+          "enrollmentId": "enrollment_id",
+          "errorCodes": "error_codes",
+          "errorMessages": "error_messages",
+          "warningCodes": "warning_codes",
+          "warningMessages": "warning_messages"
+        }
+      },
+      "serverIssueCodes": {
+        "missing_required_field": "Required field missing: {field}.",
+        "invalid_birth_date": "Invalid birth date in {field}.",
+        "invalid_enrollment_date": "Invalid enrollment date in {field}.",
+        "invalid_email": "Invalid email in {field}.",
+        "invalid_gender": "Unknown gender in {field}.",
+        "invalid_student_status": "Unknown student status in {field}.",
+        "invalid_registration_type": "Unknown registration type in {field}.",
+        "invalid_emergency_relationship": "Unknown emergency relationship in {field}.",
+        "invalid_nationality": "Unknown nationality in {field}.",
+        "school_out_of_scope": "School is out of scope for this import.",
+        "academic_year_out_of_scope": "Academic year is out of scope.",
+        "level_school_mismatch": "Level does not belong to the selected school.",
+        "class_school_mismatch": "Class does not belong to the selected school.",
+        "class_year_mismatch": "Class does not belong to the selected academic year.",
+        "class_level_mismatch": "Class does not belong to the selected level.",
+        "duplicate_school_number": "School number already exists.",
+        "duplicate_massar_code": "Massar code already exists.",
+        "student_already_exists": "A matching student already exists (warning).",
+        "student_create_failed": "Could not create the student.",
+        "enrollment_create_failed": "Could not create the enrollment.",
+        "validation_error": "Validation error.",
+        "validation_expired": "Validation has expired.",
+        "duplicate_request": "Duplicate import request.",
+        "forbidden": "You do not have permission for this action.",
+        "not_found": "Import job was not found.",
+        "import_failed": "Import failed."
       },
       "errors": {
         "unsupportedExtension": "Only .xlsx files are supported.",
