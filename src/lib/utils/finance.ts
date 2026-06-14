@@ -1,8 +1,18 @@
 import type { StudentFeeState, FeePlanState, PaymentCollectionState } from '@/types/finance';
 
-export function formatMoney(amount: number | null | undefined, currency?: string | null): string {
+/** Normalize API currency fields that may arrive as a code string or `{ name }` ref. */
+export function currencyCode(value: unknown): string | null {
+  if (value == null) return null;
+  if (typeof value === 'string') return value.trim() || null;
+  if (typeof value === 'object' && 'name' in value) {
+    return refName(value as { name?: string });
+  }
+  return null;
+}
+
+export function formatMoney(amount: number | null | undefined, currency?: unknown): string {
   if (amount == null || Number.isNaN(amount)) return '—';
-  const cur = currency?.trim();
+  const cur = currencyCode(currency);
   if (!cur) {
     return new Intl.NumberFormat(undefined, {
       minimumFractionDigits: 2,

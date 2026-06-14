@@ -108,10 +108,25 @@ export interface FeeType {
   active?: boolean;
 }
 
+export interface FeePlanLineFeeType {
+  id: number;
+  code: string;
+  name: string;
+  category: string;
+}
+
+export interface FeePlanInstallmentScheduleItem {
+  sequence: number;
+  due_date: string;
+  amount: number;
+}
+
 export interface FeePlanLine {
   id: number;
-  fee_type_id: number;
+  fee_type_id?: number;
+  fee_type?: FeePlanLineFeeType;
   fee_type_name?: string;
+  name?: string;
   description?: string | false;
   amount: number;
   quantity?: number;
@@ -119,6 +134,7 @@ export interface FeePlanLine {
   due_rule?: string;
   due_date?: string | null;
   installment_count?: number;
+  installment_schedule?: FeePlanInstallmentScheduleItem[];
   is_optional?: boolean;
 }
 
@@ -494,7 +510,16 @@ export interface UpdateFeePlanPayload {
 
 export interface AssignStudentFeePayload {
   fee_plan_id: number;
-  academic_year_id?: number;
+  effective_date: string;
+  selected_optional_line_ids: number[];
+}
+
+export interface AssignStudentFeePlanResponse {
+  assigned_fee_ids?: number[];
+  assigned_required_line_ids?: number[];
+  assigned_optional_line_ids?: number[];
+  skipped_optional_line_ids?: number[];
+  fees?: StudentFee[];
 }
 
 export interface CreatePaymentCollectionPayload {

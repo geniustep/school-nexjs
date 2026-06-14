@@ -18,6 +18,8 @@ import type {
   FinanceReferenceData,
   PaymentJournal,
 } from '@/types/finance';
+import { buildConfirmedFeePlansQuery } from './fee-plan-assign-query';
+import { normalizeFeePlanLines } from '@/lib/utils/fee-plan-line-normalize';
 
 export function useFinanceReferenceData(): {
   data: FinanceReferenceData | null;
@@ -83,16 +85,36 @@ export function useAcademicYearOptions(classId?: number | null): {
   };
 }
 
-export function useConfirmedFeePlanOptions(): {
+export function useConfirmedFeePlanOptions(
+  academicYearId?: string | number | null,
+  levelId?: number | null,
+): {
   plans: FeePlan[];
   loading: boolean;
+  error: import('@/types/api').ApiErrorBody | null;
+  reload: () => void;
 } {
-  const state = useAdminResource<FeePlan[]>(endpoints.admin.financeFeePlans, {
-    page: 1,
-    page_size: 100,
-    state: 'confirmed',
-  });
-  return { plans: state.data ?? [], loading: state.loading };
+  const query = useMemo(
+    () => buildConfirmedFeePlansQuery(academicYearId, levelId),
+    [academicYearId, levelId],
+  );
+  const state = useAdminResource<FeePlan[]>(
+    query ? endpoints.admin.financeFeePlans : null,
+    query ?? undefined,
+  );
+  const plans = useMemo(() => {
+    const raw = state.data ?? [];
+    return raw.map((plan) => ({
+      ...plan,
+      lines: plan.lines ? normalizeFeePlanLines(plan.lines) : plan.lines,
+    }));
+  }, [state.data]);
+  return {
+    plans,
+    loading: state.loading,
+    error: state.error,
+    reload: state.reload,
+  };
 }
 
 export function useFeeTypeOptions(): {

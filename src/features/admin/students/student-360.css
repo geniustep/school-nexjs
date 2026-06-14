@@ -622,6 +622,111 @@
   margin-top: 0;
 }
 
+.student-finance-assign-drawer__desc {
+  margin: 0 0 1rem;
+}
+
+.student-finance-assign-form__plans {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.student-finance-assign-form__state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.75rem 0;
+}
+
+.student-finance-assign-form__summary {
+  padding: 0.75rem 1rem;
+}
+
+.student-finance-assign-form__actions {
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+[dir='rtl'] .student-finance-assign-form__actions {
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+}
+
+.student-finance-assign-form__lines {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.student-finance-assign-form__line-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.student-finance-assign-form__line {
+  padding: 0.75rem 1rem;
+}
+
+.student-finance-assign-form__optional-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  cursor: pointer;
+}
+
+.student-finance-assign-form__line-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: baseline;
+}
+
+.student-finance-assign-form__line-meta {
+  margin-top: 0.35rem;
+}
+
+.student-finance-assign-form__schedule {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.student-finance-assign-form__required-badge {
+  display: inline-block;
+  margin-bottom: 0.35rem;
+  color: var(--color-muted, #666);
+}
+
+.student-finance-assign-form__installments {
+  padding: 0.75rem 1rem;
+}
+
+.student-finance-assign-form__installment-table {
+  width: 100%;
+}
+
+.student-finance-assign-form__warn {
+  color: var(--color-warning, #b45309);
+}
+
+[dir='rtl'] .student-finance-assign-form__optional-row {
+  flex-direction: row-reverse;
+}
+
+[dir='rtl'] .student-finance-assign-form__line-head {
+  flex-direction: row-reverse;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;
