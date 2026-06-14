@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { useT } from '@/features/i18n/locale-context';
+import './setup-drawer.css';
 
 export function SetupDrawer({
   open,

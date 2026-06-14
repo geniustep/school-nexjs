@@ -1,0 +1,45 @@
+.academic-setup-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  z-index: 40;
+}
+
+.academic-setup-drawer {
+  position: fixed;
+  inset-block: 0;
+  inset-inline-end: 0;
+  width: min(480px, 100vw);
+  background: #fff;
+  z-index: 41;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.12);
+}
+
+[dir='rtl'] .academic-setup-drawer {
+  box-shadow: 8px 0 32px rgba(0, 0, 0, 0.12);
+}
+
+.academic-setup-drawer__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid var(--c-border);
+}
+
+.academic-setup-drawer__body {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+}
+
+.academic-setup-drawer--compact {
+  width: min(400px, 100vw);
+}
+
+.academic-setup-drawer--wide {
+  width: min(720px, 100vw);
+}
