@@ -2357,7 +2357,7 @@
     },
     "student360": {
       "tabsAria": "Sections du dossier élève",
-      "tabs": { "overview": "Aperçu", "enrollment": "Inscription", "guardians": "Responsables", "documents": "Documents", "health": "Santé", "finance": "Finance" },
+      "tabs": { "overview": "Aperçu", "enrollment": "Inscription", "guardians": "Responsables", "documents": "Documents", "health": "Santé", "finance": "Finance", "financial-agreement": "Accord financier" },
       "breadcrumb": {
         "aria": "Navigation du dossier élève",
         "students": "Élèves",
@@ -2368,7 +2368,8 @@
         "overview": { "title": "Aperçu", "description": "Résumé de l'identité, de l'inscription, de la famille et des contacts." },
         "enrollment": { "title": "Inscription", "description": "Consultez l'inscription actuelle et l'historique scolaire." },
         "guardians": { "title": "Responsables et contacts", "description": "Gérez les relations familiales et les contacts." },
-        "finance": { "title": "Finance", "description": "Gérez la facturation, les frais et les encaissements." },
+        "finance": { "title": "Finance", "description": "Créances réelles, encaissements, chèques et échéances opérationnelles." },
+        "financial-agreement": { "title": "Accord financier", "description": "Ce que l'établissement a convenu avec le payeur : services, tarifs et calendrier." },
         "health": { "title": "Profil de santé", "description": "Consultez les informations de santé et d'urgence." },
         "documents": { "title": "Documents", "description": "Gérez les documents, pièces jointes et dates d'expiration." }
       },
@@ -2675,6 +2676,307 @@
         "errors": {
           "academic_year_not_found": "Année scolaire introuvable.",
           "academic_year_out_of_scope": "L'année scolaire est hors du périmètre de l'établissement actif."
+        }
+      },
+      "financialAgreement": {
+        "pageTitle": "Accord financier",
+        "pageDescription": "Accord entre l'établissement et le payeur.",
+        "create": "Créer un accord financier",
+        "edit": "Modifier l'accord",
+        "emptyTitle": "Aucun accord financier pour cette année.",
+        "emptyDescription": "Créez un accord pour définir services, tarifs et calendrier.",
+        "billingPartyTitle": "Payeur",
+        "linesTitle": "Services et lignes",
+        "noLines": "Aucun service ajouté.",
+        "scheduleTitle": "Calendrier de l'accord",
+        "noSchedule": "Aucun calendrier généré.",
+        "schedulePolicyTitle": "Politique de calendrier",
+        "openGuardians": "Ouvrir responsables",
+        "fields": {
+          "academicYear": "Année scolaire",
+          "number": "N° accord",
+          "state": "Statut",
+          "agreementDate": "Date accord",
+          "validity": "Période",
+          "validFrom": "Début",
+          "validUntil": "Fin",
+          "billingParty": "Payeur",
+          "partyType": "Type payeur",
+          "relationship": "Lien",
+          "contact": "Contact"
+        },
+        "summary": {
+          "gross": "Montant brut",
+          "discounts": "Remises",
+          "net": "Montant convenu",
+          "installmentCount": "Nombre d'échéances"
+        },
+        "columns": {
+          "service": "Service",
+          "category": "Catégorie",
+          "commitment": "Engagement",
+          "pricingUnit": "Unité",
+          "period": "Période",
+          "quantity": "Qté",
+          "unitPrice": "Prix unitaire",
+          "gross": "Brut",
+          "discount": "Remise",
+          "net": "Net"
+        },
+        "scheduleColumns": {
+          "period": "Période",
+          "displayFrom": "Affichage dès",
+          "dueDate": "Échéance",
+          "amount": "Montant",
+          "state": "Statut admin"
+        },
+        "schedulePolicy": {
+          "generation": "Mode de génération",
+          "display": "Règle d'affichage",
+          "dueDay": "Jour d'échéance",
+          "earlyPayment": "Paiement anticipé",
+          "firstPeriod": "Première période"
+        },
+        "states": {
+          "draft": "Brouillon",
+          "pending_approval": "En attente",
+          "approved": "Approuvé",
+          "active": "Actif",
+          "amended": "Modifié",
+          "completed": "Terminé",
+          "cancelled": "Annulé"
+        },
+        "scheduleStates": {
+          "planned": "Planifié",
+          "cancelled": "Annulé",
+          "waived": "Dispensé"
+        },
+        "actions": {
+          "submit": "Soumettre",
+          "approve": "Approuver",
+          "activate": "Activer",
+          "cancel": "Annuler",
+          "cancelFuture": "Annuler échéances futures",
+          "submitSuccess": "Accord soumis.",
+          "approveSuccess": "Accord approuvé.",
+          "activateSuccess": "Accord activé.",
+          "cancelSuccess": "Accord annulé."
+        },
+        "confirmSubmit": "Soumettre cet accord ?",
+        "confirmApprove": "Approuver cet accord ?",
+        "confirmActivateShort": "Activer et créer les créances ?",
+        "confirmActivate": "Activer ? Net: {net}, échéances: {count}, payeur: {party}, année: {year}",
+        "confirmCancel": "Annuler cet accord ?",
+        "cancelFuture": {
+          "drawerTitle": "Annuler les échéances futures",
+          "drawerDesc": "Indiquez la date d'effet, la cible et le motif. Les soldes ne sont pas mis à jour localement.",
+          "effectiveDate": "Date d'effet",
+          "targetState": "Cible",
+          "targetCancelled": "Annuler",
+          "targetWaived": "Dispenser",
+          "reason": "Motif",
+          "continue": "Continuer",
+          "confirmBody": "Confirmer l'annulation des échéances futures avec :",
+          "confirmSubmit": "Confirmer l'envoi",
+          "success": "Échéances futures annulées.",
+          "errors": {
+            "dateRequired": "La date d'effet est requise.",
+            "reasonRequired": "Le motif est requis.",
+            "targetRequired": "Cible invalide."
+          }
+        },
+        "createDrawer": {
+          "title": "Créer / modifier accord",
+          "basicDesc": "Dates et payeur.",
+          "servicesDesc": "Ajouter des services.",
+          "previewDesc": "Aperçu sans création.",
+          "saveDesc": "Enregistrer ou générer le calendrier.",
+          "missingBilling": "Inscription, profil et payeur requis.",
+          "selectPartner": "Choisir payeur",
+          "service": "Service",
+          "selectService": "Choisir service",
+          "tariff": "Tarif",
+          "noTariff": "Sans tarif",
+          "addLine": "Ajouter ligne",
+          "lineAdded": "Ligne ajoutée.",
+          "discountType": "Type remise",
+          "discountNone": "Aucune",
+          "discountFixed": "Montant fixe",
+          "discountPercent": "Pourcentage",
+          "discountValue": "Valeur",
+          "discountReason": "Motif",
+          "generationMode": "Génération",
+          "runPreview": "Aperçu",
+          "previewTotal": "Total",
+          "savedDraft": "Brouillon enregistré.",
+          "scheduleGenerated": "Calendrier généré.",
+          "saveDraft": "Enregistrer brouillon",
+          "generateSchedule": "Générer calendrier",
+          "steps": {
+            "basic": "Base",
+            "services": "Services",
+            "discounts": "Remises",
+            "schedule": "Calendrier",
+            "preview": "Aperçu",
+            "save": "Enregistrer"
+          }
+        }
+      },
+      "financeOps": {
+        "pageTitle": "Finance",
+        "pageDescription": "Créances, encaissements, chèques et échéances.",
+        "emptyTitle": "Aucune créance pour l'instant.",
+        "emptyDescription": "Les soldes apparaîtront après activation ou création de frais.",
+        "totalDue": "Total dû",
+        "confirmedPaid": "Encaissé confirmé",
+        "pendingCheques": "Chèques en attente",
+        "remaining": "Reste dû",
+        "uncovered": "Non couvert",
+        "overdue": "En retard",
+        "installmentsTitle": "Échéances",
+        "installmentsDescription": "Échéances opérationnelles — statuts séparés.",
+        "noInstallments": "Aucune échéance.",
+        "hiddenFromParent": "Masqué au parent",
+        "recentCollectionsTitle": "Derniers encaissements",
+        "viewAllCollections": "Tous les encaissements",
+        "chequesTitle": "Chèques",
+        "subscriptionsTitle": "Abonnements",
+        "filters": {
+          "all": "Tous",
+          "paymentStatus": "Paiement",
+          "timingStatus": "Calendrier",
+          "service": "Service",
+          "dateFrom": "Du",
+          "dateTo": "Au",
+          "quickOverdueUnpaid": "Retard & non payé"
+        },
+        "paymentStatus": {
+          "unpaid": "Impayé",
+          "partially_paid": "Partiel",
+          "paid": "Payé"
+        },
+        "timingStatus": {
+          "hidden": "Masqué",
+          "upcoming": "À venir",
+          "due": "Échu",
+          "overdue": "En retard",
+          "not_applicable": "N/A"
+        },
+        "chequeLifecycle": {
+          "draft": "Brouillon",
+          "received": "Reçu",
+          "deposited": "Déposé",
+          "cleared": "Encaissé",
+          "bounced": "Rejeté",
+          "returned_to_payer": "Retourné",
+          "cancelled": "Annulé",
+          "replaced": "Remplacé"
+        },
+        "chequeMaturity": {
+          "not_due": "Non échu",
+          "due_today": "Échu aujourd'hui",
+          "overdue": "En retard",
+          "settled": "Réglé",
+          "not_applicable": "N/A"
+        },
+        "columns": {
+          "service": "Service",
+          "period": "Période",
+          "displayFrom": "Affichage",
+          "dueDate": "Échéance",
+          "amount": "Montant",
+          "paid": "Payé",
+          "pendingCheque": "Chèque pending",
+          "remaining": "Reste",
+          "status": "Statut"
+        },
+        "collections": {
+          "date": "Date",
+          "amount": "Montant",
+          "method": "Mode",
+          "journal": "Journal",
+          "payer": "Payeur",
+          "state": "Statut"
+        },
+        "cheques": {
+          "number": "N° chèque",
+          "bank": "Banque",
+          "amount": "Montant",
+          "received": "Reçu le",
+          "due": "Échéance",
+          "status": "Statut"
+        },
+        "subscriptions": {
+          "service": "Service",
+          "tariff": "Tarif",
+          "period": "Période",
+          "state": "Statut",
+          "pricing": "Tarification"
+        },
+        "serviceDetails": {
+          "subscriptionType": "Type d'abonnement",
+          "pricingUnit": "Unité de tarification",
+          "mealTypes": "Types de repas",
+          "unitsIncluded": "Unités incluses",
+          "extraUnitPrice": "Prix unitaire supplémentaire",
+          "groupingMethod": "Méthode de regroupement",
+          "line": "Ligne",
+          "zone": "Zone",
+          "direction": "Direction",
+          "pickupStop": "Arrêt montée",
+          "dropoffStop": "Arrêt descente",
+          "selectedDays": "Jours sélectionnés",
+          "pricingMethod": "Méthode de tarification"
+        },
+        "ref": {
+          "service_category": {
+            "registration": "Inscription",
+            "tuition": "Scolarité",
+            "transport": "Transport",
+            "canteen": "Cantine",
+            "meals": "Repas",
+            "activity": "Activité",
+            "other": "Autre"
+          },
+          "commitment_type": {
+            "fixed_contract": "Contrat annuel",
+            "renewable_subscription": "Abonnement",
+            "usage_based": "À l'usage",
+            "prepaid_package": "Forfait",
+            "one_time": "Unique"
+          },
+          "pricing_unit": {
+            "academic_year": "Par an",
+            "month": "Par mois",
+            "semester": "Par semestre",
+            "one_time": "Unique"
+          },
+          "billing_party_type": {
+            "guardian": "Responsable",
+            "student": "Élève",
+            "company": "Société",
+            "sponsor": "Sponsor",
+            "self": "Élève"
+          },
+          "schedule_generation_mode": {
+            "monthly": "Mensuel",
+            "weekly": "Hebdo",
+            "manual": "Manuel",
+            "custom": "Personnalisé"
+          },
+          "display_rule": {
+            "period_start": "Début période",
+            "due_date": "Échéance"
+          },
+          "first_period_policy": {
+            "full_period": "Période pleine",
+            "prorata": "Prorata"
+          },
+          "pricing_method": {
+            "flat": "Forfait",
+            "package": "Pack",
+            "usage": "Usage"
+          }
         }
       },
       "relationshipType": {

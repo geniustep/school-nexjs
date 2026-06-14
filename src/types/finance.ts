@@ -239,6 +239,12 @@ export interface FinanceReferenceData {
   academic_years?: AcademicYearReference[];
   payment_methods?: PaymentMethodReference[];
   currencies?: CurrencyReference[];
+  service_categories?: { value: string; label: string }[];
+  commitment_types?: { value: string; label: string }[];
+  pricing_units?: { value: string; label: string }[];
+  schedule_generation_modes?: { value: string; label: string }[];
+  display_rules?: { value: string; label: string }[];
+  first_period_policies?: { value: string; label: string }[];
 }
 
 export interface FinanceOverviewTotals {

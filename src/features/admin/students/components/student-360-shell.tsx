@@ -35,7 +35,8 @@ import { StudentEnrollmentTab } from './student-enrollment-tab';
 import { StudentGuardiansTab } from './student-guardians-tab';
 import { StudentDocumentsTab } from './student-documents-tab';
 import { StudentHealthTab } from './student-health-tab';
-import { StudentFinanceTab } from './student-finance-tab';
+import { StudentFinancialAgreementTab } from '@/features/admin/student-finance/components/student-financial-agreement-tab';
+import { StudentFinanceOperationsTab } from '@/features/admin/student-finance/components/student-finance-operations-tab';
 import { StudentForm } from './student-form';
 import type { StudentDetailsData } from '@/types/student-360';
 import '../student-360.css';
@@ -43,7 +44,7 @@ import '@/features/admin/academic-setup/academic-setup-ui.css';
 
 function Student360TabPageHeader({ tab }: { tab: Student360TabId }) {
   const t = useT();
-  if (tab === 'documents' || tab === 'finance') {
+  if (tab === 'documents' || tab === 'finance' || tab === 'financial-agreement') {
     return null;
   }
   return (
@@ -169,8 +170,8 @@ export function Student360Shell({ studentId }: { studentId: string }) {
                 onChanged={state.reload}
               />
             )}
-            {tab === 'finance' && showFinance && (
-              <StudentFinanceTab
+            {tab === 'financial-agreement' && showFinance && (
+              <StudentFinancialAgreementTab
                 studentId={s.id}
                 details={resolvedDetails}
                 capabilities={caps}
@@ -178,6 +179,14 @@ export function Student360Shell({ studentId }: { studentId: string }) {
                 onOpenGuardians={() =>
                   router.push(buildStudent360TabHref(studentId, 'guardians'), { scroll: false })
                 }
+              />
+            )}
+            {tab === 'finance' && showFinance && (
+              <StudentFinanceOperationsTab
+                studentId={s.id}
+                details={resolvedDetails}
+                capabilities={caps}
+                onChanged={state.reload}
               />
             )}
             {tab === 'health' && showHealth && (

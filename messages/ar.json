@@ -2371,7 +2371,8 @@
         "guardians": "أولياء الأمر",
         "documents": "الوثائق",
         "health": "الملف الصحي",
-        "finance": "المالية"
+        "finance": "المالية",
+        "financial-agreement": "الاتفاق المالي"
       },
       "breadcrumb": {
         "aria": "مسار التنقل داخل ملف التلميذ",
@@ -2394,7 +2395,11 @@
         },
         "finance": {
           "title": "المالية",
-          "description": "إدارة ملف الفوترة والرسوم والاستحقاقات والتحصيلات الخاصة بالتلميذ."
+          "description": "عرض المستحقات الفعلية والتحصيلات والشيكات والأقساط التشغيلية."
+        },
+        "financial-agreement": {
+          "title": "الاتفاق المالي",
+          "description": "ما اتفقت عليه المدرسة مع المسؤول عن الأداء: الخدمات والأسعار وجدول الأداء."
         },
         "health": {
           "title": "الملف الصحي",
@@ -2708,6 +2713,307 @@
         "errors": {
           "academic_year_not_found": "السنة الدراسية غير موجودة.",
           "academic_year_out_of_scope": "السنة الدراسية خارج نطاق المؤسسة النشطة."
+        }
+      },
+      "financialAgreement": {
+        "pageTitle": "الاتفاق المالي",
+        "pageDescription": "الاتفاق بين المدرسة والمسؤول عن الأداء: الخدمات والأسعار وجدول الأقساط.",
+        "create": "إنشاء اتفاق مالي",
+        "edit": "تعديل الاتفاق",
+        "emptyTitle": "لا يوجد اتفاق مالي لهذه السنة الدراسية.",
+        "emptyDescription": "أنشئ اتفاقًا ماليًا لتحديد الخدمات والأسعار وجدول الأداء.",
+        "billingPartyTitle": "المسؤول عن الأداء",
+        "linesTitle": "الخدمات وخطوط الاتفاق",
+        "noLines": "لم تُضف أي خدمة بعد.",
+        "scheduleTitle": "جدول الاتفاق",
+        "noSchedule": "لم يُنشأ جدول أداء بعد.",
+        "schedulePolicyTitle": "سياسة الجدول",
+        "openGuardians": "فتح أولياء الأمر",
+        "fields": {
+          "academicYear": "السنة الدراسية",
+          "number": "رقم الاتفاق",
+          "state": "حالة الاتفاق",
+          "agreementDate": "تاريخ الاتفاق",
+          "validity": "فترة الاتفاق",
+          "validFrom": "تاريخ البداية",
+          "validUntil": "تاريخ النهاية",
+          "billingParty": "المسؤول عن الأداء",
+          "partyType": "نوع جهة الأداء",
+          "relationship": "صلة القرابة",
+          "contact": "التواصل"
+        },
+        "summary": {
+          "gross": "المبلغ الإجمالي",
+          "discounts": "التخفيضات والتعديلات",
+          "net": "المبلغ المتفق عليه",
+          "installmentCount": "عدد الأقساط"
+        },
+        "columns": {
+          "service": "الخدمة",
+          "category": "الفئة",
+          "commitment": "طبيعة الالتزام",
+          "pricingUnit": "وحدة التسعير",
+          "period": "الفترة",
+          "quantity": "الكمية",
+          "unitPrice": "سعر الوحدة",
+          "gross": "الإجمالي",
+          "discount": "التخفيض",
+          "net": "الصافي"
+        },
+        "scheduleColumns": {
+          "period": "الفترة",
+          "displayFrom": "تاريخ الظهور",
+          "dueDate": "تاريخ الاستحقاق",
+          "amount": "المبلغ",
+          "state": "الحالة الإدارية"
+        },
+        "schedulePolicy": {
+          "generation": "طريقة إنشاء الجدول",
+          "display": "سياسة الظهور",
+          "dueDay": "يوم الاستحقاق",
+          "earlyPayment": "السماح بالأداء المسبق",
+          "firstPeriod": "سياسة الفترة الأولى"
+        },
+        "states": {
+          "draft": "مسودة",
+          "pending_approval": "بانتظار الاعتماد",
+          "approved": "معتمد",
+          "active": "نشط",
+          "amended": "معدّل",
+          "completed": "مكتمل",
+          "cancelled": "ملغى"
+        },
+        "scheduleStates": {
+          "planned": "مخطط",
+          "cancelled": "ملغى",
+          "waived": "معفى"
+        },
+        "actions": {
+          "submit": "إرسال للاعتماد",
+          "approve": "اعتماد",
+          "activate": "تفعيل",
+          "cancel": "إلغاء الاتفاق",
+          "cancelFuture": "إلغاء الأقساط المستقبلية",
+          "submitSuccess": "تم إرسال الاتفاق للاعتماد.",
+          "approveSuccess": "تم اعتماد الاتفاق.",
+          "activateSuccess": "تم تفعيل الاتفاق.",
+          "cancelSuccess": "تم إلغاء الاتفاق."
+        },
+        "confirmSubmit": "إرسال هذا الاتفاق للاعتماد؟",
+        "confirmApprove": "اعتماد هذا الاتفاق؟",
+        "confirmActivateShort": "تفعيل الاتفاق وإنشاء المستحقات التشغيلية؟",
+        "confirmActivate": "تفعيل الاتفاق؟\nالمبلغ الصافي: {net}\nعدد الأقساط: {count}\nالمسؤول: {party}\nالسنة: {year}\n\nسينشئ التفعيل الرسوم والأقساط التشغيلية.",
+        "confirmCancel": "إلغاء هذا الاتفاق؟",
+        "cancelFuture": {
+          "drawerTitle": "إلغاء الأقساط المستقبلية",
+          "drawerDesc": "حدّد تاريخ السريان والهدف والسبب. لن تُعدَّل الأرصدة محليًا.",
+          "effectiveDate": "تاريخ السريان",
+          "targetState": "الهدف",
+          "targetCancelled": "إلغاء",
+          "targetWaived": "إعفاء",
+          "reason": "السبب",
+          "continue": "متابعة",
+          "confirmBody": "تأكيد إلغاء الأقساط المستقبلية بالبيانات التالية:",
+          "confirmSubmit": "تأكيد الإرسال",
+          "success": "تم إلغاء الأقساط المستقبلية.",
+          "errors": {
+            "dateRequired": "تاريخ السريان مطلوب.",
+            "reasonRequired": "السبب مطلوب.",
+            "targetRequired": "الهدف غير صالح."
+          }
+        },
+        "createDrawer": {
+          "title": "إنشاء / تعديل اتفاق مالي",
+          "basicDesc": "حدّد التواريخ والمسؤول عن الأداء.",
+          "servicesDesc": "أضف الخدمات من الكتالوج.",
+          "previewDesc": "معاينة الجدول دون إنشاء سجلات.",
+          "saveDesc": "احفظ كمسودة أو ولّد جدول المسودة.",
+          "missingBilling": "يلزم تسجيل دراسي وملف فوترة ومسؤول عن الأداء.",
+          "selectPartner": "اختر المسؤول عن الأداء",
+          "service": "الخدمة",
+          "selectService": "اختر خدمة",
+          "tariff": "التعريفة",
+          "noTariff": "بدون تعريفة",
+          "addLine": "إضافة السطر",
+          "lineAdded": "تمت إضافة الخدمة.",
+          "discountType": "نوع التخفيض",
+          "discountNone": "بدون تخفيض",
+          "discountFixed": "مبلغ ثابت",
+          "discountPercent": "نسبة",
+          "discountValue": "قيمة التخفيض",
+          "discountReason": "سبب التخفيض",
+          "generationMode": "طريقة إنشاء الجدول",
+          "runPreview": "معاينة الجدول",
+          "previewTotal": "المجموع",
+          "savedDraft": "تم حفظ الاتفاق كمسودة.",
+          "scheduleGenerated": "تم توليد جدول المسودة.",
+          "saveDraft": "حفظ كمسودة",
+          "generateSchedule": "توليد جدول المسودة",
+          "steps": {
+            "basic": "البيانات الأساسية",
+            "services": "الخدمات",
+            "discounts": "التخفيضات",
+            "schedule": "سياسات الجدول",
+            "preview": "معاينة",
+            "save": "الحفظ"
+          }
+        }
+      },
+      "financeOps": {
+        "pageTitle": "المالية",
+        "pageDescription": "المستحقات الفعلية والتحصيلات والشيكات والأقساط التشغيلية.",
+        "emptyTitle": "لم تُنشأ مستحقات مالية بعد.",
+        "emptyDescription": "عند تفعيل اتفاق مالي أو إنشاء رسوم، ستظهر الأقساط والأرصدة هنا.",
+        "totalDue": "إجمالي المستحق",
+        "confirmedPaid": "المحصل فعليًا",
+        "pendingCheques": "شيكات قيد التحصيل",
+        "remaining": "المتبقي",
+        "uncovered": "غير المغطى",
+        "overdue": "المتأخر",
+        "installmentsTitle": "الأقساط",
+        "installmentsDescription": "الأقساط التشغيلية — حالة الأداء والحالة الزمنية منفصلتان.",
+        "noInstallments": "لا توجد أقساط مطابقة.",
+        "hiddenFromParent": "مخفي عن الولي",
+        "recentCollectionsTitle": "آخر التحصيلات",
+        "viewAllCollections": "كل التحصيلات",
+        "chequesTitle": "الشيكات",
+        "subscriptionsTitle": "اشتراكات الخدمات",
+        "filters": {
+          "all": "الكل",
+          "paymentStatus": "حالة الأداء",
+          "timingStatus": "الحالة الزمنية",
+          "service": "الخدمة",
+          "dateFrom": "من",
+          "dateTo": "إلى",
+          "quickOverdueUnpaid": "المتأخر وغير المؤدى بالكامل"
+        },
+        "paymentStatus": {
+          "unpaid": "غير مؤدى",
+          "partially_paid": "مؤدى جزئيًا",
+          "paid": "مؤدى"
+        },
+        "timingStatus": {
+          "hidden": "مخفي",
+          "upcoming": "قادم",
+          "due": "مستحق",
+          "overdue": "متأخر",
+          "not_applicable": "غير مطبق"
+        },
+        "chequeLifecycle": {
+          "draft": "مسودة",
+          "received": "مستلم",
+          "deposited": "مودع",
+          "cleared": "محصل",
+          "bounced": "مرتجع",
+          "returned_to_payer": "مُعاد للدافع",
+          "cancelled": "ملغى",
+          "replaced": "مستبدل"
+        },
+        "chequeMaturity": {
+          "not_due": "غير مستحق",
+          "due_today": "مستحق اليوم",
+          "overdue": "متأخر",
+          "settled": "مُسوّى",
+          "not_applicable": "غير مطبق"
+        },
+        "columns": {
+          "service": "الخدمة",
+          "period": "الفترة",
+          "displayFrom": "تاريخ الظهور",
+          "dueDate": "تاريخ الاستحقاق",
+          "amount": "المبلغ",
+          "paid": "المؤدى",
+          "pendingCheque": "شيك معلق",
+          "remaining": "المتبقي",
+          "status": "الحالة"
+        },
+        "collections": {
+          "date": "التاريخ",
+          "amount": "المبلغ",
+          "method": "الوسيلة",
+          "journal": "الدفتر / البنك",
+          "payer": "الدافع",
+          "state": "الحالة"
+        },
+        "cheques": {
+          "number": "رقم الشيك",
+          "bank": "البنك",
+          "amount": "المبلغ",
+          "received": "تاريخ الاستلام",
+          "due": "تاريخ الاستحقاق",
+          "status": "الحالة"
+        },
+        "subscriptions": {
+          "service": "الخدمة",
+          "tariff": "التعريفة",
+          "period": "الفترة",
+          "state": "الحالة",
+          "pricing": "طريقة التسعير"
+        },
+        "serviceDetails": {
+          "subscriptionType": "نوع الاشتراك",
+          "pricingUnit": "وحدة التسعير",
+          "mealTypes": "أنواع الوجبات",
+          "unitsIncluded": "الوحدات المشمولة",
+          "extraUnitPrice": "سعر الوحدة الإضافية",
+          "groupingMethod": "طريقة التجميع",
+          "line": "الخط",
+          "zone": "المنطقة",
+          "direction": "الاتجاه",
+          "pickupStop": "محطة الصعود",
+          "dropoffStop": "محطة النزول",
+          "selectedDays": "الأيام المختارة",
+          "pricingMethod": "طريقة التسعير"
+        },
+        "ref": {
+          "service_category": {
+            "registration": "التسجيل",
+            "tuition": "الدراسة",
+            "transport": "النقل",
+            "canteen": "المطعم",
+            "meals": "الوجبات",
+            "activity": "الأنشطة",
+            "other": "أخرى"
+          },
+          "commitment_type": {
+            "fixed_contract": "عقد سنوي",
+            "renewable_subscription": "اشتراك متجدد",
+            "usage_based": "حسب الاستعمال",
+            "prepaid_package": "باقة مسبقة",
+            "one_time": "مرة واحدة"
+          },
+          "pricing_unit": {
+            "academic_year": "للسنة",
+            "month": "للشهر",
+            "semester": "للفصل",
+            "one_time": "مرة واحدة"
+          },
+          "billing_party_type": {
+            "guardian": "ولي أمر",
+            "student": "تلميذ",
+            "company": "شركة",
+            "sponsor": "جهة راعية",
+            "self": "التلميذ"
+          },
+          "schedule_generation_mode": {
+            "monthly": "شهري",
+            "weekly": "أسبوعي",
+            "manual": "يدوي",
+            "custom": "مخصص"
+          },
+          "display_rule": {
+            "period_start": "بداية الفترة",
+            "due_date": "تاريخ الاستحقاق"
+          },
+          "first_period_policy": {
+            "full_period": "فترة كاملة",
+            "prorata": "تناسبي"
+          },
+          "pricing_method": {
+            "flat": "ثابت",
+            "package": "باقة",
+            "usage": "استهلاك"
+          }
         }
       },
       "relationshipType": {

@@ -2357,7 +2357,7 @@
     },
     "student360": {
       "tabsAria": "Secciones del expediente del alumno",
-      "tabs": { "overview": "Resumen", "enrollment": "Matrícula", "guardians": "Tutores", "documents": "Documentos", "health": "Salud", "finance": "Finanzas" },
+      "tabs": { "overview": "Resumen", "enrollment": "Matrícula", "guardians": "Tutores", "documents": "Documentos", "health": "Salud", "finance": "Finanzas", "financial-agreement": "Acuerdo financiero" },
       "breadcrumb": {
         "aria": "Navegación del perfil del alumno",
         "students": "Alumnos",
@@ -2368,7 +2368,8 @@
         "overview": { "title": "Resumen", "description": "Resumen de identidad, matrícula, familia y contacto." },
         "enrollment": { "title": "Matrícula", "description": "Consulte la matrícula actual y el historial académico." },
         "guardians": { "title": "Tutores y contactos", "description": "Gestione relaciones familiares y contactos." },
-        "finance": { "title": "Finanzas", "description": "Gestione facturación, tasas y cobros." },
+        "finance": { "title": "Finanzas", "description": "Deudas reales, cobros, cheques y cuotas operativas." },
+        "financial-agreement": { "title": "Acuerdo financiero", "description": "Lo acordado con el pagador: servicios, precios y calendario." },
         "health": { "title": "Perfil de salud", "description": "Consulte información de salud y emergencias." },
         "documents": { "title": "Documentos", "description": "Gestione documentos, adjuntos y vencimientos." }
       },
@@ -2675,6 +2676,307 @@
         "errors": {
           "academic_year_not_found": "Año académico no encontrado.",
           "academic_year_out_of_scope": "El año académico está fuera del ámbito de la escuela activa."
+        }
+      },
+      "financialAgreement": {
+        "pageTitle": "Acuerdo financiero",
+        "pageDescription": "Acuerdo entre el centro y el pagador.",
+        "create": "Crear acuerdo financiero",
+        "edit": "Editar acuerdo",
+        "emptyTitle": "No hay acuerdo financiero para este año.",
+        "emptyDescription": "Cree un acuerdo para definir servicios, precios y calendario.",
+        "billingPartyTitle": "Pagador",
+        "linesTitle": "Servicios y líneas",
+        "noLines": "Sin servicios añadidos.",
+        "scheduleTitle": "Calendario del acuerdo",
+        "noSchedule": "Sin calendario generado.",
+        "schedulePolicyTitle": "Política de calendario",
+        "openGuardians": "Abrir tutores",
+        "fields": {
+          "academicYear": "Año académico",
+          "number": "Nº acuerdo",
+          "state": "Estado",
+          "agreementDate": "Fecha acuerdo",
+          "validity": "Periodo",
+          "validFrom": "Inicio",
+          "validUntil": "Fin",
+          "billingParty": "Pagador",
+          "partyType": "Tipo pagador",
+          "relationship": "Parentesco",
+          "contact": "Contacto"
+        },
+        "summary": {
+          "gross": "Importe bruto",
+          "discounts": "Descuentos",
+          "net": "Importe acordado",
+          "installmentCount": "Número de cuotas"
+        },
+        "columns": {
+          "service": "Servicio",
+          "category": "Categoría",
+          "commitment": "Compromiso",
+          "pricingUnit": "Unidad",
+          "period": "Periodo",
+          "quantity": "Cant.",
+          "unitPrice": "Precio unitario",
+          "gross": "Bruto",
+          "discount": "Descuento",
+          "net": "Neto"
+        },
+        "scheduleColumns": {
+          "period": "Periodo",
+          "displayFrom": "Visible desde",
+          "dueDate": "Vencimiento",
+          "amount": "Importe",
+          "state": "Estado admin"
+        },
+        "schedulePolicy": {
+          "generation": "Modo generación",
+          "display": "Regla visualización",
+          "dueDay": "Día vencimiento",
+          "earlyPayment": "Pago anticipado",
+          "firstPeriod": "Primera periodo"
+        },
+        "states": {
+          "draft": "Borrador",
+          "pending_approval": "Pendiente",
+          "approved": "Aprobado",
+          "active": "Activo",
+          "amended": "Modificado",
+          "completed": "Completado",
+          "cancelled": "Cancelado"
+        },
+        "scheduleStates": {
+          "planned": "Planificado",
+          "cancelled": "Cancelado",
+          "waived": "Exonerado"
+        },
+        "actions": {
+          "submit": "Enviar",
+          "approve": "Aprobar",
+          "activate": "Activar",
+          "cancel": "Cancelar",
+          "cancelFuture": "Cancelar cuotas futuras",
+          "submitSuccess": "Acuerdo enviado.",
+          "approveSuccess": "Acuerdo aprobado.",
+          "activateSuccess": "Acuerdo activado.",
+          "cancelSuccess": "Acuerdo cancelado."
+        },
+        "confirmSubmit": "¿Enviar este acuerdo?",
+        "confirmApprove": "¿Aprobar este acuerdo?",
+        "confirmActivateShort": "¿Activar y crear deudas?",
+        "confirmActivate": "¿Activar? Neto: {net}, cuotas: {count}, pagador: {party}, año: {year}",
+        "confirmCancel": "¿Cancelar este acuerdo?",
+        "cancelFuture": {
+          "drawerTitle": "Cancelar cuotas futuras",
+          "drawerDesc": "Indique la fecha efectiva, el objetivo y el motivo. Los saldos no se actualizan localmente.",
+          "effectiveDate": "Fecha efectiva",
+          "targetState": "Objetivo",
+          "targetCancelled": "Cancelar",
+          "targetWaived": "Eximir",
+          "reason": "Motivo",
+          "continue": "Continuar",
+          "confirmBody": "Confirmar la cancelación de cuotas futuras con:",
+          "confirmSubmit": "Confirmar envío",
+          "success": "Cuotas futuras canceladas.",
+          "errors": {
+            "dateRequired": "La fecha efectiva es obligatoria.",
+            "reasonRequired": "El motivo es obligatorio.",
+            "targetRequired": "Objetivo no válido."
+          }
+        },
+        "createDrawer": {
+          "title": "Crear / editar acuerdo",
+          "basicDesc": "Fechas y pagador.",
+          "servicesDesc": "Añadir servicios.",
+          "previewDesc": "Vista previa sin crear registros.",
+          "saveDesc": "Guardar o generar calendario.",
+          "missingBilling": "Matrícula, perfil y pagador requeridos.",
+          "selectPartner": "Elegir pagador",
+          "service": "Servicio",
+          "selectService": "Elegir servicio",
+          "tariff": "Tarifa",
+          "noTariff": "Sin tarifa",
+          "addLine": "Añadir línea",
+          "lineAdded": "Línea añadida.",
+          "discountType": "Tipo descuento",
+          "discountNone": "Ninguno",
+          "discountFixed": "Importe fijo",
+          "discountPercent": "Porcentaje",
+          "discountValue": "Valor",
+          "discountReason": "Motivo",
+          "generationMode": "Generación",
+          "runPreview": "Vista previa",
+          "previewTotal": "Total",
+          "savedDraft": "Borrador guardado.",
+          "scheduleGenerated": "Calendario generado.",
+          "saveDraft": "Guardar borrador",
+          "generateSchedule": "Generar calendario",
+          "steps": {
+            "basic": "Básico",
+            "services": "Servicios",
+            "discounts": "Descuentos",
+            "schedule": "Calendario",
+            "preview": "Vista previa",
+            "save": "Guardar"
+          }
+        }
+      },
+      "financeOps": {
+        "pageTitle": "Finanzas",
+        "pageDescription": "Deudas, cobros, cheques y cuotas.",
+        "emptyTitle": "Sin deudas financieras aún.",
+        "emptyDescription": "Los saldos aparecerán tras activar un acuerdo o crear tasas.",
+        "totalDue": "Total debido",
+        "confirmedPaid": "Cobrado confirmado",
+        "pendingCheques": "Cheques pendientes",
+        "remaining": "Pendiente",
+        "uncovered": "No cubierto",
+        "overdue": "Vencido",
+        "installmentsTitle": "Cuotas",
+        "installmentsDescription": "Cuotas operativas — estados separados.",
+        "noInstallments": "Sin cuotas.",
+        "hiddenFromParent": "Oculto al tutor",
+        "recentCollectionsTitle": "Últimos cobros",
+        "viewAllCollections": "Todos los cobros",
+        "chequesTitle": "Cheques",
+        "subscriptionsTitle": "Suscripciones",
+        "filters": {
+          "all": "Todos",
+          "paymentStatus": "Pago",
+          "timingStatus": "Calendario",
+          "service": "Servicio",
+          "dateFrom": "Desde",
+          "dateTo": "Hasta",
+          "quickOverdueUnpaid": "Vencido e impagado"
+        },
+        "paymentStatus": {
+          "unpaid": "Impagado",
+          "partially_paid": "Parcial",
+          "paid": "Pagado"
+        },
+        "timingStatus": {
+          "hidden": "Oculto",
+          "upcoming": "Próximo",
+          "due": "Vencido",
+          "overdue": "Atrasado",
+          "not_applicable": "N/A"
+        },
+        "chequeLifecycle": {
+          "draft": "Borrador",
+          "received": "Recibido",
+          "deposited": "Depositado",
+          "cleared": "Cobrado",
+          "bounced": "Rechazado",
+          "returned_to_payer": "Devuelto",
+          "cancelled": "Cancelado",
+          "replaced": "Reemplazado"
+        },
+        "chequeMaturity": {
+          "not_due": "No vencido",
+          "due_today": "Vence hoy",
+          "overdue": "Atrasado",
+          "settled": "Liquidado",
+          "not_applicable": "N/A"
+        },
+        "columns": {
+          "service": "Servicio",
+          "period": "Periodo",
+          "displayFrom": "Visible desde",
+          "dueDate": "Vencimiento",
+          "amount": "Importe",
+          "paid": "Pagado",
+          "pendingCheque": "Cheque pendiente",
+          "remaining": "Resto",
+          "status": "Estado"
+        },
+        "collections": {
+          "date": "Fecha",
+          "amount": "Importe",
+          "method": "Método",
+          "journal": "Diario",
+          "payer": "Pagador",
+          "state": "Estado"
+        },
+        "cheques": {
+          "number": "Nº cheque",
+          "bank": "Banco",
+          "amount": "Importe",
+          "received": "Recibido",
+          "due": "Vencimiento",
+          "status": "Estado"
+        },
+        "subscriptions": {
+          "service": "Servicio",
+          "tariff": "Tarifa",
+          "period": "Periodo",
+          "state": "Estado",
+          "pricing": "Tarificación"
+        },
+        "serviceDetails": {
+          "subscriptionType": "Tipo de suscripción",
+          "pricingUnit": "Unidad de precio",
+          "mealTypes": "Tipos de comida",
+          "unitsIncluded": "Unidades incluidas",
+          "extraUnitPrice": "Precio unitario extra",
+          "groupingMethod": "Método de agrupación",
+          "line": "Línea",
+          "zone": "Zona",
+          "direction": "Dirección",
+          "pickupStop": "Parada de subida",
+          "dropoffStop": "Parada de bajada",
+          "selectedDays": "Días seleccionados",
+          "pricingMethod": "Método de precio"
+        },
+        "ref": {
+          "service_category": {
+            "registration": "Matrícula",
+            "tuition": "Enseñanza",
+            "transport": "Transporte",
+            "canteen": "Comedor",
+            "meals": "Comidas",
+            "activity": "Actividad",
+            "other": "Otro"
+          },
+          "commitment_type": {
+            "fixed_contract": "Contrato anual",
+            "renewable_subscription": "Suscripción",
+            "usage_based": "Por uso",
+            "prepaid_package": "Paquete",
+            "one_time": "Único"
+          },
+          "pricing_unit": {
+            "academic_year": "Por año",
+            "month": "Por mes",
+            "semester": "Por semestre",
+            "one_time": "Único"
+          },
+          "billing_party_type": {
+            "guardian": "Tutor",
+            "student": "Alumno",
+            "company": "Empresa",
+            "sponsor": "Patrocinador",
+            "self": "Alumno"
+          },
+          "schedule_generation_mode": {
+            "monthly": "Mensual",
+            "weekly": "Semanal",
+            "manual": "Manual",
+            "custom": "Personalizado"
+          },
+          "display_rule": {
+            "period_start": "Inicio periodo",
+            "due_date": "Vencimiento"
+          },
+          "first_period_policy": {
+            "full_period": "Periodo completo",
+            "prorata": "Prorrateo"
+          },
+          "pricing_method": {
+            "flat": "Fijo",
+            "package": "Paquete",
+            "usage": "Uso"
+          }
         }
       },
       "relationshipType": {
