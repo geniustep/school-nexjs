@@ -2043,7 +2043,7 @@
     "studentInvalidParents": "Vérifiez la sélection des parents.",
     "student360": {
       "tabsAria": "Sections du dossier élève",
-      "tabs": { "overview": "Aperçu", "enrollment": "Inscription", "guardians": "Responsables", "documents": "Documents", "health": "Santé" },
+      "tabs": { "overview": "Aperçu", "enrollment": "Inscription", "guardians": "Responsables", "documents": "Documents", "health": "Santé", "finance": "Finance" },
       "sections": {
         "basic": "Informations de base",
         "enrollment": "Inscription",
@@ -2246,6 +2246,47 @@
           "invalidBloodType": "Groupe sanguin invalide.",
           "invalidInsuranceExpiry": "Date d'expiration d'assurance invalide.",
           "notFound": "Dossier santé introuvable."
+        }
+      },
+      "finance": {
+        "summaryTitle": "Résumé financier",
+        "viewDetails": "Voir les détails financiers",
+        "openTab": "Ouvrir la finance",
+        "summarySection": "Résumé financier",
+        "billingSection": "Profil de facturation et responsable financier",
+        "feesSection": "Frais et créances",
+        "paymentsSection": "Encaissements et paiements",
+        "academicYear": "Année scolaire",
+        "totalAssessed": "Total facturé",
+        "totalDiscount": "Remises",
+        "totalPaid": "Payé",
+        "totalOutstanding": "Restant dû",
+        "totalOverdue": "En retard",
+        "nextDueDate": "Prochaine échéance",
+        "overdueAlert": "Des montants en retard de {amount}",
+        "billingProfile": "Profil de facturation",
+        "billingPartyType": "Type de partie facturée",
+        "effectiveFrom": "Effectif à partir du",
+        "effectiveTo": "Effectif jusqu'au",
+        "financialResponsible": "Responsable financier",
+        "responsibleMismatch": "Le responsable financier de la relation tuteur ne correspond pas à la partie facturée actuelle.",
+        "feeDetails": "Détails du frais",
+        "recordPayment": "Enregistrer un paiement",
+        "assignFeePlan": "Attribuer un plan de frais",
+        "receipt": "Reçu",
+        "openReceipt": "Ouvrir le reçu",
+        "collector": "Encaisseur",
+        "noFeesOrCharges": "Aucun frais ni créance financière n'est enregistré pour cet élève pour l'année sélectionnée.",
+        "noFeesAssignHint": "Vous pouvez attribuer un plan de frais à cet élève.",
+        "noFees": "Aucun frais n'est attribué à cet élève pour l'année sélectionnée.",
+        "noPayments": "Aucun encaissement n'est enregistré pour cet élève.",
+        "noBillingProfile": "Aucun profil de facturation n'a été configuré pour cet élève.",
+        "noFinancialResponsible": "Aucun responsable financier n'a été désigné.",
+        "forbidden": "Vous n'avez pas la permission de consulter les données financières.",
+        "forbiddenDesc": "Contactez un administrateur si vous avez besoin d'accéder aux soldes des élèves.",
+        "errors": {
+          "academic_year_not_found": "Année scolaire introuvable.",
+          "academic_year_out_of_scope": "L'année scolaire est hors du périmètre de l'établissement actif."
         }
       },
       "relationshipType": {

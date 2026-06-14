@@ -14,6 +14,7 @@ import {
   canManageStudentDocuments,
   canManageStudentHealth,
   canViewStudentDocuments,
+  canViewStudentFinance,
   canViewStudentHealth,
   resolveStudentCapabilities,
 } from '../utils/resolve-capabilities';
@@ -23,11 +24,12 @@ import { StudentEnrollmentTab } from './student-enrollment-tab';
 import { StudentGuardiansTab } from './student-guardians-tab';
 import { StudentDocumentsTab } from './student-documents-tab';
 import { StudentHealthTab } from './student-health-tab';
+import { StudentFinanceTab } from './student-finance-tab';
 import { StudentForm } from './student-form';
 import type { StudentDetailsData } from '@/types/student-360';
 import '../student-360.css';
 
-type TabId = 'overview' | 'enrollment' | 'guardians' | 'documents' | 'health';
+type TabId = 'overview' | 'enrollment' | 'guardians' | 'documents' | 'health' | 'finance';
 
 export function Student360Shell({ studentId }: { studentId: string }) {
   const t = useT();
@@ -51,6 +53,7 @@ export function Student360Shell({ studentId }: { studentId: string }) {
   const archived = (s.status as string) === 'archived';
   const showDocuments = canViewStudentDocuments(caps);
   const showHealth = canViewStudentHealth(caps);
+  const showFinance = canViewStudentFinance(caps);
 
   const tabOptions: { value: TabId; label: string }[] = [
     { value: 'overview', label: t('admin.student360.tabs.overview') },
@@ -62,6 +65,9 @@ export function Student360Shell({ studentId }: { studentId: string }) {
   }
   if (showHealth) {
     tabOptions.push({ value: 'health', label: t('admin.student360.tabs.health') });
+  }
+  if (showFinance) {
+    tabOptions.push({ value: 'finance', label: t('admin.student360.tabs.finance') });
   }
 
   return (
@@ -114,6 +120,7 @@ export function Student360Shell({ studentId }: { studentId: string }) {
               canManage={caps.can_manage}
               showDocuments={showDocuments}
               showHealth={showHealth}
+              showFinance={showFinance}
               onOpenTab={setTab}
               onAccountChanged={state.reload}
             />
@@ -138,6 +145,15 @@ export function Student360Shell({ studentId }: { studentId: string }) {
               studentId={s.id}
               canManage={canManageStudentHealth(caps)}
               onChanged={state.reload}
+            />
+          )}
+          {tab === 'finance' && showFinance && (
+            <StudentFinanceTab
+              studentId={s.id}
+              details={details}
+              capabilities={caps}
+              onChanged={state.reload}
+              onOpenGuardians={() => setTab('guardians')}
             />
           )}
         </>

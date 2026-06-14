@@ -9,6 +9,7 @@ import { getStudentDisplayName } from '@/lib/utils/student';
 import { displayCountryState } from '../utils/student-profile';
 import { studentClassLabel, studentLevelLabel, refOrStringLabel } from '../utils/student-academic-labels';
 import { isRelationshipActive } from '../utils/relationship-types';
+import { StudentFinanceOverviewCard } from './student-finance-overview-card';
 import type { StudentDetailsData } from '@/types/student-360';
 
 function dash(t: (k: string) => string, value: string | null | undefined): string {
@@ -20,6 +21,7 @@ export function StudentOverviewTab({
   canManage,
   showDocuments = false,
   showHealth = false,
+  showFinance = false,
   onOpenTab,
   onAccountChanged,
 }: {
@@ -27,7 +29,8 @@ export function StudentOverviewTab({
   canManage: boolean;
   showDocuments?: boolean;
   showHealth?: boolean;
-  onOpenTab?: (tab: 'documents' | 'health') => void;
+  showFinance?: boolean;
+  onOpenTab?: (tab: 'documents' | 'health' | 'finance') => void;
   onAccountChanged: () => void;
 }) {
   const t = useT();
@@ -239,6 +242,13 @@ export function StudentOverviewTab({
             ]}
           />
         </Card>
+      ) : null}
+
+      {showFinance && details.finance_summary ? (
+        <StudentFinanceOverviewCard
+          summary={details.finance_summary}
+          onOpenFinance={onOpenTab ? () => onOpenTab('finance') : undefined}
+        />
       ) : null}
 
       <Card>

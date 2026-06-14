@@ -2043,7 +2043,7 @@
     "studentInvalidParents": "Please select valid parents.",
     "student360": {
       "tabsAria": "Student profile sections",
-      "tabs": { "overview": "Overview", "enrollment": "Enrollment", "guardians": "Guardians", "documents": "Documents", "health": "Health" },
+      "tabs": { "overview": "Overview", "enrollment": "Enrollment", "guardians": "Guardians", "documents": "Documents", "health": "Health", "finance": "Finance" },
       "sections": {
         "basic": "Basic information",
         "enrollment": "Enrollment",
@@ -2246,6 +2246,47 @@
           "invalidBloodType": "Invalid blood type.",
           "invalidInsuranceExpiry": "Invalid insurance expiry date.",
           "notFound": "Health profile not found."
+        }
+      },
+      "finance": {
+        "summaryTitle": "Financial summary",
+        "viewDetails": "View financial details",
+        "openTab": "Open finance",
+        "summarySection": "Financial summary",
+        "billingSection": "Billing profile & financial responsible",
+        "feesSection": "Fees & receivables",
+        "paymentsSection": "Collections & payments",
+        "academicYear": "Academic year",
+        "totalAssessed": "Total assessed",
+        "totalDiscount": "Discounts",
+        "totalPaid": "Paid",
+        "totalOutstanding": "Outstanding",
+        "totalOverdue": "Overdue",
+        "nextDueDate": "Next due date",
+        "overdueAlert": "There are overdue amounts of {amount}",
+        "billingProfile": "Billing profile",
+        "billingPartyType": "Billing party type",
+        "effectiveFrom": "Effective from",
+        "effectiveTo": "Effective to",
+        "financialResponsible": "Financial responsible",
+        "responsibleMismatch": "The financial responsible on the guardian relationship does not match the current billing party.",
+        "feeDetails": "Fee details",
+        "recordPayment": "Record payment",
+        "assignFeePlan": "Assign fee plan",
+        "receipt": "Receipt",
+        "openReceipt": "Open receipt",
+        "collector": "Collector",
+        "noFeesOrCharges": "No fees or financial charges are recorded for this student in the selected year.",
+        "noFeesAssignHint": "You can assign a fee plan to this student.",
+        "noFees": "No fees are assigned to this student for the selected year.",
+        "noPayments": "No payment collections are recorded for this student.",
+        "noBillingProfile": "No billing profile has been set up for this student.",
+        "noFinancialResponsible": "No financial responsible has been assigned.",
+        "forbidden": "You do not have permission to view financial data.",
+        "forbiddenDesc": "Contact an administrator if you need access to student balances.",
+        "errors": {
+          "academic_year_not_found": "Academic year not found.",
+          "academic_year_out_of_scope": "Academic year is outside the active school scope."
         }
       },
       "relationshipType": {

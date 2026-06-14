@@ -74,6 +74,56 @@
   font-weight: 600;
 }
 
+.student-finance-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 140px), 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.student-finance-summary-card {
+  text-align: center;
+  padding: 12px;
+}
+
+.student-finance-summary-value {
+  display: block;
+  font-size: 1.35rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.student-finance-alert {
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  border-radius: 6px;
+  background: var(--warning-bg, #fff7ed);
+  border: 1px solid var(--warning-border, #fed7aa);
+  color: var(--warning-text, #9a3412);
+}
+
+.student-finance-year-select {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: min(100%, 220px);
+}
+
+.student-finance-tab .detail-list {
+  margin-top: 8px;
+}
+
+@media (max-width: 640px) {
+  .student-finance-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .student-finance-summary-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 .student-doc-list {
   display: flex;
   flex-direction: column;

@@ -2051,7 +2051,8 @@
         "enrollment": "التسجيل الدراسي",
         "guardians": "أولياء الأمر",
         "documents": "الوثائق",
-        "health": "الملف الصحي"
+        "health": "الملف الصحي",
+        "finance": "المالية"
       },
       "sections": {
         "basic": "المعلومات الأساسية",
@@ -2255,6 +2256,47 @@
           "invalidBloodType": "فصيلة دم غير صالحة.",
           "invalidInsuranceExpiry": "تاريخ انتهاء التأمين غير صالح.",
           "notFound": "الملف الصحي غير موجود."
+        }
+      },
+      "finance": {
+        "summaryTitle": "ملخص مالي",
+        "viewDetails": "عرض التفاصيل المالية",
+        "openTab": "فتح المالية",
+        "summarySection": "الملخص المالي",
+        "billingSection": "ملف الفوترة والمسؤول المالي",
+        "feesSection": "الرسوم والاستحقاقات",
+        "paymentsSection": "التحصيلات والأداءات",
+        "academicYear": "السنة الدراسية",
+        "totalAssessed": "إجمالي الرسوم",
+        "totalDiscount": "التخفيضات",
+        "totalPaid": "المؤدى",
+        "totalOutstanding": "المتبقي",
+        "totalOverdue": "المتأخر",
+        "nextDueDate": "الاستحقاق القادم",
+        "overdueAlert": "توجد مبالغ متأخرة بقيمة {amount}",
+        "billingProfile": "ملف الفوترة",
+        "billingPartyType": "نوع جهة الفوترة",
+        "effectiveFrom": "تاريخ البداية",
+        "effectiveTo": "تاريخ النهاية",
+        "financialResponsible": "المسؤول المالي",
+        "responsibleMismatch": "المسؤول المالي المحدد في علاقة ولي الأمر لا يطابق جهة الفوترة الحالية.",
+        "feeDetails": "تفاصيل الرسم",
+        "recordPayment": "تسجيل أداء",
+        "assignFeePlan": "إسناد خطة رسوم",
+        "receipt": "الإيصال",
+        "openReceipt": "فتح الإيصال",
+        "collector": "المحصل",
+        "noFeesOrCharges": "لا توجد رسوم أو استحقاقات مالية مسجلة لهذا التلميذ في السنة المحددة.",
+        "noFeesAssignHint": "يمكنك إسناد خطة رسوم لهذا التلميذ.",
+        "noFees": "لا توجد رسوم مسندة لهذا التلميذ في السنة المحددة.",
+        "noPayments": "لا توجد عمليات أداء مسجلة لهذا التلميذ.",
+        "noBillingProfile": "لم يتم إعداد ملف فوترة لهذا التلميذ.",
+        "noFinancialResponsible": "لم يتم تعيين مسؤول مالي.",
+        "forbidden": "لا تملك صلاحية عرض البيانات المالية.",
+        "forbiddenDesc": "تواصل مع المسؤول إذا كنت تحتاج صلاحية عرض الرصيد المالي.",
+        "errors": {
+          "academic_year_not_found": "السنة الدراسية غير موجودة.",
+          "academic_year_out_of_scope": "السنة الدراسية خارج نطاق المؤسسة النشطة."
         }
       },
       "relationshipType": {

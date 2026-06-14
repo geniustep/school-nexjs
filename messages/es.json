@@ -2043,7 +2043,7 @@
     "studentInvalidParents": "Compruebe que ha seleccionado padres válidos.",
     "student360": {
       "tabsAria": "Secciones del expediente del alumno",
-      "tabs": { "overview": "Resumen", "enrollment": "Matrícula", "guardians": "Tutores", "documents": "Documentos", "health": "Salud" },
+      "tabs": { "overview": "Resumen", "enrollment": "Matrícula", "guardians": "Tutores", "documents": "Documentos", "health": "Salud", "finance": "Finanzas" },
       "sections": {
         "basic": "Información básica",
         "enrollment": "Matrícula",
@@ -2246,6 +2246,47 @@
           "invalidBloodType": "Grupo sanguíneo no válido.",
           "invalidInsuranceExpiry": "Fecha de caducidad del seguro no válida.",
           "notFound": "Perfil de salud no encontrado."
+        }
+      },
+      "finance": {
+        "summaryTitle": "Resumen financiero",
+        "viewDetails": "Ver detalles financieros",
+        "openTab": "Abrir finanzas",
+        "summarySection": "Resumen financiero",
+        "billingSection": "Perfil de facturación y responsable financiero",
+        "feesSection": "Cuotas y adeudos",
+        "paymentsSection": "Cobros y pagos",
+        "academicYear": "Año académico",
+        "totalAssessed": "Total evaluado",
+        "totalDiscount": "Descuentos",
+        "totalPaid": "Pagado",
+        "totalOutstanding": "Pendiente",
+        "totalOverdue": "Vencido",
+        "nextDueDate": "Próximo vencimiento",
+        "overdueAlert": "Hay importes vencidos por {amount}",
+        "billingProfile": "Perfil de facturación",
+        "billingPartyType": "Tipo de parte facturada",
+        "effectiveFrom": "Vigente desde",
+        "effectiveTo": "Vigente hasta",
+        "financialResponsible": "Responsable financiero",
+        "responsibleMismatch": "El responsable financiero de la relación con el tutor no coincide con la parte facturada actual.",
+        "feeDetails": "Detalles de la cuota",
+        "recordPayment": "Registrar pago",
+        "assignFeePlan": "Asignar plan de cuotas",
+        "receipt": "Recibo",
+        "openReceipt": "Abrir recibo",
+        "collector": "Cobrador",
+        "noFeesOrCharges": "No hay cuotas ni adeudos financieros registrados para este alumno en el año seleccionado.",
+        "noFeesAssignHint": "Puede asignar un plan de cuotas a este alumno.",
+        "noFees": "No hay cuotas asignadas a este alumno para el año seleccionado.",
+        "noPayments": "No hay cobros registrados para este alumno.",
+        "noBillingProfile": "No se ha configurado un perfil de facturación para este alumno.",
+        "noFinancialResponsible": "No se ha asignado un responsable financiero.",
+        "forbidden": "No tiene permiso para ver datos financieros.",
+        "forbiddenDesc": "Contacte a un administrador si necesita acceso a los saldos de los alumnos.",
+        "errors": {
+          "academic_year_not_found": "Año académico no encontrado.",
+          "academic_year_out_of_scope": "El año académico está fuera del ámbito de la escuela activa."
         }
       },
       "relationshipType": {
