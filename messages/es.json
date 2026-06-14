@@ -3343,6 +3343,7 @@
         "successTitle": "Cobro registrado",
         "successBody": "El cobro se creó correctamente.",
         "successToast": "Cobro registrado.",
+        "viewCollection": "Ver cobro",
         "chequePendingNote": "El cheque queda pendiente y no cuenta como cobrado confirmado hasta su compensación.",
         "chequeDatesHelp": "Fecha de recepción, fecha escrita y vencimiento son distintas.",
         "chequeBranch": "Sucursal",

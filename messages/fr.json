@@ -3343,6 +3343,7 @@
         "successTitle": "Encaissement enregistré",
         "successBody": "L'encaissement a été créé avec succès.",
         "successToast": "Encaissement enregistré.",
+        "viewCollection": "Voir l'encaissement",
         "chequePendingNote": "Le chèque est en attente et n'est pas compté comme encaissé confirmé tant qu'il n'est pas encaissé.",
         "chequeDatesHelp": "Date de réception, date inscrite et date d'échéance sont distinctes.",
         "chequeBranch": "Agence",

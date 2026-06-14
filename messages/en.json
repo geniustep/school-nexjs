@@ -3382,6 +3382,7 @@
         "successTitle": "Collection recorded",
         "successBody": "The payment collection was created successfully.",
         "successToast": "Collection recorded.",
+        "viewCollection": "View collection",
         "chequePendingNote": "The cheque is pending collection and is not counted as confirmed paid until cleared.",
         "chequeDatesHelp": "Received date, written date, and maturity date are separate.",
         "chequeBranch": "Branch",

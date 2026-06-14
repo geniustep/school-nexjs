@@ -202,7 +202,27 @@
 }
 
 .finance-collection-new-page {
-  max-width: 920px;
+  max-width: min(100%, 880px);
+  margin-inline: auto;
+}
+
+.finance-collection-new-page .finance-collection-workflow.card {
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+.finance-collection-workflow__success-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.finance-collection-workflow__success-panel .detail-list {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 8px;
+  background: var(--surface-2, #f8fafc);
 }
 
 .finance-collection-workflow__section-title {

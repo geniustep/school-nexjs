@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
 import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
@@ -91,11 +90,8 @@ export function CollectionWorkflowForm({
         <h3>{t('admin.finance.recordCollection')}</h3>
         <p>{t('admin.finance.noPaymentJournalDesc')}</p>
         <div className="row form-actions">
-          <Link href="/admin/finance/collections" className="btn btn--ghost">
-            {t('admin.finance.backToCollections')}
-          </Link>
           <button type="button" className="btn btn--ghost" onClick={onCancel}>
-            {t('common.cancel')}
+            {t('common.back')}
           </button>
         </div>
       </div>
@@ -150,7 +146,7 @@ function CollectionWorkflowFormReady({
   const [billingPartnerId, setBillingPartnerId] = useState('');
   const [amount, setAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
-  const [collectionDate, setCollectionDate] = useState('');
+  const [collectionDate, setCollectionDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [reference, setReference] = useState('');
   const [notes, setNotes] = useState('');
   const [allocationFeeId, setAllocationFeeId] = useState('');
@@ -347,7 +343,9 @@ function CollectionWorkflowFormReady({
     }
     setCreatedCollection(res.data);
     setStep('success');
-    onDone(res.data);
+    if (embedded) {
+      onDone(res.data);
+    }
   }
 
   function onPaymentContinue(e: React.FormEvent) {
@@ -366,7 +364,7 @@ function CollectionWorkflowFormReady({
 
   if (step === 'success' && createdCollection) {
     return (
-      <div className={wrapperClass}>
+      <div className={`${wrapperClass} finance-collection-workflow__success-panel`}>
         {pageMode ? <CollectionWorkflowSteps step={step} showAllocation={showAllocationStep} /> : null}
         <h3>{t('admin.finance.collectionWorkflow.successTitle')}</h3>
         <p>{t('admin.finance.collectionWorkflow.successBody')}</p>
@@ -394,9 +392,24 @@ function CollectionWorkflowFormReady({
           <p className="finance-cheque-pending-note">{t('admin.finance.collectionWorkflow.chequePendingNote')}</p>
         ) : null}
         <div className="row form-actions">
-          <button type="button" className="btn btn--primary btn--sm" onClick={onCancel}>
-            {t('common.close')}
-          </button>
+          {pageMode ? (
+            <>
+              <button
+                type="button"
+                className="btn btn--primary btn--sm"
+                onClick={() => onDone(createdCollection)}
+              >
+                {t('admin.finance.collectionWorkflow.viewCollection')}
+              </button>
+              <button type="button" className="btn btn--ghost btn--sm" onClick={onCancel}>
+                {t('admin.finance.backToCollections')}
+              </button>
+            </>
+          ) : (
+            <button type="button" className="btn btn--primary btn--sm" onClick={() => onDone(createdCollection)}>
+              {t('common.close')}
+            </button>
+          )}
         </div>
       </div>
     );
@@ -502,12 +515,18 @@ function CollectionWorkflowFormReady({
   return (
     <form className={wrapperClass} onSubmit={onPaymentContinue}>
       {pageMode ? <CollectionWorkflowSteps step={step} showAllocation={showAllocationStep} /> : null}
-      <h3 className={pageMode ? 'finance-collection-workflow__section-title' : undefined}>
-        {t('admin.finance.recordCollection')}
-      </h3>
-      <p className={`muted${pageMode ? ' finance-collection-workflow__intro' : ''}`}>
-        {t('admin.finance.collectionWorkflow.paymentStepDesc')}
-      </p>
+      {!pageMode ? (
+        <>
+          <h3 className="finance-collection-workflow__section-title">{t('admin.finance.recordCollection')}</h3>
+          <p className="muted finance-collection-workflow__intro">
+            {t('admin.finance.collectionWorkflow.paymentStepDesc')}
+          </p>
+        </>
+      ) : (
+        <p className="muted finance-collection-workflow__intro">
+          {t('admin.finance.collectionWorkflow.paymentStepDesc')}
+        </p>
+      )}
       {error ? <p className="form-error">{error}</p> : null}
 
       {!selectedStudent ? (
