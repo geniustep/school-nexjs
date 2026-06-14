@@ -124,3 +124,56 @@
   color: var(--color-warning, #b54708);
 }
 
+.confirmation-dialog__body {
+  white-space: pre-wrap;
+}
+
+.confirmation-dialog__actions {
+  margin-top: 12px;
+  gap: 8px;
+}
+
+.finance-collection-workflow .finance-allocation-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.finance-allocation-list {
+  display: grid;
+  gap: 10px;
+}
+
+.finance-allocation-row {
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.finance-allocation-row.is-disabled {
+  opacity: 0.65;
+}
+
+.finance-allocation-row__main,
+.finance-allocation-row__amounts {
+  display: grid;
+  gap: 6px;
+}
+
+.finance-allocation-row__amounts {
+  margin-top: 8px;
+}
+
+.finance-cheque-pending-note {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--surface-muted, #f8fafc);
+}
+
+@media (max-width: 768px) {
+  .finance-allocation-row__amounts {
+    grid-template-columns: 1fr;
+  }
+}
+

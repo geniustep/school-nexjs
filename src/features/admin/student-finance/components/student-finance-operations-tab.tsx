@@ -7,6 +7,9 @@ import { DataTable, Pagination, type Column } from '@/components/tables/data-tab
 import { Card } from '@/components/ui/primitives';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { FinanceStatusBadge } from '@/features/admin/finance/finance-status-badge';
+import { CollectionDetailDrawer } from '@/features/admin/finance/collection-detail-drawer';
+import { ChequeDetailDrawer } from '@/features/admin/finance/cheque-detail-drawer';
+import { StudentCollectionDrawer } from '@/features/admin/finance/student-collection-drawer';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { collectionState, paymentMethodLabel, refName } from '@/lib/utils/finance';
@@ -67,6 +70,9 @@ export function StudentFinanceOperationsTab({
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [quickOverdueUnpaid, setQuickOverdueUnpaid] = useState(false);
+  const [showCollectionDrawer, setShowCollectionDrawer] = useState(false);
+  const [selectedCollectionId, setSelectedCollectionId] = useState<number | null>(null);
+  const [selectedChequeId, setSelectedChequeId] = useState<number | null>(null);
 
   const workspaceQuery = useMemo(
     () => (academicYearId ? { academic_year_id: Number(academicYearId) } : undefined),
@@ -116,6 +122,10 @@ export function StudentFinanceOperationsTab({
   );
   const installmentsPg = installmentsState.meta?.pagination;
 
+  const refreshFinanceData = () => {
+    workspaceState.reload();
+    installmentsState.reload();
+  };
   const financeCaps = workspace?.capabilities as StudentFinanceCapabilities | undefined;
   const canViewPayments = canViewStudentPayments(capabilities, financeCaps);
   const canCollect = canCollectStudentPayments(capabilities, financeCaps);
@@ -372,12 +382,13 @@ export function StudentFinanceOperationsTab({
       </label>
       <div className="student-finance-header-buttons">
         {canCollect ? (
-          <Link
-            href={`/admin/finance/collections/new?studentId=${studentId}`}
+          <button
+            type="button"
             className="btn btn--primary btn--sm"
+            onClick={() => setShowCollectionDrawer(true)}
           >
-            {t('admin.student360.finance.recordPayment')}
-          </Link>
+            {t('admin.finance.collectionWorkflow.drawerTitle')}
+          </button>
         ) : null}
       </div>
     </div>
@@ -548,6 +559,7 @@ export function StudentFinanceOperationsTab({
                   columns={collectionColumns}
                   rows={workspace?.recent_collections ?? []}
                   rowKey={(row) => row.id}
+                  onRowClick={(row) => setSelectedCollectionId(row.id)}
                 />
               </div>
             </Card>
@@ -561,6 +573,7 @@ export function StudentFinanceOperationsTab({
                   columns={chequeColumns}
                   rows={workspace?.recent_cheques ?? []}
                   rowKey={(row) => row.id}
+                  onRowClick={(row) => setSelectedChequeId(row.id)}
                 />
               </div>
             </Card>
@@ -582,6 +595,25 @@ export function StudentFinanceOperationsTab({
           ) : null}
         </>
       )}
+
+      <StudentCollectionDrawer
+        open={showCollectionDrawer}
+        studentId={studentId}
+        academicYearId={academicYearId ? Number(academicYearId) : undefined}
+        onClose={() => setShowCollectionDrawer(false)}
+        onSuccess={refreshFinanceData}
+      />
+      <CollectionDetailDrawer
+        open={selectedCollectionId != null}
+        collectionId={selectedCollectionId}
+        onClose={() => setSelectedCollectionId(null)}
+      />
+      <ChequeDetailDrawer
+        open={selectedChequeId != null}
+        chequeId={selectedChequeId}
+        onClose={() => setSelectedChequeId(null)}
+        onChanged={refreshFinanceData}
+      />
     </div>
   );
 }
