@@ -55,3 +55,89 @@
     align-items: stretch;
   }
 }
+
+.student-doc-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 140px), 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.student-doc-summary-card {
+  text-align: center;
+  padding: 12px;
+}
+
+.student-doc-summary-value {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.student-doc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.student-doc-item__head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.student-doc-item__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.student-doc-item__meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr));
+  gap: 8px 16px;
+  margin: 0;
+}
+
+.student-doc-item__meta dt {
+  font-size: 0.75rem;
+  color: var(--text-muted, #64748b);
+}
+
+.student-doc-item__meta dd {
+  margin: 0;
+}
+
+.student-doc-file-drop {
+  border: 1px dashed var(--border, #cbd5e1);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.student-doc-file-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.student-doc-file-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.student-health-grid {
+  margin-top: 0;
+}
+
+.student-health-alert {
+  margin-bottom: 16px;
+}
+
+.student-health-notes {
+  margin: 0;
+  white-space: pre-wrap;
+}

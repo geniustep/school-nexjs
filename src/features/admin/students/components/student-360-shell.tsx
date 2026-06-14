@@ -10,16 +10,24 @@ import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { useStudentDetails } from '../hooks/use-student-details';
-import { resolveStudentCapabilities } from '../utils/resolve-capabilities';
+import {
+  canManageStudentDocuments,
+  canManageStudentHealth,
+  canViewStudentDocuments,
+  canViewStudentHealth,
+  resolveStudentCapabilities,
+} from '../utils/resolve-capabilities';
 import { Student360Header } from './student-360-header';
 import { StudentOverviewTab } from './student-overview-tab';
 import { StudentEnrollmentTab } from './student-enrollment-tab';
 import { StudentGuardiansTab } from './student-guardians-tab';
+import { StudentDocumentsTab } from './student-documents-tab';
+import { StudentHealthTab } from './student-health-tab';
 import { StudentForm } from './student-form';
 import type { StudentDetailsData } from '@/types/student-360';
 import '../student-360.css';
 
-type TabId = 'overview' | 'enrollment' | 'guardians';
+type TabId = 'overview' | 'enrollment' | 'guardians' | 'documents' | 'health';
 
 export function Student360Shell({ studentId }: { studentId: string }) {
   const t = useT();
@@ -41,12 +49,20 @@ export function Student360Shell({ studentId }: { studentId: string }) {
   const caps = resolveStudentCapabilities(details.capabilities, user);
   const s = details.student;
   const archived = (s.status as string) === 'archived';
+  const showDocuments = canViewStudentDocuments(caps);
+  const showHealth = canViewStudentHealth(caps);
 
   const tabOptions: { value: TabId; label: string }[] = [
     { value: 'overview', label: t('admin.student360.tabs.overview') },
     { value: 'enrollment', label: t('admin.student360.tabs.enrollment') },
     { value: 'guardians', label: t('admin.student360.tabs.guardians') },
   ];
+  if (showDocuments) {
+    tabOptions.push({ value: 'documents', label: t('admin.student360.tabs.documents') });
+  }
+  if (showHealth) {
+    tabOptions.push({ value: 'health', label: t('admin.student360.tabs.health') });
+  }
 
   return (
     <>
@@ -96,6 +112,9 @@ export function Student360Shell({ studentId }: { studentId: string }) {
             <StudentOverviewTab
               details={details}
               canManage={caps.can_manage}
+              showDocuments={showDocuments}
+              showHealth={showHealth}
+              onOpenTab={setTab}
               onAccountChanged={state.reload}
             />
           )}
@@ -104,6 +123,20 @@ export function Student360Shell({ studentId }: { studentId: string }) {
             <StudentGuardiansTab
               details={details}
               canManageGuardians={caps.can_manage_guardians}
+              onChanged={state.reload}
+            />
+          )}
+          {tab === 'documents' && showDocuments && (
+            <StudentDocumentsTab
+              studentId={s.id}
+              canManage={canManageStudentDocuments(caps)}
+              onChanged={state.reload}
+            />
+          )}
+          {tab === 'health' && showHealth && (
+            <StudentHealthTab
+              studentId={s.id}
+              canManage={canManageStudentHealth(caps)}
               onChanged={state.reload}
             />
           )}

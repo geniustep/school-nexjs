@@ -18,10 +18,16 @@ function dash(t: (k: string) => string, value: string | null | undefined): strin
 export function StudentOverviewTab({
   details,
   canManage,
+  showDocuments = false,
+  showHealth = false,
+  onOpenTab,
   onAccountChanged,
 }: {
   details: StudentDetailsData;
   canManage: boolean;
+  showDocuments?: boolean;
+  showHealth?: boolean;
+  onOpenTab?: (tab: 'documents' | 'health') => void;
   onAccountChanged: () => void;
 }) {
   const t = useT();
@@ -162,6 +168,78 @@ export function StudentOverviewTab({
           ]}
         />
       </Card>
+
+      {showDocuments && details.document_summary ? (
+        <Card>
+          <SectionHead
+            title={t('admin.student360.documents.summaryTitle')}
+            action={
+              onOpenTab ? (
+                <button
+                  type="button"
+                  className="btn btn--ghost btn--sm"
+                  onClick={() => onOpenTab('documents')}
+                >
+                  {t('admin.student360.documents.openTab')}
+                </button>
+              ) : null
+            }
+          />
+          <DefinitionList
+            items={[
+              {
+                label: t('admin.student360.documents.summaryTotal'),
+                value: String(details.document_summary.total),
+              },
+              {
+                label: t('admin.student360.documents.summaryExpired'),
+                value: String(details.document_summary.expired),
+              },
+              {
+                label: t('admin.student360.documents.summaryMissing'),
+                value: String(details.document_summary.missing_required),
+              },
+            ]}
+          />
+        </Card>
+      ) : null}
+
+      {showHealth && details.health_summary ? (
+        <Card>
+          <SectionHead
+            title={t('admin.student360.health.summaryTitle')}
+            action={
+              onOpenTab ? (
+                <button
+                  type="button"
+                  className="btn btn--ghost btn--sm"
+                  onClick={() => onOpenTab('health')}
+                >
+                  {t('admin.student360.health.openTab')}
+                </button>
+              ) : null
+            }
+          />
+          <DefinitionList
+            items={[
+              {
+                label: t('admin.student360.health.hasProfile'),
+                value: details.health_summary.has_profile
+                  ? t('common.yes')
+                  : t('common.no'),
+              },
+              ...(details.health_summary.has_critical_alert
+                ? [
+                    {
+                      label: t('admin.student360.health.criticalAlert'),
+                      value: t('common.yes'),
+                    },
+                  ]
+                : []),
+            ]}
+          />
+        </Card>
+      ) : null}
 
       <Card>
         <SectionHead title={t('admin.student360.sections.system')} />
