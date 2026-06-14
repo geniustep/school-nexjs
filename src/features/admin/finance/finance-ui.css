@@ -774,8 +774,20 @@
     grid-template-columns: 1fr;
   }
 
-  .finance-collection-workflow__fields {
+  .finance-collection-workflow__fields,
+  .finance-collection-workflow__fields--context,
+  .finance-collection-workflow__fields--payment,
+  .finance-collection-workflow__fields--cheque {
     grid-template-columns: 1fr;
+  }
+
+  .collections-filters__search {
+    flex: 1 1 100%;
+  }
+
+  .collection-detail-status-bar {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .finance-collection-new-page {
@@ -808,4 +820,283 @@
   .fee-plans-list__mobile {
     display: grid;
   }
+}
+
+/* Collections workspace */
+.collections-summary {
+  margin: 0 0 12px;
+  font-size: 0.9rem;
+}
+
+.collections-filters {
+  margin-bottom: 16px;
+}
+
+.collections-table__reference {
+  font-size: 0.8125rem;
+  color: var(--c-muted, #64748b);
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+.collections-table__open {
+  color: var(--c-muted, #64748b);
+  font-size: 1.1rem;
+}
+
+.collection-student-cell {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.collection-student-cell__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.collection-student-cell__code {
+  font-size: 0.75rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.collection-student-cell__link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.collection-form-section {
+  display: grid;
+  gap: 12px;
+  padding-block: 4px 20px;
+  border-bottom: 1px solid var(--c-border, #e2e8f0);
+}
+
+.collection-form-section:last-of-type {
+  border-bottom: none;
+}
+
+.collection-form-section__title {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.collection-form-section__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.collection-form-section__desc {
+  margin: 0;
+}
+
+.finance-collection-workflow--page {
+  max-width: 1024px;
+}
+
+.finance-collection-workflow__fields {
+  display: grid;
+  gap: 16px;
+}
+
+.finance-collection-workflow__fields--context,
+.finance-collection-workflow__fields--payment {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.finance-collection-workflow__fields--cheque {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.finance-collection-workflow__full-width {
+  grid-column: 1 / -1;
+}
+
+.finance-amount-field__input {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+}
+
+.finance-amount-field__input .input {
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+
+.finance-amount-field__suffix {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 12px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-inline-start: none;
+  border-radius: 0 6px 6px 0;
+  background: var(--c-surface-2, #f8fafc);
+  font-size: 0.875rem;
+}
+
+[dir='rtl'] .finance-amount-field__input .input {
+  border-radius: 0 6px 6px 0;
+}
+
+[dir='rtl'] .finance-amount-field__suffix {
+  border-inline-start: 1px solid var(--c-border, #e2e8f0);
+  border-inline-end: none;
+  border-radius: 6px 0 0 6px;
+}
+
+.finance-collection-workflow__actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  margin-block-start: 8px;
+  padding-block: 12px;
+  background: linear-gradient(to top, #fff 80%, transparent);
+}
+
+.collection-form-blockers {
+  margin-block-end: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  font-size: 0.875rem;
+}
+
+.collection-form-blockers__title {
+  margin: 0 0 6px;
+  font-weight: 600;
+}
+
+.collection-form-blockers ul {
+  margin: 0;
+  padding-inline-start: 1.1rem;
+}
+
+.selected-student-finance-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 8px;
+  background: var(--c-surface-2, #f8fafc);
+}
+
+.selected-student-finance-bar__identity {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+}
+
+.selected-student-finance-bar__avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--c-primary, #2563eb);
+  color: #fff;
+  font-weight: 700;
+}
+
+.selected-student-finance-bar__metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.receivable-allocation-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 8px;
+}
+
+.receivable-allocation-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.receivable-allocation-table th,
+.receivable-allocation-table td {
+  padding: 10px 12px;
+  text-align: start;
+  border-bottom: 1px solid var(--c-border, #e2e8f0);
+  vertical-align: top;
+}
+
+.receivable-allocation-table tr.is-disabled {
+  opacity: 0.55;
+}
+
+.collection-drawer-hero {
+  display: grid;
+  gap: 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--c-border, #e2e8f0);
+}
+
+.collection-drawer-section h4 {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+}
+
+.collection-drawer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.detail-list--compact {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.collection-detail-status-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-block: 12px 16px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--c-surface-2, #f8fafc);
+}
+
+.collection-detail-section {
+  margin-block-end: 20px;
+}
+
+.collection-detail-section h3 {
+  margin: 0 0 10px;
+  font-size: 1rem;
+}
+
+.collection-skip-allocation {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-block: 8px 0;
+}
+
+.collection-field-state {
+  grid-column: 1 / -1;
+}
+
+.finance-collection-new-page {
+  max-width: 1024px;
 }

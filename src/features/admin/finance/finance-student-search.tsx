@@ -22,10 +22,12 @@ export function FinanceStudentSearch({
   onSelect,
   initialSearch = '',
   showProfileLink = true,
+  compact = false,
 }: {
   onSelect?: (student: FinanceStudentSearchResult) => void;
   initialSearch?: string;
   showProfileLink?: boolean;
+  compact?: boolean;
 }) {
   const t = useT();
   const router = useRouter();
@@ -51,8 +53,71 @@ export function FinanceStudentSearch({
   const pg = normalizePagination(state.meta) ?? state.meta?.pagination ?? null;
   const viewState = { ...state, data: rows };
 
+  function openStudent(row: FinanceStudentSearchResult) {
+    if (onSelect) {
+      onSelect(row);
+      return;
+    }
+    router.push(`/admin/finance/students/${row.id}`);
+  }
+
   const columns: Column<FinanceStudentSearchResult>[] = useMemo(
-    () => [
+    () =>
+      compact
+        ? [
+            {
+              key: 'name',
+              header: t('nav.students'),
+              render: (row) => {
+                const name = financeStudentDisplayName(row);
+                return (
+                  <span className="collection-student-cell" dir="auto">
+                    <span className="collection-student-cell__name">{name}</span>
+                    {row.code ? (
+                      <span className="collection-student-cell__code mono muted">{row.code}</span>
+                    ) : null}
+                  </span>
+                );
+              },
+            },
+            {
+              key: 'classLevel',
+              header: t('admin.finance.collections.studentClassLevel'),
+              render: (row) =>
+                [row.class?.name, row.level?.name].filter(Boolean).join(' · ') || t('common.dash'),
+            },
+            {
+              key: 'remaining',
+              header: t('admin.finance.remainingAmount'),
+              render: (row) => (
+                <FinanceMoney amount={row.remaining_amount ?? row.balance} currency={row.currency} />
+              ),
+            },
+            {
+              key: 'overdue',
+              header: t('admin.finance.overdueAmount'),
+              render: (row) => (
+                <FinanceMoney amount={row.overdue_amount} currency={row.currency} />
+              ),
+            },
+            {
+              key: 'pick',
+              header: '',
+              render: (row) => (
+                <button
+                  type="button"
+                  className="btn btn--ghost btn--sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openStudent(row);
+                  }}
+                >
+                  {t('admin.finance.collections.selectStudent')}
+                </button>
+              ),
+            },
+          ]
+        : [
       {
         key: 'name',
         header: t('nav.students'),
@@ -102,17 +167,9 @@ export function FinanceStudentSearch({
         header: t('admin.finance.overdueAmount'),
         render: (row) => <FinanceMoney amount={row.overdue_amount} currency={row.currency} />,
       },
-    ],
-    [t],
+          ],
+    [t, compact, onSelect],
   );
-
-  function openStudent(row: FinanceStudentSearchResult) {
-    if (onSelect) {
-      onSelect(row);
-      return;
-    }
-    router.push(`/admin/finance/students/${row.id}`);
-  }
 
   return (
     <div className="form-stack">

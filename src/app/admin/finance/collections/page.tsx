@@ -9,6 +9,8 @@ import { EmptyState } from '@/components/states/states';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
 import { PageHeader } from '@/components/ui/primitives';
 import { CollectionDetailDrawer } from '@/features/admin/finance/collection-detail-drawer';
+import { CollectionStudentCell } from '@/features/admin/finance/collection-student-cell';
+import { collectionAllocationSummary, truncateReference } from '@/features/admin/finance/collection-labels';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { FinanceStatusBadge } from '@/features/admin/finance/finance-status-badge';
 import { ChequePaymentMarker } from '@/features/admin/finance/cheque-payment-marker';
@@ -16,15 +18,24 @@ import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
-import { FINANCE_VIEW, FINANCE_VIEW_PAYMENTS, canCollectPayments } from '@/lib/permissions/finance';
+import { FINANCE_VIEW_PAYMENTS, canCollectPayments } from '@/lib/permissions/finance';
 import { useFinanceJournalsAvailable } from '@/features/admin/finance/use-finance-lookups';
 import { useSession } from '@/features/auth/session-context';
 import { collectionState, paymentMethodLabel, refName } from '@/lib/utils/finance';
-import { buildStudentFinanceLink } from '@/lib/utils/finance-navigation';
 import { isCollectionChequeReversed } from '@/lib/utils/cheque';
 import { appendReturnTo, sanitizeReturnTo } from '@/lib/utils/safe-return-url';
 import type { PaymentCollection } from '@/types/finance';
 import type { ListParams } from '@/types/api';
+import '@/features/admin/finance/finance-ui.css';
+
+function countByState(rows: PaymentCollection[]): Record<string, number> {
+  const counts: Record<string, number> = {};
+  for (const row of rows) {
+    const state = collectionState(row) || 'unknown';
+    counts[state] = (counts[state] ?? 0) + 1;
+  }
+  return counts;
+}
 
 export default function AdminFinanceCollectionsPage() {
   const t = useT();
@@ -38,9 +49,12 @@ export default function AdminFinanceCollectionsPage() {
   const [search, setSearch] = useState('');
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [methodFilter, setMethodFilter] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [selectedCollectionId, setSelectedCollectionId] = useState<number | null>(null);
+
+  const hasFilters = !!(query || statusFilter || methodFilter || dateFrom || dateTo);
 
   const params: ListParams = {
     page,
@@ -48,6 +62,7 @@ export default function AdminFinanceCollectionsPage() {
     search: query || undefined,
     status: statusFilter || undefined,
     state: statusFilter || undefined,
+    payment_method: methodFilter || undefined,
     date_from: dateFrom || undefined,
     date_to: dateTo || undefined,
     student_id: studentIdFilter || undefined,
@@ -65,9 +80,16 @@ export default function AdminFinanceCollectionsPage() {
   const columns: Column<PaymentCollection>[] = useMemo(
     () => [
       {
-        key: 'reference',
-        header: t('admin.finance.collections.columns.reference'),
-        render: (row) => <span className="mono">{row.reference ?? row.name ?? `#${row.id}`}</span>,
+        key: 'student',
+        header: t('nav.students'),
+        render: (row) => (
+          <CollectionStudentCell
+            student={row.student}
+            studentId={row.student_id}
+            returnTo={returnTo}
+            unavailableLabel={t('admin.finance.unavailable')}
+          />
+        ),
       },
       {
         key: 'date',
@@ -75,26 +97,9 @@ export default function AdminFinanceCollectionsPage() {
         render: (row) => formatDate(row.collection_date ?? row.date) || t('common.dash'),
       },
       {
-        key: 'student',
-        header: t('nav.students'),
-        render: (row) => {
-          const sid = row.student_id ?? row.student?.id;
-          const label = refName(row.student) ?? row.payer_name ?? t('common.dash');
-          if (!sid) return label;
-          return (
-            <Link
-              href={buildStudentFinanceLink(sid, 'finance', returnTo)}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {label}
-            </Link>
-          );
-        },
-      },
-      {
-        key: 'payer',
-        header: t('admin.finance.collections.columns.payer'),
-        render: (row) => row.payer_name ?? refName(row.billing_partner) ?? t('common.dash'),
+        key: 'amount',
+        header: t('admin.finance.collectionAmount'),
+        render: (row) => <FinanceMoney amount={row.amount ?? row.total_amount} currency={row.currency} />,
       },
       {
         key: 'method',
@@ -102,9 +107,10 @@ export default function AdminFinanceCollectionsPage() {
         render: (row) => paymentMethodLabel(row.payment_method, t),
       },
       {
-        key: 'amount',
-        header: t('admin.finance.collectionAmount'),
-        render: (row) => <FinanceMoney amount={row.amount ?? row.total_amount} />,
+        key: 'payer',
+        header: t('admin.finance.collections.columns.payer'),
+        render: (row) =>
+          row.payer_name ?? refName(row.billing_partner) ?? t('admin.finance.unavailable'),
       },
       {
         key: 'status',
@@ -113,17 +119,44 @@ export default function AdminFinanceCollectionsPage() {
           isCollectionChequeReversed(row) ? (
             <ChequePaymentMarker collection={row} />
           ) : (
-            <FinanceStatusBadge state={collectionState(row)} />
+            <FinanceStatusBadge state={collectionState(row) || 'unknown'} />
           ),
       },
       {
-        key: 'allocations',
-        header: t('admin.finance.collections.columns.allocations'),
-        render: (row) => row.allocations?.length ?? t('common.dash'),
+        key: 'allocation',
+        header: t('admin.finance.collections.columns.allocation'),
+        render: (row) => collectionAllocationSummary(row, t),
+      },
+      {
+        key: 'reference',
+        header: t('admin.finance.collections.columns.reference'),
+        render: (row) => {
+          const ref = row.reference ?? row.name ?? `#${row.id}`;
+          return (
+            <span className="mono collections-table__reference" title={ref}>
+              {truncateReference(ref)}
+            </span>
+          );
+        },
+      },
+      {
+        key: 'open',
+        header: '',
+        render: () => <span className="collections-table__open" aria-hidden>›</span>,
       },
     ],
     [t, formatDate, returnTo],
   );
+
+  function resetFilters() {
+    setSearch('');
+    setQuery('');
+    setStatusFilter('');
+    setMethodFilter('');
+    setDateFrom('');
+    setDateTo('');
+    setPage(1);
+  }
 
   return (
     <RequireAdminPermission permission={FINANCE_VIEW_PAYMENTS}>
@@ -149,51 +182,78 @@ export default function AdminFinanceCollectionsPage() {
         </p>
       ) : null}
 
-      <form
-        className="toolbar finance-hub-filters"
-        onSubmit={(e) => {
-          e.preventDefault();
-          setPage(1);
-          setQuery(search.trim());
-        }}
-      >
-        <input
-          className="input"
-          placeholder={t('admin.finance.searchCollections')}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <select className="input" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-          <option value="">{t('common.allStatuses')}</option>
-          <option value="draft">{t('admin.finance.states.draft')}</option>
-          <option value="confirmed">{t('admin.finance.states.confirmed')}</option>
-          <option value="cancelled">{t('admin.finance.states.cancelled')}</option>
-        </select>
-        <input className="input" type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
-        <input className="input" type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
-        <button type="submit" className="btn btn--ghost btn--sm">
-          {t('admin.search')}
-        </button>
-      </form>
-
       <ResourceView
         state={state}
         loadingLabel={t('common.loading')}
         empty={<EmptyState title={t('admin.finance.noCollections')} />}
       >
-        {(rows) => (
-          <>
-            <DataTable
-              columns={columns}
-              rows={rows}
-              rowKey={(row) => row.id}
-              onRowClick={(row) => setSelectedCollectionId(row.id)}
-            />
-            {pg && (
-              <Pagination page={pg.page} totalPages={pg.total_pages} total={pg.total} onPage={setPage} />
-            )}
-          </>
-        )}
+        {(rows) => {
+          const counts = countByState(rows);
+          const total = pg?.total ?? rows.length;
+          return (
+            <>
+              <p className="collections-summary muted">
+                {t('admin.finance.collections.summaryLine', {
+                  total,
+                  confirmed: counts.confirmed ?? 0,
+                  draft: counts.draft ?? 0,
+                  cancelled: counts.cancelled ?? 0,
+                  unknown: counts.unknown ?? 0,
+                })}
+              </p>
+
+              <form
+                className="toolbar finance-hub-filters collections-filters"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  setPage(1);
+                  setQuery(search.trim());
+                }}
+              >
+                <input
+                  className="input collections-filters__search"
+                  placeholder={t('admin.finance.searchCollections')}
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+                <select className="input" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                  <option value="">{t('common.allStatuses')}</option>
+                  <option value="draft">{t('admin.finance.states.draft')}</option>
+                  <option value="confirmed">{t('admin.finance.states.confirmed')}</option>
+                  <option value="cancelled">{t('admin.finance.states.cancelled')}</option>
+                </select>
+                <select className="input" value={methodFilter} onChange={(e) => setMethodFilter(e.target.value)}>
+                  <option value="">{t('admin.finance.collections.allMethods')}</option>
+                  <option value="cash">{t('admin.finance.methodCash')}</option>
+                  <option value="cheque">{t('admin.finance.methodCheque')}</option>
+                  <option value="bank_transfer">{t('admin.finance.methodBankTransfer')}</option>
+                  <option value="card_terminal">{t('admin.finance.methodCardTerminal')}</option>
+                  <option value="other">{t('admin.finance.methodOther')}</option>
+                </select>
+                <input className="input" type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+                <input className="input" type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+                <button type="submit" className="btn btn--ghost btn--sm">
+                  {t('admin.search')}
+                </button>
+                {hasFilters ? (
+                  <button type="button" className="btn btn--ghost btn--sm" onClick={resetFilters}>
+                    {t('admin.finance.collections.resetFilters')}
+                  </button>
+                ) : null}
+              </form>
+
+              <DataTable
+                columns={columns}
+                rows={rows}
+                rowKey={(row) => row.id}
+                onRowClick={(row) => setSelectedCollectionId(row.id)}
+              />
+              {pg && (
+                <Pagination page={pg.page} totalPages={pg.total_pages} total={pg.total} onPage={setPage} />
+              )}
+            </>
+          );
+        }}
       </ResourceView>
 
       {selectedCollectionId ? (

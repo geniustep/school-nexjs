@@ -5,19 +5,21 @@ import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { useT } from '@/features/i18n/locale-context';
-import { useFormat } from '@/features/i18n/use-format';
-import { financeStudentDisplayName, isPositiveAmount, paymentMethodLabel, refName, currencyCode } from '@/lib/utils/finance';
+import { currencyCode, paymentMethodLabel } from '@/lib/utils/finance';
 import { getStudentDisplayName } from '@/lib/utils/student';
 import { normalizeStudentDetailsResponse } from '@/features/admin/students/utils/normalize-student-details';
 import { journalErrorMessageKey, normalizePaymentMethodOptions, parseFinanceList } from '@/lib/utils/finance-normalize';
 import { collectionErrorMessageKey } from '@/lib/utils/collection-errors';
 import { isChequePayment } from '@/lib/utils/cheque';
 import { FinanceStudentSearch } from '@/features/admin/finance/finance-student-search';
+import { BillingPartnerSelect } from '@/features/admin/finance/billing-partner-select';
+import { CollectionFormBlockers } from '@/features/admin/finance/collection-form-blockers';
+import { getCollectionSubmitBlockers } from '@/features/admin/finance/collection-form-validation';
+import { ReceivableAllocationSection } from '@/features/admin/finance/receivable-allocation-section';
+import { SelectedStudentFinanceBar } from '@/features/admin/finance/selected-student-finance-bar';
 import '@/features/admin/finance/finance-ui.css';
 import { useFinanceReferenceData } from '@/features/admin/finance/use-finance-lookups';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
-import { InstallmentStatusBadges } from '@/features/admin/student-finance/components/installment-status-badges';
-import { formatPeriodRange } from '@/features/admin/student-finance/utils/format-period';
 import type { StudentInstallment } from '@/features/admin/student-finance/types';
 import type {
   CreatePaymentCollectionPayload,
@@ -25,12 +27,9 @@ import type {
   FinanceStudentSearchResult,
   PaymentCollection,
   PaymentJournal,
-  StudentFee,
 } from '@/types/finance';
 import {
-  autoAllocateOldest,
   buildAllocationPayload,
-  canAllocateToInstallment,
   sumAllocationAmounts,
   validateAllocationTotals,
 } from './collection-allocation-utils';
@@ -138,7 +137,6 @@ function CollectionWorkflowFormReady({
   onCancel: () => void;
 }) {
   const t = useT();
-  const { formatDate } = useFormat();
   const [step, setStep] = useState<WorkflowStep>('payment');
   const [selectedStudent, setSelectedStudent] = useState<FinanceStudentSearchResult | null>(null);
   const [journalId, setJournalId] = useState('');
@@ -149,8 +147,8 @@ function CollectionWorkflowFormReady({
   const [collectionDate, setCollectionDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [reference, setReference] = useState('');
   const [notes, setNotes] = useState('');
-  const [allocationFeeId, setAllocationFeeId] = useState('');
   const [allocationInputs, setAllocationInputs] = useState<Record<number, string>>({});
+  const [skipAllocation, setSkipAllocation] = useState(false);
   const [chequeNumber, setChequeNumber] = useState('');
   const [chequeBank, setChequeBank] = useState('');
   const [chequeBranch, setChequeBranch] = useState('');
@@ -194,11 +192,6 @@ function CollectionWorkflowFormReady({
   const partners = useMemo(
     () => parseFinanceList<EligibleBillingPartner>(partnersState.data),
     [partnersState.data],
-  );
-
-  const feesState = useAdminResource<StudentFee[]>(
-    selectedStudent ? endpoints.admin.financeStudentFeesForStudent(selectedStudent.id) : null,
-    { page: 1, page_size: 50 },
   );
 
   const installmentParams = useMemo(
@@ -253,38 +246,58 @@ function CollectionWorkflowFormReady({
 
   const isCheque = isChequePayment(paymentMethod);
   const allocatedTotal = sumAllocationAmounts(allocationInputs);
-  const unallocatedTotal = Math.max(0, (parsedAmount || 0) - allocatedTotal);
-  const selectedAllocationCount = Object.values(allocationInputs).filter((v) => Number(v) > 0).length;
-  const showAllocationStep = useInstallmentAllocations && openInstallments.length > 0;
+  const showAllocationStep =
+    useInstallmentAllocations && !!academicYearId && (installmentsState.loading || openInstallments.length > 0);
 
-  const canProceedPayment = useMemo(() => {
-    if (!selectedStudent || !journalId || !academicYearId || !billingPartnerId || !collectionDate.trim()) {
-      return false;
-    }
-    if (!paymentMethod || !allowedMethods.some((m) => m.code === paymentMethod)) return false;
-    if (!isPositiveAmount(parsedAmount)) return false;
-    if (isCheque) {
-      if (!chequeNumber.trim() || !chequeBank.trim() || !chequeHolder.trim()) return false;
-      if (!chequeReceivedDate.trim() || !chequeMaturityDate.trim()) return false;
-      if (chequeMaturityDate < chequeReceivedDate) return false;
-    }
-    return true;
-  }, [
-    selectedStudent,
-    journalId,
-    academicYearId,
-    billingPartnerId,
-    collectionDate,
-    paymentMethod,
-    allowedMethods,
-    parsedAmount,
-    isCheque,
-    chequeNumber,
-    chequeBank,
-    chequeHolder,
-    chequeReceivedDate,
-    chequeMaturityDate,
-  ]);
+  const submitBlockers = useMemo(
+    () =>
+      getCollectionSubmitBlockers({
+        hasStudent: !!selectedStudent,
+        journalId,
+        academicYearId,
+        billingPartnerId,
+        partnersLoading: partnersState.loading,
+        partnersCount: partners.length,
+        amount: parsedAmount,
+        paymentMethod,
+        allowedMethodCodes: allowedMethods.map((m) => m.code),
+        collectionDate,
+        isCheque,
+        chequeNumber,
+        chequeBank,
+        chequeHolder,
+        chequeReceivedDate,
+        chequeMaturityDate,
+        showAllocationStep: showAllocationStep && openInstallments.length > 0,
+        skipAllocation,
+        allocatedTotal,
+        collectionAmount: parsedAmount,
+      }),
+    [
+      selectedStudent,
+      journalId,
+      academicYearId,
+      billingPartnerId,
+      partnersState.loading,
+      partners.length,
+      parsedAmount,
+      paymentMethod,
+      allowedMethods,
+      collectionDate,
+      isCheque,
+      chequeNumber,
+      chequeBank,
+      chequeHolder,
+      chequeReceivedDate,
+      chequeMaturityDate,
+      showAllocationStep,
+      openInstallments.length,
+      skipAllocation,
+      allocatedTotal,
+    ],
+  );
+
+  const canProceedPayment = submitBlockers.length === 0;
 
   function resolveErrorMessage(code: string | undefined, fallback: string): string {
     const key = collectionErrorMessageKey(code) ?? journalErrorMessageKey(code);
@@ -305,7 +318,7 @@ function CollectionWorkflowFormReady({
       notes: notes.trim() || undefined,
     };
 
-    if (showAllocationStep) {
+    if (showAllocationStep && !skipAllocation && openInstallments.length > 0) {
       const lines = buildAllocationPayload(allocationInputs, openInstallments);
       const validation = validateAllocationTotals({
         collectionAmount: parsedAmount,
@@ -318,8 +331,6 @@ function CollectionWorkflowFormReady({
         return null;
       }
       if (lines.length) payload.allocations = lines;
-    } else if (allocationFeeId) {
-      payload.allocations = [{ student_fee_id: Number(allocationFeeId), amount: parsedAmount }];
     }
 
     if (isCheque) {
@@ -353,18 +364,13 @@ function CollectionWorkflowFormReady({
     }
   }
 
-  function onPaymentContinue(e: React.FormEvent) {
+  function onFormSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!canProceedPayment) return;
-    if (showAllocationStep) {
-      setAllocationInputs(autoAllocateOldest(openInstallments, parsedAmount));
-      setStep('allocation');
-      return;
-    }
+    if (!canProceedPayment || submitting) return;
     void submitCollection();
   }
 
-  const wrapperClass = embedded ? 'form-stack finance-collection-workflow' : 'card form-stack finance-collection-workflow';
+  const wrapperClass = embedded ? 'form-stack finance-collection-workflow' : 'card form-stack finance-collection-workflow finance-collection-workflow--page';
   const pageMode = !embedded;
 
   if (step === 'success' && createdCollection) {
@@ -390,7 +396,7 @@ function CollectionWorkflowFormReady({
           </div>
           <div>
             <dt>{t('admin.finance.collectionWorkflow.allocationsCount')}</dt>
-            <dd>{createdCollection.allocations?.length ?? selectedAllocationCount}</dd>
+            <dd>{createdCollection.allocations?.length ?? 0}</dd>
           </div>
         </dl>
         {isChequePayment(createdCollection.payment_method) ? (
@@ -420,106 +426,8 @@ function CollectionWorkflowFormReady({
     );
   }
 
-  if (step === 'allocation') {
-    return (
-      <div className={wrapperClass}>
-        {pageMode ? <CollectionWorkflowSteps step={step} showAllocation={showAllocationStep} /> : null}
-        <h3>{t('admin.finance.collectionWorkflow.allocationTitle')}</h3>
-        <p className="muted">{t('admin.finance.collectionWorkflow.allocationDesc')}</p>
-        {error ? <p className="form-error">{error}</p> : null}
-        <div className="finance-allocation-summary">
-          <div>
-            <span className="tiny muted">{t('admin.finance.collectionWorkflow.collectionAmount')}</span>
-            <FinanceMoney amount={parsedAmount} currency={journalCurrency} />
-          </div>
-          <div>
-            <span className="tiny muted">{t('admin.finance.collectionWorkflow.allocatedAmount')}</span>
-            <FinanceMoney amount={allocatedTotal} currency={journalCurrency} />
-          </div>
-          <div>
-            <span className="tiny muted">{t('admin.finance.collectionWorkflow.unallocatedAmount')}</span>
-            <FinanceMoney amount={unallocatedTotal} currency={journalCurrency} />
-          </div>
-          <div>
-            <span className="tiny muted">{t('admin.finance.collectionWorkflow.selectedCount')}</span>
-            <strong>{selectedAllocationCount}</strong>
-          </div>
-        </div>
-        <div className="row" style={{ gap: 8 }}>
-          <button
-            type="button"
-            className="btn btn--ghost btn--sm"
-            onClick={() => setAllocationInputs(autoAllocateOldest(openInstallments, parsedAmount))}
-          >
-            {t('admin.finance.collectionWorkflow.autoAllocateOldest')}
-          </button>
-        </div>
-        <div className="finance-allocation-list">
-          {openInstallments.map((row) => {
-            const disabled = !canAllocateToInstallment(row);
-            return (
-              <div key={row.id} className={`finance-allocation-row${disabled ? ' is-disabled' : ''}`}>
-                <div className="finance-allocation-row__main">
-                  <strong>{refName(row.service) ?? t('common.dash')}</strong>
-                  <span className="tiny muted">
-                    {formatPeriodRange(formatDate, row.period_start, row.period_end)} · {formatDate(row.due_date)}
-                  </span>
-                  <InstallmentStatusBadges
-                    paymentStatus={row.payment_status ?? 'unpaid'}
-                    timingStatus={row.timing_status ?? 'not_applicable'}
-                    isVisible={row.is_visible}
-                  />
-                </div>
-                <div className="finance-allocation-row__amounts">
-                  <span>
-                    {t('admin.student360.financeOps.columns.remaining')}:{' '}
-                    <FinanceMoney amount={row.remaining_amount} currency={journalCurrency} />
-                  </span>
-                  <label>
-                    {t('admin.finance.allocationAmount')}
-                    <input
-                      className="input"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      disabled={disabled}
-                      value={allocationInputs[row.id] ?? ''}
-                      onChange={(e) =>
-                        setAllocationInputs((prev) => ({ ...prev, [row.id]: e.target.value }))
-                      }
-                    />
-                  </label>
-                </div>
-                {disabled && row.allow_early_payment === false ? (
-                  <p className="tiny muted">{t('admin.finance.collectionWorkflow.earlyPaymentBlocked')}</p>
-                ) : null}
-              </div>
-            );
-          })}
-        </div>
-        <div className="row form-actions">
-          <button
-            type="button"
-            className="btn btn--primary btn--sm"
-            disabled={submitting}
-            onClick={() => void submitCollection()}
-          >
-            {submitting ? t('common.submitting') : t('admin.finance.recordCollection')}
-          </button>
-          <button type="button" className="btn btn--ghost btn--sm" onClick={() => setStep('payment')}>
-            {t('common.back')}
-          </button>
-          <button type="button" className="btn btn--ghost btn--sm" onClick={onCancel}>
-            {t('common.cancel')}
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <form className={wrapperClass} onSubmit={onPaymentContinue}>
-      {pageMode ? <CollectionWorkflowSteps step={step} showAllocation={showAllocationStep} /> : null}
+    <form className={wrapperClass} onSubmit={onFormSubmit}>
       {!pageMode ? (
         <>
           <h3 className="finance-collection-workflow__section-title">{t('admin.finance.recordCollection')}</h3>
@@ -535,219 +443,238 @@ function CollectionWorkflowFormReady({
       {error ? <p className="form-error">{error}</p> : null}
 
       {!selectedStudent ? (
-        <FinanceStudentSearch onSelect={setSelectedStudent} showProfileLink={false} />
+        <FinanceStudentSearch compact onSelect={setSelectedStudent} showProfileLink={false} />
       ) : (
-        <div className="finance-collection-workflow__student-bar">
-          <strong>{financeStudentDisplayName(selectedStudent)}</strong>
-          {!lockStudent && (
-            <button type="button" className="btn btn--ghost btn--sm" onClick={() => setSelectedStudent(null)}>
-              {t('admin.finance.changeStudent')}
-            </button>
-          )}
-        </div>
+        <SelectedStudentFinanceBar
+          student={selectedStudent}
+          allowChange={!lockStudent}
+          onChangeStudent={() => {
+            setSelectedStudent(null);
+            setBillingPartnerId('');
+            setAllocationInputs({});
+            setSkipAllocation(false);
+          }}
+        />
       )}
 
       {selectedStudent ? (
-        <div className="finance-collection-workflow__fields">
-          <label>
-            {t('admin.finance.paymentJournal')}
-            <select
-              className="input"
-              required
-              value={journalId}
-              onChange={(e) => setJournalId(e.target.value)}
-              disabled={refLoading}
-            >
-              <option value="">{refLoading ? t('common.loading') : t('admin.finance.selectPaymentJournal')}</option>
-              {journals.map((j) => (
-                <option key={j.id} value={j.id}>
-                  {j.name}
-                  {j.code ? ` (${j.code})` : ''}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label>
-            {t('admin.finance.academicYear')}
-            <select
-              className="input"
-              required
-              value={academicYearId}
-              onChange={(e) => setAcademicYearId(e.target.value)}
-              disabled={refLoading || academicYears.length === 0 || !!initialAcademicYearId}
-            >
-              <option value="">{refLoading ? t('common.loading') : t('admin.finance.selectAcademicYear')}</option>
-              {academicYears.map((y) => (
-                <option key={y.id} value={y.id}>
-                  {y.name}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label>
-            {t('admin.finance.payer')}
-            <select
-              className="input"
-              required
-              value={billingPartnerId}
-              onChange={(e) => setBillingPartnerId(e.target.value)}
-              disabled={partnersState.loading}
-            >
-              <option value="">
-                {partnersState.loading ? t('common.loading') : t('admin.finance.selectBillingPartner')}
-              </option>
-              {partners.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name ?? p.payer_name}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          {journalCurrency ? (
-            <p className="muted">
-              {t('admin.finance.displayCurrency')}: {journalCurrency}
-            </p>
-          ) : null}
-
-          <label>
-            {t('admin.finance.collectionAmount')}
-            <input
-              className="input"
-              required
-              type="number"
-              min="0.01"
-              step="0.01"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-            />
-          </label>
-
-          <label>
-            {t('admin.finance.paymentMethod')}
-            <select
-              className="input"
-              required
-              value={paymentMethod}
-              onChange={(e) => setPaymentMethod(e.target.value)}
-              disabled={!journalId || allowedMethods.length === 0}
-            >
-              <option value="">{t('admin.finance.selectPaymentMethod')}</option>
-              {allowedMethods.map((m) => (
-                <option key={m.code} value={m.code}>
-                  {m.label ?? paymentMethodLabel(m.code, t)}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          {isCheque ? (
-            <fieldset className="finance-cheque-fields">
-              <legend>{t('admin.finance.cheques.registrationTitle')}</legend>
-              <p className="tiny muted">{t('admin.finance.collectionWorkflow.chequeDatesHelp')}</p>
+        <>
+          <section className="collection-form-section">
+            <h4 className="collection-form-section__title">{t('admin.finance.collections.contextSection')}</h4>
+            <div className="finance-collection-workflow__fields finance-collection-workflow__fields--context">
               <label>
-                {t('admin.finance.cheques.chequeNumber')}
-                <input className="input" required value={chequeNumber} onChange={(e) => setChequeNumber(e.target.value)} />
-              </label>
-              <label>
-                {t('admin.finance.cheques.bankName')}
-                <input className="input" required value={chequeBank} onChange={(e) => setChequeBank(e.target.value)} />
-              </label>
-              <label>
-                {t('admin.finance.collectionWorkflow.chequeBranch')}
-                <input className="input" value={chequeBranch} onChange={(e) => setChequeBranch(e.target.value)} />
-              </label>
-              <label>
-                {t('admin.finance.collectionWorkflow.chequeDrawer')}
-                <input className="input" value={chequeDrawer} onChange={(e) => setChequeDrawer(e.target.value)} />
-              </label>
-              <label>
-                {t('admin.finance.cheques.holderName')}
-                <input className="input" required value={chequeHolder} onChange={(e) => setChequeHolder(e.target.value)} />
-              </label>
-              <label>
-                {t('admin.finance.cheques.receivedDate')}
-                <input
+                {t('admin.finance.paymentJournal')}
+                <select
                   className="input"
-                  type="date"
                   required
-                  value={chequeReceivedDate}
-                  onChange={(e) => setChequeReceivedDate(e.target.value)}
-                />
-              </label>
-              <label>
-                {t('admin.finance.collectionWorkflow.chequeWrittenDate')}
-                <input className="input" type="date" value={chequeDate} onChange={(e) => setChequeDate(e.target.value)} />
-              </label>
-              <label>
-                {t('admin.finance.cheques.dueDate')}
-                <input
-                  className="input"
-                  type="date"
-                  required
-                  min={chequeReceivedDate || undefined}
-                  value={chequeMaturityDate}
-                  onChange={(e) => setChequeMaturityDate(e.target.value)}
-                />
-              </label>
-              <label>
-                {t('admin.finance.collectionWorkflow.chequePublicNotes')}
-                <textarea className="input" rows={2} value={chequePublicNotes} onChange={(e) => setChequePublicNotes(e.target.value)} />
-              </label>
-            </fieldset>
-          ) : null}
-
-          <label>
-            {t('admin.finance.collectionDate')}
-            <input
-              className="input"
-              required
-              type="date"
-              value={collectionDate}
-              onChange={(e) => setCollectionDate(e.target.value)}
-            />
-          </label>
-
-          <label>
-            {t('admin.finance.externalReference')}
-            <input className="input" value={reference} onChange={(e) => setReference(e.target.value)} />
-          </label>
-
-          {!showAllocationStep && (feesState.data?.length ?? 0) > 0 ? (
-            <label>
-              {t('admin.finance.allocationReceivable')}
-              <select className="input" value={allocationFeeId} onChange={(e) => setAllocationFeeId(e.target.value)}>
-                <option value="">{t('admin.finance.noAllocation')}</option>
-                {feesState.data?.map((fee) => (
-                  <option key={fee.id} value={fee.id}>
-                    {refName(fee.fee_plan) ?? refName(fee.fee_type) ?? t('admin.finance.studentFee')}
+                  value={journalId}
+                  onChange={(e) => setJournalId(e.target.value)}
+                  disabled={refLoading}
+                >
+                  <option value="">
+                    {refLoading
+                      ? t('admin.finance.collections.loadingJournals')
+                      : t('admin.finance.selectPaymentJournal')}
                   </option>
-                ))}
-              </select>
-            </label>
+                  {journals.map((j) => (
+                    <option key={j.id} value={j.id}>
+                      {j.name}
+                      {j.code ? ` (${j.code})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label>
+                {t('admin.finance.academicYear')}
+                <select
+                  className="input"
+                  required
+                  value={academicYearId}
+                  onChange={(e) => {
+                    if (
+                      Object.keys(allocationInputs).length > 0 &&
+                      !window.confirm(t('admin.finance.collections.confirmYearChange'))
+                    ) {
+                      return;
+                    }
+                    setAcademicYearId(e.target.value);
+                    setAllocationInputs({});
+                  }}
+                  disabled={refLoading || academicYears.length === 0 || !!initialAcademicYearId}
+                >
+                  <option value="">
+                    {refLoading ? t('common.loading') : t('admin.finance.selectAcademicYear')}
+                  </option>
+                  {academicYears.map((y) => (
+                    <option key={y.id} value={y.id}>
+                      {y.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <BillingPartnerSelect
+                partners={partners}
+                loading={partnersState.loading}
+                error={partnersState.error?.message ?? null}
+                value={billingPartnerId}
+                onChange={setBillingPartnerId}
+                onRetry={() => partnersState.reload?.()}
+              />
+            </div>
+          </section>
+
+          <section className="collection-form-section">
+            <h4 className="collection-form-section__title">{t('admin.finance.collections.paymentSection')}</h4>
+            <div className="finance-collection-workflow__fields finance-collection-workflow__fields--payment">
+              <label className="finance-amount-field">
+                {t('admin.finance.collectionAmount')}
+                <div className="finance-amount-field__input">
+                  <input
+                    className="input"
+                    required
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                  />
+                  {journalCurrency ? (
+                    <span className="finance-amount-field__suffix">{journalCurrency}</span>
+                  ) : null}
+                </div>
+              </label>
+
+              <label>
+                {t('admin.finance.paymentMethod')}
+                <select
+                  className="input"
+                  required
+                  value={paymentMethod}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  disabled={!journalId || allowedMethods.length === 0}
+                >
+                  <option value="">
+                    {!journalId
+                      ? t('admin.finance.collections.selectJournalFirst')
+                      : t('admin.finance.selectPaymentMethod')}
+                  </option>
+                  {allowedMethods.map((m) => (
+                    <option key={m.code} value={m.code}>
+                      {paymentMethodLabel(m.code, t)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label>
+                {t('admin.finance.collectionDate')}
+                <input
+                  className="input"
+                  required
+                  type="date"
+                  value={collectionDate}
+                  onChange={(e) => setCollectionDate(e.target.value)}
+                />
+              </label>
+
+              <label>
+                {t('admin.finance.externalReference')}
+                <input className="input" value={reference} onChange={(e) => setReference(e.target.value)} />
+              </label>
+            </div>
+
+            {isCheque ? (
+              <fieldset className="finance-cheque-fields finance-collection-workflow__fields finance-collection-workflow__fields--cheque">
+                <legend>{t('admin.finance.cheques.registrationTitle')}</legend>
+                <p className="tiny muted">{t('admin.finance.collectionWorkflow.chequeDatesHelp')}</p>
+                <label>
+                  {t('admin.finance.cheques.chequeNumber')}
+                  <input className="input" required value={chequeNumber} onChange={(e) => setChequeNumber(e.target.value)} />
+                </label>
+                <label>
+                  {t('admin.finance.cheques.bankName')}
+                  <input className="input" required value={chequeBank} onChange={(e) => setChequeBank(e.target.value)} />
+                </label>
+                <label>
+                  {t('admin.finance.collectionWorkflow.chequeBranch')}
+                  <input className="input" value={chequeBranch} onChange={(e) => setChequeBranch(e.target.value)} />
+                </label>
+                <label>
+                  {t('admin.finance.collectionWorkflow.chequeDrawer')}
+                  <input className="input" value={chequeDrawer} onChange={(e) => setChequeDrawer(e.target.value)} />
+                </label>
+                <label>
+                  {t('admin.finance.cheques.holderName')}
+                  <input className="input" required value={chequeHolder} onChange={(e) => setChequeHolder(e.target.value)} />
+                </label>
+                <label>
+                  {t('admin.finance.cheques.receivedDate')}
+                  <input
+                    className="input"
+                    type="date"
+                    required
+                    value={chequeReceivedDate}
+                    onChange={(e) => setChequeReceivedDate(e.target.value)}
+                  />
+                </label>
+                <label>
+                  {t('admin.finance.collectionWorkflow.chequeWrittenDate')}
+                  <input className="input" type="date" value={chequeDate} onChange={(e) => setChequeDate(e.target.value)} />
+                </label>
+                <label>
+                  {t('admin.finance.cheques.dueDate')}
+                  <input
+                    className="input"
+                    type="date"
+                    required
+                    min={chequeReceivedDate || undefined}
+                    value={chequeMaturityDate}
+                    onChange={(e) => setChequeMaturityDate(e.target.value)}
+                  />
+                </label>
+                <label className="finance-collection-workflow__full-width">
+                  {t('admin.finance.collectionWorkflow.chequePublicNotes')}
+                  <textarea className="input" rows={2} value={chequePublicNotes} onChange={(e) => setChequePublicNotes(e.target.value)} />
+                </label>
+              </fieldset>
+            ) : null}
+          </section>
+
+          {showAllocationStep ? (
+            <ReceivableAllocationSection
+              installments={openInstallments}
+              loading={installmentsState.loading}
+              currency={journalCurrency}
+              collectionAmount={parsedAmount}
+              allocationInputs={allocationInputs}
+              onAllocationChange={setAllocationInputs}
+              skipAllocation={skipAllocation}
+              onSkipAllocationChange={setSkipAllocation}
+            />
           ) : null}
 
-          <label>
-            {t('common.note')}
-            <textarea className="input" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
-          </label>
-        </div>
+          <section className="collection-form-section">
+            <label>
+              {t('common.note')}
+              <textarea className="input" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
+            </label>
+          </section>
+        </>
       ) : null}
 
       {selectedStudent ? (
-        <div className="form-actions">
-          <button type="submit" className="btn btn--primary" disabled={submitting || !canProceedPayment}>
-            {submitting
-              ? t('common.submitting')
-              : showAllocationStep
-                ? t('admin.finance.collectionWorkflow.continueToAllocation')
-                : t('admin.finance.recordCollection')}
-          </button>
-          <button type="button" className="btn btn--ghost" onClick={onCancel}>
-            {t('common.cancel')}
-          </button>
+        <div className="finance-collection-workflow__actions">
+          <CollectionFormBlockers blockers={submitBlockers} />
+          <div className="form-actions">
+            <button type="submit" className="btn btn--primary" disabled={submitting || !canProceedPayment}>
+              {submitting ? t('admin.finance.collections.submitting') : t('admin.finance.recordCollection')}
+            </button>
+            <button type="button" className="btn btn--ghost" onClick={onCancel}>
+              {t('common.cancel')}
+            </button>
+          </div>
         </div>
       ) : null}
     </form>

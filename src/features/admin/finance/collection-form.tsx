@@ -20,7 +20,7 @@ export function FinanceCollectionForm({
       initialStudentId={initialStudentId}
       lockStudent={lockStudent}
       initialAcademicYearId={initialAcademicYearId}
-      useInstallmentAllocations={!!lockStudent}
+      useInstallmentAllocations
       onDone={(collection) => onDone(collection.id)}
       onCancel={onCancel}
     />

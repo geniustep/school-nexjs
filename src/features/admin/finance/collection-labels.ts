@@ -1,0 +1,87 @@
+import type { TranslateFn } from '@/features/i18n/locale-context';
+import type { StudentInstallment } from '@/features/admin/student-finance/types';
+import { refName } from '@/lib/utils/finance';
+import type { PaymentAllocation, PaymentCollection, StudentFee } from '@/types/finance';
+
+type FormatDate = (value: string | null | undefined) => string;
+type FormatPeriod = (
+  formatDate: FormatDate,
+  start?: string | null,
+  end?: string | null,
+) => string;
+
+export function formatStudentFeeLabel(
+  fee: StudentFee,
+  t: (key: string) => string,
+  formatDate?: FormatDate,
+): string {
+  const parts: string[] = [];
+  const title =
+    fee.name?.trim() ||
+    refName(fee.fee_plan) ||
+    refName(fee.fee_type) ||
+    (fee.id ? `#${fee.id}` : null);
+  if (title) parts.push(title);
+  if (fee.due_date && formatDate) {
+    parts.push(`${t('admin.finance.dueDate')}: ${formatDate(fee.due_date)}`);
+  }
+  const remaining = fee.remaining_amount;
+  if (remaining != null && Number.isFinite(remaining)) {
+    parts.push(`${t('admin.finance.remainingAmount')}: ${remaining.toFixed(2)}`);
+  }
+  return parts.join(' · ') || t('admin.finance.studentFee');
+}
+
+export function formatInstallmentLabel(
+  row: StudentInstallment,
+  t: (key: string) => string,
+  formatDate: FormatDate,
+  formatPeriod: FormatPeriod,
+): { title: string; subtitle: string } {
+  const service = refName(row.service) ?? (row.fee_id ? `#${row.fee_id}` : t('admin.finance.studentFee'));
+  const period = formatPeriod(formatDate, row.period_start, row.period_end);
+  const due = row.due_date ? formatDate(row.due_date) : null;
+  const titleParts = [service];
+  if (period && period !== '—') titleParts.push(period);
+  const subtitleParts: string[] = [];
+  if (due) subtitleParts.push(`${t('admin.finance.dueDate')}: ${due}`);
+  const remaining = row.remaining_amount;
+  if (remaining != null && Number.isFinite(remaining)) {
+    subtitleParts.push(`${t('admin.finance.remainingAmount')}: ${remaining.toFixed(2)}`);
+  }
+  return {
+    title: titleParts.join(' — '),
+    subtitle: subtitleParts.join(' · '),
+  };
+}
+
+export function formatAllocationRowLabel(
+  row: PaymentAllocation,
+  t: (key: string) => string,
+): string {
+  const fee = refName(row.student_fee);
+  const installment = refName(row.installment);
+  if (fee && installment) return `${fee} · ${installment}`;
+  return fee ?? installment ?? (row.installment_id ? `#${row.installment_id}` : t('admin.finance.unavailable'));
+}
+
+export function collectionAllocationSummary(
+  coll: PaymentCollection,
+  t: TranslateFn,
+): string {
+  const allocs = coll.allocations ?? [];
+  const total = coll.amount ?? coll.total_amount ?? 0;
+  if (!allocs.length) return t('admin.finance.collections.allocationNone');
+  const allocated = allocs.reduce((sum, row) => sum + (row.amount ?? 0), 0);
+  if (allocated <= 0) return t('admin.finance.collections.allocationNone');
+  if (Math.abs(allocated - total) < 0.01) return t('admin.finance.collections.allocationFull');
+  if (allocated < total) return t('admin.finance.collections.allocationPartial');
+  if (allocs.length === 1) return t('admin.finance.collections.allocationSingle');
+  return t('admin.finance.collections.allocationCount', { count: allocs.length });
+}
+
+export function truncateReference(value: string, max = 28): string {
+  const trimmed = value.trim();
+  if (trimmed.length <= max) return trimmed;
+  return `${trimmed.slice(0, max - 1)}…`;
+}

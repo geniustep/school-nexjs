@@ -88,7 +88,10 @@ export function validateAllocationTotals(input: {
   if (!isPositiveAmount(input.collectionAmount)) return 'invalidAmount';
   if (input.allocatedAmount - input.collectionAmount > 0.0001) return 'allocationExceedsCollection';
   const byId = new Map(input.installments.map((row) => [row.id, row]));
+  const seen = new Set<number>();
   for (const line of input.lines) {
+    if (seen.has(line.installment_id)) return 'duplicateAllocation';
+    seen.add(line.installment_id);
     const row = byId.get(line.installment_id);
     if (!row) return 'invalidAllocation';
     if (!canAllocateToInstallment(row) && line.amount > 0) return 'earlyPaymentNotAllowed';

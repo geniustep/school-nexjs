@@ -120,9 +120,17 @@ export function paymentMethodLabel(
   if (!method) return '—';
   const code = typeof method === 'string' ? method : method.code ?? method.name ?? method.label ?? '';
   if (!code) return '—';
-  const key = `admin.finance.method${code.charAt(0).toUpperCase()}${code.slice(1)}`;
-  const mapped = t(key);
-  if (mapped !== key) return mapped;
+  const snake = code.toLowerCase();
+  const camel = snake.replace(/_([a-z])/g, (_, c: string) => c.toUpperCase());
+  const candidates = [
+    `admin.finance.method${code.charAt(0).toUpperCase()}${code.slice(1)}`,
+    `admin.finance.method${camel.charAt(0).toUpperCase()}${camel.slice(1)}`,
+    `admin.finance.method${snake.replace(/_/g, '')}`,
+  ];
+  for (const key of candidates) {
+    const mapped = t(key);
+    if (mapped !== key) return mapped;
+  }
   const parentKey = `parent.finance.method${code.charAt(0).toUpperCase()}${code.slice(1)}`;
   const parentMapped = t(parentKey);
   if (parentMapped !== parentKey) return parentMapped;
