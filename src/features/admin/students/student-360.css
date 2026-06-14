@@ -191,3 +191,407 @@
   margin: 0;
   white-space: pre-wrap;
 }
+
+/* Shared tab panel layout */
+.student-360-tab-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.student-360-section-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px 16px;
+  margin-bottom: 4px;
+}
+
+.student-360-section-header__title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.student-360-section-header__desc {
+  margin: 4px 0 0;
+  font-size: 0.875rem;
+  color: var(--text-muted, #64748b);
+  max-width: 52ch;
+}
+
+.student-360-section-header__actions {
+  flex-shrink: 0;
+}
+
+.student-360-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.student-360-section__title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.student-360-section__subtitle {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.student-360-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.student-360-metric-card {
+  text-align: center;
+  padding: 12px 10px;
+}
+
+.student-360-metric-card__value {
+  display: block;
+  font-size: 1.35rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.student-360-metric-card__money {
+  font-size: 1.1rem;
+}
+
+.student-360-metric-card__label {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: var(--text-muted, #64748b);
+}
+
+.student-360-compact-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 6px;
+  min-height: 0;
+  padding: 20px 16px;
+}
+
+.student-360-compact-empty__title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.student-360-compact-empty__desc {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--text-muted, #64748b);
+  max-width: 36ch;
+}
+
+.student-360-compact-empty__action {
+  margin-top: 6px;
+}
+
+.student-360-section-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.student-360-section-card .student-360-table-wrap {
+  overflow-x: auto;
+}
+
+.student-360-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Document form in drawer */
+.student-doc-form.form--stacked {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.student-doc-form__section {
+  border: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.student-doc-form__section legend {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+  padding: 0;
+}
+
+.student-doc-form .form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.student-doc-form .form-field > span {
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.student-doc-form .form-field input,
+.student-doc-form .form-field select,
+.student-doc-form .form-field textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--c-border, #cbd5e1);
+  border-radius: 6px;
+  font: inherit;
+}
+
+.student-doc-form .form-row {
+  display: grid;
+  gap: 12px;
+}
+
+.student-doc-form .form-row--2 {
+  grid-template-columns: 1fr 1fr;
+}
+
+.student-doc-form .field-error,
+.student-doc-form .form-error {
+  font-size: 0.8125rem;
+  color: var(--danger, #dc2626);
+}
+
+.student-doc-form__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--c-border, #e2e8f0);
+  margin-top: 4px;
+}
+
+.student-doc-file-upload__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.student-doc-file-upload__drop {
+  border: 1px dashed var(--border, #cbd5e1);
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.student-doc-file-upload__drop:hover,
+.student-doc-file-upload__drop:focus-visible {
+  border-color: var(--primary, #2563eb);
+  background: var(--surface-2, #f8fafc);
+  outline: none;
+}
+
+.student-doc-file-upload__prompt {
+  margin: 0 0 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.student-doc-file-upload__hint {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-muted, #64748b);
+}
+
+.student-doc-file-upload__selected {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--border, #cbd5e1);
+  border-radius: 8px;
+  background: var(--surface-2, #f8fafc);
+}
+
+.student-doc-file-upload__name {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.student-doc-file-upload__details {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted, #64748b);
+}
+
+.student-doc-missing-list__items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.student-doc-missing-list__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border, #e2e8f0);
+}
+
+.student-doc-missing-list__item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.student-doc-missing-count {
+  padding: 12px 16px;
+}
+
+.student-finance-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px 12px;
+}
+
+.student-finance-header-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.student-finance-billing-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.student-finance-billing-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.student-finance-card-empty {
+  margin: 0;
+  flex: 1;
+}
+
+.student-finance-card-action {
+  margin-top: auto;
+  align-self: flex-start;
+  padding-top: 12px;
+}
+
+.student-finance-card-alert {
+  margin-top: 8px;
+  margin-bottom: 0;
+}
+
+.student-finance-zero-hint {
+  margin: 0;
+  text-align: center;
+}
+
+.student-finance-assign-card {
+  margin-top: 0;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 1024px) {
+  .student-360-metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .student-360-section-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .student-360-section-header__actions {
+    width: 100%;
+  }
+
+  .student-finance-header-actions {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .student-finance-year-select {
+    width: 100%;
+  }
+
+  .student-finance-year-select select {
+    width: 100%;
+  }
+
+  .student-finance-header-buttons {
+    width: 100%;
+  }
+
+  .student-finance-header-buttons .btn {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .student-finance-billing-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .student-doc-form .form-row--2 {
+    grid-template-columns: 1fr;
+  }
+
+  .student-360-metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 400px) {
+  .student-360-metric-grid {
+    grid-template-columns: 1fr;
+  }
+}

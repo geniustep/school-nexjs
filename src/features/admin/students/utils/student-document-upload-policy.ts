@@ -48,6 +48,19 @@ export function validateStudentDocumentFile(
   return { ok: true };
 }
 
+export function studentDocumentUploadErrorKey(
+  reason: StudentDocumentUploadRejectReason,
+): 'fileRequired' | 'fileTooLarge' | 'fileTypeNotAllowed' {
+  switch (reason) {
+    case 'document_file_required':
+      return 'fileRequired';
+    case 'document_file_too_large':
+      return 'fileTooLarge';
+    case 'document_file_type_not_allowed':
+      return 'fileTypeNotAllowed';
+  }
+}
+
 export function validateDocumentDates(
   issueDate: string,
   expiryDate: string,

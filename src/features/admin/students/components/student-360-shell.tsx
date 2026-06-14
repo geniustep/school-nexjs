@@ -28,6 +28,7 @@ import { StudentFinanceTab } from './student-finance-tab';
 import { StudentForm } from './student-form';
 import type { StudentDetailsData } from '@/types/student-360';
 import '../student-360.css';
+import '@/features/admin/academic-setup/academic-setup-ui.css';
 
 type TabId = 'overview' | 'enrollment' | 'guardians' | 'documents' | 'health' | 'finance';
 

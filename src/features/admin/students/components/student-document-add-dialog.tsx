@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { SetupDrawer } from '@/features/admin/academic-setup/components/setup-drawer';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
@@ -9,27 +9,30 @@ import { endpoints } from '@/lib/api/endpoints';
 import type { StudentDocumentTypeOption } from '@/types/student-360';
 import {
   buildStudentDocumentCreateFormData,
+  studentDocumentUploadErrorKey,
   validateDocumentDates,
   validateStudentDocumentFile,
 } from '../utils/student-document-upload-policy';
 import { mapStudentDocumentApiError } from '../utils/student-document-api-errors';
+import { StudentDocumentFileUpload } from './student-document-file-upload';
 
 export function StudentDocumentAddDialog({
   open,
   studentId,
   documentTypes,
+  initialDocumentTypeId,
   onClose,
   onCreated,
 }: {
   open: boolean;
   studentId: number;
   documentTypes: StudentDocumentTypeOption[];
+  initialDocumentTypeId?: string;
   onClose: () => void;
   onCreated: () => void;
 }) {
   const t = useT();
   const { activeSchoolId } = useAdminSession();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [documentTypeId, setDocumentTypeId] = useState('');
   const [documentNumber, setDocumentNumber] = useState('');
   const [issueDate, setIssueDate] = useState('');
@@ -39,6 +42,12 @@ export function StudentDocumentAddDialog({
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  useEffect(() => {
+    if (open && initialDocumentTypeId) {
+      setDocumentTypeId(initialDocumentTypeId);
+    }
+  }, [open, initialDocumentTypeId]);
+
   function reset() {
     setDocumentTypeId('');
     setDocumentNumber('');
@@ -47,7 +56,6 @@ export function StudentDocumentAddDialog({
     setNotes('');
     setFile(null);
     setErrors({});
-    if (fileInputRef.current) fileInputRef.current.value = '';
   }
 
   function handleClose() {
@@ -58,6 +66,21 @@ export function StudentDocumentAddDialog({
 
   function handleFileChange(next: File | null) {
     setFile(next);
+    if (!next) {
+      setErrors((e) => ({ ...e, file: '' }));
+      return;
+    }
+    const fileValidation = validateStudentDocumentFile(next);
+    if (!fileValidation.ok) {
+      setErrors((e) => ({
+        ...e,
+        file: t(
+          `admin.student360.documents.errors.${studentDocumentUploadErrorKey(fileValidation.reason!)}`,
+        ),
+      }));
+      setFile(null);
+      return;
+    }
     setErrors((e) => ({ ...e, file: '' }));
   }
 
@@ -69,7 +92,9 @@ export function StudentDocumentAddDialog({
     }
     const fileValidation = validateStudentDocumentFile(file);
     if (!fileValidation.ok) {
-      nextErrors.file = t(`admin.student360.documents.errors.${fileValidation.reason}`);
+      nextErrors.file = t(
+        `admin.student360.documents.errors.${studentDocumentUploadErrorKey(fileValidation.reason!)}`,
+      );
     }
     const dateError = validateDocumentDates(issueDate, expiryDate);
     if (dateError) {
@@ -121,91 +146,104 @@ export function StudentDocumentAddDialog({
     });
   }
 
+  const titleId = 'student-doc-add-title';
+  const descId = 'student-doc-add-desc';
+
   return (
     <SetupDrawer open={open} title={t('admin.student360.documents.addDocument')} onClose={handleClose}>
-      <form className="form form--stacked" onSubmit={handleSubmit}>
-        {errors.general ? <p className="form-error">{errors.general}</p> : null}
+      <form
+        className="student-doc-form form form--stacked"
+        onSubmit={handleSubmit}
+        aria-labelledby={titleId}
+        aria-describedby={descId}
+      >
+        <p id={descId} className="visually-hidden">
+          {t('admin.student360.documents.pageDescription')}
+        </p>
+        {errors.general ? (
+          <p className="form-error" role="alert">
+            {errors.general}
+          </p>
+        ) : null}
 
-        <label className="form-field">
-          <span>{t('admin.student360.documents.documentType')}</span>
-          <select
-            value={documentTypeId}
-            onChange={(e) => setDocumentTypeId(e.target.value)}
-            required
-          >
-            <option value="">{t('common.dash')}</option>
-            {documentTypes.map((dt) => (
-              <option key={dt.id} value={dt.id}>
-                {dt.name}
-                {dt.is_required ? ` *` : ''}
-              </option>
-            ))}
-          </select>
-          {errors.documentType ? <span className="field-error">{errors.documentType}</span> : null}
-        </label>
-
-        <label className="form-field">
-          <span>{t('admin.student360.documents.documentNumber')}</span>
-          <input
-            type="text"
-            value={documentNumber}
-            onChange={(e) => setDocumentNumber(e.target.value)}
-          />
-        </label>
-
-        <div className="form-row form-row--2">
+        <fieldset className="student-doc-form__section">
+          <legend>{t('admin.student360.documents.formSectionIdentity')}</legend>
           <label className="form-field">
-            <span>{t('admin.student360.documents.issueDate')}</span>
-            <input type="date" value={issueDate} onChange={(e) => setIssueDate(e.target.value)} />
+            <span>
+              {t('admin.student360.documents.documentType')} <span aria-hidden="true">*</span>
+            </span>
+            <select
+              value={documentTypeId}
+              onChange={(e) => setDocumentTypeId(e.target.value)}
+              required
+              aria-required="true"
+              aria-invalid={!!errors.documentType}
+            >
+              <option value="">{t('common.dash')}</option>
+              {documentTypes.map((dt) => (
+                <option key={dt.id} value={dt.id}>
+                  {dt.name}
+                  {dt.is_required ? ' *' : ''}
+                </option>
+              ))}
+            </select>
+            {errors.documentType ? (
+              <span className="field-error" role="alert">
+                {errors.documentType}
+              </span>
+            ) : null}
           </label>
+
           <label className="form-field">
-            <span>{t('admin.student360.documents.expiryDate')}</span>
-            <input type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} />
-            {errors.expiryDate ? <span className="field-error">{errors.expiryDate}</span> : null}
-          </label>
-        </div>
-
-        <label className="form-field">
-          <span>{t('admin.student360.documents.notes')}</span>
-          <textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
-        </label>
-
-        <div className="form-field">
-          <span>{t('admin.student360.documents.file')}</span>
-          <div
-            className="student-doc-file-drop"
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={(e) => {
-              e.preventDefault();
-              const dropped = e.dataTransfer.files?.[0] ?? null;
-              handleFileChange(dropped);
-            }}
-          >
+            <span>{t('admin.student360.documents.documentNumber')}</span>
             <input
-              ref={fileInputRef}
-              type="file"
-              accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp"
-              onChange={(e) => handleFileChange(e.target.files?.[0] ?? null)}
+              type="text"
+              value={documentNumber}
+              onChange={(e) => setDocumentNumber(e.target.value)}
             />
-            {file ? (
-              <div className="student-doc-file-info">
-                <span className="student-doc-file-name">{file.name}</span>
-                <button
-                  type="button"
-                  className="btn btn--ghost btn--sm"
-                  onClick={() => handleFileChange(null)}
-                >
-                  {t('common.clear')}
-                </button>
-              </div>
-            ) : (
-              <p className="tiny muted">{t('admin.student360.documents.fileHint')}</p>
-            )}
-          </div>
-          {errors.file ? <span className="field-error">{errors.file}</span> : null}
-        </div>
+          </label>
+        </fieldset>
 
-        <div className="form-actions">
+        <fieldset className="student-doc-form__section">
+          <legend>{t('admin.student360.documents.formSectionDates')}</legend>
+          <div className="form-row form-row--2">
+            <label className="form-field">
+              <span>{t('admin.student360.documents.issueDate')}</span>
+              <input type="date" value={issueDate} onChange={(e) => setIssueDate(e.target.value)} />
+            </label>
+            <label className="form-field">
+              <span>{t('admin.student360.documents.expiryDate')}</span>
+              <input type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} />
+              {errors.expiryDate ? (
+                <span className="field-error" role="alert">
+                  {errors.expiryDate}
+                </span>
+              ) : null}
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset className="student-doc-form__section">
+          <legend>{t('admin.student360.documents.formSectionNotes')}</legend>
+          <label className="form-field">
+            <span>{t('admin.student360.documents.notes')}</span>
+            <textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
+          </label>
+        </fieldset>
+
+        <fieldset className="student-doc-form__section">
+          <legend>
+            {t('admin.student360.documents.formSectionFile')} <span aria-hidden="true">*</span>
+          </legend>
+          <StudentDocumentFileUpload
+            file={file}
+            error={errors.file}
+            disabled={submitting}
+            onChange={handleFileChange}
+          />
+        </fieldset>
+
+        <div className="student-doc-form__footer form-actions">
           <button type="button" className="btn btn--ghost" onClick={handleClose} disabled={submitting}>
             {t('common.cancel')}
           </button>

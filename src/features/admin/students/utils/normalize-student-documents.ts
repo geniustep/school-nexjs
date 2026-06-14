@@ -6,6 +6,7 @@ import type {
   StudentDocumentTypeOption,
   StudentDocumentsData,
 } from '@/types/student-360';
+import { isDocumentActive } from './student-document-display';
 
 const DEFAULT_SUMMARY: StudentDocumentSummary = {
   total: 0,
@@ -124,4 +125,27 @@ export function documentTypeCode(
   if (!documentType) return '';
   if (typeof documentType === 'string') return documentType;
   return documentType.code;
+}
+
+/** Required document types not yet present among active student documents. */
+export function missingRequiredDocumentTypes(
+  documentTypes: StudentDocumentTypeOption[],
+  items: StudentDocument[],
+): StudentDocumentTypeOption[] {
+  const activeItems = items.filter(isDocumentActive);
+  const presentIds = new Set<number>();
+  const presentCodes = new Set<string>();
+  for (const doc of activeItems) {
+    const dt = doc.document_type;
+    if (!dt) continue;
+    if (typeof dt === 'object') {
+      presentIds.add(dt.id);
+      presentCodes.add(dt.code);
+    } else {
+      presentCodes.add(dt);
+    }
+  }
+  return documentTypes.filter(
+    (dt) => dt.is_required && !presentIds.has(dt.id) && !presentCodes.has(dt.code),
+  );
 }
