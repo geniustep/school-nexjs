@@ -1,25 +1,42 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useT } from '@/features/i18n/locale-context';
 import { resolveFinanceOverviewStatus } from '../utils/student-finance-status-summary';
-import { isRelationshipActive } from '../utils/relationship-types';
+import { isRelationshipActive, relationshipTypeLabel } from '../utils/relationship-types';
+import { studentClassLabel, studentLevelLabel } from '../utils/student-academic-labels';
 import type { Student360TabId } from '../utils/student-360-tabs';
 import type { StudentDetailsData } from '@/types/student-360';
 
-type StatusItem = {
+type ReadinessTone = 'ok' | 'warn' | 'bad' | 'neutral';
+
+type ReadinessItem = {
   key: string;
+  tone: ReadinessTone;
+  icon: string;
   title: string;
-  status: string;
-  statusTone: 'ok' | 'warn' | 'bad' | 'neutral';
-  description?: string;
+  value: string;
+  badge: string;
   action?: { label: string; tab?: Student360TabId; onClick?: () => void };
+  priority: number;
 };
 
-function toneClass(tone: StatusItem['statusTone']): string {
-  if (tone === 'ok') return 'student-status-item--ok';
-  if (tone === 'warn') return 'student-status-item--warn';
-  if (tone === 'bad') return 'student-status-item--bad';
-  return 'student-status-item--neutral';
+function toneIcon(tone: ReadinessTone): string {
+  if (tone === 'ok') return '●';
+  if (tone === 'bad') return '!';
+  if (tone === 'warn') return '!';
+  return '—';
+}
+
+function toneBadgeKey(tone: ReadinessTone): string {
+  if (tone === 'ok') return 'admin.student360.readiness.badgeComplete';
+  if (tone === 'bad') return 'admin.student360.readiness.badgeAction';
+  if (tone === 'warn') return 'admin.student360.readiness.badgeIncomplete';
+  return 'admin.student360.readiness.badgeNeutral';
+}
+
+function toneClass(tone: ReadinessTone): string {
+  return `student-readiness-item--${tone}`;
 }
 
 export function StudentStatusSummary({
@@ -30,6 +47,7 @@ export function StudentStatusSummary({
   showFinance,
   onOpenTab,
   onEditProfile,
+  onCreateAccount,
 }: {
   details: StudentDetailsData;
   canManage: boolean;
@@ -38,6 +56,7 @@ export function StudentStatusSummary({
   showFinance: boolean;
   onOpenTab: (tab: Student360TabId) => void;
   onEditProfile?: () => void;
+  onCreateAccount?: () => void;
 }) {
   const t = useT();
   const s = details.student;
@@ -46,147 +65,179 @@ export function StudentStatusSummary({
     isRelationshipActive(r.state, r.active),
   );
   const primary = activeGuardians.find((r) => r.is_primary_contact);
-  const hasContact = !!(s.phone || s.mobile || s.email);
   const docSummary = details.document_summary;
   const healthSummary = details.health_summary;
   const financeSummary = details.finance_summary;
   const hasAccount = !!(s.user_id || (s.account && s.account.status !== 'not_created'));
 
-  const items: StatusItem[] = [
-    {
+  const items = useMemo(() => {
+    const rows: ReadinessItem[] = [];
+
+    const enrollmentValue = enrollment
+      ? [studentClassLabel(enrollment.class), studentLevelLabel(enrollment.level)]
+          .filter(Boolean)
+          .join(' · ') || t('admin.student360.statusSummary.enrolled')
+      : t('admin.student360.statusSummary.notEnrolled');
+
+    rows.push({
       key: 'enrollment',
+      tone: enrollment ? 'ok' : 'warn',
+      icon: toneIcon(enrollment ? 'ok' : 'warn'),
       title: t('admin.student360.statusSummary.enrollment'),
-      status: enrollment
-        ? t('admin.student360.statusSummary.enrolled')
-        : t('admin.student360.statusSummary.notEnrolled'),
-      statusTone: enrollment ? 'ok' : 'warn',
-      description: enrollment
-        ? undefined
-        : t('admin.student360.statusSummary.enrollmentHint'),
-      action:
-        !enrollment && canManage
-          ? { label: t('admin.student360.statusSummary.createEnrollment'), onClick: onEditProfile }
-          : enrollment
-            ? { label: t('admin.student360.statusSummary.viewEnrollment'), tab: 'enrollment' }
-            : undefined,
-    },
-    {
+      value: enrollmentValue,
+      badge: t(toneBadgeKey(enrollment ? 'ok' : 'warn')),
+      priority: enrollment ? 2 : 0,
+      action: !enrollment && canManage
+        ? { label: t('admin.student360.statusSummary.createEnrollment'), onClick: onEditProfile }
+        : enrollment
+          ? { label: t('admin.student360.statusSummary.viewEnrollment'), tab: 'enrollment' }
+          : undefined,
+    });
+
+    const guardianValue = primary
+      ? `${primary.guardian.name} · ${relationshipTypeLabel(t, primary.relationship_type)}`
+      : activeGuardians.length > 0
+        ? t('admin.student360.statusSummary.guardiansCount', { count: activeGuardians.length })
+        : t('admin.student360.statusSummary.noGuardian');
+
+    rows.push({
       key: 'guardian',
+      tone: activeGuardians.length > 0 ? 'ok' : 'warn',
+      icon: toneIcon(activeGuardians.length > 0 ? 'ok' : 'warn'),
       title: t('admin.student360.statusSummary.guardian'),
-      status: primary
-        ? primary.guardian.name
-        : activeGuardians.length > 0
-          ? t('admin.student360.statusSummary.guardiansCount', { count: activeGuardians.length })
-          : t('admin.student360.statusSummary.noGuardian'),
-      statusTone: activeGuardians.length > 0 ? 'ok' : 'warn',
+      value: guardianValue,
+      badge: t(toneBadgeKey(activeGuardians.length > 0 ? 'ok' : 'warn')),
+      priority: activeGuardians.length > 0 ? 2 : 0,
       action:
         activeGuardians.length === 0 && canManage
           ? { label: t('admin.student360.addGuardian'), tab: 'guardians' }
           : activeGuardians.length > 0
             ? { label: t('admin.student360.statusSummary.viewGuardians'), tab: 'guardians' }
             : undefined,
-    },
-    {
-      key: 'contact',
-      title: t('admin.student360.statusSummary.contact'),
-      status: hasContact
-        ? [s.mobile, s.phone, s.email].filter(Boolean).join(' · ')
-        : t('admin.student360.statusSummary.noContact'),
-      statusTone: hasContact ? 'ok' : 'neutral',
+    });
+
+    if (showHealth && healthSummary) {
+      const hasProfile = healthSummary.has_profile === true;
+      const hasCritical = hasProfile && healthSummary.has_critical_alert === true;
+      const tone: ReadinessTone = hasCritical ? 'bad' : hasProfile ? 'ok' : 'warn';
+      rows.push({
+        key: 'health',
+        tone,
+        icon: toneIcon(tone),
+        title: t('admin.student360.statusSummary.health'),
+        value: hasCritical
+          ? t('admin.student360.health.criticalAlert')
+          : hasProfile
+            ? t('admin.student360.statusSummary.healthRecorded')
+            : t('admin.student360.statusSummary.noHealth'),
+        badge: t(toneBadgeKey(tone)),
+        priority: tone === 'ok' ? 2 : 0,
+        action: !hasProfile
+          ? { label: t('admin.student360.health.createProfile'), tab: 'health' }
+          : { label: t('admin.student360.statusSummary.viewHealth'), tab: 'health' },
+      });
+    }
+
+    if (showDocuments && docSummary) {
+      const tone: ReadinessTone = docSummary.missing_required > 0 ? 'bad' : 'ok';
+      rows.push({
+        key: 'documents',
+        tone,
+        icon: toneIcon(tone),
+        title: t('admin.student360.statusSummary.documents'),
+        value:
+          docSummary.missing_required > 0
+            ? t('admin.student360.statusSummary.missingDocs', { count: docSummary.missing_required })
+            : t('admin.student360.statusSummary.docsComplete'),
+        badge: t(toneBadgeKey(tone)),
+        priority: tone === 'ok' ? 2 : 0,
+        action:
+          docSummary.missing_required > 0
+            ? { label: t('admin.student360.documents.openTab'), tab: 'documents' }
+            : { label: t('admin.student360.statusSummary.viewDocuments'), tab: 'documents' },
+      });
+    }
+
+    if (showFinance) {
+      const financeStatus = resolveFinanceOverviewStatus(financeSummary, t);
+      rows.push({
+        key: 'finance',
+        tone: financeStatus.tone,
+        icon: toneIcon(financeStatus.tone),
+        title: t('admin.student360.statusSummary.financeAgreement'),
+        value: financeStatus.status,
+        badge: t(toneBadgeKey(financeStatus.tone)),
+        priority: financeStatus.tone === 'ok' ? 2 : 0,
+        action: {
+          label:
+            financeStatus.actionTab === 'financial-agreement'
+              ? financeStatus.tone === 'warn'
+                ? t('admin.student360.financialAgreement.create')
+                : t('admin.student360.statusSummary.viewAgreement')
+              : t('admin.student360.statusSummary.viewFinance'),
+          tab: financeStatus.actionTab,
+        },
+      });
+    }
+
+    rows.push({
+      key: 'account',
+      tone: hasAccount ? 'ok' : 'neutral',
+      icon: toneIcon(hasAccount ? 'ok' : 'neutral'),
+      title: t('admin.student360.statusSummary.account'),
+      value: hasAccount
+        ? t(`admin.account.status.${s.account?.status ?? 'active'}`)
+        : t('admin.student360.statusSummary.noAccount'),
+      badge: t(toneBadgeKey(hasAccount ? 'ok' : 'neutral')),
+      priority: hasAccount ? 3 : 1,
       action:
-        !hasContact && canManage && onEditProfile
-          ? { label: t('admin.student360.statusSummary.addContact'), onClick: onEditProfile }
+        !hasAccount && canManage && onCreateAccount
+          ? { label: t('admin.account.createAccount'), onClick: onCreateAccount }
           : undefined,
-    },
-  ];
-
-  if (showDocuments && docSummary) {
-    items.push({
-      key: 'documents',
-      title: t('admin.student360.statusSummary.documents'),
-      status:
-        docSummary.missing_required > 0
-          ? t('admin.student360.statusSummary.missingDocs', { count: docSummary.missing_required })
-          : t('admin.student360.statusSummary.docsComplete'),
-      statusTone: docSummary.missing_required > 0 ? 'bad' : 'ok',
-      action:
-        docSummary.missing_required > 0
-          ? { label: t('admin.student360.documents.openTab'), tab: 'documents' }
-          : { label: t('admin.student360.statusSummary.viewDocuments'), tab: 'documents' },
     });
-  }
 
-  if (showHealth && healthSummary) {
-    const hasProfile = healthSummary.has_profile === true;
-    const hasCritical = hasProfile && healthSummary.has_critical_alert === true;
-    items.push({
-      key: 'health',
-      title: t('admin.student360.statusSummary.health'),
-      status: hasCritical
-        ? t('admin.student360.health.criticalAlert')
-        : hasProfile
-          ? t('admin.student360.statusSummary.healthRecorded')
-          : t('admin.student360.statusSummary.noHealth'),
-      statusTone: hasCritical ? 'bad' : hasProfile ? 'ok' : 'warn',
-      action: !hasProfile
-        ? { label: t('admin.student360.health.createProfile'), tab: 'health' }
-        : { label: t('admin.student360.statusSummary.viewHealth'), tab: 'health' },
-    });
-  }
-
-  if (showFinance) {
-    const financeStatus = resolveFinanceOverviewStatus(financeSummary, t);
-    items.push({
-      key: 'finance',
-      title: t('admin.student360.statusSummary.finance'),
-      status: financeStatus.status,
-      statusTone: financeStatus.tone,
-      action: {
-        label:
-          financeStatus.actionTab === 'financial-agreement'
-            ? t('admin.student360.statusSummary.viewAgreement')
-            : t('admin.student360.statusSummary.viewFinance'),
-        tab: financeStatus.actionTab,
-      },
-    });
-  }
-
-  items.push({
-    key: 'account',
-    title: t('admin.student360.statusSummary.account'),
-    status: hasAccount
-      ? t(`admin.account.status.${s.account?.status ?? 'active'}`)
-      : t('admin.student360.statusSummary.noAccount'),
-    statusTone: hasAccount ? 'ok' : 'neutral',
-  });
+    return rows.sort((a, b) => a.priority - b.priority || a.title.localeCompare(b.title, 'ar'));
+  }, [
+    enrollment,
+    activeGuardians,
+    primary,
+    docSummary,
+    healthSummary,
+    financeSummary,
+    hasAccount,
+    showDocuments,
+    showHealth,
+    showFinance,
+    canManage,
+    onEditProfile,
+    onCreateAccount,
+    s.account?.status,
+    t,
+  ]);
 
   return (
-    <section className="student-status-summary" aria-label={t('admin.student360.statusSummary.title')}>
-      <h2 className="student-status-summary__heading">{t('admin.student360.statusSummary.title')}</h2>
-      <ul className="student-status-summary__grid">
+    <section className="student-readiness" aria-label={t('admin.student360.readiness.title')}>
+      <h2 className="student-readiness__heading">{t('admin.student360.readiness.title')}</h2>
+      <ul className="student-readiness__list card">
         {items.map((item) => (
-          <li key={item.key} className={`student-status-item card ${toneClass(item.statusTone)}`}>
-            <div className="student-status-item__head">
-              <span className="student-status-item__title">{item.title}</span>
-              <span className={`student-status-item__badge student-status-item__badge--${item.statusTone}`}>
-                {item.statusTone === 'ok'
-                  ? t('admin.student360.statusSummary.ok')
-                  : item.statusTone === 'bad'
-                    ? t('admin.student360.statusSummary.actionNeeded')
-                    : item.statusTone === 'warn'
-                      ? t('admin.student360.statusSummary.incomplete')
-                      : t('admin.student360.statusSummary.neutral')}
+          <li key={item.key} className={`student-readiness-item ${toneClass(item.tone)}`}>
+            <span className="student-readiness-item__icon" aria-hidden="true">
+              {item.icon}
+            </span>
+            <div className="student-readiness-item__body">
+              <span className="student-readiness-item__title">{item.title}</span>
+              <span className="student-readiness-item__value" dir="auto" title={item.value}>
+                {item.value}
               </span>
             </div>
-            <p className="student-status-item__status">{item.status}</p>
-            {item.description ? (
-              <p className="student-status-item__desc">{item.description}</p>
-            ) : null}
+            <span className={`student-readiness-item__badge student-readiness-item__badge--${item.tone}`}>
+              {item.badge}
+            </span>
             {item.action ? (
               item.action.onClick ? (
                 <button
                   type="button"
-                  className="btn btn--ghost btn--sm student-status-item__action"
+                  className="student-readiness-item__action"
                   onClick={item.action.onClick}
                 >
                   {item.action.label}
@@ -194,7 +245,7 @@ export function StudentStatusSummary({
               ) : item.action.tab ? (
                 <button
                   type="button"
-                  className="btn btn--ghost btn--sm student-status-item__action"
+                  className="student-readiness-item__action"
                   onClick={() => onOpenTab(item.action!.tab!)}
                 >
                   {item.action.label}

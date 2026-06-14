@@ -2418,6 +2418,17 @@
         "recordCollection": "Enregistrer un encaissement",
         "more": "Plus"
       },
+      "readiness": {
+        "title": "État de préparation",
+        "badgeComplete": "Complet",
+        "badgeIncomplete": "Incomplet",
+        "badgeAction": "Action requise",
+        "badgeNeutral": "Indisponible"
+      },
+      "loading": {
+        "refreshing": "Actualisation…",
+        "years": "Chargement des années…"
+      },
       "statusSummary": {
         "title": "État du dossier",
         "enrollment": "Inscription",
@@ -2442,6 +2453,7 @@
         "noHealth": "Non enregistré",
         "viewHealth": "Voir le dossier santé",
         "finance": "Situation financière",
+        "financeAgreement": "Accord financier",
         "hasOverdue": "Retards",
         "hasBalance": "Solde dû",
         "financeClear": "Aucun solde",
@@ -2472,7 +2484,9 @@
         "enrollment": "Inscription",
         "guardians": "Responsable",
         "identity": "Identité",
+        "basicInfo": "Informations de base",
         "currentStudy": "Scolarité actuelle",
+        "contactAndEmergency": "Contact et urgence",
         "family": "Famille",
         "system": "Système",
         "contact": "Contact et adresse",
@@ -2593,6 +2607,8 @@
         "summaryTitle": "Résumé des documents",
         "openTab": "Ouvrir les documents",
         "addDocument": "Ajouter un document",
+        "uploadDocument": "Téléverser le document",
+        "summaryAria": "Résumé de l'état des documents",
         "editDocument": "Modifier le document",
         "documentType": "Type de document",
         "documentNumber": "Numéro du document",

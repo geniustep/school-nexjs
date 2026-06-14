@@ -2418,6 +2418,17 @@
         "recordCollection": "Registrar cobro",
         "more": "Más"
       },
+      "readiness": {
+        "title": "Preparación del expediente",
+        "badgeComplete": "Completo",
+        "badgeIncomplete": "Incompleto",
+        "badgeAction": "Acción requerida",
+        "badgeNeutral": "No disponible"
+      },
+      "loading": {
+        "refreshing": "Actualizando…",
+        "years": "Cargando años académicos…"
+      },
       "statusSummary": {
         "title": "Estado del expediente",
         "enrollment": "Inscripción",
@@ -2442,6 +2453,7 @@
         "noHealth": "No registrada",
         "viewHealth": "Ver ficha de salud",
         "finance": "Situación financiera",
+        "financeAgreement": "Acuerdo financiero",
         "hasOverdue": "Con atrasos",
         "hasBalance": "Saldo pendiente",
         "financeClear": "Sin saldo",
@@ -2472,7 +2484,9 @@
         "enrollment": "Matrícula",
         "guardians": "Tutor",
         "identity": "Identidad",
+        "basicInfo": "Información básica",
         "currentStudy": "Estudio actual",
+        "contactAndEmergency": "Contacto y emergencia",
         "family": "Familia",
         "system": "Sistema",
         "contact": "Contacto y dirección",
@@ -2593,6 +2607,8 @@
         "summaryTitle": "Resumen de documentos",
         "openTab": "Abrir documentos",
         "addDocument": "Añadir documento",
+        "uploadDocument": "Subir documento",
+        "summaryAria": "Resumen del estado de documentos",
         "editDocument": "Editar documento",
         "documentType": "Tipo de documento",
         "documentNumber": "Número de documento",

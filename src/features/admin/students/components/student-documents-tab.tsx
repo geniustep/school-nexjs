@@ -32,7 +32,7 @@ import {
 } from '../utils/student-document-upload-policy';
 import { mapStudentDocumentApiError } from '../utils/student-document-api-errors';
 import { Student360CompactEmpty } from './student-360-compact-empty';
-import { Student360MetricGrid } from './student-360-metric-grid';
+import { StudentDocumentsSummaryBar } from './student-documents-summary-bar';
 import { Student360SectionHeader } from './student-360-section-header';
 import { StudentDocumentAddDialog } from './student-document-add-dialog';
 import { StudentDocumentEditDialog } from './student-document-edit-dialog';
@@ -190,19 +190,12 @@ export function StudentDocumentsTab({
         }
       />
 
-      <Student360MetricGrid
-        variant="docs"
-        items={[
-          { key: 'total', label: t('admin.student360.documents.summaryTotal'), value: data.summary.total },
-          { key: 'valid', label: t('admin.student360.documents.summaryValid'), value: data.summary.valid, tone: 'green' },
-          { key: 'expired', label: t('admin.student360.documents.summaryExpired'), value: data.summary.expired, tone: missingCount > 0 ? 'none' : 'amber' },
-          {
-            key: 'missing',
-            label: t('admin.student360.documents.summaryMissing'),
-            value: missingCount,
-            tone: missingCount > 0 ? 'red' : 'none',
-          },
-        ]}
+      <StudentDocumentsSummaryBar
+        total={data.summary.total}
+        valid={data.summary.valid}
+        expired={data.summary.expired}
+        missing={missingCount}
+        emphasizeMissing={missingCount > 0}
       />
 
       {missingTypes.length > 0 ? (
@@ -228,7 +221,7 @@ export function StudentDocumentsTab({
                       className="btn btn--ghost btn--sm"
                       onClick={() => openAddDialog(String(dt.id))}
                     >
-                      {t('admin.student360.documents.addDocument')}
+                      {t('admin.student360.documents.uploadDocument')}
                     </button>
                   ) : null}
                 </li>
@@ -248,17 +241,7 @@ export function StudentDocumentsTab({
 
       <section className="student-360-section">
         {activeItems.length === 0 ? (
-          <Student360CompactEmpty
-            title={t('admin.student360.documents.emptyTitle')}
-            description={t('admin.student360.documents.emptyDescription')}
-            action={
-              canManage ? (
-                <button type="button" className="btn btn--ghost btn--sm" onClick={() => openAddDialog()}>
-                  {t('admin.student360.documents.addDocument')}
-                </button>
-              ) : null
-            }
-          />
+          <p className="student-doc-empty-inline muted">{t('admin.student360.documents.emptyTitle')}</p>
         ) : (
           <div className="student-doc-list">
             {activeItems.map((doc) => (

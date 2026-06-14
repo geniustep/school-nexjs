@@ -7,7 +7,6 @@ import { useT } from '@/features/i18n/locale-context';
 import { statusLabel } from '@/lib/utils/labels';
 import { optionLabel } from '../utils/student-profile';
 import { studentClassLabel, studentLevelLabel, refOrStringLabel } from '../utils/student-academic-labels';
-import { Student360CompactEmpty } from './student-360-compact-empty';
 import type { StudentDetailsData, StudentEnrollment } from '@/types/student-360';
 
 function dash(t: (k: string) => string, value: string | null | undefined): string {
@@ -86,17 +85,15 @@ export function StudentEnrollmentTab({
           />
         </Card>
       ) : (
-        <Student360CompactEmpty
-          title={t('admin.student360.noCurrentEnrollmentTitle')}
-          description={t('admin.student360.enrollmentEmptyDesc')}
-          action={
-            canManage && onCreateEnrollment ? (
-              <button type="button" className="btn btn--primary btn--sm" onClick={onCreateEnrollment}>
-                {t('admin.student360.statusSummary.createEnrollment')}
-              </button>
-            ) : undefined
-          }
-        />
+        <div className="student-360-enrollment-empty">
+          <p className="student-360-enrollment-empty__title">{t('admin.student360.noCurrentEnrollmentTitle')}</p>
+          <p className="student-360-enrollment-empty__desc">{t('admin.student360.enrollmentEmptyDesc')}</p>
+          {canManage && onCreateEnrollment ? (
+            <button type="button" className="btn btn--primary btn--sm" onClick={onCreateEnrollment}>
+              {t('admin.student360.statusSummary.createEnrollment')}
+            </button>
+          ) : null}
+        </div>
       )}
 
       <section className="student-360-section">

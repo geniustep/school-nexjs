@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ApiErrorView, LoadingState } from '@/components/states/states';
+import { ApiErrorView } from '@/components/states/states';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
 import { Card } from '@/components/ui/primitives';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
@@ -13,40 +13,36 @@ import { StudentCollectionDrawer } from '@/features/admin/finance/student-collec
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { collectionState, paymentMethodLabel, refName } from '@/lib/utils/finance';
-import { useFinanceReferenceData } from '@/features/admin/finance/use-finance-lookups';
 import type { StudentFinanceCapabilities } from '@/types/student-finance';
 import type { StudentCapabilities, StudentDetailsData } from '@/types/student-360';
 import type { PaymentCollection } from '@/types/finance';
 import { Student360CompactEmpty } from '@/features/admin/students/components/student-360-compact-empty';
+import {
+  StudentFinanceSkeleton,
+  StudentInlineLoading,
+  StudentSectionSkeleton,
+  StudentYearSelectSkeleton,
+} from '@/features/admin/students/components/student-360-loading';
 import { Student360MetricGrid } from '@/features/admin/students/components/student-360-metric-grid';
 import { Student360SectionHeader } from '@/features/admin/students/components/student-360-section-header';
 import {
   canCollectStudentPayments,
   canViewStudentPayments,
 } from '@/features/admin/students/utils/resolve-capabilities';
-import { useStudentFinanceWorkspace } from '../hooks/use-student-finance-workspace';
+import { useStudentFinanceTabState } from '../hooks/use-student-finance-tab-state';
 import { useStudentInstallments } from '../hooks/use-student-installments';
 import type { ServiceSubscription, StudentInstallment, WorkspaceCheque } from '../types';
 import { hasFinanceSummaryData } from '../utils/reference-labels';
+import {
+  resolveFinanceTabLoadPhase,
+  shouldShowFinanceEmptyState,
+} from '../utils/finance-tab-loading';
 import { formatPeriodRange } from '../utils/format-period';
 import { ChequeDualBadges } from './cheque-dual-badges';
 import { InstallmentStatusBadges } from './installment-status-badges';
 import { ServiceCategoryDetailsList } from './service-category-details-list';
 import { resolveReferenceLabel } from '../utils/reference-labels';
 import { subscriptionCategoryDetails } from '../utils/service-category-details';
-
-function resolveInitialYearId(
-  details: StudentDetailsData,
-  years: { id: number }[],
-  workspaceYearId?: number,
-): string {
-  if (workspaceYearId) return String(workspaceYearId);
-  const enrollYear = details.current_enrollment?.academic_year;
-  if (enrollYear && typeof enrollYear === 'object') return String(enrollYear.id);
-  const current = years.find((y) => 'is_current' in y && (y as { is_current?: boolean }).is_current);
-  if (current) return String(current.id);
-  return years[0] ? String(years[0].id) : '';
-}
 
 export function StudentFinanceOperationsTab({
   studentId,
@@ -60,9 +56,15 @@ export function StudentFinanceOperationsTab({
 }) {
   const t = useT();
   const { formatDate } = useFormat();
-  const refState = useFinanceReferenceData();
-  const academicYears = refState.academicYears;
-  const [academicYearId, setAcademicYearId] = useState('');
+  const {
+    refState,
+    academicYears,
+    effectiveYearId,
+    setSelectedYearId,
+    workspaceState,
+    workspace,
+    isRefreshing,
+  } = useStudentFinanceTabState(studentId, details);
   const [page, setPage] = useState(1);
   const [paymentStatus, setPaymentStatus] = useState('');
   const [timingStatus, setTimingStatus] = useState('');
@@ -75,28 +77,19 @@ export function StudentFinanceOperationsTab({
   const [selectedCollectionId, setSelectedCollectionId] = useState<number | null>(null);
   const [selectedChequeId, setSelectedChequeId] = useState<number | null>(null);
 
-  const workspaceQuery = useMemo(
-    () => (academicYearId ? { academic_year_id: Number(academicYearId) } : undefined),
-    [academicYearId],
-  );
-  const workspaceState = useStudentFinanceWorkspace(studentId, workspaceQuery, !!academicYearId);
-  const workspace = workspaceState.data;
-
-  useEffect(() => {
-    if (academicYearId || !academicYears.length) return;
-    const initial = resolveInitialYearId(
-      details,
-      academicYears,
-      workspace?.academic_year?.id,
-    );
-    if (initial) setAcademicYearId(initial);
-  }, [academicYearId, academicYears, details, workspace?.academic_year?.id]);
+  const phase = resolveFinanceTabLoadPhase({
+    yearsLoading: refState.loading,
+    effectiveYearId,
+    workspaceInitialLoading: workspaceState.initialLoading,
+    agreementId: null,
+    agreementDetailInitialLoading: false,
+  });
 
   const installmentQuery = useMemo(
     () => ({
       page,
       page_size: 20,
-      academic_year_id: academicYearId ? Number(academicYearId) : undefined,
+      academic_year_id: effectiveYearId ? Number(effectiveYearId) : undefined,
       payment_status: paymentStatus || undefined,
       timing_status: quickOverdueUnpaid ? 'overdue' : timingStatus || undefined,
       service_category: serviceCategory || undefined,
@@ -106,7 +99,7 @@ export function StudentFinanceOperationsTab({
     }),
     [
       page,
-      academicYearId,
+      effectiveYearId,
       paymentStatus,
       timingStatus,
       serviceCategory,
@@ -119,7 +112,7 @@ export function StudentFinanceOperationsTab({
   const installmentsState = useStudentInstallments(
     studentId,
     installmentQuery,
-    !!academicYearId,
+    !!effectiveYearId,
   );
   const installmentsPg = installmentsState.meta?.pagination;
 
@@ -343,8 +336,21 @@ export function StudentFinanceOperationsTab({
     [t, formatDate],
   );
 
-  if (workspaceState.loading && !workspace) {
-    return <LoadingState label={t('common.loading')} />;
+  if (phase !== 'ready') {
+    return (
+      <div className="student-finance-tab student-360-tab-panel">
+        <Student360SectionHeader
+          title={t('admin.student360.financeOps.pageTitle')}
+          description={t('admin.student360.financeOps.pageDescription')}
+          action={
+            <div className="student-finance-header-actions">
+              <StudentYearSelectSkeleton />
+            </div>
+          }
+        />
+        <StudentFinanceSkeleton />
+      </div>
+    );
   }
 
   if (workspaceState.error?.code === 'forbidden') {
@@ -377,6 +383,12 @@ export function StudentFinanceOperationsTab({
     summaryItems.length > 0 &&
     summaryItems.every((item) => item.value == null || Number(item.value) === 0);
 
+  const showFinanceEmpty = shouldShowFinanceEmptyState({
+    phase,
+    workspaceLoaded: !!workspace && !workspaceState.initialLoading,
+    emptyFinance,
+  });
+
   function resetInstallmentFilters() {
     setPaymentStatus('');
     setTimingStatus('');
@@ -389,25 +401,28 @@ export function StudentFinanceOperationsTab({
 
   const headerActions = (
     <div className="student-finance-header-actions">
-      <label className="student-finance-year-select">
-        <span className="tiny muted">{t('admin.student360.finance.academicYear')}</span>
-        <select
-          className="input"
-          value={academicYearId}
-          onChange={(e) => {
-            setAcademicYearId(e.target.value);
-            setPage(1);
-          }}
-          disabled={refState.loading || !academicYears.length}
-        >
-          {!academicYears.length && <option value="">{t('common.loading')}</option>}
-          {academicYears.map((y) => (
-            <option key={y.id} value={y.id}>
-              {y.name}
-            </option>
-          ))}
-        </select>
-      </label>
+      {refState.loading || !effectiveYearId ? (
+        <StudentYearSelectSkeleton />
+      ) : (
+        <label className="student-finance-year-select">
+          <span className="tiny muted">{t('admin.student360.finance.academicYear')}</span>
+          <select
+            className="input"
+            value={effectiveYearId}
+            onChange={(e) => {
+              setSelectedYearId(e.target.value);
+              setPage(1);
+            }}
+            disabled={refState.loading || !academicYears.length}
+          >
+            {academicYears.map((y) => (
+              <option key={y.id} value={y.id}>
+                {y.name}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
       <div className="student-finance-header-buttons">
         <Link
           href={`/admin/students/${studentId}?tab=financial-agreement`}
@@ -429,14 +444,15 @@ export function StudentFinanceOperationsTab({
   );
 
   return (
-    <div className="student-finance-tab student-360-tab-panel">
+    <div className={`student-finance-tab student-360-tab-panel${isRefreshing ? ' student-360-tab-panel--refreshing' : ''}`}>
       <Student360SectionHeader
         title={t('admin.student360.financeOps.pageTitle')}
         description={t('admin.student360.financeOps.pageDescription')}
         action={headerActions}
       />
+      {isRefreshing ? <StudentInlineLoading /> : null}
 
-      {emptyFinance ? (
+      {showFinanceEmpty ? (
         <Student360CompactEmpty
           title={t('admin.student360.financeOps.emptyTitle')}
           description={t('admin.student360.financeOps.emptyDescription')}
@@ -577,8 +593,8 @@ export function StudentFinanceOperationsTab({
             </div>
             ) : null}
 
-            {installmentsState.loading && !installmentsState.data ? (
-              <LoadingState label={t('common.loading')} />
+            {installmentsState.initialLoading ? (
+              <StudentSectionSkeleton rows={6} />
             ) : installmentsState.error ? (
               <ApiErrorView error={installmentsState.error} onRetry={installmentsState.reload} />
             ) : (
@@ -660,7 +676,7 @@ export function StudentFinanceOperationsTab({
       <StudentCollectionDrawer
         open={showCollectionDrawer}
         studentId={studentId}
-        academicYearId={academicYearId ? Number(academicYearId) : undefined}
+        academicYearId={effectiveYearId ? Number(effectiveYearId) : undefined}
         onClose={() => setShowCollectionDrawer(false)}
         onSuccess={refreshFinanceData}
       />

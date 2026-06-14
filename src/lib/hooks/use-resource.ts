@@ -9,6 +9,10 @@ import type { ApiErrorBody, ApiMeta, ListParams } from '@/types/api';
 
 export interface ResourceState<T> {
   loading: boolean;
+  /** True only on the first fetch when no cached data exists yet. */
+  initialLoading: boolean;
+  /** True when refetching while previous data is still shown. */
+  fetching: boolean;
   data: T | null;
   meta: ApiMeta | null;
   error: ApiErrorBody | null;
@@ -58,5 +62,13 @@ export function useResource<T>(
 
   const reload = useCallback(() => setNonce((n) => n + 1), []);
 
-  return { loading, data, meta, error, reload };
+  return {
+    loading,
+    initialLoading: loading && data === null,
+    fetching: loading && data !== null,
+    data,
+    meta,
+    error,
+    reload,
+  };
 }

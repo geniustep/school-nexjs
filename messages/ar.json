@@ -2455,6 +2455,17 @@
         "recordCollection": "تسجيل تحصيل",
         "more": "المزيد"
       },
+      "readiness": {
+        "title": "جاهزية الملف",
+        "badgeComplete": "مكتمل",
+        "badgeIncomplete": "ناقص",
+        "badgeAction": "يتطلب إجراء",
+        "badgeNeutral": "غير متاح"
+      },
+      "loading": {
+        "refreshing": "جارٍ التحديث…",
+        "years": "جارٍ تحميل السنوات…"
+      },
       "statusSummary": {
         "title": "حالة الملف",
         "enrollment": "التسجيل الدراسي",
@@ -2479,6 +2490,7 @@
         "noHealth": "غير مسجّل",
         "viewHealth": "عرض الملف الصحي",
         "finance": "الوضع المالي",
+        "financeAgreement": "الاتفاق المالي",
         "hasOverdue": "يوجد متأخرات",
         "hasBalance": "يوجد مستحق",
         "financeClear": "لا مستحقات",
@@ -2509,7 +2521,9 @@
         "enrollment": "التسجيل الدراسي",
         "guardians": "ولي الأمر",
         "identity": "الهوية",
+        "basicInfo": "المعلومات الأساسية",
         "currentStudy": "الدراسة الحالية",
+        "contactAndEmergency": "الاتصال والطوارئ",
         "family": "الأسرة",
         "system": "معلومات النظام",
         "contact": "الاتصال والعنوان",
@@ -2630,6 +2644,8 @@
         "summaryTitle": "ملخص الوثائق",
         "openTab": "فتح الوثائق",
         "addDocument": "إضافة وثيقة",
+        "uploadDocument": "رفع الوثيقة",
+        "summaryAria": "ملخص حالة الوثائق",
         "editDocument": "تعديل الوثيقة",
         "documentType": "نوع الوثيقة",
         "documentNumber": "رقم الوثيقة",

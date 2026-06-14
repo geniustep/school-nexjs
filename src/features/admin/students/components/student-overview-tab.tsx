@@ -1,16 +1,18 @@
 'use client';
 
+import { useState } from 'react';
 import { Card, DefinitionList, SectionHead } from '@/components/ui/primitives';
-import { EntityAccountPanel } from '@/features/admin/account/entity-account-panel';
+import { CreateAccountDialog } from '@/features/admin/account/create-account-dialog';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { statusLabel } from '@/lib/utils/labels';
 import { getStudentDisplayName } from '@/lib/utils/student';
+import type { AccountMutationResponse } from '@/types/account';
 import { displayCountryState } from '../utils/student-profile';
+import { computeStudentAge } from '../utils/student-age';
 import { studentClassLabel, studentLevelLabel, refOrStringLabel } from '../utils/student-academic-labels';
 import { StudentStatusSummary } from './student-status-summary';
-import { Student360CompactEmpty } from './student-360-compact-empty';
 import type { Student360TabId } from '../utils/student-360-tabs';
 import type { StudentDetailsData } from '@/types/student-360';
 
@@ -41,8 +43,16 @@ export function StudentOverviewTab({
   const { formatDate } = useFormat();
   const s = details.student;
   const enrollment = details.current_enrollment;
+  const age = computeStudentAge(s.date_of_birth);
+  const [accountDialogOpen, setAccountDialogOpen] = useState(false);
 
   const openTab = (tab: Student360TabId) => onOpenTab?.(tab);
+
+  function handleAccountSuccess(result: AccountMutationResponse) {
+    if (result.action === 'already_exists' || result.action === 'created' || result.action === 'updated') {
+      onAccountChanged();
+    }
+  }
 
   return (
     <div className="student-360-overview student-360-tab-panel">
@@ -54,132 +64,136 @@ export function StudentOverviewTab({
         showFinance={showFinance}
         onOpenTab={(tab) => openTab(tab)}
         onEditProfile={onEditProfile}
+        onCreateAccount={canManage ? () => setAccountDialogOpen(true) : undefined}
       />
 
-      <div className="student-360-overview__grid">
-        <Card className="student-360-section-card">
-          <SectionHead
-            title={t('admin.student360.sections.identity')}
-            action={
-              canManage && onEditProfile ? (
-                <button type="button" className="btn btn--ghost btn--sm" onClick={onEditProfile}>
-                  {t('common.edit')}
-                </button>
-              ) : null
-            }
-          />
-          <DefinitionList
-            items={[
-              { label: t('admin.fullName'), value: getStudentDisplayName(s) },
-              {
-                label: t('admin.gender'),
-                value:
-                  s.gender === 'male'
-                    ? t('admin.male')
-                    : s.gender === 'female'
-                      ? t('admin.female')
-                      : dash(t, s.gender ?? undefined),
-              },
-              { label: t('admin.dateOfBirth'), value: formatDate(s.date_of_birth) },
-              { label: t('admin.massarCode'), value: <span className="mono">{dash(t, s.massar_code)}</span> },
-              {
-                label: t('admin.student360.schoolNumber'),
-                value: <span className="mono">{dash(t, s.school_number ?? s.code)}</span>,
-              },
-              {
-                label: t('admin.student360.studentStatus'),
-                value: statusLabel(t, s.status),
-              },
-            ]}
-          />
-        </Card>
-
-        <Card className="student-360-section-card">
-          <SectionHead title={t('admin.student360.sections.currentStudy')} />
-          <DefinitionList
-            items={[
-              { label: t('admin.finance.activeSchool'), value: refOrStringLabel(enrollment?.school ?? s.school) },
-              { label: t('admin.academicYearId'), value: refOrStringLabel(enrollment?.academic_year) },
-              {
-                label: t('nav.levels'),
-                value: enrollment?.level
-                  ? studentLevelLabel(enrollment.level)
-                  : s.level
-                    ? studentLevelLabel(s.level)
-                    : t('common.dash'),
-              },
-              {
-                label: t('nav.classes'),
-                value: enrollment?.class
-                  ? studentClassLabel(enrollment.class)
-                  : s.class
-                    ? studentClassLabel(s.class)
-                    : t('common.dash'),
-              },
-              {
-                label: t('admin.student360.enrollmentState'),
-                value: enrollment?.state ? statusLabel(t, enrollment.state) : t('common.dash'),
-              },
-            ]}
-          />
-        </Card>
-
-        <Card className="student-360-section-card">
-          <SectionHead
-            title={t('admin.student360.sections.contact')}
-            action={
-              canManage && onEditProfile ? (
-                <button type="button" className="btn btn--ghost btn--sm" onClick={onEditProfile}>
-                  {t('common.edit')}
-                </button>
-              ) : null
-            }
-          />
-          <DefinitionList
-            items={[
-              { label: t('admin.phone'), value: dash(t, s.phone) },
-              { label: t('admin.student360.mobile'), value: dash(t, s.mobile) },
-              { label: t('admin.email'), value: dash(t, s.email) },
-              { label: t('admin.student360.city'), value: dash(t, s.city) },
-              { label: t('admin.student360.country'), value: displayCountryState(s.country) || t('common.dash') },
-            ]}
-          />
-        </Card>
-
-        <Card className="student-360-section-card">
-          <SectionHead title={t('admin.student360.sections.emergency')} />
-          <DefinitionList
-            items={[
-              { label: t('admin.student360.emergencyContactName'), value: dash(t, s.emergency_contact_name) },
-              { label: t('admin.student360.emergencyPhone'), value: dash(t, s.emergency_phone) },
-              { label: t('admin.student360.emergencyPhoneAlt'), value: dash(t, s.emergency_phone_alt) },
-            ]}
-          />
-        </Card>
-      </div>
-
-      <section className="student-360-section student-360-performance">
-        <h3 className="student-360-section__title">{t('admin.student360.performance.title')}</h3>
-        <Student360CompactEmpty
-          className="student-360-compact-empty--performance"
-          title={t('admin.student360.performance.emptyTitle')}
-          description={t('admin.student360.performance.emptyDesc')}
+      <Card className="student-360-section-card">
+        <SectionHead
+          title={t('admin.student360.sections.basicInfo')}
+          action={
+            canManage && onEditProfile ? (
+              <button type="button" className="btn btn--ghost btn--sm" onClick={onEditProfile}>
+                {t('common.edit')}
+              </button>
+            ) : null
+          }
         />
+        <div className="student-360-field-grid">
+          <DefinitionList
+            items={[
+            { label: t('admin.fullName'), value: getStudentDisplayName(s) },
+            {
+              label: t('admin.gender'),
+              value:
+                s.gender === 'male'
+                  ? t('admin.male')
+                  : s.gender === 'female'
+                    ? t('admin.female')
+                    : dash(t, s.gender ?? undefined),
+            },
+            { label: t('admin.dateOfBirth'), value: formatDate(s.date_of_birth) },
+            {
+              label: t('admin.student360.header.age'),
+              value: age != null ? t('admin.student360.header.ageYears', { age }) : t('common.dash'),
+            },
+            { label: t('admin.massarCode'), value: <span className="mono" dir="auto">{dash(t, s.massar_code)}</span> },
+            {
+              label: t('admin.student360.schoolNumber'),
+              value: <span className="mono" dir="auto">{dash(t, s.school_number ?? s.code)}</span>,
+            },
+            { label: t('admin.student360.studentStatus'), value: statusLabel(t, s.status) },
+            ]}
+          />
+        </div>
+      </Card>
+
+      <Card className="student-360-section-card">
+        <SectionHead title={t('admin.student360.sections.currentStudy')} />
+        <div className="student-360-field-grid">
+          <DefinitionList
+            items={[
+            { label: t('admin.finance.activeSchool'), value: refOrStringLabel(enrollment?.school ?? s.school) },
+            { label: t('admin.academicYearId'), value: refOrStringLabel(enrollment?.academic_year) },
+            {
+              label: t('nav.levels'),
+              value: enrollment?.level
+                ? studentLevelLabel(enrollment.level)
+                : s.level
+                  ? studentLevelLabel(s.level)
+                  : t('common.dash'),
+            },
+            {
+              label: t('nav.classes'),
+              value: enrollment?.class
+                ? studentClassLabel(enrollment.class)
+                : s.class
+                  ? studentClassLabel(s.class)
+                  : t('common.dash'),
+            },
+            {
+              label: t('admin.student360.enrollmentState'),
+              value: enrollment?.state ? statusLabel(t, enrollment.state) : t('common.dash'),
+            },
+            ]}
+          />
+        </div>
+      </Card>
+
+      <Card className="student-360-section-card">
+        <SectionHead
+          title={t('admin.student360.sections.contactAndEmergency')}
+          action={
+            canManage && onEditProfile ? (
+              <button type="button" className="btn btn--ghost btn--sm" onClick={onEditProfile}>
+                {t('common.edit')}
+              </button>
+            ) : null
+          }
+        />
+        <div className="student-360-overview__subgroups">
+          <div className="student-360-overview__subgroup">
+            <h3 className="student-360-overview__subtitle">{t('admin.student360.sections.contact')}</h3>
+            <div className="student-360-field-grid student-360-field-grid--2">
+              <DefinitionList
+                items={[
+                  { label: t('admin.phone'), value: dash(t, s.phone) },
+                  { label: t('admin.student360.mobile'), value: dash(t, s.mobile) },
+                  { label: t('admin.email'), value: dash(t, s.email) },
+                  { label: t('admin.student360.city'), value: dash(t, s.city) },
+                  { label: t('admin.student360.country'), value: displayCountryState(s.country) || t('common.dash') },
+                ]}
+              />
+            </div>
+          </div>
+          <div className="student-360-overview__subgroup">
+            <h3 className="student-360-overview__subtitle">{t('admin.student360.sections.emergency')}</h3>
+            <div className="student-360-field-grid student-360-field-grid--2">
+              <DefinitionList
+                items={[
+                  { label: t('admin.student360.emergencyContactName'), value: dash(t, s.emergency_contact_name) },
+                  { label: t('admin.student360.emergencyPhone'), value: dash(t, s.emergency_phone) },
+                  { label: t('admin.student360.emergencyPhoneAlt'), value: dash(t, s.emergency_phone_alt) },
+                ]}
+              />
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      <section className="student-360-performance-compact">
+        <p className="student-360-performance-compact__title">{t('admin.student360.performance.title')}</p>
+        <p className="student-360-performance-compact__desc">{t('admin.student360.performance.emptyDesc')}</p>
       </section>
 
       {canManage ? (
-        <Card className="student-360-section-card student-account-compact">
-          <SectionHead title={t('admin.account.accountInformation')} />
-          <EntityAccountPanel
-            entity={s}
-            entityLabel={getStudentDisplayName(s)}
-            accountEndpoint={endpoints.admin.studentAccount(s.id)}
-            managePermission="manage_students"
-            defaultEmail={s.email ?? ''}
-            onAccountChanged={onAccountChanged}
-            compact
-          />
-        </Card>
+        <CreateAccountDialog
+          open={accountDialogOpen}
+          title={t('admin.account.activateAccountTitle', { name: getStudentDisplayName(s) })}
+          endpoint={endpoints.admin.studentAccount(s.id)}
+          defaultEmail={s.email ?? ''}
+          onClose={() => setAccountDialogOpen(false)}
+          onSuccess={handleAccountSuccess}
+        />
       ) : null}
     </div>
   );

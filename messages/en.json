@@ -2457,6 +2457,17 @@
         "recordCollection": "Record collection",
         "more": "More"
       },
+      "readiness": {
+        "title": "File readiness",
+        "badgeComplete": "Complete",
+        "badgeIncomplete": "Incomplete",
+        "badgeAction": "Action needed",
+        "badgeNeutral": "Unavailable"
+      },
+      "loading": {
+        "refreshing": "Refreshing…",
+        "years": "Loading academic years…"
+      },
       "statusSummary": {
         "title": "File status",
         "enrollment": "Enrollment",
@@ -2481,6 +2492,7 @@
         "noHealth": "Not recorded",
         "viewHealth": "View health file",
         "finance": "Financial status",
+        "financeAgreement": "Financial agreement",
         "hasOverdue": "Overdue balance",
         "hasBalance": "Outstanding balance",
         "financeClear": "No balance",
@@ -2511,7 +2523,9 @@
         "enrollment": "Enrollment",
         "guardians": "Guardian",
         "identity": "Identity",
+        "basicInfo": "Basic information",
         "currentStudy": "Current study",
+        "contactAndEmergency": "Contact & emergency",
         "family": "Family",
         "system": "System",
         "contact": "Contact & address",
@@ -2632,6 +2646,8 @@
         "summaryTitle": "Documents summary",
         "openTab": "Open documents",
         "addDocument": "Add document",
+        "uploadDocument": "Upload document",
+        "summaryAria": "Document status summary",
         "editDocument": "Edit document",
         "documentType": "Document type",
         "documentNumber": "Document number",

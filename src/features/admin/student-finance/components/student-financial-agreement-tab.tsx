@@ -1,8 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ApiErrorView, LoadingState } from '@/components/states/states';
+import { ApiErrorView } from '@/components/states/states';
 import { DataTable, type Column } from '@/components/tables/data-table';
 import { Card } from '@/components/ui/primitives';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
@@ -11,10 +11,14 @@ import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { refName } from '@/lib/utils/finance';
-import { useFinanceReferenceData } from '@/features/admin/finance/use-finance-lookups';
 import type { StudentCapabilities, StudentDetailsData } from '@/types/student-360';
 import type { FinancialAgreement } from '../types';
 import { Student360CompactEmpty } from '@/features/admin/students/components/student-360-compact-empty';
+import {
+  StudentAgreementSkeleton,
+  StudentInlineLoading,
+  StudentYearSelectSkeleton,
+} from '@/features/admin/students/components/student-360-loading';
 import { Student360MetricGrid } from '@/features/admin/students/components/student-360-metric-grid';
 import { Student360SectionHeader } from '@/features/admin/students/components/student-360-section-header';
 import { relationshipTypeLabel } from '@/features/admin/students/utils/relationship-types';
@@ -27,22 +31,18 @@ import { ServiceCategoryDetailsList } from './service-category-details-list';
 import { AgreementStateBadge } from './agreement-state-badge';
 import { ScheduleItemStateBadge } from './cheque-dual-badges';
 import { useFinancialAgreement } from '../hooks/use-financial-agreement';
-import { useStudentFinanceWorkspace } from '../hooks/use-student-finance-workspace';
+import { useStudentFinanceTabState } from '../hooks/use-student-finance-tab-state';
 import type { AgreementScheduleItem, FinancialAgreementLine } from '../types';
 import { formatPeriodRange } from '../utils/format-period';
 import { agreementLineCategoryDetails } from '../utils/service-category-details';
-import { hasAgreementData, resolveReferenceLabel } from '../utils/reference-labels';
-
-function resolveInitialYearId(
-  details: StudentDetailsData,
-  years: { id: number }[],
-  workspaceYearId?: number,
-): string {
-  if (workspaceYearId) return String(workspaceYearId);
-  const enrollYear = details.current_enrollment?.academic_year;
-  if (enrollYear && typeof enrollYear === 'object') return String(enrollYear.id);
-  return years[0] ? String(years[0].id) : '';
-}
+import {
+  hasAgreementData,
+  resolveReferenceLabel,
+} from '../utils/reference-labels';
+import {
+  resolveFinanceTabLoadPhase,
+  shouldShowAgreementEmptyState,
+} from '../utils/finance-tab-loading';
 
 export function StudentFinancialAgreementTab({
   studentId,
@@ -60,9 +60,15 @@ export function StudentFinancialAgreementTab({
   const t = useT();
   const toast = useToast();
   const { formatDate } = useFormat();
-  const refState = useFinanceReferenceData();
-  const academicYears = refState.academicYears;
-  const [academicYearId, setAcademicYearId] = useState('');
+  const {
+    refState,
+    academicYears,
+    effectiveYearId,
+    setSelectedYearId,
+    workspaceState,
+    workspace,
+    isRefreshing,
+  } = useStudentFinanceTabState(studentId, details);
   const [showCreate, setShowCreate] = useState(false);
   const [showCancelFuture, setShowCancelFuture] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -72,21 +78,25 @@ export function StudentFinancialAgreementTab({
     body: string;
   } | null>(null);
 
-  const workspaceQuery = useMemo(
-    () => (academicYearId ? { academic_year_id: Number(academicYearId) } : undefined),
-    [academicYearId],
-  );
-  const workspaceState = useStudentFinanceWorkspace(studentId, workspaceQuery, !!academicYearId);
-  const workspace = workspaceState.data;
   const agreementId = workspace?.current_agreement?.id ?? null;
   const agreementState = useFinancialAgreement(agreementId, !!agreementId);
   const agreement = agreementState.data ?? workspace?.current_agreement ?? null;
 
-  useEffect(() => {
-    if (academicYearId || !academicYears.length) return;
-    const initial = resolveInitialYearId(details, academicYears, workspace?.academic_year?.id);
-    if (initial) setAcademicYearId(initial);
-  }, [academicYearId, academicYears, details, workspace?.academic_year?.id]);
+  const phase = resolveFinanceTabLoadPhase({
+    yearsLoading: refState.loading,
+    effectiveYearId,
+    workspaceInitialLoading: workspaceState.initialLoading,
+    agreementId,
+    agreementDetailInitialLoading: agreementState.initialLoading,
+  });
+
+  const showAgreementEmpty = shouldShowAgreementEmptyState({
+    phase,
+    agreement,
+    workspaceLoaded: !!workspace && !workspaceState.initialLoading,
+  });
+
+  const isBackgroundRefreshing = isRefreshing || agreementState.fetching;
 
   const currency = agreement?.currency ?? workspace?.summary?.currency;
   const allowed = agreement?.allowed_actions ?? workspace?.allowed_actions ?? {};
@@ -237,10 +247,6 @@ export function StudentFinancialAgreementTab({
     [t, formatDate, currency?.name],
   );
 
-  if (workspaceState.loading && !workspace) {
-    return <LoadingState label={t('common.loading')} />;
-  }
-
   if (workspaceState.error?.code === 'forbidden') {
     return (
       <Student360CompactEmpty
@@ -256,21 +262,25 @@ export function StudentFinancialAgreementTab({
 
   const headerActions = (
     <div className="student-finance-header-actions">
-      <label className="student-finance-year-select">
-        <span className="tiny muted">{t('admin.student360.finance.academicYear')}</span>
-        <select
-          className="input"
-          value={academicYearId}
-          onChange={(e) => setAcademicYearId(e.target.value)}
-          disabled={refState.loading || !academicYears.length}
-        >
-          {academicYears.map((y) => (
-            <option key={y.id} value={y.id}>
-              {y.name}
-            </option>
-          ))}
-        </select>
-      </label>
+      {refState.loading || !effectiveYearId ? (
+        <StudentYearSelectSkeleton />
+      ) : (
+        <label className="student-finance-year-select">
+          <span className="tiny muted">{t('admin.student360.finance.academicYear')}</span>
+          <select
+            className="input"
+            value={effectiveYearId}
+            onChange={(e) => setSelectedYearId(e.target.value)}
+            disabled={refState.loading || !academicYears.length}
+          >
+            {academicYears.map((y) => (
+              <option key={y.id} value={y.id}>
+                {y.name}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
       <div className="student-finance-header-buttons">
         {canCreate && !hasAgreementData(agreement) ? (
           <button type="button" className="btn btn--primary btn--sm" onClick={() => setShowCreate(true)}>
@@ -291,7 +301,7 @@ export function StudentFinancialAgreementTab({
     </div>
   );
 
-  if (!hasAgreementData(agreement)) {
+  if (phase !== 'ready') {
     return (
       <div className="student-finance-tab student-360-tab-panel">
         <Student360SectionHeader
@@ -299,6 +309,20 @@ export function StudentFinancialAgreementTab({
           description={t('admin.student360.financialAgreement.pageDescription')}
           action={headerActions}
         />
+        <StudentAgreementSkeleton />
+      </div>
+    );
+  }
+
+  if (showAgreementEmpty) {
+    return (
+      <div className="student-finance-tab student-360-tab-panel">
+        <Student360SectionHeader
+          title={t('admin.student360.financialAgreement.pageTitle')}
+          description={t('admin.student360.financialAgreement.pageDescription')}
+          action={headerActions}
+        />
+        {isBackgroundRefreshing ? <StudentInlineLoading /> : null}
         <Student360CompactEmpty
           title={t('admin.student360.financialAgreement.emptyTitle')}
           description={t('admin.student360.financialAgreement.emptyDescription')}
@@ -315,7 +339,7 @@ export function StudentFinancialAgreementTab({
             studentId={studentId}
             details={details}
             workspace={workspace ?? null}
-            academicYearId={Number(academicYearId)}
+            academicYearId={Number(effectiveYearId)}
             agreement={null}
             onClose={() => setShowCreate(false)}
             onSuccess={() => {
@@ -362,12 +386,13 @@ export function StudentFinancialAgreementTab({
   const policies = activeAgreement.schedule_policies;
 
   return (
-    <div className="student-finance-tab student-360-tab-panel">
+    <div className={`student-finance-tab student-360-tab-panel${isBackgroundRefreshing ? ' student-360-tab-panel--refreshing' : ''}`}>
       <Student360SectionHeader
         title={t('admin.student360.financialAgreement.pageTitle')}
         description={t('admin.student360.financialAgreement.pageDescription')}
         action={headerActions}
       />
+      {isBackgroundRefreshing ? <StudentInlineLoading /> : null}
 
       <Card className="student-finance-agreement-header card">
         <dl className="detail-list student-finance-agreement-meta">
@@ -664,7 +689,7 @@ export function StudentFinancialAgreementTab({
           studentId={studentId}
           details={details}
           workspace={workspace}
-          academicYearId={Number(academicYearId)}
+          academicYearId={Number(effectiveYearId)}
           agreement={activeAgreement}
           onClose={() => setShowCreate(false)}
           onSuccess={() => {
