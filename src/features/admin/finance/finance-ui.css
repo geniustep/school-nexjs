@@ -124,3 +124,175 @@
   color: var(--color-warning, #b54708);
 }
 
+.academic-setup-drawer--wide {
+  width: min(720px, 100vw);
+}
+
+.fee-plans-filters {
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+  margin-block-end: 16px;
+}
+
+.fee-plans-filters__search {
+  flex: 1 1 200px;
+  max-width: 320px;
+}
+
+.fee-plans-filters__select {
+  flex: 0 1 180px;
+  max-width: 220px;
+}
+
+.fee-plans-metrics {
+  margin-block: 12px 16px;
+}
+
+.fee-plan-drawer__desc {
+  margin-block: 0 16px;
+}
+
+.fee-plan-form__section {
+  display: grid;
+  gap: 12px;
+  margin-block-end: 20px;
+}
+
+.fee-plan-form__section h4 {
+  margin: 0;
+}
+
+.fee-plan-form__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.fee-plan-form__full {
+  grid-column: 1 / -1;
+}
+
+.fee-plan-form__actions {
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block-start: 16px;
+  position: sticky;
+  bottom: 0;
+  background: #fff;
+  padding-block: 12px;
+  border-top: 1px solid var(--c-border, #e2e8f0);
+}
+
+.fee-plan-lines-editor__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-block-end: 8px;
+}
+
+.fee-plan-lines-editor__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.fee-plan-line-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+}
+
+.fee-plan-line-card__main {
+  display: grid;
+  gap: 4px;
+  flex: 1 1 200px;
+}
+
+.fee-plan-line-card__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.fee-plan-line-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.fee-plan-line-dialog__optional {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.fee-plan-line-dialog__optional span {
+  display: grid;
+  gap: 4px;
+}
+
+.fee-plan-installment-editor__table {
+  width: 100%;
+  margin-block: 8px;
+}
+
+.fee-plan-installment-editor__footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  margin-block-start: 8px;
+}
+
+.fee-plan-summary__note {
+  margin-block: 12px 0;
+  font-size: 0.9rem;
+}
+
+.fee-plans-list__actions {
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.fee-plans-list__mobile {
+  display: none;
+  gap: 12px;
+}
+
+.fee-plan-card {
+  cursor: pointer;
+}
+
+.fee-plan-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+@media (max-width: 768px) {
+  .fee-plan-form__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .fee-plans-filters__search,
+  .fee-plans-filters__select {
+    flex: 1 1 100%;
+    max-width: none;
+  }
+
+  .fee-plans-list__desktop {
+    display: none;
+  }
+
+  .fee-plans-list__mobile {
+    display: grid;
+  }
+}

@@ -8,11 +8,13 @@ export function SetupDrawer({
   title,
   onClose,
   children,
+  size = 'default',
 }: {
   open: boolean;
   title: string;
   onClose: () => void;
   children: React.ReactNode;
+  size?: 'default' | 'wide';
 }) {
   const t = useT();
 
@@ -43,7 +45,12 @@ export function SetupDrawer({
         role="presentation"
         onClick={onClose}
       />
-      <aside className="academic-setup-drawer" role="dialog" aria-modal="true" aria-label={title}>
+      <aside
+        className={`academic-setup-drawer${size === 'wide' ? ' academic-setup-drawer--wide' : ''}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+      >
         <div className="academic-setup-drawer__head">
           <strong>{title}</strong>
           <button type="button" className="btn btn--ghost btn--sm" onClick={onClose}>
