@@ -35,7 +35,13 @@
     "note": "ملاحظة",
     "status": "الحالة",
     "date": "التاريخ",
-    "class": "القسم"
+    "class": "القسم",
+    "pagination": {
+      "previous": "السابق",
+      "next": "التالي",
+      "range": "عرض {from}–{to} من أصل {total}",
+      "totalRecords": "{total} سجل"
+    }
   },
   "roles": {
     "admin": "مدير",
@@ -642,6 +648,13 @@
       "accountInactive": "الحساب غير نشط",
       "accountSuspended": "الحساب معلّق",
       "accountUnavailable": "حالة الحساب غير متاحة",
+      "status": {
+        "active": "نشط",
+        "inactive": "غير نشط",
+        "suspended": "معلّق",
+        "not_created": "غير منشأ",
+        "unavailable": "غير متاح"
+      },
       "loginRequired": "أدخل بريدًا إلكترونيًا أو اسم تسجيل دخول.",
       "duplicateLogin": "اسم تسجيل الدخول مستخدم بالفعل. اختر اسمًا آخر.",
       "customLoginPreserved": "تم تحديث البريد الإلكتروني، لكن اسم تسجيل الدخول المخصص بقي دون تغيير.",
@@ -699,6 +712,13 @@
     "examsListDesc": "كل الامتحانات",
     "examResultsListDesc": "كل نتائج الامتحانات",
     "studentsListDesc": "كل التلاميذ ضمن نطاقك",
+    "studentsList": {
+      "subtitleWithCount": "{total} تلميذ في نطاقك",
+      "resultsCount": "{count} نتيجة",
+      "resetFilters": "إعادة الضبط",
+      "columnStudent": "التلميذ",
+      "columnClassLevel": "القسم / المستوى"
+    },
     "search": "بحث",
     "clear": "مسح",
     "searchStudents": "بحث بالاسم أو الرمز…",
@@ -2414,6 +2434,72 @@
         "boundaryTitle": "تعذر عرض هذا القسم",
         "boundaryDesc": "حدث خطأ أثناء عرض محتوى هذا التبويب. يمكنك إعادة المحاولة أو اختيار تبويب آخر."
       },
+      "header": {
+        "age": "العمر",
+        "ageYears": "{age} سنة",
+        "incompleteData": "بيانات ناقصة"
+      },
+      "indicators": {
+        "enrolled": "مسجّل",
+        "notEnrolled": "غير مسجّل",
+        "overdue": "متأخر",
+        "noHealth": "!"
+      },
+      "quickActions": {
+        "editProfile": "تعديل الملف",
+        "addGuardian": "إضافة ولي أمر",
+        "createEnrollment": "إنشاء تسجيل",
+        "addDocument": "إضافة وثيقة",
+        "createHealth": "إنشاء ملف صحي",
+        "financialAgreement": "الاتفاق المالي",
+        "recordCollection": "تسجيل تحصيل",
+        "more": "المزيد"
+      },
+      "statusSummary": {
+        "title": "حالة الملف",
+        "enrollment": "التسجيل الدراسي",
+        "enrolled": "مسجّل",
+        "notEnrolled": "غير مسجّل",
+        "enrollmentHint": "أنشئ تسجيلًا لربط التلميذ بالسنة والقسم.",
+        "createEnrollment": "إنشاء تسجيل",
+        "viewEnrollment": "عرض التسجيل",
+        "guardian": "ولي الأمر",
+        "noGuardian": "لا يوجد ولي",
+        "guardiansCount": "{count} ولي",
+        "viewGuardians": "عرض الأولياء",
+        "contact": "بيانات الاتصال",
+        "noContact": "لا توجد بيانات اتصال",
+        "addContact": "إضافة اتصال",
+        "documents": "الوثائق",
+        "missingDocs": "{count} ناقصة",
+        "docsComplete": "مكتملة",
+        "viewDocuments": "عرض الوثائق",
+        "health": "الملف الصحي",
+        "healthRecorded": "مسجّل",
+        "noHealth": "غير مسجّل",
+        "viewHealth": "عرض الملف الصحي",
+        "finance": "الوضع المالي",
+        "hasOverdue": "يوجد متأخرات",
+        "hasBalance": "يوجد مستحق",
+        "financeClear": "لا مستحقات",
+        "viewFinance": "عرض المالية",
+        "account": "حساب الدخول",
+        "noAccount": "لا يوجد حساب",
+        "ok": "جيد",
+        "incomplete": "ناقص",
+        "actionNeeded": "يتطلب إجراء",
+        "neutral": "—"
+      },
+      "performance": {
+        "title": "ملخص الأداء",
+        "emptyTitle": "لا تتوفر بيانات أداء بعد",
+        "emptyDesc": "ستظهر نسبة الحضور ونتائج الامتحانات هنا عند توفرها من النظام."
+      },
+      "enrollmentEmptyDesc": "أنشئ تسجيلًا لربط التلميذ بالسنة الدراسية والقسم المناسب.",
+      "guardiansEmptyDesc": "اربط ولي أمر للتواصل وإدارة المسؤوليات المرتبطة بالتلميذ.",
+      "guardiansCopyPhone": "نسخ",
+      "guardiansCopiedPhone": "تم نسخ رقم الهاتف.",
+      "guardiansOpenProfile": "فتح ملف الولي",
       "emptyStates": { "documentsTitle": "لا توجد وثائق" },
       "sections": {
         "basic": "المعلومات الأساسية",
@@ -2563,7 +2649,16 @@
         "empty": "لا توجد وثائق مسجلة.",
         "emptyTitle": "لا توجد وثائق",
         "emptyDescription": "لم تُسجل أي وثيقة لهذا التلميذ بعد.",
-        "missingRequiredSection": "الوثائق المطلوبة الناقصة",
+        "missingRequiredSection": "المطلوب استكماله",
+        "types": {
+          "birthCertificate": "شهادة الميلاد",
+          "guardianIdCopy": "نسخة من بطاقة هوية ولي الأمر",
+          "studentPhoto": "صورة التلميذ",
+          "medicalCertificate": "الشهادة الطبية",
+          "vaccinationRecord": "سجل التلقيح",
+          "transferCertificate": "شهادة التحويل",
+          "reportCard": "كشف النقط"
+        },
         "missingRequiredCountOnly": "{count} وثيقة مطلوبة ناقصة (التفاصيل غير متوفرة في الاستجابة).",
         "required": "إلزامي",
         "optional": "اختياري",
@@ -2604,6 +2699,7 @@
         "editProfile": "تعديل الملف الصحي",
         "createProfile": "إنشاء ملف صحي",
         "noProfile": "لا يوجد ملف صحي مسجل.",
+        "noProfileDesc": "أنشئ ملفًا صحيًا لتسجيل الحساسية والأدوية وجهات اتصال الطوارئ.",
         "hasProfile": "يوجد ملف صحي",
         "criticalAlert": "تنبيه صحي حرج",
         "forbidden": "لا تملك صلاحية عرض البيانات الصحية.",
@@ -2862,6 +2958,7 @@
       "financeOps": {
         "pageTitle": "المالية",
         "pageDescription": "المستحقات الفعلية والتحصيلات والشيكات والأقساط التشغيلية.",
+        "openAgreement": "فتح الاتفاق المالي",
         "emptyTitle": "لم تُنشأ مستحقات مالية بعد.",
         "emptyDescription": "عند تفعيل اتفاق مالي أو إنشاء رسوم، ستظهر الأقساط والأرصدة هنا.",
         "totalDue": "إجمالي المستحق",

@@ -35,7 +35,13 @@
     "note": "Nota",
     "status": "Estado",
     "date": "Fecha",
-    "class": "Clase"
+    "class": "Clase",
+    "pagination": {
+      "previous": "Anterior",
+      "next": "Siguiente",
+      "range": "Mostrando {from}–{to} de {total}",
+      "totalRecords": "{total} registro(s)"
+    }
   },
   "roles": {
     "admin": "Administrador",
@@ -642,6 +648,13 @@
       "accountInactive": "Cuenta inactiva",
       "accountSuspended": "Cuenta suspendida",
       "accountUnavailable": "Estado de cuenta no disponible",
+      "status": {
+        "active": "Activo",
+        "inactive": "Inactivo",
+        "suspended": "Suspendido",
+        "not_created": "No creado",
+        "unavailable": "No disponible"
+      },
       "loginRequired": "Introduce un correo o nombre de acceso.",
       "duplicateLogin": "Este nombre de acceso ya está en uso. Elige otro.",
       "customLoginPreserved": "Se actualizó el correo, pero el nombre de acceso personalizado se mantuvo sin cambios.",
@@ -699,6 +712,13 @@
     "examsListDesc": "Todos los exámenes",
     "examResultsListDesc": "Todos los resultados de exámenes",
     "studentsListDesc": "Todos los alumnos de su ámbito",
+    "studentsList": {
+      "subtitleWithCount": "{total} alumnos en su ámbito",
+      "resultsCount": "{count} resultados",
+      "resetFilters": "Restablecer",
+      "columnStudent": "Alumno",
+      "columnClassLevel": "Clase / Nivel"
+    },
     "search": "Buscar",
     "clear": "Limpiar",
     "searchStudents": "Buscar por nombre o código…",
@@ -2377,6 +2397,72 @@
         "boundaryTitle": "No se pudo mostrar esta sección",
         "boundaryDesc": "Ocurrió un error. Reintente o elija otra pestaña."
       },
+      "header": {
+        "age": "Edad",
+        "ageYears": "{age} años",
+        "incompleteData": "Datos incompletos"
+      },
+      "indicators": {
+        "enrolled": "Inscrito",
+        "notEnrolled": "No inscrito",
+        "overdue": "Atraso",
+        "noHealth": "!"
+      },
+      "quickActions": {
+        "editProfile": "Editar perfil",
+        "addGuardian": "Añadir tutor",
+        "createEnrollment": "Crear inscripción",
+        "addDocument": "Añadir documento",
+        "createHealth": "Crear ficha de salud",
+        "financialAgreement": "Acuerdo financiero",
+        "recordCollection": "Registrar cobro",
+        "more": "Más"
+      },
+      "statusSummary": {
+        "title": "Estado del expediente",
+        "enrollment": "Inscripción",
+        "enrolled": "Inscrito",
+        "notEnrolled": "No inscrito",
+        "enrollmentHint": "Cree una inscripción para vincular al alumno al año y clase.",
+        "createEnrollment": "Crear inscripción",
+        "viewEnrollment": "Ver inscripción",
+        "guardian": "Tutor",
+        "noGuardian": "Sin tutor",
+        "guardiansCount": "{count} tutores",
+        "viewGuardians": "Ver tutores",
+        "contact": "Datos de contacto",
+        "noContact": "Sin datos de contacto",
+        "addContact": "Añadir contacto",
+        "documents": "Documentos",
+        "missingDocs": "{count} faltantes",
+        "docsComplete": "Completos",
+        "viewDocuments": "Ver documentos",
+        "health": "Ficha de salud",
+        "healthRecorded": "Registrada",
+        "noHealth": "No registrada",
+        "viewHealth": "Ver ficha de salud",
+        "finance": "Situación financiera",
+        "hasOverdue": "Con atrasos",
+        "hasBalance": "Saldo pendiente",
+        "financeClear": "Sin saldo",
+        "viewFinance": "Ver finanzas",
+        "account": "Cuenta del portal",
+        "noAccount": "Sin cuenta",
+        "ok": "OK",
+        "incomplete": "Incompleto",
+        "actionNeeded": "Acción requerida",
+        "neutral": "—"
+      },
+      "performance": {
+        "title": "Resumen de rendimiento",
+        "emptyTitle": "Sin datos de rendimiento",
+        "emptyDesc": "La asistencia y los resultados aparecerán aquí cuando estén disponibles."
+      },
+      "enrollmentEmptyDesc": "Cree una inscripción para vincular al alumno al año escolar y la clase.",
+      "guardiansEmptyDesc": "Vincule un tutor para la comunicación y responsabilidades asociadas.",
+      "guardiansCopyPhone": "Copiar",
+      "guardiansCopiedPhone": "Número copiado.",
+      "guardiansOpenProfile": "Abrir perfil del tutor",
       "emptyStates": { "documentsTitle": "Sin documentos" },
       "sections": {
         "basic": "Información básica",
@@ -2526,7 +2612,16 @@
         "empty": "No hay documentos registrados.",
         "emptyTitle": "Sin documentos",
         "emptyDescription": "Aún no se ha registrado ningún documento para este alumno.",
-        "missingRequiredSection": "Documentos obligatorios faltantes",
+        "missingRequiredSection": "Por completar",
+        "types": {
+          "birthCertificate": "Certificado de nacimiento",
+          "guardianIdCopy": "Copia del DNI del tutor",
+          "studentPhoto": "Foto del alumno",
+          "medicalCertificate": "Certificado médico",
+          "vaccinationRecord": "Registro de vacunación",
+          "transferCertificate": "Certificado de traslado",
+          "reportCard": "Boletín de calificaciones"
+        },
         "missingRequiredCountOnly": "Faltan {count} documento(s) obligatorio(s) (la API no proporciona detalles).",
         "required": "Obligatorio",
         "optional": "Opcional",
@@ -2567,6 +2662,7 @@
         "editProfile": "Editar perfil de salud",
         "createProfile": "Crear perfil de salud",
         "noProfile": "No hay perfil de salud registrado.",
+        "noProfileDesc": "Cree una ficha de salud para alergias, medicamentos y contactos de emergencia.",
         "hasProfile": "Tiene perfil de salud",
         "criticalAlert": "Alerta de salud crítica",
         "forbidden": "No tiene permiso para ver datos de salud.",
@@ -2825,6 +2921,7 @@
       "financeOps": {
         "pageTitle": "Finanzas",
         "pageDescription": "Deudas, cobros, cheques y cuotas.",
+        "openAgreement": "Abrir acuerdo financiero",
         "emptyTitle": "Sin deudas financieras aún.",
         "emptyDescription": "Los saldos aparecerán tras activar un acuerdo o crear tasas.",
         "totalDue": "Total debido",

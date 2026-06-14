@@ -8,6 +8,8 @@ import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { useStudentHealth } from '../hooks/use-student-health';
 import { useStudentOptions } from '../hooks/use-student-options';
+import { Student360CompactEmpty } from './student-360-compact-empty';
+import { Student360SectionHeader } from './student-360-section-header';
 import { StudentHealthEditDialog } from './student-health-edit-dialog';
 
 function dash(t: (k: string) => string, value: string | null | undefined): string {
@@ -46,20 +48,22 @@ export function StudentHealthTab({
   if (healthState.error) {
     if (healthState.error.code === 'student_health_forbidden' || healthState.error.code === 'forbidden') {
       return (
-        <Card>
-          <p className="tiny muted">{t('admin.student360.health.forbidden')}</p>
-        </Card>
+        <Student360CompactEmpty
+          title={t('admin.student360.health.forbidden')}
+          description={t('admin.student360.health.forbiddenDesc')}
+        />
       );
     }
     return <ApiErrorView error={healthState.error} onRetry={healthState.reload} />;
   }
 
   return (
-    <div className="student-health-tab">
-      <SectionHead
+    <div className="student-health-tab student-360-tab-panel">
+      <Student360SectionHeader
         title={t('admin.student360.health.title')}
+        description={t('admin.student360.pages.health.description')}
         action={
-          canManage ? (
+          profile && canManage ? (
             <button type="button" className="btn btn--primary btn--sm" onClick={() => setEditOpen(true)}>
               {t('admin.student360.health.editProfile')}
             </button>
@@ -74,17 +78,20 @@ export function StudentHealthTab({
       ) : null}
 
       {!profile ? (
-        <Card>
-          <p className="tiny muted">{t('admin.student360.health.noProfile')}</p>
-          {canManage ? (
-            <button type="button" className="btn btn--primary btn--sm" onClick={() => setEditOpen(true)}>
-              {t('admin.student360.health.createProfile')}
-            </button>
-          ) : null}
-        </Card>
+        <Student360CompactEmpty
+          title={t('admin.student360.health.noProfile')}
+          description={t('admin.student360.health.noProfileDesc')}
+          action={
+            canManage ? (
+              <button type="button" className="btn btn--primary btn--sm" onClick={() => setEditOpen(true)}>
+                {t('admin.student360.health.createProfile')}
+              </button>
+            ) : undefined
+          }
+        />
       ) : (
-        <div className="grid grid--cards student-health-grid">
-          <Card>
+        <div className="student-360-overview__grid student-health-grid">
+          <Card className="student-360-section-card">
             <SectionHead title={t('admin.student360.health.sections.basic')} />
             <DefinitionList
               items={[
@@ -103,7 +110,7 @@ export function StudentHealthTab({
             />
           </Card>
 
-          <Card>
+          <Card className="student-360-section-card">
             <SectionHead title={t('admin.student360.health.sections.emergency')} />
             <DefinitionList
               items={[
@@ -117,7 +124,7 @@ export function StudentHealthTab({
             />
           </Card>
 
-          <Card>
+          <Card className="student-360-section-card">
             <SectionHead title={t('admin.student360.health.sections.insurance')} />
             <DefinitionList
               items={[
@@ -137,7 +144,7 @@ export function StudentHealthTab({
             />
           </Card>
 
-          <Card>
+          <Card className="student-360-section-card">
             <SectionHead title={t('admin.student360.health.sections.notes')} />
             <p className="student-health-notes">{dash(t, profile.notes)}</p>
           </Card>

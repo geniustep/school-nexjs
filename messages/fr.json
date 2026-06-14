@@ -35,7 +35,13 @@
     "note": "Note",
     "status": "Statut",
     "date": "Date",
-    "class": "Classe"
+    "class": "Classe",
+    "pagination": {
+      "previous": "Précédent",
+      "next": "Suivant",
+      "range": "Affichage de {from} à {to} sur {total}",
+      "totalRecords": "{total} enregistrement(s)"
+    }
   },
   "roles": {
     "admin": "Administrateur",
@@ -642,6 +648,13 @@
       "accountInactive": "Compte inactif",
       "accountSuspended": "Compte suspendu",
       "accountUnavailable": "Statut du compte indisponible",
+      "status": {
+        "active": "Actif",
+        "inactive": "Inactif",
+        "suspended": "Suspendu",
+        "not_created": "Non créé",
+        "unavailable": "Indisponible"
+      },
       "loginRequired": "Saisissez un e-mail ou un identifiant.",
       "duplicateLogin": "Cet identifiant est déjà utilisé. Choisissez-en un autre.",
       "customLoginPreserved": "L'e-mail a été mis à jour, mais l'identifiant personnalisé est resté inchangé.",
@@ -699,6 +712,13 @@
     "examsListDesc": "Tous les examens",
     "examResultsListDesc": "Tous les résultats d'examens",
     "studentsListDesc": "Tous les élèves de votre périmètre",
+    "studentsList": {
+      "subtitleWithCount": "{total} élèves dans votre périmètre",
+      "resultsCount": "{count} résultats",
+      "resetFilters": "Réinitialiser",
+      "columnStudent": "Élève",
+      "columnClassLevel": "Classe / Niveau"
+    },
     "search": "Rechercher",
     "clear": "Effacer",
     "searchStudents": "Rechercher par nom ou code…",
@@ -2377,6 +2397,72 @@
         "boundaryTitle": "Impossible d'afficher cette section",
         "boundaryDesc": "Une erreur s'est produite. Réessayez ou choisissez un autre onglet."
       },
+      "header": {
+        "age": "Âge",
+        "ageYears": "{age} ans",
+        "incompleteData": "Données incomplètes"
+      },
+      "indicators": {
+        "enrolled": "Inscrit",
+        "notEnrolled": "Non inscrit",
+        "overdue": "Retard",
+        "noHealth": "!"
+      },
+      "quickActions": {
+        "editProfile": "Modifier le dossier",
+        "addGuardian": "Ajouter un responsable",
+        "createEnrollment": "Créer une inscription",
+        "addDocument": "Ajouter un document",
+        "createHealth": "Créer un dossier santé",
+        "financialAgreement": "Accord financier",
+        "recordCollection": "Enregistrer un encaissement",
+        "more": "Plus"
+      },
+      "statusSummary": {
+        "title": "État du dossier",
+        "enrollment": "Inscription",
+        "enrolled": "Inscrit",
+        "notEnrolled": "Non inscrit",
+        "enrollmentHint": "Créez une inscription pour lier l'élève à une année et une classe.",
+        "createEnrollment": "Créer une inscription",
+        "viewEnrollment": "Voir l'inscription",
+        "guardian": "Responsable",
+        "noGuardian": "Aucun responsable",
+        "guardiansCount": "{count} responsables",
+        "viewGuardians": "Voir les responsables",
+        "contact": "Coordonnées",
+        "noContact": "Aucune coordonnée",
+        "addContact": "Ajouter des coordonnées",
+        "documents": "Documents",
+        "missingDocs": "{count} manquants",
+        "docsComplete": "Complets",
+        "viewDocuments": "Voir les documents",
+        "health": "Dossier santé",
+        "healthRecorded": "Enregistré",
+        "noHealth": "Non enregistré",
+        "viewHealth": "Voir le dossier santé",
+        "finance": "Situation financière",
+        "hasOverdue": "Retards",
+        "hasBalance": "Solde dû",
+        "financeClear": "Aucun solde",
+        "viewFinance": "Voir la finance",
+        "account": "Compte portail",
+        "noAccount": "Aucun compte",
+        "ok": "OK",
+        "incomplete": "Incomplet",
+        "actionNeeded": "Action requise",
+        "neutral": "—"
+      },
+      "performance": {
+        "title": "Résumé de performance",
+        "emptyTitle": "Aucune donnée de performance",
+        "emptyDesc": "L'assiduité et les résultats apparaîtront ici lorsqu'ils seront disponibles."
+      },
+      "enrollmentEmptyDesc": "Créez une inscription pour lier l'élève à l'année scolaire et à la classe.",
+      "guardiansEmptyDesc": "Liez un responsable pour la communication et les responsabilités associées.",
+      "guardiansCopyPhone": "Copier",
+      "guardiansCopiedPhone": "Numéro copié.",
+      "guardiansOpenProfile": "Ouvrir le dossier responsable",
       "emptyStates": { "documentsTitle": "Aucun document" },
       "sections": {
         "basic": "Informations de base",
@@ -2526,7 +2612,16 @@
         "empty": "Aucun document enregistré.",
         "emptyTitle": "Aucun document",
         "emptyDescription": "Aucun document n'a encore été enregistré pour cet élève.",
-        "missingRequiredSection": "Documents requis manquants",
+        "missingRequiredSection": "À compléter",
+        "types": {
+          "birthCertificate": "Acte de naissance",
+          "guardianIdCopy": "Copie de la pièce d'identité du responsable",
+          "studentPhoto": "Photo de l'élève",
+          "medicalCertificate": "Certificat médical",
+          "vaccinationRecord": "Carnet de vaccination",
+          "transferCertificate": "Certificat de transfert",
+          "reportCard": "Bulletin scolaire"
+        },
         "missingRequiredCountOnly": "{count} document(s) requis manquant(s) (détails non fournis par l'API).",
         "required": "Obligatoire",
         "optional": "Facultatif",
@@ -2567,6 +2662,7 @@
         "editProfile": "Modifier le dossier santé",
         "createProfile": "Créer un dossier santé",
         "noProfile": "Aucun dossier santé enregistré.",
+        "noProfileDesc": "Créez un dossier santé pour les allergies, médicaments et contacts d'urgence.",
         "hasProfile": "Dossier santé présent",
         "criticalAlert": "Alerte santé critique",
         "forbidden": "Vous n'avez pas la permission de consulter les données de santé.",
@@ -2825,6 +2921,7 @@
       "financeOps": {
         "pageTitle": "Finance",
         "pageDescription": "Créances, encaissements, chèques et échéances.",
+        "openAgreement": "Ouvrir l'accord financier",
         "emptyTitle": "Aucune créance pour l'instant.",
         "emptyDescription": "Les soldes apparaîtront après activation ou création de frais.",
         "totalDue": "Total dû",

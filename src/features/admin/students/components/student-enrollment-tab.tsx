@@ -1,19 +1,28 @@
 'use client';
 
 import { Card, DefinitionList, SectionHead } from '@/components/ui/primitives';
-import { EmptyState } from '@/components/states/states';
 import { DataTable, type Column } from '@/components/tables/data-table';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
+import { statusLabel } from '@/lib/utils/labels';
 import { optionLabel } from '../utils/student-profile';
 import { studentClassLabel, studentLevelLabel, refOrStringLabel } from '../utils/student-academic-labels';
+import { Student360CompactEmpty } from './student-360-compact-empty';
 import type { StudentDetailsData, StudentEnrollment } from '@/types/student-360';
 
 function dash(t: (k: string) => string, value: string | null | undefined): string {
   return value?.trim() ? value : t('common.dash');
 }
 
-export function StudentEnrollmentTab({ details }: { details: StudentDetailsData }) {
+export function StudentEnrollmentTab({
+  details,
+  canManage,
+  onCreateEnrollment,
+}: {
+  details: StudentDetailsData;
+  canManage?: boolean;
+  onCreateEnrollment?: () => void;
+}) {
   const t = useT();
   const { formatDate } = useFormat();
   const current = details.current_enrollment;
@@ -40,29 +49,14 @@ export function StudentEnrollmentTab({ details }: { details: StudentDetailsData 
       render: (row) => studentClassLabel(row.class),
     },
     {
-      key: 'registration',
-      header: t('admin.student360.registrationType'),
-      render: (row) => optionLabel(undefined, row.registration_type) || dash(t, row.registration_type),
-    },
-    {
       key: 'state',
       header: t('academic.status'),
-      render: (row) => row.state,
+      render: (row) => statusLabel(t, row.state),
     },
     {
       key: 'start',
       header: t('admin.student360.dateStart'),
       render: (row) => formatDate(row.date_start) || t('common.dash'),
-    },
-    {
-      key: 'join',
-      header: t('admin.student360.actualJoinDate'),
-      render: (row) => formatDate(row.actual_join_date) || t('common.dash'),
-    },
-    {
-      key: 'end',
-      header: t('admin.student360.dateEnd'),
-      render: (row) => formatDate(row.date_end) || t('common.dash'),
     },
     {
       key: 'current',
@@ -72,57 +66,49 @@ export function StudentEnrollmentTab({ details }: { details: StudentDetailsData 
   ];
 
   return (
-    <div className="col" style={{ gap: 16 }}>
-      <Card>
-        <SectionHead title={t('admin.student360.currentEnrollment')} />
-        {current ? (
+    <div className="student-360-tab-panel">
+      {current ? (
+        <Card className="student-360-section-card">
+          <SectionHead title={t('admin.student360.currentEnrollment')} />
           <DefinitionList
             items={[
-              { label: t('academic.status'), value: current.state },
-              {
-                label: t('admin.student360.registrationType'),
-                value: optionLabel(undefined, current.registration_type) || dash(t, current.registration_type),
-              },
-              { label: t('admin.student360.previousSchool'), value: dash(t, current.previous_school) },
-              {
-                label: t('admin.student360.isRepeating'),
-                value: current.is_repeating ? t('common.yes') : t('common.no'),
-              },
-              { label: t('admin.student360.actualJoinDate'), value: formatDate(current.actual_join_date) },
-              { label: t('admin.student360.dateStart'), value: formatDate(current.date_start) },
-              { label: t('admin.student360.dateEnd'), value: formatDate(current.date_end) },
+              { label: t('academic.status'), value: statusLabel(t, current.state) },
               { label: t('admin.finance.activeSchool'), value: refOrStringLabel(current.school) },
               { label: t('admin.academicYearId'), value: refOrStringLabel(current.academic_year) },
               { label: t('nav.levels'), value: studentLevelLabel(current.level) },
               { label: t('nav.classes'), value: studentClassLabel(current.class) },
-              { label: t('admin.student360.track'), value: refOrStringLabel(current.track) },
-              { label: t('admin.student360.registrationNotes'), value: dash(t, current.registration_notes) },
-              { label: t('admin.student360.departureReason'), value: dash(t, current.departure_reason) },
+              { label: t('admin.student360.dateStart'), value: formatDate(current.date_start) },
               {
-                label: t('admin.student360.isCurrent'),
-                value: current.is_current ? t('common.yes') : t('common.no'),
+                label: t('admin.student360.registrationType'),
+                value: optionLabel(undefined, current.registration_type) || dash(t, current.registration_type),
               },
             ]}
           />
-        ) : (
-          <EmptyState
-            title={t('admin.student360.noCurrentEnrollmentTitle')}
-            description={t('admin.student360.noCurrentEnrollmentDesc')}
-          />
-        )}
-      </Card>
+        </Card>
+      ) : (
+        <Student360CompactEmpty
+          title={t('admin.student360.noCurrentEnrollmentTitle')}
+          description={t('admin.student360.enrollmentEmptyDesc')}
+          action={
+            canManage && onCreateEnrollment ? (
+              <button type="button" className="btn btn--primary btn--sm" onClick={onCreateEnrollment}>
+                {t('admin.student360.statusSummary.createEnrollment')}
+              </button>
+            ) : undefined
+          }
+        />
+      )}
 
-      <Card>
-        <SectionHead title={t('admin.student360.enrollmentHistory')} />
+      <section className="student-360-section">
+        <h3 className="student-360-section__title">{t('admin.student360.enrollmentHistory')}</h3>
         {history.length > 0 ? (
-          <DataTable columns={columns} rows={history} rowKey={(r) => r.id} />
+          <div className="student-360-table-wrap">
+            <DataTable columns={columns} rows={history} rowKey={(r) => r.id} />
+          </div>
         ) : (
-          <EmptyState
-            title={t('admin.student360.noEnrollmentHistoryTitle')}
-            description={t('admin.student360.noEnrollmentHistoryDesc')}
-          />
+          <p className="tiny muted">{t('admin.student360.noEnrollmentHistoryDesc')}</p>
         )}
-      </Card>
+      </section>
     </div>
   );
 }

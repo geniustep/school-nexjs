@@ -22,9 +22,9 @@ import {
   isDocumentActive,
 } from '../utils/student-document-display';
 import {
-  documentTypeLabel,
   missingRequiredDocumentTypes,
 } from '../utils/normalize-student-documents';
+import { resolveDocumentTypeLabel } from '../utils/document-type-labels';
 import {
   buildStudentDocumentReplaceFormData,
   studentDocumentUploadErrorKey,
@@ -209,7 +209,7 @@ export function StudentDocumentsTab({
               {missingTypes.map((dt) => (
                 <li key={dt.id} className="student-doc-missing-list__item">
                   <div>
-                    <strong>{dt.name}</strong>
+                    <strong>{resolveDocumentTypeLabel(dt, t)}</strong>
                     <span className="tiny muted">
                       {dt.is_required
                         ? t('admin.student360.documents.required')
@@ -259,7 +259,7 @@ export function StudentDocumentsTab({
               <Card key={doc.id} className="student-doc-item">
                 <div className="student-doc-item__head">
                   <div>
-                    <strong>{documentTypeLabel(doc.document_type) || notRecorded}</strong>
+                    <strong>{resolveDocumentTypeLabel(doc.document_type, t) || notRecorded}</strong>
                     <span className={documentStateBadgeClass(doc.state)}>
                       {documentStateLabel(doc.state, documentStates, t)}
                     </span>

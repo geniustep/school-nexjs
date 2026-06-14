@@ -4,10 +4,8 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ApiErrorView, LoadingState } from '@/components/states/states';
-import { ConfirmActionButton } from '@/features/admin/confirm-action-button';
 import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
-import { endpoints } from '@/lib/api/endpoints';
 import { getStudentDisplayName } from '@/lib/utils/student';
 import { useStudentDetails } from '../hooks/use-student-details';
 import {
@@ -27,6 +25,7 @@ import {
 } from '../utils/student-360-tabs';
 import { Student360Breadcrumb } from './student-360-breadcrumb';
 import { Student360Header } from './student-360-header';
+import { Student360QuickActions } from './student-360-quick-actions';
 import { Student360TabBar } from './student-360-tab-bar';
 import { Student360TabErrorBoundary } from './student-360-tab-error-boundary';
 import { Student360TabHeader } from './student-360-tab-header';
@@ -39,6 +38,7 @@ import { StudentFinancialAgreementTab } from '@/features/admin/student-finance/c
 import { StudentFinanceOperationsTab } from '@/features/admin/student-finance/components/student-finance-operations-tab';
 import { StudentForm } from './student-form';
 import { sanitizeReturnTo, isSafeInternalReturnPath } from '@/lib/utils/safe-return-url';
+import { buildStudent360TabIndicators } from '../utils/student-360-tab-indicators';
 import type { StudentDetailsData } from '@/types/student-360';
 import '../student-360.css';
 import '@/features/admin/academic-setup/academic-setup-ui.css';
@@ -108,6 +108,13 @@ export function Student360Shell({ studentId }: { studentId: string }) {
   const s = resolvedDetails.student;
   const archived = (s.status as string) === 'archived';
 
+  const tabIndicators = buildStudent360TabIndicators(resolvedDetails, {
+    showFinance,
+    showHealth,
+    showDocuments,
+    t,
+  });
+
   return (
     <div className="student-360-shell">
       <Student360Breadcrumb studentId={studentId} studentName={studentName} tab={tab} />
@@ -117,22 +124,35 @@ export function Student360Shell({ studentId }: { studentId: string }) {
         </Link>
       ) : null}
 
-      <Student360Header
-        details={resolvedDetails}
-        canManage={caps.can_manage && !archived}
-        onEdit={editing ? undefined : () => setEditing(true)}
-        extraActions={
-          caps.can_manage && !archived && !editing ? (
-            <ConfirmActionButton
-              label={t('admin.archive')}
-              confirmMessage={t('admin.confirmArchive')}
-              path={endpoints.admin.studentArchive(s.id)}
-              variant="danger"
-              onSuccess={() => router.push('/admin/students')}
-            />
-          ) : null
-        }
-      />
+      <div className="student-360-sticky-top">
+        <Student360Header
+          details={resolvedDetails}
+          actions={
+            !editing ? (
+              <Student360QuickActions
+                details={resolvedDetails}
+                caps={caps}
+                archived={archived}
+                onEdit={() => setEditing(true)}
+                onOpenTab={(next) =>
+                  router.push(buildStudent360TabHref(studentId, next), { scroll: false })
+                }
+                onArchiveSuccess={() => router.push('/admin/students')}
+              />
+            ) : null
+          }
+        />
+
+        {!editing ? (
+          <Student360TabBar
+            studentId={studentId}
+            activeTab={tab}
+            tabs={availableTabs}
+            ariaLabel={t('admin.student360.tabsAria')}
+            indicators={tabIndicators}
+          />
+        ) : null}
+      </div>
 
       {editing ? (
         <StudentForm
@@ -147,13 +167,6 @@ export function Student360Shell({ studentId }: { studentId: string }) {
         />
       ) : (
         <>
-          <Student360TabBar
-            studentId={studentId}
-            activeTab={tab}
-            tabs={availableTabs}
-            ariaLabel={t('admin.student360.tabsAria')}
-          />
-
           <Student360TabPageHeader tab={tab} />
 
           <Student360TabErrorBoundary studentId={studentId} tab={tab} onRetry={state.reload}>
@@ -167,10 +180,17 @@ export function Student360Shell({ studentId }: { studentId: string }) {
                 onOpenTab={(next) =>
                   router.push(buildStudent360TabHref(studentId, next), { scroll: false })
                 }
+                onEditProfile={() => setEditing(true)}
                 onAccountChanged={state.reload}
               />
             )}
-            {tab === 'enrollment' && <StudentEnrollmentTab details={resolvedDetails} />}
+            {tab === 'enrollment' && (
+              <StudentEnrollmentTab
+                details={resolvedDetails}
+                canManage={caps.can_manage && !archived}
+                onCreateEnrollment={() => setEditing(true)}
+              />
+            )}
             {tab === 'guardians' && (
               <StudentGuardiansTab
                 details={resolvedDetails}

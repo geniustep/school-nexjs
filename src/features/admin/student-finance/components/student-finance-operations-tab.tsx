@@ -160,7 +160,15 @@ export function StudentFinanceOperationsTab({
       {
         key: 'service',
         header: t('admin.student360.financeOps.columns.service'),
-        render: (row) => refName(row.service) ?? t('common.dash'),
+        className: 'student-finance-service-col',
+        render: (row) => {
+          const name = refName(row.service) ?? t('common.dash');
+          return (
+            <span className="student-finance-service-name" title={name}>
+              {name}
+            </span>
+          );
+        },
       },
       {
         key: 'period',
@@ -361,6 +369,19 @@ export function StudentFinanceOperationsTab({
     !hasInstallmentActivity &&
     (workspace?.recent_collections?.length ?? 0) === 0;
 
+  const hasInstallmentFilters =
+    !!paymentStatus || !!timingStatus || !!serviceCategory || !!dateFrom || !!dateTo || quickOverdueUnpaid;
+
+  function resetInstallmentFilters() {
+    setPaymentStatus('');
+    setTimingStatus('');
+    setServiceCategory('');
+    setDateFrom('');
+    setDateTo('');
+    setQuickOverdueUnpaid(false);
+    setPage(1);
+  }
+
   const headerActions = (
     <div className="student-finance-header-actions">
       <label className="student-finance-year-select">
@@ -383,6 +404,12 @@ export function StudentFinanceOperationsTab({
         </select>
       </label>
       <div className="student-finance-header-buttons">
+        <Link
+          href={`/admin/students/${studentId}?tab=financial-agreement`}
+          className="btn btn--ghost btn--sm"
+        >
+          {t('admin.student360.financeOps.openAgreement')}
+        </Link>
         {canCollect ? (
           <button
             type="button"
@@ -517,6 +544,11 @@ export function StudentFinanceOperationsTab({
                 />
                 <span>{t('admin.student360.financeOps.filters.quickOverdueUnpaid')}</span>
               </label>
+              {hasInstallmentFilters ? (
+                <button type="button" className="btn btn--ghost btn--sm" onClick={resetInstallmentFilters}>
+                  {t('admin.studentsList.resetFilters')}
+                </button>
+              ) : null}
             </div>
 
             {installmentsState.loading && !installmentsState.data ? (
@@ -530,6 +562,7 @@ export function StudentFinanceOperationsTab({
                     columns={installmentColumns}
                     rows={installmentsState.data ?? []}
                     rowKey={(row) => row.id}
+                    stickyHeader
                   />
                 </div>
                 {installmentsPg && installmentsPg.total_pages > 1 ? (

@@ -35,7 +35,13 @@
     "note": "Note",
     "status": "Status",
     "date": "Date",
-    "class": "Class"
+    "class": "Class",
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "range": "Showing {from}–{to} of {total}",
+      "totalRecords": "{total} record(s)"
+    }
   },
   "roles": {
     "admin": "Administrator",
@@ -642,6 +648,13 @@
       "accountInactive": "Account inactive",
       "accountSuspended": "Account suspended",
       "accountUnavailable": "Account status unavailable",
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "suspended": "Suspended",
+        "not_created": "Not created",
+        "unavailable": "Unavailable"
+      },
       "loginRequired": "Enter an email or login name.",
       "duplicateLogin": "This login name is already in use. Choose another.",
       "customLoginPreserved": "Email was updated, but the custom login name was kept unchanged.",
@@ -699,6 +712,13 @@
     "examsListDesc": "All exams",
     "examResultsListDesc": "All exam results",
     "studentsListDesc": "All pupils within your scope",
+    "studentsList": {
+      "subtitleWithCount": "{total} pupils in your scope",
+      "resultsCount": "{count} results",
+      "resetFilters": "Reset filters",
+      "columnStudent": "Pupil",
+      "columnClassLevel": "Class / Level"
+    },
     "search": "Search",
     "clear": "Clear",
     "searchStudents": "Search by name or code…",
@@ -2416,6 +2436,72 @@
         "boundaryTitle": "This section could not be displayed",
         "boundaryDesc": "An error occurred while rendering this tab. You can retry or choose another tab."
       },
+      "header": {
+        "age": "Age",
+        "ageYears": "{age} years",
+        "incompleteData": "Incomplete data"
+      },
+      "indicators": {
+        "enrolled": "Enrolled",
+        "notEnrolled": "Not enrolled",
+        "overdue": "Overdue",
+        "noHealth": "!"
+      },
+      "quickActions": {
+        "editProfile": "Edit profile",
+        "addGuardian": "Add guardian",
+        "createEnrollment": "Create enrollment",
+        "addDocument": "Add document",
+        "createHealth": "Create health file",
+        "financialAgreement": "Financial agreement",
+        "recordCollection": "Record collection",
+        "more": "More"
+      },
+      "statusSummary": {
+        "title": "File status",
+        "enrollment": "Enrollment",
+        "enrolled": "Enrolled",
+        "notEnrolled": "Not enrolled",
+        "enrollmentHint": "Create an enrollment to link the pupil to a year and class.",
+        "createEnrollment": "Create enrollment",
+        "viewEnrollment": "View enrollment",
+        "guardian": "Guardian",
+        "noGuardian": "No guardian",
+        "guardiansCount": "{count} guardians",
+        "viewGuardians": "View guardians",
+        "contact": "Contact details",
+        "noContact": "No contact details",
+        "addContact": "Add contact",
+        "documents": "Documents",
+        "missingDocs": "{count} missing",
+        "docsComplete": "Complete",
+        "viewDocuments": "View documents",
+        "health": "Health file",
+        "healthRecorded": "Recorded",
+        "noHealth": "Not recorded",
+        "viewHealth": "View health file",
+        "finance": "Financial status",
+        "hasOverdue": "Overdue balance",
+        "hasBalance": "Outstanding balance",
+        "financeClear": "No balance",
+        "viewFinance": "View finance",
+        "account": "Portal account",
+        "noAccount": "No account",
+        "ok": "OK",
+        "incomplete": "Incomplete",
+        "actionNeeded": "Action needed",
+        "neutral": "—"
+      },
+      "performance": {
+        "title": "Performance summary",
+        "emptyTitle": "No performance data yet",
+        "emptyDesc": "Attendance and exam results will appear here when available from the system."
+      },
+      "enrollmentEmptyDesc": "Create an enrollment to link the pupil to the academic year and class.",
+      "guardiansEmptyDesc": "Link a guardian for communication and related responsibilities.",
+      "guardiansCopyPhone": "Copy",
+      "guardiansCopiedPhone": "Phone number copied.",
+      "guardiansOpenProfile": "Open guardian profile",
       "emptyStates": { "documentsTitle": "No documents" },
       "sections": {
         "basic": "Basic information",
@@ -2565,7 +2651,16 @@
         "empty": "No documents on file.",
         "emptyTitle": "No documents",
         "emptyDescription": "No documents have been recorded for this student yet.",
-        "missingRequiredSection": "Missing required documents",
+        "missingRequiredSection": "Required — to complete",
+        "types": {
+          "birthCertificate": "Birth certificate",
+          "guardianIdCopy": "Guardian ID copy",
+          "studentPhoto": "Student photo",
+          "medicalCertificate": "Medical certificate",
+          "vaccinationRecord": "Vaccination record",
+          "transferCertificate": "Transfer certificate",
+          "reportCard": "Report card"
+        },
         "missingRequiredCountOnly": "{count} required document(s) missing (details not provided by the API).",
         "required": "Required",
         "optional": "Optional",
@@ -2606,6 +2701,7 @@
         "editProfile": "Edit health profile",
         "createProfile": "Create health profile",
         "noProfile": "No health profile on file.",
+        "noProfileDesc": "Create a health file to record allergies, medications, and emergency contacts.",
         "hasProfile": "Has health profile",
         "criticalAlert": "Critical health alert",
         "forbidden": "You do not have permission to view health data.",
@@ -2864,6 +2960,7 @@
       "financeOps": {
         "pageTitle": "Finance",
         "pageDescription": "Actual receivables, collections, cheques, and operational installments.",
+        "openAgreement": "Open financial agreement",
         "emptyTitle": "No financial receivables yet.",
         "emptyDescription": "When an agreement is activated or charges are created, balances and installments appear here.",
         "totalDue": "Total due",
