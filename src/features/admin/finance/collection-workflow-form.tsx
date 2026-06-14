@@ -6,7 +6,7 @@ import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { useT } from '@/features/i18n/locale-context';
 import { useFormat } from '@/features/i18n/use-format';
-import { financeStudentDisplayName, isPositiveAmount, paymentMethodLabel, refName } from '@/lib/utils/finance';
+import { financeStudentDisplayName, isPositiveAmount, paymentMethodLabel, refName, currencyCode } from '@/lib/utils/finance';
 import { getStudentDisplayName } from '@/lib/utils/student';
 import { normalizeStudentDetailsResponse } from '@/features/admin/students/utils/normalize-student-details';
 import { journalErrorMessageKey, normalizePaymentMethodOptions, parseFinanceList } from '@/lib/utils/finance-normalize';
@@ -185,7 +185,7 @@ function CollectionWorkflowFormReady({
   }, [initialStudentId, selectedStudent]);
 
   const selectedJournal = journals.find((j) => String(j.id) === journalId) ?? null;
-  const journalCurrency = selectedJournal?.currency ?? selectedJournal?.currency_code;
+  const journalCurrency = currencyCode(selectedJournal?.currency ?? selectedJournal?.currency_code);
   const parsedAmount = Number(amount);
 
   const partnersState = useAdminResource<EligibleBillingPartner[]>(
