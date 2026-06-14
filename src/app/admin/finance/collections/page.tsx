@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
@@ -27,6 +27,8 @@ export default function AdminFinanceCollectionsPage() {
   const t = useT();
   const user = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const studentIdFilter = searchParams.get('student_id') ?? searchParams.get('studentId') ?? '';
   const { formatDate } = useFormat();
   const { available: journalsAvailable } = useFinanceJournalsAvailable();
   const [page, setPage] = useState(1);
@@ -43,6 +45,7 @@ export default function AdminFinanceCollectionsPage() {
     status: statusFilter || undefined,
     date_from: dateFrom || undefined,
     date_to: dateTo || undefined,
+    student_id: studentIdFilter || undefined,
   };
   const state = useAdminResource<PaymentCollection[]>(endpoints.admin.financePaymentCollections, params);
   const pg = state.meta?.pagination;
