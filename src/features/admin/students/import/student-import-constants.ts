@@ -1,0 +1,42 @@
+export const STUDENT_IMPORT_TEMPLATE_VERSION = 1 as const;
+
+export const STUDENT_IMPORT_TEMPLATE_FILENAME = 'raqeem-students-import-template.xlsx';
+
+export const STUDENT_IMPORT_ERROR_REPORT_FILENAME = 'student-import-validation-report.xlsx';
+
+export const STUDENT_IMPORT_MAX_ROWS = 500;
+
+export const STUDENT_IMPORT_MAX_FILE_BYTES = 5 * 1024 * 1024;
+
+export const STUDENT_IMPORT_ACCEPTED_EXTENSION = '.xlsx';
+
+export const STUDENT_IMPORT_SHEET_INSTRUCTIONS = 'Instructions';
+
+export const STUDENT_IMPORT_SHEET_STUDENTS = 'Students';
+
+export const STUDENT_IMPORT_SHEET_REFERENCE = 'Reference';
+
+export const STUDENT_IMPORT_SHEET_EXAMPLE = 'Example';
+
+export const STUDENT_IMPORT_HEADER_LABEL_ROW = 1;
+
+export const STUDENT_IMPORT_HEADER_KEY_ROW = 2;
+
+export const STUDENT_IMPORT_DATA_START_ROW = 3;
+
+export const STUDENT_IMPORT_TEMPLATE_VERSION_CELL = 'B2';
+
+export const STUDENT_IMPORT_REQUIRED_FIELDS = [
+  'first_name',
+  'last_name',
+  'school_number',
+  'school_code',
+  'academic_year_code',
+  'level_code',
+  'class_code',
+  'registration_type',
+] as const;
+
+export const STUDENT_IMPORT_BOOLEAN_YES_VALUES = new Set(['yes', 'true', '1', 'oui', 'نعم']);
+
+export const STUDENT_IMPORT_BOOLEAN_NO_VALUES = new Set(['no', 'false', '0', 'non', 'لا']);
