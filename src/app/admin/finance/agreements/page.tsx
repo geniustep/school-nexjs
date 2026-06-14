@@ -39,7 +39,7 @@ export default function AdminFinanceAgreementsPage() {
       />
       <p className="muted">{t('admin.finance.agreements.scopeNote')}</p>
       <FinanceHubStudentScope studentId={studentId} onStudentChange={setStudentId}>
-        {(id) => (
+        {({ studentId: id }) => (
           <AgreementsListPanel
             studentId={id}
             returnTo={returnTo}

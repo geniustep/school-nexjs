@@ -45,7 +45,7 @@ export default function AdminFinanceInstallmentsPage() {
       />
       <p className="muted">{t('admin.finance.installments.scopeNote')}</p>
       <FinanceHubStudentScope studentId={studentId} onStudentChange={setStudentId}>
-        {(id) => (
+        {({ studentId: id }) => (
           <InstallmentsListPanel studentId={id} returnTo={returnTo} initialQuick={quick || undefined} />
         )}
       </FinanceHubStudentScope>

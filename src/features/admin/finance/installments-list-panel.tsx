@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
@@ -15,8 +14,6 @@ import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { useFinanceReferenceData } from '@/features/admin/finance/use-finance-lookups';
 import { refName } from '@/lib/utils/finance';
-import { buildStudentFinanceLink } from '@/lib/utils/finance-navigation';
-import { sanitizeReturnTo } from '@/lib/utils/safe-return-url';
 
 type QuickView =
   | ''
@@ -36,7 +33,6 @@ function inDaysIso(days: number) {
 
 export function InstallmentsListPanel({
   studentId,
-  returnTo,
   initialQuick,
 }: {
   studentId: number;
@@ -108,7 +104,6 @@ export function InstallmentsListPanel({
 
   const state = useStudentInstallments(studentId, installmentQuery);
   const pg = state.meta?.pagination;
-  const safeReturn = sanitizeReturnTo(returnTo, '/admin/finance/installments');
 
   const quickFilters: { key: QuickView; label: string }[] = [
     { key: 'overdue_unpaid', label: t('admin.finance.installments.quick.overdueUnpaid') },
@@ -120,18 +115,6 @@ export function InstallmentsListPanel({
 
   const columns: Column<StudentInstallment>[] = useMemo(
     () => [
-      {
-        key: 'student',
-        header: t('nav.students'),
-        render: (_row: StudentInstallment) => (
-          <Link
-            href={buildStudentFinanceLink(studentId, 'finance', safeReturn)}
-            onClick={(e) => e.stopPropagation()}
-          >
-            #{studentId}
-          </Link>
-        ),
-      },
       {
         key: 'service',
         header: t('admin.finance.installments.columns.service'),
@@ -184,7 +167,7 @@ export function InstallmentsListPanel({
         ),
       },
     ],
-    [t, formatDate, studentId, safeReturn],
+    [t, formatDate],
   );
 
   return (
