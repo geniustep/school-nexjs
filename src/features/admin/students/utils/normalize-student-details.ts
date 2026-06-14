@@ -3,6 +3,8 @@ import type {
   GuardianRelationship,
   StudentCapabilities,
   StudentDetailsData,
+  StudentDocumentSummary,
+  StudentHealthSummary,
   StudentSummary,
 } from '@/types/student-360';
 
@@ -10,6 +12,10 @@ const DEFAULT_CAPABILITIES: StudentCapabilities = {
   can_manage: false,
   can_manage_guardians: false,
   can_view_finance: false,
+  can_view_documents: false,
+  can_manage_documents: false,
+  can_view_health: false,
+  can_manage_health: false,
 };
 
 function isNestedDetails(data: Record<string, unknown>): boolean {
@@ -50,6 +56,8 @@ export function normalizeStudentDetailsResponse(data: unknown): StudentDetailsDa
         ? (raw.guardian_relationships as GuardianRelationship[])
         : legacyParentsToRelationships(student.parents ?? (raw.parents as ParentLink[] | undefined)),
       capabilities: (raw.capabilities as StudentCapabilities) ?? DEFAULT_CAPABILITIES,
+      document_summary: (raw.document_summary as StudentDocumentSummary | null) ?? null,
+      health_summary: (raw.health_summary as StudentHealthSummary | null) ?? null,
       parents: (raw.parents as ParentLink[] | undefined) ?? student.parents,
       parent_ids: raw.parent_ids as number[] | undefined,
     };

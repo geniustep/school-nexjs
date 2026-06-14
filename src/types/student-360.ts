@@ -100,11 +100,127 @@ export interface StudentClassOption extends AcademicClassOption {
   academic_year_id?: number | null;
 }
 
+export interface StudentDocumentTypeOption {
+  id: number;
+  code: string;
+  name: string;
+  is_required?: boolean;
+}
+
+export interface StudentDocumentAttachment {
+  id: number;
+  name: string;
+  mimetype?: string | null;
+  size?: number | null;
+}
+
+export interface StudentDocument {
+  id: number;
+  document_type: StudentDocumentTypeOption | string | null;
+  document_number?: string | null;
+  issue_date?: string | null;
+  expiry_date?: string | null;
+  state: string;
+  notes?: string | null;
+  attachment: StudentDocumentAttachment | null;
+  active?: boolean;
+  create_date?: string | null;
+  write_date?: string | null;
+}
+
+export interface StudentDocumentSummary {
+  total: number;
+  valid: number;
+  expired: number;
+  missing_required: number;
+}
+
+export interface StudentDocumentCapabilities {
+  can_view: boolean;
+  can_manage: boolean;
+}
+
+export interface StudentDocumentsData {
+  items: StudentDocument[];
+  summary: StudentDocumentSummary;
+  capabilities: StudentDocumentCapabilities;
+}
+
+export interface StudentDocumentCreateFields {
+  document_type?: string;
+  document_type_id?: number;
+  document_number?: string;
+  issue_date?: string;
+  expiry_date?: string;
+  notes?: string;
+}
+
+export interface StudentDocumentUpdatePayload {
+  document_type?: string;
+  document_type_id?: number;
+  document_number?: string;
+  issue_date?: string;
+  expiry_date?: string;
+  notes?: string;
+  state?: string;
+}
+
+export interface StudentHealthProfile {
+  student_id?: number;
+  blood_type?: string | null;
+  allergies?: string | null;
+  chronic_conditions?: string | null;
+  regular_medications?: string | null;
+  special_needs?: string | null;
+  health_emergency_instructions?: string | null;
+  doctor_name?: string | null;
+  doctor_phone?: string | null;
+  insurance_provider?: string | null;
+  insurance_number?: string | null;
+  insurance_expiry_date?: string | null;
+  notes?: string | null;
+  has_critical_alert?: boolean;
+  write_date?: string | null;
+}
+
+export interface StudentHealthCapabilities {
+  can_view: boolean;
+  can_manage: boolean;
+}
+
+export interface StudentHealthData {
+  profile: StudentHealthProfile | null;
+  capabilities: StudentHealthCapabilities;
+}
+
+export interface StudentHealthSummary {
+  has_profile: boolean;
+  has_critical_alert?: boolean;
+}
+
+export interface StudentHealthUpdatePayload {
+  blood_type?: string;
+  allergies?: string;
+  chronic_conditions?: string;
+  regular_medications?: string;
+  special_needs?: string;
+  health_emergency_instructions?: string;
+  doctor_name?: string;
+  doctor_phone?: string;
+  insurance_provider?: string;
+  insurance_number?: string;
+  insurance_expiry_date?: string;
+  notes?: string;
+}
+
 export interface StudentOptionsPayload {
   gender?: StudentRefOption[];
   student_status?: StudentRefOption[];
   registration_types?: StudentRefOption[];
   emergency_relationships?: StudentRefOption[];
+  document_types?: StudentDocumentTypeOption[];
+  document_states?: StudentRefOption[];
+  blood_types?: StudentRefOption[];
   nationalities?: StudentNationalityOption[];
   schools?: { id: number; name: string }[];
   academic_years?: { id: number; name: string; code?: string | null }[];
@@ -117,6 +233,9 @@ export interface StudentOptions {
   studentStatuses: StudentRefOption[];
   registrationTypes: StudentRefOption[];
   emergencyRelationships: StudentRefOption[];
+  documentTypes: StudentDocumentTypeOption[];
+  documentStates: StudentRefOption[];
+  bloodTypes: StudentRefOption[];
   nationalities: StudentNationalityOption[];
   schools: { id: number; name: string }[];
   academicYears: { id: number; name: string; code?: string | null }[];
@@ -170,6 +289,10 @@ export interface StudentCapabilities {
   can_manage: boolean;
   can_manage_guardians: boolean;
   can_view_finance: boolean;
+  can_view_documents?: boolean;
+  can_manage_documents?: boolean;
+  can_view_health?: boolean;
+  can_manage_health?: boolean;
 }
 
 export interface StudentEnrollment {
@@ -226,6 +349,8 @@ export interface StudentDetailsData {
   enrollment_history: StudentEnrollment[];
   guardian_relationships: GuardianRelationship[];
   capabilities: StudentCapabilities;
+  document_summary?: StudentDocumentSummary | null;
+  health_summary?: StudentHealthSummary | null;
   /** Legacy flat fields — read only */
   parents?: ParentLink[];
   parent_ids?: number[];

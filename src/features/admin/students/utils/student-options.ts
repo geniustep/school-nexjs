@@ -1,5 +1,6 @@
 import type {
   StudentClassOption,
+  StudentDocumentTypeOption,
   StudentLevelOption,
   StudentNationalityOption,
   StudentOptions,
@@ -65,6 +66,25 @@ function academicYears(value: unknown): { id: number; name: string; code?: strin
   );
 }
 
+function documentTypes(value: unknown): StudentDocumentTypeOption[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((item): item is StudentDocumentTypeOption => {
+      return (
+        !!item &&
+        typeof item === 'object' &&
+        typeof (item as StudentDocumentTypeOption).id === 'number' &&
+        typeof (item as StudentDocumentTypeOption).code === 'string'
+      );
+    })
+    .map((item) => ({
+      id: item.id,
+      code: item.code,
+      name: typeof item.name === 'string' ? item.name : item.code,
+      is_required: item.is_required === true,
+    }));
+}
+
 export function normalizeStudentOptions(
   data: StudentOptionsPayload | null | undefined,
 ): StudentOptions | null {
@@ -74,6 +94,9 @@ export function normalizeStudentOptions(
     studentStatuses: labeledOptions(data.student_status),
     registrationTypes: labeledOptions(data.registration_types),
     emergencyRelationships: labeledOptions(data.emergency_relationships),
+    documentTypes: documentTypes(data.document_types),
+    documentStates: labeledOptions(data.document_states),
+    bloodTypes: labeledOptions(data.blood_types),
     nationalities: nationalities(data.nationalities),
     schools: schools(data.schools),
     academicYears: academicYears(data.academic_years),

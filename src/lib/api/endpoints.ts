@@ -29,6 +29,15 @@ export const endpoints = {
       `/admin/students/${studentId}/guardians/${relationshipId}/update`,
     studentGuardianEnd: (studentId: number | string, relationshipId: number | string) =>
       `/admin/students/${studentId}/guardians/${relationshipId}/end`,
+    studentDocuments: (id: number | string) => `/admin/students/${id}/documents`,
+    studentDocumentUpdate: (studentId: number | string, documentId: number | string) =>
+      `/admin/students/${studentId}/documents/${documentId}/update`,
+    studentDocumentReplace: (studentId: number | string, documentId: number | string) =>
+      `/admin/students/${studentId}/documents/${documentId}/replace`,
+    studentDocumentArchive: (studentId: number | string, documentId: number | string) =>
+      `/admin/students/${studentId}/documents/${documentId}/archive`,
+    studentHealth: (id: number | string) => `/admin/students/${id}/health`,
+    studentHealthUpdate: (id: number | string) => `/admin/students/${id}/health/update`,
     guardiansSearch: '/admin/guardians/search',
     guardiansQuickCreate: '/admin/guardians/quick-create',
     studentsImport: '/admin/students/import',

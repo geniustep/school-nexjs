@@ -102,9 +102,9 @@ export const api = {
   },
 
   /** Multipart upload — do not set Content-Type; the browser adds the boundary. */
-  async uploadForm<T>(path: string, formData: FormData): Promise<ApiResponse<T>> {
+  async uploadForm<T>(path: string, formData: FormData, query?: ListParams): Promise<ApiResponse<T>> {
     try {
-      const res = await fetch(buildUrl(path), {
+      const res = await fetch(buildUrl(path, query), {
         method: 'POST',
         headers: { Accept: 'application/json' },
         credentials: 'same-origin',
