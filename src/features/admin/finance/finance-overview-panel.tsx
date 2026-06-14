@@ -13,7 +13,7 @@ import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { collectionState, financeStudentDisplayName, refName } from '@/lib/utils/finance';
-import { normalizeMoneyValue } from '@/lib/utils/finance-normalize';
+import { normalizeFinanceOverview, normalizeMoneyValue } from '@/lib/utils/finance-normalize';
 import { useAcademicYearOptions } from '@/features/admin/finance/use-finance-lookups';
 import type {
   AdminFinanceOverview,
@@ -33,7 +33,13 @@ function metricValue(value: number | null | undefined): string | null {
   return String(value);
 }
 
-export function FinanceOverviewPanel() {
+export function FinanceOverviewPanel({
+  compact = false,
+  overviewData,
+}: {
+  compact?: boolean;
+  overviewData?: AdminFinanceOverview | null;
+}) {
   const t = useT();
   const router = useRouter();
   const { formatDate } = useFormat();
@@ -47,12 +53,19 @@ export function FinanceOverviewPanel() {
     date_from: dateFrom || undefined,
     date_to: dateTo || undefined,
   };
-  const state = useAdminResource<AdminFinanceOverview>(endpoints.admin.financeOverview, params);
-  const totals = pickTotals(state.data);
+  const fetchedState = useAdminResource<AdminFinanceOverview>(
+    overviewData !== undefined ? null : endpoints.admin.financeOverview,
+    params,
+  );
+  const state =
+    overviewData !== undefined
+      ? { ...fetchedState, data: overviewData, loading: false, error: null }
+      : fetchedState;
+  const overview = normalizeFinanceOverview(state.data);
+  const totals = overview?.totals ?? null;
   const currency = totals?.currency;
-  const recent = state.data?.recent_collections ?? [];
-  const followup =
-    state.data?.followup_students ?? state.data?.students_needing_followup ?? [];
+  const recent = overview?.recent_collections ?? [];
+  const followup = overview?.followup_students ?? [];
 
   const recentColumns: Column<PaymentCollection>[] = useMemo(
     () => [
@@ -198,39 +211,42 @@ export function FinanceOverviewPanel() {
 
   return (
     <div className="form-stack">
-      <div className="toolbar finance-overview-filters">
-        <select className="input" value={yearId} onChange={(e) => setYearId(e.target.value)}>
-          <option value="">{t('admin.finance.allAcademicYears')}</option>
-          {yearOptions.map((y) => (
-            <option key={y.id} value={y.id}>
-              {y.name}
-            </option>
-          ))}
-        </select>
-        <label>
-          {t('admin.finance.dateFrom')}
-          <input
-            className="input"
-            type="date"
-            value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
-          />
-        </label>
-        <label>
-          {t('admin.finance.dateTo')}
-          <input
-            className="input"
-            type="date"
-            value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
-          />
-        </label>
-      </div>
+      {!compact ? (
+        <div className="toolbar finance-overview-filters">
+          <select className="input" value={yearId} onChange={(e) => setYearId(e.target.value)}>
+            <option value="">{t('admin.finance.allAcademicYears')}</option>
+            {yearOptions.map((y) => (
+              <option key={y.id} value={y.id}>
+                {y.name}
+              </option>
+            ))}
+          </select>
+          <label>
+            {t('admin.finance.dateFrom')}
+            <input
+              className="input"
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+            />
+          </label>
+          <label>
+            {t('admin.finance.dateTo')}
+            <input
+              className="input"
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+            />
+          </label>
+        </div>
+      ) : null}
 
       <ResourceView state={state} loadingLabel={t('common.loading')}>
         {() => {
-          const hasTotals = metrics.some((m) => metricValue(m.value) != null);
+          const hasTotals = !compact && metrics.some((m) => metricValue(m.value) != null);
           if (!hasTotals && !recent.length && !followup.length) {
+            if (compact) return null;
             return (
               <EmptyState
                 title={t('admin.finance.noOverviewMetricsTitle')}
@@ -280,7 +296,10 @@ export function FinanceOverviewPanel() {
                     columns={followupColumns}
                     rows={followup}
                     rowKey={(row) => row.id}
-                    onRowClick={(row) => router.push(`/admin/finance/students/${row.id}`)}
+                    onRowClick={(row) => {
+                      const sid = row.student?.id ?? row.id;
+                      router.push(`/admin/students/${sid}?tab=finance&returnTo=${encodeURIComponent('/admin/finance')}`);
+                    }}
                   />
                 </section>
               )}

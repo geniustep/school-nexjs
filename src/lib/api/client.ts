@@ -78,6 +78,29 @@ export const api = {
     }
   },
 
+  async patch<T>(path: string, body?: unknown, query?: ListParams): Promise<ApiResponse<T>> {
+    try {
+      const res = await fetch(buildUrl(path, query), {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        credentials: 'same-origin',
+        cache: 'no-store',
+        body: body === undefined ? undefined : JSON.stringify(body),
+      });
+      return parse<T>(res);
+    } catch {
+      return {
+        success: false,
+        error: {
+          code: 'network_error',
+          message: 'Could not reach the server. Please check your connection.',
+          details: {},
+        },
+        meta: {},
+      };
+    }
+  },
+
   async put<T>(path: string, body?: unknown, query?: ListParams): Promise<ApiResponse<T>> {
     try {
       const res = await fetch(buildUrl(path, query), {

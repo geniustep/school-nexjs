@@ -2375,7 +2375,7 @@
     },
     "student360": {
       "tabsAria": "Student profile sections",
-      "tabs": { "overview": "Overview", "enrollment": "Enrollment", "guardians": "Guardians", "documents": "Documents", "health": "Health", "finance": "Finance" },
+      "tabs": { "overview": "Overview", "enrollment": "Enrollment", "guardians": "Guardians", "documents": "Documents", "health": "Health", "finance": "Finance", "financial-agreement": "Financial agreement" },
       "breadcrumb": {
         "aria": "Student profile navigation",
         "students": "Students",
@@ -2397,7 +2397,11 @@
         },
         "finance": {
           "title": "Finance",
-          "description": "Manage billing profile, fees, receivables, and collections for this student."
+          "description": "Actual receivables, collections, cheques, and operational installments."
+        },
+        "financial-agreement": {
+          "title": "Financial agreement",
+          "description": "What the school agreed with the payer: services, prices, and payment schedule."
         },
         "health": {
           "title": "Health profile",
@@ -2713,6 +2717,307 @@
           "academic_year_out_of_scope": "Academic year is outside the active school scope."
         }
       },
+      "financialAgreement": {
+        "pageTitle": "Financial agreement",
+        "pageDescription": "Agreement between the school and payer: services, prices, and installment schedule.",
+        "create": "Create financial agreement",
+        "edit": "Edit agreement",
+        "emptyTitle": "No financial agreement for this academic year.",
+        "emptyDescription": "Create an agreement to define services, prices, and the payment schedule.",
+        "billingPartyTitle": "Payer",
+        "linesTitle": "Services & agreement lines",
+        "noLines": "No services added yet.",
+        "scheduleTitle": "Agreement schedule",
+        "noSchedule": "No schedule generated yet.",
+        "schedulePolicyTitle": "Schedule policy",
+        "openGuardians": "Open guardians",
+        "fields": {
+          "academicYear": "Academic year",
+          "number": "Agreement number",
+          "state": "Agreement status",
+          "agreementDate": "Agreement date",
+          "validity": "Agreement period",
+          "validFrom": "Start date",
+          "validUntil": "End date",
+          "billingParty": "Payer",
+          "partyType": "Payer type",
+          "relationship": "Relationship",
+          "contact": "Contact"
+        },
+        "summary": {
+          "gross": "Gross amount",
+          "discounts": "Discounts & adjustments",
+          "net": "Agreed amount",
+          "installmentCount": "Installment count"
+        },
+        "columns": {
+          "service": "Service",
+          "category": "Category",
+          "commitment": "Commitment",
+          "pricingUnit": "Pricing unit",
+          "period": "Period",
+          "quantity": "Qty",
+          "unitPrice": "Unit price",
+          "gross": "Gross",
+          "discount": "Discount",
+          "net": "Net"
+        },
+        "scheduleColumns": {
+          "period": "Period",
+          "displayFrom": "Display from",
+          "dueDate": "Due date",
+          "amount": "Amount",
+          "state": "Admin status"
+        },
+        "schedulePolicy": {
+          "generation": "Generation mode",
+          "display": "Display policy",
+          "dueDay": "Due day",
+          "earlyPayment": "Allow early payment",
+          "firstPeriod": "First period policy"
+        },
+        "states": {
+          "draft": "Draft",
+          "pending_approval": "Pending approval",
+          "approved": "Approved",
+          "active": "Active",
+          "amended": "Amended",
+          "completed": "Completed",
+          "cancelled": "Cancelled"
+        },
+        "scheduleStates": {
+          "planned": "Planned",
+          "cancelled": "Cancelled",
+          "waived": "Waived"
+        },
+        "actions": {
+          "submit": "Submit",
+          "approve": "Approve",
+          "activate": "Activate",
+          "cancel": "Cancel agreement",
+          "cancelFuture": "Cancel future installments",
+          "submitSuccess": "Agreement submitted.",
+          "approveSuccess": "Agreement approved.",
+          "activateSuccess": "Agreement activated.",
+          "cancelSuccess": "Agreement cancelled."
+        },
+        "confirmSubmit": "Submit this agreement for approval?",
+        "confirmApprove": "Approve this agreement?",
+        "confirmActivateShort": "Activate and create operational charges?",
+        "confirmActivate": "Activate agreement?\nNet: {net}\nInstallments: {count}\nPayer: {party}\nYear: {year}\n\nActivation creates operational fees and installments.",
+        "confirmCancel": "Cancel this agreement?",
+        "cancelFuture": {
+          "drawerTitle": "Cancel future installments",
+          "drawerDesc": "Set effective date, target, and reason. Balances are not updated locally.",
+          "effectiveDate": "Effective date",
+          "targetState": "Target",
+          "targetCancelled": "Cancel",
+          "targetWaived": "Waive",
+          "reason": "Reason",
+          "continue": "Continue",
+          "confirmBody": "Confirm cancelling future installments with:",
+          "confirmSubmit": "Confirm submit",
+          "success": "Future installments cancelled.",
+          "errors": {
+            "dateRequired": "Effective date is required.",
+            "reasonRequired": "Reason is required.",
+            "targetRequired": "Invalid target."
+          }
+        },
+        "createDrawer": {
+          "title": "Create / edit financial agreement",
+          "basicDesc": "Set dates and payer.",
+          "servicesDesc": "Add services from the catalog.",
+          "previewDesc": "Preview schedule without creating records.",
+          "saveDesc": "Save as draft or generate draft schedule.",
+          "missingBilling": "Enrollment, billing profile, and payer are required.",
+          "selectPartner": "Select payer",
+          "service": "Service",
+          "selectService": "Select service",
+          "tariff": "Tariff",
+          "noTariff": "No tariff",
+          "addLine": "Add line",
+          "lineAdded": "Service line added.",
+          "discountType": "Discount type",
+          "discountNone": "No discount",
+          "discountFixed": "Fixed amount",
+          "discountPercent": "Percentage",
+          "discountValue": "Discount value",
+          "discountReason": "Discount reason",
+          "generationMode": "Schedule generation",
+          "runPreview": "Preview schedule",
+          "previewTotal": "Total",
+          "savedDraft": "Agreement saved as draft.",
+          "scheduleGenerated": "Draft schedule generated.",
+          "saveDraft": "Save draft",
+          "generateSchedule": "Generate draft schedule",
+          "steps": {
+            "basic": "Basics",
+            "services": "Services",
+            "discounts": "Discounts",
+            "schedule": "Schedule policy",
+            "preview": "Preview",
+            "save": "Save"
+          }
+        }
+      },
+      "financeOps": {
+        "pageTitle": "Finance",
+        "pageDescription": "Actual receivables, collections, cheques, and operational installments.",
+        "emptyTitle": "No financial receivables yet.",
+        "emptyDescription": "When an agreement is activated or charges are created, balances and installments appear here.",
+        "totalDue": "Total due",
+        "confirmedPaid": "Confirmed paid",
+        "pendingCheques": "Pending cheques",
+        "remaining": "Remaining",
+        "uncovered": "Uncovered",
+        "overdue": "Overdue",
+        "installmentsTitle": "Installments",
+        "installmentsDescription": "Operational installments — payment and timing status are separate.",
+        "noInstallments": "No matching installments.",
+        "hiddenFromParent": "Hidden from parent",
+        "recentCollectionsTitle": "Recent collections",
+        "viewAllCollections": "All collections",
+        "chequesTitle": "Cheques",
+        "subscriptionsTitle": "Service subscriptions",
+        "filters": {
+          "all": "All",
+          "paymentStatus": "Payment status",
+          "timingStatus": "Timing status",
+          "service": "Service",
+          "dateFrom": "From",
+          "dateTo": "To",
+          "quickOverdueUnpaid": "Overdue & not fully paid"
+        },
+        "paymentStatus": {
+          "unpaid": "Unpaid",
+          "partially_paid": "Partially paid",
+          "paid": "Paid"
+        },
+        "timingStatus": {
+          "hidden": "Hidden",
+          "upcoming": "Upcoming",
+          "due": "Due",
+          "overdue": "Overdue",
+          "not_applicable": "N/A"
+        },
+        "chequeLifecycle": {
+          "draft": "Draft",
+          "received": "Received",
+          "deposited": "Deposited",
+          "cleared": "Cleared",
+          "bounced": "Bounced",
+          "returned_to_payer": "Returned",
+          "cancelled": "Cancelled",
+          "replaced": "Replaced"
+        },
+        "chequeMaturity": {
+          "not_due": "Not due",
+          "due_today": "Due today",
+          "overdue": "Overdue",
+          "settled": "Settled",
+          "not_applicable": "N/A"
+        },
+        "columns": {
+          "service": "Service",
+          "period": "Period",
+          "displayFrom": "Display from",
+          "dueDate": "Due date",
+          "amount": "Amount",
+          "paid": "Paid",
+          "pendingCheque": "Pending cheque",
+          "remaining": "Remaining",
+          "status": "Status"
+        },
+        "collections": {
+          "date": "Date",
+          "amount": "Amount",
+          "method": "Method",
+          "journal": "Journal / bank",
+          "payer": "Payer",
+          "state": "Status"
+        },
+        "cheques": {
+          "number": "Cheque no.",
+          "bank": "Bank",
+          "amount": "Amount",
+          "received": "Received",
+          "due": "Due date",
+          "status": "Status"
+        },
+        "subscriptions": {
+          "service": "Service",
+          "tariff": "Tariff",
+          "period": "Period",
+          "state": "Status",
+          "pricing": "Pricing method"
+        },
+        "serviceDetails": {
+          "subscriptionType": "Subscription type",
+          "pricingUnit": "Pricing unit",
+          "mealTypes": "Meal types",
+          "unitsIncluded": "Units included",
+          "extraUnitPrice": "Extra unit price",
+          "groupingMethod": "Grouping method",
+          "line": "Line",
+          "zone": "Zone",
+          "direction": "Direction",
+          "pickupStop": "Pickup stop",
+          "dropoffStop": "Drop-off stop",
+          "selectedDays": "Selected days",
+          "pricingMethod": "Pricing method"
+        },
+        "ref": {
+          "service_category": {
+            "registration": "Registration",
+            "tuition": "Tuition",
+            "transport": "Transport",
+            "canteen": "Canteen",
+            "meals": "Meals",
+            "activity": "Activity",
+            "other": "Other"
+          },
+          "commitment_type": {
+            "fixed_contract": "Annual contract",
+            "renewable_subscription": "Renewable subscription",
+            "usage_based": "Usage based",
+            "prepaid_package": "Prepaid package",
+            "one_time": "One time"
+          },
+          "pricing_unit": {
+            "academic_year": "Per year",
+            "month": "Per month",
+            "semester": "Per semester",
+            "one_time": "One time"
+          },
+          "billing_party_type": {
+            "guardian": "Guardian",
+            "student": "Student",
+            "company": "Company",
+            "sponsor": "Sponsor",
+            "self": "Student"
+          },
+          "schedule_generation_mode": {
+            "monthly": "Monthly",
+            "weekly": "Weekly",
+            "manual": "Manual",
+            "custom": "Custom"
+          },
+          "display_rule": {
+            "period_start": "Period start",
+            "due_date": "Due date"
+          },
+          "first_period_policy": {
+            "full_period": "Full period",
+            "prorata": "Prorata"
+          },
+          "pricing_method": {
+            "flat": "Flat",
+            "package": "Package",
+            "usage": "Usage"
+          }
+        }
+      },
       "relationshipType": {
         "father": "Father",
         "mother": "Mother",
@@ -2767,6 +3072,145 @@
       "hubChequesDesc": "Deferred cheques and collection lifecycle",
       "hubRecordCollection": "Record collection",
       "hubRecordCollectionDesc": "Create a new payment collection",
+      "hub": {
+        "title": "Finance hub",
+        "description": "Unified entry point for agreements, installments, collections, and cheques.",
+        "sectionsTitle": "Workspaces",
+        "linkAgreements": "Financial agreements",
+        "linkAgreementsDesc": "Browse and manage financial agreements",
+        "linkInstallments": "Installments & receivables",
+        "linkInstallmentsDesc": "Track installments with payment and timing status",
+        "linkCollections": "Collections",
+        "linkCollectionsDesc": "Recorded payment collections",
+        "linkCheques": "Cheques",
+        "linkChequesDesc": "Cheque lifecycle and maturity",
+        "linkServices": "Services & tariffs",
+        "linkServicesDesc": "Reference financial setup for the school",
+        "recordCollectionHint": "To record a new collection:",
+        "legacySetupNote": "Legacy fee setup:",
+        "currentAcademicYear": "Academic year",
+        "overviewYearFilter": "Overview filter",
+        "kpiTotalDue": "Total due",
+        "kpiConfirmedPaid": "Confirmed paid",
+        "kpiPendingCheques": "Cheques pending clearance",
+        "kpiRemaining": "Remaining",
+        "kpiUncovered": "Uncovered",
+        "kpiOverdue": "Overdue",
+        "alertOverdueInstallments": "{count} overdue installment(s) need follow-up",
+        "alertOverdueCheques": "{count} overdue cheque(s)",
+        "alertRejectedCheques": "{count} rejected cheque(s)",
+        "alertDraftAgreements": "{count} draft agreement(s) not activated",
+        "selectStudentTitle": "Select a student",
+        "selectStudentDesc": "There is no school-wide agreements list. Search for a student first.",
+        "selectedStudent": "Selected student",
+        "openStudent360": "Open Student 360",
+        "backToPrevious": "Back to previous page"
+      },
+      "agreements": {
+        "title": "Financial agreements",
+        "subtitle": "Agreements listed per student",
+        "scopeNote": "No school-wide agreements API. Pick a student, then apply filters.",
+        "detailTitle": "Agreement details",
+        "backToList": "Back to agreements",
+        "notFound": "Agreement not found or not accessible.",
+        "emptyTitle": "No financial agreements have been created for this school yet.",
+        "emptyDesc": "Start from the student profile to create a new agreement.",
+        "openStudent360": "Open student profile",
+        "searchPlaceholder": "Search agreements…",
+        "columns": {
+          "number": "Agreement #",
+          "academicYear": "Academic year",
+          "billingParty": "Billing party",
+          "agreementDate": "Agreement date",
+          "period": "Period",
+          "netAmount": "Net amount",
+          "installmentCount": "Installments"
+        },
+        "states": {
+          "draft": "Draft",
+          "pendingApproval": "Pending approval",
+          "approved": "Approved",
+          "active": "Active",
+          "cancelled": "Cancelled"
+        }
+      },
+      "installments": {
+        "title": "Installments & receivables",
+        "subtitle": "Operational installments per student",
+        "scopeNote": "No school-wide installments API. Pick a student and use API filters.",
+        "emptyTitle": "No installments for this student",
+        "emptyDesc": "Adjust filters or open the student profile.",
+        "searchPlaceholder": "Search installments…",
+        "columns": {
+          "service": "Service",
+          "period": "Period",
+          "displayFrom": "Visible from",
+          "dueDate": "Due date",
+          "amount": "Amount",
+          "paid": "Paid",
+          "pendingCheque": "Pending cheque",
+          "remaining": "Remaining",
+          "status": "Status"
+        },
+        "filters": {
+          "allPaymentStatuses": "All payment statuses",
+          "allTimingStatuses": "All timing statuses",
+          "allCategories": "All categories",
+          "visibleOnly": "Visible to parent only",
+          "overdueOnly": "Overdue only"
+        },
+        "paymentStatuses": {
+          "unpaid": "Unpaid",
+          "partiallyPaid": "Partially paid",
+          "paid": "Paid"
+        },
+        "timingStatuses": {
+          "upcoming": "Upcoming",
+          "due": "Due",
+          "overdue": "Overdue",
+          "hidden": "Hidden"
+        },
+        "quick": {
+          "overdueUnpaid": "Overdue & unpaid",
+          "partiallyPaid": "Partially paid",
+          "dueToday": "Due today",
+          "dueSevenDays": "Next 7 days",
+          "hiddenFromParent": "Hidden from parent"
+        }
+      },
+      "services": {
+        "title": "Services & tariffs",
+        "subtitle": "Reference financial services and tariffs",
+        "searchPlaceholder": "Search…",
+        "emptyServicesTitle": "No services",
+        "emptyTariffsTitle": "No tariffs",
+        "emptyDesc": "No services or tariffs configured yet.",
+        "tabs": {
+          "services": "Services",
+          "tariffs": "Tariffs"
+        },
+        "columns": {
+          "code": "Code",
+          "name": "Name",
+          "category": "Category",
+          "requiresSubscription": "Requires subscription",
+          "requiresUsageTracking": "Requires usage tracking",
+          "service": "Service",
+          "academicYear": "Academic year",
+          "commitmentType": "Commitment type",
+          "pricingUnit": "Pricing unit",
+          "unitPrice": "Unit price"
+        }
+      },
+      "collections": {
+        "columns": {
+          "reference": "Reference",
+          "payer": "Payer",
+          "allocations": "Allocations"
+        },
+        "filteredByStudent": "Filtered by student #{id}",
+        "clearStudentFilter": "Clear filter"
+      },
       "hubFeeTypes": "Fee types",
       "hubFeeTypesDesc": "School fee catalog",
       "hubFeePlans": "Fee plans",
@@ -2789,6 +3233,47 @@
       "collectionsDesc": "Recorded payment collections",
       "recordCollection": "Record collection",
       "recordCollectionDesc": "Record a payment using required backend fields",
+      "collectionWorkflow": {
+        "drawerTitle": "Record collection",
+        "detailTitle": "Collection details",
+        "chequeDetailTitle": "Cheque details",
+        "paymentStepDesc": "Choose method and amount, then allocate to receivables.",
+        "continueToAllocation": "Continue to allocation",
+        "allocationTitle": "Allocate amount",
+        "allocationDesc": "Allocate the collection amount to open installments.",
+        "collectionAmount": "Collection amount",
+        "allocatedAmount": "Allocated amount",
+        "unallocatedAmount": "Unallocated amount",
+        "selectedCount": "Selected receivables",
+        "allocationsCount": "Allocation count",
+        "allocationsTitle": "Allocations",
+        "autoAllocateOldest": "Allocate to oldest",
+        "earlyPaymentBlocked": "Early payment is not allowed for this installment.",
+        "successTitle": "Collection recorded",
+        "successBody": "The payment collection was created successfully.",
+        "successToast": "Collection recorded.",
+        "chequePendingNote": "The cheque is pending collection and is not counted as confirmed paid until cleared.",
+        "chequeDatesHelp": "Received date, written date, and maturity date are separate.",
+        "chequeBranch": "Branch",
+        "chequeDrawer": "Drawer name",
+        "chequeWrittenDate": "Cheque written date",
+        "chequePublicNotes": "Public notes",
+        "openFullPage": "Open collection page",
+        "openFullChequePage": "Open cheque page",
+        "errors": {
+          "allocationExceedsCollection": "Total allocations exceed the collection amount.",
+          "allocationExceedsChequeAmount": "Total allocations exceed the cheque amount.",
+          "earlyPaymentNotAllowed": "Early payment is not allowed.",
+          "duplicateCheque": "Duplicate cheque number.",
+          "missingChequeNumber": "Cheque number is required.",
+          "missingBank": "Bank is required.",
+          "missingBounceReason": "Bounce reason is required.",
+          "invalidChequeDateOrder": "Invalid cheque date order.",
+          "crossSchoolViolation": "Operation does not belong to the active school.",
+          "invalidAmount": "Invalid amount.",
+          "invalidAllocation": "Invalid allocation."
+        }
+      },
       "searchFeeTypes": "Search fee types…",
       "searchCollections": "Search collections…",
       "noFeeTypes": "No fee types",
@@ -2986,6 +3471,14 @@
         "dueStatus": "Due status",
         "searchPlaceholder": "Search by cheque number or student…",
         "empty": "No cheques",
+        "summary": {
+          "received": "Received",
+          "deposited": "Deposited",
+          "dueToday": "Due today",
+          "overdue": "Overdue",
+          "cleared": "Cleared",
+          "rejected": "Rejected"
+        },
         "registrationTitle": "Cheque details",
         "reason": "Reason",
         "reasonRequired": "Reason is required",

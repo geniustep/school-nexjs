@@ -3,6 +3,7 @@ export const STUDENT_360_TAB_ORDER = [
   'overview',
   'enrollment',
   'guardians',
+  'financial-agreement',
   'finance',
   'health',
   'documents',
@@ -52,7 +53,7 @@ export function buildAvailableStudent360Tabs(options: {
   showDocuments: boolean;
 }): Student360TabId[] {
   return STUDENT_360_TAB_ORDER.filter((tab) => {
-    if (tab === 'finance') return options.showFinance;
+    if (tab === 'finance' || tab === 'financial-agreement') return options.showFinance;
     if (tab === 'health') return options.showHealth;
     if (tab === 'documents') return options.showDocuments;
     return true;

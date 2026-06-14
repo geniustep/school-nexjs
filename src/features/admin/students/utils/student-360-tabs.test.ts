@@ -13,6 +13,7 @@ describe('STUDENT_360_TAB_ORDER', () => {
       'overview',
       'enrollment',
       'guardians',
+      'financial-agreement',
       'finance',
       'health',
       'documents',
@@ -41,6 +42,10 @@ describe('parseStudent360Tab', () => {
 
   it('activates finance from URL', () => {
     expect(parseStudent360Tab('finance', available)).toBe('finance');
+  });
+
+  it('activates financial-agreement from URL', () => {
+    expect(parseStudent360Tab('financial-agreement', available)).toBe('financial-agreement');
   });
 
   it('activates health from URL', () => {
@@ -72,6 +77,9 @@ describe('buildStudent360TabHref', () => {
 
   it('adds tab query for finance and documents', () => {
     expect(buildStudent360TabHref(727, 'finance')).toBe('/admin/students/727?tab=finance');
+    expect(buildStudent360TabHref(727, 'financial-agreement')).toBe(
+      '/admin/students/727?tab=financial-agreement',
+    );
     expect(buildStudent360TabHref(727, 'documents')).toBe('/admin/students/727?tab=documents');
   });
 });
@@ -91,6 +99,6 @@ describe('buildAvailableStudent360Tabs', () => {
         showHealth: false,
         showDocuments: true,
       }),
-    ).toEqual(['overview', 'enrollment', 'guardians', 'finance', 'documents']);
+    ).toEqual(['overview', 'enrollment', 'guardians', 'financial-agreement', 'finance', 'documents']);
   });
 });

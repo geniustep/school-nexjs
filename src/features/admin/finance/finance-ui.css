@@ -133,6 +133,169 @@
   gap: 8px;
 }
 
+.finance-collection-workflow .finance-allocation-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.finance-allocation-list {
+  display: grid;
+  gap: 10px;
+}
+
+.finance-allocation-row {
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.finance-allocation-row.is-disabled {
+  opacity: 0.65;
+}
+
+.finance-allocation-row__main,
+.finance-allocation-row__amounts {
+  display: grid;
+  gap: 6px;
+}
+
+.finance-allocation-row__amounts {
+  margin-top: 8px;
+}
+
+.finance-cheque-pending-note {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--surface-muted, #f8fafc);
+}
+
+.finance-hub-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.finance-hub-card {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  text-decoration: none;
+  color: inherit;
+  padding: 16px;
+}
+
+.finance-hub-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.finance-hub-card-hint {
+  font-size: 0.85rem;
+  color: var(--text-muted, #64748b);
+}
+
+.finance-hub-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--surface-muted, #f8fafc);
+  flex-shrink: 0;
+}
+
+.finance-hub-links-section {
+  margin-block: 20px 12px;
+}
+
+.finance-hub-links-title {
+  margin: 0 0 12px;
+  font-size: 1.05rem;
+}
+
+.finance-hub-note,
+.finance-hub-legacy-note {
+  margin-top: 12px;
+}
+
+.finance-hub-context {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  align-items: end;
+  margin-bottom: 12px;
+}
+
+.finance-hub-year-filter {
+  display: grid;
+  gap: 4px;
+}
+
+.finance-hub-alerts {
+  display: grid;
+  gap: 8px;
+  margin-block: 12px 16px;
+}
+
+.finance-hub-alert {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-inline-start: 3px solid var(--color-warning, #b54708);
+}
+
+.finance-hub-alert-icon {
+  flex-shrink: 0;
+  color: var(--color-warning, #b54708);
+}
+
+.finance-hub-alert-link {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.finance-hub-kpi-grid {
+  margin-block-start: 0;
+}
+
+.finance-hub-filters {
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+}
+
+.finance-hub-student-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.finance-hub-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.finance-hub-tabs .is-active {
+  border-color: var(--color-primary, #2563eb);
+}
+
+.finance-hub-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.finance-cheque-summary-grid {
+  margin-block: 12px 16px;
+}
+
 .academic-setup-drawer--wide {
   width: min(720px, 100vw);
 }
@@ -287,6 +450,19 @@
 }
 
 @media (max-width: 768px) {
+  .finance-allocation-row__amounts {
+    grid-template-columns: 1fr;
+  }
+
+  .finance-hub-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .finance-hub-card {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
   .fee-plan-form__grid {
     grid-template-columns: 1fr;
   }

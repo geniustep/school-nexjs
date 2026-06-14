@@ -240,15 +240,30 @@ export interface FinanceReferenceData {
   academic_years?: AcademicYearReference[];
   payment_methods?: PaymentMethodReference[];
   currencies?: CurrencyReference[];
+  service_categories?: { value: string; label: string }[];
+  commitment_types?: { value: string; label: string }[];
+  pricing_units?: { value: string; label: string }[];
+  schedule_generation_modes?: { value: string; label: string }[];
+  display_rules?: { value: string; label: string }[];
+  first_period_policies?: { value: string; label: string }[];
 }
 
 export interface FinanceOverviewTotals {
   total_due?: number;
   total_collected?: number;
+  total_paid?: number;
+  confirmed_paid?: number;
   total_remaining?: number;
+  remaining_amount?: number;
   total_overdue?: number;
+  overdue_amount?: number;
+  uncovered_amount?: number;
+  pending_cheques?: number;
   students_with_balance?: number;
   overdue_installments_count?: number;
+  overdue_installments?: number;
+  draft_agreements_count?: number;
+  active_agreements_count?: number;
   collections_count?: number;
   collections_amount?: number;
   period_collections_count?: number;
@@ -281,12 +296,21 @@ export interface FinanceFollowupStudent {
   currency?: string;
 }
 
-export interface AdminFinanceOverview {
+export interface AdminFinanceOverview extends Partial<FinanceOverviewTotals> {
   totals?: FinanceOverviewTotals;
   summary?: FinanceOverviewTotals;
+  cheques?: {
+    received?: number;
+    deposited?: number;
+    cleared?: number;
+    bounced?: number;
+    rejected?: number;
+    overdue?: number;
+  };
   recent_collections?: PaymentCollection[];
   followup_students?: FinanceFollowupStudent[];
   students_needing_followup?: FinanceFollowupStudent[];
+  upcoming_installments?: unknown[];
 }
 
 export interface FinanceStudentSearchResult {
