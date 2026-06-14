@@ -172,7 +172,7 @@ export const endpoints = {
     financeStudentFeesForStudent: (studentId: number | string) =>
       `/admin/finance/students/${studentId}/fees`,
     financeAssignStudentFee: (studentId: number | string) =>
-      `/admin/finance/students/${studentId}/fees`,
+      `/admin/finance/students/${studentId}/assign-fee-plan`,
     financeBillingProfile: (studentId: number | string) =>
       `/admin/finance/students/${studentId}/billing-profile`,
     financePaymentCollections: '/admin/finance/payment-collections',

@@ -263,9 +263,12 @@ export function StudentFinanceTab({
     );
   }
 
-  function handleAssignSuccess() {
+  function handleAssignSuccess(result?: import('@/types/finance').AssignStudentFeePlanResponse) {
     setShowAssignForm(false);
     toast.success(t('admin.student360.finance.assignDrawer.success'));
+    if (result?.skipped_optional_line_ids?.length) {
+      toast.show(t('admin.student360.finance.assignDrawer.skippedOptional'), 'info');
+    }
     summaryState.reload();
     feesState.reload();
     onChanged();
@@ -277,6 +280,13 @@ export function StudentFinanceTab({
   const classId =
     details.current_enrollment?.class?.id ??
     (typeof details.student.class === 'object' ? details.student.class?.id : undefined);
+
+  const levelId =
+    details.current_enrollment?.level?.id ??
+    (typeof details.student.level === 'object' ? details.student.level?.id : undefined);
+
+  const enrollmentJoinDate = details.current_enrollment?.actual_join_date ?? null;
+  const enrollmentStartDate = details.current_enrollment?.date_start ?? null;
 
   const headerActions = (
     <div className="student-finance-header-actions">
@@ -571,7 +581,10 @@ export function StudentFinanceTab({
         open={showAssignForm && canAssign}
         studentId={studentId}
         classId={classId}
+        levelId={levelId}
         initialAcademicYearId={academicYearId}
+        enrollmentJoinDate={enrollmentJoinDate}
+        enrollmentStartDate={enrollmentStartDate}
         onClose={() => setShowAssignForm(false)}
         onAssigned={handleAssignSuccess}
       />
