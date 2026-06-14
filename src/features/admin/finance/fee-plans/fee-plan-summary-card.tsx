@@ -43,7 +43,7 @@ export function FeePlanSummaryCard({
             <FinanceMoney amount={summary.optionalTotal} currency={summary.currency ?? currency} />
           </dd>
         </div>
-        <div>
+        <div className="fee-plan-summary__total">
           <dt>{t('admin.finance.feePlansWorkspace.summaryGrandTotal')}</dt>
           <dd>
             <strong>

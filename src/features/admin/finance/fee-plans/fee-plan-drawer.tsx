@@ -139,145 +139,147 @@ export function FeePlanDrawer({
 
   return (
     <SetupDrawer open={open} title={title} onClose={onClose} size="wide">
-      <p className="muted fee-plan-drawer__desc">{t('admin.finance.feePlansWorkspace.createDesc')}</p>
-      {readOnly && (
-        <p className="form-error">{t('admin.finance.feePlansWorkspace.confirmedReadOnly')}</p>
-      )}
-      {formError && <p className="form-error">{formError}</p>}
-
-      {mode !== 'create' && planState.loading && !plan ? (
-        <p className="muted">{t('common.loading')}</p>
-      ) : (
+      <div className="fee-plan-drawer">
+        {mode !== 'create' && planState.loading && !plan ? (
+          <p className="muted fee-plan-drawer__loading">{t('common.loading')}</p>
+        ) : (
         <form
-          className="fee-plan-form form-stack"
+          className="fee-plan-form"
           onSubmit={(e) => {
             e.preventDefault();
             void persist(false);
           }}
         >
-          <section className="fee-plan-form__section">
-            <h4>{t('admin.finance.feePlansWorkspace.sectionPlanInfo')}</h4>
-            <div className="fee-plan-form__grid">
-              <label>
-                {t('admin.finance.planName')}
-                <input
-                  className="input"
-                  required
-                  disabled={readOnly}
-                  value={values.name}
-                  onChange={(e) => patchValues({ name: e.target.value })}
-                />
-                {fieldErrors?.field === 'name' && (
-                  <span className="form-error">{t(fieldErrors.messageKey)}</span>
-                )}
-              </label>
-              <label>
-                {t('admin.finance.feeTypeCode')}
-                <input
-                  className="input"
-                  required
-                  disabled={readOnly}
-                  value={values.code}
-                  onChange={(e) => patchValues({ code: e.target.value })}
-                />
-                {fieldErrors?.field === 'code' && (
-                  <span className="form-error">{t(fieldErrors.messageKey)}</span>
-                )}
-              </label>
-              <label className="fee-plan-form__full">
-                {t('common.note')}
-                <textarea
-                  className="input"
-                  rows={2}
-                  disabled={readOnly}
-                  value={values.notes}
-                  onChange={(e) => patchValues({ notes: e.target.value })}
-                />
-              </label>
-            </div>
-          </section>
-
-          <section className="fee-plan-form__section">
-            <h4>{t('admin.finance.feePlansWorkspace.sectionScope')}</h4>
-            {activeSchoolName && (
-              <p className="muted">
-                {t('admin.finance.feePlansWorkspace.activeSchool')}: <strong>{activeSchoolName}</strong>
-              </p>
+          <div className="fee-plan-form__content">
+            <p className="muted fee-plan-drawer__desc">{t('admin.finance.feePlansWorkspace.createDesc')}</p>
+            {readOnly && (
+              <p className="form-error">{t('admin.finance.feePlansWorkspace.confirmedReadOnly')}</p>
             )}
-            <div className="fee-plan-form__grid">
-              <label>
-                {t('admin.finance.academicYear')}
-                <select
-                  className="input"
-                  required
-                  disabled={readOnly || yearsLoading || mode === 'edit'}
-                  value={values.academicYearId}
-                  onChange={(e) => patchValues({ academicYearId: e.target.value })}
-                >
-                  <option value="">
-                    {yearsLoading ? t('common.loading') : t('admin.finance.selectAcademicYear')}
-                  </option>
-                  {yearOptions.map((y) => (
-                    <option key={y.id} value={y.id}>
-                      {y.name}
+            {formError && <p className="form-error">{formError}</p>}
+            <section className="fee-plan-form__section">
+              <h4>{t('admin.finance.feePlansWorkspace.sectionPlanInfo')}</h4>
+              <div className="fee-plan-form__grid">
+                <label>
+                  {t('admin.finance.planName')}
+                  <input
+                    className="input"
+                    required
+                    disabled={readOnly}
+                    value={values.name}
+                    onChange={(e) => patchValues({ name: e.target.value })}
+                  />
+                  {fieldErrors?.field === 'name' && (
+                    <span className="form-error">{t(fieldErrors.messageKey)}</span>
+                  )}
+                </label>
+                <label>
+                  {t('admin.finance.feeTypeCode')}
+                  <input
+                    className="input"
+                    required
+                    disabled={readOnly}
+                    value={values.code}
+                    onChange={(e) => patchValues({ code: e.target.value })}
+                  />
+                  {fieldErrors?.field === 'code' && (
+                    <span className="form-error">{t(fieldErrors.messageKey)}</span>
+                  )}
+                </label>
+                <label className="fee-plan-form__full">
+                  {t('common.note')}
+                  <textarea
+                    className="input"
+                    rows={2}
+                    disabled={readOnly}
+                    value={values.notes}
+                    onChange={(e) => patchValues({ notes: e.target.value })}
+                  />
+                </label>
+              </div>
+            </section>
+
+            <section className="fee-plan-form__section">
+              <h4>{t('admin.finance.feePlansWorkspace.sectionScope')}</h4>
+              {activeSchoolName && (
+                <p className="muted fee-plan-form__school">
+                  {t('admin.finance.feePlansWorkspace.activeSchool')}: <strong>{activeSchoolName}</strong>
+                </p>
+              )}
+              <div className="fee-plan-form__grid">
+                <label>
+                  {t('admin.finance.academicYear')}
+                  <select
+                    className="input"
+                    required
+                    disabled={readOnly || yearsLoading || mode === 'edit'}
+                    value={values.academicYearId}
+                    onChange={(e) => patchValues({ academicYearId: e.target.value })}
+                  >
+                    <option value="">
+                      {yearsLoading ? t('common.loading') : t('admin.finance.selectAcademicYear')}
                     </option>
-                  ))}
-                </select>
-                {fieldErrors?.field === 'academicYearId' && (
-                  <span className="form-error">{t(fieldErrors.messageKey)}</span>
-                )}
-              </label>
-              <label>
-                {t('nav.levels')}
-                <select
-                  className="input"
-                  required
-                  disabled={readOnly || levelsState.loading}
-                  value={values.levelId}
-                  onChange={(e) => patchValues({ levelId: e.target.value })}
-                >
-                  <option value="">
-                    {levelsState.loading ? t('common.loading') : t('admin.finance.feePlansWorkspace.selectLevel')}
-                  </option>
-                  {levels.map((level) => (
-                    <option key={level.id} value={level.id}>
-                      {level.name}
+                    {yearOptions.map((y) => (
+                      <option key={y.id} value={y.id}>
+                        {y.name}
+                      </option>
+                    ))}
+                  </select>
+                  {fieldErrors?.field === 'academicYearId' && (
+                    <span className="form-error">{t(fieldErrors.messageKey)}</span>
+                  )}
+                </label>
+                <label>
+                  {t('nav.levels')}
+                  <select
+                    className="input"
+                    required
+                    disabled={readOnly || levelsState.loading}
+                    value={values.levelId}
+                    onChange={(e) => patchValues({ levelId: e.target.value })}
+                  >
+                    <option value="">
+                      {levelsState.loading ? t('common.loading') : t('admin.finance.feePlansWorkspace.selectLevel')}
                     </option>
-                  ))}
-                </select>
-                {fieldErrors?.field === 'levelId' && (
-                  <span className="form-error">{t(fieldErrors.messageKey)}</span>
-                )}
-              </label>
-            </div>
-            {yearOptions.length === 0 && !yearsLoading && (
-              <p className="muted">{t('admin.finance.academicYearHintFromPlans')}</p>
-            )}
-            {levels.length === 0 && !levelsState.loading && (
-              <p className="muted">
-                {t('admin.finance.feePlansWorkspace.noLevelsHint')}{' '}
-                <a href="/admin/settings/academic-setup/levels">{t('nav.levels')}</a>
-              </p>
-            )}
-          </section>
+                    {levels.map((level) => (
+                      <option key={level.id} value={level.id}>
+                        {level.name}
+                      </option>
+                    ))}
+                  </select>
+                  {fieldErrors?.field === 'levelId' && (
+                    <span className="form-error">{t(fieldErrors.messageKey)}</span>
+                  )}
+                </label>
+              </div>
+              {yearOptions.length === 0 && !yearsLoading && (
+                <p className="muted">{t('admin.finance.academicYearHintFromPlans')}</p>
+              )}
+              {levels.length === 0 && !levelsState.loading && (
+                <p className="muted">
+                  {t('admin.finance.feePlansWorkspace.noLevelsHint')}{' '}
+                  <a href="/admin/settings/academic-setup/levels">{t('nav.levels')}</a>
+                </p>
+              )}
+            </section>
 
-          <section className="fee-plan-form__section">
-            <FeePlanLinesEditor
-              lines={values.lines}
-              feeTypes={feeTypes}
-              onChange={(lines) => patchValues({ lines })}
-              error={fieldErrors?.field === 'lines' ? t(fieldErrors.messageKey) : null}
-            />
-            {typesLoading && <p className="muted">{t('common.loading')}</p>}
-            {!typesLoading && feeTypes.length === 0 && (
-              <p className="muted">
-                {t('admin.finance.feePlansWorkspace.noFeeTypesHint')}{' '}
-                <a href="/admin/finance/fee-types">{t('admin.finance.hubFeeTypes')}</a>
-              </p>
-            )}
-          </section>
+            <section className="fee-plan-form__section">
+              <FeePlanLinesEditor
+                lines={values.lines}
+                feeTypes={feeTypes}
+                onChange={(lines) => patchValues({ lines })}
+                error={fieldErrors?.field === 'lines' ? t(fieldErrors.messageKey) : null}
+              />
+              {typesLoading && <p className="muted">{t('common.loading')}</p>}
+              {!typesLoading && feeTypes.length === 0 && (
+                <p className="muted">
+                  {t('admin.finance.feePlansWorkspace.noFeeTypesHint')}{' '}
+                  <a href="/admin/finance/fee-types">{t('admin.finance.hubFeeTypes')}</a>
+                </p>
+              )}
+            </section>
 
-          <FeePlanSummaryCard lines={values.lines} currency={plan?.currency} />
+            <FeePlanSummaryCard lines={values.lines} currency={plan?.currency} />
+          </div>
 
           {!readOnly && (
             <div className="fee-plan-form__actions row">
@@ -299,6 +301,7 @@ export function FeePlanDrawer({
           )}
         </form>
       )}
+      </div>
     </SetupDrawer>
   );
 }

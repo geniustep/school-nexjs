@@ -57,7 +57,7 @@ export function FeePlanLinesEditor({
     <section className="fee-plan-lines-editor">
       <div className="fee-plan-lines-editor__head">
         <h4>{t('admin.finance.feePlansWorkspace.planLinesTitle')}</h4>
-        <button type="button" className="btn btn--ghost btn--sm" onClick={openCreate}>
+        <button type="button" className="btn btn--primary btn--sm" onClick={openCreate}>
           {t('admin.finance.feePlansWorkspace.addLine')}
         </button>
       </div>
