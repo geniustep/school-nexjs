@@ -38,6 +38,7 @@ export const endpoints = {
       `/admin/students/${studentId}/documents/${documentId}/archive`,
     studentHealth: (id: number | string) => `/admin/students/${id}/health`,
     studentHealthUpdate: (id: number | string) => `/admin/students/${id}/health/update`,
+    studentFinanceSummary: (id: number | string) => `/admin/students/${id}/finance/summary`,
     guardiansSearch: '/admin/guardians/search',
     guardiansQuickCreate: '/admin/guardians/quick-create',
     studentsImport: '/admin/students/import',
@@ -177,6 +178,8 @@ export const endpoints = {
       `/admin/finance/payment-collections/${id}/confirm`,
     financePaymentCollectionCancel: (id: number | string) =>
       `/admin/finance/payment-collections/${id}/cancel`,
+    financePaymentCollectionReceipt: (id: number | string) =>
+      `/admin/finance/payment-collections/${id}/receipt`,
     financeOverview: '/admin/finance/overview',
     financePaymentJournals: '/admin/finance/payment-journals',
     financeAcademicYears: '/admin/finance/academic-years',

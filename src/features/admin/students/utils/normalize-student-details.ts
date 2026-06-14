@@ -7,6 +7,7 @@ import type {
   StudentHealthSummary,
   StudentSummary,
 } from '@/types/student-360';
+import { normalizeStudentFinanceOverviewSummary } from './normalize-student-finance';
 
 const DEFAULT_CAPABILITIES: StudentCapabilities = {
   can_manage: false,
@@ -58,6 +59,7 @@ export function normalizeStudentDetailsResponse(data: unknown): StudentDetailsDa
       capabilities: (raw.capabilities as StudentCapabilities) ?? DEFAULT_CAPABILITIES,
       document_summary: (raw.document_summary as StudentDocumentSummary | null) ?? null,
       health_summary: (raw.health_summary as StudentHealthSummary | null) ?? null,
+      finance_summary: normalizeStudentFinanceOverviewSummary(raw.finance_summary),
       parents: (raw.parents as ParentLink[] | undefined) ?? student.parents,
       parent_ids: raw.parent_ids as number[] | undefined,
     };

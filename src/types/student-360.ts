@@ -2,6 +2,7 @@
 
 import type { Ref } from './api';
 import type { UserAccountInfo } from './account';
+import type { StudentFinanceOverviewSummary } from './student-finance';
 import type { Gender, ParentLink, StudentNameFields, StudentStatus } from './student';
 
 export type RelationshipType =
@@ -289,6 +290,11 @@ export interface StudentCapabilities {
   can_manage: boolean;
   can_manage_guardians: boolean;
   can_view_finance: boolean;
+  can_view_payments?: boolean;
+  can_collect_payments?: boolean;
+  can_assign_fees?: boolean;
+  can_manage_discounts?: boolean;
+  can_manage_billing_profile?: boolean;
   can_view_documents?: boolean;
   can_manage_documents?: boolean;
   can_view_health?: boolean;
@@ -351,6 +357,7 @@ export interface StudentDetailsData {
   capabilities: StudentCapabilities;
   document_summary?: StudentDocumentSummary | null;
   health_summary?: StudentHealthSummary | null;
+  finance_summary?: StudentFinanceOverviewSummary | null;
   /** Legacy flat fields — read only */
   parents?: ParentLink[];
   parent_ids?: number[];

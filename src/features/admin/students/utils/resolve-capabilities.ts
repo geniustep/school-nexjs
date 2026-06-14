@@ -2,6 +2,7 @@ import { hasPermission } from '@/lib/permissions/permissions';
 import { canViewFinance } from '@/lib/permissions/finance';
 import type { CurrentUser } from '@/types/user';
 import type { StudentCapabilities } from '@/types/student-360';
+import type { StudentFinanceCapabilities } from '@/types/student-finance';
 
 function permissionFallback(user: CurrentUser | null): StudentCapabilities {
   return {
@@ -42,4 +43,40 @@ export function canViewStudentHealth(caps: StudentCapabilities): boolean {
 
 export function canManageStudentHealth(caps: StudentCapabilities): boolean {
   return caps.can_manage_health === true;
+}
+
+export function canViewStudentFinance(caps: StudentCapabilities): boolean {
+  return caps.can_view_finance === true;
+}
+
+export function canViewStudentPayments(
+  caps: StudentCapabilities,
+  financeCaps?: StudentFinanceCapabilities | null,
+): boolean {
+  if (financeCaps) return financeCaps.can_view_payments === true;
+  return caps.can_view_payments === true;
+}
+
+export function canCollectStudentPayments(
+  caps: StudentCapabilities,
+  financeCaps?: StudentFinanceCapabilities | null,
+): boolean {
+  if (financeCaps) return financeCaps.can_collect === true;
+  return caps.can_collect_payments === true;
+}
+
+export function canAssignStudentFees(
+  caps: StudentCapabilities,
+  financeCaps?: StudentFinanceCapabilities | null,
+): boolean {
+  if (financeCaps) return financeCaps.can_assign_fees === true;
+  return caps.can_assign_fees === true;
+}
+
+export function canManageStudentBillingProfile(
+  caps: StudentCapabilities,
+  financeCaps?: StudentFinanceCapabilities | null,
+): boolean {
+  if (financeCaps) return financeCaps.can_manage_billing_profile === true;
+  return caps.can_manage_billing_profile === true;
 }
