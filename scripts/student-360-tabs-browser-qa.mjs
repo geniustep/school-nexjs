@@ -16,6 +16,7 @@ const TAB_LABELS_AR = [
   'نظرة عامة',
   'التسجيل الدراسي',
   'أولياء الأمر',
+  'الاتفاق المالي',
   'المالية',
   'الملف الصحي',
   'الوثائق',
@@ -112,7 +113,7 @@ async function main() {
     process.exit(1);
   }
 
-  const tabTexts = await tabBar.locator('.student-360-tab-bar__item').allTextContents();
+  const tabTexts = await tabBar.locator('.student-360-tab-bar__label').allTextContents();
   record(
     'tab_order_ar',
     TAB_LABELS_AR.every((label, i) => tabTexts[i]?.trim() === label),
@@ -144,7 +145,7 @@ async function main() {
     await page.waitForSelector('.student-360-tab-bar__item--active', { timeout: 60000 });
     await page.waitForTimeout(500);
     const active = page.locator('.student-360-tab-bar__item--active');
-    const activeText = (await active.textContent())?.trim();
+    const activeText = (await active.locator('.student-360-tab-bar__label').textContent())?.trim();
     const urlHasTab = page.url().includes(`tab=${tab.query}`);
     const headerLocator = page.locator(
       tab.query === 'documents' || tab.query === 'finance'

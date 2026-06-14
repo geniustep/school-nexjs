@@ -112,7 +112,6 @@ export function Student360Shell({ studentId }: { studentId: string }) {
     showFinance,
     showHealth,
     showDocuments,
-    t,
   });
 
   return (

@@ -14,22 +14,21 @@ export function buildStudent360TabIndicators(
     showFinance: boolean;
     showHealth: boolean;
     showDocuments: boolean;
-    t: (key: string, params?: Record<string, string | number>) => string;
   },
 ): Partial<Record<Student360TabId, Student360TabIndicator>> {
-  const { showFinance, showHealth, showDocuments, t } = options;
+  const { showFinance, showHealth, showDocuments } = options;
   const out: Partial<Record<Student360TabId, Student360TabIndicator>> = {};
 
   if (details.current_enrollment) {
     out.enrollment = {
       tab: 'enrollment',
-      label: t('admin.student360.indicators.enrolled'),
+      label: '●',
       tone: 'green',
     };
   } else {
     out.enrollment = {
       tab: 'enrollment',
-      label: t('admin.student360.indicators.notEnrolled'),
+      label: '!',
       tone: 'amber',
     };
   }
@@ -59,7 +58,7 @@ export function buildStudent360TabIndicators(
   if (showFinance && details.finance_summary && details.finance_summary.total_overdue > 0) {
     out.finance = {
       tab: 'finance',
-      label: t('admin.student360.indicators.overdue'),
+      label: '!',
       tone: 'red',
     };
   }
@@ -74,7 +73,7 @@ export function buildStudent360TabIndicators(
     } else if (!details.health_summary.has_profile) {
       out.health = {
         tab: 'health',
-        label: t('admin.student360.indicators.noHealth'),
+        label: '!',
         tone: 'amber',
       };
     }

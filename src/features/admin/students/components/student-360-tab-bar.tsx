@@ -45,10 +45,9 @@ export function Student360TabBar({
                     'student-360-tab-bar__indicator',
                     indicator.tone && `student-360-tab-bar__indicator--${indicator.tone}`,
                   )}
-                  title={indicator.label}
-                  aria-label={indicator.label}
+                  aria-hidden="true"
                 >
-                  {indicator.label.length <= 3 ? indicator.label : indicator.label.slice(0, 2)}
+                  {indicator.label}
                 </span>
               ) : null}
             </Link>
