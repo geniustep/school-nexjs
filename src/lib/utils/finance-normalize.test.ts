@@ -16,7 +16,7 @@ describe('normalizePaymentMethodOptions', () => {
     expect(
       normalizePaymentMethodOptions([
         { code: 'cash', name: 'Espèces' },
-        { code: 'cheque', name: 'Chèque' },
+        { code: 'cheque', label: 'Chèque' },
       ]),
     ).toEqual([
       { code: 'cash', label: 'Espèces' },

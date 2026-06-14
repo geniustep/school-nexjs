@@ -1,5 +1,6 @@
 import type { Pagination } from '@/types/api';
-import type { AdminFinanceOverview, FinanceOverviewTotals } from '@/types/finance';
+import type { AdminFinanceOverview, FinanceOverviewTotals, PaymentJournal } from '@/types/finance';
+import { currencyCode } from '@/lib/utils/finance';
 
 /** Coerce API money fields that may arrive as string or number. */
 export function normalizeMoneyValue(value: unknown): number | null {
@@ -110,6 +111,19 @@ export function normalizePaymentMethodCode(method: unknown): string {
   return String(method);
 }
 
+export function normalizePaymentJournal(journal: PaymentJournal): PaymentJournal {
+  const currency = currencyCode(journal.currency ?? journal.currency_code) ?? undefined;
+  const methods = normalizePaymentMethodOptions(journal.allowed_payment_methods).map((m) =>
+    m.label ? { code: m.code, name: m.label } : m.code,
+  );
+  return {
+    ...journal,
+    currency,
+    currency_code: currency,
+    allowed_payment_methods: methods as PaymentJournal['allowed_payment_methods'],
+  };
+}
+
 export function normalizePaymentMethodOptions(
   methods: unknown[] | null | undefined,
 ): { code: string; label?: string }[] {
@@ -121,10 +135,12 @@ export function normalizePaymentMethodOptions(
     if (!code || seen.has(code)) continue;
     seen.add(code);
     const label =
-      typeof raw === 'object' && raw && typeof (raw as Record<string, unknown>).name === 'string'
-        ? ((raw as Record<string, unknown>).name as string)
+      typeof raw === 'object' && raw
+        ? (['label', 'name'] as const)
+            .map((key) => (raw as Record<string, unknown>)[key])
+            .find((v) => typeof v === 'string')
         : undefined;
-    out.push({ code, label });
+    out.push({ code, label: typeof label === 'string' ? label : undefined });
   }
   return out;
 }

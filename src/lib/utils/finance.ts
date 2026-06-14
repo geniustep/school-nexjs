@@ -69,10 +69,20 @@ export function financeStatusTone(
   }
 }
 
-export function refName(value: { name?: string } | string | null | undefined): string | null {
+export function refName(value: { name?: unknown; symbol?: string } | string | null | undefined): string | null {
   if (!value) return null;
   if (typeof value === 'string') return value;
-  return value.name ?? null;
+  if (typeof value === 'object') {
+    const name = value.name;
+    if (typeof name === 'string') return name;
+    if (typeof name === 'number') return String(name);
+    if (name && typeof name === 'object') {
+      const localized = Object.values(name as Record<string, unknown>).find((v) => typeof v === 'string');
+      if (typeof localized === 'string') return localized;
+    }
+    if (typeof value.symbol === 'string') return value.symbol;
+  }
+  return null;
 }
 
 export function installmentIsOverdue(row: {

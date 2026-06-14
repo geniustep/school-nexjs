@@ -9,7 +9,7 @@ import {
   mergeAcademicYearOptions,
   type AcademicYearOption,
 } from '@/lib/utils/academic-years';
-import { parseFinanceList } from '@/lib/utils/finance-normalize';
+import { parseFinanceList, normalizePaymentJournal } from '@/lib/utils/finance-normalize';
 import type { ClassDetail } from '@/features/admin/entity-forms';
 import type {
   AcademicYearReference,
@@ -32,7 +32,8 @@ export function useFinanceReferenceData(): {
   const state = useAdminResource<FinanceReferenceData>(endpoints.admin.financeReferenceData);
   const data = state.data;
   const journals = useMemo(
-    () => parseFinanceList<PaymentJournal>(data?.payment_journals ?? data?.journals),
+    () =>
+      parseFinanceList<PaymentJournal>(data?.payment_journals ?? data?.journals).map(normalizePaymentJournal),
     [data],
   );
   const academicYears = useMemo(
