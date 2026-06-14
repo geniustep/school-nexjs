@@ -158,16 +158,17 @@ export function StudentOverviewTab({
         </Card>
       </div>
 
-      <section className="student-360-section">
+      <section className="student-360-section student-360-performance">
         <h3 className="student-360-section__title">{t('admin.student360.performance.title')}</h3>
         <Student360CompactEmpty
+          className="student-360-compact-empty--performance"
           title={t('admin.student360.performance.emptyTitle')}
           description={t('admin.student360.performance.emptyDesc')}
         />
       </section>
 
       {canManage ? (
-        <Card className="student-360-section-card">
+        <Card className="student-360-section-card student-account-compact">
           <SectionHead title={t('admin.account.accountInformation')} />
           <EntityAccountPanel
             entity={s}
@@ -176,6 +177,7 @@ export function StudentOverviewTab({
             managePermission="manage_students"
             defaultEmail={s.email ?? ''}
             onAccountChanged={onAccountChanged}
+            compact
           />
         </Card>
       ) : null}

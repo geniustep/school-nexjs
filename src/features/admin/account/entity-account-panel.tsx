@@ -18,6 +18,7 @@ export function EntityAccountPanel({
   managePermission,
   defaultEmail = '',
   onAccountChanged,
+  compact = false,
 }: {
   entity: AccountEntityFields & { id: number };
   entityLabel: string;
@@ -25,6 +26,7 @@ export function EntityAccountPanel({
   managePermission: Permission;
   defaultEmail?: string;
   onAccountChanged: () => void;
+  compact?: boolean;
 }) {
   const t = useT();
   const user = useSession();
@@ -41,18 +43,35 @@ export function EntityAccountPanel({
   }
 
   return (
-    <div className="col" style={{ gap: 12 }}>
-      <AccountStatusBadge entity={entity} showLogin={hasAccount} />
-      {!hasAccount && canManage ? (
-        <button
-          type="button"
-          className="btn btn--primary btn--sm"
-          style={{ minHeight: 44, alignSelf: 'stretch' }}
-          onClick={() => setDialogOpen(true)}
-        >
-          {t('admin.account.createAccount')}
-        </button>
-      ) : null}
+    <div className={compact ? 'entity-account-panel entity-account-panel--compact' : 'entity-account-panel col'} style={{ gap: 12 }}>
+      {compact ? (
+        <div className="entity-account-panel__compact-body">
+          <AccountStatusBadge entity={entity} showLogin={hasAccount} />
+          {!hasAccount && canManage ? (
+            <button
+              type="button"
+              className="btn btn--ghost btn--sm entity-account-panel__create-btn"
+              onClick={() => setDialogOpen(true)}
+            >
+              {t('admin.account.createAccount')}
+            </button>
+          ) : null}
+        </div>
+      ) : (
+        <>
+          <AccountStatusBadge entity={entity} showLogin={hasAccount} />
+          {!hasAccount && canManage ? (
+            <button
+              type="button"
+              className="btn btn--primary btn--sm"
+              style={{ minHeight: 44, alignSelf: 'stretch' }}
+              onClick={() => setDialogOpen(true)}
+            >
+              {t('admin.account.createAccount')}
+            </button>
+          ) : null}
+        </>
+      )}
       <CreateAccountDialog
         open={dialogOpen}
         title={t('admin.account.activateAccountTitle', { name: entityLabel })}

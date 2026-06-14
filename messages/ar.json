@@ -2482,6 +2482,9 @@
         "hasOverdue": "يوجد متأخرات",
         "hasBalance": "يوجد مستحق",
         "financeClear": "لا مستحقات",
+        "noAgreement": "لا يوجد اتفاق مالي",
+        "financeUnavailable": "البيانات المالية غير متاحة",
+        "viewAgreement": "عرض الاتفاق",
         "viewFinance": "عرض المالية",
         "account": "حساب الدخول",
         "noAccount": "لا يوجد حساب",
@@ -2821,8 +2824,12 @@
         "billingPartyTitle": "المسؤول عن الأداء",
         "linesTitle": "الخدمات وخطوط الاتفاق",
         "noLines": "لم تُضف أي خدمة بعد.",
+        "noLinesDesc": "أضف خدمات من الكتالوج لبناء الاتفاق.",
         "scheduleTitle": "جدول الاتفاق",
         "noSchedule": "لم يُنشأ جدول أداء بعد.",
+        "noScheduleDesc": "سيظهر جدول الأقساط بعد إضافة الخدمات وتوليد الجدول.",
+        "noBillingParty": "لم يُحدَّد مسؤول عن الأداء",
+        "noBillingPartyDesc": "اربط ولي أمر أو جهة أداء قبل تفعيل الاتفاق.",
         "schedulePolicyTitle": "سياسة الجدول",
         "openGuardians": "فتح أولياء الأمر",
         "fields": {
@@ -2872,6 +2879,7 @@
         },
         "states": {
           "draft": "مسودة",
+          "new": "جديد",
           "pending_approval": "بانتظار الاعتماد",
           "approved": "معتمد",
           "active": "نشط",
@@ -2977,6 +2985,8 @@
         "subscriptionsTitle": "اشتراكات الخدمات",
         "filters": {
           "all": "الكل",
+          "show": "إظهار الفلاتر",
+          "hide": "إخفاء الفلاتر",
           "paymentStatus": "حالة الأداء",
           "timingStatus": "الحالة الزمنية",
           "service": "الخدمة",
@@ -3103,7 +3113,7 @@
             "due_date": "تاريخ الاستحقاق"
           },
           "first_period_policy": {
-            "full_period": "فترة كاملة",
+            "full_period": "كامل الفترة",
             "prorata": "تناسبي"
           },
           "pricing_method": {

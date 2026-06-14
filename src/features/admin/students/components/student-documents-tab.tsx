@@ -179,7 +179,11 @@ export function StudentDocumentsTab({
         description={t('admin.student360.documents.pageDescription')}
         action={
           canManage ? (
-            <button type="button" className="btn btn--primary btn--sm" onClick={() => openAddDialog()}>
+            <button
+              type="button"
+              className={`btn btn--sm ${missingTypes.length > 0 ? 'btn--ghost' : 'btn--primary'}`}
+              onClick={() => openAddDialog()}
+            >
               {t('admin.student360.documents.addDocument')}
             </button>
           ) : null
@@ -187,14 +191,16 @@ export function StudentDocumentsTab({
       />
 
       <Student360MetricGrid
+        variant="docs"
         items={[
           { key: 'total', label: t('admin.student360.documents.summaryTotal'), value: data.summary.total },
-          { key: 'valid', label: t('admin.student360.documents.summaryValid'), value: data.summary.valid },
-          { key: 'expired', label: t('admin.student360.documents.summaryExpired'), value: data.summary.expired },
+          { key: 'valid', label: t('admin.student360.documents.summaryValid'), value: data.summary.valid, tone: 'green' },
+          { key: 'expired', label: t('admin.student360.documents.summaryExpired'), value: data.summary.expired, tone: missingCount > 0 ? 'none' : 'amber' },
           {
             key: 'missing',
             label: t('admin.student360.documents.summaryMissing'),
             value: missingCount,
+            tone: missingCount > 0 ? 'red' : 'none',
           },
         ]}
       />

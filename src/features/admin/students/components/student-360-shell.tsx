@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ApiErrorView, LoadingState } from '@/components/states/states';
@@ -63,6 +63,8 @@ export function Student360Shell({ studentId }: { studentId: string }) {
   const user = useSession();
   const state = useStudentDetails(studentId);
   const [editing, setEditing] = useState(false);
+  const stickySentinelRef = useRef<HTMLDivElement>(null);
+  const stickyTopRef = useRef<HTMLDivElement>(null);
 
   const details = state.data;
   const caps = details ? resolveStudentCapabilities(details.capabilities, user) : null;
@@ -96,6 +98,22 @@ export function Student360Shell({ studentId }: { studentId: string }) {
     document.title = `${tabTitle} — ${studentName} — ${brand}`;
   }, [tab, studentName, t, details]);
 
+  useEffect(() => {
+    const sentinel = stickySentinelRef.current;
+    const sticky = stickyTopRef.current;
+    if (!sentinel || !sticky) return;
+    const topbarH =
+      getComputedStyle(document.documentElement).getPropertyValue('--topbar-h').trim() || '60px';
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        sticky.classList.toggle('student-360-sticky-top--compact', !entry.isIntersecting);
+      },
+      { rootMargin: `-${topbarH} 0px 0px 0px`, threshold: 0 },
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [details]);
+
   if (state.loading && !state.data) {
     return <LoadingState label={t('common.loading')} />;
   }
@@ -123,7 +141,9 @@ export function Student360Shell({ studentId }: { studentId: string }) {
         </Link>
       ) : null}
 
-      <div className="student-360-sticky-top">
+      <div ref={stickySentinelRef} className="student-360-sticky-sentinel" aria-hidden="true" />
+
+      <div ref={stickyTopRef} className="student-360-sticky-top">
         <Student360Header
           details={resolvedDetails}
           actions={

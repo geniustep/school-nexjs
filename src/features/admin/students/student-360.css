@@ -7,9 +7,15 @@
   width: 100%;
 }
 
+.student-360-sticky-sentinel {
+  height: 1px;
+  margin: 0;
+  pointer-events: none;
+}
+
 .student-360-sticky-top {
   position: sticky;
-  top: 0;
+  top: var(--topbar-h, 60px);
   z-index: 20;
   background: var(--bg, #fff);
   display: flex;
@@ -18,6 +24,24 @@
   padding-bottom: 4px;
   border-bottom: 1px solid var(--c-border, #e2e8f0);
   margin-bottom: 4px;
+}
+
+.student-360-sticky-top--compact .student-360-header__facts {
+  display: none;
+}
+
+.student-360-sticky-top--compact .student-360-header {
+  padding: 8px 16px;
+}
+
+.student-360-sticky-top--compact .student-360-header__avatar {
+  width: 40px;
+  height: 40px;
+  font-size: 1rem;
+}
+
+.student-360-sticky-top--compact .student-360-header__title {
+  font-size: 1.1rem;
 }
 
 .student-360-header {
@@ -201,7 +225,8 @@
   padding: 12px 14px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+  min-height: 132px;
   border-inline-start: 3px solid var(--c-border, #e2e8f0);
 }
 
@@ -225,7 +250,7 @@
 }
 
 .student-status-item__title {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 600;
 }
 
@@ -271,7 +296,7 @@
 
 .student-status-item__action {
   align-self: flex-start;
-  margin-top: 2px;
+  margin-top: auto;
 }
 
 .student-360-overview__grid {
@@ -282,8 +307,15 @@
 
 .student-360-guardians-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
   gap: 12px;
+}
+
+.student-360-guardian-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
 }
 
 .student-360-guardian-card__head {
@@ -356,8 +388,54 @@
 
 .students-list__student-cell {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
+  min-width: 0;
+}
+
+.students-list__student-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.students-list__student-name {
+  display: block;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 220px;
+}
+
+.students-list__student-ref {
+  display: block;
+  font-size: 0.75rem;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
+}
+
+.students-list__view-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  color: var(--text-muted, #64748b);
+  text-decoration: none;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.students-list__view-link:hover {
+  background: var(--surface-2, #f1f5f9);
+  color: var(--c-primary, #2563eb);
 }
 
 .students-list__avatar {
@@ -385,13 +463,19 @@
 }
 
 .table-wrap--sticky-head {
-  max-height: min(70vh, 640px);
-  overflow: auto;
+  overflow-x: auto;
+}
+
+@media (max-width: 640px) {
+  .table-wrap--sticky-head {
+    max-height: min(60vh, 480px);
+    overflow-y: auto;
+  }
 }
 
 .table-wrap--sticky-head thead th {
   position: sticky;
-  top: 0;
+  top: var(--topbar-h, 60px);
   z-index: 2;
   background: var(--bg, #fff);
   box-shadow: 0 1px 0 var(--c-border, #e2e8f0);
@@ -780,6 +864,24 @@
   gap: 12px;
 }
 
+.student-360-metric-grid--docs {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.student-360-metric-grid--finance {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.student-360-metric-grid--muted .student-360-metric-card {
+  border-inline-start-color: var(--c-border, #e2e8f0);
+  background: var(--surface-2, #f8fafc);
+}
+
+.student-360-metric-grid--muted .student-360-metric-card__value {
+  color: var(--text-muted, #64748b);
+  font-weight: 500;
+}
+
 .student-360-metric-card {
   text-align: center;
   padding: 14px 12px;
@@ -867,6 +969,86 @@
 
 .student-360-compact-empty__action {
   margin-top: 6px;
+}
+
+.student-360-compact-empty--performance {
+  padding: 14px 16px;
+}
+
+.student-360-compact-empty--section {
+  padding: 16px;
+}
+
+.entity-account-panel--compact .entity-account-panel__compact-body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 12px;
+}
+
+.entity-account-panel__create-btn {
+  flex-shrink: 0;
+}
+
+.student-account-compact {
+  padding: 14px 16px;
+}
+
+.student-finance-filters-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.student-finance-filters-badge {
+  color: var(--c-primary, #2563eb);
+  margin-inline-start: 4px;
+}
+
+.student-finance-billing-details {
+  margin-top: 4px;
+}
+
+.student-finance-billing-link {
+  color: var(--c-primary, #2563eb);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.student-finance-billing-link:hover {
+  text-decoration: underline;
+}
+
+.student-finance-schedule-policy--compact {
+  padding: 12px 0 0;
+  font-size: 0.875rem;
+  color: var(--text-muted, #64748b);
+}
+
+.student-finance-schedule-policy__title {
+  margin: 0 0 8px;
+  font-weight: 600;
+  color: var(--text, #0f172a);
+}
+
+.student-finance-schedule-policy__list {
+  margin: 0;
+  padding-inline-start: 1.25rem;
+  display: grid;
+  gap: 4px;
+}
+
+.student-finance-agreement-actions-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 12;
+  background: var(--bg, #fff);
+  border-top: 1px solid var(--c-border, #e2e8f0);
+  padding: 12px 0;
+  margin-top: 8px;
 }
 
 .student-360-section-card {
@@ -1212,7 +1394,12 @@
 }
 
 @media (max-width: 1024px) {
-  .student-360-metric-grid {
+  .student-360-metric-grid,
+  .student-360-metric-grid--finance {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .student-360-metric-grid--docs {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -1258,13 +1445,20 @@
     grid-template-columns: 1fr;
   }
 
-  .student-360-metric-grid {
+  .student-360-metric-grid,
+  .student-360-metric-grid--finance,
+  .student-360-metric-grid--docs {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 400px) {
-  .student-360-metric-grid {
+  .student-360-metric-grid,
+  .student-360-metric-grid--finance {
+    grid-template-columns: 1fr;
+  }
+
+  .student-360-metric-grid--docs {
     grid-template-columns: 1fr;
   }
 }
@@ -1289,8 +1483,8 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
-  margin-bottom: 16px;
-  padding: 14px;
+  margin-bottom: 12px;
+  padding: 12px;
   border: 1px solid var(--c-border, #e2e8f0);
   border-radius: 10px;
   background: var(--c-surface-2, #f8fafc);
@@ -1347,7 +1541,6 @@
 }
 
 .student-finance-agreement-actions {
-  margin-top: var(--space-4);
   flex-wrap: wrap;
   gap: var(--space-2);
 }

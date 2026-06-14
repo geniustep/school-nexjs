@@ -1,6 +1,7 @@
 'use client';
 
 import { useT } from '@/features/i18n/locale-context';
+import { resolveFinanceOverviewStatus } from '../utils/student-finance-status-summary';
 import { isRelationshipActive } from '../utils/relationship-types';
 import type { Student360TabId } from '../utils/student-360-tabs';
 import type { StudentDetailsData } from '@/types/student-360';
@@ -116,37 +117,37 @@ export function StudentStatusSummary({
   }
 
   if (showHealth && healthSummary) {
+    const hasProfile = healthSummary.has_profile === true;
+    const hasCritical = hasProfile && healthSummary.has_critical_alert === true;
     items.push({
       key: 'health',
       title: t('admin.student360.statusSummary.health'),
-      status: healthSummary.has_profile
-        ? healthSummary.has_critical_alert
-          ? t('admin.student360.health.criticalAlert')
-          : t('admin.student360.statusSummary.healthRecorded')
-        : t('admin.student360.statusSummary.noHealth'),
-      statusTone: healthSummary.has_critical_alert
-        ? 'bad'
-        : healthSummary.has_profile
-          ? 'ok'
-          : 'warn',
-      action: !healthSummary.has_profile
+      status: hasCritical
+        ? t('admin.student360.health.criticalAlert')
+        : hasProfile
+          ? t('admin.student360.statusSummary.healthRecorded')
+          : t('admin.student360.statusSummary.noHealth'),
+      statusTone: hasCritical ? 'bad' : hasProfile ? 'ok' : 'warn',
+      action: !hasProfile
         ? { label: t('admin.student360.health.createProfile'), tab: 'health' }
         : { label: t('admin.student360.statusSummary.viewHealth'), tab: 'health' },
     });
   }
 
-  if (showFinance && financeSummary) {
-    const hasOverdue = financeSummary.total_overdue > 0;
+  if (showFinance) {
+    const financeStatus = resolveFinanceOverviewStatus(financeSummary, t);
     items.push({
       key: 'finance',
       title: t('admin.student360.statusSummary.finance'),
-      status: hasOverdue
-        ? t('admin.student360.statusSummary.hasOverdue')
-        : financeSummary.total_outstanding > 0
-          ? t('admin.student360.statusSummary.hasBalance')
-          : t('admin.student360.statusSummary.financeClear'),
-      statusTone: hasOverdue ? 'bad' : financeSummary.total_outstanding > 0 ? 'warn' : 'ok',
-      action: { label: t('admin.student360.statusSummary.viewFinance'), tab: 'finance' },
+      status: financeStatus.status,
+      statusTone: financeStatus.tone,
+      action: {
+        label:
+          financeStatus.actionTab === 'financial-agreement'
+            ? t('admin.student360.statusSummary.viewAgreement')
+            : t('admin.student360.statusSummary.viewFinance'),
+        tab: financeStatus.actionTab,
+      },
     });
   }
 

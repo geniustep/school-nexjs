@@ -86,17 +86,27 @@ export default function AdminStudentsPage() {
       {
         key: 'student',
         header: t('admin.studentsList.columnStudent'),
-        render: (s) => (
-          <div className="students-list__student-cell">
-            <StudentAvatar name={getStudentDisplayName(s)} />
-            <div>
-              <strong>{getStudentDisplayName(s)}</strong>
-              <span className="tiny mono muted">
-                {s.school_number ?? s.code ?? s.massar_code ?? t('common.dash')}
-              </span>
+        render: (s) => {
+          const name = getStudentDisplayName(s);
+          const ref = s.school_number ?? s.code ?? s.massar_code ?? null;
+          return (
+            <div className="students-list__student-cell">
+              <StudentAvatar name={name} />
+              <div className="students-list__student-text">
+                <strong className="students-list__student-name" title={name}>
+                  {name}
+                </strong>
+                {ref ? (
+                  <span className="students-list__student-ref mono muted" dir="auto" title={ref}>
+                    {ref}
+                  </span>
+                ) : (
+                  <span className="students-list__student-ref mono muted">{t('common.dash')}</span>
+                )}
+              </div>
             </div>
-          </div>
-        ),
+          );
+        },
       },
       {
         key: 'class_level',
@@ -121,8 +131,13 @@ export default function AdminStudentsPage() {
         width: '88px',
         render: (s) => (
           <div className="students-list__row-actions" onClick={(e) => e.stopPropagation()}>
-            <Link href={`/admin/students/${s.id}`} className="btn btn--ghost btn--sm">
-              {t('common.view')}
+            <Link
+              href={`/admin/students/${s.id}`}
+              className="students-list__view-link"
+              aria-label={t('common.view')}
+              title={t('common.view')}
+            >
+              <span aria-hidden="true">→</span>
             </Link>
           </div>
         ),
@@ -216,12 +231,6 @@ export default function AdminStudentsPage() {
           </button>
         ) : null}
       </div>
-
-      {pg ? (
-        <p className="students-list__results tiny muted">
-          {t('admin.studentsList.resultsCount', { count: pg.total })}
-        </p>
-      ) : null}
 
       <ResourceView
         state={state}

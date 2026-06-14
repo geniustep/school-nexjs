@@ -70,6 +70,7 @@ export function StudentFinanceOperationsTab({
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [quickOverdueUnpaid, setQuickOverdueUnpaid] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [showCollectionDrawer, setShowCollectionDrawer] = useState(false);
   const [selectedCollectionId, setSelectedCollectionId] = useState<number | null>(null);
   const [selectedChequeId, setSelectedChequeId] = useState<number | null>(null);
@@ -372,6 +373,10 @@ export function StudentFinanceOperationsTab({
   const hasInstallmentFilters =
     !!paymentStatus || !!timingStatus || !!serviceCategory || !!dateFrom || !!dateTo || quickOverdueUnpaid;
 
+  const allSummaryZero =
+    summaryItems.length > 0 &&
+    summaryItems.every((item) => item.value == null || Number(item.value) === 0);
+
   function resetInstallmentFilters() {
     setPaymentStatus('');
     setTimingStatus('');
@@ -439,13 +444,15 @@ export function StudentFinanceOperationsTab({
       ) : (
         <>
           <Student360MetricGrid
+            variant="finance"
+            className={allSummaryZero ? 'student-360-metric-grid--muted' : undefined}
             items={summaryItems.map((item) => ({
               key: item.key,
               label: item.label,
               value: (
                 <FinanceMoney amount={item.value} currency={currency?.name} />
               ),
-              tone: 'tone' in item ? item.tone : undefined,
+              tone: allSummaryZero ? 'none' : 'tone' in item ? item.tone : undefined,
             }))}
           />
 
@@ -454,6 +461,29 @@ export function StudentFinanceOperationsTab({
               title={t('admin.student360.financeOps.installmentsTitle')}
               description={t('admin.student360.financeOps.installmentsDescription')}
             />
+            <div className="student-finance-filters-toolbar">
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm"
+                aria-expanded={filtersOpen}
+                onClick={() => setFiltersOpen((v) => !v)}
+              >
+                {filtersOpen
+                  ? t('admin.student360.financeOps.filters.hide')
+                  : t('admin.student360.financeOps.filters.show')}
+                {hasInstallmentFilters && !filtersOpen ? (
+                  <span className="student-finance-filters-badge" aria-hidden="true">
+                    ●
+                  </span>
+                ) : null}
+              </button>
+              {hasInstallmentFilters ? (
+                <button type="button" className="btn btn--ghost btn--sm" onClick={resetInstallmentFilters}>
+                  {t('admin.studentsList.resetFilters')}
+                </button>
+              ) : null}
+            </div>
+            {filtersOpen ? (
             <div className="student-finance-filters">
               <label>
                 <span className="tiny muted">{t('admin.student360.financeOps.filters.paymentStatus')}</span>
@@ -544,12 +574,8 @@ export function StudentFinanceOperationsTab({
                 />
                 <span>{t('admin.student360.financeOps.filters.quickOverdueUnpaid')}</span>
               </label>
-              {hasInstallmentFilters ? (
-                <button type="button" className="btn btn--ghost btn--sm" onClick={resetInstallmentFilters}>
-                  {t('admin.studentsList.resetFilters')}
-                </button>
-              ) : null}
             </div>
+            ) : null}
 
             {installmentsState.loading && !installmentsState.data ? (
               <LoadingState label={t('common.loading')} />
@@ -562,7 +588,6 @@ export function StudentFinanceOperationsTab({
                     columns={installmentColumns}
                     rows={installmentsState.data ?? []}
                     rowKey={(row) => row.id}
-                    stickyHeader
                   />
                 </div>
                 {installmentsPg && installmentsPg.total_pages > 1 ? (
