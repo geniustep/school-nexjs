@@ -164,6 +164,7 @@ export interface FeePlanLineInput {
   quantity?: number;
   due_date?: string;
   installment_count?: number;
+  installment_schedule?: FeePlanInstallmentScheduleItem[];
   due_rule?: string;
   is_optional?: boolean;
   description?: string;
