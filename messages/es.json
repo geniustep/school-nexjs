@@ -3396,7 +3396,7 @@
       "academicYearIdFilter": "ID año (filtro)",
       "planOrFeeType": "Plan / tipo",
       "dueDate": "Vencimiento",
-      "installments": "Plazos",
+      "installmentsHeading": "Plazos",
       "installment": "Plazo",
       "discounts": "Descuentos",
       "discount": "Descuento",

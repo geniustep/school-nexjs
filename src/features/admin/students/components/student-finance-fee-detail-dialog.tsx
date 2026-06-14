@@ -146,7 +146,7 @@ export function StudentFinanceFeeDetailDialog({
             </dl>
             {(fee.installments?.length ?? fee.lines?.length ?? 0) > 0 && (
               <section style={{ marginTop: 16 }}>
-                <h3>{t('admin.finance.installments')}</h3>
+                <h3>{t('admin.finance.installmentsHeading')}</h3>
                 <DataTable
                   columns={installmentColumns}
                   rows={fee.installments ?? fee.lines ?? []}

@@ -153,7 +153,7 @@ export default function AdminFinanceStudentFeeDetailPage({
 
             {(fee.installments?.length ?? fee.lines?.length ?? 0) > 0 && (
               <section className="card">
-                <h3>{t('admin.finance.installments')}</h3>
+                <h3>{t('admin.finance.installmentsHeading')}</h3>
                 <DataTable
                   columns={installmentColumns}
                   rows={fee.installments ?? fee.lines ?? []}

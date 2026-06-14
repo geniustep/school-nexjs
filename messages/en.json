@@ -3435,7 +3435,7 @@
       "academicYearIdFilter": "Academic year ID (filter)",
       "planOrFeeType": "Plan / fee type",
       "dueDate": "Due date",
-      "installments": "Installments",
+      "installmentsHeading": "Installments",
       "installment": "Installment",
       "discounts": "Discounts",
       "discount": "Discount",

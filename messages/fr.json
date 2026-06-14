@@ -3396,7 +3396,7 @@
       "academicYearIdFilter": "ID année (filtre)",
       "planOrFeeType": "Plan / type",
       "dueDate": "Échéance",
-      "installments": "Échéances",
+      "installmentsHeading": "Échéances",
       "installment": "Échéance",
       "discounts": "Réductions",
       "discount": "Réduction",

@@ -3433,7 +3433,7 @@
       "academicYearIdFilter": "معرّف السنة (فلتر)",
       "planOrFeeType": "الخطة / الرسم",
       "dueDate": "تاريخ الاستحقاق",
-      "installments": "الأقساط",
+      "installmentsHeading": "الأقساط",
       "installment": "القسط",
       "discounts": "التخفيضات",
       "discount": "تخفيض",

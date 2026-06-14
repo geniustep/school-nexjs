@@ -40,7 +40,7 @@ export default function AdminFinanceFeePlanDetailPage({
     },
     {
       key: 'installments',
-      header: t('admin.finance.installments'),
+      header: t('admin.finance.installmentsHeading'),
       render: (l) => l.installment_count ?? t('common.dash'),
     },
     {
