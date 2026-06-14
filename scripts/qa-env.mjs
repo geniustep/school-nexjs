@@ -53,6 +53,10 @@ const DOTENV_KEYS = [
   'ODOO_QA_PARENT_PASSWORD',
   'ODOO_QA_STUDENT_PASSWORD',
   'QA_PASSWORD_LEGACY',
+  'STUDENT_360_QA_PASSWORD',
+  'STUDENT_360_QA_LOGIN',
+  'STUDENT_360_QA_HOST',
+  'ODOO_DB_QA',
 ];
 
 const LOCAL_ENV_FILES = ['.env.qa.local', '.env.local'];
@@ -111,6 +115,12 @@ function resolveFromKeys(keys) {
 
 /** @param {string} login Odoo login */
 export function loadAccountPassword(login) {
+  const explicitLogin = process.env.STUDENT_360_QA_LOGIN;
+  const explicitPassword = process.env.STUDENT_360_QA_PASSWORD?.trim();
+  if (explicitLogin && explicitPassword && login === explicitLogin) {
+    return explicitPassword;
+  }
+
   const keys = PASSWORD_ENV_BY_LOGIN[login];
   if (!keys) throw new Error(`Unknown QA login: ${login}`);
   const hit = resolveFromKeys(keys);

@@ -12,6 +12,10 @@ import {
   classSubjectsSourceLine,
 } from '../utils/class-display';
 import {
+  formatAcademicClassLabel,
+  formatAcademicLevelLabel,
+} from '../utils/format-academic-label';
+import {
   buildLevelStatsSummary,
   levelCardEmptyHintKey,
   levelCardStatsInput,
@@ -82,6 +86,7 @@ export function LevelClassGroup({
   const levelStatus = computeLevelStatus(group, subjectCountDisplay);
   const hasClasses = group.classes.length > 0;
   const ctaKey = levelCtaI18nKey(classCount);
+  const levelLabel = formatAcademicLevelLabel(group, locale);
   const bodyId = `level-body-${group.id}`;
 
   return (
@@ -102,16 +107,16 @@ export function LevelClassGroup({
                   data-open={open || undefined}
                   aria-hidden
                 />
-                <span className="academic-level-card__title">{group.name}</span>
+                <span className="academic-level-card__title">{levelLabel.primary}</span>
               </button>
             ) : (
-              <strong className="academic-level-card__title">{group.name}</strong>
+              <strong className="academic-level-card__title">{levelLabel.primary}</strong>
             )}
 
-            {(group.code || group.cycle?.name) && (
+            {(levelLabel.secondary || group.cycle?.name) && (
               <p className="academic-level-card__code">
-                {group.code && <span dir="ltr">{group.code}</span>}
-                {group.code && group.cycle?.name && <span aria-hidden> · </span>}
+                {levelLabel.secondary ? <span dir="ltr">{levelLabel.secondary}</span> : null}
+                {levelLabel.secondary && group.cycle?.name && <span aria-hidden> · </span>}
                 {group.cycle?.name}
               </p>
             )}
@@ -170,7 +175,9 @@ export function LevelClassGroup({
       {open && hasClasses && (
         <div id={bodyId} className="academic-level-card__body">
           <div className="academic-level-card__classes-rail">
-            {group.classes.map((cls) => (
+            {group.classes.map((cls) => {
+              const classLabel = formatAcademicClassLabel(cls, locale);
+              return (
               <div key={cls.id} className="academic-class-card">
               <button
                 type="button"
@@ -178,7 +185,12 @@ export function LevelClassGroup({
                 data-selected={selectedClassId === cls.id || undefined}
                 onClick={() => onSelectClass(cls)}
               >
-                <strong className="academic-class-card__name">{cls.name}</strong>
+                <strong className="academic-class-card__name">{classLabel.primary}</strong>
+                {classLabel.secondary ? (
+                  <span className="academic-class-card__code tiny muted mono" dir="ltr">
+                    {classLabel.secondary}
+                  </span>
+                ) : null}
                 {cls.track?.name && (
                   <span className="academic-class-card__track">{cls.track.name}</span>
                 )}
@@ -224,7 +236,8 @@ export function LevelClassGroup({
                 />
               </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -232,7 +245,7 @@ export function LevelClassGroup({
       {onAddClass && (
         <AddClassesDrawer
           open={addDrawerOpen}
-          levelName={group.name}
+          levelName={levelLabel.primary}
           onClose={() => setAddDrawerOpen(false)}
           onAddSingle={() => onAddClass(group.id)}
           onAddBatch={onBatchClasses ? () => onBatchClasses(group.id) : undefined}

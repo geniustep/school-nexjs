@@ -65,10 +65,14 @@ export function teacherStatus(teacher: Teacher): TeacherStatusKey {
 }
 
 export function buildTeacherCards(teachers: Teacher[]): TeacherCardModel[] {
-  return teachers.map((teacher) => ({
-    teacher,
-    status: teacherStatus(teacher),
-    classCount: teacher.classes?.length ?? 0,
-    subjectNames: teacher.subjects?.map((s) => s.name) ?? [],
-  }));
+  return teachers.map((teacher) => {
+    const assignmentCount = teacher.assignments?.length ?? teacher.classes?.length ?? 0;
+    return {
+      teacher,
+      status: teacherStatus(teacher),
+      classCount: teacher.classes?.length ?? 0,
+      assignmentCount,
+      subjectNames: teacher.subjects?.map((s) => s.name) ?? [],
+    };
+  });
 }

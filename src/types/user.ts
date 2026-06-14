@@ -31,6 +31,8 @@ export interface CurrentUser {
   permissions: Permission[];
   /** When returned by /me — authoritative effective grants for the active school. */
   effective_permissions?: Permission[];
+  /** Capability codes from GET /me — e.g. students.import */
+  effective_capabilities?: string[];
   permissions_mode?: PermissionsMode;
   capabilities_editable?: boolean;
   school: SchoolRef | null;

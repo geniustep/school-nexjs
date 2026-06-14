@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
 import { PageHeader } from '@/components/ui/primitives';
 import { FinanceCollectionForm } from '@/features/admin/finance/collection-form';
@@ -14,6 +14,8 @@ export default function AdminFinanceCollectionNewPage() {
   const t = useT();
   const user = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const studentId = searchParams.get('studentId');
 
   if (!canCollectPayments(user)) {
     return <PermissionDeniedState description={t('admin.pageForbidden')} />;
@@ -26,8 +28,14 @@ export default function AdminFinanceCollectionNewPage() {
       </Link>
       <PageHeader title={t('admin.finance.recordCollection')} subtitle={t('admin.finance.recordCollectionDesc')} />
       <FinanceCollectionForm
+        initialStudentId={studentId ?? undefined}
+        lockStudent={!!studentId}
         onDone={(id) => router.push(`/admin/finance/collections/${id}`)}
-        onCancel={() => router.push('/admin/finance/collections')}
+        onCancel={() =>
+          studentId
+            ? router.push(`/admin/students/${studentId}`)
+            : router.push('/admin/finance/collections')
+        }
       />
     </RequireAdminPermission>
   );

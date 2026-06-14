@@ -7,6 +7,8 @@ import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { useT } from '@/features/i18n/locale-context';
 import { financeStudentDisplayName, isPositiveAmount, paymentMethodLabel, refName } from '@/lib/utils/finance';
+import { getStudentDisplayName } from '@/lib/utils/student';
+import { normalizeStudentDetailsResponse } from '@/features/admin/students/utils/normalize-student-details';
 import { journalErrorMessageKey, parseFinanceList } from '@/lib/utils/finance-normalize';
 import { isChequePayment } from '@/lib/utils/cheque';
 import { FinanceStudentSearch } from '@/features/admin/finance/finance-student-search';
@@ -23,9 +25,13 @@ import type {
 export function FinanceCollectionForm({
   onDone,
   onCancel,
+  initialStudentId,
+  lockStudent = false,
 }: {
   onDone: (collectionId: number) => void;
   onCancel: () => void;
+  initialStudentId?: number | string;
+  lockStudent?: boolean;
 }) {
   const t = useT();
   const { journals, academicYears, loading: refLoading } = useFinanceReferenceData();
@@ -52,6 +58,8 @@ export function FinanceCollectionForm({
       journals={journals}
       academicYears={academicYears}
       refLoading={refLoading}
+      initialStudentId={initialStudentId}
+      lockStudent={lockStudent}
       onDone={onDone}
       onCancel={onCancel}
     />
@@ -62,12 +70,16 @@ function FinanceCollectionFormReady({
   journals,
   academicYears,
   refLoading,
+  initialStudentId,
+  lockStudent = false,
   onDone,
   onCancel,
 }: {
   journals: PaymentJournal[];
   academicYears: { id: number; name: string; is_current?: boolean }[];
   refLoading: boolean;
+  initialStudentId?: number | string;
+  lockStudent?: boolean;
   onDone: (collectionId: number) => void;
   onCancel: () => void;
 }) {
@@ -89,6 +101,26 @@ function FinanceCollectionFormReady({
   const [chequeDueDate, setChequeDueDate] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!initialStudentId || selectedStudent) return;
+    let active = true;
+    api.get<unknown>(endpoints.admin.student(initialStudentId)).then((res) => {
+      if (!active || !res.success || !res.data) return;
+      const details = normalizeStudentDetailsResponse(res.data);
+      const s = details?.student;
+      if (!s) return;
+      setSelectedStudent({
+        id: s.id,
+        name: getStudentDisplayName(s),
+        full_name: getStudentDisplayName(s),
+        code: s.code ?? s.school_number ?? null,
+      });
+    });
+    return () => {
+      active = false;
+    };
+  }, [initialStudentId, selectedStudent]);
 
   const selectedJournal = journals.find((j) => String(j.id) === journalId) ?? null;
   const journalCurrency = selectedJournal?.currency ?? selectedJournal?.currency_code;
@@ -212,9 +244,11 @@ function FinanceCollectionFormReady({
       ) : (
         <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
           <strong>{financeStudentDisplayName(selectedStudent)}</strong>
-          <button type="button" className="btn btn--ghost btn--sm" onClick={() => setSelectedStudent(null)}>
-            {t('admin.finance.changeStudent')}
-          </button>
+          {!lockStudent && (
+            <button type="button" className="btn btn--ghost btn--sm" onClick={() => setSelectedStudent(null)}>
+              {t('admin.finance.changeStudent')}
+            </button>
+          )}
         </div>
       )}
 

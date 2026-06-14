@@ -189,6 +189,9 @@ export function normalizeMeUser(raw: CurrentUser): CurrentUser {
     permissions_mode: raw.permissions_mode,
     capabilities_editable: raw.capabilities_editable,
     effective_permissions: raw.effective_permissions,
+    effective_capabilities: Array.isArray(raw.effective_capabilities)
+      ? raw.effective_capabilities.filter((c): c is string => typeof c === 'string')
+      : undefined,
     school_ids,
     schools,
     scopes,

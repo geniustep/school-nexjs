@@ -4,15 +4,18 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
-import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
 import { PageHeader, Badge } from '@/components/ui/primitives';
 import { AdminListActions } from '@/features/admin/admin-list-actions';
 import { CsvImportPanel } from '@/features/admin/csv-import-panel';
+import { studentClassLabel, studentLevelLabel } from '@/features/admin/students/utils/student-academic-labels';
+import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
+import { hasStudentImportCapability } from '@/features/admin/students/import/student-import-capability';
+import { hasPermission } from '@/lib/permissions/permissions';
 import { statusLabel } from '@/lib/utils/labels';
 import { getStudentDisplayName } from '@/lib/utils/student';
 import type { Student } from '@/types/student';
@@ -21,6 +24,9 @@ import type { ListParams } from '@/types/api';
 export default function AdminStudentsPage() {
   const router = useRouter();
   const t = useT();
+  const user = useSession();
+  const canManageStudents = hasPermission(user, 'manage_students');
+  const canImportStudents = hasStudentImportCapability(user);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [query, setQuery] = useState('');
@@ -73,12 +79,12 @@ export default function AdminStudentsPage() {
         render: (s) => <span className="mono">{s.massar_code ?? t('common.dash')}</span>,
       },
       {
-        key: 'matricule',
-        header: t('admin.matriculeNumber'),
-        render: (s) => <span className="mono">{s.matricule ?? s.code ?? t('common.dash')}</span>,
+        key: 'school_number',
+        header: t('admin.student360.schoolNumber'),
+        render: (s) => <span className="mono">{s.school_number ?? s.code ?? t('common.dash')}</span>,
       },
-      { key: 'class', header: t('nav.classes'), render: (s) => s.class?.name ?? t('common.dash') },
-      { key: 'level', header: t('nav.levels'), render: (s) => s.level?.name ?? t('common.dash') },
+      { key: 'class', header: t('nav.classes'), render: (s) => studentClassLabel(s.class) },
+      { key: 'level', header: t('nav.levels'), render: (s) => studentLevelLabel(s.level) },
       {
         key: 'status',
         header: t('academic.status'),
@@ -104,6 +110,13 @@ export default function AdminStudentsPage() {
             showImport
             importOpen={importOpen}
             onToggleImport={() => setImportOpen((v) => !v)}
+            extra={
+              canImportStudents ? (
+                <Link href="/admin/students/import" className="btn btn--ghost btn--sm">
+                  {t('admin.studentImport.openImport')}
+                </Link>
+              ) : null
+            }
           />
         }
       />

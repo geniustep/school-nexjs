@@ -132,6 +132,7 @@ export interface TeacherCardModel {
   teacher: Teacher;
   status: TeacherStatusKey;
   classCount: number;
+  assignmentCount: number;
   subjectNames: string[];
 }
 
