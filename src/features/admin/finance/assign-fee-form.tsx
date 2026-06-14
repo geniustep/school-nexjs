@@ -12,6 +12,7 @@ import {
   useAcademicYearOptions,
   useConfirmedFeePlanOptions,
 } from '@/features/admin/finance/use-finance-lookups';
+import { useFeePlanAssignLines } from '@/features/admin/finance/use-fee-plan-assign-lines';
 import {
   feePlanAssignErrorMessageKey,
   shouldReloadPlanLinesOnAssignError,
@@ -75,7 +76,14 @@ export function FinanceAssignFeeForm({
     return filterFeePlansForAcademicYear(plans, Number(academicYearId));
   }, [plans, academicYearId]);
 
-  const selectedPlan = filteredPlans.find((p) => p.id === Number(feePlanId));
+  const selectedListPlan = filteredPlans.find((p) => p.id === Number(feePlanId));
+  const {
+    plan: selectedPlan,
+    loading: planDetailsLoading,
+    error: planDetailsError,
+    reload: reloadPlanDetails,
+    linesReady: planLinesReady,
+  } = useFeePlanAssignLines(selectedListPlan);
   const planLines = selectedPlan?.lines ?? [];
   const { required: requiredLines, optional: optionalLines } = useMemo(
     () => partitionFeePlanLines(planLines),
@@ -138,6 +146,9 @@ export function FinanceAssignFeeForm({
     effectiveDate,
     plansLoading,
     plansError: plansError != null,
+    planDetailsLoading,
+    planDetailsError: planDetailsError != null,
+    planLinesReady,
     submitting,
     planHasAssignableLines: Boolean(selectedPlan && !noAssignableLines && !linesContractError),
     planLinesContractError: linesContractError,
@@ -174,7 +185,7 @@ export function FinanceAssignFeeForm({
       const code = res.error.code;
       setError(resolveAssignErrorMessage(code, res.error.message));
       if (shouldReloadPlansOnAssignError(code)) reloadPlans();
-      if (shouldReloadPlanLinesOnAssignError(code)) reloadPlans();
+      if (shouldReloadPlanLinesOnAssignError(code)) reloadPlanDetails();
       return;
     }
     onDone(res.data ?? undefined);
@@ -257,19 +268,32 @@ export function FinanceAssignFeeForm({
 
       {selectedPlan ? (
         <>
-          {linesContractError ? (
+          {planDetailsLoading ? (
+            <LoadingState label={label('loadingPlanDetails')} />
+          ) : null}
+
+          {planDetailsError && !planDetailsLoading ? (
+            <div className="student-finance-assign-form__state" role="alert">
+              <p>{label('loadPlanDetailsError')}</p>
+              <button type="button" className="btn btn--ghost btn--sm" onClick={reloadPlanDetails}>
+                {label('retry')}
+              </button>
+            </div>
+          ) : null}
+
+          {planLinesReady && linesContractError ? (
             <p className="form-error" role="alert">
               {label('linesContractError')}
             </p>
           ) : null}
 
-          {noAssignableLines && !linesContractError ? (
+          {planLinesReady && noAssignableLines && !linesContractError ? (
             <p className="form-error" role="alert">
               {label('noPlanLines')}
             </p>
           ) : null}
 
-          {!noAssignableLines && !linesContractError ? (
+          {planLinesReady && !noAssignableLines && !linesContractError ? (
             <>
               <label>
                 {label('effectiveDate')}

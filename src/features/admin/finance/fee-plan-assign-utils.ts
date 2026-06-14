@@ -114,11 +114,23 @@ export function canSubmitFeePlanAssignment(options: {
   effectiveDate: string;
   plansLoading: boolean;
   plansError: boolean;
+  planDetailsLoading: boolean;
+  planDetailsError: boolean;
+  planLinesReady: boolean;
   submitting: boolean;
   planHasAssignableLines: boolean;
   planLinesContractError: boolean;
 }): boolean {
-  if (options.submitting || options.plansLoading || options.plansError) return false;
+  if (
+    options.submitting ||
+    options.plansLoading ||
+    options.plansError ||
+    options.planDetailsLoading ||
+    options.planDetailsError ||
+    !options.planLinesReady
+  ) {
+    return false;
+  }
   if (options.planLinesContractError || !options.planHasAssignableLines) return false;
   if (!options.academicYearId || !options.feePlanId || !options.effectiveDate) return false;
   return Number(options.feePlanId) > 0;

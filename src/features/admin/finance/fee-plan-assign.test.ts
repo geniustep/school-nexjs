@@ -3,6 +3,12 @@ import {
   feePlanAssignErrorMessageKey,
   shouldReloadPlansOnAssignError,
 } from './fee-plan-assign-errors';
+import {
+  assignableLineIds,
+  mergeFeePlanWithDetailLines,
+  needsFeePlanDetailFetch,
+  planListHasAssignableLines,
+} from './fee-plan-assign-lines';
 import { buildConfirmedFeePlansQuery } from './fee-plan-assign-query';
 import {
   buildAssignFeePlanPayload,
@@ -98,11 +104,11 @@ describe('buildAssignFeePlanPayload', () => {
     });
   });
 
-  it('sends only selected optional line ids', () => {
-    expect(buildAssignFeePlanPayload(1019, '2026-09-01', [1262])).toEqual({
-      fee_plan_id: 1019,
+  it('sends only selected optional line ids for fixture activity A', () => {
+    expect(buildAssignFeePlanPayload(1144, '2026-09-01', [1266])).toEqual({
+      fee_plan_id: 1144,
       effective_date: '2026-09-01',
-      selected_optional_line_ids: [1262],
+      selected_optional_line_ids: [1266],
     });
   });
 
@@ -147,6 +153,25 @@ describe('canSubmitFeePlanAssignment', () => {
         effectiveDate: '2026-09-01',
         plansLoading: true,
         plansError: false,
+        planDetailsLoading: false,
+        planDetailsError: false,
+        planLinesReady: true,
+        submitting: false,
+        planHasAssignableLines: true,
+        planLinesContractError: false,
+      }),
+    ).toBe(false);
+
+    expect(
+      canSubmitFeePlanAssignment({
+        academicYearId: '1',
+        feePlanId: '10',
+        effectiveDate: '2026-09-01',
+        plansLoading: false,
+        plansError: false,
+        planDetailsLoading: true,
+        planDetailsError: false,
+        planLinesReady: false,
         submitting: false,
         planHasAssignableLines: true,
         planLinesContractError: false,
@@ -160,6 +185,9 @@ describe('canSubmitFeePlanAssignment', () => {
         effectiveDate: '',
         plansLoading: false,
         plansError: false,
+        planDetailsLoading: false,
+        planDetailsError: false,
+        planLinesReady: true,
         submitting: false,
         planHasAssignableLines: true,
         planLinesContractError: false,
@@ -173,6 +201,9 @@ describe('canSubmitFeePlanAssignment', () => {
         effectiveDate: '2026-09-01',
         plansLoading: false,
         plansError: false,
+        planDetailsLoading: false,
+        planDetailsError: false,
+        planLinesReady: true,
         submitting: false,
         planHasAssignableLines: false,
         planLinesContractError: false,
@@ -186,11 +217,54 @@ describe('canSubmitFeePlanAssignment', () => {
         effectiveDate: '2026-09-01',
         plansLoading: false,
         plansError: false,
+        planDetailsLoading: false,
+        planDetailsError: false,
+        planLinesReady: true,
         submitting: false,
         planHasAssignableLines: true,
         planLinesContractError: false,
       }),
     ).toBe(true);
+  });
+});
+
+describe('fee plan list vs detail line loading', () => {
+  const detailLines: FeePlanLine[] = [
+    { id: 1264, amount: 300, is_optional: false, fee_type_id: 1 },
+    { id: 1265, amount: 1200, is_optional: false, fee_type_id: 2 },
+    { id: 1266, amount: 150, is_optional: true, fee_type_id: 3 },
+    { id: 1267, amount: 250, is_optional: true, fee_type_id: 4 },
+  ];
+
+  it('uses list lines when assignable lines are already present', () => {
+    const listPlan: FeePlan = {
+      id: 1144,
+      code: 'QA',
+      name: 'QA',
+      school_id: 3,
+      lines: detailLines,
+    };
+    expect(needsFeePlanDetailFetch(listPlan)).toBe(false);
+    expect(planListHasAssignableLines(listPlan)).toBe(true);
+  });
+
+  it('requires detail fetch when list item has no lines', () => {
+    const listPlan: FeePlan = { id: 1144, code: 'QA', name: 'QA', school_id: 3, lines: [] };
+    expect(needsFeePlanDetailFetch(listPlan)).toBe(true);
+    expect(planListHasAssignableLines(listPlan)).toBe(false);
+  });
+
+  it('merges detail lines onto the selected list plan', () => {
+    const listPlan: FeePlan = { id: 1144, code: 'QA', name: 'QA Plan', school_id: 3 };
+    const merged = mergeFeePlanWithDetailLines(listPlan, {
+      id: 1144,
+      code: 'QA',
+      name: 'QA Plan',
+      school_id: 3,
+      lines: detailLines,
+    });
+    expect(assignableLineIds(merged).required).toEqual([1264, 1265]);
+    expect(assignableLineIds(merged).optional).toEqual([1266, 1267]);
   });
 });
 
@@ -297,6 +371,17 @@ describe('assign fee form UI contract', () => {
     expect(text).toContain('selectedOptionalIds');
     expect(text).toContain('buildAssignFeePlanPayload');
     expect(text).toContain('installmentPreview');
+    expect(text).toContain('useFeePlanAssignLines');
+    expect(text).toContain("label('loadingPlanDetails')");
+  });
+
+  it('loads plan lines from detail endpoint when list lacks lines', async () => {
+    const fs = await import('node:fs/promises');
+    const path = await import('node:path');
+    const hookFile = path.join(process.cwd(), 'src/features/admin/finance/use-fee-plan-assign-lines.ts');
+    const hook = await fs.readFile(hookFile, 'utf8');
+    expect(hook).toContain('endpoints.admin.financeFeePlan');
+    expect(hook).toContain('needsFeePlanDetailFetch');
   });
 
   it('uses assign-fee-plan endpoint', async () => {
