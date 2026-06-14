@@ -15,6 +15,7 @@ const t = (key: string) =>
     'admin.finance.collections.allocationNone': 'Unallocated',
     'admin.finance.collections.allocationFull': 'Fully allocated',
     'admin.finance.collections.allocationPartial': 'Partially allocated',
+    'admin.finance.collections.allocationUnknown': 'Unknown',
     'admin.finance.collections.allocationCount': '{count} receivables',
   })[key] ?? key;
 
@@ -50,7 +51,7 @@ describe('collection labels', () => {
     };
     expect(collectionAllocationSummary(full, t)).toBe('Fully allocated');
 
-    const none: PaymentCollection = { id: 2, amount: 100, allocations: [] };
+    const none: PaymentCollection = { id: 2, amount: 100, allocations: [{ amount: 0 }] };
     expect(collectionAllocationSummary(none, t)).toBe('Unallocated');
   });
 });

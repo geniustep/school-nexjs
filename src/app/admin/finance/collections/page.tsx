@@ -11,6 +11,10 @@ import { PageHeader } from '@/components/ui/primitives';
 import { CollectionDetailDrawer } from '@/features/admin/finance/collection-detail-drawer';
 import { CollectionStudentCell } from '@/features/admin/finance/collection-student-cell';
 import { collectionAllocationSummary, truncateReference } from '@/features/admin/finance/collection-labels';
+import {
+  formatCollectionReference,
+  getCollectionPayerLabel,
+} from '@/features/admin/finance/collection-normalize';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { FinanceStatusBadge } from '@/features/admin/finance/finance-status-badge';
 import { ChequePaymentMarker } from '@/features/admin/finance/cheque-payment-marker';
@@ -21,7 +25,7 @@ import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { FINANCE_VIEW_PAYMENTS, canCollectPayments } from '@/lib/permissions/finance';
 import { useFinanceJournalsAvailable } from '@/features/admin/finance/use-finance-lookups';
 import { useSession } from '@/features/auth/session-context';
-import { collectionState, paymentMethodLabel, refName } from '@/lib/utils/finance';
+import { collectionState, paymentMethodLabel } from '@/lib/utils/finance';
 import { isCollectionChequeReversed } from '@/lib/utils/cheque';
 import { appendReturnTo, sanitizeReturnTo } from '@/lib/utils/safe-return-url';
 import type { PaymentCollection } from '@/types/finance';
@@ -109,8 +113,7 @@ export default function AdminFinanceCollectionsPage() {
       {
         key: 'payer',
         header: t('admin.finance.collections.columns.payer'),
-        render: (row) =>
-          row.payer_name ?? refName(row.billing_partner) ?? t('admin.finance.unavailable'),
+        render: (row) => getCollectionPayerLabel(row, t('admin.finance.unavailable')),
       },
       {
         key: 'status',
@@ -131,9 +134,9 @@ export default function AdminFinanceCollectionsPage() {
         key: 'reference',
         header: t('admin.finance.collections.columns.reference'),
         render: (row) => {
-          const ref = row.reference ?? row.name ?? `#${row.id}`;
+          const ref = formatCollectionReference(row);
           return (
-            <span className="mono collections-table__reference" title={ref}>
+            <span className="mono collections-table__reference" dir="auto" title={ref}>
               {truncateReference(ref)}
             </span>
           );

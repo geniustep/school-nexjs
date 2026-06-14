@@ -12,7 +12,10 @@ import { useFormat } from '@/features/i18n/use-format';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
-import { collectionState, financeStudentDisplayName, refName } from '@/lib/utils/finance';
+import { CollectionStudentCell } from '@/features/admin/finance/collection-student-cell';
+import { collectionDistributionLabel, formatCollectionReference } from '@/features/admin/finance/collection-normalize';
+import { truncateReference } from '@/features/admin/finance/collection-labels';
+import { collectionState, financeStudentDisplayName } from '@/lib/utils/finance';
 import { normalizeFinanceOverview, normalizeMoneyValue } from '@/lib/utils/finance-normalize';
 import { useAcademicYearOptions } from '@/features/admin/finance/use-finance-lookups';
 import type {
@@ -70,19 +73,20 @@ export function FinanceOverviewPanel({
   const recentColumns: Column<PaymentCollection>[] = useMemo(
     () => [
       {
-        key: 'ref',
-        header: t('admin.finance.reference'),
-        render: (row) => row.reference ?? row.name ?? t('common.dash'),
-      },
-      {
         key: 'student',
         header: t('nav.students'),
-        render: (row) => refName(row.student) ?? t('common.dash'),
+        render: (row) => (
+          <CollectionStudentCell
+            student={row.student}
+            studentId={row.student_id}
+            unavailableLabel={t('admin.finance.unavailable')}
+          />
+        ),
       },
       {
         key: 'date',
         header: t('admin.finance.collectionDate'),
-        render: (row) => formatDate(row.collection_date ?? row.date) || t('common.dash'),
+        render: (row) => formatDate(row.collection_date ?? row.date) || t('admin.finance.unavailable'),
       },
       {
         key: 'amount',
@@ -94,7 +98,24 @@ export function FinanceOverviewPanel({
       {
         key: 'status',
         header: t('academic.status'),
-        render: (row) => <FinanceStatusBadge state={collectionState(row)} />,
+        render: (row) => <FinanceStatusBadge state={collectionState(row) || 'unknown'} />,
+      },
+      {
+        key: 'ref',
+        header: t('admin.finance.reference'),
+        render: (row) => {
+          const ref = formatCollectionReference(row);
+          return (
+            <span className="mono collections-table__reference" dir="auto" title={ref}>
+              {truncateReference(ref)}
+            </span>
+          );
+        },
+      },
+      {
+        key: 'allocation',
+        header: t('admin.finance.collections.columns.allocation'),
+        render: (row) => collectionDistributionLabel(row, t),
       },
     ],
     [t, formatDate, currency],

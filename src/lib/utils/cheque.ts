@@ -5,8 +5,10 @@ export function isChequePayment(method: string | undefined | null): boolean {
   return m === 'cheque' || m === 'check';
 }
 
+import { normalizeChequeStatus } from '@/lib/utils/cheque-status';
+
 export function normalizeChequeState(state: string | undefined | null): ChequeState | string {
-  return (state ?? 'received') as ChequeState;
+  return normalizeChequeStatus(state);
 }
 
 export function chequeStateTone(

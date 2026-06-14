@@ -6,7 +6,8 @@ import { SetupDrawer } from '@/features/admin/academic-setup/components/setup-dr
 import { LoadingState } from '@/components/states/states';
 import { DataTable, type Column } from '@/components/tables/data-table';
 import { CollectionStudentCell } from '@/features/admin/finance/collection-student-cell';
-import { formatAllocationRowLabel, truncateReference } from '@/features/admin/finance/collection-labels';
+import { formatAllocationRowDetails, formatCollectionReference, getCollectionJournalLabel, getCollectionPayerLabel } from '@/features/admin/finance/collection-normalize';
+import { truncateReference } from '@/features/admin/finance/collection-labels';
 import { useT } from '@/features/i18n/locale-context';
 import { useFormat } from '@/features/i18n/use-format';
 import { endpoints } from '@/lib/api/endpoints';
@@ -37,8 +38,18 @@ export function CollectionDetailDrawer({
     () => [
       {
         key: 'label',
-        header: t('admin.finance.studentFee'),
-        render: (row) => formatAllocationRowLabel(row, t),
+        header: t('admin.finance.collections.columns.service'),
+        render: (row) => {
+          const details = formatAllocationRowDetails(row, t);
+          return (
+            <span dir="auto">
+              <span className="collection-allocation-row__title">{details.title}</span>
+              {details.subtitle ? (
+                <span className="tiny muted collection-allocation-row__subtitle">{details.subtitle}</span>
+              ) : null}
+            </span>
+          );
+        },
       },
       {
         key: 'amount',
@@ -52,7 +63,7 @@ export function CollectionDetailDrawer({
   if (!open || !collectionId) return null;
 
   const coll = state.data;
-  const ref = coll?.reference ?? coll?.name ?? (coll ? `#${coll.id}` : '');
+  const ref = coll ? formatCollectionReference(coll) : '';
 
   return (
     <SetupDrawer open={open} title={t('admin.finance.collectionWorkflow.detailTitle')} onClose={onClose}>
@@ -88,7 +99,7 @@ export function CollectionDetailDrawer({
               </div>
               <div>
                 <dt>{t('admin.finance.paymentJournal')}</dt>
-                <dd>{coll.journal_id ? `#${coll.journal_id}` : t('common.dash')}</dd>
+                <dd>{getCollectionJournalLabel(coll) ?? t('common.dash')}</dd>
               </div>
               <div>
                 <dt>{t('admin.finance.billingPartner')}</dt>
@@ -118,7 +129,7 @@ export function CollectionDetailDrawer({
               </div>
               <div>
                 <dt>{t('admin.finance.collections.columns.payer')}</dt>
-                <dd>{coll.payer_name ?? refName(coll.billing_partner) ?? t('admin.finance.unavailable')}</dd>
+                <dd>{getCollectionPayerLabel(coll, t('admin.finance.unavailable'))}</dd>
               </div>
             </dl>
           </section>

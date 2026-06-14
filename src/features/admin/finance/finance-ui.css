@@ -491,6 +491,66 @@
   margin-block: 12px 16px;
 }
 
+.finance-cheque-summary-grid--balanced {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 900px) {
+  .finance-cheque-summary-grid--balanced {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.finance-cheque-summary-card {
+  text-align: start;
+  cursor: pointer;
+  border: 1px solid var(--border, #e5e7eb);
+}
+
+.finance-cheque-summary-card.is-active {
+  border-color: var(--primary, #2563eb);
+  box-shadow: 0 0 0 1px var(--primary, #2563eb);
+}
+
+.finance-cheque-active-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-block: 0 12px;
+}
+
+.finance-cheque-active-filter__chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--surface-muted, #f3f4f6);
+  font-size: 0.875rem;
+}
+
+.finance-cheque-quick-filters--compact {
+  margin-block: 0 12px;
+}
+
+.finance-cheque-overdue-toggle {
+  gap: 6px;
+  align-items: center;
+}
+
+.collection-allocation-row__title {
+  display: block;
+}
+
+.collection-allocation-row__subtitle {
+  display: block;
+  margin-top: 2px;
+}
+
+.collection-billing-partner-field__hint {
+  margin-top: 4px;
+}
+
 .fee-plans-filters {
   flex-wrap: wrap;
   align-items: end;

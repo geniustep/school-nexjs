@@ -2,6 +2,10 @@ import type { TranslateFn } from '@/features/i18n/locale-context';
 import type { StudentInstallment } from '@/features/admin/student-finance/types';
 import { refName } from '@/lib/utils/finance';
 import type { PaymentAllocation, PaymentCollection, StudentFee } from '@/types/finance';
+import {
+  collectionDistributionLabel,
+  formatAllocationRowDetails,
+} from './collection-normalize';
 
 type FormatDate = (value: string | null | undefined) => string;
 type FormatPeriod = (
@@ -59,25 +63,14 @@ export function formatAllocationRowLabel(
   row: PaymentAllocation,
   t: (key: string) => string,
 ): string {
-  const fee = refName(row.student_fee);
-  const installment = refName(row.installment);
-  if (fee && installment) return `${fee} · ${installment}`;
-  return fee ?? installment ?? (row.installment_id ? `#${row.installment_id}` : t('admin.finance.unavailable'));
+  return formatAllocationRowDetails(row, t).title;
 }
 
 export function collectionAllocationSummary(
   coll: PaymentCollection,
   t: TranslateFn,
 ): string {
-  const allocs = coll.allocations ?? [];
-  const total = coll.amount ?? coll.total_amount ?? 0;
-  if (!allocs.length) return t('admin.finance.collections.allocationNone');
-  const allocated = allocs.reduce((sum, row) => sum + (row.amount ?? 0), 0);
-  if (allocated <= 0) return t('admin.finance.collections.allocationNone');
-  if (Math.abs(allocated - total) < 0.01) return t('admin.finance.collections.allocationFull');
-  if (allocated < total) return t('admin.finance.collections.allocationPartial');
-  if (allocs.length === 1) return t('admin.finance.collections.allocationSingle');
-  return t('admin.finance.collections.allocationCount', { count: allocs.length });
+  return collectionDistributionLabel(coll, t);
 }
 
 export function truncateReference(value: string, max = 28): string {

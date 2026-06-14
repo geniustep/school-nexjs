@@ -3,14 +3,23 @@
 import Link from 'next/link';
 import { IconAlertTriangle } from '@/components/icons/admin-icons';
 import { useT } from '@/features/i18n/locale-context';
+import { endpoints } from '@/lib/api/endpoints';
+import { useAdminResource } from '@/lib/hooks/use-admin-resource';
+import {
+  rejectedChequeQuickHref,
+  totalRejectedChequeCount,
+} from '@/lib/utils/cheque-status';
 import { normalizeFinanceOverview } from '@/lib/utils/finance-normalize';
-import type { AdminFinanceOverview } from '@/types/finance';
+import type { AdminFinanceOverview, FinanceCheque } from '@/types/finance';
 
-type AlertItem = {
-  key: string;
-  message: string;
-  href?: string;
-};
+function useChequeTotal(params: Record<string, string>) {
+  const state = useAdminResource<FinanceCheque[]>(endpoints.admin.financeCheques, {
+    ...params,
+    page: 1,
+    page_size: 1,
+  });
+  return state.meta?.pagination?.total ?? null;
+}
 
 export function FinanceHubAlerts({ data }: { data: AdminFinanceOverview | null }) {
   const t = useT();
@@ -18,7 +27,16 @@ export function FinanceHubAlerts({ data }: { data: AdminFinanceOverview | null }
   const totals = overview?.totals;
   const cheques = overview?.cheques;
 
-  const alerts: AlertItem[] = [];
+  const rejectedListCount = useChequeTotal({ state: 'rejected' });
+  const bouncedListCount = useChequeTotal({ state: 'bounced' });
+  const verifiedRejectedCount = totalRejectedChequeCount(rejectedListCount, bouncedListCount);
+  const overviewRejectedCount = totals?.cheques_rejected_count ?? cheques?.bounced ?? cheques?.rejected ?? 0;
+  const rejectedCountMismatch =
+    verifiedRejectedCount !== overviewRejectedCount &&
+    rejectedListCount != null &&
+    bouncedListCount != null;
+
+  const alerts: Array<{ key: string; message: string; href?: string }> = [];
 
   if ((totals?.overdue_installments_count ?? 0) > 0) {
     alerts.push({
@@ -39,12 +57,23 @@ export function FinanceHubAlerts({ data }: { data: AdminFinanceOverview | null }
     });
   }
 
-  const rejectedCheques = totals?.cheques_rejected_count ?? cheques?.bounced ?? 0;
-  if (rejectedCheques > 0) {
+  if (rejectedCountMismatch) {
+    alerts.push({
+      key: 'rejected_cheques_unverified',
+      message: t('admin.finance.hub.alertRejectedChequesUnverified'),
+    });
+  } else if (verifiedRejectedCount > 0) {
     alerts.push({
       key: 'rejected_cheques',
-      message: t('admin.finance.hub.alertRejectedCheques', { count: String(rejectedCheques) }),
-      href: '/admin/finance/cheques?quick=rejected',
+      message: t('admin.finance.hub.alertRejectedChequesFollowUp', {
+        count: String(verifiedRejectedCount),
+      }),
+      href: rejectedChequeQuickHref(),
+    });
+  } else if (overviewRejectedCount > 0 && rejectedListCount == null) {
+    alerts.push({
+      key: 'rejected_cheques_loading',
+      message: t('admin.finance.hub.alertRejectedChequesUnverified'),
     });
   }
 

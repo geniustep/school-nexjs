@@ -12,14 +12,12 @@ import {
   IconSlidersHorizontal,
 } from '@/components/icons/admin-icons';
 import {
-  canCollectPayments,
   canViewCheques,
   canViewFinanceAgreements,
   canViewFinanceInstallments,
   canViewFinanceServices,
   canViewPayments,
 } from '@/lib/permissions/finance';
-import { useFinanceJournalsAvailable } from '@/features/admin/finance/use-finance-lookups';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { endpoints } from '@/lib/api/endpoints';
 import { normalizeFinanceOverview } from '@/lib/utils/finance-normalize';
@@ -37,7 +35,6 @@ type HubLink = {
 export function FinanceHubLinks() {
   const user = useSession();
   const t = useT();
-  const { available: journalsAvailable } = useFinanceJournalsAvailable();
   const overviewState = useAdminResource<AdminFinanceOverview>(endpoints.admin.financeOverview);
   const overview = normalizeFinanceOverview(overviewState.data);
   const totals = overview?.totals;
@@ -106,12 +103,6 @@ export function FinanceHubLinks() {
           </Link>
         ))}
       </div>
-      {canCollectPayments(user) && journalsAvailable ? (
-        <p className="muted finance-hub-note">
-          {t('admin.finance.hub.recordCollectionHint')}{' '}
-          <Link href="/admin/finance/collections/new">{t('admin.finance.recordCollection')}</Link>
-        </p>
-      ) : null}
     </section>
   );
 }
