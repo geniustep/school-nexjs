@@ -201,6 +201,48 @@
   font-size: 0.875rem;
 }
 
+.finance-collection-new-page {
+  max-width: 920px;
+}
+
+.finance-collection-workflow__section-title {
+  margin: 0;
+}
+
+.finance-collection-workflow__intro {
+  margin: 0;
+}
+
+.finance-collection-workflow__steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.finance-collection-workflow__step {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--c-text-muted, #64748b);
+}
+
+.finance-collection-workflow__step.is-active {
+  border-color: var(--c-primary, #2563eb);
+  background: var(--c-primary-soft, #eff6ff);
+  color: var(--c-primary, #2563eb);
+  font-weight: 600;
+}
+
+.finance-collection-workflow__step.is-done {
+  border-color: var(--c-primary, #2563eb);
+  color: var(--c-primary, #2563eb);
+}
+
 .finance-collection-workflow__student-bar {
   display: flex;
   flex-wrap: wrap;
@@ -681,6 +723,10 @@
 
   .finance-collection-workflow__fields {
     grid-template-columns: 1fr;
+  }
+
+  .finance-collection-new-page {
+    max-width: none;
   }
 
   .finance-hub-grid {

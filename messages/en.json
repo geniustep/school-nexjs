@@ -3238,6 +3238,8 @@
         "detailTitle": "Collection details",
         "chequeDetailTitle": "Cheque details",
         "paymentStepDesc": "Choose method and amount, then allocate to receivables.",
+        "stepPayment": "Payment",
+        "stepAllocation": "Allocation",
         "continueToAllocation": "Continue to allocation",
         "allocationTitle": "Allocate amount",
         "allocationDesc": "Allocate the collection amount to open installments.",

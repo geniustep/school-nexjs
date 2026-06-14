@@ -28,16 +28,18 @@ export default function AdminFinanceCollectionNewPage() {
         ‹ {t('admin.finance.backToCollections')}
       </Link>
       <PageHeader title={t('admin.finance.recordCollection')} subtitle={t('admin.finance.recordCollectionDesc')} />
-      <FinanceCollectionForm
-        initialStudentId={studentId ?? undefined}
-        lockStudent={!!studentId}
-        onDone={(id) => router.push(`/admin/finance/collections/${id}`)}
-        onCancel={() =>
-          studentId
-            ? router.push(`/admin/students/${studentId}`)
-            : router.push('/admin/finance/collections')
-        }
-      />
+      <div className="finance-collection-new-page">
+        <FinanceCollectionForm
+          initialStudentId={studentId ?? undefined}
+          lockStudent={!!studentId}
+          onDone={(id) => router.push(`/admin/finance/collections/${id}`)}
+          onCancel={() =>
+            studentId
+              ? router.push(`/admin/students/${studentId}`)
+              : router.push('/admin/finance/collections')
+          }
+        />
+      </div>
     </RequireAdminPermission>
   );
 }
