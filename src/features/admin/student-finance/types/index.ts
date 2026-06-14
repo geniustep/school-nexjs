@@ -258,17 +258,24 @@ export interface FinanceServiceCatalogItem {
   currency?: FinanceCurrency;
   is_mandatory?: boolean;
   requires_subscription?: boolean;
+  requires_usage_tracking?: boolean;
   active?: boolean;
 }
 
 export interface FinanceServiceTariff {
   id: number;
   service_id?: number;
+  service?: Ref | null;
   name?: string;
   code?: string;
+  academic_year?: Ref | null;
   commitment_type?: string;
   pricing_unit?: string;
+  charge_generation_mode?: string;
+  billing_cycle?: string;
   unit_price?: number;
+  valid_from?: string | null;
+  valid_until?: string | null;
   currency?: FinanceCurrency;
   active?: boolean;
 }
