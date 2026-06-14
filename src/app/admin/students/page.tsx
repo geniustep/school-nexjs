@@ -11,8 +11,10 @@ import { PageHeader, Badge } from '@/components/ui/primitives';
 import { AdminListActions } from '@/features/admin/admin-list-actions';
 import { CsvImportPanel } from '@/features/admin/csv-import-panel';
 import { studentClassLabel, studentLevelLabel } from '@/features/admin/students/utils/student-academic-labels';
+import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
+import { hasPermission } from '@/lib/permissions/permissions';
 import { statusLabel } from '@/lib/utils/labels';
 import { getStudentDisplayName } from '@/lib/utils/student';
 import type { Student } from '@/types/student';
@@ -21,6 +23,8 @@ import type { ListParams } from '@/types/api';
 export default function AdminStudentsPage() {
   const router = useRouter();
   const t = useT();
+  const user = useSession();
+  const canManageStudents = hasPermission(user, 'manage_students');
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [query, setQuery] = useState('');
@@ -104,6 +108,13 @@ export default function AdminStudentsPage() {
             showImport
             importOpen={importOpen}
             onToggleImport={() => setImportOpen((v) => !v)}
+            extra={
+              canManageStudents ? (
+                <Link href="/admin/students/import" className="btn btn--ghost btn--sm">
+                  {t('admin.studentImport.openImport')}
+                </Link>
+              ) : null
+            }
           />
         }
       />
