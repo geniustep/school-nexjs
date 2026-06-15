@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { formatFinancePlural } from '@/features/admin/finance/finance-hub-plural';
 import { computeCollectionRate } from '@/features/admin/finance/finance-hub-chart-utils';
+import { resolveOverviewSettledAmount } from '@/features/admin/finance/finance-hub-metrics';
 import { useLocale, useT } from '@/features/i18n/locale-context';
 import { normalizeFinanceOverview, normalizeMoneyValue } from '@/lib/utils/finance-normalize';
 import { resolveFinanceCurrency } from '@/lib/i18n/format-money';
@@ -49,10 +50,10 @@ export function FinanceHubKpiGrid({
         alwaysShow: true,
       },
       {
-        key: 'collected',
-        labelKey: 'admin.finance.hub.kpiCollected',
-        value: totals?.total_collected,
-        href: '/admin/finance/collections',
+        key: 'settled',
+        labelKey: 'admin.finance.hub.kpiSettled',
+        value: resolveOverviewSettledAmount(totals),
+        href: '/admin/finance/collections?state=confirmed',
         alwaysShow: true,
       },
       {

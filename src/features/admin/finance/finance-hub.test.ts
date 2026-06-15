@@ -77,6 +77,20 @@ describe('finance overview normalization', () => {
     expect(overview?.totals?.cheques_pending_count).toBe(2);
     expect(overview?.totals?.cheques_rejected_count).toBe(1);
   });
+
+  it('enriches nested totals with confirmed_paid from root payload', () => {
+    const overview = normalizeFinanceOverview({
+      confirmed_paid: 1400,
+      totals: {
+        total_due: 26898,
+        total_paid: 1400,
+        total_remaining: 25498,
+        total_overdue: 50,
+      },
+    });
+    expect(overview?.totals?.total_collected).toBe(1400);
+    expect(overview?.totals?.confirmed_paid).toBe(1400);
+  });
 });
 
 describe('finance hub permissions', () => {

@@ -1,5 +1,11 @@
 import { normalizeMoneyValue } from '@/lib/utils/finance-normalize';
 import { normalizePaymentMethodCode } from '@/lib/utils/finance-normalize';
+import {
+  collectionRowAmount,
+  computeOverviewCollectionRate,
+  filterConfirmedCollections,
+  resolveOverviewSettledAmount,
+} from '@/features/admin/finance/finance-hub-metrics';
 import { bucketCollectionDate, collectionTrendBucketMode, periodSpanDays } from '@/features/admin/finance/finance-hub-period';
 import type { AdminFinanceOverview, PaymentCollection } from '@/types/finance';
 
@@ -17,8 +23,7 @@ function collectionDate(row: PaymentCollection): string | null {
 }
 
 function collectionAmount(row: PaymentCollection): number | null {
-  const extended = row as PaymentCollection & { confirmed_amount?: number };
-  return normalizeMoneyValue(row.amount ?? row.total_amount ?? extended.confirmed_amount);
+  return collectionRowAmount(row);
 }
 
 function collectionMethod(row: PaymentCollection): string {
@@ -31,11 +36,12 @@ export function buildCollectionTrend(
   dateFrom?: string,
   dateTo?: string,
 ): TrendPoint[] {
+  const confirmedRows = filterConfirmedCollections(rows);
   const span = periodSpanDays(dateFrom, dateTo);
   const mode = collectionTrendBucketMode(span);
   const buckets = new Map<string, number>();
 
-  for (const row of rows) {
+  for (const row of confirmedRows) {
     const date = collectionDate(row);
     if (!date) continue;
     if (dateFrom && date < dateFrom) continue;
@@ -57,7 +63,7 @@ export function buildReceivableStatusSlices(
   const totals = overview?.totals;
   if (!totals) return [];
 
-  const collected = normalizeMoneyValue(totals.total_collected ?? totals.confirmed_paid ?? totals.total_paid);
+  const collected = resolveOverviewSettledAmount(totals);
   const remaining = normalizeMoneyValue(totals.total_remaining ?? totals.remaining_amount);
   const overdue = normalizeMoneyValue(totals.total_overdue ?? totals.overdue_amount);
 
@@ -76,8 +82,9 @@ export function buildReceivableStatusSlices(
 }
 
 export function buildPaymentMethodSlices(rows: PaymentCollection[]): MethodSlice[] {
+  const confirmedRows = filterConfirmedCollections(rows);
   const buckets = new Map<string, { amount: number; count: number }>();
-  for (const row of rows) {
+  for (const row of confirmedRows) {
     const code = collectionMethod(row);
     if (!code) continue;
     const amount = collectionAmount(row);
@@ -93,12 +100,7 @@ export function buildPaymentMethodSlices(rows: PaymentCollection[]): MethodSlice
 export function computeCollectionRate(
   overview: AdminFinanceOverview | null,
 ): number | null {
-  const totals = overview?.totals;
-  if (!totals) return null;
-  const due = normalizeMoneyValue(totals.total_due);
-  const collected = normalizeMoneyValue(totals.total_collected ?? totals.confirmed_paid ?? totals.total_paid);
-  if (due == null || collected == null || due <= 0) return null;
-  return Math.min(100, Math.round((collected / due) * 1000) / 10);
+  return computeOverviewCollectionRate(overview?.totals);
 }
 
 export function sumInstallmentRemaining(

@@ -11,6 +11,9 @@ import {
   slicePercent,
   sumTrendAmount,
 } from '@/features/admin/finance/finance-hub-chart-utils';
+import { FinanceHubPeriodFilters } from '@/features/admin/finance/finance-hub-period-filters';
+import type { FinanceHubFilterState } from '@/features/admin/finance/finance-hub-period';
+import { isPaginatedCollectionTotalIncomplete } from '@/features/admin/finance/finance-hub-metrics';
 import { useT } from '@/features/i18n/locale-context';
 import { useFormat } from '@/features/i18n/use-format';
 import { endpoints } from '@/lib/api/endpoints';
@@ -165,8 +168,10 @@ function ReceivableDonutChart({
       <div className="finance-hub-donut__visual">
         <div className="finance-hub-donut__ring" style={{ background: `conic-gradient(${gradient})` }} />
         <div className="finance-hub-donut__center">
-          <FinanceMoney amount={centerTotal} currency={currency} />
-          <span className="tiny muted">{centerLabel}</span>
+          <span className="finance-hub-donut__center-value">
+            <FinanceMoney amount={centerTotal} currency={currency} />
+          </span>
+          <span className="finance-hub-donut__center-label tiny muted">{centerLabel}</span>
         </div>
       </div>
       <ul className="finance-hub-donut__legend">
@@ -232,11 +237,15 @@ export function FinanceHubCharts({
   dateFrom,
   dateTo,
   currency,
+  filters,
+  onFiltersChange,
 }: {
   overview: AdminFinanceOverview | null;
   dateFrom?: string;
   dateTo?: string;
   currency?: string;
+  filters: FinanceHubFilterState;
+  onFiltersChange: (next: FinanceHubFilterState) => void;
 }) {
   const t = useT();
   const { formatDate } = useFormat();
@@ -244,6 +253,7 @@ export function FinanceHubCharts({
   const collectionsState = useAdminResource<PaymentCollection[]>(endpoints.admin.financePaymentCollections, {
     date_from: dateFrom,
     date_to: dateTo,
+    state: 'confirmed',
     page: 1,
     page_size: 100,
   });
@@ -252,6 +262,8 @@ export function FinanceHubCharts({
     () => parseFinanceList<PaymentCollection>(collectionsState.data),
     [collectionsState.data],
   );
+  const pagination = collectionsState.meta?.pagination ?? null;
+  const partialTotal = isPaginatedCollectionTotalIncomplete(collectionRows.length, pagination);
 
   const trend = useMemo(
     () => buildCollectionTrend(collectionRows, dateFrom, dateTo),
@@ -283,10 +295,20 @@ export function FinanceHubCharts({
   };
 
   return (
-    <FinanceHubSection title={t('admin.finance.hub.analyticsTitle')}>
+    <FinanceHubSection
+      title={t('admin.finance.hub.analyticsTitle')}
+      subtitle={t('admin.finance.hub.analyticsScopeNote')}
+      action={<FinanceHubPeriodFilters filters={filters} onChange={onFiltersChange} />}
+    >
+      {partialTotal ? (
+        <p className="finance-hub-chart__partial muted" role="status">
+          {t('admin.finance.hub.chartPartialPagination')}
+        </p>
+      ) : null}
       <div className="finance-hub-charts-grid">
         <article className="finance-hub-chart card">
           <h3>{t('admin.finance.hub.chartCollectionTrend')}</h3>
+          <p className="finance-hub-chart__scope tiny muted">{t('admin.finance.hub.chartConfirmedPeriodTotal')}</p>
           {renderChartState(
             collectionsState.loading,
             collectionsState.error,
@@ -305,6 +327,7 @@ export function FinanceHubCharts({
 
         <article className="finance-hub-chart card">
           <h3>{t('admin.finance.hub.chartReceivableStatus')}</h3>
+          <p className="finance-hub-chart__scope tiny muted">{t('admin.finance.hub.chartReceivableScopeNote')}</p>
           {receivableSlices.length === 0 ? (
             <p className="muted finance-hub-chart__empty">{t('admin.finance.hub.chartReceivableStatusEmpty')}</p>
           ) : (
@@ -320,6 +343,7 @@ export function FinanceHubCharts({
 
         <article className="finance-hub-chart card">
           <h3>{t('admin.finance.hub.chartPaymentMethods')}</h3>
+          <p className="finance-hub-chart__scope tiny muted">{t('admin.finance.hub.chartConfirmedPeriodTotal')}</p>
           {renderChartState(
             collectionsState.loading,
             collectionsState.error,

@@ -42,6 +42,28 @@ export function normalizePagination(meta: unknown): Pagination | null {
 }
 
 /** Map flat overview payloads and legacy nested totals into one shape. */
+function enrichOverviewTotals(
+  nested: FinanceOverviewTotals,
+  raw: Record<string, unknown>,
+): FinanceOverviewTotals {
+  const confirmedPaid =
+    normalizeMoneyValue(nested.confirmed_paid) ?? normalizeMoneyValue(raw.confirmed_paid);
+  const totalPaid =
+    normalizeMoneyValue(nested.total_paid) ?? confirmedPaid ?? normalizeMoneyValue(raw.total_paid);
+  const totalCollected =
+    normalizeMoneyValue(nested.total_collected) ??
+    confirmedPaid ??
+    totalPaid ??
+    normalizeMoneyValue(raw.total_collected);
+
+  return {
+    ...nested,
+    confirmed_paid: confirmedPaid ?? undefined,
+    total_paid: totalPaid ?? undefined,
+    total_collected: totalCollected ?? undefined,
+  };
+}
+
 export function normalizeFinanceOverview(data: AdminFinanceOverview | null | undefined): AdminFinanceOverview | null {
   if (!data) return null;
   const raw = data as AdminFinanceOverview & FinanceOverviewTotals & Record<string, unknown>;
@@ -49,7 +71,7 @@ export function normalizeFinanceOverview(data: AdminFinanceOverview | null | und
   if (nested && typeof nested === 'object') {
     return {
       ...raw,
-      totals: nested as FinanceOverviewTotals,
+      totals: enrichOverviewTotals(nested as FinanceOverviewTotals, raw),
       recent_collections: raw.recent_collections,
       followup_students: raw.followup_students ?? raw.students_needing_followup,
       upcoming_installments: raw.upcoming_installments as AdminFinanceOverview['upcoming_installments'],
@@ -62,6 +84,8 @@ export function normalizeFinanceOverview(data: AdminFinanceOverview | null | und
   const totals: FinanceOverviewTotals = {
     total_due: raw.total_due,
     total_collected: raw.total_collected ?? raw.confirmed_paid ?? raw.total_paid,
+    confirmed_paid: raw.confirmed_paid ?? raw.total_paid ?? raw.total_collected,
+    total_paid: raw.total_paid ?? raw.confirmed_paid ?? raw.total_collected,
     total_remaining: raw.total_remaining ?? raw.remaining_amount,
     total_overdue: raw.total_overdue ?? raw.overdue_amount,
     students_with_balance: raw.students_with_balance,

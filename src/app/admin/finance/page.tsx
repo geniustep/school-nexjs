@@ -14,6 +14,7 @@ import { FinanceHubLinks } from '@/features/admin/finance/finance-hub-links';
 import type { FinanceHubFilterState } from '@/features/admin/finance/finance-hub-period';
 import { resolveFinanceHubPeriod } from '@/features/admin/finance/finance-hub-period';
 import { useAdminSession } from '@/features/auth/admin-session-context';
+import { useT } from '@/features/i18n/locale-context';
 import { useAcademicYearOptions } from '@/features/admin/finance/use-finance-lookups';
 import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
@@ -29,6 +30,7 @@ const DEFAULT_FILTERS: FinanceHubFilterState = {
 };
 
 export default function AdminFinancePage() {
+  const t = useT();
   const { activeSchoolId, schools, setActiveSchool } = useAdminSession();
   const { options: yearOptions } = useAcademicYearOptions(null);
   const [filters, setFilters] = useState<FinanceHubFilterState>(DEFAULT_FILTERS);
@@ -39,10 +41,8 @@ export default function AdminFinancePage() {
       academic_year_id:
         resolvedPeriod.academicYearId ??
         (filters.yearId ? Number(filters.yearId) : undefined),
-      date_from: resolvedPeriod.dateFrom,
-      date_to: resolvedPeriod.dateTo,
     }),
-    [filters.yearId, resolvedPeriod],
+    [filters.yearId, resolvedPeriod.academicYearId],
   );
 
   const overviewState = useAdminResource<AdminFinanceOverview>(
@@ -91,13 +91,18 @@ export default function AdminFinancePage() {
           <ApiErrorView error={overviewState.error} onRetry={overviewState.reload} />
         ) : (
           <>
-            <FinanceHubKpiGrid data={overviewState.data} loading={overviewState.initialLoading} />
+            <section className="finance-hub-kpi-section">
+              <p className="finance-hub-scope-note muted">{t('admin.finance.hub.kpiScopeNote')}</p>
+              <FinanceHubKpiGrid data={overviewState.data} loading={overviewState.initialLoading} />
+            </section>
             <FinanceHubAlerts data={overviewState.data} currency={currency} />
             <FinanceHubCharts
               overview={overview}
               dateFrom={resolvedPeriod.dateFrom}
               dateTo={resolvedPeriod.dateTo}
               currency={currency}
+              filters={filters}
+              onFiltersChange={setFilters}
             />
             <FinanceHubCashflow
               overviewData={overviewState.data}

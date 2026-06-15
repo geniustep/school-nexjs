@@ -556,6 +556,41 @@
   font-size: 1.05rem;
 }
 
+.finance-hub-section__subtitle {
+  margin: 4px 0 0;
+  font-size: 0.875rem;
+}
+
+.finance-hub-scope-note {
+  margin: 0 0 8px;
+  font-size: 0.875rem;
+}
+
+.finance-hub-period-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: end;
+}
+
+.finance-hub-chart__scope {
+  margin: 0 0 8px;
+}
+
+.finance-hub-chart__partial {
+  margin: 0 0 12px;
+}
+
+.finance-hub-donut__center-value {
+  white-space: nowrap;
+  font-size: clamp(0.65rem, 2vw, 0.85rem);
+  line-height: 1.2;
+}
+
+.finance-hub-donut__center-label {
+  line-height: 1.2;
+}
+
 .finance-metric-card--link {
   text-decoration: none;
   color: inherit;

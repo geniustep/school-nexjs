@@ -70,11 +70,13 @@ export function FinanceHubHeader({
 
 export function FinanceHubSection({
   title,
+  subtitle,
   action,
   children,
   className,
 }: {
   title: string;
+  subtitle?: string;
   action?: ReactNode;
   children: ReactNode;
   className?: string;
@@ -82,7 +84,10 @@ export function FinanceHubSection({
   return (
     <section className={className ? `finance-hub-section ${className}` : 'finance-hub-section'}>
       <div className="finance-hub-section__head">
-        <h2 className="finance-hub-section__title">{title}</h2>
+        <div>
+          <h2 className="finance-hub-section__title">{title}</h2>
+          {subtitle ? <p className="finance-hub-section__subtitle muted">{subtitle}</p> : null}
+        </div>
         {action}
       </div>
       {children}

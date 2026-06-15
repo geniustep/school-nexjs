@@ -37,8 +37,8 @@ describe('finance hub period', () => {
 
 describe('finance hub chart utils', () => {
   const collections = [
-    { id: 1, amount: 100, date: '2026-06-10', payment_method: 'cash' },
-    { id: 2, amount: 200, date: '2026-06-12', payment_method: 'cheque' },
+    { id: 1, amount: 100, date: '2026-06-10', payment_method: 'cash', state: 'confirmed' },
+    { id: 2, amount: 200, date: '2026-06-12', payment_method: 'cheque', state: 'confirmed' },
   ] as PaymentCollection[];
 
   it('builds collection trend from real rows', () => {
@@ -81,7 +81,7 @@ describe('finance hub chart utils', () => {
 
   it('builds two-point collection trend for bar chart', () => {
     const twoPoint = buildCollectionTrend(
-      [{ id: 1, amount: 50, date: '2026-06-01', payment_method: 'cash' }] as PaymentCollection[],
+      [{ id: 1, amount: 50, date: '2026-06-01', payment_method: 'cash', state: 'confirmed' }] as PaymentCollection[],
       '2026-06-01',
       '2026-06-15',
     );
@@ -158,14 +158,14 @@ describe('finance hub page contract', () => {
     expect(source.includes('FinanceHubPerformance')).toBe(false);
   });
 
-  it('renders five KPI cards including collected amount', async () => {
+  it('renders five KPI cards including settled amount', async () => {
     const fs = await import('node:fs');
     const path = await import('node:path');
     const kpiPath = path.resolve('src/features/admin/finance/finance-hub-kpi-grid.tsx');
     const source = fs.readFileSync(kpiPath, 'utf8');
-    expect(source.includes('kpiCollected')).toBe(true);
+    expect(source.includes('kpiSettled')).toBe(true);
+    expect(source.includes('resolveOverviewSettledAmount')).toBe(true);
     expect(source.includes('finance-hub-kpi-grid--five')).toBe(true);
-    expect(source.includes('total_collected')).toBe(true);
   });
 
   it('does not expose API or endpoint copy in hub UI sources', async () => {
