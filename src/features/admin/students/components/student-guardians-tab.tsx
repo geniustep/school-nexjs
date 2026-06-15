@@ -11,6 +11,14 @@ import { GuardianEditDialog } from './guardian-edit-dialog';
 import { GuardianEndDialog } from './guardian-end-dialog';
 import { Student360CompactEmpty } from './student-360-compact-empty';
 import { isRelationshipActive } from '../utils/relationship-types';
+import {
+  findDuplicateStrongRelationshipTypes,
+  duplicateRelationshipMessage,
+} from '../utils/guardian-duplicate-relationship-alert';
+import {
+  isDefaultBillingGuardian,
+  resolveDefaultBillingGuardian,
+} from '../utils/resolve-default-billing-guardian';
 import type { GuardianRelationship, StudentDetailsData } from '@/types/student-360';
 
 export function StudentGuardiansTab({
@@ -42,11 +50,28 @@ export function StudentGuardiansTab({
     });
   }
 
+  const duplicateAlerts = findDuplicateStrongRelationshipTypes(details.guardian_relationships);
+  const duplicateMessage = duplicateRelationshipMessage(t, duplicateAlerts);
+  const billingResolution = resolveDefaultBillingGuardian(details.guardian_relationships);
+
+  const sortedActive = [...active].sort((a, b) => {
+    if (a.is_primary_contact !== b.is_primary_contact) return a.is_primary_contact ? -1 : 1;
+    const aBilling = isDefaultBillingGuardian(a.guardian.id, billingResolution);
+    const bBilling = isDefaultBillingGuardian(b.guardian.id, billingResolution);
+    if (aBilling !== bBilling) return aBilling ? -1 : 1;
+    return a.guardian.name.localeCompare(b.guardian.name, undefined, { sensitivity: 'base' });
+  });
+
   return (
     <div className="student-360-tab-panel">
-      <div className="student-360-section-header">
-        <div>
-          <h2 className="student-360-section-header__title">{t('admin.student360.guardiansTitle')}</h2>
+      <div className="student-360-section-header student-360-section-header--guardians">
+        <div className="student-360-section-header__main">
+          <div className="student-360-section-header__title-row">
+            <h2 className="student-360-section-header__title">{t('admin.student360.guardiansTitle')}</h2>
+            {active.length > 0 ? (
+              <span className="student-360-section-header__count">{t('admin.student360.guardiansActiveCount', { count: active.length })}</span>
+            ) : null}
+          </div>
           <p className="student-360-section-header__desc">{t('admin.student360.pages.guardians.description')}</p>
         </div>
         {canManageGuardians ? (
@@ -57,6 +82,15 @@ export function StudentGuardiansTab({
           </div>
         ) : null}
       </div>
+
+      {duplicateMessage ? (
+        <div className="student-360-guardians-alert" role="status">
+          <p>{duplicateMessage}</p>
+          <button type="button" className="btn btn--ghost btn--sm" onClick={() => sortedActive[1] && setEditRel(sortedActive[1])}>
+            {t('admin.student360.guardiansReviewRelationships')}
+          </button>
+        </div>
+      ) : null}
 
       {active.length === 0 && ended.length === 0 ? (
         <Student360CompactEmpty
@@ -78,15 +112,16 @@ export function StudentGuardiansTab({
       ) : (
         <>
           <div className="student-360-guardians-grid">
-            {active.map((rel) => (
+            {sortedActive.map((rel) => (
               <GuardianRelationshipCard
                 key={rel.relationship_id}
                 rel={rel}
                 canManage={canManageGuardians}
+                isDefaultBilling={isDefaultBillingGuardian(rel.guardian.id, billingResolution)}
                 onEdit={() => setEditRel(rel)}
                 onEnd={() => setEndRel(rel)}
                 onCopyPhone={copyPhone}
-                onAccountCreated={onChanged}
+                onAccountChanged={onChanged}
               />
             ))}
           </div>

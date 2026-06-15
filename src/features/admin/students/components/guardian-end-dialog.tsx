@@ -70,6 +70,7 @@ export function GuardianEndDialog({
   return (
     <SetupDrawer open={open} title={t('admin.student360.endRelationship')} onClose={onClose}>
       <form className="col" style={{ gap: 16 }} onSubmit={submit}>
+        <p className="student-360-guardian-end__confirm">{t('admin.student360.endRelationshipConfirm')}</p>
         <p className="tiny muted">{t('admin.student360.endRelationshipHint')}</p>
         <p className="tiny">
           <strong>{relationship.guardian.name}</strong>

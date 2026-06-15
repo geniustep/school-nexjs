@@ -29,6 +29,8 @@ export function CreateAccountDialog({
   onClose,
   onSuccess,
   defaultEmail = '',
+  submitLabel,
+  submittingLabel,
 }: {
   open: boolean;
   title: string;
@@ -36,6 +38,8 @@ export function CreateAccountDialog({
   onClose: () => void;
   onSuccess: (result: AccountMutationResponse) => void;
   defaultEmail?: string;
+  submitLabel?: string;
+  submittingLabel?: string;
   allowInvite?: boolean;
 }) {
   const t = useT();
@@ -231,7 +235,7 @@ export function CreateAccountDialog({
               style={{ minHeight: 44, width: '100%' }}
               disabled={saving}
             >
-              {saving ? t('admin.account.creatingAccount') : t('admin.account.createAccountSubmit')}
+              {saving ? (submittingLabel ?? t('admin.account.creatingAccount')) : (submitLabel ?? t('admin.account.createAccountSubmit'))}
             </button>
             <button
               type="button"

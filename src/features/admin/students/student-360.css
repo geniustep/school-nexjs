@@ -630,7 +630,7 @@
 }
 
 .student-360-guardians-grid:has(> :only-child) {
-  grid-template-columns: minmax(min(100%, 480px), 680px);
+  grid-template-columns: minmax(min(100%, 520px), 700px);
 }
 
 .student-360-skeleton-bar {
@@ -749,22 +749,41 @@
 
 .student-360-guardians-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
 }
 
 .student-360-guardian-card {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 14px;
   min-height: 0;
+  padding: 20px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 12px;
+  background: var(--bg, #fff);
+}
+
+.student-360-guardian-card--primary {
+  border-color: #86efac;
+  box-shadow: inset 0 3px 0 #22c55e;
 }
 
 .student-360-guardian-card__head {
   display: flex;
   justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 8px;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.student-360-guardian-card__identity {
+  min-width: 0;
+  flex: 1;
+}
+
+.student-360-guardian-card__meta {
+  margin: 4px 0 0;
 }
 
 .student-360-guardian-card__name {
@@ -781,9 +800,24 @@
 .student-360-guardian-card__contact {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-bottom: 8px;
+  gap: 8px;
   font-size: 0.875rem;
+}
+
+.student-360-guardian-card__contact-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--surface-2, #f8fafc);
+  border: 1px dashed var(--c-border, #cbd5e1);
+}
+
+.student-360-guardian-card__contact-empty-title {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
 }
 
 .student-360-guardian-card__contact-row {
@@ -796,8 +830,121 @@
 .student-360-guardian-card__actions {
   display: flex;
   flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding-top: 4px;
+}
+
+.student-360-guardian-card__responsibilities {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.student-360-guardian-card__badge-group-title {
+  margin: 0 0 6px;
+  font-size: 0.75rem;
+  color: var(--text-muted, #64748b);
+}
+
+.student-360-guardian-card__badges {
+  display: flex;
+  flex-wrap: wrap;
   gap: 6px;
-  margin-top: 10px;
+}
+
+.student-360-guardian-card__expand {
+  align-self: flex-start;
+  padding-inline: 0;
+}
+
+.student-360-guardian-card__account {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px solid var(--c-border, #e2e8f0);
+}
+
+.student-360-guardian-card__menu-wrap {
+  position: relative;
+}
+
+.student-360-guardian-card__menu {
+  position: absolute;
+  inset-inline-end: 0;
+  top: calc(100% + 4px);
+  z-index: 20;
+  min-width: 220px;
+  padding: 6px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 8px;
+  background: var(--bg, #fff);
+  box-shadow: 0 8px 24px rgb(15 23 42 / 12%);
+}
+
+.student-360-guardian-card__menu-item {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  text-align: start;
+  font: inherit;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.student-360-guardian-card__menu-item:hover {
+  background: var(--surface-2, #f8fafc);
+}
+
+.student-360-guardian-card__menu-item--danger {
+  color: var(--c-red, #dc2626);
+}
+
+.student-360-section-header--guardians {
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.student-360-section-header__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.student-360-section-header__title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.student-360-section-header__count {
+  font-size: 0.8125rem;
+  color: var(--text-muted, #64748b);
+  font-weight: 500;
+}
+
+.student-360-guardians-alert {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid #fde68a;
+  background: #fffbeb;
+  font-size: 0.875rem;
+}
+
+.student-360-guardians-alert p {
+  margin: 0;
 }
 
 .students-list-page {
@@ -1861,6 +2008,12 @@
   }
 }
 
+@media (max-width: 960px) {
+  .student-360-guardians-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 640px) {
   .student-360-section-header {
     flex-direction: column;
@@ -1868,6 +2021,27 @@
   }
 
   .student-360-section-header__actions {
+    width: 100%;
+  }
+
+  .student-360-section-header__actions .btn {
+    width: 100%;
+  }
+
+  .student-360-guardian-card__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .student-360-guardian-card__actions .btn {
+    width: 100%;
+  }
+
+  .student-360-guardian-card__menu-wrap {
+    width: 100%;
+  }
+
+  .student-360-guardian-card__menu-wrap > .btn {
     width: 100%;
   }
 
