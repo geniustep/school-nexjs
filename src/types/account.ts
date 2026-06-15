@@ -30,7 +30,9 @@ export interface AccountMutationResponse {
 export interface ActivateAccountPayload {
   email?: string;
   login?: string;
+  password?: string;
   send_invite?: boolean;
+  must_change_password?: boolean;
 }
 
 /** Entity shapes that may expose account fields from list/detail APIs. */

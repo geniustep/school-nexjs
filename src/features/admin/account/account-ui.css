@@ -1,0 +1,133 @@
+.create-account-dialog__section {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.create-account-dialog__section-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin: 0;
+  padding: 0;
+}
+
+.create-account-dialog__checkbox {
+  cursor: pointer;
+}
+
+.create-account-dialog__actions {
+  position: sticky;
+  bottom: 0;
+  padding-top: 8px;
+  background: var(--bg, #fff);
+}
+
+.create-account-dialog--success {
+  padding-bottom: 8px;
+}
+
+.create-account-dialog__success-lead {
+  margin: 0;
+  font-weight: 500;
+}
+
+.create-account-dialog__credentials {
+  margin: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.create-account-dialog__credentials dt {
+  margin: 0 0 4px;
+}
+
+.create-account-dialog__credentials dd {
+  margin: 0;
+  font-size: 0.95rem;
+  word-break: break-all;
+}
+
+.account-password-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.account-password-fields__label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.account-password-fields__input-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.account-password-fields__input-row .input {
+  flex: 1;
+  min-width: 0;
+}
+
+.account-password-fields__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.account-password-fields__error {
+  color: var(--danger, #dc2626);
+}
+
+.account-password-strength {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.account-password-strength__bar {
+  flex: 1;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--border, #e2e8f0);
+  position: relative;
+  overflow: hidden;
+}
+
+.account-password-strength__bar::after {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  border-radius: inherit;
+}
+
+.account-password-strength--weak .account-password-strength__bar::after {
+  width: 25%;
+  background: #ef4444;
+}
+
+.account-password-strength--fair .account-password-strength__bar::after {
+  width: 50%;
+  background: #f59e0b;
+}
+
+.account-password-strength--good .account-password-strength__bar::after {
+  width: 75%;
+  background: #3b82f6;
+}
+
+.account-password-strength--strong .account-password-strength__bar::after {
+  width: 100%;
+  background: #10b981;
+}
+
+@media (max-width: 640px) {
+  .account-password-fields__input-row {
+    flex-direction: column;
+  }
+}

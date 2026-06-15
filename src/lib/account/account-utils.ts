@@ -48,15 +48,32 @@ export function buildAccountIdentityPayload(input: AccountIdentityInput): Accoun
 export function buildActivateAccountPayload(input: {
   email: string;
   login: string;
-  sendInvite: boolean;
-}): { email?: string; login?: string; send_invite: boolean } {
+  password: string;
+  sendInvite?: boolean;
+  mustChangePassword?: boolean;
+}): {
+  email?: string;
+  login?: string;
+  password?: string;
+  send_invite: boolean;
+  must_change_password?: boolean;
+} {
   const email = input.email.trim();
   const login = input.login.trim();
-  const payload: { email?: string; login?: string; send_invite: boolean } = {
-    send_invite: input.sendInvite,
+  const password = input.password;
+  const payload: {
+    email?: string;
+    login?: string;
+    password?: string;
+    send_invite: boolean;
+    must_change_password?: boolean;
+  } = {
+    send_invite: input.sendInvite ?? false,
   };
   if (email) payload.email = email;
   if (login) payload.login = login;
+  if (password) payload.password = password;
+  if (input.mustChangePassword) payload.must_change_password = true;
   return payload;
 }
 

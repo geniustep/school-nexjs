@@ -75,28 +75,34 @@ describe('buildAccountIdentityPayload', () => {
 });
 
 describe('buildActivateAccountPayload', () => {
-  it('builds student/parent activation payload without password', () => {
+  it('builds student/parent activation payload with password', () => {
     expect(
       buildActivateAccountPayload({
         email: 'student@school.ma',
         login: '',
-        sendInvite: true,
+        password: 'SecurePass123!',
+        sendInvite: false,
+        mustChangePassword: true,
       }),
     ).toEqual({
       email: 'student@school.ma',
-      send_invite: true,
+      password: 'SecurePass123!',
+      send_invite: false,
+      must_change_password: true,
     });
   });
 
-  it('allows login-only activation', () => {
+  it('allows login-only activation with password', () => {
     expect(
       buildActivateAccountPayload({
         email: '',
         login: 'abdel',
+        password: 'SecurePass123!',
         sendInvite: false,
       }),
     ).toEqual({
       login: 'abdel',
+      password: 'SecurePass123!',
       send_invite: false,
     });
   });
