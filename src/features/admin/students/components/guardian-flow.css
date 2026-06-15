@@ -129,6 +129,17 @@
   margin-top: 10px;
 }
 
+.guardian-remove-dialog__confirm-check {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 0.875rem;
+}
+
+.guardian-remove-dialog__confirm-check input {
+  margin-top: 3px;
+}
+
 .student-360-guardian-card__role-badges {
   display: flex;
   flex-wrap: wrap;

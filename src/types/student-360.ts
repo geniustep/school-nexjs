@@ -386,10 +386,39 @@ export type GuardianDuplicateField = 'phone' | 'email' | 'national_id' | 'unknow
 
 export interface GuardianAllowedActions {
   remove_guardian_relationship?: boolean;
+  remove_relationship?: boolean;
   end_relationship?: boolean;
   edit_relationship?: boolean;
   manage_account?: boolean;
   archive_guardian_profile?: boolean;
+  delete_person?: boolean;
+}
+
+export interface GuardianFinancialBlocker {
+  code: string;
+  message: string;
+  agreement_id?: number;
+  agreement_name?: string;
+  profile_id?: number;
+  student_id?: number;
+  guardian_id?: number;
+  recovery_action?: string;
+}
+
+export interface GuardianRemovalBillingEntity {
+  type?: string;
+  display_name?: string;
+  guardian_id?: number;
+  partner_id?: number;
+  student_id?: number;
+  relationship_id?: number;
+}
+
+export interface GuardianRemovalEffects {
+  was_primary_guardian?: boolean;
+  was_financial_responsible?: boolean;
+  was_emergency_contact?: boolean;
+  new_default_billing_entity?: GuardianRemovalBillingEntity | null;
 }
 
 export interface GuardianRemovalImpactAction {
@@ -407,9 +436,12 @@ export interface GuardianRemovalImpact {
   summary?: string[];
   items?: string[];
   other_children_count?: number;
+  linked_students_count?: number;
   other_roles?: string[];
   role_labels?: string[];
   account_preserved?: boolean;
+  user_account_preserved?: boolean;
+  person_preserved?: boolean;
   professional_profile_preserved?: boolean;
   professional_roles?: string[];
   removes_primary_contact?: boolean;
@@ -419,6 +451,26 @@ export interface GuardianRemovalImpact {
   billing_party_change?: string | null;
   has_user_account?: boolean;
   needs_new_account?: boolean;
+  requires_confirmation?: boolean;
+  can_remove_without_confirmation?: boolean;
+  multi_role_person?: boolean;
+  can_delete_person?: boolean;
+  financial_blockers?: GuardianFinancialBlocker[];
+  effects?: GuardianRemovalEffects;
+}
+
+export interface GuardianRelationshipDetailResponse {
+  relationship: GuardianRelationship;
+  allowed_actions?: GuardianAllowedActions;
+  removal_impact?: GuardianRemovalImpact;
+  person?: GuardianSummary;
+  account?: {
+    has_user_account?: boolean;
+    needs_new_account?: boolean;
+    can_assign_password?: boolean;
+    roles?: string[];
+    user_id?: number;
+  };
 }
 
 export interface GuardianRelationship {

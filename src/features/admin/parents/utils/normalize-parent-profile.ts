@@ -1,4 +1,4 @@
-import type { Parent, ParentChild, ParentChildRelationship } from '@/types/parent';
+import type { Parent, ParentChild, ParentChildRelationship, ParentAccountInfo, ParentGuardianProfile } from '@/types/parent';
 import { getGuardianEmailPresentation } from '@/features/admin/students/utils/guardian-email-presentation';
 import {
   normalizeAllowedActionsFromRaw,
@@ -22,6 +22,13 @@ function readEmail(raw: Record<string, unknown>): string | null {
   return presentation.kind === 'usable' ? presentation.email : null;
 }
 
+function readAddress(raw: Record<string, unknown>): string | null {
+  const street = typeof raw.street === 'string' ? raw.street.trim() : '';
+  const city = typeof raw.city === 'string' ? raw.city.trim() : '';
+  if (street && city) return `${street}, ${city}`;
+  return street || city || (typeof raw.address === 'string' ? raw.address : null);
+}
+
 function normalizeChildRelationship(raw: unknown): ParentChildRelationship | null {
   const record = asRecord(raw);
   if (!record) return null;
@@ -43,7 +50,49 @@ function normalizeChildRelationship(raw: unknown): ParentChildRelationship | nul
   };
 }
 
-function normalizeChild(raw: unknown): ParentChild | null {
+function normalizeRelationshipAsChild(raw: unknown): ParentChild | null {
+  const record = asRecord(raw);
+  if (!record) return null;
+  const studentId =
+    typeof record.student_id === 'number'
+      ? record.student_id
+      : typeof record.id === 'number'
+        ? record.id
+        : null;
+  if (studentId == null) return null;
+
+  const name =
+    (typeof record.student_name === 'string' && record.student_name.trim()) ||
+    (typeof record.display_name === 'string' && record.display_name.trim()) ||
+    (typeof record.full_name === 'string' && record.full_name.trim()) ||
+    (typeof record.name === 'string' && record.name.trim()) ||
+    '';
+
+  const classValue = record.class;
+  const levelValue = record.level;
+
+  return {
+    id: studentId,
+    name,
+    code: typeof record.student_code === 'string' ? record.student_code : null,
+    school_number: typeof record.student_code === 'string' ? record.student_code : null,
+    class:
+      typeof classValue === 'string'
+        ? { id: typeof record.class_id === 'number' ? record.class_id : 0, name: classValue }
+        : classValue && typeof classValue === 'object'
+          ? (classValue as ParentChild['class'])
+          : null,
+    level:
+      typeof levelValue === 'string'
+        ? { id: 0, name: levelValue }
+        : levelValue && typeof levelValue === 'object'
+          ? (levelValue as ParentChild['level'])
+          : null,
+    relationship: normalizeChildRelationship(record),
+  };
+}
+
+function normalizeLegacyChild(raw: unknown): ParentChild | null {
   const record = asRecord(raw);
   if (!record || typeof record.id !== 'number') return null;
 
@@ -53,13 +102,6 @@ function normalizeChild(raw: unknown): ParentChild | null {
     (typeof record.name === 'string' && record.name.trim()) ||
     [record.first_name, record.last_name].filter((p) => typeof p === 'string' && p.trim()).join(' ').trim() ||
     '';
-
-  const relationship =
-    normalizeChildRelationship(record.relationship) ??
-    normalizeChildRelationship(record.guardian_relationship) ??
-    (typeof record.relationship_id === 'number' || record.relationship_type
-      ? normalizeChildRelationship(record)
-      : null);
 
   return {
     id: record.id,
@@ -77,91 +119,136 @@ function normalizeChild(raw: unknown): ParentChild | null {
       record.level && typeof record.level === 'object'
         ? (record.level as ParentChild['level'])
         : null,
-    relationship,
+    relationship:
+      normalizeChildRelationship(record.relationship) ??
+      normalizeChildRelationship(record.guardian_relationship) ??
+      null,
   };
 }
 
-/** Normalize GET /admin/parents/{id} into unified person profile. */
+function normalizeAccount(raw: unknown): ParentAccountInfo | null {
+  const record = asRecord(raw);
+  if (!record) return null;
+  return {
+    has_user_account: record.has_user_account === true,
+    user_id: typeof record.user_id === 'number' ? record.user_id : null,
+    needs_new_account:
+      typeof record.needs_new_account === 'boolean' ? record.needs_new_account : undefined,
+    can_assign_password:
+      typeof record.can_assign_password === 'boolean' ? record.can_assign_password : undefined,
+    roles: readStringList(record.roles),
+  };
+}
+
+function normalizeGuardianProfile(raw: unknown): ParentGuardianProfile | null {
+  const record = asRecord(raw);
+  if (!record) return null;
+  return {
+    guardian_id:
+      typeof record.guardian_id === 'number'
+        ? record.guardian_id
+        : typeof record.id === 'number'
+          ? record.id
+          : undefined,
+    status: typeof record.status === 'string' ? record.status : undefined,
+    archivable: record.archivable === true,
+    archive_blockers: readStringList(record.archive_blockers),
+  };
+}
+
+/** Normalize GET /admin/parents/{id} — Odoo 18.0.1.0.99 unified person contract. */
 export function normalizeParentProfile(data: unknown): Parent | null {
   const raw = asRecord(data);
   if (!raw || typeof raw.id !== 'number') return null;
 
-  const person = asRecord(raw.person) ?? raw;
+  const person = asRecord(raw.person);
+  const accountInfo = normalizeAccount(raw.account);
+  const guardianProfile = normalizeGuardianProfile(raw.guardian_profile);
+
   const name =
-    (typeof person.display_name === 'string' && person.display_name.trim()) ||
-    (typeof person.full_name === 'string' && person.full_name.trim()) ||
-    (typeof person.name === 'string' && person.name.trim()) ||
+    (person && typeof person.display_name === 'string' && person.display_name.trim()) ||
+    (person && typeof person.name === 'string' && person.name.trim()) ||
     (typeof raw.name === 'string' && raw.name.trim()) ||
     '';
 
   const hasUserAccount =
-    person.has_user_account === true ||
+    accountInfo?.has_user_account === true ||
+    person?.has_user_account === true ||
     raw.has_user_account === true ||
     raw.has_account === true ||
-    (typeof person.user_id === 'number' && person.user_id > 0) ||
+    (typeof accountInfo?.user_id === 'number' && accountInfo.user_id > 0) ||
     (typeof raw.user_id === 'number' && raw.user_id > 0);
 
-  const childrenRaw = raw.children ?? raw.linked_students ?? raw.student_links;
-  const children = Array.isArray(childrenRaw)
-    ? childrenRaw.map(normalizeChild).filter((c): c is ParentChild => c != null)
-    : undefined;
+  const needsNewAccount =
+    accountInfo?.needs_new_account ??
+    (typeof raw.needs_new_account === 'boolean' ? raw.needs_new_account : !hasUserAccount);
+
+  const relationshipsRaw = raw.relationships;
+  const relationshipsChildren = Array.isArray(relationshipsRaw)
+    ? relationshipsRaw.map(normalizeRelationshipAsChild).filter((c): c is ParentChild => c != null)
+    : [];
+
+  const legacyChildrenRaw = raw.children ?? raw.linked_students ?? raw.student_links;
+  const legacyChildren = Array.isArray(legacyChildrenRaw)
+    ? legacyChildrenRaw.map(normalizeLegacyChild).filter((c): c is ParentChild => c != null)
+    : [];
+
+  const children = relationshipsChildren.length ? relationshipsChildren : legacyChildren;
+
+  const allowedActions =
+    normalizeAllowedActionsFromRaw(raw.allowed_actions) ??
+    (guardianProfile?.archivable ? { archive_guardian_profile: true } : undefined);
+
+  const roleLabels =
+    (person ? readStringList(person.role_labels) : undefined) ??
+    readStringList(raw.role_labels) ??
+    accountInfo?.roles;
+
+  const existingRoles =
+    (person ? readStringList(person.existing_roles) : undefined) ?? readStringList(raw.existing_roles);
 
   return {
     id: raw.id,
     name,
-    display_name: typeof person.display_name === 'string' ? person.display_name : name,
+    display_name: person?.display_name && typeof person.display_name === 'string' ? person.display_name : name,
     phone:
-      (typeof person.phone === 'string' ? person.phone : null) ??
-      (typeof person.mobile === 'string' ? person.mobile : null) ??
+      (person && typeof person.phone === 'string' ? person.phone : null) ??
+      (person && typeof person.mobile === 'string' ? person.mobile : null) ??
       (typeof raw.phone === 'string' ? raw.phone : null),
-    email: readEmail(person) ?? readEmail(raw),
-    address:
-      typeof person.address === 'string'
-        ? person.address
-        : typeof raw.address === 'string'
-          ? raw.address
-          : null,
+    email: (person ? readEmail(person) : null) ?? readEmail(raw),
+    address: (person ? readAddress(person) : null) ?? readAddress(raw),
     login: typeof raw.login === 'string' ? raw.login : null,
-    user_id:
-      typeof person.user_id === 'number'
-        ? person.user_id
-        : typeof raw.user_id === 'number'
-          ? raw.user_id
-          : null,
+    user_id: accountInfo?.user_id ?? (typeof raw.user_id === 'number' ? raw.user_id : null),
     has_account: hasUserAccount,
     has_user_account: hasUserAccount,
-    needs_new_account:
-      typeof raw.needs_new_account === 'boolean'
-        ? raw.needs_new_account
-        : typeof person.needs_new_account === 'boolean'
-          ? person.needs_new_account
-          : !hasUserAccount,
-    account:
-      raw.account && typeof raw.account === 'object'
-        ? (raw.account as Parent['account'])
-        : null,
+    needs_new_account: needsNewAccount,
+    account: accountInfo,
+    guardian_profile: guardianProfile,
     relation: typeof raw.relation === 'string' ? raw.relation : null,
-    existing_roles: readStringList(person.existing_roles) ?? readStringList(raw.existing_roles),
-    role_labels: readStringList(person.role_labels) ?? readStringList(raw.role_labels),
-    partner_id: typeof person.partner_id === 'number' ? person.partner_id : undefined,
-    teacher_id: typeof person.teacher_id === 'number' ? person.teacher_id : null,
+    existing_roles: existingRoles,
+    role_labels: roleLabels,
+    partner_id: person && typeof person.partner_id === 'number' ? person.partner_id : undefined,
+    person_id: person && typeof person.person_id === 'number' ? person.person_id : undefined,
+    teacher_id: person && typeof person.teacher_id === 'number' ? person.teacher_id : null,
+    can_delete_person: person?.can_delete_person === true ? true : person?.can_delete_person === false ? false : undefined,
     preferred_language:
-      typeof person.preferred_language === 'string'
-        ? person.preferred_language
-        : typeof raw.preferred_language === 'string'
-          ? raw.preferred_language
+      typeof raw.preferred_language === 'string'
+        ? raw.preferred_language
+        : person && typeof person.preferred_language === 'string'
+          ? person.preferred_language
           : null,
     notification_opt_in: raw.notification_opt_in === true,
     children,
+    relationships: relationshipsChildren.length ? relationshipsChildren : undefined,
     linked_students_count:
       typeof raw.linked_students_count === 'number'
         ? raw.linked_students_count
-        : children?.length,
+        : children.length,
     other_children_count:
       typeof raw.other_children_count === 'number' ? raw.other_children_count : undefined,
-    status: String(raw.status ?? 'active'),
-    needs_review: raw.needs_review === true || person.needs_review === true || undefined,
-    allowed_actions: normalizeAllowedActionsFromRaw(raw.allowed_actions ?? person.allowed_actions),
+    status: String(guardianProfile?.status ?? raw.status ?? 'active'),
+    needs_review: raw.needs_review === true || person?.needs_review === true || undefined,
+    allowed_actions: allowedActions,
   };
 }
 
@@ -170,4 +257,36 @@ export function preferredLanguageLabel(t: (key: string) => string, code: string 
   const key = `admin.preferredLanguages.${code}`;
   const label = t(key);
   return label !== key ? label : code;
+}
+
+/** Map unified parent profile to legacy account panel entity fields. */
+export function parentAccountEntityFields(parent: Parent): import('@/types/account').AccountEntityFields & {
+  id: number;
+} {
+  const userId = parent.account?.user_id ?? parent.user_id ?? null;
+  const email = parent.email;
+  const login = parent.login ?? null;
+
+  if (parent.legacy_account) {
+    return {
+      id: parent.id,
+      email,
+      login,
+      user_id: userId,
+      account: parent.legacy_account,
+    };
+  }
+
+  if (parent.account?.has_user_account && userId) {
+    return {
+      id: parent.id,
+      email,
+      login,
+      user_id: userId,
+      account_status: 'active',
+      status: 'active',
+    };
+  }
+
+  return { id: parent.id, email, login, user_id: userId };
 }

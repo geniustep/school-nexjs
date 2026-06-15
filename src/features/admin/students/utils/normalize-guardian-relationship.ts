@@ -64,6 +64,7 @@ export function canRemoveGuardianRelationship(
   canManage: boolean,
 ): boolean {
   if (!canManage) return false;
+  if (rel.allowed_actions?.remove_relationship === false) return false;
   if (rel.allowed_actions?.remove_guardian_relationship === false) return false;
   if (rel.allowed_actions?.end_relationship === false) return false;
   return true;

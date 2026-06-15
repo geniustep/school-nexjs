@@ -11,6 +11,21 @@ import type {
 
 export type ParentRelation = 'father' | 'mother' | 'guardian' | string;
 
+export interface ParentAccountInfo {
+  has_user_account?: boolean;
+  user_id?: number | null;
+  needs_new_account?: boolean;
+  can_assign_password?: boolean;
+  roles?: string[];
+}
+
+export interface ParentGuardianProfile {
+  guardian_id?: number;
+  status?: string;
+  archivable?: boolean;
+  archive_blockers?: string[];
+}
+
 export interface ParentChildRelationship {
   relationship_id?: number;
   relationship_type?: RelationshipType | string;
@@ -47,19 +62,25 @@ export interface Parent {
   has_account?: boolean;
   has_user_account?: boolean;
   needs_new_account?: boolean;
-  account?: UserAccountInfo | null;
-  /** Legacy global relation — do not show as persona label when per-child relationships exist. */
+  account?: ParentAccountInfo | null;
+  guardian_profile?: ParentGuardianProfile | null;
+  /** Legacy global relation — never shown as persona label when unified person data exists. */
   relation: ParentRelation | null;
   existing_roles?: string[];
   role_labels?: string[];
   partner_id?: number;
+  person_id?: number;
   teacher_id?: number | null;
+  can_delete_person?: boolean;
   preferred_language?: string | null;
   notification_opt_in?: boolean;
   children?: ParentChild[];
+  relationships?: ParentChild[];
   linked_students_count?: number;
   other_children_count?: number;
   status: string;
   needs_review?: boolean;
   allowed_actions?: GuardianAllowedActions;
+  /** @deprecated Legacy account panel shape */
+  legacy_account?: UserAccountInfo | null;
 }

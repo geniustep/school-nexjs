@@ -16,8 +16,8 @@ import { getStudentDisplayName } from '@/lib/utils/student';
 import { formatMoroccanPhoneDisplay } from '@/features/admin/students/utils/normalize-moroccan-phone';
 import { getGuardianEmailPresentation } from '@/features/admin/students/utils/guardian-email-presentation';
 import { relationshipTypeLabel } from '@/features/admin/students/utils/relationship-types';
-import { formatRoleLabels, needsNewAccountFromLink } from '@/features/admin/students/utils/person-role-presentation';
-import { preferredLanguageLabel } from '../utils/normalize-parent-profile';
+import { formatRoleLabels } from '@/features/admin/students/utils/person-role-presentation';
+import { preferredLanguageLabel, parentAccountEntityFields } from '../utils/normalize-parent-profile';
 import type { Parent, ParentChild } from '@/types/parent';
 
 function childClassLabel(child: ParentChild, dash: string): string {
@@ -54,12 +54,12 @@ export function ParentProfileView({
 
   const roleLine = formatRoleLabels(parent.role_labels);
   const emailPresentation = getGuardianEmailPresentation(parent.email);
-  const hasAccount = !!(parent.has_user_account ?? parent.has_account ?? parent.user_id);
-  const showCreateAccount = needsNewAccountFromLink(
-    parent.needs_new_account != null ? { needs_new_account: parent.needs_new_account } : undefined,
-    hasAccount,
-  );
+  const hasAccount = parent.account?.has_user_account === true || !!(parent.has_user_account ?? parent.has_account);
+  const showCreateAccount =
+    parent.account?.needs_new_account === true ||
+    (parent.needs_new_account === true && !hasAccount);
   const canArchive = parent.allowed_actions?.archive_guardian_profile === true;
+  const accountEntity = parentAccountEntityFields(parent);
 
   function buildRemoveRelationship(child: ParentChild) {
     const rel = child.relationship;
@@ -199,7 +199,7 @@ export function ParentProfileView({
                 </p>
               ) : null}
               <EntityAccountPanel
-                entity={parent}
+                entity={accountEntity}
                 entityLabel={parent.name}
                 accountEndpoint={endpoints.admin.parentAccount(parent.id)}
                 managePermission="manage_parents"
@@ -209,7 +209,7 @@ export function ParentProfileView({
             </div>
           ) : showCreateAccount ? (
             <EntityAccountPanel
-              entity={parent}
+              entity={accountEntity}
               entityLabel={parent.name}
               accountEndpoint={endpoints.admin.parentAccount(parent.id)}
               managePermission="manage_parents"
@@ -223,15 +223,15 @@ export function ParentProfileView({
 
         <Card className="parent-profile__children-card">
           <SectionHead title={t('admin.linkedChildren')} />
-          {(parent.children ?? []).length ? (
+          {(parent.relationships ?? parent.children ?? []).length ? (
             <ul className="parent-profile__children-list">
-              {(parent.children ?? []).map((child) => {
+              {(parent.relationships ?? parent.children ?? []).map((child) => {
                 const relType = child.relationship?.relationship_type;
                 const relLabel = relType ? relationshipTypeLabel(t, relType) : null;
                 const studentName = getStudentDisplayName(child);
                 const canRemoveChild =
                   child.relationship?.relationship_id != null &&
-                  child.relationship?.allowed_actions?.remove_guardian_relationship !== false &&
+                  child.relationship?.allowed_actions?.remove_relationship !== false &&
                   child.relationship?.state !== 'ended';
 
                 return (

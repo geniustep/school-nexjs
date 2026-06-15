@@ -29,10 +29,10 @@ export const endpoints = {
       `/admin/students/${id}/guardians/link-person`,
     studentGuardianUpdate: (studentId: number | string, relationshipId: number | string) =>
       `/admin/students/${studentId}/guardians/${relationshipId}/update`,
+    studentGuardianRelationship: (studentId: number | string, relationshipId: number | string) =>
+      `/admin/students/${studentId}/guardians/${relationshipId}`,
     studentGuardianEnd: (studentId: number | string, relationshipId: number | string) =>
       `/admin/students/${studentId}/guardians/${relationshipId}/end`,
-    studentGuardianRemovalImpact: (studentId: number | string, relationshipId: number | string) =>
-      `/admin/students/${studentId}/guardians/${relationshipId}/removal-impact`,
     studentGuardianRemove: (studentId: number | string, relationshipId: number | string) =>
       `/admin/students/${studentId}/guardians/${relationshipId}/remove`,
     studentDocuments: (id: number | string) => `/admin/students/${id}/documents`,
