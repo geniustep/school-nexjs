@@ -127,7 +127,7 @@ export function StudentDocumentEditDialog({
       title={t('admin.student360.documents.editDocument')}
       onClose={() => !submitting && onClose()}
     >
-      <form className="form form--stacked" onSubmit={handleSubmit}>
+      <form className="student-360-drawer-form form form--stacked" onSubmit={handleSubmit}>
         {errors.general ? <p className="form-error">{errors.general}</p> : null}
 
         <label className="form-field">

@@ -1669,13 +1669,16 @@
   -webkit-overflow-scrolling: touch;
 }
 
-/* Document form in drawer */
+/* Drawer forms (health, documents, etc.) */
+.student-360-drawer-form.form--stacked,
 .student-doc-form.form--stacked {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-width: 0;
 }
 
+.student-360-drawer-form__section,
 .student-doc-form__section {
   border: none;
   margin: 0;
@@ -1685,6 +1688,7 @@
   gap: 12px;
 }
 
+.student-360-drawer-form__section legend,
 .student-doc-form__section legend {
   font-size: 0.8125rem;
   font-weight: 600;
@@ -1692,17 +1696,23 @@
   padding: 0;
 }
 
+.student-360-drawer-form .form-field,
 .student-doc-form .form-field {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
 }
 
+.student-360-drawer-form .form-field > span,
 .student-doc-form .form-field > span {
   font-size: 0.8125rem;
   font-weight: 500;
 }
 
+.student-360-drawer-form .form-field input,
+.student-360-drawer-form .form-field select,
+.student-360-drawer-form .form-field textarea,
 .student-doc-form .form-field input,
 .student-doc-form .form-field select,
 .student-doc-form .form-field textarea {
@@ -1711,30 +1721,55 @@
   border: 1px solid var(--c-border, #cbd5e1);
   border-radius: 6px;
   font: inherit;
+  box-sizing: border-box;
 }
 
+.student-360-drawer-form .form-row,
 .student-doc-form .form-row {
   display: grid;
   gap: 12px;
 }
 
+.student-360-drawer-form .form-row--2,
 .student-doc-form .form-row--2 {
   grid-template-columns: 1fr 1fr;
 }
 
+.student-360-drawer-form .field-error,
+.student-360-drawer-form .form-error,
 .student-doc-form .field-error,
 .student-doc-form .form-error {
   font-size: 0.8125rem;
   color: var(--danger, #dc2626);
 }
 
+.student-360-drawer-form .form-actions,
 .student-doc-form__footer {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  padding-top: 8px;
+  padding-top: 12px;
   border-top: 1px solid var(--c-border, #e2e8f0);
   margin-top: 4px;
+  position: sticky;
+  bottom: 0;
+  background: var(--bg, #fff);
+  z-index: 2;
+}
+
+@media (max-width: 480px) {
+  .student-360-drawer-form .form-row--2,
+  .student-doc-form .form-row--2 {
+    grid-template-columns: 1fr;
+  }
+
+  .student-360-drawer-form .form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .student-360-drawer-form .form-actions .btn {
+    width: 100%;
+  }
 }
 
 .student-doc-file-upload__input {

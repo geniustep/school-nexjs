@@ -17,6 +17,28 @@ import {
 } from '../utils/student-health-profile';
 import { mapStudentHealthApiError } from '../utils/student-health-api-errors';
 
+function Field({
+  label,
+  error,
+  children,
+}: {
+  label: string;
+  error?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <label className="form-field">
+      <span>{label}</span>
+      {children}
+      {error ? (
+        <span className="field-error" role="alert">
+          {error}
+        </span>
+      ) : null}
+    </label>
+  );
+}
+
 export function StudentHealthEditDialog({
   open,
   studentId,
@@ -73,13 +95,8 @@ export function StudentHealthEditDialog({
     }
 
     setSubmitting(true);
-    const query =
-      activeSchoolId != null ? { active_school_id: activeSchoolId } : undefined;
-    const res = await api.post<unknown>(
-      endpoints.admin.studentHealthUpdate(studentId),
-      payload,
-      query,
-    );
+    const query = activeSchoolId != null ? { active_school_id: activeSchoolId } : undefined;
+    const res = await api.post<unknown>(endpoints.admin.studentHealthUpdate(studentId), payload, query);
     setSubmitting(false);
 
     if (res.success) {
@@ -102,103 +119,103 @@ export function StudentHealthEditDialog({
       title={t('admin.student360.health.editProfile')}
       onClose={() => !submitting && onClose()}
     >
-      <form className="form form--stacked" onSubmit={handleSubmit}>
-        {errors.general ? <p className="form-error">{errors.general}</p> : null}
+      <form className="student-360-drawer-form form form--stacked" onSubmit={handleSubmit}>
+        {errors.general ? (
+          <p className="form-error" role="alert">
+            {errors.general}
+          </p>
+        ) : null}
 
-        <label className="form-field">
-          <span>{t('admin.student360.health.bloodType')}</span>
-          <select value={state.bloodType} onChange={(e) => update({ bloodType: e.target.value })}>
-            <option value="">{t('common.dash')}</option>
-            {bloodTypes.map((bt) => (
-              <option key={bt.value} value={bt.value}>
-                {bt.label}
-              </option>
-            ))}
-          </select>
-          {errors.bloodType ? <span className="field-error">{errors.bloodType}</span> : null}
-        </label>
+        <fieldset className="student-360-drawer-form__section">
+          <legend>{t('admin.student360.health.sections.basic')}</legend>
+          <Field label={t('admin.student360.health.bloodType')} error={errors.bloodType}>
+            <select className="select" value={state.bloodType} onChange={(e) => update({ bloodType: e.target.value })}>
+              <option value="">{t('common.dash')}</option>
+              {bloodTypes.map((bt) => (
+                <option key={bt.value} value={bt.value}>
+                  {bt.label}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label={t('admin.student360.health.allergies')}>
+            <textarea className="textarea" rows={2} value={state.allergies} onChange={(e) => update({ allergies: e.target.value })} />
+          </Field>
+          <Field label={t('admin.student360.health.chronicConditions')}>
+            <textarea
+              className="textarea"
+              rows={2}
+              value={state.chronicConditions}
+              onChange={(e) => update({ chronicConditions: e.target.value })}
+            />
+          </Field>
+          <Field label={t('admin.student360.health.regularMedications')}>
+            <textarea
+              className="textarea"
+              rows={2}
+              value={state.regularMedications}
+              onChange={(e) => update({ regularMedications: e.target.value })}
+            />
+          </Field>
+          <Field label={t('admin.student360.health.specialNeeds')}>
+            <textarea className="textarea" rows={2} value={state.specialNeeds} onChange={(e) => update({ specialNeeds: e.target.value })} />
+          </Field>
+        </fieldset>
 
-        <label className="form-field">
-          <span>{t('admin.student360.health.allergies')}</span>
-          <textarea rows={2} value={state.allergies} onChange={(e) => update({ allergies: e.target.value })} />
-        </label>
+        <fieldset className="student-360-drawer-form__section">
+          <legend>{t('admin.student360.health.sections.emergency')}</legend>
+          <Field label={t('admin.student360.health.emergencyInstructions')}>
+            <textarea
+              className="textarea"
+              rows={2}
+              value={state.healthEmergencyInstructions}
+              onChange={(e) => update({ healthEmergencyInstructions: e.target.value })}
+            />
+          </Field>
+          <Field label={t('admin.student360.health.doctorName')}>
+            <input className="input" type="text" value={state.doctorName} onChange={(e) => update({ doctorName: e.target.value })} dir="auto" />
+          </Field>
+          <Field label={t('admin.student360.health.doctorPhone')}>
+            <input className="input" type="tel" value={state.doctorPhone} onChange={(e) => update({ doctorPhone: e.target.value })} dir="ltr" />
+          </Field>
+        </fieldset>
 
-        <label className="form-field">
-          <span>{t('admin.student360.health.chronicConditions')}</span>
-          <textarea
-            rows={2}
-            value={state.chronicConditions}
-            onChange={(e) => update({ chronicConditions: e.target.value })}
-          />
-        </label>
+        <fieldset className="student-360-drawer-form__section">
+          <legend>{t('admin.student360.health.sections.insurance')}</legend>
+          <Field label={t('admin.student360.health.insuranceProvider')}>
+            <input
+              className="input"
+              type="text"
+              value={state.insuranceProvider}
+              onChange={(e) => update({ insuranceProvider: e.target.value })}
+              dir="auto"
+            />
+          </Field>
+          <Field label={t('admin.student360.health.insuranceNumber')}>
+            <input
+              className="input"
+              type="text"
+              value={state.insuranceNumber}
+              onChange={(e) => update({ insuranceNumber: e.target.value })}
+              dir="auto"
+            />
+          </Field>
+          <Field label={t('admin.student360.health.insuranceExpiry')} error={errors.insuranceExpiryDate}>
+            <input
+              className="input"
+              type="date"
+              value={state.insuranceExpiryDate}
+              onChange={(e) => update({ insuranceExpiryDate: e.target.value })}
+            />
+          </Field>
+        </fieldset>
 
-        <label className="form-field">
-          <span>{t('admin.student360.health.regularMedications')}</span>
-          <textarea
-            rows={2}
-            value={state.regularMedications}
-            onChange={(e) => update({ regularMedications: e.target.value })}
-          />
-        </label>
-
-        <label className="form-field">
-          <span>{t('admin.student360.health.specialNeeds')}</span>
-          <textarea rows={2} value={state.specialNeeds} onChange={(e) => update({ specialNeeds: e.target.value })} />
-        </label>
-
-        <label className="form-field">
-          <span>{t('admin.student360.health.emergencyInstructions')}</span>
-          <textarea
-            rows={2}
-            value={state.healthEmergencyInstructions}
-            onChange={(e) => update({ healthEmergencyInstructions: e.target.value })}
-          />
-        </label>
-
-        <label className="form-field">
-          <span>{t('admin.student360.health.doctorName')}</span>
-          <input type="text" value={state.doctorName} onChange={(e) => update({ doctorName: e.target.value })} />
-        </label>
-
-        <label className="form-field">
-          <span>{t('admin.student360.health.doctorPhone')}</span>
-          <input type="text" value={state.doctorPhone} onChange={(e) => update({ doctorPhone: e.target.value })} />
-        </label>
-
-        <label className="form-field">
-          <span>{t('admin.student360.health.insuranceProvider')}</span>
-          <input
-            type="text"
-            value={state.insuranceProvider}
-            onChange={(e) => update({ insuranceProvider: e.target.value })}
-          />
-        </label>
-
-        <label className="form-field">
-          <span>{t('admin.student360.health.insuranceNumber')}</span>
-          <input
-            type="text"
-            value={state.insuranceNumber}
-            onChange={(e) => update({ insuranceNumber: e.target.value })}
-          />
-        </label>
-
-        <label className="form-field">
-          <span>{t('admin.student360.health.insuranceExpiry')}</span>
-          <input
-            type="date"
-            value={state.insuranceExpiryDate}
-            onChange={(e) => update({ insuranceExpiryDate: e.target.value })}
-          />
-          {errors.insuranceExpiryDate ? (
-            <span className="field-error">{errors.insuranceExpiryDate}</span>
-          ) : null}
-        </label>
-
-        <label className="form-field">
-          <span>{t('admin.student360.health.notes')}</span>
-          <textarea rows={3} value={state.notes} onChange={(e) => update({ notes: e.target.value })} />
-        </label>
+        <fieldset className="student-360-drawer-form__section">
+          <legend>{t('admin.student360.health.sections.notes')}</legend>
+          <Field label={t('admin.student360.health.notes')}>
+            <textarea className="textarea" rows={3} value={state.notes} onChange={(e) => update({ notes: e.target.value })} />
+          </Field>
+        </fieldset>
 
         <div className="form-actions">
           <button type="button" className="btn btn--ghost" onClick={onClose} disabled={submitting}>

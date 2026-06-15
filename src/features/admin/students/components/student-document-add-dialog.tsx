@@ -152,7 +152,7 @@ export function StudentDocumentAddDialog({
   return (
     <SetupDrawer open={open} title={t('admin.student360.documents.addDocument')} onClose={handleClose}>
       <form
-        className="student-doc-form form form--stacked"
+        className="student-360-drawer-form student-doc-form form form--stacked"
         onSubmit={handleSubmit}
         aria-labelledby={titleId}
         aria-describedby={descId}
