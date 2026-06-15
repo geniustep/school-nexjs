@@ -73,6 +73,69 @@
   margin-top: 6px;
 }
 
+.btn.btn--danger {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #fff;
+}
+
+.btn.btn--danger:disabled {
+  opacity: 0.6;
+}
+
+.guardian-remove-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.guardian-remove-dialog__intro p {
+  margin: 0 0 6px;
+}
+
+.guardian-remove-dialog__professional-note {
+  margin: 6px 0 0;
+  color: var(--text-muted, #64748b);
+}
+
+.guardian-remove-dialog__impact {
+  padding: 12px;
+  border-radius: 8px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+}
+
+.guardian-remove-dialog__impact-title {
+  margin: 0 0 8px;
+  font-weight: 600;
+}
+
+.guardian-remove-dialog__impact-list {
+  margin: 0;
+  padding-inline-start: 1.1rem;
+}
+
+.guardian-remove-dialog__blocker {
+  padding: 12px;
+  border-radius: 8px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.guardian-remove-dialog__blocker-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.student-360-guardian-card__role-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
 .guardian-search-panel__results {
   min-height: 120px;
 }

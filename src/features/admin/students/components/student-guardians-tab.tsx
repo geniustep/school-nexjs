@@ -8,7 +8,7 @@ import { useT } from '@/features/i18n/locale-context';
 import { GuardianRelationshipCard } from './guardian-relationship-card';
 import { GuardianAddDialog } from './guardian-add-dialog';
 import { GuardianEditDialog } from './guardian-edit-dialog';
-import { GuardianEndDialog } from './guardian-end-dialog';
+import { GuardianRemoveDialog } from './guardian-remove-dialog';
 import { Student360CompactEmpty } from './student-360-compact-empty';
 import { isRelationshipActive } from '../utils/relationship-types';
 import {
@@ -35,7 +35,7 @@ export function StudentGuardiansTab({
   const studentId = details.student.id;
   const [addOpen, setAddOpen] = useState(false);
   const [editRel, setEditRel] = useState<GuardianRelationship | null>(null);
-  const [endRel, setEndRel] = useState<GuardianRelationship | null>(null);
+  const [removeRel, setRemoveRel] = useState<GuardianRelationship | null>(null);
 
   const active = details.guardian_relationships.filter((r) =>
     isRelationshipActive(r.state, r.active),
@@ -119,7 +119,7 @@ export function StudentGuardiansTab({
                 canManage={canManageGuardians}
                 isDefaultBilling={isDefaultBillingGuardian(rel.guardian.id, billingResolution)}
                 onEdit={() => setEditRel(rel)}
-                onEnd={() => setEndRel(rel)}
+                onRemove={() => setRemoveRel(rel)}
                 onCopyPhone={copyPhone}
                 onAccountChanged={onChanged}
               />
@@ -135,7 +135,7 @@ export function StudentGuardiansTab({
                     rel={rel}
                     canManage={false}
                     onEdit={() => {}}
-                    onEnd={() => {}}
+                    onRemove={() => {}}
                   />
                 ))}
               </div>
@@ -158,12 +158,12 @@ export function StudentGuardiansTab({
         onClose={() => setEditRel(null)}
         onUpdated={onChanged}
       />
-      <GuardianEndDialog
-        open={!!endRel}
+      <GuardianRemoveDialog
+        open={!!removeRel}
         studentId={studentId}
-        relationship={endRel}
-        onClose={() => setEndRel(null)}
-        onEnded={onChanged}
+        relationship={removeRel}
+        onClose={() => setRemoveRel(null)}
+        onRemoved={onChanged}
       />
     </div>
   );

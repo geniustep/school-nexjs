@@ -15,9 +15,11 @@ import {
   hasCompleteGuardianContact,
   hasUsableGuardianPhone,
 } from '../utils/guardian-email-presentation';
+import { canRemoveGuardianRelationship } from '../utils/normalize-guardian-relationship';
 import { isRelationshipActive, relationshipTypeLabel } from '../utils/relationship-types';
 import {
   formatRoleLabels,
+  needsNewAccountFromLink,
   personHasTeacherRole,
 } from '../utils/person-role-presentation';
 import type { GuardianRelationship } from '@/types/student-360';
@@ -27,7 +29,7 @@ export function GuardianRelationshipCard({
   canManage,
   isDefaultBilling,
   onEdit,
-  onEnd,
+  onRemove,
   onCopyPhone,
   onAccountChanged,
 }: {
@@ -35,7 +37,7 @@ export function GuardianRelationshipCard({
   canManage: boolean;
   isDefaultBilling?: boolean;
   onEdit: () => void;
-  onEnd: () => void;
+  onRemove: () => void;
   onCopyPhone?: (phone: string) => void;
   onAccountChanged?: () => void;
 }) {
@@ -55,21 +57,17 @@ export function GuardianRelationshipCard({
   const contactComplete = hasCompleteGuardianContact(phone, secondaryPhone, rel.guardian.email);
   const accountEntity = {
     id: rel.guardian.id,
-    has_account: rel.guardian.has_account,
+    has_account: rel.guardian.has_account ?? rel.guardian.has_user_account,
     account: rel.guardian.account ?? null,
     email: hasUsableEmail ? emailPresentation.email : null,
   };
   const accountStatus = resolveAccountStatus(accountEntity);
   const hasAccount = accountStatus !== 'not_created';
-  const personProfileLine = personHasTeacherRole(rel.guardian)
-    ? t('admin.student360.personRegisteredAsTeacher')
-    : rel.guardian.role_labels?.length
-      ? formatRoleLabels(rel.guardian.role_labels)
-      : null;
-  const accountRolesLine =
-    hasAccount && rel.guardian.role_labels?.length
-      ? `${t('admin.student360.accountRoles')}: ${formatRoleLabels(rel.guardian.role_labels)}`
-      : null;
+  const showCreateAccount = needsNewAccountFromLink(undefined, hasAccount);
+  const roleLabels = rel.guardian.role_labels ?? [];
+  const rolesLine = formatRoleLabels(roleLabels);
+  const isMultiRole = roleLabels.length > 1 || personHasTeacherRole(rel.guardian);
+  const canRemove = canRemoveGuardianRelationship(rel, canManage) && active;
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -92,14 +90,7 @@ export function GuardianRelationshipCard({
     setAccountDialogOpen(true);
   }
 
-  const relationshipParts = [relationshipTypeLabel(t, rel.relationship_type)];
-  if (rel.is_primary_contact) relationshipParts.push(t('admin.student360.primaryGuardianShort'));
-  if (rel.is_financial_responsible && isDefaultBilling) {
-    relationshipParts.push(t('admin.student360.financialAndDefaultBilling'));
-  } else if (isDefaultBilling) {
-    relationshipParts.push(t('admin.student360.defaultBillingPartyShort'));
-  }
-  const relationshipLine = relationshipParts.join(' · ');
+  const relationshipLine = relationshipTypeLabel(t, rel.relationship_type);
 
   return (
     <>
@@ -117,12 +108,25 @@ export function GuardianRelationshipCard({
             <Link href={`/admin/parents/${rel.guardian.id}`} className="student-360-guardian-card__name" dir="auto">
               {rel.guardian.name}
             </Link>
-            <p className="student-360-guardian-card__meta tiny muted">{relationshipLine}</p>
-            {personProfileLine ? (
-              <p className="student-360-guardian-card__meta tiny muted">{personProfileLine}</p>
+            {rolesLine ? (
+              <div className="student-360-guardian-card__role-badges">
+                {roleLabels.map((label) => (
+                  <Badge key={`${rel.relationship_id}-${label}`} tone="slate">
+                    {label}
+                  </Badge>
+                ))}
+              </div>
+            ) : personHasTeacherRole(rel.guardian) ? (
+              <p className="student-360-guardian-card__meta tiny muted">
+                {t('admin.student360.personRegisteredAsTeacher')}
+              </p>
             ) : null}
-            {accountRolesLine ? (
-              <p className="student-360-guardian-card__meta tiny muted">{accountRolesLine}</p>
+            <p className="student-360-guardian-card__meta tiny muted">
+              {relationshipLine}
+              {rel.is_primary_contact ? ` · ${t('admin.student360.primaryGuardianShort')}` : ''}
+            </p>
+            {rel.needs_review ? (
+              <Badge tone="amber">{t('admin.student360.recordNeedsReview')}</Badge>
             ) : null}
           </div>
           <Badge tone={active ? 'green' : 'slate'}>
@@ -183,7 +187,21 @@ export function GuardianRelationshipCard({
         <GuardianRelationshipBadges rel={rel} isDefaultBilling={isDefaultBilling} />
 
         <div className="student-360-guardian-card__account">
-          <AccountStatusBadge entity={accountEntity} showLogin={hasAccount} />
+          {hasAccount ? (
+            <>
+              <Badge tone="green">{t('admin.student360.hasLoginAccount')}</Badge>
+              {rolesLine ? (
+                <p className="tiny muted">
+                  {t('admin.student360.accountRoles')}: {rolesLine}
+                </p>
+              ) : null}
+              {isMultiRole && hasAccount ? (
+                <p className="tiny muted">{t('admin.student360.singleLoginForRoles')}</p>
+              ) : null}
+            </>
+          ) : (
+            <AccountStatusBadge entity={accountEntity} showLogin={false} />
+          )}
         </div>
 
         {canManage && active ? (
@@ -194,13 +212,13 @@ export function GuardianRelationshipCard({
             <button type="button" className="btn btn--secondary btn--sm" onClick={onEdit}>
               {t('admin.student360.editRelationship')}
             </button>
-            {hasAccount ? (
+            {hasAccount || !showCreateAccount ? (
               <Link href={`/admin/parents/${rel.guardian.id}`} className="btn btn--ghost btn--sm">
                 {t('admin.student360.guardiansManageLoginAccount')}
               </Link>
             ) : (
               <button type="button" className="btn btn--ghost btn--sm" onClick={openCreateAccount}>
-                {t('admin.student360.guardiansCreateLoginAccount')}
+                {t('admin.student360.guardiansCreateLoginForGuardian')}
               </button>
             )}
             <div className="student-360-guardian-card__menu-wrap" ref={menuRef}>
@@ -223,28 +241,32 @@ export function GuardianRelationshipCard({
                   >
                     {t('admin.student360.guardiansCompleteProfile')}
                   </Link>
-                  <button
-                    type="button"
-                    className="student-360-guardian-card__menu-item"
-                    role="menuitem"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      openResetPassword();
-                    }}
-                  >
-                    {t('admin.student360.guardiansSetNewPassword')}
-                  </button>
-                  <button
-                    type="button"
-                    className="student-360-guardian-card__menu-item student-360-guardian-card__menu-item--danger"
-                    role="menuitem"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      onEnd();
-                    }}
-                  >
-                    {t('admin.student360.endRelationship')}
-                  </button>
+                  {hasAccount ? (
+                    <button
+                      type="button"
+                      className="student-360-guardian-card__menu-item"
+                      role="menuitem"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        openResetPassword();
+                      }}
+                    >
+                      {t('admin.student360.guardiansSetNewPassword')}
+                    </button>
+                  ) : null}
+                  {canRemove ? (
+                    <button
+                      type="button"
+                      className="student-360-guardian-card__menu-item student-360-guardian-card__menu-item--danger"
+                      role="menuitem"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        onRemove();
+                      }}
+                    >
+                      {t('admin.student360.removeGuardianFromStudent')}
+                    </button>
+                  ) : null}
                 </div>
               ) : null}
             </div>
@@ -252,7 +274,7 @@ export function GuardianRelationshipCard({
         ) : null}
       </Card>
 
-      {canManage && active ? (
+      {canManage && active && (showCreateAccount || accountDialogOpen) ? (
         <CreateAccountDialog
           open={accountDialogOpen}
           title={

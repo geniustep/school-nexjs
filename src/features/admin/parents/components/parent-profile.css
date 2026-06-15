@@ -1,0 +1,73 @@
+.parent-profile__identity-card {
+  grid-column: 1 / -1;
+}
+
+.parent-profile__identity {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.parent-profile__name {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.parent-profile__roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.parent-profile__children-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.parent-profile__child-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 12px;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 8px;
+}
+
+.parent-profile__child-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+.parent-profile__child-name {
+  font-weight: 600;
+}
+
+.parent-profile__child-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.parent-profile__remove-btn {
+  color: #dc2626;
+}
+
+@media (max-width: 640px) {
+  .parent-profile__child-row,
+  .parent-profile__child-actions {
+    flex-direction: column;
+  }
+
+  .parent-profile__child-actions .btn {
+    width: 100%;
+  }
+}

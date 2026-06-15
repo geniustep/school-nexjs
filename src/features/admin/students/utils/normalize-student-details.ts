@@ -8,6 +8,7 @@ import type {
   StudentSummary,
 } from '@/types/student-360';
 import { normalizeStudentFinanceOverviewSummary } from './normalize-student-finance';
+import { normalizeGuardianRelationshipList } from './normalize-guardian-relationship';
 
 const DEFAULT_CAPABILITIES: StudentCapabilities = {
   can_manage: false,
@@ -54,7 +55,7 @@ export function normalizeStudentDetailsResponse(data: unknown): StudentDetailsDa
         ? (raw.enrollment_history as StudentDetailsData['enrollment_history'])
         : [],
       guardian_relationships: Array.isArray(raw.guardian_relationships)
-        ? (raw.guardian_relationships as GuardianRelationship[])
+        ? normalizeGuardianRelationshipList(raw.guardian_relationships)
         : legacyParentsToRelationships(student.parents ?? (raw.parents as ParentLink[] | undefined)),
       capabilities: (raw.capabilities as StudentCapabilities) ?? DEFAULT_CAPABILITIES,
       document_summary: (raw.document_summary as StudentDocumentSummary | null) ?? null,

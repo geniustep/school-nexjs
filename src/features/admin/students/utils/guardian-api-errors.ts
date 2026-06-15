@@ -11,6 +11,73 @@ export interface GuardianErrorContext {
   matches?: GuardianDuplicateMatch[];
 }
 
+export interface GuardianRemovalBlockerContext {
+  message: string;
+  code?: string;
+  suggestedActions?: Array<{ label: string; href?: string }>;
+}
+
+export function mapGuardianRemovalBlocker(
+  error: ApiErrorBody,
+  t: TranslateFn,
+): GuardianRemovalBlockerContext | null {
+  const code = String(error.code ?? '');
+  const details = error.details as Record<string, unknown> | undefined;
+  const agreementId =
+    typeof details?.financial_agreement_id === 'number'
+      ? details.financial_agreement_id
+      : typeof details?.agreement_id === 'number'
+        ? details.agreement_id
+        : null;
+
+  const suggestedActions: GuardianRemovalBlockerContext['suggestedActions'] = [];
+  if (agreementId != null) {
+    suggestedActions.push({
+      label: t('admin.student360.removeGuardianOpenAgreement'),
+      href: `/admin/finance/agreements/${agreementId}`,
+    });
+  }
+
+  switch (code) {
+    case 'guardian_removal_blocked':
+    case 'financial_agreement_blocks_removal':
+    case 'active_financial_agreement':
+      return {
+        code,
+        message: t('admin.student360.removeGuardianFinancialBlocker'),
+        suggestedActions: suggestedActions.length
+          ? suggestedActions
+          : [{ label: t('admin.student360.editRelationship') }],
+      };
+    case 'financial_guardian_conflict':
+      return {
+        code,
+        message: t('admin.student360.removeGuardianFinancialBlocker'),
+        suggestedActions: suggestedActions.length
+          ? suggestedActions
+          : [{ label: t('admin.student360.editRelationship') }],
+      };
+    case 'primary_guardian_conflict':
+      return {
+        code,
+        message: t('admin.student360.removeGuardianPrimaryBlocker'),
+        suggestedActions: [{ label: t('admin.student360.editRelationship') }],
+      };
+    default: {
+      const msg = error.message?.trim();
+      if (
+        msg &&
+        !msg.includes('<') &&
+        !msg.toLowerCase().includes('traceback') &&
+        (code.includes('block') || code.includes('conflict') || msg.length > 12)
+      ) {
+        return { code, message: msg, suggestedActions };
+      }
+      return null;
+    }
+  }
+}
+
 export function inferDuplicateField(
   details: Record<string, unknown> | undefined,
   message?: string,

@@ -384,6 +384,43 @@ export interface LinkPersonAsGuardianPayload {
 
 export type GuardianDuplicateField = 'phone' | 'email' | 'national_id' | 'unknown';
 
+export interface GuardianAllowedActions {
+  remove_guardian_relationship?: boolean;
+  end_relationship?: boolean;
+  edit_relationship?: boolean;
+  manage_account?: boolean;
+  archive_guardian_profile?: boolean;
+}
+
+export interface GuardianRemovalImpactAction {
+  label: string;
+  href?: string;
+  action?: string;
+}
+
+export interface GuardianRemovalImpact {
+  can_remove?: boolean;
+  blocked?: boolean;
+  blocker_code?: string;
+  blocker_message?: string;
+  suggested_actions?: GuardianRemovalImpactAction[];
+  summary?: string[];
+  items?: string[];
+  other_children_count?: number;
+  other_roles?: string[];
+  role_labels?: string[];
+  account_preserved?: boolean;
+  professional_profile_preserved?: boolean;
+  professional_roles?: string[];
+  removes_primary_contact?: boolean;
+  removes_financial_responsible?: boolean;
+  removes_legal_guardian?: boolean;
+  removes_emergency_contact?: boolean;
+  billing_party_change?: string | null;
+  has_user_account?: boolean;
+  needs_new_account?: boolean;
+}
+
 export interface GuardianRelationship {
   relationship_id: number;
   guardian: GuardianSummary;
@@ -400,6 +437,9 @@ export interface GuardianRelationship {
   state: GuardianRelationshipState;
   active?: boolean;
   notes?: string | null;
+  allowed_actions?: GuardianAllowedActions;
+  removal_impact?: GuardianRemovalImpact;
+  needs_review?: boolean;
 }
 
 export interface StudentDetailsData {

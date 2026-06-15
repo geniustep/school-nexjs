@@ -31,6 +31,10 @@ export const endpoints = {
       `/admin/students/${studentId}/guardians/${relationshipId}/update`,
     studentGuardianEnd: (studentId: number | string, relationshipId: number | string) =>
       `/admin/students/${studentId}/guardians/${relationshipId}/end`,
+    studentGuardianRemovalImpact: (studentId: number | string, relationshipId: number | string) =>
+      `/admin/students/${studentId}/guardians/${relationshipId}/removal-impact`,
+    studentGuardianRemove: (studentId: number | string, relationshipId: number | string) =>
+      `/admin/students/${studentId}/guardians/${relationshipId}/remove`,
     studentDocuments: (id: number | string) => `/admin/students/${id}/documents`,
     studentDocumentUpdate: (studentId: number | string, documentId: number | string) =>
       `/admin/students/${studentId}/documents/${documentId}/update`,
