@@ -3,9 +3,11 @@
 import Link from 'next/link';
 import { useMemo } from 'react';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
+import { formatFinancePlural } from '@/features/admin/finance/finance-hub-plural';
 import { computeCollectionRate } from '@/features/admin/finance/finance-hub-chart-utils';
-import { useT } from '@/features/i18n/locale-context';
+import { useLocale, useT } from '@/features/i18n/locale-context';
 import { normalizeFinanceOverview, normalizeMoneyValue } from '@/lib/utils/finance-normalize';
+import { resolveFinanceCurrency } from '@/lib/i18n/format-money';
 import type { AdminFinanceOverview } from '@/types/finance';
 
 type KpiDef = {
@@ -15,12 +17,8 @@ type KpiDef = {
   href?: string;
   hint?: string | null;
   isPercent?: boolean;
+  alwaysShow?: boolean;
 };
-
-function metricValue(value: number | null | undefined): boolean {
-  if (value == null || Number.isNaN(value)) return false;
-  return true;
-}
 
 export function FinanceHubKpiGrid({
   data,
@@ -30,10 +28,12 @@ export function FinanceHubKpiGrid({
   loading?: boolean;
 }) {
   const t = useT();
+  const { locale } = useLocale();
   const overview = normalizeFinanceOverview(data);
   const totals = overview?.totals ?? null;
-  const currency = totals?.currency;
+  const currency = resolveFinanceCurrency(totals?.currency);
   const collectionRate = computeCollectionRate(overview);
+  const hasOverview = overview != null;
 
   const metrics = useMemo<KpiDef[]>(
     () => [
@@ -43,21 +43,24 @@ export function FinanceHubKpiGrid({
         value: totals?.total_due,
         href: '/admin/finance/installments',
         hint:
-          totals?.students_with_balance != null
-            ? t('admin.finance.hub.kpiStudentsHint', { count: String(totals.students_with_balance) })
+          totals?.students_with_balance != null && totals.students_with_balance > 0
+            ? formatFinancePlural(t, locale, 'student', totals.students_with_balance)
             : null,
+        alwaysShow: true,
       },
       {
-        key: 'confirmed_paid',
-        labelKey: 'admin.finance.hub.kpiConfirmedPaid',
+        key: 'collected',
+        labelKey: 'admin.finance.hub.kpiCollected',
         value: totals?.total_collected,
         href: '/admin/finance/collections',
+        alwaysShow: true,
       },
       {
         key: 'remaining',
         labelKey: 'admin.finance.hub.kpiRemaining',
         value: totals?.total_remaining,
         href: '/admin/finance/installments',
+        alwaysShow: true,
       },
       {
         key: 'overdue',
@@ -65,11 +68,10 @@ export function FinanceHubKpiGrid({
         value: totals?.total_overdue,
         href: '/admin/finance/installments?quick=overdue_unpaid',
         hint:
-          totals?.overdue_installments_count != null
-            ? t('admin.finance.hub.kpiOverdueInstallmentsHint', {
-                count: String(totals.overdue_installments_count),
-              })
+          totals?.overdue_installments_count != null && totals.overdue_installments_count > 0
+            ? formatFinancePlural(t, locale, 'overdueInstallment', totals.overdue_installments_count)
             : null,
+        alwaysShow: true,
       },
       {
         key: 'collection_rate',
@@ -77,16 +79,17 @@ export function FinanceHubKpiGrid({
         value: collectionRate,
         isPercent: true,
         href: '/admin/finance/collections',
+        alwaysShow: collectionRate != null,
       },
     ],
-    [totals, collectionRate, t],
+    [totals, collectionRate, t, locale],
   );
 
-  const visible = metrics.filter((m) => metricValue(m.value));
+  const visible = hasOverview ? metrics.filter((m) => m.alwaysShow !== false) : [];
 
-  if (loading && !visible.length) {
+  if (loading && !hasOverview) {
     return (
-      <div className="finance-metrics-grid finance-hub-kpi-grid" aria-busy="true">
+      <div className="finance-hub-kpi-grid finance-hub-kpi-grid--five" aria-busy="true">
         {Array.from({ length: 5 }).map((_, index) => (
           <div key={index} className="card finance-metric-card finance-hub-skeleton-card" />
         ))}
@@ -97,21 +100,21 @@ export function FinanceHubKpiGrid({
   if (!visible.length) return null;
 
   return (
-    <div className="finance-metrics-grid finance-hub-kpi-grid">
+    <div className="finance-hub-kpi-grid finance-hub-kpi-grid--five">
       {visible.map((metric) => {
-        const raw = normalizeMoneyValue(metric.value);
-        if (raw == null) return null;
+        const raw = metric.isPercent ? metric.value : normalizeMoneyValue(metric.value ?? 0);
+        if (raw == null && !metric.alwaysShow) return null;
         const body = (
           <>
-            <span className="muted">{t(metric.labelKey)}</span>
-            <strong>
+            <span className="finance-metric-card__label muted">{t(metric.labelKey)}</span>
+            <strong className="finance-metric-card__value">
               {metric.isPercent ? (
-                `${raw}%`
+                `${raw ?? 0}%`
               ) : (
-                <FinanceMoney amount={raw} currency={currency} />
+                <FinanceMoney amount={raw ?? 0} currency={currency} />
               )}
             </strong>
-            {metric.hint ? <span className="tiny muted">{metric.hint}</span> : null}
+            {metric.hint ? <span className="finance-metric-card__hint tiny muted">{metric.hint}</span> : null}
           </>
         );
         if (metric.href) {

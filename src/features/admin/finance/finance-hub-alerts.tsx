@@ -5,11 +5,12 @@ import { IconAlertTriangle, IconCheckCircle } from '@/components/icons/admin-ico
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { FinanceHubSection } from '@/features/admin/finance/finance-hub-header';
 import { buildFinanceHubAttentionItems } from '@/features/admin/finance/finance-hub-attention-utils';
-import { useT } from '@/features/i18n/locale-context';
+import { formatFinancePlural } from '@/features/admin/finance/finance-hub-plural';
+import { useLocale, useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
-import { normalizeFinanceOverview } from '@/lib/utils/finance-normalize';
-import { parseFinanceList } from '@/lib/utils/finance-normalize';
+import { resolveFinanceCurrency } from '@/lib/i18n/format-money';
+import { normalizeFinanceOverview, parseFinanceList } from '@/lib/utils/finance-normalize';
 import type { AdminFinanceOverview, FinanceCheque } from '@/types/finance';
 
 function useChequeTotal(params: Record<string, string | number>) {
@@ -41,6 +42,8 @@ export function FinanceHubAlerts({
   currency?: string;
 }) {
   const t = useT();
+  const { locale } = useLocale();
+  const resolvedCurrency = resolveFinanceCurrency(currency);
   const overview = normalizeFinanceOverview(data);
 
   const rejectedListCount = useChequeTotal({ state: 'rejected' });
@@ -74,30 +77,35 @@ export function FinanceHubAlerts({
         </div>
       ) : (
         <div className="finance-hub-attention-grid">
-          {alerts.map((alert) => (
-            <article
-              key={alert.key}
-              className={`finance-hub-attention-item card finance-hub-attention-item--${alert.severity}`}
-            >
-              <div className="finance-hub-attention-item__head">
-                <IconAlertTriangle size={16} aria-hidden />
-                <p>{t(alert.messageKey, alert.messageParams)}</p>
-              </div>
-              {alert.amount != null ? (
-                <p className="finance-hub-attention-item__amount muted">
-                  {t('admin.finance.hub.attentionTotalValue')}{' '}
-                  <FinanceMoney amount={alert.amount} currency={currency} />
-                </p>
-              ) : null}
-              {alert.href ? (
-                <Link href={alert.href} className="btn btn--ghost btn--sm">
-                  {t(alert.actionKey)}
-                </Link>
-              ) : (
-                <span className="tiny muted">{t(alert.actionKey)}</span>
-              )}
-            </article>
-          ))}
+          {alerts.map((alert) => {
+            const title = alert.pluralKind
+              ? formatFinancePlural(t, locale, alert.pluralKind, alert.count)
+              : t(alert.titleKey ?? '');
+            return (
+              <article
+                key={alert.key}
+                className={`finance-hub-attention-item card finance-hub-attention-item--${alert.severity}`}
+              >
+                <div className="finance-hub-attention-item__head">
+                  <IconAlertTriangle size={16} aria-hidden />
+                  <h3 className="finance-hub-attention-item__title">{title}</h3>
+                </div>
+                {alert.amount != null ? (
+                  <p className="finance-hub-attention-item__amount">
+                    <span className="muted">{t('admin.finance.hub.attentionTotalValue')}</span>{' '}
+                    <FinanceMoney amount={alert.amount} currency={resolvedCurrency} />
+                  </p>
+                ) : null}
+                {alert.href ? (
+                  <Link href={alert.href} className="btn btn--ghost btn--sm finance-hub-attention-item__action">
+                    {t(alert.actionKey)}
+                  </Link>
+                ) : (
+                  <span className="tiny muted">{t(alert.actionKey)}</span>
+                )}
+              </article>
+            );
+          })}
         </div>
       )}
     </FinanceHubSection>

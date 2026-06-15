@@ -7,7 +7,7 @@ export type TrendPoint = { key: string; amount: number; label: string };
 
 export type ReceivableSlice = { key: string; amount: number };
 
-export type MethodSlice = { code: string; amount: number; label?: string };
+export type MethodSlice = { code: string; amount: number; count: number; label?: string };
 
 function collectionDate(row: PaymentCollection): string | null {
   const extended = row as PaymentCollection & { payment_date?: string; method?: string; confirmed_amount?: number };
@@ -76,17 +76,18 @@ export function buildReceivableStatusSlices(
 }
 
 export function buildPaymentMethodSlices(rows: PaymentCollection[]): MethodSlice[] {
-  const buckets = new Map<string, number>();
+  const buckets = new Map<string, { amount: number; count: number }>();
   for (const row of rows) {
     const code = collectionMethod(row);
     if (!code) continue;
     const amount = collectionAmount(row);
     if (amount == null) continue;
-    buckets.set(code, (buckets.get(code) ?? 0) + amount);
+    const prev = buckets.get(code) ?? { amount: 0, count: 0 };
+    buckets.set(code, { amount: prev.amount + amount, count: prev.count + 1 });
   }
   return [...buckets.entries()]
-    .sort(([, a], [, b]) => b - a)
-    .map(([code, amount]) => ({ code, amount }));
+    .sort(([, a], [, b]) => b.amount - a.amount)
+    .map(([code, stats]) => ({ code, amount: stats.amount, count: stats.count }));
 }
 
 export function computeCollectionRate(
@@ -116,4 +117,13 @@ export function sumInstallmentRemaining(
     amount += remaining;
   }
   return { count, amount };
+}
+
+export function sumTrendAmount(points: TrendPoint[]): number {
+  return points.reduce((sum, point) => sum + point.amount, 0);
+}
+
+export function slicePercent(amount: number, total: number): number {
+  if (total <= 0) return 0;
+  return Math.round((amount / total) * 1000) / 10;
 }

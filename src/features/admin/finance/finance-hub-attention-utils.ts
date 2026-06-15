@@ -1,5 +1,6 @@
 import { normalizeMoneyValue } from '@/lib/utils/finance-normalize';
 import { rejectedChequeQuickHref, totalRejectedChequeCount } from '@/lib/utils/cheque-status';
+import type { FinancePluralKind } from '@/features/admin/finance/finance-hub-plural';
 import type { AdminFinanceOverview, FinanceInstallment } from '@/types/finance';
 
 export type FinanceHubAttentionSeverity = 'critical' | 'warning' | 'info';
@@ -11,8 +12,8 @@ export type FinanceHubAttentionItem = {
   amount?: number | null;
   href?: string;
   actionKey: string;
-  messageKey: string;
-  messageParams?: Record<string, string>;
+  pluralKind?: FinancePluralKind;
+  titleKey?: string;
 };
 
 function sumOverdueInstallments(rows: FinanceInstallment[] | undefined): number {
@@ -46,8 +47,7 @@ export function buildFinanceHubAttentionItems(input: {
       amount: sumOverdueInstallments(overdueRows) || totals?.total_overdue,
       href: '/admin/finance/installments?quick=overdue_unpaid',
       actionKey: 'admin.finance.hub.actionOverdueInstallments',
-      messageKey: 'admin.finance.hub.alertOverdueInstallments',
-      messageParams: { count: String(overdueCount) },
+      pluralKind: 'overdueInstallment',
     });
   }
 
@@ -60,8 +60,7 @@ export function buildFinanceHubAttentionItems(input: {
       amount: totals?.cheques_rejected_amount,
       href: '/admin/finance/cheques?quick=overdue',
       actionKey: 'admin.finance.hub.actionOverdueCheques',
-      messageKey: 'admin.finance.hub.alertOverdueCheques',
-      messageParams: { count: String(overdueCheques) },
+      pluralKind: 'overdueCheque',
     });
   }
 
@@ -81,7 +80,7 @@ export function buildFinanceHubAttentionItems(input: {
       severity: 'warning',
       count: overviewRejected,
       actionKey: 'admin.finance.hub.actionReviewCheques',
-      messageKey: 'admin.finance.hub.alertRejectedChequesUnverified',
+      titleKey: 'admin.finance.hub.alertRejectedChequesUnverified',
     });
   } else if (verifiedRejected > 0) {
     items.push({
@@ -91,8 +90,7 @@ export function buildFinanceHubAttentionItems(input: {
       amount: totals?.cheques_rejected_amount,
       href: rejectedChequeQuickHref(),
       actionKey: 'admin.finance.hub.actionRejectedCheques',
-      messageKey: 'admin.finance.hub.alertRejectedChequesSummary',
-      messageParams: { count: String(verifiedRejected) },
+      pluralKind: 'rejectedCheque',
     });
   }
 
@@ -104,8 +102,7 @@ export function buildFinanceHubAttentionItems(input: {
       amount: input.chequesDueSoonAmount,
       href: '/admin/finance/cheques?quick=due_today',
       actionKey: 'admin.finance.hub.actionChequesDueSoon',
-      messageKey: 'admin.finance.hub.alertChequesDueSoon',
-      messageParams: { count: String(input.chequesDueSoonCount) },
+      pluralKind: 'chequeDueSoon',
     });
   }
 
@@ -116,8 +113,7 @@ export function buildFinanceHubAttentionItems(input: {
       count: input.draftCollectionsCount ?? 0,
       href: '/admin/finance/collections?state=draft',
       actionKey: 'admin.finance.hub.actionDraftCollections',
-      messageKey: 'admin.finance.hub.alertDraftCollections',
-      messageParams: { count: String(input.draftCollectionsCount) },
+      pluralKind: 'draftCollection',
     });
   }
 
@@ -128,8 +124,7 @@ export function buildFinanceHubAttentionItems(input: {
       count: totals?.draft_agreements_count ?? 0,
       href: '/admin/finance/agreements?state=draft',
       actionKey: 'admin.finance.hub.actionDraftAgreements',
-      messageKey: 'admin.finance.hub.alertDraftAgreements',
-      messageParams: { count: String(totals?.draft_agreements_count) },
+      pluralKind: 'draftAgreement',
     });
   }
 
@@ -142,7 +137,7 @@ export function buildFinanceHubAttentionItems(input: {
       amount: uncovered,
       href: '/admin/finance/student-fees',
       actionKey: 'admin.finance.hub.actionUncovered',
-      messageKey: 'admin.finance.hub.alertUncoveredAmount',
+      titleKey: 'admin.finance.hub.alertUncoveredAmount',
     });
   }
 

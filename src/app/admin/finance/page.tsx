@@ -11,7 +11,6 @@ import { FinanceHubFilters } from '@/features/admin/finance/finance-hub-filters'
 import { FinanceHubHeader } from '@/features/admin/finance/finance-hub-header';
 import { FinanceHubKpiGrid } from '@/features/admin/finance/finance-hub-kpi-grid';
 import { FinanceHubLinks } from '@/features/admin/finance/finance-hub-links';
-import { FinanceHubPerformance } from '@/features/admin/finance/finance-hub-performance';
 import type { FinanceHubFilterState } from '@/features/admin/finance/finance-hub-period';
 import { resolveFinanceHubPeriod } from '@/features/admin/finance/finance-hub-period';
 import { useAdminSession } from '@/features/auth/admin-session-context';
@@ -100,7 +99,6 @@ export default function AdminFinancePage() {
               dateTo={resolvedPeriod.dateTo}
               currency={currency}
             />
-            <FinanceHubPerformance />
             <FinanceHubCashflow
               overviewData={overviewState.data}
               currency={currency}

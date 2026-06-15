@@ -108,7 +108,7 @@ export function FinanceHubLinks({ overview }: { overview: AdminFinanceOverview |
       {visibleOperations.length ? (
         <section className="finance-hub-links-section">
           <h2 className="finance-hub-links-title">{t('admin.finance.hub.workspaceOperations')}</h2>
-          <div className="finance-hub-grid finance-hub-grid--balanced">
+          <div className="finance-hub-grid finance-hub-grid--operations">
             {visibleOperations.map((link) => (
               <WorkspaceCard key={link.href} link={link} t={t} />
             ))}
@@ -119,7 +119,7 @@ export function FinanceHubLinks({ overview }: { overview: AdminFinanceOverview |
       {visibleSetup.length ? (
         <section className="finance-hub-links-section">
           <h2 className="finance-hub-links-title">{t('admin.finance.hub.workspaceSetup')}</h2>
-          <div className="finance-hub-grid finance-hub-grid--balanced">
+          <div className="finance-hub-grid finance-hub-grid--setup">
             {visibleSetup.map((link) => (
               <WorkspaceCard key={link.href} link={link} t={t} />
             ))}

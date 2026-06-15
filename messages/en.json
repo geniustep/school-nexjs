@@ -3557,14 +3557,13 @@
           "custom": "Custom range"
         },
         "kpiTotalDue": "Total due",
+        "kpiCollected": "Amount collected",
         "kpiConfirmedPaid": "Total collected",
         "kpiPendingCheques": "Cheques pending clearance",
         "kpiRemaining": "Remaining",
         "kpiUncovered": "Uncovered",
         "kpiOverdue": "Overdue",
         "kpiCollectionRate": "Collection rate",
-        "kpiStudentsHint": "{count} student(s)",
-        "kpiOverdueInstallmentsHint": "{count} overdue installment(s)",
         "attentionTitle": "Needs your attention",
         "attentionEmpty": "No critical financial cases require action right now.",
         "attentionTotalValue": "Total value:",
@@ -3576,38 +3575,97 @@
         "actionDraftCollections": "Complete collections",
         "actionDraftAgreements": "Review agreements",
         "actionUncovered": "View receivables",
-        "alertOverdueInstallments": "{count} overdue installment(s) need follow-up",
-        "alertOverdueCheques": "{count} overdue cheque(s)",
-        "alertRejectedCheques": "{count} rejected cheque(s)",
-        "alertRejectedChequesSummary": "{count} rejected cheque(s)",
-        "alertRejectedChequesFollowUp": "Rejected cheques need follow-up ({count}) — view rejected cheques",
-        "alertRejectedChequesUnverified": "Could not verify the rejected cheque count.",
-        "alertDraftAgreements": "{count} draft agreement(s) not activated",
-        "alertDraftCollections": "{count} draft collection(s) incomplete",
-        "alertChequesDueSoon": "{count} cheque(s) due soon",
+        "alertRejectedChequesUnverified": "Could not confirm the rejected cheque count. Review the cheque list manually.",
         "alertUncoveredAmount": "Amounts not covered by active agreements",
         "analyticsTitle": "Analytics",
         "chartCollectionTrend": "Collection trend",
-        "chartCollectionTrendEmpty": "No collections in the selected period.",
+        "chartCollectionTrendEmpty": "No confirmed collections in the selected period.",
+        "chartPeriodTotal": "Period total",
         "chartReceivableStatus": "Receivable status",
         "chartReceivableStatusEmpty": "Not enough data to show receivable distribution.",
+        "chartReceivableCenter": "Total due",
         "chartPaymentMethods": "Payment method mix",
         "chartPaymentMethodsEmpty": "No collections to show payment methods in this period.",
+        "chartPaymentMethodOps": "{count} transactions",
         "receivableStatus": {
           "paid": "Paid",
           "due": "Due",
           "overdue": "Overdue"
         },
-        "performanceTitle": "Collection performance by class or level",
-        "performanceUnavailableTitle": "Class-level aggregation is not available yet",
-        "performanceUnavailableDesc": "The current API does not provide reliable school-wide aggregation by class or level. This section will appear when a dedicated endpoint is available.",
         "cashflowTitle": "Upcoming cash flows",
         "cashflowEmpty": "No upcoming flows are available in the current data.",
         "cashflowDue7Days": "Due within 7 days",
         "cashflowDue30Days": "Due within 30 days",
         "cashflowChequesDueSoon": "Cheques due soon",
         "cashflowCurrentOverdue": "Current overdue",
-        "cashflowCountHint": "{count} item(s)",
+        "cashflowActionInstallments": "View receivables",
+        "cashflowActionCheques": "View cheques",
+        "cashflowActionOverdue": "View overdue",
+        "plural": {
+          "rejectedCheque": {
+            "zero": "",
+            "one": "1 rejected cheque",
+            "two": "2 rejected cheques",
+            "few": "{count} rejected cheques",
+            "many": "{count} rejected cheques"
+          },
+          "chequeDueSoon": {
+            "zero": "",
+            "one": "1 cheque due soon",
+            "two": "2 cheques due soon",
+            "few": "{count} cheques due soon",
+            "many": "{count} cheques due soon"
+          },
+          "overdueCheque": {
+            "zero": "",
+            "one": "1 overdue cheque",
+            "two": "2 overdue cheques",
+            "few": "{count} overdue cheques",
+            "many": "{count} overdue cheques"
+          },
+          "draftCollection": {
+            "zero": "",
+            "one": "1 incomplete collection",
+            "two": "2 incomplete collections",
+            "few": "{count} incomplete collections",
+            "many": "{count} incomplete collections"
+          },
+          "overdueInstallment": {
+            "zero": "",
+            "one": "1 overdue installment",
+            "two": "2 overdue installments",
+            "few": "{count} overdue installments",
+            "many": "{count} overdue installments"
+          },
+          "draftAgreement": {
+            "zero": "",
+            "one": "1 draft agreement",
+            "two": "2 draft agreements",
+            "few": "{count} draft agreements",
+            "many": "{count} draft agreements"
+          },
+          "installment": {
+            "zero": "",
+            "one": "1 installment",
+            "two": "2 installments",
+            "few": "{count} installments",
+            "many": "{count} installments"
+          },
+          "cheque": {
+            "zero": "",
+            "one": "1 cheque",
+            "two": "2 cheques",
+            "few": "{count} cheques",
+            "many": "{count} cheques"
+          },
+          "student": {
+            "zero": "",
+            "one": "1 student",
+            "two": "2 students",
+            "few": "{count} students",
+            "many": "{count} students"
+          }
+        },
         "selectStudentTitle": "Select a student",
         "selectStudentDesc": "There is no school-wide agreements list. Search for a student first.",
         "selectedStudent": "Selected student",

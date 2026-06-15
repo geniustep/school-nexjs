@@ -3518,14 +3518,13 @@
           "custom": "Période personnalisée"
         },
         "kpiTotalDue": "Total dû",
+        "kpiCollected": "Montant encaissé",
         "kpiConfirmedPaid": "Total encaissé",
         "kpiPendingCheques": "Chèques en attente",
         "kpiRemaining": "Reste à payer",
         "kpiUncovered": "Non couvert",
         "kpiOverdue": "En retard",
         "kpiCollectionRate": "Taux d'encaissement",
-        "kpiStudentsHint": "{count} élève(s)",
-        "kpiOverdueInstallmentsHint": "{count} échéance(s) en retard",
         "attentionTitle": "Nécessite votre attention",
         "attentionEmpty": "Aucun cas financier critique ne requiert d'action pour le moment.",
         "attentionTotalValue": "Valeur totale :",
@@ -3537,38 +3536,97 @@
         "actionDraftCollections": "Compléter les encaissements",
         "actionDraftAgreements": "Revoir les accords",
         "actionUncovered": "Voir les créances",
-        "alertOverdueInstallments": "{count} échéance(s) en retard",
-        "alertOverdueCheques": "{count} chèque(s) en retard",
-        "alertRejectedCheques": "{count} chèque(s) rejeté(s)",
-        "alertRejectedChequesSummary": "{count} chèque(s) rejeté(s)",
-        "alertRejectedChequesFollowUp": "Chèques rejetés à suivre ({count}) — voir les chèques rejetés",
-        "alertRejectedChequesUnverified": "Impossible de vérifier le nombre de chèques rejetés.",
-        "alertDraftAgreements": "{count} accord(s) brouillon non activé(s)",
-        "alertDraftCollections": "{count} encaissement(s) brouillon incomplet(s)",
-        "alertChequesDueSoon": "{count} chèque(s) bientôt à échéance",
+        "alertRejectedChequesUnverified": "Impossible de confirmer le nombre de chèques rejetés. Consultez la liste manuellement.",
         "alertUncoveredAmount": "Montants non couverts par des accords actifs",
         "analyticsTitle": "Analyses",
         "chartCollectionTrend": "Tendance des encaissements",
-        "chartCollectionTrendEmpty": "Aucun encaissement sur la période sélectionnée.",
+        "chartCollectionTrendEmpty": "Aucun encaissement confirmé sur la période sélectionnée.",
+        "chartPeriodTotal": "Total de la période",
         "chartReceivableStatus": "État des créances",
         "chartReceivableStatusEmpty": "Données insuffisantes pour la répartition des créances.",
+        "chartReceivableCenter": "Total dû",
         "chartPaymentMethods": "Répartition des modes de paiement",
         "chartPaymentMethodsEmpty": "Aucun encaissement pour cette période.",
+        "chartPaymentMethodOps": "{count} opérations",
         "receivableStatus": {
           "paid": "Payé",
           "due": "Dû",
           "overdue": "En retard"
         },
-        "performanceTitle": "Performance par classe ou niveau",
-        "performanceUnavailableTitle": "Agrégation par classe indisponible",
-        "performanceUnavailableDesc": "L'API actuelle ne fournit pas d'agrégation fiable par classe ou niveau. Cette section apparaîtra avec un endpoint dédié.",
         "cashflowTitle": "Flux financiers à venir",
         "cashflowEmpty": "Aucun flux à venir dans les données actuelles.",
         "cashflowDue7Days": "Dû sous 7 jours",
         "cashflowDue30Days": "Dû sous 30 jours",
         "cashflowChequesDueSoon": "Chèques bientôt à échéance",
         "cashflowCurrentOverdue": "Retard actuel",
-        "cashflowCountHint": "{count} élément(s)",
+        "cashflowActionInstallments": "Voir les créances",
+        "cashflowActionCheques": "Voir les chèques",
+        "cashflowActionOverdue": "Voir les retards",
+        "plural": {
+          "rejectedCheque": {
+            "zero": "",
+            "one": "1 chèque rejeté",
+            "two": "2 chèques rejetés",
+            "few": "{count} chèques rejetés",
+            "many": "{count} chèques rejetés"
+          },
+          "chequeDueSoon": {
+            "zero": "",
+            "one": "1 chèque bientôt à échéance",
+            "two": "2 chèques bientôt à échéance",
+            "few": "{count} chèques bientôt à échéance",
+            "many": "{count} chèques bientôt à échéance"
+          },
+          "overdueCheque": {
+            "zero": "",
+            "one": "1 chèque en retard",
+            "two": "2 chèques en retard",
+            "few": "{count} chèques en retard",
+            "many": "{count} chèques en retard"
+          },
+          "draftCollection": {
+            "zero": "",
+            "one": "1 encaissement incomplet",
+            "two": "2 encaissements incomplets",
+            "few": "{count} encaissements incomplets",
+            "many": "{count} encaissements incomplets"
+          },
+          "overdueInstallment": {
+            "zero": "",
+            "one": "1 échéance en retard",
+            "two": "2 échéances en retard",
+            "few": "{count} échéances en retard",
+            "many": "{count} échéances en retard"
+          },
+          "draftAgreement": {
+            "zero": "",
+            "one": "1 accord brouillon",
+            "two": "2 accords brouillon",
+            "few": "{count} accords brouillon",
+            "many": "{count} accords brouillon"
+          },
+          "installment": {
+            "zero": "",
+            "one": "1 échéance",
+            "two": "2 échéances",
+            "few": "{count} échéances",
+            "many": "{count} échéances"
+          },
+          "cheque": {
+            "zero": "",
+            "one": "1 chèque",
+            "two": "2 chèques",
+            "few": "{count} chèques",
+            "many": "{count} chèques"
+          },
+          "student": {
+            "zero": "",
+            "one": "1 élève",
+            "two": "2 élèves",
+            "few": "{count} élèves",
+            "many": "{count} élèves"
+          }
+        },
         "selectStudentTitle": "Choisir un élève",
         "selectStudentDesc": "Pas de liste d'accords au niveau établissement. Recherchez un élève.",
         "selectedStudent": "Élève sélectionné",
