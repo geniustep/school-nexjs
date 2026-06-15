@@ -7,7 +7,6 @@ import { FinanceHubSection } from '@/features/admin/finance/finance-hub-header';
 import {
   buildCollectionTrend,
   buildPaymentMethodSlices,
-  buildReceivableStatusSlices,
   slicePercent,
   sumTrendAmount,
 } from '@/features/admin/finance/finance-hub-chart-utils';
@@ -20,14 +19,8 @@ import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { resolveFinanceCurrency } from '@/lib/i18n/format-money';
 import { paymentMethodLabel } from '@/lib/utils/finance';
-import { normalizeMoneyValue, parseFinanceList } from '@/lib/utils/finance-normalize';
-import type { AdminFinanceOverview, PaymentCollection } from '@/types/finance';
-
-const RECEIVABLE_COLORS: Record<string, string> = {
-  paid: '#2563eb',
-  due: '#f59e0b',
-  overdue: '#dc2626',
-};
+import { parseFinanceList } from '@/lib/utils/finance-normalize';
+import type { PaymentCollection } from '@/types/finance';
 
 function CollectionTrendChart({
   points,
@@ -130,68 +123,6 @@ function CollectionTrendChart({
   );
 }
 
-function ReceivableDonutChart({
-  slices,
-  currency,
-  labelForKey,
-  centerTotal,
-  centerLabel,
-}: {
-  slices: Array<{ key: string; amount: number }>;
-  currency: string;
-  labelForKey: (key: string) => string;
-  centerTotal: number;
-  centerLabel: string;
-}) {
-  const total = slices.reduce((sum, slice) => sum + slice.amount, 0);
-  if (total <= 0) return null;
-
-  let offset = 0;
-  const segments = slices.map((slice) => {
-    const pct = (slice.amount / total) * 100;
-    const segment = {
-      ...slice,
-      pct,
-      color: RECEIVABLE_COLORS[slice.key] ?? '#64748b',
-      offset,
-    };
-    offset += pct;
-    return segment;
-  });
-
-  const gradient = segments
-    .map((segment) => `${segment.color} ${segment.offset}% ${segment.offset + segment.pct}%`)
-    .join(', ');
-
-  return (
-    <div className="finance-hub-donut finance-hub-donut--enhanced">
-      <div className="finance-hub-donut__visual">
-        <div className="finance-hub-donut__ring" style={{ background: `conic-gradient(${gradient})` }} />
-        <div className="finance-hub-donut__center">
-          <span className="finance-hub-donut__center-value">
-            <FinanceMoney amount={centerTotal} currency={currency} />
-          </span>
-          <span className="finance-hub-donut__center-label tiny muted">{centerLabel}</span>
-        </div>
-      </div>
-      <ul className="finance-hub-donut__legend">
-        {segments.map((segment) => (
-          <li key={segment.key}>
-            <span className="finance-hub-donut__swatch" style={{ background: segment.color }} />
-            <div className="finance-hub-donut__legend-text">
-              <span>{labelForKey(segment.key)}</span>
-              <strong>
-                <FinanceMoney amount={segment.amount} currency={currency} />
-                <span className="finance-hub-donut__pct"> · {slicePercent(segment.amount, total)}%</span>
-              </strong>
-            </div>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
 function PaymentMethodBars({
   slices,
   currency,
@@ -233,14 +164,12 @@ function PaymentMethodBars({
 }
 
 export function FinanceHubCharts({
-  overview,
   dateFrom,
   dateTo,
   currency,
   filters,
   onFiltersChange,
 }: {
-  overview: AdminFinanceOverview | null;
   dateFrom?: string;
   dateTo?: string;
   currency?: string;
@@ -270,9 +199,7 @@ export function FinanceHubCharts({
     [collectionRows, dateFrom, dateTo],
   );
   const trendTotal = useMemo(() => sumTrendAmount(trend), [trend]);
-  const receivableSlices = useMemo(() => buildReceivableStatusSlices(overview), [overview]);
   const methodSlices = useMemo(() => buildPaymentMethodSlices(collectionRows), [collectionRows]);
-  const centerTotal = normalizeMoneyValue(overview?.totals?.total_due) ?? 0;
 
   const formatTrendLabel = (key: string) => {
     if (/^\d{4}-\d{2}-\d{2}$/.test(key)) return formatDate(key) || key;
@@ -305,7 +232,7 @@ export function FinanceHubCharts({
           {t('admin.finance.hub.chartPartialPagination')}
         </p>
       ) : null}
-      <div className="finance-hub-charts-grid">
+      <div className="finance-hub-charts-grid finance-hub-charts-grid--period">
         <article className="finance-hub-chart card">
           <h3>{t('admin.finance.hub.chartCollectionTrend')}</h3>
           <p className="finance-hub-chart__scope tiny muted">{t('admin.finance.hub.chartConfirmedPeriodTotal')}</p>
@@ -322,22 +249,6 @@ export function FinanceHubCharts({
               periodTotal={trendTotal}
               totalLabel={t('admin.finance.hub.chartPeriodTotal')}
             />,
-          )}
-        </article>
-
-        <article className="finance-hub-chart card">
-          <h3>{t('admin.finance.hub.chartReceivableStatus')}</h3>
-          <p className="finance-hub-chart__scope tiny muted">{t('admin.finance.hub.chartReceivableScopeNote')}</p>
-          {receivableSlices.length === 0 ? (
-            <p className="muted finance-hub-chart__empty">{t('admin.finance.hub.chartReceivableStatusEmpty')}</p>
-          ) : (
-            <ReceivableDonutChart
-              slices={receivableSlices}
-              currency={resolvedCurrency}
-              labelForKey={(key) => t(`admin.finance.hub.receivableStatus.${key}`)}
-              centerTotal={centerTotal}
-              centerLabel={t('admin.finance.hub.chartReceivableCenter')}
-            />
           )}
         </article>
 

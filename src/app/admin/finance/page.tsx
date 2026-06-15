@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import '@/features/admin/finance/finance-ui.css';
 import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
 import { ApiErrorView } from '@/components/states/states';
@@ -11,10 +11,15 @@ import { FinanceHubFilters } from '@/features/admin/finance/finance-hub-filters'
 import { FinanceHubHeader } from '@/features/admin/finance/finance-hub-header';
 import { FinanceHubKpiGrid } from '@/features/admin/finance/finance-hub-kpi-grid';
 import { FinanceHubLinks } from '@/features/admin/finance/finance-hub-links';
+import { FinanceHubReceivableChart } from '@/features/admin/finance/finance-hub-receivable-chart';
 import type { FinanceHubFilterState } from '@/features/admin/finance/finance-hub-period';
 import { resolveFinanceHubPeriod } from '@/features/admin/finance/finance-hub-period';
+import {
+  buildOverviewQueryParams,
+  resolveValidYearId,
+} from '@/features/admin/finance/finance-hub-scope-utils';
+import { FinanceHubSummaryScope } from '@/features/admin/finance/finance-hub-summary-scope';
 import { useAdminSession } from '@/features/auth/admin-session-context';
-import { useT } from '@/features/i18n/locale-context';
 import { useAcademicYearOptions } from '@/features/admin/finance/use-finance-lookups';
 import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
@@ -30,19 +35,29 @@ const DEFAULT_FILTERS: FinanceHubFilterState = {
 };
 
 export default function AdminFinancePage() {
-  const t = useT();
   const { activeSchoolId, schools, setActiveSchool } = useAdminSession();
-  const { options: yearOptions } = useAcademicYearOptions(null);
+  const { options: yearOptions, loading: yearsLoading } = useAcademicYearOptions(null);
   const [filters, setFilters] = useState<FinanceHubFilterState>(DEFAULT_FILTERS);
+
+  const validYearId = useMemo(
+    () => resolveValidYearId(filters.yearId, yearOptions),
+    [filters.yearId, yearOptions],
+  );
+
+  useEffect(() => {
+    if (validYearId !== filters.yearId) {
+      setFilters((prev) => ({ ...prev, yearId: validYearId }));
+    }
+  }, [validYearId, filters.yearId]);
+
+  useEffect(() => {
+    setFilters((prev) => ({ ...prev, yearId: resolveValidYearId(prev.yearId, yearOptions) }));
+  }, [activeSchoolId, yearOptions]);
 
   const resolvedPeriod = useMemo(() => resolveFinanceHubPeriod(filters), [filters]);
   const overviewParams = useMemo(
-    () => ({
-      academic_year_id:
-        resolvedPeriod.academicYearId ??
-        (filters.yearId ? Number(filters.yearId) : undefined),
-    }),
-    [filters.yearId, resolvedPeriod.academicYearId],
+    () => buildOverviewQueryParams(validYearId, yearOptions),
+    [validYearId, yearOptions],
   );
 
   const overviewState = useAdminResource<AdminFinanceOverview>(
@@ -68,6 +83,17 @@ export default function AdminFinancePage() {
     [setActiveSchool],
   );
 
+  const handleYearChange = useCallback((yearId: string) => {
+    setFilters((prev) => ({ ...prev, yearId }));
+  }, []);
+
+  const handlePeriodChange = useCallback((next: FinanceHubFilterState) => {
+    setFilters((prev) => ({
+      ...next,
+      yearId: prev.yearId,
+    }));
+  }, []);
+
   return (
     <RequireAdminPermission permission={FINANCE_VIEW}>
       <div className="finance-hub-dashboard">
@@ -77,32 +103,42 @@ export default function AdminFinancePage() {
           refreshing={overviewState.fetching}
         />
 
-        <FinanceHubFilters
-          filters={filters}
-          onChange={setFilters}
-          yearOptions={yearOptions}
-          showSchoolFilter={schools.length > 1}
-          schools={schools}
-          activeSchoolId={activeSchoolId}
-          onSchoolChange={handleSchoolChange}
-        />
+        {schools.length > 1 ? (
+          <FinanceHubFilters
+            showSchoolFilter
+            schools={schools}
+            activeSchoolId={activeSchoolId}
+            onSchoolChange={handleSchoolChange}
+          />
+        ) : null}
 
         {overviewState.error ? (
           <ApiErrorView error={overviewState.error} onRetry={overviewState.reload} />
         ) : (
           <>
             <section className="finance-hub-kpi-section">
-              <p className="finance-hub-scope-note muted">{t('admin.finance.hub.kpiScopeNote')}</p>
+              <FinanceHubSummaryScope
+                yearId={validYearId}
+                onYearChange={handleYearChange}
+                yearOptions={yearOptions}
+                loading={yearsLoading || overviewState.initialLoading}
+              />
               <FinanceHubKpiGrid data={overviewState.data} loading={overviewState.initialLoading} />
+              <FinanceHubReceivableChart
+                overview={overview}
+                currency={currency}
+                yearId={validYearId}
+                yearOptions={yearOptions}
+                yearsLoading={yearsLoading}
+              />
             </section>
             <FinanceHubAlerts data={overviewState.data} currency={currency} />
             <FinanceHubCharts
-              overview={overview}
               dateFrom={resolvedPeriod.dateFrom}
               dateTo={resolvedPeriod.dateTo}
               currency={currency}
               filters={filters}
-              onFiltersChange={setFilters}
+              onFiltersChange={handlePeriodChange}
             />
             <FinanceHubCashflow
               overviewData={overviewState.data}

@@ -23,7 +23,7 @@ export function FinanceHubPeriodFilters({
   return (
     <div className="finance-hub-period-filters" role="search">
       <fieldset className="finance-hub-filters__period">
-        <legend className="tiny muted">{t('admin.finance.hub.filterPeriod')}</legend>
+        <legend className="tiny muted">{t('admin.finance.hub.filterAnalyticsPeriod')}</legend>
         <div className="finance-hub-filters__period-options">
           {PERIOD_PRESETS.map((preset) => (
             <button

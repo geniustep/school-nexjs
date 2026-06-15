@@ -203,4 +203,16 @@ describe('finance hub page contract', () => {
     expect(css.includes('finance-hub-attention-grid')).toBe(true);
     expect(css.includes('finance-hub-kpi-grid--five')).toBe(true);
   });
+
+  it('uses compact summary scope bar and separates period analytics', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const pagePath = path.resolve('src/app/admin/finance/page.tsx');
+    const source = fs.readFileSync(pagePath, 'utf8');
+    expect(source.includes('FinanceHubSummaryScope')).toBe(true);
+    expect(source.includes('FinanceHubReceivableChart')).toBe(true);
+    expect(source.includes('buildOverviewQueryParams')).toBe(true);
+    expect(source.includes('kpiScopeNote')).toBe(false);
+    expect(source.includes('resolvedPeriod.academicYearId')).toBe(false);
+  });
 });
