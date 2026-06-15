@@ -20,12 +20,14 @@ export function GuardianEditDialog({
   relationship,
   onClose,
   onUpdated,
+  successMessageKey = 'admin.student360.relationshipUpdated',
 }: {
   open: boolean;
   studentId: number;
   relationship: GuardianRelationship | null;
   onClose: () => void;
   onUpdated: () => void;
+  successMessageKey?: string;
 }) {
   const t = useT();
   const toast = useToast();
@@ -50,7 +52,7 @@ export function GuardianEditDialog({
     setSaving(false);
 
     if (res.success) {
-      toast.success(t('admin.student360.relationshipUpdated'));
+      toast.success(t(successMessageKey));
       onClose();
       onUpdated();
       return;

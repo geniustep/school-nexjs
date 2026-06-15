@@ -55,7 +55,10 @@ export interface Parent {
   name: string;
   display_name?: string | null;
   phone: string | null;
+  mobile?: string | null;
   email: string | null;
+  street?: string | null;
+  city?: string | null;
   address?: string | null;
   login?: string | null;
   user_id?: number | null;

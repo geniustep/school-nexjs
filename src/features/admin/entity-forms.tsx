@@ -18,6 +18,7 @@ import {
 } from '@/lib/account/account-mutation-feedback';
 import { buildAccountIdentityPayload } from '@/lib/account/account-utils';
 import { getStudentDisplayName } from '@/lib/utils/student';
+import { mapParentApiError } from '@/features/admin/parents/utils/map-parent-api-error';
 import type { Ref } from '@/types/api';
 import type { SchoolClass } from '@/types/class';
 import type { Student } from '@/types/student';
@@ -86,21 +87,12 @@ export function ParentForm({
 }) {
   const t = useT();
   const toast = useToast();
-  const studentsState = useResource<Student[]>(endpoints.admin.students, { page_size: 200 });
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState(parent?.name ?? '');
   const [phone, setPhone] = useState(parent?.phone ?? '');
   const [email, setEmail] = useState(parent?.email ?? '');
-  const [relation, setRelation] = useState(parent?.relation ?? 'father');
   const [preferredLanguage, setPreferredLanguage] = useState(parent?.preferred_language ?? 'ar');
   const [notificationOptIn, setNotificationOptIn] = useState(parent?.notification_opt_in ?? true);
-  const [studentIds, setStudentIds] = useState<number[]>(
-    parent?.children?.map((c) => c.id) ?? [],
-  );
-
-  function toggleStudent(id: number) {
-    setStudentIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -112,10 +104,8 @@ export function ParentForm({
       name: name.trim(),
       phone: phone.trim() || undefined,
       email: email.trim() || undefined,
-      relation,
       preferred_language: preferredLanguage,
       notification_opt_in: notificationOptIn,
-      student_ids: studentIds,
     };
     setSaving(true);
     const res = parent
@@ -123,10 +113,10 @@ export function ParentForm({
       : await api.post(endpoints.admin.parents, payload);
     setSaving(false);
     if (res.success && res.data) {
-      toast.success(t('admin.saveSuccess'));
+      toast.success(t('admin.parentProfile.saveSuccess'));
       onSaved((res.data as Parent).id);
     } else if (!res.success) {
-      toast.error(res.error.message);
+      toast.error(mapParentApiError(res.error, t));
     }
   }
 
@@ -142,21 +132,14 @@ export function ParentForm({
         <Field label={t('admin.email')}>
           <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         </Field>
-        <Field label={t('admin.relation')}>
-          <select className="input" value={relation} onChange={(e) => setRelation(e.target.value)}>
-            <option value="father">{t('admin.father')}</option>
-            <option value="mother">{t('admin.mother')}</option>
-            <option value="guardian">{t('admin.guardian')}</option>
-          </select>
-        </Field>
       </div>
       <div className="row" style={{ gap: 12, flexWrap: 'wrap' }}>
         <Field label={t('admin.preferredLanguage')}>
           <select className="input" value={preferredLanguage} onChange={(e) => setPreferredLanguage(e.target.value)}>
-            <option value="ar">ar</option>
-            <option value="fr">fr</option>
-            <option value="en">en</option>
-            <option value="es">es</option>
+            <option value="ar">{t('admin.preferredLanguages.ar')}</option>
+            <option value="fr">{t('admin.preferredLanguages.fr')}</option>
+            <option value="en">{t('admin.preferredLanguages.en')}</option>
+            <option value="es">{t('admin.preferredLanguages.es')}</option>
           </select>
         </Field>
         <label className="row" style={{ gap: 8, alignItems: 'center', marginTop: 20 }}>
@@ -168,20 +151,6 @@ export function ParentForm({
           <span className="tiny">{t('admin.notificationOptIn')}</span>
         </label>
       </div>
-      <Field label={t('admin.linkedChildren')}>
-        <div className="col" style={{ gap: 6, maxHeight: 180, overflow: 'auto' }}>
-          {(studentsState.data ?? []).map((s) => (
-            <label key={s.id} className="row" style={{ gap: 8 }}>
-              <input
-                type="checkbox"
-                checked={studentIds.includes(s.id)}
-                onChange={() => toggleStudent(s.id)}
-              />
-              <span>{getStudentDisplayName(s)}</span>
-            </label>
-          ))}
-        </div>
-      </Field>
     </FormShell>
   );
 }

@@ -213,9 +213,19 @@ export function normalizeParentProfile(data: unknown): Parent | null {
     display_name: person?.display_name && typeof person.display_name === 'string' ? person.display_name : name,
     phone:
       (person && typeof person.phone === 'string' ? person.phone : null) ??
-      (person && typeof person.mobile === 'string' ? person.mobile : null) ??
       (typeof raw.phone === 'string' ? raw.phone : null),
+    mobile:
+      (person && typeof person.mobile === 'string' ? person.mobile : null) ??
+      (typeof raw.mobile === 'string' ? raw.mobile : null),
     email: (person ? readEmail(person) : null) ?? readEmail(raw),
+    street:
+      ((person && typeof person.street === 'string' ? person.street.trim() : null) ??
+        (typeof raw.street === 'string' ? raw.street.trim() : null)) ||
+      undefined,
+    city:
+      ((person && typeof person.city === 'string' ? person.city.trim() : null) ??
+        (typeof raw.city === 'string' ? raw.city.trim() : null)) ||
+      undefined,
     address: (person ? readAddress(person) : null) ?? readAddress(raw),
     login: typeof raw.login === 'string' ? raw.login : null,
     user_id: accountInfo?.user_id ?? (typeof raw.user_id === 'number' ? raw.user_id : null),
