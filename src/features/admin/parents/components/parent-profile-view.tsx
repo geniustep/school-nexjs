@@ -46,6 +46,7 @@ function ParentHeaderMenu({
         <div className="parent-profile__menu-panel">
           <ConfirmActionButton
             label={t('admin.student360.archiveGuardianProfile')}
+            confirmTitle={t('admin.student360.archiveGuardianProfile')}
             confirmMessage={t('admin.student360.archiveGuardianProfileConfirm')}
             path={endpoints.admin.parentArchive(parentId)}
             variant="danger"
