@@ -7,6 +7,11 @@ import type { SchoolRef } from './api';
 
 export type Role = 'admin' | 'teacher' | 'parent' | 'student';
 
+export interface UserRoleOption {
+  code: string;
+  label: string;
+}
+
 export type AdminKind =
   | 'project_manager'
   | 'school_manager'
@@ -28,6 +33,10 @@ export interface CurrentUser {
   name: string;
   email: string | null;
   role: Role;
+  /** Multi-role support from GET /me — preserved for future role switching. */
+  roles?: string[];
+  active_role?: string;
+  available_roles?: UserRoleOption[];
   permissions: Permission[];
   /** When returned by /me — authoritative effective grants for the active school. */
   effective_permissions?: Permission[];

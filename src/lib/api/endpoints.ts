@@ -25,6 +25,8 @@ export const endpoints = {
     studentEnrollment: (id: number | string) => `/admin/students/${id}/enrollment`,
     studentEnrollments: (id: number | string) => `/admin/students/${id}/enrollments`,
     studentGuardians: (id: number | string) => `/admin/students/${id}/guardians`,
+    studentGuardiansLinkPerson: (id: number | string) =>
+      `/admin/students/${id}/guardians/link-person`,
     studentGuardianUpdate: (studentId: number | string, relationshipId: number | string) =>
       `/admin/students/${studentId}/guardians/${relationshipId}/update`,
     studentGuardianEnd: (studentId: number | string, relationshipId: number | string) =>

@@ -330,7 +330,56 @@ export interface GuardianSummary {
   national_id?: string | null;
   children_count?: number;
   has_account?: boolean;
+  has_user_account?: boolean;
   account?: UserAccountInfo | null;
+  partner_id?: number;
+  person_id?: number;
+  guardian_id?: number | null;
+  teacher_id?: number | null;
+  user_id?: number | null;
+  existing_roles?: string[];
+  role_labels?: string[];
+}
+
+/** Unified person search result — GET /admin/guardians/search */
+export interface PersonSearchResult extends GuardianSummary {
+  partner_id: number;
+  existing_roles: string[];
+  role_labels: string[];
+  has_user_account: boolean;
+  can_link_as_guardian: boolean;
+  already_guardian_of_student?: boolean;
+}
+
+export interface LinkPersonAccountInfo {
+  has_user_account?: boolean;
+  user_id?: number;
+  needs_new_account?: boolean;
+  can_assign_password?: boolean;
+  roles_added?: string[];
+}
+
+export interface LinkPersonAsGuardianResponse {
+  guardian: GuardianSummary;
+  account?: LinkPersonAccountInfo;
+  person?: {
+    existing_roles?: string[];
+    role_labels?: string[];
+  };
+}
+
+export interface LinkPersonAsGuardianPayload {
+  partner_id: number;
+  relationship_type: RelationshipType;
+  is_primary_contact?: boolean;
+  is_legal_guardian?: boolean;
+  is_financial_responsible?: boolean;
+  receives_notifications?: boolean;
+  is_emergency_contact?: boolean;
+  is_authorized_pickup?: boolean;
+  contact_priority?: number;
+  date_start?: string;
+  notes?: string;
 }
 
 export type GuardianDuplicateField = 'phone' | 'email' | 'national_id' | 'unknown';

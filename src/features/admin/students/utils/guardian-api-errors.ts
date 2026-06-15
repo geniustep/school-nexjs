@@ -2,6 +2,7 @@ import type { TranslateFn } from '@/features/i18n/locale-context';
 import type { ApiErrorBody } from '@/types/api';
 import type { GuardianDuplicateField, GuardianDuplicateMatch } from '@/types/student-360';
 import { normalizeGuardianSummary } from './normalize-guardian';
+import { normalizePersonSearchResult } from './normalize-person-search';
 
 export interface GuardianErrorContext {
   message: string;
@@ -58,7 +59,22 @@ export function mapGuardianApiError(
       };
     }
     case 'guardian_already_linked':
-      return { message: t('admin.student360.guardianAlreadyLinked') };
+    case 'guardian_relation_already_exists':
+      return { message: t('admin.student360.personAlreadyLinkedAsGuardian') };
+    case 'duplicate_person': {
+      const duplicateField = inferDuplicateField(details, error.message);
+      const messageKey =
+        duplicateField === 'email'
+          ? 'admin.student360.guardianDuplicateEmail'
+          : duplicateField === 'phone'
+            ? 'admin.student360.duplicatePersonPhone'
+            : 'admin.student360.guardianDuplicate';
+      return {
+        message: t(messageKey),
+        duplicateField,
+        matches: matches?.map((m) => normalizeDuplicateMatch(m)),
+      };
+    }
     case 'primary_guardian_conflict':
       return {
         message: t('admin.student360.primaryGuardianConflict'),
@@ -90,6 +106,8 @@ export function mapGuardianApiError(
 }
 
 function normalizeDuplicateMatch(match: GuardianDuplicateMatch): GuardianDuplicateMatch {
+  const asPerson = normalizePersonSearchResult(match);
+  if (asPerson) return asPerson;
   const normalized = normalizeGuardianSummary(match);
   if (!normalized) return match;
   return { ...match, ...normalized, name: normalized.name || match.name };

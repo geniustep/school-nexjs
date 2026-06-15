@@ -186,6 +186,14 @@ export function normalizeMeUser(raw: CurrentUser): CurrentUser {
   return {
     ...base,
     admin_kind: raw.admin_kind as AdminKind | undefined,
+    roles: Array.isArray(raw.roles) ? raw.roles.filter((r): r is string => typeof r === 'string') : raw.roles,
+    active_role: typeof raw.active_role === 'string' ? raw.active_role : undefined,
+    available_roles: Array.isArray(raw.available_roles)
+      ? raw.available_roles.filter(
+          (r): r is import('@/types/user').UserRoleOption =>
+            !!r && typeof r === 'object' && typeof (r as import('@/types/user').UserRoleOption).code === 'string',
+        )
+      : undefined,
     permissions_mode: raw.permissions_mode,
     capabilities_editable: raw.capabilities_editable,
     effective_permissions: raw.effective_permissions,

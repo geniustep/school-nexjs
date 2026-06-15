@@ -17,12 +17,22 @@ describe('normalizeGuardianSummary', () => {
     });
     expect(g).toEqual({
       id: 216,
+      guardian_id: 216,
+      partner_id: undefined,
+      person_id: undefined,
+      teacher_id: null,
+      user_id: null,
       name: 'QA Parent',
       phone: '0612345678',
       secondary_phone: null,
       email: 'qa@example.test',
       address: null,
+      national_id: null,
       children_count: 2,
+      existing_roles: undefined,
+      role_labels: undefined,
+      has_user_account: false,
+      has_account: false,
     });
   });
 

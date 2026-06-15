@@ -4,6 +4,12 @@ import { useState } from 'react';
 import { useT } from '@/features/i18n/locale-context';
 import type { GuardianRelationshipCreatePayload, RelationshipType } from '@/types/student-360';
 import { RELATIONSHIP_TYPE_CODES, relationshipTypeLabel } from '../utils/relationship-types';
+import {
+  relationshipFormToCreatePayload as relationshipFormToCreatePayloadImpl,
+  relationshipFormToLinkPersonPayload,
+} from '../utils/guardian-relationship-payload';
+
+export { relationshipFormToLinkPersonPayload };
 
 export interface RelationshipFormValues {
   relationship_type: RelationshipType;
@@ -132,21 +138,7 @@ export function relationshipFormToCreatePayload(
   guardianId: number,
   values: RelationshipFormValues,
 ): GuardianRelationshipCreatePayload {
-  const payload: GuardianRelationshipCreatePayload = {
-    guardian_id: guardianId,
-    relationship_type: values.relationship_type,
-    is_primary_contact: values.is_primary_contact,
-    is_legal_guardian: values.is_legal_guardian,
-    is_financial_responsible: values.is_financial_responsible,
-    receives_notifications: values.receives_notifications,
-    is_emergency_contact: values.is_emergency_contact,
-    is_authorized_pickup: values.is_authorized_pickup,
-  };
-  const priority = Number(values.contact_priority);
-  if (Number.isInteger(priority) && priority > 0) payload.contact_priority = priority;
-  if (values.date_start.trim()) payload.date_start = values.date_start.trim();
-  if (values.notes.trim()) payload.notes = values.notes.trim();
-  return payload;
+  return relationshipFormToCreatePayloadImpl(guardianId, values);
 }
 
 export function relationshipFormToUpdatePayload(

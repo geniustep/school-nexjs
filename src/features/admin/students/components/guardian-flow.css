@@ -25,6 +25,54 @@
   gap: 12px;
 }
 
+.guardian-search-panel__intro {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.guardian-search-panel__intro-title {
+  margin: 0;
+  font-weight: 600;
+}
+
+.guardian-search-panel__duplicate-warning {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #fed7aa;
+  background: #fff7ed;
+  color: #9a3412;
+  font-size: 0.875rem;
+  margin-bottom: 8px;
+}
+
+.guardian-search-panel__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.guardian-search-panel__hint {
+  margin: 0;
+  color: var(--text-muted, #64748b);
+}
+
+.guardian-account-reuse-note {
+  padding: 12px;
+  border-radius: 8px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+}
+
+.guardian-account-reuse-note p {
+  margin: 0;
+}
+
+.guardian-account-reuse-note p + p {
+  margin-top: 6px;
+}
+
 .guardian-search-panel__results {
   min-height: 120px;
 }

@@ -16,6 +16,10 @@ import {
   hasUsableGuardianPhone,
 } from '../utils/guardian-email-presentation';
 import { isRelationshipActive, relationshipTypeLabel } from '../utils/relationship-types';
+import {
+  formatRoleLabels,
+  personHasTeacherRole,
+} from '../utils/person-role-presentation';
 import type { GuardianRelationship } from '@/types/student-360';
 
 export function GuardianRelationshipCard({
@@ -57,6 +61,15 @@ export function GuardianRelationshipCard({
   };
   const accountStatus = resolveAccountStatus(accountEntity);
   const hasAccount = accountStatus !== 'not_created';
+  const personProfileLine = personHasTeacherRole(rel.guardian)
+    ? t('admin.student360.personRegisteredAsTeacher')
+    : rel.guardian.role_labels?.length
+      ? formatRoleLabels(rel.guardian.role_labels)
+      : null;
+  const accountRolesLine =
+    hasAccount && rel.guardian.role_labels?.length
+      ? `${t('admin.student360.accountRoles')}: ${formatRoleLabels(rel.guardian.role_labels)}`
+      : null;
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -105,6 +118,12 @@ export function GuardianRelationshipCard({
               {rel.guardian.name}
             </Link>
             <p className="student-360-guardian-card__meta tiny muted">{relationshipLine}</p>
+            {personProfileLine ? (
+              <p className="student-360-guardian-card__meta tiny muted">{personProfileLine}</p>
+            ) : null}
+            {accountRolesLine ? (
+              <p className="student-360-guardian-card__meta tiny muted">{accountRolesLine}</p>
+            ) : null}
           </div>
           <Badge tone={active ? 'green' : 'slate'}>
             {active ? t('admin.student360.relationshipActive') : t('admin.student360.relationshipEnded')}
