@@ -5,6 +5,7 @@ import type { UserAccountInfo } from './account';
 import type { StudentNameFields } from './student';
 import type {
   GuardianAllowedActions,
+  GuardianDeleteImpact,
   GuardianRemovalImpact,
   RelationshipType,
 } from './student-360';
@@ -84,6 +85,10 @@ export interface Parent {
   status: string;
   needs_review?: boolean;
   allowed_actions?: GuardianAllowedActions;
+  archived?: boolean;
+  archive_reason?: string | null;
+  delete_impact?: GuardianDeleteImpact;
+  delete_blockers?: string[];
   /** @deprecated Legacy account panel shape */
   legacy_account?: UserAccountInfo | null;
 }

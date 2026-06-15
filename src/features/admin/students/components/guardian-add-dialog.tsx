@@ -213,9 +213,7 @@ export function GuardianAddDialog({
 
   const drawerTitle =
     step === 'pick'
-      ? pickMode === 'search'
-        ? t('admin.student360.searchExistingPerson')
-        : t('admin.student360.addGuardian')
+      ? t('admin.student360.addGuardian')
       : step === 'relationship'
         ? t('admin.student360.relationshipStepTitle')
         : step === 'partial'
@@ -244,7 +242,7 @@ export function GuardianAddDialog({
 
   return (
     <>
-      <SetupDrawer open={open} title={drawerTitle} onClose={handleClose}>
+      <SetupDrawer open={open} title={drawerTitle} onClose={handleClose} size="medium">
         {step === 'pick' ? (
           <div className="guardian-flow-drawer__body">
             <AcademicSegmentedControl

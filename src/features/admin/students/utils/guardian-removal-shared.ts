@@ -94,11 +94,20 @@ export function normalizeAllowedActionsFromRaw(raw: unknown): GuardianAllowedAct
   if (typeof record.edit_relationship === 'boolean') {
     actions.edit_relationship = record.edit_relationship;
   }
+  if (typeof record.link_as_guardian === 'boolean') {
+    actions.link_as_guardian = record.link_as_guardian;
+  }
   if (typeof record.manage_account === 'boolean') {
     actions.manage_account = record.manage_account;
   }
   if (typeof record.archive_guardian_profile === 'boolean') {
     actions.archive_guardian_profile = record.archive_guardian_profile;
+  }
+  if (typeof record.restore_guardian_profile === 'boolean') {
+    actions.restore_guardian_profile = record.restore_guardian_profile;
+  }
+  if (typeof record.delete_guardian_profile === 'boolean') {
+    actions.delete_guardian_profile = record.delete_guardian_profile;
   }
   if (typeof record.delete_person === 'boolean') {
     actions.delete_person = record.delete_person;

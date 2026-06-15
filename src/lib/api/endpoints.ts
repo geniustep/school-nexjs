@@ -77,6 +77,12 @@ export const endpoints = {
     parentUpdate: (id: number | string) => `/admin/parents/${id}/update`,
     parentAccount: (id: number | string) => `/admin/parents/${id}/account`,
     parentArchive: (id: number | string) => `/admin/parents/${id}/archive`,
+    parentRestore: (id: number | string) => `/admin/parents/${id}/restore`,
+    parentDelete: (id: number | string) => `/admin/parents/${id}/delete`,
+    parentDeleteImpact: (id: number | string) => `/admin/parents/${id}/delete-impact`,
+    guardianRestore: (id: number | string) => `/admin/guardians/${id}/restore`,
+    guardianDelete: (id: number | string) => `/admin/guardians/${id}/delete`,
+    guardianDeleteImpact: (id: number | string) => `/admin/guardians/${id}/delete-impact`,
     parentsImport: '/admin/parents/import',
     parentsExport: '/admin/parents/export',
 

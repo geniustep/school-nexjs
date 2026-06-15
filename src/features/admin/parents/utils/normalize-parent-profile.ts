@@ -1,9 +1,7 @@
 import type { Parent, ParentChild, ParentAccountInfo, ParentGuardianProfile } from '@/types/parent';
 import { getGuardianEmailPresentation } from '@/features/admin/students/utils/guardian-email-presentation';
-import {
-  normalizeAllowedActionsFromRaw,
-  normalizeRemovalImpactFromRaw,
-} from '@/features/admin/students/utils/guardian-removal-shared';
+import { normalizeAllowedActionsFromRaw, normalizeRemovalImpactFromRaw } from '@/features/admin/students/utils/guardian-removal-shared';
+import { normalizeDeleteImpactFromRaw } from '@/features/admin/students/utils/guardian-delete-impact';
 import {
   filterActiveRelationshipChild,
   hasRelationshipsContract,
@@ -230,6 +228,11 @@ export function normalizeParentProfile(data: unknown): Parent | null {
     normalizeAllowedActionsFromRaw(raw.allowed_actions) ??
     (guardianProfile?.archivable ? { archive_guardian_profile: true } : undefined);
 
+  const profileStatus = String(guardianProfile?.status ?? raw.status ?? 'active');
+  const archived = raw.archived === true || profileStatus === 'archived';
+  const deleteImpact = normalizeDeleteImpactFromRaw(raw.delete_impact);
+  const deleteBlockers = readStringList(raw.delete_blockers);
+
   const roleLabels =
     (person ? readStringList(person.role_labels) : undefined) ??
     readStringList(raw.role_labels) ??
@@ -287,7 +290,11 @@ export function normalizeParentProfile(data: unknown): Parent | null {
         : activeChildren.length,
     other_children_count:
       typeof raw.other_children_count === 'number' ? raw.other_children_count : undefined,
-    status: String(guardianProfile?.status ?? raw.status ?? 'active'),
+    status: profileStatus,
+    archived,
+    archive_reason: typeof raw.archive_reason === 'string' ? raw.archive_reason : null,
+    delete_impact: deleteImpact ?? undefined,
+    delete_blockers: deleteBlockers,
     needs_review: raw.needs_review === true || person?.needs_review === true || undefined,
     allowed_actions: allowedActions,
   };

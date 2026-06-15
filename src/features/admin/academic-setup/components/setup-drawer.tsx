@@ -15,7 +15,7 @@ export function SetupDrawer({
   title: string;
   onClose: () => void;
   children: React.ReactNode;
-  size?: 'default' | 'wide';
+  size?: 'default' | 'medium' | 'wide';
 }) {
   const t = useT();
 
@@ -47,7 +47,13 @@ export function SetupDrawer({
         onClick={onClose}
       />
       <aside
-        className={`academic-setup-drawer${size === 'wide' ? ' academic-setup-drawer--wide' : ''}`}
+        className={`academic-setup-drawer${
+          size === 'wide'
+            ? ' academic-setup-drawer--wide'
+            : size === 'medium'
+              ? ' academic-setup-drawer--medium'
+              : ''
+        }`}
         role="dialog"
         aria-modal="true"
         aria-label={title}

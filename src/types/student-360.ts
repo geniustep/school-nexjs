@@ -349,6 +349,12 @@ export interface PersonSearchResult extends GuardianSummary {
   has_user_account: boolean;
   can_link_as_guardian: boolean;
   already_guardian_of_student?: boolean;
+  active?: boolean;
+  archived?: boolean;
+  status?: string;
+  archive_reason?: string | null;
+  allowed_actions?: GuardianAllowedActions;
+  delete_impact?: GuardianDeleteImpact;
 }
 
 export interface LinkPersonAccountInfo {
@@ -389,9 +395,35 @@ export interface GuardianAllowedActions {
   remove_relationship?: boolean;
   end_relationship?: boolean;
   edit_relationship?: boolean;
+  link_as_guardian?: boolean;
   manage_account?: boolean;
   archive_guardian_profile?: boolean;
+  restore_guardian_profile?: boolean;
+  delete_guardian_profile?: boolean;
   delete_person?: boolean;
+}
+
+export interface GuardianDeleteBlocker {
+  code: string;
+  message?: string;
+}
+
+export interface GuardianDeleteImpact {
+  active_relationships?: number;
+  historical_relationships?: number;
+  financial_dependencies?: number;
+  other_roles?: string[];
+  role_labels?: string[];
+  has_user_account?: boolean;
+  has_teacher_profile?: boolean;
+  has_staff_profile?: boolean;
+  has_accounting_history?: boolean;
+  blockers?: GuardianDeleteBlocker[];
+  will_delete?: string[];
+  will_remain?: string[];
+  summary?: string[];
+  blocker_code?: string;
+  blocker_message?: string;
 }
 
 export interface GuardianFinancialBlocker {

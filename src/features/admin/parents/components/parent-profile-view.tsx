@@ -1,12 +1,14 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import './parent-profile.css';
 import { ConfirmActionButton } from '@/features/admin/confirm-action-button';
 import { CreateAccountDialog } from '@/features/admin/account/create-account-dialog';
 import { Avatar, Badge, Card, DefinitionList, SectionHead } from '@/components/ui/primitives';
 import { ParentEditForm } from './parent-edit-form';
 import { ParentRelationshipsSection } from './parent-relationships-section';
+import { GuardianRestoreDialog } from '@/features/admin/students/components/guardian-restore-dialog';
+import { GuardianDeleteDialog } from '@/features/admin/students/components/guardian-delete-dialog';
 import { useT } from '@/features/i18n/locale-context';
 import { useSession } from '@/features/auth/session-context';
 import { useRouter } from 'next/navigation';
@@ -19,23 +21,42 @@ import { formatRoleLabels } from '@/features/admin/students/utils/person-role-pr
 import { formatPersonContactLine } from '@/features/admin/students/components/guardian-relationship-impact-alert';
 import { normalizeAccountInfo, resolveAccountStatus } from '@/lib/account/account-utils';
 import { preferredLanguageLabel, parentAccountEntityFields } from '../utils/normalize-parent-profile';
+import {
+  canDeleteGuardianProfile,
+  canRestoreGuardianProfile,
+  isPersonArchived,
+} from '@/features/admin/students/utils/guardian-profile-contract';
+import { deleteBlockerMessage } from '@/features/admin/students/utils/guardian-delete-impact';
 import type { Parent } from '@/types/parent';
 
-function ParentHeaderMenu({
+function ParentRecordMenu({
   canArchive,
+  canDelete,
   parentId,
-  onArchived,
+  onArchive,
+  onDelete,
 }: {
   canArchive: boolean;
+  canDelete: boolean;
   parentId: number;
-  onArchived: () => void;
+  onArchive: () => void;
+  onDelete: () => void;
 }) {
   const t = useT();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  if (!canArchive) return null;
+  useEffect(() => {
+    if (!open) return;
+    function onDocClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, [open]);
+
+  if (!canArchive && !canDelete) return null;
 
   return (
     <div className="parent-profile__menu" ref={ref}>
@@ -44,18 +65,32 @@ function ParentHeaderMenu({
       </button>
       {open ? (
         <div className="parent-profile__menu-panel">
-          <ConfirmActionButton
-            label={t('admin.student360.archiveGuardianProfile')}
-            confirmTitle={t('admin.student360.archiveGuardianProfile')}
-            confirmMessage={t('admin.student360.archiveGuardianProfileConfirm')}
-            path={endpoints.admin.parentArchive(parentId)}
-            variant="danger"
-            onSuccess={() => {
-              setOpen(false);
-              onArchived();
-              router.push('/admin/parents');
-            }}
-          />
+          {canArchive ? (
+            <ConfirmActionButton
+              label={t('admin.student360.archiveGuardianProfile')}
+              confirmTitle={t('admin.student360.archiveGuardianProfile')}
+              confirmMessage={t('admin.student360.archiveGuardianProfileConfirm')}
+              path={endpoints.admin.parentArchive(parentId)}
+              variant="danger"
+              onSuccess={() => {
+                setOpen(false);
+                onArchive();
+                router.push('/admin/parents');
+              }}
+            />
+          ) : null}
+          {canDelete ? (
+            <button
+              type="button"
+              className="parent-profile__menu-item parent-profile__menu-item--danger"
+              onClick={() => {
+                setOpen(false);
+                onDelete();
+              }}
+            >
+              {t('admin.guardianProfile.deleteGuardianProfileAction')}
+            </button>
+          ) : null}
         </div>
       ) : null}
     </div>
@@ -84,16 +119,23 @@ export function ParentProfileView({
   const t = useT();
   const user = useSession();
   const [accountDialogOpen, setAccountDialogOpen] = useState(false);
+  const [restoreOpen, setRestoreOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
+  const archived = isPersonArchived(parent);
+  const profileStatus = archived ? 'archived' : parent.status;
   const roleLine = formatRoleLabels(parent.role_labels);
   const emailPresentation = getGuardianEmailPresentation(parent.email);
   const hasAccount =
     parent.account?.has_user_account === true ||
     !!(parent.has_user_account ?? parent.has_account);
   const showCreateAccount =
-    parent.account?.needs_new_account === true ||
-    (parent.needs_new_account === true && !hasAccount);
-  const canArchive = parent.allowed_actions?.archive_guardian_profile === true;
+    !archived &&
+    (parent.account?.needs_new_account === true ||
+      (parent.needs_new_account === true && !hasAccount));
+  const canArchive = !archived && parent.allowed_actions?.archive_guardian_profile === true;
+  const canRestore = canRestoreGuardianProfile(parent.allowed_actions);
+  const canDelete = canDeleteGuardianProfile(parent.allowed_actions, user);
   const canManageAccount = !!user && hasPermission(user, 'manage_parents');
   const accountEntity = parentAccountEntityFields(parent);
   const accountStatus = resolveAccountStatus(accountEntity);
@@ -102,6 +144,24 @@ export function ParentProfileView({
     account?.login ??
     parent.login ??
     (emailPresentation.kind === 'usable' ? emailPresentation.email : null);
+
+  const deleteBlockerLines = useMemo(() => {
+    const lines: string[] = [];
+    if (parent.delete_impact?.blockers?.length) {
+      for (const blocker of parent.delete_impact.blockers) {
+        lines.push(deleteBlockerMessage(t, blocker));
+      }
+    } else if (parent.delete_blockers?.length) {
+      for (const code of parent.delete_blockers) {
+        lines.push(deleteBlockerMessage(t, code));
+      }
+    } else if (archived && !canDelete && parent.delete_impact?.blocker_message) {
+      lines.push(parent.delete_impact.blocker_message);
+    }
+    return [...new Set(lines)];
+  }, [parent.delete_impact, parent.delete_blockers, archived, canDelete, t]);
+
+  const showRecordManagement = archived || canRestore || canArchive || canDelete || deleteBlockerLines.length > 0;
 
   const contactItems = useMemo(() => {
     const phoneNorm = parent.phone?.trim() ?? '';
@@ -193,6 +253,13 @@ export function ParentProfileView({
 
   return (
     <div className="parent-profile">
+      {archived ? (
+        <div className="parent-profile__archived-banner" role="status">
+          <strong>{t('admin.guardianProfile.archivedProfileBanner')}</strong>
+          <p className="tiny">{t('admin.guardianProfile.archivedCannotLinkHint')}</p>
+        </div>
+      ) : null}
+
       <Card className="parent-profile__hero">
         <div className="parent-profile__hero-main">
           <Avatar name={parent.display_name ?? parent.name} />
@@ -201,8 +268,8 @@ export function ParentProfileView({
               {parent.display_name ?? parent.name}
             </h2>
             <div className="parent-profile__hero-meta">
-              <Badge tone={parent.status === 'active' ? 'green' : 'slate'}>
-                {statusLabel(t, parent.status)}
+              <Badge tone={archived ? 'slate' : profileStatus === 'active' ? 'green' : 'slate'}>
+                {archived ? t('admin.guardianProfile.archivedBadge') : statusLabel(t, profileStatus)}
               </Badge>
               {parent.needs_review ? (
                 <Badge tone="amber">{t('admin.student360.recordNeedsReview')}</Badge>
@@ -212,19 +279,67 @@ export function ParentProfileView({
               ) : null}
               {hasAccount ? (
                 <Badge tone="green">{t('admin.parentProfile.existingLoginAccount')}</Badge>
-              ) : null}
+              ) : (
+                <Badge tone="slate">{t('admin.student360.noLoginAccount')}</Badge>
+              )}
             </div>
           </div>
         </div>
         <div className="parent-profile__hero-actions">
-          {parent.status !== 'archived' ? (
+          {!archived ? (
             <button type="button" className="btn btn--primary btn--sm" onClick={onEdit}>
               {t('common.edit')}
             </button>
           ) : null}
-          <ParentHeaderMenu canArchive={canArchive} parentId={parent.id} onArchived={onReload} />
+          {canRestore ? (
+            <button type="button" className="btn btn--secondary btn--sm" onClick={() => setRestoreOpen(true)}>
+              {t('admin.guardianProfile.restoreAction')}
+            </button>
+          ) : null}
+          <ParentRecordMenu
+            canArchive={canArchive}
+            canDelete={canDelete}
+            parentId={parent.id}
+            onArchive={onReload}
+            onDelete={() => setDeleteOpen(true)}
+          />
         </div>
       </Card>
+
+      {showRecordManagement ? (
+        <Card className="parent-profile__record-management">
+          <SectionHead title={t('admin.guardianProfile.recordManagement')} />
+          <div className="parent-profile__record-actions">
+            {canRestore ? (
+              <button type="button" className="btn btn--secondary btn--sm" onClick={() => setRestoreOpen(true)}>
+                {t('admin.guardianProfile.restoreAction')}
+              </button>
+            ) : null}
+            {canArchive ? (
+              <ConfirmActionButton
+                label={t('admin.student360.archiveGuardianProfile')}
+                confirmTitle={t('admin.student360.archiveGuardianProfile')}
+                confirmMessage={t('admin.student360.archiveGuardianProfileConfirm')}
+                path={endpoints.admin.parentArchive(parent.id)}
+                variant="danger"
+                onSuccess={onReload}
+              />
+            ) : null}
+            {canDelete ? (
+              <button type="button" className="btn btn--danger btn--sm" onClick={() => setDeleteOpen(true)}>
+                {t('admin.guardianProfile.deleteGuardianProfileAction')}
+              </button>
+            ) : null}
+          </div>
+          {deleteBlockerLines.length ? (
+            <ul className="parent-profile__blockers">
+              {deleteBlockerLines.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          ) : null}
+        </Card>
+      ) : null}
 
       <div className="parent-profile__layout">
         <Card>
@@ -259,7 +374,7 @@ export function ParentProfileView({
             {hasAccount && roleLine ? (
               <p className="tiny muted">{t('admin.student360.singleLoginForRoles')}</p>
             ) : null}
-            {hasAccount && canManageAccount ? (
+            {hasAccount && canManageAccount && !archived ? (
               <button
                 type="button"
                 className="btn btn--secondary btn--sm"
@@ -302,6 +417,26 @@ export function ParentProfileView({
         onClose={() => setAccountDialogOpen(false)}
         onSuccess={() => {
           setAccountDialogOpen(false);
+          onReload();
+        }}
+      />
+
+      <GuardianRestoreDialog
+        open={restoreOpen}
+        target={parent}
+        onClose={() => setRestoreOpen(false)}
+        onRestored={onReload}
+      />
+
+      <GuardianDeleteDialog
+        open={deleteOpen}
+        parentId={parent.id}
+        parentName={parent.display_name ?? parent.name}
+        allowedActions={parent.allowed_actions}
+        initialImpact={parent.delete_impact ?? null}
+        onClose={() => setDeleteOpen(false)}
+        onDeleted={() => {
+          setDeleteOpen(false);
           onReload();
         }}
       />

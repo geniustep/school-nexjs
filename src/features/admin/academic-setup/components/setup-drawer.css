@@ -43,3 +43,7 @@
 .academic-setup-drawer--wide {
   width: min(800px, 100vw);
 }
+
+.academic-setup-drawer--medium {
+  width: min(600px, 100vw);
+}

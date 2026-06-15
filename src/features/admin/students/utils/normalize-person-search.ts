@@ -1,5 +1,8 @@
 import type { PersonSearchResult } from '@/types/student-360';
+import { normalizeAllowedActionsFromRaw } from './guardian-removal-shared';
+import { normalizeDeleteImpactFromRaw } from './guardian-delete-impact';
 import { getGuardianEmailPresentation } from './guardian-email-presentation';
+import { isPersonArchived } from './guardian-profile-contract';
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === 'object' ? (value as Record<string, unknown>) : null;
@@ -24,6 +27,14 @@ function readHasUserAccount(raw: Record<string, unknown>): boolean {
   return typeof account?.user_id === 'number' && account.user_id > 0;
 }
 
+function resolveStatus(raw: Record<string, unknown>): string | undefined {
+  if (typeof raw.status === 'string' && raw.status.trim()) return raw.status.trim();
+  if (raw.archived === true) return 'archived';
+  if (raw.active === false) return 'archived';
+  if (raw.active === true) return 'active';
+  return undefined;
+}
+
 /** Map unified person search row from GET /admin/guardians/search. */
 export function normalizePersonSearchResult(data: unknown): PersonSearchResult | null {
   const raw = asRecord(data);
@@ -45,6 +56,20 @@ export function normalizePersonSearchResult(data: unknown): PersonSearchResult |
   const hasUserAccount = readHasUserAccount(raw);
   const existingRoles = readStringList(raw.existing_roles);
   const roleLabels = readStringList(raw.role_labels);
+  const status = resolveStatus(raw);
+  const archived = raw.archived === true || status === 'archived';
+  const active = archived ? false : raw.active !== false && status !== 'archived';
+  const allowedActions = normalizeAllowedActionsFromRaw(raw.allowed_actions);
+  const deleteImpact = normalizeDeleteImpactFromRaw(raw.delete_impact ?? raw);
+
+  let canLink = false;
+  if (!archived) {
+    if (allowedActions?.link_as_guardian === true) canLink = true;
+    else if (allowedActions?.link_as_guardian !== false && raw.can_link_as_guardian === true) canLink = true;
+    else if (allowedActions?.link_as_guardian === undefined && raw.can_link_as_guardian !== false) {
+      canLink = raw.can_link_as_guardian !== false;
+    }
+  }
 
   return {
     partner_id: raw.partner_id,
@@ -76,7 +101,13 @@ export function normalizePersonSearchResult(data: unknown): PersonSearchResult |
     role_labels: roleLabels,
     has_user_account: hasUserAccount,
     has_account: hasUserAccount,
-    can_link_as_guardian: raw.can_link_as_guardian !== false,
+    active,
+    archived,
+    status: status ?? (archived ? 'archived' : 'active'),
+    archive_reason: typeof raw.archive_reason === 'string' ? raw.archive_reason : null,
+    allowed_actions: allowedActions,
+    delete_impact: deleteImpact ?? undefined,
+    can_link_as_guardian: canLink,
     already_guardian_of_student: raw.already_guardian_of_student === true,
   };
 }
@@ -99,3 +130,5 @@ export function isPersonSearchResult(
 ): value is PersonSearchResult {
   return typeof (value as PersonSearchResult).partner_id === 'number';
 }
+
+export { isPersonArchived };

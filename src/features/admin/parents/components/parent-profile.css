@@ -68,6 +68,58 @@
   border: 1px solid var(--border, #e2e8f0);
   border-radius: 8px;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.parent-profile__menu-item {
+  width: 100%;
+  text-align: start;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+}
+
+.parent-profile__menu-item--danger {
+  color: var(--danger, #dc2626);
+}
+
+.parent-profile__menu-item--danger:hover {
+  background: #fef2f2;
+}
+
+.parent-profile__archived-banner {
+  padding: 14px 16px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #334155;
+}
+
+.parent-profile__archived-banner p {
+  margin: 6px 0 0;
+}
+
+.parent-profile__record-management {
+  padding: 16px 20px;
+}
+
+.parent-profile__record-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.parent-profile__blockers {
+  margin: 8px 0 0;
+  padding-inline-start: 1.1rem;
+  color: var(--text-muted, #64748b);
+  font-size: 0.875rem;
 }
 
 .parent-profile__layout {
