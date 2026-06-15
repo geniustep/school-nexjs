@@ -1,11 +1,28 @@
 import type { TranslateFn } from '@/features/i18n/locale-context';
 import type { ApiErrorBody } from '@/types/api';
-import type { GuardianDuplicateMatch } from '@/types/student-360';
+import type { GuardianDuplicateField, GuardianDuplicateMatch } from '@/types/student-360';
+import { normalizeGuardianSummary } from './normalize-guardian';
 
 export interface GuardianErrorContext {
   message: string;
   field?: string;
+  duplicateField?: GuardianDuplicateField;
   matches?: GuardianDuplicateMatch[];
+}
+
+export function inferDuplicateField(
+  details: Record<string, unknown> | undefined,
+  message?: string,
+): GuardianDuplicateField {
+  const explicit = details?.duplicate_field;
+  if (explicit === 'phone' || explicit === 'email' || explicit === 'national_id') {
+    return explicit;
+  }
+  const lower = (message ?? '').toLowerCase();
+  if (lower.includes('email')) return 'email';
+  if (lower.includes('phone') || lower.includes('mobile')) return 'phone';
+  if (lower.includes('identity') || lower.includes('national')) return 'national_id';
+  return 'unknown';
 }
 
 export function extractGuardianDuplicateMatches(
@@ -26,11 +43,20 @@ export function mapGuardianApiError(
   const matches = extractGuardianDuplicateMatches(details);
 
   switch (code) {
-    case 'guardian_duplicate':
+    case 'guardian_duplicate': {
+      const duplicateField = inferDuplicateField(details, error.message);
+      const messageKey =
+        duplicateField === 'email'
+          ? 'admin.student360.guardianDuplicateEmail'
+          : duplicateField === 'phone'
+            ? 'admin.student360.guardianDuplicatePhone'
+            : 'admin.student360.guardianDuplicate';
       return {
-        message: t('admin.student360.guardianDuplicate'),
-        matches,
+        message: t(messageKey),
+        duplicateField,
+        matches: matches?.map((m) => normalizeDuplicateMatch(m)),
       };
+    }
     case 'guardian_already_linked':
       return { message: t('admin.student360.guardianAlreadyLinked') };
     case 'primary_guardian_conflict':
@@ -61,4 +87,10 @@ export function mapGuardianApiError(
       return { message: t('errors.serverError') };
     }
   }
+}
+
+function normalizeDuplicateMatch(match: GuardianDuplicateMatch): GuardianDuplicateMatch {
+  const normalized = normalizeGuardianSummary(match);
+  if (!normalized) return match;
+  return { ...match, ...normalized, name: normalized.name || match.name };
 }

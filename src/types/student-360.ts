@@ -327,9 +327,13 @@ export interface GuardianSummary {
   secondary_phone?: string | null;
   email?: string | null;
   address?: string | null;
+  national_id?: string | null;
   children_count?: number;
+  has_account?: boolean;
   account?: UserAccountInfo | null;
 }
+
+export type GuardianDuplicateField = 'phone' | 'email' | 'national_id' | 'unknown';
 
 export interface GuardianRelationship {
   relationship_id: number;

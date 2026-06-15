@@ -86,6 +86,7 @@ export function StudentGuardiansTab({
                 onEdit={() => setEditRel(rel)}
                 onEnd={() => setEndRel(rel)}
                 onCopyPhone={copyPhone}
+                onAccountCreated={onChanged}
               />
             ))}
           </div>
@@ -111,6 +112,7 @@ export function StudentGuardiansTab({
       <GuardianAddDialog
         open={addOpen}
         studentId={studentId}
+        relationships={details.guardian_relationships}
         onClose={() => setAddOpen(false)}
         onLinked={onChanged}
       />

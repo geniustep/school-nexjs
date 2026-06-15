@@ -29,6 +29,16 @@ export function normalizeGuardianSummary(data: unknown): GuardianSummary | null 
         : typeof raw.linked_students_count === 'number'
           ? raw.linked_students_count
           : undefined,
+    national_id:
+      typeof raw.national_id === 'string'
+        ? raw.national_id
+        : typeof raw.id_number === 'string'
+          ? raw.id_number
+          : null,
+    has_account:
+      raw.has_account === true ||
+      (typeof raw.user_id === 'number' && raw.user_id > 0) ||
+      (asRecord(raw.account)?.user_id != null),
   };
 }
 
