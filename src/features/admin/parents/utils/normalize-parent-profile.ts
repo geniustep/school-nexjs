@@ -178,6 +178,18 @@ function normalizeAccount(raw: unknown): ParentAccountInfo | null {
   };
 }
 
+function readBlockerCodes(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const codes = value
+    .map((item): string | null => {
+      if (typeof item === 'string' && item.trim()) return item;
+      const record = asRecord(item);
+      return record && typeof record.code === 'string' ? record.code : null;
+    })
+    .filter((item): item is string => item != null);
+  return codes.length ? codes : undefined;
+}
+
 function normalizeGuardianProfile(raw: unknown): ParentGuardianProfile | null {
   const record = asRecord(raw);
   if (!record) return null;
@@ -189,8 +201,9 @@ function normalizeGuardianProfile(raw: unknown): ParentGuardianProfile | null {
           ? record.id
           : undefined,
     status: typeof record.status === 'string' ? record.status : undefined,
+    archived: record.archived === true,
     archivable: record.archivable === true,
-    archive_blockers: readStringList(record.archive_blockers),
+    archive_blockers: readStringList(record.archive_blockers) ?? readBlockerCodes(record.archive_blockers),
   };
 }
 
@@ -229,9 +242,14 @@ export function normalizeParentProfile(data: unknown): Parent | null {
     (guardianProfile?.archivable ? { archive_guardian_profile: true } : undefined);
 
   const profileStatus = String(guardianProfile?.status ?? raw.status ?? 'active');
-  const archived = raw.archived === true || profileStatus === 'archived';
+  const archived =
+    raw.archived === true || guardianProfile?.archived === true || profileStatus === 'archived';
   const deleteImpact = normalizeDeleteImpactFromRaw(raw.delete_impact);
-  const deleteBlockers = readStringList(raw.delete_blockers);
+  const allowedActionsRaw = asRecord(raw.allowed_actions);
+  const deleteBlockers =
+    readStringList(raw.delete_blockers) ??
+    readBlockerCodes(allowedActionsRaw?.delete_blockers) ??
+    deleteImpact?.blockers?.map((blocker) => blocker.code);
 
   const roleLabels =
     (person ? readStringList(person.role_labels) : undefined) ??

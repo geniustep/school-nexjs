@@ -23,6 +23,7 @@ export interface ParentAccountInfo {
 export interface ParentGuardianProfile {
   guardian_id?: number;
   status?: string;
+  archived?: boolean;
   archivable?: boolean;
   archive_blockers?: string[];
 }
