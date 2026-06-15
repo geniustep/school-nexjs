@@ -73,9 +73,11 @@ function BadgeGroup({ title, badges }: { title: string; badges: ResponsibilityBa
 export function GuardianRelationshipBadges({
   rel,
   isDefaultBilling,
+  compactSummary = false,
 }: {
   rel: GuardianRelationship;
   isDefaultBilling?: boolean;
+  compactSummary?: boolean;
 }) {
   const t = useT();
   const [expanded, setExpanded] = useState(false);
@@ -96,6 +98,25 @@ export function GuardianRelationshipBadges({
   const permissionBadges = badges.filter((b) => b.group === 'permissions');
   const preview = badges.slice(0, 3);
   const hiddenCount = badges.length - preview.length;
+
+  if (compactSummary) {
+    return (
+      <div className="student-360-guardian-card__responsibilities">
+        <div className="student-360-guardian-card__badges">
+          {preview.map((b) => (
+            <Badge key={b.key} tone={b.tone}>
+              {b.label}
+            </Badge>
+          ))}
+        </div>
+        {hiddenCount > 0 ? (
+          <span className="tiny muted" title={badges.map((b) => b.label).join(' · ')}>
+            {t('admin.parentProfile.moreResponsibilities', { count: hiddenCount })}
+          </span>
+        ) : null}
+      </div>
+    );
+  }
 
   return (
     <div className="student-360-guardian-card__responsibilities">

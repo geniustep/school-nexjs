@@ -18,6 +18,7 @@ import {
   relationshipFormToLinkPersonPayload,
   type RelationshipFormValues,
 } from './guardian-relationship-form';
+import { GuardianRelationshipImpactAlert } from './guardian-relationship-impact-alert';
 import { mapGuardianApiError } from '../utils/guardian-api-errors';
 import {
   linkExistingPersonAsGuardian,
@@ -310,7 +311,23 @@ export function GuardianAddDialog({
               </div>
             ) : null}
 
-            <p className="tiny muted">{t('admin.student360.responsibilitiesScopeNote')}</p>
+            <p className="tiny muted">{t('admin.parentProfile.responsibilitiesScopeNote')}</p>
+
+            <GuardianRelationshipImpactAlert
+              values={formValues}
+              personContact={{
+                phone: selectedPerson.phone,
+                email: selectedPerson.email,
+              }}
+              currentPrimaryName={currentPrimary?.guardian.name ?? null}
+              parentProfileHref={
+                selectedPerson.guardian_id != null
+                  ? `/admin/parents/${selectedPerson.guardian_id}`
+                  : selectedPerson.id
+                    ? `/admin/parents/${selectedPerson.id}`
+                    : undefined
+              }
+            />
 
             <GuardianRelationshipForm values={formValues} onChange={setFormValues} fieldError={fieldError} />
 

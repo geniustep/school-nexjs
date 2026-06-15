@@ -1,16 +1,19 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/primitives';
+import { useSession } from '@/features/auth/session-context';
 import { GuardianEditDialog } from '@/features/admin/students/components/guardian-edit-dialog';
 import { GuardianRemoveDialog } from '@/features/admin/students/components/guardian-remove-dialog';
 import { GuardianRelationshipBadges } from '@/features/admin/students/components/guardian-relationship-badges';
 import { useT } from '@/features/i18n/locale-context';
+import { hasPermission } from '@/lib/permissions/permissions';
 import { statusLabel } from '@/lib/utils/labels';
 import { getStudentDisplayName } from '@/lib/utils/student';
 import { relationshipTypeLabel, isRelationshipActive } from '@/features/admin/students/utils/relationship-types';
 import { parentChildToGuardianRelationship } from '../utils/parent-child-guardian-relationship';
+import { ParentLinkStudentDialog } from './parent-link-student-dialog';
 import type { Parent, ParentChild } from '@/types/parent';
 import type { GuardianRelationship } from '@/types/student-360';
 
@@ -65,7 +68,7 @@ function RelationshipRowMenu({
               onRemove();
             }}
           >
-            {t('admin.student360.removeGuardianFromStudent')}
+            {t('admin.parentProfile.removeRelationship')}
           </button>
         </div>
       ) : null}
@@ -87,9 +90,13 @@ export function ParentRelationshipsSection({
   onRetry?: () => void;
 }) {
   const t = useT();
+  const user = useSession();
   const activeChildren = parent.relationships ?? parent.children ?? [];
+  const [linkOpen, setLinkOpen] = useState(false);
   const [editContext, setEditContext] = useState<{
     studentId: number;
+    studentName: string;
+    studentClassName: string;
     relationship: GuardianRelationship;
   } | null>(null);
   const [removeContext, setRemoveContext] = useState<{
@@ -97,11 +104,37 @@ export function ParentRelationshipsSection({
     relationship: GuardianRelationship;
   } | null>(null);
 
+  const linkedStudentIds = useMemo(
+    () => new Set(activeChildren.map((child) => child.id)),
+    [activeChildren],
+  );
+
+  const canLink =
+    hasPermission(user, 'manage_parents') &&
+    parent.allowed_actions?.edit_relationship !== false &&
+    parent.status !== 'archived';
+
   return (
     <section className="parent-relationships">
       <div className="parent-relationships__head">
-        <h3 className="parent-relationships__title">{t('admin.parentProfile.childrenAndRelationships')}</h3>
+        <div className="parent-relationships__head-main">
+          <h3 className="parent-relationships__title">{t('admin.parentProfile.childrenAndRelationships')}</h3>
+          {!loading && !error ? (
+            <span className="tiny muted">
+              {t('admin.parentProfile.activeRelationshipsCount', { count: activeChildren.length })}
+            </span>
+          ) : null}
+        </div>
+        {canLink ? (
+          <button type="button" className="btn btn--primary btn--sm" onClick={() => setLinkOpen(true)}>
+            {t('admin.parentProfile.linkStudentToParent')}
+          </button>
+        ) : null}
       </div>
+
+      {!canLink && parent.allowed_actions?.edit_relationship === false ? (
+        <p className="tiny muted">{t('admin.parentProfile.linkStudentForbidden')}</p>
+      ) : null}
 
       {loading ? (
         <div className="parent-relationships__empty parent-relationships__empty--loading" aria-busy="true">
@@ -136,9 +169,9 @@ export function ParentRelationshipsSection({
               <li key={`${child.id}-${rel?.relationship_id ?? 'legacy'}`} className="parent-relationships__row">
                 <div className="parent-relationships__main">
                   <div className="parent-relationships__student">
-                    <Link href={`/admin/students/${child.id}`} className="parent-relationships__student-name" dir="auto">
+                    <span className="parent-relationships__student-name" dir="auto">
                       {studentName}
-                    </Link>
+                    </span>
                     {child.code || child.school_number ? (
                       <span className="tiny mono muted" dir="ltr">
                         {child.code ?? child.school_number}
@@ -146,28 +179,29 @@ export function ParentRelationshipsSection({
                     ) : null}
                   </div>
                   <p className="tiny muted">{childClassLabel(child, t('common.dash'))}</p>
-                  {relLabel ? (
-                    <p className="tiny muted">
-                      {t('admin.student360.relationshipTypeLabel')}: {relLabel}
-                    </p>
-                  ) : null}
+                  {relLabel ? <p className="parent-relationships__relation-type">{relLabel}</p> : null}
                   {rel?.state ? (
                     <Badge tone={active ? 'green' : 'slate'}>{statusLabel(t, rel.state ?? 'active')}</Badge>
                   ) : null}
-                  {guardianRel ? <GuardianRelationshipBadges rel={guardianRel} /> : null}
+                  {guardianRel ? <GuardianRelationshipBadges rel={guardianRel} compactSummary /> : null}
                 </div>
 
                 <div className="parent-relationships__actions">
-                  <Link href={`/admin/students/${child.id}?tab=guardians`} className="btn btn--ghost btn--sm">
-                    {t('admin.student360.guardiansOpenStudentProfile')}
+                  <Link href={`/admin/students/${child.id}`} className="btn btn--secondary btn--sm">
+                    {t('admin.parentProfile.openStudentProfile')}
                   </Link>
                   {canEdit ? (
                     <button
                       type="button"
-                      className="btn btn--ghost btn--sm"
+                      className="btn btn--secondary btn--sm"
                       onClick={() =>
                         guardianRel &&
-                        setEditContext({ studentId: child.id, relationship: guardianRel })
+                        setEditContext({
+                          studentId: child.id,
+                          studentName,
+                          studentClassName: childClassLabel(child, t('common.dash')),
+                          relationship: guardianRel,
+                        })
                       }
                     >
                       {t('admin.parentProfile.editRelationship')}
@@ -188,14 +222,34 @@ export function ParentRelationshipsSection({
         <div className="parent-relationships__empty">
           <p className="parent-relationships__empty-title">{t('admin.parentProfile.noActiveRelationships')}</p>
           <p className="tiny muted">{t('admin.parentProfile.noActiveRelationshipsHint')}</p>
+          {canLink ? (
+            <button type="button" className="btn btn--primary btn--sm" onClick={() => setLinkOpen(true)}>
+              {t('admin.parentProfile.linkStudentToParent')}
+            </button>
+          ) : null}
         </div>
       )}
+
+      <ParentLinkStudentDialog
+        open={linkOpen}
+        parent={parent}
+        linkedStudentIds={linkedStudentIds}
+        onClose={() => setLinkOpen(false)}
+        onLinked={onRelationshipChanged}
+      />
 
       {editContext ? (
         <GuardianEditDialog
           open
           studentId={editContext.studentId}
           relationship={editContext.relationship}
+          studentName={editContext.studentName}
+          studentClassName={editContext.studentClassName}
+          personContact={{
+            phone: parent.phone,
+            mobile: parent.mobile,
+            email: parent.email,
+          }}
           onClose={() => setEditContext(null)}
           onUpdated={onRelationshipChanged}
           successMessageKey="admin.parentProfile.relationshipUpdated"

@@ -11,7 +11,6 @@ import { ParentProfileView } from '@/features/admin/parents/components/parent-pr
 import { normalizeParentProfile } from '@/features/admin/parents/utils/normalize-parent-profile';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
-import { formatRoleLabels } from '@/features/admin/students/utils/person-role-presentation';
 
 export default function AdminParentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -47,10 +46,7 @@ export default function AdminParentDetailPage({ params }: { params: Promise<{ id
         {() =>
           parent ? (
             <>
-              <PageHeader
-                title={parent.display_name ?? parent.name}
-                subtitle={formatRoleLabels(parent.role_labels) || undefined}
-              />
+              <PageHeader title={parent.display_name ?? parent.name} />
               <ParentProfileView
                 parent={parent}
                 editing={editing}

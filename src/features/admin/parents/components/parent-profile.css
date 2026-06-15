@@ -1,33 +1,99 @@
 .parent-profile {
   max-width: 1180px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.parent-profile__hero {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px 24px;
+}
+
+.parent-profile__hero-main {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.parent-profile__hero-text {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.parent-profile__name {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.parent-profile__hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.parent-profile__roles-line {
+  font-size: 0.875rem;
+  color: var(--text-muted, #64748b);
+}
+
+.parent-profile__hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.parent-profile__menu {
+  position: relative;
+}
+
+.parent-profile__menu-panel {
+  position: absolute;
+  inset-inline-end: 0;
+  top: calc(100% + 4px);
+  z-index: 20;
+  min-width: 180px;
+  padding: 6px;
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
 }
 
 .parent-profile__layout {
   display: grid;
   gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.parent-profile__identity-card,
-.parent-profile__relationships-card {
+.parent-profile__relationships-card,
+.parent-profile__account-card {
   grid-column: 1 / -1;
 }
 
-.parent-profile__identity {
+.parent-profile__account-body {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
-.parent-profile__name {
-  margin: 0;
-  font-size: 1.25rem;
+.parent-profile__contact-link {
+  color: inherit;
+  text-decoration: none;
 }
 
-.parent-profile__roles {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+.parent-profile__contact-link:hover {
+  text-decoration: underline;
 }
 
 .parent-edit-form {
@@ -94,12 +160,28 @@
 }
 
 .parent-relationships__head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: flex-start;
   margin-bottom: 12px;
+}
+
+.parent-relationships__head-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .parent-relationships__title {
   margin: 0;
   font-size: 1rem;
+}
+
+.parent-relationships__relation-type {
+  margin: 0;
+  font-weight: 600;
 }
 
 .parent-relationships__list {
@@ -181,6 +263,10 @@
   background: var(--muted-surface, #f1f5f9);
 }
 
+.parent-relationships__menu-item--danger {
+  color: #dc2626;
+}
+
 .parent-relationships__empty {
   padding: 16px 0;
   display: flex;
@@ -210,6 +296,177 @@
   width: 65%;
 }
 
+.parent-student-search {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.parent-student-search__results {
+  min-height: 120px;
+}
+
+.parent-student-search__state {
+  padding: 16px;
+  border-radius: 8px;
+  background: var(--surface-muted, #f8fafc);
+  border: 1px dashed var(--border, #e2e8f0);
+}
+
+.parent-student-search__state--error {
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.parent-student-search__skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.parent-student-search__skeleton-row {
+  height: 72px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: parent-relationships-shimmer 1.2s infinite;
+}
+
+.parent-student-search__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.parent-student-search__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 12px;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 8px;
+}
+
+.parent-student-search__row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.parent-student-search__identity {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.parent-student-search__identity-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.parent-student-search__linked-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #fff7ed;
+  color: #c2410c;
+  align-self: flex-start;
+}
+
+.guardian-relationship-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.guardian-relationship-fields__group {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.guardian-relationship-fields__group-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin: 0;
+  padding: 0;
+}
+
+.guardian-relationship-fields__group-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.guardian-relationship-fields__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.guardian-relationship-fields__checks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.guardian-relationship-fields__checkbox {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.guardian-relationship-fields__hint {
+  margin-top: 2px;
+}
+
+.guardian-relationship-fields__additional summary {
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--primary, #2563eb);
+  margin-bottom: 8px;
+}
+
+.guardian-relationship-fields__additional-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.guardian-relationship-impact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.guardian-relationship-impact {
+  padding: 12px;
+  border-radius: 8px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+}
+
+.guardian-relationship-impact p {
+  margin: 0;
+}
+
+.guardian-relationship-impact--warn {
+  background: #fffbeb;
+  border-color: #fde68a;
+}
+
 @keyframes parent-relationships-shimmer {
   0% {
     background-position: 200% 0;
@@ -219,30 +476,38 @@
   }
 }
 
-
 @media (max-width: 960px) {
+  .parent-profile__layout {
+    grid-template-columns: 1fr;
+  }
+
   .parent-edit-form__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 640px) {
+  .parent-profile__hero,
+  .parent-profile__hero-actions,
+  .parent-relationships__row,
+  .parent-relationships__actions,
+  .parent-student-search__row {
+    flex-direction: column;
+  }
+
   .parent-edit-form__grid,
   .parent-edit-form__grid--prefs {
     grid-template-columns: 1fr;
   }
 
-  .parent-relationships__row,
-  .parent-relationships__actions {
-    flex-direction: column;
-  }
-
   .parent-relationships__actions .btn,
-  .parent-edit-form__actions .btn {
+  .parent-edit-form__actions .btn,
+  .parent-profile__hero-actions .btn {
     width: 100%;
   }
 
-  .parent-relationships__menu-panel {
+  .parent-relationships__menu-panel,
+  .parent-profile__menu-panel {
     inset-inline-start: 0;
     inset-inline-end: auto;
   }

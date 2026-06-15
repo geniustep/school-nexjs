@@ -11,6 +11,7 @@ import { GuardianEditDialog } from './guardian-edit-dialog';
 import { GuardianRemoveDialog } from './guardian-remove-dialog';
 import { Student360CompactEmpty } from './student-360-compact-empty';
 import { isRelationshipActive } from '../utils/relationship-types';
+import { studentClassLabel } from '../utils/student-academic-labels';
 import {
   findDuplicateStrongRelationshipTypes,
   duplicateRelationshipMessage,
@@ -20,6 +21,7 @@ import {
   resolveDefaultBillingGuardian,
 } from '../utils/resolve-default-billing-guardian';
 import type { GuardianRelationship, StudentDetailsData } from '@/types/student-360';
+import { getStudentDisplayName } from '@/lib/utils/student';
 
 export function StudentGuardiansTab({
   details,
@@ -155,6 +157,12 @@ export function StudentGuardiansTab({
         open={!!editRel}
         studentId={studentId}
         relationship={editRel}
+        studentName={getStudentDisplayName(details.student)}
+        studentClassName={studentClassLabel(details.student.class)}
+        currentPrimaryName={
+          sortedActive.find((r) => r.is_primary_contact && r.relationship_id !== editRel?.relationship_id)
+            ?.guardian.name ?? null
+        }
         onClose={() => setEditRel(null)}
         onUpdated={onChanged}
       />
