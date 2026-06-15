@@ -47,7 +47,15 @@ export function normalizeFinanceOverview(data: AdminFinanceOverview | null | und
   const raw = data as AdminFinanceOverview & FinanceOverviewTotals & Record<string, unknown>;
   const nested = raw.totals ?? raw.summary;
   if (nested && typeof nested === 'object') {
-    return { ...raw, totals: nested as FinanceOverviewTotals };
+    return {
+      ...raw,
+      totals: nested as FinanceOverviewTotals,
+      recent_collections: raw.recent_collections,
+      followup_students: raw.followup_students ?? raw.students_needing_followup,
+      upcoming_installments: raw.upcoming_installments as AdminFinanceOverview['upcoming_installments'],
+      overdue_installments: raw.overdue_installments as AdminFinanceOverview['overdue_installments'],
+      as_of_date: typeof raw.as_of_date === 'string' ? raw.as_of_date : undefined,
+    };
   }
 
   const cheques = (raw.cheques ?? {}) as Record<string, unknown>;
@@ -71,6 +79,7 @@ export function normalizeFinanceOverview(data: AdminFinanceOverview | null | und
       raw.cheques_rejected_count ?? (cheques.bounced as number | undefined) ?? (cheques.rejected as number | undefined),
     uncovered_amount: raw.uncovered_amount,
     draft_agreements_count: raw.draft_agreements_count,
+    active_agreements_count: raw.active_agreements_count,
     currency: raw.currency,
   };
 
@@ -79,6 +88,9 @@ export function normalizeFinanceOverview(data: AdminFinanceOverview | null | und
     totals,
     recent_collections: raw.recent_collections,
     followup_students: raw.followup_students ?? raw.students_needing_followup,
+    upcoming_installments: raw.upcoming_installments as AdminFinanceOverview['upcoming_installments'],
+    overdue_installments: raw.overdue_installments as AdminFinanceOverview['overdue_installments'],
+    as_of_date: typeof raw.as_of_date === 'string' ? raw.as_of_date : undefined,
   };
 }
 

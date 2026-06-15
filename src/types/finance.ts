@@ -333,7 +333,7 @@ export interface FinanceFollowupStudent {
   currency?: string;
 }
 
-export interface AdminFinanceOverview extends Partial<FinanceOverviewTotals> {
+export interface AdminFinanceOverview extends Omit<Partial<FinanceOverviewTotals>, 'overdue_installments'> {
   totals?: FinanceOverviewTotals;
   summary?: FinanceOverviewTotals;
   cheques?: {
@@ -347,7 +347,9 @@ export interface AdminFinanceOverview extends Partial<FinanceOverviewTotals> {
   recent_collections?: PaymentCollection[];
   followup_students?: FinanceFollowupStudent[];
   students_needing_followup?: FinanceFollowupStudent[];
-  upcoming_installments?: unknown[];
+  upcoming_installments?: FinanceInstallment[];
+  overdue_installments?: FinanceInstallment[];
+  as_of_date?: string;
 }
 
 export interface FinanceStudentSearchResult {
