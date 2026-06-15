@@ -1,17 +1,12 @@
 'use client';
 
-import { Card, DefinitionList, SectionHead } from '@/components/ui/primitives';
 import { DataTable, type Column } from '@/components/tables/data-table';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { statusLabel } from '@/lib/utils/labels';
-import { optionLabel } from '../utils/student-profile';
-import { studentClassLabel, studentLevelLabel, refOrStringLabel } from '../utils/student-academic-labels';
+import { refOrStringLabel, studentClassLabel, studentLevelLabel } from '../utils/student-academic-labels';
+import { CurrentEnrollmentCard } from './current-enrollment-card';
 import type { StudentDetailsData, StudentEnrollment } from '@/types/student-360';
-
-function dash(t: (k: string) => string, value: string | null | undefined): string {
-  return value?.trim() ? value : t('common.dash');
-}
 
 export function StudentEnrollmentTab({
   details,
@@ -67,23 +62,7 @@ export function StudentEnrollmentTab({
   return (
     <div className="student-360-tab-panel">
       {current ? (
-        <Card className="student-360-section-card">
-          <SectionHead title={t('admin.student360.currentEnrollment')} />
-          <DefinitionList
-            items={[
-              { label: t('academic.status'), value: statusLabel(t, current.state) },
-              { label: t('admin.finance.activeSchool'), value: refOrStringLabel(current.school) },
-              { label: t('admin.academicYearId'), value: refOrStringLabel(current.academic_year) },
-              { label: t('nav.levels'), value: studentLevelLabel(current.level) },
-              { label: t('nav.classes'), value: studentClassLabel(current.class) },
-              { label: t('admin.student360.dateStart'), value: formatDate(current.date_start) },
-              {
-                label: t('admin.student360.registrationType'),
-                value: optionLabel(undefined, current.registration_type) || dash(t, current.registration_type),
-              },
-            ]}
-          />
-        </Card>
+        <CurrentEnrollmentCard enrollment={current} />
       ) : (
         <div className="student-360-enrollment-empty">
           <p className="student-360-enrollment-empty__title">{t('admin.student360.noCurrentEnrollmentTitle')}</p>

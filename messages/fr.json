@@ -2635,6 +2635,11 @@
       "dateEnd": "Date de fin",
       "isCurrent": "Actuelle",
       "track": "Filière",
+      "registrationTypes": {
+        "new": "Nouvelle inscription",
+        "transfer": "Transfert",
+        "re_enrollment": "Réinscription"
+      },
       "guardiansTitle": "Liens responsables",
       "addGuardian": "Ajouter un responsable",
       "noGuardiansTitle": "Aucun responsable",

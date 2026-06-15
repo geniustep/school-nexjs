@@ -2674,6 +2674,11 @@
       "dateEnd": "End date",
       "isCurrent": "Current",
       "track": "Track",
+      "registrationTypes": {
+        "new": "New enrollment",
+        "transfer": "Transfer",
+        "re_enrollment": "Re-enrollment"
+      },
       "guardiansTitle": "Guardian relationships",
       "addGuardian": "Add guardian",
       "noGuardiansTitle": "No guardians",

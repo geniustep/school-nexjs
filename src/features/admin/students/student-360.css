@@ -581,6 +581,42 @@
   border-radius: 10px;
 }
 
+.student-360-current-enrollment .section__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+}
+
+.student-360-current-enrollment__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.student-360-current-enrollment__summary {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--c-border, #e2e8f0);
+}
+
+.student-360-current-enrollment__year {
+  margin: 0 0 4px;
+  font-size: 1.0625rem;
+  font-weight: 600;
+}
+
+.student-360-current-enrollment__placement {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--text, #0f172a);
+}
+
+.student-360-current-enrollment__school {
+  margin: 6px 0 0;
+}
+
 .student-360-enrollment-empty__title {
   margin: 0 0 4px;
   font-weight: 600;

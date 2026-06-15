@@ -2635,6 +2635,11 @@
       "dateEnd": "Fecha de fin",
       "isCurrent": "Actual",
       "track": "Itinerario",
+      "registrationTypes": {
+        "new": "Matrícula nueva",
+        "transfer": "Traslado",
+        "re_enrollment": "Rematrícula"
+      },
       "guardiansTitle": "Relaciones con tutores",
       "addGuardian": "Añadir tutor",
       "noGuardiansTitle": "Sin tutores",

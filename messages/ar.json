@@ -2672,6 +2672,11 @@
       "dateEnd": "تاريخ النهاية",
       "isCurrent": "تسجيل حالي",
       "track": "المسار",
+      "registrationTypes": {
+        "new": "تسجيل جديد",
+        "transfer": "تحويل",
+        "re_enrollment": "إعادة تسجيل"
+      },
       "guardiansTitle": "علاقات أولياء الأمر",
       "addGuardian": "إضافة ولي أمر",
       "noGuardiansTitle": "لا يوجد أولياء",
