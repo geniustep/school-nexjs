@@ -2091,7 +2091,11 @@
       "saveFailed": "Impossible d'enregistrer le profil.",
       "saveRelationshipsManagedSeparately": "Enregistrement impossible : les relations avec les enfants se gèrent dans la section « Enfants et relations ».",
       "relationshipUpdated": "Relation du responsable avec l'élève mise à jour.",
-      "removeRelationshipConfirmHint": "Seule la relation entre ce responsable et l'élève sera supprimée. La personne, le compte, le profil enseignant et les autres relations ne seront pas supprimés."
+      "removeRelationshipConfirmHint": "Seule la relation entre ce responsable et l'élève sera supprimée. La personne, le compte, le profil enseignant et les autres relations ne seront pas supprimés.",
+      "noActiveRelationships": "Aucune relation active avec des élèves.",
+      "noActiveRelationshipsHint": "Ce profil responsable n'est lié à aucun élève. Ajoutez la relation depuis le dossier élève.",
+      "relationshipsLoadError": "Impossible de charger les relations.",
+      "relationshipsRetry": "Réessayer"
     },
     "className": "Nom de classe",
     "levelName": "Nom du niveau",

@@ -76,12 +76,18 @@ function RelationshipRowMenu({
 export function ParentRelationshipsSection({
   parent,
   onRelationshipChanged,
+  loading = false,
+  error = null,
+  onRetry,
 }: {
   parent: Parent;
   onRelationshipChanged: () => void;
+  loading?: boolean;
+  error?: string | null;
+  onRetry?: () => void;
 }) {
   const t = useT();
-  const children = parent.relationships ?? parent.children ?? [];
+  const activeChildren = parent.relationships ?? parent.children ?? [];
   const [editContext, setEditContext] = useState<{
     studentId: number;
     relationship: GuardianRelationship;
@@ -97,9 +103,23 @@ export function ParentRelationshipsSection({
         <h3 className="parent-relationships__title">{t('admin.parentProfile.childrenAndRelationships')}</h3>
       </div>
 
-      {children.length ? (
+      {loading ? (
+        <div className="parent-relationships__empty parent-relationships__empty--loading" aria-busy="true">
+          <div className="parent-relationships__skeleton" />
+          <div className="parent-relationships__skeleton parent-relationships__skeleton--short" />
+        </div>
+      ) : error ? (
+        <div className="parent-relationships__empty">
+          <p className="muted">{t('admin.parentProfile.relationshipsLoadError')}</p>
+          {onRetry ? (
+            <button type="button" className="btn btn--ghost btn--sm" onClick={onRetry}>
+              {t('admin.parentProfile.relationshipsRetry')}
+            </button>
+          ) : null}
+        </div>
+      ) : activeChildren.length ? (
         <ul className="parent-relationships__list">
-          {children.map((child) => {
+          {activeChildren.map((child) => {
             const rel = child.relationship;
             const guardianRel = parentChildToGuardianRelationship(parent, child);
             const relType = rel?.relationship_type;
@@ -165,7 +185,10 @@ export function ParentRelationshipsSection({
           })}
         </ul>
       ) : (
-        <p className="muted">{t('admin.noLinkedChildren')}</p>
+        <div className="parent-relationships__empty">
+          <p className="parent-relationships__empty-title">{t('admin.parentProfile.noActiveRelationships')}</p>
+          <p className="tiny muted">{t('admin.parentProfile.noActiveRelationshipsHint')}</p>
+        </div>
       )}
 
       {editContext ? (

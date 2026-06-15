@@ -23,6 +23,8 @@ export function ParentProfileView({
   onCancelEdit,
   onSaved,
   onReload,
+  relationshipsLoading = false,
+  relationshipsError = null,
 }: {
   parent: Parent;
   editing: boolean;
@@ -30,6 +32,8 @@ export function ParentProfileView({
   onCancelEdit: () => void;
   onSaved: () => void;
   onReload: () => void;
+  relationshipsLoading?: boolean;
+  relationshipsError?: string | null;
 }) {
   const t = useT();
   const router = useRouter();
@@ -188,7 +192,13 @@ export function ParentProfileView({
         </Card>
 
         <Card className="parent-profile__relationships-card">
-          <ParentRelationshipsSection parent={parent} onRelationshipChanged={onReload} />
+          <ParentRelationshipsSection
+            parent={parent}
+            onRelationshipChanged={onReload}
+            loading={relationshipsLoading}
+            error={relationshipsError}
+            onRetry={onReload}
+          />
         </Card>
       </div>
     </div>

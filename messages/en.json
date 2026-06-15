@@ -2091,7 +2091,11 @@
       "saveFailed": "Could not save the profile.",
       "saveRelationshipsManagedSeparately": "Could not save because child relationships are managed in the «Children and relationships» section.",
       "relationshipUpdated": "Guardian relationship with the student was updated.",
-      "removeRelationshipConfirmHint": "Only the relationship between this guardian and the student will be removed. The person, login account, teacher profile, and other relationships will not be deleted."
+      "removeRelationshipConfirmHint": "Only the relationship between this guardian and the student will be removed. The person, login account, teacher profile, and other relationships will not be deleted.",
+      "noActiveRelationships": "No active relationships with students.",
+      "noActiveRelationshipsHint": "This guardian profile is not linked to any student. Add the relationship from the student profile.",
+      "relationshipsLoadError": "Could not load relationships.",
+      "relationshipsRetry": "Retry"
     },
     "className": "Class name",
     "levelName": "Level name",

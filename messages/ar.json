@@ -2094,7 +2094,11 @@
       "saveFailed": "تعذر حفظ الملف.",
       "saveRelationshipsManagedSeparately": "تعذر حفظ الملف لأن العلاقات مع الأبناء تُدار من قسم «الأبناء والعلاقات».",
       "relationshipUpdated": "تم تحديث علاقة ولي الأمر بالتلميذ.",
-      "removeRelationshipConfirmHint": "سيتم حذف العلاقة بين هذا الولي والتلميذ فقط. لن يُحذف الشخص أو حساب الدخول أو ملف الأستاذة أو علاقاته الأخرى."
+      "removeRelationshipConfirmHint": "سيتم حذف العلاقة بين هذا الولي والتلميذ فقط. لن يُحذف الشخص أو حساب الدخول أو ملف الأستاذة أو علاقاته الأخرى.",
+      "noActiveRelationships": "لا توجد علاقات نشطة مع تلاميذ.",
+      "noActiveRelationshipsHint": "لا يرتبط ملف ولي الأمر حاليًا بأي تلميذ. تتم إضافة العلاقة من ملف التلميذ.",
+      "relationshipsLoadError": "تعذر تحميل العلاقات.",
+      "relationshipsRetry": "إعادة المحاولة"
     },
     "className": "اسم القسم",
     "levelName": "اسم المستوى",

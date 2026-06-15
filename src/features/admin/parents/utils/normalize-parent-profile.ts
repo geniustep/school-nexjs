@@ -1,9 +1,17 @@
-import type { Parent, ParentChild, ParentChildRelationship, ParentAccountInfo, ParentGuardianProfile } from '@/types/parent';
+import type { Parent, ParentChild, ParentAccountInfo, ParentGuardianProfile } from '@/types/parent';
 import { getGuardianEmailPresentation } from '@/features/admin/students/utils/guardian-email-presentation';
 import {
   normalizeAllowedActionsFromRaw,
   normalizeRemovalImpactFromRaw,
 } from '@/features/admin/students/utils/guardian-removal-shared';
+import {
+  filterActiveRelationshipChild,
+  hasRelationshipsContract,
+  isActiveGuardianRelationship,
+  normalizeRelationshipLifecycle,
+  usesUnifiedParentContract,
+  warnIgnoredLegacyStudents,
+} from './parent-relationships-normalize';
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === 'object' ? (value as Record<string, unknown>) : null;
@@ -29,22 +37,13 @@ function readAddress(raw: Record<string, unknown>): string | null {
   return street || city || (typeof raw.address === 'string' ? raw.address : null);
 }
 
-function normalizeChildRelationship(raw: unknown): ParentChildRelationship | null {
+function normalizeChildRelationship(raw: unknown): ParentChild['relationship'] | null {
   const record = asRecord(raw);
   if (!record) return null;
-  if (typeof record.relationship_id !== 'number' && !record.relationship_type) return null;
+  const lifecycle = normalizeRelationshipLifecycle(record);
+  if (!lifecycle) return null;
   return {
-    relationship_id: typeof record.relationship_id === 'number' ? record.relationship_id : undefined,
-    relationship_type:
-      typeof record.relationship_type === 'string' ? record.relationship_type : undefined,
-    is_primary_contact: record.is_primary_contact === true,
-    is_legal_guardian: record.is_legal_guardian === true,
-    is_financial_responsible: record.is_financial_responsible === true,
-    is_emergency_contact: record.is_emergency_contact === true,
-    receives_notifications: record.receives_notifications === true,
-    is_authorized_pickup: record.is_authorized_pickup === true,
-    state: typeof record.state === 'string' ? record.state : undefined,
-    active: record.active !== false,
+    ...lifecycle,
     allowed_actions: normalizeAllowedActionsFromRaw(record.allowed_actions),
     removal_impact: normalizeRemovalImpactFromRaw(record.removal_impact) ?? undefined,
   };
@@ -71,6 +70,9 @@ function normalizeRelationshipAsChild(raw: unknown): ParentChild | null {
   const classValue = record.class;
   const levelValue = record.level;
 
+  const relationship = normalizeChildRelationship(record);
+  if (!relationship) return null;
+
   return {
     id: studentId,
     name,
@@ -88,7 +90,7 @@ function normalizeRelationshipAsChild(raw: unknown): ParentChild | null {
         : levelValue && typeof levelValue === 'object'
           ? (levelValue as ParentChild['level'])
           : null,
-    relationship: normalizeChildRelationship(record),
+    relationship,
   };
 }
 
@@ -102,6 +104,11 @@ function normalizeLegacyChild(raw: unknown): ParentChild | null {
     (typeof record.name === 'string' && record.name.trim()) ||
     [record.first_name, record.last_name].filter((p) => typeof p === 'string' && p.trim()).join(' ').trim() ||
     '';
+
+  const relationship =
+    normalizeChildRelationship(record.relationship) ??
+    normalizeChildRelationship(record.guardian_relationship) ??
+    null;
 
   return {
     id: record.id,
@@ -119,12 +126,45 @@ function normalizeLegacyChild(raw: unknown): ParentChild | null {
       record.level && typeof record.level === 'object'
         ? (record.level as ParentChild['level'])
         : null,
-    relationship:
-      normalizeChildRelationship(record.relationship) ??
-      normalizeChildRelationship(record.guardian_relationship) ??
-      null,
+    relationship,
   };
 }
+
+function resolveActiveChildren(raw: Record<string, unknown>): ParentChild[] {
+  const unified = usesUnifiedParentContract(raw);
+  const hasRelationshipsKey = hasRelationshipsContract(raw);
+
+  if (hasRelationshipsKey) {
+    const relationshipsRaw = raw.relationships;
+    const mapped = Array.isArray(relationshipsRaw)
+      ? relationshipsRaw.map(normalizeRelationshipAsChild).filter((c): c is ParentChild => c != null)
+      : [];
+
+    const active = mapped.filter((child) =>
+      filterActiveRelationshipChild(child, true),
+    );
+
+    warnIgnoredLegacyStudents(raw, active.length);
+    return active;
+  }
+
+  if (unified) {
+    warnIgnoredLegacyStudents(raw, 0);
+    return [];
+  }
+
+  const legacyChildrenRaw =
+    raw.children ?? raw.linked_students ?? raw.student_links ?? raw.students ?? raw.student_ids;
+  const legacyChildren = Array.isArray(legacyChildrenRaw)
+    ? legacyChildrenRaw.map(normalizeLegacyChild).filter((c): c is ParentChild => c != null)
+    : [];
+
+  return legacyChildren.filter((child) => {
+    if (!child.relationship) return true;
+    return isActiveGuardianRelationship(child.relationship);
+  });
+}
+
 
 function normalizeAccount(raw: unknown): ParentAccountInfo | null {
   const record = asRecord(raw);
@@ -183,17 +223,8 @@ export function normalizeParentProfile(data: unknown): Parent | null {
     accountInfo?.needs_new_account ??
     (typeof raw.needs_new_account === 'boolean' ? raw.needs_new_account : !hasUserAccount);
 
-  const relationshipsRaw = raw.relationships;
-  const relationshipsChildren = Array.isArray(relationshipsRaw)
-    ? relationshipsRaw.map(normalizeRelationshipAsChild).filter((c): c is ParentChild => c != null)
-    : [];
-
-  const legacyChildrenRaw = raw.children ?? raw.linked_students ?? raw.student_links;
-  const legacyChildren = Array.isArray(legacyChildrenRaw)
-    ? legacyChildrenRaw.map(normalizeLegacyChild).filter((c): c is ParentChild => c != null)
-    : [];
-
-  const children = relationshipsChildren.length ? relationshipsChildren : legacyChildren;
+  const activeChildren = resolveActiveChildren(raw);
+  const hasRelationshipsKey = hasRelationshipsContract(raw);
 
   const allowedActions =
     normalizeAllowedActionsFromRaw(raw.allowed_actions) ??
@@ -248,12 +279,12 @@ export function normalizeParentProfile(data: unknown): Parent | null {
           ? person.preferred_language
           : null,
     notification_opt_in: raw.notification_opt_in === true,
-    children,
-    relationships: relationshipsChildren.length ? relationshipsChildren : undefined,
+    children: activeChildren,
+    relationships: hasRelationshipsKey ? activeChildren : activeChildren.length ? activeChildren : undefined,
     linked_students_count:
       typeof raw.linked_students_count === 'number'
         ? raw.linked_students_count
-        : children.length,
+        : activeChildren.length,
     other_children_count:
       typeof raw.other_children_count === 'number' ? raw.other_children_count : undefined,
     status: String(guardianProfile?.status ?? raw.status ?? 'active'),
@@ -300,3 +331,14 @@ export function parentAccountEntityFields(parent: Parent): import('@/types/accou
 
   return { id: parent.id, email, login, user_id: userId };
 }
+
+/** @internal — test helper for relationship resolution rules. */
+export function __testResolveActiveChildren(raw: Record<string, unknown>): ParentChild[] {
+  return resolveActiveChildren(raw);
+}
+
+export {
+  usesUnifiedParentContract,
+  isActiveGuardianRelationship,
+  hasRelationshipsContract,
+} from './parent-relationships-normalize';

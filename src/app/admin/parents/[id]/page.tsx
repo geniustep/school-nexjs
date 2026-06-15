@@ -61,6 +61,8 @@ export default function AdminParentDetailPage({ params }: { params: Promise<{ id
                   state.reload();
                 }}
                 onReload={() => state.reload()}
+                relationshipsLoading={state.initialLoading}
+                relationshipsError={state.error?.message ?? null}
               />
             </>
           ) : null
