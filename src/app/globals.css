@@ -58,6 +58,7 @@
 
   --sidebar-w: 256px;
   --topbar-h: 60px;
+  --app-topbar-height: var(--topbar-h);
 }
 
 * {
@@ -68,6 +69,10 @@ html,
 body {
   margin: 0;
   padding: 0;
+}
+
+html {
+  scrollbar-gutter: stable;
 }
 
 html[dir='rtl'] body {

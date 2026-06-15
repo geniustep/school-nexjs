@@ -104,16 +104,34 @@ export function Student360Shell({ studentId }: { studentId: string }) {
     const sentinel = stickySentinelRef.current;
     const sticky = stickyTopRef.current;
     if (!sentinel || !sticky) return;
+
+    let rafId = 0;
+    let isCompact = sticky.classList.contains('student-360-sticky-top--compact');
     const topbarH =
-      getComputedStyle(document.documentElement).getPropertyValue('--topbar-h').trim() || '60px';
+      getComputedStyle(document.documentElement).getPropertyValue('--app-topbar-height').trim() ||
+      getComputedStyle(document.documentElement).getPropertyValue('--topbar-h').trim() ||
+      '60px';
+
+    const applyCompact = (nextCompact: boolean) => {
+      if (nextCompact === isCompact) return;
+      isCompact = nextCompact;
+      sticky.classList.toggle('student-360-sticky-top--compact', nextCompact);
+    };
+
     const observer = new IntersectionObserver(
       ([entry]) => {
-        sticky.classList.toggle('student-360-sticky-top--compact', !entry.isIntersecting);
+        const nextCompact = !entry.isIntersecting;
+        cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(() => applyCompact(nextCompact));
       },
       { rootMargin: `-${topbarH} 0px 0px 0px`, threshold: 0 },
     );
+
     observer.observe(sentinel);
-    return () => observer.disconnect();
+    return () => {
+      cancelAnimationFrame(rafId);
+      observer.disconnect();
+    };
   }, [details]);
 
   useEffect(() => {
