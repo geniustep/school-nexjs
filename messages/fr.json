@@ -2437,6 +2437,9 @@
       "statusSummary": {
         "title": "État du dossier",
         "enrollment": "Inscription",
+        "basicInfo": "Informations de base",
+        "basicComplete": "Complètes",
+        "basicIncomplete": "Incomplètes",
         "enrolled": "Inscrit",
         "notEnrolled": "Non inscrit",
         "enrollmentHint": "Créez une inscription pour lier l'élève à une année et une classe.",
@@ -2547,6 +2550,43 @@
         "classMismatch": "La classe ne correspond pas à l'établissement ou à l'année."
       },
       "guardianAfterCreateHint": "Après l'enregistrement, ajoutez les responsables depuis l'onglet Responsables.",
+      "create": {
+        "pageDesc": "Saisissez l'identité de base et l'inscription. Vous pourrez compléter le dossier plus tard.",
+        "additionalInfo": "Informations complémentaires",
+        "firstNameAr": "Prénom (arabe)",
+        "lastNameAr": "Nom de famille (arabe)",
+        "firstNameLatin": "Prénom (latin)",
+        "lastNameLatin": "Nom de famille (latin)",
+        "fullNamePreview": "Nom complet",
+        "internalCodeHint": "Laisser vide pour génération automatique.",
+        "admissionDateHint": "Utilisé pour les dossiers historiques ou si requis administrativement.",
+        "saveAndSetup": "Créer et poursuivre la configuration",
+        "saveOnly": "Créer uniquement",
+        "saving": "Création de l'élève…",
+        "success": "Élève créé avec succès.",
+        "loadingYears": "Chargement des années scolaires…",
+        "loadingClasses": "Chargement des classes…",
+        "selectLevelFirst": "Choisissez d'abord un niveau.",
+        "noClassesForLevel": "Aucune classe disponible pour ce niveau.",
+        "classOptionalHint": "Vous pourrez assigner une classe plus tard.",
+        "repeatingHint": "Activez si l'élève redouble le niveau actuel.",
+        "optionsLoadError": "Impossible de charger les options. Réessayez.",
+        "noNationalityMatch": "Aucun résultat.",
+        "errors": {
+          "academicYearRequired": "L'année scolaire est obligatoire.",
+          "levelRequired": "Le niveau est obligatoire.",
+          "massarNoSpaces": "Le numéro Massar ne doit pas contenir d'espaces."
+        }
+      },
+      "setup": {
+        "title": "Configuration de l'élève",
+        "banner": "Complétez les étapes ci-dessous pour finaliser le dossier."
+      },
+      "profileReadiness": {
+        "draft": "Brouillon",
+        "in_progress": "En cours",
+        "ready": "Prêt"
+      },
       "enrollmentState": "État d'inscription",
       "activeGuardiansCount": "Responsables actifs",
       "primaryContact": "Contact principal",

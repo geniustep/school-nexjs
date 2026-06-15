@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/primitives';
 import { useT } from '@/features/i18n/locale-context';
 import { statusLabel } from '@/lib/utils/labels';
 import { getStudentDisplayName } from '@/lib/utils/student';
+import { computeProfileReadinessState } from '../utils/student-readiness-state';
 import { studentClassLabel, studentLevelLabel, refOrStringLabel } from '../utils/student-academic-labels';
 import type { StudentDetailsData } from '@/types/student-360';
 
@@ -24,6 +25,7 @@ export function Student360Header({
   const enrollment = details.current_enrollment;
   const ref = s.school_number ?? s.matricule ?? s.code ?? undefined;
   const missingBasic = hasBasicIdentityGap(details);
+  const profileReadiness = computeProfileReadinessState(details);
 
   const studyLine = [
     enrollment?.class || s.class ? studentClassLabel(enrollment?.class ?? s.class) : null,
@@ -52,6 +54,11 @@ export function Student360Header({
               <Badge tone={s.status === 'active' ? 'green' : 'slate'}>
                 {statusLabel(t, s.status)}
               </Badge>
+              <span
+                className={`student-360-header__readiness-badge student-360-header__readiness-badge--${profileReadiness}`}
+              >
+                {t(`admin.student360.profileReadiness.${profileReadiness}`)}
+              </span>
               {missingBasic ? (
                 <span className="student-360-header__gap-badge" title={t('admin.student360.header.incompleteData')}>
                   {t('admin.student360.header.incompleteData')}

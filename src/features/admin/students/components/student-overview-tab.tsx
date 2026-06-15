@@ -32,6 +32,7 @@ export function StudentOverviewTab({
   showDocuments = false,
   showHealth = false,
   showFinance = false,
+  setupMode = false,
   onOpenTab,
   onEditProfile,
   onAccountChanged,
@@ -41,6 +42,7 @@ export function StudentOverviewTab({
   showDocuments?: boolean;
   showHealth?: boolean;
   showFinance?: boolean;
+  setupMode?: boolean;
   onOpenTab?: (tab: Student360TabId) => void;
   onEditProfile?: () => void;
   onAccountChanged: () => void;
@@ -61,6 +63,7 @@ export function StudentOverviewTab({
         showDocuments={showDocuments}
         showHealth={showHealth}
         showFinance={showFinance}
+        setupMode={setupMode}
         onOpenTab={(tab) => openTab(tab)}
         onEditProfile={onEditProfile}
         onCreateAccount={canManage ? scrollToLoginAccount : undefined}

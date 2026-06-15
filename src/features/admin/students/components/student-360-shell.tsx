@@ -36,6 +36,7 @@ import { StudentDocumentsTab } from './student-documents-tab';
 import { StudentHealthTab } from './student-health-tab';
 import { StudentFinancialAgreementTab } from '@/features/admin/student-finance/components/student-financial-agreement-tab';
 import { StudentFinanceOperationsTab } from '@/features/admin/student-finance/components/student-finance-operations-tab';
+import { StudentCreateForm } from './student-create-form';
 import { StudentForm } from './student-form';
 import { sanitizeReturnTo, isSafeInternalReturnPath } from '@/lib/utils/safe-return-url';
 import { buildStudent360TabIndicators } from '../utils/student-360-tab-indicators';
@@ -82,6 +83,7 @@ export function Student360Shell({ studentId }: { studentId: string }) {
   const tab = parseStudent360Tab(tabParam, availableTabs);
   const returnTo = searchParams.get('returnTo');
   const safeReturnTo = isSafeInternalReturnPath(returnTo) ? sanitizeReturnTo(returnTo) : null;
+  const setupMode = searchParams.get('setup') === '1';
   const studentName = details ? getStudentDisplayName(details.student) : '';
 
   useEffect(() => {
@@ -113,6 +115,12 @@ export function Student360Shell({ studentId }: { studentId: string }) {
     observer.observe(sentinel);
     return () => observer.disconnect();
   }, [details]);
+
+  useEffect(() => {
+    if (!setupMode || tab !== 'overview') return;
+    const target = document.querySelector('.student-readiness--setup');
+    target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [setupMode, tab, details]);
 
   if (state.loading && !state.data) {
     return <LoadingState label={t('common.loading')} />;
@@ -196,6 +204,7 @@ export function Student360Shell({ studentId }: { studentId: string }) {
                 showDocuments={showDocuments}
                 showHealth={showHealth}
                 showFinance={showFinance}
+                setupMode={setupMode}
                 onOpenTab={(next) =>
                   router.push(buildStudent360TabHref(studentId, next), { scroll: false })
                 }
@@ -260,9 +269,17 @@ export function Student360Shell({ studentId }: { studentId: string }) {
 export function Student360CreatePage() {
   const t = useT();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnTo = searchParams.get('returnTo');
+  const safeReturnTo = isSafeInternalReturnPath(returnTo) ? sanitizeReturnTo(returnTo) : null;
+
+  function handleCancel() {
+    if (safeReturnTo) router.push(safeReturnTo);
+    else router.push('/admin/students');
+  }
 
   return (
-    <>
+    <div className="student-create-page">
       <nav className="student-360-breadcrumb" aria-label={t('admin.student360.breadcrumb.aria')}>
         <ol className="student-360-breadcrumb__list">
           <li className="student-360-breadcrumb__item">
@@ -270,11 +287,26 @@ export function Student360CreatePage() {
           </li>
         </ol>
       </nav>
-      <h1>{t('admin.addStudent')}</h1>
-      <StudentForm
-        onSaved={(id) => router.push(`/admin/students/${id}`)}
-        onCancel={() => router.push('/admin/students')}
+      {safeReturnTo ? (
+        <Link href={safeReturnTo} className="back-link">
+          ‹ {t('admin.finance.hub.backToPrevious')}
+        </Link>
+      ) : null}
+      <header className="student-create-page__header">
+        <h1 className="student-create-page__title">{t('admin.addStudent')}</h1>
+        <p className="student-create-page__desc">{t('admin.student360.create.pageDesc')}</p>
+      </header>
+      <StudentCreateForm
+        onSaved={(id, mode) => {
+          if (mode === 'setup') {
+            router.push(`/admin/students/${id}?setup=1`);
+            return;
+          }
+          if (safeReturnTo) router.push(safeReturnTo);
+          else router.push(`/admin/students/${id}`);
+        }}
+        onCancel={handleCancel}
       />
-    </>
+    </div>
   );
 }

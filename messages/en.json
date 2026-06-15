@@ -2476,6 +2476,9 @@
       "statusSummary": {
         "title": "File status",
         "enrollment": "Enrollment",
+        "basicInfo": "Basic information",
+        "basicComplete": "Complete",
+        "basicIncomplete": "Incomplete",
         "enrolled": "Enrolled",
         "notEnrolled": "Not enrolled",
         "enrollmentHint": "Create an enrollment to link the pupil to a year and class.",
@@ -2586,6 +2589,43 @@
         "classMismatch": "Selected class does not match school or academic year."
       },
       "guardianAfterCreateHint": "After saving the student, add guardians from the Guardians tab.",
+      "create": {
+        "pageDesc": "Enter basic identity and enrollment. You can complete the rest of the file later.",
+        "additionalInfo": "Additional information",
+        "firstNameAr": "First name (Arabic)",
+        "lastNameAr": "Last name (Arabic)",
+        "firstNameLatin": "First name (Latin)",
+        "lastNameLatin": "Last name (Latin)",
+        "fullNamePreview": "Full name",
+        "internalCodeHint": "Leave blank to auto-generate.",
+        "admissionDateHint": "Used for historical records or when required administratively.",
+        "saveAndSetup": "Create and continue setup",
+        "saveOnly": "Create only",
+        "saving": "Creating pupil…",
+        "success": "Pupil created successfully.",
+        "loadingYears": "Loading academic years…",
+        "loadingClasses": "Loading classes…",
+        "selectLevelFirst": "Select a level first.",
+        "noClassesForLevel": "No classes available for this level.",
+        "classOptionalHint": "You can assign a class later.",
+        "repeatingHint": "Enable if the pupil is repeating the current level.",
+        "optionsLoadError": "Could not load options. Try again.",
+        "noNationalityMatch": "No matches.",
+        "errors": {
+          "academicYearRequired": "Academic year is required.",
+          "levelRequired": "Level is required.",
+          "massarNoSpaces": "Massar number must not contain spaces."
+        }
+      },
+      "setup": {
+        "title": "Pupil setup",
+        "banner": "Complete the steps below to finish setting up this pupil file."
+      },
+      "profileReadiness": {
+        "draft": "Draft",
+        "in_progress": "In progress",
+        "ready": "Ready"
+      },
       "enrollmentState": "Enrollment status",
       "activeGuardiansCount": "Active guardians",
       "primaryContact": "Primary contact",

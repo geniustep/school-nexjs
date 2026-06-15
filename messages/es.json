@@ -2437,6 +2437,9 @@
       "statusSummary": {
         "title": "Estado del expediente",
         "enrollment": "Inscripción",
+        "basicInfo": "Información básica",
+        "basicComplete": "Completa",
+        "basicIncomplete": "Incompleta",
         "enrolled": "Inscrito",
         "notEnrolled": "No inscrito",
         "enrollmentHint": "Cree una inscripción para vincular al alumno al año y clase.",
@@ -2547,6 +2550,43 @@
         "classMismatch": "La clase no coincide con el centro o el año académico."
       },
       "guardianAfterCreateHint": "Tras guardar el alumno, añada tutores desde la pestaña Tutores.",
+      "create": {
+        "pageDesc": "Introduzca la identidad básica y la matrícula. Puede completar el resto del expediente más tarde.",
+        "additionalInfo": "Información adicional",
+        "firstNameAr": "Nombre (árabe)",
+        "lastNameAr": "Apellido (árabe)",
+        "firstNameLatin": "Nombre (latino)",
+        "lastNameLatin": "Apellido (latino)",
+        "fullNamePreview": "Nombre completo",
+        "internalCodeHint": "Deje en blanco para generación automática.",
+        "admissionDateHint": "Se usa para registros históricos o cuando se requiera administrativamente.",
+        "saveAndSetup": "Crear y continuar configuración",
+        "saveOnly": "Solo crear",
+        "saving": "Creando alumno…",
+        "success": "Alumno creado correctamente.",
+        "loadingYears": "Cargando años académicos…",
+        "loadingClasses": "Cargando clases…",
+        "selectLevelFirst": "Seleccione primero un nivel.",
+        "noClassesForLevel": "No hay clases disponibles para este nivel.",
+        "classOptionalHint": "Puede asignar una clase más tarde.",
+        "repeatingHint": "Active si el alumno repite el nivel actual.",
+        "optionsLoadError": "No se pudieron cargar las opciones. Inténtelo de nuevo.",
+        "noNationalityMatch": "Sin resultados.",
+        "errors": {
+          "academicYearRequired": "El año académico es obligatorio.",
+          "levelRequired": "El nivel es obligatorio.",
+          "massarNoSpaces": "El número Massar no debe contener espacios."
+        }
+      },
+      "setup": {
+        "title": "Configuración del alumno",
+        "banner": "Complete los pasos siguientes para finalizar el expediente."
+      },
+      "profileReadiness": {
+        "draft": "Borrador",
+        "in_progress": "En curso",
+        "ready": "Listo"
+      },
       "enrollmentState": "Estado de matrícula",
       "activeGuardiansCount": "Tutores activos",
       "primaryContact": "Contacto principal",

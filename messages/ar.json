@@ -2474,6 +2474,9 @@
       "statusSummary": {
         "title": "حالة الملف",
         "enrollment": "التسجيل الدراسي",
+        "basicInfo": "المعلومات الأساسية",
+        "basicComplete": "مكتملة",
+        "basicIncomplete": "ناقصة",
         "enrolled": "مسجّل",
         "notEnrolled": "غير مسجّل",
         "enrollmentHint": "أنشئ تسجيلًا لربط التلميذ بالسنة والقسم.",
@@ -2584,6 +2587,43 @@
         "classMismatch": "القسم المختار لا يطابق المدرسة أو السنة الدراسية."
       },
       "guardianAfterCreateHint": "بعد حفظ التلميذ، يمكنك إضافة أولياء الأمر من تبويب «أولياء الأمر».",
+      "create": {
+        "pageDesc": "أدخل الهوية الأساسية والتسجيل الدراسي. يمكنك إكمال بقية الملف لاحقًا.",
+        "additionalInfo": "معلومات إضافية",
+        "firstNameAr": "الاسم الشخصي (عربي)",
+        "lastNameAr": "الاسم العائلي (عربي)",
+        "firstNameLatin": "الاسم الشخصي (لاتيني)",
+        "lastNameLatin": "الاسم العائلي (لاتيني)",
+        "fullNamePreview": "الاسم الكامل",
+        "internalCodeHint": "اتركه فارغًا ليولّده النظام تلقائيًا.",
+        "admissionDateHint": "يُستخدم عند استيراد سجل تاريخي أو عند الحاجة الإدارية.",
+        "saveAndSetup": "إنشاء ومتابعة الإعداد",
+        "saveOnly": "إنشاء فقط",
+        "saving": "جارٍ إنشاء التلميذ…",
+        "success": "تم إنشاء التلميذ بنجاح.",
+        "loadingYears": "جارٍ تحميل السنوات الدراسية…",
+        "loadingClasses": "جارٍ تحميل الأقسام…",
+        "selectLevelFirst": "اختر المستوى أولًا.",
+        "noClassesForLevel": "لا توجد أقسام متاحة لهذا المستوى.",
+        "classOptionalHint": "يمكن إسناد القسم لاحقًا.",
+        "repeatingHint": "فعّل هذا الخيار إذا كان التلميذ يعيد المستوى الحالي.",
+        "optionsLoadError": "تعذر تحميل الخيارات. أعد المحاولة.",
+        "noNationalityMatch": "لا توجد نتائج.",
+        "errors": {
+          "academicYearRequired": "السنة الدراسية مطلوبة.",
+          "levelRequired": "المستوى مطلوب.",
+          "massarNoSpaces": "رقم مسار لا يجب أن يحتوي على مسافات."
+        }
+      },
+      "setup": {
+        "title": "إعداد التلميذ",
+        "banner": "أكمل الخطوات التالية لتهيئة ملف التلميذ."
+      },
+      "profileReadiness": {
+        "draft": "مسودة",
+        "in_progress": "قيد الاستكمال",
+        "ready": "جاهز"
+      },
       "enrollmentState": "حالة التسجيل",
       "activeGuardiansCount": "عدد الأولياء النشطين",
       "primaryContact": "الولي الأساسي",

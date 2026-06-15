@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { useT } from '@/features/i18n/locale-context';
 import { resolveFinanceOverviewStatus } from '../utils/student-finance-status-summary';
+import { computeProfileReadinessState } from '../utils/student-readiness-state';
 import { isRelationshipActive, relationshipTypeLabel } from '../utils/relationship-types';
 import { studentClassLabel, studentLevelLabel } from '../utils/student-academic-labels';
 import type { Student360TabId } from '../utils/student-360-tabs';
@@ -37,6 +38,7 @@ export function StudentStatusSummary({
   showDocuments,
   showHealth,
   showFinance,
+  setupMode = false,
   onOpenTab,
   onEditProfile,
   onCreateAccount,
@@ -46,6 +48,7 @@ export function StudentStatusSummary({
   showDocuments: boolean;
   showHealth: boolean;
   showFinance: boolean;
+  setupMode?: boolean;
   onOpenTab: (tab: Student360TabId) => void;
   onEditProfile?: () => void;
   onCreateAccount?: () => void;
@@ -61,9 +64,28 @@ export function StudentStatusSummary({
   const healthSummary = details.health_summary;
   const financeSummary = details.finance_summary;
   const hasAccount = !!(s.user_id || (s.account && s.account.status !== 'not_created'));
+  const profileReadiness = computeProfileReadinessState(details);
 
   const items = useMemo(() => {
     const rows: ReadinessItem[] = [];
+
+    const basicComplete = Boolean(s.first_name?.trim() && s.last_name?.trim());
+    rows.push({
+      key: 'basic',
+      tone: basicComplete ? 'ok' : 'warn',
+      icon: toneIcon(basicComplete ? 'ok' : 'warn'),
+      title: t('admin.student360.statusSummary.basicInfo'),
+      value: basicComplete
+        ? t('admin.student360.statusSummary.basicComplete')
+        : t('admin.student360.statusSummary.basicIncomplete'),
+      priority: basicComplete ? 3 : 0,
+      action:
+        !basicComplete && canManage && onEditProfile
+          ? { label: t('admin.student360.readiness.actionComplete'), onClick: onEditProfile }
+          : basicComplete && onEditProfile
+            ? { label: t('common.view'), onClick: onEditProfile }
+            : undefined,
+    });
 
     const enrollmentValue = enrollment
       ? [studentClassLabel(enrollment.class), studentLevelLabel(enrollment.level)]
@@ -202,9 +224,17 @@ export function StudentStatusSummary({
   const pendingCount = items.filter((item) => item.tone !== 'ok').length;
 
   return (
-    <section className="student-readiness student-readiness--compact" aria-label={t('admin.student360.readiness.title')}>
+    <section
+      className={`student-readiness student-readiness--compact${setupMode ? ' student-readiness--setup' : ''}`}
+      aria-label={setupMode ? t('admin.student360.setup.title') : t('admin.student360.readiness.title')}
+    >
       <div className="student-readiness__head">
-        <h2 className="student-readiness__heading">{t('admin.student360.readiness.title')}</h2>
+        <h2 className="student-readiness__heading">
+          {setupMode ? t('admin.student360.setup.title') : t('admin.student360.readiness.title')}
+        </h2>
+        <span className={`student-readiness__profile-badge student-readiness__profile-badge--${profileReadiness}`}>
+          {t(`admin.student360.profileReadiness.${profileReadiness}`)}
+        </span>
         {pendingCount > 0 ? (
           <span className="student-readiness__meta">
             {t('admin.student360.readiness.pendingCount', { count: pendingCount })}

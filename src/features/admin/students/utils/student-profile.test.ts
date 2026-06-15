@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest';
 import {
   buildStudentCreatePayload,
   buildStudentPartialUpdatePayload,
+  buildFullNamePreview,
   defaultStudentProfileFormState,
   requiresDepartureReason,
   requiresPreviousSchool,
+  validateStudentCreateForm,
   validateStudentProfileForm,
 } from './student-profile';
 import type { StudentOptions } from '@/types/student-360';
@@ -56,6 +58,28 @@ describe('buildStudentCreatePayload', () => {
     expect(payload.enrollment?.actual_join_date).toBe('2026-09-01');
     expect(payload.emergency_contact_name).toBe('Uncle');
     expect('parent_ids' in payload).toBe(false);
+  });
+
+  it('composes name_ar from first and last when nameAr is empty', () => {
+    const state = {
+      ...defaultStudentProfileFormState(options),
+      firstName: 'محمد',
+      lastName: 'العلوي',
+    };
+    const payload = buildStudentCreatePayload(state);
+    expect(payload.name_ar).toBe('محمد العلوي');
+  });
+
+  it('composes name_latin from latin parts', () => {
+    const state = {
+      ...defaultStudentProfileFormState(options),
+      firstName: 'محمد',
+      lastName: 'العلوي',
+      firstNameLatin: 'Mohammed',
+      lastNameLatin: 'Alaoui',
+    };
+    const payload = buildStudentCreatePayload(state);
+    expect(payload.name_latin).toBe('Mohammed Alaoui');
   });
 
   it('requires previous school for transfer registration', () => {
@@ -118,5 +142,39 @@ describe('validateStudentProfileForm', () => {
 
   it('requires previous school for transfer type', () => {
     expect(requiresPreviousSchool('transfer')).toBe(true);
+  });
+});
+
+describe('validateStudentCreateForm', () => {
+  it('requires academic year and level', () => {
+    const state = {
+      ...defaultStudentProfileFormState(options),
+      firstName: 'A',
+      lastName: 'B',
+      academicYearId: '',
+      levelId: '',
+    };
+    const result = validateStudentCreateForm(state, t);
+    expect(result.valid).toBe(false);
+    expect(result.errors.academicYearId).toBeDefined();
+    expect(result.errors.levelId).toBeDefined();
+  });
+
+  it('rejects massar with spaces', () => {
+    const state = {
+      ...defaultStudentProfileFormState(options),
+      firstName: 'A',
+      lastName: 'B',
+      academicYearId: '1',
+      levelId: '77',
+      massarCode: '123 456',
+    };
+    expect(validateStudentCreateForm(state, t).valid).toBe(false);
+  });
+});
+
+describe('buildFullNamePreview', () => {
+  it('joins trimmed parts', () => {
+    expect(buildFullNamePreview(' محمد ', ' العلوي ')).toBe('محمد العلوي');
   });
 });

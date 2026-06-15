@@ -14,6 +14,8 @@ export const DEPARTURE_STATUSES = new Set(['withdrawn', 'transferred']);
 export interface StudentProfileFormState {
   firstName: string;
   lastName: string;
+  firstNameLatin: string;
+  lastNameLatin: string;
   nameAr: string;
   nameLatin: string;
   gender: string;
@@ -62,6 +64,8 @@ export interface StudentProfileFieldErrors {
   classId?: string;
   massarCode?: string;
   schoolNumber?: string;
+  academicYearId?: string;
+  levelId?: string;
 }
 
 export interface StudentProfileValidationResult {
@@ -71,6 +75,18 @@ export interface StudentProfileValidationResult {
 
 function trim(value: string): string {
   return value.trim();
+}
+
+export function todayIsoDate(): string {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+export function buildFullNamePreview(firstName: string, lastName: string): string {
+  return [trim(firstName), trim(lastName)].filter(Boolean).join(' ');
 }
 
 function optionalString(value: string): string | undefined {
@@ -92,9 +108,12 @@ function refLabel(value: Ref | string | null | undefined): string {
 }
 
 export function defaultStudentProfileFormState(options: StudentOptions | null): StudentProfileFormState {
+  const today = todayIsoDate();
   return {
     firstName: '',
     lastName: '',
+    firstNameLatin: '',
+    lastNameLatin: '',
     nameAr: '',
     nameLatin: '',
     gender: '',
@@ -105,7 +124,7 @@ export function defaultStudentProfileFormState(options: StudentOptions | null): 
     code: '',
     schoolNumber: '',
     status: options?.studentStatuses.find((s) => s.value === 'active')?.value ?? 'active',
-    admissionDate: '',
+    admissionDate: today,
     departureReason: '',
     schoolId: options?.schools.length === 1 ? String(options.schools[0].id) : '',
     academicYearId: options?.academicYears[0] ? String(options.academicYears[0].id) : '',
@@ -114,7 +133,7 @@ export function defaultStudentProfileFormState(options: StudentOptions | null): 
     registrationType: options?.registrationTypes[0]?.value ?? 'new',
     previousSchool: '',
     isRepeating: false,
-    actualJoinDate: '',
+    actualJoinDate: today,
     registrationNotes: '',
     phone: '',
     mobile: '',
@@ -241,6 +260,39 @@ export function validateStudentProfileForm(
   return { valid: Object.keys(errors).length === 0, errors };
 }
 
+export function validateStudentCreateForm(
+  state: StudentProfileFormState,
+  t: (key: string) => string,
+): StudentProfileValidationResult {
+  const base = validateStudentProfileForm(state, t);
+  const errors: StudentProfileFieldErrors = { ...base.errors };
+
+  if (!trim(state.firstName)) {
+    errors.firstName = t('admin.student360.errors.firstNameRequired');
+  } else if (!/\S/.test(trim(state.firstName))) {
+    errors.firstName = t('admin.student360.errors.firstNameRequired');
+  }
+  if (!trim(state.lastName)) {
+    errors.lastName = t('admin.student360.errors.lastNameRequired');
+  } else if (!/\S/.test(trim(state.lastName))) {
+    errors.lastName = t('admin.student360.errors.lastNameRequired');
+  }
+
+  if (!trim(state.academicYearId)) {
+    errors.academicYearId = t('admin.student360.create.errors.academicYearRequired');
+  }
+  if (!trim(state.levelId)) {
+    errors.levelId = t('admin.student360.create.errors.levelRequired');
+  }
+
+  const massar = trim(state.massarCode);
+  if (massar && /\s/.test(massar)) {
+    errors.massarCode = t('admin.student360.create.errors.massarNoSpaces');
+  }
+
+  return { valid: Object.keys(errors).length === 0, errors };
+}
+
 function buildEnrollmentBlock(state: StudentProfileFormState): StudentEnrollmentBlock | undefined {
   const block: StudentEnrollmentBlock = {};
   if (state.registrationType) block.registration_type = state.registrationType;
@@ -269,10 +321,16 @@ function applyIdentityFields(
 ): void {
   payload.first_name = trim(state.firstName);
   payload.last_name = trim(state.lastName);
-  const nameAr = optionalString(state.nameAr);
-  if (nameAr) payload.name_ar = nameAr;
-  const nameLatin = optionalString(state.nameLatin);
-  if (nameLatin) payload.name_latin = nameLatin;
+
+  const composedAr = buildFullNamePreview(state.firstName, state.lastName);
+  const explicitAr = optionalString(state.nameAr);
+  if (explicitAr) payload.name_ar = explicitAr;
+  else if (composedAr) payload.name_ar = composedAr;
+
+  const latinParts = buildFullNamePreview(state.firstNameLatin, state.lastNameLatin);
+  const explicitLatin = optionalString(state.nameLatin);
+  if (explicitLatin) payload.name_latin = explicitLatin;
+  else if (latinParts) payload.name_latin = latinParts;
   const gender = optionalString(state.gender);
   if (gender) payload.gender = gender;
   const dob = optionalString(state.dateOfBirth);
