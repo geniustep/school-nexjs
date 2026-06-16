@@ -23,12 +23,17 @@ import { normalizeFinanceOverview } from '@/lib/utils/finance-normalize';
 import { financeDeepLinkHref } from '@/features/admin/finance/finance-deep-links';
 import type { AdminFinanceOverview } from '@/types/finance';
 
+type HubLinkBadge = {
+  labelKey: string;
+  count: number;
+};
+
 type HubLink = {
   href: string;
   icon: ReactNode;
   labelKey: string;
   descKey: string;
-  hint?: string | null;
+  badge?: HubLinkBadge | null;
   show: boolean;
 };
 
@@ -44,7 +49,10 @@ export function FinanceHubLinks({ overview }: { overview: AdminFinanceOverview |
       icon: <IconClipboard size={22} />,
       labelKey: 'admin.finance.hub.linkAgreements',
       descKey: 'admin.finance.hub.linkAgreementsDesc',
-      hint: totals?.active_agreements_count != null ? String(totals.active_agreements_count) : null,
+      badge:
+        totals?.active_agreements_count != null && totals.active_agreements_count > 0
+          ? { labelKey: 'admin.finance.hub.linkAgreementsActiveBadge', count: totals.active_agreements_count }
+          : null,
       show: canViewFinanceAgreements(user),
     },
     {
@@ -52,9 +60,12 @@ export function FinanceHubLinks({ overview }: { overview: AdminFinanceOverview |
       icon: <IconLayers size={22} />,
       labelKey: 'admin.finance.hub.linkInstallments',
       descKey: 'admin.finance.hub.linkInstallmentsDesc',
-      hint:
-        totals?.overdue_installments_count != null
-          ? String(totals.overdue_installments_count)
+      badge:
+        totals?.overdue_installments_count != null && totals.overdue_installments_count > 0
+          ? {
+              labelKey: 'admin.finance.hub.linkInstallmentsOverdueBadge',
+              count: totals.overdue_installments_count,
+            }
           : null,
       show: canViewFinanceInstallments(user),
     },
@@ -70,7 +81,10 @@ export function FinanceHubLinks({ overview }: { overview: AdminFinanceOverview |
       icon: <IconBookOpen size={22} />,
       labelKey: 'admin.finance.hub.linkCheques',
       descKey: 'admin.finance.hub.linkChequesDesc',
-      hint: totals?.cheques_pending_count != null ? String(totals.cheques_pending_count) : null,
+      badge:
+        totals?.cheques_pending_count != null && totals.cheques_pending_count > 0
+          ? { labelKey: 'admin.finance.hub.linkChequesPendingBadge', count: totals.cheques_pending_count }
+          : null,
       show: canViewCheques(user),
     },
   ];
@@ -136,7 +150,7 @@ function WorkspaceCard({
   t,
 }: {
   link: HubLink;
-  t: (key: string) => string;
+  t: (key: string, params?: Record<string, string>) => string;
 }) {
   return (
     <Link href={link.href} className="card finance-hub-card">
@@ -144,10 +158,16 @@ function WorkspaceCard({
         {link.icon}
       </span>
       <div className="finance-hub-card-body">
-        <strong>{t(link.labelKey)}</strong>
+        <div className="finance-hub-card-title-row">
+          <strong>{t(link.labelKey)}</strong>
+          {link.badge ? (
+            <span className="finance-hub-card-badge">
+              {t(link.badge.labelKey, { count: String(link.badge.count) })}
+            </span>
+          ) : null}
+        </div>
         <p className="muted">{t(link.descKey)}</p>
       </div>
-      {link.hint ? <span className="finance-hub-card-hint mono">{link.hint}</span> : null}
     </Link>
   );
 }

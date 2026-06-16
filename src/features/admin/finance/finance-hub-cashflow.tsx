@@ -82,7 +82,7 @@ export function FinanceHubCashflow({
 
   return (
     <FinanceHubSection title={t('admin.finance.hub.cashflowTitle')}>
-      <div className="finance-hub-cashflow-grid">
+      <div className="finance-hub-cashflow-grid" data-count={Math.min(items.length, 4)}>
         {items.map((item) => (
           <Link key={item.key} href={item.href} className="card finance-hub-cashflow-card">
             <span className="finance-hub-cashflow-card__label muted">{item.label}</span>

@@ -13,6 +13,7 @@ import {
 import { FinanceHubPeriodFilters } from '@/features/admin/finance/finance-hub-period-filters';
 import type { FinanceHubFilterState } from '@/features/admin/finance/finance-hub-period';
 import { isPaginatedCollectionTotalIncomplete } from '@/features/admin/finance/finance-hub-metrics';
+import { FinanceHubReceivableChart } from '@/features/admin/finance/finance-hub-receivable-chart';
 import { useT } from '@/features/i18n/locale-context';
 import { useFormat } from '@/features/i18n/use-format';
 import { endpoints } from '@/lib/api/endpoints';
@@ -20,20 +21,17 @@ import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { resolveFinanceCurrency } from '@/lib/i18n/format-money';
 import { paymentMethodLabel } from '@/lib/utils/finance';
 import { parseFinanceList } from '@/lib/utils/finance-normalize';
-import type { PaymentCollection } from '@/types/finance';
+import type { AcademicYearOption } from '@/lib/utils/academic-years';
+import type { AdminFinanceOverview, PaymentCollection } from '@/types/finance';
 
 function CollectionTrendChart({
   points,
   currency,
   formatLabel,
-  periodTotal,
-  totalLabel,
 }: {
   points: Array<{ key: string; amount: number; label: string }>;
   currency: string;
   formatLabel: (key: string) => string;
-  periodTotal: number;
-  totalLabel: string;
 }) {
   const [active, setActive] = useState<number | null>(null);
   const max = Math.max(...points.map((p) => p.amount), 1);
@@ -51,10 +49,7 @@ function CollectionTrendChart({
     const path = coords.map((c) => `${c.x},${c.y}`).join(' ');
 
     return (
-      <div className="finance-hub-trend">
-        <p className="finance-hub-chart__subtitle muted">
-          {totalLabel}: <FinanceMoney amount={periodTotal} currency={currency} />
-        </p>
+      <div className="finance-hub-trend finance-hub-trend--line">
         <svg viewBox={`0 0 ${width} ${height}`} className="finance-hub-trend__svg" role="img">
           <polyline
             fill="none"
@@ -85,10 +80,7 @@ function CollectionTrendChart({
   }
 
   return (
-    <div className="finance-hub-trend">
-      <p className="finance-hub-chart__subtitle muted">
-        {totalLabel}: <FinanceMoney amount={periodTotal} currency={currency} />
-      </p>
+    <div className="finance-hub-trend finance-hub-trend--bars">
       <div className="finance-hub-bar-chart__plot finance-hub-bar-chart__plot--filled">
         {points.map((point, index) => {
           const pct = Math.max(12, (point.amount / max) * 100);
@@ -169,12 +161,22 @@ export function FinanceHubCharts({
   currency,
   filters,
   onFiltersChange,
+  overview,
+  yearId,
+  yearOptions,
+  yearsLoading,
+  overviewLoading,
 }: {
   dateFrom?: string;
   dateTo?: string;
   currency?: string;
   filters: FinanceHubFilterState;
   onFiltersChange: (next: FinanceHubFilterState) => void;
+  overview: AdminFinanceOverview | null;
+  yearId: string;
+  yearOptions: AcademicYearOption[];
+  yearsLoading?: boolean;
+  overviewLoading?: boolean;
 }) {
   const t = useT();
   const { formatDate } = useFormat();
@@ -232,37 +234,77 @@ export function FinanceHubCharts({
           {t('admin.finance.hub.chartPartialPagination')}
         </p>
       ) : null}
-      <div className="finance-hub-charts-grid finance-hub-charts-grid--period">
+      <div className="finance-hub-charts-grid">
         <article className="finance-hub-chart card">
-          <h3>{t('admin.finance.hub.chartCollectionTrend')}</h3>
-          <p className="finance-hub-chart__scope tiny muted">{t('admin.finance.hub.chartConfirmedPeriodTotal')}</p>
-          {renderChartState(
-            collectionsState.loading,
-            collectionsState.error,
-            collectionsState.reload,
-            trend.length === 0,
-            t('admin.finance.hub.chartCollectionTrendEmpty'),
-            <CollectionTrendChart
-              points={trend}
-              currency={resolvedCurrency}
-              formatLabel={formatTrendLabel}
-              periodTotal={trendTotal}
-              totalLabel={t('admin.finance.hub.chartPeriodTotal')}
-            />,
-          )}
+          <div className="finance-hub-chart__head">
+            <div className="finance-hub-chart__head-copy">
+              <h3>{t('admin.finance.hub.chartCollectionTrend')}</h3>
+              <p className="finance-hub-chart__scope tiny muted">
+                {t('admin.finance.hub.chartConfirmedPeriodTotal')}
+              </p>
+            </div>
+            {!collectionsState.loading && trend.length > 0 ? (
+              <p className="finance-hub-chart__total tiny muted">
+                {t('admin.finance.hub.chartPeriodTotal')}:{' '}
+                <FinanceMoney amount={trendTotal} currency={resolvedCurrency} />
+              </p>
+            ) : null}
+          </div>
+          <div className="finance-hub-chart__body">
+            {renderChartState(
+              collectionsState.loading,
+              collectionsState.error,
+              collectionsState.reload,
+              trend.length === 0,
+              t('admin.finance.hub.chartCollectionTrendEmpty'),
+              <CollectionTrendChart
+                points={trend}
+                currency={resolvedCurrency}
+                formatLabel={formatTrendLabel}
+              />,
+            )}
+          </div>
         </article>
 
+        {overviewLoading ? (
+          <article className="finance-hub-chart card" aria-busy="true">
+            <div className="finance-hub-chart__head">
+              <div className="finance-hub-chart__head-copy">
+                <h3>{t('admin.finance.hub.chartReceivableStatus')}</h3>
+              </div>
+            </div>
+            <div className="finance-hub-chart__skeleton" />
+          </article>
+        ) : (
+          <FinanceHubReceivableChart
+            overview={overview}
+            currency={currency}
+            yearId={yearId}
+            yearOptions={yearOptions}
+            yearsLoading={yearsLoading}
+            compact
+          />
+        )}
+
         <article className="finance-hub-chart card">
-          <h3>{t('admin.finance.hub.chartPaymentMethods')}</h3>
-          <p className="finance-hub-chart__scope tiny muted">{t('admin.finance.hub.chartConfirmedPeriodTotal')}</p>
-          {renderChartState(
-            collectionsState.loading,
-            collectionsState.error,
-            collectionsState.reload,
-            methodSlices.length === 0,
-            t('admin.finance.hub.chartPaymentMethodsEmpty'),
-            <PaymentMethodBars slices={methodSlices} currency={resolvedCurrency} t={t} />,
-          )}
+          <div className="finance-hub-chart__head">
+            <div className="finance-hub-chart__head-copy">
+              <h3>{t('admin.finance.hub.chartPaymentMethods')}</h3>
+              <p className="finance-hub-chart__scope tiny muted">
+                {t('admin.finance.hub.chartConfirmedPeriodTotal')}
+              </p>
+            </div>
+          </div>
+          <div className="finance-hub-chart__body">
+            {renderChartState(
+              collectionsState.loading,
+              collectionsState.error,
+              collectionsState.reload,
+              methodSlices.length === 0,
+              t('admin.finance.hub.chartPaymentMethodsEmpty'),
+              <PaymentMethodBars slices={methodSlices} currency={resolvedCurrency} t={t} />,
+            )}
+          </div>
         </article>
       </div>
     </FinanceHubSection>

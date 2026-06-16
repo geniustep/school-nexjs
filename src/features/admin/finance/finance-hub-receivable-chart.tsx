@@ -56,7 +56,7 @@ function ReceivableDonutChart({
     .join(', ');
 
   return (
-    <div className="finance-hub-donut finance-hub-donut--enhanced">
+    <div className="finance-hub-donut finance-hub-donut--enhanced finance-hub-donut--compact">
       <div className="finance-hub-donut__visual">
         <div className="finance-hub-donut__ring" style={{ background: `conic-gradient(${gradient})` }} />
         <div className="finance-hub-donut__center">
@@ -90,12 +90,14 @@ export function FinanceHubReceivableChart({
   yearId,
   yearOptions,
   yearsLoading,
+  compact = false,
 }: {
   overview: AdminFinanceOverview | null;
   currency?: string;
   yearId: string;
   yearOptions: AcademicYearOption[];
   yearsLoading?: boolean;
+  compact?: boolean;
 }) {
   const t = useT();
   const resolvedCurrency = resolveFinanceCurrency(currency);
@@ -113,20 +115,28 @@ export function FinanceHubReceivableChart({
         : t('admin.finance.hub.receivableScopeNeutral');
 
   return (
-    <article className="finance-hub-chart card finance-hub-receivable-panel">
-      <h3>{t('admin.finance.hub.chartReceivableStatus')}</h3>
-      <p className="finance-hub-chart__scope tiny muted">{scopeNote}</p>
-      {receivableSlices.length === 0 ? (
-        <p className="muted finance-hub-chart__empty">{t('admin.finance.hub.chartReceivableStatusEmpty')}</p>
-      ) : (
-        <ReceivableDonutChart
-          slices={receivableSlices}
-          currency={resolvedCurrency}
-          labelForKey={(key) => t(`admin.finance.hub.receivableStatus.${key}`)}
-          centerTotal={centerTotal}
-          centerLabel={t('admin.finance.hub.chartReceivableCenter')}
-        />
-      )}
+    <article
+      className={`finance-hub-chart card finance-hub-receivable-panel${compact ? ' finance-hub-receivable-panel--compact' : ''}`}
+    >
+      <div className="finance-hub-chart__head">
+        <div className="finance-hub-chart__head-copy">
+          <h3>{t('admin.finance.hub.chartReceivableStatus')}</h3>
+          <p className="finance-hub-chart__scope tiny muted">{scopeNote}</p>
+        </div>
+      </div>
+      <div className="finance-hub-chart__body">
+        {receivableSlices.length === 0 ? (
+          <p className="muted finance-hub-chart__empty">{t('admin.finance.hub.chartReceivableStatusEmpty')}</p>
+        ) : (
+          <ReceivableDonutChart
+            slices={receivableSlices}
+            currency={resolvedCurrency}
+            labelForKey={(key) => t(`admin.finance.hub.receivableStatus.${key}`)}
+            centerTotal={centerTotal}
+            centerLabel={t('admin.finance.hub.chartReceivableCenter')}
+          />
+        )}
+      </div>
     </article>
   );
 }

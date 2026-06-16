@@ -11,7 +11,6 @@ import { FinanceHubFilters } from '@/features/admin/finance/finance-hub-filters'
 import { FinanceHubHeader } from '@/features/admin/finance/finance-hub-header';
 import { FinanceHubKpiGrid } from '@/features/admin/finance/finance-hub-kpi-grid';
 import { FinanceHubLinks } from '@/features/admin/finance/finance-hub-links';
-import { FinanceHubReceivableChart } from '@/features/admin/finance/finance-hub-receivable-chart';
 import type { FinanceHubFilterState } from '@/features/admin/finance/finance-hub-period';
 import { resolveFinanceHubPeriod } from '@/features/admin/finance/finance-hub-period';
 import {
@@ -124,13 +123,6 @@ export default function AdminFinancePage() {
                 loading={yearsLoading || overviewState.initialLoading}
               />
               <FinanceHubKpiGrid data={overviewState.data} loading={overviewState.initialLoading} />
-              <FinanceHubReceivableChart
-                overview={overview}
-                currency={currency}
-                yearId={validYearId}
-                yearOptions={yearOptions}
-                yearsLoading={yearsLoading}
-              />
             </section>
             <FinanceHubAlerts data={overviewState.data} currency={currency} />
             <FinanceHubCharts
@@ -139,6 +131,11 @@ export default function AdminFinancePage() {
               currency={currency}
               filters={filters}
               onFiltersChange={handlePeriodChange}
+              overview={overview}
+              yearId={validYearId}
+              yearOptions={yearOptions}
+              yearsLoading={yearsLoading}
+              overviewLoading={overviewState.initialLoading}
             />
             <FinanceHubCashflow overviewData={overviewState.data} currency={currency} />
             <FinanceHubLinks overview={overviewState.data} />

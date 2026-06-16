@@ -38,7 +38,10 @@ export function FinanceHubAlerts({
           </p>
         </div>
       ) : (
-        <div className="finance-hub-attention-grid">
+        <div
+          className="finance-hub-attention-grid"
+          data-count={Math.min(alerts.length, 4)}
+        >
           {alerts.map((alert) => {
             const title = alert.pluralKind
               ? formatFinancePlural(t, locale, alert.pluralKind, alert.count)

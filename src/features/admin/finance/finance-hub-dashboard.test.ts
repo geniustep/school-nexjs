@@ -204,9 +204,39 @@ describe('finance hub page contract', () => {
     const pagePath = path.resolve('src/app/admin/finance/page.tsx');
     const source = fs.readFileSync(pagePath, 'utf8');
     expect(source.includes('FinanceHubSummaryScope')).toBe(true);
-    expect(source.includes('FinanceHubReceivableChart')).toBe(true);
+    expect(source.includes('FinanceHubReceivableChart')).toBe(false);
     expect(source.includes('buildOverviewQueryParams')).toBe(true);
     expect(source.includes('kpiScopeNote')).toBe(false);
     expect(source.includes('resolvedPeriod.academicYearId')).toBe(false);
+  });
+
+  it('renders three analytics cards including receivable status in charts section', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const chartsPath = path.resolve('src/features/admin/finance/finance-hub-charts.tsx');
+    const source = fs.readFileSync(chartsPath, 'utf8');
+    expect(source.includes('FinanceHubReceivableChart')).toBe(true);
+    expect(source.includes('chartCollectionTrend')).toBe(true);
+    expect(source.includes('chartPaymentMethods')).toBe(true);
+    expect(source.includes('finance-hub-charts-grid--period')).toBe(false);
+  });
+
+  it('uses dynamic attention and cashflow grids', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const cssPath = path.resolve('src/features/admin/finance/finance-ui.css');
+    const css = fs.readFileSync(cssPath, 'utf8');
+    expect(css.includes('finance-hub-attention-grid[data-count')).toBe(true);
+    expect(css.includes('finance-hub-cashflow-grid[data-count')).toBe(true);
+  });
+
+  it('renders cheques workspace badge instead of raw hint number', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const linksPath = path.resolve('src/features/admin/finance/finance-hub-links.tsx');
+    const source = fs.readFileSync(linksPath, 'utf8');
+    expect(source.includes('finance-hub-card-badge')).toBe(true);
+    expect(source.includes('linkChequesPendingBadge')).toBe(true);
+    expect(source.includes('finance-hub-card-hint')).toBe(false);
   });
 });
