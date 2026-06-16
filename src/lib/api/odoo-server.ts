@@ -186,6 +186,14 @@ export async function odooApiFetch<T = unknown>(
     };
   }
 
+  if (res.status === 204) {
+    return {
+      kind: 'json',
+      status: 204,
+      body: { success: true, data: null as T, meta: {} },
+    };
+  }
+
   let body: ApiResponse<T>;
   try {
     body = (await res.json()) as ApiResponse<T>;
