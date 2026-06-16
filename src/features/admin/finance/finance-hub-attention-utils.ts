@@ -1,7 +1,7 @@
+import { FINANCE_DEEP_LINKS, financeDeepLinkHref } from '@/features/admin/finance/finance-deep-links';
 import { normalizeMoneyValue } from '@/lib/utils/finance-normalize';
-import { rejectedChequeQuickHref, totalRejectedChequeCount } from '@/lib/utils/cheque-status';
 import type { FinancePluralKind } from '@/features/admin/finance/finance-hub-plural';
-import type { AdminFinanceOverview, FinanceInstallment } from '@/types/finance';
+import type { AdminFinanceOverview, FinanceAttentionMetric, FinanceInstallment } from '@/types/finance';
 
 export type FinanceHubAttentionSeverity = 'critical' | 'warning' | 'info';
 
@@ -24,105 +24,88 @@ function sumOverdueInstallments(rows: FinanceInstallment[] | undefined): number 
   }, 0);
 }
 
+function pushAttentionMetric(
+  items: FinanceHubAttentionItem[],
+  key: string,
+  metric: FinanceAttentionMetric | undefined,
+  config: {
+    severity: FinanceHubAttentionSeverity;
+    hrefKey: keyof typeof FINANCE_DEEP_LINKS;
+    actionKey: string;
+    pluralKind?: FinancePluralKind;
+    titleKey?: string;
+  },
+) {
+  const count = metric?.count ?? 0;
+  if (count <= 0) return;
+  items.push({
+    key,
+    severity: config.severity,
+    count,
+    amount: metric?.amount ?? null,
+    href: financeDeepLinkHref(config.hrefKey),
+    actionKey: config.actionKey,
+    pluralKind: config.pluralKind,
+    titleKey: config.titleKey,
+  });
+}
+
 export function buildFinanceHubAttentionItems(input: {
   overview: AdminFinanceOverview | null;
-  rejectedChequeCount: number | null;
-  bouncedChequeCount: number | null;
-  draftCollectionsCount: number | null;
-  chequesDueSoonCount: number | null;
-  chequesDueSoonAmount: number | null;
+  rejectedChequeCount?: number | null;
+  bouncedChequeCount?: number | null;
 }): FinanceHubAttentionItem[] {
   const { overview } = input;
   const totals = overview?.totals;
-  const cheques = overview?.cheques;
+  const attention = overview?.attention;
   const items: FinanceHubAttentionItem[] = [];
 
-  const overdueCount = totals?.overdue_installments_count ?? totals?.overdue_installments ?? 0;
+  const overdueMetric = attention?.overdue_installments;
+  const overdueCount =
+    overdueMetric?.count ?? totals?.overdue_installments_count ?? totals?.overdue_installments ?? 0;
+
   if (overdueCount > 0) {
     const overdueRows = (overview?.overdue_installments ?? []) as FinanceInstallment[];
     items.push({
       key: 'overdue_installments',
       severity: 'critical',
       count: overdueCount,
-      amount: sumOverdueInstallments(overdueRows) || totals?.total_overdue,
-      href: '/admin/finance/installments?quick=overdue_unpaid',
+      amount:
+        overdueMetric?.amount ??
+        (sumOverdueInstallments(overdueRows) || (totals?.total_overdue ?? null)),
+      href: financeDeepLinkHref('overdueInstallments'),
       actionKey: 'admin.finance.hub.actionOverdueInstallments',
       pluralKind: 'overdueInstallment',
     });
   }
 
-  const overdueCheques = cheques?.overdue ?? 0;
-  if (overdueCheques > 0) {
-    items.push({
-      key: 'overdue_cheques',
-      severity: 'critical',
-      count: overdueCheques,
-      amount: totals?.cheques_rejected_amount,
-      href: '/admin/finance/cheques?quick=overdue',
-      actionKey: 'admin.finance.hub.actionOverdueCheques',
-      pluralKind: 'overdueCheque',
-    });
-  }
+  pushAttentionMetric(items, 'cheques_rejected', attention?.cheques_rejected, {
+    severity: 'critical',
+    hrefKey: 'chequesRejected',
+    actionKey: 'admin.finance.hub.actionRejectedCheques',
+    pluralKind: 'rejectedCheque',
+  });
 
-  const verifiedRejected = totalRejectedChequeCount(
-    input.rejectedChequeCount,
-    input.bouncedChequeCount,
-  );
-  const overviewRejected = totals?.cheques_rejected_count ?? cheques?.bounced ?? cheques?.rejected ?? 0;
-  const rejectedMismatch =
-    verifiedRejected !== overviewRejected &&
-    input.rejectedChequeCount != null &&
-    input.bouncedChequeCount != null;
+  pushAttentionMetric(items, 'cheques_due_soon', attention?.cheques_due_soon, {
+    severity: 'warning',
+    hrefKey: 'chequesDueSoon',
+    actionKey: 'admin.finance.hub.actionChequesDueSoon',
+    pluralKind: 'chequeDueSoon',
+  });
 
-  if (rejectedMismatch) {
-    items.push({
-      key: 'rejected_cheques_unverified',
-      severity: 'warning',
-      count: overviewRejected,
-      actionKey: 'admin.finance.hub.actionReviewCheques',
-      titleKey: 'admin.finance.hub.alertRejectedChequesUnverified',
-    });
-  } else if (verifiedRejected > 0) {
-    items.push({
-      key: 'rejected_cheques',
-      severity: 'critical',
-      count: verifiedRejected,
-      amount: totals?.cheques_rejected_amount,
-      href: rejectedChequeQuickHref(),
-      actionKey: 'admin.finance.hub.actionRejectedCheques',
-      pluralKind: 'rejectedCheque',
-    });
-  }
-
-  if ((input.chequesDueSoonCount ?? 0) > 0) {
-    items.push({
-      key: 'cheques_due_soon',
-      severity: 'warning',
-      count: input.chequesDueSoonCount ?? 0,
-      amount: input.chequesDueSoonAmount,
-      href: '/admin/finance/cheques?quick=due_today',
-      actionKey: 'admin.finance.hub.actionChequesDueSoon',
-      pluralKind: 'chequeDueSoon',
-    });
-  }
-
-  if ((input.draftCollectionsCount ?? 0) > 0) {
-    items.push({
-      key: 'draft_collections',
-      severity: 'warning',
-      count: input.draftCollectionsCount ?? 0,
-      href: '/admin/finance/collections?state=draft',
-      actionKey: 'admin.finance.hub.actionDraftCollections',
-      pluralKind: 'draftCollection',
-    });
-  }
+  pushAttentionMetric(items, 'draft_collections', attention?.draft_collections, {
+    severity: 'warning',
+    hrefKey: 'draftCollections',
+    actionKey: 'admin.finance.hub.actionDraftCollections',
+    pluralKind: 'draftCollection',
+  });
 
   if ((totals?.draft_agreements_count ?? 0) > 0) {
     items.push({
       key: 'draft_agreements',
       severity: 'info',
       count: totals?.draft_agreements_count ?? 0,
-      href: '/admin/finance/agreements?state=draft',
+      href: financeDeepLinkHref('draftAgreements'),
       actionKey: 'admin.finance.hub.actionDraftAgreements',
       pluralKind: 'draftAgreement',
     });
@@ -135,11 +118,18 @@ export function buildFinanceHubAttentionItems(input: {
       severity: 'warning',
       count: totals?.students_with_balance ?? 0,
       amount: uncovered,
-      href: '/admin/finance/student-fees',
+      href: financeDeepLinkHref('studentFees'),
       actionKey: 'admin.finance.hub.actionUncovered',
       titleKey: 'admin.finance.hub.alertUncoveredAmount',
     });
   }
 
   return items;
+}
+
+export function readAttentionMetric(
+  overview: AdminFinanceOverview | null | undefined,
+  key: keyof NonNullable<AdminFinanceOverview['attention']>,
+): FinanceAttentionMetric | null {
+  return overview?.attention?.[key] ?? null;
 }

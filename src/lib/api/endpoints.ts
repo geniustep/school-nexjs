@@ -215,6 +215,7 @@ export const endpoints = {
     financePaymentCollectionReceipt: (id: number | string) =>
       `/admin/finance/payment-collections/${id}/receipt`,
     financeOverview: '/admin/finance/overview',
+    financeInstallments: '/admin/finance/installments',
     financePaymentJournals: '/admin/finance/payment-journals',
     financeAcademicYears: '/admin/finance/academic-years',
     financeReferenceData: '/admin/finance/reference-data',

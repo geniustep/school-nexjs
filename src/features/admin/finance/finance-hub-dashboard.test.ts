@@ -116,28 +116,22 @@ describe('finance hub attention', () => {
         overview,
         rejectedChequeCount: 0,
         bouncedChequeCount: 0,
-        draftCollectionsCount: 0,
-        chequesDueSoonCount: 0,
-        chequesDueSoonAmount: 0,
       }),
     ).toHaveLength(0);
   });
 
-  it('includes overdue installments and draft collections', () => {
+  it('includes overdue installments and draft collections from attention', () => {
     const overview = normalizeFinanceOverview({
-      overdue_installments_count: 2,
-      overdue_amount: 150,
+      attention: {
+        overdue_installments: { count: 2, amount: 150, quick: 'overdue_unpaid' },
+        draft_collections: { count: 2, amount: 500, state: 'draft' },
+      },
       draft_agreements_count: 1,
       uncovered_amount: 500,
       students_with_balance: 3,
     });
     const alerts = buildFinanceHubAttentionItems({
       overview,
-      rejectedChequeCount: 0,
-      bouncedChequeCount: 0,
-      draftCollectionsCount: 2,
-      chequesDueSoonCount: 0,
-      chequesDueSoonAmount: 0,
     });
     expect(alerts.some((alert) => alert.key === 'overdue_installments')).toBe(true);
     expect(alerts.some((alert) => alert.key === 'draft_collections')).toBe(true);

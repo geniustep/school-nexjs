@@ -140,11 +140,7 @@ export default function AdminFinancePage() {
               filters={filters}
               onFiltersChange={handlePeriodChange}
             />
-            <FinanceHubCashflow
-              overviewData={overviewState.data}
-              currency={currency}
-              asOfDate={overview?.as_of_date}
-            />
+            <FinanceHubCashflow overviewData={overviewState.data} currency={currency} />
             <FinanceHubLinks overview={overviewState.data} />
           </>
         )}

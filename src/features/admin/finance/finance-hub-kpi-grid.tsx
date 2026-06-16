@@ -9,6 +9,7 @@ import { resolveOverviewSettledAmount } from '@/features/admin/finance/finance-h
 import { useLocale, useT } from '@/features/i18n/locale-context';
 import { normalizeFinanceOverview, normalizeMoneyValue } from '@/lib/utils/finance-normalize';
 import { resolveFinanceCurrency } from '@/lib/i18n/format-money';
+import { financeDeepLinkHref } from '@/features/admin/finance/finance-deep-links';
 import type { AdminFinanceOverview } from '@/types/finance';
 
 type KpiDef = {
@@ -42,7 +43,7 @@ export function FinanceHubKpiGrid({
         key: 'total_due',
         labelKey: 'admin.finance.hub.kpiTotalDue',
         value: totals?.total_due,
-        href: '/admin/finance/installments',
+        href: financeDeepLinkHref('installmentsAll'),
         hint:
           totals?.students_with_balance != null && totals.students_with_balance > 0
             ? formatFinancePlural(t, locale, 'student', totals.students_with_balance)
@@ -53,21 +54,21 @@ export function FinanceHubKpiGrid({
         key: 'settled',
         labelKey: 'admin.finance.hub.kpiSettled',
         value: resolveOverviewSettledAmount(totals),
-        href: '/admin/finance/collections?state=confirmed',
+        href: financeDeepLinkHref('confirmedCollections'),
         alwaysShow: true,
       },
       {
         key: 'remaining',
         labelKey: 'admin.finance.hub.kpiRemaining',
         value: totals?.total_remaining,
-        href: '/admin/finance/installments',
+        href: financeDeepLinkHref('installmentsAll'),
         alwaysShow: true,
       },
       {
         key: 'overdue',
         labelKey: 'admin.finance.hub.kpiOverdue',
         value: totals?.total_overdue,
-        href: '/admin/finance/installments?quick=overdue_unpaid',
+        href: financeDeepLinkHref('overdueInstallments'),
         hint:
           totals?.overdue_installments_count != null && totals.overdue_installments_count > 0
             ? formatFinancePlural(t, locale, 'overdueInstallment', totals.overdue_installments_count)
@@ -79,7 +80,7 @@ export function FinanceHubKpiGrid({
         labelKey: 'admin.finance.hub.kpiCollectionRate',
         value: collectionRate,
         isPercent: true,
-        href: '/admin/finance/collections',
+        href: financeDeepLinkHref('collectionsAll'),
         alwaysShow: collectionRate != null,
       },
     ],

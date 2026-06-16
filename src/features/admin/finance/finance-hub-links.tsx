@@ -20,6 +20,7 @@ import {
   canViewPayments,
 } from '@/lib/permissions/finance';
 import { normalizeFinanceOverview } from '@/lib/utils/finance-normalize';
+import { financeDeepLinkHref } from '@/features/admin/finance/finance-deep-links';
 import type { AdminFinanceOverview } from '@/types/finance';
 
 type HubLink = {
@@ -39,7 +40,7 @@ export function FinanceHubLinks({ overview }: { overview: AdminFinanceOverview |
 
   const operations: HubLink[] = [
     {
-      href: '/admin/finance/agreements',
+      href: financeDeepLinkHref('agreementsAll'),
       icon: <IconClipboard size={22} />,
       labelKey: 'admin.finance.hub.linkAgreements',
       descKey: 'admin.finance.hub.linkAgreementsDesc',
@@ -47,7 +48,7 @@ export function FinanceHubLinks({ overview }: { overview: AdminFinanceOverview |
       show: canViewFinanceAgreements(user),
     },
     {
-      href: '/admin/finance/installments',
+      href: financeDeepLinkHref('installmentsAll'),
       icon: <IconLayers size={22} />,
       labelKey: 'admin.finance.hub.linkInstallments',
       descKey: 'admin.finance.hub.linkInstallmentsDesc',
@@ -58,14 +59,14 @@ export function FinanceHubLinks({ overview }: { overview: AdminFinanceOverview |
       show: canViewFinanceInstallments(user),
     },
     {
-      href: '/admin/finance/collections',
+      href: financeDeepLinkHref('collectionsAll'),
       icon: <IconCheckCircle size={22} />,
       labelKey: 'admin.finance.hub.linkCollections',
       descKey: 'admin.finance.hub.linkCollectionsDesc',
       show: canViewPayments(user),
     },
     {
-      href: '/admin/finance/cheques',
+      href: financeDeepLinkHref('chequesAll'),
       icon: <IconBookOpen size={22} />,
       labelKey: 'admin.finance.hub.linkCheques',
       descKey: 'admin.finance.hub.linkChequesDesc',
@@ -76,21 +77,21 @@ export function FinanceHubLinks({ overview }: { overview: AdminFinanceOverview |
 
   const setup: HubLink[] = [
     {
-      href: '/admin/finance/services',
+      href: financeDeepLinkHref('services'),
       icon: <IconSlidersHorizontal size={22} />,
       labelKey: 'admin.finance.hub.linkServices',
       descKey: 'admin.finance.hub.linkServicesDesc',
       show: canViewFinanceServices(user),
     },
     {
-      href: '/admin/finance/fee-plans',
+      href: financeDeepLinkHref('feePlans'),
       icon: <IconLayers size={22} />,
       labelKey: 'admin.finance.hubFeePlans',
       descKey: 'admin.finance.hub.linkFeePlansDesc',
       show: canViewFinanceSetup(user),
     },
     {
-      href: '/admin/finance/fee-types',
+      href: financeDeepLinkHref('feeTypes'),
       icon: <IconBookOpen size={22} />,
       labelKey: 'admin.finance.hubFeeTypes',
       descKey: 'admin.finance.hub.linkFeeTypesDesc',

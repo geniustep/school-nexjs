@@ -7,32 +7,9 @@ import { FinanceHubSection } from '@/features/admin/finance/finance-hub-header';
 import { buildFinanceHubAttentionItems } from '@/features/admin/finance/finance-hub-attention-utils';
 import { formatFinancePlural } from '@/features/admin/finance/finance-hub-plural';
 import { useLocale, useT } from '@/features/i18n/locale-context';
-import { endpoints } from '@/lib/api/endpoints';
-import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { resolveFinanceCurrency } from '@/lib/i18n/format-money';
-import { normalizeFinanceOverview, parseFinanceList } from '@/lib/utils/finance-normalize';
-import type { AdminFinanceOverview, FinanceCheque } from '@/types/finance';
-
-function useChequeTotal(params: Record<string, string | number>) {
-  const state = useAdminResource<FinanceCheque[]>(endpoints.admin.financeCheques, {
-    ...params,
-    page: 1,
-    page_size: 1,
-  });
-  return state.meta?.pagination?.total ?? null;
-}
-
-function useChequeList(params: Record<string, string | number>) {
-  const state = useAdminResource<FinanceCheque[]>(endpoints.admin.financeCheques, {
-    ...params,
-    page: 1,
-    page_size: 100,
-  });
-  return {
-    rows: parseFinanceList<FinanceCheque>(state.data),
-    loading: state.loading,
-  };
-}
+import { normalizeFinanceOverview } from '@/lib/utils/finance-normalize';
+import type { AdminFinanceOverview } from '@/types/finance';
 
 export function FinanceHubAlerts({
   data,
@@ -46,34 +23,19 @@ export function FinanceHubAlerts({
   const resolvedCurrency = resolveFinanceCurrency(currency);
   const overview = normalizeFinanceOverview(data);
 
-  const rejectedListCount = useChequeTotal({ state: 'rejected' });
-  const bouncedListCount = useChequeTotal({ state: 'bounced' });
-  const draftCollectionsState = useAdminResource<unknown[]>(endpoints.admin.financePaymentCollections, {
-    state: 'draft',
-    page: 1,
-    page_size: 1,
-  });
-  const draftCount = draftCollectionsState.meta?.pagination?.total ?? null;
-
-  const { rows: dueSoonCheques } = useChequeList({ quick: 'due_today' });
-  const chequesDueSoonCount = dueSoonCheques.length || null;
-  const chequesDueSoonAmount = dueSoonCheques.reduce((sum, row) => sum + (row.amount ?? 0), 0);
-
-  const alerts = buildFinanceHubAttentionItems({
-    overview,
-    rejectedChequeCount: rejectedListCount,
-    bouncedChequeCount: bouncedListCount,
-    draftCollectionsCount: draftCount,
-    chequesDueSoonCount,
-    chequesDueSoonAmount: chequesDueSoonAmount || null,
-  });
+  const alerts = buildFinanceHubAttentionItems({ overview });
+  const chequesDueSoon = overview?.attention?.cheques_due_soon;
 
   return (
     <FinanceHubSection title={t('admin.finance.hub.attentionTitle')}>
       {!alerts.length ? (
         <div className="finance-hub-attention-empty card">
           <IconCheckCircle size={20} className="finance-hub-attention-empty__icon" />
-          <p>{t('admin.finance.hub.attentionEmpty')}</p>
+          <p>
+            {chequesDueSoon && chequesDueSoon.count === 0
+              ? t('admin.finance.hub.chequesDueSoonClear')
+              : t('admin.finance.hub.attentionEmpty')}
+          </p>
         </div>
       ) : (
         <div className="finance-hub-attention-grid">

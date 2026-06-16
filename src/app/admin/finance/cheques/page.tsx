@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
+import { ApiErrorView } from '@/components/states/states';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
@@ -11,146 +12,122 @@ import { PageHeader } from '@/components/ui/primitives';
 import { ChequeDueIndicator } from '@/features/admin/finance/cheque-due-indicator';
 import { ChequeDualBadges } from '@/features/admin/student-finance/components/cheque-dual-badges';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
+import {
+  CHEQUE_QUICK_FILTERS,
+  chequeQuickFilterDescKey,
+  chequeQuickFilterLabelKey,
+  chequeQuickFilterTitleKey,
+  isChequeQuickFilter,
+  type ChequeQuickFilter,
+} from '@/features/admin/finance/finance-filter-contracts';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { FINANCE_VIEW_CHEQUES } from '@/lib/permissions/finance';
 import { financeStudentDisplayName } from '@/lib/utils/finance';
-import {
-  rejectedChequeListApiState,
-  totalRejectedChequeCount,
-} from '@/lib/utils/cheque-status';
+import { parseFinanceQuickListResponse } from '@/lib/utils/finance-list-response';
 import { buildStudentFinanceLink } from '@/lib/utils/finance-navigation';
-import { parseFinanceList } from '@/lib/utils/finance-normalize';
 import { appendReturnTo, sanitizeReturnTo } from '@/lib/utils/safe-return-url';
 import type { FinanceCheque } from '@/types/finance';
 import type { ListParams } from '@/types/api';
 
-type QuickFilter = '' | 'pending' | 'due_today' | 'overdue' | 'deposited' | 'cleared' | 'rejected' | 'cancelled';
-
-function todayIso() {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function useChequeCount(params: ListParams) {
-  const state = useAdminResource<FinanceCheque[]>(endpoints.admin.financeCheques, {
-    ...params,
-    page: 1,
-    page_size: 1,
-  });
-  return state.meta?.pagination?.total ?? null;
-}
-
-const QUICK_TITLE_KEYS: Partial<Record<QuickFilter, string>> = {
-  rejected: 'admin.finance.cheques.titleRejected',
-  deposited: 'admin.finance.cheques.titleDeposited',
-  cleared: 'admin.finance.cheques.titleCleared',
-  pending: 'admin.finance.cheques.titlePending',
-  overdue: 'admin.finance.cheques.titleOverdue',
-  due_today: 'admin.finance.cheques.titleDueToday',
-  cancelled: 'admin.finance.cheques.titleCancelled',
+type ChequeFilters = {
+  quick: string;
+  search: string;
+  dueFrom: string;
+  dueTo: string;
+  studentId: string;
+  page: number;
 };
 
-const QUICK_DESC_KEYS: Partial<Record<QuickFilter, string>> = {
-  rejected: 'admin.finance.cheques.descRejected',
-  deposited: 'admin.finance.cheques.descDeposited',
-  cleared: 'admin.finance.cheques.descCleared',
-  pending: 'admin.finance.cheques.descPending',
-  overdue: 'admin.finance.cheques.descOverdue',
-  due_today: 'admin.finance.cheques.descDueToday',
-  cancelled: 'admin.finance.cheques.descCancelled',
-};
+const TAB_QUICKS: ChequeQuickFilter[] = CHEQUE_QUICK_FILTERS.filter((q) => q !== 'all');
+
+function readFilters(searchParams: URLSearchParams): ChequeFilters {
+  const pageRaw = searchParams.get('page');
+  return {
+    quick: searchParams.get('quick') ?? '',
+    search: searchParams.get('search') ?? '',
+    dueFrom: searchParams.get('due_date_from') ?? searchParams.get('maturity_date_from') ?? '',
+    dueTo: searchParams.get('due_date_to') ?? searchParams.get('maturity_date_to') ?? '',
+    studentId: searchParams.get('student_id') ?? '',
+    page: pageRaw && /^\d+$/.test(pageRaw) ? Number(pageRaw) : 1,
+  };
+}
 
 export default function AdminFinanceChequesPage() {
   const t = useT();
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = sanitizeReturnTo(searchParams.get('returnTo'), '/admin/finance/cheques');
-  const studentIdFilter = searchParams.get('student_id') ?? '';
   const { formatDate } = useFormat();
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
-  const [query, setQuery] = useState('');
-  const [dueFrom, setDueFrom] = useState('');
-  const [dueTo, setDueTo] = useState('');
-  const [overdueOnly, setOverdueOnly] = useState(false);
-  const [quickFilter, setQuickFilter] = useState<QuickFilter>('');
+  const filters = useMemo(() => readFilters(searchParams), [searchParams]);
 
-  useEffect(() => {
-    const quick = searchParams.get('quick') as QuickFilter | null;
-    if (quick) setQuickFilter(quick);
-  }, [searchParams]);
+  const quickValid = isChequeQuickFilter(filters.quick) ? filters.quick : '';
+  const invalidQuick = filters.quick && !quickValid;
 
-  const rejectedOnlyCount = useChequeCount({ state: 'rejected' });
-  const bouncedOnlyCount = useChequeCount({ state: 'bounced' });
-  const rejectedCount = totalRejectedChequeCount(rejectedOnlyCount, bouncedOnlyCount);
-
-  const receivedCount = useChequeCount({ state: 'received' });
-  const depositedCount = useChequeCount({ state: 'deposited' });
-  const clearedCount = useChequeCount({ state: 'cleared' });
-  const overdueCount = useChequeCount({ overdue_only: 'true' });
-  const dueTodayCount = useChequeCount({
-    state: 'received',
-    maturity_date_from: todayIso(),
-    maturity_date_to: todayIso(),
-  });
+  const updateFilters = useCallback(
+    (updates: Partial<Record<keyof ChequeFilters, string | number | null>>) => {
+      const params = new URLSearchParams(searchParams.toString());
+      const map: Record<keyof ChequeFilters, string> = {
+        quick: 'quick',
+        search: 'search',
+        dueFrom: 'due_date_from',
+        dueTo: 'due_date_to',
+        studentId: 'student_id',
+        page: 'page',
+      };
+      for (const [key, value] of Object.entries(updates) as Array<[keyof ChequeFilters, string | number | null]>) {
+        const paramKey = map[key];
+        if (value == null || value === '' || (key === 'page' && value === 1)) params.delete(paramKey);
+        else params.set(paramKey, String(value));
+      }
+      params.delete('maturity_date_from');
+      params.delete('maturity_date_to');
+      params.delete('state');
+      params.delete('overdue_only');
+      const qs = params.toString();
+      router.replace(qs ? `/admin/finance/cheques?${qs}` : '/admin/finance/cheques');
+    },
+    [router, searchParams],
+  );
 
   const params: ListParams = useMemo(() => {
     const p: ListParams = {
-      page,
+      page: filters.page,
       page_size: 20,
-      search: query || undefined,
-      student_id: studentIdFilter || undefined,
+      search: filters.search || undefined,
+      student_id: filters.studentId || undefined,
+      include_summary: quickValid ? 1 : undefined,
     };
-    if (dueFrom) p.maturity_date_from = dueFrom;
-    if (dueTo) p.maturity_date_to = dueTo;
-    if (overdueOnly) p.overdue_only = 'true';
-    if (quickFilter === 'pending') p.state = 'received';
-    if (quickFilter === 'deposited') p.state = 'deposited';
-    if (quickFilter === 'cleared') p.state = 'cleared';
-    if (quickFilter === 'rejected') {
-      p.state = rejectedChequeListApiState(rejectedOnlyCount, bouncedOnlyCount);
-    }
-    if (quickFilter === 'cancelled') p.state = 'cancelled';
-    if (quickFilter === 'overdue') p.overdue_only = 'true';
-    if (quickFilter === 'due_today') {
-      const today = todayIso();
-      p.maturity_date_from = today;
-      p.maturity_date_to = today;
-    }
+    if (filters.dueFrom) p.maturity_date_from = filters.dueFrom;
+    if (filters.dueTo) p.maturity_date_to = filters.dueTo;
+    if (quickValid && quickValid !== 'all') p.quick = quickValid;
     return p;
-  }, [
-    page,
-    query,
-    dueFrom,
-    dueTo,
-    overdueOnly,
-    quickFilter,
-    studentIdFilter,
-    rejectedOnlyCount,
-    bouncedOnlyCount,
-  ]);
+  }, [filters, quickValid]);
 
-  const state = useAdminResource<FinanceCheque[]>(endpoints.admin.financeCheques, params);
-  const rows = parseFinanceList<FinanceCheque>(state.data);
+  const state = useAdminResource<FinanceCheque[] | Record<string, unknown>>(endpoints.admin.financeCheques, params);
+  const parsed = useMemo(() => parseFinanceQuickListResponse<FinanceCheque>(state.data), [state.data]);
+  const rows = parsed.items;
+  const summary = parsed.summary;
+  const applied = parsed.appliedFilters;
   const pg = state.meta?.pagination;
 
   const listReturnTo = useMemo(() => {
-    const qs = quickFilter ? `?quick=${quickFilter}` : '';
-    return `/admin/finance/cheques${qs}`;
-  }, [quickFilter]);
+    const params = new URLSearchParams();
+    if (quickValid) params.set('quick', quickValid);
+    const qs = params.toString();
+    return `/admin/finance/cheques${qs ? `?${qs}` : ''}`;
+  }, [quickValid]);
 
-  const hasFilters = !!(query || dueFrom || dueTo || overdueOnly || quickFilter);
-
-  const summaryItems = [
-    { key: 'received', label: t('admin.finance.cheques.summary.received'), value: receivedCount, quick: 'pending' as QuickFilter },
-    { key: 'deposited', label: t('admin.finance.cheques.summary.deposited'), value: depositedCount, quick: 'deposited' as QuickFilter },
-    { key: 'due_today', label: t('admin.finance.cheques.summary.dueToday'), value: dueTodayCount, quick: 'due_today' as QuickFilter },
-    { key: 'overdue', label: t('admin.finance.cheques.summary.overdue'), value: overdueCount, quick: 'overdue' as QuickFilter },
-    { key: 'cleared', label: t('admin.finance.cheques.summary.cleared'), value: clearedCount, quick: 'cleared' as QuickFilter },
-    { key: 'rejected', label: t('admin.finance.cheques.summary.rejected'), value: rejectedCount, quick: 'rejected' as QuickFilter },
-  ].filter((item) => item.value != null);
+  const pageTitle =
+    quickValid && chequeQuickFilterTitleKey(quickValid)
+      ? t(chequeQuickFilterTitleKey(quickValid)!)
+      : t('admin.finance.cheques.title');
+  const pageSubtitle =
+    quickValid && chequeQuickFilterDescKey(quickValid)
+      ? t(chequeQuickFilterDescKey(quickValid)!)
+      : t('admin.finance.cheques.subtitle');
 
   const columns: Column<FinanceCheque>[] = useMemo(
     () => [
@@ -222,48 +199,15 @@ export default function AdminFinanceChequesPage() {
     [t, formatDate, returnTo],
   );
 
-  const quickFilters: { key: QuickFilter; label: string }[] = [
-    { key: 'pending', label: t('admin.finance.cheques.filters.pending') },
-    { key: 'due_today', label: t('admin.finance.cheques.filters.dueToday') },
-    { key: 'overdue', label: t('admin.finance.cheques.filters.overdue') },
-    { key: 'deposited', label: t('admin.finance.cheques.filters.deposited') },
-    { key: 'cleared', label: t('admin.finance.cheques.filters.cleared') },
-    { key: 'rejected', label: t('admin.finance.cheques.filters.rejected') },
-  ];
+  const hasFilters = !!(filters.search || filters.dueFrom || filters.dueTo || filters.studentId || quickValid);
 
-  function clearFilters() {
-    setSearch('');
-    setQuery('');
-    setDueFrom('');
-    setDueTo('');
-    setOverdueOnly(false);
-    setQuickFilter('');
-    setPage(1);
-    router.replace('/admin/finance/cheques');
-  }
-
-  const pageTitle = quickFilter && QUICK_TITLE_KEYS[quickFilter]
-    ? t(QUICK_TITLE_KEYS[quickFilter]!)
-    : t('admin.finance.cheques.title');
-  const pageSubtitle = quickFilter && QUICK_DESC_KEYS[quickFilter]
-    ? t(QUICK_DESC_KEYS[quickFilter]!)
-    : t('admin.finance.cheques.subtitle');
-
-  const emptyState = quickFilter ? (
-    <EmptyState
-      title={t('admin.finance.cheques.emptyFilteredTitle', {
-        filter: t(`admin.finance.cheques.filters.${quickFilter === 'pending' ? 'pending' : quickFilter}`),
-      })}
-      description={t('admin.finance.cheques.emptyFilteredDesc')}
-      action={
-        <button type="button" className="btn btn--ghost btn--sm" onClick={clearFilters}>
-          {t('admin.finance.cheques.showAllCheques')}
-        </button>
-      }
-    />
-  ) : (
-    <EmptyState title={t('admin.finance.cheques.empty')} />
-  );
+  const emptyTitle = quickValid
+    ? quickValid === 'due_next_7_days'
+      ? t('admin.finance.cheques.emptyDueNextSevenDays')
+      : t('admin.finance.cheques.emptyFilteredTitle', {
+          filter: t(chequeQuickFilterLabelKey(quickValid)),
+        })
+    : t('admin.finance.cheques.empty');
 
   return (
     <RequireAdminPermission permission={FINANCE_VIEW_CHEQUES}>
@@ -272,52 +216,64 @@ export default function AdminFinanceChequesPage() {
       </Link>
       <PageHeader title={pageTitle} subtitle={pageSubtitle} />
 
-      {quickFilter ? (
+      {invalidQuick ? (
+        <ApiErrorView error={{ code: 'invalid_quick_filter', message: t('admin.finance.errors.invalidQuickFilter') }} />
+      ) : null}
+
+      {quickValid ? (
         <div className="finance-cheque-active-filter">
           <span className="finance-cheque-active-filter__chip">
             {t('admin.finance.cheques.activeFilterChip', {
-              filter: t(`admin.finance.cheques.filters.${quickFilter === 'pending' ? 'pending' : quickFilter}`),
+              filter: t(chequeQuickFilterLabelKey(quickValid)),
             })}
           </span>
-          <button type="button" className="btn btn--ghost btn--sm" onClick={clearFilters}>
+          <button type="button" className="btn btn--ghost btn--sm" onClick={() => updateFilters({ quick: null, page: 1 })}>
             {t('admin.finance.cheques.clearFilter')}
           </button>
         </div>
       ) : null}
 
-      {summaryItems.length > 0 ? (
+      {summary ? (
         <div className="finance-metrics-grid finance-cheque-summary-grid finance-cheque-summary-grid--balanced">
-          {summaryItems.map((item) => (
-            <button
-              key={item.key}
-              type="button"
-              className={`card finance-metric-card finance-cheque-summary-card${quickFilter === item.quick ? ' is-active' : ''}`}
-              onClick={() => {
-                setPage(1);
-                setQuickFilter((prev) => (prev === item.quick ? '' : item.quick));
-                setOverdueOnly(false);
-              }}
-            >
-              <span className="muted">{item.label}</span>
-              <strong className="mono">{item.value}</strong>
-            </button>
-          ))}
+          <div className="card finance-metric-card">
+            <span className="muted">{t('admin.finance.cheques.summaryTotalCount')}</span>
+            <strong className="mono">{summary.total_count ?? pg?.total ?? 0}</strong>
+          </div>
+          {summary.total_amount != null ? (
+            <div className="card finance-metric-card">
+              <span className="muted">{t('admin.finance.cheques.summaryTotalAmount')}</span>
+              <strong>
+                <FinanceMoney amount={summary.total_amount} />
+              </strong>
+            </div>
+          ) : null}
+          {applied?.date_from && applied?.date_to ? (
+            <div className="card finance-metric-card">
+              <span className="muted">{t('admin.finance.cheques.summaryDateRange')}</span>
+              <strong className="tiny">
+                {formatDate(String(applied.date_from))} – {formatDate(String(applied.date_to))}
+              </strong>
+            </div>
+          ) : null}
         </div>
       ) : null}
 
       <div className="finance-cheque-quick-filters finance-cheque-quick-filters--compact">
-        {quickFilters.map((f) => (
+        <button
+          type="button"
+          className={`btn btn--ghost btn--sm${!quickValid ? ' is-active' : ''}`}
+          onClick={() => updateFilters({ quick: null, page: 1 })}
+        >
+          {t('admin.finance.cheques.filters.all')}
+        </button>
+        {TAB_QUICKS.map((key) => (
           <button
-            key={f.key}
+            key={key}
             type="button"
-            className={`btn btn--ghost btn--sm${quickFilter === f.key ? ' is-active' : ''}`}
-            onClick={() => {
-              setPage(1);
-              setQuickFilter((prev) => (prev === f.key ? '' : f.key));
-              setOverdueOnly(false);
-            }}
+            className={`btn btn--ghost btn--sm${quickValid === key ? ' is-active' : ''}`}
+            onClick={() => updateFilters({ quick: quickValid === key ? null : key, page: 1 })}
           >
-            {f.label}
+            {t(chequeQuickFilterLabelKey(key))}
           </button>
         ))}
       </div>
@@ -326,55 +282,95 @@ export default function AdminFinanceChequesPage() {
         className="toolbar finance-hub-filters"
         onSubmit={(e) => {
           e.preventDefault();
-          setPage(1);
-          setQuery(search.trim());
+          const fd = new FormData(e.currentTarget);
+          updateFilters({
+            search: String(fd.get('search') ?? '').trim() || null,
+            dueFrom: String(fd.get('due_date_from') ?? '') || null,
+            dueTo: String(fd.get('due_date_to') ?? '') || null,
+            studentId: String(fd.get('student_id') ?? '').trim() || null,
+            quick: null,
+            page: 1,
+          });
         }}
       >
         <input
           className="input"
+          name="search"
           placeholder={t('admin.finance.cheques.searchPlaceholder')}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          defaultValue={filters.search}
         />
         <input
           className="input"
           type="date"
-          value={dueFrom}
-          onChange={(e) => setDueFrom(e.target.value)}
+          name="due_date_from"
+          defaultValue={filters.dueFrom}
           aria-label={t('admin.finance.cheques.dueFrom')}
         />
         <input
           className="input"
           type="date"
-          value={dueTo}
-          onChange={(e) => setDueTo(e.target.value)}
+          name="due_date_to"
+          defaultValue={filters.dueTo}
           aria-label={t('admin.finance.cheques.dueTo')}
         />
-        <label className="row finance-cheque-overdue-toggle">
-          <input
-            type="checkbox"
-            checked={overdueOnly}
-            onChange={(e) => {
-              setOverdueOnly(e.target.checked);
-              if (e.target.checked) setQuickFilter('');
-            }}
-          />
-          {t('admin.finance.cheques.filters.overdueOnly')}
-        </label>
+        <input
+          className="input"
+          name="student_id"
+          placeholder={t('admin.finance.cheques.studentIdFilter')}
+          defaultValue={filters.studentId}
+        />
         <button type="submit" className="btn btn--ghost btn--sm">
           {t('admin.search')}
         </button>
         {hasFilters ? (
-          <button type="button" className="btn btn--ghost btn--sm" onClick={clearFilters}>
+          <button
+            type="button"
+            className="btn btn--ghost btn--sm"
+            onClick={() =>
+              updateFilters({
+                quick: null,
+                search: null,
+                dueFrom: null,
+                dueTo: null,
+                studentId: null,
+                page: 1,
+              })
+            }
+          >
             {t('admin.finance.collections.resetFilters')}
           </button>
         ) : null}
       </form>
 
       <ResourceView
-        state={{ ...state, data: rows.length ? rows : state.data }}
+        state={{ ...state, data: rows as FinanceCheque[] | null }}
         loadingLabel={t('common.loading')}
-        empty={emptyState}
+        empty={
+          <EmptyState
+            title={emptyTitle}
+            description={t('admin.finance.cheques.emptyFilteredDesc')}
+            action={
+              hasFilters ? (
+                <button
+                  type="button"
+                  className="btn btn--ghost btn--sm"
+                  onClick={() =>
+                    updateFilters({
+                      quick: null,
+                      search: null,
+                      dueFrom: null,
+                      dueTo: null,
+                      studentId: null,
+                      page: 1,
+                    })
+                  }
+                >
+                  {t('admin.finance.cheques.showAllCheques')}
+                </button>
+              ) : undefined
+            }
+          />
+        }
       >
         {(list) => (
           <>
@@ -387,7 +383,12 @@ export default function AdminFinanceChequesPage() {
               }
             />
             {pg ? (
-              <Pagination page={pg.page} totalPages={pg.total_pages} total={pg.total} onPage={setPage} />
+              <Pagination
+                page={pg.page}
+                totalPages={pg.total_pages}
+                total={pg.total}
+                onPage={(p) => updateFilters({ page: p })}
+              />
             ) : null}
           </>
         )}

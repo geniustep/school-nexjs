@@ -219,6 +219,47 @@ export interface FinanceInstallment {
   status?: string;
   is_overdue?: boolean;
   overdue?: boolean;
+  student_id?: number;
+  student_name?: string;
+  student_code?: string;
+  class_id?: number;
+  class_name?: string;
+  level_id?: number;
+  level_name?: string;
+  total_amount?: number;
+  overdue_amount?: number;
+  days_overdue?: number;
+  payment_status?: string;
+  timing_status?: string;
+  installment_description?: string;
+  service_name?: string;
+  academic_year_id?: number;
+  academic_year_name?: string;
+}
+
+export interface FinanceAttentionMetric {
+  count: number;
+  amount?: number;
+  quick?: string;
+  state?: string;
+  window_days?: number;
+}
+
+export interface FinanceOverviewAttention {
+  overdue_installments?: FinanceAttentionMetric;
+  due_next_7_days_installments?: FinanceAttentionMetric;
+  due_next_30_days_installments?: FinanceAttentionMetric;
+  cheques_due_soon?: FinanceAttentionMetric;
+  cheques_rejected?: FinanceAttentionMetric;
+  draft_collections?: FinanceAttentionMetric;
+}
+
+export interface FinanceInstallmentListSummary {
+  total_count?: number;
+  total_amount?: number;
+  total_paid?: number;
+  total_remaining?: number;
+  total_overdue?: number;
 }
 
 /** @deprecated Use FinanceInstallment — kept for FIN-WEB-1 compatibility */
@@ -336,6 +377,7 @@ export interface FinanceFollowupStudent {
 export interface AdminFinanceOverview extends Omit<Partial<FinanceOverviewTotals>, 'overdue_installments'> {
   totals?: FinanceOverviewTotals;
   summary?: FinanceOverviewTotals;
+  attention?: FinanceOverviewAttention;
   cheques?: {
     received?: number;
     deposited?: number;

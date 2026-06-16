@@ -76,6 +76,7 @@ export function normalizeFinanceOverview(data: AdminFinanceOverview | null | und
       followup_students: raw.followup_students ?? raw.students_needing_followup,
       upcoming_installments: raw.upcoming_installments as AdminFinanceOverview['upcoming_installments'],
       overdue_installments: raw.overdue_installments as AdminFinanceOverview['overdue_installments'],
+      attention: raw.attention as AdminFinanceOverview['attention'],
       as_of_date: typeof raw.as_of_date === 'string' ? raw.as_of_date : undefined,
     };
   }

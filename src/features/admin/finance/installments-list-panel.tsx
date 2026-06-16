@@ -1,192 +1,285 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
+import { useMemo } from 'react';
+import { ApiErrorView } from '@/components/states/states';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
+import {
+  INSTALLMENT_QUICK_FILTERS,
+  installmentQuickFilterLabelKey,
+  installmentQuickFilterTitleKey,
+  isInstallmentQuickFilter,
+  type InstallmentQuickFilter,
+} from '@/features/admin/finance/finance-filter-contracts';
 import { InstallmentStatusBadges } from '@/features/admin/student-finance/components/installment-status-badges';
-import { useStudentInstallments } from '@/features/admin/student-finance/hooks/use-student-installments';
-import type { InstallmentListParams, StudentInstallment } from '@/features/admin/student-finance/types';
-import { formatPeriodRange } from '@/features/admin/student-finance/utils/format-period';
-import { resolveReferenceLabel } from '@/features/admin/student-finance/utils/reference-labels';
+import { useAcademicYearOptions } from '@/features/admin/finance/use-finance-lookups';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
-import { useFinanceReferenceData } from '@/features/admin/finance/use-finance-lookups';
-import { refName } from '@/lib/utils/finance';
+import { endpoints } from '@/lib/api/endpoints';
+import { useAdminResource } from '@/lib/hooks/use-admin-resource';
+import { parseFinanceQuickListResponse } from '@/lib/utils/finance-list-response';
+import { buildStudentFinanceLink } from '@/lib/utils/finance-navigation';
+import type { FinanceInstallment } from '@/types/finance';
+import type { ListParams } from '@/types/api';
 
-type QuickView =
-  | ''
-  | 'overdue_unpaid'
-  | 'partially_paid'
-  | 'due_today'
-  | 'due_7_days'
-  | 'hidden';
+export type InstallmentsListFilters = {
+  quick: string;
+  search: string;
+  academicYearId: string;
+  classId: string;
+  levelId: string;
+  studentId: string;
+  dueDateFrom: string;
+  dueDateTo: string;
+  page: number;
+};
 
-function todayIso() {
-  return new Date().toISOString().slice(0, 10);
-}
+type InstallmentsListPanelProps = {
+  filters: InstallmentsListFilters;
+  onFiltersChange: (updates: Partial<Record<keyof InstallmentsListFilters, string | number | null>>) => void;
+  returnTo?: string;
+};
 
-function inDaysIso(days: number) {
-  return new Date(Date.now() + days * 86400000).toISOString().slice(0, 10);
-}
+const QUICK_TABS = INSTALLMENT_QUICK_FILTERS.filter((q) => q !== 'all');
 
-export function InstallmentsListPanel({
-  studentId,
-  initialQuick,
-}: {
-  studentId: number;
-  returnTo?: string | null;
-  initialQuick?: QuickView;
-}) {
+export function InstallmentsListPanel({ filters, onFiltersChange, returnTo }: InstallmentsListPanelProps) {
   const t = useT();
   const { formatDate } = useFormat();
-  const refState = useFinanceReferenceData();
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
-  const [query, setQuery] = useState('');
-  const [paymentStatus, setPaymentStatus] = useState('');
-  const [timingStatus, setTimingStatus] = useState('');
-  const [serviceCategory, setServiceCategory] = useState('');
-  const [visibleOnly, setVisibleOnly] = useState(false);
-  const [overdueOnly, setOverdueOnly] = useState(false);
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
-  const [quickView, setQuickView] = useState<QuickView>(initialQuick ?? '');
+  const { options: yearOptions } = useAcademicYearOptions(null);
 
-  useEffect(() => {
-    if (initialQuick) setQuickView(initialQuick);
-  }, [initialQuick]);
+  const quickValid = isInstallmentQuickFilter(filters.quick) ? filters.quick : '';
+  const apiError = filters.quick && !quickValid && filters.quick !== '';
 
-  const installmentQuery: InstallmentListParams = useMemo(() => {
-    const base: InstallmentListParams = {
-      page,
+  const query: ListParams = useMemo(() => {
+    const p: ListParams = {
+      page: filters.page,
       page_size: 20,
-      search: query || undefined,
-      payment_status: paymentStatus || undefined,
-      service_category: serviceCategory || undefined,
-      visible_only: visibleOnly ? 1 : undefined,
-      overdue_only: overdueOnly ? 1 : undefined,
-      due_date_from: dateFrom || undefined,
-      due_date_to: dateTo || undefined,
+      search: filters.search || undefined,
+      academic_year_id: filters.academicYearId || undefined,
+      class_id: filters.classId || undefined,
+      level_id: filters.levelId || undefined,
+      student_id: filters.studentId || undefined,
+      due_date_from: filters.dueDateFrom || undefined,
+      due_date_to: filters.dueDateTo || undefined,
     };
+    if (quickValid && quickValid !== 'all') p.quick = quickValid;
+    return p;
+  }, [filters, quickValid]);
 
-    if (quickView === 'overdue_unpaid') {
-      base.timing_status = 'overdue';
-      base.exclude_paid = 1;
-    } else if (quickView === 'partially_paid') {
-      base.payment_status = 'partially_paid';
-    } else if (quickView === 'due_today') {
-      base.due_date_from = todayIso();
-      base.due_date_to = todayIso();
-    } else if (quickView === 'due_7_days') {
-      base.due_date_from = todayIso();
-      base.due_date_to = inDaysIso(7);
-    } else if (quickView === 'hidden') {
-      base.visible_only = 0;
-    } else if (timingStatus) {
-      base.timing_status = timingStatus;
-    }
-
-    return base;
-  }, [
-    page,
+  const state = useAdminResource<FinanceInstallment[] | Record<string, unknown>>(
+    endpoints.admin.financeInstallments,
     query,
-    paymentStatus,
-    timingStatus,
-    serviceCategory,
-    visibleOnly,
-    overdueOnly,
-    dateFrom,
-    dateTo,
-    quickView,
-  ]);
-
-  const state = useStudentInstallments(studentId, installmentQuery);
+  );
+  const parsed = useMemo(() => parseFinanceQuickListResponse<FinanceInstallment>(state.data), [state.data]);
+  const rows = parsed.items;
+  const summary = parsed.summary;
+  const applied = parsed.appliedFilters;
   const pg = state.meta?.pagination;
 
-  const quickFilters: { key: QuickView; label: string }[] = [
-    { key: 'overdue_unpaid', label: t('admin.finance.installments.quick.overdueUnpaid') },
-    { key: 'partially_paid', label: t('admin.finance.installments.quick.partiallyPaid') },
-    { key: 'due_today', label: t('admin.finance.installments.quick.dueToday') },
-    { key: 'due_7_days', label: t('admin.finance.installments.quick.dueSevenDays') },
-    { key: 'hidden', label: t('admin.finance.installments.quick.hiddenFromParent') },
-  ];
-
-  const columns: Column<StudentInstallment>[] = useMemo(
+  const columns: Column<FinanceInstallment>[] = useMemo(
     () => [
       {
-        key: 'service',
-        header: t('admin.finance.installments.columns.service'),
-        render: (row: StudentInstallment) => refName(row.service) ?? t('common.dash'),
+        key: 'student',
+        header: t('nav.students'),
+        render: (row) => {
+          const sid = row.student_id;
+          const label = row.student_name ?? t('common.dash');
+          if (!sid) return <span dir="auto">{label}</span>;
+          return (
+            <Link href={buildStudentFinanceLink(sid, 'finance', returnTo)} onClick={(e) => e.stopPropagation()} dir="auto">
+              {label}
+            </Link>
+          );
+        },
       },
       {
-        key: 'period',
-        header: t('admin.finance.installments.columns.period'),
-        render: (row: StudentInstallment) => formatPeriodRange(formatDate, row.period_start, row.period_end),
+        key: 'student_code',
+        header: t('admin.finance.installments.columns.studentCode'),
+        render: (row) => <span className="mono">{row.student_code ?? t('common.dash')}</span>,
       },
       {
-        key: 'display_from',
-        header: t('admin.finance.installments.columns.displayFrom'),
-        render: (row: StudentInstallment) => formatDate(row.display_from) || t('common.dash'),
+        key: 'class',
+        header: t('admin.finance.installments.columns.class'),
+        render: (row) => <span dir="auto">{row.class_name ?? t('common.dash')}</span>,
+      },
+      {
+        key: 'level',
+        header: t('admin.finance.installments.columns.level'),
+        render: (row) => <span dir="auto">{row.level_name ?? t('common.dash')}</span>,
+      },
+      {
+        key: 'description',
+        header: t('admin.finance.installments.columns.description'),
+        render: (row) => (
+          <span dir="auto">{row.installment_description ?? row.service_name ?? row.name ?? t('common.dash')}</span>
+        ),
       },
       {
         key: 'due_date',
         header: t('admin.finance.installments.columns.dueDate'),
-        render: (row: StudentInstallment) => formatDate(row.due_date) || t('common.dash'),
+        render: (row) => formatDate(row.due_date) || t('common.dash'),
       },
       {
-        key: 'amount',
-        header: t('admin.finance.installments.columns.amount'),
-        render: (row: StudentInstallment) => <FinanceMoney amount={row.amount} />,
+        key: 'total',
+        header: t('admin.finance.installments.columns.total'),
+        render: (row) => <FinanceMoney amount={row.total_amount ?? row.amount} />,
       },
       {
         key: 'paid',
         header: t('admin.finance.installments.columns.paid'),
-        render: (row: StudentInstallment) => <FinanceMoney amount={row.confirmed_paid_amount} />,
-      },
-      {
-        key: 'pending_cheque',
-        header: t('admin.finance.installments.columns.pendingCheque'),
-        render: (row: StudentInstallment) => <FinanceMoney amount={row.pending_cheque_amount} />,
+        render: (row) => <FinanceMoney amount={row.paid_amount} />,
       },
       {
         key: 'remaining',
         header: t('admin.finance.installments.columns.remaining'),
-        render: (row: StudentInstallment) => <FinanceMoney amount={row.remaining_amount} />,
+        render: (row) => <FinanceMoney amount={row.remaining_amount} />,
+      },
+      {
+        key: 'overdue_amount',
+        header: t('admin.finance.installments.columns.overdueAmount'),
+        render: (row) => <FinanceMoney amount={row.overdue_amount} />,
+      },
+      {
+        key: 'days_overdue',
+        header: t('admin.finance.installments.columns.daysOverdue'),
+        render: (row) =>
+          row.days_overdue != null && row.days_overdue > 0 ? (
+            <span className="mono">{row.days_overdue}</span>
+          ) : (
+            t('common.dash')
+          ),
       },
       {
         key: 'status',
         header: t('admin.finance.installments.columns.status'),
-        render: (row: StudentInstallment) => (
+        render: (row) => (
           <InstallmentStatusBadges
             paymentStatus={row.payment_status ?? 'unpaid'}
             timingStatus={row.timing_status ?? 'not_applicable'}
-            isVisible={row.is_visible}
           />
         ),
       },
+      {
+        key: 'actions',
+        header: t('admin.finance.installments.columns.actions'),
+        render: (row) => {
+          const sid = row.student_id;
+          if (!sid) return t('common.dash');
+          return (
+            <Link
+              href={buildStudentFinanceLink(sid, 'finance', returnTo)}
+              className="btn btn--ghost btn--sm"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {t('admin.finance.installments.openDetails')}
+            </Link>
+          );
+        },
+      },
     ],
-    [t, formatDate],
+    [t, formatDate, returnTo],
+  );
+
+  function setQuick(next: InstallmentQuickFilter | '') {
+    onFiltersChange({ quick: next || null, page: 1 });
+  }
+
+  function resetAll() {
+    onFiltersChange({
+      quick: null,
+      search: null,
+      academicYearId: null,
+      classId: null,
+      levelId: null,
+      studentId: null,
+      dueDateFrom: null,
+      dueDateTo: null,
+      page: 1,
+    });
+  }
+
+  const hasFilters = !!(
+    filters.search ||
+    filters.academicYearId ||
+    filters.classId ||
+    filters.levelId ||
+    filters.studentId ||
+    filters.dueDateFrom ||
+    filters.dueDateTo ||
+    quickValid
   );
 
   return (
     <>
-      <div className="finance-cheque-quick-filters">
-        {quickFilters.map((f) => (
+      {apiError ? (
+        <ApiErrorView
+          error={{ code: 'invalid_quick_filter', message: t('admin.finance.errors.invalidQuickFilter') }}
+        />
+      ) : null}
+
+      {quickValid ? (
+        <div className="finance-cheque-active-filter">
+          <span className="finance-cheque-active-filter__chip">
+            {t('admin.finance.installments.activeFilterChip', {
+              filter: t(installmentQuickFilterLabelKey(quickValid)),
+            })}
+          </span>
+          <button type="button" className="btn btn--ghost btn--sm" onClick={() => setQuick('')}>
+            {t('admin.finance.installments.clearFilter')}
+          </button>
+        </div>
+      ) : null}
+
+      {summary ? (
+        <div className="finance-metrics-grid finance-installments-summary">
+          <div className="card finance-metric-card">
+            <span className="muted">{t('admin.finance.installments.summaryCount')}</span>
+            <strong className="mono">{summary.total_count ?? pg?.total ?? 0}</strong>
+          </div>
+          {summary.total_remaining != null ? (
+            <div className="card finance-metric-card">
+              <span className="muted">{t('admin.finance.installments.summaryRemaining')}</span>
+              <strong>
+                <FinanceMoney amount={summary.total_remaining} />
+              </strong>
+            </div>
+          ) : null}
+          {summary.total_overdue != null && quickValid === 'overdue_unpaid' ? (
+            <div className="card finance-metric-card">
+              <span className="muted">{t('admin.finance.installments.summaryOverdue')}</span>
+              <strong>
+                <FinanceMoney amount={summary.total_overdue} />
+              </strong>
+            </div>
+          ) : null}
+          {applied?.as_of_date ? (
+            <div className="card finance-metric-card">
+              <span className="muted">{t('admin.finance.installments.asOfDate')}</span>
+              <strong>{formatDate(String(applied.as_of_date))}</strong>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
+      <div className="finance-cheque-quick-filters finance-cheque-quick-filters--compact">
+        <button
+          type="button"
+          className={`btn btn--ghost btn--sm${!quickValid ? ' is-active' : ''}`}
+          onClick={() => setQuick('')}
+        >
+          {t('admin.finance.installments.quick.all')}
+        </button>
+        {QUICK_TABS.map((key) => (
           <button
-            key={f.key}
+            key={key}
             type="button"
-            className={`btn btn--ghost btn--sm${quickView === f.key ? ' is-active' : ''}`}
-            onClick={() => {
-              setPage(1);
-              setQuickView((prev) => (prev === f.key ? '' : f.key));
-              setOverdueOnly(false);
-              setPaymentStatus('');
-              setTimingStatus('');
-            }}
+            className={`btn btn--ghost btn--sm${quickValid === key ? ' is-active' : ''}`}
+            onClick={() => setQuick(quickValid === key ? '' : key)}
           >
-            {f.label}
+            {t(installmentQuickFilterLabelKey(key))}
           </button>
         ))}
       </div>
@@ -195,98 +288,108 @@ export function InstallmentsListPanel({
         className="toolbar finance-hub-filters"
         onSubmit={(e) => {
           e.preventDefault();
-          setPage(1);
-          setQuery(search.trim());
-          setQuickView('');
+          const fd = new FormData(e.currentTarget);
+          onFiltersChange({
+            search: String(fd.get('search') ?? '').trim() || null,
+            academicYearId: String(fd.get('academic_year_id') ?? '') || null,
+            classId: String(fd.get('class_id') ?? '').trim() || null,
+            levelId: String(fd.get('level_id') ?? '').trim() || null,
+            studentId: String(fd.get('student_id') ?? '').trim() || null,
+            dueDateFrom: String(fd.get('due_date_from') ?? '') || null,
+            dueDateTo: String(fd.get('due_date_to') ?? '') || null,
+            quick: null,
+            page: 1,
+          });
         }}
       >
         <input
           className="input"
+          name="search"
           placeholder={t('admin.finance.installments.searchPlaceholder')}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          defaultValue={filters.search}
         />
-        <select
-          className="input"
-          value={paymentStatus}
-          onChange={(e) => {
-            setPaymentStatus(e.target.value);
-            setQuickView('');
-          }}
-        >
-          <option value="">{t('admin.finance.installments.filters.allPaymentStatuses')}</option>
-          <option value="unpaid">{t('admin.finance.installments.paymentStatuses.unpaid')}</option>
-          <option value="partially_paid">{t('admin.finance.installments.paymentStatuses.partiallyPaid')}</option>
-          <option value="paid">{t('admin.finance.installments.paymentStatuses.paid')}</option>
-        </select>
-        <select
-          className="input"
-          value={timingStatus}
-          onChange={(e) => {
-            setTimingStatus(e.target.value);
-            setQuickView('');
-          }}
-        >
-          <option value="">{t('admin.finance.installments.filters.allTimingStatuses')}</option>
-          <option value="upcoming">{t('admin.finance.installments.timingStatuses.upcoming')}</option>
-          <option value="due">{t('admin.finance.installments.timingStatuses.due')}</option>
-          <option value="overdue">{t('admin.finance.installments.timingStatuses.overdue')}</option>
-          <option value="hidden">{t('admin.finance.installments.timingStatuses.hidden')}</option>
-        </select>
-        <select
-          className="input"
-          value={serviceCategory}
-          onChange={(e) => setServiceCategory(e.target.value)}
-        >
-          <option value="">{t('admin.finance.installments.filters.allCategories')}</option>
-          {(refState.data?.service_categories ?? []).map((c) => (
-            <option key={c.value} value={c.value}>
-              {resolveReferenceLabel(t, 'service_category', c.value, refState.data?.service_categories)}
+        <select className="input" name="academic_year_id" defaultValue={filters.academicYearId}>
+          <option value="">{t('admin.finance.installments.filters.allYears')}</option>
+          {yearOptions.map((y) => (
+            <option key={y.id} value={y.id}>
+              {y.name}
             </option>
           ))}
         </select>
-        <input className="input" type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
-        <input className="input" type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
-        <label className="row" style={{ gap: 6 }}>
-          <input
-            type="checkbox"
-            checked={visibleOnly}
-            onChange={(e) => setVisibleOnly(e.target.checked)}
-          />
-          {t('admin.finance.installments.filters.visibleOnly')}
-        </label>
-        <label className="row" style={{ gap: 6 }}>
-          <input
-            type="checkbox"
-            checked={overdueOnly}
-            onChange={(e) => {
-              setOverdueOnly(e.target.checked);
-              setQuickView('');
-            }}
-          />
-          {t('admin.finance.installments.filters.overdueOnly')}
-        </label>
+        <input
+          className="input"
+          name="class_id"
+          placeholder={t('admin.finance.installments.filters.classId')}
+          defaultValue={filters.classId}
+        />
+        <input
+          className="input"
+          name="level_id"
+          placeholder={t('admin.finance.installments.filters.levelId')}
+          defaultValue={filters.levelId}
+        />
+        <input
+          className="input"
+          name="student_id"
+          placeholder={t('admin.finance.installments.filters.studentId')}
+          defaultValue={filters.studentId}
+        />
+        <input
+          className="input"
+          type="date"
+          name="due_date_from"
+          defaultValue={filters.dueDateFrom}
+          aria-label={t('admin.finance.installments.filters.dueFrom')}
+        />
+        <input
+          className="input"
+          type="date"
+          name="due_date_to"
+          defaultValue={filters.dueDateTo}
+          aria-label={t('admin.finance.installments.filters.dueTo')}
+        />
         <button type="submit" className="btn btn--ghost btn--sm">
           {t('admin.search')}
         </button>
+        {hasFilters ? (
+          <button type="button" className="btn btn--ghost btn--sm" onClick={resetAll}>
+            {t('admin.finance.collections.resetFilters')}
+          </button>
+        ) : null}
       </form>
 
       <ResourceView
-        state={state}
+        state={{ ...state, data: rows as FinanceInstallment[] | null }}
         loadingLabel={t('common.loading')}
         empty={
           <EmptyState
-            title={t('admin.finance.installments.emptyTitle')}
+            title={
+              quickValid
+                ? t('admin.finance.installments.emptyFilteredTitle')
+                : t('admin.finance.installments.emptyTitle')
+            }
             description={t('admin.finance.installments.emptyDesc')}
+            action={
+              hasFilters ? (
+                <button type="button" className="btn btn--ghost btn--sm" onClick={resetAll}>
+                  {t('admin.finance.installments.showAll')}
+                </button>
+              ) : undefined
+            }
           />
         }
       >
-        {(rows) => (
+        {(list) => (
           <>
-            <DataTable columns={columns} rows={rows} rowKey={(row) => row.id} />
-            {pg && (
-              <Pagination page={pg.page} totalPages={pg.total_pages} total={pg.total} onPage={setPage} />
-            )}
+            <DataTable columns={columns} rows={list} rowKey={(row) => row.id ?? `${row.student_id}-${row.due_date}`} />
+            {pg ? (
+              <Pagination
+                page={pg.page}
+                totalPages={pg.total_pages}
+                total={pg.total}
+                onPage={(p) => onFiltersChange({ page: p })}
+              />
+            ) : null}
           </>
         )}
       </ResourceView>
