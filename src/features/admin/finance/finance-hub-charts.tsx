@@ -24,6 +24,23 @@ import { parseFinanceList } from '@/lib/utils/finance-normalize';
 import type { AcademicYearOption } from '@/lib/utils/academic-years';
 import type { AdminFinanceOverview, PaymentCollection } from '@/types/finance';
 
+function CollectionTrendTooltip({
+  label,
+  amount,
+  currency,
+}: {
+  label: string;
+  amount: number;
+  currency: string;
+}) {
+  return (
+    <div className="finance-hub-chart-tooltip card" role="tooltip">
+      <span>{label}</span>
+      <FinanceMoney amount={amount} currency={currency} />
+    </div>
+  );
+}
+
 function CollectionTrendChart({
   points,
   currency,
@@ -36,6 +53,7 @@ function CollectionTrendChart({
   const [active, setActive] = useState<number | null>(null);
   const max = Math.max(...points.map((p) => p.amount), 1);
   const useLine = points.length > 6;
+  const activePoint = active != null ? points[active] : null;
 
   if (useLine) {
     const width = 320;
@@ -50,38 +68,50 @@ function CollectionTrendChart({
 
     return (
       <div className="finance-hub-trend finance-hub-trend--line">
-        <svg viewBox={`0 0 ${width} ${height}`} className="finance-hub-trend__svg" role="img">
-          <polyline
-            fill="none"
-            stroke="var(--color-primary, #2563eb)"
-            strokeWidth="2.5"
-            points={path}
+        {activePoint ? (
+          <CollectionTrendTooltip
+            label={formatLabel(activePoint.label)}
+            amount={activePoint.amount}
+            currency={currency}
           />
-          {coords.map(({ x, y, index }) => (
-            <circle
-              key={points[index].key}
-              cx={x}
-              cy={y}
-              r={4}
-              fill="var(--color-primary, #2563eb)"
-              onMouseEnter={() => setActive(index)}
-              onMouseLeave={() => setActive(null)}
-            />
-          ))}
-        </svg>
-        {active != null ? (
-          <div className="finance-hub-chart-tooltip card">
-            <span>{formatLabel(points[active].label)}</span>
-            <FinanceMoney amount={points[active].amount} currency={currency} />
-          </div>
         ) : null}
+        <div className="finance-hub-trend__plot" onMouseLeave={() => setActive(null)}>
+          <svg viewBox={`0 0 ${width} ${height}`} className="finance-hub-trend__svg" role="img">
+            <polyline
+              fill="none"
+              stroke="var(--color-primary, #2563eb)"
+              strokeWidth="2.5"
+              points={path}
+            />
+            {coords.map(({ x, y, index }) => (
+              <circle
+                key={points[index].key}
+                cx={x}
+                cy={y}
+                r={4}
+                fill="var(--color-primary, #2563eb)"
+                onMouseEnter={() => setActive(index)}
+              />
+            ))}
+          </svg>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="finance-hub-trend finance-hub-trend--bars">
-      <div className="finance-hub-bar-chart__plot finance-hub-bar-chart__plot--filled">
+      {activePoint ? (
+        <CollectionTrendTooltip
+          label={formatLabel(activePoint.label)}
+          amount={activePoint.amount}
+          currency={currency}
+        />
+      ) : null}
+      <div
+        className="finance-hub-bar-chart__plot finance-hub-bar-chart__plot--filled"
+        onMouseLeave={() => setActive(null)}
+      >
         {points.map((point, index) => {
           const pct = Math.max(12, (point.amount / max) * 100);
           return (
@@ -91,7 +121,6 @@ function CollectionTrendChart({
                 className="finance-hub-bar-chart__bar-wrap"
                 onMouseEnter={() => setActive(index)}
                 onFocus={() => setActive(index)}
-                onMouseLeave={() => setActive(null)}
                 onBlur={() => setActive(null)}
                 aria-label={`${formatLabel(point.label)}: ${point.amount}`}
               >
@@ -105,12 +134,6 @@ function CollectionTrendChart({
           );
         })}
       </div>
-      {active != null ? (
-        <div className="finance-hub-chart-tooltip card">
-          <span>{formatLabel(points[active].label)}</span>
-          <FinanceMoney amount={points[active].amount} currency={currency} />
-        </div>
-      ) : null}
     </div>
   );
 }
