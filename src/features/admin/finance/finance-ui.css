@@ -2451,3 +2451,110 @@
 .finance-student-profile__fees {
   margin-top: 0;
 }
+
+.finance-receipts-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+  margin-bottom: 16px;
+}
+
+.finance-receipts-meta__item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.finance-receipts-filters {
+  margin-bottom: 16px;
+}
+
+.finance-receipts-table-wrap {
+  overflow-x: auto;
+}
+
+.receipt-details {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.receipt-details__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.receipt-details__title {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.receipt-details__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.receipt-details__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.receipt-details__section h2 {
+  margin: 0 0 12px;
+  font-size: 1rem;
+}
+
+.receipt-pdf-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.finance-table-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.finance-status-badges-inline {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.collection-receipt-section__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.student-finance-summary-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  background: var(--c-surface-muted, #f8fafc);
+  border: 1px solid var(--c-border, #e2e8f0);
+}
+
+.student-finance-summary-error p {
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .receipt-details__grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,227 @@
+import { normalizeMoneyValue, parseFinanceList } from '@/lib/utils/finance-normalize';
+import type {
+  FinanceReceipt,
+  FinanceReceiptAllocation,
+  FinanceReceiptCheque,
+  FinanceReceiptSnapshot,
+  FinanceReceiptTotals,
+} from '@/types/finance';
+
+function readRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
+}
+
+function normalizeStringArray(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  return value.filter((item): item is string => typeof item === 'string');
+}
+
+function normalizeCheque(raw: unknown): FinanceReceiptCheque | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const source = raw as Record<string, unknown>;
+  return {
+    id: typeof source.id === 'number' ? source.id : undefined,
+    number: typeof source.number === 'string' ? source.number : undefined,
+    bank_name: typeof source.bank_name === 'string' ? source.bank_name : undefined,
+    drawer_name: typeof source.drawer_name === 'string' ? source.drawer_name : undefined,
+    holder_name: typeof source.holder_name === 'string' ? source.holder_name : undefined,
+    maturity_date: typeof source.maturity_date === 'string' ? source.maturity_date : null,
+    due_date: typeof source.due_date === 'string' ? source.due_date : null,
+    state: typeof source.state === 'string' ? source.state : undefined,
+  };
+}
+
+function normalizeAllocation(raw: unknown): FinanceReceiptAllocation | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const source = raw as Record<string, unknown>;
+  return {
+    id: typeof source.id === 'number' ? source.id : undefined,
+    installment_id: typeof source.installment_id === 'number' ? source.installment_id : undefined,
+    student_fee_id: typeof source.student_fee_id === 'number' ? source.student_fee_id : undefined,
+    description:
+      typeof source.description === 'string'
+        ? source.description
+        : typeof source.label === 'string'
+          ? source.label
+          : typeof source.name === 'string'
+            ? source.name
+            : undefined,
+    due_date: typeof source.due_date === 'string' ? source.due_date : null,
+    amount: normalizeMoneyValue(source.amount) ?? undefined,
+    label: typeof source.label === 'string' ? source.label : undefined,
+  };
+}
+
+function normalizeTotals(raw: unknown): FinanceReceiptTotals | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const source = raw as Record<string, unknown>;
+  return {
+    collection_amount: normalizeMoneyValue(source.collection_amount) ?? undefined,
+    allocated_amount: normalizeMoneyValue(source.allocated_amount) ?? undefined,
+    unallocated_amount: normalizeMoneyValue(source.unallocated_amount) ?? undefined,
+    allocation_status:
+      typeof source.allocation_status === 'string' ? source.allocation_status : undefined,
+  };
+}
+
+function normalizeSnapshot(raw: unknown): FinanceReceiptSnapshot | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const source = raw as Record<string, unknown>;
+  const auditRaw = readRecord(source.audit);
+  const payerRaw = source.payer;
+  const studentRaw = source.student;
+  const schoolRaw = source.school;
+  const collectionRaw = readRecord(source.collection);
+  const settlementRaw = readRecord(source.settlement);
+
+  return {
+    audit: Object.keys(auditRaw).length
+      ? {
+          source: typeof auditRaw.source === 'string' ? auditRaw.source : undefined,
+          issued_at: typeof auditRaw.issued_at === 'string' ? auditRaw.issued_at : undefined,
+          created_by: typeof auditRaw.created_by === 'string' ? auditRaw.created_by : undefined,
+          confirmed_at: typeof auditRaw.confirmed_at === 'string' ? auditRaw.confirmed_at : undefined,
+          confirmed_by: typeof auditRaw.confirmed_by === 'string' ? auditRaw.confirmed_by : undefined,
+          receipt_number:
+            typeof auditRaw.receipt_number === 'string' ? auditRaw.receipt_number : undefined,
+        }
+      : undefined,
+    payer: payerRaw && typeof payerRaw === 'object' ? (payerRaw as FinanceReceiptSnapshot['payer']) : undefined,
+    student:
+      studentRaw && typeof studentRaw === 'object'
+        ? (studentRaw as FinanceReceiptSnapshot['student'])
+        : undefined,
+    school:
+      schoolRaw && typeof schoolRaw === 'object'
+        ? (schoolRaw as FinanceReceiptSnapshot['school'])
+        : undefined,
+    collection: Object.keys(collectionRaw).length
+      ? {
+          id: typeof collectionRaw.id === 'number' ? collectionRaw.id : undefined,
+          amount: normalizeMoneyValue(collectionRaw.amount) ?? undefined,
+          journal: typeof collectionRaw.journal === 'string' ? collectionRaw.journal : undefined,
+          currency: typeof collectionRaw.currency === 'string' ? collectionRaw.currency : undefined,
+          reference: typeof collectionRaw.reference === 'string' ? collectionRaw.reference : undefined,
+          payment_date:
+            typeof collectionRaw.payment_date === 'string' ? collectionRaw.payment_date : undefined,
+          payment_method:
+            typeof collectionRaw.payment_method === 'string'
+              ? collectionRaw.payment_method
+              : undefined,
+          currency_symbol:
+            typeof collectionRaw.currency_symbol === 'string'
+              ? collectionRaw.currency_symbol
+              : undefined,
+        }
+      : undefined,
+    cheque: normalizeCheque(source.cheque),
+    totals: normalizeTotals(source.totals),
+    settlement:
+      Object.keys(settlementRaw).length > 0
+        ? {
+            status: typeof settlementRaw.status === 'string' ? settlementRaw.status : undefined,
+            is_final: settlementRaw.is_final === true,
+            label_ar: typeof settlementRaw.label_ar === 'string' ? settlementRaw.label_ar : undefined,
+            label_fr: typeof settlementRaw.label_fr === 'string' ? settlementRaw.label_fr : undefined,
+          }
+        : undefined,
+    allocations: Array.isArray(source.allocations)
+      ? source.allocations
+          .map(normalizeAllocation)
+          .filter((row): row is FinanceReceiptAllocation => row != null)
+      : undefined,
+  };
+}
+
+export function normalizeFinanceReceipt(raw: unknown): FinanceReceipt | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const source = raw as Record<string, unknown>;
+  if (typeof source.id !== 'number') return null;
+
+  const totals = normalizeTotals(source.totals);
+  const snapshot = normalizeSnapshot(source.snapshot);
+  const settlementRaw = readRecord(source.settlement);
+
+  return {
+    id: source.id,
+    number: typeof source.number === 'string' ? source.number : undefined,
+    receipt_number:
+      typeof source.receipt_number === 'string'
+        ? source.receipt_number
+        : typeof source.number === 'string'
+          ? source.number
+          : undefined,
+    state: typeof source.state === 'string' ? source.state : undefined,
+    settlement_status:
+      typeof source.settlement_status === 'string' ? source.settlement_status : undefined,
+    settlement:
+      Object.keys(settlementRaw).length > 0
+        ? {
+            status: typeof settlementRaw.status === 'string' ? settlementRaw.status : undefined,
+            is_final: settlementRaw.is_final === true,
+            label_ar: typeof settlementRaw.label_ar === 'string' ? settlementRaw.label_ar : undefined,
+            label_fr: typeof settlementRaw.label_fr === 'string' ? settlementRaw.label_fr : undefined,
+          }
+        : undefined,
+    collection_id: typeof source.collection_id === 'number' ? source.collection_id : undefined,
+    school_id: typeof source.school_id === 'number' ? source.school_id : undefined,
+    student_id: typeof source.student_id === 'number' ? source.student_id : undefined,
+    student_name: typeof source.student_name === 'string' ? source.student_name : undefined,
+    payer_name: typeof source.payer_name === 'string' ? source.payer_name : undefined,
+    issued_at: typeof source.issued_at === 'string' ? source.issued_at : null,
+    issued_by:
+      typeof source.issued_by === 'string'
+        ? source.issued_by
+        : source.issued_by && typeof source.issued_by === 'object'
+          ? (source.issued_by as FinanceReceipt['issued_by'])
+          : snapshot?.audit?.created_by ?? null,
+    print_count: typeof source.print_count === 'number' ? source.print_count : undefined,
+    generated_from_legacy: source.generated_from_legacy === true,
+    collection_amount:
+      normalizeMoneyValue(source.collection_amount) ?? totals?.collection_amount ?? undefined,
+    allocated_amount:
+      normalizeMoneyValue(source.allocated_amount) ?? totals?.allocated_amount ?? undefined,
+    unallocated_amount:
+      normalizeMoneyValue(source.unallocated_amount) ?? totals?.unallocated_amount ?? undefined,
+    allocation_status:
+      typeof source.allocation_status === 'string'
+        ? source.allocation_status
+        : totals?.allocation_status,
+    payment_method:
+      typeof source.payment_method === 'string'
+        ? source.payment_method
+        : snapshot?.collection?.payment_method,
+    allowed_actions: normalizeStringArray(source.allowed_actions),
+    print_url: typeof source.print_url === 'string' ? source.print_url : undefined,
+    snapshot,
+    totals,
+    allocations: Array.isArray(source.allocations)
+      ? source.allocations
+          .map(normalizeAllocation)
+          .filter((row): row is FinanceReceiptAllocation => row != null)
+      : snapshot?.allocations,
+    cheque: normalizeCheque(source.cheque) ?? snapshot?.cheque,
+    currency:
+      typeof source.currency === 'string'
+        ? source.currency
+        : snapshot?.collection?.currency,
+  };
+}
+
+export function parseFinanceReceiptList(data: unknown): FinanceReceipt[] {
+  return parseFinanceList<unknown>(data)
+    .map(normalizeFinanceReceipt)
+    .filter((row): row is FinanceReceipt => row != null);
+}
+
+export function receiptAllowsAction(receipt: FinanceReceipt | null | undefined, action: string): boolean {
+  if (!receipt?.allowed_actions?.length) return false;
+  return receipt.allowed_actions.includes(action);
+}
+
+export function buildReceiptPdfFilename(receipt: FinanceReceipt, lang: 'ar' | 'fr'): string {
+  const number = (receipt.number ?? receipt.receipt_number ?? `receipt-${receipt.id}`)
+    .replace(/[^\w\-./]+/g, '-')
+    .replace(/\//g, '-');
+  return `receipt-${number}-${lang}.pdf`;
+}

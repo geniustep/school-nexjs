@@ -4,6 +4,7 @@ import { useMemo, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { DataTable, type Column } from '@/components/tables/data-table';
 import { ConfirmActionButton } from '@/features/admin/confirm-action-button';
+import { CollectionReceiptSection } from '@/features/admin/finance/collection-receipt-section';
 import { CollectionStudentCell } from '@/features/admin/finance/collection-student-cell';
 import { formatAllocationRowLabel } from '@/features/admin/finance/collection-labels';
 import {
@@ -244,6 +245,8 @@ export function CollectionDetailsView({
           )}
         </section>
       </div>
+
+      <CollectionReceiptSection collection={coll} onChanged={() => state.reload()} returnTo={returnTo} />
 
       {(coll.status_history?.length ?? 0) > 0 ? (
         <section className="card collection-details__section">

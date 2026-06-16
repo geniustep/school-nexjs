@@ -6,6 +6,7 @@ import {
   normalizeStudentFinanceWorkspace,
   resolveStudentFinanceSummaryDisplayValue,
 } from './normalize-student-finance-workspace';
+import { mapInstallmentsSummaryToStudentFinanceSummary } from './resolve-student-finance-summary';
 
 describe('normalizeStudentFinanceSummary', () => {
   it('reads workspace summary fields from the live contract', () => {
@@ -67,6 +68,15 @@ describe('normalizeStudentFinanceWorkspace', () => {
 });
 
 describe('student finance summary consistency', () => {
+  it('maps installments summary as authoritative source for cards', () => {
+    const mapped = mapInstallmentsSummaryToStudentFinanceSummary(
+      { total_amount: 3350, total_paid: 0, total_remaining: 3350, total_overdue: 0 },
+      { total_due: 0, remaining: 0 },
+    );
+    expect(mapped?.total_due).toBe(3350);
+    expect(mapped?.remaining).toBe(3350);
+  });
+
   it('detects inconsistent zero summary when installments exist', () => {
     expect(
       isStudentFinanceSummaryInconsistent({

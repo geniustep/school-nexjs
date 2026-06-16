@@ -557,6 +557,13 @@ export interface PaymentCollection {
   status_history?: { state?: string; date?: string; user?: Ref }[];
   cheque?: FinanceCheque | ParentChequeInfo;
   reversal_applied?: boolean;
+  receipt_id?: number | null;
+  receipt_number?: string | null;
+  collection_amount?: number;
+  allocated_amount?: number;
+  unallocated_amount?: number;
+  allocation_status?: string;
+  allowed_actions?: string[];
 }
 
 export interface StudentFinanceProfile {
@@ -651,4 +658,110 @@ export interface UpdateBillingProfilePayload {
   guardian_id?: number;
   payer_name?: string;
   payer_phone?: string;
+}
+
+export type FinanceReceiptState = 'issued' | 'reversed' | 'cancelled_before_issue' | string;
+
+export type FinanceReceiptSettlementStatus =
+  | 'settled'
+  | 'pending_cheque'
+  | 'cheque_cleared'
+  | 'cheque_bounced'
+  | 'reversed'
+  | string;
+
+export type FinanceReceiptAllocationStatus = 'fully_allocated' | 'partially_allocated' | 'unallocated' | string;
+
+export interface FinanceReceiptSettlement {
+  status?: FinanceReceiptSettlementStatus;
+  is_final?: boolean;
+  label_ar?: string;
+  label_fr?: string;
+}
+
+export interface FinanceReceiptAllocation {
+  id?: number;
+  installment_id?: number;
+  student_fee_id?: number;
+  description?: string;
+  due_date?: string | null;
+  amount?: number;
+  label?: string;
+}
+
+export interface FinanceReceiptCheque {
+  id?: number;
+  number?: string;
+  bank_name?: string;
+  drawer_name?: string;
+  holder_name?: string;
+  maturity_date?: string | null;
+  due_date?: string | null;
+  state?: string;
+}
+
+export interface FinanceReceiptSnapshot {
+  audit?: {
+    source?: string;
+    issued_at?: string;
+    created_by?: string;
+    confirmed_at?: string;
+    confirmed_by?: string;
+    receipt_number?: string;
+  };
+  payer?: Ref;
+  student?: Ref & { code?: string; class_name?: string; level_name?: string };
+  school?: SchoolRef & { code?: string; email?: string; phone?: string; address?: string };
+  collection?: {
+    id?: number;
+    amount?: number;
+    journal?: string;
+    currency?: string;
+    reference?: string;
+    payment_date?: string;
+    payment_method?: string;
+    currency_symbol?: string;
+  };
+  cheque?: FinanceReceiptCheque;
+  totals?: FinanceReceiptTotals;
+  settlement?: FinanceReceiptSettlement;
+  allocations?: FinanceReceiptAllocation[];
+}
+
+export interface FinanceReceiptTotals {
+  collection_amount?: number;
+  allocated_amount?: number;
+  unallocated_amount?: number;
+  allocation_status?: FinanceReceiptAllocationStatus;
+}
+
+export interface FinanceReceipt {
+  id: number;
+  number?: string;
+  receipt_number?: string;
+  state?: FinanceReceiptState;
+  settlement_status?: FinanceReceiptSettlementStatus;
+  settlement?: FinanceReceiptSettlement;
+  collection_id?: number;
+  school_id?: number;
+  student_id?: number;
+  student_name?: string;
+  payer_name?: string;
+  payer?: Ref;
+  issued_at?: string | null;
+  issued_by?: Ref | string | null;
+  print_count?: number;
+  generated_from_legacy?: boolean;
+  collection_amount?: number;
+  allocated_amount?: number;
+  unallocated_amount?: number;
+  allocation_status?: FinanceReceiptAllocationStatus;
+  payment_method?: PaymentMethod | string;
+  allowed_actions?: string[];
+  print_url?: string;
+  snapshot?: FinanceReceiptSnapshot;
+  totals?: FinanceReceiptTotals;
+  allocations?: FinanceReceiptAllocation[];
+  cheque?: FinanceReceiptCheque;
+  currency?: string;
 }

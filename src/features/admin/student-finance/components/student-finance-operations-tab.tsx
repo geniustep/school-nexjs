@@ -31,12 +31,10 @@ import {
 } from '@/features/admin/students/utils/resolve-capabilities';
 import { useStudentFinanceTabState } from '../hooks/use-student-finance-tab-state';
 import { useStudentInstallments } from '../hooks/use-student-installments';
+import { useStudentInstallmentsSummary } from '../hooks/use-student-installments-summary';
 import type { ServiceSubscription, StudentInstallment, WorkspaceCheque } from '../types';
 import { hasFinanceSummaryData } from '../utils/reference-labels';
-import {
-  isStudentFinanceSummaryInconsistent,
-  resolveStudentFinanceSummaryDisplayValue,
-} from '../utils/normalize-student-finance-workspace';
+import { mapInstallmentsSummaryToStudentFinanceSummary } from '../utils/resolve-student-finance-summary';
 import {
   resolveFinanceTabLoadPhase,
   shouldShowFinanceEmptyState,
@@ -45,6 +43,7 @@ import { formatPeriodRange } from '../utils/format-period';
 import { ChequeDualBadges } from './cheque-dual-badges';
 import { InstallmentStatusBadges } from './installment-status-badges';
 import { ServiceCategoryDetailsList } from './service-category-details-list';
+import { StudentReceiptsSection } from './student-receipts-section';
 import { resolveReferenceLabel } from '../utils/reference-labels';
 import { subscriptionCategoryDetails } from '../utils/service-category-details';
 
@@ -120,9 +119,16 @@ export function StudentFinanceOperationsTab({
   );
   const installmentsPg = installmentsState.meta?.pagination;
 
+  const officialSummaryState = useStudentInstallmentsSummary(
+    studentId,
+    effectiveYearId,
+    !!effectiveYearId,
+  );
+
   const refreshFinanceData = () => {
     workspaceState.reload();
     installmentsState.reload();
+    officialSummaryState.reload();
   };
   const financeCaps = workspace?.capabilities as StudentFinanceCapabilities | undefined;
   const canViewPayments = canViewStudentPayments(capabilities, financeCaps);
@@ -130,36 +136,30 @@ export function StudentFinanceOperationsTab({
   const currency = workspace?.summary?.currency;
   const serviceCategories = refState.data?.service_categories ?? [];
 
-  const summaryUnavailable = isStudentFinanceSummaryInconsistent({
-    workspace,
-    installmentsLoaded: !installmentsState.initialLoading,
-    installmentRowCount: installmentsState.data?.length ?? 0,
-  });
+  const displaySummary = useMemo(
+    () =>
+      mapInstallmentsSummaryToStudentFinanceSummary(
+        officialSummaryState.data,
+        workspace?.summary,
+      ),
+    [officialSummaryState.data, workspace?.summary],
+  );
 
   const summaryItems = useMemo(() => {
-    const s = workspace?.summary;
-    if (!s) return [];
-    const display = (value: number | null | undefined) =>
-      resolveStudentFinanceSummaryDisplayValue(value, summaryUnavailable);
+    if (!displaySummary) return [];
+    const s = displaySummary;
     return [
-      { key: 'total_due', label: t('admin.student360.financeOps.totalDue'), value: display(s.total_due) },
+      { key: 'total_due', label: t('admin.student360.financeOps.totalDue'), value: s.total_due },
       {
         key: 'confirmed_paid',
         label: t('admin.student360.financeOps.confirmedPaid'),
-        value: display(s.confirmed_paid),
+        value: s.confirmed_paid,
         tone: 'green' as const,
       },
-      {
-        key: 'pending_cheques',
-        label: t('admin.student360.financeOps.pendingCheques'),
-        value: display(s.pending_cheques),
-        tone: 'blue' as const,
-      },
-      { key: 'remaining', label: t('admin.student360.financeOps.remaining'), value: display(s.remaining), tone: 'amber' as const },
-      { key: 'uncovered', label: t('admin.student360.financeOps.uncovered'), value: display(s.uncovered), tone: 'amber' as const },
-      { key: 'overdue', label: t('admin.student360.financeOps.overdue'), value: display(s.overdue), tone: 'red' as const },
+      { key: 'remaining', label: t('admin.student360.financeOps.remaining'), value: s.remaining, tone: 'amber' as const },
+      { key: 'overdue', label: t('admin.student360.financeOps.overdue'), value: s.overdue, tone: 'red' as const },
     ];
-  }, [workspace?.summary, summaryUnavailable, t]);
+  }, [displaySummary, t]);
 
   const installmentColumns: Column<StudentInstallment>[] = useMemo(
     () => [
@@ -392,7 +392,8 @@ export function StudentFinanceOperationsTab({
     !!paymentStatus || !!timingStatus || !!serviceCategory || !!dateFrom || !!dateTo || quickOverdueUnpaid;
 
   const allSummaryZero =
-    !summaryUnavailable &&
+    !officialSummaryState.loading &&
+    !officialSummaryState.error &&
     summaryItems.length > 0 &&
     summaryItems.every((item) => item.value == null || Number(item.value) === 0);
 
@@ -472,23 +473,37 @@ export function StudentFinanceOperationsTab({
         />
       ) : (
         <>
-          {summaryUnavailable ? (
-            <p className="student-finance-alert" role="status">
-              {t('admin.student360.financeOps.summaryUnavailable')}
-            </p>
+          {officialSummaryState.loading ? (
+            <StudentSectionSkeleton rows={2} />
+          ) : officialSummaryState.error ? (
+            <div className="student-finance-summary-error" role="alert">
+              <p>{t('admin.student360.financeOps.summaryLoadError')}</p>
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm"
+                onClick={() => officialSummaryState.reload()}
+              >
+                {t('common.retry')}
+              </button>
+            </div>
+          ) : (
+            <Student360MetricGrid
+              variant="finance"
+              className={allSummaryZero ? 'student-360-metric-grid--muted' : undefined}
+              items={summaryItems.map((item) => ({
+                key: item.key,
+                label: item.label,
+                value: <FinanceMoney amount={item.value} currency={currency?.name} />,
+                tone: allSummaryZero ? 'none' : 'tone' in item ? item.tone : undefined,
+              }))}
+            />
+          )}
+
+          {canViewPayments ? (
+            <Card className="student-finance-section">
+              <StudentReceiptsSection studentId={studentId} />
+            </Card>
           ) : null}
-          <Student360MetricGrid
-            variant="finance"
-            className={allSummaryZero ? 'student-360-metric-grid--muted' : undefined}
-            items={summaryItems.map((item) => ({
-              key: item.key,
-              label: item.label,
-              value: (
-                <FinanceMoney amount={item.value} currency={currency?.name} />
-              ),
-              tone: summaryUnavailable ? 'none' : allSummaryZero ? 'none' : 'tone' in item ? item.tone : undefined,
-            }))}
-          />
 
           <Card className="student-finance-section">
             <Student360SectionHeader
