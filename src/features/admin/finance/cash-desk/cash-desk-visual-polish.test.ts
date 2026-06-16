@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
+import { parseDateInput } from '@/lib/i18n/parse-date-input';
 import {
   cashAuditEventLabelKey,
   cashAuditEventReasonText,
   cashAuditEventUserName,
 } from '@/lib/utils/cash-audit-events';
+import { resolveMovementTimestamps } from '@/lib/utils/cash-movement-audit';
 import {
   cashMovementRequiresReference,
   CASH_MOVEMENT_TYPES_REQUIRING_REFERENCE,
@@ -113,5 +115,32 @@ describe('cash desk returnTo visibility', () => {
     const rawReturnTo = null;
     const returnTo = isSafeInternalReturnPath(rawReturnTo) ? rawReturnTo : null;
     expect(returnTo).toBeNull();
+  });
+});
+
+describe('odoo datetime parsing', () => {
+  it('parses Odoo event_at strings', () => {
+    const parsed = parseDateInput('2026-06-16 17:33:29');
+    expect(parsed).not.toBeNull();
+    expect(parsed?.getFullYear()).toBe(2026);
+    expect(parsed?.getMonth()).toBe(5);
+    expect(parsed?.getDate()).toBe(16);
+  });
+});
+
+describe('movement timestamps from audit', () => {
+  it('maps movement rows to movement_created audit timestamps', () => {
+    const map = resolveMovementTimestamps(
+      [
+        { id: 9, reason: 'عميل 1' },
+        { id: 10, reason: 'probe ref test' },
+      ],
+      [
+        { action: 'movement_created', at: '2026-06-16 17:33:29', reason: 'عميل 1' },
+        { action: 'movement_created', at: '2026-06-16 17:38:12', reason: 'probe ref test' },
+      ],
+    );
+    expect(map.get(9)).toBe('2026-06-16 17:33:29');
+    expect(map.get(10)).toBe('2026-06-16 17:38:12');
   });
 });

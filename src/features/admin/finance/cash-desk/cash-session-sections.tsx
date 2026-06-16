@@ -8,6 +8,10 @@ import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { cashSessionCurrency } from '@/lib/utils/cash-session-currency';
+import {
+  movementDisplayTimestamp,
+  resolveMovementTimestamps,
+} from '@/lib/utils/cash-movement-audit';
 import { paymentMethodLabel, refName } from '@/lib/utils/finance';
 import { appendReturnTo } from '@/lib/utils/safe-return-url';
 import type { CashSession, CashSessionCollectionRow, CashSessionMovement } from '@/types/finance-cash-desk';
@@ -121,6 +125,11 @@ export function CashSessionMovementsSection({ session }: { session: CashSession 
   const { formatDateTime } = useFormat();
   const rows = session.movements ?? [];
   const currency = cashSessionCurrency(session);
+  const auditEvents = session.timeline?.length ? session.timeline : session.audit_events ?? [];
+  const movementTimestamps = useMemo(
+    () => resolveMovementTimestamps(rows, auditEvents),
+    [auditEvents, rows],
+  );
 
   const columns: Column<CashSessionMovement>[] = useMemo(
     () => [
@@ -152,7 +161,10 @@ export function CashSessionMovementsSection({ session }: { session: CashSession 
       {
         key: 'at',
         header: t('admin.finance.cashDesk.movements.date'),
-        render: (row) => (row.created_at ? formatDateTime(row.created_at) : '—'),
+        render: (row) => {
+          const timestamp = movementDisplayTimestamp(row, movementTimestamps);
+          return timestamp ? formatDateTime(timestamp) : '—';
+        },
       },
       {
         key: 'state',
@@ -160,7 +172,7 @@ export function CashSessionMovementsSection({ session }: { session: CashSession 
         render: (row) => row.state ?? '—',
       },
     ],
-    [currency, formatDateTime, t],
+    [currency, formatDateTime, movementTimestamps, t],
   );
 
   return (

@@ -171,23 +171,35 @@ function normalizeReceiptRow(raw: unknown): CashSessionReceiptRow | null {
   };
 }
 
-function normalizeAuditEvent(raw: unknown): CashSessionAuditEvent | null {
+function normalizeAuditEvent(raw: unknown, index: number): CashSessionAuditEvent | null {
   const row = asRecord(raw);
   if (!row) return null;
-  const id = row.id ?? row.action ?? row.label;
+  const action = typeof row.action === 'string' ? row.action : undefined;
+  const eventAt =
+    typeof row.at === 'string'
+      ? row.at
+      : typeof row.event_at === 'string'
+        ? row.event_at
+        : typeof row.date === 'string'
+          ? row.date
+          : typeof row.timestamp === 'string'
+            ? row.timestamp
+            : undefined;
+  const rawId = row.id;
+  const id =
+    rawId != null
+      ? typeof rawId === 'string' || typeof rawId === 'number'
+        ? rawId
+        : String(rawId)
+      : action && eventAt
+        ? `${action}-${eventAt}-${index}`
+        : action
+          ? `${action}-${index}`
+          : null;
   if (id == null) return null;
   return {
-    id: typeof id === 'string' || typeof id === 'number' ? id : String(id),
-    at:
-      typeof row.at === 'string'
-        ? row.at
-        : typeof row.event_at === 'string'
-          ? row.event_at
-          : typeof row.date === 'string'
-            ? row.date
-            : typeof row.timestamp === 'string'
-              ? row.timestamp
-              : undefined,
+    id,
+    at: eventAt,
     date: typeof row.date === 'string' ? row.date : undefined,
     action: typeof row.action === 'string' ? row.action : undefined,
     label: typeof row.label === 'string' ? row.label : undefined,
@@ -275,10 +287,10 @@ export function normalizeCashSession(raw: unknown): CashSession | null {
       .map(normalizeMovement)
       .filter(Boolean) as CashSessionMovement[],
     timeline: parseFinanceList<CashSessionAuditEvent>(row.timeline ?? row.audit ?? row.audit_events)
-      .map(normalizeAuditEvent)
+      .map((item, index) => normalizeAuditEvent(item, index))
       .filter(Boolean) as CashSessionAuditEvent[],
     audit_events: parseFinanceList<CashSessionAuditEvent>(row.audit_events ?? row.audit)
-      .map(normalizeAuditEvent)
+      .map((item, index) => normalizeAuditEvent(item, index))
       .filter(Boolean) as CashSessionAuditEvent[],
     allowed_actions: Array.isArray(row.allowed_actions)
       ? (row.allowed_actions.filter((a) => typeof a === 'string') as CashSessionAction[])

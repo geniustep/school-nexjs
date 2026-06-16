@@ -387,6 +387,7 @@
   display: block;
   font-weight: 600;
   margin-bottom: 4px;
+  unicode-bidi: isolate;
 }
 
 .cash-desk-timeline__meta {
@@ -394,6 +395,11 @@
   font-size: 0.82rem;
   color: var(--c-muted, #64748b);
   margin-bottom: 4px;
+}
+
+.cash-desk-timeline__meta-part {
+  display: inline;
+  unicode-bidi: isolate;
 }
 
 .cash-desk-timeline__detail {

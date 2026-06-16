@@ -22,6 +22,15 @@ export function cashAuditEventLabelKey(action: string | undefined | null): strin
   return 'admin.finance.cashDesk.timeline.unknown';
 }
 
+export function resolveAuditEventTitle(
+  translate: (key: string) => string,
+  action: string | undefined | null,
+): string {
+  const key = cashAuditEventLabelKey(action);
+  const label = translate(key);
+  return label === key ? translate('admin.finance.cashDesk.timeline.unknown') : label;
+}
+
 export function cashAuditEventUserName(event: CashSessionAuditEvent): string | null {
   const user = event.user;
   if (!user) return null;

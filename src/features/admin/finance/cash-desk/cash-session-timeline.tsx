@@ -5,10 +5,10 @@ import { SectionHead } from '@/components/ui/primitives';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import {
-  cashAuditEventLabelKey,
   cashAuditEventReasonText,
   cashAuditEventTimestamp,
   cashAuditEventUserName,
+  resolveAuditEventTitle,
 } from '@/lib/utils/cash-audit-events';
 import type { CashSession, CashSessionAuditEvent } from '@/types/finance-cash-desk';
 
@@ -21,8 +21,7 @@ function auditEventKey(event: CashSessionAuditEvent, index: number): string {
 function CashAuditEventItem({ event }: { event: CashSessionAuditEvent }) {
   const t = useT();
   const { formatDateTime } = useFormat();
-  const labelKey = cashAuditEventLabelKey(event.action);
-  const title = t(labelKey);
+  const title = resolveAuditEventTitle(t, event.action);
   const timestamp = cashAuditEventTimestamp(event);
   const userName = cashAuditEventUserName(event);
   const reason = cashAuditEventReasonText(event.reason);
@@ -42,8 +41,19 @@ function CashAuditEventItem({ event }: { event: CashSessionAuditEvent }) {
 
   return (
     <li className="cash-desk-timeline__item">
-      <strong className="cash-desk-timeline__title">{title}</strong>
-      {metaParts.length ? <span className="cash-desk-timeline__meta">{metaParts.join(' · ')}</span> : null}
+      <strong className="cash-desk-timeline__title" dir="auto">
+        {title}
+      </strong>
+      {metaParts.length ? (
+        <span className="cash-desk-timeline__meta">
+          {metaParts.map((part, index) => (
+            <span key={index} className="cash-desk-timeline__meta-part">
+              {index > 0 ? <span aria-hidden="true"> · </span> : null}
+              <bdi>{part}</bdi>
+            </span>
+          ))}
+        </span>
+      ) : null}
       {reason ? <p className="cash-desk-timeline__detail">{reason}</p> : null}
       {note && note !== reason ? <p className="cash-desk-timeline__detail">{note}</p> : null}
       {showStateChange ? (
