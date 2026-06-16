@@ -78,6 +78,10 @@ async function handle(request: NextRequest, segments: string[]) {
     return new NextResponse(result.data, { status: result.status, headers });
   }
 
+  if (result.status === 204) {
+    return new NextResponse(null, { status: 204 });
+  }
+
   return NextResponse.json(result.body, { status: result.status });
 }
 
