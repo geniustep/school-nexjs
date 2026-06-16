@@ -1,6 +1,11 @@
 'use client';
 
 import { api } from '@/lib/api/client';
+import {
+  isPdfArrayBuffer,
+  isPdfContentType,
+  PDF_MAGIC,
+} from '@/lib/api/odoo-binary-response';
 import { endpoints } from '@/lib/api/endpoints';
 import {
   buildReceiptPdfFilename,
@@ -9,7 +14,13 @@ import {
 } from '@/lib/utils/normalize-finance-receipt';
 import type { FinanceReceipt } from '@/types/finance';
 
-export type FinanceReceiptError = 'forbidden' | 'not_found' | 'network' | 'unknown';
+export type FinanceReceiptError =
+  | 'forbidden'
+  | 'not_found'
+  | 'network'
+  | 'not_pdf'
+  | 'empty'
+  | 'unknown';
 
 export interface FinanceReceiptResult {
   ok: boolean;
@@ -17,7 +28,17 @@ export interface FinanceReceiptResult {
   message?: string;
 }
 
-function triggerBrowserDownload(blob: Blob, filename: string) {
+/** Delay before revoking blob URLs so Chrome can finish loading the download. */
+export const PDF_BLOB_REVOKE_DELAY_MS = 30_000;
+
+const activeDownloads = new Set<string>();
+
+export function triggerBrowserPdfDownload(
+  arrayBuffer: ArrayBuffer,
+  filename: string,
+  revokeDelayMs = PDF_BLOB_REVOKE_DELAY_MS,
+): void {
+  const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -26,26 +47,55 @@ function triggerBrowserDownload(blob: Blob, filename: string) {
   document.body.appendChild(a);
   a.click();
   a.remove();
-  URL.revokeObjectURL(url);
+  window.setTimeout(() => URL.revokeObjectURL(url), revokeDelayMs);
 }
 
-async function downloadProtectedPdf(path: string, filename: string): Promise<FinanceReceiptResult> {
+export async function downloadProtectedPdf(
+  path: string,
+  filename: string,
+): Promise<FinanceReceiptResult> {
+  const lockKey = `${path}::${filename}`;
+  if (activeDownloads.has(lockKey)) {
+    return { ok: false, error: 'unknown', message: 'admin.finance.receipts.pdfDownloadInProgress' };
+  }
+
+  activeDownloads.add(lockKey);
   try {
-    const res = await fetch(`/api/odoo${path}`, { method: 'GET', credentials: 'same-origin' });
+    const res = await fetch(`/api/odoo${path}`, {
+      method: 'GET',
+      credentials: 'same-origin',
+      cache: 'no-store',
+    });
+
     if (!res.ok) {
       if (res.status === 401 || res.status === 403) {
-        return { ok: false, error: 'forbidden', message: 'errors.attachmentForbidden' };
+        return { ok: false, error: 'forbidden', message: 'admin.finance.receipts.pdfDownloadFailed' };
       }
       if (res.status === 404) {
-        return { ok: false, error: 'not_found', message: 'errors.attachmentNotFound' };
+        return { ok: false, error: 'not_found', message: 'admin.finance.receipts.pdfDownloadFailed' };
       }
-      return { ok: false, error: 'unknown', message: 'errors.attachmentFailed' };
+      return { ok: false, error: 'unknown', message: 'admin.finance.receipts.pdfDownloadFailed' };
     }
-    const blob = await res.blob();
-    triggerBrowserDownload(blob, filename);
+
+    const contentType = res.headers.get('content-type');
+    if (!isPdfContentType(contentType)) {
+      return { ok: false, error: 'not_pdf', message: 'admin.finance.receipts.pdfInvalidResponse' };
+    }
+
+    const arrayBuffer = await res.arrayBuffer();
+    if (arrayBuffer.byteLength === 0) {
+      return { ok: false, error: 'empty', message: 'admin.finance.receipts.pdfDownloadFailed' };
+    }
+    if (!isPdfArrayBuffer(arrayBuffer)) {
+      return { ok: false, error: 'not_pdf', message: 'admin.finance.receipts.pdfInvalidResponse' };
+    }
+
+    triggerBrowserPdfDownload(arrayBuffer, filename);
     return { ok: true };
   } catch {
-    return { ok: false, error: 'network', message: 'errors.network' };
+    return { ok: false, error: 'network', message: 'admin.finance.receipts.pdfDownloadFailed' };
+  } finally {
+    activeDownloads.delete(lockKey);
   }
 }
 
@@ -92,4 +142,4 @@ export async function issueCollectionReceipt(collectionId: number): Promise<{
   return { receipt: normalizeFinanceReceipt(res.data), error: null };
 }
 
-export { receiptAllowsAction, buildReceiptPdfFilename };
+export { receiptAllowsAction, buildReceiptPdfFilename, PDF_MAGIC, isPdfArrayBuffer, isPdfContentType };

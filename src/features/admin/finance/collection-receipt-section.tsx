@@ -129,7 +129,7 @@ export function CollectionReceiptSection({
             <Link href={`/admin/finance/receipts/${receipt.id}`} className="btn btn--ghost btn--sm">
               {t('admin.finance.receipts.viewReceipt')}
             </Link>
-            <ReceiptPdfActions receipt={receipt} compact />
+            <ReceiptPdfActions receipt={receipt} layout="bar" />
           </div>
         </div>
       ) : null}

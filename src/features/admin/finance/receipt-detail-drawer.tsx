@@ -50,7 +50,9 @@ export function ReceiptDetailDrawer({
               {t('admin.finance.receipts.openFullPage')}
             </Link>
           </div>
-          <ReceiptDetailView receipt={receipt} returnTo={returnTo} />
+          <div className="receipt-drawer-body">
+            <ReceiptDetailView receipt={receipt} returnTo={returnTo} />
+          </div>
         </>
       ) : null}
     </SetupDrawer>

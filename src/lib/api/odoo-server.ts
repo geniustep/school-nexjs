@@ -8,6 +8,7 @@
 
 import 'server-only';
 import { config } from '@/lib/config';
+import { isOdooBinaryResponse } from '@/lib/api/odoo-binary-response';
 import type { ApiResponse, ApiErrorCode } from '@/types/api';
 
 export interface OdooAuthResult {
@@ -108,13 +109,10 @@ export type OdooApiResult<T> =
   | { kind: 'file'; status: number; data: ArrayBuffer; headers: OdooFileHeaders };
 
 function isFileResponse(res: Response): boolean {
-  const contentType = res.headers.get('content-type')?.toLowerCase() ?? '';
-  const disposition = res.headers.get('content-disposition')?.toLowerCase() ?? '';
-  if (disposition.includes('attachment')) return true;
-  if (contentType.includes('text/csv')) return true;
-  if (contentType.includes('application/csv')) return true;
-  if (contentType.includes('application/octet-stream')) return true;
-  return false;
+  return isOdooBinaryResponse(
+    res.headers.get('content-type'),
+    res.headers.get('content-disposition'),
+  );
 }
 
 function fileHeadersFrom(res: Response): OdooFileHeaders {

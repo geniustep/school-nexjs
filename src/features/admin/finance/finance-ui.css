@@ -2517,6 +2517,72 @@
   gap: 8px;
 }
 
+.receipt-pdf-actions--bar {
+  flex-direction: row;
+  align-items: center;
+}
+
+.receipt-pdf-actions--stack {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.finance-receipts-actions-col {
+  min-width: 9rem;
+  width: 9rem;
+  white-space: nowrap;
+}
+
+.receipt-actions-menu {
+  position: relative;
+  display: inline-flex;
+}
+
+.receipt-actions-menu__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.receipt-actions-menu__panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  inset-inline-end: 0;
+  z-index: 40;
+  min-width: 12.5rem;
+  max-width: min(18rem, 90vw);
+  padding: 6px;
+  border-radius: 8px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  background: var(--c-surface, #fff);
+  box-shadow: 0 8px 24px rgb(15 23 42 / 12%);
+}
+
+.receipt-actions-menu__item {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  text-align: start;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.receipt-actions-menu__item:hover,
+.receipt-actions-menu__item:focus-visible {
+  background: var(--c-surface-muted, #f1f5f9);
+  outline: none;
+}
+
+.receipt-actions-menu__item:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .finance-table-actions {
   display: flex;
   flex-wrap: wrap;
@@ -2551,6 +2617,11 @@
 
 .student-finance-summary-error p {
   margin: 0;
+}
+
+.receipt-drawer-body {
+  overflow-x: auto;
+  max-width: 100%;
 }
 
 @media (max-width: 768px) {

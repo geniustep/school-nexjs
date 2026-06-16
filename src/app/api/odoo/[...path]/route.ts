@@ -71,7 +71,10 @@ async function handle(request: NextRequest, segments: string[]) {
     if (result.headers.contentDisposition) {
       headers.set('Content-Disposition', result.headers.contentDisposition);
     }
-    if (result.headers.cacheControl) headers.set('Cache-Control', result.headers.cacheControl);
+    headers.set(
+      'Cache-Control',
+      result.headers.cacheControl ?? 'private, no-store',
+    );
     return new NextResponse(result.data, { status: result.status, headers });
   }
 

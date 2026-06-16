@@ -9,8 +9,8 @@ import { EmptyState } from '@/components/states/states';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
 import { PageHeader } from '@/components/ui/primitives';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
+import { ReceiptActionsMenu } from '@/features/admin/finance/receipt-actions-menu';
 import { ReceiptDetailDrawer } from '@/features/admin/finance/receipt-detail-drawer';
-import { ReceiptPdfActions } from '@/features/admin/finance/receipt-pdf-actions';
 import {
   ReceiptSettlementBadge,
   ReceiptStateBadge,
@@ -212,17 +212,9 @@ export default function AdminFinanceReceiptsPage() {
       {
         key: 'actions',
         header: t('admin.finance.receipts.columns.actions'),
+        className: 'finance-receipts-actions-col',
         render: (row) => (
-          <div className="finance-table-actions" onClick={(e) => e.stopPropagation()}>
-            <button
-              type="button"
-              className="btn btn--ghost btn--sm"
-              onClick={() => setSelectedReceiptId(row.id)}
-            >
-              {t('admin.finance.receipts.viewReceipt')}
-            </button>
-            <ReceiptPdfActions receipt={row} compact />
-          </div>
+          <ReceiptActionsMenu receipt={row} onView={() => setSelectedReceiptId(row.id)} />
         ),
       },
     ],

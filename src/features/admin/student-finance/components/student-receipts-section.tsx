@@ -5,8 +5,8 @@ import { useMemo, useState } from 'react';
 import { ApiErrorView } from '@/components/states/states';
 import { DataTable, type Column } from '@/components/tables/data-table';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
+import { ReceiptActionsMenu } from '@/features/admin/finance/receipt-actions-menu';
 import { ReceiptDetailDrawer } from '@/features/admin/finance/receipt-detail-drawer';
-import { ReceiptPdfActions } from '@/features/admin/finance/receipt-pdf-actions';
 import {
   ReceiptSettlementBadge,
   ReceiptStateBadge,
@@ -77,9 +77,12 @@ export function StudentReceiptsSection({
         ),
       },
       {
-        key: 'pdf',
-        header: t('admin.finance.receipts.columns.pdf'),
-        render: (row) => <ReceiptPdfActions receipt={row} compact />,
+        key: 'actions',
+        header: t('admin.finance.receipts.columns.actions'),
+        className: 'finance-receipts-actions-col',
+        render: (row) => (
+          <ReceiptActionsMenu receipt={row} onView={() => setSelectedReceiptId(row.id)} />
+        ),
       },
     ],
     [formatDateTime, t],

@@ -1,21 +1,21 @@
 'use client';
 
 import { useCallback, useState } from 'react';
+import { useToast } from '@/components/ui/toast';
 import { useT } from '@/features/i18n/locale-context';
-import { downloadReceiptPdf, type FinanceReceiptResult } from '@/lib/api/finance-receipt';
+import { downloadReceiptPdf } from '@/lib/api/finance-receipt';
 import { receiptAllowsAction } from '@/lib/utils/normalize-finance-receipt';
 import type { FinanceReceipt } from '@/types/finance';
 
 export function ReceiptPdfActions({
   receipt,
-  compact = false,
-  onError,
+  layout = 'bar',
 }: {
   receipt: FinanceReceipt;
-  compact?: boolean;
-  onError?: (result: FinanceReceiptResult) => void;
+  layout?: 'bar' | 'stack';
 }) {
   const t = useT();
+  const toast = useToast();
   const [loadingLang, setLoadingLang] = useState<'ar' | 'fr' | null>(null);
   const canDownload =
     receiptAllowsAction(receipt, 'download') || receiptAllowsAction(receipt, 'print');
@@ -26,20 +26,24 @@ export function ReceiptPdfActions({
       setLoadingLang(lang);
       try {
         const result = await downloadReceiptPdf(receipt, lang);
-        if (!result.ok) onError?.(result);
+        if (!result.ok && result.message) {
+          toast.error(t(result.message));
+        }
       } finally {
         setLoadingLang(null);
       }
     },
-    [canDownload, loadingLang, onError, receipt],
+    [canDownload, loadingLang, receipt, t, toast],
   );
 
   if (!canDownload) return null;
 
-  const btnClass = compact ? 'btn btn--ghost btn--sm' : 'btn btn--ghost btn--sm';
+  const btnClass = 'btn btn--ghost btn--sm';
 
   return (
-    <div className={`receipt-pdf-actions${compact ? ' receipt-pdf-actions--compact' : ''}`}>
+    <div
+      className={`receipt-pdf-actions receipt-pdf-actions--${layout}`}
+    >
       <button
         type="button"
         className={btnClass}
@@ -49,7 +53,7 @@ export function ReceiptPdfActions({
       >
         {loadingLang === 'ar'
           ? t('admin.finance.receipts.downloading')
-          : t('admin.finance.receipts.downloadAr')}
+          : t('admin.finance.receipts.downloadPdfAr')}
       </button>
       <button
         type="button"
@@ -60,7 +64,7 @@ export function ReceiptPdfActions({
       >
         {loadingLang === 'fr'
           ? t('admin.finance.receipts.downloading')
-          : t('admin.finance.receipts.downloadFr')}
+          : t('admin.finance.receipts.downloadPdfFr')}
       </button>
     </div>
   );
