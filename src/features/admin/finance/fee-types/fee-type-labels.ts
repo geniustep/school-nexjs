@@ -13,7 +13,8 @@ export function feeTypeFrequencyLabel(
   t: (key: string) => string,
 ): string {
   if (!frequency) return t('common.dash');
-  const key = `admin.finance.feeTypesWorkspace.frequencies.${frequency}`;
+  const uiKey = frequency === 'one_time' ? 'once' : frequency;
+  const key = `admin.finance.feeTypesWorkspace.frequencies.${uiKey}`;
   const translated = t(key);
   return translated === key ? frequency : translated;
 }

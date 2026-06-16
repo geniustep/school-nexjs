@@ -336,17 +336,37 @@ describe('fee plan assign errors', () => {
 });
 
 describe('Student 360 fee assign drawer contract', () => {
-  it('uses drawer wrapper instead of inline assign card', async () => {
+  it('exposes assign fee drawer component wrapping the form in SetupDrawer', async () => {
     const fs = await import('node:fs/promises');
     const path = await import('node:path');
-    const file = path.join(
+    const drawerFile = path.join(
+      process.cwd(),
+      'src/features/admin/students/components/student-finance-assign-fee-drawer.tsx',
+    );
+    const text = await fs.readFile(drawerFile, 'utf8');
+    expect(text).toContain('StudentFinanceAssignFeeDrawer');
+    expect(text).toContain('SetupDrawer');
+    expect(text).toContain('FinanceAssignFeeForm');
+    expect(text).not.toContain('student-finance-assign-card');
+  });
+
+  it('keeps student finance tab free of inline assign card', async () => {
+    const fs = await import('node:fs/promises');
+    const path = await import('node:path');
+    const tabFile = path.join(
       process.cwd(),
       'src/features/admin/students/components/student-finance-tab.tsx',
     );
-    const text = await fs.readFile(file, 'utf8');
-    expect(text).toContain('StudentFinanceAssignFeeDrawer');
-    expect(text).not.toContain('student-finance-assign-card');
-    expect(text).not.toContain('<FinanceAssignFeeForm');
+    const opsFile = path.join(
+      process.cwd(),
+      'src/features/admin/student-finance/components/student-finance-operations-tab.tsx',
+    );
+    const tabText = await fs.readFile(tabFile, 'utf8');
+    const opsText = await fs.readFile(opsFile, 'utf8');
+    expect(tabText).not.toContain('<FinanceAssignFeeForm');
+    expect(tabText).not.toContain('student-finance-assign-card');
+    expect(opsText).not.toContain('<FinanceAssignFeeForm');
+    expect(opsText).not.toContain('student-finance-assign-card');
   });
 
   it('marks RTL layout hook for assign actions', async () => {
