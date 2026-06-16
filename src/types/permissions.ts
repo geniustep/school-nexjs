@@ -47,6 +47,7 @@ export type Permission =
   | 'finance.view_billing_profile'
   | 'finance.view_payments'
   | 'finance.view_student_balance'
+  | 'finance.view_credit_balances'
   | 'finance.manage_settings'
   | 'finance.view_cheques'
   | 'finance.manage_cheques'

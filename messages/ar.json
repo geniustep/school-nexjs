@@ -3618,6 +3618,135 @@
           "unassignedBillingAccount": "تحصيلات غير موزعة دون دافع"
         }
       },
+      "creditBalances": {
+        "hubTitle": "الأرصدة المالية",
+        "hubDesc": "متابعة المبالغ غير الموزعة وما هو متاح أو معلق أو محجوب.",
+        "pageTitle": "الأرصدة المالية",
+        "pageDesc": "متابعة المبالغ غير الموزعة، وحالة تسويتها، وما يمكن تخصيصه للمستحقات.",
+        "detailTitle": "تفاصيل الأرصدة غير الموزعة",
+        "backToList": "العودة إلى الأرصدة المالية",
+        "backToAccount": "العودة إلى حساب الدافع",
+        "openDetails": "فتح التفاصيل",
+        "openSourceCredit": "تفاصيل المصدر",
+        "openCollection": "فتح التحصيل",
+        "openReceipt": "فتح الإيصال",
+        "openCheque": "فتح الشيك",
+        "applyCredit": "تخصيص الرصيد",
+        "applyCreditTitle": "تخصيص الرصيد المتاح",
+        "applyAvailable": "الرصيد المتاح للتخصيص",
+        "applyRemaining": "المتبقي من الرصيد",
+        "applyRemainingInstallment": "متبقي القسط",
+        "applyAmountFor": "مبلغ التخصيص — {name}",
+        "applyNoInstallments": "لا توجد أقساط قابلة للتخصيص ضمن هذا الحساب.",
+        "applySuccess": "تم تخصيص الرصيد بنجاح.",
+        "sourceDrawerTitle": "مصدر الرصيد — تحصيل #{id}",
+        "sourceSummary": "ملخص المصدر",
+        "applicationsTitle": "التخصيصات السابقة",
+        "noApplications": "لا توجد تخصيصات سابقة من هذا المصدر.",
+        "familySectionTitle": "الأرصدة غير الموزعة",
+        "familyGross": "غير موزع إجمالًا",
+        "header": {
+          "accountCount": "عدد حسابات الدافعين"
+        },
+        "metrics": {
+          "gross": "إجمالي غير الموزع",
+          "pending": "بانتظار التسوية",
+          "available": "متاح للتخصيص",
+          "blocked": "غير قابل للاستعمال",
+          "applied": "مستعمل سابقًا",
+          "refundable": "القابل للاسترداد"
+        },
+        "hints": {
+          "gross": "إجمالي المبالغ المقبوضة التي لم تُخصص بالكامل بعد.",
+          "pending": "مبالغ لا تزال وسيلة أدائها بانتظار التسوية.",
+          "available": "مبالغ مسواة ويمكن تخصيصها لمستحقات حساب الدافع.",
+          "blocked": "مبالغ لا يمكن استعمالها بسبب رفض وسيلة الأداء أو عكس التحصيل.",
+          "refundable": "للعرض فقط حاليًا؛ الاسترداد غير متاح بعد."
+        },
+        "states": {
+          "available": "متاح للتخصيص",
+          "pending": "بانتظار التسوية",
+          "blocked": "غير قابل للاستعمال",
+          "applied": "مستعمل سابقًا",
+          "fully_applied": "مستعمل بالكامل",
+          "empty": "لا توجد مبالغ"
+        },
+        "filters": {
+          "billingPartner": "حساب الدافع",
+          "state": "الحالة",
+          "stateAll": "الكل",
+          "hasAvailable": "لديه مبلغ متاح",
+          "reset": "إعادة الضبط"
+        },
+        "columns": {
+          "payer": "الدافع",
+          "reference": "المرجع",
+          "sourceCount": "مصادر الرصيد",
+          "state": "الحالة العامة",
+          "actions": "إجراءات"
+        },
+        "sources": {
+          "title": "مصادر المبالغ غير الموزعة",
+          "collection": "التحصيل",
+          "receipt": "الإيصال",
+          "collectionAmount": "مبلغ التحصيل",
+          "allocated": "الموزع",
+          "unallocated": "غير الموزع",
+          "settlement": "حالة التسوية",
+          "blockReason": "سبب الحجب"
+        },
+        "settlement": {
+          "cheque_bounced": "شيك مرفوض",
+          "pending_cheque": "شيك قيد التحصيل",
+          "cheque_cleared": "شيك محصل",
+          "confirmed": "مؤكد",
+          "reversed": "معكوس"
+        },
+        "blockReasons": {
+          "cheque_bounced": "شيك مرفوض",
+          "cheque_replaced": "شيك بديل لم تتم تسويته",
+          "collection_reversed": "تحصيل معكوس",
+          "collection_cancelled": "تحصيل ملغى",
+          "pending_settlement": "بانتظار التسوية",
+          "currency_mismatch": "اختلاف العملة",
+          "billing_account_mismatch": "عدم تطابق حساب الدافع"
+        },
+        "emptyTitle": "لا توجد أرصدة",
+        "emptyDesc": "لا توجد حسابات دافعين بمبالغ غير موزعة ضمن النطاق المختار.",
+        "emptyNoAvailableTitle": "لا توجد أرصدة متاحة للتخصيص",
+        "emptyNoAvailableDesc": "لا توجد أرصدة متاحة للتخصيص حاليًا.",
+        "emptyAccountTitle": "لا توجد مبالغ غير موزعة",
+        "emptyAccountDesc": "لا توجد مبالغ غير موزعة لهذا الحساب.",
+        "emptySources": "لا توجد مصادر غير موزعة.",
+        "noticeBlockedOnly": "توجد مبالغ غير موزعة، لكنها غير قابلة للاستعمال بسبب حالة التسوية.",
+        "noticeNoAvailable": "لا توجد أرصدة متاحة للتخصيص حاليًا.",
+        "noticeAccountBlockedOnly": "توجد مبالغ غير موزعة، لكنها غير قابلة للاستعمال حاليًا.",
+        "detailFallbackNotice": "تعذر تحميل تفاصيل الرصيد الكاملة؛ يُعرض الملخص من حساب الدافع.",
+        "errors": {
+          "notFound": "تعذر العثور على الرصيد أو حساب الدافع.",
+          "forbidden": "لا تملك صلاحية عرض الأرصدة المالية.",
+          "invalidFilter": "أحد الفلاتر غير صالح."
+        },
+        "applyErrors": {
+          "creditBalanceNotFound": "تعذر العثور على الرصيد المطلوب.",
+          "creditNotAvailable": "هذا المبلغ غير متاح للتخصيص.",
+          "insufficientAvailableCredit": "مبلغ التخصيص يتجاوز الرصيد المتاح.",
+          "creditPendingSettlement": "لا يمكن استعمال المبلغ قبل اكتمال التسوية.",
+          "creditSourceBounced": "لا يمكن استعمال مبلغ مصدره شيك مرفوض.",
+          "creditBillingAccountMismatch": "يجب تخصيص الرصيد إلى مستحقات حساب الدافع نفسه.",
+          "creditCurrencyMismatch": "لا يمكن تخصيص الرصيد بسبب اختلاف العملة.",
+          "duplicateCreditApplication": "تم تنفيذ هذا التخصيص مسبقًا.",
+          "forbidden": "لا تملك صلاحية تخصيص هذا الرصيد.",
+          "validationError": "بيانات التخصيص غير صالحة."
+        },
+        "applyValidation": {
+          "duplicateAllocation": "لا يمكن تخصيص نفس القسط مرتين.",
+          "invalidAllocation": "أحد الأقساط المختارة غير صالح للتخصيص.",
+          "allocationExceedsReceivable": "مبلغ التخصيص يتجاوز متبقي القسط.",
+          "allocationExceedsCredit": "مبلغ التخصيص يتجاوز الرصيد المتاح.",
+          "emptyAllocation": "أدخل مبلغًا واحدًا على الأقل للتخصيص."
+        }
+      },
       "activeSchool": "المدرسة النشطة",
       "overviewUnavailable": "لوحة المؤشرات المالية غير متوفرة من واجهة API الحالية.",
       "noOverviewMetricsTitle": "لا توجد مؤشرات مجمّعة",

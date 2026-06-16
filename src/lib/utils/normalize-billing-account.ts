@@ -8,6 +8,7 @@ import type {
   BillingAccountActivity,
   BillingAccountAllowedAction,
   BillingAccountAppliedFilters,
+  BillingAccountCreditMetrics,
   BillingAccountDataQualityPayload,
   BillingAccountListItem,
   BillingAccountPartner,
@@ -23,7 +24,21 @@ const ALLOWED_ACTIONS: BillingAccountAllowedAction[] = [
   'collect_payment',
   'view_cheques',
   'view_agreements',
+  'view_credit',
 ];
+
+function readCreditMetrics(raw: unknown): BillingAccountCreditMetrics | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const row = raw as Record<string, unknown>;
+  return {
+    gross_unallocated_amount: normalizeMoneyValue(row.gross_unallocated_amount) ?? undefined,
+    pending_unallocated_amount: normalizeMoneyValue(row.pending_unallocated_amount) ?? undefined,
+    available_credit_amount: normalizeMoneyValue(row.available_credit_amount) ?? undefined,
+    blocked_unallocated_amount: normalizeMoneyValue(row.blocked_unallocated_amount) ?? undefined,
+    applied_credit_amount: normalizeMoneyValue(row.applied_credit_amount) ?? undefined,
+    refundable_credit_amount: normalizeMoneyValue(row.refundable_credit_amount) ?? undefined,
+  };
+}
 
 function readPartnerId(raw: Record<string, unknown>): number | null {
   const direct = raw.billing_partner_id ?? raw.billing_partnerId;
@@ -94,6 +109,7 @@ function readMetrics(raw: Record<string, unknown>): BillingAccountSummaryMetrics
     collection_count:
       typeof raw.collection_count === 'number' ? raw.collection_count : undefined,
     currency: raw.currency,
+    credit: readCreditMetrics(raw.credit),
   };
 }
 

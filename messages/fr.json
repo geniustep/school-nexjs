@@ -3581,6 +3581,133 @@
           "unassignedBillingAccount": "Encaissements non affectés sans payeur"
         }
       },
+      "creditBalances": {
+        "hubTitle": "Soldes financiers",
+        "hubDesc": "Suivre les montants non affectés et ce qui est disponible, en attente ou bloqué.",
+        "pageTitle": "Soldes financiers",
+        "pageDesc": "Suivre les montants non affectés, leur règlement et ce qui peut être affecté aux créances.",
+        "detailTitle": "Détails des soldes non affectés",
+        "backToList": "Retour aux soldes financiers",
+        "backToAccount": "Retour au compte payeur",
+        "openDetails": "Ouvrir les détails",
+        "openSourceCredit": "Détails de la source",
+        "openCollection": "Ouvrir l'encaissement",
+        "openReceipt": "Ouvrir le reçu",
+        "openCheque": "Ouvrir le chèque",
+        "applyCredit": "Affecter le crédit",
+        "applyCreditTitle": "Affecter le crédit disponible",
+        "applyAvailable": "Disponible pour affectation",
+        "applyRemaining": "Crédit restant",
+        "applyRemainingInstallment": "Reste de l'échéance",
+        "applyAmountFor": "Montant d'affectation — {name}",
+        "applyNoInstallments": "Aucune échéance affectable pour ce compte.",
+        "applySuccess": "Crédit affecté avec succès.",
+        "sourceDrawerTitle": "Source de crédit — encaissement #{id}",
+        "sourceSummary": "Résumé de la source",
+        "applicationsTitle": "Affectations précédentes",
+        "noApplications": "Aucune affectation précédente depuis cette source.",
+        "familySectionTitle": "Soldes non affectés",
+        "familyGross": "Non affecté brut",
+        "header": { "accountCount": "Comptes payeurs" },
+        "metrics": {
+          "gross": "Non affecté brut",
+          "pending": "En attente de règlement",
+          "available": "Disponible pour affectation",
+          "blocked": "Non utilisable",
+          "applied": "Déjà appliqué",
+          "refundable": "Remboursable"
+        },
+        "hints": {
+          "gross": "Total des montants encaissés pas encore entièrement affectés.",
+          "pending": "Montants dont le moyen de paiement est encore en attente de règlement.",
+          "available": "Montants réglés pouvant être affectés aux créances du compte.",
+          "blocked": "Montants inutilisables suite au rejet du paiement ou à une annulation.",
+          "refundable": "Affichage uniquement ; le remboursement n'est pas encore disponible."
+        },
+        "states": {
+          "available": "Disponible pour affectation",
+          "pending": "En attente de règlement",
+          "blocked": "Non utilisable",
+          "applied": "Déjà appliqué",
+          "fully_applied": "Entièrement appliqué",
+          "empty": "Aucun montant"
+        },
+        "filters": {
+          "billingPartner": "Compte payeur",
+          "state": "Statut",
+          "stateAll": "Tous",
+          "hasAvailable": "Montant disponible",
+          "reset": "Réinitialiser"
+        },
+        "columns": {
+          "payer": "Payeur",
+          "reference": "Référence",
+          "sourceCount": "Sources de crédit",
+          "state": "Statut global",
+          "actions": "Actions"
+        },
+        "sources": {
+          "title": "Sources des montants non affectés",
+          "collection": "Encaissement",
+          "receipt": "Reçu",
+          "collectionAmount": "Montant encaissé",
+          "allocated": "Affecté",
+          "unallocated": "Non affecté",
+          "settlement": "Règlement",
+          "blockReason": "Motif de blocage"
+        },
+        "settlement": {
+          "cheque_bounced": "Chèque rejeté",
+          "pending_cheque": "Chèque en attente",
+          "cheque_cleared": "Chèque encaissé",
+          "confirmed": "Confirmé",
+          "reversed": "Annulé"
+        },
+        "blockReasons": {
+          "cheque_bounced": "Chèque rejeté",
+          "cheque_replaced": "Chèque de remplacement non réglé",
+          "collection_reversed": "Encaissement annulé",
+          "collection_cancelled": "Encaissement annulé",
+          "pending_settlement": "Règlement en attente",
+          "currency_mismatch": "Devise incompatible",
+          "billing_account_mismatch": "Compte payeur incompatible"
+        },
+        "emptyTitle": "Aucun solde",
+        "emptyDesc": "Aucun compte payeur avec montants non affectés dans le périmètre actuel.",
+        "emptyNoAvailableTitle": "Aucun crédit disponible pour affectation",
+        "emptyNoAvailableDesc": "Aucun crédit n'est actuellement disponible pour affectation.",
+        "emptyAccountTitle": "Aucun montant non affecté",
+        "emptyAccountDesc": "Ce compte n'a pas de montants non affectés.",
+        "emptySources": "Aucune source non affectée.",
+        "noticeBlockedOnly": "Des montants non affectés existent mais ne sont pas utilisables en raison du règlement.",
+        "noticeNoAvailable": "Aucun crédit n'est actuellement disponible pour affectation.",
+        "noticeAccountBlockedOnly": "Des montants non affectés existent mais ne sont pas utilisables actuellement.",
+        "detailFallbackNotice": "Les détails complets du crédit n'ont pas pu être chargés ; résumé du compte affiché.",
+        "errors": {
+          "notFound": "Solde ou compte payeur introuvable.",
+          "forbidden": "Vous n'avez pas la permission de consulter les soldes financiers.",
+          "invalidFilter": "Un des filtres est invalide."
+        },
+        "applyErrors": {
+          "creditBalanceNotFound": "Le solde demandé est introuvable.",
+          "creditNotAvailable": "Ce montant n'est pas disponible pour affectation.",
+          "insufficientAvailableCredit": "L'affectation dépasse le crédit disponible.",
+          "creditPendingSettlement": "Ce montant ne peut pas être utilisé avant la fin du règlement.",
+          "creditSourceBounced": "Le crédit d'un chèque rejeté ne peut pas être utilisé.",
+          "creditBillingAccountMismatch": "Le crédit doit être affecté aux créances du même compte payeur.",
+          "creditCurrencyMismatch": "Affectation impossible en raison d'une devise incompatible.",
+          "duplicateCreditApplication": "Cette affectation a déjà été appliquée.",
+          "forbidden": "Vous n'avez pas la permission d'affecter ce crédit.",
+          "validationError": "Données d'affectation invalides."
+        },
+        "applyValidation": {
+          "duplicateAllocation": "La même échéance ne peut pas être affectée deux fois.",
+          "invalidAllocation": "Une échéance sélectionnée n'est pas valide pour l'affectation.",
+          "allocationExceedsReceivable": "L'affectation dépasse le reste de l'échéance.",
+          "allocationExceedsCredit": "L'affectation dépasse le crédit disponible.",
+          "emptyAllocation": "Saisissez au moins un montant d'affectation."
+        }
+      },
       "activeSchool": "Établissement actif",
       "overviewUnavailable": "Les indicateurs financiers globaux ne sont pas exposés par l'API actuelle.",
       "noOverviewMetricsTitle": "Aucun indicateur agrégé",

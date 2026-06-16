@@ -14,6 +14,7 @@ export const FINANCE_MANAGE_BILLING: Permission = 'finance.manage_billing_profil
 export const FINANCE_VIEW_BILLING: Permission = 'finance.view_billing_profile';
 export const FINANCE_VIEW_PAYMENTS: Permission = 'finance.view_payments';
 export const FINANCE_VIEW_STUDENT_BALANCE: Permission = 'finance.view_student_balance';
+export const FINANCE_VIEW_CREDIT_BALANCES: Permission = 'finance.view_credit_balances';
 
 export const FINANCE_VIEW_CHEQUES: Permission = 'finance.view_cheques';
 export const FINANCE_MANAGE_CHEQUES: Permission = 'finance.manage_cheques';
@@ -36,6 +37,10 @@ export function canViewFinance(user: CurrentUser | null): boolean {
 
 export function canViewStudentBalance(user: CurrentUser | null): boolean {
   return hasPermission(user, FINANCE_VIEW_STUDENT_BALANCE);
+}
+
+export function canViewCreditBalances(user: CurrentUser | null): boolean {
+  return hasPermission(user, FINANCE_VIEW_CREDIT_BALANCES);
 }
 
 export function canViewPayments(user: CurrentUser | null): boolean {

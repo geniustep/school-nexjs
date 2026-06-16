@@ -2818,4 +2818,202 @@
   .finance-billing-detail-header {
     flex-direction: column;
   }
+
+  .finance-credit-list-desktop,
+  .finance-credit-sources-desktop {
+    display: none;
+  }
+
+  .finance-credit-list-mobile,
+  .finance-credit-sources-mobile {
+    display: block;
+  }
+}
+
+.finance-credit-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.finance-credit-badge__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.finance-credit-badge--available {
+  color: #067647;
+  background: #ecfdf3;
+  border-color: #abefc6;
+}
+
+.finance-credit-badge--available .finance-credit-badge__dot {
+  background: #17b26a;
+}
+
+.finance-credit-badge--pending {
+  color: #b54708;
+  background: #fffaeb;
+  border-color: #fedf89;
+}
+
+.finance-credit-badge--pending .finance-credit-badge__dot {
+  background: #f79009;
+}
+
+.finance-credit-badge--blocked {
+  color: #b42318;
+  background: #fef3f2;
+  border-color: #fecdca;
+}
+
+.finance-credit-badge--blocked .finance-credit-badge__dot {
+  background: #f04438;
+}
+
+.finance-credit-badge--applied,
+.finance-credit-badge--empty {
+  color: #344054;
+  background: #f2f4f7;
+  border-color: #eaecf0;
+}
+
+.finance-credit-badge--applied .finance-credit-badge__dot,
+.finance-credit-badge--empty .finance-credit-badge__dot {
+  background: #98a2b3;
+}
+
+.finance-credit-notice {
+  margin: 12px 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #fffaeb;
+  border: 1px solid #fedf89;
+  color: #7a2e0e;
+}
+
+.finance-credit-notice--muted {
+  background: #f9fafb;
+  border-color: #eaecf0;
+  color: #475467;
+}
+
+.finance-credit-notice--warn {
+  background: #fef3f2;
+  border-color: #fecdca;
+  color: #912018;
+}
+
+.finance-credit-list-mobile,
+.finance-credit-sources-mobile {
+  display: none;
+}
+
+.finance-credit-card,
+.finance-credit-source-card {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.finance-credit-card__head,
+.finance-credit-source-card__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.finance-credit-card__metrics,
+.finance-credit-source-card__metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.finance-credit-card__metrics dt,
+.finance-credit-source-card__metrics dt {
+  font-size: 0.75rem;
+  color: var(--c-muted, #64748b);
+}
+
+.finance-credit-card__metrics dd,
+.finance-credit-source-card__metrics dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.finance-credit-metric-card--available strong {
+  color: #067647;
+}
+
+.finance-credit-metric-card--blocked strong {
+  color: #b42318;
+}
+
+.finance-credit-metric-card--pending strong {
+  color: #b54708;
+}
+
+.finance-credit-family-section__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.finance-credit-family-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.finance-credit-family-metrics > div {
+  display: grid;
+  gap: 4px;
+}
+
+.finance-credit-source-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.finance-apply-credit-installments {
+  display: grid;
+  gap: 10px;
+}
+
+.finance-apply-credit-row {
+  display: grid;
+  gap: 10px;
+}
+
+.finance-apply-credit-row__main {
+  display: grid;
+  gap: 4px;
+}
+
+.finance-apply-credit-row__metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.finance-credit-filters {
+  margin-bottom: 16px;
+}
+
+.finance-credit-summary-grid {
+  margin-bottom: 16px;
 }

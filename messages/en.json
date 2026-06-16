@@ -3620,6 +3620,133 @@
           "unassignedBillingAccount": "Unallocated collections without payer"
         }
       },
+      "creditBalances": {
+        "hubTitle": "Financial balances",
+        "hubDesc": "Track unallocated amounts and what is available, pending, or blocked.",
+        "pageTitle": "Financial balances",
+        "pageDesc": "Monitor unallocated amounts, settlement status, and what can be allocated to receivables.",
+        "detailTitle": "Unallocated balance details",
+        "backToList": "Back to financial balances",
+        "backToAccount": "Back to billing account",
+        "openDetails": "Open details",
+        "openSourceCredit": "Source details",
+        "openCollection": "Open collection",
+        "openReceipt": "Open receipt",
+        "openCheque": "Open cheque",
+        "applyCredit": "Allocate credit",
+        "applyCreditTitle": "Allocate available credit",
+        "applyAvailable": "Available for allocation",
+        "applyRemaining": "Remaining credit",
+        "applyRemainingInstallment": "Installment remaining",
+        "applyAmountFor": "Allocation amount — {name}",
+        "applyNoInstallments": "No allocatable installments for this account.",
+        "applySuccess": "Credit allocated successfully.",
+        "sourceDrawerTitle": "Credit source — collection #{id}",
+        "sourceSummary": "Source summary",
+        "applicationsTitle": "Previous allocations",
+        "noApplications": "No previous allocations from this source.",
+        "familySectionTitle": "Unallocated balances",
+        "familyGross": "Gross unallocated",
+        "header": { "accountCount": "Billing accounts" },
+        "metrics": {
+          "gross": "Gross unallocated",
+          "pending": "Pending settlement",
+          "available": "Available for allocation",
+          "blocked": "Not usable",
+          "applied": "Previously applied",
+          "refundable": "Refundable"
+        },
+        "hints": {
+          "gross": "Total collected amounts not yet fully allocated.",
+          "pending": "Amounts whose payment method is still pending settlement.",
+          "available": "Settled amounts that can be allocated to this billing account.",
+          "blocked": "Amounts that cannot be used due to bounced payment or reversal.",
+          "refundable": "Display only for now; refunds are not available yet."
+        },
+        "states": {
+          "available": "Available for allocation",
+          "pending": "Pending settlement",
+          "blocked": "Not usable",
+          "applied": "Previously applied",
+          "fully_applied": "Fully applied",
+          "empty": "No amounts"
+        },
+        "filters": {
+          "billingPartner": "Billing account",
+          "state": "Status",
+          "stateAll": "All",
+          "hasAvailable": "Has available amount",
+          "reset": "Reset"
+        },
+        "columns": {
+          "payer": "Payer",
+          "reference": "Reference",
+          "sourceCount": "Credit sources",
+          "state": "Overall status",
+          "actions": "Actions"
+        },
+        "sources": {
+          "title": "Unallocated amount sources",
+          "collection": "Collection",
+          "receipt": "Receipt",
+          "collectionAmount": "Collection amount",
+          "allocated": "Allocated",
+          "unallocated": "Unallocated",
+          "settlement": "Settlement",
+          "blockReason": "Block reason"
+        },
+        "settlement": {
+          "cheque_bounced": "Cheque bounced",
+          "pending_cheque": "Cheque pending",
+          "cheque_cleared": "Cheque cleared",
+          "confirmed": "Confirmed",
+          "reversed": "Reversed"
+        },
+        "blockReasons": {
+          "cheque_bounced": "Cheque bounced",
+          "cheque_replaced": "Replacement cheque not settled",
+          "collection_reversed": "Collection reversed",
+          "collection_cancelled": "Collection cancelled",
+          "pending_settlement": "Pending settlement",
+          "currency_mismatch": "Currency mismatch",
+          "billing_account_mismatch": "Billing account mismatch"
+        },
+        "emptyTitle": "No balances",
+        "emptyDesc": "No billing accounts with unallocated amounts in the current scope.",
+        "emptyNoAvailableTitle": "No credit available for allocation",
+        "emptyNoAvailableDesc": "No credit is currently available for allocation.",
+        "emptyAccountTitle": "No unallocated amounts",
+        "emptyAccountDesc": "This account has no unallocated amounts.",
+        "emptySources": "No unallocated sources.",
+        "noticeBlockedOnly": "Unallocated amounts exist but cannot be used due to settlement status.",
+        "noticeNoAvailable": "No credit is currently available for allocation.",
+        "noticeAccountBlockedOnly": "Unallocated amounts exist but are not usable right now.",
+        "detailFallbackNotice": "Full credit details could not be loaded; showing billing account summary.",
+        "errors": {
+          "notFound": "Credit balance or billing account not found.",
+          "forbidden": "You do not have permission to view financial balances.",
+          "invalidFilter": "One of the filters is invalid."
+        },
+        "applyErrors": {
+          "creditBalanceNotFound": "The requested credit balance could not be found.",
+          "creditNotAvailable": "This amount is not available for allocation.",
+          "insufficientAvailableCredit": "Allocation exceeds available credit.",
+          "creditPendingSettlement": "This amount cannot be used before settlement completes.",
+          "creditSourceBounced": "Credit from a bounced cheque cannot be used.",
+          "creditBillingAccountMismatch": "Credit must be allocated to the same billing account receivables.",
+          "creditCurrencyMismatch": "Credit cannot be allocated due to currency mismatch.",
+          "duplicateCreditApplication": "This allocation was already applied.",
+          "forbidden": "You do not have permission to allocate this credit.",
+          "validationError": "Invalid allocation data."
+        },
+        "applyValidation": {
+          "duplicateAllocation": "The same installment cannot be allocated twice.",
+          "invalidAllocation": "One selected installment is not valid for allocation.",
+          "allocationExceedsReceivable": "Allocation exceeds installment remaining amount.",
+          "allocationExceedsCredit": "Allocation exceeds available credit.",
+          "emptyAllocation": "Enter at least one allocation amount."
+        }
+      },
       "activeSchool": "Active school",
       "overviewUnavailable": "Financial overview metrics are not exposed on the current API.",
       "noOverviewMetricsTitle": "No aggregated metrics",

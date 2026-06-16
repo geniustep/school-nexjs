@@ -229,6 +229,13 @@ export const endpoints = {
     financeBillingAccountsDataQuality: '/admin/finance/billing-accounts/data-quality',
     financeBillingAccountSummary: (billingPartnerId: number | string) =>
       `/admin/finance/billing-accounts/${billingPartnerId}/summary`,
+    financeCreditBalances: '/admin/finance/credit-balances',
+    financeBillingAccountCreditBalance: (billingPartnerId: number | string) =>
+      `/admin/finance/billing-accounts/${billingPartnerId}/credit-balance`,
+    financePaymentCollectionCredit: (collectionId: number | string) =>
+      `/admin/finance/payment-collections/${collectionId}/credit`,
+    financePaymentCollectionAllocate: (collectionId: number | string) =>
+      `/admin/finance/payment-collections/${collectionId}/allocate`,
     financeAgreements: '/admin/finance/agreements',
     financeEligibleBillingPartners: (studentId: number | string) =>
       `/admin/finance/students/${studentId}/eligible-billing-partners`,

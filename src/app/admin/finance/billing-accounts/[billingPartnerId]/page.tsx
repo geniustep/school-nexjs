@@ -16,6 +16,7 @@ import {
   BillingAccountStudentsSection,
   BillingAccountSummaryCards,
 } from '@/features/admin/finance/billing-account-detail-sections';
+import { BillingAccountCreditSection } from '@/features/admin/finance/credit-balance/credit-balance-detail-sections';
 import { useAcademicYearOptions } from '@/features/admin/finance/use-finance-lookups';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
@@ -191,6 +192,14 @@ export default function AdminFinanceBillingAccountDetailPage({
             </form>
 
             <BillingAccountSummaryCards summary={detail.summary} loading={false} />
+
+            <BillingAccountCreditSection
+              grossUnallocated={detail.summary.unallocated_collection_amount}
+              credit={detail.summary.credit}
+              currency={detail.summary.currency}
+              billingPartnerId={Number(billingPartnerId)}
+              returnTo={pageReturnTo}
+            />
 
             {!billingAccountHasFinancialData(detail.summary) &&
             !detail.students.length &&

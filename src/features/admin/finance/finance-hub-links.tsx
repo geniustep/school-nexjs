@@ -11,9 +11,11 @@ import {
   IconLayers,
   IconSlidersHorizontal,
   IconUsers,
+  IconWallet,
 } from '@/components/icons/admin-icons';
 import {
   canViewCheques,
+  canViewCreditBalances,
   canViewFinanceAgreements,
   canViewFinanceInstallments,
   canViewFinanceServices,
@@ -53,6 +55,13 @@ export function FinanceHubLinks({ overview }: { overview: AdminFinanceOverview |
       labelKey: 'admin.finance.billingAccounts.hubTitle',
       descKey: 'admin.finance.billingAccounts.hubDesc',
       show: canViewStudentBalance(user),
+    },
+    {
+      href: '/admin/finance/credit-balances',
+      icon: <IconWallet size={22} />,
+      labelKey: 'admin.finance.creditBalances.hubTitle',
+      descKey: 'admin.finance.creditBalances.hubDesc',
+      show: canViewCreditBalances(user),
     },
     {
       href: financeDeepLinkHref('agreementsAll'),

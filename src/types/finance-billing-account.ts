@@ -6,7 +6,17 @@ export type BillingAccountAllowedAction =
   | 'view_receipts'
   | 'collect_payment'
   | 'view_cheques'
-  | 'view_agreements';
+  | 'view_agreements'
+  | 'view_credit';
+
+export type BillingAccountCreditMetrics = {
+  gross_unallocated_amount?: number;
+  pending_unallocated_amount?: number;
+  available_credit_amount?: number;
+  blocked_unallocated_amount?: number;
+  applied_credit_amount?: number;
+  refundable_credit_amount?: number;
+};
 
 export type BillingAccountSummaryMetrics = {
   student_count?: number;
@@ -21,6 +31,7 @@ export type BillingAccountSummaryMetrics = {
   receipt_amount?: number;
   collection_count?: number;
   currency?: unknown;
+  credit?: BillingAccountCreditMetrics;
 };
 
 export type BillingAccountPartner = {

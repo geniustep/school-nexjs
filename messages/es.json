@@ -3581,6 +3581,133 @@
           "unassignedBillingAccount": "Cobros sin asignar sin pagador"
         }
       },
+      "creditBalances": {
+        "hubTitle": "Saldos financieros",
+        "hubDesc": "Seguimiento de importes sin asignar y lo disponible, pendiente o bloqueado.",
+        "pageTitle": "Saldos financieros",
+        "pageDesc": "Seguimiento de importes sin asignar, su liquidación y lo que puede asignarse a deudas.",
+        "detailTitle": "Detalle de saldos sin asignar",
+        "backToList": "Volver a saldos financieros",
+        "backToAccount": "Volver a la cuenta del pagador",
+        "openDetails": "Abrir detalles",
+        "openSourceCredit": "Detalle de la fuente",
+        "openCollection": "Abrir cobro",
+        "openReceipt": "Abrir recibo",
+        "openCheque": "Abrir cheque",
+        "applyCredit": "Asignar crédito",
+        "applyCreditTitle": "Asignar crédito disponible",
+        "applyAvailable": "Disponible para asignación",
+        "applyRemaining": "Crédito restante",
+        "applyRemainingInstallment": "Resto de la cuota",
+        "applyAmountFor": "Importe de asignación — {name}",
+        "applyNoInstallments": "No hay cuotas asignables para esta cuenta.",
+        "applySuccess": "Crédito asignado correctamente.",
+        "sourceDrawerTitle": "Fuente de crédito — cobro #{id}",
+        "sourceSummary": "Resumen de la fuente",
+        "applicationsTitle": "Asignaciones anteriores",
+        "noApplications": "No hay asignaciones anteriores de esta fuente.",
+        "familySectionTitle": "Saldos sin asignar",
+        "familyGross": "Sin asignar bruto",
+        "header": { "accountCount": "Cuentas de pagador" },
+        "metrics": {
+          "gross": "Sin asignar bruto",
+          "pending": "Pendiente de liquidación",
+          "available": "Disponible para asignación",
+          "blocked": "No utilizable",
+          "applied": "Aplicado anteriormente",
+          "refundable": "Reembolsable"
+        },
+        "hints": {
+          "gross": "Total de importes cobrados aún no asignados por completo.",
+          "pending": "Importes cuyo medio de pago sigue pendiente de liquidación.",
+          "available": "Importes liquidados que pueden asignarse a deudas de la cuenta.",
+          "blocked": "Importes que no pueden usarse por rechazo del pago o anulación.",
+          "refundable": "Solo informativo; los reembolsos aún no están disponibles."
+        },
+        "states": {
+          "available": "Disponible para asignación",
+          "pending": "Pendiente de liquidación",
+          "blocked": "No utilizable",
+          "applied": "Aplicado anteriormente",
+          "fully_applied": "Totalmente aplicado",
+          "empty": "Sin importes"
+        },
+        "filters": {
+          "billingPartner": "Cuenta del pagador",
+          "state": "Estado",
+          "stateAll": "Todos",
+          "hasAvailable": "Tiene importe disponible",
+          "reset": "Restablecer"
+        },
+        "columns": {
+          "payer": "Pagador",
+          "reference": "Referencia",
+          "sourceCount": "Fuentes de crédito",
+          "state": "Estado general",
+          "actions": "Acciones"
+        },
+        "sources": {
+          "title": "Fuentes de importes sin asignar",
+          "collection": "Cobro",
+          "receipt": "Recibo",
+          "collectionAmount": "Importe del cobro",
+          "allocated": "Asignado",
+          "unallocated": "Sin asignar",
+          "settlement": "Liquidación",
+          "blockReason": "Motivo de bloqueo"
+        },
+        "settlement": {
+          "cheque_bounced": "Cheque rechazado",
+          "pending_cheque": "Cheque pendiente",
+          "cheque_cleared": "Cheque cobrado",
+          "confirmed": "Confirmado",
+          "reversed": "Anulado"
+        },
+        "blockReasons": {
+          "cheque_bounced": "Cheque rechazado",
+          "cheque_replaced": "Cheque sustituto sin liquidar",
+          "collection_reversed": "Cobro anulado",
+          "collection_cancelled": "Cobro cancelado",
+          "pending_settlement": "Liquidación pendiente",
+          "currency_mismatch": "Moneda incompatible",
+          "billing_account_mismatch": "Cuenta de pagador incompatible"
+        },
+        "emptyTitle": "Sin saldos",
+        "emptyDesc": "No hay cuentas de pagador con importes sin asignar en el ámbito actual.",
+        "emptyNoAvailableTitle": "No hay crédito disponible para asignación",
+        "emptyNoAvailableDesc": "No hay crédito disponible para asignación en este momento.",
+        "emptyAccountTitle": "Sin importes sin asignar",
+        "emptyAccountDesc": "Esta cuenta no tiene importes sin asignar.",
+        "emptySources": "Sin fuentes sin asignar.",
+        "noticeBlockedOnly": "Hay importes sin asignar, pero no son utilizables por el estado de liquidación.",
+        "noticeNoAvailable": "No hay crédito disponible para asignación en este momento.",
+        "noticeAccountBlockedOnly": "Hay importes sin asignar, pero no son utilizables ahora.",
+        "detailFallbackNotice": "No se pudieron cargar todos los detalles del crédito; se muestra el resumen de la cuenta.",
+        "errors": {
+          "notFound": "No se encontró el saldo o la cuenta del pagador.",
+          "forbidden": "No tiene permiso para ver saldos financieros.",
+          "invalidFilter": "Uno de los filtros no es válido."
+        },
+        "applyErrors": {
+          "creditBalanceNotFound": "No se encontró el saldo solicitado.",
+          "creditNotAvailable": "Este importe no está disponible para asignación.",
+          "insufficientAvailableCredit": "La asignación supera el crédito disponible.",
+          "creditPendingSettlement": "Este importe no puede usarse antes de completar la liquidación.",
+          "creditSourceBounced": "No se puede usar crédito de un cheque rechazado.",
+          "creditBillingAccountMismatch": "El crédito debe asignarse a deudas de la misma cuenta del pagador.",
+          "creditCurrencyMismatch": "No se puede asignar el crédito por incompatibilidad de moneda.",
+          "duplicateCreditApplication": "Esta asignación ya se aplicó.",
+          "forbidden": "No tiene permiso para asignar este crédito.",
+          "validationError": "Datos de asignación no válidos."
+        },
+        "applyValidation": {
+          "duplicateAllocation": "No se puede asignar la misma cuota dos veces.",
+          "invalidAllocation": "Una cuota seleccionada no es válida para asignación.",
+          "allocationExceedsReceivable": "La asignación supera el resto de la cuota.",
+          "allocationExceedsCredit": "La asignación supera el crédito disponible.",
+          "emptyAllocation": "Introduzca al menos un importe de asignación."
+        }
+      },
       "activeSchool": "Centro activo",
       "overviewUnavailable": "La API actual no expone indicadores financieros globales.",
       "noOverviewMetricsTitle": "Sin métricas agregadas",
