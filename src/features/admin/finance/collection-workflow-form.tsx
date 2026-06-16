@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
@@ -10,7 +11,15 @@ import { getStudentDisplayName } from '@/lib/utils/student';
 import { normalizeStudentDetailsResponse } from '@/features/admin/students/utils/normalize-student-details';
 import { journalErrorMessageKey, normalizePaymentMethodOptions } from '@/lib/utils/finance-normalize';
 import { collectionErrorMessageKey } from '@/lib/utils/collection-errors';
+import { cashSessionErrorMessageKey } from '@/lib/utils/cash-session-errors';
 import { isChequePayment } from '@/lib/utils/cheque';
+import { isCashJournal, paymentMethodRequiresCashSession } from '@/lib/utils/cash-payment';
+import { cashSessionIsActive } from '@/lib/utils/cash-session-normalize';
+import { fetchCurrentCashSession } from '@/lib/api/finance-cash-desk';
+import {
+  CollectionCashSessionGate,
+  collectionBlockedByCashSession,
+} from '@/features/admin/finance/cash-desk/collection-cash-session-gate';
 import { FinanceStudentSearch } from '@/features/admin/finance/finance-student-search';
 import { BillingPartnerSelect } from '@/features/admin/finance/billing-partner-select';
 import {
@@ -140,6 +149,9 @@ function CollectionWorkflowFormReady({
   onCancel: () => void;
 }) {
   const t = useT();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const collectionPath = `${pathname}${searchParams.toString() ? `?${searchParams}` : ''}`;
   const [step, setStep] = useState<WorkflowStep>('payment');
   const [selectedStudent, setSelectedStudent] = useState<FinanceStudentSearchResult | null>(null);
   const [journalId, setJournalId] = useState('');
@@ -164,6 +176,8 @@ function CollectionWorkflowFormReady({
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [createdCollection, setCreatedCollection] = useState<PaymentCollection | null>(null);
+  const [hasCashSession, setHasCashSession] = useState<boolean | null>(null);
+  const [checkingCashSession, setCheckingCashSession] = useState(false);
 
   useEffect(() => {
     if (!initialStudentId || selectedStudent) return;
@@ -268,6 +282,33 @@ function CollectionWorkflowFormReady({
   }, [allowedMethods, paymentMethod]);
 
   const isCheque = isChequePayment(paymentMethod);
+  const requiresCashSession =
+    !!selectedJournal &&
+    isCashJournal(selectedJournal) &&
+    paymentMethodRequiresCashSession(paymentMethod);
+
+  useEffect(() => {
+    if (!requiresCashSession || !selectedJournal?.id) {
+      setHasCashSession(null);
+      return;
+    }
+    let active = true;
+    setCheckingCashSession(true);
+    void fetchCurrentCashSession(selectedJournal.id).then((session) => {
+      if (!active) return;
+      setHasCashSession(!!session && cashSessionIsActive(session.state));
+      setCheckingCashSession(false);
+    });
+    return () => {
+      active = false;
+    };
+  }, [requiresCashSession, selectedJournal?.id]);
+
+  const cashSessionBlocked = collectionBlockedByCashSession({
+    journal: selectedJournal,
+    paymentMethod,
+    hasOpenSession: hasCashSession,
+  });
   const allocatedTotal = sumAllocationAmounts(allocationInputs);
   const showAllocationStep =
     useInstallmentAllocations && !!academicYearId && (installmentsState.loading || openInstallments.length > 0);
@@ -324,10 +365,13 @@ function CollectionWorkflowFormReady({
     ],
   );
 
-  const canProceedPayment = submitBlockers.length === 0;
+  const canProceedPayment = submitBlockers.length === 0 && !cashSessionBlocked && !checkingCashSession;
 
   function resolveErrorMessage(code: string | undefined, fallback: string): string {
-    const key = collectionErrorMessageKey(code) ?? journalErrorMessageKey(code);
+    const key =
+      collectionErrorMessageKey(code) ??
+      cashSessionErrorMessageKey(code) ??
+      journalErrorMessageKey(code);
     return key ? t(key) : fallback;
   }
 
@@ -376,6 +420,10 @@ function CollectionWorkflowFormReady({
   async function submitCollection() {
     const payload = buildPayload();
     if (!payload) return;
+    if (cashSessionBlocked) {
+      setError(t('admin.finance.cashDesk.collectionGateDesc'));
+      return;
+    }
     setSubmitting(true);
     setError(null);
     const res = await api.post<PaymentCollection>(endpoints.admin.financePaymentCollections, payload);
@@ -613,6 +661,12 @@ function CollectionWorkflowFormReady({
                 <input className="input" value={reference} onChange={(e) => setReference(e.target.value)} />
               </label>
             </div>
+
+            <CollectionCashSessionGate
+              journal={selectedJournal}
+              paymentMethod={paymentMethod}
+              collectionPath={collectionPath}
+            />
 
             {isCheque ? (
               <fieldset className="finance-cheque-fields finance-collection-workflow__fields finance-collection-workflow__fields--cheque">

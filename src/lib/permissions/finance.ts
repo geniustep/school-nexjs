@@ -22,6 +22,14 @@ export const FINANCE_CLEAR_CHEQUES: Permission = 'finance.clear_cheques';
 export const FINANCE_REJECT_CHEQUES: Permission = 'finance.reject_cheques';
 export const FINANCE_CANCEL_CHEQUES: Permission = 'finance.cancel_cheques';
 
+export const FINANCE_VIEW_CASH_SESSIONS: Permission = 'finance.view_cash_sessions';
+export const FINANCE_OPEN_CASH_SESSION: Permission = 'finance.open_cash_session';
+export const FINANCE_CLOSE_CASH_SESSION: Permission = 'finance.close_cash_session';
+export const FINANCE_REOPEN_CASH_SESSION: Permission = 'finance.reopen_cash_session';
+export const FINANCE_MANAGE_CASH_MOVEMENTS: Permission = 'finance.manage_cash_movements';
+export const FINANCE_APPROVE_CASH_DIFFERENCE: Permission = 'finance.approve_cash_difference';
+export const FINANCE_PRINT_CASH_CLOSURE: Permission = 'finance.print_cash_closure';
+
 export function canViewFinance(user: CurrentUser | null): boolean {
   return hasPermission(user, FINANCE_VIEW);
 }
@@ -104,4 +112,12 @@ export function canViewFinanceServices(user: CurrentUser | null): boolean {
     FINANCE_MANAGE_CATALOG,
     FINANCE_MANAGE_PLANS,
   ]);
+}
+
+export function canViewCashSessions(user: CurrentUser | null): boolean {
+  return hasPermission(user, FINANCE_VIEW_CASH_SESSIONS);
+}
+
+export function canOpenCashSession(user: CurrentUser | null): boolean {
+  return hasPermission(user, FINANCE_OPEN_CASH_SESSION);
 }

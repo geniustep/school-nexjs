@@ -1,4 +1,8 @@
-const ALLOWED_RETURN_PREFIXES = ['/admin/finance', '/admin/students/'] as const;
+const ALLOWED_RETURN_PREFIXES = [
+  '/admin/finance',
+  '/admin/finance/cash-desk',
+  '/admin/students/',
+] as const;
 
 /** Accept only known internal admin paths — blocks open redirects. */
 export function isSafeInternalReturnPath(path: string | null | undefined): boolean {

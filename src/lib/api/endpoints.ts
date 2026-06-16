@@ -233,6 +233,19 @@ export const endpoints = {
     financeChequeClear: (id: number | string) => `/admin/finance/cheques/${id}/clear`,
     financeChequeReject: (id: number | string) => `/admin/finance/cheques/${id}/reject`,
     financeChequeCancel: (id: number | string) => `/admin/finance/cheques/${id}/cancel`,
+    financeCashSessions: '/admin/finance/cash-sessions',
+    financeCashSessionCurrent: '/admin/finance/cash-sessions/current',
+    financeCashSessionLegacyDryRun: '/admin/finance/cash-sessions/legacy-dry-run',
+    financeCashSession: (id: number | string) => `/admin/finance/cash-sessions/${id}`,
+    financeCashSessionOpen: '/admin/finance/cash-sessions/open',
+    financeCashSessionStartClosing: (id: number | string) =>
+      `/admin/finance/cash-sessions/${id}/start-closing`,
+    financeCashSessionClose: (id: number | string) => `/admin/finance/cash-sessions/${id}/close`,
+    financeCashSessionReopen: (id: number | string) => `/admin/finance/cash-sessions/${id}/reopen`,
+    financeCashSessionMovements: (id: number | string) =>
+      `/admin/finance/cash-sessions/${id}/movements`,
+    financeCashSessionClosurePdf: (id: number | string) =>
+      `/admin/finance/cash-sessions/${id}/closure-pdf`,
   },
 
   teacher: {

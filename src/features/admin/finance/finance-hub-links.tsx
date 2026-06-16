@@ -17,6 +17,7 @@ import {
   canViewFinanceInstallments,
   canViewFinanceServices,
   canViewFinanceSetup,
+  canViewCashSessions,
   canViewPayments,
 } from '@/lib/permissions/finance';
 import { normalizeFinanceOverview } from '@/lib/utils/finance-normalize';
@@ -82,6 +83,13 @@ export function FinanceHubLinks({ overview }: { overview: AdminFinanceOverview |
       labelKey: 'admin.finance.hub.linkReceipts',
       descKey: 'admin.finance.hub.linkReceiptsDesc',
       show: canViewPayments(user),
+    },
+    {
+      href: '/admin/finance/cash-desk',
+      icon: <IconLayers size={22} />,
+      labelKey: 'admin.finance.cashDesk.hubTitle',
+      descKey: 'admin.finance.cashDesk.hubDesc',
+      show: canViewCashSessions(user),
     },
     {
       href: financeDeepLinkHref('chequesAll'),

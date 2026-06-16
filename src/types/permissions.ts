@@ -53,4 +53,11 @@ export type Permission =
   | 'finance.deposit_cheques'
   | 'finance.clear_cheques'
   | 'finance.reject_cheques'
-  | 'finance.cancel_cheques';
+  | 'finance.cancel_cheques'
+  | 'finance.view_cash_sessions'
+  | 'finance.open_cash_session'
+  | 'finance.close_cash_session'
+  | 'finance.reopen_cash_session'
+  | 'finance.manage_cash_movements'
+  | 'finance.approve_cash_difference'
+  | 'finance.print_cash_closure';

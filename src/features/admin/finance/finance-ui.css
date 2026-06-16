@@ -2629,3 +2629,100 @@
     grid-template-columns: 1fr;
   }
 }
+
+.cash-desk-workspace,
+.cash-desk-sessions-page,
+.cash-desk-session-detail-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cash-desk-header-meta {
+  margin-block-end: 4px;
+}
+
+.cash-desk-kpi-grid {
+  margin-block: 8px 16px;
+}
+
+.cash-desk-actions {
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cash-desk-dialog {
+  max-width: 520px;
+  width: min(100%, 520px);
+}
+
+.cash-desk-dialog--danger {
+  border-inline-start: 4px solid var(--c-danger, #dc2626);
+}
+
+.cash-desk-warning {
+  color: var(--c-danger, #dc2626);
+  margin-block: 0 12px;
+}
+
+.cash-desk-closing__form {
+  margin-block-start: 16px;
+}
+
+.cash-desk-diff-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.cash-desk-diff {
+  font-weight: 600;
+}
+
+.cash-desk-diff--match {
+  color: var(--c-success, #15803d);
+}
+
+.cash-desk-diff--surplus {
+  color: var(--c-success, #15803d);
+}
+
+.cash-desk-diff--shortage {
+  color: var(--c-danger, #dc2626);
+}
+
+.cash-desk-confirm-list {
+  margin: 0 0 16px;
+  padding-inline-start: 1.25rem;
+}
+
+.cash-desk-timeline__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.cash-desk-collection-gate {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  margin-block: 12px;
+}
+
+.input--inline {
+  min-width: 180px;
+}
+
+@media (max-width: 768px) {
+  .cash-desk-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .detail-list.compact {
+    grid-template-columns: 1fr;
+  }
+}
