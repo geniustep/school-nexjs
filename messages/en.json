@@ -3629,6 +3629,7 @@
         "backToList": "Back to financial balances",
         "backToAccount": "Back to billing account",
         "openDetails": "Open details",
+        "openCreditDetails": "View balance details",
         "openSourceCredit": "Source details",
         "openCollection": "Open collection",
         "openReceipt": "Open receipt",
@@ -3725,7 +3726,8 @@
         "errors": {
           "notFound": "Credit balance or billing account not found.",
           "forbidden": "You do not have permission to view financial balances.",
-          "invalidFilter": "One of the filters is invalid."
+          "invalidFilter": "One of the filters is invalid.",
+          "detailLoadFailed": "Could not load financial balance details."
         },
         "applyErrors": {
           "creditBalanceNotFound": "The requested credit balance could not be found.",

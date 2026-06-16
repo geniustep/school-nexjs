@@ -4,6 +4,7 @@ import {
   applyCreditErrorMessageKey,
   canShowApplyCreditButton,
   collectionToCreditSourceFallback,
+  creditBalanceDetailErrorMessageKey,
   deriveCreditLifecycleState,
   normalizeBillingAccountCreditDetail,
   normalizeCollectionCreditDetail,
@@ -19,6 +20,15 @@ import type { FinanceInstallment } from '@/types/finance';
 const LIVE_LIST_ITEM = {
   billing_account: { id: 6988, display_name: 'QA FIN Billing Partner 822' },
   billing_partner_id: 6988,
+  credit: {
+    gross_unallocated_amount: 1150,
+    pending_unallocated_amount: 0,
+    available_credit_amount: 0,
+    blocked_unallocated_amount: 1150,
+    applied_credit_amount: 0,
+    refundable_credit_amount: 0,
+    currency: 'MAD',
+  },
   gross_unallocated_amount: 1150,
   pending_unallocated_amount: 0,
   available_credit_amount: 0,
@@ -26,7 +36,60 @@ const LIVE_LIST_ITEM = {
   applied_credit_amount: 0,
   refundable_credit_amount: 0,
   source_count: 3,
-  allowed_actions: ['view_credit', 'view_source_collection'],
+  allowed_actions: ['view_credit', 'view_source_collection', 'view_receipt'],
+};
+
+const LIVE_DETAIL_ENVELOPE = {
+  billing_account: {
+    id: 6988,
+    name: 'QA FIN Billing Partner 822',
+    display_name: 'QA FIN Billing Partner 822',
+    reference: null,
+  },
+  billing_partner_id: 6988,
+  credit: {
+    gross_unallocated_amount: 1150,
+    pending_unallocated_amount: 0,
+    available_credit_amount: 0,
+    blocked_unallocated_amount: 1150,
+    applied_credit_amount: 0,
+    refundable_credit_amount: 0,
+    currency: 'MAD',
+  },
+  allowed_actions: ['view_credit', 'view_source_collection', 'view_receipt'],
+  sources: [
+    {
+      collection_id: 635,
+      amount: 500,
+      gross_unallocated_amount: 500,
+      available_credit_amount: 0,
+      blocked_unallocated_amount: 500,
+      block_reason: 'cheque_bounced',
+      blocked_reason: 'cheque_bounced',
+      allowed_actions: ['view_credit', 'view_source_collection', 'view_receipt'],
+    },
+    {
+      collection_id: 640,
+      amount: 500,
+      gross_unallocated_amount: 500,
+      available_credit_amount: 0,
+      blocked_unallocated_amount: 500,
+      block_reason: 'cheque_replaced',
+      blocked_reason: 'cheque_replaced',
+      allowed_actions: ['view_credit', 'view_source_collection', 'view_receipt'],
+    },
+    {
+      collection_id: 644,
+      amount: 150,
+      gross_unallocated_amount: 150,
+      available_credit_amount: 0,
+      blocked_unallocated_amount: 150,
+      block_reason: 'cheque_bounced',
+      blocked_reason: 'cheque_bounced',
+      allowed_actions: ['view_credit', 'view_source_collection', 'view_receipt'],
+    },
+  ],
+  applications: [],
 };
 
 const LIVE_COLLECTION_635 = {
@@ -47,7 +110,7 @@ const LIVE_COLLECTION_635 = {
 };
 
 describe('normalize credit balance list', () => {
-  it('normalizes live list item', () => {
+  it('normalizes live list item with nested credit', () => {
     const row = normalizeCreditBalanceListItem(LIVE_LIST_ITEM);
     expect(row?.billing_partner_id).toBe(6988);
     expect(row?.gross_unallocated_amount).toBe(1150);
@@ -81,7 +144,7 @@ describe('normalize collection credit detail', () => {
     expect(canShowApplyCreditButton(detail!)).toBe(false);
   });
 
-  it('shows apply when available and action present', () => {
+  it('shows apply only when available and apply_credit action present', () => {
     expect(
       canShowApplyCreditButton({
         available_credit_amount: 300,
@@ -104,17 +167,32 @@ describe('normalize collection credit detail', () => {
 });
 
 describe('billing account credit detail normalization', () => {
-  it('normalizes account detail with sources', () => {
-    const detail = normalizeBillingAccountCreditDetail({
-      billing_partner_id: 6988,
-      billing_account: { id: 6988, display_name: 'Partner' },
-      gross_unallocated_amount: 1150,
-      available_credit_amount: 0,
-      blocked_unallocated_amount: 1150,
-      sources: [LIVE_COLLECTION_635],
-    });
-    expect(detail?.sources).toHaveLength(1);
+  it('uses official detail envelope as source of truth', () => {
+    const detail = normalizeBillingAccountCreditDetail(LIVE_DETAIL_ENVELOPE);
+    expect(detail?.billing_partner_id).toBe(6988);
+    expect(detail?.gross_unallocated_amount).toBe(1150);
+    expect(detail?.available_credit_amount).toBe(0);
+    expect(detail?.blocked_unallocated_amount).toBe(1150);
+    expect(detail?.sources).toHaveLength(3);
+    expect(detail?.applications).toEqual([]);
+    expect(detail?.allowed_actions).toEqual([
+      'view_credit',
+      'view_source_collection',
+      'view_receipt',
+    ]);
     expect(detail?.lifecycle_state).toBe('blocked');
+  });
+
+  it('reads sources from official response including blocked_reason alias', () => {
+    const detail = normalizeBillingAccountCreditDetail(LIVE_DETAIL_ENVELOPE);
+    const source640 = detail?.sources.find((s) => s.collection_id === 640);
+    expect(source640?.block_reason).toBe('cheque_replaced');
+    expect(source640?.available_credit_amount).toBe(0);
+  });
+
+  it('does not expose apply_credit when backend omits it', () => {
+    const detail = normalizeBillingAccountCreditDetail(LIVE_DETAIL_ENVELOPE)!;
+    expect(canShowApplyCreditButton(detail)).toBe(false);
   });
 });
 
@@ -180,6 +258,17 @@ describe('apply credit error mapping', () => {
   });
 });
 
+describe('detail error mapping', () => {
+  it('maps detail load failure to dedicated message key', () => {
+    expect(creditBalanceDetailErrorMessageKey('server_error')).toBe(
+      'admin.finance.creditBalances.errors.detailLoadFailed',
+    );
+    expect(creditBalanceDetailErrorMessageKey('billing_account_not_found')).toBe(
+      'admin.finance.creditBalances.errors.notFound',
+    );
+  });
+});
+
 describe('aggregate list summary', () => {
   it('aggregates when single page only', () => {
     const row = normalizeCreditBalanceListItem(LIVE_LIST_ITEM)!;
@@ -204,7 +293,7 @@ describe('aggregate list summary', () => {
   });
 });
 
-describe('collection fallback source', () => {
+describe('collection fallback source (legacy helper only)', () => {
   it('does not treat unallocated collection as available credit', () => {
     const source = collectionToCreditSourceFallback({
       id: 635,
@@ -238,5 +327,16 @@ describe('lifecycle derivation', () => {
         blocked_unallocated_amount: 0,
       }),
     ).toBe('available');
+  });
+});
+
+describe('block reason translation keys', () => {
+  it('uses i18n keys for cheque_bounced and cheque_replaced', () => {
+    expect('admin.finance.creditBalances.blockReasons.cheque_bounced').toContain(
+      'cheque_bounced',
+    );
+    expect('admin.finance.creditBalances.blockReasons.cheque_replaced').toContain(
+      'cheque_replaced',
+    );
   });
 });

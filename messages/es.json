@@ -3590,6 +3590,7 @@
         "backToList": "Volver a saldos financieros",
         "backToAccount": "Volver a la cuenta del pagador",
         "openDetails": "Abrir detalles",
+        "openCreditDetails": "Ver detalles del saldo",
         "openSourceCredit": "Detalle de la fuente",
         "openCollection": "Abrir cobro",
         "openReceipt": "Abrir recibo",
@@ -3686,7 +3687,8 @@
         "errors": {
           "notFound": "No se encontró el saldo o la cuenta del pagador.",
           "forbidden": "No tiene permiso para ver saldos financieros.",
-          "invalidFilter": "Uno de los filtros no es válido."
+          "invalidFilter": "Uno de los filtros no es válido.",
+          "detailLoadFailed": "No se pudieron cargar los detalles del saldo financiero."
         },
         "applyErrors": {
           "creditBalanceNotFound": "No se encontró el saldo solicitado.",

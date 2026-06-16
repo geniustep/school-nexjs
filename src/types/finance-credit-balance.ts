@@ -42,6 +42,7 @@ export type BillingAccountRef = {
   display_name?: string;
   name?: string;
   reference?: string | null;
+  student_count?: number;
 };
 
 export type CreditBalanceListSummary = CreditBalanceAmounts & {
@@ -124,6 +125,7 @@ export type BillingAccountCreditDetail = CreditBalanceAmounts & {
   currency?: unknown;
   lifecycle_state?: CreditBalanceLifecycleState | string | null;
   sources: CreditBalanceSource[];
+  applications: CreditBalanceApplication[];
   allowed_actions?: CreditBalanceAllowedAction[] | Record<string, boolean>;
 };
 

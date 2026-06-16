@@ -10,6 +10,7 @@ import { ApiErrorView } from '@/components/states/states';
 import { EmptyState } from '@/components/states/states';
 import { CollectionCreditDrawer } from '@/features/admin/finance/credit-balance/collection-credit-drawer';
 import {
+  CreditBalanceApplicationsSection,
   CreditBalanceDetailSkeleton,
   CreditBalanceSourcesSection,
   CreditBalanceSummaryCards,
@@ -22,18 +23,11 @@ import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { FINANCE_VIEW, canViewCreditBalances } from '@/lib/permissions/finance';
 import { PermissionDeniedState } from '@/components/states/states';
 import { useSession } from '@/features/auth/session-context';
-import { normalizeBillingAccountSummary } from '@/lib/utils/normalize-billing-account';
 import {
-  collectionToCreditSourceFallback,
-  creditBalanceErrorMessageKey,
-  deriveCreditLifecycleState,
+  creditBalanceDetailErrorMessageKey,
   normalizeBillingAccountCreditDetail,
-  normalizeCreditBalanceList,
 } from '@/lib/utils/normalize-credit-balance';
-import { parseFinanceList } from '@/lib/utils/finance-normalize';
 import { sanitizeReturnTo } from '@/lib/utils/safe-return-url';
-import type { PaymentCollection } from '@/types/finance';
-import type { CreditBalanceAmounts, CreditBalanceSource } from '@/types/finance-credit-balance';
 
 export default function AdminFinanceBillingAccountCreditBalancePage({
   params,
@@ -56,64 +50,25 @@ export default function AdminFinanceBillingAccountCreditBalancePage({
   const creditState = useAdminResource<unknown>(
     endpoints.admin.financeBillingAccountCreditBalance(billingPartnerId),
   );
-  const summaryState = useAdminResource<unknown>(
-    endpoints.admin.financeBillingAccountSummary(billingPartnerId),
-  );
-  const collectionsState = useAdminResource<PaymentCollection[]>(
-    creditState.error ? endpoints.admin.financePaymentCollections : null,
-    creditState.error
-      ? { billing_partner_id: billingPartnerId, page: 1, page_size: 50 }
-      : undefined,
-  );
 
-  const creditDetail = useMemo(
+  const detail = useMemo(
     () => normalizeBillingAccountCreditDetail(creditState.data),
     [creditState.data],
   );
-  const detail = creditDetail;
-  const familySummary = useMemo(
-    () => normalizeBillingAccountSummary(summaryState.data),
-    [summaryState.data],
-  );
 
-  const fallbackSources = useMemo(() => {
-    if (!creditState.error || !collectionsState.data) return [];
-    return parseFinanceList<PaymentCollection>(collectionsState.data)
-      .map(collectionToCreditSourceFallback)
-      .filter((row): row is CreditBalanceSource => row != null);
-  }, [creditState.error, collectionsState.data]);
-
-  const creditSummary: CreditBalanceAmounts | null =
-    detail ??
-    familySummary?.summary.credit ??
-    (familySummary?.summary.unallocated_collection_amount != null
-      ? {
-          gross_unallocated_amount: familySummary.summary.unallocated_collection_amount,
-          pending_unallocated_amount: 0,
-          available_credit_amount: familySummary.summary.credit?.available_credit_amount ?? 0,
-          blocked_unallocated_amount:
-            familySummary.summary.credit?.blocked_unallocated_amount ??
-            familySummary.summary.unallocated_collection_amount,
-          applied_credit_amount: familySummary.summary.credit?.applied_credit_amount ?? 0,
-          refundable_credit_amount: familySummary.summary.credit?.refundable_credit_amount ?? 0,
-        }
-      : null);
-  const account =
-    detail?.billing_account ??
-    familySummary?.billing_account ?? {
-      id: Number(billingPartnerId),
-      display_name: `#${billingPartnerId}`,
-    };
-  const sources = detail?.sources?.length ? detail.sources : fallbackSources;
-  const currency = detail?.currency ?? familySummary?.summary.currency;
-  const lifecycle =
-    detail?.lifecycle_state ?? (creditSummary ? deriveCreditLifecycleState(creditSummary) : 'empty');
-  const loading = summaryState.initialLoading && !familySummary;
+  const account = detail?.billing_account ?? {
+    id: Number(billingPartnerId),
+    display_name: `#${billingPartnerId}`,
+  };
   const accountName = account.display_name ?? account.name ?? `#${billingPartnerId}`;
+  const creditSummary = detail;
+  const sources = detail?.sources ?? [];
+  const applications = detail?.applications ?? [];
+  const currency = detail?.currency;
+  const lifecycle = detail?.lifecycle_state ?? 'empty';
 
-  const gross =
-    creditSummary?.gross_unallocated_amount ?? familySummary?.summary.unallocated_collection_amount;
-  const hasUnallocated = (gross ?? 0) > 0;
+  const gross = creditSummary?.gross_unallocated_amount ?? 0;
+  const hasUnallocated = gross > 0;
   const allBlocked =
     hasUnallocated &&
     (creditSummary?.available_credit_amount ?? 0) <= 0 &&
@@ -145,16 +100,13 @@ export default function AdminFinanceBillingAccountCreditBalancePage({
           <h1 dir="auto">{accountName}</h1>
           {account.reference ? <p className="mono muted">{account.reference}</p> : null}
           <div className="finance-billing-detail-header__meta muted">
-            <span>
-              {t('admin.finance.billingAccounts.studentCountLabel', {
-                count: String(
-                  detail?.student_count ??
-                    familySummary?.summary.student_count ??
-                    familySummary?.students.length ??
-                    0,
-                ),
-              })}
-            </span>
+            {detail?.student_count != null ? (
+              <span>
+                {t('admin.finance.billingAccounts.studentCountLabel', {
+                  count: String(detail.student_count),
+                })}
+              </span>
+            ) : null}
             {activeSchool ? (
               <span dir="auto">
                 {t('admin.finance.activeSchool')}: {activeSchool.name}
@@ -165,41 +117,32 @@ export default function AdminFinanceBillingAccountCreditBalancePage({
         </div>
       </div>
 
-      {creditState.error && !detail && !familySummary ? (
+      {creditState.initialLoading ? <CreditBalanceDetailSkeleton /> : null}
+
+      {creditState.error && !detail ? (
         <ApiErrorView
           error={{
             code: creditState.error.code ?? 'server_error',
-            message: t(creditBalanceErrorMessageKey(creditState.error.code)),
+            message: t(creditBalanceDetailErrorMessageKey(creditState.error.code)),
           }}
-          onRetry={() => {
-            creditState.reload();
-            summaryState.reload();
-          }}
+          onRetry={creditState.reload}
         />
       ) : null}
 
-      {creditState.error && !detail && familySummary ? (
-        <p className="finance-credit-notice finance-credit-notice--warn" role="status">
-          {t('admin.finance.creditBalances.detailFallbackNotice')}
-        </p>
-      ) : null}
-
-      {loading && !creditSummary ? <CreditBalanceDetailSkeleton /> : null}
-
-      {creditSummary && !loading ? (
+      {detail && !creditState.initialLoading ? (
         <>
           {allBlocked ? (
             <p className="finance-credit-notice" role="status">
               {t('admin.finance.creditBalances.noticeAccountBlockedOnly')}
             </p>
           ) : null}
-          {(creditSummary.available_credit_amount ?? 0) <= 0 ? (
+          {(detail.available_credit_amount ?? 0) <= 0 ? (
             <p className="finance-credit-notice finance-credit-notice--muted" role="status">
               {t('admin.finance.creditBalances.noticeNoAvailable')}
             </p>
           ) : null}
 
-          <CreditBalanceSummaryCards summary={creditSummary} currency={currency} loading={false} />
+          <CreditBalanceSummaryCards summary={detail} currency={currency} loading={false} />
 
           {!hasUnallocated ? (
             <EmptyState
@@ -207,12 +150,15 @@ export default function AdminFinanceBillingAccountCreditBalancePage({
               description={t('admin.finance.creditBalances.emptyAccountDesc')}
             />
           ) : (
-            <CreditBalanceSourcesSection
-              sources={sources}
-              returnTo={pageReturnTo}
-              loading={false}
-              onOpenSource={setSelectedCollectionId}
-            />
+            <>
+              <CreditBalanceSourcesSection
+                sources={sources}
+                returnTo={pageReturnTo}
+                loading={false}
+                onOpenSource={setSelectedCollectionId}
+              />
+              <CreditBalanceApplicationsSection applications={applications} currency={currency} />
+            </>
           )}
         </>
       ) : null}
@@ -222,10 +168,7 @@ export default function AdminFinanceBillingAccountCreditBalancePage({
         collectionId={selectedCollectionId}
         returnTo={pageReturnTo}
         onClose={() => setSelectedCollectionId(null)}
-        onApplied={() => {
-          creditState.reload();
-          summaryState.reload();
-        }}
+        onApplied={creditState.reload}
       />
     </RequireAdminPermission>
   );

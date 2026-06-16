@@ -14,7 +14,7 @@ import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { deriveCreditLifecycleState } from '@/lib/utils/normalize-credit-balance';
 import { paymentMethodLabel } from '@/lib/utils/finance';
-import type { CreditBalanceAmounts, CreditBalanceSource } from '@/types/finance-credit-balance';
+import type { CreditBalanceAmounts, CreditBalanceApplication, CreditBalanceSource } from '@/types/finance-credit-balance';
 
 function SummaryCard({
   label,
@@ -295,6 +295,65 @@ export function CreditBalanceSourcesSection({
   );
 }
 
+export function CreditBalanceApplicationsSection({
+  applications,
+  currency,
+}: {
+  applications: CreditBalanceApplication[];
+  currency?: unknown;
+}) {
+  const t = useT();
+  const { formatDate } = useFormat();
+
+  if (!applications.length) {
+    return (
+      <section className="finance-billing-section">
+        <h2>{t('admin.finance.creditBalances.applicationsTitle')}</h2>
+        <p className="muted">{t('admin.finance.creditBalances.noApplications')}</p>
+      </section>
+    );
+  }
+
+  const columns: Column<CreditBalanceApplication>[] = [
+    {
+      key: 'student',
+      header: t('nav.students'),
+      render: (row) => <span dir="auto">{row.student_name ?? t('common.dash')}</span>,
+    },
+    {
+      key: 'service',
+      header: t('admin.finance.collections.columns.service'),
+      render: (row) => <span dir="auto">{row.service_name ?? t('common.dash')}</span>,
+    },
+    {
+      key: 'amount',
+      header: t('admin.finance.allocationAmount'),
+      render: (row) => <FinanceMoney amount={row.amount} currency={currency} />,
+    },
+    {
+      key: 'date',
+      header: t('common.date'),
+      render: (row) => (row.date ? formatDate(row.date) : t('common.dash')),
+    },
+    {
+      key: 'reference',
+      header: t('admin.finance.reference'),
+      render: (row) => <span className="mono">{row.reference ?? t('common.dash')}</span>,
+    },
+  ];
+
+  return (
+    <section className="finance-billing-section">
+      <h2>{t('admin.finance.creditBalances.applicationsTitle')}</h2>
+      <DataTable
+        columns={columns}
+        rows={applications}
+        rowKey={(row) => String(row.id ?? `${row.installment_id ?? 0}-${row.amount ?? 0}`)}
+      />
+    </section>
+  );
+}
+
 export function BillingAccountCreditSection({
   grossUnallocated,
   credit,
@@ -323,7 +382,7 @@ export function BillingAccountCreditSection({
           href={`/admin/finance/billing-accounts/${billingPartnerId}/credit-balance?returnTo=${encodeURIComponent(returnTo)}`}
           className="btn btn--ghost btn--sm"
         >
-          {t('admin.finance.creditBalances.openDetails')}
+          {t('admin.finance.creditBalances.openCreditDetails')}
         </Link>
       </div>
       <div className="finance-credit-family-metrics">

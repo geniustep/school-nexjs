@@ -62,6 +62,36 @@ function readCreditAmounts(raw: Record<string, unknown>): CreditBalanceAmounts {
   };
 }
 
+/** Prefer nested `credit`, then `summary`, then top-level official fields. */
+function readCreditAmountsFromEnvelope(row: Record<string, unknown>): CreditBalanceAmounts {
+  const creditRaw = row.credit;
+  if (creditRaw && typeof creditRaw === 'object') {
+    return readCreditAmounts(creditRaw as Record<string, unknown>);
+  }
+  const summaryRaw = row.summary;
+  if (summaryRaw && typeof summaryRaw === 'object') {
+    const summary = summaryRaw as Record<string, unknown>;
+    if (
+      summary.gross_unallocated_amount != null ||
+      summary.available_credit_amount != null ||
+      summary.blocked_unallocated_amount != null
+    ) {
+      return readCreditAmounts(summary);
+    }
+  }
+  return readCreditAmounts(row);
+}
+
+function readCreditCurrency(row: Record<string, unknown>): unknown {
+  const creditRaw = row.credit;
+  if (creditRaw && typeof creditRaw === 'object') {
+    const credit = creditRaw as Record<string, unknown>;
+    if (credit.currency != null) return credit.currency;
+    if (credit.currency_id != null) return credit.currency_id;
+  }
+  return row.currency ?? row.currency_id;
+}
+
 function readBillingAccountRef(raw: unknown): BillingAccountRef | null {
   if (!raw || typeof raw !== 'object') return null;
   const row = raw as Record<string, unknown>;
@@ -106,7 +136,7 @@ export function normalizeCreditBalanceListItem(raw: unknown): CreditBalanceListI
   if (billingPartnerId == null) return null;
 
   const account = readBillingAccountRef(row.billing_account ?? row.billing_partner);
-  const amounts = readCreditAmounts(row);
+  const amounts = readCreditAmountsFromEnvelope(row);
   const lifecycle =
     (typeof row.lifecycle_state === 'string' ? row.lifecycle_state : null) ??
     deriveCreditLifecycleState(amounts);
@@ -235,7 +265,9 @@ export function normalizeCreditBalanceSource(raw: unknown): CreditBalanceSource 
     lifecycle_state:
       (typeof row.lifecycle_state === 'string' ? row.lifecycle_state : null) ??
       deriveCreditLifecycleState(amounts),
-    block_reason: typeof row.block_reason === 'string' ? row.block_reason : null,
+    block_reason:
+      (typeof row.block_reason === 'string' ? row.block_reason : null) ??
+      (typeof row.blocked_reason === 'string' ? row.blocked_reason : null),
     student_id: typeof row.student_id === 'number' ? row.student_id : null,
     student_name: typeof row.student_name === 'string' ? row.student_name : null,
     currency: row.currency,
@@ -271,7 +303,9 @@ export function normalizeCollectionCreditDetail(data: unknown): CollectionCredit
     lifecycle_state:
       (typeof row.lifecycle_state === 'string' ? row.lifecycle_state : null) ??
       deriveCreditLifecycleState(amounts),
-    block_reason: typeof row.block_reason === 'string' ? row.block_reason : null,
+    block_reason:
+      (typeof row.block_reason === 'string' ? row.block_reason : null) ??
+      (typeof row.blocked_reason === 'string' ? row.blocked_reason : null),
     cheque_id: typeof row.cheque_id === 'number' ? row.cheque_id : null,
     allowed_actions: normalizeCreditAllowedActions(row.allowed_actions),
     applications,
@@ -308,19 +342,29 @@ export function normalizeBillingAccountCreditDetail(
   const billingPartnerId =
     typeof row.billing_partner_id === 'number' ? row.billing_partner_id : account?.id;
   if (!account || billingPartnerId == null) return null;
-  const amounts = readCreditAmounts(row.summary && typeof row.summary === 'object' ? (row.summary as Record<string, unknown>) : row);
+  const amounts = readCreditAmountsFromEnvelope(row);
   const sources = parseFinanceList<unknown>(row.sources ?? row.source_collections)
     .map(normalizeCreditBalanceSource)
     .filter((s): s is CreditBalanceSource => s != null);
+  const applications = parseFinanceList<unknown>(row.applications)
+    .map(normalizeCreditApplication)
+    .filter((a): a is CreditBalanceApplication => a != null);
+  const accountRef = readBillingAccountRef(row.billing_account ?? row.billing_partner) ?? account;
   return {
     billing_partner_id: billingPartnerId,
-    billing_account: account,
-    student_count: typeof row.student_count === 'number' ? row.student_count : null,
-    currency: row.currency,
+    billing_account: accountRef,
+    student_count:
+      typeof row.student_count === 'number'
+        ? row.student_count
+        : typeof accountRef.student_count === 'number'
+          ? accountRef.student_count
+          : null,
+    currency: readCreditCurrency(row),
     lifecycle_state:
       (typeof row.lifecycle_state === 'string' ? row.lifecycle_state : null) ??
       deriveCreditLifecycleState(amounts),
     sources,
+    applications,
     allowed_actions: normalizeCreditAllowedActions(row.allowed_actions),
     ...amounts,
   };
@@ -349,6 +393,18 @@ export function collectionToCreditSourceFallback(coll: PaymentCollection): Credi
     currency: coll.currency,
     allowed_actions: normalizeCreditAllowedActions(coll.allowed_actions),
   };
+}
+
+export function creditBalanceDetailErrorMessageKey(code: string | undefined): string {
+  switch (code) {
+    case 'billing_account_not_found':
+    case 'credit_balance_not_found':
+      return 'admin.finance.creditBalances.errors.notFound';
+    case 'forbidden':
+      return 'admin.finance.creditBalances.errors.forbidden';
+    default:
+      return 'admin.finance.creditBalances.errors.detailLoadFailed';
+  }
 }
 
 export function creditBalanceErrorMessageKey(code: string | undefined): string {

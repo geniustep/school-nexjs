@@ -3627,6 +3627,7 @@
         "backToList": "العودة إلى الأرصدة المالية",
         "backToAccount": "العودة إلى حساب الدافع",
         "openDetails": "فتح التفاصيل",
+        "openCreditDetails": "عرض تفاصيل الرصيد",
         "openSourceCredit": "تفاصيل المصدر",
         "openCollection": "فتح التحصيل",
         "openReceipt": "فتح الإيصال",
@@ -3704,7 +3705,7 @@
         },
         "blockReasons": {
           "cheque_bounced": "شيك مرفوض",
-          "cheque_replaced": "شيك بديل لم تتم تسويته",
+          "cheque_replaced": "شيك مستبدل وغير قابل للاستعمال",
           "collection_reversed": "تحصيل معكوس",
           "collection_cancelled": "تحصيل ملغى",
           "pending_settlement": "بانتظار التسوية",
@@ -3725,7 +3726,8 @@
         "errors": {
           "notFound": "تعذر العثور على الرصيد أو حساب الدافع.",
           "forbidden": "لا تملك صلاحية عرض الأرصدة المالية.",
-          "invalidFilter": "أحد الفلاتر غير صالح."
+          "invalidFilter": "أحد الفلاتر غير صالح.",
+          "detailLoadFailed": "تعذر تحميل تفاصيل الرصيد المالي."
         },
         "applyErrors": {
           "creditBalanceNotFound": "تعذر العثور على الرصيد المطلوب.",

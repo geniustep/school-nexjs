@@ -3590,6 +3590,7 @@
         "backToList": "Retour aux soldes financiers",
         "backToAccount": "Retour au compte payeur",
         "openDetails": "Ouvrir les détails",
+        "openCreditDetails": "Voir les détails du solde",
         "openSourceCredit": "Détails de la source",
         "openCollection": "Ouvrir l'encaissement",
         "openReceipt": "Ouvrir le reçu",
@@ -3665,7 +3666,7 @@
         },
         "blockReasons": {
           "cheque_bounced": "Chèque rejeté",
-          "cheque_replaced": "Chèque de remplacement non réglé",
+          "cheque_replaced": "Chèque remplacé, non utilisable",
           "collection_reversed": "Encaissement annulé",
           "collection_cancelled": "Encaissement annulé",
           "pending_settlement": "Règlement en attente",
@@ -3686,7 +3687,8 @@
         "errors": {
           "notFound": "Solde ou compte payeur introuvable.",
           "forbidden": "Vous n'avez pas la permission de consulter les soldes financiers.",
-          "invalidFilter": "Un des filtres est invalide."
+          "invalidFilter": "Un des filtres est invalide.",
+          "detailLoadFailed": "Impossible de charger les détails du solde financier."
         },
         "applyErrors": {
           "creditBalanceNotFound": "Le solde demandé est introuvable.",
