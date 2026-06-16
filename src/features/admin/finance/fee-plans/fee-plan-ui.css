@@ -185,3 +185,170 @@
     padding-right: 1.25rem;
   }
 }
+
+/* Fee plan detail page */
+.fee-plan-detail-page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 960px;
+}
+
+.fee-plan-detail-page__back {
+  margin: 0;
+}
+
+.fee-plan-detail-page .page-header {
+  margin-block-end: 0;
+  padding-block-end: 0;
+  border-block-end: 0;
+}
+
+.fee-plan-detail-page__actions .btn {
+  min-height: 2.5rem;
+  padding-inline: 18px;
+  font-size: 0.9rem;
+}
+
+.fee-plan-detail-page__hint {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px dashed var(--c-border, #e2e8f0);
+  background: var(--c-surface-muted, #f8fafc);
+  font-size: 0.875rem;
+  color: var(--c-muted, #64748b);
+}
+
+.fee-plan-detail-summary {
+  padding: 16px 18px;
+}
+
+.fee-plan-detail-summary__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px 20px;
+  margin: 0;
+}
+
+.fee-plan-detail-summary__grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.fee-plan-detail-summary__grid dt {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--c-muted, #64748b);
+}
+
+.fee-plan-detail-summary__grid dd {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.fee-plan-detail-summary__total {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--c-primary, #2563eb) 25%, #e2e8f0);
+  background: color-mix(in srgb, var(--c-primary, #2563eb) 5%, #fff);
+}
+
+.fee-plan-detail-summary__total dt {
+  color: var(--c-text, #0f172a);
+}
+
+.fee-plan-detail-summary__total dd {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.fee-plan-detail-summary__levels,
+.fee-plan-detail-summary__class {
+  grid-column: 1 / -1;
+  padding-top: 4px;
+  border-top: 1px solid var(--c-border, #e2e8f0);
+}
+
+.fee-plan-detail-lines {
+  padding: 16px 18px;
+}
+
+.fee-plan-detail-lines__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.fee-plan-detail-lines__head h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.fee-plan-detail-lines__count {
+  font-size: 0.82rem;
+  color: var(--c-muted, #64748b);
+}
+
+.fee-plan-detail-lines__table {
+  overflow-x: auto;
+}
+
+.fee-plan-detail-lines__empty {
+  color: var(--c-muted, #64748b);
+  font-size: 0.875rem;
+}
+
+.fee-plan-detail-notes {
+  padding: 16px 18px;
+}
+
+.fee-plan-detail-notes h2 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.fee-plan-detail-notes p {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--c-text, #0f172a);
+}
+
+@media (max-width: 768px) {
+  .fee-plan-detail-page {
+    max-width: none;
+  }
+
+  .fee-plan-detail-summary__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .fee-plan-detail-summary__total {
+    grid-column: 1 / -1;
+  }
+
+  .fee-plan-detail-page__actions {
+    width: 100%;
+  }
+
+  .fee-plan-detail-page__actions .btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .fee-plan-detail-summary__grid {
+    grid-template-columns: 1fr;
+  }
+}

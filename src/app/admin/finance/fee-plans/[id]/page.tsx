@@ -68,89 +68,113 @@ export default function AdminFinanceFeePlanDetailPage({
     {
       key: 'due',
       header: t('admin.finance.dueDate'),
-      render: (l) => (l.due_date ? formatDate(l.due_date) : t('common.dash')),
+      render: (l) =>
+        l.due_date ? (
+          formatDate(l.due_date)
+        ) : (
+          <span className="fee-plan-detail-lines__empty">{t('common.dash')}</span>
+        ),
     },
   ];
 
   return (
     <RequireAdminPermission permission={FINANCE_VIEW}>
-      <Link href="/admin/finance/fee-plans" className="back-link">
-        ‹ {t('admin.finance.backToFeePlans')}
-      </Link>
-      <ResourceView state={state} loadingLabel={t('common.loading')}>
-        {(plan) => (
-          <>
-            <PageHeader
-              title={plan.name}
-              subtitle={plan.code}
-              actions={
-                canManage && feePlanState(plan) === 'draft' && (plan.lines?.length ?? 0) > 0 &&
-                normalizeFeePlanLevelIds(plan).length > 0 ? (
-                  <ConfirmActionButton
-                    label={t('admin.finance.confirmPlan')}
-                    confirmMessage={t('admin.finance.confirmPlanMessage')}
-                    path={endpoints.admin.financeFeePlanConfirm(id)}
-                    onSuccess={() => state.reload()}
-                  />
-                ) : undefined
-              }
-            />
-            {canManage && feePlanState(plan) === 'draft' && (plan.lines?.length ?? 0) === 0 && (
-              <p className="muted">{t('admin.finance.confirmPlanNeedsLines')}</p>
-            )}
-            <div className="detail-grid">
-              <div className="card">
-                <dl className="detail-list">
-                  <div>
-                    <dt>{t('academic.status')}</dt>
-                    <dd>
-                      <FinanceStatusBadge state={feePlanState(plan)} />
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>{t('admin.finance.academicYear')}</dt>
-                    <dd>
-                      {academicYearFromSource(plan)?.name ??
-                        refName(typeof plan.academic_year === 'object' ? plan.academic_year : null) ??
-                        t('common.dash')}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>{t('admin.finance.totalAmount')}</dt>
-                    <dd>
-                      <FinanceMoney amount={plan.total_amount} currency={plan.currency} />
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>{t('nav.levels')}</dt>
-                    <dd className="fee-plan-level-scope-summary fee-plan-level-scope-summary--multiline">
-                      {feePlanLevelScopeLabel(plan, scopeGroups, scopeLabels)}
-                    </dd>
-                  </div>
-                  {plan.class?.name && (
+      <div className="fee-plan-detail-page">
+        <Link href="/admin/finance/fee-plans" className="back-link fee-plan-detail-page__back">
+          ‹ {t('admin.finance.backToFeePlans')}
+        </Link>
+        <ResourceView state={state} loadingLabel={t('common.loading')}>
+          {(plan) => {
+            const canConfirm =
+              canManage &&
+              feePlanState(plan) === 'draft' &&
+              (plan.lines?.length ?? 0) > 0 &&
+              normalizeFeePlanLevelIds(plan).length > 0;
+
+            return (
+              <>
+                <PageHeader
+                  title={plan.name}
+                  subtitle={plan.code}
+                  actions={
+                    canConfirm ? (
+                      <div className="fee-plan-detail-page__actions">
+                        <ConfirmActionButton
+                          label={t('admin.finance.confirmPlan')}
+                          confirmMessage={t('admin.finance.confirmPlanMessage')}
+                          path={endpoints.admin.financeFeePlanConfirm(id)}
+                          variant="primary"
+                          onSuccess={() => state.reload()}
+                        />
+                      </div>
+                    ) : undefined
+                  }
+                />
+
+                {canManage && feePlanState(plan) === 'draft' && (plan.lines?.length ?? 0) === 0 ? (
+                  <p className="fee-plan-detail-page__hint">{t('admin.finance.confirmPlanNeedsLines')}</p>
+                ) : null}
+
+                <section className="card fee-plan-detail-summary">
+                  <dl className="fee-plan-detail-summary__grid">
                     <div>
-                      <dt>{t('nav.classes')}</dt>
-                      <dd>{plan.class.name}</dd>
+                      <dt>{t('academic.status')}</dt>
+                      <dd>
+                        <FinanceStatusBadge state={feePlanState(plan)} />
+                      </dd>
                     </div>
-                  )}
-                </dl>
-              </div>
-            </div>
-            {(plan.lines?.length ?? 0) > 0 && (
-              <section className="card">
-                <h3>{t('admin.finance.planLines')}</h3>
-                <DataTable columns={lineColumns} rows={plan.lines ?? []} rowKey={(row) => row.id} />
-              </section>
-            )}
-            {plan.notes && (
-              <section className="card">
-                <h3>{t('common.note')}</h3>
-                <p>{plan.notes}</p>
-              </section>
-            )}
-          </>
-        )}
-      </ResourceView>
+                    <div>
+                      <dt>{t('admin.finance.academicYear')}</dt>
+                      <dd>
+                        {academicYearFromSource(plan)?.name ??
+                          refName(typeof plan.academic_year === 'object' ? plan.academic_year : null) ??
+                          t('common.dash')}
+                      </dd>
+                    </div>
+                    <div className="fee-plan-detail-summary__total">
+                      <dt>{t('admin.finance.totalAmount')}</dt>
+                      <dd>
+                        <FinanceMoney amount={plan.total_amount} currency={plan.currency} />
+                      </dd>
+                    </div>
+                    <div className="fee-plan-detail-summary__levels">
+                      <dt>{t('nav.levels')}</dt>
+                      <dd className="fee-plan-level-scope-summary fee-plan-level-scope-summary--multiline">
+                        {feePlanLevelScopeLabel(plan, scopeGroups, scopeLabels)}
+                      </dd>
+                    </div>
+                    {plan.class?.name ? (
+                      <div className="fee-plan-detail-summary__class">
+                        <dt>{t('nav.classes')}</dt>
+                        <dd>{plan.class.name}</dd>
+                      </div>
+                    ) : null}
+                  </dl>
+                </section>
+
+                {(plan.lines?.length ?? 0) > 0 ? (
+                  <section className="card fee-plan-detail-lines">
+                    <div className="fee-plan-detail-lines__head">
+                      <h2>{t('admin.finance.planLines')}</h2>
+                      <span className="fee-plan-detail-lines__count">{plan.lines?.length ?? 0}</span>
+                    </div>
+                    <div className="fee-plan-detail-lines__table">
+                      <DataTable columns={lineColumns} rows={plan.lines ?? []} rowKey={(row) => row.id} />
+                    </div>
+                  </section>
+                ) : null}
+
+                {plan.notes ? (
+                  <section className="card fee-plan-detail-notes">
+                    <h2>{t('common.note')}</h2>
+                    <p>{plan.notes}</p>
+                  </section>
+                ) : null}
+              </>
+            );
+          }}
+        </ResourceView>
+      </div>
     </RequireAdminPermission>
   );
 }
