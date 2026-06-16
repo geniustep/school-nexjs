@@ -39,6 +39,14 @@ export function formValuesFromFeePlan(plan: FeePlan, feeTypes: FeeType[]): FeePl
     draft.feeTypeId = line.fee_type_id ?? feeType?.id ?? 0;
     draft.label = line.description && typeof line.description === 'string' ? line.description : line.name ?? '';
     draft.amount = line.amount;
+    draft.frequency = line.frequency ?? 'once';
+    if (Array.isArray(line.level_ids) && line.level_ids.length > 0) {
+      draft.levelScopeMode = 'specific';
+      draft.levelIds = line.level_ids;
+    } else {
+      draft.levelScopeMode = 'all_plan_levels';
+      draft.levelIds = [];
+    }
     draft.isOptional = line.is_optional === true;
     draft.installmentCount = line.installment_count ?? 1;
     if (line.installment_schedule?.length) {

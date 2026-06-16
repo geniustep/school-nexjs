@@ -13,17 +13,13 @@ import {
   resolveFeeTypeErrorCode,
   type FeeTypeFormValues,
 } from '@/features/admin/finance/fee-types/normalize-fee-type';
-import { FEE_TYPE_CATEGORIES, FEE_TYPE_FREQUENCIES } from '@/features/admin/finance/fee-types/fee-type-options';
+import { FEE_TYPE_CATEGORIES } from '@/features/admin/finance/fee-types/fee-type-options';
 import type { FeeTypeDetail } from '@/types/finance';
 
 const EMPTY_VALUES: FeeTypeFormValues = {
   name: '',
   code: '',
   category: 'tuition',
-  frequency: 'annual',
-  defaultAmount: '',
-  currencyId: '',
-  isMandatory: false,
   requiresSubscription: false,
   requiresUsageTracking: false,
   sequence: '',
@@ -33,13 +29,11 @@ const EMPTY_VALUES: FeeTypeFormValues = {
 export function FeeTypeEditDrawer({
   open,
   feeType,
-  currencies,
   onClose,
   onSaved,
 }: {
   open: boolean;
   feeType: FeeTypeDetail | null;
-  currencies: Array<{ id: number; name: string }>;
   onClose: () => void;
   onSaved: () => void;
 }) {
@@ -71,15 +65,6 @@ export function FeeTypeEditDrawer({
     [t],
   );
 
-  const frequencyOptions = useMemo(
-    () =>
-      FEE_TYPE_FREQUENCIES.map((value) => ({
-        value,
-        label: t(`admin.finance.feeTypesWorkspace.frequencies.${value}`),
-      })),
-    [t],
-  );
-
   function patch(patchValues: Partial<FeeTypeFormValues>) {
     setValues((prev) => ({ ...prev, ...patchValues }));
     setFieldErrors({});
@@ -88,15 +73,6 @@ export function FeeTypeEditDrawer({
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!feeType || submitting) return;
-
-    const amountRaw = values.defaultAmount.trim();
-    if (amountRaw) {
-      const amount = Number(amountRaw);
-      if (!Number.isFinite(amount) || amount < 0) {
-        setFieldErrors({ defaultAmount: t('admin.finance.feeTypesWorkspace.errors.invalid_amount') });
-        return;
-      }
-    }
 
     const payload = buildFeeTypeUpdatePayload(feeType, values);
     if (Object.keys(payload).length === 0) {
@@ -116,16 +92,8 @@ export function FeeTypeEditDrawer({
     }
 
     const code = resolveFeeTypeErrorCode(res.error.code);
-    if (code === 'fee_type_code_locked') {
+    if (code === 'fee_type_code_locked' || code === 'fee_type_code_exists') {
       setFieldErrors({ code: t(feeTypeErrorMessageKey(code)) });
-      return;
-    }
-    if (code === 'fee_type_code_exists') {
-      setFieldErrors({ code: t(feeTypeErrorMessageKey(code)) });
-      return;
-    }
-    if (code === 'invalid_amount') {
-      setFieldErrors({ defaultAmount: t(feeTypeErrorMessageKey(code)) });
       return;
     }
     toast.error(code ? t(feeTypeErrorMessageKey(code)) : res.error.message);
@@ -180,63 +148,6 @@ export function FeeTypeEditDrawer({
               </option>
             ))}
           </select>
-        </label>
-
-        <label>
-          {t('admin.finance.feeTypesWorkspace.frequency')}
-          <select
-            className="input"
-            value={values.frequency}
-            onChange={(e) => patch({ frequency: e.target.value })}
-          >
-            {frequencyOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label>
-          {t('admin.finance.defaultAmount')}
-          <input
-            className="input"
-            type="number"
-            min="0"
-            step="0.01"
-            value={values.defaultAmount}
-            onChange={(e) => patch({ defaultAmount: e.target.value })}
-          />
-          <span className="tiny muted">{t('admin.finance.feeTypesWorkspace.defaultAmountHint')}</span>
-          {fieldErrors.defaultAmount ? (
-            <span className="form-error">{fieldErrors.defaultAmount}</span>
-          ) : null}
-        </label>
-
-        {currencies.length > 0 ? (
-          <label>
-            {t('admin.finance.feeTypesWorkspace.currency')}
-            <select
-              className="input"
-              value={values.currencyId}
-              onChange={(e) => patch({ currencyId: e.target.value })}
-            >
-              {currencies.map((currency) => (
-                <option key={currency.id} value={currency.id}>
-                  {currency.name}
-                </option>
-              ))}
-            </select>
-          </label>
-        ) : null}
-
-        <label className="checkbox-row">
-          <input
-            type="checkbox"
-            checked={values.isMandatory}
-            onChange={(e) => patch({ isMandatory: e.target.checked })}
-          />
-          {t('admin.finance.feeTypesWorkspace.isMandatory')}
         </label>
 
         <label className="checkbox-row">

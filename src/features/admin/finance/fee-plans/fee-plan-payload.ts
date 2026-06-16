@@ -14,7 +14,7 @@ function resolveLevelIdsForPayload(
 export interface FeePlanValidationError {
   field?: 'name' | 'code' | 'academicYearId' | 'levelIds' | 'lines';
   lineClientId?: string;
-  lineField?: 'feeTypeId' | 'amount' | 'installments';
+  lineField?: 'feeTypeId' | 'amount' | 'installments' | 'levelIds';
   messageKey: string;
 }
 
@@ -48,6 +48,25 @@ export function suggestEqualInstallments(
   return rows;
 }
 
+export function lineScopeSignature(line: DraftFeePlanLine): string {
+  const levels =
+    line.levelScopeMode === 'all_plan_levels'
+      ? 'ALL'
+      : [...line.levelIds].sort((a, b) => a - b).join(',');
+  return `${line.feeTypeId}:${levels}`;
+}
+
+export function findDuplicateLineScope(lines: DraftFeePlanLine[]): DraftFeePlanLine | null {
+  const seen = new Set<string>();
+  for (const line of lines) {
+    if (!line.feeTypeId) continue;
+    const key = lineScopeSignature(line);
+    if (seen.has(key)) return line;
+    seen.add(key);
+  }
+  return null;
+}
+
 export function buildLinePayload(line: DraftFeePlanLine): FeePlanLineInput {
   const payload: FeePlanLineInput = {
     fee_type_id: line.feeTypeId,
@@ -55,6 +74,14 @@ export function buildLinePayload(line: DraftFeePlanLine): FeePlanLineInput {
     is_optional: line.isOptional,
     description: line.label.trim() || undefined,
   };
+
+  if (line.frequency.trim()) {
+    payload.frequency = line.frequency.trim();
+  }
+
+  if (line.levelScopeMode === 'specific' && line.levelIds.length > 0) {
+    payload.level_ids = dedupeLevelIds(line.levelIds);
+  }
 
   if (line.installmentCount <= 1) {
     payload.installment_count = 1;
@@ -110,6 +137,15 @@ export function validateFeePlanForm(
     return { field: 'lines', messageKey: 'admin.finance.feePlansWorkspace.errors.linesRequired' };
   }
 
+  const duplicate = findDuplicateLineScope(values.lines);
+  if (duplicate) {
+    return {
+      field: 'lines',
+      lineClientId: duplicate.clientId,
+      messageKey: 'admin.finance.feePlansWorkspace.errors.duplicateLineScope',
+    };
+  }
+
   for (const line of values.lines) {
     if (!line.feeTypeId) {
       return {
@@ -125,6 +161,14 @@ export function validateFeePlanForm(
         lineClientId: line.clientId,
         lineField: 'amount',
         messageKey: 'admin.finance.feePlansWorkspace.errors.lineAmountRequired',
+      };
+    }
+    if (line.levelScopeMode === 'specific' && !line.levelIds.length) {
+      return {
+        field: 'lines',
+        lineClientId: line.clientId,
+        lineField: 'levelIds',
+        messageKey: 'admin.finance.feePlansWorkspace.errors.lineLevelRequired',
       };
     }
     if (line.scheduleMode === 'explicit' && line.installmentCount > 1) {

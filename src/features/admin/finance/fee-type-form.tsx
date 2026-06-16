@@ -4,38 +4,40 @@ import { useState } from 'react';
 import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
 import { useT } from '@/features/i18n/locale-context';
+import { FEE_TYPE_CATEGORIES } from '@/features/admin/finance/fee-types/fee-type-options';
 import type { CreateFeeTypePayload, FeeType } from '@/types/finance';
 
 export function FinanceFeeTypeForm({
   onDone,
   onCancel,
+  compact = false,
 }: {
   onDone: () => void;
   onCancel: () => void;
+  compact?: boolean;
 }) {
   const t = useT();
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
-  const [category, setCategory] = useState('tuition');
-  const [defaultAmount, setDefaultAmount] = useState('');
+  const [category, setCategory] = useState<string>(FEE_TYPE_CATEGORIES[0]);
+  const [description, setDescription] = useState('');
+  const [requiresSubscription, setRequiresSubscription] = useState(false);
+  const [requiresUsageTracking, setRequiresUsageTracking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (submitting) return;
-    const amount = defaultAmount.trim() ? Number(defaultAmount) : undefined;
-    if (defaultAmount.trim() && (!amount || amount < 0)) {
-      setError(t('admin.finance.invalidAmount'));
-      return;
-    }
     setSubmitting(true);
     setError(null);
     const payload: CreateFeeTypePayload = {
       name: name.trim(),
       code: code.trim(),
       category,
-      default_amount: amount,
+      description: description.trim() || undefined,
+      requires_subscription: requiresSubscription || undefined,
+      requires_usage_tracking: requiresUsageTracking || undefined,
     };
     const res = await api.post<FeeType>(endpoints.admin.financeFeeTypes, payload);
     setSubmitting(false);
@@ -47,8 +49,11 @@ export function FinanceFeeTypeForm({
   }
 
   return (
-    <form className="card form-stack" onSubmit={onSubmit}>
-      <h3>{t('admin.finance.addFeeType')}</h3>
+    <form
+      className={`card form-stack${compact ? ' fee-type-form--compact' : ''}`}
+      onSubmit={onSubmit}
+    >
+      <h3>{t('admin.finance.feePlansWorkspace.createFeeType')}</h3>
       {error && <p className="form-error">{error}</p>}
       <label>
         {t('admin.finance.feeTypeName')}
@@ -56,27 +61,48 @@ export function FinanceFeeTypeForm({
       </label>
       <label>
         {t('admin.finance.feeTypeCode')}
-        <input className="input" required value={code} onChange={(e) => setCode(e.target.value)} />
+        <input
+          className="input mono"
+          dir="ltr"
+          required
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+        />
       </label>
       <label>
         {t('admin.finance.category')}
         <select className="input" value={category} onChange={(e) => setCategory(e.target.value)}>
-          <option value="tuition">{t('admin.finance.categoryTuition')}</option>
-          <option value="transport">{t('admin.finance.categoryTransport')}</option>
-          <option value="meals">{t('admin.finance.categoryMeals')}</option>
-          <option value="activities">{t('admin.finance.categoryActivities')}</option>
+          {FEE_TYPE_CATEGORIES.map((value) => (
+            <option key={value} value={value}>
+              {t(`admin.finance.feeTypesWorkspace.categories.${value}`)}
+            </option>
+          ))}
         </select>
       </label>
       <label>
-        {t('admin.finance.defaultAmount')}
-        <input
+        {t('common.description')}
+        <textarea
           className="input"
-          type="number"
-          min="0"
-          step="0.01"
-          value={defaultAmount}
-          onChange={(e) => setDefaultAmount(e.target.value)}
+          rows={2}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
         />
+      </label>
+      <label className="checkbox-row">
+        <input
+          type="checkbox"
+          checked={requiresSubscription}
+          onChange={(e) => setRequiresSubscription(e.target.checked)}
+        />
+        {t('admin.finance.feeTypesWorkspace.requiresSubscription')}
+      </label>
+      <label className="checkbox-row">
+        <input
+          type="checkbox"
+          checked={requiresUsageTracking}
+          onChange={(e) => setRequiresUsageTracking(e.target.checked)}
+        />
+        {t('admin.finance.feeTypesWorkspace.requiresUsageTracking')}
       </label>
       <div className="row" style={{ gap: 8 }}>
         <button type="submit" className="btn btn--primary" disabled={submitting}>

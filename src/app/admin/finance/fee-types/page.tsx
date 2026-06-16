@@ -1,7 +1,6 @@
-'use client';
+import { redirect } from 'next/navigation';
 
-import { FeeTypesPage } from '@/features/admin/finance/fee-types/fee-types-page';
-
-export default function AdminFinanceFeeTypesPage() {
-  return <FeeTypesPage />;
+/** Legacy route — unified fee catalog lives inside fee plans workspace. */
+export default function AdminFinanceFeeTypesRedirectPage() {
+  redirect('/admin/finance/fee-plans?catalog=open');
 }

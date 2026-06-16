@@ -3,11 +3,10 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/primitives';
-import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { FeeTypeArchiveDialog, FeeTypeRestoreDialog } from '@/features/admin/finance/fee-types/fee-type-action-dialogs';
 import { FeeTypeDeleteDialog } from '@/features/admin/finance/fee-types/fee-type-delete-dialog';
 import { FeeTypeEditDrawer } from '@/features/admin/finance/fee-types/fee-type-edit-drawer';
-import { feeTypeCategoryLabel, feeTypeFrequencyLabel } from '@/features/admin/finance/fee-types/fee-type-labels';
+import { feeTypeCategoryLabel } from '@/features/admin/finance/fee-types/fee-type-labels';
 import {
   feeTypeAllowsAction,
   feeTypeUsageIsEmpty,
@@ -138,28 +137,6 @@ export function FeeTypeDetailView({
             <dd>{feeTypeCategoryLabel(feeType.category, t)}</dd>
           </div>
           <div>
-            <dt>{t('admin.finance.feeTypesWorkspace.frequency')}</dt>
-            <dd>{feeTypeFrequencyLabel(feeType.frequency, t)}</dd>
-          </div>
-          <div className="fee-type-detail-summary__amount">
-            <dt>{t('admin.finance.defaultAmount')}</dt>
-            <dd>
-              <FinanceMoney amount={feeType.default_amount} currency={feeType.currency} />
-            </dd>
-          </div>
-          <div>
-            <dt>{t('admin.finance.feeTypesWorkspace.currency')}</dt>
-            <dd dir="ltr">
-              {typeof feeType.currency === 'object' ? feeType.currency?.name : feeType.currency}
-            </dd>
-          </div>
-          <div>
-            <dt>{t('admin.finance.feeTypesWorkspace.isMandatory')}</dt>
-            <dd>
-              <BoolValue value={feeType.is_mandatory} t={t} />
-            </dd>
-          </div>
-          <div>
             <dt>{t('admin.finance.feeTypesWorkspace.requiresSubscription')}</dt>
             <dd>
               <BoolValue value={feeType.requires_subscription} t={t} />
@@ -274,7 +251,6 @@ export function FeeTypeDetailView({
       <FeeTypeEditDrawer
         open={editOpen}
         feeType={feeType}
-        currencies={currencies}
         onClose={() => setEditOpen(false)}
         onSaved={onReload}
       />

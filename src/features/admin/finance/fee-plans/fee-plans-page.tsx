@@ -1,17 +1,22 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
 import { ResourceView } from '@/components/states/resource';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
-import { FINANCE_VIEW, canManageFeePlans } from '@/lib/permissions/finance';
+import {
+  FINANCE_VIEW,
+  canManageFeeCatalog,
+  canManageFeePlans,
+} from '@/lib/permissions/finance';
 import { useSession } from '@/features/auth/session-context';
 import type { FeePlan } from '@/types/finance';
 import type { ListParams } from '@/types/api';
+import { FeeTypesCatalogDrawer } from '@/features/admin/finance/fee-types/fee-types-catalog-drawer';
 import { FeePlanDrawer } from './fee-plan-drawer';
 import { FeePlanEmptyState } from './fee-plan-empty-state';
 import { FeePlansFilters, type FeePlanFiltersState } from './fee-plans-filters';
@@ -34,7 +39,10 @@ export function FeePlansPage() {
   const t = useT();
   const user = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const canManage = canManageFeePlans(user);
+  const canManageCatalog = canManageFeeCatalog(user);
+  const canViewCatalog = canManageCatalog || canManage;
 
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState<FeePlanFiltersState>(EMPTY_FILTERS);
@@ -42,12 +50,25 @@ export function FeePlansPage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerMode, setDrawerMode] = useState<FeePlanDrawerMode>('create');
   const [editPlanId, setEditPlanId] = useState<number | null>(null);
+  const [catalogOpen, setCatalogOpen] = useState(false);
 
   const levelOptionsState = useLevelOptions(true, { include_enabled: 'true' });
   const scopeGroups = useMemo(
     () => buildFeePlanScopeGroups(levelOptionsState.options),
     [levelOptionsState.options],
   );
+
+  useEffect(() => {
+    if (searchParams.get('catalog') === 'open') {
+      setCatalogOpen(true);
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete('catalog');
+      const qs = params.toString();
+      router.replace(qs ? `/admin/finance/fee-plans?${qs}` : '/admin/finance/fee-plans', {
+        scroll: false,
+      });
+    }
+  }, [searchParams, router]);
 
   const params: ListParams = useMemo(
     () => ({
@@ -92,7 +113,12 @@ export function FeePlansPage() {
         ‹ {t('admin.finance.backToFinance')}
       </Link>
 
-      <FeePlansHeader canManage={canManage} onAdd={openCreateDrawer} />
+      <FeePlansHeader
+        canManage={canManage}
+        canManageCatalog={canViewCatalog}
+        onAdd={openCreateDrawer}
+        onManageCatalog={() => setCatalogOpen(true)}
+      />
       <FeePlansMetrics />
 
       <FeePlansFilters
@@ -149,8 +175,17 @@ export function FeePlansPage() {
           planId={editPlanId}
           onClose={() => setDrawerOpen(false)}
           onSaved={() => state.reload()}
+          onOpenCatalog={() => setCatalogOpen(true)}
         />
       )}
+
+      {canViewCatalog ? (
+        <FeeTypesCatalogDrawer
+          open={catalogOpen}
+          onClose={() => setCatalogOpen(false)}
+          onChanged={() => state.reload()}
+        />
+      ) : null}
     </RequireAdminPermission>
   );
 }

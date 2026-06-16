@@ -38,12 +38,14 @@ export function FeePlanDrawer({
   planId,
   onClose,
   onSaved,
+  onOpenCatalog,
 }: {
   open: boolean;
   mode: FeePlanDrawerMode;
   planId?: number | null;
   onClose: () => void;
   onSaved: (planId: number) => void;
+  onOpenCatalog?: () => void;
 }) {
   const t = useT();
   const toast = useToast();
@@ -58,7 +60,7 @@ export function FeePlanDrawer({
     open && mode !== 'create' && planId ? endpoints.admin.financeFeePlan(planId) : null,
   );
   const { options: yearOptions, loading: yearsLoading } = useAcademicYearOptions();
-  const { feeTypes, loading: typesLoading } = useFeeTypeOptions();
+  const { feeTypes, loading: typesLoading, reload: reloadFeeTypes } = useFeeTypeOptions();
   const levelOptionsState = useLevelOptions(open, { include_enabled: 'true' });
   const scopeGroups = useMemo(
     () => buildFeePlanScopeGroups(levelOptionsState.options),
@@ -286,14 +288,22 @@ export function FeePlanDrawer({
               <FeePlanLinesEditor
                 lines={values.lines}
                 feeTypes={feeTypes}
+                planLevelIds={values.levelIds}
+                scopeGroups={scopeGroups}
+                currency={plan?.currency}
                 onChange={(lines) => patchValues({ lines })}
+                onFeeTypeCreated={() => reloadFeeTypes()}
                 error={fieldErrors?.field === 'lines' ? t(fieldErrors.messageKey) : null}
               />
               {typesLoading && <p className="muted">{t('common.loading')}</p>}
               {!typesLoading && feeTypes.length === 0 && (
                 <p className="muted">
                   {t('admin.finance.feePlansWorkspace.noFeeTypesHint')}{' '}
-                  <a href="/admin/finance/fee-types">{t('admin.finance.hubFeeTypes')}</a>
+                  {onOpenCatalog ? (
+                    <button type="button" className="btn btn--ghost btn--sm" onClick={onOpenCatalog}>
+                      {t('admin.finance.feePlansWorkspace.manageFeeTypes')}
+                    </button>
+                  ) : null}
                 </p>
               )}
             </section>
