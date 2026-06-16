@@ -4354,6 +4354,10 @@
         "kpiMovementsIn": "Entradas",
         "kpiMovementsOut": "Salidas",
         "kpiExpected": "Saldo esperado",
+        "kpiExpectedHint": "Efectivo que debería haber en caja ahora",
+        "kpiSectionLabel": "Resumen financiero de la sesión",
+        "sessionOverviewLabel": "Resumen de la sesión",
+        "closingInProgressHint": "Sesión en cierre — complete el arqueo abajo.",
         "kpiCollectionsCount": "N.º de cobros",
         "kpiReceiptsCount": "N.º de recibos",
         "collectionsTitle": "Cobros en efectivo",
@@ -4361,6 +4365,23 @@
         "movementsTitle": "Movimientos de caja",
         "movementsEmpty": "No hay movimientos",
         "timelineTitle": "Historial de sesión",
+        "timeline": {
+          "unknown": "Evento",
+          "opened": "Sesión de caja abierta",
+          "collection_attached": "Cobro en efectivo vinculado",
+          "movement_created": "Movimiento de caja creado",
+          "movement_approved": "Movimiento de caja aprobado",
+          "closing_started": "Cierre iniciado",
+          "count_submitted": "Arqueo enviado",
+          "difference_approved": "Diferencia de caja aprobada",
+          "closed": "Sesión de caja cerrada",
+          "reopened": "Sesión reabierta",
+          "closure_report_printed": "Informe de cierre impreso",
+          "byUser": "Por {user}",
+          "stateChange": "De {before} a {after}",
+          "referenceValue": "Referencia: {reference}",
+          "movementAmount": "Importe {amount}"
+        },
         "addMovementTitle": "Añadir movimiento",
         "addMovementAction": "Añadir",
         "movementAdded": "Movimiento registrado.",
@@ -4411,6 +4432,12 @@
           "amount": "Importe",
           "reason": "Motivo",
           "referenceOptional": "Referencia (opcional)",
+          "referenceRequired": "Referencia *",
+          "referenceRequiredHint": "Introduzca el número de depósito o referencia de la operación.",
+          "referenceOptionalHint": "Número de depósito o documento si aplica.",
+          "reasonHint": "¿Por qué se realizó este movimiento?",
+          "noteHint": "Información adicional opcional.",
+          "openingBalanceHint": "Introduzca el efectivo presente al iniciar la sesión.",
           "reopenReason": "Motivo de reapertura",
           "reopenCount": "Reaperturas"
         },
@@ -4436,6 +4463,9 @@
           "reason": "Motivo",
           "reference": "Referencia",
           "date": "Fecha",
+          "state": "Estado",
+          "directionIn": "Entrada",
+          "directionOut": "Salida",
           "types": {
             "cash_in_adjustment": "Ajuste entrada",
             "cash_out_adjustment": "Ajuste salida",
@@ -4453,7 +4483,8 @@
           "differenceReasonRequired": "Indique el motivo de la diferencia de caja.",
           "differenceApprovalRequired": "No tiene permiso para aprobar una diferencia.",
           "reopenNotAllowed": "Esta sesión no puede reabrirse.",
-          "countedRequired": "Indique el saldo contado."
+          "countedRequired": "Indique el saldo contado.",
+          "referenceRequired": "La referencia es obligatoria para este tipo de movimiento."
         }
       },
       "cheques": {

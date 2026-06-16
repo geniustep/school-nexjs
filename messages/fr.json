@@ -4354,6 +4354,10 @@
         "kpiMovementsIn": "Entrées",
         "kpiMovementsOut": "Sorties",
         "kpiExpected": "Solde attendu",
+        "kpiExpectedHint": "Espèces attendues actuellement dans la caisse",
+        "kpiSectionLabel": "Résumé financier de la session",
+        "sessionOverviewLabel": "Aperçu de la session",
+        "closingInProgressHint": "Session en cours de clôture — poursuivez le comptage ci-dessous.",
         "kpiCollectionsCount": "Nombre d'encaissements",
         "kpiReceiptsCount": "Nombre de reçus",
         "collectionsTitle": "Encaissements espèces",
@@ -4361,6 +4365,23 @@
         "movementsTitle": "Mouvements de caisse",
         "movementsEmpty": "Aucun mouvement",
         "timelineTitle": "Historique de session",
+        "timeline": {
+          "unknown": "Événement",
+          "opened": "Session de caisse ouverte",
+          "collection_attached": "Encaissement espèces rattaché",
+          "movement_created": "Mouvement de caisse créé",
+          "movement_approved": "Mouvement de caisse approuvé",
+          "closing_started": "Clôture démarrée",
+          "count_submitted": "Comptage soumis",
+          "difference_approved": "Écart de caisse approuvé",
+          "closed": "Session de caisse clôturée",
+          "reopened": "Session rouverte",
+          "closure_report_printed": "Rapport de clôture imprimé",
+          "byUser": "Par {user}",
+          "stateChange": "De {before} à {after}",
+          "referenceValue": "Référence : {reference}",
+          "movementAmount": "Montant {amount}"
+        },
         "addMovementTitle": "Ajouter un mouvement",
         "addMovementAction": "Ajouter",
         "movementAdded": "Mouvement enregistré.",
@@ -4411,6 +4432,12 @@
           "amount": "Montant",
           "reason": "Motif",
           "referenceOptional": "Référence (optionnel)",
+          "referenceRequired": "Référence *",
+          "referenceRequiredHint": "Saisissez le numéro de dépôt ou la référence de l'opération.",
+          "referenceOptionalHint": "Numéro de dépôt ou document le cas échéant.",
+          "reasonHint": "Pourquoi ce mouvement a-t-il été effectué ?",
+          "noteHint": "Informations complémentaires optionnelles.",
+          "openingBalanceHint": "Saisissez le montant en espèces réellement présent au début de la session.",
           "reopenReason": "Motif de réouverture",
           "reopenCount": "Nombre de réouvertures"
         },
@@ -4436,6 +4463,9 @@
           "reason": "Motif",
           "reference": "Référence",
           "date": "Date",
+          "state": "Statut",
+          "directionIn": "Entrée",
+          "directionOut": "Sortie",
           "types": {
             "cash_in_adjustment": "Ajustement entrée",
             "cash_out_adjustment": "Ajustement sortie",
@@ -4453,7 +4483,8 @@
           "differenceReasonRequired": "Saisissez le motif de l'écart de caisse.",
           "differenceApprovalRequired": "Vous n'avez pas l'autorisation d'approuver un écart.",
           "reopenNotAllowed": "Cette session ne peut pas être rouverte.",
-          "countedRequired": "Saisissez le solde compté."
+          "countedRequired": "Saisissez le solde compté.",
+          "referenceRequired": "La référence est obligatoire pour ce type de mouvement."
         }
       },
       "cheques": {

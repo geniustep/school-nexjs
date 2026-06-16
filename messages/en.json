@@ -4393,6 +4393,10 @@
         "kpiMovementsIn": "Cash in",
         "kpiMovementsOut": "Cash out",
         "kpiExpected": "Expected balance",
+        "kpiExpectedHint": "Cash expected to be in the drawer right now",
+        "kpiSectionLabel": "Session financial summary",
+        "sessionOverviewLabel": "Session overview",
+        "closingInProgressHint": "Session is closing — complete the count below.",
         "kpiCollectionsCount": "Collections count",
         "kpiReceiptsCount": "Receipts count",
         "collectionsTitle": "Cash collections",
@@ -4400,6 +4404,23 @@
         "movementsTitle": "Cash movements",
         "movementsEmpty": "No cash movements",
         "timelineTitle": "Session timeline",
+        "timeline": {
+          "unknown": "Event",
+          "opened": "Cash session opened",
+          "collection_attached": "Cash collection linked",
+          "movement_created": "Cash movement created",
+          "movement_approved": "Cash movement approved",
+          "closing_started": "Closing started",
+          "count_submitted": "Count submitted",
+          "difference_approved": "Cash difference approved",
+          "closed": "Cash session closed",
+          "reopened": "Session reopened",
+          "closure_report_printed": "Closure report printed",
+          "byUser": "By {user}",
+          "stateChange": "{before} → {after}",
+          "referenceValue": "Reference: {reference}",
+          "movementAmount": "Amount {amount}"
+        },
         "addMovementTitle": "Add cash movement",
         "addMovementAction": "Add movement",
         "movementAdded": "Movement recorded.",
@@ -4450,6 +4471,12 @@
           "amount": "Amount",
           "reason": "Reason",
           "referenceOptional": "Reference (optional)",
+          "referenceRequired": "Reference *",
+          "referenceRequiredHint": "Enter the deposit or transaction reference.",
+          "referenceOptionalHint": "Deposit or document number if available.",
+          "reasonHint": "Why was this movement made?",
+          "noteHint": "Optional additional information.",
+          "openingBalanceHint": "Enter the cash physically in the drawer at session start.",
           "reopenReason": "Reopen reason",
           "reopenCount": "Reopen count"
         },
@@ -4475,6 +4502,9 @@
           "reason": "Reason",
           "reference": "Reference",
           "date": "Date",
+          "state": "Status",
+          "directionIn": "In",
+          "directionOut": "Out",
           "types": {
             "cash_in_adjustment": "Cash in adjustment",
             "cash_out_adjustment": "Cash out adjustment",
@@ -4492,7 +4522,8 @@
           "differenceReasonRequired": "Enter the cash difference reason.",
           "differenceApprovalRequired": "You are not allowed to approve a cash difference.",
           "reopenNotAllowed": "This session cannot be reopened.",
-          "countedRequired": "Enter the counted balance."
+          "countedRequired": "Enter the counted balance.",
+          "referenceRequired": "Reference is required for this movement type."
         }
       },
       "cheques": {

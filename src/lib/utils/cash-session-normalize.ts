@@ -97,7 +97,11 @@ function normalizeMovement(raw: unknown): CashSessionMovement | null {
           : undefined,
     amount: normalizeMoneyValue(row.amount) ?? undefined,
     reason: typeof row.reason === 'string' ? row.reason : undefined,
-    reference: typeof row.reference === 'string' ? row.reference : undefined,
+    reference:
+      typeof row.reference === 'string' && row.reference.trim()
+        ? row.reference
+        : undefined,
+    direction: typeof row.direction === 'string' ? row.direction : undefined,
     note: typeof row.note === 'string' ? row.note : undefined,
     created_at:
       typeof row.created_at === 'string'
@@ -193,6 +197,8 @@ function normalizeAuditEvent(raw: unknown): CashSessionAuditEvent | null {
         : (row.user as CashSessionAuditEvent['user']),
     note: typeof row.note === 'string' ? row.note : undefined,
     reason: typeof row.reason === 'string' ? row.reason : undefined,
+    state_before: typeof row.state_before === 'string' ? row.state_before : undefined,
+    state_after: typeof row.state_after === 'string' ? row.state_after : undefined,
   };
 }
 

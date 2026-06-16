@@ -4394,6 +4394,10 @@
         "kpiMovementsIn": "الحركات الداخلة",
         "kpiMovementsOut": "الحركات الخارجة",
         "kpiExpected": "الرصيد المتوقع",
+        "kpiExpectedHint": "النقد المتوقع وجوده في الصندوق حاليًا",
+        "kpiSectionLabel": "ملخص الجلسة المالي",
+        "sessionOverviewLabel": "نظرة عامة على الجلسة",
+        "closingInProgressHint": "الجلسة قيد الإغلاق — أكمل الجرد أدناه.",
         "kpiCollectionsCount": "عدد التحصيلات",
         "kpiReceiptsCount": "عدد الإيصالات",
         "collectionsTitle": "التحصيلات النقدية",
@@ -4401,6 +4405,23 @@
         "movementsTitle": "الحركات النقدية",
         "movementsEmpty": "لا توجد حركات نقدية",
         "timelineTitle": "سجل الجلسة",
+        "timeline": {
+          "unknown": "حدث",
+          "opened": "تم فتح جلسة الصندوق",
+          "collection_attached": "تم ربط تحصيل نقدي",
+          "movement_created": "تم إنشاء حركة نقدية",
+          "movement_approved": "تم اعتماد حركة نقدية",
+          "closing_started": "بدأ إغلاق الصندوق",
+          "count_submitted": "تم تقديم الجرد",
+          "difference_approved": "تم اعتماد فرق الصندوق",
+          "closed": "تم إغلاق جلسة الصندوق",
+          "reopened": "تمت إعادة فتح الجلسة",
+          "closure_report_printed": "تم طباعة تقرير الإغلاق",
+          "byUser": "بواسطة {user}",
+          "stateChange": "من {before} إلى {after}",
+          "referenceValue": "المرجع: {reference}",
+          "movementAmount": "بقيمة {amount}"
+        },
         "addMovementTitle": "إضافة حركة نقدية",
         "addMovementAction": "إضافة حركة",
         "movementAdded": "تم تسجيل الحركة.",
@@ -4451,6 +4472,12 @@
           "amount": "المبلغ",
           "reason": "السبب",
           "referenceOptional": "المرجع (اختياري)",
+          "referenceRequired": "المرجع *",
+          "referenceRequiredHint": "أدخل رقم الإيداع أو مرجع العملية.",
+          "referenceOptionalHint": "رقم الإيداع أو الوثيقة إن وُجد.",
+          "reasonHint": "لماذا أُجريت الحركة؟",
+          "noteHint": "معلومات إضافية اختيارية.",
+          "openingBalanceHint": "أدخل المبلغ النقدي الموجود فعليًا عند بداية الجلسة.",
           "reopenReason": "سبب إعادة الفتح",
           "reopenCount": "عدد مرات إعادة الفتح"
         },
@@ -4476,6 +4503,9 @@
           "reason": "السبب",
           "reference": "المرجع",
           "date": "التاريخ",
+          "state": "الحالة",
+          "directionIn": "داخل",
+          "directionOut": "خارج",
           "types": {
             "cash_in_adjustment": "تعديل نقدي داخل",
             "cash_out_adjustment": "تعديل نقدي خارج",
@@ -4493,7 +4523,8 @@
           "differenceReasonRequired": "اكتب سبب فرق الصندوق.",
           "differenceApprovalRequired": "لا تملك صلاحية اعتماد فرق الصندوق.",
           "reopenNotAllowed": "لا يمكن إعادة فتح هذه الجلسة.",
-          "countedRequired": "أدخل الرصيد المعدود."
+          "countedRequired": "أدخل الرصيد المعدود.",
+          "referenceRequired": "المرجع إلزامي لهذا النوع من الحركات."
         }
       },
       "cheques": {

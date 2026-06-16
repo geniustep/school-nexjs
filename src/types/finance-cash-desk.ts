@@ -39,6 +39,7 @@ export interface CashSessionMovement {
   type?: CashMovementType | string;
   type_label?: string;
   amount?: number;
+  direction?: 'in' | 'out' | string;
   reason?: string;
   reference?: string;
   note?: string;
@@ -81,9 +82,11 @@ export interface CashSessionAuditEvent {
   date?: string;
   action?: string;
   label?: string;
-  user?: Ref;
+  user?: Ref | string;
   note?: string;
   reason?: string;
+  state_before?: string;
+  state_after?: string;
 }
 
 export interface CashSession {

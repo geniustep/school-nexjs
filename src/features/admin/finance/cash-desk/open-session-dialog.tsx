@@ -1,10 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useId, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { useToast } from '@/components/ui/toast';
 import { useT } from '@/features/i18n/locale-context';
 import { openCashSession } from '@/lib/api/finance-cash-desk';
-import { cashSessionErrorMessageKey } from '@/lib/utils/cash-session-errors';
+import { resolveCashSessionErrorMessage } from '@/lib/utils/cash-session-errors';
 import type { PaymentJournal } from '@/types/finance';
 
 export function OpenCashSessionDialog({
@@ -23,6 +23,7 @@ export function OpenCashSessionDialog({
   const t = useT();
   const toast = useToast();
   const titleId = useId();
+  const triggerRef = useRef<HTMLElement | null>(null);
   const [journalId, setJournalId] = useState('');
   const [openingBalance, setOpeningBalance] = useState('0');
   const [note, setNote] = useState('');
@@ -31,6 +32,7 @@ export function OpenCashSessionDialog({
 
   useEffect(() => {
     if (!open) return;
+    triggerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setError(null);
     setNote('');
     setOpeningBalance('0');
@@ -47,13 +49,17 @@ export function OpenCashSessionDialog({
     return () => window.removeEventListener('keydown', onKey);
   }, [open, onClose]);
 
+  useEffect(() => {
+    if (open) return;
+    triggerRef.current?.focus();
+  }, [open]);
+
   const selectedJournal = journals.find((j) => String(j.id) === journalId);
+  const currencyLabel =
+    selectedJournal?.currency ?? selectedJournal?.currency_code ?? null;
   const parsedOpening = Number(openingBalance);
   const canSubmit =
-    !!journalId &&
-    !Number.isNaN(parsedOpening) &&
-    parsedOpening >= 0 &&
-    !submitting;
+    !!journalId && !Number.isNaN(parsedOpening) && parsedOpening >= 0 && !submitting;
 
   const handleSubmit = useCallback(async () => {
     if (!canSubmit) return;
@@ -66,9 +72,7 @@ export function OpenCashSessionDialog({
     });
     setSubmitting(false);
     if (!res.success) {
-      const key = cashSessionErrorMessageKey(res.error.code);
-      const msg = key ? t(key) : res.error.message;
-      setError(msg);
+      setError(resolveCashSessionErrorMessage(res.error, t));
       if (res.error.code === 'cash_session_already_open') {
         toast.error(t('admin.finance.cashDesk.errors.cashSessionAlreadyOpen'));
         onSuccess(0);
@@ -90,56 +94,66 @@ export function OpenCashSessionDialog({
         aria-labelledby={titleId}
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 id={titleId}>{t('admin.finance.cashDesk.openDialogTitle')}</h2>
-        <div className="form-stack">
-          <label className="field">
-            <span>{t('admin.finance.cashDesk.fields.journal')}</span>
-            <select
-              className="input"
-              value={journalId}
-              onChange={(e) => setJournalId(e.target.value)}
-              disabled={submitting || journals.length <= 1}
-            >
-              {journals.map((journal) => (
-                <option key={journal.id} value={journal.id}>
-                  {journal.name}
-                  {journal.code ? ` (${journal.code})` : ''}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="field">
-            <span>{t('admin.finance.cashDesk.fields.openingBalance')}</span>
-            <input
-              className="input"
-              type="number"
-              min={0}
-              step="0.01"
-              inputMode="decimal"
-              value={openingBalance}
-              onChange={(e) => setOpeningBalance(e.target.value)}
-              disabled={submitting}
-            />
-            {selectedJournal ? (
-              <span className="muted">
-                {t('admin.finance.cashDesk.fields.currency')}:{' '}
-                {selectedJournal.currency ?? selectedJournal.currency_code ?? '—'}
+        <div className="cash-desk-dialog__body">
+          <h2 id={titleId}>{t('admin.finance.cashDesk.openDialogTitle')}</h2>
+          <div className="form-stack">
+            <label className="field">
+              <span>{t('admin.finance.cashDesk.fields.journal')}</span>
+              <select
+                className="input"
+                value={journalId}
+                onChange={(e) => setJournalId(e.target.value)}
+                disabled={submitting || journals.length <= 1}
+              >
+                {journals.map((journal) => (
+                  <option key={journal.id} value={journal.id}>
+                    {journal.name}
+                    {journal.code ? ` (${journal.code})` : ''}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="field">
+              <span>{t('admin.finance.cashDesk.fields.openingBalance')}</span>
+              <div className="cash-desk-amount-with-currency">
+                <input
+                  className="input"
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  inputMode="decimal"
+                  value={openingBalance}
+                  onChange={(e) => {
+                    const next = e.target.value;
+                    if (next === '' || Number(next) >= 0) setOpeningBalance(next);
+                  }}
+                  disabled={submitting}
+                  aria-describedby={`${titleId}-opening-hint`}
+                />
+                {currencyLabel ? (
+                  <span className="cash-desk-amount-with-currency__suffix" aria-hidden="true">
+                    {currencyLabel}
+                  </span>
+                ) : null}
+              </div>
+              <span id={`${titleId}-opening-hint`} className="cash-desk-field-hint">
+                {t('admin.finance.cashDesk.fields.openingBalanceHint')}
               </span>
-            ) : null}
-          </label>
-          <label className="field">
-            <span>{t('admin.finance.cashDesk.fields.noteOptional')}</span>
-            <textarea
-              className="input"
-              rows={2}
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              disabled={submitting}
-            />
-          </label>
-          {error ? <p className="form-error">{error}</p> : null}
+            </label>
+            <label className="field">
+              <span>{t('admin.finance.cashDesk.fields.noteOptional')}</span>
+              <textarea
+                className="input"
+                rows={2}
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                disabled={submitting}
+              />
+            </label>
+            {error ? <p className="form-error" role="alert">{error}</p> : null}
+          </div>
         </div>
-        <div className="row form-actions">
+        <div className="cash-desk-dialog__footer">
           <button type="button" className="btn btn--ghost" onClick={onClose} disabled={submitting}>
             {t('common.cancel')}
           </button>

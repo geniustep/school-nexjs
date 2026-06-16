@@ -1,4 +1,11 @@
-export function cashSessionErrorMessageKey(code: string | undefined): string | null {
+const MESSAGE_KEY_PATTERNS: Array<[RegExp, string]> = [
+  [/Reference is required for this movement type\.?/i, 'admin.finance.cashDesk.errors.referenceRequired'],
+];
+
+export function cashSessionErrorMessageKey(
+  code: string | undefined,
+  message?: string | null,
+): string | null {
   switch (code) {
     case 'cash_session_required':
       return 'admin.finance.cashDesk.errors.cashSessionRequired';
@@ -17,6 +24,22 @@ export function cashSessionErrorMessageKey(code: string | undefined): string | n
     case 'forbidden':
       return 'errors.forbidden';
     default:
-      return null;
+      break;
   }
+
+  if (message) {
+    for (const [pattern, key] of MESSAGE_KEY_PATTERNS) {
+      if (pattern.test(message)) return key;
+    }
+  }
+
+  return null;
+}
+
+export function resolveCashSessionErrorMessage(
+  error: { code?: string; message?: string },
+  translate: (key: string) => string,
+): string {
+  const key = cashSessionErrorMessageKey(error.code, error.message);
+  return key ? translate(key) : error.message ?? translate('errors.serverError');
 }

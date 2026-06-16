@@ -12,7 +12,7 @@ import { CashSessionStatusBadge } from '@/features/admin/finance/cash-desk/cash-
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
-import '@/features/admin/finance/finance-ui.css';
+import '@/features/admin/finance/cash-desk/cash-desk-ui.css';
 import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { FINANCE_VIEW_CASH_SESSIONS } from '@/lib/permissions/finance';

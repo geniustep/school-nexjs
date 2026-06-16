@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { InfoBanner } from '@/components/ui/primitives';
 import { useT } from '@/features/i18n/locale-context';
+import '@/features/admin/finance/cash-desk/cash-desk-ui.css';
 import { fetchCurrentCashSession } from '@/lib/api/finance-cash-desk';
 import { isCashJournal, paymentMethodRequiresCashSession } from '@/lib/utils/cash-payment';
 import { cashSessionIsActive } from '@/lib/utils/cash-session-normalize';
