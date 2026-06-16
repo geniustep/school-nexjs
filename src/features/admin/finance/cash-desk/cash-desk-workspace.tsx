@@ -114,7 +114,7 @@ export function CashDeskWorkspace({ returnTo }: { returnTo?: string | null }) {
       />
 
       {journals.length > 1 ? (
-        <label className="field">
+        <label className="field cash-desk-journal-picker">
           <span className="muted">{t('admin.finance.cashDesk.fields.journal')}</span>
           <select
             className="input input--inline"
@@ -149,17 +149,21 @@ export function CashDeskWorkspace({ returnTo }: { returnTo?: string | null }) {
 
       {!loading && !session ? (
         <article className="card cash-desk-no-session">
-          <h2 className="cash-desk-no-session__title">{t('admin.finance.cashDesk.noSessionTitle')}</h2>
-          <p className="cash-desk-no-session__desc">{t('admin.finance.cashDesk.noSessionDesc')}</p>
-          {activeSchool?.name || journalContext ? (
-            <p className="cash-desk-no-session__context">
-              {[activeSchool?.name ?? refName(activeSchool), journalContext].filter(Boolean).join(' · ')}
-            </p>
-          ) : null}
+          <div className="cash-desk-no-session__content">
+            <h2 className="cash-desk-no-session__title">{t('admin.finance.cashDesk.noSessionTitle')}</h2>
+            <p className="cash-desk-no-session__desc">{t('admin.finance.cashDesk.noSessionDesc')}</p>
+            {activeSchool?.name || journalContext ? (
+              <p className="cash-desk-no-session__context">
+                {[activeSchool?.name ?? refName(activeSchool), journalContext].filter(Boolean).join(' · ')}
+              </p>
+            ) : null}
+          </div>
           {canOpen ? (
-            <button type="button" className="btn btn--primary" onClick={() => setOpenDialog(true)}>
-              {t('admin.finance.cashDesk.openAction')}
-            </button>
+            <div className="cash-desk-no-session__actions">
+              <button type="button" className="btn btn--primary" onClick={() => setOpenDialog(true)}>
+                {t('admin.finance.cashDesk.openAction')}
+              </button>
+            </div>
           ) : null}
         </article>
       ) : null}

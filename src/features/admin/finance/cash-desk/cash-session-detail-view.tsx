@@ -285,7 +285,7 @@ export function CashSessionDetailView({
       {confirmClosingOpen ? (
         <div className="modal-backdrop" role="presentation" onClick={() => setConfirmClosingOpen(false)}>
           <div
-            className="modal card cash-desk-dialog"
+            className="card cash-desk-dialog"
             role="dialog"
             aria-modal="true"
             aria-labelledby="cash-desk-start-closing-title"

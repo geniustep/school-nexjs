@@ -88,7 +88,7 @@ export function OpenCashSessionDialog({
   return (
     <div className="modal-backdrop" role="presentation" onClick={onClose}>
       <div
-        className="modal card cash-desk-dialog"
+        className="card cash-desk-dialog"
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}

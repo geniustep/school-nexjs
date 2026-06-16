@@ -64,7 +64,7 @@ export function ReopenCashSessionDialog({
   return (
     <div className="modal-backdrop" role="presentation" onClick={onClose}>
       <div
-        className="modal card cash-desk-dialog cash-desk-dialog--danger"
+        className="card cash-desk-dialog cash-desk-dialog--danger"
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
