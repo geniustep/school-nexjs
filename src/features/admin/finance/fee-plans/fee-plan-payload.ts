@@ -2,6 +2,7 @@ import { isPositiveAmount } from '@/lib/utils/finance';
 import type { CreateFeePlanPayload, FeePlanLineInput, UpdateFeePlanPayload } from '@/types/finance';
 import type { DraftFeePlanLine, FeePlanFormValues } from './fee-plan-types';
 import { sortLevelIdsByGroups, dedupeLevelIds, type FeePlanScopeCycleGroup } from './fee-plan-level-scope';
+import { feePlanFrequencyToApi } from './fee-plan-frequency';
 
 function resolveLevelIdsForPayload(
   levelIds: number[],
@@ -76,7 +77,7 @@ export function buildLinePayload(line: DraftFeePlanLine): FeePlanLineInput {
   };
 
   if (line.frequency.trim()) {
-    payload.frequency = line.frequency.trim();
+    payload.frequency = feePlanFrequencyToApi(line.frequency);
   }
 
   if (line.levelScopeMode === 'specific' && line.levelIds.length > 0) {
