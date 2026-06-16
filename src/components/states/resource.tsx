@@ -12,6 +12,7 @@ interface ResourceViewProps<T> {
   state: ResourceState<T>;
   children: (data: T) => ReactNode;
   loadingLabel?: string;
+  loadingFallback?: ReactNode;
   empty?: ReactNode;
   /** Treat data as empty when this returns true (e.g. empty array). */
   isEmpty?: (data: T) => boolean;
@@ -21,11 +22,12 @@ export function ResourceView<T>({
   state,
   children,
   loadingLabel,
+  loadingFallback,
   empty,
   isEmpty,
 }: ResourceViewProps<T>) {
   if (state.loading && state.data === null) {
-    return <LoadingState label={loadingLabel} />;
+    return <>{loadingFallback ?? <LoadingState label={loadingLabel} />}</>;
   }
   if (state.error) {
     return <ApiErrorView error={state.error} onRetry={state.reload} />;

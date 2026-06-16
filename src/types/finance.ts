@@ -2,8 +2,9 @@
 
 import type { Ref, SchoolRef } from './api';
 
-export type FeeTypeCategory = 'tuition' | 'transport' | 'meals' | 'activities' | string;
-export type FeeTypeFrequency = 'annual' | 'term' | 'monthly' | 'once' | string;
+export type FeeTypeCategory = 'tuition' | 'transport' | 'meals' | 'activities' | 'canteen' | 'activity' | string;
+export type FeeTypeFrequency = 'annual' | 'term' | 'monthly' | 'once' | 'custom' | string;
+export type FeeTypeAction = 'view' | 'edit' | 'archive' | 'restore' | 'delete';
 export type FeePlanState = 'draft' | 'confirmed' | 'archived' | string;
 export type StudentFeeState = 'draft' | 'open' | 'partial' | 'paid' | 'overdue' | 'cancelled' | string;
 export type PaymentCollectionState = 'draft' | 'confirmed' | 'cancelled' | string;
@@ -132,17 +133,69 @@ export interface ParentChequeInfo {
   is_overdue?: boolean;
 }
 
+export interface FeeTypeCurrency {
+  id: number;
+  name: string;
+  symbol?: string;
+  decimal_places?: number;
+}
+
+export interface FeeTypeUsageSummary {
+  is_used?: boolean;
+  historical_usage?: boolean;
+  can_delete?: boolean;
+}
+
+export interface FeeTypeUsage {
+  fee_plan_count?: number;
+  confirmed_fee_plan_count?: number;
+  agreement_count?: number;
+  student_fee_count?: number;
+  installment_count?: number;
+  collection_count?: number;
+  receipt_count?: number;
+  historical_usage?: boolean;
+  can_delete?: boolean;
+}
+
 export interface FeeType {
   id: number;
   code: string;
   name: string;
   school_id: number;
+  school?: SchoolRef | { id: number; name: string };
   category?: FeeTypeCategory;
   frequency?: FeeTypeFrequency;
   default_amount?: number;
-  currency?: string;
+  currency?: FeeTypeCurrency | string;
   is_mandatory?: boolean;
+  requires_subscription?: boolean;
+  requires_usage_tracking?: boolean;
   active?: boolean;
+  sequence?: number;
+  description?: string | null;
+  usage_summary?: FeeTypeUsageSummary;
+  allowed_actions?: FeeTypeAction[] | string[];
+}
+
+export interface FeeTypeDetail extends FeeType {
+  usage?: FeeTypeUsage;
+  create_date?: string;
+  write_date?: string;
+}
+
+export interface UpdateFeeTypePayload {
+  name?: string;
+  code?: string;
+  category?: FeeTypeCategory;
+  frequency?: FeeTypeFrequency;
+  default_amount?: number;
+  currency_id?: number;
+  is_mandatory?: boolean;
+  requires_subscription?: boolean;
+  requires_usage_tracking?: boolean;
+  sequence?: number;
+  description?: string | null;
 }
 
 export interface FeePlanLineFeeType {

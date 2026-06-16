@@ -195,6 +195,9 @@ export const endpoints = {
     channelMessages: (id: number | string) => `/admin/channels/${id}/messages`,
 
     financeFeeTypes: '/admin/finance/fee-types',
+    financeFeeType: (id: number | string) => `/admin/finance/fee-types/${id}`,
+    financeFeeTypeArchive: (id: number | string) => `/admin/finance/fee-types/${id}/archive`,
+    financeFeeTypeRestore: (id: number | string) => `/admin/finance/fee-types/${id}/restore`,
     financeFeePlans: '/admin/finance/fee-plans',
     financeFeePlan: (id: number | string) => `/admin/finance/fee-plans/${id}`,
     financeFeePlanConfirm: (id: number | string) => `/admin/finance/fee-plans/${id}/confirm`,

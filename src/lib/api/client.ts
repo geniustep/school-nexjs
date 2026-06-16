@@ -21,9 +21,15 @@ function buildUrl(path: string, query?: ListParams): string {
 }
 
 async function parse<T>(res: Response): Promise<ApiResponse<T>> {
+  if (res.status === 204) {
+    return { success: true, data: null as T, meta: {} };
+  }
   try {
     return (await res.json()) as ApiResponse<T>;
   } catch {
+    if (res.ok) {
+      return { success: true, data: null as T, meta: {} };
+    }
     return {
       success: false,
       error: { code: 'server_error', message: 'Unexpected server response.', details: {} },
