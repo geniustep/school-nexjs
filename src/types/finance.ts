@@ -221,11 +221,15 @@ export interface FeePlanLine {
   amount: number;
   quantity?: number;
   subtotal?: number;
+  frequency?: FeeTypeFrequency;
+  level_ids?: number[];
   due_rule?: string;
   due_date?: string | null;
   installment_count?: number;
   installment_schedule?: FeePlanInstallmentScheduleItem[];
   is_optional?: boolean;
+  /** @deprecated Read-only legacy field — pricing lives on plan lines, not fee types. */
+  deprecated_legacy_pricing?: unknown;
 }
 
 export interface FeePlan {
@@ -252,6 +256,8 @@ export interface FeePlanLineInput {
   fee_type_id: number;
   amount: number;
   quantity?: number;
+  frequency?: FeeTypeFrequency;
+  level_ids?: number[];
   due_date?: string;
   installment_count?: number;
   installment_schedule?: FeePlanInstallmentScheduleItem[];
@@ -648,8 +654,14 @@ export interface CreateFeeTypePayload {
   name: string;
   code: string;
   category?: FeeTypeCategory;
+  description?: string;
+  requires_subscription?: boolean;
+  requires_usage_tracking?: boolean;
+  /** @deprecated Catalog-only — do not send pricing fields on create. */
   frequency?: FeeTypeFrequency;
+  /** @deprecated Catalog-only — do not send pricing fields on create. */
   default_amount?: number;
+  /** @deprecated Catalog-only — do not send pricing fields on create. */
   is_mandatory?: boolean;
 }
 

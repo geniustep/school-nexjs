@@ -69,6 +69,10 @@ export function normalizeFeePlanLine(raw: unknown): FeePlanLine | null {
         ? schedule.length
         : 1;
 
+  const levelIdsRaw = Array.isArray(o.level_ids)
+    ? o.level_ids.map(Number).filter((id) => Number.isFinite(id) && id > 0)
+    : undefined;
+
   return {
     id,
     fee_type_id: feeTypeId,
@@ -79,6 +83,8 @@ export function normalizeFeePlanLine(raw: unknown): FeePlanLine | null {
     amount,
     quantity: Number.isFinite(Number(o.quantity)) ? Number(o.quantity) : undefined,
     subtotal,
+    frequency: typeof o.frequency === 'string' ? o.frequency : undefined,
+    level_ids: levelIdsRaw?.length ? levelIdsRaw : undefined,
     due_rule: typeof o.due_rule === 'string' ? o.due_rule : undefined,
     due_date: typeof o.due_date === 'string' ? o.due_date : o.due_date === null ? null : undefined,
     installment_count,

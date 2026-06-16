@@ -57,7 +57,7 @@ export function FeeTypeDeleteDialog({
       return;
     }
     const code = resolveFeeTypeErrorCode(res.error.code);
-    if (code === 'fee_type_in_use') {
+    if (code === 'fee_type_in_use' || code === 'fee_type_delete_forbidden') {
       setInUseMessage(t('admin.finance.feeTypesWorkspace.deleteInUseMessage'));
       return;
     }

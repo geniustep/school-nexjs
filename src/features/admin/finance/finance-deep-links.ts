@@ -160,7 +160,8 @@ export const FINANCE_DEEP_LINKS = {
   },
 
   feeTypes: {
-    path: '/admin/finance/fee-types',
+    path: '/admin/finance/fee-plans',
+    query: { catalog: 'open' },
     scope: 'school' as const,
   },
 

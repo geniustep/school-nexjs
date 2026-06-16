@@ -73,12 +73,8 @@ export function FeeTypesPage() {
   );
 
   const state = useAdminResource<FeeType[]>(endpoints.admin.financeFeeTypes, params);
-  const referenceState = useAdminResource<{ currencies?: Array<{ id: number; name: string }> }>(
-    endpoints.admin.financeReferenceData,
-  );
   const pg = state.meta?.pagination;
   const canManage = canManageFeeCatalog(user);
-  const currencies = referenceState.data?.currencies ?? [];
 
   useEffect(() => {
     setDraftSearch(filters.search);
@@ -210,7 +206,7 @@ export function FeeTypesPage() {
                 : undefined
             }
             listReturnTo={listReturnTo}
-            currencies={currencies}
+            embedded={false}
             onView={onView}
             onPage={(page) => onFiltersChange({ page })}
             onReload={() => state.reload()}

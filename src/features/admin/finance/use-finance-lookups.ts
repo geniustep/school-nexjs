@@ -121,13 +121,14 @@ export function useConfirmedFeePlanOptions(
 export function useFeeTypeOptions(): {
   feeTypes: FeeType[];
   loading: boolean;
+  reload: () => void;
 } {
   const state = useAdminResource<FeeType[]>(endpoints.admin.financeFeeTypes, {
     page: 1,
     page_size: 100,
     active: 1,
   });
-  return { feeTypes: state.data ?? [], loading: state.loading };
+  return { feeTypes: state.data ?? [], loading: state.loading, reload: state.reload };
 }
 
 /** Journals are loaded dynamically from reference-data (FIN-WEB-2). */

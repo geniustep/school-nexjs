@@ -66,6 +66,19 @@ export default function AdminFinanceFeePlanDetailPage({
       render: (l) => <FinanceMoney amount={l.amount} />,
     },
     {
+      key: 'frequency',
+      header: t('admin.finance.feeTypesWorkspace.frequency'),
+      render: (l) => l.frequency ?? t('common.dash'),
+    },
+    {
+      key: 'optional',
+      header: t('academic.status'),
+      render: (l) =>
+        l.is_optional
+          ? t('admin.finance.feePlansWorkspace.optionalBadge')
+          : t('admin.finance.feePlansWorkspace.requiredBadge'),
+    },
+    {
       key: 'installments',
       header: t('admin.finance.installmentsHeading'),
       render: (l) => l.installment_count ?? t('common.dash'),

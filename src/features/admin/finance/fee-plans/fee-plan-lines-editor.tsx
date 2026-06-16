@@ -2,9 +2,11 @@
 
 import { useMemo, useState } from 'react';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
+import { feeTypeFrequencyLabel } from '@/features/admin/finance/fee-types/fee-type-labels';
 import { useT } from '@/features/i18n/locale-context';
 import type { FeeType } from '@/types/finance';
 import { FeePlanLineDialog } from './fee-plan-line-dialog';
+import type { FeePlanScopeCycleGroup } from './fee-plan-level-scope';
 import { newDraftLine, type DraftFeePlanLine } from './fee-plan-types';
 
 let lineCounter = 0;
@@ -17,12 +19,20 @@ function nextClientId() {
 export function FeePlanLinesEditor({
   lines,
   feeTypes,
+  planLevelIds,
+  scopeGroups,
+  currency,
   onChange,
+  onFeeTypeCreated,
   error,
 }: {
   lines: DraftFeePlanLine[];
   feeTypes: FeeType[];
+  planLevelIds: number[];
+  scopeGroups: FeePlanScopeCycleGroup[];
+  currency?: string | null;
   onChange: (lines: DraftFeePlanLine[]) => void;
+  onFeeTypeCreated: (feeType: FeeType) => void;
   error?: string | null;
 }) {
   const t = useT();
@@ -53,6 +63,17 @@ export function FeePlanLinesEditor({
     onChange(lines.filter((l) => l.clientId !== clientId));
   }
 
+  function lineLevelLabel(line: DraftFeePlanLine): string {
+    if (line.levelScopeMode === 'all_plan_levels') {
+      return t('admin.finance.feePlansWorkspace.allPlanLevels');
+    }
+    if (!line.levelIds.length) return t('common.dash');
+    const names = line.levelIds
+      .map((id) => scopeGroups.flatMap((g) => g.levels).find((l) => l.schoolLevelId === id)?.name)
+      .filter(Boolean);
+    return names.length ? names.join(', ') : String(line.levelIds.length);
+  }
+
   return (
     <section className="fee-plan-lines-editor">
       <div className="fee-plan-lines-editor__head">
@@ -73,7 +94,9 @@ export function FeePlanLinesEditor({
                 <div className="fee-plan-line-card__main">
                   <strong>{line.label || ft?.name || t('common.dash')}</strong>
                   <span className="mono muted">{ft?.code ?? t('common.dash')}</span>
-                  <FinanceMoney amount={line.amount} currency={ft?.currency} />
+                  <FinanceMoney amount={line.amount} currency={currency ?? undefined} />
+                  <span className="muted">{feeTypeFrequencyLabel(line.frequency, t)}</span>
+                  <span className="muted">{lineLevelLabel(line)}</span>
                   <span className="fee-plan-line-card__badges">
                     {line.isOptional ? (
                       <span className="badge badge--slate">{t('admin.finance.feePlansWorkspace.optionalBadge')}</span>
@@ -106,8 +129,11 @@ export function FeePlanLinesEditor({
         open={dialogOpen}
         line={dialogLine}
         feeTypes={feeTypes}
+        planLevelIds={planLevelIds}
+        scopeGroups={scopeGroups}
         onSave={saveLine}
         onClose={() => setDialogOpen(false)}
+        onFeeTypeCreated={onFeeTypeCreated}
       />
     </section>
   );

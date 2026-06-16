@@ -137,13 +137,6 @@ export function FinanceHubLinks({ overview }: { overview: AdminFinanceOverview |
       descKey: 'admin.finance.hub.linkFeePlansDesc',
       show: canViewFinanceSetup(user),
     },
-    {
-      href: financeDeepLinkHref('feeTypes'),
-      icon: <IconBookOpen size={22} />,
-      labelKey: 'admin.finance.hubFeeTypes',
-      descKey: 'admin.finance.hub.linkFeeTypesDesc',
-      show: canViewFinanceSetup(user),
-    },
   ];
 
   const visibleOperations = operations.filter((link) => link.show);

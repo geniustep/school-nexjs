@@ -14,6 +14,7 @@ export type FeeTypeErrorCode =
   | 'fee_type_not_found'
   | 'forbidden'
   | 'fee_type_in_use'
+  | 'fee_type_delete_forbidden'
   | 'fee_type_code_exists'
   | 'fee_type_restore_conflict'
   | 'invalid_amount'
@@ -192,6 +193,7 @@ export function resolveFeeTypeErrorCode(code: string | undefined): FeeTypeErrorC
     'fee_type_not_found',
     'forbidden',
     'fee_type_in_use',
+    'fee_type_delete_forbidden',
     'fee_type_code_exists',
     'fee_type_restore_conflict',
     'invalid_amount',
@@ -211,10 +213,6 @@ export interface FeeTypeFormValues {
   name: string;
   code: string;
   category: string;
-  frequency: string;
-  defaultAmount: string;
-  currencyId: string;
-  isMandatory: boolean;
   requiresSubscription: boolean;
   requiresUsageTracking: boolean;
   sequence: string;
@@ -226,13 +224,6 @@ export function feeTypeFormValuesFromDetail(detail: FeeTypeDetail): FeeTypeFormV
     name: detail.name,
     code: detail.code,
     category: detail.category ?? 'tuition',
-    frequency: detail.frequency ?? 'annual',
-    defaultAmount:
-      detail.default_amount != null && Number.isFinite(detail.default_amount)
-        ? String(detail.default_amount)
-        : '',
-    currencyId: feeTypeCurrencyId(detail.currency) ? String(feeTypeCurrencyId(detail.currency)) : '',
-    isMandatory: detail.is_mandatory ?? false,
     requiresSubscription: detail.requires_subscription ?? false,
     requiresUsageTracking: detail.requires_usage_tracking ?? false,
     sequence: detail.sequence != null ? String(detail.sequence) : '',
@@ -248,23 +239,12 @@ export function buildFeeTypeUpdatePayload(
   const trimmedName = values.name.trim();
   const trimmedCode = values.code.trim();
   const trimmedDescription = values.description.trim();
-  const amountRaw = values.defaultAmount.trim();
-  const amount = amountRaw ? Number(amountRaw) : undefined;
   const sequenceRaw = values.sequence.trim();
   const sequence = sequenceRaw ? Number(sequenceRaw) : undefined;
-  const currencyId = values.currencyId.trim() ? Number(values.currencyId) : undefined;
 
   if (trimmedName && trimmedName !== original.name) payload.name = trimmedName;
   if (trimmedCode && trimmedCode !== original.code) payload.code = trimmedCode;
   if (values.category && values.category !== (original.category ?? '')) payload.category = values.category;
-  if (values.frequency && values.frequency !== (original.frequency ?? '')) {
-    payload.frequency = values.frequency;
-  }
-  if (amount !== undefined && amount !== original.default_amount) payload.default_amount = amount;
-  if (currencyId != null && currencyId !== feeTypeCurrencyId(original.currency)) {
-    payload.currency_id = currencyId;
-  }
-  if (values.isMandatory !== (original.is_mandatory ?? false)) payload.is_mandatory = values.isMandatory;
   if (values.requiresSubscription !== (original.requires_subscription ?? false)) {
     payload.requires_subscription = values.requiresSubscription;
   }

@@ -2,11 +2,16 @@ import type { FeePlanInstallmentScheduleItem } from '@/types/finance';
 
 export type FeePlanScheduleMode = 'on_assignment' | 'fixed_date' | 'explicit';
 
+export type FeePlanLineLevelScopeMode = 'all_plan_levels' | 'specific';
+
 export interface DraftFeePlanLine {
   clientId: string;
   feeTypeId: number;
   label: string;
   amount: number;
+  frequency: string;
+  levelScopeMode: FeePlanLineLevelScopeMode;
+  levelIds: number[];
   isOptional: boolean;
   installmentCount: number;
   scheduleMode: FeePlanScheduleMode;
@@ -52,6 +57,9 @@ export function newDraftLine(clientId: string): DraftFeePlanLine {
     feeTypeId: 0,
     label: '',
     amount: 0,
+    frequency: 'once',
+    levelScopeMode: 'all_plan_levels',
+    levelIds: [],
     isOptional: false,
     installmentCount: 1,
     scheduleMode: 'on_assignment',

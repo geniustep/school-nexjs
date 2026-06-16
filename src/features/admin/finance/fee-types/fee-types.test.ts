@@ -119,10 +119,13 @@ describe('fee type update payload', () => {
     expect(payload).toEqual({ description: 'Updated only' });
   });
 
-  it('does not include default_amount when unchanged', () => {
+  it('never includes deprecated pricing fields', () => {
     const detail = normalizeFeeTypeDetail(detailRaw)!;
     const payload = buildFeeTypeUpdatePayload(detail, feeTypeFormValuesFromDetail(detail));
     expect(payload.default_amount).toBeUndefined();
+    expect(payload.frequency).toBeUndefined();
+    expect(payload.currency_id).toBeUndefined();
+    expect(payload.is_mandatory).toBeUndefined();
   });
 });
 

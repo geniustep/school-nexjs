@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useCallback, useMemo, useState } from 'react';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
 import { Badge } from '@/components/ui/primitives';
-import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { FeeTypeArchiveDialog, FeeTypeRestoreDialog } from '@/features/admin/finance/fee-types/fee-type-action-dialogs';
 import { FeeTypeActionsMenu } from '@/features/admin/finance/fee-types/fee-type-actions-menu';
 import { FeeTypeDeleteDialog } from '@/features/admin/finance/fee-types/fee-type-delete-dialog';
@@ -20,7 +19,7 @@ export function FeeTypesList({
   rows,
   pagination,
   listReturnTo,
-  currencies,
+  embedded = false,
   onView,
   onPage,
   onReload,
@@ -29,7 +28,7 @@ export function FeeTypesList({
   rows: FeeType[];
   pagination?: { page: number; total_pages: number; total: number };
   listReturnTo: string;
-  currencies: Array<{ id: number; name: string }>;
+  embedded?: boolean;
   onView: (row: FeeType) => void;
   onPage: (page: number) => void;
   onReload: () => void;
@@ -60,16 +59,21 @@ export function FeeTypesList({
     }
   }, []);
 
+  const handleRowClick = embedded ? (row: FeeType) => void openEdit(row) : onView;
+
   const columns: Column<FeeType>[] = useMemo(
     () => [
       {
         key: 'name',
         header: t('admin.finance.feeTypeName'),
-        render: (row) => (
-          <Link href={detailHref(row)} className="fee-type-list__name-link" onClick={(e) => e.stopPropagation()}>
+        render: (row) =>
+          embedded ? (
             <strong dir="auto">{row.name}</strong>
-          </Link>
-        ),
+          ) : (
+            <Link href={detailHref(row)} className="fee-type-list__name-link" onClick={(e) => e.stopPropagation()}>
+              <strong dir="auto">{row.name}</strong>
+            </Link>
+          ),
       },
       {
         key: 'code',
@@ -84,11 +88,6 @@ export function FeeTypesList({
         key: 'category',
         header: t('admin.finance.category'),
         render: (row) => feeTypeCategoryLabel(row.category, t),
-      },
-      {
-        key: 'default_amount',
-        header: t('admin.finance.defaultAmount'),
-        render: (row) => <FinanceMoney amount={row.default_amount} currency={row.currency} />,
       },
       {
         key: 'active',
@@ -115,7 +114,7 @@ export function FeeTypesList({
         render: (row) => (
           <FeeTypeActionsMenu
             feeType={row}
-            onView={() => onView(row)}
+            onView={embedded ? () => void openEdit(row) : () => onView(row)}
             onEdit={() => void openEdit(row)}
             onArchive={() => {
               setActionRow(row);
@@ -133,26 +132,30 @@ export function FeeTypesList({
         ),
       },
     ],
-    [t, detailHref, onView, openEdit],
+    [t, detailHref, embedded, onView, openEdit],
   );
 
   return (
     <>
       <div className="fee-types-list__desktop" data-testid="fee-types-table">
-        <DataTable columns={columns} rows={rows} rowKey={(row) => row.id} onRowClick={onView} />
+        <DataTable columns={columns} rows={rows} rowKey={(row) => row.id} onRowClick={handleRowClick} />
       </div>
 
       <div className="fee-types-list__mobile" data-testid="fee-types-cards">
         {rows.map((row) => (
-          <article key={row.id} className="card fee-type-card" onClick={() => onView(row)}>
+          <article key={row.id} className="card fee-type-card" onClick={() => handleRowClick(row)}>
             <div className="fee-type-card__head">
-              <Link
-                href={detailHref(row)}
-                className="fee-type-list__name-link"
-                onClick={(e) => e.stopPropagation()}
-              >
+              {embedded ? (
                 <strong dir="auto">{row.name}</strong>
-              </Link>
+              ) : (
+                <Link
+                  href={detailHref(row)}
+                  className="fee-type-list__name-link"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <strong dir="auto">{row.name}</strong>
+                </Link>
+              )}
               <Badge tone={row.active ? 'green' : 'slate'}>
                 {row.active ? t('states.active') : t('states.archived')}
               </Badge>
@@ -165,17 +168,11 @@ export function FeeTypesList({
                 <dt>{t('admin.finance.category')}</dt>
                 <dd>{feeTypeCategoryLabel(row.category, t)}</dd>
               </div>
-              <div>
-                <dt>{t('admin.finance.defaultAmount')}</dt>
-                <dd>
-                  <FinanceMoney amount={row.default_amount} currency={row.currency} />
-                </dd>
-              </div>
             </dl>
             <div className="fee-type-card__actions" onClick={(e) => e.stopPropagation()}>
               <FeeTypeActionsMenu
                 feeType={row}
-                onView={() => onView(row)}
+                onView={embedded ? () => void openEdit(row) : () => onView(row)}
                 onEdit={() => void openEdit(row)}
                 onArchive={() => {
                   setActionRow(row);
@@ -210,7 +207,6 @@ export function FeeTypesList({
         <FeeTypeEditDrawer
           open={editOpen}
           feeType={editDetail}
-          currencies={currencies}
           onClose={() => {
             setEditOpen(false);
             setEditDetail(null);
