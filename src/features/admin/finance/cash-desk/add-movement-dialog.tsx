@@ -61,7 +61,7 @@ export function AddCashMovementDialog({
     setSubmitting(true);
     setError(null);
     const res = await addCashSessionMovement(sessionId, {
-      type,
+      movement_type: type,
       amount: parsedAmount,
       reason: reason.trim(),
       reference: reference.trim() || undefined,

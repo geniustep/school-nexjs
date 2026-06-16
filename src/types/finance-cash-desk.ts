@@ -147,7 +147,7 @@ export interface ReopenCashSessionPayload {
 }
 
 export interface AddCashMovementPayload {
-  type: CashMovementType | string;
+  movement_type: CashMovementType | string;
   amount: number;
   reason: string;
   reference?: string;

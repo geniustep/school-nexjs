@@ -23,28 +23,64 @@ function asRecord(value: unknown): Record<string, unknown> | null {
     : null;
 }
 
-function normalizeSummary(raw: unknown): CashSessionSummary | undefined {
-  const row = asRecord(raw);
-  if (!row) return undefined;
-  return {
-    opening_balance: normalizeMoneyValue(row.opening_balance) ?? undefined,
-    cash_collections_total:
-      normalizeMoneyValue(row.cash_collections_total ?? row.confirmed_cash_collections) ?? undefined,
-    movements_in_total:
-      normalizeMoneyValue(row.movements_in_total ?? row.total_cash_in ?? row.cash_in_total) ?? undefined,
-    movements_out_total:
-      normalizeMoneyValue(row.movements_out_total ?? row.total_cash_out ?? row.cash_out_total) ?? undefined,
-    expected_balance: normalizeMoneyValue(row.expected_balance) ?? undefined,
-    collections_count:
-      typeof row.collections_count === 'number'
-        ? row.collections_count
-        : typeof row.cash_collections_count === 'number'
-          ? row.cash_collections_count
-          : undefined,
-    receipts_count: typeof row.receipts_count === 'number' ? row.receipts_count : undefined,
-    total_cash_in: normalizeMoneyValue(row.total_cash_in) ?? undefined,
-    total_cash_out: normalizeMoneyValue(row.total_cash_out) ?? undefined,
-  };
+function normalizeSummary(raw: unknown, row?: Record<string, unknown>): CashSessionSummary | undefined {
+  const summaryRow = asRecord(raw);
+  const base: CashSessionSummary = summaryRow
+    ? {
+        opening_balance: normalizeMoneyValue(summaryRow.opening_balance) ?? undefined,
+        cash_collections_total:
+          normalizeMoneyValue(summaryRow.cash_collections_total ?? summaryRow.confirmed_cash_collections) ??
+          undefined,
+        movements_in_total:
+          normalizeMoneyValue(
+            summaryRow.movements_in_total ?? summaryRow.total_cash_in ?? summaryRow.cash_in_total,
+          ) ?? undefined,
+        movements_out_total:
+          normalizeMoneyValue(
+            summaryRow.movements_out_total ?? summaryRow.total_cash_out ?? summaryRow.cash_out_total,
+          ) ?? undefined,
+        expected_balance: normalizeMoneyValue(summaryRow.expected_balance) ?? undefined,
+        collections_count:
+          typeof summaryRow.collections_count === 'number'
+            ? summaryRow.collections_count
+            : typeof summaryRow.cash_collections_count === 'number'
+              ? summaryRow.cash_collections_count
+              : undefined,
+        receipts_count:
+          typeof summaryRow.receipts_count === 'number' ? summaryRow.receipts_count : undefined,
+        total_cash_in: normalizeMoneyValue(summaryRow.total_cash_in) ?? undefined,
+        total_cash_out: normalizeMoneyValue(summaryRow.total_cash_out) ?? undefined,
+      }
+    : {};
+
+  if (row) {
+    const mov = asRecord(row.movements_summary);
+    const coll = asRecord(row.collections_summary);
+    const rcpt = asRecord(row.receipts_summary);
+    if (mov) {
+      base.movements_in_total =
+        normalizeMoneyValue(mov.in_total) ?? base.movements_in_total;
+      base.movements_out_total =
+        normalizeMoneyValue(mov.out_total) ?? base.movements_out_total;
+    }
+    if (coll) {
+      base.collections_count =
+        typeof coll.count === 'number' ? coll.count : base.collections_count;
+      base.cash_collections_total =
+        normalizeMoneyValue(coll.total) ?? base.cash_collections_total;
+    }
+    if (rcpt) {
+      base.receipts_count = typeof rcpt.count === 'number' ? rcpt.count : base.receipts_count;
+    }
+    if (row.opening_balance != null && base.opening_balance == null) {
+      base.opening_balance = normalizeMoneyValue(row.opening_balance) ?? undefined;
+    }
+    if (row.expected_balance != null && base.expected_balance == null) {
+      base.expected_balance = normalizeMoneyValue(row.expected_balance) ?? undefined;
+    }
+  }
+
+  return Object.keys(base).length ? base : undefined;
 }
 
 function normalizeMovement(raw: unknown): CashSessionMovement | null {
@@ -141,15 +177,20 @@ function normalizeAuditEvent(raw: unknown): CashSessionAuditEvent | null {
     at:
       typeof row.at === 'string'
         ? row.at
-        : typeof row.date === 'string'
-          ? row.date
-          : typeof row.timestamp === 'string'
-            ? row.timestamp
-            : undefined,
+        : typeof row.event_at === 'string'
+          ? row.event_at
+          : typeof row.date === 'string'
+            ? row.date
+            : typeof row.timestamp === 'string'
+              ? row.timestamp
+              : undefined,
     date: typeof row.date === 'string' ? row.date : undefined,
     action: typeof row.action === 'string' ? row.action : undefined,
     label: typeof row.label === 'string' ? row.label : undefined,
-    user: row.user as CashSessionAuditEvent['user'],
+    user:
+      typeof row.user === 'string'
+        ? ({ name: row.user } as CashSessionAuditEvent['user'])
+        : (row.user as CashSessionAuditEvent['user']),
     note: typeof row.note === 'string' ? row.note : undefined,
     reason: typeof row.reason === 'string' ? row.reason : undefined,
   };
@@ -157,10 +198,16 @@ function normalizeAuditEvent(raw: unknown): CashSessionAuditEvent | null {
 
 export function normalizeCashSession(raw: unknown): CashSession | null {
   const row = asRecord(raw);
-  if (!row || row.id == null) return null;
+  if (!row) return null;
+  if (row.session && typeof row.session === 'object') {
+    return normalizeCashSession(row.session);
+  }
+  if (row.id == null) return null;
 
-  const summary = normalizeSummary(row.summary ?? row.balances ?? row.totals);
+  const summary = normalizeSummary(row.summary ?? row.balances ?? row.totals, row);
   const currency = currencyCode(row.currency ?? row.currency_code) ?? undefined;
+  const journalName = typeof row.journal_name === 'string' ? row.journal_name : undefined;
+  const schoolName = typeof row.school_name === 'string' ? row.school_name : undefined;
 
   return {
     id: Number(row.id),
@@ -174,11 +221,15 @@ export function normalizeCashSession(raw: unknown): CashSession | null {
         : typeof (row.journal as { id?: number } | undefined)?.id === 'number'
           ? (row.journal as { id: number }).id
           : undefined,
-    journal: row.journal as CashSession['journal'],
+    journal:
+      (row.journal as CashSession['journal']) ??
+      (journalName ? { id: row.journal_id as number, name: journalName } : undefined),
     cashier: row.cashier as CashSession['cashier'],
     cashier_name:
       typeof row.cashier_name === 'string' ? row.cashier_name : refName(row.cashier as never) ?? undefined,
-    school: row.school as CashSession['school'],
+    school:
+      (row.school as CashSession['school']) ??
+      (schoolName ? { id: row.school_id as number, name: schoolName } : undefined),
     school_id: typeof row.school_id === 'number' ? row.school_id : undefined,
     currency,
     currency_code: currency,
@@ -187,8 +238,9 @@ export function normalizeCashSession(raw: unknown): CashSession | null {
     expected_balance:
       normalizeMoneyValue(row.expected_balance) ?? summary?.expected_balance ?? undefined,
     counted_balance: normalizeMoneyValue(row.counted_balance) ?? undefined,
-    difference: normalizeMoneyValue(row.difference) ?? undefined,
-    difference_reason: typeof row.difference_reason === 'string' ? row.difference_reason : undefined,
+    difference: normalizeMoneyValue(row.difference ?? row.difference_amount) ?? undefined,
+    difference_reason:
+      typeof row.difference_reason === 'string' ? row.difference_reason : undefined,
     closing_note: typeof row.closing_note === 'string' ? row.closing_note : undefined,
     opened_at:
       typeof row.opened_at === 'string'
@@ -216,10 +268,10 @@ export function normalizeCashSession(raw: unknown): CashSession | null {
     movements: parseFinanceList<CashSessionMovement>(row.movements)
       .map(normalizeMovement)
       .filter(Boolean) as CashSessionMovement[],
-    timeline: parseFinanceList<CashSessionAuditEvent>(row.timeline ?? row.audit_events)
+    timeline: parseFinanceList<CashSessionAuditEvent>(row.timeline ?? row.audit ?? row.audit_events)
       .map(normalizeAuditEvent)
       .filter(Boolean) as CashSessionAuditEvent[],
-    audit_events: parseFinanceList<CashSessionAuditEvent>(row.audit_events)
+    audit_events: parseFinanceList<CashSessionAuditEvent>(row.audit_events ?? row.audit)
       .map(normalizeAuditEvent)
       .filter(Boolean) as CashSessionAuditEvent[],
     allowed_actions: Array.isArray(row.allowed_actions)

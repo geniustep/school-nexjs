@@ -53,4 +53,26 @@ describe('cash session normalize', () => {
     expect(previewCashDifference(90, 100)).toBe(-10);
     expect(previewCashDifference(null, 100)).toBeNull();
   });
+
+  it('unwraps nested session payloads and live API fields', () => {
+    const session = normalizeCashSession({
+      movement: { id: 5 },
+      session: {
+        id: 149,
+        name: 'CSH/raqeem/000003',
+        state: 'closed',
+        opening_balance: 100,
+        expected_balance: 150,
+        counted_balance: 150,
+        difference_amount: 0,
+        journal_name: 'نقدي',
+        movements_summary: { in_total: 50, out_total: 0 },
+        audit: [{ action: 'opened', event_at: '2026-06-16 15:47:42', user: 'Administrator' }],
+      },
+    });
+    expect(session?.id).toBe(149);
+    expect(session?.difference).toBe(0);
+    expect(session?.summary?.movements_in_total).toBe(50);
+    expect(session?.timeline?.[0]?.at).toBe('2026-06-16 15:47:42');
+  });
 });
