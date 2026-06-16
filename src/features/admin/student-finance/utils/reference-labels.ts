@@ -1,4 +1,5 @@
 import type { FinanceReferenceOption } from '../types';
+import { hasFinanceSummaryMetrics } from './normalize-student-finance-workspace';
 
 const REF_PREFIX = 'admin.student360.financeOps.ref';
 
@@ -140,11 +141,12 @@ export function hasFinanceSummaryData(summary: {
   total_due?: number;
   total_agreed?: number;
   confirmed_paid?: number;
+  pending_cheques?: number;
+  remaining?: number;
+  uncovered?: number;
+  overdue?: number;
 } | null | undefined): boolean {
-  if (!summary) return false;
-  return [summary.total_due, summary.total_agreed, summary.confirmed_paid].some(
-    (v) => v != null && v > 0,
-  );
+  return hasFinanceSummaryMetrics(summary);
 }
 
 export function hasAgreementData(agreement: { id?: number; state?: string } | null | undefined): boolean {

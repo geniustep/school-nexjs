@@ -34,6 +34,10 @@ import { useStudentInstallments } from '../hooks/use-student-installments';
 import type { ServiceSubscription, StudentInstallment, WorkspaceCheque } from '../types';
 import { hasFinanceSummaryData } from '../utils/reference-labels';
 import {
+  isStudentFinanceSummaryInconsistent,
+  resolveStudentFinanceSummaryDisplayValue,
+} from '../utils/normalize-student-finance-workspace';
+import {
   resolveFinanceTabLoadPhase,
   shouldShowFinanceEmptyState,
 } from '../utils/finance-tab-loading';
@@ -126,28 +130,36 @@ export function StudentFinanceOperationsTab({
   const currency = workspace?.summary?.currency;
   const serviceCategories = refState.data?.service_categories ?? [];
 
+  const summaryUnavailable = isStudentFinanceSummaryInconsistent({
+    workspace,
+    installmentsLoaded: !installmentsState.initialLoading,
+    installmentRowCount: installmentsState.data?.length ?? 0,
+  });
+
   const summaryItems = useMemo(() => {
     const s = workspace?.summary;
     if (!s) return [];
+    const display = (value: number | null | undefined) =>
+      resolveStudentFinanceSummaryDisplayValue(value, summaryUnavailable);
     return [
-      { key: 'total_due', label: t('admin.student360.financeOps.totalDue'), value: s.total_due },
+      { key: 'total_due', label: t('admin.student360.financeOps.totalDue'), value: display(s.total_due) },
       {
         key: 'confirmed_paid',
         label: t('admin.student360.financeOps.confirmedPaid'),
-        value: s.confirmed_paid,
+        value: display(s.confirmed_paid),
         tone: 'green' as const,
       },
       {
         key: 'pending_cheques',
         label: t('admin.student360.financeOps.pendingCheques'),
-        value: s.pending_cheques,
+        value: display(s.pending_cheques),
         tone: 'blue' as const,
       },
-      { key: 'remaining', label: t('admin.student360.financeOps.remaining'), value: s.remaining, tone: 'amber' as const },
-      { key: 'uncovered', label: t('admin.student360.financeOps.uncovered'), value: s.uncovered, tone: 'amber' as const },
-      { key: 'overdue', label: t('admin.student360.financeOps.overdue'), value: s.overdue, tone: 'red' as const },
+      { key: 'remaining', label: t('admin.student360.financeOps.remaining'), value: display(s.remaining), tone: 'amber' as const },
+      { key: 'uncovered', label: t('admin.student360.financeOps.uncovered'), value: display(s.uncovered), tone: 'amber' as const },
+      { key: 'overdue', label: t('admin.student360.financeOps.overdue'), value: display(s.overdue), tone: 'red' as const },
     ];
-  }, [workspace?.summary, t]);
+  }, [workspace?.summary, summaryUnavailable, t]);
 
   const installmentColumns: Column<StudentInstallment>[] = useMemo(
     () => [
@@ -380,6 +392,7 @@ export function StudentFinanceOperationsTab({
     !!paymentStatus || !!timingStatus || !!serviceCategory || !!dateFrom || !!dateTo || quickOverdueUnpaid;
 
   const allSummaryZero =
+    !summaryUnavailable &&
     summaryItems.length > 0 &&
     summaryItems.every((item) => item.value == null || Number(item.value) === 0);
 
@@ -459,6 +472,11 @@ export function StudentFinanceOperationsTab({
         />
       ) : (
         <>
+          {summaryUnavailable ? (
+            <p className="student-finance-alert" role="status">
+              {t('admin.student360.financeOps.summaryUnavailable')}
+            </p>
+          ) : null}
           <Student360MetricGrid
             variant="finance"
             className={allSummaryZero ? 'student-360-metric-grid--muted' : undefined}
@@ -468,7 +486,7 @@ export function StudentFinanceOperationsTab({
               value: (
                 <FinanceMoney amount={item.value} currency={currency?.name} />
               ),
-              tone: allSummaryZero ? 'none' : 'tone' in item ? item.tone : undefined,
+              tone: summaryUnavailable ? 'none' : allSummaryZero ? 'none' : 'tone' in item ? item.tone : undefined,
             }))}
           />
 

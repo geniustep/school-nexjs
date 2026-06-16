@@ -3281,6 +3281,7 @@
         "remaining": "Reste dû",
         "uncovered": "Non couvert",
         "overdue": "En retard",
+        "summaryUnavailable": "Les indicateurs du résumé ne sont pas synchronisés avec les échéances affichées ci-dessous. Les totaux officiels ne sont pas encore disponibles côté serveur — consultez le tableau des échéances.",
         "installmentsTitle": "Échéances",
         "installmentsDescription": "Échéances opérationnelles — statuts séparés.",
         "noInstallments": "Aucune échéance.",

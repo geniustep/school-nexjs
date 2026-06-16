@@ -3281,6 +3281,7 @@
         "remaining": "Pendiente",
         "uncovered": "No cubierto",
         "overdue": "Vencido",
+        "summaryUnavailable": "Los indicadores del resumen no coinciden con las cuotas mostradas abajo. Los totales oficiales aún no están disponibles en el servidor — consulte la tabla de cuotas.",
         "installmentsTitle": "Cuotas",
         "installmentsDescription": "Cuotas operativas — estados separados.",
         "noInstallments": "Sin cuotas.",

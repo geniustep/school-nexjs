@@ -3320,6 +3320,7 @@
         "remaining": "Remaining",
         "uncovered": "Uncovered",
         "overdue": "Overdue",
+        "summaryUnavailable": "Summary metrics are out of sync with the installments shown below. Official totals are not available from the server yet — use the installments table.",
         "installmentsTitle": "Installments",
         "installmentsDescription": "Operational installments — payment and timing status are separate.",
         "noInstallments": "No matching installments.",
