@@ -7,6 +7,7 @@ import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
+import { BillingPartnerScopeChip } from '@/features/admin/finance/billing-partner-scope-chip';
 import {
   INSTALLMENT_QUICK_FILTERS,
   installmentQuickFilterLabelKey,
@@ -32,6 +33,7 @@ export type InstallmentsListFilters = {
   classId: string;
   levelId: string;
   studentId: string;
+  billingPartnerId: string;
   dueDateFrom: string;
   dueDateTo: string;
   page: number;
@@ -62,6 +64,7 @@ export function InstallmentsListPanel({ filters, onFiltersChange, returnTo }: In
       class_id: filters.classId || undefined,
       level_id: filters.levelId || undefined,
       student_id: filters.studentId || undefined,
+      billing_partner_id: filters.billingPartnerId || undefined,
       due_date_from: filters.dueDateFrom || undefined,
       due_date_to: filters.dueDateTo || undefined,
     };
@@ -214,6 +217,13 @@ export function InstallmentsListPanel({ filters, onFiltersChange, returnTo }: In
 
   return (
     <>
+      {filters.billingPartnerId ? (
+        <BillingPartnerScopeChip
+          billingPartnerId={filters.billingPartnerId}
+          onClear={() => onFiltersChange({ billingPartnerId: null, page: 1 })}
+        />
+      ) : null}
+
       {apiError ? (
         <ApiErrorView
           error={{ code: 'invalid_quick_filter', message: t('admin.finance.errors.invalidQuickFilter') }}

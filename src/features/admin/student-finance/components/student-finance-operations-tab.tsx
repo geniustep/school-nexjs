@@ -438,6 +438,14 @@ export function StudentFinanceOperationsTab({
         </label>
       )}
       <div className="student-finance-header-buttons">
+        {workspace?.finance_profile?.billing_partner?.id ? (
+          <Link
+            href={`/admin/finance/billing-accounts/${workspace.finance_profile.billing_partner.id}?returnTo=${encodeURIComponent(`/admin/students/${studentId}?tab=finance`)}`}
+            className="btn btn--ghost btn--sm"
+          >
+            {t('admin.finance.billingAccounts.openPayerAccount')}
+          </Link>
+        ) : null}
         <Link
           href={`/admin/students/${studentId}?tab=financial-agreement`}
           className="btn btn--ghost btn--sm"

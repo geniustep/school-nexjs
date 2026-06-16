@@ -9,6 +9,7 @@ import { EmptyState } from '@/components/states/states';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
 import { PageHeader } from '@/components/ui/primitives';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
+import { BillingPartnerScopeChip } from '@/features/admin/finance/billing-partner-scope-chip';
 import { ReceiptActionsMenu } from '@/features/admin/finance/receipt-actions-menu';
 import { ReceiptDetailDrawer } from '@/features/admin/finance/receipt-detail-drawer';
 import {
@@ -33,6 +34,7 @@ type ReceiptFilters = {
   search: string;
   studentId: string;
   payerId: string;
+  billingPartnerId: string;
   collectionId: string;
   dateFrom: string;
   dateTo: string;
@@ -47,6 +49,7 @@ function readFilters(searchParams: URLSearchParams): ReceiptFilters {
     search: searchParams.get('search') ?? '',
     studentId: searchParams.get('student_id') ?? searchParams.get('studentId') ?? '',
     payerId: searchParams.get('payer_id') ?? '',
+    billingPartnerId: searchParams.get('billing_partner_id') ?? '',
     collectionId: searchParams.get('collection_id') ?? '',
     dateFrom: searchParams.get('date_from') ?? '',
     dateTo: searchParams.get('date_to') ?? '',
@@ -74,6 +77,7 @@ export default function AdminFinanceReceiptsPage() {
         search: 'search',
         studentId: 'student_id',
         payerId: 'payer_id',
+        billingPartnerId: 'billing_partner_id',
         collectionId: 'collection_id',
         dateFrom: 'date_from',
         dateTo: 'date_to',
@@ -100,6 +104,7 @@ export default function AdminFinanceReceiptsPage() {
       search: filters.search || undefined,
       student_id: filters.studentId || undefined,
       payer_id: filters.payerId || undefined,
+      billing_partner_id: filters.billingPartnerId || undefined,
       collection_id: filters.collectionId || undefined,
       date_from: filters.dateFrom || undefined,
       date_to: filters.dateTo || undefined,
@@ -117,6 +122,7 @@ export default function AdminFinanceReceiptsPage() {
     filters.search ||
     filters.studentId ||
     filters.payerId ||
+    filters.billingPartnerId ||
     filters.collectionId ||
     filters.dateFrom ||
     filters.dateTo ||
@@ -235,6 +241,13 @@ export default function AdminFinanceReceiptsPage() {
           </button>
         }
       />
+
+      {filters.billingPartnerId ? (
+        <BillingPartnerScopeChip
+          billingPartnerId={filters.billingPartnerId}
+          onClear={() => updateFilters({ billingPartnerId: null, page: 1 })}
+        />
+      ) : null}
 
       <div className="finance-receipts-meta">
         {activeSchool ? (

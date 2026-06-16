@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
@@ -18,6 +18,7 @@ import {
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { FinanceStatusBadge } from '@/features/admin/finance/finance-status-badge';
 import { ChequePaymentMarker } from '@/features/admin/finance/cheque-payment-marker';
+import { BillingPartnerScopeChip } from '@/features/admin/finance/billing-partner-scope-chip';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
@@ -44,8 +45,10 @@ function countByState(rows: PaymentCollection[]): Record<string, number> {
 export default function AdminFinanceCollectionsPage() {
   const t = useT();
   const user = useSession();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const studentIdFilter = searchParams.get('student_id') ?? searchParams.get('studentId') ?? '';
+  const billingPartnerIdFilter = searchParams.get('billing_partner_id') ?? '';
   const returnTo = sanitizeReturnTo(searchParams.get('returnTo'), '/admin/finance/collections');
   const { formatDate } = useFormat();
   const { available: journalsAvailable } = useFinanceJournalsAvailable();
@@ -70,6 +73,7 @@ export default function AdminFinanceCollectionsPage() {
     date_from: dateFrom || undefined,
     date_to: dateTo || undefined,
     student_id: studentIdFilter || undefined,
+    billing_partner_id: billingPartnerIdFilter || undefined,
   };
   const state = useAdminResource<PaymentCollection[]>(endpoints.admin.financePaymentCollections, params);
   const pg = state.meta?.pagination;
@@ -177,6 +181,18 @@ export default function AdminFinanceCollectionsPage() {
           ) : undefined
         }
       />
+
+      {billingPartnerIdFilter ? (
+        <BillingPartnerScopeChip
+          billingPartnerId={billingPartnerIdFilter}
+          onClear={() => {
+            const params = new URLSearchParams(searchParams.toString());
+            params.delete('billing_partner_id');
+            const qs = params.toString();
+            router.replace(qs ? `/admin/finance/collections?${qs}` : '/admin/finance/collections');
+          }}
+        />
+      ) : null}
 
       {studentIdFilter ? (
         <p className="muted">

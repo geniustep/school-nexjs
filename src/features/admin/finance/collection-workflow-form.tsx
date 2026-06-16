@@ -81,6 +81,7 @@ export function CollectionWorkflowForm({
   initialStudentId,
   lockStudent = false,
   initialAcademicYearId,
+  initialBillingPartnerId,
   useInstallmentAllocations = false,
   embedded = false,
 }: {
@@ -89,6 +90,7 @@ export function CollectionWorkflowForm({
   initialStudentId?: number | string;
   lockStudent?: boolean;
   initialAcademicYearId?: number | string;
+  initialBillingPartnerId?: number | string;
   useInstallmentAllocations?: boolean;
   embedded?: boolean;
 }) {
@@ -117,6 +119,7 @@ export function CollectionWorkflowForm({
       initialStudentId={initialStudentId}
       lockStudent={lockStudent}
       initialAcademicYearId={initialAcademicYearId}
+      initialBillingPartnerId={initialBillingPartnerId}
       useInstallmentAllocations={useInstallmentAllocations}
       embedded={embedded}
       onDone={onDone}
@@ -132,6 +135,7 @@ function CollectionWorkflowFormReady({
   initialStudentId,
   lockStudent = false,
   initialAcademicYearId,
+  initialBillingPartnerId,
   useInstallmentAllocations = false,
   embedded = false,
   onDone,
@@ -143,6 +147,7 @@ function CollectionWorkflowFormReady({
   initialStudentId?: number | string;
   lockStudent?: boolean;
   initialAcademicYearId?: number | string;
+  initialBillingPartnerId?: number | string;
   useInstallmentAllocations?: boolean;
   embedded?: boolean;
   onDone: (collection: PaymentCollection) => void;
@@ -253,6 +258,15 @@ function CollectionWorkflowFormReady({
       setBillingPartnerId('');
       return;
     }
+    const preferredId =
+      initialBillingPartnerId &&
+      partners.some((p) => String(p.id) === String(initialBillingPartnerId))
+        ? String(initialBillingPartnerId)
+        : null;
+    if (preferredId) {
+      setBillingPartnerId(preferredId);
+      return;
+    }
     if (defaultId && !requiresUserChoice) {
       setBillingPartnerId((current) => current || String(defaultId));
       return;
@@ -267,6 +281,7 @@ function CollectionWorkflowFormReady({
     defaultId,
     requiresUserChoice,
     partners,
+    initialBillingPartnerId,
   ]);
 
   useEffect(() => {

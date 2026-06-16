@@ -2726,3 +2726,193 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Billing accounts (Family 360) */
+.finance-billing-accounts-meta,
+.finance-billing-page-school {
+  margin-bottom: 12px;
+}
+
+.finance-billing-accounts-filters,
+.finance-billing-detail-filters {
+  margin-bottom: 16px;
+}
+
+.finance-filter-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: end;
+}
+
+.finance-billing-accounts-table-wrap {
+  overflow-x: auto;
+}
+
+.finance-billing-summary-grid {
+  margin-block: 16px 24px;
+}
+
+.finance-billing-summary-card .finance-billing-summary-hint {
+  margin: 6px 0 0;
+}
+
+.finance-billing-detail-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding: 16px;
+}
+
+.finance-billing-detail-header__meta,
+.finance-billing-detail-header__contact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.finance-billing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.finance-billing-actions__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.finance-billing-section {
+  margin-top: 24px;
+}
+
+.finance-billing-section h2 {
+  margin: 0 0 12px;
+  font-size: 1.05rem;
+}
+
+.finance-billing-students-mobile {
+  display: none;
+}
+
+.finance-billing-student-card {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.finance-billing-student-card__head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.finance-billing-student-card__metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.finance-billing-student-card__metrics dt {
+  font-size: 0.75rem;
+  color: var(--c-muted, #64748b);
+}
+
+.finance-billing-student-card__metrics dd {
+  margin: 0;
+}
+
+.finance-billing-activity-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.finance-billing-activity-item {
+  display: block;
+  padding: 12px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 10px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.finance-billing-activity-list__main,
+.finance-billing-activity-list__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  justify-content: space-between;
+}
+
+.finance-billing-dq-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.finance-billing-dq-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.finance-billing-dq-card__head h2 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.finance-billing-dq-list {
+  margin: 0;
+  padding-inline-start: 1rem;
+}
+
+.finance-skeleton {
+  display: inline-block;
+  background: linear-gradient(90deg, #eef2f7 25%, #f8fafc 50%, #eef2f7 75%);
+  background-size: 200% 100%;
+  animation: finance-skeleton-pulse 1.2s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+.finance-skeleton--label {
+  width: 60%;
+  height: 12px;
+}
+
+.finance-skeleton--metric {
+  width: 80px;
+  height: 24px;
+}
+
+@keyframes finance-skeleton-pulse {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .finance-billing-students-desktop {
+    display: none;
+  }
+
+  .finance-billing-students-mobile {
+    display: block;
+  }
+
+  .finance-billing-detail-header {
+    flex-direction: column;
+  }
+}

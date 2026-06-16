@@ -25,6 +25,8 @@ export default function AdminFinanceCollectionNewPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const studentId = searchParams.get('studentId') ?? searchParams.get('student_id') ?? '';
+  const billingPartnerId =
+    searchParams.get('billing_partner_id') ?? searchParams.get('billingPartnerId') ?? '';
   const academicYearId =
     searchParams.get('academic_year_id') ?? searchParams.get('academicYearId') ?? '';
   const returnTo = sanitizeReturnTo(searchParams.get('returnTo'), '/admin/finance/collections');
@@ -42,6 +44,7 @@ export default function AdminFinanceCollectionNewPage() {
       <div className="finance-collection-new-page">
         <FinanceCollectionForm
           initialStudentId={studentId || undefined}
+          initialBillingPartnerId={billingPartnerId || undefined}
           initialAcademicYearId={academicYearId || undefined}
           lockStudent={!!studentId}
           onDone={(id) =>

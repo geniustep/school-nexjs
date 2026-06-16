@@ -10,6 +10,7 @@ import {
   IconClipboard,
   IconLayers,
   IconSlidersHorizontal,
+  IconUsers,
 } from '@/components/icons/admin-icons';
 import {
   canViewCheques,
@@ -19,6 +20,7 @@ import {
   canViewFinanceSetup,
   canViewCashSessions,
   canViewPayments,
+  canViewStudentBalance,
 } from '@/lib/permissions/finance';
 import { normalizeFinanceOverview } from '@/lib/utils/finance-normalize';
 import { financeDeepLinkHref } from '@/features/admin/finance/finance-deep-links';
@@ -45,6 +47,13 @@ export function FinanceHubLinks({ overview }: { overview: AdminFinanceOverview |
   const totals = normalized?.totals;
 
   const operations: HubLink[] = [
+    {
+      href: '/admin/finance/billing-accounts',
+      icon: <IconUsers size={22} />,
+      labelKey: 'admin.finance.billingAccounts.hubTitle',
+      descKey: 'admin.finance.billingAccounts.hubDesc',
+      show: canViewStudentBalance(user),
+    },
     {
       href: financeDeepLinkHref('agreementsAll'),
       icon: <IconClipboard size={22} />,

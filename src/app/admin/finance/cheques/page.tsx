@@ -12,6 +12,7 @@ import { PageHeader } from '@/components/ui/primitives';
 import { ChequeDueIndicator } from '@/features/admin/finance/cheque-due-indicator';
 import { ChequeDualBadges } from '@/features/admin/student-finance/components/cheque-dual-badges';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
+import { BillingPartnerScopeChip } from '@/features/admin/finance/billing-partner-scope-chip';
 import {
   CHEQUE_QUICK_FILTERS,
   chequeQuickFilterDescKey,
@@ -38,6 +39,7 @@ type ChequeFilters = {
   dueFrom: string;
   dueTo: string;
   studentId: string;
+  billingPartnerId: string;
   page: number;
 };
 
@@ -51,6 +53,7 @@ function readFilters(searchParams: URLSearchParams): ChequeFilters {
     dueFrom: searchParams.get('due_date_from') ?? searchParams.get('maturity_date_from') ?? '',
     dueTo: searchParams.get('due_date_to') ?? searchParams.get('maturity_date_to') ?? '',
     studentId: searchParams.get('student_id') ?? '',
+    billingPartnerId: searchParams.get('billing_partner_id') ?? '',
     page: pageRaw && /^\d+$/.test(pageRaw) ? Number(pageRaw) : 1,
   };
 }
@@ -75,6 +78,7 @@ export default function AdminFinanceChequesPage() {
         dueFrom: 'due_date_from',
         dueTo: 'due_date_to',
         studentId: 'student_id',
+        billingPartnerId: 'billing_partner_id',
         page: 'page',
       };
       for (const [key, value] of Object.entries(updates) as Array<[keyof ChequeFilters, string | number | null]>) {
@@ -98,6 +102,7 @@ export default function AdminFinanceChequesPage() {
       page_size: 20,
       search: filters.search || undefined,
       student_id: filters.studentId || undefined,
+      billing_partner_id: filters.billingPartnerId || undefined,
       include_summary: quickValid ? 1 : undefined,
     };
     if (filters.dueFrom) p.maturity_date_from = filters.dueFrom;
@@ -215,6 +220,13 @@ export default function AdminFinanceChequesPage() {
         ‹ {t('admin.finance.backToFinance')}
       </Link>
       <PageHeader title={pageTitle} subtitle={pageSubtitle} />
+
+      {filters.billingPartnerId ? (
+        <BillingPartnerScopeChip
+          billingPartnerId={filters.billingPartnerId}
+          onClear={() => updateFilters({ billingPartnerId: null, page: 1 })}
+        />
+      ) : null}
 
       {invalidQuick ? (
         <ApiErrorView error={{ code: 'invalid_quick_filter', message: t('admin.finance.errors.invalidQuickFilter') }} />

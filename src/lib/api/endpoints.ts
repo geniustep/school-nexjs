@@ -225,6 +225,11 @@ export const endpoints = {
     financeAcademicYears: '/admin/finance/academic-years',
     financeReferenceData: '/admin/finance/reference-data',
     financeStudentsSearch: '/admin/finance/students/search',
+    financeBillingAccounts: '/admin/finance/billing-accounts',
+    financeBillingAccountsDataQuality: '/admin/finance/billing-accounts/data-quality',
+    financeBillingAccountSummary: (billingPartnerId: number | string) =>
+      `/admin/finance/billing-accounts/${billingPartnerId}/summary`,
+    financeAgreements: '/admin/finance/agreements',
     financeEligibleBillingPartners: (studentId: number | string) =>
       `/admin/finance/students/${studentId}/eligible-billing-partners`,
     financeCheques: '/admin/finance/cheques',

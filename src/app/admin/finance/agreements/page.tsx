@@ -6,6 +6,7 @@ import '@/features/admin/finance/finance-ui.css';
 import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
 import { PageHeader } from '@/components/ui/primitives';
 import { AgreementsListPanel } from '@/features/admin/finance/agreements-list-panel';
+import { FinanceAgreementsSchoolPanel } from '@/features/admin/finance/finance-agreements-school-panel';
 import {
   FinanceHubStudentScope,
   useFinanceHubStudentScope,
@@ -23,9 +24,25 @@ export default function AdminFinanceAgreementsPage() {
   const { studentId, setStudentId } = useFinanceHubStudentScope(searchParams, '/admin/finance/agreements');
   const returnTo = sanitizeReturnTo(searchParams.get('returnTo'), '/admin/finance/agreements');
   const stateFilter = searchParams.get('state') ?? '';
+  const billingPartnerId = searchParams.get('billing_partner_id') ?? '';
 
   if (!canViewFinanceAgreements(user)) {
     return <PermissionDeniedState description={t('admin.pageForbidden')} />;
+  }
+
+  if (billingPartnerId) {
+    return (
+      <RequireAdminPermission permission={FINANCE_VIEW}>
+        <Link href="/admin/finance" className="back-link">
+          ‹ {t('admin.finance.backToFinance')}
+        </Link>
+        <PageHeader
+          title={t('admin.finance.agreements.title')}
+          subtitle={t('admin.finance.agreements.subtitle')}
+        />
+        <FinanceAgreementsSchoolPanel billingPartnerId={billingPartnerId} returnTo={returnTo} />
+      </RequireAdminPermission>
+    );
   }
 
   return (
