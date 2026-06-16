@@ -10,6 +10,7 @@ import { ConfirmActionButton } from '@/features/admin/confirm-action-button';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { FinanceStatusBadge } from '@/features/admin/finance/finance-status-badge';
 import { FeePlanDrawer } from '@/features/admin/finance/fee-plans/fee-plan-drawer';
+import { useAcademicYearOptions } from '@/features/admin/finance/use-finance-lookups';
 import { useLevelOptions } from '@/features/admin/academic-setup/hooks/use-level-options';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
@@ -18,7 +19,7 @@ import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { FINANCE_VIEW, canManageFeePlans } from '@/lib/permissions/finance';
 import { useSession } from '@/features/auth/session-context';
 import { feePlanState, refName } from '@/lib/utils/finance';
-import { academicYearFromSource } from '@/lib/utils/academic-years';
+import { resolveAcademicYearName } from '@/lib/utils/academic-years';
 import type { FeePlan, FeePlanLine } from '@/types/finance';
 import { buildFeePlanScopeGroups } from '@/features/admin/finance/fee-plans/fee-plan-level-scope';
 import { feePlanLevelScopeLabel } from '@/features/admin/finance/fee-plans/fee-plan-normalizer';
@@ -38,6 +39,7 @@ export default function AdminFinanceFeePlanDetailPage({
   const state = useAdminResource<FeePlan>(endpoints.admin.financeFeePlan(id));
   const canManage = canManageFeePlans(user);
   const [editOpen, setEditOpen] = useState(false);
+  const { options: yearOptions } = useAcademicYearOptions(null);
   const levelOptionsState = useLevelOptions(true, { include_enabled: 'true' });
   const scopeGroups = useMemo(
     () => buildFeePlanScopeGroups(levelOptionsState.options),
@@ -141,7 +143,7 @@ export default function AdminFinanceFeePlanDetailPage({
                     <div>
                       <dt>{t('admin.finance.academicYear')}</dt>
                       <dd>
-                        {academicYearFromSource(plan)?.name ??
+                        {resolveAcademicYearName(plan, yearOptions) ??
                           refName(typeof plan.academic_year === 'object' ? plan.academic_year : null) ??
                           t('common.dash')}
                       </dd>

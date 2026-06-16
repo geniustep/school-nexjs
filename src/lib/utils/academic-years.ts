@@ -52,3 +52,24 @@ export function academicYearsFromFeePlans(plans: FeePlan[] | null | undefined): 
   if (!plans?.length) return [];
   return mergeAcademicYearOptions(...plans.map((p) => academicYearFromSource(p)));
 }
+
+function isIdFallbackLabel(id: number, name: string): boolean {
+  return name === String(id);
+}
+
+/** Resolve display name; falls back to lookup options when API only returns `academic_year_id`. */
+export function resolveAcademicYearName(
+  source?: Parameters<typeof academicYearFromSource>[0],
+  options?: Pick<AcademicYearOption, 'id' | 'name'>[] | null,
+): string | null {
+  const parsed = academicYearFromSource(source);
+  if (!parsed) return null;
+
+  const { id, name } = parsed;
+  if (!isIdFallbackLabel(id, name)) return name;
+
+  const match = options?.find((o) => o.id === id);
+  if (match?.name?.trim()) return match.name.trim();
+
+  return null;
+}

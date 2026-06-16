@@ -1,14 +1,15 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
 import { ConfirmActionButton } from '@/features/admin/confirm-action-button';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { FinanceStatusBadge } from '@/features/admin/finance/finance-status-badge';
+import { useAcademicYearOptions } from '@/features/admin/finance/use-finance-lookups';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { feePlanState, refName } from '@/lib/utils/finance';
-import { academicYearFromSource } from '@/lib/utils/academic-years';
+import { resolveAcademicYearName } from '@/lib/utils/academic-years';
 import type { FeePlan } from '@/types/finance';
 import type { FeePlanScopeCycleGroup } from './fee-plan-level-scope';
 import { feePlanLevelScopeLabel, feePlanLineCount } from './fee-plan-normalizer';
@@ -33,6 +34,15 @@ export function FeePlansList({
   onReload: () => void;
 }) {
   const t = useT();
+  const { options: yearOptions } = useAcademicYearOptions(null);
+
+  const academicYearLabel = useCallback(
+    (row: FeePlan) =>
+      resolveAcademicYearName(row, yearOptions) ??
+      refName(typeof row.academic_year === 'object' ? row.academic_year : null) ??
+      t('common.dash'),
+    [yearOptions, t],
+  );
 
   const scopeLabels = useMemo(
     () => ({
@@ -61,10 +71,7 @@ export function FeePlansList({
       {
         key: 'academic_year',
         header: t('admin.finance.academicYear'),
-        render: (row) =>
-          academicYearFromSource(row)?.name ??
-          refName(typeof row.academic_year === 'object' ? row.academic_year : null) ??
-          t('common.dash'),
+        render: (row) => academicYearLabel(row),
       },
       {
         key: 'level',
@@ -127,7 +134,7 @@ export function FeePlansList({
         },
       },
     ],
-    [t, canManage, scopeGroups, scopeLabels, onView, onEdit, onReload],
+    [t, canManage, scopeGroups, scopeLabels, onView, onEdit, onReload, academicYearLabel],
   );
 
   return (
@@ -147,9 +154,7 @@ export function FeePlansList({
               <div>
                 <dt>{t('admin.finance.academicYear')}</dt>
                 <dd>
-                  {academicYearFromSource(row)?.name ??
-                    refName(typeof row.academic_year === 'object' ? row.academic_year : null) ??
-                    t('common.dash')}
+                  {academicYearLabel(row)}
                 </dd>
               </div>
               <div>
