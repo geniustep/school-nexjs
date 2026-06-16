@@ -4855,6 +4855,16 @@
         "sectionScope": "نطاق التطبيق",
         "activeSchool": "المدرسة النشطة",
         "selectLevel": "اختر المستوى",
+        "selectLevels": "اختر المستويات",
+        "levelScopeAllInCycle": "{cycle}: جميع المستويات",
+        "levelScopeCompact": "{cycles} مراحل · {count} مستويات",
+        "levelScopePanelLabel": "نطاق المستويات الدراسية",
+        "levelScopeSelectedCount": "{count} / {total}",
+        "searchLevels": "بحث في المستويات…",
+        "clearLevelSelection": "مسح الاختيار",
+        "levelScopeNoMatch": "لا توجد مستويات تطابق البحث.",
+        "noScopeDefined": "لم يُحدد نطاق المستويات",
+        "noLevelsHintShort": "لا توجد مستويات مفعّلة",
         "allLevels": "كل المستويات",
         "searchPlaceholder": "بحث باسم الخطة أو الرمز…",
         "clearFilters": "مسح الفلاتر",
@@ -4915,12 +4925,22 @@
           "nameRequired": "اسم الخطة مطلوب.",
           "codeRequired": "رمز الخطة مطلوب.",
           "yearRequired": "السنة الدراسية مطلوبة.",
-          "levelRequired": "المستوى مطلوب.",
+          "levelRequired": "اختر مستوى دراسيًا واحدًا على الأقل.",
+          "confirmLevelRequired": "اختر مستوى دراسيًا واحدًا على الأقل قبل تأكيد الخطة.",
           "linesRequired": "أضف بندًا واحدًا على الأقل.",
           "lineFeeTypeRequired": "نوع الرسوم مطلوب لكل بند.",
           "lineAmountRequired": "المبلغ يجب أن يكون أكبر من صفر.",
           "scheduleRequired": "أدخل جدول الأقساط.",
-          "scheduleMismatch": "مجموع الأقساط يجب أن يساوي مبلغ البند."
+          "scheduleMismatch": "مجموع الأقساط يجب أن يساوي مبلغ البند.",
+          "levelScope": {
+            "invalid_school_level": "أحد المستويات المحددة غير صالح.",
+            "invalid_school_level_identifier": "استُعمل معرّف مستوى غير صحيح.",
+            "fee_plan_level_out_of_scope": "أحد المستويات لا ينتمي إلى المدرسة النشطة.",
+            "fee_plan_level_scope_mismatch": "نطاق المستويات المرسل غير متطابق.",
+            "fee_plan_level_scope_required": "اختر مستوى دراسيًا واحدًا على الأقل.",
+            "invalid_level_ids": "قائمة المستويات غير صالحة.",
+            "student_level_mismatch": "مستوى التلميذ غير مشمول في هذه الخطة."
+          }
         }
       },
       "states": {

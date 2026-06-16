@@ -4852,6 +4852,16 @@
         "sectionScope": "Scope",
         "activeSchool": "Active school",
         "selectLevel": "Select level",
+        "selectLevels": "Select levels",
+        "levelScopeAllInCycle": "{cycle}: all levels",
+        "levelScopeCompact": "{cycles} cycles · {count} levels",
+        "levelScopePanelLabel": "School level scope",
+        "levelScopeSelectedCount": "{count} / {total}",
+        "searchLevels": "Search levels…",
+        "clearLevelSelection": "Clear selection",
+        "levelScopeNoMatch": "No levels match your search.",
+        "noScopeDefined": "No level scope defined",
+        "noLevelsHintShort": "No enabled levels",
         "allLevels": "All levels",
         "searchPlaceholder": "Search by plan name or code…",
         "clearFilters": "Clear filters",
@@ -4912,12 +4922,22 @@
           "nameRequired": "Plan name is required.",
           "codeRequired": "Plan code is required.",
           "yearRequired": "Academic year is required.",
-          "levelRequired": "Level is required.",
+          "levelRequired": "Select at least one school level.",
+          "confirmLevelRequired": "Select at least one school level before confirming the plan.",
           "linesRequired": "Add at least one line.",
           "lineFeeTypeRequired": "Fee type is required for each line.",
           "lineAmountRequired": "Amount must be greater than zero.",
           "scheduleRequired": "Enter the installment schedule.",
-          "scheduleMismatch": "Installment total must equal the line amount."
+          "scheduleMismatch": "Installment total must equal the line amount.",
+          "levelScope": {
+            "invalid_school_level": "One of the selected levels is invalid.",
+            "invalid_school_level_identifier": "An incorrect level identifier was used.",
+            "fee_plan_level_out_of_scope": "One of the levels does not belong to the active school.",
+            "fee_plan_level_scope_mismatch": "The submitted level scope does not match.",
+            "fee_plan_level_scope_required": "Select at least one school level.",
+            "invalid_level_ids": "The level list is invalid.",
+            "student_level_mismatch": "The student's level is not covered by this plan."
+          }
         }
       },
       "states": {

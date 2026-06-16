@@ -4813,6 +4813,16 @@
         "sectionScope": "Périmètre",
         "activeSchool": "École active",
         "selectLevel": "Choisir le niveau",
+        "selectLevels": "Sélectionner les niveaux",
+        "levelScopeAllInCycle": "{cycle} : tous les niveaux",
+        "levelScopeCompact": "{cycles} cycles · {count} niveaux",
+        "levelScopePanelLabel": "Périmètre des niveaux",
+        "levelScopeSelectedCount": "{count} / {total}",
+        "searchLevels": "Rechercher un niveau…",
+        "clearLevelSelection": "Effacer la sélection",
+        "levelScopeNoMatch": "Aucun niveau correspond à la recherche.",
+        "noScopeDefined": "Aucun périmètre de niveaux défini",
+        "noLevelsHintShort": "Aucun niveau activé",
         "allLevels": "Tous les niveaux",
         "searchPlaceholder": "Rechercher par nom ou code…",
         "clearFilters": "Effacer les filtres",
@@ -4873,12 +4883,22 @@
           "nameRequired": "Le nom du plan est requis.",
           "codeRequired": "Le code du plan est requis.",
           "yearRequired": "L'année scolaire est requise.",
-          "levelRequired": "Le niveau est requis.",
+          "levelRequired": "Sélectionnez au moins un niveau scolaire.",
+          "confirmLevelRequired": "Sélectionnez au moins un niveau scolaire avant de confirmer le plan.",
           "linesRequired": "Ajoutez au moins une ligne.",
           "lineFeeTypeRequired": "Le type de frais est requis pour chaque ligne.",
           "lineAmountRequired": "Le montant doit être supérieur à zéro.",
           "scheduleRequired": "Saisissez le calendrier des échéances.",
-          "scheduleMismatch": "Le total des échéances doit égaler le montant de la ligne."
+          "scheduleMismatch": "Le total des échéances doit égaler le montant de la ligne.",
+          "levelScope": {
+            "invalid_school_level": "Un des niveaux sélectionnés est invalide.",
+            "invalid_school_level_identifier": "Un identifiant de niveau incorrect a été utilisé.",
+            "fee_plan_level_out_of_scope": "Un des niveaux ne correspond pas à l'école active.",
+            "fee_plan_level_scope_mismatch": "Le périmètre de niveaux envoyé est incohérent.",
+            "fee_plan_level_scope_required": "Sélectionnez au moins un niveau scolaire.",
+            "invalid_level_ids": "La liste des niveaux est invalide.",
+            "student_level_mismatch": "Le niveau de l'élève n'est pas couvert par ce plan."
+          }
         }
       },
       "states": {

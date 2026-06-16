@@ -25,7 +25,7 @@ function sampleForm(overrides?: Partial<FeePlanFormValues>): FeePlanFormValues {
     name: 'Plan QA',
     code: 'PLAN-QA',
     academicYearId: '1',
-    levelId: '77',
+    levelIds: [77],
     lines: [line],
     ...overrides,
   };
@@ -50,7 +50,7 @@ describe('fee plans workspace payload', () => {
     expect(payload.lines).toHaveLength(2);
     expect(payload.lines?.[0].is_optional).toBe(false);
     expect(payload.lines?.[1].is_optional).toBe(true);
-    expect(payload.level_id).toBe(77);
+    expect(payload.level_ids).toEqual([77]);
   });
 
   it('includes explicit installment schedule in line payload', () => {
@@ -80,6 +80,12 @@ describe('fee plans workspace payload', () => {
     expect(payload.due_rule).toBe('on_assignment');
     expect(payload.installment_count).toBe(3);
     expect(payload.installment_schedule).toBeUndefined();
+  });
+
+  it('rejects save without level scope', () => {
+    const error = validateFeePlanForm(sampleForm({ levelIds: [] }), { requireLevel: true });
+    expect(error?.field).toBe('levelIds');
+    expect(error?.messageKey).toBe('admin.finance.feePlansWorkspace.errors.levelRequired');
   });
 
   it('rejects save when explicit schedule total mismatches amount', () => {

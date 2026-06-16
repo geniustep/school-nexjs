@@ -1,9 +1,18 @@
 import { isPositiveAmount } from '@/lib/utils/finance';
 import type { CreateFeePlanPayload, FeePlanLineInput, UpdateFeePlanPayload } from '@/types/finance';
 import type { DraftFeePlanLine, FeePlanFormValues } from './fee-plan-types';
+import { sortLevelIdsByGroups, dedupeLevelIds, type FeePlanScopeCycleGroup } from './fee-plan-level-scope';
+
+function resolveLevelIdsForPayload(
+  levelIds: number[],
+  scopeGroups: FeePlanScopeCycleGroup[],
+): number[] {
+  if (!scopeGroups.length) return dedupeLevelIds(levelIds);
+  return sortLevelIdsByGroups(levelIds, scopeGroups);
+}
 
 export interface FeePlanValidationError {
-  field?: 'name' | 'code' | 'academicYearId' | 'levelId' | 'lines';
+  field?: 'name' | 'code' | 'academicYearId' | 'levelIds' | 'lines';
   lineClientId?: string;
   lineField?: 'feeTypeId' | 'amount' | 'installments';
   messageKey: string;
@@ -90,10 +99,9 @@ export function validateFeePlanForm(
     };
   }
   if (options?.requireLevel) {
-    const levelId = Number(values.levelId);
-    if (!Number.isFinite(levelId) || levelId <= 0) {
+    if (!values.levelIds.length) {
       return {
-        field: 'levelId',
+        field: 'levelIds',
         messageKey: 'admin.finance.feePlansWorkspace.errors.levelRequired',
       };
     }
@@ -143,28 +151,34 @@ export function validateFeePlanForm(
   return null;
 }
 
+export type FeePlanLevelScopeWritePayload = {
+  level_ids: number[];
+};
+
 export function buildCreateFeePlanPayload(
   values: FeePlanFormValues,
   schoolId: number,
-): CreateFeePlanPayload {
-  const levelId = Number(values.levelId);
+  scopeGroups: FeePlanScopeCycleGroup[] = [],
+): CreateFeePlanPayload & FeePlanLevelScopeWritePayload {
   return {
     school_id: schoolId,
     name: values.name.trim(),
     code: values.code.trim(),
     academic_year_id: Number(values.academicYearId),
-    level_id: Number.isFinite(levelId) && levelId > 0 ? levelId : undefined,
+    level_ids: resolveLevelIdsForPayload(values.levelIds, scopeGroups),
     notes: values.notes.trim() || undefined,
     lines: values.lines.map(buildLinePayload),
   };
 }
 
-export function buildUpdateFeePlanPayload(values: FeePlanFormValues): UpdateFeePlanPayload {
-  const levelId = Number(values.levelId);
+export function buildUpdateFeePlanPayload(
+  values: FeePlanFormValues,
+  scopeGroups: FeePlanScopeCycleGroup[] = [],
+): UpdateFeePlanPayload & FeePlanLevelScopeWritePayload {
   return {
     name: values.name.trim(),
     code: values.code.trim(),
-    level_id: Number.isFinite(levelId) && levelId > 0 ? levelId : null,
+    level_ids: resolveLevelIdsForPayload(values.levelIds, scopeGroups),
     notes: values.notes.trim() || undefined,
     lines: values.lines.map(buildLinePayload),
   };

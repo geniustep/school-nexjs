@@ -10,12 +10,14 @@ import { endpoints } from '@/lib/api/endpoints';
 import { feePlanState, refName } from '@/lib/utils/finance';
 import { academicYearFromSource } from '@/lib/utils/academic-years';
 import type { FeePlan } from '@/types/finance';
-import { feePlanLevelName, feePlanLineCount } from './fee-plan-normalizer';
+import type { FeePlanScopeCycleGroup } from './fee-plan-level-scope';
+import { feePlanLevelScopeLabel, feePlanLineCount } from './fee-plan-normalizer';
 
 export function FeePlansList({
   rows,
   pagination,
   canManage,
+  scopeGroups,
   onPage,
   onView,
   onEdit,
@@ -24,12 +26,25 @@ export function FeePlansList({
   rows: FeePlan[];
   pagination?: { page: number; total_pages: number; total: number };
   canManage: boolean;
+  scopeGroups: FeePlanScopeCycleGroup[];
   onPage: (page: number) => void;
   onView: (plan: FeePlan) => void;
   onEdit: (plan: FeePlan) => void;
   onReload: () => void;
 }) {
   const t = useT();
+
+  const scopeLabels = useMemo(
+    () => ({
+      selectLevels: t('admin.finance.feePlansWorkspace.selectLevels'),
+      allInCycle: (cycleName: string) =>
+        t('admin.finance.feePlansWorkspace.levelScopeAllInCycle', { cycle: cycleName }),
+      compact: (cycles: number, count: number) =>
+        t('admin.finance.feePlansWorkspace.levelScopeCompact', { cycles, count }),
+      noScope: t('admin.finance.feePlansWorkspace.noScopeDefined'),
+    }),
+    [t],
+  );
 
   const columns: Column<FeePlan>[] = useMemo(
     () => [
@@ -54,7 +69,11 @@ export function FeePlansList({
       {
         key: 'level',
         header: t('nav.levels'),
-        render: (row) => feePlanLevelName(row) ?? t('common.dash'),
+        render: (row) => (
+          <span className="fee-plan-level-scope-summary">
+            {feePlanLevelScopeLabel(row, scopeGroups, scopeLabels)}
+          </span>
+        ),
       },
       {
         key: 'lines',
@@ -108,7 +127,7 @@ export function FeePlansList({
         },
       },
     ],
-    [t, canManage, onView, onEdit, onReload],
+    [t, canManage, scopeGroups, scopeLabels, onView, onEdit, onReload],
   );
 
   return (
@@ -135,7 +154,9 @@ export function FeePlansList({
               </div>
               <div>
                 <dt>{t('nav.levels')}</dt>
-                <dd>{feePlanLevelName(row) ?? t('common.dash')}</dd>
+                <dd className="fee-plan-level-scope-summary fee-plan-level-scope-summary--multiline">
+                  {feePlanLevelScopeLabel(row, scopeGroups, scopeLabels)}
+                </dd>
               </div>
               <div>
                 <dt>{t('admin.finance.feePlansWorkspace.planTotal')}</dt>

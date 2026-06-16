@@ -1,10 +1,9 @@
 'use client';
 
 import { useT } from '@/features/i18n/locale-context';
+import { useLevelOptions } from '@/features/admin/academic-setup/hooks/use-level-options';
 import { useAcademicYearOptions } from '@/features/admin/finance/use-finance-lookups';
-import { useAdminResource } from '@/lib/hooks/use-admin-resource';
-import { endpoints } from '@/lib/api/endpoints';
-import type { Level } from '@/types/class';
+import { buildEnabledFeePlanScopeLevels } from './fee-plan-level-scope';
 
 export interface FeePlanFiltersState {
   search: string;
@@ -30,7 +29,8 @@ export function FeePlansFilters({
 }) {
   const t = useT();
   const { options: yearOptions, loading: yearsLoading } = useAcademicYearOptions(null);
-  const levelsState = useAdminResource<Level[]>(endpoints.admin.levels, { page_size: 200 });
+  const levelOptionsState = useLevelOptions(true, { include_enabled: 'true' });
+  const enabledLevels = buildEnabledFeePlanScopeLevels(levelOptionsState.options);
 
   return (
     <form
@@ -71,11 +71,11 @@ export function FeePlansFilters({
           onChange({ levelId: e.target.value });
           onSearchSubmit({ ...filters, levelId: e.target.value });
         }}
-        disabled={levelsState.loading}
+        disabled={levelOptionsState.loading}
       >
         <option value="">{t('admin.finance.feePlansWorkspace.allLevels')}</option>
-        {(levelsState.data ?? []).map((level) => (
-          <option key={level.id} value={level.id}>
+        {enabledLevels.map((level) => (
+          <option key={level.schoolLevelId} value={level.schoolLevelId}>
             {level.name}
           </option>
         ))}

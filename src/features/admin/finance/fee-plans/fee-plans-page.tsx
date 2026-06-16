@@ -18,6 +18,8 @@ import { FeePlansFilters, type FeePlanFiltersState } from './fee-plans-filters';
 import { FeePlansHeader } from './fee-plans-header';
 import { FeePlansList } from './fee-plans-list';
 import { FeePlansMetrics } from './fee-plans-metrics';
+import { useLevelOptions } from '@/features/admin/academic-setup/hooks/use-level-options';
+import { buildFeePlanScopeGroups } from './fee-plan-level-scope';
 import type { FeePlanDrawerMode } from './fee-plan-types';
 import '@/features/admin/finance/finance-ui.css';
 
@@ -40,6 +42,12 @@ export function FeePlansPage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerMode, setDrawerMode] = useState<FeePlanDrawerMode>('create');
   const [editPlanId, setEditPlanId] = useState<number | null>(null);
+
+  const levelOptionsState = useLevelOptions(true, { include_enabled: 'true' });
+  const scopeGroups = useMemo(
+    () => buildFeePlanScopeGroups(levelOptionsState.options),
+    [levelOptionsState.options],
+  );
 
   const params: ListParams = useMemo(
     () => ({
@@ -125,6 +133,7 @@ export function FeePlansPage() {
             rows={rows}
             pagination={pg ? { page: pg.page, total_pages: pg.total_pages, total: pg.total } : undefined}
             canManage={canManage}
+            scopeGroups={scopeGroups}
             onPage={setPage}
             onView={(plan) => router.push(`/admin/finance/fee-plans/${plan.id}`)}
             onEdit={openEditDrawer}

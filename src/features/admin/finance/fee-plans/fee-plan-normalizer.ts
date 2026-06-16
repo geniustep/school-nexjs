@@ -1,6 +1,12 @@
 import { normalizeFeePlanLines } from '@/lib/utils/fee-plan-line-normalize';
 import type { FeePlan, FeeType } from '@/types/finance';
 import {
+  feePlanLevelScopeSummaryFromPlan,
+  normalizeFeePlanLevelIds,
+  type FeePlanLevelScopeSummaryLabels,
+  type FeePlanScopeCycleGroup,
+} from './fee-plan-level-scope';
+import {
   createEmptyFeePlanFormValues,
   newDraftLine,
   type FeePlanFormValues,
@@ -10,8 +16,12 @@ export function feePlanLineCount(plan: FeePlan): number {
   return plan.lines?.length ?? 0;
 }
 
-export function feePlanLevelName(plan: FeePlan): string | null {
-  return plan.level?.name ?? null;
+export function feePlanLevelScopeLabel(
+  plan: FeePlan,
+  groups: FeePlanScopeCycleGroup[],
+  labels: FeePlanLevelScopeSummaryLabels,
+): string {
+  return feePlanLevelScopeSummaryFromPlan(plan, groups, labels);
 }
 
 export function formValuesFromFeePlan(plan: FeePlan, feeTypes: FeeType[]): FeePlanFormValues {
@@ -20,7 +30,7 @@ export function formValuesFromFeePlan(plan: FeePlan, feeTypes: FeeType[]): FeePl
   base.code = plan.code ?? '';
   base.notes = plan.notes ?? '';
   base.academicYearId = plan.academic_year_id ? String(plan.academic_year_id) : '';
-  base.levelId = plan.level_id ? String(plan.level_id) : '';
+  base.levelIds = normalizeFeePlanLevelIds(plan);
 
   const normalizedLines = normalizeFeePlanLines(plan.lines ?? []);
   base.lines = normalizedLines.map((line, index) => {

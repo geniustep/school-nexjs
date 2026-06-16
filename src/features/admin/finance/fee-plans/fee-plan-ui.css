@@ -1,0 +1,187 @@
+.fee-plan-level-scope {
+  position: relative;
+  width: 100%;
+}
+
+.fee-plan-level-scope__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 2.5rem;
+  text-align: start;
+  cursor: pointer;
+}
+
+.fee-plan-level-scope__trigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.fee-plan-level-scope__trigger-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fee-plan-level-scope__trigger-icon {
+  flex-shrink: 0;
+  opacity: 0.65;
+}
+
+.fee-plan-level-scope__panel {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 0.25rem);
+  left: 0;
+  right: 0;
+  max-height: min(22rem, 55vh);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border-subtle, #d8dee6);
+  border-radius: var(--radius-md, 8px);
+  background: var(--surface-elevated, #fff);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+}
+
+[dir='rtl'] .fee-plan-level-scope__panel {
+  left: 0;
+  right: 0;
+}
+
+.fee-plan-level-scope__search-wrap {
+  flex-shrink: 0;
+}
+
+.fee-plan-level-scope__search {
+  width: 100%;
+}
+
+.fee-plan-level-scope__actions {
+  flex-shrink: 0;
+  justify-content: flex-end;
+}
+
+.fee-plan-level-scope__list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.fee-plan-level-scope__cycle {
+  border-bottom: 1px solid var(--border-subtle, #e8ecf1);
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.fee-plan-level-scope__cycle:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.fee-plan-level-scope__cycle-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.fee-plan-level-scope__cycle-toggle {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.75rem;
+  padding: 0.15rem 0;
+  border: none;
+  background: transparent;
+  text-align: start;
+  cursor: pointer;
+  color: inherit;
+}
+
+.fee-plan-level-scope__cycle-toggle:focus-visible {
+  outline: 2px solid var(--focus-ring, #2563eb);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.fee-plan-level-scope__cycle-name {
+  font-weight: 600;
+}
+
+.fee-plan-level-scope__cycle-count {
+  font-size: 0.85rem;
+}
+
+.fee-plan-level-scope__levels {
+  list-style: none;
+  margin: 0.35rem 0 0;
+  padding: 0 0 0 1.5rem;
+}
+
+[dir='rtl'] .fee-plan-level-scope__levels {
+  padding: 0 1.5rem 0 0;
+}
+
+.fee-plan-level-scope__level {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0;
+  cursor: pointer;
+  min-height: 2rem;
+}
+
+.fee-plan-level-scope__checkbox {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  cursor: pointer;
+}
+
+.fee-plan-level-scope__checkbox:focus-visible {
+  outline: 2px solid var(--focus-ring, #2563eb);
+  outline-offset: 2px;
+}
+
+.fee-plan-level-scope__empty {
+  padding: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.fee-plan-level-scope-summary {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fee-plan-level-scope-summary--multiline {
+  white-space: normal;
+  line-height: 1.4;
+}
+
+@media (max-width: 480px) {
+  .fee-plan-level-scope__panel {
+    max-height: min(18rem, 50vh);
+  }
+
+  .fee-plan-level-scope__levels {
+    padding-left: 1.25rem;
+  }
+
+  [dir='rtl'] .fee-plan-level-scope__levels {
+    padding-right: 1.25rem;
+  }
+}

@@ -19,7 +19,7 @@ export interface FeePlanFormValues {
   code: string;
   notes: string;
   academicYearId: string;
-  levelId: string;
+  levelIds: number[];
   lines: DraftFeePlanLine[];
 }
 
@@ -41,7 +41,7 @@ export function createEmptyFeePlanFormValues(): FeePlanFormValues {
     code: '',
     notes: '',
     academicYearId: '',
-    levelId: '',
+    levelIds: [],
     lines: [],
   };
 }

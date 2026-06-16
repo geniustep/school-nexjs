@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useToast } from '@/components/ui/toast';
 import { SetupDrawer } from '@/features/admin/academic-setup/components/setup-drawer';
+import { useLevelOptions } from '@/features/admin/academic-setup/hooks/use-level-options';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { api } from '@/lib/api/client';
@@ -11,8 +12,14 @@ import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { useAcademicYearOptions, useFeeTypeOptions } from '@/features/admin/finance/use-finance-lookups';
 import { feePlanState } from '@/lib/utils/finance';
 import type { FeePlan } from '@/types/finance';
-import type { Level } from '@/types/class';
 import { formValuesFromFeePlan } from './fee-plan-normalizer';
+import { FeePlanLevelScopeSelector } from './fee-plan-level-scope-selector';
+import {
+  buildFeePlanScopeGroups,
+  feePlanLevelErrorMessageKey,
+  reconcileLevelIdsWithGroups,
+  resolveFeePlanLevelErrorCode,
+} from './fee-plan-level-scope';
 import {
   buildCreateFeePlanPayload,
   buildUpdateFeePlanPayload,
@@ -23,6 +30,7 @@ import { FeePlanLinesEditor } from './fee-plan-lines-editor';
 import { FeePlanSummaryCard } from './fee-plan-summary-card';
 import { createEmptyFeePlanFormValues, type FeePlanDrawerMode, type FeePlanFormValues } from './fee-plan-types';
 import '@/features/admin/finance/finance-ui.css';
+import './fee-plan-ui.css';
 
 export function FeePlanDrawer({
   open,
@@ -51,13 +59,16 @@ export function FeePlanDrawer({
   );
   const { options: yearOptions, loading: yearsLoading } = useAcademicYearOptions();
   const { feeTypes, loading: typesLoading } = useFeeTypeOptions();
-  const levelsState = useAdminResource<Level[]>(open ? endpoints.admin.levels : null, {
-    page_size: 200,
-  });
-  const levels = levelsState.data ?? [];
+  const levelOptionsState = useLevelOptions(open, { include_enabled: 'true' });
+  const scopeGroups = useMemo(
+    () => buildFeePlanScopeGroups(levelOptionsState.options),
+    [levelOptionsState.options],
+  );
+
   const plan = planState.data;
   const planStatus = plan ? feePlanState(plan) : 'draft';
   const readOnly = mode === 'view' || (mode === 'edit' && planStatus !== 'draft');
+  const hasLevelScope = values.levelIds.length > 0;
 
   useEffect(() => {
     if (!open) return;
@@ -72,14 +83,32 @@ export function FeePlanDrawer({
     }
   }, [open, mode, plan, feeTypes]);
 
+  useEffect(() => {
+    if (!open || scopeGroups.length === 0) return;
+    setValues((prev) => ({
+      ...prev,
+      levelIds: reconcileLevelIdsWithGroups(prev.levelIds, scopeGroups),
+    }));
+  }, [open, activeSchoolId, scopeGroups]);
+
   const title = useMemo(() => {
     if (mode === 'create') return t('admin.finance.feePlansWorkspace.createTitle');
     if (mode === 'edit') return t('admin.finance.feePlansWorkspace.editTitle');
     return t('admin.finance.feePlansWorkspace.viewTitle');
   }, [mode, t]);
 
+  function resolveApiErrorMessage(message: string, code?: string): string {
+    const levelCode = resolveFeePlanLevelErrorCode(code);
+    if (levelCode) return t(feePlanLevelErrorMessageKey(levelCode));
+    return message;
+  }
+
   async function persist(confirmAfterSave: boolean) {
     if (submitting || readOnly || activeSchoolId == null) return;
+    if (confirmAfterSave && !hasLevelScope) {
+      setFormError(t('admin.finance.feePlansWorkspace.errors.confirmLevelRequired'));
+      return;
+    }
     const validation = validateFeePlanForm(values, { requireLevel: true });
     if (validation) {
       setFieldErrors(validation);
@@ -92,20 +121,20 @@ export function FeePlanDrawer({
 
     let savedId = planId ?? null;
     if (mode === 'create') {
-      const payload = buildCreateFeePlanPayload(values, activeSchoolId);
+      const payload = buildCreateFeePlanPayload(values, activeSchoolId, scopeGroups);
       const res = await api.post<FeePlan>(endpoints.admin.financeFeePlans, payload);
       if (!res.success) {
         setSubmitting(false);
-        setFormError(res.error.message);
+        setFormError(resolveApiErrorMessage(res.error.message, res.error.code));
         return;
       }
       savedId = res.data.id;
     } else if (planId) {
-      const payload = buildUpdateFeePlanPayload(values);
+      const payload = buildUpdateFeePlanPayload(values, scopeGroups);
       const res = await api.put<FeePlan>(endpoints.admin.financeFeePlan(planId), payload);
       if (!res.success) {
         setSubmitting(false);
-        setFormError(res.error.message);
+        setFormError(resolveApiErrorMessage(res.error.message, res.error.code));
         return;
       }
       savedId = res.data.id;
@@ -115,7 +144,7 @@ export function FeePlanDrawer({
       const confirmRes = await api.post(endpoints.admin.financeFeePlanConfirm(savedId));
       if (!confirmRes.success) {
         setSubmitting(false);
-        setFormError(confirmRes.error.message);
+        setFormError(resolveApiErrorMessage(confirmRes.error.message, confirmRes.error.code));
         toast.show(t('admin.finance.feePlansWorkspace.savedDraftConfirmFailed'), 'info');
         onSaved(savedId);
         onClose();
@@ -228,33 +257,24 @@ export function FeePlanDrawer({
                     <span className="form-error">{t(fieldErrors.messageKey)}</span>
                   )}
                 </label>
-                <label>
+                <label className="fee-plan-form__full">
                   {t('nav.levels')}
-                  <select
-                    className="input"
-                    required
-                    disabled={readOnly || levelsState.loading}
-                    value={values.levelId}
-                    onChange={(e) => patchValues({ levelId: e.target.value })}
-                  >
-                    <option value="">
-                      {levelsState.loading ? t('common.loading') : t('admin.finance.feePlansWorkspace.selectLevel')}
-                    </option>
-                    {levels.map((level) => (
-                      <option key={level.id} value={level.id}>
-                        {level.name}
-                      </option>
-                    ))}
-                  </select>
-                  {fieldErrors?.field === 'levelId' && (
-                    <span className="form-error">{t(fieldErrors.messageKey)}</span>
-                  )}
+                  <FeePlanLevelScopeSelector
+                    groups={scopeGroups}
+                    selectedIds={values.levelIds}
+                    onChange={(levelIds) => patchValues({ levelIds })}
+                    disabled={readOnly}
+                    loading={levelOptionsState.loading}
+                    error={
+                      fieldErrors?.field === 'levelIds' ? t(fieldErrors.messageKey) : null
+                    }
+                  />
                 </label>
               </div>
               {yearOptions.length === 0 && !yearsLoading && (
                 <p className="muted">{t('admin.finance.academicYearHintFromPlans')}</p>
               )}
-              {levels.length === 0 && !levelsState.loading && (
+              {scopeGroups.length === 0 && !levelOptionsState.loading && (
                 <p className="muted">
                   {t('admin.finance.feePlansWorkspace.noLevelsHint')}{' '}
                   <a href="/admin/settings/academic-setup/levels">{t('nav.levels')}</a>
@@ -292,7 +312,12 @@ export function FeePlanDrawer({
               <button
                 type="button"
                 className="btn btn--primary"
-                disabled={submitting}
+                disabled={submitting || !hasLevelScope}
+                title={
+                  !hasLevelScope
+                    ? t('admin.finance.feePlansWorkspace.errors.confirmLevelRequired')
+                    : undefined
+                }
                 onClick={() => void persist(true)}
               >
                 {submitting ? t('common.saving') : t('admin.finance.feePlansWorkspace.saveAndConfirm')}
