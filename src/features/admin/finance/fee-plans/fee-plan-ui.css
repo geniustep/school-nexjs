@@ -204,6 +204,13 @@
   border-block-end: 0;
 }
 
+.fee-plan-detail-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
 .fee-plan-detail-page__actions .btn {
   min-height: 2.5rem;
   padding-inline: 18px;

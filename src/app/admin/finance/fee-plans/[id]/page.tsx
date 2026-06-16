@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useMemo } from 'react';
+import { use, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
 import { ResourceView } from '@/components/states/resource';
@@ -9,6 +9,7 @@ import { PageHeader } from '@/components/ui/primitives';
 import { ConfirmActionButton } from '@/features/admin/confirm-action-button';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { FinanceStatusBadge } from '@/features/admin/finance/finance-status-badge';
+import { FeePlanDrawer } from '@/features/admin/finance/fee-plans/fee-plan-drawer';
 import { useLevelOptions } from '@/features/admin/academic-setup/hooks/use-level-options';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
@@ -22,6 +23,7 @@ import type { FeePlan, FeePlanLine } from '@/types/finance';
 import { buildFeePlanScopeGroups } from '@/features/admin/finance/fee-plans/fee-plan-level-scope';
 import { feePlanLevelScopeLabel } from '@/features/admin/finance/fee-plans/fee-plan-normalizer';
 import { normalizeFeePlanLevelIds } from '@/features/admin/finance/fee-plans/fee-plan-level-scope';
+import '@/features/admin/finance/finance-ui.css';
 import '@/features/admin/finance/fee-plans/fee-plan-ui.css';
 
 export default function AdminFinanceFeePlanDetailPage({
@@ -35,6 +37,7 @@ export default function AdminFinanceFeePlanDetailPage({
   const { formatDate } = useFormat();
   const state = useAdminResource<FeePlan>(endpoints.admin.financeFeePlan(id));
   const canManage = canManageFeePlans(user);
+  const [editOpen, setEditOpen] = useState(false);
   const levelOptionsState = useLevelOptions(true, { include_enabled: 'true' });
   const scopeGroups = useMemo(
     () => buildFeePlanScopeGroups(levelOptionsState.options),
@@ -85,11 +88,12 @@ export default function AdminFinanceFeePlanDetailPage({
         </Link>
         <ResourceView state={state} loadingLabel={t('common.loading')}>
           {(plan) => {
+            const canEdit = canManage && feePlanState(plan) === 'draft';
             const canConfirm =
-              canManage &&
-              feePlanState(plan) === 'draft' &&
+              canEdit &&
               (plan.lines?.length ?? 0) > 0 &&
               normalizeFeePlanLevelIds(plan).length > 0;
+            const showActions = canEdit || canConfirm;
 
             return (
               <>
@@ -97,15 +101,26 @@ export default function AdminFinanceFeePlanDetailPage({
                   title={plan.name}
                   subtitle={plan.code}
                   actions={
-                    canConfirm ? (
+                    showActions ? (
                       <div className="fee-plan-detail-page__actions">
-                        <ConfirmActionButton
-                          label={t('admin.finance.confirmPlan')}
-                          confirmMessage={t('admin.finance.confirmPlanMessage')}
-                          path={endpoints.admin.financeFeePlanConfirm(id)}
-                          variant="primary"
-                          onSuccess={() => state.reload()}
-                        />
+                        {canEdit ? (
+                          <button
+                            type="button"
+                            className="btn btn--ghost"
+                            onClick={() => setEditOpen(true)}
+                          >
+                            {t('common.edit')}
+                          </button>
+                        ) : null}
+                        {canConfirm ? (
+                          <ConfirmActionButton
+                            label={t('admin.finance.confirmPlan')}
+                            confirmMessage={t('admin.finance.confirmPlanMessage')}
+                            path={endpoints.admin.financeFeePlanConfirm(id)}
+                            variant="primary"
+                            onSuccess={() => state.reload()}
+                          />
+                        ) : null}
                       </div>
                     ) : undefined
                   }
@@ -169,6 +184,19 @@ export default function AdminFinanceFeePlanDetailPage({
                     <h2>{t('common.note')}</h2>
                     <p>{plan.notes}</p>
                   </section>
+                ) : null}
+
+                {canManage ? (
+                  <FeePlanDrawer
+                    open={editOpen}
+                    mode="edit"
+                    planId={plan.id}
+                    onClose={() => setEditOpen(false)}
+                    onSaved={() => {
+                      setEditOpen(false);
+                      state.reload();
+                    }}
+                  />
                 ) : null}
               </>
             );
