@@ -66,6 +66,12 @@ export function logStudent360TabError(payload: {
   endpoint?: string;
   error_type: string;
   request_status?: number | string;
+  component_name?: string;
+  currency_source?: string;
+  overview_status?: string;
+  workspace_status?: string;
+  drawer_open?: boolean;
+  refresh_signal?: number;
 }) {
   console.error('[student360.tab]', {
     student_id: payload.student_id,
@@ -73,5 +79,11 @@ export function logStudent360TabError(payload: {
     endpoint: payload.endpoint ?? null,
     error_type: payload.error_type,
     request_status: payload.request_status ?? null,
+    component_name: payload.component_name ?? null,
+    currency_source: payload.currency_source ?? null,
+    overview_status: payload.overview_status ?? null,
+    workspace_status: payload.workspace_status ?? null,
+    drawer_open: payload.drawer_open ?? null,
+    refresh_signal: payload.refresh_signal ?? null,
   });
 }

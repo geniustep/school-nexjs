@@ -15,6 +15,7 @@ import type { StudentFee } from '@/types/finance';
 import { StudentSectionSkeleton } from '@/features/admin/students/components/student-360-loading';
 import { Student360SectionHeader } from '@/features/admin/students/components/student-360-section-header';
 import { useStudentFinanceFees } from '../hooks/use-student-finance-fees';
+import { resolveStudentFinanceCurrency } from '../utils/resolve-student-finance-currency';
 import type { StudentFinancePanelProps } from './student-finance-panel-props';
 
 function feeServiceName(fee: StudentFee): string {
@@ -42,7 +43,7 @@ export function StudentFinanceFeesPanel({
   const t = useT();
   const { formatDate } = useFormat();
   const [page, setPage] = useState(1);
-  const currency = financialOverview?.totals.currency.name;
+  const currency = resolveStudentFinanceCurrency({ financialOverview });
 
   const feesState = useStudentFinanceFees(
     studentId,

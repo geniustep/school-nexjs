@@ -185,8 +185,8 @@ export interface CollectionAllocation {
 }
 
 export interface CollectionUpdatedOverview {
-  totals: StudentFinancialOverviewTotals;
-  counts?: StudentFinancialOverviewCounts;
+  totals?: Partial<StudentFinancialOverviewTotals> | null;
+  counts?: Partial<StudentFinancialOverviewCounts>;
   next_installment?: StudentFinancialOverviewNextInstallment | null;
 }
 

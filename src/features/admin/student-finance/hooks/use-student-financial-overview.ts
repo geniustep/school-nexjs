@@ -65,12 +65,10 @@ export function useStudentFinancialOverview(
             setData(normalized);
             setError(null);
           } else {
-            setData(null);
             setError({ code: 'server_error', message: 'Unexpected financial overview shape.' });
           }
         } else {
           setError(res.error);
-          setData(null);
         }
         setLoading(false);
       });

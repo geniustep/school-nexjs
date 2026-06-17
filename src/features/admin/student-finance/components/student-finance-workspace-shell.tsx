@@ -103,8 +103,8 @@ export function StudentFinanceWorkspaceShell({
   );
 
   const emptyFinance =
-    (financialOverviewState.data?.totals.annual_total ?? 0) === 0 &&
-    (financialOverviewState.data?.counts.fees_count ?? 0) === 0 &&
+    (financialOverviewState.data?.totals?.annual_total ?? 0) === 0 &&
+    (financialOverviewState.data?.counts?.fees_count ?? 0) === 0 &&
     (workspace?.recent_collections?.length ?? 0) === 0;
 
   const showFinanceEmpty = shouldShowFinanceEmptyState({

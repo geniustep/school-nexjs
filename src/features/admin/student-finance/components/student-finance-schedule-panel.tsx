@@ -13,6 +13,7 @@ import { resolveInstallmentDisplayLabel } from '../utils/resolve-installment-dis
 import { StudentSectionSkeleton } from '@/features/admin/students/components/student-360-loading';
 import { Student360SectionHeader } from '@/features/admin/students/components/student-360-section-header';
 import { useStudentFinanceInstallmentsPage } from '../hooks/use-student-finance-installments-page';
+import { resolveStudentFinanceCurrency } from '../utils/resolve-student-finance-currency';
 import type { StudentInstallment } from '../types';
 import { formatPeriodRange } from '../utils/format-period';
 import { InstallmentStatusBadges } from './installment-status-badges';
@@ -58,7 +59,7 @@ export function StudentFinanceSchedulePanel({
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const currency = financialOverview?.totals.currency.name;
+  const currency = resolveStudentFinanceCurrency({ financialOverview });
 
   const query = useMemo(
     () => ({

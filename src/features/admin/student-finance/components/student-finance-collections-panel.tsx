@@ -16,6 +16,7 @@ import { collectionState, paymentMethodLabel } from '@/lib/utils/finance';
 import type { PaymentCollection } from '@/types/finance';
 import { EmptyState } from '@/components/states/states';
 import { Student360SectionHeader } from '@/features/admin/students/components/student-360-section-header';
+import { resolveStudentFinanceCurrency } from '../utils/resolve-student-finance-currency';
 import type { StudentFinancePanelProps } from './student-finance-panel-props';
 
 export function StudentFinanceCollectionsPanel({
@@ -30,7 +31,10 @@ export function StudentFinanceCollectionsPanel({
   const t = useT();
   const { formatDate } = useFormat();
   const [selectedCollectionId, setSelectedCollectionId] = useState<number | null>(null);
-  const currency = financialOverview?.totals.currency.name ?? workspace?.summary?.currency?.name;
+  const currency = resolveStudentFinanceCurrency({
+    financialOverview,
+    workspaceSummary: workspace?.summary,
+  });
 
   const collectionColumns: Column<PaymentCollection>[] = useMemo(
     () => [

@@ -1,3 +1,4 @@
+import { resolveFinanceCurrency } from '@/lib/i18n/format-money';
 import type { StudentFinancialOverview } from '@/types/student-financial-overview';
 import { resolveInstallmentDisplayLabel } from './resolve-installment-display';
 
@@ -41,7 +42,7 @@ export function resolveStudentFinanceOverviewMetrics(
     (agreement.net_amount ?? agreement.total_amount ?? 0) > 0;
 
   return {
-    currency: totals.currency?.name ?? null,
+    currency: resolveFinanceCurrency(totals.currency?.name ?? totals.currency),
     annual_total: totals.annual_total,
     due_to_date: totals.due_to_date,
     paid: totals.paid,

@@ -56,6 +56,7 @@ export class Student360TabErrorBoundary extends Component<Props, State> {
       endpoint: this.props.endpoint,
       error_type: error.name || 'render_error',
       request_status: info.componentStack ? 'render' : undefined,
+      component_name: info.componentStack?.split('\n')[1]?.trim() ?? undefined,
     });
   }
 
