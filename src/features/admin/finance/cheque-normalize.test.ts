@@ -75,4 +75,12 @@ describe('cheque normalize', () => {
     expect(detail.reversalApplied).toBe(true);
     expect(detail.allowedActions).toEqual(['return', 'replace']);
   });
+
+  it('normalizes allowed_actions map from API', () => {
+    const detail = normalizeChequeDetail({
+      ...sample310,
+      allowed_actions: { deposit: true, clear: false, return: true },
+    } as FinanceCheque);
+    expect(detail.allowedActions).toEqual(['deposit', 'return']);
+  });
 });
