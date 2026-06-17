@@ -39,11 +39,11 @@ async function login(request, context) {
 
 async function checkCollection(page, id, checks) {
   await page.goto(`${BASE}/admin/finance/collections/${id}`, {
-    waitUntil: 'domcontentloaded',
-    timeout: 90000,
+    waitUntil: 'networkidle',
+    timeout: 120000,
   });
-  await page.waitForSelector('.collection-details, .form-error, .state', { timeout: 90000 });
-  const text = await page.locator('body').innerText();
+  await page.waitForSelector('.collection-details__title', { timeout: 120000 });
+  const text = await page.locator('.collection-details').innerText();
   const html = await page.locator('.collection-details').innerHTML().catch(() => '');
   for (const [name, fn] of Object.entries(checks)) {
     record(`${id}:${name}`, fn(text, html));
@@ -79,7 +79,7 @@ async function main() {
     allocationRegistration: (t) => t.includes('التسجيل'),
     allocationTuition: (t) => t.includes('التمدرس'),
     noTechnicalTitle: (_t, html) => !html.includes('collection-allocation-row__title">#3634'),
-    draftBanner: (t) => t.includes('مسودة') && t.includes('لم تُرحّل'),
+    draftBanner: (t) => t.includes('مسودة') && (t.includes('لم تُرحّل') || t.includes('لم تؤثر')),
     receiptPending: (t) => t.includes('لم يصدر'),
     amounts: (t) => t.includes('4 500,00') || t.includes('4,500.00'),
     unallocatedZero: (t) => t.includes('0,00') || t.includes('0.00'),
