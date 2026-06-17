@@ -77,6 +77,7 @@ export function CollectionDetailDrawer({
             <CollectionStudentCell
               student={coll.student}
               studentId={coll.student_id}
+              studentName={coll.student_name}
               unavailableLabel={t('admin.finance.unavailable')}
             />
             {ref ? (

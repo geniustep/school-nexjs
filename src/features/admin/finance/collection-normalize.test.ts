@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  formatAllocationRowDetails,
   formatCollectionReference,
   getCollectionDistributionState,
   getCollectionPayerLabel,
@@ -22,6 +23,29 @@ describe('collection normalization', () => {
     expect(getCollectionStudentLabel(coll, 'N/A')).toBe('Ali Ben');
     expect(getCollectionPayerLabel(coll, 'N/A')).toBe('Parent One');
     expect(formatCollectionReference(coll)).toBe('COLL-001');
+  });
+
+  it('prefers top-level student_name from API', () => {
+    const coll = {
+      id: 2,
+      student_id: 854,
+      student_name: 'عبد العزيز حميد',
+    } as PaymentCollection;
+    expect(getCollectionStudentLabel(coll, 'N/A')).toBe('عبد العزيز حميد');
+  });
+
+  it('uses display_label in allocation row details', () => {
+    const details = formatAllocationRowDetails(
+      {
+        installment_id: 3634,
+        display_label: 'التسجيل — الدفعة الوحيدة',
+        amount: 2500,
+      },
+      (key) => key,
+      'ar',
+    );
+    expect(details.title).toBe('التسجيل — الدفعة الوحيدة');
+    expect(details.title).not.toContain('#3634');
   });
 
   it('computes distribution states with decimal-safe comparison', () => {

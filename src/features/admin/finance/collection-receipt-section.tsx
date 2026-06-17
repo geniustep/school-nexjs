@@ -11,8 +11,9 @@ import {
   fetchCollectionReceipt,
   issueCollectionReceipt,
 } from '@/lib/api/finance-receipt';
-import type { FinanceReceipt } from '@/types/finance';
-import type { PaymentCollection } from '@/types/finance';
+import { getCollectionReceiptLabel } from '@/features/admin/finance/collection-detail-review';
+import { collectionState } from '@/lib/utils/finance';
+import type { FinanceReceipt, PaymentCollection } from '@/types/finance';
 
 function collectionAllowsReceiptAction(collection: PaymentCollection, action: string): boolean {
   return (collection.allowed_actions ?? []).includes(action);
@@ -85,7 +86,32 @@ export function CollectionReceiptSection({
     }
   }
 
-  if (!canViewReceipt && !canIssue) return null;
+  if (!canViewReceipt && !canIssue) {
+    const status = collectionState(collection);
+    const hasReceipt =
+      !!collection.receipt_id ||
+      (typeof collection.receipt_number === 'string' && collection.receipt_number.trim());
+    return (
+      <section className="card collection-details__section collection-receipt-section">
+        <h2>{t('admin.finance.receipts.sectionTitle')}</h2>
+        {hasReceipt ? (
+          <p dir="auto">
+            <span className="muted">{t('admin.finance.receipts.fields.number')}: </span>
+            {getCollectionReceiptLabel(collection, t)}
+          </p>
+        ) : (
+          <p className="muted">
+            {status === 'draft'
+              ? t('admin.finance.collections.detail.receiptPendingDraft')
+              : t('admin.finance.collections.detail.receiptNotIssued')}
+          </p>
+        )}
+        {status === 'draft' && !hasReceipt ? (
+          <p className="tiny muted">{t('admin.finance.collections.detail.receiptAfterConfirm')}</p>
+        ) : null}
+      </section>
+    );
+  }
 
   return (
     <section className="card collection-details__section collection-receipt-section">

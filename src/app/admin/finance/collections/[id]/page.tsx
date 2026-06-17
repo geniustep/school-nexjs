@@ -6,9 +6,11 @@ import { useSearchParams } from 'next/navigation';
 import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
 import { ResourceView } from '@/components/states/resource';
 import {
+  CollectionDetailsSkeleton,
   CollectionDetailsView,
   resolveCollectionBackLabel,
 } from '@/features/admin/finance/collection-details-view';
+import { EmptyState } from '@/components/states/states';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
@@ -34,7 +36,18 @@ export default function AdminFinanceCollectionDetailPage({
         <Link href={returnTo} className="back-link">
           ‹ {resolveCollectionBackLabel(returnTo, t)}
         </Link>
-        <ResourceView state={state} loadingLabel={t('common.loading')}>
+        <ResourceView
+          state={state}
+          loadingLabel={t('common.loading')}
+          loadingFallback={<CollectionDetailsSkeleton />}
+          empty={
+            <EmptyState
+              title={t('admin.finance.collections.detail.notFoundTitle')}
+              description={t('admin.finance.collections.detail.notFoundDesc')}
+            />
+          }
+          isEmpty={() => false}
+        >
           {() => <CollectionDetailsView state={state} collectionId={id} returnTo={returnTo} />}
         </ResourceView>
       </div>

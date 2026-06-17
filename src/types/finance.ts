@@ -93,6 +93,7 @@ export interface FinanceCheque {
     collection_date?: string;
     receipt_number?: string;
   };
+  is_postdated?: boolean;
   public_notes?: string | null;
 }
 
@@ -592,9 +593,20 @@ export interface ParentFinanceCollection {
 
 export interface PaymentAllocation {
   id?: number;
+  student_id?: number;
   student_fee_id?: number;
+  fee_id?: number;
   installment_id?: number;
   amount?: number;
+  allocated_amount?: number;
+  settlement_state?: string;
+  state?: string;
+  fee_name?: string;
+  fee_type_name?: string;
+  period_label?: string | null;
+  display_label?: string | null;
+  installment_sequence?: number | null;
+  installment_count?: number | null;
   student_fee?: Ref;
   installment?: Ref;
 }
@@ -642,34 +654,41 @@ export interface PaymentCollection {
   student_id?: number;
   student?: Ref;
   student_name?: string;
+  student_code?: string | null;
   school?: SchoolRef;
+  school_id?: number;
   academic_year_id?: number;
   academic_year?: Ref | string | null;
   billing_partner_id?: number;
   billing_partner?: Ref;
   billing_partner_name?: string;
+  billing_party_type?: 'guardian' | 'student' | 'custom' | string;
   payer_name?: string;
   amount?: number;
   total_amount?: number;
   payment_method?: PaymentMethod;
   collection_date?: string;
   date?: string;
+  payment_date?: string;
   state?: PaymentCollectionState;
   status?: PaymentCollectionState;
   currency?: string;
   notes?: string;
   journal_id?: number;
+  journal?: Ref & { code?: string };
   created_by?: Ref;
   user?: Ref;
   allocations?: PaymentAllocation[];
   status_history?: { state?: string; date?: string; user?: Ref }[];
   cheque?: FinanceCheque | ParentChequeInfo;
+  cheque_id?: number | null;
   reversal_applied?: boolean;
   receipt_id?: number | null;
   receipt_number?: string | null;
   collection_amount?: number;
   allocated_amount?: number;
   unallocated_amount?: number;
+  allocation_count?: number;
   allocation_status?: string;
   allowed_actions?: string[];
   updated_overview?: import('@/types/student-financial-overview').CollectionUpdatedOverview | null;

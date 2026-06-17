@@ -1,4 +1,6 @@
 import type { TranslateFn } from '@/features/i18n/locale-context';
+import { normalizeInstallmentDisplayLabel } from '@/features/admin/finance/collection-labels';
+import { resolveLegacyInstallmentDisplayLabel } from '@/features/admin/finance/resolve-legacy-collection-display';
 import { collectionState, currencyCode, financeStudentDisplayName, refName } from '@/lib/utils/finance';
 import { normalizeMoneyValue } from '@/lib/utils/finance-normalize';
 import type { PaymentAllocation, PaymentCollection } from '@/types/finance';
@@ -69,6 +71,8 @@ export function getCollectionDistributionState(coll: PaymentCollection): Collect
 }
 
 export function getCollectionStudentLabel(coll: PaymentCollection, unavailable = '—'): string {
+  const topLevel = coll.student_name?.trim();
+  if (topLevel) return topLevel;
   const student = coll.student as { name?: string; full_name?: string; code?: string } | null | undefined;
   const name = financeStudentDisplayName({
     name: typeof student?.name === 'string' ? student.name : undefined,
@@ -82,6 +86,8 @@ export function getCollectionStudentLabel(coll: PaymentCollection, unavailable =
 }
 
 export function getCollectionStudentCode(coll: PaymentCollection): string | null {
+  const fromField = coll.student_code?.trim();
+  if (fromField) return fromField;
   const student = coll.student as { code?: string; school_number?: string } | null | undefined;
   return student?.code?.trim() || student?.school_number?.trim() || null;
 }
@@ -107,6 +113,8 @@ export function getCollectionJournalLabel(coll: PaymentCollection): string | nul
 }
 
 export function getCollectionBillingEntityLabel(coll: PaymentCollection): string | null {
+  const name = coll.billing_partner_name?.trim();
+  if (name) return name;
   return refName(coll.billing_partner)?.trim() || null;
 }
 
@@ -155,17 +163,63 @@ export function collectionDistributionLabel(
 
 export function formatAllocationRowDetails(
   row: PaymentAllocation,
-  t: (key: string) => string,
-): { title: string; subtitle: string } {
+  t: (key: string, vars?: Record<string, string | number>) => string,
+  locale?: string,
+): { title: string; subtitle: string; internalId: string | null } {
+  const internalId =
+    row.installment_id != null
+      ? String(row.installment_id)
+      : row.student_fee_id != null
+        ? String(row.student_fee_id)
+        : row.id != null
+          ? String(row.id)
+          : null;
+
+  const display = row.display_label?.trim();
+  if (display) {
+    const title = normalizeInstallmentDisplayLabel(display, locale);
+    const subtitleParts: string[] = [];
+    if (row.settlement_state) {
+      subtitleParts.push(
+        `${t('admin.finance.collections.detail.allocationSettlement')}: ${row.settlement_state}`,
+      );
+    }
+    if (row.state) {
+      subtitleParts.push(`${t('academic.status')}: ${row.state}`);
+    }
+    return { title, subtitle: subtitleParts.join(' · '), internalId };
+  }
+
+  const legacyTitle = resolveLegacyInstallmentDisplayLabel(row, locale);
+  if (legacyTitle) {
+    const subtitleParts: string[] = [];
+    if (row.period_label?.trim()) {
+      subtitleParts.push(row.period_label.trim());
+    }
+    if (
+      row.installment_sequence != null &&
+      row.installment_count != null &&
+      row.installment_count > 1
+    ) {
+      subtitleParts.push(
+        t('admin.finance.collections.detail.installmentSequence', {
+          seq: row.installment_sequence,
+          count: row.installment_count,
+        }),
+      );
+    }
+    return {
+      title: legacyTitle,
+      subtitle: subtitleParts.join(' · '),
+      internalId,
+    };
+  }
+
   const fee = refName(row.student_fee);
   const installment = refName(row.installment);
-  const title = fee && installment ? `${fee} · ${installment}` : fee ?? installment ?? (row.installment_id ? `#${row.installment_id}` : t('admin.finance.unavailable'));
-  const subtitleParts: string[] = [];
-  if (row.amount != null && Number.isFinite(row.amount)) {
-    subtitleParts.push(`${t('admin.finance.allocationAmount')}: ${row.amount.toFixed(2)}`);
-  }
-  return {
-    title,
-    subtitle: subtitleParts.join(' · '),
-  };
+  const fallback =
+    fee && installment
+      ? `${fee} · ${installment}`
+      : fee ?? installment ?? t('admin.finance.unavailable');
+  return { title: fallback, subtitle: '', internalId };
 }
