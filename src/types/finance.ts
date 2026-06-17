@@ -253,6 +253,7 @@ export interface FeePlan {
 }
 
 export interface FeePlanLineInput {
+  id?: number;
   fee_type_id: number;
   amount: number;
   quantity?: number;

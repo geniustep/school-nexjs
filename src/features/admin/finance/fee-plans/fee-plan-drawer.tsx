@@ -14,11 +14,12 @@ import { feePlanState } from '@/lib/utils/finance';
 import type { FeePlan } from '@/types/finance';
 import { formValuesFromFeePlan } from './fee-plan-normalizer';
 import { FeePlanLevelScopeSelector } from './fee-plan-level-scope-selector';
+import { feePlanErrorMessageKey } from './fee-plan-errors';
 import {
   buildFeePlanScopeGroups,
-  feePlanLevelErrorMessageKey,
   reconcileLevelIdsWithGroups,
   resolveFeePlanLevelErrorCode,
+  feePlanLevelErrorMessageKey,
 } from './fee-plan-level-scope';
 import {
   buildCreateFeePlanPayload,
@@ -100,6 +101,8 @@ export function FeePlanDrawer({
   }, [mode, t]);
 
   function resolveApiErrorMessage(message: string, code?: string): string {
+    const mapped = feePlanErrorMessageKey(code);
+    if (mapped) return t(mapped);
     const levelCode = resolveFeePlanLevelErrorCode(code);
     if (levelCode) return t(feePlanLevelErrorMessageKey(levelCode));
     return message;
@@ -140,6 +143,7 @@ export function FeePlanDrawer({
         return;
       }
       savedId = res.data.id;
+      planState.reload();
     }
 
     if (confirmAfterSave && savedId) {

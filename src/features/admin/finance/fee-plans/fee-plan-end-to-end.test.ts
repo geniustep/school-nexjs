@@ -83,12 +83,13 @@ describe('fee plan end-to-end pricing workflow', () => {
       fee_type_id: TYPE_REG,
       amount: 1500,
       frequency: 'one_time',
+      level_ids: [],
     });
-    expect(payload.lines?.[2].level_ids).toBeUndefined();
     expect(payload.lines?.[3]).toMatchObject({
       fee_type_id: TYPE_TRANSPORT,
       amount: 350,
       is_optional: true,
+      level_ids: [],
     });
     expect(JSON.stringify(payload)).not.toContain('default_amount');
   });
@@ -155,6 +156,7 @@ describe('fee plan end-to-end pricing workflow', () => {
     ];
     const values = formValuesFromFeePlan(apiPlan, feeTypes);
     expect(values.lines[0].amount).toBe(1150);
+    expect(values.lines[0].lineId).toBe(1);
     expect(values.lines[0].levelIds).toEqual([LEVEL_B]);
     expect(values.lines[0].frequency).toBe('monthly');
     expect(values.lines[1].levelScopeMode).toBe('all_plan_levels');
@@ -171,14 +173,18 @@ describe('fee plan end-to-end pricing workflow', () => {
     expect(feePlanFrequencyToApi('monthly')).toBe('monthly');
   });
 
-  it('update payload changes one line amount only', () => {
+  it('update payload changes one line amount only and keeps line ids', () => {
     const form = arabicPlanForm();
+    form.lines[0].lineId = 101;
+    form.lines[1].lineId = 102;
+    form.lines[2].lineId = 103;
+    form.lines[3].lineId = 104;
     form.lines[1].amount = 1150;
     const payload = buildUpdateFeePlanPayload(form, []);
-    expect(payload.lines?.[0].amount).toBe(1000);
-    expect(payload.lines?.[1].amount).toBe(1150);
-    expect(payload.lines?.[2].amount).toBe(1500);
-    expect(payload.lines?.[3].amount).toBe(350);
+    expect(payload.lines?.[0]).toMatchObject({ id: 101, amount: 1000 });
+    expect(payload.lines?.[1]).toMatchObject({ id: 102, amount: 1150 });
+    expect(payload.lines?.[2]).toMatchObject({ id: 103, amount: 1500 });
+    expect(payload.lines?.[3]).toMatchObject({ id: 104, amount: 350 });
   });
 
   it('rejects negative line amount', () => {
