@@ -3218,8 +3218,8 @@
         }
       },
       "financialAgreement": {
-        "pageTitle": "Financial agreement",
-        "pageDescription": "Agreement between the school and payer: services, prices, and installment schedule.",
+        "pageTitle": "Special financial agreement",
+        "pageDescription": "The special financial agreement is used for individual discounts, waivers, rescheduling, and exceptional terms. General fees come from the fee plan applied to the student.",
         "create": "Create financial agreement",
         "applyFeePlan": "Apply fee plan",
         "createManualAgreement": "Create manual agreement",
@@ -3252,11 +3252,53 @@
           "relationship": "Relationship",
           "contact": "Contact"
         },
+        "replaceDraftFromFees": "Replace with agreement from current fees",
+        "replaceDraftConfirmTitle": "Replace empty draft",
+        "replaceDraftConfirmBody": "The empty draft will be replaced with a new agreement built from current fees. The fee plan and original fees will not change.",
+        "replaceDraftSuccess": "Draft replaced with agreement from current fees.",
+        "legacyFeeWithoutPlan": "Fee applied without a preserved plan reference",
+        "adjustments": {
+          "title": "Financial adjustments",
+          "empty": "No adjustments yet.",
+          "addTitle": "Add discount or adjustment",
+          "addDesc": "Add an individual discount, waiver, or manual adjustment. Final totals come from the server.",
+          "addButton": "Add adjustment",
+          "type": "Adjustment type",
+          "amount": "Amount",
+          "percentage": "Percentage",
+          "reason": "Discount reason",
+          "reasonRequired": "Discount reason is required.",
+          "policy": "Application policy",
+          "targetFee": "Target fee",
+          "createSuccess": "Adjustment added.",
+          "deleteSuccess": "Adjustment removed.",
+          "types": {
+            "fixed_discount": "Fixed amount discount",
+            "percentage_discount": "Percentage discount",
+            "partial_waiver": "Partial waiver",
+            "full_waiver": "Full waiver",
+            "surcharge": "Surcharge",
+            "manual_adjustment": "Manual adjustment"
+          },
+          "policies": {
+            "reduce_total_only": "Reduce agreement total only",
+            "spread_proportionally": "Spread proportionally across fees",
+            "apply_to_selected_fee": "Apply to selected fee",
+            "apply_to_future_installments": "Apply to future installments",
+            "apply_to_last_installments": "Apply to last installments"
+          }
+        },
         "summary": {
           "gross": "Gross amount",
           "discounts": "Discounts & adjustments",
           "net": "Agreed amount",
-          "installmentCount": "Installment count"
+          "installmentCount": "Installment count",
+          "originalTotal": "Original total",
+          "discountTotal": "Total discounts",
+          "surchargeTotal": "Total surcharges",
+          "netTotal": "Net amount due",
+          "paidTotal": "Paid",
+          "remainingTotal": "Remaining"
         },
         "columns": {
           "service": "Service",
@@ -4434,12 +4476,14 @@
           "allocationExceedsRemaining": "Allocated amount exceeds the remaining balance on this installment.",
           "allocationScopeMismatch": "Allocations do not match the selected installments.",
           "journalRequired": "Payment journal is required.",
-          "paymentReferenceRequired": "Reference is required for the selected payment method."
+          "paymentReferenceRequired": "Reference is required for the selected payment method.",
+          "billingPartnerRequired": "Could not determine the billing party. Review the student billing profile before recording the payment."
         },
         "dueToday": "Due today",
         "allocatedAmount": "Allocated amount",
         "recordPayment": "Record payment",
         "stepSelectDues": "Select dues",
+        "stepPayment": "Payment method",
         "stepPaymentMethod": "Payment method",
         "stepReview": "Review and confirm",
         "selectDuesDesc": "Choose the installments you want to collect.",

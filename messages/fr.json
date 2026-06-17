@@ -3218,8 +3218,8 @@
         }
       },
       "financialAgreement": {
-        "pageTitle": "Accord financier",
-        "pageDescription": "Accord entre l'établissement et le payeur.",
+        "pageTitle": "Accord financier spécial",
+        "pageDescription": "L'accord financier spécial sert aux remises individuelles, dispenses, rééchelonnements et conditions exceptionnelles. Les frais généraux proviennent du plan appliqué à l'élève.",
         "create": "Créer un accord financier",
         "applyFeePlan": "Appliquer un plan de frais",
         "createManualAgreement": "Créer un accord manuel",
@@ -3252,11 +3252,53 @@
           "relationship": "Lien",
           "contact": "Contact"
         },
+        "replaceDraftFromFees": "Remplacer par un accord issu des frais actuels",
+        "replaceDraftConfirmTitle": "Remplacer le brouillon vide",
+        "replaceDraftConfirmBody": "Le brouillon vide sera remplacé par un nouvel accord basé sur les frais actuels. Le plan de frais et les frais d'origine ne changeront pas.",
+        "replaceDraftSuccess": "Brouillon remplacé par un accord issu des frais actuels.",
+        "legacyFeeWithoutPlan": "Frais appliqués sans référence de plan conservée",
+        "adjustments": {
+          "title": "Ajustements financiers",
+          "empty": "Aucun ajustement pour le moment.",
+          "addTitle": "Ajouter une remise ou un ajustement",
+          "addDesc": "Ajoutez une remise individuelle, une dispense ou un ajustement manuel. Les totaux finaux proviennent du serveur.",
+          "addButton": "Ajouter un ajustement",
+          "type": "Type d'ajustement",
+          "amount": "Montant",
+          "percentage": "Pourcentage",
+          "reason": "Motif de la remise",
+          "reasonRequired": "Le motif de la remise est obligatoire.",
+          "policy": "Politique d'application",
+          "targetFee": "Frais cible",
+          "createSuccess": "Ajustement ajouté.",
+          "deleteSuccess": "Ajustement supprimé.",
+          "types": {
+            "fixed_discount": "Remise à montant fixe",
+            "percentage_discount": "Remise en pourcentage",
+            "partial_waiver": "Dispense partielle",
+            "full_waiver": "Dispense totale",
+            "surcharge": "Majoration",
+            "manual_adjustment": "Ajustement manuel"
+          },
+          "policies": {
+            "reduce_total_only": "Réduire uniquement le total de l'accord",
+            "spread_proportionally": "Répartir proportionnellement sur les frais",
+            "apply_to_selected_fee": "Appliquer à un frais sélectionné",
+            "apply_to_future_installments": "Appliquer aux échéances futures",
+            "apply_to_last_installments": "Appliquer aux dernières échéances"
+          }
+        },
         "summary": {
           "gross": "Montant brut",
-          "discounts": "Remises",
+          "discounts": "Remises et ajustements",
           "net": "Montant convenu",
-          "installmentCount": "Nombre d'échéances"
+          "installmentCount": "Nombre d'échéances",
+          "originalTotal": "Total d'origine",
+          "discountTotal": "Total des remises",
+          "surchargeTotal": "Total des majorations",
+          "netTotal": "Net dû",
+          "paidTotal": "Payé",
+          "remainingTotal": "Restant"
         },
         "columns": {
           "service": "Service",
@@ -4434,13 +4476,15 @@
           "allocationExceedsRemaining": "Le montant affecté dépasse le solde restant de cette échéance.",
           "allocationScopeMismatch": "Les affectations ne correspondent pas aux échéances sélectionnées.",
           "journalRequired": "Le journal de paiement est requis.",
-          "paymentReferenceRequired": "La référence est requise pour le mode de paiement choisi."
+          "paymentReferenceRequired": "La référence est requise pour le mode de paiement choisi.",
+          "billingPartnerRequired": "Impossible de déterminer la partie facturée. Vérifiez le profil de facturation de l'élève avant d'enregistrer le paiement."
         },
         "dueToday": "Échéance du jour",
         "allocatedAmount": "Montant affecté",
-        "recordPayment": "Record payment",
-        "stepSelectDues": "Select dues",
-        "stepPaymentMethod": "Payment method",
+        "recordPayment": "Enregistrer un paiement",
+        "stepSelectDues": "Choisir les échéances",
+        "stepPayment": "Mode de paiement",
+        "stepPaymentMethod": "Mode de paiement",
         "stepReview": "Review and confirm",
         "selectDuesDesc": "Choose the installments you want to collect.",
         "installmentFlowIntro": "Start by selecting dues, then complete payment method and allocation.",

@@ -3218,8 +3218,8 @@
         }
       },
       "financialAgreement": {
-        "pageTitle": "Acuerdo financiero",
-        "pageDescription": "Acuerdo entre el centro y el pagador.",
+        "pageTitle": "Acuerdo financiero especial",
+        "pageDescription": "El acuerdo financiero especial se usa para descuentos individuales, exenciones, reprogramaciones y condiciones excepcionales. Las tasas generales provienen del plan aplicado al alumno.",
         "create": "Crear acuerdo financiero",
         "applyFeePlan": "Aplicar plan de cuotas",
         "createManualAgreement": "Crear acuerdo manual",
@@ -3252,11 +3252,53 @@
           "relationship": "Parentesco",
           "contact": "Contacto"
         },
+        "replaceDraftFromFees": "Reemplazar por acuerdo desde las tasas actuales",
+        "replaceDraftConfirmTitle": "Reemplazar borrador vacío",
+        "replaceDraftConfirmBody": "El borrador vacío se reemplazará por un nuevo acuerdo basado en las tasas actuales. El plan de tasas y las tasas originales no cambiarán.",
+        "replaceDraftSuccess": "Borrador reemplazado por acuerdo desde las tasas actuales.",
+        "legacyFeeWithoutPlan": "Tasa aplicada sin referencia de plan conservada",
+        "adjustments": {
+          "title": "Ajustes financieros",
+          "empty": "Aún no hay ajustes.",
+          "addTitle": "Añadir descuento o ajuste",
+          "addDesc": "Añada un descuento individual, exención o ajuste manual. Los totales finales provienen del servidor.",
+          "addButton": "Añadir ajuste",
+          "type": "Tipo de ajuste",
+          "amount": "Importe",
+          "percentage": "Porcentaje",
+          "reason": "Motivo del descuento",
+          "reasonRequired": "El motivo del descuento es obligatorio.",
+          "policy": "Política de aplicación",
+          "targetFee": "Tasa objetivo",
+          "createSuccess": "Ajuste añadido.",
+          "deleteSuccess": "Ajuste eliminado.",
+          "types": {
+            "fixed_discount": "Descuento de importe fijo",
+            "percentage_discount": "Descuento porcentual",
+            "partial_waiver": "Exención parcial",
+            "full_waiver": "Exención total",
+            "surcharge": "Recargo",
+            "manual_adjustment": "Ajuste manual"
+          },
+          "policies": {
+            "reduce_total_only": "Reducir solo el total del acuerdo",
+            "spread_proportionally": "Distribuir proporcionalmente entre tasas",
+            "apply_to_selected_fee": "Aplicar a una tasa seleccionada",
+            "apply_to_future_installments": "Aplicar a cuotas futuras",
+            "apply_to_last_installments": "Aplicar a las últimas cuotas"
+          }
+        },
         "summary": {
           "gross": "Importe bruto",
-          "discounts": "Descuentos",
+          "discounts": "Descuentos y ajustes",
           "net": "Importe acordado",
-          "installmentCount": "Número de cuotas"
+          "installmentCount": "Número de cuotas",
+          "originalTotal": "Total original",
+          "discountTotal": "Total descuentos",
+          "surchargeTotal": "Total recargos",
+          "netTotal": "Neto adeudado",
+          "paidTotal": "Pagado",
+          "remainingTotal": "Pendiente"
         },
         "columns": {
           "service": "Servicio",
@@ -4434,13 +4476,15 @@
           "allocationExceedsRemaining": "El importe asignado supera el saldo pendiente de esta cuota.",
           "allocationScopeMismatch": "Las asignaciones no coinciden con las cuotas seleccionadas.",
           "journalRequired": "El diario de cobro es obligatorio.",
-          "paymentReferenceRequired": "La referencia es obligatoria para el método de pago seleccionado."
+          "paymentReferenceRequired": "La referencia es obligatoria para el método de pago seleccionado.",
+          "billingPartnerRequired": "No se pudo determinar la parte facturada. Revise el perfil de facturación del alumno antes de registrar el pago."
         },
         "dueToday": "Vence hoy",
         "allocatedAmount": "Importe asignado",
-        "recordPayment": "Record payment",
-        "stepSelectDues": "Select dues",
-        "stepPaymentMethod": "Payment method",
+        "recordPayment": "Registrar pago",
+        "stepSelectDues": "Elegir adeudos",
+        "stepPayment": "Método de pago",
+        "stepPaymentMethod": "Método de pago",
         "stepReview": "Review and confirm",
         "selectDuesDesc": "Choose the installments you want to collect.",
         "installmentFlowIntro": "Start by selecting dues, then complete payment method and allocation.",
