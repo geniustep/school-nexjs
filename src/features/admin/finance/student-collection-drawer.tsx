@@ -11,6 +11,8 @@ import type { CollectionUpdatedOverview, StudentFinancialOverview } from '@/type
 export function StudentCollectionDrawer({
   open,
   studentId,
+  studentName,
+  studentCode,
   academicYearId,
   billingProfileId,
   billingPartnerId,
@@ -21,6 +23,8 @@ export function StudentCollectionDrawer({
 }: {
   open: boolean;
   studentId: number;
+  studentName?: string | null;
+  studentCode?: string | null;
   academicYearId?: number;
   billingProfileId?: number;
   billingPartnerId?: number;
@@ -33,6 +37,9 @@ export function StudentCollectionDrawer({
   const toast = useToast();
 
   if (!open) return null;
+
+  const displayName = studentName ?? '';
+  const subtitle = displayName || undefined;
 
   function handleDone(collection: PaymentCollection) {
     toast.success(t('admin.finance.collectionWorkflow.successToast'));
@@ -47,7 +54,14 @@ export function StudentCollectionDrawer({
   }
 
   return (
-    <SetupDrawer open={open} title={t('admin.finance.collectionWorkflow.drawerTitle')} onClose={onClose} size="wide">
+    <SetupDrawer
+      open={open}
+      title={t('admin.finance.collectionWorkflow.drawerTitle')}
+      subtitle={subtitle || undefined}
+      onClose={onClose}
+      size="collection"
+      className="finance-collection-drawer"
+    >
       <CollectionWorkflowForm
         embedded
         initialStudentId={studentId}

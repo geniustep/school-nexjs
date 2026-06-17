@@ -7,15 +7,19 @@ import './setup-drawer.css';
 export function SetupDrawer({
   open,
   title,
+  subtitle,
   onClose,
   children,
   size = 'default',
+  className,
 }: {
   open: boolean;
   title: string;
+  subtitle?: string;
   onClose: () => void;
   children: React.ReactNode;
-  size?: 'default' | 'medium' | 'wide';
+  size?: 'default' | 'medium' | 'wide' | 'collection';
+  className?: string;
 }) {
   const t = useT();
 
@@ -52,19 +56,24 @@ export function SetupDrawer({
             ? ' academic-setup-drawer--wide'
             : size === 'medium'
               ? ' academic-setup-drawer--medium'
-              : ''
-        }`}
+              : size === 'collection'
+                ? ' academic-setup-drawer--collection'
+                : ''
+        }${className ? ` ${className}` : ''}`}
         role="dialog"
         aria-modal="true"
         aria-label={title}
       >
         <div className="academic-setup-drawer__head">
-          <strong>{title}</strong>
+          <div className="academic-setup-drawer__head-text">
+            <strong>{title}</strong>
+            {subtitle ? <span className="tiny muted academic-setup-drawer__subtitle" dir="auto">{subtitle}</span> : null}
+          </div>
           <button type="button" className="btn btn--ghost btn--sm" onClick={onClose}>
             {t('common.close')}
           </button>
         </div>
-        <div className="academic-setup-drawer__body">{children}</div>
+        <div className="academic-setup-drawer__body academic-setup-drawer__body--scroll">{children}</div>
       </aside>
     </>
   );

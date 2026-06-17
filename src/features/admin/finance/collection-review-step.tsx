@@ -3,7 +3,7 @@
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { formatInstallmentLabel } from '@/features/admin/finance/collection-labels';
 import { useFormat } from '@/features/i18n/use-format';
-import { useT } from '@/features/i18n/locale-context';
+import { useLocale, useT } from '@/features/i18n/locale-context';
 import { paymentMethodLabel } from '@/lib/utils/finance';
 import { formatPeriodRange } from '@/features/admin/student-finance/utils/format-period';
 import type { StudentInstallment } from '@/features/admin/student-finance/types';
@@ -39,22 +39,22 @@ export function CollectionReviewStep({
   allocatedTotal: number;
 }) {
   const t = useT();
+  const { locale } = useLocale();
   const { formatDate } = useFormat();
   const unallocated = Math.max(0, amount - allocatedTotal);
 
   return (
     <section className="collection-form-section collection-review-section">
-      <h4 className="collection-form-section__title">{t('admin.finance.collectionWorkflow.stepReview')}</h4>
       <p className="muted">{t('admin.finance.collectionWorkflow.reviewDesc')}</p>
 
       <dl className="detail-list compact collection-review-section__grid">
         <div>
-          <dt>{t('admin.finance.collections.columns.student')}</dt>
+          <dt>{t('admin.finance.collectionWorkflow.reviewStudent')}</dt>
           <dd dir="auto">{studentName}</dd>
         </div>
         {registrationNumber ? (
           <div>
-            <dt>{t('admin.students.columns.code')}</dt>
+            <dt>{t('admin.finance.collectionWorkflow.reviewRegistration')}</dt>
             <dd dir="ltr">{registrationNumber}</dd>
           </div>
         ) : null}
@@ -102,6 +102,10 @@ export function CollectionReviewStep({
             <FinanceMoney amount={unallocated} currency={currency} />
           </dd>
         </div>
+        <div>
+          <dt>{t('admin.finance.collectionWorkflow.expectedReceipt')}</dt>
+          <dd>{t('admin.finance.collectionWorkflow.expectedReceiptHint')}</dd>
+        </div>
       </dl>
 
       {selectedInstallments.length ? (
@@ -109,7 +113,7 @@ export function CollectionReviewStep({
           <h5>{t('admin.finance.collectionWorkflow.allocationsTitle')}</h5>
           <ul className="collection-review-section__allocation-list">
             {selectedInstallments.map((row) => {
-              const { title } = formatInstallmentLabel(row, t, formatDate, formatPeriodRange);
+              const { title } = formatInstallmentLabel(row, t, formatDate, formatPeriodRange, locale);
               const allocated = Number(allocationInputs[row.id] ?? 0);
               if (!allocated) return null;
               return (

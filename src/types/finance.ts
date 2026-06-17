@@ -774,6 +774,7 @@ export interface CreatePaymentCollectionPayload {
   allocation_mode?: 'selected_installments' | 'auto' | string;
   allocations?: { student_fee_id?: number; installment_id?: number; amount: number }[];
   cheque?: ChequeRegistrationPayload;
+  idempotency_key?: string;
 }
 
 export interface UpdateBillingProfilePayload {

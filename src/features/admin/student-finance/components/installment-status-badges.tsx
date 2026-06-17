@@ -54,3 +54,26 @@ export function InstallmentStatusBadges({
     </span>
   );
 }
+
+export function InstallmentCompositeStatus({
+  paymentStatus,
+  timingStatus,
+}: {
+  paymentStatus: string;
+  timingStatus: string;
+}) {
+  const t = useT();
+  const key = `admin.finance.collectionWorkflow.compositeStatus.${paymentStatus}_${timingStatus}`;
+  const label = t(key);
+  if (label !== key) {
+    return <Badge tone={timingStatusTone(timingStatus)}>{label}</Badge>;
+  }
+  if (timingStatus === 'hidden') {
+    return (
+      <Badge tone="slate">{t('admin.finance.collectionWorkflow.notCollectibleNow')}</Badge>
+    );
+  }
+  return (
+    <InstallmentStatusBadges paymentStatus={paymentStatus} timingStatus={timingStatus} />
+  );
+}

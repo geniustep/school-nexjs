@@ -50,9 +50,43 @@ export function collectionErrorMessageKey(code: string | undefined): string | nu
     case 'billingPartnerRequired':
     case 'billingPartnerInvalid':
       return 'admin.finance.collectionWorkflow.errors.billingPartnerRequired';
+    case 'duplicate_reference':
+    case 'duplicateReference':
+    case 'idempotency_conflict':
+      return 'admin.finance.collectionWorkflow.errors.duplicateReference';
+    case 'invalid_journal':
+    case 'journal_inactive':
+    case 'journal_not_allowed':
+    case 'invalidJournal':
+      return 'admin.finance.collectionWorkflow.errors.invalidJournal';
+    case 'invalid_payment_method':
+    case 'invalidPaymentMethod':
+      return 'admin.finance.collectionWorkflow.errors.invalidPaymentMethod';
+    case 'cheque_number_required':
+    case 'cheque_date_required':
+      return 'admin.finance.collectionWorkflow.errors.missingChequeNumber';
+    case 'validation_error':
+      return 'admin.finance.collectionWorkflow.errors.genericSubmit';
     default:
       return null;
   }
+}
+
+/** User-facing message for collection submit failures. */
+export function resolveCollectionErrorMessage(
+  code: string | undefined,
+  fallback: string,
+  t: (key: string) => string,
+  extraResolvers?: Array<(code: string | undefined) => string | null>,
+): string {
+  for (const resolver of extraResolvers ?? []) {
+    const key = resolver(code);
+    if (key) return t(key);
+  }
+  const key = collectionErrorMessageKey(code);
+  if (key) return t(key);
+  if (fallback && !fallback.startsWith('Unexpected response')) return fallback;
+  return t('admin.finance.collectionWorkflow.errors.genericSubmit');
 }
 
 export function agreementFromFeesErrorMessageKey(code: string | undefined): string | null {

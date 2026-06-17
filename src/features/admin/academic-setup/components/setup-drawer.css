@@ -44,6 +44,38 @@
   width: min(800px, 100vw);
 }
 
+.academic-setup-drawer--collection {
+  width: min(720px, 100vw);
+}
+
+.academic-setup-drawer__head-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.academic-setup-drawer__subtitle {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.academic-setup-drawer__body--scroll {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+@media (max-width: 640px) {
+  .academic-setup-drawer--collection {
+    inset: 0;
+    width: 100vw;
+    max-width: 100vw;
+    border-radius: 0;
+  }
+}
+
 .academic-setup-drawer--medium {
   width: min(600px, 100vw);
 }

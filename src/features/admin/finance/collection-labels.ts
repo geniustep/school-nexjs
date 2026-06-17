@@ -7,6 +7,56 @@ import {
   formatAllocationRowDetails,
 } from './collection-normalize';
 
+const FRENCH_MONTHS: Record<string, string> = {
+  janvier: 'يناير',
+  février: 'فبراير',
+  fevrier: 'فبراير',
+  mars: 'مارس',
+  avril: 'أبريل',
+  mai: 'ماي',
+  juin: 'يونيو',
+  juillet: 'يوليوز',
+  août: 'غشت',
+  aout: 'غشت',
+  septembre: 'شتنبر',
+  octobre: 'أكتوبر',
+  novembre: 'نونبر',
+  décembre: 'دجنبر',
+  decembre: 'دجنبر',
+};
+
+const ENGLISH_REPLACEMENTS: [RegExp, string][] = [
+  [/single\s*payment/gi, 'الدفعة الوحيدة'],
+  [/installment\s*(\d+)\s*\/\s*(\d+)/gi, 'قسط $1/$2'],
+];
+
+/** Clean backend display labels for the active UI locale. */
+export function normalizeInstallmentDisplayLabel(
+  label: string,
+  locale?: string,
+): string {
+  let text = label.trim();
+  if (!text) return text;
+
+  for (const [pattern, replacement] of ENGLISH_REPLACEMENTS) {
+    text = text.replace(pattern, replacement);
+  }
+
+  if (locale === 'ar' || locale?.startsWith('ar')) {
+    for (const [fr, ar] of Object.entries(FRENCH_MONTHS)) {
+      text = text.replace(new RegExp(fr, 'gi'), ar);
+    }
+  }
+
+  // Collapse duplicated fee name segments: "التمدرس — التمدرس — …" → "التمدرس — …"
+  const parts = text.split(/\s*[—–-]\s*/);
+  if (parts.length >= 2 && parts[0] === parts[1]) {
+    text = [parts[0], ...parts.slice(2)].join(' — ');
+  }
+
+  return text;
+}
+
 type FormatDate = (value: string | null | undefined) => string;
 type FormatPeriod = (
   formatDate: FormatDate,
@@ -41,8 +91,10 @@ export function formatInstallmentLabel(
   t: (key: string) => string,
   formatDate: FormatDate,
   formatPeriod: FormatPeriod,
+  locale?: string,
 ): { title: string; subtitle: string } {
   if (row.display_label?.trim()) {
+    const title = normalizeInstallmentDisplayLabel(row.display_label.trim(), locale);
     const due = row.due_date ? formatDate(row.due_date) : null;
     const subtitleParts: string[] = [];
     if (due) subtitleParts.push(`${t('admin.finance.dueDate')}: ${due}`);
@@ -50,7 +102,7 @@ export function formatInstallmentLabel(
     if (remaining != null && Number.isFinite(remaining)) {
       subtitleParts.push(`${t('admin.finance.remainingAmount')}: ${remaining.toFixed(2)}`);
     }
-    return { title: row.display_label.trim(), subtitle: subtitleParts.join(' · ') };
+    return { title, subtitle: subtitleParts.join(' · ') };
   }
 
   const feeTitle =

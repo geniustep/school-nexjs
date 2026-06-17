@@ -24,13 +24,8 @@ export function CollectionFormBlockers({ blockers }: { blockers: CollectionFormB
   const t = useT();
   if (!blockers.length) return null;
   return (
-    <div className="collection-form-blockers" role="status">
-      <p className="collection-form-blockers__title">{t('admin.finance.collections.cannotSubmit')}</p>
-      <ul>
-        {blockers.map((key) => (
-          <li key={key}>{t(BLOCKER_KEYS[key])}</li>
-        ))}
-      </ul>
-    </div>
+    <p className="collection-form-blockers collection-form-blockers--compact muted" role="status">
+      {t('admin.finance.collectionWorkflow.completeRequiredFields')}
+    </p>
   );
 }

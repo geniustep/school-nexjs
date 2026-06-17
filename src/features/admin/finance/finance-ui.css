@@ -3119,8 +3119,96 @@
   margin: 0;
 }
 
-.finance-credit-filters {
-  margin-bottom: 16px;
+.collection-dues-selection__summary--compact {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.collection-dues-selection__expand {
+  margin-block: 4px 8px;
+}
+
+.collection-dues-selection__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.collection-dues-selection__item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.collection-dues-selection__item.is-selected {
+  border-color: var(--c-primary, #2563eb);
+  background: #f8fbff;
+}
+
+.collection-dues-selection__item-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+.collection-dues-selection__item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.collection-dues-selection__amount {
+  margin-block-start: 12px;
+}
+
+.collection-allocation-summary__list {
+  list-style: none;
+  margin: 8px 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.collection-allocation-summary__list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.collection-form-blockers--compact {
+  margin: 0;
+  padding: 0;
+}
+
+.finance-collection-drawer .finance-collection-workflow {
+  min-height: 0;
+}
+
+.finance-collection-workflow__footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+@media (max-width: 640px) {
+  .collection-dues-selection__summary--compact {
+    grid-template-columns: 1fr;
+  }
+
+  .finance-collection-workflow__steps-row {
+    display: none;
+  }
 }
 
 .finance-credit-summary-grid {

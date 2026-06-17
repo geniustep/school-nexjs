@@ -60,8 +60,6 @@ export function getCollectionSubmitBlockers(input: {
   }
   if (!input.collectionDate.trim()) blockers.push('enterCollectionDate');
   const needsReference =
-    input.paymentMethod === 'cheque' ||
-    input.paymentMethod === 'check' ||
     input.paymentMethod === 'transfer' ||
     input.paymentMethod === 'bank_transfer';
   if (needsReference && !input.reference.trim()) {

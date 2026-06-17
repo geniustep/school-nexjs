@@ -10,6 +10,11 @@ import 'server-only';
 import { config } from '@/lib/config';
 import { isOdooBinaryResponse } from '@/lib/api/odoo-binary-response';
 import { buildOdooApiUrl } from '@/lib/api/build-odoo-api-url';
+import {
+  isApiErrorEnvelope,
+  mergeHttpStatusIntoEnvelope,
+  normalizeOdooHttpError,
+} from '@/lib/api/parse-odoo-error-response';
 import type { ApiResponse, ApiErrorCode } from '@/types/api';
 
 export interface OdooAuthResult {
@@ -185,21 +190,20 @@ export async function odooApiFetch<T = unknown>(
     };
   }
 
+  const rawText = await res.text();
   let body: ApiResponse<T>;
   try {
-    body = (await res.json()) as ApiResponse<T>;
+    body = JSON.parse(rawText) as ApiResponse<T>;
   } catch {
-    // Odoo returned a non-envelope response (e.g. an HTML 404 page). Normalise
-    // it to our error contract so the UI only ever deals with one shape.
-    const code: ApiErrorCode =
-      res.status === 401
-        ? 'unauthenticated'
-        : res.status === 403
-          ? 'permission_denied'
-          : res.status === 404
-            ? 'not_found'
-            : 'server_error';
-    body = errorEnvelope(code, `Unexpected response (${res.status}).`) as ApiResponse<T>;
+    body = normalizeOdooHttpError<T>(res.status, rawText);
+  }
+
+  if (!body.success && res.status >= 400) {
+    if (!isApiErrorEnvelope(body) || !body.error?.message) {
+      body = normalizeOdooHttpError<T>(res.status, rawText);
+    } else {
+      body = mergeHttpStatusIntoEnvelope(res.status, body);
+    }
   }
 
   return { kind: 'json', status: res.status, body };
