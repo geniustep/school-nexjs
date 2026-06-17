@@ -20,6 +20,7 @@ import type { ChequeTransitionAction } from '@/lib/utils/cheque';
 import { ChequeDualBadges } from '@/features/admin/student-finance/components/cheque-dual-badges';
 import { ChequeTimeline } from './cheque-timeline';
 import { ChequeTransitionDialog } from './cheque-transition-dialog';
+import { buildChequeTransitionSummary } from './cheque-transition-summary';
 import { FinanceMoney } from './finance-money';
 import type { FinanceCheque } from '@/types/finance';
 
@@ -146,6 +147,7 @@ export function ChequeDetailDrawer({
           action={dialogAction}
           path={transitionPath(dialogAction)}
           open
+          summary={dialogAction === 'deposit' && cheque ? buildChequeTransitionSummary(cheque) : null}
           onClose={() => setDialogAction(null)}
           onSuccess={() => {
             state.reload();

@@ -6,6 +6,7 @@ import { ApiErrorView } from '@/components/states/states';
 import { useToast } from '@/components/ui/toast';
 import { ChequeStatusBadge } from '@/features/admin/finance/cheque-status-badge';
 import { ChequeTransitionDialog } from '@/features/admin/finance/cheque-transition-dialog';
+import { buildChequeTransitionSummary } from '@/features/admin/finance/cheque-transition-summary';
 import { ChequeDetailsSkeleton } from '@/features/admin/finance/cheque-details-skeleton';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { FinanceStatusBadge } from '@/features/admin/finance/finance-status-badge';
@@ -456,6 +457,7 @@ export function ChequeDetailsView({
           action={dialogAction}
           path={transitionPath(dialogAction)}
           open
+          summary={dialogAction === 'deposit' ? buildChequeTransitionSummary(cheque) : null}
           onClose={() => setDialogAction(null)}
           onSuccess={() => state.reload()}
         />

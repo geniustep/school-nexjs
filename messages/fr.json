@@ -5345,10 +5345,17 @@
         "actions": {
           "deposit": {
             "button": "Déposer le chèque",
-            "title": "Déposer le chèque",
+            "title": "Confirmer le dépôt du chèque",
             "confirm": "Confirmer le dépôt",
-            "dateLabel": "Date de dépôt",
-            "warning": "La liquidité n'est pas mise à jour tant que le chèque n'est pas encaissé."
+            "dateLabel": "Date de dépôt du chèque",
+            "description": "Le chèque sera enregistré comme en attente d'encaissement après le dépôt. Il ne sera pas compté comme paiement confirmé tant qu'il n'est pas encaissé.",
+            "successToast": "Dépôt du chèque enregistré avec succès.",
+            "summary": {
+              "chequeNumber": "Numéro de chèque",
+              "amount": "Montant",
+              "party": "Élève / payeur",
+              "currentStatus": "Statut actuel"
+            }
           },
           "clear": {
             "button": "Confirmer l'encaissement bancaire",

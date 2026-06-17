@@ -5345,10 +5345,17 @@
         "actions": {
           "deposit": {
             "button": "Depositar cheque",
-            "title": "Depositar cheque",
+            "title": "Confirmar depósito del cheque",
             "confirm": "Confirmar depósito",
-            "dateLabel": "Fecha de depósito",
-            "warning": "La liquidez no se actualiza hasta que el cheque se cobre."
+            "dateLabel": "Fecha de depósito del cheque",
+            "description": "El cheque quedará registrado como pendiente de compensación tras el depósito. No se contará como pago confirmado hasta que se compense.",
+            "successToast": "Depósito del cheque registrado correctamente.",
+            "summary": {
+              "chequeNumber": "Número de cheque",
+              "amount": "Importe",
+              "party": "Alumno / pagador",
+              "currentStatus": "Estado actual"
+            }
           },
           "clear": {
             "button": "Confirmar cobro bancario",

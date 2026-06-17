@@ -182,6 +182,83 @@
   color: var(--color-warning, #b54708);
 }
 
+.finance-cheque-dialog {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.finance-cheque-dialog h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.finance-cheque-dialog__description {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--c-muted, #64748b);
+}
+
+.finance-cheque-dialog__summary {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 16px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--c-surface-2, #f8fafc);
+  border: 1px solid var(--c-border, #e2e8f0);
+}
+
+.finance-cheque-dialog__summary dt {
+  margin: 0 0 2px;
+  font-size: 0.75rem;
+  color: var(--c-muted, #64748b);
+}
+
+.finance-cheque-dialog__summary dd {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.finance-cheque-dialog__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.875rem;
+}
+
+.finance-cheque-dialog__required {
+  color: var(--color-danger, #b42318);
+}
+
+.finance-cheque-dialog__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+@media (max-width: 480px) {
+  .finance-cheque-dialog__summary {
+    grid-template-columns: 1fr;
+  }
+
+  .finance-cheque-dialog__actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .finance-cheque-dialog__actions .btn {
+    width: 100%;
+  }
+}
+
 .finance-collection-workflow {
   max-width: min(720px, 100%);
 }

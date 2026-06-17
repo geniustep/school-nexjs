@@ -5345,10 +5345,17 @@
         "actions": {
           "deposit": {
             "button": "Deposit cheque",
-            "title": "Deposit cheque",
+            "title": "Confirm cheque deposit",
             "confirm": "Confirm deposit",
-            "dateLabel": "Deposit date",
-            "warning": "Liquidity is not updated until the cheque is cleared."
+            "dateLabel": "Cheque deposit date",
+            "description": "The cheque will be recorded as pending clearance after deposit. It will not count as confirmed payment until the cheque is cleared.",
+            "successToast": "Cheque deposit recorded successfully.",
+            "summary": {
+              "chequeNumber": "Cheque number",
+              "amount": "Amount",
+              "party": "Student / payer",
+              "currentStatus": "Current status"
+            }
           },
           "clear": {
             "button": "Confirm bank clearance",
