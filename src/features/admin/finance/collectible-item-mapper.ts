@@ -6,6 +6,7 @@ export function collectibleItemToInstallment(item: CollectibleItem): StudentInst
     id: item.installment_id,
     fee_id: item.student_fee_id ?? undefined,
     fee_name: item.fee_name ?? item.fee_type_name ?? undefined,
+    display_label: item.display_label ?? undefined,
     period_label: item.period_label ?? undefined,
     period_start: item.period_start ?? undefined,
     period_end: item.period_end ?? undefined,

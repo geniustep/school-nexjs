@@ -179,6 +179,7 @@ export function normalizeCollectibleItem(raw: unknown): CollectibleItem | null {
     student_fee_id: typeof obj.student_fee_id === 'number' ? obj.student_fee_id : null,
     fee_name: typeof obj.fee_name === 'string' ? obj.fee_name : null,
     fee_type_name: typeof obj.fee_type_name === 'string' ? obj.fee_type_name : null,
+    display_label: typeof obj.display_label === 'string' ? obj.display_label : null,
     period_label: typeof obj.period_label === 'string' ? obj.period_label : null,
     period_start: typeof obj.period_start === 'string' ? obj.period_start : null,
     period_end: typeof obj.period_end === 'string' ? obj.period_end : null,
@@ -229,6 +230,27 @@ export function normalizeCollectibleItemsResponse(data: unknown): CollectibleIte
     academic_year_id: typeof raw.academic_year_id === 'number' ? raw.academic_year_id : undefined,
     billing_profile_id:
       typeof raw.billing_profile_id === 'number' ? raw.billing_profile_id : null,
+    billing_partner_id:
+      typeof raw.billing_partner_id === 'number'
+        ? raw.billing_partner_id
+        : typeof (raw.billing_profile as { billing_partner_id?: unknown } | undefined)
+              ?.billing_partner_id === 'number'
+          ? (raw.billing_profile as { billing_partner_id: number }).billing_partner_id
+          : null,
+    billing_partner_name:
+      typeof raw.billing_partner_name === 'string'
+        ? raw.billing_partner_name
+        : typeof (raw.billing_profile as { billing_partner_name?: unknown } | undefined)
+              ?.billing_partner_name === 'string'
+          ? (raw.billing_profile as { billing_partner_name: string }).billing_partner_name
+          : null,
+    billing_party_type:
+      typeof raw.billing_party_type === 'string'
+        ? raw.billing_party_type
+        : typeof (raw.billing_profile as { billing_party_type?: unknown } | undefined)
+              ?.billing_party_type === 'string'
+          ? (raw.billing_profile as { billing_party_type: string }).billing_party_type
+          : null,
     summary: normalizeCollectibleSummary(raw.summary),
     items,
   };

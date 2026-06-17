@@ -23,6 +23,7 @@ import {
 import { FinanceStudentSearch } from '@/features/admin/finance/finance-student-search';
 import { BillingPartnerSelect } from '@/features/admin/finance/billing-partner-select';
 import {
+  billingPartnerDisplayLabel,
   parseEligibleBillingPartners,
   resolveBillingPartnerSelection,
 } from '@/features/admin/finance/billing-partner-resolve';
@@ -52,6 +53,10 @@ import {
   sumAllocationAmounts,
   validateAllocationTotals,
 } from './collection-allocation-utils';
+import { resolveCollectionBilling } from './collection-billing-context';
+import { CollectionReviewStep } from './collection-review-step';
+import { FinanceAmountInput } from './finance-amount-input';
+import type { StudentFinancialOverview } from '@/types/student-financial-overview';
 
 type WorkflowStep = 'selection' | 'payment' | 'allocation' | 'review' | 'success';
 
@@ -71,18 +76,32 @@ function CollectionWorkflowSteps({
   if (showAllocation) steps.push({ id: 'allocation', label: t('admin.finance.collectionWorkflow.stepAllocation') });
   steps.push({ id: 'review', label: t('admin.finance.collectionWorkflow.stepReview') });
 
+  const activeIndex = steps.findIndex((s) => s.id === step);
+
   return (
     <nav className="finance-collection-workflow__steps" aria-label={t('admin.finance.collectionWorkflow.recordPayment')}>
-      {steps.map((item, index) => (
-        <span
-          key={item.id}
-          className={`finance-collection-workflow__step${
-            step === item.id ? ' is-active' : ''
-          }${step === 'success' || steps.findIndex((s) => s.id === step) > index ? ' is-done' : ''}`}
-        >
-          {index + 1}. {item.label}
-        </span>
-      ))}
+      <div className="finance-collection-workflow__steps-row">
+        {steps.map((item, index) => (
+          <span
+            key={item.id}
+            className={`finance-collection-workflow__step${
+              step === item.id ? ' is-active' : ''
+            }${step === 'success' || activeIndex > index ? ' is-done' : ''}`}
+          >
+            <span className="finance-collection-workflow__step-index" aria-hidden>
+              {activeIndex > index || step === 'success' ? '✓' : index + 1}
+            </span>
+            <span className="finance-collection-workflow__step-label">{item.label}</span>
+          </span>
+        ))}
+      </div>
+      <p className="finance-collection-workflow__steps-mobile tiny muted">
+        {t('admin.finance.collectionWorkflow.stepProgress', {
+          current: String(Math.max(1, activeIndex + 1)),
+          total: String(steps.length),
+          label: steps[Math.max(0, activeIndex)]?.label ?? '',
+        })}
+      </p>
     </nav>
   );
 }
@@ -95,6 +114,7 @@ export function CollectionWorkflowForm({
   initialAcademicYearId,
   initialBillingPartnerId,
   initialBillingProfileId,
+  financialOverview,
   useInstallmentAllocations = false,
   onOverviewUpdate,
   embedded = false,
@@ -106,6 +126,7 @@ export function CollectionWorkflowForm({
   initialAcademicYearId?: number | string;
   initialBillingPartnerId?: number | string;
   initialBillingProfileId?: number | string;
+  financialOverview?: StudentFinancialOverview | null;
   useInstallmentAllocations?: boolean;
   onOverviewUpdate?: (overview: CollectionUpdatedOverview) => void;
   embedded?: boolean;
@@ -137,6 +158,7 @@ export function CollectionWorkflowForm({
       initialAcademicYearId={initialAcademicYearId}
       initialBillingPartnerId={initialBillingPartnerId}
       initialBillingProfileId={initialBillingProfileId}
+      financialOverview={financialOverview}
       useInstallmentAllocations={useInstallmentAllocations}
       onOverviewUpdate={onOverviewUpdate}
       embedded={embedded}
@@ -155,6 +177,7 @@ function CollectionWorkflowFormReady({
   initialAcademicYearId,
   initialBillingPartnerId,
   initialBillingProfileId,
+  financialOverview,
   useInstallmentAllocations = false,
   onOverviewUpdate,
   embedded = false,
@@ -169,6 +192,7 @@ function CollectionWorkflowFormReady({
   initialAcademicYearId?: number | string;
   initialBillingPartnerId?: number | string;
   initialBillingProfileId?: number | string;
+  financialOverview?: StudentFinancialOverview | null;
   useInstallmentAllocations?: boolean;
   onOverviewUpdate?: (overview: CollectionUpdatedOverview) => void;
   embedded?: boolean;
@@ -248,6 +272,23 @@ function CollectionWorkflowFormReady({
     !!(selectedStudent && useInstallmentAllocations && academicYearId),
   );
   const collectibleData = collectibleState.data;
+  const resolvedBilling = useMemo(
+    () =>
+      resolveCollectionBilling({
+        collectible: collectibleData,
+        overview: financialOverview,
+        initialBillingProfileId,
+        initialBillingPartnerId,
+        selectedBillingPartnerId: billingPartnerId,
+      }),
+    [
+      collectibleData,
+      financialOverview,
+      initialBillingProfileId,
+      initialBillingPartnerId,
+      billingPartnerId,
+    ],
+  );
   const openInstallments = useMemo(
     () => collectibleItemsToInstallments(collectibleData?.items ?? []),
     [collectibleData?.items],
@@ -264,6 +305,10 @@ function CollectionWorkflowFormReady({
   }, [academicYears, academicYearId]);
 
   useEffect(() => {
+    if (collectibleData?.billing_partner_id) {
+      setBillingPartnerId(String(collectibleData.billing_partner_id));
+      return;
+    }
     if (!selectedStudent || partnersState.loading) return;
     if (partnersLoadFailed) {
       setBillingPartnerId('');
@@ -293,6 +338,7 @@ function CollectionWorkflowFormReady({
     requiresUserChoice,
     partners,
     initialBillingPartnerId,
+    collectibleData?.billing_partner_id,
   ]);
 
   useEffect(() => {
@@ -393,6 +439,7 @@ function CollectionWorkflowFormReady({
         journalId,
         academicYearId,
         billingPartnerId,
+        resolvedBillingPartnerId: resolvedBilling.billingPartnerId,
         partnersLoading: partnersState.loading,
         partnersLoadFailed,
         partnersCount: partners.length,
@@ -407,10 +454,12 @@ function CollectionWorkflowFormReady({
         chequeHolder,
         chequeReceivedDate,
         chequeMaturityDate,
+        reference,
         showAllocationStep: showAllocationStep && openInstallments.length > 0,
         skipAllocation,
         allocatedTotal,
         collectionAmount: parsedAmount,
+        selectedInstallmentCount: selectedInstallmentIds.length,
       }),
     [
       selectedStudent,
@@ -435,6 +484,9 @@ function CollectionWorkflowFormReady({
       openInstallments.length,
       skipAllocation,
       allocatedTotal,
+      reference,
+      resolvedBilling.billingPartnerId,
+      selectedInstallmentIds.length,
     ],
   );
 
@@ -461,10 +513,11 @@ function CollectionWorkflowFormReady({
       reference: reference.trim() || undefined,
       notes: notes.trim() || undefined,
     };
-    if (initialBillingProfileId) {
-      payload.billing_profile_id = Number(initialBillingProfileId);
-    } else if (billingPartnerId) {
-      payload.billing_partner_id = Number(billingPartnerId);
+    if (resolvedBilling.billingProfileId) {
+      payload.billing_profile_id = resolvedBilling.billingProfileId;
+    }
+    if (resolvedBilling.billingPartnerId) {
+      payload.billing_partner_id = resolvedBilling.billingPartnerId;
     }
 
     if (showAllocationStep && !skipAllocation && openInstallments.length > 0) {
@@ -676,35 +729,11 @@ function CollectionWorkflowFormReady({
         />
       ) : null}
 
-      {selectedStudent && (!installmentFlow || step === 'payment' || step === 'allocation' || step === 'review') ? (
+      {selectedStudent && (!installmentFlow || step === 'payment') ? (
         <>
-          {(!installmentFlow || step !== 'selection') ? (
           <section className="collection-form-section">
             <h4 className="collection-form-section__title">{t('admin.finance.collections.contextSection')}</h4>
             <div className="finance-collection-workflow__fields finance-collection-workflow__fields--context">
-              <label>
-                {t('admin.finance.paymentJournal')}
-                <select
-                  className="input"
-                  required
-                  value={journalId}
-                  onChange={(e) => setJournalId(e.target.value)}
-                  disabled={refLoading}
-                >
-                  <option value="">
-                    {refLoading
-                      ? t('admin.finance.collections.loadingJournals')
-                      : t('admin.finance.selectPaymentJournal')}
-                  </option>
-                  {journals.map((j) => (
-                    <option key={j.id} value={j.id}>
-                      {j.name}
-                      {j.code ? ` (${j.code})` : ''}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
               <label>
                 {t('admin.finance.academicYear')}
                 <select
@@ -734,37 +763,67 @@ function CollectionWorkflowFormReady({
                 </select>
               </label>
 
-              <BillingPartnerSelect
-                partners={partners}
-                loading={partnersState.loading}
-                loadFailed={partnersLoadFailed}
-                hintKey={hintKey}
-                requiresUserChoice={requiresUserChoice}
-                value={billingPartnerId}
-                onChange={setBillingPartnerId}
-                onRetry={() => partnersState.reload?.()}
-              />
+              <label>
+                {t('admin.finance.paymentJournal')}
+                <select
+                  className="input"
+                  required
+                  value={journalId}
+                  onChange={(e) => setJournalId(e.target.value)}
+                  disabled={refLoading}
+                >
+                  <option value="">
+                    {refLoading
+                      ? t('admin.finance.collections.loadingJournals')
+                      : t('admin.finance.selectPaymentJournal')}
+                  </option>
+                  {journals.map((j) => (
+                    <option key={j.id} value={j.id}>
+                      {j.name}
+                      {j.code ? ` (${j.code})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <div className="finance-collection-workflow__billing-readonly">
+                <span className="tiny muted">{t('admin.finance.billingPartyTitle')}</span>
+                <strong dir="auto">
+                  {resolvedBilling.billingPartnerName ??
+                    (billingPartnerId
+                      ? billingPartnerDisplayLabel(
+                          partners.find((p) => String(p.id) === billingPartnerId) ?? {
+                            id: Number(billingPartnerId),
+                            label: '',
+                          },
+                        )
+                      : null) ??
+                    t('common.dash')}
+                </strong>
+              </div>
+
+              {requiresUserChoice || partners.length > 1 ? (
+                <BillingPartnerSelect
+                  partners={partners}
+                  loading={partnersState.loading}
+                  loadFailed={partnersLoadFailed}
+                  hintKey={hintKey}
+                  requiresUserChoice={requiresUserChoice}
+                  value={billingPartnerId}
+                  onChange={setBillingPartnerId}
+                  onRetry={() => partnersState.reload?.()}
+                />
+              ) : null}
             </div>
           </section>
-          ) : null}
 
           <section className="collection-form-section">
             <h4 className="collection-form-section__title">{t('admin.finance.collections.paymentSection')}</h4>
-            {(!installmentFlow || step === 'payment' || step === 'review') ? (
-            <>
             <div className="finance-collection-workflow__fields finance-collection-workflow__fields--payment">
               <label className="finance-amount-field">
                 {t('admin.finance.collectionAmount')}
                 <div className="finance-amount-field__input">
-                  <input
-                    className="input"
-                    required
-                    type="number"
-                    min="0.01"
-                    step="0.01"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                  />
+                  <FinanceAmountInput value={amount} onChange={setAmount} />
                   {journalCurrency ? (
                     <span className="finance-amount-field__suffix">{journalCurrency}</span>
                   ) : null}
@@ -871,13 +930,124 @@ function CollectionWorkflowFormReady({
                 </label>
               </fieldset>
             ) : null}
-            </>
-            ) : null}
-          </section>
 
-          {showAllocationStep && (!installmentFlow || step === 'allocation' || step === 'review') ? (
+            <label className="finance-collection-workflow__full-width">
+              {t('common.note')}
+              <textarea className="input" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
+            </label>
+          </section>
+        </>
+      ) : null}
+
+      {selectedStudent && installmentFlow && step === 'allocation' && showAllocationStep ? (
+        <ReceivableAllocationSection
+          installments={selectedInstallments.length ? selectedInstallments : openInstallments}
+          loading={collectibleState.loading}
+          currency={journalCurrency}
+          collectionAmount={parsedAmount}
+          allocationInputs={allocationInputs}
+          onAllocationChange={setAllocationInputs}
+          skipAllocation={skipAllocation}
+          onSkipAllocationChange={setSkipAllocation}
+        />
+      ) : null}
+
+      {selectedStudent && installmentFlow && step === 'review' ? (
+        <CollectionReviewStep
+          studentName={selectedStudent.name ?? selectedStudent.full_name ?? ''}
+          registrationNumber={selectedStudent.code}
+          academicYearName={academicYears.find((y) => String(y.id) === academicYearId)?.name}
+          billing={resolvedBilling}
+          journalName={
+            selectedJournal
+              ? `${selectedJournal.name}${selectedJournal.code ? ` (${selectedJournal.code})` : ''}`
+              : undefined
+          }
+          paymentMethod={paymentMethod}
+          collectionDate={collectionDate}
+          reference={reference}
+          amount={parsedAmount}
+          currency={journalCurrency}
+          selectedInstallments={selectedInstallments}
+          allocationInputs={allocationInputs}
+          allocatedTotal={allocatedTotal}
+        />
+      ) : null}
+
+      {selectedStudent && !installmentFlow ? (
+        <>
+          <section className="collection-form-section">
+            <h4 className="collection-form-section__title">{t('admin.finance.collections.contextSection')}</h4>
+            <div className="finance-collection-workflow__fields finance-collection-workflow__fields--context">
+              <label>
+                {t('admin.finance.paymentJournal')}
+                <select className="input" required value={journalId} onChange={(e) => setJournalId(e.target.value)} disabled={refLoading}>
+                  <option value="">{refLoading ? t('admin.finance.collections.loadingJournals') : t('admin.finance.selectPaymentJournal')}</option>
+                  {journals.map((j) => (
+                    <option key={j.id} value={j.id}>
+                      {j.name}
+                      {j.code ? ` (${j.code})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                {t('admin.finance.academicYear')}
+                <select className="input" required value={academicYearId} onChange={(e) => setAcademicYearId(e.target.value)} disabled={refLoading || !!initialAcademicYearId}>
+                  <option value="">{t('admin.finance.selectAcademicYear')}</option>
+                  {academicYears.map((y) => (
+                    <option key={y.id} value={y.id}>{y.name}</option>
+                  ))}
+                </select>
+              </label>
+              <BillingPartnerSelect
+                partners={partners}
+                loading={partnersState.loading}
+                loadFailed={partnersLoadFailed}
+                hintKey={hintKey}
+                requiresUserChoice={requiresUserChoice}
+                value={billingPartnerId}
+                onChange={setBillingPartnerId}
+                onRetry={() => partnersState.reload?.()}
+              />
+            </div>
+          </section>
+          <section className="collection-form-section">
+            <h4 className="collection-form-section__title">{t('admin.finance.collections.paymentSection')}</h4>
+            <div className="finance-collection-workflow__fields finance-collection-workflow__fields--payment">
+              <label className="finance-amount-field">
+                {t('admin.finance.collectionAmount')}
+                <div className="finance-amount-field__input">
+                  <FinanceAmountInput value={amount} onChange={setAmount} />
+                  {journalCurrency ? <span className="finance-amount-field__suffix">{journalCurrency}</span> : null}
+                </div>
+              </label>
+              <label>
+                {t('admin.finance.paymentMethod')}
+                <select className="input" required value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)} disabled={!journalId}>
+                  <option value="">{t('admin.finance.selectPaymentMethod')}</option>
+                  {allowedMethods.map((m) => (
+                    <option key={m.code} value={m.code}>{paymentMethodLabel(m.code, t)}</option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                {t('admin.finance.collectionDate')}
+                <input className="input" required type="date" value={collectionDate} onChange={(e) => setCollectionDate(e.target.value)} />
+              </label>
+              <label>
+                {t('admin.finance.externalReference')}
+                <input className="input" value={reference} onChange={(e) => setReference(e.target.value)} />
+              </label>
+            </div>
+            <label className="finance-collection-workflow__full-width">
+              {t('common.note')}
+              <textarea className="input" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
+            </label>
+          </section>
+          {showAllocationStep ? (
             <ReceivableAllocationSection
-              installments={selectedInstallments.length ? selectedInstallments : openInstallments}
+              installments={openInstallments}
               loading={collectibleState.loading}
               currency={journalCurrency}
               collectionAmount={parsedAmount}
@@ -887,44 +1057,6 @@ function CollectionWorkflowFormReady({
               onSkipAllocationChange={setSkipAllocation}
             />
           ) : null}
-
-          {step === 'review' ? (
-            <section className="collection-form-section collection-review-section">
-              <h4 className="collection-form-section__title">{t('admin.finance.collectionWorkflow.stepReview')}</h4>
-              <dl className="detail-list compact">
-                <div>
-                  <dt>{t('admin.finance.collectionAmount')}</dt>
-                  <dd>
-                    <FinanceMoney amount={parsedAmount} currency={journalCurrency} />
-                  </dd>
-                </div>
-                <div>
-                  <dt>{t('admin.finance.paymentMethod')}</dt>
-                  <dd>{paymentMethodLabel(paymentMethod, t)}</dd>
-                </div>
-                <div>
-                  <dt>{t('admin.finance.collectionWorkflow.selectedCount')}</dt>
-                  <dd>{selectedInstallments.length || Object.keys(allocationInputs).length}</dd>
-                </div>
-                <div>
-                  <dt>{t('admin.finance.collectionWorkflow.unallocatedAmount')}</dt>
-                  <dd>
-                    <FinanceMoney
-                      amount={Math.max(0, parsedAmount - allocatedTotal)}
-                      currency={journalCurrency}
-                    />
-                  </dd>
-                </div>
-              </dl>
-            </section>
-          ) : null}
-
-          <section className="collection-form-section">
-            <label>
-              {t('common.note')}
-              <textarea className="input" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
-            </label>
-          </section>
         </>
       ) : null}
 

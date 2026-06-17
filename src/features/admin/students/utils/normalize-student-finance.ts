@@ -64,6 +64,8 @@ export function normalizeBillingProfile(value: unknown): StudentBillingProfileSu
           : null,
     guardian_id: typeof raw.guardian_id === 'number' ? raw.guardian_id : null,
     billing_partner_id: typeof raw.billing_partner_id === 'number' ? raw.billing_partner_id : null,
+    billing_partner_name:
+      typeof raw.billing_partner_name === 'string' ? raw.billing_partner_name : null,
     effective_from: typeof raw.effective_from === 'string' ? raw.effective_from : null,
     effective_to: typeof raw.effective_to === 'string' ? raw.effective_to : null,
   };

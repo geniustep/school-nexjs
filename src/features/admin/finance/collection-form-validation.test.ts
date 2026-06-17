@@ -6,6 +6,7 @@ const base = {
   journalId: '1',
   academicYearId: '2',
   billingPartnerId: '3',
+  resolvedBillingPartnerId: 3,
   partnersLoading: false,
   partnersLoadFailed: false,
   partnersCount: 1,
@@ -20,10 +21,12 @@ const base = {
   chequeHolder: '',
   chequeReceivedDate: '',
   chequeMaturityDate: '',
+  reference: '',
   showAllocationStep: true,
   skipAllocation: false,
   allocatedTotal: 0,
   collectionAmount: 100,
+  selectedInstallmentCount: 1,
 };
 
 describe('collection form validation', () => {
@@ -32,6 +35,7 @@ describe('collection form validation', () => {
       getCollectionSubmitBlockers({
         ...base,
         billingPartnerId: '',
+        resolvedBillingPartnerId: null,
         requiresBillingPartnerChoice: true,
       }),
     ).toContain('selectBillingPartner');
@@ -42,6 +46,7 @@ describe('collection form validation', () => {
       getCollectionSubmitBlockers({
         ...base,
         billingPartnerId: '',
+        resolvedBillingPartnerId: null,
         partnersCount: 0,
         partnersLoadFailed: false,
       }),
@@ -50,12 +55,19 @@ describe('collection form validation', () => {
 
   it('requires allocation or skip when receivables exist', () => {
     expect(getCollectionSubmitBlockers(base)).toContain('allocateOrSkip');
-    expect(getCollectionSubmitBlockers({ ...base, skipAllocation: true })).not.toContain(
-      'allocateOrSkip',
-    );
+    expect(
+      getCollectionSubmitBlockers({ ...base, skipAllocation: true }),
+    ).not.toContain('allocateOrSkip');
   });
 
   it('allows submit when allocation totals are valid', () => {
-    expect(getCollectionSubmitBlockers({ ...base, allocatedTotal: 50 })).toEqual([]);
+    expect(
+      getCollectionSubmitBlockers({
+        ...base,
+        allocatedTotal: 100,
+        collectionAmount: 100,
+        selectedInstallmentCount: 2,
+      }),
+    ).toEqual([]);
   });
 });

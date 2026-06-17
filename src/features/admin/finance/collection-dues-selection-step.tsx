@@ -105,6 +105,7 @@ export function CollectionDuesSelectionStep({
             id: row.installment_id,
             fee_name: row.fee_name,
             fee_type_name: row.fee_type_name,
+            display_label: row.display_label,
             period_label: row.period_label,
             period_start: row.period_start,
             period_end: row.period_end,

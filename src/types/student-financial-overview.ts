@@ -93,6 +93,7 @@ export interface CollectibleItem {
   student_fee_id?: number | null;
   fee_name?: string | null;
   fee_type_name?: string | null;
+  display_label?: string | null;
   period_label?: string | null;
   period_start?: string | null;
   period_end?: string | null;
@@ -110,6 +111,9 @@ export interface CollectibleItem {
 export interface CollectibleItemsResponse {
   academic_year_id?: number;
   billing_profile_id?: number | null;
+  billing_partner_id?: number | null;
+  billing_partner_name?: string | null;
+  billing_party_type?: string | null;
   summary: CollectibleItemsSummary;
   items: CollectibleItem[];
 }

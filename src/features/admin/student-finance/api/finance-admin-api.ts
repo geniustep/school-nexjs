@@ -5,7 +5,9 @@ import { endpoints } from '@/lib/api/endpoints';
 import type { ApiResponse, ListParams } from '@/types/api';
 import type {
   CreateFinancialAgreementPayload,
+  CreateAgreementAdjustmentPayload,
   FinancialAgreement,
+  FinancialAgreementAdjustment,
   FinanceServiceCatalogItem,
   FinanceServiceTariff,
   InstallmentListParams,
@@ -127,6 +129,54 @@ export async function fetchStudentInstallments(
   query?: InstallmentListParams,
 ): Promise<ApiResponse<StudentInstallment[]>> {
   return api.get<StudentInstallment[]>(endpoints.admin.studentInstallments(studentId), query);
+}
+
+export async function replaceAgreementFromCurrentFees(
+  agreementId: number | string,
+  body?: Record<string, unknown>,
+  query?: ListParams,
+): Promise<ApiResponse<FinancialAgreement>> {
+  return api.post<FinancialAgreement>(
+    endpoints.admin.financeAgreementReplaceFromCurrentFees(agreementId),
+    body ?? {},
+    query,
+  );
+}
+
+export async function createAgreementAdjustment(
+  agreementId: number | string,
+  payload: CreateAgreementAdjustmentPayload,
+  query?: ListParams,
+): Promise<ApiResponse<FinancialAgreementAdjustment>> {
+  return api.post<FinancialAgreementAdjustment>(
+    endpoints.admin.financeAgreementAdjustments(agreementId),
+    payload,
+    query,
+  );
+}
+
+export async function updateAgreementAdjustment(
+  agreementId: number | string,
+  adjustmentId: number | string,
+  payload: Partial<CreateAgreementAdjustmentPayload>,
+  query?: ListParams,
+): Promise<ApiResponse<FinancialAgreementAdjustment>> {
+  return api.patch<FinancialAgreementAdjustment>(
+    endpoints.admin.financeAgreementAdjustment(agreementId, adjustmentId),
+    payload,
+    query,
+  );
+}
+
+export async function deleteAgreementAdjustment(
+  agreementId: number | string,
+  adjustmentId: number | string,
+  query?: ListParams,
+): Promise<ApiResponse<unknown>> {
+  return api.delete(
+    endpoints.admin.financeAgreementAdjustment(agreementId, adjustmentId),
+    query,
+  );
 }
 
 export async function fetchFinanceServices(

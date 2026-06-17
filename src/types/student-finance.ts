@@ -22,6 +22,7 @@ export interface StudentBillingProfileSummary {
   billing_party_type?: string | null;
   guardian_id?: number | null;
   billing_partner_id?: number | null;
+  billing_partner_name?: string | null;
   effective_from?: string | null;
   effective_to?: string | null;
 }

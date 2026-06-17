@@ -253,6 +253,12 @@ export const endpoints = {
     financePaymentCollectionAllocate: (collectionId: number | string) =>
       `/admin/finance/payment-collections/${collectionId}/allocate`,
     financeAgreements: '/admin/finance/agreements',
+    financeAgreementReplaceFromCurrentFees: (id: number | string) =>
+      `/admin/finance/agreements/${id}/replace-from-current-fees`,
+    financeAgreementAdjustments: (id: number | string) =>
+      `/admin/finance/agreements/${id}/adjustments`,
+    financeAgreementAdjustment: (agreementId: number | string, adjustmentId: number | string) =>
+      `/admin/finance/agreements/${agreementId}/adjustments/${adjustmentId}`,
     financeEligibleBillingPartners: (studentId: number | string) =>
       `/admin/finance/students/${studentId}/eligible-billing-partners`,
     financeCheques: '/admin/finance/cheques',

@@ -7,6 +7,7 @@ import {
   autoAllocateOldest,
   canAllocateToInstallment,
 } from '@/features/admin/finance/collection-allocation-utils';
+import { FinanceAmountInput } from '@/features/admin/finance/finance-amount-input';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { formatPeriodRange } from '@/features/admin/student-finance/utils/format-period';
@@ -55,17 +56,42 @@ export function ReceivableAllocationSection({
   }
 
   return (
-    <section className="collection-form-section">
+    <section className="collection-form-section collection-allocation-step">
       <div className="collection-form-section__head">
         <h4 className="collection-form-section__title">{t('admin.finance.collections.allocationSection')}</h4>
-        <button
-          type="button"
-          className="btn btn--ghost btn--sm"
-          disabled={skipAllocation || !collectionAmount}
-          onClick={() => onAllocationChange(autoAllocateOldest(installments, collectionAmount))}
-        >
-          {t('admin.finance.collectionWorkflow.autoAllocateOldest')}
-        </button>
+        <div className="row collection-allocation-step__actions">
+          <button
+            type="button"
+            className="btn btn--ghost btn--sm"
+            disabled={skipAllocation || !collectionAmount}
+            onClick={() => onAllocationChange(autoAllocateOldest(installments, collectionAmount))}
+          >
+            {t('admin.finance.collectionWorkflow.autoAllocateOldest')}
+          </button>
+          <button
+            type="button"
+            className="btn btn--ghost btn--sm"
+            disabled={skipAllocation || !collectionAmount}
+            onClick={() => {
+              const next: Record<number, string> = {};
+              for (const row of installments) {
+                if (!canAllocateToInstallment(row)) continue;
+                next[row.id] = String(row.remaining_amount ?? 0);
+              }
+              onAllocationChange(next);
+            }}
+          >
+            {t('admin.finance.collectionWorkflow.fillSelectedDues')}
+          </button>
+          <button
+            type="button"
+            className="btn btn--ghost btn--sm"
+            disabled={skipAllocation}
+            onClick={() => onAllocationChange({})}
+          >
+            {t('admin.finance.collectionWorkflow.clearAllocation')}
+          </button>
+        </div>
       </div>
       <p className="muted collection-form-section__desc">{t('admin.finance.collections.allocationSectionDesc')}</p>
 
@@ -99,7 +125,51 @@ export function ReceivableAllocationSection({
             </div>
           </div>
 
-          <div className="receivable-allocation-table-wrap">
+          <div className="finance-allocation-cards">
+            {installments.map((row) => {
+              const disabled = !canAllocateToInstallment(row);
+              const { title, subtitle } = formatInstallmentLabel(
+                row,
+                t,
+                formatDate,
+                formatPeriodRange,
+              );
+              return (
+                <div key={row.id} className={`finance-allocation-card${disabled ? ' is-disabled' : ''}`}>
+                  <div className="finance-allocation-card__head">
+                    <strong dir="auto">{title}</strong>
+                    {subtitle ? <span className="tiny muted">{subtitle}</span> : null}
+                  </div>
+                  <div className="finance-allocation-card__meta">
+                    <span className="tiny muted">{t('admin.finance.remainingAmount')}</span>
+                    <FinanceMoney amount={row.remaining_amount} currency={currency} />
+                    <InstallmentStatusBadges
+                      paymentStatus={row.payment_status ?? 'unpaid'}
+                      timingStatus={row.timing_status ?? 'not_applicable'}
+                      isVisible={row.is_visible}
+                    />
+                  </div>
+                  <label className="finance-allocation-card__amount">
+                    <span className="tiny muted">{t('admin.finance.allocationAmount')}</span>
+                    <div className="finance-amount-field">
+                      <FinanceAmountInput
+                        disabled={disabled || skipAllocation}
+                        value={allocationInputs[row.id] ?? ''}
+                        onChange={(value) =>
+                          onAllocationChange({ ...allocationInputs, [row.id]: value })
+                        }
+                      />
+                      {currency ? (
+                        <span className="finance-amount-field__suffix">{currency}</span>
+                      ) : null}
+                    </div>
+                  </label>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="receivable-allocation-table-wrap receivable-allocation-table-wrap--desktop">
             <table className="receivable-allocation-table">
               <thead>
                 <tr>
@@ -137,15 +207,11 @@ export function ReceivableAllocationSection({
                         />
                       </td>
                       <td>
-                        <input
-                          className="input input--sm"
-                          type="number"
-                          min="0"
-                          step="0.01"
+                        <FinanceAmountInput
                           disabled={disabled}
                           value={allocationInputs[row.id] ?? ''}
-                          onChange={(e) =>
-                            onAllocationChange({ ...allocationInputs, [row.id]: e.target.value })
+                          onChange={(value) =>
+                            onAllocationChange({ ...allocationInputs, [row.id]: value })
                           }
                         />
                       </td>

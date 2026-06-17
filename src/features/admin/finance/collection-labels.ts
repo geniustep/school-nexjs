@@ -42,21 +42,41 @@ export function formatInstallmentLabel(
   formatDate: FormatDate,
   formatPeriod: FormatPeriod,
 ): { title: string; subtitle: string } {
-  const service = refName(row.service) ?? (row.fee_id ? `#${row.fee_id}` : t('admin.finance.studentFee'));
-  const period = formatPeriod(formatDate, row.period_start, row.period_end);
+  if (row.display_label?.trim()) {
+    const due = row.due_date ? formatDate(row.due_date) : null;
+    const subtitleParts: string[] = [];
+    if (due) subtitleParts.push(`${t('admin.finance.dueDate')}: ${due}`);
+    const remaining = row.remaining_amount;
+    if (remaining != null && Number.isFinite(remaining)) {
+      subtitleParts.push(`${t('admin.finance.remainingAmount')}: ${remaining.toFixed(2)}`);
+    }
+    return { title: row.display_label.trim(), subtitle: subtitleParts.join(' · ') };
+  }
+
+  const feeTitle =
+    row.display_label?.trim() ||
+    row.fee_name?.trim() ||
+    row.fee_type_name?.trim() ||
+    refName(row.service) ||
+    null;
+  const period =
+    row.period_label?.trim() ||
+    (formatPeriod(formatDate, row.period_start, row.period_end) !== '—'
+      ? formatPeriod(formatDate, row.period_start, row.period_end)
+      : null);
+  const titleParts: string[] = [];
+  if (feeTitle) titleParts.push(feeTitle);
+  if (period) titleParts.push(period);
+  const title = titleParts.join(' — ') || t('admin.finance.studentFee');
+
   const due = row.due_date ? formatDate(row.due_date) : null;
-  const titleParts = [service];
-  if (period && period !== '—') titleParts.push(period);
   const subtitleParts: string[] = [];
   if (due) subtitleParts.push(`${t('admin.finance.dueDate')}: ${due}`);
   const remaining = row.remaining_amount;
   if (remaining != null && Number.isFinite(remaining)) {
     subtitleParts.push(`${t('admin.finance.remainingAmount')}: ${remaining.toFixed(2)}`);
   }
-  return {
-    title: titleParts.join(' — '),
-    subtitle: subtitleParts.join(' · '),
-  };
+  return { title, subtitle: subtitleParts.join(' · ') };
 }
 
 export function formatAllocationRowLabel(

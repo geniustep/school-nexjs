@@ -6,13 +6,15 @@ import { useToast } from '@/components/ui/toast';
 import { useT } from '@/features/i18n/locale-context';
 import { CollectionWorkflowForm } from './collection-workflow-form';
 import type { PaymentCollection } from '@/types/finance';
-import type { CollectionUpdatedOverview } from '@/types/student-financial-overview';
+import type { CollectionUpdatedOverview, StudentFinancialOverview } from '@/types/student-financial-overview';
 
 export function StudentCollectionDrawer({
   open,
   studentId,
   academicYearId,
   billingProfileId,
+  billingPartnerId,
+  financialOverview,
   onClose,
   onSuccess,
   onOverviewUpdate,
@@ -21,6 +23,8 @@ export function StudentCollectionDrawer({
   studentId: number;
   academicYearId?: number;
   billingProfileId?: number;
+  billingPartnerId?: number;
+  financialOverview?: StudentFinancialOverview | null;
   onClose: () => void;
   onSuccess: () => void;
   onOverviewUpdate?: () => void;
@@ -43,13 +47,15 @@ export function StudentCollectionDrawer({
   }
 
   return (
-    <SetupDrawer open={open} title={t('admin.finance.collectionWorkflow.drawerTitle')} onClose={onClose}>
+    <SetupDrawer open={open} title={t('admin.finance.collectionWorkflow.drawerTitle')} onClose={onClose} size="wide">
       <CollectionWorkflowForm
         embedded
         initialStudentId={studentId}
         lockStudent
         initialAcademicYearId={academicYearId}
         initialBillingProfileId={billingProfileId}
+        initialBillingPartnerId={billingPartnerId}
+        financialOverview={financialOverview}
         useInstallmentAllocations
         onOverviewUpdate={handleOverviewUpdate}
         onDone={handleDone}

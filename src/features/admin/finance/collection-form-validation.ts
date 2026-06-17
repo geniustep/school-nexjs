@@ -11,13 +11,17 @@ export type CollectionFormBlockerKey =
   | 'enterCollectionDate'
   | 'completeChequeFields'
   | 'fixChequeDates'
-  | 'allocateOrSkip';
+  | 'allocateOrSkip'
+  | 'allocationTotalMismatch'
+  | 'unallocatedRemainder'
+  | 'paymentReferenceRequired';
 
 export function getCollectionSubmitBlockers(input: {
   hasStudent: boolean;
   journalId: string;
   academicYearId: string;
   billingPartnerId: string;
+  resolvedBillingPartnerId?: number | null;
   partnersLoading: boolean;
   partnersLoadFailed: boolean;
   partnersCount: number;
@@ -32,20 +36,22 @@ export function getCollectionSubmitBlockers(input: {
   chequeHolder: string;
   chequeReceivedDate: string;
   chequeMaturityDate: string;
+  reference: string;
   showAllocationStep: boolean;
   skipAllocation: boolean;
   allocatedTotal: number;
   collectionAmount: number;
+  selectedInstallmentCount?: number;
 }): CollectionFormBlockerKey[] {
   const blockers: CollectionFormBlockerKey[] = [];
   if (!input.hasStudent) blockers.push('selectStudent');
   if (!input.journalId) blockers.push('selectJournal');
   if (!input.academicYearId) blockers.push('selectAcademicYear');
-  if (!input.partnersLoading && (input.partnersLoadFailed || input.partnersCount === 0)) {
+  const effectivePartnerId =
+    input.resolvedBillingPartnerId ?? (input.billingPartnerId ? Number(input.billingPartnerId) : null);
+  if (!input.partnersLoading && (input.partnersLoadFailed || input.partnersCount === 0) && !effectivePartnerId) {
     blockers.push('billingPartnerUnavailable');
-  } else if (input.requiresBillingPartnerChoice && !input.billingPartnerId) {
-    blockers.push('selectBillingPartner');
-  } else if (!input.billingPartnerId) {
+  } else if (!effectivePartnerId) {
     blockers.push('selectBillingPartner');
   }
   if (!isPositiveAmount(input.collectionAmount)) blockers.push('enterAmount');
@@ -53,6 +59,14 @@ export function getCollectionSubmitBlockers(input: {
     blockers.push('selectPaymentMethod');
   }
   if (!input.collectionDate.trim()) blockers.push('enterCollectionDate');
+  const needsReference =
+    input.paymentMethod === 'cheque' ||
+    input.paymentMethod === 'check' ||
+    input.paymentMethod === 'transfer' ||
+    input.paymentMethod === 'bank_transfer';
+  if (needsReference && !input.reference.trim()) {
+    blockers.push('paymentReferenceRequired');
+  }
   if (input.isCheque) {
     if (
       !input.chequeNumber.trim() ||
@@ -66,7 +80,19 @@ export function getCollectionSubmitBlockers(input: {
       blockers.push('fixChequeDates');
     }
   }
-  if (input.showAllocationStep && !input.skipAllocation && input.allocatedTotal <= 0) {
+  if (input.showAllocationStep && !input.skipAllocation) {
+    if (input.allocatedTotal <= 0) blockers.push('allocateOrSkip');
+    if (
+      isPositiveAmount(input.collectionAmount) &&
+      Math.abs(input.allocatedTotal - input.collectionAmount) > 0.009
+    ) {
+      blockers.push('allocationTotalMismatch');
+    }
+    if (input.allocatedTotal < input.collectionAmount - 0.009) {
+      blockers.push('unallocatedRemainder');
+    }
+  }
+  if ((input.selectedInstallmentCount ?? 0) === 0 && input.showAllocationStep && !input.skipAllocation) {
     blockers.push('allocateOrSkip');
   }
   return blockers;

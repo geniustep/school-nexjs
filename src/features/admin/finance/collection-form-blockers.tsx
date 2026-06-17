@@ -15,6 +15,9 @@ const BLOCKER_KEYS: Record<CollectionFormBlockerKey, string> = {
   completeChequeFields: 'admin.finance.collections.blockers.completeChequeFields',
   fixChequeDates: 'admin.finance.collections.blockers.fixChequeDates',
   allocateOrSkip: 'admin.finance.collections.blockers.allocateOrSkip',
+  allocationTotalMismatch: 'admin.finance.collections.blockers.allocationTotalMismatch',
+  unallocatedRemainder: 'admin.finance.collections.blockers.unallocatedRemainder',
+  paymentReferenceRequired: 'admin.finance.collections.blockers.paymentReferenceRequired',
 };
 
 export function CollectionFormBlockers({ blockers }: { blockers: CollectionFormBlockerKey[] }) {

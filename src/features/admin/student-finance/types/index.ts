@@ -133,6 +133,44 @@ export interface AgreementSchedulePolicies {
   allow_early_payment?: boolean;
 }
 
+export type AgreementAdjustmentType =
+  | 'fixed_discount'
+  | 'percentage_discount'
+  | 'partial_waiver'
+  | 'full_waiver'
+  | 'surcharge'
+  | 'manual_adjustment';
+
+export type AgreementDiscountPolicy =
+  | 'reduce_total_only'
+  | 'spread_proportionally'
+  | 'apply_to_selected_fee'
+  | 'apply_to_future_installments'
+  | 'apply_to_last_installments';
+
+export interface FinancialAgreementAdjustment {
+  id: number;
+  adjustment_type: AgreementAdjustmentType | string;
+  label?: string | null;
+  amount?: number | null;
+  percentage?: number | null;
+  reason?: string | null;
+  application_policy?: AgreementDiscountPolicy | string | null;
+  target_fee_id?: number | null;
+  target_fee_name?: string | null;
+  created_at?: string | null;
+  created_by?: Ref | null;
+}
+
+export interface CreateAgreementAdjustmentPayload {
+  adjustment_type: AgreementAdjustmentType | string;
+  amount?: number;
+  percentage?: number;
+  reason: string;
+  application_policy: AgreementDiscountPolicy | string;
+  target_fee_id?: number;
+}
+
 export interface FinancialAgreement {
   id: number;
   number?: string;
@@ -149,6 +187,12 @@ export interface FinancialAgreement {
   discount_amount?: number;
   adjustment_amount?: number;
   net_amount?: number;
+  original_total?: number;
+  discount_total?: number;
+  surcharge_total?: number;
+  net_total?: number;
+  paid_total?: number;
+  remaining_total?: number;
   currency?: FinanceCurrency | null;
   activated_at?: string | null;
   created_at?: string | null;
@@ -164,6 +208,8 @@ export interface FinancialAgreement {
   schedule_policies?: AgreementSchedulePolicies;
   notes?: string | null;
   lines?: FinancialAgreementLine[];
+  adjustments?: FinancialAgreementAdjustment[];
+  source_fees?: FinancialAgreementLine[];
   installments?: AgreementScheduleItem[];
   schedule_summary?: { installment_count?: number; total_amount?: number };
   allowed_actions?: AllowedActionsMap;
@@ -185,6 +231,7 @@ export interface StudentInstallment {
   fee_id?: number | null;
   fee_name?: string | null;
   fee_type_name?: string | null;
+  display_label?: string | null;
   period_label?: string | null;
   service?: Ref & { category?: string };
   period_start?: string | null;

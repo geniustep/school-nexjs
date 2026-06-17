@@ -45,6 +45,11 @@ export function collectionErrorMessageKey(code: string | undefined): string | nu
     case 'cross_school_violation':
     case 'crossSchoolViolation':
       return 'admin.finance.collectionWorkflow.errors.crossSchoolViolation';
+    case 'billing_partner_required':
+    case 'billing_partner_invalid':
+    case 'billingPartnerRequired':
+    case 'billingPartnerInvalid':
+      return 'admin.finance.collectionWorkflow.errors.billingPartnerRequired';
     default:
       return null;
   }

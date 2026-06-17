@@ -253,6 +253,10 @@ export function StudentFinanceWorkspaceShell({
         studentId={studentId}
         academicYearId={effectiveYearId ? Number(effectiveYearId) : undefined}
         billingProfileId={financialOverviewState.data?.billing_profile_id ?? undefined}
+        billingPartnerId={
+          financialOverviewState.data?.billing_profile?.billing_partner_id ?? undefined
+        }
+        financialOverview={financialOverviewState.data}
         onClose={() => setShowCollectionDrawer(false)}
         onSuccess={refreshFinanceData}
         onOverviewUpdate={financialOverviewState.reload}
