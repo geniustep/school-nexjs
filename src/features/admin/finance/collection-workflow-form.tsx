@@ -96,22 +96,29 @@ function CollectionWorkflowSteps({
   const activeIndex = steps.findIndex((s) => s.id === step);
 
   return (
-    <nav className="finance-collection-workflow__steps" aria-label={t('admin.finance.collectionWorkflow.recordPayment')}>
-      <div className="finance-collection-workflow__steps-row">
+    <nav
+      className="finance-collection-workflow__steps finance-collection-workflow__steps--progress"
+      aria-label={t('admin.finance.collectionWorkflow.recordPayment')}
+    >
+      <ol
+        className="finance-collection-workflow__steps-track"
+        style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))` }}
+      >
         {steps.map((item, index) => (
-          <span
+          <li
             key={item.id}
-            className={`finance-collection-workflow__step${
+            className={`finance-collection-workflow__step-item${
               step === item.id ? ' is-active' : ''
             }${step === 'success' || activeIndex > index ? ' is-done' : ''}`}
+            title={item.label}
           >
-            <span className="finance-collection-workflow__step-index" aria-hidden>
+            <span className="finance-collection-workflow__step-marker" aria-hidden>
               {activeIndex > index || step === 'success' ? '✓' : index + 1}
             </span>
             <span className="finance-collection-workflow__step-label">{item.label}</span>
-          </span>
+          </li>
         ))}
-      </div>
+      </ol>
       <p className="finance-collection-workflow__steps-mobile tiny muted">
         {t('admin.finance.collectionWorkflow.stepProgress', {
           current: String(Math.max(1, activeIndex + 1)),
@@ -757,6 +764,7 @@ function CollectionWorkflowFormReady({
 
   return (
     <form className={wrapperClass} onSubmit={onFormSubmit}>
+      <div className="finance-collection-workflow__scroll">
       {installmentFlow || pageMode ? (
         <CollectionWorkflowSteps step={step} installmentFlow={installmentFlow} />
       ) : null}
@@ -1146,9 +1154,17 @@ function CollectionWorkflowFormReady({
         </>
       ) : null}
 
+      </div>
+
       {selectedStudent ? (
         <div className="finance-collection-workflow__actions">
-          <CollectionFormBlockers blockers={submitBlockers} />
+          {installmentFlow && step === 'dues' && selectedInstallmentIds.length === 0 ? (
+            <p className="collection-dues-selection__hint" role="status">
+              {t('admin.finance.collectionWorkflow.selectDuesDesc')}
+            </p>
+          ) : (
+            <CollectionFormBlockers blockers={installmentFlow && step === 'dues' ? [] : submitBlockers} />
+          )}
           <div className="form-actions finance-collection-workflow__footer">
             {installmentFlow && step === 'dues' ? (
               <button

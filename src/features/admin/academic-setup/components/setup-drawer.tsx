@@ -12,6 +12,7 @@ export function SetupDrawer({
   children,
   size = 'default',
   className,
+  iconClose = false,
 }: {
   open: boolean;
   title: string;
@@ -20,6 +21,7 @@ export function SetupDrawer({
   children: React.ReactNode;
   size?: 'default' | 'medium' | 'wide' | 'collection';
   className?: string;
+  iconClose?: boolean;
 }) {
   const t = useT();
 
@@ -69,8 +71,13 @@ export function SetupDrawer({
             <strong>{title}</strong>
             {subtitle ? <span className="tiny muted academic-setup-drawer__subtitle" dir="auto">{subtitle}</span> : null}
           </div>
-          <button type="button" className="btn btn--ghost btn--sm" onClick={onClose}>
-            {t('common.close')}
+          <button
+            type="button"
+            className={`btn btn--ghost btn--sm${iconClose ? ' academic-setup-drawer__close-icon' : ''}`}
+            onClick={onClose}
+            aria-label={t('common.close')}
+          >
+            {iconClose ? <span aria-hidden>×</span> : t('common.close')}
           </button>
         </div>
         <div className="academic-setup-drawer__body academic-setup-drawer__body--scroll">{children}</div>

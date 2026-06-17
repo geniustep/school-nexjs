@@ -48,6 +48,38 @@
   width: min(720px, 100vw);
 }
 
+.academic-setup-drawer__close-icon {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  padding: 0;
+  border-radius: 8px;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--c-text-muted, #64748b);
+}
+
+.academic-setup-drawer__close-icon:hover {
+  background: var(--c-surface-2, #f1f5f9);
+  color: var(--c-text, #0f172a);
+}
+
+.finance-collection-drawer .academic-setup-drawer__head {
+  padding: 18px 20px;
+  background: linear-gradient(180deg, #f8fafc 0%, #fff 100%);
+}
+
+.finance-collection-drawer .academic-setup-drawer__head-text strong {
+  font-size: 1.0625rem;
+}
+
+.finance-collection-drawer .academic-setup-drawer__body {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+
 .academic-setup-drawer__head-text {
   display: flex;
   flex-direction: column;

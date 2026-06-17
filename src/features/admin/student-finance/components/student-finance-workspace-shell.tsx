@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { ApiErrorView } from '@/components/states/states';
 import { StudentCollectionDrawer } from '@/features/admin/finance/student-collection-drawer';
 import { useT } from '@/features/i18n/locale-context';
+import { getStudentDisplayName } from '@/lib/utils/student';
 import {
   canCollectStudentPayments,
   canViewStudentPayments,
@@ -267,6 +268,8 @@ export function StudentFinanceWorkspaceShell({
       <StudentCollectionDrawer
         open={showCollectionDrawer}
         studentId={studentId}
+        studentName={getStudentDisplayName(details.student)}
+        studentCode={details.student.code ?? details.student.school_number ?? undefined}
         academicYearId={effectiveYearId ? Number(effectiveYearId) : undefined}
         billingProfileId={financialOverviewState.data?.billing_profile_id ?? undefined}
         billingPartnerId={

@@ -44,8 +44,8 @@ export function StudentCollectionDrawer({
 
   if (!open) return null;
 
-  const displayName = studentName ?? '';
-  const subtitle = displayName || undefined;
+  const subtitleParts = [studentName?.trim(), studentCode?.trim()].filter(Boolean);
+  const subtitle = subtitleParts.length ? subtitleParts.join(' · ') : undefined;
 
   function handleDone(collection: PaymentCollection) {
     if (handledCollectionIdRef.current === collection.id) {
@@ -73,6 +73,7 @@ export function StudentCollectionDrawer({
       onClose={onClose}
       size="collection"
       className="finance-collection-drawer"
+      iconClose
     >
       <CollectionWorkflowForm
         embedded

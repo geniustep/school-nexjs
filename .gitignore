@@ -40,3 +40,6 @@ next-env.d.ts.bak
 
 # vercel
 .vercel
+
+# local UX review backups (do not commit)
+collection-drawer-ux-local-changes.patch

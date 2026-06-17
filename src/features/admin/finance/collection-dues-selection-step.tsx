@@ -43,34 +43,61 @@ export function CollectionDuesSelectionStep({
   }
 
   if (loading) {
-    return <p className="muted">{t('admin.finance.collections.loadingReceivables')}</p>;
+    return (
+      <section className="collection-dues-selection">
+        <div className="collection-dues-selection__loading">
+          <span className="collection-dues-selection__loading-dot" aria-hidden />
+          <p className="muted">{t('admin.finance.collections.loadingReceivables')}</p>
+        </div>
+      </section>
+    );
   }
 
   if (!items.length) {
-    return <p className="muted">{t('admin.student360.financeWorkspace.collections.noCollectibleItems')}</p>;
+    return (
+      <section className="collection-dues-selection">
+        <div className="collection-dues-selection__empty">
+          <p className="muted">{t('admin.student360.financeWorkspace.collections.noCollectibleItems')}</p>
+        </div>
+      </section>
+    );
   }
+
+  const selectableCount = items.filter((row) => row.selectable).length;
 
   return (
     <section className="collection-form-section collection-dues-selection">
-      <dl className="detail-list compact collection-dues-selection__summary collection-dues-selection__summary--compact">
-        <div>
-          <dt>{t('admin.student360.financeWorkspace.metrics.dueToDate')}</dt>
-          <dd><FinanceMoney amount={summary?.due_to_date} currency={currency} /></dd>
+      <header className="collection-dues-selection__head">
+        <h4 className="collection-form-section__title">{t('admin.finance.collectionWorkflow.stepDuesAndAmount')}</h4>
+        <p className="collection-dues-selection__desc muted">{t('admin.finance.collectionWorkflow.selectDuesDesc')}</p>
+      </header>
+
+      <div className="collection-dues-selection__metrics" role="group" aria-label={t('admin.student360.financeWorkspace.pageTitle')}>
+        <div className="collection-dues-metric collection-dues-metric--due">
+          <span className="collection-dues-metric__label">{t('admin.student360.financeWorkspace.metrics.dueToDate')}</span>
+          <span className="collection-dues-metric__value">
+            <FinanceMoney amount={summary?.due_to_date} currency={currency} />
+          </span>
         </div>
-        <div>
-          <dt>{t('admin.student360.financeWorkspace.metrics.overdue')}</dt>
-          <dd><FinanceMoney amount={summary?.overdue} currency={currency} /></dd>
+        <div className="collection-dues-metric collection-dues-metric--overdue">
+          <span className="collection-dues-metric__label">{t('admin.student360.financeWorkspace.metrics.overdue')}</span>
+          <span className="collection-dues-metric__value">
+            <FinanceMoney amount={summary?.overdue} currency={currency} />
+          </span>
         </div>
-        <div>
-          <dt>{t('admin.student360.financeWorkspace.metrics.remaining')}</dt>
-          <dd><FinanceMoney amount={summary?.remaining} currency={currency} /></dd>
+        <div className="collection-dues-metric collection-dues-metric--remaining">
+          <span className="collection-dues-metric__label">{t('admin.student360.financeWorkspace.metrics.remaining')}</span>
+          <span className="collection-dues-metric__value">
+            <FinanceMoney amount={summary?.remaining} currency={currency} />
+          </span>
         </div>
-      </dl>
+      </div>
 
       <button
         type="button"
-        className="btn btn--ghost btn--sm collection-dues-selection__expand"
+        className="collection-dues-selection__expand"
         onClick={() => setShowExtraSummary((v) => !v)}
+        aria-expanded={showExtraSummary}
       >
         {showExtraSummary
           ? t('admin.finance.collectionWorkflow.hideExtraSummary')
@@ -78,32 +105,47 @@ export function CollectionDuesSelectionStep({
       </button>
 
       {showExtraSummary ? (
-        <dl className="detail-list compact collection-dues-selection__summary collection-dues-selection__summary--extra">
-          <div>
-            <dt>{t('admin.student360.financeWorkspace.metrics.annualTotal')}</dt>
-            <dd><FinanceMoney amount={summary?.annual_total} currency={currency} /></dd>
+        <div className="collection-dues-selection__metrics collection-dues-selection__metrics--extra">
+          <div className="collection-dues-metric">
+            <span className="collection-dues-metric__label">{t('admin.student360.financeWorkspace.metrics.annualTotal')}</span>
+            <span className="collection-dues-metric__value">
+              <FinanceMoney amount={summary?.annual_total} currency={currency} />
+            </span>
           </div>
-          <div>
-            <dt>{t('admin.student360.financeWorkspace.metrics.paid')}</dt>
-            <dd><FinanceMoney amount={summary?.paid} currency={currency} /></dd>
+          <div className="collection-dues-metric">
+            <span className="collection-dues-metric__label">{t('admin.student360.financeWorkspace.metrics.paid')}</span>
+            <span className="collection-dues-metric__value">
+              <FinanceMoney amount={summary?.paid} currency={currency} />
+            </span>
           </div>
-          <div>
-            <dt>{t('admin.student360.financeWorkspace.metrics.upcoming')}</dt>
-            <dd><FinanceMoney amount={summary?.upcoming} currency={currency} /></dd>
+          <div className="collection-dues-metric">
+            <span className="collection-dues-metric__label">{t('admin.student360.financeWorkspace.metrics.upcoming')}</span>
+            <span className="collection-dues-metric__value">
+              <FinanceMoney amount={summary?.upcoming} currency={currency} />
+            </span>
           </div>
-        </dl>
+        </div>
       ) : null}
 
-      <div className="collection-dues-selection__quick row">
-        <button type="button" className="btn btn--ghost btn--sm" onClick={() => onQuickSelect('overdue')}>
+      <div className="collection-dues-selection__quick" role="group" aria-label={t('admin.finance.collectionWorkflow.recordPayment')}>
+        <button type="button" className="collection-dues-chip" onClick={() => onQuickSelect('overdue')}>
           {t('admin.finance.collectionWorkflow.quickOverdue')}
         </button>
-        <button type="button" className="btn btn--ghost btn--sm" onClick={() => onQuickSelect('due')}>
+        <button type="button" className="collection-dues-chip" onClick={() => onQuickSelect('due')}>
           {t('admin.finance.collectionWorkflow.quickDueToday')}
         </button>
-        <button type="button" className="btn btn--ghost btn--sm" onClick={() => onQuickSelect('next')}>
+        <button type="button" className="collection-dues-chip" onClick={() => onQuickSelect('next')}>
           {t('admin.finance.collectionWorkflow.quickNextInstallment')}
         </button>
+      </div>
+
+      <div className="collection-dues-selection__list-head">
+        <span className="collection-dues-selection__list-title">
+          {t('admin.finance.collectionWorkflow.stepSelectDues')}
+        </span>
+        <span className="tiny muted collection-dues-selection__list-count">
+          {selectedIds.length} / {selectableCount}
+        </span>
       </div>
 
       <div className="collection-dues-selection__list">
@@ -138,17 +180,22 @@ export function CollectionDuesSelectionStep({
             >
               <input
                 type="checkbox"
+                className="collection-dues-selection__checkbox"
                 checked={checked}
                 disabled={!row.selectable}
                 onChange={(e) => toggle(row.installment_id, e.target.checked, row.selectable)}
               />
               <span className="collection-dues-selection__item-body">
-                <strong dir="auto">{title}</strong>
+                <strong dir="auto" className="collection-dues-selection__item-title">
+                  {title}
+                </strong>
                 <span className="collection-dues-selection__item-meta">
                   {row.due_date ? (
-                    <span className="tiny muted">{formatDate(row.due_date)}</span>
+                    <span className="collection-dues-selection__item-date tiny muted">{formatDate(row.due_date)}</span>
                   ) : null}
-                  <FinanceMoney amount={row.remaining_amount} currency={currency} />
+                  <span className="collection-dues-selection__item-amount">
+                    <FinanceMoney amount={row.remaining_amount} currency={currency} />
+                  </span>
                   <InstallmentCompositeStatus
                     paymentStatus={row.payment_status ?? 'unpaid'}
                     timingStatus={row.timing_status ?? 'not_applicable'}
@@ -160,13 +207,15 @@ export function CollectionDuesSelectionStep({
         })}
       </div>
 
-      <label className="finance-amount-field collection-dues-selection__amount">
-        {t('admin.finance.collectionAmount')}
-        <div className="finance-amount-field__input">
-          <FinanceAmountInput value={amount} onChange={onAmountChange} />
-          {currency ? <span className="finance-amount-field__suffix">{currency}</span> : null}
-        </div>
-      </label>
+      <div className="collection-dues-selection__amount-card">
+        <label className="finance-amount-field collection-dues-selection__amount">
+          <span className="finance-amount-field__label">{t('admin.finance.collectionAmount')}</span>
+          <div className="finance-amount-field__input">
+            <FinanceAmountInput value={amount} onChange={onAmountChange} />
+            {currency ? <span className="finance-amount-field__suffix">{currency}</span> : null}
+          </div>
+        </label>
+      </div>
     </section>
   );
 }
