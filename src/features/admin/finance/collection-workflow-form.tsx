@@ -29,6 +29,7 @@ import {
 import { CollectionFormBlockers } from '@/features/admin/finance/collection-form-blockers';
 import { getCollectionSubmitBlockers } from '@/features/admin/finance/collection-form-validation';
 import { ReceivableAllocationSection } from '@/features/admin/finance/receivable-allocation-section';
+import { CollectionDuesSelectionStep } from '@/features/admin/finance/collection-dues-selection-step';
 import { SelectedStudentFinanceBar } from '@/features/admin/finance/selected-student-finance-bar';
 import '@/features/admin/finance/finance-ui.css';
 import { useFinanceReferenceData } from '@/features/admin/finance/use-finance-lookups';
@@ -46,27 +47,32 @@ import {
   validateAllocationTotals,
 } from './collection-allocation-utils';
 
-type WorkflowStep = 'payment' | 'allocation' | 'success';
+type WorkflowStep = 'selection' | 'payment' | 'allocation' | 'review' | 'success';
 
 function CollectionWorkflowSteps({
   step,
   showAllocation,
+  showSelection,
 }: {
   step: WorkflowStep;
   showAllocation: boolean;
+  showSelection: boolean;
 }) {
   const t = useT();
-  if (!showAllocation) return null;
-  const steps: { id: WorkflowStep; label: string }[] = [
-    { id: 'payment', label: t('admin.finance.collectionWorkflow.stepPayment') },
-    { id: 'allocation', label: t('admin.finance.collectionWorkflow.stepAllocation') },
-  ];
+  const steps: { id: WorkflowStep; label: string }[] = [];
+  if (showSelection) steps.push({ id: 'selection', label: t('admin.finance.collectionWorkflow.stepSelectDues') });
+  steps.push({ id: 'payment', label: t('admin.finance.collectionWorkflow.stepPaymentMethod') });
+  if (showAllocation) steps.push({ id: 'allocation', label: t('admin.finance.collectionWorkflow.stepAllocation') });
+  steps.push({ id: 'review', label: t('admin.finance.collectionWorkflow.stepReview') });
+
   return (
-    <nav className="finance-collection-workflow__steps" aria-label={t('admin.finance.recordCollection')}>
+    <nav className="finance-collection-workflow__steps" aria-label={t('admin.finance.collectionWorkflow.recordPayment')}>
       {steps.map((item, index) => (
         <span
           key={item.id}
-          className={`finance-collection-workflow__step${step === item.id ? ' is-active' : ''}${step === 'success' || (step === 'allocation' && item.id === 'payment') ? ' is-done' : ''}`}
+          className={`finance-collection-workflow__step${
+            step === item.id ? ' is-active' : ''
+          }${step === 'success' || steps.findIndex((s) => s.id === step) > index ? ' is-done' : ''}`}
         >
           {index + 1}. {item.label}
         </span>
@@ -157,7 +163,8 @@ function CollectionWorkflowFormReady({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const collectionPath = `${pathname}${searchParams.toString() ? `?${searchParams}` : ''}`;
-  const [step, setStep] = useState<WorkflowStep>('payment');
+  const [step, setStep] = useState<WorkflowStep>(useInstallmentAllocations ? 'selection' : 'payment');
+  const [selectedInstallmentIds, setSelectedInstallmentIds] = useState<number[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<FinanceStudentSearchResult | null>(null);
   const [journalId, setJournalId] = useState('');
   const [academicYearId, setAcademicYearId] = useState(initialAcademicYearId ? String(initialAcademicYearId) : '');
@@ -325,8 +332,55 @@ function CollectionWorkflowFormReady({
     hasOpenSession: hasCashSession,
   });
   const allocatedTotal = sumAllocationAmounts(allocationInputs);
+  const showSelectionStep =
+    useInstallmentAllocations && !!academicYearId && (installmentsState.loading || openInstallments.length > 0);
   const showAllocationStep =
     useInstallmentAllocations && !!academicYearId && (installmentsState.loading || openInstallments.length > 0);
+
+  const selectedInstallments = useMemo(
+    () => openInstallments.filter((row) => selectedInstallmentIds.includes(row.id)),
+    [openInstallments, selectedInstallmentIds],
+  );
+
+  function applyQuickSelection(mode: 'overdue' | 'due' | 'next' | 'all_open' | 'custom') {
+    if (mode === 'all_open') {
+      const ids = openInstallments.map((row) => row.id);
+      setSelectedInstallmentIds(ids);
+      setAmount(String(openInstallments.reduce((sum, row) => sum + (row.remaining_amount ?? 0), 0)));
+      return;
+    }
+    if (mode === 'overdue') {
+      const rows = openInstallments.filter((row) => row.timing_status === 'overdue');
+      setSelectedInstallmentIds(rows.map((row) => row.id));
+      setAmount(String(rows.reduce((sum, row) => sum + (row.remaining_amount ?? 0), 0)));
+      return;
+    }
+    if (mode === 'due') {
+      const rows = openInstallments.filter((row) => row.timing_status === 'due');
+      setSelectedInstallmentIds(rows.map((row) => row.id));
+      setAmount(String(rows.reduce((sum, row) => sum + (row.remaining_amount ?? 0), 0)));
+      return;
+    }
+    if (mode === 'next') {
+      const next = [...openInstallments]
+        .filter((row) => (row.remaining_amount ?? 0) > 0)
+        .sort((a, b) => String(a.due_date).localeCompare(String(b.due_date)))[0];
+      if (!next) return;
+      setSelectedInstallmentIds([next.id]);
+      setAmount(String(next.remaining_amount ?? 0));
+    }
+  }
+
+  useEffect(() => {
+    if (!selectedInstallmentIds.length) return;
+    const total = selectedInstallments.reduce((sum, row) => sum + (row.remaining_amount ?? 0), 0);
+    if (total > 0) setAmount(String(total));
+    const allocation: Record<number, string> = {};
+    for (const row of selectedInstallments) {
+      allocation[row.id] = String(row.remaining_amount ?? 0);
+    }
+    setAllocationInputs(allocation);
+  }, [selectedInstallmentIds, selectedInstallments]);
 
   const submitBlockers = useMemo(
     () =>
@@ -456,19 +510,23 @@ function CollectionWorkflowFormReady({
 
   function onFormSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (installmentFlow && step !== 'review') return;
     if (!canProceedPayment || submitting) return;
     void submitCollection();
   }
 
   const wrapperClass = embedded ? 'form-stack finance-collection-workflow' : 'card form-stack finance-collection-workflow finance-collection-workflow--page';
   const pageMode = !embedded;
+  const installmentFlow = useInstallmentAllocations && showSelectionStep;
 
   if (step === 'success' && createdCollection) {
     return (
       <div className={`${wrapperClass} finance-collection-workflow__success-panel`}>
-        {pageMode ? <CollectionWorkflowSteps step={step} showAllocation={showAllocationStep} /> : null}
-        <h3>{t('admin.finance.collectionWorkflow.successTitle')}</h3>
-        <p>{t('admin.finance.collectionWorkflow.successBody')}</p>
+        {installmentFlow || pageMode ? (
+          <CollectionWorkflowSteps step={step} showAllocation={showAllocationStep} showSelection={showSelectionStep} />
+        ) : null}
+        <h3>{t('admin.finance.collectionWorkflow.paymentSuccessTitle')}</h3>
+        <p>{t('admin.finance.collectionWorkflow.paymentSuccessBody')}</p>
         <dl className="detail-list">
           <div>
             <dt>{t('admin.finance.reference')}</dt>
@@ -518,16 +576,23 @@ function CollectionWorkflowFormReady({
 
   return (
     <form className={wrapperClass} onSubmit={onFormSubmit}>
+      {installmentFlow || pageMode ? (
+        <CollectionWorkflowSteps step={step} showAllocation={showAllocationStep} showSelection={showSelectionStep} />
+      ) : null}
       {!pageMode ? (
         <>
-          <h3 className="finance-collection-workflow__section-title">{t('admin.finance.recordCollection')}</h3>
+          <h3 className="finance-collection-workflow__section-title">{t('admin.finance.collectionWorkflow.recordPayment')}</h3>
           <p className="muted finance-collection-workflow__intro">
-            {t('admin.finance.collectionWorkflow.paymentStepDesc')}
+            {installmentFlow
+              ? t('admin.finance.collectionWorkflow.installmentFlowIntro')
+              : t('admin.finance.collectionWorkflow.paymentStepDesc')}
           </p>
         </>
       ) : (
         <p className="muted finance-collection-workflow__intro">
-          {t('admin.finance.collectionWorkflow.paymentStepDesc')}
+          {installmentFlow
+            ? t('admin.finance.collectionWorkflow.installmentFlowIntro')
+            : t('admin.finance.collectionWorkflow.paymentStepDesc')}
         </p>
       )}
       {error ? <p className="form-error">{error}</p> : null}
@@ -547,8 +612,20 @@ function CollectionWorkflowFormReady({
         />
       )}
 
-      {selectedStudent ? (
+      {selectedStudent && installmentFlow && step === 'selection' ? (
+        <CollectionDuesSelectionStep
+          installments={openInstallments}
+          loading={installmentsState.loading}
+          currency={journalCurrency}
+          selectedIds={selectedInstallmentIds}
+          onSelectedIdsChange={setSelectedInstallmentIds}
+          onQuickSelect={applyQuickSelection}
+        />
+      ) : null}
+
+      {selectedStudent && (!installmentFlow || step === 'payment' || step === 'allocation' || step === 'review') ? (
         <>
+          {(!installmentFlow || step !== 'selection') ? (
           <section className="collection-form-section">
             <h4 className="collection-form-section__title">{t('admin.finance.collections.contextSection')}</h4>
             <div className="finance-collection-workflow__fields finance-collection-workflow__fields--context">
@@ -616,9 +693,12 @@ function CollectionWorkflowFormReady({
               />
             </div>
           </section>
+          ) : null}
 
           <section className="collection-form-section">
             <h4 className="collection-form-section__title">{t('admin.finance.collections.paymentSection')}</h4>
+            {(!installmentFlow || step === 'payment' || step === 'review') ? (
+            <>
             <div className="finance-collection-workflow__fields finance-collection-workflow__fields--payment">
               <label className="finance-amount-field">
                 {t('admin.finance.collectionAmount')}
@@ -738,11 +818,13 @@ function CollectionWorkflowFormReady({
                 </label>
               </fieldset>
             ) : null}
+            </>
+            ) : null}
           </section>
 
-          {showAllocationStep ? (
+          {showAllocationStep && (!installmentFlow || step === 'allocation' || step === 'review') ? (
             <ReceivableAllocationSection
-              installments={openInstallments}
+              installments={selectedInstallments.length ? selectedInstallments : openInstallments}
               loading={installmentsState.loading}
               currency={journalCurrency}
               collectionAmount={parsedAmount}
@@ -751,6 +833,37 @@ function CollectionWorkflowFormReady({
               skipAllocation={skipAllocation}
               onSkipAllocationChange={setSkipAllocation}
             />
+          ) : null}
+
+          {step === 'review' ? (
+            <section className="collection-form-section collection-review-section">
+              <h4 className="collection-form-section__title">{t('admin.finance.collectionWorkflow.stepReview')}</h4>
+              <dl className="detail-list compact">
+                <div>
+                  <dt>{t('admin.finance.collectionAmount')}</dt>
+                  <dd>
+                    <FinanceMoney amount={parsedAmount} currency={journalCurrency} />
+                  </dd>
+                </div>
+                <div>
+                  <dt>{t('admin.finance.paymentMethod')}</dt>
+                  <dd>{paymentMethodLabel(paymentMethod, t)}</dd>
+                </div>
+                <div>
+                  <dt>{t('admin.finance.collectionWorkflow.selectedCount')}</dt>
+                  <dd>{selectedInstallments.length || Object.keys(allocationInputs).length}</dd>
+                </div>
+                <div>
+                  <dt>{t('admin.finance.collectionWorkflow.unallocatedAmount')}</dt>
+                  <dd>
+                    <FinanceMoney
+                      amount={Math.max(0, parsedAmount - allocatedTotal)}
+                      currency={journalCurrency}
+                    />
+                  </dd>
+                </div>
+              </dl>
+            </section>
           ) : null}
 
           <section className="collection-form-section">
@@ -766,9 +879,64 @@ function CollectionWorkflowFormReady({
         <div className="finance-collection-workflow__actions">
           <CollectionFormBlockers blockers={submitBlockers} />
           <div className="form-actions">
-            <button type="submit" className="btn btn--primary" disabled={submitting || !canProceedPayment}>
-              {submitting ? t('admin.finance.collections.submitting') : t('admin.finance.recordCollection')}
-            </button>
+            {installmentFlow && step === 'selection' ? (
+              <button
+                type="button"
+                className="btn btn--primary"
+                disabled={selectedInstallmentIds.length === 0}
+                onClick={() => setStep('payment')}
+              >
+                {t('admin.finance.collectionWorkflow.continueToPayment')}
+              </button>
+            ) : null}
+            {installmentFlow && step === 'payment' ? (
+              <>
+                <button type="button" className="btn btn--ghost" onClick={() => setStep('selection')}>
+                  {t('common.back')}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn--primary"
+                  disabled={!canProceedPayment}
+                  onClick={() => setStep(showAllocationStep ? 'allocation' : 'review')}
+                >
+                  {t('admin.finance.collectionWorkflow.continueToAllocation')}
+                </button>
+              </>
+            ) : null}
+            {installmentFlow && step === 'allocation' ? (
+              <>
+                <button type="button" className="btn btn--ghost" onClick={() => setStep('payment')}>
+                  {t('common.back')}
+                </button>
+                <button type="button" className="btn btn--primary" onClick={() => setStep('review')}>
+                  {t('admin.finance.collectionWorkflow.continueToReview')}
+                </button>
+              </>
+            ) : null}
+            {installmentFlow && step === 'review' ? (
+              <>
+                <button
+                  type="button"
+                  className="btn btn--ghost"
+                  onClick={() => setStep(showAllocationStep ? 'allocation' : 'payment')}
+                >
+                  {t('common.back')}
+                </button>
+                <button type="submit" className="btn btn--primary" disabled={submitting || !canProceedPayment}>
+                  {submitting
+                    ? t('admin.finance.collections.submitting')
+                    : t('admin.finance.collectionWorkflow.confirmPaymentAndReceipt')}
+                </button>
+              </>
+            ) : null}
+            {!installmentFlow ? (
+              <button type="submit" className="btn btn--primary" disabled={submitting || !canProceedPayment}>
+                {submitting
+                  ? t('admin.finance.collections.submitting')
+                  : t('admin.finance.collectionWorkflow.recordPayment')}
+              </button>
+            ) : null}
             <button type="button" className="btn btn--ghost" onClick={onCancel}>
               {t('common.cancel')}
             </button>

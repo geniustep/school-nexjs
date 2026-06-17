@@ -35,7 +35,7 @@ import { StudentGuardiansTab } from './student-guardians-tab';
 import { StudentDocumentsTab } from './student-documents-tab';
 import { StudentHealthTab } from './student-health-tab';
 import { StudentFinancialAgreementTab } from '@/features/admin/student-finance/components/student-financial-agreement-tab';
-import { StudentFinanceOperationsTab } from '@/features/admin/student-finance/components/student-finance-operations-tab';
+import { StudentFinanceWorkspaceShell } from '@/features/admin/student-finance/components/student-finance-workspace-shell';
 import { StudentCreateForm } from './student-create-form';
 import { StudentForm } from './student-form';
 import { sanitizeReturnTo, isSafeInternalReturnPath } from '@/lib/utils/safe-return-url';
@@ -256,7 +256,7 @@ export function Student360Shell({ studentId }: { studentId: string }) {
               />
             )}
             {tab === 'finance' && showFinance && (
-              <StudentFinanceOperationsTab
+              <StudentFinanceWorkspaceShell
                 studentId={s.id}
                 details={resolvedDetails}
                 capabilities={caps}

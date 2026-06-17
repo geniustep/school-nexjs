@@ -711,6 +711,98 @@
   min-height: 320px;
 }
 
+.student-finance-subtabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border, #e5e7eb);
+}
+
+.student-finance-subtabs__tab {
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 999px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.student-finance-subtabs__tab.is-active {
+  border-color: var(--primary, #2563eb);
+  background: color-mix(in srgb, var(--primary, #2563eb) 10%, transparent);
+}
+
+.student-finance-overview__cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.student-finance-overview__metric-value {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.student-finance-overview__actions {
+  margin-top: 16px;
+}
+
+.student-finance-schedule-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.collection-dues-selection__list {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.collection-dues-selection__item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 10px;
+}
+
+.collection-dues-selection__item.is-selected {
+  border-color: var(--primary, #2563eb);
+  background: color-mix(in srgb, var(--primary, #2563eb) 6%, transparent);
+}
+
+.collection-dues-selection__item-body {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.collection-dues-selection__item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .student-finance-overview__cards {
+    grid-template-columns: 1fr;
+  }
+
+  .student-finance-subtabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 4px;
+  }
+}
+
 @media (max-width: 1024px) {
   .student-360-fields {
     grid-template-columns: repeat(2, minmax(0, 1fr));

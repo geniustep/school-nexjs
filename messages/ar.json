@@ -1088,14 +1088,65 @@
       "noClassesInLevel": "لم تُنشأ أقسام لهذا المستوى بعد.",
       "levelNeedsClassesWithTracksHint": "هذا المستوى ما زال يحتاج أقسامًا رغم وجود شعب مرتبطة.",
       "countPlural": {
-        "class": { "zero": "0 أقسام", "one": "قسم واحد", "two": "قسمان", "few": "{count} أقسام", "many": "{count} قسم", "other": "{count} قسم" },
-        "student": { "zero": "0 تلاميذ", "one": "تلميذ واحد", "two": "تلميذان", "few": "{count} تلاميذ", "many": "{count} تلميذ", "other": "{count} تلميذ" },
-        "subject": { "zero": "0 مواد", "one": "مادة واحدة", "two": "مادتان", "few": "{count} مواد", "many": "{count} مادة", "other": "{count} مادة" },
-        "track": { "one": "شعبة واحدة", "two": "شعبتان", "few": "{count} شعب", "many": "{count} شعبة", "other": "{count} شعبة" },
-        "assignment": { "one": "إسناد تدريس واحد", "two": "إسنادا تدريس", "few": "{count} إسنادات تدريس", "many": "{count} إسناد تدريس", "other": "{count} إسناد تدريس" },
-        "enrollment": { "one": "تسجيل واحد", "two": "تسجيلان", "few": "{count} تسجيلات", "many": "{count} تسجيل", "other": "{count} تسجيل" },
-        "timetableSlot": { "one": "حصة استعمال زمن واحدة", "two": "حصتا استعمال زمن", "few": "{count} حصص استعمال الزمن", "many": "{count} حصة استعمال الزمن", "other": "{count} حصة استعمال الزمن" },
-        "exam": { "one": "امتحان واحد", "two": "امتحانان", "few": "{count} امتحانات", "many": "{count} امتحان", "other": "{count} امتحان" }
+        "class": {
+          "zero": "0 أقسام",
+          "one": "قسم واحد",
+          "two": "قسمان",
+          "few": "{count} أقسام",
+          "many": "{count} قسم",
+          "other": "{count} قسم"
+        },
+        "student": {
+          "zero": "0 تلاميذ",
+          "one": "تلميذ واحد",
+          "two": "تلميذان",
+          "few": "{count} تلاميذ",
+          "many": "{count} تلميذ",
+          "other": "{count} تلميذ"
+        },
+        "subject": {
+          "zero": "0 مواد",
+          "one": "مادة واحدة",
+          "two": "مادتان",
+          "few": "{count} مواد",
+          "many": "{count} مادة",
+          "other": "{count} مادة"
+        },
+        "track": {
+          "one": "شعبة واحدة",
+          "two": "شعبتان",
+          "few": "{count} شعب",
+          "many": "{count} شعبة",
+          "other": "{count} شعبة"
+        },
+        "assignment": {
+          "one": "إسناد تدريس واحد",
+          "two": "إسنادا تدريس",
+          "few": "{count} إسنادات تدريس",
+          "many": "{count} إسناد تدريس",
+          "other": "{count} إسناد تدريس"
+        },
+        "enrollment": {
+          "one": "تسجيل واحد",
+          "two": "تسجيلان",
+          "few": "{count} تسجيلات",
+          "many": "{count} تسجيل",
+          "other": "{count} تسجيل"
+        },
+        "timetableSlot": {
+          "one": "حصة استعمال زمن واحدة",
+          "two": "حصتا استعمال زمن",
+          "few": "{count} حصص استعمال الزمن",
+          "many": "{count} حصة استعمال الزمن",
+          "other": "{count} حصة استعمال الزمن"
+        },
+        "exam": {
+          "one": "امتحان واحد",
+          "two": "امتحانان",
+          "few": "{count} امتحانات",
+          "many": "{count} امتحان",
+          "other": "{count} امتحان"
+        }
       },
       "tracksLinkedSummary": {
         "one": "شعبة واحدة مرتبطة",
@@ -2258,7 +2309,9 @@
         "remove": "إزالة الملف",
         "limits": "المقبول: {ext} فقط · الحد الأقصى {size}"
       },
-      "fileErrors": { "title": "مشكلات على مستوى الملف" },
+      "fileErrors": {
+        "title": "مشكلات على مستوى الملف"
+      },
       "summary": {
         "title": "ملخص التحقق",
         "totalRows": "إجمالي الصفوف",
@@ -2279,8 +2332,17 @@
           "result": "التحقق"
         }
       },
-      "filters": { "all": "الكل", "valid": "صحيح", "warning": "تحذيرات", "invalid": "غير صالح" },
-      "rowStatus": { "valid": "صحيح", "warning": "تحذير", "invalid": "غير صالح" },
+      "filters": {
+        "all": "الكل",
+        "valid": "صحيح",
+        "warning": "تحذيرات",
+        "invalid": "غير صالح"
+      },
+      "rowStatus": {
+        "valid": "صحيح",
+        "warning": "تحذير",
+        "invalid": "غير صالح"
+      },
       "rowDetails": {
         "title": "تفاصيل الصف {row}",
         "normalized": "القيم المطبّعة",
@@ -2501,9 +2563,19 @@
         "departureReason": "مطلوب عند withdrawn أو transferred."
       },
       "examples": {
-        "new": { "firstName": "مثال", "lastName": "جديد" },
-        "reEnrollment": { "firstName": "مثال", "lastName": "معيد" },
-        "transfer": { "firstName": "مثال", "lastName": "منتقل", "previousSchool": "اسم المؤسسة السابقة" }
+        "new": {
+          "firstName": "مثال",
+          "lastName": "جديد"
+        },
+        "reEnrollment": {
+          "firstName": "مثال",
+          "lastName": "معيد"
+        },
+        "transfer": {
+          "firstName": "مثال",
+          "lastName": "منتقل",
+          "previousSchool": "اسم المؤسسة السابقة"
+        }
       },
       "issueCodes": {
         "missing_required_field": "حقل مطلوب مفقود: {field}.",
@@ -2552,7 +2624,9 @@
         "students": "التلاميذ",
         "fallbackName": "ملف التلميذ"
       },
-      "documentTitle": { "brand": "رَقِيم" },
+      "documentTitle": {
+        "brand": "رَقِيم"
+      },
       "pages": {
         "overview": {
           "title": "نظرة عامة",
@@ -2664,7 +2738,16 @@
         "ok": "جيد",
         "incomplete": "ناقص",
         "actionNeeded": "يتطلب إجراء",
-        "neutral": "—"
+        "neutral": "—",
+        "financeFees": "الرسوم المالية",
+        "specialAgreement": "الاتفاق المالي الخاص",
+        "noFinanceFees": "لا توجد رسوم",
+        "financeHasOverdue": "توجد مستحقات متأخرة",
+        "financeHasBalance": "توجد مستحقات",
+        "noSpecialAgreement": "لا يوجد اتفاق خاص",
+        "specialAgreementDraft": "اتفاق مسودة",
+        "specialAgreementApproved": "اتفاق معتمد",
+        "specialAgreementPending": "اتفاق قيد المعالجة"
       },
       "performance": {
         "title": "ملخص الأداء",
@@ -2701,7 +2784,9 @@
       "guardiansDuplicateRelationshipMultiple": "يوجد أكثر من ولي بصفات قرابة مكررة. راجع العلاقات للتأكد من صحتها.",
       "guardiansReviewRelationships": "مراجعة العلاقات",
       "endRelationshipConfirm": "هل تريد إنهاء علاقة هذا الولي بالتلميذ؟ لن يتم حذف ملف الولي، لكن لن يبقى مرتبطًا بهذا التلميذ.",
-      "emptyStates": { "documentsTitle": "لا توجد وثائق" },
+      "emptyStates": {
+        "documentsTitle": "لا توجد وثائق"
+      },
       "sections": {
         "basic": "المعلومات الأساسية",
         "enrollment": "التسجيل الدراسي",
@@ -2831,7 +2916,7 @@
       "noGuardiansDesc": "لم تُربط أي علاقة ولي بهذا التلميذ بعد.",
       "endedRelationships": "علاقات منتهية",
       "relationshipActive": "نشطة",
-      "relationshipEnded": "منتهية",
+      "relationshipEnded": "تم إنهاء العلاقة.",
       "editRelationship": "تعديل العلاقة",
       "endRelationship": "إنهاء العلاقة",
       "endRelationshipHint": "سيتم إنهاء العلاقة مع الاحتفاظ بسجلها التاريخي، ولن يُحذف ولي الأمر.",
@@ -2947,7 +3032,6 @@
       "primaryGuardianReplaceConfirm": "الولي «{name}» هو الولي الأساسي حاليًا. هل تريد استبداله؟",
       "confirmPrimaryReplace": "تأكيد الاستبدال",
       "relationshipUpdated": "تم تحديث العلاقة.",
-      "relationshipEnded": "تم إنهاء العلاقة.",
       "relationshipTypeLabel": "صلة القرابة",
       "receivesNotifications": "يستقبل الإشعارات",
       "emergencyContact": "جهة اتصال للطوارئ",
@@ -3103,7 +3187,7 @@
         "financialResponsible": "المسؤول المالي",
         "responsibleMismatch": "المسؤول المالي المحدد في علاقة ولي الأمر لا يطابق جهة الفوترة الحالية.",
         "feeDetails": "تفاصيل الرسم",
-        "recordPayment": "تسجيل تحصيل",
+        "recordPayment": "تسجيل دفعة",
         "assignFeePlan": "إسناد خطة رسوم",
         "assignDrawer": {
           "title": "إسناد خطة رسوم",
@@ -3311,7 +3395,17 @@
             "preview": "معاينة",
             "save": "الحفظ"
           }
-        }
+        },
+        "noSpecialAgreementTitle": "لا يوجد اتفاق مالي خاص لهذا التلميذ.",
+        "noSpecialAgreementDesc": "تم تطبيق خطة رسوم المدرسة وإنشاء الرسوم وجدول الدفعات مباشرة. يُستخدم الاتفاق المالي فقط للخصومات أو الجدولة أو الشروط الخاصة.",
+        "viewFeesAndSchedule": "عرض الرسوم وجدول الدفعات",
+        "createSpecialAgreement": "إنشاء اتفاق مالي خاص",
+        "incompleteDraftTitle": "مسودة اتفاق غير مكتملة",
+        "incompleteDraftDesc": "هذه المسودة لا تمثل الرسوم المطبقة من خطة المدرسة.",
+        "completeDraft": "إكمال المسودة",
+        "cancelDraft": "إلغاء المسودة",
+        "openFinanceOverview": "فتح النظرة المالية",
+        "openPaymentSchedule": "فتح جدول الدفعات"
       },
       "financeOps": {
         "pageTitle": "المالية",
@@ -3486,6 +3580,113 @@
         "uncle": "عم / خال",
         "aunt": "عمة / خالة",
         "other": "أخرى"
+      },
+      "financeWorkspace": {
+        "pageTitle": "الملف المالي",
+        "pageDescription": "نظرة موحدة على الرسوم وجدول الدفعات والتحصيلات والاتفاقات الخاصة.",
+        "tabsAria": "تبويبات الملف المالي",
+        "tabs": {
+          "overview": "نظرة مالية",
+          "fees": "الرسوم",
+          "schedule": "جدول الدفعات",
+          "collections": "التحصيلات",
+          "agreements": "الاتفاقات الخاصة"
+        },
+        "metrics": {
+          "annualTotal": "إجمالي رسوم السنة",
+          "dueToDate": "المستحق حتى اليوم",
+          "paid": "المدفوع",
+          "remaining": "المتبقي",
+          "overdue": "المتأخر",
+          "nextInstallment": "الدفعة القادمة"
+        },
+        "billingPartyTitle": "الجهة المفوترة",
+        "billingEffectiveFrom": "ساري من",
+        "appliedPlanTitle": "الخطة المطبقة",
+        "openFees": "فتح الرسوم",
+        "feeCount": "عدد الدفعات",
+        "appliedTotal": "الإجمالي المطبق",
+        "specialAgreement": "اتفاق خاص",
+        "hasSpecialAgreement": "يوجد اتفاق خاص",
+        "noSpecialAgreement": "لا يوجد اتفاق خاص",
+        "openSchedule": "فتح جدول الدفعات",
+        "openFinanceProfile": "فتح الملف المالي الكامل",
+        "fees": {
+          "description": "تفاصيل كل رسم مطبق على التلميذ.",
+          "emptyTitle": "لا توجد رسوم في هذه السنة.",
+          "columns": {
+            "name": "اسم الرسم",
+            "pricingMethod": "طريقة التسعير",
+            "cycleValue": "قيمة الدورة",
+            "cycleCount": "عدد الدفعات",
+            "appliedTotal": "الإجمالي المطبق",
+            "paid": "المؤدى",
+            "remaining": "المتبقي",
+            "nextDue": "الاستحقاق القادم"
+          },
+          "monthlyUnit": "أداء شهري — {amount} درهم",
+          "oneTimeAmount": "دفعة واحدة"
+        },
+        "schedule": {
+          "description": "جدول الدفعات الرسمي من النظام.",
+          "emptyTitle": "لا توجد دفعات.",
+          "columns": {
+            "installment": "الدفعة",
+            "fee": "الرسم",
+            "period": "الفترة",
+            "dueDate": "تاريخ الاستحقاق",
+            "amount": "المبلغ",
+            "paid": "المؤدى",
+            "remaining": "المتبقي",
+            "status": "الحالة",
+            "actions": "الإجراءات"
+          },
+          "summary": {
+            "total": "عدد الدفعات",
+            "paid": "المؤداة",
+            "due": "المستحقة",
+            "overdue": "المتأخرة",
+            "upcoming": "القادمة"
+          },
+          "status": {
+            "upcoming": "قادمة",
+            "due": "مستحقة",
+            "partiallyPaid": "مؤداة جزئيًا",
+            "paid": "مؤداة",
+            "overdue": "متأخرة",
+            "cancelled": "ملغاة"
+          }
+        },
+        "collections": {
+          "description": "سجل التحصيلات والإيصالات.",
+          "emptyTitle": "لا توجد تحصيلات.",
+          "noCollectibleItems": "لا توجد مستحقات قابلة للتحصيل."
+        }
+      },
+      "collectionWorkflow": {
+        "recordPayment": "تسجيل دفعة",
+        "drawerTitle": "تسجيل دفعة",
+        "stepSelectDues": "اختيار المستحقات",
+        "stepPaymentMethod": "طريقة الأداء",
+        "stepAllocation": "توزيع الدفعة",
+        "stepReview": "المراجعة والتأكيد",
+        "selectDuesDesc": "اختر المستحقات التي تريد تحصيلها.",
+        "installmentFlowIntro": "ابدأ باختيار المستحقات، ثم أكمل طريقة الأداء والتوزيع.",
+        "continueToPayment": "متابعة إلى طريقة الأداء",
+        "continueToReview": "متابعة إلى المراجعة",
+        "confirmPaymentAndReceipt": "تأكيد الدفعة وإصدار الإيصال",
+        "quickOverdue": "تحصيل المتأخرات",
+        "quickDueToday": "تحصيل المستحق اليوم",
+        "quickNextInstallment": "تحصيل دفعة شهرية",
+        "quickFullBalance": "تسديد كامل الرصيد",
+        "paymentSuccessTitle": "تم تسجيل الدفعة بنجاح",
+        "paymentSuccessBody": "تم إنشاء العملية والإيصال."
+      },
+      "billingPartyStudentSelf": "التلميذ نفسه",
+      "billingPartyGuardian": "ولي الأمر",
+      "billingPartyCustom": "جهة خاصة",
+      "feePlansWorkspace": {
+        "monthlyInstallmentCount": "عدد الدفعات الشهرية"
       }
     },
     "academicYearIdOptional": "معرّف السنة الدراسية (اختياري)",
@@ -4183,12 +4384,12 @@
         "actionUnavailable": "هذا الإجراء غير متاح حاليًا."
       },
       "collectionWorkflow": {
-        "drawerTitle": "تسجيل تحصيل",
+        "drawerTitle": "تسجيل دفعة",
         "detailTitle": "تفاصيل التحصيل",
         "chequeDetailTitle": "تفاصيل الشيك",
         "paymentStepDesc": "حدّد طريقة الأداء والمبلغ، ثم وزّع التحصيل على المستحقات.",
         "stepPayment": "الدفع",
-        "stepAllocation": "التوزيع",
+        "stepAllocation": "توزيع الدفعة",
         "continueToAllocation": "متابعة إلى التوزيع",
         "allocationTitle": "توزيع المبلغ",
         "allocationDesc": "وزّع مبلغ العملية على الأقساط المفتوحة.",
@@ -4226,7 +4427,22 @@
           "invalidAmount": "المبلغ غير صالح.",
           "invalidAllocation": "توزيع غير صالح.",
           "duplicateAllocation": "لا يمكن توزيع المبلغ على نفس المستحق مرتين."
-        }
+        },
+        "recordPayment": "تسجيل دفعة",
+        "stepSelectDues": "اختيار المستحقات",
+        "stepPaymentMethod": "طريقة الأداء",
+        "stepReview": "المراجعة والتأكيد",
+        "selectDuesDesc": "اختر المستحقات التي تريد تحصيلها.",
+        "installmentFlowIntro": "ابدأ باختيار المستحقات، ثم أكمل طريقة الأداء والتوزيع.",
+        "continueToPayment": "متابعة إلى طريقة الأداء",
+        "continueToReview": "متابعة إلى المراجعة",
+        "confirmPaymentAndReceipt": "تأكيد الدفعة وإصدار الإيصال",
+        "quickOverdue": "تحصيل المتأخرات",
+        "quickDueToday": "تحصيل المستحق اليوم",
+        "quickNextInstallment": "تحصيل دفعة شهرية",
+        "quickFullBalance": "تسديد كامل الرصيد",
+        "paymentSuccessTitle": "تم تسجيل الدفعة بنجاح",
+        "paymentSuccessBody": "تم إنشاء العملية والإيصال."
       },
       "searchFeeTypes": "بحث في الرسوم…",
       "searchCollections": "بحث في التحصيلات…",
@@ -5274,7 +5490,8 @@
             "invalid_level_ids": "قائمة المستويات غير صالحة.",
             "student_level_mismatch": "مستوى التلميذ غير مشمول في هذه الخطة."
           }
-        }
+        },
+        "monthlyInstallmentCount": "عدد الدفعات الشهرية"
       },
       "states": {
         "draft": "مسودة",
@@ -5287,7 +5504,10 @@
         "overdue": "متأخر",
         "active": "نشط",
         "archived": "مؤرشف"
-      }
+      },
+      "billingPartyStudentSelf": "التلميذ نفسه",
+      "billingPartyGuardian": "ولي الأمر",
+      "billingPartyCustom": "جهة خاصة"
     }
   }
 }

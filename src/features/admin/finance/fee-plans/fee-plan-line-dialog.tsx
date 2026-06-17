@@ -318,7 +318,9 @@ export function FeePlanLineDialog({
               </span>
             </label>
             <label>
-              {t('admin.finance.feePlansWorkspace.installmentCount')}
+              {draft.pricingMode === 'recurring_unit_price' && draft.frequency === 'monthly'
+                ? t('admin.finance.feePlansWorkspace.monthlyInstallmentCount')
+                : t('admin.finance.feePlansWorkspace.installmentCount')}
               <input
                 className="input"
                 type="number"

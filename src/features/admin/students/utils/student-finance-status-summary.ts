@@ -26,15 +26,15 @@ export function resolveFinanceOverviewStatus(
 
   if (allZero && !financeSummary.next_due_date) {
     return {
-      status: t('admin.student360.statusSummary.noAgreement'),
-      tone: 'warn',
-      actionTab: 'financial-agreement',
+      status: t('admin.student360.statusSummary.noFinanceFees'),
+      tone: 'neutral',
+      actionTab: 'finance',
     };
   }
 
   if (overdue > 0) {
     return {
-      status: t('admin.student360.statusSummary.hasOverdue'),
+      status: t('admin.student360.statusSummary.financeHasOverdue'),
       tone: 'bad',
       actionTab: 'finance',
     };
@@ -42,7 +42,7 @@ export function resolveFinanceOverviewStatus(
 
   if (outstanding > 0) {
     return {
-      status: t('admin.student360.statusSummary.hasBalance'),
+      status: t('admin.student360.statusSummary.financeHasBalance'),
       tone: 'warn',
       actionTab: 'finance',
     };
@@ -52,5 +52,33 @@ export function resolveFinanceOverviewStatus(
     status: t('admin.student360.statusSummary.financeClear'),
     tone: 'ok',
     actionTab: 'finance',
+  };
+}
+
+export function resolveSpecialAgreementOverviewStatus(
+  agreementState: string | null | undefined,
+  t: (key: string) => string,
+): { status: string; tone: FinanceStatusTone } {
+  if (!agreementState || agreementState === 'cancelled') {
+    return {
+      status: t('admin.student360.statusSummary.noSpecialAgreement'),
+      tone: 'neutral',
+    };
+  }
+  if (agreementState === 'draft') {
+    return {
+      status: t('admin.student360.statusSummary.specialAgreementDraft'),
+      tone: 'warn',
+    };
+  }
+  if (agreementState === 'approved' || agreementState === 'active' || agreementState === 'amended') {
+    return {
+      status: t('admin.student360.statusSummary.specialAgreementApproved'),
+      tone: 'ok',
+    };
+  }
+  return {
+    status: t('admin.student360.statusSummary.specialAgreementPending'),
+    tone: 'warn',
   };
 }

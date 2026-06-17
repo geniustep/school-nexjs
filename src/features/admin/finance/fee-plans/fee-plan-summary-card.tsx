@@ -47,7 +47,7 @@ export function FeePlanSummaryCard({
         ) : null}
         {summary.maxInstallmentCount > 1 ? (
           <div>
-            <dt>{t('admin.finance.feePlansWorkspace.installmentCount')}</dt>
+            <dt>{t('admin.finance.feePlansWorkspace.monthlyInstallmentCount')}</dt>
             <dd>{summary.maxInstallmentCount}</dd>
           </div>
         ) : null}

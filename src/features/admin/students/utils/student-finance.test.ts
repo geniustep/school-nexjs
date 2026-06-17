@@ -5,6 +5,7 @@ import {
   normalizeStudentFinanceSummaryResponse,
 } from './normalize-student-finance';
 import { formatFinanceCurrency } from './student-finance-format';
+import { resolveFinanceOverviewStatus } from './student-finance-status-summary';
 import {
   canAssignStudentFees,
   canCollectStudentPayments,
@@ -101,6 +102,27 @@ describe('formatFinanceCurrency', () => {
   it('places symbol before when position is before', () => {
     const formatted = formatFinanceCurrency(1250, { name: 'USD', symbol: '$', position: 'before' }, 'en-US');
     expect(formatted.startsWith('$')).toBe(true);
+  });
+});
+
+describe('resolveFinanceOverviewStatus', () => {
+  const t = (key: string) => key;
+
+  it('uses finance fees labels instead of agreement wording', () => {
+    const status = resolveFinanceOverviewStatus(
+      {
+        currency: { name: 'MAD', symbol: 'DH' },
+        total_assessed: 22500,
+        total_discount: 0,
+        total_paid: 0,
+        total_outstanding: 22500,
+        total_overdue: 0,
+        next_due_date: '2026-06-17',
+      },
+      t,
+    );
+    expect(status.actionTab).toBe('finance');
+    expect(status.status).toBe('admin.student360.statusSummary.financeHasBalance');
   });
 });
 

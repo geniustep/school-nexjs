@@ -2,7 +2,10 @@
 
 import { useMemo } from 'react';
 import { useT } from '@/features/i18n/locale-context';
-import { resolveFinanceOverviewStatus } from '../utils/student-finance-status-summary';
+import {
+  resolveFinanceOverviewStatus,
+  resolveSpecialAgreementOverviewStatus,
+} from '../utils/student-finance-status-summary';
 import { computeProfileReadinessState } from '../utils/student-readiness-state';
 import { isRelationshipActive, relationshipTypeLabel } from '../utils/relationship-types';
 import { studentClassLabel, studentLevelLabel } from '../utils/student-academic-labels';
@@ -171,18 +174,29 @@ export function StudentStatusSummary({
     if (showFinance) {
       const financeStatus = resolveFinanceOverviewStatus(financeSummary, t);
       rows.push({
-        key: 'finance',
+        key: 'finance-fees',
         tone: financeStatus.tone,
         icon: toneIcon(financeStatus.tone),
-        title: t('admin.student360.statusSummary.financeAgreement'),
+        title: t('admin.student360.statusSummary.financeFees'),
         value: financeStatus.status,
         priority: financeStatus.tone === 'ok' ? 2 : 0,
         action: {
-          label:
-            financeStatus.actionTab === 'financial-agreement' && financeStatus.tone === 'warn'
-              ? t('admin.student360.readiness.actionCreate')
-              : t('common.view'),
-          tab: financeStatus.actionTab,
+          label: t('common.view'),
+          tab: 'finance',
+        },
+      });
+
+      const agreementStatus = resolveSpecialAgreementOverviewStatus(null, t);
+      rows.push({
+        key: 'finance-agreement',
+        tone: agreementStatus.tone,
+        icon: toneIcon(agreementStatus.tone),
+        title: t('admin.student360.statusSummary.specialAgreement'),
+        value: agreementStatus.status,
+        priority: agreementStatus.tone === 'ok' ? 2 : 1,
+        action: {
+          label: t('common.view'),
+          tab: 'financial-agreement',
         },
       });
     }

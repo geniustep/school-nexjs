@@ -1088,14 +1088,41 @@
       "noClassesInLevel": "Aún no se han creado clases para este nivel.",
       "levelNeedsClassesWithTracksHint": "Este nivel aún necesita clases aunque tenga itinerarios vinculados.",
       "countPlural": {
-        "class": { "zero": "0 clases", "one": "1 clase", "other": "{count} clases" },
-        "student": { "zero": "0 alumnos", "one": "1 alumno", "other": "{count} alumnos" },
-        "subject": { "zero": "0 materias", "one": "1 materia", "other": "{count} materias" },
-        "track": { "one": "1 itinerario", "other": "{count} itinerarios" },
-        "assignment": { "one": "1 asignación docente", "other": "{count} asignaciones docentes" },
-        "enrollment": { "one": "1 matrícula", "other": "{count} matrículas" },
-        "timetableSlot": { "one": "1 franja horaria", "other": "{count} franjas horarias" },
-        "exam": { "one": "1 examen", "other": "{count} examenes" }
+        "class": {
+          "zero": "0 clases",
+          "one": "1 clase",
+          "other": "{count} clases"
+        },
+        "student": {
+          "zero": "0 alumnos",
+          "one": "1 alumno",
+          "other": "{count} alumnos"
+        },
+        "subject": {
+          "zero": "0 materias",
+          "one": "1 materia",
+          "other": "{count} materias"
+        },
+        "track": {
+          "one": "1 itinerario",
+          "other": "{count} itinerarios"
+        },
+        "assignment": {
+          "one": "1 asignación docente",
+          "other": "{count} asignaciones docentes"
+        },
+        "enrollment": {
+          "one": "1 matrícula",
+          "other": "{count} matrículas"
+        },
+        "timetableSlot": {
+          "one": "1 franja horaria",
+          "other": "{count} franjas horarias"
+        },
+        "exam": {
+          "one": "1 examen",
+          "other": "{count} examenes"
+        }
       },
       "tracksLinkedSummary": {
         "one": "1 itinerario vinculado",
@@ -2255,7 +2282,9 @@
         "remove": "Quitar archivo",
         "limits": "Aceptado: solo {ext} · Tamaño máx. {size}"
       },
-      "fileErrors": { "title": "Problemas del archivo" },
+      "fileErrors": {
+        "title": "Problemas del archivo"
+      },
       "summary": {
         "title": "Resumen de validación",
         "totalRows": "Filas totales",
@@ -2269,10 +2298,24 @@
         "title": "5. Vista previa",
         "filters": "Filtros de vista previa",
         "searchPlaceholder": "Buscar por nombre, número escolar, Massar o fila…",
-        "columns": { "rowNumber": "Fila", "school": "Centro", "year": "Año", "result": "Validación" }
+        "columns": {
+          "rowNumber": "Fila",
+          "school": "Centro",
+          "year": "Año",
+          "result": "Validación"
+        }
       },
-      "filters": { "all": "Todos", "valid": "Válidas", "warning": "Advertencias", "invalid": "Inválidas" },
-      "rowStatus": { "valid": "Válida", "warning": "Advertencia", "invalid": "Inválida" },
+      "filters": {
+        "all": "Todos",
+        "valid": "Válidas",
+        "warning": "Advertencias",
+        "invalid": "Inválidas"
+      },
+      "rowStatus": {
+        "valid": "Válida",
+        "warning": "Advertencia",
+        "invalid": "Inválida"
+      },
       "rowDetails": {
         "title": "Detalles de la fila {row}",
         "normalized": "Valores normalizados",
@@ -2493,9 +2536,19 @@
         "departureReason": "Obligatorio para withdrawn o transferred."
       },
       "examples": {
-        "new": { "firstName": "Ejemplo", "lastName": "Nuevo" },
-        "reEnrollment": { "firstName": "Ejemplo", "lastName": "Repetidor" },
-        "transfer": { "firstName": "Ejemplo", "lastName": "Traslado", "previousSchool": "Centro anterior" }
+        "new": {
+          "firstName": "Ejemplo",
+          "lastName": "Nuevo"
+        },
+        "reEnrollment": {
+          "firstName": "Ejemplo",
+          "lastName": "Repetidor"
+        },
+        "transfer": {
+          "firstName": "Ejemplo",
+          "lastName": "Traslado",
+          "previousSchool": "Centro anterior"
+        }
       },
       "issueCodes": {
         "missing_required_field": "Campo obligatorio ausente: {field}.",
@@ -2530,21 +2583,52 @@
     },
     "student360": {
       "tabsAria": "Secciones del expediente del alumno",
-      "tabs": { "overview": "Resumen", "enrollment": "Matrícula", "guardians": "Tutores", "documents": "Documentos", "health": "Salud", "finance": "Finanzas", "financial-agreement": "Acuerdo financiero" },
+      "tabs": {
+        "overview": "Resumen",
+        "enrollment": "Matrícula",
+        "guardians": "Tutores",
+        "documents": "Documentos",
+        "health": "Salud",
+        "finance": "Finanzas",
+        "financial-agreement": "Acuerdo financiero"
+      },
       "breadcrumb": {
         "aria": "Navegación del perfil del alumno",
         "students": "Alumnos",
         "fallbackName": "Perfil del alumno"
       },
-      "documentTitle": { "brand": "Raqeem" },
+      "documentTitle": {
+        "brand": "Raqeem"
+      },
       "pages": {
-        "overview": { "title": "Resumen", "description": "Resumen de identidad, matrícula, familia y contacto." },
-        "enrollment": { "title": "Matrícula", "description": "Consulte la matrícula actual y el historial académico." },
-        "guardians": { "title": "Tutores y contactos", "description": "Gestione relaciones familiares y contactos." },
-        "finance": { "title": "Finanzas", "description": "Deudas reales, cobros, cheques y cuotas operativas." },
-        "financial-agreement": { "title": "Acuerdo financiero", "description": "Lo acordado con el pagador: servicios, precios y calendario." },
-        "health": { "title": "Perfil de salud", "description": "Consulte información de salud y emergencias." },
-        "documents": { "title": "Documentos", "description": "Gestione documentos, adjuntos y vencimientos." }
+        "overview": {
+          "title": "Resumen",
+          "description": "Resumen de identidad, matrícula, familia y contacto."
+        },
+        "enrollment": {
+          "title": "Matrícula",
+          "description": "Consulte la matrícula actual y el historial académico."
+        },
+        "guardians": {
+          "title": "Tutores y contactos",
+          "description": "Gestione relaciones familiares y contactos."
+        },
+        "finance": {
+          "title": "Finanzas",
+          "description": "Deudas reales, cobros, cheques y cuotas operativas."
+        },
+        "financial-agreement": {
+          "title": "Acuerdo financiero",
+          "description": "Lo acordado con el pagador: servicios, precios y calendario."
+        },
+        "health": {
+          "title": "Perfil de salud",
+          "description": "Consulte información de salud y emergencias."
+        },
+        "documents": {
+          "title": "Documentos",
+          "description": "Gestione documentos, adjuntos y vencimientos."
+        }
       },
       "tabErrors": {
         "boundaryTitle": "No se pudo mostrar esta sección",
@@ -2627,7 +2711,16 @@
         "ok": "OK",
         "incomplete": "Incompleto",
         "actionNeeded": "Acción requerida",
-        "neutral": "—"
+        "neutral": "—",
+        "financeFees": "Financial fees",
+        "specialAgreement": "Special financial agreement",
+        "noFinanceFees": "No fees",
+        "financeHasOverdue": "Overdue balance",
+        "financeHasBalance": "Outstanding balance",
+        "noSpecialAgreement": "No special agreement",
+        "specialAgreementDraft": "Draft agreement",
+        "specialAgreementApproved": "Approved agreement",
+        "specialAgreementPending": "Agreement pending"
       },
       "performance": {
         "title": "Resumen de rendimiento",
@@ -2664,7 +2757,9 @@
       "guardiansDuplicateRelationshipMultiple": "Varios tutores tienen tipos de relación duplicados. Revise las relaciones.",
       "guardiansReviewRelationships": "Revisar relaciones",
       "endRelationshipConfirm": "¿Finalizar la relación de este tutor con el alumno? No se eliminará el perfil del tutor, pero dejará de estar vinculado.",
-      "emptyStates": { "documentsTitle": "Sin documentos" },
+      "emptyStates": {
+        "documentsTitle": "Sin documentos"
+      },
       "sections": {
         "basic": "Información básica",
         "enrollment": "Matrícula",
@@ -2794,7 +2889,7 @@
       "noGuardiansDesc": "Aún no hay tutores vinculados a este alumno.",
       "endedRelationships": "Relaciones finalizadas",
       "relationshipActive": "Activa",
-      "relationshipEnded": "Finalizada",
+      "relationshipEnded": "Relación finalizada.",
       "editRelationship": "Editar relación",
       "endRelationship": "Finalizar relación",
       "endRelationshipHint": "La relación finalizará pero permanecerá en el historial. El tutor no se elimina.",
@@ -2910,7 +3005,6 @@
       "primaryGuardianReplaceConfirm": "«{name}» es el tutor principal actual. ¿Reemplazarlo?",
       "confirmPrimaryReplace": "Confirmar reemplazo",
       "relationshipUpdated": "Relación actualizada.",
-      "relationshipEnded": "Relación finalizada.",
       "relationshipTypeLabel": "Tipo de relación",
       "receivesNotifications": "Recibe notificaciones",
       "emergencyContact": "Contacto de emergencia",
@@ -3274,7 +3368,17 @@
             "preview": "Vista previa",
             "save": "Guardar"
           }
-        }
+        },
+        "noSpecialAgreementTitle": "No special financial agreement for this student.",
+        "noSpecialAgreementDesc": "School fee plan fees and payment schedule were created directly. Special agreements are only for discounts, custom schedules, or special terms.",
+        "viewFeesAndSchedule": "View fees and payment schedule",
+        "createSpecialAgreement": "Create special agreement",
+        "incompleteDraftTitle": "Incomplete agreement draft",
+        "incompleteDraftDesc": "This draft does not represent fees from the school plan.",
+        "completeDraft": "Complete draft",
+        "cancelDraft": "Cancel draft",
+        "openFinanceOverview": "Open financial overview",
+        "openPaymentSchedule": "Open payment schedule"
       },
       "financeOps": {
         "pageTitle": "Finanzas",
@@ -3449,6 +3553,113 @@
         "uncle": "Tío",
         "aunt": "Tía",
         "other": "Otro"
+      },
+      "financeWorkspace": {
+        "pageTitle": "Financial file",
+        "pageDescription": "Unified view of fees, payment schedule, collections, and special agreements.",
+        "tabsAria": "Financial file tabs",
+        "tabs": {
+          "overview": "Overview",
+          "fees": "Fees",
+          "schedule": "Payment schedule",
+          "collections": "Collections",
+          "agreements": "Special agreements"
+        },
+        "metrics": {
+          "annualTotal": "Annual fee total",
+          "dueToDate": "Due to date",
+          "paid": "Paid",
+          "remaining": "Remaining",
+          "overdue": "Overdue",
+          "nextInstallment": "Next installment"
+        },
+        "billingPartyTitle": "Billing party",
+        "billingEffectiveFrom": "Effective from",
+        "appliedPlanTitle": "Applied plan",
+        "openFees": "Open fees",
+        "feeCount": "Installment count",
+        "appliedTotal": "Applied total",
+        "specialAgreement": "Special agreement",
+        "hasSpecialAgreement": "Special agreement exists",
+        "noSpecialAgreement": "No special agreement",
+        "openSchedule": "Open payment schedule",
+        "openFinanceProfile": "Open full finance profile",
+        "fees": {
+          "description": "Each fee applied to the student.",
+          "emptyTitle": "No fees for this year.",
+          "columns": {
+            "name": "Fee name",
+            "pricingMethod": "Pricing method",
+            "cycleValue": "Cycle value",
+            "cycleCount": "Installment count",
+            "appliedTotal": "Applied total",
+            "paid": "Paid",
+            "remaining": "Remaining",
+            "nextDue": "Next due"
+          },
+          "monthlyUnit": "Monthly — {amount}",
+          "oneTimeAmount": "One-time payment"
+        },
+        "schedule": {
+          "description": "Official payment schedule from the backend.",
+          "emptyTitle": "No installments.",
+          "columns": {
+            "installment": "Installment",
+            "fee": "Fee",
+            "period": "Period",
+            "dueDate": "Due date",
+            "amount": "Amount",
+            "paid": "Paid",
+            "remaining": "Remaining",
+            "status": "Status",
+            "actions": "Actions"
+          },
+          "summary": {
+            "total": "Installments",
+            "paid": "Paid",
+            "due": "Due",
+            "overdue": "Overdue",
+            "upcoming": "Upcoming"
+          },
+          "status": {
+            "upcoming": "Upcoming",
+            "due": "Due",
+            "partiallyPaid": "Partially paid",
+            "paid": "Paid",
+            "overdue": "Overdue",
+            "cancelled": "Cancelled"
+          }
+        },
+        "collections": {
+          "description": "Collections and receipts.",
+          "emptyTitle": "No collections.",
+          "noCollectibleItems": "No collectible items."
+        }
+      },
+      "collectionWorkflow": {
+        "recordPayment": "Record payment",
+        "drawerTitle": "Record payment",
+        "stepSelectDues": "Select dues",
+        "stepPaymentMethod": "Payment method",
+        "stepAllocation": "Allocate payment",
+        "stepReview": "Review and confirm",
+        "selectDuesDesc": "Choose the installments you want to collect.",
+        "installmentFlowIntro": "Start by selecting dues, then complete payment method and allocation.",
+        "continueToPayment": "Continue to payment method",
+        "continueToReview": "Continue to review",
+        "confirmPaymentAndReceipt": "Confirm payment and issue receipt",
+        "quickOverdue": "Collect overdue",
+        "quickDueToday": "Collect due today",
+        "quickNextInstallment": "Collect next installment",
+        "quickFullBalance": "Pay full balance",
+        "paymentSuccessTitle": "Payment recorded successfully",
+        "paymentSuccessBody": "Collection and receipt were created."
+      },
+      "billingPartyStudentSelf": "Student",
+      "billingPartyGuardian": "Guardian",
+      "billingPartyCustom": "Custom party",
+      "feePlansWorkspace": {
+        "monthlyInstallmentCount": "Monthly installment count"
       }
     },
     "academicYearIdOptional": "ID año académico (opcional)",
@@ -3616,7 +3827,9 @@
         "noApplications": "No hay asignaciones anteriores de esta fuente.",
         "familySectionTitle": "Saldos sin asignar",
         "familyGross": "Sin asignar bruto",
-        "header": { "accountCount": "Cuentas de pagador" },
+        "header": {
+          "accountCount": "Cuentas de pagador"
+        },
         "metrics": {
           "gross": "Sin asignar bruto",
           "pending": "Pendiente de liquidación",
@@ -4144,12 +4357,12 @@
         "actionUnavailable": "Esta acción no está disponible en este momento."
       },
       "collectionWorkflow": {
-        "drawerTitle": "Registrar cobro",
+        "drawerTitle": "Record payment",
         "detailTitle": "Detalle del cobro",
         "chequeDetailTitle": "Detalle del cheque",
         "paymentStepDesc": "Elija método e importe, luego asigne a deudas.",
         "stepPayment": "Pago",
-        "stepAllocation": "Asignación",
+        "stepAllocation": "Allocate payment",
         "continueToAllocation": "Continuar a asignación",
         "allocationTitle": "Asignar importe",
         "allocationDesc": "Asigne el importe a cuotas abiertas.",
@@ -4187,7 +4400,22 @@
           "invalidAmount": "Importe inválido.",
           "invalidAllocation": "Asignación inválida.",
           "duplicateAllocation": "No se puede asignar dos veces al mismo adeudo."
-        }
+        },
+        "recordPayment": "Record payment",
+        "stepSelectDues": "Select dues",
+        "stepPaymentMethod": "Payment method",
+        "stepReview": "Review and confirm",
+        "selectDuesDesc": "Choose the installments you want to collect.",
+        "installmentFlowIntro": "Start by selecting dues, then complete payment method and allocation.",
+        "continueToPayment": "Continue to payment method",
+        "continueToReview": "Continue to review",
+        "confirmPaymentAndReceipt": "Confirm payment and issue receipt",
+        "quickOverdue": "Collect overdue",
+        "quickDueToday": "Collect due today",
+        "quickNextInstallment": "Collect next installment",
+        "quickFullBalance": "Pay full balance",
+        "paymentSuccessTitle": "Payment recorded successfully",
+        "paymentSuccessBody": "Collection and receipt were created."
       },
       "searchFeeTypes": "Buscar tipo…",
       "searchCollections": "Buscar cobro…",
@@ -5232,7 +5460,8 @@
             "invalid_level_ids": "La lista de niveles no es válida.",
             "student_level_mismatch": "El nivel del alumno no está cubierto por este plan."
           }
-        }
+        },
+        "monthlyInstallmentCount": "Monthly installment count"
       },
       "states": {
         "draft": "Borrador",
@@ -5245,7 +5474,10 @@
         "overdue": "Vencido",
         "active": "Activo",
         "archived": "Archivado"
-      }
+      },
+      "billingPartyStudentSelf": "Student",
+      "billingPartyGuardian": "Guardian",
+      "billingPartyCustom": "Custom party"
     }
   }
 }
