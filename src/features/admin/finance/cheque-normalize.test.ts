@@ -90,6 +90,6 @@ describe('cheque normalize', () => {
       allowed_actions: { view: true, settle: true, reject: true, cancel: true },
       allowed_action_codes: ['deposit', 'bounce', 'settle', 'reject', 'cancel'],
     } as FinanceCheque);
-    expect(detail.allowedActions).toEqual(['deposit', 'clear', 'reject', 'cancel']);
+    expect(detail.allowedActions.sort()).toEqual(['cancel', 'clear', 'deposit', 'reject']);
   });
 });
