@@ -5029,7 +5029,7 @@
           "scheduleRequired": "أدخل جدول الأقساط.",
           "scheduleMismatch": "مجموع الأقساط يجب أن يساوي مبلغ البند.",
           "lineLevelRequired": "اختر مستوى واحدًا على الأقل لهذا السطر، أو اختر جميع مستويات الخطة.",
-          "duplicateLineScope": "نوع الرسم هذا له سطر بالفعل لنفس نطاق المستويات.",
+          "duplicateLineScope": "يوجد رسم مماثل لنفس نوع الرسم ونطاق المستويات داخل الخطة.",
           "feeTypeNameCodeRequired": "الاسم والرمز مطلوبان.",
           "levelScope": {
             "invalid_school_level": "أحد المستويات المحددة غير صالح.",

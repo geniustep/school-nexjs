@@ -6,6 +6,8 @@ export type FeePlanLineLevelScopeMode = 'all_plan_levels' | 'specific';
 
 export interface DraftFeePlanLine {
   clientId: string;
+  /** Odoo fee plan line id — required on PUT to update existing rows. */
+  lineId?: number;
   feeTypeId: number;
   label: string;
   amount: number;

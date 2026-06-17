@@ -76,12 +76,18 @@ export function buildLinePayload(line: DraftFeePlanLine): FeePlanLineInput {
     description: line.label.trim() || undefined,
   };
 
+  if (line.lineId != null && line.lineId > 0) {
+    payload.id = line.lineId;
+  }
+
   if (line.frequency.trim()) {
     payload.frequency = feePlanFrequencyToApi(line.frequency);
   }
 
   if (line.levelScopeMode === 'specific' && line.levelIds.length > 0) {
     payload.level_ids = dedupeLevelIds(line.levelIds);
+  } else if (line.levelScopeMode === 'all_plan_levels') {
+    payload.level_ids = [];
   }
 
   if (line.installmentCount <= 1) {

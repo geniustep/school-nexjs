@@ -37,6 +37,7 @@ export function formValuesFromFeePlan(plan: FeePlan, feeTypes: FeeType[]): FeePl
   base.lines = normalizedLines.map((line, index) => {
     const feeType = feeTypes.find((ft) => ft.id === line.fee_type_id);
     const draft = newDraftLine(`line-${line.id ?? index}`);
+    if (line.id) draft.lineId = line.id;
     draft.feeTypeId = line.fee_type_id ?? feeType?.id ?? 0;
     draft.label = line.description && typeof line.description === 'string' ? line.description : line.name ?? '';
     draft.amount = line.amount;
