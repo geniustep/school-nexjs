@@ -19,7 +19,7 @@ import type { StudentFinancePanelProps } from './student-finance-panel-props';
 export function StudentFinanceCollectionsPanel({
   studentId,
   workspace,
-  officialSummary,
+  financialOverview,
   canViewPayments,
   canCollect,
   onOpenCollection,
@@ -27,7 +27,7 @@ export function StudentFinanceCollectionsPanel({
   const t = useT();
   const { formatDate } = useFormat();
   const [selectedCollectionId, setSelectedCollectionId] = useState<number | null>(null);
-  const currency = officialSummary?.summary.currency.name ?? workspace?.summary?.currency?.name;
+  const currency = financialOverview?.totals.currency.name ?? workspace?.summary?.currency?.name;
 
   const collectionColumns: Column<PaymentCollection>[] = useMemo(
     () => [

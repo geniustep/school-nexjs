@@ -208,6 +208,14 @@ export const endpoints = {
     financeFeePlanEligibleStudents: (id: number | string) =>
       `/admin/finance/fee-plans/${id}/eligible-students`,
     financeStudentFees: (id: number | string) => `/admin/finance/student-fees/${id}`,
+    financeStudentFinancialOverview: (studentId: number | string) =>
+      `/admin/finance/students/${studentId}/financial-overview`,
+    financeStudentCollectibleItems: (studentId: number | string) =>
+      `/admin/finance/students/${studentId}/collectible-items`,
+    financeStudentAgreementFromCurrentFees: (studentId: number | string) =>
+      `/admin/finance/students/${studentId}/agreements/from-current-fees`,
+    financeFeePlanAssignedStudentsFinancialSummary: (planId: number | string) =>
+      `/admin/finance/fee-plans/${planId}/assigned-students-financial-summary`,
     financeStudentFeesForStudent: (studentId: number | string) =>
       `/admin/finance/students/${studentId}/fees`,
     financeAssignStudentFee: (studentId: number | string) =>

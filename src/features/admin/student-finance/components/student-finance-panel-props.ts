@@ -1,7 +1,6 @@
 import type { ApiErrorBody } from '@/types/api';
-import type { FinanceInstallmentListSummary } from '@/types/finance';
 import type { StudentCapabilities, StudentDetailsData } from '@/types/student-360';
-import type { StudentFinanceSummaryData } from '@/types/student-finance';
+import type { StudentFinancialOverview } from '@/types/student-financial-overview';
 import type { StudentFinanceWorkspace } from '../types';
 
 export interface StudentFinancePanelProps {
@@ -10,11 +9,10 @@ export interface StudentFinancePanelProps {
   capabilities: StudentCapabilities;
   effectiveYearId: string;
   workspace: StudentFinanceWorkspace | null | undefined;
-  officialSummary: StudentFinanceSummaryData | null;
-  officialSummaryLoading: boolean;
-  officialSummaryError: ApiErrorBody | null;
-  onReloadOfficialSummary: () => void;
-  installmentsSummary: FinanceInstallmentListSummary | null;
+  financialOverview: StudentFinancialOverview | null;
+  financialOverviewLoading: boolean;
+  financialOverviewError: ApiErrorBody | null;
+  onReloadFinancialOverview: () => void;
   canViewPayments: boolean;
   canCollect: boolean;
   onRefresh: () => void;

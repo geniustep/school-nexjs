@@ -49,7 +49,7 @@ function normalizeSummaryTotals(value: unknown): StudentFinanceSummaryTotals {
   };
 }
 
-function normalizeBillingProfile(value: unknown): StudentBillingProfileSummary | null {
+export function normalizeBillingProfile(value: unknown): StudentBillingProfileSummary | null {
   if (!value || typeof value !== 'object') return null;
   const raw = value as Record<string, unknown>;
   if (typeof raw.id !== 'number') return null;

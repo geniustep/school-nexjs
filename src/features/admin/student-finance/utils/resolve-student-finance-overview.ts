@@ -1,7 +1,4 @@
-import { normalizeMoneyValue } from '@/lib/utils/finance-normalize';
-import type { FinanceInstallmentListSummary } from '@/types/finance';
-import type { StudentFinanceSummaryData, StudentFinanceSummaryTotals } from '@/types/student-finance';
-import type { StudentFinanceWorkspace, StudentInstallment } from '../types';
+import type { StudentFinancialOverview } from '@/types/student-financial-overview';
 
 export interface StudentFinanceOverviewMetrics {
   currency: string | null;
@@ -10,107 +7,63 @@ export interface StudentFinanceOverviewMetrics {
   paid: number | null;
   remaining: number | null;
   overdue: number | null;
+  upcoming: number | null;
   next_installment_amount: number | null;
   next_installment_date: string | null;
+  next_installment_fee_name: string | null;
+  next_installment_period: string | null;
+  next_installment_state: string | null;
   has_special_agreement: boolean;
+  fees_count: number | null;
+  installments_count: number | null;
 }
 
-function readMoney(value: unknown): number | null {
-  const normalized = normalizeMoneyValue(value);
-  return normalized == null ? null : normalized;
-}
+export function resolveStudentFinanceOverviewMetrics(
+  overview: StudentFinancialOverview | null | undefined,
+): StudentFinanceOverviewMetrics | null {
+  if (!overview?.totals) return null;
 
-function pickDueToDateFromSummary(totals: StudentFinanceSummaryTotals): number | null {
-  const raw = totals as StudentFinanceSummaryTotals & {
-    due_to_date?: unknown;
-    total_due_to_date?: unknown;
-  };
-  return readMoney(raw.due_to_date) ?? readMoney(raw.total_due_to_date);
-}
-
-function sumCollectibleRemaining(installments: StudentInstallment[] | null | undefined): number | null {
-  if (!installments?.length) return null;
-  let total = 0;
-  let matched = false;
-  for (const row of installments) {
-    if (row.timing_status !== 'due' && row.timing_status !== 'overdue') continue;
-    const remaining = readMoney(row.remaining_amount);
-    if (remaining == null) continue;
-    total += remaining;
-    matched = true;
-  }
-  return matched ? total : null;
-}
-
-function resolveNextInstallment(
-  installments: StudentInstallment[] | null | undefined,
-  fallbackDate: string | null | undefined,
-): { amount: number | null; date: string | null } {
-  const candidates = (installments ?? []).filter((row) => (row.remaining_amount ?? 0) > 0);
-  const sorted = [...candidates].sort((a, b) => {
-    const aDate = a.due_date ?? '';
-    const bDate = b.due_date ?? '';
-    return aDate.localeCompare(bDate);
-  });
-  const next = sorted[0];
-  if (!next) {
-    return { amount: null, date: fallbackDate ?? null };
-  }
-  return {
-    amount: readMoney(next.remaining_amount) ?? readMoney(next.amount),
-    date: next.due_date ?? fallbackDate ?? null,
-  };
-}
-
-export function resolveStudentFinanceOverviewMetrics(input: {
-  officialSummary: StudentFinanceSummaryData | null | undefined;
-  workspace: StudentFinanceWorkspace | null | undefined;
-  installmentsSummary: FinanceInstallmentListSummary | null | undefined;
-  collectibleInstallments?: StudentInstallment[] | null | undefined;
-}): StudentFinanceOverviewMetrics | null {
-  const totals = input.officialSummary?.summary;
-  if (!totals) return null;
-
-  const workspaceInstallments = [
-    ...(input.workspace?.upcoming_installments ?? []),
-    ...(input.workspace?.overdue_installments ?? []),
-  ];
-  const collectible = input.collectibleInstallments ?? workspaceInstallments;
-  const next = resolveNextInstallment(collectible, totals.next_due_date);
-
-  const agreement = input.workspace?.current_agreement;
+  const totals = overview.totals;
+  const next = overview.next_installment;
+  const agreement = overview.special_agreement;
   const hasSpecialAgreement =
     agreement != null &&
+    !agreement.empty_draft &&
     agreement.state != null &&
     !['draft', 'cancelled'].includes(String(agreement.state)) &&
-    (readMoney(agreement.net_amount) ?? 0) > 0;
+    (agreement.net_amount ?? agreement.total_amount ?? 0) > 0;
 
   return {
-    currency: totals.currency?.name ?? input.workspace?.summary?.currency?.name ?? null,
-    annual_total: readMoney(totals.total_assessed),
-    due_to_date:
-      pickDueToDateFromSummary(totals) ??
-      sumCollectibleRemaining(collectible) ??
-      readMoney(input.installmentsSummary?.total_overdue),
-    paid: readMoney(totals.total_paid),
-    remaining: readMoney(totals.total_outstanding),
-    overdue: readMoney(totals.total_overdue),
-    next_installment_amount: next.amount,
-    next_installment_date: next.date,
+    currency: totals.currency?.name ?? null,
+    annual_total: totals.annual_total,
+    due_to_date: totals.due_to_date,
+    paid: totals.paid,
+    remaining: totals.remaining,
+    overdue: totals.overdue,
+    upcoming: totals.upcoming,
+    next_installment_amount: next?.remaining_amount ?? null,
+    next_installment_date: next?.due_date ?? null,
+    next_installment_fee_name: next?.fee_name ?? next?.fee_type_name ?? null,
+    next_installment_period: next?.period_label ?? null,
+    next_installment_state: next?.display_state ?? next?.state ?? next?.payment_status ?? null,
     has_special_agreement: hasSpecialAgreement,
+    fees_count: overview.counts?.fees_count ?? null,
+    installments_count: overview.counts?.installments_count ?? null,
   };
 }
 
 export function resolveBillingPartyLabel(input: {
+  billingProfile?: StudentFinancialOverview['billing_profile'];
   financialResponsibleName?: string | null;
-  billingPartnerName?: string | null;
   billingPartyType?: string | null;
   t: (key: string) => string;
 }): string {
-  if (input.financialResponsibleName?.trim()) return input.financialResponsibleName.trim();
-  if (input.billingPartnerName?.trim()) return input.billingPartnerName.trim();
-  if (input.billingPartyType === 'student') return input.t('admin.finance.billingPartyStudentSelf');
-  if (input.billingPartyType === 'guardian') return input.t('admin.finance.billingPartyGuardian');
-  if (input.billingPartyType === 'custom') return input.t('admin.finance.billingPartyCustom');
+  if (input.financialResponsibleName?.trim()) {
+    return `${input.t('admin.finance.billingPartyGuardian')}: ${input.financialResponsibleName.trim()}`;
+  }
+  const partyType = input.billingProfile?.billing_party_type ?? input.billingPartyType;
+  if (partyType === 'student') return input.t('admin.finance.billingPartyStudentSelf');
+  if (partyType === 'guardian') return input.t('admin.finance.billingPartyGuardian');
+  if (partyType === 'custom') return input.t('admin.finance.billingPartyCustom');
   return input.t('common.dash');
 }

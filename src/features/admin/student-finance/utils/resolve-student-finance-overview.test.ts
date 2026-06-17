@@ -1,85 +1,49 @@
 import { describe, expect, it } from 'vitest';
 import { resolveStudentFinanceOverviewMetrics } from './resolve-student-finance-overview';
+import type { StudentFinancialOverview } from '@/types/student-financial-overview';
+
+const sampleOverview: StudentFinancialOverview = {
+  academic_year: { id: 1, name: '2025-2026' },
+  totals: {
+    currency: { name: 'MAD', symbol: 'DH' },
+    annual_total: 22500,
+    due_to_date: 4500,
+    paid: 2000,
+    remaining: 20500,
+    overdue: 2500,
+    upcoming: 16000,
+  },
+  counts: { fees_count: 2, installments_count: 11 },
+  next_installment: {
+    id: 1001,
+    fee_name: 'التسجيل',
+    period_label: '2025-2026',
+    amount: 2500,
+    remaining_amount: 2500,
+    due_date: '2025-10-05',
+    display_state: 'due',
+  },
+  applied_plans: [],
+  special_agreement: null,
+  billing_profile: null,
+};
 
 describe('resolveStudentFinanceOverviewMetrics', () => {
-  it('maps official summary fields without inventing annual totals', () => {
-    const metrics = resolveStudentFinanceOverviewMetrics({
-      officialSummary: {
-        academic_year: { id: 1, name: '2025-2026' },
-        summary: {
-          currency: { name: 'MAD', symbol: 'DH' },
-          total_assessed: 22500,
-          total_discount: 0,
-          total_paid: 2000,
-          total_outstanding: 20500,
-          total_overdue: 2500,
-          next_due_date: '2025-10-05',
-        },
-        billing_profile: null,
-        financial_responsible: null,
-        capabilities: {
-          can_view: true,
-          can_view_payments: true,
-          can_collect: true,
-          can_assign_fees: true,
-          can_manage_discounts: false,
-          can_approve_discounts: false,
-          can_view_billing_profile: true,
-          can_manage_billing_profile: true,
-        },
-      },
-      workspace: {
-        summary: { total_due: 22500, remaining: 20500, currency: { id: 1, name: 'MAD' } },
-        upcoming_installments: [
-          { id: 1, remaining_amount: 2000, amount: 2000, due_date: '2025-10-05', timing_status: 'upcoming' },
-        ],
-      } as never,
-      installmentsSummary: { total_count: 11, total_amount: 22500 },
-    });
-
+  it('uses official financial-overview totals without local derivation', () => {
+    const metrics = resolveStudentFinanceOverviewMetrics(sampleOverview);
     expect(metrics?.annual_total).toBe(22500);
+    expect(metrics?.due_to_date).toBe(4500);
     expect(metrics?.paid).toBe(2000);
     expect(metrics?.remaining).toBe(20500);
     expect(metrics?.overdue).toBe(2500);
-    expect(metrics?.next_installment_amount).toBe(2000);
+    expect(metrics?.upcoming).toBe(16000);
+    expect(metrics?.fees_count).toBe(2);
+    expect(metrics?.installments_count).toBe(11);
+    expect(metrics?.next_installment_amount).toBe(2500);
     expect(metrics?.next_installment_date).toBe('2025-10-05');
   });
 
-  it('derives due-to-date from due installments when backend field is absent', () => {
-    const metrics = resolveStudentFinanceOverviewMetrics({
-      officialSummary: {
-        academic_year: { id: 1, name: '2025-2026' },
-        summary: {
-          currency: { name: 'MAD', symbol: 'DH' },
-          total_assessed: 22500,
-          total_discount: 0,
-          total_paid: 0,
-          total_outstanding: 22500,
-          total_overdue: 0,
-          next_due_date: '2026-06-17',
-        },
-        billing_profile: null,
-        financial_responsible: null,
-        capabilities: {
-          can_view: true,
-          can_view_payments: true,
-          can_collect: true,
-          can_assign_fees: true,
-          can_manage_discounts: false,
-          can_approve_discounts: false,
-          can_view_billing_profile: true,
-          can_manage_billing_profile: true,
-        },
-      },
-      workspace: {
-        upcoming_installments: [
-          { id: 1, remaining_amount: 2500, timing_status: 'due' },
-          { id: 2, remaining_amount: 2000, timing_status: 'due' },
-        ],
-      } as never,
-      installmentsSummary: null,
-    });
-
-    expect(metrics?.due_to_date).toBe(4500);
+  it('returns null when overview is missing', () => {
+    expect(resolveStudentFinanceOverviewMetrics(null)).toBeNull();
   });
 });

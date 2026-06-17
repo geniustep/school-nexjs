@@ -36,12 +36,12 @@ function feeUnitAmount(fee: StudentFee & { installment_count?: number }): number
 export function StudentFinanceFeesPanel({
   studentId,
   effectiveYearId,
-  officialSummary,
+  financialOverview,
 }: StudentFinancePanelProps) {
   const t = useT();
   const { formatDate } = useFormat();
   const [page, setPage] = useState(1);
-  const currency = officialSummary?.summary.currency.name;
+  const currency = financialOverview?.totals.currency.name;
 
   const feesState = useStudentFinanceFees(
     studentId,

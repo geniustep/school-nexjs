@@ -23,6 +23,13 @@ import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import type { SchoolClass } from '@/types/class';
 import type { FeePlan } from '@/types/finance';
+import {
+  buildAssignedStudentsFinancialSummaryQuery,
+  useFeePlanAssignedStudentsFinancialSummary,
+} from '@/features/admin/finance/use-fee-plan-assigned-students-financial-summary';
+import { FinanceMoney } from '@/features/admin/finance/finance-money';
+import { useFormat } from '@/features/i18n/use-format';
+import type { AssignedStudentFinancialSummary } from '@/types/student-financial-overview';
 import type {
   FeePlanEligibleStudent,
   FeePlanEligibilityTabStatus,
@@ -63,6 +70,7 @@ export function FeePlanAssignStudentsStep({
   onNext: () => void;
 }) {
   const t = useT();
+  const { formatDate } = useFormat();
   const [tab, setTab] = useState<FeePlanEligibilityTabStatus>('eligible');
   const [search, setSearch] = useState('');
   const [levelFilter, setLevelFilter] = useState('');
@@ -98,7 +106,27 @@ export function FeePlanAssignStudentsStep({
     [tab, debouncedSearch, levelFilter, classFilter, page],
   );
 
-  const eligibleState = useFeePlanEligibleStudents(plan.id, query);
+  const eligibleState = useFeePlanEligibleStudents(plan.id, query, tab !== 'already_assigned');
+
+  const assignedSummaryQuery = useMemo(
+    () =>
+      tab === 'already_assigned'
+        ? buildAssignedStudentsFinancialSummaryQuery({
+            search: debouncedSearch,
+            levelId: levelFilter,
+            classId: classFilter,
+            page,
+            pageSize: 25,
+            academicYearId: plan.academic_year_id,
+          })
+        : null,
+    [tab, debouncedSearch, levelFilter, classFilter, page, plan.academic_year_id],
+  );
+  const assignedSummaryState = useFeePlanAssignedStudentsFinancialSummary(
+    plan.id,
+    assignedSummaryQuery,
+    tab === 'already_assigned',
+  );
 
   const switchTab = useCallback((next: FeePlanEligibilityTabStatus) => {
     setTab(next);
@@ -121,10 +149,18 @@ export function FeePlanAssignStudentsStep({
   );
 
   const summary = eligibleState.data?.summary;
-  const pagination = eligibleState.data?.pagination;
+  const pagination =
+    tab === 'already_assigned'
+      ? assignedSummaryState.data?.pagination
+      : eligibleState.data?.pagination;
   const rawStudents = eligibleState.data?.students ?? [];
+  const assignedStudents = assignedSummaryState.data?.students ?? [];
   const students =
-    tab === 'eligible' ? rawStudents.filter((student) => student.selectable) : rawStudents;
+    tab === 'already_assigned'
+      ? []
+      : tab === 'eligible'
+        ? rawStudents.filter((student) => student.selectable)
+        : rawStudents;
   const contractErrors =
     tab === 'eligible'
       ? rawStudents.filter((student) => student.selectable && !student.level?.name)
@@ -184,11 +220,19 @@ export function FeePlanAssignStudentsStep({
         ? t('admin.finance.assignFlow.emptyAlreadyAssignedDesc')
         : t('admin.finance.assignFlow.emptyIneligibleDesc');
 
+
+  const listLoading =
+    tab === 'already_assigned' ? assignedSummaryState.loading : eligibleState.loading;
+  const listError =
+    tab === 'already_assigned' ? assignedSummaryState.error : eligibleState.error;
+  const reloadList =
+    tab === 'already_assigned' ? assignedSummaryState.reload : eligibleState.reload;
+
   const errorMessage = useMemo(() => {
-    const code = eligibleState.error?.code;
+    const code = listError?.code;
     const key = feePlanEligibleStudentsErrorMessageKey(code);
-    return key ? t(key) : eligibleState.error?.message ?? t('admin.finance.assignFlow.loadStudentsFailed');
-  }, [eligibleState.error, t]);
+    return key ? t(key) : listError?.message ?? t('admin.finance.assignFlow.loadStudentsFailed');
+  }, [listError, t]);
 
   const renderEnrollmentStatus = useCallback(
     (status: string | null | undefined) => {
@@ -309,6 +353,94 @@ export function FeePlanAssignStudentsStep({
     return cols;
   }, [tab, t, selectedIds, toggleStudent, renderEnrollmentStatus, renderBillingReadiness]);
 
+  const assignedColumns: Column<AssignedStudentFinancialSummary>[] = useMemo(
+    () => [
+      {
+        key: 'name',
+        header: t('nav.students'),
+        render: (row) => (
+          <div dir="auto">
+            <strong>{row.student_name}</strong>
+            {row.registration_number ? (
+              <span className="mono muted fee-plan-assign-flow__code" dir="ltr">
+                {row.registration_number}
+              </span>
+            ) : null}
+          </div>
+        ),
+      },
+      {
+        key: 'assigned_date',
+        header: t('admin.finance.assignFlow.assignedDate'),
+        render: (row) => (row.assigned_date ? formatDate(row.assigned_date) : t('common.dash')),
+      },
+      {
+        key: 'total_fees',
+        header: t('admin.student360.financeWorkspace.metrics.annualTotal'),
+        render: (row) => <FinanceMoney amount={row.total_fees} />,
+      },
+      {
+        key: 'due_to_date',
+        header: t('admin.student360.financeWorkspace.metrics.dueToDate'),
+        render: (row) => <FinanceMoney amount={row.due_to_date} />,
+      },
+      {
+        key: 'paid',
+        header: t('admin.student360.financeWorkspace.metrics.paid'),
+        render: (row) => <FinanceMoney amount={row.paid} />,
+      },
+      {
+        key: 'remaining',
+        header: t('admin.student360.financeWorkspace.metrics.remaining'),
+        render: (row) => <FinanceMoney amount={row.remaining} />,
+      },
+      {
+        key: 'overdue',
+        header: t('admin.student360.financeWorkspace.metrics.overdue'),
+        render: (row) => <FinanceMoney amount={row.overdue} />,
+      },
+      {
+        key: 'next_installment',
+        header: t('admin.student360.financeWorkspace.metrics.nextInstallment'),
+        render: (row) => (
+          <span>
+            <FinanceMoney amount={row.next_installment?.remaining_amount} />
+            {row.next_installment?.due_date ? (
+              <span className="tiny muted"> — {formatDate(row.next_installment.due_date)}</span>
+            ) : null}
+          </span>
+        ),
+      },
+      {
+        key: 'actions',
+        header: t('admin.actions'),
+        render: (row) => (
+          <div className="row">
+            <Link
+              href={`/admin/students/${row.student_id}?tab=finance&financeSubTab=overview`}
+              className="btn btn--ghost btn--sm"
+            >
+              {t('admin.finance.assignFlow.openFinancialOverview')}
+            </Link>
+            <Link
+              href={`/admin/students/${row.student_id}?tab=finance&financeSubTab=schedule`}
+              className="btn btn--ghost btn--sm"
+            >
+              {t('admin.finance.assignFlow.openSchedule')}
+            </Link>
+            <Link
+              href={`/admin/students/${row.student_id}?tab=finance&financeSubTab=overview&collect=1`}
+              className="btn btn--ghost btn--sm"
+            >
+              {t('admin.finance.collectionWorkflow.recordPayment')}
+            </Link>
+          </div>
+        ),
+      },
+    ],
+    [t, formatDate],
+  );
+
   const filterFields = (
     <>
       <input
@@ -415,11 +547,13 @@ export function FeePlanAssignStudentsStep({
         </div>
       ) : null}
 
-      {eligibleState.loading && !eligibleState.data ? <LoadingState label={t('common.loading')} /> : null}
-      {eligibleState.error ? (
+      {listLoading && (tab === 'already_assigned' ? !assignedSummaryState.data : !eligibleState.data) ? (
+        <LoadingState label={t('common.loading')} />
+      ) : null}
+      {listError ? (
         <div className="form-error" role="alert">
           <p>{errorMessage}</p>
-          <button type="button" className="btn btn--ghost btn--sm" onClick={() => eligibleState.reload()}>
+          <button type="button" className="btn btn--ghost btn--sm" onClick={() => reloadList()}>
             {t('common.retry')}
           </button>
         </div>
@@ -429,11 +563,65 @@ export function FeePlanAssignStudentsStep({
           {t('admin.finance.assignFlow.missingLevel')}
         </div>
       ) : null}
-      {!eligibleState.loading && !eligibleState.error && students.length === 0 ? (
+      {tab === 'already_assigned' && !listLoading && !listError && assignedStudents.length === 0 ? (
+        <EmptyState title={emptyTitle} description={emptyDescription} />
+      ) : null}
+      {tab !== 'already_assigned' && !listLoading && !listError && students.length === 0 ? (
         <EmptyState title={emptyTitle} description={emptyDescription} />
       ) : null}
 
-      {!eligibleState.error && students.length > 0 ? (
+      {tab === 'already_assigned' && !listError && assignedStudents.length > 0 ? (
+        <>
+          <div className="fee-plan-assign-flow__desktop-table">
+            <DataTable columns={assignedColumns} rows={assignedStudents} rowKey={(row) => row.student_id} stickyHeader />
+          </div>
+          <div className="fee-plan-assign-flow__mobile-cards">
+            {assignedStudents.map((student) => (
+              <article key={student.student_id} className="fee-plan-assign-flow__student-card">
+                <div className="fee-plan-assign-flow__student-card-head">
+                  <div dir="auto">
+                    <strong>{student.student_name}</strong>
+                  </div>
+                </div>
+                <dl className="detail-list compact">
+                  <div>
+                    <dt>{t('admin.finance.assignFlow.assignedDate')}</dt>
+                    <dd>{student.assigned_date ? formatDate(student.assigned_date) : t('common.dash')}</dd>
+                  </div>
+                  <div>
+                    <dt>{t('admin.student360.financeWorkspace.metrics.annualTotal')}</dt>
+                    <dd><FinanceMoney amount={student.total_fees} /></dd>
+                  </div>
+                  <div>
+                    <dt>{t('admin.student360.financeWorkspace.metrics.dueToDate')}</dt>
+                    <dd><FinanceMoney amount={student.due_to_date} /></dd>
+                  </div>
+                  <div>
+                    <dt>{t('admin.student360.financeWorkspace.metrics.remaining')}</dt>
+                    <dd><FinanceMoney amount={student.remaining} /></dd>
+                  </div>
+                </dl>
+                <div className="row">
+                  <Link href={`/admin/students/${student.student_id}?tab=finance`} className="btn btn--ghost btn--sm">
+                    {t('admin.finance.assignFlow.openStudentFinance')}
+                  </Link>
+                </div>
+              </article>
+            ))}
+          </div>
+          {pagination ? (
+            <Pagination
+              page={pagination.page}
+              pageSize={pagination.page_size}
+              total={pagination.total}
+              totalPages={Math.max(1, Math.ceil(pagination.total / pagination.page_size))}
+              onPage={setPage}
+            />
+          ) : null}
+        </>
+      ) : null}
+
+      {tab !== 'already_assigned' && !listError && students.length > 0 ? (
         <>
           <div className="fee-plan-assign-flow__desktop-table">
             <DataTable columns={columns} rows={students} rowKey={(row) => row.id} stickyHeader />
@@ -498,11 +686,6 @@ export function FeePlanAssignStudentsStep({
                     <dd>{renderBillingReadiness(student)}</dd>
                   </div>
                 </dl>
-                {tab === 'already_assigned' ? (
-                  <Link href={`/admin/finance/students/${student.id}`} className="btn btn--ghost btn--sm">
-                    {t('admin.finance.assignFlow.openStudentFinance')}
-                  </Link>
-                ) : null}
               </article>
             ))}
           </div>
@@ -510,7 +693,7 @@ export function FeePlanAssignStudentsStep({
             <div className="fee-plan-assign-flow__pagination">
               <Pagination
                 page={pagination.page}
-                totalPages={pagination.total_pages}
+                totalPages={Math.max(1, Math.ceil(pagination.total / pagination.page_size))}
                 total={pagination.total}
                 pageSize={pagination.page_size}
                 onPage={setPage}

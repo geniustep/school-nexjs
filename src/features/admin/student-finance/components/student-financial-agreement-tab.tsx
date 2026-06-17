@@ -12,6 +12,7 @@ import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { refName } from '@/lib/utils/finance';
 import type { StudentCapabilities, StudentDetailsData } from '@/types/student-360';
+import type { StudentFinancialOverview } from '@/types/student-financial-overview';
 import type { FinancialAgreement } from '../types';
 import { Student360CompactEmpty } from '@/features/admin/students/components/student-360-compact-empty';
 import {
@@ -26,6 +27,7 @@ import {
   postAgreementAction,
 } from '../api/finance-admin-api';
 import { AgreementCreateDrawer } from './agreement-create-drawer';
+import { AgreementFromFeesDrawer } from './agreement-from-fees-drawer';
 import { StudentFinanceAssignFeeDrawer } from '@/features/admin/students/components/student-finance-assign-fee-drawer';
 import { CancelFutureInstallmentsDrawer } from './cancel-future-installments-drawer';
 import { ServiceCategoryDetailsList } from './service-category-details-list';
@@ -52,6 +54,7 @@ export function StudentFinancialAgreementTab({
   capabilities,
   onChanged,
   onOpenGuardians,
+  financialOverview,
   embedded = false,
 }: {
   studentId: number;
@@ -59,6 +62,7 @@ export function StudentFinancialAgreementTab({
   capabilities: StudentCapabilities;
   onChanged: () => void;
   onOpenGuardians?: () => void;
+  financialOverview?: StudentFinancialOverview | null;
   embedded?: boolean;
 }) {
   const t = useT();
@@ -74,6 +78,7 @@ export function StudentFinancialAgreementTab({
     isRefreshing,
   } = useStudentFinanceTabState(studentId, details);
   const [showCreate, setShowCreate] = useState(false);
+  const [showFromFees, setShowFromFees] = useState(false);
   const [showAssignFeePlan, setShowAssignFeePlan] = useState(false);
   const [showCancelFuture, setShowCancelFuture] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -335,10 +340,12 @@ export function StudentFinancialAgreementTab({
       (workspace?.installments_summary?.overdue_count ?? 0) > 0 ||
       (workspace?.summary?.total_due ?? 0) > 0;
 
+    const specialAgreement = financialOverview?.special_agreement;
     const draftAgreement =
-      agreement?.state === 'draft' &&
-      (agreement.net_amount ?? 0) === 0 &&
-      (agreement.lines?.length ?? 0) === 0;
+      specialAgreement?.empty_draft === true ||
+      (agreement?.state === 'draft' &&
+        (agreement.empty_draft === true ||
+          ((agreement.net_amount ?? 0) === 0 && (agreement.lines?.length ?? 0) === 0)));
 
     const shellClass = embedded ? 'student-finance-agreement-embedded' : 'student-finance-tab student-360-tab-panel';
 
@@ -384,9 +391,14 @@ export function StudentFinancialAgreementTab({
                 {t('admin.student360.financialAgreement.viewFeesAndSchedule')}
               </Link>
               {canCreate ? (
-                <button type="button" className="btn btn--primary btn--sm" onClick={() => setShowCreate(true)}>
-                  {t('admin.student360.financialAgreement.createSpecialAgreement')}
-                </button>
+                <>
+                  <button type="button" className="btn btn--primary btn--sm" onClick={() => setShowFromFees(true)}>
+                    {t('admin.student360.financialAgreement.fromFees.createButton')}
+                  </button>
+                  <button type="button" className="btn btn--ghost btn--sm" onClick={() => setShowCreate(true)}>
+                    {t('admin.student360.financialAgreement.createSpecialAgreement')}
+                  </button>
+                </>
               ) : null}
             </div>
           }
@@ -396,6 +408,20 @@ export function StudentFinancialAgreementTab({
           <p className="muted student-finance-fee-plan-notice-inline">
             {t('admin.finance.feePlanAppliedWithoutAgreement')}
           </p>
+        ) : null}
+
+        {showFromFees ? (
+          <AgreementFromFeesDrawer
+            open={showFromFees}
+            studentId={studentId}
+            financialOverview={financialOverview ?? null}
+            onClose={() => setShowFromFees(false)}
+            onSuccess={(agreementId) => {
+              setShowFromFees(false);
+              refreshAll();
+              window.location.href = `/admin/finance/agreements/${agreementId}`;
+            }}
+          />
         ) : null}
 
         {showCreate ? (

@@ -2,12 +2,10 @@
 
 import Link from 'next/link';
 import { useMemo } from 'react';
-import { ApiErrorView } from '@/components/states/states';
 import { Card } from '@/components/ui/primitives';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
-import { refName } from '@/lib/utils/finance';
 import { Student360MetricGrid } from '@/features/admin/students/components/student-360-metric-grid';
 import { StudentSectionSkeleton } from '@/features/admin/students/components/student-360-loading';
 import { Student360SectionHeader } from '@/features/admin/students/components/student-360-section-header';
@@ -17,15 +15,25 @@ import {
   resolveStudentFinanceOverviewMetrics,
 } from '../utils/resolve-student-finance-overview';
 
+function installmentStatusKey(state: string | null | undefined): string | null {
+  if (!state) return null;
+  const map: Record<string, string> = {
+    upcoming: 'admin.student360.financeWorkspace.schedule.status.upcoming',
+    due: 'admin.student360.financeWorkspace.schedule.status.due',
+    partially_paid: 'admin.student360.financeWorkspace.schedule.status.partiallyPaid',
+    paid: 'admin.student360.financeWorkspace.schedule.status.paid',
+    overdue: 'admin.student360.financeWorkspace.schedule.status.overdue',
+    cancelled: 'admin.student360.financeWorkspace.schedule.status.cancelled',
+  };
+  return map[state] ?? null;
+}
+
 export function StudentFinanceOverviewPanel({
   studentId,
-  effectiveYearId,
-  workspace,
-  officialSummary,
-  officialSummaryLoading,
-  officialSummaryError,
-  onReloadOfficialSummary,
-  installmentsSummary,
+  financialOverview,
+  financialOverviewLoading,
+  financialOverviewError,
+  onReloadFinancialOverview,
   canCollect,
   onOpenCollection,
 }: StudentFinancePanelProps) {
@@ -33,19 +41,13 @@ export function StudentFinanceOverviewPanel({
   const { formatDate } = useFormat();
 
   const metrics = useMemo(
-    () =>
-      resolveStudentFinanceOverviewMetrics({
-        officialSummary,
-        workspace,
-        installmentsSummary,
-      }),
-    [officialSummary, workspace, installmentsSummary],
+    () => resolveStudentFinanceOverviewMetrics(financialOverview),
+    [financialOverview],
   );
 
   const billingLabel = resolveBillingPartyLabel({
-    financialResponsibleName: officialSummary?.financial_responsible?.name,
-    billingPartnerName: refName(workspace?.billing_partner),
-    billingPartyType: officialSummary?.billing_profile?.billing_party_type ?? workspace?.finance_profile?.billing_party_type,
+    billingProfile: financialOverview?.billing_profile,
+    billingPartyType: financialOverview?.billing_profile?.billing_party_type,
     t,
   });
 
@@ -53,66 +55,41 @@ export function StudentFinanceOverviewPanel({
     if (!metrics) return [];
     const currency = metrics.currency;
     return [
-      {
-        key: 'annual_total',
-        label: t('admin.student360.financeWorkspace.metrics.annualTotal'),
-        value: metrics.annual_total,
-      },
-      {
-        key: 'due_to_date',
-        label: t('admin.student360.financeWorkspace.metrics.dueToDate'),
-        value: metrics.due_to_date,
-        tone: 'amber' as const,
-      },
-      {
-        key: 'paid',
-        label: t('admin.student360.financeWorkspace.metrics.paid'),
-        value: metrics.paid,
-        tone: 'green' as const,
-      },
-      {
-        key: 'remaining',
-        label: t('admin.student360.financeWorkspace.metrics.remaining'),
-        value: metrics.remaining,
-      },
-      {
-        key: 'overdue',
-        label: t('admin.student360.financeWorkspace.metrics.overdue'),
-        value: metrics.overdue,
-        tone: 'red' as const,
-      },
-      {
-        key: 'next_installment',
-        label: t('admin.student360.financeWorkspace.metrics.nextInstallment'),
-        value: metrics.next_installment_amount,
-        hint:
-          metrics.next_installment_date != null
-            ? formatDate(metrics.next_installment_date)
-            : undefined,
-      },
-    ].map((item) => ({
-      ...item,
-      currency,
-    }));
-  }, [metrics, t, formatDate]);
+      { key: 'annual_total', label: t('admin.student360.financeWorkspace.metrics.annualTotal'), value: metrics.annual_total },
+      { key: 'due_to_date', label: t('admin.student360.financeWorkspace.metrics.dueToDate'), value: metrics.due_to_date, tone: 'amber' as const },
+      { key: 'paid', label: t('admin.student360.financeWorkspace.metrics.paid'), value: metrics.paid, tone: 'green' as const },
+      { key: 'remaining', label: t('admin.student360.financeWorkspace.metrics.remaining'), value: metrics.remaining },
+      { key: 'overdue', label: t('admin.student360.financeWorkspace.metrics.overdue'), value: metrics.overdue, tone: 'red' as const },
+      { key: 'upcoming', label: t('admin.student360.financeWorkspace.metrics.upcoming'), value: metrics.upcoming },
+    ].map((item) => ({ ...item, currency }));
+  }, [metrics, t]);
 
-  if (officialSummaryLoading && !metrics) {
+  if (financialOverviewLoading && !metrics) {
     return <StudentSectionSkeleton rows={3} />;
   }
 
-  if (officialSummaryError) {
+  if (financialOverviewError) {
     return (
       <div className="student-finance-summary-error" role="alert">
         <p>{t('admin.student360.financeOps.summaryLoadError')}</p>
-        <button type="button" className="btn btn--ghost btn--sm" onClick={onReloadOfficialSummary}>
+        <button type="button" className="btn btn--ghost btn--sm" onClick={onReloadFinancialOverview}>
           {t('common.retry')}
         </button>
       </div>
     );
   }
 
+  const nextInstallment = financialOverview?.next_installment;
+  const nextStatusKey = installmentStatusKey(metrics?.next_installment_state);
+
   return (
     <div className="student-finance-overview">
+      {financialOverview?.academic_year?.name ? (
+        <p className="tiny muted student-finance-overview__year">
+          {t('admin.student360.finance.academicYear')}: {financialOverview.academic_year.name}
+        </p>
+      ) : null}
+
       <Student360MetricGrid
         variant="finance"
         items={summaryItems.map((item) => ({
@@ -121,14 +98,47 @@ export function StudentFinanceOverviewPanel({
           value: (
             <span className="student-finance-overview__metric-value">
               <FinanceMoney amount={item.value} currency={item.currency ?? undefined} />
-              {'hint' in item && item.hint ? (
-                <span className="tiny muted student-finance-overview__metric-hint"> — {item.hint}</span>
-              ) : null}
             </span>
           ),
           tone: 'tone' in item ? item.tone : undefined,
         }))}
       />
+
+      {nextInstallment ? (
+        <Card className="student-finance-section student-finance-overview__next-card">
+          <Student360SectionHeader title={t('admin.student360.financeWorkspace.metrics.nextInstallment')} />
+          <dl className="detail-list compact">
+            <div>
+              <dt>{t('admin.student360.financeWorkspace.fees.columns.name')}</dt>
+              <dd dir="auto">{metrics?.next_installment_fee_name ?? t('common.dash')}</dd>
+            </div>
+            {metrics?.next_installment_period ? (
+              <div>
+                <dt>{t('admin.student360.financeWorkspace.schedule.columns.period')}</dt>
+                <dd>{metrics.next_installment_period}</dd>
+              </div>
+            ) : null}
+            <div>
+              <dt>{t('admin.student360.financeWorkspace.schedule.columns.amount')}</dt>
+              <dd><FinanceMoney amount={nextInstallment.amount} currency={metrics?.currency ?? undefined} /></dd>
+            </div>
+            <div>
+              <dt>{t('admin.student360.financeWorkspace.fees.columns.remaining')}</dt>
+              <dd><FinanceMoney amount={nextInstallment.remaining_amount} currency={metrics?.currency ?? undefined} /></dd>
+            </div>
+            <div>
+              <dt>{t('admin.student360.financeWorkspace.schedule.columns.dueDate')}</dt>
+              <dd>{metrics?.next_installment_date ? formatDate(metrics.next_installment_date) : t('common.dash')}</dd>
+            </div>
+            <div>
+              <dt>{t('academic.status')}</dt>
+              <dd>
+                {nextStatusKey ? t(nextStatusKey) : metrics?.next_installment_state ?? t('common.dash')}
+              </dd>
+            </div>
+          </dl>
+        </Card>
+      ) : null}
 
       <div className="student-finance-overview__cards">
         <Card className="student-finance-section">
@@ -138,62 +148,76 @@ export function StudentFinanceOverviewPanel({
               <dt>{t('admin.finance.billingPartner')}</dt>
               <dd dir="auto">{billingLabel}</dd>
             </div>
-            {officialSummary?.billing_profile?.effective_from ? (
+            {financialOverview?.billing_profile?.effective_from ? (
               <div>
                 <dt>{t('admin.student360.financeWorkspace.billingEffectiveFrom')}</dt>
-                <dd>{formatDate(officialSummary.billing_profile.effective_from)}</dd>
-              </div>
-            ) : null}
-            {workspace?.finance_profile?.state ? (
-              <div>
-                <dt>{t('academic.status')}</dt>
-                <dd>{workspace.finance_profile.state}</dd>
+                <dd>{formatDate(financialOverview.billing_profile.effective_from)}</dd>
               </div>
             ) : null}
           </dl>
         </Card>
 
         <Card className="student-finance-section">
-          <Student360SectionHeader
-            title={t('admin.student360.financeWorkspace.appliedPlanTitle')}
-            action={
-              <Link href={`/admin/finance/students/${studentId}?returnTo=${encodeURIComponent(`/admin/students/${studentId}?tab=finance&financeSubTab=fees`)}`} className="btn btn--ghost btn--sm">
-                {t('admin.student360.financeWorkspace.openFees')}
-              </Link>
-            }
-          />
-          <dl className="detail-list compact">
-            <div>
-              <dt>{t('admin.student360.finance.academicYear')}</dt>
-              <dd>{refName(workspace?.academic_year) ?? refName(officialSummary?.academic_year) ?? t('common.dash')}</dd>
+          <Student360SectionHeader title={t('admin.student360.financeWorkspace.appliedPlansTitle')} />
+          {financialOverview?.applied_plans?.length ? (
+            <div className="student-finance-applied-plans">
+              {financialOverview.applied_plans.map((plan) => (
+                <div key={plan.id} className="student-finance-applied-plan">
+                  <div className="student-finance-applied-plan__head">
+                    <strong dir="auto">{plan.name}</strong>
+                    <Link href={`/admin/finance/fee-plans/${plan.id}`} className="btn btn--ghost btn--sm">
+                      {t('admin.student360.financeWorkspace.openPlan')}
+                    </Link>
+                  </div>
+                  <dl className="detail-list compact">
+                    <div>
+                      <dt>{t('admin.student360.finance.academicYear')}</dt>
+                      <dd>{plan.academic_year?.name ?? t('common.dash')}</dd>
+                    </div>
+                    {plan.assigned_date ? (
+                      <div>
+                        <dt>{t('admin.finance.assignFlow.assignedDate')}</dt>
+                        <dd>{formatDate(plan.assigned_date)}</dd>
+                      </div>
+                    ) : null}
+                    <div>
+                      <dt>{t('admin.student360.financeWorkspace.metrics.annualTotal')}</dt>
+                      <dd><FinanceMoney amount={plan.total_fees} currency={metrics?.currency ?? undefined} /></dd>
+                    </div>
+                    <div>
+                      <dt>{t('admin.student360.financeWorkspace.metrics.paid')}</dt>
+                      <dd><FinanceMoney amount={plan.paid} currency={metrics?.currency ?? undefined} /></dd>
+                    </div>
+                    <div>
+                      <dt>{t('admin.student360.financeWorkspace.metrics.remaining')}</dt>
+                      <dd><FinanceMoney amount={plan.remaining} currency={metrics?.currency ?? undefined} /></dd>
+                    </div>
+                    <div>
+                      <dt>{t('admin.student360.financeWorkspace.feesCount')}</dt>
+                      <dd>{plan.fees_count}</dd>
+                    </div>
+                    <div>
+                      <dt>{t('admin.student360.financeWorkspace.installmentsCount')}</dt>
+                      <dd>{plan.installments_count}</dd>
+                    </div>
+                    {plan.state ? (
+                      <div>
+                        <dt>{t('academic.status')}</dt>
+                        <dd>{plan.state}</dd>
+                      </div>
+                    ) : null}
+                  </dl>
+                </div>
+              ))}
             </div>
-            <div>
-              <dt>{t('admin.student360.financeWorkspace.feeCount')}</dt>
-              <dd>{installmentsSummary?.total_count != null ? String(installmentsSummary.total_count) : t('common.dash')}</dd>
-            </div>
-            <div>
-              <dt>{t('admin.student360.financeWorkspace.appliedTotal')}</dt>
-              <dd>
-                <FinanceMoney amount={metrics?.annual_total} currency={metrics?.currency ?? undefined} />
-              </dd>
-            </div>
-            <div>
-              <dt>{t('admin.student360.financeWorkspace.specialAgreement')}</dt>
-              <dd>
-                {metrics?.has_special_agreement
-                  ? t('admin.student360.financeWorkspace.hasSpecialAgreement')
-                  : t('admin.student360.financeWorkspace.noSpecialAgreement')}
-              </dd>
-            </div>
-          </dl>
+          ) : (
+            <p className="muted">{t('admin.student360.financeWorkspace.noAppliedPlans')}</p>
+          )}
         </Card>
       </div>
 
       <div className="student-finance-overview__actions row">
-        <Link
-          href={`/admin/students/${studentId}?tab=finance&financeSubTab=schedule`}
-          className="btn btn--ghost btn--sm"
-        >
+        <Link href={`/admin/students/${studentId}?tab=finance&financeSubTab=schedule`} className="btn btn--ghost btn--sm">
           {t('admin.student360.financeWorkspace.openSchedule')}
         </Link>
         {canCollect ? (

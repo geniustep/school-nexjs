@@ -670,6 +670,7 @@ export interface PaymentCollection {
   unallocated_amount?: number;
   allocation_status?: string;
   allowed_actions?: string[];
+  updated_overview?: import('@/types/student-financial-overview').CollectionUpdatedOverview | null;
 }
 
 export interface StudentFinanceProfile {
@@ -762,12 +763,15 @@ export interface CreatePaymentCollectionPayload {
   student_id: number;
   academic_year_id: number;
   journal_id: number;
-  billing_partner_id: number;
+  billing_partner_id?: number;
+  billing_profile_id?: number;
   amount: number;
   payment_method: PaymentMethod;
-  collection_date: string;
+  collection_date?: string;
+  payment_date?: string;
   reference?: string;
   notes?: string;
+  allocation_mode?: 'selected_installments' | 'auto' | string;
   allocations?: { student_fee_id?: number; installment_id?: number; amount: number }[];
   cheque?: ChequeRegistrationPayload;
 }

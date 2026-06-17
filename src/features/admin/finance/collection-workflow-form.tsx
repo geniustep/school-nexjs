@@ -36,11 +36,17 @@ import { useFinanceReferenceData } from '@/features/admin/finance/use-finance-lo
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import type { StudentInstallment } from '@/features/admin/student-finance/types';
 import type {
+  CollectionUpdatedOverview,
+  CreatePaymentCollectionResponse,
+} from '@/types/student-financial-overview';
+import type {
   CreatePaymentCollectionPayload,
   FinanceStudentSearchResult,
   PaymentCollection,
   PaymentJournal,
 } from '@/types/finance';
+import { useStudentCollectibleItems } from '@/features/admin/student-finance/hooks/use-student-collectible-items';
+import { collectibleItemsToInstallments } from './collectible-item-mapper';
 import {
   buildAllocationPayload,
   sumAllocationAmounts,
@@ -88,7 +94,9 @@ export function CollectionWorkflowForm({
   lockStudent = false,
   initialAcademicYearId,
   initialBillingPartnerId,
+  initialBillingProfileId,
   useInstallmentAllocations = false,
+  onOverviewUpdate,
   embedded = false,
 }: {
   onDone: (collection: PaymentCollection) => void;
@@ -97,7 +105,9 @@ export function CollectionWorkflowForm({
   lockStudent?: boolean;
   initialAcademicYearId?: number | string;
   initialBillingPartnerId?: number | string;
+  initialBillingProfileId?: number | string;
   useInstallmentAllocations?: boolean;
+  onOverviewUpdate?: (overview: CollectionUpdatedOverview) => void;
   embedded?: boolean;
 }) {
   const t = useT();
@@ -126,7 +136,9 @@ export function CollectionWorkflowForm({
       lockStudent={lockStudent}
       initialAcademicYearId={initialAcademicYearId}
       initialBillingPartnerId={initialBillingPartnerId}
+      initialBillingProfileId={initialBillingProfileId}
       useInstallmentAllocations={useInstallmentAllocations}
+      onOverviewUpdate={onOverviewUpdate}
       embedded={embedded}
       onDone={onDone}
       onCancel={onCancel}
@@ -142,7 +154,9 @@ function CollectionWorkflowFormReady({
   lockStudent = false,
   initialAcademicYearId,
   initialBillingPartnerId,
+  initialBillingProfileId,
   useInstallmentAllocations = false,
+  onOverviewUpdate,
   embedded = false,
   onDone,
   onCancel,
@@ -154,7 +168,9 @@ function CollectionWorkflowFormReady({
   lockStudent?: boolean;
   initialAcademicYearId?: number | string;
   initialBillingPartnerId?: number | string;
+  initialBillingProfileId?: number | string;
   useInstallmentAllocations?: boolean;
+  onOverviewUpdate?: (overview: CollectionUpdatedOverview) => void;
   embedded?: boolean;
   onDone: (collection: PaymentCollection) => void;
   onCancel: () => void;
@@ -188,6 +204,7 @@ function CollectionWorkflowFormReady({
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [createdCollection, setCreatedCollection] = useState<PaymentCollection | null>(null);
+  const [updatedOverview, setUpdatedOverview] = useState<CollectionUpdatedOverview | null>(null);
   const [hasCashSession, setHasCashSession] = useState<boolean | null>(null);
   const [checkingCashSession, setCheckingCashSession] = useState(false);
 
@@ -225,28 +242,15 @@ function CollectionWorkflowFormReady({
   const { partners, defaultId, hintKey, requiresUserChoice } = billingPartnerSelection;
   const partnersLoadFailed = !!partnersState.error || (!partnersState.loading && partners.length === 0);
 
-  const installmentParams = useMemo(
-    () =>
-      selectedStudent && academicYearId
-        ? {
-            page: 1,
-            page_size: 100,
-            academic_year_id: Number(academicYearId),
-            exclude_paid: 1,
-          }
-        : null,
-    [selectedStudent, academicYearId],
+  const collectibleState = useStudentCollectibleItems(
+    selectedStudent?.id ?? null,
+    academicYearId || null,
+    !!(selectedStudent && useInstallmentAllocations && academicYearId),
   );
-
-  const installmentsState = useAdminResource<StudentInstallment[]>(
-    selectedStudent && useInstallmentAllocations && installmentParams
-      ? endpoints.admin.studentInstallments(selectedStudent.id)
-      : null,
-    installmentParams ?? undefined,
-  );
+  const collectibleData = collectibleState.data;
   const openInstallments = useMemo(
-    () => (installmentsState.data ?? []).filter((row) => (row.remaining_amount ?? 0) > 0),
-    [installmentsState.data],
+    () => collectibleItemsToInstallments(collectibleData?.items ?? []),
+    [collectibleData?.items],
   );
 
   const allowedMethods = useMemo(
@@ -333,9 +337,9 @@ function CollectionWorkflowFormReady({
   });
   const allocatedTotal = sumAllocationAmounts(allocationInputs);
   const showSelectionStep =
-    useInstallmentAllocations && !!academicYearId && (installmentsState.loading || openInstallments.length > 0);
+    useInstallmentAllocations && !!academicYearId && (collectibleState.loading || openInstallments.length > 0);
   const showAllocationStep =
-    useInstallmentAllocations && !!academicYearId && (installmentsState.loading || openInstallments.length > 0);
+    useInstallmentAllocations && !!academicYearId && (collectibleState.loading || openInstallments.length > 0);
 
   const selectedInstallments = useMemo(
     () => openInstallments.filter((row) => selectedInstallmentIds.includes(row.id)),
@@ -450,13 +454,18 @@ function CollectionWorkflowFormReady({
       student_id: selectedStudent.id,
       academic_year_id: Number(academicYearId),
       journal_id: Number(journalId),
-      billing_partner_id: Number(billingPartnerId),
       amount: parsedAmount,
       payment_method: paymentMethod,
+      payment_date: collectionDate,
       collection_date: collectionDate,
       reference: reference.trim() || undefined,
       notes: notes.trim() || undefined,
     };
+    if (initialBillingProfileId) {
+      payload.billing_profile_id = Number(initialBillingProfileId);
+    } else if (billingPartnerId) {
+      payload.billing_partner_id = Number(billingPartnerId);
+    }
 
     if (showAllocationStep && !skipAllocation && openInstallments.length > 0) {
       const lines = buildAllocationPayload(allocationInputs, openInstallments);
@@ -470,7 +479,10 @@ function CollectionWorkflowFormReady({
         setError(t(`admin.finance.collectionWorkflow.errors.${validation}`));
         return null;
       }
-      if (lines.length) payload.allocations = lines;
+      if (lines.length) {
+        payload.allocation_mode = 'selected_installments';
+        payload.allocations = lines;
+      }
     }
 
     if (isCheque) {
@@ -495,16 +507,30 @@ function CollectionWorkflowFormReady({
     }
     setSubmitting(true);
     setError(null);
-    const res = await api.post<PaymentCollection>(endpoints.admin.financePaymentCollections, payload);
+    const res = await api.post<CreatePaymentCollectionResponse | PaymentCollection>(
+      endpoints.admin.financePaymentCollections,
+      payload,
+    );
     setSubmitting(false);
     if (!res.success) {
       setError(resolveErrorMessage(res.error.code, res.error.message));
       return;
     }
-    setCreatedCollection(res.data);
+    const body = res.data;
+    const collection =
+      body && typeof body === 'object' && 'collection' in body
+        ? (body as CreatePaymentCollectionResponse).collection
+        : (body as PaymentCollection);
+    const overview =
+      body && typeof body === 'object' && 'updated_overview' in body
+        ? (body as CreatePaymentCollectionResponse).updated_overview ?? null
+        : collection.updated_overview ?? null;
+    setCreatedCollection(collection);
+    setUpdatedOverview(overview);
+    if (overview) onOverviewUpdate?.(overview);
     setStep('success');
     if (embedded) {
-      onDone(res.data);
+      onDone(collection);
     }
   }
 
@@ -546,6 +572,32 @@ function CollectionWorkflowFormReady({
             <dt>{t('admin.finance.collectionWorkflow.allocationsCount')}</dt>
             <dd>{createdCollection.allocations?.length ?? 0}</dd>
           </div>
+          {createdCollection.receipt_number || createdCollection.receipt_id ? (
+            <div>
+              <dt>{t('admin.finance.receiptNumber')}</dt>
+              <dd>{createdCollection.receipt_number ?? `#${createdCollection.receipt_id}`}</dd>
+            </div>
+          ) : null}
+          <div>
+            <dt>{t('admin.finance.collectionWorkflow.allocatedAmount')}</dt>
+            <dd><FinanceMoney amount={createdCollection.allocated_amount} /></dd>
+          </div>
+          <div>
+            <dt>{t('admin.finance.collectionWorkflow.unallocatedAmount')}</dt>
+            <dd><FinanceMoney amount={createdCollection.unallocated_amount} /></dd>
+          </div>
+          {updatedOverview?.totals ? (
+            <>
+              <div>
+                <dt>{t('admin.student360.financeWorkspace.metrics.remaining')}</dt>
+                <dd><FinanceMoney amount={updatedOverview.totals.remaining} /></dd>
+              </div>
+              <div>
+                <dt>{t('admin.student360.financeWorkspace.metrics.overdue')}</dt>
+                <dd><FinanceMoney amount={updatedOverview.totals.overdue} /></dd>
+              </div>
+            </>
+          ) : null}
         </dl>
         {isChequePayment(createdCollection.payment_method) ? (
           <p className="finance-cheque-pending-note">{t('admin.finance.collectionWorkflow.chequePendingNote')}</p>
@@ -614,8 +666,9 @@ function CollectionWorkflowFormReady({
 
       {selectedStudent && installmentFlow && step === 'selection' ? (
         <CollectionDuesSelectionStep
-          installments={openInstallments}
-          loading={installmentsState.loading}
+          items={collectibleData?.items ?? []}
+          summary={collectibleData?.summary ?? null}
+          loading={collectibleState.loading}
           currency={journalCurrency}
           selectedIds={selectedInstallmentIds}
           onSelectedIdsChange={setSelectedInstallmentIds}
@@ -825,7 +878,7 @@ function CollectionWorkflowFormReady({
           {showAllocationStep && (!installmentFlow || step === 'allocation' || step === 'review') ? (
             <ReceivableAllocationSection
               installments={selectedInstallments.length ? selectedInstallments : openInstallments}
-              loading={installmentsState.loading}
+              loading={collectibleState.loading}
               currency={journalCurrency}
               collectionAmount={parsedAmount}
               allocationInputs={allocationInputs}

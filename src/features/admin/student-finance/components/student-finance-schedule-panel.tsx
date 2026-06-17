@@ -18,6 +18,11 @@ import { InstallmentStatusBadges } from './installment-status-badges';
 import type { StudentFinancePanelProps } from './student-finance-panel-props';
 
 function resolveScheduleStatus(row: StudentInstallment, t: (key: string) => string): string {
+  if (row.display_state) {
+    const key = `admin.student360.financeWorkspace.schedule.status.${row.display_state}`;
+    const translated = t(key);
+    if (translated !== key) return translated;
+  }
   if (row.state === 'cancelled') return t('admin.student360.financeWorkspace.schedule.status.cancelled');
   if (row.payment_status === 'paid') return t('admin.student360.financeWorkspace.schedule.status.paid');
   if (row.payment_status === 'partially_paid') {
@@ -34,7 +39,7 @@ function resolveScheduleStatus(row: StudentInstallment, t: (key: string) => stri
 export function StudentFinanceSchedulePanel({
   studentId,
   effectiveYearId,
-  officialSummary,
+  financialOverview,
   onOpenCollection,
   canCollect,
 }: StudentFinancePanelProps) {
@@ -47,7 +52,7 @@ export function StudentFinanceSchedulePanel({
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const currency = officialSummary?.summary.currency.name;
+  const currency = financialOverview?.totals.currency.name;
 
   const query = useMemo(
     () => ({

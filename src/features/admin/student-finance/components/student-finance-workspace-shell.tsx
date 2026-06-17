@@ -6,7 +6,6 @@ import { useSearchParams } from 'next/navigation';
 import { ApiErrorView } from '@/components/states/states';
 import { StudentCollectionDrawer } from '@/features/admin/finance/student-collection-drawer';
 import { useT } from '@/features/i18n/locale-context';
-import { useStudentFinanceSummary } from '@/features/admin/students/hooks/use-student-finance-summary';
 import {
   canCollectStudentPayments,
   canViewStudentPayments,
@@ -21,14 +20,13 @@ import {
 } from '@/features/admin/students/components/student-360-loading';
 import { Student360SectionHeader } from '@/features/admin/students/components/student-360-section-header';
 import { useStudentFinanceTabState } from '../hooks/use-student-finance-tab-state';
-import { useStudentInstallmentsSummary } from '../hooks/use-student-installments-summary';
+import { useStudentFinancialOverview } from '../hooks/use-student-financial-overview';
 import {
   parseStudentFinanceSubTab,
   studentFinanceSubTabLabelKey,
   STUDENT_FINANCE_SUB_TABS,
   type StudentFinanceSubTab,
 } from '../utils/student-finance-sub-tab';
-import { hasFinanceSummaryData } from '../utils/reference-labels';
 import {
   resolveFinanceTabLoadPhase,
   shouldShowFinanceEmptyState,
@@ -66,12 +64,7 @@ export function StudentFinanceWorkspaceShell({
     isRefreshing,
   } = useStudentFinanceTabState(studentId, details);
 
-  const officialSummaryState = useStudentFinanceSummary(
-    studentId,
-    effectiveYearId,
-    !!effectiveYearId,
-  );
-  const installmentsSummaryState = useStudentInstallmentsSummary(
+  const financialOverviewState = useStudentFinancialOverview(
     studentId,
     effectiveYearId,
     !!effectiveYearId,
@@ -91,19 +84,13 @@ export function StudentFinanceWorkspaceShell({
 
   const refreshFinanceData = () => {
     workspaceState.reload();
-    officialSummaryState.reload();
-    installmentsSummaryState.reload();
+    financialOverviewState.reload();
     onChanged?.();
   };
 
-  const hasInstallmentActivity =
-    (workspace?.installments_summary?.upcoming_count ?? 0) > 0 ||
-    (workspace?.installments_summary?.overdue_count ?? 0) > 0;
-
   const emptyFinance =
-    !hasFinanceSummaryData(workspace?.summary) &&
-    !hasInstallmentActivity &&
-    (officialSummaryState.data?.summary.total_assessed ?? 0) === 0 &&
+    (financialOverviewState.data?.totals.annual_total ?? 0) === 0 &&
+    (financialOverviewState.data?.counts.fees_count ?? 0) === 0 &&
     (workspace?.recent_collections?.length ?? 0) === 0;
 
   const showFinanceEmpty = shouldShowFinanceEmptyState({
@@ -162,11 +149,10 @@ export function StudentFinanceWorkspaceShell({
       capabilities,
       effectiveYearId,
       workspace,
-      officialSummary: officialSummaryState.data,
-      officialSummaryLoading: officialSummaryState.loading,
-      officialSummaryError: officialSummaryState.error,
-      onReloadOfficialSummary: officialSummaryState.reload,
-      installmentsSummary: installmentsSummaryState.data,
+      financialOverview: financialOverviewState.data,
+      financialOverviewLoading: financialOverviewState.loading,
+      financialOverviewError: financialOverviewState.error,
+      onReloadFinancialOverview: financialOverviewState.reload,
       canViewPayments,
       canCollect,
       onRefresh: refreshFinanceData,
@@ -178,10 +164,9 @@ export function StudentFinanceWorkspaceShell({
       capabilities,
       effectiveYearId,
       workspace,
-      officialSummaryState.data,
-      officialSummaryState.loading,
-      officialSummaryState.error,
-      installmentsSummaryState.data,
+      financialOverviewState.data,
+      financialOverviewState.loading,
+      financialOverviewState.error,
       canViewPayments,
       canCollect,
     ],
@@ -255,6 +240,7 @@ export function StudentFinanceWorkspaceShell({
               studentId={studentId}
               details={details}
               capabilities={capabilities}
+              financialOverview={financialOverviewState.data}
               onChanged={() => refreshFinanceData()}
               embedded
             />
@@ -266,8 +252,10 @@ export function StudentFinanceWorkspaceShell({
         open={showCollectionDrawer}
         studentId={studentId}
         academicYearId={effectiveYearId ? Number(effectiveYearId) : undefined}
+        billingProfileId={financialOverviewState.data?.billing_profile_id ?? undefined}
         onClose={() => setShowCollectionDrawer(false)}
         onSuccess={refreshFinanceData}
+        onOverviewUpdate={financialOverviewState.reload}
       />
     </div>
   );

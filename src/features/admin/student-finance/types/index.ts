@@ -169,6 +169,10 @@ export interface FinancialAgreement {
   allowed_actions?: AllowedActionsMap;
   discount_type?: string | null;
   discount_reason?: string | null;
+  empty_draft?: boolean;
+  source?: string | null;
+  line_count?: number;
+  total_amount?: number;
 }
 
 export interface StudentInstallment {
@@ -179,6 +183,9 @@ export interface StudentInstallment {
   agreement_id?: number | null;
   agreement_line_id?: number | null;
   fee_id?: number | null;
+  fee_name?: string | null;
+  fee_type_name?: string | null;
+  period_label?: string | null;
   service?: Ref & { category?: string };
   period_start?: string | null;
   period_end?: string | null;
@@ -194,6 +201,7 @@ export interface StudentInstallment {
   state?: string;
   payment_status?: InstallmentPaymentStatus | string;
   timing_status?: InstallmentTimingStatus | string;
+  display_state?: string | null;
   schedule_status?: string;
   allow_early_payment?: boolean;
   allowed_actions?: AllowedActionsMap;

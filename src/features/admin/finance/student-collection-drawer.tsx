@@ -6,19 +6,24 @@ import { useToast } from '@/components/ui/toast';
 import { useT } from '@/features/i18n/locale-context';
 import { CollectionWorkflowForm } from './collection-workflow-form';
 import type { PaymentCollection } from '@/types/finance';
+import type { CollectionUpdatedOverview } from '@/types/student-financial-overview';
 
 export function StudentCollectionDrawer({
   open,
   studentId,
   academicYearId,
+  billingProfileId,
   onClose,
   onSuccess,
+  onOverviewUpdate,
 }: {
   open: boolean;
   studentId: number;
   academicYearId?: number;
+  billingProfileId?: number;
   onClose: () => void;
   onSuccess: () => void;
+  onOverviewUpdate?: () => void;
 }) {
   const t = useT();
   const toast = useToast();
@@ -33,6 +38,10 @@ export function StudentCollectionDrawer({
     }
   }
 
+  function handleOverviewUpdate(_overview: CollectionUpdatedOverview) {
+    onOverviewUpdate?.();
+  }
+
   return (
     <SetupDrawer open={open} title={t('admin.finance.collectionWorkflow.drawerTitle')} onClose={onClose}>
       <CollectionWorkflowForm
@@ -40,7 +49,9 @@ export function StudentCollectionDrawer({
         initialStudentId={studentId}
         lockStudent
         initialAcademicYearId={academicYearId}
+        initialBillingProfileId={billingProfileId}
         useInstallmentAllocations
+        onOverviewUpdate={handleOverviewUpdate}
         onDone={handleDone}
         onCancel={onClose}
       />
