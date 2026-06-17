@@ -753,3 +753,18 @@
   flex-direction: column;
   gap: 8px;
 }
+
+.fee-plans-list__name-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  cursor: pointer;
+  text-align: inherit;
+  font: inherit;
+}
+
+.fee-plans-list__name-link:hover strong {
+  color: var(--primary, #2563eb);
+  text-decoration: underline;
+}

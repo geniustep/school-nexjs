@@ -118,6 +118,10 @@ export function FeePlanLineDialog({
       setError(t('admin.finance.feePlansWorkspace.errors.scheduleMismatch'));
       return;
     }
+    if (draft.frequency === 'once' && draft.installmentCount > 1) {
+      setError(t('admin.finance.feePlansWorkspace.errors.oneTimeMultiInstallment'));
+      return;
+    }
     onSave(draft);
     onClose();
   }
@@ -158,7 +162,7 @@ export function FeePlanLineDialog({
                 <option value="">{t('admin.finance.selectFeeType')}</option>
                 {feeTypes.map((ft) => (
                   <option key={ft.id} value={ft.id}>
-                    {ft.name} ({ft.code})
+                    {ft.name}
                   </option>
                 ))}
                 <option value={CREATE_NEW_VALUE}>{t('admin.finance.feePlansWorkspace.createFeeTypeInline')}</option>
@@ -172,6 +176,7 @@ export function FeePlanLineDialog({
                 onChange={(e) => update('label', e.target.value)}
                 placeholder={selectedType?.name ?? ''}
               />
+              <span className="tiny muted">{t('admin.finance.feePlansWorkspace.lineLabelHint')}</span>
             </label>
             <label>
               {t('admin.finance.lineAmount')}
@@ -198,7 +203,19 @@ export function FeePlanLineDialog({
               <select
                 className="input"
                 value={draft.frequency}
-                onChange={(e) => update('frequency', e.target.value)}
+                onChange={(e) => {
+                  const frequency = e.target.value;
+                  setDraft((prev) => {
+                    if (!prev) return prev;
+                    const next = { ...prev, frequency };
+                    if (frequency === 'once') {
+                      next.installmentCount = 1;
+                      next.scheduleMode = 'on_assignment';
+                      next.installmentSchedule = [];
+                    }
+                    return next;
+                  });
+                }}
               >
                 {frequencyOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>

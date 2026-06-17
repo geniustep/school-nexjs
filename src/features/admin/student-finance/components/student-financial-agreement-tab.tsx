@@ -26,6 +26,7 @@ import {
   postAgreementAction,
 } from '../api/finance-admin-api';
 import { AgreementCreateDrawer } from './agreement-create-drawer';
+import { StudentFinanceAssignFeeDrawer } from '@/features/admin/students/components/student-finance-assign-fee-drawer';
 import { CancelFutureInstallmentsDrawer } from './cancel-future-installments-drawer';
 import { ServiceCategoryDetailsList } from './service-category-details-list';
 import { AgreementStateBadge } from './agreement-state-badge';
@@ -70,6 +71,7 @@ export function StudentFinancialAgreementTab({
     isRefreshing,
   } = useStudentFinanceTabState(studentId, details);
   const [showCreate, setShowCreate] = useState(false);
+  const [showAssignFeePlan, setShowAssignFeePlan] = useState(false);
   const [showCancelFuture, setShowCancelFuture] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [pendingConfirm, setPendingConfirm] = useState<{
@@ -283,9 +285,18 @@ export function StudentFinancialAgreementTab({
       )}
       <div className="student-finance-header-buttons">
         {canCreate && !hasAgreementData(agreement) ? (
-          <button type="button" className="btn btn--primary btn--sm" onClick={() => setShowCreate(true)}>
-            {t('admin.student360.financialAgreement.create')}
-          </button>
+          <>
+            <button
+              type="button"
+              className="btn btn--primary btn--sm"
+              onClick={() => setShowAssignFeePlan(true)}
+            >
+              {t('admin.student360.financialAgreement.applyFeePlan')}
+            </button>
+            <button type="button" className="btn btn--ghost btn--sm" onClick={() => setShowCreate(true)}>
+              {t('admin.student360.financialAgreement.createManualAgreement')}
+            </button>
+          </>
         ) : null}
         {agreement && allowed.edit ? (
           <button
@@ -328,9 +339,14 @@ export function StudentFinancialAgreementTab({
           description={t('admin.student360.financialAgreement.emptyDescription')}
           action={
             canCreate ? (
-              <button type="button" className="btn btn--primary" onClick={() => setShowCreate(true)}>
-                {t('admin.student360.financialAgreement.create')}
-              </button>
+              <div className="row">
+                <button type="button" className="btn btn--primary" onClick={() => setShowAssignFeePlan(true)}>
+                  {t('admin.student360.financialAgreement.applyFeePlan')}
+                </button>
+                <button type="button" className="btn btn--ghost" onClick={() => setShowCreate(true)}>
+                  {t('admin.student360.financialAgreement.createManualAgreement')}
+                </button>
+              </div>
             ) : undefined
           }
         />
@@ -348,6 +364,20 @@ export function StudentFinancialAgreementTab({
             }}
           />
         ) : null}
+        <StudentFinanceAssignFeeDrawer
+          open={showAssignFeePlan}
+          studentId={studentId}
+          classId={details.current_enrollment?.class?.id ?? details.student.class?.id}
+          levelId={details.current_enrollment?.level?.id ?? details.student.level?.id}
+          initialAcademicYearId={effectiveYearId}
+          enrollmentJoinDate={details.current_enrollment?.actual_join_date}
+          enrollmentStartDate={details.current_enrollment?.date_start}
+          onClose={() => setShowAssignFeePlan(false)}
+          onAssigned={() => {
+            setShowAssignFeePlan(false);
+            refreshAll();
+          }}
+        />
       </div>
     );
   }
@@ -698,6 +728,21 @@ export function StudentFinancialAgreementTab({
           }}
         />
       ) : null}
+
+      <StudentFinanceAssignFeeDrawer
+        open={showAssignFeePlan}
+        studentId={studentId}
+        classId={details.current_enrollment?.class?.id ?? details.student.class?.id}
+        levelId={details.current_enrollment?.level?.id ?? details.student.level?.id}
+        initialAcademicYearId={effectiveYearId}
+        enrollmentJoinDate={details.current_enrollment?.actual_join_date}
+        enrollmentStartDate={details.current_enrollment?.date_start}
+        onClose={() => setShowAssignFeePlan(false)}
+        onAssigned={() => {
+          setShowAssignFeePlan(false);
+          refreshAll();
+        }}
+      />
 
       <ConfirmationDialog
         open={pendingConfirm != null}

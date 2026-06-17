@@ -36,6 +36,10 @@ export interface FeePlanSummaryTotals {
   optionalCount: number;
   requiredTotal: number;
   optionalTotal: number;
+  oneTimeTotal: number;
+  monthlyUnitTotal: number;
+  maxInstallmentCount: number;
+  expectedTotal: number | null;
   grandTotal: number;
   currency: string | null;
 }

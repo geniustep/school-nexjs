@@ -62,7 +62,11 @@ export function FeePlansList({
       {
         key: 'name',
         header: t('admin.finance.planName'),
-        render: (row) => <strong>{row.name}</strong>,
+        render: (row) => (
+          <button type="button" className="fee-plans-list__name-link" onClick={() => onView(row)}>
+            <strong>{row.name}</strong>
+          </button>
+        ),
       },
       {
         key: 'code',

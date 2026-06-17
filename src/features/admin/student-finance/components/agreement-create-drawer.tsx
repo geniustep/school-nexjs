@@ -279,6 +279,7 @@ export function AgreementCreateDrawer({
   return (
     <SetupDrawer
       open
+      size="wide"
       title={t('admin.student360.financialAgreement.createDrawer.title')}
       onClose={onClose}
     >

@@ -269,6 +269,7 @@ export default function AdminFinanceStudentProfilePage({
           <FinanceAssignFeeForm
             studentId={Number(studentId)}
             classId={student.class?.id}
+            levelId={student.level?.id}
             onDone={() => {
               setShowAssignForm(false);
               feesState.reload();

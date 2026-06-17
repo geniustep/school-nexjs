@@ -1,0 +1,226 @@
+.fee-plan-assign-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 960px;
+}
+
+.fee-plan-assign-flow__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.fee-plan-assign-flow__header h1 {
+  margin: 0 0 0.25rem;
+}
+
+.fee-plan-assign-source__title {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+}
+
+.fee-plan-assign-source__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  gap: 0.5rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.fee-plan-assign-stepper ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.fee-plan-assign-stepper__item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--muted, #64748b);
+  font-size: 0.875rem;
+}
+
+.fee-plan-assign-stepper__item--current {
+  color: var(--primary, #2563eb);
+  font-weight: 600;
+}
+
+.fee-plan-assign-stepper__item--done {
+  color: var(--success, #16a34a);
+}
+
+.fee-plan-assign-stepper__index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  font-size: 0.75rem;
+}
+
+.fee-plan-assign-flow__section h2 {
+  margin-top: 0;
+}
+
+.fee-plan-assign-flow__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.fee-plan-assign-flow__filters .input {
+  min-width: 8rem;
+  flex: 1 1 8rem;
+}
+
+.fee-plan-assign-flow__code {
+  display: block;
+  font-size: 0.75rem;
+}
+
+.fee-plan-assign-flow__badge--eligible {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.fee-plan-assign-flow__badge--already_assigned {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+.fee-plan-assign-flow__badge--level_out_of_scope {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.fee-plan-assign-flow__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border, #e2e8f0);
+  position: sticky;
+  bottom: 0;
+  background: var(--surface, #fff);
+}
+
+.fee-plan-assign-flow__warn {
+  border-inline-start: 3px solid #f59e0b;
+  padding: 0.75rem 1rem;
+}
+
+.fee-plan-assign-flow__block ul {
+  margin: 0.5rem 0 0;
+  padding-inline-start: 1.25rem;
+}
+
+.fee-plan-assign-flow__fee-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.fee-plan-assign-flow__fee-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 0.375rem;
+}
+
+.fee-plan-assign-flow__fee-item--locked {
+  opacity: 0.85;
+  background: var(--surface-muted, #f8fafc);
+}
+
+.fee-plan-assign-flow__fee-item label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  width: 100%;
+  cursor: pointer;
+}
+
+.fee-plan-assign-flow__result-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.fee-plan-assign-flow__result-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--border, #e2e8f0);
+}
+
+.fee-plan-assign-flow__result-item--ok {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.fee-plan-assign-flow__result-item--fail {
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.fee-plan-assign-flow__result-item > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.fee-plan-assign-flow__result-summary {
+  font-size: 1.05rem;
+  margin: 0 0 1rem;
+}
+
+@media (max-width: 640px) {
+  .fee-plan-assign-flow {
+    max-width: none;
+  }
+
+  .fee-plan-assign-flow__table {
+    overflow-x: auto;
+  }
+
+  .fee-plan-assign-flow__preview-table {
+    display: block;
+    overflow-x: auto;
+  }
+
+  .fee-plan-assign-flow__footer .btn {
+    flex: 1 1 auto;
+    min-width: calc(50% - 0.5rem);
+  }
+}
+
+[dir='rtl'] .fee-plan-assign-flow__warn {
+  border-inline-start: none;
+  border-inline-end: 3px solid #f59e0b;
+}

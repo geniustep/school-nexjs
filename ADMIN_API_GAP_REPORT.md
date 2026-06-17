@@ -24,6 +24,9 @@
 | **Resource/homework file upload** | API | Attachments not wired in admin forms. |
 | **Export with query filters** | Partial | Export buttons call server export; filter params not always forwarded. |
 | **Academic years list API** | API | No dedicated endpoint; class form uses optional manual `academic_year_id` only when admin enters it. |
+| **Fee plan eligible students** | API | No `GET /admin/finance/fee-plans/{id}/eligible-students`; assignment flow uses `financeStudentsSearch` + client level filter. Duplicate detection at assign time only. |
+| **Fee plan assignment preview** | API | No pre-assign installment preview endpoint; UI uses plan line `installment_schedule` when present. |
+| **Bulk assign fee plan** | API | No bulk `assign-fee-plan`; Next.js runs sequential `POST /students/{id}/assign-fee-plan` per student. |
 
 ---
 

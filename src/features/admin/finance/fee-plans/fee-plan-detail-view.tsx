@@ -63,7 +63,6 @@ export function FeePlanDetailView({
   const [lineDraft, setLineDraft] = useState<DraftFeePlanLine | null>(null);
   const [lineSaving, setLineSaving] = useState(false);
   const [lineError, setLineError] = useState<string | null>(null);
-  const [assignHintOpen, setAssignHintOpen] = useState(false);
   const [duplicateOpen, setDuplicateOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
   const [restoreOpen, setRestoreOpen] = useState(false);
@@ -341,9 +340,12 @@ export function FeePlanDetailView({
                 />
               ) : null}
               {canAssign ? (
-                <button type="button" className="btn btn--primary" onClick={() => setAssignHintOpen(true)}>
+                <Link
+                  href={`/admin/finance/fee-plans/${plan.id}/assign`}
+                  className="btn btn--primary"
+                >
                   {t('admin.finance.feePlansWorkspace.applyToStudents')}
-                </button>
+                </Link>
               ) : null}
               {feePlanAllowsAction(plan, 'duplicate') ? (
                 <button type="button" className="btn btn--ghost" onClick={() => setDuplicateOpen(true)}>
@@ -465,28 +467,6 @@ export function FeePlanDetailView({
           onClose={() => setLineDialogOpen(false)}
           onFeeTypeCreated={onFeeTypeCreated}
         />
-      ) : null}
-
-      {assignHintOpen ? (
-        <div className="fee-plan-detail-dialog-backdrop" role="presentation" onClick={() => setAssignHintOpen(false)}>
-          <div
-            className="card fee-plan-detail-dialog"
-            role="dialog"
-            aria-modal="true"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3>{t('admin.finance.feePlansWorkspace.applyToStudents')}</h3>
-            <p>{t('admin.finance.feePlansWorkspace.applyToStudentsHint')}</p>
-            <div className="fee-plan-detail-dialog__actions">
-              <Link href="/admin/finance/students" className="btn btn--primary">
-                {t('admin.finance.feePlansWorkspace.goToStudentFinance')}
-              </Link>
-              <button type="button" className="btn btn--ghost" onClick={() => setAssignHintOpen(false)}>
-                {t('common.close')}
-              </button>
-            </div>
-          </div>
-        </div>
       ) : null}
 
       {lineError ? <p className="form-error fee-plan-detail-page__error">{lineError}</p> : null}

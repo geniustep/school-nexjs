@@ -19,7 +19,8 @@ export interface FeePlanFinancialSummary {
 
 export type FeePlanLineWarningKey =
   | 'monthlySingleInstallment'
-  | 'tuitionOptional';
+  | 'tuitionOptional'
+  | 'oneTimeMultiInstallment';
 
 export interface FeePlanLineDisplay {
   line: FeePlanLine;
@@ -142,6 +143,9 @@ export function buildFeePlanLineDisplay(
 
   if (isMonthlyFrequency(frequencyUi) && installmentCount <= 1) {
     warnings.push('monthlySingleInstallment');
+  }
+  if (isOneTimeFrequency(frequencyUi) && installmentCount > 1) {
+    warnings.push('oneTimeMultiInstallment');
   }
   const category = line.fee_type?.category?.toLowerCase();
   if (category === 'tuition' && line.is_optional) {

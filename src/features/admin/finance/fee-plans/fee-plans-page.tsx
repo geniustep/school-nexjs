@@ -27,6 +27,7 @@ import { useLevelOptions } from '@/features/admin/academic-setup/hooks/use-level
 import { buildFeePlanScopeGroups } from './fee-plan-level-scope';
 import type { FeePlanDrawerMode } from './fee-plan-types';
 import { normalizeFeePlans } from './normalize-fee-plan';
+import { feePlanState } from '@/lib/utils/finance';
 import '@/features/admin/finance/finance-ui.css';
 
 const EMPTY_FILTERS: FeePlanFiltersState = {
@@ -155,9 +156,14 @@ export function FeePlansPage() {
           )
         }
       >
-        {(rows) => (
+        {(rows) => {
+          const normalized = normalizeFeePlans(rows);
+          const visibleRows = query.stateFilter
+            ? normalized
+            : normalized.filter((plan) => feePlanState(plan) !== 'archived');
+          return (
           <FeePlansList
-            rows={normalizeFeePlans(rows)}
+            rows={visibleRows}
             pagination={pg ? { page: pg.page, total_pages: pg.total_pages, total: pg.total } : undefined}
             canManage={canManage}
             scopeGroups={scopeGroups}
@@ -166,7 +172,8 @@ export function FeePlansPage() {
             onEdit={openEditDrawer}
             onReload={() => state.reload()}
           />
-        )}
+          );
+        }}
       </ResourceView>
 
       {canManage && (
