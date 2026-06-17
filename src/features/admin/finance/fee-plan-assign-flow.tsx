@@ -5,7 +5,6 @@ import { useCallback, useMemo, useState } from 'react';
 import { EmptyState, LoadingState } from '@/components/states/states';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
-import { feeTypeFrequencyLabel } from '@/features/admin/finance/fee-types/fee-type-labels';
 import {
   assessStudentEligibility,
   filterEligibilityRows,
@@ -13,7 +12,7 @@ import {
   type StudentPlanEligibility,
 } from '@/features/admin/finance/fee-plan-assign-eligibility';
 import { assignFeePlanToStudents, type FeePlanAssignStudentResult } from '@/features/admin/finance/fee-plan-assign-executor';
-import { feePlanAssignErrorMessageKey } from '@/features/admin/finance/fee-plan-assign-errors';
+import { resolveAssignErrorMessage } from '@/features/admin/finance/fee-plan-assign-errors';
 import {
   FeePlanAssignSourceCard,
   FeePlanAssignStepper,
@@ -33,6 +32,13 @@ import {
   sumLineSubtotals,
 } from '@/features/admin/finance/fee-plan-assign-utils';
 import { buildFeePlanScopeGroups, buildEnabledFeePlanScopeLevels } from '@/features/admin/finance/fee-plans/fee-plan-level-scope';
+import {
+  billingPartyTypeLabelKey,
+  countAssignedInstallments,
+  pricingModeLabelKey,
+  resolveLinePricing,
+  sumAssignedFeeTotals,
+} from '@/features/admin/finance/fee-plans/fee-plan-pricing';
 import { useAcademicYearOptions } from '@/features/admin/finance/use-finance-lookups';
 import { useLevelOptions } from '@/features/admin/academic-setup/hooks/use-level-options';
 import { useFormat } from '@/features/i18n/use-format';
@@ -267,8 +273,7 @@ export function FeePlanAssignFlow({ plan }: { plan: FeePlan }) {
   }
 
   function resolveResultError(result: FeePlanAssignStudentResult): string {
-    const key = feePlanAssignErrorMessageKey(result.errorCode);
-    return key ? t(key) : result.errorMessage ?? t('admin.finance.assignFlow.assignFailed');
+    return resolveAssignErrorMessage(result.errorCode, result.errorMessage, t);
   }
 
   if (!validation.canAssign) {
@@ -461,22 +466,27 @@ export function FeePlanAssignFlow({ plan }: { plan: FeePlan }) {
               <thead>
                 <tr>
                   <th>{t('admin.finance.feeTypeName')}</th>
-                  <th>{t('admin.finance.lineAmount')}</th>
-                  <th>{t('admin.finance.feeTypesWorkspace.frequency')}</th>
-                  <th>{t('admin.finance.feePlansWorkspace.installmentCount')}</th>
+                  <th>{t('admin.finance.feePlansWorkspace.pricing.modeLabel')}</th>
+                  <th>{t('admin.finance.feePlansWorkspace.pricing.installmentAmount')}</th>
+                  <th>{t('admin.finance.feePlansWorkspace.detailInstallmentsColumn')}</th>
                   <th>{t('admin.finance.assignFlow.lineTotal')}</th>
                 </tr>
               </thead>
               <tbody>
                 {previewLines.map((line) => {
-                  const installments = line.installment_count ?? 1;
+                  const pricing = resolveLinePricing(line);
+                  const installments = pricing.installmentCount;
+                  const pricingMode = line.pricing_mode ?? pricing.pricingMode;
                   return (
                     <tr key={line.id}>
                       <td>{line.name || line.fee_type?.name}</td>
+                      <td>{t(pricingModeLabelKey(pricingMode))}</td>
                       <td>
-                        <FinanceMoney amount={line.amount} currency={plan.currency} />
+                        <FinanceMoney
+                          amount={pricing.installmentAmount ?? pricing.unitAmount}
+                          currency={plan.currency}
+                        />
                       </td>
-                      <td>{feeTypeFrequencyLabel(line.frequency ?? 'once', t)}</td>
                       <td>{installments}</td>
                       <td>
                         <FinanceMoney amount={computeLineExpectedTotal(line)} currency={plan.currency} />
@@ -574,7 +584,12 @@ export function FeePlanAssignFlow({ plan }: { plan: FeePlan }) {
           })()}
 
           <ul className="fee-plan-assign-flow__result-list">
-            {assignResults.map((result) => (
+            {assignResults.map((result) => {
+              const fees = result.response?.fees ?? [];
+              const appliedTotal = sumAssignedFeeTotals(fees);
+              const installmentTotal = countAssignedInstallments(fees);
+              const billingProfile = result.response?.billing_profile;
+              return (
               <li
                 key={result.studentId}
                 className={
@@ -583,20 +598,48 @@ export function FeePlanAssignFlow({ plan }: { plan: FeePlan }) {
                     : 'fee-plan-assign-flow__result-item fee-plan-assign-flow__result-item--fail'
                 }
               >
-                <div>
+                <div className="fee-plan-assign-flow__result-body">
                   <strong>{result.studentName}</strong>
-                  <span className="muted">
-                    {result.success
-                      ? t('admin.finance.assignFlow.assignSuccess')
-                      : resolveResultError(result)}
-                  </span>
-                  {result.success && result.response?.fees?.length ? (
-                    <span className="tiny muted">
-                      {t('admin.finance.assignFlow.feesCreated', {
-                        count: result.response.fees.length,
-                      })}
-                    </span>
-                  ) : null}
+                  {result.success ? (
+                    <>
+                      <p>{t('admin.finance.assignFlow.assignSuccessDetail')}</p>
+                      <dl className="detail-list compact fee-plan-assign-flow__result-metrics">
+                        <div>
+                          <dt>{t('admin.finance.assignFlow.feesCreatedLabel')}</dt>
+                          <dd>{fees.length}</dd>
+                        </div>
+                        <div>
+                          <dt>{t('admin.finance.assignFlow.installmentsCreatedLabel')}</dt>
+                          <dd>{installmentTotal}</dd>
+                        </div>
+                        <div>
+                          <dt>{t('admin.finance.assignFlow.appliedTotalLabel')}</dt>
+                          <dd>
+                            <FinanceMoney amount={appliedTotal} currency={plan.currency} />
+                          </dd>
+                        </div>
+                      </dl>
+                      {billingProfile ? (
+                        <div className="fee-plan-assign-flow__billing card card--nested">
+                          <p>
+                            <strong>{t('admin.finance.billingPartyTitle')}:</strong>{' '}
+                            {t(billingPartyTypeLabelKey(billingProfile.billing_party_type))}
+                          </p>
+                          {billingProfile.billing_party_type === 'guardian' &&
+                          billingProfile.created_automatically ? (
+                            <p className="tiny muted">
+                              {t('admin.finance.billingProfileCreatedAutomatically')}
+                            </p>
+                          ) : null}
+                          {billingProfile.billing_party_type === 'student' ? (
+                            <p className="tiny muted">{t('admin.finance.billingNoLinkedGuardian')}</p>
+                          ) : null}
+                        </div>
+                      ) : null}
+                    </>
+                  ) : (
+                    <span className="muted">{resolveResultError(result)}</span>
+                  )}
                 </div>
                 {result.success ? (
                   <Link
@@ -607,7 +650,8 @@ export function FeePlanAssignFlow({ plan }: { plan: FeePlan }) {
                   </Link>
                 ) : null}
               </li>
-            ))}
+            );
+            })}
           </ul>
 
           <footer className="fee-plan-assign-flow__footer">

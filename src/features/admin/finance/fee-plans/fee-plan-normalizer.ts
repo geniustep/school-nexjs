@@ -12,6 +12,7 @@ import {
   type FeePlanFormValues,
 } from './fee-plan-types';
 import { feePlanFrequencyFromApi } from './fee-plan-frequency';
+import { normalizePricingMode } from './fee-plan-pricing';
 
 export function feePlanLineCount(plan: FeePlan): number {
   return plan.lines?.length ?? 0;
@@ -41,6 +42,7 @@ export function formValuesFromFeePlan(plan: FeePlan, feeTypes: FeeType[]): FeePl
     draft.feeTypeId = line.fee_type_id ?? feeType?.id ?? 0;
     draft.label = line.description && typeof line.description === 'string' ? line.description : line.name ?? '';
     draft.amount = line.amount;
+    draft.pricingMode = normalizePricingMode(line.pricing_mode) ?? undefined;
     draft.frequency = feePlanFrequencyFromApi(line.frequency);
     if (Array.isArray(line.level_ids) && line.level_ids.length > 0) {
       draft.levelScopeMode = 'specific';

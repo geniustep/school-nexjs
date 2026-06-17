@@ -211,6 +211,8 @@ export interface FeePlanInstallmentScheduleItem {
   amount: number;
 }
 
+export type FeePlanPricingMode = 'recurring_unit_price' | 'total_amount_installments';
+
 export interface FeePlanLine {
   id: number;
   fee_type_id?: number;
@@ -221,6 +223,9 @@ export interface FeePlanLine {
   amount: number;
   quantity?: number;
   subtotal?: number;
+  pricing_mode?: FeePlanPricingMode;
+  expected_total?: number;
+  installment_amount?: number;
   frequency?: FeeTypeFrequency;
   level_ids?: number[];
   due_rule?: string;
@@ -297,6 +302,7 @@ export interface FeePlanLineInput {
   fee_type_id: number;
   amount: number;
   quantity?: number;
+  pricing_mode?: FeePlanPricingMode;
   frequency?: FeeTypeFrequency;
   level_ids?: number[];
   due_date?: string;
@@ -736,7 +742,15 @@ export interface AssignStudentFeePayload {
   selected_optional_line_ids: number[];
 }
 
+export interface BillingProfileAssignmentSummary {
+  id?: number;
+  created_automatically?: boolean;
+  billing_partner_id?: number;
+  billing_party_type?: 'guardian' | 'student' | 'custom' | string;
+}
+
 export interface AssignStudentFeePlanResponse {
+  billing_profile?: BillingProfileAssignmentSummary;
   assigned_fee_ids?: number[];
   assigned_required_line_ids?: number[];
   assigned_optional_line_ids?: number[];

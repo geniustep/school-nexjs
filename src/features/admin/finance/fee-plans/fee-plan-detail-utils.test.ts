@@ -44,8 +44,21 @@ describe('computeFeePlanFinancialSummary', () => {
 
   it('computes annual estimate only when installment_count > 1', () => {
     const withPeriods = computeFeePlanFinancialSummary([
-      sampleLine({ amount: 2000, frequency: 'monthly', installment_count: 10 }),
-      sampleLine({ id: 2, amount: 2500, frequency: 'one_time' }),
+      sampleLine({
+        amount: 2000,
+        frequency: 'monthly',
+        installment_count: 10,
+        pricing_mode: 'recurring_unit_price',
+        expected_total: 20000,
+        installment_amount: 2000,
+      }),
+      sampleLine({
+        id: 2,
+        amount: 2500,
+        frequency: 'one_time',
+        pricing_mode: 'total_amount_installments',
+        expected_total: 2500,
+      }),
     ]);
     expect(withPeriods.annualEstimate).toBe(22500);
 
@@ -72,9 +85,13 @@ describe('buildFeePlanLineDisplay', () => {
     expect(display.scopeLabelKey).toBe('allPlanLevels');
   });
 
-  it('warns on monthly with single installment', () => {
+  it('warns on monthly recurring with single installment', () => {
     const display = buildFeePlanLineDisplay(
-      sampleLine({ frequency: 'monthly', installment_count: 1 }),
+      sampleLine({
+        frequency: 'monthly',
+        installment_count: 1,
+        pricing_mode: 'recurring_unit_price',
+      }),
       samplePlan(),
       scopeGroups,
     );

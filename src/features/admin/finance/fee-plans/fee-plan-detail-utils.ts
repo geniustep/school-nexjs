@@ -1,7 +1,14 @@
 import { feePlanFrequencyFromApi } from '@/features/admin/finance/fee-plans/fee-plan-frequency';
 import type { FeePlanScopeCycleGroup } from '@/features/admin/finance/fee-plans/fee-plan-level-scope';
 import { normalizeFeePlanLevelIds } from '@/features/admin/finance/fee-plans/fee-plan-level-scope';
-import type { FeePlan, FeePlanLine } from '@/types/finance';
+import type { FeePlan, FeePlanLine, FeePlanPricingMode } from '@/types/finance';
+import {
+  computePlanFinancialBreakdown,
+  isLegacyRecurringDisplay,
+  resolveLinePricing,
+  resolvePricingModeForDisplay,
+  type FeePlanLineExpectedTotal,
+} from './fee-plan-pricing';
 
 export interface FeePlanFinancialSummary {
   lineCount: number;
@@ -33,7 +40,10 @@ export interface FeePlanLineDisplay {
   installmentCount: number;
   dueLabelKey: 'onAssignment' | 'fixedDate' | 'explicitSchedule' | 'none';
   dueDate?: string | null;
-  lineExpectedTotal: number | null;
+  pricing: FeePlanLineExpectedTotal;
+  pricingMode: FeePlanPricingMode | null;
+  lineExpectedTotal: number;
+  installmentAmount: number | null;
   warnings: FeePlanLineWarningKey[];
 }
 
@@ -57,45 +67,50 @@ export function computeFeePlanFinancialSummary(lines: FeePlanLine[]): FeePlanFin
   let monthlyRequiredTotal = 0;
   let monthlyOptionalTotal = 0;
   let maxInstallmentCount = 0;
-  let monthlyPeriods: number | null = null;
 
   for (const line of lines) {
     const amount = Number(line.amount);
     if (!Number.isFinite(amount) || amount <= 0) continue;
     const freq = lineFrequency(line);
-    const installments = line.installment_count ?? line.installment_schedule?.length ?? 1;
+    const pricing = resolveLinePricing(line);
+    const installments = pricing.installmentCount;
     maxInstallmentCount = Math.max(maxInstallmentCount, installments);
 
     if (line.is_optional) optionalCount += 1;
     else requiredCount += 1;
 
-    if (isOneTimeFrequency(freq)) {
-      if (line.is_optional) oneTimeOptionalTotal += amount;
-      else oneTimeRequiredTotal += amount;
-    } else if (isMonthlyFrequency(freq)) {
-      if (line.is_optional) monthlyOptionalTotal += amount;
-      else monthlyRequiredTotal += amount;
-      if (installments > 1) {
-        monthlyPeriods =
-          monthlyPeriods == null ? installments : Math.max(monthlyPeriods, installments);
-      }
+    if (isLegacyRecurringDisplay(line, pricing, freq)) {
+      if (line.is_optional) monthlyOptionalTotal += pricing.unitAmount;
+      else monthlyRequiredTotal += pricing.unitAmount;
+    } else if (line.is_optional) {
+      oneTimeOptionalTotal += pricing.expectedTotal;
+    } else {
+      oneTimeRequiredTotal += pricing.expectedTotal;
     }
   }
 
+  const breakdown = computePlanFinancialBreakdown(lines);
   let annualEstimate: number | null = null;
   let annualFormulaKey: string | null = null;
   let annualFormulaValues: Record<string, string | number> | null = null;
 
-  if (monthlyPeriods != null && monthlyPeriods > 1) {
-    const monthlySum = monthlyRequiredTotal + monthlyOptionalTotal;
-    annualEstimate = oneTimeRequiredTotal + oneTimeOptionalTotal + monthlySum * monthlyPeriods;
+  if (breakdown.recurringPeriodCount != null && breakdown.recurringPeriodCount > 1) {
+    annualEstimate = breakdown.expectedTotal;
     annualFormulaKey = 'admin.finance.feePlansWorkspace.detailAnnualFormula';
     annualFormulaValues = {
-      oneTime: oneTimeRequiredTotal + oneTimeOptionalTotal,
-      monthly: monthlySum,
-      periods: monthlyPeriods,
-      total: annualEstimate,
+      oneTime: breakdown.oneTimeTotal,
+      monthly: breakdown.recurringUnitTotal,
+      periods: breakdown.recurringPeriodCount,
+      total: breakdown.expectedTotal,
     };
+  } else {
+    const hasPeriodicLine = lines.some((line) => {
+      const freq = lineFrequency(line);
+      return freq === 'monthly' || freq === 'term';
+    });
+    if (!hasPeriodicLine && breakdown.expectedTotal > 0) {
+      annualEstimate = breakdown.expectedTotal;
+    }
   }
 
   return {
@@ -138,10 +153,12 @@ export function buildFeePlanLineDisplay(
   const scope = resolveLineScopeNames(line, planLevelIds, scopeGroups);
   const frequencyApi = line.frequency ?? '';
   const frequencyUi = feePlanFrequencyFromApi(frequencyApi);
-  const installmentCount = line.installment_count ?? line.installment_schedule?.length ?? 1;
+  const pricing = resolveLinePricing(line);
+  const pricingMode = resolvePricingModeForDisplay(line, pricing);
+  const installmentCount = pricing.installmentCount;
   const warnings: FeePlanLineWarningKey[] = [];
 
-  if (isMonthlyFrequency(frequencyUi) && installmentCount <= 1) {
+  if (isMonthlyFrequency(frequencyUi) && installmentCount <= 1 && pricingMode === 'recurring_unit_price') {
     warnings.push('monthlySingleInstallment');
   }
   if (isOneTimeFrequency(frequencyUi) && installmentCount > 1) {
@@ -157,13 +174,6 @@ export function buildFeePlanLineDisplay(
   else if (line.installment_schedule?.length) dueLabelKey = 'explicitSchedule';
   else if (line.due_date) dueLabelKey = 'fixedDate';
 
-  let lineExpectedTotal: number | null = null;
-  if (isOneTimeFrequency(frequencyUi)) {
-    lineExpectedTotal = Number(line.amount);
-  } else if (isMonthlyFrequency(frequencyUi) && installmentCount > 1) {
-    lineExpectedTotal = Number(line.amount) * installmentCount;
-  }
-
   return {
     line,
     feeName: line.fee_type?.name ?? line.fee_type_name ?? line.name ?? '',
@@ -175,7 +185,10 @@ export function buildFeePlanLineDisplay(
     installmentCount,
     dueLabelKey,
     dueDate: line.due_date,
-    lineExpectedTotal,
+    pricing,
+    pricingMode,
+    lineExpectedTotal: pricing.expectedTotal,
+    installmentAmount: pricing.installmentAmount,
     warnings,
   };
 }

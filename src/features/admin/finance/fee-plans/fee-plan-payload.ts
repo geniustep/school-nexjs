@@ -1,5 +1,6 @@
 import { isPositiveAmount } from '@/lib/utils/finance';
 import type { CreateFeePlanPayload, FeePlanLineInput, UpdateFeePlanPayload } from '@/types/finance';
+import { inferDefaultPricingMode, validateDraftLinePricing } from './fee-plan-pricing';
 import type { DraftFeePlanLine, FeePlanFormValues } from './fee-plan-types';
 import { sortLevelIdsByGroups, dedupeLevelIds, type FeePlanScopeCycleGroup } from './fee-plan-level-scope';
 import { feePlanFrequencyToApi } from './fee-plan-frequency';
@@ -69,9 +70,11 @@ export function findDuplicateLineScope(lines: DraftFeePlanLine[]): DraftFeePlanL
 }
 
 export function buildLinePayload(line: DraftFeePlanLine): FeePlanLineInput {
+  const pricingMode = line.pricingMode ?? inferDefaultPricingMode(line.frequency);
   const payload: FeePlanLineInput = {
     fee_type_id: line.feeTypeId,
     amount: line.amount,
+    pricing_mode: pricingMode,
     is_optional: line.isOptional,
     description: line.label.trim() || undefined,
   };
@@ -187,8 +190,12 @@ export function validateFeePlanForm(
           messageKey: 'admin.finance.feePlansWorkspace.errors.scheduleRequired',
         };
       }
+      const expectedTotal =
+        (line.pricingMode ?? inferDefaultPricingMode(line.frequency)) === 'total_amount_installments'
+          ? roundMoney(line.amount)
+          : roundMoney(line.amount * line.installmentCount);
       const total = roundMoney(installmentScheduleTotal(line.installmentSchedule));
-      if (total !== roundMoney(line.amount)) {
+      if (total !== expectedTotal) {
         return {
           field: 'lines',
           lineClientId: line.clientId,
@@ -196,6 +203,14 @@ export function validateFeePlanForm(
           messageKey: 'admin.finance.feePlansWorkspace.errors.scheduleMismatch',
         };
       }
+    }
+    const pricingError = validateDraftLinePricing(line);
+    if (pricingError) {
+      return {
+        field: 'lines',
+        lineClientId: line.clientId,
+        messageKey: pricingError,
+      };
     }
   }
 

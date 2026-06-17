@@ -1,4 +1,5 @@
 import { feePlanFrequencyFromApi } from '@/features/admin/finance/fee-plans/fee-plan-frequency';
+import { resolveLineExpectedTotal } from '@/features/admin/finance/fee-plans/fee-plan-pricing';
 import { academicYearFromSource } from '@/lib/utils/academic-years';
 import type { AssignStudentFeePayload, FeePlan, FeePlanLine } from '@/types/finance';
 
@@ -26,21 +27,9 @@ export function partitionFeePlanLines(lines: FeePlanLine[]): {
   return { required, optional };
 }
 
-/** Expected line total for preview — uses installment_count when backend subtotal is per-period. */
+/** Expected line total — prefers API expected_total, legacy fallback otherwise. */
 export function computeLineExpectedTotal(line: FeePlanLine): number {
-  const freq = feePlanFrequencyFromApi(line.frequency);
-  const amount = Number(line.amount);
-  const installments = line.installment_count ?? line.installment_schedule?.length ?? 1;
-  const subtotal = line.subtotal ?? amount;
-
-  if (freq === 'once' || freq === 'one_time') {
-    return subtotal;
-  }
-  if (freq === 'monthly') {
-    if (subtotal > amount && installments > 1) return subtotal;
-    if (installments > 1) return amount * installments;
-  }
-  return subtotal;
+  return resolveLineExpectedTotal(line);
 }
 
 export function lineSubtotal(line: FeePlanLine): number {
@@ -164,4 +153,8 @@ export function planHasNoAssignableLines(plan?: FeePlan | null): boolean {
 export function planLinesContractInvalid(plan?: FeePlan | null): boolean {
   if (!plan?.lines?.length) return false;
   return partitionFeePlanLines(plan.lines).required.length + partitionFeePlanLines(plan.lines).optional.length === 0;
+}
+
+export function feeTypeFrequencyLabelForLine(line: FeePlanLine): string {
+  return feePlanFrequencyFromApi(line.frequency);
 }

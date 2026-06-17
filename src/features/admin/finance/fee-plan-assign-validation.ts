@@ -1,4 +1,4 @@
-import { feePlanFrequencyFromApi } from '@/features/admin/finance/fee-plans/fee-plan-frequency';
+import { lineHasPricingInconsistency } from '@/features/admin/finance/fee-plans/fee-plan-pricing';
 import { normalizeFeePlanLevelIds } from '@/features/admin/finance/fee-plans/fee-plan-level-scope';
 import { feePlanState } from '@/lib/utils/finance';
 import type { FeePlan, FeePlanLine } from '@/types/finance';
@@ -19,9 +19,7 @@ export interface FeePlanAssignValidation {
 }
 
 export function lineHasFrequencyInstallmentConflict(line: FeePlanLine): boolean {
-  const freq = feePlanFrequencyFromApi(line.frequency);
-  const installments = line.installment_count ?? line.installment_schedule?.length ?? 1;
-  return (freq === 'once' || freq === 'one_time') && installments > 1;
+  return lineHasPricingInconsistency(line);
 }
 
 export function detectPlanNameYearMismatch(plan: FeePlan, academicYearName: string): boolean {

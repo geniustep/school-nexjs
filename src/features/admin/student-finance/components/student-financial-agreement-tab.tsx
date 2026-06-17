@@ -40,6 +40,7 @@ import {
   hasAgreementData,
   resolveReferenceLabel,
 } from '../utils/reference-labels';
+import { hasFinanceSummaryMetrics } from '../utils/normalize-student-finance-workspace';
 import {
   resolveFinanceTabLoadPhase,
   shouldShowAgreementEmptyState,
@@ -326,6 +327,11 @@ export function StudentFinancialAgreementTab({
   }
 
   if (showAgreementEmpty) {
+    const hasFeePlanFinance =
+      hasFinanceSummaryMetrics(workspace?.summary) ||
+      (workspace?.installments_summary?.upcoming_count ?? 0) > 0 ||
+      (workspace?.installments_summary?.overdue_count ?? 0) > 0;
+
     return (
       <div className="student-finance-tab student-360-tab-panel">
         <Student360SectionHeader
@@ -334,9 +340,37 @@ export function StudentFinancialAgreementTab({
           action={headerActions}
         />
         {isBackgroundRefreshing ? <StudentInlineLoading /> : null}
+        {hasFeePlanFinance ? (
+          <Card className="student-finance-section student-finance-fee-plan-notice">
+            <Student360SectionHeader title={t('admin.finance.feePlanAppliedTitle')} />
+            <p>{t('admin.finance.feePlanAppliedWithoutAgreement')}</p>
+            <dl className="detail-list compact">
+              <div>
+                <dt>{t('admin.finance.billingPartyTitle')}</dt>
+                <dd>{refName(workspace?.billing_partner) ?? t('common.dash')}</dd>
+              </div>
+              <div>
+                <dt>{t('admin.finance.totalAmount')}</dt>
+                <dd>
+                  <FinanceMoney
+                    amount={workspace?.summary?.total_due}
+                    currency={workspace?.summary?.currency?.name}
+                  />
+                </dd>
+              </div>
+              <div>
+                <dt>{t('admin.finance.feePlansWorkspace.installmentCount')}</dt>
+                <dd>
+                  {(workspace?.installments_summary?.upcoming_count ?? 0) +
+                    (workspace?.installments_summary?.overdue_count ?? 0) || t('common.dash')}
+                </dd>
+              </div>
+            </dl>
+          </Card>
+        ) : null}
         <Student360CompactEmpty
-          title={t('admin.student360.financialAgreement.emptyTitle')}
-          description={t('admin.student360.financialAgreement.emptyDescription')}
+          title={t('admin.student360.financialAgreement.noIndependentAgreementTitle')}
+          description={t('admin.student360.financialAgreement.noIndependentAgreementDesc')}
           action={
             canCreate ? (
               <div className="row">

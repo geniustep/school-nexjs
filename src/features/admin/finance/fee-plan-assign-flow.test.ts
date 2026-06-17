@@ -23,7 +23,22 @@ describe('lineHasFrequencyInstallmentConflict', () => {
 });
 
 describe('computeLineExpectedTotal', () => {
-  it('multiplies monthly amount by installment count', () => {
+  it('uses expected_total from API for recurring monthly', () => {
+    const line: FeePlanLine = {
+      id: 2,
+      amount: 2000,
+      is_optional: false,
+      fee_type_id: 2,
+      frequency: 'monthly',
+      installment_count: 10,
+      pricing_mode: 'recurring_unit_price',
+      expected_total: 20000,
+      installment_amount: 2000,
+    };
+    expect(computeLineExpectedTotal(line)).toBe(20000);
+  });
+
+  it('multiplies monthly amount by installment count when legacy', () => {
     const line: FeePlanLine = {
       id: 2,
       amount: 2000,

@@ -119,6 +119,32 @@ export default function AdminFinanceStudentProfilePage({
         },
       },
       {
+        key: 'original',
+        header: t('admin.finance.appliedTotal'),
+        render: (row) => (
+          <FinanceMoney amount={row.original_amount ?? row.net_amount ?? row.amount} currency={getStudentFeeCurrency(row)} />
+        ),
+      },
+      {
+        key: 'installments',
+        header: t('admin.finance.feeInstallmentsBreakdown'),
+        render: (row) => {
+          const installments = row.installments ?? row.lines ?? [];
+          if (!installments.length) {
+            return (
+              <FinanceMoney amount={row.original_amount ?? row.net_amount ?? row.amount} currency={getStudentFeeCurrency(row)} />
+            );
+          }
+          const unit = installments[0]?.amount;
+          return (
+            <span className="tiny">
+              {installments.length} ×{' '}
+              <FinanceMoney amount={unit} currency={getStudentFeeCurrency(row)} />
+            </span>
+          );
+        },
+      },
+      {
         key: 'net',
         header: t('admin.finance.netAmount'),
         render: (row) => (
@@ -280,7 +306,7 @@ export default function AdminFinanceStudentProfilePage({
         )}
 
         <section className="card finance-student-profile__section finance-student-profile__fees">
-          <h2>{t('admin.finance.assignedFees')}</h2>
+          <h2>{t('admin.finance.feesAndInstallments')}</h2>
           <ResourceView
             state={feesState}
             loadingLabel={t('common.loading')}

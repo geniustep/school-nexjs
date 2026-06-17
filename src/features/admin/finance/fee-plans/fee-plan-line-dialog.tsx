@@ -10,11 +10,20 @@ import type { FeeType } from '@/types/finance';
 import { FeePlanInstallmentEditor } from './fee-plan-installment-editor';
 import { FeePlanLineLevelSelector } from './fee-plan-line-level-selector';
 import {
+  computeDraftInstallmentAmount,
+  computeDraftLineExpectedTotal,
+  draftAmountFieldLabelKey,
+  draftAmountHintKey,
+  inferDefaultPricingMode,
+  validateDraftLinePricing,
+} from './fee-plan-pricing';
+import {
   installmentScheduleTotal,
   roundMoney,
   suggestEqualInstallments,
 } from './fee-plan-payload';
 import type { DraftFeePlanLine, FeePlanScheduleMode } from './fee-plan-types';
+import type { FeePlanPricingMode } from '@/types/finance';
 import type { FeePlanScopeCycleGroup } from './fee-plan-level-scope';
 
 const CREATE_NEW_VALUE = '__create_fee_type__';
@@ -52,8 +61,22 @@ export function FeePlanLineDialog({
 
   const scheduleMismatch = useMemo(() => {
     if (!draft || draft.scheduleMode !== 'explicit' || draft.installmentCount <= 1) return false;
-    return roundMoney(installmentScheduleTotal(draft.installmentSchedule)) !== roundMoney(draft.amount);
+    return roundMoney(installmentScheduleTotal(draft.installmentSchedule)) !== roundMoney(computeDraftLineExpectedTotal(draft));
   }, [draft]);
+
+  const draftPricing = useMemo(() => {
+    if (!draft) return null;
+    return {
+      expectedTotal: computeDraftLineExpectedTotal(draft),
+      installmentAmount: computeDraftInstallmentAmount(draft),
+    };
+  }, [draft]);
+
+  const showPricingModeChoice =
+    draft != null &&
+    draft.frequency !== 'once' &&
+    draft.frequency !== 'one_time' &&
+    draft.installmentCount > 1;
 
   const frequencyOptions = useMemo(
     () =>
@@ -79,7 +102,11 @@ export function FeePlanLineDialog({
         next.scheduleMode = 'on_assignment';
         next.installmentSchedule = [];
       } else if (prev.scheduleMode === 'explicit') {
-        next.installmentSchedule = suggestEqualInstallments(prev.amount, count, prev.dueDate || undefined);
+        next.installmentSchedule = suggestEqualInstallments(
+          computeDraftLineExpectedTotal(next),
+          count,
+          prev.dueDate || undefined,
+        );
       }
       return next;
     });
@@ -91,7 +118,7 @@ export function FeePlanLineDialog({
       const next = { ...prev, scheduleMode: mode };
       if (mode === 'explicit' && prev.installmentCount > 1) {
         next.installmentSchedule = suggestEqualInstallments(
-          prev.amount,
+          computeDraftLineExpectedTotal(next),
           prev.installmentCount,
           prev.dueDate || undefined,
         );
@@ -116,6 +143,11 @@ export function FeePlanLineDialog({
     }
     if (draft.scheduleMode === 'explicit' && draft.installmentCount > 1 && scheduleMismatch) {
       setError(t('admin.finance.feePlansWorkspace.errors.scheduleMismatch'));
+      return;
+    }
+    const pricingError = validateDraftLinePricing(draft);
+    if (pricingError) {
+      setError(t(pricingError));
       return;
     }
     if (draft.frequency === 'once' && draft.installmentCount > 1) {
@@ -179,7 +211,7 @@ export function FeePlanLineDialog({
               <span className="tiny muted">{t('admin.finance.feePlansWorkspace.lineLabelHint')}</span>
             </label>
             <label>
-              {t('admin.finance.lineAmount')}
+              {t(draftAmountFieldLabelKey(draft))}
               <input
                 className="input"
                 type="number"
@@ -188,15 +220,21 @@ export function FeePlanLineDialog({
                 value={draft.amount || ''}
                 onChange={(e) => {
                   const amount = Number(e.target.value);
-                  update('amount', amount);
-                  if (draft.scheduleMode === 'explicit' && draft.installmentCount > 1) {
-                    update(
-                      'installmentSchedule',
-                      suggestEqualInstallments(amount, draft.installmentCount, draft.dueDate || undefined),
-                    );
-                  }
+                  setDraft((prev) => {
+                    if (!prev) return prev;
+                    const next = { ...prev, amount };
+                    if (prev.scheduleMode === 'explicit' && prev.installmentCount > 1) {
+                      next.installmentSchedule = suggestEqualInstallments(
+                        computeDraftLineExpectedTotal({ ...next, amount }),
+                        prev.installmentCount,
+                        prev.dueDate || undefined,
+                      );
+                    }
+                    return next;
+                  });
                 }}
               />
+              <span className="tiny muted">{t(draftAmountHintKey(draft))}</span>
             </label>
             <label>
               {t('admin.finance.feeTypesWorkspace.frequency')}
@@ -207,11 +245,16 @@ export function FeePlanLineDialog({
                   const frequency = e.target.value;
                   setDraft((prev) => {
                     if (!prev) return prev;
-                    const next = { ...prev, frequency };
+                    const next = {
+                      ...prev,
+                      frequency,
+                      pricingMode: inferDefaultPricingMode(frequency),
+                    };
                     if (frequency === 'once') {
                       next.installmentCount = 1;
                       next.scheduleMode = 'on_assignment';
                       next.installmentSchedule = [];
+                      next.pricingMode = 'total_amount_installments';
                     }
                     return next;
                   });
@@ -224,6 +267,37 @@ export function FeePlanLineDialog({
                 ))}
               </select>
             </label>
+            {showPricingModeChoice ? (
+              <label>
+                {t('admin.finance.feePlansWorkspace.pricing.modeLabel')}
+                <select
+                  className="input"
+                  value={draft.pricingMode ?? inferDefaultPricingMode(draft.frequency)}
+                  onChange={(e) => {
+                    const pricingMode = e.target.value as FeePlanPricingMode;
+                    setDraft((prev) => {
+                      if (!prev) return prev;
+                      const next = { ...prev, pricingMode };
+                      if (prev.scheduleMode === 'explicit' && prev.installmentCount > 1) {
+                        next.installmentSchedule = suggestEqualInstallments(
+                          computeDraftLineExpectedTotal(next),
+                          prev.installmentCount,
+                          prev.dueDate || undefined,
+                        );
+                      }
+                      return next;
+                    });
+                  }}
+                >
+                  <option value="recurring_unit_price">
+                    {t('admin.finance.feePlansWorkspace.pricing.recurringOption')}
+                  </option>
+                  <option value="total_amount_installments">
+                    {t('admin.finance.feePlansWorkspace.pricing.installmentTotalOption')}
+                  </option>
+                </select>
+              </label>
+            ) : null}
             <FeePlanLineLevelSelector
               planLevelIds={planLevelIds}
               scopeGroups={scopeGroups}
@@ -254,6 +328,18 @@ export function FeePlanLineDialog({
                 onChange={(e) => handleInstallmentCountChange(e.target.value)}
               />
             </label>
+            {draftPricing && draft.installmentCount > 1 ? (
+              <div className="fee-plan-line-dialog__pricing-preview">
+                <p className="tiny muted">
+                  {t('admin.finance.feePlansWorkspace.pricing.expectedInstallment')}:{' '}
+                  <strong className="mono">{draftPricing.installmentAmount ?? '—'}</strong>
+                </p>
+                <p className="tiny muted">
+                  {t('admin.finance.feePlansWorkspace.pricing.expectedTotal')}:{' '}
+                  <strong className="mono">{draftPricing.expectedTotal}</strong>
+                </p>
+              </div>
+            ) : null}
             {draft.installmentCount > 1 && (
               <>
                 <label>
@@ -294,7 +380,7 @@ export function FeePlanLineDialog({
                         update(
                           'installmentSchedule',
                           suggestEqualInstallments(
-                            draft.amount,
+                            computeDraftLineExpectedTotal(draft),
                             draft.installmentCount,
                             draft.dueDate || undefined,
                           ),
@@ -304,7 +390,7 @@ export function FeePlanLineDialog({
                       {t('admin.finance.feePlansWorkspace.distributeEvenly')}
                     </button>
                     <FeePlanInstallmentEditor
-                      amount={draft.amount}
+                      amount={computeDraftLineExpectedTotal(draft)}
                       schedule={draft.installmentSchedule}
                       onChange={(schedule) => update('installmentSchedule', schedule)}
                       error={

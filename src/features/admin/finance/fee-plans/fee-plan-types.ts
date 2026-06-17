@@ -1,4 +1,4 @@
-import type { FeePlanInstallmentScheduleItem } from '@/types/finance';
+import type { FeePlanInstallmentScheduleItem, FeePlanPricingMode } from '@/types/finance';
 
 export type FeePlanScheduleMode = 'on_assignment' | 'fixed_date' | 'explicit';
 
@@ -11,6 +11,7 @@ export interface DraftFeePlanLine {
   feeTypeId: number;
   label: string;
   amount: number;
+  pricingMode?: FeePlanPricingMode;
   frequency: string;
   levelScopeMode: FeePlanLineLevelScopeMode;
   levelIds: number[];

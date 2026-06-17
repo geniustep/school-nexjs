@@ -19,6 +19,7 @@ import {
   computeFeePlanFinancialSummary,
   type FeePlanLineDisplay,
 } from '@/features/admin/finance/fee-plans/fee-plan-detail-utils';
+import { pricingModeLabelKey } from '@/features/admin/finance/fee-plans/fee-plan-pricing';
 import {
   FeePlanDeleteDialog,
   FeePlanDuplicateDialog,
@@ -263,13 +264,13 @@ export function FeePlanDetailView({
                     <thead>
                       <tr>
                         <th>{t('admin.finance.feeTypeName')}</th>
-                        <th>{t('admin.finance.feePlansWorkspace.detailScopeColumn')}</th>
-                        <th>{t('admin.finance.lineAmount')}</th>
+                        <th>{t('admin.finance.feePlansWorkspace.pricing.modeLabel')}</th>
+                        <th>{t('admin.finance.feePlansWorkspace.pricing.unitOrTotalColumn')}</th>
                         <th>{t('admin.finance.feeTypesWorkspace.frequency')}</th>
-                        <th>{t('admin.finance.feePlansWorkspace.detailMandatoryColumn')}</th>
                         <th>{t('admin.finance.feePlansWorkspace.detailInstallmentsColumn')}</th>
-                        <th>{t('admin.finance.feePlansWorkspace.detailDueColumn')}</th>
+                        <th>{t('admin.finance.feePlansWorkspace.pricing.installmentAmount')}</th>
                         <th>{t('admin.finance.feePlansWorkspace.detailExpectedTotalColumn')}</th>
+                        <th>{t('admin.finance.feePlansWorkspace.detailMandatoryColumn')}</th>
                         {canEdit ? <th>{t('admin.actions')}</th> : null}
                       </tr>
                     </thead>
@@ -527,33 +528,31 @@ function FeePlanLineTableRow({
         ))}
       </td>
       <td>
-        {display.scopeLabelKey === 'allPlanLevels'
-          ? t('admin.finance.feePlansWorkspace.allPlanLevels')
-          : display.scopeNames.join(', ') || t('common.dash')}
+        <span className="badge badge--slate">
+          {t(pricingModeLabelKey(display.pricingMode))}
+        </span>
       </td>
       <td className="mono">
-        <FinanceMoney amount={display.line.amount} currency={currency} />
+        <FinanceMoney amount={display.pricing.unitAmount} currency={currency} />
       </td>
       <td>{feeTypeFrequencyLabel(display.frequencyUi, t)}</td>
+      <td>{display.installmentCount}</td>
+      <td className="mono">
+        {display.installmentAmount != null ? (
+          <FinanceMoney amount={display.installmentAmount} currency={currency} />
+        ) : (
+          t('common.dash')
+        )}
+      </td>
+      <td className="mono">
+        <FinanceMoney amount={display.lineExpectedTotal} currency={currency} />
+      </td>
       <td>
         <span className={`badge ${display.isOptional ? 'badge--slate' : 'badge--blue'}`}>
           {display.isOptional
             ? t('admin.finance.feePlansWorkspace.optionalBadge')
             : t('admin.finance.feePlansWorkspace.requiredBadge')}
         </span>
-      </td>
-      <td>{display.installmentCount}</td>
-      <td>
-        {display.dueLabelKey === 'fixedDate' && display.dueDate
-          ? formatDate(display.dueDate)
-          : t(`admin.finance.feePlansWorkspace.detailDue.${display.dueLabelKey}`)}
-      </td>
-      <td>
-        {display.lineExpectedTotal != null ? (
-          <FinanceMoney amount={display.lineExpectedTotal} currency={currency} />
-        ) : (
-          <span className="muted">{t('admin.finance.feePlansWorkspace.detailLineTotalNA')}</span>
-        )}
       </td>
       {canEdit ? (
         <td>
@@ -592,15 +591,13 @@ function FeePlanLineCard({
     <article className="fee-plan-detail-line-card">
       <div className="fee-plan-detail-line-card__head">
         <strong>{display.feeName}</strong>
-        <FinanceMoney amount={display.line.amount} currency={currency} />
+        <span className="badge badge--slate">{t(pricingModeLabelKey(display.pricingMode))}</span>
       </div>
       <dl>
         <div>
-          <dt>{t('admin.finance.feePlansWorkspace.detailScopeColumn')}</dt>
+          <dt>{t('admin.finance.feePlansWorkspace.pricing.unitOrTotalColumn')}</dt>
           <dd>
-            {display.scopeLabelKey === 'allPlanLevels'
-              ? t('admin.finance.feePlansWorkspace.allPlanLevels')
-              : display.scopeNames.join(', ')}
+            <FinanceMoney amount={display.pricing.unitAmount} currency={currency} />
           </dd>
         </div>
         <div>
@@ -608,23 +605,31 @@ function FeePlanLineCard({
           <dd>{feeTypeFrequencyLabel(display.frequencyUi, t)}</dd>
         </div>
         <div>
+          <dt>{t('admin.finance.feePlansWorkspace.detailInstallmentsColumn')}</dt>
+          <dd>{display.installmentCount}</dd>
+        </div>
+        <div>
+          <dt>{t('admin.finance.feePlansWorkspace.pricing.installmentAmount')}</dt>
+          <dd>
+            {display.installmentAmount != null ? (
+              <FinanceMoney amount={display.installmentAmount} currency={currency} />
+            ) : (
+              t('common.dash')
+            )}
+          </dd>
+        </div>
+        <div>
+          <dt>{t('admin.finance.feePlansWorkspace.detailExpectedTotalColumn')}</dt>
+          <dd>
+            <FinanceMoney amount={display.lineExpectedTotal} currency={currency} />
+          </dd>
+        </div>
+        <div>
           <dt>{t('admin.finance.feePlansWorkspace.detailMandatoryColumn')}</dt>
           <dd>
             {display.isOptional
               ? t('admin.finance.feePlansWorkspace.optionalBadge')
               : t('admin.finance.feePlansWorkspace.requiredBadge')}
-          </dd>
-        </div>
-        <div>
-          <dt>{t('admin.finance.feePlansWorkspace.detailInstallmentsColumn')}</dt>
-          <dd>{display.installmentCount}</dd>
-        </div>
-        <div>
-          <dt>{t('admin.finance.feePlansWorkspace.detailDueColumn')}</dt>
-          <dd>
-            {display.dueLabelKey === 'fixedDate' && display.dueDate
-              ? formatDate(display.dueDate)
-              : t(`admin.finance.feePlansWorkspace.detailDue.${display.dueLabelKey}`)}
           </dd>
         </div>
       </dl>

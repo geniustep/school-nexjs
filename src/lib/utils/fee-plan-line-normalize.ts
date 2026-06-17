@@ -49,6 +49,13 @@ export function normalizeFeePlanLine(raw: unknown): FeePlanLine | null {
 
   const subtotalRaw = normalizeMoneyValue(o.subtotal);
   const subtotal = subtotalRaw ?? amount;
+  const expectedTotal = normalizeMoneyValue(o.expected_total);
+  const installmentAmount = normalizeMoneyValue(o.installment_amount);
+  const pricingModeRaw = o.pricing_mode;
+  const pricing_mode =
+    pricingModeRaw === 'recurring_unit_price' || pricingModeRaw === 'total_amount_installments'
+      ? pricingModeRaw
+      : undefined;
 
   const feeType = normalizeFeeType(o.fee_type);
   const feeTypeId = feeType?.id ?? Number(o.fee_type_id);
@@ -83,6 +90,9 @@ export function normalizeFeePlanLine(raw: unknown): FeePlanLine | null {
     amount,
     quantity: Number.isFinite(Number(o.quantity)) ? Number(o.quantity) : undefined,
     subtotal,
+    pricing_mode,
+    expected_total: expectedTotal ?? undefined,
+    installment_amount: installmentAmount ?? undefined,
     frequency: typeof o.frequency === 'string' ? o.frequency : undefined,
     level_ids: levelIdsRaw?.length ? levelIdsRaw : undefined,
     due_rule: typeof o.due_rule === 'string' ? o.due_rule : undefined,
