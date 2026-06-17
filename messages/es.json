@@ -3640,7 +3640,12 @@
           "upcoming": "Próximo",
           "paidConfirmed": "Pagado confirmado",
           "pendingCheque": "Cheques pendientes de compensación",
-          "paidIncludesPendingCheque": "Incluye importes cubiertos por cheques pendientes de compensación."
+          "coveredTotal": "Cobertura total",
+          "coveredTotalHint": "La cobertura total incluye importes confirmados y cheques pendientes de compensación.",
+          "chequeSummary": "Resumen de cheques",
+          "pendingCheques": "Cheques pendientes",
+          "settledCheques": "Cheques compensados",
+          "rejectedCheques": "Cheques rechazados"
         },
         "billingPartyTitle": "Entidad facturada",
         "billingEffectiveFrom": "Vigente desde",
@@ -4866,6 +4871,7 @@
         "emptyFiltered": "Ningún recibo coincide con los filtros.",
         "studentSectionTitle": "Recibos",
         "studentEmpty": "No hay recibos financieros para este alumno.",
+        "legacyPayerUnavailable": "No guardado en el recibo antiguo",
         "viewAllForStudent": "Ver todos los recibos",
         "noAllocations": "Sin asignaciones a cuotas.",
         "legacyYes": "Sí",

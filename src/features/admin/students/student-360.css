@@ -751,6 +751,19 @@
   margin-top: 16px;
 }
 
+.student-finance-cheque-summary-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+  font-size: 0.875rem;
+}
+
+.student-finance-overview__cheque-hint {
+  margin: 8px 0 0;
+}
+
 .student-finance-schedule-summary {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));

@@ -9,7 +9,7 @@ import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { useFormat } from '@/features/i18n/use-format';
 import { useLocale, useT } from '@/features/i18n/locale-context';
 import { refName } from '@/lib/utils/finance';
-import { formatInstallmentDisplayTitle } from '../utils/format-installment-display';
+import { resolveInstallmentDisplayLabel } from '../utils/resolve-installment-display';
 import { StudentSectionSkeleton } from '@/features/admin/students/components/student-360-loading';
 import { Student360SectionHeader } from '@/features/admin/students/components/student-360-section-header';
 import { useStudentFinanceInstallmentsPage } from '../hooks/use-student-finance-installments-page';
@@ -114,7 +114,7 @@ export function StudentFinanceSchedulePanel({
         key: 'service',
         header: t('admin.student360.financeWorkspace.schedule.columns.fee'),
         render: (row) => {
-          const title = formatInstallmentDisplayTitle(row, locale);
+          const title = resolveInstallmentDisplayLabel(row, locale);
           return title || refName(row.service) || t('common.dash');
         },
       },

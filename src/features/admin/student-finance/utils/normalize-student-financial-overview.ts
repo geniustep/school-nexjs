@@ -9,6 +9,7 @@ import type {
   StudentFinancialOverviewCounts,
   StudentFinancialOverviewNextInstallment,
   StudentFinancialOverviewTotals,
+  ChequeSummary,
 } from '@/types/student-financial-overview';
 import type { StudentFinanceCurrency } from '@/types/student-finance';
 import { normalizeBillingProfile } from '@/features/admin/students/utils/normalize-student-finance';
@@ -38,10 +39,32 @@ function normalizeTotals(raw: Record<string, unknown>): StudentFinancialOverview
     paid: readMoney(raw.paid ?? raw.total_paid),
     paid_confirmed: readMoney(raw.paid_confirmed ?? raw.confirmed_paid),
     pending_cheque: readMoney(raw.pending_cheque ?? raw.pending_cheques ?? raw.pending_cheque_amount),
+    covered_total: readMoney(raw.covered_total ?? raw.paid),
     remaining: readMoney(raw.remaining ?? raw.total_outstanding),
     overdue: readMoney(raw.overdue ?? raw.total_overdue),
     upcoming: readMoney(raw.upcoming ?? raw.total_upcoming),
   };
+}
+
+function normalizeChequeSummary(raw: unknown): ChequeSummary | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const obj = raw as Record<string, unknown>;
+  const summary: ChequeSummary = {
+    pending_count: typeof obj.pending_count === 'number' ? obj.pending_count : 0,
+    pending_amount: readMoney(obj.pending_amount),
+    settled_count: typeof obj.settled_count === 'number' ? obj.settled_count : 0,
+    settled_amount: readMoney(obj.settled_amount),
+    rejected_count: typeof obj.rejected_count === 'number' ? obj.rejected_count : 0,
+    rejected_amount: readMoney(obj.rejected_amount),
+  };
+  const hasData =
+    summary.pending_count > 0 ||
+    summary.pending_amount > 0 ||
+    summary.settled_count > 0 ||
+    summary.settled_amount > 0 ||
+    summary.rejected_count > 0 ||
+    summary.rejected_amount > 0;
+  return hasData ? summary : null;
 }
 
 function normalizeCounts(raw: unknown): StudentFinancialOverviewCounts {
@@ -159,6 +182,7 @@ export function normalizeStudentFinancialOverview(data: unknown): StudentFinanci
     totals: normalizeTotals(totalsRaw as Record<string, unknown>),
     counts: normalizeCounts(raw.counts),
     next_installment: normalizeNextInstallment(raw.next_installment),
+    cheque_summary: normalizeChequeSummary(raw.cheque_summary),
     applied_plans: appliedPlans,
     special_agreement: normalizeSpecialAgreement(raw.special_agreement),
     billing_profile: normalizeBillingProfile(raw.billing_profile),

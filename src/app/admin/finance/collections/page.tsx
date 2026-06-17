@@ -12,10 +12,6 @@ import { CollectionDetailDrawer } from '@/features/admin/finance/collection-deta
 import { CollectionStudentCell } from '@/features/admin/finance/collection-student-cell';
 import { collectionAllocationSummary, truncateReference } from '@/features/admin/finance/collection-labels';
 import { formatCollectionReference } from '@/features/admin/finance/collection-normalize';
-import {
-  buildPaymentCollectionsListQuery,
-  filterCollectionsForStudent,
-} from '@/features/admin/finance/collection-list-query';
 import { resolveCollectionPayerLabel } from '@/features/admin/finance/collection-payer-label';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { FinanceStatusBadge } from '@/features/admin/finance/finance-status-badge';
@@ -65,7 +61,7 @@ export default function AdminFinanceCollectionsPage() {
 
   const hasFilters = !!(query || statusFilter || methodFilter || dateFrom || dateTo);
 
-  const params: ListParams = buildPaymentCollectionsListQuery({
+  const params: ListParams = {
     page,
     page_size: 20,
     search: query || undefined,
@@ -76,7 +72,7 @@ export default function AdminFinanceCollectionsPage() {
     date_to: dateTo || undefined,
     student_id: studentIdFilter || undefined,
     billing_partner_id: billingPartnerIdFilter || undefined,
-  });
+  };
   const state = useAdminResource<PaymentCollection[]>(endpoints.admin.financePaymentCollections, params);
   const pg = state.meta?.pagination;
 
@@ -96,6 +92,7 @@ export default function AdminFinanceCollectionsPage() {
           <CollectionStudentCell
             student={row.student}
             studentId={row.student_id}
+            studentName={row.student_name}
             returnTo={returnTo}
             unavailableLabel={t('admin.finance.unavailable')}
           />
@@ -209,9 +206,8 @@ export default function AdminFinanceCollectionsPage() {
         empty={<EmptyState title={t('admin.finance.noCollections')} />}
       >
         {(rows) => {
-          const scopedRows = filterCollectionsForStudent(rows, studentIdFilter);
-          const counts = countByState(scopedRows);
-          const total = studentIdFilter ? scopedRows.length : (pg?.total ?? rows.length);
+          const counts = countByState(rows);
+          const total = pg?.total ?? rows.length;
           return (
             <>
               <p className="collections-summary muted">
@@ -266,7 +262,7 @@ export default function AdminFinanceCollectionsPage() {
 
               <DataTable
                 columns={columns}
-                rows={scopedRows}
+                rows={rows}
                 rowKey={(row) => row.id}
                 onRowClick={(row) => setSelectedCollectionId(row.id)}
               />

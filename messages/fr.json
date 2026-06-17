@@ -3640,7 +3640,12 @@
           "upcoming": "À venir",
           "paidConfirmed": "Encaissé confirmé",
           "pendingCheque": "Chèques en attente d'encaissement",
-          "paidIncludesPendingCheque": "Comprend les montants couverts par des chèques en attente d'encaissement."
+          "coveredTotal": "Couverture totale",
+          "coveredTotalHint": "La couverture totale inclut les montants confirmés et les chèques en attente d'encaissement.",
+          "chequeSummary": "Résumé des chèques",
+          "pendingCheques": "Chèques en attente",
+          "settledCheques": "Chèques encaissés",
+          "rejectedCheques": "Chèques rejetés"
         },
         "billingPartyTitle": "Partie facturée",
         "billingEffectiveFrom": "Valide à partir du",
@@ -4866,6 +4871,7 @@
         "emptyFiltered": "Aucun reçu ne correspond aux filtres.",
         "studentSectionTitle": "Reçus",
         "studentEmpty": "Aucun reçu financier pour cet élève.",
+        "legacyPayerUnavailable": "Non enregistré sur l'ancien reçu",
         "viewAllForStudent": "Voir tous les reçus",
         "noAllocations": "Aucune allocation sur échéances.",
         "legacyYes": "Oui",

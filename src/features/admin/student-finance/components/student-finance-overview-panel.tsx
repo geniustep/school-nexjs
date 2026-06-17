@@ -5,7 +5,7 @@ import { useMemo } from 'react';
 import { Card } from '@/components/ui/primitives';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { useFormat } from '@/features/i18n/use-format';
-import { useLocale, useT } from '@/features/i18n/locale-context';
+import { useT } from '@/features/i18n/locale-context';
 import { Student360MetricGrid } from '@/features/admin/students/components/student-360-metric-grid';
 import { StudentSectionSkeleton } from '@/features/admin/students/components/student-360-loading';
 import { Student360SectionHeader } from '@/features/admin/students/components/student-360-section-header';
@@ -14,7 +14,6 @@ import {
   resolveBillingPartyLabel,
   resolveStudentFinanceOverviewMetrics,
 } from '../utils/resolve-student-finance-overview';
-import { formatInstallmentDisplayTitle } from '../utils/format-installment-display';
 
 function installmentStatusKey(state: string | null | undefined): string | null {
   if (!state) return null;
@@ -35,12 +34,10 @@ export function StudentFinanceOverviewPanel({
   financialOverviewLoading,
   financialOverviewError,
   onReloadFinancialOverview,
-  workspace,
   canCollect,
   onOpenCollection,
 }: StudentFinancePanelProps) {
   const t = useT();
-  const { locale } = useLocale();
   const { formatDate } = useFormat();
 
   const metrics = useMemo(
@@ -57,35 +54,41 @@ export function StudentFinanceOverviewPanel({
   const summaryItems = useMemo(() => {
     if (!metrics) return [];
     const currency = metrics.currency;
-    const pendingFromWorkspace = workspace?.summary?.pending_cheques;
-    const pendingCheque = metrics.pending_cheque ?? pendingFromWorkspace ?? null;
-    const paidConfirmed = metrics.paid_confirmed ?? workspace?.summary?.confirmed_paid ?? null;
-    const items = [
-      { key: 'annual_total', label: t('admin.student360.financeWorkspace.metrics.annualTotal'), value: metrics.annual_total },
-      { key: 'due_to_date', label: t('admin.student360.financeWorkspace.metrics.dueToDate'), value: metrics.due_to_date, tone: 'amber' as const },
-      { key: 'paid', label: t('admin.student360.financeWorkspace.metrics.paid'), value: metrics.paid, tone: 'green' as const },
-      { key: 'remaining', label: t('admin.student360.financeWorkspace.metrics.remaining'), value: metrics.remaining },
-      { key: 'overdue', label: t('admin.student360.financeWorkspace.metrics.overdue'), value: metrics.overdue, tone: 'red' as const },
-      { key: 'upcoming', label: t('admin.student360.financeWorkspace.metrics.upcoming'), value: metrics.upcoming },
+    const items: Array<{
+      key: string;
+      label: string;
+      value: number | null;
+      currency: string | null;
+      tone?: 'amber' | 'green' | 'red';
+    }> = [
+      { key: 'annual_total', label: t('admin.student360.financeWorkspace.metrics.annualTotal'), value: metrics.annual_total, currency },
+      { key: 'due_to_date', label: t('admin.student360.financeWorkspace.metrics.dueToDate'), value: metrics.due_to_date, currency, tone: 'amber' },
+      { key: 'paid_confirmed', label: t('admin.student360.financeWorkspace.metrics.paidConfirmed'), value: metrics.paid_confirmed, currency, tone: 'green' },
     ];
-    if (paidConfirmed != null && paidConfirmed !== metrics.paid) {
-      items.splice(3, 0, {
-        key: 'paid_confirmed',
-        label: t('admin.student360.financeWorkspace.metrics.paidConfirmed'),
-        value: paidConfirmed,
-        tone: 'green' as const,
-      });
-    }
-    if (pendingCheque != null && pendingCheque > 0) {
-      items.splice(3, 0, {
+    if ((metrics.pending_cheque ?? 0) > 0) {
+      items.push({
         key: 'pending_cheque',
         label: t('admin.student360.financeWorkspace.metrics.pendingCheque'),
-        value: pendingCheque,
-        tone: 'amber' as const,
+        value: metrics.pending_cheque,
+        currency,
+        tone: 'amber',
       });
     }
-    return items.map((item) => ({ ...item, currency }));
-  }, [metrics, workspace?.summary, t]);
+    items.push(
+      { key: 'covered_total', label: t('admin.student360.financeWorkspace.metrics.coveredTotal'), value: metrics.covered_total, currency, tone: 'green' },
+      { key: 'remaining', label: t('admin.student360.financeWorkspace.metrics.remaining'), value: metrics.remaining, currency },
+      { key: 'overdue', label: t('admin.student360.financeWorkspace.metrics.overdue'), value: metrics.overdue, currency, tone: 'red' },
+      { key: 'upcoming', label: t('admin.student360.financeWorkspace.metrics.upcoming'), value: metrics.upcoming, currency },
+    );
+    return items;
+  }, [metrics, t]);
+
+  const chequeSummary = financialOverview?.cheque_summary;
+  const showChequeSummary =
+    chequeSummary != null &&
+    (chequeSummary.pending_count > 0 ||
+      chequeSummary.settled_count > 0 ||
+      chequeSummary.rejected_count > 0);
 
   if (financialOverviewLoading && !metrics) {
     return <StudentSectionSkeleton rows={3} />;
@@ -104,13 +107,7 @@ export function StudentFinanceOverviewPanel({
 
   const nextInstallment = financialOverview?.next_installment;
   const nextStatusKey = installmentStatusKey(metrics?.next_installment_state);
-  const nextTitle =
-    (nextInstallment
-      ? formatInstallmentDisplayTitle(nextInstallment, locale)
-      : metrics?.next_installment_display_label) || metrics?.next_installment_fee_name;
-  const showPaidChequeHint =
-    metrics?.paid_includes_pending_cheque ||
-    (workspace?.summary?.pending_cheques ?? 0) > 0;
+  const nextTitle = metrics?.next_installment_display_label;
 
   return (
     <div className="student-finance-overview">
@@ -130,13 +127,42 @@ export function StudentFinanceOverviewPanel({
               <FinanceMoney amount={item.value} currency={item.currency ?? undefined} />
             </span>
           ),
-          tone: 'tone' in item ? item.tone : undefined,
+          tone: item.tone,
         }))}
       />
-      {showPaidChequeHint ? (
+      {metrics?.has_pending_cheque ? (
         <p className="tiny muted student-finance-overview__cheque-hint">
-          {t('admin.student360.financeWorkspace.metrics.paidIncludesPendingCheque')}
+          {t('admin.student360.financeWorkspace.metrics.coveredTotalHint')}
         </p>
+      ) : null}
+
+      {showChequeSummary && chequeSummary ? (
+        <Card className="student-finance-section student-finance-overview__cheque-summary">
+          <Student360SectionHeader title={t('admin.student360.financeWorkspace.metrics.chequeSummary')} />
+          <ul className="student-finance-cheque-summary-list">
+            {chequeSummary.pending_count > 0 ? (
+              <li>
+                {t('admin.student360.financeWorkspace.metrics.pendingCheques')}: {chequeSummary.pending_count}
+                {' — '}
+                <FinanceMoney amount={chequeSummary.pending_amount} currency={metrics?.currency ?? undefined} />
+              </li>
+            ) : null}
+            {chequeSummary.settled_count > 0 ? (
+              <li>
+                {t('admin.student360.financeWorkspace.metrics.settledCheques')}: {chequeSummary.settled_count}
+                {' — '}
+                <FinanceMoney amount={chequeSummary.settled_amount} currency={metrics?.currency ?? undefined} />
+              </li>
+            ) : null}
+            {chequeSummary.rejected_count > 0 ? (
+              <li>
+                {t('admin.student360.financeWorkspace.metrics.rejectedCheques')}: {chequeSummary.rejected_count}
+                {' — '}
+                <FinanceMoney amount={chequeSummary.rejected_amount} currency={metrics?.currency ?? undefined} />
+              </li>
+            ) : null}
+          </ul>
+        </Card>
       ) : null}
 
       {nextInstallment ? (
@@ -150,7 +176,7 @@ export function StudentFinanceOverviewPanel({
             {metrics?.next_installment_period ? (
               <div>
                 <dt>{t('admin.student360.financeWorkspace.schedule.columns.period')}</dt>
-                <dd>{metrics.next_installment_period}</dd>
+                <dd dir="auto">{metrics.next_installment_period}</dd>
               </div>
             ) : null}
             <div>

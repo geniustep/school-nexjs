@@ -3667,7 +3667,12 @@
           "upcoming": "القادم",
           "paidConfirmed": "المدفوع المؤكد",
           "pendingCheque": "شيكات قيد التحصيل",
-          "paidIncludesPendingCheque": "يشمل المبالغ المغطاة بشيكات قيد التحصيل."
+          "coveredTotal": "إجمالي التغطية",
+          "coveredTotalHint": "إجمالي التغطية يشمل المبالغ المؤكدة والشيكات قيد التحصيل.",
+          "chequeSummary": "ملخص الشيكات",
+          "pendingCheques": "شيكات قيد التحصيل",
+          "settledCheques": "شيكات تمت تصفيتها",
+          "rejectedCheques": "شيكات مرفوضة"
         },
         "billingPartyTitle": "الجهة المفوترة",
         "billingEffectiveFrom": "ساري من",
@@ -4909,6 +4914,7 @@
         "emptyFiltered": "لا توجد إيصالات مطابقة للفلاتر.",
         "studentSectionTitle": "الإيصالات",
         "studentEmpty": "لا توجد إيصالات مالية لهذا التلميذ بعد.",
+        "legacyPayerUnavailable": "غير محفوظ في الإيصال القديم",
         "viewAllForStudent": "عرض جميع الإيصالات",
         "noAllocations": "لا توجد توزيعات على أقساط.",
         "legacyYes": "نعم",

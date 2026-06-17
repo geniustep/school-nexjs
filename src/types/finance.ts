@@ -641,6 +641,7 @@ export interface PaymentCollection {
   name?: string;
   student_id?: number;
   student?: Ref;
+  student_name?: string;
   school?: SchoolRef;
   academic_year_id?: number;
   academic_year?: Ref | string | null;

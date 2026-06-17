@@ -8,20 +8,24 @@ import type { Ref } from '@/types/api';
 export function CollectionStudentCell({
   student,
   studentId,
+  studentName,
   code,
   returnTo,
   unavailableLabel,
 }: {
   student?: Ref | null;
   studentId?: number | null;
+  studentName?: string | null;
   code?: string | null;
   returnTo?: string;
   unavailableLabel: string;
 }) {
   const sid = studentId ?? student?.id;
-  const name = financeStudentDisplayName(
-    student ? { name: typeof student.name === 'string' ? student.name : undefined } : {},
-  );
+  const name =
+    studentName?.trim() ||
+    financeStudentDisplayName(
+      student ? { name: typeof student.name === 'string' ? student.name : undefined } : {},
+    );
   const displayName = name !== '—' ? name : unavailableLabel;
   const codeLine = code?.trim() || null;
 

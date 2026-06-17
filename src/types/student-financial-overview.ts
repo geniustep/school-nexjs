@@ -11,11 +11,21 @@ export interface StudentFinancialOverviewTotals {
   annual_total: number;
   due_to_date: number;
   paid: number;
-  paid_confirmed?: number;
-  pending_cheque?: number;
+  paid_confirmed: number;
+  pending_cheque: number;
+  covered_total: number;
   remaining: number;
   overdue: number;
   upcoming: number;
+}
+
+export interface ChequeSummary {
+  pending_count: number;
+  pending_amount: number;
+  settled_count: number;
+  settled_amount: number;
+  rejected_count: number;
+  rejected_amount: number;
 }
 
 export interface StudentFinancialOverviewCounts {
@@ -76,6 +86,7 @@ export interface StudentFinancialOverview {
   totals: StudentFinancialOverviewTotals;
   counts: StudentFinancialOverviewCounts;
   next_installment: StudentFinancialOverviewNextInstallment | null;
+  cheque_summary: ChequeSummary | null;
   applied_plans: AppliedFeePlanSummary[];
   special_agreement: SpecialAgreementSummary | null;
   billing_profile: StudentBillingProfileSummary | null;

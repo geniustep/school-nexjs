@@ -1,5 +1,5 @@
-import { refName } from '@/lib/utils/finance';
 import type { PaymentCollection } from '@/types/finance';
+import { resolveLegacyCollectionPayerLabel } from './resolve-legacy-collection-display';
 
 type PayerSource = Pick<
   PaymentCollection,
@@ -9,18 +9,12 @@ type PayerSource = Pick<
   financial_responsible_name?: string | null;
 };
 
-/** Payer column: payer_name → billing_partner_name → financial_responsible → partner ref. */
+/** Official payer label with legacy fallback for historical records only. */
 export function resolveCollectionPayerLabel(
   coll: PayerSource,
   fallback: string,
 ): string {
   const payer = coll.payer_name?.trim();
   if (payer) return payer;
-  const billingName = coll.billing_partner_name?.trim();
-  if (billingName) return billingName;
-  const responsible = coll.financial_responsible_name?.trim();
-  if (responsible) return responsible;
-  const partner = refName(coll.billing_partner)?.trim();
-  if (partner) return partner;
-  return fallback;
+  return resolveLegacyCollectionPayerLabel(coll, fallback);
 }

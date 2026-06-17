@@ -61,6 +61,7 @@ export function StudentFinanceCollectionsPanel({
         key: 'payer',
         header: t('admin.student360.financeOps.collections.payer'),
         render: (row) =>
+          row.payer_name?.trim() ||
           resolveCollectionPayerLabel(
             {
               payer_name: row.payer_name,

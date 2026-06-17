@@ -3640,7 +3640,12 @@
           "upcoming": "Upcoming",
           "paidConfirmed": "Confirmed paid",
           "pendingCheque": "Cheques pending clearance",
-          "paidIncludesPendingCheque": "Includes amounts covered by cheques pending clearance."
+          "coveredTotal": "Total coverage",
+          "coveredTotalHint": "Total coverage includes confirmed amounts and cheques pending clearance.",
+          "chequeSummary": "Cheque summary",
+          "pendingCheques": "Cheques pending clearance",
+          "settledCheques": "Cleared cheques",
+          "rejectedCheques": "Rejected cheques"
         },
         "billingPartyTitle": "Billing party",
         "billingEffectiveFrom": "Effective from",
@@ -4866,6 +4871,7 @@
         "emptyFiltered": "No receipts match the current filters.",
         "studentSectionTitle": "Receipts",
         "studentEmpty": "No financial receipts for this student yet.",
+        "legacyPayerUnavailable": "Not stored on legacy receipt",
         "viewAllForStudent": "View all receipts",
         "noAllocations": "No installment allocations.",
         "legacyYes": "Yes",

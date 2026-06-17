@@ -1,6 +1,13 @@
+import { refName } from '@/lib/utils/finance';
 import { normalizeInstallmentDisplayLabel } from '@/features/admin/finance/collection-labels';
+import type { PaymentCollection } from '@/types/finance';
 
-type InstallmentLike = {
+type LegacyPayerSource = Pick<PaymentCollection, 'payer_name' | 'billing_partner'> & {
+  billing_partner_name?: string | null;
+  financial_responsible_name?: string | null;
+};
+
+type LegacyInstallmentLike = {
   display_label?: string | null;
   fee_name?: string | null;
   fee_type_name?: string | null;
@@ -26,41 +33,35 @@ const AR_ORDINALS: Record<number, string> = {
   10: 'العاشرة',
 };
 
-function resolveInstallmentSequence(
-  normalized: string,
-  row: InstallmentLike,
-): number | null {
-  const en = normalized.match(INSTALLMENT_SEQ_RE);
-  if (en) return Number(en[1]);
-  const ar = normalized.match(AR_INSTALLMENT_SEQ_RE);
-  if (ar) return Number(ar[1]);
-  const seq = row.installment_sequence ?? row.sequence;
-  return seq != null ? Number(seq) : null;
+/** Legacy payer label when `payer_name` is missing from older snapshots. */
+export function resolveLegacyCollectionPayerLabel(
+  coll: LegacyPayerSource,
+  fallback: string,
+): string {
+  const billingName = coll.billing_partner_name?.trim();
+  if (billingName) return billingName;
+  const responsible = coll.financial_responsible_name?.trim();
+  if (responsible) return responsible;
+  const partner = refName(coll.billing_partner)?.trim();
+  if (partner) return partner;
+  return fallback;
 }
 
-/** Readable installment title — prefers `display_label`, never raw `installment n/m`. */
-export function formatInstallmentDisplayTitle(
-  row: InstallmentLike,
+/** Legacy installment title when official `display_label` is absent. */
+export function resolveLegacyInstallmentDisplayLabel(
+  row: LegacyInstallmentLike,
   locale?: string,
 ): string {
-  if (row.display_label?.trim()) {
-    return normalizeInstallmentDisplayLabel(row.display_label.trim(), locale);
-  }
-
   const period = row.period_label?.trim();
   if (period) {
     const normalized = normalizeInstallmentDisplayLabel(period, locale);
     const fee = row.fee_name?.trim() || row.fee_type_name?.trim();
-    const seq = resolveInstallmentSequence(normalized, row);
+    const en = normalized.match(INSTALLMENT_SEQ_RE);
+    const ar = normalized.match(AR_INSTALLMENT_SEQ_RE);
+    const seq = en ? Number(en[1]) : ar ? Number(ar[1]) : row.installment_sequence ?? row.sequence;
     if (seq != null && fee && locale?.startsWith('ar')) {
-      const ord = AR_ORDINALS[seq];
+      const ord = AR_ORDINALS[Number(seq)];
       if (ord) return `${fee} — الدفعة ${ord}`;
-    }
-    if (fee && (INSTALLMENT_SEQ_RE.test(period) || AR_INSTALLMENT_SEQ_RE.test(normalized))) {
-      return `${fee} — ${normalized}`;
-    }
-    if (!INSTALLMENT_SEQ_RE.test(normalized) && !AR_INSTALLMENT_SEQ_RE.test(normalized)) {
-      return normalized;
     }
     if (fee) return `${fee} — ${normalized}`;
     return normalized;
