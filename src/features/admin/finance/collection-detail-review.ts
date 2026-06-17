@@ -40,6 +40,8 @@ export interface CollectionReviewActions {
   canDownloadReceipt: boolean;
   canPrintReceipt: boolean;
   canViewCheque: boolean;
+  canSettleCheque: boolean;
+  canRejectCheque: boolean;
   canOpenStudentFinance: boolean;
 }
 
@@ -218,7 +220,7 @@ export function buildCollectionStatusBannerKey(coll: PaymentCollection): string 
         return 'admin.finance.collections.detail.statusBanner.chequeRejected';
       }
       if (settlement === 'settled' || cheque?.state === 'cleared') {
-        return 'admin.finance.collections.detail.statusBanner.confirmedSettled';
+        return 'admin.finance.collections.detail.statusBanner.chequeSettled';
       }
       if (settlement === 'pending' || (cheque?.state && cheque.state !== 'cleared')) {
         return 'admin.finance.collections.detail.statusBanner.confirmedChequePending';
@@ -424,6 +426,8 @@ export function resolveCollectionReviewActions(
       !!coll.cheque?.id ||
       !!coll.cheque_id ||
       collectionAllowsAction(coll, 'view_cheque'),
+    canSettleCheque: collectionAllowsAction(coll, 'settle_cheque'),
+    canRejectCheque: collectionAllowsAction(coll, 'reject_cheque'),
     canOpenStudentFinance:
       collectionAllowsAction(coll, 'open_student_finance') ||
       collectionAllowsAction(coll, 'open_student'),
@@ -435,6 +439,7 @@ const TIMELINE_EVENT_LABELS: Record<string, string> = {
   confirmed: 'admin.finance.collections.detail.timeline.confirmed',
   receipt_issued: 'admin.finance.collections.detail.timeline.receiptIssued',
   cheque_pending: 'admin.finance.collections.detail.timeline.chequePending',
+  cheque_settled: 'admin.finance.collections.detail.timeline.chequeSettled',
   cheque_cleared: 'admin.finance.collections.detail.timeline.chequeCleared',
   cheque_rejected: 'admin.finance.collections.detail.timeline.chequeRejected',
   cancelled: 'admin.finance.collections.detail.timeline.cancelled',

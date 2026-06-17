@@ -13,7 +13,9 @@ export type ChequeTransitionSummary = {
   amount: number | null;
   currency: string | null;
   partyName: string | null;
+  billingPartyName: string | null;
   currentState: string;
+  settlementStatus: string | null;
 };
 
 export function buildChequeTransitionSummary(cheque: FinanceCheque): ChequeTransitionSummary {
@@ -23,6 +25,8 @@ export function buildChequeTransitionSummary(cheque: FinanceCheque): ChequeTrans
     amount: normalizeMoneyValue(detail.amount ?? cheque.amount),
     currency: currencyCode(detail.currency ?? cheque.currency),
     partyName: detail.studentName ?? detail.payer ?? getChequeStudentLabel(cheque) ?? getChequePayerLabel(cheque),
+    billingPartyName: getChequePayerLabel(cheque),
     currentState: cheque.state ?? 'received',
+    settlementStatus: cheque.settlement_status ?? null,
   };
 }

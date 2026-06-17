@@ -90,14 +90,17 @@ export function collectionSuccessDisplay(coll: PaymentCollection): boolean {
   return st === 'confirmed';
 }
 
-export type ChequeTransitionAction = 'deposit' | 'clear' | 'reject' | 'cancel';
+export type ChequeLifecycleAction = 'deposit' | 'settle' | 'reject' | 'cancel';
 
-export function availableChequeTransitions(state: string): ChequeTransitionAction[] {
+/** @deprecated Use ChequeLifecycleAction */
+export type ChequeTransitionAction = ChequeLifecycleAction;
+
+export function availableChequeTransitions(state: string): ChequeLifecycleAction[] {
   switch (normalizeChequeState(state)) {
     case 'received':
       return ['deposit', 'reject', 'cancel'];
     case 'deposited':
-      return ['clear', 'reject', 'cancel'];
+      return ['settle', 'reject', 'cancel'];
     default:
       return [];
   }
@@ -110,15 +113,36 @@ export function chequeErrorMessageKey(code: string | undefined): string | null {
     case 'cheque_required':
       return 'admin.finance.cheques.errors.chequeRequired';
     case 'invalid_cheque_state':
+    case 'cheque_invalid_state':
       return 'admin.finance.cheques.errors.invalidChequeState';
     case 'cheque_already_cleared':
-      return 'admin.finance.cheques.errors.chequeAlreadyCleared';
+    case 'cheque_already_settled':
+      return 'admin.finance.cheques.errors.chequeAlreadySettled';
+    case 'cheque_already_rejected':
+      return 'admin.finance.cheques.errors.chequeAlreadyRejected';
     case 'cheque_reversal_already_applied':
+    case 'reversal_already_applied':
       return 'admin.finance.cheques.errors.reversalAlreadyApplied';
     case 'cheque_school_mismatch':
       return 'admin.finance.cheques.errors.chequeSchoolMismatch';
     case 'cheque_amount_mismatch':
       return 'admin.finance.cheques.errors.chequeAmountMismatch';
+    case 'cheque_not_found':
+      return 'admin.finance.cheques.errors.chequeNotFound';
+    case 'cheque_action_forbidden':
+      return 'admin.finance.cheques.errors.chequeActionForbidden';
+    case 'cheque_settlement_date_required':
+      return 'admin.finance.cheques.errors.chequeSettlementDateRequired';
+    case 'cheque_rejection_reason_required':
+      return 'admin.finance.cheques.errors.chequeRejectionReasonRequired';
+    case 'cheque_collection_not_confirmed':
+      return 'admin.finance.cheques.errors.chequeCollectionNotConfirmed';
+    case 'cheque_allocations_not_posted':
+      return 'admin.finance.cheques.errors.chequeAllocationsNotPosted';
+    case 'cheque_settlement_failed':
+      return 'admin.finance.cheques.errors.chequeSettlementFailed';
+    case 'cheque_rejection_failed':
+      return 'admin.finance.cheques.errors.chequeRejectionFailed';
     default:
       return null;
   }

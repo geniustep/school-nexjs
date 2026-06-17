@@ -264,6 +264,7 @@ export const endpoints = {
     financeCheques: '/admin/finance/cheques',
     financeCheque: (id: number | string) => `/admin/finance/cheques/${id}`,
     financeChequeDeposit: (id: number | string) => `/admin/finance/cheques/${id}/deposit`,
+    financeChequeSettle: (id: number | string) => `/admin/finance/cheques/${id}/settle`,
     financeChequeClear: (id: number | string) => `/admin/finance/cheques/${id}/clear`,
     financeChequeReject: (id: number | string) => `/admin/finance/cheques/${id}/reject`,
     financeChequeCancel: (id: number | string) => `/admin/finance/cheques/${id}/cancel`,

@@ -4420,6 +4420,7 @@
           "receiptNotIssued": "لم يصدر بعد",
           "receiptPendingDraft": "لم يصدر إيصال بعد.",
           "receiptAfterConfirm": "سيصدر الإيصال بعد تأكيد التحصيل.",
+          "receiptPaymentRejectedNotice": "وسيلة الأداء المرتبطة بهذا الإيصال رُفضت لاحقًا.",
           "chequeSection": "بيانات الشيك",
           "chequeDraftPending": "سجّل الشيك عند التأكيد. بيانات الشيك التفصيلية تظهر بعد إنشاء سجل الشيك.",
           "chequeWrittenDate": "تاريخ الشيك",
@@ -4440,9 +4441,11 @@
             "draftHint": "لم تؤثر بعد في الرصيد المالي. راجع بيانات الأداء والتوزيعات ثم أكد التحصيل.",
             "confirmedChequePending": "تم تأكيد التحصيل، والشيك في انتظار التصفية.",
             "confirmedChequePendingHint": "سيُستكمل الأداء بعد تصفية الشيك في البنك.",
+            "chequeSettled": "تمت تصفية الشيك وأصبح المبلغ أداءً مؤكدًا.",
+            "chequeSettledHint": "التحصيل والإيصال مكتملان.",
             "confirmedSettled": "تمت تصفية الشيك وتأكيد الأداء نهائيًا.",
             "confirmedSettledHint": "التحصيل والإيصال مكتملان.",
-            "chequeRejected": "تم رفض الشيك، ولم يعد المبلغ مغطى.",
+            "chequeRejected": "تم رفض الشيك، وأعيدت المستحقات المرتبطة إلى رصيد التلميذ.",
             "chequeRejectedHint": "راجع سجل الشيك والتحصيل المرتبط.",
             "cancelled": "تم إلغاء هذا التحصيل ولا يؤثر في الرصيد.",
             "cancelledHint": "لا يمكن استئناف هذا التحصيل."
@@ -4460,6 +4463,7 @@
             "confirmed": "أُكد التحصيل",
             "receiptIssued": "صدر الإيصال",
             "chequeCleared": "صُفّي الشيك",
+            "chequeSettled": "تمت تصفية الشيك",
             "chequePending": "الشيك قيد التحصيل",
             "chequeRejected": "رُفض الشيك",
             "cancelled": "أُلغي التحصيل"
@@ -5282,7 +5286,9 @@
             "dueDate": "حل تاريخ الاستحقاق",
             "deposited": "تم إيداع الشيك",
             "cleared": "تم تحصيل الشيك",
+            "chequeSettled": "تمت تصفية الشيك",
             "rejected": "تم رفض الشيك",
+            "chequeRejected": "رُفض الشيك",
             "cancelled": "تم إلغاء الشيك",
             "reversal": "تم عكس التحصيل وإعادة فتح المستحقات"
           }
@@ -5385,6 +5391,37 @@
           "rejected": "مرفوض",
           "cancelled": "ملغى"
         },
+        "lifecycle": {
+          "settleCheque": "تصفية الشيك",
+          "confirmSettlementTitle": "تأكيد تصفية الشيك",
+          "confirmSettlement": "تأكيد التصفية",
+          "settlementDescription": "تعني التصفية أن البنك حصّل قيمة الشيك فعليًا، وسيصبح المبلغ أداءً مؤكدًا بدل كونه شيكًا قيد التحصيل.",
+          "settlementDate": "تاريخ التصفية",
+          "bankReference": "مرجع البنك",
+          "settlementNote": "ملاحظة",
+          "rejectCheque": "رفض الشيك",
+          "confirmRejectionTitle": "تسجيل رفض الشيك",
+          "confirmRejection": "تأكيد رفض الشيك",
+          "rejectionDescription": "سيؤدي رفض الشيك إلى إزالة تغطيته المؤقتة وإعادة المستحقات المرتبطة به إلى رصيد التلميذ. سيبقى سجل التحصيل والإيصال محفوظين للتاريخ المالي.",
+          "rejectionDate": "تاريخ الرفض",
+          "rejectionReason": "التوضيح",
+          "rejectionReasonCode": "سبب الرفض",
+          "rejectionReasons": {
+            "insufficient_funds": "رصيد غير كافٍ",
+            "signature_mismatch": "توقيع غير مطابق",
+            "account_closed": "الحساب مغلق",
+            "payment_stopped": "إيقاف صرف الشيك",
+            "invalid_cheque": "شيك غير صالح",
+            "technical_rejection": "رفض تقني من البنك",
+            "other": "سبب آخر"
+          },
+          "chequeSettledSuccess": "تمت تصفية الشيك بنجاح وأصبح المبلغ أداءً مؤكدًا.",
+          "chequeRejectedSuccess": "تم تسجيل رفض الشيك وإعادة المستحقات المرتبطة إلى رصيد التلميذ.",
+          "chequeSettled": "تمت التصفية",
+          "chequeRejected": "مرفوض",
+          "paymentReturnedToBalance": "تم رفض الشيك، وأعيدت المستحقات المرتبطة إلى رصيد التلميذ.",
+          "settledStatusBanner": "تمت تصفية الشيك وأصبح المبلغ أداءً مؤكدًا."
+        },
         "actions": {
           "deposit": {
             "button": "إيداع الشيك",
@@ -5430,7 +5467,17 @@
           "chequeAlreadyCleared": "الشيك محصّل مسبقًا.",
           "reversalAlreadyApplied": "تم عكس الأداء مسبقًا.",
           "chequeSchoolMismatch": "الشيك لا ينتمي إلى المدرسة النشطة.",
-          "chequeAmountMismatch": "مبلغ الشيك لا يطابق التحصيل."
+          "chequeAmountMismatch": "مبلغ الشيك لا يطابق التحصيل.",
+          "chequeNotFound": "تعذر العثور على الشيك.",
+          "chequeActionForbidden": "ليست لديك صلاحية تنفيذ هذا الإجراء.",
+          "chequeAlreadySettled": "تمت تصفية هذا الشيك مسبقًا.",
+          "chequeAlreadyRejected": "سُجل رفض هذا الشيك مسبقًا.",
+          "chequeSettlementDateRequired": "تاريخ التصفية مطلوب.",
+          "chequeRejectionReasonRequired": "سبب رفض الشيك مطلوب.",
+          "chequeCollectionNotConfirmed": "لا يمكن معالجة الشيك قبل تأكيد التحصيل المرتبط.",
+          "chequeAllocationsNotPosted": "توزيعات التحصيل غير جاهزة لمعالجة الشيك.",
+          "chequeSettlementFailed": "تعذر إتمام تصفية الشيك.",
+          "chequeRejectionFailed": "تعذر تسجيل رفض الشيك."
         }
       },
       "feeTypesWorkspace": {

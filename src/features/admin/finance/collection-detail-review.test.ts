@@ -265,6 +265,18 @@ describe('confirmed cheque collection polish', () => {
     expect(actions.canConfirm).toBe(false);
   });
 
+  it('uses chequeSettled banner when settlement_status is settled', () => {
+    const key = buildCollectionStatusBannerKey({
+      ...confirmedChequeCollection,
+      cheque: {
+        ...confirmedChequeCollection.cheque!,
+        settlement_status: 'settled',
+        state: 'cleared',
+      },
+    });
+    expect(key).toBe('admin.finance.collections.detail.statusBanner.chequeSettled');
+  });
+
   it('builds timeline from official status_history', () => {
     const timeline = buildCollectionTimeline(confirmedChequeCollection);
     expect(timeline).toHaveLength(4);

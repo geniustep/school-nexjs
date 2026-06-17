@@ -1,6 +1,7 @@
 import { financeStudentDisplayName, refName } from '@/lib/utils/finance';
 import { normalizeMoneyValue } from '@/lib/utils/finance-normalize';
 import { isRejectedCheque, normalizeChequeStatus } from '@/lib/utils/cheque-status';
+import type { ChequeLifecycleAction } from '@/lib/utils/cheque';
 import type { FinanceCheque } from '@/types/finance';
 
 export type ChequeTitleTone = 'pending' | 'deposited' | 'cleared' | 'rejected' | 'cancelled';
@@ -87,6 +88,50 @@ export function getReversedAllocationCount(cheque: FinanceCheque): number {
 }
 
 export function buildChequeLifecycleEvents(cheque: FinanceCheque): ChequeLifecycleEvent[] {
+  const CHEQUE_TIMELINE_EVENT_LABELS: Record<string, string> = {
+    received: 'admin.finance.cheques.details.timeline.received',
+    deposited: 'admin.finance.cheques.details.timeline.deposited',
+    cheque_settled: 'admin.finance.cheques.details.timeline.chequeSettled',
+    cleared: 'admin.finance.cheques.details.timeline.cleared',
+    cheque_rejected: 'admin.finance.cheques.details.timeline.chequeRejected',
+    rejected: 'admin.finance.cheques.details.timeline.rejected',
+    cancelled: 'admin.finance.cheques.details.timeline.cancelled',
+    reversal: 'admin.finance.cheques.details.timeline.reversal',
+  };
+
+  const history = cheque.status_history ?? [];
+  if (history.length > 0) {
+    const events: ChequeLifecycleEvent[] = [];
+    for (const entry of history) {
+      const eventKey = entry.event ?? entry.state;
+      if (!eventKey) continue;
+      const titleKey = CHEQUE_TIMELINE_EVENT_LABELS[eventKey];
+      if (!titleKey) continue;
+      let reason: string | null = null;
+      if (eventKey === 'cheque_rejected' && entry.metadata && typeof entry.metadata === 'object') {
+        const meta = entry.metadata as Record<string, unknown>;
+        reason =
+          (typeof meta.reason === 'string' ? meta.reason : null) ??
+          (typeof meta.rejection_reason === 'string' ? meta.rejection_reason : null);
+      }
+      events.push({
+        id: eventKey,
+        date: entry.occurred_at ?? entry.date ?? null,
+        state: eventKey,
+        titleKey,
+        reason,
+      });
+    }
+    if (events.length > 0) {
+      return events.sort((a, b) => {
+        if (!a.date && !b.date) return 0;
+        if (!a.date) return 1;
+        if (!b.date) return -1;
+        return a.date.localeCompare(b.date);
+      });
+    }
+  }
+
   const events: ChequeLifecycleEvent[] = [];
   const bucket = normalizeChequeStatus(cheque.state);
   const rejectionReason = getChequeRejectionReason(cheque);
@@ -167,21 +212,21 @@ export function buildChequeLifecycleEvents(cheque: FinanceCheque): ChequeLifecyc
   });
 }
 
-const CHEQUE_API_ACTION_TO_TRANSITION: Record<string, string> = {
+const CHEQUE_API_ACTION_TO_TRANSITION: Record<string, ChequeLifecycleAction | string> = {
   deposit: 'deposit',
-  settle: 'clear',
-  clear: 'clear',
+  settle: 'settle',
+  clear: 'settle',
   bounce: 'reject',
   reject: 'reject',
   cancel: 'cancel',
 };
 
-function mapChequeApiActions(actions: string[]): string[] {
-  const mapped = new Set<string>();
+function mapChequeApiActions(actions: string[]): ChequeLifecycleAction[] {
+  const mapped = new Set<ChequeLifecycleAction>();
   for (const action of actions) {
     const normalized = action.trim().toLowerCase();
     const transition = CHEQUE_API_ACTION_TO_TRANSITION[normalized] ?? normalized;
-    if (['deposit', 'clear', 'reject', 'cancel', 'replace', 'return'].includes(transition)) {
+    if (transition === 'deposit' || transition === 'settle' || transition === 'reject' || transition === 'cancel') {
       mapped.add(transition);
     }
   }
@@ -191,18 +236,18 @@ function mapChequeApiActions(actions: string[]): string[] {
 export function normalizeChequeAllowedActions(
   raw: FinanceCheque['allowed_actions'] | null | undefined,
   actionCodes?: string[] | null,
-): string[] {
-  if (Array.isArray(actionCodes) && actionCodes.length) {
-    return mapChequeApiActions(actionCodes);
+): ChequeLifecycleAction[] {
+  const hasMap = !!raw && typeof raw === 'object' && !Array.isArray(raw);
+  if (hasMap) {
+    return mapChequeApiActions(
+      Object.keys(raw).filter((key) => {
+        const value = (raw as Record<string, unknown>)[key];
+        return value === true || (typeof value === 'number' && value > 0);
+      }),
+    );
   }
-  if (!raw) return [];
-  if (Array.isArray(raw)) return mapChequeApiActions(raw);
-  if (typeof raw === 'object') {
-    return mapChequeApiActions(Object.keys(raw).filter((key) => {
-      const value = raw[key];
-      return value === true || (typeof value === 'number' && value > 0);
-    }));
-  }
+  if (Array.isArray(raw) && raw.length) return mapChequeApiActions(raw);
+  if (Array.isArray(actionCodes) && actionCodes.length) return mapChequeApiActions(actionCodes);
   return [];
 }
 
@@ -238,7 +283,9 @@ export type NormalizedChequeDetail = ReturnType<typeof normalizeChequeDetail>;
 export function resolveChequeAllowedTransitions(cheque: FinanceCheque): string[] {
   const fromApi = normalizeChequeAllowedActions(cheque.allowed_actions, cheque.allowed_action_codes);
   if (fromApi.length) {
-    return fromApi.filter((action) => ['deposit', 'clear', 'reject', 'cancel'].includes(action));
+    return fromApi.filter((action): action is ChequeLifecycleAction =>
+      ['deposit', 'settle', 'reject', 'cancel'].includes(action),
+    );
   }
   return [];
 }

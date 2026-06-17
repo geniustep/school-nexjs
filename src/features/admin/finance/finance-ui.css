@@ -178,6 +178,16 @@
   flex-direction: row-reverse;
 }
 
+.btn.btn--danger {
+  background: var(--color-danger, #b42318);
+  border-color: var(--color-danger, #b42318);
+  color: #fff;
+}
+
+.btn.btn--danger:disabled {
+  opacity: 0.6;
+}
+
 .finance-cheque-dialog-warning {
   color: var(--color-warning, #b54708);
 }

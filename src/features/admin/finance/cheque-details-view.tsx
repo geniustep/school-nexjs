@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { ApiErrorView } from '@/components/states/states';
 import { useToast } from '@/components/ui/toast';
 import { ChequeStatusBadge } from '@/features/admin/finance/cheque-status-badge';
-import { ChequeTransitionDialog } from '@/features/admin/finance/cheque-transition-dialog';
-import { buildChequeTransitionSummary } from '@/features/admin/finance/cheque-transition-summary';
+import { ChequeLifecycleDialogs } from '@/features/admin/finance/cheque-lifecycle-host';
+import { chequeAllowsAction, resolveChequeLifecycleActions } from '@/features/admin/finance/cheque-allowed-actions';
 import { ChequeDetailsSkeleton } from '@/features/admin/finance/cheque-details-skeleton';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { FinanceStatusBadge } from '@/features/admin/finance/finance-status-badge';
@@ -28,7 +28,7 @@ import {
   canCollectPayments,
 } from '@/lib/permissions/finance';
 import { availableChequeTransitions } from '@/lib/utils/cheque';
-import type { ChequeTransitionAction } from '@/lib/utils/cheque';
+import type { ChequeLifecycleAction } from '@/lib/utils/cheque';
 import { isRejectedCheque } from '@/lib/utils/cheque-status';
 import { collectionState } from '@/lib/utils/finance';
 import { buildFinanceStudentProfileLink } from '@/lib/utils/finance-navigation';
@@ -59,6 +59,7 @@ function ChequeDetailsActionBar({
   chequeSelfPath,
   listReturnTo,
   transitionActions,
+  primaryAction,
   canReplace,
   onTransition,
   showReturnNote,
@@ -67,9 +68,10 @@ function ChequeDetailsActionBar({
   detail: NonNullable<ReturnType<typeof normalizeChequeDetail>>;
   chequeSelfPath: string;
   listReturnTo: string;
-  transitionActions: ChequeTransitionAction[];
+  transitionActions: ChequeLifecycleAction[];
+  primaryAction: ChequeLifecycleAction | null;
   canReplace: boolean;
-  onTransition: (action: ChequeTransitionAction) => void;
+  onTransition: (action: ChequeLifecycleAction) => void;
   showReturnNote: boolean;
   t: (key: string, vars?: Record<string, string | number>) => string;
 }) {
@@ -88,16 +90,30 @@ function ChequeDetailsActionBar({
 
   const secondaryActions = (
     <>
-      {transitionActions.map((action) => (
-        <button
-          key={action}
-          type="button"
-          className={action === 'reject' || action === 'cancel' ? 'btn btn--sm' : 'btn btn--primary btn--sm'}
-          onClick={() => onTransition(action)}
-        >
-          {t(`admin.finance.cheques.actions.${action}.button`)}
-        </button>
-      ))}
+      {transitionActions
+        .filter((action) => action !== primaryAction)
+        .map((action) => (
+          <button
+            key={action}
+            type="button"
+            className={
+              action === 'reject'
+                ? 'btn btn--danger btn--sm'
+                : action === 'cancel'
+                  ? 'btn btn--sm'
+                  : 'btn btn--ghost btn--sm'
+            }
+            onClick={() => onTransition(action)}
+          >
+            {t(
+              action === 'settle'
+                ? 'admin.finance.cheques.lifecycle.settleCheque'
+                : action === 'reject'
+                  ? 'admin.finance.cheques.lifecycle.rejectCheque'
+                  : `admin.finance.cheques.actions.${action}.button`,
+            )}
+          </button>
+        ))}
       {collectionHref ? (
         <Link href={collectionHref} className="btn btn--ghost btn--sm" prefetch={false}>
           {t('admin.finance.cheques.details.openCollection')}
@@ -117,6 +133,15 @@ function ChequeDetailsActionBar({
   return (
     <div className="cheque-details__action-bar">
       <div className="cheque-details__action-bar-primary">
+        {primaryAction === 'settle' ? (
+          <button type="button" className="btn btn--primary btn--sm" onClick={() => onTransition('settle')}>
+            {t('admin.finance.cheques.lifecycle.settleCheque')}
+          </button>
+        ) : primaryAction === 'reject' ? (
+          <button type="button" className="btn btn--danger btn--sm" onClick={() => onTransition('reject')}>
+            {t('admin.finance.cheques.lifecycle.rejectCheque')}
+          </button>
+        ) : null}
         {canReplace ? (
           <Link href={replaceHref} className="btn btn--primary btn--sm" prefetch={false}>
             {t('admin.finance.cheques.details.replaceCollection')}
@@ -152,7 +177,7 @@ export function ChequeDetailsView({
   const toast = useToast();
   const user = useSession();
   const { formatDate } = useFormat();
-  const [dialogAction, setDialogAction] = useState<ChequeTransitionAction | null>(null);
+  const [dialogAction, setDialogAction] = useState<ChequeLifecycleAction | null>(null);
 
   const cheque = state.data;
   const detail = useMemo(() => (cheque ? normalizeChequeDetail(cheque) : null), [cheque]);
@@ -177,11 +202,12 @@ export function ChequeDetailsView({
 
   if (!cheque || !detail) return null;
 
-  function canRun(action: ChequeTransitionAction): boolean {
+  function canRun(action: ChequeLifecycleAction): boolean {
+    if (!chequeAllowsAction(cheque, action)) return false;
     switch (action) {
       case 'deposit':
         return canDepositCheques(user);
-      case 'clear':
+      case 'settle':
         return canClearCheques(user);
       case 'reject':
         return canRejectCheques(user);
@@ -192,30 +218,27 @@ export function ChequeDetailsView({
     }
   }
 
-  function transitionPath(action: ChequeTransitionAction): string {
-    switch (action) {
-      case 'deposit':
-        return endpoints.admin.financeChequeDeposit(cheque!.id);
-      case 'clear':
-        return endpoints.admin.financeChequeClear(cheque!.id);
-      case 'reject':
-        return endpoints.admin.financeChequeReject(cheque!.id);
-      case 'cancel':
-        return endpoints.admin.financeChequeCancel(cheque!.id);
+  const lifecycleActions = resolveChequeLifecycleActions(cheque).filter(canRun);
+  const fallbackTransitions = availableChequeTransitions(cheque.state ?? 'received').filter(canRun);
+  const transitionActions = lifecycleActions.length ? lifecycleActions : fallbackTransitions;
+  const primaryAction: ChequeLifecycleAction | null = transitionActions.includes('settle')
+    ? 'settle'
+    : transitionActions.includes('reject')
+      ? 'reject'
+      : null;
+
+  function hasLegacyChequeAction(record: FinanceCheque, action: string): boolean {
+    const raw = record.allowed_actions;
+    if (Array.isArray(raw)) return raw.includes(action);
+    if (raw && typeof raw === 'object' && action in raw) {
+      const value = (raw as Record<string, unknown>)[action];
+      return value === true || (typeof value === 'number' && value > 0);
     }
+    return (record.allowed_action_codes ?? []).includes(action);
   }
 
-  const apiTransitions = detail.allowedActions.filter((action): action is ChequeTransitionAction =>
-    ['deposit', 'clear', 'reject', 'cancel'].includes(action),
-  );
-  const fallbackTransitions = availableChequeTransitions(cheque.state ?? 'received');
-  const transitionActions = (
-    apiTransitions.length ? apiTransitions : fallbackTransitions
-  ).filter(canRun);
-
-  const canReplace = detail.allowedActions.includes('replace') && canCollectPayments(user);
-
-  const showReturnNote = detail.allowedActions.includes('return');
+  const canReplace = hasLegacyChequeAction(cheque, 'replace') && canCollectPayments(user);
+  const showReturnNote = hasLegacyChequeAction(cheque, 'return');
   const showReadOnlyNotice = !transitionActions.length && !canReplace && !showReturnNote;
 
   async function copyNumber() {
@@ -266,6 +289,7 @@ export function ChequeDetailsView({
         chequeSelfPath={chequeSelfPath}
         listReturnTo={returnTo}
         transitionActions={transitionActions}
+        primaryAction={primaryAction}
         canReplace={canReplace}
         onTransition={setDialogAction}
         showReturnNote={showReturnNote}
@@ -276,7 +300,10 @@ export function ChequeDetailsView({
         <div className="cheque-details__summary-grid">
           <div>
             <span className="muted tiny">{t('academic.status')}</span>
-            <ChequeStatusBadge state={cheque.state ?? 'received'} />
+            <ChequeStatusBadge
+              state={cheque.state ?? 'received'}
+              settlementStatus={cheque.settlement_status}
+            />
             {detail.stateLabel ? <span className="tiny muted"> ({detail.stateLabel})</span> : null}
           </div>
           <div>
@@ -301,9 +328,25 @@ export function ChequeDetailsView({
           </div>
         </div>
 
-        {isRejectedCheque(cheque.state) ? (
+        {cheque.settlement_status?.trim().toLowerCase() === 'settled' ? (
+          <div className="cheque-details__alert cheque-details__alert--settled" role="status">
+            <p>{t('admin.finance.cheques.lifecycle.settledStatusBanner')}</p>
+            {cheque.settlement_date ? (
+              <p className="muted tiny">
+                {t('admin.finance.cheques.lifecycle.settlementDate')}: {formatDate(cheque.settlement_date)}
+              </p>
+            ) : null}
+            {cheque.bank_reference ? (
+              <p className="mono tiny" dir="ltr">
+                {t('admin.finance.cheques.lifecycle.bankReference')}: {cheque.bank_reference}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+
+        {cheque.settlement_status?.trim().toLowerCase() === 'rejected' || isRejectedCheque(cheque.state) ? (
           <div className="cheque-details__alert cheque-details__alert--rejected" role="alert">
-            <p>{t('admin.finance.cheques.details.rejectedAlert')}</p>
+            <p>{t('admin.finance.cheques.lifecycle.paymentReturnedToBalance')}</p>
             <p className="cheque-details__alert-reason">
               {detail.rejectionReason
                 ? t('admin.finance.cheques.details.rejectionReason', { reason: detail.rejectionReason })
@@ -336,7 +379,10 @@ export function ChequeDetailsView({
               {formatDate(cheque.due_date ?? cheque.maturity_date) || t('admin.finance.unavailable')}
             </DetailField>
             <DetailField label={t('academic.status')}>
-              <ChequeStatusBadge state={cheque.state ?? 'received'} />
+              <ChequeStatusBadge
+              state={cheque.state ?? 'received'}
+              settlementStatus={cheque.settlement_status}
+            />
             </DetailField>
           </dl>
         </section>
@@ -452,14 +498,15 @@ export function ChequeDetailsView({
         <p className="muted cheque-details__read-only">{t('admin.finance.cheques.details.readOnlyNotice')}</p>
       ) : null}
 
-      {dialogAction ? (
-        <ChequeTransitionDialog
-          action={dialogAction}
-          path={transitionPath(dialogAction)}
-          open
-          summary={dialogAction === 'deposit' ? buildChequeTransitionSummary(cheque) : null}
+      {dialogAction && cheque ? (
+        <ChequeLifecycleDialogs
+          cheque={cheque}
+          openAction={dialogAction}
           onClose={() => setDialogAction(null)}
-          onSuccess={() => state.reload()}
+          onComplete={() => {
+            state.reload();
+            collectionStateRes.reload();
+          }}
         />
       ) : null}
     </div>

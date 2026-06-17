@@ -4392,6 +4392,7 @@
           "receiptNotIssued": "Aún no emitido",
           "receiptPendingDraft": "Aún no se ha emitido recibo.",
           "receiptAfterConfirm": "El recibo se emitirá tras confirmar el cobro.",
+          "receiptPaymentRejectedNotice": "El medio de pago vinculado a este recibo fue rechazado posteriormente.",
           "chequeSection": "Datos del cheque",
           "chequeDraftPending": "El cheque se crea al confirmar. Los detalles aparecen después.",
           "chequeWrittenDate": "Fecha del cheque",
@@ -4412,9 +4413,11 @@
             "draftHint": "Aún no afecta saldos. Revise pago y asignaciones, luego confirme.",
             "confirmedChequePending": "Cobro confirmado; el cheque espera compensación.",
             "confirmedChequePendingHint": "El pago se completará cuando el cheque se compense en el banco.",
+            "chequeSettled": "Cheque compensado; el importe es un pago confirmado.",
+            "chequeSettledHint": "El cobro y el recibo están completos.",
             "confirmedSettled": "Cheque compensado y pago finalizado.",
             "confirmedSettledHint": "El cobro y el recibo están completos.",
-            "chequeRejected": "Cheque rechazado; el importe ya no está cubierto.",
+            "chequeRejected": "Cheque rechazado; los adeudos vinculados volvieron al saldo del alumno.",
             "chequeRejectedHint": "Revise la ficha del cheque y el cobro vinculado.",
             "cancelled": "Este cobro fue cancelado y no afecta saldos.",
             "cancelledHint": "Este cobro no puede reanudarse."
@@ -4432,6 +4435,7 @@
             "confirmed": "Cobro confirmado",
             "receiptIssued": "Recibo emitido",
             "chequeCleared": "Cheque compensado",
+            "chequeSettled": "Cheque compensado",
             "chequePending": "Cheque pendiente de compensación",
             "chequeRejected": "Cheque rechazado",
             "cancelled": "Cobro cancelado"
@@ -5239,7 +5243,9 @@
             "dueDate": "Fecha de vencimiento alcanzada",
             "deposited": "Cheque depositado",
             "cleared": "Cheque cobrado",
+            "chequeSettled": "Cheque compensado",
             "rejected": "Cheque rechazado",
+            "chequeRejected": "Cheque rechazado",
             "cancelled": "Cheque cancelado",
             "reversal": "Cobro revertido y adeudos reabiertos"
           }
@@ -5342,6 +5348,37 @@
           "rejected": "Rechazado",
           "cancelled": "Cancelado"
         },
+        "lifecycle": {
+          "settleCheque": "Compensar cheque",
+          "confirmSettlementTitle": "Confirmar compensación del cheque",
+          "confirmSettlement": "Confirmar compensación",
+          "settlementDescription": "La compensación significa que el banco cobró el importe del cheque; pasa a ser pago confirmado en lugar de cobertura provisional.",
+          "settlementDate": "Fecha de compensación",
+          "bankReference": "Referencia bancaria",
+          "settlementNote": "Nota",
+          "rejectCheque": "Rechazar cheque",
+          "confirmRejectionTitle": "Registrar rechazo del cheque",
+          "confirmRejection": "Confirmar rechazo",
+          "rejectionDescription": "El rechazo elimina la cobertura temporal y devuelve los adeudos vinculados al saldo del alumno. El cobro y el recibo se conservan en el historial financiero.",
+          "rejectionDate": "Fecha de rechazo",
+          "rejectionReason": "Detalle",
+          "rejectionReasonCode": "Motivo del rechazo",
+          "rejectionReasons": {
+            "insufficient_funds": "Fondos insuficientes",
+            "signature_mismatch": "Firma no coincidente",
+            "account_closed": "Cuenta cerrada",
+            "payment_stopped": "Pago detenido",
+            "invalid_cheque": "Cheque no válido",
+            "technical_rejection": "Rechazo técnico del banco",
+            "other": "Otro motivo"
+          },
+          "chequeSettledSuccess": "Cheque compensado correctamente; el importe es un pago confirmado.",
+          "chequeRejectedSuccess": "Rechazo del cheque registrado; los adeudos vinculados volvieron al saldo del alumno.",
+          "chequeSettled": "Compensado",
+          "chequeRejected": "Rechazado",
+          "paymentReturnedToBalance": "Cheque rechazado; los adeudos vinculados volvieron al saldo del alumno.",
+          "settledStatusBanner": "Cheque compensado; el importe es un pago confirmado."
+        },
         "actions": {
           "deposit": {
             "button": "Depositar cheque",
@@ -5387,7 +5424,17 @@
           "chequeAlreadyCleared": "El cheque ya está cobrado.",
           "reversalAlreadyApplied": "La reversión ya se aplicó.",
           "chequeSchoolMismatch": "El cheque no pertenece a la escuela activa.",
-          "chequeAmountMismatch": "El importe del cheque no coincide con el cobro."
+          "chequeAmountMismatch": "El importe del cheque no coincide con el cobro.",
+          "chequeNotFound": "No se encontró el cheque.",
+          "chequeActionForbidden": "No tiene permiso para realizar esta acción.",
+          "chequeAlreadySettled": "Este cheque ya fue compensado.",
+          "chequeAlreadyRejected": "El rechazo de este cheque ya fue registrado.",
+          "chequeSettlementDateRequired": "La fecha de compensación es obligatoria.",
+          "chequeRejectionReasonRequired": "El motivo del rechazo es obligatorio.",
+          "chequeCollectionNotConfirmed": "El cobro vinculado debe confirmarse antes de procesar el cheque.",
+          "chequeAllocationsNotPosted": "Las asignaciones del cobro no están listas para procesar el cheque.",
+          "chequeSettlementFailed": "No se pudo completar la compensación del cheque.",
+          "chequeRejectionFailed": "No se pudo registrar el rechazo del cheque."
         }
       },
       "feeTypesWorkspace": {

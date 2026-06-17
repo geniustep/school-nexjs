@@ -4392,6 +4392,7 @@
           "receiptNotIssued": "Pas encore émis",
           "receiptPendingDraft": "Aucun reçu émis pour le moment.",
           "receiptAfterConfirm": "Le reçu sera émis après confirmation de l'encaissement.",
+          "receiptPaymentRejectedNotice": "Le moyen de paiement lié à ce reçu a été rejeté ultérieurement.",
           "chequeSection": "Détails du chèque",
           "chequeDraftPending": "Le chèque est créé à la confirmation. Les détails apparaissent ensuite.",
           "chequeWrittenDate": "Date du chèque",
@@ -4412,9 +4413,11 @@
             "draftHint": "Il n'affecte pas encore les soldes. Vérifiez le paiement et les affectations, puis confirmez.",
             "confirmedChequePending": "Encaissement confirmé ; le chèque attend l'encaissement bancaire.",
             "confirmedChequePendingHint": "Le paiement sera finalisé après encaissement du chèque.",
+            "chequeSettled": "Chèque encaissé ; le montant est un paiement confirmé.",
+            "chequeSettledHint": "L'encaissement et le reçu sont complets.",
             "confirmedSettled": "Chèque encaissé et paiement finalisé.",
             "confirmedSettledHint": "L'encaissement et le reçu sont complets.",
-            "chequeRejected": "Chèque rejeté ; le montant n'est plus couvert.",
+            "chequeRejected": "Chèque rejeté ; les créances liées ont été rétablies au solde de l'élève.",
             "chequeRejectedHint": "Consultez la fiche chèque et l'encaissement lié.",
             "cancelled": "Cet encaissement a été annulé et n'affecte pas les soldes.",
             "cancelledHint": "Cet encaissement ne peut pas être repris."
@@ -4432,6 +4435,7 @@
             "confirmed": "Encaissement confirmé",
             "receiptIssued": "Reçu émis",
             "chequeCleared": "Chèque encaissé",
+            "chequeSettled": "Chèque encaissé",
             "chequePending": "Chèque en attente d'encaissement",
             "chequeRejected": "Chèque rejeté",
             "cancelled": "Encaissement annulé"
@@ -5239,7 +5243,9 @@
             "dueDate": "Date d'échéance atteinte",
             "deposited": "Chèque déposé",
             "cleared": "Chèque encaissé",
+            "chequeSettled": "Chèque encaissé",
             "rejected": "Chèque rejeté",
+            "chequeRejected": "Chèque rejeté",
             "cancelled": "Chèque annulé",
             "reversal": "Encaissement annulé et créances rouvertes"
           }
@@ -5342,6 +5348,37 @@
           "rejected": "Rejeté",
           "cancelled": "Annulé"
         },
+        "lifecycle": {
+          "settleCheque": "Encaisser le chèque",
+          "confirmSettlementTitle": "Confirmer l'encaissement du chèque",
+          "confirmSettlement": "Confirmer l'encaissement",
+          "settlementDescription": "L'encaissement signifie que la banque a perçu le montant du chèque ; il devient un paiement confirmé au lieu d'une couverture provisoire.",
+          "settlementDate": "Date d'encaissement",
+          "bankReference": "Référence bancaire",
+          "settlementNote": "Note",
+          "rejectCheque": "Rejeter le chèque",
+          "confirmRejectionTitle": "Enregistrer le rejet du chèque",
+          "confirmRejection": "Confirmer le rejet",
+          "rejectionDescription": "Le rejet retire la couverture temporaire et rétablit les créances liées au solde de l'élève. L'encaissement et le reçu restent pour l'historique financier.",
+          "rejectionDate": "Date de rejet",
+          "rejectionReason": "Précisions",
+          "rejectionReasonCode": "Motif de rejet",
+          "rejectionReasons": {
+            "insufficient_funds": "Provision insuffisante",
+            "signature_mismatch": "Signature non conforme",
+            "account_closed": "Compte fermé",
+            "payment_stopped": "Opposition au paiement",
+            "invalid_cheque": "Chèque non valide",
+            "technical_rejection": "Rejet technique de la banque",
+            "other": "Autre motif"
+          },
+          "chequeSettledSuccess": "Chèque encaissé avec succès ; le montant est un paiement confirmé.",
+          "chequeRejectedSuccess": "Rejet du chèque enregistré ; les créances liées ont été rétablies au solde de l'élève.",
+          "chequeSettled": "Encaissé",
+          "chequeRejected": "Rejeté",
+          "paymentReturnedToBalance": "Chèque rejeté ; les créances liées ont été rétablies au solde de l'élève.",
+          "settledStatusBanner": "Chèque encaissé ; le montant est un paiement confirmé."
+        },
         "actions": {
           "deposit": {
             "button": "Déposer le chèque",
@@ -5387,7 +5424,17 @@
           "chequeAlreadyCleared": "Le chèque est déjà encaissé.",
           "reversalAlreadyApplied": "L'inversion a déjà été appliquée.",
           "chequeSchoolMismatch": "Le chèque n'appartient pas à l'école active.",
-          "chequeAmountMismatch": "Le montant du chèque ne correspond pas à l'encaissement."
+          "chequeAmountMismatch": "Le montant du chèque ne correspond pas à l'encaissement.",
+          "chequeNotFound": "Chèque introuvable.",
+          "chequeActionForbidden": "Vous n'avez pas la permission d'effectuer cette action.",
+          "chequeAlreadySettled": "Ce chèque a déjà été encaissé.",
+          "chequeAlreadyRejected": "Le rejet de ce chèque a déjà été enregistré.",
+          "chequeSettlementDateRequired": "La date d'encaissement est obligatoire.",
+          "chequeRejectionReasonRequired": "Le motif de rejet est obligatoire.",
+          "chequeCollectionNotConfirmed": "L'encaissement lié doit être confirmé avant de traiter le chèque.",
+          "chequeAllocationsNotPosted": "Les affectations de l'encaissement ne sont pas prêtes pour le traitement du chèque.",
+          "chequeSettlementFailed": "Impossible de finaliser l'encaissement du chèque.",
+          "chequeRejectionFailed": "Impossible d'enregistrer le rejet du chèque."
         }
       },
       "feeTypesWorkspace": {

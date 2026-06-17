@@ -20,6 +20,18 @@ function collectionAllowsReceiptAction(collection: PaymentCollection, action: st
   return collectionAllowsAction(collection, action);
 }
 
+function isChequePaymentRejected(collection: PaymentCollection): boolean {
+  const cheque = collection.cheque as { settlement_status?: string; state?: string } | undefined;
+  const settlement = cheque?.settlement_status?.trim().toLowerCase();
+  const state = cheque?.state?.trim().toLowerCase();
+  return (
+    settlement === 'rejected' ||
+    state === 'rejected' ||
+    state === 'bounced' ||
+    state === 'returned_to_payer'
+  );
+}
+
 export function CollectionReceiptSection({
   collection,
   onChanged,
@@ -134,6 +146,11 @@ export function CollectionReceiptSection({
       ) : null}
       {receipt ? (
         <div className="collection-receipt-section__body">
+          {isChequePaymentRejected(collection) ? (
+            <p className="tiny muted collection-receipt-section__rejected-notice" role="note">
+              {t('admin.finance.collections.detail.receiptPaymentRejectedNotice')}
+            </p>
+          ) : null}
           <dl className="finance-detail-fields">
             <div className="finance-detail-field">
               <dt>{t('admin.finance.collections.detail.receiptNumber')}</dt>

@@ -15,12 +15,11 @@ import {
   canDepositCheques,
   canRejectCheques,
 } from '@/lib/permissions/finance';
-import { availableChequeTransitions } from '@/lib/utils/cheque';
-import type { ChequeTransitionAction } from '@/lib/utils/cheque';
+import { type ChequeLifecycleAction } from '@/lib/utils/cheque';
+import { chequeAllowsAction, resolveChequeLifecycleActions } from '@/features/admin/finance/cheque-allowed-actions';
 import { ChequeDualBadges } from '@/features/admin/student-finance/components/cheque-dual-badges';
 import { ChequeTimeline } from './cheque-timeline';
-import { ChequeTransitionDialog } from './cheque-transition-dialog';
-import { buildChequeTransitionSummary } from './cheque-transition-summary';
+import { ChequeLifecycleDialogs } from './cheque-lifecycle-host';
 import { FinanceMoney } from './finance-money';
 import type { FinanceCheque } from '@/types/finance';
 
@@ -39,17 +38,18 @@ export function ChequeDetailDrawer({
   const user = useSession();
   const { formatDate } = useFormat();
   const state = useAdminResource<FinanceCheque>(chequeId ? endpoints.admin.financeCheque(chequeId) : null);
-  const [dialogAction, setDialogAction] = useState<ChequeTransitionAction | null>(null);
+  const [dialogAction, setDialogAction] = useState<ChequeLifecycleAction | null>(null);
 
   if (!open || !chequeId) return null;
 
   const cheque = state.data;
 
-  function canRun(action: ChequeTransitionAction): boolean {
+  function canRun(action: ChequeLifecycleAction): boolean {
+    if (!cheque || !chequeAllowsAction(cheque, action)) return false;
     switch (action) {
       case 'deposit':
         return canDepositCheques(user);
-      case 'clear':
+      case 'settle':
         return canClearCheques(user);
       case 'reject':
         return canRejectCheques(user);
@@ -60,21 +60,8 @@ export function ChequeDetailDrawer({
     }
   }
 
-  function transitionPath(action: ChequeTransitionAction): string {
-    switch (action) {
-      case 'deposit':
-        return endpoints.admin.financeChequeDeposit(chequeId!);
-      case 'clear':
-        return endpoints.admin.financeChequeClear(chequeId!);
-      case 'reject':
-        return endpoints.admin.financeChequeReject(chequeId!);
-      case 'cancel':
-        return endpoints.admin.financeChequeCancel(chequeId!);
-    }
-  }
-
   const lifecycle = (cheque?.state ?? 'received') as string;
-  const transitions = availableChequeTransitions(cheque?.state ?? 'received').filter(canRun);
+  const transitions = cheque ? resolveChequeLifecycleActions(cheque).filter(canRun) : [];
 
   return (
     <>
@@ -121,10 +108,24 @@ export function ChequeDetailDrawer({
                   <button
                     key={action}
                     type="button"
-                    className={action === 'reject' || action === 'cancel' ? 'btn btn--sm' : 'btn btn--primary btn--sm'}
+                    className={
+                      action === 'settle'
+                        ? 'btn btn--primary btn--sm'
+                        : action === 'reject'
+                          ? 'btn btn--danger btn--sm'
+                          : action === 'cancel'
+                            ? 'btn btn--sm'
+                            : 'btn btn--ghost btn--sm'
+                    }
                     onClick={() => setDialogAction(action)}
                   >
-                    {t(`admin.finance.cheques.actions.${action}.button`)}
+                    {t(
+                      action === 'settle'
+                        ? 'admin.finance.cheques.lifecycle.settleCheque'
+                        : action === 'reject'
+                          ? 'admin.finance.cheques.lifecycle.rejectCheque'
+                          : `admin.finance.cheques.actions.${action}.button`,
+                    )}
                   </button>
                 ))}
               </div>
@@ -142,14 +143,12 @@ export function ChequeDetailDrawer({
         ) : null}
       </SetupDrawer>
 
-      {dialogAction ? (
-        <ChequeTransitionDialog
-          action={dialogAction}
-          path={transitionPath(dialogAction)}
-          open
-          summary={dialogAction === 'deposit' && cheque ? buildChequeTransitionSummary(cheque) : null}
+      {dialogAction && cheque ? (
+        <ChequeLifecycleDialogs
+          cheque={cheque}
+          openAction={dialogAction}
           onClose={() => setDialogAction(null)}
-          onSuccess={() => {
+          onComplete={() => {
             state.reload();
             onChanged?.();
           }}

@@ -4392,6 +4392,7 @@
           "receiptNotIssued": "Not issued yet",
           "receiptPendingDraft": "No receipt issued yet.",
           "receiptAfterConfirm": "A receipt will be issued after the collection is confirmed.",
+          "receiptPaymentRejectedNotice": "The payment method linked to this receipt was later rejected.",
           "chequeSection": "Cheque details",
           "chequeDraftPending": "The cheque record is created on confirmation. Detailed cheque data appears after that.",
           "chequeWrittenDate": "Cheque date",
@@ -4412,9 +4413,11 @@
             "draftHint": "It does not affect balances yet. Review payment and allocations, then confirm.",
             "confirmedChequePending": "Collection confirmed; the cheque is awaiting clearance.",
             "confirmedChequePendingHint": "Payment will complete once the cheque clears at the bank.",
+            "chequeSettled": "Cheque cleared; the amount is now confirmed payment.",
+            "chequeSettledHint": "Collection and receipt are complete.",
             "confirmedSettled": "Cheque cleared and payment finalized.",
             "confirmedSettledHint": "Collection and receipt are complete.",
-            "chequeRejected": "Cheque rejected; the amount is no longer covered.",
+            "chequeRejected": "Cheque rejected; linked receivables were returned to the student balance.",
             "chequeRejectedHint": "Review the cheque record and linked collection.",
             "cancelled": "This collection was cancelled and does not affect balances.",
             "cancelledHint": "This collection cannot be resumed."
@@ -4432,6 +4435,7 @@
             "confirmed": "Collection confirmed",
             "receiptIssued": "Receipt issued",
             "chequeCleared": "Cheque cleared",
+            "chequeSettled": "Cheque cleared",
             "chequePending": "Cheque pending clearance",
             "chequeRejected": "Cheque rejected",
             "cancelled": "Collection cancelled"
@@ -5239,7 +5243,9 @@
             "dueDate": "Due date reached",
             "deposited": "Cheque deposited",
             "cleared": "Cheque cleared",
+            "chequeSettled": "Cheque cleared",
             "rejected": "Cheque rejected",
+            "chequeRejected": "Cheque rejected",
             "cancelled": "Cheque cancelled",
             "reversal": "Collection reversed and receivables reopened"
           }
@@ -5342,6 +5348,37 @@
           "rejected": "Rejected",
           "cancelled": "Cancelled"
         },
+        "lifecycle": {
+          "settleCheque": "Clear cheque",
+          "confirmSettlementTitle": "Confirm cheque clearance",
+          "confirmSettlement": "Confirm clearance",
+          "settlementDescription": "Clearance means the bank has collected the cheque amount; it becomes confirmed payment instead of pending cheque coverage.",
+          "settlementDate": "Clearance date",
+          "bankReference": "Bank reference",
+          "settlementNote": "Note",
+          "rejectCheque": "Reject cheque",
+          "confirmRejectionTitle": "Record cheque rejection",
+          "confirmRejection": "Confirm rejection",
+          "rejectionDescription": "Rejecting the cheque removes its temporary coverage and returns linked receivables to the student balance. The collection and receipt records remain for financial history.",
+          "rejectionDate": "Rejection date",
+          "rejectionReason": "Details",
+          "rejectionReasonCode": "Rejection reason",
+          "rejectionReasons": {
+            "insufficient_funds": "Insufficient funds",
+            "signature_mismatch": "Signature mismatch",
+            "account_closed": "Account closed",
+            "payment_stopped": "Payment stopped",
+            "invalid_cheque": "Invalid cheque",
+            "technical_rejection": "Technical bank rejection",
+            "other": "Other"
+          },
+          "chequeSettledSuccess": "Cheque cleared successfully; the amount is now confirmed payment.",
+          "chequeRejectedSuccess": "Cheque rejection recorded; linked receivables were returned to the student balance.",
+          "chequeSettled": "Cleared",
+          "chequeRejected": "Rejected",
+          "paymentReturnedToBalance": "Cheque rejected; linked receivables were returned to the student balance.",
+          "settledStatusBanner": "Cheque cleared; the amount is now confirmed payment."
+        },
         "actions": {
           "deposit": {
             "button": "Deposit cheque",
@@ -5387,7 +5424,17 @@
           "chequeAlreadyCleared": "Cheque is already cleared.",
           "reversalAlreadyApplied": "Reversal was already applied.",
           "chequeSchoolMismatch": "Cheque does not belong to the active school.",
-          "chequeAmountMismatch": "Cheque amount does not match the collection."
+          "chequeAmountMismatch": "Cheque amount does not match the collection.",
+          "chequeNotFound": "Cheque could not be found.",
+          "chequeActionForbidden": "You do not have permission to perform this action.",
+          "chequeAlreadySettled": "This cheque was already cleared.",
+          "chequeAlreadyRejected": "Rejection was already recorded for this cheque.",
+          "chequeSettlementDateRequired": "Clearance date is required.",
+          "chequeRejectionReasonRequired": "Rejection reason is required.",
+          "chequeCollectionNotConfirmed": "The linked collection must be confirmed before processing the cheque.",
+          "chequeAllocationsNotPosted": "Collection allocations are not ready for cheque processing.",
+          "chequeSettlementFailed": "Could not complete cheque clearance.",
+          "chequeRejectionFailed": "Could not record cheque rejection."
         }
       },
       "feeTypesWorkspace": {

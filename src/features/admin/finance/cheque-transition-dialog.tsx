@@ -48,7 +48,8 @@ export function ChequeTransitionDialog({
   if (!open) return null;
 
   const isDeposit = action === 'deposit';
-  const needsReason = action === 'reject' || action === 'cancel';
+  const isCancel = action === 'cancel';
+  const needsReason = isCancel;
   const titleKey = `admin.finance.cheques.actions.${action}.title`;
   const confirmKey = `admin.finance.cheques.actions.${action}.confirm`;
   const warningKey = `admin.finance.cheques.actions.${action}.warning`;
@@ -69,11 +70,7 @@ export function ChequeTransitionDialog({
     const body =
       action === 'deposit'
         ? { deposited_date: date }
-        : action === 'clear'
-          ? { cleared_date: date }
-          : action === 'reject'
-            ? { rejected_date: date, reason: reason.trim() }
-            : { cancelled_date: date, reason: reason.trim() };
+        : { cancelled_date: date, reason: reason.trim() };
     const res = await api.post(path, body);
     setSubmitting(false);
     if (res.success) {
@@ -154,7 +151,7 @@ export function ChequeTransitionDialog({
           />
         </label>
 
-        {needsReason && (
+        {needsReason ? (
           <label className="finance-cheque-dialog__field">
             {t('admin.finance.cheques.reason')}
             <textarea
@@ -166,9 +163,7 @@ export function ChequeTransitionDialog({
               onChange={(e) => setReason(e.target.value)}
             />
           </label>
-        )}
-
-        {action === 'clear' && <p className="muted">{t('admin.finance.cheques.actions.clear.bankConfirm')}</p>}
+        ) : null}
 
         <div className="finance-cheque-dialog__actions">
           <button type="submit" className="btn btn--primary btn--sm" disabled={submitting}>

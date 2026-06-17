@@ -32,12 +32,19 @@ import { useFormat } from '@/features/i18n/use-format';
 import { useLocale, useT } from '@/features/i18n/locale-context';
 import { useSession } from '@/features/auth/session-context';
 import { endpoints } from '@/lib/api/endpoints';
-import { canCancelPayments, canCollectPayments } from '@/lib/permissions/finance';
+import { ChequeLifecycleDialogs } from '@/features/admin/finance/cheque-lifecycle-host';
+import {
+  canClearCheques,
+  canRejectCheques,
+  canCancelPayments,
+  canCollectPayments,
+} from '@/lib/permissions/finance';
+import type { ChequeLifecycleAction } from '@/lib/utils/cheque';
 import { isCollectionChequeReversed, isChequePayment } from '@/lib/utils/cheque';
 import { collectionState, paymentMethodLabel } from '@/lib/utils/finance';
 import { buildFinanceStudentProfileLink } from '@/lib/utils/finance-navigation';
 import { appendReturnTo } from '@/lib/utils/safe-return-url';
-import type { PaymentAllocation, PaymentCollection } from '@/types/finance';
+import type { FinanceCheque, PaymentAllocation, PaymentCollection } from '@/types/finance';
 import type { ResourceState } from '@/lib/hooks/use-resource';
 
 function DetailField({
@@ -166,6 +173,7 @@ export function CollectionDetailsView({
   const { formatDate, formatDateTime } = useFormat();
   const { academicYears } = useFinanceReferenceData();
   const [copied, setCopied] = useState(false);
+  const [lifecycleAction, setLifecycleAction] = useState<ChequeLifecycleAction | null>(null);
 
   const coll = state.data;
   const status = coll ? collectionState(coll) || 'draft' : 'draft';
@@ -212,6 +220,12 @@ export function CollectionDetailsView({
     !!coll?.receipt_id || (typeof coll?.receipt_number === 'string' && !!coll.receipt_number.trim());
 
   if (!coll || !title || !reviewActions || !parties) return null;
+
+  const chequeRecord = (coll.cheque ?? null) as FinanceCheque | null;
+  const canSettleCheque =
+    reviewActions.canSettleCheque && canClearCheques(user) && !!chequeRecord?.id;
+  const canRejectChequeAction =
+    reviewActions.canRejectCheque && canRejectCheques(user) && !!chequeRecord?.id;
 
   const copyValue = commercialRef ?? String(coll.id);
   const copyLabel = commercialRef
@@ -476,6 +490,26 @@ export function CollectionDetailsView({
           <section className="card collection-review-actions">
             <h2>{t('admin.finance.collections.detail.actionsTitle')}</h2>
             <div className="collection-review-actions__stack">
+              {canSettleCheque ? (
+                <button
+                  type="button"
+                  className="btn btn--primary btn--sm"
+                  onClick={() => setLifecycleAction('settle')}
+                >
+                  {t('admin.finance.cheques.lifecycle.settleCheque')}
+                </button>
+              ) : null}
+
+              {canRejectChequeAction ? (
+                <button
+                  type="button"
+                  className="btn btn--danger btn--sm"
+                  onClick={() => setLifecycleAction('reject')}
+                >
+                  {t('admin.finance.cheques.lifecycle.rejectCheque')}
+                </button>
+              ) : null}
+
               {reviewActions.canViewReceipt && receiptHref ? (
                 <Link
                   href={appendReturnTo(receiptHref, returnTo)}
@@ -553,6 +587,15 @@ export function CollectionDetailsView({
           </section>
         </aside>
       </div>
+
+      {lifecycleAction && chequeRecord ? (
+        <ChequeLifecycleDialogs
+          cheque={chequeRecord}
+          openAction={lifecycleAction}
+          onClose={() => setLifecycleAction(null)}
+          onComplete={() => state.reload()}
+        />
+      ) : null}
     </div>
   );
 }

@@ -24,6 +24,30 @@ export interface ChequeDepositPayload {
   deposited_date: string;
 }
 
+export type ChequeSettlementStatus = 'pending' | 'settled' | 'rejected' | 'cancelled';
+
+export interface ChequeAllowedActionsMap {
+  view?: boolean;
+  settle?: boolean;
+  reject?: boolean;
+  cancel?: boolean;
+  deposit?: boolean;
+}
+
+export interface ChequeSettlePayload {
+  settlement_date: string;
+  bank_reference?: string | null;
+  note?: string | null;
+}
+
+export interface ChequeRejectPayloadV2 {
+  rejection_date: string;
+  reason_code: string;
+  reason?: string | null;
+  bank_reference?: string | null;
+  note?: string | null;
+}
+
 export interface ChequeClearPayload {
   cleared_date: string;
 }
@@ -81,7 +105,7 @@ export interface FinanceCheque {
   return_reason?: string;
   cancellation_reason?: string;
   reversal_applied?: boolean;
-  allowed_actions?: string[] | CollectionAllowedActionsMap;
+  allowed_actions?: string[] | ChequeAllowedActionsMap | CollectionAllowedActionsMap;
   allowed_action_codes?: string[];
   allocations?: FinanceChequeAllocation[];
   replaces_cheque_id?: number | null;
@@ -95,7 +119,11 @@ export interface FinanceCheque {
     receipt_number?: string;
   };
   is_postdated?: boolean;
-  settlement_status?: string;
+  settlement_status?: ChequeSettlementStatus | string;
+  settlement_date?: string | null;
+  bank_reference?: string | null;
+  rejection_reason_code?: string | null;
+  status_history?: CollectionStatusHistoryEntry[];
   bank_display_name?: string | null;
   public_notes?: string | null;
 }
@@ -660,6 +688,7 @@ export interface CollectionStatusHistoryEntry {
   actor_id?: number;
   actor_name?: string;
   user?: Ref;
+  metadata?: Record<string, unknown> | null;
 }
 
 export interface PaymentCollection {

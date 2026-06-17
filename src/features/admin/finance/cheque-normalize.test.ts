@@ -73,7 +73,7 @@ describe('cheque normalize', () => {
     expect(detail.studentId).toBe(822);
     expect(detail.collectionId).toBe(635);
     expect(detail.reversalApplied).toBe(true);
-    expect(detail.allowedActions).toEqual(['return', 'replace']);
+    expect(detail.allowedActions).toEqual([]);
   });
 
   it('normalizes allowed_actions map from API', () => {
@@ -81,7 +81,7 @@ describe('cheque normalize', () => {
       ...sample310,
       allowed_actions: { deposit: true, clear: false, return: true },
     } as FinanceCheque);
-    expect(detail.allowedActions).toEqual(['deposit', 'return']);
+    expect(detail.allowedActions).toEqual(['deposit']);
   });
 
   it('maps allowed_action_codes to UI transition actions', () => {
@@ -90,6 +90,34 @@ describe('cheque normalize', () => {
       allowed_actions: { view: true, settle: true, reject: true, cancel: true },
       allowed_action_codes: ['deposit', 'bounce', 'settle', 'reject', 'cancel'],
     } as FinanceCheque);
-    expect(detail.allowedActions.sort()).toEqual(['cancel', 'clear', 'deposit', 'reject']);
+    expect(detail.allowedActions.sort()).toEqual(['cancel', 'reject', 'settle']);
+  });
+
+  it('builds timeline from official status_history', () => {
+    const events = buildChequeLifecycleEvents({
+      ...sample310,
+      state: 'cleared',
+      settlement_status: 'settled',
+      status_history: [
+        { event: 'received', occurred_at: '2026-06-01' },
+        { event: 'cheque_settled', occurred_at: '2026-06-18' },
+      ],
+    } as FinanceCheque);
+    expect(events.map((e) => e.id)).toEqual(['received', 'cheque_settled']);
+    expect(events[1]?.titleKey).toBe('admin.finance.cheques.details.timeline.chequeSettled');
+  });
+
+  it('shows rejection reason from status_history metadata', () => {
+    const events = buildChequeLifecycleEvents({
+      ...sample310,
+      status_history: [
+        {
+          event: 'cheque_rejected',
+          occurred_at: '2026-07-16',
+          metadata: { reason_code: 'insufficient_funds', reason: 'NSF QA' },
+        },
+      ],
+    } as FinanceCheque);
+    expect(events[0]?.reason).toBe('NSF QA');
   });
 });

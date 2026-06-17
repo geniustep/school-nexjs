@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ApiErrorView } from '@/components/states/states';
 import { StudentCollectionDrawer } from '@/features/admin/finance/student-collection-drawer';
@@ -38,6 +38,7 @@ import { StudentFinanceFeesPanel } from './student-finance-fees-panel';
 import { StudentFinanceSchedulePanel } from './student-finance-schedule-panel';
 import { StudentFinanceCollectionsPanel } from './student-finance-collections-panel';
 import { StudentFinancialAgreementTab } from './student-financial-agreement-tab';
+import { subscribeFinanceRefresh } from '@/lib/finance/finance-refresh-bus';
 
 export function StudentFinanceWorkspaceShell({
   studentId,
@@ -92,6 +93,13 @@ export function StudentFinanceWorkspaceShell({
     financialOverviewState.reload();
     onChanged?.();
   }, [workspaceState, financialOverviewState, onChanged]);
+
+  useEffect(() => {
+    return subscribeFinanceRefresh((detail) => {
+      if (detail?.studentId && detail.studentId !== studentId) return;
+      refreshFinanceData();
+    });
+  }, [studentId, refreshFinanceData]);
 
   const handleCollectionOverviewPatch = useCallback(
     (overview: CollectionUpdatedOverview) => {
