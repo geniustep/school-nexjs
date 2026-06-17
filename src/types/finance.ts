@@ -233,22 +233,40 @@ export interface FeePlanLine {
 }
 
 export interface FeePlanUsage {
-  student_count?: number;
   agreement_count?: number;
   student_fee_count?: number;
+  installment_count?: number;
+  collection_count?: number;
+  receipt_count?: number;
+  assigned_student_count?: number;
+  /** @deprecated Prefer assigned_student_count from API */
+  student_count?: number;
+  is_used?: boolean;
 }
 
-export type FeePlanAllowedAction =
-  | 'view'
-  | 'edit'
-  | 'confirm'
-  | 'archive'
-  | 'restore'
-  | 'delete'
-  | 'duplicate'
-  | 'reset_to_draft'
-  | 'assign'
-  | 'view_beneficiaries';
+export type FeePlanUsageSummary = FeePlanUsage;
+
+export interface FeePlanAllowedActionsMap {
+  view?: boolean;
+  edit?: boolean;
+  confirm?: boolean;
+  reset_to_draft?: boolean;
+  duplicate?: boolean;
+  archive?: boolean;
+  restore?: boolean;
+  delete?: boolean;
+  assign?: boolean;
+  view_usage?: boolean;
+}
+
+/** @deprecated Use FeePlanAllowedActionsMap object from API */
+export type FeePlanAllowedAction = keyof FeePlanAllowedActionsMap;
+
+export interface FeePlanDuplicatePayload {
+  name: string;
+  academic_year_id: number;
+  code?: string;
+}
 
 export interface FeePlan {
   id: number;
@@ -269,8 +287,9 @@ export interface FeePlan {
   date_from?: string | null;
   date_to?: string | null;
   notes?: string;
-  allowed_actions?: FeePlanAllowedAction[];
+  allowed_actions?: FeePlanAllowedActionsMap;
   usage?: FeePlanUsage;
+  usage_summary?: FeePlanUsageSummary;
 }
 
 export interface FeePlanLineInput {

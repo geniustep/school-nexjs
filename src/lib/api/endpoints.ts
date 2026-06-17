@@ -202,6 +202,9 @@ export const endpoints = {
     financeFeePlan: (id: number | string) => `/admin/finance/fee-plans/${id}`,
     financeFeePlanConfirm: (id: number | string) => `/admin/finance/fee-plans/${id}/confirm`,
     financeFeePlanArchive: (id: number | string) => `/admin/finance/fee-plans/${id}/archive`,
+    financeFeePlanResetToDraft: (id: number | string) => `/admin/finance/fee-plans/${id}/reset-to-draft`,
+    financeFeePlanDuplicate: (id: number | string) => `/admin/finance/fee-plans/${id}/duplicate`,
+    financeFeePlanRestore: (id: number | string) => `/admin/finance/fee-plans/${id}/restore`,
     financeStudentFees: (id: number | string) => `/admin/finance/student-fees/${id}`,
     financeStudentFeesForStudent: (studentId: number | string) =>
       `/admin/finance/students/${studentId}/fees`,

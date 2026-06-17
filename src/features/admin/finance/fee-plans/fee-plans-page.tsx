@@ -26,6 +26,7 @@ import { FeePlansMetrics } from './fee-plans-metrics';
 import { useLevelOptions } from '@/features/admin/academic-setup/hooks/use-level-options';
 import { buildFeePlanScopeGroups } from './fee-plan-level-scope';
 import type { FeePlanDrawerMode } from './fee-plan-types';
+import { normalizeFeePlans } from './normalize-fee-plan';
 import '@/features/admin/finance/finance-ui.css';
 
 const EMPTY_FILTERS: FeePlanFiltersState = {
@@ -156,7 +157,7 @@ export function FeePlansPage() {
       >
         {(rows) => (
           <FeePlansList
-            rows={rows}
+            rows={normalizeFeePlans(rows)}
             pagination={pg ? { page: pg.page, total_pages: pg.total_pages, total: pg.total } : undefined}
             canManage={canManage}
             scopeGroups={scopeGroups}

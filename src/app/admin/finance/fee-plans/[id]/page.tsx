@@ -1,9 +1,10 @@
 'use client';
 
-import { use } from 'react';
+import { use, useMemo } from 'react';
 import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
 import { ResourceView } from '@/components/states/resource';
 import { FeePlanDetailView } from '@/features/admin/finance/fee-plans/fee-plan-detail-view';
+import { normalizeFeePlan } from '@/features/admin/finance/fee-plans/normalize-fee-plan';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
@@ -23,13 +24,17 @@ export default function AdminFinanceFeePlanDetailPage({
   const user = useSession();
   const state = useAdminResource<FeePlan>(endpoints.admin.financeFeePlan(id));
   const canManage = canManageFeePlans(user);
+  const plan = useMemo(
+    () => (state.data ? normalizeFeePlan(state.data) : null),
+    [state.data],
+  );
 
   return (
     <RequireAdminPermission permission={FINANCE_VIEW}>
-      <ResourceView state={state} loadingLabel={t('common.loading')}>
-        {(plan) => (
+      <ResourceView state={{ ...state, data: plan }} loadingLabel={t('common.loading')}>
+        {(normalizedPlan) => (
           <FeePlanDetailView
-            plan={plan}
+            plan={normalizedPlan}
             canManage={canManage}
             user={user}
             onReload={() => state.reload()}

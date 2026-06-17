@@ -1,29 +1,7 @@
 import { feePlanFrequencyFromApi } from '@/features/admin/finance/fee-plans/fee-plan-frequency';
 import type { FeePlanScopeCycleGroup } from '@/features/admin/finance/fee-plans/fee-plan-level-scope';
 import { normalizeFeePlanLevelIds } from '@/features/admin/finance/fee-plans/fee-plan-level-scope';
-import { feePlanState } from '@/lib/utils/finance';
 import type { FeePlan, FeePlanLine } from '@/types/finance';
-
-export const FEE_PLAN_ACTIONS = [
-  'view',
-  'edit',
-  'confirm',
-  'archive',
-  'restore',
-  'delete',
-  'duplicate',
-  'reset_to_draft',
-  'assign',
-  'view_beneficiaries',
-] as const;
-
-export type FeePlanAction = (typeof FEE_PLAN_ACTIONS)[number];
-
-export interface FeePlanUsageSummary {
-  student_count?: number;
-  agreement_count?: number;
-  student_fee_count?: number;
-}
 
 export interface FeePlanFinancialSummary {
   lineCount: number;
@@ -56,41 +34,6 @@ export interface FeePlanLineDisplay {
   dueDate?: string | null;
   lineExpectedTotal: number | null;
   warnings: FeePlanLineWarningKey[];
-}
-
-function normalizeAllowedActions(raw: unknown): FeePlanAction[] {
-  if (!Array.isArray(raw)) return [];
-  return raw.filter((a): a is FeePlanAction =>
-    typeof a === 'string' && (FEE_PLAN_ACTIONS as readonly string[]).includes(a),
-  );
-}
-
-export function feePlanAllowedActions(plan: FeePlan): FeePlanAction[] {
-  const fromApi = normalizeAllowedActions((plan as FeePlan & { allowed_actions?: unknown }).allowed_actions);
-  if (fromApi.length) return fromApi;
-
-  const state = feePlanState(plan);
-  const actions: FeePlanAction[] = ['view'];
-  if (state === 'draft') {
-    actions.push('edit', 'confirm', 'archive', 'delete');
-  } else if (state === 'confirmed') {
-    actions.push('assign', 'view_beneficiaries', 'archive', 'reset_to_draft', 'duplicate');
-  } else if (state === 'archived') {
-    actions.push('restore', 'duplicate');
-  }
-  return actions;
-}
-
-export function feePlanAllowsAction(plan: FeePlan, action: FeePlanAction): boolean {
-  return feePlanAllowedActions(plan).includes(action);
-}
-
-export function feePlanUsageSummary(plan: FeePlan): FeePlanUsageSummary | null {
-  const usage = (plan as FeePlan & { usage?: FeePlanUsageSummary }).usage;
-  if (!usage || typeof usage !== 'object') return null;
-  const hasAny =
-    usage.student_count != null || usage.agreement_count != null || usage.student_fee_count != null;
-  return hasAny ? usage : null;
 }
 
 function isMonthlyFrequency(frequency: string): boolean {

@@ -13,6 +13,7 @@ import { resolveAcademicYearName } from '@/lib/utils/academic-years';
 import type { FeePlan } from '@/types/finance';
 import type { FeePlanScopeCycleGroup } from './fee-plan-level-scope';
 import { feePlanLevelScopeLabel, feePlanLineCount } from './fee-plan-normalizer';
+import { feePlanAllowsAction } from './normalize-fee-plan';
 
 export function FeePlansList({
   rows,
@@ -101,26 +102,28 @@ export function FeePlansList({
         key: 'actions',
         header: t('admin.actions'),
         render: (row) => {
-          const state = feePlanState(row);
+          const canEditRow = canManage && feePlanAllowsAction(row, 'edit');
+          const canConfirmRow = canManage && feePlanAllowsAction(row, 'confirm');
+          const canArchiveRow = canManage && feePlanAllowsAction(row, 'archive');
           return (
             <div className="fee-plans-list__actions row" onClick={(e) => e.stopPropagation()}>
               <button type="button" className="btn btn--ghost btn--sm" onClick={() => onView(row)}>
                 {t('admin.finance.feePlansWorkspace.viewDetails')}
               </button>
-              {canManage && state === 'draft' && (
-                <>
-                  <button type="button" className="btn btn--ghost btn--sm" onClick={() => onEdit(row)}>
-                    {t('common.edit')}
-                  </button>
-                  <ConfirmActionButton
-                    label={t('admin.finance.confirmPlan')}
-                    confirmMessage={t('admin.finance.confirmPlanMessage')}
-                    path={endpoints.admin.financeFeePlanConfirm(row.id)}
-                    onSuccess={onReload}
-                  />
-                </>
-              )}
-              {canManage && state !== 'archived' && (
+              {canEditRow ? (
+                <button type="button" className="btn btn--ghost btn--sm" onClick={() => onEdit(row)}>
+                  {t('common.edit')}
+                </button>
+              ) : null}
+              {canConfirmRow ? (
+                <ConfirmActionButton
+                  label={t('admin.finance.confirmPlan')}
+                  confirmMessage={t('admin.finance.confirmPlanMessage')}
+                  path={endpoints.admin.financeFeePlanConfirm(row.id)}
+                  onSuccess={onReload}
+                />
+              ) : null}
+              {canArchiveRow ? (
                 <ConfirmActionButton
                   label={t('admin.finance.feePlansWorkspace.archive')}
                   confirmMessage={t('admin.finance.feePlansWorkspace.archiveConfirm')}
@@ -128,7 +131,7 @@ export function FeePlansList({
                   variant="danger"
                   onSuccess={onReload}
                 />
-              )}
+              ) : null}
             </div>
           );
         },

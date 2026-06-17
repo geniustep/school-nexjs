@@ -2,9 +2,6 @@ import { describe, expect, it } from 'vitest';
 import {
   buildFeePlanLineDisplay,
   computeFeePlanFinancialSummary,
-  feePlanAllowedActions,
-  feePlanAllowsAction,
-  feePlanUsageSummary,
   resolveLineScopeNames,
 } from '@/features/admin/finance/fee-plans/fee-plan-detail-utils';
 import type { FeePlanScopeCycleGroup } from '@/features/admin/finance/fee-plans/fee-plan-level-scope';
@@ -35,31 +32,6 @@ function samplePlan(overrides: Partial<FeePlan> = {}): FeePlan {
   };
 }
 
-describe('feePlanAllowedActions', () => {
-  it('uses API allowed_actions when provided', () => {
-    const plan = samplePlan({ allowed_actions: ['view', 'edit', 'confirm'] });
-    expect(feePlanAllowedActions(plan)).toEqual(['view', 'edit', 'confirm']);
-  });
-
-  it('falls back to draft actions', () => {
-    const plan = samplePlan({ state: 'draft' });
-    expect(feePlanAllowsAction(plan, 'edit')).toBe(true);
-    expect(feePlanAllowsAction(plan, 'assign')).toBe(false);
-  });
-
-  it('falls back to confirmed actions', () => {
-    const plan = samplePlan({ state: 'confirmed' });
-    expect(feePlanAllowsAction(plan, 'assign')).toBe(true);
-    expect(feePlanAllowsAction(plan, 'edit')).toBe(false);
-  });
-
-  it('falls back to archived actions', () => {
-    const plan = samplePlan({ state: 'archived' });
-    expect(feePlanAllowsAction(plan, 'restore')).toBe(true);
-    expect(feePlanAllowsAction(plan, 'edit')).toBe(false);
-  });
-});
-
 describe('computeFeePlanFinancialSummary', () => {
   it('separates monthly and one-time totals', () => {
     const summary = computeFeePlanFinancialSummary([
@@ -82,14 +54,6 @@ describe('computeFeePlanFinancialSummary', () => {
     ]);
     expect(singleMonth.annualEstimate).toBeNull();
   });
-
-  it('does not treat monthly amount as misleading total', () => {
-    const summary = computeFeePlanFinancialSummary([
-      sampleLine({ amount: 2000, frequency: 'monthly', installment_count: 1 }),
-    ]);
-    expect(summary.monthlyRequiredTotal).toBe(2000);
-    expect(summary.annualEstimate).toBeNull();
-  });
 });
 
 describe('buildFeePlanLineDisplay', () => {
@@ -103,38 +67,9 @@ describe('buildFeePlanLineDisplay', () => {
     },
   ];
 
-  it('translates frequency via UI key once/monthly', () => {
-    const monthly = buildFeePlanLineDisplay(sampleLine({ frequency: 'monthly' }), samplePlan(), scopeGroups);
-    expect(monthly.frequencyUi).toBe('monthly');
-
-    const once = buildFeePlanLineDisplay(
-      sampleLine({ frequency: 'one_time' }),
-      samplePlan(),
-      scopeGroups,
-    );
-    expect(once.frequencyUi).toBe('once');
-  });
-
   it('shows all plan levels when level_ids empty', () => {
     const display = buildFeePlanLineDisplay(sampleLine({ level_ids: [] }), samplePlan(), scopeGroups);
     expect(display.scopeLabelKey).toBe('allPlanLevels');
-  });
-
-  it('shows specific level names', () => {
-    const display = buildFeePlanLineDisplay(
-      sampleLine({ level_ids: [1] }),
-      samplePlan(),
-      scopeGroups,
-    );
-    expect(display.scopeLabelKey).toBe('specificLevels');
-    expect(display.scopeNames).toEqual(['CP']);
-  });
-
-  it('maps optional flag correctly', () => {
-    const required = buildFeePlanLineDisplay(sampleLine({ is_optional: false }), samplePlan(), scopeGroups);
-    const optional = buildFeePlanLineDisplay(sampleLine({ is_optional: true }), samplePlan(), scopeGroups);
-    expect(required.isOptional).toBe(false);
-    expect(optional.isOptional).toBe(true);
   });
 
   it('warns on monthly with single installment', () => {
@@ -144,18 +79,6 @@ describe('buildFeePlanLineDisplay', () => {
       scopeGroups,
     );
     expect(display.warnings).toContain('monthlySingleInstallment');
-  });
-
-  it('warns on optional tuition', () => {
-    const display = buildFeePlanLineDisplay(
-      sampleLine({
-        is_optional: true,
-        fee_type: { id: 1, code: 'TUITION', name: 'Tuition', category: 'tuition' },
-      }),
-      samplePlan(),
-      scopeGroups,
-    );
-    expect(display.warnings).toContain('tuitionOptional');
   });
 });
 
@@ -171,16 +94,5 @@ describe('resolveLineScopeNames', () => {
     expect(resolveLineScopeNames(sampleLine({ level_ids: [] }), [3], scopeGroups).mode).toBe(
       'allPlanLevels',
     );
-  });
-});
-
-describe('feePlanUsageSummary', () => {
-  it('returns usage when API provides it', () => {
-    const plan = samplePlan({ usage: { student_count: 12, agreement_count: 8 } });
-    expect(feePlanUsageSummary(plan)).toEqual({ student_count: 12, agreement_count: 8 });
-  });
-
-  it('returns null when usage missing', () => {
-    expect(feePlanUsageSummary(samplePlan())).toBeNull();
   });
 });

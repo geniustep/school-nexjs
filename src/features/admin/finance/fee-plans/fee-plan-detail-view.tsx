@@ -17,10 +17,16 @@ import { buildUpdateFeePlanPayload } from '@/features/admin/finance/fee-plans/fe
 import {
   buildFeePlanLineDisplay,
   computeFeePlanFinancialSummary,
-  feePlanAllowsAction,
-  feePlanUsageSummary,
   type FeePlanLineDisplay,
 } from '@/features/admin/finance/fee-plans/fee-plan-detail-utils';
+import {
+  FeePlanDeleteDialog,
+  FeePlanDuplicateDialog,
+  FeePlanResetToDraftDialog,
+  FeePlanRestoreDialog,
+} from '@/features/admin/finance/fee-plans/fee-plan-lifecycle-dialogs';
+import { feePlanAllowsAction } from '@/features/admin/finance/fee-plans/normalize-fee-plan';
+import { FeePlanUsageSection } from '@/features/admin/finance/fee-plans/fee-plan-usage-section';
 import {
   newDraftLine,
   type DraftFeePlanLine,
@@ -58,6 +64,10 @@ export function FeePlanDetailView({
   const [lineSaving, setLineSaving] = useState(false);
   const [lineError, setLineError] = useState<string | null>(null);
   const [assignHintOpen, setAssignHintOpen] = useState(false);
+  const [duplicateOpen, setDuplicateOpen] = useState(false);
+  const [resetOpen, setResetOpen] = useState(false);
+  const [restoreOpen, setRestoreOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   const { options: yearOptions } = useAcademicYearOptions(null);
   const { feeTypes, reload: reloadFeeTypes } = useFeeTypeOptions();
@@ -85,7 +95,7 @@ export function FeePlanDetailView({
     () => lines.map((line) => buildFeePlanLineDisplay(line, plan, scopeGroups)),
     [lines, plan, scopeGroups],
   );
-  const usage = feePlanUsageSummary(plan);
+  const usageVisible = feePlanAllowsAction(plan, 'view_usage') || plan.usage != null;
   const planLevelIds = normalizeFeePlanLevelIds(plan);
   const yearLabel =
     resolveAcademicYearName(plan, yearOptions) ??
@@ -100,10 +110,9 @@ export function FeePlanDetailView({
     feePlanAllowsAction(plan, 'confirm') &&
     lines.length > 0 &&
     planLevelIds.length > 0;
-  const canArchive = canManage && feePlanAllowsAction(plan, 'archive') && state !== 'archived';
-  const canAssign =
-    canAssignFees(user) && feePlanAllowsAction(plan, 'assign') && state === 'confirmed';
-  const canAddFee = canEdit && state === 'draft';
+  const canArchive = canManage && feePlanAllowsAction(plan, 'archive');
+  const canAssign = canAssignFees(user) && feePlanAllowsAction(plan, 'assign');
+  const canAddFee = canEdit;
 
   const formValues = useMemo(
     () => (feeTypes.length ? formValuesFromFeePlan(plan, feeTypes) : null),
@@ -229,31 +238,7 @@ export function FeePlanDetailView({
             </div>
           </section>
 
-          {usage ? (
-            <section className="card fee-plan-detail-usage">
-              <h2>{t('admin.finance.feePlansWorkspace.detailUsageTitle')}</h2>
-              <dl className="fee-plan-detail-usage__grid">
-                {usage.student_count != null ? (
-                  <div>
-                    <dt>{t('admin.finance.feePlansWorkspace.detailStudentsLinked')}</dt>
-                    <dd>{usage.student_count}</dd>
-                  </div>
-                ) : null}
-                {usage.agreement_count != null ? (
-                  <div>
-                    <dt>{t('admin.finance.feePlansWorkspace.detailAgreements')}</dt>
-                    <dd>{usage.agreement_count}</dd>
-                  </div>
-                ) : null}
-                {usage.student_fee_count != null ? (
-                  <div>
-                    <dt>{t('admin.finance.feePlansWorkspace.detailStudentFees')}</dt>
-                    <dd>{usage.student_fee_count}</dd>
-                  </div>
-                ) : null}
-              </dl>
-            </section>
-          ) : null}
+          {usageVisible ? <FeePlanUsageSection plan={plan} /> : null}
 
           <section className="card fee-plan-detail-lines">
             <div className="fee-plan-detail-lines__head">
@@ -360,40 +345,18 @@ export function FeePlanDetailView({
                   {t('admin.finance.feePlansWorkspace.applyToStudents')}
                 </button>
               ) : null}
-              {feePlanAllowsAction(plan, 'view_beneficiaries') && usage?.student_count ? (
-                <Link href="/admin/finance/students" className="btn btn--ghost">
-                  {t('admin.finance.feePlansWorkspace.viewBeneficiaries')}
-                </Link>
-              ) : null}
               {feePlanAllowsAction(plan, 'duplicate') ? (
-                <button
-                  type="button"
-                  className="btn btn--ghost"
-                  disabled
-                  title={t('admin.finance.feePlansWorkspace.copyNotAvailable')}
-                >
-                  {state === 'confirmed'
-                    ? t('admin.finance.feePlansWorkspace.copyNextYear')
-                    : t('admin.finance.feePlansWorkspace.copyPlan')}
+                <button type="button" className="btn btn--ghost" onClick={() => setDuplicateOpen(true)}>
+                  {t('admin.finance.feePlansWorkspace.copyPlan')}
                 </button>
               ) : null}
               {feePlanAllowsAction(plan, 'reset_to_draft') ? (
-                <button
-                  type="button"
-                  className="btn btn--ghost"
-                  disabled
-                  title={t('admin.finance.feePlansWorkspace.copyNotAvailable')}
-                >
+                <button type="button" className="btn btn--ghost" onClick={() => setResetOpen(true)}>
                   {t('admin.finance.feePlansWorkspace.resetToDraft')}
                 </button>
               ) : null}
               {feePlanAllowsAction(plan, 'restore') ? (
-                <button
-                  type="button"
-                  className="btn btn--ghost"
-                  disabled
-                  title={t('admin.finance.feePlansWorkspace.copyNotAvailable')}
-                >
+                <button type="button" className="btn btn--ghost" onClick={() => setRestoreOpen(true)}>
                   {t('admin.finance.feePlansWorkspace.restorePlan')}
                 </button>
               ) : null}
@@ -406,8 +369,17 @@ export function FeePlanDetailView({
                   onSuccess={onReload}
                 />
               ) : null}
+              {feePlanAllowsAction(plan, 'delete') ? (
+                <button
+                  type="button"
+                  className="btn btn--ghost fee-plan-detail-actions__danger"
+                  onClick={() => setDeleteOpen(true)}
+                >
+                  {t('admin.finance.feePlansWorkspace.deletePlan')}
+                </button>
+              ) : null}
             </div>
-            {!canEdit && state === 'confirmed' ? (
+            {!canEdit && feePlanAllowsAction(plan, 'reset_to_draft') === false ? (
               <p className="muted fee-plan-detail-actions__hint">
                 {t('admin.finance.feePlansWorkspace.confirmedReadOnly')}
               </p>
@@ -495,8 +467,6 @@ export function FeePlanDetailView({
         />
       ) : null}
 
-      {lineError ? <p className="form-error fee-plan-detail-page__error">{lineError}</p> : null}
-
       {assignHintOpen ? (
         <div className="fee-plan-detail-dialog-backdrop" role="presentation" onClick={() => setAssignHintOpen(false)}>
           <div
@@ -518,6 +488,33 @@ export function FeePlanDetailView({
           </div>
         </div>
       ) : null}
+
+      {lineError ? <p className="form-error fee-plan-detail-page__error">{lineError}</p> : null}
+
+      <FeePlanResetToDraftDialog
+        open={resetOpen}
+        plan={plan}
+        onClose={() => setResetOpen(false)}
+        onSuccess={onReload}
+      />
+      <FeePlanRestoreDialog
+        open={restoreOpen}
+        plan={plan}
+        onClose={() => setRestoreOpen(false)}
+        onSuccess={onReload}
+      />
+      <FeePlanDuplicateDialog
+        open={duplicateOpen}
+        plan={plan}
+        onClose={() => setDuplicateOpen(false)}
+        onDuplicated={() => onReload()}
+      />
+      <FeePlanDeleteDialog
+        open={deleteOpen}
+        plan={plan}
+        onClose={() => setDeleteOpen(false)}
+        onDeleted={onReload}
+      />
     </div>
   );
 }
