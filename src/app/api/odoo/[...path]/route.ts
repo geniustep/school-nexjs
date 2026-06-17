@@ -9,6 +9,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { config } from '@/lib/config';
+import { buildBffProxyPath } from '@/lib/api/build-odoo-api-url';
 import { odooApiFetch } from '@/lib/api/odoo-server';
 import { getCurrentUser } from '@/lib/api/server';
 import { getActiveSchoolCookie, setActiveSchoolCookieValue } from '@/lib/auth/active-school';
@@ -23,7 +24,7 @@ async function handle(request: NextRequest, segments: string[]) {
   const store = await cookies();
   const sessionId = store.get(config.sessionCookieName)?.value ?? null;
 
-  const path = '/' + segments.map(encodeURIComponent).join('/');
+  const path = buildBffProxyPath(segments);
   const query: Record<string, string> = {};
   request.nextUrl.searchParams.forEach((value, key) => {
     query[key] = value;

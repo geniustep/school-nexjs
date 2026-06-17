@@ -9,6 +9,7 @@
 import 'server-only';
 import { config } from '@/lib/config';
 import { isOdooBinaryResponse } from '@/lib/api/odoo-binary-response';
+import { buildOdooApiUrl } from '@/lib/api/build-odoo-api-url';
 import type { ApiResponse, ApiErrorCode } from '@/types/api';
 
 export interface OdooAuthResult {
@@ -84,16 +85,6 @@ export interface OdooFetchOptions {
   formData?: FormData;
 }
 
-function buildQuery(query?: Record<string, string | number | undefined>): string {
-  if (!query) return '';
-  const sp = new URLSearchParams();
-  for (const [k, v] of Object.entries(query)) {
-    if (v !== undefined && v !== null && v !== '') sp.set(k, String(v));
-  }
-  const s = sp.toString();
-  return s ? `?${s}` : '';
-}
-
 function errorEnvelope(code: ApiErrorCode, message: string): ApiResponse<never> {
   return { success: false, error: { code, message, details: {} }, meta: {} };
 }
@@ -140,7 +131,7 @@ export async function odooApiFetch<T = unknown>(
     };
   }
 
-  const url = `${config.odooBaseUrl}${config.apiPrefix}${path}${buildQuery(opts.query)}`;
+  const url = buildOdooApiUrl(config.odooBaseUrl, config.apiPrefix, path, opts.query);
   const method = opts.method ?? 'GET';
 
   let res: Response;
