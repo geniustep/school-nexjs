@@ -30,6 +30,12 @@ import type {
 
 const TABS: FeePlanEligibilityTabStatus[] = ['eligible', 'already_assigned', 'ineligible'];
 
+function studentInitial(name: string): string {
+  const trimmed = name.trim();
+  if (!trimmed) return '?';
+  return trimmed.charAt(0).toUpperCase();
+}
+
 function billingBadgeClass(student: FeePlanEligibleStudent): string {
   if (student.billing_ready) return 'fee-plan-assign-flow__badge--billing-ready';
   if (student.billing_will_be_created_automatically) return 'fee-plan-assign-flow__badge--billing-auto';
@@ -229,14 +235,19 @@ export function FeePlanAssignStudentsStep({
         key: 'name',
         header: t('nav.students'),
         render: (row) => (
-          <span dir="auto" className="fee-plan-assign-flow__student-cell">
-            <strong>{row.name}</strong>
-            {row.registration_number ? (
-              <span className="mono fee-plan-assign-flow__reg" dir="ltr">
-                {row.registration_number}
-              </span>
-            ) : null}
-          </span>
+          <div dir="auto" className="fee-plan-assign-flow__student-row">
+            <span className="fee-plan-assign-flow__avatar" aria-hidden="true">
+              {studentInitial(row.name)}
+            </span>
+            <span className="fee-plan-assign-flow__student-cell">
+              <strong>{row.name}</strong>
+              {row.registration_number ? (
+                <span className="mono fee-plan-assign-flow__reg" dir="ltr">
+                  {row.registration_number}
+                </span>
+              ) : null}
+            </span>
+          </div>
         ),
       },
       {
@@ -345,9 +356,8 @@ export function FeePlanAssignStudentsStep({
   const allPageSelected = pageSelectableCount > 0 && selectedOnPage === pageSelectableCount;
 
   return (
-    <section className="card fee-plan-assign-flow__section fee-plan-assign-flow__students-step">
-      <div className="fee-plan-assign-flow__students-head">
-        <h2>{t('admin.finance.assignFlow.selectStudents')}</h2>
+    <div className="fee-plan-assign-students">
+      <div className="fee-plan-assign-students__head">
         <button
           type="button"
           className="btn btn--ghost btn--sm fee-plan-assign-flow__filters-toggle"
@@ -358,7 +368,8 @@ export function FeePlanAssignStudentsStep({
         </button>
       </div>
 
-      <div className="fee-plan-assign-flow__tabs" role="tablist">
+      <div className="fee-plan-assign-flow__tabs-wrap">
+        <div className="fee-plan-assign-flow__tabs" role="tablist">
         {TABS.map((value) => (
           <button
             key={value}
@@ -372,10 +383,11 @@ export function FeePlanAssignStudentsStep({
             <span className="fee-plan-assign-flow__tab-count">{tabCounts[value]}</span>
           </button>
         ))}
+        </div>
       </div>
 
       <div
-        className={`fee-plan-assign-flow__filters-panel fee-plan-assign-flow__filters-desktop${filtersOpen ? ' fee-plan-assign-flow__filters-panel--open' : ''}`}
+        className={`fee-plan-assign-flow__filters-panel${filtersOpen ? ' fee-plan-assign-flow__filters-panel--open' : ''}`}
       >
         {filterFields}
       </div>
@@ -509,7 +521,7 @@ export function FeePlanAssignStudentsStep({
       ) : null}
 
       <footer className="fee-plan-assign-flow__footer fee-plan-assign-flow__footer--sticky">
-        <Link href={`/admin/finance/fee-plans/${plan.id}`} className="btn btn--ghost">
+        <Link href={`/admin/finance/fee-plans/${plan.id}`} className="btn btn--ghost fee-plan-assign-flow__footer-back">
           {t('common.back')}
         </Link>
         <div className="fee-plan-assign-flow__footer-center">
@@ -541,6 +553,6 @@ export function FeePlanAssignStudentsStep({
           </button>
         </div>
       </footer>
-    </section>
+    </div>
   );
 }

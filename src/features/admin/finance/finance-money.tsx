@@ -16,12 +16,12 @@ export function FinanceMoney({
   const resolvedCurrency = resolveFinanceCurrency(currency);
 
   return (
-    <span
+    <bdi
       className={className ?? 'mono finance-amount'}
-      style={{ fontVariantNumeric: 'tabular-nums' }}
+      style={{ fontVariantNumeric: 'tabular-nums', unicodeBidi: 'isolate' }}
       dir="ltr"
     >
       {formatFinanceMoney(amount, resolvedCurrency, locale)}
-    </span>
+    </bdi>
   );
 }
