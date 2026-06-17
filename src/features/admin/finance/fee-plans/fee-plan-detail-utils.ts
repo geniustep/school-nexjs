@@ -22,6 +22,7 @@ export interface FeePlanFinancialSummary {
   annualFormulaKey: string | null;
   annualFormulaValues: Record<string, string | number> | null;
   maxInstallmentCount: number;
+  maxMonthlyInstallmentCount: number;
 }
 
 export type FeePlanLineWarningKey =
@@ -67,6 +68,7 @@ export function computeFeePlanFinancialSummary(lines: FeePlanLine[]): FeePlanFin
   let monthlyRequiredTotal = 0;
   let monthlyOptionalTotal = 0;
   let maxInstallmentCount = 0;
+  let maxMonthlyInstallmentCount = 0;
 
   for (const line of lines) {
     const amount = Number(line.amount);
@@ -75,6 +77,9 @@ export function computeFeePlanFinancialSummary(lines: FeePlanLine[]): FeePlanFin
     const pricing = resolveLinePricing(line);
     const installments = pricing.installmentCount;
     maxInstallmentCount = Math.max(maxInstallmentCount, installments);
+    if (isMonthlyFrequency(freq) || isLegacyRecurringDisplay(line, pricing, freq)) {
+      maxMonthlyInstallmentCount = Math.max(maxMonthlyInstallmentCount, installments);
+    }
 
     if (line.is_optional) optionalCount += 1;
     else requiredCount += 1;
@@ -125,6 +130,7 @@ export function computeFeePlanFinancialSummary(lines: FeePlanLine[]): FeePlanFin
     annualFormulaKey,
     annualFormulaValues,
     maxInstallmentCount,
+    maxMonthlyInstallmentCount,
   };
 }
 

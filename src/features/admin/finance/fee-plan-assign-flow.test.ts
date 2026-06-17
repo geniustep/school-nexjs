@@ -126,7 +126,7 @@ describe('validateFeePlanForAssignment', () => {
         },
       ],
     } as FeePlan;
-    const result = validateFeePlanForAssignment(plan, '2025-2026');
+    const result = validateFeePlanForAssignment(plan);
     expect(result.canAssign).toBe(false);
     expect(result.blockReasons).toContain('frequency_installment_conflict');
   });

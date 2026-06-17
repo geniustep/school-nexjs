@@ -433,7 +433,12 @@ export function FeePlanDetailView({
                   <dd className="muted">{t('admin.finance.feePlansWorkspace.detailAnnualNotComputed')}</dd>
                 </div>
               ) : null}
-              {financial.maxInstallmentCount > 0 ? (
+              {financial.maxMonthlyInstallmentCount > 0 ? (
+                <div>
+                  <dt>{t('admin.finance.feePlansWorkspace.detailMonthlyInstallmentCount')}</dt>
+                  <dd>{financial.maxMonthlyInstallmentCount}</dd>
+                </div>
+              ) : financial.maxInstallmentCount > 0 ? (
                 <div>
                   <dt>{t('admin.finance.feePlansWorkspace.detailMaxInstallments')}</dt>
                   <dd>{financial.maxInstallmentCount}</dd>

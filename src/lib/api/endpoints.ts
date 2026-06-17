@@ -205,6 +205,8 @@ export const endpoints = {
     financeFeePlanResetToDraft: (id: number | string) => `/admin/finance/fee-plans/${id}/reset-to-draft`,
     financeFeePlanDuplicate: (id: number | string) => `/admin/finance/fee-plans/${id}/duplicate`,
     financeFeePlanRestore: (id: number | string) => `/admin/finance/fee-plans/${id}/restore`,
+    financeFeePlanEligibleStudents: (id: number | string) =>
+      `/admin/finance/fee-plans/${id}/eligible-students`,
     financeStudentFees: (id: number | string) => `/admin/finance/student-fees/${id}`,
     financeStudentFeesForStudent: (studentId: number | string) =>
       `/admin/finance/students/${studentId}/fees`,

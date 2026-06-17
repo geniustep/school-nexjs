@@ -32,10 +32,7 @@ export function detectPlanNameYearMismatch(plan: FeePlan, academicYearName: stri
   return !yearTokens.some((token) => normalizedName.includes(token));
 }
 
-export function validateFeePlanForAssignment(
-  plan: FeePlan,
-  academicYearName: string,
-): FeePlanAssignValidation {
+export function validateFeePlanForAssignment(plan: FeePlan): FeePlanAssignValidation {
   const state = feePlanState(plan);
   const lines = plan.lines ?? [];
   const inconsistentLines = lines.filter(lineHasFrequencyInstallmentConflict);
@@ -46,15 +43,10 @@ export function validateFeePlanForAssignment(
   if (!lines.length) blockReasons.push('no_lines');
   if (inconsistentLines.length) blockReasons.push('frequency_installment_conflict');
 
-  const warnings: FeePlanAssignWarningReason[] = [];
-  if (detectPlanNameYearMismatch(plan, academicYearName)) {
-    warnings.push('name_year_mismatch');
-  }
-
   return {
     canAssign: blockReasons.length === 0,
     blockReasons,
-    warnings,
+    warnings: [],
     inconsistentLines,
   };
 }

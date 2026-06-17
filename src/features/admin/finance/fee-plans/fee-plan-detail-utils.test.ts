@@ -67,6 +67,15 @@ describe('computeFeePlanFinancialSummary', () => {
     ]);
     expect(singleMonth.annualEstimate).toBeNull();
   });
+
+  it('tracks monthly installment count separately from one-time lines', () => {
+    const summary = computeFeePlanFinancialSummary([
+      sampleLine({ amount: 2000, frequency: 'monthly', installment_count: 10 }),
+      sampleLine({ id: 2, amount: 2500, frequency: 'one_time', installment_count: 3 }),
+    ]);
+    expect(summary.maxMonthlyInstallmentCount).toBe(10);
+    expect(summary.maxInstallmentCount).toBe(10);
+  });
 });
 
 describe('buildFeePlanLineDisplay', () => {

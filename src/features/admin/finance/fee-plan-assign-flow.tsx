@@ -1,18 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useMemo, useState } from 'react';
-import { EmptyState, LoadingState } from '@/components/states/states';
-import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
+import { useMemo, useState } from 'react';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
-import {
-  assessStudentEligibility,
-  filterEligibilityRows,
-  type StudentEligibilityRow,
-  type StudentPlanEligibility,
-} from '@/features/admin/finance/fee-plan-assign-eligibility';
 import { assignFeePlanToStudents, type FeePlanAssignStudentResult } from '@/features/admin/finance/fee-plan-assign-executor';
 import { resolveAssignErrorMessage } from '@/features/admin/finance/fee-plan-assign-errors';
+import {
+  FeePlanAssignStudentsStep,
+  type SelectedAssignStudent,
+} from '@/features/admin/finance/fee-plan-assign-students-step';
 import {
   FeePlanAssignSourceCard,
   FeePlanAssignStepper,
@@ -31,7 +27,7 @@ import {
   resolveDefaultEffectiveDate,
   sumLineSubtotals,
 } from '@/features/admin/finance/fee-plan-assign-utils';
-import { buildFeePlanScopeGroups, buildEnabledFeePlanScopeLevels } from '@/features/admin/finance/fee-plans/fee-plan-level-scope';
+import { buildFeePlanScopeGroups } from '@/features/admin/finance/fee-plans/fee-plan-level-scope';
 import {
   billingPartyTypeLabelKey,
   countAssignedInstallments,
@@ -43,16 +39,11 @@ import { useAcademicYearOptions } from '@/features/admin/finance/use-finance-loo
 import { useLevelOptions } from '@/features/admin/academic-setup/hooks/use-level-options';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
-import { endpoints } from '@/lib/api/endpoints';
-import { useAdminResource } from '@/lib/hooks/use-admin-resource';
-import { financeStudentDisplayName } from '@/lib/utils/finance';
-import { parseFinanceList, normalizePagination } from '@/lib/utils/finance-normalize';
 import { resolveAcademicYearName } from '@/lib/utils/academic-years';
-import type { FeePlan, FinanceStudentSearchResult } from '@/types/finance';
-import type { ListParams } from '@/types/api';
+import type { FeePlan } from '@/types/finance';
 import './fee-plan-assign-flow.css';
 
-type AssignStep = 'students' | 'optional' | 'preview' | 'result';
+type AssignStep = 'students' | 'preview' | 'result';
 
 const BLOCK_MESSAGE_KEYS: Record<FeePlanAssignBlockReason, string> = {
   not_confirmed: 'admin.finance.assignFlow.blockNotConfirmed',
@@ -61,27 +52,13 @@ const BLOCK_MESSAGE_KEYS: Record<FeePlanAssignBlockReason, string> = {
   frequency_installment_conflict: 'admin.finance.assignFlow.blockFrequencyConflict',
 };
 
-const ELIGIBILITY_LABEL_KEYS: Record<StudentPlanEligibility, string> = {
-  eligible: 'admin.finance.assignFlow.eligible',
-  already_assigned: 'admin.finance.assignFlow.alreadyAssigned',
-  level_out_of_scope: 'admin.finance.assignFlow.levelOutOfScope',
-  no_active_year: 'admin.finance.assignFlow.noActiveYear',
-};
-
 export function FeePlanAssignFlow({ plan }: { plan: FeePlan }) {
   const t = useT();
   const { formatDate } = useFormat();
   const [step, setStep] = useState<AssignStep>('students');
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [selectedStudents, setSelectedStudents] = useState<SelectedAssignStudent[]>([]);
   const [selectedOptionalIds, setSelectedOptionalIds] = useState<number[]>([]);
   const [effectiveDate, setEffectiveDate] = useState(() => resolveDefaultEffectiveDate({}));
-  const [search, setSearch] = useState('');
-  const [levelFilter, setLevelFilter] = useState('');
-  const [classFilter, setClassFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState<
-    '' | StudentPlanEligibility | 'not_eligible'
-  >('');
-  const [page, setPage] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [assignResults, setAssignResults] = useState<FeePlanAssignStudentResult[] | null>(null);
 
@@ -91,10 +68,6 @@ export function FeePlanAssignFlow({ plan }: { plan: FeePlan }) {
     () => buildFeePlanScopeGroups(levelOptionsState.options),
     [levelOptionsState.options],
   );
-  const enabledLevels = useMemo(
-    () => buildEnabledFeePlanScopeLevels(levelOptionsState.options),
-    [levelOptionsState.options],
-  );
   const scopeLabels = useFeePlanScopeLabels(scopeGroups);
 
   const yearLabel =
@@ -102,10 +75,7 @@ export function FeePlanAssignFlow({ plan }: { plan: FeePlan }) {
     (typeof plan.academic_year === 'object' ? plan.academic_year?.name : null) ??
     t('common.dash');
   const levelLabel = feePlanLevelLabel(plan, scopeGroups, scopeLabels);
-  const validation = useMemo(
-    () => validateFeePlanForAssignment(plan, yearLabel),
-    [plan, yearLabel],
-  );
+  const validation = useMemo(() => validateFeePlanForAssignment(plan), [plan]);
 
   const planLines = plan.lines ?? [];
   const { required: requiredLines, optional: optionalLines } = useMemo(
@@ -123,135 +93,12 @@ export function FeePlanAssignFlow({ plan }: { plan: FeePlan }) {
   const installmentPreview = useMemo(() => buildInstallmentPreview(previewLines), [previewLines]);
   const expectedTotal = sumLineSubtotals(previewLines);
   const installmentCount = countInstallments(previewLines);
+  const selectedIds = useMemo(() => selectedStudents.map((s) => s.studentId), [selectedStudents]);
 
-  const studentParams: ListParams = useMemo(
-    () => ({ page, page_size: 20, search: search.trim() || undefined }),
-    [page, search],
-  );
-  const studentsState = useAdminResource<unknown>(
-    validation.canAssign ? endpoints.admin.financeStudentsSearch : null,
-    studentParams,
-  );
-  const studentRows = useMemo(
-    () => parseFinanceList<FinanceStudentSearchResult>(studentsState.data),
-    [studentsState.data],
-  );
-  const pagination = normalizePagination(studentsState.meta) ?? studentsState.meta?.pagination ?? null;
-
-  const eligibilityRows: StudentEligibilityRow[] = useMemo(
-    () => studentRows.map((student) => assessStudentEligibility(student, plan)),
-    [studentRows, plan],
-  );
-  const filteredRows = useMemo(
-    () =>
-      filterEligibilityRows(eligibilityRows, {
-        search,
-        levelId: levelFilter,
-        classId: classFilter,
-        statusFilter,
-      }),
-    [eligibilityRows, search, levelFilter, classFilter, statusFilter],
-  );
-
-  const selectedStudents = useMemo(
-    () =>
-      filteredRows
-        .filter((r) => selectedIds.includes(r.student.id) && r.selectable)
-        .map((r) => ({
-          studentId: r.student.id,
-          studentName: financeStudentDisplayName(r.student),
-        })),
-    [filteredRows, selectedIds],
-  );
-
-  const hasOptionalStep = optionalLines.length > 0;
-  const stepOrder: AssignStep[] = hasOptionalStep
-    ? ['students', 'optional', 'preview', 'result']
-    : ['students', 'preview', 'result'];
-
-  const stepLabels = useMemo(
-    () => ({
-      students: t('admin.finance.assignFlow.stepStudents'),
-      optional: t('admin.finance.assignFlow.stepOptional'),
-      preview: t('admin.finance.assignFlow.stepPreview'),
-      result: t('admin.finance.assignFlow.stepResult'),
-    }),
-    [t],
-  );
-
-  const stepperSteps = stepOrder
-    .filter((s) => s !== 'result')
-    .map((id) => ({
-      id,
-      label: stepLabels[id],
-      done: stepOrder.indexOf(id) < stepOrder.indexOf(step),
-    }));
-
-  const toggleStudent = useCallback((row: StudentEligibilityRow, checked: boolean) => {
-    if (!row.selectable) return;
-    setSelectedIds((prev) =>
-      checked
-        ? prev.includes(row.student.id)
-          ? prev
-          : [...prev, row.student.id]
-        : prev.filter((id) => id !== row.student.id),
-    );
-  }, []);
-
-  const selectAllEligible = useCallback(() => {
-    const eligibleIds = filteredRows.filter((r) => r.selectable).map((r) => r.student.id);
-    setSelectedIds(eligibleIds);
-  }, [filteredRows]);
-
-  const columns: Column<StudentEligibilityRow>[] = useMemo(
-    () => [
-      {
-        key: 'select',
-        header: '',
-        render: (row) => (
-          <input
-            type="checkbox"
-            checked={selectedIds.includes(row.student.id)}
-            disabled={!row.selectable}
-            onChange={(e) => toggleStudent(row, e.target.checked)}
-            aria-label={financeStudentDisplayName(row.student)}
-          />
-        ),
-      },
-      {
-        key: 'name',
-        header: t('nav.students'),
-        render: (row) => (
-          <span dir="auto">
-            <strong>{financeStudentDisplayName(row.student)}</strong>
-            {row.student.code ? (
-              <span className="mono muted fee-plan-assign-flow__code">{row.student.code}</span>
-            ) : null}
-          </span>
-        ),
-      },
-      {
-        key: 'level',
-        header: t('nav.levels'),
-        render: (row) => row.student.level?.name ?? t('common.dash'),
-      },
-      {
-        key: 'class',
-        header: t('common.class'),
-        render: (row) => row.student.class?.name ?? t('common.dash'),
-      },
-      {
-        key: 'status',
-        header: t('common.status'),
-        render: (row) => (
-          <span className={`badge fee-plan-assign-flow__badge fee-plan-assign-flow__badge--${row.status}`}>
-            {t(ELIGIBILITY_LABEL_KEYS[row.status])}
-          </span>
-        ),
-      },
-    ],
-    [t, selectedIds, toggleStudent],
-  );
+  const stepperSteps = [
+    { id: 'students', label: t('admin.finance.assignFlow.stepStudents'), done: step !== 'students' },
+    { id: 'preview', label: t('admin.finance.assignFlow.stepPreview'), done: step === 'result' },
+  ];
 
   async function handleConfirmAssign() {
     if (!selectedStudents.length || submitting) return;
@@ -267,11 +114,6 @@ export function FeePlanAssignFlow({ plan }: { plan: FeePlan }) {
     setStep('result');
   }
 
-  function goNextFromStudents() {
-    if (!selectedStudents.length) return;
-    setStep(hasOptionalStep ? 'optional' : 'preview');
-  }
-
   function resolveResultError(result: FeePlanAssignStudentResult): string {
     return resolveAssignErrorMessage(result.errorCode, result.errorMessage, t);
   }
@@ -285,7 +127,12 @@ export function FeePlanAssignFlow({ plan }: { plan: FeePlan }) {
             {t('common.back')}
           </Link>
         </header>
-        <FeePlanAssignSourceCard plan={plan} yearLabel={yearLabel} levelLabel={levelLabel} />
+        <FeePlanAssignSourceCard
+          plan={plan}
+          yearLabel={yearLabel}
+          levelLabel={levelLabel}
+          expectedTotal={expectedTotal}
+        />
         <div className="card fee-plan-assign-flow__block" role="alert">
           <h2>{t('admin.finance.assignFlow.cannotAssignTitle')}</h2>
           <ul>
@@ -303,153 +150,63 @@ export function FeePlanAssignFlow({ plan }: { plan: FeePlan }) {
       <header className="fee-plan-assign-flow__header">
         <div>
           <h1>{t('admin.finance.assignFlow.pageTitle')}</h1>
-          <p className="muted">{t('admin.finance.assignFlow.pageDesc')}</p>
+          <p className="muted">{t('admin.finance.assignFlow.pageDescEligible')}</p>
         </div>
         <Link href={`/admin/finance/fee-plans/${plan.id}`} className="btn btn--ghost btn--sm">
           {t('common.back')}
         </Link>
       </header>
 
-      <FeePlanAssignSourceCard plan={plan} yearLabel={yearLabel} levelLabel={levelLabel} />
+      <FeePlanAssignSourceCard
+        plan={plan}
+        yearLabel={yearLabel}
+        levelLabel={levelLabel}
+        expectedTotal={expectedTotal}
+      />
 
-      {validation.warnings.includes('name_year_mismatch') ? (
-        <p className="fee-plan-assign-flow__warn card" role="status">
-          {t('admin.finance.assignFlow.nameYearMismatch')}
-        </p>
-      ) : null}
-
-      {step !== 'result' ? (
-        <FeePlanAssignStepper steps={stepperSteps} current={step} />
-      ) : null}
+      {step !== 'result' ? <FeePlanAssignStepper steps={stepperSteps} current={step} /> : null}
 
       {step === 'students' ? (
-        <section className="card fee-plan-assign-flow__section">
-          <h2>{t('admin.finance.assignFlow.selectStudents')}</h2>
-          <div className="toolbar fee-plan-assign-flow__filters">
-            <input
-              className="input"
-              placeholder={t('admin.finance.assignFlow.searchPlaceholder')}
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
-            />
-            <select
-              className="input"
-              value={levelFilter}
-              onChange={(e) => setLevelFilter(e.target.value)}
-            >
-              <option value="">{t('admin.finance.feePlansWorkspace.allLevels')}</option>
-              {enabledLevels.map((level) => (
-                <option key={level.schoolLevelId} value={level.schoolLevelId}>
-                  {level.name}
-                </option>
-              ))}
-            </select>
-            <select
-              className="input"
-              value={statusFilter}
-              onChange={(e) =>
-                setStatusFilter(e.target.value as '' | StudentPlanEligibility | 'not_eligible')
-              }
-            >
-              <option value="">{t('admin.finance.assignFlow.allEligibility')}</option>
-              <option value="eligible">{t('admin.finance.assignFlow.eligible')}</option>
-              <option value="already_assigned">{t('admin.finance.assignFlow.alreadyAssigned')}</option>
-              <option value="level_out_of_scope">{t('admin.finance.assignFlow.levelOutOfScope')}</option>
-              <option value="not_eligible">{t('admin.finance.assignFlow.notEligible')}</option>
-            </select>
-            <button type="button" className="btn btn--ghost btn--sm" onClick={selectAllEligible}>
-              {t('admin.finance.assignFlow.selectAllEligible')}
-            </button>
-          </div>
-
-          {studentsState.loading ? <LoadingState label={t('common.loading')} /> : null}
-
-          {!studentsState.loading && filteredRows.length === 0 ? (
-            <EmptyState title={t('admin.finance.assignFlow.noStudents')} />
-          ) : null}
-
-          {filteredRows.length > 0 ? (
-            <>
-              <div className="student-360-table-wrap fee-plan-assign-flow__table">
-                <DataTable columns={columns} rows={filteredRows} rowKey={(r) => r.student.id} />
-              </div>
-              {pagination ? (
-                <Pagination
-                  page={pagination.page}
-                  totalPages={pagination.total_pages}
-                  total={pagination.total}
-                  onPage={setPage}
-                />
-              ) : null}
-            </>
-          ) : null}
-
-          <p className="tiny muted">{t('admin.finance.assignFlow.eligibilityNote')}</p>
-
-          <footer className="fee-plan-assign-flow__footer">
-            <span className="muted">
-              {t('admin.finance.assignFlow.selectedCount', { count: selectedStudents.length })}
-            </span>
-            <button
-              type="button"
-              className="btn btn--primary"
-              disabled={!selectedStudents.length}
-              onClick={goNextFromStudents}
-            >
-              {t('common.next')}
-            </button>
-          </footer>
-        </section>
-      ) : null}
-
-      {step === 'optional' ? (
-        <section className="card fee-plan-assign-flow__section">
-          <h2>{t('admin.finance.assignFlow.optionalFees')}</h2>
-          <ul className="fee-plan-assign-flow__fee-list">
-            {requiredLines.map((line) => (
-              <li key={line.id} className="fee-plan-assign-flow__fee-item fee-plan-assign-flow__fee-item--locked">
-                <span>{line.name || line.fee_type?.name}</span>
-                <FinanceMoney amount={line.amount} currency={plan.currency} />
-                <span className="badge badge--blue">{t('admin.finance.assignFlow.required')}</span>
-              </li>
-            ))}
-            {optionalLines.map((line) => (
-              <li key={line.id} className="fee-plan-assign-flow__fee-item">
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={selectedOptionalIds.includes(line.id)}
-                    onChange={(e) =>
-                      setSelectedOptionalIds((prev) =>
-                        e.target.checked
-                          ? [...prev, line.id]
-                          : prev.filter((id) => id !== line.id),
-                      )
-                    }
-                  />
-                  <span>{line.name || line.fee_type?.name}</span>
-                  <FinanceMoney amount={line.amount} currency={plan.currency} />
-                </label>
-              </li>
-            ))}
-          </ul>
-          <footer className="fee-plan-assign-flow__footer">
-            <button type="button" className="btn btn--ghost" onClick={() => setStep('students')}>
-              {t('common.previous')}
-            </button>
-            <button type="button" className="btn btn--primary" onClick={() => setStep('preview')}>
-              {t('common.next')}
-            </button>
-          </footer>
-        </section>
+        <FeePlanAssignStudentsStep
+          plan={plan}
+          planLevelGroups={scopeGroups}
+          selectedIds={selectedIds}
+          selectedStudents={selectedStudents}
+          onSelectedIdsChange={(ids, students) => setSelectedStudents(students)}
+          onNext={() => setStep('preview')}
+        />
       ) : null}
 
       {step === 'preview' ? (
         <section className="card fee-plan-assign-flow__section">
           <h2>{t('admin.finance.assignFlow.previewTitle')}</h2>
+
+          {optionalLines.length > 0 ? (
+            <section className="fee-plan-assign-flow__optional-block">
+              <h3>{t('admin.finance.assignFlow.optionalFees')}</h3>
+              <ul className="fee-plan-assign-flow__fee-list">
+                {optionalLines.map((line) => (
+                  <li key={line.id} className="fee-plan-assign-flow__fee-item">
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={selectedOptionalIds.includes(line.id)}
+                        onChange={(e) =>
+                          setSelectedOptionalIds((prev) =>
+                            e.target.checked
+                              ? [...prev, line.id]
+                              : prev.filter((id) => id !== line.id),
+                          )
+                        }
+                      />
+                      <span>{line.name || line.fee_type?.name}</span>
+                      <FinanceMoney amount={computeLineExpectedTotal(line)} currency={plan.currency} />
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
 
           <label>
             {t('admin.finance.assignDrawer.effectiveDate')}
@@ -475,19 +232,17 @@ export function FeePlanAssignFlow({ plan }: { plan: FeePlan }) {
               <tbody>
                 {previewLines.map((line) => {
                   const pricing = resolveLinePricing(line);
-                  const installments = pricing.installmentCount;
-                  const pricingMode = line.pricing_mode ?? pricing.pricingMode;
                   return (
                     <tr key={line.id}>
                       <td>{line.name || line.fee_type?.name}</td>
-                      <td>{t(pricingModeLabelKey(pricingMode))}</td>
+                      <td>{t(pricingModeLabelKey(line.pricing_mode ?? pricing.pricingMode))}</td>
                       <td>
                         <FinanceMoney
                           amount={pricing.installmentAmount ?? pricing.unitAmount}
                           currency={plan.currency}
                         />
                       </td>
-                      <td>{installments}</td>
+                      <td>{pricing.installmentCount}</td>
                       <td>
                         <FinanceMoney amount={computeLineExpectedTotal(line)} currency={plan.currency} />
                       </td>
@@ -510,9 +265,9 @@ export function FeePlanAssignFlow({ plan }: { plan: FeePlan }) {
             </table>
           </div>
 
-          <section className="fee-plan-assign-flow__installments">
-            <h3>{t('admin.finance.assignFlow.installmentPreview')}</h3>
-            {installmentPreview.length > 0 ? (
+          {installmentPreview.length > 0 ? (
+            <section className="fee-plan-assign-flow__installments">
+              <h3>{t('admin.finance.assignFlow.installmentPreview')}</h3>
               <div className="student-360-table-wrap">
                 <table className="data-table">
                   <thead>
@@ -537,21 +292,15 @@ export function FeePlanAssignFlow({ plan }: { plan: FeePlan }) {
                   </tbody>
                 </table>
               </div>
-            ) : (
-              <p className="muted tiny">
-                {t('admin.finance.assignDrawer.installmentCountOnly', { count: installmentCount })}
-              </p>
-            )}
-          </section>
+            </section>
+          ) : (
+            <p className="muted tiny">
+              {t('admin.finance.assignDrawer.installmentCountOnly', { count: installmentCount })}
+            </p>
+          )}
 
-          <p className="muted tiny">{t('admin.finance.assignDrawer.previewDisclaimer')}</p>
-
-          <footer className="fee-plan-assign-flow__footer">
-            <button
-              type="button"
-              className="btn btn--ghost"
-              onClick={() => setStep(hasOptionalStep ? 'optional' : 'students')}
-            >
+          <footer className="fee-plan-assign-flow__footer fee-plan-assign-flow__footer--sticky">
+            <button type="button" className="btn btn--ghost" onClick={() => setStep('students')}>
               {t('common.previous')}
             </button>
             <button
@@ -569,92 +318,73 @@ export function FeePlanAssignFlow({ plan }: { plan: FeePlan }) {
       {step === 'result' && assignResults ? (
         <section className="card fee-plan-assign-flow__section">
           <h2>{t('admin.finance.assignFlow.resultTitle')}</h2>
-          {(() => {
-            const successCount = assignResults.filter((r) => r.success).length;
-            const failCount = assignResults.length - successCount;
-            return (
-              <p className="fee-plan-assign-flow__result-summary">
-                {t('admin.finance.assignFlow.resultSummary', {
-                  total: assignResults.length,
-                  success: successCount,
-                  failed: failCount,
-                })}
-              </p>
-            );
-          })()}
-
+          <p className="fee-plan-assign-flow__result-summary">
+            {t('admin.finance.assignFlow.resultSummary', {
+              total: assignResults.length,
+              success: assignResults.filter((r) => r.success).length,
+              failed: assignResults.filter((r) => !r.success).length,
+            })}
+          </p>
           <ul className="fee-plan-assign-flow__result-list">
             {assignResults.map((result) => {
               const fees = result.response?.fees ?? [];
-              const appliedTotal = sumAssignedFeeTotals(fees);
-              const installmentTotal = countAssignedInstallments(fees);
               const billingProfile = result.response?.billing_profile;
               return (
-              <li
-                key={result.studentId}
-                className={
-                  result.success
-                    ? 'fee-plan-assign-flow__result-item fee-plan-assign-flow__result-item--ok'
-                    : 'fee-plan-assign-flow__result-item fee-plan-assign-flow__result-item--fail'
-                }
-              >
-                <div className="fee-plan-assign-flow__result-body">
-                  <strong>{result.studentName}</strong>
-                  {result.success ? (
-                    <>
-                      <p>{t('admin.finance.assignFlow.assignSuccessDetail')}</p>
-                      <dl className="detail-list compact fee-plan-assign-flow__result-metrics">
-                        <div>
-                          <dt>{t('admin.finance.assignFlow.feesCreatedLabel')}</dt>
-                          <dd>{fees.length}</dd>
-                        </div>
-                        <div>
-                          <dt>{t('admin.finance.assignFlow.installmentsCreatedLabel')}</dt>
-                          <dd>{installmentTotal}</dd>
-                        </div>
-                        <div>
-                          <dt>{t('admin.finance.assignFlow.appliedTotalLabel')}</dt>
-                          <dd>
-                            <FinanceMoney amount={appliedTotal} currency={plan.currency} />
-                          </dd>
-                        </div>
-                      </dl>
-                      {billingProfile ? (
-                        <div className="fee-plan-assign-flow__billing card card--nested">
-                          <p>
-                            <strong>{t('admin.finance.billingPartyTitle')}:</strong>{' '}
-                            {t(billingPartyTypeLabelKey(billingProfile.billing_party_type))}
-                          </p>
-                          {billingProfile.billing_party_type === 'guardian' &&
-                          billingProfile.created_automatically ? (
-                            <p className="tiny muted">
-                              {t('admin.finance.billingProfileCreatedAutomatically')}
+                <li
+                  key={result.studentId}
+                  className={
+                    result.success
+                      ? 'fee-plan-assign-flow__result-item fee-plan-assign-flow__result-item--ok'
+                      : 'fee-plan-assign-flow__result-item fee-plan-assign-flow__result-item--fail'
+                  }
+                >
+                  <div className="fee-plan-assign-flow__result-body">
+                    <strong>{result.studentName}</strong>
+                    {result.success ? (
+                      <>
+                        <p>{t('admin.finance.assignFlow.assignSuccessDetail')}</p>
+                        <dl className="detail-list compact fee-plan-assign-flow__result-metrics">
+                          <div>
+                            <dt>{t('admin.finance.assignFlow.feesCreatedLabel')}</dt>
+                            <dd>{fees.length}</dd>
+                          </div>
+                          <div>
+                            <dt>{t('admin.finance.assignFlow.installmentsCreatedLabel')}</dt>
+                            <dd>{countAssignedInstallments(fees)}</dd>
+                          </div>
+                          <div>
+                            <dt>{t('admin.finance.assignFlow.appliedTotalLabel')}</dt>
+                            <dd>
+                              <FinanceMoney amount={sumAssignedFeeTotals(fees)} currency={plan.currency} />
+                            </dd>
+                          </div>
+                        </dl>
+                        {billingProfile ? (
+                          <div className="fee-plan-assign-flow__billing card card--nested">
+                            <p>
+                              <strong>{t('admin.finance.billingPartyTitle')}:</strong>{' '}
+                              {t(billingPartyTypeLabelKey(billingProfile.billing_party_type))}
                             </p>
-                          ) : null}
-                          {billingProfile.billing_party_type === 'student' ? (
-                            <p className="tiny muted">{t('admin.finance.billingNoLinkedGuardian')}</p>
-                          ) : null}
-                        </div>
-                      ) : null}
-                    </>
-                  ) : (
-                    <span className="muted">{resolveResultError(result)}</span>
-                  )}
-                </div>
-                {result.success ? (
-                  <Link
-                    href={`/admin/finance/students/${result.studentId}`}
-                    className="btn btn--ghost btn--sm"
-                  >
-                    {t('admin.finance.assignFlow.openStudentFinance')}
-                  </Link>
-                ) : null}
-              </li>
-            );
+                          </div>
+                        ) : null}
+                      </>
+                    ) : (
+                      <span className="muted">{resolveResultError(result)}</span>
+                    )}
+                  </div>
+                  {result.success ? (
+                    <Link
+                      href={`/admin/finance/students/${result.studentId}`}
+                      className="btn btn--ghost btn--sm"
+                    >
+                      {t('admin.finance.assignFlow.openStudentFinance')}
+                    </Link>
+                  ) : null}
+                </li>
+              );
             })}
           </ul>
-
-          <footer className="fee-plan-assign-flow__footer">
+          <footer className="fee-plan-assign-flow__footer fee-plan-assign-flow__footer--sticky">
             <Link href={`/admin/finance/fee-plans/${plan.id}`} className="btn btn--ghost">
               {t('admin.finance.assignFlow.backToPlan')}
             </Link>
@@ -663,7 +393,7 @@ export function FeePlanAssignFlow({ plan }: { plan: FeePlan }) {
               className="btn btn--primary"
               onClick={() => {
                 setStep('students');
-                setSelectedIds([]);
+                setSelectedStudents([]);
                 setAssignResults(null);
               }}
             >

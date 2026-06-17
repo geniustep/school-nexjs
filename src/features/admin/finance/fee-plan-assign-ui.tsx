@@ -14,10 +14,12 @@ export function FeePlanAssignSourceCard({
   plan,
   yearLabel,
   levelLabel,
+  expectedTotal,
 }: {
   plan: FeePlan;
   yearLabel: string;
   levelLabel: string;
+  expectedTotal?: number | null;
 }) {
   const t = useT();
   const lineCount = plan.lines?.length ?? 0;
@@ -51,9 +53,17 @@ export function FeePlanAssignSourceCard({
           <dd>{lineCount}</dd>
         </div>
         <div>
-          <dt>{t('admin.finance.currency')}</dt>
+          <dt>{t('admin.finance.currencyLabel')}</dt>
           <dd>{plan.currency ?? t('common.dash')}</dd>
         </div>
+        {expectedTotal != null && expectedTotal > 0 ? (
+          <div>
+            <dt>{t('admin.finance.feePlansWorkspace.summaryExpectedTotal')}</dt>
+            <dd>
+              <FinanceMoney amount={expectedTotal} currency={plan.currency} />
+            </dd>
+          </div>
+        ) : null}
       </dl>
       <Link href={`/admin/finance/fee-plans/${plan.id}`} className="btn btn--ghost btn--sm">
         {t('admin.finance.feePlansWorkspace.viewDetails')}
