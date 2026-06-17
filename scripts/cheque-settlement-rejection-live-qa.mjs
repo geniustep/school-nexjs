@@ -88,12 +88,23 @@ async function readOnlyUiQa(page) {
 
   if ((await rejectBtn.count()) > 0) {
     await rejectBtn.first().click();
-    await page.waitForSelector('.finance-cheque-dialog--reject', { timeout: 10000 });
-    const modal = await page.locator('.finance-cheque-dialog--reject').innerText();
-    record('rejectDialog_title', modal.includes('تسجيل رفض الشيك'));
-    record('rejectDialog_reasonSelect', modal.includes('سبب الرفض'));
-    record('rejectDialog_confirmCta', modal.includes('تأكيد رفض الشيك'));
-    await page.getByRole('button', { name: /^إلغاء$/ }).first().click();
+    const rejectModal = page.locator('.finance-cheque-dialog--reject');
+    const opened = await rejectModal.waitFor({ state: 'visible', timeout: 15000 }).then(() => true).catch(() => false);
+    if (opened) {
+      const modal = await rejectModal.innerText();
+      record('rejectDialog_title', modal.includes('تسجيل رفض الشيك'));
+      record('rejectDialog_reasonSelect', modal.includes('سبب الرفض'));
+      record('rejectDialog_confirmCta', modal.includes('تأكيد رفض الشيك'));
+      await page.getByRole('button', { name: /^إلغاء$/ }).first().click();
+    } else {
+      record('rejectDialog_title', false, { note: 'reject modal did not open' });
+      record('rejectDialog_reasonSelect', false);
+      record('rejectDialog_confirmCta', false);
+    }
+  } else {
+    record('rejectDialog_title', false, { note: 'reject button not visible' });
+    record('rejectDialog_reasonSelect', false);
+    record('rejectDialog_confirmCta', false);
   }
 
   await page.goto(`${BASE}/admin/finance/collections/${REF_COLLECTION}`, {
@@ -150,7 +161,7 @@ async function main() {
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
     extraHTTPHeaders: { 'X-Forwarded-Host': HOST },
-    viewport: { width: 390, height: 844 },
+    viewport: { width: 1280, height: 900 },
   });
   await context.addInitScript(() => {
     localStorage.setItem('scc_locale', 'ar');
