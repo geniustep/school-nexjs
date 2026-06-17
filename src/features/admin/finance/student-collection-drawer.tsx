@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import '@/features/admin/finance/finance-ui.css';
 import { SetupDrawer } from '@/features/admin/academic-setup/components/setup-drawer';
 import { useToast } from '@/components/ui/toast';
@@ -31,10 +32,15 @@ export function StudentCollectionDrawer({
   financialOverview?: StudentFinancialOverview | null;
   onClose: () => void;
   onSuccess: () => void;
-  onOverviewUpdate?: () => void;
+  onOverviewUpdate?: (overview: CollectionUpdatedOverview) => void;
 }) {
   const t = useT();
   const toast = useToast();
+  const handledCollectionIdRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!open) handledCollectionIdRef.current = null;
+  }, [open]);
 
   if (!open) return null;
 
@@ -42,15 +48,21 @@ export function StudentCollectionDrawer({
   const subtitle = displayName || undefined;
 
   function handleDone(collection: PaymentCollection) {
-    toast.success(t('admin.finance.collectionWorkflow.successToast'));
+    if (handledCollectionIdRef.current === collection.id) {
+      onClose();
+      return;
+    }
+    handledCollectionIdRef.current = collection.id;
+    toast.success(t('admin.finance.collectionWorkflow.refreshSuccessToast'));
     onSuccess();
     if (collection.payment_method === 'cheque' || collection.payment_method === 'check') {
       toast.show(t('admin.finance.collectionWorkflow.chequePendingNote'), 'info');
     }
+    onClose();
   }
 
-  function handleOverviewUpdate(_overview: CollectionUpdatedOverview) {
-    onOverviewUpdate?.();
+  function handleOverviewUpdate(overview: CollectionUpdatedOverview) {
+    onOverviewUpdate?.(overview);
   }
 
   return (

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ApiErrorView } from '@/components/states/states';
 import { DataTable, type Column } from '@/components/tables/data-table';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
@@ -24,9 +24,11 @@ import type { FinanceReceipt } from '@/types/finance';
 export function StudentReceiptsSection({
   studentId,
   returnTo,
+  refreshSignal = 0,
 }: {
   studentId: number;
   returnTo?: string;
+  refreshSignal?: number;
 }) {
   const t = useT();
   const { formatDateTime } = useFormat();
@@ -37,6 +39,10 @@ export function StudentReceiptsSection({
     page: 1,
     page_size: 5,
   });
+
+  useEffect(() => {
+    if (refreshSignal > 0) state.reload();
+  }, [refreshSignal, state.reload]);
 
   const rows = useMemo(() => parseFinanceReceiptList(state.data), [state.data]);
 

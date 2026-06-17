@@ -37,6 +37,7 @@ export function StudentFinanceFeesPanel({
   studentId,
   effectiveYearId,
   financialOverview,
+  financeRefreshSignal = 0,
 }: StudentFinancePanelProps) {
   const t = useT();
   const { formatDate } = useFormat();
@@ -47,6 +48,7 @@ export function StudentFinanceFeesPanel({
     studentId,
     { page, page_size: 20, academic_year_id: Number(effectiveYearId) },
     !!effectiveYearId,
+    financeRefreshSignal,
   );
 
   const columns: Column<StudentFee>[] = useMemo(

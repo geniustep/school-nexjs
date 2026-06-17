@@ -646,6 +646,7 @@ export interface PaymentCollection {
   academic_year?: Ref | string | null;
   billing_partner_id?: number;
   billing_partner?: Ref;
+  billing_partner_name?: string;
   payer_name?: string;
   amount?: number;
   total_amount?: number;

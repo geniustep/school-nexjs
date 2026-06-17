@@ -3637,7 +3637,10 @@
           "remaining": "Remaining",
           "overdue": "Overdue",
           "nextInstallment": "Próximo pago",
-          "upcoming": "Próximo"
+          "upcoming": "Próximo",
+          "paidConfirmed": "Pagado confirmado",
+          "pendingCheque": "Cheques pendientes de compensación",
+          "paidIncludesPendingCheque": "Incluye importes cubiertos por cheques pendientes de compensación."
         },
         "billingPartyTitle": "Entidad facturada",
         "billingEffectiveFrom": "Vigente desde",
@@ -3698,13 +3701,15 @@
             "partiallyPaid": "Partially paid",
             "paid": "Paid",
             "overdue": "Overdue",
-            "cancelled": "Cancelled"
+            "cancelled": "Cancelado",
+            "pendingChequeCoverage": "Cubierto por cheque pendiente de compensación"
           }
         },
         "collections": {
-          "description": "Collections and receipts.",
-          "emptyTitle": "No collections.",
-          "noCollectibleItems": "No collectible items."
+          "description": "Cobros y recibos.",
+          "emptyTitle": "Sin cobros.",
+          "noCollectibleItems": "Sin partidas cobrables.",
+          "pendingCheque": "Pendiente de compensación"
         }
       },
       "collectionWorkflow": {
@@ -4450,6 +4455,7 @@
         "successToast": "Cobro registrado.",
         "viewCollection": "Ver cobro",
         "chequePendingNote": "El cheque queda pendiente y no cuenta como cobrado confirmado hasta su compensación.",
+        "refreshSuccessToast": "Pago registrado y expediente financiero actualizado.",
         "chequeDatesHelp": "Fecha de recepción, fecha escrita y vencimiento son distintas.",
         "chequeBranch": "Sucursal",
         "chequeDrawer": "Librador",

@@ -11,6 +11,8 @@ export interface StudentFinancialOverviewTotals {
   annual_total: number;
   due_to_date: number;
   paid: number;
+  paid_confirmed?: number;
+  pending_cheque?: number;
   remaining: number;
   overdue: number;
   upcoming: number;
@@ -26,6 +28,7 @@ export interface StudentFinancialOverviewNextInstallment {
   installment_id?: number;
   fee_name?: string | null;
   fee_type_name?: string | null;
+  display_label?: string | null;
   period_label?: string | null;
   period_start?: string | null;
   period_end?: string | null;
@@ -37,6 +40,10 @@ export interface StudentFinancialOverviewNextInstallment {
   display_state?: string | null;
   timing_status?: string | null;
   payment_status?: string | null;
+  installment_sequence?: number | null;
+  installment_count?: number | null;
+  coverage_status?: string | null;
+  pending_cheque_amount?: number;
 }
 
 export interface AppliedFeePlanSummary {

@@ -3664,7 +3664,10 @@
           "remaining": "المتبقي",
           "overdue": "المتأخر",
           "nextInstallment": "الدفعة القادمة",
-          "upcoming": "القادم"
+          "upcoming": "القادم",
+          "paidConfirmed": "المدفوع المؤكد",
+          "pendingCheque": "شيكات قيد التحصيل",
+          "paidIncludesPendingCheque": "يشمل المبالغ المغطاة بشيكات قيد التحصيل."
         },
         "billingPartyTitle": "الجهة المفوترة",
         "billingEffectiveFrom": "ساري من",
@@ -3725,13 +3728,15 @@
             "partiallyPaid": "مؤداة جزئيًا",
             "paid": "مؤداة",
             "overdue": "متأخرة",
-            "cancelled": "ملغاة"
+            "cancelled": "ملغاة",
+            "pendingChequeCoverage": "مغطى بشيك قيد التحصيل"
           }
         },
         "collections": {
           "description": "سجل التحصيلات والإيصالات.",
           "emptyTitle": "لا توجد تحصيلات.",
-          "noCollectibleItems": "لا توجد مستحقات قابلة للتحصيل."
+          "noCollectibleItems": "لا توجد مستحقات قابلة للتحصيل.",
+          "pendingCheque": "قيد التحصيل"
         }
       },
       "collectionWorkflow": {
@@ -4490,6 +4495,7 @@
         "successToast": "تم تسجيل التحصيل.",
         "viewCollection": "عرض التحصيل",
         "chequePendingNote": "تم تسجيل الشيك كأداء قيد التحصيل. لن يُحتسب ضمن المحصل فعليًا حتى تأكيد تحصيله.",
+        "refreshSuccessToast": "تم تسجيل الدفعة وتحديث الملف المالي.",
         "chequeDatesHelp": "تاريخ الاستلام ≠ التاريخ المكتوب على الشيك ≠ تاريخ الاستحقاق.",
         "chequeBranch": "الفرع",
         "chequeDrawer": "محرر الشيك",

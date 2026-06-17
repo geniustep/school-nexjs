@@ -7,8 +7,9 @@ import { DataTable, Pagination, type Column } from '@/components/tables/data-tab
 import { Card } from '@/components/ui/primitives';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { useFormat } from '@/features/i18n/use-format';
-import { useT } from '@/features/i18n/locale-context';
+import { useLocale, useT } from '@/features/i18n/locale-context';
 import { refName } from '@/lib/utils/finance';
+import { formatInstallmentDisplayTitle } from '../utils/format-installment-display';
 import { StudentSectionSkeleton } from '@/features/admin/students/components/student-360-loading';
 import { Student360SectionHeader } from '@/features/admin/students/components/student-360-section-header';
 import { useStudentFinanceInstallmentsPage } from '../hooks/use-student-finance-installments-page';
@@ -18,6 +19,9 @@ import { InstallmentStatusBadges } from './installment-status-badges';
 import type { StudentFinancePanelProps } from './student-finance-panel-props';
 
 function resolveScheduleStatus(row: StudentInstallment, t: (key: string) => string): string {
+  if ((row.pending_cheque_amount ?? 0) > 0 || row.payment_status === 'pending_cheque') {
+    return t('admin.student360.financeWorkspace.schedule.status.pendingChequeCoverage');
+  }
   if (row.display_state) {
     const key = `admin.student360.financeWorkspace.schedule.status.${row.display_state}`;
     const translated = t(key);
@@ -40,10 +44,12 @@ export function StudentFinanceSchedulePanel({
   studentId,
   effectiveYearId,
   financialOverview,
+  financeRefreshSignal = 0,
   onOpenCollection,
   canCollect,
 }: StudentFinancePanelProps) {
   const t = useT();
+  const { locale } = useLocale();
   const { formatDate } = useFormat();
   const [page, setPage] = useState(1);
   const [paymentStatus, setPaymentStatus] = useState('');
@@ -68,7 +74,12 @@ export function StudentFinanceSchedulePanel({
     [page, effectiveYearId, paymentStatus, timingStatus, serviceFilter, dateFrom, dateTo],
   );
 
-  const installmentsState = useStudentFinanceInstallmentsPage(studentId, query, !!effectiveYearId);
+  const installmentsState = useStudentFinanceInstallmentsPage(
+    studentId,
+    query,
+    !!effectiveYearId,
+    financeRefreshSignal,
+  );
   const summary = installmentsState.summary;
 
   const scheduleSummary = useMemo(() => {
@@ -102,7 +113,10 @@ export function StudentFinanceSchedulePanel({
       {
         key: 'service',
         header: t('admin.student360.financeWorkspace.schedule.columns.fee'),
-        render: (row) => refName(row.service) ?? t('common.dash'),
+        render: (row) => {
+          const title = formatInstallmentDisplayTitle(row, locale);
+          return title || refName(row.service) || t('common.dash');
+        },
       },
       {
         key: 'period',
@@ -156,7 +170,7 @@ export function StudentFinanceSchedulePanel({
           ),
       },
     ],
-    [t, formatDate, currency, canCollect, onOpenCollection],
+    [t, formatDate, currency, canCollect, onOpenCollection, locale],
   );
 
   return (

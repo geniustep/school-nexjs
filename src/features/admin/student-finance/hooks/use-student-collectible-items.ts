@@ -20,6 +20,7 @@ export function useStudentCollectibleItems(
   academicYearId: string | number | null,
   enabled: boolean,
   extraQuery?: Record<string, string | number>,
+  refreshSignal = 0,
 ): StudentCollectibleItemsState {
   const { activeSchoolId } = useAdminSession();
   const [loading, setLoading] = useState(false);
@@ -70,7 +71,7 @@ export function useStudentCollectibleItems(
     return () => {
       active = false;
     };
-  }, [studentId, academicYearId, activeSchoolId, enabled, nonce]);
+  }, [studentId, academicYearId, activeSchoolId, enabled, nonce, refreshSignal]);
 
   return { loading, data, error, reload };
 }

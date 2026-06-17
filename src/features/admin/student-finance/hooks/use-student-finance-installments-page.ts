@@ -22,6 +22,7 @@ export function useStudentFinanceInstallmentsPage(
   studentId: number | string | null,
   query: Record<string, string | number | undefined> | null,
   enabled: boolean,
+  refreshSignal = 0,
 ): StudentFinanceInstallmentsPageState {
   const { activeSchoolId } = useAdminSession();
   const [loading, setLoading] = useState(false);
@@ -73,7 +74,7 @@ export function useStudentFinanceInstallmentsPage(
     return () => {
       active = false;
     };
-  }, [studentId, query, activeSchoolId, enabled, nonce]);
+  }, [studentId, query, activeSchoolId, enabled, nonce, refreshSignal]);
 
   return { loading, initialLoading, data, summary, error, reload };
 }

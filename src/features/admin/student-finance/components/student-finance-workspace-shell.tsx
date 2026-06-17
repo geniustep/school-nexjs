@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ApiErrorView } from '@/components/states/states';
 import { StudentCollectionDrawer } from '@/features/admin/finance/student-collection-drawer';
@@ -11,6 +11,7 @@ import {
   canViewStudentPayments,
 } from '@/features/admin/students/utils/resolve-capabilities';
 import type { StudentCapabilities, StudentDetailsData } from '@/types/student-360';
+import type { CollectionUpdatedOverview } from '@/types/student-financial-overview';
 import type { StudentFinanceCapabilities } from '@/types/student-finance';
 import { Student360CompactEmpty } from '@/features/admin/students/components/student-360-compact-empty';
 import {
@@ -53,6 +54,7 @@ export function StudentFinanceWorkspaceShell({
   const initialSubTab = parseStudentFinanceSubTab(searchParams.get('financeSubTab'));
   const [subTab, setSubTab] = useState<StudentFinanceSubTab>(initialSubTab);
   const [showCollectionDrawer, setShowCollectionDrawer] = useState(false);
+  const [financeRefreshSignal, setFinanceRefreshSignal] = useState(0);
 
   const {
     refState,
@@ -68,6 +70,7 @@ export function StudentFinanceWorkspaceShell({
     studentId,
     effectiveYearId,
     !!effectiveYearId,
+    financeRefreshSignal,
   );
 
   const phase = resolveFinanceTabLoadPhase({
@@ -82,11 +85,21 @@ export function StudentFinanceWorkspaceShell({
   const canViewPayments = canViewStudentPayments(capabilities, financeCaps);
   const canCollect = canCollectStudentPayments(capabilities, financeCaps);
 
-  const refreshFinanceData = () => {
+  const refreshFinanceData = useCallback(() => {
+    setFinanceRefreshSignal((n) => n + 1);
     workspaceState.reload();
     financialOverviewState.reload();
     onChanged?.();
-  };
+  }, [workspaceState, financialOverviewState, onChanged]);
+
+  const handleCollectionOverviewPatch = useCallback(
+    (overview: CollectionUpdatedOverview) => {
+      financialOverviewState.applyPatch(overview);
+      setFinanceRefreshSignal((n) => n + 1);
+      workspaceState.reload();
+    },
+    [financialOverviewState, workspaceState],
+  );
 
   const emptyFinance =
     (financialOverviewState.data?.totals.annual_total ?? 0) === 0 &&
@@ -157,6 +170,7 @@ export function StudentFinanceWorkspaceShell({
       canCollect,
       onRefresh: refreshFinanceData,
       onOpenCollection: () => setShowCollectionDrawer(true),
+      financeRefreshSignal,
     }),
     [
       studentId,
@@ -169,6 +183,8 @@ export function StudentFinanceWorkspaceShell({
       financialOverviewState.error,
       canViewPayments,
       canCollect,
+      refreshFinanceData,
+      financeRefreshSignal,
     ],
   );
 
@@ -259,7 +275,7 @@ export function StudentFinanceWorkspaceShell({
         financialOverview={financialOverviewState.data}
         onClose={() => setShowCollectionDrawer(false)}
         onSuccess={refreshFinanceData}
-        onOverviewUpdate={financialOverviewState.reload}
+        onOverviewUpdate={handleCollectionOverviewPatch}
       />
     </div>
   );

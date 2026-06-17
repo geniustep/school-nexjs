@@ -3637,7 +3637,10 @@
           "remaining": "Remaining",
           "overdue": "Overdue",
           "nextInstallment": "Next installment",
-          "upcoming": "Upcoming"
+          "upcoming": "Upcoming",
+          "paidConfirmed": "Confirmed paid",
+          "pendingCheque": "Cheques pending clearance",
+          "paidIncludesPendingCheque": "Includes amounts covered by cheques pending clearance."
         },
         "billingPartyTitle": "Billing party",
         "billingEffectiveFrom": "Effective from",
@@ -3698,13 +3701,15 @@
             "partiallyPaid": "Partially paid",
             "paid": "Paid",
             "overdue": "Overdue",
-            "cancelled": "Cancelled"
+            "cancelled": "Cancelled",
+            "pendingChequeCoverage": "Covered by cheque pending clearance"
           }
         },
         "collections": {
           "description": "Collections and receipts.",
           "emptyTitle": "No collections.",
-          "noCollectibleItems": "No collectible items."
+          "noCollectibleItems": "No collectible items.",
+          "pendingCheque": "Pending clearance"
         }
       },
       "collectionWorkflow": {
@@ -4450,6 +4455,7 @@
         "successToast": "Collection recorded.",
         "viewCollection": "View collection",
         "chequePendingNote": "The cheque is pending collection and is not counted as confirmed paid until cleared.",
+        "refreshSuccessToast": "Payment recorded and financial file updated.",
         "chequeDatesHelp": "Received date, written date, and maturity date are separate.",
         "chequeBranch": "Branch",
         "chequeDrawer": "Drawer name",

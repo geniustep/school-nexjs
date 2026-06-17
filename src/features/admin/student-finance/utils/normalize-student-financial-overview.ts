@@ -36,6 +36,8 @@ function normalizeTotals(raw: Record<string, unknown>): StudentFinancialOverview
     annual_total: readMoney(raw.annual_total ?? raw.total_assessed),
     due_to_date: readMoney(raw.due_to_date ?? raw.total_due_to_date),
     paid: readMoney(raw.paid ?? raw.total_paid),
+    paid_confirmed: readMoney(raw.paid_confirmed ?? raw.confirmed_paid),
+    pending_cheque: readMoney(raw.pending_cheque ?? raw.pending_cheques ?? raw.pending_cheque_amount),
     remaining: readMoney(raw.remaining ?? raw.total_outstanding),
     overdue: readMoney(raw.overdue ?? raw.total_overdue),
     upcoming: readMoney(raw.upcoming ?? raw.total_upcoming),
@@ -63,6 +65,7 @@ export function normalizeNextInstallment(raw: unknown): StudentFinancialOverview
     installment_id: typeof obj.installment_id === 'number' ? obj.installment_id : id,
     fee_name: typeof obj.fee_name === 'string' ? obj.fee_name : null,
     fee_type_name: typeof obj.fee_type_name === 'string' ? obj.fee_type_name : null,
+    display_label: typeof obj.display_label === 'string' ? obj.display_label : null,
     period_label: typeof obj.period_label === 'string' ? obj.period_label : null,
     period_start: typeof obj.period_start === 'string' ? obj.period_start : null,
     period_end: typeof obj.period_end === 'string' ? obj.period_end : null,
@@ -74,6 +77,15 @@ export function normalizeNextInstallment(raw: unknown): StudentFinancialOverview
     display_state: typeof obj.display_state === 'string' ? obj.display_state : null,
     timing_status: typeof obj.timing_status === 'string' ? obj.timing_status : null,
     payment_status: typeof obj.payment_status === 'string' ? obj.payment_status : null,
+    installment_sequence:
+      typeof obj.installment_sequence === 'number'
+        ? obj.installment_sequence
+        : typeof obj.sequence === 'number'
+          ? obj.sequence
+          : null,
+    installment_count: typeof obj.installment_count === 'number' ? obj.installment_count : null,
+    coverage_status: typeof obj.coverage_status === 'string' ? obj.coverage_status : null,
+    pending_cheque_amount: readMoney(obj.pending_cheque_amount),
   };
 }
 

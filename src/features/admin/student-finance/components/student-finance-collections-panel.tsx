@@ -10,7 +10,9 @@ import { FinanceStatusBadge } from '@/features/admin/finance/finance-status-badg
 import { StudentReceiptsSection } from '@/features/admin/student-finance/components/student-receipts-section';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
-import { collectionState, paymentMethodLabel, refName } from '@/lib/utils/finance';
+import { resolveCollectionPayerLabel } from '@/features/admin/finance/collection-payer-label';
+import { isChequePayment } from '@/lib/utils/cheque';
+import { collectionState, paymentMethodLabel } from '@/lib/utils/finance';
 import type { PaymentCollection } from '@/types/finance';
 import { EmptyState } from '@/components/states/states';
 import { Student360SectionHeader } from '@/features/admin/students/components/student-360-section-header';
@@ -20,6 +22,7 @@ export function StudentFinanceCollectionsPanel({
   studentId,
   workspace,
   financialOverview,
+  financeRefreshSignal = 0,
   canViewPayments,
   canCollect,
   onOpenCollection,
@@ -46,12 +49,31 @@ export function StudentFinanceCollectionsPanel({
       {
         key: 'method',
         header: t('admin.student360.financeOps.collections.method'),
-        render: (row) => paymentMethodLabel(row.payment_method, t),
+        render: (row) => {
+          const label = paymentMethodLabel(row.payment_method, t);
+          if (isChequePayment(row.payment_method) && row.state !== 'cancelled') {
+            return `${label} — ${t('admin.student360.financeWorkspace.collections.pendingCheque')}`;
+          }
+          return label;
+        },
       },
       {
         key: 'payer',
         header: t('admin.student360.financeOps.collections.payer'),
-        render: (row) => row.payer_name ?? refName(row.billing_partner) ?? t('common.dash'),
+        render: (row) =>
+          resolveCollectionPayerLabel(
+            {
+              payer_name: row.payer_name,
+              billing_partner_name: (row as { billing_partner_name?: string }).billing_partner_name,
+              billing_partner: row.billing_partner,
+            },
+            t('common.dash'),
+          ),
+      },
+      {
+        key: 'receipt',
+        header: t('admin.finance.receiptNumber'),
+        render: (row) => row.receipt_number ?? (row.receipt_id ? `#${row.receipt_id}` : t('common.dash')),
       },
       {
         key: 'state',
@@ -103,7 +125,7 @@ export function StudentFinanceCollectionsPanel({
 
       {canViewPayments ? (
         <Card className="student-finance-section">
-          <StudentReceiptsSection studentId={studentId} />
+          <StudentReceiptsSection studentId={studentId} refreshSignal={financeRefreshSignal} />
         </Card>
       ) : null}
 

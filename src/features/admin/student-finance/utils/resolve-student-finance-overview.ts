@@ -1,10 +1,13 @@
 import type { StudentFinancialOverview } from '@/types/student-financial-overview';
+import { formatInstallmentDisplayTitle } from './format-installment-display';
 
 export interface StudentFinanceOverviewMetrics {
   currency: string | null;
   annual_total: number | null;
   due_to_date: number | null;
   paid: number | null;
+  paid_confirmed: number | null;
+  pending_cheque: number | null;
   remaining: number | null;
   overdue: number | null;
   upcoming: number | null;
@@ -12,10 +15,13 @@ export interface StudentFinanceOverviewMetrics {
   next_installment_date: string | null;
   next_installment_fee_name: string | null;
   next_installment_period: string | null;
+  next_installment_display_label: string | null;
   next_installment_state: string | null;
+  next_installment_pending_cheque: number | null;
   has_special_agreement: boolean;
   fees_count: number | null;
   installments_count: number | null;
+  paid_includes_pending_cheque: boolean;
 }
 
 export function resolveStudentFinanceOverviewMetrics(
@@ -38,6 +44,8 @@ export function resolveStudentFinanceOverviewMetrics(
     annual_total: totals.annual_total,
     due_to_date: totals.due_to_date,
     paid: totals.paid,
+    paid_confirmed: totals.paid_confirmed ?? null,
+    pending_cheque: totals.pending_cheque ?? null,
     remaining: totals.remaining,
     overdue: totals.overdue,
     upcoming: totals.upcoming,
@@ -45,7 +53,13 @@ export function resolveStudentFinanceOverviewMetrics(
     next_installment_date: next?.due_date ?? null,
     next_installment_fee_name: next?.fee_name ?? next?.fee_type_name ?? null,
     next_installment_period: next?.period_label ?? null,
+    next_installment_display_label: next ? formatInstallmentDisplayTitle(next) : null,
     next_installment_state: next?.display_state ?? next?.state ?? next?.payment_status ?? null,
+    next_installment_pending_cheque: next?.pending_cheque_amount ?? null,
+    paid_includes_pending_cheque:
+      (totals.pending_cheque ?? 0) > 0 ||
+      (next?.pending_cheque_amount ?? 0) > 0 ||
+      next?.coverage_status === 'pending_cheque',
     has_special_agreement: hasSpecialAgreement,
     fees_count: overview.counts?.fees_count ?? null,
     installments_count: overview.counts?.installments_count ?? null,

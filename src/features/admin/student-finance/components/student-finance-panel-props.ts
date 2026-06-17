@@ -17,4 +17,5 @@ export interface StudentFinancePanelProps {
   canCollect: boolean;
   onRefresh: () => void;
   onOpenCollection: () => void;
+  financeRefreshSignal?: number;
 }

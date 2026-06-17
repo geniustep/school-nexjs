@@ -19,6 +19,7 @@ export function useStudentFinanceFees(
   studentId: number | string | null,
   query: ListParams | null,
   enabled: boolean,
+  refreshSignal = 0,
 ): StudentFinanceFeesState {
   const { activeSchoolId } = useAdminSession();
   const [loading, setLoading] = useState(false);
@@ -67,7 +68,7 @@ export function useStudentFinanceFees(
     return () => {
       active = false;
     };
-  }, [studentId, query, activeSchoolId, enabled, nonce]);
+  }, [studentId, query, activeSchoolId, enabled, nonce, refreshSignal]);
 
   return { loading, initialLoading, data, error, reload };
 }

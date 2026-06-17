@@ -5,7 +5,7 @@ import { useMemo } from 'react';
 import { Card } from '@/components/ui/primitives';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { useFormat } from '@/features/i18n/use-format';
-import { useT } from '@/features/i18n/locale-context';
+import { useLocale, useT } from '@/features/i18n/locale-context';
 import { Student360MetricGrid } from '@/features/admin/students/components/student-360-metric-grid';
 import { StudentSectionSkeleton } from '@/features/admin/students/components/student-360-loading';
 import { Student360SectionHeader } from '@/features/admin/students/components/student-360-section-header';
@@ -14,6 +14,7 @@ import {
   resolveBillingPartyLabel,
   resolveStudentFinanceOverviewMetrics,
 } from '../utils/resolve-student-finance-overview';
+import { formatInstallmentDisplayTitle } from '../utils/format-installment-display';
 
 function installmentStatusKey(state: string | null | undefined): string | null {
   if (!state) return null;
@@ -34,10 +35,12 @@ export function StudentFinanceOverviewPanel({
   financialOverviewLoading,
   financialOverviewError,
   onReloadFinancialOverview,
+  workspace,
   canCollect,
   onOpenCollection,
 }: StudentFinancePanelProps) {
   const t = useT();
+  const { locale } = useLocale();
   const { formatDate } = useFormat();
 
   const metrics = useMemo(
@@ -54,15 +57,35 @@ export function StudentFinanceOverviewPanel({
   const summaryItems = useMemo(() => {
     if (!metrics) return [];
     const currency = metrics.currency;
-    return [
+    const pendingFromWorkspace = workspace?.summary?.pending_cheques;
+    const pendingCheque = metrics.pending_cheque ?? pendingFromWorkspace ?? null;
+    const paidConfirmed = metrics.paid_confirmed ?? workspace?.summary?.confirmed_paid ?? null;
+    const items = [
       { key: 'annual_total', label: t('admin.student360.financeWorkspace.metrics.annualTotal'), value: metrics.annual_total },
       { key: 'due_to_date', label: t('admin.student360.financeWorkspace.metrics.dueToDate'), value: metrics.due_to_date, tone: 'amber' as const },
       { key: 'paid', label: t('admin.student360.financeWorkspace.metrics.paid'), value: metrics.paid, tone: 'green' as const },
       { key: 'remaining', label: t('admin.student360.financeWorkspace.metrics.remaining'), value: metrics.remaining },
       { key: 'overdue', label: t('admin.student360.financeWorkspace.metrics.overdue'), value: metrics.overdue, tone: 'red' as const },
       { key: 'upcoming', label: t('admin.student360.financeWorkspace.metrics.upcoming'), value: metrics.upcoming },
-    ].map((item) => ({ ...item, currency }));
-  }, [metrics, t]);
+    ];
+    if (paidConfirmed != null && paidConfirmed !== metrics.paid) {
+      items.splice(3, 0, {
+        key: 'paid_confirmed',
+        label: t('admin.student360.financeWorkspace.metrics.paidConfirmed'),
+        value: paidConfirmed,
+        tone: 'green' as const,
+      });
+    }
+    if (pendingCheque != null && pendingCheque > 0) {
+      items.splice(3, 0, {
+        key: 'pending_cheque',
+        label: t('admin.student360.financeWorkspace.metrics.pendingCheque'),
+        value: pendingCheque,
+        tone: 'amber' as const,
+      });
+    }
+    return items.map((item) => ({ ...item, currency }));
+  }, [metrics, workspace?.summary, t]);
 
   if (financialOverviewLoading && !metrics) {
     return <StudentSectionSkeleton rows={3} />;
@@ -81,6 +104,13 @@ export function StudentFinanceOverviewPanel({
 
   const nextInstallment = financialOverview?.next_installment;
   const nextStatusKey = installmentStatusKey(metrics?.next_installment_state);
+  const nextTitle =
+    (nextInstallment
+      ? formatInstallmentDisplayTitle(nextInstallment, locale)
+      : metrics?.next_installment_display_label) || metrics?.next_installment_fee_name;
+  const showPaidChequeHint =
+    metrics?.paid_includes_pending_cheque ||
+    (workspace?.summary?.pending_cheques ?? 0) > 0;
 
   return (
     <div className="student-finance-overview">
@@ -103,6 +133,11 @@ export function StudentFinanceOverviewPanel({
           tone: 'tone' in item ? item.tone : undefined,
         }))}
       />
+      {showPaidChequeHint ? (
+        <p className="tiny muted student-finance-overview__cheque-hint">
+          {t('admin.student360.financeWorkspace.metrics.paidIncludesPendingCheque')}
+        </p>
+      ) : null}
 
       {nextInstallment ? (
         <Card className="student-finance-section student-finance-overview__next-card">
@@ -110,7 +145,7 @@ export function StudentFinanceOverviewPanel({
           <dl className="detail-list compact">
             <div>
               <dt>{t('admin.student360.financeWorkspace.fees.columns.name')}</dt>
-              <dd dir="auto">{metrics?.next_installment_fee_name ?? t('common.dash')}</dd>
+              <dd dir="auto">{nextTitle ?? t('common.dash')}</dd>
             </div>
             {metrics?.next_installment_period ? (
               <div>

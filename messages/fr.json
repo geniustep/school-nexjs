@@ -3637,7 +3637,10 @@
           "remaining": "Remaining",
           "overdue": "Overdue",
           "nextInstallment": "Prochaine échéance",
-          "upcoming": "À venir"
+          "upcoming": "À venir",
+          "paidConfirmed": "Encaissé confirmé",
+          "pendingCheque": "Chèques en attente d'encaissement",
+          "paidIncludesPendingCheque": "Comprend les montants couverts par des chèques en attente d'encaissement."
         },
         "billingPartyTitle": "Partie facturée",
         "billingEffectiveFrom": "Valide à partir du",
@@ -3698,13 +3701,15 @@
             "partiallyPaid": "Partially paid",
             "paid": "Paid",
             "overdue": "Overdue",
-            "cancelled": "Cancelled"
+            "cancelled": "Cancelled",
+            "pendingChequeCoverage": "Couvert par chèque en attente d'encaissement"
           }
         },
         "collections": {
           "description": "Collections and receipts.",
           "emptyTitle": "No collections.",
-          "noCollectibleItems": "No collectible items."
+          "noCollectibleItems": "No collectible items.",
+          "pendingCheque": "En attente d'encaissement"
         }
       },
       "collectionWorkflow": {
@@ -4450,6 +4455,7 @@
         "successToast": "Encaissement enregistré.",
         "viewCollection": "Voir l'encaissement",
         "chequePendingNote": "Le chèque est en attente et n'est pas compté comme encaissé confirmé tant qu'il n'est pas encaissé.",
+        "refreshSuccessToast": "Paiement enregistré et dossier financier mis à jour.",
         "chequeDatesHelp": "Date de réception, date inscrite et date d'échéance sont distinctes.",
         "chequeBranch": "Agence",
         "chequeDrawer": "Tireur",

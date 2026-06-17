@@ -2,6 +2,7 @@ import type { TranslateFn } from '@/features/i18n/locale-context';
 import { collectionState, currencyCode, financeStudentDisplayName, refName } from '@/lib/utils/finance';
 import { normalizeMoneyValue } from '@/lib/utils/finance-normalize';
 import type { PaymentAllocation, PaymentCollection } from '@/types/finance';
+import { resolveCollectionPayerLabel } from './collection-payer-label';
 
 export type CollectionDistributionState = 'none' | 'partial' | 'full' | 'unknown';
 
@@ -86,7 +87,7 @@ export function getCollectionStudentCode(coll: PaymentCollection): string | null
 }
 
 export function getCollectionPayerLabel(coll: PaymentCollection, unavailable = '—'): string {
-  return coll.payer_name?.trim() || refName(coll.billing_partner)?.trim() || unavailable;
+  return resolveCollectionPayerLabel(coll, unavailable);
 }
 
 export function formatCollectionReference(coll: PaymentCollection): string {

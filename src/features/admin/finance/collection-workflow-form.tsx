@@ -235,6 +235,7 @@ function CollectionWorkflowFormReady({
   const [skipAllocation, setSkipAllocation] = useState(false);
   const [manualAllocation, setManualAllocation] = useState(false);
   const idempotencyKeyRef = useRef<string | null>(null);
+  const postedCollectionIdRef = useRef<number | null>(null);
   const [chequeNumber, setChequeNumber] = useState('');
   const [chequeBank, setChequeBank] = useState('');
   const [chequeBranch, setChequeBranch] = useState('');
@@ -652,13 +653,14 @@ function CollectionWorkflowFormReady({
       body && typeof body === 'object' && 'updated_overview' in body
         ? (body as CreatePaymentCollectionResponse).updated_overview ?? null
         : collection.updated_overview ?? null;
+    const isReplay = postedCollectionIdRef.current === collection.id;
+    if (!isReplay) {
+      postedCollectionIdRef.current = collection.id;
+      if (overview) onOverviewUpdate?.(overview);
+    }
     setCreatedCollection(collection);
     setUpdatedOverview(overview);
-    if (overview) onOverviewUpdate?.(overview);
     setStep('success');
-    if (embedded) {
-      onDone(collection);
-    }
   }
 
   function onFormSubmit(e: React.FormEvent) {

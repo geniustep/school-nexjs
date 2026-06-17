@@ -11,10 +11,12 @@ import { PageHeader } from '@/components/ui/primitives';
 import { CollectionDetailDrawer } from '@/features/admin/finance/collection-detail-drawer';
 import { CollectionStudentCell } from '@/features/admin/finance/collection-student-cell';
 import { collectionAllocationSummary, truncateReference } from '@/features/admin/finance/collection-labels';
+import { formatCollectionReference } from '@/features/admin/finance/collection-normalize';
 import {
-  formatCollectionReference,
-  getCollectionPayerLabel,
-} from '@/features/admin/finance/collection-normalize';
+  buildPaymentCollectionsListQuery,
+  filterCollectionsForStudent,
+} from '@/features/admin/finance/collection-list-query';
+import { resolveCollectionPayerLabel } from '@/features/admin/finance/collection-payer-label';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { FinanceStatusBadge } from '@/features/admin/finance/finance-status-badge';
 import { ChequePaymentMarker } from '@/features/admin/finance/cheque-payment-marker';
@@ -63,7 +65,7 @@ export default function AdminFinanceCollectionsPage() {
 
   const hasFilters = !!(query || statusFilter || methodFilter || dateFrom || dateTo);
 
-  const params: ListParams = {
+  const params: ListParams = buildPaymentCollectionsListQuery({
     page,
     page_size: 20,
     search: query || undefined,
@@ -74,7 +76,7 @@ export default function AdminFinanceCollectionsPage() {
     date_to: dateTo || undefined,
     student_id: studentIdFilter || undefined,
     billing_partner_id: billingPartnerIdFilter || undefined,
-  };
+  });
   const state = useAdminResource<PaymentCollection[]>(endpoints.admin.financePaymentCollections, params);
   const pg = state.meta?.pagination;
 
@@ -117,7 +119,7 @@ export default function AdminFinanceCollectionsPage() {
       {
         key: 'payer',
         header: t('admin.finance.collections.columns.payer'),
-        render: (row) => getCollectionPayerLabel(row, t('admin.finance.unavailable')),
+        render: (row) => resolveCollectionPayerLabel(row, t('admin.finance.unavailable')),
       },
       {
         key: 'status',
@@ -207,8 +209,9 @@ export default function AdminFinanceCollectionsPage() {
         empty={<EmptyState title={t('admin.finance.noCollections')} />}
       >
         {(rows) => {
-          const counts = countByState(rows);
-          const total = pg?.total ?? rows.length;
+          const scopedRows = filterCollectionsForStudent(rows, studentIdFilter);
+          const counts = countByState(scopedRows);
+          const total = studentIdFilter ? scopedRows.length : (pg?.total ?? rows.length);
           return (
             <>
               <p className="collections-summary muted">
@@ -263,7 +266,7 @@ export default function AdminFinanceCollectionsPage() {
 
               <DataTable
                 columns={columns}
-                rows={rows}
+                rows={scopedRows}
                 rowKey={(row) => row.id}
                 onRowClick={(row) => setSelectedCollectionId(row.id)}
               />

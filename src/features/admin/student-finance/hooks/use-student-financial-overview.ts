@@ -4,21 +4,27 @@ import { useCallback, useEffect, useState } from 'react';
 import { api } from '@/lib/api/client';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { endpoints } from '@/lib/api/endpoints';
+import { applyCollectionUpdatedOverview } from '../utils/apply-collection-updated-overview';
 import { normalizeStudentFinancialOverview } from '../utils/normalize-student-financial-overview';
 import type { ApiErrorBody } from '@/types/api';
-import type { StudentFinancialOverview } from '@/types/student-financial-overview';
+import type {
+  CollectionUpdatedOverview,
+  StudentFinancialOverview,
+} from '@/types/student-financial-overview';
 
 export interface StudentFinancialOverviewState {
   loading: boolean;
   data: StudentFinancialOverview | null;
   error: ApiErrorBody | null;
   reload: () => void;
+  applyPatch: (patch: CollectionUpdatedOverview) => void;
 }
 
 export function useStudentFinancialOverview(
   studentId: string | number | null,
   academicYearId: string | number | null,
   enabled: boolean,
+  refreshSignal = 0,
 ): StudentFinancialOverviewState {
   const { activeSchoolId } = useAdminSession();
   const [loading, setLoading] = useState(false);
@@ -27,6 +33,10 @@ export function useStudentFinancialOverview(
   const [nonce, setNonce] = useState(0);
 
   const reload = useCallback(() => setNonce((n) => n + 1), []);
+
+  const applyPatch = useCallback((patch: CollectionUpdatedOverview) => {
+    setData((prev) => (prev ? applyCollectionUpdatedOverview(prev, patch) : prev));
+  }, []);
 
   useEffect(() => {
     if (!enabled || !studentId || !academicYearId) {
@@ -68,7 +78,7 @@ export function useStudentFinancialOverview(
     return () => {
       active = false;
     };
-  }, [studentId, academicYearId, activeSchoolId, enabled, nonce]);
+  }, [studentId, academicYearId, activeSchoolId, enabled, nonce, refreshSignal]);
 
-  return { loading, data, error, reload };
+  return { loading, data, error, reload, applyPatch };
 }
