@@ -4353,6 +4353,29 @@
         "journalBank": "Bank",
         "detail": {
           "titlePattern": "{status} collection by {method}",
+          "titleConfirmedCheque": "Confirmed cheque collection",
+          "titleDraftCheque": "Cheque collection draft",
+          "titleConfirmed": "Confirmed collection",
+          "titleDraft": "Collection draft",
+          "titleCancelled": "Cancelled collection",
+          "titleGeneric": "Collection details",
+          "chequePendingBadge": "Cheque pending clearance",
+          "billingPartyAndPayer": "Billing party and payer",
+          "notStored": "Not recorded",
+          "chequeStatusUnavailable": "Status unavailable",
+          "collectionDate": "Collection date",
+          "receiptNumber": "Receipt number",
+          "collectionStatus": "Collection status",
+          "viewReceipt": "View receipt",
+          "openChequeRecord": "Open cheque record",
+          "chequePostdatedBadge": "Post-dated cheque",
+          "chequeNotPostdatedBadge": "Not post-dated",
+          "chequeSettlement": {
+            "pending": "Pending clearance",
+            "settled": "Cleared",
+            "rejected": "Rejected",
+            "cancelled": "Cancelled"
+          },
           "subtitleWithStudent": "{student} · {amount}",
           "subtitleNoStudent": "Collection by {method} · {amount}",
           "internalId": "Internal ID",
@@ -4388,8 +4411,13 @@
             "draft": "This draft has not been posted financially and has no receipt.",
             "draftHint": "It does not affect balances yet. Review payment and allocations, then confirm.",
             "confirmedChequePending": "Collection confirmed; the cheque is awaiting clearance.",
-            "confirmedSettled": "Collection confirmed and the payment method is settled.",
-            "cancelled": "This collection was cancelled and does not affect balances."
+            "confirmedChequePendingHint": "Payment will complete once the cheque clears at the bank.",
+            "confirmedSettled": "Cheque cleared and payment finalized.",
+            "confirmedSettledHint": "Collection and receipt are complete.",
+            "chequeRejected": "Cheque rejected; the amount is no longer covered.",
+            "chequeRejectedHint": "Review the cheque record and linked collection.",
+            "cancelled": "This collection was cancelled and does not affect balances.",
+            "cancelledHint": "This collection cannot be resumed."
           },
           "confirmDisabled": {
             "permission": "You do not have permission to confirm collections.",
@@ -4404,6 +4432,8 @@
             "confirmed": "Collection confirmed",
             "receiptIssued": "Receipt issued",
             "chequeCleared": "Cheque cleared",
+            "chequePending": "Cheque pending clearance",
+            "chequeRejected": "Cheque rejected",
             "cancelled": "Collection cancelled"
           }
         },
@@ -4979,7 +5009,7 @@
           "allocations": "Allocations"
         },
         "fields": {
-          "number": "Number",
+          "number": "Receipt number",
           "issuedAt": "Issue date",
           "issuedBy": "Staff",
           "legacy": "Legacy receipt",

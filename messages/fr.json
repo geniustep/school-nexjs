@@ -4353,6 +4353,29 @@
         "journalBank": "Banque",
         "detail": {
           "titlePattern": "Encaissement {status} par {method}",
+          "titleConfirmedCheque": "Encaissement confirmé par chèque",
+          "titleDraftCheque": "Brouillon d'encaissement par chèque",
+          "titleConfirmed": "Encaissement confirmé",
+          "titleDraft": "Brouillon d'encaissement",
+          "titleCancelled": "Encaissement annulé",
+          "titleGeneric": "Détails de l'encaissement",
+          "chequePendingBadge": "Chèque en attente d'encaissement",
+          "billingPartyAndPayer": "Partie facturée et payeur",
+          "notStored": "Non enregistré",
+          "chequeStatusUnavailable": "Statut indisponible",
+          "collectionDate": "Date d'encaissement",
+          "receiptNumber": "Numéro de reçu",
+          "collectionStatus": "Statut de l'encaissement",
+          "viewReceipt": "Voir le reçu",
+          "openChequeRecord": "Ouvrir la fiche chèque",
+          "chequePostdatedBadge": "Chèque postdaté",
+          "chequeNotPostdatedBadge": "Non postdaté",
+          "chequeSettlement": {
+            "pending": "En attente d'encaissement",
+            "settled": "Encaissé",
+            "rejected": "Rejeté",
+            "cancelled": "Annulé"
+          },
           "subtitleWithStudent": "{student} · {amount}",
           "subtitleNoStudent": "Encaissement par {method} · {amount}",
           "internalId": "Identifiant interne",
@@ -4388,8 +4411,13 @@
             "draft": "Ce brouillon n'a pas encore été comptabilisé et n'a pas de reçu.",
             "draftHint": "Il n'affecte pas encore les soldes. Vérifiez le paiement et les affectations, puis confirmez.",
             "confirmedChequePending": "Encaissement confirmé ; le chèque attend l'encaissement bancaire.",
-            "confirmedSettled": "Encaissement confirmé et moyen de paiement réglé.",
-            "cancelled": "Cet encaissement a été annulé et n'affecte pas les soldes."
+            "confirmedChequePendingHint": "Le paiement sera finalisé après encaissement du chèque.",
+            "confirmedSettled": "Chèque encaissé et paiement finalisé.",
+            "confirmedSettledHint": "L'encaissement et le reçu sont complets.",
+            "chequeRejected": "Chèque rejeté ; le montant n'est plus couvert.",
+            "chequeRejectedHint": "Consultez la fiche chèque et l'encaissement lié.",
+            "cancelled": "Cet encaissement a été annulé et n'affecte pas les soldes.",
+            "cancelledHint": "Cet encaissement ne peut pas être repris."
           },
           "confirmDisabled": {
             "permission": "Vous n'avez pas la permission de confirmer l'encaissement.",
@@ -4404,6 +4432,8 @@
             "confirmed": "Encaissement confirmé",
             "receiptIssued": "Reçu émis",
             "chequeCleared": "Chèque encaissé",
+            "chequePending": "Chèque en attente d'encaissement",
+            "chequeRejected": "Chèque rejeté",
             "cancelled": "Encaissement annulé"
           }
         },
@@ -4979,7 +5009,7 @@
           "allocations": "Affectations"
         },
         "fields": {
-          "number": "Numéro",
+          "number": "Numéro de reçu",
           "issuedAt": "Date d'émission",
           "issuedBy": "Agent",
           "legacy": "Reçu historique",

@@ -4381,6 +4381,29 @@
         "journalBank": "البنك",
         "detail": {
           "titlePattern": "{status} تحصيل بـ{method}",
+          "titleConfirmedCheque": "تحصيل مؤكد بالشيك",
+          "titleDraftCheque": "مسودة تحصيل بالشيك",
+          "titleConfirmed": "تحصيل مؤكد",
+          "titleDraft": "مسودة تحصيل",
+          "titleCancelled": "تحصيل ملغى",
+          "titleGeneric": "تفاصيل التحصيل",
+          "chequePendingBadge": "الشيك قيد التحصيل",
+          "billingPartyAndPayer": "الجهة المفوترة والدافع",
+          "notStored": "غير محفوظ",
+          "chequeStatusUnavailable": "الحالة غير متاحة",
+          "collectionDate": "تاريخ التحصيل",
+          "receiptNumber": "رقم الإيصال",
+          "collectionStatus": "حالة التحصيل",
+          "viewReceipt": "عرض الإيصال",
+          "openChequeRecord": "فتح سجل الشيك",
+          "chequePostdatedBadge": "شيك مؤجل",
+          "chequeNotPostdatedBadge": "غير مؤجل",
+          "chequeSettlement": {
+            "pending": "قيد التحصيل",
+            "settled": "تمت التصفية",
+            "rejected": "مرفوض",
+            "cancelled": "ملغى"
+          },
           "subtitleWithStudent": "{student} · {amount}",
           "subtitleNoStudent": "تحصيل بـ{method} · {amount}",
           "internalId": "المعرف الداخلي",
@@ -4416,8 +4439,13 @@
             "draft": "هذه مسودة لم تُرحّل ماليًا بعد ولم يصدر لها إيصال.",
             "draftHint": "لم تؤثر بعد في الرصيد المالي. راجع بيانات الأداء والتوزيعات ثم أكد التحصيل.",
             "confirmedChequePending": "تم تأكيد التحصيل، والشيك في انتظار التصفية.",
-            "confirmedSettled": "تم تأكيد التحصيل وتصفية وسيلة الأداء.",
-            "cancelled": "تم إلغاء هذا التحصيل ولا يؤثر في الرصيد."
+            "confirmedChequePendingHint": "سيُستكمل الأداء بعد تصفية الشيك في البنك.",
+            "confirmedSettled": "تمت تصفية الشيك وتأكيد الأداء نهائيًا.",
+            "confirmedSettledHint": "التحصيل والإيصال مكتملان.",
+            "chequeRejected": "تم رفض الشيك، ولم يعد المبلغ مغطى.",
+            "chequeRejectedHint": "راجع سجل الشيك والتحصيل المرتبط.",
+            "cancelled": "تم إلغاء هذا التحصيل ولا يؤثر في الرصيد.",
+            "cancelledHint": "لا يمكن استئناف هذا التحصيل."
           },
           "confirmDisabled": {
             "permission": "لا تملك صلاحية تأكيد التحصيل.",
@@ -4432,6 +4460,8 @@
             "confirmed": "أُكد التحصيل",
             "receiptIssued": "صدر الإيصال",
             "chequeCleared": "صُفّي الشيك",
+            "chequePending": "الشيك قيد التحصيل",
+            "chequeRejected": "رُفض الشيك",
             "cancelled": "أُلغي التحصيل"
           }
         },
@@ -5022,7 +5052,7 @@
           "allocations": "التوزيعات"
         },
         "fields": {
-          "number": "الرقم",
+          "number": "رقم الإيصال",
           "issuedAt": "تاريخ الإصدار",
           "issuedBy": "الموظف",
           "legacy": "إيصال قديم",

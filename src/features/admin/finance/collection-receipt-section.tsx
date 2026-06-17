@@ -11,12 +11,13 @@ import {
   fetchCollectionReceipt,
   issueCollectionReceipt,
 } from '@/lib/api/finance-receipt';
+import { collectionAllowsAction } from '@/features/admin/finance/collection-allowed-actions';
 import { getCollectionReceiptLabel } from '@/features/admin/finance/collection-detail-review';
 import { collectionState } from '@/lib/utils/finance';
 import type { FinanceReceipt, PaymentCollection } from '@/types/finance';
 
 function collectionAllowsReceiptAction(collection: PaymentCollection, action: string): boolean {
-  return (collection.allowed_actions ?? []).includes(action);
+  return collectionAllowsAction(collection, action);
 }
 
 export function CollectionReceiptSection({
@@ -37,13 +38,17 @@ export function CollectionReceiptSection({
 
   const canViewReceipt =
     !!collection.receipt_id ||
+    collectionAllowsReceiptAction(collection, 'view_receipt') ||
     collectionAllowsReceiptAction(collection, 'receipt') ||
+    collectionAllowsReceiptAction(collection, 'print_receipt') ||
     collectionAllowsReceiptAction(collection, 'print') ||
+    collectionAllowsReceiptAction(collection, 'download_receipt') ||
     collectionAllowsReceiptAction(collection, 'download');
 
   const canIssue =
     !collection.receipt_id &&
-    (collectionAllowsReceiptAction(collection, 'issue') ||
+    (collectionAllowsReceiptAction(collection, 'issue_receipt') ||
+      collectionAllowsReceiptAction(collection, 'issue') ||
       collectionAllowsReceiptAction(collection, 'receipt'));
 
   const loadReceipt = useCallback(async () => {
@@ -96,7 +101,7 @@ export function CollectionReceiptSection({
         <h2>{t('admin.finance.receipts.sectionTitle')}</h2>
         {hasReceipt ? (
           <p dir="auto">
-            <span className="muted">{t('admin.finance.receipts.fields.number')}: </span>
+            <span className="muted">{t('admin.finance.collections.detail.receiptNumber')}: </span>
             {getCollectionReceiptLabel(collection, t)}
           </p>
         ) : (
@@ -131,7 +136,7 @@ export function CollectionReceiptSection({
         <div className="collection-receipt-section__body">
           <dl className="finance-detail-fields">
             <div className="finance-detail-field">
-              <dt>{t('admin.finance.receipts.fields.number')}</dt>
+              <dt>{t('admin.finance.collections.detail.receiptNumber')}</dt>
               <dd>
                 <Link href={`/admin/finance/receipts/${receipt.id}`} className="mono">
                   {receipt.number ?? receipt.receipt_number}

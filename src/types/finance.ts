@@ -94,6 +94,8 @@ export interface FinanceCheque {
     receipt_number?: string;
   };
   is_postdated?: boolean;
+  settlement_status?: string;
+  bank_display_name?: string | null;
   public_notes?: string | null;
 }
 
@@ -647,6 +649,18 @@ export interface StudentFee {
   paid_by_cheque?: boolean;
 }
 
+export type CollectionAllowedActionsMap = Record<string, boolean | number | undefined>;
+
+export interface CollectionStatusHistoryEntry {
+  event?: string;
+  state?: string;
+  date?: string;
+  occurred_at?: string;
+  actor_id?: number;
+  actor_name?: string;
+  user?: Ref;
+}
+
 export interface PaymentCollection {
   id: number;
   reference?: string;
@@ -679,7 +693,7 @@ export interface PaymentCollection {
   created_by?: Ref;
   user?: Ref;
   allocations?: PaymentAllocation[];
-  status_history?: { state?: string; date?: string; user?: Ref }[];
+  status_history?: CollectionStatusHistoryEntry[];
   cheque?: FinanceCheque | ParentChequeInfo;
   cheque_id?: number | null;
   reversal_applied?: boolean;
@@ -690,7 +704,7 @@ export interface PaymentCollection {
   unallocated_amount?: number;
   allocation_count?: number;
   allocation_status?: string;
-  allowed_actions?: string[];
+  allowed_actions?: string[] | CollectionAllowedActionsMap;
   updated_overview?: import('@/types/student-financial-overview').CollectionUpdatedOverview | null;
 }
 

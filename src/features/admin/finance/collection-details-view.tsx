@@ -2,25 +2,25 @@
 
 import { useMemo, useState, type ReactNode } from 'react';
 import Link from 'next/link';
+import { Badge } from '@/components/ui/primitives';
 import { ConfirmActionButton } from '@/features/admin/confirm-action-button';
 import { CollectionReceiptSection } from '@/features/admin/finance/collection-receipt-section';
 import { CollectionStudentCell } from '@/features/admin/finance/collection-student-cell';
+import { ChequeStatusBadge } from '@/features/admin/finance/cheque-status-badge';
 import {
+  buildChequeReviewDisplay,
   buildCollectionDetailTitle,
   buildCollectionStatusBannerKey,
   buildCollectionTimeline,
-  extractChequeReviewFields,
   getCollectionAcademicYearLabel,
   getCollectionAllocatedAmount,
-  getCollectionBillingEntityLabel,
-  getCollectionBillingPartyType,
   getCollectionCommercialReference,
   getCollectionJournalDisplayLabel,
-  getCollectionPayerLabel,
   getCollectionReceiptLabel,
   getCollectionStudentCode,
   getCollectionUnallocatedAmount,
   resolveCollectionReviewActions,
+  resolvePartiesDisplay,
   resolveStudentUnavailableReason,
 } from '@/features/admin/finance/collection-detail-review';
 import { formatAllocationRowDetails } from '@/features/admin/finance/collection-normalize';
@@ -73,6 +73,33 @@ function DisabledActionHint({ reasonKey, t }: { reasonKey: string; t: (key: stri
       {t(reasonKey)}
     </p>
   );
+}
+
+function ChequeSettlementBadge({
+  labelKey,
+  state,
+  t,
+}: {
+  labelKey: string | null;
+  state: string | null;
+  t: (key: string) => string;
+}) {
+  if (labelKey) {
+    const label = t(labelKey);
+    if (label !== labelKey) {
+      const tone =
+        labelKey.includes('pending') || labelKey.includes('received')
+          ? 'amber'
+          : labelKey.includes('settled') || labelKey.includes('cleared')
+            ? 'green'
+            : labelKey.includes('rejected')
+              ? 'red'
+              : 'slate';
+      return <Badge tone={tone}>{label}</Badge>;
+    }
+  }
+  if (state) return <ChequeStatusBadge state={state} />;
+  return <span className="muted">{t('admin.finance.collections.detail.chequeStatusUnavailable')}</span>;
 }
 
 function AllocationCard({
@@ -155,6 +182,8 @@ export function CollectionDetailsView({
     [coll, t, locale],
   );
 
+  const parties = useMemo(() => (coll ? resolvePartiesDisplay(coll) : null), [coll]);
+
   const reviewActions = useMemo(
     () =>
       coll
@@ -168,8 +197,8 @@ export function CollectionDetailsView({
   );
 
   const timeline = useMemo(() => (coll ? buildCollectionTimeline(coll) : []), [coll]);
-  const chequeFields = useMemo(
-    () => (coll?.cheque ? extractChequeReviewFields(coll.cheque, formatDate, t) : []),
+  const chequeDisplay = useMemo(
+    () => (coll?.cheque ? buildChequeReviewDisplay(coll.cheque, formatDate, t) : null),
     [coll?.cheque, formatDate, t],
   );
 
@@ -177,10 +206,12 @@ export function CollectionDetailsView({
   const unallocatedAmount = coll ? getCollectionUnallocatedAmount(coll) : null;
   const allocationCount = coll?.allocation_count ?? coll?.allocations?.length ?? 0;
   const academicYearLabel = coll ? getCollectionAcademicYearLabel(coll, academicYears) : null;
-  const billingPartyType = coll ? getCollectionBillingPartyType(coll) : null;
   const journalLabel = coll ? getCollectionJournalDisplayLabel(coll, t) : null;
+  const receiptLabel = coll ? getCollectionReceiptLabel(coll, t) : null;
+  const hasReceipt =
+    !!coll?.receipt_id || (typeof coll?.receipt_number === 'string' && !!coll.receipt_number.trim());
 
-  if (!coll || !title || !reviewActions) return null;
+  if (!coll || !title || !reviewActions || !parties) return null;
 
   const copyValue = commercialRef ?? String(coll.id);
   const copyLabel = commercialRef
@@ -199,45 +230,58 @@ export function CollectionDetailsView({
 
   const statusBannerKey = buildCollectionStatusBannerKey(coll);
   const statusBannerHintKey = `${statusBannerKey}Hint`;
+  const collectionDate =
+    formatDate(coll.collection_date ?? coll.date ?? coll.payment_date) ||
+    t('admin.finance.unavailable');
+
+  const receiptHref = coll.receipt_id ? `/admin/finance/receipts/${coll.receipt_id}` : null;
+  const chequeHref = chequeId
+    ? appendReturnTo(`/admin/finance/cheques/${chequeId}`, returnTo)
+    : null;
 
   return (
     <div className="collection-details">
       <header className="collection-details__header">
         <div className="collection-details__header-main">
-          <h1 className="collection-details__title">{title.primary}</h1>
+          <h1 className="collection-details__title">
+            <span>{title.primary}</span>
+            {title.chequeBadgeKey ? (
+              <Badge tone="amber">{t(title.chequeBadgeKey)}</Badge>
+            ) : null}
+          </h1>
           <p className="collection-details__subtitle" dir="auto">
             {title.secondary}
           </p>
-          <dl className="collection-details__identifiers">
-            <div>
-              <dt>{t('admin.finance.collections.detail.internalId')}</dt>
-              <dd className="mono">{coll.id}</dd>
-            </div>
+          <dl className="collection-details__identifiers collection-details__identifiers--compact">
             <div>
               <dt>{t('admin.finance.collections.detail.collectionReference')}</dt>
               <dd dir="auto">{commercialRef ?? t('common.dash')}</dd>
             </div>
-            {isCheque && coll.cheque?.cheque_number ? (
-              <div>
-                <dt>{t('admin.finance.cheques.number')}</dt>
-                <dd className="mono" dir="auto">
-                  {coll.cheque.cheque_number}
-                </dd>
-              </div>
-            ) : null}
             <div>
-              <dt>{t('admin.finance.receipts.fields.number')}</dt>
-              <dd dir="auto">{getCollectionReceiptLabel(coll, t)}</dd>
+              <dt>{t('admin.finance.collections.detail.receiptNumber')}</dt>
+              <dd dir="auto">
+                {hasReceipt && receiptHref ? (
+                  <Link href={appendReturnTo(receiptHref, returnTo)} className="mono">
+                    {receiptLabel}
+                  </Link>
+                ) : (
+                  receiptLabel
+                )}
+              </dd>
+            </div>
+            <div>
+              <dt>{t('admin.finance.collections.detail.collectionDate')}</dt>
+              <dd>{collectionDate}</dd>
             </div>
           </dl>
           <div className="collection-details__meta">
             <button type="button" className="btn btn--ghost btn--sm" onClick={() => void copyReference()}>
               {copied ? t('admin.finance.collections.copied') : copyLabel}
             </button>
-            <span className="muted tiny">
-              {formatDate(coll.collection_date ?? coll.date ?? coll.payment_date) || t('admin.finance.unavailable')}
-            </span>
           </div>
+          <p className="collection-details__technical tiny muted">
+            {t('admin.finance.collections.detail.internalId')}: <span className="mono">{coll.id}</span>
+          </p>
         </div>
       </header>
 
@@ -251,12 +295,9 @@ export function CollectionDetailsView({
       {chequeReversed && isCheque ? (
         <div className="collection-details__alert" role="alert">
           <p>{t('admin.finance.collections.reversedByChequeAlert')}</p>
-          {chequeId ? (
-            <Link
-              href={appendReturnTo(`/admin/finance/cheques/${chequeId}`, returnTo)}
-              className="btn btn--ghost btn--sm"
-            >
-              {t('admin.finance.collections.openLinkedCheque')}
+          {chequeHref ? (
+            <Link href={chequeHref} className="btn btn--ghost btn--sm">
+              {t('admin.finance.collections.detail.openChequeRecord')}
             </Link>
           ) : null}
         </div>
@@ -264,57 +305,27 @@ export function CollectionDetailsView({
 
       <div className="collection-details__layout">
         <div className="collection-details__main">
-          <section className="card collection-details__section">
-            <h2>{t('admin.finance.collections.drawerPartiesSection')}</h2>
-            <dl className="finance-detail-fields">
-              <DetailField label={t('nav.students')}>
-                {studentUnavailableReason ? (
-                  <span className="muted" dir="auto">
-                    {t(studentUnavailableReason)}
-                  </span>
-                ) : (
-                  <CollectionStudentCell
-                    student={coll.student}
-                    studentId={studentId}
-                    studentName={coll.student_name}
-                    code={studentCode}
-                    returnTo={returnTo}
-                    unavailableLabel={t('admin.finance.unavailable')}
-                  />
-                )}
-              </DetailField>
-              <DetailField label={t('admin.finance.collections.detail.registrationNumber')} hideWhenEmpty>
-                {studentCode ? <span className="mono" dir="auto">{studentCode}</span> : null}
-              </DetailField>
-              <DetailField label={t('admin.finance.collections.columns.payer')}>
-                <span dir="auto">{getCollectionPayerLabel(coll, t('admin.finance.unavailable'))}</span>
-              </DetailField>
-              <DetailField label={t('admin.finance.billingPartner')}>
-                <span dir="auto">
-                  {getCollectionBillingEntityLabel(coll) ?? t('admin.finance.unavailable')}
-                </span>
-              </DetailField>
-              <DetailField label={t('admin.finance.billingPartyTitle')} hideWhenEmpty>
-                {billingPartyType ? (
-                  <span dir="auto">{t(billingPartyTypeLabelKey(billingPartyType))}</span>
-                ) : null}
-              </DetailField>
-              <DetailField label={t('admin.finance.paymentMethod')}>
-                {paymentMethodLabel(coll.payment_method, t)}
-              </DetailField>
-              <DetailField label={t('admin.finance.paymentJournal')} hideWhenEmpty>
-                {journalLabel ? <span dir="auto">{journalLabel}</span> : null}
-              </DetailField>
-            </dl>
-          </section>
-
           {isCheque ? (
-            <section className="card collection-details__section">
-              <h2>{t('admin.finance.collections.detail.chequeSection')}</h2>
-              {chequeFields.length > 0 ? (
+            <section className="card collection-details__section collection-cheque-review">
+              <div className="collection-cheque-review__header">
+                <h2>{t('admin.finance.collections.detail.chequeSection')}</h2>
+                {chequeDisplay ? (
+                  <div className="collection-cheque-review__badges">
+                    <ChequeSettlementBadge
+                      labelKey={chequeDisplay.settlementLabelKey}
+                      state={chequeDisplay.state}
+                      t={t}
+                    />
+                    {chequeDisplay.postdatedBadgeKey ? (
+                      <Badge tone="slate">{t(chequeDisplay.postdatedBadgeKey)}</Badge>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
+              {chequeDisplay ? (
                 <dl className="finance-detail-fields">
-                  {chequeFields.map((field) => (
-                    <DetailField key={field.label} label={field.label}>
+                  {chequeDisplay.fields.map((field) => (
+                    <DetailField key={field.key} label={field.label}>
                       <span dir="auto">{field.value}</span>
                     </DetailField>
                   ))}
@@ -322,12 +333,9 @@ export function CollectionDetailsView({
               ) : (
                 <p className="muted">{t('admin.finance.collections.detail.chequeDraftPending')}</p>
               )}
-              {chequeId ? (
-                <Link
-                  href={appendReturnTo(`/admin/finance/cheques/${chequeId}`, returnTo)}
-                  className="btn btn--ghost btn--sm collection-details__inline-action"
-                >
-                  {t('admin.finance.collections.openLinkedCheque')}
+              {chequeHref ? (
+                <Link href={chequeHref} className="btn btn--ghost btn--sm collection-details__inline-action">
+                  {t('admin.finance.collections.detail.openChequeRecord')}
                 </Link>
               ) : null}
             </section>
@@ -401,20 +409,103 @@ export function CollectionDetailsView({
             <SummaryRow label={t('admin.finance.paymentMethod')}>
               {paymentMethodLabel(coll.payment_method, t)}
             </SummaryRow>
-            <SummaryRow label={t('academic.status')}>
+            <SummaryRow label={t('admin.finance.collections.detail.collectionStatus')}>
               <FinanceStatusBadge state={status} />
             </SummaryRow>
             <SummaryRow label={t('admin.finance.academicYear')}>
               {academicYearLabel ?? t('common.dash')}
             </SummaryRow>
-            <SummaryRow label={t('admin.finance.receipts.sectionTitle')}>
-              <span dir="auto">{getCollectionReceiptLabel(coll, t)}</span>
+            <SummaryRow label={t('admin.finance.collections.detail.receiptNumber')}>
+              {hasReceipt && receiptHref ? (
+                <Link href={appendReturnTo(receiptHref, returnTo)} dir="auto" className="mono">
+                  {receiptLabel}
+                </Link>
+              ) : (
+                <span dir="auto">{receiptLabel}</span>
+              )}
             </SummaryRow>
+          </section>
+
+          <section className="card collection-details__section collection-parties-card">
+            <h2>{t('admin.finance.collections.drawerPartiesSection')}</h2>
+            <dl className="finance-detail-fields finance-detail-fields--single">
+              <DetailField label={t('nav.students')}>
+                {studentUnavailableReason ? (
+                  <span className="muted" dir="auto">
+                    {t(studentUnavailableReason)}
+                  </span>
+                ) : (
+                  <CollectionStudentCell
+                    student={coll.student}
+                    studentId={studentId}
+                    studentName={coll.student_name}
+                    code={studentCode}
+                    returnTo={returnTo}
+                    unavailableLabel={t('admin.finance.unavailable')}
+                  />
+                )}
+              </DetailField>
+              <DetailField label={t('admin.finance.collections.detail.registrationNumber')} hideWhenEmpty>
+                {studentCode ? (
+                  <span className="mono" dir="auto">
+                    {studentCode}
+                  </span>
+                ) : null}
+              </DetailField>
+              {parties.showBilling ? (
+                <DetailField label={t(parties.billingLabelKey)}>
+                  <span dir="auto">{parties.billingEntity}</span>
+                </DetailField>
+              ) : null}
+              {parties.showPayer ? (
+                <DetailField label={t('admin.finance.collections.columns.payer')}>
+                  <span dir="auto">{parties.payer}</span>
+                </DetailField>
+              ) : null}
+              <DetailField label={t('admin.finance.billingPartyTitle')} hideWhenEmpty>
+                {parties.billingPartyType ? (
+                  <span dir="auto">{t(billingPartyTypeLabelKey(parties.billingPartyType))}</span>
+                ) : null}
+              </DetailField>
+              <DetailField label={t('admin.finance.paymentJournal')} hideWhenEmpty>
+                {journalLabel ? <span dir="auto">{journalLabel}</span> : null}
+              </DetailField>
+            </dl>
           </section>
 
           <section className="card collection-review-actions">
             <h2>{t('admin.finance.collections.detail.actionsTitle')}</h2>
             <div className="collection-review-actions__stack">
+              {reviewActions.canViewReceipt && receiptHref ? (
+                <Link
+                  href={appendReturnTo(receiptHref, returnTo)}
+                  className="btn btn--primary btn--sm"
+                  prefetch={false}
+                >
+                  {t('admin.finance.collections.detail.viewReceipt')}
+                </Link>
+              ) : reviewActions.canViewCheque && chequeHref ? (
+                <Link href={chequeHref} className="btn btn--primary btn--sm" prefetch={false}>
+                  {t('admin.finance.collections.detail.openChequeRecord')}
+                </Link>
+              ) : null}
+
+              {reviewActions.canOpenStudentFinance && studentId ? (
+                <Link
+                  href={buildFinanceStudentProfileLink(studentId, returnTo)}
+                  className="btn btn--ghost btn--sm"
+                  prefetch={false}
+                >
+                  {t('admin.finance.collections.detail.openStudentFinanceProfile')}
+                </Link>
+              ) : null}
+
+              {reviewActions.canViewCheque && chequeHref && reviewActions.canViewReceipt && receiptHref ? (
+                <Link href={chequeHref} className="btn btn--ghost btn--sm" prefetch={false}>
+                  {t('admin.finance.collections.detail.openChequeRecord')}
+                </Link>
+              ) : null}
+
               {reviewActions.canConfirm ? (
                 <ConfirmActionButton
                   label={t('admin.finance.confirmCollection')}
@@ -433,21 +524,19 @@ export function CollectionDetailsView({
                 </div>
               ) : null}
 
-              {studentId ? (
-                <Link
-                  href={buildFinanceStudentProfileLink(studentId, returnTo)}
-                  className="btn btn--ghost btn--sm"
-                  prefetch={false}
-                >
-                  {t('admin.finance.collections.detail.openStudentFinanceProfile')}
-                </Link>
-              ) : null}
-
               {reviewActions.canCancel ? (
                 <ConfirmActionButton
-                  label={t('admin.finance.collections.detail.cancelDraft')}
-                  confirmMessage={t('admin.finance.collections.detail.cancelDraftMessage')}
-                  confirmTitle={t('admin.finance.collections.detail.cancelDraft')}
+                  label={
+                    status === 'draft'
+                      ? t('admin.finance.collections.detail.cancelDraft')
+                      : t('admin.finance.cancelCollection')
+                  }
+                  confirmMessage={
+                    status === 'draft'
+                      ? t('admin.finance.collections.detail.cancelDraftMessage')
+                      : t('admin.finance.cancelCollectionMessage')
+                  }
+                  confirmTitle={t('admin.finance.cancelCollection')}
                   path={endpoints.admin.financePaymentCollectionCancel(collectionId)}
                   variant="danger"
                   onSuccess={() => state.reload()}

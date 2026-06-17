@@ -89,14 +89,28 @@ async function main() {
 
   await page.setViewportSize({ width: 1440, height: 900 });
   await checkCollection(page, 1482, {
+    titleConfirmedCheque: (t) => t.includes('تحصيل مؤكد بالشيك'),
+    notOldTitle: (t) => !t.includes('مؤكد تحصيل بشيك'),
     confirmedStudent: (t) => t.includes('عبد العزيز حميد'),
-    confirmedCheque: (t) => t.includes('شيك') || t.includes('123456'),
-    hasReceiptOrConfirmed: (t) => t.includes('REC/') || t.includes('مؤك'),
+    receiptNumberLabel: (t) => t.includes('رقم الإيصال'),
+    notGenericNumber: (t) => !/\bالرقم\b/.test(t) || t.includes('رقم الإيصال'),
+    receiptValue: (t) => t.includes('REC/RAQEEM/2026/000007'),
+    chequeNumberOnce: (t) => (t.match(/123456/g) ?? []).length <= 2,
+    chequeStatus: (t) => t.includes('قيد التحصيل'),
+    bankName: (t) => t.includes('التج'),
+    holderName: (t) => t.includes('زكر'),
+    notPostdated: (t) => t.includes('غير مؤجل'),
+    billingMerged: (t) => t.includes('الجهة المفوترة والدافع'),
+    noRawKeys: (t) => !/admin\.finance\./.test(t),
+    allocationRegistration: (t) => t.includes('التسجيل'),
+    viewReceiptOrCheque: (t) => t.includes('عرض الإيصال') || t.includes('فتح سجل الشيك'),
+    internalIdSubtle: (t) => t.includes('المعرف الداخلي'),
+    no404: (t) => !t.includes('404') && !t.includes('تعذر العثور'),
   });
 
   await browser.close();
   const failed = results.filter((r) => !r.pass);
-  const status = failed.length ? 'BLOCKED_LIVE_QA' : 'NEXTJS_COLLECTION_DETAIL_REVIEW_CHEQUE_UX_MERGED_DEPLOYED_LIVE_QA_PASSED';
+  const status = failed.length ? 'BLOCKED_LIVE_QA' : 'NEXTJS_CONFIRMED_CHEQUE_COLLECTION_DETAIL_POLISHED_MERGED_DEPLOYED_LIVE_QA_PASSED';
   console.log(JSON.stringify({ status, failed: failed.length, results }, null, 2));
   process.exit(failed.length ? 1 : 0);
 }

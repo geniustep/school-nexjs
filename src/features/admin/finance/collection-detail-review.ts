@@ -1,4 +1,5 @@
 import type { TranslateFn } from '@/features/i18n/locale-context';
+import { collectionAllowsAction } from '@/features/admin/finance/collection-allowed-actions';
 import { formatFinanceMoney } from '@/lib/i18n/format-money';
 import type { Locale } from '@/lib/i18n/config';
 import { isChequePayment } from '@/lib/utils/cheque';
@@ -9,7 +10,12 @@ import {
   refName,
 } from '@/lib/utils/finance';
 import { normalizeMoneyValue } from '@/lib/utils/finance-normalize';
-import type { FinanceCheque, ParentChequeInfo, PaymentCollection } from '@/types/finance';
+import type {
+  CollectionStatusHistoryEntry,
+  FinanceCheque,
+  ParentChequeInfo,
+  PaymentCollection,
+} from '@/types/finance';
 import {
   getCollectionAllocatedAmount,
   getCollectionPayerLabel,
@@ -17,13 +23,24 @@ import {
   getCollectionStudentLabel,
 } from './collection-normalize';
 
-export type CollectionReviewAction = 'confirm' | 'cancel' | 'open_student' | 'open_cheque';
+export type CollectionReviewAction =
+  | 'confirm'
+  | 'cancel'
+  | 'open_student'
+  | 'open_cheque'
+  | 'view_receipt'
+  | 'download_receipt';
 
 export interface CollectionReviewActions {
   canConfirm: boolean;
   canCancel: boolean;
   confirmDisabledReason: string | null;
   cancelDisabledReason: string | null;
+  canViewReceipt: boolean;
+  canDownloadReceipt: boolean;
+  canPrintReceipt: boolean;
+  canViewCheque: boolean;
+  canOpenStudentFinance: boolean;
 }
 
 export interface CollectionTimelineEvent {
@@ -32,10 +49,25 @@ export interface CollectionTimelineEvent {
   date: string | null;
 }
 
-function collectionAllowsAction(coll: PaymentCollection, action: string): boolean {
-  const allowed = coll.allowed_actions;
-  if (allowed?.length) return allowed.includes(action);
-  return false;
+export interface CollectionPartiesDisplay {
+  payer: string | null;
+  billingEntity: string | null;
+  billingLabelKey: string;
+  showPayer: boolean;
+  showBilling: boolean;
+  billingPartyType: string | null;
+}
+
+export interface ChequeReviewDisplay {
+  fields: Array<{ key: string; label: string; value: string }>;
+  settlementStatus: string | null;
+  settlementLabelKey: string | null;
+  postdatedBadgeKey: string | null;
+  state: string | null;
+}
+
+function normalizePartyName(value: string | null | undefined): string {
+  return value?.trim().toLowerCase() ?? '';
 }
 
 export function getCollectionCommercialReference(coll: PaymentCollection): string | null {
@@ -110,31 +142,63 @@ export function getCollectionJournalDisplayLabel(
   return null;
 }
 
+function collectionTitleKey(coll: PaymentCollection): string {
+  const status = collectionState(coll) || 'draft';
+  const isCheque = isChequePayment(coll.payment_method) || !!coll.cheque;
+  if (status === 'confirmed' && isCheque) {
+    return 'admin.finance.collections.detail.titleConfirmedCheque';
+  }
+  if (status === 'draft' && isCheque) {
+    return 'admin.finance.collections.detail.titleDraftCheque';
+  }
+  if (status === 'confirmed') {
+    return 'admin.finance.collections.detail.titleConfirmed';
+  }
+  if (status === 'cancelled') {
+    return 'admin.finance.collections.detail.titleCancelled';
+  }
+  if (status === 'draft') {
+    return 'admin.finance.collections.detail.titleDraft';
+  }
+  return 'admin.finance.collections.detail.titleGeneric';
+}
+
+export function buildCollectionChequeTitleBadgeKey(coll: PaymentCollection): string | null {
+  const status = collectionState(coll) || 'draft';
+  if (status !== 'confirmed') return null;
+  const cheque = coll.cheque as FinanceCheque | undefined;
+  if (!cheque) return null;
+  const settlement = cheque.settlement_status?.trim().toLowerCase();
+  if (settlement === 'pending' || cheque.state === 'received' || cheque.state === 'deposited') {
+    return 'admin.finance.collections.detail.chequePendingBadge';
+  }
+  return null;
+}
+
 export function buildCollectionDetailTitle(
   coll: PaymentCollection,
   t: TranslateFn,
   locale: Locale,
-): { primary: string; secondary: string } {
-  const status = collectionState(coll) || 'draft';
-  const statusLabel = t(`admin.finance.states.${status}`);
-  const method = paymentMethodLabel(coll.payment_method, t);
-  const primary = t('admin.finance.collections.detail.titlePattern', {
-    status: statusLabel === `admin.finance.states.${status}` ? status : statusLabel,
-    method,
-  });
+): { primary: string; secondary: string; chequeBadgeKey: string | null } {
+  const primary = t(collectionTitleKey(coll));
   const amount = formatFinanceMoney(
     normalizeMoneyValue(coll.amount ?? coll.total_amount),
     currencyCode(coll.currency),
     locale,
   );
   const studentName = getCollectionStudentLabel(coll, '');
+  const method = paymentMethodLabel(coll.payment_method, t);
   const secondary = studentName
     ? t('admin.finance.collections.detail.subtitleWithStudent', {
         student: studentName,
         amount,
       })
     : t('admin.finance.collections.detail.subtitleNoStudent', { method, amount });
-  return { primary, secondary };
+  return {
+    primary,
+    secondary,
+    chequeBadgeKey: buildCollectionChequeTitleBadgeKey(coll),
+  };
 }
 
 export function buildCollectionStatusBannerKey(coll: PaymentCollection): string {
@@ -146,15 +210,161 @@ export function buildCollectionStatusBannerKey(coll: PaymentCollection): string 
     return 'admin.finance.collections.detail.statusBanner.draft';
   }
   if (status === 'confirmed') {
-    const cheque = coll.cheque;
-    const chequeState = cheque?.state;
+    const cheque = coll.cheque as FinanceCheque | undefined;
+    const settlement = cheque?.settlement_status?.trim().toLowerCase();
     const isCheque = isChequePayment(coll.payment_method) || !!cheque;
-    if (isCheque && chequeState && chequeState !== 'cleared') {
-      return 'admin.finance.collections.detail.statusBanner.confirmedChequePending';
+    if (isCheque) {
+      if (settlement === 'rejected' || cheque?.state === 'rejected') {
+        return 'admin.finance.collections.detail.statusBanner.chequeRejected';
+      }
+      if (settlement === 'settled' || cheque?.state === 'cleared') {
+        return 'admin.finance.collections.detail.statusBanner.confirmedSettled';
+      }
+      if (settlement === 'pending' || (cheque?.state && cheque.state !== 'cleared')) {
+        return 'admin.finance.collections.detail.statusBanner.confirmedChequePending';
+      }
     }
     return 'admin.finance.collections.detail.statusBanner.confirmedSettled';
   }
   return 'admin.finance.collections.detail.statusBanner.draft';
+}
+
+export function resolvePartiesDisplay(coll: PaymentCollection): CollectionPartiesDisplay {
+  const payer = getCollectionPayerLabel(coll, '') || null;
+  const billingEntity = getCollectionBillingEntityLabel(coll);
+  const sameParty =
+    !!payer &&
+    !!billingEntity &&
+    normalizePartyName(payer) === normalizePartyName(billingEntity);
+
+  return {
+    payer,
+    billingEntity,
+    billingLabelKey: sameParty
+      ? 'admin.finance.collections.detail.billingPartyAndPayer'
+      : 'admin.finance.billingPartner',
+    showPayer: !!payer && !sameParty,
+    showBilling: !!billingEntity,
+    billingPartyType: getCollectionBillingPartyType(coll),
+  };
+}
+
+export function getChequeBankDisplayName(
+  cheque: FinanceCheque | ParentChequeInfo,
+): string | null {
+  const record = cheque as FinanceCheque;
+  return (
+    record.bank_display_name?.trim() ||
+    cheque.bank_name?.trim() ||
+    record.bank_name_snapshot?.trim() ||
+    (typeof record.bank === 'string' ? record.bank.trim() : refName(record.bank as { name?: string })) ||
+    null
+  );
+}
+
+function resolveChequeSettlementLabelKey(cheque: FinanceCheque | ParentChequeInfo): string | null {
+  const record = cheque as FinanceCheque;
+  const settlement = record.settlement_status?.trim().toLowerCase();
+  if (settlement) {
+    const key = `admin.finance.collections.detail.chequeSettlement.${settlement}`;
+    return key;
+  }
+  if (cheque.state_label?.trim()) return null;
+  if (cheque.state) {
+    return `admin.finance.cheques.states.${cheque.state}`;
+  }
+  return null;
+}
+
+function resolveChequePostdatedBadgeKey(
+  cheque: FinanceCheque | ParentChequeInfo,
+): string | null {
+  const record = cheque as FinanceCheque;
+  if (record.is_postdated === true) {
+    return 'admin.finance.collections.detail.chequePostdatedBadge';
+  }
+  if (record.is_postdated === false) {
+    return 'admin.finance.collections.detail.chequeNotPostdatedBadge';
+  }
+  const chequeDate = record.cheque_date ?? record.received_date;
+  const dueDate = record.due_date ?? record.maturity_date;
+  if (chequeDate && dueDate) {
+    if (chequeDate < dueDate) {
+      return 'admin.finance.collections.detail.chequePostdatedBadge';
+    }
+    if (chequeDate === dueDate) {
+      return 'admin.finance.collections.detail.chequeNotPostdatedBadge';
+    }
+  }
+  return null;
+}
+
+export function buildChequeReviewDisplay(
+  cheque: FinanceCheque | ParentChequeInfo | null | undefined,
+  formatDate: (value: string | null | undefined) => string,
+  t: TranslateFn,
+): ChequeReviewDisplay | null {
+  if (!cheque) return null;
+
+  const fields: Array<{ key: string; label: string; value: string }> = [];
+  const number = cheque.cheque_number ?? (cheque as FinanceCheque).number;
+  if (number) {
+    fields.push({
+      key: 'number',
+      label: t('admin.finance.cheques.chequeNumber'),
+      value: String(number),
+    });
+  }
+
+  const bank = getChequeBankDisplayName(cheque);
+  fields.push({
+    key: 'bank',
+    label: t('admin.finance.cheques.bankName'),
+    value: bank ?? t('admin.finance.collections.detail.notStored'),
+  });
+
+  const holder = cheque.holder_name ?? (cheque as FinanceCheque).drawer_name;
+  fields.push({
+    key: 'holder',
+    label: t('admin.finance.cheques.holderName'),
+    value: holder?.trim() || t('admin.finance.collections.detail.notStored'),
+  });
+
+  const chequeDate = (cheque as FinanceCheque).cheque_date;
+  if (chequeDate) {
+    fields.push({
+      key: 'chequeDate',
+      label: t('admin.finance.collections.detail.chequeWrittenDate'),
+      value: formatDate(chequeDate),
+    });
+  }
+
+  const dueDate = cheque.due_date ?? (cheque as FinanceCheque).maturity_date;
+  if (dueDate) {
+    fields.push({
+      key: 'dueDate',
+      label: t('admin.finance.cheques.dueDate'),
+      value: formatDate(dueDate),
+    });
+  }
+
+  const notes =
+    (cheque as FinanceCheque).public_notes ?? (cheque as { notes?: string }).notes;
+  if (notes?.trim()) {
+    fields.push({
+      key: 'notes',
+      label: t('common.note'),
+      value: notes.trim(),
+    });
+  }
+
+  return {
+    fields,
+    settlementStatus: (cheque as FinanceCheque).settlement_status ?? cheque.state ?? null,
+    settlementLabelKey: resolveChequeSettlementLabelKey(cheque),
+    postdatedBadgeKey: resolveChequePostdatedBadgeKey(cheque),
+    state: cheque.state ?? null,
+  };
 }
 
 export function resolveCollectionReviewActions(
@@ -167,7 +377,11 @@ export function resolveCollectionReviewActions(
 ): CollectionReviewActions {
   const status = collectionState(coll) || 'draft';
   const readOnly = status === 'confirmed' || status === 'cancelled';
-  const hasAllowedActions = (coll.allowed_actions?.length ?? 0) > 0;
+  const hasAllowedActions =
+    Array.isArray(coll.allowed_actions) && coll.allowed_actions.length > 0
+      ? true
+      : !!coll.allowed_actions && typeof coll.allowed_actions === 'object';
+
   const canConfirmByApi = hasAllowedActions
     ? collectionAllowsAction(coll, 'confirm')
     : status === 'draft';
@@ -193,15 +407,61 @@ export function resolveCollectionReviewActions(
 
   return {
     canConfirm: !readOnly && options.canCollect && canConfirmByApi,
-    canCancel: !readOnly && options.canCancel && canCancelByApi,
+    canCancel: options.canCancel && canCancelByApi,
     confirmDisabledReason,
     cancelDisabledReason,
+    canViewReceipt:
+      !!coll.receipt_id ||
+      collectionAllowsAction(coll, 'view_receipt') ||
+      collectionAllowsAction(coll, 'receipt'),
+    canDownloadReceipt:
+      collectionAllowsAction(coll, 'download_receipt') ||
+      collectionAllowsAction(coll, 'download'),
+    canPrintReceipt:
+      collectionAllowsAction(coll, 'print_receipt') ||
+      collectionAllowsAction(coll, 'print'),
+    canViewCheque:
+      !!coll.cheque?.id ||
+      !!coll.cheque_id ||
+      collectionAllowsAction(coll, 'view_cheque'),
+    canOpenStudentFinance:
+      collectionAllowsAction(coll, 'open_student_finance') ||
+      collectionAllowsAction(coll, 'open_student'),
   };
 }
 
-export function buildCollectionTimeline(
-  coll: PaymentCollection,
-): CollectionTimelineEvent[] {
+const TIMELINE_EVENT_LABELS: Record<string, string> = {
+  created: 'admin.finance.collections.detail.timeline.draftCreated',
+  confirmed: 'admin.finance.collections.detail.timeline.confirmed',
+  receipt_issued: 'admin.finance.collections.detail.timeline.receiptIssued',
+  cheque_pending: 'admin.finance.collections.detail.timeline.chequePending',
+  cheque_cleared: 'admin.finance.collections.detail.timeline.chequeCleared',
+  cheque_rejected: 'admin.finance.collections.detail.timeline.chequeRejected',
+  cancelled: 'admin.finance.collections.detail.timeline.cancelled',
+};
+
+function historyEntryDate(entry: CollectionStatusHistoryEntry): string | null {
+  return entry.occurred_at ?? entry.date ?? null;
+}
+
+export function buildCollectionTimeline(coll: PaymentCollection): CollectionTimelineEvent[] {
+  const history = coll.status_history ?? [];
+  if (history.length > 0) {
+    const events: CollectionTimelineEvent[] = [];
+    for (const entry of history) {
+      const eventKey = entry.event ?? entry.state;
+      if (!eventKey) continue;
+      const labelKey = TIMELINE_EVENT_LABELS[eventKey];
+      if (!labelKey) continue;
+      events.push({
+        key: `${eventKey}-${historyEntryDate(entry) ?? events.length}`,
+        labelKey,
+        date: historyEntryDate(entry),
+      });
+    }
+    if (events.length > 0) return events;
+  }
+
   const events: CollectionTimelineEvent[] = [];
   const status = collectionState(coll) || 'draft';
   const date = coll.collection_date ?? coll.date ?? coll.payment_date ?? null;
@@ -214,26 +474,7 @@ export function buildCollectionTimeline(
     });
   }
 
-  const history = coll.status_history ?? [];
-  for (const entry of history) {
-    const state = entry.state;
-    if (state === 'confirmed') {
-      events.push({
-        key: 'confirmed',
-        labelKey: 'admin.finance.collections.detail.timeline.confirmed',
-        date: entry.date ?? null,
-      });
-    }
-    if (state === 'cancelled') {
-      events.push({
-        key: 'cancelled',
-        labelKey: 'admin.finance.collections.detail.timeline.cancelled',
-        date: entry.date ?? null,
-      });
-    }
-  }
-
-  if (status === 'confirmed' && !events.some((e) => e.key === 'confirmed')) {
+  if (status === 'confirmed') {
     events.push({
       key: 'confirmed',
       labelKey: 'admin.finance.collections.detail.timeline.confirmed',
@@ -259,9 +500,20 @@ export function buildCollectionTimeline(
       labelKey: 'admin.finance.collections.detail.timeline.chequeCleared',
       date: cheque.cleared_date ?? null,
     });
+  } else if (
+    isChequePayment(coll.payment_method) &&
+    status === 'confirmed' &&
+    cheque?.state &&
+    cheque.state !== 'cleared'
+  ) {
+    events.push({
+      key: 'cheque_pending',
+      labelKey: 'admin.finance.collections.detail.timeline.chequePending',
+      date: null,
+    });
   }
 
-  if (status === 'cancelled' && !events.some((e) => e.key === 'cancelled')) {
+  if (status === 'cancelled') {
     events.push({
       key: 'cancelled',
       labelKey: 'admin.finance.collections.detail.timeline.cancelled',
@@ -278,68 +530,6 @@ export function resolveStudentUnavailableReason(coll: PaymentCollection): string
   if (!hasStudentId) return 'admin.finance.collections.detail.studentMissing';
   if (!hasName) return 'admin.finance.collections.detail.studentOutOfScope';
   return null;
-}
-
-export function extractChequeReviewFields(
-  cheque: FinanceCheque | ParentChequeInfo | null | undefined,
-  formatDate: (value: string | null | undefined) => string,
-  t: TranslateFn,
-): Array<{ label: string; value: string }> {
-  if (!cheque) return [];
-  const fields: Array<{ label: string; value: string }> = [];
-  const number = cheque.cheque_number ?? (cheque as FinanceCheque).number;
-  if (number) {
-    fields.push({
-      label: t('admin.finance.cheques.number'),
-      value: String(number),
-    });
-  }
-  const chequeRecord = cheque as FinanceCheque;
-  const bank =
-    cheque.bank_name ??
-    chequeRecord.bank_name_snapshot ??
-    (typeof chequeRecord.bank === 'string' ? chequeRecord.bank : refName(chequeRecord.bank as { name?: string }));
-  if (bank) {
-    fields.push({ label: t('admin.finance.cheques.bankName'), value: bank });
-  }
-  const holder = cheque.holder_name ?? (cheque as FinanceCheque).drawer_name;
-  if (holder) {
-    fields.push({ label: t('admin.finance.cheques.holderName'), value: holder });
-  }
-  const chequeDate = (cheque as FinanceCheque).cheque_date;
-  if (chequeDate) {
-    fields.push({
-      label: t('admin.finance.collections.detail.chequeWrittenDate'),
-      value: formatDate(chequeDate),
-    });
-  }
-  const dueDate = cheque.due_date ?? (cheque as FinanceCheque).maturity_date;
-  if (dueDate) {
-    fields.push({
-      label: t('admin.finance.cheques.dueDate'),
-      value: formatDate(dueDate),
-    });
-  }
-  const isPostdated = (cheque as FinanceCheque & { is_postdated?: boolean }).is_postdated;
-  if (isPostdated != null) {
-    fields.push({
-      label: t('admin.finance.collections.detail.chequePostdated'),
-      value: isPostdated
-        ? t('common.yes')
-        : t('common.no'),
-    });
-  }
-  if (cheque.state || cheque.state_label) {
-    fields.push({
-      label: t('admin.finance.cheques.status'),
-      value: cheque.state_label ?? String(cheque.state),
-    });
-  }
-  const notes = (cheque as FinanceCheque).public_notes ?? (cheque as { notes?: string }).notes;
-  if (notes?.trim()) {
-    fields.push({ label: t('common.note'), value: notes.trim() });
-  }
-  return fields;
 }
 
 export function getCollectionReceiptLabel(coll: PaymentCollection, t: TranslateFn): string {

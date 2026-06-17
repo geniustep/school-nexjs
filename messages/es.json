@@ -4353,6 +4353,29 @@
         "journalBank": "Banco",
         "detail": {
           "titlePattern": "Cobro {status} por {method}",
+          "titleConfirmedCheque": "Cobro confirmado por cheque",
+          "titleDraftCheque": "Borrador de cobro por cheque",
+          "titleConfirmed": "Cobro confirmado",
+          "titleDraft": "Borrador de cobro",
+          "titleCancelled": "Cobro cancelado",
+          "titleGeneric": "Detalles del cobro",
+          "chequePendingBadge": "Cheque pendiente de compensación",
+          "billingPartyAndPayer": "Parte facturada y pagador",
+          "notStored": "No registrado",
+          "chequeStatusUnavailable": "Estado no disponible",
+          "collectionDate": "Fecha del cobro",
+          "receiptNumber": "Número de recibo",
+          "collectionStatus": "Estado del cobro",
+          "viewReceipt": "Ver recibo",
+          "openChequeRecord": "Abrir ficha del cheque",
+          "chequePostdatedBadge": "Cheque posfechado",
+          "chequeNotPostdatedBadge": "No posfechado",
+          "chequeSettlement": {
+            "pending": "Pendiente de compensación",
+            "settled": "Compensado",
+            "rejected": "Rechazado",
+            "cancelled": "Cancelado"
+          },
           "subtitleWithStudent": "{student} · {amount}",
           "subtitleNoStudent": "Cobro por {method} · {amount}",
           "internalId": "ID interno",
@@ -4388,8 +4411,13 @@
             "draft": "Este borrador no se ha contabilizado y no tiene recibo.",
             "draftHint": "Aún no afecta saldos. Revise pago y asignaciones, luego confirme.",
             "confirmedChequePending": "Cobro confirmado; el cheque espera compensación.",
-            "confirmedSettled": "Cobro confirmado y medio de pago liquidado.",
-            "cancelled": "Este cobro fue cancelado y no afecta saldos."
+            "confirmedChequePendingHint": "El pago se completará cuando el cheque se compense en el banco.",
+            "confirmedSettled": "Cheque compensado y pago finalizado.",
+            "confirmedSettledHint": "El cobro y el recibo están completos.",
+            "chequeRejected": "Cheque rechazado; el importe ya no está cubierto.",
+            "chequeRejectedHint": "Revise la ficha del cheque y el cobro vinculado.",
+            "cancelled": "Este cobro fue cancelado y no afecta saldos.",
+            "cancelledHint": "Este cobro no puede reanudarse."
           },
           "confirmDisabled": {
             "permission": "No tiene permiso para confirmar cobros.",
@@ -4404,6 +4432,8 @@
             "confirmed": "Cobro confirmado",
             "receiptIssued": "Recibo emitido",
             "chequeCleared": "Cheque compensado",
+            "chequePending": "Cheque pendiente de compensación",
+            "chequeRejected": "Cheque rechazado",
             "cancelled": "Cobro cancelado"
           }
         },
@@ -4979,7 +5009,7 @@
           "allocations": "Asignaciones"
         },
         "fields": {
-          "number": "Número",
+          "number": "Número de recibo",
           "issuedAt": "Fecha de emisión",
           "issuedBy": "Personal",
           "legacy": "Recibo heredado",
