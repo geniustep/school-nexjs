@@ -167,15 +167,41 @@ export function buildChequeLifecycleEvents(cheque: FinanceCheque): ChequeLifecyc
   });
 }
 
+const CHEQUE_API_ACTION_TO_TRANSITION: Record<string, string> = {
+  deposit: 'deposit',
+  settle: 'clear',
+  clear: 'clear',
+  bounce: 'reject',
+  reject: 'reject',
+  cancel: 'cancel',
+};
+
+function mapChequeApiActions(actions: string[]): string[] {
+  const mapped = new Set<string>();
+  for (const action of actions) {
+    const normalized = action.trim().toLowerCase();
+    const transition = CHEQUE_API_ACTION_TO_TRANSITION[normalized] ?? normalized;
+    if (['deposit', 'clear', 'reject', 'cancel', 'replace', 'return'].includes(transition)) {
+      mapped.add(transition);
+    }
+  }
+  return [...mapped];
+}
+
 export function normalizeChequeAllowedActions(
   raw: FinanceCheque['allowed_actions'] | null | undefined,
+  actionCodes?: string[] | null,
 ): string[] {
+  if (Array.isArray(actionCodes) && actionCodes.length) {
+    return mapChequeApiActions(actionCodes);
+  }
   if (!raw) return [];
-  if (Array.isArray(raw)) return raw;
+  if (Array.isArray(raw)) return mapChequeApiActions(raw);
   if (typeof raw === 'object') {
-    return Object.entries(raw)
-      .filter(([, value]) => value === true || (typeof value === 'number' && value > 0))
-      .map(([key]) => key);
+    return mapChequeApiActions(Object.keys(raw).filter((key) => {
+      const value = raw[key];
+      return value === true || (typeof value === 'number' && value > 0);
+    }));
   }
   return [];
 }
@@ -198,7 +224,7 @@ export function normalizeChequeDetail(cheque: FinanceCheque) {
     reversalApplied: cheque.reversal_applied === true,
     reversedAllocations: getReversedAllocationCount(cheque),
     collectionId: cheque.collection_id ?? null,
-    allowedActions: normalizeChequeAllowedActions(cheque.allowed_actions),
+    allowedActions: normalizeChequeAllowedActions(cheque.allowed_actions, cheque.allowed_action_codes),
     titleKey: getChequeTitleKey(cheque),
     titleTone: getChequeTitleTone(cheque),
     timeline: buildChequeLifecycleEvents(cheque),
@@ -210,7 +236,7 @@ export type NormalizedChequeDetail = ReturnType<typeof normalizeChequeDetail>;
 
 /** Prefer API allowed_actions; fall back to state-machine transitions when absent. */
 export function resolveChequeAllowedTransitions(cheque: FinanceCheque): string[] {
-  const fromApi = normalizeChequeAllowedActions(cheque.allowed_actions);
+  const fromApi = normalizeChequeAllowedActions(cheque.allowed_actions, cheque.allowed_action_codes);
   if (fromApi.length) {
     return fromApi.filter((action) => ['deposit', 'clear', 'reject', 'cancel'].includes(action));
   }

@@ -82,6 +82,7 @@ export interface FinanceCheque {
   cancellation_reason?: string;
   reversal_applied?: boolean;
   allowed_actions?: string[] | CollectionAllowedActionsMap;
+  allowed_action_codes?: string[];
   allocations?: FinanceChequeAllocation[];
   replaces_cheque_id?: number | null;
   replaced_by_cheque_id?: number | null;

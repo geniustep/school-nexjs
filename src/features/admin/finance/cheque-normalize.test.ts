@@ -83,4 +83,13 @@ describe('cheque normalize', () => {
     } as FinanceCheque);
     expect(detail.allowedActions).toEqual(['deposit', 'return']);
   });
+
+  it('maps allowed_action_codes to UI transition actions', () => {
+    const detail = normalizeChequeDetail({
+      ...sample310,
+      allowed_actions: { view: true, settle: true, reject: true, cancel: true },
+      allowed_action_codes: ['deposit', 'bounce', 'settle', 'reject', 'cancel'],
+    } as FinanceCheque);
+    expect(detail.allowedActions).toEqual(['deposit', 'clear', 'reject', 'cancel']);
+  });
 });
