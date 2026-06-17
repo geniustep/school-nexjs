@@ -152,9 +152,11 @@ export function FeePlanAssignFlow({ plan }: { plan: FeePlan }) {
           <h1>{t('admin.finance.assignFlow.pageTitle')}</h1>
           <p className="muted">{t('admin.finance.assignFlow.pageDescEligible')}</p>
         </div>
-        <Link href={`/admin/finance/fee-plans/${plan.id}`} className="btn btn--ghost btn--sm">
-          {t('common.back')}
-        </Link>
+        {step === 'students' ? null : (
+          <Link href={`/admin/finance/fee-plans/${plan.id}`} className="btn btn--ghost btn--sm">
+            {t('common.back')}
+          </Link>
+        )}
       </header>
 
       <FeePlanAssignSourceCard
@@ -303,14 +305,21 @@ export function FeePlanAssignFlow({ plan }: { plan: FeePlan }) {
             <button type="button" className="btn btn--ghost" onClick={() => setStep('students')}>
               {t('common.previous')}
             </button>
-            <button
-              type="button"
-              className="btn btn--primary"
-              disabled={submitting || !selectedStudents.length}
-              onClick={handleConfirmAssign}
-            >
-              {submitting ? t('common.submitting') : t('admin.finance.assignFlow.confirmAssign')}
-            </button>
+            <div className="fee-plan-assign-flow__footer-center">
+              <span className="fee-plan-assign-flow__selection-pill fee-plan-assign-flow__selection-pill--active">
+                {t('admin.finance.assignFlow.selectedCount', { count: selectedStudents.length })}
+              </span>
+            </div>
+            <div className="fee-plan-assign-flow__footer-end">
+              <button
+                type="button"
+                className="btn btn--primary"
+                disabled={submitting || !selectedStudents.length}
+                onClick={handleConfirmAssign}
+              >
+                {submitting ? t('common.submitting') : t('admin.finance.assignFlow.confirmAssign')}
+              </button>
+            </div>
           </footer>
         </section>
       ) : null}

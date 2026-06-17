@@ -4390,7 +4390,10 @@
         "notEligible": "Not eligible",
         "selectAllEligible": "Select all eligible",
         "selectPageEligible": "Select all eligible on this page",
+        "clearPageSelection": "Clear selection on this page",
         "selectPageDisabledHint": "No eligible students to select.",
+        "resultsRange": "Showing {from}–{to} of {total}",
+        "selectedElsewhere": "{count} selected on another page",
         "noStudents": "No matching students",
         "emptyEligibleTitle": "No eligible students for this plan's academic year and levels.",
         "emptyEligibleDesc": "Check active enrollments and plan level scope.",
@@ -4412,6 +4415,13 @@
         "billingWillBeCreated": "Billing profile will be created automatically",
         "billingNeedsReview": "Billing data needs review",
         "enrollmentUnknown": "Unknown",
+        "enrollmentStatus": {
+          "active": "Active",
+          "inactive": "Inactive",
+          "graduated": "Graduated",
+          "transferred": "Transferred",
+          "withdrawn": "Withdrawn"
+        },
         "ineligibleReason": {
           "levelOutOfScope": "Outside plan level scope",
           "noActiveEnrollment": "No active enrollment",

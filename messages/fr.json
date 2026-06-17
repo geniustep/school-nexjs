@@ -4351,7 +4351,10 @@
         "notEligible": "Non éligible",
         "selectAllEligible": "Tout sélectionner (éligibles)",
         "selectPageEligible": "Sélectionner tous les éligibles de cette page",
+        "clearPageSelection": "Désélectionner cette page",
         "selectPageDisabledHint": "Aucun élève éligible à sélectionner.",
+        "resultsRange": "Affichage {from}–{to} sur {total}",
+        "selectedElsewhere": "{count} sélectionné(s) sur une autre page",
         "noStudents": "Aucun élève correspondant",
         "emptyEligibleTitle": "Aucun élève éligible pour l'année et les niveaux de ce plan.",
         "emptyEligibleDesc": "Vérifiez les inscriptions actives et le périmètre de niveaux.",
@@ -4373,6 +4376,13 @@
         "billingWillBeCreated": "Profil de facturation créé automatiquement",
         "billingNeedsReview": "Données de facturation à vérifier",
         "enrollmentUnknown": "Inconnu",
+        "enrollmentStatus": {
+          "active": "Actif",
+          "inactive": "Inactif",
+          "graduated": "Diplômé",
+          "transferred": "Transféré",
+          "withdrawn": "Retiré"
+        },
         "ineligibleReason": {
           "levelOutOfScope": "Hors périmètre de niveau",
           "noActiveEnrollment": "Pas d'inscription active",

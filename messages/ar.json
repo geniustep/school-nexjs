@@ -4393,7 +4393,10 @@
         "notEligible": "غير مؤهل",
         "selectAllEligible": "تحديد كل المؤهلين",
         "selectPageEligible": "تحديد جميع المؤهلين في هذه الصفحة",
+        "clearPageSelection": "إلغاء تحديد هذه الصفحة",
         "selectPageDisabledHint": "لا يوجد تلاميذ مؤهلون للتحديد.",
+        "resultsRange": "عرض {from}–{to} من {total}",
+        "selectedElsewhere": "{count} محدد في صفحة أخرى",
         "noStudents": "لا يوجد تلاميذ مطابقون",
         "emptyEligibleTitle": "لا يوجد تلاميذ مؤهلون ضمن السنة الدراسية ومستويات هذه الخطة.",
         "emptyEligibleDesc": "تحقق من التسجيلات الدراسية النشطة ومستويات الخطة.",
@@ -4415,6 +4418,13 @@
         "billingWillBeCreated": "سيُنشأ ملف الفوترة تلقائيًا",
         "billingNeedsReview": "تحتاج بيانات الفوترة إلى مراجعة",
         "enrollmentUnknown": "غير معروف",
+        "enrollmentStatus": {
+          "active": "نشط",
+          "inactive": "غير نشط",
+          "graduated": "متخرج",
+          "transferred": "منقول",
+          "withdrawn": "منسحب"
+        },
         "ineligibleReason": {
           "levelOutOfScope": "خارج نطاق المستوى",
           "noActiveEnrollment": "لا يوجد تسجيل دراسي نشط",

@@ -23,30 +23,37 @@ export function FeePlanAssignSourceCard({
 }) {
   const t = useT();
   const lineCount = plan.lines?.length ?? 0;
+  const state = feePlanState(plan);
 
   return (
     <section className="card fee-plan-assign-source" data-testid="fee-plan-assign-source">
-      <h2 className="fee-plan-assign-source__title">{t('admin.finance.assignFlow.sourcePlan')}</h2>
-      <dl className="detail-list fee-plan-assign-source__grid">
-        <div>
-          <dt>{t('admin.finance.planName')}</dt>
-          <dd>
-            <strong>{plan.name}</strong>
-          </dd>
+      <div className="fee-plan-assign-source__head">
+        <div className="fee-plan-assign-source__intro">
+          <p className="fee-plan-assign-source__eyebrow">{t('admin.finance.assignFlow.sourcePlan')}</p>
+          <h2 className="fee-plan-assign-source__name">{plan.name}</h2>
+          <div className="fee-plan-assign-source__meta">
+            <FinanceStatusBadge state={state} />
+            <span className="muted">{yearLabel}</span>
+          </div>
         </div>
-        <div>
-          <dt>{t('admin.finance.academicYear')}</dt>
-          <dd>{yearLabel}</dd>
-        </div>
+        {expectedTotal != null && expectedTotal > 0 ? (
+          <div className="fee-plan-assign-source__total">
+            <span className="fee-plan-assign-source__total-label">
+              {t('admin.finance.feePlansWorkspace.summaryExpectedTotal')}
+            </span>
+            <FinanceMoney
+              amount={expectedTotal}
+              currency={plan.currency}
+              className="mono finance-amount fee-plan-assign-source__total-value"
+            />
+          </div>
+        ) : null}
+      </div>
+
+      <dl className="fee-plan-assign-source__grid">
         <div>
           <dt>{t('nav.levels')}</dt>
-          <dd>{levelLabel}</dd>
-        </div>
-        <div>
-          <dt>{t('academic.status')}</dt>
-          <dd>
-            <FinanceStatusBadge state={feePlanState(plan)} />
-          </dd>
+          <dd dir="auto">{levelLabel}</dd>
         </div>
         <div>
           <dt>{t('admin.finance.feePlansWorkspace.lineCount')}</dt>
@@ -56,18 +63,13 @@ export function FeePlanAssignSourceCard({
           <dt>{t('admin.finance.currencyLabel')}</dt>
           <dd>{plan.currency ?? t('common.dash')}</dd>
         </div>
-        {expectedTotal != null && expectedTotal > 0 ? (
-          <div>
-            <dt>{t('admin.finance.feePlansWorkspace.summaryExpectedTotal')}</dt>
-            <dd>
-              <FinanceMoney amount={expectedTotal} currency={plan.currency} />
-            </dd>
-          </div>
-        ) : null}
       </dl>
-      <Link href={`/admin/finance/fee-plans/${plan.id}`} className="btn btn--ghost btn--sm">
-        {t('admin.finance.feePlansWorkspace.viewDetails')}
-      </Link>
+
+      <div className="fee-plan-assign-source__foot">
+        <Link href={`/admin/finance/fee-plans/${plan.id}`} className="btn btn--ghost btn--sm">
+          {t('admin.finance.feePlansWorkspace.viewDetails')}
+        </Link>
+      </div>
     </section>
   );
 }
@@ -82,8 +84,8 @@ export function FeePlanAssignStepper({
   const currentIndex = steps.findIndex((s) => s.id === current);
 
   return (
-    <nav className="fee-plan-assign-stepper" aria-label="Progress">
-      <ol>
+    <nav className="card fee-plan-assign-stepper" aria-label="Progress">
+      <ol className="fee-plan-assign-stepper__list">
         {steps.map((step, index) => {
           const isCurrent = step.id === current;
           const isDone = step.done || index < currentIndex;

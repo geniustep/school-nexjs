@@ -30,6 +30,12 @@ import type {
 
 const TABS: FeePlanEligibilityTabStatus[] = ['eligible', 'already_assigned', 'ineligible'];
 
+function billingBadgeClass(student: FeePlanEligibleStudent): string {
+  if (student.billing_ready) return 'fee-plan-assign-flow__badge--billing-ready';
+  if (student.billing_will_be_created_automatically) return 'fee-plan-assign-flow__badge--billing-auto';
+  return 'fee-plan-assign-flow__badge--billing-review';
+}
+
 export interface SelectedAssignStudent {
   studentId: number;
   studentName: string;
@@ -108,21 +114,6 @@ export function FeePlanAssignStudentsStep({
     [selectedStudents, onSelectedIdsChange, tab],
   );
 
-  const selectAllOnPage = useCallback(() => {
-    if (tab !== 'eligible' || !eligibleState.data) return;
-    const nextMap = new Map(selectedStudents.map((s) => [s.studentId, s]));
-    for (const student of eligibleState.data.students) {
-      if (student.selectable) {
-        nextMap.set(student.id, { studentId: student.id, studentName: student.name });
-      }
-    }
-    const nextStudents = [...nextMap.values()];
-    onSelectedIdsChange(
-      nextStudents.map((s) => s.studentId),
-      nextStudents,
-    );
-  }, [tab, eligibleState.data, selectedStudents, onSelectedIdsChange]);
-
   const summary = eligibleState.data?.summary;
   const pagination = eligibleState.data?.pagination;
   const rawStudents = eligibleState.data?.students ?? [];
@@ -133,12 +124,45 @@ export function FeePlanAssignStudentsStep({
       ? rawStudents.filter((student) => student.selectable && !student.level?.name)
       : [];
   const pageSelectableCount = students.filter((s) => s.selectable).length;
+  const selectedOnPage = students.filter((s) => selectedIds.includes(s.id)).length;
+  const selectedElsewhere = Math.max(0, selectedIds.length - selectedOnPage);
+
+  const selectAllOnPage = useCallback(() => {
+    if (tab !== 'eligible' || pageSelectableCount === 0) return;
+    const nextMap = new Map(selectedStudents.map((s) => [s.studentId, s]));
+    for (const student of students) {
+      if (student.selectable) {
+        nextMap.set(student.id, { studentId: student.id, studentName: student.name });
+      }
+    }
+    const nextStudents = [...nextMap.values()];
+    onSelectedIdsChange(
+      nextStudents.map((s) => s.studentId),
+      nextStudents,
+    );
+  }, [tab, students, pageSelectableCount, selectedStudents, onSelectedIdsChange]);
+
+  const clearPageSelection = useCallback(() => {
+    const pageIds = new Set(students.map((s) => s.id));
+    const nextStudents = selectedStudents.filter((s) => !pageIds.has(s.studentId));
+    onSelectedIdsChange(
+      nextStudents.map((s) => s.studentId),
+      nextStudents,
+    );
+  }, [students, selectedStudents, onSelectedIdsChange]);
 
   const tabCounts = {
     eligible: summary?.eligible_count ?? 0,
     already_assigned: summary?.already_assigned_count ?? 0,
     ineligible: summary?.ineligible_count ?? 0,
   };
+
+  const resultsMeta = useMemo(() => {
+    if (!pagination) return null;
+    const from = pagination.total === 0 ? 0 : (pagination.page - 1) * pagination.page_size + 1;
+    const to = Math.min(pagination.page * pagination.page_size, pagination.total);
+    return t('admin.finance.assignFlow.resultsRange', { from, to, total: pagination.total });
+  }, [pagination, t]);
 
   const emptyTitle =
     tab === 'eligible'
@@ -159,6 +183,28 @@ export function FeePlanAssignStudentsStep({
     const key = feePlanEligibleStudentsErrorMessageKey(code);
     return key ? t(key) : eligibleState.error?.message ?? t('admin.finance.assignFlow.loadStudentsFailed');
   }, [eligibleState.error, t]);
+
+  const renderEnrollmentStatus = useCallback(
+    (status: string | null | undefined) => {
+      if (!status) return t('common.dash');
+      const key = enrollmentStatusLabelKey(status);
+      const translated = t(key);
+      if (translated !== key) {
+        return <span className="fee-plan-assign-flow__badge fee-plan-assign-flow__badge--enrollment">{translated}</span>;
+      }
+      return <span className="fee-plan-assign-flow__badge fee-plan-assign-flow__badge--enrollment">{status}</span>;
+    },
+    [t],
+  );
+
+  const renderBillingReadiness = useCallback(
+    (student: FeePlanEligibleStudent) => (
+      <span className={`fee-plan-assign-flow__badge ${billingBadgeClass(student)}`}>
+        {t(feePlanBillingReadinessLabelKey(student))}
+      </span>
+    ),
+    [t],
+  );
 
   const columns: Column<FeePlanEligibleStudent>[] = useMemo(() => {
     const cols: Column<FeePlanEligibleStudent>[] = [];
@@ -185,26 +231,24 @@ export function FeePlanAssignStudentsStep({
         render: (row) => (
           <span dir="auto" className="fee-plan-assign-flow__student-cell">
             <strong>{row.name}</strong>
-          </span>
-        ),
-      },
-      {
-        key: 'registration',
-        header: t('admin.finance.assignFlow.registrationNumber'),
-        render: (row) => (
-          <span className="mono" dir="auto">
-            {row.registration_number ?? t('admin.finance.unavailable')}
+            {row.registration_number ? (
+              <span className="mono fee-plan-assign-flow__reg" dir="ltr">
+                {row.registration_number}
+              </span>
+            ) : null}
           </span>
         ),
       },
       {
         key: 'level',
         header: t('nav.levels'),
+        width: '9rem',
         render: (row) => <span dir="auto">{row.level?.name ?? t('admin.finance.assignFlow.missingLevel')}</span>,
       },
       {
         key: 'class',
         header: t('common.class'),
+        width: '6rem',
         render: (row) => (
           <span dir="auto">{row.class?.name ?? t('admin.finance.assignFlow.notAssignedToClass')}</span>
         ),
@@ -212,13 +256,12 @@ export function FeePlanAssignStudentsStep({
       {
         key: 'enrollment',
         header: t('admin.finance.assignFlow.enrollmentStatusColumn'),
-        render: (row) => {
-          const key = enrollmentStatusLabelKey(row.enrollment_status);
-          const translated = t(key);
-          return translated === key ? (row.enrollment_status ?? t('common.dash')) : translated;
-        },
+        render: (row) => renderEnrollmentStatus(row.enrollment_status),
       },
-      {
+    );
+
+    if (tab !== 'eligible') {
+      cols.push({
         key: 'eligibility',
         header: t('admin.finance.assignFlow.eligibilityColumn'),
         render: (row) => {
@@ -226,15 +269,21 @@ export function FeePlanAssignStudentsStep({
             tab === 'ineligible'
               ? feePlanEligibilityReasonLabelKey(row)
               : feePlanEligibilityStatusLabelKey(row.eligibility_status);
-          return <span className="badge badge--slate">{t(key)}</span>;
+          const badgeClass =
+            row.eligibility_status === 'already_assigned'
+              ? 'fee-plan-assign-flow__badge--already_assigned'
+              : 'fee-plan-assign-flow__badge--ineligible';
+          return <span className={`fee-plan-assign-flow__badge ${badgeClass}`}>{t(key)}</span>;
         },
-      },
-      {
-        key: 'billing',
-        header: t('admin.finance.assignFlow.billingReadinessColumn'),
-        render: (row) => t(feePlanBillingReadinessLabelKey(row)),
-      },
-    );
+      });
+    }
+
+    cols.push({
+      key: 'billing',
+      header: t('admin.finance.assignFlow.billingReadinessColumn'),
+      render: (row) => renderBillingReadiness(row),
+    });
+
     if (tab === 'already_assigned') {
       cols.push({
         key: 'action',
@@ -247,7 +296,7 @@ export function FeePlanAssignStudentsStep({
       });
     }
     return cols;
-  }, [tab, t, selectedIds, toggleStudent]);
+  }, [tab, t, selectedIds, toggleStudent, renderEnrollmentStatus, renderBillingReadiness]);
 
   const filterFields = (
     <>
@@ -293,6 +342,8 @@ export function FeePlanAssignStudentsStep({
     </>
   );
 
+  const allPageSelected = pageSelectableCount > 0 && selectedOnPage === pageSelectableCount;
+
   return (
     <section className="card fee-plan-assign-flow__section fee-plan-assign-flow__students-step">
       <div className="fee-plan-assign-flow__students-head">
@@ -301,6 +352,7 @@ export function FeePlanAssignStudentsStep({
           type="button"
           className="btn btn--ghost btn--sm fee-plan-assign-flow__filters-toggle"
           onClick={() => setFiltersOpen((v) => !v)}
+          aria-expanded={filtersOpen}
         >
           {t('admin.finance.assignFlow.toggleFilters')}
         </button>
@@ -322,21 +374,33 @@ export function FeePlanAssignStudentsStep({
         ))}
       </div>
 
-      <div className="fee-plan-assign-flow__filters-desktop toolbar fee-plan-assign-flow__filters">{filterFields}</div>
-      {filtersOpen ? (
-        <div className="fee-plan-assign-flow__filters-mobile toolbar fee-plan-assign-flow__filters">{filterFields}</div>
-      ) : null}
+      <div
+        className={`fee-plan-assign-flow__filters-panel fee-plan-assign-flow__filters-desktop${filtersOpen ? ' fee-plan-assign-flow__filters-panel--open' : ''}`}
+      >
+        {filterFields}
+      </div>
 
       {tab === 'eligible' ? (
-        <button
-          type="button"
-          className="btn btn--ghost btn--sm"
-          disabled={pageSelectableCount === 0}
-          title={pageSelectableCount === 0 ? t('admin.finance.assignFlow.selectPageDisabledHint') : undefined}
-          onClick={selectAllOnPage}
-        >
-          {t('admin.finance.assignFlow.selectPageEligible')}
-        </button>
+        <div className="fee-plan-assign-flow__toolbar">
+          <div className="fee-plan-assign-flow__toolbar-actions">
+            <button
+              type="button"
+              className="btn btn--ghost btn--sm fee-plan-assign-flow__select-page-btn"
+              disabled={pageSelectableCount === 0}
+              title={pageSelectableCount === 0 ? t('admin.finance.assignFlow.selectPageDisabledHint') : undefined}
+              onClick={allPageSelected ? clearPageSelection : selectAllOnPage}
+            >
+              {allPageSelected
+                ? t('admin.finance.assignFlow.clearPageSelection')
+                : t('admin.finance.assignFlow.selectPageEligible')}
+            </button>
+          </div>
+          {resultsMeta ? <span className="fee-plan-assign-flow__results-meta">{resultsMeta}</span> : null}
+        </div>
+      ) : resultsMeta ? (
+        <div className="fee-plan-assign-flow__toolbar">
+          <span className="fee-plan-assign-flow__results-meta">{resultsMeta}</span>
+        </div>
       ) : null}
 
       {eligibleState.loading && !eligibleState.data ? <LoadingState label={t('common.loading')} /> : null}
@@ -359,8 +423,8 @@ export function FeePlanAssignStudentsStep({
 
       {!eligibleState.error && students.length > 0 ? (
         <>
-          <div className="fee-plan-assign-flow__desktop-table student-360-table-wrap fee-plan-assign-flow__table">
-            <DataTable columns={columns} rows={students} rowKey={(row) => row.id} />
+          <div className="fee-plan-assign-flow__desktop-table">
+            <DataTable columns={columns} rows={students} rowKey={(row) => row.id} stickyHeader />
           </div>
           <div className="fee-plan-assign-flow__mobile-cards">
             {students.map((student) => (
@@ -378,7 +442,9 @@ export function FeePlanAssignStudentsStep({
                   <div dir="auto">
                     <strong>{student.name}</strong>
                     {student.registration_number ? (
-                      <span className="mono muted fee-plan-assign-flow__code">{student.registration_number}</span>
+                      <span className="mono muted fee-plan-assign-flow__code" dir="ltr">
+                        {student.registration_number}
+                      </span>
                     ) : null}
                   </div>
                 </div>
@@ -392,31 +458,78 @@ export function FeePlanAssignStudentsStep({
                     <dd dir="auto">{student.class?.name ?? t('admin.finance.assignFlow.notAssignedToClass')}</dd>
                   </div>
                   <div>
+                    <dt>{t('admin.finance.assignFlow.enrollmentStatusColumn')}</dt>
+                    <dd>{renderEnrollmentStatus(student.enrollment_status)}</dd>
+                  </div>
+                  {tab !== 'eligible' ? (
+                    <div>
+                      <dt>{t('admin.finance.assignFlow.eligibilityColumn')}</dt>
+                      <dd>
+                        <span
+                          className={`fee-plan-assign-flow__badge ${
+                            student.eligibility_status === 'already_assigned'
+                              ? 'fee-plan-assign-flow__badge--already_assigned'
+                              : 'fee-plan-assign-flow__badge--ineligible'
+                          }`}
+                        >
+                          {t(
+                            tab === 'ineligible'
+                              ? feePlanEligibilityReasonLabelKey(student)
+                              : feePlanEligibilityStatusLabelKey(student.eligibility_status),
+                          )}
+                        </span>
+                      </dd>
+                    </div>
+                  ) : null}
+                  <div>
                     <dt>{t('admin.finance.assignFlow.billingReadinessColumn')}</dt>
-                    <dd>{t(feePlanBillingReadinessLabelKey(student))}</dd>
+                    <dd>{renderBillingReadiness(student)}</dd>
                   </div>
                 </dl>
+                {tab === 'already_assigned' ? (
+                  <Link href={`/admin/finance/students/${student.id}`} className="btn btn--ghost btn--sm">
+                    {t('admin.finance.assignFlow.openStudentFinance')}
+                  </Link>
+                ) : null}
               </article>
             ))}
           </div>
           {pagination ? (
-            <Pagination
-              page={pagination.page}
-              totalPages={pagination.total_pages}
-              total={pagination.total}
-              pageSize={pagination.page_size}
-              onPage={setPage}
-            />
+            <div className="fee-plan-assign-flow__pagination">
+              <Pagination
+                page={pagination.page}
+                totalPages={pagination.total_pages}
+                total={pagination.total}
+                pageSize={pagination.page_size}
+                onPage={setPage}
+              />
+            </div>
           ) : null}
         </>
       ) : null}
 
       <footer className="fee-plan-assign-flow__footer fee-plan-assign-flow__footer--sticky">
-        <div className="fee-plan-assign-flow__footer-actions">
-          <Link href={`/admin/finance/fee-plans/${plan.id}`} className="btn btn--ghost">
-            {t('common.back')}
-          </Link>
-          <span className="muted">{t('admin.finance.assignFlow.selectedCount', { count: selectedIds.length })}</span>
+        <Link href={`/admin/finance/fee-plans/${plan.id}`} className="btn btn--ghost">
+          {t('common.back')}
+        </Link>
+        <div className="fee-plan-assign-flow__footer-center">
+          <span
+            className={`fee-plan-assign-flow__selection-pill${
+              selectedIds.length > 0 ? ' fee-plan-assign-flow__selection-pill--active' : ''
+            }`}
+          >
+            {t('admin.finance.assignFlow.selectedCount', { count: selectedIds.length })}
+          </span>
+          {selectedElsewhere > 0 ? (
+            <span className="muted tiny">
+              {t('admin.finance.assignFlow.selectedElsewhere', { count: selectedElsewhere })}
+            </span>
+          ) : null}
+          {selectedIds.length === 0 ? (
+            <span className="muted tiny">{t('admin.finance.assignFlow.nextDisabledHint')}</span>
+          ) : null}
+        </div>
+        <div className="fee-plan-assign-flow__footer-end">
           <button
             type="button"
             className="btn btn--primary"
