@@ -9,6 +9,15 @@ import { formatPeriodRange } from '@/features/admin/student-finance/utils/format
 import type { StudentInstallment } from '@/features/admin/student-finance/types';
 import type { ResolvedCollectionBilling } from '@/features/admin/finance/collection-billing-context';
 
+export type CollectionReviewCheque = {
+  holderName: string;
+  bankName: string;
+  chequeNumber: string;
+  writtenDate: string;
+  dueDate: string;
+  postdated: boolean;
+};
+
 export function CollectionReviewStep({
   studentName,
   registrationNumber,
@@ -23,6 +32,7 @@ export function CollectionReviewStep({
   selectedInstallments,
   allocationInputs,
   allocatedTotal,
+  cheque,
 }: {
   studentName: string;
   registrationNumber?: string | null;
@@ -37,6 +47,7 @@ export function CollectionReviewStep({
   selectedInstallments: StudentInstallment[];
   allocationInputs: Record<number, string>;
   allocatedTotal: number;
+  cheque?: CollectionReviewCheque;
 }) {
   const t = useT();
   const { locale } = useLocale();
@@ -46,6 +57,43 @@ export function CollectionReviewStep({
   return (
     <section className="collection-form-section collection-review-section">
       <p className="muted">{t('admin.finance.collectionWorkflow.reviewDesc')}</p>
+
+      {cheque ? (
+        <div className="collection-review-cheque-card">
+          <div className="collection-review-cheque-card__amount">
+            <span className="tiny muted">{t('admin.finance.collectionAmount')}</span>
+            <strong>
+              <FinanceMoney amount={amount} currency={currency} />
+            </strong>
+          </div>
+          <dl className="detail-list compact collection-review-cheque-card__facts">
+            <div>
+              <dt>{t('admin.finance.paymentMethod')}</dt>
+              <dd>{paymentMethodLabel(paymentMethod, t)}</dd>
+            </div>
+            <div>
+              <dt>{t('admin.finance.collectionWorkflow.chequeHolderLabel')}</dt>
+              <dd dir="auto">{cheque.holderName}</dd>
+            </div>
+            <div>
+              <dt>{t('admin.finance.collectionWorkflow.chequeBankLabel')}</dt>
+              <dd dir="auto">{cheque.bankName}</dd>
+            </div>
+            <div>
+              <dt>{t('admin.finance.collectionWorkflow.chequeNumberLabel')}</dt>
+              <dd dir="ltr">{cheque.chequeNumber}</dd>
+            </div>
+            <div>
+              <dt>{t('admin.finance.collectionWorkflow.chequeWrittenDateLabel')}</dt>
+              <dd>{formatDate(cheque.writtenDate)}</dd>
+            </div>
+            <div>
+              <dt>{t('admin.finance.collectionWorkflow.chequeDueDateLabel')}</dt>
+              <dd>{formatDate(cheque.dueDate)}</dd>
+            </div>
+          </dl>
+        </div>
+      ) : null}
 
       <dl className="detail-list compact collection-review-section__grid">
         <div>
@@ -70,26 +118,30 @@ export function CollectionReviewStep({
           <dt>{t('admin.finance.paymentJournal')}</dt>
           <dd>{journalName ?? t('common.dash')}</dd>
         </div>
-        <div>
-          <dt>{t('admin.finance.paymentMethod')}</dt>
-          <dd>{paymentMethodLabel(paymentMethod, t)}</dd>
-        </div>
+        {!cheque ? (
+          <>
+            <div>
+              <dt>{t('admin.finance.paymentMethod')}</dt>
+              <dd>{paymentMethodLabel(paymentMethod, t)}</dd>
+            </div>
+            <div>
+              <dt>{t('admin.finance.collectionAmount')}</dt>
+              <dd>
+                <FinanceMoney amount={amount} currency={currency} />
+              </dd>
+            </div>
+          </>
+        ) : null}
         <div>
           <dt>{t('admin.finance.collectionDate')}</dt>
           <dd>{formatDate(collectionDate)}</dd>
         </div>
-        {reference ? (
+        {reference && !cheque ? (
           <div>
             <dt>{t('admin.finance.externalReference')}</dt>
             <dd dir="ltr">{reference}</dd>
           </div>
         ) : null}
-        <div>
-          <dt>{t('admin.finance.collectionAmount')}</dt>
-          <dd>
-            <FinanceMoney amount={amount} currency={currency} />
-          </dd>
-        </div>
         <div>
           <dt>{t('admin.finance.collectionWorkflow.allocatedAmount')}</dt>
           <dd>

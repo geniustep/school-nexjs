@@ -64,9 +64,12 @@ export function collectionErrorMessageKey(code: string | undefined): string | nu
       return 'admin.finance.collectionWorkflow.errors.invalidPaymentMethod';
     case 'cheque_number_required':
     case 'cheque_date_required':
+    case 'cheque_bank_required':
+    case 'cheque_holder_required':
+    case 'cheque_due_date_required':
       return 'admin.finance.collectionWorkflow.errors.missingChequeNumber';
     case 'validation_error':
-      return 'admin.finance.collectionWorkflow.errors.genericSubmit';
+      return null;
     default:
       return null;
   }

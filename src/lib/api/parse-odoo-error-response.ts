@@ -38,6 +38,19 @@ function inferErrorCode(message: string, status: number): string {
   if (lower.includes('duplicate') || lower.includes('تكرار') || lower.includes('idempot')) {
     return 'duplicate_reference';
   }
+  if (
+    lower.includes('المرجع مطلوب') ||
+    lower.includes('reference') && lower.includes('required') ||
+    lower.includes('payment_reference')
+  ) {
+    return 'payment_reference_required';
+  }
+  if (lower.includes('maturity') || lower.includes('استحقاق')) {
+    return 'cheque_due_date_required';
+  }
+  if (lower.includes('received_date') || lower.includes('تاريخ الاستلام')) {
+    return 'cheque_date_required';
+  }
   if (lower.includes('journal')) return 'invalid_journal';
   if (lower.includes('allocation') || lower.includes('توزيع')) {
     return 'allocation_total_mismatch';

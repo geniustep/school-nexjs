@@ -58,6 +58,15 @@ import {
   CollectionAllocationSummary,
   collectionReferenceLabel,
 } from './collection-allocation-summary';
+import {
+  buildChequeRegistrationPayload,
+  resolveChequeCollectionReference,
+} from './collection-cheque-payload';
+import { CollectionChequeFields } from './collection-cheque-fields';
+import {
+  formatPaymentJournalLabel,
+  journalsSupportingMethod,
+} from './format-payment-journal';
 import { resolveCollectionBilling } from './collection-billing-context';
 import { CollectionReviewStep } from './collection-review-step';
 import { FinanceAmountInput } from './finance-amount-input';
@@ -229,12 +238,11 @@ function CollectionWorkflowFormReady({
   const [chequeNumber, setChequeNumber] = useState('');
   const [chequeBank, setChequeBank] = useState('');
   const [chequeBranch, setChequeBranch] = useState('');
-  const [chequeDrawer, setChequeDrawer] = useState('');
   const [chequeHolder, setChequeHolder] = useState('');
-  const [chequeReceivedDate, setChequeReceivedDate] = useState('');
-  const [chequeDate, setChequeDate] = useState('');
-  const [chequeMaturityDate, setChequeMaturityDate] = useState('');
-  const [chequePublicNotes, setChequePublicNotes] = useState('');
+  const [chequeWrittenDate, setChequeWrittenDate] = useState('');
+  const [chequePostdated, setChequePostdated] = useState(false);
+  const [chequeDueDate, setChequeDueDate] = useState('');
+  const [chequeNotes, setChequeNotes] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [createdCollection, setCreatedCollection] = useState<PaymentCollection | null>(null);
@@ -308,6 +316,26 @@ function CollectionWorkflowFormReady({
     () => normalizePaymentMethodOptions(selectedJournal?.allowed_payment_methods),
     [selectedJournal],
   );
+  const chequeCapableJournals = useMemo(
+    () => journalsSupportingMethod(journals, 'cheque'),
+    [journals],
+  );
+  const singleJournal = journals.length === 1;
+  const journalReadOnly = singleJournal || (isChequePayment(paymentMethod) && chequeCapableJournals.length === 1);
+
+  useEffect(() => {
+    if (singleJournal && !journalId) {
+      setJournalId(String(journals[0].id));
+    }
+  }, [singleJournal, journals, journalId]);
+
+  useEffect(() => {
+    if (!isChequePayment(paymentMethod) || chequeCapableJournals.length !== 1) return;
+    const onlyId = String(chequeCapableJournals[0].id);
+    if (journalId !== onlyId) setJournalId(onlyId);
+  }, [paymentMethod, chequeCapableJournals, journalId]);
+
+  const journalSelectOptions = isChequePayment(paymentMethod) ? chequeCapableJournals : journals;
 
   useEffect(() => {
     const current = academicYears.find((y) => y.is_current);
@@ -364,6 +392,12 @@ function CollectionWorkflowFormReady({
   }, [allowedMethods, paymentMethod]);
 
   const isCheque = isChequePayment(paymentMethod);
+
+  useEffect(() => {
+    if (!isCheque || chequeWrittenDate) return;
+    if (collectionDate) setChequeWrittenDate(collectionDate);
+  }, [isCheque, collectionDate, chequeWrittenDate]);
+
   const requiresCashSession =
     !!selectedJournal &&
     isCashJournal(selectedJournal) &&
@@ -468,8 +502,9 @@ function CollectionWorkflowFormReady({
         chequeNumber,
         chequeBank,
         chequeHolder,
-        chequeReceivedDate,
-        chequeMaturityDate,
+        chequeWrittenDate,
+        chequePostdated,
+        chequeDueDate,
         reference,
         showAllocationStep: showAllocationStep && openInstallments.length > 0,
         skipAllocation,
@@ -494,8 +529,9 @@ function CollectionWorkflowFormReady({
       chequeNumber,
       chequeBank,
       chequeHolder,
-      chequeReceivedDate,
-      chequeMaturityDate,
+      chequeWrittenDate,
+      chequePostdated,
+      chequeDueDate,
       showAllocationStep,
       openInstallments.length,
       skipAllocation,
@@ -532,8 +568,7 @@ function CollectionWorkflowFormReady({
       payment_method: paymentMethod,
       payment_date: collectionDate,
       collection_date: collectionDate,
-      reference: reference.trim() || undefined,
-      notes: notes.trim() || undefined,
+      notes: [notes.trim(), chequeNotes.trim()].filter(Boolean).join('\n').trim() || undefined,
       idempotency_key: ensureIdempotencyKey(),
     };
     if (resolvedBilling.billingProfileId) {
@@ -562,14 +597,25 @@ function CollectionWorkflowFormReady({
     }
 
     if (isCheque) {
+      const chequePayload = buildChequeRegistrationPayload({
+        chequeNumber,
+        chequeBank,
+        chequeHolder,
+        chequeWrittenDate,
+        chequePostdated,
+        chequeDueDate,
+        collectionDate,
+        chequeBranch: chequeBranch.trim() || undefined,
+      });
+      if (!chequePayload) {
+        setError(t('admin.finance.collectionWorkflow.errors.invalidChequeDateOrder'));
+        return null;
+      }
       payload.payment_method = 'cheque';
-      payload.cheque = {
-        cheque_number: chequeNumber.trim(),
-        bank_name: chequeBank.trim(),
-        holder_name: chequeHolder.trim() || chequeDrawer.trim(),
-        received_date: chequeReceivedDate,
-        due_date: chequeMaturityDate,
-      };
+      payload.reference = resolveChequeCollectionReference(chequeNumber);
+      payload.cheque = chequePayload;
+    } else if (reference.trim()) {
+      payload.reference = reference.trim();
     }
     return payload;
   }
@@ -785,28 +831,34 @@ function CollectionWorkflowFormReady({
                 </select>
               </label>
 
-              <label>
-                {t('admin.finance.paymentJournal')}
-                <select
-                  className="input"
-                  required
-                  value={journalId}
-                  onChange={(e) => setJournalId(e.target.value)}
-                  disabled={refLoading}
-                >
-                  <option value="">
-                    {refLoading
-                      ? t('admin.finance.collections.loadingJournals')
-                      : t('admin.finance.selectPaymentJournal')}
-                  </option>
-                  {journals.map((j) => (
-                    <option key={j.id} value={j.id}>
-                      {j.name}
-                      {j.code ? ` (${j.code})` : ''}
+              {journalReadOnly && selectedJournal ? (
+                <div className="finance-collection-workflow__journal-readonly">
+                  <span className="tiny muted">{t('admin.finance.paymentJournal')}</span>
+                  <strong dir="auto">{formatPaymentJournalLabel(selectedJournal)}</strong>
+                </div>
+              ) : (
+                <label>
+                  {t('admin.finance.paymentJournal')}
+                  <select
+                    className="input"
+                    required
+                    value={journalId}
+                    onChange={(e) => setJournalId(e.target.value)}
+                    disabled={refLoading}
+                  >
+                    <option value="">
+                      {refLoading
+                        ? t('admin.finance.collections.loadingJournals')
+                        : t('admin.finance.selectPaymentJournal')}
                     </option>
-                  ))}
-                </select>
-              </label>
+                    {journalSelectOptions.map((j) => (
+                      <option key={j.id} value={j.id}>
+                        {formatPaymentJournalLabel(j)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
 
               <div className="finance-collection-workflow__billing-readonly">
                 <span className="tiny muted">{t('admin.finance.billingPartyTitle')}</span>
@@ -852,7 +904,14 @@ function CollectionWorkflowFormReady({
                     ) : null}
                   </div>
                 </label>
-              ) : null}
+              ) : (
+                <div className="finance-collection-workflow__amount-readonly">
+                  <span className="tiny muted">{t('admin.finance.collectionAmount')}</span>
+                  <strong>
+                    <FinanceMoney amount={parsedAmount} currency={journalCurrency} />
+                  </strong>
+                </div>
+              )}
 
               <label>
                 {t('admin.finance.paymentMethod')}
@@ -934,73 +993,37 @@ function CollectionWorkflowFormReady({
             />
 
             {isCheque ? (
-              <>
-                <fieldset className="finance-cheque-fields finance-collection-workflow__fields finance-collection-workflow__fields--cheque">
-                  <legend>{t('admin.finance.collectionWorkflow.chequeInfoSection')}</legend>
-                  <label>
-                    {t('admin.finance.cheques.chequeNumber')}
-                    <input className="input" required value={chequeNumber} onChange={(e) => setChequeNumber(e.target.value)} />
-                  </label>
-                  <label>
-                    {t('admin.finance.cheques.bankName')}
-                    <input className="input" required value={chequeBank} onChange={(e) => setChequeBank(e.target.value)} />
-                  </label>
-                  <label>
-                    {t('admin.finance.cheques.holderName')}
-                    <input className="input" required value={chequeHolder} onChange={(e) => setChequeHolder(e.target.value)} />
-                  </label>
-                  <label>
-                    {t('admin.finance.collectionWorkflow.chequeBranch')}
-                    <input className="input" value={chequeBranch} onChange={(e) => setChequeBranch(e.target.value)} />
-                  </label>
-                  <label>
-                    {t('admin.finance.collectionWorkflow.chequeDrawer')}
-                    <input className="input" value={chequeDrawer} onChange={(e) => setChequeDrawer(e.target.value)} />
-                  </label>
-                </fieldset>
-                <fieldset className="finance-cheque-fields finance-collection-workflow__fields finance-collection-workflow__fields--cheque">
-                  <legend>{t('admin.finance.collectionWorkflow.chequeDatesSection')}</legend>
-                  <p className="tiny muted">{t('admin.finance.collectionWorkflow.chequeDatesHelp')}</p>
-                  <label>
-                    {t('admin.finance.cheques.receivedDate')}
-                    <input
-                      className="input"
-                      type="date"
-                      required
-                      value={chequeReceivedDate}
-                      onChange={(e) => setChequeReceivedDate(e.target.value)}
-                    />
-                  </label>
-                  <label>
-                    {t('admin.finance.collectionWorkflow.chequeWrittenDate')}
-                    <input className="input" type="date" value={chequeDate} onChange={(e) => setChequeDate(e.target.value)} />
-                  </label>
-                  <label>
-                    {t('admin.finance.cheques.dueDate')}
-                    <input
-                      className="input"
-                      type="date"
-                      required
-                      min={chequeReceivedDate || undefined}
-                      value={chequeMaturityDate}
-                      onChange={(e) => setChequeMaturityDate(e.target.value)}
-                    />
-                  </label>
-                </fieldset>
-                <fieldset className="finance-cheque-fields finance-collection-workflow__fields finance-collection-workflow__fields--cheque">
-                  <legend>{t('admin.finance.collectionWorkflow.chequeNotesSection')}</legend>
-                  <label className="finance-collection-workflow__full-width">
-                    {t('admin.finance.collectionWorkflow.chequePublicNotes')}
-                    <textarea className="input" rows={2} value={chequePublicNotes} onChange={(e) => setChequePublicNotes(e.target.value)} />
-                  </label>
-                </fieldset>
-              </>
+              <CollectionChequeFields
+                collectionDate={collectionDate}
+                values={{
+                  chequeNumber,
+                  chequeBank,
+                  chequeHolder,
+                  chequeWrittenDate,
+                  chequePostdated,
+                  chequeDueDate,
+                  chequeNotes,
+                  chequeBranch,
+                }}
+                onChange={(patch) => {
+                  if (patch.chequeNumber !== undefined) setChequeNumber(patch.chequeNumber);
+                  if (patch.chequeBank !== undefined) setChequeBank(patch.chequeBank);
+                  if (patch.chequeHolder !== undefined) setChequeHolder(patch.chequeHolder);
+                  if (patch.chequeWrittenDate !== undefined) setChequeWrittenDate(patch.chequeWrittenDate);
+                  if (patch.chequePostdated !== undefined) setChequePostdated(patch.chequePostdated);
+                  if (patch.chequeDueDate !== undefined) setChequeDueDate(patch.chequeDueDate);
+                  if (patch.chequeNotes !== undefined) setChequeNotes(patch.chequeNotes);
+                  if (patch.chequeBranch !== undefined) setChequeBranch(patch.chequeBranch);
+                }}
+              />
             ) : null}
 
-            <label className="finance-collection-workflow__full-width">
-              {t('common.note')}
-              <textarea className="input" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
-            </label>
+            {!isCheque ? (
+              <label className="finance-collection-workflow__full-width">
+                {t('common.note')}
+                <textarea className="input" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
+              </label>
+            ) : null}
           </section>
         </>
       ) : null}
@@ -1011,19 +1034,27 @@ function CollectionWorkflowFormReady({
           registrationNumber={selectedStudent.code}
           academicYearName={academicYears.find((y) => String(y.id) === academicYearId)?.name}
           billing={resolvedBilling}
-          journalName={
-            selectedJournal
-              ? `${selectedJournal.name}${selectedJournal.code ? ` (${selectedJournal.code})` : ''}`
-              : undefined
-          }
+          journalName={selectedJournal ? formatPaymentJournalLabel(selectedJournal) : undefined}
           paymentMethod={paymentMethod}
           collectionDate={collectionDate}
-          reference={reference}
+          reference={isCheque ? resolveChequeCollectionReference(chequeNumber) : reference}
           amount={parsedAmount}
           currency={journalCurrency}
           selectedInstallments={selectedInstallments}
           allocationInputs={allocationInputs}
           allocatedTotal={allocatedTotal}
+          cheque={
+            isCheque
+              ? {
+                  holderName: chequeHolder,
+                  bankName: chequeBank,
+                  chequeNumber,
+                  writtenDate: chequeWrittenDate,
+                  dueDate: chequePostdated ? chequeDueDate : chequeWrittenDate,
+                  postdated: chequePostdated,
+                }
+              : undefined
+          }
         />
       ) : null}
 

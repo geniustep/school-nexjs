@@ -34,8 +34,9 @@ export function getCollectionSubmitBlockers(input: {
   chequeNumber: string;
   chequeBank: string;
   chequeHolder: string;
-  chequeReceivedDate: string;
-  chequeMaturityDate: string;
+  chequeWrittenDate: string;
+  chequePostdated: boolean;
+  chequeDueDate: string;
   reference: string;
   showAllocationStep: boolean;
   skipAllocation: boolean;
@@ -70,12 +71,15 @@ export function getCollectionSubmitBlockers(input: {
       !input.chequeNumber.trim() ||
       !input.chequeBank.trim() ||
       !input.chequeHolder.trim() ||
-      !input.chequeReceivedDate.trim() ||
-      !input.chequeMaturityDate.trim()
+      !input.chequeWrittenDate.trim()
     ) {
       blockers.push('completeChequeFields');
-    } else if (input.chequeMaturityDate < input.chequeReceivedDate) {
-      blockers.push('fixChequeDates');
+    } else if (input.chequePostdated) {
+      if (!input.chequeDueDate.trim()) {
+        blockers.push('completeChequeFields');
+      } else if (input.chequeDueDate < input.chequeWrittenDate) {
+        blockers.push('fixChequeDates');
+      }
     }
   }
   if (input.showAllocationStep && !input.skipAllocation) {

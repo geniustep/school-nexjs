@@ -341,6 +341,53 @@
   border-bottom: 1px solid var(--c-border, #e2e8f0);
 }
 
+.collection-form-section__subtitle {
+  margin: 12px 0 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.collection-cheque-form__toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+}
+
+.collection-cheque-form__advanced-toggle {
+  margin-top: 4px;
+}
+
+.finance-collection-workflow__journal-readonly,
+.finance-collection-workflow__amount-readonly {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 8px;
+  background: var(--c-surface-2, #f8fafc);
+}
+
+.collection-review-cheque-card {
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 10px;
+  background: linear-gradient(180deg, var(--c-surface-2, #f8fafc) 0%, #fff 100%);
+}
+
+.collection-review-cheque-card__amount {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.collection-review-cheque-card__facts {
+  margin: 0;
+}
+
 @media (max-width: 768px) {
   .finance-collection-workflow__steps-row {
     display: none;
