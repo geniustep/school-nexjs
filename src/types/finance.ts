@@ -232,6 +232,24 @@ export interface FeePlanLine {
   deprecated_legacy_pricing?: unknown;
 }
 
+export interface FeePlanUsage {
+  student_count?: number;
+  agreement_count?: number;
+  student_fee_count?: number;
+}
+
+export type FeePlanAllowedAction =
+  | 'view'
+  | 'edit'
+  | 'confirm'
+  | 'archive'
+  | 'restore'
+  | 'delete'
+  | 'duplicate'
+  | 'reset_to_draft'
+  | 'assign'
+  | 'view_beneficiaries';
+
 export interface FeePlan {
   id: number;
   code: string;
@@ -243,6 +261,7 @@ export interface FeePlan {
   level?: Ref | null;
   class_id?: number | null;
   class?: Ref | null;
+  level_ids?: number[];
   state?: FeePlanState;
   total_amount?: number;
   currency?: string;
@@ -250,6 +269,8 @@ export interface FeePlan {
   date_from?: string | null;
   date_to?: string | null;
   notes?: string;
+  allowed_actions?: FeePlanAllowedAction[];
+  usage?: FeePlanUsage;
 }
 
 export interface FeePlanLineInput {

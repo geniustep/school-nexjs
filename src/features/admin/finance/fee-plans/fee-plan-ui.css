@@ -191,7 +191,331 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
-  max-width: 960px;
+  max-width: min(72rem, 100%);
+  margin-inline: auto;
+  width: 100%;
+}
+
+.fee-plan-detail-breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+  font-size: 0.82rem;
+  color: var(--c-muted, #64748b);
+}
+
+.fee-plan-detail-breadcrumb a {
+  color: var(--c-primary, #2563eb);
+  text-decoration: none;
+}
+
+.fee-plan-detail-breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.fee-plan-detail-breadcrumb__sep {
+  opacity: 0.5;
+}
+
+.fee-plan-detail-breadcrumb__current {
+  color: var(--c-text, #0f172a);
+  font-weight: 500;
+}
+
+.fee-plan-detail-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 320px);
+  gap: 16px;
+  align-items: start;
+}
+
+.fee-plan-detail-layout__main {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.fee-plan-detail-layout__aside {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  position: sticky;
+  top: 1rem;
+}
+
+.fee-plan-detail-header__title {
+  margin: 0;
+  font-size: clamp(1.25rem, 2.5vw, 1.65rem);
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.fee-plan-detail-header__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.fee-plan-detail-header__levels {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fee-plan-detail-header__code {
+  margin: 0.35rem 0 0;
+  font-size: 0.78rem;
+}
+
+.fee-plan-detail-stats {
+  padding: 14px 16px;
+}
+
+.fee-plan-detail-stats__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px 16px;
+}
+
+.fee-plan-detail-stats__label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--c-muted, #64748b);
+  margin-bottom: 0.25rem;
+}
+
+.fee-plan-detail-stats__levels {
+  display: block;
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
+.fee-plan-detail-actions {
+  padding: 16px 18px;
+}
+
+.fee-plan-detail-actions h2,
+.fee-plan-detail-financial h2,
+.fee-plan-detail-usage h2 {
+  margin: 0 0 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.fee-plan-detail-actions__buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fee-plan-detail-actions__buttons .btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.fee-plan-detail-actions__hint {
+  margin: 10px 0 0;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.fee-plan-detail-financial {
+  padding: 16px 18px;
+}
+
+.fee-plan-detail-financial__list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+}
+
+.fee-plan-detail-financial__list > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fee-plan-detail-financial__list dt {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--c-muted, #64748b);
+}
+
+.fee-plan-detail-financial__list dd {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.fee-plan-detail-financial__suffix,
+.fee-plan-detail-financial__formula {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 400;
+  margin-top: 2px;
+}
+
+.fee-plan-detail-financial__annual dd {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--c-primary, #2563eb) 6%, #fff);
+  border: 1px solid color-mix(in srgb, var(--c-primary, #2563eb) 20%, #e2e8f0);
+}
+
+.fee-plan-detail-usage {
+  padding: 16px 18px;
+}
+
+.fee-plan-detail-usage__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+.fee-plan-detail-usage__grid dt {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--c-muted, #64748b);
+}
+
+.fee-plan-detail-usage__grid dd {
+  margin: 0.15rem 0 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.fee-plan-detail-lines__table--desktop {
+  display: block;
+}
+
+.fee-plan-detail-lines__cards--mobile {
+  display: none;
+}
+
+.fee-plan-detail-lines__table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.fee-plan-detail-lines__table th,
+.fee-plan-detail-lines__table td {
+  padding: 8px 10px;
+  text-align: start;
+  border-bottom: 1px solid var(--c-border, #e2e8f0);
+  vertical-align: top;
+}
+
+.fee-plan-detail-lines__table th {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--c-muted, #64748b);
+  white-space: nowrap;
+}
+
+.fee-plan-detail-lines__row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.fee-plan-detail-line-warning {
+  margin: 4px 0 0;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: #92400e;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+}
+
+.fee-plan-detail-line-card {
+  padding: 12px 14px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 8px;
+  background: var(--c-surface-muted, #f8fafc);
+}
+
+.fee-plan-detail-line-card + .fee-plan-detail-line-card {
+  margin-top: 10px;
+}
+
+.fee-plan-detail-line-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.fee-plan-detail-line-card dl {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 0;
+  font-size: 0.82rem;
+}
+
+.fee-plan-detail-line-card dt {
+  margin: 0;
+  color: var(--c-muted, #64748b);
+  font-size: 0.72rem;
+}
+
+.fee-plan-detail-line-card dd {
+  margin: 0;
+  font-weight: 500;
+}
+
+.fee-plan-detail-line-card__actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.fee-plan-detail-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.fee-plan-detail-dialog {
+  width: min(28rem, 100%);
+  padding: 1.25rem;
+}
+
+.fee-plan-detail-dialog h3 {
+  margin: 0 0 0.5rem;
+}
+
+.fee-plan-detail-dialog p {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.fee-plan-detail-dialog__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.fee-plan-detail-page__error {
+  margin: 0;
 }
 
 .fee-plan-detail-page__back {
@@ -335,6 +659,31 @@
 @media (max-width: 768px) {
   .fee-plan-detail-page {
     max-width: none;
+  }
+
+  .fee-plan-detail-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .fee-plan-detail-layout__aside {
+    position: static;
+    order: -1;
+  }
+
+  .fee-plan-detail-stats__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .fee-plan-detail-usage__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .fee-plan-detail-lines__table--desktop {
+    display: none;
+  }
+
+  .fee-plan-detail-lines__cards--mobile {
+    display: block;
   }
 
   .fee-plan-detail-summary__grid {
