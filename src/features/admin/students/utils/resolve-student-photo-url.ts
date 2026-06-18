@@ -36,12 +36,12 @@ export function resolveStudentPhotoUrl(url: string | null | undefined): string |
   return null;
 }
 
-/** Ordered same-origin candidates: thumbnail, full image, legacy fallback. */
+/** Ordered same-origin candidates: full image, thumbnail, legacy fallback. */
 export function resolveStudentPhotoCandidates(
   photo?: { thumbnail_url?: string | null; image_url?: string | null } | null,
   legacyImageUrl?: string | null,
 ): string[] {
-  const raw = [photo?.thumbnail_url, photo?.image_url, legacyImageUrl];
+  const raw = [photo?.image_url, photo?.thumbnail_url, legacyImageUrl];
   const seen = new Set<string>();
   const out: string[] = [];
 

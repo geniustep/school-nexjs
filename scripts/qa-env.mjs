@@ -1,5 +1,6 @@
 /**
  * Shared QA credential loader — never hardcode passwords.
+ * Before commit/report: delete .diag-output/ and ad-hoc scripts/*-diagnostic.mjs — keep them out of git.
  *
  * Password resolution per login (first match):
  *   1. Account-specific env (QA_PM_PASSWORD, …) or Odoo aliases (ODOO_QA_RBAC_PASSWORD, …)
