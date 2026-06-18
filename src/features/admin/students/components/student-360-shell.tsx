@@ -8,6 +8,7 @@ import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { getStudentDisplayName } from '@/lib/utils/student';
 import { useStudentDetails } from '../hooks/use-student-details';
+import { useStudentOverview } from '../hooks/use-student-overview';
 import {
   canManageStudentDocuments,
   canManageStudentHealth,
@@ -38,6 +39,7 @@ import { StudentFinancialAgreementTab } from '@/features/admin/student-finance/c
 import { StudentFinanceWorkspaceShell } from '@/features/admin/student-finance/components/student-finance-workspace-shell';
 import { StudentCreateForm } from './student-create-form';
 import { StudentForm } from './student-form';
+import { resolveOverviewEditAllowed } from '../utils/resolve-overview-allowed-actions';
 import { sanitizeReturnTo, isSafeInternalReturnPath } from '@/lib/utils/safe-return-url';
 import { buildStudent360TabIndicators } from '../utils/student-360-tab-indicators';
 import type { StudentDetailsData } from '@/types/student-360';
@@ -63,6 +65,7 @@ export function Student360Shell({ studentId }: { studentId: string }) {
   const searchParams = useSearchParams();
   const user = useSession();
   const state = useStudentDetails(studentId);
+  const overviewState = useStudentOverview(studentId, Boolean(state.data));
   const [editing, setEditing] = useState(false);
   const stickySentinelRef = useRef<HTMLDivElement>(null);
   const stickyTopRef = useRef<HTMLDivElement>(null);
@@ -172,11 +175,13 @@ export function Student360Shell({ studentId }: { studentId: string }) {
       <div ref={stickyTopRef} className="student-360-sticky-top">
         <Student360Header
           details={resolvedDetails}
+          overview={overviewState.data}
           actions={
             !editing ? (
               <Student360QuickActions
                 details={resolvedDetails}
                 caps={caps}
+                overview={overviewState.data}
                 archived={archived}
                 onEdit={() => setEditing(true)}
                 onOpenTab={(next) =>
@@ -217,8 +222,12 @@ export function Student360Shell({ studentId }: { studentId: string }) {
           <Student360TabErrorBoundary studentId={studentId} tab={tab} onRetry={state.reload}>
             {tab === 'overview' && (
               <StudentOverviewTab
+                studentId={studentId}
                 details={resolvedDetails}
-                canManage={caps.can_manage}
+                overview={overviewState.data}
+                overviewLoading={overviewState.loading}
+                overviewEndpointUnavailable={overviewState.endpointUnavailable}
+                canManage={resolveOverviewEditAllowed(overviewState.data, caps)}
                 showDocuments={showDocuments}
                 showHealth={showHealth}
                 showFinance={showFinance}

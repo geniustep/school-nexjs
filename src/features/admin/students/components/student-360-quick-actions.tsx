@@ -7,11 +7,18 @@ import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { isRelationshipActive } from '../utils/relationship-types';
 import type { Student360TabId } from '../utils/student-360-tabs';
+import {
+  resolveOverviewArchiveAllowed,
+  resolveOverviewEditAllowed,
+  resolveOverviewManageGuardiansAllowed,
+} from '../utils/resolve-overview-allowed-actions';
+import type { StudentOverviewData } from '@/types/student-overview';
 import type { StudentCapabilities, StudentDetailsData } from '@/types/student-360';
 
 export function Student360QuickActions({
   details,
   caps,
+  overview,
   archived,
   onEdit,
   onOpenTab,
@@ -19,6 +26,7 @@ export function Student360QuickActions({
 }: {
   details: StudentDetailsData;
   caps: StudentCapabilities;
+  overview?: StudentOverviewData | null;
   archived: boolean;
   onEdit: () => void;
   onOpenTab: (tab: Student360TabId) => void;
@@ -28,7 +36,9 @@ export function Student360QuickActions({
   const [menuOpen, setMenuOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const s = details.student;
-  const canManage = caps.can_manage && !archived;
+  const canManage = resolveOverviewEditAllowed(overview, caps) && !archived;
+  const canManageGuardians = resolveOverviewManageGuardiansAllowed(overview, caps);
+  const canArchive = resolveOverviewArchiveAllowed(overview, caps) && !archived;
 
   const activeGuardians = details.guardian_relationships.filter((r) =>
     isRelationshipActive(r.state, r.active),
@@ -57,7 +67,7 @@ export function Student360QuickActions({
 
   const secondaryActions: { key: string; label: string; onClick: () => void }[] = [];
 
-  if (caps.can_manage_guardians && activeGuardians.length === 0) {
+  if (canManageGuardians && activeGuardians.length === 0) {
     secondaryActions.push({
       key: 'guardian',
       label: t('admin.student360.quickActions.addGuardian'),
@@ -144,18 +154,20 @@ export function Student360QuickActions({
                 {action.label}
               </button>
             ))}
-            <div className="student-360-quick-actions__menu-archive" role="none">
-              <ConfirmActionButton
-                label={t('admin.archive')}
-                confirmMessage={t('admin.confirmArchive')}
-                path={endpoints.admin.studentArchive(s.id)}
-                variant="danger"
-                onSuccess={() => {
-                  setMenuOpen(false);
-                  onArchiveSuccess();
-                }}
-              />
-            </div>
+            {canArchive ? (
+              <div className="student-360-quick-actions__menu-archive" role="none">
+                <ConfirmActionButton
+                  label={t('admin.archive')}
+                  confirmMessage={t('admin.confirmArchive')}
+                  path={endpoints.admin.studentArchive(s.id)}
+                  variant="danger"
+                  onSuccess={() => {
+                    setMenuOpen(false);
+                    onArchiveSuccess();
+                  }}
+                />
+              </div>
+            ) : null}
           </div>
         ) : null}
       </div>

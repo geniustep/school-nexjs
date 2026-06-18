@@ -2758,6 +2758,80 @@
         "emptyTitle": "Sin datos de rendimiento",
         "emptyDesc": "La asistencia y los resultados aparecerán aquí cuando estén disponibles."
       },
+      "overview": {
+        "loading": "Cargando resumen…",
+        "cardsTitle": "Vista general",
+        "unavailableTitle": "Resumen no disponible",
+        "unavailableDesc": "El resumen consolidado aún no está disponible para este alumno. Las secciones siguientes siguen accesibles.",
+        "viewDocuments": "Ver documentos",
+        "alerts": {
+          "title": "Alertas"
+        },
+        "header": {
+          "guardian": "Responsable",
+          "externalPublishAllowed": "Publicación externa de la foto permitida"
+        },
+        "badges": {
+          "noGuardian": "Sin responsable",
+          "missingDocs": "Documentos faltantes",
+          "photoConsent": "Foto no autorizada",
+          "tripConsent": "Autorización de salida pendiente",
+          "financeOverdue": "Atrasos financieros"
+        },
+        "cards": {
+          "schooling": "Escolaridad",
+          "family": "Familia",
+          "documents": "Documentos",
+          "consents": "Autorizaciones",
+          "attendance": "Asistencia",
+          "finance": "Finanzas",
+          "academic": "Académico"
+        },
+        "family": {
+          "guardian": "Responsable",
+          "noGuardian": "No hay responsable registrado para este alumno."
+        },
+        "documents": {
+          "total": "Total",
+          "missing": "Faltantes",
+          "pendingReview": "En revisión",
+          "accepted": "Aceptados",
+          "rejected": "Rechazados"
+        },
+        "consents": {
+          "restricted": "Las autorizaciones no están disponibles con sus permisos actuales.",
+          "trip_participation": "Salidas escolares",
+          "photo_publish": "Publicación de foto",
+          "social_media_publish": "Redes sociales",
+          "emergency_treatment": "Tratamiento de urgencia",
+          "school_transport": "Transporte escolar",
+          "pickup_authorization": "Autorización de recogida",
+          "status": {
+            "granted": "Concedido",
+            "denied": "Denegado",
+            "pending": "Pendiente",
+            "missing": "No indicado",
+            "not_granted": "No concedido"
+          }
+        },
+        "attendance": {
+          "absencesMonth": "Ausencias este mes",
+          "lateMonth": "Retrasos este mes",
+          "lastStatus": "Última asistencia"
+        },
+        "finance": {
+          "unavailable": "Los datos financieros no están disponibles para su perfil.",
+          "outstanding": "Pendiente",
+          "overdue": "Atrasado",
+          "paid": "Pagado",
+          "nextDue": "Próximo vencimiento"
+        },
+        "academic": {
+          "openHomework": "Deberes abiertos",
+          "upcomingExams": "Exámenes próximos",
+          "lastResult": "Último resultado"
+        }
+      },
       "enrollmentEmptyDesc": "Cree una inscripción para vincular al alumno al año escolar y la clase.",
       "guardiansEmptyDesc": "Vincule un tutor para la comunicación y responsabilidades asociadas.",
       "guardiansCopyPhone": "Copiar",

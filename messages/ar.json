@@ -2785,6 +2785,80 @@
         "emptyTitle": "لا تتوفر بيانات أداء بعد",
         "emptyDesc": "ستظهر نسبة الحضور ونتائج الامتحانات هنا عند توفرها من النظام."
       },
+      "overview": {
+        "loading": "جارٍ تحميل الملخص…",
+        "cardsTitle": "نظرة عامة",
+        "unavailableTitle": "الملخص غير متاح",
+        "unavailableDesc": "الملخص الموحّد غير متاح لهذا التلميذ بعد. الأقسام أدناه تبقى متاحة.",
+        "viewDocuments": "عرض الوثائق",
+        "alerts": {
+          "title": "تنبيهات"
+        },
+        "header": {
+          "guardian": "ولي الأمر",
+          "externalPublishAllowed": "النشر الخارجي للصورة مسموح"
+        },
+        "badges": {
+          "noGuardian": "بدون ولي أمر",
+          "missingDocs": "وثائق ناقصة",
+          "photoConsent": "موافقة الصور غير مسموحة",
+          "tripConsent": "موافقة الرحلات معلقة",
+          "financeOverdue": "متأخرات مالية"
+        },
+        "cards": {
+          "schooling": "الدراسة",
+          "family": "الأسرة",
+          "documents": "الوثائق",
+          "consents": "الموافقات",
+          "attendance": "الحضور",
+          "finance": "المالية",
+          "academic": "الأكاديمي"
+        },
+        "family": {
+          "guardian": "ولي الأمر",
+          "noGuardian": "لا يوجد ولي أمر مسجّل لهذا التلميذ."
+        },
+        "documents": {
+          "total": "الإجمالي",
+          "missing": "الناقصة",
+          "pendingReview": "قيد المراجعة",
+          "accepted": "المقبولة",
+          "rejected": "المرفوضة"
+        },
+        "consents": {
+          "restricted": "الموافقات غير متاحة وفق صلاحياتك الحالية.",
+          "trip_participation": "المشاركة في الرحلات",
+          "photo_publish": "نشر الصور",
+          "social_media_publish": "وسائل التواصل",
+          "emergency_treatment": "العلاج الطارئ",
+          "school_transport": "النقل المدرسي",
+          "pickup_authorization": "استلام التلميذ",
+          "status": {
+            "granted": "موافق",
+            "denied": "مرفوض",
+            "pending": "قيد الانتظار",
+            "missing": "غير مذكور",
+            "not_granted": "غير موافق"
+          }
+        },
+        "attendance": {
+          "absencesMonth": "غيابات هذا الشهر",
+          "lateMonth": "تأخر هذا الشهر",
+          "lastStatus": "آخر حالة حضور"
+        },
+        "finance": {
+          "unavailable": "البيانات المالية غير متاحة لملفك.",
+          "outstanding": "المستحق",
+          "overdue": "المتأخر",
+          "paid": "المدفوع",
+          "nextDue": "الاستحقاق القادم"
+        },
+        "academic": {
+          "openHomework": "واجبات مفتوحة",
+          "upcomingExams": "امتحانات قادمة",
+          "lastResult": "آخر نتيجة"
+        }
+      },
       "enrollmentEmptyDesc": "أنشئ تسجيلًا لربط التلميذ بالسنة الدراسية والقسم المناسب.",
       "guardiansEmptyDesc": "اربط ولي أمر للتواصل وإدارة المسؤوليات المرتبطة بالتلميذ.",
       "guardiansCopyPhone": "نسخ",

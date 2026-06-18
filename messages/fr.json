@@ -2758,6 +2758,80 @@
         "emptyTitle": "Aucune donnée de performance",
         "emptyDesc": "L'assiduité et les résultats apparaîtront ici lorsqu'ils seront disponibles."
       },
+      "overview": {
+        "loading": "Chargement du résumé…",
+        "cardsTitle": "Vue d'ensemble",
+        "unavailableTitle": "Résumé indisponible",
+        "unavailableDesc": "Le résumé consolidé n'est pas encore disponible pour cet élève. Les sections ci-dessous restent accessibles.",
+        "viewDocuments": "Voir les documents",
+        "alerts": {
+          "title": "Alertes"
+        },
+        "header": {
+          "guardian": "Responsable",
+          "externalPublishAllowed": "Publication externe de la photo autorisée"
+        },
+        "badges": {
+          "noGuardian": "Sans responsable",
+          "missingDocs": "Documents manquants",
+          "photoConsent": "Photo non autorisée",
+          "tripConsent": "Autorisation sortie en attente",
+          "financeOverdue": "Retards financiers"
+        },
+        "cards": {
+          "schooling": "Scolarité",
+          "family": "Famille",
+          "documents": "Documents",
+          "consents": "Autorisations",
+          "attendance": "Présence",
+          "finance": "Finance",
+          "academic": "Académique"
+        },
+        "family": {
+          "guardian": "Responsable",
+          "noGuardian": "Aucun responsable enregistré pour cet élève."
+        },
+        "documents": {
+          "total": "Total",
+          "missing": "Manquants",
+          "pendingReview": "En revue",
+          "accepted": "Acceptés",
+          "rejected": "Refusés"
+        },
+        "consents": {
+          "restricted": "Les autorisations ne sont pas accessibles avec vos droits actuels.",
+          "trip_participation": "Sorties scolaires",
+          "photo_publish": "Publication photo",
+          "social_media_publish": "Réseaux sociaux",
+          "emergency_treatment": "Soins d'urgence",
+          "school_transport": "Transport scolaire",
+          "pickup_authorization": "Autorisation de sortie",
+          "status": {
+            "granted": "Accordé",
+            "denied": "Refusé",
+            "pending": "En attente",
+            "missing": "Non renseigné",
+            "not_granted": "Non accordé"
+          }
+        },
+        "attendance": {
+          "absencesMonth": "Absences ce mois",
+          "lateMonth": "Retards ce mois",
+          "lastStatus": "Dernière présence"
+        },
+        "finance": {
+          "unavailable": "Les données financières ne sont pas disponibles pour votre profil.",
+          "outstanding": "Solde dû",
+          "overdue": "Retards",
+          "paid": "Payé",
+          "nextDue": "Prochaine échéance"
+        },
+        "academic": {
+          "openHomework": "Devoirs ouverts",
+          "upcomingExams": "Examens à venir",
+          "lastResult": "Dernière note"
+        }
+      },
       "enrollmentEmptyDesc": "Créez une inscription pour lier l'élève à l'année scolaire et à la classe.",
       "guardiansEmptyDesc": "Liez un responsable pour la communication et les responsabilités associées.",
       "guardiansCopyPhone": "Copier",

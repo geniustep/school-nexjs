@@ -2758,6 +2758,80 @@
         "emptyTitle": "No performance data yet",
         "emptyDesc": "Attendance and exam results will appear here when available from the system."
       },
+      "overview": {
+        "loading": "Loading summary…",
+        "cardsTitle": "Overview",
+        "unavailableTitle": "Summary unavailable",
+        "unavailableDesc": "The consolidated summary is not available for this student yet. The sections below remain accessible.",
+        "viewDocuments": "View documents",
+        "alerts": {
+          "title": "Alerts"
+        },
+        "header": {
+          "guardian": "Guardian",
+          "externalPublishAllowed": "External photo publication allowed"
+        },
+        "badges": {
+          "noGuardian": "No guardian",
+          "missingDocs": "Missing documents",
+          "photoConsent": "Photo not allowed",
+          "tripConsent": "Trip consent pending",
+          "financeOverdue": "Finance overdue"
+        },
+        "cards": {
+          "schooling": "Schooling",
+          "family": "Family",
+          "documents": "Documents",
+          "consents": "Consents",
+          "attendance": "Attendance",
+          "finance": "Finance",
+          "academic": "Academic"
+        },
+        "family": {
+          "guardian": "Guardian",
+          "noGuardian": "No guardian is registered for this student."
+        },
+        "documents": {
+          "total": "Total",
+          "missing": "Missing",
+          "pendingReview": "Pending review",
+          "accepted": "Accepted",
+          "rejected": "Rejected"
+        },
+        "consents": {
+          "restricted": "Consents are not available with your current permissions.",
+          "trip_participation": "School trips",
+          "photo_publish": "Photo publication",
+          "social_media_publish": "Social media",
+          "emergency_treatment": "Emergency treatment",
+          "school_transport": "School transport",
+          "pickup_authorization": "Pickup authorization",
+          "status": {
+            "granted": "Granted",
+            "denied": "Denied",
+            "pending": "Pending",
+            "missing": "Not provided",
+            "not_granted": "Not granted"
+          }
+        },
+        "attendance": {
+          "absencesMonth": "Absences this month",
+          "lateMonth": "Late this month",
+          "lastStatus": "Last attendance"
+        },
+        "finance": {
+          "unavailable": "Financial data is not available for your profile.",
+          "outstanding": "Outstanding",
+          "overdue": "Overdue",
+          "paid": "Paid",
+          "nextDue": "Next due date"
+        },
+        "academic": {
+          "openHomework": "Open homework",
+          "upcomingExams": "Upcoming exams",
+          "lastResult": "Last result"
+        }
+      },
       "enrollmentEmptyDesc": "Create an enrollment to link the pupil to the academic year and class.",
       "guardiansEmptyDesc": "Link a guardian for communication and related responsibilities.",
       "guardiansCopyPhone": "Copy",

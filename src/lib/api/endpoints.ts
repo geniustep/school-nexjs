@@ -19,6 +19,7 @@ export const endpoints = {
     students: '/admin/students',
     studentsOptions: '/admin/students/options',
     student: (id: number | string) => `/admin/students/${id}`,
+    studentOverview: (id: number | string) => `/admin/students/${id}/overview`,
     studentUpdate: (id: number | string) => `/admin/students/${id}/update`,
     studentAccount: (id: number | string) => `/admin/students/${id}/account`,
     studentArchive: (id: number | string) => `/admin/students/${id}/archive`,

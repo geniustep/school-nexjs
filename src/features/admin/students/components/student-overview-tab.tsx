@@ -12,6 +12,9 @@ import { computeStudentAge } from '../utils/student-age';
 import { studentClassLabel, studentLevelLabel, refOrStringLabel } from '../utils/student-academic-labels';
 import { Student360FieldGrid } from './student-360-field-grid';
 import { StudentStatusSummary } from './student-status-summary';
+import { StudentOverviewAlerts } from './student-overview-alerts';
+import { StudentOverviewCards } from './student-overview-cards';
+import type { StudentOverviewData } from '@/types/student-overview';
 import type { Student360TabId } from '../utils/student-360-tabs';
 import type { StudentDetailsData } from '@/types/student-360';
 
@@ -27,7 +30,11 @@ function scrollToLoginAccount() {
 }
 
 export function StudentOverviewTab({
+  studentId,
   details,
+  overview,
+  overviewLoading,
+  overviewEndpointUnavailable,
   canManage,
   showDocuments = false,
   showHealth = false,
@@ -37,7 +44,11 @@ export function StudentOverviewTab({
   onEditProfile,
   onAccountChanged,
 }: {
+  studentId: string;
   details: StudentDetailsData;
+  overview: StudentOverviewData | null;
+  overviewLoading: boolean;
+  overviewEndpointUnavailable: boolean;
   canManage: boolean;
   showDocuments?: boolean;
   showHealth?: boolean;
@@ -57,6 +68,18 @@ export function StudentOverviewTab({
 
   return (
     <div className="student-360-overview student-360-tab-panel">
+      <StudentOverviewAlerts alerts={overview?.alerts ?? []} onOpenTab={(tab) => openTab(tab)} />
+
+      <StudentOverviewCards
+        studentId={studentId}
+        overview={overview}
+        loading={overviewLoading}
+        endpointUnavailable={overviewEndpointUnavailable}
+        showDocuments={showDocuments}
+        showFinance={showFinance}
+        onOpenTab={(tab) => openTab(tab)}
+      />
+
       <StudentStatusSummary
         details={details}
         canManage={canManage}
@@ -210,11 +233,6 @@ export function StudentOverviewTab({
           ) : null}
         </div>
       </Card>
-
-      <section className="student-360-performance-compact">
-        <p className="student-360-performance-compact__title">{t('admin.student360.performance.title')}</p>
-        <p className="student-360-performance-compact__desc">{t('admin.student360.performance.emptyDesc')}</p>
-      </section>
     </div>
   );
 }
