@@ -143,6 +143,15 @@ export function GuardianAddDialog({
     e?.preventDefault();
     if (!selectedPerson) return;
 
+    if (!canLinkSelectedPerson) {
+      setFieldError(
+        isPersonSearchResult(selectedPerson)
+          ? resolveGuardianLinkBlockerMessage(t, selectedPerson)
+          : t('admin.student360.guardianCandidateCannotLink'),
+      );
+      return;
+    }
+
     const personId = selectedPersonId();
     if (
       formValues.is_primary_contact &&

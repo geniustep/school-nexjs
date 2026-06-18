@@ -1,4 +1,5 @@
 import type { GuardianCandidateWarning, PersonSearchResult } from '@/types/student-360';
+import { canLinkGuardianCandidate } from './guardian-candidate-presentation';
 import { normalizeAllowedActionsFromRaw } from './guardian-removal-shared';
 import { normalizeDeleteImpactFromRaw } from './guardian-delete-impact';
 import { getGuardianEmailPresentation } from './guardian-email-presentation';
@@ -76,16 +77,11 @@ export function normalizePersonSearchResult(data: unknown): PersonSearchResult |
   const allowedActions = normalizeAllowedActionsFromRaw(raw.allowed_actions);
   const deleteImpact = normalizeDeleteImpactFromRaw(raw.delete_impact ?? raw);
 
-  let canLink = false;
-  if (!archived) {
-    if (raw.can_link_as_guardian === false || allowedActions?.link_as_guardian === false) {
-      canLink = false;
-    } else if (raw.can_link_as_guardian === true || allowedActions?.link_as_guardian === true) {
-      canLink = true;
-    } else if (raw.can_link_as_guardian === undefined && allowedActions?.link_as_guardian === undefined) {
-      canLink = true;
-    }
-  }
+  const canLink = !archived && canLinkGuardianCandidate({
+    can_link_as_guardian:
+      typeof raw.can_link_as_guardian === 'boolean' ? raw.can_link_as_guardian : undefined,
+    allowed_actions: allowedActions,
+  });
 
   return {
     partner_id: raw.partner_id,

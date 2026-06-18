@@ -1,6 +1,7 @@
 import type { GuardianAllowedActions, PersonSearchResult } from '@/types/student-360';
 import type { Parent } from '@/types/parent';
 import type { CurrentUser } from '@/types/user';
+import { canLinkGuardianCandidate } from './guardian-candidate-presentation';
 
 export function isPersonArchived(
   person: Pick<PersonSearchResult | Parent, 'archived' | 'status'>,
@@ -24,9 +25,7 @@ export function canLinkPersonAsGuardian(
 ): boolean {
   if (alreadyLinked) return false;
   if (isPersonArchived(person)) return false;
-  if (person.allowed_actions?.link_as_guardian === false) return false;
-  if (person.allowed_actions?.link_as_guardian === true) return true;
-  return person.can_link_as_guardian === true;
+  return canLinkGuardianCandidate(person);
 }
 
 export function canRestoreGuardianProfile(
