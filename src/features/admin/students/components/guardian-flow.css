@@ -653,3 +653,108 @@
     flex: 1 1 auto;
   }
 }
+
+.guardian-source-picker {
+  border: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.guardian-source-picker__title {
+  font-weight: 600;
+  margin: 0 0 4px;
+  padding: 0;
+}
+
+.guardian-source-picker__option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.9375rem;
+}
+
+.guardian-contact-required {
+  padding: 14px;
+  border-radius: 8px;
+  border: 1px solid #fed7aa;
+  background: #fffbeb;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.guardian-contact-required__title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.guardian-contact-required__lead {
+  margin: 0;
+}
+
+.guardian-contact-required__grid {
+  display: grid;
+  gap: 12px;
+}
+
+.guardian-duplicate-suggestions {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #fed7aa;
+  background: #fff7ed;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.guardian-duplicate-suggestions--dismissed {
+  border-color: #e2e8f0;
+  background: #f8fafc;
+}
+
+.guardian-duplicate-suggestions__title {
+  margin: 0;
+  font-weight: 600;
+  color: #9a3412;
+}
+
+.guardian-duplicate-suggestions--dismissed .guardian-duplicate-suggestions__title {
+  color: #64748b;
+}
+
+.guardian-duplicate-suggestions__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.guardian-duplicate-suggestions__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 6px;
+  background: #fff;
+  border: 1px solid #fdba74;
+}
+
+.guardian-duplicate-suggestions__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.guardian-duplicate-suggestions__actions {
+  flex-shrink: 0;
+}

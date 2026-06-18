@@ -28,6 +28,7 @@ export function GuardianRelationshipImpactAlert({
   currentPrimaryName,
   parentProfileHref,
   financialImpactMessage,
+  inDialog = false,
 }: {
   values: RelationshipFormValues;
   initialValues?: RelationshipFormValues;
@@ -35,6 +36,7 @@ export function GuardianRelationshipImpactAlert({
   currentPrimaryName?: string | null;
   parentProfileHref?: string;
   financialImpactMessage?: string | null;
+  inDialog?: boolean;
 }) {
   const t = useT();
   const alerts: React.ReactNode[] = [];
@@ -76,7 +78,7 @@ export function GuardianRelationshipImpactAlert({
     alerts.push(
       <div key="notifications" className="guardian-relationship-impact guardian-relationship-impact--warn" role="alert">
         <p>{t('admin.parentProfile.notificationsContactMissing')}</p>
-        {parentProfileHref ? (
+        {!inDialog && parentProfileHref ? (
           <Link href={parentProfileHref} className="btn btn--ghost btn--sm">
             {t('admin.parentProfile.editParentContact')}
           </Link>

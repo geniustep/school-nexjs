@@ -1,4 +1,5 @@
 import type {
+  GuardianContactPatch,
   GuardianRelationshipCreatePayload,
   LinkPersonAsGuardianPayload,
   PersonSearchResult,
@@ -27,11 +28,16 @@ function relationshipFields(
 export function relationshipFormToLinkPersonPayload(
   person: Pick<PersonSearchResult, 'partner_id'>,
   values: RelationshipFormValues,
+  contactPatch?: GuardianContactPatch,
 ): LinkPersonAsGuardianPayload {
-  return {
+  const payload: LinkPersonAsGuardianPayload = {
     partner_id: person.partner_id,
     ...relationshipFields(values),
   };
+  if (contactPatch && Object.keys(contactPatch).length > 0) {
+    payload.contact_patch = contactPatch;
+  }
+  return payload;
 }
 
 export function relationshipFormToCreatePayload(

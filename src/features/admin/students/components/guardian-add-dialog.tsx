@@ -8,9 +8,12 @@ import { CreateAccountDialog } from '@/features/admin/account/create-account-dia
 import { useToast } from '@/components/ui/toast';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
-import { AcademicSegmentedControl } from '@/features/admin/academic-setup/components/academic-segmented-control';
 import { GuardianSearchPanel } from './guardian-search-panel';
-import { GuardianQuickCreateForm } from './guardian-quick-create-form';
+import {
+  GuardianNewPersonForm,
+  validateNewPersonDraft,
+  type NewPersonDraft,
+} from './guardian-new-person-form';
 import {
   DEFAULT_RELATIONSHIP_FORM,
   GuardianRelationshipForm,
@@ -20,14 +23,29 @@ import {
 } from './guardian-relationship-form';
 import { GuardianRelationshipImpactAlert } from './guardian-relationship-impact-alert';
 import { PersonSchoolIdentitySection } from './person-school-identity-section';
+import { GuardianContactRequiredSection } from './guardian-contact-required-section';
 import { mapGuardianApiError } from '../utils/guardian-api-errors';
 import { resolveGuardianLinkBlockerMessage } from '../utils/guardian-candidate-presentation';
 import { canLinkPersonAsGuardian } from '../utils/guardian-profile-contract';
 import {
+  buildContactPatchPayload,
+  EMPTY_CONTACT_PATCH_DRAFT,
+  EMPTY_CONTACT_PATCH_TOUCHED,
+  isGuardianContactPhoneRequiredError,
+  isGuardianLinkActionDisabled,
+  shouldShowContactRequiredSection,
+  type ContactPatchDraft,
+  type ContactPatchTouched,
+} from '../utils/guardian-contact-requirements';
+import {
   linkExistingPersonAsGuardian,
   normalizeLinkPersonResponse,
 } from '../utils/guardian-link-person';
-import { formatMoroccanPhoneDisplay } from '../utils/normalize-moroccan-phone';
+import { normalizeGuardianQuickCreateResponse } from '../utils/normalize-guardian';
+import {
+  formatMoroccanPhoneDisplay,
+  moroccanPhoneSearchQuery,
+} from '../utils/normalize-moroccan-phone';
 import { isPersonSearchResult } from '../utils/normalize-person-search';
 import {
   formatRoleLabels,
@@ -44,8 +62,8 @@ import type {
 } from '@/types/student-360';
 import './guardian-flow.css';
 
-type Step = 'pick' | 'relationship' | 'success' | 'partial' | 'already_linked';
-type PickMode = 'search' | 'create';
+type Step = 'pick' | 'relationship' | 'success' | 'already_linked';
+type PickMode = 'existing' | 'new';
 type SelectedPerson = PersonSearchResult | GuardianSummary;
 
 export function GuardianAddDialog({
@@ -63,16 +81,23 @@ export function GuardianAddDialog({
 }) {
   const t = useT();
   const toast = useToast();
-  const [pickMode, setPickMode] = useState<PickMode>('search');
+  const [pickMode, setPickMode] = useState<PickMode>('existing');
   const [step, setStep] = useState<Step>('pick');
   const [selectedPerson, setSelectedPerson] = useState<SelectedPerson | null>(null);
+  const [newPersonDraft, setNewPersonDraft] = useState<NewPersonDraft | null>(null);
+  const [isNewPersonFlow, setIsNewPersonFlow] = useState(false);
   const [linkResult, setLinkResult] = useState<LinkPersonAsGuardianResponse | null>(null);
   const [formValues, setFormValues] = useState<RelationshipFormValues>(DEFAULT_RELATIONSHIP_FORM);
   const [fieldError, setFieldError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [createPrefill, setCreatePrefill] = useState<{ query?: string }>({});
+  const [searchPrefill, setSearchPrefill] = useState('');
   const [accountDialogOpen, setAccountDialogOpen] = useState(false);
   const [pendingPrimaryConfirm, setPendingPrimaryConfirm] = useState(false);
+  const [contactPatch, setContactPatch] = useState<ContactPatchDraft>(EMPTY_CONTACT_PATCH_DRAFT);
+  const [contactPatchTouched, setContactPatchTouched] = useState<ContactPatchTouched>(
+    EMPTY_CONTACT_PATCH_TOUCHED,
+  );
+  const [contactRequiredForced, setContactRequiredForced] = useState(false);
 
   const linkedGuardianIds = useMemo(
     () =>
@@ -104,17 +129,41 @@ export function GuardianAddDialog({
     );
   }, [relationships, selectedPerson]);
 
+  const displayPerson = useMemo((): SelectedPerson | null => {
+    if (selectedPerson) return selectedPerson;
+    if (!newPersonDraft) return null;
+    const name = [newPersonDraft.firstName.trim(), newPersonDraft.lastName.trim()]
+      .filter(Boolean)
+      .join(' ');
+    return {
+      id: 0,
+      partner_id: 0,
+      name,
+      phone: newPersonDraft.phone.trim() || null,
+      email: newPersonDraft.email.trim().toLowerCase() || null,
+      existing_roles: [],
+      role_labels: [],
+      has_user_account: false,
+      can_link_as_guardian: true,
+    } as PersonSearchResult;
+  }, [newPersonDraft, selectedPerson]);
+
   function reset() {
     setStep('pick');
-    setPickMode('search');
+    setPickMode('existing');
     setSelectedPerson(null);
+    setNewPersonDraft(null);
+    setIsNewPersonFlow(false);
     setLinkResult(null);
     setFormValues(DEFAULT_RELATIONSHIP_FORM);
     setFieldError(null);
     setSaving(false);
-    setCreatePrefill({});
+    setSearchPrefill('');
     setAccountDialogOpen(false);
     setPendingPrimaryConfirm(false);
+    setContactPatch(EMPTY_CONTACT_PATCH_DRAFT);
+    setContactPatchTouched(EMPTY_CONTACT_PATCH_TOUCHED);
+    setContactRequiredForced(false);
   }
 
   function handleClose() {
@@ -122,16 +171,33 @@ export function GuardianAddDialog({
     onClose();
   }
 
-  function handlePersonPicked(person: SelectedPerson) {
+  function handleExistingPersonPicked(person: PersonSearchResult) {
     setSelectedPerson(person);
+    setNewPersonDraft(null);
+    setIsNewPersonFlow(false);
     setLinkResult(null);
+    setContactPatch(EMPTY_CONTACT_PATCH_DRAFT);
+    setContactPatchTouched(EMPTY_CONTACT_PATCH_TOUCHED);
+    setContactRequiredForced(false);
     setStep('relationship');
     setFieldError(null);
   }
 
-  function switchToCreate(prefill: { query?: string }) {
-    setCreatePrefill(prefill);
-    setPickMode('create');
+  function handleNewPersonContinue(draft: NewPersonDraft) {
+    setNewPersonDraft(draft);
+    setSelectedPerson(null);
+    setIsNewPersonFlow(true);
+    setLinkResult(null);
+    setContactPatch(EMPTY_CONTACT_PATCH_DRAFT);
+    setContactPatchTouched(EMPTY_CONTACT_PATCH_TOUCHED);
+    setContactRequiredForced(false);
+    setStep('relationship');
+    setFieldError(null);
+  }
+
+  function handleUseExistingFromNewFlow(person: PersonSearchResult) {
+    setPickMode('existing');
+    handleExistingPersonPicked(person);
   }
 
   function selectedPersonId(): number | null {
@@ -139,14 +205,31 @@ export function GuardianAddDialog({
     return selectedPerson.guardian_id ?? selectedPerson.id;
   }
 
+  async function createNewPersonGuardian(): Promise<GuardianSummary | null> {
+    if (!newPersonDraft) return null;
+    const payload = {
+      name: [newPersonDraft.firstName.trim(), newPersonDraft.lastName.trim()].filter(Boolean).join(' '),
+      phone: moroccanPhoneSearchQuery(newPersonDraft.phone),
+      email: newPersonDraft.email.trim().toLowerCase() || undefined,
+    };
+    const res = await api.post<unknown>(endpoints.admin.guardiansQuickCreate, payload);
+    if (!res.success) {
+      const mapped = mapGuardianApiError(res.error, t);
+      setFieldError(mapped.message);
+      toast.error(mapped.message);
+      return null;
+    }
+    return normalizeGuardianQuickCreateResponse(res.data);
+  }
+
   async function linkRelationship(e?: React.FormEvent) {
     e?.preventDefault();
-    if (!selectedPerson) return;
+    if (!displayPerson) return;
 
     if (!canLinkSelectedPerson) {
       setFieldError(
-        isPersonSearchResult(selectedPerson)
-          ? resolveGuardianLinkBlockerMessage(t, selectedPerson)
+        isPersonSearchResult(displayPerson)
+          ? resolveGuardianLinkBlockerMessage(t, displayPerson)
           : t('admin.student360.guardianCandidateCannotLink'),
       );
       return;
@@ -167,30 +250,60 @@ export function GuardianAddDialog({
     setSaving(true);
     setFieldError(null);
 
-    const res = isPersonSearchResult(selectedPerson)
-      ? await linkExistingPersonAsGuardian(
-          studentId,
-          relationshipFormToLinkPersonPayload(selectedPerson, formValues),
-        )
-      : await api.post(
-          endpoints.admin.studentGuardians(studentId),
-          relationshipFormToCreatePayload(selectedPerson.id, formValues),
-        );
+    let personForLink: SelectedPerson | null = selectedPerson;
+
+    if (isNewPersonFlow && !selectedPerson) {
+      const created = await createNewPersonGuardian();
+      if (!created) {
+        setSaving(false);
+        setPendingPrimaryConfirm(false);
+        return;
+      }
+      personForLink = created;
+      setSelectedPerson(created);
+      setIsNewPersonFlow(false);
+    }
+
+    if (!personForLink) {
+      setSaving(false);
+      return;
+    }
+
+    const partnerId =
+      typeof personForLink.partner_id === 'number' && personForLink.partner_id > 0
+        ? personForLink.partner_id
+        : null;
+
+    const res =
+      partnerId != null
+        ? await linkExistingPersonAsGuardian(
+            studentId,
+            relationshipFormToLinkPersonPayload(
+              { partner_id: partnerId },
+              formValues,
+              buildContactPatchPayload(contactPatch, contactPatchTouched),
+            ),
+          )
+        : await api.post(
+            endpoints.admin.studentGuardians(studentId),
+            relationshipFormToCreatePayload(personForLink.id, formValues),
+          );
 
     setSaving(false);
     setPendingPrimaryConfirm(false);
 
     if (res.success) {
-      const normalized = isPersonSearchResult(selectedPerson)
-        ? normalizeLinkPersonResponse(res.data) ?? { guardian: selectedPerson }
-        : null;
+      const normalized =
+        partnerId != null
+          ? normalizeLinkPersonResponse(res.data) ?? { guardian: personForLink }
+          : null;
 
       if (normalized) {
         setSelectedPerson(normalized.guardian);
         setLinkResult(normalized);
       }
 
-      const successName = normalized?.guardian.name ?? selectedPerson.name;
+      const successName = normalized?.guardian.name ?? personForLink.name;
       toast.success(t('admin.student360.linkPersonSuccess', { name: successName }));
 
       if (normalized?.account?.needs_new_account === false) {
@@ -204,20 +317,22 @@ export function GuardianAddDialog({
 
     const mapped = mapGuardianApiError(res.error, t);
     const code = String(res.error?.code ?? '');
+
     if (code === 'guardian_relation_already_exists' || code === 'guardian_already_linked') {
       setFieldError(mapped.message);
       setStep('already_linked');
       return;
     }
 
-    setFieldError(mapped.message);
-    setStep('partial');
-    toast.error(mapped.message);
-  }
+    if (isGuardianContactPhoneRequiredError(code)) {
+      setContactRequiredForced(true);
+      setFieldError(mapped.message);
+      setStep('relationship');
+      return;
+    }
 
-  async function retryLinkOnly() {
-    if (!selectedPerson) return;
-    await linkRelationship();
+    setFieldError(mapped.message);
+    toast.error(mapped.message);
   }
 
   function finishSuccess() {
@@ -229,21 +344,47 @@ export function GuardianAddDialog({
       ? t('admin.student360.addGuardian')
       : step === 'relationship'
         ? t('admin.student360.relationshipStepTitle')
-        : step === 'partial'
-          ? t('admin.student360.guardianPartialTitle')
-          : step === 'already_linked'
-            ? t('admin.student360.guardianSuccessTitle')
-            : t('admin.student360.guardianSuccessTitle');
+        : step === 'already_linked'
+          ? t('admin.student360.guardianSuccessTitle')
+          : t('admin.student360.guardianSuccessTitle');
 
   const canLinkSelectedPerson = useMemo(() => {
+    if (isNewPersonFlow && newPersonDraft) return true;
     if (!selectedPerson || !isPersonSearchResult(selectedPerson)) return true;
     return canLinkPersonAsGuardian(selectedPerson, Boolean(linkedRelationship));
-  }, [linkedRelationship, selectedPerson]);
+  }, [isNewPersonFlow, linkedRelationship, newPersonDraft, selectedPerson]);
 
   const selectedPersonLinkBlocker = useMemo(() => {
     if (!selectedPerson || !isPersonSearchResult(selectedPerson) || canLinkSelectedPerson) return null;
     return resolveGuardianLinkBlockerMessage(t, selectedPerson);
   }, [canLinkSelectedPerson, selectedPerson, t]);
+
+  const newPersonPhoneValid = useMemo(() => {
+    if (!newPersonDraft) return false;
+    return Object.keys(validateNewPersonDraft(newPersonDraft, t)).length === 0;
+  }, [newPersonDraft, t]);
+
+  const existingPersonForContact =
+    displayPerson && isPersonSearchResult(displayPerson) && displayPerson.partner_id > 0
+      ? displayPerson
+      : null;
+
+  const showContactRequired = shouldShowContactRequiredSection(
+    formValues,
+    existingPersonForContact,
+    contactPatch,
+    contactPatchTouched,
+    contactRequiredForced,
+  );
+
+  const submitDisabled = isGuardianLinkActionDisabled(formValues, {
+    canLink: canLinkSelectedPerson,
+    person: existingPersonForContact,
+    patch: contactPatch,
+    touched: contactPatchTouched,
+    isNewPerson: isNewPersonFlow && !selectedPerson,
+    newPersonPhoneValid,
+  });
 
   const personHasAccount =
     linkResult?.account?.has_user_account ??
@@ -259,6 +400,24 @@ export function GuardianAddDialog({
     !needsNewAccountFromLink(linkResult?.account, personHasAccount) &&
     personHasAccount;
 
+  const submitLabel = isNewPersonFlow && !selectedPerson
+    ? t('admin.student360.createAndLinkPersonAsGuardian')
+    : t('admin.student360.linkPersonAsGuardian');
+
+  const effectiveContact = useMemo(
+    () => ({
+      phone:
+        contactPatchTouched.phone && contactPatch.phone.trim()
+          ? contactPatch.phone
+          : displayPerson?.phone,
+      email:
+        contactPatchTouched.email && contactPatch.email.trim()
+          ? contactPatch.email
+          : displayPerson?.email,
+    }),
+    [contactPatch, contactPatchTouched, displayPerson],
+  );
+
   if (!open) return null;
 
   return (
@@ -266,76 +425,94 @@ export function GuardianAddDialog({
       <SetupDrawer open={open} title={drawerTitle} onClose={handleClose} size="medium">
         {step === 'pick' ? (
           <div className="guardian-flow-drawer__body">
-            <AcademicSegmentedControl
-              ariaLabel={t('admin.student360.addGuardianMode')}
-              value={pickMode}
-              onChange={setPickMode}
-              options={[
-                { value: 'search', label: t('admin.student360.searchExistingPerson') },
-                { value: 'create', label: t('admin.student360.createNewGuardian') },
-              ]}
-            />
-            {pickMode === 'search' ? (
+            <fieldset className="guardian-source-picker">
+              <legend className="guardian-source-picker__title">{t('admin.student360.guardianSourceTitle')}</legend>
+              <label className="guardian-source-picker__option">
+                <input
+                  type="radio"
+                  name="guardian-source"
+                  value="existing"
+                  checked={pickMode === 'existing'}
+                  onChange={() => setPickMode('existing')}
+                />
+                <span>{t('admin.student360.guardianSourceExisting')}</span>
+              </label>
+              <label className="guardian-source-picker__option">
+                <input
+                  type="radio"
+                  name="guardian-source"
+                  value="new"
+                  checked={pickMode === 'new'}
+                  onChange={() => setPickMode('new')}
+                />
+                <span>{t('admin.student360.guardianSourceNew')}</span>
+              </label>
+            </fieldset>
+
+            {pickMode === 'existing' ? (
               <GuardianSearchPanel
                 studentId={studentId}
                 linkedGuardianIds={linkedGuardianIds}
-                onSelect={handlePersonPicked}
-                onCreateNew={switchToCreate}
-                initialQuery={createPrefill.query}
+                onSelect={handleExistingPersonPicked}
+                initialQuery={searchPrefill}
+                showCreateOnEmpty={false}
               />
             ) : (
-              <GuardianQuickCreateForm
-                prefill={createPrefill}
-                onCreated={handlePersonPicked}
-                onSelectExisting={handlePersonPicked}
+              <GuardianNewPersonForm
+                studentId={studentId}
+                prefill={searchPrefill ? { query: searchPrefill } : undefined}
+                onContinue={handleNewPersonContinue}
+                onUseExisting={handleUseExistingFromNewFlow}
               />
             )}
           </div>
         ) : null}
 
-        {step === 'relationship' && selectedPerson ? (
+        {step === 'relationship' && displayPerson ? (
           <form className="guardian-flow-drawer__body guardian-flow-drawer__form" onSubmit={linkRelationship}>
             <div className="guardian-selected-summary">
               <p className="tiny muted">{t('admin.student360.selectedPerson')}</p>
-              <strong dir="auto">{selectedPerson.name}</strong>
-              {selectedPerson.phone ? (
+              <strong dir="auto">{displayPerson.name}</strong>
+              {displayPerson.phone ? (
                 <span className="tiny mono" dir="ltr">
-                  {formatMoroccanPhoneDisplay(selectedPerson.phone)}
+                  {formatMoroccanPhoneDisplay(displayPerson.phone)}
                 </span>
               ) : null}
-              {selectedPerson.email ? (
+              {displayPerson.email ? (
                 <span className="tiny" dir="ltr">
-                  {selectedPerson.email}
+                  {displayPerson.email}
                 </span>
               ) : null}
             </div>
 
-            {isPersonSearchResult(selectedPerson) ? (
+            {isPersonSearchResult(displayPerson) && displayPerson.partner_id > 0 ? (
               <PersonSchoolIdentitySection
-                person={selectedPerson}
+                person={displayPerson}
                 canLink={canLinkSelectedPerson}
-                warnings={selectedPerson.warnings}
+                warnings={displayPerson.warnings}
               />
             ) : null}
 
-            {personHasTeacherRole(selectedPerson) ? (
+            {showContactRequired ? (
+              <GuardianContactRequiredSection
+                patch={contactPatch}
+                touched={contactPatchTouched}
+                onPatch={(partial) => setContactPatch((prev) => ({ ...prev, ...partial }))}
+                onTouch={(partial) => setContactPatchTouched((prev) => ({ ...prev, ...partial }))}
+                error={contactRequiredForced ? fieldError : null}
+                open
+              />
+            ) : null}
+
+            {personHasTeacherRole(displayPerson) ? (
               <p className="tiny muted">{t('admin.parentProfile.responsibilitiesScopeNote')}</p>
             ) : null}
 
             <GuardianRelationshipImpactAlert
               values={formValues}
-              personContact={{
-                phone: selectedPerson.phone,
-                email: selectedPerson.email,
-              }}
+              personContact={effectiveContact}
               currentPrimaryName={currentPrimary?.guardian.name ?? null}
-              parentProfileHref={
-                selectedPerson.guardian_id != null
-                  ? `/admin/parents/${selectedPerson.guardian_id}`
-                  : selectedPerson.id
-                    ? `/admin/parents/${selectedPerson.id}`
-                    : undefined
-              }
+              inDialog
             />
 
             <GuardianRelationshipForm values={formValues} onChange={setFormValues} fieldError={fieldError} />
@@ -358,16 +535,31 @@ export function GuardianAddDialog({
               </div>
             ) : null}
 
+            {selectedPersonLinkBlocker ? (
+              <p className="tiny guardian-create-field__error" role="alert">
+                {selectedPersonLinkBlocker}
+              </p>
+            ) : null}
+
             <div className="guardian-flow-drawer__actions">
               <button
                 type="submit"
                 className="btn btn--primary"
-                disabled={saving || !canLinkSelectedPerson}
-                title={!canLinkSelectedPerson ? (selectedPersonLinkBlocker ?? undefined) : undefined}
+                disabled={saving || submitDisabled}
+                title={submitDisabled && selectedPersonLinkBlocker ? selectedPersonLinkBlocker : undefined}
               >
-                {saving ? t('admin.student360.linkingPersonProgress') : t('admin.student360.linkPersonAsGuardian')}
+                {saving ? t('admin.student360.linkingPersonProgress') : submitLabel}
               </button>
-              <button type="button" className="btn btn--ghost" disabled={saving} onClick={() => setStep('pick')}>
+              <button
+                type="button"
+                className="btn btn--ghost"
+                disabled={saving}
+                onClick={() => {
+                  setStep('pick');
+                  setContactRequiredForced(false);
+                  setFieldError(null);
+                }}
+              >
                 {t('common.back')}
               </button>
               <button type="button" className="btn btn--ghost" disabled={saving} onClick={handleClose}>
@@ -377,22 +569,22 @@ export function GuardianAddDialog({
           </form>
         ) : null}
 
-        {step === 'success' && selectedPerson ? (
+        {step === 'success' && displayPerson ? (
           <div className="guardian-flow-drawer__body">
-            <p>{t('admin.student360.linkPersonSuccess', { name: selectedPerson.name })}</p>
+            <p>{t('admin.student360.linkPersonSuccess', { name: displayPerson.name })}</p>
             {linkResult?.account?.needs_new_account === false ? (
               <p className="tiny muted">{t('admin.student360.accountRoleAddedGuardian')}</p>
             ) : null}
             <div className="guardian-selected-summary">
-              <strong dir="auto">{selectedPerson.name}</strong>
-              {selectedPerson.role_labels?.length ? (
+              <strong dir="auto">{displayPerson.name}</strong>
+              {displayPerson.role_labels?.length ? (
                 <p className="tiny">
-                  {t('admin.student360.accountRoles')}: {formatRoleLabels(selectedPerson.role_labels)}
+                  {t('admin.student360.accountRoles')}: {formatRoleLabels(displayPerson.role_labels)}
                 </p>
               ) : null}
-              {selectedPerson.phone ? (
+              {displayPerson.phone ? (
                 <span className="tiny mono" dir="ltr">
-                  {formatMoroccanPhoneDisplay(selectedPerson.phone)}
+                  {formatMoroccanPhoneDisplay(displayPerson.phone)}
                 </span>
               ) : null}
             </div>
@@ -412,11 +604,11 @@ export function GuardianAddDialog({
           </div>
         ) : null}
 
-        {step === 'already_linked' && selectedPerson ? (
+        {step === 'already_linked' && displayPerson ? (
           <div className="guardian-flow-drawer__body">
             <p>{t('admin.student360.personAlreadyLinkedAsGuardian')}</p>
             <div className="guardian-selected-summary">
-              <strong dir="auto">{selectedPerson.name}</strong>
+              <strong dir="auto">{displayPerson.name}</strong>
             </div>
             {linkedRelationship ? (
               <button type="button" className="btn btn--primary btn--sm" onClick={handleClose}>
@@ -426,24 +618,6 @@ export function GuardianAddDialog({
             <button type="button" className="btn btn--ghost" onClick={handleClose}>
               {t('common.close')}
             </button>
-          </div>
-        ) : null}
-
-        {step === 'partial' && selectedPerson ? (
-          <div className="guardian-flow-drawer__body">
-            <p className="guardian-create-field__error">{t('admin.student360.guardianCreatedLinkFailed')}</p>
-            {fieldError ? <p className="tiny guardian-create-field__error">{fieldError}</p> : null}
-            <div className="guardian-selected-summary">
-              <strong dir="auto">{selectedPerson.name}</strong>
-            </div>
-            <div className="guardian-flow-drawer__actions">
-              <button type="button" className="btn btn--primary btn--sm" disabled={saving} onClick={retryLinkOnly}>
-                {saving ? t('admin.student360.linkingPersonProgress') : t('admin.student360.retryLinkGuardian')}
-              </button>
-              <button type="button" className="btn btn--ghost btn--sm" disabled={saving} onClick={() => setStep('relationship')}>
-                {t('common.back')}
-              </button>
-            </div>
           </div>
         ) : null}
       </SetupDrawer>
