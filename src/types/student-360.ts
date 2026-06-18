@@ -166,13 +166,36 @@ export interface StudentDocumentUpdatePayload {
   state?: string;
 }
 
+export type HealthAlertLevel = 'none' | 'warning' | 'critical';
+
+export interface CriticalHealthItem {
+  key?: string;
+  label?: string;
+  description?: string;
+}
+
 export interface StudentHealthProfile {
   student_id?: number;
   blood_type?: string | null;
+  has_allergies?: boolean | null;
+  allergies_description?: string | null;
+  has_chronic_conditions?: boolean | null;
+  chronic_conditions_description?: string | null;
+  has_regular_medication?: boolean | null;
+  regular_medication_description?: string | null;
+  has_special_needs?: boolean | null;
+  special_needs_description?: string | null;
+  has_emergency_instructions?: boolean | null;
+  emergency_instructions?: string | null;
+  /** @deprecated Legacy text — use has_allergies + allergies_description */
   allergies?: string | null;
+  /** @deprecated Legacy text */
   chronic_conditions?: string | null;
+  /** @deprecated Legacy text */
   regular_medications?: string | null;
+  /** @deprecated Legacy text */
   special_needs?: string | null;
+  /** @deprecated Legacy text */
   health_emergency_instructions?: string | null;
   doctor_name?: string | null;
   doctor_phone?: string | null;
@@ -180,7 +203,11 @@ export interface StudentHealthProfile {
   insurance_number?: string | null;
   insurance_expiry_date?: string | null;
   notes?: string | null;
+  health_alert_level?: HealthAlertLevel;
+  has_critical_health_alert?: boolean;
+  /** @deprecated Prefer has_critical_health_alert */
   has_critical_alert?: boolean;
+  critical_health_items?: CriticalHealthItem[];
   write_date?: string | null;
 }
 
@@ -196,11 +223,25 @@ export interface StudentHealthData {
 
 export interface StudentHealthSummary {
   has_profile: boolean;
+  has_critical_health_alert?: boolean;
+  /** @deprecated Prefer has_critical_health_alert */
   has_critical_alert?: boolean;
+  health_alert_level?: HealthAlertLevel;
 }
 
 export interface StudentHealthUpdatePayload {
   blood_type?: string;
+  has_allergies?: boolean | null;
+  allergies_description?: string | null;
+  has_chronic_conditions?: boolean | null;
+  chronic_conditions_description?: string | null;
+  has_regular_medication?: boolean | null;
+  regular_medication_description?: string | null;
+  has_special_needs?: boolean | null;
+  special_needs_description?: string | null;
+  has_emergency_instructions?: boolean | null;
+  emergency_instructions?: string | null;
+  /** @deprecated Legacy fields — sent only when new flags are unavailable */
   allergies?: string;
   chronic_conditions?: string;
   regular_medications?: string;
@@ -336,7 +377,11 @@ export interface GuardianSummary {
   person_id?: number;
   guardian_id?: number | null;
   teacher_id?: number | null;
+  staff_id?: number | null;
   user_id?: number | null;
+  guardian_links_count?: number;
+  linked_students_count?: number;
+  has_user?: boolean;
   existing_roles?: string[];
   role_labels?: string[];
 }

@@ -1,4 +1,5 @@
 import { isRelationshipActive } from './relationship-types';
+import { hasCriticalHealthAlert, normalizeStudentHealthSummary } from './normalize-student-health';
 import type { Student360TabId } from './student-360-tabs';
 import type { StudentDetailsData } from '@/types/student-360';
 
@@ -63,19 +64,22 @@ export function buildStudent360TabIndicators(
     };
   }
 
-  if (showHealth && details.health_summary) {
-    if (details.health_summary.has_critical_alert) {
-      out.health = {
-        tab: 'health',
-        label: '!',
-        tone: 'red',
-      };
-    } else if (!details.health_summary.has_profile) {
-      out.health = {
-        tab: 'health',
-        label: '!',
-        tone: 'amber',
-      };
+  if (showHealth) {
+    const healthSummary = normalizeStudentHealthSummary(details.health_summary);
+    if (healthSummary) {
+      if (hasCriticalHealthAlert(healthSummary)) {
+        out.health = {
+          tab: 'health',
+          label: '!',
+          tone: 'red',
+        };
+      } else if (!healthSummary.has_profile) {
+        out.health = {
+          tab: 'health',
+          label: '!',
+          tone: 'amber',
+        };
+      }
     }
   }
 

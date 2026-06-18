@@ -6,6 +6,7 @@ import { useAdminSession } from '@/features/auth/admin-session-context';
 import { endpoints } from '@/lib/api/endpoints';
 import type { ApiErrorBody } from '@/types/api';
 import type { StudentHealthCapabilities, StudentHealthProfile } from '@/types/student-360';
+import { normalizeStudentHealthProfile } from '../utils/normalize-student-health';
 
 export interface StudentHealthData {
   profile: StudentHealthProfile | null;
@@ -33,11 +34,25 @@ function normalizeCapabilities(value: unknown): StudentHealthCapabilities {
 function normalizeHealthResponse(data: unknown): StudentHealthData | null {
   if (!data || typeof data !== 'object') return null;
   const raw = data as Record<string, unknown>;
-  const profile =
-    raw.profile && typeof raw.profile === 'object'
-      ? (raw.profile as StudentHealthProfile)
-      : null;
-  return { profile, capabilities: normalizeCapabilities(raw.capabilities) };
+
+  if ('profile' in raw || 'capabilities' in raw) {
+    const profile = normalizeStudentHealthProfile(raw.profile);
+    return { profile, capabilities: normalizeCapabilities(raw.capabilities) };
+  }
+
+  if (
+    'has_allergies' in raw ||
+    'health_alert_level' in raw ||
+    'blood_type' in raw ||
+    'allergies' in raw
+  ) {
+    return {
+      profile: normalizeStudentHealthProfile(raw),
+      capabilities: { can_view: true, can_manage: true },
+    };
+  }
+
+  return null;
 }
 
 export function useStudentHealth(

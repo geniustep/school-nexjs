@@ -90,11 +90,12 @@ describe('documentAttachmentToMeta', () => {
 describe('student health profile', () => {
   const t = (k: string) => k;
 
-  it('builds partial update with changed field only', () => {
-    const original = { ...defaultStudentHealthFormState(), bloodType: 'O+' };
-    const current = { ...original, allergies: 'QA pollen' };
+  it('builds partial update with changed tri-state field only', () => {
+    const original = { ...defaultStudentHealthFormState(), hasAllergies: false };
+    const current = { ...original, hasAllergies: true, allergiesDescription: 'QA pollen' };
     const payload = buildStudentHealthPartialUpdatePayload(current, original);
-    expect(payload.allergies).toBe('QA pollen');
+    expect(payload.has_allergies).toBe(true);
+    expect(payload.allergies_description).toBe('QA pollen');
     expect(payload.blood_type).toBeUndefined();
   });
 
@@ -106,6 +107,12 @@ describe('student health profile', () => {
   it('rejects invalid blood type when options provided', () => {
     const state = { ...defaultStudentHealthFormState(), bloodType: 'INVALID' };
     const result = validateStudentHealthForm(state, ['O+', 'A+'], t);
+    expect(result.valid).toBe(false);
+  });
+
+  it('rejects yes without description', () => {
+    const state = { ...defaultStudentHealthFormState(), hasAllergies: true };
+    const result = validateStudentHealthForm(state, ['O+'], t);
     expect(result.valid).toBe(false);
   });
 });

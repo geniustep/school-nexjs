@@ -7,12 +7,14 @@ import { useT } from '@/features/i18n/locale-context';
 import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
 import type { StudentHealthProfile } from '@/types/student-360';
+import { HealthTriStateField } from './health-tri-state-field';
 import {
   buildStudentHealthCreatePayload,
   buildStudentHealthPartialUpdatePayload,
   defaultStudentHealthFormState,
   studentHealthFormStateFromProfile,
   validateStudentHealthForm,
+  type HealthTriState,
   type StudentHealthFormState,
 } from '../utils/student-health-profile';
 import { mapStudentHealthApiError } from '../utils/student-health-api-errors';
@@ -37,6 +39,24 @@ function Field({
       ) : null}
     </label>
   );
+}
+
+function updateTriState(
+  state: StudentHealthFormState,
+  hasKey: 'hasAllergies' | 'hasChronicConditions' | 'hasRegularMedication' | 'hasSpecialNeeds' | 'hasEmergencyInstructions',
+  descriptionKey:
+    | 'allergiesDescription'
+    | 'chronicConditionsDescription'
+    | 'regularMedicationDescription'
+    | 'specialNeedsDescription'
+    | 'emergencyInstructions',
+  next: HealthTriState,
+): StudentHealthFormState {
+  return {
+    ...state,
+    [hasKey]: next,
+    [descriptionKey]: next === true ? state[descriptionKey] : '',
+  };
 }
 
 export function StudentHealthEditDialog({
@@ -81,6 +101,11 @@ export function StudentHealthEditDialog({
       setErrors({
         bloodType: validation.errors.bloodType ?? '',
         insuranceExpiryDate: validation.errors.insuranceExpiryDate ?? '',
+        allergiesDescription: validation.errors.allergiesDescription ?? '',
+        chronicConditionsDescription: validation.errors.chronicConditionsDescription ?? '',
+        regularMedicationDescription: validation.errors.regularMedicationDescription ?? '',
+        specialNeedsDescription: validation.errors.specialNeedsDescription ?? '',
+        emergencyInstructions: validation.errors.emergencyInstructions ?? '',
       });
       return;
     }
@@ -109,6 +134,11 @@ export function StudentHealthEditDialog({
     setErrors({
       bloodType: mapped.bloodType ?? '',
       insuranceExpiryDate: mapped.insuranceExpiryDate ?? '',
+      allergiesDescription: mapped.allergiesDescription ?? '',
+      chronicConditionsDescription: mapped.chronicConditionsDescription ?? '',
+      regularMedicationDescription: mapped.regularMedicationDescription ?? '',
+      specialNeedsDescription: mapped.specialNeedsDescription ?? '',
+      emergencyInstructions: mapped.emergencyInstructions ?? '',
       general: mapped.general ?? '',
     });
   }
@@ -116,7 +146,7 @@ export function StudentHealthEditDialog({
   return (
     <SetupDrawer
       open={open}
-      title={t('admin.student360.health.editProfile')}
+      title={profile ? t('admin.student360.health.editProfile') : t('admin.student360.health.createProfile')}
       onClose={() => !submitting && onClose()}
     >
       <form className="student-360-drawer-form form form--stacked" onSubmit={handleSubmit}>
@@ -138,40 +168,65 @@ export function StudentHealthEditDialog({
               ))}
             </select>
           </Field>
-          <Field label={t('admin.student360.health.allergies')}>
-            <textarea className="textarea" rows={2} value={state.allergies} onChange={(e) => update({ allergies: e.target.value })} />
-          </Field>
-          <Field label={t('admin.student360.health.chronicConditions')}>
-            <textarea
-              className="textarea"
-              rows={2}
-              value={state.chronicConditions}
-              onChange={(e) => update({ chronicConditions: e.target.value })}
-            />
-          </Field>
-          <Field label={t('admin.student360.health.regularMedications')}>
-            <textarea
-              className="textarea"
-              rows={2}
-              value={state.regularMedications}
-              onChange={(e) => update({ regularMedications: e.target.value })}
-            />
-          </Field>
-          <Field label={t('admin.student360.health.specialNeeds')}>
-            <textarea className="textarea" rows={2} value={state.specialNeeds} onChange={(e) => update({ specialNeeds: e.target.value })} />
-          </Field>
+
+          <HealthTriStateField
+            question={t('admin.student360.health.questions.allergies')}
+            value={state.hasAllergies}
+            description={state.allergiesDescription}
+            descriptionLabel={t('admin.student360.health.allergies')}
+            descriptionError={errors.allergiesDescription}
+            onChange={(next) => update(updateTriState(state, 'hasAllergies', 'allergiesDescription', next))}
+            onDescriptionChange={(next) => update({ allergiesDescription: next })}
+          />
+
+          <HealthTriStateField
+            question={t('admin.student360.health.questions.chronicConditions')}
+            value={state.hasChronicConditions}
+            description={state.chronicConditionsDescription}
+            descriptionLabel={t('admin.student360.health.chronicConditions')}
+            descriptionError={errors.chronicConditionsDescription}
+            onChange={(next) =>
+              update(updateTriState(state, 'hasChronicConditions', 'chronicConditionsDescription', next))
+            }
+            onDescriptionChange={(next) => update({ chronicConditionsDescription: next })}
+          />
+
+          <HealthTriStateField
+            question={t('admin.student360.health.questions.regularMedication')}
+            value={state.hasRegularMedication}
+            description={state.regularMedicationDescription}
+            descriptionLabel={t('admin.student360.health.regularMedications')}
+            descriptionError={errors.regularMedicationDescription}
+            onChange={(next) =>
+              update(updateTriState(state, 'hasRegularMedication', 'regularMedicationDescription', next))
+            }
+            onDescriptionChange={(next) => update({ regularMedicationDescription: next })}
+          />
+
+          <HealthTriStateField
+            question={t('admin.student360.health.questions.specialNeeds')}
+            value={state.hasSpecialNeeds}
+            description={state.specialNeedsDescription}
+            descriptionLabel={t('admin.student360.health.specialNeeds')}
+            descriptionError={errors.specialNeedsDescription}
+            onChange={(next) => update(updateTriState(state, 'hasSpecialNeeds', 'specialNeedsDescription', next))}
+            onDescriptionChange={(next) => update({ specialNeedsDescription: next })}
+          />
         </fieldset>
 
         <fieldset className="student-360-drawer-form__section">
           <legend>{t('admin.student360.health.sections.emergency')}</legend>
-          <Field label={t('admin.student360.health.emergencyInstructions')}>
-            <textarea
-              className="textarea"
-              rows={2}
-              value={state.healthEmergencyInstructions}
-              onChange={(e) => update({ healthEmergencyInstructions: e.target.value })}
-            />
-          </Field>
+          <HealthTriStateField
+            question={t('admin.student360.health.questions.emergencyInstructions')}
+            value={state.hasEmergencyInstructions}
+            description={state.emergencyInstructions}
+            descriptionLabel={t('admin.student360.health.emergencyInstructions')}
+            descriptionError={errors.emergencyInstructions}
+            onChange={(next) =>
+              update(updateTriState(state, 'hasEmergencyInstructions', 'emergencyInstructions', next))
+            }
+            onDescriptionChange={(next) => update({ emergencyInstructions: next })}
+          />
           <Field label={t('admin.student360.health.doctorName')}>
             <input className="input" type="text" value={state.doctorName} onChange={(e) => update({ doctorName: e.target.value })} dir="auto" />
           </Field>

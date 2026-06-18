@@ -8,6 +8,7 @@ import {
   resolveSpecialAgreementOverviewStatus,
 } from '../utils/student-finance-status-summary';
 import { isRelationshipActive } from '../utils/relationship-types';
+import { hasCriticalHealthAlert, normalizeStudentHealthSummary } from '../utils/normalize-student-health';
 import type { Student360TabId } from '../utils/student-360-tabs';
 import type { StudentDetailsData } from '@/types/student-360';
 import type { StudentFinancialOverview } from '@/types/student-financial-overview';
@@ -65,7 +66,7 @@ export function StudentStatusSummary({
     isRelationshipActive(r.state, r.active),
   );
   const docSummary = details.document_summary;
-  const healthSummary = details.health_summary;
+  const healthSummary = normalizeStudentHealthSummary(details.health_summary);
   const financeSummary = details.finance_summary;
   const financeMetrics = useMemo(
     () => resolveStudentFinanceOverviewMetrics(financialOverview),
@@ -130,7 +131,7 @@ export function StudentStatusSummary({
 
     if (showHealth && healthSummary) {
       const hasProfile = healthSummary.has_profile === true;
-      const hasCritical = hasProfile && healthSummary.has_critical_alert === true;
+      const hasCritical = hasProfile && hasCriticalHealthAlert(healthSummary);
       const tone: ReadinessTone = hasCritical ? 'bad' : hasProfile ? 'ok' : 'warn';
       rows.push({
         key: 'health',

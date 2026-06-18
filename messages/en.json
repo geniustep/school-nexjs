@@ -3257,6 +3257,21 @@
         "noProfileDesc": "Create a health file to record allergies, medications, and emergency contacts.",
         "hasProfile": "Has health profile",
         "criticalAlert": "Critical health alert",
+        "criticalAlertDesc": "Review the following information immediately before any medical intervention or school activity.",
+        "criticalAlertGenericDesc": "This health profile contains sensitive information. Review the highlighted sections below.",
+        "criticalFieldBadge": "Critical",
+        "unspecified": "Not specified",
+        "noCriticalAlerts": "No critical health alerts",
+        "attentionNeeded": "Health information needs attention",
+        "warningAlert": "Some health information is incomplete and needs review",
+        "descriptionRequiredWhenYes": "Description is required when Yes is selected",
+        "questions": {
+          "allergies": "Does the student have allergies?",
+          "chronicConditions": "Does the student have chronic conditions?",
+          "regularMedication": "Does the student take regular medication?",
+          "specialNeeds": "Are there special health needs?",
+          "emergencyInstructions": "Are there special emergency instructions?"
+        },
         "forbidden": "You do not have permission to view health data.",
         "saveSuccess": "Health profile saved.",
         "bloodType": "Blood type",
@@ -3281,7 +3296,12 @@
           "forbidden": "You do not have permission to view or edit health data.",
           "invalidBloodType": "Invalid blood type.",
           "invalidInsuranceExpiry": "Invalid insurance expiry date.",
-          "notFound": "Health profile not found."
+          "notFound": "Health profile not found.",
+          "allergiesDescriptionRequired": "Allergy description is required when Yes is selected",
+          "chronicConditionsDescriptionRequired": "Chronic conditions description is required when Yes is selected",
+          "regularMedicationDescriptionRequired": "Medication details are required when Yes is selected",
+          "specialNeedsDescriptionRequired": "Special needs details are required when Yes is selected",
+          "emergencyInstructionsRequired": "Emergency instructions are required when Yes is selected"
         }
       },
       "finance": {
@@ -3509,11 +3529,11 @@
         "confirmActivate": "Activate agreement?\nNet: {net}\nInstallments: {count}\nPayer: {party}\nYear: {year}\n\nActivation creates operational fees and installments.",
         "confirmCancel": "Cancel this agreement?",
         "noSpecialAgreementTitle": "No special financial agreement for this student.",
-        "noSpecialAgreementDesc": "School fees and the payment schedule exist independently. Special agreements are used for discounts, rescheduling, or exceptional terms.",
+        "noSpecialAgreementDesc": "School fee plan fees and payment schedule were created directly. Special agreements are only for discounts, custom schedules, or special terms.",
         "createSpecialAgreement": "Create special agreement",
-        "viewFeesAndSchedule": "View fees and schedule",
+        "viewFeesAndSchedule": "View fees and payment schedule",
         "incompleteDraftTitle": "Incomplete agreement draft",
-        "incompleteDraftDesc": "This draft is not shown as an active agreement until completed.",
+        "incompleteDraftDesc": "This draft does not represent fees from the school plan.",
         "completeDraft": "Complete draft",
         "cancelDraft": "Cancel draft",
         "fromFees": {
@@ -3585,14 +3605,6 @@
             "save": "Save"
           }
         },
-        "noSpecialAgreementTitle": "No special financial agreement for this student.",
-        "noSpecialAgreementDesc": "School fee plan fees and payment schedule were created directly. Special agreements are only for discounts, custom schedules, or special terms.",
-        "viewFeesAndSchedule": "View fees and payment schedule",
-        "createSpecialAgreement": "Create special agreement",
-        "incompleteDraftTitle": "Incomplete agreement draft",
-        "incompleteDraftDesc": "This draft does not represent fees from the school plan.",
-        "completeDraft": "Complete draft",
-        "cancelDraft": "Cancel draft",
         "openFinanceOverview": "Open financial overview",
         "openPaymentSchedule": "Open payment schedule"
       },
@@ -4751,7 +4763,7 @@
         "detailTitle": "Collection details",
         "chequeDetailTitle": "Cheque details",
         "paymentStepDesc": "Choose method and amount, then allocate to receivables.",
-        "stepPayment": "Payment",
+        "stepPayment": "Payment method",
         "stepAllocation": "Allocate payment",
         "continueToAllocation": "Continue to allocation",
         "allocationTitle": "Allocate amount",
@@ -4841,10 +4853,8 @@
           "paid_paid": "Fully paid"
         },
         "dueToday": "Due today",
-        "allocatedAmount": "Allocated amount",
         "recordPayment": "Record payment",
         "stepSelectDues": "Select dues",
-        "stepPayment": "Payment method",
         "stepPaymentMethod": "Payment method",
         "stepReview": "Review and confirm",
         "selectDuesDesc": "Choose the installments you want to collect.",

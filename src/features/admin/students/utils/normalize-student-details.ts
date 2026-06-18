@@ -4,10 +4,10 @@ import type {
   StudentCapabilities,
   StudentDetailsData,
   StudentDocumentSummary,
-  StudentHealthSummary,
   StudentSummary,
 } from '@/types/student-360';
 import { normalizeStudentFinanceOverviewSummary } from './normalize-student-finance';
+import { normalizeStudentHealthSummary } from './normalize-student-health';
 import { normalizeGuardianRelationshipList } from './normalize-guardian-relationship';
 
 const DEFAULT_CAPABILITIES: StudentCapabilities = {
@@ -59,7 +59,7 @@ export function normalizeStudentDetailsResponse(data: unknown): StudentDetailsDa
         : legacyParentsToRelationships(student.parents ?? (raw.parents as ParentLink[] | undefined)),
       capabilities: (raw.capabilities as StudentCapabilities) ?? DEFAULT_CAPABILITIES,
       document_summary: (raw.document_summary as StudentDocumentSummary | null) ?? null,
-      health_summary: (raw.health_summary as StudentHealthSummary | null) ?? null,
+      health_summary: normalizeStudentHealthSummary(raw.health_summary),
       finance_summary: normalizeStudentFinanceOverviewSummary(raw.finance_summary),
       parents: (raw.parents as ParentLink[] | undefined) ?? student.parents,
       parent_ids: raw.parent_ids as number[] | undefined,
