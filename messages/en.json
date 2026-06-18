@@ -2219,6 +2219,37 @@
       "relationshipsLoadError": "Could not load relationships.",
       "relationshipsRetry": "Retry"
     },
+    "parents": {
+      "employeeLink": {
+        "checkbox": "This guardian is a staff member at the school",
+        "description": "Use this option when the same person already works at the school as a teacher or administrator, to avoid creating a duplicate account or contact.",
+        "sectionTitle": "Link to an existing person",
+        "searchLabel": "Search by name, phone, or email",
+        "searchPlaceholder": "Search by name, phone, or email",
+        "noResults": "No matching staff member or person found. You can continue creating a new guardian.",
+        "duplicateHint": "A person with similar details already exists. Prefer linking them instead of creating a new record.",
+        "selectedWarning": "The same contact and account (if any) will be reused, with only the guardian role added. Administrative or teaching permissions will not change.",
+        "linkButton": "Link this person as guardian",
+        "linkedSuccess": "Person linked as guardian successfully.",
+        "roles": {
+          "guardian": "Guardian",
+          "teacher": "Teacher",
+          "admin": "Administrator",
+          "employee": "Staff",
+          "student": "Student",
+          "user": "User"
+        },
+        "errors": {
+          "searchFailed": "Could not search for people. Please try again.",
+          "linkFailed": "Could not link this person as guardian.",
+          "partnerIdRequired": "You must select a person to link as guardian.",
+          "partnerNotFound": "The selected person was not found.",
+          "partnerOutOfScope": "This person is outside the active school scope.",
+          "forbidden": "You do not have permission to link this person as guardian.",
+          "userRoleAssignmentFailed": "The guardian profile was created but the user role could not be updated."
+        }
+      }
+    },
     "className": "Class name",
     "levelName": "Level name",
     "subjectName": "Subject name",

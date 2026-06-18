@@ -65,6 +65,7 @@ export const endpoints = {
     financeServices: '/admin/finance/services',
     financeServiceTariffs: '/admin/finance/service-tariffs',
     guardiansSearch: '/admin/guardians/search',
+    guardiansLinkPartner: '/admin/guardians/link-partner',
     guardiansQuickCreate: '/admin/guardians/quick-create',
     studentsImport: '/admin/students/import',
     studentImportValidate: '/admin/students/import/validate',

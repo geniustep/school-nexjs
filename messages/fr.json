@@ -2219,6 +2219,37 @@
       "relationshipsLoadError": "Impossible de charger les relations.",
       "relationshipsRetry": "Réessayer"
     },
+    "parents": {
+      "employeeLink": {
+        "checkbox": "Ce responsable est un membre du personnel de l'établissement",
+        "description": "Utilisez cette option si la même personne travaille déjà dans l'établissement comme enseignant ou administrateur, afin d'éviter de créer un compte ou un contact en double.",
+        "sectionTitle": "Lier à une personne existante",
+        "searchLabel": "Rechercher par nom, téléphone ou e-mail",
+        "searchPlaceholder": "Rechercher par nom, téléphone ou e-mail",
+        "noResults": "Aucun membre du personnel ou personne correspondante. Vous pouvez continuer à créer un nouveau responsable.",
+        "duplicateHint": "Une personne avec des données similaires existe déjà. Privilégiez le lien plutôt qu'un nouveau dossier.",
+        "selectedWarning": "Le même contact et compte (le cas échéant) seront réutilisés, avec uniquement le rôle responsable ajouté. Les permissions administratives ou pédagogiques ne changeront pas.",
+        "linkButton": "Lier cette personne comme responsable",
+        "linkedSuccess": "Personne liée comme responsable avec succès.",
+        "roles": {
+          "guardian": "Responsable",
+          "teacher": "Enseignant",
+          "admin": "Administrateur",
+          "employee": "Personnel",
+          "student": "Élève",
+          "user": "Utilisateur"
+        },
+        "errors": {
+          "searchFailed": "Impossible de rechercher des personnes. Réessayez.",
+          "linkFailed": "Impossible de lier cette personne comme responsable.",
+          "partnerIdRequired": "Vous devez sélectionner une personne à lier comme responsable.",
+          "partnerNotFound": "La personne sélectionnée est introuvable.",
+          "partnerOutOfScope": "Cette personne est hors du périmètre de l'établissement actif.",
+          "forbidden": "Vous n'avez pas la permission de lier cette personne comme responsable.",
+          "userRoleAssignmentFailed": "Le profil responsable a été créé mais le rôle utilisateur n'a pas pu être mis à jour."
+        }
+      }
+    },
     "className": "Nom de classe",
     "levelName": "Nom du niveau",
     "subjectName": "Nom de matière",

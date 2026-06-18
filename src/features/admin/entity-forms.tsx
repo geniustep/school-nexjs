@@ -19,6 +19,7 @@ import {
 import { buildAccountIdentityPayload } from '@/lib/account/account-utils';
 import { getStudentDisplayName } from '@/lib/utils/student';
 import { mapParentApiError } from '@/features/admin/parents/utils/map-parent-api-error';
+import { ParentEmployeeLinkSection } from '@/features/admin/parents/components/parent-employee-link-section';
 import type { Ref } from '@/types/api';
 import type { SchoolClass } from '@/types/class';
 import type { Student } from '@/types/student';
@@ -87,6 +88,8 @@ export function ParentForm({
 }) {
   const t = useT();
   const toast = useToast();
+  const isCreate = parent == null;
+  const [employeeLinkMode, setEmployeeLinkMode] = useState(false);
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState(parent?.name ?? '');
   const [phone, setPhone] = useState(parent?.phone ?? '');
@@ -96,6 +99,7 @@ export function ParentForm({
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (employeeLinkMode) return;
     if (!name.trim()) {
       toast.error(t('errors.validationFailed'));
       return;
@@ -120,8 +124,42 @@ export function ParentForm({
     }
   }
 
+  if (isCreate && employeeLinkMode) {
+    return (
+      <Card>
+        <div className="col" style={{ gap: 12 }}>
+          <label className="row" style={{ gap: 8, alignItems: 'flex-start' }}>
+            <input
+              type="checkbox"
+              checked={employeeLinkMode}
+              onChange={(e) => setEmployeeLinkMode(e.target.checked)}
+            />
+            <span className="col" style={{ gap: 4 }}>
+              <span className="tiny">{t('admin.parents.employeeLink.checkbox')}</span>
+              <span className="tiny muted">{t('admin.parents.employeeLink.description')}</span>
+            </span>
+          </label>
+          <ParentEmployeeLinkSection onLinked={onSaved} onCancel={onCancel} />
+        </div>
+      </Card>
+    );
+  }
+
   return (
     <FormShell saving={saving} onSubmit={submit} onCancel={onCancel}>
+      {isCreate ? (
+        <label className="row" style={{ gap: 8, alignItems: 'flex-start' }}>
+          <input
+            type="checkbox"
+            checked={employeeLinkMode}
+            onChange={(e) => setEmployeeLinkMode(e.target.checked)}
+          />
+          <span className="col" style={{ gap: 4 }}>
+            <span className="tiny">{t('admin.parents.employeeLink.checkbox')}</span>
+            <span className="tiny muted">{t('admin.parents.employeeLink.description')}</span>
+          </span>
+        </label>
+      ) : null}
       <Field label={t('admin.fullName')}>
         <input className="input" value={name} onChange={(e) => setName(e.target.value)} required />
       </Field>

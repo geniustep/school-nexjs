@@ -37,16 +37,30 @@ const MIN_QUERY_LENGTH = 2;
 
 export function GuardianSearchPanel({
   studentId,
-  linkedGuardianIds,
+  linkedGuardianIds = new Set<number>(),
   onSelect,
   onCreateNew,
   initialQuery = '',
+  showArchivedToggle = true,
+  showCreateOnEmpty = true,
+  labels,
 }: {
-  studentId: number;
-  linkedGuardianIds: Set<number>;
+  studentId?: number;
+  linkedGuardianIds?: Set<number>;
   onSelect: (person: PersonSearchResult) => void;
-  onCreateNew: (prefill: { query: string }) => void;
+  onCreateNew?: (prefill: { query: string }) => void;
   initialQuery?: string;
+  showArchivedToggle?: boolean;
+  showCreateOnEmpty?: boolean;
+  labels?: {
+    description?: string;
+    placeholder?: string;
+    emptyMessage?: string;
+    emptyHint?: string;
+    searchError?: string;
+    duplicateWarning?: string;
+    linkButton?: string;
+  };
 }) {
   const t = useT();
   const user = useSession();
@@ -113,6 +127,18 @@ export function GuardianSearchPanel({
       });
   }, [debouncedQuery, studentId, activeSchoolId, includeArchived]);
 
+  const description = labels?.description ?? t('admin.student360.searchExistingPersonDesc');
+  const placeholder = labels?.placeholder ?? t('admin.student360.searchGuardianPlaceholder');
+  const emptyMessage =
+    labels?.emptyMessage ??
+    (includeArchived
+      ? t('admin.guardianProfile.searchNoResultsAny')
+      : t('admin.guardianProfile.searchNoActiveResults'));
+  const emptyHint = labels?.emptyHint ?? t('admin.guardianProfile.searchNoActiveResultsHint');
+  const searchErrorMessage = labels?.searchError ?? t('admin.student360.searchPersonError');
+  const duplicateWarning = labels?.duplicateWarning ?? t('admin.guardianProfile.duplicateNameWarning');
+  const linkButtonLabel = labels?.linkButton;
+
   function retrySearch() {
     requestSeq.current += 1;
     const current = query;
@@ -135,7 +161,7 @@ export function GuardianSearchPanel({
 
   return (
     <div className="guardian-search-panel guardian-search-panel--v2">
-      <p className="tiny muted">{t('admin.student360.searchExistingPersonDesc')}</p>
+      <p className="tiny muted">{description}</p>
 
       <div className="guardian-search-panel__controls">
         <input
@@ -143,21 +169,23 @@ export function GuardianSearchPanel({
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder={t('admin.student360.searchGuardianPlaceholder')}
+          placeholder={placeholder}
           autoFocus
           aria-describedby="guardian-search-hint"
         />
-        <label className="guardian-search-panel__toggle">
-          <input
-            type="checkbox"
-            checked={includeArchived}
-            onChange={(e) => {
-              setIncludeArchived(e.target.checked);
-              setResults([]);
-            }}
-          />
-          <span>{t('admin.guardianProfile.showArchivedRecords')}</span>
-        </label>
+        {showArchivedToggle ? (
+          <label className="guardian-search-panel__toggle">
+            <input
+              type="checkbox"
+              checked={includeArchived}
+              onChange={(e) => {
+                setIncludeArchived(e.target.checked);
+                setResults([]);
+              }}
+            />
+            <span>{t('admin.guardianProfile.showArchivedRecords')}</span>
+          </label>
+        ) : null}
       </div>
 
       <p id="guardian-search-hint" className="tiny muted">
@@ -185,7 +213,7 @@ export function GuardianSearchPanel({
 
         {searchState === 'error' ? (
           <div className="guardian-search-panel__state guardian-search-panel__state--error">
-            <p>{t('admin.student360.searchPersonError')}</p>
+            <p>{searchErrorMessage}</p>
             <button type="button" className="btn btn--ghost btn--sm" onClick={retrySearch}>
               {t('common.retry')}
             </button>
@@ -194,17 +222,15 @@ export function GuardianSearchPanel({
 
         {searchState === 'empty' && !searchError ? (
           <div className="guardian-search-panel__state">
-            <p>
-              {includeArchived
-                ? t('admin.guardianProfile.searchNoResultsAny')
-                : t('admin.guardianProfile.searchNoActiveResults')}
-            </p>
-            {!includeArchived ? (
-              <p className="tiny muted">{t('admin.guardianProfile.searchNoActiveResultsHint')}</p>
+            <p>{emptyMessage}</p>
+            {!includeArchived && emptyHint ? (
+              <p className="tiny muted">{emptyHint}</p>
             ) : null}
-            <button type="button" className="btn btn--secondary btn--sm" onClick={() => onCreateNew({ query: debouncedQuery })}>
-              {t('admin.student360.createNewPerson')}
-            </button>
+            {showCreateOnEmpty && onCreateNew ? (
+              <button type="button" className="btn btn--secondary btn--sm" onClick={() => onCreateNew({ query: debouncedQuery })}>
+                {t('admin.student360.createNewPerson')}
+              </button>
+            ) : null}
           </div>
         ) : null}
 
@@ -212,7 +238,7 @@ export function GuardianSearchPanel({
           <>
             {showDuplicateNameWarning ? (
               <div className="guardian-search-panel__duplicate-warning" role="status">
-                {t('admin.guardianProfile.duplicateNameWarning')}
+                {duplicateWarning}
               </div>
             ) : null}
             <ul className="guardian-search-panel__list">
@@ -239,6 +265,7 @@ export function GuardianSearchPanel({
                       canRestore={canRestore}
                       canDelete={canDelete}
                       blockerHint={blockerHint}
+                      linkButtonLabel={linkButtonLabel}
                       onLink={() => onSelect(person)}
                       onRestore={() => setRestoreTarget(person)}
                       onDelete={() => setDeleteTarget(person)}

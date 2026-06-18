@@ -2219,6 +2219,37 @@
       "relationshipsLoadError": "No se pudieron cargar las relaciones.",
       "relationshipsRetry": "Reintentar"
     },
+    "parents": {
+      "employeeLink": {
+        "checkbox": "Este tutor es personal de la institución",
+        "description": "Use esta opción si la misma persona ya trabaja en la institución como profesor o administrador, para evitar crear una cuenta o contacto duplicado.",
+        "sectionTitle": "Vincular a una persona existente",
+        "searchLabel": "Buscar por nombre, teléfono o correo",
+        "searchPlaceholder": "Buscar por nombre, teléfono o correo",
+        "noResults": "No se encontró personal o persona coincidente. Puede continuar creando un nuevo tutor.",
+        "duplicateHint": "Ya existe una persona con datos similares. Es preferible vincularla en lugar de crear un registro nuevo.",
+        "selectedWarning": "Se reutilizará el mismo contacto y cuenta (si existe), añadiendo solo el rol de tutor. No cambiarán sus permisos administrativos o docentes.",
+        "linkButton": "Vincular esta persona como tutor",
+        "linkedSuccess": "Persona vinculada como tutor correctamente.",
+        "roles": {
+          "guardian": "Tutor",
+          "teacher": "Profesor",
+          "admin": "Administrador",
+          "employee": "Personal",
+          "student": "Alumno",
+          "user": "Usuario"
+        },
+        "errors": {
+          "searchFailed": "No se pudo buscar personas. Inténtelo de nuevo.",
+          "linkFailed": "No se pudo vincular esta persona como tutor.",
+          "partnerIdRequired": "Debe seleccionar una persona para vincular como tutor.",
+          "partnerNotFound": "No se encontró la persona seleccionada.",
+          "partnerOutOfScope": "Esta persona está fuera del ámbito de la escuela activa.",
+          "forbidden": "No tiene permiso para vincular a esta persona como tutor.",
+          "userRoleAssignmentFailed": "Se creó el perfil de tutor pero no se pudo actualizar el rol de usuario."
+        }
+      }
+    },
     "className": "Nombre de clase",
     "levelName": "Nombre de nivel",
     "subjectName": "Nombre de materia",

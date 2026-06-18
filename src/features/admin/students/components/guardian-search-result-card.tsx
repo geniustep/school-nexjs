@@ -61,6 +61,7 @@ export function GuardianSearchResultCard({
   canRestore,
   canDelete,
   blockerHint,
+  linkButtonLabel,
   onLink,
   onRestore,
   onDelete,
@@ -71,6 +72,7 @@ export function GuardianSearchResultCard({
   canRestore: boolean;
   canDelete: boolean;
   blockerHint?: string | null;
+  linkButtonLabel?: string;
   onLink: () => void;
   onRestore: () => void;
   onDelete: () => void;
@@ -123,7 +125,7 @@ export function GuardianSearchResultCard({
       <div className="guardian-search-card__actions">
         {canLink ? (
           <button type="button" className="btn btn--primary btn--sm" onClick={onLink}>
-            {t('admin.student360.linkPersonAsGuardian')}
+            {linkButtonLabel ?? t('admin.student360.linkPersonAsGuardian')}
           </button>
         ) : null}
         {canRestore ? (
