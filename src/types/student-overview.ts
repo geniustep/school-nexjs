@@ -3,6 +3,13 @@
 import type { Ref } from './api';
 import type { StudentCapabilities } from './student-360';
 import type { StudentFinanceCurrency } from './student-finance';
+import type { StudentConsentFlag, StudentConsentFlagKey } from '@/features/admin/students/utils/student-consent-flags';
+
+export type {
+  StudentConsentFlag,
+  StudentConsentFlagKey,
+  StudentConsentFlagState,
+} from '@/features/admin/students/utils/student-consent-flags';
 
 export type StudentOverviewAlertSeverity = 'info' | 'warning' | 'danger' | 'success' | string;
 
@@ -44,9 +51,17 @@ export interface StudentOverviewDocumentsSummary extends StudentOverviewAvailabl
 
 export type StudentOverviewConsentStatus = string;
 
+export type StudentOverviewImportantConsentFlags = Partial<
+  Record<StudentConsentFlagKey, StudentConsentFlag | null>
+>;
+
 export interface StudentOverviewConsentsSummary extends StudentOverviewAvailableSection {
   can_view?: boolean;
+  can_manage?: boolean;
+  important_flags?: StudentOverviewImportantConsentFlags | null;
+  /** @deprecated Legacy flat status — prefer important_flags */
   trip_participation?: StudentOverviewConsentStatus | null;
+  /** @deprecated Legacy flat status — prefer important_flags */
   photo_publish?: StudentOverviewConsentStatus | null;
   social_media_publish?: StudentOverviewConsentStatus | null;
   emergency_treatment?: StudentOverviewConsentStatus | null;
