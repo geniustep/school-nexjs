@@ -21,13 +21,19 @@ const CONSENT_KEYS = [
   'pickup_authorization',
 ] as const;
 
-function dash(t: (k: string) => string, value: string | number | null | undefined): string {
-  if (value == null || value === '') return t('common.dash');
+const OVERVIEW_SKELETON_CARD_COUNT = 6;
+
+function emptyValue(t: (k: string) => string): string {
+  return t('admin.student360.overview.emptyValue');
+}
+
+function displayOrEmpty(t: (k: string) => string, value: string | number | null | undefined): string {
+  if (value == null || value === '') return emptyValue(t);
   return String(value);
 }
 
 function consentLabel(t: (k: string) => string, status: string | null | undefined): string {
-  if (!status) return t('common.dash');
+  if (!status) return emptyValue(t);
   const key = `admin.student360.overview.consents.status.${status}`;
   const label = t(key);
   return label === key ? status : label;
@@ -55,8 +61,21 @@ export function StudentOverviewCards({
 
   if (loading && !overview) {
     return (
-      <section className="student-overview-cards student-overview-cards--loading" aria-busy="true">
-        <p className="muted">{t('admin.student360.overview.loading')}</p>
+      <section
+        className="student-overview-cards student-overview-cards--loading"
+        aria-busy="true"
+        aria-label={t('admin.student360.overview.loading')}
+      >
+        <div className="student-overview-cards__grid">
+          {Array.from({ length: OVERVIEW_SKELETON_CARD_COUNT }, (_, index) => (
+            <div key={index} className="student-overview-card-skeleton card" aria-hidden="true">
+              <div className="student-overview-card-skeleton__head" />
+              <div className="student-overview-card-skeleton__line" />
+              <div className="student-overview-card-skeleton__line student-overview-card-skeleton__line--short" />
+              <div className="student-overview-card-skeleton__line" />
+            </div>
+          ))}
+        </div>
       </section>
     );
   }
@@ -96,18 +115,18 @@ export function StudentOverviewCards({
               <dl className="student-overview-card__facts">
                 <div className="student-overview-card__fact">
                   <dt>{t('admin.finance.activeSchool')}</dt>
-                  <dd dir="auto">{refOrStringLabel(schooling?.school) || t('common.dash')}</dd>
+                  <dd dir="auto">{refOrStringLabel(schooling?.school) || emptyValue(t)}</dd>
                 </div>
                 <div className="student-overview-card__fact">
                   <dt>{t('admin.academicYearId')}</dt>
-                  <dd dir="auto">{refOrStringLabel(schooling?.academic_year) || t('common.dash')}</dd>
+                  <dd dir="auto">{refOrStringLabel(schooling?.academic_year) || emptyValue(t)}</dd>
                 </div>
                 <div className="student-overview-card__fact">
                   <dt>{t('nav.levels')}</dt>
                   <dd dir="auto">
                     {schooling?.level
                       ? studentLevelLabel(schooling.level as AcademicLevelOption)
-                      : t('common.dash')}
+                      : emptyValue(t)}
                   </dd>
                 </div>
                 <div className="student-overview-card__fact">
@@ -115,7 +134,7 @@ export function StudentOverviewCards({
                   <dd dir="auto">
                     {schooling?.class
                       ? studentClassLabel(schooling.class as AcademicClassOption)
-                      : t('common.dash')}
+                      : emptyValue(t)}
                   </dd>
                 </div>
               </dl>
@@ -145,11 +164,11 @@ export function StudentOverviewCards({
                 <dl className="student-overview-card__facts">
                   <div className="student-overview-card__fact">
                     <dt>{t('admin.student360.overview.family.guardian')}</dt>
-                    <dd dir="auto">{dash(t, family.primary_guardian_name)}</dd>
+                    <dd dir="auto">{displayOrEmpty(t, family.primary_guardian_name)}</dd>
                   </div>
                   <div className="student-overview-card__fact">
                     <dt>{t('admin.phone')}</dt>
-                    <dd dir="auto">{dash(t, family.primary_guardian_phone)}</dd>
+                    <dd dir="auto">{displayOrEmpty(t, family.primary_guardian_phone)}</dd>
                   </div>
                 </dl>
               ) : (
@@ -173,23 +192,23 @@ export function StudentOverviewCards({
               <dl className="student-overview-card__metrics">
                 <div>
                   <dt>{t('admin.student360.overview.documents.total')}</dt>
-                  <dd>{dash(t, documents?.total)}</dd>
+                  <dd>{displayOrEmpty(t, documents?.total)}</dd>
                 </div>
                 <div>
                   <dt>{t('admin.student360.overview.documents.missing')}</dt>
-                  <dd>{dash(t, documents?.missing)}</dd>
+                  <dd>{displayOrEmpty(t, documents?.missing)}</dd>
                 </div>
                 <div>
                   <dt>{t('admin.student360.overview.documents.pendingReview')}</dt>
-                  <dd>{dash(t, documents?.pending_review)}</dd>
+                  <dd>{displayOrEmpty(t, documents?.pending_review)}</dd>
                 </div>
                 <div>
                   <dt>{t('admin.student360.overview.documents.accepted')}</dt>
-                  <dd>{dash(t, documents?.accepted)}</dd>
+                  <dd>{displayOrEmpty(t, documents?.accepted)}</dd>
                 </div>
                 <div>
                   <dt>{t('admin.student360.overview.documents.rejected')}</dt>
-                  <dd>{dash(t, documents?.rejected)}</dd>
+                  <dd>{displayOrEmpty(t, documents?.rejected)}</dd>
                 </div>
               </dl>
             </div>
@@ -223,17 +242,17 @@ export function StudentOverviewCards({
               <dl className="student-overview-card__facts">
                 <div className="student-overview-card__fact">
                   <dt>{t('admin.student360.overview.attendance.absencesMonth')}</dt>
-                  <dd>{dash(t, attendance?.absences_this_month)}</dd>
+                  <dd>{displayOrEmpty(t, attendance?.absences_this_month)}</dd>
                 </div>
                 <div className="student-overview-card__fact">
                   <dt>{t('admin.student360.overview.attendance.lateMonth')}</dt>
-                  <dd>{dash(t, attendance?.late_this_month)}</dd>
+                  <dd>{displayOrEmpty(t, attendance?.late_this_month)}</dd>
                 </div>
                 <div className="student-overview-card__fact">
                   <dt>{t('admin.student360.overview.attendance.lastStatus')}</dt>
                   <dd dir="auto">
                     {attendance?.last_status_label ||
-                      (attendance?.last_status ? statusLabel(t, attendance.last_status) : t('common.dash'))}
+                      (attendance?.last_status ? statusLabel(t, attendance.last_status) : emptyValue(t))}
                     {attendance?.last_status_date ? (
                       <span className="student-overview-card__sub muted">
                         {' '}
@@ -301,16 +320,16 @@ export function StudentOverviewCards({
               <dl className="student-overview-card__facts">
                 <div className="student-overview-card__fact">
                   <dt>{t('admin.student360.overview.academic.openHomework')}</dt>
-                  <dd>{dash(t, academic?.open_homework_count)}</dd>
+                  <dd>{displayOrEmpty(t, academic?.open_homework_count)}</dd>
                 </div>
                 <div className="student-overview-card__fact">
                   <dt>{t('admin.student360.overview.academic.upcomingExams')}</dt>
-                  <dd>{dash(t, academic?.upcoming_exams_count)}</dd>
+                  <dd>{displayOrEmpty(t, academic?.upcoming_exams_count)}</dd>
                 </div>
                 <div className="student-overview-card__fact">
                   <dt>{t('admin.student360.overview.academic.lastResult')}</dt>
                   <dd dir="auto">
-                    {academic?.last_result_label || dash(t, academic?.last_result)}
+                    {academic?.last_result_label || displayOrEmpty(t, academic?.last_result)}
                   </dd>
                 </div>
               </dl>

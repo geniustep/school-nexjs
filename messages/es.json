@@ -2760,16 +2760,37 @@
       },
       "overview": {
         "loading": "Cargando resumen…",
+        "emptyValue": "No disponible",
         "cardsTitle": "Vista general",
         "unavailableTitle": "Resumen no disponible",
         "unavailableDesc": "El resumen consolidado aún no está disponible para este alumno. Las secciones siguientes siguen accesibles.",
         "viewDocuments": "Ver documentos",
         "alerts": {
-          "title": "Alertas"
+          "title": "Alertas",
+          "severity": {
+            "info": "Info",
+            "warning": "Atención",
+            "danger": "Crítico",
+            "success": "OK"
+          },
+          "known": {
+            "missingGuardian": "Responsable faltante",
+            "missingPhoto": "Foto del alumno ausente",
+            "missingDocuments": "Documentos requeridos faltantes",
+            "photoPublishBlocked": "Publicación externa de la foto no permitida",
+            "tripConsentPending": "Autorización de salida pendiente",
+            "financeOverdue": "Atrasos financieros"
+          },
+          "actions": {
+            "addGuardian": "Añadir responsable",
+            "viewDocuments": "Ver documentos",
+            "viewGuardians": "Ver responsables"
+          }
         },
         "header": {
           "guardian": "Responsable",
-          "externalPublishAllowed": "Publicación externa de la foto permitida"
+          "externalPublishAllowed": "Publicación externa de la foto permitida",
+          "moreBadges": "+{count}"
         },
         "badges": {
           "noGuardian": "Sin responsable",

@@ -2743,12 +2743,12 @@
         "incomplete": "Incomplet",
         "actionNeeded": "Action requise",
         "neutral": "—",
-        "financeFees": "Financial fees",
-        "specialAgreement": "Special financial agreement",
-        "noFinanceFees": "No fees",
-        "financeHasOverdue": "Overdue balance",
-        "financeHasBalance": "Outstanding balance",
-        "noSpecialAgreement": "No special agreement",
+        "financeFees": "Frais financiers",
+        "specialAgreement": "Accord financier spécial",
+        "noFinanceFees": "Aucun frais",
+        "financeHasOverdue": "Solde en retard",
+        "financeHasBalance": "Solde impayé",
+        "noSpecialAgreement": "Aucun accord spécial",
         "specialAgreementDraft": "Draft agreement",
         "specialAgreementApproved": "Approved agreement",
         "specialAgreementPending": "Agreement pending"
@@ -2760,16 +2760,37 @@
       },
       "overview": {
         "loading": "Chargement du résumé…",
+        "emptyValue": "Non disponible",
         "cardsTitle": "Vue d'ensemble",
         "unavailableTitle": "Résumé indisponible",
         "unavailableDesc": "Le résumé consolidé n'est pas encore disponible pour cet élève. Les sections ci-dessous restent accessibles.",
         "viewDocuments": "Voir les documents",
         "alerts": {
-          "title": "Alertes"
+          "title": "Alertes",
+          "severity": {
+            "info": "Info",
+            "warning": "Attention",
+            "danger": "Critique",
+            "success": "OK"
+          },
+          "known": {
+            "missingGuardian": "Responsable manquant",
+            "missingPhoto": "Photo de l'élève absente",
+            "missingDocuments": "Documents requis manquants",
+            "photoPublishBlocked": "Publication externe de la photo non autorisée",
+            "tripConsentPending": "Autorisation de sortie en attente",
+            "financeOverdue": "Retards financiers"
+          },
+          "actions": {
+            "addGuardian": "Ajouter un responsable",
+            "viewDocuments": "Voir les documents",
+            "viewGuardians": "Voir les responsables"
+          }
         },
         "header": {
           "guardian": "Responsable",
-          "externalPublishAllowed": "Publication externe de la photo autorisée"
+          "externalPublishAllowed": "Publication externe de la photo autorisée",
+          "moreBadges": "+{count}"
         },
         "badges": {
           "noGuardian": "Sans responsable",

@@ -2760,16 +2760,37 @@
       },
       "overview": {
         "loading": "Loading summary…",
+        "emptyValue": "Not available",
         "cardsTitle": "Overview",
         "unavailableTitle": "Summary unavailable",
         "unavailableDesc": "The consolidated summary is not available for this student yet. The sections below remain accessible.",
         "viewDocuments": "View documents",
         "alerts": {
-          "title": "Alerts"
+          "title": "Alerts",
+          "severity": {
+            "info": "Info",
+            "warning": "Warning",
+            "danger": "Critical",
+            "success": "OK"
+          },
+          "known": {
+            "missingGuardian": "Missing guardian",
+            "missingPhoto": "Missing student photo",
+            "missingDocuments": "Missing required documents",
+            "photoPublishBlocked": "External photo publishing not allowed",
+            "tripConsentPending": "Trip consent pending",
+            "financeOverdue": "Finance overdue"
+          },
+          "actions": {
+            "addGuardian": "Add guardian",
+            "viewDocuments": "View documents",
+            "viewGuardians": "View guardians"
+          }
         },
         "header": {
           "guardian": "Guardian",
-          "externalPublishAllowed": "External photo publication allowed"
+          "externalPublishAllowed": "External photo publication allowed",
+          "moreBadges": "+{count}"
         },
         "badges": {
           "noGuardian": "No guardian",

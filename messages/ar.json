@@ -2787,16 +2787,37 @@
       },
       "overview": {
         "loading": "جارٍ تحميل الملخص…",
+        "emptyValue": "غير متوفر",
         "cardsTitle": "نظرة عامة",
         "unavailableTitle": "الملخص غير متاح",
         "unavailableDesc": "الملخص الموحّد غير متاح لهذا التلميذ بعد. الأقسام أدناه تبقى متاحة.",
         "viewDocuments": "عرض الوثائق",
         "alerts": {
-          "title": "تنبيهات"
+          "title": "تنبيهات",
+          "severity": {
+            "info": "معلومة",
+            "warning": "تنبيه",
+            "danger": "حرج",
+            "success": "تم"
+          },
+          "known": {
+            "missingGuardian": "ولي أمر غير مسجّل",
+            "missingPhoto": "صورة التلميذ غير متوفرة",
+            "missingDocuments": "وثائق مطلوبة ناقصة",
+            "photoPublishBlocked": "النشر الخارجي للصورة غير مسموح",
+            "tripConsentPending": "موافقة الرحلات معلّقة",
+            "financeOverdue": "متأخرات مالية"
+          },
+          "actions": {
+            "addGuardian": "إضافة ولي أمر",
+            "viewDocuments": "عرض الوثائق",
+            "viewGuardians": "عرض الأولياء"
+          }
         },
         "header": {
           "guardian": "ولي الأمر",
-          "externalPublishAllowed": "النشر الخارجي للصورة مسموح"
+          "externalPublishAllowed": "النشر الخارجي للصورة مسموح",
+          "moreBadges": "+{count}"
         },
         "badges": {
           "noGuardian": "بدون ولي أمر",

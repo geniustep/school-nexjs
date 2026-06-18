@@ -176,6 +176,7 @@ export function Student360Shell({ studentId }: { studentId: string }) {
         <Student360Header
           details={resolvedDetails}
           overview={overviewState.data}
+          overviewLoading={overviewState.loading && !overviewState.data}
           actions={
             !editing ? (
               <Student360QuickActions
