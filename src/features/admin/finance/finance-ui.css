@@ -361,16 +361,13 @@
   content: '';
   position: absolute;
   top: 14px;
-  inset-inline-end: -50%;
+  inset-inline-start: 50%;
   width: 100%;
   height: 2px;
+  transform: translateY(-50%);
   background: var(--c-border, #e2e8f0);
   z-index: 0;
-}
-
-[dir='rtl'] .finance-collection-workflow__step-item:not(:last-child)::after {
-  inset-inline-end: auto;
-  inset-inline-start: -50%;
+  pointer-events: none;
 }
 
 .finance-collection-workflow__step-item.is-done:not(:last-child)::after,
