@@ -2696,7 +2696,8 @@
         "actionAdd": "Añadir",
         "actionComplete": "Completar",
         "pendingCount": "{count} pendientes",
-        "allComplete": "Completo"
+        "allComplete": "Completo",
+        "allCompleteDetail": "El expediente está listo — no hay acciones pendientes por ahora."
       },
       "loading": {
         "refreshing": "Actualizando…",
@@ -2716,6 +2717,7 @@
         "guardian": "Tutor",
         "noGuardian": "Sin tutor",
         "guardiansCount": "{count} tutores",
+        "guardianLinked": "Vinculado",
         "viewGuardians": "Ver tutores",
         "contact": "Datos de contacto",
         "noContact": "Sin datos de contacto",
@@ -2747,8 +2749,10 @@
         "specialAgreement": "Special financial agreement",
         "noFinanceFees": "No fees",
         "financeHasOverdue": "Overdue balance",
+        "financePendingCheque": "Cheques pending clearance",
         "financeHasBalance": "Outstanding balance",
         "noSpecialAgreement": "No special agreement",
+        "noActiveFinancialAgreement": "No active financial agreement",
         "specialAgreementDraft": "Draft agreement",
         "specialAgreementApproved": "Approved agreement",
         "specialAgreementPending": "Agreement pending"
@@ -2760,8 +2764,10 @@
       },
       "overview": {
         "loading": "Cargando resumen…",
-        "emptyValue": "No disponible",
+        "emptyValue": "No indicado",
+        "notProvided": "No indicado",
         "cardsTitle": "Vista general",
+        "activityTitle": "Actividad y seguimiento",
         "unavailableTitle": "Resumen no disponible",
         "unavailableDesc": "El resumen consolidado aún no está disponible para este alumno. Las secciones siguientes siguen accesibles.",
         "viewDocuments": "Ver documentos",
@@ -2789,6 +2795,7 @@
         },
         "header": {
           "guardian": "Responsable",
+          "study": "Clase y nivel",
           "externalPublishAllowed": "Publicación externa de la foto permitida",
           "moreBadges": "+{count}"
         },
@@ -2796,7 +2803,12 @@
           "noGuardian": "Sin responsable",
           "missingDocs": "Documentos faltantes",
           "photoConsent": "Foto no autorizada",
+          "photoConsentPending": "Autorización de publicación de foto pendiente",
+          "photoConsentDenied": "Publicación de foto no autorizada",
           "tripConsent": "Autorización de salida pendiente",
+          "tripConsentPending": "Autorización de salida pendiente",
+          "tripConsentDenied": "Autorización de salida no concedida",
+          "consentsIncomplete": "Autorizaciones incompletas",
           "financeOverdue": "Atrasos financieros"
         },
         "cards": {
@@ -2821,6 +2833,10 @@
         },
         "consents": {
           "restricted": "Las autorizaciones no están disponibles con sus permisos actuales.",
+          "awaitingDecision": "Pendiente de decisión",
+          "undecided": "Sin definir",
+          "noDecisionsYet": "Aún no se han registrado decisiones de autorización",
+          "pendingSummary": "{count} autorizaciones pendientes de decisión",
           "trip_participation": "Salidas escolares",
           "photo_publish": "Publicación de foto",
           "social_media_publish": "Redes sociales",
@@ -2838,7 +2854,8 @@
         "attendance": {
           "absencesMonth": "Ausencias este mes",
           "lateMonth": "Retrasos este mes",
-          "lastStatus": "Última asistencia"
+          "lastStatus": "Última asistencia",
+          "noDataYet": "Aún no hay datos de asistencia registrados"
         },
         "finance": {
           "unavailable": "Los datos financieros no están disponibles para su perfil.",
@@ -2850,7 +2867,8 @@
         "academic": {
           "openHomework": "Deberes abiertos",
           "upcomingExams": "Exámenes próximos",
-          "lastResult": "Último resultado"
+          "lastResult": "Último resultado",
+          "noRecentData": "No hay datos académicos recientes"
         }
       },
       "enrollmentEmptyDesc": "Cree una inscripción para vincular al alumno al año escolar y la clase.",
@@ -2897,7 +2915,12 @@
         "family": "Familia",
         "system": "Sistema",
         "contact": "Contacto y dirección",
-        "emergency": "Contacto de emergencia"
+        "emergency": "Contacto de emergencia",
+        "profileDetail": "Detalles del expediente"
+      },
+      "profile": {
+        "noContactData": "No hay datos de contacto registrados.",
+        "noEmergencyData": "No hay contacto de emergencia registrado."
       },
       "nameAr": "Nombre en árabe",
       "nameLatin": "Nombre latino",
@@ -3346,6 +3369,7 @@
       "financialAgreement": {
         "pageTitle": "Acuerdo financiero especial",
         "pageDescription": "El acuerdo financiero especial se usa para descuentos individuales, exenciones, reprogramaciones y condiciones excepcionales. Las tasas generales provienen del plan aplicado al alumno.",
+        "inactiveWarning": "Este acuerdo está inactivo. Sus plazos no son obligaciones cobrables salvo confirmación del backend.",
         "create": "Crear acuerdo financiero",
         "applyFeePlan": "Aplicar plan de cuotas",
         "createManualAgreement": "Crear acuerdo manual",
@@ -3404,7 +3428,8 @@
             "partial_waiver": "Exención parcial",
             "full_waiver": "Exención total",
             "surcharge": "Recargo",
-            "manual_adjustment": "Ajuste manual"
+            "manual_adjustment": "Ajuste manual",
+            "unknown": "Tipo de ajuste no especificado"
           },
           "policies": {
             "reduce_total_only": "Reducir solo el total del acuerdo",
@@ -3607,7 +3632,8 @@
         "paymentStatus": {
           "unpaid": "Impagado",
           "partially_paid": "Parcial",
-          "paid": "Pagado"
+          "paid": "Pagado",
+          "pending_cheque": "Pendiente de compensación"
         },
         "timingStatus": {
           "hidden": "Oculto",
@@ -3750,24 +3776,50 @@
         "pageDescription": "Unified view of fees, payment schedule, collections, and special agreements.",
         "tabsAria": "Financial file tabs",
         "tabs": {
-          "overview": "Overview",
-          "fees": "Fees",
-          "schedule": "Payment schedule",
-          "collections": "Collections",
-          "agreements": "Special agreements"
+          "overview": "Resumen financiero",
+          "fees": "Tasas y servicios",
+          "agreements": "Acuerdo financiero",
+          "schedule": "Calendario de pagos",
+          "collections": "Cobros y recibos",
+          "cheques": "Cheques",
+          "adjustments": "Ajustes",
+          "ledger": "Registro financiero"
+        },
+        "actions": {
+          "recordPayment": "Registrar pago",
+          "manageAgreement": "Gestionar acuerdo financiero"
+        },
+        "executive": {
+          "title": "Resumen financiero ejecutivo",
+          "netAssessed": "Neto adeudado",
+          "paidConfirmed": "Pagado confirmado",
+          "unconfirmedCoverage": "Cobertura no confirmada",
+          "remainingActual": "Pendiente real",
+          "overdue": "Vencido",
+          "nextInstallment": "Próximo pago",
+          "pendingChequeAlert": "Los cheques pendientes de compensación aún no se consideran pago confirmado.",
+          "remainingAfterPendingHint": "Pendiente tras cobertura no confirmada:",
+          "chequePendingTotal": "Total de cheques pendientes",
+          "chequePendingAllocated": "Contabilizados en cobertura no confirmada",
+          "chequePendingUnallocated": "Pendientes, aún sin asignar"
         },
         "metrics": {
-          "annualTotal": "Annual fee total",
-          "dueToDate": "Due to date",
-          "paid": "Paid",
-          "remaining": "Remaining",
-          "overdue": "Overdue",
+          "annualTotal": "Total anual de tasas",
+          "dueToDate": "Vencido a la fecha",
+          "paid": "Pagado",
+          "remaining": "Pendiente",
+          "remainingActual": "Pendiente real",
+          "remainingAfterPending": "Pendiente tras cobertura no confirmada",
+          "unconfirmedCoverage": "Cobertura no confirmada",
+          "futureNotDue": "Importes futuros aún no vencidos",
+          "overdue": "Vencido",
           "nextInstallment": "Próximo pago",
-          "upcoming": "Próximo",
+          "nextInstallmentAmount": "Importe del pago",
+          "upcoming": "Importes futuros aún no vencidos",
           "paidConfirmed": "Pagado confirmado",
           "pendingCheque": "Cheques pendientes de compensación",
           "coveredTotal": "Cobertura total",
-          "coveredTotalHint": "La cobertura total incluye importes confirmados y cheques pendientes de compensación.",
+          "coveredTotalHint": "Los cheques pendientes no se incluyen en el pagado confirmado.",
           "chequeSummary": "Resumen de cheques",
           "pendingCheques": "Cheques pendientes",
           "settledCheques": "Cheques compensados",
@@ -3837,10 +3889,49 @@
           }
         },
         "collections": {
-          "description": "Cobros y recibos.",
+          "description": "Cobros y recibos confirmados.",
           "emptyTitle": "Sin cobros.",
           "noCollectibleItems": "Sin partidas cobrables.",
-          "pendingCheque": "Pendiente de compensación"
+          "pendingCheque": "Pendiente de compensación",
+          "recordState": "Estado del registro",
+          "settlementState": "Estado de cobro",
+          "recordStates": {
+            "draft": "Borrador",
+            "confirmed": "Recibo emitido"
+          },
+          "settlement": {
+            "pending_cheque": "Pendiente de compensación",
+            "cheque_cleared": "Compensado",
+            "cleared": "Compensado",
+            "settled": "Compensado",
+            "cheque_bounced": "Rechazado",
+            "bounced": "Rechazado",
+            "rejected": "Rechazado",
+            "cancelled": "Cancelado"
+          }
+        },
+        "cheques": {
+          "summaryTitle": "Resumen de cheques",
+          "emptyTitle": "No hay cheques registrados",
+          "emptyDescription": "Los cheques vinculados a este alumno aparecerán aquí por estado.",
+          "groups": {
+            "pending": "Pendiente de compensación",
+            "settled": "Compensado",
+            "rejected": "Rechazado",
+            "cancelled": "Cancelado"
+          }
+        },
+        "adjustments": {
+          "emptyTitle": "No hay ajustes financieros",
+          "emptyDescription": "Los ajustes del acuerdo financiero aparecen aquí.",
+          "description": "Ajustes del acuerdo financiero y su impacto.",
+          "columns": {
+            "date": "Fecha"
+          }
+        },
+        "ledger": {
+          "emptyTitle": "Aún no hay eventos financieros registrados",
+          "emptyDescription": "El registro cronológico aparecerá aquí cuando haya datos disponibles."
         }
       },
       "collectionWorkflow": {
@@ -3898,6 +3989,7 @@
       "backToFeePlans": "Volver a planes de cuotas",
       "backToStudentFees": "Volver a adeudos",
       "backToCollections": "Volver a cobros",
+      "receiptNumber": "Número de recibo",
       "billingAccounts": {
         "hubTitle": "Cuentas de pagadores",
         "hubDesc": "Resumen unificado de deudas familiares, cobros y recibos.",

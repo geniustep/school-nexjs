@@ -6,7 +6,6 @@ import { Card } from '@/components/ui/primitives';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
-import { Student360MetricGrid } from '@/features/admin/students/components/student-360-metric-grid';
 import { StudentSectionSkeleton } from '@/features/admin/students/components/student-360-loading';
 import { Student360SectionHeader } from '@/features/admin/students/components/student-360-section-header';
 import type { StudentFinancePanelProps } from './student-finance-panel-props';
@@ -51,38 +50,6 @@ export function StudentFinanceOverviewPanel({
     t,
   });
 
-  const summaryItems = useMemo(() => {
-    if (!metrics) return [];
-    const currency = metrics.currency;
-    const items: Array<{
-      key: string;
-      label: string;
-      value: number | null;
-      currency: string | null;
-      tone?: 'amber' | 'green' | 'red';
-    }> = [
-      { key: 'annual_total', label: t('admin.student360.financeWorkspace.metrics.annualTotal'), value: metrics.annual_total, currency },
-      { key: 'due_to_date', label: t('admin.student360.financeWorkspace.metrics.dueToDate'), value: metrics.due_to_date, currency, tone: 'amber' },
-      { key: 'paid_confirmed', label: t('admin.student360.financeWorkspace.metrics.paidConfirmed'), value: metrics.paid_confirmed, currency, tone: 'green' },
-    ];
-    if ((metrics.pending_cheque ?? 0) > 0) {
-      items.push({
-        key: 'pending_cheque',
-        label: t('admin.student360.financeWorkspace.metrics.pendingCheque'),
-        value: metrics.pending_cheque,
-        currency,
-        tone: 'amber',
-      });
-    }
-    items.push(
-      { key: 'covered_total', label: t('admin.student360.financeWorkspace.metrics.coveredTotal'), value: metrics.covered_total, currency, tone: 'green' },
-      { key: 'remaining', label: t('admin.student360.financeWorkspace.metrics.remaining'), value: metrics.remaining, currency },
-      { key: 'overdue', label: t('admin.student360.financeWorkspace.metrics.overdue'), value: metrics.overdue, currency, tone: 'red' },
-      { key: 'upcoming', label: t('admin.student360.financeWorkspace.metrics.upcoming'), value: metrics.upcoming, currency },
-    );
-    return items;
-  }, [metrics, t]);
-
   const chequeSummary = financialOverview?.cheque_summary;
   const showChequeSummary =
     chequeSummary != null &&
@@ -117,22 +84,9 @@ export function StudentFinanceOverviewPanel({
         </p>
       ) : null}
 
-      <Student360MetricGrid
-        variant="finance"
-        items={summaryItems.map((item) => ({
-          key: item.key,
-          label: item.label,
-          value: (
-            <span className="student-finance-overview__metric-value">
-              <FinanceMoney amount={item.value} currency={item.currency ?? undefined} />
-            </span>
-          ),
-          tone: item.tone,
-        }))}
-      />
       {metrics?.has_pending_cheque ? (
-        <p className="tiny muted student-finance-overview__cheque-hint">
-          {t('admin.student360.financeWorkspace.metrics.coveredTotalHint')}
+        <p className="tiny student-finance-overview__cheque-hint student-finance-card-alert" role="status">
+          {t('admin.student360.financeWorkspace.executive.pendingChequeAlert')}
         </p>
       ) : null}
 
@@ -145,6 +99,18 @@ export function StudentFinanceOverviewPanel({
                 {t('admin.student360.financeWorkspace.metrics.pendingCheques')}: {chequeSummary.pending_count}
                 {' — '}
                 <FinanceMoney amount={chequeSummary.pending_amount} currency={metrics?.currency ?? undefined} />
+              </li>
+            ) : null}
+            {(metrics?.cheque_pending_allocated ?? 0) > 0 ? (
+              <li className="muted tiny">
+                {t('admin.student360.financeWorkspace.executive.chequePendingAllocated')}:{' '}
+                <FinanceMoney amount={metrics?.cheque_pending_allocated} currency={metrics?.currency ?? undefined} />
+              </li>
+            ) : null}
+            {(metrics?.cheque_pending_unallocated ?? 0) > 0 ? (
+              <li className="muted tiny">
+                {t('admin.student360.financeWorkspace.executive.chequePendingUnallocated')}:{' '}
+                <FinanceMoney amount={metrics?.cheque_pending_unallocated} currency={metrics?.currency ?? undefined} />
               </li>
             ) : null}
             {chequeSummary.settled_count > 0 ? (
@@ -180,12 +146,8 @@ export function StudentFinanceOverviewPanel({
               </div>
             ) : null}
             <div>
-              <dt>{t('admin.student360.financeWorkspace.schedule.columns.amount')}</dt>
+              <dt>{t('admin.student360.financeWorkspace.metrics.nextInstallmentAmount')}</dt>
               <dd><FinanceMoney amount={nextInstallment.amount} currency={metrics?.currency ?? undefined} /></dd>
-            </div>
-            <div>
-              <dt>{t('admin.student360.financeWorkspace.fees.columns.remaining')}</dt>
-              <dd><FinanceMoney amount={nextInstallment.remaining_amount} currency={metrics?.currency ?? undefined} /></dd>
             </div>
             <div>
               <dt>{t('admin.student360.financeWorkspace.schedule.columns.dueDate')}</dt>
@@ -246,11 +208,11 @@ export function StudentFinanceOverviewPanel({
                       <dd><FinanceMoney amount={plan.total_fees} currency={metrics?.currency ?? undefined} /></dd>
                     </div>
                     <div>
-                      <dt>{t('admin.student360.financeWorkspace.metrics.paid')}</dt>
+                      <dt>{t('admin.student360.financeWorkspace.metrics.paidConfirmed')}</dt>
                       <dd><FinanceMoney amount={plan.paid} currency={metrics?.currency ?? undefined} /></dd>
                     </div>
                     <div>
-                      <dt>{t('admin.student360.financeWorkspace.metrics.remaining')}</dt>
+                      <dt>{t('admin.student360.financeWorkspace.metrics.remainingActual')}</dt>
                       <dd><FinanceMoney amount={plan.remaining} currency={metrics?.currency ?? undefined} /></dd>
                     </div>
                     <div>
@@ -283,7 +245,7 @@ export function StudentFinanceOverviewPanel({
         </Link>
         {canCollect ? (
           <button type="button" className="btn btn--primary btn--sm" onClick={onOpenCollection}>
-            {t('admin.finance.collectionWorkflow.recordPayment')}
+            {t('admin.student360.financeWorkspace.actions.recordPayment')}
           </button>
         ) : null}
       </div>

@@ -2696,7 +2696,8 @@
         "actionAdd": "Ajouter",
         "actionComplete": "Compléter",
         "pendingCount": "{count} en attente",
-        "allComplete": "Complet"
+        "allComplete": "Complet",
+        "allCompleteDetail": "Le dossier est prêt — aucune action en attente pour le moment."
       },
       "loading": {
         "refreshing": "Actualisation…",
@@ -2716,6 +2717,7 @@
         "guardian": "Responsable",
         "noGuardian": "Aucun responsable",
         "guardiansCount": "{count} responsables",
+        "guardianLinked": "Lié",
         "viewGuardians": "Voir les responsables",
         "contact": "Coordonnées",
         "noContact": "Aucune coordonnée",
@@ -2747,8 +2749,10 @@
         "specialAgreement": "Accord financier spécial",
         "noFinanceFees": "Aucun frais",
         "financeHasOverdue": "Solde en retard",
+        "financePendingCheque": "Chèques en attente d'encaissement",
         "financeHasBalance": "Solde impayé",
         "noSpecialAgreement": "Aucun accord spécial",
+        "noActiveFinancialAgreement": "Aucun accord financier actif",
         "specialAgreementDraft": "Draft agreement",
         "specialAgreementApproved": "Approved agreement",
         "specialAgreementPending": "Agreement pending"
@@ -2760,8 +2764,10 @@
       },
       "overview": {
         "loading": "Chargement du résumé…",
-        "emptyValue": "Non disponible",
+        "emptyValue": "Non renseigné",
+        "notProvided": "Non renseigné",
         "cardsTitle": "Vue d'ensemble",
+        "activityTitle": "Activité et suivi",
         "unavailableTitle": "Résumé indisponible",
         "unavailableDesc": "Le résumé consolidé n'est pas encore disponible pour cet élève. Les sections ci-dessous restent accessibles.",
         "viewDocuments": "Voir les documents",
@@ -2789,6 +2795,7 @@
         },
         "header": {
           "guardian": "Responsable",
+          "study": "Classe et niveau",
           "externalPublishAllowed": "Publication externe de la photo autorisée",
           "moreBadges": "+{count}"
         },
@@ -2796,7 +2803,12 @@
           "noGuardian": "Sans responsable",
           "missingDocs": "Documents manquants",
           "photoConsent": "Photo non autorisée",
+          "photoConsentPending": "Autorisation photo en attente",
+          "photoConsentDenied": "Publication photo non autorisée",
           "tripConsent": "Autorisation sortie en attente",
+          "tripConsentPending": "Autorisation sortie en attente",
+          "tripConsentDenied": "Autorisation sortie non accordée",
+          "consentsIncomplete": "Autorisations incomplètes",
           "financeOverdue": "Retards financiers"
         },
         "cards": {
@@ -2821,6 +2833,10 @@
         },
         "consents": {
           "restricted": "Les autorisations ne sont pas accessibles avec vos droits actuels.",
+          "awaitingDecision": "En attente de décision",
+          "undecided": "Non défini",
+          "noDecisionsYet": "Aucune décision d'autorisation enregistrée",
+          "pendingSummary": "{count} autorisations en attente de décision",
           "trip_participation": "Sorties scolaires",
           "photo_publish": "Publication photo",
           "social_media_publish": "Réseaux sociaux",
@@ -2838,7 +2854,8 @@
         "attendance": {
           "absencesMonth": "Absences ce mois",
           "lateMonth": "Retards ce mois",
-          "lastStatus": "Dernière présence"
+          "lastStatus": "Dernière présence",
+          "noDataYet": "Aucune donnée de présence enregistrée"
         },
         "finance": {
           "unavailable": "Les données financières ne sont pas disponibles pour votre profil.",
@@ -2850,7 +2867,8 @@
         "academic": {
           "openHomework": "Devoirs ouverts",
           "upcomingExams": "Examens à venir",
-          "lastResult": "Dernière note"
+          "lastResult": "Dernière note",
+          "noRecentData": "Aucune donnée académique récente"
         }
       },
       "enrollmentEmptyDesc": "Créez une inscription pour lier l'élève à l'année scolaire et à la classe.",
@@ -2897,7 +2915,12 @@
         "family": "Famille",
         "system": "Système",
         "contact": "Contact et adresse",
-        "emergency": "Contact d'urgence"
+        "emergency": "Contact d'urgence",
+        "profileDetail": "Détails du dossier"
+      },
+      "profile": {
+        "noContactData": "Aucune coordonnée enregistrée.",
+        "noEmergencyData": "Aucun contact d'urgence enregistré."
       },
       "nameAr": "Nom en arabe",
       "nameLatin": "Nom latin",
@@ -3346,6 +3369,7 @@
       "financialAgreement": {
         "pageTitle": "Accord financier spécial",
         "pageDescription": "L'accord financier spécial sert aux remises individuelles, dispenses, rééchelonnements et conditions exceptionnelles. Les frais généraux proviennent du plan appliqué à l'élève.",
+        "inactiveWarning": "Cet accord est inactif. Ses échéances ne constituent pas une obligation encaissable sauf confirmation du backend.",
         "create": "Créer un accord financier",
         "applyFeePlan": "Appliquer un plan de frais",
         "createManualAgreement": "Créer un accord manuel",
@@ -3404,7 +3428,8 @@
             "partial_waiver": "Dispense partielle",
             "full_waiver": "Dispense totale",
             "surcharge": "Majoration",
-            "manual_adjustment": "Ajustement manuel"
+            "manual_adjustment": "Ajustement manuel",
+            "unknown": "Type d'ajustement non spécifié"
           },
           "policies": {
             "reduce_total_only": "Réduire uniquement le total de l'accord",
@@ -3607,7 +3632,8 @@
         "paymentStatus": {
           "unpaid": "Impayé",
           "partially_paid": "Partiel",
-          "paid": "Payé"
+          "paid": "Payé",
+          "pending_cheque": "En attente d'encaissement"
         },
         "timingStatus": {
           "hidden": "Masqué",
@@ -3750,24 +3776,50 @@
         "pageDescription": "Unified view of fees, payment schedule, collections, and special agreements.",
         "tabsAria": "Financial file tabs",
         "tabs": {
-          "overview": "Overview",
-          "fees": "Fees",
-          "schedule": "Payment schedule",
-          "collections": "Collections",
-          "agreements": "Special agreements"
+          "overview": "Vue financière",
+          "fees": "Frais et services",
+          "agreements": "Accord financier",
+          "schedule": "Échéancier",
+          "collections": "Encaissements et reçus",
+          "cheques": "Chèques",
+          "adjustments": "Ajustements",
+          "ledger": "Journal financier"
+        },
+        "actions": {
+          "recordPayment": "Enregistrer un paiement",
+          "manageAgreement": "Gérer l'accord financier"
+        },
+        "executive": {
+          "title": "Résumé financier exécutif",
+          "netAssessed": "Net dû",
+          "paidConfirmed": "Encaissé confirmé",
+          "unconfirmedCoverage": "Couverture non confirmée",
+          "remainingActual": "Reste réel",
+          "overdue": "En retard",
+          "nextInstallment": "Prochaine échéance",
+          "pendingChequeAlert": "Les chèques en attente d'encaissement ne sont pas encore considérés comme un paiement confirmé.",
+          "remainingAfterPendingHint": "Reste après couverture non confirmée :",
+          "chequePendingTotal": "Total des chèques en attente",
+          "chequePendingAllocated": "Comptabilisés dans la couverture non confirmée",
+          "chequePendingUnallocated": "En attente, pas encore affectés"
         },
         "metrics": {
-          "annualTotal": "Annual fee total",
-          "dueToDate": "Due to date",
-          "paid": "Paid",
-          "remaining": "Remaining",
-          "overdue": "Overdue",
+          "annualTotal": "Total annuel des frais",
+          "dueToDate": "Dû à ce jour",
+          "paid": "Payé",
+          "remaining": "Reste",
+          "remainingActual": "Reste réel",
+          "remainingAfterPending": "Reste après couverture non confirmée",
+          "unconfirmedCoverage": "Couverture non confirmée",
+          "futureNotDue": "Montants futurs pas encore dus",
+          "overdue": "En retard",
           "nextInstallment": "Prochaine échéance",
-          "upcoming": "À venir",
+          "nextInstallmentAmount": "Montant de l'échéance",
+          "upcoming": "Montants futurs pas encore dus",
           "paidConfirmed": "Encaissé confirmé",
           "pendingCheque": "Chèques en attente d'encaissement",
           "coveredTotal": "Couverture totale",
-          "coveredTotalHint": "La couverture totale inclut les montants confirmés et les chèques en attente d'encaissement.",
+          "coveredTotalHint": "Les chèques en attente ne sont pas inclus dans l'encaissé confirmé.",
           "chequeSummary": "Résumé des chèques",
           "pendingCheques": "Chèques en attente",
           "settledCheques": "Chèques encaissés",
@@ -3837,10 +3889,49 @@
           }
         },
         "collections": {
-          "description": "Collections and receipts.",
-          "emptyTitle": "No collections.",
-          "noCollectibleItems": "No collectible items.",
-          "pendingCheque": "En attente d'encaissement"
+          "description": "Encaissements et reçus confirmés.",
+          "emptyTitle": "Aucun encaissement.",
+          "noCollectibleItems": "Aucune créance encaissable.",
+          "pendingCheque": "En attente d'encaissement",
+          "recordState": "État du dossier",
+          "settlementState": "État d'encaissement",
+          "recordStates": {
+            "draft": "Brouillon",
+            "confirmed": "Reçu émis"
+          },
+          "settlement": {
+            "pending_cheque": "En attente d'encaissement",
+            "cheque_cleared": "Encaissé",
+            "cleared": "Encaissé",
+            "settled": "Encaissé",
+            "cheque_bounced": "Rejeté",
+            "bounced": "Rejeté",
+            "rejected": "Rejeté",
+            "cancelled": "Annulé"
+          }
+        },
+        "cheques": {
+          "summaryTitle": "Résumé des chèques",
+          "emptyTitle": "Aucun chèque enregistré",
+          "emptyDescription": "Les chèques liés à cet élève apparaîtront ici par statut.",
+          "groups": {
+            "pending": "En attente d'encaissement",
+            "settled": "Encaissé",
+            "rejected": "Rejeté",
+            "cancelled": "Annulé"
+          }
+        },
+        "adjustments": {
+          "emptyTitle": "Aucun ajustement financier",
+          "emptyDescription": "Les ajustements liés à l'accord financier apparaissent ici.",
+          "description": "Ajustements de l'accord financier et leur impact.",
+          "columns": {
+            "date": "Date"
+          }
+        },
+        "ledger": {
+          "emptyTitle": "Aucun événement financier enregistré",
+          "emptyDescription": "Le journal chronologique apparaîtra ici lorsque les données seront disponibles."
         }
       },
       "collectionWorkflow": {
@@ -3898,6 +3989,7 @@
       "backToFeePlans": "Retour aux plans de frais",
       "backToStudentFees": "Retour aux créances",
       "backToCollections": "Retour aux encaissements",
+      "receiptNumber": "Numéro de reçu",
       "billingAccounts": {
         "hubTitle": "Comptes payeurs",
         "hubDesc": "Synthèse unifiée des dues familiales, encaissements et reçus.",

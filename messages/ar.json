@@ -2723,7 +2723,8 @@
         "actionAdd": "إضافة",
         "actionComplete": "استكمال",
         "pendingCount": "{count} بانتظار",
-        "allComplete": "مكتمل"
+        "allComplete": "مكتمل",
+        "allCompleteDetail": "الملف جاهز — لا توجد إجراءات معلّقة حالياً."
       },
       "loading": {
         "refreshing": "جارٍ التحديث…",
@@ -2743,6 +2744,7 @@
         "guardian": "ولي الأمر",
         "noGuardian": "لا يوجد ولي",
         "guardiansCount": "{count} ولي",
+        "guardianLinked": "مرتبط",
         "viewGuardians": "عرض الأولياء",
         "contact": "بيانات الاتصال",
         "noContact": "لا توجد بيانات اتصال",
@@ -2774,8 +2776,10 @@
         "specialAgreement": "الاتفاق المالي الخاص",
         "noFinanceFees": "لا توجد رسوم",
         "financeHasOverdue": "توجد مستحقات متأخرة",
+        "financePendingCheque": "توجد شيكات قيد التحصيل",
         "financeHasBalance": "توجد مستحقات",
         "noSpecialAgreement": "لا يوجد اتفاق خاص",
+        "noActiveFinancialAgreement": "لا يوجد اتفاق مالي نشط",
         "specialAgreementDraft": "اتفاق مسودة",
         "specialAgreementApproved": "اتفاق معتمد",
         "specialAgreementPending": "اتفاق قيد المعالجة"
@@ -2787,8 +2791,10 @@
       },
       "overview": {
         "loading": "جارٍ تحميل الملخص…",
-        "emptyValue": "غير متوفر",
+        "notProvided": "لم يُسجّل",
+        "emptyValue": "لم يُسجّل",
         "cardsTitle": "نظرة عامة",
+        "activityTitle": "النشاط والمتابعة",
         "unavailableTitle": "الملخص غير متاح",
         "unavailableDesc": "الملخص الموحّد غير متاح لهذا التلميذ بعد. الأقسام أدناه تبقى متاحة.",
         "viewDocuments": "عرض الوثائق",
@@ -2816,6 +2822,7 @@
         },
         "header": {
           "guardian": "ولي الأمر",
+          "study": "القسم والمستوى",
           "externalPublishAllowed": "النشر الخارجي للصورة مسموح",
           "moreBadges": "+{count}"
         },
@@ -2823,7 +2830,12 @@
           "noGuardian": "بدون ولي أمر",
           "missingDocs": "وثائق ناقصة",
           "photoConsent": "موافقة الصور غير مسموحة",
+          "photoConsentPending": "بانتظار موافقة نشر الصور",
+          "photoConsentDenied": "موافقة نشر الصور غير ممنوحة",
           "tripConsent": "موافقة الرحلات معلقة",
+          "tripConsentPending": "بانتظار موافقة الرحلات",
+          "tripConsentDenied": "موافقة الرحلات غير ممنوحة",
+          "consentsIncomplete": "الموافقات غير مكتملة",
           "financeOverdue": "متأخرات مالية"
         },
         "cards": {
@@ -2848,6 +2860,10 @@
         },
         "consents": {
           "restricted": "الموافقات غير متاحة وفق صلاحياتك الحالية.",
+          "awaitingDecision": "بانتظار القرار",
+          "undecided": "غير محدد",
+          "noDecisionsYet": "لم تُسجّل قرارات الموافقات بعد",
+          "pendingSummary": "{count} موافقات بانتظار القرار",
           "trip_participation": "المشاركة في الرحلات",
           "photo_publish": "نشر الصور",
           "social_media_publish": "وسائل التواصل",
@@ -2865,7 +2881,8 @@
         "attendance": {
           "absencesMonth": "غيابات هذا الشهر",
           "lateMonth": "تأخر هذا الشهر",
-          "lastStatus": "آخر حالة حضور"
+          "lastStatus": "آخر حالة حضور",
+          "noDataYet": "لم تُسجّل بيانات الحضور بعد"
         },
         "finance": {
           "unavailable": "البيانات المالية غير متاحة لملفك.",
@@ -2877,7 +2894,8 @@
         "academic": {
           "openHomework": "واجبات مفتوحة",
           "upcomingExams": "امتحانات قادمة",
-          "lastResult": "آخر نتيجة"
+          "lastResult": "آخر نتيجة",
+          "noRecentData": "لا توجد بيانات أكاديمية حديثة"
         }
       },
       "enrollmentEmptyDesc": "أنشئ تسجيلًا لربط التلميذ بالسنة الدراسية والقسم المناسب.",
@@ -2924,7 +2942,12 @@
         "family": "الأسرة",
         "system": "معلومات النظام",
         "contact": "الاتصال والعنوان",
-        "emergency": "جهة اتصال الطوارئ"
+        "emergency": "جهة اتصال الطوارئ",
+        "profileDetail": "تفاصيل الملف"
+      },
+      "profile": {
+        "noContactData": "لا توجد بيانات اتصال مسجّلة.",
+        "noEmergencyData": "لا توجد جهة طوارئ مسجّلة."
       },
       "nameAr": "الاسم بالعربية",
       "nameLatin": "الاسم باللاتينية",
@@ -3373,6 +3396,7 @@
       "financialAgreement": {
         "pageTitle": "الاتفاق المالي الخاص",
         "pageDescription": "يُستخدم الاتفاق المالي الخاص للتخفيضات الفردية، والإعفاءات، وإعادة الجدولة، والشروط الاستثنائية. أما الرسوم العامة فتأتي من خطة الرسوم المطبقة على التلميذ.",
+        "inactiveWarning": "هذا الاتفاق غير نشط. لا تعتبر أقساطه التزامًا قابلًا للتحصيل إلا إذا أكد النظام ذلك.",
         "create": "إنشاء اتفاق مالي",
         "applyFeePlan": "تطبيق خطة رسوم",
         "createManualAgreement": "إنشاء اتفاق يدوي",
@@ -3431,7 +3455,8 @@
             "partial_waiver": "إعفاء جزئي",
             "full_waiver": "إعفاء كامل",
             "surcharge": "زيادة",
-            "manual_adjustment": "تعديل يدوي"
+            "manual_adjustment": "تعديل يدوي",
+            "unknown": "نوع تعديل غير محدد"
           },
           "policies": {
             "reduce_total_only": "تخفيض إجمالي الاتفاق فقط",
@@ -3634,7 +3659,8 @@
         "paymentStatus": {
           "unpaid": "غير مؤدى",
           "partially_paid": "مؤدى جزئيًا",
-          "paid": "مؤدى"
+          "paid": "مؤدى",
+          "pending_cheque": "قيد التحصيل"
         },
         "timingStatus": {
           "hidden": "مخفي",
@@ -3778,26 +3804,52 @@
         "tabsAria": "تبويبات الملف المالي",
         "tabs": {
           "overview": "نظرة مالية",
-          "fees": "الرسوم",
+          "fees": "الرسوم والخدمات",
+          "agreements": "الاتفاق المالي",
           "schedule": "جدول الدفعات",
-          "collections": "التحصيلات",
-          "agreements": "الاتفاقات الخاصة"
+          "collections": "التحصيلات والإيصالات",
+          "cheques": "الشيكات",
+          "adjustments": "التعديلات",
+          "ledger": "السجل المالي"
+        },
+        "actions": {
+          "recordPayment": "تسجيل دفعة",
+          "manageAgreement": "إدارة الاتفاق المالي"
+        },
+        "executive": {
+          "title": "ملخص مالي تنفيذي",
+          "netAssessed": "المستحق الصافي",
+          "paidConfirmed": "المدفوع المؤكد",
+          "unconfirmedCoverage": "التغطية غير المؤكدة",
+          "remainingActual": "المتبقي الفعلي",
+          "overdue": "المتأخر",
+          "nextInstallment": "القسط القادم",
+          "pendingChequeAlert": "توجد شيكات قيد التحصيل لا تعتبر أداءً مؤكدًا بعد.",
+          "remainingAfterPendingHint": "المتبقي بعد التغطية غير المؤكدة:",
+          "chequePendingTotal": "إجمالي الشيكات قيد التحصيل",
+          "chequePendingAllocated": "محتسبة في التغطية غير المؤكدة",
+          "chequePendingUnallocated": "قيد التحصيل وغير مخصصة بعد"
         },
         "metrics": {
           "annualTotal": "إجمالي رسوم السنة",
           "dueToDate": "المستحق حتى اليوم",
           "paid": "المدفوع",
           "remaining": "المتبقي",
+          "remainingActual": "المتبقي الفعلي",
+          "remainingAfterPending": "المتبقي بعد التغطية غير المؤكدة",
+          "unconfirmedCoverage": "التغطية غير المؤكدة",
+          "futureNotDue": "المبالغ المستقبلية غير المستحقة بعد",
           "overdue": "المتأخر",
-          "nextInstallment": "الدفعة القادمة",
-          "upcoming": "القادم",
+          "nextInstallment": "القسط القادم",
+          "nextInstallmentAmount": "مبلغ القسط",
+          "upcoming": "المبالغ المستقبلية غير المستحقة بعد",
           "paidConfirmed": "المدفوع المؤكد",
           "pendingCheque": "شيكات قيد التحصيل",
           "coveredTotal": "إجمالي التغطية",
-          "coveredTotalHint": "إجمالي التغطية يشمل المبالغ المؤكدة والشيكات قيد التحصيل.",
+          "coveredTotalHint": "الشيكات قيد التحصيل لا تُحسب ضمن المدفوع المؤكد.",
           "chequeSummary": "ملخص الشيكات",
           "pendingCheques": "شيكات قيد التحصيل",
-          "settledCheques": "شيكات تمت تصفيتها",
+          "settledCheques": "شيكات محصلة",
           "rejectedCheques": "شيكات مرفوضة"
         },
         "billingPartyTitle": "الجهة المفوترة",
@@ -3864,10 +3916,49 @@
           }
         },
         "collections": {
-          "description": "سجل التحصيلات والإيصالات.",
+          "description": "سجل التحصيلات والإيصالات المؤكدة.",
           "emptyTitle": "لا توجد تحصيلات.",
           "noCollectibleItems": "لا توجد مستحقات قابلة للتحصيل.",
-          "pendingCheque": "قيد التحصيل"
+          "pendingCheque": "قيد التحصيل",
+          "recordState": "حالة السجل",
+          "settlementState": "حالة التحصيل النقدي",
+          "recordStates": {
+            "draft": "مسودة",
+            "confirmed": "إيصال صادر"
+          },
+          "settlement": {
+            "pending_cheque": "قيد التحصيل",
+            "cheque_cleared": "محصل",
+            "cleared": "محصل",
+            "settled": "محصل",
+            "cheque_bounced": "مرفوض",
+            "bounced": "مرفوض",
+            "rejected": "مرفوض",
+            "cancelled": "ملغي"
+          }
+        },
+        "cheques": {
+          "summaryTitle": "ملخص الشيكات",
+          "emptyTitle": "لا توجد شيكات مسجلة",
+          "emptyDescription": "ستظهر هنا الشيكات المرتبطة بهذا التلميذ حسب حالتها.",
+          "groups": {
+            "pending": "قيد التحصيل",
+            "settled": "محصل",
+            "rejected": "مرفوض",
+            "cancelled": "ملغي"
+          }
+        },
+        "adjustments": {
+          "emptyTitle": "لا توجد تعديلات مالية",
+          "emptyDescription": "التعديلات المرتبطة بالاتفاق المالي تظهر هنا.",
+          "description": "تعديلات الاتفاق المالي وتأثيرها على المبلغ.",
+          "columns": {
+            "date": "التاريخ"
+          }
+        },
+        "ledger": {
+          "emptyTitle": "لا توجد أحداث مالية مسجلة بعد",
+          "emptyDescription": "سيُعرض هنا السجل الزمني للحركات المالية عند توفر البيانات."
         }
       },
       "collectionWorkflow": {
@@ -3926,6 +4017,7 @@
       "backToFeePlans": "العودة إلى خطط الرسوم",
       "backToStudentFees": "العودة إلى المستحقات",
       "backToCollections": "العودة إلى التحصيلات",
+      "receiptNumber": "رقم الإيصال",
       "billingAccounts": {
         "hubTitle": "حسابات الدافعين",
         "hubDesc": "ملخص موحد لمستحقات الأسرة والتحصيلات والإيصالات.",

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ApiErrorView, LoadingState } from '@/components/states/states';
@@ -20,10 +20,15 @@ import {
 import {
   buildAvailableStudent360Tabs,
   buildStudent360TabHref,
+  isLegacyFinancialAgreementTab,
   parseStudent360Tab,
   student360PageTitleKey,
   type Student360TabId,
 } from '../utils/student-360-tabs';
+import {
+  LEGACY_FINANCE_AGREEMENT_SECTION,
+  parseStudentFinanceSubTab,
+} from '@/features/admin/student-finance/utils/student-finance-sub-tab';
 import { Student360Breadcrumb } from './student-360-breadcrumb';
 import { Student360Header } from './student-360-header';
 import { Student360QuickActions } from './student-360-quick-actions';
@@ -35,7 +40,6 @@ import { StudentEnrollmentTab } from './student-enrollment-tab';
 import { StudentGuardiansTab } from './student-guardians-tab';
 import { StudentDocumentsTab } from './student-documents-tab';
 import { StudentHealthTab } from './student-health-tab';
-import { StudentFinancialAgreementTab } from '@/features/admin/student-finance/components/student-financial-agreement-tab';
 import { StudentFinanceWorkspaceShell } from '@/features/admin/student-finance/components/student-finance-workspace-shell';
 import { StudentCreateForm } from './student-create-form';
 import { StudentForm } from './student-form';
@@ -48,7 +52,7 @@ import '@/features/admin/academic-setup/academic-setup-ui.css';
 
 function Student360TabPageHeader({ tab }: { tab: Student360TabId }) {
   const t = useT();
-  if (tab === 'documents' || tab === 'finance' || tab === 'financial-agreement') {
+  if (tab === 'documents' || tab === 'finance' || tab === 'overview') {
     return null;
   }
   return (
@@ -67,8 +71,6 @@ export function Student360Shell({ studentId }: { studentId: string }) {
   const state = useStudentDetails(studentId);
   const overviewState = useStudentOverview(studentId, Boolean(state.data));
   const [editing, setEditing] = useState(false);
-  const stickySentinelRef = useRef<HTMLDivElement>(null);
-  const stickyTopRef = useRef<HTMLDivElement>(null);
 
   const details = state.data;
   const caps = details ? resolveStudentCapabilities(details.capabilities, user) : null;
@@ -91,10 +93,23 @@ export function Student360Shell({ studentId }: { studentId: string }) {
 
   useEffect(() => {
     if (!details) return;
+    if (isLegacyFinancialAgreementTab(tabParam) && showFinance) {
+      const sectionParam = searchParams.get('section');
+      const financeSubTab = parseStudentFinanceSubTab(
+        searchParams.get('financeSubTab') ??
+          (sectionParam === LEGACY_FINANCE_AGREEMENT_SECTION ? 'agreements' : null),
+      );
+      const target =
+        financeSubTab === 'overview'
+          ? `/admin/students/${studentId}?tab=finance`
+          : `/admin/students/${studentId}?tab=finance&financeSubTab=${financeSubTab}`;
+      router.replace(target, { scroll: false });
+      return;
+    }
     if (tabParam && tabParam !== tab) {
       router.replace(buildStudent360TabHref(studentId, tab), { scroll: false });
     }
-  }, [tabParam, tab, studentId, router, details]);
+  }, [tabParam, tab, studentId, router, details, showFinance, searchParams]);
 
   useEffect(() => {
     if (!details) return;
@@ -102,40 +117,6 @@ export function Student360Shell({ studentId }: { studentId: string }) {
     const brand = t('admin.student360.documentTitle.brand');
     document.title = `${tabTitle} — ${studentName} — ${brand}`;
   }, [tab, studentName, t, details]);
-
-  useEffect(() => {
-    const sentinel = stickySentinelRef.current;
-    const sticky = stickyTopRef.current;
-    if (!sentinel || !sticky) return;
-
-    let rafId = 0;
-    let isCompact = sticky.classList.contains('student-360-sticky-top--compact');
-    const topbarH =
-      getComputedStyle(document.documentElement).getPropertyValue('--app-topbar-height').trim() ||
-      getComputedStyle(document.documentElement).getPropertyValue('--topbar-h').trim() ||
-      '60px';
-
-    const applyCompact = (nextCompact: boolean) => {
-      if (nextCompact === isCompact) return;
-      isCompact = nextCompact;
-      sticky.classList.toggle('student-360-sticky-top--compact', nextCompact);
-    };
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        const nextCompact = !entry.isIntersecting;
-        cancelAnimationFrame(rafId);
-        rafId = requestAnimationFrame(() => applyCompact(nextCompact));
-      },
-      { rootMargin: `-${topbarH} 0px 0px 0px`, threshold: 0 },
-    );
-
-    observer.observe(sentinel);
-    return () => {
-      cancelAnimationFrame(rafId);
-      observer.disconnect();
-    };
-  }, [details]);
 
   useEffect(() => {
     if (!setupMode || tab !== 'overview') return;
@@ -170,31 +151,29 @@ export function Student360Shell({ studentId }: { studentId: string }) {
         </Link>
       ) : null}
 
-      <div ref={stickySentinelRef} className="student-360-sticky-sentinel" aria-hidden="true" />
+      <Student360Header
+        details={resolvedDetails}
+        overview={overviewState.data}
+        overviewLoading={overviewState.loading && !overviewState.data}
+        actions={
+          !editing ? (
+            <Student360QuickActions
+              details={resolvedDetails}
+              caps={caps}
+              overview={overviewState.data}
+              archived={archived}
+              onEdit={() => setEditing(true)}
+              onOpenTab={(next) =>
+                router.push(buildStudent360TabHref(studentId, next), { scroll: false })
+              }
+              onArchiveSuccess={() => router.push('/admin/students')}
+            />
+          ) : null
+        }
+      />
 
-      <div ref={stickyTopRef} className="student-360-sticky-top">
-        <Student360Header
-          details={resolvedDetails}
-          overview={overviewState.data}
-          overviewLoading={overviewState.loading && !overviewState.data}
-          actions={
-            !editing ? (
-              <Student360QuickActions
-                details={resolvedDetails}
-                caps={caps}
-                overview={overviewState.data}
-                archived={archived}
-                onEdit={() => setEditing(true)}
-                onOpenTab={(next) =>
-                  router.push(buildStudent360TabHref(studentId, next), { scroll: false })
-                }
-                onArchiveSuccess={() => router.push('/admin/students')}
-              />
-            ) : null
-          }
-        />
-
-        {!editing ? (
+      {!editing ? (
+        <div className="student-360-tabs-sticky">
           <Student360TabBar
             studentId={studentId}
             activeTab={tab}
@@ -202,8 +181,8 @@ export function Student360Shell({ studentId }: { studentId: string }) {
             ariaLabel={t('admin.student360.tabsAria')}
             indicators={tabIndicators}
           />
-        ) : null}
-      </div>
+        </div>
+      ) : null}
 
       {editing ? (
         <StudentForm
@@ -233,9 +212,18 @@ export function Student360Shell({ studentId }: { studentId: string }) {
                 showHealth={showHealth}
                 showFinance={showFinance}
                 setupMode={setupMode}
-                onOpenTab={(next) =>
-                  router.push(buildStudent360TabHref(studentId, next), { scroll: false })
-                }
+                onOpenTab={(next, options) => {
+                  if (options?.financeSubTab) {
+                    const base = `/admin/students/${studentId}?tab=finance`;
+                    const href =
+                      options.financeSubTab === 'overview'
+                        ? base
+                        : `${base}&financeSubTab=${options.financeSubTab}`;
+                    router.push(href, { scroll: false });
+                    return;
+                  }
+                  router.push(buildStudent360TabHref(studentId, next), { scroll: false });
+                }}
                 onEditProfile={() => setEditing(true)}
                 onAccountChanged={state.reload}
               />
@@ -252,17 +240,6 @@ export function Student360Shell({ studentId }: { studentId: string }) {
                 details={resolvedDetails}
                 canManageGuardians={caps.can_manage_guardians}
                 onChanged={state.reload}
-              />
-            )}
-            {tab === 'financial-agreement' && showFinance && (
-              <StudentFinancialAgreementTab
-                studentId={s.id}
-                details={resolvedDetails}
-                capabilities={caps}
-                onChanged={state.reload}
-                onOpenGuardians={() =>
-                  router.push(buildStudent360TabHref(studentId, 'guardians'), { scroll: false })
-                }
               />
             )}
             {tab === 'finance' && showFinance && (

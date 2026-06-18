@@ -5,7 +5,10 @@ import {
   normalizeStudentFinanceSummaryResponse,
 } from './normalize-student-finance';
 import { formatFinanceCurrency } from './student-finance-format';
-import { resolveFinanceOverviewStatus } from './student-finance-status-summary';
+import {
+  resolveFinanceOverviewStatus,
+  resolveSpecialAgreementOverviewStatus,
+} from './student-finance-status-summary';
 import {
   canAssignStudentFees,
   canCollectStudentPayments,
@@ -123,6 +126,66 @@ describe('resolveFinanceOverviewStatus', () => {
     );
     expect(status.actionTab).toBe('finance');
     expect(status.status).toBe('admin.student360.statusSummary.financeHasBalance');
+  });
+
+  it('prefers authoritative overdue from finance metrics', () => {
+    const status = resolveFinanceOverviewStatus(
+      {
+        currency: { name: 'MAD', symbol: 'DH' },
+        total_assessed: 22500,
+        total_discount: 0,
+        total_paid: 0,
+        total_outstanding: 22500,
+        total_overdue: 1500,
+        next_due_date: '2026-06-17',
+      },
+      t,
+      {
+        currency: 'MAD',
+        annual_total: 22500,
+        due_to_date: 22500,
+        paid: 0,
+        paid_confirmed: 0,
+        pending_cheque: 1500,
+        unconfirmed_coverage: 1500,
+        covered_total: 0,
+        remaining: 22500,
+        remaining_actual: 24000,
+        remaining_after_pending: 22500,
+        overdue: 0,
+        upcoming: 0,
+        future_not_due: 0,
+        next_installment_amount: null,
+        next_installment_date: null,
+        next_installment_fee_name: null,
+        next_installment_period: null,
+        next_installment_display_label: null,
+        next_installment_state: null,
+        next_installment_pending_cheque: null,
+        has_special_agreement: false,
+        fees_count: 1,
+        installments_count: 1,
+        has_pending_cheque: true,
+        cheque_pending_total: 1500,
+        cheque_pending_allocated: 1500,
+        cheque_pending_unallocated: 0,
+      },
+    );
+    expect(status.status).toBe('admin.student360.statusSummary.financePendingCheque');
+    expect(status.tone).toBe('warn');
+  });
+});
+
+describe('resolveSpecialAgreementOverviewStatus', () => {
+  const t = (key: string) => key;
+
+  it('marks cancelled agreements as inactive instead of missing', () => {
+    const status = resolveSpecialAgreementOverviewStatus(
+      { id: 12, state: 'cancelled', net_amount: 1000 },
+      t,
+    );
+    expect(status.status).toBe('admin.student360.statusSummary.noActiveFinancialAgreement');
+    expect(status.tone).toBe('warn');
   });
 });
 

@@ -36,6 +36,38 @@ export function resolveAgreementStateLabel(t: (key: string) => string, state: st
   return translated === key ? state : translated;
 }
 
+export function resolveAdjustmentTypeLabel(
+  t: (key: string) => string,
+  adjustmentType: string | null | undefined,
+): string {
+  if (!adjustmentType?.trim()) {
+    return t('admin.student360.financialAgreement.adjustments.types.unknown');
+  }
+  const slug = normalizeReferenceValue(adjustmentType);
+  const key = `admin.student360.financialAgreement.adjustments.types.${slug}`;
+  const translated = t(key);
+  return translated === key
+    ? t('admin.student360.financialAgreement.adjustments.types.unknown')
+    : translated;
+}
+
+export function resolveAdjustmentPolicyLabel(
+  t: (key: string) => string,
+  policy: string | null | undefined,
+): string {
+  if (!policy?.trim()) return t('common.dash');
+  const slug = normalizeReferenceValue(policy);
+  const key = `admin.student360.financialAgreement.adjustments.policies.${slug}`;
+  const translated = t(key);
+  return translated === key ? policy : translated;
+}
+
+export function isInactiveAgreementState(state: string | null | undefined): boolean {
+  if (!state) return false;
+  const normalized = normalizeReferenceValue(state);
+  return ['cancelled', 'terminated', 'completed'].includes(normalized);
+}
+
 export function agreementStateTone(
   state: string,
 ): 'green' | 'amber' | 'red' | 'slate' | 'blue' {
@@ -64,6 +96,7 @@ export function paymentStatusTone(
     case 'paid':
       return 'green';
     case 'partially_paid':
+    case 'pending_cheque':
       return 'amber';
     case 'unpaid':
       return 'red';

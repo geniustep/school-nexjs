@@ -16,6 +16,12 @@ import type {
 } from '@/types/student-overview';
 import type { StudentCapabilities } from '@/types/student-360';
 import type { StudentFinanceCurrency } from '@/types/student-finance';
+import {
+  CONSENT_FLAG_KEYS,
+  consentFlagState,
+  normalizeConsentFlag,
+  type StudentConsentFlagKey,
+} from './student-consent-flags';
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === 'object' ? (value as Record<string, unknown>) : null;
@@ -108,24 +114,48 @@ function normalizeDocumentsSummary(raw: unknown): StudentOverviewDocumentsSummar
   }));
 }
 
-function readConsentStatus(value: unknown): string | null {
+function readLegacyConsentStatus(value: unknown): string | null {
   if (typeof value === 'string') return value.trim() || null;
   const record = asRecord(value);
   if (!record) return null;
   return readString(record.status) ?? readString(record.value) ?? readString(record.label);
 }
 
+function resolveConsentFlag(
+  record: Record<string, unknown>,
+  key: StudentConsentFlagKey,
+): ReturnType<typeof normalizeConsentFlag> {
+  const flagsRecord = asRecord(record.important_flags);
+  const fromFlags = flagsRecord ? normalizeConsentFlag(flagsRecord[key]) : null;
+  if (fromFlags) return fromFlags;
+
+  const legacy = readLegacyConsentStatus(record[key]);
+  if (legacy != null) return normalizeConsentFlag(legacy);
+
+  return null;
+}
+
 function normalizeConsentsSummary(raw: unknown): StudentOverviewConsentsSummary | null {
-  return normalizeAvailableSection(raw, (record) => ({
-    available: record.available !== false,
-    can_view: record.can_view === true,
-    trip_participation: readConsentStatus(record.trip_participation),
-    photo_publish: readConsentStatus(record.photo_publish),
-    social_media_publish: readConsentStatus(record.social_media_publish),
-    emergency_treatment: readConsentStatus(record.emergency_treatment),
-    school_transport: readConsentStatus(record.school_transport),
-    pickup_authorization: readConsentStatus(record.pickup_authorization),
-  }));
+  return normalizeAvailableSection(raw, (record) => {
+    const important_flags = Object.fromEntries(
+      CONSENT_FLAG_KEYS.map((key) => [key, resolveConsentFlag(record, key)]),
+    ) as StudentOverviewConsentsSummary['important_flags'];
+
+    const flat = (key: StudentConsentFlagKey) => consentFlagState(important_flags?.[key] ?? null);
+
+    return {
+      available: record.available !== false,
+      can_view: record.can_view === true,
+      can_manage: record.can_manage === true,
+      important_flags,
+      trip_participation: flat('trip_participation'),
+      photo_publish: flat('photo_publish'),
+      social_media_publish: flat('social_media_publish'),
+      emergency_treatment: flat('emergency_treatment'),
+      school_transport: flat('school_transport'),
+      pickup_authorization: flat('pickup_authorization'),
+    };
+  });
 }
 
 function normalizeAttendanceSummary(raw: unknown): StudentOverviewAttendanceSummary | null {

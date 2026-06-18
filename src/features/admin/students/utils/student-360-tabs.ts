@@ -3,7 +3,6 @@ export const STUDENT_360_TAB_ORDER = [
   'overview',
   'enrollment',
   'guardians',
-  'financial-agreement',
   'finance',
   'health',
   'documents',
@@ -11,10 +10,17 @@ export const STUDENT_360_TAB_ORDER = [
 
 export type Student360TabId = (typeof STUDENT_360_TAB_ORDER)[number];
 
+/** Removed main tab — kept for legacy URL redirects into finance → agreements. */
+export const LEGACY_STUDENT_360_FINANCIAL_AGREEMENT_TAB = 'financial-agreement';
+
 const TAB_SET = new Set<string>(STUDENT_360_TAB_ORDER);
 
 export function isStudent360TabId(value: string | null | undefined): value is Student360TabId {
   return !!value && TAB_SET.has(value);
+}
+
+export function isLegacyFinancialAgreementTab(value: string | null | undefined): boolean {
+  return value === LEGACY_STUDENT_360_FINANCIAL_AGREEMENT_TAB;
 }
 
 /** Resolve tab from URL; invalid or unavailable values fall back to overview. */
@@ -53,7 +59,7 @@ export function buildAvailableStudent360Tabs(options: {
   showDocuments: boolean;
 }): Student360TabId[] {
   return STUDENT_360_TAB_ORDER.filter((tab) => {
-    if (tab === 'finance' || tab === 'financial-agreement') return options.showFinance;
+    if (tab === 'finance') return options.showFinance;
     if (tab === 'health') return options.showHealth;
     if (tab === 'documents') return options.showDocuments;
     return true;

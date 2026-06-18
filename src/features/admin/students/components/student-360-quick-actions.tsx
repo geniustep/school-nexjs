@@ -95,28 +95,13 @@ export function Student360QuickActions({
       onClick: () => onOpenTab('health'),
     });
   }
-  if (caps.can_view_finance) {
-    secondaryActions.push({
-      key: 'agreement',
-      label: t('admin.student360.quickActions.financialAgreement'),
-      onClick: () => onOpenTab('financial-agreement'),
-    });
-    if (caps.can_collect_payments) {
-      secondaryActions.push({
-        key: 'collection',
-        label: t('admin.student360.quickActions.recordCollection'),
-        onClick: () => onOpenTab('finance'),
-      });
-    }
-  }
-
   return (
     <div className="student-360-quick-actions" ref={rootRef}>
       <button type="button" className="btn btn--primary btn--sm" onClick={onEdit}>
         {t('admin.student360.quickActions.editProfile')}
       </button>
 
-      {secondaryActions.slice(0, 2).map((action) => (
+      {secondaryActions.slice(0, 1).map((action) => (
         <button
           key={action.key}
           type="button"
@@ -140,7 +125,7 @@ export function Student360QuickActions({
         </button>
         {menuOpen ? (
           <div className="student-360-quick-actions__menu" role="menu">
-            {secondaryActions.slice(2).map((action) => (
+            {secondaryActions.slice(1).map((action) => (
               <button
                 key={action.key}
                 type="button"

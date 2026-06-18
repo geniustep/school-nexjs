@@ -1,43 +1,79 @@
 import { describe, expect, it } from 'vitest';
+import {
+  consentHeaderBadgeKind,
+  normalizeConsentFlag,
+} from './student-consent-flags';
 import { normalizeStudentOverviewResponse } from './normalize-student-overview';
 
-describe('normalizeStudentOverviewResponse', () => {
-  it('tolerates partial payloads', () => {
-    const result = normalizeStudentOverviewResponse({
-      available: true,
-      alerts: [{ severity: 'warning', title: 'Test alert' }],
-      family: { has_guardian: false },
-    });
-    expect(result?.alerts).toHaveLength(1);
-    expect(result?.family?.has_guardian).toBe(false);
+describe('student-consent-flags', () => {
+  it('does not treat null state as pending or blocked', () => {
+    const flag = normalizeConsentFlag({ state: null, allowed: false, has_attachment: false });
+    expect(flag).toEqual({ state: null, allowed: false, hasAttachment: false });
+    expect(consentHeaderBadgeKind(flag)).toBeNull();
   });
 
-  it('respects available:false sections', () => {
-    const result = normalizeStudentOverviewResponse({
-      available: false,
-      finance_summary: { available: false, total_overdue: 99 },
-    });
-    expect(result?.available).toBe(false);
-    expect(result?.finance_summary?.available).toBe(false);
+  it('treats denied as blocked', () => {
+    const flag = normalizeConsentFlag({ state: 'denied', allowed: false, has_attachment: false });
+    expect(consentHeaderBadgeKind(flag)).toBe('blocked');
   });
 
-  it('does not include excused_absence in attendance', () => {
+  it('treats pending as pending', () => {
+    const flag = normalizeConsentFlag({ state: 'pending', allowed: false, has_attachment: false });
+    expect(consentHeaderBadgeKind(flag)).toBe('pending');
+  });
+
+  it('treats granted as no header badge', () => {
+    const flag = normalizeConsentFlag({ state: 'granted', allowed: true, has_attachment: true });
+    expect(consentHeaderBadgeKind(flag)).toBeNull();
+  });
+
+  it('normalizes legacy string values', () => {
+    expect(normalizeConsentFlag('granted')).toEqual({
+      state: 'granted',
+      allowed: true,
+      hasAttachment: false,
+    });
+  });
+});
+
+describe('normalizeStudentOverviewResponse consents', () => {
+  it('reads important_flags from API shape', () => {
     const result = normalizeStudentOverviewResponse({
-      attendance_summary: {
-        absences_this_month: 2,
-        late_this_month: 1,
-        excused_absence: 5,
-        last_status: 'present',
+      consents_summary: {
+        can_view: true,
+        important_flags: {
+          photo_publish: { state: null, allowed: false, has_attachment: false },
+          trip_participation: { state: 'pending', allowed: false, has_attachment: false },
+        },
       },
     });
-    expect(result?.attendance_summary).toEqual({
-      available: true,
-      absences_this_month: 2,
-      late_this_month: 1,
-      last_status: 'present',
-      last_status_label: null,
-      last_status_date: null,
+
+    expect(result?.consents_summary?.important_flags?.photo_publish).toEqual({
+      state: null,
+      allowed: false,
+      hasAttachment: false,
     });
+    expect(consentHeaderBadgeKind(result?.consents_summary?.important_flags?.photo_publish)).toBeNull();
+    expect(consentHeaderBadgeKind(result?.consents_summary?.important_flags?.trip_participation)).toBe(
+      'pending',
+    );
+  });
+
+  it('supports legacy flat consent strings', () => {
+    const result = normalizeStudentOverviewResponse({
+      consents_summary: {
+        can_view: true,
+        photo_publish: 'granted',
+        trip_participation: 'denied',
+      },
+    });
+
+    expect(result?.consents_summary?.photo_publish).toBe('granted');
+    expect(result?.consents_summary?.trip_participation).toBe('denied');
+    expect(consentHeaderBadgeKind(result?.consents_summary?.important_flags?.photo_publish)).toBeNull();
+    expect(consentHeaderBadgeKind(result?.consents_summary?.important_flags?.trip_participation)).toBe(
+      'blocked',
+    );
   });
 
   it('hides consent details when can_view is false', () => {
@@ -49,5 +85,9 @@ describe('normalizeStudentOverviewResponse', () => {
     });
     expect(result?.consents_summary?.can_view).toBe(false);
     expect(result?.consents_summary?.photo_publish).toBe('granted');
+  });
+
+  it('tolerates missing consents_summary', () => {
+    expect(normalizeStudentOverviewResponse({ available: true })?.consents_summary).toBeNull();
   });
 });

@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ApiErrorView } from '@/components/states/states';
 import { StudentCollectionDrawer } from '@/features/admin/finance/student-collection-drawer';
 import { useT } from '@/features/i18n/locale-context';
@@ -24,6 +24,7 @@ import { Student360SectionHeader } from '@/features/admin/students/components/st
 import { useStudentFinanceTabState } from '../hooks/use-student-finance-tab-state';
 import { useStudentFinancialOverview } from '../hooks/use-student-financial-overview';
 import {
+  LEGACY_FINANCE_AGREEMENT_SECTION,
   parseStudentFinanceSubTab,
   studentFinanceSubTabLabelKey,
   STUDENT_FINANCE_SUB_TABS,
@@ -33,12 +34,23 @@ import {
   resolveFinanceTabLoadPhase,
   shouldShowFinanceEmptyState,
 } from '../utils/finance-tab-loading';
+import { resolveStudentFinanceOverviewMetrics } from '../utils/resolve-student-finance-overview';
+import { StudentFinanceExecutiveSummary } from './student-finance-executive-summary';
 import { StudentFinanceOverviewPanel } from './student-finance-overview-panel';
 import { StudentFinanceFeesPanel } from './student-finance-fees-panel';
 import { StudentFinanceSchedulePanel } from './student-finance-schedule-panel';
 import { StudentFinanceCollectionsPanel } from './student-finance-collections-panel';
+import { StudentFinanceChequesPanel } from './student-finance-cheques-panel';
+import { StudentFinanceAdjustmentsPanel } from './student-finance-adjustments-panel';
+import { StudentFinanceLedgerPanel } from './student-finance-ledger-panel';
 import { StudentFinancialAgreementTab } from './student-financial-agreement-tab';
 import { subscribeFinanceRefresh } from '@/lib/finance/finance-refresh-bus';
+
+function resolveInitialSubTab(searchParams: URLSearchParams): StudentFinanceSubTab {
+  const section = searchParams.get('section');
+  if (section === LEGACY_FINANCE_AGREEMENT_SECTION) return 'agreements';
+  return parseStudentFinanceSubTab(searchParams.get('financeSubTab'));
+}
 
 export function StudentFinanceWorkspaceShell({
   studentId,
@@ -52,8 +64,9 @@ export function StudentFinanceWorkspaceShell({
   onChanged?: () => void;
 }) {
   const t = useT();
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const initialSubTab = parseStudentFinanceSubTab(searchParams.get('financeSubTab'));
+  const initialSubTab = resolveInitialSubTab(searchParams);
   const [subTab, setSubTab] = useState<StudentFinanceSubTab>(initialSubTab);
   const [showCollectionDrawer, setShowCollectionDrawer] = useState(false);
   const [financeRefreshSignal, setFinanceRefreshSignal] = useState(0);
@@ -86,6 +99,32 @@ export function StudentFinanceWorkspaceShell({
   const financeCaps = workspace?.capabilities as StudentFinanceCapabilities | undefined;
   const canViewPayments = canViewStudentPayments(capabilities, financeCaps);
   const canCollect = canCollectStudentPayments(capabilities, financeCaps);
+
+  const overviewMetrics = useMemo(
+    () => resolveStudentFinanceOverviewMetrics(financialOverviewState.data),
+    [financialOverviewState.data],
+  );
+
+  const syncSubTabToUrl = useCallback(
+    (next: StudentFinanceSubTab) => {
+      setSubTab(next);
+      const base = `/admin/students/${studentId}?tab=finance`;
+      const href = next === 'overview' ? base : `${base}&financeSubTab=${next}`;
+      router.replace(href, { scroll: false });
+    },
+    [router, studentId],
+  );
+
+  useEffect(() => {
+    const fromUrl = resolveInitialSubTab(searchParams);
+    setSubTab((current) => (current === fromUrl ? current : fromUrl));
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (searchParams.get('collect') === '1' && canCollect) {
+      setShowCollectionDrawer(true);
+    }
+  }, [searchParams, canCollect]);
 
   const refreshFinanceData = useCallback(() => {
     setFinanceRefreshSignal((n) => n + 1);
@@ -121,6 +160,51 @@ export function StudentFinanceWorkspaceShell({
     emptyFinance,
   });
 
+  const contextActions = useMemo(() => {
+    const actions: ReactNode[] = [];
+
+    if (subTab !== 'schedule' && subTab !== 'agreements') {
+      actions.push(
+        <button
+          key="schedule"
+          type="button"
+          className="btn btn--ghost btn--sm"
+          onClick={() => syncSubTabToUrl('schedule')}
+        >
+          {t('admin.student360.financeWorkspace.openSchedule')}
+        </button>,
+      );
+    }
+
+    if (subTab !== 'agreements') {
+      actions.push(
+        <button
+          key="agreements"
+          type="button"
+          className="btn btn--ghost btn--sm"
+          onClick={() => syncSubTabToUrl('agreements')}
+        >
+          {t('admin.student360.financeWorkspace.actions.manageAgreement')}
+        </button>,
+      );
+    }
+
+    if (canCollect && subTab !== 'agreements' && subTab !== 'ledger') {
+      actions.push(
+        <button
+          key="collect"
+          type="button"
+          className="btn btn--primary btn--sm"
+          onClick={() => setShowCollectionDrawer(true)}
+        >
+          {t('admin.student360.financeWorkspace.actions.recordPayment')}
+        </button>,
+      );
+    }
+
+    return actions;
+  }, [subTab, canCollect, syncSubTabToUrl, t]);
+
   const headerActions = (
     <div className="student-finance-header-actions">
       {refState.loading && !academicYears.length ? (
@@ -151,15 +235,7 @@ export function StudentFinanceWorkspaceShell({
             {t('admin.finance.billingAccounts.openPayerAccount')}
           </Link>
         ) : null}
-        {canCollect ? (
-          <button
-            type="button"
-            className="btn btn--primary btn--sm"
-            onClick={() => setShowCollectionDrawer(true)}
-          >
-            {t('admin.finance.collectionWorkflow.recordPayment')}
-          </button>
-        ) : null}
+        {contextActions}
       </div>
     </div>
   );
@@ -223,6 +299,13 @@ export function StudentFinanceWorkspaceShell({
     return <ApiErrorView error={workspaceState.error} onRetry={workspaceState.reload} />;
   }
 
+  const sectionsWithoutEmptyGate: StudentFinanceSubTab[] = [
+    'agreements',
+    'cheques',
+    'adjustments',
+    'ledger',
+  ];
+
   return (
     <div
       className={`student-finance-tab student-360-tab-panel${isRefreshing ? ' student-360-tab-panel--refreshing' : ''}`}
@@ -234,6 +317,8 @@ export function StudentFinanceWorkspaceShell({
       />
       {isRefreshing ? <StudentInlineLoading /> : null}
 
+      <StudentFinanceExecutiveSummary metrics={overviewMetrics} />
+
       <nav className="student-finance-subtabs" aria-label={t('admin.student360.financeWorkspace.tabsAria')}>
         {STUDENT_FINANCE_SUB_TABS.map((tab) => (
           <button
@@ -242,14 +327,14 @@ export function StudentFinanceWorkspaceShell({
             role="tab"
             aria-selected={subTab === tab}
             className={`student-finance-subtabs__tab${subTab === tab ? ' is-active' : ''}`}
-            onClick={() => setSubTab(tab)}
+            onClick={() => syncSubTabToUrl(tab)}
           >
             {t(studentFinanceSubTabLabelKey(tab))}
           </button>
         ))}
       </nav>
 
-      {showFinanceEmpty && subTab !== 'agreements' ? (
+      {showFinanceEmpty && !sectionsWithoutEmptyGate.includes(subTab) ? (
         <Student360CompactEmpty
           title={t('admin.student360.financeOps.emptyTitle')}
           description={t('admin.student360.financeOps.emptyDescription')}
@@ -258,8 +343,6 @@ export function StudentFinanceWorkspaceShell({
         <>
           {subTab === 'overview' ? <StudentFinanceOverviewPanel {...sharedPanelProps} /> : null}
           {subTab === 'fees' ? <StudentFinanceFeesPanel {...sharedPanelProps} /> : null}
-          {subTab === 'schedule' ? <StudentFinanceSchedulePanel {...sharedPanelProps} /> : null}
-          {subTab === 'collections' ? <StudentFinanceCollectionsPanel {...sharedPanelProps} /> : null}
           {subTab === 'agreements' ? (
             <StudentFinancialAgreementTab
               studentId={studentId}
@@ -270,6 +353,11 @@ export function StudentFinanceWorkspaceShell({
               embedded
             />
           ) : null}
+          {subTab === 'schedule' ? <StudentFinanceSchedulePanel {...sharedPanelProps} /> : null}
+          {subTab === 'collections' ? <StudentFinanceCollectionsPanel {...sharedPanelProps} /> : null}
+          {subTab === 'cheques' ? <StudentFinanceChequesPanel {...sharedPanelProps} /> : null}
+          {subTab === 'adjustments' ? <StudentFinanceAdjustmentsPanel {...sharedPanelProps} /> : null}
+          {subTab === 'ledger' ? <StudentFinanceLedgerPanel /> : null}
         </>
       )}
 

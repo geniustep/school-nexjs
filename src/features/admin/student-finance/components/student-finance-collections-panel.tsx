@@ -6,13 +6,13 @@ import { DataTable, type Column } from '@/components/tables/data-table';
 import { Card } from '@/components/ui/primitives';
 import { CollectionDetailDrawer } from '@/features/admin/finance/collection-detail-drawer';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
-import { FinanceStatusBadge } from '@/features/admin/finance/finance-status-badge';
+import { CollectionRecordStatus } from './collection-record-status';
 import { StudentReceiptsSection } from '@/features/admin/student-finance/components/student-receipts-section';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { resolveCollectionPayerLabel } from '@/features/admin/finance/collection-payer-label';
 import { isChequePayment } from '@/lib/utils/cheque';
-import { collectionState, paymentMethodLabel } from '@/lib/utils/finance';
+import { paymentMethodLabel } from '@/lib/utils/finance';
 import type { PaymentCollection } from '@/types/finance';
 import { EmptyState } from '@/components/states/states';
 import { Student360SectionHeader } from '@/features/admin/students/components/student-360-section-header';
@@ -83,7 +83,7 @@ export function StudentFinanceCollectionsPanel({
       {
         key: 'state',
         header: t('admin.student360.financeOps.collections.state'),
-        render: (row) => <FinanceStatusBadge state={collectionState(row)} />,
+        render: (row) => <CollectionRecordStatus row={row} />,
       },
     ],
     [t, formatDate, currency],

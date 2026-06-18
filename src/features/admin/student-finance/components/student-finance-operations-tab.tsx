@@ -447,7 +447,7 @@ export function StudentFinanceOperationsTab({
           </Link>
         ) : null}
         <Link
-          href={`/admin/students/${studentId}?tab=financial-agreement`}
+          href={`/admin/students/${studentId}?tab=finance&financeSubTab=agreements`}
           className="btn btn--ghost btn--sm"
         >
           {t('admin.student360.financeOps.openAgreement')}

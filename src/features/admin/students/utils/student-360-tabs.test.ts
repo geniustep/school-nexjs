@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
   STUDENT_360_TAB_ORDER,
+  LEGACY_STUDENT_360_FINANCIAL_AGREEMENT_TAB,
   buildAvailableStudent360Tabs,
   buildStudent360TabHref,
+  isLegacyFinancialAgreementTab,
   isStudent360TabId,
   parseStudent360Tab,
 } from './student-360-tabs';
@@ -13,7 +15,6 @@ describe('STUDENT_360_TAB_ORDER', () => {
       'overview',
       'enrollment',
       'guardians',
-      'financial-agreement',
       'finance',
       'health',
       'documents',
@@ -44,8 +45,9 @@ describe('parseStudent360Tab', () => {
     expect(parseStudent360Tab('finance', available)).toBe('finance');
   });
 
-  it('activates financial-agreement from URL', () => {
-    expect(parseStudent360Tab('financial-agreement', available)).toBe('financial-agreement');
+  it('falls back legacy financial-agreement tab to overview for parsing', () => {
+    expect(parseStudent360Tab(LEGACY_STUDENT_360_FINANCIAL_AGREEMENT_TAB, available)).toBe('overview');
+    expect(isLegacyFinancialAgreementTab(LEGACY_STUDENT_360_FINANCIAL_AGREEMENT_TAB)).toBe(true);
   });
 
   it('activates health from URL', () => {
@@ -77,9 +79,6 @@ describe('buildStudent360TabHref', () => {
 
   it('adds tab query for finance and documents', () => {
     expect(buildStudent360TabHref(727, 'finance')).toBe('/admin/students/727?tab=finance');
-    expect(buildStudent360TabHref(727, 'financial-agreement')).toBe(
-      '/admin/students/727?tab=financial-agreement',
-    );
     expect(buildStudent360TabHref(727, 'documents')).toBe('/admin/students/727?tab=documents');
   });
 });
@@ -87,6 +86,7 @@ describe('buildStudent360TabHref', () => {
 describe('isStudent360TabId', () => {
   it('recognizes known tab ids only', () => {
     expect(isStudent360TabId('health')).toBe(true);
+    expect(isStudent360TabId('financial-agreement')).toBe(false);
     expect(isStudent360TabId('unknown')).toBe(false);
   });
 });
@@ -99,6 +99,6 @@ describe('buildAvailableStudent360Tabs', () => {
         showHealth: false,
         showDocuments: true,
       }),
-    ).toEqual(['overview', 'enrollment', 'guardians', 'financial-agreement', 'finance', 'documents']);
+    ).toEqual(['overview', 'enrollment', 'guardians', 'finance', 'documents']);
   });
 });

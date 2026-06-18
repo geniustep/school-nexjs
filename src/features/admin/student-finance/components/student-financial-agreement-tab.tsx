@@ -43,6 +43,9 @@ import { formatPeriodRange } from '../utils/format-period';
 import { agreementLineCategoryDetails } from '../utils/service-category-details';
 import {
   hasAgreementData,
+  isInactiveAgreementState,
+  resolveAdjustmentPolicyLabel,
+  resolveAdjustmentTypeLabel,
   resolveReferenceLabel,
 } from '../utils/reference-labels';
 import { hasFinanceSummaryMetrics } from '../utils/normalize-student-finance-workspace';
@@ -604,6 +607,12 @@ export function StudentFinancialAgreementTab({
       ) : null}
       {isBackgroundRefreshing ? <StudentInlineLoading /> : null}
 
+      {isInactiveAgreementState(activeAgreement.state) ? (
+        <div className="student-finance-section student-finance-card-alert" role="alert">
+          <p>{t('admin.student360.financialAgreement.inactiveWarning')}</p>
+        </div>
+      ) : null}
+
       <Card className="student-finance-agreement-header card">
         <dl className="detail-list student-finance-agreement-meta">
           <div>
@@ -736,7 +745,7 @@ export function StudentFinancialAgreementTab({
               <tbody>
                 {activeAgreement.adjustments?.map((adj) => (
                   <tr key={adj.id}>
-                    <td>{t(`admin.student360.financialAgreement.adjustments.types.${adj.adjustment_type}`)}</td>
+                    <td>{resolveAdjustmentTypeLabel(t, adj.adjustment_type)}</td>
                     <td>
                       {adj.percentage != null ? (
                         <span dir="ltr">{adj.percentage}%</span>
@@ -746,9 +755,7 @@ export function StudentFinancialAgreementTab({
                     </td>
                     <td dir="auto">{adj.reason ?? t('common.dash')}</td>
                     <td>
-                      {adj.application_policy
-                        ? t(`admin.student360.financialAgreement.adjustments.policies.${adj.application_policy}`)
-                        : t('common.dash')}
+                      {resolveAdjustmentPolicyLabel(t, adj.application_policy)}
                     </td>
                     {activeAgreement.state === 'draft' ? (
                       <td>

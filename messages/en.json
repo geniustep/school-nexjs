@@ -2696,7 +2696,8 @@
         "actionAdd": "Add",
         "actionComplete": "Complete",
         "pendingCount": "{count} pending",
-        "allComplete": "Complete"
+        "allComplete": "Complete",
+        "allCompleteDetail": "Profile is ready — no pending actions right now."
       },
       "loading": {
         "refreshing": "Refreshing…",
@@ -2716,6 +2717,7 @@
         "guardian": "Guardian",
         "noGuardian": "No guardian",
         "guardiansCount": "{count} guardians",
+        "guardianLinked": "Linked",
         "viewGuardians": "View guardians",
         "contact": "Contact details",
         "noContact": "No contact details",
@@ -2747,8 +2749,10 @@
         "specialAgreement": "Special financial agreement",
         "noFinanceFees": "No fees",
         "financeHasOverdue": "Overdue balance",
+        "financePendingCheque": "Cheques pending clearance",
         "financeHasBalance": "Outstanding balance",
         "noSpecialAgreement": "No special agreement",
+        "noActiveFinancialAgreement": "No active financial agreement",
         "specialAgreementDraft": "Draft agreement",
         "specialAgreementApproved": "Approved agreement",
         "specialAgreementPending": "Agreement pending"
@@ -2760,8 +2764,10 @@
       },
       "overview": {
         "loading": "Loading summary…",
-        "emptyValue": "Not available",
+        "notProvided": "Not provided",
+        "emptyValue": "Not provided",
         "cardsTitle": "Overview",
+        "activityTitle": "Activity & follow-up",
         "unavailableTitle": "Summary unavailable",
         "unavailableDesc": "The consolidated summary is not available for this student yet. The sections below remain accessible.",
         "viewDocuments": "View documents",
@@ -2789,6 +2795,7 @@
         },
         "header": {
           "guardian": "Guardian",
+          "study": "Class & level",
           "externalPublishAllowed": "External photo publication allowed",
           "moreBadges": "+{count}"
         },
@@ -2796,7 +2803,12 @@
           "noGuardian": "No guardian",
           "missingDocs": "Missing documents",
           "photoConsent": "Photo not allowed",
+          "photoConsentPending": "Photo publish consent pending",
+          "photoConsentDenied": "Photo publish not allowed",
           "tripConsent": "Trip consent pending",
+          "tripConsentPending": "Trip consent pending",
+          "tripConsentDenied": "Trip consent not granted",
+          "consentsIncomplete": "Consents incomplete",
           "financeOverdue": "Finance overdue"
         },
         "cards": {
@@ -2821,6 +2833,10 @@
         },
         "consents": {
           "restricted": "Consents are not available with your current permissions.",
+          "awaitingDecision": "Awaiting decision",
+          "undecided": "Undecided",
+          "noDecisionsYet": "No consent decisions recorded yet",
+          "pendingSummary": "{count} consents awaiting decision",
           "trip_participation": "School trips",
           "photo_publish": "Photo publication",
           "social_media_publish": "Social media",
@@ -2838,7 +2854,8 @@
         "attendance": {
           "absencesMonth": "Absences this month",
           "lateMonth": "Late this month",
-          "lastStatus": "Last attendance"
+          "lastStatus": "Last attendance",
+          "noDataYet": "No attendance data recorded yet"
         },
         "finance": {
           "unavailable": "Financial data is not available for your profile.",
@@ -2850,7 +2867,8 @@
         "academic": {
           "openHomework": "Open homework",
           "upcomingExams": "Upcoming exams",
-          "lastResult": "Last result"
+          "lastResult": "Last result",
+          "noRecentData": "No recent academic data"
         }
       },
       "enrollmentEmptyDesc": "Create an enrollment to link the pupil to the academic year and class.",
@@ -2897,7 +2915,12 @@
         "family": "Family",
         "system": "System",
         "contact": "Contact & address",
-        "emergency": "Emergency contact"
+        "emergency": "Emergency contact",
+        "profileDetail": "Profile details"
+      },
+      "profile": {
+        "noContactData": "No contact details on file.",
+        "noEmergencyData": "No emergency contact on file."
       },
       "nameAr": "Arabic name",
       "nameLatin": "Latin name",
@@ -3346,6 +3369,7 @@
       "financialAgreement": {
         "pageTitle": "Special financial agreement",
         "pageDescription": "The special financial agreement is used for individual discounts, waivers, rescheduling, and exceptional terms. General fees come from the fee plan applied to the student.",
+        "inactiveWarning": "This agreement is inactive. Its installments are not collectible obligations unless the backend confirms otherwise.",
         "create": "Create financial agreement",
         "applyFeePlan": "Apply fee plan",
         "createManualAgreement": "Create manual agreement",
@@ -3404,7 +3428,8 @@
             "partial_waiver": "Partial waiver",
             "full_waiver": "Full waiver",
             "surcharge": "Surcharge",
-            "manual_adjustment": "Manual adjustment"
+            "manual_adjustment": "Manual adjustment",
+            "unknown": "Unspecified adjustment type"
           },
           "policies": {
             "reduce_total_only": "Reduce agreement total only",
@@ -3607,7 +3632,8 @@
         "paymentStatus": {
           "unpaid": "Unpaid",
           "partially_paid": "Partially paid",
-          "paid": "Paid"
+          "paid": "Paid",
+          "pending_cheque": "Pending clearance"
         },
         "timingStatus": {
           "hidden": "Hidden",
@@ -3750,24 +3776,50 @@
         "pageDescription": "Unified view of fees, payment schedule, collections, and special agreements.",
         "tabsAria": "Financial file tabs",
         "tabs": {
-          "overview": "Overview",
-          "fees": "Fees",
+          "overview": "Financial overview",
+          "fees": "Fees & services",
+          "agreements": "Financial agreement",
           "schedule": "Payment schedule",
-          "collections": "Collections",
-          "agreements": "Special agreements"
+          "collections": "Collections & receipts",
+          "cheques": "Cheques",
+          "adjustments": "Adjustments",
+          "ledger": "Financial ledger"
+        },
+        "actions": {
+          "recordPayment": "Record payment",
+          "manageAgreement": "Manage financial agreement"
+        },
+        "executive": {
+          "title": "Executive financial summary",
+          "netAssessed": "Net assessed",
+          "paidConfirmed": "Confirmed paid",
+          "unconfirmedCoverage": "Unconfirmed coverage",
+          "remainingActual": "Actual remaining",
+          "overdue": "Overdue",
+          "nextInstallment": "Next installment",
+          "pendingChequeAlert": "Cheques pending clearance are not counted as confirmed payment yet.",
+          "remainingAfterPendingHint": "Remaining after unconfirmed coverage:",
+          "chequePendingTotal": "Total cheques pending clearance",
+          "chequePendingAllocated": "Counted in unconfirmed coverage",
+          "chequePendingUnallocated": "Pending clearance, not yet allocated"
         },
         "metrics": {
           "annualTotal": "Annual fee total",
           "dueToDate": "Due to date",
           "paid": "Paid",
           "remaining": "Remaining",
+          "remainingActual": "Actual remaining",
+          "remainingAfterPending": "Remaining after unconfirmed coverage",
+          "unconfirmedCoverage": "Unconfirmed coverage",
+          "futureNotDue": "Future amounts not yet due",
           "overdue": "Overdue",
           "nextInstallment": "Next installment",
-          "upcoming": "Upcoming",
+          "nextInstallmentAmount": "Installment amount",
+          "upcoming": "Future amounts not yet due",
           "paidConfirmed": "Confirmed paid",
           "pendingCheque": "Cheques pending clearance",
           "coveredTotal": "Total coverage",
-          "coveredTotalHint": "Total coverage includes confirmed amounts and cheques pending clearance.",
+          "coveredTotalHint": "Cheques pending clearance are not included in confirmed paid.",
           "chequeSummary": "Cheque summary",
           "pendingCheques": "Cheques pending clearance",
           "settledCheques": "Cleared cheques",
@@ -3837,10 +3889,49 @@
           }
         },
         "collections": {
-          "description": "Collections and receipts.",
+          "description": "Confirmed collections and receipts.",
           "emptyTitle": "No collections.",
           "noCollectibleItems": "No collectible items.",
-          "pendingCheque": "Pending clearance"
+          "pendingCheque": "Pending clearance",
+          "recordState": "Record status",
+          "settlementState": "Cash settlement status",
+          "recordStates": {
+            "draft": "Draft",
+            "confirmed": "Receipt issued"
+          },
+          "settlement": {
+            "pending_cheque": "Pending clearance",
+            "cheque_cleared": "Cleared",
+            "cleared": "Cleared",
+            "settled": "Cleared",
+            "cheque_bounced": "Rejected",
+            "bounced": "Rejected",
+            "rejected": "Rejected",
+            "cancelled": "Cancelled"
+          }
+        },
+        "cheques": {
+          "summaryTitle": "Cheque summary",
+          "emptyTitle": "No cheques recorded",
+          "emptyDescription": "Cheques linked to this student will appear here by status.",
+          "groups": {
+            "pending": "Pending clearance",
+            "settled": "Cleared",
+            "rejected": "Rejected",
+            "cancelled": "Cancelled"
+          }
+        },
+        "adjustments": {
+          "emptyTitle": "No financial adjustments",
+          "emptyDescription": "Adjustments linked to the financial agreement appear here.",
+          "description": "Financial agreement adjustments and their impact.",
+          "columns": {
+            "date": "Date"
+          }
+        },
+        "ledger": {
+          "emptyTitle": "No financial events recorded yet",
+          "emptyDescription": "A chronological ledger will appear here when data is available."
         }
       },
       "collectionWorkflow": {
@@ -3898,6 +3989,7 @@
       "backToFeePlans": "Back to fee plans",
       "backToStudentFees": "Back to receivables",
       "backToCollections": "Back to collections",
+      "receiptNumber": "Receipt number",
       "billingAccounts": {
         "hubTitle": "Payer accounts",
         "hubDesc": "Unified summary of family dues, collections, and receipts.",

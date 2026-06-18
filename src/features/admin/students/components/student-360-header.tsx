@@ -10,23 +10,27 @@ import { Student360HeaderAvatar } from './student-360-header-avatar';
 import { isRelationshipActive } from '../utils/relationship-types';
 import type { AcademicClassOption, AcademicLevelOption, StudentDetailsData } from '@/types/student-360';
 import type { StudentOverviewData } from '@/types/student-overview';
+import { consentHeaderBadgeKind } from '../utils/student-consent-flags';
 
-const MAX_VISIBLE_BADGES = 3;
+const MAX_VISIBLE_ALERT_BADGES = 2;
 
 function hasBasicIdentityGap(details: StudentDetailsData): boolean {
   const s = details.student;
   return !s.date_of_birth || !s.first_name?.trim() || !s.last_name?.trim();
 }
 
-function isConsentPending(status: string | null | undefined): boolean {
-  if (!status) return true;
-  const normalized = status.toLowerCase();
-  return normalized === 'pending' || normalized === 'missing' || normalized === 'not_granted';
-}
-
-function isPhotoPublishBlocked(consents: StudentOverviewData['consents_summary']): boolean {
-  if (!consents || consents.can_view !== true) return false;
-  return isConsentPending(consents.photo_publish);
+function pushConsentHeaderBadge(
+  badges: { key: string; label: string; tone: 'amber' | 'red' | 'slate' }[],
+  key: string,
+  kind: ReturnType<typeof consentHeaderBadgeKind>,
+  labels: { pending: string; blocked: string },
+) {
+  if (!kind) return;
+  badges.push({
+    key,
+    label: labels[kind],
+    tone: kind === 'blocked' ? 'red' : 'amber',
+  });
 }
 
 function buildHeaderBadges(
@@ -64,19 +68,15 @@ function buildHeaderBadges(
   }
 
   const consents = overview?.consents_summary;
-  if (isPhotoPublishBlocked(consents)) {
-    badges.push({
-      key: 'photo-consent',
-      label: t('admin.student360.overview.badges.photoConsent'),
-      tone: 'amber',
+  if (consents?.can_view === true) {
+    const flags = consents.important_flags;
+    pushConsentHeaderBadge(badges, 'photo-consent', consentHeaderBadgeKind(flags?.photo_publish), {
+      pending: t('admin.student360.overview.badges.photoConsentPending'),
+      blocked: t('admin.student360.overview.badges.photoConsentDenied'),
     });
-  }
-
-  if (consents?.can_view === true && isConsentPending(consents.trip_participation)) {
-    badges.push({
-      key: 'trip-consent',
-      label: t('admin.student360.overview.badges.tripConsent'),
-      tone: 'amber',
+    pushConsentHeaderBadge(badges, 'trip-consent', consentHeaderBadgeKind(flags?.trip_participation), {
+      pending: t('admin.student360.overview.badges.tripConsentPending'),
+      blocked: t('admin.student360.overview.badges.tripConsentDenied'),
     });
   }
 
@@ -143,35 +143,43 @@ export function Student360Header({
 
   const photo = overview?.photo;
   const headerBadges = buildHeaderBadges(t, details, overview);
-  const visibleBadges = headerBadges.slice(0, MAX_VISIBLE_BADGES);
-  const hiddenBadgeCount = Math.max(0, headerBadges.length - MAX_VISIBLE_BADGES);
+  const visibleAlertBadges = headerBadges.slice(0, MAX_VISIBLE_ALERT_BADGES);
+  const hiddenBadgeCount = Math.max(0, headerBadges.length - MAX_VISIBLE_ALERT_BADGES);
   const showAvatarSkeleton = overviewLoading && !photo;
 
   const factItems = [
-    classLabel ? { label: t('nav.classes'), value: classLabel } : null,
-    levelLabel ? { label: t('nav.levels'), value: levelLabel } : null,
-    yearLabel ? { label: t('admin.academicYearId'), value: yearLabel } : null,
     schoolLabel ? { label: t('admin.finance.activeSchool'), value: schoolLabel } : null,
+    classLabel || levelLabel
+      ? {
+          label: t('admin.student360.overview.header.study'),
+          value: [classLabel, levelLabel].filter(Boolean).join(' · '),
+        }
+      : null,
+    yearLabel ? { label: t('admin.academicYearId'), value: yearLabel } : null,
     guardianLine
       ? { label: t('admin.student360.overview.header.guardian'), value: guardianLine }
+      : null,
+    enrollment?.state
+      ? { label: t('admin.student360.enrollmentState'), value: statusLabel(t, enrollment.state) }
       : null,
   ].filter(Boolean) as { label: string; value: string }[];
 
   return (
     <header className="student-360-header card">
-      <div className="student-360-header__main">
-        <div className="student-360-header__identity">
-          <div
-            className={`student-360-header__avatar-wrap${showAvatarSkeleton ? ' student-360-header__avatar-wrap--loading' : ''}`}
-          >
-            <Student360HeaderAvatar
-              photo={photo}
-              legacyImageUrl={s.image_url}
-              displayName={displayName}
-            />
-          </div>
-          <div className="student-360-header__info">
-            <div className="student-360-header__title-row">
+      <div className="student-360-header__row student-360-header__row--primary">
+        <div
+          className={`student-360-header__avatar-wrap${showAvatarSkeleton ? ' student-360-header__avatar-wrap--loading' : ''}`}
+        >
+          <Student360HeaderAvatar
+            photo={photo}
+            legacyImageUrl={s.image_url}
+            displayName={displayName}
+          />
+        </div>
+
+        <div className="student-360-header__body">
+          <div className="student-360-header__topline">
+            <div className="student-360-header__title-block">
               <h1 className="student-360-header__title">{displayName}</h1>
               {ref ? (
                 <span className="student-360-header__ref mono" dir="auto" title={ref}>
@@ -179,65 +187,69 @@ export function Student360Header({
                 </span>
               ) : null}
             </div>
+            {actions ? <div className="student-360-header__actions">{actions}</div> : null}
+          </div>
 
-            <div className="student-360-header__status-row">
-              <Badge tone={status === 'active' ? 'green' : 'slate'}>{statusText}</Badge>
-              <span
-                className={`student-360-header__readiness-badge student-360-header__readiness-badge--${profileReadiness}`}
-              >
-                {t(`admin.student360.profileReadiness.${profileReadiness}`)}
+          <div className="student-360-header__status-row">
+            <Badge tone={status === 'active' ? 'green' : 'slate'}>{statusText}</Badge>
+            <span
+              className={`student-360-header__readiness-badge student-360-header__readiness-badge--${profileReadiness}`}
+            >
+              {t(`admin.student360.profileReadiness.${profileReadiness}`)}
+            </span>
+            {missingBasic ? (
+              <span className="student-360-header__gap-badge" title={t('admin.student360.header.incompleteData')}>
+                {t('admin.student360.header.incompleteData')}
               </span>
-              {missingBasic ? (
-                <span className="student-360-header__gap-badge" title={t('admin.student360.header.incompleteData')}>
-                  {t('admin.student360.header.incompleteData')}
+            ) : null}
+          </div>
+
+          {visibleAlertBadges.length > 0 || hiddenBadgeCount > 0 ? (
+            <div className="student-360-header__alerts" role="list">
+              {visibleAlertBadges.map((badge) => (
+                <span
+                  key={badge.key}
+                  role="listitem"
+                  className={`student-360-header__overview-badge student-360-header__overview-badge--${badge.tone}`}
+                >
+                  {badge.label}
+                </span>
+              ))}
+              {hiddenBadgeCount > 0 ? (
+                <span
+                  role="listitem"
+                  className="student-360-header__overview-badge student-360-header__overview-badge--slate"
+                  title={headerBadges
+                    .slice(MAX_VISIBLE_ALERT_BADGES)
+                    .map((b) => b.label)
+                    .join(' · ')}
+                >
+                  {t('admin.student360.overview.header.moreBadges', { count: hiddenBadgeCount })}
                 </span>
               ) : null}
             </div>
-
-            {factItems.length > 0 ? (
-              <dl className="student-360-header__facts-grid">
-                {factItems.map((item) => (
-                  <div key={item.label} className="student-360-header__fact-item">
-                    <dt>{item.label}</dt>
-                    <dd dir="auto">{item.value}</dd>
-                  </div>
-                ))}
-              </dl>
-            ) : null}
-
-            {visibleBadges.length > 0 ? (
-              <div className="student-360-header__badges">
-                {visibleBadges.map((badge) => (
-                  <span
-                    key={badge.key}
-                    className={`student-360-header__overview-badge student-360-header__overview-badge--${badge.tone}`}
-                  >
-                    {badge.label}
-                  </span>
-                ))}
-                {hiddenBadgeCount > 0 ? (
-                  <span
-                    className="student-360-header__overview-badge student-360-header__overview-badge--slate"
-                    title={headerBadges
-                      .slice(MAX_VISIBLE_BADGES)
-                      .map((b) => b.label)
-                      .join(' · ')}
-                  >
-                    {t('admin.student360.overview.header.moreBadges', { count: hiddenBadgeCount })}
-                  </span>
-                ) : null}
-              </div>
-            ) : null}
-
-            {photo?.external_publish_allowed === true ? (
-              <p className="student-360-header__photo-note muted">
-                {t('admin.student360.overview.header.externalPublishAllowed')}
-              </p>
-            ) : null}
-          </div>
+          ) : null}
         </div>
-        {actions ? <div className="student-360-header__actions">{actions}</div> : null}
       </div>
+
+      {factItems.length > 0 ? (
+        <div className="student-360-header__row student-360-header__row--secondary">
+          <dl className="student-360-header__facts-grid">
+            {factItems.map((item) => (
+              <div key={item.label} className="student-360-header__fact-item">
+                <dt>{item.label}</dt>
+                <dd dir="auto">{item.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      ) : null}
+
+      {photo?.external_publish_allowed === true ? (
+        <p className="student-360-header__photo-note muted">
+          {t('admin.student360.overview.header.externalPublishAllowed')}
+        </p>
+      ) : null}
     </header>
   );
 }
