@@ -4,6 +4,8 @@ import {
   buildPersonSchoolIdentityBadges,
   personHasLoginAccount,
   personHasStaffRole,
+  resolvePersonSchoolIdentityCopy,
+  resolvePersonSchoolIdentityCopyVariant,
   resolveTeacherBadgeLabel,
 } from './person-school-identity';
 
@@ -69,5 +71,21 @@ describe('person-school-identity', () => {
       'أستاذة',
       'admin.student360.schoolRoleHasLoginAccount',
     ]);
+  });
+
+  it('uses multi-role copy when teacher or login roles exist', () => {
+    expect(resolvePersonSchoolIdentityCopyVariant({ existing_roles: ['teacher'], has_user: true })).toBe('multi');
+    const copy = resolvePersonSchoolIdentityCopy(t, { existing_roles: ['teacher'], has_user: true });
+    expect(copy.lead).toBe('admin.student360.personSchoolIdentityLeadMulti');
+    expect(copy.detail).toBe('admin.student360.personSchoolIdentityDetailMulti');
+  });
+
+  it('uses guardian-only copy when guardian history is the only known role', () => {
+    expect(
+      resolvePersonSchoolIdentityCopyVariant({ guardian_id: 701, existing_roles: ['guardian'] }),
+    ).toBe('guardian-only');
+    const copy = resolvePersonSchoolIdentityCopy(t, { guardian_id: 701, existing_roles: ['guardian'] });
+    expect(copy.lead).toBe('admin.student360.personSchoolIdentityLeadGuardianOnly');
+    expect(copy.detail).toBe('admin.student360.personSchoolIdentityDetailGuardianOnly');
   });
 });

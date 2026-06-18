@@ -335,38 +335,123 @@
 .person-school-identity {
   display: flex;
   flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border-width: 1px;
+  border-style: solid;
+}
+
+.person-school-identity--active {
+  border-color: #93c5fd;
+  background: linear-gradient(180deg, #eff6ff 0%, #f8fbff 100%);
+  box-shadow: 0 1px 0 rgba(37, 99, 235, 0.06);
+}
+
+.person-school-identity--blocked {
+  border-color: #fca5a5;
+  background: linear-gradient(180deg, #fef2f2 0%, #fff7f7 100%);
+  box-shadow: 0 1px 0 rgba(220, 38, 38, 0.06);
+}
+
+.person-school-identity__head {
+  display: flex;
+  align-items: center;
   gap: 8px;
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid var(--border, #e2e8f0);
-  background: var(--surface, #fff);
+}
+
+.person-school-identity__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.person-school-identity--active .person-school-identity__icon {
+  color: #1d4ed8;
+  background: #dbeafe;
+}
+
+.person-school-identity--blocked .person-school-identity__icon {
+  color: #b91c1c;
+  background: #fee2e2;
 }
 
 .person-school-identity__title {
   margin: 0;
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.person-school-identity--blocked .person-school-identity__title {
+  color: #991b1b;
 }
 
 .person-school-identity__badges {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
   align-items: center;
 }
 
-.person-school-identity__empty,
-.person-school-identity__note {
+.person-school-identity__lead {
   margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.person-school-identity--blocked .person-school-identity__lead {
+  color: #7f1d1d;
+}
+
+.person-school-identity__detail {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #334155;
+}
+
+.person-school-identity--blocked .person-school-identity__detail {
+  color: #991b1b;
+}
+
+.person-school-identity__blocker {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #991b1b;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid #fecaca;
+}
+
+.person-school-identity__empty {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #475569;
 }
 
 .person-school-identity__warnings {
   margin: 0;
-  padding-inline-start: 1rem;
+  padding-inline-start: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .person-school-identity__warning {
   margin: 0;
+  font-size: 0.8125rem;
+  color: #92400e;
 }
 
 .guardian-search-card__warnings {

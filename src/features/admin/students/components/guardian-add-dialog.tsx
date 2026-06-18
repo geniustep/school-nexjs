@@ -313,15 +313,9 @@ export function GuardianAddDialog({
             {isPersonSearchResult(selectedPerson) ? (
               <PersonSchoolIdentitySection
                 person={selectedPerson}
-                showLinkNote
+                canLink={canLinkSelectedPerson}
                 warnings={selectedPerson.warnings}
               />
-            ) : null}
-
-            {selectedPersonLinkBlocker ? (
-              <div className="guardian-link-blocker" role="alert">
-                <p className="tiny guardian-create-field__error">{selectedPersonLinkBlocker}</p>
-              </div>
             ) : null}
 
             {personHasTeacherRole(selectedPerson) ? (
@@ -369,6 +363,7 @@ export function GuardianAddDialog({
                 type="submit"
                 className="btn btn--primary"
                 disabled={saving || !canLinkSelectedPerson}
+                title={!canLinkSelectedPerson ? (selectedPersonLinkBlocker ?? undefined) : undefined}
               >
                 {saving ? t('admin.student360.linkingPersonProgress') : t('admin.student360.linkPersonAsGuardian')}
               </button>
