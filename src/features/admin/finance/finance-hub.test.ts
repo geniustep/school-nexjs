@@ -55,7 +55,7 @@ describe('student finance navigation', () => {
       '/admin/students/617?tab=finance&returnTo=%2Fadmin%2Ffinance%2Fagreements',
     );
     expect(buildStudentFinanceLink(617, 'financial-agreement')).toBe(
-      '/admin/students/617?tab=financial-agreement',
+      '/admin/students/617?tab=finance&financeSubTab=agreements',
     );
   });
 });

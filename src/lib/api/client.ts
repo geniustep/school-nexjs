@@ -21,21 +21,64 @@ function buildUrl(path: string, query?: ListParams): string {
 }
 
 async function parse<T>(res: Response): Promise<ApiResponse<T>> {
-  if (res.status === 204) {
+  const status = res.status;
+  if (status === 204) {
     return { success: true, data: null as T, meta: {} };
   }
+
+  let payload: ApiResponse<T> | null = null;
   try {
-    return (await res.json()) as ApiResponse<T>;
+    payload = (await res.json()) as ApiResponse<T>;
   } catch {
     if (res.ok) {
       return { success: true, data: null as T, meta: {} };
     }
     return {
       success: false,
-      error: { code: 'server_error', message: 'Unexpected server response.', details: {} },
+      error: {
+        code: status === 403 ? 'forbidden' : status === 409 ? 'conflict' : status === 422 ? 'validation_error' : 'server_error',
+        message: 'Unexpected server response.',
+        details: { status },
+      },
       meta: {},
     };
   }
+
+  if (payload && typeof payload === 'object' && 'success' in payload) {
+    if (!payload.success) {
+      const error = payload.error ?? {
+        code: status === 403 ? 'forbidden' : status === 409 ? 'conflict' : status === 422 ? 'validation_error' : 'server_error',
+        message: 'Request failed.',
+      };
+      return {
+        success: false,
+        error: {
+          code: error.code,
+          message: error.message,
+          details: {
+            ...(error.details ?? {}),
+            status: typeof error.details?.status === 'number' ? error.details.status : status,
+          },
+        },
+        meta: payload.meta ?? {},
+      };
+    }
+    return payload;
+  }
+
+  if (!res.ok) {
+    return {
+      success: false,
+      error: {
+        code: status === 403 ? 'forbidden' : status === 409 ? 'conflict' : status === 422 ? 'validation_error' : 'server_error',
+        message: 'Unexpected server response.',
+        details: { status },
+      },
+      meta: {},
+    };
+  }
+
+  return { success: true, data: null as T, meta: {} };
 }
 
 export const api = {

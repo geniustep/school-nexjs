@@ -62,6 +62,7 @@ export function financeStatusTone(
     case 'active':
       return 'green';
     case 'partial':
+    case 'partially_paid':
     case 'draft':
       return 'amber';
     case 'overdue':

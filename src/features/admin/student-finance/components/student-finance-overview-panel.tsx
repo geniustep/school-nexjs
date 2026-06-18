@@ -2,12 +2,10 @@
 
 import Link from 'next/link';
 import { useMemo } from 'react';
-import { Card } from '@/components/ui/primitives';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { StudentSectionSkeleton } from '@/features/admin/students/components/student-360-loading';
-import { Student360SectionHeader } from '@/features/admin/students/components/student-360-section-header';
 import type { StudentFinancePanelProps } from './student-finance-panel-props';
 import {
   resolveBillingPartyLabel,
@@ -23,8 +21,18 @@ function installmentStatusKey(state: string | null | undefined): string | null {
     paid: 'admin.student360.financeWorkspace.schedule.status.paid',
     overdue: 'admin.student360.financeWorkspace.schedule.status.overdue',
     cancelled: 'admin.student360.financeWorkspace.schedule.status.cancelled',
+    pending_cheque: 'admin.student360.financeWorkspace.schedule.status.pendingChequeCoverage',
   };
   return map[state] ?? null;
+}
+
+function statusTone(state: string | null | undefined): string {
+  if (!state) return 'neutral';
+  if (state === 'overdue') return 'danger';
+  if (state === 'paid') return 'ok';
+  if (state === 'pending_cheque') return 'warn';
+  if (state === 'due' || state === 'partially_paid') return 'warn';
+  return 'neutral';
 }
 
 export function StudentFinanceOverviewPanel({
@@ -75,98 +83,126 @@ export function StudentFinanceOverviewPanel({
   const nextInstallment = financialOverview?.next_installment;
   const nextStatusKey = installmentStatusKey(metrics?.next_installment_state);
   const nextTitle = metrics?.next_installment_display_label;
+  const nextTone = statusTone(metrics?.next_installment_state);
 
   return (
     <div className="student-finance-overview">
-      {financialOverview?.academic_year?.name ? (
-        <p className="tiny muted student-finance-overview__year">
-          {t('admin.student360.finance.academicYear')}: {financialOverview.academic_year.name}
-        </p>
-      ) : null}
-
-      {metrics?.has_pending_cheque ? (
-        <p className="tiny student-finance-overview__cheque-hint student-finance-card-alert" role="status">
-          {t('admin.student360.financeWorkspace.executive.pendingChequeAlert')}
-        </p>
-      ) : null}
-
-      {showChequeSummary && chequeSummary ? (
-        <Card className="student-finance-section student-finance-overview__cheque-summary">
-          <Student360SectionHeader title={t('admin.student360.financeWorkspace.metrics.chequeSummary')} />
-          <ul className="student-finance-cheque-summary-list">
-            {chequeSummary.pending_count > 0 ? (
-              <li>
-                {t('admin.student360.financeWorkspace.metrics.pendingCheques')}: {chequeSummary.pending_count}
-                {' — '}
-                <FinanceMoney amount={chequeSummary.pending_amount} currency={metrics?.currency ?? undefined} />
-              </li>
-            ) : null}
-            {(metrics?.cheque_pending_allocated ?? 0) > 0 ? (
-              <li className="muted tiny">
-                {t('admin.student360.financeWorkspace.executive.chequePendingAllocated')}:{' '}
-                <FinanceMoney amount={metrics?.cheque_pending_allocated} currency={metrics?.currency ?? undefined} />
-              </li>
-            ) : null}
-            {(metrics?.cheque_pending_unallocated ?? 0) > 0 ? (
-              <li className="muted tiny">
-                {t('admin.student360.financeWorkspace.executive.chequePendingUnallocated')}:{' '}
-                <FinanceMoney amount={metrics?.cheque_pending_unallocated} currency={metrics?.currency ?? undefined} />
-              </li>
-            ) : null}
-            {chequeSummary.settled_count > 0 ? (
-              <li>
-                {t('admin.student360.financeWorkspace.metrics.settledCheques')}: {chequeSummary.settled_count}
-                {' — '}
-                <FinanceMoney amount={chequeSummary.settled_amount} currency={metrics?.currency ?? undefined} />
-              </li>
-            ) : null}
-            {chequeSummary.rejected_count > 0 ? (
-              <li>
-                {t('admin.student360.financeWorkspace.metrics.rejectedCheques')}: {chequeSummary.rejected_count}
-                {' — '}
-                <FinanceMoney amount={chequeSummary.rejected_amount} currency={metrics?.currency ?? undefined} />
-              </li>
-            ) : null}
-          </ul>
-        </Card>
-      ) : null}
-
-      {nextInstallment ? (
-        <Card className="student-finance-section student-finance-overview__next-card">
-          <Student360SectionHeader title={t('admin.student360.financeWorkspace.metrics.nextInstallment')} />
-          <dl className="detail-list compact">
-            <div>
-              <dt>{t('admin.student360.financeWorkspace.fees.columns.name')}</dt>
-              <dd dir="auto">{nextTitle ?? t('common.dash')}</dd>
-            </div>
-            {metrics?.next_installment_period ? (
+      <div className="student-finance-bento">
+        {nextInstallment ? (
+          <article className="student-finance-bento__card student-finance-bento__card--featured">
+            <header className="student-finance-bento__card-head">
               <div>
-                <dt>{t('admin.student360.financeWorkspace.schedule.columns.period')}</dt>
-                <dd dir="auto">{metrics.next_installment_period}</dd>
+                <span className="student-finance-bento__eyebrow">
+                  {t('admin.student360.financeWorkspace.metrics.nextInstallment')}
+                </span>
+                <h4 className="student-finance-bento__title" dir="auto">
+                  {nextTitle ?? t('common.dash')}
+                </h4>
               </div>
-            ) : null}
-            <div>
-              <dt>{t('admin.student360.financeWorkspace.metrics.nextInstallmentAmount')}</dt>
-              <dd><FinanceMoney amount={nextInstallment.amount} currency={metrics?.currency ?? undefined} /></dd>
-            </div>
-            <div>
-              <dt>{t('admin.student360.financeWorkspace.schedule.columns.dueDate')}</dt>
-              <dd>{metrics?.next_installment_date ? formatDate(metrics.next_installment_date) : t('common.dash')}</dd>
-            </div>
-            <div>
-              <dt>{t('academic.status')}</dt>
-              <dd>
+              <span className={`student-finance-status-pill student-finance-status-pill--${nextTone}`}>
                 {nextStatusKey ? t(nextStatusKey) : metrics?.next_installment_state ?? t('common.dash')}
-              </dd>
+              </span>
+            </header>
+            <dl className="student-finance-bento__facts">
+              {metrics?.next_installment_period ? (
+                <div>
+                  <dt>{t('admin.student360.financeWorkspace.schedule.columns.period')}</dt>
+                  <dd dir="auto">{metrics.next_installment_period}</dd>
+                </div>
+              ) : null}
+              <div>
+                <dt>{t('admin.student360.financeWorkspace.metrics.nextInstallmentAmount')}</dt>
+                <dd className="student-finance-bento__amount">
+                  <FinanceMoney amount={nextInstallment.amount} currency={metrics?.currency ?? undefined} />
+                </dd>
+              </div>
+              <div>
+                <dt>{t('admin.student360.financeWorkspace.schedule.columns.dueDate')}</dt>
+                <dd>
+                  {metrics?.next_installment_date ? formatDate(metrics.next_installment_date) : t('common.dash')}
+                </dd>
+              </div>
+            </dl>
+            <div className="student-finance-bento__card-actions">
+              <Link
+                href={`/admin/students/${studentId}?tab=finance&financeSubTab=schedule`}
+                className="btn btn--ghost btn--sm"
+              >
+                {t('admin.student360.financeWorkspace.openSchedule')}
+              </Link>
+              {canCollect ? (
+                <button type="button" className="btn btn--primary btn--sm" onClick={onOpenCollection}>
+                  {t('admin.student360.financeWorkspace.actions.recordPayment')}
+                </button>
+              ) : null}
             </div>
-          </dl>
-        </Card>
-      ) : null}
+          </article>
+        ) : null}
 
-      <div className="student-finance-overview__cards">
-        <Card className="student-finance-section">
-          <Student360SectionHeader title={t('admin.student360.financeWorkspace.billingPartyTitle')} />
-          <dl className="detail-list compact">
+        {showChequeSummary && chequeSummary ? (
+          <article className="student-finance-bento__card student-finance-bento__card--cheques">
+            <header className="student-finance-bento__card-head">
+              <span className="student-finance-bento__eyebrow">
+                {t('admin.student360.financeWorkspace.metrics.chequeSummary')}
+              </span>
+              <Link
+                href={`/admin/students/${studentId}?tab=finance&financeSubTab=cheques`}
+                className="btn btn--ghost btn--sm"
+              >
+                {t('common.view')}
+              </Link>
+            </header>
+            <div className="student-finance-cheque-stats">
+              {chequeSummary.pending_count > 0 ? (
+                <div className="student-finance-cheque-stat student-finance-cheque-stat--pending">
+                  <span className="student-finance-cheque-stat__count">{chequeSummary.pending_count}</span>
+                  <span className="student-finance-cheque-stat__label">
+                    {t('admin.student360.financeWorkspace.metrics.pendingCheques')}
+                  </span>
+                  <FinanceMoney
+                    amount={chequeSummary.pending_amount}
+                    currency={metrics?.currency ?? undefined}
+                    className="student-finance-cheque-stat__amount"
+                  />
+                </div>
+              ) : null}
+              {chequeSummary.settled_count > 0 ? (
+                <div className="student-finance-cheque-stat student-finance-cheque-stat--settled">
+                  <span className="student-finance-cheque-stat__count">{chequeSummary.settled_count}</span>
+                  <span className="student-finance-cheque-stat__label">
+                    {t('admin.student360.financeWorkspace.metrics.settledCheques')}
+                  </span>
+                  <FinanceMoney
+                    amount={chequeSummary.settled_amount}
+                    currency={metrics?.currency ?? undefined}
+                    className="student-finance-cheque-stat__amount"
+                  />
+                </div>
+              ) : null}
+              {chequeSummary.rejected_count > 0 ? (
+                <div className="student-finance-cheque-stat student-finance-cheque-stat--rejected">
+                  <span className="student-finance-cheque-stat__count">{chequeSummary.rejected_count}</span>
+                  <span className="student-finance-cheque-stat__label">
+                    {t('admin.student360.financeWorkspace.metrics.rejectedCheques')}
+                  </span>
+                  <FinanceMoney
+                    amount={chequeSummary.rejected_amount}
+                    currency={metrics?.currency ?? undefined}
+                    className="student-finance-cheque-stat__amount"
+                  />
+                </div>
+              ) : null}
+            </div>
+          </article>
+        ) : null}
+
+        <article className="student-finance-bento__card">
+          <header className="student-finance-bento__card-head">
+            <span className="student-finance-bento__eyebrow">
+              {t('admin.student360.financeWorkspace.billingPartyTitle')}
+            </span>
+          </header>
+          <dl className="student-finance-bento__facts student-finance-bento__facts--stacked">
             <div>
               <dt>{t('admin.finance.billingPartner')}</dt>
               <dd dir="auto">{billingLabel}</dd>
@@ -177,77 +213,58 @@ export function StudentFinanceOverviewPanel({
                 <dd>{formatDate(financialOverview.billing_profile.effective_from)}</dd>
               </div>
             ) : null}
+            {financialOverview?.academic_year?.name ? (
+              <div>
+                <dt>{t('admin.student360.finance.academicYear')}</dt>
+                <dd>{financialOverview.academic_year.name}</dd>
+              </div>
+            ) : null}
           </dl>
-        </Card>
+        </article>
 
-        <Card className="student-finance-section">
-          <Student360SectionHeader title={t('admin.student360.financeWorkspace.appliedPlansTitle')} />
+        <article className="student-finance-bento__card student-finance-bento__card--plans">
+          <header className="student-finance-bento__card-head">
+            <span className="student-finance-bento__eyebrow">
+              {t('admin.student360.financeWorkspace.appliedPlansTitle')}
+            </span>
+          </header>
           {financialOverview?.applied_plans?.length ? (
-            <div className="student-finance-applied-plans">
+            <div className="student-finance-plan-list">
               {financialOverview.applied_plans.map((plan) => (
-                <div key={plan.id} className="student-finance-applied-plan">
-                  <div className="student-finance-applied-plan__head">
+                <div key={plan.id} className="student-finance-plan-item">
+                  <div className="student-finance-plan-item__head">
                     <strong dir="auto">{plan.name}</strong>
                     <Link href={`/admin/finance/fee-plans/${plan.id}`} className="btn btn--ghost btn--sm">
                       {t('admin.student360.financeWorkspace.openPlan')}
                     </Link>
                   </div>
-                  <dl className="detail-list compact">
+                  <div className="student-finance-plan-item__metrics">
                     <div>
-                      <dt>{t('admin.student360.finance.academicYear')}</dt>
-                      <dd>{plan.academic_year?.name ?? t('common.dash')}</dd>
-                    </div>
-                    {plan.assigned_date ? (
-                      <div>
-                        <dt>{t('admin.finance.assignFlow.assignedDate')}</dt>
-                        <dd>{formatDate(plan.assigned_date)}</dd>
-                      </div>
-                    ) : null}
-                    <div>
-                      <dt>{t('admin.student360.financeWorkspace.metrics.annualTotal')}</dt>
-                      <dd><FinanceMoney amount={plan.total_fees} currency={metrics?.currency ?? undefined} /></dd>
+                      <span>{t('admin.student360.financeWorkspace.metrics.annualTotal')}</span>
+                      <FinanceMoney amount={plan.total_fees} currency={metrics?.currency ?? undefined} />
                     </div>
                     <div>
-                      <dt>{t('admin.student360.financeWorkspace.metrics.paidConfirmed')}</dt>
-                      <dd><FinanceMoney amount={plan.paid} currency={metrics?.currency ?? undefined} /></dd>
+                      <span>{t('admin.student360.financeWorkspace.metrics.paidConfirmed')}</span>
+                      <FinanceMoney amount={plan.paid} currency={metrics?.currency ?? undefined} />
                     </div>
                     <div>
-                      <dt>{t('admin.student360.financeWorkspace.metrics.remainingActual')}</dt>
-                      <dd><FinanceMoney amount={plan.remaining} currency={metrics?.currency ?? undefined} /></dd>
+                      <span>{t('admin.student360.financeWorkspace.metrics.remainingActual')}</span>
+                      <FinanceMoney amount={plan.remaining} currency={metrics?.currency ?? undefined} />
                     </div>
-                    <div>
-                      <dt>{t('admin.student360.financeWorkspace.feesCount')}</dt>
-                      <dd>{plan.fees_count}</dd>
-                    </div>
-                    <div>
-                      <dt>{t('admin.student360.financeWorkspace.installmentsCount')}</dt>
-                      <dd>{plan.installments_count}</dd>
-                    </div>
-                    {plan.state ? (
-                      <div>
-                        <dt>{t('academic.status')}</dt>
-                        <dd>{plan.state}</dd>
-                      </div>
-                    ) : null}
-                  </dl>
+                  </div>
+                  <p className="student-finance-plan-item__meta tiny muted">
+                    {t('admin.student360.financeWorkspace.feesCount')}: {plan.fees_count}
+                    {' · '}
+                    {t('admin.student360.financeWorkspace.installmentsCount')}: {plan.installments_count}
+                    {plan.state ? ` · ${plan.state}` : ''}
+                  </p>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="muted">{t('admin.student360.financeWorkspace.noAppliedPlans')}</p>
+            <p className="student-finance-bento__empty">{t('admin.student360.financeWorkspace.noAppliedPlans')}</p>
           )}
-        </Card>
-      </div>
-
-      <div className="student-finance-overview__actions row">
-        <Link href={`/admin/students/${studentId}?tab=finance&financeSubTab=schedule`} className="btn btn--ghost btn--sm">
-          {t('admin.student360.financeWorkspace.openSchedule')}
-        </Link>
-        {canCollect ? (
-          <button type="button" className="btn btn--primary btn--sm" onClick={onOpenCollection}>
-            {t('admin.student360.financeWorkspace.actions.recordPayment')}
-          </button>
-        ) : null}
+        </article>
       </div>
     </div>
   );

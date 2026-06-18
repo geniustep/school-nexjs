@@ -1,7 +1,6 @@
 'use client';
 
-import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ApiErrorView } from '@/components/states/states';
 import { StudentCollectionDrawer } from '@/features/admin/finance/student-collection-drawer';
@@ -18,16 +17,14 @@ import { Student360CompactEmpty } from '@/features/admin/students/components/stu
 import {
   StudentFinanceSkeleton,
   StudentInlineLoading,
-  StudentYearSelectSkeleton,
 } from '@/features/admin/students/components/student-360-loading';
-import { Student360SectionHeader } from '@/features/admin/students/components/student-360-section-header';
+import { StudentFinanceWorkspaceHeader } from './student-finance-workspace-header';
 import { useStudentFinanceTabState } from '../hooks/use-student-finance-tab-state';
 import { useStudentFinancialOverview } from '../hooks/use-student-financial-overview';
 import {
   LEGACY_FINANCE_AGREEMENT_SECTION,
   parseStudentFinanceSubTab,
   studentFinanceSubTabLabelKey,
-  STUDENT_FINANCE_SUB_TABS,
   type StudentFinanceSubTab,
 } from '../utils/student-finance-sub-tab';
 import {
@@ -45,6 +42,24 @@ import { StudentFinanceAdjustmentsPanel } from './student-finance-adjustments-pa
 import { StudentFinanceLedgerPanel } from './student-finance-ledger-panel';
 import { StudentFinancialAgreementTab } from './student-financial-agreement-tab';
 import { subscribeFinanceRefresh } from '@/lib/finance/finance-refresh-bus';
+
+const FINANCE_TAB_GROUPS: { tabs: StudentFinanceSubTab[]; dividerAfter?: boolean }[] = [
+  { tabs: ['overview'], dividerAfter: true },
+  { tabs: ['fees', 'agreements', 'schedule'], dividerAfter: true },
+  { tabs: ['collections', 'cheques'], dividerAfter: true },
+  { tabs: ['adjustments', 'ledger'] },
+];
+
+const FINANCE_TAB_ICONS: Record<StudentFinanceSubTab, string> = {
+  overview: '◉',
+  fees: '▤',
+  agreements: '✎',
+  schedule: '▦',
+  collections: '↗',
+  cheques: '☰',
+  adjustments: '±',
+  ledger: '≡',
+};
 
 function resolveInitialSubTab(searchParams: URLSearchParams): StudentFinanceSubTab {
   const section = searchParams.get('section');
@@ -160,84 +175,22 @@ export function StudentFinanceWorkspaceShell({
     emptyFinance,
   });
 
-  const contextActions = useMemo(() => {
-    const actions: ReactNode[] = [];
+  const billingPartnerId = workspace?.finance_profile?.billing_partner?.id ?? null;
 
-    if (subTab !== 'schedule' && subTab !== 'agreements') {
-      actions.push(
-        <button
-          key="schedule"
-          type="button"
-          className="btn btn--ghost btn--sm"
-          onClick={() => syncSubTabToUrl('schedule')}
-        >
-          {t('admin.student360.financeWorkspace.openSchedule')}
-        </button>,
-      );
-    }
-
-    if (subTab !== 'agreements') {
-      actions.push(
-        <button
-          key="agreements"
-          type="button"
-          className="btn btn--ghost btn--sm"
-          onClick={() => syncSubTabToUrl('agreements')}
-        >
-          {t('admin.student360.financeWorkspace.actions.manageAgreement')}
-        </button>,
-      );
-    }
-
-    if (canCollect && subTab !== 'agreements' && subTab !== 'ledger') {
-      actions.push(
-        <button
-          key="collect"
-          type="button"
-          className="btn btn--primary btn--sm"
-          onClick={() => setShowCollectionDrawer(true)}
-        >
-          {t('admin.student360.financeWorkspace.actions.recordPayment')}
-        </button>,
-      );
-    }
-
-    return actions;
-  }, [subTab, canCollect, syncSubTabToUrl, t]);
-
-  const headerActions = (
-    <div className="student-finance-header-actions">
-      {refState.loading && !academicYears.length ? (
-        <StudentYearSelectSkeleton />
-      ) : (
-        <label className="student-finance-year-select">
-          <span className="tiny muted">{t('admin.student360.finance.academicYear')}</span>
-          <select
-            className="input"
-            value={effectiveYearId}
-            onChange={(e) => setSelectedYearId(e.target.value)}
-            disabled={refState.loading || !academicYears.length}
-          >
-            {academicYears.map((y) => (
-              <option key={y.id} value={y.id}>
-                {y.name}
-              </option>
-            ))}
-          </select>
-        </label>
-      )}
-      <div className="student-finance-header-buttons">
-        {workspace?.finance_profile?.billing_partner?.id ? (
-          <Link
-            href={`/admin/finance/billing-accounts/${workspace.finance_profile.billing_partner.id}?returnTo=${encodeURIComponent(`/admin/students/${studentId}?tab=finance`)}`}
-            className="btn btn--ghost btn--sm"
-          >
-            {t('admin.finance.billingAccounts.openPayerAccount')}
-          </Link>
-        ) : null}
-        {contextActions}
-      </div>
-    </div>
+  const workspaceHeader = (
+    <StudentFinanceWorkspaceHeader
+      studentId={studentId}
+      academicYears={academicYears}
+      effectiveYearId={effectiveYearId}
+      yearsLoading={refState.loading}
+      onYearChange={setSelectedYearId}
+      billingPartnerId={billingPartnerId}
+      subTab={subTab}
+      canCollect={canCollect}
+      onOpenSchedule={() => syncSubTabToUrl('schedule')}
+      onOpenAgreements={() => syncSubTabToUrl('agreements')}
+      onRecordPayment={() => setShowCollectionDrawer(true)}
+    />
   );
 
   const sharedPanelProps = useMemo(
@@ -276,11 +229,7 @@ export function StudentFinanceWorkspaceShell({
   if (phase !== 'ready') {
     return (
       <div className="student-finance-tab student-360-tab-panel">
-        <Student360SectionHeader
-          title={t('admin.student360.financeWorkspace.pageTitle')}
-          description={t('admin.student360.financeWorkspace.pageDescription')}
-          action={headerActions}
-        />
+        {workspaceHeader}
         <StudentFinanceSkeleton />
       </div>
     );
@@ -308,32 +257,40 @@ export function StudentFinanceWorkspaceShell({
 
   return (
     <div
-      className={`student-finance-tab student-360-tab-panel${isRefreshing ? ' student-360-tab-panel--refreshing' : ''}`}
+      className={`student-finance-tab student-finance-workspace student-360-tab-panel${isRefreshing ? ' student-360-tab-panel--refreshing' : ''}`}
     >
-      <Student360SectionHeader
-        title={t('admin.student360.financeWorkspace.pageTitle')}
-        description={t('admin.student360.financeWorkspace.pageDescription')}
-        action={headerActions}
-      />
+      {workspaceHeader}
       {isRefreshing ? <StudentInlineLoading /> : null}
 
       <StudentFinanceExecutiveSummary metrics={overviewMetrics} />
 
       <nav className="student-finance-subtabs" aria-label={t('admin.student360.financeWorkspace.tabsAria')}>
-        {STUDENT_FINANCE_SUB_TABS.map((tab) => (
-          <button
-            key={tab}
-            type="button"
-            role="tab"
-            aria-selected={subTab === tab}
-            className={`student-finance-subtabs__tab${subTab === tab ? ' is-active' : ''}`}
-            onClick={() => syncSubTabToUrl(tab)}
-          >
-            {t(studentFinanceSubTabLabelKey(tab))}
-          </button>
+        {FINANCE_TAB_GROUPS.map((group, groupIndex) => (
+          <div key={`group-${groupIndex}`} className="student-finance-subtabs__group">
+            {group.tabs.map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                role="tab"
+                aria-selected={subTab === tab}
+                data-tab={tab}
+                className={`student-finance-subtabs__tab${subTab === tab ? ' is-active' : ''}`}
+                onClick={() => syncSubTabToUrl(tab)}
+              >
+                <span className="student-finance-subtabs__icon" aria-hidden="true">
+                  {FINANCE_TAB_ICONS[tab]}
+                </span>
+                <span className="student-finance-subtabs__label">{t(studentFinanceSubTabLabelKey(tab))}</span>
+              </button>
+            ))}
+            {group.dividerAfter ? (
+              <span className="student-finance-subtabs__divider" aria-hidden="true" />
+            ) : null}
+          </div>
         ))}
       </nav>
 
+      <div className="student-finance-workspace__panel">
       {showFinanceEmpty && !sectionsWithoutEmptyGate.includes(subTab) ? (
         <Student360CompactEmpty
           title={t('admin.student360.financeOps.emptyTitle')}
@@ -360,6 +317,7 @@ export function StudentFinanceWorkspaceShell({
           {subTab === 'ledger' ? <StudentFinanceLedgerPanel /> : null}
         </>
       )}
+      </div>
 
       <StudentCollectionDrawer
         open={showCollectionDrawer}

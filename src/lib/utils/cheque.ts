@@ -97,6 +97,8 @@ export type ChequeTransitionAction = ChequeLifecycleAction;
 
 export function availableChequeTransitions(state: string): ChequeLifecycleAction[] {
   switch (normalizeChequeState(state)) {
+    case 'draft':
+      return ['cancel'];
     case 'received':
       return ['deposit', 'reject', 'cancel'];
     case 'deposited':
@@ -143,6 +145,12 @@ export function chequeErrorMessageKey(code: string | undefined): string | null {
       return 'admin.finance.cheques.errors.chequeSettlementFailed';
     case 'cheque_rejection_failed':
       return 'admin.finance.cheques.errors.chequeRejectionFailed';
+    case 'cancel_reason_required':
+      return 'admin.finance.cheques.errors.cancelReasonRequired';
+    case 'cheque_cancel_not_allowed':
+      return 'admin.finance.cheques.errors.chequeCancelNotAllowed';
+    case 'cheque_already_collected':
+      return 'admin.finance.cheques.errors.chequeAlreadyCollected';
     default:
       return null;
   }

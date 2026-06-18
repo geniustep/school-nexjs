@@ -14,6 +14,21 @@ describe('cheque allowed actions', () => {
     expect(chequeAllowsAction(baseCheque, 'cancel')).toBe(false);
   });
 
+  it('falls back to cancelable states when allowed_actions is absent', () => {
+    expect(
+      chequeAllowsAction({ state: 'received', allowed_actions: undefined, allowed_action_codes: [] }, 'cancel'),
+    ).toBe(true);
+    expect(
+      chequeAllowsAction({ state: 'cleared', allowed_actions: undefined, allowed_action_codes: [] }, 'cancel'),
+    ).toBe(false);
+    expect(
+      chequeAllowsAction(
+        { state: 'received', allowed_actions: { cancel: false }, allowed_action_codes: [] },
+        'cancel',
+      ),
+    ).toBe(false);
+  });
+
   it('maps legacy bounce code to reject only as fallback', () => {
     const cheque: FinanceCheque = {
       id: 2,

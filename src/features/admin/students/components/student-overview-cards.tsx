@@ -1,7 +1,6 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { Card, SectionHead } from '@/components/ui/primitives';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { statusLabel } from '@/lib/utils/labels';
@@ -25,7 +24,7 @@ function formatOptional(
   return { text: String(value), muted: false };
 }
 
-function OverviewFact({
+function ActivityMetric({
   label,
   value,
   muted = false,
@@ -37,45 +36,64 @@ function OverviewFact({
   dir?: 'auto';
 }) {
   return (
-    <div className="student-overview-card__fact">
-      <dt>{label}</dt>
-      <dd className={muted ? 'student-overview-card__value--muted' : undefined} dir={dir}>
+    <div className={`student-activity-metric${muted ? ' student-activity-metric--muted' : ''}`}>
+      <span className="student-activity-metric__label">{label}</span>
+      <span className="student-activity-metric__value" dir={dir}>
         {value}
-      </dd>
+      </span>
     </div>
   );
 }
 
-function CardEmpty({ children }: { children: ReactNode }) {
-  return <p className="student-overview-card__empty">{children}</p>;
+function ActivityEmpty({
+  glyph,
+  title,
+  description,
+}: {
+  glyph: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="student-activity-card__empty">
+      <span className="student-activity-card__empty-glyph" aria-hidden="true">
+        {glyph}
+      </span>
+      <p className="student-activity-card__empty-title">{title}</p>
+      <p className="student-activity-card__empty-desc">{description}</p>
+    </div>
+  );
 }
 
-function OverviewCard({
+function ActivityCard({
+  glyph,
   title,
   sparse = false,
   children,
 }: {
+  glyph: string;
   title: string;
   sparse?: boolean;
   children: ReactNode;
 }) {
-  const className = [
-    'student-360-section-card',
-    'student-overview-card',
-    sparse ? 'student-overview-card--sparse' : '',
-  ]
-    .filter(Boolean)
-    .join(' ');
   return (
-    <Card className={className} pad={false}>
-      <SectionHead title={title} />
-      <div className="student-overview-card__body">{children}</div>
-    </Card>
+    <article
+      className={[
+        'student-activity-card',
+        sparse ? 'student-activity-card--sparse' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
+      <header className="student-activity-card__head">
+        <span className="student-activity-card__glyph" aria-hidden="true">
+          {glyph}
+        </span>
+        <h3 className="student-activity-card__title">{title}</h3>
+      </header>
+      <div className="student-activity-card__body">{children}</div>
+    </article>
   );
-}
-
-function OverviewFacts({ children }: { children: ReactNode }) {
-  return <dl className="student-overview-card__facts">{children}</dl>;
 }
 
 export function StudentOverviewCards({
@@ -93,16 +111,27 @@ export function StudentOverviewCards({
   if (loading && !overview) {
     return (
       <section
-        className="student-overview-cards student-overview-cards--loading"
+        className="student-activity-section student-activity-section--loading"
         aria-busy="true"
         aria-label={t('admin.student360.overview.activityTitle')}
       >
-        <div className="student-overview-cards__grid student-overview-cards__grid--activity">
+        <header className="student-activity-section__head">
+          <div className="student-activity-section__head-main">
+            <span className="student-activity-section__glyph" aria-hidden="true">
+              ◷
+            </span>
+            <div>
+              <h2 className="student-activity-section__title">{t('admin.student360.overview.activityTitle')}</h2>
+              <p className="student-activity-section__desc">{t('admin.student360.overview.activityDesc')}</p>
+            </div>
+          </div>
+        </header>
+        <div className="student-activity-section__grid">
           {Array.from({ length: OVERVIEW_SKELETON_CARD_COUNT }, (_, index) => (
-            <div key={index} className="student-overview-card-skeleton card" aria-hidden="true">
-              <div className="student-overview-card-skeleton__head" />
-              <div className="student-overview-card-skeleton__line" />
-              <div className="student-overview-card-skeleton__line student-overview-card-skeleton__line--short" />
+            <div key={index} className="student-activity-card-skeleton" aria-hidden="true">
+              <div className="student-activity-card-skeleton__head" />
+              <div className="student-activity-card-skeleton__line" />
+              <div className="student-activity-card-skeleton__line student-activity-card-skeleton__line--short" />
             </div>
           ))}
         </div>
@@ -137,15 +166,34 @@ export function StudentOverviewCards({
     isMissing(academic?.last_result_label);
 
   return (
-    <section className="student-overview-cards" aria-label={t('admin.student360.overview.activityTitle')}>
-      <h2 className="student-overview-cards__heading">{t('admin.student360.overview.activityTitle')}</h2>
-      <div className="student-overview-cards__grid student-overview-cards__grid--activity">
+    <section className="student-activity-section" aria-label={t('admin.student360.overview.activityTitle')}>
+      <header className="student-activity-section__head">
+        <div className="student-activity-section__head-main">
+          <span className="student-activity-section__glyph" aria-hidden="true">
+            ◷
+          </span>
+          <div>
+            <h2 className="student-activity-section__title">{t('admin.student360.overview.activityTitle')}</h2>
+            <p className="student-activity-section__desc">{t('admin.student360.overview.activityDesc')}</p>
+          </div>
+        </div>
+      </header>
+
+      <div className="student-activity-section__grid">
         {showAttendance ? (
-          <OverviewCard title={t('admin.student360.overview.cards.attendance')} sparse={attendanceEmpty}>
+          <ActivityCard
+            glyph="✓"
+            title={t('admin.student360.overview.cards.attendance')}
+            sparse={attendanceEmpty}
+          >
             {attendanceEmpty ? (
-              <CardEmpty>{t('admin.student360.overview.attendance.noDataYet')}</CardEmpty>
+              <ActivityEmpty
+                glyph="◌"
+                title={t('admin.student360.overview.attendance.noDataYet')}
+                description={t('admin.student360.overview.attendance.emptyDesc')}
+              />
             ) : (
-              <OverviewFacts>
+              <div className="student-activity-card__metrics">
                 {(() => {
                   const absences = formatOptional(t, attendance?.absences_this_month);
                   const late = formatOptional(t, attendance?.late_this_month);
@@ -155,17 +203,17 @@ export function StudentOverviewCards({
                   const last = formatOptional(t, lastStatus);
                   return (
                     <>
-                      <OverviewFact
+                      <ActivityMetric
                         label={t('admin.student360.overview.attendance.absencesMonth')}
                         value={absences.text}
                         muted={absences.muted}
                       />
-                      <OverviewFact
+                      <ActivityMetric
                         label={t('admin.student360.overview.attendance.lateMonth')}
                         value={late.text}
                         muted={late.muted}
                       />
-                      <OverviewFact
+                      <ActivityMetric
                         label={t('admin.student360.overview.attendance.lastStatus')}
                         value={
                           last.muted
@@ -178,17 +226,25 @@ export function StudentOverviewCards({
                     </>
                   );
                 })()}
-              </OverviewFacts>
+              </div>
             )}
-          </OverviewCard>
+          </ActivityCard>
         ) : null}
 
         {showAcademic ? (
-          <OverviewCard title={t('admin.student360.overview.cards.academic')} sparse={academicEmpty}>
+          <ActivityCard
+            glyph="▤"
+            title={t('admin.student360.overview.cards.academic')}
+            sparse={academicEmpty}
+          >
             {academicEmpty ? (
-              <CardEmpty>{t('admin.student360.overview.academic.noRecentData')}</CardEmpty>
+              <ActivityEmpty
+                glyph="◇"
+                title={t('admin.student360.overview.academic.noRecentData')}
+                description={t('admin.student360.overview.academic.emptyDesc')}
+              />
             ) : (
-              <OverviewFacts>
+              <div className="student-activity-card__metrics">
                 {(() => {
                   const homework = formatOptional(t, academic?.open_homework_count);
                   const exams = formatOptional(t, academic?.upcoming_exams_count);
@@ -197,17 +253,17 @@ export function StudentOverviewCards({
                     : formatOptional(t, academic?.last_result);
                   return (
                     <>
-                      <OverviewFact
+                      <ActivityMetric
                         label={t('admin.student360.overview.academic.openHomework')}
                         value={homework.text}
                         muted={homework.muted}
                       />
-                      <OverviewFact
+                      <ActivityMetric
                         label={t('admin.student360.overview.academic.upcomingExams')}
                         value={exams.text}
                         muted={exams.muted}
                       />
-                      <OverviewFact
+                      <ActivityMetric
                         label={t('admin.student360.overview.academic.lastResult')}
                         value={result.text}
                         muted={result.muted}
@@ -216,9 +272,9 @@ export function StudentOverviewCards({
                     </>
                   );
                 })()}
-              </OverviewFacts>
+              </div>
             )}
-          </OverviewCard>
+          </ActivityCard>
         ) : null}
       </div>
     </section>

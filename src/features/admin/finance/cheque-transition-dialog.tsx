@@ -1,12 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api } from '@/lib/api/client';
 import { useToast } from '@/components/ui/toast';
 import { useT } from '@/features/i18n/locale-context';
 import { ChequeStatusBadge } from '@/features/admin/finance/cheque-status-badge';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
-import { chequeErrorMessageKey } from '@/lib/utils/cheque';
+import {
+  buildChequeTransitionRequestBody,
+  canSubmitChequeCancel,
+  resolveChequeTransitionErrorMessage,
+} from '@/features/admin/finance/cheque-transition-cancel';
 import type { ChequeTransitionAction } from '@/lib/utils/cheque';
 import type { ChequeTransitionSummary } from './cheque-transition-summary';
 
@@ -33,15 +37,17 @@ export function ChequeTransitionDialog({
 }: Props) {
   const t = useT();
   const toast = useToast();
+  const submittedRef = useRef(false);
   const [date, setDate] = useState(todayIso());
-  const [reason, setReason] = useState('');
+  const [cancelReason, setCancelReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (open) {
       setDate(todayIso());
-      setReason('');
+      setCancelReason('');
       setSubmitting(false);
+      submittedRef.current = false;
     }
   }, [open, action]);
 
@@ -49,7 +55,6 @@ export function ChequeTransitionDialog({
 
   const isDeposit = action === 'deposit';
   const isCancel = action === 'cancel';
-  const needsReason = isCancel;
   const titleKey = `admin.finance.cheques.actions.${action}.title`;
   const confirmKey = `admin.finance.cheques.actions.${action}.confirm`;
   const warningKey = `admin.finance.cheques.actions.${action}.warning`;
@@ -58,29 +63,38 @@ export function ChequeTransitionDialog({
   const successKey = `admin.finance.cheques.actions.${action}.successToast`;
   const description = t(descriptionKey);
   const warning = t(warningKey);
+  const cancelSubmitDisabled = isCancel && !canSubmitChequeCancel(cancelReason, submitting);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (submitting) return;
-    if (needsReason && !reason.trim()) {
-      toast.error(t('admin.finance.cheques.reasonRequired'));
+    if (submitting || submittedRef.current) return;
+
+    const built = buildChequeTransitionRequestBody(action, {
+      depositedDate: date,
+      cancelReason,
+    });
+    if ('blocked' in built) {
+      toast.error(t('admin.finance.cheques.errors.cancelReasonRequired'));
       return;
     }
+
+    submittedRef.current = true;
     setSubmitting(true);
-    const body =
-      action === 'deposit'
-        ? { deposited_date: date }
-        : { cancelled_date: date, reason: reason.trim() };
-    const res = await api.post(path, body);
-    setSubmitting(false);
-    if (res.success) {
-      const successMessage = t(successKey);
-      toast.success(successMessage !== successKey ? successMessage : t('admin.actionSuccess'));
-      onSuccess();
-      onClose();
-    } else {
-      const key = chequeErrorMessageKey(res.error.code);
-      toast.error(key ? t(key) : res.error.message);
+    try {
+      const res = await api.post(path, built.body);
+      if (res.success) {
+        const successMessage = t(successKey);
+        toast.success(successMessage !== successKey ? successMessage : t('admin.actionSuccess'));
+        onSuccess();
+        onClose();
+        return;
+      }
+      submittedRef.current = false;
+      toast.error(
+        resolveChequeTransitionErrorMessage(res.error.code, res.error.message, t, isCancel ? 'cancel' : 'deposit'),
+      );
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -129,44 +143,56 @@ export function ChequeTransitionDialog({
           </dl>
         ) : null}
 
-        {!isDeposit && warning !== warningKey ? (
+        {isCancel && warning !== warningKey ? (
           <p className="finance-cheque-dialog-warning">{warning}</p>
         ) : null}
 
-        <label className="finance-cheque-dialog__field">
-          <span>
-            {t(dateLabelKey)}
-            <span className="finance-cheque-dialog__required" aria-hidden>
-              {' '}
-              *
-            </span>
-          </span>
-          <input
-            className="input"
-            type="date"
-            required
-            value={date}
-            disabled={submitting}
-            onChange={(e) => setDate(e.target.value)}
-          />
-        </label>
-
-        {needsReason ? (
+        {isDeposit ? (
           <label className="finance-cheque-dialog__field">
-            {t('admin.finance.cheques.reason')}
+            <span>
+              {t(dateLabelKey)}
+              <span className="finance-cheque-dialog__required" aria-hidden>
+                {' '}
+                *
+              </span>
+            </span>
+            <input
+              className="input"
+              type="date"
+              required
+              value={date}
+              disabled={submitting}
+              onChange={(e) => setDate(e.target.value)}
+            />
+          </label>
+        ) : null}
+
+        {isCancel ? (
+          <label className="finance-cheque-dialog__field">
+            <span>
+              {t('admin.finance.cheques.reason')}
+              <span className="finance-cheque-dialog__required" aria-hidden>
+                {' '}
+                *
+              </span>
+            </span>
             <textarea
               className="input"
               rows={3}
               required
-              value={reason}
+              value={cancelReason}
               disabled={submitting}
-              onChange={(e) => setReason(e.target.value)}
+              onChange={(e) => setCancelReason(e.target.value)}
             />
           </label>
         ) : null}
 
         <div className="finance-cheque-dialog__actions">
-          <button type="submit" className="btn btn--primary btn--sm" disabled={submitting}>
+          <button
+            type="submit"
+            className="btn btn--primary btn--sm"
+            disabled={submitting || cancelSubmitDisabled}
+          >
             {submitting ? t('common.submitting') : t(confirmKey)}
           </button>
           <button type="button" className="btn btn--ghost btn--sm" onClick={onClose} disabled={submitting}>

@@ -73,14 +73,7 @@ export function ChequeLifecycleDialogs({
         open
         summary={openAction === 'deposit' ? summary : null}
         onClose={onClose}
-        onSuccess={() => {
-          notifyFinanceLifecycleRefresh({
-            studentId: cheque.student_id ?? null,
-            collectionId: cheque.collection_id ?? null,
-            chequeId: cheque.id,
-          });
-          onComplete({});
-        }}
+        onSuccess={() => handleSuccess({})}
       />
     );
   }
