@@ -94,6 +94,7 @@ export interface StudentOverviewAcademicSummary extends StudentOverviewAvailable
 }
 
 export interface StudentOverviewAlertAction {
+  code?: string;
   label?: string;
   type?: string;
   tab?: string;
@@ -101,6 +102,7 @@ export interface StudentOverviewAlertAction {
 }
 
 export interface StudentOverviewAlert {
+  code?: string;
   severity: StudentOverviewAlertSeverity;
   title: string;
   message?: string | null;

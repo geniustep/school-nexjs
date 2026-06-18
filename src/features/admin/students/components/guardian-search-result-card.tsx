@@ -81,7 +81,9 @@ export function GuardianSearchResultCard({
   const t = useT();
   const archived = isPersonArchived(person);
   const roleLine = formatRoleLabels(person.role_labels);
-  const warningMessages = formatGuardianCandidateWarnings(person.warnings);
+  const warningMessages = formatGuardianCandidateWarnings(t, person.warnings, {
+    skipCodes: alreadyLinked ? ['already_linked_to_student'] : undefined,
+  });
 
   return (
     <article
@@ -137,7 +139,7 @@ export function GuardianSearchResultCard({
       <div className="guardian-search-card__actions">
         {canLink ? (
           <button type="button" className="btn btn--primary btn--sm" onClick={onLink}>
-            {linkButtonLabel ?? t('admin.student360.linkPersonAsGuardian')}
+            {linkButtonLabel ?? t('admin.student360.useThisPerson')}
           </button>
         ) : null}
         {canRestore ? (

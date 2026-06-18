@@ -152,6 +152,11 @@ export function mapGuardianApiError(
         message: t('admin.student360.financialGuardianConflict'),
         field: 'is_financial_responsible',
       };
+    case 'guardian_contact_phone_required':
+      return {
+        message: t('admin.student360.guardianContactPhoneRequiredBeforeLink'),
+        field: 'phone',
+      };
     case 'permission_denied':
     case 'forbidden':
       return { message: t('admin.student360.guardianForbidden') };
@@ -164,6 +169,13 @@ export function mapGuardianApiError(
     }
     default: {
       const msg = error.message?.trim();
+      if (
+        msg &&
+        (msg.toLowerCase().includes('phone/mobile is required') ||
+          msg.toLowerCase().includes('phone is required for guardian'))
+      ) {
+        return { message: t('admin.student360.guardianContactPhoneRequiredBeforeLink'), field: 'phone' };
+      }
       if (msg && !msg.includes('<') && !msg.toLowerCase().includes('traceback')) {
         return { message: msg };
       }

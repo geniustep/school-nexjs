@@ -4,27 +4,79 @@ import {
   canLinkGuardianCandidate,
   formatGuardianCandidateWarnings,
   resolveGuardianLinkBlockerMessage,
+  translateGuardianCandidateWarning,
 } from './guardian-candidate-presentation';
 
-const t = (key: string) => key;
+const t = (key: string, params?: Record<string, string | number>) => {
+  if (params) {
+    return `${key}:${JSON.stringify(params)}`;
+  }
+  return key;
+};
 
 describe('guardian-candidate-presentation', () => {
-  it('formats warning messages from API payload', () => {
+  it('translates known warning codes instead of raw API messages', () => {
     expect(
-      formatGuardianCandidateWarnings([
+      translateGuardianCandidateWarning(t, {
+        code: 'guardian_of_other_students',
+        message: 'This person is already guardian of %(count)s student(s).',
+        count: 2,
+      }),
+    ).toBe(
+      'admin.student360.guardianCandidateWarnings.guardianOfOtherStudents:{"count":2}',
+    );
+    expect(
+      translateGuardianCandidateWarning(t, {
+        code: 'already_linked_to_student',
+        message: 'This person is already linked to this student.',
+      }),
+    ).toBe('admin.student360.guardianCandidateWarnings.alreadyLinkedToStudent');
+    expect(
+      translateGuardianCandidateWarning(t, {
+        code: 'existing_teacher_role',
+        message: 'This person already has a teacher profile.',
+      }),
+    ).toBe('admin.student360.guardianCandidateWarnings.existingTeacherRole');
+  });
+
+  it('drops untranslated Odoo template messages', () => {
+    expect(
+      translateGuardianCandidateWarning(t, {
+        code: 'unknown_code',
+        message: 'This person is already guardian of %(count)s student(s).',
+      }),
+    ).toBeNull();
+  });
+
+  it('formats translated warning messages from API payload', () => {
+    expect(
+      formatGuardianCandidateWarnings(t, [
         { code: 'existing_teacher_role', message: 'Teacher profile exists.' },
         { code: 'has_user_account', message: 'Login account exists.' },
       ]),
-    ).toEqual(['Teacher profile exists.', 'Login account exists.']);
+    ).toEqual([
+      'admin.student360.guardianCandidateWarnings.existingTeacherRole',
+      'admin.student360.guardianCandidateWarnings.hasUserAccount',
+    ]);
   });
 
-  it('prefers warning message over generic blocker text', () => {
+  it('can skip duplicate already-linked warnings when badge is shown', () => {
+    expect(
+      formatGuardianCandidateWarnings(
+        t,
+        [{ code: 'already_linked_to_student', message: 'Already linked.' }],
+        { skipCodes: ['already_linked_to_student'] },
+      ),
+    ).toEqual([]);
+  });
+
+  it('prefers translated warning over generic blocker text', () => {
     expect(
       resolveGuardianLinkBlockerMessage(t, {
         can_link_as_guardian: false,
-        warnings: [{ code: 'blocked', message: 'Already linked elsewhere.' }],
+        warnings: [{ code: 'already_linked_to_student', message: 'Already linked elsewhere.' }],
       }),
-    ).toBe('Already linked elsewhere.');
+    ).toBe('admin.student360.guardianCandidateWarnings.alreadyLinkedToStudent');
   });
 
   it('falls back to translated blocker text when warnings are empty', () => {

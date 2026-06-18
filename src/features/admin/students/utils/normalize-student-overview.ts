@@ -205,15 +205,19 @@ function normalizeAcademicSummary(raw: unknown): StudentOverviewAcademicSummary 
 }
 
 function normalizeAlertAction(raw: unknown): StudentOverviewAlertAction | null {
+  if (typeof raw === 'string' && raw.trim()) {
+    return { code: raw.trim() };
+  }
   const record = asRecord(raw);
   if (!record) return null;
   const action: StudentOverviewAlertAction = {
+    code: readString(record.code) ?? undefined,
     label: readString(record.label) ?? undefined,
     type: readString(record.type) ?? undefined,
     tab: readString(record.tab) ?? undefined,
     url: readString(record.url) ?? undefined,
   };
-  return action.label || action.tab || action.url ? action : null;
+  return action.code || action.label || action.tab || action.url ? action : null;
 }
 
 function normalizeAlert(raw: unknown): StudentOverviewAlert | null {
@@ -221,6 +225,7 @@ function normalizeAlert(raw: unknown): StudentOverviewAlert | null {
   if (!record || typeof record.title !== 'string' || !record.title.trim()) return null;
   const severity = readString(record.severity) ?? 'info';
   return {
+    code: readString(record.code) ?? undefined,
     severity,
     title: record.title.trim(),
     message: readString(record.message),

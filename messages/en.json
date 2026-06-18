@@ -2789,10 +2789,19 @@
             "tripConsentPending": "Trip consent pending",
             "financeOverdue": "Finance overdue"
           },
+          "messages": {
+            "missingGuardian": "No guardian is registered for this student.",
+            "missingPhoto": "No student photo is on file.",
+            "missingDocuments": "One or more required documents are missing.",
+            "photoPublishBlocked": "External publication of this student's photo is not allowed.",
+            "tripConsentPending": "Trip participation consent is still pending.",
+            "financeOverdue": "This student has overdue financial balances."
+          },
           "actions": {
             "addGuardian": "Add guardian",
             "viewDocuments": "View documents",
-            "viewGuardians": "View guardians"
+            "viewGuardians": "View guardians",
+            "uploadPhoto": "Upload photo"
           }
         },
         "header": {
@@ -3088,6 +3097,13 @@
       "schoolRoleNoneKnown": "No other known school roles for this person.",
       "personAlreadyHasLoginAccount": "This person already has a login account.",
       "guardianCandidateCannotLink": "This person cannot be linked as a guardian for this student.",
+      "guardianCandidateWarnings": {
+        "guardianOfOtherStudents": "Already a guardian for {count} student(s).",
+        "alreadyLinkedToStudent": "Already linked to this student.",
+        "existingTeacherRole": "Registered as a teacher at this school.",
+        "existingStaffRole": "Registered as administrative staff at this school.",
+        "hasUserAccount": "Has a login account at this school."
+      },
       "currentAccountStatus": "Account",
       "accountExists": "Exists",
       "accountMissing": "None",
@@ -3130,6 +3146,18 @@
       "createNew": "Create new",
       "createNewGuardian": "Create new guardian",
       "addGuardianMode": "Add guardian mode",
+      "guardianSourceTitle": "Guardian source",
+      "guardianSourceExisting": "Existing person in the system",
+      "guardianSourceNew": "New person",
+      "searchByNamePhoneEmail": "Search by name, phone, or email",
+      "duplicatePersonFoundTitle": "We found a similar person in the system. You can use them instead of creating a new person.",
+      "useThisPerson": "Use this person",
+      "thisIsDifferentPerson": "This is a different person",
+      "contactRequiredSectionTitle": "Required contact details",
+      "contactRequiredSectionLead": "Complete a valid phone number before assigning these responsibilities to this person.",
+      "guardianContactPhoneRequiredBeforeLink": "A phone number is required before assigning these responsibilities to this person.",
+      "createAndLinkPersonAsGuardian": "Create person and link as guardian",
+      "continueToRelationship": "Continue to relationship and responsibilities",
       "relationshipStepTitle": "Relationship and responsibilities",
       "relationshipProperties": "Relationship properties",
       "linkingGuardian": "Linking guardian",

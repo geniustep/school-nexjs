@@ -34,9 +34,24 @@ function readWarnings(raw: Record<string, unknown>): GuardianCandidateWarning[] 
     .map((item): GuardianCandidateWarning | null => {
       const warning = asRecord(item);
       if (!warning || typeof warning.code !== 'string' || !warning.code.trim()) return null;
+      const count =
+        typeof warning.count === 'number' && Number.isFinite(warning.count)
+          ? warning.count
+          : undefined;
+      const paramsRecord = asRecord(warning.params);
+      const params = paramsRecord
+        ? (Object.fromEntries(
+            Object.entries(paramsRecord).filter(
+              (entry): entry is [string, string | number] =>
+                typeof entry[1] === 'string' || typeof entry[1] === 'number',
+            ),
+          ) as Record<string, string | number>)
+        : undefined;
       return {
         code: warning.code.trim(),
         message: typeof warning.message === 'string' ? warning.message : undefined,
+        count,
+        params: params && Object.keys(params).length > 0 ? params : undefined,
       };
     })
     .filter((warning): warning is GuardianCandidateWarning => warning != null);
@@ -127,6 +142,7 @@ export function normalizePersonSearchResult(data: unknown): PersonSearchResult |
     delete_impact: deleteImpact ?? undefined,
     can_link_as_guardian: canLink,
     already_guardian_of_student: raw.already_guardian_of_student === true,
+    missing_contact_fields: readStringList(raw.missing_contact_fields),
     warnings: readWarnings(raw),
   };
 }

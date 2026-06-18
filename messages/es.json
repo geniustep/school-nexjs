@@ -2789,10 +2789,19 @@
             "tripConsentPending": "Autorización de salida pendiente",
             "financeOverdue": "Atrasos financieros"
           },
+          "messages": {
+            "missingGuardian": "No hay tutor registrado para este alumno.",
+            "missingPhoto": "No hay foto del alumno registrada.",
+            "missingDocuments": "Faltan uno o más documentos requeridos.",
+            "photoPublishBlocked": "No está permitida la publicación externa de la foto del alumno.",
+            "tripConsentPending": "La autorización para participar en salidas sigue pendiente.",
+            "financeOverdue": "Este alumno tiene saldos financieros vencidos."
+          },
           "actions": {
             "addGuardian": "Añadir responsable",
             "viewDocuments": "Ver documentos",
-            "viewGuardians": "Ver responsables"
+            "viewGuardians": "Ver responsables",
+            "uploadPhoto": "Subir foto"
           }
         },
         "header": {
@@ -3088,6 +3097,13 @@
       "schoolRoleNoneKnown": "No hay otros roles escolares conocidos para esta persona.",
       "personAlreadyHasLoginAccount": "Esta persona ya tiene una cuenta de acceso.",
       "guardianCandidateCannotLink": "Esta persona no puede vincularse como tutor de este alumno.",
+      "guardianCandidateWarnings": {
+        "guardianOfOtherStudents": "Ya es tutor de {count} alumno(s).",
+        "alreadyLinkedToStudent": "Ya está vinculado a este alumno.",
+        "existingTeacherRole": "Registrado como profesor en el centro.",
+        "existingStaffRole": "Registrado como personal administrativo en el centro.",
+        "hasUserAccount": "Tiene una cuenta de acceso en el centro."
+      },
       "currentAccountStatus": "Cuenta",
       "accountExists": "Existe",
       "accountMissing": "Ninguna",
@@ -3130,6 +3146,18 @@
       "createNew": "Crear nuevo",
       "createNewGuardian": "Crear nuevo tutor",
       "addGuardianMode": "Modo de añadir",
+      "guardianSourceTitle": "Origen del tutor",
+      "guardianSourceExisting": "Persona ya registrada en el sistema",
+      "guardianSourceNew": "Persona nueva",
+      "searchByNamePhoneEmail": "Buscar por nombre, teléfono o correo",
+      "duplicatePersonFoundTitle": "Encontramos una persona similar. Puede usarla en lugar de crear una nueva.",
+      "useThisPerson": "Usar esta persona",
+      "thisIsDifferentPerson": "Es una persona diferente",
+      "contactRequiredSectionTitle": "Datos de contacto requeridos",
+      "contactRequiredSectionLead": "Complete un teléfono válido antes de asignar estas responsabilidades a esta persona.",
+      "guardianContactPhoneRequiredBeforeLink": "Se requiere un teléfono antes de asignar estas responsabilidades a esta persona.",
+      "createAndLinkPersonAsGuardian": "Crear persona y vincular como tutor",
+      "continueToRelationship": "Continuar a relación y responsabilidades",
       "relationshipStepTitle": "Relación y responsabilidades",
       "relationshipProperties": "Propiedades de la relación",
       "linkingGuardian": "Vincular tutor",

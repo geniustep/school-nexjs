@@ -1,10 +1,36 @@
 'use client';
 
 import { useT } from '@/features/i18n/locale-context';
-import type { StudentOverviewAlert } from '@/types/student-overview';
+import type { StudentOverviewAlert, StudentOverviewAlertAction } from '@/types/student-overview';
 import type { Student360TabId } from '../utils/student-360-tabs';
 
-/** Map common backend alert strings to i18n keys (display only — no API change). */
+const ALERT_CODE_KEYS: Record<string, { title: string; message?: string }> = {
+  missing_photo: {
+    title: 'admin.student360.overview.alerts.known.missingPhoto',
+    message: 'admin.student360.overview.alerts.messages.missingPhoto',
+  },
+  missing_required_documents: {
+    title: 'admin.student360.overview.alerts.known.missingDocuments',
+    message: 'admin.student360.overview.alerts.messages.missingDocuments',
+  },
+  missing_guardian: {
+    title: 'admin.student360.overview.alerts.known.missingGuardian',
+    message: 'admin.student360.overview.alerts.messages.missingGuardian',
+  },
+  photo_publish_blocked: {
+    title: 'admin.student360.overview.alerts.known.photoPublishBlocked',
+    message: 'admin.student360.overview.alerts.messages.photoPublishBlocked',
+  },
+  trip_consent_pending: {
+    title: 'admin.student360.overview.alerts.known.tripConsentPending',
+    message: 'admin.student360.overview.alerts.messages.tripConsentPending',
+  },
+  finance_overdue: {
+    title: 'admin.student360.overview.alerts.known.financeOverdue',
+    message: 'admin.student360.overview.alerts.messages.financeOverdue',
+  },
+};
+
 const ALERT_TEXT_KEYS: Record<string, string> = {
   'missing guardian': 'admin.student360.overview.alerts.known.missingGuardian',
   'missing photo': 'admin.student360.overview.alerts.known.missingPhoto',
@@ -15,20 +41,77 @@ const ALERT_TEXT_KEYS: Record<string, string> = {
   'trip consent pending': 'admin.student360.overview.alerts.known.tripConsentPending',
   'finance overdue': 'admin.student360.overview.alerts.known.financeOverdue',
   'overdue balance': 'admin.student360.overview.alerts.known.financeOverdue',
-  'add guardian': 'admin.student360.overview.alerts.actions.addGuardian',
-  'view documents': 'admin.student360.overview.alerts.actions.viewDocuments',
-  'view guardians': 'admin.student360.overview.alerts.actions.viewGuardians',
+  'no student photo is on file.': 'admin.student360.overview.alerts.messages.missingPhoto',
+  'one or more required documents are missing.': 'admin.student360.overview.alerts.messages.missingDocuments',
 };
 
-function localizeOverviewAlertText(t: (key: string) => string, text: string | null | undefined): string {
+const ALERT_ACTION_KEYS: Record<string, { label: string; tab?: Student360TabId }> = {
+  upload_photo: {
+    label: 'admin.student360.overview.alerts.actions.uploadPhoto',
+    tab: 'documents',
+  },
+  view_documents: {
+    label: 'admin.student360.overview.alerts.actions.viewDocuments',
+    tab: 'documents',
+  },
+  add_guardian: {
+    label: 'admin.student360.overview.alerts.actions.addGuardian',
+    tab: 'guardians',
+  },
+  view_guardians: {
+    label: 'admin.student360.overview.alerts.actions.viewGuardians',
+    tab: 'guardians',
+  },
+};
+
+function translateKey(t: (key: string) => string, key: string | undefined): string | null {
+  if (!key) return null;
+  const label = t(key);
+  return label !== key ? label : null;
+}
+
+function localizeOverviewAlertField(
+  t: (key: string) => string,
+  alert: StudentOverviewAlert,
+  field: 'title' | 'message',
+): string {
+  const text = field === 'title' ? alert.title : alert.message;
   if (!text?.trim()) return '';
+
+  const codeKey = alert.code ? ALERT_CODE_KEYS[alert.code] : undefined;
+  const mappedKey = field === 'title' ? codeKey?.title : codeKey?.message;
+  const translated = translateKey(t, mappedKey);
+  if (translated) return translated;
+
   const normalized = text.trim().toLowerCase();
-  const key = ALERT_TEXT_KEYS[normalized];
-  if (key) {
-    const label = t(key);
-    if (label !== key) return label;
-  }
+  const fallbackKey = ALERT_TEXT_KEYS[normalized];
+  const fallback = translateKey(t, fallbackKey);
+  if (fallback) return fallback;
+
   return text.trim();
+}
+
+function resolveAlertAction(
+  t: (key: string) => string,
+  action: StudentOverviewAlertAction | null | undefined,
+): { label: string; tab?: Student360TabId; url?: string } | null {
+  if (!action) return null;
+
+  const code = action.code?.trim();
+  const mapped = code ? ALERT_ACTION_KEYS[code] : undefined;
+  const label =
+    translateKey(t, mapped?.label) ??
+    translateKey(t, ALERT_TEXT_KEYS[action.label?.trim().toLowerCase() ?? '']) ??
+    action.label?.trim() ??
+    null;
+
+  if (!label) return null;
+
+  return {
+    label,
+    tab: (action.tab as Student360TabId | undefined) ?? mapped?.tab,
+    url: action.url ?? undefined,
+  };
 }
 
 function alertToneClass(severity: string): string {
@@ -64,15 +147,13 @@ export function StudentOverviewAlerts({
       </header>
       <ul className="student-overview-alerts__list">
         {alerts.map((alert, index) => {
-          const title = localizeOverviewAlertText(t, alert.title);
-          const message = alert.message ? localizeOverviewAlertText(t, alert.message) : null;
-          const actionLabel = alert.action?.label
-            ? localizeOverviewAlertText(t, alert.action.label)
-            : null;
+          const title = localizeOverviewAlertField(t, alert, 'title');
+          const message = alert.message ? localizeOverviewAlertField(t, alert, 'message') : null;
+          const action = resolveAlertAction(t, alert.action);
 
           return (
             <li
-              key={`${alert.title}-${index}`}
+              key={`${alert.code ?? alert.title}-${index}`}
               className={`student-overview-alert ${alertToneClass(alert.severity)}`}
               role="status"
             >
@@ -85,17 +166,17 @@ export function StudentOverviewAlerts({
                 <p className="student-overview-alert__title">{title}</p>
                 {message ? <p className="student-overview-alert__message">{message}</p> : null}
               </div>
-              {actionLabel && alert.action?.tab && onOpenTab ? (
+              {action?.label && action.tab && onOpenTab ? (
                 <button
                   type="button"
                   className="btn btn--ghost btn--sm student-overview-alert__action"
-                  onClick={() => onOpenTab(alert.action!.tab as Student360TabId)}
+                  onClick={() => onOpenTab(action.tab!)}
                 >
-                  {actionLabel}
+                  {action.label}
                 </button>
-              ) : actionLabel && alert.action?.url ? (
-                <a href={alert.action.url} className="btn btn--ghost btn--sm student-overview-alert__action">
-                  {actionLabel}
+              ) : action?.label && action.url ? (
+                <a href={action.url} className="btn btn--ghost btn--sm student-overview-alert__action">
+                  {action.label}
                 </a>
               ) : null}
             </li>

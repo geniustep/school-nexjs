@@ -144,7 +144,7 @@ export function GuardianSearchPanel({
   }, [debouncedQuery, studentId, activeSchoolId, includeArchived]);
 
   const description = labels?.description ?? t('admin.student360.searchExistingPersonDesc');
-  const placeholder = labels?.placeholder ?? t('admin.student360.searchGuardianPlaceholder');
+  const placeholder = labels?.placeholder ?? t('admin.student360.searchByNamePhoneEmail');
   const emptyMessage =
     labels?.emptyMessage ??
     (includeArchived
@@ -153,7 +153,7 @@ export function GuardianSearchPanel({
   const emptyHint = labels?.emptyHint ?? t('admin.guardianProfile.searchNoActiveResultsHint');
   const searchErrorMessage = labels?.searchError ?? t('admin.student360.searchPersonError');
   const duplicateWarning = labels?.duplicateWarning ?? t('admin.guardianProfile.duplicateNameWarning');
-  const linkButtonLabel = labels?.linkButton;
+  const linkButtonLabel = labels?.linkButton ?? t('admin.student360.useThisPerson');
 
   function retrySearch() {
     requestSeq.current += 1;

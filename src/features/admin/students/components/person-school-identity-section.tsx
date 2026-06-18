@@ -2,7 +2,10 @@
 
 import { Badge } from '@/components/ui/primitives';
 import { useT } from '@/features/i18n/locale-context';
-import { resolveGuardianLinkBlockerMessage } from '../utils/guardian-candidate-presentation';
+import {
+  formatGuardianCandidateWarnings,
+  resolveGuardianLinkBlockerMessage,
+} from '../utils/guardian-candidate-presentation';
 import {
   buildPersonSchoolIdentityBadges,
   resolvePersonSchoolIdentityCopy,
@@ -26,6 +29,10 @@ export function PersonSchoolIdentitySection({
   const badges = buildPersonSchoolIdentityBadges(t, person);
   const copy = resolvePersonSchoolIdentityCopy(t, person);
   const resolvedWarnings = warnings ?? person.warnings;
+  const warningMessages =
+    canLink && resolvedWarnings?.length
+      ? formatGuardianCandidateWarnings(t, resolvedWarnings)
+      : [];
   const blockerMessage = !canLink
     ? resolveGuardianLinkBlockerMessage(t, {
         can_link_as_guardian: person.can_link_as_guardian ?? false,
@@ -68,15 +75,13 @@ export function PersonSchoolIdentitySection({
       {copy.lead ? <p className="person-school-identity__lead">{copy.lead}</p> : null}
       {copy.detail ? <p className="person-school-identity__detail">{copy.detail}</p> : null}
 
-      {canLink && resolvedWarnings && resolvedWarnings.length > 0 ? (
+      {warningMessages.length > 0 ? (
         <ul className="person-school-identity__warnings">
-          {resolvedWarnings.map((warning) =>
-            warning.message?.trim() ? (
-              <li key={`${warning.code}-${warning.message}`} className="person-school-identity__warning">
-                {warning.message}
-              </li>
-            ) : null,
-          )}
+          {warningMessages.map((message) => (
+            <li key={message} className="person-school-identity__warning">
+              {message}
+            </li>
+          ))}
         </ul>
       ) : null}
     </section>

@@ -2816,10 +2816,19 @@
             "tripConsentPending": "موافقة الرحلات معلّقة",
             "financeOverdue": "متأخرات مالية"
           },
+          "messages": {
+            "missingGuardian": "لا يوجد ولي أمر مسجّل لهذا التلميذ.",
+            "missingPhoto": "لا توجد صورة مسجّلة لهذا التلميذ.",
+            "missingDocuments": "وثيقة أو أكثر من الوثائق المطلوبة غير مرفوعة.",
+            "photoPublishBlocked": "النشر الخارجي لصورة التلميذ غير مسموح حاليًا.",
+            "tripConsentPending": "موافقة المشاركة في الرحلات ما زالت بانتظار القرار.",
+            "financeOverdue": "توجد مستحقات مالية متأخرة على هذا التلميذ."
+          },
           "actions": {
             "addGuardian": "إضافة ولي أمر",
             "viewDocuments": "عرض الوثائق",
-            "viewGuardians": "عرض الأولياء"
+            "viewGuardians": "عرض الأولياء",
+            "uploadPhoto": "رفع صورة"
           }
         },
         "header": {
@@ -3115,6 +3124,13 @@
       "schoolRoleNoneKnown": "لا توجد أدوار مدرسية أخرى معروفة لهذا الشخص.",
       "personAlreadyHasLoginAccount": "هذا الشخص لديه حساب دخول بالفعل.",
       "guardianCandidateCannotLink": "لا يمكن ربط هذا الشخص كولي أمر لهذا التلميذ.",
+      "guardianCandidateWarnings": {
+        "guardianOfOtherStudents": "مسجل أصلًا كولي أمر لـ {count} تلميذ",
+        "alreadyLinkedToStudent": "مرتبط مسبقًا بهذا التلميذ",
+        "existingTeacherRole": "مسجل كأستاذ في المدرسة",
+        "existingStaffRole": "مسجل كموظف إداري في المدرسة",
+        "hasUserAccount": "لديه حساب دخول في المدرسة"
+      },
       "currentAccountStatus": "الحساب",
       "accountExists": "موجود",
       "accountMissing": "لا يوجد",
@@ -3157,6 +3173,18 @@
       "createNew": "إنشاء ولي جديد",
       "createNewGuardian": "إنشاء ولي جديد",
       "addGuardianMode": "طريقة إضافة ولي",
+      "guardianSourceTitle": "مصدر الولي",
+      "guardianSourceExisting": "شخص موجود مسبقًا في النظام",
+      "guardianSourceNew": "شخص جديد",
+      "searchByNamePhoneEmail": "ابحث بالاسم أو الهاتف أو البريد",
+      "duplicatePersonFoundTitle": "وجدنا شخصًا مشابهًا في النظام. يمكنك استعماله بدل إنشاء شخص جديد.",
+      "useThisPerson": "استعمال هذا الشخص",
+      "thisIsDifferentPerson": "هذا شخص مختلف",
+      "contactRequiredSectionTitle": "بيانات الاتصال المطلوبة",
+      "contactRequiredSectionLead": "أكمل رقم هاتف صالح قبل اعتماد هذا الشخص بهذه المسؤوليات.",
+      "guardianContactPhoneRequiredBeforeLink": "رقم الهاتف مطلوب قبل اعتماد هذا الشخص بهذه المسؤوليات.",
+      "createAndLinkPersonAsGuardian": "إنشاء الشخص وربطه كولي أمر",
+      "continueToRelationship": "متابعة لتحديد العلاقة والمسؤوليات",
       "relationshipStepTitle": "تحديد العلاقة والمسؤوليات",
       "relationshipProperties": "خصائص العلاقة",
       "linkingGuardian": "ربط الولي",

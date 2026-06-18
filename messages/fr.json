@@ -2789,10 +2789,19 @@
             "tripConsentPending": "Autorisation de sortie en attente",
             "financeOverdue": "Retards financiers"
           },
+          "messages": {
+            "missingGuardian": "Aucun responsable légal n'est enregistré pour cet élève.",
+            "missingPhoto": "Aucune photo de l'élève n'est enregistrée.",
+            "missingDocuments": "Un ou plusieurs documents requis sont manquants.",
+            "photoPublishBlocked": "La publication externe de la photo de l'élève n'est pas autorisée.",
+            "tripConsentPending": "L'autorisation de participation aux sorties est encore en attente.",
+            "financeOverdue": "Cet élève a des soldes financiers en retard."
+          },
           "actions": {
             "addGuardian": "Ajouter un responsable",
             "viewDocuments": "Voir les documents",
-            "viewGuardians": "Voir les responsables"
+            "viewGuardians": "Voir les responsables",
+            "uploadPhoto": "Téléverser une photo"
           }
         },
         "header": {
@@ -3088,6 +3097,13 @@
       "schoolRoleNoneKnown": "Aucun autre rôle scolaire connu pour cette personne.",
       "personAlreadyHasLoginAccount": "Cette personne possède déjà un compte de connexion.",
       "guardianCandidateCannotLink": "Cette personne ne peut pas être liée comme responsable légal pour cet élève.",
+      "guardianCandidateWarnings": {
+        "guardianOfOtherStudents": "Déjà responsable légal de {count} élève(s).",
+        "alreadyLinkedToStudent": "Déjà lié à cet élève.",
+        "existingTeacherRole": "Enregistré comme enseignant dans l'établissement.",
+        "existingStaffRole": "Enregistré comme personnel administratif dans l'établissement.",
+        "hasUserAccount": "Possède un compte de connexion dans l'établissement."
+      },
       "currentAccountStatus": "Compte",
       "accountExists": "Existant",
       "accountMissing": "Aucun",
@@ -3130,6 +3146,18 @@
       "createNew": "Créer nouveau",
       "createNewGuardian": "Créer un nouveau responsable",
       "addGuardianMode": "Mode d'ajout",
+      "guardianSourceTitle": "Source du responsable",
+      "guardianSourceExisting": "Personne déjà enregistrée dans le système",
+      "guardianSourceNew": "Nouvelle personne",
+      "searchByNamePhoneEmail": "Rechercher par nom, téléphone ou e-mail",
+      "duplicatePersonFoundTitle": "Nous avons trouvé une personne similaire. Vous pouvez l'utiliser au lieu d'en créer une nouvelle.",
+      "useThisPerson": "Utiliser cette personne",
+      "thisIsDifferentPerson": "C'est une personne différente",
+      "contactRequiredSectionTitle": "Coordonnées requises",
+      "contactRequiredSectionLead": "Complétez un numéro de téléphone valide avant d'attribuer ces responsabilités à cette personne.",
+      "guardianContactPhoneRequiredBeforeLink": "Un numéro de téléphone est requis avant d'attribuer ces responsabilités à cette personne.",
+      "createAndLinkPersonAsGuardian": "Créer la personne et lier comme responsable",
+      "continueToRelationship": "Continuer vers la relation et les responsabilités",
       "relationshipStepTitle": "Lien et responsabilités",
       "relationshipProperties": "Propriétés du lien",
       "linkingGuardian": "Lier le responsable",

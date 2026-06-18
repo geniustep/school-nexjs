@@ -389,6 +389,8 @@ export interface GuardianSummary {
 export interface GuardianCandidateWarning {
   code: string;
   message?: string;
+  count?: number;
+  params?: Record<string, string | number>;
 }
 
 /** Unified person search result — GET /admin/guardians/search or guardian-candidates */
@@ -399,6 +401,7 @@ export interface PersonSearchResult extends GuardianSummary {
   has_user_account: boolean;
   can_link_as_guardian: boolean;
   warnings?: GuardianCandidateWarning[];
+  missing_contact_fields?: string[];
   already_guardian_of_student?: boolean;
   active?: boolean;
   archived?: boolean;
@@ -431,6 +434,11 @@ export interface LinkPersonAsGuardianResponse {
   };
 }
 
+export interface GuardianContactPatch {
+  phone?: string;
+  email?: string;
+}
+
 export interface LinkPersonAsGuardianPayload {
   partner_id: number;
   relationship_type: RelationshipType;
@@ -443,6 +451,7 @@ export interface LinkPersonAsGuardianPayload {
   contact_priority?: number;
   date_start?: string;
   notes?: string;
+  contact_patch?: GuardianContactPatch;
 }
 
 export type GuardianDuplicateField = 'phone' | 'email' | 'national_id' | 'unknown';
