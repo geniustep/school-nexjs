@@ -2,12 +2,11 @@
 
 import { Badge } from '@/components/ui/primitives';
 import { useT } from '@/features/i18n/locale-context';
-import { initials } from '@/lib/utils/format';
 import { statusLabel } from '@/lib/utils/labels';
 import { getStudentDisplayName } from '@/lib/utils/student';
 import { computeProfileReadinessState } from '../utils/student-readiness-state';
 import { studentClassLabel, studentLevelLabel, refOrStringLabel } from '../utils/student-academic-labels';
-import { resolveStudentPhotoUrl } from '../utils/resolve-student-photo-url';
+import { Student360HeaderAvatar } from './student-360-header-avatar';
 import { isRelationshipActive } from '../utils/relationship-types';
 import type { AcademicClassOption, AcademicLevelOption, StudentDetailsData } from '@/types/student-360';
 import type { StudentOverviewData } from '@/types/student-overview';
@@ -143,31 +142,17 @@ export function Student360Header({
     null;
 
   const photo = overview?.photo;
-  const photoSrc = resolveStudentPhotoUrl(photo?.thumbnail_url ?? photo?.image_url ?? s.image_url);
-  const avatarInitials = initials(displayName);
   const headerBadges = buildHeaderBadges(t, details, overview);
 
   return (
     <header className="student-360-header card">
       <div className="student-360-header__main">
         <div className="student-360-header__identity">
-          <div
-            className={`student-360-header__avatar${photoSrc ? ' student-360-header__avatar--photo' : ''}`}
-            aria-hidden={photoSrc ? undefined : true}
-          >
-            {photoSrc ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={photoSrc}
-                alt=""
-                className="student-360-header__avatar-img"
-                loading="lazy"
-                decoding="async"
-              />
-            ) : (
-              avatarInitials
-            )}
-          </div>
+          <Student360HeaderAvatar
+            photo={photo}
+            legacyImageUrl={s.image_url}
+            displayName={displayName}
+          />
           <div className="student-360-header__info">
             <h1 className="student-360-header__title">{displayName}</h1>
             <div className="student-360-header__meta">
