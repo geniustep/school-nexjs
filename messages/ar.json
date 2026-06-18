@@ -2224,6 +2224,7 @@
       "emergencyContactPhoneRequired": "أكمل رقم هاتف صالح قبل اعتماد هذا الشخص جهة اتصال للطوارئ.",
       "notificationsContactMissing": "لا توجد وسيلة اتصال صالحة لاستقبال الإشعارات.",
       "editParentContact": "تعديل بيانات الولي",
+      "notFound": "ملف ولي الأمر غير موجود أو خارج نطاق صلاحياتك.",
       "contactNumber": "رقم الاتصال",
       "loginAccountLabel": "حساب الدخول",
       "manageLoginAccount": "إدارة حساب الدخول",

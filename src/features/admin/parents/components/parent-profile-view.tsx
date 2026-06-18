@@ -118,6 +118,7 @@ export function ParentProfileView({
 }) {
   const t = useT();
   const user = useSession();
+  const router = useRouter();
   const [accountDialogOpen, setAccountDialogOpen] = useState(false);
   const [restoreOpen, setRestoreOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -437,7 +438,7 @@ export function ParentProfileView({
         onClose={() => setDeleteOpen(false)}
         onDeleted={() => {
           setDeleteOpen(false);
-          onReload();
+          router.push('/admin/parents');
         }}
       />
     </div>

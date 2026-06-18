@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { ResourceView } from '@/components/states/resource';
+import { NotFoundState } from '@/components/states/states';
 import { PageHeader } from '@/components/ui/primitives';
 import { ParentForm } from '@/features/admin/entity-forms';
 import { ParentProfileView } from '@/features/admin/parents/components/parent-profile-view';
@@ -33,6 +34,17 @@ export default function AdminParentDetailPage({ params }: { params: Promise<{ id
         </Link>
         <PageHeader title={t('admin.addParent')} />
         <ParentForm onSaved={(pid) => router.push(`/admin/parents/${pid}`)} onCancel={() => router.push('/admin/parents')} />
+      </>
+    );
+  }
+
+  if (state.error?.code === 'not_found') {
+    return (
+      <>
+        <Link href="/admin/parents" className="back-link">
+          ‹ {t('nav.parents')}
+        </Link>
+        <NotFoundState description={t('admin.parentProfile.notFound')} />
       </>
     );
   }

@@ -2197,6 +2197,7 @@
       "emergencyContactPhoneRequired": "Add a valid phone number before marking this person as an emergency contact.",
       "notificationsContactMissing": "No valid contact method is available to receive notifications.",
       "editParentContact": "Edit guardian contact details",
+      "notFound": "This guardian profile was not found or is outside your scope.",
       "contactNumber": "Contact number",
       "loginAccountLabel": "Login account",
       "manageLoginAccount": "Manage login account",

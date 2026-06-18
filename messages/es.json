@@ -2197,6 +2197,7 @@
       "emergencyContactPhoneRequired": "Añada un teléfono válido antes de designar a esta persona como contacto de emergencia.",
       "notificationsContactMissing": "No hay un medio de contacto válido para recibir notificaciones.",
       "editParentContact": "Editar datos de contacto del tutor",
+      "notFound": "No se encontró este perfil de tutor o está fuera de su ámbito.",
       "contactNumber": "Número de contacto",
       "loginAccountLabel": "Cuenta de acceso",
       "manageLoginAccount": "Gestionar cuenta de acceso",

@@ -2197,6 +2197,7 @@
       "emergencyContactPhoneRequired": "Ajoutez un numéro de téléphone valide avant de désigner cette personne comme contact d'urgence.",
       "notificationsContactMissing": "Aucun moyen de contact valide n'est disponible pour recevoir les notifications.",
       "editParentContact": "Modifier les coordonnées du responsable",
+      "notFound": "Ce dossier responsable est introuvable ou hors de votre périmètre.",
       "contactNumber": "Numéro de contact",
       "loginAccountLabel": "Compte de connexion",
       "manageLoginAccount": "Gérer le compte de connexion",
