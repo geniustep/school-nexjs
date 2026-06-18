@@ -1,4 +1,4 @@
-import type { PersonSearchResult } from '@/types/student-360';
+import type { GuardianCandidateWarning, PersonSearchResult } from '@/types/student-360';
 import { normalizeAllowedActionsFromRaw } from './guardian-removal-shared';
 import { normalizeDeleteImpactFromRaw } from './guardian-delete-impact';
 import { getGuardianEmailPresentation } from './guardian-email-presentation';
@@ -21,10 +21,24 @@ function readStringList(value: unknown): string[] {
 }
 
 function readHasUserAccount(raw: Record<string, unknown>): boolean {
-  if (raw.has_user_account === true || raw.has_account === true) return true;
+  if (raw.has_user === true || raw.has_user_account === true || raw.has_account === true) return true;
   if (typeof raw.user_id === 'number' && raw.user_id > 0) return true;
   const account = asRecord(raw.account);
   return typeof account?.user_id === 'number' && account.user_id > 0;
+}
+
+function readWarnings(raw: Record<string, unknown>): GuardianCandidateWarning[] {
+  if (!Array.isArray(raw.warnings)) return [];
+  return raw.warnings
+    .map((item): GuardianCandidateWarning | null => {
+      const warning = asRecord(item);
+      if (!warning || typeof warning.code !== 'string' || !warning.code.trim()) return null;
+      return {
+        code: warning.code.trim(),
+        message: typeof warning.message === 'string' ? warning.message : undefined,
+      };
+    })
+    .filter((warning): warning is GuardianCandidateWarning => warning != null);
 }
 
 function resolveStatus(raw: Record<string, unknown>): string | undefined {
@@ -35,7 +49,7 @@ function resolveStatus(raw: Record<string, unknown>): string | undefined {
   return undefined;
 }
 
-/** Map unified person search row from GET /admin/guardians/search. */
+/** Map unified person search row from GET /admin/guardians/search or guardian-candidates. */
 export function normalizePersonSearchResult(data: unknown): PersonSearchResult | null {
   const raw = asRecord(data);
   if (!raw || typeof raw.partner_id !== 'number') return null;
@@ -64,10 +78,12 @@ export function normalizePersonSearchResult(data: unknown): PersonSearchResult |
 
   let canLink = false;
   if (!archived) {
-    if (allowedActions?.link_as_guardian === true) canLink = true;
-    else if (allowedActions?.link_as_guardian !== false && raw.can_link_as_guardian === true) canLink = true;
-    else if (allowedActions?.link_as_guardian === undefined && raw.can_link_as_guardian !== false) {
-      canLink = raw.can_link_as_guardian !== false;
+    if (raw.can_link_as_guardian === false || allowedActions?.link_as_guardian === false) {
+      canLink = false;
+    } else if (raw.can_link_as_guardian === true || allowedActions?.link_as_guardian === true) {
+      canLink = true;
+    } else if (raw.can_link_as_guardian === undefined && allowedActions?.link_as_guardian === undefined) {
+      canLink = true;
     }
   }
 
@@ -77,7 +93,12 @@ export function normalizePersonSearchResult(data: unknown): PersonSearchResult |
     id: guardianId ?? raw.partner_id,
     guardian_id: guardianId,
     teacher_id: typeof raw.teacher_id === 'number' ? raw.teacher_id : null,
+    staff_id: typeof raw.staff_id === 'number' ? raw.staff_id : null,
     user_id: typeof raw.user_id === 'number' ? raw.user_id : null,
+    guardian_links_count:
+      typeof raw.guardian_links_count === 'number' ? raw.guardian_links_count : undefined,
+    linked_students_count:
+      typeof raw.linked_students_count === 'number' ? raw.linked_students_count : undefined,
     name,
     phone:
       (typeof raw.phone === 'string' ? raw.phone : null) ??
@@ -99,6 +120,7 @@ export function normalizePersonSearchResult(data: unknown): PersonSearchResult |
           : undefined,
     existing_roles: existingRoles,
     role_labels: roleLabels,
+    has_user: raw.has_user === true || hasUserAccount,
     has_user_account: hasUserAccount,
     has_account: hasUserAccount,
     active,
@@ -109,6 +131,7 @@ export function normalizePersonSearchResult(data: unknown): PersonSearchResult |
     delete_impact: deleteImpact ?? undefined,
     can_link_as_guardian: canLink,
     already_guardian_of_student: raw.already_guardian_of_student === true,
+    warnings: readWarnings(raw),
   };
 }
 

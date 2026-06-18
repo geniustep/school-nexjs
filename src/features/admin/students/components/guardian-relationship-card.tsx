@@ -22,6 +22,10 @@ import {
   needsNewAccountFromLink,
   personHasTeacherRole,
 } from '../utils/person-role-presentation';
+import {
+  buildGuardianCardSchoolBadges,
+  personHasLoginAccount,
+} from '../utils/person-school-identity';
 import type { GuardianRelationship } from '@/types/student-360';
 
 export function GuardianRelationshipCard({
@@ -64,9 +68,9 @@ export function GuardianRelationshipCard({
   const accountStatus = resolveAccountStatus(accountEntity);
   const hasAccount = accountStatus !== 'not_created';
   const showCreateAccount = needsNewAccountFromLink(undefined, hasAccount);
-  const roleLabels = rel.guardian.role_labels ?? [];
-  const rolesLine = formatRoleLabels(roleLabels);
-  const isMultiRole = roleLabels.length > 1 || personHasTeacherRole(rel.guardian);
+  const schoolRoleBadges = buildGuardianCardSchoolBadges(t, rel.guardian);
+  const rolesLine = formatRoleLabels(rel.guardian.role_labels ?? []);
+  const isMultiRole = schoolRoleBadges.length > 0 || personHasTeacherRole(rel.guardian);
   const canRemove = canRemoveGuardianRelationship(rel, canManage) && active;
 
   useEffect(() => {
@@ -108,23 +112,23 @@ export function GuardianRelationshipCard({
             <Link href={`/admin/parents/${rel.guardian.id}`} className="student-360-guardian-card__name" dir="auto">
               {rel.guardian.name}
             </Link>
-            {rolesLine ? (
-              <div className="student-360-guardian-card__role-badges">
-                {roleLabels.map((label) => (
-                  <Badge key={`${rel.relationship_id}-${label}`} tone="slate">
-                    {label}
-                  </Badge>
-                ))}
-              </div>
-            ) : personHasTeacherRole(rel.guardian) ? (
+            <div className="student-360-guardian-card__role-badges">
+              <Badge tone="blue">{relationshipLine}</Badge>
+              {schoolRoleBadges.map((badge) => (
+                <Badge key={`${rel.relationship_id}-${badge.id}`} tone="slate">
+                  {badge.label}
+                </Badge>
+              ))}
+              {personHasLoginAccount(rel.guardian) &&
+              !schoolRoleBadges.some((badge) => badge.id === 'login') ? (
+                <Badge tone="green">{t('admin.student360.schoolRoleHasLoginAccount')}</Badge>
+              ) : null}
+            </div>
+            {rel.is_primary_contact ? (
               <p className="student-360-guardian-card__meta tiny muted">
-                {t('admin.student360.personRegisteredAsTeacher')}
+                {t('admin.student360.primaryGuardianShort')}
               </p>
             ) : null}
-            <p className="student-360-guardian-card__meta tiny muted">
-              {relationshipLine}
-              {rel.is_primary_contact ? ` · ${t('admin.student360.primaryGuardianShort')}` : ''}
-            </p>
             {rel.needs_review ? (
               <Badge tone="amber">{t('admin.student360.recordNeedsReview')}</Badge>
             ) : null}
@@ -187,21 +191,20 @@ export function GuardianRelationshipCard({
         <GuardianRelationshipBadges rel={rel} isDefaultBilling={isDefaultBilling} />
 
         <div className="student-360-guardian-card__account">
-          {hasAccount ? (
-            <>
-              <Badge tone="green">{t('admin.student360.hasLoginAccount')}</Badge>
-              {rolesLine ? (
-                <p className="tiny muted">
-                  {t('admin.student360.accountRoles')}: {rolesLine}
-                </p>
-              ) : null}
-              {isMultiRole && hasAccount ? (
-                <p className="tiny muted">{t('admin.student360.singleLoginForRoles')}</p>
-              ) : null}
-            </>
-          ) : (
-            <AccountStatusBadge entity={accountEntity} showLogin={false} />
-          )}
+            {hasAccount ? (
+              <>
+                {rolesLine && !schoolRoleBadges.length ? (
+                  <p className="tiny muted">
+                    {t('admin.student360.accountRoles')}: {rolesLine}
+                  </p>
+                ) : null}
+                {isMultiRole && hasAccount ? (
+                  <p className="tiny muted">{t('admin.student360.singleLoginForRoles')}</p>
+                ) : null}
+              </>
+            ) : (
+              <AccountStatusBadge entity={accountEntity} showLogin={false} />
+            )}
         </div>
 
         {canManage && active ? (

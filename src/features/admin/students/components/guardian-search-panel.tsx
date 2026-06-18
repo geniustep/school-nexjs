@@ -7,6 +7,8 @@ import { useT } from '@/features/i18n/locale-context';
 import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
 import { useDebouncedValue } from '../hooks/use-debounced-value';
+import { searchGuardianCandidatesForStudent } from '../utils/guardian-candidate-search';
+import { resolveGuardianLinkBlockerMessage } from '../utils/guardian-candidate-presentation';
 import { normalizePersonSearchList } from '../utils/normalize-person-search';
 import {
   formatMoroccanPhoneDisplay,
@@ -98,26 +100,40 @@ export function GuardianSearchPanel({
 
     const q = isPhoneLikeQuery(debouncedQuery) ? moroccanPhoneSearchQuery(debouncedQuery) : debouncedQuery;
 
-    api
-      .get<PersonSearchResult[]>(endpoints.admin.guardiansSearch, {
-        q,
-        page: 1,
-        page_size: 20,
-        exclude_student_id: studentId,
-        active_school_id: activeSchoolId ?? undefined,
-        include_archived: includeArchived ? 'true' : undefined,
-      })
-      .then((res) => {
+    const runSearch = studentId != null
+      ? searchGuardianCandidatesForStudent(studentId, {
+          query: q,
+          activeSchoolId,
+          includeArchived,
+        })
+      : api
+          .get<PersonSearchResult[]>(endpoints.admin.guardiansSearch, {
+            q,
+            page: 1,
+            page_size: 20,
+            active_school_id: activeSchoolId ?? undefined,
+            include_archived: includeArchived ? 'true' : undefined,
+          })
+          .then((res) => {
+            if (!res.success) return { ok: false as const };
+            return {
+              ok: true as const,
+              results: normalizePersonSearchList(res.data),
+              source: 'legacy' as const,
+            };
+          });
+
+    Promise.resolve(runSearch)
+      .then((outcome) => {
         if (seq !== requestSeq.current) return;
-        if (!res.success) {
+        if (!outcome.ok) {
           setResults([]);
           setSearchError(true);
           setSearchState('error');
           return;
         }
-        const list = normalizePersonSearchList(res.data);
-        setResults(list);
-        setSearchState(list.length > 0 ? 'results' : 'empty');
+        setResults(outcome.results);
+        setSearchState(outcome.results.length > 0 ? 'results' : 'empty');
       })
       .catch(() => {
         if (seq !== requestSeq.current) return;
@@ -246,6 +262,10 @@ export function GuardianSearchPanel({
                 const archived = isPersonArchived(person);
                 const alreadyLinked = isAlreadyLinked(person);
                 const canLink = canLinkPersonAsGuardian(person, alreadyLinked);
+                const linkBlockerMessage =
+                  !canLink && !alreadyLinked && !archived
+                    ? resolveGuardianLinkBlockerMessage(t, person)
+                    : null;
                 const canRestore = canRestoreGuardianProfile(person.allowed_actions);
                 const canDelete = canDeleteGuardianProfile(person.allowed_actions, user);
                 const profileId = guardianProfileId(person);
@@ -264,7 +284,7 @@ export function GuardianSearchPanel({
                       canLink={canLink}
                       canRestore={canRestore}
                       canDelete={canDelete}
-                      blockerHint={blockerHint}
+                      blockerHint={blockerHint ?? linkBlockerMessage}
                       linkButtonLabel={linkButtonLabel}
                       onLink={() => onSelect(person)}
                       onRestore={() => setRestoreTarget(person)}

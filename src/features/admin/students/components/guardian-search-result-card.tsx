@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Badge } from '@/components/ui/primitives';
 import { useT } from '@/features/i18n/locale-context';
 import { formatMoroccanPhoneDisplay } from '../utils/normalize-moroccan-phone';
+import { formatGuardianCandidateWarnings } from '../utils/guardian-candidate-presentation';
 import { formatRoleLabels, personProfileHref } from '../utils/person-role-presentation';
 import { isPersonArchived } from '../utils/guardian-profile-contract';
 import type { PersonSearchResult } from '@/types/student-360';
@@ -80,6 +81,7 @@ export function GuardianSearchResultCard({
   const t = useT();
   const archived = isPersonArchived(person);
   const roleLine = formatRoleLabels(person.role_labels);
+  const warningMessages = formatGuardianCandidateWarnings(person.warnings);
 
   return (
     <article
@@ -115,11 +117,21 @@ export function GuardianSearchResultCard({
           <span className="guardian-search-panel__badge">{t('admin.student360.alreadyLinkedGuardian')}</span>
         ) : null}
 
+        {warningMessages.length > 0 ? (
+          <ul className="guardian-search-card__warnings">
+            {warningMessages.map((message) => (
+              <li key={message} className="tiny muted">
+                {message}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+
         {archived ? (
           <p className="tiny guardian-search-card__archived-note">{t('admin.guardianProfile.archivedCannotLinkHint')}</p>
         ) : null}
 
-        {blockerHint && archived ? <p className="tiny muted">{blockerHint}</p> : null}
+        {blockerHint ? <p className="tiny muted">{blockerHint}</p> : null}
       </div>
 
       <div className="guardian-search-card__actions">

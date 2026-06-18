@@ -19,7 +19,10 @@ import {
   type RelationshipFormValues,
 } from './guardian-relationship-form';
 import { GuardianRelationshipImpactAlert } from './guardian-relationship-impact-alert';
+import { PersonSchoolIdentitySection } from './person-school-identity-section';
 import { mapGuardianApiError } from '../utils/guardian-api-errors';
+import { resolveGuardianLinkBlockerMessage } from '../utils/guardian-candidate-presentation';
+import { canLinkPersonAsGuardian } from '../utils/guardian-profile-contract';
 import {
   linkExistingPersonAsGuardian,
   normalizeLinkPersonResponse,
@@ -31,6 +34,7 @@ import {
   needsNewAccountFromLink,
   personHasTeacherRole,
 } from '../utils/person-role-presentation';
+import { personHasLoginAccount } from '../utils/person-school-identity';
 import { isRelationshipActive } from '../utils/relationship-types';
 import type {
   GuardianRelationship,
@@ -55,7 +59,7 @@ export function GuardianAddDialog({
   studentId: number;
   relationships: GuardianRelationship[];
   onClose: () => void;
-  onLinked: () => void;
+  onLinked: (result?: LinkPersonAsGuardianResponse) => void;
 }) {
   const t = useT();
   const toast = useToast();
@@ -185,7 +189,7 @@ export function GuardianAddDialog({
       }
 
       setStep('success');
-      onLinked();
+      onLinked(normalized ?? undefined);
       return;
     }
 
@@ -222,11 +226,19 @@ export function GuardianAddDialog({
             ? t('admin.student360.guardianSuccessTitle')
             : t('admin.student360.guardianSuccessTitle');
 
+  const canLinkSelectedPerson = useMemo(() => {
+    if (!selectedPerson || !isPersonSearchResult(selectedPerson)) return true;
+    return canLinkPersonAsGuardian(selectedPerson, Boolean(linkedRelationship));
+  }, [linkedRelationship, selectedPerson]);
+
+  const selectedPersonLinkBlocker = useMemo(() => {
+    if (!selectedPerson || !isPersonSearchResult(selectedPerson) || canLinkSelectedPerson) return null;
+    return resolveGuardianLinkBlockerMessage(t, selectedPerson);
+  }, [canLinkSelectedPerson, selectedPerson, t]);
+
   const personHasAccount =
     linkResult?.account?.has_user_account ??
-    selectedPerson?.has_user_account ??
-    selectedPerson?.has_account ??
-    false;
+    (selectedPerson ? personHasLoginAccount(selectedPerson) : false);
 
   const showCreateAccount =
     selectedPerson != null &&
@@ -277,17 +289,6 @@ export function GuardianAddDialog({
             <div className="guardian-selected-summary">
               <p className="tiny muted">{t('admin.student360.selectedPerson')}</p>
               <strong dir="auto">{selectedPerson.name}</strong>
-              {selectedPerson.role_labels?.length ? (
-                <p className="tiny">
-                  {t('admin.student360.currentRoles')}: {formatRoleLabels(selectedPerson.role_labels)}
-                </p>
-              ) : null}
-              <p className="tiny">
-                {t('admin.student360.currentAccountStatus')}:{' '}
-                {selectedPerson.has_user_account || selectedPerson.has_account
-                  ? t('admin.student360.accountExists')
-                  : t('admin.student360.accountMissing')}
-              </p>
               {selectedPerson.phone ? (
                 <span className="tiny mono" dir="ltr">
                   {formatMoroccanPhoneDisplay(selectedPerson.phone)}
@@ -300,16 +301,23 @@ export function GuardianAddDialog({
               ) : null}
             </div>
 
-            {selectedPerson.has_user_account || selectedPerson.has_account ? (
-              <div className="guardian-account-reuse-note" role="status">
-                <p>{t('admin.student360.willReuseExistingAccount')}</p>
-                {personHasTeacherRole(selectedPerson) ? (
-                  <p className="tiny muted">{t('admin.student360.teacherRoleAddedNote')}</p>
-                ) : null}
+            {isPersonSearchResult(selectedPerson) ? (
+              <PersonSchoolIdentitySection
+                person={selectedPerson}
+                showLinkNote
+                warnings={selectedPerson.warnings}
+              />
+            ) : null}
+
+            {selectedPersonLinkBlocker ? (
+              <div className="guardian-link-blocker" role="alert">
+                <p className="tiny guardian-create-field__error">{selectedPersonLinkBlocker}</p>
               </div>
             ) : null}
 
-            <p className="tiny muted">{t('admin.parentProfile.responsibilitiesScopeNote')}</p>
+            {personHasTeacherRole(selectedPerson) ? (
+              <p className="tiny muted">{t('admin.parentProfile.responsibilitiesScopeNote')}</p>
+            ) : null}
 
             <GuardianRelationshipImpactAlert
               values={formValues}
@@ -348,7 +356,11 @@ export function GuardianAddDialog({
             ) : null}
 
             <div className="guardian-flow-drawer__actions">
-              <button type="submit" className="btn btn--primary" disabled={saving}>
+              <button
+                type="submit"
+                className="btn btn--primary"
+                disabled={saving || !canLinkSelectedPerson}
+              >
                 {saving ? t('admin.student360.linkingPersonProgress') : t('admin.student360.linkPersonAsGuardian')}
               </button>
               <button type="button" className="btn btn--ghost" disabled={saving} onClick={() => setStep('pick')}>

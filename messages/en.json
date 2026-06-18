@@ -2768,6 +2768,7 @@
         "emptyValue": "Not provided",
         "cardsTitle": "Overview",
         "activityTitle": "Activity & follow-up",
+        "activityDesc": "Quick snapshot of recent attendance and academic activity.",
         "unavailableTitle": "Summary unavailable",
         "unavailableDesc": "The consolidated summary is not available for this student yet. The sections below remain accessible.",
         "viewDocuments": "View documents",
@@ -2855,7 +2856,8 @@
           "absencesMonth": "Absences this month",
           "lateMonth": "Late this month",
           "lastStatus": "Last attendance",
-          "noDataYet": "No attendance data recorded yet"
+          "noDataYet": "No attendance data recorded yet",
+          "emptyDesc": "Absences and lateness will appear here once attendance is recorded."
         },
         "finance": {
           "unavailable": "Financial data is not available for your profile.",
@@ -2868,7 +2870,8 @@
           "openHomework": "Open homework",
           "upcomingExams": "Upcoming exams",
           "lastResult": "Last result",
-          "noRecentData": "No recent academic data"
+          "noRecentData": "No recent academic data",
+          "emptyDesc": "Homework, exams, and results will appear when available."
         }
       },
       "enrollmentEmptyDesc": "Create an enrollment to link the pupil to the academic year and class.",
@@ -2920,7 +2923,9 @@
       },
       "profile": {
         "noContactData": "No contact details on file.",
-        "noEmergencyData": "No emergency contact on file."
+        "noEmergencyData": "No emergency contact on file.",
+        "detailDesc": "Personal details, contact, emergency contact, and login account.",
+        "accountDesc": "Portal login for the student or guardian."
       },
       "nameAr": "Arabic name",
       "nameLatin": "Latin name",
@@ -3068,6 +3073,16 @@
       "teacherRoleAddedNote": "The guardian role will be added to the teacher's current account while keeping professional and family permissions separate.",
       "responsibilitiesScopeNote": "These responsibilities apply to this student relationship and do not change their professional profile as a teacher.",
       "selectedPerson": "Selected person",
+      "personSchoolIdentity": "Person identity at the school",
+      "schoolRoleTeacher": "Teacher at the school",
+      "schoolRoleStaff": "Administrative staff",
+      "schoolRoleFormerGuardian": "Former guardian",
+      "schoolRoleHasLoginAccount": "Has login account",
+      "schoolRoleLinkedOtherChildren": "Linked to other children",
+      "linkSamePersonNote": "The same person will be linked as guardian without creating a new record.",
+      "schoolRoleNoneKnown": "No other known school roles for this person.",
+      "personAlreadyHasLoginAccount": "This person already has a login account.",
+      "guardianCandidateCannotLink": "This person cannot be linked as a guardian for this student.",
       "currentAccountStatus": "Account",
       "accountExists": "Exists",
       "accountMissing": "None",
@@ -3529,11 +3544,11 @@
         "confirmActivate": "Activate agreement?\nNet: {net}\nInstallments: {count}\nPayer: {party}\nYear: {year}\n\nActivation creates operational fees and installments.",
         "confirmCancel": "Cancel this agreement?",
         "noSpecialAgreementTitle": "No special financial agreement for this student.",
-        "noSpecialAgreementDesc": "School fee plan fees and payment schedule were created directly. Special agreements are only for discounts, custom schedules, or special terms.",
+        "noSpecialAgreementDesc": "School fees and the payment schedule exist independently. Special agreements are used for discounts, rescheduling, or exceptional terms.",
         "createSpecialAgreement": "Create special agreement",
-        "viewFeesAndSchedule": "View fees and payment schedule",
+        "viewFeesAndSchedule": "View fees and schedule",
         "incompleteDraftTitle": "Incomplete agreement draft",
-        "incompleteDraftDesc": "This draft does not represent fees from the school plan.",
+        "incompleteDraftDesc": "This draft is not shown as an active agreement until completed.",
         "completeDraft": "Complete draft",
         "cancelDraft": "Cancel draft",
         "fromFees": {
@@ -3605,6 +3620,14 @@
             "save": "Save"
           }
         },
+        "noSpecialAgreementTitle": "No special financial agreement for this student.",
+        "noSpecialAgreementDesc": "School fee plan fees and payment schedule were created directly. Special agreements are only for discounts, custom schedules, or special terms.",
+        "viewFeesAndSchedule": "View fees and payment schedule",
+        "createSpecialAgreement": "Create special agreement",
+        "incompleteDraftTitle": "Incomplete agreement draft",
+        "incompleteDraftDesc": "This draft does not represent fees from the school plan.",
+        "completeDraft": "Complete draft",
+        "cancelDraft": "Cancel draft",
         "openFinanceOverview": "Open financial overview",
         "openPaymentSchedule": "Open payment schedule"
       },
@@ -4763,7 +4786,7 @@
         "detailTitle": "Collection details",
         "chequeDetailTitle": "Cheque details",
         "paymentStepDesc": "Choose method and amount, then allocate to receivables.",
-        "stepPayment": "Payment method",
+        "stepPayment": "Payment",
         "stepAllocation": "Allocate payment",
         "continueToAllocation": "Continue to allocation",
         "allocationTitle": "Allocate amount",
@@ -4853,8 +4876,10 @@
           "paid_paid": "Fully paid"
         },
         "dueToday": "Due today",
+        "allocatedAmount": "Allocated amount",
         "recordPayment": "Record payment",
         "stepSelectDues": "Select dues",
+        "stepPayment": "Payment method",
         "stepPaymentMethod": "Payment method",
         "stepReview": "Review and confirm",
         "selectDuesDesc": "Choose the installments you want to collect.",
@@ -4939,6 +4964,10 @@
       "allocations": "Allocations",
       "studentFee": "Receivable",
       "studentFeeDetail": "Receivable detail",
+      "openStudent360Finance": "Student 360 — Finance",
+      "studentFeeInstallmentsDesc": "Installment schedule and payment status for this receivable.",
+      "studentFeeDiscountsDesc": "Discounts applied to this receivable.",
+      "studentFeeInstallmentCount": "{count} installment(s)",
       "statusHistory": "Status history",
       "confirmCollection": "Confirm collection",
       "confirmCollectionMessage": "Confirm this collection?",
@@ -5642,7 +5671,8 @@
             "title": "Cancel cheque",
             "confirm": "Confirm cancellation",
             "dateLabel": "Cancellation date",
-            "warning": "Payment will be reversed and the amount returned to the student balance."
+            "warning": "Payment will be reversed and the amount returned to the student balance.",
+            "successToast": "Cheque cancelled successfully."
           }
         },
         "errors": {
@@ -5662,7 +5692,11 @@
           "chequeCollectionNotConfirmed": "The linked collection must be confirmed before processing the cheque.",
           "chequeAllocationsNotPosted": "Collection allocations are not ready for cheque processing.",
           "chequeSettlementFailed": "Could not complete cheque clearance.",
-          "chequeRejectionFailed": "Could not record cheque rejection."
+          "chequeRejectionFailed": "Could not record cheque rejection.",
+          "cancelReasonRequired": "Cancellation reason is required",
+          "chequeCancelNotAllowed": "This cheque cannot be cancelled in its current state",
+          "chequeAlreadyCollected": "This cheque has already been collected and cannot be cancelled",
+          "chequeCancelForbidden": "You do not have permission to cancel cheques"
         }
       },
       "feeTypesWorkspace": {
@@ -5975,8 +6009,15 @@
         "cancelled": "Cancelled",
         "open": "Open",
         "partial": "Partial",
+        "partially_paid": "Partially paid",
         "paid": "Paid",
         "overdue": "Overdue",
+        "unpaid": "Unpaid",
+        "pending_cheque": "Pending clearance",
+        "not_applicable": "N/A",
+        "due": "Due",
+        "upcoming": "Upcoming",
+        "hidden": "Hidden",
         "active": "Active",
         "archived": "Archived"
       },

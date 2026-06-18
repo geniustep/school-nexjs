@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
+import { useMemo, useState } from 'react';
 import { SectionHead } from '@/components/ui/primitives';
 import { useToast } from '@/components/ui/toast';
 import { useT } from '@/features/i18n/locale-context';
@@ -20,8 +19,56 @@ import {
   isDefaultBillingGuardian,
   resolveDefaultBillingGuardian,
 } from '../utils/resolve-default-billing-guardian';
-import type { GuardianRelationship, StudentDetailsData } from '@/types/student-360';
+import type {
+  GuardianRelationship,
+  GuardianSummary,
+  LinkPersonAsGuardianResponse,
+  StudentDetailsData,
+} from '@/types/student-360';
 import { getStudentDisplayName } from '@/lib/utils/student';
+
+function mergeGuardianRoleHint(
+  guardian: GuardianSummary,
+  hint?: Partial<GuardianSummary>,
+): GuardianSummary {
+  if (!hint) return guardian;
+  return {
+    ...guardian,
+    existing_roles: hint.existing_roles ?? guardian.existing_roles,
+    role_labels: hint.role_labels ?? guardian.role_labels,
+    teacher_id: hint.teacher_id ?? guardian.teacher_id,
+    staff_id: hint.staff_id ?? guardian.staff_id,
+    guardian_id: hint.guardian_id ?? guardian.guardian_id,
+    user_id: hint.user_id ?? guardian.user_id,
+    has_user: hint.has_user ?? guardian.has_user,
+    has_user_account: hint.has_user_account ?? guardian.has_user_account,
+    has_account: hint.has_account ?? guardian.has_account,
+  };
+}
+
+function roleHintFromLinkResult(result: LinkPersonAsGuardianResponse): Partial<GuardianSummary> | null {
+  const roles = result.person?.existing_roles ?? result.guardian.existing_roles;
+  const labels = result.person?.role_labels ?? result.guardian.role_labels;
+  if (!roles?.length && !labels?.length) return null;
+
+  return {
+    existing_roles: roles,
+    role_labels: labels,
+    teacher_id: result.person?.teacher_id ?? result.guardian.teacher_id,
+    staff_id: result.person?.staff_id ?? result.guardian.staff_id,
+    guardian_id: result.person?.guardian_id ?? result.guardian.guardian_id,
+    user_id: result.person?.user_id ?? result.guardian.user_id,
+    has_user: result.person?.has_user ?? result.guardian.has_user,
+    has_user_account:
+      result.person?.has_user_account ??
+      result.account?.has_user_account ??
+      result.guardian.has_user_account,
+    has_account:
+      result.person?.has_user_account ??
+      result.account?.has_user_account ??
+      result.guardian.has_account,
+  };
+}
 
 export function StudentGuardiansTab({
   details,
@@ -38,13 +85,37 @@ export function StudentGuardiansTab({
   const [addOpen, setAddOpen] = useState(false);
   const [editRel, setEditRel] = useState<GuardianRelationship | null>(null);
   const [removeRel, setRemoveRel] = useState<GuardianRelationship | null>(null);
+  const [guardianRoleHints, setGuardianRoleHints] = useState<Record<number, Partial<GuardianSummary>>>({});
 
-  const active = details.guardian_relationships.filter((r) =>
+  const relationshipsWithRoleHints = useMemo(
+    () =>
+      details.guardian_relationships.map((rel) => {
+        const hint = guardianRoleHints[rel.guardian.id];
+        if (!hint) return rel;
+        return { ...rel, guardian: mergeGuardianRoleHint(rel.guardian, hint) };
+      }),
+    [details.guardian_relationships, guardianRoleHints],
+  );
+
+  const active = relationshipsWithRoleHints.filter((r) =>
     isRelationshipActive(r.state, r.active),
   );
-  const ended = details.guardian_relationships.filter(
+  const ended = relationshipsWithRoleHints.filter(
     (r) => !isRelationshipActive(r.state, r.active),
   );
+
+  function handleGuardianLinked(result?: LinkPersonAsGuardianResponse) {
+    if (result?.guardian?.id) {
+      const hint = roleHintFromLinkResult(result);
+      if (hint) {
+        setGuardianRoleHints((prev) => ({
+          ...prev,
+          [result.guardian.id]: { ...prev[result.guardian.id], ...hint },
+        }));
+      }
+    }
+    onChanged();
+  }
 
   function copyPhone(phone: string) {
     void navigator.clipboard.writeText(phone).then(() => {
@@ -52,9 +123,9 @@ export function StudentGuardiansTab({
     });
   }
 
-  const duplicateAlerts = findDuplicateStrongRelationshipTypes(details.guardian_relationships);
+  const duplicateAlerts = findDuplicateStrongRelationshipTypes(relationshipsWithRoleHints);
   const duplicateMessage = duplicateRelationshipMessage(t, duplicateAlerts);
-  const billingResolution = resolveDefaultBillingGuardian(details.guardian_relationships);
+  const billingResolution = resolveDefaultBillingGuardian(relationshipsWithRoleHints);
 
   const sortedActive = [...active].sort((a, b) => {
     if (a.is_primary_contact !== b.is_primary_contact) return a.is_primary_contact ? -1 : 1;
@@ -149,9 +220,9 @@ export function StudentGuardiansTab({
       <GuardianAddDialog
         open={addOpen}
         studentId={studentId}
-        relationships={details.guardian_relationships}
+        relationships={relationshipsWithRoleHints}
         onClose={() => setAddOpen(false)}
-        onLinked={onChanged}
+        onLinked={handleGuardianLinked}
       />
       <GuardianEditDialog
         open={!!editRel}

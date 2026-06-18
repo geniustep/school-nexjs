@@ -48,15 +48,33 @@ export function normalizeLinkPersonResponse(data: unknown): LinkPersonAsGuardian
         role_labels: Array.isArray(personRaw.role_labels)
           ? personRaw.role_labels.filter((r): r is string => typeof r === 'string')
           : undefined,
+        teacher_id: typeof personRaw.teacher_id === 'number' ? personRaw.teacher_id : null,
+        staff_id: typeof personRaw.staff_id === 'number' ? personRaw.staff_id : null,
+        guardian_id: typeof personRaw.guardian_id === 'number' ? personRaw.guardian_id : null,
+        has_user: personRaw.has_user === true,
+        has_user_account: personRaw.has_user_account === true,
+        user_id: typeof personRaw.user_id === 'number' ? personRaw.user_id : null,
       }
     : undefined;
+
+  const hasUserAccount =
+    account?.has_user_account === true ||
+    person?.has_user_account === true ||
+    person?.has_user === true ||
+    guardian.has_user_account === true ||
+    guardian.has_account === true;
 
   const mergedGuardian = {
     ...guardian,
     existing_roles: person?.existing_roles ?? guardian.existing_roles,
     role_labels: person?.role_labels ?? guardian.role_labels,
-    has_user_account: account?.has_user_account ?? guardian.has_user_account ?? guardian.has_account,
-    has_account: account?.has_user_account ?? guardian.has_account,
+    teacher_id: person?.teacher_id ?? guardian.teacher_id,
+    staff_id: person?.staff_id ?? guardian.staff_id,
+    guardian_id: person?.guardian_id ?? guardian.guardian_id,
+    user_id: person?.user_id ?? guardian.user_id,
+    has_user: person?.has_user ?? guardian.has_user ?? hasUserAccount,
+    has_user_account: hasUserAccount,
+    has_account: hasUserAccount,
   };
 
   return { guardian: mergedGuardian, account, person };

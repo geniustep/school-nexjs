@@ -2768,6 +2768,7 @@
         "notProvided": "Non renseigné",
         "cardsTitle": "Vue d'ensemble",
         "activityTitle": "Activité et suivi",
+        "activityDesc": "Aperçu rapide de la présence et de l'activité académique récente.",
         "unavailableTitle": "Résumé indisponible",
         "unavailableDesc": "Le résumé consolidé n'est pas encore disponible pour cet élève. Les sections ci-dessous restent accessibles.",
         "viewDocuments": "Voir les documents",
@@ -2855,7 +2856,8 @@
           "absencesMonth": "Absences ce mois",
           "lateMonth": "Retards ce mois",
           "lastStatus": "Dernière présence",
-          "noDataYet": "Aucune donnée de présence enregistrée"
+          "noDataYet": "Aucune donnée de présence enregistrée",
+          "emptyDesc": "Les absences et retards apparaîtront ici une fois la présence enregistrée."
         },
         "finance": {
           "unavailable": "Les données financières ne sont pas disponibles pour votre profil.",
@@ -2868,7 +2870,8 @@
           "openHomework": "Devoirs ouverts",
           "upcomingExams": "Examens à venir",
           "lastResult": "Dernière note",
-          "noRecentData": "Aucune donnée académique récente"
+          "noRecentData": "Aucune donnée académique récente",
+          "emptyDesc": "Devoirs, examens et résultats apparaîtront lorsqu'ils seront disponibles."
         }
       },
       "enrollmentEmptyDesc": "Créez une inscription pour lier l'élève à l'année scolaire et à la classe.",
@@ -2920,7 +2923,9 @@
       },
       "profile": {
         "noContactData": "Aucune coordonnée enregistrée.",
-        "noEmergencyData": "Aucun contact d'urgence enregistré."
+        "noEmergencyData": "Aucun contact d'urgence enregistré.",
+        "detailDesc": "Informations personnelles, contact, urgence et compte de connexion.",
+        "accountDesc": "Compte portail pour l'élève ou le responsable."
       },
       "nameAr": "Nom en arabe",
       "nameLatin": "Nom latin",
@@ -3068,6 +3073,16 @@
       "teacherRoleAddedNote": "Le rôle responsable sera ajouté au compte actuel de l'enseignante, les permissions professionnelles et familiales restant séparées.",
       "responsibilitiesScopeNote": "Ces responsabilités concernent sa relation avec cet élève et ne modifient pas son profil professionnel d'enseignante.",
       "selectedPerson": "Personne sélectionnée",
+      "personSchoolIdentity": "Identité de la personne à l'école",
+      "schoolRoleTeacher": "Enseignant à l'école",
+      "schoolRoleStaff": "Membre du personnel administratif",
+      "schoolRoleFormerGuardian": "Ancien responsable légal",
+      "schoolRoleHasLoginAccount": "Possède un compte de connexion",
+      "schoolRoleLinkedOtherChildren": "Lié à d'autres enfants",
+      "linkSamePersonNote": "La même personne sera liée comme responsable légal sans créer un nouvel enregistrement.",
+      "schoolRoleNoneKnown": "Aucun autre rôle scolaire connu pour cette personne.",
+      "personAlreadyHasLoginAccount": "Cette personne possède déjà un compte de connexion.",
+      "guardianCandidateCannotLink": "Cette personne ne peut pas être liée comme responsable légal pour cet élève.",
       "currentAccountStatus": "Compte",
       "accountExists": "Existant",
       "accountMissing": "Aucun",
@@ -3528,14 +3543,14 @@
         "confirmActivateShort": "Activer et créer les créances ?",
         "confirmActivate": "Activer ? Net: {net}, échéances: {count}, payeur: {party}, année: {year}",
         "confirmCancel": "Annuler cet accord ?",
-        "noSpecialAgreementTitle": "No special financial agreement for this student.",
-        "noSpecialAgreementDesc": "School fee plan fees and payment schedule were created directly. Special agreements are only for discounts, custom schedules, or special terms.",
-        "createSpecialAgreement": "Create special agreement",
-        "viewFeesAndSchedule": "View fees and payment schedule",
-        "incompleteDraftTitle": "Incomplete agreement draft",
-        "incompleteDraftDesc": "This draft does not represent fees from the school plan.",
-        "completeDraft": "Complete draft",
-        "cancelDraft": "Cancel draft",
+        "noSpecialAgreementTitle": "Aucun accord financier spécial pour cet élève.",
+        "noSpecialAgreementDesc": "Les frais scolaires et l'échéancier existent indépendamment. L'accord spécial sert aux remises, rééchelonnements ou conditions exceptionnelles.",
+        "createSpecialAgreement": "Créer un accord spécial",
+        "viewFeesAndSchedule": "Voir frais et échéancier",
+        "incompleteDraftTitle": "Brouillon d'accord incomplet",
+        "incompleteDraftDesc": "Ce brouillon n'est pas affiché comme accord actif tant qu'il n'est pas complété.",
+        "completeDraft": "Compléter le brouillon",
+        "cancelDraft": "Annuler le brouillon",
         "fromFees": {
           "title": "Créer un accord à partir des frais actuels",
           "description": "Crée un brouillon d'accord à partir des frais appliqués sans dupliquer les charges.",
@@ -3605,6 +3620,14 @@
             "save": "Enregistrer"
           }
         },
+        "noSpecialAgreementTitle": "No special financial agreement for this student.",
+        "noSpecialAgreementDesc": "School fee plan fees and payment schedule were created directly. Special agreements are only for discounts, custom schedules, or special terms.",
+        "viewFeesAndSchedule": "View fees and payment schedule",
+        "createSpecialAgreement": "Create special agreement",
+        "incompleteDraftTitle": "Incomplete agreement draft",
+        "incompleteDraftDesc": "This draft does not represent fees from the school plan.",
+        "completeDraft": "Complete draft",
+        "cancelDraft": "Cancel draft",
         "openFinanceOverview": "Open financial overview",
         "openPaymentSchedule": "Open payment schedule"
       },
@@ -4763,13 +4786,13 @@
         "detailTitle": "Détail de l'encaissement",
         "chequeDetailTitle": "Détail du chèque",
         "paymentStepDesc": "Choisissez le mode et le montant, puis répartissez sur les créances.",
-        "stepPayment": "Mode de paiement",
+        "stepPayment": "Paiement",
         "stepAllocation": "Allocate payment",
         "continueToAllocation": "Continuer vers la répartition",
         "allocationTitle": "Répartir le montant",
         "allocationDesc": "Répartir le montant sur les échéances ouvertes.",
         "collectionAmount": "Montant de l'opération",
-        "allocatedAmount": "Montant affecté",
+        "allocatedAmount": "Montant réparti",
         "unallocatedAmount": "Montant non réparti",
         "selectedCount": "Créances sélectionnées",
         "allocationsCount": "Nombre de répartitions",
@@ -4853,8 +4876,10 @@
           "paid_paid": "Entièrement payé"
         },
         "dueToday": "Échéance du jour",
+        "allocatedAmount": "Montant affecté",
         "recordPayment": "Enregistrer un paiement",
         "stepSelectDues": "Choisir les échéances",
+        "stepPayment": "Mode de paiement",
         "stepPaymentMethod": "Mode de paiement",
         "stepReview": "Review and confirm",
         "selectDuesDesc": "Choose the installments you want to collect.",
@@ -4939,6 +4964,10 @@
       "allocations": "Affectations",
       "studentFee": "Créance",
       "studentFeeDetail": "Détail de la créance",
+      "openStudent360Finance": "Fiche élève 360 — Finance",
+      "studentFeeInstallmentsDesc": "Échéancier et états de paiement de cette créance.",
+      "studentFeeDiscountsDesc": "Remises appliquées à cette créance.",
+      "studentFeeInstallmentCount": "{count} échéance(s)",
       "statusHistory": "Historique des statuts",
       "confirmCollection": "Confirmer l'encaissement",
       "confirmCollectionMessage": "Confirmer cette opération ?",
@@ -5642,7 +5671,8 @@
             "title": "Annuler le chèque",
             "confirm": "Confirmer l'annulation",
             "dateLabel": "Date d'annulation",
-            "warning": "Le paiement sera inversé et le montant rétabli au solde de l'élève."
+            "warning": "Le paiement sera inversé et le montant rétabli au solde de l'élève.",
+            "successToast": "Chèque annulé avec succès."
           }
         },
         "errors": {
@@ -5662,7 +5692,11 @@
           "chequeCollectionNotConfirmed": "L'encaissement lié doit être confirmé avant de traiter le chèque.",
           "chequeAllocationsNotPosted": "Les affectations de l'encaissement ne sont pas prêtes pour le traitement du chèque.",
           "chequeSettlementFailed": "Impossible de finaliser l'encaissement du chèque.",
-          "chequeRejectionFailed": "Impossible d'enregistrer le rejet du chèque."
+          "chequeRejectionFailed": "Impossible d'enregistrer le rejet du chèque.",
+          "cancelReasonRequired": "Le motif d'annulation est obligatoire",
+          "chequeCancelNotAllowed": "Ce chèque ne peut pas être annulé dans son état actuel",
+          "chequeAlreadyCollected": "Ce chèque est déjà encaissé et ne peut pas être annulé",
+          "chequeCancelForbidden": "Vous n'avez pas l'autorisation d'annuler les chèques"
         }
       },
       "feeTypesWorkspace": {
@@ -5976,8 +6010,15 @@
         "unknown": "Non précisé",
         "open": "Ouvert",
         "partial": "Partiel",
+        "partially_paid": "Partiellement payé",
         "paid": "Payé",
         "overdue": "En retard",
+        "unpaid": "Impayé",
+        "pending_cheque": "En attente d'encaissement",
+        "not_applicable": "N/A",
+        "due": "Échu",
+        "upcoming": "À venir",
+        "hidden": "Masqué",
         "active": "Actif",
         "archived": "Archivé"
       },

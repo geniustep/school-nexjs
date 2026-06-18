@@ -2768,6 +2768,7 @@
         "notProvided": "No indicado",
         "cardsTitle": "Vista general",
         "activityTitle": "Actividad y seguimiento",
+        "activityDesc": "Resumen rápido de la asistencia y la actividad académica reciente.",
         "unavailableTitle": "Resumen no disponible",
         "unavailableDesc": "El resumen consolidado aún no está disponible para este alumno. Las secciones siguientes siguen accesibles.",
         "viewDocuments": "Ver documentos",
@@ -2855,7 +2856,8 @@
           "absencesMonth": "Ausencias este mes",
           "lateMonth": "Retrasos este mes",
           "lastStatus": "Última asistencia",
-          "noDataYet": "Aún no hay datos de asistencia registrados"
+          "noDataYet": "Aún no hay datos de asistencia registrados",
+          "emptyDesc": "Las ausencias y retrasos aparecerán aquí cuando se registre la asistencia."
         },
         "finance": {
           "unavailable": "Los datos financieros no están disponibles para su perfil.",
@@ -2868,7 +2870,8 @@
           "openHomework": "Deberes abiertos",
           "upcomingExams": "Exámenes próximos",
           "lastResult": "Último resultado",
-          "noRecentData": "No hay datos académicos recientes"
+          "noRecentData": "No hay datos académicos recientes",
+          "emptyDesc": "Tareas, exámenes y resultados aparecerán cuando estén disponibles."
         }
       },
       "enrollmentEmptyDesc": "Cree una inscripción para vincular al alumno al año escolar y la clase.",
@@ -2920,7 +2923,9 @@
       },
       "profile": {
         "noContactData": "No hay datos de contacto registrados.",
-        "noEmergencyData": "No hay contacto de emergencia registrado."
+        "noEmergencyData": "No hay contacto de emergencia registrado.",
+        "detailDesc": "Datos personales, contacto, emergencia y cuenta de acceso.",
+        "accountDesc": "Cuenta del portal para el alumno o el tutor."
       },
       "nameAr": "Nombre en árabe",
       "nameLatin": "Nombre latino",
@@ -3068,6 +3073,16 @@
       "teacherRoleAddedNote": "Se añadirá el rol de tutor a la cuenta actual de la profesora, manteniendo separados los permisos profesionales y familiares.",
       "responsibilitiesScopeNote": "Estas responsabilidades aplican a su relación con este alumno y no cambian su perfil profesional como profesora.",
       "selectedPerson": "Persona seleccionada",
+      "personSchoolIdentity": "Identidad de la persona en la escuela",
+      "schoolRoleTeacher": "Profesor en la escuela",
+      "schoolRoleStaff": "Personal administrativo",
+      "schoolRoleFormerGuardian": "Tutor anterior",
+      "schoolRoleHasLoginAccount": "Tiene cuenta de acceso",
+      "schoolRoleLinkedOtherChildren": "Vinculado a otros hijos",
+      "linkSamePersonNote": "Se vinculará a la misma persona como tutor sin crear un registro nuevo.",
+      "schoolRoleNoneKnown": "No hay otros roles escolares conocidos para esta persona.",
+      "personAlreadyHasLoginAccount": "Esta persona ya tiene una cuenta de acceso.",
+      "guardianCandidateCannotLink": "Esta persona no puede vincularse como tutor de este alumno.",
       "currentAccountStatus": "Cuenta",
       "accountExists": "Existe",
       "accountMissing": "Ninguna",
@@ -3528,14 +3543,14 @@
         "confirmActivateShort": "¿Activar y crear deudas?",
         "confirmActivate": "¿Activar? Neto: {net}, cuotas: {count}, pagador: {party}, año: {year}",
         "confirmCancel": "¿Cancelar este acuerdo?",
-        "noSpecialAgreementTitle": "No special financial agreement for this student.",
-        "noSpecialAgreementDesc": "School fee plan fees and payment schedule were created directly. Special agreements are only for discounts, custom schedules, or special terms.",
-        "createSpecialAgreement": "Create special agreement",
-        "viewFeesAndSchedule": "View fees and payment schedule",
-        "incompleteDraftTitle": "Incomplete agreement draft",
-        "incompleteDraftDesc": "This draft does not represent fees from the school plan.",
-        "completeDraft": "Complete draft",
-        "cancelDraft": "Cancel draft",
+        "noSpecialAgreementTitle": "No hay acuerdo financiero especial para este alumno.",
+        "noSpecialAgreementDesc": "Las tasas escolares y el calendario de pagos existen de forma independiente. El acuerdo especial se usa para descuentos, reprogramaciones o condiciones excepcionales.",
+        "createSpecialAgreement": "Crear acuerdo especial",
+        "viewFeesAndSchedule": "Ver tasas y calendario",
+        "incompleteDraftTitle": "Borrador de acuerdo incompleto",
+        "incompleteDraftDesc": "Este borrador no se muestra como acuerdo activo hasta completarlo.",
+        "completeDraft": "Completar borrador",
+        "cancelDraft": "Cancelar borrador",
         "fromFees": {
           "title": "Crear acuerdo desde las tasas actuales",
           "description": "Crea un borrador de acuerdo desde las tasas aplicadas sin duplicar cargos.",
@@ -3605,6 +3620,14 @@
             "save": "Guardar"
           }
         },
+        "noSpecialAgreementTitle": "No special financial agreement for this student.",
+        "noSpecialAgreementDesc": "School fee plan fees and payment schedule were created directly. Special agreements are only for discounts, custom schedules, or special terms.",
+        "viewFeesAndSchedule": "View fees and payment schedule",
+        "createSpecialAgreement": "Create special agreement",
+        "incompleteDraftTitle": "Incomplete agreement draft",
+        "incompleteDraftDesc": "This draft does not represent fees from the school plan.",
+        "completeDraft": "Complete draft",
+        "cancelDraft": "Cancel draft",
         "openFinanceOverview": "Open financial overview",
         "openPaymentSchedule": "Open payment schedule"
       },
@@ -4763,7 +4786,7 @@
         "detailTitle": "Detalle del cobro",
         "chequeDetailTitle": "Detalle del cheque",
         "paymentStepDesc": "Elija método e importe, luego asigne a deudas.",
-        "stepPayment": "Método de pago",
+        "stepPayment": "Pago",
         "stepAllocation": "Allocate payment",
         "continueToAllocation": "Continuar a asignación",
         "allocationTitle": "Asignar importe",
@@ -4853,8 +4876,10 @@
           "paid_paid": "Pagado por completo"
         },
         "dueToday": "Vence hoy",
+        "allocatedAmount": "Importe asignado",
         "recordPayment": "Registrar pago",
         "stepSelectDues": "Elegir adeudos",
+        "stepPayment": "Método de pago",
         "stepPaymentMethod": "Método de pago",
         "stepReview": "Review and confirm",
         "selectDuesDesc": "Choose the installments you want to collect.",
@@ -4939,6 +4964,10 @@
       "allocations": "Asignaciones",
       "studentFee": "Adeudo",
       "studentFeeDetail": "Detalle del adeudo",
+      "openStudent360Finance": "Ficha del alumno 360 — Finanzas",
+      "studentFeeInstallmentsDesc": "Calendario de plazos y estado de pago de este adeudo.",
+      "studentFeeDiscountsDesc": "Descuentos aplicados a este adeudo.",
+      "studentFeeInstallmentCount": "{count} plazo(s)",
       "statusHistory": "Historial de estados",
       "confirmCollection": "Confirmar cobro",
       "confirmCollectionMessage": "¿Confirmar esta operación?",
@@ -5642,7 +5671,8 @@
             "title": "Cancelar cheque",
             "confirm": "Confirmar cancelación",
             "dateLabel": "Fecha de cancelación",
-            "warning": "El pago se revertirá y el importe volverá al saldo del alumno."
+            "warning": "El pago se revertirá y el importe volverá al saldo del alumno.",
+            "successToast": "Cheque cancelado correctamente."
           }
         },
         "errors": {
@@ -5662,7 +5692,11 @@
           "chequeCollectionNotConfirmed": "El cobro vinculado debe confirmarse antes de procesar el cheque.",
           "chequeAllocationsNotPosted": "Las asignaciones del cobro no están listas para procesar el cheque.",
           "chequeSettlementFailed": "No se pudo completar la compensación del cheque.",
-          "chequeRejectionFailed": "No se pudo registrar el rechazo del cheque."
+          "chequeRejectionFailed": "No se pudo registrar el rechazo del cheque.",
+          "cancelReasonRequired": "El motivo de cancelación es obligatorio",
+          "chequeCancelNotAllowed": "Este cheque no se puede cancelar en su estado actual",
+          "chequeAlreadyCollected": "Este cheque ya fue cobrado y no se puede cancelar",
+          "chequeCancelForbidden": "No tienes permiso para cancelar cheques"
         }
       },
       "feeTypesWorkspace": {
@@ -5976,8 +6010,15 @@
         "unknown": "Sin especificar",
         "open": "Abierto",
         "partial": "Parcial",
+        "partially_paid": "Parcialmente pagado",
         "paid": "Pagado",
         "overdue": "Vencido",
+        "unpaid": "Sin pagar",
+        "pending_cheque": "Pendiente de compensación",
+        "not_applicable": "N/A",
+        "due": "Vencido",
+        "upcoming": "Próximo",
+        "hidden": "Oculto",
         "active": "Activo",
         "archived": "Archivado"
       },

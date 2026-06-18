@@ -386,13 +386,19 @@ export interface GuardianSummary {
   role_labels?: string[];
 }
 
-/** Unified person search result — GET /admin/guardians/search */
+export interface GuardianCandidateWarning {
+  code: string;
+  message?: string;
+}
+
+/** Unified person search result — GET /admin/guardians/search or guardian-candidates */
 export interface PersonSearchResult extends GuardianSummary {
   partner_id: number;
   existing_roles: string[];
   role_labels: string[];
   has_user_account: boolean;
   can_link_as_guardian: boolean;
+  warnings?: GuardianCandidateWarning[];
   already_guardian_of_student?: boolean;
   active?: boolean;
   archived?: boolean;
@@ -416,6 +422,12 @@ export interface LinkPersonAsGuardianResponse {
   person?: {
     existing_roles?: string[];
     role_labels?: string[];
+    teacher_id?: number | null;
+    staff_id?: number | null;
+    guardian_id?: number | null;
+    has_user?: boolean;
+    has_user_account?: boolean;
+    user_id?: number | null;
   };
 }
 

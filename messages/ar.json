@@ -2795,6 +2795,7 @@
         "emptyValue": "لم يُسجّل",
         "cardsTitle": "نظرة عامة",
         "activityTitle": "النشاط والمتابعة",
+        "activityDesc": "ملخص سريع للحضور والأداء الأكاديمي الأخير.",
         "unavailableTitle": "الملخص غير متاح",
         "unavailableDesc": "الملخص الموحّد غير متاح لهذا التلميذ بعد. الأقسام أدناه تبقى متاحة.",
         "viewDocuments": "عرض الوثائق",
@@ -2882,7 +2883,8 @@
           "absencesMonth": "غيابات هذا الشهر",
           "lateMonth": "تأخر هذا الشهر",
           "lastStatus": "آخر حالة حضور",
-          "noDataYet": "لم تُسجّل بيانات الحضور بعد"
+          "noDataYet": "لم تُسجّل بيانات الحضور بعد",
+          "emptyDesc": "ستظهر الغيابات والتأخرات هنا عند تسجيل الحضور."
         },
         "finance": {
           "unavailable": "البيانات المالية غير متاحة لملفك.",
@@ -2895,7 +2897,8 @@
           "openHomework": "واجبات مفتوحة",
           "upcomingExams": "امتحانات قادمة",
           "lastResult": "آخر نتيجة",
-          "noRecentData": "لا توجد بيانات أكاديمية حديثة"
+          "noRecentData": "لا توجد بيانات أكاديمية حديثة",
+          "emptyDesc": "ستظهر الواجبات والامتحانات والنتائج عند توفرها."
         }
       },
       "enrollmentEmptyDesc": "أنشئ تسجيلًا لربط التلميذ بالسنة الدراسية والقسم المناسب.",
@@ -2947,7 +2950,9 @@
       },
       "profile": {
         "noContactData": "لا توجد بيانات اتصال مسجّلة.",
-        "noEmergencyData": "لا توجد جهة طوارئ مسجّلة."
+        "noEmergencyData": "لا توجد جهة طوارئ مسجّلة.",
+        "detailDesc": "البيانات الشخصية والاتصال وجهة الطوارئ وحساب الدخول.",
+        "accountDesc": "حساب الدخول للبوابة الإلكترونية للتلميذ أو ولي الأمر."
       },
       "nameAr": "الاسم بالعربية",
       "nameLatin": "الاسم باللاتينية",
@@ -3095,6 +3100,16 @@
       "teacherRoleAddedNote": "سيضاف دور ولي الأمر إلى حساب الأستاذة الحالي مع بقاء الصلاحيات المهنية والأسرية منفصلة.",
       "responsibilitiesScopeNote": "هذه المسؤوليات تخص علاقتها بهذا التلميذ، ولا تغير ملفها المهنية كأستاذة.",
       "selectedPerson": "الشخص المختار",
+      "personSchoolIdentity": "هوية الشخص داخل المدرسة",
+      "schoolRoleTeacher": "أستاذ في المدرسة",
+      "schoolRoleStaff": "ضمن الطاقم الإداري",
+      "schoolRoleFormerGuardian": "ولي أمر سابق",
+      "schoolRoleHasLoginAccount": "له حساب دخول",
+      "schoolRoleLinkedOtherChildren": "مرتبط بأبناء آخرين",
+      "linkSamePersonNote": "سيتم ربط نفس الشخص كولي أمر دون إنشاء سجل جديد.",
+      "schoolRoleNoneKnown": "لا توجد أدوار مدرسية أخرى معروفة لهذا الشخص.",
+      "personAlreadyHasLoginAccount": "هذا الشخص لديه حساب دخول بالفعل.",
+      "guardianCandidateCannotLink": "لا يمكن ربط هذا الشخص كولي أمر لهذا التلميذ.",
       "currentAccountStatus": "الحساب",
       "accountExists": "موجود",
       "accountMissing": "لا يوجد",
@@ -3556,11 +3571,11 @@
         "confirmActivate": "تفعيل الاتفاق؟\nالمبلغ الصافي: {net}\nعدد الأقساط: {count}\nالمسؤول: {party}\nالسنة: {year}\n\nسينشئ التفعيل الرسوم والأقساط التشغيلية.",
         "confirmCancel": "إلغاء هذا الاتفاق؟",
         "noSpecialAgreementTitle": "لا يوجد اتفاق مالي خاص لهذا التلميذ.",
-        "noSpecialAgreementDesc": "تم تطبيق خطة رسوم المدرسة وإنشاء الرسوم وجدول الدفعات مباشرة. يُستخدم الاتفاق المالي فقط للخصومات أو الجدولة أو الشروط الخاصة.",
-        "createSpecialAgreement": "إنشاء اتفاق مالي خاص",
+        "noSpecialAgreementDesc": "خطة الرسوم مطبقة، والرسوم وجدول الدفعات متاحان داخل الملف المالي.",
+        "createSpecialAgreement": "إنشاء اتفاق خاص",
         "viewFeesAndSchedule": "عرض الرسوم وجدول الدفعات",
         "incompleteDraftTitle": "مسودة اتفاق غير مكتملة",
-        "incompleteDraftDesc": "هذه المسودة لا تمثل الرسوم المطبقة من خطة المدرسة.",
+        "incompleteDraftDesc": "هذه المسودة لا تُعرض كاتفاق مالي فعلي حتى إكمالها.",
         "completeDraft": "إكمال المسودة",
         "cancelDraft": "إلغاء المسودة",
         "fromFees": {
@@ -3632,6 +3647,14 @@
             "save": "الحفظ"
           }
         },
+        "noSpecialAgreementTitle": "لا يوجد اتفاق مالي خاص لهذا التلميذ.",
+        "noSpecialAgreementDesc": "تم تطبيق خطة رسوم المدرسة وإنشاء الرسوم وجدول الدفعات مباشرة. يُستخدم الاتفاق المالي فقط للخصومات أو الجدولة أو الشروط الخاصة.",
+        "viewFeesAndSchedule": "عرض الرسوم وجدول الدفعات",
+        "createSpecialAgreement": "إنشاء اتفاق مالي خاص",
+        "incompleteDraftTitle": "مسودة اتفاق غير مكتملة",
+        "incompleteDraftDesc": "هذه المسودة لا تمثل الرسوم المطبقة من خطة المدرسة.",
+        "completeDraft": "إكمال المسودة",
+        "cancelDraft": "إلغاء المسودة",
         "openFinanceOverview": "فتح النظرة المالية",
         "openPaymentSchedule": "فتح جدول الدفعات"
       },
@@ -4794,17 +4817,17 @@
         "detailTitle": "تفاصيل التحصيل",
         "chequeDetailTitle": "تفاصيل الشيك",
         "paymentStepDesc": "حدّد طريقة الأداء والمبلغ، ثم وزّع التحصيل على المستحقات.",
-        "stepSelectDues": "اختيار المستحقات",
+        "stepSelectDues": "المستحقات",
         "stepPayment": "طريقة الأداء",
         "stepPaymentMethod": "طريقة الأداء",
         "stepAllocation": "التوزيع",
-        "stepReview": "المراجعة والتأكيد",
+        "stepReview": "المراجعة",
         "stepProgress": "الخطوة {current} من {total} — {label}",
         "reviewDesc": "راجع تفاصيل العملية قبل التأكيد.",
         "fillSelectedDues": "تعبئة كامل المستحقات المحددة",
         "clearAllocation": "مسح التوزيع",
         "confirmPaymentAndReceipt": "تأكيد الدفعة وإصدار الإيصال",
-        "paymentSuccessTitle": "تم تسجيل الدفعة بنجاح",
+        "paymentSuccessTitle": "تم تسجيل الدفعة وإصدار الإيصال بنجاح",
         "continueToAllocation": "متابعة إلى التوزيع",
         "allocationTitle": "توزيع المبلغ",
         "allocationDesc": "وزّع مبلغ العملية على الأقساط المفتوحة.",
@@ -4893,15 +4916,22 @@
           "paid_paid": "مؤدى بالكامل"
         },
         "dueToday": "المستحق اليوم",
+        "allocatedAmount": "المبلغ الموزع",
         "recordPayment": "تسجيل دفعة",
+        "stepSelectDues": "اختيار المستحقات",
+        "stepPayment": "طريقة الأداء",
+        "stepPaymentMethod": "طريقة الأداء",
+        "stepReview": "المراجعة والتأكيد",
         "selectDuesDesc": "اختر المستحقات التي تريد تحصيلها.",
         "installmentFlowIntro": "ابدأ باختيار المستحقات، ثم أكمل طريقة الأداء والتوزيع.",
         "continueToPayment": "متابعة إلى طريقة الأداء",
         "continueToReview": "متابعة إلى المراجعة",
+        "confirmPaymentAndReceipt": "تأكيد الدفعة وإصدار الإيصال",
         "quickOverdue": "تحصيل المتأخرات",
         "quickDueToday": "تحصيل المستحق اليوم",
         "quickNextInstallment": "تحصيل دفعة شهرية",
         "quickFullBalance": "تسديد كامل الرصيد",
+        "paymentSuccessTitle": "تم تسجيل الدفعة بنجاح",
         "paymentSuccessBody": "تم إنشاء العملية والإيصال."
       },
       "searchFeeTypes": "بحث في الرسوم…",
@@ -4977,6 +5007,10 @@
       "allocations": "التوزيعات",
       "studentFee": "المستحق",
       "studentFeeDetail": "تفاصيل المستحق",
+      "openStudent360Finance": "ملف التلميذ — المالية",
+      "studentFeeInstallmentsDesc": "جدول أقساط هذا المستحق وحالات الدفع.",
+      "studentFeeDiscountsDesc": "التخفيضات المطبقة على هذا المستحق.",
+      "studentFeeInstallmentCount": "{count} قسط",
       "statusHistory": "سجل الحالة",
       "confirmCollection": "تأكيد التحصيل",
       "confirmCollectionMessage": "تأكيد عملية التحصيل؟",
@@ -5680,7 +5714,8 @@
             "title": "إلغاء الشيك",
             "confirm": "تأكيد الإلغاء",
             "dateLabel": "تاريخ الإلغاء",
-            "warning": "سيتم عكس الأداء وإعادة المبلغ إلى المتبقي على التلميذ."
+            "warning": "سيتم عكس الأداء وإعادة المبلغ إلى المتبقي على التلميذ.",
+            "successToast": "تم إلغاء الشيك بنجاح."
           }
         },
         "errors": {
@@ -5700,7 +5735,11 @@
           "chequeCollectionNotConfirmed": "لا يمكن معالجة الشيك قبل تأكيد التحصيل المرتبط.",
           "chequeAllocationsNotPosted": "توزيعات التحصيل غير جاهزة لمعالجة الشيك.",
           "chequeSettlementFailed": "تعذر إتمام تصفية الشيك.",
-          "chequeRejectionFailed": "تعذر تسجيل رفض الشيك."
+          "chequeRejectionFailed": "تعذر تسجيل رفض الشيك.",
+          "cancelReasonRequired": "سبب الإلغاء مطلوب",
+          "chequeCancelNotAllowed": "لا يمكن إلغاء هذا الشيك في حالته الحالية",
+          "chequeAlreadyCollected": "الشيك محصّل ولا يمكن إلغاؤه",
+          "chequeCancelForbidden": "ليست لديك صلاحية إلغاء الشيكات"
         }
       },
       "feeTypesWorkspace": {
@@ -6014,8 +6053,15 @@
         "unknown": "غير محددة",
         "open": "مفتوح",
         "partial": "جزئي",
+        "partially_paid": "مؤدى جزئيًا",
         "paid": "مؤدى",
         "overdue": "متأخر",
+        "unpaid": "غير مؤدى",
+        "pending_cheque": "شيك قيد التحصيل",
+        "not_applicable": "غير منطبق",
+        "due": "مستحق",
+        "upcoming": "قادم",
+        "hidden": "مخفي",
         "active": "نشط",
         "archived": "مؤرشف"
       },

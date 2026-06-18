@@ -52,7 +52,12 @@ export function normalizeGuardianSummary(data: unknown): GuardianSummary | null 
     person_id: typeof raw.person_id === 'number' ? raw.person_id : undefined,
     guardian_id: typeof raw.guardian_id === 'number' ? raw.guardian_id : guardianId,
     teacher_id: typeof raw.teacher_id === 'number' ? raw.teacher_id : null,
+    staff_id: typeof raw.staff_id === 'number' ? raw.staff_id : null,
     user_id: typeof raw.user_id === 'number' ? raw.user_id : null,
+    guardian_links_count:
+      typeof raw.guardian_links_count === 'number' ? raw.guardian_links_count : undefined,
+    linked_students_count:
+      typeof raw.linked_students_count === 'number' ? raw.linked_students_count : undefined,
     name,
     phone:
       (typeof raw.phone === 'string' ? raw.phone : null) ??
@@ -74,6 +79,7 @@ export function normalizeGuardianSummary(data: unknown): GuardianSummary | null 
           : null,
     existing_roles: readStringList(raw.existing_roles),
     role_labels: readStringList(raw.role_labels),
+    has_user: raw.has_user === true || hasUserAccount,
     has_user_account: hasUserAccount,
     has_account: hasUserAccount,
   };

@@ -332,6 +332,59 @@
   background: var(--surface-muted, #f8fafc);
 }
 
+.person-school-identity {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border, #e2e8f0);
+  background: var(--surface, #fff);
+}
+
+.person-school-identity__title {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.person-school-identity__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.person-school-identity__empty,
+.person-school-identity__note {
+  margin: 0;
+}
+
+.person-school-identity__warnings {
+  margin: 0;
+  padding-inline-start: 1rem;
+}
+
+.person-school-identity__warning {
+  margin: 0;
+}
+
+.guardian-search-card__warnings {
+  margin: 4px 0 0;
+  padding-inline-start: 1rem;
+}
+
+.guardian-link-blocker {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.guardian-link-blocker p {
+  margin: 0;
+}
+
 .guardian-primary-confirm {
   padding: 12px;
   border-radius: 8px;
