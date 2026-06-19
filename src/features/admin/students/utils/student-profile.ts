@@ -8,6 +8,8 @@ import type {
   StudentSummary,
   StudentUpdatePayload,
 } from '@/types/student-360';
+import type { FeePlanSuggestResult, StudentCreateFinanceFormState } from '@/types/student-enrollment-finance';
+import { buildStudentCreateFinancePayload } from './student-enrollment-finance';
 
 export const DEPARTURE_STATUSES = new Set(['withdrawn', 'transferred']);
 
@@ -384,7 +386,13 @@ function applyEmergencyFields(payload: StudentCreatePayload, state: StudentProfi
   if (notes) payload.emergency_notes = notes;
 }
 
-export function buildStudentCreatePayload(state: StudentProfileFormState): StudentCreatePayload {
+export function buildStudentCreatePayload(
+  state: StudentProfileFormState,
+  finance?: {
+    suggest: FeePlanSuggestResult | null;
+    financeState: StudentCreateFinanceFormState;
+  } | null,
+): StudentCreatePayload {
   const payload: StudentCreatePayload = {
     first_name: '',
     last_name: '',
@@ -396,6 +404,9 @@ export function buildStudentCreatePayload(state: StudentProfileFormState): Stude
   if (classId != null) payload.class_id = classId;
   const enrollment = buildEnrollmentBlock(state);
   if (enrollment) payload.enrollment = enrollment;
+  if (finance?.suggest) {
+    payload.finance = buildStudentCreateFinancePayload(finance.suggest, finance.financeState);
+  }
   return payload;
 }
 

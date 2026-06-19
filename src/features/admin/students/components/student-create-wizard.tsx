@@ -1,0 +1,411 @@
+'use client';
+
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { api } from '@/lib/api/client';
+import { useToast } from '@/components/ui/toast';
+import { useAdminSession } from '@/features/auth/admin-session-context';
+import { useT } from '@/features/i18n/locale-context';
+import { endpoints } from '@/lib/api/endpoints';
+import { useStudentOptions } from '../hooks/use-student-options';
+import { useFeePlanSuggest } from '../hooks/use-fee-plan-suggest';
+import { mapStudentApiError } from '../utils/student-api-errors';
+import { filterClassesForEnrollment } from '../utils/student-options';
+import {
+  buildStudentCreatePayload,
+  defaultStudentProfileFormState,
+  validateStudentCreateForm,
+  type StudentProfileFieldErrors,
+  type StudentProfileFormState,
+} from '../utils/student-profile';
+import {
+  buildFeePlanSuggestQuery,
+  canSkipFinanceOnCreate,
+  defaultStudentCreateFinanceFormState,
+  financePlanFingerprint,
+  mergeFinanceStateWithSuggest,
+} from '../utils/student-enrollment-finance';
+import {
+  StudentCreateAdditionalFields,
+  StudentCreateEnrollmentFields,
+  StudentCreateIdentityFields,
+} from './student-form-fields';
+import { StudentCreateStepper } from './student-create-stepper';
+import { StudentCreateBillingStep } from './student-create-billing-step';
+import { StudentCreateFeePlanSection } from './student-create-fee-plan-section';
+import { StudentCreateReviewSection } from './student-create-review-section';
+import type {
+  StudentCreateBillingFormState,
+  StudentCreateFinanceFormState,
+} from '@/types/student-enrollment-finance';
+
+export type StudentCreateSaveMode = 'setup' | 'list';
+export type StudentCreateWizardStep = 'identity' | 'billing' | 'enrollment' | 'finance' | 'review';
+
+const STEP_ORDER: StudentCreateWizardStep[] = [
+  'identity',
+  'billing',
+  'enrollment',
+  'finance',
+  'review',
+];
+
+const FIELD_ORDER: (keyof StudentProfileFieldErrors)[] = [
+  'firstName',
+  'lastName',
+  'dateOfBirth',
+  'massarCode',
+  'academicYearId',
+  'levelId',
+  'classId',
+  'actualJoinDate',
+  'previousSchool',
+  'schoolNumber',
+];
+
+function stepIndex(step: StudentCreateWizardStep): number {
+  return STEP_ORDER.indexOf(step);
+}
+
+export function StudentCreateForm({
+  onSaved,
+  onCancel,
+}: {
+  onSaved: (id: number, mode: StudentCreateSaveMode) => void;
+  onCancel: () => void;
+}) {
+  const t = useT();
+  const toast = useToast();
+  const { activeSchoolId } = useAdminSession();
+  const optionsState = useStudentOptions();
+  const options = optionsState.options;
+  const formRef = useRef<HTMLFormElement>(null);
+
+  const [step, setStep] = useState<StudentCreateWizardStep>('identity');
+  const [state, setState] = useState<StudentProfileFormState>(() =>
+    defaultStudentProfileFormState(null),
+  );
+  const [billingState, setBillingState] = useState<StudentCreateBillingFormState>({
+    billingPartnerType: 'guardian',
+  });
+  const [financeState, setFinanceState] = useState<StudentCreateFinanceFormState>(
+    defaultStudentCreateFinanceFormState(null),
+  );
+  const [fieldErrors, setFieldErrors] = useState<StudentProfileFieldErrors>({});
+  const [financeError, setFinanceError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveMode, setSaveMode] = useState<StudentCreateSaveMode>('setup');
+  const [additionalOpen, setAdditionalOpen] = useState(false);
+  const [classClearedNotice, setClassClearedNotice] = useState(false);
+  const [planChangeWarning, setPlanChangeWarning] = useState(false);
+  const financeTouchedRef = useRef(false);
+  const lastSuggestFingerprintRef = useRef('');
+
+  useEffect(() => {
+    if (optionsState.loading) return;
+    setState(defaultStudentProfileFormState(options));
+  }, [optionsState.loading, options]);
+
+  const resolvedSchoolId = useMemo(() => {
+    const fromState = Number(state.schoolId);
+    if (Number.isFinite(fromState) && fromState > 0) return fromState;
+    if (activeSchoolId != null) return activeSchoolId;
+    if (options?.schools.length === 1) return options.schools[0].id;
+    return null;
+  }, [state.schoolId, activeSchoolId, options?.schools]);
+
+  const suggestQuery = useMemo(
+    () => buildFeePlanSuggestQuery(state, resolvedSchoolId),
+    [state, resolvedSchoolId],
+  );
+  const suggestState = useFeePlanSuggest(suggestQuery);
+  const suggestFingerprint = financePlanFingerprint(suggestQuery);
+
+  useEffect(() => {
+    if (!suggestFingerprint) {
+      lastSuggestFingerprintRef.current = '';
+      setPlanChangeWarning(false);
+      setFinanceState(defaultStudentCreateFinanceFormState(null));
+      return;
+    }
+    if (!suggestState.suggest) return;
+
+    const fingerprintChanged =
+      lastSuggestFingerprintRef.current !== '' &&
+      lastSuggestFingerprintRef.current !== suggestFingerprint;
+
+    if (fingerprintChanged && financeTouchedRef.current) {
+      setPlanChangeWarning(true);
+      financeTouchedRef.current = false;
+    }
+
+    if (fingerprintChanged || lastSuggestFingerprintRef.current === '') {
+      setFinanceState((prev) =>
+        mergeFinanceStateWithSuggest(prev, suggestState.suggest, fingerprintChanged),
+      );
+    }
+
+    lastSuggestFingerprintRef.current = suggestFingerprint;
+  }, [suggestFingerprint, suggestState.suggest]);
+
+  const filteredClasses = useMemo(
+    () => filterClassesForEnrollment(options?.classes ?? [], state.levelId),
+    [options?.classes, state.levelId],
+  );
+
+  const financeBlocked =
+    suggestState.errorCode === 'no_default_fee_plan_for_level' &&
+    !canSkipFinanceOnCreate(suggestState.errorCode, suggestState.suggest?.allowed_actions);
+
+  function patch(next: Partial<StudentProfileFormState>) {
+    setState((prev) => ({ ...prev, ...next }));
+    setFieldErrors({});
+    setClassClearedNotice(false);
+  }
+
+  function patchFinance(next: Partial<StudentCreateFinanceFormState>) {
+    financeTouchedRef.current = true;
+    setFinanceState((prev) => ({ ...prev, ...next }));
+    setFinanceError(null);
+  }
+
+  function handleLevelChange(levelId: string) {
+    const compatible = filterClassesForEnrollment(options?.classes ?? [], levelId);
+    const classStillValid = compatible.some((c) => String(c.id) === state.classId);
+    patch({
+      levelId,
+      classId: classStillValid ? state.classId : '',
+    });
+    if (state.classId && !classStillValid) {
+      setClassClearedNotice(true);
+    }
+  }
+
+  function focusFirstError(errors: StudentProfileFieldErrors) {
+    const firstKey = FIELD_ORDER.find((key) => errors[key]);
+    if (!firstKey || !formRef.current) return;
+    const el = formRef.current.querySelector<HTMLElement>(`[data-field="${firstKey}"]`);
+    el?.focus();
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function validateStep(current: StudentCreateWizardStep): boolean {
+    if (current === 'identity' || current === 'enrollment') {
+      const validation = validateStudentCreateForm(state, t);
+      if (!validation.valid) {
+        setFieldErrors(validation.errors);
+        toast.error(t('errors.validationFailed'));
+        focusFirstError(validation.errors);
+        return false;
+      }
+    }
+    if (current === 'finance' || current === 'review') {
+      if (suggestState.loading) {
+        toast.error(t('admin.student360.create.finance.loading'));
+        return false;
+      }
+      if (financeBlocked) {
+        setFinanceError(t('admin.student360.create.finance.noPlanMessage'));
+        toast.error(t('admin.student360.create.finance.noPlanMessage'));
+        return false;
+      }
+      if (!suggestState.suggest) {
+        toast.error(t('admin.student360.create.finance.required'));
+        return false;
+      }
+      if (financeState.customizePlan && !financeState.customizationReason) {
+        setFinanceError(t('admin.student360.create.finance.reasonRequired'));
+        toast.error(t('admin.student360.create.finance.reasonRequired'));
+        return false;
+      }
+    }
+    setFinanceError(null);
+    return true;
+  }
+
+  function goNext() {
+    const current = step;
+    if (!validateStep(current)) return;
+    const next = STEP_ORDER[stepIndex(current) + 1];
+    if (next) setStep(next);
+  }
+
+  function goBack() {
+    const prev = STEP_ORDER[stepIndex(step) - 1];
+    if (prev) setStep(prev);
+  }
+
+  async function submit(mode: StudentCreateSaveMode) {
+    if (!validateStep('review')) return;
+
+    setSaveMode(mode);
+    setSaving(true);
+    const payload = buildStudentCreatePayload(state, {
+      suggest: suggestState.suggest,
+      financeState,
+    });
+    const res = await api.post(endpoints.admin.students, payload);
+    setSaving(false);
+
+    if (res.success && res.data) {
+      toast.success(t('admin.student360.create.success'));
+      const id =
+        typeof res.data === 'object' && res.data !== null && 'id' in res.data
+          ? Number((res.data as { id: number }).id)
+          : 0;
+      onSaved(id, mode);
+      return;
+    }
+
+    if (!res.success) {
+      const mapped = mapStudentApiError(res.error, t);
+      if (mapped.fieldErrors) {
+        setFieldErrors(mapped.fieldErrors);
+        focusFirstError(mapped.fieldErrors);
+      }
+      toast.error(mapped.message);
+    }
+  }
+
+  const onLastStep = step === 'review';
+
+  return (
+    <form ref={formRef} className="student-create-form" onSubmit={(e) => e.preventDefault()}>
+      <StudentCreateStepper activeStep={step} />
+
+      {step === 'identity' ? (
+        <section className="student-create-form__section">
+          <h2 className="student-create-form__section-title">
+            {t('admin.student360.sections.identity')}
+          </h2>
+          <div data-field="firstName">
+            <StudentCreateIdentityFields
+              state={state}
+              errors={fieldErrors}
+              optionsLoading={optionsState.loading}
+              genders={options?.genders ?? []}
+              onChange={patch}
+            />
+          </div>
+          <details
+            className="student-create-form__collapsible"
+            open={additionalOpen}
+            onToggle={(e) => setAdditionalOpen((e.target as HTMLDetailsElement).open)}
+          >
+            <summary className="student-create-form__collapsible-summary">
+              {t('admin.student360.create.additionalInfo')}
+            </summary>
+            <StudentCreateAdditionalFields
+              state={state}
+              errors={fieldErrors}
+              optionsLoading={optionsState.loading}
+              nationalities={options?.nationalities ?? []}
+              onChange={patch}
+            />
+          </details>
+        </section>
+      ) : null}
+
+      {step === 'billing' ? (
+        <StudentCreateBillingStep state={billingState} onChange={(patch) => setBillingState((prev) => ({ ...prev, ...patch }))} />
+      ) : null}
+
+      {step === 'enrollment' ? (
+        <section className="student-create-form__section">
+          <h2 className="student-create-form__section-title">
+            {t('admin.student360.sections.enrollment')}
+          </h2>
+          {classClearedNotice ? (
+            <p className="student-create-form__notice" role="status">
+              {t('admin.student360.classClearedOnLevelChange')}
+            </p>
+          ) : null}
+          <div data-field="academicYearId">
+            <StudentCreateEnrollmentFields
+              state={state}
+              errors={fieldErrors}
+              optionsLoading={optionsState.loading}
+              optionsError={!!optionsState.error}
+              years={options?.academicYears ?? []}
+              levels={options?.levels ?? []}
+              classes={filteredClasses}
+              registrationTypes={options?.registrationTypes ?? []}
+              onChange={patch}
+              onLevelChange={handleLevelChange}
+              onRetryOptions={optionsState.reload}
+            />
+          </div>
+        </section>
+      ) : null}
+
+      {step === 'finance' ? (
+        <>
+          {financeError ? (
+            <p className="student-create-form__notice" role="alert">
+              {financeError}
+            </p>
+          ) : null}
+          <StudentCreateFeePlanSection
+            suggest={suggestState.suggest}
+            loading={suggestState.loading}
+            errorCode={suggestState.errorCode}
+            financeState={financeState}
+            planChangeWarning={planChangeWarning}
+            onFinanceChange={patchFinance}
+            onRetry={suggestState.reload}
+          />
+        </>
+      ) : null}
+
+      {step === 'review' ? (
+        <StudentCreateReviewSection
+          profileState={state}
+          billingState={billingState}
+          suggest={suggestState.suggest}
+          financeState={financeState}
+          financeBlocked={financeBlocked}
+        />
+      ) : null}
+
+      <div className="student-create-form__actions">
+        {stepIndex(step) > 0 ? (
+          <button type="button" className="btn btn--ghost" disabled={saving} onClick={goBack}>
+            {t('common.back')}
+          </button>
+        ) : null}
+
+        {!onLastStep ? (
+          <button type="button" className="btn btn--primary" disabled={saving} onClick={goNext}>
+            {t('common.next')}
+          </button>
+        ) : (
+          <>
+            <button
+              type="button"
+              className="btn btn--primary"
+              disabled={saving || financeBlocked}
+              onClick={() => submit('setup')}
+            >
+              {saving && saveMode === 'setup'
+                ? t('admin.student360.create.saving')
+                : t('admin.student360.create.saveAndSetup')}
+            </button>
+            <button
+              type="button"
+              className="btn btn--secondary"
+              disabled={saving || financeBlocked}
+              onClick={() => submit('list')}
+            >
+              {saving && saveMode === 'list'
+                ? t('admin.student360.create.saving')
+                : t('admin.student360.create.saveOnly')}
+            </button>
+          </>
+        )}
+
+        <button type="button" className="btn btn--ghost" disabled={saving} onClick={onCancel}>
+          {t('common.cancel')}
+        </button>
+      </div>
+    </form>
+  );
+}

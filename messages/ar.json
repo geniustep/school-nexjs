@@ -3015,7 +3015,7 @@
       },
       "guardianAfterCreateHint": "بعد حفظ التلميذ، يمكنك إضافة أولياء الأمر من تبويب «أولياء الأمر».",
       "create": {
-        "pageDesc": "أدخل الهوية الأساسية والتسجيل الدراسي. يمكنك إكمال بقية الملف لاحقًا.",
+        "pageDesc": "أدخل بيانات التلميذ والتسجيل الأكاديمي والخطة المالية المقترحة قبل الحفظ النهائي.",
         "additionalInfo": "معلومات إضافية",
         "firstNameAr": "الاسم الشخصي (عربي)",
         "lastNameAr": "الاسم العائلي (عربي)",
@@ -3040,6 +3040,71 @@
           "academicYearRequired": "السنة الدراسية مطلوبة.",
           "levelRequired": "المستوى مطلوب.",
           "massarNoSpaces": "رقم مسار لا يجب أن يحتوي على مسافات."
+        },
+        "stepperAria": "خطوات إنشاء التلميذ",
+        "steps": {
+          "identity": "بيانات التلميذ",
+          "billing": "جهة الفوترة",
+          "enrollment": "التسجيل الأكاديمي",
+          "finance": "الخطة المالية",
+          "review": "المراجعة النهائية"
+        },
+        "billing": {
+          "title": "ولي الأمر / جهة الفوترة",
+          "desc": "حدّد جهة الفوترة المتوقعة. يمكن ربط ولي الأمر فعليًا بعد إنشاء التلميذ.",
+          "partnerOther": "جهة خاصة",
+          "partnerHint": "يُستخدم هذا الاختيار للمراجعة فقط حتى يتم ربط جهة الفوترة في الملف المالي."
+        },
+        "finance": {
+          "loading": "جارٍ اقتراح الخطة المالية…",
+          "waitingEnrollment": "أكمل التسجيل الأكاديمي لاقتراح الخطة المالية.",
+          "required": "الخطة المالية مطلوبة قبل إنشاء التلميذ.",
+          "loadError": "تعذر تحميل الخطة المالية المقترحة.",
+          "noPlanTitle": "لا توجد خطة مالية افتراضية",
+          "noPlanMessage": "لا توجد خطة مالية افتراضية لهذا المستوى في هذا الموسم. يرجى إنشاء خطة مالية أو اختيار خطة يدويًا بصلاحية مناسبة.",
+          "suggestedPlanTitle": "الخطة المالية المقترحة",
+          "planName": "اسم الخطة",
+          "season": "الموسم",
+          "performanceWindow": "بداية ونهاية الأداء",
+          "dueDay": "يوم الاستحقاق",
+          "suggestedMonths": "عدد الأشهر المقترحة",
+          "totalDue": "إجمالي المستحق",
+          "includedMonths": "الأشهر المشمولة",
+          "excludedMonths": "أشهر مستبعدة بسبب تاريخ الالتحاق",
+          "dueOn": "تاريخ الاستحقاق {date}",
+          "customizePlan": "تخصيص الخطة لهذا التلميذ",
+          "customizationReason": "سبب التخصيص",
+          "customizationNotes": "ملاحظات التخصيص",
+          "reasonRequired": "اختر سبب التخصيص.",
+          "planChangeWarning": "تم تغيير بيانات التسجيل الأكاديمي. سيتم تحديث الخطة المالية المقترحة، وقد تُفقد التخصيصات غير المحفوظة.",
+          "month": "الشهر",
+          "include": "مشمول",
+          "amountOverride": "مبلغ مخصص",
+          "dueDateOverride": "تاريخ استحقاق مخصص",
+          "previewRange": "{count} أقساط من {first} إلى {last}",
+          "reasons": {
+            "late_enrollment": "التحاق متأخر",
+            "scholarship": "منحة",
+            "special_discount": "تخفيض خاص",
+            "family_agreement": "اتفاق عائلي",
+            "expected_withdrawal": "انسحاب متوقع",
+            "manual_adjustment": "تعديل يدوي",
+            "other": "أخرى"
+          }
+        },
+        "review": {
+          "title": "المراجعة النهائية",
+          "student": "التلميذ",
+          "enrollmentDate": "تاريخ الالتحاق",
+          "billingPartner": "جهة الفوترة",
+          "financePlan": "الخطة المالية",
+          "planType": "نوع الخطة",
+          "planOriginal": "أصلية",
+          "planCustomized": "مخصصة",
+          "installmentCount": "عدد الأقساط",
+          "firstInstallment": "أول قسط",
+          "lastInstallment": "آخر قسط",
+          "totalDue": "إجمالي المستحق"
         }
       },
       "setup": {

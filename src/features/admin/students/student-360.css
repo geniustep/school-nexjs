@@ -4524,6 +4524,215 @@
   z-index: 2;
 }
 
+.student-create-stepper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.student-create-stepper__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border, #e2e8f0);
+  background: var(--card-bg, #fff);
+  color: var(--text-muted, #64748b);
+  font-size: 0.85rem;
+}
+
+.student-create-stepper__item[data-active] {
+  border-color: var(--primary, #2563eb);
+  color: var(--primary, #2563eb);
+  background: #eff6ff;
+}
+
+.student-create-stepper__item[data-done] {
+  border-color: #86efac;
+  color: #047857;
+}
+
+.student-create-stepper__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  background: currentColor;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.student-create-stepper__item[data-active] .student-create-stepper__badge,
+.student-create-stepper__item[data-done] .student-create-stepper__badge {
+  background: currentColor;
+}
+
+.student-create-fee-plan__card {
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 10px;
+  padding: 16px;
+  background: var(--surface-muted, #f8fafc);
+}
+
+.student-create-fee-plan__title {
+  margin: 0 0 12px;
+  font-size: 1rem;
+}
+
+.student-create-fee-plan__meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+  gap: 10px 16px;
+  margin: 0;
+}
+
+.student-create-fee-plan__meta-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.student-create-fee-plan__meta-row dt {
+  font-size: 0.75rem;
+  color: var(--text-muted, #64748b);
+}
+
+.student-create-fee-plan__meta-row dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.student-create-fee-plan__subtitle {
+  margin: 16px 0 8px;
+  font-size: 0.95rem;
+}
+
+.student-create-fee-plan__period-list {
+  margin: 0;
+  padding-inline-start: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.student-create-fee-plan__period-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.student-create-fee-plan__period-check {
+  flex-shrink: 0;
+  width: 1.25rem;
+  text-align: center;
+  color: #047857;
+}
+
+.student-create-fee-plan__periods--excluded {
+  padding: 12px;
+  border-radius: 8px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+}
+
+.student-create-fee-plan__alert {
+  padding: 14px 16px;
+  border-radius: 8px;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+}
+
+.student-create-fee-plan__warning {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+}
+
+.student-create-fee-plan__customize-toggle {
+  margin-top: 16px;
+}
+
+.student-create-fee-plan__customize-panel {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border, #e2e8f0);
+}
+
+.student-create-fee-plan__customize-table-wrap {
+  overflow-x: auto;
+}
+
+.student-create-fee-plan__customize-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.student-create-fee-plan__customize-table th,
+.student-create-fee-plan__customize-table td {
+  padding: 8px;
+  border-bottom: 1px solid var(--border, #e2e8f0);
+  text-align: start;
+}
+
+.student-create-review__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+}
+
+.student-create-review__row {
+  display: grid;
+  grid-template-columns: minmax(120px, 180px) 1fr;
+  gap: 8px 16px;
+}
+
+.student-create-review__row dt {
+  color: var(--text-muted, #64748b);
+}
+
+.student-create-review__row dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.student-create-review__finance {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border, #e2e8f0);
+}
+
+.student-create-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+[dir='rtl'] .student-create-fee-plan__period-item,
+[dir='rtl'] .student-create-stepper__item,
+[dir='rtl'] .student-create-review__row {
+  text-align: right;
+}
+
+[dir='rtl'] .student-create-fee-plan__customize-table th,
+[dir='rtl'] .student-create-fee-plan__customize-table td {
+  text-align: right;
+}
+
 .nationality-combobox {
   position: relative;
 }

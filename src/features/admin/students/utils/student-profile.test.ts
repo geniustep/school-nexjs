@@ -9,6 +9,8 @@ import {
   validateStudentCreateForm,
   validateStudentProfileForm,
 } from './student-profile';
+import { defaultStudentCreateFinanceFormState } from './student-enrollment-finance';
+import type { FeePlanSuggestResult } from '@/types/student-enrollment-finance';
 import type { StudentOptions } from '@/types/student-360';
 
 const t = (key: string) => key;
@@ -92,6 +94,26 @@ describe('buildStudentCreatePayload', () => {
     };
     const payload = buildStudentCreatePayload(state);
     expect(payload.enrollment?.previous_school).toBe('Old School');
+  });
+
+  it('includes finance block when suggest result is provided', () => {
+    const suggest: FeePlanSuggestResult = {
+      ok: true,
+      fee_plan_id: 123,
+      fee_plan_name: 'Plan A',
+      suggested_periods: [],
+      excluded_periods: [],
+    };
+    const state = {
+      ...defaultStudentProfileFormState(options),
+      firstName: 'A',
+      lastName: 'B',
+    };
+    const payload = buildStudentCreatePayload(state, {
+      suggest,
+      financeState: defaultStudentCreateFinanceFormState(suggest),
+    });
+    expect(payload.finance).toEqual({ fee_plan_id: 123, customize_plan: false });
   });
 });
 

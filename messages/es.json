@@ -3013,6 +3013,71 @@
           "academicYearRequired": "El año académico es obligatorio.",
           "levelRequired": "El nivel es obligatorio.",
           "massarNoSpaces": "El número Massar no debe contener espacios."
+        },
+        "stepperAria": "Pasos de creación del alumno",
+        "steps": {
+          "identity": "Datos del alumno",
+          "billing": "Facturación",
+          "enrollment": "Matrícula académica",
+          "finance": "Plan de tasas",
+          "review": "Revisión final"
+        },
+        "billing": {
+          "title": "Tutor / entidad de facturación",
+          "desc": "Indique la entidad de facturación esperada. El tutor puede vincularse después de crear el alumno.",
+          "partnerOther": "Entidad específica",
+          "partnerHint": "Esta elección es solo para revisión hasta configurar el perfil de facturación."
+        },
+        "finance": {
+          "loading": "Sugiriendo plan de tasas…",
+          "waitingEnrollment": "Complete la matrícula académica para sugerir un plan.",
+          "required": "Se requiere un plan de tasas antes de crear el alumno.",
+          "loadError": "No se pudo cargar el plan sugerido.",
+          "noPlanTitle": "Sin plan predeterminado",
+          "noPlanMessage": "No hay plan predeterminado para este nivel en esta temporada. Cree un plan o asígnelo manualmente.",
+          "suggestedPlanTitle": "Plan de tasas sugerido",
+          "planName": "Nombre del plan",
+          "season": "Temporada",
+          "performanceWindow": "Periodo de pago",
+          "dueDay": "Día de vencimiento",
+          "suggestedMonths": "Meses sugeridos",
+          "totalDue": "Total adeudado",
+          "includedMonths": "Meses incluidos",
+          "excludedMonths": "Meses excluidos por la fecha de ingreso",
+          "dueOn": "Vencimiento {date}",
+          "customizePlan": "Personalizar plan para este alumno",
+          "customizationReason": "Motivo de personalización",
+          "customizationNotes": "Notas",
+          "reasonRequired": "Seleccione un motivo de personalización.",
+          "planChangeWarning": "Cambió la matrícula académica. El plan sugerido se actualizará y pueden perderse personalizaciones no guardadas.",
+          "month": "Mes",
+          "include": "Incluir",
+          "amountOverride": "Importe personalizado",
+          "dueDateOverride": "Fecha de vencimiento personalizada",
+          "previewRange": "{count} cuotas de {first} a {last}",
+          "reasons": {
+            "late_enrollment": "Ingreso tardío",
+            "scholarship": "Beca",
+            "special_discount": "Descuento especial",
+            "family_agreement": "Acuerdo familiar",
+            "expected_withdrawal": "Retiro previsto",
+            "manual_adjustment": "Ajuste manual",
+            "other": "Otro"
+          }
+        },
+        "review": {
+          "title": "Revisión final",
+          "student": "Alumno",
+          "enrollmentDate": "Fecha de ingreso",
+          "billingPartner": "Entidad de facturación",
+          "financePlan": "Plan de tasas",
+          "planType": "Tipo de plan",
+          "planOriginal": "Original",
+          "planCustomized": "Personalizado",
+          "installmentCount": "Número de cuotas",
+          "firstInstallment": "Primera cuota",
+          "lastInstallment": "Última cuota",
+          "totalDue": "Total adeudado"
         }
       },
       "setup": {

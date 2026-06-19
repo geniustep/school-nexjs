@@ -3013,6 +3013,71 @@
           "academicYearRequired": "L'année scolaire est obligatoire.",
           "levelRequired": "Le niveau est obligatoire.",
           "massarNoSpaces": "Le numéro Massar ne doit pas contenir d'espaces."
+        },
+        "stepperAria": "Étapes de création de l'élève",
+        "steps": {
+          "identity": "Identité",
+          "billing": "Facturation",
+          "enrollment": "Inscription académique",
+          "finance": "Plan de frais",
+          "review": "Revue finale"
+        },
+        "billing": {
+          "title": "Responsable / tiers facturé",
+          "desc": "Indiquez le tiers facturé attendu. Le responsable peut être lié après la création.",
+          "partnerOther": "Tiers spécifique",
+          "partnerHint": "Ce choix sert à la revue jusqu'à la configuration du profil de facturation."
+        },
+        "finance": {
+          "loading": "Suggestion du plan de frais…",
+          "waitingEnrollment": "Complétez l'inscription académique pour suggérer un plan.",
+          "required": "Un plan de frais est requis avant la création.",
+          "loadError": "Impossible de charger le plan suggéré.",
+          "noPlanTitle": "Aucun plan par défaut",
+          "noPlanMessage": "Aucun plan par défaut pour ce niveau dans cette saison. Créez un plan ou assignez-en un manuellement.",
+          "suggestedPlanTitle": "Plan de frais suggéré",
+          "planName": "Nom du plan",
+          "season": "Saison",
+          "performanceWindow": "Période de paiement",
+          "dueDay": "Jour d'échéance",
+          "suggestedMonths": "Mois suggérés",
+          "totalDue": "Total dû",
+          "includedMonths": "Mois inclus",
+          "excludedMonths": "Mois exclus en raison de la date d'inscription",
+          "dueOn": "Échéance {date}",
+          "customizePlan": "Personnaliser le plan pour cet élève",
+          "customizationReason": "Motif de personnalisation",
+          "customizationNotes": "Notes",
+          "reasonRequired": "Sélectionnez un motif de personnalisation.",
+          "planChangeWarning": "L'inscription académique a changé. Le plan suggéré sera mis à jour et les personnalisations non enregistrées peuvent être perdues.",
+          "month": "Mois",
+          "include": "Inclure",
+          "amountOverride": "Montant personnalisé",
+          "dueDateOverride": "Date d'échéance personnalisée",
+          "previewRange": "{count} échéances de {first} à {last}",
+          "reasons": {
+            "late_enrollment": "Inscription tardive",
+            "scholarship": "Bourse",
+            "special_discount": "Remise spéciale",
+            "family_agreement": "Accord familial",
+            "expected_withdrawal": "Départ prévu",
+            "manual_adjustment": "Ajustement manuel",
+            "other": "Autre"
+          }
+        },
+        "review": {
+          "title": "Revue finale",
+          "student": "Élève",
+          "enrollmentDate": "Date d'inscription",
+          "billingPartner": "Tiers facturé",
+          "financePlan": "Plan de frais",
+          "planType": "Type de plan",
+          "planOriginal": "Original",
+          "planCustomized": "Personnalisé",
+          "installmentCount": "Nombre d'échéances",
+          "firstInstallment": "Première échéance",
+          "lastInstallment": "Dernière échéance",
+          "totalDue": "Total dû"
         }
       },
       "setup": {

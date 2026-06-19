@@ -294,6 +294,8 @@ export interface StudentEnrollmentBlock {
   departure_reason?: string | null;
 }
 
+import type { StudentCreateFinancePayload } from '@/types/student-enrollment-finance';
+
 export interface StudentCreatePayload {
   first_name: string;
   last_name: string;
@@ -323,6 +325,7 @@ export interface StudentCreatePayload {
   emergency_notes?: string;
   class_id?: number;
   enrollment?: StudentEnrollmentBlock;
+  finance?: StudentCreateFinancePayload;
 }
 
 export type StudentUpdatePayload = Partial<StudentCreatePayload>;

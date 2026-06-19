@@ -2988,7 +2988,7 @@
       },
       "guardianAfterCreateHint": "After saving the student, add guardians from the Guardians tab.",
       "create": {
-        "pageDesc": "Enter basic identity and enrollment. You can complete the rest of the file later.",
+        "pageDesc": "Enter pupil details, academic enrollment, and the suggested fee plan before final save.",
         "additionalInfo": "Additional information",
         "firstNameAr": "First name (Arabic)",
         "lastNameAr": "Last name (Arabic)",
@@ -3013,6 +3013,71 @@
           "academicYearRequired": "Academic year is required.",
           "levelRequired": "Level is required.",
           "massarNoSpaces": "Massar number must not contain spaces."
+        },
+        "stepperAria": "Student creation steps",
+        "steps": {
+          "identity": "Pupil details",
+          "billing": "Billing party",
+          "enrollment": "Academic enrollment",
+          "finance": "Fee plan",
+          "review": "Final review"
+        },
+        "billing": {
+          "title": "Guardian / billing party",
+          "desc": "Choose the expected billing party. You can link a guardian after the pupil is created.",
+          "partnerOther": "Other party",
+          "partnerHint": "This choice is for review only until a billing profile is set in finance."
+        },
+        "finance": {
+          "loading": "Suggesting fee plan…",
+          "waitingEnrollment": "Complete academic enrollment to suggest a fee plan.",
+          "required": "A fee plan is required before creating the pupil.",
+          "loadError": "Could not load the suggested fee plan.",
+          "noPlanTitle": "No default fee plan",
+          "noPlanMessage": "No default fee plan exists for this level in this season. Create a fee plan or assign one manually with the right permissions.",
+          "suggestedPlanTitle": "Suggested fee plan",
+          "planName": "Plan name",
+          "season": "Season",
+          "performanceWindow": "Performance window",
+          "dueDay": "Due day",
+          "suggestedMonths": "Suggested months",
+          "totalDue": "Total due",
+          "includedMonths": "Included months",
+          "excludedMonths": "Months excluded because of enrollment date",
+          "dueOn": "Due {date}",
+          "customizePlan": "Customize plan for this pupil",
+          "customizationReason": "Customization reason",
+          "customizationNotes": "Customization notes",
+          "reasonRequired": "Select a customization reason.",
+          "planChangeWarning": "Academic enrollment changed. The suggested fee plan will refresh and unsaved customizations may be lost.",
+          "month": "Month",
+          "include": "Include",
+          "amountOverride": "Amount override",
+          "dueDateOverride": "Due date override",
+          "previewRange": "{count} installments from {first} to {last}",
+          "reasons": {
+            "late_enrollment": "Late enrollment",
+            "scholarship": "Scholarship",
+            "special_discount": "Special discount",
+            "family_agreement": "Family agreement",
+            "expected_withdrawal": "Expected withdrawal",
+            "manual_adjustment": "Manual adjustment",
+            "other": "Other"
+          }
+        },
+        "review": {
+          "title": "Final review",
+          "student": "Pupil",
+          "enrollmentDate": "Enrollment date",
+          "billingPartner": "Billing party",
+          "financePlan": "Fee plan",
+          "planType": "Plan type",
+          "planOriginal": "Original",
+          "planCustomized": "Customized",
+          "installmentCount": "Installment count",
+          "firstInstallment": "First installment",
+          "lastInstallment": "Last installment",
+          "totalDue": "Total due"
         }
       },
       "setup": {
