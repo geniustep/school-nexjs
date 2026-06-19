@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildEnrollmentFinanceReviewModel,
+  enrollmentFinancePreviewStatus,
   listEnrollmentReviewCustomizationItems,
   validateEnrollmentFinanceSave,
 } from './enrollment-finance-review';
@@ -55,7 +56,7 @@ describe('buildEnrollmentFinanceReviewModel', () => {
     expect(model.discountTotal).toBe(200);
     expect(model.finalTotal).toBe(4300);
     expect(model.monthlyInstallment).toBe(180);
-    expect(model.summaryRows.some((row) => row.key === 'one_time_total')).toBe(true);
+    expect(model.summaryRows).toEqual([]);
   });
 
   it('uses financial_summary when customization is off', () => {
@@ -66,6 +67,18 @@ describe('buildEnrollmentFinanceReviewModel', () => {
     expect(model.originalTotal).toBeNull();
     expect(model.discountTotal).toBeNull();
     expect(model.customizationItems).toEqual([]);
+    expect(model.summaryRows.some((row) => row.key === 'one_time_total')).toBe(true);
+  });
+
+  it('does not expose suggest totals when customized without preview', () => {
+    const financeState: StudentCreateFinanceFormState = {
+      ...defaultStudentCreateFinanceFormState(suggest),
+      customizePlan: true,
+      customizationReason: 'scholarship',
+    };
+    const model = buildEnrollmentFinanceReviewModel(suggest, financeState, null);
+    expect(model.finalTotal).toBeNull();
+    expect(model.summaryRows).toEqual([]);
   });
 });
 
@@ -97,6 +110,43 @@ describe('listEnrollmentReviewCustomizationItems', () => {
     expect(items.some((item) => item.kind === 'one_time_excluded')).toBe(true);
     expect(items.some((item) => item.kind === 'period_modified')).toBe(true);
     expect(items.some((item) => item.kind === 'period_excluded')).toBe(true);
+  });
+
+  it('lists percent and fixed line discounts distinctly', () => {
+    const financeState: StudentCreateFinanceFormState = {
+      ...defaultStudentCreateFinanceFormState(suggest),
+      customizePlan: true,
+      customizationReason: 'scholarship',
+      planDiscount: {
+        enabled: true,
+        type: 'percent',
+        value: '5',
+        reason: 'scholarship',
+      },
+      lineDiscounts: {
+        ...defaultStudentCreateFinanceFormState(suggest).lineDiscounts,
+        '2904': {
+          enabled: true,
+          type: 'percent',
+          value: '10',
+          reason: 'scholarship',
+        },
+        '2903': {
+          enabled: true,
+          type: 'fixed_amount',
+          value: '500',
+          reason: 'family_agreement',
+        },
+      },
+    };
+    const items = listEnrollmentReviewCustomizationItems(suggest, financeState);
+    expect(items.some((item) => item.kind === 'plan_discount' && item.label.includes('5%'))).toBe(true);
+    expect(items.some((item) => item.kind === 'line_discount' && item.label.includes('10%'))).toBe(true);
+    expect(
+      items.some(
+        (item) => item.kind === 'line_discount' && item.label.includes('التسجيل') && item.label.includes('500'),
+      ),
+    ).toBe(true);
   });
 });
 
@@ -135,5 +185,38 @@ describe('validateEnrollmentFinanceSave', () => {
         preview: null,
       }),
     ).toBe('ok');
+  });
+
+  it('blocks save when preview is missing', () => {
+    expect(
+      validateEnrollmentFinanceSave({
+        customizePlan: true,
+        customizationReason: 'scholarship',
+        previewLoading: false,
+        previewError: null,
+        preview: null,
+      }),
+    ).toBe('preview_incomplete');
+  });
+});
+
+describe('enrollmentFinancePreviewStatus', () => {
+  it('marks customized preview as ready only with final_total', () => {
+    expect(
+      enrollmentFinancePreviewStatus({
+        customizePlan: true,
+        previewLoading: false,
+        previewError: null,
+        preview: { final_total: 4300 },
+      }),
+    ).toBe('ready');
+    expect(
+      enrollmentFinancePreviewStatus({
+        customizePlan: false,
+        previewLoading: false,
+        previewError: null,
+        preview: null,
+      }),
+    ).toBe('not_needed');
   });
 });

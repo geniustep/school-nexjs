@@ -531,14 +531,23 @@ export function StudentCreateForm({
       ) : null}
 
       {step === 'review' ? (
-        <StudentCreateReviewSection
-          profileState={state}
-          billingState={billingState}
-          suggest={suggestState.suggest}
-          financeState={financeState}
-          preview={previewState.preview}
-          financeBlocked={financeBlocked}
-        />
+        <>
+          {financeError ? (
+            <p className="student-create-form__notice" role="alert">
+              {financeError}
+            </p>
+          ) : null}
+          <StudentCreateReviewSection
+            profileState={state}
+            billingState={billingState}
+            suggest={suggestState.suggest}
+            financeState={financeState}
+            preview={previewState.preview}
+            previewLoading={previewState.loading}
+            previewError={previewState.error}
+            financeBlocked={financeBlocked}
+          />
+        </>
       ) : null}
 
       <div className="student-create-form__actions">

@@ -143,19 +143,21 @@ export function buildEnrollmentFinanceReviewModel(
   preview: EnrollmentPlanPreviewResult | null,
 ): EnrollmentFinanceReviewModel {
   const planLines = suggest.plan_lines ?? [];
-  const summaryRows = financialSummaryRows(suggest.financial_summary, planLines);
   const customized = financeState.customizePlan;
+  const summaryRows = customized
+    ? []
+    : financialSummaryRows(suggest.financial_summary, planLines);
 
   let originalTotal: number | null = null;
   let discountTotal: number | null = null;
   let finalTotal: number | null = null;
-  let monthlyInstallment: number | null = suggest.financial_summary?.monthly_installment_amount ?? null;
+  let monthlyInstallment: number | null = null;
 
   if (customized && preview) {
     originalTotal = preview.original_total ?? null;
     discountTotal = preview.discount_total ?? null;
     finalTotal = preview.final_total ?? null;
-    monthlyInstallment = preview.monthly_due_total ?? monthlyInstallment;
+    monthlyInstallment = preview.monthly_due_total ?? null;
   } else if (!customized) {
     finalTotal = suggest.financial_summary?.expected_total ?? suggest.total_due ?? null;
     monthlyInstallment = suggest.financial_summary?.monthly_installment_amount ?? null;
@@ -175,6 +177,19 @@ export function buildEnrollmentFinanceReviewModel(
       ? listEnrollmentReviewCustomizationItems(suggest, financeState)
       : [],
   };
+}
+
+export function enrollmentFinancePreviewStatus(input: {
+  customizePlan: boolean;
+  previewLoading: boolean;
+  previewError: string | null;
+  preview: EnrollmentPlanPreviewResult | null;
+}): 'not_needed' | 'ready' | 'loading' | 'error' | 'missing' {
+  if (!input.customizePlan) return 'not_needed';
+  if (input.previewLoading) return 'loading';
+  if (input.previewError) return 'error';
+  if (input.preview?.final_total == null) return 'missing';
+  return 'ready';
 }
 
 export function validateEnrollmentFinanceSave(input: {
