@@ -59,6 +59,54 @@ describe('buildEnrollmentFinanceReviewModel', () => {
     expect(model.summaryRows).toEqual([]);
   });
 
+  it('uses preview monthly due after customization discount', () => {
+    const plan2967Lines = [
+      {
+        line_id: 1,
+        fee_type_name: 'التمدرس',
+        frequency: 'monthly' as const,
+        pricing_mode: 'recurring_unit_price' as const,
+        amount: 2000,
+      },
+      {
+        line_id: 2,
+        fee_type_name: 'النقل',
+        frequency: 'monthly' as const,
+        pricing_mode: 'recurring_unit_price' as const,
+        amount: 400,
+      },
+    ];
+    const suggestWithPlan: FeePlanSuggestResult = {
+      ...suggest,
+      plan_lines: plan2967Lines,
+      financial_summary: {
+        ...suggest.financial_summary,
+        monthly_installment_amount: 400,
+      },
+    };
+    const financeState: StudentCreateFinanceFormState = {
+      ...defaultStudentCreateFinanceFormState(suggestWithPlan),
+      customizePlan: true,
+      customizationReason: 'scholarship',
+      lineDiscounts: {
+        ...defaultStudentCreateFinanceFormState(suggestWithPlan).lineDiscounts,
+        '1': {
+          enabled: true,
+          type: 'percent' as const,
+          value: '50',
+          reason: 'scholarship' as const,
+        },
+      },
+    };
+    const model = buildEnrollmentFinanceReviewModel(suggestWithPlan, financeState, {
+      original_total: 26500,
+      discount_total: 10000,
+      final_total: 16500,
+      monthly_due_total: 1400,
+    });
+    expect(model.monthlyInstallment).toBe(1400);
+  });
+
   it('uses financial_summary when customization is off', () => {
     const financeState = defaultStudentCreateFinanceFormState(suggest);
     const model = buildEnrollmentFinanceReviewModel(suggest, financeState, null);

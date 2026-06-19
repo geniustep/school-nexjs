@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildFinancePeriodPayloads,
   buildStudentCreateFinancePayload,
+  computeExpectedMonthlyDueFromPlanLines,
   emptyFinanceDiscountState,
   ensureFinancePeriodOverrides,
   enrollmentPlanLineAmountParts,
@@ -10,6 +11,7 @@ import {
   formatCustomizationReason,
   hasValidCustomizedFinancePeriods,
   resolveDiscountReason,
+  resolveExpectedMonthlyDueAmount,
 } from './enrollment-finance-payload';
 import type {
   EnrollmentPlanLine,
@@ -81,6 +83,33 @@ describe('financialSummaryRows', () => {
     expect(rows.find((row) => row.key === 'installment_total')?.value).toBe(2000);
     expect(rows.find((row) => row.key === 'recurring_periodic_total')?.value).toBe(4000);
     expect(rows.find((row) => row.key === 'expected_total')?.value).toBe(8500);
+  });
+
+  it('computes expected monthly due from recurring unit prices before customization', () => {
+    const plan2967Lines: EnrollmentPlanLine[] = [
+      {
+        line_id: 1,
+        fee_type_name: 'التمدرس',
+        frequency: 'monthly',
+        pricing_mode: 'recurring_unit_price',
+        amount: 2000,
+      },
+      {
+        line_id: 2,
+        fee_type_name: 'النقل',
+        frequency: 'monthly',
+        pricing_mode: 'recurring_unit_price',
+        amount: 400,
+      },
+    ];
+
+    expect(computeExpectedMonthlyDueFromPlanLines(plan2967Lines)).toBe(2400);
+    expect(
+      resolveExpectedMonthlyDueAmount({ monthly_installment_amount: 400 }, plan2967Lines),
+    ).toBe(2400);
+
+    const rows = financialSummaryRows({ monthly_installment_amount: 400 }, plan2967Lines);
+    expect(rows.find((row) => row.key === 'monthly_installment_amount')?.value).toBe(2400);
   });
 });
 

@@ -76,16 +76,64 @@ export function resolveAgreementFinanceSummary(
   return hasValue ? summary : null;
 }
 
+function customizationDedupeKey(item: AgreementCustomization): string {
+  if (item.scope === 'period') {
+    const count = item.periods?.filter((period) => period.selected !== false).length ?? 0;
+    const keys =
+      item.periods
+        ?.map((period) => period.period_key)
+        .sort()
+        .join(',') ?? '';
+    return `period:${count}:${keys}`;
+  }
+
+  return [
+    item.kind ?? '',
+    item.scope ?? '',
+    String(item.line_id ?? ''),
+    item.line_name?.trim() ?? '',
+    item.discount_type ?? '',
+    String(item.discount_value ?? ''),
+    item.due_date_override ?? '',
+  ].join('|');
+}
+
+function dedupeAgreementCustomizations(items: AgreementCustomization[]): AgreementCustomization[] {
+  const seen = new Set<string>();
+  const result: AgreementCustomization[] = [];
+  for (const item of items) {
+    const key = customizationDedupeKey(item);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(item);
+  }
+  return result;
+}
+
+function readCustomizationsFromSource(
+  source:
+    | {
+        customizations?: AgreementCustomization[] | null;
+        enrollment_customizations?: AgreementCustomization[] | null;
+      }
+    | null
+    | undefined,
+): AgreementCustomization[] {
+  if (!source) return [];
+  if (Array.isArray(source.customizations) && source.customizations.length > 0) {
+    return source.customizations;
+  }
+  return source.enrollment_customizations ?? [];
+}
+
 export function resolveAgreementCustomizations(
   ...sources: Array<{ customizations?: AgreementCustomization[] | null; enrollment_customizations?: AgreementCustomization[] | null } | null | undefined>
 ): AgreementCustomization[] {
   const merged: AgreementCustomization[] = [];
   for (const source of sources) {
-    if (!source) continue;
-    if (Array.isArray(source.enrollment_customizations)) merged.push(...source.enrollment_customizations);
-    if (Array.isArray(source.customizations)) merged.push(...source.customizations);
+    merged.push(...readCustomizationsFromSource(source));
   }
-  return merged;
+  return dedupeAgreementCustomizations(merged);
 }
 
 export function splitEnrollmentCustomizations(customizations: AgreementCustomization[]): {

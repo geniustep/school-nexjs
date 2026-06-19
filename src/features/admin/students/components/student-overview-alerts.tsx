@@ -32,6 +32,7 @@ const ALERT_CODE_KEYS: Record<string, { title: string; message?: string }> = {
 };
 
 const ALERT_TEXT_KEYS: Record<string, string> = {
+  missing_guardian: 'admin.student360.overview.alerts.known.missingGuardian',
   'missing guardian': 'admin.student360.overview.alerts.known.missingGuardian',
   'missing photo': 'admin.student360.overview.alerts.known.missingPhoto',
   'missing required documents': 'admin.student360.overview.alerts.known.missingDocuments',
@@ -70,7 +71,7 @@ function translateKey(t: (key: string) => string, key: string | undefined): stri
   return label !== key ? label : null;
 }
 
-function localizeOverviewAlertField(
+export function localizeOverviewAlertField(
   t: (key: string) => string,
   alert: StudentOverviewAlert,
   field: 'title' | 'message',
@@ -84,7 +85,15 @@ function localizeOverviewAlertField(
   if (translated) return translated;
 
   const normalized = text.trim().toLowerCase();
-  const fallbackKey = ALERT_TEXT_KEYS[normalized];
+  const slugFromText = normalized.replace(/\s+/g, '_');
+  const codeFromText = ALERT_CODE_KEYS[slugFromText];
+  if (codeFromText) {
+    const textMappedKey = field === 'title' ? codeFromText.title : codeFromText.message;
+    const textTranslated = translateKey(t, textMappedKey);
+    if (textTranslated) return textTranslated;
+  }
+
+  const fallbackKey = ALERT_TEXT_KEYS[normalized] ?? ALERT_TEXT_KEYS[slugFromText];
   const fallback = translateKey(t, fallbackKey);
   if (fallback) return fallback;
 

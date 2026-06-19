@@ -72,6 +72,59 @@ export function enrollmentPlanLineAmountParts(line: EnrollmentPlanLine): {
   };
 }
 
+export function computeExpectedMonthlyDueFromPlanLines(
+  lines: EnrollmentPlanLine[] | null | undefined,
+): number | null {
+  if (!lines?.length) return null;
+
+  let total = 0;
+  let found = false;
+
+  for (const line of lines) {
+    if (line.is_one_time || line.frequency === 'one_time') continue;
+
+    if (line.pricing_mode === 'recurring_unit_price') {
+      const unit =
+        line.amount ??
+        line.base_amount ??
+        line.installment_amount ??
+        line.monthly_installment_amount ??
+        null;
+      if (unit != null && Number.isFinite(unit)) {
+        total += unit;
+        found = true;
+      }
+      continue;
+    }
+
+    if (line.frequency === 'monthly' || line.is_monthly) {
+      const parts = enrollmentPlanLineAmountParts(line);
+      const monthly = parts.installmentAmount ?? parts.primary;
+      if (monthly != null && Number.isFinite(monthly)) {
+        total += monthly;
+        found = true;
+      }
+    }
+  }
+
+  return found ? total : null;
+}
+
+export function resolveExpectedMonthlyDueAmount(
+  summary: EnrollmentFinancialSummary | null | undefined,
+  lines?: EnrollmentPlanLine[],
+): number | null {
+  const computed = computeExpectedMonthlyDueFromPlanLines(lines);
+  if (computed != null) return computed;
+
+  const fromSummary =
+    summary?.monthly_due_total ??
+    summary?.monthly_installment_amount ??
+    summary?.suggested_monthly_total ??
+    null;
+  return fromSummary != null && Number.isFinite(fromSummary) ? fromSummary : null;
+}
+
 export function financialSummaryRows(
   summary: EnrollmentFinancialSummary | null | undefined,
   lines?: EnrollmentPlanLine[],
@@ -103,7 +156,7 @@ export function financialSummaryRows(
     push('recurring_periodic_total', summary?.recurring_periodic_total);
   }
 
-  push('monthly_installment_amount', summary?.monthly_installment_amount);
+  push('monthly_installment_amount', resolveExpectedMonthlyDueAmount(summary, lines));
   push('expected_total', summary?.expected_total);
   return rows;
 }

@@ -19,14 +19,35 @@ export function resolveReferenceLabel(
   value: string | null | undefined,
   options?: FinanceReferenceOption[],
 ): string {
+  return resolveFinanceDisplayLabel(t, group, value, options);
+}
+
+/** Preferred entry point for agreement / finance table labels — never surfaces raw English API labels when i18n exists. */
+export function resolveFinanceDisplayLabel(
+  t: (key: string) => string,
+  group: string,
+  value: string | null | undefined,
+  options?: FinanceReferenceOption[],
+): string {
   if (!value) return '—';
   const normalized = normalizeReferenceValue(value);
+
+  const groupKey = referenceLabelKey(group, value);
+  const groupTranslated = t(groupKey);
+  if (groupTranslated !== groupKey) return groupTranslated;
+
+  const known = resolveKnownFinanceLabel(t, value);
+  if (known !== value) return known;
+
   const fromOptions =
     options?.find((o) => o.value === value || normalizeReferenceValue(o.value) === normalized)?.label;
-  if (fromOptions) return fromOptions;
-  const key = referenceLabelKey(group, value);
-  const translated = t(key);
-  return translated === key ? resolveKnownFinanceLabel(t, value) : translated;
+  if (fromOptions?.trim()) {
+    const optionKnown = resolveKnownFinanceLabel(t, fromOptions);
+    if (optionKnown !== fromOptions) return optionKnown;
+    if (normalizeReferenceValue(fromOptions) !== normalized) return fromOptions;
+  }
+
+  return value;
 }
 
 export function resolveKnownFinanceLabel(t: (key: string) => string, value: string): string {

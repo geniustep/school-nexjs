@@ -3,7 +3,13 @@ import type {
   FeePlanSuggestResult,
   StudentCreateFinanceFormState,
 } from '@/types/student-enrollment-finance';
-import { financialSummaryRows, hasValidCustomizedFinancePeriods, resolveDiscountReason, resolveFinanceSuggestedPeriods } from './enrollment-finance-payload';
+import {
+  financialSummaryRows,
+  hasValidCustomizedFinancePeriods,
+  resolveDiscountReason,
+  resolveExpectedMonthlyDueAmount,
+  resolveFinanceSuggestedPeriods,
+} from './enrollment-finance-payload';
 
 export type EnrollmentFinanceSaveBlockReason =
   | 'ok'
@@ -167,7 +173,7 @@ export function buildEnrollmentFinanceReviewModel(
     monthlyInstallment = preview.monthly_due_total ?? null;
   } else if (!customized) {
     finalTotal = suggest.financial_summary?.expected_total ?? suggest.total_due ?? null;
-    monthlyInstallment = suggest.financial_summary?.monthly_installment_amount ?? null;
+    monthlyInstallment = resolveExpectedMonthlyDueAmount(suggest.financial_summary, planLines);
   }
 
   return {

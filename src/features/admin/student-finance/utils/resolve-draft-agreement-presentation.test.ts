@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   formatEnrollmentCustomizationLabel,
   isPresentableDraftSpecialAgreement,
+  resolveAgreementCustomizations,
   resolveAgreementFinanceSummary,
   resolveDraftAgreementPresentation,
   shouldSuppressFinanceEmptyState,
@@ -79,6 +80,30 @@ describe('resolveDraftAgreementPresentation', () => {
     expect(summary?.monthly_due_amount).toBe(1400);
     expect(summary?.recurring_total_after_discount).toBe(14000);
     expect(summary?.monthly_due_amount).not.toBe(summary?.recurring_total_after_discount);
+  });
+
+  it('dedupes enrollment customizations when customizations and enrollment_customizations overlap', () => {
+    const duplicateLine = {
+      kind: 'enrollment_customization' as const,
+      scope: 'line' as const,
+      discount_type: 'percent' as const,
+      discount_value: 50,
+      reason: 'special_discount',
+      line_name: 'التمدرس',
+    };
+    const duplicatePeriod = {
+      kind: 'enrollment_customization' as const,
+      scope: 'period' as const,
+      periods: Array.from({ length: 10 }, (_, index) => ({ period_key: `2026-${index}`, selected: true })),
+    };
+    const source = {
+      enrollment_customizations: [duplicateLine, duplicatePeriod],
+      customizations: [duplicateLine, duplicatePeriod],
+    };
+
+    const merged = resolveAgreementCustomizations(source, source, source);
+
+    expect(merged).toHaveLength(2);
   });
 
   it('formats enrollment customization labels in Arabic', () => {
