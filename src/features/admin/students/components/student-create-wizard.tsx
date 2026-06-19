@@ -14,6 +14,7 @@ import {
   buildStudentCreatePayload,
   defaultStudentProfileFormState,
   validateStudentCreateForm,
+  validateStudentCreateIdentityStep,
   type StudentProfileFieldErrors,
   type StudentProfileFormState,
 } from '../utils/student-profile';
@@ -189,16 +190,37 @@ export function StudentCreateForm({
   }
 
   function validateStep(current: StudentCreateWizardStep): boolean {
-    if (current === 'identity' || current === 'enrollment') {
+    if (current === 'identity') {
+      const validation = validateStudentCreateIdentityStep(state, t);
+      if (!validation.valid) {
+        setFieldErrors(validation.errors);
+        const firstError = FIELD_ORDER.map((key) => validation.errors[key]).find(Boolean);
+        toast.error(firstError ?? t('errors.validationFailed'));
+        focusFirstError(validation.errors);
+        return false;
+      }
+    }
+    if (current === 'enrollment') {
       const validation = validateStudentCreateForm(state, t);
       if (!validation.valid) {
         setFieldErrors(validation.errors);
-        toast.error(t('errors.validationFailed'));
+        const firstError = FIELD_ORDER.map((key) => validation.errors[key]).find(Boolean);
+        toast.error(firstError ?? t('errors.validationFailed'));
         focusFirstError(validation.errors);
         return false;
       }
     }
     if (current === 'finance' || current === 'review') {
+      if (current === 'review') {
+        const profileValidation = validateStudentCreateForm(state, t);
+        if (!profileValidation.valid) {
+          setFieldErrors(profileValidation.errors);
+          const firstError = FIELD_ORDER.map((key) => profileValidation.errors[key]).find(Boolean);
+          toast.error(firstError ?? t('errors.validationFailed'));
+          focusFirstError(profileValidation.errors);
+          return false;
+        }
+      }
       if (suggestState.loading) {
         toast.error(t('admin.student360.create.finance.loading'));
         return false;

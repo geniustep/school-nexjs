@@ -262,6 +262,32 @@ export function validateStudentProfileForm(
   return { valid: Object.keys(errors).length === 0, errors };
 }
 
+export function validateStudentCreateIdentityStep(
+  state: StudentProfileFormState,
+  t: (key: string) => string,
+): StudentProfileValidationResult {
+  const base = validateStudentProfileForm(state, t);
+  const errors: StudentProfileFieldErrors = { ...base.errors };
+
+  if (!trim(state.firstName)) {
+    errors.firstName = t('admin.student360.errors.firstNameRequired');
+  } else if (!/\S/.test(trim(state.firstName))) {
+    errors.firstName = t('admin.student360.errors.firstNameRequired');
+  }
+  if (!trim(state.lastName)) {
+    errors.lastName = t('admin.student360.errors.lastNameRequired');
+  } else if (!/\S/.test(trim(state.lastName))) {
+    errors.lastName = t('admin.student360.errors.lastNameRequired');
+  }
+
+  const massar = trim(state.massarCode);
+  if (massar && /\s/.test(massar)) {
+    errors.massarCode = t('admin.student360.create.errors.massarNoSpaces');
+  }
+
+  return { valid: Object.keys(errors).length === 0, errors };
+}
+
 export function validateStudentCreateForm(
   state: StudentProfileFormState,
   t: (key: string) => string,

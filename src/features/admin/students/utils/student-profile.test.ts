@@ -7,6 +7,7 @@ import {
   requiresDepartureReason,
   requiresPreviousSchool,
   validateStudentCreateForm,
+  validateStudentCreateIdentityStep,
   validateStudentProfileForm,
 } from './student-profile';
 import { defaultStudentCreateFinanceFormState } from './student-enrollment-finance';
@@ -164,6 +165,22 @@ describe('validateStudentProfileForm', () => {
 
   it('requires previous school for transfer type', () => {
     expect(requiresPreviousSchool('transfer')).toBe(true);
+  });
+});
+
+describe('validateStudentCreateIdentityStep', () => {
+  it('allows advancing identity step without academic year or level', () => {
+    const state = {
+      ...defaultStudentProfileFormState(options),
+      firstName: 'zaki',
+      lastName: 'ham',
+      academicYearId: '',
+      levelId: '',
+    };
+    const result = validateStudentCreateIdentityStep(state, t);
+    expect(result.valid).toBe(true);
+    expect(result.errors.academicYearId).toBeUndefined();
+    expect(result.errors.levelId).toBeUndefined();
   });
 });
 
