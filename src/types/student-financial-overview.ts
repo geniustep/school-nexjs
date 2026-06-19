@@ -1,6 +1,10 @@
 // Official student finance contracts — GET financial-overview, collectible-items, etc.
 
 import type {
+  AgreementCustomization,
+  AgreementFinancialSummary,
+} from '@/types/agreement-finance-summary';
+import type {
   StudentBillingProfileSummary,
   StudentFinanceCapabilities,
   StudentFinanceCurrency,
@@ -72,13 +76,22 @@ export interface AppliedFeePlanSummary {
 
 export interface SpecialAgreementSummary {
   id: number;
+  agreement_id?: number;
+  exists?: boolean;
   name?: string | null;
   state: string;
   net_amount?: number;
   empty_draft?: boolean;
   source?: string | null;
   line_count?: number;
+  adjustment_count?: number;
   total_amount?: number;
+  creates_due_after_confirmation?: boolean;
+  is_plan_customized?: boolean;
+  financial_summary?: AgreementFinancialSummary;
+  draft_totals?: AgreementFinancialSummary;
+  customizations?: AgreementCustomization[];
+  enrollment_customizations?: AgreementCustomization[];
 }
 
 export interface StudentFinancialOverview {

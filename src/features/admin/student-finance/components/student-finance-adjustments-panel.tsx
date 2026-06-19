@@ -10,6 +10,7 @@ import {
   resolveAdjustmentPolicyLabel,
   resolveAdjustmentTypeLabel,
 } from '../utils/reference-labels';
+import { resolveDraftAgreementPresentation } from '../utils/resolve-draft-agreement-presentation';
 import { resolveStudentFinanceCurrency } from '../utils/resolve-student-finance-currency';
 import type { StudentFinancePanelProps } from './student-finance-panel-props';
 
@@ -24,12 +25,20 @@ export function StudentFinanceAdjustmentsPanel({
     workspaceSummary: workspace?.summary,
   });
   const adjustments = workspace?.current_agreement?.adjustments ?? [];
+  const draftPresentation = resolveDraftAgreementPresentation({
+    financialOverview,
+    workspaceAgreement: workspace?.current_agreement ?? null,
+  });
 
   if (!adjustments.length) {
     return (
       <EmptyState
         title={t('admin.student360.financeWorkspace.adjustments.emptyTitle')}
-        description={t('admin.student360.financeWorkspace.adjustments.emptyDescription')}
+        description={
+          draftPresentation.enrollmentCustomizations.length > 0
+            ? t('admin.student360.financeWorkspace.adjustments.emptyWithEnrollmentCustomizations')
+            : t('admin.student360.financeWorkspace.adjustments.emptyDescription')
+        }
       />
     );
   }

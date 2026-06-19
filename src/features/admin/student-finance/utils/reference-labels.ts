@@ -26,7 +26,47 @@ export function resolveReferenceLabel(
   if (fromOptions) return fromOptions;
   const key = referenceLabelKey(group, value);
   const translated = t(key);
-  return translated === key ? value : translated;
+  return translated === key ? resolveKnownFinanceLabel(t, value) : translated;
+}
+
+export function resolveKnownFinanceLabel(t: (key: string) => string, value: string): string {
+  const normalized = normalizeReferenceValue(value);
+  const groups = [
+    'service_category',
+    'commitment_type',
+    'pricing_unit',
+    'schedule_generation_mode',
+    'display_rule',
+    'first_period_policy',
+    'billing_party_type',
+    'service_name',
+  ];
+  for (const group of groups) {
+    const key = `${REF_PREFIX}.${group}.${normalized}`;
+    const translated = t(key);
+    if (translated !== key) return translated;
+  }
+  return value;
+}
+
+export function resolveServiceDisplayName(
+  t: (key: string) => string,
+  service?: { name?: string | null; category?: string | null; code?: string | null } | null,
+): string {
+  if (!service) return '—';
+  if (service.name?.trim()) {
+    const fromName = resolveKnownFinanceLabel(t, service.name);
+    if (fromName !== service.name) return fromName;
+  }
+  if (service.category) {
+    const fromCategory = resolveReferenceLabel(t, 'service_category', service.category);
+    if (fromCategory !== service.category) return fromCategory;
+  }
+  if (service.code) {
+    const fromCode = resolveKnownFinanceLabel(t, service.code);
+    if (fromCode !== service.code) return fromCode;
+  }
+  return service.name?.trim() || '—';
 }
 
 export function resolveAgreementStateLabel(t: (key: string) => string, state: string): string {

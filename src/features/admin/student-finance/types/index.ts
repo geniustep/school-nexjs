@@ -1,5 +1,9 @@
 import type { ApiMeta, ListParams, Pagination, Ref, SchoolRef } from '@/types/api';
 import type { PaymentCollection } from '@/types/finance';
+import type {
+  AgreementCustomization,
+  AgreementFinancialSummary,
+} from '@/types/agreement-finance-summary';
 
 export type FinanceCurrency = {
   id: number;
@@ -219,6 +223,12 @@ export interface FinancialAgreement {
   source?: string | null;
   line_count?: number;
   total_amount?: number;
+  is_plan_customized?: boolean;
+  creates_due_after_confirmation?: boolean;
+  financial_summary?: AgreementFinancialSummary;
+  draft_totals?: AgreementFinancialSummary;
+  customizations?: AgreementCustomization[];
+  enrollment_customizations?: AgreementCustomization[];
 }
 
 export interface StudentInstallment {

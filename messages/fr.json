@@ -3026,6 +3026,7 @@
           "studentIdentifierRequired": "Saisissez un numéro Massar, un matricule ou un code interne pour l'élève.",
           "academicYearRequiredForFinance": "Sélectionnez une année scolaire avant d'enregistrer le plan financier.",
           "classRequiredBeforeFinance": "Sélectionnez une classe avant de configurer le plan financier.",
+          "classOptionalWithoutFinanceHint": "Vous pouvez créer l'élève sans plan financier si aucune classe n'est sélectionnée. La configuration du plan financier nécessite une classe.",
           "classRequiredForFinanceSave": "Sélectionnez une classe avant d'enregistrer le plan financier.",
           "checkingMassar": "Vérification du numéro Massar…",
           "checkingSchoolNumber": "Vérification du numéro scolaire…",
@@ -3636,6 +3637,7 @@
         "adjustments": {
           "title": "Ajustements financiers",
           "empty": "Aucun ajustement pour le moment.",
+          "emptyWithEnrollmentCustomizations": "No later financial adjustments. Enrollment customizations exist in the financial agreement tab.",
           "addTitle": "Ajouter une remise ou un ajustement",
           "addDesc": "Ajoutez une remise individuelle, une dispense ou un ajustement manuel. Les totaux finaux proviennent du serveur.",
           "addButton": "Ajouter un ajustement",
@@ -3675,7 +3677,15 @@
           "surchargeTotal": "Total des majorations",
           "netTotal": "Net dû",
           "paidTotal": "Payé",
-          "remainingTotal": "Restant"
+          "remainingTotal": "Restant",
+          "finalAfterCustomization": "Net after customization",
+          "recurringAfterDiscount": "Recurring fees after discount",
+          "expectedMonthlyDue": "Expected monthly installment",
+          "scheduleTotal": "Schedule total"
+        },
+        "enrollmentCustomizations": {
+          "title": "Enrollment customizations",
+          "description": "These customizations were applied when the agreement was created."
         },
         "columns": {
           "service": "Service",
@@ -4067,6 +4077,19 @@
         "noSpecialAgreement": "No special agreement",
         "openSchedule": "Open payment schedule",
         "openFinanceProfile": "Open full finance profile",
+        "draftAgreement": {
+          "badge": "Draft agreement",
+          "title": "A financial agreement is in draft",
+          "description": "Confirmed receivables will not appear until the agreement is approved.",
+          "reviewAgreement": "Review financial agreement",
+          "feesIntro": "Services and fees exist within a draft financial agreement.",
+          "lineAfterDiscount": "After discount",
+          "perMonth": "per month",
+          "totalsMismatch": "Warning: net after customization does not match the schedule total.",
+          "customizationLinePercent": "{percent}% discount on {line} — reason: {reason}",
+          "customizationDueDateOverride": "Due date override for {line}: {date}",
+          "customizationSelectedPeriods": "Selected months: {count}"
+        },
         "fees": {
           "description": "Each fee applied to the student.",
           "emptyTitle": "No fees for this year.",
@@ -4150,6 +4173,7 @@
         "adjustments": {
           "emptyTitle": "Aucun ajustement financier",
           "emptyDescription": "Les ajustements liés à l'accord financier apparaissent ici.",
+          "emptyWithEnrollmentCustomizations": "No later financial adjustments. Enrollment customizations exist in the financial agreement tab.",
           "description": "Ajustements de l'accord financier et leur impact.",
           "columns": {
             "date": "Date"

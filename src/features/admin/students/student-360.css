@@ -1660,6 +1660,78 @@
   box-shadow: 0 1px 0 color-mix(in srgb, var(--c-primary, #2563eb) 6%, transparent);
 }
 
+.student-finance-draft-banner {
+  margin-bottom: 18px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--c-primary, #2563eb) 18%, var(--c-border, #e2e8f0));
+  background: color-mix(in srgb, var(--c-primary, #2563eb) 6%, var(--surface, #fff));
+}
+
+.student-finance-draft-banner__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px 16px;
+}
+
+.student-finance-draft-banner__eyebrow {
+  margin: 0 0 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--c-primary, #2563eb);
+}
+
+.student-finance-draft-banner__title {
+  margin: 0 0 6px;
+  font-size: 1rem;
+}
+
+.student-finance-draft-banner__desc {
+  margin: 0;
+  color: var(--text-muted, #64748b);
+}
+
+.student-finance-draft-banner__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.student-finance-draft-banner__metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px 16px;
+  margin: 14px 0 0;
+}
+
+.student-finance-draft-banner__metrics dt {
+  font-size: 0.75rem;
+  color: var(--text-muted, #64748b);
+}
+
+.student-finance-draft-banner__metrics dd {
+  margin: 2px 0 0;
+  font-weight: 600;
+}
+
+.student-finance-draft-banner__warning,
+.student-finance-draft-fees__intro {
+  margin: 12px 0 0;
+  color: var(--c-warning-text, #92400e);
+}
+
+.student-finance-draft-fees__list {
+  margin: 10px 0 0;
+  padding-inline-start: 1.2rem;
+}
+
+.student-finance-enrollment-customizations__list {
+  margin: 0;
+  padding-inline-start: 1.2rem;
+}
+
 .student-finance-hero__head {
   display: flex;
   flex-wrap: wrap;

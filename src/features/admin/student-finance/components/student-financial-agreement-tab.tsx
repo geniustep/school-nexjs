@@ -47,7 +47,13 @@ import {
   resolveAdjustmentPolicyLabel,
   resolveAdjustmentTypeLabel,
   resolveReferenceLabel,
+  resolveServiceDisplayName,
 } from '../utils/reference-labels';
+import {
+  resolveAgreementFinanceSummary,
+  resolveDraftAgreementPresentation,
+} from '../utils/resolve-draft-agreement-presentation';
+import { AgreementEnrollmentCustomizationsSection } from './agreement-enrollment-customizations-section';
 import { hasFinanceSummaryMetrics } from '../utils/normalize-student-finance-workspace';
 import {
   resolveFinanceTabLoadPhase,
@@ -172,7 +178,7 @@ export function StudentFinancialAgreementTab({
         header: t('admin.student360.financialAgreement.columns.service'),
         render: (row) => (
           <div className="student-finance-service-cell">
-            <span>{refName(row.service) ?? t('common.dash')}</span>
+            <span dir="auto">{resolveServiceDisplayName(t, row.service) ?? t('common.dash')}</span>
             <ServiceCategoryDetailsList items={agreementLineCategoryDetails(row)} />
           </div>
         ),
@@ -494,8 +500,15 @@ export function StudentFinancialAgreementTab({
   }
 
   const activeAgreement = agreement as FinancialAgreement;
+  const draftPresentation = resolveDraftAgreementPresentation({
+    financialOverview,
+    workspaceAgreement: workspace?.current_agreement ?? null,
+    agreementDetail: activeAgreement,
+  });
+  const financeSummary = resolveAgreementFinanceSummary(activeAgreement);
   const isIncompleteDraft =
     activeAgreement.state === 'draft' &&
+    !draftPresentation.isPlanCustomized &&
     (activeAgreement.net_amount ?? 0) === 0 &&
     (activeAgreement.lines?.length ?? 0) === 0 &&
     (activeAgreement.schedule_summary?.installment_count ?? 0) === 0;
@@ -561,7 +574,40 @@ export function StudentFinancialAgreementTab({
     ? details.guardian_relationships.find((r) => r.guardian.id === billingProfile.guardian_id)
     : null;
 
-  const summaryCards = [
+  const summaryCards = financeSummary
+    ? [
+        {
+          key: 'original',
+          label: t('admin.student360.financialAgreement.summary.originalTotal'),
+          value: financeSummary.original_total,
+        },
+        {
+          key: 'discount',
+          label: t('admin.student360.financialAgreement.summary.discountTotal'),
+          value: financeSummary.discount_total,
+        },
+        {
+          key: 'final',
+          label: t('admin.student360.financialAgreement.summary.finalAfterCustomization'),
+          value: financeSummary.final_total ?? financeSummary.net_total,
+        },
+        {
+          key: 'recurring',
+          label: t('admin.student360.financialAgreement.summary.recurringAfterDiscount'),
+          value: financeSummary.recurring_total_after_discount,
+        },
+        {
+          key: 'monthly',
+          label: t('admin.student360.financialAgreement.summary.expectedMonthlyDue'),
+          value: financeSummary.monthly_due_amount,
+        },
+        {
+          key: 'schedule',
+          label: t('admin.student360.financialAgreement.summary.scheduleTotal'),
+          value: financeSummary.schedule_total,
+        },
+      ].filter((item) => item.value != null)
+    : [
     {
       key: 'original',
       label: t('admin.student360.financialAgreement.summary.originalTotal'),
@@ -650,6 +696,14 @@ export function StudentFinancialAgreementTab({
         }))}
       />
 
+      {draftPresentation.totalsMismatch ? (
+        <p className="student-finance-card-alert" role="note">
+          {t('admin.student360.financeWorkspace.draftAgreement.totalsMismatch')}
+        </p>
+      ) : null}
+
+      <AgreementEnrollmentCustomizationsSection presentation={draftPresentation} />
+
       <Card className="student-finance-section student-finance-billing-card">
         <Student360SectionHeader title={t('admin.student360.financialAgreement.billingPartyTitle')} />
         {billingPartner ? (
@@ -729,7 +783,11 @@ export function StudentFinancialAgreementTab({
           }
         />
         {(activeAgreement.adjustments?.length ?? 0) === 0 ? (
-          <p className="muted">{t('admin.student360.financialAgreement.adjustments.empty')}</p>
+          <p className="muted">
+            {draftPresentation.enrollmentCustomizations.length > 0
+              ? t('admin.student360.financialAgreement.adjustments.emptyWithEnrollmentCustomizations')
+              : t('admin.student360.financialAgreement.adjustments.empty')}
+          </p>
         ) : (
           <div className="student-finance-table-wrap student-finance-adjustments-list">
             <table className="data-table">

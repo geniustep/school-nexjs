@@ -32,7 +32,9 @@ import {
   shouldShowFinanceEmptyState,
 } from '../utils/finance-tab-loading';
 import { resolveStudentFinanceOverviewMetrics } from '../utils/resolve-student-finance-overview';
+import { resolveDraftAgreementPresentation } from '../utils/resolve-draft-agreement-presentation';
 import { StudentFinanceExecutiveSummary } from './student-finance-executive-summary';
+import { DraftAgreementFinanceBanner } from './draft-agreement-finance-banner';
 import { StudentFinanceOverviewPanel } from './student-finance-overview-panel';
 import { StudentFinanceFeesPanel } from './student-finance-fees-panel';
 import { StudentFinanceSchedulePanel } from './student-finance-schedule-panel';
@@ -42,6 +44,8 @@ import { StudentFinanceAdjustmentsPanel } from './student-finance-adjustments-pa
 import { StudentFinanceLedgerPanel } from './student-finance-ledger-panel';
 import { StudentFinancialAgreementTab } from './student-financial-agreement-tab';
 import { subscribeFinanceRefresh } from '@/lib/finance/finance-refresh-bus';
+import { postAgreementAction } from '../api/finance-admin-api';
+import { useToast } from '@/components/ui/toast';
 
 const FINANCE_TAB_GROUPS: { tabs: StudentFinanceSubTab[]; dividerAfter?: boolean }[] = [
   { tabs: ['overview'], dividerAfter: true },
@@ -79,12 +83,14 @@ export function StudentFinanceWorkspaceShell({
   onChanged?: () => void;
 }) {
   const t = useT();
+  const toast = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialSubTab = resolveInitialSubTab(searchParams);
   const [subTab, setSubTab] = useState<StudentFinanceSubTab>(initialSubTab);
   const [showCollectionDrawer, setShowCollectionDrawer] = useState(false);
   const [financeRefreshSignal, setFinanceRefreshSignal] = useState(0);
+  const [draftSubmitLoading, setDraftSubmitLoading] = useState(false);
 
   const {
     refState,
@@ -118,6 +124,15 @@ export function StudentFinanceWorkspaceShell({
   const overviewMetrics = useMemo(
     () => resolveStudentFinanceOverviewMetrics(financialOverviewState.data),
     [financialOverviewState.data],
+  );
+
+  const draftPresentation = useMemo(
+    () =>
+      resolveDraftAgreementPresentation({
+        financialOverview: financialOverviewState.data,
+        workspaceAgreement: workspace?.current_agreement ?? null,
+      }),
+    [financialOverviewState.data, workspace?.current_agreement],
   );
 
   const syncSubTabToUrl = useCallback(
@@ -167,7 +182,8 @@ export function StudentFinanceWorkspaceShell({
   const emptyFinance =
     (financialOverviewState.data?.totals?.annual_total ?? 0) === 0 &&
     (financialOverviewState.data?.counts?.fees_count ?? 0) === 0 &&
-    (workspace?.recent_collections?.length ?? 0) === 0;
+    (workspace?.recent_collections?.length ?? 0) === 0 &&
+    !draftPresentation.hasDraftAgreement;
 
   const showFinanceEmpty = shouldShowFinanceEmptyState({
     phase,
@@ -261,6 +277,29 @@ export function StudentFinanceWorkspaceShell({
     >
       {workspaceHeader}
       {isRefreshing ? <StudentInlineLoading /> : null}
+
+      <DraftAgreementFinanceBanner
+        studentId={studentId}
+        presentation={draftPresentation}
+        financialOverview={financialOverviewState.data}
+        onOpenAgreement={() => syncSubTabToUrl('agreements')}
+        submitLoading={draftSubmitLoading}
+        onSubmitAgreement={
+          draftPresentation.allowedActions.submit && draftPresentation.agreementId
+            ? async () => {
+                setDraftSubmitLoading(true);
+                const res = await postAgreementAction(draftPresentation.agreementId as number, 'submit');
+                setDraftSubmitLoading(false);
+                if (!res.success) {
+                  toast.error(res.error.message);
+                  return;
+                }
+                toast.success(t('admin.student360.financialAgreement.actions.submitSuccess'));
+                refreshFinanceData();
+              }
+            : undefined
+        }
+      />
 
       <StudentFinanceExecutiveSummary metrics={overviewMetrics} />
 

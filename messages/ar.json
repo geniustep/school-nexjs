@@ -3053,6 +3053,7 @@
           "studentIdentifierRequired": "يجب إدخال رقم مسار أو رقم التسجيل أو رمز داخلي للتلميذ.",
           "academicYearRequiredForFinance": "يجب اختيار السنة الدراسية قبل حفظ الخطة المالية.",
           "classRequiredBeforeFinance": "يجب اختيار القسم قبل إعداد الخطة المالية.",
+          "classOptionalWithoutFinanceHint": "يمكنك إنشاء التلميذ الآن دون خطة مالية إذا لم يتم تحديد القسم بعد. أما إعداد الخطة المالية فيتطلب اختيار القسم.",
           "classRequiredForFinanceSave": "يجب اختيار القسم قبل حفظ الخطة المالية.",
           "checkingMassar": "جارٍ التحقق من رقم مسar…",
           "checkingSchoolNumber": "جارٍ التحقق من الرقم المدرسي…",
@@ -3663,6 +3664,7 @@
         "adjustments": {
           "title": "التعديلات المالية",
           "empty": "لا توجد تعديلات بعد.",
+          "emptyWithEnrollmentCustomizations": "لا توجد تعديلات مالية لاحقة. توجد تخصيصات عند إنشاء الاتفاق، ويمكن مراجعتها ضمن قسم تخصيصات التسجيل.",
           "addTitle": "إضافة تخفيض أو تعديل",
           "addDesc": "أضف تخفيضًا فرديًا أو إعفاءً أو تعديلًا يدويًا. القيم النهائية تأتي من النظام.",
           "addButton": "إضافة تعديل",
@@ -3692,6 +3694,10 @@
             "apply_to_last_installments": "تطبيق على الدفعات الأخيرة"
           }
         },
+        "enrollmentCustomizations": {
+          "title": "تخصيصات عند التسجيل",
+          "description": "هذه التخصيصات أُضيفت أثناء إنشاء الاتفاق المالي ولا تُعد تعديلات لاحقة."
+        },
         "summary": {
           "gross": "المبلغ الإجمالي",
           "discounts": "التخفيضات والتعديلات",
@@ -3702,7 +3708,11 @@
           "surchargeTotal": "إجمالي الزيادات",
           "netTotal": "الصافي المستحق",
           "paidTotal": "المدفوع",
-          "remainingTotal": "المتبقي"
+          "remainingTotal": "المتبقي",
+          "finalAfterCustomization": "الصافي بعد التخصيص",
+          "recurringAfterDiscount": "إجمالي الرسوم الدورية بعد التخصيص",
+          "expectedMonthlyDue": "القسط الشهري المتوقع",
+          "scheduleTotal": "إجمالي جدول الأقساط"
         },
         "columns": {
           "service": "الخدمة",
@@ -3964,7 +3974,7 @@
         "ref": {
           "service_category": {
             "registration": "التسجيل",
-            "tuition": "الدراسة",
+            "tuition": "التمدرس",
             "transport": "النقل",
             "canteen": "المطعم",
             "meals": "الوجبات",
@@ -3979,10 +3989,19 @@
             "one_time": "مرة واحدة"
           },
           "pricing_unit": {
-            "academic_year": "للسنة",
-            "month": "للشهر",
+            "academic_year": "السنة الدراسية",
+            "month": "شهر",
             "semester": "للفصل",
             "one_time": "مرة واحدة"
+          },
+          "service_name": {
+            "registration": "التسجيل",
+            "tuition": "التمدرس",
+            "transport": "النقل",
+            "academic_year": "السنة الدراسية",
+            "one_time": "مرة واحدة",
+            "renewable_subscription": "اشتراك متجدد",
+            "month": "شهر"
           },
           "billing_party_type": {
             "guardian": "ولي أمر",
@@ -4094,6 +4113,19 @@
         "noSpecialAgreement": "لا يوجد اتفاق خاص",
         "openSchedule": "فتح جدول الدفعات",
         "openFinanceProfile": "فتح الملف المالي الكامل",
+        "draftAgreement": {
+          "badge": "اتفاق مسودة",
+          "title": "يوجد اتفاق مالي في حالة مسودة",
+          "description": "لن تظهر المستحقات المؤكدة حتى يتم اعتماد الاتفاق.",
+          "reviewAgreement": "مراجعة الاتفاق المالي",
+          "feesIntro": "الخدمات والرسوم موجودة ضمن اتفاق مالي مسودة. ستتحول إلى مستحقات مؤكدة بعد اعتماد الاتفاق.",
+          "lineAfterDiscount": "بعد الخصم",
+          "perMonth": "شهريًا",
+          "totalsMismatch": "تنبيه: الصافي بعد التخصيص لا يطابق إجمالي جدول الأقساط.",
+          "customizationLinePercent": "خصم {percent}% على {line} — السبب: {reason}",
+          "customizationDueDateOverride": "تعديل تاريخ استحقاق {line}: {date}",
+          "customizationSelectedPeriods": "الأشهر المختارة: {count}"
+        },
         "fees": {
           "description": "تفاصيل كل رسم مطبق على التلميذ.",
           "emptyTitle": "لا توجد رسوم في هذه السنة.",
@@ -4177,6 +4209,7 @@
         "adjustments": {
           "emptyTitle": "لا توجد تعديلات مالية",
           "emptyDescription": "التعديلات المرتبطة بالاتفاق المالي تظهر هنا.",
+          "emptyWithEnrollmentCustomizations": "لا توجد تعديلات مالية لاحقة. توجد تخصيصات عند إنشاء الاتفاق، ويمكن مراجعتها داخل الاتفاق المالي.",
           "description": "تعديلات الاتفاق المالي وتأثيرها على المبلغ.",
           "columns": {
             "date": "التاريخ"

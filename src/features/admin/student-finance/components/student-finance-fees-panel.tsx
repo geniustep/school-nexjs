@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { ApiErrorView } from '@/components/states/states';
 import { EmptyState } from '@/components/states/states';
@@ -16,7 +16,40 @@ import { StudentSectionSkeleton } from '@/features/admin/students/components/stu
 import { Student360SectionHeader } from '@/features/admin/students/components/student-360-section-header';
 import { useStudentFinanceFees } from '../hooks/use-student-finance-fees';
 import { resolveStudentFinanceCurrency } from '../utils/resolve-student-finance-currency';
+import { resolveDraftAgreementPresentation } from '../utils/resolve-draft-agreement-presentation';
+import { resolveServiceDisplayName } from '../utils/reference-labels';
 import type { StudentFinancePanelProps } from './student-finance-panel-props';
+import type { FinancialAgreementLine } from '../types';
+
+function draftAgreementLineLabel(
+  t: (key: string) => string,
+  line: FinancialAgreementLine,
+): string {
+  return resolveServiceDisplayName(t, line.service) || line.service?.name || t('common.dash');
+}
+
+function draftAgreementLineAmount(
+  t: (key: string) => string,
+  line: FinancialAgreementLine,
+  currency: string | null | undefined,
+): ReactNode {
+  const net = line.net_amount ?? line.gross_amount;
+  const hasDiscount = (line.discount_amount ?? 0) > 0 || line.net_amount !== line.gross_amount;
+  if (hasDiscount && net != null && line.gross_amount != null && net < line.gross_amount) {
+    return t('admin.student360.financeWorkspace.draftAgreement.lineAfterDiscount');
+  }
+  const count = line.quantity ?? 1;
+  const pricingUnit = line.pricing_unit ?? '';
+  if (count > 1 || pricingUnit === 'month') {
+    return (
+      <>
+        <FinanceMoney amount={net} currency={currency ?? undefined} />{' '}
+        {t('admin.student360.financeWorkspace.draftAgreement.perMonth')}
+      </>
+    );
+  }
+  return <FinanceMoney amount={net} currency={currency ?? undefined} />;
+}
 
 function feeServiceName(fee: StudentFee): string {
   if (fee.fee_type_name) return fee.fee_type_name;
@@ -38,12 +71,22 @@ export function StudentFinanceFeesPanel({
   studentId,
   effectiveYearId,
   financialOverview,
+  workspace,
   financeRefreshSignal = 0,
 }: StudentFinancePanelProps) {
   const t = useT();
   const { formatDate } = useFormat();
   const [page, setPage] = useState(1);
   const currency = resolveStudentFinanceCurrency({ financialOverview });
+  const draftPresentation = useMemo(
+    () =>
+      resolveDraftAgreementPresentation({
+        financialOverview,
+        workspaceAgreement: workspace?.current_agreement ?? null,
+      }),
+    [financialOverview, workspace?.current_agreement],
+  );
+  const draftLines = workspace?.current_agreement?.lines ?? [];
 
   const feesState = useStudentFinanceFees(
     studentId,
@@ -135,7 +178,24 @@ export function StudentFinanceFeesPanel({
       {feesState.initialLoading ? <StudentSectionSkeleton rows={5} /> : null}
       {feesState.error ? <ApiErrorView error={feesState.error} onRetry={feesState.reload} /> : null}
       {!feesState.initialLoading && !feesState.error && feesState.data.length === 0 ? (
-        <EmptyState title={t('admin.student360.financeWorkspace.fees.emptyTitle')} />
+        draftPresentation.hasDraftAgreement && draftLines.length > 0 ? (
+          <div className="student-finance-draft-fees">
+            <p className="student-finance-draft-fees__intro">
+              {t('admin.student360.financeWorkspace.draftAgreement.feesIntro')}
+            </p>
+            <ul className="student-finance-draft-fees__list">
+              {draftLines.map((line) => (
+                <li key={line.id ?? `${line.service_id}-${line.tariff_id ?? 0}`}>
+                  <span dir="auto">{draftAgreementLineLabel(t, line)}</span>
+                  <span> — </span>
+                  <span>{draftAgreementLineAmount(t, line, currency)}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : (
+          <EmptyState title={t('admin.student360.financeWorkspace.fees.emptyTitle')} />
+        )
       ) : null}
       {!feesState.error && feesState.data.length > 0 ? (
         <>

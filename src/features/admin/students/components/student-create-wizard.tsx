@@ -692,6 +692,11 @@ export function StudentCreateForm({
               {t('admin.student360.classClearedOnLevelChange')}
             </p>
           ) : null}
+          {state.levelId.trim() && !state.classId.trim() ? (
+            <p className="student-create-form__notice" role="status">
+              {t('admin.student360.create.errors.classOptionalWithoutFinanceHint')}
+            </p>
+          ) : null}
           <div data-field="academicYearId">
             <StudentCreateEnrollmentFields
               state={state}

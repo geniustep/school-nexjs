@@ -11,6 +11,10 @@ import type {
   StudentFinancialOverviewTotals,
   ChequeSummary,
 } from '@/types/student-financial-overview';
+import type {
+  AgreementCustomization,
+  AgreementFinancialSummary,
+} from '@/types/agreement-finance-summary';
 import type { StudentFinanceCurrency } from '@/types/student-finance';
 import { normalizeBillingProfile } from '@/features/admin/students/utils/normalize-student-finance';
 
@@ -141,19 +145,95 @@ function normalizeAppliedPlan(raw: unknown): AppliedFeePlanSummary | null {
   };
 }
 
+function normalizeFinancialSummary(raw: unknown): AgreementFinancialSummary | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const obj = raw as Record<string, unknown>;
+  const summary: AgreementFinancialSummary = {
+    original_total: normalizeMoneyValue(obj.original_total) ?? undefined,
+    discount_total: normalizeMoneyValue(obj.discount_total) ?? undefined,
+    surcharge_total: normalizeMoneyValue(obj.surcharge_total) ?? undefined,
+    net_total: normalizeMoneyValue(obj.net_total) ?? undefined,
+    final_total: normalizeMoneyValue(obj.final_total) ?? undefined,
+    one_time_total: normalizeMoneyValue(obj.one_time_total) ?? undefined,
+    recurring_total_after_discount:
+      normalizeMoneyValue(obj.recurring_total_after_discount) ?? undefined,
+    monthly_due_amount: normalizeMoneyValue(obj.monthly_due_amount) ?? undefined,
+    schedule_total: normalizeMoneyValue(obj.schedule_total) ?? undefined,
+    paid_amount: normalizeMoneyValue(obj.paid_amount) ?? undefined,
+    remaining_amount: normalizeMoneyValue(obj.remaining_amount) ?? undefined,
+  };
+  return Object.values(summary).some((value) => value != null) ? summary : undefined;
+}
+
+function normalizeCustomization(raw: unknown): AgreementCustomization | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const obj = raw as Record<string, unknown>;
+  const periodsRaw = Array.isArray(obj.periods) ? obj.periods : [];
+  const periods = periodsRaw
+    .map((period) => {
+      if (!period || typeof period !== 'object') return null;
+      const p = period as Record<string, unknown>;
+      return {
+        period_key: typeof p.period_key === 'string' ? p.period_key : undefined,
+        label: typeof p.label === 'string' ? p.label : undefined,
+        selected: p.selected !== false,
+      };
+    })
+    .filter((period): period is NonNullable<typeof period> => period != null);
+
+  return {
+    kind: typeof obj.kind === 'string' ? obj.kind : undefined,
+    scope: typeof obj.scope === 'string' ? obj.scope : undefined,
+    discount_type: typeof obj.discount_type === 'string' ? obj.discount_type : undefined,
+    discount_value: typeof obj.discount_value === 'number' ? obj.discount_value : undefined,
+    reason: typeof obj.reason === 'string' ? obj.reason : undefined,
+    line_id: typeof obj.line_id === 'number' ? obj.line_id : undefined,
+    line_name: typeof obj.line_name === 'string' ? obj.line_name : undefined,
+    original_amount: normalizeMoneyValue(obj.original_amount) ?? undefined,
+    final_amount: normalizeMoneyValue(obj.final_amount) ?? undefined,
+    selected: obj.selected === true,
+    due_date_override:
+      typeof obj.due_date_override === 'string' ? obj.due_date_override : null,
+    periods: periods.length ? periods : undefined,
+  };
+}
+
+function normalizeCustomizationList(raw: unknown): AgreementCustomization[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map(normalizeCustomization).filter((item): item is AgreementCustomization => item != null);
+}
+
 function normalizeSpecialAgreement(raw: unknown): SpecialAgreementSummary | null {
   if (!raw || typeof raw !== 'object') return null;
   const obj = raw as Record<string, unknown>;
-  if (typeof obj.id !== 'number') return null;
+  const id =
+    typeof obj.id === 'number'
+      ? obj.id
+      : typeof obj.agreement_id === 'number'
+        ? obj.agreement_id
+        : null;
+  if (id == null && obj.exists !== true) return null;
+  if (obj.exists === false) return null;
+  if (id == null) return null;
+
   return {
-    id: obj.id,
+    id,
+    agreement_id: typeof obj.agreement_id === 'number' ? obj.agreement_id : undefined,
+    exists: obj.exists === true ? true : undefined,
     name: typeof obj.name === 'string' ? obj.name : null,
     state: typeof obj.state === 'string' ? obj.state : 'draft',
     net_amount: normalizeMoneyValue(obj.net_amount) ?? undefined,
     empty_draft: obj.empty_draft === true,
     source: typeof obj.source === 'string' ? obj.source : null,
     line_count: typeof obj.line_count === 'number' ? obj.line_count : undefined,
+    adjustment_count: typeof obj.adjustment_count === 'number' ? obj.adjustment_count : undefined,
     total_amount: normalizeMoneyValue(obj.total_amount) ?? undefined,
+    creates_due_after_confirmation: obj.creates_due_after_confirmation === true,
+    is_plan_customized: obj.is_plan_customized === true,
+    financial_summary: normalizeFinancialSummary(obj.financial_summary),
+    draft_totals: normalizeFinancialSummary(obj.draft_totals),
+    customizations: normalizeCustomizationList(obj.customizations),
+    enrollment_customizations: normalizeCustomizationList(obj.enrollment_customizations),
   };
 }
 
