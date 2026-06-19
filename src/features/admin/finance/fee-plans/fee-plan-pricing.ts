@@ -346,11 +346,38 @@ export function draftAmountHintKey(line: DraftFeePlanLine): string {
 }
 
 export function pricingModeLabelKey(mode: FeePlanPricingMode | null): string {
-  if (mode === 'recurring_unit_price') {
-    return 'admin.finance.feePlansWorkspace.pricing.recurringBadge';
+  return pricingModeDisplayKey({ pricingMode: mode });
+}
+
+export function pricingModeDisplayKey(input: {
+  frequency?: string | null;
+  pricingMode?: FeePlanPricingMode | null;
+}): string {
+  const freq = input.frequency ?? '';
+  if (freq === 'once' || freq === 'one_time') {
+    return 'admin.finance.feePlansWorkspace.pricing.oneTimeBadge';
   }
-  if (mode === 'total_amount_installments') {
+  if (input.pricingMode === 'recurring_unit_price') {
+    return 'admin.finance.feePlansWorkspace.pricing.monthlyRecurringBadge';
+  }
+  if (input.pricingMode === 'total_amount_installments') {
     return 'admin.finance.feePlansWorkspace.pricing.installmentTotalBadge';
   }
   return 'admin.finance.feePlansWorkspace.pricing.legacyBadge';
+}
+
+export function unitAmountColumnLabelKey(
+  pricingMode: FeePlanPricingMode | null,
+  frequency: string,
+): string {
+  if (frequency === 'once' || frequency === 'one_time') {
+    return 'admin.finance.feePlansWorkspace.pricing.oneTimeAmount';
+  }
+  if (pricingMode === 'recurring_unit_price') {
+    return 'admin.finance.feePlansWorkspace.pricing.monthlyUnitPrice';
+  }
+  if (pricingMode === 'total_amount_installments') {
+    return 'admin.finance.feePlansWorkspace.pricing.totalAmount';
+  }
+  return 'admin.finance.feePlansWorkspace.pricing.unitOrTotalColumn';
 }

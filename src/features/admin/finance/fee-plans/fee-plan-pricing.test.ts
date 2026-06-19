@@ -6,6 +6,7 @@ import {
   computePlanFinancialBreakdown,
   inferDefaultPricingMode,
   normalizePricingMode,
+  pricingModeDisplayKey,
   resolveLineExpectedTotal,
   resolveLinePricing,
   validateDraftLinePricing,
@@ -18,6 +19,26 @@ describe('normalizePricingMode', () => {
     expect(normalizePricingMode('recurring_unit_price')).toBe('recurring_unit_price');
     expect(normalizePricingMode('total_amount_installments')).toBe('total_amount_installments');
     expect(normalizePricingMode('unknown')).toBeNull();
+  });
+});
+
+describe('pricingModeDisplayKey', () => {
+  it('labels recurring_unit_price as monthly recurring', () => {
+    expect(
+      pricingModeDisplayKey({ frequency: 'monthly', pricingMode: 'recurring_unit_price' }),
+    ).toBe('admin.finance.feePlansWorkspace.pricing.monthlyRecurringBadge');
+  });
+
+  it('labels total_amount_installments separately', () => {
+    expect(
+      pricingModeDisplayKey({ frequency: 'monthly', pricingMode: 'total_amount_installments' }),
+    ).toBe('admin.finance.feePlansWorkspace.pricing.installmentTotalBadge');
+  });
+
+  it('labels one-time frequency as one-time fee', () => {
+    expect(
+      pricingModeDisplayKey({ frequency: 'one_time', pricingMode: 'total_amount_installments' }),
+    ).toBe('admin.finance.feePlansWorkspace.pricing.oneTimeBadge');
   });
 });
 

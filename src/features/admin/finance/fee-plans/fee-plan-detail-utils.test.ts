@@ -35,11 +35,29 @@ function samplePlan(overrides: Partial<FeePlan> = {}): FeePlan {
 describe('computeFeePlanFinancialSummary', () => {
   it('separates monthly and one-time totals', () => {
     const summary = computeFeePlanFinancialSummary([
-      sampleLine({ amount: 2000, frequency: 'monthly', installment_count: 10 }),
+      sampleLine({ amount: 2000, frequency: 'monthly', installment_count: 10, pricing_mode: 'recurring_unit_price' }),
       sampleLine({ id: 2, amount: 2500, frequency: 'one_time', installment_count: 1 }),
     ]);
     expect(summary.monthlyRequiredTotal).toBe(2000);
     expect(summary.oneTimeRequiredTotal).toBe(2500);
+    expect(summary.recurringRequiredTotal).toBe(20000);
+  });
+
+  it('keeps installment lump sums separate from one-time fees', () => {
+    const summary = computeFeePlanFinancialSummary([
+      sampleLine({
+        amount: 2000,
+        frequency: 'monthly',
+        installment_count: 10,
+        pricing_mode: 'total_amount_installments',
+        expected_total: 2000,
+        installment_amount: 200,
+      }),
+      sampleLine({ id: 2, amount: 2500, frequency: 'one_time', installment_count: 1, expected_total: 2500 }),
+    ]);
+    expect(summary.oneTimeRequiredTotal).toBe(2500);
+    expect(summary.installmentLumpRequiredTotal).toBe(2000);
+    expect(summary.expectedMonthlyInstallment).toBe(200);
   });
 
   it('computes annual estimate only when installment_count > 1', () => {

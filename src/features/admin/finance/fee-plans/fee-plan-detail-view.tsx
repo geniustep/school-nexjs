@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ConfirmActionButton } from '@/features/admin/confirm-action-button';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { FinanceStatusBadge } from '@/features/admin/finance/finance-status-badge';
@@ -19,7 +19,8 @@ import {
   computeFeePlanFinancialSummary,
   type FeePlanLineDisplay,
 } from '@/features/admin/finance/fee-plans/fee-plan-detail-utils';
-import { pricingModeLabelKey } from '@/features/admin/finance/fee-plans/fee-plan-pricing';
+import { pricingModeDisplayKey } from '@/features/admin/finance/fee-plans/fee-plan-pricing';
+import { resolveFeePlanEditAction } from '@/features/admin/finance/fee-plans/fee-plan-edit-action';
 import {
   FeePlanDeleteDialog,
   FeePlanDuplicateDialog,
@@ -66,6 +67,8 @@ export function FeePlanDetailView({
   const [lineError, setLineError] = useState<string | null>(null);
   const [duplicateOpen, setDuplicateOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
+  const [resetAndEditOpen, setResetAndEditOpen] = useState(false);
+  const [openEditAfterReload, setOpenEditAfterReload] = useState(false);
   const [restoreOpen, setRestoreOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
@@ -128,6 +131,7 @@ export function FeePlanDetailView({
   const currency = plan.currency ?? null;
 
   const canEdit = canManage && feePlanAllowsAction(plan, 'edit');
+  const editAction = useMemo(() => resolveFeePlanEditAction(plan, canManage), [plan, canManage]);
   const canConfirm =
     canManage &&
     feePlanAllowsAction(plan, 'confirm') &&
@@ -141,6 +145,33 @@ export function FeePlanDetailView({
     () => (feeTypes.length ? formValuesFromFeePlan(plan, feeTypes) : null),
     [plan, feeTypes],
   );
+
+  useEffect(() => {
+    if (!openEditAfterReload || !canEdit) return;
+    setEditOpen(true);
+    setOpenEditAfterReload(false);
+  }, [openEditAfterReload, canEdit, plan.id, state]);
+
+  const handleEditPlan = useCallback(() => {
+    if (editAction.type === 'direct_edit') {
+      setEditOpen(true);
+      return;
+    }
+    if (editAction.type === 'reset_then_edit') {
+      setResetAndEditOpen(true);
+      return;
+    }
+    if (editAction.type === 'duplicate_for_edit') {
+      setDuplicateOpen(true);
+    }
+  }, [editAction.type]);
+
+  function handleResetSuccess(openEdit: boolean) {
+    onReload();
+    if (openEdit) {
+      setOpenEditAfterReload(true);
+    }
+  }
 
   const openAddLine = useCallback(() => {
     setLineDraft(newDraftLine(`new-${Date.now()}`));
@@ -349,9 +380,32 @@ export function FeePlanDetailView({
           <section className="card fee-plan-detail-actions">
             <h2>{t('admin.finance.feePlansWorkspace.detailActionsTitle')}</h2>
             <div className="fee-plan-detail-actions__buttons">
-              {canEdit ? (
-                <button type="button" className="btn btn--primary" onClick={() => setEditOpen(true)}>
+              {editAction.type === 'direct_edit' || editAction.type === 'reset_then_edit' ? (
+                <button type="button" className="btn btn--primary" onClick={handleEditPlan}>
                   {t('admin.finance.feePlansWorkspace.editPlan')}
+                </button>
+              ) : null}
+              {editAction.type === 'duplicate_for_edit' ? (
+                <button type="button" className="btn btn--primary" onClick={handleEditPlan}>
+                  {t('admin.finance.feePlansWorkspace.duplicateForEdit')}
+                </button>
+              ) : null}
+              {canAssign ? (
+                <Link
+                  href={`/admin/finance/fee-plans/${plan.id}/assign`}
+                  className="btn btn--primary"
+                >
+                  {t('admin.finance.feePlansWorkspace.applyToStudents')}
+                </Link>
+              ) : null}
+              {editAction.canDuplicate && editAction.type !== 'duplicate_for_edit' ? (
+                <button type="button" className="btn btn--ghost" onClick={() => setDuplicateOpen(true)}>
+                  {t('admin.finance.feePlansWorkspace.copyPlan')}
+                </button>
+              ) : null}
+              {editAction.canResetToDraft ? (
+                <button type="button" className="btn btn--ghost" onClick={() => setResetOpen(true)}>
+                  {t('admin.finance.feePlansWorkspace.resetToDraft')}
                 </button>
               ) : null}
               {canConfirm ? (
@@ -362,24 +416,6 @@ export function FeePlanDetailView({
                   variant="primary"
                   onSuccess={onReload}
                 />
-              ) : null}
-              {canAssign ? (
-                <Link
-                  href={`/admin/finance/fee-plans/${plan.id}/assign`}
-                  className="btn btn--primary"
-                >
-                  {t('admin.finance.feePlansWorkspace.applyToStudents')}
-                </Link>
-              ) : null}
-              {feePlanAllowsAction(plan, 'duplicate') ? (
-                <button type="button" className="btn btn--ghost" onClick={() => setDuplicateOpen(true)}>
-                  {t('admin.finance.feePlansWorkspace.copyPlan')}
-                </button>
-              ) : null}
-              {feePlanAllowsAction(plan, 'reset_to_draft') ? (
-                <button type="button" className="btn btn--ghost" onClick={() => setResetOpen(true)}>
-                  {t('admin.finance.feePlansWorkspace.resetToDraft')}
-                </button>
               ) : null}
               {feePlanAllowsAction(plan, 'restore') ? (
                 <button type="button" className="btn btn--ghost" onClick={() => setRestoreOpen(true)}>
@@ -405,7 +441,12 @@ export function FeePlanDetailView({
                 </button>
               ) : null}
             </div>
-            {!canEdit && feePlanAllowsAction(plan, 'reset_to_draft') === false ? (
+            {editAction.type === 'duplicate_for_edit' ? (
+              <p className="muted fee-plan-detail-actions__hint">
+                {t('admin.finance.feePlansWorkspace.duplicateForEditHint')}
+              </p>
+            ) : null}
+            {editAction.type === 'none' && state !== 'draft' && !editAction.isUsed ? (
               <p className="muted fee-plan-detail-actions__hint">
                 {t('admin.finance.feePlansWorkspace.confirmedReadOnly')}
               </p>
@@ -415,56 +456,70 @@ export function FeePlanDetailView({
           <section className="card fee-plan-detail-financial">
             <h2>{t('admin.finance.feePlansWorkspace.detailFinancialTitle')}</h2>
             <dl className="fee-plan-detail-financial__list">
-              {(financial.oneTimeRequiredTotal > 0 || financial.oneTimeOptionalTotal > 0) && (
+              {financial.oneTimeRequiredTotal > 0 ? (
                 <div>
                   <dt>{t('admin.finance.feePlansWorkspace.detailOneTimeFees')}</dt>
                   <dd>
-                    <FinanceMoney
-                      amount={financial.oneTimeRequiredTotal + financial.oneTimeOptionalTotal}
-                      currency={currency}
-                    />
+                    <FinanceMoney amount={financial.oneTimeRequiredTotal} currency={currency} />
                   </dd>
                 </div>
-              )}
-              {(financial.monthlyRequiredTotal > 0 || financial.monthlyOptionalTotal > 0) && (
+              ) : null}
+              {financial.installmentLumpRequiredTotal > 0 ? (
                 <div>
-                  <dt>{t('admin.finance.feePlansWorkspace.detailMonthlyValue')}</dt>
+                  <dt>{t('admin.finance.feePlansWorkspace.detailInstallmentLumpFees')}</dt>
                   <dd>
-                    <FinanceMoney
-                      amount={financial.monthlyRequiredTotal + financial.monthlyOptionalTotal}
-                      currency={currency}
-                    />
-                    <span className="muted fee-plan-detail-financial__suffix">
-                      {t('admin.finance.feePlansWorkspace.detailPerMonth')}
-                    </span>
+                    <FinanceMoney amount={financial.installmentLumpRequiredTotal} currency={currency} />
+                    {financial.installmentLumpRequiredLines.map((item, index) => (
+                      <span key={index} className="muted fee-plan-detail-financial__suffix block">
+                        {t('admin.finance.feePlansWorkspace.detailInstallmentLumpFormula', {
+                          installment: item.installmentAmount,
+                          count: item.installmentCount,
+                        })}
+                      </span>
+                    ))}
                   </dd>
                 </div>
-              )}
-              {financial.annualEstimate != null && financial.annualFormulaKey ? (
+              ) : null}
+              {financial.recurringRequiredTotal > 0 ? (
+                <div>
+                  <dt>{t('admin.finance.feePlansWorkspace.detailRecurringFees')}</dt>
+                  <dd>
+                    <FinanceMoney amount={financial.recurringRequiredTotal} currency={currency} />
+                    {financial.monthlyRequiredTotal > 0 && financial.recurringPeriodCount ? (
+                      <span className="muted fee-plan-detail-financial__suffix block">
+                        {t('admin.finance.feePlansWorkspace.detailRecurringFormula', {
+                          monthly: financial.monthlyRequiredTotal,
+                          count: financial.recurringPeriodCount,
+                        })}
+                      </span>
+                    ) : null}
+                  </dd>
+                </div>
+              ) : null}
+              {financial.expectedMonthlyInstallment != null && financial.expectedMonthlyInstallment > 0 ? (
+                <div>
+                  <dt>{t('admin.finance.feePlansWorkspace.detailExpectedMonthlyInstallment')}</dt>
+                  <dd>
+                    <FinanceMoney amount={financial.expectedMonthlyInstallment} currency={currency} />
+                  </dd>
+                </div>
+              ) : null}
+              {financial.annualEstimate != null ? (
                 <div className="fee-plan-detail-financial__annual">
                   <dt>{t('admin.finance.feePlansWorkspace.detailAnnualEstimate')}</dt>
                   <dd>
                     <FinanceMoney amount={financial.annualEstimate} currency={currency} />
-                    <span className="muted fee-plan-detail-financial__formula">
-                      {t(financial.annualFormulaKey, financial.annualFormulaValues ?? undefined)}
-                    </span>
+                    {financial.annualFormulaKey && financial.annualFormulaValues ? (
+                      <span className="muted fee-plan-detail-financial__formula">
+                        {t(financial.annualFormulaKey, financial.annualFormulaValues)}
+                      </span>
+                    ) : null}
                   </dd>
                 </div>
-              ) : financial.monthlyRequiredTotal + financial.monthlyOptionalTotal > 0 ? (
+              ) : financial.recurringRequiredTotal > 0 || financial.installmentLumpRequiredTotal > 0 ? (
                 <div>
                   <dt>{t('admin.finance.feePlansWorkspace.detailAnnualEstimate')}</dt>
                   <dd className="muted">{t('admin.finance.feePlansWorkspace.detailAnnualNotComputed')}</dd>
-                </div>
-              ) : null}
-              {financial.maxMonthlyInstallmentCount > 0 ? (
-                <div>
-                  <dt>{t('admin.finance.feePlansWorkspace.detailMonthlyInstallmentCount')}</dt>
-                  <dd>{financial.maxMonthlyInstallmentCount}</dd>
-                </div>
-              ) : financial.maxInstallmentCount > 0 ? (
-                <div>
-                  <dt>{t('admin.finance.feePlansWorkspace.detailMaxInstallments')}</dt>
-                  <dd>{financial.maxInstallmentCount}</dd>
                 </div>
               ) : null}
             </dl>
@@ -504,7 +559,16 @@ export function FeePlanDetailView({
         open={resetOpen}
         plan={plan}
         onClose={() => setResetOpen(false)}
-        onSuccess={onReload}
+        onSuccess={() => handleResetSuccess(false)}
+      />
+      <FeePlanResetToDraftDialog
+        open={resetAndEditOpen}
+        plan={plan}
+        onClose={() => setResetAndEditOpen(false)}
+        onSuccess={() => handleResetSuccess(true)}
+        title={t('admin.finance.feePlansWorkspace.editPlan')}
+        body={t('admin.finance.feePlansWorkspace.resetToDraftForEditMessage')}
+        confirmLabel={t('admin.finance.feePlansWorkspace.resetToDraftAndEdit')}
       />
       <FeePlanRestoreDialog
         open={restoreOpen}
@@ -557,11 +621,24 @@ function FeePlanLineTableRow({
       </td>
       <td>
         <span className="badge badge--slate">
-          {t(pricingModeLabelKey(display.pricingMode))}
+          {t(
+            pricingModeDisplayKey({
+              frequency: display.frequencyUi,
+              pricingMode: display.pricingMode,
+            }),
+          )}
         </span>
       </td>
       <td className="mono">
         <FinanceMoney amount={display.pricing.unitAmount} currency={currency} />
+        {display.pricingMode === 'total_amount_installments' && display.installmentCount > 1 ? (
+          <span className="muted fee-plan-detail-financial__suffix block">
+            {t('admin.finance.feePlansWorkspace.detailInstallmentLumpFormula', {
+              installment: display.installmentAmount ?? 0,
+              count: display.installmentCount,
+            })}
+          </span>
+        ) : null}
       </td>
       <td>{feeTypeFrequencyLabel(display.frequencyUi, t)}</td>
       <td>{display.installmentCount}</td>
@@ -619,7 +696,14 @@ function FeePlanLineCard({
     <article className="fee-plan-detail-line-card">
       <div className="fee-plan-detail-line-card__head">
         <strong>{display.feeName}</strong>
-        <span className="badge badge--slate">{t(pricingModeLabelKey(display.pricingMode))}</span>
+        <span className="badge badge--slate">
+          {t(
+            pricingModeDisplayKey({
+              frequency: display.frequencyUi,
+              pricingMode: display.pricingMode,
+            }),
+          )}
+        </span>
       </div>
       <dl>
         <div>

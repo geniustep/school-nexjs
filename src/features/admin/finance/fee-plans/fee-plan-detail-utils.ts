@@ -10,6 +10,12 @@ import {
   type FeePlanLineExpectedTotal,
 } from './fee-plan-pricing';
 
+export interface InstallmentLumpSummary {
+  total: number;
+  installmentAmount: number;
+  installmentCount: number;
+}
+
 export interface FeePlanFinancialSummary {
   lineCount: number;
   requiredCount: number;
@@ -18,6 +24,13 @@ export interface FeePlanFinancialSummary {
   oneTimeOptionalTotal: number;
   monthlyRequiredTotal: number;
   monthlyOptionalTotal: number;
+  installmentLumpRequiredTotal: number;
+  installmentLumpOptionalTotal: number;
+  installmentLumpRequiredLines: InstallmentLumpSummary[];
+  recurringRequiredTotal: number;
+  recurringOptionalTotal: number;
+  recurringPeriodCount: number | null;
+  expectedMonthlyInstallment: number | null;
   annualEstimate: number | null;
   annualFormulaKey: string | null;
   annualFormulaValues: Record<string, string | number> | null;
@@ -67,6 +80,14 @@ export function computeFeePlanFinancialSummary(lines: FeePlanLine[]): FeePlanFin
   let oneTimeOptionalTotal = 0;
   let monthlyRequiredTotal = 0;
   let monthlyOptionalTotal = 0;
+  let installmentLumpRequiredTotal = 0;
+  let installmentLumpOptionalTotal = 0;
+  const installmentLumpRequiredLines: InstallmentLumpSummary[] = [];
+  let recurringRequiredTotal = 0;
+  let recurringOptionalTotal = 0;
+  let recurringPeriodCount: number | null = null;
+  let expectedMonthlyInstallment = 0;
+  let hasExpectedMonthlyInstallment = false;
   let maxInstallmentCount = 0;
   let maxMonthlyInstallmentCount = 0;
 
@@ -75,6 +96,7 @@ export function computeFeePlanFinancialSummary(lines: FeePlanLine[]): FeePlanFin
     if (!Number.isFinite(amount) || amount <= 0) continue;
     const freq = lineFrequency(line);
     const pricing = resolveLinePricing(line);
+    const mode = pricing.pricingMode ?? resolvePricingModeForDisplay(line, pricing);
     const installments = pricing.installmentCount;
     maxInstallmentCount = Math.max(maxInstallmentCount, installments);
     if (isMonthlyFrequency(freq) || isLegacyRecurringDisplay(line, pricing, freq)) {
@@ -84,9 +106,49 @@ export function computeFeePlanFinancialSummary(lines: FeePlanLine[]): FeePlanFin
     if (line.is_optional) optionalCount += 1;
     else requiredCount += 1;
 
-    if (isLegacyRecurringDisplay(line, pricing, freq)) {
-      if (line.is_optional) monthlyOptionalTotal += pricing.unitAmount;
-      else monthlyRequiredTotal += pricing.unitAmount;
+    const recurringDisplay = isLegacyRecurringDisplay(line, pricing, freq);
+    const installmentContribution =
+      pricing.installmentAmount != null && pricing.installmentCount > 1
+        ? pricing.installmentAmount
+        : recurringDisplay
+          ? pricing.unitAmount
+          : null;
+
+    if (isOneTimeFrequency(freq)) {
+      if (line.is_optional) oneTimeOptionalTotal += pricing.expectedTotal;
+      else oneTimeRequiredTotal += pricing.expectedTotal;
+    } else if (mode === 'recurring_unit_price' || recurringDisplay) {
+      if (line.is_optional) {
+        monthlyOptionalTotal += pricing.unitAmount;
+        recurringOptionalTotal += pricing.expectedTotal;
+      } else {
+        monthlyRequiredTotal += pricing.unitAmount;
+        recurringRequiredTotal += pricing.expectedTotal;
+      }
+      if (installments > 1) {
+        recurringPeriodCount =
+          recurringPeriodCount == null ? installments : Math.max(recurringPeriodCount, installments);
+      }
+      if (!line.is_optional && installmentContribution != null) {
+        expectedMonthlyInstallment += installmentContribution;
+        hasExpectedMonthlyInstallment = true;
+      }
+    } else if (mode === 'total_amount_installments') {
+      if (line.is_optional) installmentLumpOptionalTotal += pricing.expectedTotal;
+      else {
+        installmentLumpRequiredTotal += pricing.expectedTotal;
+        if (pricing.installmentAmount != null && installments > 1) {
+          installmentLumpRequiredLines.push({
+            total: pricing.expectedTotal,
+            installmentAmount: pricing.installmentAmount,
+            installmentCount: installments,
+          });
+        }
+      }
+      if (!line.is_optional && installmentContribution != null) {
+        expectedMonthlyInstallment += installmentContribution;
+        hasExpectedMonthlyInstallment = true;
+      }
     } else if (line.is_optional) {
       oneTimeOptionalTotal += pricing.expectedTotal;
     } else {
@@ -99,14 +161,21 @@ export function computeFeePlanFinancialSummary(lines: FeePlanLine[]): FeePlanFin
   let annualFormulaKey: string | null = null;
   let annualFormulaValues: Record<string, string | number> | null = null;
 
+  const requiredAnnual =
+    oneTimeRequiredTotal +
+    installmentLumpRequiredTotal +
+    recurringRequiredTotal;
+
   if (breakdown.recurringPeriodCount != null && breakdown.recurringPeriodCount > 1) {
-    annualEstimate = breakdown.expectedTotal;
-    annualFormulaKey = 'admin.finance.feePlansWorkspace.detailAnnualFormula';
+    annualEstimate = requiredAnnual > 0 ? requiredAnnual : breakdown.expectedTotal;
+    annualFormulaKey = 'admin.finance.feePlansWorkspace.detailAnnualFormulaExpanded';
     annualFormulaValues = {
-      oneTime: breakdown.oneTimeTotal,
+      oneTime: oneTimeRequiredTotal,
+      installmentLump: installmentLumpRequiredTotal,
+      recurring: recurringRequiredTotal,
       monthly: breakdown.recurringUnitTotal,
       periods: breakdown.recurringPeriodCount,
-      total: breakdown.expectedTotal,
+      total: annualEstimate,
     };
   } else {
     const hasPeriodicLine = lines.some((line) => {
@@ -114,7 +183,13 @@ export function computeFeePlanFinancialSummary(lines: FeePlanLine[]): FeePlanFin
       return freq === 'monthly' || freq === 'term';
     });
     if (!hasPeriodicLine && breakdown.expectedTotal > 0) {
-      annualEstimate = breakdown.expectedTotal;
+      annualEstimate = requiredAnnual > 0 ? requiredAnnual : breakdown.expectedTotal;
+    } else if (
+      requiredAnnual > 0 &&
+      ((recurringPeriodCount != null && recurringPeriodCount > 1) ||
+        installmentLumpRequiredLines.length > 0)
+    ) {
+      annualEstimate = requiredAnnual;
     }
   }
 
@@ -126,6 +201,13 @@ export function computeFeePlanFinancialSummary(lines: FeePlanLine[]): FeePlanFin
     oneTimeOptionalTotal,
     monthlyRequiredTotal,
     monthlyOptionalTotal,
+    installmentLumpRequiredTotal,
+    installmentLumpOptionalTotal,
+    installmentLumpRequiredLines,
+    recurringRequiredTotal,
+    recurringOptionalTotal,
+    recurringPeriodCount,
+    expectedMonthlyInstallment: hasExpectedMonthlyInstallment ? expectedMonthlyInstallment : null,
     annualEstimate,
     annualFormulaKey,
     annualFormulaValues,

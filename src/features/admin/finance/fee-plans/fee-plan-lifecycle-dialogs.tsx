@@ -34,11 +34,17 @@ export function FeePlanResetToDraftDialog({
   plan,
   onClose,
   onSuccess,
+  title,
+  body,
+  confirmLabel,
 }: {
   open: boolean;
   plan: FeePlan;
   onClose: () => void;
   onSuccess: () => void;
+  title?: string;
+  body?: string;
+  confirmLabel?: string;
 }) {
   const t = useT();
   const toast = useToast();
@@ -65,10 +71,10 @@ export function FeePlanResetToDraftDialog({
   return (
     <ConfirmationDialog
       open={open}
-      title={t('admin.finance.feePlansWorkspace.resetToDraft')}
-      body={t('admin.finance.feePlansWorkspace.resetToDraftConfirm')}
+      title={title ?? t('admin.finance.feePlansWorkspace.resetToDraft')}
+      body={body ?? t('admin.finance.feePlansWorkspace.resetToDraftConfirm')}
       loading={loading}
-      confirmLabel={t('admin.finance.feePlansWorkspace.resetToDraft')}
+      confirmLabel={confirmLabel ?? t('admin.finance.feePlansWorkspace.resetToDraft')}
       onConfirm={confirm}
       onClose={onClose}
     />
