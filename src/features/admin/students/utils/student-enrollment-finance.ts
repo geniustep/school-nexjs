@@ -1,5 +1,6 @@
 import type {
   FeePlanCustomizationReason,
+  FeePlanSuggestError,
   FeePlanSuggestQuery,
   FeePlanSuggestResult,
   StudentCreateFinanceFormState,
@@ -152,10 +153,53 @@ export function financeCustomizationReasonOptions(): FeePlanCustomizationReason[
 }
 
 export function canSkipFinanceOnCreate(
-  suggestErrorCode: string | null,
+  suggestError: FeePlanSuggestError | null,
   allowedActions?: FeePlanSuggestResult['allowed_actions'],
 ): boolean {
-  return suggestErrorCode === 'no_default_fee_plan_for_level' && allowedActions?.skip_finance === true;
+  return suggestError?.code === 'no_default_fee_plan_for_level' && allowedActions?.skip_finance === true;
+}
+
+export function buildFeePlanSuggestErrorFromApi(error: {
+  code?: string;
+  message?: string;
+  details?: Record<string, unknown>;
+  diagnostics?: FeePlanSuggestError['diagnostics'];
+  candidate_plans?: FeePlanSuggestError['candidate_plans'];
+}): FeePlanSuggestError {
+  const details = error.details ?? {};
+  const diagnostics =
+    error.diagnostics ??
+    (typeof details.diagnostics === 'object' && details.diagnostics !== null
+      ? (details.diagnostics as FeePlanSuggestError['diagnostics'])
+      : undefined);
+  const candidatePlans =
+    error.candidate_plans ??
+    (Array.isArray(details.candidate_plans)
+      ? (details.candidate_plans as FeePlanSuggestError['candidate_plans'])
+      : undefined);
+
+  return {
+    code: error.code ?? 'server_error',
+    message: error.message,
+    diagnostics,
+    candidate_plans: candidatePlans,
+  };
+}
+
+export function resolveNoDefaultFeePlanMessage(
+  error: FeePlanSuggestError | null,
+  t: (key: string) => string,
+): string {
+  if (!error) return t('admin.student360.create.finance.noPlanMessage');
+  const diagnostics = error.diagnostics;
+  if (
+    (diagnostics?.matching_level_plans ?? 0) > 0 &&
+    (diagnostics?.plans_not_default ?? 0) > 0
+  ) {
+    return t('admin.student360.create.finance.diagnostics.notDefault');
+  }
+  if (error.message?.trim()) return error.message.trim();
+  return t('admin.student360.create.finance.noPlanMessage');
 }
 
 export function financePlanFingerprint(query: FeePlanSuggestQuery | null): string {

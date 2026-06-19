@@ -312,6 +312,7 @@ export interface FeePlan {
   school_id: number;
   academic_year_id?: number;
   academic_year?: Ref | string | null;
+  academic_year_name?: string | null;
   level_id?: number | null;
   level?: Ref | null;
   class_id?: number | null;

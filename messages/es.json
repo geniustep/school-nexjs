@@ -2968,6 +2968,7 @@
       "usePrimaryGuardianEmergency": "Usar datos del tutor principal",
       "optionsLoadFailed": "No se pudieron cargar las opciones del formulario.",
       "classClearedOnLevelChange": "Se borró la clase porque no coincide con el nuevo nivel.",
+      "cycleChangedOnEnrollment": "Se cambió el ciclo. Se actualizarán los niveles y el plan de cuotas; pueden perderse personalizaciones no guardadas.",
       "noChanges": "No hay cambios que guardar.",
       "emptyContact": "Sin datos de contacto o dirección.",
       "emptyEmergency": "Sin contacto de emergencia registrado.",
@@ -3004,6 +3005,12 @@
         "loadingYears": "Cargando años académicos…",
         "loadingClasses": "Cargando clases…",
         "selectLevelFirst": "Seleccione primero un nivel.",
+        "selectCycle": "Seleccionar ciclo",
+        "selectCycleFirst": "Seleccione primero un ciclo.",
+        "loadingCycles": "Cargando ciclos…",
+        "loadingLevels": "Cargando niveles…",
+        "noLevelsForCycle": "No hay niveles para este ciclo.",
+        "cycle": "Ciclo",
         "noClassesForLevel": "No hay clases disponibles para este nivel.",
         "classOptionalHint": "Puede asignar una clase más tarde.",
         "repeatingHint": "Active si el alumno repite el nivel actual.",
@@ -3011,6 +3018,7 @@
         "noNationalityMatch": "Sin resultados.",
         "errors": {
           "academicYearRequired": "El año académico es obligatorio.",
+          "cycleRequired": "El ciclo es obligatorio.",
           "levelRequired": "El nivel es obligatorio.",
           "massarNoSpaces": "El número Massar no debe contener espacios."
         },
@@ -3031,10 +3039,15 @@
         "finance": {
           "loading": "Sugiriendo plan de tasas…",
           "waitingEnrollment": "Complete la matrícula académica para sugerir un plan.",
+          "selectLevelForPlan": "Seleccione un nivel para sugerir el plan de tasas.",
           "required": "Se requiere un plan de tasas antes de crear el alumno.",
           "loadError": "No se pudo cargar el plan sugerido.",
           "noPlanTitle": "Sin plan predeterminado",
           "noPlanMessage": "No hay plan predeterminado para este nivel en esta temporada. Cree un plan o asígnelo manualmente.",
+          "diagnostics": {
+            "notDefault": "Existen planes para este nivel, pero ninguno está marcado como predeterminado."
+          },
+          "candidatePlans": "Planes candidatos:",
           "suggestedPlanTitle": "Plan de tasas sugerido",
           "planName": "Nombre del plan",
           "season": "Temporada",

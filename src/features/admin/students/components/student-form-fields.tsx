@@ -683,10 +683,13 @@ export function StudentCreateEnrollmentFields({
   optionsLoading,
   optionsError,
   years,
+  cycles,
+  cyclesLoading,
   levels,
   classes,
   registrationTypes,
   onChange,
+  onCycleChange,
   onLevelChange,
   onRetryOptions,
 }: {
@@ -695,15 +698,26 @@ export function StudentCreateEnrollmentFields({
   optionsLoading: boolean;
   optionsError: boolean;
   years: { id: number; name: string }[];
+  cycles: { id: number; name: string }[];
+  cyclesLoading: boolean;
   levels: { id: number; name: string; display_alias?: string | null; code?: string | null }[];
   classes: { id: number; name: string; display_name?: string | null; display_alias?: string | null }[];
   registrationTypes: { value: string; label: string }[];
   onChange: (patch: Partial<StudentProfileFormState>) => void;
+  onCycleChange: (cycleId: string) => void;
   onLevelChange: (levelId: string) => void;
   onRetryOptions?: () => void;
 }) {
   const t = useT();
   const showPrevious = state.registrationType === 'transfer';
+
+  const levelPlaceholder = !state.cycleId
+    ? t('admin.student360.create.selectCycleFirst')
+    : optionsLoading || cyclesLoading
+      ? t('admin.student360.create.loadingLevels')
+      : levels.length === 0
+        ? t('admin.student360.create.noLevelsForCycle')
+        : t('admin.selectLevel');
 
   const classPlaceholder = !state.levelId
     ? t('admin.student360.create.selectLevelFirst')
@@ -745,19 +759,40 @@ export function StudentCreateEnrollmentFields({
           </select>
         )}
       </Field>
+      <Field label={t('admin.student360.create.cycle')} error={errors.cycleId}>
+        {cyclesLoading && cycles.length === 0 ? (
+          <p className="tiny muted">{t('admin.student360.create.loadingCycles')}</p>
+        ) : (
+          <select
+            className="input"
+            value={state.cycleId}
+            onChange={(e) => onCycleChange(e.target.value)}
+            disabled={optionsLoading || cyclesLoading}
+          >
+            <option value="">{t('admin.student360.create.selectCycle')}</option>
+            {cycles.map((cycle) => (
+              <option key={cycle.id} value={cycle.id}>
+                {cycle.name}
+              </option>
+            ))}
+          </select>
+        )}
+      </Field>
       <Field label={t('nav.levels')} error={errors.levelId}>
         <select
           className="input"
           value={state.levelId}
           onChange={(e) => onLevelChange(e.target.value)}
-          disabled={optionsLoading}
+          disabled={optionsLoading || cyclesLoading || !state.cycleId}
         >
-          <option value="">{t('admin.selectLevel')}</option>
-          {levels.map((l) => (
-            <option key={l.id} value={l.id}>
-              {l.display_alias ?? l.name ?? l.code}
-            </option>
-          ))}
+          <option value="">{levelPlaceholder}</option>
+          {state.cycleId && !optionsLoading
+            ? levels.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.display_alias ?? l.name ?? l.code}
+                </option>
+              ))
+            : null}
         </select>
       </Field>
       <Field label={t('nav.classes')} error={errors.classId}>

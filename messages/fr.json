@@ -2968,6 +2968,7 @@
       "usePrimaryGuardianEmergency": "Utiliser le responsable principal",
       "optionsLoadFailed": "Impossible de charger les options du formulaire.",
       "classClearedOnLevelChange": "La classe a été effacée car elle ne correspond pas au nouveau niveau.",
+      "cycleChangedOnEnrollment": "Le cycle a changé. Les niveaux et le plan tarifaire seront mis à jour ; les personnalisations non enregistrées peuvent être perdues.",
       "noChanges": "Aucune modification à enregistrer.",
       "emptyContact": "Aucune coordonnée enregistrée.",
       "emptyEmergency": "Aucun contact d'urgence enregistré.",
@@ -3004,6 +3005,12 @@
         "loadingYears": "Chargement des années scolaires…",
         "loadingClasses": "Chargement des classes…",
         "selectLevelFirst": "Choisissez d'abord un niveau.",
+        "selectCycle": "Choisir le cycle",
+        "selectCycleFirst": "Choisissez d'abord un cycle.",
+        "loadingCycles": "Chargement des cycles…",
+        "loadingLevels": "Chargement des niveaux…",
+        "noLevelsForCycle": "Aucun niveau pour ce cycle.",
+        "cycle": "Cycle",
         "noClassesForLevel": "Aucune classe disponible pour ce niveau.",
         "classOptionalHint": "Vous pourrez assigner une classe plus tard.",
         "repeatingHint": "Activez si l'élève redouble le niveau actuel.",
@@ -3011,6 +3018,7 @@
         "noNationalityMatch": "Aucun résultat.",
         "errors": {
           "academicYearRequired": "L'année scolaire est obligatoire.",
+          "cycleRequired": "Le cycle est obligatoire.",
           "levelRequired": "Le niveau est obligatoire.",
           "massarNoSpaces": "Le numéro Massar ne doit pas contenir d'espaces."
         },
@@ -3031,10 +3039,15 @@
         "finance": {
           "loading": "Suggestion du plan de frais…",
           "waitingEnrollment": "Complétez l'inscription académique pour suggérer un plan.",
+          "selectLevelForPlan": "Choisissez un niveau pour suggérer le plan de frais.",
           "required": "Un plan de frais est requis avant la création.",
           "loadError": "Impossible de charger le plan suggéré.",
           "noPlanTitle": "Aucun plan par défaut",
           "noPlanMessage": "Aucun plan par défaut pour ce niveau dans cette saison. Créez un plan ou assignez-en un manuellement.",
+          "diagnostics": {
+            "notDefault": "Des plans existent pour ce niveau, mais aucun n'est défini par défaut."
+          },
+          "candidatePlans": "Plans candidats :",
           "suggestedPlanTitle": "Plan de frais suggéré",
           "planName": "Nom du plan",
           "season": "Saison",

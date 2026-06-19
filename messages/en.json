@@ -2968,6 +2968,7 @@
       "usePrimaryGuardianEmergency": "Use primary guardian details",
       "optionsLoadFailed": "Could not load form options.",
       "classClearedOnLevelChange": "Class cleared because it does not match the new level.",
+      "cycleChangedOnEnrollment": "Cycle changed. Levels and the fee plan will be updated; unsaved customizations may be lost.",
       "noChanges": "No changes to save.",
       "emptyContact": "No contact or address on file.",
       "emptyEmergency": "No emergency contact on file.",
@@ -3004,6 +3005,12 @@
         "loadingYears": "Loading academic years…",
         "loadingClasses": "Loading classes…",
         "selectLevelFirst": "Select a level first.",
+        "selectCycle": "Select cycle",
+        "selectCycleFirst": "Select a cycle first.",
+        "loadingCycles": "Loading cycles…",
+        "loadingLevels": "Loading levels…",
+        "noLevelsForCycle": "No levels for this cycle.",
+        "cycle": "Cycle",
         "noClassesForLevel": "No classes available for this level.",
         "classOptionalHint": "You can assign a class later.",
         "repeatingHint": "Enable if the pupil is repeating the current level.",
@@ -3011,6 +3018,7 @@
         "noNationalityMatch": "No matches.",
         "errors": {
           "academicYearRequired": "Academic year is required.",
+          "cycleRequired": "Cycle is required.",
           "levelRequired": "Level is required.",
           "massarNoSpaces": "Massar number must not contain spaces."
         },
@@ -3031,10 +3039,15 @@
         "finance": {
           "loading": "Suggesting fee plan…",
           "waitingEnrollment": "Complete academic enrollment to suggest a fee plan.",
+          "selectLevelForPlan": "Select a level to suggest the fee plan.",
           "required": "A fee plan is required before creating the pupil.",
           "loadError": "Could not load the suggested fee plan.",
           "noPlanTitle": "No default fee plan",
           "noPlanMessage": "No default fee plan exists for this level in this season. Create a fee plan or assign one manually with the right permissions.",
+          "diagnostics": {
+            "notDefault": "Fee plans exist for this level, but none are marked as default."
+          },
+          "candidatePlans": "Candidate plans:",
           "suggestedPlanTitle": "Suggested fee plan",
           "planName": "Plan name",
           "season": "Season",

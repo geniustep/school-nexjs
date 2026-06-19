@@ -33,7 +33,7 @@ import {
   type DraftFeePlanLine,
   type FeePlanFormValues,
 } from '@/features/admin/finance/fee-plans/fee-plan-types';
-import { useAcademicYearOptions, useFeeTypeOptions } from '@/features/admin/finance/use-finance-lookups';
+import { useAcademicYearOptions, useFinanceReferenceData, useFeeTypeOptions } from '@/features/admin/finance/use-finance-lookups';
 import { useLevelOptions } from '@/features/admin/academic-setup/hooks/use-level-options';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
@@ -41,7 +41,7 @@ import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
 import { canAssignFees } from '@/lib/permissions/finance';
 import { feePlanState, refName } from '@/lib/utils/finance';
-import { resolveAcademicYearName } from '@/lib/utils/academic-years';
+import { mergeAcademicYearOptions } from '@/lib/utils/academic-years';
 import type { FeePlan, FeeType } from '@/types/finance';
 import type { CurrentUser } from '@/types/user';
 
@@ -69,7 +69,16 @@ export function FeePlanDetailView({
   const [restoreOpen, setRestoreOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
-  const { options: yearOptions } = useAcademicYearOptions(null);
+  const { options: hookYearOptions } = useAcademicYearOptions(null);
+  const { academicYears: financeRefYears } = useFinanceReferenceData();
+  const yearLookupOptions = useMemo(
+    () =>
+      mergeAcademicYearOptions(
+        ...hookYearOptions,
+        ...financeRefYears.map((year) => ({ id: year.id, name: year.name })),
+      ),
+    [hookYearOptions, financeRefYears],
+  );
   const { feeTypes, reload: reloadFeeTypes } = useFeeTypeOptions();
   const levelOptionsState = useLevelOptions(true, { include_enabled: 'true' });
   const scopeGroups = useMemo(
@@ -97,10 +106,24 @@ export function FeePlanDetailView({
   );
   const usageVisible = feePlanAllowsAction(plan, 'view_usage') || plan.usage != null;
   const planLevelIds = normalizeFeePlanLevelIds(plan);
-  const yearLabel =
-    resolveAcademicYearName(plan, yearOptions) ??
-    refName(typeof plan.academic_year === 'object' ? plan.academic_year : null) ??
-    t('common.dash');
+  const yearLabel = useMemo(() => {
+    const fromLookup = plan.academic_year_id
+      ? yearLookupOptions.find((year) => year.id === plan.academic_year_id)?.name?.trim()
+      : null;
+    if (fromLookup) return fromLookup;
+
+    const fromRef =
+      typeof plan.academic_year === 'object' && plan.academic_year !== null
+        ? refName(plan.academic_year)
+        : typeof plan.academic_year === 'string'
+          ? plan.academic_year.trim()
+          : null;
+    if (fromRef) return fromRef;
+
+    if (plan.academic_year_name?.trim()) return plan.academic_year_name.trim();
+
+    return t('common.dash');
+  }, [plan, yearLookupOptions, t]);
   const levelLabel = feePlanLevelScopeLabel(plan, scopeGroups, scopeLabels);
   const currency = plan.currency ?? null;
 

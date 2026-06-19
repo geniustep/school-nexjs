@@ -2995,6 +2995,7 @@
       "usePrimaryGuardianEmergency": "استعمال بيانات الولي الأساسي",
       "optionsLoadFailed": "تعذّر تحميل خيارات النموذج.",
       "classClearedOnLevelChange": "تم مسح القسم لأنه لا يطابق المستوى الجديد.",
+      "cycleChangedOnEnrollment": "تم تغيير السلك. سيتم تحديث المستويات والخطة المالية، وقد تُفقد التخصيصات غير المحفوظة.",
       "noChanges": "لا توجد تغييرات للحفظ.",
       "emptyContact": "لا توجد بيانات اتصال أو عنوان.",
       "emptyEmergency": "لا توجد بيانات طوارئ.",
@@ -3031,6 +3032,12 @@
         "loadingYears": "جارٍ تحميل السنوات الدراسية…",
         "loadingClasses": "جارٍ تحميل الأقسام…",
         "selectLevelFirst": "اختر المستوى أولًا.",
+        "selectCycle": "اختر السلك",
+        "selectCycleFirst": "اختر السلك أولًا.",
+        "loadingCycles": "جارٍ تحميل الأسلاك…",
+        "loadingLevels": "جارٍ تحميل المستويات…",
+        "noLevelsForCycle": "لا توجد مستويات لهذا السلك.",
+        "cycle": "السلك",
         "noClassesForLevel": "لا توجد أقسام متاحة لهذا المستوى.",
         "classOptionalHint": "يمكن إسناد القسم لاحقًا.",
         "repeatingHint": "فعّل هذا الخيار إذا كان التلميذ يعيد المستوى الحالي.",
@@ -3038,6 +3045,7 @@
         "noNationalityMatch": "لا توجد نتائج.",
         "errors": {
           "academicYearRequired": "السنة الدراسية مطلوبة.",
+          "cycleRequired": "السلك مطلوب.",
           "levelRequired": "المستوى مطلوب.",
           "massarNoSpaces": "رقم مسار لا يجب أن يحتوي على مسافات."
         },
@@ -3058,10 +3066,15 @@
         "finance": {
           "loading": "جارٍ اقتراح الخطة المالية…",
           "waitingEnrollment": "أكمل التسجيل الأكاديمي لاقتراح الخطة المالية.",
+          "selectLevelForPlan": "اختر المستوى لاقتراح الخطة المالية.",
           "required": "الخطة المالية مطلوبة قبل إنشاء التلميذ.",
           "loadError": "تعذر تحميل الخطة المالية المقترحة.",
           "noPlanTitle": "لا توجد خطة مالية افتراضية",
           "noPlanMessage": "لا توجد خطة مالية افتراضية لهذا المستوى في هذا الموسم. يرجى إنشاء خطة مالية أو اختيار خطة يدويًا بصلاحية مناسبة.",
+          "diagnostics": {
+            "notDefault": "توجد خطط لهذا المستوى، لكنها غير معينة كخطط افتراضية."
+          },
+          "candidatePlans": "خطط مرشحة:",
           "suggestedPlanTitle": "الخطة المالية المقترحة",
           "planName": "اسم الخطة",
           "season": "الموسم",

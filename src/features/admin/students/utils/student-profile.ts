@@ -31,6 +31,7 @@ export interface StudentProfileFormState {
   admissionDate: string;
   departureReason: string;
   schoolId: string;
+  cycleId: string;
   academicYearId: string;
   levelId: string;
   classId: string;
@@ -67,6 +68,7 @@ export interface StudentProfileFieldErrors {
   massarCode?: string;
   schoolNumber?: string;
   academicYearId?: string;
+  cycleId?: string;
   levelId?: string;
 }
 
@@ -129,6 +131,7 @@ export function defaultStudentProfileFormState(options: StudentOptions | null): 
     admissionDate: today,
     departureReason: '',
     schoolId: options?.schools.length === 1 ? String(options.schools[0].id) : '',
+    cycleId: '',
     academicYearId: options?.academicYears[0] ? String(options.academicYears[0].id) : '',
     levelId: '',
     classId: '',
@@ -306,6 +309,9 @@ export function validateStudentCreateForm(
     errors.lastName = t('admin.student360.errors.lastNameRequired');
   }
 
+  if (!trim(state.cycleId)) {
+    errors.cycleId = t('admin.student360.create.errors.cycleRequired');
+  }
   if (!trim(state.academicYearId)) {
     errors.academicYearId = t('admin.student360.create.errors.academicYearRequired');
   }

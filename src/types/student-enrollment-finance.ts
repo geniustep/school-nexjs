@@ -62,6 +62,24 @@ export interface FeePlanSuggestResult {
 
 export type FeePlanSuggestErrorCode = 'no_default_fee_plan_for_level' | string;
 
+export interface FeePlanSuggestError {
+  code: string;
+  message?: string;
+  diagnostics?: {
+    matching_level_plans?: number;
+    plans_not_default?: number;
+    plans_without_academic_year?: number;
+    plans_wrong_year?: number;
+    plans_wrong_school?: number;
+    plans_inactive?: number;
+  };
+  candidate_plans?: Array<{
+    id: number;
+    name: string;
+    reason_not_selected?: string;
+  }>;
+}
+
 export interface StudentCreateFinancePeriodPayload {
   period_key: string;
   selected: boolean;

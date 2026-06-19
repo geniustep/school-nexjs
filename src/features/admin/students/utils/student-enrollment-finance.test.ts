@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildFeePlanSuggestQuery,
+  buildFeePlanSuggestErrorFromApi,
   buildStudentCreateFinancePayload,
   canRequestFeePlanSuggest,
   defaultStudentCreateFinanceFormState,
   financePlanFingerprint,
   mergeFinanceStateWithSuggest,
+  resolveNoDefaultFeePlanMessage,
   selectedFinancePeriods,
 } from './student-enrollment-finance';
 import { defaultStudentProfileFormState } from './student-profile';
@@ -55,6 +57,43 @@ describe('buildFeePlanSuggestQuery', () => {
       enrollment_date: '2025-12-15',
     });
     expect(financePlanFingerprint(buildFeePlanSuggestQuery(state, 1))).toBe('1:2025:10:2025-12-15');
+  });
+
+  it('returns null before level is selected', () => {
+    const state = {
+      ...defaultStudentProfileFormState(null),
+      academicYearId: '1',
+      actualJoinDate: '2026-12-15',
+    };
+    expect(buildFeePlanSuggestQuery(state, 3)).toBeNull();
+  });
+});
+
+describe('buildFeePlanSuggestErrorFromApi', () => {
+  it('reads diagnostics and candidate plans from error details', () => {
+    const error = buildFeePlanSuggestErrorFromApi({
+      code: 'no_default_fee_plan_for_level',
+      message: 'No default plan',
+      details: {
+        diagnostics: { matching_level_plans: 2, plans_not_default: 2 },
+        candidate_plans: [{ id: 2461, name: 'خطة رسوم الابتدائي 2026-2027' }],
+      },
+    });
+    expect(error.diagnostics?.plans_not_default).toBe(2);
+    expect(error.candidate_plans?.[0]?.id).toBe(2461);
+  });
+});
+
+describe('resolveNoDefaultFeePlanMessage', () => {
+  it('returns diagnostics message when plans are not default', () => {
+    const message = resolveNoDefaultFeePlanMessage(
+      {
+        code: 'no_default_fee_plan_for_level',
+        diagnostics: { matching_level_plans: 3, plans_not_default: 3 },
+      },
+      (key) => (key.endsWith('notDefault') ? 'توجد خطط لهذا المستوى، لكنها غير معينة كخطط افتراضية.' : key),
+    );
+    expect(message).toContain('غير معينة كخطط افتراضية');
   });
 });
 

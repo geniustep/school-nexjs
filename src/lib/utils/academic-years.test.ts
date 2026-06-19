@@ -20,4 +20,10 @@ describe('resolveAcademicYearName', () => {
   it('returns null when id-only payload has no lookup match', () => {
     expect(resolveAcademicYearName({ academic_year_id: 99 }, [{ id: 1, name: '2025-2026' }])).toBeNull();
   });
+
+  it('uses academic_year_name when provided without object ref', () => {
+    expect(
+      resolveAcademicYearName({ academic_year_id: 1, academic_year_name: 'raqeem 2025-2026' }),
+    ).toBe('raqeem 2025-2026');
+  });
 });

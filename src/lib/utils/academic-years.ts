@@ -14,16 +14,19 @@ function yearLabel(id: number, name?: string | null): string {
 export function academicYearFromSource(source?: {
   academic_year_id?: number;
   academic_year?: Ref | string | { id: number; name: string } | null;
+  academic_year_name?: string | null;
 } | null): AcademicYearOption | null {
   if (!source) return null;
+  const explicitName = source.academic_year_name?.trim();
   if (source.academic_year_id) {
     const ay = source.academic_year;
     const name =
-      typeof ay === 'string'
+      explicitName ||
+      (typeof ay === 'string'
         ? ay
         : ay && typeof ay === 'object' && 'name' in ay
           ? ay.name
-          : undefined;
+          : undefined);
     return { id: source.academic_year_id, name: yearLabel(source.academic_year_id, name) };
   }
   const ay = source.academic_year;

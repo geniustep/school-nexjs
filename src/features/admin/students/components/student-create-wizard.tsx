@@ -6,10 +6,16 @@ import { useToast } from '@/components/ui/toast';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
+import { useLevelOptions } from '@/features/admin/academic-setup/hooks/use-level-options';
 import { useStudentOptions } from '../hooks/use-student-options';
 import { useFeePlanSuggest } from '../hooks/use-fee-plan-suggest';
 import { mapStudentApiError } from '../utils/student-api-errors';
 import { filterClassesForEnrollment } from '../utils/student-options';
+import {
+  buildEnrollmentCycleOptions,
+  filterLevelsByCycleId,
+  levelBelongsToCycle,
+} from '../utils/student-enrollment-cycle';
 import {
   buildStudentCreatePayload,
   defaultStudentProfileFormState,
@@ -24,6 +30,7 @@ import {
   defaultStudentCreateFinanceFormState,
   financePlanFingerprint,
   mergeFinanceStateWithSuggest,
+  resolveNoDefaultFeePlanMessage,
 } from '../utils/student-enrollment-finance';
 import {
   StudentCreateAdditionalFields,
@@ -56,6 +63,7 @@ const FIELD_ORDER: (keyof StudentProfileFieldErrors)[] = [
   'dateOfBirth',
   'massarCode',
   'academicYearId',
+  'cycleId',
   'levelId',
   'classId',
   'actualJoinDate',
@@ -78,6 +86,7 @@ export function StudentCreateForm({
   const toast = useToast();
   const { activeSchoolId } = useAdminSession();
   const optionsState = useStudentOptions();
+  const levelOptionsState = useLevelOptions(true, { include_enabled: 'true' });
   const options = optionsState.options;
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -97,6 +106,7 @@ export function StudentCreateForm({
   const [saveMode, setSaveMode] = useState<StudentCreateSaveMode>('setup');
   const [additionalOpen, setAdditionalOpen] = useState(false);
   const [classClearedNotice, setClassClearedNotice] = useState(false);
+  const [cycleChangedNotice, setCycleChangedNotice] = useState(false);
   const [planChangeWarning, setPlanChangeWarning] = useState(false);
   const financeTouchedRef = useRef(false);
   const lastSuggestFingerprintRef = useRef('');
@@ -114,12 +124,34 @@ export function StudentCreateForm({
     return null;
   }, [state.schoolId, activeSchoolId, options?.schools]);
 
+  const enrollmentCycles = useMemo(
+    () =>
+      buildEnrollmentCycleOptions(
+        options?.levels ?? [],
+        levelOptionsState.options?.reference_levels ?? [],
+        levelOptionsState.options?.cycles ?? [],
+      ),
+    [options?.levels, levelOptionsState.options],
+  );
+
+  const filteredLevels = useMemo(
+    () =>
+      filterLevelsByCycleId(
+        options?.levels ?? [],
+        state.cycleId,
+        levelOptionsState.options?.reference_levels ?? [],
+        levelOptionsState.options?.cycles ?? [],
+      ),
+    [options?.levels, state.cycleId, levelOptionsState.options],
+  );
+
   const suggestQuery = useMemo(
     () => buildFeePlanSuggestQuery(state, resolvedSchoolId),
     [state, resolvedSchoolId],
   );
   const suggestState = useFeePlanSuggest(suggestQuery);
   const suggestFingerprint = financePlanFingerprint(suggestQuery);
+  const levelSelected = Boolean(state.levelId.trim());
 
   useEffect(() => {
     if (!suggestFingerprint) {
@@ -154,13 +186,14 @@ export function StudentCreateForm({
   );
 
   const financeBlocked =
-    suggestState.errorCode === 'no_default_fee_plan_for_level' &&
-    !canSkipFinanceOnCreate(suggestState.errorCode, suggestState.suggest?.allowed_actions);
+    suggestState.error?.code === 'no_default_fee_plan_for_level' &&
+    !canSkipFinanceOnCreate(suggestState.error, suggestState.suggest?.allowed_actions);
 
   function patch(next: Partial<StudentProfileFormState>) {
     setState((prev) => ({ ...prev, ...next }));
     setFieldErrors({});
     setClassClearedNotice(false);
+    setCycleChangedNotice(false);
   }
 
   function patchFinance(next: Partial<StudentCreateFinanceFormState>) {
@@ -169,17 +202,62 @@ export function StudentCreateForm({
     setFinanceError(null);
   }
 
+  function resetFinancePlan() {
+    lastSuggestFingerprintRef.current = '';
+    setPlanChangeWarning(false);
+    financeTouchedRef.current = false;
+    setFinanceState(defaultStudentCreateFinanceFormState(null));
+  }
+
+  function handleCycleChange(cycleId: string) {
+    const cycleChanged = Boolean(state.cycleId) && state.cycleId !== cycleId;
+    const hadCustomization = financeTouchedRef.current || financeState.customizePlan;
+
+    patch({
+      cycleId,
+      levelId: '',
+      classId: '',
+    });
+    resetFinancePlan();
+
+    if (cycleChanged && hadCustomization) {
+      setCycleChangedNotice(true);
+    }
+  }
+
   function handleLevelChange(levelId: string) {
     const compatible = filterClassesForEnrollment(options?.classes ?? [], levelId);
     const classStillValid = compatible.some((c) => String(c.id) === state.classId);
+    const levelChanged = Boolean(state.levelId) && state.levelId !== levelId;
+    const hadCustomization = financeTouchedRef.current || financeState.customizePlan;
+
     patch({
       levelId,
       classId: classStillValid ? state.classId : '',
     });
+
     if (state.classId && !classStillValid) {
       setClassClearedNotice(true);
     }
+
+    if (levelChanged) {
+      resetFinancePlan();
+      if (hadCustomization) {
+        setPlanChangeWarning(true);
+      }
+    }
   }
+
+  useEffect(() => {
+    if (!state.cycleId || !state.levelId) return;
+    const levels = options?.levels ?? [];
+    const referenceLevels = levelOptionsState.options?.reference_levels ?? [];
+    const cycles = levelOptionsState.options?.cycles ?? [];
+    if (!levelBelongsToCycle(state.levelId, state.cycleId, levels, referenceLevels, cycles)) {
+      setState((prev) => ({ ...prev, levelId: '', classId: '' }));
+      resetFinancePlan();
+    }
+  }, [state.cycleId, state.levelId, options?.levels, levelOptionsState.options]);
 
   function focusFirstError(errors: StudentProfileFieldErrors) {
     const firstKey = FIELD_ORDER.find((key) => errors[key]);
@@ -221,13 +299,18 @@ export function StudentCreateForm({
           return false;
         }
       }
+      if (!levelSelected) {
+        toast.error(t('admin.student360.create.finance.selectLevelForPlan'));
+        return false;
+      }
       if (suggestState.loading) {
         toast.error(t('admin.student360.create.finance.loading'));
         return false;
       }
       if (financeBlocked) {
-        setFinanceError(t('admin.student360.create.finance.noPlanMessage'));
-        toast.error(t('admin.student360.create.finance.noPlanMessage'));
+        const message = resolveNoDefaultFeePlanMessage(suggestState.error, t);
+        setFinanceError(message);
+        toast.error(message);
         return false;
       }
       if (!suggestState.suggest) {
@@ -336,6 +419,11 @@ export function StudentCreateForm({
           <h2 className="student-create-form__section-title">
             {t('admin.student360.sections.enrollment')}
           </h2>
+          {cycleChangedNotice ? (
+            <p className="student-create-form__notice" role="status">
+              {t('admin.student360.cycleChangedOnEnrollment')}
+            </p>
+          ) : null}
           {classClearedNotice ? (
             <p className="student-create-form__notice" role="status">
               {t('admin.student360.classClearedOnLevelChange')}
@@ -348,10 +436,13 @@ export function StudentCreateForm({
               optionsLoading={optionsState.loading}
               optionsError={!!optionsState.error}
               years={options?.academicYears ?? []}
-              levels={options?.levels ?? []}
+              cycles={enrollmentCycles}
+              cyclesLoading={levelOptionsState.loading}
+              levels={filteredLevels}
               classes={filteredClasses}
               registrationTypes={options?.registrationTypes ?? []}
               onChange={patch}
+              onCycleChange={handleCycleChange}
               onLevelChange={handleLevelChange}
               onRetryOptions={optionsState.reload}
             />
@@ -369,7 +460,8 @@ export function StudentCreateForm({
           <StudentCreateFeePlanSection
             suggest={suggestState.suggest}
             loading={suggestState.loading}
-            errorCode={suggestState.errorCode}
+            error={suggestState.error}
+            levelSelected={levelSelected}
             financeState={financeState}
             planChangeWarning={planChangeWarning}
             onFinanceChange={patchFinance}

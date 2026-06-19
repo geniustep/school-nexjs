@@ -1,13 +1,16 @@
 'use client';
 
+import Link from 'next/link';
 import { useLocale, useT } from '@/features/i18n/locale-context';
 import { useFormat } from '@/features/i18n/use-format';
 import { formatFinanceCurrency } from '../utils/student-finance-format';
 import {
   financeCustomizationReasonOptions,
+  resolveNoDefaultFeePlanMessage,
   selectedFinancePeriods,
 } from '../utils/student-enrollment-finance';
 import type {
+  FeePlanSuggestError,
   FeePlanSuggestResult,
   StudentCreateFinanceFormState,
 } from '@/types/student-enrollment-finance';
@@ -24,7 +27,8 @@ function MetaRow({ label, value }: { label: string; value: string }) {
 export function StudentCreateFeePlanSection({
   suggest,
   loading,
-  errorCode,
+  error,
+  levelSelected,
   financeState,
   planChangeWarning,
   onFinanceChange,
@@ -32,7 +36,8 @@ export function StudentCreateFeePlanSection({
 }: {
   suggest: FeePlanSuggestResult | null;
   loading: boolean;
-  errorCode: string | null;
+  error: FeePlanSuggestError | null;
+  levelSelected: boolean;
   financeState: StudentCreateFinanceFormState;
   planChangeWarning: boolean;
   onFinanceChange: (patch: Partial<StudentCreateFinanceFormState>) => void;
@@ -42,6 +47,14 @@ export function StudentCreateFeePlanSection({
   const { locale } = useLocale();
   const { formatDate } = useFormat();
 
+  if (!levelSelected) {
+    return (
+      <section className="student-create-form__section">
+        <p className="tiny muted">{t('admin.student360.create.finance.selectLevelForPlan')}</p>
+      </section>
+    );
+  }
+
   if (loading) {
     return (
       <section className="student-create-form__section" aria-live="polite">
@@ -50,20 +63,36 @@ export function StudentCreateFeePlanSection({
     );
   }
 
-  if (errorCode === 'no_default_fee_plan_for_level') {
+  if (error?.code === 'no_default_fee_plan_for_level') {
+    const message = resolveNoDefaultFeePlanMessage(error, t);
+    const candidates = error.candidate_plans ?? [];
     return (
       <section className="student-create-form__section" role="alert">
         <div className="student-create-fee-plan__alert">
           <h2 className="student-create-form__section-title">
             {t('admin.student360.create.finance.noPlanTitle')}
           </h2>
-          <p>{t('admin.student360.create.finance.noPlanMessage')}</p>
+          <p>{message}</p>
+          {candidates.length > 0 ? (
+            <div className="student-create-fee-plan__candidates">
+              <p className="tiny muted">{t('admin.student360.create.finance.candidatePlans')}</p>
+              <ul className="student-create-fee-plan__candidate-list">
+                {candidates.map((candidate) => (
+                  <li key={candidate.id}>
+                    <Link href={`/admin/finance/fee-plans/${candidate.id}`}>
+                      {candidate.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </div>
       </section>
     );
   }
 
-  if (errorCode) {
+  if (error) {
     return (
       <section className="student-create-form__section" role="alert">
         <p className="student-create-form__notice">{t('admin.student360.create.finance.loadError')}</p>

@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
-import type { FeePlanSuggestQuery, FeePlanSuggestResult } from '@/types/student-enrollment-finance';
-import { financePlanFingerprint } from '../utils/student-enrollment-finance';
+import type { FeePlanSuggestError, FeePlanSuggestQuery, FeePlanSuggestResult } from '@/types/student-enrollment-finance';
+import { buildFeePlanSuggestErrorFromApi, financePlanFingerprint } from '../utils/student-enrollment-finance';
 import {
   normalizeFeePlanSuggestResponse,
   resolveFeePlanSuggestErrorCode,
@@ -13,14 +13,14 @@ import {
 export interface FeePlanSuggestState {
   loading: boolean;
   suggest: FeePlanSuggestResult | null;
-  errorCode: string | null;
+  error: FeePlanSuggestError | null;
   reload: () => void;
 }
 
 export function useFeePlanSuggest(query: FeePlanSuggestQuery | null): FeePlanSuggestState {
   const [loading, setLoading] = useState(false);
   const [suggest, setSuggest] = useState<FeePlanSuggestResult | null>(null);
-  const [errorCode, setErrorCode] = useState<string | null>(null);
+  const [error, setError] = useState<FeePlanSuggestError | null>(null);
   const [nonce, setNonce] = useState(0);
   const fingerprint = financePlanFingerprint(query);
   const queryRef = useRef(query);
@@ -32,14 +32,14 @@ export function useFeePlanSuggest(query: FeePlanSuggestQuery | null): FeePlanSug
     const currentQuery = queryRef.current;
     if (!currentQuery) {
       setSuggest(null);
-      setErrorCode(null);
+      setError(null);
       setLoading(false);
       return;
     }
 
     let active = true;
     setLoading(true);
-    setErrorCode(null);
+    setError(null);
 
     api
       .get<unknown>(endpoints.admin.financeFeePlanSuggest, {
@@ -52,7 +52,7 @@ export function useFeePlanSuggest(query: FeePlanSuggestQuery | null): FeePlanSug
         if (!active) return;
         if (!res.success) {
           setSuggest(null);
-          setErrorCode(res.error.code ?? 'server_error');
+          setError(buildFeePlanSuggestErrorFromApi(res.error));
           setLoading(false);
           return;
         }
@@ -60,7 +60,7 @@ export function useFeePlanSuggest(query: FeePlanSuggestQuery | null): FeePlanSug
         const inlineError = resolveFeePlanSuggestErrorCode(res.data);
         if (inlineError) {
           setSuggest(null);
-          setErrorCode(inlineError);
+          setError({ code: inlineError });
           setLoading(false);
           return;
         }
@@ -68,13 +68,13 @@ export function useFeePlanSuggest(query: FeePlanSuggestQuery | null): FeePlanSug
         const normalized = normalizeFeePlanSuggestResponse(res.data);
         if (!normalized) {
           setSuggest(null);
-          setErrorCode('invalid_suggest_response');
+          setError({ code: 'invalid_suggest_response' });
           setLoading(false);
           return;
         }
 
         setSuggest(normalized);
-        setErrorCode(null);
+        setError(null);
         setLoading(false);
       });
 
@@ -83,5 +83,5 @@ export function useFeePlanSuggest(query: FeePlanSuggestQuery | null): FeePlanSug
     };
   }, [fingerprint, nonce]);
 
-  return { loading, suggest, errorCode, reload };
+  return { loading, suggest, error, reload };
 }
