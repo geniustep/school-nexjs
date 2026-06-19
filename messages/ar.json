@@ -3052,7 +3052,9 @@
           "massarNoSpaces": "رقم مسار لا يجب أن يحتوي على مسافات.",
           "studentIdentifierRequired": "يجب إدخال رقم مسار أو رقم التسجيل أو رمز داخلي للتلميذ.",
           "academicYearRequiredForFinance": "يجب اختيار السنة الدراسية قبل حفظ الخطة المالية.",
-          "checkingMassar": "جارٍ التحقق من رقم مسار…",
+          "classRequiredBeforeFinance": "يجب اختيار القسم قبل إعداد الخطة المالية.",
+          "classRequiredForFinanceSave": "يجب اختيار القسم قبل حفظ الخطة المالية.",
+          "checkingMassar": "جارٍ التحقق من رقم مسar…",
           "checkingSchoolNumber": "جارٍ التحقق من الرقم المدرسي…",
           "checkingCode": "جارٍ التحقق من الرمز الداخلي…",
           "identifierCheckFailed": "تعذّر التحقق من المعرّف. أعد المحاولة."
@@ -3175,6 +3177,7 @@
           "reviewFinanceBeforeSave": "يرجى مراجعة تخصيص الخطة المالية قبل الحفظ.",
           "missingStudentIdentifier": "لا يمكن الحفظ: معرّف التلميذ ناقص.",
           "missingAcademicYearForFinance": "لا يمكن الحفظ: يجب اختيار السنة الدراسية قبل حفظ الخطة المالية.",
+          "missingClassForFinance": "لا يمكن الحفظ: القسم مطلوب لإعداد الخطة المالية.",
           "duplicateMassar": "لا يمكن الحفظ: رقم مسار مكرر.",
           "planType": "نوع الخطة",
           "planOriginal": "أصلية",

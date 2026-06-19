@@ -34,6 +34,8 @@ export function StudentCreateReviewSection({
   previewError,
   financeBlocked,
   massarDuplicate = false,
+  classMissingForFinance = false,
+  enrollmentClassLabel = null,
 }: {
   profileState: StudentProfileFormState;
   billingState: StudentCreateBillingFormState;
@@ -44,6 +46,8 @@ export function StudentCreateReviewSection({
   previewError?: string | null;
   financeBlocked: boolean;
   massarDuplicate?: boolean;
+  classMissingForFinance?: boolean;
+  enrollmentClassLabel?: string | null;
 }) {
   const t = useT();
   const { locale } = useLocale();
@@ -80,6 +84,11 @@ export function StudentCreateReviewSection({
           {t('admin.student360.create.review.missingAcademicYearForFinance')}
         </p>
       ) : null}
+      {!identifierMissing && classMissingForFinance && suggest ? (
+        <p className="student-create-finance-preview__error" role="alert">
+          {t('admin.student360.create.review.missingClassForFinance')}
+        </p>
+      ) : null}
       {massarDuplicate ? (
         <p className="student-create-finance-preview__error" role="alert">
           {t('admin.student360.create.review.duplicateMassar')}
@@ -94,6 +103,10 @@ export function StudentCreateReviewSection({
         <div className="student-create-review__row">
           <dt>{t('admin.student360.create.review.enrollmentDate')}</dt>
           <dd>{formatDate(profileState.actualJoinDate) || t('common.dash')}</dd>
+        </div>
+        <div className="student-create-review__row">
+          <dt>{t('nav.classes')}</dt>
+          <dd dir="auto">{enrollmentClassLabel ?? t('common.dash')}</dd>
         </div>
         <div className="student-create-review__row">
           <dt>{t('admin.student360.create.review.billingPartner')}</dt>

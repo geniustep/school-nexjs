@@ -20,8 +20,8 @@ import {
 } from '../utils/student-enrollment-cycle';
 import {
   buildStudentCreatePayload,
-  canAttachFinanceToStudentCreatePayload,
   defaultStudentProfileFormState,
+  getStudentCreateFinanceBlockReason,
   validateStudentCreateForm,
   validateStudentCreateIdentityStep,
   validateStudentCreateIdentifier,
@@ -375,6 +375,47 @@ export function StudentCreateForm({
     el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
+  function financePrerequisiteMessage(
+    reason: ReturnType<typeof getStudentCreateFinanceBlockReason>,
+    context: 'step' | 'save',
+  ): string | null {
+    if (reason === 'ok') return null;
+    if (reason === 'academic_year') {
+      return t('admin.student360.create.errors.academicYearRequiredForFinance');
+    }
+    if (reason === 'class') {
+      return context === 'save'
+        ? t('admin.student360.create.errors.classRequiredForFinanceSave')
+        : t('admin.student360.create.errors.classRequiredBeforeFinance');
+    }
+    if (reason === 'level') return t('admin.student360.create.errors.levelRequired');
+    if (reason === 'join_date') return t('admin.student360.errors.invalidEnrollmentDate');
+    return t('admin.student360.create.errors.academicYearRequiredForFinance');
+  }
+
+  function applyFinancePrerequisiteFailure(
+    reason: ReturnType<typeof getStudentCreateFinanceBlockReason>,
+    context: 'step' | 'save',
+  ): boolean {
+    const message = financePrerequisiteMessage(reason, context);
+    if (!message) return true;
+    const fieldErrors: StudentProfileFieldErrors =
+      reason === 'class'
+        ? { classId: message }
+        : reason === 'academic_year'
+          ? { academicYearId: message }
+          : reason === 'level'
+            ? { levelId: message }
+            : reason === 'join_date'
+              ? { actualJoinDate: message }
+              : { academicYearId: message };
+    setFieldErrors((prev) => ({ ...prev, ...fieldErrors }));
+    toast.error(message);
+    setStep('enrollment');
+    focusFirstError(fieldErrors);
+    return false;
+  }
+
   function financeSaveValidationMessage(
     reason: ReturnType<typeof validateEnrollmentFinanceSave>,
   ): string | null {
@@ -454,6 +495,12 @@ export function StudentCreateForm({
         focusFirstError(validation.errors);
         return false;
       }
+      if (state.levelId.trim()) {
+        const classReason = getStudentCreateFinanceBlockReason(state, resolvedSchoolId);
+        if (classReason === 'class') {
+          return applyFinancePrerequisiteFailure('class', 'step');
+        }
+      }
     }
     if (current === 'finance' || current === 'review') {
       if (current === 'review') {
@@ -466,16 +513,11 @@ export function StudentCreateForm({
           return false;
         }
       }
-      if (
-        Boolean(suggestState.suggest) &&
-        !canAttachFinanceToStudentCreatePayload(state, resolvedSchoolId)
-      ) {
-        const message = t('admin.student360.create.errors.academicYearRequiredForFinance');
-        setFieldErrors((prev) => ({ ...prev, academicYearId: message }));
-        toast.error(message);
-        setStep('enrollment');
-        focusFirstError({ academicYearId: message });
-        return false;
+      if (Boolean(suggestState.suggest)) {
+        const financeReason = getStudentCreateFinanceBlockReason(state, resolvedSchoolId);
+        if (financeReason !== 'ok') {
+          return applyFinancePrerequisiteFailure(financeReason, 'step');
+        }
       }
       if (!levelSelected) {
         toast.error(t('admin.student360.create.finance.selectLevelForPlan'));
@@ -524,19 +566,12 @@ export function StudentCreateForm({
     }
     if (!validateStep('review', flushed.checks)) return;
 
-    if (
-      suggestState.suggest &&
-      !canAttachFinanceToStudentCreatePayload(state, resolvedSchoolId)
-    ) {
-      const message = t('admin.student360.create.errors.academicYearRequiredForFinance');
-      setFieldErrors((prev) => ({
-        ...prev,
-        academicYearId: message,
-      }));
-      toast.error(message);
-      setStep('enrollment');
-      focusFirstError({ academicYearId: message });
-      return;
+    if (suggestState.suggest) {
+      const financeReason = getStudentCreateFinanceBlockReason(state, resolvedSchoolId);
+      if (financeReason !== 'ok') {
+        applyFinancePrerequisiteFailure(financeReason, 'save');
+        return;
+      }
     }
 
     setSaveMode(mode);
@@ -548,11 +583,12 @@ export function StudentCreateForm({
     });
 
     if (payload.finance && payload.academic?.academic_year_id == null) {
-      const message = t('admin.student360.create.errors.academicYearRequiredForFinance');
-      setFieldErrors((prev) => ({ ...prev, academicYearId: message }));
-      toast.error(message);
-      setStep('enrollment');
-      focusFirstError({ academicYearId: message });
+      applyFinancePrerequisiteFailure('academic_year', 'save');
+      setSaving(false);
+      return;
+    }
+    if (payload.finance && payload.academic?.class_id == null) {
+      applyFinancePrerequisiteFailure('class', 'save');
       setSaving(false);
       return;
     }
@@ -581,10 +617,18 @@ export function StudentCreateForm({
 
   const onLastStep = step === 'review';
   const identifierMissing = !hasStudentCreateIdentifier(state);
-  const academicYearMissingForFinance =
-    levelSelected &&
-    Boolean(suggestState.suggest) &&
-    !canAttachFinanceToStudentCreatePayload(state, resolvedSchoolId);
+  const financeBlockReason =
+    levelSelected && Boolean(suggestState.suggest)
+      ? getStudentCreateFinanceBlockReason(state, resolvedSchoolId)
+      : 'ok';
+  const financePrerequisitesMissing = financeBlockReason !== 'ok';
+  const classMissingForFinance = financeBlockReason === 'class';
+  const academicYearMissingForFinance = financeBlockReason === 'academic_year';
+
+  const enrollmentClassLabel = useMemo(() => {
+    const cls = filteredClasses.find((c) => String(c.id) === state.classId);
+    return cls?.display_name ?? cls?.name ?? null;
+  }, [filteredClasses, state.classId]);
 
   const massarDuplicate =
     identifierChecksState.checks.massarCode.status === 'duplicate' ||
@@ -710,6 +754,8 @@ export function StudentCreateForm({
             previewError={previewState.error}
             financeBlocked={financeBlocked}
             massarDuplicate={massarDuplicate}
+            classMissingForFinance={classMissingForFinance}
+            enrollmentClassLabel={enrollmentClassLabel}
           />
         </>
       ) : null}
@@ -739,7 +785,7 @@ export function StudentCreateForm({
                 saving ||
                 financeBlocked ||
                 identifierMissing ||
-                academicYearMissingForFinance ||
+                financePrerequisitesMissing ||
                 massarDuplicate ||
                 identifierChecksState.identifierChecksBlockProgress
               }
@@ -756,7 +802,7 @@ export function StudentCreateForm({
                 saving ||
                 financeBlocked ||
                 identifierMissing ||
-                academicYearMissingForFinance ||
+                financePrerequisitesMissing ||
                 massarDuplicate ||
                 identifierChecksState.identifierChecksBlockProgress
               }

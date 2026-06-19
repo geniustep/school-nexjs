@@ -11,6 +11,7 @@ import {
   sortNationalityOptions,
   requiresDepartureReason,
   requiresPreviousSchool,
+  getStudentCreateFinanceBlockReason,
   validateStudentCreateForm,
   validateStudentCreateIdentityStep,
   validateStudentCreateIdentifier,
@@ -185,6 +186,68 @@ describe('buildStudentCreatePayload', () => {
     });
     expect(payload.finance).toBeUndefined();
     expect(payload.academic).toBeUndefined();
+  });
+
+  it('omits finance block when class is missing', () => {
+    const suggest: FeePlanSuggestResult = {
+      ok: true,
+      fee_plan_id: 123,
+      fee_plan_name: 'Plan A',
+      suggested_periods: [{ period_key: '2026-09', label: 'Sep', due_date: '2026-09-01', selected: true }],
+      excluded_periods: [],
+    };
+    const state = {
+      ...defaultStudentProfileFormState(options),
+      firstName: 'A',
+      lastName: 'B',
+      academicYearId: '1',
+      levelId: '77',
+      actualJoinDate: '2026-09-01',
+      classId: '',
+    };
+    expect(getStudentCreateFinanceBlockReason(state, 3)).toBe('class');
+    expect(canAttachFinanceToStudentCreatePayload(state, 3)).toBe(false);
+    const payload = buildStudentCreatePayload(state, {
+      suggest,
+      financeState: {
+        ...defaultStudentCreateFinanceFormState(suggest),
+        customizePlan: true,
+        customizationReason: 'special_discount',
+      },
+      schoolId: 3,
+    });
+    expect(payload.finance).toBeUndefined();
+    expect(payload.academic).toBeUndefined();
+  });
+
+  it('includes academic.class_id when finance is attached', () => {
+    const suggest: FeePlanSuggestResult = {
+      ok: true,
+      fee_plan_id: 2967,
+      fee_plan_name: 'Plan B',
+      suggested_periods: [{ period_key: '2026-09', label: 'Sep', due_date: '2026-09-01', selected: true }],
+      excluded_periods: [],
+    };
+    const state = {
+      ...defaultStudentProfileFormState(options),
+      firstName: 'A',
+      lastName: 'B',
+      academicYearId: '1',
+      levelId: '2446',
+      actualJoinDate: '2026-06-19',
+      classId: '2058',
+    };
+    const payload = buildStudentCreatePayload(state, {
+      suggest,
+      financeState: {
+        ...defaultStudentCreateFinanceFormState(suggest),
+        customizePlan: true,
+        customizationReason: 'special_discount',
+      },
+      schoolId: 3,
+    });
+    expect(payload.academic?.class_id).toBe(2058);
+    expect(payload.finance?.periods?.length).toBe(1);
   });
 });
 

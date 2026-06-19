@@ -19,6 +19,24 @@ function isMissingStudentIdentifierMessage(message: string): boolean {
   );
 }
 
+function isMissingClassForFinanceMessage(message: string): boolean {
+  const lower = message.toLowerCase();
+  return (
+    lower.includes('academic.class_id is required when finance block is provided') ||
+    (lower.includes('class_id') && lower.includes('finance'))
+  );
+}
+
+function mapMissingClassForFinanceError(t: (key: string) => string): StudentApiErrorContext {
+  const message = t('admin.student360.create.errors.classRequiredForFinanceSave');
+  return {
+    message,
+    fieldErrors: {
+      classId: message,
+    },
+  };
+}
+
 function isMissingAcademicYearForFinanceMessage(message: string): boolean {
   const lower = message.toLowerCase();
   return (
@@ -151,6 +169,9 @@ export function mapStudentApiError(
       if (isMissingAcademicYearForFinanceMessage(message)) {
         return mapMissingAcademicYearForFinanceError(t);
       }
+      if (isMissingClassForFinanceMessage(message)) {
+        return mapMissingClassForFinanceError(t);
+      }
       {
         const duplicate = mapDuplicateIdentifierMessages(message, t);
         if (duplicate) return duplicate;
@@ -176,6 +197,9 @@ export function mapStudentApiError(
       }
       if (isMissingAcademicYearForFinanceMessage(message)) {
         return mapMissingAcademicYearForFinanceError(t);
+      }
+      if (isMissingClassForFinanceMessage(message)) {
+        return mapMissingClassForFinanceError(t);
       }
       {
         const duplicate = mapDuplicateIdentifierMessages(message, t);

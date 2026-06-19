@@ -51,6 +51,22 @@ describe('mapStudentApiError', () => {
     expect(mapped.fieldErrors?.academicYearId).toBe(mapped.message);
   });
 
+  it('translates missing class for finance backend message', () => {
+    const mapped = mapStudentApiError(
+      {
+        code: 'validation_error',
+        message: 'academic.class_id is required when finance block is provided',
+      },
+      (key) =>
+        key === 'admin.student360.create.errors.classRequiredForFinanceSave'
+          ? 'يجب اختيار القسم قبل حفظ الخطة المالية.'
+          : key,
+    );
+    expect(mapped.message).toBe('يجب اختيار القسم قبل حفظ الخطة المالية.');
+    expect(mapped.message).not.toContain('class_id');
+    expect(mapped.fieldErrors?.classId).toBe(mapped.message);
+  });
+
   it('translates duplicate massar backend messages', () => {
     const t = (key: string) =>
       key === 'admin.student360.errors.duplicateMassar'

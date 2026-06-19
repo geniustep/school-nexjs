@@ -521,17 +521,23 @@ function applyEmergencyFields(payload: StudentCreatePayload, state: StudentProfi
   if (notes) payload.emergency_notes = notes;
 }
 
+export function getStudentCreateFinanceBlockReason(
+  state: StudentProfileFormState,
+  schoolId: number | null | undefined,
+): 'ok' | 'school' | 'academic_year' | 'level' | 'class' | 'join_date' {
+  if (schoolId == null || schoolId <= 0) return 'school';
+  if (positiveIdFromState(state.academicYearId) == null) return 'academic_year';
+  if (positiveIdFromState(state.levelId) == null) return 'level';
+  if (!trim(state.actualJoinDate)) return 'join_date';
+  if (positiveIdFromState(state.classId) == null) return 'class';
+  return 'ok';
+}
+
 export function canAttachFinanceToStudentCreatePayload(
   state: StudentProfileFormState,
   schoolId: number | null | undefined,
 ): boolean {
-  return (
-    schoolId != null &&
-    schoolId > 0 &&
-    positiveIdFromState(state.academicYearId) != null &&
-    positiveIdFromState(state.levelId) != null &&
-    Boolean(trim(state.actualJoinDate))
-  );
+  return getStudentCreateFinanceBlockReason(state, schoolId) === 'ok';
 }
 
 export function buildStudentCreateAcademicBlock(
@@ -575,7 +581,7 @@ export function buildStudentCreatePayload(
   if (enrollment) payload.enrollment = enrollment;
   if (finance?.suggest && canAttachFinanceToStudentCreatePayload(state, finance.schoolId)) {
     const academic = buildStudentCreateAcademicBlock(state, finance.schoolId as number);
-    if (academic) {
+    if (academic?.class_id != null) {
       payload.academic = academic;
       payload.finance = buildStudentCreateFinancePayload(finance.suggest, finance.financeState);
     }
