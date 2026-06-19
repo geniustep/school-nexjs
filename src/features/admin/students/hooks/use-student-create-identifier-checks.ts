@@ -3,28 +3,23 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   checkStudentIdentifierDuplicate,
+  identifierFieldBlocksProgress,
+  INITIAL_STUDENT_CREATE_IDENTIFIER_CHECKS,
+  IDLE_IDENTIFIER_CHECK,
   shouldCheckStudentIdentifier,
+  studentCreateIdentifierChecksBlockProgress,
+  type StudentCreateIdentifierChecks,
   type StudentIdentifierCheckStatus,
+  type StudentIdentifierFieldCheck,
   type StudentIdentifierQueryField,
 } from '../utils/student-identifier-check';
 
-export interface StudentIdentifierFieldCheck {
-  status: StudentIdentifierCheckStatus;
+export type { StudentCreateIdentifierChecks, StudentIdentifierFieldCheck };
+
+export interface FlushStudentCreateIdentifierChecksResult {
+  ok: boolean;
+  checks: StudentCreateIdentifierChecks;
 }
-
-export interface StudentCreateIdentifierChecks {
-  massarCode: StudentIdentifierFieldCheck;
-  schoolNumber: StudentIdentifierFieldCheck;
-  code: StudentIdentifierFieldCheck;
-}
-
-const IDLE_CHECK: StudentIdentifierFieldCheck = { status: 'idle' };
-
-const INITIAL_CHECKS: StudentCreateIdentifierChecks = {
-  massarCode: IDLE_CHECK,
-  schoolNumber: IDLE_CHECK,
-  code: IDLE_CHECK,
-};
 
 type CheckKey = keyof StudentCreateIdentifierChecks;
 
@@ -34,8 +29,9 @@ const FIELD_MAP: Record<CheckKey, StudentIdentifierQueryField> = {
   code: 'code',
 };
 
-function isBlockingStatus(status: StudentIdentifierCheckStatus): boolean {
-  return status === 'checking' || status === 'duplicate' || status === 'error';
+function isFieldCheckClear(value: string, check: StudentIdentifierFieldCheck): boolean {
+  if (!shouldCheckStudentIdentifier(value)) return true;
+  return check.status === 'available';
 }
 
 export function useStudentCreateIdentifierChecks(input: {
@@ -45,7 +41,9 @@ export function useStudentCreateIdentifierChecks(input: {
   schoolId: number | null;
   debounceMs?: number;
 }) {
-  const [checks, setChecks] = useState<StudentCreateIdentifierChecks>(INITIAL_CHECKS);
+  const [checks, setChecks] = useState<StudentCreateIdentifierChecks>(
+    INITIAL_STUDENT_CREATE_IDENTIFIER_CHECKS,
+  );
   const requestSeq = useRef<Record<CheckKey, number>>({
     massarCode: 0,
     schoolNumber: 0,
@@ -69,7 +67,7 @@ export function useStudentCreateIdentifierChecks(input: {
   const runCheck = useCallback(async (key: CheckKey, value: string): Promise<StudentIdentifierFieldCheck> => {
     const trimmed = value.trim();
     if (!shouldCheckStudentIdentifier(trimmed)) {
-      return IDLE_CHECK;
+      return IDLE_IDENTIFIER_CHECK;
     }
 
     const seq = ++requestSeq.current[key];
@@ -82,7 +80,7 @@ export function useStudentCreateIdentifierChecks(input: {
     );
 
     if (seq !== requestSeq.current[key]) {
-      return { status: 'checking' };
+      return { status: 'checking' as StudentIdentifierCheckStatus };
     }
 
     const next = { status: result.status };
@@ -97,7 +95,7 @@ export function useStudentCreateIdentifierChecks(input: {
 
       const trimmed = value.trim();
       if (!shouldCheckStudentIdentifier(trimmed)) {
-        setChecks((prev) => ({ ...prev, [key]: IDLE_CHECK }));
+        setChecks((prev) => ({ ...prev, [key]: IDLE_IDENTIFIER_CHECK }));
         return;
       }
 
@@ -129,7 +127,7 @@ export function useStudentCreateIdentifierChecks(input: {
     [],
   );
 
-  const flushChecks = useCallback(async (): Promise<boolean> => {
+  const flushChecks = useCallback(async (): Promise<FlushStudentCreateIdentifierChecksResult> => {
     const keys: CheckKey[] = ['massarCode', 'schoolNumber', 'code'];
     for (const key of keys) {
       const timer = debounceTimers.current[key];
@@ -137,33 +135,44 @@ export function useStudentCreateIdentifierChecks(input: {
         window.clearTimeout(timer);
         debounceTimers.current[key] = undefined;
       }
+      requestSeq.current[key] += 1;
     }
 
-    const results = await Promise.all(
+    const nextChecks: StudentCreateIdentifierChecks = {
+      massarCode: IDLE_IDENTIFIER_CHECK,
+      schoolNumber: IDLE_IDENTIFIER_CHECK,
+      code: IDLE_IDENTIFIER_CHECK,
+    };
+
+    await Promise.all(
       keys.map(async (key) => {
-        const value = latestValues.current[key];
+        const value = latestValues.current[key].trim();
         if (!shouldCheckStudentIdentifier(value)) {
-          setChecks((prev) => ({ ...prev, [key]: IDLE_CHECK }));
-          return true;
+          nextChecks[key] = IDLE_IDENTIFIER_CHECK;
+          return;
         }
-        const result = await runCheck(key, value);
-        return result.status === 'available' || result.status === 'idle';
+
+        const result = await checkStudentIdentifierDuplicate(
+          FIELD_MAP[key],
+          value,
+          latestValues.current.schoolId,
+        );
+        nextChecks[key] = { status: result.status };
       }),
     );
 
-    return results.every(Boolean);
-  }, [runCheck]);
+    setChecks(nextChecks);
 
-  const massarBlocksProgress =
-    shouldCheckStudentIdentifier(input.massarCode) &&
-    isBlockingStatus(checks.massarCode.status);
+    const ok = keys.every((key) => isFieldCheckClear(latestValues.current[key], nextChecks[key]));
+    return { ok, checks: nextChecks };
+  }, []);
 
-  const schoolNumberBlocksProgress =
-    shouldCheckStudentIdentifier(input.schoolNumber) &&
-    isBlockingStatus(checks.schoolNumber.status);
-
-  const codeBlocksProgress =
-    shouldCheckStudentIdentifier(input.code) && isBlockingStatus(checks.code.status);
+  const massarBlocksProgress = identifierFieldBlocksProgress(input.massarCode, checks.massarCode);
+  const schoolNumberBlocksProgress = identifierFieldBlocksProgress(
+    input.schoolNumber,
+    checks.schoolNumber,
+  );
+  const codeBlocksProgress = identifierFieldBlocksProgress(input.code, checks.code);
 
   return {
     checks,
@@ -171,7 +180,11 @@ export function useStudentCreateIdentifierChecks(input: {
     massarBlocksProgress,
     schoolNumberBlocksProgress,
     codeBlocksProgress,
-    identifierChecksBlockProgress:
-      massarBlocksProgress || schoolNumberBlocksProgress || codeBlocksProgress,
+    identifierChecksBlockProgress: studentCreateIdentifierChecksBlockProgress({
+      massarCode: input.massarCode,
+      schoolNumber: input.schoolNumber,
+      code: input.code,
+      checks,
+    }),
   };
 }

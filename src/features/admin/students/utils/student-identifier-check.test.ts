@@ -1,8 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
   MIN_STUDENT_IDENTIFIER_CHECK_LENGTH,
+  INITIAL_STUDENT_CREATE_IDENTIFIER_CHECKS,
+  identifierFieldBlocksProgress,
   shouldCheckStudentIdentifier,
+  studentCreateIdentifierChecksBlockProgress,
   studentListHasExactIdentifierMatch,
+  validateStudentCreateIdentifierDuplicateChecks,
 } from './student-identifier-check';
 import type { Student } from '@/types/student';
 
@@ -48,5 +52,79 @@ describe('studentListHasExactIdentifierMatch', () => {
 
   it('matches internal code', () => {
     expect(studentListHasExactIdentifierMatch(students, 'code', 'LIVE_EXT_1781393530')).toBe(true);
+  });
+});
+
+describe('identifierFieldBlocksProgress', () => {
+  it('blocks idle and duplicate for checkable values', () => {
+    expect(identifierFieldBlocksProgress('1234', { status: 'idle' })).toBe(true);
+    expect(identifierFieldBlocksProgress('1234', { status: 'duplicate' })).toBe(true);
+    expect(identifierFieldBlocksProgress('1234', { status: 'available' })).toBe(false);
+    expect(identifierFieldBlocksProgress('12', { status: 'idle' })).toBe(false);
+  });
+});
+
+describe('validateStudentCreateIdentifierDuplicateChecks', () => {
+  const t = (key: string) => key;
+
+  it('rejects duplicate massar using fresh checks snapshot', () => {
+    const result = validateStudentCreateIdentifierDuplicateChecks({
+      checks: {
+        ...INITIAL_STUDENT_CREATE_IDENTIFIER_CHECKS,
+        massarCode: { status: 'duplicate' },
+      },
+      massarCode: 'E258532',
+      schoolNumber: '',
+      code: '',
+      t,
+      current: 'identity',
+    });
+    expect(result.valid).toBe(false);
+    if (!result.valid) {
+      expect(result.errors.massarCode).toBe('admin.student360.errors.duplicateMassar');
+    }
+  });
+
+  it('rejects checkable massar that is still idle', () => {
+    const result = validateStudentCreateIdentifierDuplicateChecks({
+      checks: INITIAL_STUDENT_CREATE_IDENTIFIER_CHECKS,
+      massarCode: 'E258532',
+      schoolNumber: '',
+      code: '',
+      t,
+      current: 'identity',
+    });
+    expect(result.valid).toBe(false);
+  });
+
+  it('allows available massar', () => {
+    const result = validateStudentCreateIdentifierDuplicateChecks({
+      checks: {
+        ...INITIAL_STUDENT_CREATE_IDENTIFIER_CHECKS,
+        massarCode: { status: 'available' },
+      },
+      massarCode: 'E258532',
+      schoolNumber: '',
+      code: '',
+      t,
+      current: 'identity',
+    });
+    expect(result.valid).toBe(true);
+  });
+});
+
+describe('studentCreateIdentifierChecksBlockProgress', () => {
+  it('blocks when any checkable field is not available', () => {
+    expect(
+      studentCreateIdentifierChecksBlockProgress({
+        massarCode: '12345',
+        schoolNumber: '',
+        code: '',
+        checks: {
+          ...INITIAL_STUDENT_CREATE_IDENTIFIER_CHECKS,
+          massarCode: { status: 'idle' },
+        },
+      }),
+    ).toBe(true);
   });
 });

@@ -108,6 +108,12 @@ function optionalNumber(value: string): number | undefined {
   return Number.isFinite(n) ? n : undefined;
 }
 
+function positiveIdFromState(value: string): number | null {
+  const id = optionalNumber(value);
+  if (id == null || id <= 0) return null;
+  return id;
+}
+
 function refLabel(value: Ref | string | null | undefined): string {
   if (!value) return '';
   if (typeof value === 'string') return value;
@@ -405,8 +411,12 @@ export function validateStudentCreateForm(
   }
   if (!trim(state.academicYearId)) {
     errors.academicYearId = t('admin.student360.create.errors.academicYearRequired');
+  } else if (positiveIdFromState(state.academicYearId) == null) {
+    errors.academicYearId = t('admin.student360.create.errors.academicYearRequired');
   }
   if (!trim(state.levelId)) {
+    errors.levelId = t('admin.student360.create.errors.levelRequired');
+  } else if (positiveIdFromState(state.levelId) == null) {
     errors.levelId = t('admin.student360.create.errors.levelRequired');
   }
 
@@ -518,8 +528,8 @@ export function canAttachFinanceToStudentCreatePayload(
   return (
     schoolId != null &&
     schoolId > 0 &&
-    Boolean(trim(state.academicYearId)) &&
-    Boolean(trim(state.levelId)) &&
+    positiveIdFromState(state.academicYearId) != null &&
+    positiveIdFromState(state.levelId) != null &&
     Boolean(trim(state.actualJoinDate))
   );
 }

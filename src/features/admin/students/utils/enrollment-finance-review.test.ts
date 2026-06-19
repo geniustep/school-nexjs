@@ -216,6 +216,32 @@ describe('validateEnrollmentFinanceSave', () => {
       }),
     ).toBe('academic_year_required');
   });
+
+  it('blocks save when customization reason is missing', () => {
+    expect(
+      validateEnrollmentFinanceSave({
+        customizePlan: true,
+        customizationReason: '',
+        previewLoading: false,
+        previewError: null,
+        preview: { final_total: 4300 },
+        academicYearId: '1',
+      }),
+    ).toBe('reason_required');
+  });
+
+  it('allows save when general customization reason is present even if line reasons are empty', () => {
+    expect(
+      validateEnrollmentFinanceSave({
+        customizePlan: true,
+        customizationReason: 'special_discount',
+        previewLoading: false,
+        previewError: null,
+        preview: { final_total: 4300 },
+        academicYearId: '1',
+      }),
+    ).toBe('ok');
+  });
 });
 
 describe('listEnrollmentReviewCustomizationItems reason labels', () => {

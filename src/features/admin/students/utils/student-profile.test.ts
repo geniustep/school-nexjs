@@ -160,6 +160,32 @@ describe('buildStudentCreatePayload', () => {
     expect(payload.finance).toBeUndefined();
     expect(payload.academic).toBeUndefined();
   });
+
+  it('omits finance block when academic year id is not a valid positive number', () => {
+    const suggest: FeePlanSuggestResult = {
+      ok: true,
+      fee_plan_id: 123,
+      fee_plan_name: 'Plan A',
+      suggested_periods: [],
+      excluded_periods: [],
+    };
+    const state = {
+      ...defaultStudentProfileFormState(options),
+      firstName: 'A',
+      lastName: 'B',
+      academicYearId: 'invalid-year',
+      levelId: '77',
+      actualJoinDate: '2026-09-01',
+    };
+    expect(canAttachFinanceToStudentCreatePayload(state, 3)).toBe(false);
+    const payload = buildStudentCreatePayload(state, {
+      suggest,
+      financeState: defaultStudentCreateFinanceFormState(suggest),
+      schoolId: 3,
+    });
+    expect(payload.finance).toBeUndefined();
+    expect(payload.academic).toBeUndefined();
+  });
 });
 
 describe('buildStudentPartialUpdatePayload', () => {

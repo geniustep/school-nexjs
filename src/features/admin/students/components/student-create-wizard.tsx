@@ -20,6 +20,7 @@ import {
 } from '../utils/student-enrollment-cycle';
 import {
   buildStudentCreatePayload,
+  canAttachFinanceToStudentCreatePayload,
   defaultStudentProfileFormState,
   validateStudentCreateForm,
   validateStudentCreateIdentityStep,
@@ -37,7 +38,10 @@ import {
   resolveNoDefaultFeePlanMessage,
 } from '../utils/student-enrollment-finance';
 import { validateEnrollmentFinanceSave } from '../utils/enrollment-finance-review';
-import { shouldCheckStudentIdentifier } from '../utils/student-identifier-check';
+import {
+  resolveStudentCreateIdentifierCheckErrors,
+  validateStudentCreateIdentifierDuplicateChecks,
+} from '../utils/student-identifier-check';
 import {
   StudentCreateAdditionalFields,
   StudentCreateEnrollmentFields,
@@ -305,74 +309,39 @@ export function StudentCreateForm({
     }
   }, [state.cycleId, state.levelId, options?.levels, levelOptionsState.options]);
 
-  function resolveIdentifierCheckFieldErrors(): StudentProfileFieldErrors {
-    const errors: StudentProfileFieldErrors = {};
-    const { checks } = identifierChecksState;
-    if (checks.massarCode.status === 'duplicate') {
-      errors.massarCode = t('admin.student360.errors.duplicateMassar');
-    }
-    if (checks.schoolNumber.status === 'duplicate') {
-      errors.schoolNumber = t('admin.student360.errors.duplicateSchoolNumber');
-    }
-    if (checks.code.status === 'duplicate') {
-      errors.code = t('admin.student360.errors.duplicateStudentCode');
-    }
-    return errors;
+  function resolveIdentifierCheckFieldErrors(
+    checks = identifierChecksState.checks,
+  ): StudentProfileFieldErrors {
+    return resolveStudentCreateIdentifierCheckErrors(checks, t);
   }
 
-  function validateIdentifierDuplicateChecks(current: StudentCreateWizardStep): boolean {
-    const checkErrors = resolveIdentifierCheckFieldErrors();
-    const { checks } = identifierChecksState;
+  function applyIdentifierDuplicateValidation(
+    current: StudentCreateWizardStep,
+    checks = identifierChecksState.checks,
+  ): boolean {
+    const result = validateStudentCreateIdentifierDuplicateChecks({
+      checks,
+      massarCode: state.massarCode,
+      schoolNumber: state.schoolNumber,
+      code: state.code,
+      t,
+      current,
+    });
+    if (result.valid) return true;
 
-    if (checks.massarCode.status === 'checking') {
-      const message = t('admin.student360.create.errors.checkingMassar');
-      setFieldErrors((prev) => ({ ...prev, ...checkErrors, massarCode: message }));
-      toast.error(message);
-      if (current !== 'identity') setStep('identity');
-      focusFirstError({ massarCode: message });
-      return false;
-    }
-    if (checks.massarCode.status === 'error' && shouldCheckStudentIdentifier(state.massarCode)) {
-      const message = t('admin.student360.create.errors.identifierCheckFailed');
-      setFieldErrors((prev) => ({ ...prev, massarCode: message }));
-      toast.error(message);
-      if (current !== 'identity') setStep('identity');
-      focusFirstError({ massarCode: message });
-      return false;
-    }
-    if (checks.massarCode.status === 'duplicate') {
-      const message = checkErrors.massarCode ?? t('admin.student360.errors.duplicateMassar');
-      setFieldErrors((prev) => ({ ...prev, ...checkErrors }));
-      toast.error(message);
-      if (current !== 'identity') setStep('identity');
-      focusFirstError(checkErrors);
-      return false;
-    }
+    setFieldErrors((prev) => ({ ...prev, ...result.errors }));
+    toast.error(result.toastMessage);
+    if (result.focusIdentity && current !== 'identity') setStep('identity');
+    if (result.openAdditional) setAdditionalOpen(true);
+    focusFirstError(result.errors);
+    return false;
+  }
 
-    if (checks.schoolNumber.status === 'duplicate') {
-      setFieldErrors((prev) => ({ ...prev, ...checkErrors }));
-      toast.error(checkErrors.schoolNumber ?? t('admin.student360.errors.duplicateSchoolNumber'));
-      if (current === 'identity') setAdditionalOpen(true);
-      focusFirstError(checkErrors);
-      return false;
-    }
-    if (checks.code.status === 'duplicate') {
-      setFieldErrors((prev) => ({ ...prev, ...checkErrors }));
-      toast.error(checkErrors.code ?? t('admin.student360.errors.duplicateStudentCode'));
-      if (current === 'identity') setAdditionalOpen(true);
-      focusFirstError(checkErrors);
-      return false;
-    }
-
-    if (
-      (checks.schoolNumber.status === 'checking' && shouldCheckStudentIdentifier(state.schoolNumber)) ||
-      (checks.code.status === 'checking' && shouldCheckStudentIdentifier(state.code))
-    ) {
-      toast.error(t('admin.student360.create.errors.identifierCheckFailed'));
-      return false;
-    }
-
-    return true;
+  function validateIdentifierDuplicateChecks(
+    current: StudentCreateWizardStep,
+    checks = identifierChecksState.checks,
+  ): boolean {
+    return applyIdentifierDuplicateValidation(current, checks);
   }
 
   function identityFieldHints() {
@@ -440,7 +409,10 @@ export function StudentCreateForm({
     return true;
   }
 
-  function validateStep(current: StudentCreateWizardStep): boolean {
+  function validateStep(
+    current: StudentCreateWizardStep,
+    identifierChecks = identifierChecksState.checks,
+  ): boolean {
     const identifierValidation = validateStudentCreateIdentifier(state, t);
     if (!identifierValidation.valid) {
       setFieldErrors((prev) => ({ ...prev, ...identifierValidation.errors }));
@@ -454,7 +426,7 @@ export function StudentCreateForm({
       return false;
     }
 
-    if (!validateIdentifierDuplicateChecks(current)) {
+    if (!validateIdentifierDuplicateChecks(current, identifierChecks)) {
       return false;
     }
 
@@ -489,6 +461,17 @@ export function StudentCreateForm({
           return false;
         }
       }
+      if (
+        Boolean(suggestState.suggest) &&
+        !canAttachFinanceToStudentCreatePayload(state, resolvedSchoolId)
+      ) {
+        const message = t('admin.student360.create.errors.academicYearRequiredForFinance');
+        setFieldErrors((prev) => ({ ...prev, academicYearId: message }));
+        toast.error(message);
+        setStep('enrollment');
+        focusFirstError({ academicYearId: message });
+        return false;
+      }
       if (!levelSelected) {
         toast.error(t('admin.student360.create.finance.selectLevelForPlan'));
         return false;
@@ -515,11 +498,11 @@ export function StudentCreateForm({
 
   async function goNext() {
     const current = step;
-    if (!(await identifierChecksState.flushChecks())) {
-      validateIdentifierDuplicateChecks(current);
+    const flushed = await identifierChecksState.flushChecks();
+    if (!applyIdentifierDuplicateValidation(current, flushed.checks)) {
       return;
     }
-    if (!validateStep(current)) return;
+    if (!validateStep(current, flushed.checks)) return;
     const next = STEP_ORDER[stepIndex(current) + 1];
     if (next) setStep(next);
   }
@@ -530,11 +513,26 @@ export function StudentCreateForm({
   }
 
   async function submit(mode: StudentCreateSaveMode) {
-    if (!(await identifierChecksState.flushChecks())) {
-      validateIdentifierDuplicateChecks('review');
+    const flushed = await identifierChecksState.flushChecks();
+    if (!applyIdentifierDuplicateValidation('review', flushed.checks)) {
       return;
     }
-    if (!validateStep('review')) return;
+    if (!validateStep('review', flushed.checks)) return;
+
+    if (
+      suggestState.suggest &&
+      !canAttachFinanceToStudentCreatePayload(state, resolvedSchoolId)
+    ) {
+      const message = t('admin.student360.create.errors.academicYearRequiredForFinance');
+      setFieldErrors((prev) => ({
+        ...prev,
+        academicYearId: message,
+      }));
+      toast.error(message);
+      setStep('enrollment');
+      focusFirstError({ academicYearId: message });
+      return;
+    }
 
     setSaveMode(mode);
     setSaving(true);
@@ -543,6 +541,16 @@ export function StudentCreateForm({
       financeState,
       schoolId: resolvedSchoolId,
     });
+
+    if (payload.finance && payload.academic?.academic_year_id == null) {
+      const message = t('admin.student360.create.errors.academicYearRequiredForFinance');
+      setFieldErrors((prev) => ({ ...prev, academicYearId: message }));
+      toast.error(message);
+      setStep('enrollment');
+      focusFirstError({ academicYearId: message });
+      setSaving(false);
+      return;
+    }
     const res = await api.post(endpoints.admin.students, payload);
     setSaving(false);
 
@@ -569,7 +577,9 @@ export function StudentCreateForm({
   const onLastStep = step === 'review';
   const identifierMissing = !hasStudentCreateIdentifier(state);
   const academicYearMissingForFinance =
-    Boolean(suggestState.suggest) && !state.academicYearId.trim();
+    levelSelected &&
+    Boolean(suggestState.suggest) &&
+    !canAttachFinanceToStudentCreatePayload(state, resolvedSchoolId);
 
   const massarDuplicate =
     identifierChecksState.checks.massarCode.status === 'duplicate' ||
