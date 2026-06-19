@@ -3022,7 +3022,8 @@
           "cycleRequired": "El ciclo es obligatorio.",
           "levelRequired": "El nivel es obligatorio.",
           "massarNoSpaces": "El número Massar no debe contener espacios.",
-          "studentIdentifierRequired": "Introduzca un número Massar, matrícula o código interno del alumno."
+          "studentIdentifierRequired": "Introduzca un número Massar, matrícula o código interno del alumno.",
+          "academicYearRequiredForFinance": "Seleccione un año académico antes de guardar el plan financiero."
         },
         "stepperAria": "Pasos de creación del alumno",
         "steps": {
@@ -3106,8 +3107,11 @@
             "invalidPeriod": "Periodo fuera de la temporada sugerida."
           },
           "customizationReason": "Motivo de personalización",
+          "customizationReasonHint": "Este motivo se aplica a todos los descuentos y ajustes. Puede definir un motivo específico por línea si hace falta.",
           "customizationNotes": "Notas",
-          "reasonRequired": "Seleccione un motivo de personalización.",
+          "reasonRequired": "Seleccione un motivo de personalización antes de continuar.",
+          "lineDiscountSpecificReason": "Motivo específico de este descuento",
+          "inheritGeneralReason": "Igual que el motivo general",
           "planChangeWarning": "Cambió la matrícula académica. El plan sugerido se actualizará y pueden perderse personalizaciones no guardadas.",
           "month": "Mes",
           "include": "Incluir",
@@ -3119,6 +3123,8 @@
             "scholarship": "Beca",
             "special_discount": "Descuento especial",
             "family_agreement": "Acuerdo familiar",
+            "staff_child": "Hijo/a de empleado",
+            "sibling_discount": "Descuento por hermanos",
             "expected_withdrawal": "Retiro previsto",
             "manual_adjustment": "Ajuste manual",
             "other": "Otro"
@@ -3135,6 +3141,7 @@
           "expectedMonthlyInstallment": "Cuota mensual esperada",
           "reviewFinanceBeforeSave": "Revise la personalización del plan financiero antes de guardar.",
           "missingStudentIdentifier": "No se puede guardar: falta el identificador del alumno.",
+          "missingAcademicYearForFinance": "No se puede guardar: seleccione un año académico antes de guardar el plan financiero.",
           "planType": "Tipo de plan",
           "planOriginal": "Original",
           "planCustomized": "Personalizado",

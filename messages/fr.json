@@ -3022,7 +3022,8 @@
           "cycleRequired": "Le cycle est obligatoire.",
           "levelRequired": "Le niveau est obligatoire.",
           "massarNoSpaces": "Le numéro Massar ne doit pas contenir d'espaces.",
-          "studentIdentifierRequired": "Saisissez un numéro Massar, un matricule ou un code interne pour l'élève."
+          "studentIdentifierRequired": "Saisissez un numéro Massar, un matricule ou un code interne pour l'élève.",
+          "academicYearRequiredForFinance": "Sélectionnez une année scolaire avant d'enregistrer le plan financier."
         },
         "stepperAria": "Étapes de création de l'élève",
         "steps": {
@@ -3106,8 +3107,11 @@
             "invalidPeriod": "Période hors de la saison proposée."
           },
           "customizationReason": "Motif de personnalisation",
+          "customizationReasonHint": "Ce motif s'applique à toutes les remises et ajustements. Vous pouvez définir un motif spécifique par ligne si nécessaire.",
           "customizationNotes": "Notes",
-          "reasonRequired": "Sélectionnez un motif de personnalisation.",
+          "reasonRequired": "Sélectionnez un motif de personnalisation avant de continuer.",
+          "lineDiscountSpecificReason": "Motif spécifique à cette remise",
+          "inheritGeneralReason": "Identique au motif général",
           "planChangeWarning": "L'inscription académique a changé. Le plan suggéré sera mis à jour et les personnalisations non enregistrées peuvent être perdues.",
           "month": "Mois",
           "include": "Inclure",
@@ -3119,6 +3123,8 @@
             "scholarship": "Bourse",
             "special_discount": "Remise spéciale",
             "family_agreement": "Accord familial",
+            "staff_child": "Enfant du personnel",
+            "sibling_discount": "Remise fratrie",
             "expected_withdrawal": "Départ prévu",
             "manual_adjustment": "Ajustement manuel",
             "other": "Autre"
@@ -3135,6 +3141,7 @@
           "expectedMonthlyInstallment": "Échéance mensuelle attendue",
           "reviewFinanceBeforeSave": "Veuillez vérifier la personnalisation du plan financier avant l'enregistrement.",
           "missingStudentIdentifier": "Enregistrement impossible : identifiant de l'élève manquant.",
+          "missingAcademicYearForFinance": "Enregistrement impossible : sélectionnez une année scolaire avant d'enregistrer le plan financier.",
           "planType": "Type de plan",
           "planOriginal": "Original",
           "planCustomized": "Personnalisé",

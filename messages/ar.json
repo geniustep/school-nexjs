@@ -3049,7 +3049,8 @@
           "cycleRequired": "السلك مطلوب.",
           "levelRequired": "المستوى مطلوب.",
           "massarNoSpaces": "رقم مسار لا يجب أن يحتوي على مسافات.",
-          "studentIdentifierRequired": "يجب إدخال رقم مسار أو رقم التسجيل أو رمز داخلي للتلميذ."
+          "studentIdentifierRequired": "يجب إدخال رقم مسار أو رقم التسجيل أو رمز داخلي للتلميذ.",
+          "academicYearRequiredForFinance": "يجب اختيار السنة الدراسية قبل حفظ الخطة المالية."
         },
         "stepperAria": "خطوات إنشاء التلميذ",
         "steps": {
@@ -3133,8 +3134,11 @@
             "invalidPeriod": "شهر خارج الموسم المقترح."
           },
           "customizationReason": "سبب التخصيص",
+          "customizationReasonHint": "سيُطبّق هذا السبب على جميع الخصومات والتعديلات، ويمكن تحديد سبب خاص لبند معيّن عند الحاجة.",
           "customizationNotes": "ملاحظات التخصيص",
-          "reasonRequired": "اختر سبب التخصيص.",
+          "reasonRequired": "اختر سبب التخصيص قبل المتابعة.",
+          "lineDiscountSpecificReason": "سبب خاص لهذا الخصم",
+          "inheritGeneralReason": "نفس سبب التخصيص العام",
           "planChangeWarning": "تم تغيير بيانات التسجيل الأكاديمي. سيتم تحديث الخطة المالية المقترحة، وقد تُفقد التخصيصات غير المحفوظة.",
           "month": "الشهر",
           "include": "مشمول",
@@ -3146,6 +3150,8 @@
             "scholarship": "منحة",
             "special_discount": "تخفيض خاص",
             "family_agreement": "اتفاق عائلي",
+            "staff_child": "ابن/ابنة موظف",
+            "sibling_discount": "خصم الإخوة",
             "expected_withdrawal": "انسحاب متوقع",
             "manual_adjustment": "تعديل يدوي",
             "other": "أخرى"
@@ -3162,6 +3168,7 @@
           "expectedMonthlyInstallment": "القسط الشهري المتوقع",
           "reviewFinanceBeforeSave": "يرجى مراجعة تخصيص الخطة المالية قبل الحفظ.",
           "missingStudentIdentifier": "لا يمكن الحفظ: معرّف التلميذ ناقص.",
+          "missingAcademicYearForFinance": "لا يمكن الحفظ: يجب اختيار السنة الدراسية قبل حفظ الخطة المالية.",
           "planType": "نوع الخطة",
           "planOriginal": "أصلية",
           "planCustomized": "مخصصة",

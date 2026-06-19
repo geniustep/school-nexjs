@@ -1,5 +1,6 @@
 import type { Ref } from '@/types/api';
 import type {
+  StudentCreateAcademicBlock,
   StudentCreatePayload,
   StudentEnrollment,
   StudentEnrollmentBlock,
@@ -510,11 +511,45 @@ function applyEmergencyFields(payload: StudentCreatePayload, state: StudentProfi
   if (notes) payload.emergency_notes = notes;
 }
 
+export function canAttachFinanceToStudentCreatePayload(
+  state: StudentProfileFormState,
+  schoolId: number | null | undefined,
+): boolean {
+  return (
+    schoolId != null &&
+    schoolId > 0 &&
+    Boolean(trim(state.academicYearId)) &&
+    Boolean(trim(state.levelId)) &&
+    Boolean(trim(state.actualJoinDate))
+  );
+}
+
+export function buildStudentCreateAcademicBlock(
+  state: StudentProfileFormState,
+  schoolId: number,
+): StudentCreateAcademicBlock | null {
+  const academicYearId = optionalNumber(state.academicYearId);
+  const levelId = optionalNumber(state.levelId);
+  const enrollmentDate = optionalString(state.actualJoinDate);
+  if (academicYearId == null || levelId == null || !enrollmentDate) return null;
+
+  const block: StudentCreateAcademicBlock = {
+    school_id: schoolId,
+    academic_year_id: academicYearId,
+    level_id: levelId,
+    enrollment_date: enrollmentDate,
+  };
+  const classId = optionalNumber(state.classId);
+  if (classId != null) block.class_id = classId;
+  return block;
+}
+
 export function buildStudentCreatePayload(
   state: StudentProfileFormState,
   finance?: {
     suggest: FeePlanSuggestResult | null;
     financeState: StudentCreateFinanceFormState;
+    schoolId?: number | null;
   } | null,
 ): StudentCreatePayload {
   const payload: StudentCreatePayload = {
@@ -528,8 +563,12 @@ export function buildStudentCreatePayload(
   if (classId != null) payload.class_id = classId;
   const enrollment = buildEnrollmentBlock(state);
   if (enrollment) payload.enrollment = enrollment;
-  if (finance?.suggest) {
-    payload.finance = buildStudentCreateFinancePayload(finance.suggest, finance.financeState);
+  if (finance?.suggest && canAttachFinanceToStudentCreatePayload(state, finance.schoolId)) {
+    const academic = buildStudentCreateAcademicBlock(state, finance.schoolId as number);
+    if (academic) {
+      payload.academic = academic;
+      payload.finance = buildStudentCreateFinancePayload(finance.suggest, finance.financeState);
+    }
   }
   return payload;
 }

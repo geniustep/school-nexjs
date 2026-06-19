@@ -23,12 +23,12 @@ function DiscountFields({
   label,
   value,
   onChange,
-  showReason = true,
+  reasonMode = 'hidden',
 }: {
   label: string;
   value: StudentCreateFinanceFormState['planDiscount'];
   onChange: (patch: Partial<StudentCreateFinanceFormState['planDiscount']>) => void;
-  showReason?: boolean;
+  reasonMode?: 'hidden' | 'line-specific';
 }) {
   const t = useT();
   return (
@@ -68,9 +68,9 @@ function DiscountFields({
               onChange={(e) => onChange({ value: e.target.value })}
             />
           </label>
-          {showReason ? (
+          {reasonMode === 'line-specific' ? (
             <label className="student-create-field">
-              <span className="tiny muted">{t('admin.student360.create.finance.discountReason')}</span>
+              <span className="tiny muted">{t('admin.student360.create.finance.lineDiscountSpecificReason')}</span>
               <select
                 className="input"
                 value={value.reason}
@@ -80,7 +80,7 @@ function DiscountFields({
                   })
                 }
               >
-                <option value="">{t('common.dash')}</option>
+                <option value="">{t('admin.student360.create.finance.inheritGeneralReason')}</option>
                 {financeCustomizationReasonOptions().map((reason) => (
                   <option key={reason} value={reason}>
                     {t(`admin.student360.create.finance.reasons.${reason}`)}
@@ -341,6 +341,7 @@ export function StudentCreateFinanceCustomization({
             </option>
           ))}
         </select>
+        <span className="tiny muted">{t('admin.student360.create.finance.customizationReasonHint')}</span>
       </label>
 
       {allowNotes ? (
@@ -383,6 +384,7 @@ export function StudentCreateFinanceCustomization({
                 key={line.line_id}
                 label={`${line.fee_type_name}${amount != null ? ` — ${formatFinanceCurrency(amount, suggest.currency, locale)}` : ''}`}
                 value={discount}
+                reasonMode="line-specific"
                 onChange={(patch) =>
                   onFinanceChange({
                     lineDiscounts: {

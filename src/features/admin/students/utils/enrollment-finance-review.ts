@@ -3,11 +3,12 @@ import type {
   FeePlanSuggestResult,
   StudentCreateFinanceFormState,
 } from '@/types/student-enrollment-finance';
-import { financialSummaryRows } from './enrollment-finance-payload';
+import { financialSummaryRows, resolveDiscountReason } from './enrollment-finance-payload';
 
 export type EnrollmentFinanceSaveBlockReason =
   | 'ok'
   | 'reason_required'
+  | 'academic_year_required'
   | 'preview_loading'
   | 'preview_error'
   | 'preview_incomplete';
@@ -64,25 +65,29 @@ function discountLabel(
   value: string,
   reason: string,
   lineLabel?: string,
+  formatReason?: (reason: string) => string,
 ): string {
   const valueText = type === 'percent' ? `${value}%` : value;
   const target = lineLabel ? `${lineLabel} — ` : '';
-  return `${target}${valueText} (${reason})`;
+  const reasonText = formatReason ? formatReason(reason) : reason;
+  return `${target}${valueText} (${reasonText})`;
 }
 
 export function listEnrollmentReviewCustomizationItems(
   suggest: FeePlanSuggestResult,
   financeState: StudentCreateFinanceFormState,
+  formatReason?: (reason: string) => string,
 ): EnrollmentReviewCustomizationItem[] {
   const items: EnrollmentReviewCustomizationItem[] = [];
+  const generalReason = financeState.customizationReason;
 
   if (financeState.planDiscount.enabled && financeState.planDiscount.type) {
     const value = financeState.planDiscount.value.trim();
-    const reason = financeState.planDiscount.reason;
+    const reason = resolveDiscountReason(financeState.planDiscount.reason, generalReason);
     if (value && reason) {
       items.push({
         kind: 'plan_discount',
-        label: discountLabel(financeState.planDiscount.type, value, reason),
+        label: discountLabel(financeState.planDiscount.type, value, reason, undefined, formatReason),
       });
     }
   }
@@ -90,11 +95,11 @@ export function listEnrollmentReviewCustomizationItems(
   for (const [lineId, discount] of Object.entries(financeState.lineDiscounts)) {
     if (!discount.enabled || !discount.type) continue;
     const value = discount.value.trim();
-    const reason = discount.reason;
+    const reason = resolveDiscountReason(discount.reason, generalReason);
     if (!value || !reason) continue;
     items.push({
       kind: 'line_discount',
-      label: discountLabel(discount.type, value, reason, lineName(suggest, Number(lineId))),
+      label: discountLabel(discount.type, value, reason, lineName(suggest, Number(lineId)), formatReason),
     });
   }
 
@@ -141,6 +146,7 @@ export function buildEnrollmentFinanceReviewModel(
   suggest: FeePlanSuggestResult,
   financeState: StudentCreateFinanceFormState,
   preview: EnrollmentPlanPreviewResult | null,
+  formatReason?: (reason: string) => string,
 ): EnrollmentFinanceReviewModel {
   const planLines = suggest.plan_lines ?? [];
   const customized = financeState.customizePlan;
@@ -174,7 +180,7 @@ export function buildEnrollmentFinanceReviewModel(
     finalTotal,
     monthlyInstallment,
     customizationItems: customized
-      ? listEnrollmentReviewCustomizationItems(suggest, financeState)
+      ? listEnrollmentReviewCustomizationItems(suggest, financeState, formatReason)
       : [],
   };
 }
@@ -198,7 +204,13 @@ export function validateEnrollmentFinanceSave(input: {
   previewLoading: boolean;
   previewError: string | null;
   preview: EnrollmentPlanPreviewResult | null;
+  academicYearId?: string;
+  hasFinanceBlock?: boolean;
 }): EnrollmentFinanceSaveBlockReason {
+  const financeActive = input.hasFinanceBlock ?? true;
+  if (financeActive && !input.academicYearId?.trim()) {
+    return 'academic_year_required';
+  }
   if (!input.customizePlan) return 'ok';
   if (!input.customizationReason.trim()) return 'reason_required';
   if (input.previewLoading) return 'preview_loading';

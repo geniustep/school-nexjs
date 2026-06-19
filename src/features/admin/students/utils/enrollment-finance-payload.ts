@@ -114,19 +114,41 @@ function parseOptionalAmount(value: string): number | null | undefined {
   return Number.isFinite(n) ? n : undefined;
 }
 
+export function resolveDiscountReason(
+  lineReason: string | undefined,
+  customizationReason: string,
+): string {
+  const specific = lineReason?.trim();
+  if (specific) return specific;
+  return customizationReason.trim();
+}
+
+export function formatCustomizationReason(
+  reason: string | null | undefined,
+  t: (key: string) => string,
+): string {
+  const key = reason?.trim();
+  if (!key) return '';
+  const i18nKey = `admin.student360.create.finance.reasons.${key}`;
+  const translated = t(i18nKey);
+  return translated !== i18nKey ? translated : key.replace(/_/g, ' ');
+}
+
 function buildDiscountPayloads(
   financeState: StudentCreateFinanceFormState,
 ): StudentCreateFinanceDiscountPayload[] {
   const discounts: StudentCreateFinanceDiscountPayload[] = [];
+  const generalReason = financeState.customizationReason.trim();
 
   if (financeState.planDiscount.enabled && financeState.planDiscount.type) {
     const value = parseOptionalAmount(financeState.planDiscount.value);
-    if (value != null && financeState.planDiscount.reason) {
+    const reason = resolveDiscountReason(financeState.planDiscount.reason, generalReason);
+    if (value != null && reason) {
       discounts.push({
         scope: 'plan',
         type: financeState.planDiscount.type,
         value,
-        reason: financeState.planDiscount.reason,
+        reason: reason as FeePlanCustomizationReason,
       });
     }
   }
@@ -134,13 +156,15 @@ function buildDiscountPayloads(
   for (const [lineId, discount] of Object.entries(financeState.lineDiscounts)) {
     if (!discount.enabled || !discount.type) continue;
     const value = parseOptionalAmount(discount.value);
-    if (value == null || !discount.reason) continue;
+    if (value == null) continue;
+    const reason = resolveDiscountReason(discount.reason, generalReason);
+    if (!reason) continue;
     discounts.push({
       scope: 'line',
       line_id: Number(lineId),
       type: discount.type,
       value,
-      reason: discount.reason,
+      reason: reason as FeePlanCustomizationReason,
     });
   }
 

@@ -5,6 +5,7 @@ import { useFormat } from '@/features/i18n/use-format';
 import { buildFullNamePreview, hasStudentCreateIdentifier } from '../utils/student-profile';
 import { formatFinanceCurrency } from '../utils/student-finance-format';
 import { buildEnrollmentFinanceReviewModel, enrollmentFinancePreviewStatus } from '../utils/enrollment-finance-review';
+import { formatCustomizationReason } from '../utils/student-enrollment-finance';
 import { selectedFinancePeriods } from '../utils/student-enrollment-finance';
 import type {
   EnrollmentPlanPreviewResult,
@@ -47,8 +48,9 @@ export function StudentCreateReviewSection({
   const { formatDate } = useFormat();
   const fullName = buildFullNamePreview(profileState.firstName, profileState.lastName);
   const identifierMissing = !hasStudentCreateIdentifier(profileState);
+  const formatReason = (reason: string) => formatCustomizationReason(reason, t);
   const financeReview =
-    suggest != null ? buildEnrollmentFinanceReviewModel(suggest, financeState, preview) : null;
+    suggest != null ? buildEnrollmentFinanceReviewModel(suggest, financeState, preview, formatReason) : null;
   const previewStatus = enrollmentFinancePreviewStatus({
     customizePlan: financeState.customizePlan,
     previewLoading: previewLoading ?? false,
@@ -69,6 +71,11 @@ export function StudentCreateReviewSection({
       {identifierMissing ? (
         <p className="student-create-finance-preview__error" role="alert">
           {t('admin.student360.create.review.missingStudentIdentifier')}
+        </p>
+      ) : null}
+      {!identifierMissing && !profileState.academicYearId.trim() && suggest ? (
+        <p className="student-create-finance-preview__error" role="alert">
+          {t('admin.student360.create.review.missingAcademicYearForFinance')}
         </p>
       ) : null}
 
@@ -125,7 +132,7 @@ export function StudentCreateReviewSection({
                   <div className="student-create-review__row">
                     <dt>{t('admin.student360.create.finance.customizationReason')}</dt>
                     <dd>
-                      {t(`admin.student360.create.finance.reasons.${financeReview.customizationReason}`)}
+                      {formatCustomizationReason(financeReview.customizationReason, t)}
                     </dd>
                   </div>
                 ) : null}

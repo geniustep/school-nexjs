@@ -19,6 +19,26 @@ function isMissingStudentIdentifierMessage(message: string): boolean {
   );
 }
 
+function isMissingAcademicYearForFinanceMessage(message: string): boolean {
+  const lower = message.toLowerCase();
+  return (
+    lower.includes('academic.academic_year_id is required when finance block is provided') ||
+    (lower.includes('academic_year_id') && lower.includes('finance'))
+  );
+}
+
+function mapMissingAcademicYearForFinanceError(
+  t: (key: string) => string,
+): StudentApiErrorContext {
+  const message = t('admin.student360.create.errors.academicYearRequiredForFinance');
+  return {
+    message,
+    fieldErrors: {
+      academicYearId: message,
+    },
+  };
+}
+
 function mapMissingStudentIdentifierError(
   t: (key: string) => string,
 ): StudentApiErrorContext {
@@ -78,6 +98,9 @@ export function mapStudentApiError(
       if (isMissingStudentIdentifierMessage(message)) {
         return mapMissingStudentIdentifierError(t);
       }
+      if (isMissingAcademicYearForFinanceMessage(message)) {
+        return mapMissingAcademicYearForFinanceError(t);
+      }
       if (msgIncludes(message, 'class', 'school', 'مؤسسة', 'قسم', 'scope', 'نطاق', 'outside')) {
         fieldErrors.classId = t('admin.studentClassForbidden');
         return { message: t('admin.studentClassForbidden'), fieldErrors };
@@ -96,6 +119,9 @@ export function mapStudentApiError(
     default:
       if (isMissingStudentIdentifierMessage(message)) {
         return mapMissingStudentIdentifierError(t);
+      }
+      if (isMissingAcademicYearForFinanceMessage(message)) {
+        return mapMissingAcademicYearForFinanceError(t);
       }
       if (message && !msgIncludes(message, '<', 'traceback', 'html')) {
         return { message };

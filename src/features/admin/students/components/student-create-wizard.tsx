@@ -310,6 +310,9 @@ export function StudentCreateForm({
   ): string | null {
     if (reason === 'ok') return null;
     if (reason === 'reason_required') return t('admin.student360.create.finance.reasonRequired');
+    if (reason === 'academic_year_required') {
+      return t('admin.student360.create.errors.academicYearRequiredForFinance');
+    }
     return t('admin.student360.create.review.reviewFinanceBeforeSave');
   }
 
@@ -320,11 +323,17 @@ export function StudentCreateForm({
       previewLoading: previewState.loading,
       previewError: previewState.error,
       preview: previewState.preview,
+      academicYearId: state.academicYearId,
+      hasFinanceBlock: Boolean(suggestState.suggest),
     });
     const message = financeSaveValidationMessage(saveCheck);
     if (message) {
       setFinanceError(message);
       toast.error(message);
+      if (saveCheck === 'academic_year_required') {
+        setStep('enrollment');
+        focusFirstError({ academicYearId: message });
+      }
       return false;
     }
     return true;
@@ -419,6 +428,7 @@ export function StudentCreateForm({
     const payload = buildStudentCreatePayload(state, {
       suggest: suggestState.suggest,
       financeState,
+      schoolId: resolvedSchoolId,
     });
     const res = await api.post(endpoints.admin.students, payload);
     setSaving(false);
@@ -445,6 +455,8 @@ export function StudentCreateForm({
 
   const onLastStep = step === 'review';
   const identifierMissing = !hasStudentCreateIdentifier(state);
+  const academicYearMissingForFinance =
+    Boolean(suggestState.suggest) && !state.academicYearId.trim();
 
   return (
     <form ref={formRef} className="student-create-form" onSubmit={(e) => e.preventDefault()}>
@@ -583,7 +595,7 @@ export function StudentCreateForm({
             <button
               type="button"
               className="btn btn--primary"
-              disabled={saving || financeBlocked || identifierMissing}
+              disabled={saving || financeBlocked || identifierMissing || academicYearMissingForFinance}
               onClick={() => submit('setup')}
             >
               {saving && saveMode === 'setup'
@@ -593,7 +605,7 @@ export function StudentCreateForm({
             <button
               type="button"
               className="btn btn--secondary"
-              disabled={saving || financeBlocked || identifierMissing}
+              disabled={saving || financeBlocked || identifierMissing || academicYearMissingForFinance}
               onClick={() => submit('list')}
             >
               {saving && saveMode === 'list'

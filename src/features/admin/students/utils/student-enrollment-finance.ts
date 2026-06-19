@@ -18,6 +18,8 @@ export {
   enrollmentPlanLinePricingModeKey,
   financialSummaryRows,
   financeCustomizationReasonOptions,
+  formatCustomizationReason,
+  resolveDiscountReason,
 } from './enrollment-finance-payload';
 
 export function canRequestFeePlanSuggest(input: {
@@ -288,7 +290,16 @@ export function mapEnrollmentPreviewErrorMessage(
   if (!error) return t('admin.student360.create.finance.previewError');
   const message = error.message?.trim();
   if (message) {
-    if (/reason/i.test(message)) return t('admin.student360.create.finance.errors.discountReasonRequired');
+    const lower = message.toLowerCase();
+    if (lower.includes('academic_year')) {
+      return t('admin.student360.create.errors.academicYearRequiredForFinance');
+    }
+    if (/customization.?reason|customize.?reason/i.test(message)) {
+      return t('admin.student360.create.finance.reasonRequired');
+    }
+    if (/discount.*reason|reason.*discount/i.test(message)) {
+      return t('admin.student360.create.finance.reasonRequired');
+    }
     if (/percent/i.test(message) || /> *100/i.test(message)) {
       return t('admin.student360.create.finance.errors.percentTooHigh');
     }

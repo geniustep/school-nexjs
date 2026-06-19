@@ -296,6 +296,14 @@ export interface StudentEnrollmentBlock {
 
 import type { StudentCreateFinancePayload } from '@/types/student-enrollment-finance';
 
+export interface StudentCreateAcademicBlock {
+  school_id: number;
+  academic_year_id: number;
+  level_id: number;
+  class_id?: number;
+  enrollment_date: string;
+}
+
 export interface StudentCreatePayload {
   first_name: string;
   last_name: string;
@@ -325,6 +333,7 @@ export interface StudentCreatePayload {
   emergency_notes?: string;
   class_id?: number;
   enrollment?: StudentEnrollmentBlock;
+  academic?: StudentCreateAcademicBlock;
   finance?: StudentCreateFinancePayload;
 }
 

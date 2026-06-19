@@ -159,6 +159,7 @@ describe('validateEnrollmentFinanceSave', () => {
         previewLoading: false,
         previewError: 'reason required',
         preview: null,
+        academicYearId: '1',
       }),
     ).toBe('preview_error');
   });
@@ -171,11 +172,12 @@ describe('validateEnrollmentFinanceSave', () => {
         previewLoading: true,
         previewError: null,
         preview: null,
+        academicYearId: '1',
       }),
     ).toBe('preview_loading');
   });
 
-  it('allows save without customization', () => {
+  it('allows save without customization when academic year is present', () => {
     expect(
       validateEnrollmentFinanceSave({
         customizePlan: false,
@@ -183,6 +185,7 @@ describe('validateEnrollmentFinanceSave', () => {
         previewLoading: false,
         previewError: null,
         preview: null,
+        academicYearId: '1',
       }),
     ).toBe('ok');
   });
@@ -195,8 +198,49 @@ describe('validateEnrollmentFinanceSave', () => {
         previewLoading: false,
         previewError: null,
         preview: null,
+        academicYearId: '1',
       }),
     ).toBe('preview_incomplete');
+  });
+
+  it('blocks save when academic year is missing for finance', () => {
+    expect(
+      validateEnrollmentFinanceSave({
+        customizePlan: false,
+        customizationReason: '',
+        previewLoading: false,
+        previewError: null,
+        preview: null,
+        academicYearId: '',
+        hasFinanceBlock: true,
+      }),
+    ).toBe('academic_year_required');
+  });
+});
+
+describe('listEnrollmentReviewCustomizationItems reason labels', () => {
+  it('lists line discounts using inherited general reason', () => {
+    const financeState: StudentCreateFinanceFormState = {
+      ...defaultStudentCreateFinanceFormState(suggest),
+      customizePlan: true,
+      customizationReason: 'special_discount',
+      lineDiscounts: {
+        ...defaultStudentCreateFinanceFormState(suggest).lineDiscounts,
+        '2904': {
+          enabled: true,
+          type: 'percent' as const,
+          value: '50',
+          reason: '',
+        },
+      },
+    };
+    const formatReason = (reason: string) =>
+      reason === 'special_discount' ? 'تخفيض خاص' : reason;
+    const items = listEnrollmentReviewCustomizationItems(suggest, financeState, formatReason);
+    expect(items.some((item) => item.kind === 'line_discount' && item.label.includes('تخفيض خاص'))).toBe(
+      true,
+    );
+    expect(items.some((item) => item.label.includes('special_discount'))).toBe(false);
   });
 });
 

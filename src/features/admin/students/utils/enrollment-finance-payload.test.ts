@@ -5,6 +5,8 @@ import {
   enrollmentPlanLineAmountParts,
   enrollmentPlanLinePricingModeKey,
   financialSummaryRows,
+  formatCustomizationReason,
+  resolveDiscountReason,
 } from './enrollment-finance-payload';
 import type {
   EnrollmentPlanLine,
@@ -131,6 +133,56 @@ describe('buildStudentCreateFinancePayload', () => {
         { period_key: '2026-10', selected: true, amount_override: null, due_date_override: null },
       ],
     });
+  });
+
+  it('inherits general customization reason for line discounts without line-specific reason', () => {
+    const payload = buildStudentCreateFinancePayload(2461, periods, {
+      ...baseState,
+      lineDiscounts: {
+        '2904': {
+          enabled: true,
+          type: 'percent',
+          value: '50',
+          reason: '',
+        },
+      },
+    });
+    expect(payload.discounts).toEqual([
+      {
+        scope: 'line',
+        line_id: 2904,
+        type: 'percent',
+        value: 50,
+        reason: 'scholarship',
+      },
+    ]);
+  });
+
+  it('prefers line-specific discount reason when provided', () => {
+    expect(
+      resolveDiscountReason('family_agreement', 'special_discount'),
+    ).toBe('family_agreement');
+    const payload = buildStudentCreateFinancePayload(2461, periods, {
+      ...baseState,
+      customizationReason: 'special_discount',
+      lineDiscounts: {
+        '2904': {
+          enabled: true,
+          type: 'percent',
+          value: '50',
+          reason: 'family_agreement',
+        },
+      },
+    });
+    expect(payload.discounts?.[0]?.reason).toBe('family_agreement');
+  });
+
+  it('formats customization reason keys for display', () => {
+    const t = (key: string) =>
+      key === 'admin.student360.create.finance.reasons.special_discount'
+        ? 'تخفيض خاص'
+        : key;
+    expect(formatCustomizationReason('special_discount', t)).toBe('تخفيض خاص');
   });
 
   it('includes fixed_amount discount on registration line', () => {

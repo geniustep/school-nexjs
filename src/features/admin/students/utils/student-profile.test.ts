@@ -3,6 +3,7 @@ import {
   buildStudentCreatePayload,
   buildStudentPartialUpdatePayload,
   buildFullNamePreview,
+  canAttachFinanceToStudentCreatePayload,
   defaultStudentProfileFormState,
   hasStudentCreateIdentifier,
   localizeStudentGenderOptions,
@@ -114,12 +115,50 @@ describe('buildStudentCreatePayload', () => {
       ...defaultStudentProfileFormState(options),
       firstName: 'A',
       lastName: 'B',
+      academicYearId: '1',
+      levelId: '77',
+      actualJoinDate: '2026-09-01',
+      classId: '2053',
     };
     const payload = buildStudentCreatePayload(state, {
       suggest,
       financeState: defaultStudentCreateFinanceFormState(suggest),
+      schoolId: 3,
     });
     expect(payload.finance).toEqual({ fee_plan_id: 123, customize_plan: false });
+    expect(payload.academic).toEqual({
+      school_id: 3,
+      academic_year_id: 1,
+      level_id: 77,
+      class_id: 2053,
+      enrollment_date: '2026-09-01',
+    });
+  });
+
+  it('omits finance block when academic year is missing', () => {
+    const suggest: FeePlanSuggestResult = {
+      ok: true,
+      fee_plan_id: 123,
+      fee_plan_name: 'Plan A',
+      suggested_periods: [],
+      excluded_periods: [],
+    };
+    const state = {
+      ...defaultStudentProfileFormState(options),
+      firstName: 'A',
+      lastName: 'B',
+      academicYearId: '',
+      levelId: '77',
+      actualJoinDate: '2026-09-01',
+    };
+    expect(canAttachFinanceToStudentCreatePayload(state, 3)).toBe(false);
+    const payload = buildStudentCreatePayload(state, {
+      suggest,
+      financeState: defaultStudentCreateFinanceFormState(suggest),
+      schoolId: 3,
+    });
+    expect(payload.finance).toBeUndefined();
+    expect(payload.academic).toBeUndefined();
   });
 });
 

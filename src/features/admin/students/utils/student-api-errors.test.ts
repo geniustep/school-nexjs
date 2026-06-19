@@ -34,4 +34,20 @@ describe('mapStudentApiError', () => {
     expect(mapped.message).not.toContain('massar_code');
     expect(mapped.message).not.toContain('matricule');
   });
+
+  it('translates missing academic year for finance backend message', () => {
+    const mapped = mapStudentApiError(
+      {
+        code: 'validation_error',
+        message: 'academic.academic_year_id is required when finance block is provided',
+      },
+      (key) =>
+        key === 'admin.student360.create.errors.academicYearRequiredForFinance'
+          ? 'يجب اختيار السنة الدراسية قبل حفظ الخطة المالية.'
+          : key,
+    );
+    expect(mapped.message).toBe('يجب اختيار السنة الدراسية قبل حفظ الخطة المالية.');
+    expect(mapped.message).not.toContain('academic_year_id');
+    expect(mapped.fieldErrors?.academicYearId).toBe(mapped.message);
+  });
 });

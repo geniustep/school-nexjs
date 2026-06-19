@@ -101,7 +101,7 @@ describe('buildEnrollmentPlanPreviewBody', () => {
           enabled: true,
           type: 'percent',
           value: '10',
-          reason: 'scholarship',
+          reason: '',
         },
       },
     };
