@@ -3127,14 +3127,30 @@
           "student": "Élève",
           "enrollmentDate": "Date d'inscription",
           "billingPartner": "Tiers facturé",
+          "financeSectionTitle": "Plan financier",
           "financePlan": "Plan de frais",
+          "selectedPlan": "Plan sélectionné",
+          "expectedMonthlyInstallment": "Échéance mensuelle attendue",
+          "reviewFinanceBeforeSave": "Veuillez vérifier la personnalisation du plan financier avant l'enregistrement.",
           "planType": "Type de plan",
           "planOriginal": "Original",
           "planCustomized": "Personnalisé",
           "installmentCount": "Nombre d'échéances",
           "firstInstallment": "Première échéance",
           "lastInstallment": "Dernière échéance",
-          "totalDue": "Total dû"
+          "totalDue": "Total dû",
+          "customization": {
+            "enabled": "Personnalisation",
+            "disabled": "Non",
+            "asIs": "Le plan sera appliqué tel quel",
+            "itemsTitle": "Remises et ajustements",
+            "planDiscount": "Remise globale — {detail}",
+            "lineDiscount": "Remise sur ligne — {detail}",
+            "oneTimeExcluded": "Frais unique exclu — {name}",
+            "oneTimeModified": "Frais unique modifié — {detail}",
+            "periodExcluded": "Mois exclu — {name}",
+            "periodModified": "Mois modifié — {detail}"
+          }
         }
       },
       "setup": {

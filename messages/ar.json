@@ -3154,14 +3154,30 @@
           "student": "التلميذ",
           "enrollmentDate": "تاريخ الالتحاق",
           "billingPartner": "جهة الفوترة",
+          "financeSectionTitle": "الخطة المالية",
           "financePlan": "الخطة المالية",
+          "selectedPlan": "الخطة المختارة",
+          "expectedMonthlyInstallment": "القسط الشهري المتوقع",
+          "reviewFinanceBeforeSave": "يرجى مراجعة تخصيص الخطة المالية قبل الحفظ.",
           "planType": "نوع الخطة",
           "planOriginal": "أصلية",
           "planCustomized": "مخصصة",
           "installmentCount": "عدد الأقساط",
           "firstInstallment": "أول قسط",
           "lastInstallment": "آخر قسط",
-          "totalDue": "إجمالي المستحق"
+          "totalDue": "إجمالي المستحق",
+          "customization": {
+            "enabled": "التخصيص",
+            "disabled": "لا",
+            "asIs": "سيتم اعتماد الخطة كما هي",
+            "itemsTitle": "الخصومات والتعديلات",
+            "planDiscount": "خصم عام — {detail}",
+            "lineDiscount": "خصم على بند — {detail}",
+            "oneTimeExcluded": "استبعاد رسم مرة واحدة — {name}",
+            "oneTimeModified": "تعديل رسم مرة واحدة — {detail}",
+            "periodExcluded": "استبعاد شهر — {name}",
+            "periodModified": "تعديل شهر — {detail}"
+          }
         }
       },
       "setup": {

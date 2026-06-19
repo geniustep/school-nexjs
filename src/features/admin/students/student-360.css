@@ -5057,6 +5057,39 @@
   border-top: 1px solid var(--border, #e2e8f0);
 }
 
+.student-create-review__finance-block {
+  margin-top: 16px;
+}
+
+.student-create-review__subtitle {
+  margin: 0 0 12px;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.student-create-review__row--emphasis dd {
+  color: var(--primary, #2563eb);
+}
+
+.student-create-review__customization {
+  grid-column: 1 / -1;
+  margin-top: 4px;
+}
+
+.student-create-review__customization-title {
+  margin: 0 0 8px;
+  color: var(--text-muted, #64748b);
+  font-weight: 600;
+}
+
+.student-create-review__customization-list {
+  margin: 0;
+  padding-inline-start: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .student-create-field {
   display: flex;
   flex-direction: column;

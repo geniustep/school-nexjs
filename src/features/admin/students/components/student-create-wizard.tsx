@@ -33,6 +33,7 @@ import {
   mergeFinanceStateWithSuggest,
   resolveNoDefaultFeePlanMessage,
 } from '../utils/student-enrollment-finance';
+import { validateEnrollmentFinanceSave } from '../utils/enrollment-finance-review';
 import {
   StudentCreateAdditionalFields,
   StudentCreateEnrollmentFields,
@@ -301,6 +302,31 @@ export function StudentCreateForm({
     el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
+  function financeSaveValidationMessage(
+    reason: ReturnType<typeof validateEnrollmentFinanceSave>,
+  ): string | null {
+    if (reason === 'ok') return null;
+    if (reason === 'reason_required') return t('admin.student360.create.finance.reasonRequired');
+    return t('admin.student360.create.review.reviewFinanceBeforeSave');
+  }
+
+  function validateFinanceStep(): boolean {
+    const saveCheck = validateEnrollmentFinanceSave({
+      customizePlan: financeState.customizePlan,
+      customizationReason: financeState.customizationReason,
+      previewLoading: previewState.loading,
+      previewError: previewState.error,
+      preview: previewState.preview,
+    });
+    const message = financeSaveValidationMessage(saveCheck);
+    if (message) {
+      setFinanceError(message);
+      toast.error(message);
+      return false;
+    }
+    return true;
+  }
+
   function validateStep(current: StudentCreateWizardStep): boolean {
     if (current === 'identity') {
       const validation = validateStudentCreateIdentityStep(state, t);
@@ -351,16 +377,7 @@ export function StudentCreateForm({
         toast.error(t('admin.student360.create.finance.required'));
         return false;
       }
-      if (financeState.customizePlan && !financeState.customizationReason) {
-        setFinanceError(t('admin.student360.create.finance.reasonRequired'));
-        toast.error(t('admin.student360.create.finance.reasonRequired'));
-        return false;
-      }
-      if (financeState.customizePlan && previewState.error) {
-        setFinanceError(previewState.error);
-        toast.error(previewState.error);
-        return false;
-      }
+      if (!validateFinanceStep()) return false;
     }
     setFinanceError(null);
     return true;
@@ -519,6 +536,7 @@ export function StudentCreateForm({
           billingState={billingState}
           suggest={suggestState.suggest}
           financeState={financeState}
+          preview={previewState.preview}
           financeBlocked={financeBlocked}
         />
       ) : null}

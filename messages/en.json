@@ -3127,14 +3127,30 @@
           "student": "Pupil",
           "enrollmentDate": "Enrollment date",
           "billingPartner": "Billing party",
+          "financeSectionTitle": "Financial plan",
           "financePlan": "Fee plan",
+          "selectedPlan": "Selected plan",
+          "expectedMonthlyInstallment": "Expected monthly installment",
+          "reviewFinanceBeforeSave": "Please review the financial plan customization before saving.",
           "planType": "Plan type",
           "planOriginal": "Original",
           "planCustomized": "Customized",
           "installmentCount": "Installment count",
           "firstInstallment": "First installment",
           "lastInstallment": "Last installment",
-          "totalDue": "Total due"
+          "totalDue": "Total due",
+          "customization": {
+            "enabled": "Customization",
+            "disabled": "No",
+            "asIs": "The plan will be applied as-is",
+            "itemsTitle": "Discounts and adjustments",
+            "planDiscount": "Plan-wide discount — {detail}",
+            "lineDiscount": "Line discount — {detail}",
+            "oneTimeExcluded": "Excluded one-time fee — {name}",
+            "oneTimeModified": "Modified one-time fee — {detail}",
+            "periodExcluded": "Excluded month — {name}",
+            "periodModified": "Modified month — {detail}"
+          }
         }
       },
       "setup": {

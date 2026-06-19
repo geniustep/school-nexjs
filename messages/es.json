@@ -3127,14 +3127,30 @@
           "student": "Alumno",
           "enrollmentDate": "Fecha de ingreso",
           "billingPartner": "Entidad de facturación",
+          "financeSectionTitle": "Plan financiero",
           "financePlan": "Plan de tasas",
+          "selectedPlan": "Plan seleccionado",
+          "expectedMonthlyInstallment": "Cuota mensual esperada",
+          "reviewFinanceBeforeSave": "Revise la personalización del plan financiero antes de guardar.",
           "planType": "Tipo de plan",
           "planOriginal": "Original",
           "planCustomized": "Personalizado",
           "installmentCount": "Número de cuotas",
           "firstInstallment": "Primera cuota",
           "lastInstallment": "Última cuota",
-          "totalDue": "Total adeudado"
+          "totalDue": "Total adeudado",
+          "customization": {
+            "enabled": "Personalización",
+            "disabled": "No",
+            "asIs": "Se aplicará el plan tal cual",
+            "itemsTitle": "Descuentos y ajustes",
+            "planDiscount": "Descuento general — {detail}",
+            "lineDiscount": "Descuento por línea — {detail}",
+            "oneTimeExcluded": "Cargo único excluido — {name}",
+            "oneTimeModified": "Cargo único modificado — {detail}",
+            "periodExcluded": "Mes excluido — {name}",
+            "periodModified": "Mes modificado — {detail}"
+          }
         }
       },
       "setup": {

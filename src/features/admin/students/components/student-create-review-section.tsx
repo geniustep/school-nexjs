@@ -4,8 +4,10 @@ import { useLocale, useT } from '@/features/i18n/locale-context';
 import { useFormat } from '@/features/i18n/use-format';
 import { buildFullNamePreview } from '../utils/student-profile';
 import { formatFinanceCurrency } from '../utils/student-finance-format';
+import { buildEnrollmentFinanceReviewModel } from '../utils/enrollment-finance-review';
 import { selectedFinancePeriods } from '../utils/student-enrollment-finance';
 import type {
+  EnrollmentPlanPreviewResult,
   FeePlanSuggestResult,
   StudentCreateBillingFormState,
   StudentCreateFinanceFormState,
@@ -26,18 +28,22 @@ export function StudentCreateReviewSection({
   billingState,
   suggest,
   financeState,
+  preview,
   financeBlocked,
 }: {
   profileState: StudentProfileFormState;
   billingState: StudentCreateBillingFormState;
   suggest: FeePlanSuggestResult | null;
   financeState: StudentCreateFinanceFormState;
+  preview: EnrollmentPlanPreviewResult | null;
   financeBlocked: boolean;
 }) {
   const t = useT();
   const { locale } = useLocale();
   const { formatDate } = useFormat();
   const fullName = buildFullNamePreview(profileState.firstName, profileState.lastName);
+  const financeReview =
+    suggest != null ? buildEnrollmentFinanceReviewModel(suggest, financeState, preview) : null;
   const selectedPeriods = suggest ? selectedFinancePeriods(suggest, financeState) : [];
   const firstDue = selectedPeriods[0]?.due_date;
   const lastDue = selectedPeriods[selectedPeriods.length - 1]?.due_date;
@@ -65,43 +71,146 @@ export function StudentCreateReviewSection({
         <div className="student-create-fee-plan__alert" role="alert">
           <p>{t('admin.student360.create.finance.noPlanMessage')}</p>
         </div>
-      ) : suggest ? (
-        <dl className="student-create-review__list student-create-review__finance">
-          <div className="student-create-review__row">
-            <dt>{t('admin.student360.create.review.financePlan')}</dt>
-            <dd dir="auto">{suggest.fee_plan_name}</dd>
-          </div>
-          <div className="student-create-review__row">
-            <dt>{t('admin.student360.create.review.planType')}</dt>
-            <dd>
-              {financeState.customizePlan
-                ? t('admin.student360.create.review.planCustomized')
-                : t('admin.student360.create.review.planOriginal')}
-            </dd>
-          </div>
-          <div className="student-create-review__row">
-            <dt>{t('admin.student360.create.review.installmentCount')}</dt>
-            <dd>{selectedPeriods.length}</dd>
-          </div>
-          {firstDue ? (
+      ) : suggest && financeReview ? (
+        <div className="student-create-review__finance-block">
+          <h3 className="student-create-review__subtitle">
+            {t('admin.student360.create.review.financeSectionTitle')}
+          </h3>
+          <dl className="student-create-review__list student-create-review__finance">
             <div className="student-create-review__row">
-              <dt>{t('admin.student360.create.review.firstInstallment')}</dt>
-              <dd>{formatDate(firstDue)}</dd>
+              <dt>{t('admin.student360.create.review.selectedPlan')}</dt>
+              <dd dir="auto">
+                {financeReview.planName}
+                <span className="mono tiny muted"> #{financeReview.planId}</span>
+              </dd>
             </div>
-          ) : null}
-          {lastDue ? (
+
+            {financeReview.originalTotal != null ? (
+              <div className="student-create-review__row">
+                <dt>{t('admin.student360.create.finance.preview.originalTotal')}</dt>
+                <dd className="mono">
+                  {formatFinanceCurrency(financeReview.originalTotal, suggest.currency, locale)}
+                </dd>
+              </div>
+            ) : null}
+            {financeReview.discountTotal != null ? (
+              <div className="student-create-review__row">
+                <dt>{t('admin.student360.create.finance.preview.discountTotal')}</dt>
+                <dd className="mono">
+                  {formatFinanceCurrency(financeReview.discountTotal, suggest.currency, locale)}
+                </dd>
+              </div>
+            ) : null}
+            {financeReview.finalTotal != null ? (
+              <div className="student-create-review__row student-create-review__row--emphasis">
+                <dt>
+                  {financeReview.customized
+                    ? t('admin.student360.create.finance.preview.finalTotal')
+                    : t('admin.student360.create.review.totalDue')}
+                </dt>
+                <dd className="mono">
+                  {formatFinanceCurrency(financeReview.finalTotal, suggest.currency, locale)}
+                </dd>
+              </div>
+            ) : null}
+            {financeReview.monthlyInstallment != null ? (
+              <div className="student-create-review__row">
+                <dt>{t('admin.student360.create.review.expectedMonthlyInstallment')}</dt>
+                <dd className="mono">
+                  {formatFinanceCurrency(financeReview.monthlyInstallment, suggest.currency, locale)}
+                </dd>
+              </div>
+            ) : null}
+
+            {financeReview.summaryRows.map((row) => (
+              <div key={row.key} className="student-create-review__row">
+                <dt>{t(`admin.student360.create.finance.summary.${row.key}`)}</dt>
+                <dd className="mono">
+                  {formatFinanceCurrency(row.value, suggest.currency, locale)}
+                </dd>
+              </div>
+            ))}
+
             <div className="student-create-review__row">
-              <dt>{t('admin.student360.create.review.lastInstallment')}</dt>
-              <dd>{formatDate(lastDue)}</dd>
+              <dt>{t('admin.student360.create.review.customization.enabled')}</dt>
+              <dd>
+                {financeReview.customized
+                  ? t('common.yes')
+                  : t('admin.student360.create.review.customization.disabled')}
+              </dd>
             </div>
-          ) : null}
-          {suggest.total_due != null ? (
+
+            {financeReview.customized ? (
+              <>
+                {financeReview.customizationReason ? (
+                  <div className="student-create-review__row">
+                    <dt>{t('admin.student360.create.finance.customizationReason')}</dt>
+                    <dd>
+                      {t(`admin.student360.create.finance.reasons.${financeReview.customizationReason}`)}
+                    </dd>
+                  </div>
+                ) : null}
+                {financeReview.customizationItems.length > 0 ? (
+                  <div className="student-create-review__customization">
+                    <dt className="student-create-review__customization-title">
+                      {t('admin.student360.create.review.customization.itemsTitle')}
+                    </dt>
+                    <ul className="student-create-review__customization-list">
+                      {financeReview.customizationItems.map((item, index) => (
+                        <li key={`${item.kind}-${index}`}>
+                      {item.kind === 'plan_discount'
+                        ? t('admin.student360.create.review.customization.planDiscount', {
+                            detail: item.label,
+                          })
+                        : item.kind === 'line_discount'
+                          ? t('admin.student360.create.review.customization.lineDiscount', {
+                              detail: item.label,
+                            })
+                          : item.kind === 'one_time_excluded'
+                            ? t('admin.student360.create.review.customization.oneTimeExcluded', {
+                                name: item.label,
+                              })
+                            : item.kind === 'one_time_modified'
+                              ? t('admin.student360.create.review.customization.oneTimeModified', {
+                                  detail: item.label,
+                                })
+                              : item.kind === 'period_excluded'
+                                ? t('admin.student360.create.review.customization.periodExcluded', {
+                                    name: item.label,
+                                  })
+                                : t('admin.student360.create.review.customization.periodModified', {
+                                    detail: item.label,
+                                  })}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </>
+            ) : (
+              <div className="student-create-review__row">
+                <dd className="tiny muted">{t('admin.student360.create.review.customization.asIs')}</dd>
+              </div>
+            )}
+
             <div className="student-create-review__row">
-              <dt>{t('admin.student360.create.review.totalDue')}</dt>
-              <dd>{formatFinanceCurrency(suggest.total_due, suggest.currency, locale)}</dd>
+              <dt>{t('admin.student360.create.review.installmentCount')}</dt>
+              <dd>{selectedPeriods.length}</dd>
             </div>
-          ) : null}
-        </dl>
+            {firstDue ? (
+              <div className="student-create-review__row">
+                <dt>{t('admin.student360.create.review.firstInstallment')}</dt>
+                <dd>{formatDate(firstDue)}</dd>
+              </div>
+            ) : null}
+            {lastDue ? (
+              <div className="student-create-review__row">
+                <dt>{t('admin.student360.create.review.lastInstallment')}</dt>
+                <dd>{formatDate(lastDue)}</dd>
+              </div>
+            ) : null}
+          </dl>
+        </div>
       ) : (
         <p className="tiny muted">{t('admin.student360.create.finance.waitingEnrollment')}</p>
       )}
