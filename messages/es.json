@@ -3109,7 +3109,8 @@
             "discountReasonRequired": "Cada descuento requiere un motivo.",
             "percentTooHigh": "El porcentaje de descuento no puede superar el 100 %.",
             "fixedAmountTooHigh": "El importe del descuento supera el permitido.",
-            "invalidPeriod": "Periodo fuera de la temporada sugerida."
+            "invalidPeriod": "Periodo fuera de la temporada sugerida.",
+            "billingPeriodsRequired": "Seleccione los meses de facturación antes de guardar la personalización del plan financiero."
           },
           "customizationReason": "Motivo de personalización",
           "customizationReasonHint": "Este motivo se aplica a todos los descuentos y ajustes. Puede definir un motivo específico por línea si hace falta.",

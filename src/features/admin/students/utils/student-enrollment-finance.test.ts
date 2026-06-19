@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildFeePlanSuggestQuery,
   buildFeePlanSuggestErrorFromApi,
+  buildEnrollmentPlanPreviewBody,
   buildStudentCreateFinancePayload,
   canRequestFeePlanSuggest,
   defaultStudentCreateFinanceFormState,
@@ -137,6 +138,58 @@ describe('buildStudentCreateFinancePayload', () => {
         },
       ],
     });
+  });
+
+  it('includes periods for line-discount-only customization without month edits', () => {
+    const base = defaultStudentCreateFinanceFormState(suggest);
+    const financeState: typeof base = {
+      ...base,
+      customizePlan: true,
+      customizationReason: 'special_discount',
+      periodOverrides: {},
+      lineDiscounts: {
+        ...base.lineDiscounts,
+        '2904': {
+          enabled: true,
+          type: 'percent',
+          value: '50',
+          reason: '',
+        },
+      },
+    };
+    const payload = buildStudentCreateFinancePayload(suggest, financeState);
+    expect(payload.periods).toEqual([
+      {
+        period_key: '2025-12',
+        selected: true,
+        amount_override: null,
+        due_date_override: null,
+      },
+      {
+        period_key: '2026-01',
+        selected: true,
+        amount_override: null,
+        due_date_override: null,
+      },
+    ]);
+  });
+
+  it('uses the same periods in preview body and save payload', () => {
+    const profileState = {
+      ...defaultStudentProfileFormState(null),
+      academicYearId: '2025',
+      levelId: '10',
+      actualJoinDate: '2025-12-15',
+    };
+    const financeState = {
+      ...defaultStudentCreateFinanceFormState(suggest),
+      customizePlan: true,
+      customizationReason: 'family_agreement' as const,
+    };
+    const savePayload = buildStudentCreateFinancePayload(suggest, financeState);
+    const previewBody = buildEnrollmentPlanPreviewBody(profileState, 1, suggest, financeState);
+    expect(previewBody.periods).toEqual(savePayload.periods);
+    expect(previewBody.customize_plan).toBe(true);
   });
 });
 

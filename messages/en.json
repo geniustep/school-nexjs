@@ -3109,7 +3109,8 @@
             "discountReasonRequired": "Each discount requires a reason.",
             "percentTooHigh": "Discount percent cannot exceed 100%.",
             "fixedAmountTooHigh": "Discount amount exceeds the allowed amount.",
-            "invalidPeriod": "Period is outside the suggested season."
+            "invalidPeriod": "Period is outside the suggested season.",
+            "billingPeriodsRequired": "Select billing months before saving a customized financial plan."
           },
           "customizationReason": "Customization reason",
           "customizationReasonHint": "This reason applies to all discounts and adjustments. You can set a line-specific reason when needed.",

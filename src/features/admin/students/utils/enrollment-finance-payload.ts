@@ -2,6 +2,7 @@ import type {
   EnrollmentPlanLine,
   EnrollmentFinancialSummary,
   FeePlanCustomizationReason,
+  FeePlanSuggestResult,
   StudentCreateFinanceDiscountPayload,
   StudentCreateFinanceFormState,
   StudentCreateFinanceOneTimeLinePayload,
@@ -182,6 +183,55 @@ function buildOneTimeLinePayloads(
   }));
 }
 
+export function resolveFinanceSuggestedPeriods(
+  suggest: Pick<FeePlanSuggestResult, 'suggested_periods'>,
+): FeePlanSuggestResult['suggested_periods'] {
+  return suggest.suggested_periods ?? [];
+}
+
+export function ensureFinancePeriodOverrides(
+  suggestPeriods: Array<{ period_key: string; selected?: boolean }>,
+  periodOverrides: StudentCreateFinanceFormState['periodOverrides'],
+): StudentCreateFinanceFormState['periodOverrides'] {
+  const next = { ...periodOverrides };
+  for (const period of suggestPeriods) {
+    if (next[period.period_key]) continue;
+    next[period.period_key] = {
+      selected: period.selected !== false,
+      amountOverride: '',
+      dueDateOverride: '',
+    };
+  }
+  return next;
+}
+
+export function buildFinancePeriodPayloads(
+  suggestPeriods: Array<{ period_key: string; selected?: boolean }>,
+  periodOverrides: StudentCreateFinanceFormState['periodOverrides'],
+): StudentCreateFinancePeriodPayload[] {
+  const normalizedOverrides = ensureFinancePeriodOverrides(suggestPeriods, periodOverrides);
+  return suggestPeriods.map((period) => {
+    const override = normalizedOverrides[period.period_key];
+    const selected = override?.selected ?? period.selected !== false;
+    const amountOverride = override ? parseOptionalAmount(override.amountOverride) : null;
+    const dueDateOverride = override?.dueDateOverride?.trim() || null;
+    return {
+      period_key: period.period_key,
+      selected,
+      amount_override: amountOverride === undefined ? null : amountOverride,
+      due_date_override: dueDateOverride,
+    };
+  });
+}
+
+export function hasValidCustomizedFinancePeriods(
+  suggestPeriods: Array<{ period_key: string; selected?: boolean }>,
+  periodOverrides: StudentCreateFinanceFormState['periodOverrides'],
+): boolean {
+  if (suggestPeriods.length === 0) return false;
+  return buildFinancePeriodPayloads(suggestPeriods, periodOverrides).some((period) => period.selected);
+}
+
 export function buildStudentCreateFinancePayload(
   feePlanId: number,
   suggestPeriods: Array<{ period_key: string; selected?: boolean }>,
@@ -200,19 +250,10 @@ export function buildStudentCreateFinancePayload(
   const notes = financeState.customizationNotes.trim();
   if (notes) payload.customization_notes = notes;
 
-  const periods: StudentCreateFinancePeriodPayload[] = suggestPeriods.map((period) => {
-    const override = financeState.periodOverrides[period.period_key];
-    const selected = override?.selected ?? period.selected !== false;
-    const amountOverride = override ? parseOptionalAmount(override.amountOverride) : null;
-    const dueDateOverride = override?.dueDateOverride?.trim() || null;
-    return {
-      period_key: period.period_key,
-      selected,
-      amount_override: amountOverride === undefined ? null : amountOverride,
-      due_date_override: dueDateOverride,
-    };
-  });
-  payload.periods = periods;
+  payload.periods = buildFinancePeriodPayloads(
+    suggestPeriods,
+    ensureFinancePeriodOverrides(suggestPeriods, financeState.periodOverrides),
+  );
 
   const discounts = buildDiscountPayloads(financeState);
   if (discounts.length > 0) payload.discounts = discounts;

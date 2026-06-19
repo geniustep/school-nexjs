@@ -3136,7 +3136,8 @@
             "discountReasonRequired": "سبب الخصم مطلوب.",
             "percentTooHigh": "نسبة الخصم يجب ألا تتجاوز 100%.",
             "fixedAmountTooHigh": "مبلغ الخصم أكبر من المبلغ المسموح.",
-            "invalidPeriod": "شهر خارج الموسم المقترح."
+            "invalidPeriod": "شهر خارج الموسم المقترح.",
+            "billingPeriodsRequired": "يجب تحديد أشهر الأداء قبل حفظ تخصيص الخطة المالية."
           },
           "customizationReason": "سبب التخصيص",
           "customizationReasonHint": "سيُطبّق هذا السبب على جميع الخصومات والتعديلات، ويمكن تحديد سبب خاص لبند معيّن عند الحاجة.",

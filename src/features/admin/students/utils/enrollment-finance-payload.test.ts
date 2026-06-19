@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildFinancePeriodPayloads,
   buildStudentCreateFinancePayload,
   emptyFinanceDiscountState,
+  ensureFinancePeriodOverrides,
   enrollmentPlanLineAmountParts,
   enrollmentPlanLinePricingModeKey,
   financialSummaryRows,
   formatCustomizationReason,
+  hasValidCustomizedFinancePeriods,
   resolveDiscountReason,
 } from './enrollment-finance-payload';
 import type {
@@ -217,5 +220,124 @@ describe('buildStudentCreateFinancePayload', () => {
       fee_plan_id: 2461,
       customize_plan: false,
     });
+    expect(payload.periods).toBeUndefined();
+  });
+
+  it('includes default periods when customize is on without user month edits', () => {
+    const payload = buildStudentCreateFinancePayload(2461, periods, {
+      selectedFeePlanId: 2461,
+      customizePlan: true,
+      customizationReason: 'special_discount',
+      customizationNotes: '',
+      periodOverrides: {},
+      planDiscount: emptyFinanceDiscountState(),
+      lineDiscounts: {
+        '2904': {
+          enabled: true,
+          type: 'percent',
+          value: '50',
+          reason: '',
+        },
+      },
+      oneTimeLines: {},
+    });
+    expect(payload.periods).toEqual([
+      {
+        period_key: '2026-09',
+        selected: true,
+        amount_override: null,
+        due_date_override: null,
+      },
+      {
+        period_key: '2026-10',
+        selected: true,
+        amount_override: null,
+        due_date_override: null,
+      },
+    ]);
+    expect(payload.discounts?.[0]?.reason).toBe('special_discount');
+  });
+
+  it('keeps one-time line customization with valid periods', () => {
+    const payload = buildStudentCreateFinancePayload(2461, periods, {
+      ...baseState,
+      customizePlan: true,
+      customizationReason: 'family_agreement',
+      periodOverrides: {},
+      lineDiscounts: {},
+      oneTimeLines: {
+        '2903': { selected: true, amountOverride: '2400', dueDateOverride: '2026-09-12' },
+      },
+    });
+    expect(payload.periods).toHaveLength(2);
+    expect(payload.one_time_lines?.[0]).toMatchObject({
+      line_id: 2903,
+      amount_override: 2400,
+      due_date_override: '2026-09-12',
+    });
+  });
+
+  it('preserves deselected month and due date override from UI state', () => {
+    const payload = buildStudentCreateFinancePayload(2461, periods, {
+      ...baseState,
+      customizePlan: true,
+      periodOverrides: {
+        '2026-09': { selected: false, amountOverride: '', dueDateOverride: '' },
+        '2026-10': { selected: true, amountOverride: '', dueDateOverride: '2026-10-12' },
+      },
+    });
+    expect(payload.periods).toEqual([
+      {
+        period_key: '2026-09',
+        selected: false,
+        amount_override: null,
+        due_date_override: null,
+      },
+      {
+        period_key: '2026-10',
+        selected: true,
+        amount_override: null,
+        due_date_override: '2026-10-12',
+      },
+    ]);
+  });
+
+  it('ensureFinancePeriodOverrides fills missing keys from suggested periods', () => {
+    expect(
+      ensureFinancePeriodOverrides(periods, {
+        '2026-10': { selected: true, amountOverride: '100', dueDateOverride: '2026-10-01' },
+      }),
+    ).toEqual({
+      '2026-09': { selected: true, amountOverride: '', dueDateOverride: '' },
+      '2026-10': { selected: true, amountOverride: '100', dueDateOverride: '2026-10-01' },
+    });
+  });
+
+  it('hasValidCustomizedFinancePeriods rejects empty suggested periods', () => {
+    expect(hasValidCustomizedFinancePeriods([], {})).toBe(false);
+    expect(
+      hasValidCustomizedFinancePeriods(periods, {
+        '2026-09': { selected: false, amountOverride: '', dueDateOverride: '' },
+        '2026-10': { selected: false, amountOverride: '', dueDateOverride: '' },
+      }),
+    ).toBe(false);
+    expect(hasValidCustomizedFinancePeriods(periods, {})).toBe(true);
+  });
+
+  it('buildFinancePeriodPayloads matches expected default shape', () => {
+    expect(buildFinancePeriodPayloads(periods, {})).toEqual([
+      {
+        period_key: '2026-09',
+        selected: true,
+        amount_override: null,
+        due_date_override: null,
+      },
+      {
+        period_key: '2026-10',
+        selected: true,
+        amount_override: null,
+        due_date_override: null,
+      },
+    ]);
   });
 });

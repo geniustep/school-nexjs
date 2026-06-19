@@ -3109,7 +3109,8 @@
             "discountReasonRequired": "Chaque remise exige un motif.",
             "percentTooHigh": "Le pourcentage de remise ne peut pas dépasser 100 %.",
             "fixedAmountTooHigh": "Le montant de la remise dépasse le montant autorisé.",
-            "invalidPeriod": "Période hors de la saison proposée."
+            "invalidPeriod": "Période hors de la saison proposée.",
+            "billingPeriodsRequired": "Sélectionnez les mois de facturation avant d'enregistrer une personnalisation du plan financier."
           },
           "customizationReason": "Motif de personnalisation",
           "customizationReasonHint": "Ce motif s'applique à toutes les remises et ajustements. Vous pouvez définir un motif spécifique par ligne si nécessaire.",

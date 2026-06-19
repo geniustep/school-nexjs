@@ -10,16 +10,23 @@ import type { StudentProfileFormState } from './student-profile';
 import {
   buildStudentCreateFinancePayload as buildFinancePayload,
   emptyFinanceDiscountState,
+  ensureFinancePeriodOverrides,
   financeCustomizationReasonOptions,
+  hasValidCustomizedFinancePeriods,
+  resolveFinanceSuggestedPeriods,
 } from './enrollment-finance-payload';
 
 export {
   enrollmentPlanLineAmountParts,
   enrollmentPlanLinePricingModeKey,
+  ensureFinancePeriodOverrides,
   financialSummaryRows,
   financeCustomizationReasonOptions,
   formatCustomizationReason,
+  hasValidCustomizedFinancePeriods,
+  buildFinancePeriodPayloads,
   resolveDiscountReason,
+  resolveFinanceSuggestedPeriods,
 } from './enrollment-finance-payload';
 
 export function canRequestFeePlanSuggest(input: {
@@ -178,7 +185,14 @@ export function buildStudentCreateFinancePayload(
   financeState: StudentCreateFinanceFormState,
 ): StudentCreateFinancePayload {
   const feePlanId = financeState.selectedFeePlanId ?? suggest.fee_plan_id;
-  return buildFinancePayload(feePlanId, suggest.suggested_periods, financeState);
+  const suggestPeriods = resolveFinanceSuggestedPeriods(suggest);
+  const normalizedState = financeState.customizePlan
+    ? {
+        ...financeState,
+        periodOverrides: ensureFinancePeriodOverrides(suggestPeriods, financeState.periodOverrides),
+      }
+    : financeState;
+  return buildFinancePayload(feePlanId, suggestPeriods, normalizedState);
 }
 
 export function buildEnrollmentPlanPreviewBody(
@@ -306,7 +320,9 @@ export function mapEnrollmentPreviewErrorMessage(
     if (/fixed_amount|amount/i.test(message) && /greater|exceed/i.test(message)) {
       return t('admin.student360.create.finance.errors.fixedAmountTooHigh');
     }
-    if (/period/i.test(message)) return t('admin.student360.create.finance.errors.invalidPeriod');
+    if (/period/i.test(message)) {
+      return t('admin.student360.create.finance.errors.billingPeriodsRequired');
+    }
     return message;
   }
   return t('admin.student360.create.finance.previewError');

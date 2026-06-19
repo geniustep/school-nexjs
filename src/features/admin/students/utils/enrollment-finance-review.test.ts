@@ -239,8 +239,25 @@ describe('validateEnrollmentFinanceSave', () => {
         previewError: null,
         preview: { final_total: 4300 },
         academicYearId: '1',
+        suggest,
+        financeState: defaultStudentCreateFinanceFormState(suggest),
       }),
     ).toBe('ok');
+  });
+
+  it('blocks save when customized plan has no valid billing periods', () => {
+    expect(
+      validateEnrollmentFinanceSave({
+        customizePlan: true,
+        customizationReason: 'special_discount',
+        previewLoading: false,
+        previewError: null,
+        preview: { final_total: 4300 },
+        academicYearId: '1',
+        suggest: { suggested_periods: [] },
+        financeState: defaultStudentCreateFinanceFormState(suggest),
+      }),
+    ).toBe('periods_required');
   });
 });
 

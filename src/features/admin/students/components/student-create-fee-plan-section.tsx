@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useLocale, useT } from '@/features/i18n/locale-context';
 import { useFormat } from '@/features/i18n/use-format';
 import { formatFinanceCurrency } from '../utils/student-finance-format';
-import { resolveNoDefaultFeePlanMessage, selectedFinancePeriods } from '../utils/student-enrollment-finance';
+import { ensureFinancePeriodOverrides, resolveFinanceSuggestedPeriods, resolveNoDefaultFeePlanMessage, selectedFinancePeriods } from '../utils/student-enrollment-finance';
 import {
   StudentCreateFinanceCustomization,
   StudentCreateFinancePlanLines,
@@ -310,7 +310,20 @@ export function StudentCreateFeePlanSection({
           <input
             type="checkbox"
             checked={financeState.customizePlan}
-            onChange={(e) => onFinanceChange({ customizePlan: e.target.checked })}
+            onChange={(e) => {
+              const checked = e.target.checked;
+              if (!checked) {
+                onFinanceChange({ customizePlan: false });
+                return;
+              }
+              onFinanceChange({
+                customizePlan: true,
+                periodOverrides: ensureFinancePeriodOverrides(
+                  resolveFinanceSuggestedPeriods(suggest),
+                  financeState.periodOverrides,
+                ),
+              });
+            }}
           />
           <span className="student-create-form__checkbox-text">
             <span>{t('admin.student360.create.finance.customizePlan')}</span>

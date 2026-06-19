@@ -383,6 +383,9 @@ export function StudentCreateForm({
     if (reason === 'academic_year_required') {
       return t('admin.student360.create.errors.academicYearRequiredForFinance');
     }
+    if (reason === 'periods_required') {
+      return t('admin.student360.create.finance.errors.billingPeriodsRequired');
+    }
     return t('admin.student360.create.review.reviewFinanceBeforeSave');
   }
 
@@ -395,6 +398,8 @@ export function StudentCreateForm({
       preview: previewState.preview,
       academicYearId: state.academicYearId,
       hasFinanceBlock: Boolean(suggestState.suggest),
+      suggest: suggestState.suggest,
+      financeState,
     });
     const message = financeSaveValidationMessage(saveCheck);
     if (message) {

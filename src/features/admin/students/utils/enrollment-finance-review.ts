@@ -3,12 +3,13 @@ import type {
   FeePlanSuggestResult,
   StudentCreateFinanceFormState,
 } from '@/types/student-enrollment-finance';
-import { financialSummaryRows, resolveDiscountReason } from './enrollment-finance-payload';
+import { financialSummaryRows, hasValidCustomizedFinancePeriods, resolveDiscountReason, resolveFinanceSuggestedPeriods } from './enrollment-finance-payload';
 
 export type EnrollmentFinanceSaveBlockReason =
   | 'ok'
   | 'reason_required'
   | 'academic_year_required'
+  | 'periods_required'
   | 'preview_loading'
   | 'preview_error'
   | 'preview_incomplete';
@@ -206,6 +207,8 @@ export function validateEnrollmentFinanceSave(input: {
   preview: EnrollmentPlanPreviewResult | null;
   academicYearId?: string;
   hasFinanceBlock?: boolean;
+  suggest?: Pick<FeePlanSuggestResult, 'suggested_periods'> | null;
+  financeState?: Pick<StudentCreateFinanceFormState, 'periodOverrides'>;
 }): EnrollmentFinanceSaveBlockReason {
   const financeActive = input.hasFinanceBlock ?? true;
   if (financeActive && !input.academicYearId?.trim()) {
@@ -213,6 +216,12 @@ export function validateEnrollmentFinanceSave(input: {
   }
   if (!input.customizePlan) return 'ok';
   if (!input.customizationReason.trim()) return 'reason_required';
+  if (input.suggest && input.financeState) {
+    const suggestPeriods = resolveFinanceSuggestedPeriods(input.suggest);
+    if (!hasValidCustomizedFinancePeriods(suggestPeriods, input.financeState.periodOverrides)) {
+      return 'periods_required';
+    }
+  }
   if (input.previewLoading) return 'preview_loading';
   if (input.previewError) return 'preview_error';
   if (input.preview?.final_total == null) return 'preview_incomplete';
