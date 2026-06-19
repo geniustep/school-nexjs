@@ -22,6 +22,8 @@ import {
   defaultStudentProfileFormState,
   validateStudentCreateForm,
   validateStudentCreateIdentityStep,
+  validateStudentCreateIdentifier,
+  hasStudentCreateIdentifier,
   type StudentProfileFieldErrors,
   type StudentProfileFormState,
 } from '../utils/student-profile';
@@ -71,6 +73,7 @@ const FIELD_ORDER: (keyof StudentProfileFieldErrors)[] = [
   'actualJoinDate',
   'previousSchool',
   'schoolNumber',
+  'code',
 ];
 
 function stepIndex(step: StudentCreateWizardStep): number {
@@ -328,6 +331,19 @@ export function StudentCreateForm({
   }
 
   function validateStep(current: StudentCreateWizardStep): boolean {
+    const identifierValidation = validateStudentCreateIdentifier(state, t);
+    if (!identifierValidation.valid) {
+      setFieldErrors((prev) => ({ ...prev, ...identifierValidation.errors }));
+      const identifierMessage =
+        identifierValidation.errors.massarCode ?? t('admin.student360.create.errors.studentIdentifierRequired');
+      toast.error(identifierMessage);
+      if (current !== 'identity') {
+        setStep('identity');
+      }
+      focusFirstError(identifierValidation.errors);
+      return false;
+    }
+
     if (current === 'identity') {
       const validation = validateStudentCreateIdentityStep(state, t);
       if (!validation.valid) {
@@ -428,6 +444,7 @@ export function StudentCreateForm({
   }
 
   const onLastStep = step === 'review';
+  const identifierMissing = !hasStudentCreateIdentifier(state);
 
   return (
     <form ref={formRef} className="student-create-form" onSubmit={(e) => e.preventDefault()}>
@@ -566,7 +583,7 @@ export function StudentCreateForm({
             <button
               type="button"
               className="btn btn--primary"
-              disabled={saving || financeBlocked}
+              disabled={saving || financeBlocked || identifierMissing}
               onClick={() => submit('setup')}
             >
               {saving && saveMode === 'setup'
@@ -576,7 +593,7 @@ export function StudentCreateForm({
             <button
               type="button"
               className="btn btn--secondary"
-              disabled={saving || financeBlocked}
+              disabled={saving || financeBlocked || identifierMissing}
               onClick={() => submit('list')}
             >
               {saving && saveMode === 'list'

@@ -2997,9 +2997,10 @@
         "lastNameLatin": "Last name (Latin)",
         "fullNamePreview": "Full name",
         "internalCodeHint": "Leave blank to auto-generate.",
+        "identityIdentifierHint": "Enter a Massar number, registration number, or internal code in «Additional information».",
         "admissionDateHint": "Used for historical records or when required administratively.",
         "saveAndSetup": "Create and continue setup",
-        "saveOnly": "Create only",
+        "saveOnly": "Save only",
         "saving": "Creating pupil…",
         "success": "Pupil created successfully.",
         "loadingYears": "Loading academic years…",
@@ -3020,7 +3021,8 @@
           "academicYearRequired": "Academic year is required.",
           "cycleRequired": "Cycle is required.",
           "levelRequired": "Level is required.",
-          "massarNoSpaces": "Massar number must not contain spaces."
+          "massarNoSpaces": "Massar number must not contain spaces.",
+          "studentIdentifierRequired": "Enter a Massar number, registration number, or internal student code."
         },
         "stepperAria": "Student creation steps",
         "steps": {
@@ -3132,6 +3134,7 @@
           "selectedPlan": "Selected plan",
           "expectedMonthlyInstallment": "Expected monthly installment",
           "reviewFinanceBeforeSave": "Please review the financial plan customization before saving.",
+          "missingStudentIdentifier": "Cannot save: student identifier is missing.",
           "planType": "Plan type",
           "planOriginal": "Original",
           "planCustomized": "Customized",

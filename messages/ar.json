@@ -3024,9 +3024,10 @@
         "lastNameLatin": "الاسم العائلي (لاتيني)",
         "fullNamePreview": "الاسم الكامل",
         "internalCodeHint": "اتركه فارغًا ليولّده النظام تلقائيًا.",
+        "identityIdentifierHint": "أدخل رقم مسار، أو رقم التسجيل، أو رمزًا داخليًا في «معلومات إضافية».",
         "admissionDateHint": "يُستخدم عند استيراد سجل تاريخي أو عند الحاجة الإدارية.",
         "saveAndSetup": "إنشاء ومتابعة الإعداد",
-        "saveOnly": "إنشاء فقط",
+        "saveOnly": "حفظ فقط",
         "saving": "جارٍ إنشاء التلميذ…",
         "success": "تم إنشاء التلميذ بنجاح.",
         "loadingYears": "جارٍ تحميل السنوات الدراسية…",
@@ -3047,7 +3048,8 @@
           "academicYearRequired": "السنة الدراسية مطلوبة.",
           "cycleRequired": "السلك مطلوب.",
           "levelRequired": "المستوى مطلوب.",
-          "massarNoSpaces": "رقم مسار لا يجب أن يحتوي على مسافات."
+          "massarNoSpaces": "رقم مسار لا يجب أن يحتوي على مسافات.",
+          "studentIdentifierRequired": "يجب إدخال رقم مسار أو رقم التسجيل أو رمز داخلي للتلميذ."
         },
         "stepperAria": "خطوات إنشاء التلميذ",
         "steps": {
@@ -3159,6 +3161,7 @@
           "selectedPlan": "الخطة المختارة",
           "expectedMonthlyInstallment": "القسط الشهري المتوقع",
           "reviewFinanceBeforeSave": "يرجى مراجعة تخصيص الخطة المالية قبل الحفظ.",
+          "missingStudentIdentifier": "لا يمكن الحفظ: معرّف التلميذ ناقص.",
           "planType": "نوع الخطة",
           "planOriginal": "أصلية",
           "planCustomized": "مخصصة",
@@ -5165,7 +5168,7 @@
       "journalId": "معرّف دفتر اليومية",
       "billingPartnerId": "معرّف جهة الفوترة",
       "billingPartnerType": "نوع جهة الفوترة",
-      "partnerGuardian": "ولي",
+      "partnerGuardian": "ولي الأمر",
       "partnerStudent": "تلميذ",
       "partnerOther": "أخرى",
       "guardianId": "معرّف الولي",

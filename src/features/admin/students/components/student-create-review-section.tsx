@@ -2,7 +2,7 @@
 
 import { useLocale, useT } from '@/features/i18n/locale-context';
 import { useFormat } from '@/features/i18n/use-format';
-import { buildFullNamePreview } from '../utils/student-profile';
+import { buildFullNamePreview, hasStudentCreateIdentifier } from '../utils/student-profile';
 import { formatFinanceCurrency } from '../utils/student-finance-format';
 import { buildEnrollmentFinanceReviewModel, enrollmentFinancePreviewStatus } from '../utils/enrollment-finance-review';
 import { selectedFinancePeriods } from '../utils/student-enrollment-finance';
@@ -46,6 +46,7 @@ export function StudentCreateReviewSection({
   const { locale } = useLocale();
   const { formatDate } = useFormat();
   const fullName = buildFullNamePreview(profileState.firstName, profileState.lastName);
+  const identifierMissing = !hasStudentCreateIdentifier(profileState);
   const financeReview =
     suggest != null ? buildEnrollmentFinanceReviewModel(suggest, financeState, preview) : null;
   const previewStatus = enrollmentFinancePreviewStatus({
@@ -64,6 +65,12 @@ export function StudentCreateReviewSection({
   return (
     <section className="student-create-form__section student-create-review">
       <h2 className="student-create-form__section-title">{t('admin.student360.create.review.title')}</h2>
+
+      {identifierMissing ? (
+        <p className="student-create-finance-preview__error" role="alert">
+          {t('admin.student360.create.review.missingStudentIdentifier')}
+        </p>
+      ) : null}
 
       <dl className="student-create-review__list">
         <div className="student-create-review__row">

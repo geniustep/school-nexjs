@@ -68,6 +68,7 @@ export interface StudentProfileFieldErrors {
   classId?: string;
   massarCode?: string;
   schoolNumber?: string;
+  code?: string;
   academicYearId?: string;
   cycleId?: string;
   levelId?: string;
@@ -319,6 +320,39 @@ export function validateStudentProfileForm(
   return { valid: Object.keys(errors).length === 0, errors };
 }
 
+export function hasStudentCreateIdentifier(state: StudentProfileFormState): boolean {
+  return Boolean(trim(state.massarCode) || trim(state.schoolNumber) || trim(state.code));
+}
+
+export function validateStudentCreateIdentifier(
+  state: StudentProfileFormState,
+  t: (key: string) => string,
+): StudentProfileValidationResult {
+  if (hasStudentCreateIdentifier(state)) {
+    return { valid: true, errors: {} };
+  }
+  const message = t('admin.student360.create.errors.studentIdentifierRequired');
+  return {
+    valid: false,
+    errors: {
+      massarCode: message,
+      schoolNumber: message,
+      code: message,
+    },
+  };
+}
+
+function applyStudentCreateIdentifierValidation(
+  state: StudentProfileFormState,
+  t: (key: string) => string,
+  errors: StudentProfileFieldErrors,
+): void {
+  const identifier = validateStudentCreateIdentifier(state, t);
+  if (!identifier.valid) {
+    Object.assign(errors, identifier.errors);
+  }
+}
+
 export function validateStudentCreateIdentityStep(
   state: StudentProfileFormState,
   t: (key: string) => string,
@@ -341,6 +375,8 @@ export function validateStudentCreateIdentityStep(
   if (massar && /\s/.test(massar)) {
     errors.massarCode = t('admin.student360.create.errors.massarNoSpaces');
   }
+
+  applyStudentCreateIdentifierValidation(state, t, errors);
 
   return { valid: Object.keys(errors).length === 0, errors };
 }
@@ -377,6 +413,8 @@ export function validateStudentCreateForm(
   if (massar && /\s/.test(massar)) {
     errors.massarCode = t('admin.student360.create.errors.massarNoSpaces');
   }
+
+  applyStudentCreateIdentifierValidation(state, t, errors);
 
   return { valid: Object.keys(errors).length === 0, errors };
 }

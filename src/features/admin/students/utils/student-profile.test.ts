@@ -4,6 +4,7 @@ import {
   buildStudentPartialUpdatePayload,
   buildFullNamePreview,
   defaultStudentProfileFormState,
+  hasStudentCreateIdentifier,
   localizeStudentGenderOptions,
   resolveDefaultNationalityId,
   sortNationalityOptions,
@@ -11,6 +12,7 @@ import {
   requiresPreviousSchool,
   validateStudentCreateForm,
   validateStudentCreateIdentityStep,
+  validateStudentCreateIdentifier,
   validateStudentProfileForm,
 } from './student-profile';
 import { defaultStudentCreateFinanceFormState } from './student-enrollment-finance';
@@ -172,11 +174,12 @@ describe('validateStudentProfileForm', () => {
 });
 
 describe('validateStudentCreateIdentityStep', () => {
-  it('allows advancing identity step without academic year or level', () => {
+  it('allows advancing identity step without academic year or level when identifier is present', () => {
     const state = {
       ...defaultStudentProfileFormState(options),
       firstName: 'zaki',
       lastName: 'ham',
+      massarCode: '1234567890',
       academicYearId: '',
       levelId: '',
     };
@@ -184,6 +187,47 @@ describe('validateStudentCreateIdentityStep', () => {
     expect(result.valid).toBe(true);
     expect(result.errors.academicYearId).toBeUndefined();
     expect(result.errors.levelId).toBeUndefined();
+  });
+
+  it('rejects identity step without student identifier', () => {
+    const state = {
+      ...defaultStudentProfileFormState(options),
+      firstName: 'zaki',
+      lastName: 'ham',
+    };
+    const result = validateStudentCreateIdentityStep(state, t);
+    expect(result.valid).toBe(false);
+    expect(result.errors.massarCode).toBe('admin.student360.create.errors.studentIdentifierRequired');
+  });
+
+  it('accepts massar_code as student identifier', () => {
+    const state = {
+      ...defaultStudentProfileFormState(options),
+      firstName: 'A',
+      lastName: 'B',
+      massarCode: '1234567890',
+    };
+    expect(validateStudentCreateIdentifier(state, t).valid).toBe(true);
+  });
+
+  it('accepts school number as student identifier', () => {
+    const state = {
+      ...defaultStudentProfileFormState(options),
+      firstName: 'A',
+      lastName: 'B',
+      schoolNumber: '2026001',
+    };
+    expect(validateStudentCreateIdentifier(state, t).valid).toBe(true);
+  });
+
+  it('accepts internal code as student identifier', () => {
+    const state = {
+      ...defaultStudentProfileFormState(options),
+      firstName: 'A',
+      lastName: 'B',
+      code: 'STU-001',
+    };
+    expect(validateStudentCreateIdentifier(state, t).valid).toBe(true);
   });
 });
 
@@ -193,6 +237,7 @@ describe('validateStudentCreateForm', () => {
       ...defaultStudentProfileFormState(options),
       firstName: 'A',
       lastName: 'B',
+      massarCode: '1234567890',
       academicYearId: '',
       levelId: '',
     };
@@ -200,6 +245,19 @@ describe('validateStudentCreateForm', () => {
     expect(result.valid).toBe(false);
     expect(result.errors.academicYearId).toBeDefined();
     expect(result.errors.levelId).toBeDefined();
+  });
+
+  it('rejects create form without student identifier', () => {
+    const state = {
+      ...defaultStudentProfileFormState(options),
+      firstName: 'A',
+      lastName: 'B',
+      academicYearId: '1',
+      levelId: '77',
+    };
+    const result = validateStudentCreateForm(state, t);
+    expect(result.valid).toBe(false);
+    expect(result.errors.massarCode).toBe('admin.student360.create.errors.studentIdentifierRequired');
   });
 
   it('rejects massar with spaces', () => {
@@ -210,6 +268,7 @@ describe('validateStudentCreateForm', () => {
       academicYearId: '1',
       levelId: '77',
       massarCode: '123 456',
+      schoolNumber: '2026001',
     };
     expect(validateStudentCreateForm(state, t).valid).toBe(false);
   });

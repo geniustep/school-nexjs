@@ -2997,9 +2997,10 @@
         "lastNameLatin": "Apellido (latino)",
         "fullNamePreview": "Nombre completo",
         "internalCodeHint": "Deje en blanco para generación automática.",
+        "identityIdentifierHint": "Introduzca un número Massar, matrícula o código interno en «Información adicional».",
         "admissionDateHint": "Se usa para registros históricos o cuando se requiera administrativamente.",
         "saveAndSetup": "Crear y continuar configuración",
-        "saveOnly": "Solo crear",
+        "saveOnly": "Guardar solo",
         "saving": "Creando alumno…",
         "success": "Alumno creado correctamente.",
         "loadingYears": "Cargando años académicos…",
@@ -3020,7 +3021,8 @@
           "academicYearRequired": "El año académico es obligatorio.",
           "cycleRequired": "El ciclo es obligatorio.",
           "levelRequired": "El nivel es obligatorio.",
-          "massarNoSpaces": "El número Massar no debe contener espacios."
+          "massarNoSpaces": "El número Massar no debe contener espacios.",
+          "studentIdentifierRequired": "Introduzca un número Massar, matrícula o código interno del alumno."
         },
         "stepperAria": "Pasos de creación del alumno",
         "steps": {
@@ -3132,6 +3134,7 @@
           "selectedPlan": "Plan seleccionado",
           "expectedMonthlyInstallment": "Cuota mensual esperada",
           "reviewFinanceBeforeSave": "Revise la personalización del plan financiero antes de guardar.",
+          "missingStudentIdentifier": "No se puede guardar: falta el identificador del alumno.",
           "planType": "Tipo de plan",
           "planOriginal": "Original",
           "planCustomized": "Personalizado",

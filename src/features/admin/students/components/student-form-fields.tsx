@@ -619,15 +619,18 @@ export function StudentCreateIdentityFields({
           onChange={(e) => onChange({ dateOfBirth: e.target.value })}
         />
       </Field>
-      <Field label={t('admin.massarCode')} error={errors.massarCode}>
-        <input
-          className="input"
-          value={state.massarCode}
-          onChange={(e) => onChange({ massarCode: e.target.value.replace(/\s/g, '') })}
-          dir="ltr"
-          inputMode="numeric"
-        />
-      </Field>
+      <div data-field="massarCode">
+        <Field label={t('admin.massarCode')} error={errors.massarCode}>
+          <input
+            className="input"
+            value={state.massarCode}
+            onChange={(e) => onChange({ massarCode: e.target.value.replace(/\s/g, '') })}
+            dir="ltr"
+            inputMode="numeric"
+          />
+          <span className="tiny muted">{t('admin.student360.create.identityIdentifierHint')}</span>
+        </Field>
+      </div>
     </div>
   );
 }
@@ -678,18 +681,22 @@ export function StudentCreateAdditionalFields({
           onChange={(nationalityId) => onChange({ nationalityId })}
         />
       </Field>
-      <Field label={t('admin.student360.schoolNumber')} error={errors.schoolNumber}>
-        <input
-          className="input"
-          value={state.schoolNumber}
-          onChange={(e) => onChange({ schoolNumber: e.target.value })}
-          dir="ltr"
-        />
-      </Field>
-      <Field label={t('admin.studentCode')}>
-        <input className="input" value={state.code} onChange={(e) => onChange({ code: e.target.value })} dir="ltr" />
-        <span className="tiny muted">{t('admin.student360.create.internalCodeHint')}</span>
-      </Field>
+      <div data-field="schoolNumber">
+        <Field label={t('admin.student360.schoolNumber')} error={errors.schoolNumber}>
+          <input
+            className="input"
+            value={state.schoolNumber}
+            onChange={(e) => onChange({ schoolNumber: e.target.value })}
+            dir="ltr"
+          />
+        </Field>
+      </div>
+      <div data-field="code">
+        <Field label={t('admin.studentCode')} error={errors.code}>
+          <input className="input" value={state.code} onChange={(e) => onChange({ code: e.target.value })} dir="ltr" />
+          <span className="tiny muted">{t('admin.student360.create.internalCodeHint')}</span>
+        </Field>
+      </div>
       <Field label={t('admin.admissionDate')}>
         <input
           className="input"

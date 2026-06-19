@@ -11,6 +11,28 @@ function msgIncludes(message: string, ...needles: string[]): boolean {
   return needles.some((n) => lower.includes(n.toLowerCase()));
 }
 
+function isMissingStudentIdentifierMessage(message: string): boolean {
+  const lower = message.toLowerCase();
+  return (
+    lower.includes('code, matricule, or massar_code is required') ||
+    (lower.includes('massar_code') && lower.includes('matricule') && lower.includes('required'))
+  );
+}
+
+function mapMissingStudentIdentifierError(
+  t: (key: string) => string,
+): StudentApiErrorContext {
+  const message = t('admin.student360.create.errors.studentIdentifierRequired');
+  return {
+    message,
+    fieldErrors: {
+      massarCode: message,
+      schoolNumber: message,
+      code: message,
+    },
+  };
+}
+
 export function mapStudentApiError(
   error: ApiErrorBody,
   t: (key: string) => string,
@@ -53,6 +75,9 @@ export function mapStudentApiError(
     case 'not_found':
       return { message: t('errors.notFound') };
     case 'validation_error':
+      if (isMissingStudentIdentifierMessage(message)) {
+        return mapMissingStudentIdentifierError(t);
+      }
       if (msgIncludes(message, 'class', 'school', 'مؤسسة', 'قسم', 'scope', 'نطاق', 'outside')) {
         fieldErrors.classId = t('admin.studentClassForbidden');
         return { message: t('admin.studentClassForbidden'), fieldErrors };
@@ -69,6 +94,9 @@ export function mapStudentApiError(
       }
       return { message: t('admin.studentValidation') };
     default:
+      if (isMissingStudentIdentifierMessage(message)) {
+        return mapMissingStudentIdentifierError(t);
+      }
       if (message && !msgIncludes(message, '<', 'traceback', 'html')) {
         return { message };
       }
