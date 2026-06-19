@@ -50,4 +50,21 @@ describe('mapStudentApiError', () => {
     expect(mapped.message).not.toContain('academic_year_id');
     expect(mapped.fieldErrors?.academicYearId).toBe(mapped.message);
   });
+
+  it('translates duplicate massar backend messages', () => {
+    const t = (key: string) =>
+      key === 'admin.student360.errors.duplicateMassar'
+        ? 'رقم مسار مستعمل من قبل تلميذ آخر.'
+        : key;
+    for (const message of [
+      'massar_code already exists',
+      'duplicate massar_code',
+      'student with this massar_code already exists',
+    ]) {
+      const mapped = mapStudentApiError({ code: 'validation_error', message }, t);
+      expect(mapped.message).toBe('رقم مسار مستعمل من قبل تلميذ آخر.');
+      expect(mapped.fieldErrors?.massarCode).toBe(mapped.message);
+      expect(mapped.message).not.toContain('massar_code');
+    }
+  });
 });

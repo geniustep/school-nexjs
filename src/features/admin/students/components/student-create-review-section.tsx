@@ -33,6 +33,7 @@ export function StudentCreateReviewSection({
   previewLoading,
   previewError,
   financeBlocked,
+  massarDuplicate = false,
 }: {
   profileState: StudentProfileFormState;
   billingState: StudentCreateBillingFormState;
@@ -42,6 +43,7 @@ export function StudentCreateReviewSection({
   previewLoading?: boolean;
   previewError?: string | null;
   financeBlocked: boolean;
+  massarDuplicate?: boolean;
 }) {
   const t = useT();
   const { locale } = useLocale();
@@ -76,6 +78,11 @@ export function StudentCreateReviewSection({
       {!identifierMissing && !profileState.academicYearId.trim() && suggest ? (
         <p className="student-create-finance-preview__error" role="alert">
           {t('admin.student360.create.review.missingAcademicYearForFinance')}
+        </p>
+      ) : null}
+      {massarDuplicate ? (
+        <p className="student-create-finance-preview__error" role="alert">
+          {t('admin.student360.create.review.duplicateMassar')}
         </p>
       ) : null}
 

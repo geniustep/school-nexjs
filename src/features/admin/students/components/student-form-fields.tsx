@@ -551,12 +551,14 @@ export function StudentEmergencyFields({
 export function StudentCreateIdentityFields({
   state,
   errors,
+  fieldHints,
   optionsLoading,
   genders,
   onChange,
 }: {
   state: StudentProfileFormState;
   errors: StudentProfileFieldErrors;
+  fieldHints?: Partial<Record<'massarCode', string>>;
   optionsLoading: boolean;
   genders: { value: string; label: string }[];
   onChange: (patch: Partial<StudentProfileFormState>) => void;
@@ -628,7 +630,9 @@ export function StudentCreateIdentityFields({
             dir="ltr"
             inputMode="numeric"
           />
-          <span className="tiny muted">{t('admin.student360.create.identityIdentifierHint')}</span>
+          <span className="tiny muted">
+            {fieldHints?.massarCode ?? t('admin.student360.create.identityIdentifierHint')}
+          </span>
         </Field>
       </div>
     </div>
@@ -638,12 +642,14 @@ export function StudentCreateIdentityFields({
 export function StudentCreateAdditionalFields({
   state,
   errors,
+  fieldHints,
   optionsLoading,
   nationalities,
   onChange,
 }: {
   state: StudentProfileFormState;
   errors: StudentProfileFieldErrors;
+  fieldHints?: Partial<Record<'schoolNumber' | 'code', string>>;
   optionsLoading: boolean;
   nationalities: StudentNationalityOption[];
   onChange: (patch: Partial<StudentProfileFormState>) => void;
@@ -689,12 +695,17 @@ export function StudentCreateAdditionalFields({
             onChange={(e) => onChange({ schoolNumber: e.target.value })}
             dir="ltr"
           />
+          {fieldHints?.schoolNumber ? (
+            <span className="tiny muted">{fieldHints.schoolNumber}</span>
+          ) : null}
         </Field>
       </div>
       <div data-field="code">
         <Field label={t('admin.studentCode')} error={errors.code}>
           <input className="input" value={state.code} onChange={(e) => onChange({ code: e.target.value })} dir="ltr" />
-          <span className="tiny muted">{t('admin.student360.create.internalCodeHint')}</span>
+          <span className="tiny muted">
+            {fieldHints?.code ?? t('admin.student360.create.internalCodeHint')}
+          </span>
         </Field>
       </div>
       <Field label={t('admin.admissionDate')}>

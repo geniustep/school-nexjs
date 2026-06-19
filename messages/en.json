@@ -2982,8 +2982,9 @@
         "departureReasonRequired": "Departure reason is required for this status.",
         "previousSchoolRequired": "Previous school is required for transfer.",
         "emergencyPhoneRecommended": "Phone is recommended when a contact name is provided.",
-        "duplicateMassar": "Massar code already exists.",
-        "duplicateSchoolNumber": "School number already exists.",
+        "duplicateMassar": "This Massar number is already used by another pupil.",
+        "duplicateSchoolNumber": "Another pupil is already registered with this school number.",
+        "duplicateStudentCode": "Another pupil is already registered with this internal code.",
         "invalidStatus": "Invalid student status.",
         "classMismatch": "Selected class does not match school or academic year."
       },
@@ -3023,7 +3024,11 @@
           "levelRequired": "Level is required.",
           "massarNoSpaces": "Massar number must not contain spaces.",
           "studentIdentifierRequired": "Enter a Massar number, registration number, or internal student code.",
-          "academicYearRequiredForFinance": "Select an academic year before saving the financial plan."
+          "academicYearRequiredForFinance": "Select an academic year before saving the financial plan.",
+          "checkingMassar": "Checking Massar number…",
+          "checkingSchoolNumber": "Checking school number…",
+          "checkingCode": "Checking internal code…",
+          "identifierCheckFailed": "Could not verify the identifier. Try again."
         },
         "stepperAria": "Student creation steps",
         "steps": {
@@ -3142,6 +3147,7 @@
           "reviewFinanceBeforeSave": "Please review the financial plan customization before saving.",
           "missingStudentIdentifier": "Cannot save: student identifier is missing.",
           "missingAcademicYearForFinance": "Cannot save: select an academic year before saving the financial plan.",
+          "duplicateMassar": "Cannot save: duplicate Massar number.",
           "planType": "Plan type",
           "planOriginal": "Original",
           "planCustomized": "Customized",

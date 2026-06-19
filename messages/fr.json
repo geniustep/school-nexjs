@@ -2982,8 +2982,9 @@
         "departureReasonRequired": "Le motif de départ est obligatoire pour ce statut.",
         "previousSchoolRequired": "L'établissement précédent est obligatoire pour un transfert.",
         "emergencyPhoneRecommended": "Un téléphone est recommandé si un nom est renseigné.",
-        "duplicateMassar": "Code Massar déjà utilisé.",
-        "duplicateSchoolNumber": "Numéro scolaire déjà utilisé.",
+        "duplicateMassar": "Ce numéro Massar est déjà utilisé par un autre élève.",
+        "duplicateSchoolNumber": "Un autre élève est déjà inscrit avec ce numéro scolaire.",
+        "duplicateStudentCode": "Un autre élève est déjà inscrit avec ce code interne.",
         "invalidStatus": "Statut élève invalide.",
         "classMismatch": "La classe ne correspond pas à l'établissement ou à l'année."
       },
@@ -3023,7 +3024,11 @@
           "levelRequired": "Le niveau est obligatoire.",
           "massarNoSpaces": "Le numéro Massar ne doit pas contenir d'espaces.",
           "studentIdentifierRequired": "Saisissez un numéro Massar, un matricule ou un code interne pour l'élève.",
-          "academicYearRequiredForFinance": "Sélectionnez une année scolaire avant d'enregistrer le plan financier."
+          "academicYearRequiredForFinance": "Sélectionnez une année scolaire avant d'enregistrer le plan financier.",
+          "checkingMassar": "Vérification du numéro Massar…",
+          "checkingSchoolNumber": "Vérification du numéro scolaire…",
+          "checkingCode": "Vérification du code interne…",
+          "identifierCheckFailed": "Impossible de vérifier l'identifiant. Réessayez."
         },
         "stepperAria": "Étapes de création de l'élève",
         "steps": {
@@ -3142,6 +3147,7 @@
           "reviewFinanceBeforeSave": "Veuillez vérifier la personnalisation du plan financier avant l'enregistrement.",
           "missingStudentIdentifier": "Enregistrement impossible : identifiant de l'élève manquant.",
           "missingAcademicYearForFinance": "Enregistrement impossible : sélectionnez une année scolaire avant d'enregistrer le plan financier.",
+          "duplicateMassar": "Enregistrement impossible : numéro Massar en double.",
           "planType": "Type de plan",
           "planOriginal": "Original",
           "planCustomized": "Personnalisé",

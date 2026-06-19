@@ -3009,8 +3009,9 @@
         "departureReasonRequired": "سبب المغادرة مطلوب لهذه الحالة.",
         "previousSchoolRequired": "المؤسسة السابقة مطلوبة لنوع التحويل.",
         "emergencyPhoneRecommended": "يُفضّل إدخال هاتف عند ذكر اسم جهة الطوارئ.",
-        "duplicateMassar": "رقم مسار مستخدم مسبقًا.",
-        "duplicateSchoolNumber": "الرقم المدرسي مستخدم مسبقًا.",
+        "duplicateMassar": "رقم مسار مستعمل من قبل تلميذ آخر.",
+        "duplicateSchoolNumber": "يوجد تلميذ مسجل بهذا الرقم المدرسي.",
+        "duplicateStudentCode": "يوجد تلميذ مسجل بهذا الرمز الداخلي.",
         "invalidStatus": "حالة التلميذ غير صالحة.",
         "classMismatch": "القسم المختار لا يطابق المدرسة أو السنة الدراسية."
       },
@@ -3050,7 +3051,11 @@
           "levelRequired": "المستوى مطلوب.",
           "massarNoSpaces": "رقم مسار لا يجب أن يحتوي على مسافات.",
           "studentIdentifierRequired": "يجب إدخال رقم مسار أو رقم التسجيل أو رمز داخلي للتلميذ.",
-          "academicYearRequiredForFinance": "يجب اختيار السنة الدراسية قبل حفظ الخطة المالية."
+          "academicYearRequiredForFinance": "يجب اختيار السنة الدراسية قبل حفظ الخطة المالية.",
+          "checkingMassar": "جارٍ التحقق من رقم مسار…",
+          "checkingSchoolNumber": "جارٍ التحقق من الرقم المدرسي…",
+          "checkingCode": "جارٍ التحقق من الرمز الداخلي…",
+          "identifierCheckFailed": "تعذّر التحقق من المعرّف. أعد المحاولة."
         },
         "stepperAria": "خطوات إنشاء التلميذ",
         "steps": {
@@ -3169,6 +3174,7 @@
           "reviewFinanceBeforeSave": "يرجى مراجعة تخصيص الخطة المالية قبل الحفظ.",
           "missingStudentIdentifier": "لا يمكن الحفظ: معرّف التلميذ ناقص.",
           "missingAcademicYearForFinance": "لا يمكن الحفظ: يجب اختيار السنة الدراسية قبل حفظ الخطة المالية.",
+          "duplicateMassar": "لا يمكن الحفظ: رقم مسار مكرر.",
           "planType": "نوع الخطة",
           "planOriginal": "أصلية",
           "planCustomized": "مخصصة",

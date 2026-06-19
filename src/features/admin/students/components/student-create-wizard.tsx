@@ -10,6 +10,7 @@ import { useLevelOptions } from '@/features/admin/academic-setup/hooks/use-level
 import { useStudentOptions } from '../hooks/use-student-options';
 import { useFeePlanSuggest } from '../hooks/use-fee-plan-suggest';
 import { useEnrollmentPlanPreview } from '../hooks/use-enrollment-plan-preview';
+import { useStudentCreateIdentifierChecks } from '../hooks/use-student-create-identifier-checks';
 import { mapStudentApiError } from '../utils/student-api-errors';
 import { filterClassesForEnrollment } from '../utils/student-options';
 import {
@@ -36,6 +37,7 @@ import {
   resolveNoDefaultFeePlanMessage,
 } from '../utils/student-enrollment-finance';
 import { validateEnrollmentFinanceSave } from '../utils/enrollment-finance-review';
+import { shouldCheckStudentIdentifier } from '../utils/student-identifier-check';
 import {
   StudentCreateAdditionalFields,
   StudentCreateEnrollmentFields,
@@ -165,6 +167,12 @@ export function StudentCreateForm({
     suggest: suggestState.suggest,
     financeState,
     t,
+  });
+  const identifierChecksState = useStudentCreateIdentifierChecks({
+    massarCode: state.massarCode,
+    schoolNumber: state.schoolNumber,
+    code: state.code,
+    schoolId: resolvedSchoolId,
   });
   const levelSelected = Boolean(state.levelId.trim());
 
@@ -297,6 +305,99 @@ export function StudentCreateForm({
     }
   }, [state.cycleId, state.levelId, options?.levels, levelOptionsState.options]);
 
+  function resolveIdentifierCheckFieldErrors(): StudentProfileFieldErrors {
+    const errors: StudentProfileFieldErrors = {};
+    const { checks } = identifierChecksState;
+    if (checks.massarCode.status === 'duplicate') {
+      errors.massarCode = t('admin.student360.errors.duplicateMassar');
+    }
+    if (checks.schoolNumber.status === 'duplicate') {
+      errors.schoolNumber = t('admin.student360.errors.duplicateSchoolNumber');
+    }
+    if (checks.code.status === 'duplicate') {
+      errors.code = t('admin.student360.errors.duplicateStudentCode');
+    }
+    return errors;
+  }
+
+  function validateIdentifierDuplicateChecks(current: StudentCreateWizardStep): boolean {
+    const checkErrors = resolveIdentifierCheckFieldErrors();
+    const { checks } = identifierChecksState;
+
+    if (checks.massarCode.status === 'checking') {
+      const message = t('admin.student360.create.errors.checkingMassar');
+      setFieldErrors((prev) => ({ ...prev, ...checkErrors, massarCode: message }));
+      toast.error(message);
+      if (current !== 'identity') setStep('identity');
+      focusFirstError({ massarCode: message });
+      return false;
+    }
+    if (checks.massarCode.status === 'error' && shouldCheckStudentIdentifier(state.massarCode)) {
+      const message = t('admin.student360.create.errors.identifierCheckFailed');
+      setFieldErrors((prev) => ({ ...prev, massarCode: message }));
+      toast.error(message);
+      if (current !== 'identity') setStep('identity');
+      focusFirstError({ massarCode: message });
+      return false;
+    }
+    if (checks.massarCode.status === 'duplicate') {
+      const message = checkErrors.massarCode ?? t('admin.student360.errors.duplicateMassar');
+      setFieldErrors((prev) => ({ ...prev, ...checkErrors }));
+      toast.error(message);
+      if (current !== 'identity') setStep('identity');
+      focusFirstError(checkErrors);
+      return false;
+    }
+
+    if (checks.schoolNumber.status === 'duplicate') {
+      setFieldErrors((prev) => ({ ...prev, ...checkErrors }));
+      toast.error(checkErrors.schoolNumber ?? t('admin.student360.errors.duplicateSchoolNumber'));
+      if (current === 'identity') setAdditionalOpen(true);
+      focusFirstError(checkErrors);
+      return false;
+    }
+    if (checks.code.status === 'duplicate') {
+      setFieldErrors((prev) => ({ ...prev, ...checkErrors }));
+      toast.error(checkErrors.code ?? t('admin.student360.errors.duplicateStudentCode'));
+      if (current === 'identity') setAdditionalOpen(true);
+      focusFirstError(checkErrors);
+      return false;
+    }
+
+    if (
+      (checks.schoolNumber.status === 'checking' && shouldCheckStudentIdentifier(state.schoolNumber)) ||
+      (checks.code.status === 'checking' && shouldCheckStudentIdentifier(state.code))
+    ) {
+      toast.error(t('admin.student360.create.errors.identifierCheckFailed'));
+      return false;
+    }
+
+    return true;
+  }
+
+  function identityFieldHints() {
+    const { checks } = identifierChecksState;
+    return {
+      massarCode:
+        checks.massarCode.status === 'checking'
+          ? t('admin.student360.create.errors.checkingMassar')
+          : undefined,
+      schoolNumber:
+        checks.schoolNumber.status === 'checking'
+          ? t('admin.student360.create.errors.checkingSchoolNumber')
+          : undefined,
+      code:
+        checks.code.status === 'checking'
+          ? t('admin.student360.create.errors.checkingCode')
+          : undefined,
+    };
+  }
+
+  const displayFieldErrors = {
+    ...fieldErrors,
+    ...resolveIdentifierCheckFieldErrors(),
+  };
+
   function focusFirstError(errors: StudentProfileFieldErrors) {
     const firstKey = FIELD_ORDER.find((key) => errors[key]);
     if (!firstKey || !formRef.current) return;
@@ -350,6 +451,10 @@ export function StudentCreateForm({
         setStep('identity');
       }
       focusFirstError(identifierValidation.errors);
+      return false;
+    }
+
+    if (!validateIdentifierDuplicateChecks(current)) {
       return false;
     }
 
@@ -408,8 +513,12 @@ export function StudentCreateForm({
     return true;
   }
 
-  function goNext() {
+  async function goNext() {
     const current = step;
+    if (!(await identifierChecksState.flushChecks())) {
+      validateIdentifierDuplicateChecks(current);
+      return;
+    }
     if (!validateStep(current)) return;
     const next = STEP_ORDER[stepIndex(current) + 1];
     if (next) setStep(next);
@@ -421,6 +530,10 @@ export function StudentCreateForm({
   }
 
   async function submit(mode: StudentCreateSaveMode) {
+    if (!(await identifierChecksState.flushChecks())) {
+      validateIdentifierDuplicateChecks('review');
+      return;
+    }
     if (!validateStep('review')) return;
 
     setSaveMode(mode);
@@ -458,6 +571,10 @@ export function StudentCreateForm({
   const academicYearMissingForFinance =
     Boolean(suggestState.suggest) && !state.academicYearId.trim();
 
+  const massarDuplicate =
+    identifierChecksState.checks.massarCode.status === 'duplicate' ||
+    displayFieldErrors.massarCode === t('admin.student360.errors.duplicateMassar');
+
   return (
     <form ref={formRef} className="student-create-form" onSubmit={(e) => e.preventDefault()}>
       <StudentCreateStepper activeStep={step} />
@@ -470,7 +587,8 @@ export function StudentCreateForm({
           <div data-field="firstName">
             <StudentCreateIdentityFields
               state={state}
-              errors={fieldErrors}
+              errors={displayFieldErrors}
+              fieldHints={identityFieldHints()}
               optionsLoading={optionsState.loading}
               genders={options?.genders ?? []}
               onChange={patch}
@@ -486,7 +604,8 @@ export function StudentCreateForm({
             </summary>
             <StudentCreateAdditionalFields
               state={state}
-              errors={fieldErrors}
+              errors={displayFieldErrors}
+              fieldHints={identityFieldHints()}
               optionsLoading={optionsState.loading}
               nationalities={options?.nationalities ?? []}
               onChange={patch}
@@ -575,6 +694,7 @@ export function StudentCreateForm({
             previewLoading={previewState.loading}
             previewError={previewState.error}
             financeBlocked={financeBlocked}
+            massarDuplicate={massarDuplicate}
           />
         </>
       ) : null}
@@ -587,7 +707,12 @@ export function StudentCreateForm({
         ) : null}
 
         {!onLastStep ? (
-          <button type="button" className="btn btn--primary" disabled={saving} onClick={goNext}>
+          <button
+            type="button"
+            className="btn btn--primary"
+            disabled={saving || identifierChecksState.identifierChecksBlockProgress}
+            onClick={() => void goNext()}
+          >
             {t('common.next')}
           </button>
         ) : (
@@ -595,8 +720,15 @@ export function StudentCreateForm({
             <button
               type="button"
               className="btn btn--primary"
-              disabled={saving || financeBlocked || identifierMissing || academicYearMissingForFinance}
-              onClick={() => submit('setup')}
+              disabled={
+                saving ||
+                financeBlocked ||
+                identifierMissing ||
+                academicYearMissingForFinance ||
+                massarDuplicate ||
+                identifierChecksState.identifierChecksBlockProgress
+              }
+              onClick={() => void submit('setup')}
             >
               {saving && saveMode === 'setup'
                 ? t('admin.student360.create.saving')
@@ -605,8 +737,15 @@ export function StudentCreateForm({
             <button
               type="button"
               className="btn btn--secondary"
-              disabled={saving || financeBlocked || identifierMissing || academicYearMissingForFinance}
-              onClick={() => submit('list')}
+              disabled={
+                saving ||
+                financeBlocked ||
+                identifierMissing ||
+                academicYearMissingForFinance ||
+                massarDuplicate ||
+                identifierChecksState.identifierChecksBlockProgress
+              }
+              onClick={() => void submit('list')}
             >
               {saving && saveMode === 'list'
                 ? t('admin.student360.create.saving')

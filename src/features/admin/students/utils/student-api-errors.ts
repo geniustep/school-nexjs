@@ -39,6 +39,46 @@ function mapMissingAcademicYearForFinanceError(
   };
 }
 
+function isDuplicateMassarMessage(message: string): boolean {
+  const lower = message.toLowerCase();
+  return (
+    lower.includes('duplicate_massar') ||
+    lower.includes('duplicate massar') ||
+    (lower.includes('massar_code') && (lower.includes('already exists') || lower.includes('duplicate'))) ||
+    (lower.includes('massar') && lower.includes('already exists'))
+  );
+}
+
+function isDuplicateSchoolNumberMessage(message: string): boolean {
+  const lower = message.toLowerCase();
+  return (
+    lower.includes('duplicate_school_number') ||
+    lower.includes('duplicate school number') ||
+    (lower.includes('school_number') && lower.includes('already exists')) ||
+    (lower.includes('matricule') && lower.includes('already exists'))
+  );
+}
+
+function isDuplicateStudentCodeMessage(message: string): boolean {
+  const lower = message.toLowerCase();
+  return lower.includes('duplicate') && lower.includes('code') && !lower.includes('massar');
+}
+
+function mapDuplicateMassarError(t: (key: string) => string): StudentApiErrorContext {
+  const message = t('admin.student360.errors.duplicateMassar');
+  return { message, fieldErrors: { massarCode: message } };
+}
+
+function mapDuplicateSchoolNumberError(t: (key: string) => string): StudentApiErrorContext {
+  const message = t('admin.student360.errors.duplicateSchoolNumber');
+  return { message, fieldErrors: { schoolNumber: message } };
+}
+
+function mapDuplicateStudentCodeError(t: (key: string) => string): StudentApiErrorContext {
+  const message = t('admin.student360.errors.duplicateStudentCode');
+  return { message, fieldErrors: { code: message } };
+}
+
 function mapMissingStudentIdentifierError(
   t: (key: string) => string,
 ): StudentApiErrorContext {
@@ -51,6 +91,16 @@ function mapMissingStudentIdentifierError(
       code: message,
     },
   };
+}
+
+function mapDuplicateIdentifierMessages(
+  message: string,
+  t: (key: string) => string,
+): StudentApiErrorContext | null {
+  if (isDuplicateMassarMessage(message)) return mapDuplicateMassarError(t);
+  if (isDuplicateSchoolNumberMessage(message)) return mapDuplicateSchoolNumberError(t);
+  if (isDuplicateStudentCodeMessage(message)) return mapDuplicateStudentCodeError(t);
+  return null;
 }
 
 export function mapStudentApiError(
@@ -101,6 +151,10 @@ export function mapStudentApiError(
       if (isMissingAcademicYearForFinanceMessage(message)) {
         return mapMissingAcademicYearForFinanceError(t);
       }
+      {
+        const duplicate = mapDuplicateIdentifierMessages(message, t);
+        if (duplicate) return duplicate;
+      }
       if (msgIncludes(message, 'class', 'school', 'مؤسسة', 'قسم', 'scope', 'نطاق', 'outside')) {
         fieldErrors.classId = t('admin.studentClassForbidden');
         return { message: t('admin.studentClassForbidden'), fieldErrors };
@@ -122,6 +176,10 @@ export function mapStudentApiError(
       }
       if (isMissingAcademicYearForFinanceMessage(message)) {
         return mapMissingAcademicYearForFinanceError(t);
+      }
+      {
+        const duplicate = mapDuplicateIdentifierMessages(message, t);
+        if (duplicate) return duplicate;
       }
       if (message && !msgIncludes(message, '<', 'traceback', 'html')) {
         return { message };
