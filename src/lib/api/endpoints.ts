@@ -204,6 +204,7 @@ export const endpoints = {
     financeFeeTypeRestore: (id: number | string) => `/admin/finance/fee-types/${id}/restore`,
     financeFeePlans: '/admin/finance/fee-plans',
     financeFeePlanSuggest: '/admin/finance/fee-plans/suggest',
+    financeEnrollmentPlanPreview: '/admin/finance/enrollment/plan-preview',
     financeFeePlan: (id: number | string) => `/admin/finance/fee-plans/${id}`,
     financeFeePlanConfirm: (id: number | string) => `/admin/finance/fee-plans/${id}/confirm`,
     financeFeePlanArchive: (id: number | string) => `/admin/finance/fee-plans/${id}/archive`,

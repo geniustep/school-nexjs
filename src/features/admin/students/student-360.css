@@ -4527,8 +4527,8 @@
 .student-create-stepper {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin: 0;
+  gap: 8px;
+  margin: 0 0 4px;
   padding: 0;
   list-style: none;
 }
@@ -4537,23 +4537,27 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
+  padding: 8px 14px;
   border-radius: 999px;
   border: 1px solid var(--border, #e2e8f0);
   background: var(--card-bg, #fff);
   color: var(--text-muted, #64748b);
-  font-size: 0.85rem;
+  font-size: 0.8125rem;
+  line-height: 1.2;
+  transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
 }
 
 .student-create-stepper__item[data-active] {
   border-color: var(--primary, #2563eb);
   color: var(--primary, #2563eb);
   background: #eff6ff;
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.08);
 }
 
 .student-create-stepper__item[data-done] {
   border-color: #86efac;
   color: #047857;
+  background: #f0fdf4;
 }
 
 .student-create-stepper__badge {
@@ -4563,15 +4567,357 @@
   width: 1.5rem;
   height: 1.5rem;
   border-radius: 999px;
-  background: currentColor;
+  background: var(--surface-muted, #f1f5f9);
+  color: var(--text-muted, #64748b);
+  font-size: 0.7rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.student-create-stepper__item[data-active] .student-create-stepper__badge {
+  background: var(--primary, #2563eb);
   color: #fff;
+}
+
+.student-create-stepper__item[data-done] .student-create-stepper__badge {
+  background: #047857;
+  color: #fff;
+}
+
+.student-create-stepper__label {
+  white-space: nowrap;
+}
+
+.student-create-fee-plan {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.student-create-fee-plan__section-head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.student-create-fee-plan__section-head .student-create-form__section-title {
+  margin: 0;
+}
+
+.student-create-fee-plan__section-lead {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-muted, #64748b);
+}
+
+.student-create-fee-plan__hero {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border-radius: 12px;
+  border: 1px solid #bfdbfe;
+  background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 55%, #fff 100%);
+}
+
+.student-create-fee-plan__hero-main {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.student-create-fee-plan__eyebrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #1d4ed8;
+}
+
+.student-create-fee-plan__plan-id {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid #bfdbfe;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.student-create-fee-plan__plan-name {
+  margin: 0;
+  font-size: 1.25rem;
+  line-height: 1.35;
+  font-weight: 700;
+  color: var(--text, #0f172a);
+}
+
+.student-create-fee-plan__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.student-create-fee-plan__tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #dbeafe;
+  font-size: 0.75rem;
+  color: #334155;
+}
+
+.student-create-fee-plan__total-due {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  margin: 4px 0 0;
+}
+
+.student-create-fee-plan__total-label {
+  font-size: 0.8125rem;
+  color: var(--text-muted, #64748b);
+}
+
+.student-create-fee-plan__total-value {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #0f766e;
+}
+
+.student-create-fee-plan__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.student-create-fee-plan__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid #e2e8f0;
+}
+
+.student-create-fee-plan__stat-label {
+  font-size: 0.75rem;
+  color: var(--text-muted, #64748b);
+}
+
+.student-create-fee-plan__stat-value {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.student-create-fee-plan__periods-card {
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border, #e2e8f0);
+  background: var(--card-bg, #fff);
+}
+
+.student-create-fee-plan__periods-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.student-create-fee-plan__periods-count {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f0fdf4;
+  color: #047857;
   font-size: 0.75rem;
   font-weight: 700;
 }
 
-.student-create-stepper__item[data-active] .student-create-stepper__badge,
-.student-create-stepper__item[data-done] .student-create-stepper__badge {
-  background: currentColor;
+.student-create-fee-plan__subtitle {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.student-create-fee-plan__period-grid {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+  gap: 10px;
+}
+
+.student-create-fee-plan__period-chip {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #d1fae5;
+  background: #f8fffb;
+}
+
+.student-create-fee-plan__period-chip--off {
+  opacity: 0.55;
+  border-color: #e2e8f0;
+  background: #f8fafc;
+}
+
+.student-create-fee-plan__period-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  color: #94a3b8;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.student-create-fee-plan__period-icon--on {
+  background: #047857;
+  border-color: #047857;
+  color: #fff;
+}
+
+.student-create-fee-plan__period-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.student-create-fee-plan__period-label {
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.student-create-fee-plan__period-due {
+  font-size: 0.75rem;
+  color: var(--text-muted, #64748b);
+}
+
+.student-create-fee-plan__period-amount {
+  font-size: 0.8125rem;
+  color: #0f766e;
+  font-weight: 600;
+}
+
+.student-create-fee-plan__excluded-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.student-create-fee-plan__excluded-chip {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px dashed #fdba74;
+  font-size: 0.8125rem;
+  color: #9a3412;
+}
+
+.student-create-fee-plan__periods--excluded {
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+}
+
+.student-create-fee-plan__customize-box {
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border, #e2e8f0);
+  background: var(--surface-muted, #f8fafc);
+}
+
+.student-create-fee-plan__state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 28px 20px;
+  border-radius: 12px;
+  border: 1px dashed var(--border, #cbd5e1);
+  background: var(--surface-muted, #f8fafc);
+  text-align: center;
+}
+
+.student-create-fee-plan__state--loading {
+  align-items: stretch;
+}
+
+.student-create-fee-plan__state-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid var(--border, #e2e8f0);
+  color: var(--text-muted, #94a3b8);
+  font-size: 1.25rem;
+}
+
+.student-create-fee-plan__state-text {
+  margin: 0;
+  max-width: 36rem;
+  font-size: 0.875rem;
+  color: var(--text-muted, #64748b);
+}
+
+.student-create-fee-plan__skeleton-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.student-create-fee-plan__skeleton {
+  border-radius: 10px;
+  background: linear-gradient(90deg, #e2e8f0 0%, #f1f5f9 50%, #e2e8f0 100%);
+  background-size: 200% 100%;
+  animation: student-create-fee-plan-shimmer 1.2s ease-in-out infinite;
+}
+
+.student-create-fee-plan__skeleton--hero {
+  height: 120px;
+}
+
+.student-create-fee-plan__skeleton--stat {
+  height: 56px;
+}
+
+@keyframes student-create-fee-plan-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
 }
 
 .student-create-fee-plan__card {
@@ -4607,11 +4953,6 @@
 .student-create-fee-plan__meta-row dd {
   margin: 0;
   font-weight: 600;
-}
-
-.student-create-fee-plan__subtitle {
-  margin: 16px 0 8px;
-  font-size: 0.95rem;
 }
 
 .student-create-fee-plan__period-list {
@@ -4659,7 +5000,7 @@
 }
 
 .student-create-fee-plan__customize-toggle {
-  margin-top: 16px;
+  margin-top: 0;
 }
 
 .student-create-fee-plan__customize-panel {
@@ -4731,6 +5072,149 @@
 [dir='rtl'] .student-create-fee-plan__customize-table th,
 [dir='rtl'] .student-create-fee-plan__customize-table td {
   text-align: right;
+}
+
+.student-create-finance-plan-picker__list {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.student-create-finance-plan-picker__card {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 10px;
+  background: #fff;
+  text-align: start;
+  cursor: pointer;
+}
+
+.student-create-finance-plan-picker__card--selected {
+  border-color: var(--primary, #2563eb);
+  background: #eff6ff;
+}
+
+.student-create-finance-plan-picker__name {
+  font-weight: 600;
+  flex: 1 1 auto;
+}
+
+.student-create-finance-plan-picker__badge {
+  font-size: 0.6875rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.student-create-finance-plan-picker__total {
+  font-size: 0.8125rem;
+  color: var(--text-muted, #64748b);
+}
+
+.student-create-finance-lines__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.student-create-finance-lines__card {
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 10px;
+  padding: 14px;
+  background: #fff;
+}
+
+.student-create-finance-lines__card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.student-create-finance-lines__card-head h4 {
+  margin: 0;
+  font-size: 0.9375rem;
+}
+
+.student-create-finance-lines__mode {
+  font-size: 0.75rem;
+  color: var(--text-muted, #64748b);
+}
+
+.student-create-finance-lines__amount {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+
+.student-create-finance-summary__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  margin: 0 0 16px;
+}
+
+.student-create-finance-summary__row {
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #f8fafc;
+}
+
+.student-create-finance-summary__row dt {
+  margin: 0 0 4px;
+  font-size: 0.75rem;
+  color: var(--text-muted, #64748b);
+}
+
+.student-create-finance-summary__row dd {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.student-create-finance-summary__row--emphasis {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+}
+
+.student-create-finance-discount,
+.student-create-finance-one-time__row {
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 10px;
+  background: #fff;
+}
+
+.student-create-finance-discount__fields,
+.student-create-finance-one-time__fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.student-create-finance-preview__error {
+  color: var(--danger, #dc2626);
+  font-size: 0.875rem;
+  margin: 0 0 10px;
+}
+
+.student-create-finance-line-discounts__title,
+.student-create-finance-one-time__title,
+.student-create-finance-periods__title {
+  margin: 12px 0 8px;
+  font-size: 0.875rem;
 }
 
 .nationality-combobox {
@@ -4846,6 +5330,29 @@
 
   .student-create-form__actions .btn {
     width: 100%;
+  }
+
+  .student-create-stepper__item {
+    flex: 1 1 calc(50% - 4px);
+    justify-content: center;
+  }
+
+  .student-create-stepper__label {
+    white-space: normal;
+    text-align: center;
+  }
+
+  .student-create-fee-plan__hero {
+    padding: 14px;
+  }
+
+  .student-create-fee-plan__stats,
+  .student-create-fee-plan__skeleton-row {
+    grid-template-columns: 1fr;
+  }
+
+  .student-create-fee-plan__period-grid {
+    grid-template-columns: 1fr;
   }
 }
 

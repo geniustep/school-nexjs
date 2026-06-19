@@ -5,9 +5,20 @@ import type {
   FeePlanSuggestResult,
   StudentCreateFinanceFormState,
   StudentCreateFinancePayload,
-  StudentCreateFinancePeriodPayload,
 } from '@/types/student-enrollment-finance';
 import type { StudentProfileFormState } from './student-profile';
+import {
+  buildStudentCreateFinancePayload as buildFinancePayload,
+  emptyFinanceDiscountState,
+  financeCustomizationReasonOptions,
+} from './enrollment-finance-payload';
+
+export {
+  enrollmentPlanLineAmountParts,
+  enrollmentPlanLinePricingModeKey,
+  financialSummaryRows,
+  financeCustomizationReasonOptions,
+} from './enrollment-finance-payload';
 
 export function canRequestFeePlanSuggest(input: {
   schoolId: number | null;
@@ -27,6 +38,7 @@ export function canRequestFeePlanSuggest(input: {
 export function buildFeePlanSuggestQuery(
   state: StudentProfileFormState,
   schoolId: number | null,
+  selectedFeePlanId?: number | null,
 ): FeePlanSuggestQuery | null {
   if (!canRequestFeePlanSuggest({
     schoolId,
@@ -36,12 +48,57 @@ export function buildFeePlanSuggestQuery(
   })) {
     return null;
   }
-  return {
+  const query: FeePlanSuggestQuery = {
     school_id: schoolId as number,
     academic_year_id: Number(state.academicYearId),
     level_id: Number(state.levelId),
     enrollment_date: state.actualJoinDate.trim(),
   };
+  if (selectedFeePlanId != null && selectedFeePlanId > 0) {
+    query.fee_plan_id = selectedFeePlanId;
+  }
+  return query;
+}
+
+function buildOneTimeLineState(
+  suggest: FeePlanSuggestResult | null,
+): StudentCreateFinanceFormState['oneTimeLines'] {
+  const oneTimeLines: StudentCreateFinanceFormState['oneTimeLines'] = {};
+  const contractLines = suggest?.customization_contract?.one_time_lines ?? [];
+  const planOneTimeLines =
+    suggest?.plan_lines?.filter((line) => line.is_one_time || line.frequency === 'one_time') ?? [];
+
+  for (const line of planOneTimeLines) {
+    const contract = contractLines.find((item) => item.line_id === line.line_id);
+    oneTimeLines[String(line.line_id)] = {
+      selected: contract?.selected ?? true,
+      amountOverride:
+        contract?.amount_override != null ? String(contract.amount_override) : '',
+      dueDateOverride: contract?.due_date_override ?? line.due_date ?? '',
+    };
+  }
+
+  for (const contract of contractLines) {
+    if (oneTimeLines[String(contract.line_id)]) continue;
+    oneTimeLines[String(contract.line_id)] = {
+      selected: contract.selected ?? true,
+      amountOverride:
+        contract.amount_override != null ? String(contract.amount_override) : '',
+      dueDateOverride: contract.due_date_override ?? '',
+    };
+  }
+
+  return oneTimeLines;
+}
+
+function buildLineDiscountState(
+  suggest: FeePlanSuggestResult | null,
+): StudentCreateFinanceFormState['lineDiscounts'] {
+  const lineDiscounts: StudentCreateFinanceFormState['lineDiscounts'] = {};
+  for (const line of suggest?.plan_lines ?? []) {
+    lineDiscounts[String(line.line_id)] = emptyFinanceDiscountState();
+  }
+  return lineDiscounts;
 }
 
 export function defaultStudentCreateFinanceFormState(
@@ -56,10 +113,14 @@ export function defaultStudentCreateFinanceFormState(
     };
   }
   return {
+    selectedFeePlanId: suggest?.fee_plan_id ?? null,
     customizePlan: false,
     customizationReason: '',
     customizationNotes: '',
     periodOverrides,
+    planDiscount: emptyFinanceDiscountState(),
+    lineDiscounts: buildLineDiscountState(suggest),
+    oneTimeLines: buildOneTimeLineState(suggest),
   };
 }
 
@@ -69,7 +130,13 @@ export function mergeFinanceStateWithSuggest(
   resetCustomization: boolean,
 ): StudentCreateFinanceFormState {
   const base = defaultStudentCreateFinanceFormState(suggest);
-  if (resetCustomization || !previous.customizePlan) return base;
+  if (resetCustomization || !previous.customizePlan) {
+    return {
+      ...base,
+      selectedFeePlanId: previous.selectedFeePlanId ?? base.selectedFeePlanId,
+    };
+  }
+
   const periodOverrides = { ...base.periodOverrides };
   for (const [key, override] of Object.entries(previous.periodOverrides)) {
     if (!periodOverrides[key]) continue;
@@ -79,52 +146,52 @@ export function mergeFinanceStateWithSuggest(
       dueDateOverride: override.dueDateOverride,
     };
   }
+
+  const oneTimeLines = { ...base.oneTimeLines };
+  for (const [key, override] of Object.entries(previous.oneTimeLines)) {
+    if (!oneTimeLines[key]) continue;
+    oneTimeLines[key] = { ...override };
+  }
+
+  const lineDiscounts = { ...base.lineDiscounts };
+  for (const [key, override] of Object.entries(previous.lineDiscounts)) {
+    if (!lineDiscounts[key]) continue;
+    lineDiscounts[key] = { ...override };
+  }
+
   return {
+    selectedFeePlanId: previous.selectedFeePlanId ?? base.selectedFeePlanId,
     customizePlan: previous.customizePlan,
     customizationReason: previous.customizationReason,
     customizationNotes: previous.customizationNotes,
     periodOverrides,
+    planDiscount: { ...previous.planDiscount },
+    lineDiscounts,
+    oneTimeLines,
   };
-}
-
-function parseOptionalAmount(value: string): number | null | undefined {
-  const trimmed = value.trim();
-  if (!trimmed) return null;
-  const n = Number(trimmed);
-  return Number.isFinite(n) ? n : undefined;
 }
 
 export function buildStudentCreateFinancePayload(
   suggest: FeePlanSuggestResult,
   financeState: StudentCreateFinanceFormState,
 ): StudentCreateFinancePayload {
-  const payload: StudentCreateFinancePayload = {
-    fee_plan_id: suggest.fee_plan_id,
-    customize_plan: financeState.customizePlan,
+  const feePlanId = financeState.selectedFeePlanId ?? suggest.fee_plan_id;
+  return buildFinancePayload(feePlanId, suggest.suggested_periods, financeState);
+}
+
+export function buildEnrollmentPlanPreviewBody(
+  state: StudentProfileFormState,
+  schoolId: number,
+  suggest: FeePlanSuggestResult,
+  financeState: StudentCreateFinanceFormState,
+): Record<string, unknown> {
+  return {
+    school_id: schoolId,
+    academic_year_id: Number(state.academicYearId),
+    level_id: Number(state.levelId),
+    enrollment_date: state.actualJoinDate.trim(),
+    ...buildStudentCreateFinancePayload(suggest, financeState),
   };
-
-  if (!financeState.customizePlan) return payload;
-
-  if (financeState.customizationReason) {
-    payload.customization_reason = financeState.customizationReason;
-  }
-  const notes = financeState.customizationNotes.trim();
-  if (notes) payload.customization_notes = notes;
-
-  const periods: StudentCreateFinancePeriodPayload[] = suggest.suggested_periods.map((period) => {
-    const override = financeState.periodOverrides[period.period_key];
-    const selected = override?.selected ?? period.selected !== false;
-    const amountOverride = override ? parseOptionalAmount(override.amountOverride) : null;
-    const dueDateOverride = override?.dueDateOverride?.trim() || null;
-    return {
-      period_key: period.period_key,
-      selected,
-      amount_override: amountOverride === undefined ? null : amountOverride,
-      due_date_override: dueDateOverride,
-    };
-  });
-  payload.periods = periods;
-  return payload;
 }
 
 export function selectedFinancePeriods(
@@ -138,18 +205,6 @@ export function selectedFinancePeriods(
     const override = financeState.periodOverrides[period.period_key];
     return override?.selected ?? period.selected !== false;
   });
-}
-
-export function financeCustomizationReasonOptions(): FeePlanCustomizationReason[] {
-  return [
-    'late_enrollment',
-    'scholarship',
-    'special_discount',
-    'family_agreement',
-    'expected_withdrawal',
-    'manual_adjustment',
-    'other',
-  ];
 }
 
 export function canSkipFinanceOnCreate(
@@ -204,5 +259,44 @@ export function resolveNoDefaultFeePlanMessage(
 
 export function financePlanFingerprint(query: FeePlanSuggestQuery | null): string {
   if (!query) return '';
-  return `${query.school_id}:${query.academic_year_id}:${query.level_id}:${query.enrollment_date}`;
+  const planPart = query.fee_plan_id != null ? `:${query.fee_plan_id}` : '';
+  return `${query.school_id}:${query.academic_year_id}:${query.level_id}:${query.enrollment_date}${planPart}`;
+}
+
+export function financePreviewFingerprint(input: {
+  query: FeePlanSuggestQuery | null;
+  financeState: StudentCreateFinanceFormState;
+}): string {
+  const base = financePlanFingerprint(input.query);
+  const { financeState } = input;
+  return [
+    base,
+    financeState.customizePlan ? '1' : '0',
+    financeState.customizationReason,
+    financeState.customizationNotes,
+    JSON.stringify(financeState.periodOverrides),
+    JSON.stringify(financeState.planDiscount),
+    JSON.stringify(financeState.lineDiscounts),
+    JSON.stringify(financeState.oneTimeLines),
+  ].join('|');
+}
+
+export function mapEnrollmentPreviewErrorMessage(
+  error: { code?: string; message?: string } | null | undefined,
+  t: (key: string) => string,
+): string {
+  if (!error) return t('admin.student360.create.finance.previewError');
+  const message = error.message?.trim();
+  if (message) {
+    if (/reason/i.test(message)) return t('admin.student360.create.finance.errors.discountReasonRequired');
+    if (/percent/i.test(message) || /> *100/i.test(message)) {
+      return t('admin.student360.create.finance.errors.percentTooHigh');
+    }
+    if (/fixed_amount|amount/i.test(message) && /greater|exceed/i.test(message)) {
+      return t('admin.student360.create.finance.errors.fixedAmountTooHigh');
+    }
+    if (/period/i.test(message)) return t('admin.student360.create.finance.errors.invalidPeriod');
+    return message;
+  }
+  return t('admin.student360.create.finance.previewError');
 }

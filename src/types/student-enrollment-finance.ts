@@ -12,11 +12,15 @@ export type FeePlanCustomizationReason =
 
 export type StudentCreateBillingPartnerType = 'guardian' | 'student' | 'other';
 
+export type EnrollmentDiscountScope = 'plan' | 'line' | 'period';
+export type EnrollmentDiscountType = 'percent' | 'fixed_amount';
+
 export interface FeePlanSuggestQuery {
   school_id: number;
   academic_year_id: number;
   level_id: number;
   enrollment_date: string;
+  fee_plan_id?: number;
 }
 
 export interface FeePlanSuggestedPeriod {
@@ -39,13 +43,102 @@ export interface FeePlanSuggestAllowedActions {
   customize_amounts?: boolean;
   customize_due_dates?: boolean;
   customize_periods?: boolean;
+  customize_plan?: boolean;
+  select_other_plan?: boolean;
   notes?: boolean;
+}
+
+export interface EligibleFeePlan {
+  id: number;
+  name: string;
+  is_default_for_level?: boolean;
+  is_selected?: boolean;
+  summary?: {
+    expected_total?: number | null;
+    monthly_due_total?: number | null;
+    one_time_total?: number | null;
+  };
+}
+
+export interface EnrollmentPlanLine {
+  line_id: number;
+  fee_type_id?: number | null;
+  fee_type_name: string;
+  frequency?: string | null;
+  base_amount?: number | null;
+  amount?: number | null;
+  currency?: string | null;
+  installment_count?: number | null;
+  installment_amount?: number | null;
+  total_amount?: number | null;
+  monthly_installment_amount?: number | null;
+  is_mandatory?: boolean;
+  is_monthly?: boolean;
+  is_one_time?: boolean;
+  is_optional?: boolean;
+  pricing_mode?: 'recurring_unit_price' | 'total_amount_installments' | string | null;
+  due_date?: string | null;
+  original_total?: number | null;
+  suggested_total?: number | null;
+}
+
+export interface EnrollmentFinancialSummary {
+  currency?: string | StudentFinanceCurrency | null;
+  one_time_total?: number | null;
+  original_monthly_total?: number | null;
+  suggested_monthly_total?: number | null;
+  plan_monthly_total?: number | null;
+  monthly_total?: number | null;
+  monthly_due_total?: number | null;
+  monthly_installment_amount?: number | null;
+  original_monthly_installments_count?: number | null;
+  suggested_monthly_installments_count?: number | null;
+  monthly_installments_count?: number | null;
+  expected_total?: number | null;
+  recurring_periodic_total?: number | null;
+}
+
+export interface EnrollmentCustomizationOneTimeLine {
+  line_id: number;
+  selected?: boolean;
+  amount_override?: number | null;
+  due_date_override?: string | null;
+}
+
+export interface EnrollmentCustomizationContract {
+  periods_apply_to?: string | null;
+  one_time_lines?: EnrollmentCustomizationOneTimeLine[];
+  supports_plan_discount?: boolean;
+  supports_line_discount?: boolean;
+  supports_period_discount?: boolean;
+  discount_types?: EnrollmentDiscountType[];
+  discount_scopes?: EnrollmentDiscountScope[];
+  requires_reason?: boolean;
+}
+
+export interface EnrollmentPlanPreviewLine {
+  line_id: number;
+  fee_type_name?: string;
+  base_amount?: number | null;
+  final_installment_amount?: number | null;
+  final_total?: number | null;
+  discount_percent?: number | null;
+}
+
+export interface EnrollmentPlanPreviewResult {
+  original_total?: number | null;
+  discount_total?: number | null;
+  final_total?: number | null;
+  monthly_due_total?: number | null;
+  one_time_total?: number | null;
+  lines?: EnrollmentPlanPreviewLine[];
 }
 
 export interface FeePlanSuggestResult {
   ok: true;
   fee_plan_id: number;
   fee_plan_name: string;
+  is_default_for_level?: boolean;
   academic_year?: Ref | null;
   level?: Ref | null;
   season_name?: string | null;
@@ -58,6 +151,11 @@ export interface FeePlanSuggestResult {
   total_due?: number | null;
   currency?: StudentFinanceCurrency | null;
   allowed_actions?: FeePlanSuggestAllowedActions;
+  eligible_plans?: EligibleFeePlan[];
+  plan_lines?: EnrollmentPlanLine[];
+  financial_summary?: EnrollmentFinancialSummary | null;
+  customization_contract?: EnrollmentCustomizationContract | null;
+  preview?: EnrollmentPlanPreviewResult | null;
 }
 
 export type FeePlanSuggestErrorCode = 'no_default_fee_plan_for_level' | string;
@@ -87,15 +185,47 @@ export interface StudentCreateFinancePeriodPayload {
   due_date_override?: string | null;
 }
 
+export interface StudentCreateFinanceDiscountPayload {
+  scope: EnrollmentDiscountScope;
+  type: EnrollmentDiscountType;
+  value: number;
+  reason: string;
+  line_id?: number;
+  period_key?: string;
+}
+
+export interface StudentCreateFinanceOneTimeLinePayload {
+  line_id: number;
+  selected: boolean;
+  amount_override?: number | null;
+  due_date_override?: string | null;
+}
+
 export interface StudentCreateFinancePayload {
   fee_plan_id: number;
   customize_plan: boolean;
   customization_reason?: FeePlanCustomizationReason;
   customization_notes?: string;
   periods?: StudentCreateFinancePeriodPayload[];
+  discounts?: StudentCreateFinanceDiscountPayload[];
+  one_time_lines?: StudentCreateFinanceOneTimeLinePayload[];
+}
+
+export interface EnrollmentFinanceDiscountFormState {
+  enabled: boolean;
+  type: EnrollmentDiscountType | '';
+  value: string;
+  reason: FeePlanCustomizationReason | '';
+}
+
+export interface EnrollmentFinanceOneTimeLineFormState {
+  selected: boolean;
+  amountOverride: string;
+  dueDateOverride: string;
 }
 
 export interface StudentCreateFinanceFormState {
+  selectedFeePlanId: number | null;
   customizePlan: boolean;
   customizationReason: FeePlanCustomizationReason | '';
   customizationNotes: string;
@@ -107,8 +237,19 @@ export interface StudentCreateFinanceFormState {
       dueDateOverride: string;
     }
   >;
+  planDiscount: EnrollmentFinanceDiscountFormState;
+  lineDiscounts: Record<string, EnrollmentFinanceDiscountFormState>;
+  oneTimeLines: Record<string, EnrollmentFinanceOneTimeLineFormState>;
 }
 
 export interface StudentCreateBillingFormState {
   billingPartnerType: StudentCreateBillingPartnerType;
+}
+
+export interface EnrollmentPlanPreviewQuery {
+  school_id: number;
+  academic_year_id: number;
+  level_id: number;
+  enrollment_date: string;
+  finance: StudentCreateFinancePayload;
 }

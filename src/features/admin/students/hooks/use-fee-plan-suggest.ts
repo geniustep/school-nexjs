@@ -41,13 +41,18 @@ export function useFeePlanSuggest(query: FeePlanSuggestQuery | null): FeePlanSug
     setLoading(true);
     setError(null);
 
+    const params: Record<string, string | number> = {
+      school_id: currentQuery.school_id,
+      academic_year_id: currentQuery.academic_year_id,
+      level_id: currentQuery.level_id,
+      enrollment_date: currentQuery.enrollment_date,
+    };
+    if (currentQuery.fee_plan_id != null) {
+      params.fee_plan_id = currentQuery.fee_plan_id;
+    }
+
     api
-      .get<unknown>(endpoints.admin.financeFeePlanSuggest, {
-        school_id: currentQuery.school_id,
-        academic_year_id: currentQuery.academic_year_id,
-        level_id: currentQuery.level_id,
-        enrollment_date: currentQuery.enrollment_date,
-      })
+      .get<unknown>(endpoints.admin.financeFeePlanSuggest, params)
       .then((res) => {
         if (!active) return;
         if (!res.success) {

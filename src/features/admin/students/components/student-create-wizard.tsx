@@ -9,6 +9,7 @@ import { endpoints } from '@/lib/api/endpoints';
 import { useLevelOptions } from '@/features/admin/academic-setup/hooks/use-level-options';
 import { useStudentOptions } from '../hooks/use-student-options';
 import { useFeePlanSuggest } from '../hooks/use-fee-plan-suggest';
+import { useEnrollmentPlanPreview } from '../hooks/use-enrollment-plan-preview';
 import { mapStudentApiError } from '../utils/student-api-errors';
 import { filterClassesForEnrollment } from '../utils/student-options';
 import {
@@ -110,6 +111,7 @@ export function StudentCreateForm({
   const [planChangeWarning, setPlanChangeWarning] = useState(false);
   const financeTouchedRef = useRef(false);
   const lastSuggestFingerprintRef = useRef('');
+  const lastFeePlanIdRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (optionsState.loading) return;
@@ -146,11 +148,20 @@ export function StudentCreateForm({
   );
 
   const suggestQuery = useMemo(
-    () => buildFeePlanSuggestQuery(state, resolvedSchoolId),
-    [state, resolvedSchoolId],
+    () => buildFeePlanSuggestQuery(state, resolvedSchoolId, financeState.selectedFeePlanId),
+    [state, resolvedSchoolId, financeState.selectedFeePlanId],
   );
   const suggestState = useFeePlanSuggest(suggestQuery);
   const suggestFingerprint = financePlanFingerprint(suggestQuery);
+  const previewState = useEnrollmentPlanPreview({
+    enabled: step === 'finance' || step === 'review',
+    query: suggestQuery,
+    profileState: state,
+    schoolId: resolvedSchoolId,
+    suggest: suggestState.suggest,
+    financeState,
+    t,
+  });
   const levelSelected = Boolean(state.levelId.trim());
 
   useEffect(() => {
@@ -162,6 +173,10 @@ export function StudentCreateForm({
     }
     if (!suggestState.suggest) return;
 
+    const planChanged =
+      lastFeePlanIdRef.current != null &&
+      lastFeePlanIdRef.current !== suggestState.suggest.fee_plan_id;
+
     const fingerprintChanged =
       lastSuggestFingerprintRef.current !== '' &&
       lastSuggestFingerprintRef.current !== suggestFingerprint;
@@ -171,13 +186,18 @@ export function StudentCreateForm({
       financeTouchedRef.current = false;
     }
 
-    if (fingerprintChanged || lastSuggestFingerprintRef.current === '') {
+    if (fingerprintChanged || lastSuggestFingerprintRef.current === '' || planChanged) {
       setFinanceState((prev) =>
-        mergeFinanceStateWithSuggest(prev, suggestState.suggest, fingerprintChanged),
+        mergeFinanceStateWithSuggest(
+          prev,
+          suggestState.suggest,
+          fingerprintChanged || planChanged,
+        ),
       );
     }
 
     lastSuggestFingerprintRef.current = suggestFingerprint;
+    lastFeePlanIdRef.current = suggestState.suggest.fee_plan_id;
   }, [suggestFingerprint, suggestState.suggest]);
 
   const filteredClasses = useMemo(
@@ -200,6 +220,20 @@ export function StudentCreateForm({
     financeTouchedRef.current = true;
     setFinanceState((prev) => ({ ...prev, ...next }));
     setFinanceError(null);
+  }
+
+  function handleSelectFeePlan(planId: number) {
+    const currentId = financeState.selectedFeePlanId ?? suggestState.suggest?.fee_plan_id;
+    if (planId === currentId) return;
+    financeTouchedRef.current = true;
+    setPlanChangeWarning(false);
+    setFinanceState((prev) => ({
+      ...prev,
+      selectedFeePlanId: planId,
+      customizePlan: false,
+      customizationReason: '',
+      customizationNotes: '',
+    }));
   }
 
   function resetFinancePlan() {
@@ -320,6 +354,11 @@ export function StudentCreateForm({
       if (financeState.customizePlan && !financeState.customizationReason) {
         setFinanceError(t('admin.student360.create.finance.reasonRequired'));
         toast.error(t('admin.student360.create.finance.reasonRequired'));
+        return false;
+      }
+      if (financeState.customizePlan && previewState.error) {
+        setFinanceError(previewState.error);
+        toast.error(previewState.error);
         return false;
       }
     }
@@ -464,7 +503,11 @@ export function StudentCreateForm({
             levelSelected={levelSelected}
             financeState={financeState}
             planChangeWarning={planChangeWarning}
+            preview={previewState.preview}
+            previewLoading={previewState.loading}
+            previewError={previewState.error}
             onFinanceChange={patchFinance}
+            onSelectPlan={handleSelectFeePlan}
             onRetry={suggestState.reload}
           />
         </>

@@ -4,23 +4,58 @@ import Link from 'next/link';
 import { useLocale, useT } from '@/features/i18n/locale-context';
 import { useFormat } from '@/features/i18n/use-format';
 import { formatFinanceCurrency } from '../utils/student-finance-format';
+import { resolveNoDefaultFeePlanMessage, selectedFinancePeriods } from '../utils/student-enrollment-finance';
 import {
-  financeCustomizationReasonOptions,
-  resolveNoDefaultFeePlanMessage,
-  selectedFinancePeriods,
-} from '../utils/student-enrollment-finance';
+  StudentCreateFinanceCustomization,
+  StudentCreateFinancePlanLines,
+  StudentCreateFinancePlanPicker,
+  StudentCreateFinancePreview,
+  StudentCreateFinanceSummary,
+} from './student-create-finance-panels';
 import type {
+  EnrollmentPlanPreviewResult,
   FeePlanSuggestError,
   FeePlanSuggestResult,
   StudentCreateFinanceFormState,
 } from '@/types/student-enrollment-finance';
 
-function MetaRow({ label, value }: { label: string; value: string }) {
+function MetaStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="student-create-fee-plan__meta-row">
-      <dt>{label}</dt>
-      <dd dir="auto">{value}</dd>
+    <div className="student-create-fee-plan__stat">
+      <span className="student-create-fee-plan__stat-label">{label}</span>
+      <span className="student-create-fee-plan__stat-value" dir="auto">
+        {value}
+      </span>
     </div>
+  );
+}
+
+function FeePlanLoadingState({ message }: { message: string }) {
+  return (
+    <section className="student-create-form__section student-create-fee-plan" aria-live="polite">
+      <div className="student-create-fee-plan__state student-create-fee-plan__state--loading">
+        <div className="student-create-fee-plan__skeleton student-create-fee-plan__skeleton--hero" />
+        <div className="student-create-fee-plan__skeleton-row">
+          <div className="student-create-fee-plan__skeleton student-create-fee-plan__skeleton--stat" />
+          <div className="student-create-fee-plan__skeleton student-create-fee-plan__skeleton--stat" />
+          <div className="student-create-fee-plan__skeleton student-create-fee-plan__skeleton--stat" />
+        </div>
+        <p className="student-create-fee-plan__state-text">{message}</p>
+      </div>
+    </section>
+  );
+}
+
+function FeePlanEmptyState({ message }: { message: string }) {
+  return (
+    <section className="student-create-form__section student-create-fee-plan">
+      <div className="student-create-fee-plan__state student-create-fee-plan__state--empty">
+        <span className="student-create-fee-plan__state-icon" aria-hidden="true">
+          ◌
+        </span>
+        <p className="student-create-fee-plan__state-text">{message}</p>
+      </div>
+    </section>
   );
 }
 
@@ -31,7 +66,11 @@ export function StudentCreateFeePlanSection({
   levelSelected,
   financeState,
   planChangeWarning,
+  preview,
+  previewLoading,
+  previewError,
   onFinanceChange,
+  onSelectPlan,
   onRetry,
 }: {
   suggest: FeePlanSuggestResult | null;
@@ -40,7 +79,11 @@ export function StudentCreateFeePlanSection({
   levelSelected: boolean;
   financeState: StudentCreateFinanceFormState;
   planChangeWarning: boolean;
+  preview: EnrollmentPlanPreviewResult | null;
+  previewLoading: boolean;
+  previewError: string | null;
   onFinanceChange: (patch: Partial<StudentCreateFinanceFormState>) => void;
+  onSelectPlan: (planId: number) => void;
   onRetry?: () => void;
 }) {
   const t = useT();
@@ -48,19 +91,11 @@ export function StudentCreateFeePlanSection({
   const { formatDate } = useFormat();
 
   if (!levelSelected) {
-    return (
-      <section className="student-create-form__section">
-        <p className="tiny muted">{t('admin.student360.create.finance.selectLevelForPlan')}</p>
-      </section>
-    );
+    return <FeePlanEmptyState message={t('admin.student360.create.finance.selectLevelForPlan')} />;
   }
 
   if (loading) {
-    return (
-      <section className="student-create-form__section" aria-live="polite">
-        <p className="tiny muted">{t('admin.student360.create.finance.loading')}</p>
-      </section>
-    );
+    return <FeePlanLoadingState message={t('admin.student360.create.finance.loading')} />;
   }
 
   if (error?.code === 'no_default_fee_plan_for_level') {
@@ -106,77 +141,117 @@ export function StudentCreateFeePlanSection({
   }
 
   if (!suggest) {
-    return (
-      <section className="student-create-form__section">
-        <p className="tiny muted">{t('admin.student360.create.finance.waitingEnrollment')}</p>
-      </section>
-    );
+    return <FeePlanEmptyState message={t('admin.student360.create.finance.waitingEnrollment')} />;
   }
 
   const selectedPeriods = selectedFinancePeriods(suggest, financeState);
   const firstDue = selectedPeriods[0]?.due_date;
   const lastDue = selectedPeriods[selectedPeriods.length - 1]?.due_date;
-  const allowCustomizeAmounts = suggest.allowed_actions?.customize_amounts !== false;
-  const allowCustomizeDueDates = suggest.allowed_actions?.customize_due_dates !== false;
-  const allowCustomizePeriods = suggest.allowed_actions?.customize_periods !== false;
-  const allowNotes = suggest.allowed_actions?.notes !== false;
+  const periodCount = suggest.suggested_period_count ?? suggest.suggested_periods.length;
+  const performanceWindow =
+    suggest.performance_start && suggest.performance_end
+      ? `${formatDate(suggest.performance_start)} — ${formatDate(suggest.performance_end)}`
+      : null;
+  const contextTags = [
+    suggest.academic_year?.name,
+    suggest.level?.name,
+    suggest.season_name,
+  ].filter(Boolean) as string[];
+  const summary = suggest.financial_summary;
+  const planLines = suggest.plan_lines ?? [];
 
   return (
     <section className="student-create-form__section student-create-fee-plan">
+      <header className="student-create-fee-plan__section-head">
+        <h2 className="student-create-form__section-title">
+          {t('admin.student360.create.finance.suggestedPlanTitle')}
+        </h2>
+        {performanceWindow ? (
+          <p className="student-create-fee-plan__section-lead">{performanceWindow}</p>
+        ) : null}
+      </header>
+
       {planChangeWarning ? (
         <p className="student-create-fee-plan__warning" role="status">
           {t('admin.student360.create.finance.planChangeWarning')}
         </p>
       ) : null}
 
-      <article className="student-create-fee-plan__card">
-        <h2 className="student-create-fee-plan__title">
-          {t('admin.student360.create.finance.suggestedPlanTitle')}
-        </h2>
-        <dl className="student-create-fee-plan__meta">
-          <MetaRow label={t('admin.student360.create.finance.planName')} value={suggest.fee_plan_name} />
-          {suggest.season_name ? (
-            <MetaRow label={t('admin.student360.create.finance.season')} value={suggest.season_name} />
+      <StudentCreateFinancePlanPicker
+        suggest={suggest}
+        financeState={financeState}
+        onSelectPlan={onSelectPlan}
+      />
+
+      <article className="student-create-fee-plan__hero">
+        <div className="student-create-fee-plan__hero-main">
+          <p className="student-create-fee-plan__eyebrow">
+            {t('admin.student360.create.steps.finance')}
+            {suggest.fee_plan_id ? (
+              <span className="student-create-fee-plan__plan-id mono">#{suggest.fee_plan_id}</span>
+            ) : null}
+          </p>
+          <h3 className="student-create-fee-plan__plan-name" dir="auto">
+            {suggest.fee_plan_name}
+          </h3>
+          {contextTags.length > 0 ? (
+            <div className="student-create-fee-plan__tags">
+              {contextTags.map((tag) => (
+                <span key={tag} className="student-create-fee-plan__tag" dir="auto">
+                  {tag}
+                </span>
+              ))}
+            </div>
           ) : null}
-          {suggest.academic_year?.name ? (
-            <MetaRow
-              label={t('admin.academicYearId')}
-              value={suggest.academic_year.name}
-            />
+          {(summary?.expected_total ?? suggest.total_due) != null ? (
+            <p className="student-create-fee-plan__total-due">
+              <span className="student-create-fee-plan__total-label">
+                {t('admin.student360.create.finance.totalDue')}
+              </span>
+              <span className="student-create-fee-plan__total-value">
+                {formatFinanceCurrency(
+                  summary?.expected_total ?? suggest.total_due ?? 0,
+                  suggest.currency,
+                  locale,
+                )}
+              </span>
+            </p>
           ) : null}
-          {suggest.level?.name ? (
-            <MetaRow label={t('nav.levels')} value={suggest.level.name} />
-          ) : null}
-          {suggest.performance_start && suggest.performance_end ? (
-            <MetaRow
-              label={t('admin.student360.create.finance.performanceWindow')}
-              value={`${formatDate(suggest.performance_start)} — ${formatDate(suggest.performance_end)}`}
-            />
-          ) : null}
+        </div>
+
+        <div className="student-create-fee-plan__stats" role="list">
+          <MetaStat
+            label={t('admin.student360.create.finance.suggestedMonths')}
+            value={String(periodCount)}
+          />
           {suggest.due_day != null ? (
-            <MetaRow
+            <MetaStat
               label={t('admin.student360.create.finance.dueDay')}
               value={String(suggest.due_day)}
             />
           ) : null}
-          <MetaRow
-            label={t('admin.student360.create.finance.suggestedMonths')}
-            value={String(suggest.suggested_period_count ?? suggest.suggested_periods.length)}
-          />
-          {suggest.total_due != null ? (
-            <MetaRow
-              label={t('admin.student360.create.finance.totalDue')}
-              value={formatFinanceCurrency(suggest.total_due, suggest.currency, locale)}
+          {firstDue && lastDue ? (
+            <MetaStat
+              label={t('admin.student360.create.finance.installmentRange')}
+              value={`${formatDate(firstDue)} — ${formatDate(lastDue)}`}
             />
           ) : null}
-        </dl>
+        </div>
       </article>
 
-      <div className="student-create-fee-plan__periods">
-        <h3 className="student-create-fee-plan__subtitle">
-          {t('admin.student360.create.finance.includedMonths')}
-        </h3>
-        <ul className="student-create-fee-plan__period-list">
+      <StudentCreateFinancePlanLines lines={planLines} currency={suggest.currency} />
+      <StudentCreateFinanceSummary summary={summary} lines={planLines} currency={suggest.currency} />
+
+      <div className="student-create-fee-plan__periods-card">
+        <div className="student-create-fee-plan__periods-head">
+          <h3 className="student-create-fee-plan__subtitle">
+            {t('admin.student360.create.finance.includedMonths')}
+          </h3>
+          <span className="student-create-fee-plan__periods-count">
+            {selectedPeriods.length}/{suggest.suggested_periods.length}
+          </span>
+        </div>
+        <ul className="student-create-fee-plan__period-grid">
           {suggest.suggested_periods.map((period) => {
             const override = financeState.periodOverrides[period.period_key];
             const selected = override?.selected ?? period.selected !== false;
@@ -186,12 +261,28 @@ export function StudentCreateFeePlanSection({
                 : period.due_date,
             );
             return (
-              <li key={period.period_key} className="student-create-fee-plan__period-item">
-                <span className="student-create-fee-plan__period-check" aria-hidden="true">
+              <li
+                key={period.period_key}
+                className={`student-create-fee-plan__period-chip${selected ? '' : ' student-create-fee-plan__period-chip--off'}`}
+              >
+                <span
+                  className={`student-create-fee-plan__period-icon${selected ? ' student-create-fee-plan__period-icon--on' : ''}`}
+                  aria-hidden="true"
+                >
                   {selected ? '✓' : '○'}
                 </span>
-                <span dir="auto">
-                  {period.label} — {t('admin.student360.create.finance.dueOn', { date: dueLabel })}
+                <span className="student-create-fee-plan__period-body">
+                  <span className="student-create-fee-plan__period-label" dir="auto">
+                    {period.label}
+                  </span>
+                  <span className="student-create-fee-plan__period-due">
+                    {t('admin.student360.create.finance.dueOn', { date: dueLabel })}
+                  </span>
+                  {period.amount != null ? (
+                    <span className="student-create-fee-plan__period-amount mono">
+                      {formatFinanceCurrency(period.amount, suggest.currency, locale)}
+                    </span>
+                  ) : null}
                 </span>
               </li>
             );
@@ -204,9 +295,9 @@ export function StudentCreateFeePlanSection({
           <h3 className="student-create-fee-plan__subtitle">
             {t('admin.student360.create.finance.excludedMonths')}
           </h3>
-          <ul className="student-create-fee-plan__period-list">
+          <ul className="student-create-fee-plan__excluded-chips">
             {suggest.excluded_periods.map((period) => (
-              <li key={period.period_key} dir="auto">
+              <li key={period.period_key} className="student-create-fee-plan__excluded-chip" dir="auto">
                 {period.label}
               </li>
             ))}
@@ -214,156 +305,38 @@ export function StudentCreateFeePlanSection({
         </div>
       ) : null}
 
-      <label className="student-create-form__checkbox student-create-fee-plan__customize-toggle">
-        <input
-          type="checkbox"
-          checked={financeState.customizePlan}
-          onChange={(e) => onFinanceChange({ customizePlan: e.target.checked })}
-        />
-        <span className="student-create-form__checkbox-text">
-          {t('admin.student360.create.finance.customizePlan')}
-        </span>
-      </label>
+      <div className="student-create-fee-plan__customize-box">
+        <label className="student-create-form__checkbox student-create-fee-plan__customize-toggle">
+          <input
+            type="checkbox"
+            checked={financeState.customizePlan}
+            onChange={(e) => onFinanceChange({ customizePlan: e.target.checked })}
+          />
+          <span className="student-create-form__checkbox-text">
+            <span>{t('admin.student360.create.finance.customizePlan')}</span>
+            <span className="tiny muted">
+              {t('admin.student360.create.finance.customizePlanHint')}
+            </span>
+          </span>
+        </label>
+
+        {financeState.customizePlan ? (
+          <StudentCreateFinanceCustomization
+            suggest={suggest}
+            financeState={financeState}
+            previewError={previewError}
+            onFinanceChange={onFinanceChange}
+          />
+        ) : null}
+      </div>
 
       {financeState.customizePlan ? (
-        <div className="student-create-fee-plan__customize-panel">
-          <label className="student-create-field">
-            <span className="tiny muted">{t('admin.student360.create.finance.customizationReason')}</span>
-            <select
-              className="input"
-              value={financeState.customizationReason}
-              onChange={(e) =>
-                onFinanceChange({
-                  customizationReason: e.target.value as StudentCreateFinanceFormState['customizationReason'],
-                })
-              }
-            >
-              <option value="">{t('common.dash')}</option>
-              {financeCustomizationReasonOptions().map((reason) => (
-                <option key={reason} value={reason}>
-                  {t(`admin.student360.create.finance.reasons.${reason}`)}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          {allowNotes ? (
-            <label className="student-create-field">
-              <span className="tiny muted">{t('admin.student360.create.finance.customizationNotes')}</span>
-              <textarea
-                className="input"
-                rows={2}
-                value={financeState.customizationNotes}
-                onChange={(e) => onFinanceChange({ customizationNotes: e.target.value })}
-              />
-            </label>
-          ) : null}
-
-          <div className="student-create-fee-plan__customize-table-wrap">
-            <table className="student-create-fee-plan__customize-table">
-              <thead>
-                <tr>
-                  <th>{t('admin.student360.create.finance.month')}</th>
-                  <th>{t('admin.student360.create.finance.include')}</th>
-                  {allowCustomizeAmounts ? <th>{t('admin.student360.create.finance.amountOverride')}</th> : null}
-                  {allowCustomizeDueDates ? (
-                    <th>{t('admin.student360.create.finance.dueDateOverride')}</th>
-                  ) : null}
-                </tr>
-              </thead>
-              <tbody>
-                {suggest.suggested_periods.map((period) => {
-                  const override = financeState.periodOverrides[period.period_key] ?? {
-                    selected: period.selected !== false,
-                    amountOverride: '',
-                    dueDateOverride: '',
-                  };
-                  return (
-                    <tr key={period.period_key}>
-                      <td dir="auto">{period.label}</td>
-                      <td>
-                        <input
-                          type="checkbox"
-                          checked={override.selected}
-                          disabled={!allowCustomizePeriods}
-                          onChange={(e) =>
-                            onFinanceChange({
-                              periodOverrides: {
-                                ...financeState.periodOverrides,
-                                [period.period_key]: {
-                                  ...override,
-                                  selected: e.target.checked,
-                                },
-                              },
-                            })
-                          }
-                        />
-                      </td>
-                      {allowCustomizeAmounts ? (
-                        <td>
-                          <input
-                            className="input input--sm"
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            disabled={!period.allow_amount_override && period.amount != null}
-                            placeholder={
-                              period.amount != null
-                                ? String(period.amount)
-                                : t('common.dash')
-                            }
-                            value={override.amountOverride}
-                            onChange={(e) =>
-                              onFinanceChange({
-                                periodOverrides: {
-                                  ...financeState.periodOverrides,
-                                  [period.period_key]: {
-                                    ...override,
-                                    amountOverride: e.target.value,
-                                  },
-                                },
-                              })
-                            }
-                          />
-                        </td>
-                      ) : null}
-                      {allowCustomizeDueDates ? (
-                        <td>
-                          <input
-                            className="input input--sm"
-                            type="date"
-                            value={override.dueDateOverride || period.due_date}
-                            onChange={(e) =>
-                              onFinanceChange({
-                                periodOverrides: {
-                                  ...financeState.periodOverrides,
-                                  [period.period_key]: {
-                                    ...override,
-                                    dueDateOverride: e.target.value,
-                                  },
-                                },
-                              })
-                            }
-                          />
-                        </td>
-                      ) : null}
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {firstDue && lastDue ? (
-            <p className="tiny muted">
-              {t('admin.student360.create.finance.previewRange', {
-                first: formatDate(firstDue),
-                last: formatDate(lastDue),
-                count: selectedPeriods.length,
-              })}
-            </p>
-          ) : null}
-        </div>
+        <StudentCreateFinancePreview
+          preview={preview}
+          loading={previewLoading}
+          error={previewError}
+          currency={suggest.currency}
+        />
       ) : null}
     </section>
   );
