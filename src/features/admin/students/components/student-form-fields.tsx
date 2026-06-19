@@ -4,6 +4,10 @@ import { useMemo, useState } from 'react';
 import { useT } from '@/features/i18n/locale-context';
 import type { StudentNationalityOption } from '@/types/student-360';
 import type { StudentProfileFieldErrors, StudentProfileFormState } from '../utils/student-profile';
+import {
+  localizeStudentGenderOptions,
+  sortNationalityOptions,
+} from '../utils/student-profile';
 
 function Field({
   label,
@@ -41,25 +45,32 @@ export function StudentNationalitySelect({
   const t = useT();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const [searching, setSearching] = useState(false);
+
+  const orderedOptions = useMemo(() => sortNationalityOptions(options), [options]);
 
   const selected = useMemo(
-    () => options.find((n) => String(n.id) === value) ?? null,
-    [options, value],
+    () => orderedOptions.find((n) => String(n.id) === value) ?? null,
+    [orderedOptions, value],
   );
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return options.slice(0, 60);
-    return options
+    if (!searching || !q) return orderedOptions.slice(0, 60);
+    return orderedOptions
       .filter(
         (n) =>
           n.name.toLowerCase().includes(q) ||
           (n.code?.toLowerCase().includes(q) ?? false),
       )
       .slice(0, 60);
-  }, [options, query]);
+  }, [orderedOptions, query, searching]);
 
-  const displayValue = open ? query : selected?.name ?? '';
+  const displayValue = open
+    ? searching
+      ? query
+      : selected?.name ?? ''
+    : selected?.name ?? '';
 
   return (
     <div className="nationality-combobox">
@@ -72,16 +83,21 @@ export function StudentNationalitySelect({
         placeholder={t('admin.student360.searchNationality')}
         value={displayValue}
         onChange={(e) => {
+          setSearching(true);
           setQuery(e.target.value);
           setOpen(true);
-          if (!e.target.value.trim()) onChange('');
         }}
         onFocus={() => {
           setOpen(true);
-          setQuery(selected?.name ?? '');
+          setSearching(false);
+          setQuery('');
         }}
         onBlur={() => {
-          window.setTimeout(() => setOpen(false), 150);
+          window.setTimeout(() => {
+            setOpen(false);
+            setSearching(false);
+            setQuery('');
+          }, 150);
         }}
         disabled={disabled}
       />
@@ -92,6 +108,7 @@ export function StudentNationalitySelect({
             className="nationality-combobox__option"
             onMouseDown={() => {
               onChange('');
+              setSearching(false);
               setQuery('');
               setOpen(false);
             }}
@@ -106,7 +123,8 @@ export function StudentNationalitySelect({
               className={`nationality-combobox__option${String(n.id) === value ? ' nationality-combobox__option--selected' : ''}`}
               onMouseDown={() => {
                 onChange(String(n.id));
-                setQuery(n.name);
+                setSearching(false);
+                setQuery('');
                 setOpen(false);
               }}
             >
@@ -141,6 +159,10 @@ export function StudentIdentityFields({
 }) {
   const t = useT();
   const showDeparture = state.status === 'withdrawn' || state.status === 'transferred';
+  const localizedGenders = useMemo(
+    () => localizeStudentGenderOptions(genders, t),
+    [genders, t],
+  );
 
   return (
     <div className="student-360-form__grid">
@@ -174,7 +196,7 @@ export function StudentIdentityFields({
           disabled={optionsLoading}
         >
           <option value="">{t('common.dash')}</option>
-          {genders.map((g) => (
+          {localizedGenders.map((g) => (
             <option key={g.value} value={g.value}>
               {g.label}
             </option>
@@ -541,6 +563,10 @@ export function StudentCreateIdentityFields({
 }) {
   const t = useT();
   const fullName = [state.firstName.trim(), state.lastName.trim()].filter(Boolean).join(' ');
+  const localizedGenders = useMemo(
+    () => localizeStudentGenderOptions(genders, t),
+    [genders, t],
+  );
 
   return (
     <div className="student-create-form__grid">
@@ -578,7 +604,7 @@ export function StudentCreateIdentityFields({
           disabled={optionsLoading}
         >
           <option value="">{t('common.dash')}</option>
-          {genders.map((g) => (
+          {localizedGenders.map((g) => (
             <option key={g.value} value={g.value}>
               {g.label}
             </option>

@@ -4,6 +4,9 @@ import {
   buildStudentPartialUpdatePayload,
   buildFullNamePreview,
   defaultStudentProfileFormState,
+  localizeStudentGenderOptions,
+  resolveDefaultNationalityId,
+  sortNationalityOptions,
   requiresDepartureReason,
   requiresPreviousSchool,
   validateStudentCreateForm,
@@ -215,5 +218,47 @@ describe('validateStudentCreateForm', () => {
 describe('buildFullNamePreview', () => {
   it('joins trimmed parts', () => {
     expect(buildFullNamePreview(' محمد ', ' العلوي ')).toBe('محمد العلوي');
+  });
+});
+
+describe('localizeStudentGenderOptions', () => {
+  const t = (key: string) => (key === 'admin.male' ? 'ذكر' : key === 'admin.female' ? 'أنثى' : key);
+
+  it('translates gender labels from i18n keys', () => {
+    const localized = localizeStudentGenderOptions(
+      [
+        { value: 'male', label: 'Male' },
+        { value: 'female', label: 'Female' },
+      ],
+      t,
+    );
+    expect(localized).toEqual([
+      { value: 'male', label: 'ذكر' },
+      { value: 'female', label: 'أنثى' },
+    ]);
+  });
+});
+
+describe('resolveDefaultNationalityId', () => {
+  it('defaults to Morocco by code MA', () => {
+    expect(resolveDefaultNationalityId(options.nationalities)).toBe('136');
+    expect(defaultStudentProfileFormState(options).nationalityId).toBe('136');
+  });
+
+  it('falls back to Maroc name when code is missing', () => {
+    expect(resolveDefaultNationalityId([{ id: 42, name: 'Maroc' }])).toBe('42');
+    expect(resolveDefaultNationalityId([{ id: 43, name: 'المغرب' }])).toBe('43');
+  });
+});
+
+describe('sortNationalityOptions', () => {
+  it('puts Morocco first regardless of source order', () => {
+    const sorted = sortNationalityOptions([
+      { id: 1, name: 'France', code: 'FR' },
+      { id: 136, name: 'Morocco', code: 'MA' },
+      { id: 2, name: 'Spain', code: 'ES' },
+    ]);
+    expect(sorted[0].id).toBe(136);
+    expect(sorted.map((item) => item.id)).toEqual([136, 1, 2]);
   });
 });

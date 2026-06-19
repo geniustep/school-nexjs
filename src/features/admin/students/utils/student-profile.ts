@@ -3,6 +3,7 @@ import type {
   StudentCreatePayload,
   StudentEnrollment,
   StudentEnrollmentBlock,
+  StudentNationalityOption,
   StudentOptions,
   StudentRefOption,
   StudentSummary,
@@ -111,6 +112,59 @@ function refLabel(value: Ref | string | null | undefined): string {
   return value.name ?? '';
 }
 
+const GENDER_I18N_KEYS: Record<string, string> = {
+  male: 'admin.male',
+  female: 'admin.female',
+};
+
+export function localizeStudentGenderOptions(
+  genders: { value: string; label: string }[],
+  t: (key: string) => string,
+): { value: string; label: string }[] {
+  return genders.map((item) => {
+    const i18nKey = GENDER_I18N_KEYS[item.value];
+    if (!i18nKey) return item;
+    const translated = t(i18nKey);
+    return translated !== i18nKey ? { ...item, label: translated } : item;
+  });
+}
+
+const DEFAULT_NATIONALITY_CODE = 'MA';
+const DEFAULT_NATIONALITY_NAMES = new Set(['morocco', 'maroc', 'المغرب']);
+
+function isMoroccoNationality(item: Pick<StudentNationalityOption, 'name' | 'code'>): boolean {
+  if (trim(item.code ?? '').toUpperCase() === DEFAULT_NATIONALITY_CODE) return true;
+  return DEFAULT_NATIONALITY_NAMES.has(trim(item.name).toLowerCase());
+}
+
+export function resolveDefaultNationalityId(
+  nationalities: StudentOptions['nationalities'] | null | undefined,
+): string {
+  if (!nationalities?.length) return '';
+
+  const byCode = nationalities.find(
+    (item) => trim(item.code ?? '').toUpperCase() === DEFAULT_NATIONALITY_CODE,
+  );
+  if (byCode) return String(byCode.id);
+
+  const byName = nationalities.find((item) => isMoroccoNationality(item));
+  return byName ? String(byName.id) : '';
+}
+
+export function sortNationalityOptions(
+  nationalities: StudentNationalityOption[],
+): StudentNationalityOption[] {
+  if (nationalities.length <= 1) return nationalities;
+
+  const morocco: StudentNationalityOption[] = [];
+  const rest: StudentNationalityOption[] = [];
+  for (const item of nationalities) {
+    if (isMoroccoNationality(item)) morocco.push(item);
+    else rest.push(item);
+  }
+  return [...morocco, ...rest];
+}
+
 export function defaultStudentProfileFormState(options: StudentOptions | null): StudentProfileFormState {
   const today = todayIsoDate();
   return {
@@ -123,7 +177,7 @@ export function defaultStudentProfileFormState(options: StudentOptions | null): 
     gender: '',
     dateOfBirth: '',
     birthPlace: '',
-    nationalityId: '',
+    nationalityId: resolveDefaultNationalityId(options?.nationalities),
     massarCode: '',
     code: '',
     schoolNumber: '',

@@ -34,7 +34,9 @@ export function StudentCreateStepper({ activeStep }: { activeStep: StudentCreate
             data-active={active || undefined}
             data-done={done || undefined}
           >
-            <span className="student-create-stepper__badge">{index + 1}</span>
+            <span className="student-create-stepper__badge" aria-hidden="true">
+              {done ? '✓' : index + 1}
+            </span>
             <span className="student-create-stepper__label">{labels[step]}</span>
           </li>
         );
