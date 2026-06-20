@@ -97,7 +97,9 @@ export function agreementFromFeesErrorMessageKey(code: string | undefined): stri
     case 'agreement_from_fees_empty':
       return 'admin.student360.financialAgreement.fromFees.errors.empty';
     case 'agreement_from_fees_already_exists':
-      return 'admin.student360.financialAgreement.fromFees.errors.alreadyExists';
+      return 'admin.student360.financialAgreement.fromFees.errors.draftAlreadyExistsFull';
+    case 'active_agreement_already_exists':
+      return 'admin.student360.financialAgreement.fromFees.errors.activeAgreementExists';
     case 'agreement_from_fees_forbidden':
       return 'admin.student360.financialAgreement.fromFees.errors.forbidden';
     default:

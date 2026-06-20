@@ -86,6 +86,7 @@
     "exams": "Exams",
     "results": "Results",
     "students": "Students",
+    "admissions": "Admissions",
     "parents": "Parents",
     "teachers": "Teachers",
     "levels": "Levels",
@@ -2613,6 +2614,206 @@
         "missing_emergency_phone": "Emergency phone is recommended when a contact name is provided."
       }
     },
+    "admissions": {
+      "title": "Admissions",
+      "subtitle": "Manage intake and enrollment requests",
+      "createButton": "New request",
+      "backToList": "Back to list",
+      "nextAction": "Next action",
+      "assignedUser": "Assigned to",
+      "viewMode": "View mode",
+      "viewKanban": "Kanban",
+      "viewTable": "Table",
+      "filters": {
+        "search": "Search…",
+        "state": "Status",
+        "showClosed": "Show closed (lost / cancelled / duplicate)"
+      },
+      "empty": {
+        "title": "No requests",
+        "description": "Create a new admission request to get started."
+      },
+      "kanban": {
+        "emptyColumn": "No cards"
+      },
+      "badges": {
+        "possibleDuplicate": "Possible duplicate",
+        "offerAccepted": "Offer accepted",
+        "overdue": "Overdue"
+      },
+      "states": {
+        "new": "New",
+        "contacted": "Contacted",
+        "qualified": "Qualified",
+        "visit_pending": "Visit pending",
+        "under_review": "Under review",
+        "accepted": "Accepted",
+        "waitlisted": "Waitlisted",
+        "offer_sent": "Offer sent",
+        "confirmed": "Confirmed",
+        "lost": "Lost",
+        "cancelled": "Cancelled",
+        "duplicate": "Duplicate"
+      },
+      "dashboard": {
+        "total_open": "Open",
+        "new_count": "New",
+        "visit_pending_count": "Visits pending",
+        "under_review_count": "Under review",
+        "accepted_count": "Accepted",
+        "offer_sent_count": "Offers sent",
+        "confirmed_count": "Confirmed",
+        "lost_count": "Lost",
+        "today_appointments": "Today's appointments",
+        "overdue_next_actions": "Overdue actions"
+      },
+      "table": {
+        "reference": "Reference",
+        "student": "Child name",
+        "guardian": "Guardian",
+        "phone": "Phone",
+        "source": "Source",
+        "level": "Level",
+        "state": "Status",
+        "nextAction": "Next action",
+        "assigned": "Assigned"
+      },
+      "fields": {
+        "studentName": "Child name",
+        "firstName": "First name",
+        "lastName": "Last name",
+        "birthDate": "Date of birth",
+        "gender": "Gender",
+        "requestedLevel": "Requested level",
+        "requestedClass": "Requested class",
+        "academicYear": "Academic year",
+        "previousSchool": "Previous school",
+        "massarCode": "Massar code",
+        "guardianName": "Guardian name",
+        "guardianPhone": "Guardian phone",
+        "guardianWhatsapp": "WhatsApp",
+        "guardianEmail": "Email",
+        "relationship": "Relationship",
+        "firstContactDate": "First contact date",
+        "nextAction": "Next action",
+        "nextActionDate": "Next action date",
+        "internalNotes": "Internal notes",
+        "priority": "Priority"
+      },
+      "gender": {
+        "male": "Male",
+        "female": "Female"
+      },
+      "create": {
+        "title": "New admission request",
+        "subtitle": "Create an intake request — does not create a student",
+        "studentSection": "Child details",
+        "guardianSection": "Guardian details",
+        "followUpSection": "Follow-up",
+        "submit": "Create request"
+      },
+      "detail": {
+        "summary": "Request summary",
+        "student": "Child details",
+        "guardian": "Guardian details",
+        "duplicates": "Possible duplicates",
+        "prefillStatus": "Prefill status",
+        "tabs": "Request sections"
+      },
+      "tabs": {
+        "overview": "Overview",
+        "timeline": "Timeline",
+        "appointments": "Appointments",
+        "assessments": "Assessments",
+        "decision": "Decision",
+        "offers": "Offers",
+        "prefill": "Registration-ready data"
+      },
+      "timeline": {
+        "addActivity": "Add note / follow-up",
+        "activityType": "Activity type",
+        "submit": "Add",
+        "empty": "No activities yet"
+      },
+      "activityTypes": {
+        "note": "Note",
+        "call": "Call",
+        "whatsapp": "WhatsApp",
+        "follow_up": "Follow-up",
+        "visit_note": "Visit note"
+      },
+      "appointments": {
+        "create": "Schedule appointment",
+        "type": "Appointment type",
+        "scheduledAt": "Scheduled at",
+        "duration": "Duration (minutes)",
+        "resultNotes": "Result notes",
+        "empty": "No appointments",
+        "types": {
+          "schoolVisit": "School visit",
+          "visit": "Visit",
+          "call": "Call",
+          "assessment": "Assessment"
+        }
+      },
+      "assessments": {
+        "create": "Add assessment",
+        "type": "Assessment type",
+        "score": "Score",
+        "maxScore": "Max score",
+        "result": "Result",
+        "recommendation": "Recommendation",
+        "teacherNotes": "Teacher notes",
+        "empty": "No assessments"
+      },
+      "decision": {
+        "current": "Current decision",
+        "label": "Decision",
+        "by": "By",
+        "conditions": "Conditions",
+        "none": "No decision yet",
+        "formTitle": "Make a decision",
+        "submit": "Record decision"
+      },
+      "decisions": {
+        "accepted": "Accepted",
+        "accepted_with_condition": "Accepted with conditions",
+        "waitlisted": "Waitlisted",
+        "rejected": "Rejected",
+        "needs_reassessment": "Needs reassessment"
+      },
+      "offers": {
+        "create": "Create offer",
+        "offer": "Offer",
+        "registrationFee": "Registration fee",
+        "monthlyFee": "Monthly fee",
+        "deadline": "Deadline",
+        "requiredDocuments": "Required documents",
+        "send": "Send offer",
+        "accept": "Accept offer",
+        "decline": "Decline offer",
+        "empty": "No offers",
+        "acceptNoticeTitle": "Reminder",
+        "acceptNotice": "Accepting an offer does not create a student. No automatic conversion in this phase."
+      },
+      "prefill": {
+        "notAllowed": "Prefill preview is not available for this request.",
+        "loading": "Loading preview…",
+        "load": "Load preview",
+        "readOnlyTitle": "Read-only",
+        "readOnlyNotice": "This preview is for inspection only. It does not create a student or use link-student.",
+        "student": "Student",
+        "guardian": "Guardian",
+        "academic": "Academic",
+        "admission": "Admission",
+        "readiness": "Readiness",
+        "warnings": "Warnings",
+        "blockingIssues": "Blocking issues"
+      },
+      "errors": {
+        "notFound": "Admission request not found."
+      }
+    },
     "student360": {
       "tabsAria": "Student profile sections",
       "tabs": {
@@ -3633,6 +3834,7 @@
           "state": "Agreement status",
           "agreementDate": "Agreement date",
           "validity": "Agreement period",
+          "originalFeePlan": "Original fee plan",
           "validFrom": "Start date",
           "validUntil": "End date",
           "billingParty": "Payer",
@@ -3762,6 +3964,7 @@
         "incompleteDraftTitle": "Incomplete agreement draft",
         "incompleteDraftDesc": "This draft is not shown as an active agreement until completed.",
         "completeDraft": "Complete draft",
+        "emptyManualDraftBlockedHint": "An empty draft cannot be completed. Create an agreement from current fees instead.",
         "cancelDraft": "Cancel draft",
         "fromFees": {
           "title": "Create agreement from current fees",
@@ -3774,6 +3977,11 @@
           "errors": {
             "empty": "No current fees available to include.",
             "alreadyExists": "A special agreement already exists for this student.",
+            "draftAlreadyExists": "A draft agreement from current fees already exists.",
+            "draftAlreadyExistsHint": "You can review it and complete the approval workflow.",
+            "draftAlreadyExistsFull": "A draft agreement from current fees already exists. You can review it and complete the approval workflow.",
+            "activeAgreementExists": "This student already has an active financial agreement.",
+            "generic": "Could not create an agreement from current fees.",
             "forbidden": "You are not allowed to create an agreement from fees.",
             "missingYear": "Select an academic year first."
           }
@@ -3839,6 +4047,7 @@
         "incompleteDraftTitle": "Incomplete agreement draft",
         "incompleteDraftDesc": "This draft does not represent fees from the school plan.",
         "completeDraft": "Complete draft",
+        "emptyManualDraftBlockedHint": "An empty draft cannot be completed. Create an agreement from current fees instead.",
         "cancelDraft": "Cancel draft",
         "openFinanceOverview": "Open financial overview",
         "openPaymentSchedule": "Open payment schedule"
@@ -4036,15 +4245,73 @@
           "recordPayment": "Record payment",
           "manageAgreement": "Manage financial agreement"
         },
+        "inactiveAgreement": {
+          "bannerTitle": "A financial file with recorded activity exists, but there is no active manageable financial agreement.",
+          "bannerBody": "Collections, installments, and cheques shown are linked to a previous or inactive financial file. Plan changes and adjustments require a valid active agreement.",
+          "planChangeBlockedHint": "You cannot change the plan or apply a special financial adjustment until an active financial agreement exists. Review the current agreement or create a new one.",
+          "fixAction": "Fix financial agreement",
+          "reviewAction": "Review financial agreement",
+          "agreementTabWarning": "Financial activity exists, but this agreement is inactive and cannot be used for plan changes or adjustments. Review it or create a new agreement.",
+          "currentState": "Agreement state: {state}",
+          "noActiveState": "No active financial agreement"
+        },
+        "billingContext": {
+          "operationalWithoutActiveAgreement": "Operational billing without an active agreement",
+          "needsActiveAgreement": "Financial file needs an active agreement",
+          "noActiveAgreement": "No active financial agreement",
+          "noActiveAgreementExplanation": "A financial file with recorded activity exists, but there is no active financial agreement.",
+          "noActiveAgreementManageable": "A financial file with recorded activity exists, but there is no active manageable financial agreement."
+        },
+        "agreementRepair": {
+          "title": "Financial file needs review",
+          "body": "Fees and installments are recorded, but there is no active financial agreement.",
+          "recommendedAction": "Recommended action: create a financial agreement from current fees, then approve it.",
+          "recommendedActionCreateFromFees": "Recommended action: create a financial agreement from current fees, then approve it.",
+          "reviewAction": "Review financial agreement"
+        },
+        "collectPayment": {
+          "blockedMessage": "Payments cannot be recorded until an active financial agreement exists."
+        },
+        "inactiveAgreementReference": {
+          "title": "Previous inactive agreement",
+          "stateLabel": "Status",
+          "requiresReviewWarning": "This agreement is inactive and cannot be used for collection or changes. Create a new agreement from current fees or review the financial file.",
+          "createFromFeesAction": "Create financial agreement from current fees"
+        },
+        "agreementStatus": {
+          "noActive": "No active financial agreement",
+          "inactive": "Inactive agreement",
+          "cancelled": "Cancelled agreement — needs review",
+          "cancelledNeedsReview": "Cancelled agreement — needs review",
+          "terminated": "Terminated agreement — needs review",
+          "draft": "Draft — not active",
+          "completed": "Completed agreement — not active",
+          "approved": "Approved agreement — not active",
+          "pending_approval": "Pending approval — not active"
+        },
         "changePlan": {
           "previewAction": "Preview impact",
-          "applyAction": "Apply change",
+          "applyAction": "Apply adjustment",
           "previewTitle": "Preview result",
           "applySuccess": "Student finance updated successfully.",
+          "commandBar": {
+            "noActiveAgreementHint": "This student's finance cannot be adjusted because there is no active financial agreement that can be modified."
+          },
+          "eligibility": {
+            "title": "Adjustment eligibility",
+            "eligible": "Eligible for adjustment",
+            "eligibleDetail": "An active financial agreement is present in this page data. You can preview the impact and apply if no other blockers apply.",
+            "notEligibleTitle": "Not eligible for adjustment right now",
+            "noActiveAgreement": "This student's finance cannot be adjusted because there is no active financial agreement that can be modified.",
+            "activeAgreementServiceMismatch": "The active financial agreement could not be found in the adjustment service. Review the financial agreement or refresh the page.",
+            "currentAgreementState": "Current agreement state: {state}"
+          },
           "replace": {
-            "action": "Change fee plan",
-            "title": "Change fee plan",
-            "description": "Use when no payments or receipts have been recorded yet. The current agreement will be replaced with a new one.",
+            "action": "Change financial plan",
+            "title": "Change financial plan",
+            "description": "Change or replace the financial plan. If payments or receipts already exist, they cannot be modified; any change applies to future periods or as a separate financial adjustment.",
+            "actionHint": "You can change the plan, but past installments and receipts cannot be modified. New changes apply to future periods or as a separate adjustment.",
+            "paymentsExistHint": "Past installments and receipts cannot be modified. The adjustment applies to future periods only.",
             "fields": {
               "feePlan": "New fee plan",
               "reason": "Change reason",
@@ -4061,19 +4328,20 @@
               "confirmRequired": "Confirm replacing the current agreement before applying."
             }
           },
-          "social": {
-            "action": "Apply social discount",
-            "title": "Apply social discount",
-            "description": "Applies only to future unpaid installments. Paid installments and past receipts will not change.",
-            "preservedWarning": "Past periods and payments remain unchanged.",
-            "noPastChangesWarning": "Warning: past receipts and payments will not change.",
+          "special": {
+            "action": "Special financial adjustment",
+            "title": "Special financial adjustment",
+            "description": "Adjust future fees only without changing past installments or receipts. Use for grants, administrative discounts, service suspension, fee corrections, or special agreements.",
+            "actionHint": "Adjusts future fees only without changing past installments or receipts.",
+            "preservedWarning": "Past installments and receipts cannot be modified. The adjustment applies to future periods only.",
+            "noPastChangesWarning": "Warning: past payments and receipts will not change.",
             "fields": {
-              "effectiveDate": "Discount start date",
+              "effectiveDate": "Adjustment start date",
               "feeType": "Fee type",
-              "discountType": "Discount type",
-              "discountValue": "Discount value",
+              "discountType": "Adjustment type",
+              "discountValue": "Adjustment value",
               "periodEnd": "Last affected period",
-              "reasonNote": "Reason note"
+              "reasonNote": "Adjustment reason"
             },
             "feeTypes": {
               "tuition": "Tuition",
@@ -4084,9 +4352,9 @@
               "amount": "Amount"
             },
             "errors": {
-              "effectiveDateRequired": "Discount start date is required.",
-              "reasonNoteRequired": "Reason note is required for a social case.",
-              "discountRequired": "Enter a discount value.",
+              "effectiveDateRequired": "Adjustment start date is required.",
+              "reasonNoteRequired": "Adjustment reason is required.",
+              "discountRequired": "Enter an adjustment value.",
               "periodsRequired": "Select affected periods."
             }
           },
@@ -4112,25 +4380,25 @@
             "generic": "Unable to complete this operation.",
             "cannotApply": "This change cannot be applied based on the current preview.",
             "noActiveAgreement": "No active financial agreement for this student.",
-            "effectiveDateRequired": "Discount start date is required.",
-            "effectiveDateOutsideAcademicYear": "Discount start date is outside the academic year.",
+            "effectiveDateRequired": "Adjustment start date is required.",
+            "effectiveDateOutsideAcademicYear": "Adjustment start date is outside the academic year for this agreement.",
             "affectedPeriodsRequired": "Select affected periods.",
-            "socialCaseReasonRequired": "Reason note is required for a social case.",
+            "socialCaseReasonRequired": "Adjustment reason is required.",
             "confirmReplaceRequired": "You must confirm replacing the current agreement.",
             "confirmFinancialImpactRequired": "You must confirm the financial impact before applying.",
             "sameFeePlanNoDiscount": "Selected plan matches the current plan with no discount.",
             "feePlanNotAssignable": "Selected fee plan is not assignable.",
             "feeTypeNotInAgreement": "Fee type is not in the current agreement.",
             "noFuturePeriodsToAffect": "No future periods are available for this discount.",
-            "planChangeBlockedByPayments": "Plan cannot be changed after payments exist.",
-            "planChangeBlockedByReceipts": "Plan cannot be changed after receipts exist.",
-            "planChangeBlockedByPendingCheques": "Pending cheques are linked to affected periods. Settle them first.",
+            "planChangeBlockedByPayments": "Full plan replacement is not available after payments. Apply changes to future periods or use a special financial adjustment.",
+            "planChangeBlockedByReceipts": "Full plan replacement is not available after receipts. Apply changes to future periods or use a special financial adjustment.",
+            "planChangeBlockedByPendingCheques": "Cheques are linked to affected periods. Settle them before applying this change.",
             "agreementChangeForbidden": "You do not have permission to change the fee plan.",
             "agreementActivationForbidden": "You do not have permission to activate the new agreement.",
             "discountExceedsRemaining": "Discount exceeds remaining amount in selected periods.",
             "agreementTotalsMismatch": "Agreement totals could not be reconciled after the change.",
             "forbidden": "You do not have permission to perform this action.",
-            "unauthorized": "You do not have permission to apply a social discount."
+            "unauthorized": "You do not have permission to perform this financial adjustment."
           }
         },
         "executive": {
@@ -4142,6 +4410,9 @@
           "overdue": "Overdue",
           "nextInstallment": "Next installment",
           "pendingChequeAlert": "Cheques pending clearance are not counted as confirmed payment yet.",
+          "rejectedChequesAlertOnePrefix": "There is 1 rejected cheque worth",
+          "rejectedChequesAlertManyPrefix": "There are {count} rejected cheques worth",
+          "rejectedChequesReviewHint": "They require review.",
           "remainingAfterPendingHint": "Remaining after unconfirmed coverage:",
           "chequePendingTotal": "Total cheques pending clearance",
           "chequePendingAllocated": "Counted in unconfirmed coverage",
@@ -4173,6 +4444,15 @@
         "billingEffectiveFrom": "Effective from",
         "appliedPlanTitle": "Applied plan",
         "appliedPlansTitle": "Applied plans",
+        "billingSourceTitle": "Billing source",
+        "billingSourceActiveAgreement": "Active financial agreement",
+        "billingSourcePlanTemplateHint": "The fee plan is a price template; the financial agreement is this student's current billing source.",
+        "billingSourceBuiltOnPlan": "Built on plan: {plan}",
+        "billingSourceBuiltOnFeePlanGeneric": "Built on a fee plan",
+        "billingSourceCurrentAgreement": "Current agreement",
+        "billingSourceStatus": "Status",
+        "billingSourceStatusActive": "Active",
+        "openAgreement": "View financial agreement",
         "openPlan": "Open plan",
         "openFees": "Open fees",
         "feeCount": "Installment count",
@@ -4180,6 +4460,7 @@
         "installmentsCount": "Installments count",
         "appliedTotal": "Applied total",
         "noAppliedPlans": "No fee plan applied for this year.",
+        "noAppliedPlansViaAgreement": "No direct fee plan is applied. This student is billed through a financial agreement.",
         "specialAgreement": "Special agreement",
         "hasSpecialAgreement": "Special agreement exists",
         "noSpecialAgreement": "No special agreement",

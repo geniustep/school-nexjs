@@ -6,23 +6,44 @@ describe('resolve-change-plan-visibility', () => {
   it('shows actions for active agreement with assign capability', () => {
     expect(
       resolveChangePlanVisibility({
-        agreementState: 'active',
-        allowedActions: {},
+        workspace: { current_agreement: { id: 1, state: 'active' } } as never,
+        financialOverview: null,
         studentCapabilities: { can_assign_fees: true } as never,
-        financeCapabilities: { can_assign_fees: true } as never,
       }),
-    ).toEqual({ showReplaceIfUnpaid: true, showSocialDiscount: true });
+    ).toEqual({ showChangePlan: true, showSpecialAdjustment: true });
   });
 
-  it('hides actions without active agreement', () => {
+  it('shows actions when agreement context comes from financial overview installments', () => {
     expect(
       resolveChangePlanVisibility({
-        agreementState: 'draft',
-        allowedActions: { change_plan: true },
-        studentCapabilities: {} as never,
-        financeCapabilities: null,
+        workspace: null,
+        financialOverview: {
+          counts: { installments_count: 12, fees_count: 2 },
+          capabilities: { can_collect: true },
+        } as never,
+        studentCapabilities: { can_collect_payments: true } as never,
       }),
-    ).toEqual({ showReplaceIfUnpaid: false, showSocialDiscount: false });
+    ).toEqual({ showChangePlan: true, showSpecialAdjustment: true });
+  });
+
+  it('shows actions when workspace agreement is manageable but not strictly active', () => {
+    expect(
+      resolveChangePlanVisibility({
+        workspace: { current_agreement: { id: 9, state: 'approved' } } as never,
+        financialOverview: null,
+        studentCapabilities: { can_assign_fees: true } as never,
+      }),
+    ).toEqual({ showChangePlan: true, showSpecialAdjustment: true });
+  });
+
+  it('hides actions without agreement context', () => {
+    expect(
+      resolveChangePlanVisibility({
+        workspace: { current_agreement: null } as never,
+        financialOverview: { counts: { installments_count: 0, fees_count: 0 }, totals: { annual_total: 0 } } as never,
+        studentCapabilities: { can_assign_fees: true } as never,
+      }),
+    ).toEqual({ showChangePlan: false, showSpecialAdjustment: false });
   });
 });
 

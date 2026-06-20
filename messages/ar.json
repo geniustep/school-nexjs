@@ -86,6 +86,7 @@
     "exams": "الامتحانات",
     "results": "النتائج",
     "students": "التلاميذ",
+    "admissions": "طلبات التسجيل",
     "parents": "أولياء الأمور",
     "teachers": "الأساتذة",
     "levels": "المستويات",
@@ -2640,6 +2641,206 @@
         "missing_emergency_phone": "يُستحسن إدخال هاتف الطوارئ عند وجود اسم جهة الاتصال."
       }
     },
+    "admissions": {
+      "title": "طلبات التسجيل",
+      "subtitle": "إدارة الاستقبال والقبول",
+      "createButton": "طلب جديد",
+      "backToList": "العودة إلى القائمة",
+      "nextAction": "الإجراء القادم",
+      "assignedUser": "المسؤول",
+      "viewMode": "طريقة العرض",
+      "viewKanban": "Kanban",
+      "viewTable": "جدول",
+      "filters": {
+        "search": "بحث…",
+        "state": "الحالة",
+        "showClosed": "إظهار المغلقة (مفقود / ملغى / مكرر)"
+      },
+      "empty": {
+        "title": "لا توجد طلبات",
+        "description": "أنشئ طلب تسجيل جديد للبدء."
+      },
+      "kanban": {
+        "emptyColumn": "لا توجد بطاقات"
+      },
+      "badges": {
+        "possibleDuplicate": "تكرار محتمل",
+        "offerAccepted": "العرض مقبول",
+        "overdue": "متأخر"
+      },
+      "states": {
+        "new": "جديد",
+        "contacted": "تم التواصل",
+        "qualified": "مؤهل",
+        "visit_pending": "زيارة معلقة",
+        "under_review": "قيد المراجعة",
+        "accepted": "مقبول",
+        "waitlisted": "قائمة انتظار",
+        "offer_sent": "عرض مُرسل",
+        "confirmed": "مؤكد",
+        "lost": "مفقود",
+        "cancelled": "ملغى",
+        "duplicate": "مكرر"
+      },
+      "dashboard": {
+        "total_open": "مفتوحة",
+        "new_count": "جديدة",
+        "visit_pending_count": "زيارات معلقة",
+        "under_review_count": "قيد المراجعة",
+        "accepted_count": "مقبولة",
+        "offer_sent_count": "عروض مُرسلة",
+        "confirmed_count": "مؤكدة",
+        "lost_count": "مفقودة",
+        "today_appointments": "مواعيد اليوم",
+        "overdue_next_actions": "إجراءات متأخرة"
+      },
+      "table": {
+        "reference": "رقم الطلب",
+        "student": "اسم الطفل",
+        "guardian": "ولي الأمر",
+        "phone": "الهاتف",
+        "source": "المصدر",
+        "level": "المستوى",
+        "state": "الحالة",
+        "nextAction": "الإجراء القادم",
+        "assigned": "المسؤول"
+      },
+      "fields": {
+        "studentName": "اسم الطفل",
+        "firstName": "الاسم الأول",
+        "lastName": "اسم العائلة",
+        "birthDate": "تاريخ الميلاد",
+        "gender": "الجنس",
+        "requestedLevel": "المستوى المطلوب",
+        "requestedClass": "القسم المطلوب",
+        "academicYear": "السنة الدراسية",
+        "previousSchool": "المؤسسة السابقة",
+        "massarCode": "رمز مسار",
+        "guardianName": "اسم ولي الأمر",
+        "guardianPhone": "هاتف ولي الأمر",
+        "guardianWhatsapp": "واتساب",
+        "guardianEmail": "البريد",
+        "relationship": "صلة القرابة",
+        "firstContactDate": "تاريخ أول تواصل",
+        "nextAction": "الإجراء القادم",
+        "nextActionDate": "تاريخ الإجراء القادم",
+        "internalNotes": "ملاحظات داخلية",
+        "priority": "الأولوية"
+      },
+      "gender": {
+        "male": "ذكر",
+        "female": "أنثى"
+      },
+      "create": {
+        "title": "طلب تسجيل جديد",
+        "subtitle": "إنشاء طلب استقبال — لا ينشئ تلميذًا",
+        "studentSection": "بيانات الطفل",
+        "guardianSection": "بيانات ولي الأمر",
+        "followUpSection": "المتابعة",
+        "submit": "إنشاء الطلب"
+      },
+      "detail": {
+        "summary": "ملخص الطلب",
+        "student": "بيانات الطفل",
+        "guardian": "بيانات ولي الأمر",
+        "duplicates": "تكرارات محتملة",
+        "prefillStatus": "حالة البيانات الجاهزة",
+        "tabs": "أقسام الطلب"
+      },
+      "tabs": {
+        "overview": "نظرة عامة",
+        "timeline": "السجل",
+        "appointments": "المواعيد",
+        "assessments": "التقييمات",
+        "decision": "القرار",
+        "offers": "العروض",
+        "prefill": "بيانات جاهزة للتسجيل"
+      },
+      "timeline": {
+        "addActivity": "إضافة ملاحظة / متابعة",
+        "activityType": "نوع النشاط",
+        "submit": "إضافة",
+        "empty": "لا توجد أنشطة بعد"
+      },
+      "activityTypes": {
+        "note": "ملاحظة",
+        "call": "مكالمة",
+        "whatsapp": "واتساب",
+        "follow_up": "متابعة",
+        "visit_note": "ملاحظة زيارة"
+      },
+      "appointments": {
+        "create": "إنشاء موعد",
+        "type": "نوع الموعد",
+        "scheduledAt": "الموعد",
+        "duration": "المدة (دقيقة)",
+        "resultNotes": "ملاحظات النتيجة",
+        "empty": "لا توجد مواعيد",
+        "types": {
+          "schoolVisit": "زيارة المدرسة",
+          "visit": "زيارة",
+          "call": "مكالمة",
+          "assessment": "تقييم"
+        }
+      },
+      "assessments": {
+        "create": "إنشاء تقييم",
+        "type": "نوع التقييم",
+        "score": "النقطة",
+        "maxScore": "الحد الأقصى",
+        "result": "النتيجة",
+        "recommendation": "التوصية",
+        "teacherNotes": "ملاحظات الأستاذ",
+        "empty": "لا توجد تقييمات"
+      },
+      "decision": {
+        "current": "القرار الحالي",
+        "label": "القرار",
+        "by": "بواسطة",
+        "conditions": "الشروط",
+        "none": "لم يُتخذ قرار بعد",
+        "formTitle": "اتخاذ قرار",
+        "submit": "تسجيل القرار"
+      },
+      "decisions": {
+        "accepted": "مقبول",
+        "accepted_with_condition": "مقبول بشروط",
+        "waitlisted": "قائمة انتظار",
+        "rejected": "مرفوض",
+        "needs_reassessment": "يحتاج إعادة تقييم"
+      },
+      "offers": {
+        "create": "إنشاء عرض",
+        "offer": "عرض",
+        "registrationFee": "رسوم التسجيل",
+        "monthlyFee": "الرسوم الشهرية",
+        "deadline": "آخر أجل",
+        "requiredDocuments": "الوثائق المطلوبة",
+        "send": "إرسال العرض",
+        "accept": "قبول العرض",
+        "decline": "رفض العرض",
+        "empty": "لا توجد عروض",
+        "acceptNoticeTitle": "تذكير",
+        "acceptNotice": "قبول العرض لا يعني إنشاء تلميذ. لا يوجد تحويل تلقائي في هذه المرحلة."
+      },
+      "prefill": {
+        "notAllowed": "معاينة البيانات الجاهزة غير متاحة لهذا الطلب.",
+        "loading": "جاري تحميل المعاينة…",
+        "load": "تحميل المعاينة",
+        "readOnlyTitle": "عرض فقط",
+        "readOnlyNotice": "هذه المعاينة للاطلاع فقط. لا تنشئ تلميذًا ولا تستعمل link-student.",
+        "student": "التلميذ",
+        "guardian": "ولي الأمر",
+        "academic": "أكاديمي",
+        "admission": "الطلب",
+        "readiness": "الجاهزية",
+        "warnings": "تحذيرات",
+        "blockingIssues": "مشاكل مانعة"
+      },
+      "errors": {
+        "notFound": "طلب التسجيل غير موجود."
+      }
+    },
     "student360": {
       "tabsAria": "أقسام ملف التلميذ",
       "tabs": {
@@ -3660,6 +3861,7 @@
           "state": "حالة الاتفاق",
           "agreementDate": "تاريخ الاتفاق",
           "validity": "فترة الاتفاق",
+          "originalFeePlan": "الخطة الأصلية",
           "validFrom": "تاريخ البداية",
           "validUntil": "تاريخ النهاية",
           "billingParty": "المسؤول عن الأداء",
@@ -3789,6 +3991,7 @@
         "incompleteDraftTitle": "مسودة اتفاق غير مكتملة",
         "incompleteDraftDesc": "هذه المسودة لا تُعرض كاتفاق مالي فعلي حتى إكمالها.",
         "completeDraft": "إكمال المسودة",
+        "emptyManualDraftBlockedHint": "لا يمكن إكمال مسودة فارغة. أنشئ اتفاقًا من الرسوم الحالية.",
         "cancelDraft": "إلغاء المسودة",
         "fromFees": {
           "title": "إنشاء اتفاق من الرسوم الحالية",
@@ -3801,6 +4004,11 @@
           "errors": {
             "empty": "لا توجد رسوم حالية يمكن تضمينها في الاتفاق.",
             "alreadyExists": "يوجد اتفاق مالي خاص لهذا التلميذ بالفعل.",
+            "draftAlreadyExists": "توجد مسودة اتفاق من الرسوم الحالية بالفعل.",
+            "draftAlreadyExistsHint": "يمكنك مراجعتها وإكمال مسار الاعتماد.",
+            "draftAlreadyExistsFull": "توجد مسودة اتفاق من الرسوم الحالية بالفعل. يمكنك مراجعتها وإكمال مسار الاعتماد.",
+            "activeAgreementExists": "يوجد اتفاق مالي نشط لهذا التلميذ.",
+            "generic": "تعذر إنشاء الاتفاق من الرسوم الحالية.",
             "forbidden": "لا تملك صلاحية إنشاء اتفاق من الرسوم.",
             "missingYear": "حدّد السنة الدراسية أولًا."
           }
@@ -3866,6 +4074,7 @@
         "incompleteDraftTitle": "مسودة اتفاق غير مكتملة",
         "incompleteDraftDesc": "هذه المسودة لا تمثل الرسوم المطبقة من خطة المدرسة.",
         "completeDraft": "إكمال المسودة",
+        "emptyManualDraftBlockedHint": "لا يمكن إكمال مسودة فارغة. أنشئ اتفاقًا من الرسوم الحالية.",
         "cancelDraft": "إلغاء المسودة",
         "openFinanceOverview": "فتح النظرة المالية",
         "openPaymentSchedule": "فتح جدول الدفعات"
@@ -4072,15 +4281,73 @@
           "recordPayment": "تسجيل دفعة",
           "manageAgreement": "إدارة الاتفاق المالي"
         },
+        "inactiveAgreement": {
+          "bannerTitle": "يوجد ملف مالي بحركات مسجلة، لكن لا يوجد اتفاق مالي نشط قابل للإدارة.",
+          "bannerBody": "التحصيلات والأقساط والشيكات الظاهرة مرتبطة بملف مالي سابق أو غير نشط. لا يمكن إدارة الخطة أو التعديل قبل تفعيل اتفاق مالي صالح.",
+          "planChangeBlockedHint": "لا يمكن تغيير الخطة أو إجراء تعديل مالي خاص قبل وجود اتفاق مالي نشط. راجع الاتفاق الحالي أو أنشئ اتفاقًا جديدًا.",
+          "fixAction": "إصلاح الاتفاق المالي",
+          "reviewAction": "مراجعة الاتفاق المالي",
+          "agreementTabWarning": "يوجد ملف مالي بحركات مسجلة، لكن هذا الاتفاق غير نشط ولا يمكن الاعتماد عليه للتعديل أو تغيير الخطة. راجع الاتفاق أو أنشئ اتفاقًا جديدًا.",
+          "currentState": "حالة الاتفاق: {state}",
+          "noActiveState": "لا يوجد اتفاق مالي نشط"
+        },
+        "billingContext": {
+          "operationalWithoutActiveAgreement": "فوترة تشغيلية بدون اتفاق نشط",
+          "needsActiveAgreement": "ملف مالي يحتاج اتفاقًا نشطًا",
+          "noActiveAgreement": "لا يوجد اتفاق مالي نشط",
+          "noActiveAgreementExplanation": "يوجد ملف مالي بحركات مسجلة، لكن لا يوجد اتفاق مالي نشط.",
+          "noActiveAgreementManageable": "يوجد ملف مالي بحركات مسجلة، لكن لا يوجد اتفاق مالي نشط قابل للإدارة."
+        },
+        "agreementRepair": {
+          "title": "يحتاج الملف المالي إلى مراجعة",
+          "body": "توجد رسوم وأقساط مسجلة، لكن لا يوجد اتفاق مالي نشط.",
+          "recommendedAction": "الإجراء المقترح: إنشاء اتفاق مالي من الرسوم الحالية ثم اعتماده.",
+          "recommendedActionCreateFromFees": "الإجراء المقترح: إنشاء اتفاق مالي من الرسوم الحالية ثم اعتماده.",
+          "reviewAction": "مراجعة الاتفاق المالي"
+        },
+        "collectPayment": {
+          "blockedMessage": "لا يمكن تسجيل دفعة قبل وجود اتفاق مالي نشط."
+        },
+        "inactiveAgreementReference": {
+          "title": "اتفاق سابق غير نشط",
+          "stateLabel": "الحالة",
+          "requiresReviewWarning": "هذا الاتفاق غير نشط ولا يمكن استعماله للتحصيل أو التعديل. أنشئ اتفاقًا جديدًا من الرسوم الحالية أو راجع الملف المالي.",
+          "createFromFeesAction": "إنشاء اتفاق مالي من الرسوم الحالية"
+        },
+        "agreementStatus": {
+          "noActive": "لا يوجد اتفاق مالي نشط",
+          "inactive": "اتفاق غير نشط",
+          "cancelled": "ملغى — يحتاج مراجعة",
+          "cancelledNeedsReview": "ملغى — يحتاج مراجعة",
+          "terminated": "اتفاق منتهٍ — يحتاج مراجعة",
+          "draft": "مسودة — غير نشطة",
+          "completed": "اتفاق مكتمل — غير نشط",
+          "approved": "اتفاق معتمد — غير نشط",
+          "pending_approval": "بانتظار الاعتماد — غير نشط"
+        },
         "changePlan": {
           "previewAction": "معاينة الأثر",
-          "applyAction": "تطبيق التغيير",
+          "applyAction": "تطبيق التعديل",
           "previewTitle": "نتيجة المعاينة",
           "applySuccess": "تم تحديث مالية التلميذ بنجاح.",
+          "commandBar": {
+            "noActiveAgreementHint": "لا يمكن تعديل مالية هذا التلميذ لأنه لا يوجد اتفاق مالي نشط قابل للتعديل."
+          },
+          "eligibility": {
+            "title": "أهلية التعديل",
+            "eligible": "قابل للتعديل",
+            "eligibleDetail": "يوجد اتفاق مالي نشط في بيانات هذه الصفحة. يمكنك معاينة الأثر ثم التطبيق إذا لم توجد قيود أخرى.",
+            "notEligibleTitle": "غير قابل للتعديل حاليًا",
+            "noActiveAgreement": "لا يمكن تعديل مالية هذا التلميذ لأنه لا يوجد اتفاق مالي نشط قابل للتعديل.",
+            "activeAgreementServiceMismatch": "تعذر العثور على الاتفاق المالي النشط في خدمة التعديل. يرجى مراجعة الاتفاق المالي أو تحديث الصفحة.",
+            "currentAgreementState": "حالة الاتفاق الحالي: {state}"
+          },
           "replace": {
             "action": "تغيير الخطة المالية",
             "title": "تغيير الخطة المالية",
-            "description": "يُستخدم هذا الخيار عندما لم يتم تسجيل أي دفعات أو إيصالات بعد. سيتم استبدال الاتفاق الحالي باتفاق جديد.",
+            "description": "يُستخدم لتغيير أو استبدال الخطة المالية. إذا وُجدت دفعات أو إيصالات سابقة، لا يمكن تعديلها وسيُطبّق أي تغيير على الفترات المستقبلية أو كتعديل مالي منفصل.",
+            "actionHint": "يمكن تغيير الخطة، لكن لا يمكن تعديل الدفعات والإيصالات السابقة. سيُطبّق أي تغيير جديد على الفترات المستقبلية أو كتعديل مالي منفصل.",
+            "paymentsExistHint": "لا يمكن تعديل الدفعات أو الإيصالات السابقة. سيُطبّق التعديل على الفترات المستقبلية فقط.",
             "fields": {
               "feePlan": "الخطة المالية الجديدة",
               "reason": "سبب التغيير",
@@ -4097,19 +4364,20 @@
               "confirmRequired": "يجب تأكيد استبدال الاتفاق الحالي قبل التطبيق."
             }
           },
-          "social": {
-            "action": "تطبيق تخفيض اجتماعي",
-            "title": "تطبيق تخفيض اجتماعي",
-            "description": "يطبق التخفيض على الأقساط المستقبلية غير المؤداة فقط. الأقساط المدفوعة والإيصالات السابقة لن تتغير.",
-            "preservedWarning": "الفترات السابقة والمدفوعات السابقة تبقى كما هي.",
-            "noPastChangesWarning": "تحذير: الإيصالات والدفعات السابقة لن تتغير.",
+          "special": {
+            "action": "تعديل مالي خاص",
+            "title": "تعديل مالي خاص",
+            "description": "يتيح هذا الخيار تعديل الرسوم المستقبلية فقط دون تغيير الدفعات أو الإيصالات السابقة. يُستخدم لحالات خاصة: منحة، تخفيض إداري، توقف خدمة، تصحيح رسوم، أو اتفاق خاص.",
+            "actionHint": "يتيح تعديل الرسوم المستقبلية فقط دون تغيير الدفعات أو الإيصالات السابقة.",
+            "preservedWarning": "لا يمكن تعديل الدفعات أو الإيصالات السابقة. سيُطبّق التعديل على الفترات المستقبلية فقط.",
+            "noPastChangesWarning": "تحذير: الدفعات والإيصالات السابقة لن تتغير.",
             "fields": {
-              "effectiveDate": "تاريخ بداية التخفيض",
+              "effectiveDate": "تاريخ بداية التعديل",
               "feeType": "نوع الرسم",
-              "discountType": "نوع الخصم",
-              "discountValue": "قيمة الخصم",
+              "discountType": "نوع التعديل",
+              "discountValue": "قيمة التعديل",
               "periodEnd": "آخر فترة متأثرة",
-              "reasonNote": "ملاحظة السبب"
+              "reasonNote": "سبب التعديل"
             },
             "feeTypes": {
               "tuition": "التمدرس",
@@ -4120,9 +4388,9 @@
               "amount": "مبلغ"
             },
             "errors": {
-              "effectiveDateRequired": "تاريخ بداية التخفيض مطلوب.",
-              "reasonNoteRequired": "ملاحظة السبب مطلوبة لحالة اجتماعية.",
-              "discountRequired": "أدخل قيمة الخصم.",
+              "effectiveDateRequired": "تاريخ بداية التعديل مطلوب.",
+              "reasonNoteRequired": "سبب التعديل مطلوب.",
+              "discountRequired": "أدخل قيمة التعديل.",
               "periodsRequired": "حدد الفترات المتأثرة."
             }
           },
@@ -4148,25 +4416,25 @@
             "generic": "تعذر تنفيذ العملية.",
             "cannotApply": "لا يمكن تطبيق هذا التغيير حسب المعاينة الحالية.",
             "noActiveAgreement": "لا يوجد اتفاق مالي نشط لهذا التلميذ.",
-            "effectiveDateRequired": "تاريخ بداية التخفيض مطلوب.",
-            "effectiveDateOutsideAcademicYear": "تاريخ بداية التخفيض خارج السنة الدراسية.",
+            "effectiveDateRequired": "تاريخ بداية التعديل مطلوب.",
+            "effectiveDateOutsideAcademicYear": "تاريخ بداية التعديل خارج السنة الدراسية لهذا الاتفاق.",
             "affectedPeriodsRequired": "حدد الفترات المتأثرة.",
-            "socialCaseReasonRequired": "ملاحظة السبب مطلوبة لحالة اجتماعية.",
+            "socialCaseReasonRequired": "سبب التعديل مطلوب.",
             "confirmReplaceRequired": "يجب تأكيد استبدال الاتفاق الحالي.",
             "confirmFinancialImpactRequired": "يجب تأكيد الأثر المالي قبل التطبيق.",
             "sameFeePlanNoDiscount": "الخطة المختارة مطابقة للخطة الحالية بدون تخفيض.",
             "feePlanNotAssignable": "الخطة المالية المختارة غير قابلة للإسناد.",
             "feeTypeNotInAgreement": "نوع الرسم غير موجود في الاتفاق الحالي.",
             "noFuturePeriodsToAffect": "لا توجد فترات مستقبلية يمكن تطبيق التخفيض عليها.",
-            "planChangeBlockedByPayments": "لا يمكن تغيير الخطة بعد وجود دفعات.",
-            "planChangeBlockedByReceipts": "لا يمكن تغيير الخطة بعد وجود إيصالات.",
-            "planChangeBlockedByPendingCheques": "توجد شيكات معلقة مرتبطة بالفترات المتأثرة. يجب تسويتها أولًا.",
+            "planChangeBlockedByPayments": "لا يمكن استبدال الخطة بالكامل بعد وجود دفعات. يمكن تطبيق التغيير على الفترات المستقبلية أو عبر تعديل مالي مناسب.",
+            "planChangeBlockedByReceipts": "لا يمكن استبدال الخطة بالكامل بعد وجود إيصالات. يمكن تطبيق التغيير على الفترات المستقبلية أو عبر تعديل مالي مناسب.",
+            "planChangeBlockedByPendingCheques": "توجد شيكات مرتبطة بالفترات المتأثرة. يجب تسويتها أولًا قبل تطبيق التعديل.",
             "agreementChangeForbidden": "ليست لديك صلاحية تغيير الخطة المالية.",
             "agreementActivationForbidden": "ليست لديك صلاحية تفعيل الاتفاق الجديد.",
             "discountExceedsRemaining": "قيمة التخفيض تتجاوز المتبقي في الفترات المختارة.",
             "agreementTotalsMismatch": "تعذر مطابقة مجاميع الاتفاق بعد التغيير.",
             "forbidden": "ليست لديك صلاحية تنفيذ هذا الإجراء.",
-            "unauthorized": "ليست لديك صلاحية تطبيق تخفيض اجتماعي."
+            "unauthorized": "ليست لديك صلاحية تنفيذ هذا التعديل المالي."
           }
         },
         "executive": {
@@ -4178,6 +4446,9 @@
           "overdue": "المتأخر",
           "nextInstallment": "القسط القادم",
           "pendingChequeAlert": "توجد شيكات قيد التحصيل لا تعتبر أداءً مؤكدًا بعد.",
+          "rejectedChequesAlertOnePrefix": "يوجد شيك مرفوض بقيمة",
+          "rejectedChequesAlertManyPrefix": "يوجد {count} شيكات مرفوضة بقيمة",
+          "rejectedChequesReviewHint": "يجب مراجعتها.",
           "remainingAfterPendingHint": "المتبقي بعد التغطية غير المؤكدة:",
           "chequePendingTotal": "إجمالي الشيكات قيد التحصيل",
           "chequePendingAllocated": "محتسبة في التغطية غير المؤكدة",
@@ -4209,6 +4480,15 @@
         "billingEffectiveFrom": "ساري من",
         "appliedPlanTitle": "الخطة المطبقة",
         "appliedPlansTitle": "الخطط المطبقة",
+        "billingSourceTitle": "مصدر الفوترة",
+        "billingSourceActiveAgreement": "اتفاق مالي نشط",
+        "billingSourcePlanTemplateHint": "الخطة المالية قالب أسعار؛ الاتفاق المالي هو مصدر الفوترة الحالي للتلميذ.",
+        "billingSourceBuiltOnPlan": "مبني على خطة: {plan}",
+        "billingSourceBuiltOnFeePlanGeneric": "مبني على خطة رسوم",
+        "billingSourceCurrentAgreement": "الاتفاق الحالي",
+        "billingSourceStatus": "الحالة",
+        "billingSourceStatusActive": "نشط",
+        "openAgreement": "عرض الاتفاق المالي",
         "openPlan": "فتح الخطة",
         "openFees": "فتح الرسوم",
         "feeCount": "عدد الدفعات",
@@ -4216,6 +4496,7 @@
         "installmentsCount": "عدد الدفعات",
         "appliedTotal": "الإجمالي المطبق",
         "noAppliedPlans": "لا توجد خطة رسوم مطبقة في هذه السنة.",
+        "noAppliedPlansViaAgreement": "لا توجد خطة رسوم مباشرة مطبقة. تتم فوترة هذا التلميذ عبر اتفاق مالي.",
         "specialAgreement": "اتفاق خاص",
         "hasSpecialAgreement": "يوجد اتفاق خاص",
         "noSpecialAgreement": "لا يوجد اتفاق خاص",

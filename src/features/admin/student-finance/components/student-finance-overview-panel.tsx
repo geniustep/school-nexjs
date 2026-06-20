@@ -11,6 +11,10 @@ import {
   resolveBillingPartyLabel,
   resolveStudentFinanceOverviewMetrics,
 } from '../utils/resolve-student-finance-overview';
+import { resolveStudentBillingSourcePresentation } from '../utils/resolve-student-billing-source-presentation';
+import { resolveFinanceAgreementStateLabel } from '../utils/reference-labels';
+import { resolveChangePlanEligibility } from '../utils/resolve-change-plan-eligibility';
+import { resolveBillingContextPresentation } from '../utils/resolve-billing-context-presentation';
 
 function installmentStatusKey(state: string | null | undefined): string | null {
   if (!state) return null;
@@ -37,6 +41,7 @@ function statusTone(state: string | null | undefined): string {
 
 export function StudentFinanceOverviewPanel({
   studentId,
+  workspace,
   financialOverview,
   financialOverviewLoading,
   financialOverviewError,
@@ -51,6 +56,42 @@ export function StudentFinanceOverviewPanel({
     () => resolveStudentFinanceOverviewMetrics(financialOverview),
     [financialOverview],
   );
+
+  const billingSource = useMemo(
+    () =>
+      resolveStudentBillingSourcePresentation({
+        financialOverview,
+        workspaceAgreement: workspace?.current_agreement ?? null,
+        workspace,
+      }),
+    [financialOverview, workspace],
+  );
+
+  const billingContext = useMemo(
+    () =>
+      resolveBillingContextPresentation({
+        workspace,
+        canCollectCapability: canCollect,
+      }),
+    [workspace, canCollect],
+  );
+
+  const financeEligibility = useMemo(
+    () =>
+      resolveChangePlanEligibility({
+        workspace,
+        financialOverview,
+        studentCapabilities: { can_view_finance: true } as never,
+      }),
+    [workspace, financialOverview],
+  );
+
+  const showOperationalBillingContext =
+    !billingSource.hasActiveAgreement &&
+    financeEligibility.hasBillableFinanceContext &&
+    (billingContext.isOperationalWithoutActiveAgreement ||
+      billingContext.inactiveAgreement != null ||
+      billingContext.showNoActiveAgreement);
 
   const billingLabel = resolveBillingPartyLabel({
     billingProfile: financialOverview?.billing_profile,
@@ -84,9 +125,26 @@ export function StudentFinanceOverviewPanel({
   const nextStatusKey = installmentStatusKey(metrics?.next_installment_state);
   const nextTitle = metrics?.next_installment_display_label;
   const nextTone = statusTone(metrics?.next_installment_state);
+  const appliedPlans = financialOverview?.applied_plans ?? [];
 
   return (
     <div className="student-finance-overview">
+      {billingContext.billingContextHeadlineKey ? (
+        <div className="student-finance-billing-context-headline" role="status">
+          <p className="student-finance-billing-context-headline__title">
+            {t(billingContext.billingContextHeadlineKey)}
+          </p>
+          {billingContext.billingContextMessage ? (
+            <p className="student-finance-billing-context-headline__hint tiny muted">
+              {billingContext.billingContextMessage}
+            </p>
+          ) : billingContext.showNoActiveAgreement ? (
+            <p className="student-finance-billing-context-headline__hint tiny muted">
+              {t('admin.student360.financeWorkspace.billingContext.noActiveAgreementManageable')}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
       <div className="student-finance-bento">
         {nextInstallment ? (
           <article className="student-finance-bento__card student-finance-bento__card--featured">
@@ -130,10 +188,30 @@ export function StudentFinanceOverviewPanel({
               >
                 {t('admin.student360.financeWorkspace.openSchedule')}
               </Link>
-              {canCollect ? (
+              {billingContext.collectPaymentAllowed ? (
                 <button type="button" className="btn btn--primary btn--sm" onClick={onOpenCollection}>
                   {t('admin.student360.financeWorkspace.actions.recordPayment')}
                 </button>
+              ) : canCollect ? (
+                <span
+                  className="student-finance-collect-blocked"
+                  title={
+                    billingContext.collectBlockMessage ??
+                    (billingContext.collectBlockMessageKey
+                      ? t(billingContext.collectBlockMessageKey)
+                      : undefined)
+                  }
+                >
+                  <button type="button" className="btn btn--primary btn--sm" disabled>
+                    {t('admin.student360.financeWorkspace.actions.recordPayment')}
+                  </button>
+                  <span className="student-finance-collect-blocked__hint tiny muted">
+                    {billingContext.collectBlockMessage ??
+                      (billingContext.collectBlockMessageKey
+                        ? t(billingContext.collectBlockMessageKey)
+                        : t('admin.student360.financeWorkspace.collectPayment.blockedMessage'))}
+                  </span>
+                </span>
               ) : null}
             </div>
           </article>
@@ -222,15 +300,89 @@ export function StudentFinanceOverviewPanel({
           </dl>
         </article>
 
-        <article className="student-finance-bento__card student-finance-bento__card--plans">
+        <article className="student-finance-bento__card student-finance-bento__card--billing-source">
           <header className="student-finance-bento__card-head">
             <span className="student-finance-bento__eyebrow">
-              {t('admin.student360.financeWorkspace.appliedPlansTitle')}
+              {billingSource.hasActiveAgreement
+                ? t('admin.student360.financeWorkspace.billingSourceTitle')
+                : t('admin.student360.financeWorkspace.appliedPlansTitle')}
             </span>
+            {billingSource.hasActiveAgreement ? (
+              <Link
+                href={`/admin/students/${studentId}?tab=finance&financeSubTab=agreements`}
+                className="btn btn--ghost btn--sm"
+              >
+                {t('admin.student360.financeWorkspace.openAgreement')}
+              </Link>
+            ) : null}
           </header>
-          {financialOverview?.applied_plans?.length ? (
+          {billingSource.hasActiveAgreement ? (
+            <div className="student-finance-billing-source">
+              <p className="student-finance-billing-source__headline">
+                {t('admin.student360.financeWorkspace.billingSourceActiveAgreement')}
+              </p>
+              <p className="student-finance-billing-source__hint tiny muted">
+                {t('admin.student360.financeWorkspace.billingSourcePlanTemplateHint')}
+              </p>
+              <p className="student-finance-billing-source__plan" dir="auto">
+                {billingSource.originalPlanName
+                  ? t('admin.student360.financeWorkspace.billingSourceBuiltOnPlan', {
+                      plan: billingSource.originalPlanName,
+                    })
+                  : t('admin.student360.financeWorkspace.billingSourceBuiltOnFeePlanGeneric')}
+              </p>
+              <dl className="student-finance-bento__facts student-finance-bento__facts--stacked">
+                {billingSource.agreementNumber ? (
+                  <div>
+                    <dt>{t('admin.student360.financeWorkspace.billingSourceCurrentAgreement')}</dt>
+                    <dd dir="auto">{billingSource.agreementNumber}</dd>
+                  </div>
+                ) : null}
+                {billingSource.agreementState === 'active' ? (
+                  <div>
+                    <dt>{t('admin.student360.financeWorkspace.billingSourceStatus')}</dt>
+                    <dd>{t('admin.student360.financeWorkspace.billingSourceStatusActive')}</dd>
+                  </div>
+                ) : null}
+              </dl>
+            </div>
+          ) : showOperationalBillingContext ? (
+            <div className="student-finance-billing-source student-finance-billing-source--inactive">
+              <p className="student-finance-billing-source__headline">
+                {t('admin.student360.financeWorkspace.billingContext.noActiveAgreement')}
+              </p>
+              <p className="student-finance-billing-source__hint">
+                {billingContext.billingContextMessage ??
+                  t('admin.student360.financeWorkspace.billingContext.noActiveAgreementExplanation')}
+              </p>
+              {billingContext.inactiveAgreement?.state ? (
+                <dl className="student-finance-bento__facts student-finance-bento__facts--stacked">
+                  <div>
+                    <dt>{t('admin.student360.financeWorkspace.inactiveAgreementReference.title')}</dt>
+                    <dd dir="auto">
+                      {billingSource.agreementNumber ?? t('common.dash')}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>{t('admin.student360.financeWorkspace.inactiveAgreementReference.stateLabel')}</dt>
+                    <dd>
+                      {resolveFinanceAgreementStateLabel(t, billingContext.inactiveAgreement.state, {
+                        hasBillableContext: true,
+                      })}
+                    </dd>
+                  </div>
+                </dl>
+              ) : null}
+              <Link
+                href={`/admin/students/${studentId}?tab=finance&financeSubTab=agreements`}
+                className="btn btn--ghost btn--sm"
+              >
+                {t('admin.student360.financeWorkspace.agreementRepair.reviewAction')}
+              </Link>
+            </div>
+          ) : appliedPlans.length ? (
             <div className="student-finance-plan-list">
-              {financialOverview.applied_plans.map((plan) => (
+              {appliedPlans.map((plan) => (
                 <div key={plan.id} className="student-finance-plan-item">
                   <div className="student-finance-plan-item__head">
                     <strong dir="auto">{plan.name}</strong>
@@ -262,7 +414,9 @@ export function StudentFinanceOverviewPanel({
               ))}
             </div>
           ) : (
-            <p className="student-finance-bento__empty">{t('admin.student360.financeWorkspace.noAppliedPlans')}</p>
+            <p className="student-finance-bento__empty">
+              {t('admin.student360.financeWorkspace.noAppliedPlans')}
+            </p>
           )}
         </article>
       </div>

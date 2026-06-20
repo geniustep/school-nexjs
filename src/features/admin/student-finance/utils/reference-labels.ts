@@ -97,6 +97,28 @@ export function resolveAgreementStateLabel(t: (key: string) => string, state: st
   return translated === key ? state : translated;
 }
 
+/** Finance-file labels when agreement is not active but billable activity exists. */
+export function resolveFinanceAgreementStateLabel(
+  t: (key: string) => string,
+  state: string | null | undefined,
+  options?: { hasBillableContext?: boolean },
+): string {
+  if (!state?.trim()) {
+    return t('admin.student360.financeWorkspace.agreementStatus.noActive');
+  }
+  const slug = normalizeReferenceValue(state);
+  if (options?.hasBillableContext && slug !== 'active') {
+    const contextualKey = `admin.student360.financeWorkspace.agreementStatus.${slug}`;
+    const contextual = t(contextualKey);
+    if (contextual !== contextualKey) return contextual;
+    if (slug === 'cancelled' || slug === 'terminated') {
+      return t('admin.student360.financeWorkspace.agreementStatus.cancelledNeedsReview');
+    }
+    return t('admin.student360.financeWorkspace.agreementStatus.inactive');
+  }
+  return resolveAgreementStateLabel(t, state);
+}
+
 export function resolveAdjustmentTypeLabel(
   t: (key: string) => string,
   adjustmentType: string | null | undefined,
@@ -171,11 +193,11 @@ export function timingStatusTone(
 ): 'green' | 'amber' | 'red' | 'slate' | 'blue' {
   switch (status) {
     case 'due':
-      return 'amber';
+      return 'blue';
     case 'overdue':
       return 'red';
     case 'upcoming':
-      return 'blue';
+      return 'slate';
     case 'hidden':
       return 'slate';
     default:

@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
+import type { ChequeSummary } from '@/types/student-financial-overview';
 import type { StudentFinanceOverviewMetrics } from '../utils/resolve-student-finance-overview';
 
 type MetricTone = 'neutral' | 'green' | 'amber' | 'red' | 'blue';
@@ -14,8 +15,14 @@ function toneClass(tone?: MetricTone): string {
 
 export function StudentFinanceExecutiveSummary({
   metrics,
+  chequeSummary,
+  billingContextHeadlineKey,
+  billingContextMessage,
 }: {
   metrics: StudentFinanceOverviewMetrics | null;
+  chequeSummary?: ChequeSummary | null;
+  billingContextHeadlineKey?: string | null;
+  billingContextMessage?: string | null;
 }) {
   const t = useT();
   const { formatDate } = useFormat();
@@ -104,6 +111,18 @@ export function StudentFinanceExecutiveSummary({
       className="student-finance-hero"
       aria-label={t('admin.student360.financeWorkspace.executive.title')}
     >
+      {billingContextHeadlineKey ? (
+        <div className="student-finance-hero__context" role="status">
+          <p className="student-finance-hero__context-title">{t(billingContextHeadlineKey)}</p>
+          {billingContextMessage ? (
+            <p className="student-finance-hero__context-hint tiny muted">{billingContextMessage}</p>
+          ) : (
+            <p className="student-finance-hero__context-hint tiny muted">
+              {t('admin.student360.financeWorkspace.billingContext.noActiveAgreementManageable')}
+            </p>
+          )}
+        </div>
+      ) : null}
       <div className="student-finance-hero__head">
         <div className="student-finance-hero__title-block">
           <h3 className="student-finance-hero__title">
@@ -123,6 +142,11 @@ export function StudentFinanceExecutiveSummary({
           {health?.hasPendingCheque ? (
             <span className="student-finance-hero__chip student-finance-hero__chip--warn">
               {t('admin.student360.financeWorkspace.metrics.pendingCheques')}
+            </span>
+          ) : null}
+          {(chequeSummary?.rejected_count ?? 0) > 0 ? (
+            <span className="student-finance-hero__chip student-finance-hero__chip--danger">
+              {t('admin.student360.financeWorkspace.metrics.rejectedCheques')}
             </span>
           ) : null}
         </div>
@@ -198,6 +222,29 @@ export function StudentFinanceExecutiveSummary({
                 />
               </p>
             ) : null}
+          </div>
+        </div>
+      ) : null}
+
+      {(chequeSummary?.rejected_count ?? 0) > 0 ? (
+        <div className="student-finance-hero__insight student-finance-hero__insight--danger" role="alert">
+          <div className="student-finance-hero__insight-icon" aria-hidden="true">
+            !
+          </div>
+          <div className="student-finance-hero__insight-body">
+            <p className="student-finance-hero__insight-title">
+              {chequeSummary!.rejected_count === 1
+                ? t('admin.student360.financeWorkspace.executive.rejectedChequesAlertOnePrefix')
+                : t('admin.student360.financeWorkspace.executive.rejectedChequesAlertManyPrefix', {
+                    count: String(chequeSummary!.rejected_count),
+                  })}{' '}
+              <FinanceMoney
+                amount={chequeSummary!.rejected_amount}
+                currency={metrics.currency ?? undefined}
+              />
+              {'. '}
+              {t('admin.student360.financeWorkspace.executive.rejectedChequesReviewHint')}
+            </p>
           </div>
         </div>
       ) : null}

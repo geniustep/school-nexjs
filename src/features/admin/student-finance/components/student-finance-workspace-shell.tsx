@@ -46,7 +46,9 @@ import { StudentFinancialAgreementTab } from './student-financial-agreement-tab'
 import { subscribeFinanceRefresh } from '@/lib/finance/finance-refresh-bus';
 import { postAgreementAction } from '../api/finance-admin-api';
 import { ChangePlanDrawer } from './change-plan-drawer';
+import { InactiveAgreementFinanceBanner } from './inactive-agreement-finance-banner';
 import { resolveChangePlanVisibility } from '../utils/resolve-change-plan-visibility';
+import { resolveBillingContextPresentation } from '../utils/resolve-billing-context-presentation';
 import type { ChangePlanMode } from '@/types/student-finance-change-plan';
 import { useToast } from '@/components/ui/toast';
 
@@ -123,7 +125,16 @@ export function StudentFinanceWorkspaceShell({
 
   const financeCaps = workspace?.capabilities as StudentFinanceCapabilities | undefined;
   const canViewPayments = canViewStudentPayments(capabilities, financeCaps);
-  const canCollect = canCollectStudentPayments(capabilities, financeCaps);
+  const canCollectCapability = canCollectStudentPayments(capabilities, financeCaps);
+
+  const billingContext = useMemo(
+    () =>
+      resolveBillingContextPresentation({
+        workspace,
+        canCollectCapability,
+      }),
+    [workspace, canCollectCapability],
+  );
 
   const overviewMetrics = useMemo(
     () => resolveStudentFinanceOverviewMetrics(financialOverviewState.data),
@@ -155,10 +166,10 @@ export function StudentFinanceWorkspaceShell({
   }, [searchParams]);
 
   useEffect(() => {
-    if (searchParams.get('collect') === '1' && canCollect) {
+    if (searchParams.get('collect') === '1' && billingContext.collectPaymentAllowed) {
       setShowCollectionDrawer(true);
     }
-  }, [searchParams, canCollect]);
+  }, [searchParams, billingContext.collectPaymentAllowed]);
 
   const refreshFinanceData = useCallback(() => {
     setFinanceRefreshSignal((n) => n + 1);
@@ -200,12 +211,13 @@ export function StudentFinanceWorkspaceShell({
   const changePlanVisibility = useMemo(
     () =>
       resolveChangePlanVisibility({
-        agreementState: workspace?.current_agreement?.state,
-        allowedActions: workspace?.current_agreement?.allowed_actions ?? workspace?.allowed_actions,
+        workspace: workspace ?? null,
+        financialOverview: financialOverviewState.data,
         studentCapabilities: capabilities,
-        financeCapabilities: financeCaps ?? null,
+        showManageAgreementBar: subTab !== 'agreements',
+        canCollect: canCollectCapability,
       }),
-    [workspace?.current_agreement, workspace?.allowed_actions, capabilities, financeCaps],
+    [workspace, financialOverviewState.data, capabilities, subTab, canCollectCapability],
   );
 
   const workspaceHeader = (
@@ -217,14 +229,22 @@ export function StudentFinanceWorkspaceShell({
       onYearChange={setSelectedYearId}
       billingPartnerId={billingPartnerId}
       subTab={subTab}
-      canCollect={canCollect}
+      canCollect={canCollectCapability}
+      collectPaymentAllowed={billingContext.collectPaymentAllowed}
+      collectBlockMessage={
+        billingContext.collectBlockMessage ??
+        (billingContext.collectBlockMessageKey ? t(billingContext.collectBlockMessageKey) : null)
+      }
       onOpenSchedule={() => syncSubTabToUrl('schedule')}
       onOpenAgreements={() => syncSubTabToUrl('agreements')}
       onRecordPayment={() => setShowCollectionDrawer(true)}
-      showReplaceIfUnpaid={changePlanVisibility.showReplaceIfUnpaid}
-      showSocialDiscount={changePlanVisibility.showSocialDiscount}
-      onOpenReplacePlan={() => setChangePlanMode('replace_if_unpaid')}
-      onOpenSocialDiscount={() => setChangePlanMode('social_discount_on_future_installments')}
+      showChangePlan={changePlanVisibility.showChangePlan}
+      showSpecialAdjustment={changePlanVisibility.showSpecialAdjustment}
+      showReviewAgreement={changePlanVisibility.showReviewAgreement && subTab !== 'agreements'}
+      reviewAgreementKind={changePlanVisibility.reviewAgreementKind}
+      onReviewAgreement={() => syncSubTabToUrl('agreements')}
+      onOpenChangePlan={() => setChangePlanMode('replace_if_unpaid')}
+      onOpenSpecialAdjustment={() => setChangePlanMode('social_discount_on_future_installments')}
     />
   );
 
@@ -240,7 +260,7 @@ export function StudentFinanceWorkspaceShell({
       financialOverviewError: financialOverviewState.error,
       onReloadFinancialOverview: financialOverviewState.reload,
       canViewPayments,
-      canCollect,
+      canCollect: canCollectCapability,
       onRefresh: refreshFinanceData,
       onOpenCollection: () => setShowCollectionDrawer(true),
       financeRefreshSignal,
@@ -255,7 +275,7 @@ export function StudentFinanceWorkspaceShell({
       financialOverviewState.loading,
       financialOverviewState.error,
       canViewPayments,
-      canCollect,
+      canCollectCapability,
       refreshFinanceData,
       financeRefreshSignal,
     ],
@@ -320,7 +340,23 @@ export function StudentFinanceWorkspaceShell({
         }
       />
 
-      <StudentFinanceExecutiveSummary metrics={overviewMetrics} />
+      <InactiveAgreementFinanceBanner
+        presentation={
+          subTab === 'agreements'
+            ? { ...changePlanVisibility.inactiveAgreement, showWorkspaceBanner: false }
+            : changePlanVisibility.inactiveAgreement
+        }
+        billingContext={billingContext}
+        inactiveAgreementState={workspace?.inactive_agreement?.state ?? null}
+        onReviewAgreement={() => syncSubTabToUrl('agreements')}
+      />
+
+      <StudentFinanceExecutiveSummary
+        metrics={overviewMetrics}
+        chequeSummary={financialOverviewState.data?.cheque_summary ?? null}
+        billingContextHeadlineKey={billingContext.billingContextHeadlineKey}
+        billingContextMessage={billingContext.billingContextMessage}
+      />
 
       <nav className="student-finance-subtabs" aria-label={t('admin.student360.financeWorkspace.tabsAria')}>
         {FINANCE_TAB_GROUPS.map((group, groupIndex) => (
@@ -400,6 +436,7 @@ export function StudentFinanceWorkspaceShell({
           studentId={studentId}
           academicYearId={effectiveYearId}
           levelId={details.student.level?.id ?? null}
+          eligibility={changePlanVisibility.eligibility}
           onClose={() => setChangePlanMode(null)}
           onSuccess={refreshFinanceData}
         />

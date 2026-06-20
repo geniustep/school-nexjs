@@ -218,8 +218,8 @@ export const endpoints = {
       `/admin/finance/students/${studentId}/financial-overview`,
     financeStudentCollectibleItems: (studentId: number | string) =>
       `/admin/finance/students/${studentId}/collectible-items`,
-    financeStudentAgreementFromCurrentFees: (studentId: number | string) =>
-      `/admin/finance/students/${studentId}/agreements/from-current-fees`,
+    studentFinanceAgreementCreateFromCurrentFees: (studentId: number | string) =>
+      `/admin/students/${studentId}/finance/agreements/create-from-current-fees`,
     financeFeePlanAssignedStudentsFinancialSummary: (planId: number | string) =>
       `/admin/finance/fee-plans/${planId}/assigned-students-financial-summary`,
     financeStudentFeesForStudent: (studentId: number | string) =>
@@ -263,8 +263,6 @@ export const endpoints = {
     financePaymentCollectionAllocate: (collectionId: number | string) =>
       `/admin/finance/payment-collections/${collectionId}/allocate`,
     financeAgreements: '/admin/finance/agreements',
-    financeAgreementReplaceFromCurrentFees: (id: number | string) =>
-      `/admin/finance/agreements/${id}/replace-from-current-fees`,
     financeAgreementAdjustments: (id: number | string) =>
       `/admin/finance/agreements/${id}/adjustments`,
     financeAgreementAdjustment: (agreementId: number | string, adjustmentId: number | string) =>
@@ -291,6 +289,22 @@ export const endpoints = {
       `/admin/finance/cash-sessions/${id}/movements`,
     financeCashSessionClosurePdf: (id: number | string) =>
       `/admin/finance/cash-sessions/${id}/closure-pdf`,
+
+    admissions: '/admin/admissions',
+    admissionsDashboard: '/admin/admissions/dashboard',
+    admission: (id: number | string) => `/admin/admissions/${id}`,
+    admissionPrefill: (id: number | string) => `/admin/admissions/${id}/prefill`,
+    admissionActivities: (id: number | string) => `/admin/admissions/${id}/activities`,
+    admissionAppointments: (id: number | string) => `/admin/admissions/${id}/appointments`,
+    admissionAssessments: (id: number | string) => `/admin/admissions/${id}/assessments`,
+    admissionDecision: (id: number | string) => `/admin/admissions/${id}/decision`,
+    admissionOffers: (id: number | string) => `/admin/admissions/${id}/offers`,
+    admissionOfferSend: (id: number | string, offerId: number | string) =>
+      `/admin/admissions/${id}/offers/${offerId}/send`,
+    admissionOfferAccept: (id: number | string, offerId: number | string) =>
+      `/admin/admissions/${id}/offers/${offerId}/accept`,
+    admissionOfferDecline: (id: number | string, offerId: number | string) =>
+      `/admin/admissions/${id}/offers/${offerId}/decline`,
   },
 
   teacher: {

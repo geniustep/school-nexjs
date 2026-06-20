@@ -221,6 +221,9 @@ export interface FinancialAgreement {
   discount_reason?: string | null;
   empty_draft?: boolean;
   source?: string | null;
+  creation_source?: string | null;
+  fees_count?: number | null;
+  source_student_fee_ids?: number[] | null;
   line_count?: number;
   total_amount?: number;
   is_plan_customized?: boolean;
@@ -292,6 +295,31 @@ export interface WorkspaceCheque {
   lifecycle_state?: ChequeLifecycleState | string;
 }
 
+export interface InactiveAgreementSummary {
+  id: number;
+  state?: AgreementState | string;
+  requires_review?: boolean;
+}
+
+export interface FinanceBillingContext {
+  mode?: string;
+  has_active_agreement?: boolean;
+  has_operational_fees?: boolean;
+  message?: string | null;
+}
+
+export interface FinanceAgreementRepair {
+  required?: boolean;
+  reason?: string | null;
+  recommended_action?: string | null;
+}
+
+export interface FinanceCollectionGate {
+  collect_allowed?: boolean;
+  collect_block_reason?: string | null;
+  collect_block_message?: string | null;
+}
+
 export interface StudentFinanceWorkspace {
   student?: Ref & { class?: Ref };
   academic_year?: Ref;
@@ -299,6 +327,10 @@ export interface StudentFinanceWorkspace {
   billing_partner?: Ref | null;
   summary: StudentFinanceSummary;
   current_agreement?: FinancialAgreement | null;
+  inactive_agreement?: InactiveAgreementSummary | null;
+  billing_context?: FinanceBillingContext | null;
+  agreement_repair?: FinanceAgreementRepair | null;
+  collection_gate?: FinanceCollectionGate | null;
   agreements_summary?: FinancialAgreement[];
   installments_summary?: {
     upcoming_count?: number;
@@ -310,7 +342,10 @@ export interface StudentFinanceWorkspace {
   active_service_subscriptions?: ServiceSubscription[];
   recent_collections?: PaymentCollection[];
   recent_cheques?: WorkspaceCheque[];
-  allowed_actions?: AllowedActionsMap;
+  allowed_actions?: AllowedActionsMap & {
+    collect_payment?: boolean;
+    collect_block_message?: string | null;
+  };
   capabilities?: Record<string, boolean>;
 }
 

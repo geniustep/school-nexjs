@@ -86,6 +86,7 @@
     "exams": "Exámenes",
     "results": "Resultados",
     "students": "Alumnos",
+    "admissions": "Admisiones",
     "parents": "Padres",
     "teachers": "Profesores",
     "levels": "Niveles",
@@ -2613,6 +2614,194 @@
         "missing_emergency_phone": "Se recomienda teléfono de emergencia cuando hay nombre de contacto."
       }
     },
+    "admissions": {
+      "title": "Admisiones",
+      "subtitle": "Gestión de solicitudes de ingreso",
+      "createButton": "Nueva solicitud",
+      "backToList": "Volver al listado",
+      "nextAction": "Próxima acción",
+      "assignedUser": "Responsable",
+      "viewMode": "Modo de vista",
+      "viewKanban": "Kanban",
+      "viewTable": "Tabla",
+      "filters": {
+        "search": "Buscar…",
+        "state": "Estado",
+        "showClosed": "Mostrar cerradas (perdida / cancelada / duplicada)"
+      },
+      "empty": {
+        "title": "Sin solicitudes",
+        "description": "Cree una nueva solicitud para comenzar."
+      },
+      "kanban": { "emptyColumn": "Sin tarjetas" },
+      "badges": {
+        "possibleDuplicate": "Posible duplicado",
+        "offerAccepted": "Oferta aceptada",
+        "overdue": "Atrasada"
+      },
+      "states": {
+        "new": "Nueva",
+        "contacted": "Contactada",
+        "qualified": "Calificada",
+        "visit_pending": "Visita pendiente",
+        "under_review": "En revisión",
+        "accepted": "Aceptada",
+        "waitlisted": "Lista de espera",
+        "offer_sent": "Oferta enviada",
+        "confirmed": "Confirmada",
+        "lost": "Perdida",
+        "cancelled": "Cancelada",
+        "duplicate": "Duplicada"
+      },
+      "dashboard": {
+        "total_open": "Abiertas",
+        "new_count": "Nuevas",
+        "visit_pending_count": "Visitas pendientes",
+        "under_review_count": "En revisión",
+        "accepted_count": "Aceptadas",
+        "offer_sent_count": "Ofertas enviadas",
+        "confirmed_count": "Confirmadas",
+        "lost_count": "Perdidas",
+        "today_appointments": "Citas de hoy",
+        "overdue_next_actions": "Acciones atrasadas"
+      },
+      "table": {
+        "reference": "Referencia",
+        "student": "Alumno",
+        "guardian": "Tutor",
+        "phone": "Teléfono",
+        "source": "Origen",
+        "level": "Nivel",
+        "state": "Estado",
+        "nextAction": "Próxima acción",
+        "assigned": "Responsable"
+      },
+      "fields": {
+        "studentName": "Nombre del alumno",
+        "firstName": "Nombre",
+        "lastName": "Apellido",
+        "birthDate": "Fecha de nacimiento",
+        "gender": "Género",
+        "requestedLevel": "Nivel solicitado",
+        "requestedClass": "Clase solicitada",
+        "academicYear": "Año académico",
+        "previousSchool": "Colegio anterior",
+        "massarCode": "Código Massar",
+        "guardianName": "Nombre del tutor",
+        "guardianPhone": "Teléfono",
+        "guardianWhatsapp": "WhatsApp",
+        "guardianEmail": "Correo",
+        "relationship": "Parentesco",
+        "firstContactDate": "Primer contacto",
+        "nextAction": "Próxima acción",
+        "nextActionDate": "Fecha de acción",
+        "internalNotes": "Notas internas",
+        "priority": "Prioridad"
+      },
+      "gender": { "male": "Masculino", "female": "Femenino" },
+      "create": {
+        "title": "Nueva solicitud",
+        "subtitle": "Crear solicitud — no crea alumno",
+        "studentSection": "Alumno",
+        "guardianSection": "Tutor",
+        "followUpSection": "Seguimiento",
+        "submit": "Crear"
+      },
+      "detail": {
+        "summary": "Resumen",
+        "student": "Alumno",
+        "guardian": "Tutor",
+        "duplicates": "Posibles duplicados",
+        "prefillStatus": "Estado prefill",
+        "tabs": "Secciones"
+      },
+      "tabs": {
+        "overview": "Resumen",
+        "timeline": "Historial",
+        "appointments": "Citas",
+        "assessments": "Evaluaciones",
+        "decision": "Decisión",
+        "offers": "Ofertas",
+        "prefill": "Datos listos"
+      },
+      "timeline": {
+        "addActivity": "Añadir nota / seguimiento",
+        "activityType": "Tipo",
+        "submit": "Añadir",
+        "empty": "Sin actividades"
+      },
+      "activityTypes": {
+        "note": "Nota",
+        "call": "Llamada",
+        "whatsapp": "WhatsApp",
+        "follow_up": "Seguimiento",
+        "visit_note": "Nota de visita"
+      },
+      "appointments": {
+        "create": "Programar cita",
+        "type": "Tipo",
+        "scheduledAt": "Fecha",
+        "duration": "Duración (min)",
+        "resultNotes": "Notas de resultado",
+        "empty": "Sin citas",
+        "types": { "schoolVisit": "Visita escolar", "visit": "Visita", "call": "Llamada", "assessment": "Evaluación" }
+      },
+      "assessments": {
+        "create": "Añadir evaluación",
+        "type": "Tipo",
+        "score": "Puntuación",
+        "maxScore": "Máximo",
+        "result": "Resultado",
+        "recommendation": "Recomendación",
+        "teacherNotes": "Notas del profesor",
+        "empty": "Sin evaluaciones"
+      },
+      "decision": {
+        "current": "Decisión actual",
+        "label": "Decisión",
+        "by": "Por",
+        "conditions": "Condiciones",
+        "none": "Sin decisión aún",
+        "formTitle": "Tomar decisión",
+        "submit": "Registrar"
+      },
+      "decisions": {
+        "accepted": "Aceptada",
+        "accepted_with_condition": "Aceptada con condiciones",
+        "waitlisted": "Lista de espera",
+        "rejected": "Rechazada",
+        "needs_reassessment": "Requiere reevaluación"
+      },
+      "offers": {
+        "create": "Crear oferta",
+        "offer": "Oferta",
+        "registrationFee": "Matrícula",
+        "monthlyFee": "Cuota mensual",
+        "deadline": "Plazo",
+        "requiredDocuments": "Documentos requeridos",
+        "send": "Enviar",
+        "accept": "Aceptar",
+        "decline": "Rechazar",
+        "empty": "Sin ofertas",
+        "acceptNoticeTitle": "Recordatorio",
+        "acceptNotice": "Aceptar la oferta no crea un alumno."
+      },
+      "prefill": {
+        "notAllowed": "Vista previa no disponible.",
+        "loading": "Cargando…",
+        "load": "Cargar vista previa",
+        "readOnlyTitle": "Solo lectura",
+        "readOnlyNotice": "Solo vista previa. No crea alumno.",
+        "student": "Alumno",
+        "guardian": "Tutor",
+        "academic": "Académico",
+        "admission": "Admisión",
+        "readiness": "Preparación",
+        "warnings": "Advertencias",
+        "blockingIssues": "Bloqueos"
+      },
+      "errors": { "notFound": "Solicitud no encontrada." }
+    },
     "student360": {
       "tabsAria": "Secciones del expediente del alumno",
       "tabs": {
@@ -3633,6 +3822,7 @@
           "state": "Estado",
           "agreementDate": "Fecha acuerdo",
           "validity": "Periodo",
+          "originalFeePlan": "Plan de tarifas original",
           "validFrom": "Inicio",
           "validUntil": "Fin",
           "billingParty": "Pagador",
@@ -3762,6 +3952,7 @@
         "incompleteDraftTitle": "Borrador de acuerdo incompleto",
         "incompleteDraftDesc": "Este borrador no se muestra como acuerdo activo hasta completarlo.",
         "completeDraft": "Completar borrador",
+        "emptyManualDraftBlockedHint": "No se puede completar un borrador vacío. Cree un acuerdo desde las tasas actuales.",
         "cancelDraft": "Cancelar borrador",
         "fromFees": {
           "title": "Crear acuerdo desde las tasas actuales",
@@ -3774,6 +3965,11 @@
           "errors": {
             "empty": "No hay tasas actuales para incluir.",
             "alreadyExists": "Ya existe un acuerdo especial para este alumno.",
+            "draftAlreadyExists": "Ya existe un borrador de acuerdo desde las tasas actuales.",
+            "draftAlreadyExistsHint": "Puede revisarlo y completar el circuito de aprobación.",
+            "draftAlreadyExistsFull": "Ya existe un borrador de acuerdo desde las tasas actuales. Puede revisarlo y completar el circuito de aprobación.",
+            "activeAgreementExists": "Este alumno ya tiene un acuerdo financiero activo.",
+            "generic": "No se pudo crear el acuerdo desde las tasas actuales.",
             "forbidden": "No tiene permiso para crear un acuerdo desde las tasas.",
             "missingYear": "Seleccione primero un año académico."
           }
@@ -3839,6 +4035,7 @@
         "incompleteDraftTitle": "Incomplete agreement draft",
         "incompleteDraftDesc": "This draft does not represent fees from the school plan.",
         "completeDraft": "Complete draft",
+        "emptyManualDraftBlockedHint": "No se puede completar un borrador vacío. Cree un acuerdo desde las tasas actuales.",
         "cancelDraft": "Cancel draft",
         "openFinanceOverview": "Open financial overview",
         "openPaymentSchedule": "Open payment schedule"
@@ -4036,15 +4233,73 @@
           "recordPayment": "Registrar pago",
           "manageAgreement": "Gestionar acuerdo financiero"
         },
+        "inactiveAgreement": {
+          "bannerTitle": "Existe un expediente financiero con movimientos, pero no hay un acuerdo financiero activo gestionable.",
+          "bannerBody": "Los cobros, cuotas y cheques mostrados están vinculados a un expediente anterior o inactivo. Los cambios de plan requieren un acuerdo activo válido.",
+          "planChangeBlockedHint": "No puede cambiar el plan ni aplicar un ajuste financiero especial hasta que exista un acuerdo activo. Revise el acuerdo actual o cree uno nuevo.",
+          "fixAction": "Corregir acuerdo financiero",
+          "reviewAction": "Revisar acuerdo financiero",
+          "agreementTabWarning": "Hay actividad financiera, pero este acuerdo está inactivo y no sirve para modificaciones. Revíselo o cree uno nuevo.",
+          "currentState": "Estado del acuerdo: {state}",
+          "noActiveState": "No hay acuerdo financiero activo"
+        },
+        "billingContext": {
+          "operationalWithoutActiveAgreement": "Facturación operativa sin acuerdo activo",
+          "needsActiveAgreement": "Expediente financiero necesita un acuerdo activo",
+          "noActiveAgreement": "No hay acuerdo financiero activo",
+          "noActiveAgreementExplanation": "Existe un expediente financiero con movimientos registrados, pero no hay un acuerdo financiero activo.",
+          "noActiveAgreementManageable": "Existe un expediente financiero con movimientos registrados, pero no hay un acuerdo financiero activo gestionable."
+        },
+        "agreementRepair": {
+          "title": "El expediente financiero necesita revisión",
+          "body": "Hay cuotas y plazos registrados, pero no hay un acuerdo financiero activo.",
+          "recommendedAction": "Acción recomendada: crear un acuerdo financiero a partir de las cuotas actuales y luego aprobarlo.",
+          "recommendedActionCreateFromFees": "Acción recomendada: crear un acuerdo financiero a partir de las cuotas actuales y luego aprobarlo.",
+          "reviewAction": "Revisar acuerdo financiero"
+        },
+        "collectPayment": {
+          "blockedMessage": "No se puede registrar un pago hasta que exista un acuerdo financiero activo."
+        },
+        "inactiveAgreementReference": {
+          "title": "Acuerdo anterior inactivo",
+          "stateLabel": "Estado",
+          "requiresReviewWarning": "Este acuerdo está inactivo y no puede usarse para cobros ni cambios. Cree un acuerdo nuevo a partir de las cuotas actuales o revise el expediente financiero.",
+          "createFromFeesAction": "Crear acuerdo financiero a partir de las cuotas actuales"
+        },
+        "agreementStatus": {
+          "noActive": "No hay acuerdo financiero activo",
+          "inactive": "Acuerdo inactivo",
+          "cancelled": "Acuerdo cancelado — requiere revisión",
+          "cancelledNeedsReview": "Acuerdo cancelado — requiere revisión",
+          "terminated": "Acuerdo terminado — requiere revisión",
+          "draft": "Borrador — inactivo",
+          "completed": "Acuerdo completado — inactivo",
+          "approved": "Acuerdo aprobado — inactivo",
+          "pending_approval": "Pendiente de aprobación — inactivo"
+        },
         "changePlan": {
           "previewAction": "Vista previa del impacto",
-          "applyAction": "Aplicar cambio",
+          "applyAction": "Aplicar ajuste",
           "previewTitle": "Resultado de la vista previa",
           "applySuccess": "Finanzas del alumno actualizadas correctamente.",
+          "commandBar": {
+            "noActiveAgreementHint": "No se pueden modificar las finanzas de este alumno porque no hay un acuerdo financiero activo modificable."
+          },
+          "eligibility": {
+            "title": "Elegibilidad para modificación",
+            "eligible": "Modificable",
+            "eligibleDetail": "Hay un acuerdo financiero activo en los datos de esta página. Puede previsualizar el impacto y aplicar si no hay otros bloqueos.",
+            "notEligibleTitle": "No modificable por ahora",
+            "noActiveAgreement": "No se pueden modificar las finanzas de este alumno porque no hay un acuerdo financiero activo modificable.",
+            "activeAgreementServiceMismatch": "No se encontró el acuerdo financiero activo en el servicio de modificación. Revise el acuerdo financiero o actualice la página.",
+            "currentAgreementState": "Estado del acuerdo actual: {state}"
+          },
           "replace": {
-            "action": "Cambiar plan de tarifas",
-            "title": "Cambiar plan de tarifas",
-            "description": "Úselo cuando aún no haya pagos ni recibos registrados.",
+            "action": "Cambiar plan financiero",
+            "title": "Cambiar plan financiero",
+            "description": "Cambiar o sustituir el plan financiero. Si ya hay pagos o recibos, no se pueden modificar; cualquier cambio se aplica a periodos futuros o como ajuste separado.",
+            "actionHint": "Puede cambiar el plan, pero las cuotas y recibos anteriores no se pueden modificar.",
+            "paymentsExistHint": "Las cuotas y recibos anteriores no se pueden modificar. El ajuste se aplica solo a periodos futuros.",
             "fields": {
               "feePlan": "Nuevo plan de tarifas",
               "reason": "Motivo del cambio",
@@ -4061,19 +4316,20 @@
               "confirmRequired": "Confirme la sustitución antes de aplicar."
             }
           },
-          "social": {
-            "action": "Aplicar descuento social",
-            "title": "Aplicar descuento social",
-            "description": "Solo afecta a cuotas futuras no pagadas.",
-            "preservedWarning": "Los periodos anteriores permanecen sin cambios.",
-            "noPastChangesWarning": "Aviso: los recibos y pagos anteriores no cambiarán.",
+          "special": {
+            "action": "Ajuste financiero especial",
+            "title": "Ajuste financiero especial",
+            "description": "Ajusta solo las tarifas futuras sin cambiar cuotas o recibos anteriores.",
+            "actionHint": "Ajusta tarifas futuras sin modificar el pasado.",
+            "preservedWarning": "Las cuotas y recibos anteriores no se pueden modificar.",
+            "noPastChangesWarning": "Aviso: los pagos anteriores no cambiarán.",
             "fields": {
-              "effectiveDate": "Fecha de inicio del descuento",
+              "effectiveDate": "Fecha de inicio del ajuste",
               "feeType": "Tipo de tarifa",
-              "discountType": "Tipo de descuento",
-              "discountValue": "Valor del descuento",
+              "discountType": "Tipo de ajuste",
+              "discountValue": "Valor del ajuste",
               "periodEnd": "Último periodo afectado",
-              "reasonNote": "Nota del motivo"
+              "reasonNote": "Motivo del ajuste"
             },
             "feeTypes": {
               "tuition": "Matrícula",
@@ -4085,8 +4341,8 @@
             },
             "errors": {
               "effectiveDateRequired": "La fecha de inicio es obligatoria.",
-              "reasonNoteRequired": "La nota del motivo es obligatoria.",
-              "discountRequired": "Indique el valor del descuento.",
+              "reasonNoteRequired": "El motivo del ajuste es obligatorio.",
+              "discountRequired": "Indique el valor del ajuste.",
               "periodsRequired": "Seleccione los periodos afectados."
             }
           },
@@ -4122,9 +4378,9 @@
             "feePlanNotAssignable": "El plan no es asignable.",
             "feeTypeNotInAgreement": "El tipo de tarifa no está en el acuerdo.",
             "noFuturePeriodsToAffect": "No hay periodos futuros que afectar.",
-            "planChangeBlockedByPayments": "No se puede cambiar el plan tras pagos.",
-            "planChangeBlockedByReceipts": "No se puede cambiar el plan tras recibos.",
-            "planChangeBlockedByPendingCheques": "Hay cheques pendientes. Liquídelos primero.",
+            "planChangeBlockedByPayments": "No se puede reemplazar el plan por completo tras pagos. Aplique el cambio a periodos futuros o mediante un ajuste financiero especial.",
+            "planChangeBlockedByReceipts": "No se puede reemplazar el plan por completo tras recibos. Aplique el cambio a periodos futuros o mediante un ajuste financiero especial.",
+            "planChangeBlockedByPendingCheques": "Hay cheques vinculados a los periodos afectados. Liquídelos antes de aplicar el cambio.",
             "agreementChangeForbidden": "Sin permiso para cambiar el plan.",
             "agreementActivationForbidden": "Sin permiso para activar el acuerdo.",
             "discountExceedsRemaining": "El descuento supera el importe restante.",
@@ -4142,6 +4398,9 @@
           "overdue": "Vencido",
           "nextInstallment": "Próximo pago",
           "pendingChequeAlert": "Los cheques pendientes de compensación aún no se consideran pago confirmado.",
+          "rejectedChequesAlertOnePrefix": "Hay 1 cheque rechazado por valor de",
+          "rejectedChequesAlertManyPrefix": "Hay {count} cheques rechazados por valor de",
+          "rejectedChequesReviewHint": "Requieren revisión.",
           "remainingAfterPendingHint": "Pendiente tras cobertura no confirmada:",
           "chequePendingTotal": "Total de cheques pendientes",
           "chequePendingAllocated": "Contabilizados en cobertura no confirmada",
@@ -4173,6 +4432,15 @@
         "billingEffectiveFrom": "Vigente desde",
         "appliedPlanTitle": "Plan aplicado",
         "appliedPlansTitle": "Planes aplicados",
+        "billingSourceTitle": "Fuente de facturación",
+        "billingSourceActiveAgreement": "Acuerdo financiero activo",
+        "billingSourcePlanTemplateHint": "El plan de tarifas es una plantilla de precios; el acuerdo financiero es la fuente de facturación actual.",
+        "billingSourceBuiltOnPlan": "Basado en el plan: {plan}",
+        "billingSourceBuiltOnFeePlanGeneric": "Basado en un plan de tarifas",
+        "billingSourceCurrentAgreement": "Acuerdo actual",
+        "billingSourceStatus": "Estado",
+        "billingSourceStatusActive": "Activo",
+        "openAgreement": "Ver acuerdo financiero",
         "openPlan": "Abrir plan",
         "openFees": "Abrir tasas",
         "feeCount": "Número de pagos",
@@ -4180,6 +4448,7 @@
         "installmentsCount": "Número de pagos",
         "appliedTotal": "Total aplicado",
         "noAppliedPlans": "No hay plan de tasas aplicado este año.",
+        "noAppliedPlansViaAgreement": "No hay plan directo aplicado. Este alumno se factura mediante un acuerdo financiero.",
         "specialAgreement": "Special agreement",
         "hasSpecialAgreement": "Special agreement exists",
         "noSpecialAgreement": "No special agreement",

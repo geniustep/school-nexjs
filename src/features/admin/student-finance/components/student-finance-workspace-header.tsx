@@ -14,13 +14,18 @@ export function StudentFinanceWorkspaceHeader({
   billingPartnerId,
   subTab,
   canCollect,
+  collectPaymentAllowed,
+  collectBlockMessage,
   onOpenSchedule,
   onOpenAgreements,
   onRecordPayment,
-  showReplaceIfUnpaid,
-  showSocialDiscount,
-  onOpenReplacePlan,
-  onOpenSocialDiscount,
+  showChangePlan,
+  showSpecialAdjustment,
+  showReviewAgreement,
+  reviewAgreementKind = 'review',
+  onOpenChangePlan,
+  onOpenSpecialAdjustment,
+  onReviewAgreement,
 }: {
   studentId: number;
   academicYears: { id: number; name: string }[];
@@ -30,26 +35,35 @@ export function StudentFinanceWorkspaceHeader({
   billingPartnerId?: number | null;
   subTab: StudentFinanceSubTab;
   canCollect: boolean;
+  collectPaymentAllowed?: boolean;
+  collectBlockMessage?: string | null;
   onOpenSchedule: () => void;
   onOpenAgreements: () => void;
   onRecordPayment: () => void;
-  showReplaceIfUnpaid?: boolean;
-  showSocialDiscount?: boolean;
-  onOpenReplacePlan?: () => void;
-  onOpenSocialDiscount?: () => void;
+  showChangePlan?: boolean;
+  showSpecialAdjustment?: boolean;
+  showReviewAgreement?: boolean;
+  reviewAgreementKind?: 'fix' | 'review';
+  onOpenChangePlan?: () => void;
+  onOpenSpecialAdjustment?: () => void;
+  onReviewAgreement?: () => void;
 }) {
   const t = useT();
 
   const showSchedule = subTab !== 'schedule' && subTab !== 'agreements';
   const showAgreement = subTab !== 'agreements';
-  const showCollect = canCollect && subTab !== 'agreements' && subTab !== 'ledger';
+  const showCollectButton = canCollect && subTab !== 'agreements' && subTab !== 'ledger';
+  const showCollectEnabled = showCollectButton && collectPaymentAllowed !== false;
+  const showCollectDisabled = showCollectButton && collectPaymentAllowed === false;
   const hasActions =
     showSchedule ||
     showAgreement ||
-    showCollect ||
+    showCollectEnabled ||
+    showCollectDisabled ||
     !!billingPartnerId ||
-    showReplaceIfUnpaid ||
-    showSocialDiscount;
+    showChangePlan ||
+    showSpecialAdjustment ||
+    showReviewAgreement;
 
   return (
     <header className="student-finance-command-bar">
@@ -136,25 +150,39 @@ export function StudentFinanceWorkspaceHeader({
                 {t('admin.student360.financeWorkspace.actions.manageAgreement')}
               </button>
             ) : null}
-            {showReplaceIfUnpaid ? (
+            {showReviewAgreement ? (
+              <button
+                type="button"
+                className="student-finance-command-bar__btn student-finance-command-bar__btn--ghost student-finance-command-bar__btn--review-agreement"
+                onClick={onReviewAgreement}
+              >
+                <span aria-hidden="true">⚠</span>
+                {reviewAgreementKind === 'fix'
+                  ? t('admin.student360.financeWorkspace.inactiveAgreement.fixAction')
+                  : t('admin.student360.financeWorkspace.inactiveAgreement.reviewAction')}
+              </button>
+            ) : null}
+            {showChangePlan ? (
               <button
                 type="button"
                 className="student-finance-command-bar__btn student-finance-command-bar__btn--ghost"
-                onClick={onOpenReplacePlan}
+                title={t('admin.student360.financeWorkspace.changePlan.replace.actionHint')}
+                onClick={onOpenChangePlan}
               >
                 {t('admin.student360.financeWorkspace.changePlan.replace.action')}
               </button>
             ) : null}
-            {showSocialDiscount ? (
+            {showSpecialAdjustment ? (
               <button
                 type="button"
                 className="student-finance-command-bar__btn student-finance-command-bar__btn--ghost"
-                onClick={onOpenSocialDiscount}
+                title={t('admin.student360.financeWorkspace.changePlan.special.actionHint')}
+                onClick={onOpenSpecialAdjustment}
               >
-                {t('admin.student360.financeWorkspace.changePlan.social.action')}
+                {t('admin.student360.financeWorkspace.changePlan.special.action')}
               </button>
             ) : null}
-            {showCollect ? (
+            {showCollectEnabled ? (
               <button
                 type="button"
                 className="student-finance-command-bar__btn student-finance-command-bar__btn--primary"
@@ -163,6 +191,24 @@ export function StudentFinanceWorkspaceHeader({
                 <span aria-hidden="true">+</span>
                 {t('admin.student360.financeWorkspace.actions.recordPayment')}
               </button>
+            ) : null}
+            {showCollectDisabled ? (
+              <span
+                className="student-finance-collect-blocked student-finance-collect-blocked--command-bar"
+                title={
+                  collectBlockMessage ??
+                  t('admin.student360.financeWorkspace.collectPayment.blockedMessage')
+                }
+              >
+                <button
+                  type="button"
+                  className="student-finance-command-bar__btn student-finance-command-bar__btn--primary"
+                  disabled
+                >
+                  <span aria-hidden="true">+</span>
+                  {t('admin.student360.financeWorkspace.actions.recordPayment')}
+                </button>
+              </span>
             ) : null}
           </div>
         </div>

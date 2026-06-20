@@ -22,6 +22,8 @@ import {
 } from '../utils/build-change-plan-payload';
 import { resolveChangePlanErrorMessage } from '../utils/change-plan-errors';
 import { normalizeChangePlanPreview } from '../utils/normalize-change-plan-preview';
+import { resolveAgreementStateLabel } from '../utils/reference-labels';
+import type { ChangePlanEligibility } from '../utils/resolve-change-plan-eligibility';
 
 const SOCIAL_FEE_TYPES = ['tuition', 'transport'] as const;
 
@@ -52,6 +54,7 @@ export function ChangePlanDrawer({
   studentId,
   academicYearId,
   levelId,
+  eligibility,
   onClose,
   onSuccess,
 }: {
@@ -60,6 +63,7 @@ export function ChangePlanDrawer({
   studentId: number;
   academicYearId: string;
   levelId?: number | null;
+  eligibility: ChangePlanEligibility;
   onClose: () => void;
   onSuccess: () => void;
 }) {
@@ -87,12 +91,17 @@ export function ChangePlanDrawer({
   const title =
     mode === 'replace_if_unpaid'
       ? t('admin.student360.financeWorkspace.changePlan.replace.title')
-      : t('admin.student360.financeWorkspace.changePlan.social.title');
+      : t('admin.student360.financeWorkspace.changePlan.special.title');
 
   const subtitle =
     mode === 'replace_if_unpaid'
       ? t('admin.student360.financeWorkspace.changePlan.replace.description')
-      : t('admin.student360.financeWorkspace.changePlan.social.description');
+      : t('admin.student360.financeWorkspace.changePlan.special.description');
+
+  const canEdit = eligibility.hasActiveAgreementInUi;
+  const agreementStateLabel = eligibility.agreementState
+    ? resolveAgreementStateLabel(t, eligibility.agreementState)
+    : null;
 
   function resetAndClose() {
     setReplaceForm(defaultReplaceForm());
@@ -136,15 +145,15 @@ export function ChangePlanDrawer({
       }
     } else {
       if (!socialForm.effectiveDate) {
-        setFormError(t('admin.student360.financeWorkspace.changePlan.social.errors.effectiveDateRequired'));
+        setFormError(t('admin.student360.financeWorkspace.changePlan.special.errors.effectiveDateRequired'));
         return false;
       }
       if (!socialForm.reasonNote.trim()) {
-        setFormError(t('admin.student360.financeWorkspace.changePlan.social.errors.reasonNoteRequired'));
+        setFormError(t('admin.student360.financeWorkspace.changePlan.special.errors.reasonNoteRequired'));
         return false;
       }
       if (!socialForm.discountValue || Number(socialForm.discountValue) <= 0) {
-        setFormError(t('admin.student360.financeWorkspace.changePlan.social.errors.discountRequired'));
+        setFormError(t('admin.student360.financeWorkspace.changePlan.special.errors.discountRequired'));
         return false;
       }
       const startMonth = socialForm.effectiveDate.slice(0, 7);
@@ -155,7 +164,7 @@ export function ChangePlanDrawer({
             ? monthPeriodsFromRange(startMonth, periodEndMonth)
             : [];
       if (!periods.length) {
-        setFormError(t('admin.student360.financeWorkspace.changePlan.social.errors.periodsRequired'));
+        setFormError(t('admin.student360.financeWorkspace.changePlan.special.errors.periodsRequired'));
         return false;
       }
       if (socialForm.affectedPeriods.length === 0) {
@@ -168,6 +177,10 @@ export function ChangePlanDrawer({
 
   async function handlePreview(e: React.FormEvent) {
     e.preventDefault();
+    if (!canEdit) {
+      setFormError(t('admin.student360.financeWorkspace.changePlan.eligibility.noActiveAgreement'));
+      return;
+    }
     if (!validateForm()) return;
     setPreviewLoading(true);
     const formState =
@@ -178,7 +191,13 @@ export function ChangePlanDrawer({
     });
     setPreviewLoading(false);
     if (!res.success) {
-      setFormError(resolveChangePlanErrorMessage(res.error.code, res.error.message, t));
+      if (res.error.code === 'no_active_agreement' && eligibility.hasActiveAgreementInUi) {
+        setFormError(
+          t('admin.student360.financeWorkspace.changePlan.eligibility.activeAgreementServiceMismatch'),
+        );
+      } else {
+        setFormError(resolveChangePlanErrorMessage(res.error.code, res.error.message, t));
+      }
       return;
     }
     const normalized = normalizeChangePlanPreview(res.data);
@@ -202,7 +221,13 @@ export function ChangePlanDrawer({
     });
     setApplyLoading(false);
     if (!res.success) {
-      setFormError(resolveChangePlanErrorMessage(res.error.code, res.error.message, t));
+      if (res.error.code === 'no_active_agreement' && eligibility.hasActiveAgreementInUi) {
+        setFormError(
+          t('admin.student360.financeWorkspace.changePlan.eligibility.activeAgreementServiceMismatch'),
+        );
+      } else {
+        setFormError(resolveChangePlanErrorMessage(res.error.code, res.error.message, t));
+      }
       setShowApplyConfirm(false);
       return;
     }
@@ -216,7 +241,38 @@ export function ChangePlanDrawer({
   return (
     <>
       <SetupDrawer open={open} title={title} subtitle={subtitle} onClose={resetAndClose} size="wide">
+        <section
+          className={`student-finance-change-plan-eligibility${canEdit ? ' student-finance-change-plan-eligibility--eligible' : ' student-finance-change-plan-eligibility--ineligible'}`}
+          aria-live="polite"
+        >
+          <p className="student-finance-change-plan-eligibility__title">
+            {t('admin.student360.financeWorkspace.changePlan.eligibility.title')}
+          </p>
+          <p className="student-finance-change-plan-eligibility__status">
+            {canEdit
+              ? t('admin.student360.financeWorkspace.changePlan.eligibility.eligible')
+              : t('admin.student360.financeWorkspace.changePlan.eligibility.notEligibleTitle')}
+          </p>
+          <p className="student-finance-change-plan-eligibility__detail">
+            {canEdit
+              ? t('admin.student360.financeWorkspace.changePlan.eligibility.eligibleDetail')
+              : t('admin.student360.financeWorkspace.changePlan.eligibility.noActiveAgreement')}
+          </p>
+          {!canEdit && agreementStateLabel ? (
+            <p className="student-finance-change-plan-eligibility__meta tiny muted">
+              {t('admin.student360.financeWorkspace.changePlan.eligibility.currentAgreementState', {
+                state: agreementStateLabel,
+              })}
+            </p>
+          ) : null}
+        </section>
+
         <form className="student-finance-change-plan-form stack" onSubmit={handlePreview}>
+          <p className="student-finance-change-plan-hint" role="note">
+            {mode === 'replace_if_unpaid'
+              ? t('admin.student360.financeWorkspace.changePlan.replace.paymentsExistHint')
+              : t('admin.student360.financeWorkspace.changePlan.special.preservedWarning')}
+          </p>
           {mode === 'replace_if_unpaid' ? (
             <>
               <label>
@@ -230,7 +286,7 @@ export function ChangePlanDrawer({
                     setReplaceForm((prev) => ({ ...prev, newFeePlanId: e.target.value }));
                     invalidatePreview();
                   }}
-                  disabled={plansLoading}
+                  disabled={plansLoading || !canEdit}
                 >
                   <option value="">{t('common.dash')}</option>
                   {filteredPlans.map((plan) => (
@@ -251,6 +307,7 @@ export function ChangePlanDrawer({
                     setReplaceForm((prev) => ({ ...prev, changeReason: e.target.value }));
                     invalidatePreview();
                   }}
+                  disabled={!canEdit}
                 />
               </label>
               <label>
@@ -267,6 +324,7 @@ export function ChangePlanDrawer({
                     }));
                     invalidatePreview();
                   }}
+                  disabled={!canEdit}
                 >
                   <option value="activate">
                     {t('admin.student360.financeWorkspace.changePlan.replace.activation.activate')}
@@ -284,6 +342,7 @@ export function ChangePlanDrawer({
                     setReplaceForm((prev) => ({ ...prev, confirmReplace: e.target.checked }));
                     invalidatePreview();
                   }}
+                  disabled={!canEdit}
                 />
                 <span>{t('admin.student360.financeWorkspace.changePlan.replace.fields.confirmReplace')}</span>
               </label>
@@ -292,7 +351,7 @@ export function ChangePlanDrawer({
             <>
               <label>
                 <span className="tiny muted">
-                  {t('admin.student360.financeWorkspace.changePlan.social.fields.effectiveDate')}
+                  {t('admin.student360.financeWorkspace.changePlan.special.fields.effectiveDate')}
                 </span>
                 <input
                   className="input"
@@ -302,11 +361,12 @@ export function ChangePlanDrawer({
                     setSocialForm((prev) => ({ ...prev, effectiveDate: e.target.value }));
                     invalidatePreview();
                   }}
+                  disabled={!canEdit}
                 />
               </label>
               <label>
                 <span className="tiny muted">
-                  {t('admin.student360.financeWorkspace.changePlan.social.fields.feeType')}
+                  {t('admin.student360.financeWorkspace.changePlan.special.fields.feeType')}
                 </span>
                 <select
                   className="input"
@@ -315,10 +375,11 @@ export function ChangePlanDrawer({
                     setSocialForm((prev) => ({ ...prev, feeTypeCode: e.target.value }));
                     invalidatePreview();
                   }}
+                  disabled={!canEdit}
                 >
                   {SOCIAL_FEE_TYPES.map((code) => (
                     <option key={code} value={code}>
-                      {t(`admin.student360.financeWorkspace.changePlan.social.feeTypes.${code}`)}
+                      {t(`admin.student360.financeWorkspace.changePlan.special.feeTypes.${code}`)}
                     </option>
                   ))}
                 </select>
@@ -326,7 +387,7 @@ export function ChangePlanDrawer({
               <div className="row">
                 <label>
                   <span className="tiny muted">
-                    {t('admin.student360.financeWorkspace.changePlan.social.fields.discountType')}
+                    {t('admin.student360.financeWorkspace.changePlan.special.fields.discountType')}
                   </span>
                   <select
                     className="input"
@@ -338,18 +399,19 @@ export function ChangePlanDrawer({
                       }));
                       invalidatePreview();
                     }}
+                    disabled={!canEdit}
                   >
                     <option value="percent">
-                      {t('admin.student360.financeWorkspace.changePlan.social.discountTypes.percent')}
+                      {t('admin.student360.financeWorkspace.changePlan.special.discountTypes.percent')}
                     </option>
                     <option value="amount">
-                      {t('admin.student360.financeWorkspace.changePlan.social.discountTypes.amount')}
+                      {t('admin.student360.financeWorkspace.changePlan.special.discountTypes.amount')}
                     </option>
                   </select>
                 </label>
                 <label>
                   <span className="tiny muted">
-                    {t('admin.student360.financeWorkspace.changePlan.social.fields.discountValue')}
+                    {t('admin.student360.financeWorkspace.changePlan.special.fields.discountValue')}
                   </span>
                   <input
                     className="input"
@@ -361,12 +423,13 @@ export function ChangePlanDrawer({
                       setSocialForm((prev) => ({ ...prev, discountValue: e.target.value }));
                       invalidatePreview();
                     }}
+                    disabled={!canEdit}
                   />
                 </label>
               </div>
               <label>
                 <span className="tiny muted">
-                  {t('admin.student360.financeWorkspace.changePlan.social.fields.periodEnd')}
+                  {t('admin.student360.financeWorkspace.changePlan.special.fields.periodEnd')}
                 </span>
                 <input
                   className="input"
@@ -376,11 +439,12 @@ export function ChangePlanDrawer({
                     setPeriodEndMonth(e.target.value);
                     invalidatePreview();
                   }}
+                  disabled={!canEdit}
                 />
               </label>
               <label>
                 <span className="tiny muted">
-                  {t('admin.student360.financeWorkspace.changePlan.social.fields.reasonNote')}
+                  {t('admin.student360.financeWorkspace.changePlan.special.fields.reasonNote')}
                 </span>
                 <textarea
                   className="input"
@@ -390,10 +454,11 @@ export function ChangePlanDrawer({
                     setSocialForm((prev) => ({ ...prev, reasonNote: e.target.value }));
                     invalidatePreview();
                   }}
+                  disabled={!canEdit}
                 />
               </label>
               <p className="tiny muted">
-                {t('admin.student360.financeWorkspace.changePlan.social.preservedWarning')}
+                {t('admin.student360.financeWorkspace.changePlan.special.preservedWarning')}
               </p>
             </>
           )}
@@ -401,7 +466,7 @@ export function ChangePlanDrawer({
           {formError ? <p className="form-error">{formError}</p> : null}
 
           <div className="row">
-            <button type="submit" className="btn btn--primary" disabled={previewLoading}>
+            <button type="submit" className="btn btn--primary" disabled={previewLoading || !canEdit}>
               {previewLoading
                 ? t('common.loading')
                 : t('admin.student360.financeWorkspace.changePlan.previewAction')}
@@ -528,7 +593,7 @@ export function ChangePlanDrawer({
             ) : null}
             {mode === 'social_discount_on_future_installments' ? (
               <p className="tiny muted">
-                {t('admin.student360.financeWorkspace.changePlan.social.noPastChangesWarning')}
+                {t('admin.student360.financeWorkspace.changePlan.special.noPastChangesWarning')}
               </p>
             ) : null}
           </section>

@@ -132,14 +132,18 @@ export async function fetchStudentInstallments(
   return api.get<StudentInstallment[]>(endpoints.admin.studentInstallments(studentId), query);
 }
 
-export async function replaceAgreementFromCurrentFees(
-  agreementId: number | string,
-  body?: Record<string, unknown>,
+export async function createAgreementFromCurrentFees(
+  studentId: number | string,
+  academicYearId?: number | null,
   query?: ListParams,
 ): Promise<ApiResponse<FinancialAgreement>> {
+  const body =
+    academicYearId != null && !Number.isNaN(academicYearId)
+      ? { academic_year_id: academicYearId }
+      : {};
   return api.post<FinancialAgreement>(
-    endpoints.admin.financeAgreementReplaceFromCurrentFees(agreementId),
-    body ?? {},
+    endpoints.admin.studentFinanceAgreementCreateFromCurrentFees(studentId),
+    body,
     query,
   );
 }

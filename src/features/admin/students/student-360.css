@@ -1954,6 +1954,217 @@
   color: var(--text-muted, #64748b);
 }
 
+.student-finance-hero__insight--danger {
+  border-color: color-mix(in srgb, var(--c-red, #dc2626) 28%, var(--c-border, #e2e8f0));
+  background: linear-gradient(90deg, var(--c-red-soft, #fef2f2), color-mix(in srgb, var(--surface, #fff) 70%, var(--c-red-soft, #fef2f2)));
+}
+
+.student-finance-hero__insight--danger .student-finance-hero__insight-icon {
+  color: var(--c-red, #dc2626);
+  background: color-mix(in srgb, var(--c-red, #dc2626) 12%, #fff);
+  border-color: color-mix(in srgb, var(--c-red, #dc2626) 24%, transparent);
+}
+
+.student-finance-hero__insight--danger .student-finance-hero__insight-title {
+  color: var(--c-red, #b91c1c);
+}
+
+.student-finance-change-plan-hint {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--c-blue, #2563eb) 22%, var(--c-border, #e2e8f0));
+  background: color-mix(in srgb, var(--c-blue, #2563eb) 6%, var(--surface, #fff));
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--text-secondary, #475569);
+}
+
+.student-finance-change-plan-eligibility {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  background: var(--surface, #fff);
+}
+
+.student-finance-change-plan-eligibility--eligible {
+  border-color: color-mix(in srgb, var(--c-green, #16a34a) 28%, var(--c-border, #e2e8f0));
+  background: color-mix(in srgb, var(--c-green, #16a34a) 6%, var(--surface, #fff));
+}
+
+.student-finance-change-plan-eligibility--ineligible {
+  border-color: color-mix(in srgb, var(--c-amber, #d97706) 30%, var(--c-border, #e2e8f0));
+  background: color-mix(in srgb, var(--c-amber, #d97706) 8%, var(--surface, #fff));
+}
+
+.student-finance-change-plan-eligibility__title {
+  margin: 0 0 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted, #64748b);
+}
+
+.student-finance-change-plan-eligibility__status {
+  margin: 0 0 6px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-primary, #0f172a);
+}
+
+.student-finance-change-plan-eligibility__detail,
+.student-finance-change-plan-eligibility__meta {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--text-secondary, #475569);
+}
+
+.student-finance-command-bar__ineligible-notice {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--c-amber, #d97706) 28%, var(--c-border, #e2e8f0));
+  background: color-mix(in srgb, var(--c-amber, #d97706) 8%, var(--surface, #fff));
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--text-secondary, #475569);
+  max-width: 28rem;
+}
+
+.student-finance-inactive-agreement-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px 16px;
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--c-amber, #d97706) 32%, var(--c-border, #e2e8f0));
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--c-amber, #d97706) 10%, var(--surface, #fff)),
+    var(--surface, #fff)
+  );
+}
+
+.student-finance-inactive-agreement-banner__title {
+  margin: 0 0 6px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--c-amber, #b45309);
+}
+
+.student-finance-inactive-agreement-banner__body,
+.student-finance-inactive-agreement-banner__explain,
+.student-finance-inactive-agreement-banner__state {
+  margin: 0 0 6px;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--text-secondary, #475569);
+}
+
+.student-finance-inactive-agreement-banner__action {
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.student-finance-inactive-agreement-banner--repair {
+  border-color: color-mix(in srgb, var(--c-amber, #d97706) 40%, var(--c-border, #e2e8f0));
+}
+
+.student-finance-billing-context-headline,
+.student-finance-hero__context {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--c-amber, #d97706) 24%, var(--c-border, #e2e8f0));
+  background: color-mix(in srgb, var(--c-amber, #d97706) 6%, var(--surface, #fff));
+}
+
+.student-finance-billing-context-headline__title,
+.student-finance-hero__context-title {
+  margin: 0 0 4px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--c-amber, #b45309);
+}
+
+.student-finance-billing-context-headline__hint,
+.student-finance-hero__context-hint {
+  margin: 0;
+}
+
+.student-finance-collect-blocked {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.student-finance-collect-blocked__hint {
+  max-width: 16rem;
+  line-height: 1.4;
+}
+
+.student-finance-collect-blocked--command-bar {
+  align-self: center;
+}
+
+.student-finance-complete-draft-blocked {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  max-width: 18rem;
+}
+
+.student-finance-complete-draft-blocked__hint {
+  line-height: 1.4;
+}
+
+.student-finance-inactive-agreement-reference__status {
+  margin: 0 0 8px;
+  font-weight: 500;
+}
+
+.student-finance-command-bar__btn--review-agreement {
+  border-color: color-mix(in srgb, var(--c-amber, #d97706) 35%, var(--c-border, #e2e8f0));
+  color: var(--c-amber, #b45309);
+}
+
+.student-finance-billing-source--inactive {
+  border-left: 3px solid var(--c-amber, #d97706);
+  padding-inline-start: 10px;
+}
+
+.student-finance-billing-source--inactive .student-finance-billing-source__headline {
+  color: var(--c-amber, #b45309);
+}
+
+.student-finance-billing-source {
+  display: grid;
+  gap: 8px;
+}
+
+.student-finance-billing-source__headline {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-primary, #0f172a);
+}
+
+.student-finance-billing-source__plan {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary, #475569);
+}
+
+.student-finance-bento__card--billing-source {
+  border-color: color-mix(in srgb, var(--c-blue, #2563eb) 18%, var(--c-border, #e2e8f0));
+}
+
 /* ── Sub-tabs navigation ── */
 .student-finance-subtabs {
   display: flex;
@@ -4401,14 +4612,43 @@
 .student-finance-status-group {
   display: inline-flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
+  align-items: flex-start;
+  gap: 4px 6px;
+}
+
+.student-finance-schedule-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 7.5rem;
+}
+
+[dir='rtl'] .student-finance-schedule-status {
+  align-items: flex-end;
+}
+
+.student-finance-schedule-status .student-finance-dual-badges {
+  flex-direction: column;
+  align-items: inherit;
+  gap: 4px;
 }
 
 .student-finance-dual-badges .badge,
 .student-finance-status-group .badge {
   font-size: 0.75rem;
   padding: 3px 8px;
+  white-space: nowrap;
+}
+
+.student-finance-table-wrap .student-finance-schedule-status {
+  max-width: 11rem;
+}
+
+.student-finance-table-wrap td:last-child,
+.student-finance-table-wrap th:last-child {
+  white-space: nowrap;
+  min-width: 6.5rem;
 }
 
 .student-finance-hidden-indicator {

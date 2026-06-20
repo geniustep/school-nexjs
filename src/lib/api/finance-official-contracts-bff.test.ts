@@ -16,7 +16,7 @@ describe('finance official contracts — BFF path mapping', () => {
   const overviewPath = endpoints.admin.financeStudentFinancialOverview(STUDENT_ID);
   const collectiblePath = endpoints.admin.financeStudentCollectibleItems(STUDENT_ID);
   const batchPath = endpoints.admin.financeFeePlanAssignedStudentsFinancialSummary(PLAN_ID);
-  const agreementPath = endpoints.admin.financeStudentAgreementFromCurrentFees(STUDENT_ID);
+  const agreementPath = endpoints.admin.studentFinanceAgreementCreateFromCurrentFees(STUDENT_ID);
 
   it('Financial Overview builds the correct Odoo path', () => {
     expect(overviewPath).toBe(`/admin/finance/students/${STUDENT_ID}/financial-overview`);
@@ -36,7 +36,7 @@ describe('finance official contracts — BFF path mapping', () => {
 
   it('Agreement From Current Fees builds the correct Odoo path', () => {
     expect(agreementPath).toBe(
-      `/admin/finance/students/${STUDENT_ID}/agreements/from-current-fees`,
+      `/admin/students/${STUDENT_ID}/finance/agreements/create-from-current-fees`,
     );
   });
 
@@ -110,13 +110,14 @@ describe('finance official contracts — BFF path mapping', () => {
   });
 
   it('does not use legacy /admin/students/{id}/finance paths', () => {
-    for (const path of [overviewPath, collectiblePath, agreementPath, batchPath]) {
+    for (const path of [overviewPath, collectiblePath, batchPath]) {
       expect(path).not.toMatch(/\/admin\/students\/\d+\/finance\//);
     }
+    expect(agreementPath).toMatch(/\/admin\/students\/\d+\/finance\/agreements\/create-from-current-fees$/);
   });
 
   it('agreement POST path is not confused with GET overview', () => {
-    expect(agreementPath).toContain('agreements/from-current-fees');
+    expect(agreementPath).toContain('agreements/create-from-current-fees');
     expect(agreementPath).not.toContain('financial-overview');
   });
 });

@@ -86,6 +86,7 @@
     "exams": "Examens",
     "results": "Résultats",
     "students": "Élèves",
+    "admissions": "Admissions",
     "parents": "Parents",
     "teachers": "Enseignants",
     "levels": "Niveaux",
@@ -2613,6 +2614,194 @@
         "missing_emergency_phone": "Téléphone d'urgence recommandé lorsqu'un nom est saisi."
       }
     },
+    "admissions": {
+      "title": "Admissions",
+      "subtitle": "Gestion des demandes d'inscription",
+      "createButton": "Nouvelle demande",
+      "backToList": "Retour à la liste",
+      "nextAction": "Prochaine action",
+      "assignedUser": "Responsable",
+      "viewMode": "Mode d'affichage",
+      "viewKanban": "Kanban",
+      "viewTable": "Tableau",
+      "filters": {
+        "search": "Rechercher…",
+        "state": "Statut",
+        "showClosed": "Afficher les fermées (perdu / annulé / doublon)"
+      },
+      "empty": {
+        "title": "Aucune demande",
+        "description": "Créez une nouvelle demande pour commencer."
+      },
+      "kanban": { "emptyColumn": "Aucune carte" },
+      "badges": {
+        "possibleDuplicate": "Doublon possible",
+        "offerAccepted": "Offre acceptée",
+        "overdue": "En retard"
+      },
+      "states": {
+        "new": "Nouveau",
+        "contacted": "Contacté",
+        "qualified": "Qualifié",
+        "visit_pending": "Visite en attente",
+        "under_review": "En cours d'examen",
+        "accepted": "Accepté",
+        "waitlisted": "Liste d'attente",
+        "offer_sent": "Offre envoyée",
+        "confirmed": "Confirmé",
+        "lost": "Perdu",
+        "cancelled": "Annulé",
+        "duplicate": "Doublon"
+      },
+      "dashboard": {
+        "total_open": "Ouvertes",
+        "new_count": "Nouvelles",
+        "visit_pending_count": "Visites en attente",
+        "under_review_count": "En examen",
+        "accepted_count": "Acceptées",
+        "offer_sent_count": "Offres envoyées",
+        "confirmed_count": "Confirmées",
+        "lost_count": "Perdues",
+        "today_appointments": "RDV du jour",
+        "overdue_next_actions": "Actions en retard"
+      },
+      "table": {
+        "reference": "Référence",
+        "student": "Enfant",
+        "guardian": "Responsable",
+        "phone": "Téléphone",
+        "source": "Source",
+        "level": "Niveau",
+        "state": "Statut",
+        "nextAction": "Prochaine action",
+        "assigned": "Responsable"
+      },
+      "fields": {
+        "studentName": "Nom de l'enfant",
+        "firstName": "Prénom",
+        "lastName": "Nom",
+        "birthDate": "Date de naissance",
+        "gender": "Genre",
+        "requestedLevel": "Niveau demandé",
+        "requestedClass": "Classe demandée",
+        "academicYear": "Année scolaire",
+        "previousSchool": "École précédente",
+        "massarCode": "Code Massar",
+        "guardianName": "Nom du responsable",
+        "guardianPhone": "Téléphone",
+        "guardianWhatsapp": "WhatsApp",
+        "guardianEmail": "E-mail",
+        "relationship": "Lien de parenté",
+        "firstContactDate": "Premier contact",
+        "nextAction": "Prochaine action",
+        "nextActionDate": "Date de l'action",
+        "internalNotes": "Notes internes",
+        "priority": "Priorité"
+      },
+      "gender": { "male": "Garçon", "female": "Fille" },
+      "create": {
+        "title": "Nouvelle demande",
+        "subtitle": "Créer une demande — ne crée pas d'élève",
+        "studentSection": "Enfant",
+        "guardianSection": "Responsable",
+        "followUpSection": "Suivi",
+        "submit": "Créer"
+      },
+      "detail": {
+        "summary": "Résumé",
+        "student": "Enfant",
+        "guardian": "Responsable",
+        "duplicates": "Doublons possibles",
+        "prefillStatus": "Statut prefill",
+        "tabs": "Sections"
+      },
+      "tabs": {
+        "overview": "Aperçu",
+        "timeline": "Historique",
+        "appointments": "Rendez-vous",
+        "assessments": "Évaluations",
+        "decision": "Décision",
+        "offers": "Offres",
+        "prefill": "Données prêtes"
+      },
+      "timeline": {
+        "addActivity": "Ajouter une note / suivi",
+        "activityType": "Type",
+        "submit": "Ajouter",
+        "empty": "Aucune activité"
+      },
+      "activityTypes": {
+        "note": "Note",
+        "call": "Appel",
+        "whatsapp": "WhatsApp",
+        "follow_up": "Suivi",
+        "visit_note": "Note de visite"
+      },
+      "appointments": {
+        "create": "Planifier",
+        "type": "Type",
+        "scheduledAt": "Date",
+        "duration": "Durée (min)",
+        "resultNotes": "Notes de résultat",
+        "empty": "Aucun rendez-vous",
+        "types": { "schoolVisit": "Visite école", "visit": "Visite", "call": "Appel", "assessment": "Évaluation" }
+      },
+      "assessments": {
+        "create": "Ajouter une évaluation",
+        "type": "Type",
+        "score": "Score",
+        "maxScore": "Max",
+        "result": "Résultat",
+        "recommendation": "Recommandation",
+        "teacherNotes": "Notes enseignant",
+        "empty": "Aucune évaluation"
+      },
+      "decision": {
+        "current": "Décision actuelle",
+        "label": "Décision",
+        "by": "Par",
+        "conditions": "Conditions",
+        "none": "Pas encore de décision",
+        "formTitle": "Prendre une décision",
+        "submit": "Enregistrer"
+      },
+      "decisions": {
+        "accepted": "Accepté",
+        "accepted_with_condition": "Accepté sous conditions",
+        "waitlisted": "Liste d'attente",
+        "rejected": "Refusé",
+        "needs_reassessment": "Réévaluation nécessaire"
+      },
+      "offers": {
+        "create": "Créer une offre",
+        "offer": "Offre",
+        "registrationFee": "Frais d'inscription",
+        "monthlyFee": "Mensualité",
+        "deadline": "Échéance",
+        "requiredDocuments": "Documents requis",
+        "send": "Envoyer",
+        "accept": "Accepter",
+        "decline": "Refuser",
+        "empty": "Aucune offre",
+        "acceptNoticeTitle": "Rappel",
+        "acceptNotice": "Accepter l'offre ne crée pas d'élève."
+      },
+      "prefill": {
+        "notAllowed": "Aperçu non disponible.",
+        "loading": "Chargement…",
+        "load": "Charger l'aperçu",
+        "readOnlyTitle": "Lecture seule",
+        "readOnlyNotice": "Aperçu uniquement. Ne crée pas d'élève.",
+        "student": "Élève",
+        "guardian": "Responsable",
+        "academic": "Académique",
+        "admission": "Admission",
+        "readiness": "Préparation",
+        "warnings": "Avertissements",
+        "blockingIssues": "Blocages"
+      },
+      "errors": { "notFound": "Demande introuvable." }
+    },
     "student360": {
       "tabsAria": "Sections du dossier élève",
       "tabs": {
@@ -3633,6 +3822,7 @@
           "state": "Statut",
           "agreementDate": "Date accord",
           "validity": "Période",
+          "originalFeePlan": "Plan tarifaire d'origine",
           "validFrom": "Début",
           "validUntil": "Fin",
           "billingParty": "Payeur",
@@ -3762,6 +3952,7 @@
         "incompleteDraftTitle": "Brouillon d'accord incomplet",
         "incompleteDraftDesc": "Ce brouillon n'est pas affiché comme accord actif tant qu'il n'est pas complété.",
         "completeDraft": "Compléter le brouillon",
+        "emptyManualDraftBlockedHint": "Impossible de compléter un brouillon vide. Créez un accord à partir des frais actuels.",
         "cancelDraft": "Annuler le brouillon",
         "fromFees": {
           "title": "Créer un accord à partir des frais actuels",
@@ -3774,6 +3965,11 @@
           "errors": {
             "empty": "Aucun frais actuel à inclure.",
             "alreadyExists": "Un accord spécial existe déjà pour cet élève.",
+            "draftAlreadyExists": "Un brouillon d'accord issu des frais actuels existe déjà.",
+            "draftAlreadyExistsHint": "Vous pouvez le réviser et compléter le circuit d'approbation.",
+            "draftAlreadyExistsFull": "Un brouillon d'accord issu des frais actuels existe déjà. Vous pouvez le réviser et compléter le circuit d'approbation.",
+            "activeAgreementExists": "Cet élève a déjà un accord financier actif.",
+            "generic": "Impossible de créer l'accord à partir des frais actuels.",
             "forbidden": "Vous n'êtes pas autorisé à créer un accord à partir des frais.",
             "missingYear": "Sélectionnez d'abord une année scolaire."
           }
@@ -3839,6 +4035,7 @@
         "incompleteDraftTitle": "Incomplete agreement draft",
         "incompleteDraftDesc": "This draft does not represent fees from the school plan.",
         "completeDraft": "Complete draft",
+        "emptyManualDraftBlockedHint": "Impossible de compléter un brouillon vide. Créez un accord à partir des frais actuels.",
         "cancelDraft": "Cancel draft",
         "openFinanceOverview": "Open financial overview",
         "openPaymentSchedule": "Open payment schedule"
@@ -4036,15 +4233,73 @@
           "recordPayment": "Enregistrer un paiement",
           "manageAgreement": "Gérer l'accord financier"
         },
+        "inactiveAgreement": {
+          "bannerTitle": "Un dossier financier avec des mouvements existe, mais aucun accord financier actif n'est gérable.",
+          "bannerBody": "Les encaissements, échéances et chèques affichés sont liés à un dossier antérieur ou inactif. Les changements de plan exigent un accord actif valide.",
+          "planChangeBlockedHint": "Impossible de changer le plan ou d'appliquer un ajustement financier spécial sans accord actif. Consultez l'accord actuel ou créez-en un nouveau.",
+          "fixAction": "Corriger l'accord financier",
+          "reviewAction": "Consulter l'accord financier",
+          "agreementTabWarning": "Des mouvements financiers existent, mais cet accord est inactif et ne peut servir aux modifications. Consultez-le ou créez un nouvel accord.",
+          "currentState": "État de l'accord : {state}",
+          "noActiveState": "Aucun accord financier actif"
+        },
+        "billingContext": {
+          "operationalWithoutActiveAgreement": "Facturation opérationnelle sans accord actif",
+          "needsActiveAgreement": "Dossier financier nécessitant un accord actif",
+          "noActiveAgreement": "Aucun accord financier actif",
+          "noActiveAgreementExplanation": "Un dossier financier avec des mouvements enregistrés existe, mais il n'y a pas d'accord financier actif.",
+          "noActiveAgreementManageable": "Un dossier financier avec des mouvements enregistrés existe, mais il n'y a pas d'accord financier actif gérable."
+        },
+        "agreementRepair": {
+          "title": "Le dossier financier nécessite une révision",
+          "body": "Des frais et échéances sont enregistrés, mais il n'y a pas d'accord financier actif.",
+          "recommendedAction": "Action recommandée : créer un accord financier à partir des frais actuels, puis l'approuver.",
+          "recommendedActionCreateFromFees": "Action recommandée : créer un accord financier à partir des frais actuels, puis l'approuver.",
+          "reviewAction": "Réviser l'accord financier"
+        },
+        "collectPayment": {
+          "blockedMessage": "Impossible d'enregistrer un paiement tant qu'il n'existe pas d'accord financier actif."
+        },
+        "inactiveAgreementReference": {
+          "title": "Accord antérieur inactif",
+          "stateLabel": "Statut",
+          "requiresReviewWarning": "Cet accord est inactif et ne peut pas être utilisé pour le recouvrement ou les modifications. Créez un nouvel accord à partir des frais actuels ou révisez le dossier financier.",
+          "createFromFeesAction": "Créer un accord financier à partir des frais actuels"
+        },
+        "agreementStatus": {
+          "noActive": "Aucun accord financier actif",
+          "inactive": "Accord inactif",
+          "cancelled": "Accord annulé — à revoir",
+          "cancelledNeedsReview": "Accord annulé — à revoir",
+          "terminated": "Accord résilié — à revoir",
+          "draft": "Brouillon — inactif",
+          "completed": "Accord terminé — inactif",
+          "approved": "Accord approuvé — inactif",
+          "pending_approval": "En attente d'approbation — inactif"
+        },
         "changePlan": {
           "previewAction": "Aperçu de l'impact",
-          "applyAction": "Appliquer le changement",
+          "applyAction": "Appliquer l'ajustement",
           "previewTitle": "Résultat de l'aperçu",
           "applySuccess": "Finances de l'élève mises à jour.",
+          "commandBar": {
+            "noActiveAgreementHint": "Les finances de cet élève ne peuvent pas être modifiées car aucun accord financier actif n'est modifiable."
+          },
+          "eligibility": {
+            "title": "Éligibilité à la modification",
+            "eligible": "Modifiable",
+            "eligibleDetail": "Un accord financier actif est présent dans les données de cette page. Vous pouvez prévisualiser l'impact puis appliquer si aucun autre blocage n'existe.",
+            "notEligibleTitle": "Non modifiable pour le moment",
+            "noActiveAgreement": "Les finances de cet élève ne peuvent pas être modifiées car aucun accord financier actif n'est modifiable.",
+            "activeAgreementServiceMismatch": "L'accord financier actif est introuvable dans le service de modification. Consultez l'accord financier ou actualisez la page.",
+            "currentAgreementState": "État de l'accord actuel : {state}"
+          },
           "replace": {
-            "action": "Changer le plan tarifaire",
-            "title": "Changer le plan tarifaire",
-            "description": "À utiliser lorsqu'aucun paiement ni reçu n'a encore été enregistré.",
+            "action": "Changer le plan financier",
+            "title": "Changer le plan financier",
+            "description": "Modifier ou remplacer le plan financier. Si des paiements ou reçus existent déjà, ils ne peuvent pas être modifiés ; tout changement s'applique aux périodes futures ou comme ajustement séparé.",
+            "actionHint": "Vous pouvez changer le plan, mais les échéances et reçus passés ne peuvent pas être modifiés.",
+            "paymentsExistHint": "Les échéances et reçus passés ne peuvent pas être modifiés. L'ajustement s'applique aux périodes futures uniquement.",
             "fields": {
               "feePlan": "Nouveau plan tarifaire",
               "reason": "Motif du changement",
@@ -4061,19 +4316,20 @@
               "confirmRequired": "Confirmez le remplacement avant d'appliquer."
             }
           },
-          "social": {
-            "action": "Appliquer une remise sociale",
-            "title": "Appliquer une remise sociale",
-            "description": "S'applique uniquement aux échéances futures non payées.",
-            "preservedWarning": "Les périodes passées restent inchangées.",
-            "noPastChangesWarning": "Avertissement : les reçus et paiements passés ne changeront pas.",
+          "special": {
+            "action": "Ajustement financier spécial",
+            "title": "Ajustement financier spécial",
+            "description": "Modifier uniquement les frais futurs sans changer les échéances ou reçus passés.",
+            "actionHint": "Ajuste les frais futurs uniquement sans modifier le passé.",
+            "preservedWarning": "Les échéances et reçus passés ne peuvent pas être modifiés.",
+            "noPastChangesWarning": "Avertissement : les paiements passés ne changeront pas.",
             "fields": {
-              "effectiveDate": "Date de début de la remise",
+              "effectiveDate": "Date de début de l'ajustement",
               "feeType": "Type de frais",
-              "discountType": "Type de remise",
-              "discountValue": "Valeur de la remise",
+              "discountType": "Type d'ajustement",
+              "discountValue": "Valeur de l'ajustement",
               "periodEnd": "Dernière période concernée",
-              "reasonNote": "Note du motif"
+              "reasonNote": "Motif de l'ajustement"
             },
             "feeTypes": {
               "tuition": "Scolarité",
@@ -4085,8 +4341,8 @@
             },
             "errors": {
               "effectiveDateRequired": "La date de début est requise.",
-              "reasonNoteRequired": "La note du motif est requise.",
-              "discountRequired": "Indiquez la valeur de la remise.",
+              "reasonNoteRequired": "Le motif est requis.",
+              "discountRequired": "Indiquez la valeur de l'ajustement.",
               "periodsRequired": "Sélectionnez les périodes concernées."
             }
           },
@@ -4122,9 +4378,9 @@
             "feePlanNotAssignable": "Plan non assignable.",
             "feeTypeNotInAgreement": "Type de frais absent de l'accord.",
             "noFuturePeriodsToAffect": "Aucune période future à affecter.",
-            "planChangeBlockedByPayments": "Plan non modifiable après paiements.",
-            "planChangeBlockedByReceipts": "Plan non modifiable après reçus.",
-            "planChangeBlockedByPendingCheques": "Chèques en attente : réglez-les d'abord.",
+            "planChangeBlockedByPayments": "Le remplacement complet du plan n'est plus possible après des paiements. Appliquez le changement aux périodes futures ou via un ajustement financier.",
+            "planChangeBlockedByReceipts": "Le remplacement complet du plan n'est plus possible après des reçus. Appliquez le changement aux périodes futures ou via un ajustement financier.",
+            "planChangeBlockedByPendingCheques": "Des chèques sont liés aux périodes concernées. Réglez-les avant d'appliquer la modification.",
             "agreementChangeForbidden": "Pas de permission pour changer le plan.",
             "agreementActivationForbidden": "Pas de permission pour activer l'accord.",
             "discountExceedsRemaining": "La remise dépasse le montant restant.",
@@ -4142,6 +4398,9 @@
           "overdue": "En retard",
           "nextInstallment": "Prochaine échéance",
           "pendingChequeAlert": "Les chèques en attente d'encaissement ne sont pas encore considérés comme un paiement confirmé.",
+          "rejectedChequesAlertOnePrefix": "Il y a 1 chèque rejeté d'un montant de",
+          "rejectedChequesAlertManyPrefix": "Il y a {count} chèques rejetés d'un montant de",
+          "rejectedChequesReviewHint": "Ils nécessitent une vérification.",
           "remainingAfterPendingHint": "Reste après couverture non confirmée :",
           "chequePendingTotal": "Total des chèques en attente",
           "chequePendingAllocated": "Comptabilisés dans la couverture non confirmée",
@@ -4173,6 +4432,15 @@
         "billingEffectiveFrom": "Valide à partir du",
         "appliedPlanTitle": "Plan appliqué",
         "appliedPlansTitle": "Plans appliqués",
+        "billingSourceTitle": "Source de facturation",
+        "billingSourceActiveAgreement": "Accord financier actif",
+        "billingSourcePlanTemplateHint": "Le plan tarifaire est un modèle de prix ; l'accord financier est la source de facturation actuelle.",
+        "billingSourceBuiltOnPlan": "Basé sur le plan : {plan}",
+        "billingSourceBuiltOnFeePlanGeneric": "Basé sur un plan tarifaire",
+        "billingSourceCurrentAgreement": "Accord actuel",
+        "billingSourceStatus": "État",
+        "billingSourceStatusActive": "Actif",
+        "openAgreement": "Voir l'accord financier",
         "openPlan": "Ouvrir le plan",
         "openFees": "Ouvrir les frais",
         "feeCount": "Nombre d'échéances",
@@ -4180,6 +4448,7 @@
         "installmentsCount": "Nombre d'échéances",
         "appliedTotal": "Total appliqué",
         "noAppliedPlans": "Aucun plan de frais appliqué pour cette année.",
+        "noAppliedPlansViaAgreement": "Aucun plan direct n'est appliqué. Cet élève est facturé via un accord financier.",
         "specialAgreement": "Special agreement",
         "hasSpecialAgreement": "Special agreement exists",
         "noSpecialAgreement": "No special agreement",
