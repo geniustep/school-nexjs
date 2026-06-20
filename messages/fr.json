@@ -2800,6 +2800,19 @@
         "warnings": "Avertissements",
         "blockingIssues": "Blocages"
       },
+      "registration": {
+        "continueButton": "Poursuivre l'inscription de l'élève",
+        "linkedTitle": "Demande liée à un élève",
+        "linkedDescription": "Ouvrez le dossier élève pour continuer.",
+        "openStudentProfile": "Ouvrir le dossier élève",
+        "readinessWarning": "Des avertissements ou blocages de préparation existent — vérifiez les données avant l'enregistrement.",
+        "prefillBannerTitle": "Cette inscription est préremplie depuis la demande {reference}",
+        "prefillBannerDescription": "Vérifiez les données avant l'enregistrement.",
+        "prefillDecision": "Décision",
+        "prefillOfferState": "État de l'offre",
+        "success": "Élève créé et lié à la demande d'admission.",
+        "linkFailed": "L'élève a été créé, mais la liaison à la demande a échoué. Ouvrez le dossier élève pour continuer."
+      },
       "errors": { "notFound": "Demande introuvable." }
     },
     "student360": {
@@ -3958,6 +3971,10 @@
           "title": "Créer un accord à partir des frais actuels",
           "description": "Crée un brouillon d'accord à partir des frais appliqués sans dupliquer les charges.",
           "createButton": "Créer un accord à partir des frais actuels",
+          "reviewDraftButton": "Réviser le brouillon d'accord #{id}",
+          "completeApprovalWorkflow": "Compléter le circuit d'approbation de l'accord",
+          "currentFeesDraftPanelTitle": "Brouillon d'accord issu des frais actuels",
+          "currentFeesDraftPanelDesc": "Ce brouillon est basé sur les frais et échéances enregistrés. Complétez le circuit d'approbation pour activer l'accord financier.",
           "agreementTitle": "Titre de l'accord",
           "includeFees": "Frais à inclure",
           "submit": "Créer le brouillon",

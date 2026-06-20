@@ -2837,6 +2837,19 @@
         "warnings": "تحذيرات",
         "blockingIssues": "مشاكل مانعة"
       },
+      "registration": {
+        "continueButton": "استكمال تسجيل التلميذ",
+        "linkedTitle": "تم ربط الطلب بتلميذ رسمي",
+        "linkedDescription": "يمكنك فتح ملف التلميذ للمتابعة.",
+        "openStudentProfile": "فتح ملف التلميذ",
+        "readinessWarning": "توجد تحذيرات أو مشاكل في الجاهزية — راجع البيانات قبل الحفظ.",
+        "prefillBannerTitle": "هذا التسجيل مملوء مسبقًا من طلب تسجيل {reference}",
+        "prefillBannerDescription": "راجع البيانات قبل الحفظ.",
+        "prefillDecision": "القرار",
+        "prefillOfferState": "حالة العرض",
+        "success": "تم إنشاء التلميذ وربطه بطلب التسجيل.",
+        "linkFailed": "تم إنشاء التلميذ، لكن ربطه بطلب التسجيل فشل. افتح ملف التلميذ للمتابعة."
+      },
       "errors": {
         "notFound": "طلب التسجيل غير موجود."
       }
@@ -3997,6 +4010,10 @@
           "title": "إنشاء اتفاق من الرسوم الحالية",
           "description": "يُنشئ مسودة اتفاق من الرسوم والأقساط المطبقة حاليًا دون إنشاء رسوم مكررة.",
           "createButton": "إنشاء اتفاق من الرسوم الحالية",
+          "reviewDraftButton": "مراجعة مسودة الاتفاق #{id}",
+          "completeApprovalWorkflow": "إكمال مسار اعتماد الاتفاق",
+          "currentFeesDraftPanelTitle": "مسودة اتفاق من الرسوم الحالية",
+          "currentFeesDraftPanelDesc": "هذه المسودة مبنية على الرسوم والأقساط المسجلة. أكمل مسار الاعتماد لتفعيل الاتفاق المالي.",
           "agreementTitle": "عنوان الاتفاق",
           "includeFees": "الرسوم المراد تضمينها",
           "submit": "إنشاء المسودة",

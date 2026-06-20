@@ -2800,6 +2800,19 @@
         "warnings": "Advertencias",
         "blockingIssues": "Bloqueos"
       },
+      "registration": {
+        "continueButton": "Continuar registro del alumno",
+        "linkedTitle": "Solicitud vinculada al alumno",
+        "linkedDescription": "Abra el perfil del alumno para continuar.",
+        "openStudentProfile": "Abrir perfil del alumno",
+        "readinessWarning": "Hay advertencias o bloqueos de preparación — revise los datos antes de guardar.",
+        "prefillBannerTitle": "Este registro está prefijado desde la solicitud {reference}",
+        "prefillBannerDescription": "Revise los datos antes de guardar.",
+        "prefillDecision": "Decisión",
+        "prefillOfferState": "Estado de la oferta",
+        "success": "Alumno creado y vinculado a la solicitud de admisión.",
+        "linkFailed": "El alumno se creó, pero falló la vinculación con la solicitud. Abra el perfil del alumno para continuar."
+      },
       "errors": { "notFound": "Solicitud no encontrada." }
     },
     "student360": {
@@ -3958,6 +3971,10 @@
           "title": "Crear acuerdo desde las tasas actuales",
           "description": "Crea un borrador de acuerdo desde las tasas aplicadas sin duplicar cargos.",
           "createButton": "Crear acuerdo desde las tasas actuales",
+          "reviewDraftButton": "Revisar borrador de acuerdo #{id}",
+          "completeApprovalWorkflow": "Completar circuito de aprobación del acuerdo",
+          "currentFeesDraftPanelTitle": "Borrador de acuerdo desde las tasas actuales",
+          "currentFeesDraftPanelDesc": "Este borrador se basa en las tasas y plazos registrados. Complete el circuito de aprobación para activar el acuerdo financiero.",
           "agreementTitle": "Título del acuerdo",
           "includeFees": "Tasas a incluir",
           "submit": "Crear borrador",

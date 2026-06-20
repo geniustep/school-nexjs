@@ -2129,6 +2129,25 @@
   font-weight: 500;
 }
 
+.student-finance-current-fees-draft-review {
+  scroll-margin-top: 1.5rem;
+}
+
+.student-finance-current-fees-draft-review.is-focused .student-finance-current-fees-draft-review__card {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--c-primary, #2563eb) 35%, transparent);
+}
+
+.student-finance-current-fees-draft-review__notice {
+  margin: 0 0 12px;
+  color: var(--text-secondary, #475569);
+}
+
+.student-finance-current-fees-draft-review__actions {
+  margin-top: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .student-finance-command-bar__btn--review-agreement {
   border-color: color-mix(in srgb, var(--c-amber, #d97706) 35%, var(--c-border, #e2e8f0));
   color: var(--c-amber, #b45309);

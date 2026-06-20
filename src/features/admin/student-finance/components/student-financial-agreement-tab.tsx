@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ApiErrorView } from '@/components/states/states';
 import { DataTable, type Column } from '@/components/tables/data-table';
@@ -72,6 +72,10 @@ import {
   canCompleteDraftAgreement,
   isEmptyManualDraftAgreement,
 } from '../utils/resolve-empty-manual-draft-action';
+import {
+  isOrphanCurrentFeesDraft,
+  resolveExistingCurrentFeesDraft,
+} from '../utils/resolve-existing-current-fees-draft';
 
 export function StudentFinancialAgreementTab({
   studentId,
@@ -108,16 +112,41 @@ export function StudentFinancialAgreementTab({
   const [showCancelFuture, setShowCancelFuture] = useState(false);
   const [showAdjustment, setShowAdjustment] = useState(false);
   const [createFromFeesNotice, setCreateFromFeesNotice] = useState<string | null>(null);
+  const [focusCurrentFeesDraft, setFocusCurrentFeesDraft] = useState(false);
+  const currentFeesDraftReviewRef = useRef<HTMLElement | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [pendingConfirm, setPendingConfirm] = useState<{
     action: 'submit' | 'approve' | 'activate' | 'cancel';
     title: string;
     body: string;
+    agreementId?: number;
   } | null>(null);
 
   const agreementId = workspace?.current_agreement?.id ?? null;
   const agreementState = useFinancialAgreement(agreementId, !!agreementId);
   const agreement = agreementState.data ?? workspace?.current_agreement ?? null;
+
+  const existingCurrentFeesDraft = useMemo(
+    () =>
+      resolveExistingCurrentFeesDraft({
+        workspace,
+        financialOverview,
+        workspaceAgreement: agreement,
+        academicYearId: effectiveYearId ? Number(effectiveYearId) : null,
+      }),
+    [workspace, financialOverview, agreement, effectiveYearId],
+  );
+
+  const orphanCurrentFeesDraftId =
+    existingCurrentFeesDraft &&
+    isOrphanCurrentFeesDraft({
+      draft: existingCurrentFeesDraft,
+      displayedAgreement: agreement,
+    })
+      ? existingCurrentFeesDraft.id
+      : null;
+
+  const reviewDraftState = useFinancialAgreement(orphanCurrentFeesDraftId, !!orphanCurrentFeesDraftId);
 
   const phase = resolveFinanceTabLoadPhase({
     yearsLoading: refState.loading,
@@ -142,8 +171,9 @@ export function StudentFinancialAgreementTab({
   const refreshAll = useCallback(() => {
     workspaceState.reload();
     agreementState.reload();
+    if (orphanCurrentFeesDraftId) reviewDraftState.reload();
     onChanged();
-  }, [workspaceState, agreementState, onChanged]);
+  }, [workspaceState, agreementState, orphanCurrentFeesDraftId, reviewDraftState, onChanged]);
 
   const billingContext = useMemo(
     () => resolveBillingContextPresentation({ workspace }),
@@ -152,15 +182,17 @@ export function StudentFinancialAgreementTab({
 
   const showCreateFromFeesAction = !billingContext.hasActiveAgreement && canCreate;
 
-  const existingCurrentFeesDraft = useMemo(
-    () =>
-      workspace?.agreements_summary?.find(
-        (item) => item.state === 'draft' && item.source === 'current_fees',
-      ) ?? null,
-    [workspace?.agreements_summary],
-  );
+  const scrollToCurrentFeesDraftReview = useCallback(() => {
+    setFocusCurrentFeesDraft(true);
+    currentFeesDraftReviewRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    window.setTimeout(() => setFocusCurrentFeesDraft(false), 2400);
+  }, []);
 
   const handleCreateAgreementFromCurrentFees = useCallback(async () => {
+    if (existingCurrentFeesDraft) {
+      scrollToCurrentFeesDraftReview();
+      return;
+    }
     const yearId = effectiveYearId ? Number(effectiveYearId) : undefined;
     setActionLoading('create-from-fees');
     setCreateFromFeesNotice(null);
@@ -184,7 +216,7 @@ export function StudentFinancialAgreementTab({
     }
     toast.success(t('admin.student360.financialAgreement.fromFees.success'));
     refreshAll();
-  }, [effectiveYearId, studentId, t, toast, refreshAll]);
+  }, [effectiveYearId, existingCurrentFeesDraft, scrollToCurrentFeesDraftReview, studentId, t, toast, refreshAll]);
 
   const handleDuplicateDraftFromFees = useCallback(
     (agreementId: number | null, message: string) => {
@@ -194,8 +226,28 @@ export function StudentFinancialAgreementTab({
     [refreshAll],
   );
 
-  const renderCreateFromFeesButton = (className = 'btn btn--primary btn--sm') => {
+  const renderCurrentFeesDraftCta = (className = 'btn btn--primary btn--sm') => {
     if (!showCreateFromFeesAction) return null;
+
+    if (existingCurrentFeesDraft) {
+      if (
+        !isOrphanCurrentFeesDraft({
+          draft: existingCurrentFeesDraft,
+          displayedAgreement: agreement,
+        })
+      ) {
+        return null;
+      }
+
+      return (
+        <button type="button" className={className} onClick={scrollToCurrentFeesDraftReview}>
+          {t('admin.student360.financialAgreement.fromFees.reviewDraftButton', {
+            id: String(existingCurrentFeesDraft.id),
+          })}
+        </button>
+      );
+    }
+
     return (
       <button
         type="button"
@@ -207,6 +259,109 @@ export function StudentFinancialAgreementTab({
           ? t('common.saving')
           : t('admin.student360.financialAgreement.fromFees.createButton')}
       </button>
+    );
+  };
+
+  const renderCurrentFeesDraftReviewPanel = () => {
+    if (!orphanCurrentFeesDraftId || !existingCurrentFeesDraft) return null;
+
+    const reviewDraft = reviewDraftState.data;
+    const reviewAllowed = reviewDraft?.allowed_actions ?? {};
+    const reviewBillingPartner = reviewDraft?.billing_partner ?? workspace?.billing_partner;
+    const agreementReturnTo = `/admin/students/${studentId}?tab=finance&financeSubTab=agreements`;
+
+    return (
+      <section
+        ref={currentFeesDraftReviewRef}
+        id="current-fees-draft-review"
+        className={`student-finance-section student-finance-current-fees-draft-review${focusCurrentFeesDraft ? ' is-focused' : ''}`}
+      >
+        <Card className="student-finance-current-fees-draft-review__card">
+          <Student360SectionHeader
+            title={t('admin.student360.financialAgreement.fromFees.currentFeesDraftPanelTitle')}
+          />
+          <p className="muted">{t('admin.student360.financialAgreement.fromFees.currentFeesDraftPanelDesc')}</p>
+          <p className="student-finance-current-fees-draft-review__notice">
+            {t('admin.student360.financialAgreement.fromFees.errors.draftAlreadyExists')}{' '}
+            {t('admin.student360.financialAgreement.fromFees.errors.draftAlreadyExistsHint')}
+          </p>
+          <dl className="detail-list student-finance-agreement-meta">
+            <div>
+              <dt>{t('admin.student360.financialAgreement.fields.number')}</dt>
+              <dd className="mono">
+                #{existingCurrentFeesDraft.id}
+                {reviewDraft?.number || reviewDraft?.name
+                  ? ` · ${reviewDraft.number ?? reviewDraft.name}`
+                  : existingCurrentFeesDraft.number || existingCurrentFeesDraft.name
+                    ? ` · ${existingCurrentFeesDraft.number ?? existingCurrentFeesDraft.name}`
+                    : ''}
+              </dd>
+            </div>
+            <div>
+              <dt>{t('admin.student360.financialAgreement.fields.state')}</dt>
+              <dd>
+                <AgreementStateBadge state="draft" />
+              </dd>
+            </div>
+            {reviewDraft?.net_amount != null ? (
+              <div>
+                <dt>{t('admin.student360.financialAgreement.summary.netTotal')}</dt>
+                <dd>
+                  <FinanceMoney amount={reviewDraft.net_amount} currency={reviewDraft.currency?.name ?? currency?.name} />
+                </dd>
+              </div>
+            ) : null}
+          </dl>
+          {reviewDraftState.loading ? <StudentInlineLoading /> : null}
+          {reviewDraftState.error ? (
+            <ApiErrorView error={reviewDraftState.error} onRetry={reviewDraftState.reload} />
+          ) : null}
+          <div className="row student-finance-current-fees-draft-review__actions">
+            <Link
+              href={`/admin/finance/agreements/${orphanCurrentFeesDraftId}?returnTo=${encodeURIComponent(agreementReturnTo)}`}
+              className="btn btn--primary btn--sm"
+            >
+              {t('admin.student360.financialAgreement.fromFees.completeApprovalWorkflow')}
+            </Link>
+            {reviewAllowed.submit ? (
+              <button
+                type="button"
+                className="btn btn--primary btn--sm"
+                disabled={actionLoading === 'submit'}
+                onClick={() =>
+                  requestReviewDraftAction('submit', 'admin.student360.financialAgreement.confirmSubmit')
+                }
+              >
+                {t('admin.student360.financialAgreement.actions.submit')}
+              </button>
+            ) : null}
+            {reviewAllowed.approve ? (
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm"
+                disabled={actionLoading === 'approve'}
+                onClick={() =>
+                  requestReviewDraftAction('approve', 'admin.student360.financialAgreement.confirmApprove')
+                }
+              >
+                {t('admin.student360.financialAgreement.actions.approve')}
+              </button>
+            ) : null}
+            {reviewAllowed.activate && reviewDraft ? (
+              <button
+                type="button"
+                className="btn btn--primary btn--sm"
+                disabled={actionLoading === 'activate'}
+                onClick={() =>
+                  requestReviewDraftActivate(reviewDraft, refName(reviewBillingPartner) ?? '—')
+                }
+              >
+                {t('admin.student360.financialAgreement.actions.activate')}
+              </button>
+            ) : null}
+          </div>
+        </Card>
+      </section>
     );
   };
 
@@ -244,10 +399,11 @@ export function StudentFinancialAgreementTab({
   };
 
   const runAction = useCallback(
-    async (action: 'submit' | 'approve' | 'activate' | 'cancel') => {
-      if (!agreement?.id) return;
+    async (action: 'submit' | 'approve' | 'activate' | 'cancel', targetAgreementId?: number) => {
+      const id = targetAgreementId ?? agreement?.id;
+      if (!id) return;
       setActionLoading(action);
-      const res = await postAgreementAction(agreement.id, action);
+      const res = await postAgreementAction(id, action);
       setActionLoading(null);
       setPendingConfirm(null);
       if (!res.success) {
@@ -265,6 +421,32 @@ export function StudentFinancialAgreementTab({
       action,
       title: t('common.confirm'),
       body: t(confirmKey),
+    });
+  }
+
+  function requestReviewDraftAction(action: 'submit' | 'approve' | 'activate' | 'cancel', confirmKey: string) {
+    if (!orphanCurrentFeesDraftId) return;
+    setPendingConfirm({
+      action,
+      title: t('common.confirm'),
+      body: t(confirmKey),
+      agreementId: orphanCurrentFeesDraftId,
+    });
+  }
+
+  function requestReviewDraftActivate(reviewDraft: FinancialAgreement, partyLabel: string) {
+    if (!orphanCurrentFeesDraftId) return;
+    const msg = t('admin.student360.financialAgreement.confirmActivate', {
+      net: String(reviewDraft.net_amount ?? '—'),
+      count: String(reviewDraft.schedule_summary?.installment_count ?? '—'),
+      party: partyLabel,
+      year: refName(reviewDraft.academic_year) ?? '—',
+    });
+    setPendingConfirm({
+      action: 'activate',
+      title: t('admin.student360.financialAgreement.actions.activate'),
+      body: msg,
+      agreementId: orphanCurrentFeesDraftId,
     });
   }
 
@@ -511,7 +693,7 @@ export function StudentFinancialAgreementTab({
             <Student360SectionHeader title={t('admin.student360.financialAgreement.incompleteDraftTitle')} />
             <p>{t('admin.student360.financialAgreement.incompleteDraftDesc')}</p>
             <div className="row">
-              {renderCreateFromFeesButton()}
+              {renderCurrentFeesDraftCta()}
               {renderCompleteDraftAction(agreement ?? specialAgreement ?? null)}
               <button
                 type="button"
@@ -547,16 +729,18 @@ export function StudentFinancialAgreementTab({
                 <p>{t('admin.student360.financeWorkspace.inactiveAgreementReference.requiresReviewWarning')}</p>
               </div>
             ) : null}
-            {existingCurrentFeesDraft ? (
+            {existingCurrentFeesDraft && !orphanCurrentFeesDraftId ? (
               <p className="tiny muted">
                 {t('admin.student360.financialAgreement.fromFees.errors.draftAlreadyExists')}{' '}
                 {t('admin.student360.financialAgreement.fromFees.errors.draftAlreadyExistsHint')}{' '}
                 <span className="mono">#{existingCurrentFeesDraft.id}</span>
               </p>
             ) : null}
-            <div className="row">{renderCreateFromFeesButton()}</div>
+            <div className="row">{renderCurrentFeesDraftCta()}</div>
           </Card>
         ) : null}
+
+        {renderCurrentFeesDraftReviewPanel()}
 
         {!billingContext.inactiveAgreement ? (
         <Student360CompactEmpty
@@ -580,7 +764,7 @@ export function StudentFinancialAgreementTab({
                 <button type="button" className="btn btn--primary btn--sm" onClick={() => setShowFromFees(true)}>
                   {t('admin.student360.financialAgreement.fromFees.createButton')}
                 </button>
-              ) : renderCreateFromFeesButton()}
+              ) : renderCurrentFeesDraftCta()}
             </div>
           }
         />
@@ -598,7 +782,7 @@ export function StudentFinancialAgreementTab({
             >
               {t('admin.student360.financialAgreement.openPaymentSchedule')}
             </Link>
-            {renderCreateFromFeesButton()}
+            {renderCurrentFeesDraftCta()}
           </div>
         )}
 
@@ -687,7 +871,7 @@ export function StudentFinancialAgreementTab({
           <Student360SectionHeader title={t('admin.student360.financialAgreement.incompleteDraftTitle')} />
           <p>{t('admin.student360.financialAgreement.incompleteDraftDesc')}</p>
           <div className="row">
-            {renderCreateFromFeesButton()}
+            {renderCurrentFeesDraftCta()}
             {renderCompleteDraftAction(activeAgreement)}
             <button
               type="button"
@@ -1242,7 +1426,7 @@ export function StudentFinancialAgreementTab({
         body={pendingConfirm?.body ?? ''}
         loading={actionLoading != null}
         onConfirm={() => {
-          if (pendingConfirm) void runAction(pendingConfirm.action);
+          if (pendingConfirm) void runAction(pendingConfirm.action, pendingConfirm.agreementId);
         }}
         onClose={() => setPendingConfirm(null)}
       />

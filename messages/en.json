@@ -2810,6 +2810,19 @@
         "warnings": "Warnings",
         "blockingIssues": "Blocking issues"
       },
+      "registration": {
+        "continueButton": "Continue student registration",
+        "linkedTitle": "Admission linked to student",
+        "linkedDescription": "Open the student profile to continue.",
+        "openStudentProfile": "Open student profile",
+        "readinessWarning": "There are readiness warnings or blocking issues — review the data before saving.",
+        "prefillBannerTitle": "This registration is prefilled from admission {reference}",
+        "prefillBannerDescription": "Review the data before saving.",
+        "prefillDecision": "Decision",
+        "prefillOfferState": "Offer state",
+        "success": "Student created and linked to the admission request.",
+        "linkFailed": "Student was created, but linking to the admission request failed. Open the student profile to continue."
+      },
       "errors": {
         "notFound": "Admission request not found."
       }
@@ -3970,6 +3983,10 @@
           "title": "Create agreement from current fees",
           "description": "Creates a draft agreement from currently applied fees without duplicating charges.",
           "createButton": "Create agreement from current fees",
+          "reviewDraftButton": "Review draft agreement #{id}",
+          "completeApprovalWorkflow": "Complete agreement approval workflow",
+          "currentFeesDraftPanelTitle": "Draft agreement from current fees",
+          "currentFeesDraftPanelDesc": "This draft is built from recorded fees and installments. Complete the approval workflow to activate the financial agreement.",
           "agreementTitle": "Agreement title",
           "includeFees": "Fees to include",
           "submit": "Create draft",
