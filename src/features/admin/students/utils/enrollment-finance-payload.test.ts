@@ -217,7 +217,37 @@ describe('buildStudentCreateFinancePayload', () => {
     expect(formatCustomizationReason('special_discount', t)).toBe('تخفيض خاص');
   });
 
-  it('includes fixed_amount discount on registration line', () => {
+  it('normalizes near-integer percent discounts in payload', () => {
+    const payload = buildStudentCreateFinancePayload(2461, periods, {
+      ...baseState,
+      lineDiscounts: {
+        '2904': {
+          enabled: true,
+          type: 'percent',
+          value: '39.98',
+          reason: 'scholarship',
+        },
+      },
+    });
+    expect(payload.discounts?.[0]?.value).toBe(40);
+  });
+
+  it('keeps fractional percent discounts in payload', () => {
+    const payload = buildStudentCreateFinancePayload(2461, periods, {
+      ...baseState,
+      lineDiscounts: {
+        '2904': {
+          enabled: true,
+          type: 'percent',
+          value: '37.5',
+          reason: 'scholarship',
+        },
+      },
+    });
+    expect(payload.discounts?.[0]?.value).toBe(37.5);
+  });
+
+  it('does not alter fixed_amount discount values', () => {
     const payload = buildStudentCreateFinancePayload(2461, periods, {
       ...baseState,
       lineDiscounts: {

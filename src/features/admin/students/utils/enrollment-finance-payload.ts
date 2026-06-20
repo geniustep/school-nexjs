@@ -9,6 +9,7 @@ import type {
   StudentCreateFinancePayload,
   StudentCreateFinancePeriodPayload,
 } from '@/types/student-enrollment-finance';
+import { parseDiscountPayloadValue } from './normalize-discount-percent';
 
 const EMPTY_DISCOUNT: StudentCreateFinanceFormState['planDiscount'] = {
   enabled: false,
@@ -195,7 +196,10 @@ function buildDiscountPayloads(
   const generalReason = financeState.customizationReason.trim();
 
   if (financeState.planDiscount.enabled && financeState.planDiscount.type) {
-    const value = parseOptionalAmount(financeState.planDiscount.value);
+    const value = parseDiscountPayloadValue(
+      financeState.planDiscount.type,
+      financeState.planDiscount.value,
+    );
     const reason = resolveDiscountReason(financeState.planDiscount.reason, generalReason);
     if (value != null && reason) {
       discounts.push({
@@ -209,7 +213,7 @@ function buildDiscountPayloads(
 
   for (const [lineId, discount] of Object.entries(financeState.lineDiscounts)) {
     if (!discount.enabled || !discount.type) continue;
-    const value = parseOptionalAmount(discount.value);
+    const value = parseDiscountPayloadValue(discount.type, discount.value);
     if (value == null) continue;
     const reason = resolveDiscountReason(discount.reason, generalReason);
     if (!reason) continue;

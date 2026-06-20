@@ -160,6 +160,27 @@ describe('listEnrollmentReviewCustomizationItems', () => {
     expect(items.some((item) => item.kind === 'period_excluded')).toBe(true);
   });
 
+  it('displays normalized percent values in review labels', () => {
+    const financeState: StudentCreateFinanceFormState = {
+      ...defaultStudentCreateFinanceFormState(suggest),
+      customizePlan: true,
+      customizationReason: 'scholarship',
+      lineDiscounts: {
+        ...defaultStudentCreateFinanceFormState(suggest).lineDiscounts,
+        '2904': {
+          enabled: true,
+          type: 'percent',
+          value: '39.98',
+          reason: 'scholarship',
+        },
+      },
+    };
+    const items = listEnrollmentReviewCustomizationItems(suggest, financeState);
+    const lineItem = items.find((item) => item.kind === 'line_discount');
+    expect(lineItem?.label).toContain('40%');
+    expect(lineItem?.label).not.toContain('39.98%');
+  });
+
   it('lists percent and fixed line discounts distinctly', () => {
     const financeState: StudentCreateFinanceFormState = {
       ...defaultStudentCreateFinanceFormState(suggest),

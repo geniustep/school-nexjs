@@ -10,6 +10,7 @@ import {
   resolveExpectedMonthlyDueAmount,
   resolveFinanceSuggestedPeriods,
 } from './enrollment-finance-payload';
+import { formatDiscountPercentDisplay } from './normalize-discount-percent';
 
 export type EnrollmentFinanceSaveBlockReason =
   | 'ok'
@@ -74,7 +75,8 @@ function discountLabel(
   lineLabel?: string,
   formatReason?: (reason: string) => string,
 ): string {
-  const valueText = type === 'percent' ? `${value}%` : value;
+  const valueText =
+    type === 'percent' ? `${formatDiscountPercentDisplay(value)}%` : value;
   const target = lineLabel ? `${lineLabel} — ` : '';
   const reasonText = formatReason ? formatReason(reason) : reason;
   return `${target}${valueText} (${reasonText})`;

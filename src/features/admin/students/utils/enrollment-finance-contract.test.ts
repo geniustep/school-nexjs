@@ -123,4 +123,34 @@ describe('buildEnrollmentPlanPreviewBody', () => {
       discounts: body.discounts,
     });
   });
+
+  it('preview and save payloads share normalized percent discount values', () => {
+    const suggest = normalizeFeePlanSuggestResponse(suggestPayload);
+    const financeState: StudentCreateFinanceFormState = {
+      ...defaultStudentCreateFinanceFormState(suggest),
+      customizePlan: true,
+      customizationReason: 'scholarship',
+      lineDiscounts: {
+        ...defaultStudentCreateFinanceFormState(suggest).lineDiscounts,
+        '2904': {
+          enabled: true,
+          type: 'percent',
+          value: '39.98',
+          reason: 'scholarship',
+        },
+      },
+    };
+    const profile = {
+      ...defaultStudentProfileFormState(null),
+      academicYearId: '1',
+      levelId: '2446',
+      actualJoinDate: '2026-09-05',
+    };
+    const previewBody = buildEnrollmentPlanPreviewBody(profile, 3, suggest!, financeState);
+    const savePayload = buildStudentCreateFinancePayload(suggest!, financeState);
+    expect(previewBody.discounts).toEqual(savePayload.discounts);
+    expect(previewBody.discounts).toEqual([
+      { scope: 'line', line_id: 2904, type: 'percent', value: 40, reason: 'scholarship' },
+    ]);
+  });
 });

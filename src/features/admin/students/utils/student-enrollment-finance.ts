@@ -28,6 +28,11 @@ export {
   resolveDiscountReason,
   resolveFinanceSuggestedPeriods,
 } from './enrollment-finance-payload';
+export {
+  formatDiscountPercentDisplay,
+  normalizeDiscountPercentInput,
+  parseDiscountPayloadValue,
+} from './normalize-discount-percent';
 
 export function canRequestFeePlanSuggest(input: {
   schoolId: number | null;
