@@ -17,6 +17,7 @@ import { resolveStudentFinanceCurrency } from '../utils/resolve-student-finance-
 import type { StudentInstallment } from '../types';
 import { formatPeriodRange } from '../utils/format-period';
 import {
+  computeScheduleSummaryCounts,
   hasInstallmentPendingChequeCoverage,
   isInstallmentOverdueForSummary,
   isInstallmentPaidForSummary,
@@ -76,7 +77,7 @@ export function StudentFinanceSchedulePanel({
   const query = useMemo(
     () => ({
       page,
-      page_size: 20,
+      page_size: 100,
       academic_year_id: Number(effectiveYearId),
       payment_status: paymentStatus || undefined,
       timing_status: timingStatus || undefined,
@@ -97,24 +98,15 @@ export function StudentFinanceSchedulePanel({
 
   const scheduleSummary = useMemo(() => {
     const rows = installmentsState.data;
-    let paid = 0;
-    let due = 0;
-    let overdue = 0;
-    let upcoming = 0;
-    for (const row of rows) {
-      if (isInstallmentPaidForSummary(row)) paid += 1;
-      else if (isInstallmentOverdueForSummary(row)) overdue += 1;
-      else if (row.timing_status === 'due' && !hasInstallmentPendingChequeCoverage(row)) due += 1;
-      else if (isInstallmentUpcomingForSummary(row)) upcoming += 1;
-    }
+    const counts = computeScheduleSummaryCounts(rows, canCollect);
     return {
       total: summary?.total_count ?? rows.length,
-      paid,
-      due,
-      overdue,
-      upcoming,
+      paid: counts.paid,
+      due: counts.dueNow,
+      overdue: counts.overdue,
+      upcoming: counts.upcoming,
     };
-  }, [installmentsState.data, summary?.total_count]);
+  }, [installmentsState.data, summary?.total_count, canCollect]);
 
   const columns: Column<StudentInstallment>[] = useMemo(
     () => [
@@ -276,8 +268,8 @@ export function StudentFinanceSchedulePanel({
           <div className="student-finance-table-wrap">
             <DataTable columns={columns} rows={installmentsState.data} rowKey={(row) => row.id} />
           </div>
-          {installmentsState.data.length >= 20 ? (
-            <Pagination page={page} totalPages={page + 1} total={page * 20} onPage={setPage} />
+          {installmentsState.data.length >= 100 ? (
+            <Pagination page={page} totalPages={page + 1} total={page * 100} onPage={setPage} />
           ) : null}
         </>
       ) : null}

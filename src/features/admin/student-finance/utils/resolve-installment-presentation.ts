@@ -61,3 +61,72 @@ export function isInstallmentPaidForSummary(row: StudentInstallment): boolean {
   const remaining = row.remaining_amount ?? 0;
   return paid > 0 && remaining <= 0 && row.payment_status === 'paid';
 }
+
+export interface ScheduleSummaryContext {
+  canCollect: boolean;
+  minUnpaidSequence: number | null;
+}
+
+/** Lowest unpaid installment sequence in the schedule — used for admin due-now classification. */
+export function resolveMinUnpaidInstallmentSequence(rows: StudentInstallment[]): number | null {
+  let min: number | null = null;
+  for (const row of rows) {
+    if (isInstallmentPaidForSummary(row)) continue;
+    if ((row.remaining_amount ?? 0) <= 0) continue;
+    if (hasInstallmentPendingChequeCoverage(row)) continue;
+    const seq = row.sequence;
+    if (seq == null) continue;
+    if (min == null || seq < min) min = seq;
+  }
+  return min;
+}
+
+/**
+ * Admin schedule summary: collectible now — explicit `due`, or hidden first tranche
+ * (e.g. registration) when collect is allowed despite parent-portal timing.
+ */
+export function isInstallmentDueNowForSummary(
+  row: StudentInstallment,
+  ctx: ScheduleSummaryContext,
+): boolean {
+  if (isInstallmentPaidForSummary(row)) return false;
+  if (isInstallmentOverdueForSummary(row)) return false;
+  if (hasInstallmentPendingChequeCoverage(row)) return false;
+  if ((row.remaining_amount ?? 0) <= 0) return false;
+
+  const timing = row.timing_status;
+  if (timing === 'due') return true;
+
+  if (
+    ctx.canCollect &&
+    timing === 'hidden' &&
+    ctx.minUnpaidSequence != null &&
+    row.sequence === ctx.minUnpaidSequence &&
+    row.allowed_actions?.collect === true
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+export function computeScheduleSummaryCounts(
+  rows: StudentInstallment[],
+  canCollect: boolean,
+): { paid: number; dueNow: number; overdue: number; upcoming: number } {
+  const ctx: ScheduleSummaryContext = {
+    canCollect,
+    minUnpaidSequence: resolveMinUnpaidInstallmentSequence(rows),
+  };
+  let paid = 0;
+  let dueNow = 0;
+  let overdue = 0;
+  let upcoming = 0;
+  for (const row of rows) {
+    if (isInstallmentPaidForSummary(row)) paid += 1;
+    else if (isInstallmentOverdueForSummary(row)) overdue += 1;
+    else if (isInstallmentDueNowForSummary(row, ctx)) dueNow += 1;
+    else if (isInstallmentUpcomingForSummary(row)) upcoming += 1;
+  }
+  return { paid, dueNow, overdue, upcoming };
+}

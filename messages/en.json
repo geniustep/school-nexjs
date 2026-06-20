@@ -4134,7 +4134,7 @@
           "summary": {
             "total": "Installments",
             "paid": "Paid",
-            "due": "Due",
+            "due": "Due now",
             "overdue": "Overdue",
             "upcoming": "Not yet due"
           },
