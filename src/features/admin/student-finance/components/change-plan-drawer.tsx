@@ -505,14 +505,14 @@ export function ChangePlanDrawer({
             {preview.blockingReasons.length ? (
               <ul className="student-finance-change-plan-blockers">
                 {preview.blockingReasons.map((reason) => (
-                  <li key={reason}>{reason}</li>
+                  <li key={reason}>{resolveChangePlanErrorMessage(reason, undefined, t)}</li>
                 ))}
               </ul>
             ) : null}
             {preview.warnings.length ? (
               <ul className="student-finance-change-plan-warnings">
                 {preview.warnings.map((warning) => (
-                  <li key={warning}>{warning}</li>
+                  <li key={warning}>{resolveChangePlanErrorMessage(warning, undefined, t)}</li>
                 ))}
               </ul>
             ) : null}
