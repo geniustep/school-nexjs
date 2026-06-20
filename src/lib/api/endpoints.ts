@@ -228,6 +228,10 @@ export const endpoints = {
       `/admin/finance/students/${studentId}/assign-fee-plan`,
     financeBillingProfile: (studentId: number | string) =>
       `/admin/finance/students/${studentId}/billing-profile`,
+    financeStudentChangePlanPreview: (studentId: number | string) =>
+      `/admin/students/${studentId}/finance/change-plan/preview`,
+    financeStudentChangePlanApply: (studentId: number | string) =>
+      `/admin/students/${studentId}/finance/change-plan/apply`,
     financePaymentCollections: '/admin/finance/payment-collections',
     financePaymentCollection: (id: number | string) => `/admin/finance/payment-collections/${id}`,
     financePaymentCollectionConfirm: (id: number | string) =>

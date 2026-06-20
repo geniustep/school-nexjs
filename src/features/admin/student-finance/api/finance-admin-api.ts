@@ -16,6 +16,7 @@ import type {
   StudentInstallment,
   UpdateFinancialAgreementPayload,
 } from '../types';
+import type { ChangePlanPayload } from '@/types/student-finance-change-plan';
 import type { CancelFutureTargetState } from '../utils/cancel-future-validation';
 
 export async function fetchStudentFinanceWorkspace(
@@ -189,4 +190,28 @@ export async function fetchFinanceServiceTariffs(
   query?: ListParams,
 ): Promise<ApiResponse<FinanceServiceTariff[]>> {
   return api.get<FinanceServiceTariff[]>(endpoints.admin.financeServiceTariffs, query);
+}
+
+export async function previewStudentChangePlan(
+  studentId: number | string,
+  payload: ChangePlanPayload,
+  query?: ListParams,
+): Promise<ApiResponse<unknown>> {
+  return api.post<unknown>(
+    endpoints.admin.financeStudentChangePlanPreview(studentId),
+    payload,
+    query,
+  );
+}
+
+export async function applyStudentChangePlan(
+  studentId: number | string,
+  payload: ChangePlanPayload,
+  query?: ListParams,
+): Promise<ApiResponse<unknown>> {
+  return api.post<unknown>(
+    endpoints.admin.financeStudentChangePlanApply(studentId),
+    payload,
+    query,
+  );
 }

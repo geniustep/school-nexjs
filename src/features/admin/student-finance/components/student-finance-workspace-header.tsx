@@ -17,6 +17,10 @@ export function StudentFinanceWorkspaceHeader({
   onOpenSchedule,
   onOpenAgreements,
   onRecordPayment,
+  showReplaceIfUnpaid,
+  showSocialDiscount,
+  onOpenReplacePlan,
+  onOpenSocialDiscount,
 }: {
   studentId: number;
   academicYears: { id: number; name: string }[];
@@ -29,13 +33,23 @@ export function StudentFinanceWorkspaceHeader({
   onOpenSchedule: () => void;
   onOpenAgreements: () => void;
   onRecordPayment: () => void;
+  showReplaceIfUnpaid?: boolean;
+  showSocialDiscount?: boolean;
+  onOpenReplacePlan?: () => void;
+  onOpenSocialDiscount?: () => void;
 }) {
   const t = useT();
 
   const showSchedule = subTab !== 'schedule' && subTab !== 'agreements';
   const showAgreement = subTab !== 'agreements';
   const showCollect = canCollect && subTab !== 'agreements' && subTab !== 'ledger';
-  const hasActions = showSchedule || showAgreement || showCollect || !!billingPartnerId;
+  const hasActions =
+    showSchedule ||
+    showAgreement ||
+    showCollect ||
+    !!billingPartnerId ||
+    showReplaceIfUnpaid ||
+    showSocialDiscount;
 
   return (
     <header className="student-finance-command-bar">
@@ -120,6 +134,24 @@ export function StudentFinanceWorkspaceHeader({
               >
                 <span aria-hidden="true">✎</span>
                 {t('admin.student360.financeWorkspace.actions.manageAgreement')}
+              </button>
+            ) : null}
+            {showReplaceIfUnpaid ? (
+              <button
+                type="button"
+                className="student-finance-command-bar__btn student-finance-command-bar__btn--ghost"
+                onClick={onOpenReplacePlan}
+              >
+                {t('admin.student360.financeWorkspace.changePlan.replace.action')}
+              </button>
+            ) : null}
+            {showSocialDiscount ? (
+              <button
+                type="button"
+                className="student-finance-command-bar__btn student-finance-command-bar__btn--ghost"
+                onClick={onOpenSocialDiscount}
+              >
+                {t('admin.student360.financeWorkspace.changePlan.social.action')}
               </button>
             ) : null}
             {showCollect ? (

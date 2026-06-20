@@ -4036,6 +4036,103 @@
           "recordPayment": "Enregistrer un paiement",
           "manageAgreement": "Gérer l'accord financier"
         },
+        "changePlan": {
+          "previewAction": "Aperçu de l'impact",
+          "applyAction": "Appliquer le changement",
+          "previewTitle": "Résultat de l'aperçu",
+          "applySuccess": "Finances de l'élève mises à jour.",
+          "replace": {
+            "action": "Changer le plan tarifaire",
+            "title": "Changer le plan tarifaire",
+            "description": "À utiliser lorsqu'aucun paiement ni reçu n'a encore été enregistré.",
+            "fields": {
+              "feePlan": "Nouveau plan tarifaire",
+              "reason": "Motif du changement",
+              "activationMode": "Activer l'accord immédiatement ?",
+              "confirmReplace": "Confirmer le remplacement de l'accord actuel"
+            },
+            "activation": {
+              "activate": "Oui — activer maintenant",
+              "draft": "Non — brouillon"
+            },
+            "errors": {
+              "feePlanRequired": "Sélectionnez un plan tarifaire.",
+              "reasonRequired": "Indiquez le motif du changement.",
+              "confirmRequired": "Confirmez le remplacement avant d'appliquer."
+            }
+          },
+          "social": {
+            "action": "Appliquer une remise sociale",
+            "title": "Appliquer une remise sociale",
+            "description": "S'applique uniquement aux échéances futures non payées.",
+            "preservedWarning": "Les périodes passées restent inchangées.",
+            "noPastChangesWarning": "Avertissement : les reçus et paiements passés ne changeront pas.",
+            "fields": {
+              "effectiveDate": "Date de début de la remise",
+              "feeType": "Type de frais",
+              "discountType": "Type de remise",
+              "discountValue": "Valeur de la remise",
+              "periodEnd": "Dernière période concernée",
+              "reasonNote": "Note du motif"
+            },
+            "feeTypes": {
+              "tuition": "Scolarité",
+              "transport": "Transport"
+            },
+            "discountTypes": {
+              "percent": "Pourcentage",
+              "amount": "Montant"
+            },
+            "errors": {
+              "effectiveDateRequired": "La date de début est requise.",
+              "reasonNoteRequired": "La note du motif est requise.",
+              "discountRequired": "Indiquez la valeur de la remise.",
+              "periodsRequired": "Sélectionnez les périodes concernées."
+            }
+          },
+          "preview": {
+            "currentAgreement": "Accord actuel",
+            "currentFeePlan": "Plan actuel",
+            "newFeePlan": "Nouveau plan",
+            "canApply": "Peut-on appliquer ?",
+            "willAmendCurrent": "Modifier l'accord actuel",
+            "willCreateNew": "Créer un nouvel accord",
+            "newAgreementState": "État du nouvel accord",
+            "preservedPeriods": "Périodes conservées",
+            "affectedPeriods": "Périodes concernées",
+            "oldAmount": "Montant précédent",
+            "newAmount": "Nouveau montant",
+            "discountAmount": "Montant de la remise"
+          },
+          "applyConfirm": {
+            "title": "Confirmer l'application",
+            "body": "Ce changement sera appliqué. Les paiements et reçus passés ne changeront pas. Continuer ?"
+          },
+          "errors": {
+            "generic": "Impossible de terminer l'opération.",
+            "cannotApply": "Ce changement ne peut pas être appliqué.",
+            "noActiveAgreement": "Aucun accord financier actif.",
+            "effectiveDateRequired": "La date de début est requise.",
+            "effectiveDateOutsideAcademicYear": "La date est hors année scolaire.",
+            "affectedPeriodsRequired": "Sélectionnez les périodes concernées.",
+            "socialCaseReasonRequired": "La note du motif est requise.",
+            "confirmReplaceRequired": "Confirmez le remplacement de l'accord.",
+            "confirmFinancialImpactRequired": "Confirmez l'impact financier.",
+            "sameFeePlanNoDiscount": "Même plan sans remise.",
+            "feePlanNotAssignable": "Plan non assignable.",
+            "feeTypeNotInAgreement": "Type de frais absent de l'accord.",
+            "noFuturePeriodsToAffect": "Aucune période future à affecter.",
+            "planChangeBlockedByPayments": "Plan non modifiable après paiements.",
+            "planChangeBlockedByReceipts": "Plan non modifiable après reçus.",
+            "planChangeBlockedByPendingCheques": "Chèques en attente : réglez-les d'abord.",
+            "agreementChangeForbidden": "Pas de permission pour changer le plan.",
+            "agreementActivationForbidden": "Pas de permission pour activer l'accord.",
+            "discountExceedsRemaining": "La remise dépasse le montant restant.",
+            "agreementTotalsMismatch": "Totaux de l'accord incohérents.",
+            "forbidden": "Interdit.",
+            "unauthorized": "Non autorisé."
+          }
+        },
         "executive": {
           "title": "Résumé financier exécutif",
           "netAssessed": "Net dû",

@@ -4036,6 +4036,103 @@
           "recordPayment": "Record payment",
           "manageAgreement": "Manage financial agreement"
         },
+        "changePlan": {
+          "previewAction": "Preview impact",
+          "applyAction": "Apply change",
+          "previewTitle": "Preview result",
+          "applySuccess": "Student finance updated successfully.",
+          "replace": {
+            "action": "Change fee plan",
+            "title": "Change fee plan",
+            "description": "Use when no payments or receipts have been recorded yet. The current agreement will be replaced with a new one.",
+            "fields": {
+              "feePlan": "New fee plan",
+              "reason": "Change reason",
+              "activationMode": "Activate agreement immediately?",
+              "confirmReplace": "Confirm replacing current agreement"
+            },
+            "activation": {
+              "activate": "Yes — activate now",
+              "draft": "No — keep as draft"
+            },
+            "errors": {
+              "feePlanRequired": "Select a new fee plan.",
+              "reasonRequired": "Enter a change reason.",
+              "confirmRequired": "Confirm replacing the current agreement before applying."
+            }
+          },
+          "social": {
+            "action": "Apply social discount",
+            "title": "Apply social discount",
+            "description": "Applies only to future unpaid installments. Paid installments and past receipts will not change.",
+            "preservedWarning": "Past periods and payments remain unchanged.",
+            "noPastChangesWarning": "Warning: past receipts and payments will not change.",
+            "fields": {
+              "effectiveDate": "Discount start date",
+              "feeType": "Fee type",
+              "discountType": "Discount type",
+              "discountValue": "Discount value",
+              "periodEnd": "Last affected period",
+              "reasonNote": "Reason note"
+            },
+            "feeTypes": {
+              "tuition": "Tuition",
+              "transport": "Transport"
+            },
+            "discountTypes": {
+              "percent": "Percent",
+              "amount": "Amount"
+            },
+            "errors": {
+              "effectiveDateRequired": "Discount start date is required.",
+              "reasonNoteRequired": "Reason note is required for a social case.",
+              "discountRequired": "Enter a discount value.",
+              "periodsRequired": "Select affected periods."
+            }
+          },
+          "preview": {
+            "currentAgreement": "Current agreement",
+            "currentFeePlan": "Current fee plan",
+            "newFeePlan": "New fee plan",
+            "canApply": "Can apply?",
+            "willAmendCurrent": "Amend current agreement",
+            "willCreateNew": "Create new agreement",
+            "newAgreementState": "New agreement state",
+            "preservedPeriods": "Preserved periods",
+            "affectedPeriods": "Affected periods",
+            "oldAmount": "Previous amount",
+            "newAmount": "New amount",
+            "discountAmount": "Discount amount"
+          },
+          "applyConfirm": {
+            "title": "Confirm applying change",
+            "body": "This change will be applied to the student's finance. Past payments and receipts will not change. Continue?"
+          },
+          "errors": {
+            "generic": "Unable to complete this operation.",
+            "cannotApply": "This change cannot be applied based on the current preview.",
+            "noActiveAgreement": "No active financial agreement for this student.",
+            "effectiveDateRequired": "Discount start date is required.",
+            "effectiveDateOutsideAcademicYear": "Discount start date is outside the academic year.",
+            "affectedPeriodsRequired": "Select affected periods.",
+            "socialCaseReasonRequired": "Reason note is required for a social case.",
+            "confirmReplaceRequired": "You must confirm replacing the current agreement.",
+            "confirmFinancialImpactRequired": "You must confirm the financial impact before applying.",
+            "sameFeePlanNoDiscount": "Selected plan matches the current plan with no discount.",
+            "feePlanNotAssignable": "Selected fee plan is not assignable.",
+            "feeTypeNotInAgreement": "Fee type is not in the current agreement.",
+            "noFuturePeriodsToAffect": "No future periods are available for this discount.",
+            "planChangeBlockedByPayments": "Plan cannot be changed after payments exist.",
+            "planChangeBlockedByReceipts": "Plan cannot be changed after receipts exist.",
+            "planChangeBlockedByPendingCheques": "Pending cheques are linked to affected periods. Settle them first.",
+            "agreementChangeForbidden": "You do not have permission to change the fee plan.",
+            "agreementActivationForbidden": "You do not have permission to activate the new agreement.",
+            "discountExceedsRemaining": "Discount exceeds remaining amount in selected periods.",
+            "agreementTotalsMismatch": "Agreement totals could not be reconciled after the change.",
+            "forbidden": "You do not have permission to perform this action.",
+            "unauthorized": "You do not have permission to apply a social discount."
+          }
+        },
         "executive": {
           "title": "Executive financial summary",
           "netAssessed": "Net assessed",

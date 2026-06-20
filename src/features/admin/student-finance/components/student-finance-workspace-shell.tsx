@@ -45,6 +45,9 @@ import { StudentFinanceLedgerPanel } from './student-finance-ledger-panel';
 import { StudentFinancialAgreementTab } from './student-financial-agreement-tab';
 import { subscribeFinanceRefresh } from '@/lib/finance/finance-refresh-bus';
 import { postAgreementAction } from '../api/finance-admin-api';
+import { ChangePlanDrawer } from './change-plan-drawer';
+import { resolveChangePlanVisibility } from '../utils/resolve-change-plan-visibility';
+import type { ChangePlanMode } from '@/types/student-finance-change-plan';
 import { useToast } from '@/components/ui/toast';
 
 const FINANCE_TAB_GROUPS: { tabs: StudentFinanceSubTab[]; dividerAfter?: boolean }[] = [
@@ -91,6 +94,7 @@ export function StudentFinanceWorkspaceShell({
   const [showCollectionDrawer, setShowCollectionDrawer] = useState(false);
   const [financeRefreshSignal, setFinanceRefreshSignal] = useState(0);
   const [draftSubmitLoading, setDraftSubmitLoading] = useState(false);
+  const [changePlanMode, setChangePlanMode] = useState<ChangePlanMode | null>(null);
 
   const {
     refState,
@@ -193,6 +197,17 @@ export function StudentFinanceWorkspaceShell({
 
   const billingPartnerId = workspace?.finance_profile?.billing_partner?.id ?? null;
 
+  const changePlanVisibility = useMemo(
+    () =>
+      resolveChangePlanVisibility({
+        agreementState: workspace?.current_agreement?.state,
+        allowedActions: workspace?.current_agreement?.allowed_actions ?? workspace?.allowed_actions,
+        studentCapabilities: capabilities,
+        financeCapabilities: financeCaps ?? null,
+      }),
+    [workspace?.current_agreement, workspace?.allowed_actions, capabilities, financeCaps],
+  );
+
   const workspaceHeader = (
     <StudentFinanceWorkspaceHeader
       studentId={studentId}
@@ -206,6 +221,10 @@ export function StudentFinanceWorkspaceShell({
       onOpenSchedule={() => syncSubTabToUrl('schedule')}
       onOpenAgreements={() => syncSubTabToUrl('agreements')}
       onRecordPayment={() => setShowCollectionDrawer(true)}
+      showReplaceIfUnpaid={changePlanVisibility.showReplaceIfUnpaid}
+      showSocialDiscount={changePlanVisibility.showSocialDiscount}
+      onOpenReplacePlan={() => setChangePlanMode('replace_if_unpaid')}
+      onOpenSocialDiscount={() => setChangePlanMode('social_discount_on_future_installments')}
     />
   );
 
@@ -373,6 +392,18 @@ export function StudentFinanceWorkspaceShell({
         onSuccess={refreshFinanceData}
         onOverviewUpdate={handleCollectionOverviewPatch}
       />
+
+      {changePlanMode ? (
+        <ChangePlanDrawer
+          open
+          mode={changePlanMode}
+          studentId={studentId}
+          academicYearId={effectiveYearId}
+          levelId={details.student.level?.id ?? null}
+          onClose={() => setChangePlanMode(null)}
+          onSuccess={refreshFinanceData}
+        />
+      ) : null}
     </div>
   );
 }

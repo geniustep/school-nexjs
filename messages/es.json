@@ -4036,6 +4036,103 @@
           "recordPayment": "Registrar pago",
           "manageAgreement": "Gestionar acuerdo financiero"
         },
+        "changePlan": {
+          "previewAction": "Vista previa del impacto",
+          "applyAction": "Aplicar cambio",
+          "previewTitle": "Resultado de la vista previa",
+          "applySuccess": "Finanzas del alumno actualizadas correctamente.",
+          "replace": {
+            "action": "Cambiar plan de tarifas",
+            "title": "Cambiar plan de tarifas",
+            "description": "Úselo cuando aún no haya pagos ni recibos registrados.",
+            "fields": {
+              "feePlan": "Nuevo plan de tarifas",
+              "reason": "Motivo del cambio",
+              "activationMode": "¿Activar el acuerdo de inmediato?",
+              "confirmReplace": "Confirmar sustitución del acuerdo actual"
+            },
+            "activation": {
+              "activate": "Sí — activar ahora",
+              "draft": "No — borrador"
+            },
+            "errors": {
+              "feePlanRequired": "Seleccione un plan de tarifas.",
+              "reasonRequired": "Indique el motivo del cambio.",
+              "confirmRequired": "Confirme la sustitución antes de aplicar."
+            }
+          },
+          "social": {
+            "action": "Aplicar descuento social",
+            "title": "Aplicar descuento social",
+            "description": "Solo afecta a cuotas futuras no pagadas.",
+            "preservedWarning": "Los periodos anteriores permanecen sin cambios.",
+            "noPastChangesWarning": "Aviso: los recibos y pagos anteriores no cambiarán.",
+            "fields": {
+              "effectiveDate": "Fecha de inicio del descuento",
+              "feeType": "Tipo de tarifa",
+              "discountType": "Tipo de descuento",
+              "discountValue": "Valor del descuento",
+              "periodEnd": "Último periodo afectado",
+              "reasonNote": "Nota del motivo"
+            },
+            "feeTypes": {
+              "tuition": "Matrícula",
+              "transport": "Transporte"
+            },
+            "discountTypes": {
+              "percent": "Porcentaje",
+              "amount": "Importe"
+            },
+            "errors": {
+              "effectiveDateRequired": "La fecha de inicio es obligatoria.",
+              "reasonNoteRequired": "La nota del motivo es obligatoria.",
+              "discountRequired": "Indique el valor del descuento.",
+              "periodsRequired": "Seleccione los periodos afectados."
+            }
+          },
+          "preview": {
+            "currentAgreement": "Acuerdo actual",
+            "currentFeePlan": "Plan actual",
+            "newFeePlan": "Plan nuevo",
+            "canApply": "¿Se puede aplicar?",
+            "willAmendCurrent": "Modificar acuerdo actual",
+            "willCreateNew": "Crear acuerdo nuevo",
+            "newAgreementState": "Estado del acuerdo nuevo",
+            "preservedPeriods": "Periodos conservados",
+            "affectedPeriods": "Periodos afectados",
+            "oldAmount": "Importe anterior",
+            "newAmount": "Importe nuevo",
+            "discountAmount": "Importe del descuento"
+          },
+          "applyConfirm": {
+            "title": "Confirmar aplicación",
+            "body": "Se aplicará el cambio. Los pagos y recibos anteriores no cambiarán. ¿Continuar?"
+          },
+          "errors": {
+            "generic": "No se pudo completar la operación.",
+            "cannotApply": "No se puede aplicar este cambio.",
+            "noActiveAgreement": "No hay acuerdo financiero activo.",
+            "effectiveDateRequired": "La fecha de inicio es obligatoria.",
+            "effectiveDateOutsideAcademicYear": "La fecha está fuera del año académico.",
+            "affectedPeriodsRequired": "Seleccione periodos afectados.",
+            "socialCaseReasonRequired": "La nota del motivo es obligatoria.",
+            "confirmReplaceRequired": "Confirme la sustitución del acuerdo.",
+            "confirmFinancialImpactRequired": "Confirme el impacto financiero.",
+            "sameFeePlanNoDiscount": "El plan es el mismo sin descuento.",
+            "feePlanNotAssignable": "El plan no es asignable.",
+            "feeTypeNotInAgreement": "El tipo de tarifa no está en el acuerdo.",
+            "noFuturePeriodsToAffect": "No hay periodos futuros que afectar.",
+            "planChangeBlockedByPayments": "No se puede cambiar el plan tras pagos.",
+            "planChangeBlockedByReceipts": "No se puede cambiar el plan tras recibos.",
+            "planChangeBlockedByPendingCheques": "Hay cheques pendientes. Liquídelos primero.",
+            "agreementChangeForbidden": "Sin permiso para cambiar el plan.",
+            "agreementActivationForbidden": "Sin permiso para activar el acuerdo.",
+            "discountExceedsRemaining": "El descuento supera el importe restante.",
+            "agreementTotalsMismatch": "Los totales del acuerdo no coinciden.",
+            "forbidden": "Acción prohibida.",
+            "unauthorized": "No autorizado."
+          }
+        },
         "executive": {
           "title": "Resumen financiero ejecutivo",
           "netAssessed": "Neto adeudado",

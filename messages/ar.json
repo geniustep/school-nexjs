@@ -4072,6 +4072,103 @@
           "recordPayment": "تسجيل دفعة",
           "manageAgreement": "إدارة الاتفاق المالي"
         },
+        "changePlan": {
+          "previewAction": "معاينة الأثر",
+          "applyAction": "تطبيق التغيير",
+          "previewTitle": "نتيجة المعاينة",
+          "applySuccess": "تم تحديث مالية التلميذ بنجاح.",
+          "replace": {
+            "action": "تغيير الخطة المالية",
+            "title": "تغيير الخطة المالية",
+            "description": "يُستخدم هذا الخيار عندما لم يتم تسجيل أي دفعات أو إيصالات بعد. سيتم استبدال الاتفاق الحالي باتفاق جديد.",
+            "fields": {
+              "feePlan": "الخطة المالية الجديدة",
+              "reason": "سبب التغيير",
+              "activationMode": "تفعيل الاتفاق مباشرة؟",
+              "confirmReplace": "تأكيد استبدال الاتفاق الحالي"
+            },
+            "activation": {
+              "activate": "نعم — تفعيل مباشرة",
+              "draft": "لا — مسودة"
+            },
+            "errors": {
+              "feePlanRequired": "اختر الخطة المالية الجديدة.",
+              "reasonRequired": "أدخل سبب التغيير.",
+              "confirmRequired": "يجب تأكيد استبدال الاتفاق الحالي قبل التطبيق."
+            }
+          },
+          "social": {
+            "action": "تطبيق تخفيض اجتماعي",
+            "title": "تطبيق تخفيض اجتماعي",
+            "description": "يطبق التخفيض على الأقساط المستقبلية غير المؤداة فقط. الأقساط المدفوعة والإيصالات السابقة لن تتغير.",
+            "preservedWarning": "الفترات السابقة والمدفوعات السابقة تبقى كما هي.",
+            "noPastChangesWarning": "تحذير: الإيصالات والدفعات السابقة لن تتغير.",
+            "fields": {
+              "effectiveDate": "تاريخ بداية التخفيض",
+              "feeType": "نوع الرسم",
+              "discountType": "نوع الخصم",
+              "discountValue": "قيمة الخصم",
+              "periodEnd": "آخر فترة متأثرة",
+              "reasonNote": "ملاحظة السبب"
+            },
+            "feeTypes": {
+              "tuition": "التمدرس",
+              "transport": "النقل"
+            },
+            "discountTypes": {
+              "percent": "نسبة",
+              "amount": "مبلغ"
+            },
+            "errors": {
+              "effectiveDateRequired": "تاريخ بداية التخفيض مطلوب.",
+              "reasonNoteRequired": "ملاحظة السبب مطلوبة لحالة اجتماعية.",
+              "discountRequired": "أدخل قيمة الخصم.",
+              "periodsRequired": "حدد الفترات المتأثرة."
+            }
+          },
+          "preview": {
+            "currentAgreement": "الاتفاق الحالي",
+            "currentFeePlan": "الخطة الحالية",
+            "newFeePlan": "الخطة الجديدة",
+            "canApply": "هل يمكن التطبيق؟",
+            "willAmendCurrent": "تعديل الاتفاق الحالي إلى معدّل",
+            "willCreateNew": "إنشاء اتفاق جديد",
+            "newAgreementState": "حالة الاتفاق الجديد",
+            "preservedPeriods": "الفترات المحفوظة",
+            "affectedPeriods": "الفترات المتأثرة",
+            "oldAmount": "المبلغ القديم",
+            "newAmount": "المبلغ الجديد",
+            "discountAmount": "قيمة التخفيض"
+          },
+          "applyConfirm": {
+            "title": "تأكيد تطبيق التغيير",
+            "body": "سيتم تطبيق هذا التغيير على مالية التلميذ. الدفعات والإيصالات السابقة لن تتغير. هل تريد المتابعة؟"
+          },
+          "errors": {
+            "generic": "تعذر تنفيذ العملية.",
+            "cannotApply": "لا يمكن تطبيق هذا التغيير حسب المعاينة الحالية.",
+            "noActiveAgreement": "لا يوجد اتفاق مالي نشط لهذا التلميذ.",
+            "effectiveDateRequired": "تاريخ بداية التخفيض مطلوب.",
+            "effectiveDateOutsideAcademicYear": "تاريخ بداية التخفيض خارج السنة الدراسية.",
+            "affectedPeriodsRequired": "حدد الفترات المتأثرة.",
+            "socialCaseReasonRequired": "ملاحظة السبب مطلوبة لحالة اجتماعية.",
+            "confirmReplaceRequired": "يجب تأكيد استبدال الاتفاق الحالي.",
+            "confirmFinancialImpactRequired": "يجب تأكيد الأثر المالي قبل التطبيق.",
+            "sameFeePlanNoDiscount": "الخطة المختارة مطابقة للخطة الحالية بدون تخفيض.",
+            "feePlanNotAssignable": "الخطة المالية المختارة غير قابلة للإسناد.",
+            "feeTypeNotInAgreement": "نوع الرسم غير موجود في الاتفاق الحالي.",
+            "noFuturePeriodsToAffect": "لا توجد فترات مستقبلية يمكن تطبيق التخفيض عليها.",
+            "planChangeBlockedByPayments": "لا يمكن تغيير الخطة بعد وجود دفعات.",
+            "planChangeBlockedByReceipts": "لا يمكن تغيير الخطة بعد وجود إيصالات.",
+            "planChangeBlockedByPendingCheques": "توجد شيكات معلقة مرتبطة بالفترات المتأثرة. يجب تسويتها أولًا.",
+            "agreementChangeForbidden": "ليست لديك صلاحية تغيير الخطة المالية.",
+            "agreementActivationForbidden": "ليست لديك صلاحية تفعيل الاتفاق الجديد.",
+            "discountExceedsRemaining": "قيمة التخفيض تتجاوز المتبقي في الفترات المختارة.",
+            "agreementTotalsMismatch": "تعذر مطابقة مجاميع الاتفاق بعد التغيير.",
+            "forbidden": "ليست لديك صلاحية تنفيذ هذا الإجراء.",
+            "unauthorized": "ليست لديك صلاحية تطبيق تخفيض اجتماعي."
+          }
+        },
         "executive": {
           "title": "ملخص مالي تنفيذي",
           "netAssessed": "المستحق الصافي",
