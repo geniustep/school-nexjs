@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { PageHeader } from '@/components/ui/primitives';
+import { useStudentOptions } from '@/features/admin/students/hooks/use-student-options';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
@@ -46,7 +47,23 @@ export function AdmissionCreatePage() {
     endpoints.admin.classes,
     { page_size: 100 },
   );
-  const yearsState = useAdminResource<Ref[]>(endpoints.admin.financeAcademicYears);
+  const studentOptionsState = useStudentOptions();
+
+  const levels = useMemo(
+    () => (Array.isArray(levelsState.data) ? levelsState.data : []),
+    [levelsState.data],
+  );
+  const classes = useMemo(
+    () => (Array.isArray(classesState.data) ? classesState.data : []),
+    [classesState.data],
+  );
+  const academicYears = studentOptionsState.options?.academicYears ?? [];
+
+  const lookupError =
+    levelsState.error?.message ??
+    classesState.error?.message ??
+    studentOptionsState.error?.message ??
+    null;
 
   function updateField<K extends keyof CreateAdmissionPayload>(
     key: K,
@@ -92,6 +109,11 @@ export function AdmissionCreatePage() {
       />
 
       <form className="card admissions-section" onSubmit={handleSubmit}>
+        {lookupError && (
+          <div className="alert alert--warning" role="status">
+            {lookupError}
+          </div>
+        )}
         {error && (
           <div className="alert alert--error" role="alert">
             {error}
@@ -162,7 +184,7 @@ export function AdmissionCreatePage() {
               }
             >
               <option value="">—</option>
-              {(levelsState.data ?? []).map((level) => (
+              {levels.map((level) => (
                 <option key={level.id} value={level.id}>
                   {level.name}
                 </option>
@@ -180,7 +202,7 @@ export function AdmissionCreatePage() {
               }
             >
               <option value="">—</option>
-              {(classesState.data ?? []).map((cls) => (
+              {classes.map((cls) => (
                 <option key={cls.id} value={cls.id}>
                   {cls.name}
                 </option>
@@ -198,7 +220,7 @@ export function AdmissionCreatePage() {
               }
             >
               <option value="">—</option>
-              {(yearsState.data ?? []).map((year) => (
+              {academicYears.map((year) => (
                 <option key={year.id} value={year.id}>
                   {year.name}
                 </option>
