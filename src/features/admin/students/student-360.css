@@ -1790,6 +1790,12 @@
   border-color: color-mix(in srgb, var(--c-red, #dc2626) 18%, transparent);
 }
 
+.student-finance-hero__chip--muted {
+  background: var(--c-slate-soft, #f8fafc);
+  color: var(--c-slate, #64748b);
+  border-color: color-mix(in srgb, var(--c-slate, #64748b) 18%, transparent);
+}
+
 .student-finance-hero__primary {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -2467,6 +2473,19 @@
 
 .student-finance-cheque-stat--rejected .student-finance-cheque-stat__count {
   color: var(--c-red, #dc2626);
+}
+
+.student-finance-cheque-stat--cancelled {
+  border-color: color-mix(in srgb, var(--c-slate, #64748b) 24%, var(--c-border, #e2e8f0));
+  background: var(--c-slate-soft, #f8fafc);
+}
+
+.student-finance-cheque-stat--cancelled .student-finance-cheque-stat__count {
+  color: var(--c-slate, #64748b);
+}
+
+.student-finance-cheque-note {
+  margin: 10px 0 0;
 }
 
 .student-finance-plan-list {

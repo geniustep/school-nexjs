@@ -50,24 +50,61 @@ function normalizeTotals(raw: Record<string, unknown>): StudentFinancialOverview
   };
 }
 
+function readChequeBucket(
+  obj: Record<string, unknown>,
+  nestedKey: string,
+  countKey: string,
+  amountKey: string,
+): { count: number; amount: number } {
+  const nested = obj[nestedKey];
+  if (nested && typeof nested === 'object') {
+    const bucket = nested as Record<string, unknown>;
+    return {
+      count: typeof bucket.count === 'number' ? bucket.count : 0,
+      amount: readMoney(bucket.amount),
+    };
+  }
+  return {
+    count: typeof obj[countKey] === 'number' ? (obj[countKey] as number) : 0,
+    amount: readMoney(obj[amountKey]),
+  };
+}
+
 function normalizeChequeSummary(raw: unknown): ChequeSummary | null {
   if (!raw || typeof raw !== 'object') return null;
   const obj = raw as Record<string, unknown>;
+
+  const cleared = readChequeBucket(obj, 'cleared', 'settled_count', 'settled_amount');
+  const settled = readChequeBucket(obj, 'settled', 'settled_count', 'settled_amount');
+  const rejectedOrReturned = readChequeBucket(
+    obj,
+    'rejected_or_returned',
+    'rejected_count',
+    'rejected_amount',
+  );
+  const cancelled = readChequeBucket(obj, 'cancelled', 'cancelled_count', 'cancelled_amount');
+
   const summary: ChequeSummary = {
-    pending_count: typeof obj.pending_count === 'number' ? obj.pending_count : 0,
-    pending_amount: readMoney(obj.pending_amount),
-    settled_count: typeof obj.settled_count === 'number' ? obj.settled_count : 0,
-    settled_amount: readMoney(obj.settled_amount),
-    rejected_count: typeof obj.rejected_count === 'number' ? obj.rejected_count : 0,
-    rejected_amount: readMoney(obj.rejected_amount),
+    pending_count: readChequeBucket(obj, 'pending', 'pending_count', 'pending_amount').count,
+    pending_amount: readChequeBucket(obj, 'pending', 'pending_count', 'pending_amount').amount,
+    settled_count: cleared.count > 0 ? cleared.count : settled.count,
+    settled_amount: cleared.amount > 0 ? cleared.amount : settled.amount,
+    rejected_count: rejectedOrReturned.count,
+    rejected_amount: rejectedOrReturned.amount,
+    cancelled_count: cancelled.count,
+    cancelled_amount: cancelled.amount,
+    cancelled_note: typeof obj.cancelled_note === 'string' ? obj.cancelled_note : null,
   };
+
   const hasData =
     summary.pending_count > 0 ||
     summary.pending_amount > 0 ||
     summary.settled_count > 0 ||
     summary.settled_amount > 0 ||
     summary.rejected_count > 0 ||
-    summary.rejected_amount > 0;
+    summary.rejected_amount > 0 ||
+    summary.cancelled_count > 0 ||
+    summary.cancelled_amount > 0;
   return hasData ? summary : null;
 }
 

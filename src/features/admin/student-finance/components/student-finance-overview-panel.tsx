@@ -104,7 +104,16 @@ export function StudentFinanceOverviewPanel({
     chequeSummary != null &&
     (chequeSummary.pending_count > 0 ||
       chequeSummary.settled_count > 0 ||
-      chequeSummary.rejected_count > 0);
+      chequeSummary.rejected_count > 0 ||
+      chequeSummary.cancelled_count > 0);
+  const showChequeClassifications =
+    showChequeSummary &&
+    (chequeSummary!.settled_count > 0 ||
+      chequeSummary!.rejected_count > 0 ||
+      chequeSummary!.cancelled_count > 0 ||
+      chequeSummary!.settled_amount > 0 ||
+      chequeSummary!.rejected_amount > 0 ||
+      chequeSummary!.cancelled_amount > 0);
 
   if (financialOverviewLoading && !metrics) {
     return <StudentSectionSkeleton rows={3} />;
@@ -244,33 +253,50 @@ export function StudentFinanceOverviewPanel({
                   />
                 </div>
               ) : null}
-              {chequeSummary.settled_count > 0 ? (
-                <div className="student-finance-cheque-stat student-finance-cheque-stat--settled">
-                  <span className="student-finance-cheque-stat__count">{chequeSummary.settled_count}</span>
-                  <span className="student-finance-cheque-stat__label">
-                    {t('admin.student360.financeWorkspace.metrics.settledCheques')}
-                  </span>
-                  <FinanceMoney
-                    amount={chequeSummary.settled_amount}
-                    currency={metrics?.currency ?? undefined}
-                    className="student-finance-cheque-stat__amount"
-                  />
-                </div>
-              ) : null}
-              {chequeSummary.rejected_count > 0 ? (
-                <div className="student-finance-cheque-stat student-finance-cheque-stat--rejected">
-                  <span className="student-finance-cheque-stat__count">{chequeSummary.rejected_count}</span>
-                  <span className="student-finance-cheque-stat__label">
-                    {t('admin.student360.financeWorkspace.metrics.rejectedCheques')}
-                  </span>
-                  <FinanceMoney
-                    amount={chequeSummary.rejected_amount}
-                    currency={metrics?.currency ?? undefined}
-                    className="student-finance-cheque-stat__amount"
-                  />
-                </div>
+              {showChequeClassifications ? (
+                <>
+                  <div className="student-finance-cheque-stat student-finance-cheque-stat--settled">
+                    <span className="student-finance-cheque-stat__count">{chequeSummary.settled_count}</span>
+                    <span className="student-finance-cheque-stat__label">
+                      {t('admin.student360.financeWorkspace.metrics.clearedCheques')}
+                    </span>
+                    <FinanceMoney
+                      amount={chequeSummary.settled_amount}
+                      currency={metrics?.currency ?? undefined}
+                      className="student-finance-cheque-stat__amount"
+                    />
+                  </div>
+                  <div className="student-finance-cheque-stat student-finance-cheque-stat--rejected">
+                    <span className="student-finance-cheque-stat__count">{chequeSummary.rejected_count}</span>
+                    <span className="student-finance-cheque-stat__label">
+                      {t('admin.student360.financeWorkspace.metrics.rejectedOrReturnedCheques')}
+                    </span>
+                    <FinanceMoney
+                      amount={chequeSummary.rejected_amount}
+                      currency={metrics?.currency ?? undefined}
+                      className="student-finance-cheque-stat__amount"
+                    />
+                  </div>
+                  <div className="student-finance-cheque-stat student-finance-cheque-stat--cancelled">
+                    <span className="student-finance-cheque-stat__count">{chequeSummary.cancelled_count}</span>
+                    <span className="student-finance-cheque-stat__label">
+                      {t('admin.student360.financeWorkspace.metrics.cancelledCheques')}
+                    </span>
+                    <FinanceMoney
+                      amount={chequeSummary.cancelled_amount}
+                      currency={metrics?.currency ?? undefined}
+                      className="student-finance-cheque-stat__amount"
+                    />
+                  </div>
+                </>
               ) : null}
             </div>
+            {chequeSummary.cancelled_count > 0 ? (
+              <p className="student-finance-cheque-note tiny muted" role="note">
+                {chequeSummary.cancelled_note?.trim() ||
+                  t('admin.student360.financeWorkspace.metrics.cancelledChequesNote')}
+              </p>
+            ) : null}
           </article>
         ) : null}
 

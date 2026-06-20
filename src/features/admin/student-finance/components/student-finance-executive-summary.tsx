@@ -146,7 +146,12 @@ export function StudentFinanceExecutiveSummary({
           ) : null}
           {(chequeSummary?.rejected_count ?? 0) > 0 ? (
             <span className="student-finance-hero__chip student-finance-hero__chip--danger">
-              {t('admin.student360.financeWorkspace.metrics.rejectedCheques')}
+              {t('admin.student360.financeWorkspace.metrics.rejectedOrReturnedCheques')}
+            </span>
+          ) : null}
+          {(chequeSummary?.cancelled_count ?? 0) > 0 ? (
+            <span className="student-finance-hero__chip student-finance-hero__chip--muted">
+              {t('admin.student360.financeWorkspace.metrics.cancelledCheques')}
             </span>
           ) : null}
         </div>
@@ -244,6 +249,31 @@ export function StudentFinanceExecutiveSummary({
               />
               {'. '}
               {t('admin.student360.financeWorkspace.executive.rejectedChequesReviewHint')}
+            </p>
+          </div>
+        </div>
+      ) : null}
+
+      {(chequeSummary?.cancelled_count ?? 0) > 0 ? (
+        <div className="student-finance-hero__insight student-finance-hero__insight--warn" role="note">
+          <div className="student-finance-hero__insight-icon" aria-hidden="true">
+            !
+          </div>
+          <div className="student-finance-hero__insight-body">
+            <p className="student-finance-hero__insight-title">
+              {chequeSummary!.cancelled_count === 1
+                ? t('admin.student360.financeWorkspace.executive.cancelledChequesAlertOnePrefix')
+                : t('admin.student360.financeWorkspace.executive.cancelledChequesAlertManyPrefix', {
+                    count: String(chequeSummary!.cancelled_count),
+                  })}{' '}
+              <FinanceMoney
+                amount={chequeSummary!.cancelled_amount}
+                currency={metrics.currency ?? undefined}
+              />
+            </p>
+            <p className="student-finance-hero__insight-hint">
+              {chequeSummary!.cancelled_note?.trim() ||
+                t('admin.student360.financeWorkspace.metrics.cancelledChequesNote')}
             </p>
           </div>
         </div>

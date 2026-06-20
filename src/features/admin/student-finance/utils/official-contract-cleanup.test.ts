@@ -37,6 +37,8 @@ const baseOverview: StudentFinancialOverview = {
     settled_amount: 0,
     rejected_count: 0,
     rejected_amount: 0,
+    cancelled_count: 0,
+    cancelled_amount: 0,
   },
   applied_plans: [],
   special_agreement: null,
@@ -62,6 +64,8 @@ describe('official financial overview contract', () => {
         settled_amount: 0,
         rejected_count: 0,
         rejected_amount: 0,
+        cancelled_count: 0,
+        cancelled_amount: 0,
       },
       next_installment: {
         id: 2,

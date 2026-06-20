@@ -30,6 +30,9 @@ export interface ChequeSummary {
   settled_amount: number;
   rejected_count: number;
   rejected_amount: number;
+  cancelled_count: number;
+  cancelled_amount: number;
+  cancelled_note?: string | null;
 }
 
 export interface StudentFinancialOverviewCounts {
