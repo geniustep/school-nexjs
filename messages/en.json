@@ -2635,7 +2635,8 @@
         "description": "Create a new admission request to get started."
       },
       "kanban": {
-        "emptyColumn": "No requests"
+        "emptyColumn": "No requests",
+        "dragHint": "Drag a card to another column to change its state."
       },
       "card": {
         "guardian": "Guardian",
@@ -2645,6 +2646,9 @@
         "possibleDuplicate": "Possible duplicate",
         "offerAccepted": "Offer accepted",
         "overdue": "Overdue"
+      },
+      "stateChange": {
+        "label": "Change request state"
       },
       "states": {
         "new": "New",
@@ -2670,7 +2674,9 @@
         "confirmed_count": "Confirmed",
         "lost_count": "Lost",
         "today_appointments": "Today's appointments",
-        "overdue_next_actions": "Overdue actions"
+        "overdue_next_actions": "Overdue actions",
+        "fallbackTitle": "Estimated statistics",
+        "fallbackDescription": "The statistics dashboard could not be loaded from the server. The figures below are computed from the list currently shown."
       },
       "table": {
         "reference": "Reference",

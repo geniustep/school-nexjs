@@ -2662,7 +2662,8 @@
         "description": "أنشئ طلب تسجيل جديد للبدء."
       },
       "kanban": {
-        "emptyColumn": "لا توجد طلبات"
+        "emptyColumn": "لا توجد طلبات",
+        "dragHint": "اسحب البطاقة إلى عمود آخر لتغيير الحالة."
       },
       "card": {
         "guardian": "ولي الأمر",
@@ -2672,6 +2673,9 @@
         "possibleDuplicate": "تكرار محتمل",
         "offerAccepted": "العرض مقبول",
         "overdue": "متأخر"
+      },
+      "stateChange": {
+        "label": "تغيير حالة الطلب"
       },
       "states": {
         "new": "جديد",
@@ -2697,7 +2701,9 @@
         "confirmed_count": "مؤكدة",
         "lost_count": "مفقودة",
         "today_appointments": "مواعيد اليوم",
-        "overdue_next_actions": "إجراءات متأخرة"
+        "overdue_next_actions": "إجراءات متأخرة",
+        "fallbackTitle": "إحصائيات تقديرية",
+        "fallbackDescription": "تعذّر تحميل لوحة الإحصائيات من الخادم. الأرقام أدناه محسوبة من القائمة المعروضة حاليًا."
       },
       "table": {
         "reference": "رقم الطلب",

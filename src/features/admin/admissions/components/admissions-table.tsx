@@ -3,18 +3,23 @@
 import Link from 'next/link';
 import { useMemo } from 'react';
 import { DataTable, type Column } from '@/components/tables/data-table';
-import { Badge } from '@/components/ui/primitives';
 import { EmptyState } from '@/components/states/states';
 import { useT } from '@/features/i18n/locale-context';
 import {
-  admissionStateTone,
   formatAdmissionReference,
   isOverdueNextAction,
   refName,
 } from '../utils/admission-labels';
+import { AdmissionStateSelect } from './admission-state-select';
 import type { AdmissionListItem } from '@/types/admission';
 
-export function AdmissionsTable({ items }: { items: AdmissionListItem[] }) {
+export function AdmissionsTable({
+  items,
+  onUpdated,
+}: {
+  items: AdmissionListItem[];
+  onUpdated?: () => void;
+}) {
   const t = useT();
 
   const columns: Column<AdmissionListItem>[] = useMemo(
@@ -63,9 +68,12 @@ export function AdmissionsTable({ items }: { items: AdmissionListItem[] }) {
         key: 'state',
         header: t('admin.admissions.table.state'),
         render: (row) => (
-          <Badge tone={admissionStateTone(row.state)}>
-            {t(`admin.admissions.states.${row.state}`)}
-          </Badge>
+          <AdmissionStateSelect
+            admissionId={row.id}
+            value={row.state}
+            onChanged={onUpdated}
+            className="admission-state-select--table"
+          />
         ),
       },
       {
@@ -87,7 +95,7 @@ export function AdmissionsTable({ items }: { items: AdmissionListItem[] }) {
         render: (row) => refName(row.assigned_user) || t('common.dash'),
       },
     ],
-    [t],
+    [t, onUpdated],
   );
 
   if (!items.length) {

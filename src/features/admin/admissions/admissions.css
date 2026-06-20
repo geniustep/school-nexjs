@@ -969,3 +969,73 @@
     grid-template-columns: 1fr;
   }
 }
+
+.admissions-dashboard-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  margin-bottom: 0.5rem;
+}
+
+.admissions-kanban-hint {
+  margin: 0 0 0.5rem;
+  font-size: 0.8125rem;
+}
+
+.admissions-kanban__column--drop-target {
+  outline: 2px dashed var(--primary, var(--c-primary));
+  outline-offset: -2px;
+  background: color-mix(in srgb, var(--primary, var(--c-primary)) 4%, white);
+}
+
+.admission-card-wrap {
+  cursor: grab;
+}
+
+.admission-card-wrap:active {
+  cursor: grabbing;
+}
+
+.admission-card-wrap--dragging {
+  opacity: 0.45;
+}
+
+.admission-card--dragging {
+  border-style: dashed;
+}
+
+.admission-card--saving {
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+.admission-card__drag-handle {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.72rem;
+  line-height: 1;
+  letter-spacing: -0.08em;
+  color: var(--c-text-muted, var(--muted));
+  user-select: none;
+}
+
+.admission-state-select {
+  min-width: 8.5rem;
+  max-width: 100%;
+  font-size: 0.8125rem;
+  padding-block: 0.25rem;
+}
+
+.admission-state-select--table {
+  min-width: 7.5rem;
+}
+
+.admission-state-select--detail {
+  min-width: 9rem;
+  font-weight: 600;
+}
+
+.admissions-detail-header-card__meta .admission-state-select--detail {
+  width: auto;
+}

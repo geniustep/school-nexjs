@@ -34,6 +34,7 @@ import { AdmissionDecisionTab } from './admission-decision-tab';
 import { AdmissionOffersTab } from './admission-offers-tab';
 import { AdmissionPrefillTab } from './admission-prefill-tab';
 import { AdmissionRegistrationActions } from './admission-registration-actions';
+import { AdmissionStateSelect } from './admission-state-select';
 import '../admissions.css';
 
 function isAuthError(code: string): boolean {
@@ -167,9 +168,19 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
               <span className="admissions-detail-header-card__sep" aria-hidden="true">
                 ·
               </span>
-              <Badge tone={admissionStateTone(detail.state)}>
-                {t(`admin.admissions.states.${detail.state}`)}
-              </Badge>
+              {actions.edit === false ? (
+                <Badge tone={admissionStateTone(detail.state)}>
+                  {t(`admin.admissions.states.${detail.state}`)}
+                </Badge>
+              ) : (
+                <AdmissionStateSelect
+                  admissionId={detail.id}
+                  value={detail.state}
+                  onChanged={reload}
+                  includeClosedStates
+                  className="admission-state-select--detail"
+                />
+              )}
             </div>
           </div>
 

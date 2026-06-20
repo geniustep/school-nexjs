@@ -1,14 +1,16 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ResourceView } from '@/components/states/resource';
+import { InfoBanner } from '@/components/ui/primitives';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { useDebouncedValue } from '@/features/admin/students/hooks/use-debounced-value';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import type { AdmissionListItem, AdmissionsDashboard } from '@/types/admission';
 import type { ListParams } from '@/types/api';
+import { buildAdmissionsDashboardFromList } from '../utils/admission-dashboard-from-list';
 import { AdmissionsDashboardSummary } from './admissions-dashboard-summary';
 import { AdmissionsKanban } from './admissions-kanban';
 import { AdmissionsTable } from './admissions-table';
@@ -38,9 +40,30 @@ export function AdmissionsListPage() {
     endpoints.admin.admissions,
     listParams,
   );
+
+  const [dashboardApiEnabled, setDashboardApiEnabled] = useState(true);
   const dashboardState = useAdminResource<AdmissionsDashboard>(
-    endpoints.admin.admissionsDashboard,
+    dashboardApiEnabled ? endpoints.admin.admissionsDashboard : null,
   );
+
+  useEffect(() => {
+    if (dashboardState.error && dashboardApiEnabled) {
+      setDashboardApiEnabled(false);
+    }
+  }, [dashboardState.error, dashboardApiEnabled]);
+
+  const dashboardData = useMemo(() => {
+    if (dashboardState.data) return dashboardState.data;
+    if (listState.data?.length) return buildAdmissionsDashboardFromList(listState.data);
+    return null;
+  }, [dashboardState.data, listState.data]);
+
+  const dashboardFromFallback = !dashboardState.data && !!listState.data && !!dashboardState.error;
+
+  function retryDashboard() {
+    setDashboardApiEnabled(true);
+    dashboardState.reload();
+  }
 
   return (
     <div className="admissions-page admissions-list-page">
@@ -54,12 +77,25 @@ export function AdmissionsListPage() {
         </Link>
       </header>
 
-      {dashboardState.data && !dashboardState.error && (
-        <AdmissionsDashboardSummary data={dashboardState.data} />
-      )}
-      {dashboardState.loading && !dashboardState.data && (
+      {dashboardData ? (
+        <>
+          {dashboardFromFallback ? (
+            <div className="admissions-dashboard-fallback">
+              <InfoBanner
+                tone="amber"
+                title={t('admin.admissions.dashboard.fallbackTitle')}
+                description={t('admin.admissions.dashboard.fallbackDescription')}
+              />
+              <button type="button" className="btn btn--ghost btn--sm" onClick={retryDashboard}>
+                {t('common.retry')}
+              </button>
+            </div>
+          ) : null}
+          <AdmissionsDashboardSummary data={dashboardData} />
+        </>
+      ) : dashboardState.loading && dashboardApiEnabled ? (
         <div className="muted">{t('common.loading')}</div>
-      )}
+      ) : null}
 
       <div className="card admissions-list-toolbar">
         <div className="admissions-list-toolbar__row">
@@ -121,9 +157,9 @@ export function AdmissionsListPage() {
       <ResourceView state={listState}>
         {(rows) =>
           view === 'kanban' ? (
-            <AdmissionsKanban items={rows} showClosed={showClosed} />
+            <AdmissionsKanban items={rows} showClosed={showClosed} onUpdated={listState.reload} />
           ) : (
-            <AdmissionsTable items={rows} />
+            <AdmissionsTable items={rows} onUpdated={listState.reload} />
           )
         }
       </ResourceView>

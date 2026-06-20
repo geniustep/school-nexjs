@@ -2634,7 +2634,10 @@
         "title": "Sin solicitudes",
         "description": "Cree una nueva solicitud para comenzar."
       },
-      "kanban": { "emptyColumn": "Sin solicitudes" },
+      "kanban": {
+        "emptyColumn": "Sin solicitudes",
+        "dragHint": "Arrastra una tarjeta a otra columna para cambiar el estado."
+      },
       "card": {
         "guardian": "Tutor",
         "phone": "Teléfono"
@@ -2643,6 +2646,9 @@
         "possibleDuplicate": "Posible duplicado",
         "offerAccepted": "Oferta aceptada",
         "overdue": "Atrasada"
+      },
+      "stateChange": {
+        "label": "Cambiar estado de la solicitud"
       },
       "states": {
         "new": "Nueva",
@@ -2668,7 +2674,9 @@
         "confirmed_count": "Confirmadas",
         "lost_count": "Perdidas",
         "today_appointments": "Citas de hoy",
-        "overdue_next_actions": "Acciones atrasadas"
+        "overdue_next_actions": "Acciones atrasadas",
+        "fallbackTitle": "Estadísticas estimadas",
+        "fallbackDescription": "No se pudo cargar el panel desde el servidor. Las cifras siguientes se calculan a partir de la lista mostrada."
       },
       "table": {
         "reference": "Referencia",

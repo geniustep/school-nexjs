@@ -2634,7 +2634,10 @@
         "title": "Aucune demande",
         "description": "Créez une nouvelle demande pour commencer."
       },
-      "kanban": { "emptyColumn": "Aucune demande" },
+      "kanban": {
+        "emptyColumn": "Aucune demande",
+        "dragHint": "Glissez une carte vers une autre colonne pour changer l'état."
+      },
       "card": {
         "guardian": "Responsable",
         "phone": "Téléphone"
@@ -2643,6 +2646,9 @@
         "possibleDuplicate": "Doublon possible",
         "offerAccepted": "Offre acceptée",
         "overdue": "En retard"
+      },
+      "stateChange": {
+        "label": "Changer l'état de la demande"
       },
       "states": {
         "new": "Nouveau",
@@ -2668,7 +2674,9 @@
         "confirmed_count": "Confirmées",
         "lost_count": "Perdues",
         "today_appointments": "RDV du jour",
-        "overdue_next_actions": "Actions en retard"
+        "overdue_next_actions": "Actions en retard",
+        "fallbackTitle": "Statistiques estimées",
+        "fallbackDescription": "Impossible de charger le tableau de bord depuis le serveur. Les chiffres ci-dessous sont calculés à partir de la liste affichée."
       },
       "table": {
         "reference": "Référence",

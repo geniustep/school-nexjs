@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { Badge } from '@/components/ui/primitives';
+import { cn } from '@/lib/utils/cn';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import {
@@ -11,7 +12,33 @@ import {
 } from '../utils/admission-labels';
 import type { AdmissionListItem } from '@/types/admission';
 
-export function AdmissionCard({ item }: { item: AdmissionListItem }) {
+const DRAG_MIME = 'application/x-admission-id';
+
+export function admissionCardDragPayload(admissionId: number): string {
+  return String(admissionId);
+}
+
+export function readAdmissionCardDragPayload(dataTransfer: DataTransfer): number | null {
+  const raw = dataTransfer.getData(DRAG_MIME) || dataTransfer.getData('text/plain');
+  const id = Number(raw);
+  return Number.isFinite(id) && id > 0 ? id : null;
+}
+
+export function AdmissionCard({
+  item,
+  draggable = false,
+  isDragging = false,
+  isSaving = false,
+  onDragStart,
+  onDragEnd,
+}: {
+  item: AdmissionListItem;
+  draggable?: boolean;
+  isDragging?: boolean;
+  isSaving?: boolean;
+  onDragStart?: (event: React.DragEvent<HTMLDivElement>) => void;
+  onDragEnd?: (event: React.DragEvent<HTMLDivElement>) => void;
+}) {
   const t = useT();
   const { formatDate } = useFormat();
   const overdue = isOverdueNextAction(item.next_action_date);
@@ -19,11 +46,23 @@ export function AdmissionCard({ item }: { item: AdmissionListItem }) {
   const reference = formatAdmissionReference(item.id, item.reference);
   const nextActionDate = item.next_action_date ? formatDate(item.next_action_date) : '';
 
-  return (
+  const card = (
     <Link
       href={href}
-      className={`admission-card${overdue ? ' admission-card--overdue' : ''}`}
+      draggable={false}
+      className={cn(
+        'admission-card',
+        overdue && 'admission-card--overdue',
+        isDragging && 'admission-card--dragging',
+        isSaving && 'admission-card--saving',
+      )}
     >
+      {draggable ? (
+        <span className="admission-card__drag-handle" aria-hidden="true" title={t('admin.admissions.kanban.dragHint')}>
+          ⋮⋮
+        </span>
+      ) : null}
+
       <div className="admission-card__head">
         <div className="admission-card__title">{item.student_name}</div>
         <Badge tone={admissionStateTone(item.state)}>
@@ -71,4 +110,19 @@ export function AdmissionCard({ item }: { item: AdmissionListItem }) {
       </div>
     </Link>
   );
+
+  if (!draggable) return card;
+
+  return (
+    <div
+      className={cn('admission-card-wrap', isDragging && 'admission-card-wrap--dragging')}
+      draggable={!isSaving}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+    >
+      {card}
+    </div>
+  );
 }
+
+export { DRAG_MIME as ADMISSION_CARD_DRAG_MIME };
