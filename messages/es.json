@@ -3004,6 +3004,17 @@
         "saveOnly": "Guardar solo",
         "saving": "Creando alumno…",
         "success": "Alumno creado correctamente.",
+        "financeActivation": {
+          "saveDraft": "Guardar acuerdo como borrador",
+          "createAndActivate": "Crear alumno y activar acuerdo",
+          "activateHint": "Se creará el alumno y se activará el acuerdo financiero de inmediato. Las cuotas aparecerán como deudas cobrables.",
+          "savingActivate": "Creando alumno y activando acuerdo…",
+          "draftSuccess": "Alumno creado y acuerdo financiero guardado como borrador.",
+          "activateSuccess": "Alumno creado y acuerdo financiero activado correctamente.",
+          "forbidden": "No tiene permiso para activar el acuerdo financiero directamente. Puede guardarlo como borrador.",
+          "failed": "No se pudo activar el acuerdo financiero. Revise los datos o guárdelo como borrador.",
+          "totalsMismatch": "No se pudo activar el acuerdo porque los totales no coinciden con el calendario de cuotas."
+        },
         "loadingYears": "Cargando años académicos…",
         "loadingClasses": "Cargando clases…",
         "selectLevelFirst": "Seleccione primero un nivel.",

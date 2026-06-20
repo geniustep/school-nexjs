@@ -3004,6 +3004,17 @@
         "saveOnly": "Save only",
         "saving": "Creating pupil…",
         "success": "Pupil created successfully.",
+        "financeActivation": {
+          "saveDraft": "Save agreement as draft",
+          "createAndActivate": "Create pupil and activate agreement",
+          "activateHint": "The pupil will be created and the financial agreement activated immediately. Installments will appear as collectable dues.",
+          "savingActivate": "Creating pupil and activating agreement…",
+          "draftSuccess": "Pupil created and financial agreement saved as draft.",
+          "activateSuccess": "Pupil created and financial agreement activated successfully.",
+          "forbidden": "You are not allowed to activate the financial agreement directly. You can save it as a draft.",
+          "failed": "Could not activate the financial agreement. Check the data or save as draft.",
+          "totalsMismatch": "Could not activate the agreement because totals do not match the installment schedule."
+        },
         "loadingYears": "Loading academic years…",
         "loadingClasses": "Loading classes…",
         "selectLevelFirst": "Select a level first.",

@@ -83,4 +83,15 @@ describe('mapStudentApiError', () => {
       expect(mapped.message).not.toContain('massar_code');
     }
   });
+
+  it('translates finance agreement activation forbidden', () => {
+    const mapped = mapStudentApiError(
+      { code: 'finance_agreement_activation_forbidden', message: '' },
+      (key) =>
+        key === 'admin.student360.create.financeActivation.forbidden'
+          ? 'ليست لديك صلاحية اعتماد الاتفاق المالي مباشرة.'
+          : key,
+    );
+    expect(mapped.message).toBe('ليست لديك صلاحية اعتماد الاتفاق المالي مباشرة.');
+  });
 });

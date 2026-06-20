@@ -302,7 +302,11 @@ export function Student360CreatePage() {
         <p className="student-create-page__desc">{t('admin.student360.create.pageDesc')}</p>
       </header>
       <StudentCreateForm
-        onSaved={(id, mode) => {
+        onSaved={(id, mode, outcome) => {
+          if (outcome?.financeActivation === 'activate') {
+            router.push(`/admin/students/${id}?tab=finance`);
+            return;
+          }
           if (mode === 'setup') {
             router.push(`/admin/students/${id}?setup=1`);
             return;

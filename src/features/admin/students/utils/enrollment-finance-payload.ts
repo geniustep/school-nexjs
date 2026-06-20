@@ -293,11 +293,16 @@ export function buildStudentCreateFinancePayload(
   feePlanId: number,
   suggestPeriods: Array<{ period_key: string; selected?: boolean }>,
   financeState: StudentCreateFinanceFormState,
+  options?: { activationMode?: 'activate' },
 ): StudentCreateFinancePayload {
   const payload: StudentCreateFinancePayload = {
     fee_plan_id: feePlanId,
     customize_plan: financeState.customizePlan,
   };
+
+  if (options?.activationMode === 'activate') {
+    payload.activation_mode = 'activate';
+  }
 
   if (!financeState.customizePlan) return payload;
 

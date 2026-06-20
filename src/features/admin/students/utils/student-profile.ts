@@ -566,6 +566,7 @@ export function buildStudentCreatePayload(
     suggest: FeePlanSuggestResult | null;
     financeState: StudentCreateFinanceFormState;
     schoolId?: number | null;
+    activationMode?: 'activate';
   } | null,
 ): StudentCreatePayload {
   const payload: StudentCreatePayload = {
@@ -583,7 +584,11 @@ export function buildStudentCreatePayload(
     const academic = buildStudentCreateAcademicBlock(state, finance.schoolId as number);
     if (academic?.class_id != null) {
       payload.academic = academic;
-      payload.finance = buildStudentCreateFinancePayload(finance.suggest, finance.financeState);
+      payload.finance = buildStudentCreateFinancePayload(
+        finance.suggest,
+        finance.financeState,
+        finance.activationMode ? { activationMode: finance.activationMode } : undefined,
+      );
     }
   }
   return payload;

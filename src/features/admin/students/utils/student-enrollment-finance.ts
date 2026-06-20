@@ -188,6 +188,7 @@ export function mergeFinanceStateWithSuggest(
 export function buildStudentCreateFinancePayload(
   suggest: FeePlanSuggestResult,
   financeState: StudentCreateFinanceFormState,
+  options?: { activationMode?: 'activate' },
 ): StudentCreateFinancePayload {
   const feePlanId = financeState.selectedFeePlanId ?? suggest.fee_plan_id;
   const suggestPeriods = resolveFinanceSuggestedPeriods(suggest);
@@ -197,7 +198,7 @@ export function buildStudentCreateFinancePayload(
         periodOverrides: ensureFinancePeriodOverrides(suggestPeriods, financeState.periodOverrides),
       }
     : financeState;
-  return buildFinancePayload(feePlanId, suggestPeriods, normalizedState);
+  return buildFinancePayload(feePlanId, suggestPeriods, normalizedState, options);
 }
 
 export function buildEnrollmentPlanPreviewBody(

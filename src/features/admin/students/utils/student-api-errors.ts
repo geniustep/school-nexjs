@@ -160,6 +160,16 @@ export function mapStudentApiError(
     case 'permission_denied':
     case 'forbidden':
       return { message: t('admin.studentForbidden') };
+    case 'finance_agreement_activation_forbidden':
+      return { message: t('admin.student360.create.financeActivation.forbidden') };
+    case 'agreement_activation_failed':
+      return { message: t('admin.student360.create.financeActivation.failed') };
+    case 'agreement_totals_mismatch':
+      return { message: t('admin.student360.create.financeActivation.totalsMismatch') };
+    case 'billing_periods_required':
+      return { message: t('admin.student360.create.finance.errors.billingPeriodsRequired') };
+    case 'class_id_required_with_finance':
+      return mapMissingClassForFinanceError(t);
     case 'not_found':
       return { message: t('errors.notFound') };
     case 'validation_error':

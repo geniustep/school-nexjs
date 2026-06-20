@@ -39,6 +39,11 @@ import {
 } from '../utils/student-enrollment-finance';
 import { validateEnrollmentFinanceSave } from '../utils/enrollment-finance-review';
 import {
+  canOfferFinanceAgreementActivation,
+  resolveStudentCreateAgreementState,
+  type StudentCreateFinanceActivationMode,
+} from '../utils/student-create-finance-activation';
+import {
   resolveStudentCreateIdentifierCheckErrors,
   validateStudentCreateIdentifierDuplicateChecks,
 } from '../utils/student-identifier-check';
@@ -57,6 +62,11 @@ import type {
 } from '@/types/student-enrollment-finance';
 
 export type StudentCreateSaveMode = 'setup' | 'list';
+
+export interface StudentCreateSaveOutcome {
+  financeActivation?: 'draft' | 'activate';
+  agreementState?: string | null;
+}
 export type StudentCreateWizardStep = 'identity' | 'billing' | 'enrollment' | 'finance' | 'review';
 
 const STEP_ORDER: StudentCreateWizardStep[] = [
@@ -90,7 +100,7 @@ export function StudentCreateForm({
   onSaved,
   onCancel,
 }: {
-  onSaved: (id: number, mode: StudentCreateSaveMode) => void;
+  onSaved: (id: number, mode: StudentCreateSaveMode, outcome?: StudentCreateSaveOutcome) => void;
   onCancel: () => void;
 }) {
   const t = useT();
@@ -115,6 +125,8 @@ export function StudentCreateForm({
   const [financeError, setFinanceError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveMode, setSaveMode] = useState<StudentCreateSaveMode>('setup');
+  const [financeActivationMode, setFinanceActivationMode] =
+    useState<StudentCreateFinanceActivationMode>('draft');
   const [additionalOpen, setAdditionalOpen] = useState(false);
   const [classClearedNotice, setClassClearedNotice] = useState(false);
   const [cycleChangedNotice, setCycleChangedNotice] = useState(false);
@@ -559,7 +571,10 @@ export function StudentCreateForm({
     if (prev) setStep(prev);
   }
 
-  async function submit(mode: StudentCreateSaveMode) {
+  async function submit(
+    mode: StudentCreateSaveMode,
+    activation: StudentCreateFinanceActivationMode = 'draft',
+  ) {
     const flushed = await identifierChecksState.flushChecks();
     if (!applyIdentifierDuplicateValidation('review', flushed.checks)) {
       return;
@@ -574,12 +589,32 @@ export function StudentCreateForm({
       }
     }
 
+    if (activation === 'activate' && suggestState.suggest) {
+      if (
+        !canOfferFinanceAgreementActivation({
+          suggest: suggestState.suggest,
+          financeBlocked,
+          state,
+          schoolId: resolvedSchoolId,
+          financeState,
+          previewLoading: previewState.loading,
+          previewError: previewState.error,
+          preview: previewState.preview,
+        })
+      ) {
+        validateFinanceStep();
+        return;
+      }
+    }
+
     setSaveMode(mode);
+    setFinanceActivationMode(activation);
     setSaving(true);
     const payload = buildStudentCreatePayload(state, {
       suggest: suggestState.suggest,
       financeState,
       schoolId: resolvedSchoolId,
+      activationMode: activation === 'activate' ? 'activate' : undefined,
     });
 
     if (payload.finance && payload.academic?.academic_year_id == null) {
@@ -596,12 +631,27 @@ export function StudentCreateForm({
     setSaving(false);
 
     if (res.success && res.data) {
-      toast.success(t('admin.student360.create.success'));
-      const id =
-        typeof res.data === 'object' && res.data !== null && 'id' in res.data
-          ? Number((res.data as { id: number }).id)
-          : 0;
-      onSaved(id, mode);
+      const data =
+        typeof res.data === 'object' && res.data !== null
+          ? (res.data as Record<string, unknown>)
+          : null;
+      const id = data && 'id' in data ? Number(data.id) : 0;
+      const agreementState = resolveStudentCreateAgreementState(
+        data as { id?: number; agreement_state?: string; finance?: { agreement_state?: string } },
+      );
+
+      if (activation === 'activate' && agreementState === 'active') {
+        toast.success(t('admin.student360.create.financeActivation.activateSuccess'));
+      } else if (payload.finance && activation === 'draft') {
+        toast.success(t('admin.student360.create.financeActivation.draftSuccess'));
+      } else {
+        toast.success(t('admin.student360.create.success'));
+      }
+
+      onSaved(id, mode, {
+        financeActivation: payload.finance ? activation : undefined,
+        agreementState,
+      });
       return;
     }
 
@@ -633,6 +683,25 @@ export function StudentCreateForm({
   const massarDuplicate =
     identifierChecksState.checks.massarCode.status === 'duplicate' ||
     displayFieldErrors.massarCode === t('admin.student360.errors.duplicateMassar');
+
+  const canActivateFinanceAgreement = canOfferFinanceAgreementActivation({
+    suggest: suggestState.suggest,
+    financeBlocked,
+    state,
+    schoolId: resolvedSchoolId,
+    financeState,
+    previewLoading: previewState.loading,
+    previewError: previewState.error,
+    preview: previewState.preview,
+  });
+
+  const saveDisabled =
+    saving ||
+    financeBlocked ||
+    identifierMissing ||
+    financePrerequisitesMissing ||
+    massarDuplicate ||
+    identifierChecksState.identifierChecksBlockProgress;
 
   return (
     <form ref={formRef} className="student-create-form" onSubmit={(e) => e.preventDefault()}>
@@ -783,40 +852,58 @@ export function StudentCreateForm({
           </button>
         ) : (
           <>
-            <button
-              type="button"
-              className="btn btn--primary"
-              disabled={
-                saving ||
-                financeBlocked ||
-                identifierMissing ||
-                financePrerequisitesMissing ||
-                massarDuplicate ||
-                identifierChecksState.identifierChecksBlockProgress
-              }
-              onClick={() => void submit('setup')}
-            >
-              {saving && saveMode === 'setup'
-                ? t('admin.student360.create.saving')
-                : t('admin.student360.create.saveAndSetup')}
-            </button>
-            <button
-              type="button"
-              className="btn btn--secondary"
-              disabled={
-                saving ||
-                financeBlocked ||
-                identifierMissing ||
-                financePrerequisitesMissing ||
-                massarDuplicate ||
-                identifierChecksState.identifierChecksBlockProgress
-              }
-              onClick={() => void submit('list')}
-            >
-              {saving && saveMode === 'list'
-                ? t('admin.student360.create.saving')
-                : t('admin.student360.create.saveOnly')}
-            </button>
+            {canActivateFinanceAgreement ? (
+              <p className="student-create-form__notice student-create-form__finance-activation-hint">
+                {t('admin.student360.create.financeActivation.activateHint')}
+              </p>
+            ) : null}
+            {canActivateFinanceAgreement ? (
+              <>
+                <button
+                  type="button"
+                  className="btn btn--primary"
+                  disabled={saveDisabled}
+                  onClick={() => void submit('setup', 'activate')}
+                >
+                  {saving && financeActivationMode === 'activate'
+                    ? t('admin.student360.create.financeActivation.savingActivate')
+                    : t('admin.student360.create.financeActivation.createAndActivate')}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn--secondary"
+                  disabled={saveDisabled}
+                  onClick={() => void submit('list', 'draft')}
+                >
+                  {saving && financeActivationMode === 'draft' && saveMode === 'list'
+                    ? t('admin.student360.create.saving')
+                    : t('admin.student360.create.financeActivation.saveDraft')}
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className="btn btn--primary"
+                  disabled={saveDisabled}
+                  onClick={() => void submit('setup', 'draft')}
+                >
+                  {saving && saveMode === 'setup' && financeActivationMode === 'draft'
+                    ? t('admin.student360.create.saving')
+                    : t('admin.student360.create.saveAndSetup')}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn--secondary"
+                  disabled={saveDisabled}
+                  onClick={() => void submit('list', 'draft')}
+                >
+                  {saving && saveMode === 'list' && financeActivationMode === 'draft'
+                    ? t('admin.student360.create.saving')
+                    : t('admin.student360.create.saveOnly')}
+                </button>
+              </>
+            )}
           </>
         )}
 

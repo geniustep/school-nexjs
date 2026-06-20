@@ -201,9 +201,12 @@ export interface StudentCreateFinanceOneTimeLinePayload {
   due_date_override?: string | null;
 }
 
+export type FinanceAgreementActivationMode = 'draft' | 'activate';
+
 export interface StudentCreateFinancePayload {
   fee_plan_id: number;
   customize_plan: boolean;
+  activation_mode?: FinanceAgreementActivationMode;
   customization_reason?: FeePlanCustomizationReason;
   customization_notes?: string;
   periods?: StudentCreateFinancePeriodPayload[];

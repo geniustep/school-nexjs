@@ -1,1 +1,5 @@
-export { StudentCreateForm, type StudentCreateSaveMode } from './student-create-wizard';
+export {
+  StudentCreateForm,
+  type StudentCreateSaveMode,
+  type StudentCreateSaveOutcome,
+} from './student-create-wizard';

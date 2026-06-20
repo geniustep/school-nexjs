@@ -3004,6 +3004,17 @@
         "saveOnly": "Enregistrer uniquement",
         "saving": "Création de l'élève…",
         "success": "Élève créé avec succès.",
+        "financeActivation": {
+          "saveDraft": "Enregistrer l'accord en brouillon",
+          "createAndActivate": "Créer l'élève et activer l'accord",
+          "activateHint": "L'élève sera créé et l'accord financier activé immédiatement. Les échéances apparaîtront comme des créances à encaisser.",
+          "savingActivate": "Création de l'élève et activation de l'accord…",
+          "draftSuccess": "Élève créé et accord financier enregistré en brouillon.",
+          "activateSuccess": "Élève créé et accord financier activé avec succès.",
+          "forbidden": "Vous n'avez pas l'autorisation d'activer l'accord financier directement. Vous pouvez l'enregistrer en brouillon.",
+          "failed": "Impossible d'activer l'accord financier. Vérifiez les données ou enregistrez en brouillon.",
+          "totalsMismatch": "Impossible d'activer l'accord car les totaux ne correspondent pas à l'échéancier."
+        },
         "loadingYears": "Chargement des années scolaires…",
         "loadingClasses": "Chargement des classes…",
         "selectLevelFirst": "Choisissez d'abord un niveau.",
