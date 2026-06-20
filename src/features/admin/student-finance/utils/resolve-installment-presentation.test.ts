@@ -4,6 +4,8 @@ import {
   hasInstallmentPendingChequeCoverage,
   isInstallmentOverdueForSummary,
   isInstallmentPaidForSummary,
+  isInstallmentUpcomingForSummary,
+  resolveAdminInstallmentTimingDisplayStatus,
   resolveEffectiveInstallmentPaymentStatus,
   resolveEffectiveInstallmentTimingStatus,
 } from './resolve-installment-presentation';
@@ -42,5 +44,18 @@ describe('resolve-installment-presentation', () => {
       remaining_amount: 0,
     });
     expect(isInstallmentPaidForSummary(paid)).toBe(true);
+  });
+
+  it('maps backend hidden timing to upcoming for admin display', () => {
+    expect(resolveAdminInstallmentTimingDisplayStatus('hidden')).toBe('upcoming');
+    expect(resolveAdminInstallmentTimingDisplayStatus('due')).toBe('due');
+    expect(resolveAdminInstallmentTimingDisplayStatus(null)).toBeNull();
+  });
+
+  it('counts hidden timing as not yet due in schedule summary', () => {
+    const hidden = row({ payment_status: 'unpaid', timing_status: 'hidden' });
+    expect(isInstallmentUpcomingForSummary(hidden)).toBe(true);
+    const due = row({ payment_status: 'unpaid', timing_status: 'due' });
+    expect(isInstallmentUpcomingForSummary(due)).toBe(false);
   });
 });

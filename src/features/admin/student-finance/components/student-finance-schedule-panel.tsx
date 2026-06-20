@@ -20,6 +20,7 @@ import {
   hasInstallmentPendingChequeCoverage,
   isInstallmentOverdueForSummary,
   isInstallmentPaidForSummary,
+  isInstallmentUpcomingForSummary,
   resolveEffectiveInstallmentPaymentStatus,
   resolveEffectiveInstallmentTimingStatus,
 } from '../utils/resolve-installment-presentation';
@@ -104,7 +105,7 @@ export function StudentFinanceSchedulePanel({
       if (isInstallmentPaidForSummary(row)) paid += 1;
       else if (isInstallmentOverdueForSummary(row)) overdue += 1;
       else if (row.timing_status === 'due' && !hasInstallmentPendingChequeCoverage(row)) due += 1;
-      else upcoming += 1;
+      else if (isInstallmentUpcomingForSummary(row)) upcoming += 1;
     }
     return {
       total: summary?.total_count ?? rows.length,

@@ -4136,7 +4136,7 @@
             "paid": "Paid",
             "due": "Due",
             "overdue": "Overdue",
-            "upcoming": "Upcoming"
+            "upcoming": "Pas encore exigibles"
           },
           "status": {
             "upcoming": "Upcoming",

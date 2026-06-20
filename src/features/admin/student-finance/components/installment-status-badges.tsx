@@ -5,6 +5,7 @@ import { useT } from '@/features/i18n/locale-context';
 import { paymentStatusTone, timingStatusTone } from '../utils/reference-labels';
 import {
   hasInstallmentPendingChequeCoverage,
+  resolveAdminInstallmentTimingDisplayStatus,
   resolveEffectiveInstallmentPaymentStatus,
   resolveEffectiveInstallmentTimingStatus,
 } from '../utils/resolve-installment-presentation';
@@ -20,18 +21,21 @@ export function InstallmentPaymentStatusBadge({ status }: { status: string }) {
 export function InstallmentTimingStatusBadge({
   status,
   hiddenFromParent,
+  showParentVisibilityHint = false,
 }: {
   status: string;
   hiddenFromParent?: boolean;
+  showParentVisibilityHint?: boolean;
 }) {
   const t = useT();
-  const key = `admin.student360.financeOps.timingStatus.${status}`;
+  const displayStatus = status === 'hidden' ? 'upcoming' : status;
+  const key = `admin.student360.financeOps.timingStatus.${displayStatus}`;
   const label = t(key);
-  const text = label === key ? status : label;
+  const text = label === key ? displayStatus : label;
   return (
     <span className="student-finance-status-group">
-      <Badge tone={timingStatusTone(status)}>{text}</Badge>
-      {hiddenFromParent ? (
+      <Badge tone={timingStatusTone(displayStatus)}>{text}</Badge>
+      {showParentVisibilityHint && hiddenFromParent ? (
         <span className="student-finance-hidden-indicator tiny muted">
           {t('admin.student360.financeOps.hiddenFromParent')}
         </span>
@@ -54,19 +58,29 @@ export function InstallmentStatusBadges({
   timingStatus,
   isVisible,
   pendingChequeCoverage = false,
+  showParentVisibilityHint = false,
 }: {
   paymentStatus: string;
   timingStatus: string | null;
   isVisible?: boolean;
   pendingChequeCoverage?: boolean;
+  showParentVisibilityHint?: boolean;
 }) {
+  const displayTiming = timingStatus
+    ? resolveAdminInstallmentTimingDisplayStatus(timingStatus)
+    : null;
+
   return (
     <span className="student-finance-dual-badges">
       <InstallmentPaymentStatusBadge status={paymentStatus} />
       {pendingChequeCoverage ? (
         <InstallmentPendingChequeBadge />
-      ) : timingStatus ? (
-        <InstallmentTimingStatusBadge status={timingStatus} hiddenFromParent={isVisible === false} />
+      ) : displayTiming && displayTiming !== 'not_applicable' ? (
+        <InstallmentTimingStatusBadge
+          status={displayTiming}
+          hiddenFromParent={isVisible === false}
+          showParentVisibilityHint={showParentVisibilityHint}
+        />
       ) : null}
     </span>
   );

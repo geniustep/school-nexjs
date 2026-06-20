@@ -33,6 +33,24 @@ export function resolveEffectiveInstallmentTimingStatus(row: StudentInstallment)
   return row.timing_status ?? 'not_applicable';
 }
 
+/** Admin UI: backend `hidden` means parent-portal visibility, not admin-hidden — show as upcoming. */
+export function resolveAdminInstallmentTimingDisplayStatus(
+  timingStatus: string | null | undefined,
+): string | null {
+  if (timingStatus == null) return null;
+  if (timingStatus === 'hidden') return 'upcoming';
+  return timingStatus;
+}
+
+export function isInstallmentUpcomingForSummary(row: StudentInstallment): boolean {
+  if (isInstallmentPaidForSummary(row)) return false;
+  if (isInstallmentOverdueForSummary(row)) return false;
+  if (hasInstallmentPendingChequeCoverage(row)) return false;
+  const timing = row.timing_status;
+  if (timing === 'due') return false;
+  return timing === 'upcoming' || timing === 'hidden' || timing === 'not_applicable' || !timing;
+}
+
 export function isInstallmentOverdueForSummary(row: StudentInstallment): boolean {
   if (hasInstallmentPendingChequeCoverage(row)) return false;
   return row.timing_status === 'overdue';
