@@ -2622,18 +2622,23 @@
       "nextAction": "Prochaine action",
       "assignedUser": "Responsable",
       "viewMode": "Mode d'affichage",
-      "viewKanban": "Kanban",
-      "viewTable": "Tableau",
+      "viewKanban": "Tableau",
+      "viewTable": "Liste",
       "filters": {
         "search": "Rechercher…",
         "state": "Statut",
-        "showClosed": "Afficher les fermées (perdu / annulé / doublon)"
+        "allStates": "Tous les statuts",
+        "showClosed": "Afficher les demandes fermées"
       },
       "empty": {
         "title": "Aucune demande",
         "description": "Créez une nouvelle demande pour commencer."
       },
-      "kanban": { "emptyColumn": "Aucune carte" },
+      "kanban": { "emptyColumn": "Aucune demande" },
+      "card": {
+        "guardian": "Responsable",
+        "phone": "Téléphone"
+      },
       "badges": {
         "possibleDuplicate": "Doublon possible",
         "offerAccepted": "Offre acceptée",
@@ -2700,12 +2705,23 @@
       },
       "gender": { "male": "Garçon", "female": "Fille" },
       "create": {
-        "title": "Nouvelle demande",
-        "subtitle": "Créer une demande — ne crée pas d'élève",
-        "studentSection": "Enfant",
-        "guardianSection": "Responsable",
+        "title": "Nouvelle demande d'inscription",
+        "subtitle": "Créez une demande d'inscription initiale sans créer d'élève officiel.",
+        "studentSection": "Informations sur l'enfant",
+        "guardianSection": "Informations sur le responsable",
+        "studySection": "Scolarité demandée",
         "followUpSection": "Suivi",
-        "submit": "Créer"
+        "notesSection": "Notes internes",
+        "submit": "Créer la demande d'inscription",
+        "submitting": "Création de la demande…",
+        "cancel": "Annuler",
+        "submitError": "Impossible de créer la demande. Vérifiez les champs obligatoires et réessayez.",
+        "fieldRequired": "Ce champ est obligatoire",
+        "selectGender": "Choisir le genre",
+        "selectAcademicYear": "Choisir l'année scolaire",
+        "selectLevel": "Choisir le niveau",
+        "selectClass": "Choisir la classe",
+        "datePlaceholder": "jj/mm/aaaa"
       },
       "detail": {
         "summary": "Résumé",
@@ -2713,7 +2729,8 @@
         "guardian": "Responsable",
         "duplicates": "Doublons possibles",
         "prefillStatus": "Statut prefill",
-        "tabs": "Sections"
+        "tabs": "Sections",
+        "unspecified": "Non précisé"
       },
       "tabs": {
         "overview": "Aperçu",
@@ -2728,14 +2745,32 @@
         "addActivity": "Ajouter une note / suivi",
         "activityType": "Type",
         "submit": "Ajouter",
-        "empty": "Aucune activité"
+        "empty": "Aucune activité",
+        "systemMessages": {
+          "statusChanged": "Statut changé de {from} à {to}.",
+          "offerSent": "Offre d'inscription envoyée.",
+          "offerCreated": "Offre d'inscription créée.",
+          "decisionMade": "Décision prise : {decision}.",
+          "appointmentScheduled": "Rendez-vous planifié : {type}.",
+          "assessmentCreated": "Évaluation ajoutée.",
+          "assessmentCreatedWithType": "Évaluation ajoutée : {type}."
+        }
       },
       "activityTypes": {
         "note": "Note",
         "call": "Appel",
+        "email": "E-mail",
+        "visit": "Visite",
         "whatsapp": "WhatsApp",
         "follow_up": "Suivi",
-        "visit_note": "Note de visite"
+        "visit_note": "Note de visite",
+        "offer_sent": "Offre d'inscription envoyée",
+        "offer_created": "Offre d'inscription créée",
+        "status_change": "Changement de statut",
+        "decision_made": "Décision prise",
+        "appointment_scheduled": "Rendez-vous planifié",
+        "assessment_created": "Évaluation ajoutée",
+        "unknown": "Activité"
       },
       "appointments": {
         "create": "Planifier",
@@ -2744,7 +2779,17 @@
         "duration": "Durée (min)",
         "resultNotes": "Notes de résultat",
         "empty": "Aucun rendez-vous",
-        "types": { "schoolVisit": "Visite école", "visit": "Visite", "call": "Appel", "assessment": "Évaluation" }
+        "types": {
+          "schoolVisit": "Visite scolaire",
+          "visit": "Visite",
+          "call": "Appel",
+          "assessment": "Évaluation",
+          "writtenTest": "Test écrit",
+          "oralTest": "Test oral",
+          "parentInterview": "Entretien parent",
+          "adminMeeting": "Réunion administrative",
+          "other": "Autre"
+        }
       },
       "assessments": {
         "create": "Ajouter une évaluation",
@@ -2772,6 +2817,15 @@
         "rejected": "Refusé",
         "needs_reassessment": "Réévaluation nécessaire"
       },
+      "offerStates": {
+        "draft": "Brouillon",
+        "sent": "Envoyée",
+        "pending": "En attente",
+        "accepted": "Acceptée",
+        "rejected": "Refusée",
+        "expired": "Expirée",
+        "cancelled": "Annulée"
+      },
       "offers": {
         "create": "Créer une offre",
         "offer": "Offre",
@@ -2791,21 +2845,35 @@
         "loading": "Chargement…",
         "load": "Charger l'aperçu",
         "readOnlyTitle": "Lecture seule",
-        "readOnlyNotice": "Aperçu uniquement. Ne crée pas d'élève.",
+        "readOnlyNotice": "Aperçu uniquement. Ne crée pas d'élève et ne lie pas la demande automatiquement.",
         "student": "Élève",
         "guardian": "Responsable",
         "academic": "Académique",
         "admission": "Admission",
         "readiness": "Préparation",
         "warnings": "Avertissements",
-        "blockingIssues": "Blocages"
+        "blockingIssues": "Blocages",
+        "fields": {
+          "school": "École"
+        },
+        "messages": {
+          "noProposedClass": "Aucune classe proposée sélectionnée.",
+          "offerNotAccepted": "L'offre d'inscription n'est pas encore acceptée.",
+          "applicationNotConfirmed": "La demande n'est pas encore confirmée.",
+          "guardianContactMissing": "Les coordonnées du responsable sont manquantes.",
+          "studentNameMissing": "Le nom de l'élève est manquant.",
+          "birthDateMissing": "La date de naissance est manquante.",
+          "genderMissing": "Le genre est manquant.",
+          "requestedLevelMissing": "Le niveau demandé est manquant.",
+          "academicYearMissing": "L'année scolaire est manquante."
+        }
       },
       "registration": {
         "continueButton": "Poursuivre l'inscription de l'élève",
         "linkedTitle": "Demande liée à un élève",
         "linkedDescription": "Ouvrez le dossier élève pour continuer.",
         "openStudentProfile": "Ouvrir le dossier élève",
-        "readinessWarning": "Des avertissements ou blocages de préparation existent — vérifiez les données avant l'enregistrement.",
+        "readinessWarning": "Des données manquent ou des avertissements existent avant l'inscription. Vérifiez avant l'enregistrement.",
         "prefillBannerTitle": "Cette inscription est préremplie depuis la demande {reference}",
         "prefillBannerDescription": "Vérifiez les données avant l'enregistrement.",
         "prefillDecision": "Décision",

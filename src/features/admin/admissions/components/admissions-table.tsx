@@ -40,24 +40,24 @@ export function AdmissionsTable({ items }: { items: AdmissionListItem[] }) {
       {
         key: 'guardian_name',
         header: t('admin.admissions.table.guardian'),
-        render: (row) => row.guardian_name ?? '—',
+        render: (row) => row.guardian_name ?? t('common.dash'),
       },
       {
         key: 'guardian_phone',
         header: t('admin.admissions.table.phone'),
         render: (row) => (
-          <span dir="ltr">{row.guardian_phone ?? '—'}</span>
+          <span dir="ltr">{row.guardian_phone ?? t('common.dash')}</span>
         ),
       },
       {
         key: 'source',
         header: t('admin.admissions.table.source'),
-        render: (row) => refName(row.source) || '—',
+        render: (row) => refName(row.source) || t('common.dash'),
       },
       {
         key: 'requested_level',
         header: t('admin.admissions.table.level'),
-        render: (row) => refName(row.requested_level) || '—',
+        render: (row) => refName(row.requested_level) || t('common.dash'),
       },
       {
         key: 'state',
@@ -72,7 +72,7 @@ export function AdmissionsTable({ items }: { items: AdmissionListItem[] }) {
         key: 'next_action',
         header: t('admin.admissions.table.nextAction'),
         render: (row) => {
-          if (!row.next_action && !row.next_action_date) return '—';
+          if (!row.next_action && !row.next_action_date) return t('common.dash');
           const overdue = isOverdueNextAction(row.next_action_date);
           return (
             <span className={overdue ? 'text-danger' : undefined}>
@@ -84,7 +84,7 @@ export function AdmissionsTable({ items }: { items: AdmissionListItem[] }) {
       {
         key: 'assigned_user',
         header: t('admin.admissions.table.assigned'),
-        render: (row) => refName(row.assigned_user) || '—',
+        render: (row) => refName(row.assigned_user) || t('common.dash'),
       },
     ],
     [t],

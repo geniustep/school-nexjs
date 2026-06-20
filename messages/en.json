@@ -2627,14 +2627,19 @@
       "filters": {
         "search": "Search…",
         "state": "Status",
-        "showClosed": "Show closed (lost / cancelled / duplicate)"
+        "allStates": "All statuses",
+        "showClosed": "Show closed requests"
       },
       "empty": {
         "title": "No requests",
         "description": "Create a new admission request to get started."
       },
       "kanban": {
-        "emptyColumn": "No cards"
+        "emptyColumn": "No requests"
+      },
+      "card": {
+        "guardian": "Guardian",
+        "phone": "Phone"
       },
       "badges": {
         "possibleDuplicate": "Possible duplicate",
@@ -2705,12 +2710,23 @@
         "female": "Female"
       },
       "create": {
-        "title": "New admission request",
-        "subtitle": "Create an intake request — does not create a student",
-        "studentSection": "Child details",
-        "guardianSection": "Guardian details",
+        "title": "New registration request",
+        "subtitle": "Create an initial registration request without creating an official student record.",
+        "studentSection": "Child information",
+        "guardianSection": "Guardian information",
+        "studySection": "Requested study",
         "followUpSection": "Follow-up",
-        "submit": "Create request"
+        "notesSection": "Internal notes",
+        "submit": "Create registration request",
+        "submitting": "Creating request…",
+        "cancel": "Cancel",
+        "submitError": "Could not create the registration request. Check required fields and try again.",
+        "fieldRequired": "This field is required",
+        "selectGender": "Select gender",
+        "selectAcademicYear": "Select academic year",
+        "selectLevel": "Select level",
+        "selectClass": "Select class",
+        "datePlaceholder": "dd/mm/yyyy"
       },
       "detail": {
         "summary": "Request summary",
@@ -2718,7 +2734,8 @@
         "guardian": "Guardian details",
         "duplicates": "Possible duplicates",
         "prefillStatus": "Prefill status",
-        "tabs": "Request sections"
+        "tabs": "Request sections",
+        "unspecified": "Not specified"
       },
       "tabs": {
         "overview": "Overview",
@@ -2733,14 +2750,32 @@
         "addActivity": "Add note / follow-up",
         "activityType": "Activity type",
         "submit": "Add",
-        "empty": "No activities yet"
+        "empty": "No activities yet",
+        "systemMessages": {
+          "statusChanged": "Status changed from {from} to {to}.",
+          "offerSent": "Registration offer sent.",
+          "offerCreated": "Registration offer created.",
+          "decisionMade": "Decision made: {decision}.",
+          "appointmentScheduled": "Appointment scheduled: {type}.",
+          "assessmentCreated": "Assessment created.",
+          "assessmentCreatedWithType": "Assessment created: {type}."
+        }
       },
       "activityTypes": {
         "note": "Note",
         "call": "Call",
+        "email": "Email",
+        "visit": "Visit",
         "whatsapp": "WhatsApp",
         "follow_up": "Follow-up",
-        "visit_note": "Visit note"
+        "visit_note": "Visit note",
+        "offer_sent": "Registration offer sent",
+        "offer_created": "Registration offer created",
+        "status_change": "Status change",
+        "decision_made": "Decision made",
+        "appointment_scheduled": "Appointment scheduled",
+        "assessment_created": "Assessment created",
+        "unknown": "Activity"
       },
       "appointments": {
         "create": "Schedule appointment",
@@ -2753,7 +2788,12 @@
           "schoolVisit": "School visit",
           "visit": "Visit",
           "call": "Call",
-          "assessment": "Assessment"
+          "assessment": "Assessment",
+          "writtenTest": "Written test",
+          "oralTest": "Oral test",
+          "parentInterview": "Parent interview",
+          "adminMeeting": "Admin meeting",
+          "other": "Other"
         }
       },
       "assessments": {
@@ -2782,6 +2822,15 @@
         "rejected": "Rejected",
         "needs_reassessment": "Needs reassessment"
       },
+      "offerStates": {
+        "draft": "Draft",
+        "sent": "Sent",
+        "pending": "Pending",
+        "accepted": "Accepted",
+        "rejected": "Rejected",
+        "expired": "Expired",
+        "cancelled": "Cancelled"
+      },
       "offers": {
         "create": "Create offer",
         "offer": "Offer",
@@ -2801,21 +2850,35 @@
         "loading": "Loading preview…",
         "load": "Load preview",
         "readOnlyTitle": "Read-only",
-        "readOnlyNotice": "This preview is for inspection only. It does not create a student or use link-student.",
+        "readOnlyNotice": "This preview is for inspection only. It does not create a student or link the request automatically.",
         "student": "Student",
         "guardian": "Guardian",
         "academic": "Academic",
         "admission": "Admission",
         "readiness": "Readiness",
         "warnings": "Warnings",
-        "blockingIssues": "Blocking issues"
+        "blockingIssues": "Blocking issues",
+        "fields": {
+          "school": "School"
+        },
+        "messages": {
+          "noProposedClass": "No proposed class selected.",
+          "offerNotAccepted": "Registration offer is not accepted yet.",
+          "applicationNotConfirmed": "Application is not confirmed yet.",
+          "guardianContactMissing": "Guardian contact information is missing.",
+          "studentNameMissing": "Student name is missing.",
+          "birthDateMissing": "Birth date is missing.",
+          "genderMissing": "Gender is missing.",
+          "requestedLevelMissing": "Requested level is missing.",
+          "academicYearMissing": "Academic year is missing."
+        }
       },
       "registration": {
         "continueButton": "Continue student registration",
         "linkedTitle": "Admission linked to student",
         "linkedDescription": "Open the student profile to continue.",
         "openStudentProfile": "Open student profile",
-        "readinessWarning": "There are readiness warnings or blocking issues — review the data before saving.",
+        "readinessWarning": "Some data is missing or has warnings before registration. Review before saving.",
         "prefillBannerTitle": "This registration is prefilled from admission {reference}",
         "prefillBannerDescription": "Review the data before saving.",
         "prefillDecision": "Decision",

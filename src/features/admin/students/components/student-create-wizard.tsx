@@ -7,6 +7,10 @@ import { InfoBanner } from '@/components/ui/primitives';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
 import type { AdmissionRegistrationContext } from '@/features/admin/admissions/utils/admission-prefill-mapper';
+import {
+  formatPrefillFieldValue,
+  formatPrefillMessage,
+} from '@/features/admin/admissions/utils/admission-prefill-display';
 import { endpoints } from '@/lib/api/endpoints';
 import { useLevelOptions } from '@/features/admin/academic-setup/hooks/use-level-options';
 import { useStudentOptions } from '../hooks/use-student-options';
@@ -744,13 +748,13 @@ export function StudentCreateForm({
             {admissionBanner.decision ? (
               <>
                 <dt>{t('admin.admissions.registration.prefillDecision')}</dt>
-                <dd>{admissionBanner.decision}</dd>
+                <dd>{formatPrefillFieldValue('decision', admissionBanner.decision, t)}</dd>
               </>
             ) : null}
             {admissionBanner.offerState ? (
               <>
                 <dt>{t('admin.admissions.registration.prefillOfferState')}</dt>
-                <dd>{admissionBanner.offerState}</dd>
+                <dd>{formatPrefillFieldValue('offer_state', admissionBanner.offerState, t)}</dd>
               </>
             ) : null}
           </dl>
@@ -759,7 +763,7 @@ export function StudentCreateForm({
               <strong>{t('admin.admissions.prefill.warnings')}</strong>
               <ul>
                 {admissionBanner.warnings!.map((item, index) => (
-                  <li key={index}>{item}</li>
+                  <li key={index}>{formatPrefillMessage(item, t)}</li>
                 ))}
               </ul>
             </div>
@@ -769,7 +773,7 @@ export function StudentCreateForm({
               <strong>{t('admin.admissions.prefill.blockingIssues')}</strong>
               <ul>
                 {admissionBanner.blockingIssues!.map((item, index) => (
-                  <li key={index}>{item}</li>
+                  <li key={index}>{formatPrefillMessage(item, t)}</li>
                 ))}
               </ul>
             </div>

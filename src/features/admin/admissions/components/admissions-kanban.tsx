@@ -34,22 +34,30 @@ export function AdmissionsKanban({
   }
 
   return (
-    <div className="admissions-kanban">
-      {grouped.map(({ state, items: columnItems }) => (
-        <section key={state} className="admissions-kanban__column" aria-label={state}>
-          <header className="admissions-kanban__column-header">
-            <span>{t(`admin.admissions.states.${state}`)}</span>
-            <span className="badge badge--slate">{columnItems.length}</span>
-          </header>
-          <div className="admissions-kanban__column-body">
-            {columnItems.length === 0 ? (
-              <span className="tiny muted">{t('admin.admissions.kanban.emptyColumn')}</span>
-            ) : (
-              columnItems.map((item) => <AdmissionCard key={item.id} item={item} />)
-            )}
-          </div>
-        </section>
-      ))}
+    <div className="admissions-kanban-scroll">
+      <div className="admissions-kanban">
+        {grouped.map(({ state, items: columnItems }) => (
+          <section
+            key={state}
+            className="admissions-kanban__column"
+            aria-label={t(`admin.admissions.states.${state}`)}
+          >
+            <header className="admissions-kanban__column-header">
+              <span className="admissions-kanban__column-title">
+                {t(`admin.admissions.states.${state}`)}
+              </span>
+              <span className="admissions-kanban__column-count">{columnItems.length}</span>
+            </header>
+            <div className="admissions-kanban__column-body">
+              {columnItems.length === 0 ? (
+                <p className="admissions-kanban__empty">{t('admin.admissions.kanban.emptyColumn')}</p>
+              ) : (
+                columnItems.map((item) => <AdmissionCard key={item.id} item={item} />)
+              )}
+            </div>
+          </section>
+        ))}
+      </div>
     </div>
   );
 }

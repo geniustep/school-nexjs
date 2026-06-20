@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useAdminSession } from '@/features/auth/admin-session-context';
+import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { patchAdmission } from '../api/admissions-api';
 import { admissionApiErrorMessage } from '../utils/admission-errors';
@@ -18,8 +19,10 @@ export function AdmissionNextActionBox({
   onUpdated: () => void;
 }) {
   const t = useT();
+  const { formatDate } = useFormat();
   const { activeSchoolId } = useAdminSession();
   const overdue = isOverdueNextAction(detail.next_action_date);
+  const empty = t('admin.admissions.detail.unspecified');
   const [editing, setEditing] = useState(false);
   const [nextAction, setNextAction] = useState(detail.next_action ?? '');
   const [nextActionDate, setNextActionDate] = useState(detail.next_action_date ?? '');
@@ -63,8 +66,10 @@ export function AdmissionNextActionBox({
 
       {!editing ? (
         <>
-          <p>{detail.next_action || t('common.dash')}</p>
-          <p className="muted">{detail.next_action_date || t('common.dash')}</p>
+          <p>{detail.next_action || empty}</p>
+          <p className="muted">
+            {detail.next_action_date ? formatDate(detail.next_action_date) : empty}
+          </p>
           {canEdit && (
             <button type="button" className="btn btn--sm" onClick={() => setEditing(true)}>
               {t('common.edit')}

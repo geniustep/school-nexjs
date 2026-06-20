@@ -11,11 +11,13 @@ import {
   SessionExpiredState,
 } from '@/components/states/states';
 import { Badge } from '@/components/ui/primitives';
+import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { useAdmissionDetail } from '../hooks/use-admission-detail';
 import {
   admissionStateTone,
   formatAdmissionReference,
+  refName,
 } from '../utils/admission-labels';
 import {
   ADMISSION_TABS,
@@ -42,8 +44,28 @@ function isForbiddenError(code: string): boolean {
   return code === 'forbidden' || code === 'permission_denied';
 }
 
+function DetailFact({
+  label,
+  value,
+  dir,
+}: {
+  label: string;
+  value: string;
+  dir?: 'ltr' | 'rtl' | 'auto';
+}) {
+  return (
+    <div className="admissions-detail-header__fact">
+      <span className="admissions-detail-header__fact-label">{label}</span>
+      <span className="admissions-detail-header__fact-value" dir={dir}>
+        {value}
+      </span>
+    </div>
+  );
+}
+
 export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
   const t = useT();
+  const { formatDate } = useFormat();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { loading, data, error, reload } = useAdmissionDetail(admissionId);
@@ -72,6 +94,10 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
   const detail = data;
   const actions = detail.allowed_actions ?? {};
   const visibleTabs = showPrefill ? ADMISSION_TABS : ADMISSION_TABS.filter((id) => id !== 'prefill');
+  const unspecified = t('admin.admissions.detail.unspecified');
+  const nextActionParts = [detail.next_action, detail.next_action_date ? formatDate(detail.next_action_date) : '']
+    .filter(Boolean)
+    .join(' — ');
 
   function renderTab(activeTab: AdmissionTabId) {
     switch (activeTab) {
@@ -126,21 +152,50 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
 
   return (
     <div className="admissions-detail-shell">
-      <div className="admissions-detail-header">
-        <div className="admissions-detail-header__main">
-          <Link href="/admin/admissions" className="back-link">
-            ‹ {t('admin.admissions.backToList')}
+      <header className="card admissions-detail-header-card">
+        <div className="admissions-detail-header-card__top">
+          <Link href="/admin/admissions" className="btn btn--ghost btn--sm admissions-detail-header-card__back">
+            {t('admin.admissions.backToList')}
           </Link>
-          <h1>{detail.student_name}</h1>
-          <p className="muted">
-            {formatAdmissionReference(detail.id, detail.reference)}
-          </p>
-          <Badge tone={admissionStateTone(detail.state)}>
-            {t(`admin.admissions.states.${detail.state}`)}
-          </Badge>
         </div>
+
+        <div className="admissions-detail-header-card__main">
+          <div className="admissions-detail-header-card__identity">
+            <h1 className="admissions-detail-header-card__title">{detail.student_name}</h1>
+            <div className="admissions-detail-header-card__meta">
+              <span className="mono">{formatAdmissionReference(detail.id, detail.reference)}</span>
+              <span className="admissions-detail-header-card__sep" aria-hidden="true">
+                ·
+              </span>
+              <Badge tone={admissionStateTone(detail.state)}>
+                {t(`admin.admissions.states.${detail.state}`)}
+              </Badge>
+            </div>
+          </div>
+
+          <div className="admissions-detail-header-card__facts">
+            <DetailFact
+              label={t('admin.admissions.card.guardian')}
+              value={detail.guardian_name || unspecified}
+            />
+            <DetailFact
+              label={t('admin.admissions.card.phone')}
+              value={detail.guardian_phone || unspecified}
+              dir="ltr"
+            />
+            <DetailFact
+              label={t('admin.admissions.fields.requestedLevel')}
+              value={refName(detail.requested_level) || unspecified}
+            />
+            <DetailFact
+              label={t('admin.admissions.nextAction')}
+              value={nextActionParts || unspecified}
+            />
+          </div>
+        </div>
+
         <AdmissionRegistrationActions detail={detail} />
-      </div>
+      </header>
 
       <nav className="admissions-tabs" aria-label={t('admin.admissions.detail.tabs')}>
         {visibleTabs.map((tabId) => (
@@ -154,7 +209,7 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
         ))}
       </nav>
 
-      {renderTab(tab)}
+      <div className="admissions-detail-panel">{renderTab(tab)}</div>
     </div>
   );
 }

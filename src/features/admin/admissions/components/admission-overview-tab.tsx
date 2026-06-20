@@ -1,6 +1,9 @@
 'use client';
 
+import Link from 'next/link';
+import type { ReactNode } from 'react';
 import { Badge } from '@/components/ui/primitives';
+import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import {
   admissionStateTone,
@@ -9,6 +12,32 @@ import {
 } from '../utils/admission-labels';
 import { AdmissionNextActionBox } from './admission-next-action-box';
 import type { AdmissionDetail } from '@/types/admission';
+
+function OverviewCard({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="card admissions-overview-card">
+      <h2 className="admissions-overview-card__title">{title}</h2>
+      <dl className="admissions-overview-card__dl">{children}</dl>
+    </section>
+  );
+}
+
+function OverviewRow({
+  label,
+  value,
+  dir,
+}: {
+  label: string;
+  value: ReactNode;
+  dir?: 'ltr' | 'rtl' | 'auto';
+}) {
+  return (
+    <>
+      <dt>{label}</dt>
+      <dd dir={dir}>{value}</dd>
+    </>
+  );
+}
 
 export function AdmissionOverviewTab({
   detail,
@@ -20,103 +49,134 @@ export function AdmissionOverviewTab({
   onUpdated: () => void;
 }) {
   const t = useT();
+  const { formatDate } = useFormat();
+  const empty = t('admin.admissions.detail.unspecified');
 
   return (
-    <div className="admissions-section">
+    <div className="admissions-overview">
       <AdmissionNextActionBox detail={detail} canEdit={canEdit} onUpdated={onUpdated} />
 
-      <section>
-        <h2 className="admissions-section__title">{t('admin.admissions.detail.summary')}</h2>
-        <dl className="admissions-dl">
-          <dt>{t('admin.admissions.table.reference')}</dt>
-          <dd>{formatAdmissionReference(detail.id, detail.reference)}</dd>
-          <dt>{t('admin.admissions.table.state')}</dt>
-          <dd>
-            <Badge tone={admissionStateTone(detail.state)}>
-              {t(`admin.admissions.states.${detail.state}`)}
-            </Badge>
-          </dd>
-          <dt>{t('admin.admissions.table.source')}</dt>
-          <dd>{refName(detail.source) || t('common.dash')}</dd>
-          <dt>{t('admin.admissions.fields.academicYear')}</dt>
-          <dd>{refName(detail.academic_year) || t('common.dash')}</dd>
-          <dt>{t('admin.admissions.table.assigned')}</dt>
-          <dd>{refName(detail.assigned_user) || t('common.dash')}</dd>
-          <dt>{t('admin.admissions.fields.priority')}</dt>
-          <dd>{detail.priority || t('common.dash')}</dd>
-          {detail.prefill_status && (
-            <>
-              <dt>{t('admin.admissions.detail.prefillStatus')}</dt>
-              <dd>{detail.prefill_status}</dd>
-            </>
-          )}
-        </dl>
-      </section>
+      <div className="admissions-overview-grid">
+        <OverviewCard title={t('admin.admissions.detail.summary')}>
+          <OverviewRow
+            label={t('admin.admissions.table.reference')}
+            value={<span className="mono">{formatAdmissionReference(detail.id, detail.reference)}</span>}
+          />
+          <OverviewRow
+            label={t('admin.admissions.table.state')}
+            value={
+              <Badge tone={admissionStateTone(detail.state)}>
+                {t(`admin.admissions.states.${detail.state}`)}
+              </Badge>
+            }
+          />
+          <OverviewRow label={t('admin.admissions.table.source')} value={refName(detail.source) || empty} />
+          <OverviewRow
+            label={t('admin.admissions.fields.academicYear')}
+            value={refName(detail.academic_year) || empty}
+          />
+          <OverviewRow
+            label={t('admin.admissions.table.assigned')}
+            value={refName(detail.assigned_user) || empty}
+          />
+          <OverviewRow label={t('admin.admissions.fields.priority')} value={detail.priority || empty} />
+          {detail.prefill_status ? (
+            <OverviewRow
+              label={t('admin.admissions.detail.prefillStatus')}
+              value={detail.prefill_status}
+            />
+          ) : null}
+        </OverviewCard>
 
-      <section>
-        <h2 className="admissions-section__title">{t('admin.admissions.detail.student')}</h2>
-        <dl className="admissions-dl">
-          <dt>{t('admin.admissions.fields.studentName')}</dt>
-          <dd>{detail.student_name}</dd>
-          <dt>{t('admin.admissions.fields.birthDate')}</dt>
-          <dd>{detail.birth_date || t('common.dash')}</dd>
-          <dt>{t('admin.admissions.fields.gender')}</dt>
-          <dd>
-            {detail.gender
-              ? t(`admin.admissions.gender.${detail.gender}`)
-              : t('common.dash')}
-          </dd>
-          <dt>{t('admin.admissions.fields.requestedLevel')}</dt>
-          <dd>{refName(detail.requested_level) || t('common.dash')}</dd>
-          <dt>{t('admin.admissions.fields.requestedClass')}</dt>
-          <dd>{refName(detail.requested_class) || t('common.dash')}</dd>
-          <dt>{t('admin.admissions.fields.previousSchool')}</dt>
-          <dd>{detail.previous_school || t('common.dash')}</dd>
-          <dt>{t('admin.admissions.fields.massarCode')}</dt>
-          <dd>{detail.massar_code || t('common.dash')}</dd>
-        </dl>
-      </section>
+        <OverviewCard title={t('admin.admissions.detail.student')}>
+          <OverviewRow label={t('admin.admissions.fields.studentName')} value={detail.student_name} />
+          <OverviewRow
+            label={t('admin.admissions.fields.birthDate')}
+            value={detail.birth_date ? formatDate(detail.birth_date) : empty}
+          />
+          <OverviewRow
+            label={t('admin.admissions.fields.gender')}
+            value={
+              detail.gender ? t(`admin.admissions.gender.${detail.gender}`) : empty
+            }
+          />
+          <OverviewRow
+            label={t('admin.admissions.fields.previousSchool')}
+            value={detail.previous_school || empty}
+          />
+          <OverviewRow
+            label={t('admin.admissions.fields.massarCode')}
+            value={detail.massar_code || empty}
+            dir="ltr"
+          />
+        </OverviewCard>
 
-      <section>
-        <h2 className="admissions-section__title">{t('admin.admissions.detail.guardian')}</h2>
-        <dl className="admissions-dl">
-          <dt>{t('admin.admissions.fields.guardianName')}</dt>
-          <dd>{detail.guardian_name || t('common.dash')}</dd>
-          <dt>{t('admin.admissions.fields.guardianPhone')}</dt>
-          <dd dir="ltr">{detail.guardian_phone || t('common.dash')}</dd>
-          <dt>{t('admin.admissions.fields.guardianWhatsapp')}</dt>
-          <dd dir="ltr">{detail.guardian_whatsapp || t('common.dash')}</dd>
-          <dt>{t('admin.admissions.fields.guardianEmail')}</dt>
-          <dd dir="ltr">{detail.guardian_email || t('common.dash')}</dd>
-          <dt>{t('admin.admissions.fields.relationship')}</dt>
-          <dd>{detail.relationship || t('common.dash')}</dd>
-        </dl>
-      </section>
+        <OverviewCard title={t('admin.admissions.detail.guardian')}>
+          <OverviewRow
+            label={t('admin.admissions.fields.guardianName')}
+            value={detail.guardian_name || empty}
+          />
+          <OverviewRow
+            label={t('admin.admissions.fields.guardianPhone')}
+            value={detail.guardian_phone || empty}
+            dir="ltr"
+          />
+          <OverviewRow
+            label={t('admin.admissions.fields.guardianWhatsapp')}
+            value={detail.guardian_whatsapp || empty}
+            dir="ltr"
+          />
+          <OverviewRow
+            label={t('admin.admissions.fields.guardianEmail')}
+            value={detail.guardian_email || empty}
+            dir="ltr"
+          />
+          <OverviewRow
+            label={t('admin.admissions.fields.relationship')}
+            value={detail.relationship || empty}
+          />
+        </OverviewCard>
+
+        <OverviewCard title={t('admin.admissions.create.studySection')}>
+          <OverviewRow
+            label={t('admin.admissions.fields.academicYear')}
+            value={refName(detail.academic_year) || empty}
+          />
+          <OverviewRow
+            label={t('admin.admissions.fields.requestedLevel')}
+            value={refName(detail.requested_level) || empty}
+          />
+          <OverviewRow
+            label={t('admin.admissions.fields.requestedClass')}
+            value={refName(detail.requested_class) || empty}
+          />
+        </OverviewCard>
+      </div>
 
       {(detail.duplicates?.length ?? 0) > 0 && (
-        <section>
-          <h2 className="admissions-section__title">
+        <section className="card admissions-overview-card">
+          <h2 className="admissions-overview-card__title">
             {t('admin.admissions.detail.duplicates')}{' '}
             <Badge tone="amber">{detail.duplicate_count ?? detail.duplicates!.length}</Badge>
           </h2>
-          <ul>
+          <ul className="admissions-overview-duplicates">
             {detail.duplicates!.map((dup) => (
               <li key={dup.id}>
-                <a href={`/admin/admissions/${dup.id}`}>
-                  {dup.student_name} — {dup.state}
-                </a>
+                <Link href={`/admin/admissions/${dup.id}`}>
+                  {dup.student_name} — {t(`admin.admissions.states.${dup.state}`)}
+                </Link>
               </li>
             ))}
           </ul>
         </section>
       )}
 
-      {detail.internal_notes && (
-        <section>
-          <h2 className="admissions-section__title">{t('admin.admissions.fields.internalNotes')}</h2>
-          <p>{detail.internal_notes}</p>
+      {detail.internal_notes ? (
+        <section className="card admissions-overview-card">
+          <h2 className="admissions-overview-card__title">{t('admin.admissions.create.notesSection')}</h2>
+          <p className="admissions-overview-notes">{detail.internal_notes}</p>
         </section>
-      )}
+      ) : null}
     </div>
   );
 }

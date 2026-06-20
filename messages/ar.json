@@ -2643,25 +2643,30 @@
     },
     "admissions": {
       "title": "طلبات التسجيل",
-      "subtitle": "إدارة الاستقبال والقبول",
-      "createButton": "طلب جديد",
+      "subtitle": "إدارة طلبات التسجيل والقبول",
+      "createButton": "طلب تسجيل جديد",
       "backToList": "العودة إلى القائمة",
       "nextAction": "الإجراء القادم",
       "assignedUser": "المسؤول",
       "viewMode": "طريقة العرض",
-      "viewKanban": "Kanban",
+      "viewKanban": "لوحة",
       "viewTable": "جدول",
       "filters": {
         "search": "بحث…",
         "state": "الحالة",
-        "showClosed": "إظهار المغلقة (مفقود / ملغى / مكرر)"
+        "allStates": "كل الحالات",
+        "showClosed": "إظهار الطلبات المغلقة"
       },
       "empty": {
         "title": "لا توجد طلبات",
         "description": "أنشئ طلب تسجيل جديد للبدء."
       },
       "kanban": {
-        "emptyColumn": "لا توجد بطاقات"
+        "emptyColumn": "لا توجد طلبات"
+      },
+      "card": {
+        "guardian": "ولي الأمر",
+        "phone": "الهاتف"
       },
       "badges": {
         "possibleDuplicate": "تكرار محتمل",
@@ -2733,11 +2738,22 @@
       },
       "create": {
         "title": "طلب تسجيل جديد",
-        "subtitle": "إنشاء طلب استقبال — لا ينشئ تلميذًا",
+        "subtitle": "أنشئ طلب تسجيل أولي دون إنشاء تلميذ رسمي.",
         "studentSection": "بيانات الطفل",
         "guardianSection": "بيانات ولي الأمر",
+        "studySection": "الدراسة المطلوبة",
         "followUpSection": "المتابعة",
-        "submit": "إنشاء الطلب"
+        "notesSection": "ملاحظات داخلية",
+        "submit": "إنشاء طلب التسجيل",
+        "submitting": "جارٍ إنشاء الطلب…",
+        "cancel": "إلغاء",
+        "submitError": "تعذر إنشاء طلب التسجيل. راجع الحقول المطلوبة وحاول مجددًا.",
+        "fieldRequired": "هذا الحقل مطلوب",
+        "selectGender": "اختر الجنس",
+        "selectAcademicYear": "اختر السنة الدراسية",
+        "selectLevel": "اختر المستوى",
+        "selectClass": "اختر القسم",
+        "datePlaceholder": "يوم/شهر/سنة"
       },
       "detail": {
         "summary": "ملخص الطلب",
@@ -2745,7 +2761,8 @@
         "guardian": "بيانات ولي الأمر",
         "duplicates": "تكرارات محتملة",
         "prefillStatus": "حالة البيانات الجاهزة",
-        "tabs": "أقسام الطلب"
+        "tabs": "أقسام الطلب",
+        "unspecified": "غير محدد"
       },
       "tabs": {
         "overview": "نظرة عامة",
@@ -2760,14 +2777,32 @@
         "addActivity": "إضافة ملاحظة / متابعة",
         "activityType": "نوع النشاط",
         "submit": "إضافة",
-        "empty": "لا توجد أنشطة بعد"
+        "empty": "لا توجد أنشطة بعد",
+        "systemMessages": {
+          "statusChanged": "تم تغيير الحالة من {from} إلى {to}.",
+          "offerSent": "تم إرسال عرض التسجيل.",
+          "offerCreated": "تم إنشاء عرض التسجيل.",
+          "decisionMade": "تم اتخاذ القرار: {decision}.",
+          "appointmentScheduled": "تمت جدولة موعد: {type}.",
+          "assessmentCreated": "تم إضافة تقييم.",
+          "assessmentCreatedWithType": "تم إضافة تقييم: {type}."
+        }
       },
       "activityTypes": {
         "note": "ملاحظة",
-        "call": "مكالمة",
+        "call": "اتصال",
+        "email": "بريد إلكتروني",
+        "visit": "زيارة",
         "whatsapp": "واتساب",
         "follow_up": "متابعة",
-        "visit_note": "ملاحظة زيارة"
+        "visit_note": "ملاحظة زيارة",
+        "offer_sent": "تم إرسال عرض التسجيل",
+        "offer_created": "تم إنشاء عرض التسجيل",
+        "status_change": "تغيير الحالة",
+        "decision_made": "تم اتخاذ قرار",
+        "appointment_scheduled": "تمت جدولة موعد",
+        "assessment_created": "تم إضافة تقييم",
+        "unknown": "نشاط"
       },
       "appointments": {
         "create": "إنشاء موعد",
@@ -2777,10 +2812,15 @@
         "resultNotes": "ملاحظات النتيجة",
         "empty": "لا توجد مواعيد",
         "types": {
-          "schoolVisit": "زيارة المدرسة",
+          "schoolVisit": "زيارة مدرسية",
           "visit": "زيارة",
-          "call": "مكالمة",
-          "assessment": "تقييم"
+          "call": "اتصال",
+          "assessment": "تقييم",
+          "writtenTest": "اختبار كتابي",
+          "oralTest": "اختبار شفوي",
+          "parentInterview": "مقابلة ولي الأمر",
+          "adminMeeting": "اجتماع إداري",
+          "other": "أخرى"
         }
       },
       "assessments": {
@@ -2809,6 +2849,15 @@
         "rejected": "مرفوض",
         "needs_reassessment": "يحتاج إعادة تقييم"
       },
+      "offerStates": {
+        "draft": "مسودة",
+        "sent": "مُرسَل",
+        "pending": "قيد الانتظار",
+        "accepted": "مقبول",
+        "rejected": "مرفوض",
+        "expired": "منتهي",
+        "cancelled": "ملغى"
+      },
       "offers": {
         "create": "إنشاء عرض",
         "offer": "عرض",
@@ -2828,21 +2877,35 @@
         "loading": "جاري تحميل المعاينة…",
         "load": "تحميل المعاينة",
         "readOnlyTitle": "عرض فقط",
-        "readOnlyNotice": "هذه المعاينة للاطلاع فقط. لا تنشئ تلميذًا ولا تستعمل link-student.",
+        "readOnlyNotice": "هذه المعاينة للاطلاع فقط. لا تُنشئ تلميذًا ولا تربط الطلب تلقائيًا.",
         "student": "التلميذ",
         "guardian": "ولي الأمر",
         "academic": "أكاديمي",
         "admission": "الطلب",
         "readiness": "الجاهزية",
         "warnings": "تحذيرات",
-        "blockingIssues": "مشاكل مانعة"
+        "blockingIssues": "مشاكل مانعة",
+        "fields": {
+          "school": "المدرسة"
+        },
+        "messages": {
+          "noProposedClass": "لم يُحدَّد قسم مقترح.",
+          "offerNotAccepted": "عرض التسجيل غير مقبول بعد.",
+          "applicationNotConfirmed": "الطلب غير مؤكد بعد.",
+          "guardianContactMissing": "بيانات تواصل ولي الأمر ناقصة.",
+          "studentNameMissing": "اسم التلميذ غير موجود.",
+          "birthDateMissing": "تاريخ الميلاد غير محدد.",
+          "genderMissing": "الجنس غير محدد.",
+          "requestedLevelMissing": "المستوى المطلوب غير محدد.",
+          "academicYearMissing": "السنة الدراسية غير محددة."
+        }
       },
       "registration": {
         "continueButton": "استكمال تسجيل التلميذ",
         "linkedTitle": "تم ربط الطلب بتلميذ رسمي",
         "linkedDescription": "يمكنك فتح ملف التلميذ للمتابعة.",
         "openStudentProfile": "فتح ملف التلميذ",
-        "readinessWarning": "توجد تحذيرات أو مشاكل في الجاهزية — راجع البيانات قبل الحفظ.",
+        "readinessWarning": "توجد بيانات ناقصة أو تحذيرات قبل التسجيل. راجع البيانات قبل الحفظ.",
         "prefillBannerTitle": "هذا التسجيل مملوء مسبقًا من طلب تسجيل {reference}",
         "prefillBannerDescription": "راجع البيانات قبل الحفظ.",
         "prefillDecision": "القرار",

@@ -1,8 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
-import { PageHeader } from '@/components/ui/primitives';
+import { useMemo, useState } from 'react';
 import { ResourceView } from '@/components/states/resource';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { useDebouncedValue } from '@/features/admin/students/hooks/use-debounced-value';
@@ -26,10 +25,6 @@ export function AdmissionsListPage() {
   const [showClosed, setShowClosed] = useState(false);
   const debouncedSearch = useDebouncedValue(search, 400);
 
-  useEffect(() => {
-    /* reset not needed for kanban — full list */
-  }, [debouncedSearch, stateFilter]);
-
   const listParams: ListParams = useMemo(
     () => ({
       search: debouncedSearch.trim() || undefined,
@@ -47,19 +42,17 @@ export function AdmissionsListPage() {
     endpoints.admin.admissionsDashboard,
   );
 
-  const items = listState.data ?? [];
-
   return (
-    <div className="admissions-page">
-      <PageHeader
-        title={t('admin.admissions.title')}
-        subtitle={t('admin.admissions.subtitle')}
-        actions={
-          <Link href="/admin/admissions/new" className="btn btn--primary">
-            {t('admin.admissions.createButton')}
-          </Link>
-        }
-      />
+    <div className="admissions-page admissions-list-page">
+      <header className="admissions-list-header">
+        <div className="admissions-list-header__main">
+          <h1 className="admissions-list-header__title">{t('admin.admissions.title')}</h1>
+          <p className="admissions-list-header__subtitle">{t('admin.admissions.subtitle')}</p>
+        </div>
+        <Link href="/admin/admissions/new" className="btn btn--primary admissions-list-header__cta">
+          {t('admin.admissions.createButton')}
+        </Link>
+      </header>
 
       {dashboardState.data && !dashboardState.error && (
         <AdmissionsDashboardSummary data={dashboardState.data} />
@@ -68,54 +61,60 @@ export function AdmissionsListPage() {
         <div className="muted">{t('common.loading')}</div>
       )}
 
-      <div className="admissions-toolbar">
-        <div className="admissions-toolbar__filters">
-          <input
-            className="input"
-            type="search"
-            placeholder={t('admin.admissions.filters.search')}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            aria-label={t('admin.admissions.filters.search')}
-          />
-          <select
-            className="input"
-            value={stateFilter}
-            onChange={(e) => setStateFilter(e.target.value)}
-            aria-label={t('admin.admissions.filters.state')}
-          >
-            <option value="">{t('common.allStatuses')}</option>
-            {ALL_KANBAN_STATES.map((state) => (
-              <option key={state} value={state}>
-                {t(`admin.admissions.states.${state}`)}
-              </option>
-            ))}
-          </select>
-          <label className="checkbox-row">
+      <div className="card admissions-list-toolbar">
+        <div className="admissions-list-toolbar__row">
+          <div className="admissions-list-toolbar__filters">
             <input
-              type="checkbox"
-              checked={showClosed}
-              onChange={(e) => setShowClosed(e.target.checked)}
+              className="input admissions-list-toolbar__search"
+              type="search"
+              placeholder={t('admin.admissions.filters.search')}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              aria-label={t('admin.admissions.filters.search')}
             />
-            {t('admin.admissions.filters.showClosed')}
-          </label>
-        </div>
+            <select
+              className="input admissions-list-toolbar__state"
+              value={stateFilter}
+              onChange={(e) => setStateFilter(e.target.value)}
+              aria-label={t('admin.admissions.filters.state')}
+            >
+              <option value="">{t('admin.admissions.filters.allStates')}</option>
+              {ALL_KANBAN_STATES.map((state) => (
+                <option key={state} value={state}>
+                  {t(`admin.admissions.states.${state}`)}
+                </option>
+              ))}
+            </select>
+            <label className="admissions-list-toolbar__closed checkbox-row">
+              <input
+                type="checkbox"
+                checked={showClosed}
+                onChange={(e) => setShowClosed(e.target.checked)}
+              />
+              <span>{t('admin.admissions.filters.showClosed')}</span>
+            </label>
+          </div>
 
-        <div className="admissions-view-toggle" role="group" aria-label={t('admin.admissions.viewMode')}>
-          <button
-            type="button"
-            aria-pressed={view === 'kanban'}
-            onClick={() => setView('kanban')}
+          <div
+            className="admissions-view-toggle"
+            role="group"
+            aria-label={t('admin.admissions.viewMode')}
           >
-            {t('admin.admissions.viewKanban')}
-          </button>
-          <button
-            type="button"
-            aria-pressed={view === 'table'}
-            onClick={() => setView('table')}
-          >
-            {t('admin.admissions.viewTable')}
-          </button>
+            <button
+              type="button"
+              aria-pressed={view === 'kanban'}
+              onClick={() => setView('kanban')}
+            >
+              {t('admin.admissions.viewKanban')}
+            </button>
+            <button
+              type="button"
+              aria-pressed={view === 'table'}
+              onClick={() => setView('table')}
+            >
+              {t('admin.admissions.viewTable')}
+            </button>
+          </div>
         </div>
       </div>
 

@@ -4,20 +4,43 @@ import { ApiErrorView, LoadingState } from '@/components/states/states';
 import { InfoBanner } from '@/components/ui/primitives';
 import { useT } from '@/features/i18n/locale-context';
 import { useAdmissionPrefill } from '../hooks/use-admission-prefill';
+import {
+  formatPrefillMessage,
+  hasPrefillSectionData,
+  prefillSectionRows,
+} from '../utils/admission-prefill-display';
 
-function PrefillBlock({ title, data }: { title: string; data: unknown }) {
-  if (!data || (typeof data === 'object' && Object.keys(data as object).length === 0)) {
-    return null;
-  }
+function PrefillSection({
+  title,
+  section,
+  data,
+}: {
+  title: string;
+  section: 'student' | 'guardian' | 'academic' | 'admission';
+  data: unknown;
+}) {
+  const t = useT();
+  if (!hasPrefillSectionData(data)) return null;
+
+  const rows = prefillSectionRows(section, data, t);
+  if (!rows.length) return null;
+
   return (
-    <div className="admissions-prefill-block">
-      <h3 className="admissions-section__title">{title}</h3>
-      <pre>{JSON.stringify(data, null, 2)}</pre>
-    </div>
+    <section className="card admissions-prefill-block">
+      <h3 className="admissions-prefill-block__title">{title}</h3>
+      <dl className="admissions-prefill-block__dl">
+        {rows.map(({ label, value, dir }) => (
+          <div key={label} className="admissions-prefill-block__row">
+            <dt>{label}</dt>
+            <dd dir={dir}>{value}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
   );
 }
 
-/** Read-only preview — does NOT create student, guardian, or enrollment. No link-student. */
+/** Read-only preview — does NOT create student, guardian, or enrollment. */
 export function AdmissionPrefillTab({
   admissionId,
   enabled,
@@ -29,9 +52,7 @@ export function AdmissionPrefillTab({
   const { loading, data, error, load, loaded } = useAdmissionPrefill(admissionId, enabled);
 
   if (!enabled) {
-    return (
-      <p className="muted">{t('admin.admissions.prefill.notAllowed')}</p>
-    );
+    return <p className="muted">{t('admin.admissions.prefill.notAllowed')}</p>;
   }
 
   if (loading && !loaded) {
@@ -51,7 +72,7 @@ export function AdmissionPrefillTab({
   }
 
   return (
-    <div className="admissions-section">
+    <div className="admissions-prefill-tab">
       <InfoBanner
         title={t('admin.admissions.prefill.readOnlyTitle')}
         description={t('admin.admissions.prefill.readOnlyNotice')}
@@ -59,33 +80,32 @@ export function AdmissionPrefillTab({
       />
 
       {(data.warnings?.length ?? 0) > 0 && (
-        <div className="alert alert--warning">
+        <div className="alert alert--warning" role="status">
           <strong>{t('admin.admissions.prefill.warnings')}</strong>
           <ul>
             {data.warnings!.map((w, i) => (
-              <li key={i}>{w}</li>
+              <li key={i}>{formatPrefillMessage(w, t)}</li>
             ))}
           </ul>
         </div>
       )}
 
       {(data.blocking_issues?.length ?? 0) > 0 && (
-        <div className="alert alert--error">
+        <div className="alert alert--error" role="alert">
           <strong>{t('admin.admissions.prefill.blockingIssues')}</strong>
           <ul>
             {data.blocking_issues!.map((w, i) => (
-              <li key={i}>{w}</li>
+              <li key={i}>{formatPrefillMessage(w, t)}</li>
             ))}
           </ul>
         </div>
       )}
 
       <div className="admissions-prefill-preview">
-        <PrefillBlock title={t('admin.admissions.prefill.student')} data={data.student} />
-        <PrefillBlock title={t('admin.admissions.prefill.guardian')} data={data.guardian} />
-        <PrefillBlock title={t('admin.admissions.prefill.academic')} data={data.academic} />
-        <PrefillBlock title={t('admin.admissions.prefill.admission')} data={data.admission} />
-        <PrefillBlock title={t('admin.admissions.prefill.readiness')} data={data.readiness} />
+        <PrefillSection title={t('admin.admissions.prefill.student')} section="student" data={data.student} />
+        <PrefillSection title={t('admin.admissions.prefill.guardian')} section="guardian" data={data.guardian} />
+        <PrefillSection title={t('admin.admissions.prefill.academic')} section="academic" data={data.academic} />
+        <PrefillSection title={t('admin.admissions.prefill.admission')} section="admission" data={data.admission} />
       </div>
     </div>
   );

@@ -2,11 +2,11 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useMemo, useState } from 'react';
-import { PageHeader } from '@/components/ui/primitives';
+import { useMemo, useState, type ReactNode } from 'react';
+import { cn } from '@/lib/utils/cn';
 import { useStudentOptions } from '@/features/admin/students/hooks/use-student-options';
 import { useAdminSession } from '@/features/auth/admin-session-context';
-import { useT } from '@/features/i18n/locale-context';
+import { useLocale, useT } from '@/features/i18n/locale-context';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { endpoints } from '@/lib/api/endpoints';
 import type { Ref } from '@/types/api';
@@ -34,8 +34,46 @@ const EMPTY_FORM: CreateAdmissionPayload = {
   internal_notes: '',
 };
 
+function FormSection({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="admissions-create-section">
+      <h2 className="admissions-create-section__title">{title}</h2>
+      <div className="admissions-create-grid">{children}</div>
+    </section>
+  );
+}
+
+function DateField({
+  id,
+  label,
+  value,
+  placeholder,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  placeholder: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="field admissions-date-field">
+      <label htmlFor={id}>{label}</label>
+      <input
+        id={id}
+        type="date"
+        className={cn('input input--date', !value && 'input--date-empty')}
+        data-placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </div>
+  );
+}
+
 export function AdmissionCreatePage() {
   const t = useT();
+  const { locale } = useLocale();
   const router = useRouter();
   const { activeSchoolId } = useAdminSession();
   const [form, setForm] = useState<CreateAdmissionPayload>({ ...EMPTY_FORM });
@@ -65,11 +103,21 @@ export function AdmissionCreatePage() {
     studentOptionsState.error?.message ??
     null;
 
+  const datePlaceholder = t('admin.admissions.create.datePlaceholder');
+
   function updateField<K extends keyof CreateAdmissionPayload>(
     key: K,
     value: CreateAdmissionPayload[K],
   ) {
     setForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function handleRequiredInvalid(e: React.InvalidEvent<HTMLInputElement>) {
+    e.currentTarget.setCustomValidity(t('admin.admissions.create.fieldRequired'));
+  }
+
+  function clearRequiredValidity(e: React.FormEvent<HTMLInputElement>) {
+    e.currentTarget.setCustomValidity('');
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -93,22 +141,26 @@ export function AdmissionCreatePage() {
       router.push(`/admin/admissions/${res.data.id}`);
       return;
     }
-    setError(admissionApiErrorMessage(res.error, t));
+
+    const message = admissionApiErrorMessage(res.error, t);
+    setError(
+      message === t('errors.serverError') ? t('admin.admissions.create.submitError') : message,
+    );
   }
 
   return (
-    <div className="admissions-page">
-      <PageHeader
-        title={t('admin.admissions.create.title')}
-        subtitle={t('admin.admissions.create.subtitle')}
-        actions={
-          <Link href="/admin/admissions" className="btn">
-            {t('common.back')}
-          </Link>
-        }
-      />
+    <div className="admissions-page admissions-create-page">
+      <header className="admissions-create-header">
+        <Link href="/admin/admissions" className="btn btn--ghost admissions-create-header__back">
+          {t('common.back')}
+        </Link>
+        <div className="admissions-create-header__main">
+          <h1 className="admissions-create-header__title">{t('admin.admissions.create.title')}</h1>
+          <p className="admissions-create-header__subtitle">{t('admin.admissions.create.subtitle')}</p>
+        </div>
+      </header>
 
-      <form className="card admissions-section" onSubmit={handleSubmit}>
+      <form className="card admissions-create-card" onSubmit={handleSubmit} lang={locale}>
         {lookupError && (
           <div className="alert alert--warning" role="status">
             {lookupError}
@@ -120,16 +172,19 @@ export function AdmissionCreatePage() {
           </div>
         )}
 
-        <h2 className="admissions-section__title">{t('admin.admissions.create.studentSection')}</h2>
-        <div className="admissions-form-grid">
+        <FormSection title={t('admin.admissions.create.studentSection')}>
           <div className="field">
-            <label htmlFor="student_name">{t('admin.admissions.fields.studentName')} *</label>
+            <label htmlFor="student_name">
+              {t('admin.admissions.fields.studentName')} <span aria-hidden="true">*</span>
+            </label>
             <input
               id="student_name"
               className="input"
               required
               value={form.student_name ?? ''}
               onChange={(e) => updateField('student_name', e.target.value)}
+              onInvalid={handleRequiredInvalid}
+              onInput={clearRequiredValidity}
             />
           </div>
           <div className="field">
@@ -151,16 +206,6 @@ export function AdmissionCreatePage() {
             />
           </div>
           <div className="field">
-            <label htmlFor="birth_date">{t('admin.admissions.fields.birthDate')}</label>
-            <input
-              id="birth_date"
-              type="date"
-              className="input"
-              value={form.birth_date ?? ''}
-              onChange={(e) => updateField('birth_date', e.target.value)}
-            />
-          </div>
-          <div className="field">
             <label htmlFor="gender">{t('admin.admissions.fields.gender')}</label>
             <select
               id="gender"
@@ -168,9 +213,56 @@ export function AdmissionCreatePage() {
               value={form.gender ?? ''}
               onChange={(e) => updateField('gender', e.target.value)}
             >
-              <option value="">—</option>
+              <option value="">{t('admin.admissions.create.selectGender')}</option>
               <option value="male">{t('admin.admissions.gender.male')}</option>
               <option value="female">{t('admin.admissions.gender.female')}</option>
+            </select>
+          </div>
+          <DateField
+            id="birth_date"
+            label={t('admin.admissions.fields.birthDate')}
+            placeholder={datePlaceholder}
+            value={form.birth_date ?? ''}
+            onChange={(value) => updateField('birth_date', value)}
+          />
+          <div className="field">
+            <label htmlFor="massar_code">{t('admin.admissions.fields.massarCode')}</label>
+            <input
+              id="massar_code"
+              className="input"
+              dir="ltr"
+              value={form.massar_code ?? ''}
+              onChange={(e) => updateField('massar_code', e.target.value)}
+            />
+          </div>
+          <div className="field admissions-create-grid__wide">
+            <label htmlFor="previous_school">{t('admin.admissions.fields.previousSchool')}</label>
+            <input
+              id="previous_school"
+              className="input"
+              value={form.previous_school ?? ''}
+              onChange={(e) => updateField('previous_school', e.target.value)}
+            />
+          </div>
+        </FormSection>
+
+        <FormSection title={t('admin.admissions.create.studySection')}>
+          <div className="field">
+            <label htmlFor="academic_year_id">{t('admin.admissions.fields.academicYear')}</label>
+            <select
+              id="academic_year_id"
+              className="input"
+              value={form.academic_year_id ?? ''}
+              onChange={(e) =>
+                updateField('academic_year_id', e.target.value ? Number(e.target.value) : undefined)
+              }
+            >
+              <option value="">{t('admin.admissions.create.selectAcademicYear')}</option>
+              {academicYears.map((year) => (
+                <option key={year.id} value={year.id}>
+                  {year.name}
+                </option>
+              ))}
             </select>
           </div>
           <div className="field">
@@ -183,7 +275,7 @@ export function AdmissionCreatePage() {
                 updateField('requested_level_id', e.target.value ? Number(e.target.value) : undefined)
               }
             >
-              <option value="">—</option>
+              <option value="">{t('admin.admissions.create.selectLevel')}</option>
               {levels.map((level) => (
                 <option key={level.id} value={level.id}>
                   {level.name}
@@ -201,7 +293,7 @@ export function AdmissionCreatePage() {
                 updateField('requested_class_id', e.target.value ? Number(e.target.value) : undefined)
               }
             >
-              <option value="">—</option>
+              <option value="">{t('admin.admissions.create.selectClass')}</option>
               {classes.map((cls) => (
                 <option key={cls.id} value={cls.id}>
                   {cls.name}
@@ -209,46 +301,9 @@ export function AdmissionCreatePage() {
               ))}
             </select>
           </div>
-          <div className="field">
-            <label htmlFor="academic_year_id">{t('admin.admissions.fields.academicYear')}</label>
-            <select
-              id="academic_year_id"
-              className="input"
-              value={form.academic_year_id ?? ''}
-              onChange={(e) =>
-                updateField('academic_year_id', e.target.value ? Number(e.target.value) : undefined)
-              }
-            >
-              <option value="">—</option>
-              {academicYears.map((year) => (
-                <option key={year.id} value={year.id}>
-                  {year.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="field">
-            <label htmlFor="previous_school">{t('admin.admissions.fields.previousSchool')}</label>
-            <input
-              id="previous_school"
-              className="input"
-              value={form.previous_school ?? ''}
-              onChange={(e) => updateField('previous_school', e.target.value)}
-            />
-          </div>
-          <div className="field">
-            <label htmlFor="massar_code">{t('admin.admissions.fields.massarCode')}</label>
-            <input
-              id="massar_code"
-              className="input"
-              value={form.massar_code ?? ''}
-              onChange={(e) => updateField('massar_code', e.target.value)}
-            />
-          </div>
-        </div>
+        </FormSection>
 
-        <h2 className="admissions-section__title">{t('admin.admissions.create.guardianSection')}</h2>
-        <div className="admissions-form-grid">
+        <FormSection title={t('admin.admissions.create.guardianSection')}>
           <div className="field">
             <label htmlFor="guardian_name">{t('admin.admissions.fields.guardianName')}</label>
             <input
@@ -298,20 +353,16 @@ export function AdmissionCreatePage() {
               onChange={(e) => updateField('relationship', e.target.value)}
             />
           </div>
-        </div>
+        </FormSection>
 
-        <h2 className="admissions-section__title">{t('admin.admissions.create.followUpSection')}</h2>
-        <div className="admissions-form-grid">
-          <div className="field">
-            <label htmlFor="first_contact_date">{t('admin.admissions.fields.firstContactDate')}</label>
-            <input
-              id="first_contact_date"
-              type="date"
-              className="input"
-              value={form.first_contact_date ?? ''}
-              onChange={(e) => updateField('first_contact_date', e.target.value)}
-            />
-          </div>
+        <FormSection title={t('admin.admissions.create.followUpSection')}>
+          <DateField
+            id="first_contact_date"
+            label={t('admin.admissions.fields.firstContactDate')}
+            placeholder={datePlaceholder}
+            value={form.first_contact_date ?? ''}
+            onChange={(value) => updateField('first_contact_date', value)}
+          />
           <div className="field">
             <label htmlFor="next_action">{t('admin.admissions.fields.nextAction')}</label>
             <input
@@ -321,32 +372,36 @@ export function AdmissionCreatePage() {
               onChange={(e) => updateField('next_action', e.target.value)}
             />
           </div>
+          <DateField
+            id="next_action_date"
+            label={t('admin.admissions.fields.nextActionDate')}
+            placeholder={datePlaceholder}
+            value={form.next_action_date ?? ''}
+            onChange={(value) => updateField('next_action_date', value)}
+          />
+        </FormSection>
+
+        <section className="admissions-create-section admissions-create-section--notes">
+          <h2 className="admissions-create-section__title">{t('admin.admissions.create.notesSection')}</h2>
           <div className="field">
-            <label htmlFor="next_action_date">{t('admin.admissions.fields.nextActionDate')}</label>
-            <input
-              id="next_action_date"
-              type="date"
+            <label htmlFor="internal_notes">{t('admin.admissions.fields.internalNotes')}</label>
+            <textarea
+              id="internal_notes"
               className="input"
-              value={form.next_action_date ?? ''}
-              onChange={(e) => updateField('next_action_date', e.target.value)}
+              rows={3}
+              value={form.internal_notes ?? ''}
+              onChange={(e) => updateField('internal_notes', e.target.value)}
             />
           </div>
-        </div>
-        <div className="field">
-          <label htmlFor="internal_notes">{t('admin.admissions.fields.internalNotes')}</label>
-          <textarea
-            id="internal_notes"
-            className="input"
-            rows={3}
-            value={form.internal_notes ?? ''}
-            onChange={(e) => updateField('internal_notes', e.target.value)}
-          />
-        </div>
+        </section>
 
-        <div className="form-actions">
+        <div className="admissions-create-actions">
           <button type="submit" className="btn btn--primary" disabled={submitting}>
-            {submitting ? t('common.submitting') : t('admin.admissions.create.submit')}
+            {submitting ? t('admin.admissions.create.submitting') : t('admin.admissions.create.submit')}
           </button>
+          <Link href="/admin/admissions" className="btn">
+            {t('admin.admissions.create.cancel')}
+          </Link>
         </div>
       </form>
     </div>

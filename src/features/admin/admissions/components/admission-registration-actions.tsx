@@ -21,7 +21,7 @@ export function AdmissionRegistrationActions({ detail }: { detail: AdmissionDeta
 
   if (linked && studentId) {
     return (
-      <div className="admissions-registration-actions">
+      <div className="admissions-registration-actions admissions-registration-actions--linked">
         <InfoBanner
           tone="green"
           title={t('admin.admissions.registration.linkedTitle')}
@@ -39,14 +39,11 @@ export function AdmissionRegistrationActions({ detail }: { detail: AdmissionDeta
   return (
     <div className="admissions-registration-actions">
       {showReadinessWarning ? (
-        <p className="admissions-registration-actions__warning" role="status">
+        <div className="alert alert--warning admissions-registration-actions__alert" role="status">
           {t('admin.admissions.registration.readinessWarning')}
-        </p>
+        </div>
       ) : null}
-      <Link
-        href={buildContinueRegistrationHref(detail.id)}
-        className="btn btn--primary"
-      >
+      <Link href={buildContinueRegistrationHref(detail.id)} className="btn btn--primary">
         {t('admin.admissions.registration.continueButton')}
       </Link>
     </div>
