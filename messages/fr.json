@@ -3884,8 +3884,8 @@
         },
         "timingStatus": {
           "hidden": "Masqué",
-          "upcoming": "À venir",
-          "due": "Échu",
+          "upcoming": "Pas encore dû",
+          "due": "Dû maintenant",
           "overdue": "En retard",
           "not_applicable": "N/A"
         },

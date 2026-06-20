@@ -19,40 +19,17 @@ import { formatPeriodRange } from '../utils/format-period';
 import {
   computeScheduleSummaryCounts,
   hasInstallmentPendingChequeCoverage,
+  isInstallmentDueNowForSummary,
   isInstallmentOverdueForSummary,
   isInstallmentPaidForSummary,
   isInstallmentUpcomingForSummary,
   resolveEffectiveInstallmentPaymentStatus,
   resolveEffectiveInstallmentTimingStatus,
+  resolveMinUnpaidInstallmentSequence,
 } from '../utils/resolve-installment-presentation';
 import { InstallmentRowStatusBadges } from './installment-status-badges';
 import type { StudentFinancePanelProps } from './student-finance-panel-props';
 
-function resolveScheduleStatus(row: StudentInstallment, t: (key: string) => string): string {
-  if (hasInstallmentPendingChequeCoverage(row)) {
-    return t('admin.student360.financeWorkspace.schedule.status.pendingChequeCoverage');
-  }
-  const effectivePayment = resolveEffectiveInstallmentPaymentStatus(row);
-  if (effectivePayment === 'paid') return t('admin.student360.financeWorkspace.schedule.status.paid');
-  if (effectivePayment === 'partially_paid') {
-    return t('admin.student360.financeWorkspace.schedule.status.partiallyPaid');
-  }
-  if (effectivePayment === 'unpaid') {
-    const timing = resolveEffectiveInstallmentTimingStatus(row);
-    if (timing === 'overdue') return t('admin.student360.financeWorkspace.schedule.status.overdue');
-    if (timing === 'due') return t('admin.student360.financeWorkspace.schedule.status.due');
-    if (timing === 'upcoming' || timing === 'hidden') {
-      return t('admin.student360.financeWorkspace.schedule.status.upcoming');
-    }
-  }
-  if (row.display_state) {
-    const key = `admin.student360.financeWorkspace.schedule.status.${row.display_state}`;
-    const translated = t(key);
-    if (translated !== key) return translated;
-  }
-  if (row.state === 'cancelled') return t('admin.student360.financeWorkspace.schedule.status.cancelled');
-  return t('common.dash');
-}
 
 export function StudentFinanceSchedulePanel({
   studentId,
@@ -108,6 +85,14 @@ export function StudentFinanceSchedulePanel({
     };
   }, [installmentsState.data, summary?.total_count, canCollect]);
 
+  const scheduleCtx = useMemo(
+    () => ({
+      canCollect,
+      minUnpaidSequence: resolveMinUnpaidInstallmentSequence(installmentsState.data),
+    }),
+    [installmentsState.data, canCollect],
+  );
+
   const columns: Column<StudentInstallment>[] = useMemo(
     () => [
       {
@@ -154,7 +139,11 @@ export function StudentFinanceSchedulePanel({
         render: (row) => {
           const pendingCheque = hasInstallmentPendingChequeCoverage(row);
           const effectivePayment = resolveEffectiveInstallmentPaymentStatus(row);
-          const effectiveTiming = resolveEffectiveInstallmentTimingStatus(row);
+          const rawTiming = resolveEffectiveInstallmentTimingStatus(row);
+          const effectiveTiming =
+            rawTiming === 'hidden' && isInstallmentDueNowForSummary(row, scheduleCtx)
+              ? 'due'
+              : rawTiming;
           return (
             <div className="student-finance-schedule-status">
               <InstallmentRowStatusBadges
@@ -163,7 +152,6 @@ export function StudentFinanceSchedulePanel({
                 isVisible={row.is_visible}
                 pendingChequeCoverage={pendingCheque}
               />
-              <span className="tiny muted">{resolveScheduleStatus(row, t)}</span>
             </div>
           );
         },
@@ -181,7 +169,7 @@ export function StudentFinanceSchedulePanel({
           ),
       },
     ],
-    [t, formatDate, currency, canCollect, onOpenCollection, locale],
+    [t, formatDate, currency, canCollect, onOpenCollection, locale, scheduleCtx],
   );
 
   return (

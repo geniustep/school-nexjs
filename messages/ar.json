@@ -3911,8 +3911,8 @@
         },
         "timingStatus": {
           "hidden": "مخفي",
-          "upcoming": "قادم",
-          "due": "مستحق",
+          "upcoming": "غير مستحق بعد",
+          "due": "مستحق الآن",
           "overdue": "متأخر",
           "not_applicable": "غير مطبق"
         },

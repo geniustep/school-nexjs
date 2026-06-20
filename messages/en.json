@@ -3884,8 +3884,8 @@
         },
         "timingStatus": {
           "hidden": "Hidden",
-          "upcoming": "Upcoming",
-          "due": "Due",
+          "upcoming": "Not yet due",
+          "due": "Due now",
           "overdue": "Overdue",
           "not_applicable": "N/A"
         },

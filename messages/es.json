@@ -3884,8 +3884,8 @@
         },
         "timingStatus": {
           "hidden": "Oculto",
-          "upcoming": "Próximo",
-          "due": "Vencido",
+          "upcoming": "No vencido aún",
+          "due": "Vence ahora",
           "overdue": "Atrasado",
           "not_applicable": "N/A"
         },
