@@ -5,6 +5,7 @@ import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { Student360SectionHeader } from '@/features/admin/students/components/student-360-section-header';
 import {
+  agreementCustomizationIdentityKey,
   formatEnrollmentCustomizationLabel,
   type DraftAgreementPresentation,
 } from '../utils/resolve-draft-agreement-presentation';
@@ -29,8 +30,8 @@ export function AgreementEnrollmentCustomizationsSection({
         description={t('admin.student360.financialAgreement.enrollmentCustomizations.description')}
       />
       <ul className="student-finance-enrollment-customizations__list">
-        {items.map((item, index) => (
-          <li key={`${item.scope ?? 'custom'}-${item.line_id ?? index}`}>
+        {items.map((item) => (
+          <li key={agreementCustomizationIdentityKey(item)}>
             {formatEnrollmentCustomizationLabel(item, t, formatDate, formatReason)}
           </li>
         ))}

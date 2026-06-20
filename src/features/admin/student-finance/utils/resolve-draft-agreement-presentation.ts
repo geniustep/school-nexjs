@@ -76,7 +76,7 @@ export function resolveAgreementFinanceSummary(
   return hasValue ? summary : null;
 }
 
-function customizationDedupeKey(item: AgreementCustomization): string {
+export function agreementCustomizationIdentityKey(item: AgreementCustomization): string {
   if (item.scope === 'period') {
     const count = item.periods?.filter((period) => period.selected !== false).length ?? 0;
     const keys =
@@ -102,7 +102,7 @@ function dedupeAgreementCustomizations(items: AgreementCustomization[]): Agreeme
   const seen = new Set<string>();
   const result: AgreementCustomization[] = [];
   for (const item of items) {
-    const key = customizationDedupeKey(item);
+    const key = agreementCustomizationIdentityKey(item);
     if (seen.has(key)) continue;
     seen.add(key);
     result.push(item);

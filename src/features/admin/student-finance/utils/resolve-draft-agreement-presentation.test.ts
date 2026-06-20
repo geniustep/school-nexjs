@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  agreementCustomizationIdentityKey,
   formatEnrollmentCustomizationLabel,
   isPresentableDraftSpecialAgreement,
   resolveAgreementCustomizations,
@@ -80,6 +81,26 @@ describe('resolveDraftAgreementPresentation', () => {
     expect(summary?.monthly_due_amount).toBe(1400);
     expect(summary?.recurring_total_after_discount).toBe(14000);
     expect(summary?.monthly_due_amount).not.toBe(summary?.recurring_total_after_discount);
+  });
+
+  it('assigns distinct identity keys for same-line one_time customizations', () => {
+    const registrationSelected = {
+      kind: 'enrollment_customization' as const,
+      scope: 'one_time' as const,
+      line_id: 3669,
+      line_name: 'التسجيل',
+      selected: true,
+    };
+    const dueDateOverride = {
+      kind: 'enrollment_customization' as const,
+      scope: 'one_time' as const,
+      line_id: 3669,
+      line_name: 'التسجيل',
+      due_date_override: '2026-09-05',
+    };
+    expect(agreementCustomizationIdentityKey(registrationSelected)).not.toBe(
+      agreementCustomizationIdentityKey(dueDateOverride),
+    );
   });
 
   it('dedupes enrollment customizations when customizations and enrollment_customizations overlap', () => {
