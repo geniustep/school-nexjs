@@ -5,6 +5,7 @@ import type { Permission } from '@/types/permissions';
 import { canAccessAdminDashboard, canShowAdminNavPermission, useScopedNavLabels } from '@/lib/admin/admin-ux';
 import { canViewSettings } from '@/lib/permissions/academic-setup';
 import { FINANCE_VIEW } from '@/lib/permissions/finance';
+import { ADMISSION_VIEW } from '@/lib/permissions/admission';
 import { isConfiguredAdmin } from '@/lib/permissions/scope';
 
 export interface NavItem {
@@ -44,6 +45,11 @@ function adminNav(user: CurrentUser): NavSection[] {
   if (opsItems.length) sections.push({ titleKey: opsTitle, items: opsItems });
 
   const schoolItems: NavItem[] = [];
+  pushIf(schoolItems, canShowAdminNavPermission(user, ADMISSION_VIEW), {
+    labelKey: 'nav.admissions',
+    href: '/admin/admissions',
+    icon: '📋',
+  });
   pushIf(schoolItems, canShowAdminNavPermission(user, 'view_students'), {
     labelKey: 'nav.students',
     href: '/admin/students',

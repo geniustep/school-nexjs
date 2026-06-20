@@ -61,4 +61,13 @@ export type Permission =
   | 'finance.reopen_cash_session'
   | 'finance.manage_cash_movements'
   | 'finance.approve_cash_difference'
-  | 'finance.print_cash_closure';
+  | 'finance.print_cash_closure'
+  | 'admission.view'
+  | 'admission.create'
+  | 'admission.manage'
+  | 'admission.schedule'
+  | 'admission.evaluate'
+  | 'admission.decide'
+  | 'admission.offer'
+  | 'admission.prefill'
+  | 'admission.link_student';

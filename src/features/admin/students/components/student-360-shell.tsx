@@ -42,7 +42,22 @@ import { StudentDocumentsTab } from './student-documents-tab';
 import { StudentHealthTab } from './student-health-tab';
 import { StudentFinanceWorkspaceShell } from '@/features/admin/student-finance/components/student-finance-workspace-shell';
 import { StudentCreateForm } from './student-create-form';
+import type { StudentCreateSaveMode, StudentCreateSaveOutcome } from './student-create-form';
 import { StudentForm } from './student-form';
+import { useAdminSession } from '@/features/auth/admin-session-context';
+import { useToast } from '@/components/ui/toast';
+import {
+  fetchAdmissionPrefill,
+  linkAdmissionStudent,
+} from '@/features/admin/admissions/api/admissions-api';
+import {
+  buildAdmissionRegistrationContext,
+  mapAdmissionPrefillToStudentProfile,
+  type AdmissionRegistrationContext,
+} from '@/features/admin/admissions/utils/admission-prefill-mapper';
+import type { StudentProfileFormState } from '../utils/student-profile';
+import type { ApiErrorBody } from '@/types/api';
+import '@/features/admin/admissions/admissions.css';
 import { resolveOverviewEditAllowed } from '../utils/resolve-overview-allowed-actions';
 import { sanitizeReturnTo, isSafeInternalReturnPath } from '@/lib/utils/safe-return-url';
 import { buildStudent360TabIndicators } from '../utils/student-360-tab-indicators';
@@ -273,14 +288,101 @@ export function Student360Shell({ studentId }: { studentId: string }) {
 
 export function Student360CreatePage() {
   const t = useT();
+  const toast = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { activeSchoolId } = useAdminSession();
   const returnTo = searchParams.get('returnTo');
   const safeReturnTo = isSafeInternalReturnPath(returnTo) ? sanitizeReturnTo(returnTo) : null;
+  const admissionIdRaw = searchParams.get('admission_id');
+  const admissionId =
+    admissionIdRaw && /^\d+$/.test(admissionIdRaw) ? Number(admissionIdRaw) : null;
+
+  const [prefillNonce, setPrefillNonce] = useState(0);
+  const [prefillLoading, setPrefillLoading] = useState(Boolean(admissionId));
+  const [prefillPatch, setPrefillPatch] = useState<Partial<StudentProfileFormState> | null>(null);
+  const [admissionBanner, setAdmissionBanner] = useState<AdmissionRegistrationContext | null>(null);
+  const [prefillError, setPrefillError] = useState<ApiErrorBody | null>(null);
+
+  useEffect(() => {
+    if (!admissionId || activeSchoolId == null) {
+      setPrefillLoading(false);
+      return;
+    }
+    let active = true;
+    setPrefillLoading(true);
+    setPrefillError(null);
+    fetchAdmissionPrefill(admissionId, { active_school_id: activeSchoolId }).then((res) => {
+      if (!active) return;
+      if (res.success && res.data) {
+        setPrefillPatch(mapAdmissionPrefillToStudentProfile(res.data));
+        setAdmissionBanner(buildAdmissionRegistrationContext(admissionId, res.data));
+        setPrefillError(null);
+      } else if (!res.success) {
+        setPrefillPatch(null);
+        setAdmissionBanner(null);
+        setPrefillError(res.error);
+      } else {
+        setPrefillPatch(null);
+        setAdmissionBanner(null);
+        setPrefillError(null);
+      }
+      setPrefillLoading(false);
+    });
+    return () => {
+      active = false;
+    };
+  }, [admissionId, activeSchoolId, prefillNonce]);
 
   function handleCancel() {
     if (safeReturnTo) router.push(safeReturnTo);
     else router.push('/admin/students');
+  }
+
+  function handleSaved(
+    id: number,
+    mode: StudentCreateSaveMode,
+    outcome?: StudentCreateSaveOutcome,
+  ) {
+    void (async () => {
+      if (admissionId != null && activeSchoolId != null) {
+        const link = await linkAdmissionStudent(admissionId, id, {
+          active_school_id: activeSchoolId,
+        });
+        if (!link.success) {
+          toast.error(t('admin.admissions.registration.linkFailed'));
+          router.push(`/admin/students/${id}`);
+          return;
+        }
+        toast.success(t('admin.admissions.registration.success'));
+        router.push(`/admin/students/${id}`);
+        return;
+      }
+
+      if (outcome?.financeActivation === 'activate') {
+        router.push(`/admin/students/${id}?tab=finance`);
+        return;
+      }
+      if (mode === 'setup') {
+        router.push(`/admin/students/${id}?setup=1`);
+        return;
+      }
+      if (safeReturnTo) router.push(safeReturnTo);
+      else router.push(`/admin/students/${id}`);
+    })();
+  }
+
+  if (admissionId && prefillLoading) {
+    return <LoadingState label={t('admin.admissions.prefill.loading')} />;
+  }
+
+  if (admissionId && prefillError) {
+    return (
+      <ApiErrorView
+        error={prefillError}
+        onRetry={() => setPrefillNonce((value) => value + 1)}
+      />
+    );
   }
 
   return (
@@ -302,18 +404,9 @@ export function Student360CreatePage() {
         <p className="student-create-page__desc">{t('admin.student360.create.pageDesc')}</p>
       </header>
       <StudentCreateForm
-        onSaved={(id, mode, outcome) => {
-          if (outcome?.financeActivation === 'activate') {
-            router.push(`/admin/students/${id}?tab=finance`);
-            return;
-          }
-          if (mode === 'setup') {
-            router.push(`/admin/students/${id}?setup=1`);
-            return;
-          }
-          if (safeReturnTo) router.push(safeReturnTo);
-          else router.push(`/admin/students/${id}`);
-        }}
+        initialProfilePatch={prefillPatch}
+        admissionBanner={admissionBanner}
+        onSaved={handleSaved}
         onCancel={handleCancel}
       />
     </div>

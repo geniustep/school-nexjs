@@ -294,6 +294,7 @@ export const endpoints = {
     admissionsDashboard: '/admin/admissions/dashboard',
     admission: (id: number | string) => `/admin/admissions/${id}`,
     admissionPrefill: (id: number | string) => `/admin/admissions/${id}/prefill`,
+    admissionLinkStudent: (id: number | string) => `/admin/admissions/${id}/link-student`,
     admissionActivities: (id: number | string) => `/admin/admissions/${id}/activities`,
     admissionAppointments: (id: number | string) => `/admin/admissions/${id}/appointments`,
     admissionAssessments: (id: number | string) => `/admin/admissions/${id}/assessments`,

@@ -3,8 +3,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '@/lib/api/client';
 import { useToast } from '@/components/ui/toast';
+import { InfoBanner } from '@/components/ui/primitives';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
+import type { AdmissionRegistrationContext } from '@/features/admin/admissions/utils/admission-prefill-mapper';
 import { endpoints } from '@/lib/api/endpoints';
 import { useLevelOptions } from '@/features/admin/academic-setup/hooks/use-level-options';
 import { useStudentOptions } from '../hooks/use-student-options';
@@ -17,6 +19,8 @@ import {
   buildEnrollmentCycleOptions,
   filterLevelsByCycleId,
   levelBelongsToCycle,
+  resolveStudentLevelCycleId,
+  buildReferenceLevelCycleMap,
 } from '../utils/student-enrollment-cycle';
 import {
   buildStudentCreatePayload,
@@ -99,9 +103,13 @@ function stepIndex(step: StudentCreateWizardStep): number {
 export function StudentCreateForm({
   onSaved,
   onCancel,
+  initialProfilePatch,
+  admissionBanner,
 }: {
   onSaved: (id: number, mode: StudentCreateSaveMode, outcome?: StudentCreateSaveOutcome) => void;
   onCancel: () => void;
+  initialProfilePatch?: Partial<StudentProfileFormState> | null;
+  admissionBanner?: AdmissionRegistrationContext | null;
 }) {
   const t = useT();
   const toast = useToast();
@@ -137,8 +145,26 @@ export function StudentCreateForm({
 
   useEffect(() => {
     if (optionsState.loading) return;
-    setState(defaultStudentProfileFormState(options));
-  }, [optionsState.loading, options]);
+    const base = defaultStudentProfileFormState(options);
+    let merged: StudentProfileFormState = initialProfilePatch
+      ? { ...base, ...initialProfilePatch }
+      : base;
+
+    if (merged.levelId && !merged.cycleId && options?.levels?.length) {
+      const level = options.levels.find((item) => String(item.id) === merged.levelId);
+      const refLevels = levelOptionsState.options?.reference_levels ?? [];
+      const cycles = levelOptionsState.options?.cycles ?? [];
+      if (level && refLevels.length && cycles.length) {
+        const cycleByCode = buildReferenceLevelCycleMap(refLevels);
+        const cycleId = resolveStudentLevelCycleId(level, cycleByCode, cycles);
+        if (cycleId != null) {
+          merged = { ...merged, cycleId: String(cycleId) };
+        }
+      }
+    }
+
+    setState(merged);
+  }, [optionsState.loading, options, initialProfilePatch, levelOptionsState.options]);
 
   const resolvedSchoolId = useMemo(() => {
     const fromState = Number(state.schoolId);
@@ -705,6 +731,51 @@ export function StudentCreateForm({
 
   return (
     <form ref={formRef} className="student-create-form" onSubmit={(e) => e.preventDefault()}>
+      {admissionBanner ? (
+        <div className="admissions-admission-prefill-banner">
+          <InfoBanner
+            tone="blue"
+            title={t('admin.admissions.registration.prefillBannerTitle', {
+              reference: admissionBanner.reference,
+            })}
+            description={t('admin.admissions.registration.prefillBannerDescription')}
+          />
+          <dl className="admissions-dl admissions-dl--compact">
+            {admissionBanner.decision ? (
+              <>
+                <dt>{t('admin.admissions.registration.prefillDecision')}</dt>
+                <dd>{admissionBanner.decision}</dd>
+              </>
+            ) : null}
+            {admissionBanner.offerState ? (
+              <>
+                <dt>{t('admin.admissions.registration.prefillOfferState')}</dt>
+                <dd>{admissionBanner.offerState}</dd>
+              </>
+            ) : null}
+          </dl>
+          {(admissionBanner.warnings?.length ?? 0) > 0 ? (
+            <div className="alert alert--warning">
+              <strong>{t('admin.admissions.prefill.warnings')}</strong>
+              <ul>
+                {admissionBanner.warnings!.map((item, index) => (
+                  <li key={index}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          {(admissionBanner.blockingIssues?.length ?? 0) > 0 ? (
+            <div className="alert alert--error">
+              <strong>{t('admin.admissions.prefill.blockingIssues')}</strong>
+              <ul>
+                {admissionBanner.blockingIssues!.map((item, index) => (
+                  <li key={index}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
       <StudentCreateStepper activeStep={step} />
 
       {step === 'identity' ? (
