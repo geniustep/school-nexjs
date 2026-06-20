@@ -110,6 +110,20 @@ export function ChangePlanDrawer({
     setPreviewReady(false);
   }
 
+  function resolveSocialFormForSubmit(): SocialDiscountFormState {
+    const startMonth = socialForm.effectiveDate.slice(0, 7);
+    const periods =
+      socialForm.affectedPeriods.length > 0
+        ? socialForm.affectedPeriods
+        : periodEndMonth
+          ? monthPeriodsFromRange(startMonth, periodEndMonth)
+          : [];
+    if (periods.length > 0 && socialForm.affectedPeriods.length === 0) {
+      return { ...socialForm, affectedPeriods: periods };
+    }
+    return socialForm;
+  }
+
   function validateForm(): boolean {
     if (mode === 'replace_if_unpaid') {
       if (!replaceForm.newFeePlanId) {
@@ -156,11 +170,9 @@ export function ChangePlanDrawer({
     e.preventDefault();
     if (!validateForm()) return;
     setPreviewLoading(true);
-    const payload = buildChangePlanPayload(
-      mode,
-      mode === 'replace_if_unpaid' ? replaceForm : socialForm,
-      'preview',
-    );
+    const formState =
+      mode === 'replace_if_unpaid' ? replaceForm : resolveSocialFormForSubmit();
+    const payload = buildChangePlanPayload(mode, formState, 'preview');
     const res = await previewStudentChangePlan(studentId, payload, {
       academic_year_id: Number(academicYearId),
     });
@@ -182,11 +194,9 @@ export function ChangePlanDrawer({
   async function handleApplyConfirmed() {
     if (!previewReady || !validateForm()) return;
     setApplyLoading(true);
-    const payload = buildChangePlanPayload(
-      mode,
-      mode === 'replace_if_unpaid' ? replaceForm : socialForm,
-      'apply',
-    );
+    const formState =
+      mode === 'replace_if_unpaid' ? replaceForm : resolveSocialFormForSubmit();
+    const payload = buildChangePlanPayload(mode, formState, 'apply');
     const res = await applyStudentChangePlan(studentId, payload, {
       academic_year_id: Number(academicYearId),
     });

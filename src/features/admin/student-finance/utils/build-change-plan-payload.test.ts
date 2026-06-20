@@ -59,7 +59,7 @@ describe('build-change-plan-payload', () => {
       change_reason: 'social_case',
       reason_note: 'حالة اجتماعية',
       discounts: [
-        { fee_type_code: 'tuition', type: 'percent', value: 50, discount_type: 'social' },
+        { fee_type_code: 'TUITION', type: 'percent', value: 50, discount_type: 'social' },
       ],
       affected_periods: ['2026-02', '2026-03'],
       confirm_financial_impact: false,

@@ -23,6 +23,16 @@ export interface SocialDiscountFormState {
   confirmFinancialImpact: boolean;
 }
 
+/** UI category slugs → Odoo service codes on agreement lines. */
+const SOCIAL_FEE_TYPE_CODE_BY_UI: Record<string, string> = {
+  tuition: 'TUITION',
+  transport: 'TRANSPORT',
+};
+
+function resolveSocialFeeTypeCode(formCode: string): string {
+  return SOCIAL_FEE_TYPE_CODE_BY_UI[formCode] ?? formCode.toUpperCase();
+}
+
 export function buildReplaceIfUnpaidPreviewPayload(
   form: ReplaceIfUnpaidFormState,
 ): ReplaceIfUnpaidChangePlanPayload {
@@ -49,7 +59,7 @@ export function buildSocialDiscountPreviewPayload(
 ): SocialDiscountChangePlanPayload {
   const discounts: ChangePlanDiscount[] = [
     {
-      fee_type_code: form.feeTypeCode,
+      fee_type_code: resolveSocialFeeTypeCode(form.feeTypeCode),
       type: form.discountType,
       value: Number(form.discountValue),
       discount_type: 'social',
