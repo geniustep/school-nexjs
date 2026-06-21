@@ -99,6 +99,82 @@ function buildActionItems(d: AdminDashboard, t: (k: string, p?: Record<string, s
   return items;
 }
 
+/** Optional dashboard counters — read when backend exposes them without a contract change here. */
+function readStudentDataQualityCounts(d: AdminDashboard): {
+  withoutClass: number;
+  withoutParent: number;
+  withoutAcademicYear: number;
+  incompleteProfile: number;
+} {
+  const raw = d as AdminDashboard & {
+    data_quality?: {
+      students_without_class?: number;
+      students_without_parent?: number;
+      students_without_academic_year?: number;
+      students_incomplete_profile?: number;
+    };
+    students_without_class?: number;
+    students_without_parent?: number;
+    students_without_academic_year?: number;
+    students_incomplete_profile?: number;
+  };
+  const bucket = raw.data_quality ?? raw;
+  return {
+    withoutClass: bucket.students_without_class ?? 0,
+    withoutParent: bucket.students_without_parent ?? 0,
+    withoutAcademicYear: bucket.students_without_academic_year ?? 0,
+    incompleteProfile: bucket.students_incomplete_profile ?? 0,
+  };
+}
+
+function buildDataQualityItems(
+  d: AdminDashboard,
+  t: (k: string, p?: Record<string, string | number>) => string,
+): AdminActionItem[] {
+  const counts = readStudentDataQualityCounts(d);
+  const items: AdminActionItem[] = [];
+  const studentsHref = '/admin/students';
+
+  if (counts.withoutClass > 0) {
+    items.push({
+      id: 'dq-without-class',
+      label: t('admin.cmd.studentsWithoutClassCount', { count: counts.withoutClass }),
+      href: studentsHref,
+      icon: '🏫',
+      tone: 'amber',
+    });
+  }
+  if (counts.withoutParent > 0) {
+    items.push({
+      id: 'dq-without-parent',
+      label: t('admin.cmd.studentsWithoutParentCount', { count: counts.withoutParent }),
+      href: studentsHref,
+      icon: '👪',
+      tone: 'amber',
+    });
+  }
+  if (counts.withoutAcademicYear > 0) {
+    items.push({
+      id: 'dq-without-year',
+      label: t('admin.cmd.studentsWithoutAcademicYearCount', { count: counts.withoutAcademicYear }),
+      href: studentsHref,
+      icon: '📅',
+      tone: 'amber',
+    });
+  }
+  if (counts.incompleteProfile > 0) {
+    items.push({
+      id: 'dq-incomplete-profile',
+      label: t('admin.cmd.studentsIncompleteProfileCount', { count: counts.incompleteProfile }),
+      href: studentsHref,
+      icon: '📝',
+      tone: 'amber',
+    });
+  }
+
+  return items;
+}
+
 export function AdminCommandDashboard({
   data: d,
   user,
@@ -128,6 +204,10 @@ export function AdminCommandDashboard({
     isScopedAdmin(effectiveUser) || effectiveUser.admin_kind === 'general_supervisor';
 
   const actionItems = useMemo(() => buildActionItems(d, t), [d, t]);
+  const dataQualityItems = useMemo(() => buildDataQualityItems(d, t), [d, t]);
+  const hasDataQualityIssues = dataQualityItems.length > 0;
+  const canOpenStudents =
+    canSeeStudentData(effectiveUser) && hasPermission(effectiveUser, 'view_students');
 
   const schoolName = formatSchoolLabel(effectiveUser.school, t);
 
@@ -283,18 +363,28 @@ export function AdminCommandDashboard({
               : t('admin.cmd.interventionDesc')
           }
           intervention
-          footer={
-            canSeeStudentData(effectiveUser) && hasPermission(effectiveUser, 'view_students') ? (
-              <div className="admin-card__footer-secondary">
-                {/* TODO: Data quality dashboard requires backend counters or dedicated filters. */}
-                <Link href="/admin/students" className="admin-card__secondary-link">
-                  {t('admin.cmd.reviewDataQuality')}
-                </Link>
-              </div>
-            ) : undefined
-          }
         >
-          <AdminActionList items={actionItems} emptyLabel={t('admin.cmd.noInterventions')} />
+          <div className="admin-intervention-section">
+            <p className="admin-intervention-section__label">{t('admin.cmd.urgentSectionLabel')}</p>
+            <AdminActionList items={actionItems} emptyLabel={t('admin.cmd.noInterventions')} />
+          </div>
+
+          {canOpenStudents && (
+            <div className="admin-intervention-dq">
+              <p className="admin-intervention-section__label">{t('admin.cmd.dataQualitySectionLabel')}</p>
+              {hasDataQualityIssues ? (
+                <AdminActionList
+                  items={dataQualityItems}
+                  emptyLabel={t('admin.cmd.noSpecificReviewItems')}
+                />
+              ) : (
+                <p className="admin-empty-hint">{t('admin.cmd.noDataQualityIssuesFromDashboard')}</p>
+              )}
+              <Link href="/admin/students" className="admin-card__secondary-link admin-intervention-dq__link">
+                {t('admin.cmd.openStudentsList')}
+              </Link>
+            </div>
+          )}
         </AdminOperationCard>
       </div>
 

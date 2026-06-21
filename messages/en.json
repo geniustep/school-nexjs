@@ -845,7 +845,17 @@
       "interventionTitle": "Requires your action",
       "interventionDesc": "Urgent items from the dashboard — tap to open.",
       "scopedInterventionDesc": "Urgent items within your scope — tap to open.",
-      "noInterventions": "No urgent interventions right now",
+      "urgentSectionLabel": "Urgent interventions",
+      "dataQualitySectionLabel": "Pupil data quality",
+      "noInterventions": "No urgent interventions right now.",
+      "noDataQualityIssuesFromDashboard": "No specific data quality issues were detected from dashboard data.",
+      "noSpecificReviewItems": "No specific items to review right now.",
+      "openStudentsList": "Open pupils list",
+      "studentsNeedDataReview": "Pupils needing data review",
+      "studentsWithoutClassCount": "{count} pupil(s) without a class",
+      "studentsWithoutParentCount": "{count} pupil(s) without a parent",
+      "studentsWithoutAcademicYearCount": "{count} pupil(s) without an academic year",
+      "studentsIncompleteProfileCount": "{count} pupil(s) with incomplete basic information",
       "reviewDataQuality": "Review data quality",
       "examsMissingResults": "{count} exam(s) missing results",
       "draftResultsPending": "{count} draft result(s)",
@@ -2632,7 +2642,7 @@
       "nextAction": "Next action",
       "assignedUser": "Assigned to",
       "viewMode": "View mode",
-      "viewKanban": "Kanban",
+      "viewKanban": "Board",
       "viewTable": "Table",
       "filters": {
         "search": "Search…",
@@ -2645,8 +2655,12 @@
         "description": "Create a new admission request to get started."
       },
       "kanban": {
-        "emptyColumn": "No requests",
-        "dragHint": "Drag a card to another column to change its state."
+        "emptyColumn": "No requests in this stage",
+        "dragHint": "Drag a card to another column to change its state.",
+        "scrollHint": "Scroll to see more stages",
+        "scrollBack": "Scroll to earlier stages",
+        "scrollForward": "Scroll to later stages",
+        "boardLabel": "Admission pipeline board"
       },
       "card": {
         "guardian": "Guardian",
@@ -2658,7 +2672,9 @@
         "overdue": "Overdue"
       },
       "stateChange": {
-        "label": "Change request state"
+        "label": "Change request state",
+        "success": "Request state updated.",
+        "failed": "Could not update request state."
       },
       "states": {
         "new": "New",
@@ -2675,14 +2691,14 @@
         "duplicate": "Duplicate"
       },
       "dashboard": {
-        "total_open": "Open",
-        "new_count": "New",
-        "visit_pending_count": "Visits pending",
+        "total_open": "Open requests",
+        "new_count": "New requests",
+        "visit_pending_count": "Pending visits",
         "under_review_count": "Under review",
         "accepted_count": "Accepted",
         "offer_sent_count": "Offers sent",
         "confirmed_count": "Confirmed",
-        "lost_count": "Lost",
+        "lost_count": "Lost requests",
         "today_appointments": "Today's appointments",
         "overdue_next_actions": "Overdue actions",
         "fallbackTitle": "Estimated statistics",

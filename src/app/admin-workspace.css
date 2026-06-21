@@ -273,6 +273,26 @@
   text-decoration: underline;
 }
 
+.admin-intervention-section + .admin-intervention-dq {
+  margin-block-start: 10px;
+  padding-block-start: 10px;
+  border-block-start: 1px solid rgba(253, 230, 138, 0.55);
+}
+
+.admin-intervention-section__label {
+  margin: 0 0 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #a16207;
+}
+
+.admin-intervention-dq__link {
+  display: inline-block;
+  margin-block-start: 8px;
+}
+
 .admin-card__title {
   font-size: 13px;
   font-weight: 700;

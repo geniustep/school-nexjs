@@ -845,7 +845,17 @@
       "interventionTitle": "Action requise",
       "interventionDesc": "Éléments urgents — cliquez pour ouvrir.",
       "scopedInterventionDesc": "Éléments urgents dans votre périmètre — cliquez pour ouvrir.",
-      "noInterventions": "Aucune intervention urgente",
+      "urgentSectionLabel": "Interventions urgentes",
+      "dataQualitySectionLabel": "Qualité des données élèves",
+      "noInterventions": "Aucune intervention urgente pour le moment.",
+      "noDataQualityIssuesFromDashboard": "Aucun problème de qualité de données précis n'a été détecté à partir des données du tableau de bord.",
+      "noSpecificReviewItems": "Aucun élément précis à examiner pour le moment.",
+      "openStudentsList": "Ouvrir la liste des élèves",
+      "studentsNeedDataReview": "Élèves nécessitant une revue des données",
+      "studentsWithoutClassCount": "{count} élève(s) sans classe",
+      "studentsWithoutParentCount": "{count} élève(s) sans responsable",
+      "studentsWithoutAcademicYearCount": "{count} élève(s) sans année scolaire",
+      "studentsIncompleteProfileCount": "{count} élève(s) avec informations de base incomplètes",
       "reviewDataQuality": "Revoir la qualité des données",
       "examsMissingResults": "{count} examen(s) sans résultats",
       "draftResultsPending": "{count} résultat(s) brouillon",
@@ -2645,8 +2655,12 @@
         "description": "Créez une nouvelle demande pour commencer."
       },
       "kanban": {
-        "emptyColumn": "Aucune demande",
-        "dragHint": "Glissez une carte vers une autre colonne pour changer l'état."
+        "emptyColumn": "Aucune demande à cette étape",
+        "dragHint": "Glissez une carte vers une autre colonne pour changer l'état.",
+        "scrollHint": "Faites défiler pour voir les autres étapes",
+        "scrollBack": "Défiler vers les étapes précédentes",
+        "scrollForward": "Défiler vers les étapes suivantes",
+        "boardLabel": "Tableau des étapes d'admission"
       },
       "card": {
         "guardian": "Responsable",
@@ -2658,7 +2672,9 @@
         "overdue": "En retard"
       },
       "stateChange": {
-        "label": "Changer l'état de la demande"
+        "label": "Changer l'état de la demande",
+        "success": "État de la demande mis à jour.",
+        "failed": "Impossible de modifier l'état de la demande."
       },
       "states": {
         "new": "Nouveau",
@@ -2675,14 +2691,14 @@
         "duplicate": "Doublon"
       },
       "dashboard": {
-        "total_open": "Ouvertes",
-        "new_count": "Nouvelles",
+        "total_open": "Demandes ouvertes",
+        "new_count": "Nouvelles demandes",
         "visit_pending_count": "Visites en attente",
-        "under_review_count": "En examen",
+        "under_review_count": "En cours d'examen",
         "accepted_count": "Acceptées",
         "offer_sent_count": "Offres envoyées",
         "confirmed_count": "Confirmées",
-        "lost_count": "Perdues",
+        "lost_count": "Demandes perdues",
         "today_appointments": "RDV du jour",
         "overdue_next_actions": "Actions en retard",
         "fallbackTitle": "Statistiques estimées",

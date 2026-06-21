@@ -845,7 +845,17 @@
       "interventionTitle": "يتطلب تدخلك",
       "interventionDesc": "مهام عاجلة من بيانات اللوحة — انقر للانتقال.",
       "scopedInterventionDesc": "مهام عاجلة ضمن نطاقك — انقر للانتقال.",
-      "noInterventions": "لا توجد تدخلات عاجلة حالياً",
+      "urgentSectionLabel": "تدخلات عاجلة",
+      "dataQualitySectionLabel": "جودة بيانات التلاميذ",
+      "noInterventions": "لا توجد تدخلات عاجلة حالياً.",
+      "noDataQualityIssuesFromDashboard": "لم يتم رصد مشاكل جودة بيانات محددة من بيانات اللوحة.",
+      "noSpecificReviewItems": "لا توجد عناصر محددة للمراجعة حالياً.",
+      "openStudentsList": "فتح لائحة التلاميذ",
+      "studentsNeedDataReview": "تلاميذ يحتاجون مراجعة بيانات",
+      "studentsWithoutClassCount": "{count} تلاميذ بدون قسم",
+      "studentsWithoutParentCount": "{count} تلاميذ بدون ولي أمر",
+      "studentsWithoutAcademicYearCount": "{count} تلاميذ بدون سنة دراسية",
+      "studentsIncompleteProfileCount": "{count} تلاميذ بدون معلومات أساسية مكتملة",
       "reviewDataQuality": "مراجعة جودة البيانات",
       "examsMissingResults": "{count} امتحان(ات) بلا نتائج",
       "draftResultsPending": "{count} نتيجة مسودة",
@@ -2672,8 +2682,12 @@
         "description": "أنشئ طلب تسجيل جديد للبدء."
       },
       "kanban": {
-        "emptyColumn": "لا توجد طلبات",
-        "dragHint": "اسحب البطاقة إلى عمود آخر لتغيير الحالة."
+        "emptyColumn": "لا توجد طلبات في هذه المرحلة",
+        "dragHint": "اسحب البطاقة إلى عمود آخر لتغيير الحالة.",
+        "scrollHint": "مرّر لرؤية باقي المراحل",
+        "scrollBack": "التمرير للمراحل السابقة",
+        "scrollForward": "التمرير للمراحل التالية",
+        "boardLabel": "لوحة مراحل طلبات التسجيل"
       },
       "card": {
         "guardian": "ولي الأمر",
@@ -2685,7 +2699,9 @@
         "overdue": "متأخر"
       },
       "stateChange": {
-        "label": "تغيير حالة الطلب"
+        "label": "تغيير حالة الطلب",
+        "success": "تم تغيير حالة الطلب.",
+        "failed": "تعذر تغيير حالة الطلب."
       },
       "states": {
         "new": "جديد",
@@ -2695,21 +2711,21 @@
         "under_review": "قيد المراجعة",
         "accepted": "مقبول",
         "waitlisted": "قائمة انتظار",
-        "offer_sent": "عرض مُرسل",
+        "offer_sent": "عرض مرسل",
         "confirmed": "مؤكد",
         "lost": "مفقود",
         "cancelled": "ملغى",
         "duplicate": "مكرر"
       },
       "dashboard": {
-        "total_open": "مفتوحة",
-        "new_count": "جديدة",
-        "visit_pending_count": "زيارات معلقة",
+        "total_open": "الطلبات المفتوحة",
+        "new_count": "الطلبات الجديدة",
+        "visit_pending_count": "الزيارات المعلقة",
         "under_review_count": "قيد المراجعة",
-        "accepted_count": "مقبولة",
-        "offer_sent_count": "عروض مُرسلة",
-        "confirmed_count": "مؤكدة",
-        "lost_count": "مفقودة",
+        "accepted_count": "المقبولة",
+        "offer_sent_count": "العروض المرسلة",
+        "confirmed_count": "المؤكدة",
+        "lost_count": "طلبات مفقودة",
         "today_appointments": "مواعيد اليوم",
         "overdue_next_actions": "إجراءات متأخرة",
         "fallbackTitle": "إحصائيات تقديرية",

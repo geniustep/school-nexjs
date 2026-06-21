@@ -845,7 +845,17 @@
       "interventionTitle": "Requiere acción",
       "interventionDesc": "Elementos urgentes — pulse para abrir.",
       "scopedInterventionDesc": "Elementos urgentes en su ámbito — pulse para abrir.",
-      "noInterventions": "Sin intervenciones urgentes",
+      "urgentSectionLabel": "Intervenciones urgentes",
+      "dataQualitySectionLabel": "Calidad de datos de alumnos",
+      "noInterventions": "Sin intervenciones urgentes por ahora.",
+      "noDataQualityIssuesFromDashboard": "No se detectaron problemas concretos de calidad de datos a partir de los datos del panel.",
+      "noSpecificReviewItems": "No hay elementos concretos para revisar por ahora.",
+      "openStudentsList": "Abrir lista de alumnos",
+      "studentsNeedDataReview": "Alumnos que necesitan revisión de datos",
+      "studentsWithoutClassCount": "{count} alumno(s) sin clase",
+      "studentsWithoutParentCount": "{count} alumno(s) sin tutor",
+      "studentsWithoutAcademicYearCount": "{count} alumno(s) sin año escolar",
+      "studentsIncompleteProfileCount": "{count} alumno(s) con información básica incompleta",
       "reviewDataQuality": "Revisar calidad de datos",
       "examsMissingResults": "{count} examen(es) sin resultados",
       "draftResultsPending": "{count} resultado(s) borrador",
@@ -2645,8 +2655,12 @@
         "description": "Cree una nueva solicitud para comenzar."
       },
       "kanban": {
-        "emptyColumn": "Sin solicitudes",
-        "dragHint": "Arrastra una tarjeta a otra columna para cambiar el estado."
+        "emptyColumn": "No hay solicitudes en esta etapa",
+        "dragHint": "Arrastra una tarjeta a otra columna para cambiar el estado.",
+        "scrollHint": "Desplázate para ver más etapas",
+        "scrollBack": "Desplazar a etapas anteriores",
+        "scrollForward": "Desplazar a etapas siguientes",
+        "boardLabel": "Tablero de etapas de admisión"
       },
       "card": {
         "guardian": "Tutor",
@@ -2658,7 +2672,9 @@
         "overdue": "Atrasada"
       },
       "stateChange": {
-        "label": "Cambiar estado de la solicitud"
+        "label": "Cambiar estado de la solicitud",
+        "success": "Estado de la solicitud actualizado.",
+        "failed": "No se pudo actualizar el estado de la solicitud."
       },
       "states": {
         "new": "Nueva",
@@ -2675,14 +2691,14 @@
         "duplicate": "Duplicada"
       },
       "dashboard": {
-        "total_open": "Abiertas",
-        "new_count": "Nuevas",
+        "total_open": "Solicitudes abiertas",
+        "new_count": "Solicitudes nuevas",
         "visit_pending_count": "Visitas pendientes",
         "under_review_count": "En revisión",
         "accepted_count": "Aceptadas",
         "offer_sent_count": "Ofertas enviadas",
         "confirmed_count": "Confirmadas",
-        "lost_count": "Perdidas",
+        "lost_count": "Solicitudes perdidas",
         "today_appointments": "Citas de hoy",
         "overdue_next_actions": "Acciones atrasadas",
         "fallbackTitle": "Estadísticas estimadas",
