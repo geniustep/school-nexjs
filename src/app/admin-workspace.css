@@ -255,6 +255,27 @@
   font-size: 14px;
 }
 
+.admin-intervention-card--neutral > .admin-card {
+  border-color: var(--c-border);
+  background: linear-gradient(180deg, #f8fafc 0%, var(--c-surface) 88%);
+}
+
+.admin-intervention-card--neutral > .admin-card .admin-card__title {
+  color: var(--c-text);
+}
+
+.admin-intervention-card--neutral .admin-intervention-section + .admin-intervention-dq {
+  border-block-start-color: var(--c-border);
+}
+
+.admin-intervention-card--neutral .admin-intervention-section__label {
+  color: var(--c-text-muted);
+}
+
+.admin-intervention-card--neutral .admin-card__secondary-link {
+  color: var(--c-text-faint);
+}
+
 .admin-card__footer-secondary {
   margin-block-start: 4px;
   padding-block-start: 10px;

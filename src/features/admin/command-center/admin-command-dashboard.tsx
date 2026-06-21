@@ -206,6 +206,16 @@ export function AdminCommandDashboard({
   const actionItems = useMemo(() => buildActionItems(d, t), [d, t]);
   const dataQualityItems = useMemo(() => buildDataQualityItems(d, t), [d, t]);
   const hasDataQualityIssues = dataQualityItems.length > 0;
+  const hasInterventionIssues = actionItems.length > 0 || hasDataQualityIssues;
+  const hasClickableInterventions =
+    actionItems.some((item) => !!item.href) || hasDataQualityIssues;
+  const interventionDescription = hideSchoolWideKpis
+    ? hasClickableInterventions
+      ? t('admin.cmd.scopedInterventionDesc')
+      : t('admin.cmd.scopedInterventionDescNeutral')
+    : hasClickableInterventions
+      ? t('admin.cmd.interventionDesc')
+      : t('admin.cmd.interventionDescNeutral');
   const canOpenStudents =
     canSeeStudentData(effectiveUser) && hasPermission(effectiveUser, 'view_students');
 
@@ -355,15 +365,19 @@ export function AdminCommandDashboard({
           </AdminOperationCard>
         )}
 
-        <AdminOperationCard
-          title={t('admin.cmd.interventionTitle')}
-          description={
-            hideSchoolWideKpis
-              ? t('admin.cmd.scopedInterventionDesc')
-              : t('admin.cmd.interventionDesc')
-          }
-          intervention
+        <div
+          className={cn(
+            'admin-intervention-card',
+            hasInterventionIssues
+              ? 'admin-intervention-card--active'
+              : 'admin-intervention-card--neutral',
+          )}
         >
+          <AdminOperationCard
+            title={t('admin.cmd.interventionTitle')}
+            description={interventionDescription}
+            intervention={hasInterventionIssues}
+          >
           <div className="admin-intervention-section">
             <p className="admin-intervention-section__label">{t('admin.cmd.urgentSectionLabel')}</p>
             <AdminActionList items={actionItems} emptyLabel={t('admin.cmd.noInterventions')} />
@@ -386,6 +400,7 @@ export function AdminCommandDashboard({
             </div>
           )}
         </AdminOperationCard>
+        </div>
       </div>
 
       {canSeeStudentData(effectiveUser) &&
