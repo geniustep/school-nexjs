@@ -143,6 +143,9 @@ export const endpoints = {
     staffReactivate: (id: number | string) => `/admin/staff/${id}/reactivate`,
     staffAccount: (id: number | string) => `/admin/staff/${id}/account`,
     staffOptions: '/admin/staff/options',
+    staffTemplates: '/admin/staff/templates',
+    staffTemplatePreview: '/admin/staff/templates/preview',
+    staffFromTemplate: '/admin/staff/from-template',
 
     tracks: '/admin/tracks',
     track: (id: number | string) => `/admin/tracks/${id}`,

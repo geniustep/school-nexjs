@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ResourceView } from '@/components/states/resource';
@@ -133,6 +134,11 @@ export function StaffListPage() {
       <PageHeader
         title={t('admin.staffCenter.pageTitle')}
         subtitle={t('admin.staffCenter.pageSubtitle')}
+        actions={
+          <Link href="/admin/staff/create" className="btn btn--primary btn--sm">
+            + {t('admin.staffCenter.smartCreate.entryButton')}
+          </Link>
+        }
       />
 
       <div className="staff-center-toolbar">
