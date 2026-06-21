@@ -3,48 +3,13 @@
 import { useT } from '@/features/i18n/locale-context';
 import type { StudentOverviewAlert, StudentOverviewAlertAction } from '@/types/student-overview';
 import type { Student360TabId } from '../utils/student-360-tabs';
+import {
+  dedupeOverviewAlerts,
+  localizeOverviewAlertField,
+  OVERVIEW_WARNING_TEXT_KEYS,
+} from '../utils/student-overview-warning-display';
 
-const ALERT_CODE_KEYS: Record<string, { title: string; message?: string }> = {
-  missing_photo: {
-    title: 'admin.student360.overview.alerts.known.missingPhoto',
-    message: 'admin.student360.overview.alerts.messages.missingPhoto',
-  },
-  missing_required_documents: {
-    title: 'admin.student360.overview.alerts.known.missingDocuments',
-    message: 'admin.student360.overview.alerts.messages.missingDocuments',
-  },
-  missing_guardian: {
-    title: 'admin.student360.overview.alerts.known.missingGuardian',
-    message: 'admin.student360.overview.alerts.messages.missingGuardian',
-  },
-  photo_publish_blocked: {
-    title: 'admin.student360.overview.alerts.known.photoPublishBlocked',
-    message: 'admin.student360.overview.alerts.messages.photoPublishBlocked',
-  },
-  trip_consent_pending: {
-    title: 'admin.student360.overview.alerts.known.tripConsentPending',
-    message: 'admin.student360.overview.alerts.messages.tripConsentPending',
-  },
-  finance_overdue: {
-    title: 'admin.student360.overview.alerts.known.financeOverdue',
-    message: 'admin.student360.overview.alerts.messages.financeOverdue',
-  },
-};
-
-const ALERT_TEXT_KEYS: Record<string, string> = {
-  missing_guardian: 'admin.student360.overview.alerts.known.missingGuardian',
-  'missing guardian': 'admin.student360.overview.alerts.known.missingGuardian',
-  'missing photo': 'admin.student360.overview.alerts.known.missingPhoto',
-  'missing required documents': 'admin.student360.overview.alerts.known.missingDocuments',
-  'missing documents': 'admin.student360.overview.alerts.known.missingDocuments',
-  'external photo publishing not allowed': 'admin.student360.overview.alerts.known.photoPublishBlocked',
-  'photo publish not allowed': 'admin.student360.overview.alerts.known.photoPublishBlocked',
-  'trip consent pending': 'admin.student360.overview.alerts.known.tripConsentPending',
-  'finance overdue': 'admin.student360.overview.alerts.known.financeOverdue',
-  'overdue balance': 'admin.student360.overview.alerts.known.financeOverdue',
-  'no student photo is on file.': 'admin.student360.overview.alerts.messages.missingPhoto',
-  'one or more required documents are missing.': 'admin.student360.overview.alerts.messages.missingDocuments',
-};
+export { localizeOverviewAlertField } from '../utils/student-overview-warning-display';
 
 const ALERT_ACTION_KEYS: Record<string, { label: string; tab?: Student360TabId }> = {
   upload_photo: {
@@ -71,35 +36,6 @@ function translateKey(t: (key: string) => string, key: string | undefined): stri
   return label !== key ? label : null;
 }
 
-export function localizeOverviewAlertField(
-  t: (key: string) => string,
-  alert: StudentOverviewAlert,
-  field: 'title' | 'message',
-): string {
-  const text = field === 'title' ? alert.title : alert.message;
-  if (!text?.trim()) return '';
-
-  const codeKey = alert.code ? ALERT_CODE_KEYS[alert.code] : undefined;
-  const mappedKey = field === 'title' ? codeKey?.title : codeKey?.message;
-  const translated = translateKey(t, mappedKey);
-  if (translated) return translated;
-
-  const normalized = text.trim().toLowerCase();
-  const slugFromText = normalized.replace(/\s+/g, '_');
-  const codeFromText = ALERT_CODE_KEYS[slugFromText];
-  if (codeFromText) {
-    const textMappedKey = field === 'title' ? codeFromText.title : codeFromText.message;
-    const textTranslated = translateKey(t, textMappedKey);
-    if (textTranslated) return textTranslated;
-  }
-
-  const fallbackKey = ALERT_TEXT_KEYS[normalized] ?? ALERT_TEXT_KEYS[slugFromText];
-  const fallback = translateKey(t, fallbackKey);
-  if (fallback) return fallback;
-
-  return text.trim();
-}
-
 function resolveAlertAction(
   t: (key: string) => string,
   action: StudentOverviewAlertAction | null | undefined,
@@ -110,7 +46,7 @@ function resolveAlertAction(
   const mapped = code ? ALERT_ACTION_KEYS[code] : undefined;
   const label =
     translateKey(t, mapped?.label) ??
-    translateKey(t, ALERT_TEXT_KEYS[action.label?.trim().toLowerCase() ?? '']) ??
+    translateKey(t, OVERVIEW_WARNING_TEXT_KEYS[action.label?.trim().toLowerCase() ?? '']) ??
     action.label?.trim() ??
     null;
 
@@ -145,17 +81,18 @@ export function StudentOverviewAlerts({
   onOpenTab?: (tab: Student360TabId) => void;
 }) {
   const t = useT();
+  const visibleAlerts = dedupeOverviewAlerts(alerts);
 
-  if (!alerts.length) return null;
+  if (!visibleAlerts.length) return null;
 
   return (
     <section className="student-overview-alerts" aria-label={t('admin.student360.overview.alerts.title')}>
       <header className="student-overview-alerts__head">
         <h2 className="student-overview-alerts__title">{t('admin.student360.overview.alerts.title')}</h2>
-        <span className="student-overview-alerts__count">{alerts.length}</span>
+        <span className="student-overview-alerts__count">{visibleAlerts.length}</span>
       </header>
       <ul className="student-overview-alerts__list">
-        {alerts.map((alert, index) => {
+        {visibleAlerts.map((alert, index) => {
           const title = localizeOverviewAlertField(t, alert, 'title');
           const message = alert.message ? localizeOverviewAlertField(t, alert, 'message') : null;
           const action = resolveAlertAction(t, alert.action);

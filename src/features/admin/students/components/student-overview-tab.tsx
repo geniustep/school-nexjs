@@ -1,9 +1,14 @@
 'use client';
 
 import { useMemo } from 'react';
+import { useT } from '@/features/i18n/locale-context';
 import { useFinanceReferenceData } from '@/features/admin/finance/use-finance-lookups';
 import { useStudentFinancialOverview } from '@/features/admin/student-finance/hooks/use-student-financial-overview';
 import { resolveFinanceYearId } from '@/features/admin/student-finance/utils/resolve-finance-year-id';
+import {
+  filterSchoolingWarningItems,
+  localizeOverviewWarningToken,
+} from '../utils/student-overview-warning-display';
 import { StudentStatusSummary } from './student-status-summary';
 import { StudentOverviewAlerts } from './student-overview-alerts';
 import { StudentOverviewCards } from './student-overview-cards';
@@ -59,13 +64,18 @@ export function StudentOverviewTab({
     showFinance && !!financeYearId,
   );
 
+  const t = useT();
   const openTab = (tab: Student360TabId, options?: { financeSubTab?: string }) =>
     onOpenTab?.(tab, options);
 
-  const schoolingWarnings = [
-    ...(overview?.schooling?.gaps ?? []),
-    ...(overview?.schooling?.warnings ?? []),
-  ];
+  const schoolingWarnings = useMemo(
+    () =>
+      filterSchoolingWarningItems([
+        ...(overview?.schooling?.gaps ?? []),
+        ...(overview?.schooling?.warnings ?? []),
+      ]),
+    [overview?.schooling?.gaps, overview?.schooling?.warnings],
+  );
 
   return (
     <div className="student-360-overview student-360-tab-panel">
@@ -75,7 +85,7 @@ export function StudentOverviewTab({
         <div className="student-360-overview__schooling-notes" role="status">
           <ul className="student-overview-card__warnings">
             {schoolingWarnings.map((item) => (
-              <li key={item}>{item}</li>
+              <li key={item}>{localizeOverviewWarningToken(t, item)}</li>
             ))}
           </ul>
         </div>

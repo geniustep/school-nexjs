@@ -4689,6 +4689,22 @@
   min-width: 6.5rem;
 }
 
+.student-receipt-actions-menu__panel {
+  position: fixed;
+  z-index: 90;
+  inset: auto;
+  top: auto;
+  inset-inline-end: auto;
+}
+
+.student-receipt-actions-menu__panel--top {
+  transform-origin: bottom center;
+}
+
+.student-receipt-actions-menu__panel--bottom {
+  transform-origin: top center;
+}
+
 .student-finance-hidden-indicator {
   font-style: italic;
 }

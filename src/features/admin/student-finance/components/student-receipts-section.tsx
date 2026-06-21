@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ApiErrorView } from '@/components/states/states';
 import { DataTable, type Column } from '@/components/tables/data-table';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
-import { ReceiptActionsMenu } from '@/features/admin/finance/receipt-actions-menu';
+import { StudentReceiptActionsMenu } from '@/features/admin/student-finance/components/student-receipt-actions-menu';
 import { ReceiptDetailDrawer } from '@/features/admin/finance/receipt-detail-drawer';
 import {
   ReceiptSettlementBadge,
@@ -87,7 +87,7 @@ export function StudentReceiptsSection({
         header: t('admin.finance.receipts.columns.actions'),
         className: 'finance-receipts-actions-col',
         render: (row) => (
-          <ReceiptActionsMenu receipt={row} onView={() => setSelectedReceiptId(row.id)} />
+          <StudentReceiptActionsMenu receipt={row} onView={() => setSelectedReceiptId(row.id)} />
         ),
       },
     ],

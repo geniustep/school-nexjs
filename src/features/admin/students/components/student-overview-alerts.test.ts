@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { localizeOverviewAlertField } from './student-overview-alerts';
+import { localizeOverviewAlertField } from '../utils/student-overview-warning-display';
 
 const AR_ALERTS: Record<string, string> = {
   'admin.student360.overview.alerts.known.missingGuardian': 'ولي أمر غير مسجّل',
