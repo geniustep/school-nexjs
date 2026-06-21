@@ -9,6 +9,7 @@ import { useFloatingMenuPosition } from '@/features/admin/student-finance/utils/
 import { downloadReceiptPdf } from '@/lib/api/finance-receipt';
 import { receiptAllowsAction } from '@/lib/utils/normalize-finance-receipt';
 import type { FinanceReceipt } from '@/types/finance';
+import './student-receipt-actions-menu.css';
 
 export function StudentReceiptActionsMenu({
   receipt,
