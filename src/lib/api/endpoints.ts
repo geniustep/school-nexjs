@@ -136,6 +136,8 @@ export const endpoints = {
 
     staff: '/admin/staff',
     staffMember: (id: number | string) => `/admin/staff/${id}`,
+    staffEffectivePermissions: (id: number | string) =>
+      `/admin/staff/${id}/effective-permissions`,
     staffUpdate: (id: number | string) => `/admin/staff/${id}/update`,
     staffDeactivate: (id: number | string) => `/admin/staff/${id}/deactivate`,
     staffReactivate: (id: number | string) => `/admin/staff/${id}/reactivate`,

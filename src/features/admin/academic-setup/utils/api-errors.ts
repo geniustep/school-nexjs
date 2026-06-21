@@ -26,6 +26,7 @@ const ASSIGNMENT_ERRORS: Record<string, string> = {
 };
 
 const STAFF_ERRORS: Record<string, string> = {
+  scope_required: 'admin.staffCenter.errors.scopeRequired',
   duplicate_login: 'admin.academicSetup.errors.duplicateLogin',
   invalid_admin_kind: 'admin.academicSetup.errors.invalidAdminKind',
   school_out_of_scope: 'admin.academicSetup.errors.schoolOutOfScope',

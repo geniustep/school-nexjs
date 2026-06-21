@@ -1,0 +1,68 @@
+.staff-center-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.staff-center-toolbar {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.staff-center-toolbar__search {
+  min-width: min(100%, 320px);
+  flex: 1 1 240px;
+}
+
+.staff-center-type-badges,
+.staff-center-actions-badges,
+.staff-center-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.staff-center-warnings {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.staff-center-warnings__list {
+  margin: 0;
+  padding-inline-start: 1.25rem;
+  color: var(--text-muted, #64748b);
+}
+
+.staff-center-warnings__item + .staff-center-warnings__item {
+  margin-top: 0.25rem;
+}
+
+.staff-center-detail-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+}
+
+.staff-center-section + .staff-center-section {
+  margin-top: 0;
+}
+
+.staff-center-scopes {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.staff-center-scope-card {
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+}
+
+@media (max-width: 639px) {
+  .staff-center-toolbar__search {
+    width: 100%;
+  }
+}

@@ -3,7 +3,7 @@
 import type { CurrentUser } from '@/types/user';
 import type { Permission } from '@/types/permissions';
 import { canAccessAdminDashboard, canShowAdminNavPermission, useScopedNavLabels } from '@/lib/admin/admin-ux';
-import { canViewSettings } from '@/lib/permissions/academic-setup';
+import { canViewSettings, canViewStaff } from '@/lib/permissions/academic-setup';
 import { FINANCE_VIEW } from '@/lib/permissions/finance';
 import { ADMISSION_VIEW } from '@/lib/permissions/admission';
 import { isConfiguredAdmin } from '@/lib/permissions/scope';
@@ -92,6 +92,11 @@ function adminNav(user: CurrentUser): NavSection[] {
     labelKey: 'nav.teachers',
     href: '/admin/teachers',
     icon: '👩‍🏫',
+  });
+  pushIf(staffItems, canViewStaff(user), {
+    labelKey: 'nav.staffCenter',
+    href: '/admin/staff',
+    icon: '🧑‍💼',
   });
   pushSection(sections, {
     groupId: 'staff',
@@ -289,6 +294,7 @@ export const ADMIN_NAV_BY_PERMISSION: { permission: Permission; href: string; la
   { permission: 'view_students', href: '/admin/students', labelKey: 'nav.students' },
   { permission: 'view_parents', href: '/admin/parents', labelKey: 'nav.parents' },
   { permission: 'view_teachers', href: '/admin/teachers', labelKey: 'nav.teachers' },
+  { permission: 'view_classes', href: '/admin/staff', labelKey: 'nav.staffCenter' },
   { permission: 'view_classes', href: '/admin/classes', labelKey: 'nav.classes' },
   { permission: 'view_attendance', href: '/admin/attendance', labelKey: 'nav.attendance' },
   { permission: 'view_channels', href: '/admin/channels', labelKey: 'nav.channels' },

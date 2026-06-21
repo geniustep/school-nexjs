@@ -105,33 +105,105 @@ export interface StaffMutationResult {
   warnings?: ApiWarning[];
 }
 
+export type StaffAllowedAction =
+  | 'view'
+  | 'view_effective_permissions'
+  | 'edit'
+  | 'manage_scopes'
+  | 'manage_permissions'
+  | 'deactivate'
+  | 'reactivate'
+  | 'link_teacher';
+
+export type StaffWarningCode =
+  | 'account_without_scope'
+  | 'staff_without_active_school'
+  | 'teacher_without_user'
+  | 'admin_staff_without_capabilities'
+  | 'teacher_without_assignments'
+  | 'inactive_user_with_active_teacher_profile';
+
+export interface StaffTeacherLink {
+  id: number;
+  name: string;
+  code?: string | null;
+  teacher_type?: string | null;
+  state?: string | null;
+  subjects_count?: number;
+  classes_count?: number;
+  assignments_count?: number;
+  subjects?: { id: number; name: string; code?: string | null }[];
+  classes?: { id: number; name: string }[];
+}
+
+export interface StaffScope {
+  role_template_id?: number | null;
+  role_template_code?: string | null;
+  role_template_name?: string | null;
+  school_id?: number | null;
+  level_ids?: number[];
+  class_ids?: number[];
+  capabilities?: string[];
+}
+
+export interface StaffEffectivePermissionsPayload {
+  user_id?: number;
+  school_id?: number;
+  admin_kind?: StaffAdminKind | string | null;
+  permissions_mode?: PermissionsMode;
+  assigned_capabilities?: string[];
+  effective_capabilities?: string[];
+  effective_permissions?: string[];
+  warnings?: ApiWarning[];
+}
+
+export interface StaffDetailEnvelope {
+  item?: StaffMember;
+  effective_permissions?: StaffEffectivePermissionsPayload;
+}
+
 export interface StaffMember {
   id: number;
   name: string;
+  display_name?: string | null;
   email: string | null;
   login?: string | null;
   phone: string | null;
+  mobile?: string | null;
+  partner_id?: number | null;
   job_title: string | null;
   admin_kind: StaffAdminKind;
   permissions_mode?: PermissionsMode;
   capabilities_editable?: boolean;
   assigned_capabilities?: string[];
+  effective_capabilities?: string[];
   effective_permissions?: string[];
   active: boolean;
   account_status: StaffAccountStatus;
+  status?: string | null;
+  is_admin_staff?: boolean;
+  is_teacher?: boolean;
+  teacher_id?: number | null;
+  teacher_type?: string | null;
+  primary_school_id?: number | null;
   can_deactivate?: boolean;
   can_reactivate?: boolean;
   schools: SchoolRef[];
   default_school: SchoolRef | null;
   permissions: string[];
+  role_templates?: (StaffRoleTemplate | string)[];
   scope_summary?: {
     type?: string;
     levels_count?: number;
     classes_count?: number;
   };
+  scopes?: StaffScope[];
   capabilities?: string[];
   user_id?: number | null;
   account?: UserAccountInfo | null;
+  teacher?: StaffTeacherLink | null;
+  warnings?: ApiWarning[];
+  allowed_actions?: StaffAllowedAction[] | Record<string, boolean>;
 }
 
 export interface StaffCapabilityOption {
