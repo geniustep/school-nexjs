@@ -7,9 +7,11 @@ import type { RolePermissionMetadata } from '@/types/academic-setup';
 import {
   ROLE_CAPABILITY_HIGHLIGHT_COUNT,
   countSelectedGrantable,
+  defaultCategoryExpanded,
   filterCapabilitiesBySearch,
   getStaffCapabilityUxMode,
   groupCapabilitiesByCategory,
+  isFinanceCapabilityCategory,
   isSensitiveCapability,
   resolveCapabilityCategoryLabel,
   resolveCapabilityLabel,
@@ -53,7 +55,10 @@ function CapabilityCheckboxRow({
       <span className="staff-cap-row__label">
         <span>{label}</span>
         {sensitive ? (
-          <span className="staff-cap-badge staff-cap-badge--sensitive">
+          <span
+            className="staff-cap-badge staff-cap-badge--sensitive"
+            title={t('admin.academicSetup.staffCapabilities.sensitiveHelp')}
+          >
             {t('admin.academicSetup.staffCapabilities.sensitiveBadge')}
           </span>
         ) : null}
@@ -92,6 +97,7 @@ function CategoryAccordion({
   onToggleCap,
   onSelectAll,
   editable,
+  financeWarning,
 }: {
   category: string;
   capabilities: StaffCapabilityOption[];
@@ -102,6 +108,7 @@ function CategoryAccordion({
   onToggleCap: (id: number, next: boolean) => void;
   onSelectAll: (ids: number[], select: boolean) => void;
   editable: boolean;
+  financeWarning?: string;
 }) {
   const t = useT();
   const { locale } = useLocale();
@@ -132,6 +139,11 @@ function CategoryAccordion({
       </button>
       {expanded ? (
         <div id={panelId} className="staff-cap-category__panel" role="region" aria-label={categoryLabel}>
+          {financeWarning ? (
+            <p className="staff-cap-finance-warn tiny" role="note">
+              {financeWarning}
+            </p>
+          ) : null}
           {editable && capabilities.length > 1 ? (
             <div className="staff-cap-category__actions">
               <button
@@ -393,8 +405,8 @@ export function StaffCapabilitiesSection({
   );
 
   const filteredAdditional = useMemo(
-    () => filterCapabilitiesBySearch(additional, search, locale),
-    [additional, search, locale],
+    () => filterCapabilitiesBySearch(additional, search, locale, t),
+    [additional, search, locale, t],
   );
 
   const groupedAdditional = useMemo(
@@ -408,6 +420,18 @@ export function StaffCapabilitiesSection({
   );
 
   const selectedGrantableCount = countSelectedGrantable(capabilityIds, additional);
+
+  const resolveExpanded = useCallback(
+    (category: string, selectedInCategory: number, explicitKey?: string) => {
+      const key = explicitKey ?? category;
+      if (expandedCategories[key] === true) return true;
+      if (expandedCategories[key] === false) return false;
+      return defaultCategoryExpanded(category, selectedInCategory);
+    },
+    [expandedCategories],
+  );
+
+  const financeWarning = t('admin.academicSetup.staffCapabilities.financeSectionWarning');
 
   const setExpandedAll = useCallback(
     (open: boolean) => {
@@ -533,20 +557,23 @@ export function StaffCapabilitiesSection({
               <h4 className="staff-cap-subsection__title">
                 {t('admin.academicSetup.staffCapabilities.baseSectionTitle')}
               </h4>
-              {groupedBase.map((g) => (
+              {groupedBase.map((g) => {
+                const selectedInCategory = g.capabilities.filter((c) => capabilityIds.includes(c.id)).length;
+                return (
                 <CategoryAccordion
                   key={g.category}
                   category={g.category}
                   capabilities={g.capabilities}
                   capabilityIds={capabilityIds}
                   disabled
-                  expanded={Boolean(expandedCategories[g.category])}
+                  expanded={resolveExpanded(g.category, selectedInCategory)}
                   onToggleExpanded={() => toggleCategory(g.category)}
                   onToggleCap={toggleCap}
                   onSelectAll={selectAllInCategory}
                   editable={false}
+                  financeWarning={isFinanceCapabilityCategory(g.category) ? financeWarning : undefined}
                 />
-              ))}
+              );})}
             </div>
           ) : null}
         </>
@@ -642,7 +669,9 @@ export function StaffCapabilitiesSection({
               {groupedAdditional.length === 0 ? (
                 <p className="muted">{t('admin.academicSetup.staffCapabilities.emptySearch')}</p>
               ) : (
-                groupedAdditional.map((g) => (
+                groupedAdditional.map((g) => {
+                  const selectedInCategory = g.capabilities.filter((c) => capabilityIds.includes(c.id)).length;
+                  return (
                   <CategoryAccordion
                     key={g.category}
                     category={g.category}
@@ -651,15 +680,16 @@ export function StaffCapabilitiesSection({
                     disabled={disabled}
                     expanded={
                       showFullEditor
-                        ? expandedCategories[g.category] !== false
+                        ? resolveExpanded(g.category, selectedInCategory)
                         : Boolean(expandedCategories[g.category])
                     }
                     onToggleExpanded={() => toggleCategory(g.category)}
                     onToggleCap={toggleCap}
                     onSelectAll={selectAllInCategory}
                     editable
+                    financeWarning={isFinanceCapabilityCategory(g.category) ? financeWarning : undefined}
                   />
-                ))
+                );})
               )}
             </>
           ) : null}

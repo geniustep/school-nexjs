@@ -35,6 +35,17 @@ const CAPABILITY_CODE_ALIASES: Record<string, string> = {
   manage_payments: 'finance.collect_payments',
   'finance.manage_payments': 'finance.collect_payments',
   'finance.manage': 'finance.view',
+  'finance.apply_social_discount': 'finance.apply_social_discount',
+  'finance.accept_early_payments': 'finance.accept_early_payments',
+  'admission.create': 'admission.create',
+  'admission.view': 'admission.view',
+  'admission.manage': 'admission.manage',
+  'admission.evaluate': 'admission.evaluate',
+  'admission.schedule': 'admission.schedule',
+  'admission.offer': 'admission.offer',
+  'admission.prefill': 'admission.prefill',
+  'admission.link_student': 'admission.link_student',
+  'guardian.delete_permanently': 'guardian.delete_permanently',
 };
 
 export const SENSITIVE_CAPABILITY_CODES = new Set<string>([
@@ -216,12 +227,20 @@ export function filterCapabilitiesBySearch(
   items: StaffCapabilityOption[],
   query: string,
   locale: Locale,
+  t?: TranslateFn,
 ): StaffCapabilityOption[] {
   const q = query.trim().toLowerCase();
   if (!q) return items;
   return items.filter((cap) => {
     const label = resolveCapabilityLabel(locale, cap).toLowerCase();
-    return label.includes(q) || cap.code.toLowerCase().includes(q);
+    const categoryKey = `${CATEGORY_KEY_PREFIX}.${cap.category}`;
+    const categoryLabel = t ? t(categoryKey).toLowerCase() : cap.category.toLowerCase();
+    return (
+      label.includes(q) ||
+      cap.code.toLowerCase().includes(q) ||
+      categoryLabel.includes(q) ||
+      cap.category.toLowerCase().includes(q)
+    );
   });
 }
 
@@ -238,6 +257,15 @@ function sameIdSet(a: number[], b: number[]): boolean {
   const sortedA = [...a].sort((x, y) => x - y);
   const sortedB = [...b].sort((x, y) => x - y);
   return sortedA.every((v, i) => v === sortedB[i]);
+}
+
+export function isFinanceCapabilityCategory(category: string): boolean {
+  return category === 'finance';
+}
+
+export function defaultCategoryExpanded(category: string, selectedInCategory: number): boolean {
+  if (category === 'finance') return selectedInCategory > 0;
+  return selectedInCategory > 0;
 }
 
 export function areCapabilityIdsDirty(current: number[], original: number[]): boolean {

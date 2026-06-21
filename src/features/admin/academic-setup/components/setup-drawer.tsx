@@ -10,6 +10,7 @@ export function SetupDrawer({
   subtitle,
   onClose,
   children,
+  footer,
   size = 'default',
   className,
   iconClose = false,
@@ -19,6 +20,7 @@ export function SetupDrawer({
   subtitle?: string;
   onClose: () => void;
   children: React.ReactNode;
+  footer?: React.ReactNode;
   size?: 'default' | 'medium' | 'wide' | 'collection';
   className?: string;
   iconClose?: boolean;
@@ -80,7 +82,10 @@ export function SetupDrawer({
             {iconClose ? <span aria-hidden>×</span> : t('common.close')}
           </button>
         </div>
-        <div className="academic-setup-drawer__body academic-setup-drawer__body--scroll">{children}</div>
+        <div className={`academic-setup-drawer__body academic-setup-drawer__body--scroll${footer ? ' academic-setup-drawer__body--with-footer' : ''}`}>
+          {children}
+        </div>
+        {footer ? <div className="academic-setup-drawer__footer">{footer}</div> : null}
       </aside>
     </>
   );

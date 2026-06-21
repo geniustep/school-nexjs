@@ -141,6 +141,7 @@ export const endpoints = {
     staffUpdate: (id: number | string) => `/admin/staff/${id}/update`,
     staffDeactivate: (id: number | string) => `/admin/staff/${id}/deactivate`,
     staffReactivate: (id: number | string) => `/admin/staff/${id}/reactivate`,
+    staffAccount: (id: number | string) => `/admin/staff/${id}/account`,
     staffOptions: '/admin/staff/options',
 
     tracks: '/admin/tracks',

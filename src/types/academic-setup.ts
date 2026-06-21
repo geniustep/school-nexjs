@@ -214,6 +214,23 @@ export interface StaffCapabilityOption {
   grantable: boolean;
 }
 
+export interface StaffPasswordPolicy {
+  min_length: number;
+  requires_letter: boolean;
+  requires_number: boolean;
+}
+
+export interface StaffAccountCreationOptions {
+  manual_password_supported?: boolean;
+  password_returned_after_save?: boolean;
+  legacy_create_without_account_block?: boolean;
+}
+
+export interface StaffAllowedStaffActions {
+  account_create?: boolean;
+  account_reset_password?: boolean;
+}
+
 export interface StaffOptions {
   admin_kinds: StaffAdminKindOption[];
   schools: (SchoolRef & { code?: string })[];
@@ -222,6 +239,9 @@ export interface StaffOptions {
   capabilities: StaffCapabilityOption[];
   role_templates?: StaffRoleTemplate[];
   scope_types?: { value: string; label: string }[];
+  password_policy?: StaffPasswordPolicy;
+  account_creation?: StaffAccountCreationOptions;
+  allowed_staff_actions?: StaffAllowedStaffActions;
 }
 
 export interface StaffRoleTemplate extends RolePermissionMetadata {

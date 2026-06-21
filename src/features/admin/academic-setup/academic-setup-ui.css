@@ -3403,6 +3403,23 @@
   overflow: hidden;
 }
 
+.staff-cap-finance-warn {
+  margin: 0 0 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #fff7ed;
+  color: #9a3412;
+}
+
+.account-password-strength--acceptable .account-password-strength__bar {
+  width: 55%;
+  background: #f59e0b;
+}
+
+.staff-form-drawer {
+  padding-bottom: 8px;
+}
+
 .staff-cap-category + .staff-cap-category {
   margin-top: 8px;
 }

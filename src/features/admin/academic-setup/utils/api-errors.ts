@@ -27,6 +27,11 @@ const ASSIGNMENT_ERRORS: Record<string, string> = {
 
 const STAFF_ERRORS: Record<string, string> = {
   scope_required: 'admin.staffCenter.errors.scopeRequired',
+  password_required: 'admin.academicSetup.staffPassword.errors.passwordRequired',
+  password_mismatch: 'admin.academicSetup.staffPassword.errors.passwordMismatch',
+  weak_password: 'admin.academicSetup.staffPassword.errors.weakPassword',
+  login_already_exists: 'admin.academicSetup.staffPassword.errors.loginAlreadyExists',
+  account_create_forbidden: 'admin.academicSetup.staffPassword.errors.accountCreateForbidden',
   duplicate_login: 'admin.academicSetup.errors.duplicateLogin',
   invalid_admin_kind: 'admin.academicSetup.errors.invalidAdminKind',
   school_out_of_scope: 'admin.academicSetup.errors.schoolOutOfScope',

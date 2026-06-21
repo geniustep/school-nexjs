@@ -58,3 +58,10 @@ export async function deactivateStaffMember(id: number) {
 export async function reactivateStaffMember(id: number) {
   return api.post<StaffMutationResult>(endpoints.admin.staffReactivate(id), {});
 }
+
+export async function resetStaffAccountPassword(
+  id: number,
+  payload: { password: string; password_confirm: string },
+) {
+  return api.post<StaffMutationResult>(endpoints.admin.staffAccount(id), payload);
+}

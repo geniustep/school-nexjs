@@ -1660,6 +1660,39 @@
         "settings": "Configuración",
         "other": "Otro"
       },
+      "staffPassword": {
+        "sectionTitle": "Cuenta de acceso",
+        "sectionSubtitle": "Definir credenciales del miembro del personal.",
+        "assignNow": "Asignar contraseña ahora",
+        "withoutManualPasswordWarning": "La cuenta puede crearse sin contraseña manual, pero el personal podría necesitar restablecerla después.",
+        "password": "Contraseña",
+        "confirmPassword": "Confirmar contraseña",
+        "showPassword": "Mostrar",
+        "hidePassword": "Ocultar",
+        "generatePassword": "Generar contraseña",
+        "copyPassword": "Copiar contraseña",
+        "notShownAfterSave": "La contraseña no se mostrará de nuevo después de guardar.",
+        "policyHint": "Al menos {min} caracteres con letras y números.",
+        "resetTitle": "Restablecer contraseña",
+        "resetSubtitle": "Establecer una nueva contraseña para esta cuenta.",
+        "resetHint": "Úselo cuando el personal olvidó su contraseña.",
+        "resetAction": "Restablecer contraseña",
+        "resetSubmit": "Guardar nueva contraseña",
+        "resetSuccess": "Contraseña actualizada. No se volverá a mostrar.",
+        "strength": {
+          "weak": "Débil",
+          "acceptable": "Aceptable",
+          "strong": "Fuerte"
+        },
+        "errors": {
+          "passwordRequired": "La contraseña es obligatoria.",
+          "confirmPasswordRequired": "Confirme la contraseña.",
+          "passwordMismatch": "La contraseña y la confirmación no coinciden.",
+          "weakPassword": "Contraseña demasiado débil. Use al menos 8 caracteres con letras y números.",
+          "loginAlreadyExists": "Este usuario o correo ya está en uso.",
+          "accountCreateForbidden": "No tiene permiso para crear o modificar esta cuenta."
+        }
+      },
       "staffCapabilities": {
         "sectionTitle": "Permisos",
         "sectionSubtitle": "Defina a qué puede acceder este miembro del personal dentro del centro.",
@@ -1673,6 +1706,8 @@
         "emptySearch": "Ningún permiso coincide con la búsqueda.",
         "autoGrantedBadge": "Concedido automáticamente",
         "sensitiveBadge": "Permiso sensible",
+        "sensitiveHelp": "Este permiso puede permitir modificar datos sensibles o realizar acciones impactantes. Concédalo solo a usuarios de confianza.",
+        "financeSectionWarning": "Los permisos financieros pueden permitir ver o modificar datos financieros. Revise las selecciones antes de guardar.",
         "baseSectionTitle": "Permisos básicos del rol",
         "additionalSectionTitle": "Permisos adicionales",
         "categorySelected": "{selected} de {total} permisos",
@@ -1788,7 +1823,23 @@
           "deposit_cheques": "Depositar cheques",
           "clear_cheques": "Cobrar cheques",
           "reject_cheques": "Rechazar cheques",
-          "cancel_cheques": "Anular cheques"
+          "cancel_cheques": "Anular cheques",
+          "apply_social_discount": "Aplicar descuento social",
+          "accept_early_payments": "Aceptar pago anticipado"
+        },
+        "admission": {
+          "create": "Crear",
+          "view": "Ver",
+          "manage": "Gestionar",
+          "evaluate": "Evaluar",
+          "schedule": "Programar",
+          "offer": "Ofrecer",
+          "prefill": "Rellenar",
+          "link_student": "Vincular alumno",
+          "decide": "Decidir"
+        },
+        "guardian": {
+          "delete_permanently": "Eliminar permanentemente"
         }
       },
       "suggestReasons": {
@@ -3244,7 +3295,8 @@
             "viewDocuments": "Ver documentos",
             "viewGuardians": "Ver responsables",
             "uploadPhoto": "Subir foto"
-          }
+          },
+          "unknownReview": "Alerta pendiente de revisión"
         },
         "header": {
           "guardian": "Responsable",

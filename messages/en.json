@@ -1660,6 +1660,39 @@
         "settings": "Settings",
         "other": "Other"
       },
+      "staffPassword": {
+        "sectionTitle": "Login account",
+        "sectionSubtitle": "Set the staff member login credentials.",
+        "assignNow": "Set password now",
+        "withoutManualPasswordWarning": "The account can be created without a manual password, but the staff member may need a reset flow later.",
+        "password": "Password",
+        "confirmPassword": "Confirm password",
+        "showPassword": "Show",
+        "hidePassword": "Hide",
+        "generatePassword": "Generate password",
+        "copyPassword": "Copy password",
+        "notShownAfterSave": "The password will not be shown again after saving.",
+        "policyHint": "At least {min} characters with letters and numbers.",
+        "resetTitle": "Reset password",
+        "resetSubtitle": "Set a new password for this staff account.",
+        "resetHint": "Use this when the staff member forgot their password or needs a new one.",
+        "resetAction": "Reset password",
+        "resetSubmit": "Save new password",
+        "resetSuccess": "Password updated successfully. It will not be shown again.",
+        "strength": {
+          "weak": "Weak",
+          "acceptable": "Acceptable",
+          "strong": "Strong"
+        },
+        "errors": {
+          "passwordRequired": "Password is required.",
+          "confirmPasswordRequired": "Please confirm the password.",
+          "passwordMismatch": "Password and confirmation do not match.",
+          "weakPassword": "Password is too weak. Use at least 8 characters with letters and numbers.",
+          "loginAlreadyExists": "This login or email is already in use.",
+          "accountCreateForbidden": "You are not allowed to create or update this staff account."
+        }
+      },
       "staffCapabilities": {
         "sectionTitle": "Permissions",
         "sectionSubtitle": "Choose what this staff member can access within the school.",
@@ -1673,6 +1706,8 @@
         "emptySearch": "No permissions match your search.",
         "autoGrantedBadge": "Granted automatically",
         "sensitiveBadge": "Sensitive permission",
+        "sensitiveHelp": "This permission may allow changing sensitive data or performing an impactful action. Grant it only to trusted users.",
+        "financeSectionWarning": "Finance permissions may allow viewing or changing financial data. Review selections before saving.",
         "baseSectionTitle": "Core role permissions",
         "additionalSectionTitle": "Additional permissions",
         "categorySelected": "{selected} of {total} permissions",
@@ -1770,25 +1805,41 @@
         "receive_teacher_exams_print": "Receive Teacher Exams Print",
         "manage_complaints": "Manage Complaints",
         "finance": {
-          "view": "View Finance",
-          "manage_fee_catalog": "Manage Fee Catalog",
-          "manage_fee_plans": "Manage Fee Plans",
-          "assign_fees": "Assign Fees",
-          "manage_discounts": "Manage Discounts",
-          "approve_discounts": "Approve Discounts",
-          "collect_payments": "Collect Payments",
-          "cancel_payments": "Cancel Payments",
-          "manage_billing_profile": "Manage Billing Profile",
-          "view_billing_profile": "View Billing Profile",
-          "view_payments": "View Payments",
-          "view_student_balance": "View Student Balance",
-          "manage_settings": "Manage Finance Settings",
-          "view_cheques": "View Cheques",
-          "manage_cheques": "Manage Cheques",
-          "deposit_cheques": "Deposit Cheques",
-          "clear_cheques": "Clear Cheques",
-          "reject_cheques": "Reject Cheques",
-          "cancel_cheques": "Cancel Cheques"
+          "view": "View finance",
+          "manage_fee_catalog": "Manage fee catalog",
+          "manage_fee_plans": "Manage fee plans",
+          "assign_fees": "Assign fees",
+          "manage_discounts": "Manage discounts",
+          "approve_discounts": "Approve discounts",
+          "collect_payments": "Collect payments",
+          "cancel_payments": "Cancel payments",
+          "manage_billing_profile": "Manage billing profile",
+          "view_billing_profile": "View billing profile",
+          "view_payments": "View payments",
+          "view_student_balance": "View student balance",
+          "manage_settings": "Manage finance settings",
+          "view_cheques": "View cheques",
+          "manage_cheques": "Manage cheques",
+          "deposit_cheques": "Deposit cheques",
+          "clear_cheques": "Clear cheques",
+          "reject_cheques": "Reject cheques",
+          "cancel_cheques": "Cancel cheques",
+          "apply_social_discount": "Apply social discount",
+          "accept_early_payments": "Accept early payments"
+        },
+        "admission": {
+          "create": "Create admission",
+          "view": "View admissions",
+          "manage": "Manage admissions",
+          "evaluate": "Evaluate admission",
+          "schedule": "Schedule admission",
+          "offer": "Offer admission",
+          "prefill": "Prefill admission",
+          "link_student": "Link student",
+          "decide": "Decide admission"
+        },
+        "guardian": {
+          "delete_permanently": "Delete guardian permanently"
         }
       },
       "suggestReasons": {
@@ -3249,7 +3300,8 @@
             "viewDocuments": "View documents",
             "viewGuardians": "View guardians",
             "uploadPhoto": "Upload photo"
-          }
+          },
+          "unknownReview": "Alert needs review"
         },
         "header": {
           "guardian": "Guardian",

@@ -1660,6 +1660,39 @@
         "settings": "Paramètres",
         "other": "Autre"
       },
+      "staffPassword": {
+        "sectionTitle": "Compte de connexion",
+        "sectionSubtitle": "Définir les identifiants du membre du personnel.",
+        "assignNow": "Définir le mot de passe maintenant",
+        "withoutManualPasswordWarning": "Le compte peut être créé sans mot de passe manuel, mais un réinitialisation pourra être nécessaire plus tard.",
+        "password": "Mot de passe",
+        "confirmPassword": "Confirmer le mot de passe",
+        "showPassword": "Afficher",
+        "hidePassword": "Masquer",
+        "generatePassword": "Générer un mot de passe",
+        "copyPassword": "Copier le mot de passe",
+        "notShownAfterSave": "Le mot de passe ne sera plus affiché après l'enregistrement.",
+        "policyHint": "Au moins {min} caractères avec lettres et chiffres.",
+        "resetTitle": "Réinitialiser le mot de passe",
+        "resetSubtitle": "Définir un nouveau mot de passe pour ce compte personnel.",
+        "resetHint": "À utiliser si le membre a oublié son mot de passe.",
+        "resetAction": "Réinitialiser le mot de passe",
+        "resetSubmit": "Enregistrer le nouveau mot de passe",
+        "resetSuccess": "Mot de passe mis à jour. Il ne sera plus affiché.",
+        "strength": {
+          "weak": "Faible",
+          "acceptable": "Acceptable",
+          "strong": "Fort"
+        },
+        "errors": {
+          "passwordRequired": "Le mot de passe est obligatoire.",
+          "confirmPasswordRequired": "Veuillez confirmer le mot de passe.",
+          "passwordMismatch": "Le mot de passe et sa confirmation ne correspondent pas.",
+          "weakPassword": "Mot de passe trop faible. Utilisez au moins 8 caractères avec lettres et chiffres.",
+          "loginAlreadyExists": "Ce login ou e-mail est déjà utilisé.",
+          "accountCreateForbidden": "Vous n'êtes pas autorisé à créer ou modifier ce compte personnel."
+        }
+      },
       "staffCapabilities": {
         "sectionTitle": "Permissions",
         "sectionSubtitle": "Définissez ce à quoi ce membre du personnel peut accéder dans l'établissement.",
@@ -1673,6 +1706,8 @@
         "emptySearch": "Aucune permission ne correspond à la recherche.",
         "autoGrantedBadge": "Accordée automatiquement",
         "sensitiveBadge": "Permission sensible",
+        "sensitiveHelp": "Cette permission peut autoriser la modification de données sensibles ou une action impactante. Accordez-la uniquement aux utilisateurs de confiance.",
+        "financeSectionWarning": "Les permissions financières peuvent autoriser la consultation ou la modification de données financières. Vérifiez vos choix avant d'enregistrer.",
         "baseSectionTitle": "Permissions de base du rôle",
         "additionalSectionTitle": "Permissions supplémentaires",
         "categorySelected": "{selected} sur {total} permissions",
@@ -1788,7 +1823,23 @@
           "deposit_cheques": "Déposer les chèques",
           "clear_cheques": "Encaisser les chèques",
           "reject_cheques": "Rejeter les chèques",
-          "cancel_cheques": "Annuler les chèques"
+          "cancel_cheques": "Annuler les chèques",
+          "apply_social_discount": "Appliquer remise sociale",
+          "accept_early_payments": "Accepter paiement anticipé"
+        },
+        "admission": {
+          "create": "Créer",
+          "view": "Voir",
+          "manage": "Gérer",
+          "evaluate": "Évaluer",
+          "schedule": "Planifier",
+          "offer": "Proposer",
+          "prefill": "Préremplir",
+          "link_student": "Lier élève",
+          "decide": "Décider"
+        },
+        "guardian": {
+          "delete_permanently": "Supprimer définitivement"
         }
       },
       "suggestReasons": {
@@ -3244,7 +3295,8 @@
             "viewDocuments": "Voir les documents",
             "viewGuardians": "Voir les responsables",
             "uploadPhoto": "Téléverser une photo"
-          }
+          },
+          "unknownReview": "Alerte à vérifier"
         },
         "header": {
           "guardian": "Responsable",

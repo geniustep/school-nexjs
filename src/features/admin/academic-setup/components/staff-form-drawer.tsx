@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AccountFieldsSection } from '@/features/admin/account/account-fields-section';
 import { AccountStatusBadge } from '@/features/admin/account/account-status-badge';
 import { useToast } from '@/components/ui/toast';
@@ -21,21 +21,32 @@ import {
   resolveStaffPermissionMetadata,
 } from '../utils/staff-permissions-meta';
 import {
+  canCreateStaffAccountWithPassword,
+  canResetStaffAccountPassword,
+  clearStaffPasswordState,
+  normalizeStaffPasswordPolicy,
+  resolveStaffAccountLogin,
+  validateStaffPasswordForm,
+  type StaffPasswordFieldErrors,
+} from '../utils/staff-password-utils';
+import {
   createStaffMember,
   deactivateStaffMember,
   updateStaffMember,
   useStaffMember,
 } from '../hooks/use-staff';
 import { mapAcademicSetupApiError } from '../utils/api-errors';
-import {
-  staffMutationSuccessKey,
-} from '../utils/staff-utils';
+import { staffMutationSuccessKey } from '../utils/staff-utils';
 import {
   staffShowsDeactivate,
   staffShowsReactivate,
 } from './staff-reactivate-dialog';
 import { StaffCapabilitiesSection } from './staff-capabilities-section';
+import { StaffPasswordSection } from './staff-password-section';
+import { StaffResetPasswordDialog } from './staff-reset-password-dialog';
 import { SetupDrawer } from './setup-drawer';
+
+const STAFF_FORM_ID = 'academic-staff-form';
 
 function resolveStaffLogin(member: StaffMember): string {
   return member.login?.trim() || member.account?.login?.trim() || member.email?.trim() || '';
@@ -85,9 +96,32 @@ export function StaffFormDrawer({
   const [capabilityIds, setCapabilityIds] = useState<number[]>([]);
   const [originalCapabilityIds, setOriginalCapabilityIds] = useState<number[]>([]);
   const [capabilitiesTouched, setCapabilitiesTouched] = useState(false);
+  const [assignPasswordNow, setAssignPasswordNow] = useState(true);
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [passwordErrors, setPasswordErrors] = useState<StaffPasswordFieldErrors>({});
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const catalogReady = Boolean(options?.capabilities?.length);
+  const passwordPolicy = useMemo(
+    () => normalizeStaffPasswordPolicy(options?.password_policy),
+    [options?.password_policy],
+  );
+  const showCreatePassword = creating && canCreateStaffAccountWithPassword(options);
+  const showResetPassword = !creating && canResetStaffAccountPassword(options);
+
+  const clearPasswordFields = useCallback(() => {
+    clearStaffPasswordState({ setPassword, setConfirmPassword, setShowPassword });
+    setPasswordErrors({});
+  }, []);
+
+  useEffect(() => {
+    if (!open) {
+      clearPasswordFields();
+      setResetDialogOpen(false);
+    }
+  }, [open, clearPasswordFields]);
 
   useEffect(() => {
     if (creating) {
@@ -104,6 +138,8 @@ export function StaffFormDrawer({
       setCapabilityIds([]);
       setOriginalCapabilityIds([]);
       setCapabilitiesTouched(false);
+      setAssignPasswordNow(true);
+      clearPasswordFields();
       return;
     }
     if (!member) return;
@@ -128,8 +164,10 @@ export function StaffFormDrawer({
     setCapabilityIds(resolvedIds);
     setOriginalCapabilityIds(resolvedIds);
     setCapabilitiesTouched(false);
-  }, [member, creating, options, memberId]);
+    clearPasswordFields();
+  }, [member, creating, options, memberId, clearPasswordFields]);
 
+  const catalogReady = Boolean(options?.capabilities?.length);
   const adminKindChanged = !creating && originalAdminKind !== '' && adminKind !== originalAdminKind;
 
   const permissionsContext = useMemo(
@@ -155,6 +193,11 @@ export function StaffFormDrawer({
 
   const accountEntity = useMemo(() => member ?? undefined, [member]);
 
+  function handleClose() {
+    clearPasswordFields();
+    onClose();
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!canManage) return;
@@ -162,6 +205,18 @@ export function StaffFormDrawer({
     if (creating && !validateCreateAccountInput(email, login, useDifferentLogin)) {
       toast.error(t('admin.account.errors.loginRequired'));
       return;
+    }
+
+    if (showCreatePassword && assignPasswordNow) {
+      const validation = validateStaffPasswordForm(
+        { password, confirmPassword, requirePassword: true },
+        passwordPolicy,
+        t,
+      );
+      setPasswordErrors(validation.errors);
+      if (!validation.valid) return;
+    } else {
+      setPasswordErrors({});
     }
 
     const identity = buildAccountIdentityPayload({
@@ -202,11 +257,22 @@ export function StaffFormDrawer({
       payload.capability_ids = capPayload.capability_ids;
     }
 
+    if (creating && showCreatePassword && assignPasswordNow) {
+      payload.account = {
+        create: true,
+        login: resolveStaffAccountLogin({ email, login, useDifferentLogin }),
+        password,
+        password_confirm: confirmPassword,
+      };
+    }
+
     setSaving(true);
     const res = creating
       ? await createStaffMember(payload)
       : await updateStaffMember(memberId!, payload);
     setSaving(false);
+
+    clearPasswordFields();
 
     if (!res.success) {
       const staffMsg = mapAcademicSetupApiError(res.error, t, 'staff');
@@ -242,100 +308,152 @@ export function StaffFormDrawer({
     onSaved();
   }
 
-  return (
-    <SetupDrawer
-      open={open}
-      title={creating ? t('admin.academicSetup.addStaff') : t('admin.academicSetup.editStaff')}
-      onClose={onClose}
-    >
-      {memberState.loading && !creating && !member ? (
-        <p className="muted">{t('common.loading')}</p>
-      ) : (
-        <form className="col" style={{ gap: 12 }} onSubmit={submit}>
-          {!creating && accountEntity ? (
-            <AccountStatusBadge entity={accountEntity} showLogin />
-          ) : null}
-          <label className="col" style={{ gap: 4 }}>
-            <span className="tiny muted">{t('admin.fullName')}</span>
-            <input className="input" value={name} onChange={(e) => setName(e.target.value)} required />
-          </label>
-          <AccountFieldsSection
-            mode={creating ? 'create' : 'edit'}
-            email={email}
-            login={login}
-            useDifferentLogin={useDifferentLogin}
-            onEmailChange={setEmail}
-            onLoginChange={setLogin}
-            onUseDifferentLoginChange={setUseDifferentLogin}
-            disabled={!canManage || saving}
-          />
-          <label className="col" style={{ gap: 4 }}>
-            <span className="tiny muted">{t('admin.phone')}</span>
-            <input className="input" value={phone} onChange={(e) => setPhone(e.target.value)} />
-          </label>
-          <label className="col" style={{ gap: 4 }}>
-            <span className="tiny muted">{t('admin.academicSetup.jobTitle')}</span>
-            <input className="input" value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} />
-          </label>
-          <label className="col" style={{ gap: 4 }}>
-            <span className="tiny muted">{t('admin.academicSetup.adminKindLabel')}</span>
-            <select
-              className="input"
-              value={adminKind}
-              onChange={(e) => setAdminKind(e.target.value as StaffAdminKind)}
-            >
-              {(options?.admin_kinds ?? []).map((k) => (
-                <option key={k.value} value={k.value}>{k.label}</option>
-              ))}
-            </select>
-          </label>
-          {roleChangeWarningKey ? (
-            <p className="staff-cap-role-change-warn" role="alert" aria-live="polite">
-              {t(roleChangeWarningKey)}
-            </p>
-          ) : null}
-          <StaffCapabilitiesSection
-            adminKind={adminKind || 'admin_staff'}
-            permissionsMeta={permissionsContext}
-            displayMode={permissionsContext.displayMode}
-            capabilities={options?.capabilities ?? []}
-            capabilityIds={capabilityIds}
-            onCapabilityIdsChange={setCapabilityIds}
-            catalogReady={catalogReady}
-            catalogLoading={optionsLoading}
-            catalogError={optionsError}
-            onRetryCatalog={onRetryOptions}
-            disabled={!canManage || saving}
-            onCapabilitiesTouched={() => setCapabilitiesTouched(true)}
-          />
-          <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
-            {canManage && (
-              <button type="submit" className="btn btn--primary btn--sm" disabled={saving} style={{ minHeight: 44 }}>
-                {saving ? t('common.saving') : t('common.save')}
-              </button>
-            )}
-            {!creating && canManage && member && staffShowsDeactivate(member, canManage) && (
-              <button type="button" className="btn btn--ghost btn--sm" disabled={saving} onClick={deactivate}>
-                {t('admin.academicSetup.deactivateStaff')}
-              </button>
-            )}
-            {!creating && canManage && member && staffShowsReactivate(member, canManage) && onReactivate && (
-              <button
-                type="button"
-                className="btn btn--primary btn--sm"
-                disabled={saving}
-                style={{ minHeight: 44 }}
-                onClick={() => onReactivate(member)}
-              >
-                {t('admin.academicSetup.reactivateStaff')}
-              </button>
-            )}
-            <button type="button" className="btn btn--ghost btn--sm" onClick={onClose}>
-              {t('common.cancel')}
-            </button>
-          </div>
-        </form>
+  const footer = (
+    <div className="row" style={{ gap: 8, flexWrap: 'wrap', width: '100%' }}>
+      {canManage && (
+        <button
+          type="submit"
+          form={STAFF_FORM_ID}
+          className="btn btn--primary btn--sm"
+          disabled={saving}
+          style={{ minHeight: 44 }}
+        >
+          {saving ? t('common.saving') : t('common.save')}
+        </button>
       )}
-    </SetupDrawer>
+      {!creating && canManage && member && staffShowsDeactivate(member, canManage) && (
+        <button type="button" className="btn btn--ghost btn--sm" disabled={saving} onClick={deactivate}>
+          {t('admin.academicSetup.deactivateStaff')}
+        </button>
+      )}
+      {!creating && canManage && member && staffShowsReactivate(member, canManage) && onReactivate && (
+        <button
+          type="button"
+          className="btn btn--primary btn--sm"
+          disabled={saving}
+          style={{ minHeight: 44 }}
+          onClick={() => onReactivate(member)}
+        >
+          {t('admin.academicSetup.reactivateStaff')}
+        </button>
+      )}
+      <button type="button" className="btn btn--ghost btn--sm" onClick={handleClose}>
+        {t('common.cancel')}
+      </button>
+    </div>
+  );
+
+  return (
+    <>
+      <SetupDrawer
+        open={open}
+        title={creating ? t('admin.academicSetup.addStaff') : t('admin.academicSetup.editStaff')}
+        onClose={handleClose}
+        size="medium"
+        className="academic-setup-drawer--staff-form"
+        footer={footer}
+      >
+        {memberState.loading && !creating && !member ? (
+          <p className="muted">{t('common.loading')}</p>
+        ) : (
+          <form id={STAFF_FORM_ID} className="col staff-form-drawer" style={{ gap: 12 }} onSubmit={submit}>
+            {!creating && accountEntity ? (
+              <AccountStatusBadge entity={accountEntity} showLogin />
+            ) : null}
+            <label className="col" style={{ gap: 4 }}>
+              <span className="tiny muted">{t('admin.fullName')}</span>
+              <input className="input" value={name} onChange={(e) => setName(e.target.value)} required />
+            </label>
+            <AccountFieldsSection
+              mode={creating ? 'create' : 'edit'}
+              email={email}
+              login={login}
+              useDifferentLogin={useDifferentLogin}
+              onEmailChange={setEmail}
+              onLoginChange={setLogin}
+              onUseDifferentLoginChange={setUseDifferentLogin}
+              disabled={!canManage || saving}
+            />
+            {showCreatePassword ? (
+              <StaffPasswordSection
+                password={password}
+                confirmPassword={confirmPassword}
+                showPassword={showPassword}
+                assignPasswordNow={assignPasswordNow}
+                policy={passwordPolicy}
+                errors={passwordErrors}
+                disabled={!canManage || saving}
+                onPasswordChange={setPassword}
+                onConfirmPasswordChange={setConfirmPassword}
+                onShowPasswordChange={setShowPassword}
+                onAssignPasswordNowChange={(next) => {
+                  setAssignPasswordNow(next);
+                  if (!next) clearPasswordFields();
+                }}
+              />
+            ) : null}
+            {!creating && showResetPassword ? (
+              <div className="staff-password-section">
+                <strong>{t('admin.academicSetup.staffPassword.resetTitle')}</strong>
+                <p className="tiny muted">{t('admin.academicSetup.staffPassword.resetHint')}</p>
+                <button
+                  type="button"
+                  className="btn btn--ghost btn--sm"
+                  disabled={!canManage || saving}
+                  onClick={() => setResetDialogOpen(true)}
+                >
+                  {t('admin.academicSetup.staffPassword.resetAction')}
+                </button>
+              </div>
+            ) : null}
+            <label className="col" style={{ gap: 4 }}>
+              <span className="tiny muted">{t('admin.phone')}</span>
+              <input className="input" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            </label>
+            <label className="col" style={{ gap: 4 }}>
+              <span className="tiny muted">{t('admin.academicSetup.jobTitle')}</span>
+              <input className="input" value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} />
+            </label>
+            <label className="col" style={{ gap: 4 }}>
+              <span className="tiny muted">{t('admin.academicSetup.adminKindLabel')}</span>
+              <select
+                className="input"
+                value={adminKind}
+                onChange={(e) => setAdminKind(e.target.value as StaffAdminKind)}
+              >
+                {(options?.admin_kinds ?? []).map((k) => (
+                  <option key={k.value} value={k.value}>{k.label}</option>
+                ))}
+              </select>
+            </label>
+            {roleChangeWarningKey ? (
+              <p className="staff-cap-role-change-warn" role="alert" aria-live="polite">
+                {t(roleChangeWarningKey)}
+              </p>
+            ) : null}
+            <StaffCapabilitiesSection
+              adminKind={adminKind || 'admin_staff'}
+              permissionsMeta={permissionsContext}
+              displayMode={permissionsContext.displayMode}
+              capabilities={options?.capabilities ?? []}
+              capabilityIds={capabilityIds}
+              onCapabilityIdsChange={setCapabilityIds}
+              catalogReady={catalogReady}
+              catalogLoading={optionsLoading}
+              catalogError={optionsError}
+              onRetryCatalog={onRetryOptions}
+              disabled={!canManage || saving}
+              onCapabilitiesTouched={() => setCapabilitiesTouched(true)}
+            />
+          </form>
+        )}
+      </SetupDrawer>
+      <StaffResetPasswordDialog
+        open={resetDialogOpen}
+        staffId={memberId}
+        policy={passwordPolicy}
+        onClose={() => setResetDialogOpen(false)}
+      />
+    </>
   );
 }

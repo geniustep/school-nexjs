@@ -1687,6 +1687,39 @@
         "settings": "الإعدادات",
         "other": "أخرى"
       },
+      "staffPassword": {
+        "sectionTitle": "حساب الدخول",
+        "sectionSubtitle": "تعيين بيانات دخول الموظف.",
+        "assignNow": "تعيين كلمة مرور الآن",
+        "withoutManualPasswordWarning": "يمكن إنشاء الحساب بدون كلمة مرور يدوية، لكن الموظف قد يحتاج مسار إعادة تعيين لاحقًا.",
+        "password": "كلمة المرور",
+        "confirmPassword": "تأكيد كلمة المرور",
+        "showPassword": "إظهار",
+        "hidePassword": "إخفاء",
+        "generatePassword": "توليد كلمة مرور",
+        "copyPassword": "نسخ كلمة المرور",
+        "notShownAfterSave": "لن تظهر كلمة المرور بعد الحفظ.",
+        "policyHint": "على الأقل {min} أحرف مع حروف وأرقام.",
+        "resetTitle": "إعادة تعيين كلمة المرور",
+        "resetSubtitle": "تعيين كلمة مرور جديدة لحساب هذا الموظف.",
+        "resetHint": "استخدم هذا عندما ينسى الموظف كلمة المرور أو يحتاج كلمة جديدة.",
+        "resetAction": "إعادة تعيين كلمة المرور",
+        "resetSubmit": "حفظ كلمة المرور الجديدة",
+        "resetSuccess": "تم تعيين كلمة المرور بنجاح. لن تظهر مرة أخرى.",
+        "strength": {
+          "weak": "ضعيفة",
+          "acceptable": "مقبولة",
+          "strong": "قوية"
+        },
+        "errors": {
+          "passwordRequired": "كلمة المرور مطلوبة.",
+          "confirmPasswordRequired": "يرجى تأكيد كلمة المرور.",
+          "passwordMismatch": "كلمة المرور وتأكيدها غير متطابقين.",
+          "weakPassword": "كلمة المرور ضعيفة. يجب أن تتكون من 8 أحرف على الأقل وتحتوي حرفًا ورقمًا.",
+          "loginAlreadyExists": "اسم المستخدم أو البريد مستعمل من قبل.",
+          "accountCreateForbidden": "ليست لديك صلاحية إنشاء أو تعديل حساب هذا الموظف."
+        }
+      },
       "staffCapabilities": {
         "sectionTitle": "الصلاحيات",
         "sectionSubtitle": "حدد ما يستطيع هذا الموظف الوصول إليه داخل المؤسسة.",
@@ -1700,6 +1733,8 @@
         "emptySearch": "لا توجد صلاحيات تطابق البحث.",
         "autoGrantedBadge": "ممنوحة تلقائيًا",
         "sensitiveBadge": "صلاحية حساسة",
+        "sensitiveHelp": "هذه الصلاحية قد تسمح بتعديل بيانات حساسة أو تنفيذ عملية مؤثرة. امنحها فقط للمستخدمين الموثوقين.",
+        "financeSectionWarning": "صلاحيات المالية قد تسمح بعرض أو تعديل بيانات مالية. راجع الاختيارات قبل الحفظ.",
         "baseSectionTitle": "صلاحيات الدور الأساسية",
         "additionalSectionTitle": "صلاحيات إضافية",
         "categorySelected": "{selected} من {total} صلاحيات",
@@ -1815,7 +1850,23 @@
           "deposit_cheques": "إيداع الشيكات",
           "clear_cheques": "تحصيل الشيكات",
           "reject_cheques": "رفض الشيكات",
-          "cancel_cheques": "إلغاء الشيكات"
+          "cancel_cheques": "إلغاء الشيكات",
+          "apply_social_discount": "تطبيق خصم اجتماعي",
+          "accept_early_payments": "قبول مبكر"
+        },
+        "admission": {
+          "create": "إنشاء",
+          "view": "عرض",
+          "manage": "إدارة",
+          "evaluate": "تقييم",
+          "schedule": "جدولة",
+          "offer": "عرض",
+          "prefill": "تعبئة مسبقة",
+          "link_student": "ربط تلميذ",
+          "decide": "قرار"
+        },
+        "guardian": {
+          "delete_permanently": "حذف نهائي"
         }
       },
       "suggestReasons": {
@@ -3276,7 +3327,8 @@
             "viewDocuments": "عرض الوثائق",
             "viewGuardians": "عرض الأولياء",
             "uploadPhoto": "رفع صورة"
-          }
+          },
+          "unknownReview": "تنبيه يحتاج مراجعة"
         },
         "header": {
           "guardian": "ولي الأمر",
