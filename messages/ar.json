@@ -2914,6 +2914,10 @@
           "assessmentCreatedWithType": "تمت إضافة {type}.",
           "writtenAssessmentAdded": "تمت إضافة اختبار كتابي. قام بالاختبار: {evaluator}. النتيجة: {result}.",
           "oralAssessmentAdded": "تمت إضافة اختبار شفوي. قام بالاختبار: {evaluator}. النتيجة: {result}.",
+          "writtenAssessmentWithSubject": "تمت إضافة اختبار كتابي في مادة {subject}. قام بالاختبار: {evaluator}. النتيجة: {result}.",
+          "oralAssessmentWithSubject": "تمت إضافة اختبار شفوي في مادة {subject}. قام بالاختبار: {evaluator}. النتيجة: {result}.",
+          "writtenAssessmentWithSubjectShort": "تمت إضافة اختبار كتابي في مادة {subject}",
+          "oralAssessmentWithSubjectShort": "تمت إضافة اختبار شفوي في مادة {subject}",
           "assessmentAddedDetail": "تمت إضافة {type}. قام بالاختبار: {evaluator}. النتيجة: {result}."
         }
       },
@@ -2956,6 +2960,12 @@
         "create": "إنشاء تقييم",
         "type": "نوع التقييم",
         "assessmentType": "نوع الاختبار",
+        "subject": "المادة",
+        "selectSubject": "اختر المادة",
+        "assessmentSubject": "مادة الاختبار",
+        "subjectRequired": "هذه المادة مطلوبة لهذا النوع من الاختبار",
+        "subjectRequiredHint": "هذه المادة مطلوبة لهذا النوع من الاختبار",
+        "unspecifiedSubject": "غير محددة",
         "evaluator": "من قام بالاختبار",
         "selectEvaluator": "اختر من قام بالاختبار",
         "noEvaluators": "لا يوجد مختبّرون متاحون حاليًا.",

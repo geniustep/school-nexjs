@@ -7,6 +7,7 @@ import type {
   AdmissionOptions,
   AdmissionOptionsPayload,
   AdmissionStreamOption,
+  AdmissionSubjectOption,
   AdmissionValueLabelOption,
 } from '@/types/admission';
 
@@ -122,6 +123,36 @@ function academicYearList(value: unknown): AdmissionAcademicYearOption[] {
     }));
 }
 
+function subjectList(value: unknown): AdmissionSubjectOption[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((item): item is AdmissionSubjectOption => {
+      return (
+        !!item &&
+        typeof item === 'object' &&
+        typeof (item as AdmissionSubjectOption).id === 'number' &&
+        typeof (item as AdmissionSubjectOption).name === 'string'
+      );
+    })
+    .map((item) => {
+      const label =
+        typeof item.label === 'string' && item.label.trim()
+          ? item.label.trim()
+          : item.name.trim();
+      const levelIds = Array.isArray(item.level_ids)
+        ? item.level_ids.filter((id): id is number => typeof id === 'number' && id > 0)
+        : undefined;
+      return {
+        id: item.id,
+        name: item.name.trim(),
+        label,
+        code: typeof item.code === 'string' ? item.code : undefined,
+        level_ids: levelIds?.length ? levelIds : undefined,
+        cycle: typeof item.cycle === 'string' ? item.cycle : undefined,
+      };
+    });
+}
+
 function valueLabelList(value: unknown): AdmissionValueLabelOption[] {
   if (!Array.isArray(value)) return [];
   return value
@@ -149,6 +180,7 @@ export function normalizeAdmissionOptions(
     levels: levelList(data.levels),
     streams: streamList(data.streams),
     evaluators: evaluatorList(data.evaluators),
+    subjects: subjectList(data.subjects),
     assessment_types: valueLabelList(data.assessment_types),
     assessment_results: valueLabelList(data.assessment_results),
     assessment_recommendations: valueLabelList(data.assessment_recommendations),
@@ -212,4 +244,54 @@ export function resolveEvaluatorName(
 ): string {
   if (!evaluator) return '';
   return evaluator.name?.trim() ?? '';
+}
+
+const ASSESSMENT_SUBJECT_REQUIRED_TYPES = new Set(['written', 'oral', 'level_check']);
+
+export function assessmentTypeRequiresSubject(assessmentType: string): boolean {
+  return ASSESSMENT_SUBJECT_REQUIRED_TYPES.has(assessmentType.trim().toLowerCase());
+}
+
+export function filterSubjectsByLevel(
+  subjects: AdmissionSubjectOption[],
+  levelId: number | undefined | null,
+): AdmissionSubjectOption[] {
+  if (!subjects.length) return [];
+  if (levelId == null || !Number.isFinite(levelId) || levelId <= 0) return subjects;
+
+  const filtered = subjects.filter((subject) => {
+    if (!subject.level_ids?.length) return true;
+    return subject.level_ids.includes(levelId);
+  });
+
+  return filtered.length > 0 ? filtered : subjects;
+}
+
+export function resolveAssessmentSubjectLabel(
+  assessment: {
+    subject_id?: number | false | null;
+    subject_label?: string | null;
+    subject?: { id?: number; name?: string } | null;
+  },
+  subjects: AdmissionSubjectOption[],
+  unspecifiedLabel: string,
+): string {
+  const directLabel = assessment.subject_label?.trim();
+  if (directLabel && directLabel !== 'غير محددة' && directLabel.toLowerCase() !== 'unspecified') {
+    return directLabel;
+  }
+
+  const subjectName = assessment.subject?.name?.trim();
+  if (subjectName) return subjectName;
+
+  const subjectId =
+    typeof assessment.subject_id === 'number' && assessment.subject_id > 0
+      ? assessment.subject_id
+      : assessment.subject?.id;
+  if (subjectId) {
+    const match = subjects.find((subject) => subject.id === subjectId);
+    if (match) return match.label || match.name;
+  }
+
+  return unspecifiedLabel;
 }

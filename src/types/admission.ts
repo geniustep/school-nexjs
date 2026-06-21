@@ -103,7 +103,9 @@ export interface AdmissionAssessment {
   evaluator_id?: number | null;
   evaluator?: Ref | { id: number; name: string } | null;
   requested_level?: Ref | null;
-  subject?: Ref | null;
+  subject_id?: number | false | null;
+  subject?: Ref | { id: number; name: string } | null;
+  subject_label?: string | null;
   score: number | null;
   max_score: number | null;
   result: string | null;
@@ -248,6 +250,15 @@ export interface AdmissionValueLabelOption {
   label: string;
 }
 
+export interface AdmissionSubjectOption {
+  id: number;
+  name: string;
+  label: string;
+  code?: string;
+  level_ids?: number[];
+  cycle?: string;
+}
+
 export interface AdmissionOptions {
   states: AdmissionOptionItem[];
   priorities: AdmissionOptionItem[];
@@ -258,6 +269,7 @@ export interface AdmissionOptions {
   levels: AdmissionLevelOption[];
   streams: AdmissionStreamOption[];
   evaluators: AdmissionEvaluatorOption[];
+  subjects: AdmissionSubjectOption[];
   assessment_types: AdmissionValueLabelOption[];
   assessment_results: AdmissionValueLabelOption[];
   assessment_recommendations: AdmissionValueLabelOption[];
@@ -273,6 +285,7 @@ export interface AdmissionOptionsPayload {
   levels?: AdmissionLevelOption[];
   streams?: AdmissionStreamOption[];
   evaluators?: AdmissionEvaluatorOption[];
+  subjects?: AdmissionSubjectOption[];
   assessment_types?: AdmissionValueLabelOption[];
   assessment_results?: AdmissionValueLabelOption[];
   assessment_recommendations?: AdmissionValueLabelOption[];

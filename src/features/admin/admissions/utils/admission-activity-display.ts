@@ -203,11 +203,43 @@ const SYSTEM_NOTE_PATTERNS: {
       }),
   },
   {
+    match: /^Written (?:test |assessment )?added(?: in| for) subject[:\s]+(.+)\.? Evaluator:\s*(.+)\. Result:\s*(.+)\.?$/i,
+    format: ([subject, evaluator, result], t) =>
+      t('admin.admissions.timeline.systemMessages.writtenAssessmentWithSubject', {
+        subject: subject.trim(),
+        evaluator: evaluator.trim(),
+        result: translateAssessmentResultLabel(result, t),
+      }),
+  },
+  {
     match: /^Oral assessment added\.? Evaluator:\s*(.+)\. Result:\s*(.+)\.?$/i,
     format: ([evaluator, result], t) =>
       t('admin.admissions.timeline.systemMessages.oralAssessmentAdded', {
         evaluator: evaluator.trim(),
         result: translateAssessmentResultLabel(result, t),
+      }),
+  },
+  {
+    match: /^Oral (?:test |assessment )?added(?: in| for) subject[:\s]+(.+)\.? Evaluator:\s*(.+)\. Result:\s*(.+)\.?$/i,
+    format: ([subject, evaluator, result], t) =>
+      t('admin.admissions.timeline.systemMessages.oralAssessmentWithSubject', {
+        subject: subject.trim(),
+        evaluator: evaluator.trim(),
+        result: translateAssessmentResultLabel(result, t),
+      }),
+  },
+  {
+    match: /^تمت إضافة اختبار كتابي في مادة (.+)\.?$/i,
+    format: ([subject], t) =>
+      t('admin.admissions.timeline.systemMessages.writtenAssessmentWithSubjectShort', {
+        subject: subject.trim(),
+      }),
+  },
+  {
+    match: /^تمت إضافة اختبار شفوي في مادة (.+)\.?$/i,
+    format: ([subject], t) =>
+      t('admin.admissions.timeline.systemMessages.oralAssessmentWithSubjectShort', {
+        subject: subject.trim(),
       }),
   },
   {

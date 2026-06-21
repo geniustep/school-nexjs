@@ -2887,6 +2887,10 @@
           "assessmentCreatedWithType": "Assessment added: {type}.",
           "writtenAssessmentAdded": "Written assessment added. Evaluator: {evaluator}. Result: {result}.",
           "oralAssessmentAdded": "Oral assessment added. Evaluator: {evaluator}. Result: {result}.",
+          "writtenAssessmentWithSubject": "Written assessment added for subject {subject}. Evaluator: {evaluator}. Result: {result}.",
+          "oralAssessmentWithSubject": "Oral assessment added for subject {subject}. Evaluator: {evaluator}. Result: {result}.",
+          "writtenAssessmentWithSubjectShort": "Written assessment added for subject {subject}",
+          "oralAssessmentWithSubjectShort": "Oral assessment added for subject {subject}",
           "assessmentAddedDetail": "Assessment added: {type}. Evaluator: {evaluator}. Result: {result}."
         }
       },
@@ -2929,6 +2933,12 @@
         "create": "Add assessment",
         "type": "Assessment type",
         "assessmentType": "Test type",
+        "subject": "Subject",
+        "selectSubject": "Select subject",
+        "assessmentSubject": "Test subject",
+        "subjectRequired": "Subject is required for this assessment type",
+        "subjectRequiredHint": "Subject is required for this assessment type",
+        "unspecifiedSubject": "Unspecified",
         "evaluator": "Evaluator",
         "selectEvaluator": "Select evaluator",
         "noEvaluators": "No evaluators are available right now.",

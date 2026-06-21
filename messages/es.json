@@ -2884,6 +2884,10 @@
           "assessmentCreatedWithType": "Evaluación añadida: {type}.",
           "writtenAssessmentAdded": "Examen escrito añadido. Evaluador: {evaluator}. Resultado: {result}.",
           "oralAssessmentAdded": "Examen oral añadido. Evaluador: {evaluator}. Resultado: {result}.",
+          "writtenAssessmentWithSubject": "Examen escrito añadido para la asignatura {subject}. Evaluador: {evaluator}. Resultado: {result}.",
+          "oralAssessmentWithSubject": "Examen oral añadido para la asignatura {subject}. Evaluador: {evaluator}. Resultado: {result}.",
+          "writtenAssessmentWithSubjectShort": "Examen escrito añadido para la asignatura {subject}",
+          "oralAssessmentWithSubjectShort": "Examen oral añadido para la asignatura {subject}",
           "assessmentAddedDetail": "Evaluación añadida: {type}. Evaluador: {evaluator}. Resultado: {result}."
         }
       },
@@ -2926,6 +2930,12 @@
         "create": "Añadir evaluación",
         "type": "Tipo",
         "assessmentType": "Tipo de prueba",
+        "subject": "Asignatura",
+        "selectSubject": "Seleccionar asignatura",
+        "assessmentSubject": "Asignatura de la prueba",
+        "subjectRequired": "La asignatura es obligatoria para este tipo de prueba",
+        "subjectRequiredHint": "La asignatura es obligatoria para este tipo de prueba",
+        "unspecifiedSubject": "Sin especificar",
         "evaluator": "Evaluador",
         "selectEvaluator": "Seleccionar evaluador",
         "noEvaluators": "No hay evaluadores disponibles en este momento.",

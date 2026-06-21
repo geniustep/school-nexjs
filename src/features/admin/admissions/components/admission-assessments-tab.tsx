@@ -6,10 +6,17 @@ import { Badge } from '@/components/ui/primitives';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { todayIsoDate } from '@/features/admin/students/utils/student-profile';
+import type { Ref } from '@/types/api';
 import { createAdmissionAssessment } from '../api/admissions-api';
 import { useAdmissionOptions } from '../hooks/use-admission-options';
 import { admissionApiErrorMessage } from '../utils/admission-errors';
-import { resolveAdmissionValueLabel, resolveEvaluatorName } from '../utils/admission-options';
+import {
+  assessmentTypeRequiresSubject,
+  filterSubjectsByLevel,
+  resolveAdmissionValueLabel,
+  resolveAssessmentSubjectLabel,
+  resolveEvaluatorName,
+} from '../utils/admission-options';
 import type { AdmissionAssessment, AdmissionDetail } from '@/types/admission';
 
 function evaluatorRoleKey(role: string | undefined): string {
@@ -19,22 +26,37 @@ function evaluatorRoleKey(role: string | undefined): string {
   return 'staff';
 }
 
+function resolveRequestedLevelId(detail: AdmissionDetail): number | undefined {
+  const level = detail.requested_level;
+  if (!level) return undefined;
+  if (typeof level === 'object' && level !== null && 'id' in level) {
+    const id = (level as Ref).id;
+    return typeof id === 'number' && id > 0 ? id : undefined;
+  }
+  return undefined;
+}
+
 function AssessmentCard({
   assessment,
   assessmentTypes,
   assessmentResults,
   assessmentRecommendations,
+  subjects,
+  unspecifiedSubjectLabel,
 }: {
   assessment: AdmissionAssessment;
   assessmentTypes: { value: string; label: string }[];
   assessmentResults: { value: string; label: string }[];
   assessmentRecommendations: { value: string; label: string }[];
+  subjects: { id: number; name: string; label: string }[];
+  unspecifiedSubjectLabel: string;
 }) {
   const t = useT();
 
   const typeLabel =
     assessment.assessment_type_label?.trim() ||
     resolveAdmissionValueLabel(assessmentTypes, assessment.assessment_type);
+  const subjectLabel = resolveAssessmentSubjectLabel(assessment, subjects, unspecifiedSubjectLabel);
   const evaluatorName = resolveEvaluatorName(assessment.evaluator ?? null);
   const resultLabel =
     assessment.result_label?.trim() ||
@@ -46,7 +68,9 @@ function AssessmentCard({
   return (
     <div className="card card--compact admissions-assessment-card">
       <div className="between">
-        <strong>{typeLabel}</strong>
+        <strong>
+          {typeLabel} — {subjectLabel}
+        </strong>
         <Badge tone="slate">{assessment.state}</Badge>
       </div>
       {evaluatorName ? (
@@ -95,10 +119,20 @@ export function AdmissionAssessmentsTab({
   const assessmentResults = options?.assessment_results ?? [];
   const assessmentRecommendations = options?.assessment_recommendations ?? [];
   const evaluators = options?.evaluators ?? [];
+  const allSubjects = options?.subjects ?? [];
+  const requestedLevelId = resolveRequestedLevelId(detail);
+
+  const filteredSubjects = useMemo(
+    () => filterSubjectsByLevel(allSubjects, requestedLevelId),
+    [allSubjects, requestedLevelId],
+  );
+
+  const unspecifiedSubjectLabel = t('admin.admissions.assessments.unspecifiedSubject');
 
   const defaultType = assessmentTypes[0]?.value ?? 'written';
   const [open, setOpen] = useState(false);
   const [assessmentType, setAssessmentType] = useState(defaultType);
+  const [subjectId, setSubjectId] = useState('');
   const [evaluatorId, setEvaluatorId] = useState('');
   const [assessmentDate, setAssessmentDate] = useState(() => todayIsoDate());
   const [score, setScore] = useState('');
@@ -108,6 +142,9 @@ export function AdmissionAssessmentsTab({
   const [teacherNotes, setTeacherNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [subjectError, setSubjectError] = useState<string | null>(null);
+
+  const subjectRequired = assessmentTypeRequiresSubject(assessmentType);
 
   const canSubmit = useMemo(
     () =>
@@ -115,13 +152,15 @@ export function AdmissionAssessmentsTab({
         assessmentDate &&
           assessmentType &&
           evaluatorId &&
-          (evaluators.length === 0 ? false : true),
+          evaluators.length > 0 &&
+          (!subjectRequired || subjectId),
       ),
-    [assessmentDate, assessmentType, evaluatorId, evaluators.length],
+    [assessmentDate, assessmentType, evaluatorId, evaluators.length, subjectRequired, subjectId],
   );
 
   function resetForm() {
     setAssessmentType(defaultType);
+    setSubjectId('');
     setEvaluatorId('');
     setAssessmentDate(todayIsoDate());
     setScore('');
@@ -130,19 +169,29 @@ export function AdmissionAssessmentsTab({
     setRecommendation('');
     setTeacherNotes('');
     setError(null);
+    setSubjectError(null);
   }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (activeSchoolId == null || !assessmentDate || !evaluatorId) return;
+
+    if (subjectRequired && !subjectId) {
+      setSubjectError(t('admin.admissions.assessments.subjectRequired'));
+      return;
+    }
+
     setSubmitting(true);
     setError(null);
+    setSubjectError(null);
+
     const res = await createAdmissionAssessment(
       detail.id,
       {
         assessment_type: assessmentType,
         assessment_date: assessmentDate,
         evaluator_id: Number(evaluatorId),
+        subject_id: subjectId ? Number(subjectId) : undefined,
         score: score ? Number(score) : undefined,
         max_score: maxScore ? Number(maxScore) : undefined,
         result: result || undefined,
@@ -183,7 +232,10 @@ export function AdmissionAssessmentsTab({
                       id="assess-type"
                       className="input"
                       value={assessmentType}
-                      onChange={(e) => setAssessmentType(e.target.value)}
+                      onChange={(e) => {
+                        setAssessmentType(e.target.value);
+                        setSubjectError(null);
+                      }}
                       disabled={admissionOptionsState.loading}
                     >
                       {assessmentTypes.map((type) => (
@@ -192,6 +244,35 @@ export function AdmissionAssessmentsTab({
                         </option>
                       ))}
                     </select>
+                  </div>
+                  <div className="field">
+                    <label htmlFor="assess-subject">{t('admin.admissions.assessments.subject')}</label>
+                    <select
+                      id="assess-subject"
+                      className="input"
+                      value={subjectId}
+                      onChange={(e) => {
+                        setSubjectId(e.target.value);
+                        setSubjectError(null);
+                      }}
+                      required={subjectRequired}
+                      disabled={admissionOptionsState.loading}
+                    >
+                      <option value="">{t('admin.admissions.assessments.selectSubject')}</option>
+                      {filteredSubjects.map((subject) => (
+                        <option key={subject.id} value={subject.id}>
+                          {subject.label}
+                        </option>
+                      ))}
+                    </select>
+                    {subjectRequired ? (
+                      <p className="tiny muted">{t('admin.admissions.assessments.subjectRequiredHint')}</p>
+                    ) : null}
+                    {subjectError ? (
+                      <p className="tiny" role="alert">
+                        {subjectError}
+                      </p>
+                    ) : null}
                   </div>
                   <div className="field">
                     <label htmlFor="assess-evaluator">
@@ -208,7 +289,8 @@ export function AdmissionAssessmentsTab({
                       <option value="">{t('admin.admissions.assessments.selectEvaluator')}</option>
                       {evaluators.map((evaluator) => (
                         <option key={evaluator.id} value={evaluator.id}>
-                          {evaluator.name} — {t(`admin.admissions.assessments.roles.${evaluatorRoleKey(evaluator.role)}`)}
+                          {evaluator.name} —{' '}
+                          {t(`admin.admissions.assessments.roles.${evaluatorRoleKey(evaluator.role)}`)}
                         </option>
                       ))}
                     </select>
@@ -325,6 +407,8 @@ export function AdmissionAssessmentsTab({
               assessmentTypes={assessmentTypes}
               assessmentResults={assessmentResults}
               assessmentRecommendations={assessmentRecommendations}
+              subjects={allSubjects}
+              unspecifiedSubjectLabel={unspecifiedSubjectLabel}
             />
           ))}
         </div>

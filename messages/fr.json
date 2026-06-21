@@ -2884,6 +2884,10 @@
           "assessmentCreatedWithType": "Évaluation ajoutée : {type}.",
           "writtenAssessmentAdded": "Test écrit ajouté. Évaluateur : {evaluator}. Résultat : {result}.",
           "oralAssessmentAdded": "Test oral ajouté. Évaluateur : {evaluator}. Résultat : {result}.",
+          "writtenAssessmentWithSubject": "Test écrit ajouté pour la matière {subject}. Évaluateur : {evaluator}. Résultat : {result}.",
+          "oralAssessmentWithSubject": "Test oral ajouté pour la matière {subject}. Évaluateur : {evaluator}. Résultat : {result}.",
+          "writtenAssessmentWithSubjectShort": "Test écrit ajouté pour la matière {subject}",
+          "oralAssessmentWithSubjectShort": "Test oral ajouté pour la matière {subject}",
           "assessmentAddedDetail": "Évaluation ajoutée : {type}. Évaluateur : {evaluator}. Résultat : {result}."
         }
       },
@@ -2926,6 +2930,12 @@
         "create": "Ajouter une évaluation",
         "type": "Type",
         "assessmentType": "Type de test",
+        "subject": "Matière",
+        "selectSubject": "Choisir la matière",
+        "assessmentSubject": "Matière du test",
+        "subjectRequired": "La matière est obligatoire pour ce type de test",
+        "subjectRequiredHint": "La matière est obligatoire pour ce type de test",
+        "unspecifiedSubject": "Non précisée",
         "evaluator": "Évaluateur",
         "selectEvaluator": "Choisir l'évaluateur",
         "noEvaluators": "Aucun évaluateur disponible pour le moment.",
