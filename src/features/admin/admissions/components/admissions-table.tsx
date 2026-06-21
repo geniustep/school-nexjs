@@ -4,8 +4,10 @@ import Link from 'next/link';
 import { useMemo } from 'react';
 import { DataTable, type Column } from '@/components/tables/data-table';
 import { EmptyState } from '@/components/states/states';
+import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import {
+  cleanDisplayValue,
   formatAdmissionReference,
   isOverdueNextAction,
   refName,
@@ -21,6 +23,7 @@ export function AdmissionsTable({
   onUpdated?: () => void;
 }) {
   const t = useT();
+  const { formatDate } = useFormat();
 
   const columns: Column<AdmissionListItem>[] = useMemo(
     () => [
@@ -36,23 +39,27 @@ export function AdmissionsTable({
       {
         key: 'student_name',
         header: t('admin.admissions.table.student'),
-        render: (row) => (
-          <Link href={`/admin/admissions/${row.id}`}>
-            <strong>{row.student_name}</strong>
-          </Link>
-        ),
+        render: (row) => {
+          const name = cleanDisplayValue(row.student_name);
+          return (
+            <Link href={`/admin/admissions/${row.id}`} className="admissions-table__student-link">
+              <strong>{name || t('common.dash')}</strong>
+            </Link>
+          );
+        },
       },
       {
         key: 'guardian_name',
         header: t('admin.admissions.table.guardian'),
-        render: (row) => row.guardian_name ?? t('common.dash'),
+        render: (row) => cleanDisplayValue(row.guardian_name) || t('common.dash'),
       },
       {
         key: 'guardian_phone',
         header: t('admin.admissions.table.phone'),
-        render: (row) => (
-          <span dir="ltr">{row.guardian_phone ?? t('common.dash')}</span>
-        ),
+        render: (row) => {
+          const phone = cleanDisplayValue(row.guardian_phone);
+          return phone ? <span dir="ltr">{phone}</span> : t('common.dash');
+        },
       },
       {
         key: 'source',
@@ -80,13 +87,12 @@ export function AdmissionsTable({
         key: 'next_action',
         header: t('admin.admissions.table.nextAction'),
         render: (row) => {
-          if (!row.next_action && !row.next_action_date) return t('common.dash');
+          const action = cleanDisplayValue(row.next_action);
+          const date = row.next_action_date ? formatDate(row.next_action_date) : '';
+          const line = [action, date].filter(Boolean).join(' · ');
+          if (!line) return t('common.dash');
           const overdue = isOverdueNextAction(row.next_action_date);
-          return (
-            <span className={overdue ? 'text-danger' : undefined}>
-              {[row.next_action, row.next_action_date].filter(Boolean).join(' · ')}
-            </span>
-          );
+          return <span className={overdue ? 'text-danger' : undefined}>{line}</span>;
         },
       },
       {
@@ -95,7 +101,7 @@ export function AdmissionsTable({
         render: (row) => refName(row.assigned_user) || t('common.dash'),
       },
     ],
-    [t, onUpdated],
+    [formatDate, t, onUpdated],
   );
 
   if (!items.length) {

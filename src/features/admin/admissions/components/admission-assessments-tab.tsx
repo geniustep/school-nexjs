@@ -1,16 +1,80 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { EmptyState } from '@/components/states/states';
 import { Badge } from '@/components/ui/primitives';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
-import { useAdminResource } from '@/lib/hooks/use-admin-resource';
-import { endpoints } from '@/lib/api/endpoints';
+import { todayIsoDate } from '@/features/admin/students/utils/student-profile';
 import { createAdmissionAssessment } from '../api/admissions-api';
+import { useAdmissionOptions } from '../hooks/use-admission-options';
 import { admissionApiErrorMessage } from '../utils/admission-errors';
-import type { AdmissionDetail } from '@/types/admission';
-import type { Ref } from '@/types/api';
+import { resolveAdmissionValueLabel, resolveEvaluatorName } from '../utils/admission-options';
+import type { AdmissionAssessment, AdmissionDetail } from '@/types/admission';
+
+function evaluatorRoleKey(role: string | undefined): string {
+  const normalized = role?.trim().toLowerCase();
+  if (normalized === 'teacher') return 'teacher';
+  if (normalized === 'staff') return 'staff';
+  return 'staff';
+}
+
+function AssessmentCard({
+  assessment,
+  assessmentTypes,
+  assessmentResults,
+  assessmentRecommendations,
+}: {
+  assessment: AdmissionAssessment;
+  assessmentTypes: { value: string; label: string }[];
+  assessmentResults: { value: string; label: string }[];
+  assessmentRecommendations: { value: string; label: string }[];
+}) {
+  const t = useT();
+
+  const typeLabel =
+    assessment.assessment_type_label?.trim() ||
+    resolveAdmissionValueLabel(assessmentTypes, assessment.assessment_type);
+  const evaluatorName = resolveEvaluatorName(assessment.evaluator ?? null);
+  const resultLabel =
+    assessment.result_label?.trim() ||
+    resolveAdmissionValueLabel(assessmentResults, assessment.result ?? undefined);
+  const recommendationLabel =
+    assessment.recommendation_label?.trim() ||
+    resolveAdmissionValueLabel(assessmentRecommendations, assessment.recommendation ?? undefined);
+
+  return (
+    <div className="card card--compact admissions-assessment-card">
+      <div className="between">
+        <strong>{typeLabel}</strong>
+        <Badge tone="slate">{assessment.state}</Badge>
+      </div>
+      {evaluatorName ? (
+        <p className="tiny muted">
+          {t('admin.admissions.assessments.evaluator')}: {evaluatorName}
+        </p>
+      ) : null}
+      <p className="muted">{assessment.assessment_date}</p>
+      {(assessment.score != null || assessment.max_score != null) && (
+        <p>
+          {t('admin.admissions.assessments.score')}: {assessment.score ?? '—'}{' '}
+          {t('admin.admissions.assessments.scoreOf')} {assessment.max_score ?? '—'}
+        </p>
+      )}
+      {resultLabel ? (
+        <p>
+          {t('admin.admissions.assessments.result')}: {resultLabel}
+        </p>
+      ) : null}
+      {recommendationLabel ? (
+        <p className="tiny muted">
+          {t('admin.admissions.assessments.recommendation')}: {recommendationLabel}
+        </p>
+      ) : null}
+      {assessment.teacher_notes ? <p>{assessment.teacher_notes}</p> : null}
+    </div>
+  );
+}
 
 export function AdmissionAssessmentsTab({
   detail,
@@ -23,14 +87,20 @@ export function AdmissionAssessmentsTab({
 }) {
   const t = useT();
   const { activeSchoolId } = useAdminSession();
+  const admissionOptionsState = useAdmissionOptions();
+  const options = admissionOptionsState.options;
   const assessments = detail.assessments ?? [];
-  const levelsState = useAdminResource<Ref[]>(endpoints.admin.levels, { page_size: 100 });
-  const subjectsState = useAdminResource<Ref[]>(endpoints.admin.subjectsOptions);
+
+  const assessmentTypes = options?.assessment_types ?? [];
+  const assessmentResults = options?.assessment_results ?? [];
+  const assessmentRecommendations = options?.assessment_recommendations ?? [];
+  const evaluators = options?.evaluators ?? [];
+
+  const defaultType = assessmentTypes[0]?.value ?? 'written';
   const [open, setOpen] = useState(false);
-  const [assessmentType, setAssessmentType] = useState('written');
-  const [assessmentDate, setAssessmentDate] = useState('');
-  const [requestedLevelId, setRequestedLevelId] = useState('');
-  const [subjectId, setSubjectId] = useState('');
+  const [assessmentType, setAssessmentType] = useState(defaultType);
+  const [evaluatorId, setEvaluatorId] = useState('');
+  const [assessmentDate, setAssessmentDate] = useState(() => todayIsoDate());
   const [score, setScore] = useState('');
   const [maxScore, setMaxScore] = useState('');
   const [result, setResult] = useState('');
@@ -39,9 +109,32 @@ export function AdmissionAssessmentsTab({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const canSubmit = useMemo(
+    () =>
+      Boolean(
+        assessmentDate &&
+          assessmentType &&
+          evaluatorId &&
+          (evaluators.length === 0 ? false : true),
+      ),
+    [assessmentDate, assessmentType, evaluatorId, evaluators.length],
+  );
+
+  function resetForm() {
+    setAssessmentType(defaultType);
+    setEvaluatorId('');
+    setAssessmentDate(todayIsoDate());
+    setScore('');
+    setMaxScore('');
+    setResult('');
+    setRecommendation('');
+    setTeacherNotes('');
+    setError(null);
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (activeSchoolId == null || !assessmentDate) return;
+    if (activeSchoolId == null || !assessmentDate || !evaluatorId) return;
     setSubmitting(true);
     setError(null);
     const res = await createAdmissionAssessment(
@@ -49,8 +142,7 @@ export function AdmissionAssessmentsTab({
       {
         assessment_type: assessmentType,
         assessment_date: assessmentDate,
-        requested_level_id: requestedLevelId ? Number(requestedLevelId) : undefined,
-        subject_id: subjectId ? Number(subjectId) : undefined,
+        evaluator_id: Number(evaluatorId),
         score: score ? Number(score) : undefined,
         max_score: maxScore ? Number(maxScore) : undefined,
         result: result || undefined,
@@ -62,6 +154,7 @@ export function AdmissionAssessmentsTab({
     setSubmitting(false);
     if (res.success) {
       setOpen(false);
+      resetForm();
       onUpdated();
       return;
     }
@@ -80,98 +173,113 @@ export function AdmissionAssessmentsTab({
             <form className="admissions-inline-form" onSubmit={submit}>
               <h3 className="admissions-section__title">{t('admin.admissions.assessments.create')}</h3>
               {error && <div className="alert alert--error">{error}</div>}
-              <div className="admissions-form-grid">
-                <div className="field">
-                  <label htmlFor="assess-type">{t('admin.admissions.assessments.type')}</label>
-                  <input
-                    id="assess-type"
-                    className="input"
-                    value={assessmentType}
-                    onChange={(e) => setAssessmentType(e.target.value)}
-                  />
+              {evaluators.length === 0 && !admissionOptionsState.loading ? (
+                <EmptyState compact title={t('admin.admissions.assessments.noEvaluators')} />
+              ) : (
+                <div className="admissions-form-grid">
+                  <div className="field">
+                    <label htmlFor="assess-type">{t('admin.admissions.assessments.assessmentType')}</label>
+                    <select
+                      id="assess-type"
+                      className="input"
+                      value={assessmentType}
+                      onChange={(e) => setAssessmentType(e.target.value)}
+                      disabled={admissionOptionsState.loading}
+                    >
+                      {assessmentTypes.map((type) => (
+                        <option key={type.value} value={type.value}>
+                          {type.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="field">
+                    <label htmlFor="assess-evaluator">
+                      {t('admin.admissions.assessments.evaluator')}
+                    </label>
+                    <select
+                      id="assess-evaluator"
+                      className="input"
+                      value={evaluatorId}
+                      onChange={(e) => setEvaluatorId(e.target.value)}
+                      required
+                      disabled={admissionOptionsState.loading || evaluators.length === 0}
+                    >
+                      <option value="">{t('admin.admissions.assessments.selectEvaluator')}</option>
+                      {evaluators.map((evaluator) => (
+                        <option key={evaluator.id} value={evaluator.id}>
+                          {evaluator.name} — {t(`admin.admissions.assessments.roles.${evaluatorRoleKey(evaluator.role)}`)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="field">
+                    <label htmlFor="assess-date">{t('common.date')}</label>
+                    <input
+                      id="assess-date"
+                      type="date"
+                      className="input"
+                      required
+                      value={assessmentDate}
+                      onChange={(e) => setAssessmentDate(e.target.value)}
+                    />
+                  </div>
+                  <div className="field">
+                    <label htmlFor="assess-score">{t('admin.admissions.assessments.score')}</label>
+                    <input
+                      id="assess-score"
+                      type="number"
+                      className="input"
+                      value={score}
+                      onChange={(e) => setScore(e.target.value)}
+                    />
+                  </div>
+                  <div className="field">
+                    <label htmlFor="assess-max">{t('admin.admissions.assessments.maxScore')}</label>
+                    <input
+                      id="assess-max"
+                      type="number"
+                      className="input"
+                      value={maxScore}
+                      onChange={(e) => setMaxScore(e.target.value)}
+                    />
+                  </div>
+                  <div className="field">
+                    <label htmlFor="assess-result">{t('admin.admissions.assessments.result')}</label>
+                    <select
+                      id="assess-result"
+                      className="input"
+                      value={result}
+                      onChange={(e) => setResult(e.target.value)}
+                      disabled={admissionOptionsState.loading}
+                    >
+                      <option value="">—</option>
+                      {assessmentResults.map((item) => (
+                        <option key={item.value} value={item.value}>
+                          {item.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="field">
+                    <label htmlFor="assess-rec">{t('admin.admissions.assessments.recommendation')}</label>
+                    <select
+                      id="assess-rec"
+                      className="input"
+                      value={recommendation}
+                      onChange={(e) => setRecommendation(e.target.value)}
+                      disabled={admissionOptionsState.loading}
+                    >
+                      <option value="">—</option>
+                      {assessmentRecommendations.map((item) => (
+                        <option key={item.value} value={item.value}>
+                          {item.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-                <div className="field">
-                  <label htmlFor="assess-date">{t('common.date')}</label>
-                  <input
-                    id="assess-date"
-                    type="date"
-                    className="input"
-                    required
-                    value={assessmentDate}
-                    onChange={(e) => setAssessmentDate(e.target.value)}
-                  />
-                </div>
-                <div className="field">
-                  <label htmlFor="assess-level">{t('admin.admissions.fields.requestedLevel')}</label>
-                  <select
-                    id="assess-level"
-                    className="input"
-                    value={requestedLevelId}
-                    onChange={(e) => setRequestedLevelId(e.target.value)}
-                  >
-                    <option value="">—</option>
-                    {(levelsState.data ?? []).map((level) => (
-                      <option key={level.id} value={level.id}>
-                        {level.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="field">
-                  <label htmlFor="assess-subject">{t('nav.subjects')}</label>
-                  <select
-                    id="assess-subject"
-                    className="input"
-                    value={subjectId}
-                    onChange={(e) => setSubjectId(e.target.value)}
-                  >
-                    <option value="">—</option>
-                    {(subjectsState.data ?? []).map((subject) => (
-                      <option key={subject.id} value={subject.id}>
-                        {subject.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="field">
-                  <label htmlFor="assess-score">{t('admin.admissions.assessments.score')}</label>
-                  <input
-                    id="assess-score"
-                    type="number"
-                    className="input"
-                    value={score}
-                    onChange={(e) => setScore(e.target.value)}
-                  />
-                </div>
-                <div className="field">
-                  <label htmlFor="assess-max">{t('admin.admissions.assessments.maxScore')}</label>
-                  <input
-                    id="assess-max"
-                    type="number"
-                    className="input"
-                    value={maxScore}
-                    onChange={(e) => setMaxScore(e.target.value)}
-                  />
-                </div>
-              </div>
-              <div className="field">
-                <label htmlFor="assess-result">{t('admin.admissions.assessments.result')}</label>
-                <input
-                  id="assess-result"
-                  className="input"
-                  value={result}
-                  onChange={(e) => setResult(e.target.value)}
-                />
-              </div>
-              <div className="field">
-                <label htmlFor="assess-rec">{t('admin.admissions.assessments.recommendation')}</label>
-                <input
-                  id="assess-rec"
-                  className="input"
-                  value={recommendation}
-                  onChange={(e) => setRecommendation(e.target.value)}
-                />
-              </div>
+              )}
               <div className="field">
                 <label htmlFor="assess-notes">{t('admin.admissions.assessments.teacherNotes')}</label>
                 <textarea
@@ -183,10 +291,21 @@ export function AdmissionAssessmentsTab({
                 />
               </div>
               <div className="form-actions">
-                <button type="submit" className="btn btn--primary btn--sm" disabled={submitting}>
+                <button
+                  type="submit"
+                  className="btn btn--primary btn--sm"
+                  disabled={submitting || !canSubmit}
+                >
                   {submitting ? t('common.submitting') : t('common.save')}
                 </button>
-                <button type="button" className="btn btn--sm" onClick={() => setOpen(false)}>
+                <button
+                  type="button"
+                  className="btn btn--sm"
+                  onClick={() => {
+                    setOpen(false);
+                    resetForm();
+                  }}
+                >
                   {t('common.cancel')}
                 </button>
               </div>
@@ -200,26 +319,13 @@ export function AdmissionAssessmentsTab({
       ) : (
         <div className="stack gap-sm">
           {assessments.map((assessment) => (
-            <div key={assessment.id} className="card card--compact">
-              <div className="between">
-                <strong>{assessment.assessment_type}</strong>
-                <Badge tone="slate">{assessment.state}</Badge>
-              </div>
-              <p className="muted">{assessment.assessment_date}</p>
-              {(assessment.score != null || assessment.max_score != null) && (
-                <p>
-                  {t('admin.admissions.assessments.score')}: {assessment.score ?? '—'} /{' '}
-                  {assessment.max_score ?? '—'}
-                </p>
-              )}
-              {assessment.result && <p>{assessment.result}</p>}
-              {assessment.recommendation && (
-                <p className="tiny muted">
-                  {t('admin.admissions.assessments.recommendation')}: {assessment.recommendation}
-                </p>
-              )}
-              {assessment.teacher_notes && <p>{assessment.teacher_notes}</p>}
-            </div>
+            <AssessmentCard
+              key={assessment.id}
+              assessment={assessment}
+              assessmentTypes={assessmentTypes}
+              assessmentResults={assessmentResults}
+              assessmentRecommendations={assessmentRecommendations}
+            />
           ))}
         </div>
       )}

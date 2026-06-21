@@ -1,34 +1,65 @@
 'use client';
 
 import { StatCard } from '@/components/ui/primitives';
+import { cn } from '@/lib/utils/cn';
 import { useT } from '@/features/i18n/locale-context';
 import type { AdmissionsDashboard } from '@/types/admission';
 
-export function AdmissionsDashboardSummary({ data }: { data: AdmissionsDashboard }) {
+type DashboardKey = keyof AdmissionsDashboard;
+
+/** Core daily KPIs only — pipeline stages live in Kanban columns. */
+const DASHBOARD_ITEMS: {
+  key: DashboardKey;
+  tone: 'blue' | 'amber' | 'red';
+  filterable?: boolean;
+}[] = [
+  { key: 'total_open', tone: 'blue', filterable: true },
+  { key: 'new_count', tone: 'blue' },
+  { key: 'today_appointments', tone: 'amber' },
+  { key: 'overdue_next_actions', tone: 'red' },
+  { key: 'lost_count', tone: 'red', filterable: true },
+];
+
+export function AdmissionsDashboardSummary({
+  data,
+  onKpiClick,
+}: {
+  data: AdmissionsDashboard;
+  onKpiClick?: (key: DashboardKey) => void;
+}) {
   const t = useT();
-  const items: { key: keyof AdmissionsDashboard; tone?: 'green' | 'amber' | 'blue' | 'red' | 'slate' }[] = [
-    { key: 'total_open', tone: 'blue' },
-    { key: 'new_count' },
-    { key: 'visit_pending_count', tone: 'amber' },
-    { key: 'under_review_count', tone: 'amber' },
-    { key: 'accepted_count', tone: 'green' },
-    { key: 'offer_sent_count', tone: 'blue' },
-    { key: 'confirmed_count', tone: 'green' },
-    { key: 'lost_count', tone: 'red' },
-    { key: 'today_appointments', tone: 'blue' },
-    { key: 'overdue_next_actions', tone: 'red' },
-  ];
 
   return (
     <div className="admissions-dashboard">
-      {items.map(({ key, tone }) => (
-        <StatCard
-          key={key}
-          label={t(`admin.admissions.dashboard.${key}`)}
-          value={data[key] ?? 0}
-          tone={tone ?? 'slate'}
-        />
-      ))}
+      {DASHBOARD_ITEMS.map(({ key, tone, filterable }) => {
+        const card = (
+          <StatCard
+            label={t(`admin.admissions.dashboard.${key}`)}
+            value={data[key] ?? 0}
+            tone={tone}
+          />
+        );
+
+        if (filterable && onKpiClick) {
+          return (
+            <button
+              key={key}
+              type="button"
+              className={cn('admissions-dashboard__kpi-btn', `admissions-dashboard__kpi-btn--${tone}`)}
+              onClick={() => onKpiClick(key)}
+              aria-label={t(`admin.admissions.dashboard.${key}`)}
+            >
+              {card}
+            </button>
+          );
+        }
+
+        return (
+          <div key={key} className="admissions-dashboard__kpi">
+            {card}
+          </div>
+        );
+      })}
     </div>
   );
 }

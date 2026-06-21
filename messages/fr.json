@@ -844,7 +844,9 @@
       "attendanceHighlights": "Absents : {absent} · Retards : {late}",
       "interventionTitle": "Action requise",
       "interventionDesc": "Éléments urgents — cliquez pour ouvrir.",
+      "interventionDescNeutral": "Résumé des interventions et de la qualité des données élèves.",
       "scopedInterventionDesc": "Éléments urgents dans votre périmètre — cliquez pour ouvrir.",
+      "scopedInterventionDescNeutral": "Suivi des tâches urgentes et des indicateurs de qualité dans votre périmètre.",
       "urgentSectionLabel": "Interventions urgentes",
       "dataQualitySectionLabel": "Qualité des données élèves",
       "noInterventions": "Aucune intervention urgente pour le moment.",
@@ -2719,9 +2721,18 @@
         "studentName": "Nom de l'enfant",
         "firstName": "Prénom",
         "lastName": "Nom",
+        "firstNameAr": "Prénom (arabe)",
+        "lastNameAr": "Nom de famille (arabe)",
+        "firstNameFr": "Prénom (français)",
+        "lastNameFr": "Nom de famille (français)",
+        "fullName": "Nom complet",
+        "fullNameAr": "Nom complet (arabe)",
+        "fullNameLatin": "Nom complet (français)",
         "birthDate": "Date de naissance",
         "gender": "Genre",
         "requestedLevel": "Niveau demandé",
+        "cycle": "Cycle",
+        "stream": "Filière",
         "requestedClass": "Classe demandée",
         "academicYear": "Année scolaire",
         "previousSchool": "École précédente",
@@ -2731,7 +2742,9 @@
         "guardianWhatsapp": "WhatsApp",
         "guardianEmail": "E-mail",
         "relationship": "Lien de parenté",
+        "source": "Source de la demande",
         "firstContactDate": "Premier contact",
+        "firstVisitDate": "Date de première visite / contact",
         "nextAction": "Prochaine action",
         "nextActionDate": "Date de l'action",
         "internalNotes": "Notes internes",
@@ -2753,8 +2766,14 @@
         "fieldRequired": "Ce champ est obligatoire",
         "selectGender": "Choisir le genre",
         "selectAcademicYear": "Choisir l'année scolaire",
+        "selectCycle": "Choisir le cycle",
         "selectLevel": "Choisir le niveau",
+        "selectStream": "Choisir la filière",
+        "streamRequiredHint": "Ce niveau nécessite le choix d'une filière",
         "selectClass": "Choisir la classe",
+        "selectRelationship": "Choisir le lien de parenté",
+        "selectSource": "Choisir la source",
+        "relationshipLoadError": "Impossible de charger les liens de parenté. Actualisez la page.",
         "datePlaceholder": "jj/mm/aaaa"
       },
       "detail": {
@@ -2787,7 +2806,10 @@
           "decisionMade": "Décision prise : {decision}.",
           "appointmentScheduled": "Rendez-vous planifié : {type}.",
           "assessmentCreated": "Évaluation ajoutée.",
-          "assessmentCreatedWithType": "Évaluation ajoutée : {type}."
+          "assessmentCreatedWithType": "Évaluation ajoutée : {type}.",
+          "writtenAssessmentAdded": "Test écrit ajouté. Évaluateur : {evaluator}. Résultat : {result}.",
+          "oralAssessmentAdded": "Test oral ajouté. Évaluateur : {evaluator}. Résultat : {result}.",
+          "assessmentAddedDetail": "Évaluation ajoutée : {type}. Évaluateur : {evaluator}. Résultat : {result}."
         }
       },
       "activityTypes": {
@@ -2828,12 +2850,43 @@
       "assessments": {
         "create": "Ajouter une évaluation",
         "type": "Type",
-        "score": "Score",
+        "assessmentType": "Type de test",
+        "evaluator": "Évaluateur",
+        "selectEvaluator": "Choisir l'évaluateur",
+        "noEvaluators": "Aucun évaluateur disponible pour le moment.",
+        "score": "Note",
+        "scoreOf": "sur",
         "maxScore": "Max",
-        "result": "Résultat",
+        "result": "Résultat du test",
         "recommendation": "Recommandation",
         "teacherNotes": "Notes enseignant",
-        "empty": "Aucune évaluation"
+        "empty": "Aucune évaluation",
+        "roles": {
+          "teacher": "Enseignant",
+          "staff": "Personnel"
+        },
+        "types": {
+          "written": "Test écrit",
+          "oral": "Test oral",
+          "interview": "Entretien",
+          "levelCheck": "Test de niveau",
+          "behaviorObservation": "Observation comportementale",
+          "other": "Autre"
+        },
+        "results": {
+          "suitable": "Adapté",
+          "suitableWithSupport": "Adapté avec soutien",
+          "needsLowerLevel": "Niveau inférieur requis",
+          "needsReassessment": "Réévaluation nécessaire",
+          "notSuitable": "Non adapté"
+        },
+        "recommendations": {
+          "accept": "Accepter",
+          "acceptWithCondition": "Acceptation conditionnelle",
+          "waitlist": "Liste d'attente",
+          "reject": "Refuser",
+          "reassess": "Réévaluer"
+        }
       },
       "decision": {
         "current": "Décision actuelle",

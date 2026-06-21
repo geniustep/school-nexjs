@@ -56,6 +56,76 @@ function translateDecisionLabel(raw: string, t: TranslateFn): string {
   return translated !== i18nKey ? translated : trimmed;
 }
 
+const ASSESSMENT_TYPE_VALUE_KEYS: Record<string, string> = {
+  written: 'written',
+  oral: 'oral',
+  interview: 'interview',
+  level_check: 'levelCheck',
+  behavior_observation: 'behaviorObservation',
+  other: 'other',
+};
+
+function translateAssessmentTypeLabel(raw: string, t: TranslateFn): string {
+  const trimmed = raw.trim();
+  if (!trimmed) return trimmed;
+
+  const normalized = trimmed.toLowerCase().replace(/\s+/g, '_');
+  const valueKey = ASSESSMENT_TYPE_VALUE_KEYS[normalized] ?? ASSESSMENT_TYPE_VALUE_KEYS[trimmed];
+  if (valueKey) {
+    const i18nKey = `admin.admissions.assessments.types.${valueKey}`;
+    const translated = t(i18nKey);
+    if (translated !== i18nKey) return translated;
+  }
+
+  const writtenTest = /written/i.test(trimmed);
+  const oralTest = /oral/i.test(trimmed);
+  if (writtenTest) {
+    const label = t('admin.admissions.assessments.types.written');
+    if (label !== 'admin.admissions.assessments.types.written') return label;
+  }
+  if (oralTest) {
+    const label = t('admin.admissions.assessments.types.oral');
+    if (label !== 'admin.admissions.assessments.types.oral') return label;
+  }
+
+  return trimmed;
+}
+
+const ASSESSMENT_RESULT_VALUE_KEYS: Record<string, string> = {
+  suitable: 'suitable',
+  suitable_with_support: 'suitableWithSupport',
+  needs_lower_level: 'needsLowerLevel',
+  needs_reassessment: 'needsReassessment',
+  not_suitable: 'notSuitable',
+};
+
+function translateAssessmentResultLabel(raw: string, t: TranslateFn): string {
+  const trimmed = raw.trim();
+  if (!trimmed) return trimmed;
+  const key = ASSESSMENT_RESULT_VALUE_KEYS[trimmed.toLowerCase()] ?? trimmed.toLowerCase();
+  const i18nKey = `admin.admissions.assessments.results.${key}`;
+  const translated = t(i18nKey);
+  return translated !== i18nKey ? translated : trimmed;
+}
+
+const ASSESSMENT_RECOMMENDATION_VALUE_KEYS: Record<string, string> = {
+  accept: 'accept',
+  accept_with_condition: 'acceptWithCondition',
+  waitlist: 'waitlist',
+  reject: 'reject',
+  reassess: 'reassess',
+};
+
+function translateAssessmentRecommendationLabel(raw: string, t: TranslateFn): string {
+  const trimmed = raw.trim();
+  if (!trimmed) return trimmed;
+  const key =
+    ASSESSMENT_RECOMMENDATION_VALUE_KEYS[trimmed.toLowerCase()] ?? trimmed.toLowerCase();
+  const i18nKey = `admin.admissions.assessments.recommendations.${key}`;
+  const translated = t(i18nKey);
+  return translated !== i18nKey ? translated : trimmed;
+}
+
 const EN_APPOINTMENT_LABELS: Record<string, string> = {
   'School Visit': 'schoolVisit',
   'Written Test': 'writtenTest',
@@ -120,9 +190,34 @@ const SYSTEM_NOTE_PATTERNS: {
     format: ([assessmentType], t) =>
       assessmentType?.trim()
         ? t('admin.admissions.timeline.systemMessages.assessmentCreatedWithType', {
-            type: assessmentType.trim(),
+            type: translateAssessmentTypeLabel(assessmentType, t),
           })
         : t('admin.admissions.timeline.systemMessages.assessmentCreated'),
+  },
+  {
+    match: /^Written assessment added\.? Evaluator:\s*(.+)\. Result:\s*(.+)\.?$/i,
+    format: ([evaluator, result], t) =>
+      t('admin.admissions.timeline.systemMessages.writtenAssessmentAdded', {
+        evaluator: evaluator.trim(),
+        result: translateAssessmentResultLabel(result, t),
+      }),
+  },
+  {
+    match: /^Oral assessment added\.? Evaluator:\s*(.+)\. Result:\s*(.+)\.?$/i,
+    format: ([evaluator, result], t) =>
+      t('admin.admissions.timeline.systemMessages.oralAssessmentAdded', {
+        evaluator: evaluator.trim(),
+        result: translateAssessmentResultLabel(result, t),
+      }),
+  },
+  {
+    match: /^Assessment added:\s*(.+)\. Evaluator:\s*(.+)\. Result:\s*(.+)\.?$/i,
+    format: ([type, evaluator, result], t) =>
+      t('admin.admissions.timeline.systemMessages.assessmentAddedDetail', {
+        type: translateAssessmentTypeLabel(type, t),
+        evaluator: evaluator.trim(),
+        result: translateAssessmentResultLabel(result, t),
+      }),
   },
 ];
 

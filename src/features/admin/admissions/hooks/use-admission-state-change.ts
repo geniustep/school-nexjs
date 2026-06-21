@@ -32,11 +32,12 @@ export function useAdmissionStateChange(onSuccess?: () => void) {
       });
 
       if (res.success) {
+        toast.success(t('admin.admissions.stateChange.success'));
         onSuccess?.();
         return true;
       }
 
-      toast.error(admissionApiErrorMessage(res.error, t));
+      toast.error(admissionApiErrorMessage(res.error, t) || t('admin.admissions.stateChange.failed'));
       return false;
     },
     [activeSchoolId, onSuccess, t, toast],

@@ -84,12 +84,27 @@ export function mapAdmissionPrefillToStudentProfile(
   const academic = (prefill.academic ?? {}) as Record<string, unknown>;
   const admission = (prefill.admission ?? {}) as Record<string, unknown>;
 
-  let firstName = str(student.first_name);
-  let lastName = str(student.last_name);
+  let firstName = str(student.child_first_name_ar) || str(student.first_name_ar);
+  let lastName = str(student.child_last_name_ar) || str(student.last_name_ar);
+  let firstNameLatin = str(student.child_first_name_fr);
+  let lastNameLatin = str(student.child_last_name_fr);
+
+  if (!firstNameLatin && !lastNameLatin) {
+    firstNameLatin = str(student.first_name);
+    lastNameLatin = str(student.last_name);
+  }
+
   if (!firstName && !lastName) {
-    const fromFull = splitStudentName(str(student.student_name));
-    firstName = fromFull.firstName;
-    lastName = fromFull.lastName;
+    const nameAr = str(student.name_ar) || str(student.student_name) || str(student.child_full_name);
+    const fromAr = splitStudentName(nameAr);
+    firstName = fromAr.firstName;
+    lastName = fromAr.lastName;
+  }
+
+  if (!firstNameLatin && !lastNameLatin) {
+    const fromLatin = splitStudentName(str(student.name_latin));
+    firstNameLatin = fromLatin.firstName;
+    lastNameLatin = fromLatin.lastName;
   }
 
   const guardianNotes = buildGuardianNotes(guardian);
@@ -98,6 +113,10 @@ export function mapAdmissionPrefillToStudentProfile(
   return {
     firstName,
     lastName,
+    firstNameLatin,
+    lastNameLatin,
+    nameAr: str(student.name_ar) || str(student.child_full_name) || str(student.student_name),
+    nameLatin: str(student.name_latin),
     gender: str(student.gender),
     dateOfBirth: str(student.birth_date),
     massarCode: str(student.massar_code),
@@ -108,10 +127,9 @@ export function mapAdmissionPrefillToStudentProfile(
     classId: idStr(academic.requested_class_id),
     emergencyContactName: str(guardian.name),
     emergencyPhone: str(guardian.phone),
-    emergencyPhoneAlt: str(guardian.whatsapp),
-    emergencyRelationship: str(guardian.relationship),
+    emergencyRelationship: str(guardian.relationship) || str(guardian.guardian_relationship),
     emergencyNotes: guardianNotes,
-    mobile: str(guardian.phone) || str(guardian.whatsapp),
+    mobile: str(guardian.phone),
     email: str(guardian.email),
     registrationNotes,
   };

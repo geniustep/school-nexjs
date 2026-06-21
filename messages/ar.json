@@ -844,7 +844,9 @@
       "attendanceHighlights": "غياب: {absent} · تأخر: {late}",
       "interventionTitle": "يتطلب تدخلك",
       "interventionDesc": "مهام عاجلة من بيانات اللوحة — انقر للانتقال.",
+      "interventionDescNeutral": "ملخص التدخلات وجودة بيانات التلاميذ.",
       "scopedInterventionDesc": "مهام عاجلة ضمن نطاقك — انقر للانتقال.",
+      "scopedInterventionDescNeutral": "متابعة المهام العاجلة ومؤشرات جودة البيانات ضمن نطاقك.",
       "urgentSectionLabel": "تدخلات عاجلة",
       "dataQualitySectionLabel": "جودة بيانات التلاميذ",
       "noInterventions": "لا توجد تدخلات عاجلة حالياً.",
@@ -2746,9 +2748,18 @@
         "studentName": "اسم الطفل",
         "firstName": "الاسم الأول",
         "lastName": "اسم العائلة",
+        "firstNameAr": "الاسم الشخصي بالعربية",
+        "lastNameAr": "الاسم العائلي بالعربية",
+        "firstNameFr": "الاسم الشخصي بالفرنسية",
+        "lastNameFr": "الاسم العائلي بالفرنسية",
+        "fullName": "الاسم الكامل",
+        "fullNameAr": "الاسم الكامل (عربي)",
+        "fullNameLatin": "الاسم الكامل (فرنسي)",
         "birthDate": "تاريخ الميلاد",
         "gender": "الجنس",
         "requestedLevel": "المستوى المطلوب",
+        "cycle": "السلك",
+        "stream": "الشعبة",
         "requestedClass": "القسم المطلوب",
         "academicYear": "السنة الدراسية",
         "previousSchool": "المؤسسة السابقة",
@@ -2756,9 +2767,11 @@
         "guardianName": "اسم ولي الأمر",
         "guardianPhone": "هاتف ولي الأمر",
         "guardianWhatsapp": "واتساب",
-        "guardianEmail": "البريد",
+        "guardianEmail": "البريد الإلكتروني",
         "relationship": "صلة القرابة",
+        "source": "مصدر القدوم",
         "firstContactDate": "تاريخ أول تواصل",
+        "firstVisitDate": "تاريخ أول زيارة/تواصل",
         "nextAction": "الإجراء القادم",
         "nextActionDate": "تاريخ الإجراء القادم",
         "internalNotes": "ملاحظات داخلية",
@@ -2783,8 +2796,14 @@
         "fieldRequired": "هذا الحقل مطلوب",
         "selectGender": "اختر الجنس",
         "selectAcademicYear": "اختر السنة الدراسية",
+        "selectCycle": "اختر السلك",
         "selectLevel": "اختر المستوى",
+        "selectStream": "اختر الشعبة",
+        "streamRequiredHint": "هذا المستوى يتطلب اختيار الشعبة",
         "selectClass": "اختر القسم",
+        "selectRelationship": "اختر صلة القرابة",
+        "selectSource": "اختر مصدر القدوم",
+        "relationshipLoadError": "تعذّر تحميل قائمة صلة القرابة. حاول تحديث الصفحة.",
         "datePlaceholder": "يوم/شهر/سنة"
       },
       "detail": {
@@ -2817,7 +2836,10 @@
           "decisionMade": "تم اتخاذ القرار: {decision}.",
           "appointmentScheduled": "تمت جدولة موعد: {type}.",
           "assessmentCreated": "تم إضافة تقييم.",
-          "assessmentCreatedWithType": "تم إضافة تقييم: {type}."
+          "assessmentCreatedWithType": "تمت إضافة {type}.",
+          "writtenAssessmentAdded": "تمت إضافة اختبار كتابي. قام بالاختبار: {evaluator}. النتيجة: {result}.",
+          "oralAssessmentAdded": "تمت إضافة اختبار شفوي. قام بالاختبار: {evaluator}. النتيجة: {result}.",
+          "assessmentAddedDetail": "تمت إضافة {type}. قام بالاختبار: {evaluator}. النتيجة: {result}."
         }
       },
       "activityTypes": {
@@ -2858,12 +2880,43 @@
       "assessments": {
         "create": "إنشاء تقييم",
         "type": "نوع التقييم",
+        "assessmentType": "نوع الاختبار",
+        "evaluator": "من قام بالاختبار",
+        "selectEvaluator": "اختر من قام بالاختبار",
+        "noEvaluators": "لا يوجد مختبّرون متاحون حاليًا.",
         "score": "النقطة",
+        "scoreOf": "من",
         "maxScore": "الحد الأقصى",
-        "result": "النتيجة",
+        "result": "نتيجة الاختبار",
         "recommendation": "التوصية",
         "teacherNotes": "ملاحظات الأستاذ",
-        "empty": "لا توجد تقييمات"
+        "empty": "لا توجد تقييمات",
+        "roles": {
+          "teacher": "أستاذ",
+          "staff": "طاقم"
+        },
+        "types": {
+          "written": "اختبار كتابي",
+          "oral": "اختبار شفوي",
+          "interview": "مقابلة",
+          "levelCheck": "اختبار مستوى",
+          "behaviorObservation": "ملاحظة سلوكية",
+          "other": "أخرى"
+        },
+        "results": {
+          "suitable": "مناسب",
+          "suitableWithSupport": "مناسب مع دعم",
+          "needsLowerLevel": "يحتاج مستوى أدنى",
+          "needsReassessment": "يحتاج إعادة تقييم",
+          "notSuitable": "غير مناسب"
+        },
+        "recommendations": {
+          "accept": "قبول",
+          "acceptWithCondition": "قبول مشروط",
+          "waitlist": "قائمة انتظار",
+          "reject": "رفض",
+          "reassess": "إعادة تقييم"
+        }
       },
       "decision": {
         "current": "القرار الحالي",

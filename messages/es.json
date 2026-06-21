@@ -844,7 +844,9 @@
       "attendanceHighlights": "Ausentes: {absent} · Tardíos: {late}",
       "interventionTitle": "Requiere acción",
       "interventionDesc": "Elementos urgentes — pulse para abrir.",
+      "interventionDescNeutral": "Resumen de intervenciones y calidad de datos de alumnos.",
       "scopedInterventionDesc": "Elementos urgentes en su ámbito — pulse para abrir.",
+      "scopedInterventionDescNeutral": "Seguimiento de tareas urgentes e indicadores de calidad en su ámbito.",
       "urgentSectionLabel": "Intervenciones urgentes",
       "dataQualitySectionLabel": "Calidad de datos de alumnos",
       "noInterventions": "Sin intervenciones urgentes por ahora.",
@@ -2719,9 +2721,18 @@
         "studentName": "Nombre del alumno",
         "firstName": "Nombre",
         "lastName": "Apellido",
+        "firstNameAr": "Nombre (árabe)",
+        "lastNameAr": "Apellido (árabe)",
+        "firstNameFr": "Nombre (francés)",
+        "lastNameFr": "Apellido (francés)",
+        "fullName": "Nombre completo",
+        "fullNameAr": "Nombre completo (árabe)",
+        "fullNameLatin": "Nombre completo (francés)",
         "birthDate": "Fecha de nacimiento",
         "gender": "Género",
         "requestedLevel": "Nivel solicitado",
+        "cycle": "Ciclo",
+        "stream": "Rama",
         "requestedClass": "Clase solicitada",
         "academicYear": "Año académico",
         "previousSchool": "Colegio anterior",
@@ -2731,7 +2742,9 @@
         "guardianWhatsapp": "WhatsApp",
         "guardianEmail": "Correo",
         "relationship": "Parentesco",
+        "source": "Origen de la solicitud",
         "firstContactDate": "Primer contacto",
+        "firstVisitDate": "Fecha de primera visita / contacto",
         "nextAction": "Próxima acción",
         "nextActionDate": "Fecha de acción",
         "internalNotes": "Notas internas",
@@ -2753,8 +2766,14 @@
         "fieldRequired": "Este campo es obligatorio",
         "selectGender": "Seleccionar sexo",
         "selectAcademicYear": "Seleccionar año académico",
+        "selectCycle": "Seleccionar ciclo",
         "selectLevel": "Seleccionar nivel",
+        "selectStream": "Seleccionar rama",
+        "streamRequiredHint": "Este nivel requiere seleccionar una rama",
         "selectClass": "Seleccionar clase",
+        "selectRelationship": "Seleccionar parentesco",
+        "selectSource": "Seleccionar origen",
+        "relationshipLoadError": "No se pudo cargar la lista de parentesco. Actualice la página.",
         "datePlaceholder": "dd/mm/aaaa"
       },
       "detail": {
@@ -2787,7 +2806,10 @@
           "decisionMade": "Decisión tomada: {decision}.",
           "appointmentScheduled": "Cita programada: {type}.",
           "assessmentCreated": "Evaluación añadida.",
-          "assessmentCreatedWithType": "Evaluación añadida: {type}."
+          "assessmentCreatedWithType": "Evaluación añadida: {type}.",
+          "writtenAssessmentAdded": "Examen escrito añadido. Evaluador: {evaluator}. Resultado: {result}.",
+          "oralAssessmentAdded": "Examen oral añadido. Evaluador: {evaluator}. Resultado: {result}.",
+          "assessmentAddedDetail": "Evaluación añadida: {type}. Evaluador: {evaluator}. Resultado: {result}."
         }
       },
       "activityTypes": {
@@ -2828,12 +2850,43 @@
       "assessments": {
         "create": "Añadir evaluación",
         "type": "Tipo",
+        "assessmentType": "Tipo de prueba",
+        "evaluator": "Evaluador",
+        "selectEvaluator": "Seleccionar evaluador",
+        "noEvaluators": "No hay evaluadores disponibles en este momento.",
         "score": "Puntuación",
+        "scoreOf": "de",
         "maxScore": "Máximo",
-        "result": "Resultado",
+        "result": "Resultado de la prueba",
         "recommendation": "Recomendación",
         "teacherNotes": "Notas del profesor",
-        "empty": "Sin evaluaciones"
+        "empty": "Sin evaluaciones",
+        "roles": {
+          "teacher": "Profesor",
+          "staff": "Personal"
+        },
+        "types": {
+          "written": "Examen escrito",
+          "oral": "Examen oral",
+          "interview": "Entrevista",
+          "levelCheck": "Prueba de nivel",
+          "behaviorObservation": "Observación conductual",
+          "other": "Otra"
+        },
+        "results": {
+          "suitable": "Adecuado",
+          "suitableWithSupport": "Adecuado con apoyo",
+          "needsLowerLevel": "Necesita nivel inferior",
+          "needsReassessment": "Necesita reevaluación",
+          "notSuitable": "No adecuado"
+        },
+        "recommendations": {
+          "accept": "Aceptar",
+          "acceptWithCondition": "Aceptación condicional",
+          "waitlist": "Lista de espera",
+          "reject": "Rechazar",
+          "reassess": "Reevaluar"
+        }
       },
       "decision": {
         "current": "Decisión actual",

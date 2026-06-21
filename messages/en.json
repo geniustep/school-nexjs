@@ -844,7 +844,9 @@
       "attendanceHighlights": "Absent: {absent} · Late: {late}",
       "interventionTitle": "Requires your action",
       "interventionDesc": "Urgent items from the dashboard — tap to open.",
+      "interventionDescNeutral": "Summary of interventions and pupil data quality.",
       "scopedInterventionDesc": "Urgent items within your scope — tap to open.",
+      "scopedInterventionDescNeutral": "Track urgent tasks and data quality indicators within your scope.",
       "urgentSectionLabel": "Urgent interventions",
       "dataQualitySectionLabel": "Pupil data quality",
       "noInterventions": "No urgent interventions right now.",
@@ -2719,9 +2721,18 @@
         "studentName": "Child name",
         "firstName": "First name",
         "lastName": "Last name",
+        "firstNameAr": "First name (Arabic)",
+        "lastNameAr": "Last name (Arabic)",
+        "firstNameFr": "First name (French)",
+        "lastNameFr": "Last name (French)",
+        "fullName": "Full name",
+        "fullNameAr": "Full name (Arabic)",
+        "fullNameLatin": "Full name (French)",
         "birthDate": "Date of birth",
         "gender": "Gender",
         "requestedLevel": "Requested level",
+        "cycle": "Cycle",
+        "stream": "Stream",
         "requestedClass": "Requested class",
         "academicYear": "Academic year",
         "previousSchool": "Previous school",
@@ -2731,7 +2742,9 @@
         "guardianWhatsapp": "WhatsApp",
         "guardianEmail": "Email",
         "relationship": "Relationship",
+        "source": "Lead source",
         "firstContactDate": "First contact date",
+        "firstVisitDate": "First visit / contact date",
         "nextAction": "Next action",
         "nextActionDate": "Next action date",
         "internalNotes": "Internal notes",
@@ -2756,8 +2769,14 @@
         "fieldRequired": "This field is required",
         "selectGender": "Select gender",
         "selectAcademicYear": "Select academic year",
+        "selectCycle": "Select cycle",
         "selectLevel": "Select level",
+        "selectStream": "Select stream",
+        "streamRequiredHint": "This level requires selecting a stream",
         "selectClass": "Select class",
+        "selectRelationship": "Select relationship",
+        "selectSource": "Select lead source",
+        "relationshipLoadError": "Could not load relationship options. Try refreshing the page.",
         "datePlaceholder": "dd/mm/yyyy"
       },
       "detail": {
@@ -2790,7 +2809,10 @@
           "decisionMade": "Decision made: {decision}.",
           "appointmentScheduled": "Appointment scheduled: {type}.",
           "assessmentCreated": "Assessment created.",
-          "assessmentCreatedWithType": "Assessment created: {type}."
+          "assessmentCreatedWithType": "Assessment added: {type}.",
+          "writtenAssessmentAdded": "Written assessment added. Evaluator: {evaluator}. Result: {result}.",
+          "oralAssessmentAdded": "Oral assessment added. Evaluator: {evaluator}. Result: {result}.",
+          "assessmentAddedDetail": "Assessment added: {type}. Evaluator: {evaluator}. Result: {result}."
         }
       },
       "activityTypes": {
@@ -2831,12 +2853,43 @@
       "assessments": {
         "create": "Add assessment",
         "type": "Assessment type",
+        "assessmentType": "Test type",
+        "evaluator": "Evaluator",
+        "selectEvaluator": "Select evaluator",
+        "noEvaluators": "No evaluators are available right now.",
         "score": "Score",
+        "scoreOf": "of",
         "maxScore": "Max score",
-        "result": "Result",
+        "result": "Test result",
         "recommendation": "Recommendation",
         "teacherNotes": "Teacher notes",
-        "empty": "No assessments"
+        "empty": "No assessments",
+        "roles": {
+          "teacher": "Teacher",
+          "staff": "Staff"
+        },
+        "types": {
+          "written": "Written test",
+          "oral": "Oral test",
+          "interview": "Interview",
+          "levelCheck": "Level check",
+          "behaviorObservation": "Behavior observation",
+          "other": "Other"
+        },
+        "results": {
+          "suitable": "Suitable",
+          "suitableWithSupport": "Suitable with support",
+          "needsLowerLevel": "Needs lower level",
+          "needsReassessment": "Needs reassessment",
+          "notSuitable": "Not suitable"
+        },
+        "recommendations": {
+          "accept": "Accept",
+          "acceptWithCondition": "Conditional accept",
+          "waitlist": "Waitlist",
+          "reject": "Reject",
+          "reassess": "Reassess"
+        }
       },
       "decision": {
         "current": "Current decision",

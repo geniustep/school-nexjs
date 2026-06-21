@@ -97,12 +97,19 @@ export interface AdmissionAppointment {
 export interface AdmissionAssessment {
   id: number;
   assessment_type: string;
+  assessment_type_label?: string | null;
   state: string;
   assessment_date: string;
+  evaluator_id?: number | null;
+  evaluator?: Ref | { id: number; name: string } | null;
+  requested_level?: Ref | null;
+  subject?: Ref | null;
   score: number | null;
   max_score: number | null;
   result: string | null;
+  result_label?: string | null;
   recommendation: string | null;
+  recommendation_label?: string | null;
   teacher_notes: string | null;
 }
 
@@ -193,7 +200,90 @@ export interface AdmissionPrefillApiEnvelope {
   allowed_actions?: string[] | AdmissionAllowedActions;
 }
 
+export interface AdmissionOptionItem {
+  id?: number | string;
+  value?: number | string;
+  code?: string;
+  label: string;
+}
+
+export interface AdmissionCycleOption {
+  id?: number;
+  code: string;
+  name: string;
+  sequence?: number;
+}
+
+export interface AdmissionLevelOption {
+  id: number;
+  name: string;
+  code?: string;
+  cycle: string;
+  requires_stream: boolean;
+}
+
+export interface AdmissionStreamOption {
+  id: number;
+  name: string;
+  code?: string;
+  level_id: number;
+}
+
+export interface AdmissionEvaluatorOption {
+  id: number;
+  name: string;
+  role: string;
+}
+
+export interface AdmissionAcademicYearOption {
+  id: number;
+  name: string;
+  code?: string;
+  is_current?: boolean;
+  state?: string;
+}
+
+export interface AdmissionValueLabelOption {
+  value: string;
+  label: string;
+}
+
+export interface AdmissionOptions {
+  states: AdmissionOptionItem[];
+  priorities: AdmissionOptionItem[];
+  relationships: AdmissionOptionItem[];
+  sources: AdmissionOptionItem[];
+  academic_years: AdmissionAcademicYearOption[];
+  cycles: AdmissionCycleOption[];
+  levels: AdmissionLevelOption[];
+  streams: AdmissionStreamOption[];
+  evaluators: AdmissionEvaluatorOption[];
+  assessment_types: AdmissionValueLabelOption[];
+  assessment_results: AdmissionValueLabelOption[];
+  assessment_recommendations: AdmissionValueLabelOption[];
+}
+
+export interface AdmissionOptionsPayload {
+  states?: AdmissionOptionItem[];
+  priorities?: AdmissionOptionItem[];
+  relationships?: AdmissionOptionItem[];
+  sources?: AdmissionOptionItem[];
+  academic_years?: AdmissionAcademicYearOption[];
+  cycles?: AdmissionCycleOption[];
+  levels?: AdmissionLevelOption[];
+  streams?: AdmissionStreamOption[];
+  evaluators?: AdmissionEvaluatorOption[];
+  assessment_types?: AdmissionValueLabelOption[];
+  assessment_results?: AdmissionValueLabelOption[];
+  assessment_recommendations?: AdmissionValueLabelOption[];
+}
+
 export interface CreateAdmissionPayload {
+  child_first_name_ar?: string;
+  child_last_name_ar?: string;
+  child_first_name_fr?: string;
+  child_last_name_fr?: string;
+  child_name?: string;
   student_name?: string;
   student_first_name?: string;
   student_last_name?: string;
@@ -202,7 +292,10 @@ export interface CreateAdmissionPayload {
   school_id?: number;
   academic_year_id?: number;
   source_id?: number;
+  requested_cycle_code?: string;
+  requested_cycle?: string;
   requested_level_id?: number;
+  requested_stream_id?: number;
   requested_class_id?: number;
   previous_school?: string;
   massar_code?: string;
@@ -210,6 +303,7 @@ export interface CreateAdmissionPayload {
   guardian_phone?: string;
   guardian_whatsapp?: string;
   guardian_email?: string;
+  guardian_relationship?: string;
   relationship?: string;
   first_contact_date?: string;
   next_action?: string;
@@ -244,6 +338,7 @@ export interface CreateAppointmentPayload {
 export interface CreateAssessmentPayload {
   assessment_type: string;
   assessment_date: string;
+  evaluator_id?: number;
   requested_level_id?: number;
   subject_id?: number;
   score?: number;

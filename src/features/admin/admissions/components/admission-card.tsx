@@ -7,6 +7,7 @@ import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import {
   admissionStateTone,
+  cleanDisplayValue,
   formatAdmissionReference,
   isOverdueNextAction,
 } from '../utils/admission-labels';
@@ -27,6 +28,7 @@ export function readAdmissionCardDragPayload(dataTransfer: DataTransfer): number
 export function AdmissionCard({
   item,
   draggable = false,
+  showStateBadge = true,
   isDragging = false,
   isSaving = false,
   onDragStart,
@@ -34,6 +36,7 @@ export function AdmissionCard({
 }: {
   item: AdmissionListItem;
   draggable?: boolean;
+  showStateBadge?: boolean;
   isDragging?: boolean;
   isSaving?: boolean;
   onDragStart?: (event: React.DragEvent<HTMLDivElement>) => void;
@@ -44,7 +47,12 @@ export function AdmissionCard({
   const overdue = isOverdueNextAction(item.next_action_date);
   const href = `/admin/admissions/${item.id}`;
   const reference = formatAdmissionReference(item.id, item.reference);
+  const studentName = cleanDisplayValue(item.student_name);
+  const guardianName = cleanDisplayValue(item.guardian_name);
+  const guardianPhone = cleanDisplayValue(item.guardian_phone);
+  const nextAction = cleanDisplayValue(item.next_action);
   const nextActionDate = item.next_action_date ? formatDate(item.next_action_date) : '';
+  const nextActionLine = [nextAction, nextActionDate].filter(Boolean).join(' — ');
 
   const card = (
     <Link
@@ -63,45 +71,58 @@ export function AdmissionCard({
         </span>
       ) : null}
 
-      <div className="admission-card__head">
-        <div className="admission-card__title">{item.student_name}</div>
-        <Badge tone={admissionStateTone(item.state)}>
-          {t(`admin.admissions.states.${item.state}`)}
-        </Badge>
+      <div className="admission-card__title">
+        {studentName || t('common.dash')}
       </div>
 
       <dl className="admission-card__details">
-        {item.guardian_name ? (
+        {guardianName ? (
           <div className="admission-card__detail">
             <dt>{t('admin.admissions.card.guardian')}</dt>
-            <dd>{item.guardian_name}</dd>
+            <dd className="admission-card__detail-value">{guardianName}</dd>
           </div>
         ) : null}
-        {item.guardian_phone ? (
+        {guardianPhone ? (
           <div className="admission-card__detail">
             <dt>{t('admin.admissions.card.phone')}</dt>
-            <dd dir="ltr">{item.guardian_phone}</dd>
+            <dd className="admission-card__detail-value" dir="ltr">
+              {guardianPhone}
+            </dd>
           </div>
         ) : null}
-        {item.next_action || nextActionDate ? (
+        {nextActionLine ? (
           <div className="admission-card__detail">
             <dt>{t('admin.admissions.nextAction')}</dt>
-            <dd className={overdue ? 'admission-card__detail--overdue' : undefined}>
-              {[item.next_action, nextActionDate].filter(Boolean).join(' — ')}
+            <dd
+              className={cn(
+                'admission-card__detail-value',
+                overdue && 'admission-card__detail--overdue',
+              )}
+            >
+              {nextActionLine}
             </dd>
           </div>
         ) : null}
       </dl>
 
-      {(item.duplicate_count > 0 || item.offer_state === 'accepted' || overdue) && (
-        <div className="admission-card__badges">
-          {item.duplicate_count > 0 && (
-            <Badge tone="amber">{t('admin.admissions.badges.possibleDuplicate')}</Badge>
+      {(showStateBadge || item.duplicate_count > 0 || item.offer_state === 'accepted' || overdue) && (
+        <div className="admission-card__status-row">
+          {showStateBadge ? (
+            <Badge tone={admissionStateTone(item.state)}>
+              {t(`admin.admissions.states.${item.state}`)}
+            </Badge>
+          ) : null}
+          {(item.duplicate_count > 0 || item.offer_state === 'accepted' || overdue) && (
+            <div className="admission-card__badges">
+              {item.duplicate_count > 0 && (
+                <Badge tone="amber">{t('admin.admissions.badges.possibleDuplicate')}</Badge>
+              )}
+              {item.offer_state === 'accepted' && (
+                <Badge tone="green">{t('admin.admissions.badges.offerAccepted')}</Badge>
+              )}
+              {overdue && <Badge tone="red">{t('admin.admissions.badges.overdue')}</Badge>}
+            </div>
           )}
-          {item.offer_state === 'accepted' && (
-            <Badge tone="green">{t('admin.admissions.badges.offerAccepted')}</Badge>
-          )}
-          {overdue && <Badge tone="red">{t('admin.admissions.badges.overdue')}</Badge>}
         </div>
       )}
 

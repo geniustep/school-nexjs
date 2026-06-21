@@ -14,17 +14,26 @@ const PREFILL_MESSAGE_KEYS: Record<string, string> = {
 
 const FIELD_LABEL_KEYS: Record<string, string> = {
   student_name: 'admin.admissions.fields.studentName',
-  first_name: 'admin.admissions.fields.firstName',
-  last_name: 'admin.admissions.fields.lastName',
+  child_full_name: 'admin.admissions.fields.fullName',
+  child_first_name_ar: 'admin.admissions.fields.firstNameAr',
+  child_last_name_ar: 'admin.admissions.fields.lastNameAr',
+  child_first_name_fr: 'admin.admissions.fields.firstNameFr',
+  child_last_name_fr: 'admin.admissions.fields.lastNameFr',
+  name_ar: 'admin.admissions.fields.fullNameAr',
+  name_latin: 'admin.admissions.fields.fullNameLatin',
+  first_name: 'admin.admissions.fields.firstNameFr',
+  last_name: 'admin.admissions.fields.lastNameFr',
+  first_name_ar: 'admin.admissions.fields.firstNameAr',
+  last_name_ar: 'admin.admissions.fields.lastNameAr',
   birth_date: 'admin.admissions.fields.birthDate',
   gender: 'admin.admissions.fields.gender',
   massar_code: 'admin.admissions.fields.massarCode',
   previous_school: 'admin.admissions.fields.previousSchool',
   name: 'admin.admissions.fields.guardianName',
   phone: 'admin.admissions.fields.guardianPhone',
-  whatsapp: 'admin.admissions.fields.guardianWhatsapp',
   email: 'admin.admissions.fields.guardianEmail',
   relationship: 'admin.admissions.fields.relationship',
+  guardian_relationship: 'admin.admissions.fields.relationship',
   school_id: 'admin.admissions.prefill.fields.school',
   academic_year_id: 'admin.admissions.fields.academicYear',
   requested_level_id: 'admin.admissions.fields.requestedLevel',
@@ -38,8 +47,18 @@ const FIELD_LABEL_KEYS: Record<string, string> = {
 };
 
 const SECTION_FIELDS: Record<string, string[]> = {
-  student: ['student_name', 'first_name', 'last_name', 'birth_date', 'gender', 'massar_code', 'previous_school'],
-  guardian: ['name', 'phone', 'whatsapp', 'email', 'relationship'],
+  student: [
+    'child_first_name_ar',
+    'child_last_name_ar',
+    'child_first_name_fr',
+    'child_last_name_fr',
+    'child_full_name',
+    'birth_date',
+    'gender',
+    'massar_code',
+    'previous_school',
+  ],
+  guardian: ['name', 'phone', 'email', 'relationship'],
   academic: ['school_id', 'academic_year_id', 'requested_level_id', 'requested_class_id'],
   admission: ['reference', 'state', 'decision', 'offer_state', 'conditions', 'required_documents'],
 };
@@ -111,7 +130,7 @@ export function prefillSectionRows(
   section: keyof typeof SECTION_FIELDS,
   data: unknown,
   t: TranslateFn,
-): { label: string; value: string; dir?: 'ltr' }[] {
+): { fieldKey: string; label: string; value: string; dir?: 'ltr' }[] {
   if (!data || typeof data !== 'object') return [];
 
   const record = data as Record<string, unknown>;
@@ -125,7 +144,12 @@ export function prefillSectionRows(
       fieldKey === 'phone' || fieldKey === 'whatsapp' || fieldKey === 'email' || fieldKey === 'massar_code'
         ? ('ltr' as const)
         : undefined;
-    return { label: label !== labelKey ? label : fieldKey, value, dir };
+    return {
+      fieldKey,
+      label: label !== labelKey ? label : fieldKey,
+      value,
+      dir,
+    };
   });
 }
 

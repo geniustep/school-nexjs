@@ -8,9 +8,9 @@ export const ACTIVE_KANBAN_STATES: AdmissionState[] = [
   'visit_pending',
   'under_review',
   'accepted',
-  'waitlisted',
   'offer_sent',
   'confirmed',
+  'waitlisted',
 ];
 
 export const CLOSED_KANBAN_STATES: AdmissionState[] = ['lost', 'cancelled', 'duplicate'];
@@ -64,4 +64,14 @@ export function admissionStateTone(state: string): 'green' | 'red' | 'amber' | '
 export function formatAdmissionReference(id: number, reference?: string | null): string {
   if (reference?.trim()) return reference.trim();
   return `#${id}`;
+}
+
+/** Strip empty, null-ish, and boolean string noise from display fields. */
+export function cleanDisplayValue(value: string | null | undefined): string {
+  if (value == null) return '';
+  const trimmed = String(value).trim();
+  if (!trimmed) return '';
+  const lower = trimmed.toLowerCase();
+  if (lower === 'false' || lower === 'null' || lower === 'undefined') return '';
+  return trimmed;
 }

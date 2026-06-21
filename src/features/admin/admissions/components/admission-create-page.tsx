@@ -2,37 +2,33 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { cn } from '@/lib/utils/cn';
 import { useStudentOptions } from '@/features/admin/students/hooks/use-student-options';
+import {
+  buildFullNamePreview,
+  localizeStudentGenderOptions,
+  todayIsoDate,
+} from '@/features/admin/students/utils/student-profile';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useLocale, useT } from '@/features/i18n/locale-context';
-import { useAdminResource } from '@/lib/hooks/use-admin-resource';
-import { endpoints } from '@/lib/api/endpoints';
-import type { Ref } from '@/types/api';
-import type { CreateAdmissionPayload } from '@/types/admission';
 import { createAdmission } from '../api/admissions-api';
+import { useAdmissionOptions } from '../hooks/use-admission-options';
+import { buildAdmissionChildFullName } from '../utils/admission-child-name';
+import {
+  admissionOptionId,
+  filterLevelsByCycle,
+  filterStreamsByLevel,
+  findAdmissionLevel,
+  resolveDefaultAdmissionSourceId,
+} from '../utils/admission-options';
+import {
+  buildCreateAdmissionPayload,
+  emptyAdmissionCreateForm,
+  type AdmissionCreateFormState,
+} from '../utils/admission-create-payload';
 import { admissionApiErrorMessage } from '../utils/admission-errors';
 import '../admissions.css';
-
-const EMPTY_FORM: CreateAdmissionPayload = {
-  student_name: '',
-  student_first_name: '',
-  student_last_name: '',
-  birth_date: '',
-  gender: '',
-  previous_school: '',
-  massar_code: '',
-  guardian_name: '',
-  guardian_phone: '',
-  guardian_whatsapp: '',
-  guardian_email: '',
-  relationship: '',
-  first_contact_date: '',
-  next_action: '',
-  next_action_date: '',
-  internal_notes: '',
-};
 
 function FormSection({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -76,40 +72,97 @@ export function AdmissionCreatePage() {
   const { locale } = useLocale();
   const router = useRouter();
   const { activeSchoolId } = useAdminSession();
-  const [form, setForm] = useState<CreateAdmissionPayload>({ ...EMPTY_FORM });
+  const today = useMemo(() => todayIsoDate(), []);
+  const [form, setForm] = useState<AdmissionCreateFormState>(() => emptyAdmissionCreateForm(today));
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [defaultsApplied, setDefaultsApplied] = useState(false);
 
-  const levelsState = useAdminResource<Ref[]>(endpoints.admin.levels, { page_size: 100 });
-  const classesState = useAdminResource<import('@/types/class').SchoolClass[]>(
-    endpoints.admin.classes,
-    { page_size: 100 },
-  );
   const studentOptionsState = useStudentOptions();
+  const admissionOptionsState = useAdmissionOptions();
+  const admissionOptions = admissionOptionsState.options;
 
-  const levels = useMemo(
-    () => (Array.isArray(levelsState.data) ? levelsState.data : []),
-    [levelsState.data],
+  const academicYears = admissionOptions?.academic_years ?? [];
+  const cycles = admissionOptions?.cycles ?? [];
+  const allLevels = admissionOptions?.levels ?? [];
+  const allStreams = admissionOptions?.streams ?? [];
+
+  const filteredLevels = useMemo(
+    () => filterLevelsByCycle(allLevels, form.requested_cycle_code),
+    [allLevels, form.requested_cycle_code],
   );
-  const classes = useMemo(
-    () => (Array.isArray(classesState.data) ? classesState.data : []),
-    [classesState.data],
+
+  const selectedLevel = useMemo(
+    () => findAdmissionLevel(allLevels, form.requested_level_id),
+    [allLevels, form.requested_level_id],
   );
-  const academicYears = studentOptionsState.options?.academicYears ?? [];
+
+  const showStreamField = Boolean(selectedLevel?.requires_stream);
+  const filteredStreams = useMemo(
+    () => filterStreamsByLevel(allStreams, form.requested_level_id),
+    [allStreams, form.requested_level_id],
+  );
+  const genders = useMemo(
+    () => localizeStudentGenderOptions(studentOptionsState.options?.genders ?? [], t),
+    [studentOptionsState.options?.genders, t],
+  );
+
+  const childFullName = useMemo(
+    () =>
+      buildAdmissionChildFullName(
+        form.child_first_name_ar,
+        form.child_last_name_ar,
+        form.child_first_name_fr,
+        form.child_last_name_fr,
+      ),
+    [
+      form.child_first_name_ar,
+      form.child_last_name_ar,
+      form.child_first_name_fr,
+      form.child_last_name_fr,
+    ],
+  );
+
+  useEffect(() => {
+    if (defaultsApplied || !admissionOptionsState.options?.sources.length) return;
+    const sourceId = resolveDefaultAdmissionSourceId(admissionOptionsState.options.sources);
+    if (sourceId == null) {
+      console.warn('[admissions] No admission sources available for default');
+      setDefaultsApplied(true);
+      return;
+    }
+    setForm((prev) => ({ ...prev, source_id: sourceId }));
+    setDefaultsApplied(true);
+  }, [admissionOptionsState.options?.sources, defaultsApplied]);
 
   const lookupError =
-    levelsState.error?.message ??
-    classesState.error?.message ??
     studentOptionsState.error?.message ??
+    admissionOptionsState.error?.message ??
     null;
+
+  const relationshipLoadFailed =
+    !admissionOptionsState.loading &&
+    (admissionOptionsState.error != null ||
+      (admissionOptionsState.options != null &&
+        admissionOptionsState.options.relationships.length === 0));
 
   const datePlaceholder = t('admin.admissions.create.datePlaceholder');
 
-  function updateField<K extends keyof CreateAdmissionPayload>(
+  function updateField<K extends keyof AdmissionCreateFormState>(
     key: K,
-    value: CreateAdmissionPayload[K],
+    value: AdmissionCreateFormState[K],
   ) {
-    setForm((prev) => ({ ...prev, [key]: value }));
+    setForm((prev) => {
+      const next = { ...prev, [key]: value };
+      if (key === 'requested_cycle_code') {
+        next.requested_level_id = undefined;
+        next.requested_stream_id = undefined;
+      }
+      if (key === 'requested_level_id') {
+        next.requested_stream_id = undefined;
+      }
+      return next;
+    });
   }
 
   function handleRequiredInvalid(e: React.InvalidEvent<HTMLInputElement>) {
@@ -126,14 +179,7 @@ export function AdmissionCreatePage() {
     setSubmitting(true);
     setError(null);
 
-    const payload: CreateAdmissionPayload = { ...form };
-    if (activeSchoolId) payload.school_id = activeSchoolId;
-
-    for (const key of Object.keys(payload) as (keyof CreateAdmissionPayload)[]) {
-      const val = payload[key];
-      if (val === '' || val === undefined) delete payload[key];
-    }
-
+    const payload = buildCreateAdmissionPayload(form, activeSchoolId, allLevels);
     const res = await createAdmission(payload, { active_school_id: activeSchoolId });
     setSubmitting(false);
 
@@ -174,55 +220,91 @@ export function AdmissionCreatePage() {
 
         <FormSection title={t('admin.admissions.create.studentSection')}>
           <div className="field">
-            <label htmlFor="student_name">
-              {t('admin.admissions.fields.studentName')} <span aria-hidden="true">*</span>
+            <label htmlFor="child_first_name_ar">
+              {t('admin.admissions.fields.firstNameAr')} <span aria-hidden="true">*</span>
             </label>
             <input
-              id="student_name"
+              id="child_first_name_ar"
               className="input"
               required
-              value={form.student_name ?? ''}
-              onChange={(e) => updateField('student_name', e.target.value)}
+              value={form.child_first_name_ar}
+              onChange={(e) => updateField('child_first_name_ar', e.target.value)}
               onInvalid={handleRequiredInvalid}
               onInput={clearRequiredValidity}
+              autoComplete="off"
             />
           </div>
           <div className="field">
-            <label htmlFor="student_first_name">{t('admin.admissions.fields.firstName')}</label>
+            <label htmlFor="child_last_name_ar">
+              {t('admin.admissions.fields.lastNameAr')} <span aria-hidden="true">*</span>
+            </label>
             <input
-              id="student_first_name"
+              id="child_last_name_ar"
               className="input"
-              value={form.student_first_name ?? ''}
-              onChange={(e) => updateField('student_first_name', e.target.value)}
+              required
+              value={form.child_last_name_ar}
+              onChange={(e) => updateField('child_last_name_ar', e.target.value)}
+              onInvalid={handleRequiredInvalid}
+              onInput={clearRequiredValidity}
+              autoComplete="off"
             />
           </div>
           <div className="field">
-            <label htmlFor="student_last_name">{t('admin.admissions.fields.lastName')}</label>
+            <label htmlFor="child_first_name_fr">{t('admin.admissions.fields.firstNameFr')}</label>
             <input
-              id="student_last_name"
+              id="child_first_name_fr"
               className="input"
-              value={form.student_last_name ?? ''}
-              onChange={(e) => updateField('student_last_name', e.target.value)}
+              dir="ltr"
+              value={form.child_first_name_fr}
+              onChange={(e) => updateField('child_first_name_fr', e.target.value)}
+              autoComplete="off"
             />
+          </div>
+          <div className="field">
+            <label htmlFor="child_last_name_fr">{t('admin.admissions.fields.lastNameFr')}</label>
+            <input
+              id="child_last_name_fr"
+              className="input"
+              dir="ltr"
+              value={form.child_last_name_fr}
+              onChange={(e) => updateField('child_last_name_fr', e.target.value)}
+              autoComplete="off"
+            />
+          </div>
+          <div className="field admissions-create-grid__wide admissions-create-full-name">
+            <span className="admissions-create-full-name__label">{t('admin.admissions.fields.fullName')}</span>
+            <span className="admissions-create-full-name__value" dir="auto">
+              {childFullName || t('common.dash')}
+            </span>
+            {form.child_first_name_fr || form.child_last_name_fr ? (
+              <span className="tiny muted" dir="ltr">
+                {buildFullNamePreview(form.child_first_name_fr, form.child_last_name_fr) ||
+                  t('common.dash')}
+              </span>
+            ) : null}
           </div>
           <div className="field">
             <label htmlFor="gender">{t('admin.admissions.fields.gender')}</label>
             <select
               id="gender"
               className="input"
-              value={form.gender ?? ''}
+              value={form.gender}
               onChange={(e) => updateField('gender', e.target.value)}
+              disabled={studentOptionsState.loading}
             >
               <option value="">{t('admin.admissions.create.selectGender')}</option>
-              <option value="male">{t('admin.admissions.gender.male')}</option>
-              <option value="female">{t('admin.admissions.gender.female')}</option>
+              {genders.map((g) => (
+                <option key={g.value} value={g.value}>
+                  {g.label}
+                </option>
+              ))}
             </select>
           </div>
           <DateField
             id="birth_date"
             label={t('admin.admissions.fields.birthDate')}
             placeholder={datePlaceholder}
-            value={form.birth_date ?? ''}
+            value={form.birth_date}
             onChange={(value) => updateField('birth_date', value)}
           />
           <div className="field">
@@ -231,8 +313,8 @@ export function AdmissionCreatePage() {
               id="massar_code"
               className="input"
               dir="ltr"
-              value={form.massar_code ?? ''}
-              onChange={(e) => updateField('massar_code', e.target.value)}
+              value={form.massar_code}
+              onChange={(e) => updateField('massar_code', e.target.value.replace(/\s/g, ''))}
             />
           </div>
           <div className="field admissions-create-grid__wide">
@@ -240,7 +322,7 @@ export function AdmissionCreatePage() {
             <input
               id="previous_school"
               className="input"
-              value={form.previous_school ?? ''}
+              value={form.previous_school}
               onChange={(e) => updateField('previous_school', e.target.value)}
             />
           </div>
@@ -256,11 +338,29 @@ export function AdmissionCreatePage() {
               onChange={(e) =>
                 updateField('academic_year_id', e.target.value ? Number(e.target.value) : undefined)
               }
+              disabled={admissionOptionsState.loading}
             >
               <option value="">{t('admin.admissions.create.selectAcademicYear')}</option>
               {academicYears.map((year) => (
                 <option key={year.id} value={year.id}>
                   {year.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="field">
+            <label htmlFor="requested_cycle_code">{t('admin.admissions.fields.cycle')}</label>
+            <select
+              id="requested_cycle_code"
+              className="input"
+              value={form.requested_cycle_code}
+              onChange={(e) => updateField('requested_cycle_code', e.target.value)}
+              disabled={admissionOptionsState.loading}
+            >
+              <option value="">{t('admin.admissions.create.selectCycle')}</option>
+              {cycles.map((cycle) => (
+                <option key={cycle.code} value={cycle.code}>
+                  {cycle.name}
                 </option>
               ))}
             </select>
@@ -274,33 +374,42 @@ export function AdmissionCreatePage() {
               onChange={(e) =>
                 updateField('requested_level_id', e.target.value ? Number(e.target.value) : undefined)
               }
+              disabled={admissionOptionsState.loading || !form.requested_cycle_code}
             >
               <option value="">{t('admin.admissions.create.selectLevel')}</option>
-              {levels.map((level) => (
+              {filteredLevels.map((level) => (
                 <option key={level.id} value={level.id}>
                   {level.name}
                 </option>
               ))}
             </select>
           </div>
-          <div className="field">
-            <label htmlFor="requested_class_id">{t('admin.admissions.fields.requestedClass')}</label>
-            <select
-              id="requested_class_id"
-              className="input"
-              value={form.requested_class_id ?? ''}
-              onChange={(e) =>
-                updateField('requested_class_id', e.target.value ? Number(e.target.value) : undefined)
-              }
-            >
-              <option value="">{t('admin.admissions.create.selectClass')}</option>
-              {classes.map((cls) => (
-                <option key={cls.id} value={cls.id}>
-                  {cls.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          {showStreamField ? (
+            <div className="field">
+              <label htmlFor="requested_stream_id">{t('admin.admissions.fields.stream')}</label>
+              <select
+                id="requested_stream_id"
+                className="input"
+                value={form.requested_stream_id ?? ''}
+                onChange={(e) =>
+                  updateField(
+                    'requested_stream_id',
+                    e.target.value ? Number(e.target.value) : undefined,
+                  )
+                }
+                disabled={admissionOptionsState.loading}
+                required
+              >
+                <option value="">{t('admin.admissions.create.selectStream')}</option>
+                {filteredStreams.map((stream) => (
+                  <option key={stream.id} value={stream.id}>
+                    {stream.name}
+                  </option>
+                ))}
+              </select>
+              <p className="tiny muted">{t('admin.admissions.create.streamRequiredHint')}</p>
+            </div>
+          ) : null}
         </FormSection>
 
         <FormSection title={t('admin.admissions.create.guardianSection')}>
@@ -309,7 +418,7 @@ export function AdmissionCreatePage() {
             <input
               id="guardian_name"
               className="input"
-              value={form.guardian_name ?? ''}
+              value={form.guardian_name}
               onChange={(e) => updateField('guardian_name', e.target.value)}
             />
           </div>
@@ -319,19 +428,35 @@ export function AdmissionCreatePage() {
               id="guardian_phone"
               className="input"
               dir="ltr"
-              value={form.guardian_phone ?? ''}
+              value={form.guardian_phone}
               onChange={(e) => updateField('guardian_phone', e.target.value)}
             />
           </div>
           <div className="field">
-            <label htmlFor="guardian_whatsapp">{t('admin.admissions.fields.guardianWhatsapp')}</label>
-            <input
-              id="guardian_whatsapp"
-              className="input"
-              dir="ltr"
-              value={form.guardian_whatsapp ?? ''}
-              onChange={(e) => updateField('guardian_whatsapp', e.target.value)}
-            />
+            <label htmlFor="guardian_relationship">{t('admin.admissions.fields.relationship')}</label>
+            {relationshipLoadFailed ? (
+              <p className="tiny muted" role="status">
+                {t('admin.admissions.create.relationshipLoadError')}
+              </p>
+            ) : (
+              <select
+                id="guardian_relationship"
+                className="input"
+                value={form.guardian_relationship}
+                onChange={(e) => updateField('guardian_relationship', e.target.value)}
+                disabled={admissionOptionsState.loading}
+              >
+                <option value="">{t('admin.admissions.create.selectRelationship')}</option>
+                {(admissionOptionsState.options?.relationships ?? []).map((rel) => {
+                  const value = String(rel.value ?? rel.id ?? '');
+                  return (
+                    <option key={value} value={value}>
+                      {rel.label}
+                    </option>
+                  );
+                })}
+              </select>
+            )}
           </div>
           <div className="field">
             <label htmlFor="guardian_email">{t('admin.admissions.fields.guardianEmail')}</label>
@@ -340,27 +465,41 @@ export function AdmissionCreatePage() {
               type="email"
               className="input"
               dir="ltr"
-              value={form.guardian_email ?? ''}
+              value={form.guardian_email}
               onChange={(e) => updateField('guardian_email', e.target.value)}
-            />
-          </div>
-          <div className="field">
-            <label htmlFor="relationship">{t('admin.admissions.fields.relationship')}</label>
-            <input
-              id="relationship"
-              className="input"
-              value={form.relationship ?? ''}
-              onChange={(e) => updateField('relationship', e.target.value)}
             />
           </div>
         </FormSection>
 
         <FormSection title={t('admin.admissions.create.followUpSection')}>
+          <div className="field">
+            <label htmlFor="source_id">{t('admin.admissions.fields.source')}</label>
+            <select
+              id="source_id"
+              className="input"
+              value={form.source_id ?? ''}
+              onChange={(e) =>
+                updateField('source_id', e.target.value ? Number(e.target.value) : undefined)
+              }
+              disabled={admissionOptionsState.loading}
+            >
+              <option value="">{t('admin.admissions.create.selectSource')}</option>
+              {(admissionOptionsState.options?.sources ?? []).map((source) => {
+                const id = admissionOptionId(source);
+                if (id == null) return null;
+                return (
+                  <option key={id} value={id}>
+                    {source.label}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
           <DateField
             id="first_contact_date"
-            label={t('admin.admissions.fields.firstContactDate')}
+            label={t('admin.admissions.fields.firstVisitDate')}
             placeholder={datePlaceholder}
-            value={form.first_contact_date ?? ''}
+            value={form.first_contact_date}
             onChange={(value) => updateField('first_contact_date', value)}
           />
           <div className="field">
@@ -368,7 +507,7 @@ export function AdmissionCreatePage() {
             <input
               id="next_action"
               className="input"
-              value={form.next_action ?? ''}
+              value={form.next_action}
               onChange={(e) => updateField('next_action', e.target.value)}
             />
           </div>
@@ -376,7 +515,7 @@ export function AdmissionCreatePage() {
             id="next_action_date"
             label={t('admin.admissions.fields.nextActionDate')}
             placeholder={datePlaceholder}
-            value={form.next_action_date ?? ''}
+            value={form.next_action_date}
             onChange={(value) => updateField('next_action_date', value)}
           />
         </FormSection>
@@ -389,7 +528,7 @@ export function AdmissionCreatePage() {
               id="internal_notes"
               className="input"
               rows={3}
-              value={form.internal_notes ?? ''}
+              value={form.internal_notes}
               onChange={(e) => updateField('internal_notes', e.target.value)}
             />
           </div>

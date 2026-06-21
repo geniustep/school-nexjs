@@ -1,9 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { EmptyState } from '@/components/states/states';
 import { cn } from '@/lib/utils/cn';
-import { useT } from '@/features/i18n/locale-context';
+import { useLocale, useT } from '@/features/i18n/locale-context';
 import { ACTIVE_KANBAN_STATES, CLOSED_KANBAN_STATES } from '../utils/admission-labels';
 import { useAdmissionStateChange } from '../hooks/use-admission-state-change';
 import {
@@ -13,6 +13,13 @@ import {
   readAdmissionCardDragPayload,
 } from './admission-card';
 import type { AdmissionListItem } from '@/types/admission';
+
+const SCROLL_STEP = 300;
+
+function scrollToBoardStart(el: HTMLElement, dir: 'rtl' | 'ltr') {
+  const max = Math.max(0, el.scrollWidth - el.clientWidth);
+  el.scrollLeft = dir === 'rtl' ? max : 0;
+}
 
 export function AdmissionsKanban({
   items,
@@ -24,6 +31,8 @@ export function AdmissionsKanban({
   onUpdated?: () => void;
 }) {
   const t = useT();
+  const { dir } = useLocale();
+  const scrollRef = useRef<HTMLDivElement>(null);
   const columns = showClosed
     ? [...ACTIVE_KANBAN_STATES, ...CLOSED_KANBAN_STATES]
     : ACTIVE_KANBAN_STATES;
@@ -31,6 +40,8 @@ export function AdmissionsKanban({
   const [localItems, setLocalItems] = useState(items);
   const [draggingId, setDraggingId] = useState<number | null>(null);
   const [dropTargetState, setDropTargetState] = useState<string | null>(null);
+  const [canScrollBack, setCanScrollBack] = useState(false);
+  const [canScrollForward, setCanScrollForward] = useState(false);
   const { changeState, isPending } = useAdmissionStateChange(onUpdated);
 
   useEffect(() => {
@@ -45,6 +56,50 @@ export function AdmissionsKanban({
       })),
     [columns, localItems],
   );
+
+  const updateScrollEdges = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const max = Math.max(0, el.scrollWidth - el.clientWidth);
+    const pos = el.scrollLeft;
+    if (dir === 'rtl') {
+      setCanScrollBack(pos < max - 2);
+      setCanScrollForward(pos > 2);
+    } else {
+      setCanScrollBack(pos > 2);
+      setCanScrollForward(pos < max - 2);
+    }
+  }, [dir]);
+
+  const resetScrollPosition = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    scrollToBoardStart(el, dir);
+    requestAnimationFrame(updateScrollEdges);
+  }, [dir, updateScrollEdges]);
+
+  useEffect(() => {
+    resetScrollPosition();
+  }, [columns.length, showClosed, dir, resetScrollPosition]);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const onScroll = () => updateScrollEdges();
+    const ro = new ResizeObserver(() => {
+      updateScrollEdges();
+    });
+
+    el.addEventListener('scroll', onScroll, { passive: true });
+    ro.observe(el);
+    updateScrollEdges();
+
+    return () => {
+      el.removeEventListener('scroll', onScroll);
+      ro.disconnect();
+    };
+  }, [dir, resetScrollPosition, updateScrollEdges]);
 
   const moveItem = useCallback(
     async (admissionId: number, nextState: string) => {
@@ -61,6 +116,13 @@ export function AdmissionsKanban({
     },
     [changeState, localItems],
   );
+
+  function scrollByStep(direction: -1 | 1) {
+    const el = scrollRef.current;
+    if (!el) return;
+    const step = dir === 'rtl' ? -direction * SCROLL_STEP : direction * SCROLL_STEP;
+    el.scrollBy({ left: step, behavior: 'smooth' });
+  }
 
   function handleDragStart(event: React.DragEvent<HTMLDivElement>, admissionId: number) {
     event.dataTransfer.setData(ADMISSION_CARD_DRAG_MIME, admissionCardDragPayload(admissionId));
@@ -99,47 +161,98 @@ export function AdmissionsKanban({
     );
   }
 
+  const firstColumnLabel = t(`admin.admissions.states.${columns[0]}`);
+
   return (
-    <div className="admissions-kanban-scroll">
-      <p className="admissions-kanban-hint muted">{t('admin.admissions.kanban.dragHint')}</p>
-      <div className="admissions-kanban">
-        {grouped.map(({ state, items: columnItems }) => (
-          <section
-            key={state}
-            className={cn(
-              'admissions-kanban__column',
-              dropTargetState === state && 'admissions-kanban__column--drop-target',
-            )}
-            aria-label={t(`admin.admissions.states.${state}`)}
-            onDragOver={(event) => handleDragOver(event, state)}
-            onDragLeave={() => setDropTargetState((prev) => (prev === state ? null : prev))}
-            onDrop={(event) => handleDrop(event, state)}
+    <div className="admissions-kanban-outer">
+      <div className="admissions-kanban-board">
+        <div className="admissions-kanban-board__head">
+          <p className="admissions-kanban-hint muted">{t('admin.admissions.kanban.dragHint')}</p>
+          {canScrollForward ? (
+            <p className="admissions-kanban-scroll-hint muted">{t('admin.admissions.kanban.scrollHint')}</p>
+          ) : null}
+        </div>
+
+        <div
+          className={cn(
+            'admissions-kanban-viewport',
+            canScrollBack && 'admissions-kanban-viewport--fade-start',
+            canScrollForward && 'admissions-kanban-viewport--fade-end',
+          )}
+          data-dir={dir}
+        >
+          <button
+            type="button"
+            className="admissions-kanban-scroll-btn admissions-kanban-scroll-btn--back"
+            aria-label={t('admin.admissions.kanban.scrollBack')}
+            hidden={!canScrollBack}
+            onClick={() => scrollByStep(-1)}
           >
-            <header className="admissions-kanban__column-header">
-              <span className="admissions-kanban__column-title">
-                {t(`admin.admissions.states.${state}`)}
-              </span>
-              <span className="admissions-kanban__column-count">{columnItems.length}</span>
-            </header>
-            <div className="admissions-kanban__column-body">
-              {columnItems.length === 0 ? (
-                <p className="admissions-kanban__empty">{t('admin.admissions.kanban.emptyColumn')}</p>
-              ) : (
-                columnItems.map((item) => (
-                  <AdmissionCard
-                    key={item.id}
-                    item={item}
-                    draggable
-                    isDragging={draggingId === item.id}
-                    isSaving={isPending(item.id)}
-                    onDragStart={(event) => handleDragStart(event, item.id)}
-                    onDragEnd={handleDragEnd}
-                  />
-                ))
-              )}
+            ‹
+          </button>
+
+          <div
+            ref={scrollRef}
+            className="admissions-kanban-scroll"
+            aria-label={t('admin.admissions.kanban.boardLabel')}
+          >
+            <div className="admissions-kanban" data-pipeline-start={firstColumnLabel} data-dir={dir}>
+              {grouped.map(({ state, items: columnItems }) => (
+                <section
+                  key={state}
+                  className={cn(
+                    'admissions-kanban__column',
+                    state === columns[0] && 'admissions-kanban__column--first',
+                    dropTargetState === state && 'admissions-kanban__column--drop-target',
+                  )}
+                  aria-label={t(`admin.admissions.states.${state}`)}
+                  onDragOver={(event) => handleDragOver(event, state)}
+                  onDragLeave={() => setDropTargetState((prev) => (prev === state ? null : prev))}
+                  onDrop={(event) => handleDrop(event, state)}
+                >
+                  <header className="admissions-kanban__column-header">
+                    <div className="admissions-kanban__column-heading">
+                      <span className="admissions-kanban__column-title">
+                        {t(`admin.admissions.states.${state}`)}
+                      </span>
+                      <span className="admissions-kanban__column-count" aria-hidden="true">
+                        {columnItems.length}
+                      </span>
+                    </div>
+                  </header>
+                  <div className="admissions-kanban__column-body">
+                    {columnItems.length === 0 ? (
+                      <p className="admissions-kanban__empty">{t('admin.admissions.kanban.emptyColumn')}</p>
+                    ) : (
+                      columnItems.map((item) => (
+                        <AdmissionCard
+                          key={item.id}
+                          item={item}
+                          draggable
+                          showStateBadge={false}
+                          isDragging={draggingId === item.id}
+                          isSaving={isPending(item.id)}
+                          onDragStart={(event) => handleDragStart(event, item.id)}
+                          onDragEnd={handleDragEnd}
+                        />
+                      ))
+                    )}
+                  </div>
+                </section>
+              ))}
             </div>
-          </section>
-        ))}
+          </div>
+
+          <button
+            type="button"
+            className="admissions-kanban-scroll-btn admissions-kanban-scroll-btn--forward"
+            aria-label={t('admin.admissions.kanban.scrollForward')}
+            hidden={!canScrollForward}
+            onClick={() => scrollByStep(1)}
+          >
+            ›
+          </button>
+        </div>
       </div>
     </div>
   );

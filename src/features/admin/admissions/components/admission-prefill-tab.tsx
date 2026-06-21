@@ -29,8 +29,8 @@ function PrefillSection({
     <section className="card admissions-prefill-block">
       <h3 className="admissions-prefill-block__title">{title}</h3>
       <dl className="admissions-prefill-block__dl">
-        {rows.map(({ label, value, dir }) => (
-          <div key={label} className="admissions-prefill-block__row">
+        {rows.map(({ fieldKey, label, value, dir }) => (
+          <div key={fieldKey} className="admissions-prefill-block__row">
             <dt>{label}</dt>
             <dd dir={dir}>{value}</dd>
           </div>

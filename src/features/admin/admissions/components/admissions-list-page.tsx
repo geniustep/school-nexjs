@@ -65,6 +65,18 @@ export function AdmissionsListPage() {
     dashboardState.reload();
   }
 
+  function handleKpiClick(key: keyof AdmissionsDashboard) {
+    if (key === 'total_open') {
+      setStateFilter('');
+      setShowClosed(false);
+      return;
+    }
+    if (key === 'lost_count') {
+      setStateFilter('lost');
+      setShowClosed(true);
+    }
+  }
+
   return (
     <div className="admissions-page admissions-list-page">
       <header className="admissions-list-header">
@@ -91,7 +103,7 @@ export function AdmissionsListPage() {
               </button>
             </div>
           ) : null}
-          <AdmissionsDashboardSummary data={dashboardData} />
+          <AdmissionsDashboardSummary data={dashboardData} onKpiClick={handleKpiClick} />
         </>
       ) : dashboardState.loading && dashboardApiEnabled ? (
         <div className="muted">{t('common.loading')}</div>
