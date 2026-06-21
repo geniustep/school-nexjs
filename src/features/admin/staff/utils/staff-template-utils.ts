@@ -27,6 +27,23 @@ function normalizeStringArray(raw: unknown): string[] {
     .map((value) => value.trim());
 }
 
+function normalizeBundleCodeList(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  const codes: string[] = [];
+  for (const entry of raw) {
+    if (typeof entry === 'string' && entry.trim()) {
+      codes.push(entry.trim());
+      continue;
+    }
+    if (!entry || typeof entry !== 'object') continue;
+    const code = (entry as { code?: unknown }).code;
+    if (typeof code === 'string' && code.trim()) {
+      codes.push(code.trim());
+    }
+  }
+  return uniqueStrings(codes);
+}
+
 function uniqueStrings(values: string[]): string[] {
   return [...new Set(values)];
 }
@@ -36,18 +53,78 @@ export function normalizeStaffTemplateBundleSelection(raw: unknown): StaffTempla
   const item = raw as Record<string, unknown>;
   const selection: StaffTemplateBundleSelection = {
     policy: typeof item.policy === 'string' ? item.policy.trim() : undefined,
-    default_bundle_codes: normalizeStringArray(item.default_bundle_codes),
-    required_bundle_codes: normalizeStringArray(item.required_bundle_codes),
-    optional_bundle_codes: normalizeStringArray(item.optional_bundle_codes),
-    removable_bundle_codes: normalizeStringArray(item.removable_bundle_codes),
-    available_bundle_codes: normalizeStringArray(item.available_bundle_codes),
-    forbidden_bundle_codes: normalizeStringArray(item.forbidden_bundle_codes),
+    default_bundle_codes: normalizeBundleCodeList(item.default_bundle_codes),
+    required_bundle_codes: normalizeBundleCodeList(item.required_bundle_codes),
+    optional_bundle_codes: normalizeBundleCodeList(item.optional_bundle_codes),
+    removable_bundle_codes: normalizeBundleCodeList(item.removable_bundle_codes),
+    available_bundle_codes: normalizeBundleCodeList(item.available_bundle_codes),
+    forbidden_bundle_codes: normalizeBundleCodeList(item.forbidden_bundle_codes),
   };
 
   const hasValues = Object.values(selection).some((value) =>
     Array.isArray(value) ? value.length > 0 : Boolean(value),
   );
   return hasValues ? selection : null;
+}
+
+export function unionStaffTemplateBundleSelection(
+  base: StaffTemplateBundleSelection | null | undefined,
+  overlay: StaffTemplateBundleSelection | null | undefined,
+): StaffTemplateBundleSelection | null {
+  if (!base && !overlay) return null;
+
+  const merged: StaffTemplateBundleSelection = {
+    policy: overlay?.policy ?? base?.policy,
+    default_bundle_codes: overlay?.default_bundle_codes?.length
+      ? overlay.default_bundle_codes
+      : base?.default_bundle_codes,
+    required_bundle_codes: uniqueStrings([
+      ...(base?.required_bundle_codes ?? []),
+      ...(overlay?.required_bundle_codes ?? []),
+    ]),
+    optional_bundle_codes: uniqueStrings([
+      ...(base?.optional_bundle_codes ?? []),
+      ...(overlay?.optional_bundle_codes ?? []),
+    ]),
+    available_bundle_codes: uniqueStrings([
+      ...(base?.available_bundle_codes ?? []),
+      ...(overlay?.available_bundle_codes ?? []),
+    ]),
+    removable_bundle_codes: uniqueStrings([
+      ...(base?.removable_bundle_codes ?? []),
+      ...(overlay?.removable_bundle_codes ?? []),
+      ...(base?.optional_bundle_codes ?? []),
+      ...(base?.available_bundle_codes ?? []),
+      ...(overlay?.optional_bundle_codes ?? []),
+      ...(overlay?.available_bundle_codes ?? []),
+    ]),
+    forbidden_bundle_codes: uniqueStrings([
+      ...(base?.forbidden_bundle_codes ?? []),
+      ...(overlay?.forbidden_bundle_codes ?? []),
+    ]),
+  };
+
+  const hasValues = Object.values(merged).some((value) =>
+    Array.isArray(value) ? value.length > 0 : Boolean(value),
+  );
+  return hasValues ? merged : null;
+}
+
+export function resolveStaffTemplateForBundleEditor(
+  template: StaffCreationTemplate | null | undefined,
+  preview: StaffTemplatePreview | null | undefined,
+): StaffCreationTemplate | null {
+  if (!template) return null;
+  const previewSelection = preview?.bundle_selection;
+  if (!previewSelection) return template;
+
+  const bundle_selection = unionStaffTemplateBundleSelection(
+    template.bundle_selection,
+    previewSelection,
+  );
+  if (!bundle_selection) return template;
+
+  return { ...template, bundle_selection };
 }
 
 export function mergeStaffTemplateBundleSelection(
@@ -65,20 +142,20 @@ export function mergeStaffTemplateBundleSelection(
         ? normalizeStringArray(templateRaw.required_bundle_codes)
         : bundleSelection?.required_bundle_codes,
     optional_bundle_codes:
-      normalizeStringArray(templateRaw.optional_bundle_codes).length > 0
-        ? normalizeStringArray(templateRaw.optional_bundle_codes)
+      normalizeBundleCodeList(templateRaw.optional_bundle_codes).length > 0
+        ? normalizeBundleCodeList(templateRaw.optional_bundle_codes)
         : bundleSelection?.optional_bundle_codes,
     removable_bundle_codes:
-      normalizeStringArray(templateRaw.removable_bundle_codes).length > 0
-        ? normalizeStringArray(templateRaw.removable_bundle_codes)
+      normalizeBundleCodeList(templateRaw.removable_bundle_codes).length > 0
+        ? normalizeBundleCodeList(templateRaw.removable_bundle_codes)
         : bundleSelection?.removable_bundle_codes,
     available_bundle_codes:
-      normalizeStringArray(templateRaw.available_bundle_codes).length > 0
-        ? normalizeStringArray(templateRaw.available_bundle_codes)
+      normalizeBundleCodeList(templateRaw.available_bundle_codes).length > 0
+        ? normalizeBundleCodeList(templateRaw.available_bundle_codes)
         : bundleSelection?.available_bundle_codes,
     forbidden_bundle_codes:
-      normalizeStringArray(templateRaw.forbidden_bundle_codes).length > 0
-        ? normalizeStringArray(templateRaw.forbidden_bundle_codes)
+      normalizeBundleCodeList(templateRaw.forbidden_bundle_codes).length > 0
+        ? normalizeBundleCodeList(templateRaw.forbidden_bundle_codes)
         : bundleSelection?.forbidden_bundle_codes,
   };
 
@@ -230,6 +307,10 @@ export function normalizeStaffTemplatePreview(raw: unknown): StaffTemplatePrevie
 
   const warnings = Array.isArray(item.warnings) ? item.warnings : [];
 
+  const bundle_selection = normalizeStaffTemplateBundleSelection(
+    item.bundle_policy ?? item.bundle_selection,
+  );
+
   const scopeRaw = item.scope;
   const scope =
     scopeRaw && typeof scopeRaw === 'object'
@@ -258,6 +339,7 @@ export function normalizeStaffTemplatePreview(raw: unknown): StaffTemplatePrevie
     warnings,
     forbidden_capabilities,
     forbidden_capability_items,
+    bundle_selection: bundle_selection ?? undefined,
   };
 }
 
@@ -353,11 +435,26 @@ export function isStaffTemplateBundleRemovable(
   code: string,
 ): boolean {
   if (!template) return false;
-  const required = resolveRequiredBundleCodes(template);
-  if (required.includes(code)) return false;
+  if (resolveRequiredBundleCodes(template).includes(code)) return false;
+
+  if (resolveStaffTemplateOptionalBundlePool(template).includes(code)) return true;
+
   const removable = template.bundle_selection?.removable_bundle_codes ?? [];
-  if (removable.length) return removable.includes(code);
-  return !required.includes(code);
+  if (removable.includes(code)) return true;
+  if (removable.length > 0) return false;
+
+  return true;
+}
+
+export function resolveStaffTemplateOptionalBundlePool(
+  template: StaffCreationTemplate | null | undefined,
+): string[] {
+  if (!template) return [];
+  const selection = template.bundle_selection;
+  return uniqueStrings([
+    ...(selection?.available_bundle_codes ?? []),
+    ...(selection?.optional_bundle_codes ?? []),
+  ]);
 }
 
 export function resolveAddableStaffTemplateBundleCodes(
@@ -365,13 +462,9 @@ export function resolveAddableStaffTemplateBundleCodes(
   selectedBundleCodes: string[],
 ): string[] {
   if (!template) return [];
-  const selection = template.bundle_selection;
   const selected = new Set(selectedBundleCodes);
-  const forbidden = new Set(selection?.forbidden_bundle_codes ?? []);
-  const pool = uniqueStrings([
-    ...(selection?.available_bundle_codes ?? []),
-    ...(selection?.optional_bundle_codes ?? []),
-  ]);
+  const forbidden = new Set(resolveForbiddenStaffTemplateBundleCodes(template));
+  const pool = resolveStaffTemplateOptionalBundlePool(template);
   return pool.filter((code) => !selected.has(code) && !forbidden.has(code));
 }
 
@@ -659,6 +752,15 @@ export function resolveStaffTemplateBundleLabel(
   const label = t(key);
   if (label !== key) return label;
   return formatStaffTemplateDisplayToken(code);
+}
+
+export function resolveStaffTemplateAddBundleActionLabel(
+  code: string,
+  t: (key: string, params?: Record<string, string | number>) => string,
+): string {
+  return t('admin.staffCenter.smartCreate.addBundleNamedAction', {
+    name: resolveStaffTemplateBundleLabel(code, t),
+  });
 }
 
 export function splitStaffTemplateDisplayList<T>(

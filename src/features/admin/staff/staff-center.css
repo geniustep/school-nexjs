@@ -345,8 +345,24 @@
   padding: 0 0.15rem;
 }
 
-.staff-smart-create__bundle-add-picker {
-  max-width: 24rem;
+.staff-smart-create__bundle-group--addable {
+  padding: 0.75rem;
+  border-radius: 0.65rem;
+  background: color-mix(in srgb, var(--primary-soft, #dbeafe) 35%, var(--surface, #fff));
+  border: 1px solid color-mix(in srgb, var(--primary, #2563eb) 18%, var(--border, #e2e8f0));
+}
+
+.staff-smart-create__bundle-add-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.staff-smart-create__bundle-add-btn {
+  white-space: nowrap;
 }
 
 .staff-smart-create__bundle-group--forbidden {

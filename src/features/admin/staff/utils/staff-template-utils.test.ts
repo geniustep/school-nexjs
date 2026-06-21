@@ -15,7 +15,11 @@ import {
   payloadContainsForbiddenClientFields,
   resolveAddableStaffTemplateBundleCodes,
   resolveInitialSelectedBundleCodes,
+  isStaffTemplateBundleRemovable,
+  resolveStaffTemplateAddBundleActionLabel,
   resolveStaffTemplateBundleLabel,
+  resolveStaffTemplateForBundleEditor,
+  unionStaffTemplateBundleSelection,
   resolveStaffTemplateCapabilityItems,
   resolveStaffTemplateCapabilityLabel,
   splitStaffTemplateDisplayList,
@@ -61,6 +65,56 @@ describe('staff-template-utils', () => {
       'finance_receipts',
       'cashdesk',
     ]);
+  });
+
+  it('reads available bundles from bundle_policy and forbidden object codes', () => {
+    const template = normalizeStaffCreationTemplate({
+      code: 'accountant_collections',
+      name: 'Accountant',
+      bundle_policy: {
+        default_bundle_codes: ['finance_collections', 'finance_receipts', 'cashdesk'],
+        optional_bundle_codes: ['finance_cheques'],
+        available_bundle_codes: ['finance_cheques'],
+        forbidden_bundle_codes: [{ code: 'hr_payroll', reason: 'Not allowed' }],
+      },
+    })!;
+    expect(template.bundle_selection?.available_bundle_codes).toEqual(['finance_cheques']);
+    expect(template.bundle_selection?.optional_bundle_codes).toEqual(['finance_cheques']);
+    expect(template.bundle_selection?.forbidden_bundle_codes).toEqual(['hr_payroll']);
+    expect(
+      resolveAddableStaffTemplateBundleCodes(template, [
+        'finance_collections',
+        'finance_receipts',
+        'cashdesk',
+      ]),
+    ).toEqual(['finance_cheques']);
+  });
+
+  it('shows localized add action label without raw bundle code', () => {
+    const translate = (key: string, params?: Record<string, string | number>) => {
+      if (key === 'admin.staffCenter.smartCreate.bundles.finance_cheques') return 'الشيكات';
+      if (key === 'admin.staffCenter.smartCreate.addBundleNamedAction') return `إضافة ${params?.name ?? ''}`;
+      return key;
+    };
+    expect(resolveStaffTemplateAddBundleActionLabel('finance_cheques', translate)).toBe('إضافة الشيكات');
+    expect(resolveStaffTemplateAddBundleActionLabel('finance_cheques', translate)).not.toContain('finance_cheques');
+  });
+
+  it('returns removed optional bundle to addable pool', () => {
+    const template = normalizeStaffCreationTemplate({
+      code: 'accountant_collections',
+      name: 'Accountant',
+      bundle_selection: {
+        available_bundle_codes: ['finance_cheques'],
+        optional_bundle_codes: ['finance_cheques'],
+        removable_bundle_codes: ['cashdesk'],
+      },
+    })!;
+    const withCheques = ['finance_collections', 'finance_receipts', 'cashdesk', 'finance_cheques'];
+    const withoutCheques = ['finance_collections', 'finance_receipts', 'cashdesk'];
+    expect(isStaffTemplateBundleRemovable(template, 'finance_cheques')).toBe(true);
+    expect(resolveAddableStaffTemplateBundleCodes(template, withCheques)).toEqual([]);
+    expect(resolveAddableStaffTemplateBundleCodes(template, withoutCheques)).toEqual(['finance_cheques']);
   });
 
   it('groups templates by main position', () => {
@@ -264,5 +318,69 @@ describe('staff-template-utils', () => {
         required_bundle_codes: ['teaching'],
       })?.required_bundle_codes,
     ).toEqual(['teaching']);
+  });
+
+  it('treats optional bundles as removable even when missing from removable_bundle_codes', () => {
+    const template = normalizeStaffCreationTemplate({
+      code: 'accountant_collections',
+      name: 'Accountant',
+      bundle_selection: {
+        required_bundle_codes: ['finance_collections'],
+        optional_bundle_codes: ['finance_cheques'],
+        available_bundle_codes: ['finance_cheques'],
+        removable_bundle_codes: ['finance_receipts', 'cashdesk'],
+      },
+    })!;
+    expect(isStaffTemplateBundleRemovable(template, 'finance_cheques')).toBe(true);
+    expect(isStaffTemplateBundleRemovable(template, 'finance_collections')).toBe(false);
+    expect(isStaffTemplateBundleRemovable(template, 'cashdesk')).toBe(true);
+  });
+
+  it('blocks default bundles not marked optional or removable when removable list exists', () => {
+    const template = normalizeStaffCreationTemplate({
+      code: 'custom',
+      name: 'Custom',
+      bundle_selection: {
+        required_bundle_codes: ['core'],
+        default_bundle_codes: ['core', 'extra_default'],
+        removable_bundle_codes: ['other'],
+      },
+    })!;
+    expect(isStaffTemplateBundleRemovable(template, 'extra_default')).toBe(false);
+    expect(isStaffTemplateBundleRemovable(template, 'other')).toBe(true);
+  });
+
+  it('preserves base optional bundles when merging preview bundle policy', () => {
+    const base = normalizeStaffCreationTemplate({
+      code: 'accountant_collections',
+      name: 'Accountant',
+      bundle_selection: {
+        optional_bundle_codes: ['finance_cheques'],
+        available_bundle_codes: ['finance_cheques'],
+      },
+    })!;
+    const preview: StaffTemplatePreview = {
+      allowed_to_create: true,
+      bundle_selection: {
+        removable_bundle_codes: ['cashdesk'],
+      },
+    };
+    const merged = resolveStaffTemplateForBundleEditor(base, preview)!;
+    expect(merged.bundle_selection?.optional_bundle_codes).toEqual(['finance_cheques']);
+    expect(isStaffTemplateBundleRemovable(merged, 'finance_cheques')).toBe(true);
+    expect(
+      unionStaffTemplateBundleSelection(base.bundle_selection, preview.bundle_selection)
+        ?.optional_bundle_codes,
+    ).toEqual(['finance_cheques']);
+  });
+
+  it('normalizes preview bundle_policy without dropping optional metadata', () => {
+    const preview = normalizeStaffTemplatePreview({
+      allowed_to_create: true,
+      bundle_policy: {
+        removable_bundle_codes: ['cashdesk'],
+      },
+    });
+    expect(preview?.bundle_selection?.removable_bundle_codes).toEqual(['cashdesk']);
   });
 });

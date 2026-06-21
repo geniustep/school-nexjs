@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useT } from '@/features/i18n/locale-context';
 import {
   isStaffTemplateBundleRemovable,
@@ -8,7 +8,9 @@ import {
   resolveForbiddenStaffTemplateBundleCodes,
   resolveRequiredBundleCodes,
   resolveSelectedEditableBundleCodes,
+  resolveStaffTemplateAddBundleActionLabel,
   resolveStaffTemplateBundleLabel,
+  resolveStaffTemplateOptionalBundlePool,
 } from '@/features/admin/staff/utils/staff-template-utils';
 import type { StaffCreationTemplate } from '@/types/staff-templates';
 
@@ -24,13 +26,13 @@ export function StaffTemplateBundleEditor({
   onChange: (next: string[]) => void;
 }) {
   const t = useT();
-  const [pickerOpen, setPickerOpen] = useState(false);
 
   const requiredCodes = useMemo(() => resolveRequiredBundleCodes(template), [template]);
   const editableCodes = useMemo(
     () => resolveSelectedEditableBundleCodes(template, selectedBundleCodes),
     [template, selectedBundleCodes],
   );
+  const optionalPool = useMemo(() => resolveStaffTemplateOptionalBundlePool(template), [template]);
   const addableCodes = useMemo(
     () => resolveAddableStaffTemplateBundleCodes(template, selectedBundleCodes),
     [template, selectedBundleCodes],
@@ -45,8 +47,12 @@ export function StaffTemplateBundleEditor({
   function addBundle(code: string) {
     if (!code || selectedBundleCodes.includes(code)) return;
     onChange([...selectedBundleCodes, code]);
-    setPickerOpen(false);
   }
+
+  const emptyAddableMessage =
+    optionalPool.length === 0
+      ? t('admin.staffCenter.smartCreate.templateNoExtraBundlesDesc')
+      : t('admin.staffCenter.smartCreate.noAddableBundlesDesc');
 
   return (
     <section className="staff-smart-create__section-card staff-smart-create__bundle-editor">
@@ -101,40 +107,29 @@ export function StaffTemplateBundleEditor({
         )}
       </div>
 
-      {addableCodes.length ? (
-        <div className="staff-smart-create__bundle-add">
-          {!pickerOpen ? (
-            <button
-              type="button"
-              className="btn btn--ghost btn--sm"
-              disabled={disabled}
-              onClick={() => setPickerOpen(true)}
-            >
-              {t('admin.staffCenter.smartCreate.addBundleAction')}
-            </button>
-          ) : (
-            <label className="staff-smart-create__field staff-smart-create__bundle-add-picker">
-              <span className="tiny muted">{t('admin.staffCenter.smartCreate.addBundleAction')}</span>
-              <select
-                className="input"
-                defaultValue=""
-                disabled={disabled}
-                onChange={(event) => {
-                  if (event.target.value) addBundle(event.target.value);
-                  event.target.value = '';
-                }}
-              >
-                <option value="">{t('admin.staffCenter.smartCreate.addBundlePlaceholder')}</option>
-                {addableCodes.map((code) => (
-                  <option key={code} value={code}>
-                    {resolveStaffTemplateBundleLabel(code, t)}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
-        </div>
-      ) : null}
+      <div className="staff-smart-create__bundle-group staff-smart-create__bundle-group--addable">
+        <h4 className="staff-smart-create__bundle-group-title">
+          {t('admin.staffCenter.smartCreate.availableBundlesTitle')}
+        </h4>
+        {addableCodes.length ? (
+          <ul className="staff-smart-create__bundle-add-actions">
+            {addableCodes.map((code) => (
+              <li key={code}>
+                <button
+                  type="button"
+                  className="btn btn--secondary btn--sm staff-smart-create__bundle-add-btn"
+                  disabled={disabled}
+                  onClick={() => addBundle(code)}
+                >
+                  {resolveStaffTemplateAddBundleActionLabel(code, t)}
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="tiny muted">{emptyAddableMessage}</p>
+        )}
+      </div>
 
       {forbiddenCodes.length ? (
         <div className="staff-smart-create__bundle-group staff-smart-create__bundle-group--forbidden">

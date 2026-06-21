@@ -66,6 +66,7 @@ export interface StaffTemplatePreview {
   warnings?: (string | ApiWarning)[];
   forbidden_capabilities?: string[];
   forbidden_capability_items?: StaffTemplateCapabilityItem[];
+  bundle_selection?: StaffTemplateBundleSelection;
 }
 
 export interface StaffTemplatePersonInput {

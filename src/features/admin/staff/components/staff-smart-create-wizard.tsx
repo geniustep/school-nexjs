@@ -31,6 +31,7 @@ import {
   isUserFacingStaffTemplateError,
   resolveInitialSelectedBundleCodes,
   resolveStaffTemplateAccountLogin,
+  resolveStaffTemplateForBundleEditor,
   templateAllowsCreate,
   templateRequiresAssignments,
   validateStaffTemplateAssignments,
@@ -90,6 +91,11 @@ export function StaffSmartCreateWizard() {
   const selectedTemplate = useMemo(
     () => templatesState.templates.find((item) => item.code === form.templateCode) ?? null,
     [templatesState.templates, form.templateCode],
+  );
+
+  const bundleEditorTemplate = useMemo(
+    () => resolveStaffTemplateForBundleEditor(selectedTemplate, preview),
+    [selectedTemplate, preview],
   );
 
   const passwordPolicy = normalizeStaffPasswordPolicy(staffOptionsState.options?.password_policy);
@@ -320,7 +326,7 @@ export function StaffSmartCreateWizard() {
     [templatesState],
   );
 
-  const showBundleEditor = !!selectedTemplate;
+  const showBundleEditor = !!bundleEditorTemplate;
 
   return (
     <div className="admin-workspace staff-center-page staff-smart-create">
@@ -527,7 +533,7 @@ export function StaffSmartCreateWizard() {
 
               {showBundleEditor ? (
                 <StaffTemplateBundleEditor
-                  template={selectedTemplate}
+                  template={bundleEditorTemplate!}
                   selectedBundleCodes={form.selectedBundleCodes}
                   disabled={previewLoading || saving}
                   onChange={(selectedBundleCodes) =>
@@ -572,7 +578,7 @@ export function StaffSmartCreateWizard() {
             <div className="staff-smart-create__review">
               {showBundleEditor ? (
                 <StaffTemplateBundleEditor
-                  template={selectedTemplate}
+                  template={bundleEditorTemplate!}
                   selectedBundleCodes={form.selectedBundleCodes}
                   disabled={previewLoading || saving}
                   onChange={(selectedBundleCodes) =>
