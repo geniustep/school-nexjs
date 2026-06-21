@@ -234,6 +234,105 @@ h4 {
   flex-shrink: 0;
 }
 
+/* Admin sidebar — grouped collapsible navigation */
+.sidebar--admin .sidebar__nav {
+  padding: 6px 8px 10px;
+  scroll-behavior: smooth;
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
+}
+
+.sidebar--admin .nav-group {
+  margin-block-end: 0;
+  border-radius: var(--radius-sm);
+}
+
+.sidebar--admin .nav-group--open {
+  background: color-mix(in srgb, var(--c-surface-2) 70%, transparent);
+  margin-block-end: 2px;
+}
+
+.sidebar--admin .nav-group__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  width: 100%;
+  padding: 5px 9px;
+  margin-block: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--c-text-muted);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.sidebar--admin .nav-group__toggle:hover {
+  background: var(--c-surface-2);
+  color: var(--c-text);
+}
+
+.sidebar--admin .nav-group__toggle--has-active {
+  color: var(--c-text);
+}
+
+.sidebar--admin .nav-group__toggle--open {
+  color: var(--c-text);
+}
+
+.sidebar--admin .nav-group__title {
+  flex: 1;
+  min-width: 0;
+  text-align: start;
+  line-height: 1.3;
+}
+
+.sidebar--admin .nav-group__chevron {
+  flex-shrink: 0;
+  opacity: 0.75;
+  color: var(--c-text-muted);
+  transition: transform 0.18s ease;
+}
+
+.sidebar--admin .nav-group__toggle--open .nav-group__chevron {
+  transform: rotate(180deg);
+  opacity: 0.9;
+}
+
+.sidebar--admin .nav-group__items {
+  padding-block: 1px 3px;
+  padding-inline-start: 2px;
+}
+
+.sidebar--admin .nav-group__items--closed {
+  display: none;
+}
+
+.sidebar--admin .nav-link {
+  padding: 6px 9px;
+  margin-block-end: 1px;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.sidebar--admin .nav-link:hover:not(.nav-link--active) {
+  background: var(--c-surface-2);
+  color: var(--c-text);
+}
+
+.sidebar--admin .nav-link--active {
+  background: var(--c-primary-soft);
+  color: var(--c-navy);
+  font-weight: 650;
+  border-inline-start: 3px solid var(--raqeem-secondary);
+  padding-inline-start: 7px;
+}
+
 .main {
   flex: 1;
   min-width: 0;

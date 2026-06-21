@@ -7,6 +7,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils/cn';
 import { authApi } from '@/lib/api/client';
 import { navForUser } from '@/components/navigation/nav-config';
+import { AdminSidebarNav } from '@/components/navigation/admin-sidebar-nav';
 import { Avatar } from '@/components/ui/primitives';
 import { LocaleSwitcher } from '@/components/i18n/locale-switcher';
 import { SchoolSwitcher } from '@/components/admin/school-switcher';
@@ -131,25 +132,32 @@ export function AppShell({
         )}
 
         <nav id="admin-sidebar-nav" className="sidebar__nav" aria-label={t('nav.main')}>
-          {sections.map((section, i) => (
-            <div key={i}>
-              {section.titleKey && (
-                <div className="nav-section-title">{t(section.titleKey)}</div>
-              )}
-              {section.items.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn('nav-link', linkActive(item.href, item) && 'nav-link--active')}
-                  aria-current={linkActive(item.href, item) ? 'page' : undefined}
-                  onClick={() => setMainDrawerOpen(false)}
-                >
-                  <span className="nav-link__icon" aria-hidden="true">{item.icon}</span>
-                  {t(item.labelKey)}
-                </Link>
-              ))}
-            </div>
-          ))}
+          {isAdmin ? (
+            <AdminSidebarNav
+              sections={sections}
+              onNavigate={() => setMainDrawerOpen(false)}
+            />
+          ) : (
+            sections.map((section, i) => (
+              <div key={i}>
+                {section.titleKey && (
+                  <div className="nav-section-title">{t(section.titleKey)}</div>
+                )}
+                {section.items.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn('nav-link', linkActive(item.href, item) && 'nav-link--active')}
+                    aria-current={linkActive(item.href, item) ? 'page' : undefined}
+                    onClick={() => setMainDrawerOpen(false)}
+                  >
+                    <span className="nav-link__icon" aria-hidden="true">{item.icon}</span>
+                    {t(item.labelKey)}
+                  </Link>
+                ))}
+              </div>
+            ))
+          )}
         </nav>
 
         {scopeDesc && (
