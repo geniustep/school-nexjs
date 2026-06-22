@@ -5,13 +5,14 @@ import { useLocale, useT, type TranslateFn } from '@/features/i18n/locale-contex
 import {
   formatStaffTemplatePreviewWarning,
   formatStaffTemplateRequiredField,
+  resolvePreviewMissingAssignmentFields,
   resolveStaffTemplateBundleLabel,
   resolveStaffTemplateCapabilityItems,
   resolveStaffTemplateCapabilityLabel,
   splitStaffTemplateDisplayList,
   STAFF_TEMPLATE_CAPABILITY_DISPLAY_LIMIT,
 } from '@/features/admin/staff/utils/staff-template-utils';
-import type { StaffTemplateCapabilityItem, StaffTemplatePreview } from '@/types/staff-templates';
+import type { StaffTemplateAssignments, StaffTemplateCapabilityItem, StaffTemplatePreview } from '@/types/staff-templates';
 
 function CapabilityItemsList({
   items,
@@ -62,12 +63,16 @@ export function StaffTemplatePreviewPanel({
   error,
   missingFields,
   selectedBundleCodes,
+  assignments,
+  hideSummaryTitle = false,
 }: {
   preview: StaffTemplatePreview | null;
   loading: boolean;
   error: string | null;
   missingFields?: string[];
   selectedBundleCodes?: string[];
+  assignments?: StaffTemplateAssignments;
+  hideSummaryTitle?: boolean;
 }) {
   const t = useT();
   const { locale } = useLocale();
@@ -97,7 +102,7 @@ export function StaffTemplatePreviewPanel({
   const forbiddenItems = resolveStaffTemplateCapabilityItems(preview, 'forbidden');
   const warnings = (preview.warnings ?? []).map((item) => formatStaffTemplatePreviewWarning(item, t)).filter(Boolean);
   const requiredFields = [
-    ...(preview.required_fields ?? []),
+    ...resolvePreviewMissingAssignmentFields(preview, assignments ?? {}),
     ...(missingFields ?? []),
   ]
     .filter(Boolean)
@@ -116,16 +121,22 @@ export function StaffTemplatePreviewPanel({
 
   return (
     <div className="staff-smart-create__preview">
-      <h3 className="staff-smart-create__preview-title">
-        {t('admin.staffCenter.smartCreate.previewSummaryTitle')}
-      </h3>
+      {!hideSummaryTitle ? (
+        <h3 className="staff-smart-create__preview-title">
+          {t('admin.staffCenter.smartCreate.previewSummaryTitle')}
+        </h3>
+      ) : null}
 
       {!preview.allowed_to_create ? (
         <InfoBanner
           tone="amber"
           icon="⚠"
           title={t('admin.staffCenter.smartCreate.notAllowedTitle')}
-          description={t('admin.staffCenter.smartCreate.notAllowedDesc')}
+          description={
+            requiredFields.length
+              ? t('admin.staffCenter.smartCreate.notAllowedMissingDesc')
+              : t('admin.staffCenter.smartCreate.notAllowedDesc')
+          }
         />
       ) : null}
 
@@ -184,6 +195,7 @@ export function StaffTemplatePreviewPanel({
           {requiredFields.length ? (
             <div className="staff-smart-create__preview-section">
               <h4>{t('admin.staffCenter.smartCreate.missingRequiredFields')}</h4>
+              <p className="tiny muted">{t('admin.staffCenter.smartCreate.completeTheseFields')}</p>
               <ul className="staff-smart-create__warning-list">
                 {requiredFields.map((field) => (
                   <li key={field}>{field}</li>

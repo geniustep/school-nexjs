@@ -2,10 +2,17 @@ import { describe, expect, it } from 'vitest';
 import {
   buildStaffTemplateCreatePayload,
   buildStaffTemplatePreviewPayload,
+  buildStaffAssignmentClassOptions,
+  buildStaffAssignmentLevelOptions,
+  buildStaffAssignmentSubjectOptions,
   canSubmitStaffTemplateCreate,
+  filterStaffAssignmentClasses,
+  filterStaffAssignmentLevels,
+  filterStaffAssignmentSubjects,
   formatStaffTemplatePreviewWarning,
   formatStaffTemplateRequiredField,
   groupStaffTemplatesByMainPosition,
+  normalizeStaffTemplateRequiredFieldKey,
   normalizeStaffCreationTemplate,
   normalizeStaffCreationTemplates,
   normalizeStaffTemplateBundleSelection,
@@ -15,6 +22,7 @@ import {
   payloadContainsForbiddenClientFields,
   resolveAddableStaffTemplateBundleCodes,
   resolveInitialSelectedBundleCodes,
+  resolvePreviewMissingAssignmentFields,
   isStaffTemplateBundleRemovable,
   resolveStaffTemplateAddBundleActionLabel,
   resolveStaffTemplateBundleLabel,
@@ -144,6 +152,7 @@ describe('staff-template-utils', () => {
       { subject_id: null, class_ids: [], academic_year_id: null },
       ['finance_collections', 'finance_receipts', 'cashdesk', 'finance_cheques'],
     );
+    expect(payload.template_code).toBe('accountant_collections');
     expect(payload.selected_bundle_codes).toEqual([
       'finance_collections',
       'finance_receipts',
@@ -151,6 +160,17 @@ describe('staff-template-utils', () => {
       'finance_cheques',
     ]);
     expect(payloadContainsForbiddenClientFields(payload)).toBe(false);
+  });
+
+  it('builds preview payload for a template code without depending on another selected template', () => {
+    const teacherPreview = buildStaffTemplatePreviewPayload('subject_teacher', 3, {}, ['teaching']);
+    const accountantPreview = buildStaffTemplatePreviewPayload('accountant_collections', 3, {}, [
+      'finance_collections',
+    ]);
+    expect(teacherPreview.template_code).toBe('subject_teacher');
+    expect(accountantPreview.template_code).toBe('accountant_collections');
+    expect(payloadContainsForbiddenClientFields(teacherPreview)).toBe(false);
+    expect(payloadContainsForbiddenClientFields(accountantPreview)).toBe(false);
   });
 
   it('builds create payload with selected_bundle_codes', () => {
@@ -264,15 +284,64 @@ describe('staff-template-utils', () => {
   });
 
   it('formats required fields and preview warnings for display', () => {
-    const translate = (key: string) =>
-      key === 'admin.staffCenter.smartCreate.subject' ? 'Subject' : key;
+    const translate = (key: string) => {
+      if (key === 'admin.staffCenter.smartCreate.subject') return 'Subject';
+      if (key === 'admin.staffCenter.smartCreate.classes') return 'Class';
+      if (key === 'admin.staffCenter.smartCreate.academicYear') return 'Academic year';
+      return key;
+    };
     expect(formatStaffTemplateRequiredField('subject_id', translate)).toBe('Subject');
+    expect(formatStaffTemplateRequiredField('class id', translate)).toBe('Class');
+    expect(formatStaffTemplateRequiredField('class_id', translate)).toBe('Class');
+    expect(formatStaffTemplateRequiredField('academic_year_id', translate)).toBe('Academic year');
     expect(
       formatStaffTemplatePreviewWarning(
         'blocked:Template subject_teacher requires assignments: subject_id',
         t,
       ),
     ).toBe('admin.staffCenter.smartCreate.warnings.blockedCreation');
+  });
+
+  it('normalizes required field keys and hides filled assignment fields from preview gaps', () => {
+    expect(normalizeStaffTemplateRequiredFieldKey('class id')).toBe('class_ids');
+    expect(normalizeStaffTemplateRequiredFieldKey('class_id')).toBe('class_ids');
+    const preview: StaffTemplatePreview = {
+      allowed_to_create: false,
+      required_fields: ['subject_id', 'class_ids', 'academic_year_id'],
+    };
+    expect(
+      resolvePreviewMissingAssignmentFields(preview, {
+        subject_id: 10,
+        class_ids: [20],
+        academic_year_id: 30,
+      }),
+    ).toEqual([]);
+  });
+
+  it('filters assignment options by cycle, level, and year when metadata exists', () => {
+    const levels = buildStaffAssignmentLevelOptions([
+      { id: 1, name: 'First primary', cycle: { code: 'primary' } },
+      { id: 2, name: 'First middle', cycle: { code: 'college' } },
+    ]);
+    expect(filterStaffAssignmentLevels(levels, 'primary').map((item) => item.id)).toEqual([1]);
+
+    const subjects = buildStaffAssignmentSubjectOptions([
+      { id: 10, name: 'Arabic', level_ids: [1] },
+      { id: 11, name: 'Physics', level_ids: [2] },
+    ]);
+    expect(filterStaffAssignmentSubjects(subjects, 1).map((item) => item.id)).toEqual([10]);
+
+    const classes = buildStaffAssignmentClassOptions(
+      [
+        { id: 100, name: '1A', level: { id: 1 } },
+        { id: 101, name: '2B', level: { id: 2 } },
+      ],
+      [
+        { id: 100, academic_year_id: 5 },
+        { id: 101, academic_year_id: 6 },
+      ],
+    );
+    expect(filterStaffAssignmentClasses(classes, 1, 5).map((item) => item.id)).toEqual([100]);
   });
 
   it('resolves addable bundle codes excluding selected and forbidden', () => {

@@ -11,6 +11,7 @@ import type {
   StaffTemplatePreview,
   StaffTemplatePreviewPayload,
   StaffTemplateScope,
+  StaffAssignmentPickerState,
 } from '@/types/staff-templates';
 import type { StaffPasswordPolicy } from '@/types/academic-setup';
 import type { Locale } from '@/lib/i18n/config';
@@ -688,11 +689,170 @@ export function formatPreviewWarning(warning: string | { code?: string; message?
 const REQUIRED_FIELD_I18N_KEYS: Record<string, string> = {
   subject_id: 'admin.staffCenter.smartCreate.subject',
   class_ids: 'admin.staffCenter.smartCreate.classes',
+  class_id: 'admin.staffCenter.smartCreate.classes',
   academic_year_id: 'admin.staffCenter.smartCreate.academicYear',
   'person.name': 'admin.fullName',
   'person.email': 'admin.email',
   'person.phone': 'admin.phone',
 };
+
+export function normalizeStaffTemplateRequiredFieldKey(field: string): string {
+  const trimmed = field.trim();
+  const normalized = trimmed.toLowerCase().replace(/\s+/g, '_');
+  if (normalized === 'class_id' || normalized === 'class_ids') return 'class_ids';
+  if (normalized === 'subject_id') return 'subject_id';
+  if (normalized === 'academic_year_id') return 'academic_year_id';
+  return trimmed;
+}
+
+export function resolvePreviewMissingAssignmentFields(
+  preview: StaffTemplatePreview | null | undefined,
+  assignments: StaffTemplateAssignments,
+): string[] {
+  const raw = preview?.required_fields ?? [];
+  return raw.filter((field) => {
+    const key = normalizeStaffTemplateRequiredFieldKey(field);
+    if (key === 'subject_id') return assignments.subject_id == null;
+    if (key === 'class_ids') return !(assignments.class_ids?.length ?? 0);
+    if (key === 'academic_year_id') return assignments.academic_year_id == null;
+    return true;
+  });
+}
+
+export interface StaffAssignmentCycleOption {
+  code: string;
+  name: string;
+}
+
+export interface StaffAssignmentLevelOption {
+  id: number;
+  name: string;
+  cycleCode: string | null;
+}
+
+export interface StaffAssignmentSubjectOption {
+  id: number;
+  name: string;
+  levelIds: number[];
+}
+
+export interface StaffAssignmentClassOption {
+  id: number;
+  name: string;
+  levelId: number | null;
+  academicYearId: number | null;
+}
+
+export function defaultStaffAssignmentPickerState(): StaffAssignmentPickerState {
+  return { cycleCode: null, levelId: null };
+}
+
+export function extractStaffAssignmentCycleOptions(
+  levels: Array<{ cycle?: { code?: string; name?: string } | null }>,
+): StaffAssignmentCycleOption[] {
+  const seen = new Map<string, string>();
+  for (const level of levels) {
+    const code = level.cycle?.code?.trim();
+    if (!code) continue;
+    seen.set(code, level.cycle?.name?.trim() || code);
+  }
+  return [...seen.entries()]
+    .map(([code, name]) => ({ code, name }))
+    .sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+}
+
+export function buildStaffAssignmentLevelOptions(
+  levels: Array<{
+    id: number;
+    name: string;
+    display_name?: string | null;
+    moroccan_display_alias?: string | null;
+    cycle?: { code?: string } | null;
+  }>,
+): StaffAssignmentLevelOption[] {
+  return levels.map((level) => ({
+    id: level.id,
+    name: level.display_name?.trim() || level.moroccan_display_alias?.trim() || level.name,
+    cycleCode: level.cycle?.code?.trim() ?? null,
+  }));
+}
+
+export function filterStaffAssignmentLevels(
+  levels: StaffAssignmentLevelOption[],
+  cycleCode: string | null,
+): StaffAssignmentLevelOption[] {
+  if (!cycleCode) return levels;
+  return levels.filter((level) => level.cycleCode === cycleCode);
+}
+
+function uniqueNumbers(values: number[]): number[] {
+  return [...new Set(values.filter((value) => Number.isFinite(value)))];
+}
+
+export function buildStaffAssignmentSubjectOptions(
+  subjects: Array<{ id: number; name: string; level_id?: number | null; level_ids?: number[] }>,
+): StaffAssignmentSubjectOption[] {
+  return subjects.map((subject) => {
+    const levelIds = uniqueNumbers([
+      ...(subject.level_ids ?? []),
+      ...(subject.level_id != null ? [subject.level_id] : []),
+    ]);
+    return { id: subject.id, name: subject.name, levelIds };
+  });
+}
+
+export function filterStaffAssignmentSubjects(
+  subjects: StaffAssignmentSubjectOption[],
+  levelId: number | null,
+): StaffAssignmentSubjectOption[] {
+  if (levelId == null) return subjects;
+  return subjects.filter(
+    (subject) => subject.levelIds.length === 0 || subject.levelIds.includes(levelId),
+  );
+}
+
+export function buildStaffAssignmentClassOptions(
+  classes: Array<{ id: number; name: string; level?: { id?: number } | null }>,
+  studentClasses: Array<{ id: number; level?: { id?: number } | null; academic_year_id?: number | null }> = [],
+): StaffAssignmentClassOption[] {
+  const studentById = new Map(studentClasses.map((item) => [item.id, item]));
+  return classes.map((schoolClass) => {
+    const studentClass = studentById.get(schoolClass.id);
+    const levelId = schoolClass.level?.id ?? studentClass?.level?.id ?? null;
+    const academicYearId = studentClass?.academic_year_id ?? null;
+    return {
+      id: schoolClass.id,
+      name: schoolClass.name,
+      levelId,
+      academicYearId,
+    };
+  });
+}
+
+export function filterStaffAssignmentClasses(
+  classes: StaffAssignmentClassOption[],
+  levelId: number | null,
+  academicYearId: number | null,
+): StaffAssignmentClassOption[] {
+  return classes.filter((schoolClass) => {
+    if (levelId != null && schoolClass.levelId != null && schoolClass.levelId !== levelId) {
+      return false;
+    }
+    if (academicYearId != null && schoolClass.academicYearId != null) {
+      return schoolClass.academicYearId === academicYearId;
+    }
+    return true;
+  });
+}
+
+export function resolveStaffAssignmentCycleLabel(
+  cycle: StaffAssignmentCycleOption,
+  t: (key: string) => string,
+): string {
+  const key = `admin.staffCenter.smartCreate.cycles.${cycle.code}`;
+  const label = t(key);
+  return label !== key ? label : cycle.name;
+}
 
 export function formatStaffTemplateDisplayToken(token: string): string {
   return token
@@ -707,10 +867,11 @@ export function formatStaffTemplateRequiredField(
   field: string,
   t: (key: string) => string,
 ): string {
-  const key = REQUIRED_FIELD_I18N_KEYS[field];
-  if (key) {
-    const label = t(key);
-    if (label !== key) return label;
+  const key = normalizeStaffTemplateRequiredFieldKey(field);
+  const i18nKey = REQUIRED_FIELD_I18N_KEYS[key];
+  if (i18nKey) {
+    const label = t(i18nKey);
+    if (label !== i18nKey) return label;
   }
   return formatStaffTemplateDisplayToken(field);
 }

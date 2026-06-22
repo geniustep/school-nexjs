@@ -26,8 +26,16 @@ import {
   assignmentsOptionsAvailable,
   buildStaffTemplateCreatePayload,
   buildStaffTemplatePreviewPayload,
+  buildStaffAssignmentClassOptions,
+  buildStaffAssignmentLevelOptions,
+  buildStaffAssignmentSubjectOptions,
   canSubmitStaffTemplateCreate,
+  defaultStaffAssignmentPickerState,
   defaultStaffSmartCreateFormState,
+  extractStaffAssignmentCycleOptions,
+  filterStaffAssignmentClasses,
+  filterStaffAssignmentLevels,
+  filterStaffAssignmentSubjects,
   isUserFacingStaffTemplateError,
   resolveInitialSelectedBundleCodes,
   resolveStaffTemplateAccountLogin,
@@ -45,9 +53,9 @@ import { endpoints } from '@/lib/api/endpoints';
 import { InfoBanner, PageHeader } from '@/components/ui/primitives';
 import { ResourceView } from '@/components/states/resource';
 import { useToast } from '@/components/ui/toast';
-import type { SchoolClass } from '@/types/class';
-import type { Subject } from '@/types/class';
+import type { Level, SchoolClass, Subject } from '@/types/class';
 import type {
+  StaffAssignmentPickerState,
   StaffCreationTemplate,
   StaffSmartCreateWizardStep,
 } from '@/types/staff-templates';
@@ -77,6 +85,7 @@ export function StaffSmartCreateWizard() {
   const studentOptionsState = useStudentOptions();
   const subjectsState = useAdminResource<Subject[]>(endpoints.admin.subjects, { page_size: 500 });
   const classesState = useAdminResource<SchoolClass[]>(endpoints.admin.classes, { page_size: 500 });
+  const levelsState = useAdminResource<Level[]>(endpoints.admin.levels, { page_size: 200 });
 
   const [step, setStep] = useState<StaffSmartCreateWizardStep>('template');
   const [form, setForm] = useState(defaultStaffSmartCreateFormState);
@@ -85,6 +94,10 @@ export function StaffSmartCreateWizard() {
   const [passwordErrors, setPasswordErrors] = useState<StaffPasswordFieldErrors>({});
   const [assignmentsError, setAssignmentsError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [previewedTemplateCode, setPreviewedTemplateCode] = useState<string | null>(null);
+  const [assignmentPicker, setAssignmentPicker] = useState<StaffAssignmentPickerState>(
+    defaultStaffAssignmentPickerState(),
+  );
 
   const selectedBundleKey = form.selectedBundleCodes.join('|');
 
@@ -101,12 +114,41 @@ export function StaffSmartCreateWizard() {
   const passwordPolicy = normalizeStaffPasswordPolicy(staffOptionsState.options?.password_policy);
 
   const subjects = useMemo(
-    () => (subjectsState.data ?? []).map((item) => ({ id: item.id, name: item.name })),
+    () => buildStaffAssignmentSubjectOptions(subjectsState.data ?? []),
     [subjectsState.data],
   );
-  const classes = useMemo(
-    () => (classesState.data ?? []).map((item) => ({ id: item.id, name: item.name })),
-    [classesState.data],
+  const allClasses = useMemo(
+    () =>
+      buildStaffAssignmentClassOptions(
+        classesState.data ?? [],
+        studentOptionsState.options?.classes ?? [],
+      ),
+    [classesState.data, studentOptionsState.options?.classes],
+  );
+  const allLevels = useMemo(
+    () => buildStaffAssignmentLevelOptions(levelsState.data ?? []),
+    [levelsState.data],
+  );
+  const assignmentCycles = useMemo(
+    () => extractStaffAssignmentCycleOptions(levelsState.data ?? []),
+    [levelsState.data],
+  );
+  const filteredLevels = useMemo(
+    () => filterStaffAssignmentLevels(allLevels, assignmentPicker.cycleCode),
+    [allLevels, assignmentPicker.cycleCode],
+  );
+  const filteredSubjects = useMemo(
+    () => filterStaffAssignmentSubjects(subjects, assignmentPicker.levelId),
+    [subjects, assignmentPicker.levelId],
+  );
+  const filteredClasses = useMemo(
+    () =>
+      filterStaffAssignmentClasses(
+        allClasses,
+        assignmentPicker.levelId,
+        form.assignments.academic_year_id ?? null,
+      ),
+    [allClasses, assignmentPicker.levelId, form.assignments.academic_year_id],
   );
   const academicYears = studentOptionsState.options?.academicYears ?? [];
 
@@ -116,8 +158,8 @@ export function StaffSmartCreateWizard() {
     needsAssignments &&
     !assignmentsOptionsAvailable({
       required: requiredAssignments,
-      subjects,
-      classes,
+      subjects: filteredSubjects,
+      classes: filteredClasses,
       academicYears,
     });
 
@@ -157,7 +199,7 @@ export function StaffSmartCreateWizard() {
     }));
   }, [selectedTemplate]);
 
-  function handleSelectTemplate(template: StaffCreationTemplate, options?: { keepPreview?: boolean }) {
+  function handleSelectTemplate(template: StaffCreationTemplate) {
     const initialBundles = resolveInitialSelectedBundleCodes(template);
     setForm((current) => ({
       ...defaultStaffSmartCreateFormState(),
@@ -168,14 +210,14 @@ export function StaffSmartCreateWizard() {
     setPersonErrors({});
     setPasswordErrors({});
     setAssignmentsError(null);
-    if (!options?.keepPreview) {
-      resetPreview();
-    }
+    setAssignmentPicker(defaultStaffAssignmentPickerState());
+    setPreviewedTemplateCode(null);
+    resetPreview();
   }
 
   function handlePreviewTemplate(template: StaffCreationTemplate) {
     const initialBundles = resolveInitialSelectedBundleCodes(template);
-    handleSelectTemplate(template, { keepPreview: true });
+    setPreviewedTemplateCode(template.code);
     void loadPreview(
       buildStaffTemplatePreviewPayload(template.code, activeSchoolId, {}, initialBundles),
     );
@@ -223,7 +265,17 @@ export function StaffSmartCreateWizard() {
     );
     setAssignmentsError(assignmentsValidation.error ?? null);
 
-    return personValidation.valid && passwordValid && assignmentsValidation.valid;
+    const valid = personValidation.valid && passwordValid && assignmentsValidation.valid;
+    if (!valid) {
+      requestAnimationFrame(() => {
+        document
+          .querySelector(
+            '.staff-smart-create__details [aria-invalid="true"], .staff-smart-create__details .account-password-fields__error, .staff-smart-create__assignments .staff-smart-create__section-desc--error',
+          )
+          ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+    }
+    return valid;
   }
 
   function goNext() {
@@ -308,10 +360,12 @@ export function StaffSmartCreateWizard() {
     passwordPolicy,
     t,
   });
-  const showInlineTemplatePreview =
-    step === 'template' &&
-    !!form.templateCode &&
-    (previewLoading || preview != null || previewErrorMessage != null);
+  const previewedBundleCodes = useMemo(() => {
+    if (!previewedTemplateCode) return [];
+    if (previewedTemplateCode === form.templateCode) return form.selectedBundleCodes;
+    const template = templatesState.templates.find((item) => item.code === previewedTemplateCode);
+    return template ? resolveInitialSelectedBundleCodes(template) : [];
+  }, [form.selectedBundleCodes, form.templateCode, previewedTemplateCode, templatesState.templates]);
 
   const templatesResource = useMemo(
     () => ({
@@ -371,20 +425,14 @@ export function StaffSmartCreateWizard() {
                   <StaffTemplatePicker
                     templates={templates}
                     selectedCode={form.templateCode}
+                    previewedCode={previewedTemplateCode}
+                    preview={preview}
+                    previewLoading={previewLoading}
+                    previewError={previewErrorMessage}
+                    previewBundleCodes={previewedBundleCodes}
                     onSelect={handleSelectTemplate}
                     onPreview={handlePreviewTemplate}
                   />
-                  {showInlineTemplatePreview ? (
-                    <section className="staff-smart-create__inline-preview">
-                      <h3>{t('admin.staffCenter.smartCreate.templateInlinePreviewTitle')}</h3>
-                      <StaffTemplatePreviewPanel
-                        preview={preview}
-                        loading={previewLoading}
-                        error={previewErrorMessage}
-                        selectedBundleCodes={form.selectedBundleCodes}
-                      />
-                    </section>
-                  ) : null}
                 </>
               )}
             </ResourceView>
@@ -401,12 +449,14 @@ export function StaffSmartCreateWizard() {
               />
 
               <section className="staff-smart-create__section-card">
-                <h3 className="staff-smart-create__section-title">
-                  {t('admin.staffCenter.smartCreate.identitySection')}
-                </h3>
+                <div className="staff-smart-create__section-heading">
+                  <h3 className="staff-smart-create__section-title">
+                    {t('admin.staffCenter.smartCreate.identitySection')}
+                  </h3>
+                </div>
                 <div className="staff-smart-create__field-grid">
                   <label className="staff-smart-create__field">
-                    <span className="tiny muted">{t('admin.fullName')}</span>
+                    <span className="staff-smart-create__field-label">{t('admin.fullName')}</span>
                     <input
                       className="input"
                       value={form.person.name}
@@ -425,7 +475,7 @@ export function StaffSmartCreateWizard() {
                     ) : null}
                   </label>
                   <label className="staff-smart-create__field">
-                    <span className="tiny muted">{t('admin.phone')}</span>
+                    <span className="staff-smart-create__field-label">{t('admin.phone')}</span>
                     <input
                       className="input"
                       value={form.person.phone}
@@ -439,7 +489,7 @@ export function StaffSmartCreateWizard() {
                     />
                   </label>
                   <label className="staff-smart-create__field">
-                    <span className="tiny muted">{t('admin.email')}</span>
+                    <span className="staff-smart-create__field-label">{t('admin.email')}</span>
                     <input
                       className="input"
                       type="email"
@@ -457,78 +507,92 @@ export function StaffSmartCreateWizard() {
               </section>
 
               {selectedTemplate.requires_user_account || form.createAccount ? (
-                <section className="staff-smart-create__section-card">
-                  <h3 className="staff-smart-create__section-title">
-                    {t('admin.staffCenter.smartCreate.accountSection')}
-                  </h3>
-                  <div className="staff-smart-create__account">
-                    {!selectedTemplate.requires_user_account ? (
-                      <label className="row staff-password-section__toggle staff-smart-create__account-toggle">
-                        <input
-                          type="checkbox"
-                          checked={form.createAccount}
-                          onChange={(event) =>
-                            setForm((current) => ({ ...current, createAccount: event.target.checked }))
-                          }
-                        />
-                        <span className="tiny">{t('admin.staffCenter.smartCreate.createAccount')}</span>
-                      </label>
-                    ) : null}
-
-                    {form.createAccount ? (
-                      <>
-                        <AccountFieldsSection
-                          mode="create"
-                          email={form.person.email}
-                          login={form.login}
-                          useDifferentLogin={form.useDifferentLogin}
-                          disabled={saving}
-                          onEmailChange={(value) =>
-                            setForm((current) => ({
-                              ...current,
-                              person: { ...current.person, email: value },
-                            }))
-                          }
-                          onLoginChange={(value) =>
-                            setForm((current) => ({ ...current, login: value }))
-                          }
-                          onUseDifferentLoginChange={(value) =>
-                            setForm((current) => ({ ...current, useDifferentLogin: value }))
-                          }
-                        />
-                        {personErrors.login ? (
-                          <span className="tiny account-password-fields__error" role="alert">
-                            {personErrors.login}
-                          </span>
-                        ) : null}
-                        <div className="staff-smart-create__password-block">
-                          <h4 className="staff-smart-create__subsection-title">
-                            {t('admin.staffCenter.smartCreate.passwordSection')}
-                          </h4>
-                          <StaffPasswordSection
-                            password={form.password}
-                            confirmPassword={form.confirmPassword}
-                            showPassword={showPassword}
-                            assignPasswordNow={form.assignPasswordNow}
-                            policy={passwordPolicy}
-                            errors={passwordErrors}
-                            disabled={saving}
-                            onPasswordChange={(value) =>
-                              setForm((current) => ({ ...current, password: value }))
-                            }
-                            onConfirmPasswordChange={(value) =>
-                              setForm((current) => ({ ...current, confirmPassword: value }))
-                            }
-                            onShowPasswordChange={setShowPassword}
-                            onAssignPasswordNowChange={(value) =>
-                              setForm((current) => ({ ...current, assignPasswordNow: value }))
+                <>
+                  <section className="staff-smart-create__section-card">
+                    <div className="staff-smart-create__section-heading">
+                      <h3 className="staff-smart-create__section-title">
+                        {t('admin.staffCenter.smartCreate.accountSection')}
+                      </h3>
+                    </div>
+                    <div className="staff-smart-create__account">
+                      {!selectedTemplate.requires_user_account ? (
+                        <label className="row staff-smart-create__checkbox staff-smart-create__account-toggle">
+                          <input
+                            type="checkbox"
+                            checked={form.createAccount}
+                            onChange={(event) =>
+                              setForm((current) => ({ ...current, createAccount: event.target.checked }))
                             }
                           />
-                        </div>
-                      </>
-                    ) : null}
-                  </div>
-                </section>
+                          <span className="staff-smart-create__checkbox-label">
+                            {t('admin.staffCenter.smartCreate.createAccount')}
+                          </span>
+                        </label>
+                      ) : null}
+
+                      {form.createAccount ? (
+                        <>
+                          <AccountFieldsSection
+                            mode="create"
+                            embedded
+                            hideEmail
+                            email={form.person.email}
+                            login={form.login}
+                            useDifferentLogin={form.useDifferentLogin}
+                            disabled={saving}
+                            onEmailChange={(value) =>
+                              setForm((current) => ({
+                                ...current,
+                                person: { ...current.person, email: value },
+                              }))
+                            }
+                            onLoginChange={(value) =>
+                              setForm((current) => ({ ...current, login: value }))
+                            }
+                            onUseDifferentLoginChange={(value) =>
+                              setForm((current) => ({ ...current, useDifferentLogin: value }))
+                            }
+                          />
+                          {personErrors.login ? (
+                            <span className="tiny account-password-fields__error" role="alert">
+                              {personErrors.login}
+                            </span>
+                          ) : null}
+                        </>
+                      ) : null}
+                    </div>
+                  </section>
+
+                  {form.createAccount ? (
+                    <section className="staff-smart-create__section-card">
+                      <div className="staff-smart-create__section-heading">
+                        <h3 className="staff-smart-create__section-title">
+                          {t('admin.staffCenter.smartCreate.passwordSection')}
+                        </h3>
+                      </div>
+                      <StaffPasswordSection
+                        embedded
+                        password={form.password}
+                        confirmPassword={form.confirmPassword}
+                        showPassword={showPassword}
+                        assignPasswordNow={form.assignPasswordNow}
+                        policy={passwordPolicy}
+                        errors={passwordErrors}
+                        disabled={saving}
+                        onPasswordChange={(value) =>
+                          setForm((current) => ({ ...current, password: value }))
+                        }
+                        onConfirmPasswordChange={(value) =>
+                          setForm((current) => ({ ...current, confirmPassword: value }))
+                        }
+                        onShowPasswordChange={setShowPassword}
+                        onAssignPasswordNowChange={(value) =>
+                          setForm((current) => ({ ...current, assignPasswordNow: value }))
+                        }
+                      />
+                    </section>
+                  ) : null}
+                </>
               ) : null}
 
               {showBundleEditor ? (
@@ -542,25 +606,23 @@ export function StaffSmartCreateWizard() {
                 />
               ) : null}
 
-              {showBundleEditor ? (
-                <StaffTemplatePreviewPanel
-                  preview={preview}
-                  loading={previewLoading}
-                  error={previewErrorMessage}
-                  selectedBundleCodes={form.selectedBundleCodes}
-                />
-              ) : null}
-
               <StaffTemplateAssignmentsFields
                 required={requiredAssignments}
                 assignments={form.assignments}
-                subjects={subjects}
-                classes={classes}
+                picker={assignmentPicker}
+                cycles={assignmentCycles}
+                levels={filteredLevels}
+                subjects={filteredSubjects}
+                classes={filteredClasses}
                 academicYears={academicYears}
                 optionsLoading={
-                  subjectsState.loading || classesState.loading || studentOptionsState.loading
+                  subjectsState.loading ||
+                  classesState.loading ||
+                  levelsState.loading ||
+                  studentOptionsState.loading
                 }
                 optionsUnavailable={assignmentOptionsUnavailable}
+                onPickerChange={setAssignmentPicker}
                 onChange={(assignments) => setForm((current) => ({ ...current, assignments }))}
               />
               {assignmentsError ? (
@@ -570,6 +632,23 @@ export function StaffSmartCreateWizard() {
                   title={t('admin.staffCenter.smartCreate.assignmentsIncompleteTitle')}
                   description={assignmentsError}
                 />
+              ) : null}
+
+              {showBundleEditor ? (
+                <section className="staff-smart-create__section-card staff-smart-create__section-card--preview">
+                  <div className="staff-smart-create__section-heading">
+                    <h3 className="staff-smart-create__section-title">
+                      {t('admin.staffCenter.smartCreate.previewSummaryTitle')}
+                    </h3>
+                  </div>
+                  <StaffTemplatePreviewPanel
+                    preview={preview}
+                    loading={previewLoading}
+                    error={previewErrorMessage}
+                    selectedBundleCodes={form.selectedBundleCodes}
+                    assignments={form.assignments}
+                  />
+                </section>
               ) : null}
             </div>
           ) : null}
@@ -591,6 +670,7 @@ export function StaffSmartCreateWizard() {
                 loading={previewLoading}
                 error={previewErrorMessage}
                 selectedBundleCodes={form.selectedBundleCodes}
+                assignments={form.assignments}
               />
               <button type="button" className="btn btn--ghost btn--sm" onClick={() => void refreshPreview()}>
                 {t('admin.staffCenter.smartCreate.refreshPreview')}

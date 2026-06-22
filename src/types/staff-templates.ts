@@ -48,6 +48,12 @@ export interface StaffTemplateAssignments {
   academic_year_id?: number | null;
 }
 
+/** UI-only cascade state; not sent in create/preview payload. */
+export interface StaffAssignmentPickerState {
+  cycleCode: string | null;
+  levelId: number | null;
+}
+
 export interface StaffTemplatePreviewPayload {
   template_code: string;
   scope: StaffTemplateScope;
