@@ -5,6 +5,7 @@ import {
   buildStaffAssignmentClassOptions,
   buildStaffAssignmentLevelOptions,
   buildStaffAssignmentSubjectOptions,
+  formatStaffAssignmentSubjectLabel,
   canSubmitStaffTemplateCreate,
   filterStaffAssignmentClasses,
   filterStaffAssignmentLevels,
@@ -23,6 +24,16 @@ import {
   resolveAddableStaffTemplateBundleCodes,
   resolveInitialSelectedBundleCodes,
   resolvePreviewMissingAssignmentFields,
+  normalizeStaffTemplateAssignments,
+  normalizeStaffTemplateClassIds,
+  addStaffTemplateClassId,
+  removeStaffTemplateClassId,
+  toggleStaffTemplateClassId,
+  addStaffTemplateSubjectId,
+  removeStaffTemplateSubjectId,
+  toggleStaffTemplateSubjectId,
+  pruneStaffTemplateClassIds,
+  assignmentsSatisfyTemplateRequirements,
   isStaffTemplateBundleRemovable,
   resolveStaffTemplateAddBundleActionLabel,
   resolveStaffTemplateBundleLabel,
@@ -327,7 +338,7 @@ describe('staff-template-utils', () => {
 
   it('formats required fields and preview warnings for display', () => {
     const translate = (key: string) => {
-      if (key === 'admin.staffCenter.smartCreate.subject') return 'Subject';
+      if (key === 'admin.staffCenter.smartCreate.subjects') return 'Subject';
       if (key === 'admin.staffCenter.smartCreate.classes') return 'Class';
       if (key === 'admin.staffCenter.smartCreate.academicYear') return 'Academic year';
       return key;
@@ -360,6 +371,119 @@ describe('staff-template-utils', () => {
     ).toEqual([]);
   });
 
+  it('normalizes class_ids to numeric arrays and treats filled assignments as complete', () => {
+    expect(normalizeStaffTemplateClassIds(['2053', 2054, 'bad', 0])).toEqual([2053, 2054]);
+    expect(normalizeStaffTemplateClassIds([])).toEqual([]);
+
+    const normalized = normalizeStaffTemplateAssignments({
+      subject_id: '1885' as unknown as number,
+      class_ids: ['2053'] as unknown as number[],
+      academic_year_id: '1387' as unknown as number,
+    });
+    expect(normalized).toEqual({
+      subject_ids: [1885],
+      subject_id: 1885,
+      class_ids: [2053],
+      academic_year_id: 1387,
+    });
+
+    const multiSubjects = normalizeStaffTemplateAssignments({
+      subject_ids: [1885, 1900],
+      class_ids: [2053],
+      academic_year_id: 1387,
+    });
+    expect(multiSubjects.subject_ids).toEqual([1885, 1900]);
+    expect(multiSubjects.subject_id).toBe(1885);
+
+    const preview: StaffTemplatePreview = {
+      allowed_to_create: false,
+      required_fields: ['subject_id', 'class_ids', 'academic_year_id'],
+    };
+    expect(resolvePreviewMissingAssignmentFields(preview, normalized)).toEqual([]);
+
+    const template = {
+      code: 'subject_teacher',
+      name: 'Teacher',
+      required_assignments: ['subject_id', 'class_ids', 'academic_year_id'],
+    };
+    expect(assignmentsSatisfyTemplateRequirements(template, normalized)).toBe(true);
+    expect(assignmentsSatisfyTemplateRequirements(template, multiSubjects)).toBe(true);
+  });
+
+  it('adds multiple subject_ids and includes them in preview payload', () => {
+    let subjectIds = addStaffTemplateSubjectId([], 1885);
+    subjectIds = addStaffTemplateSubjectId(subjectIds, 1900);
+    expect(subjectIds).toEqual([1885, 1900]);
+
+    const payload = buildStaffTemplatePreviewPayload('subject_teacher', 3, {
+      subject_ids: subjectIds,
+      class_ids: [2053],
+      academic_year_id: 1387,
+    });
+    expect(payload.assignments.subject_ids).toEqual([1885, 1900]);
+    expect(payload.assignments.subject_id).toBe(1885);
+    expect(payloadContainsForbiddenClientFields(payload)).toBe(false);
+  });
+
+  it('adds and removes class_ids without dropping prior selections', () => {
+    expect(addStaffTemplateClassId([], 2053)).toEqual([2053]);
+    expect(addStaffTemplateClassId([2053], 2054)).toEqual([2053, 2054]);
+    expect(addStaffTemplateClassId([2053], 2053)).toEqual([2053]);
+    expect(addStaffTemplateClassId([2053], 2054)).not.toEqual([2054]);
+
+    expect(removeStaffTemplateClassId([2053, 2054], 2053)).toEqual([2054]);
+    expect(removeStaffTemplateClassId([2054], 2053)).toEqual([2054]);
+
+    expect(toggleStaffTemplateClassId([], 2053)).toEqual([2053]);
+    expect(toggleStaffTemplateClassId([2053], 2054)).toEqual([2053, 2054]);
+    expect(toggleStaffTemplateClassId([2053, 2054], 2053)).toEqual([2054]);
+  });
+
+  it('prunes class_ids only when explicitly filtered against a catalog', () => {
+    expect(pruneStaffTemplateClassIds([2053, 2054, 2099], [2053, 2054])).toEqual([2053, 2054]);
+    expect(pruneStaffTemplateClassIds([2053], [2054])).toEqual([]);
+    expect(pruneStaffTemplateClassIds(['2053'] as unknown as number[], [2053])).toEqual([2053]);
+  });
+
+  it('keeps cross-level class_ids when adding from different levels', () => {
+    const levelSixA = addStaffTemplateClassId([], 2053);
+    const multiLevel = addStaffTemplateClassId(levelSixA, 3050);
+    expect(multiLevel).toEqual([2053, 3050]);
+    expect(removeStaffTemplateClassId(multiLevel, 2053)).toEqual([3050]);
+  });
+
+  it('treats empty class_ids as missing and multi-class arrays as complete', () => {
+    const preview: StaffTemplatePreview = {
+      allowed_to_create: false,
+      required_fields: ['class_ids'],
+    };
+    expect(resolvePreviewMissingAssignmentFields(preview, { class_ids: [] })).toEqual(['class_ids']);
+    expect(resolvePreviewMissingAssignmentFields(preview, { class_ids: [2053] })).toEqual([]);
+    expect(resolvePreviewMissingAssignmentFields(preview, { class_ids: [2053, 2054] })).toEqual([]);
+
+    const payload = buildStaffTemplatePreviewPayload('subject_teacher', 3, {
+      subject_id: 1885,
+      class_ids: [2053, 2054],
+      academic_year_id: 1387,
+    });
+    expect(payload.assignments.class_ids).toEqual([2053, 2054]);
+    expect(payloadContainsForbiddenClientFields(payload)).toBe(false);
+  });
+
+  it('ignores unknown required_fields tokens from preview', () => {
+    const preview: StaffTemplatePreview = {
+      allowed_to_create: false,
+      required_fields: ['subject_id', 'mystery_field'],
+    };
+    expect(
+      resolvePreviewMissingAssignmentFields(preview, {
+        subject_id: 1,
+        class_ids: [2],
+        academic_year_id: 3,
+      }),
+    ).toEqual([]);
+  });
+
   it('filters assignment options by cycle, level, and year when metadata exists', () => {
     const levels = buildStaffAssignmentLevelOptions([
       { id: 1, name: 'First primary', cycle: { code: 'primary' } },
@@ -367,10 +491,18 @@ describe('staff-template-utils', () => {
     ]);
     expect(filterStaffAssignmentLevels(levels, 'primary').map((item) => item.id)).toEqual([1]);
 
-    const subjects = buildStaffAssignmentSubjectOptions([
-      { id: 10, name: 'Arabic', level_ids: [1] },
-      { id: 11, name: 'Physics', level_ids: [2] },
-    ]);
+    const subjects = buildStaffAssignmentSubjectOptions(
+      [
+        { id: 10, name: 'Arabic', level_ids: [1] },
+        { id: 11, name: 'Physics', level_ids: [2] },
+      ],
+      [
+        { id: 1, name: 'First primary', cycleCode: 'primary' },
+        { id: 2, name: 'First middle', cycleCode: 'college' },
+      ],
+    );
+    expect(subjects[0]?.label).toBe('Arabic (First primary)');
+    expect(subjects[1]?.label).toBe('Physics (First middle)');
     expect(filterStaffAssignmentSubjects(subjects, 1).map((item) => item.id)).toEqual([10]);
 
     const classes = buildStaffAssignmentClassOptions(
@@ -384,6 +516,20 @@ describe('staff-template-utils', () => {
       ],
     );
     expect(filterStaffAssignmentClasses(classes, 1, 5).map((item) => item.id)).toEqual([100]);
+  });
+
+  it('formats subject labels with level names for duplicate subject UX', () => {
+    const levelNameById = new Map<number, string>([
+      [1, 'السنة الأولى'],
+      [2, 'السنة الثانية'],
+    ]);
+    expect(formatStaffAssignmentSubjectLabel('اللغة العربية', [1], levelNameById)).toBe(
+      'اللغة العربية (السنة الأولى)',
+    );
+    expect(formatStaffAssignmentSubjectLabel('اللغة العربية', [1, 2], levelNameById)).toBe(
+      'اللغة العربية (السنة الأولى، السنة الثانية)',
+    );
+    expect(formatStaffAssignmentSubjectLabel('الرياضيات', [], levelNameById)).toBe('الرياضيات');
   });
 
   it('resolves addable bundle codes excluding selected and forbidden', () => {
@@ -493,5 +639,28 @@ describe('staff-template-utils', () => {
       },
     });
     expect(preview?.bundle_selection?.removable_bundle_codes).toEqual(['cashdesk']);
+  });
+
+  it('smartCreate success i18n keys are human-readable labels', async () => {
+    const ar = (await import('../../../../../messages/ar.json')).default;
+    const smartCreate = ar.admin.staffCenter.smartCreate;
+    const keys = [
+      'successTitle',
+      'createSuccess',
+      'openTeacherProfile',
+      'openStaffProfile',
+      'manageAccountPermissions',
+      'createAnother',
+    ] as const;
+
+    for (const key of keys) {
+      const value = smartCreate[key];
+      expect(typeof value).toBe('string');
+      expect(value).toBeTruthy();
+      expect(value).not.toMatch(/^admin\.staffCenter\./);
+      expect(value).not.toContain('smartCreate.');
+    }
+
+    expect(smartCreate.openTeacherProfile).toBe('فتح ملف الأستاذ');
   });
 });

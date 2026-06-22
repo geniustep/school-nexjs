@@ -11,8 +11,14 @@ import {
   resolveStaffTemplateCapabilityLabel,
   splitStaffTemplateDisplayList,
   STAFF_TEMPLATE_CAPABILITY_DISPLAY_LIMIT,
+  assignmentsSatisfyTemplateRequirements,
 } from '@/features/admin/staff/utils/staff-template-utils';
-import type { StaffTemplateAssignments, StaffTemplateCapabilityItem, StaffTemplatePreview } from '@/types/staff-templates';
+import type {
+  StaffCreationTemplate,
+  StaffTemplateAssignments,
+  StaffTemplateCapabilityItem,
+  StaffTemplatePreview,
+} from '@/types/staff-templates';
 
 function CapabilityItemsList({
   items,
@@ -65,6 +71,7 @@ export function StaffTemplatePreviewPanel({
   selectedBundleCodes,
   assignments,
   hideSummaryTitle = false,
+  template = null,
 }: {
   preview: StaffTemplatePreview | null;
   loading: boolean;
@@ -73,6 +80,7 @@ export function StaffTemplatePreviewPanel({
   selectedBundleCodes?: string[];
   assignments?: StaffTemplateAssignments;
   hideSummaryTitle?: boolean;
+  template?: StaffCreationTemplate | null;
 }) {
   const t = useT();
   const { locale } = useLocale();
@@ -108,6 +116,10 @@ export function StaffTemplatePreviewPanel({
     .filter(Boolean)
     .map((field) => formatStaffTemplateRequiredField(field, t));
 
+  const assignmentsComplete = assignmentsSatisfyTemplateRequirements(template, assignments ?? {});
+  const showCreationBlocked =
+    !preview.allowed_to_create && requiredFields.length > 0 && !assignmentsComplete;
+
   const bundleCodes = preview.selected_bundle_codes?.length
     ? preview.selected_bundle_codes
     : selectedBundleCodes?.length
@@ -127,7 +139,7 @@ export function StaffTemplatePreviewPanel({
         </h3>
       ) : null}
 
-      {!preview.allowed_to_create ? (
+      {!preview.allowed_to_create && showCreationBlocked ? (
         <InfoBanner
           tone="amber"
           icon="⚠"

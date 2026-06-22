@@ -39,6 +39,8 @@ describe('staff-center-present', () => {
     expect(redirect.primary).toBe('teacher');
     expect(redirect.teacherId).toBe(1306);
     expect(redirect.userId).toBe(4706);
+    expect(`/admin/teachers/${redirect.teacherId}`).toBe('/admin/teachers/1306');
+    expect(`/admin/staff/${redirect.userId}`).toBe('/admin/staff/4706');
   });
 
   it('redirects non-teacher creates to staff profile', () => {

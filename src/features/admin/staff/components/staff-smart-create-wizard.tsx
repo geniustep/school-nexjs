@@ -25,6 +25,7 @@ import {
   assignmentsOptionsAvailable,
   buildStaffTemplateCreatePayload,
   buildStaffTemplatePreviewPayload,
+  normalizeStaffTemplateAssignments,
   buildStaffAssignmentClassOptions,
   buildStaffAssignmentLevelOptions,
   buildStaffAssignmentSubjectOptions,
@@ -37,7 +38,9 @@ import {
   filterStaffAssignmentSubjects,
   resolveInitialSelectedBundleCodes,
   resolveStaffTemplateAccountLogin,
+  resolveStaffTemplateBundleLabel,
   resolveStaffTemplateForBundleEditor,
+  resolveStaffTemplateMainPositionLabel,
   templateAllowsCreate,
   templateRequiresAssignments,
   validateStaffTemplateAssignments,
@@ -96,7 +99,6 @@ export function StaffSmartCreateWizard() {
   const [assignmentsError, setAssignmentsError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [createResult, setCreateResult] = useState<StaffTemplateCreateResult | null>(null);
-  const [previewedTemplateCode, setPreviewedTemplateCode] = useState<string | null>(null);
   const [assignmentPicker, setAssignmentPicker] = useState<StaffAssignmentPickerState>(
     defaultStaffAssignmentPickerState(),
   );
@@ -115,10 +117,6 @@ export function StaffSmartCreateWizard() {
 
   const passwordPolicy = normalizeStaffPasswordPolicy(staffOptionsState.options?.password_policy);
 
-  const subjects = useMemo(
-    () => buildStaffAssignmentSubjectOptions(subjectsState.data ?? []),
-    [subjectsState.data],
-  );
   const allClasses = useMemo(
     () =>
       buildStaffAssignmentClassOptions(
@@ -130,6 +128,10 @@ export function StaffSmartCreateWizard() {
   const allLevels = useMemo(
     () => buildStaffAssignmentLevelOptions(levelsState.data ?? []),
     [levelsState.data],
+  );
+  const subjects = useMemo(
+    () => buildStaffAssignmentSubjectOptions(subjectsState.data ?? [], allLevels),
+    [subjectsState.data, allLevels],
   );
   const assignmentCycles = useMemo(
     () => extractStaffAssignmentCycleOptions(levelsState.data ?? []),
@@ -152,6 +154,12 @@ export function StaffSmartCreateWizard() {
       ),
     [allClasses, assignmentPicker.levelId, form.assignments.academic_year_id],
   );
+  const classCatalog = useMemo(
+    () =>
+      filterStaffAssignmentClasses(allClasses, null, form.assignments.academic_year_id ?? null),
+    [allClasses, form.assignments.academic_year_id],
+  );
+  const subjectCatalog = subjects;
   const academicYears = studentOptionsState.options?.academicYears ?? [];
 
   const requiredAssignments = selectedTemplate?.required_assignments ?? [];
@@ -166,6 +174,11 @@ export function StaffSmartCreateWizard() {
     });
 
   const assignmentClassKey = form.assignments.class_ids?.join(',') ?? '';
+  const assignmentSubjectKey = form.assignments.subject_ids?.join(',') ?? '';
+  const normalizedAssignments = useMemo(
+    () => normalizeStaffTemplateAssignments(form.assignments),
+    [form.assignments],
+  );
 
   const refreshPreview = useCallback(() => {
     if (!form.templateCode) return Promise.resolve(undefined);
@@ -173,13 +186,14 @@ export function StaffSmartCreateWizard() {
       buildStaffTemplatePreviewPayload(
         form.templateCode,
         activeSchoolId,
-        form.assignments,
+        normalizeStaffTemplateAssignments(form.assignments),
         form.selectedBundleCodes,
       ),
     );
   }, [
     activeSchoolId,
     assignmentClassKey,
+    assignmentSubjectKey,
     form.assignments.academic_year_id,
     form.assignments.subject_id,
     form.templateCode,
@@ -202,6 +216,11 @@ export function StaffSmartCreateWizard() {
   }, [selectedTemplate]);
 
   function handleSelectTemplate(template: StaffCreationTemplate) {
+    if (!templateAllowsCreate(template)) {
+      toast.show(t('admin.staffCenter.smartCreate.errors.templateCreateDisabled'), 'info');
+      return;
+    }
+
     const initialBundles = resolveInitialSelectedBundleCodes(template);
     setForm((current) => ({
       ...defaultStaffSmartCreateFormState(),
@@ -213,13 +232,8 @@ export function StaffSmartCreateWizard() {
     setPasswordErrors({});
     setAssignmentsError(null);
     setAssignmentPicker(defaultStaffAssignmentPickerState());
-    setPreviewedTemplateCode(null);
     resetPreview();
-  }
-
-  function handlePreviewTemplate(template: StaffCreationTemplate) {
-    const initialBundles = resolveInitialSelectedBundleCodes(template);
-    setPreviewedTemplateCode(template.code);
+    setStep('details');
     void loadPreview(
       buildStaffTemplatePreviewPayload(template.code, activeSchoolId, {}, initialBundles),
     );
@@ -345,7 +359,6 @@ export function StaffSmartCreateWizard() {
     setForm(defaultStaffSmartCreateFormState());
     setStep('template');
     resetPreview();
-    setPreviewedTemplateCode(null);
     setPersonErrors({});
     setPasswordErrors({});
     setAssignmentsError(null);
@@ -364,12 +377,11 @@ export function StaffSmartCreateWizard() {
     passwordPolicy,
     t,
   });
-  const previewedBundleCodes = useMemo(() => {
-    if (!previewedTemplateCode) return [];
-    if (previewedTemplateCode === form.templateCode) return form.selectedBundleCodes;
-    const template = templatesState.templates.find((item) => item.code === previewedTemplateCode);
-    return template ? resolveInitialSelectedBundleCodes(template) : [];
-  }, [form.selectedBundleCodes, form.templateCode, previewedTemplateCode, templatesState.templates]);
+  const accountLogin = resolveStaffTemplateAccountLogin(
+    form.person,
+    form.login,
+    form.useDifferentLogin,
+  );
 
   const templatesResource = useMemo(
     () => ({
@@ -450,13 +462,7 @@ export function StaffSmartCreateWizard() {
                   <StaffTemplatePicker
                     templates={templates}
                     selectedCode={form.templateCode}
-                    previewedCode={previewedTemplateCode}
-                    preview={preview}
-                    previewLoading={previewLoading}
-                    previewError={previewErrorMessage}
-                    previewBundleCodes={previewedBundleCodes}
                     onSelect={handleSelectTemplate}
-                    onPreview={handlePreviewTemplate}
                   />
                 </>
               )}
@@ -638,7 +644,9 @@ export function StaffSmartCreateWizard() {
                 cycles={assignmentCycles}
                 levels={filteredLevels}
                 subjects={filteredSubjects}
+                subjectCatalog={subjectCatalog}
                 classes={filteredClasses}
+                classCatalog={classCatalog}
                 academicYears={academicYears}
                 optionsLoading={
                   subjectsState.loading ||
@@ -648,7 +656,40 @@ export function StaffSmartCreateWizard() {
                 }
                 optionsUnavailable={assignmentOptionsUnavailable}
                 onPickerChange={setAssignmentPicker}
-                onChange={(assignments) => setForm((current) => ({ ...current, assignments }))}
+                onChange={(assignments) =>
+                  setForm((current) => ({
+                    ...current,
+                    assignments: normalizeStaffTemplateAssignments(assignments),
+                  }))
+                }
+                onClassIdsChange={(updater) =>
+                  setForm((current) => {
+                    const normalized = normalizeStaffTemplateAssignments(current.assignments);
+                    const currentIds = normalized.class_ids ?? [];
+                    return {
+                      ...current,
+                      assignments: normalizeStaffTemplateAssignments({
+                        ...normalized,
+                        class_ids: updater(currentIds),
+                      }),
+                    };
+                  })
+                }
+                onSubjectIdsChange={(updater) =>
+                  setForm((current) => {
+                    const normalized = normalizeStaffTemplateAssignments(current.assignments);
+                    const currentIds = normalized.subject_ids ?? [];
+                    const nextIds = updater(currentIds);
+                    return {
+                      ...current,
+                      assignments: normalizeStaffTemplateAssignments({
+                        ...normalized,
+                        subject_ids: nextIds,
+                        subject_id: nextIds[0] ?? null,
+                      }),
+                    };
+                  })
+                }
               />
               {assignmentsError ? (
                 <InfoBanner
@@ -659,47 +700,177 @@ export function StaffSmartCreateWizard() {
                 />
               ) : null}
 
-              {showBundleEditor ? (
-                <section className="staff-smart-create__section-card staff-smart-create__section-card--preview">
-                  <div className="staff-smart-create__section-heading">
-                    <h3 className="staff-smart-create__section-title">
-                      {t('admin.staffCenter.smartCreate.previewSummaryTitle')}
-                    </h3>
-                  </div>
-                  <StaffTemplatePreviewPanel
-                    preview={preview}
-                    loading={previewLoading}
-                    error={previewErrorMessage}
-                    selectedBundleCodes={form.selectedBundleCodes}
-                    assignments={form.assignments}
-                  />
-                </section>
-              ) : null}
+              <section className="staff-smart-create__section-card staff-smart-create__section-card--preview">
+                <div className="staff-smart-create__section-heading">
+                  <h3 className="staff-smart-create__section-title">
+                    {t('admin.staffCenter.smartCreate.previewSummaryTitle')}
+                  </h3>
+                </div>
+                <StaffTemplatePreviewPanel
+                  preview={preview}
+                  loading={previewLoading}
+                  error={previewErrorMessage}
+                  selectedBundleCodes={form.selectedBundleCodes}
+                  assignments={form.assignments}
+                  template={selectedTemplate}
+                  hideSummaryTitle
+                />
+              </section>
             </div>
           ) : null}
 
           {step === 'review' && selectedTemplate ? (
             <div className="staff-smart-create__review">
-              {showBundleEditor ? (
-                <StaffTemplateBundleEditor
-                  template={bundleEditorTemplate!}
-                  selectedBundleCodes={form.selectedBundleCodes}
-                  disabled={previewLoading || saving}
-                  onChange={(selectedBundleCodes) =>
-                    setForm((current) => ({ ...current, selectedBundleCodes }))
-                  }
-                />
-              ) : null}
+              <section className="staff-smart-create__section-card staff-smart-create__review-summary">
+                <div className="staff-smart-create__section-heading">
+                  <h3 className="staff-smart-create__section-title">
+                    {t('admin.staffCenter.smartCreate.reviewSettingsReport')}
+                  </h3>
+                  <p className="staff-smart-create__section-desc">
+                    {t('admin.staffCenter.smartCreate.reviewSettingsReportHint')}
+                  </p>
+                </div>
+                <div className="staff-smart-create__review-summary-grid">
+                  <div className="staff-smart-create__review-block">
+                    <h4 className="staff-smart-create__review-block-title">
+                      {t('admin.staffCenter.smartCreate.reviewRoleSummary')}
+                    </h4>
+                    <dl className="staff-smart-create__review-dl">
+                      <div>
+                        <dt>{t('admin.staffCenter.smartCreate.templateLabel')}</dt>
+                        <dd>{selectedTemplate.name}</dd>
+                      </div>
+                      {resolveStaffTemplateMainPositionLabel(selectedTemplate.main_position) ? (
+                        <div>
+                          <dt>{t('admin.staffCenter.smartCreate.mainPosition')}</dt>
+                          <dd>
+                            {resolveStaffTemplateMainPositionLabel(selectedTemplate.main_position)}
+                          </dd>
+                        </div>
+                      ) : null}
+                      {form.selectedBundleCodes.length ? (
+                        <div>
+                          <dt>{t('admin.staffCenter.smartCreate.selectedBundlesPreviewTitle')}</dt>
+                          <dd>
+                            {form.selectedBundleCodes
+                              .map((code) => resolveStaffTemplateBundleLabel(code, t))
+                              .join('، ')}
+                          </dd>
+                        </div>
+                      ) : null}
+                    </dl>
+                  </div>
+                  <div className="staff-smart-create__review-block">
+                    <h4 className="staff-smart-create__review-block-title">
+                      {t('admin.staffCenter.smartCreate.identitySection')}
+                    </h4>
+                    <dl className="staff-smart-create__review-dl">
+                      <div>
+                        <dt>{t('admin.fullName')}</dt>
+                        <dd>{form.person.name || t('common.dash')}</dd>
+                      </div>
+                      {form.person.phone ? (
+                        <div>
+                          <dt>{t('admin.phone')}</dt>
+                          <dd dir="ltr">{form.person.phone}</dd>
+                        </div>
+                      ) : null}
+                      {form.person.email ? (
+                        <div>
+                          <dt>{t('admin.email')}</dt>
+                          <dd dir="ltr">{form.person.email}</dd>
+                        </div>
+                      ) : null}
+                    </dl>
+                  </div>
+                  <div className="staff-smart-create__review-block">
+                    <h4 className="staff-smart-create__review-block-title">
+                      {t('admin.staffCenter.smartCreate.reviewAccountSummary')}
+                    </h4>
+                    <dl className="staff-smart-create__review-dl">
+                      <div>
+                        <dt>{t('admin.staffCenter.smartCreate.createAccount')}</dt>
+                        <dd>
+                          {form.createAccount
+                            ? t('admin.staffCenter.smartCreate.reviewYes')
+                            : t('admin.staffCenter.smartCreate.reviewNo')}
+                        </dd>
+                      </div>
+                      {form.createAccount ? (
+                        <>
+                          <div>
+                            <dt>{t('admin.account.loginName')}</dt>
+                            <dd dir="ltr">{accountLogin || t('common.dash')}</dd>
+                          </div>
+                          <div>
+                            <dt>{t('admin.staffCenter.smartCreate.passwordSection')}</dt>
+                            <dd>
+                              {form.assignPasswordNow
+                                ? t('admin.staffCenter.smartCreate.reviewPasswordNow')
+                                : t('admin.staffCenter.smartCreate.reviewPasswordLater')}
+                            </dd>
+                          </div>
+                        </>
+                      ) : null}
+                    </dl>
+                  </div>
+                  {needsAssignments ? (
+                    <div className="staff-smart-create__review-block staff-smart-create__review-block--wide">
+                      <h4 className="staff-smart-create__review-block-title">
+                        {t('admin.staffCenter.smartCreate.reviewAssignmentsSummary')}
+                      </h4>
+                      <dl className="staff-smart-create__review-dl">
+                        {(normalizedAssignments.subject_ids ?? []).length ? (
+                          <div>
+                            <dt>{t('admin.staffCenter.smartCreate.subjects')}</dt>
+                            <dd>
+                              {(normalizedAssignments.subject_ids ?? [])
+                                .map(
+                                  (id) =>
+                                    subjectCatalog.find((item) => item.id === id)?.label ??
+                                    subjectCatalog.find((item) => item.id === id)?.name ??
+                                    String(id),
+                                )
+                                .join('، ')}
+                            </dd>
+                          </div>
+                        ) : null}
+                        {(normalizedAssignments.class_ids ?? []).length ? (
+                          <div>
+                            <dt>{t('admin.staffCenter.smartCreate.classes')}</dt>
+                            <dd>
+                              {(normalizedAssignments.class_ids ?? [])
+                                .map(
+                                  (id) =>
+                                    allClasses.find((item) => item.id === id)?.name ?? String(id),
+                                )
+                                .join('، ')}
+                            </dd>
+                          </div>
+                        ) : null}
+                        {normalizedAssignments.academic_year_id != null ? (
+                          <div>
+                            <dt>{t('admin.staffCenter.smartCreate.academicYear')}</dt>
+                            <dd>
+                              {academicYears.find(
+                                (item) => item.id === normalizedAssignments.academic_year_id,
+                              )?.name ?? normalizedAssignments.academic_year_id}
+                            </dd>
+                          </div>
+                        ) : null}
+                      </dl>
+                    </div>
+                  ) : null}
+                </div>
+              </section>
               <StaffTemplatePreviewPanel
                 preview={preview}
                 loading={previewLoading}
                 error={previewErrorMessage}
                 selectedBundleCodes={form.selectedBundleCodes}
                 assignments={form.assignments}
+                template={selectedTemplate}
               />
-              <button type="button" className="btn btn--ghost btn--sm" onClick={() => void refreshPreview()}>
-                {t('admin.staffCenter.smartCreate.refreshPreview')}
-              </button>
             </div>
           ) : null}
 

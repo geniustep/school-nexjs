@@ -303,6 +303,47 @@
   gap: 1rem;
 }
 
+.staff-smart-create__review-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.staff-smart-create__review-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.staff-smart-create__review-block--wide {
+  grid-column: 1 / -1;
+}
+
+.staff-smart-create__review-block-title {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.staff-smart-create__review-dl {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.staff-smart-create__review-dl dt {
+  font-size: 0.78rem;
+  color: var(--text-muted, #64748b);
+  font-weight: 500;
+}
+
+.staff-smart-create__review-dl dd {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 500;
+}
+
 .staff-smart-create__section-card {
   border: 1px solid var(--border, #e2e8f0);
   border-radius: 0.85rem;
@@ -389,6 +430,68 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+}
+
+.staff-smart-create__class-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.staff-smart-create__class-search {
+  max-width: 320px;
+}
+
+.staff-smart-create__selected-classes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.staff-smart-create__selected-class-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--surface-muted, #f1f5f9);
+  border: 1px solid var(--border-subtle, #e2e8f0);
+  font-size: 0.875rem;
+}
+
+.staff-smart-create__selected-class-remove {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0 2px;
+}
+
+.staff-smart-create__class-options {
+  list-style: none;
+  margin: 0;
+  padding: 8px;
+  display: grid;
+  gap: 6px;
+  max-height: 220px;
+  overflow: auto;
+  border: 1px solid var(--border-subtle, #e2e8f0);
+  border-radius: 8px;
+}
+
+.staff-smart-create__class-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+
+.staff-smart-create__class-option:hover {
+  background: var(--surface-muted, #f8fafc);
 }
 
 .staff-smart-create__preview {

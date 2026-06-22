@@ -44,6 +44,7 @@ export interface StaffTemplateScope {
 
 export interface StaffTemplateAssignments {
   subject_id?: number | null;
+  subject_ids?: number[];
   class_ids?: number[];
   academic_year_id?: number | null;
 }

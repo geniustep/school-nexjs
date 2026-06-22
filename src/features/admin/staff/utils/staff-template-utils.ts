@@ -412,7 +412,7 @@ export function defaultStaffSmartCreateFormState(): StaffSmartCreateFormState {
     useDifferentLogin: false,
     password: '',
     confirmPassword: '',
-    assignments: { subject_id: null, class_ids: [], academic_year_id: null },
+    assignments: { subject_id: null, subject_ids: [], class_ids: [], academic_year_id: null },
   };
 }
 
@@ -423,11 +423,119 @@ export function buildStaffTemplateScope(schoolId: number | null): StaffTemplateS
 export function buildStaffTemplateAssignmentsInput(
   assignments: StaffTemplateAssignments,
 ): StaffTemplateAssignments {
+  const normalized = normalizeStaffTemplateAssignments(assignments);
   const payload: StaffTemplateAssignments = {};
-  if (assignments.subject_id != null) payload.subject_id = assignments.subject_id;
-  if (assignments.academic_year_id != null) payload.academic_year_id = assignments.academic_year_id;
-  if (assignments.class_ids?.length) payload.class_ids = [...assignments.class_ids];
+  if (normalized.subject_ids?.length) {
+    payload.subject_ids = [...normalized.subject_ids];
+    payload.subject_id = normalized.subject_ids[0] ?? null;
+  } else if (normalized.subject_id != null) {
+    payload.subject_id = normalized.subject_id;
+  }
+  if (normalized.academic_year_id != null) payload.academic_year_id = normalized.academic_year_id;
+  if (normalized.class_ids?.length) payload.class_ids = [...normalized.class_ids];
   return payload;
+}
+
+export function normalizeStaffTemplateClassIds(value: unknown): number[] {
+  if (!Array.isArray(value)) return [];
+  return [
+    ...new Set(
+      value
+        .map((item) => Number(item))
+        .filter((id) => Number.isFinite(id) && id > 0),
+    ),
+  ];
+}
+
+export function normalizeStaffTemplateSubjectIds(value: unknown): number[] {
+  return normalizeStaffTemplateClassIds(value);
+}
+
+export function addStaffTemplateSubjectId(
+  currentIds: number[] | undefined,
+  subjectId: number,
+): number[] {
+  return addStaffTemplateClassId(currentIds, subjectId);
+}
+
+export function removeStaffTemplateSubjectId(
+  currentIds: number[] | undefined,
+  subjectId: number,
+): number[] {
+  return removeStaffTemplateClassId(currentIds, subjectId);
+}
+
+export function toggleStaffTemplateSubjectId(
+  currentIds: number[] | undefined,
+  subjectId: number,
+): number[] {
+  return toggleStaffTemplateClassId(currentIds, subjectId);
+}
+
+export function resolveStaffTemplateSubjectIds(
+  assignments: StaffTemplateAssignments,
+): number[] {
+  const normalized = normalizeStaffTemplateAssignments(assignments);
+  return normalized.subject_ids ?? [];
+}
+
+export function addStaffTemplateClassId(
+  currentIds: number[] | undefined,
+  classId: number,
+): number[] {
+  const id = Number(classId);
+  if (!Number.isFinite(id) || id <= 0) return normalizeStaffTemplateClassIds(currentIds);
+  return normalizeStaffTemplateClassIds([...(currentIds ?? []), id]);
+}
+
+export function removeStaffTemplateClassId(
+  currentIds: number[] | undefined,
+  classId: number,
+): number[] {
+  const id = Number(classId);
+  return normalizeStaffTemplateClassIds(currentIds).filter((item) => item !== id);
+}
+
+export function toggleStaffTemplateClassId(
+  currentIds: number[] | undefined,
+  classId: number,
+): number[] {
+  const normalized = normalizeStaffTemplateClassIds(currentIds);
+  const id = Number(classId);
+  if (!Number.isFinite(id) || id <= 0) return normalized;
+  return normalized.includes(id)
+    ? removeStaffTemplateClassId(normalized, id)
+    : addStaffTemplateClassId(normalized, id);
+}
+
+export function normalizeStaffTemplateAssignments(
+  assignments: StaffTemplateAssignments,
+): StaffTemplateAssignments {
+  const subjectIds = normalizeStaffTemplateSubjectIds(
+    assignments.subject_ids?.length
+      ? assignments.subject_ids
+      : assignments.subject_id != null
+        ? [assignments.subject_id]
+        : [],
+  );
+  const yearRaw =
+    assignments.academic_year_id != null ? Number(assignments.academic_year_id) : null;
+
+  return {
+    subject_ids: subjectIds,
+    subject_id: subjectIds[0] ?? null,
+    academic_year_id:
+      yearRaw != null && Number.isFinite(yearRaw) && yearRaw > 0 ? yearRaw : null,
+    class_ids: normalizeStaffTemplateClassIds(assignments.class_ids),
+  };
+}
+
+export function pruneStaffTemplateClassIds(
+  classIds: number[] | undefined,
+  availableClassIds: number[],
+): number[] {
+  const allowed = new Set(availableClassIds);
+  return normalizeStaffTemplateClassIds(classIds).filter((id) => allowed.has(id));
 }
 
 export function resolveInitialSelectedBundleCodes(template: StaffCreationTemplate): string[] {
@@ -664,14 +772,18 @@ export function validateStaffTemplateAssignments(
   t: (key: string) => string,
 ): { valid: boolean; error?: string } {
   if (!template) return { valid: false };
+  const normalized = normalizeStaffTemplateAssignments(assignments);
   const required = template.required_assignments ?? [];
-  if (required.includes('subject_id') && assignments.subject_id == null) {
+  if (required.includes('subject_id') && !(normalized.subject_ids ?? []).length) {
     return { valid: false, error: t('admin.staffCenter.smartCreate.errors.subjectRequired') };
   }
-  if (required.includes('class_ids') && !(assignments.class_ids?.length ?? 0)) {
+  if (required.includes('subject_ids') && !(normalized.subject_ids ?? []).length) {
+    return { valid: false, error: t('admin.staffCenter.smartCreate.errors.subjectRequired') };
+  }
+  if (required.includes('class_ids') && !(normalized.class_ids ?? []).length) {
     return { valid: false, error: t('admin.staffCenter.smartCreate.errors.classesRequired') };
   }
-  if (required.includes('academic_year_id') && assignments.academic_year_id == null) {
+  if (required.includes('academic_year_id') && normalized.academic_year_id == null) {
     return { valid: false, error: t('admin.staffCenter.smartCreate.errors.academicYearRequired') };
   }
   return { valid: true };
@@ -721,7 +833,8 @@ export function formatPreviewWarning(warning: string | { code?: string; message?
 }
 
 const REQUIRED_FIELD_I18N_KEYS: Record<string, string> = {
-  subject_id: 'admin.staffCenter.smartCreate.subject',
+  subject_id: 'admin.staffCenter.smartCreate.subjects',
+  subject_ids: 'admin.staffCenter.smartCreate.subjects',
   class_ids: 'admin.staffCenter.smartCreate.classes',
   class_id: 'admin.staffCenter.smartCreate.classes',
   academic_year_id: 'admin.staffCenter.smartCreate.academicYear',
@@ -734,23 +847,46 @@ export function normalizeStaffTemplateRequiredFieldKey(field: string): string {
   const trimmed = field.trim();
   const normalized = trimmed.toLowerCase().replace(/\s+/g, '_');
   if (normalized === 'class_id' || normalized === 'class_ids') return 'class_ids';
-  if (normalized === 'subject_id') return 'subject_id';
+  if (normalized === 'subject_id' || normalized === 'subject_ids') return 'subject_ids';
   if (normalized === 'academic_year_id') return 'academic_year_id';
   return trimmed;
 }
+
+const KNOWN_ASSIGNMENT_REQUIRED_KEYS = new Set([
+  'subject_id',
+  'subject_ids',
+  'class_ids',
+  'academic_year_id',
+]);
 
 export function resolvePreviewMissingAssignmentFields(
   preview: StaffTemplatePreview | null | undefined,
   assignments: StaffTemplateAssignments,
 ): string[] {
+  const normalized = normalizeStaffTemplateAssignments(assignments);
   const raw = preview?.required_fields ?? [];
   return raw.filter((field) => {
     const key = normalizeStaffTemplateRequiredFieldKey(field);
-    if (key === 'subject_id') return assignments.subject_id == null;
-    if (key === 'class_ids') return !(assignments.class_ids?.length ?? 0);
-    if (key === 'academic_year_id') return assignments.academic_year_id == null;
-    return true;
+    if (!KNOWN_ASSIGNMENT_REQUIRED_KEYS.has(key)) return false;
+    if (key === 'subject_id' || key === 'subject_ids') return !(normalized.subject_ids ?? []).length;
+    if (key === 'class_ids') return !(normalized.class_ids ?? []).length;
+    if (key === 'academic_year_id') return normalized.academic_year_id == null;
+    return false;
   });
+}
+
+export function assignmentsSatisfyTemplateRequirements(
+  template: StaffCreationTemplate | null | undefined,
+  assignments: StaffTemplateAssignments,
+): boolean {
+  if (!template) return false;
+  const normalized = normalizeStaffTemplateAssignments(assignments);
+  const required = template.required_assignments ?? [];
+  if (required.includes('subject_id') && !(normalized.subject_ids ?? []).length) return false;
+  if (required.includes('subject_ids') && !(normalized.subject_ids ?? []).length) return false;
+  if (required.includes('class_ids') && !(normalized.class_ids ?? []).length) return false;
+  if (required.includes('academic_year_id') && normalized.academic_year_id == null) return false;
+  return true;
 }
 
 export interface StaffAssignmentCycleOption {
@@ -767,6 +903,7 @@ export interface StaffAssignmentLevelOption {
 export interface StaffAssignmentSubjectOption {
   id: number;
   name: string;
+  label: string;
   levelIds: number[];
 }
 
@@ -823,15 +960,37 @@ function uniqueNumbers(values: number[]): number[] {
   return [...new Set(values.filter((value) => Number.isFinite(value)))];
 }
 
+export function formatStaffAssignmentSubjectLabel(
+  subjectName: string,
+  levelIds: number[],
+  levelNameById: Map<number, string>,
+): string {
+  const trimmedName = subjectName.trim();
+  const levelNames = levelIds
+    .map((levelId) => levelNameById.get(levelId)?.trim())
+    .filter((value): value is string => Boolean(value));
+  const uniqueLevelNames = [...new Set(levelNames)];
+  if (!trimmedName || !uniqueLevelNames.length) return trimmedName;
+  return `${trimmedName} (${uniqueLevelNames.join('، ')})`;
+}
+
 export function buildStaffAssignmentSubjectOptions(
   subjects: Array<{ id: number; name: string; level_id?: number | null; level_ids?: number[] }>,
+  levels: StaffAssignmentLevelOption[] = [],
 ): StaffAssignmentSubjectOption[] {
+  const levelNameById = new Map(levels.map((level) => [level.id, level.name]));
   return subjects.map((subject) => {
     const levelIds = uniqueNumbers([
       ...(subject.level_ids ?? []),
       ...(subject.level_id != null ? [subject.level_id] : []),
     ]);
-    return { id: subject.id, name: subject.name, levelIds };
+    const name = subject.name.trim();
+    return {
+      id: subject.id,
+      name,
+      label: formatStaffAssignmentSubjectLabel(name, levelIds, levelNameById),
+      levelIds,
+    };
   });
 }
 
