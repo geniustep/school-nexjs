@@ -56,4 +56,25 @@ describe('normalizeStaffCenterMember', () => {
     expect(parsed.permissionsPayload?.effective_permissions).toEqual(['finance.view']);
     expect(parsed.permissionsPayload?.effective_capabilities).toEqual(['collect_payments']);
   });
+
+  it('normalizes scope capability_codes from detail item', () => {
+    const parsed = unwrapStaffDetailResponse({
+      item: baseMember({
+        scopes: [
+          {
+            school_id: 3,
+            scope_type: 'classes',
+            class_ids: [2058],
+            capability_codes: ['view_homeworks', 'view_dashboard'],
+          },
+        ],
+      }),
+    });
+
+    expect(parsed.member.scopes?.[0]?.capability_codes).toEqual([
+      'view_homeworks',
+      'view_dashboard',
+    ]);
+    expect(parsed.member.scopes?.[0]?.scope_type).toBe('classes');
+  });
 });

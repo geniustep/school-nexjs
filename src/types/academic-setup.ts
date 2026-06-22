@@ -141,8 +141,11 @@ export interface StaffScope {
   role_template_code?: string | null;
   role_template_name?: string | null;
   school_id?: number | null;
+  scope_type?: string | null;
   level_ids?: number[];
   class_ids?: number[];
+  /** Persisted capability codes for this scope (authoritative after save). */
+  capability_codes?: string[];
   capabilities?: string[];
 }
 

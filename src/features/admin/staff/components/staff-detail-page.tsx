@@ -188,6 +188,7 @@ export function StaffDetailPage({ userId }: { userId: number }) {
               open={editOpen}
               memberId={resolveStaffUserId(member)}
               member={member}
+              permissionsPayload={detailState.permissionsPayload}
               options={optionsState.options ?? undefined}
               optionsLoading={optionsState.loading}
               optionsError={optionsState.error?.message ?? null}

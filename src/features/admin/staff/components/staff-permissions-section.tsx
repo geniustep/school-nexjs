@@ -11,6 +11,10 @@ import {
   resolveStaffRoleTemplateChipLabel,
   resolveStaffScopeRoleTemplateLabel,
 } from '@/features/admin/staff/utils/staff-center-present';
+import {
+  resolveStoredCapabilityCodes,
+  scopeStoredCapabilityCodes,
+} from '@/features/admin/staff/utils/staff-permission-merge';
 import { resolveStaffAdminKindLabel } from '@/features/admin/academic-setup/utils/staff-present';
 import { useLocale, useT } from '@/features/i18n/locale-context';
 import type { StaffEffectivePermissionsPayload, StaffMember } from '@/types/academic-setup';
@@ -50,7 +54,10 @@ export function StaffPermissionsSection({
 }) {
   const t = useT();
 
-  const assigned = payload?.assigned_capabilities ?? member.assigned_capabilities ?? member.capabilities;
+  const storedCodes = resolveStoredCapabilityCodes(member, payload);
+  const assigned = storedCodes.length
+    ? storedCodes
+    : payload?.assigned_capabilities ?? member.assigned_capabilities ?? member.capabilities;
   const effectiveCaps = payload?.effective_capabilities ?? member.effective_capabilities;
   const effectivePerms = payload?.effective_permissions ?? member.effective_permissions ?? member.permissions;
   const permissionWarnings = payload?.warnings ?? member.warnings;
@@ -148,7 +155,7 @@ export function StaffScopesSection({ member }: { member: StaffMember }) {
                     label: t('admin.staffCenter.capabilities'),
                     value: (
                       <LabeledCapabilityList
-                        items={scope.capabilities}
+                        items={scopeStoredCapabilityCodes(scope)}
                         emptyLabel={t('admin.staffCenter.noCapabilitiesInScope')}
                       />
                     ),

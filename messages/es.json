@@ -1015,7 +1015,9 @@
         "notAvailableYet": "No disponible en esta fase"
       },
       "errors": {
-        "scopeRequired": "No se puede crear personal administrativo limitado sin definir ámbito de escuela, clases o niveles."
+        "scopeRequired": "No se puede crear personal administrativo limitado sin definir ámbito de escuela, clases o niveles.",
+        "scopesRequiredForCapabilityUpdate": "No se pudieron guardar los permisos porque el ámbito de trabajo no está definido.",
+        "permissionsSaveUnconfirmed": "No se pudo confirmar que los permisos se guardaron. Recargue la página y verifique el estado."
       },
       "warnings": {
         "account_without_scope": "La cuenta no tiene un ámbito claro.",

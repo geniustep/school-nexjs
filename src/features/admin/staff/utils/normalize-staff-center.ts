@@ -74,18 +74,22 @@ function normalizeScopes(raw: unknown): StaffScope[] {
   for (const item of raw) {
     const record = asRecord(item);
     if (!record) continue;
+    const capabilityCodes = asStringArray(record.capability_codes);
+    const legacyCapabilities = asStringArray(record.capabilities);
     scopes.push({
       role_template_id: asNumber(record.role_template_id),
       role_template_code: asString(record.role_template_code),
       role_template_name: asString(record.role_template_name),
       school_id: asNumber(record.school_id),
+      scope_type: asString(record.scope_type),
       level_ids: Array.isArray(record.level_ids)
         ? record.level_ids.filter((id): id is number => typeof id === 'number')
         : [],
       class_ids: Array.isArray(record.class_ids)
         ? record.class_ids.filter((id): id is number => typeof id === 'number')
         : [],
-      capabilities: asStringArray(record.capabilities),
+      capability_codes: capabilityCodes.length ? capabilityCodes : legacyCapabilities,
+      capabilities: legacyCapabilities.length ? legacyCapabilities : capabilityCodes,
     });
   }
   return scopes;

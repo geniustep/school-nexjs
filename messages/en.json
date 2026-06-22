@@ -1015,7 +1015,9 @@
         "notAvailableYet": "Not available in this phase"
       },
       "errors": {
-        "scopeRequired": "Limited admin staff cannot be created without a school, class, or level scope."
+        "scopeRequired": "Limited admin staff cannot be created without a school, class, or level scope.",
+        "scopesRequiredForCapabilityUpdate": "Could not save permissions because the work scope is not defined.",
+        "permissionsSaveUnconfirmed": "Could not confirm that permissions were saved. Reload the page and check the status."
       },
       "warnings": {
         "account_without_scope": "The account has no clear scope.",

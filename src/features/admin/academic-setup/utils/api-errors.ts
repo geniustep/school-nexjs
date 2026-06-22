@@ -28,6 +28,7 @@ const ASSIGNMENT_ERRORS: Record<string, string> = {
 
 const STAFF_ERRORS: Record<string, string> = {
   scope_required: 'admin.staffCenter.errors.scopeRequired',
+  scopes_required_for_capability_update: 'admin.staffCenter.errors.scopesRequiredForCapabilityUpdate',
   password_required: 'admin.academicSetup.staffPassword.errors.passwordRequired',
   password_mismatch: 'admin.academicSetup.staffPassword.errors.passwordMismatch',
   weak_password: 'admin.academicSetup.staffPassword.errors.weakPassword',

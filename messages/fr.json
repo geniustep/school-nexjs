@@ -1015,7 +1015,9 @@
         "notAvailableYet": "Non disponible dans cette phase"
       },
       "errors": {
-        "scopeRequired": "Un membre administratif limité ne peut pas être créé sans périmètre d'école, de classe ou de niveau."
+        "scopeRequired": "Un membre administratif limité ne peut pas être créé sans périmètre d'école, de classe ou de niveau.",
+        "scopesRequiredForCapabilityUpdate": "Impossible d'enregistrer les permissions car le périmètre de travail n'est pas défini.",
+        "permissionsSaveUnconfirmed": "Impossible de confirmer l'enregistrement des permissions. Rechargez la page et vérifiez l'état."
       },
       "warnings": {
         "account_without_scope": "Le compte n'a pas de périmètre clair.",

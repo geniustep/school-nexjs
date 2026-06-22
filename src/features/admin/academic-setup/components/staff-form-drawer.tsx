@@ -14,8 +14,15 @@ import {
   buildAccountIdentityPayload,
   validateCreateAccountInput,
 } from '@/lib/account/account-utils';
-import type { StaffAdminKind, StaffMember, StaffOptions } from '@/types/academic-setup';
-import { buildStaffCapabilityPayload } from '../utils/capability-present';
+import type { StaffAdminKind, StaffEffectivePermissionsPayload, StaffMember, StaffOptions } from '@/types/academic-setup';
+import {
+  buildStaffPermissionSavePayload,
+  capabilityCodesToIds,
+  capabilityIdsToCodes,
+  resolveStoredCapabilityCodes,
+  responseIncludesCapabilityCodes,
+} from '@/features/admin/staff/utils/staff-permission-merge';
+import { normalizeStaffCenterMember } from '@/features/admin/staff/utils/normalize-staff-center';
 import {
   resolveRoleChangeWarningKey,
   resolveStaffPermissionMetadata,
@@ -56,6 +63,7 @@ export function StaffFormDrawer({
   open,
   memberId,
   member: memberFromList,
+  permissionsPayload,
   options,
   optionsLoading = false,
   optionsError = null,
@@ -68,6 +76,7 @@ export function StaffFormDrawer({
   open: boolean;
   memberId: number | null;
   member?: StaffMember;
+  permissionsPayload?: StaffEffectivePermissionsPayload | null;
   options?: StaffOptions;
   optionsLoading?: boolean;
   optionsError?: string | null;
@@ -155,17 +164,13 @@ export function StaffFormDrawer({
     setJobTitle(member.job_title ?? '');
     setAdminKind(member.admin_kind);
     setOriginalAdminKind(member.admin_kind);
-    const capabilityCodes = member.capabilities?.length
-      ? member.capabilities
-      : (member.permissions ?? []);
-    const resolvedIds = capabilityCodes
-      .map((code) => options?.capabilities.find((c) => c.code === code)?.id)
-      .filter((id): id is number => id != null);
+    const storedCodes = resolveStoredCapabilityCodes(member, permissionsPayload);
+    const resolvedIds = capabilityCodesToIds(storedCodes, options?.capabilities ?? []);
     setCapabilityIds(resolvedIds);
     setOriginalCapabilityIds(resolvedIds);
     setCapabilitiesTouched(false);
     clearPasswordFields();
-  }, [member, creating, options, memberId, clearPasswordFields]);
+  }, [member, creating, options, memberId, clearPasswordFields, permissionsPayload]);
 
   const catalogReady = Boolean(options?.capabilities?.length);
   const adminKindChanged = !creating && originalAdminKind !== '' && adminKind !== originalAdminKind;
@@ -228,17 +233,33 @@ export function StaffFormDrawer({
       isCreate: creating,
     });
 
-    const capPayload = buildStaffCapabilityPayload({
+    const capPayload = buildStaffPermissionSavePayload({
       isCreate: creating,
+      member: creating ? null : member,
       capabilityIds,
       originalCapabilityIds,
       capabilitiesTouched,
+      catalog: options?.capabilities ?? [],
       catalogReady,
       permissionsMeta: permissionsContext,
     });
 
     if (capPayload.blockSaveDueToCatalog) {
       toast.error(t('admin.academicSetup.staffCapabilities.catalogUnavailableWarning'));
+      return;
+    }
+
+    if (capPayload.blockSaveMissingScope) {
+      toast.error(t('admin.staffCenter.errors.scopesRequiredForCapabilityUpdate'));
+      return;
+    }
+
+    if (
+      capPayload.capabilityChangesAttempted &&
+      !creating &&
+      !capPayload.mergePayload?.scopes?.length
+    ) {
+      toast.error(t('admin.staffCenter.errors.scopesRequiredForCapabilityUpdate'));
       return;
     }
 
@@ -255,6 +276,11 @@ export function StaffFormDrawer({
 
     if (!capPayload.omitCapabilities && capPayload.capability_ids) {
       payload.capability_ids = capPayload.capability_ids;
+    }
+
+    if (capPayload.mergePayload) {
+      payload.capability_update_mode = capPayload.mergePayload.capability_update_mode;
+      payload.scopes = capPayload.mergePayload.scopes;
     }
 
     if (creating && showCreatePassword && assignPasswordNow) {
@@ -279,6 +305,20 @@ export function StaffFormDrawer({
       const accountMsg = mapAccountApiError(res.error, t);
       toast.error(staffMsg !== t('errors.serverError') ? staffMsg : accountMsg);
       return;
+    }
+
+    if (
+      capPayload.capabilityChangesAttempted &&
+      capPayload.mergePayload &&
+      res.data
+    ) {
+      const expectedCodes = capabilityIdsToCodes(capabilityIds, options?.capabilities ?? []);
+      const savedMember = normalizeStaffCenterMember(res.data);
+      if (!responseIncludesCapabilityCodes(savedMember, expectedCodes)) {
+        toast.error(t('admin.staffCenter.errors.permissionsSaveUnconfirmed'));
+        onSaved();
+        return;
+      }
     }
 
     const feedback = resolveAccountMutationFeedback(res, t, {
