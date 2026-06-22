@@ -20,6 +20,7 @@ import {
   meetsStaffPasswordPolicy,
   validateStaffPasswordForm,
 } from '@/features/admin/academic-setup/utils/staff-password-utils';
+import { isUnsafeUserFacingErrorMessage } from '@/lib/utils/user-facing-error';
 
 function normalizeStringArray(raw: unknown): string[] {
   if (!Array.isArray(raw)) return [];
@@ -892,10 +893,7 @@ export function formatStaffTemplatePreviewWarning(
 }
 
 export function isUserFacingStaffTemplateError(message: string | null | undefined): boolean {
-  if (!message?.trim()) return false;
-  return !/(odoo|\/api\/|endpoint|template_code|active_school_id|capability_codes|bff|res\.users|res\.partner)/i.test(
-    message,
-  );
+  return !isUnsafeUserFacingErrorMessage(message);
 }
 
 export const STAFF_TEMPLATE_BUNDLE_DISPLAY_LIMIT = 5;

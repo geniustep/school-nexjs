@@ -17,6 +17,7 @@ import {
 import { useSetupReadiness } from '../hooks/use-setup-readiness';
 import { filterAssignmentMissingIssues, filterIssuesByQuery } from '../utils/section-routes';
 import { mapAcademicSetupApiError, mapWarningCode } from '../utils/api-errors';
+import { sanitizeUserFacingErrorMessage } from '@/lib/utils/user-facing-error';
 import { AssignmentByClass } from './assignment-by-class';
 import { AssignmentByTeacher } from './assignment-by-teacher';
 import { AssignmentBySubject } from './assignment-by-subject';
@@ -149,7 +150,9 @@ export function AssignmentBoard({
         {loading ? (
           <p className="muted" style={{ padding: 14 }}>{t('common.loading')}</p>
         ) : error ? (
-          <p className="muted" style={{ padding: 14 }}>{error.message}</p>
+          <p className="muted" style={{ padding: 14 }}>
+            {sanitizeUserFacingErrorMessage(error.message, t('errors.loadFailedRetry'))}
+          </p>
         ) : view === 'class' ? (
           <AssignmentByClass
             classes={classes}

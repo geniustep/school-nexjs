@@ -1,4 +1,5 @@
 import type { ApiErrorBody } from '@/types/api';
+import { sanitizeUserFacingErrorMessage } from '@/lib/utils/user-facing-error';
 
 export function admissionApiErrorMessage(
   error: ApiErrorBody,
@@ -20,10 +21,10 @@ export function admissionApiErrorMessage(
       const messages = Object.values(fields as Record<string, string>).filter(Boolean);
       if (messages.length) return messages.join(' · ');
     }
-    return error.message || t('errors.serverError');
+    return sanitizeUserFacingErrorMessage(error.message, t('errors.serverError'));
   }
-  if (error.message && !error.message.includes('<') && !error.message.startsWith('Error:')) {
-    return error.message;
+  if (error.message) {
+    return sanitizeUserFacingErrorMessage(error.message, t('errors.serverError'));
   }
   return t('errors.serverError');
 }

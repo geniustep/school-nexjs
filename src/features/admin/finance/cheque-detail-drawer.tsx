@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { SetupDrawer } from '@/features/admin/academic-setup/components/setup-drawer';
 import { LoadingState } from '@/components/states/states';
 import { useT } from '@/features/i18n/locale-context';
+import { sanitizeUserFacingErrorMessage } from '@/lib/utils/user-facing-error';
 import { useFormat } from '@/features/i18n/use-format';
 import { useSession } from '@/features/auth/session-context';
 import { endpoints } from '@/lib/api/endpoints';
@@ -67,7 +68,11 @@ export function ChequeDetailDrawer({
     <>
       <SetupDrawer open={open} title={t('admin.finance.collectionWorkflow.chequeDetailTitle')} onClose={onClose}>
         {state.loading && !cheque ? <LoadingState label={t('common.loading')} /> : null}
-        {state.error ? <p className="form-error">{state.error.message}</p> : null}
+        {state.error ? (
+          <p className="form-error">
+            {sanitizeUserFacingErrorMessage(state.error.message, t('errors.loadFailedRetry'))}
+          </p>
+        ) : null}
         {cheque ? (
           <div className="form-stack finance-cheque-detail-drawer">
             <ChequeDualBadges lifecycleState={lifecycle} maturityStatus={undefined} />

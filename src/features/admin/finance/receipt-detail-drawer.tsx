@@ -6,6 +6,7 @@ import { SetupDrawer } from '@/features/admin/academic-setup/components/setup-dr
 import { LoadingState } from '@/components/states/states';
 import { ReceiptDetailView } from '@/features/admin/finance/receipt-detail-view';
 import { useT } from '@/features/i18n/locale-context';
+import { sanitizeUserFacingErrorMessage } from '@/lib/utils/user-facing-error';
 import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { normalizeFinanceReceipt } from '@/lib/utils/normalize-finance-receipt';
@@ -42,7 +43,11 @@ export function ReceiptDetailDrawer({
       size="wide"
     >
       {state.loading && !receipt ? <LoadingState label={t('common.loading')} /> : null}
-      {state.error ? <p className="form-error">{state.error.message}</p> : null}
+      {state.error ? (
+        <p className="form-error">
+          {sanitizeUserFacingErrorMessage(state.error.message, t('errors.loadFailedRetry'))}
+        </p>
+      ) : null}
       {receipt ? (
         <>
           <div className="receipt-drawer-actions">

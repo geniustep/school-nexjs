@@ -5,6 +5,7 @@
 // session id and never call Odoo directly.
 
 import type { ApiResponse, ListParams } from '@/types/api';
+import { sanitizeClientApiErrorMessage } from '@/lib/utils/user-facing-error';
 
 const PROXY_BASE = '/api/odoo';
 
@@ -54,7 +55,7 @@ async function parse<T>(res: Response): Promise<ApiResponse<T>> {
         success: false,
         error: {
           code: error.code,
-          message: error.message,
+          message: sanitizeClientApiErrorMessage(error.message),
           details: {
             ...(error.details ?? {}),
             status: typeof error.details?.status === 'number' ? error.details.status : status,

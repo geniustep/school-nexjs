@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { authApi } from '@/lib/api/client';
 import { useT } from '@/features/i18n/locale-context';
+import { sanitizeUserFacingErrorMessage } from '@/lib/utils/user-facing-error';
 import type { ApiErrorBody } from '@/types/api';
 
 export function LoadingState({ label }: { label?: string }) {
@@ -117,15 +118,22 @@ export function ErrorState({
   onRetry?: () => void;
 }) {
   const t = useT();
+  const safeMessage = sanitizeUserFacingErrorMessage(
+    error.message,
+    t('errors.loadFailedRetry'),
+  );
+  if (
+    process.env.NODE_ENV === 'development' &&
+    error.message?.trim() &&
+    safeMessage !== error.message.trim()
+  ) {
+    console.warn('[ui-error] sanitized user-facing message', { code: error.code, raw: error.message });
+  }
   return (
     <div className="state">
       <div className="state-icon state-icon--error" aria-hidden="true">!</div>
       <div className="state__title">{t('errors.serverErrorTitle')}</div>
-      <div className="state__desc">
-        {error.message && !error.message.startsWith('Error:')
-          ? error.message
-          : t('errors.serverError')}
-      </div>
+      <div className="state__desc">{safeMessage}</div>
       {onRetry && (
         <button className="btn btn--ghost btn--sm mt-2" onClick={onRetry}>
           {t('common.retry')}
@@ -148,6 +156,10 @@ export function ApiErrorView({
   onRetry?: () => void;
 }) {
   const t = useT();
+  const safeDescription = sanitizeUserFacingErrorMessage(
+    error.message,
+    t('errors.loadFailedRetry'),
+  );
 
   if (isStaleActiveSchoolMessage(error.message)) {
     return (
@@ -163,9 +175,9 @@ export function ApiErrorView({
       return <SessionExpiredState />;
     case 'permission_denied':
     case 'forbidden':
-      return <PermissionDeniedState description={error.message} />;
+      return <PermissionDeniedState description={safeDescription} />;
     case 'not_found':
-      return <NotFoundState description={error.message} />;
+      return <NotFoundState description={safeDescription} />;
     default:
       return <ErrorState error={error} onRetry={onRetry} />;
   }

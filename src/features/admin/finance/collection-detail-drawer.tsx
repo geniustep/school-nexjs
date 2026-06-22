@@ -9,6 +9,7 @@ import { CollectionStudentCell } from '@/features/admin/finance/collection-stude
 import { formatAllocationRowDetails, formatCollectionReference, getCollectionJournalLabel, getCollectionPayerLabel } from '@/features/admin/finance/collection-normalize';
 import { truncateReference } from '@/features/admin/finance/collection-labels';
 import { useT } from '@/features/i18n/locale-context';
+import { sanitizeUserFacingErrorMessage } from '@/lib/utils/user-facing-error';
 import { useFormat } from '@/features/i18n/use-format';
 import { endpoints } from '@/lib/api/endpoints';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
@@ -68,7 +69,11 @@ export function CollectionDetailDrawer({
   return (
     <SetupDrawer open={open} title={t('admin.finance.collectionWorkflow.detailTitle')} onClose={onClose}>
       {state.loading && !coll ? <LoadingState label={t('common.loading')} /> : null}
-      {state.error ? <p className="form-error">{state.error.message}</p> : null}
+      {state.error ? (
+        <p className="form-error">
+          {sanitizeUserFacingErrorMessage(state.error.message, t('errors.loadFailedRetry'))}
+        </p>
+      ) : null}
       {coll ? (
         <div className="form-stack finance-collection-detail-drawer">
           <div className="collection-drawer-hero">

@@ -9,6 +9,7 @@ import { useSession } from '@/features/auth/session-context';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { hasPermission } from '@/lib/permissions/permissions';
 import { useT } from '@/features/i18n/locale-context';
+import { sanitizeUserFacingErrorMessage } from '@/lib/utils/user-facing-error';
 import { endpoints } from '@/lib/api/endpoints';
 import type { AdminDashboard } from '@/types/dashboard';
 
@@ -187,7 +188,9 @@ export function AdminReadonlyDashboard() {
         subtitle={t('admin.readonlyDashboardDesc', { school: schoolLabel })}
       />
       {fetchDashboard && dashState.error && (
-        <p className="muted mb-2">{dashState.error.message}</p>
+        <p className="muted mb-2">
+          {sanitizeUserFacingErrorMessage(dashState.error.message, t('errors.loadFailedRetry'))}
+        </p>
       )}
       <div className="admin-readonly-grid">
         {cards.map((c) => (

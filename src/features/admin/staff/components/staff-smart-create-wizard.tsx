@@ -36,7 +36,6 @@ import {
   filterStaffAssignmentClasses,
   filterStaffAssignmentLevels,
   filterStaffAssignmentSubjects,
-  isUserFacingStaffTemplateError,
   resolveInitialSelectedBundleCodes,
   resolveStaffTemplateAccountLogin,
   resolveStaffTemplateForBundleEditor,
@@ -48,6 +47,7 @@ import {
 } from '@/features/admin/staff/utils/staff-template-utils';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
+import { sanitizeUserFacingErrorMessage } from '@/lib/utils/user-facing-error';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { endpoints } from '@/lib/api/endpoints';
 import { InfoBanner, PageHeader } from '@/components/ui/primitives';
@@ -347,12 +347,12 @@ export function StaffSmartCreateWizard() {
     router.push('/admin/staff');
   }
 
-  const previewErrorMessage =
-    previewError && isUserFacingStaffTemplateError(previewError.message)
-      ? previewError.message
-      : previewError
-        ? t('admin.staffCenter.smartCreate.previewErrorDesc')
-        : null;
+  const previewErrorMessage = previewError
+    ? sanitizeUserFacingErrorMessage(
+        previewError.message,
+        t('admin.staffCenter.smartCreate.previewErrorDesc'),
+      )
+    : null;
   const canCreate = canSubmitStaffTemplateCreate({
     template: selectedTemplate,
     preview,

@@ -1,4 +1,5 @@
 import type { ApiErrorBody } from '@/types/api';
+import { sanitizeUserFacingErrorMessage } from '@/lib/utils/user-facing-error';
 
 const TEACHER_ERRORS: Record<string, string> = {
   invalid_gender: 'admin.academicSetup.teacherForm.errors.invalidGender',
@@ -233,8 +234,9 @@ export function mapAcademicSetupApiError(
   }
 
   const message = error.message?.trim();
-  if (message && !message.includes('<') && !message.toLowerCase().includes('traceback')) {
-    return message;
+  if (message) {
+    const safe = sanitizeUserFacingErrorMessage(message, '');
+    if (safe) return safe;
   }
 
   return t('errors.serverError');
