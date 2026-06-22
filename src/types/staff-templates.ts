@@ -103,6 +103,8 @@ export interface StaffTemplateCreateResult {
   teacher_id?: number | null;
   name?: string;
   template_code?: string;
+  creation_template_code?: string | null;
+  role_display_name?: string | null;
   main_position?: string | null;
   login?: string | null;
   message?: string;

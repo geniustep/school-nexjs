@@ -959,6 +959,12 @@
       "schools": "Schools",
       "effectivePermissionsTitle": "Effective permissions",
       "permissionsMode": "Permissions mode",
+      "permissionsModes": {
+        "assigned": "Assigned permissions",
+        "scoped": "Scoped permissions",
+        "full_school": "Full school permissions",
+        "full_platform": "Platform-wide permissions"
+      },
       "assignedCapabilities": "Assigned capabilities",
       "effectiveCapabilities": "Effective capabilities",
       "effectivePermissions": "Effective permissions",
@@ -981,6 +987,20 @@
       "teacherSubjects": "Subjects",
       "teacherClasses": "Classes",
       "openTeacherProfile": "Open teacher profile",
+      "roleType": "Role type",
+      "creationTemplate": "Creation template",
+      "teacherLinkCardTitle": "This staff member is linked to a teacher profile",
+      "teacherLinkCardDesc": "The teacher profile covers subjects, classes, and timetable. This page is for account and permissions.",
+      "linkedTeacher": "Teacher",
+      "noPasswordTitle": "This account has no password yet",
+      "noPasswordDesc": "The staff member cannot sign in until a password is set.",
+      "setPasswordAction": "Set password",
+      "teacherAccountCardTitle": "Staff account",
+      "teacherAccountCardDesc": "Manage login, password, and permissions from the staff page.",
+      "manageStaffAccount": "Manage account & permissions",
+      "creationTemplates": {
+        "subject_teacher": "Subject teacher"
+      },
       "operationalNotesTitle": "Operational notes",
       "operationalNotesDesc": "Sensitive actions are defined by the system only. Full permission editing stays in academic setup when available.",
       "actions": {
@@ -1003,7 +1023,12 @@
         "teacher_without_user": "A teacher profile exists without a login account.",
         "admin_staff_without_capabilities": "Administrative staff member has no operational capabilities.",
         "teacher_without_assignments": "Teacher has no class or subject assignments.",
-        "inactive_user_with_active_teacher_profile": "The login account is inactive but the teacher profile is still active."
+        "inactive_user_with_active_teacher_profile": "The login account is inactive but the teacher profile is still active.",
+        "password_required": "This account needs a password before sign-in.",
+        "password_not_set": "No password has been set for this account yet.",
+        "account_password_missing": "No password has been set for this account yet.",
+        "unknown": "Unspecified",
+        "generic": "Operational note"
       },
       "smartCreate": {
         "entryButton": "Smart staff creation",
@@ -1073,6 +1098,9 @@
         "createStaff": "Create staff",
         "createSuccess": "Staff member created successfully",
         "createFailed": "Could not create staff member from template.",
+        "successTitle": "Staff created successfully",
+        "openStaffProfile": "Open staff profile",
+        "manageAccountPermissions": "Manage account & permissions",
         "createAnother": "Create another",
         "templateLabel": "Template",
         "moreItems": "+ {count} more",
@@ -1106,7 +1134,9 @@
           "print_cash_closure": "Print cash closure",
           "finance_collect_payments": "Record collections",
           "finance_manage_cheques": "Manage cheques",
-          "finance_view_cheques": "View cheques"
+          "finance_view_cheques": "View cheques",
+          "view_attendance": "View attendance",
+          "manage_homeworks": "Manage homework"
         },
         "bundles": {
           "school_management": "School management",
@@ -1140,7 +1170,8 @@
           "loginRequired": "Login is required when creating an account.",
           "subjectRequired": "Subject is required for this template.",
           "classesRequired": "At least one class is required for this template.",
-          "academicYearRequired": "Academic year is required for this template."
+          "academicYearRequired": "Academic year is required for this template.",
+          "passwordRequiredBeforeCreate": "Please set a staff account password before creating."
         },
         "warnings": {
           "blockedCreation": "Required information is incomplete, so creation is not allowed yet.",

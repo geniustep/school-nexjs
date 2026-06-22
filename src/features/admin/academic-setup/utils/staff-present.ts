@@ -31,6 +31,14 @@ export function resolveStaffAdminKindLabel(
   adminKind: string,
   t: TranslateFn,
 ): string {
+  const kindNormalized = adminKind.trim().toLowerCase();
+  if (kindNormalized === 'unknown') {
+    return t('admin.staffCenter.userType.unknown');
+  }
+  if (kindNormalized === 'registration_officer') {
+    return t('admin.staffCenter.userType.teacher');
+  }
+
   const kindKey = `admin.academicSetup.adminKind.${adminKind}`;
   const direct = t(kindKey);
   if (direct !== kindKey) return direct;

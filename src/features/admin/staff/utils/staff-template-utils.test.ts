@@ -194,6 +194,48 @@ describe('staff-template-utils', () => {
     const payload = buildStaffTemplateCreatePayload(form, 3, template);
     expect(payload.selected_bundle_codes).toEqual(['teaching', 'attendance_limited']);
     expect(payloadContainsForbiddenClientFields(payload)).toBe(false);
+    expect(payload.account).toEqual({
+      create: true,
+      login: 'teacher@example.com',
+      password: 'Secret123',
+      password_confirm: 'Secret123',
+    });
+  });
+
+  it('omits account block when assignPasswordNow is false', () => {
+    const template = normalizeStaffCreationTemplate({
+      code: 'subject_teacher',
+      name: 'Subject teacher',
+      requires_user_account: true,
+    })!;
+    const form: StaffSmartCreateFormState = {
+      templateCode: 'subject_teacher',
+      selectedBundleCodes: ['teaching'],
+      person: { name: 'Math teacher', phone: '0600000000', email: 'teacher@example.com' },
+      createAccount: true,
+      assignPasswordNow: false,
+      login: '',
+      useDifferentLogin: false,
+      password: '',
+      confirmPassword: '',
+      assignments: { subject_id: 12, class_ids: [5], academic_year_id: 2 },
+    };
+    const payload = buildStaffTemplateCreatePayload(form, 3, template);
+    expect(payload.account).toBeUndefined();
+    expect(payloadContainsForbiddenClientFields(payload)).toBe(false);
+  });
+
+  it('normalizes teacher create result with creation metadata', () => {
+    const result = normalizeStaffTemplateCreateResult({
+      user_id: 4706,
+      teacher_id: 1306,
+      template_code: 'subject_teacher',
+      creation_template_code: 'subject_teacher',
+      role_display_name: 'أستاذ مادة',
+    });
+    expect(result.teacher_id).toBe(1306);
+    expect(result.creation_template_code).toBe('subject_teacher');
+    expect(result.role_display_name).toBe('أستاذ مادة');
   });
 
   it('normalizes effective_capability_items and falls back to strings', () => {

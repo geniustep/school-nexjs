@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { AccountFieldsSection } from '@/features/admin/account/account-fields-section';
 import { StaffPasswordSection } from '@/features/admin/academic-setup/components/staff-password-section';
 import { useStaffOptions } from '@/features/admin/academic-setup/hooks/use-staff';
@@ -43,8 +42,10 @@ import {
   templateRequiresAssignments,
   validateStaffTemplateAssignments,
   validateStaffTemplatePersonForm,
+  mapStaffTemplateCreateError,
   type StaffTemplatePersonFieldErrors,
 } from '@/features/admin/staff/utils/staff-template-utils';
+import { StaffCreateSuccessPanel } from '@/features/admin/staff/components/staff-create-success-panel';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { sanitizeUserFacingErrorMessage } from '@/lib/utils/user-facing-error';
@@ -58,6 +59,7 @@ import type {
   StaffAssignmentPickerState,
   StaffCreationTemplate,
   StaffSmartCreateWizardStep,
+  StaffTemplateCreateResult,
 } from '@/types/staff-templates';
 import '@/features/admin/staff/staff-center.css';
 
@@ -70,7 +72,6 @@ function stepIndex(step: StaffSmartCreateWizardStep): number {
 export function StaffSmartCreateWizard() {
   const t = useT();
   const toast = useToast();
-  const router = useRouter();
   const { activeSchoolId } = useAdminSession();
 
   const templatesState = useStaffCreationTemplates();
@@ -94,6 +95,7 @@ export function StaffSmartCreateWizard() {
   const [passwordErrors, setPasswordErrors] = useState<StaffPasswordFieldErrors>({});
   const [assignmentsError, setAssignmentsError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [createResult, setCreateResult] = useState<StaffTemplateCreateResult | null>(null);
   const [previewedTemplateCode, setPreviewedTemplateCode] = useState<string | null>(null);
   const [assignmentPicker, setAssignmentPicker] = useState<StaffAssignmentPickerState>(
     defaultStaffAssignmentPickerState(),
@@ -326,7 +328,7 @@ export function StaffSmartCreateWizard() {
     setSaving(false);
 
     if (!res.ok) {
-      toast.error(t('admin.staffCenter.smartCreate.createFailed'));
+      toast.error(mapStaffTemplateCreateError(res.error, t));
       return;
     }
 
@@ -335,16 +337,18 @@ export function StaffSmartCreateWizard() {
       setConfirmPassword: (value) => setForm((current) => ({ ...current, confirmPassword: value })),
       setShowPassword,
     });
-    toast.success(t('admin.staffCenter.smartCreate.createSuccess'));
+    setCreateResult(res.result);
+  }
 
-    const userId = res.result.staff?.user_id ?? res.result.user_id;
-    if (userId) {
-      router.push(`/admin/staff/${userId}`);
-      return;
-    }
-
-    toast.show(t('admin.staffCenter.smartCreate.redirectDetailsFailed'), 'info');
-    router.push('/admin/staff');
+  function handleCreateAnother() {
+    setCreateResult(null);
+    setForm(defaultStaffSmartCreateFormState());
+    setStep('template');
+    resetPreview();
+    setPreviewedTemplateCode(null);
+    setPersonErrors({});
+    setPasswordErrors({});
+    setAssignmentsError(null);
   }
 
   const previewErrorMessage = previewError
@@ -381,6 +385,27 @@ export function StaffSmartCreateWizard() {
   );
 
   const showBundleEditor = !!bundleEditorTemplate;
+
+  if (createResult) {
+    return (
+      <div className="admin-workspace staff-center-page staff-smart-create">
+        <PageHeader
+          title={t('admin.staffCenter.smartCreate.pageTitle')}
+          subtitle={t('admin.staffCenter.smartCreate.pageSubtitle')}
+          actions={
+            <Link href="/admin/staff" className="btn btn--ghost btn--sm">
+              {t('admin.staffCenter.backToList')}
+            </Link>
+          }
+        />
+        <StaffCreateSuccessPanel
+          result={createResult}
+          template={selectedTemplate}
+          onCreateAnother={handleCreateAnother}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="admin-workspace staff-center-page staff-smart-create">

@@ -185,6 +185,8 @@ export interface StaffMember {
   is_teacher?: boolean;
   teacher_id?: number | null;
   teacher_type?: string | null;
+  creation_template_code?: string | null;
+  role_display_name?: string | null;
   primary_school_id?: number | null;
   can_deactivate?: boolean;
   can_reactivate?: boolean;

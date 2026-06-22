@@ -5,13 +5,15 @@ import { EmptyState } from '@/components/states/states';
 import { Badge, Card, DefinitionList, SectionHead } from '@/components/ui/primitives';
 import { useT } from '@/features/i18n/locale-context';
 import { statusLabel } from '@/lib/utils/labels';
+import { resolveTeacherTypeDisplayLabel } from '@/features/admin/staff/utils/staff-center-present';
 import type { StaffMember } from '@/types/academic-setup';
 
 export function StaffTeacherSection({ member }: { member: StaffMember }) {
   const t = useT();
   const teacher = member.teacher;
+  const teacherId = member.teacher_id ?? teacher?.id ?? null;
 
-  if (!member.is_teacher && !member.teacher_id && !teacher) {
+  if (!member.is_teacher && !teacherId && !teacher) {
     return (
       <Card className="staff-center-section">
         <SectionHead title={t('admin.staffCenter.teacherLinkTitle')} />
@@ -26,28 +28,41 @@ export function StaffTeacherSection({ member }: { member: StaffMember }) {
 
   const subjects = teacher?.subjects ?? [];
   const classes = teacher?.classes ?? [];
+  const teacherName = teacher?.name ?? resolveStaffDisplayName(member);
+  const teacherHref = teacherId != null ? `/admin/teachers/${teacherId}` : null;
 
   return (
     <Card className="staff-center-section">
       <SectionHead
-        title={t('admin.staffCenter.teacherLinkTitle')}
+        title={t('admin.staffCenter.teacherLinkCardTitle')}
         action={
-          teacher?.id ? (
-            <Link href={`/admin/teachers/${teacher.id}`} className="btn btn--ghost btn--sm">
+          teacherHref ? (
+            <Link href={teacherHref} className="btn btn--primary btn--sm">
               {t('admin.staffCenter.openTeacherProfile')}
             </Link>
           ) : null
         }
       />
+      <p className="muted mb-2">{t('admin.staffCenter.teacherLinkCardDesc')}</p>
       <DefinitionList
         items={[
           {
-            label: t('admin.staffCenter.teacherId'),
-            value: member.teacher_id ?? teacher?.id ?? t('common.dash'),
+            label: t('admin.staffCenter.linkedTeacher'),
+            value: teacherHref ? (
+              <Link href={teacherHref} className="link">
+                {teacherName}
+              </Link>
+            ) : (
+              teacherName
+            ),
           },
           {
             label: t('admin.academicSetup.teacherForm.teacherType'),
-            value: member.teacher_type ?? teacher?.teacher_type ?? t('common.dash'),
+            value: resolveTeacherTypeDisplayLabel(
+              member,
+              teacher?.teacher_type ?? member.teacher_type,
+              t,
+            ),
           },
           {
             label: t('academic.status'),
@@ -61,28 +76,26 @@ export function StaffTeacherSection({ member }: { member: StaffMember }) {
           },
           {
             label: t('nav.subjects'),
-            value: teacher?.subjects_count ?? subjects.length ?? 0,
+            value: subjects.length
+              ? subjects.map((subject) => subject.name).join(', ')
+              : teacher?.subjects_count ?? 0,
           },
           {
             label: t('nav.classes'),
-            value: teacher?.classes_count ?? classes.length ?? 0,
+            value: classes.length
+              ? classes.map((cls) => cls.name).join(', ')
+              : teacher?.classes_count ?? 0,
           },
           {
             label: t('admin.staffCenter.assignmentsCount'),
             value: teacher?.assignments_count ?? t('common.dash'),
           },
-          {
-            label: t('admin.staffCenter.teacherSubjects'),
-            value: subjects.length
-              ? subjects.map((subject) => subject.name).join(', ')
-              : t('common.dash'),
-          },
-          {
-            label: t('admin.staffCenter.teacherClasses'),
-            value: classes.length ? classes.map((cls) => cls.name).join(', ') : t('common.dash'),
-          },
         ]}
       />
     </Card>
   );
+}
+
+function resolveStaffDisplayName(member: StaffMember): string {
+  return member.display_name?.trim() || member.name?.trim() || '—';
 }

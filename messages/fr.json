@@ -959,6 +959,12 @@
       "schools": "Écoles",
       "effectivePermissionsTitle": "Permissions effectives",
       "permissionsMode": "Mode de permissions",
+      "permissionsModes": {
+        "assigned": "Permissions assignées",
+        "scoped": "Permissions limitées au périmètre",
+        "full_school": "Permissions complètes sur l'établissement",
+        "full_platform": "Permissions sur la plateforme"
+      },
       "assignedCapabilities": "Capacités assignées",
       "effectiveCapabilities": "Capacités effectives",
       "effectivePermissions": "Permissions effectives",
@@ -981,6 +987,20 @@
       "teacherSubjects": "Matières",
       "teacherClasses": "Classes",
       "openTeacherProfile": "Ouvrir le profil enseignant",
+      "roleType": "Type de rôle",
+      "creationTemplate": "Modèle de création",
+      "teacherLinkCardTitle": "Ce membre du personnel est lié à un profil enseignant",
+      "teacherLinkCardDesc": "Le profil enseignant couvre matières, classes et emploi du temps. Cette page gère le compte et les permissions.",
+      "linkedTeacher": "Enseignant",
+      "noPasswordTitle": "Ce compte n'a pas encore de mot de passe",
+      "noPasswordDesc": "Le membre du personnel ne pourra pas se connecter tant qu'un mot de passe n'est pas défini.",
+      "setPasswordAction": "Définir le mot de passe",
+      "teacherAccountCardTitle": "Compte du personnel",
+      "teacherAccountCardDesc": "Gérez la connexion, le mot de passe et les permissions depuis la page du personnel.",
+      "manageStaffAccount": "Gérer le compte et les permissions",
+      "creationTemplates": {
+        "subject_teacher": "Professeur de matière"
+      },
       "operationalNotesTitle": "Notes opérationnelles",
       "operationalNotesDesc": "Les actions sensibles sont définies par le système uniquement. L'édition complète des permissions reste dans la configuration académique si disponible.",
       "actions": {
@@ -1003,7 +1023,12 @@
         "teacher_without_user": "Un profil enseignant existe sans compte de connexion.",
         "admin_staff_without_capabilities": "Membre administratif sans capacités opérationnelles.",
         "teacher_without_assignments": "Enseignant sans affectations de classes ou matières.",
-        "inactive_user_with_active_teacher_profile": "Le compte est inactif mais le profil enseignant reste actif."
+        "inactive_user_with_active_teacher_profile": "Le compte est inactif mais le profil enseignant reste actif.",
+        "password_required": "Ce compte nécessite un mot de passe avant la connexion.",
+        "password_not_set": "Aucun mot de passe n'a encore été défini pour ce compte.",
+        "account_password_missing": "Aucun mot de passe n'a encore été défini pour ce compte.",
+        "unknown": "Non précisé",
+        "generic": "Note opérationnelle"
       },
       "smartCreate": {
         "entryButton": "Création intelligente du personnel",
@@ -1073,6 +1098,9 @@
         "createStaff": "Créer le personnel",
         "createSuccess": "Membre du personnel créé avec succès",
         "createFailed": "Impossible de créer le personnel depuis le modèle.",
+        "successTitle": "Personnel créé avec succès",
+        "openStaffProfile": "Ouvrir le profil du personnel",
+        "manageAccountPermissions": "Gérer le compte et les permissions",
         "createAnother": "Créer un autre",
         "templateLabel": "Modèle",
         "moreItems": "+ {count} de plus",
@@ -1106,7 +1134,9 @@
           "print_cash_closure": "Imprimer la clôture de caisse",
           "finance_collect_payments": "Enregistrer les recouvrements",
           "finance_manage_cheques": "Gérer les chèques",
-          "finance_view_cheques": "Voir les chèques"
+          "finance_view_cheques": "Voir les chèques",
+          "view_attendance": "Voir les présences",
+          "manage_homeworks": "Gérer les devoirs"
         },
         "bundles": {
           "school_management": "Gestion de l'établissement",
@@ -1140,7 +1170,8 @@
           "loginRequired": "L'identifiant est requis pour créer un compte.",
           "subjectRequired": "La matière est requise pour ce modèle.",
           "classesRequired": "Au moins une classe est requise pour ce modèle.",
-          "academicYearRequired": "L'année scolaire est requise pour ce modèle."
+          "academicYearRequired": "L'année scolaire est requise pour ce modèle.",
+          "passwordRequiredBeforeCreate": "Veuillez définir un mot de passe pour le compte avant la création."
         },
         "warnings": {
           "blockedCreation": "Les informations requises sont incomplètes ; la création n'est pas encore autorisée.",

@@ -1,7 +1,7 @@
 'use client';
 
 import { InfoBanner } from '@/components/ui/primitives';
-import { mapStaffWarningCode } from '@/features/admin/staff/utils/staff-warnings';
+import { mapStaffWarning } from '@/features/admin/staff/utils/staff-warnings';
 import { useT } from '@/features/i18n/locale-context';
 import type { ApiWarning } from '@/types/academic-setup';
 
@@ -19,7 +19,7 @@ export function StaffWarningsPanel({ warnings }: { warnings?: ApiWarning[] }) {
       <ul className="staff-center-warnings__list">
         {warnings.map((warning, index) => (
           <li key={`${warning.code}-${index}`} className="staff-center-warnings__item">
-            {warning.message?.trim() || mapStaffWarningCode(warning.code, t)}
+            {mapStaffWarning(warning, t)}
           </li>
         ))}
       </ul>

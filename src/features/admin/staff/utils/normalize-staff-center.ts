@@ -132,6 +132,8 @@ export function normalizeStaffCenterMember(raw: StaffMember): StaffMember {
     is_teacher: asBool(raw.is_teacher),
     teacher_id: asNumber(raw.teacher_id),
     teacher_type: asString(raw.teacher_type),
+    creation_template_code: asString(raw.creation_template_code),
+    role_display_name: asString(raw.role_display_name),
     primary_school_id: asNumber(raw.primary_school_id),
     role_templates: Array.isArray(raw.role_templates) ? raw.role_templates : undefined,
     scopes: normalizeScopes(raw.scopes),
@@ -218,6 +220,9 @@ export function mergeStaffPermissionsPayload(
 }
 
 export function staffUserTypeLabelKeys(member: StaffMember): string[] {
+  if (member.role_display_name?.trim()) {
+    return [];
+  }
   const keys: string[] = [];
   if (member.is_admin_staff) keys.push('admin.staffCenter.userType.admin');
   if (member.is_teacher) keys.push('admin.staffCenter.userType.teacher');
@@ -225,5 +230,14 @@ export function staffUserTypeLabelKeys(member: StaffMember): string[] {
     if (member.admin_kind) keys.push('admin.staffCenter.userType.admin');
     if (member.teacher_id || member.teacher) keys.push('admin.staffCenter.userType.teacher');
   }
-  return keys.length ? keys : ['admin.staffCenter.userType.unknown'];
+  if (!keys.length) {
+    if (member.teacher_id || member.teacher || member.is_teacher) {
+      keys.push('admin.staffCenter.userType.teacher');
+    } else if (member.admin_kind) {
+      keys.push('admin.staffCenter.userType.admin');
+    } else {
+      keys.push('admin.staffCenter.userType.teacher');
+    }
+  }
+  return keys;
 }

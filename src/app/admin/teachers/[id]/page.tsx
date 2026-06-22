@@ -11,6 +11,8 @@ import { AccountStatusBadge } from '@/features/admin/account/account-status-badg
 import { TeacherForm } from '@/features/admin/entity-forms';
 import { useTeacherOptions } from '@/features/admin/academic-setup/hooks/use-teacher-options';
 import { resolveGenderLabel } from '@/features/admin/academic-setup/utils/teacher-profile';
+import { resolveTeacherTypeLabelFromCode } from '@/features/admin/staff/utils/staff-center-present';
+import { TeacherStaffAccountSection } from '@/features/admin/teachers/components/teacher-staff-account-section';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { statusLabel } from '@/lib/utils/labels';
@@ -61,6 +63,7 @@ export default function AdminTeacherDetailPage({ params }: { params: Promise<{ i
               <TeacherForm teacher={teacher} onSaved={() => { setEditing(false); state.reload(); }} onCancel={() => setEditing(false)} />
             ) : (
               <>
+                <TeacherStaffAccountSection teacher={teacher} />
                 <Card>
                   <SectionHead title={t('admin.academicSetup.teacherForm.groups.personal')} />
                   <DefinitionList items={[
@@ -76,7 +79,7 @@ export default function AdminTeacherDetailPage({ params }: { params: Promise<{ i
                   <SectionHead title={t('admin.academicSetup.teacherForm.groups.professional')} />
                   <DefinitionList items={[
                     { label: t('admin.academicSetup.teacherForm.specialization'), value: teacher.specialization?.trim() || t('common.dash') },
-                    { label: t('admin.academicSetup.teacherForm.teacherType'), value: teacher.teacher_type ?? t('common.dash') },
+                    { label: t('admin.academicSetup.teacherForm.teacherType'), value: resolveTeacherTypeLabelFromCode(teacher.teacher_type, t) },
                     { label: t('admin.academicSetup.teacherForm.qualification'), value: teacher.qualification ?? t('common.dash') },
                     { label: t('admin.academicSetup.teacherForm.weeklyHoursTarget'), value: teacher.weekly_hours_target != null ? String(teacher.weekly_hours_target) : t('common.dash') },
                     { label: t('admin.academicSetup.teacherForm.weeklyHoursMax'), value: teacher.weekly_hours_max != null ? String(teacher.weekly_hours_max) : t('common.dash') },

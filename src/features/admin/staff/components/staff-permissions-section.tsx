@@ -3,19 +3,40 @@
 import { EmptyState } from '@/components/states/states';
 import { Badge, Card, DefinitionList, SectionHead } from '@/components/ui/primitives';
 import { StaffWarningsPanel } from '@/features/admin/staff/components/staff-warnings-panel';
-import { useT } from '@/features/i18n/locale-context';
+import {
+  filterDisplayPermissionCodes,
+  resolveStaffPermissionLabel,
+  resolveStaffRoleDisplayLabel,
+  resolvePermissionsModeLabel,
+  resolveStaffRoleTemplateChipLabel,
+  resolveStaffScopeRoleTemplateLabel,
+} from '@/features/admin/staff/utils/staff-center-present';
 import { resolveStaffAdminKindLabel } from '@/features/admin/academic-setup/utils/staff-present';
+import { useLocale, useT } from '@/features/i18n/locale-context';
 import type { StaffEffectivePermissionsPayload, StaffMember } from '@/types/academic-setup';
 
-function CapabilityList({ items, emptyLabel }: { items?: string[]; emptyLabel: string }) {
-  if (!items?.length) return <span className="muted">{emptyLabel}</span>;
+function LabeledCapabilityList({
+  items,
+  emptyLabel,
+}: {
+  items?: string[];
+  emptyLabel: string;
+}) {
+  const t = useT();
+  const { locale } = useLocale();
+  const codes = filterDisplayPermissionCodes(items);
+  if (!codes.length) return <span className="muted">{emptyLabel}</span>;
+
   return (
     <div className="staff-center-chip-list">
-      {items.map((item) => (
-        <Badge key={item} tone="blue">
-          {item}
-        </Badge>
-      ))}
+      {codes.map((code) => {
+        const label = resolveStaffPermissionLabel(code, locale, t) ?? code;
+        return (
+          <Badge key={code} tone="blue">
+            {label}
+          </Badge>
+        );
+      })}
     </div>
   );
 }
@@ -33,6 +54,7 @@ export function StaffPermissionsSection({
   const effectiveCaps = payload?.effective_capabilities ?? member.effective_capabilities;
   const effectivePerms = payload?.effective_permissions ?? member.effective_permissions ?? member.permissions;
   const permissionWarnings = payload?.warnings ?? member.warnings;
+  const roleLabel = resolveStaffRoleDisplayLabel(member, t);
 
   return (
     <Card className="staff-center-section">
@@ -41,6 +63,10 @@ export function StaffPermissionsSection({
       <DefinitionList
         items={[
           {
+            label: t('admin.staffCenter.roleType'),
+            value: roleLabel,
+          },
+          {
             label: t('admin.staffCenter.adminKind'),
             value: member.admin_kind
               ? resolveStaffAdminKindLabel(member.admin_kind, t)
@@ -48,12 +74,15 @@ export function StaffPermissionsSection({
           },
           {
             label: t('admin.staffCenter.permissionsMode'),
-            value: (payload?.permissions_mode ?? member.permissions_mode) || t('common.dash'),
+            value: resolvePermissionsModeLabel(
+              payload?.permissions_mode ?? member.permissions_mode,
+              t,
+            ),
           },
           {
             label: t('admin.staffCenter.assignedCapabilities'),
             value: (
-              <CapabilityList
+              <LabeledCapabilityList
                 items={assigned}
                 emptyLabel={t('admin.staffCenter.noAssignedCapabilities')}
               />
@@ -62,7 +91,7 @@ export function StaffPermissionsSection({
           {
             label: t('admin.staffCenter.effectiveCapabilities'),
             value: (
-              <CapabilityList
+              <LabeledCapabilityList
                 items={effectiveCaps}
                 emptyLabel={t('admin.staffCenter.noEffectiveCapabilities')}
               />
@@ -71,7 +100,7 @@ export function StaffPermissionsSection({
           {
             label: t('admin.staffCenter.effectivePermissions'),
             value: (
-              <CapabilityList
+              <LabeledCapabilityList
                 items={effectivePerms}
                 emptyLabel={t('admin.staffCenter.noEffectivePermissions')}
               />
@@ -85,6 +114,7 @@ export function StaffPermissionsSection({
 
 export function StaffScopesSection({ member }: { member: StaffMember }) {
   const t = useT();
+  const { locale } = useLocale();
   const scopes = member.scopes ?? [];
 
   return (
@@ -100,7 +130,7 @@ export function StaffScopesSection({ member }: { member: StaffMember }) {
                 items={[
                   {
                     label: t('admin.staffCenter.roleTemplate'),
-                    value: scope.role_template_name ?? scope.role_template_code ?? t('common.dash'),
+                    value: resolveStaffScopeRoleTemplateLabel(scope, member, t),
                   },
                   {
                     label: t('admin.staffCenter.school'),
@@ -117,7 +147,7 @@ export function StaffScopesSection({ member }: { member: StaffMember }) {
                   {
                     label: t('admin.staffCenter.capabilities'),
                     value: (
-                      <CapabilityList
+                      <LabeledCapabilityList
                         items={scope.capabilities}
                         emptyLabel={t('admin.staffCenter.noCapabilitiesInScope')}
                       />
@@ -136,19 +166,32 @@ export function StaffScopesSection({ member }: { member: StaffMember }) {
 export function StaffRoleTemplatesSection({ member }: { member: StaffMember }) {
   const t = useT();
   const templates = member.role_templates ?? [];
-  if (!templates.length) return null;
+  const roleLabel = resolveStaffRoleDisplayLabel(member, t);
+
+  if (!templates.length && !member.creation_template_code) {
+    return roleLabel !== t('common.dash') ? (
+      <Card className="staff-center-section">
+        <SectionHead title={t('admin.staffCenter.roleTemplatesTitle')} />
+        <Badge tone="slate">{roleLabel}</Badge>
+      </Card>
+    ) : null;
+  }
 
   return (
     <Card className="staff-center-section">
       <SectionHead title={t('admin.staffCenter.roleTemplatesTitle')} />
       <div className="staff-center-chip-list">
+        {roleLabel !== t('common.dash') ? (
+          <Badge tone="blue">{roleLabel}</Badge>
+        ) : null}
         {templates.map((template, index) => {
-          const label =
+          const raw =
             typeof template === 'string'
               ? template
               : template.label ?? template.admin_kind ?? String(index);
+          const label = resolveStaffRoleTemplateChipLabel(raw, member, t);
           return (
-            <Badge key={`${label}-${index}`} tone="slate">
+            <Badge key={`${raw}-${index}`} tone="slate">
               {label}
             </Badge>
           );

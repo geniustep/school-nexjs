@@ -18,6 +18,7 @@ import {
   StaffScopesSection,
 } from '@/features/admin/staff/components/staff-permissions-section';
 import { StaffTeacherSection } from '@/features/admin/staff/components/staff-teacher-section';
+import { StaffAccountPasswordBanner } from '@/features/admin/staff/components/staff-account-password-banner';
 import { StaffWarningsPanel } from '@/features/admin/staff/components/staff-warnings-panel';
 import { useStaffCenterDetailWithPermissions } from '@/features/admin/staff/hooks/use-staff-center';
 import {
@@ -26,6 +27,7 @@ import {
   resolveStaffUserId,
   staffUserTypeLabelKeys,
 } from '@/features/admin/staff/utils/normalize-staff-center';
+import { resolveStaffCreationTemplateLabel, resolveStaffRoleDisplayLabel } from '@/features/admin/staff/utils/staff-center-present';
 import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { statusLabel } from '@/lib/utils/labels';
@@ -69,11 +71,17 @@ export function StaffDetailPage({ userId }: { userId: number }) {
               actions={
                 <div className="col" style={{ gap: 8, alignItems: 'flex-end' }}>
                   <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
-                    {staffUserTypeLabelKeys(member).map((key) => (
-                      <Badge key={key} tone="blue">
-                        {t(key)}
+                    {member.role_display_name?.trim() ? (
+                      <Badge key="role-display" tone="blue">
+                        {resolveStaffRoleDisplayLabel(member, t)}
                       </Badge>
-                    ))}
+                    ) : (
+                      staffUserTypeLabelKeys(member).map((key) => (
+                        <Badge key={key} tone="blue">
+                          {t(key)}
+                        </Badge>
+                      ))
+                    )}
                     <Badge tone={isStaffInactive(member) ? 'amber' : 'green'}>
                       {statusLabel(t, member.status ?? member.account_status)}
                     </Badge>
@@ -90,6 +98,7 @@ export function StaffDetailPage({ userId }: { userId: number }) {
             />
 
             <StaffWarningsPanel warnings={member.warnings} />
+            <StaffAccountPasswordBanner member={member} onSetPassword={() => setEditOpen(true)} />
 
             <div className="staff-center-detail-grid">
               <Card className="staff-center-section">
@@ -142,6 +151,17 @@ export function StaffDetailPage({ userId }: { userId: number }) {
                         member.user_id || member.account || member.login
                           ? t('common.yes')
                           : t('common.no'),
+                    },
+                    {
+                      label: t('admin.staffCenter.roleType'),
+                      value: resolveStaffRoleDisplayLabel(member, t),
+                    },
+                    {
+                      label: t('admin.staffCenter.creationTemplate'),
+                      value: member.creation_template_code
+                        ? resolveStaffCreationTemplateLabel(member.creation_template_code, t) ||
+                          t('common.dash')
+                        : t('common.dash'),
                     },
                     {
                       label: t('admin.staffCenter.adminKind'),

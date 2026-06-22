@@ -959,6 +959,12 @@
       "schools": "المدارس",
       "effectivePermissionsTitle": "الصلاحيات الفعلية",
       "permissionsMode": "وضع الصلاحيات",
+      "permissionsModes": {
+        "assigned": "صلاحيات معيّنة",
+        "scoped": "صلاحيات ضمن نطاق",
+        "full_school": "صلاحيات كاملة على المدرسة",
+        "full_platform": "صلاحيات على المنصة"
+      },
       "assignedCapabilities": "الصلاحيات المُسندة",
       "effectiveCapabilities": "القدرات الفعلية",
       "effectivePermissions": "الصلاحيات الفعلية",
@@ -981,6 +987,20 @@
       "teacherSubjects": "المواد",
       "teacherClasses": "الأقسام",
       "openTeacherProfile": "فتح ملف الأستاذ",
+      "roleType": "نوع الدور",
+      "creationTemplate": "قالب الإنشاء",
+      "teacherLinkCardTitle": "هذا الموظف مرتبط بملف أستاذ",
+      "teacherLinkCardDesc": "ملف الأستاذ مخصص للمواد والأقسام والجدول. هذه الصفحة للحساب والصلاحيات.",
+      "linkedTeacher": "الأستاذ",
+      "noPasswordTitle": "هذا الحساب لا يملك كلمة مرور بعد",
+      "noPasswordDesc": "لن يتمكن الموظف من تسجيل الدخول حتى يتم تعيين كلمة مرور.",
+      "setPasswordAction": "تعيين كلمة مرور",
+      "teacherAccountCardTitle": "حساب الموظف",
+      "teacherAccountCardDesc": "إدارة حساب الدخول وكلمة المرور والصلاحيات من صفحة الطاقم.",
+      "manageStaffAccount": "إدارة الحساب والصلاحيات",
+      "creationTemplates": {
+        "subject_teacher": "أستاذ مادة"
+      },
       "operationalNotesTitle": "ملاحظات تشغيلية",
       "operationalNotesDesc": "الإجراءات الحساسة محددة من النظام فقط. تحرير الصلاحيات الكامل يبقى في الإعداد الأكاديمي عند توفره.",
       "actions": {
@@ -1003,7 +1023,12 @@
         "teacher_without_user": "يوجد ملف أستاذ بدون حساب دخول.",
         "admin_staff_without_capabilities": "موظف إداري بدون صلاحيات تشغيلية واضحة.",
         "teacher_without_assignments": "أستاذ بدون إسنادات أقسام أو مواد.",
-        "inactive_user_with_active_teacher_profile": "الحساب غير نشط لكن ملف الأستاذ ما زال نشطًا."
+        "inactive_user_with_active_teacher_profile": "الحساب غير نشط لكن ملف الأستاذ ما زال نشطًا.",
+        "password_required": "هذا الحساب يحتاج كلمة مرور قبل تسجيل الدخول.",
+        "password_not_set": "لم تُعيَّن كلمة مرور لهذا الحساب بعد.",
+        "account_password_missing": "لم تُعيَّن كلمة مرور لهذا الحساب بعد.",
+        "unknown": "غير محدد",
+        "generic": "ملاحظة تشغيلية"
       },
       "smartCreate": {
         "entryButton": "إنشاء طاقم ذكي",
@@ -1073,6 +1098,9 @@
         "createStaff": "إنشاء الطاقم",
         "createSuccess": "أُنشئ الطاقم بنجاح",
         "createFailed": "تعذر إنشاء الطاقم من القالب.",
+        "successTitle": "تم إنشاء الطاقم بنجاح",
+        "openStaffProfile": "فتح ملف الطاقم",
+        "manageAccountPermissions": "إدارة الحساب والصلاحيات",
         "createAnother": "إنشاء آخر",
         "templateLabel": "القالب",
         "moreItems": "+ {count} أخرى",
@@ -1106,7 +1134,9 @@
           "print_cash_closure": "طباعة إغلاق الصندوق",
           "finance_collect_payments": "تسجيل التحصيلات",
           "finance_manage_cheques": "إدارة الشيكات",
-          "finance_view_cheques": "عرض الشيكات"
+          "finance_view_cheques": "عرض الشيكات",
+          "view_attendance": "عرض الحضور",
+          "manage_homeworks": "إدارة الواجبات"
         },
         "bundles": {
           "school_management": "إدارة المدرسة",
@@ -1140,7 +1170,8 @@
           "loginRequired": "اسم الدخول مطلوب عند إنشاء حساب.",
           "subjectRequired": "المادة مطلوبة لهذا القالب.",
           "classesRequired": "قسم واحد على الأقل مطلوب لهذا القالب.",
-          "academicYearRequired": "السنة الدراسية مطلوبة لهذا القالب."
+          "academicYearRequired": "السنة الدراسية مطلوبة لهذا القالب.",
+          "passwordRequiredBeforeCreate": "يرجى تعيين كلمة مرور لحساب الموظف قبل الإنشاء."
         },
         "warnings": {
           "blockedCreation": "المعلومات المطلوبة غير مكتملة، لذلك الإنشاء غير مسموح بعد.",

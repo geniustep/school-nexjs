@@ -1,9 +1,12 @@
 import type { ApiWarning } from '@/types/academic-setup';
+import { resolveStaffWarningText } from '@/features/admin/staff/utils/staff-center-present';
 
 export function mapStaffWarningCode(code: string, t: (key: string) => string): string {
-  const key = `admin.staffCenter.warnings.${code}`;
-  const msg = t(key);
-  return msg !== key ? msg : code;
+  return resolveStaffWarningText({ code }, t);
+}
+
+export function mapStaffWarning(warning: ApiWarning, t: (key: string) => string): string {
+  return resolveStaffWarningText(warning, t);
 }
 
 export function normalizeStaffWarnings(raw: unknown): ApiWarning[] {

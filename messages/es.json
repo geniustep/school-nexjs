@@ -959,6 +959,12 @@
       "schools": "Escuelas",
       "effectivePermissionsTitle": "Permisos efectivos",
       "permissionsMode": "Modo de permisos",
+      "permissionsModes": {
+        "assigned": "Permisos asignados",
+        "scoped": "Permisos con alcance",
+        "full_school": "Permisos completos del centro",
+        "full_platform": "Permisos de plataforma"
+      },
       "assignedCapabilities": "Capacidades asignadas",
       "effectiveCapabilities": "Capacidades efectivas",
       "effectivePermissions": "Permisos efectivos",
@@ -981,6 +987,20 @@
       "teacherSubjects": "Materias",
       "teacherClasses": "Clases",
       "openTeacherProfile": "Abrir perfil de profesor",
+      "roleType": "Tipo de rol",
+      "creationTemplate": "Plantilla de creación",
+      "teacherLinkCardTitle": "Este miembro del personal está vinculado a un perfil de profesor",
+      "teacherLinkCardDesc": "El perfil de profesor cubre materias, clases y horario. Esta página es para cuenta y permisos.",
+      "linkedTeacher": "Profesor",
+      "noPasswordTitle": "Esta cuenta aún no tiene contraseña",
+      "noPasswordDesc": "El miembro del personal no podrá iniciar sesión hasta que se establezca una contraseña.",
+      "setPasswordAction": "Establecer contraseña",
+      "teacherAccountCardTitle": "Cuenta del personal",
+      "teacherAccountCardDesc": "Gestione inicio de sesión, contraseña y permisos desde la página del personal.",
+      "manageStaffAccount": "Gestionar cuenta y permisos",
+      "creationTemplates": {
+        "subject_teacher": "Profesor de materia"
+      },
       "operationalNotesTitle": "Notas operativas",
       "operationalNotesDesc": "Las acciones sensibles las define el sistema únicamente. La edición completa de permisos permanece en la configuración académica cuando esté disponible.",
       "actions": {
@@ -1003,7 +1023,12 @@
         "teacher_without_user": "Existe un perfil de profesor sin cuenta de acceso.",
         "admin_staff_without_capabilities": "Personal administrativo sin capacidades operativas.",
         "teacher_without_assignments": "Profesor sin asignaciones de clases o materias.",
-        "inactive_user_with_active_teacher_profile": "La cuenta está inactiva pero el perfil de profesor sigue activo."
+        "inactive_user_with_active_teacher_profile": "La cuenta está inactiva pero el perfil de profesor sigue activo.",
+        "password_required": "Esta cuenta necesita contraseña antes de iniciar sesión.",
+        "password_not_set": "Aún no se ha establecido contraseña para esta cuenta.",
+        "account_password_missing": "Aún no se ha establecido contraseña para esta cuenta.",
+        "unknown": "Sin especificar",
+        "generic": "Nota operativa"
       },
       "smartCreate": {
         "entryButton": "Creación inteligente de personal",
@@ -1073,6 +1098,9 @@
         "createStaff": "Crear personal",
         "createSuccess": "Personal creado correctamente",
         "createFailed": "No se pudo crear el personal desde la plantilla.",
+        "successTitle": "Personal creado correctamente",
+        "openStaffProfile": "Abrir perfil del personal",
+        "manageAccountPermissions": "Gestionar cuenta y permisos",
         "createAnother": "Crear otro",
         "templateLabel": "Plantilla",
         "moreItems": "+ {count} más",
@@ -1106,7 +1134,9 @@
           "print_cash_closure": "Imprimir cierre de caja",
           "finance_collect_payments": "Registrar cobros",
           "finance_manage_cheques": "Gestionar cheques",
-          "finance_view_cheques": "Ver cheques"
+          "finance_view_cheques": "Ver cheques",
+          "view_attendance": "Ver asistencia",
+          "manage_homeworks": "Gestionar tareas"
         },
         "bundles": {
           "school_management": "Gestión escolar",
@@ -1140,7 +1170,8 @@
           "loginRequired": "El usuario es obligatorio al crear una cuenta.",
           "subjectRequired": "La materia es obligatoria para esta plantilla.",
           "classesRequired": "Al menos una clase es obligatoria para esta plantilla.",
-          "academicYearRequired": "El año académico es obligatorio para esta plantilla."
+          "academicYearRequired": "El año académico es obligatorio para esta plantilla.",
+          "passwordRequiredBeforeCreate": "Establezca una contraseña para la cuenta antes de crear."
         },
         "warnings": {
           "blockedCreation": "Faltan datos obligatorios; la creación aún no está permitida.",

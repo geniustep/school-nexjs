@@ -20,7 +20,24 @@ import {
   meetsStaffPasswordPolicy,
   validateStaffPasswordForm,
 } from '@/features/admin/academic-setup/utils/staff-password-utils';
+import type { ApiErrorBody } from '@/types/api';
+import { mapAcademicSetupApiError } from '@/features/admin/academic-setup/utils/api-errors';
 import { isUnsafeUserFacingErrorMessage } from '@/lib/utils/user-facing-error';
+
+export function mapStaffTemplateCreateError(
+  error: ApiErrorBody,
+  t: (key: string) => string,
+): string {
+  const code = String(error.code ?? '');
+  if (code === 'password_required') {
+    return t('admin.staffCenter.smartCreate.errors.passwordRequiredBeforeCreate');
+  }
+  if (code === 'password_mismatch') {
+    return t('admin.academicSetup.staffPassword.errors.passwordMismatch');
+  }
+  return mapAcademicSetupApiError(error, t, 'staff');
+}
+
 
 function normalizeStringArray(raw: unknown): string[] {
   if (!Array.isArray(raw)) return [];
@@ -533,13 +550,16 @@ export function buildStaffTemplateCreatePayload(
   }
 
   const requiresAccount = template.requires_user_account || form.createAccount;
-  if (requiresAccount && form.createAccount) {
-    payload.account = {
-      create: true,
-      login: resolveStaffTemplateAccountLogin(person, form.login, form.useDifferentLogin),
-      password: form.password,
-      password_confirm: form.confirmPassword,
-    };
+  if (requiresAccount && form.createAccount && form.assignPasswordNow) {
+    const login = resolveStaffTemplateAccountLogin(person, form.login, form.useDifferentLogin);
+    if (login && form.password.trim() && form.confirmPassword.trim()) {
+      payload.account = {
+        create: true,
+        login,
+        password: form.password,
+        password_confirm: form.confirmPassword,
+      };
+    }
   }
 
   return payload;
@@ -576,6 +596,20 @@ export function normalizeStaffTemplateCreateResult(raw: unknown): StaffTemplateC
           ? item.name
           : undefined,
     template_code: typeof item.template_code === 'string' ? item.template_code : undefined,
+    creation_template_code:
+      typeof item.creation_template_code === 'string'
+        ? item.creation_template_code
+        : typeof item.template_code === 'string'
+          ? item.template_code
+          : typeof staff?.creation_template_code === 'string'
+            ? staff.creation_template_code
+            : undefined,
+    role_display_name:
+      typeof item.role_display_name === 'string'
+        ? item.role_display_name
+        : typeof staff?.role_display_name === 'string'
+          ? staff.role_display_name
+          : undefined,
     main_position: typeof item.main_position === 'string' ? item.main_position : null,
     login: typeof item.login === 'string' ? item.login : null,
     message: typeof item.message === 'string' ? item.message : undefined,
@@ -665,18 +699,17 @@ export function canSubmitStaffTemplateCreate(input: {
     if (!form.createAccount && requiresAccount) return false;
     const login = resolveStaffTemplateAccountLogin(form.person, form.login, form.useDifferentLogin);
     if (!login) return false;
-    if (form.assignPasswordNow) {
-      const passwordValidation = validateStaffPasswordForm(
-        {
-          password: form.password,
-          confirmPassword: form.confirmPassword,
-          requirePassword: true,
-        },
-        passwordPolicy,
-        t,
-      );
-      if (!passwordValidation.valid) return false;
-    }
+    if (!form.assignPasswordNow) return false;
+    const passwordValidation = validateStaffPasswordForm(
+      {
+        password: form.password,
+        confirmPassword: form.confirmPassword,
+        requirePassword: true,
+      },
+      passwordPolicy,
+      t,
+    );
+    if (!passwordValidation.valid) return false;
   }
 
   return true;
