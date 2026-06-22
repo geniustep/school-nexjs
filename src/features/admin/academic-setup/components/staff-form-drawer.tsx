@@ -17,11 +17,15 @@ import {
 import type { StaffAdminKind, StaffEffectivePermissionsPayload, StaffMember, StaffOptions } from '@/types/academic-setup';
 import {
   buildStaffPermissionSavePayload,
+  canSaveStaffPermissionChanges,
   capabilityCodesToIds,
   capabilityIdsToCodes,
+  memberHasPermissionScopes,
+  resolvePermissionEditorMember,
   resolveStoredCapabilityCodes,
   responseIncludesCapabilityCodes,
 } from '@/features/admin/staff/utils/staff-permission-merge';
+import { useStaffCenterDetailWithPermissions } from '@/features/admin/staff/hooks/use-staff-center';
 import { normalizeStaffCenterMember } from '@/features/admin/staff/utils/normalize-staff-center';
 import {
   resolveRoleChangeWarningKey,
@@ -63,7 +67,7 @@ export function StaffFormDrawer({
   open,
   memberId,
   member: memberFromList,
-  permissionsPayload,
+  permissionsPayload: permissionsPayloadProp,
   options,
   optionsLoading = false,
   optionsError = null,
@@ -88,9 +92,27 @@ export function StaffFormDrawer({
 }) {
   const t = useT();
   const toast = useToast();
-  const memberState = useStaffMember(memberFromList ? null : memberId);
-  const member = memberFromList ?? memberState.data;
   const creating = memberId == null;
+  const shouldHydrateCenterDetail = open && !creating && memberId != null;
+  const centerDetail = useStaffCenterDetailWithPermissions(
+    shouldHydrateCenterDetail ? memberId : null,
+  );
+  const legacyMemberState = useStaffMember(
+    open && !creating && memberId && !memberFromList ? memberId : null,
+  );
+  const member = useMemo(
+    () =>
+      resolvePermissionEditorMember({
+        seed: memberFromList ?? legacyMemberState.data,
+        hydrated: centerDetail.member,
+      }),
+    [memberFromList, legacyMemberState.data, centerDetail.member],
+  );
+  const permissionsPayload = centerDetail.permissionsPayload ?? permissionsPayloadProp ?? null;
+  const permissionScopesLoading =
+    shouldHydrateCenterDetail && centerDetail.loading && !memberHasPermissionScopes(member);
+  const drawerInitialLoading =
+    !creating && memberId != null && !member && (centerDetail.loading || legacyMemberState.loading);
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -249,6 +271,19 @@ export function StaffFormDrawer({
       return;
     }
 
+    const saveGuard = canSaveStaffPermissionChanges({
+      member: creating ? null : member,
+      scopesLoading: permissionScopesLoading,
+      capabilityChangesAttempted: capPayload.capabilityChangesAttempted,
+    });
+    if (!saveGuard.allowed && saveGuard.reason === 'loading') {
+      return;
+    }
+    if (!saveGuard.allowed && saveGuard.reason === 'missing_scope') {
+      toast.error(t('admin.staffCenter.errors.scopesRequiredForCapabilityUpdate'));
+      return;
+    }
+
     if (capPayload.blockSaveMissingScope) {
       toast.error(t('admin.staffCenter.errors.scopesRequiredForCapabilityUpdate'));
       return;
@@ -355,7 +390,7 @@ export function StaffFormDrawer({
           type="submit"
           form={STAFF_FORM_ID}
           className="btn btn--primary btn--sm"
-          disabled={saving}
+          disabled={saving || permissionScopesLoading}
           style={{ minHeight: 44 }}
         >
           {saving ? t('common.saving') : t('common.save')}
@@ -393,7 +428,7 @@ export function StaffFormDrawer({
         className="academic-setup-drawer--staff-form"
         footer={footer}
       >
-        {memberState.loading && !creating && !member ? (
+        {drawerInitialLoading ? (
           <p className="muted">{t('common.loading')}</p>
         ) : (
           <form id={STAFF_FORM_ID} className="col staff-form-drawer" style={{ gap: 12 }} onSubmit={submit}>
@@ -482,9 +517,12 @@ export function StaffFormDrawer({
               catalogLoading={optionsLoading}
               catalogError={optionsError}
               onRetryCatalog={onRetryOptions}
-              disabled={!canManage || saving}
+              disabled={!canManage || saving || permissionScopesLoading}
               onCapabilitiesTouched={() => setCapabilitiesTouched(true)}
             />
+            {permissionScopesLoading ? (
+              <p className="tiny muted">{t('common.loading')}</p>
+            ) : null}
           </form>
         )}
       </SetupDrawer>

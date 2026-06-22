@@ -3,8 +3,11 @@ import type { StaffCapabilityOption, StaffMember, StaffScope } from '@/types/aca
 import {
   buildScopeCapabilityUpdates,
   buildStaffPermissionSavePayload,
+  canSaveStaffPermissionChanges,
   capabilityIdsToCodes,
+  memberHasPermissionScopes,
   payloadUsesRoleTemplateOnly,
+  resolvePermissionEditorMember,
   resolveStoredCapabilityCodes,
   responseIncludesCapabilityCodes,
 } from './staff-permission-merge';
@@ -67,6 +70,96 @@ describe('resolveStoredCapabilityCodes', () => {
     });
 
     expect(resolveStoredCapabilityCodes(member)).toEqual(['view_channels']);
+  });
+});
+
+describe('memberHasPermissionScopes', () => {
+  it('returns true when member has scopes', () => {
+    expect(memberHasPermissionScopes(baseMember())).toBe(true);
+  });
+
+  it('returns false when scopes are empty even with assigned_capabilities', () => {
+    expect(
+      memberHasPermissionScopes(
+        baseMember({ scopes: [], assigned_capabilities: ['view_homeworks'] }),
+      ),
+    ).toBe(false);
+  });
+});
+
+describe('resolvePermissionEditorMember', () => {
+  it('hydrates scopes from staff-center detail over list seed', () => {
+    const listSeed = baseMember({
+      scopes: [],
+      assigned_capabilities: ['view_homeworks', 'view_attendance'],
+    });
+    const hydrated = baseMember({
+      scopes: [
+        {
+          school_id: 3,
+          scope_type: 'classes',
+          class_ids: [2058],
+          capability_codes: ['view_homeworks', 'view_attendance'],
+        },
+      ],
+    });
+
+    const resolved = resolvePermissionEditorMember({ seed: listSeed, hydrated });
+    expect(resolved?.scopes).toEqual(hydrated.scopes);
+    expect(resolved?.name).toBe(listSeed.name);
+  });
+
+  it('allows merge save after hydration when list seed lacked scopes', () => {
+    const listSeed = baseMember({ scopes: [], assigned_capabilities: ['view_homeworks'] });
+    const hydrated = baseMember();
+    const member = resolvePermissionEditorMember({ seed: listSeed, hydrated });
+
+    const result = buildStaffPermissionSavePayload({
+      isCreate: false,
+      member: member!,
+      capabilityIds: [1, 2],
+      originalCapabilityIds: [1],
+      capabilitiesTouched: true,
+      catalog: CATALOG,
+      catalogReady: true,
+      permissionsMeta: { permissions_mode: 'assigned', capabilities_editable: true },
+    });
+
+    expect(result.blockSaveMissingScope).toBe(false);
+    expect(result.mergePayload?.capability_update_mode).toBe('merge');
+    expect(result.mergePayload?.scopes?.length).toBeGreaterThan(0);
+  });
+});
+
+describe('canSaveStaffPermissionChanges', () => {
+  it('blocks capability save while scopes are loading', () => {
+    expect(
+      canSaveStaffPermissionChanges({
+        member: baseMember({ scopes: [] }),
+        scopesLoading: true,
+        capabilityChangesAttempted: true,
+      }),
+    ).toEqual({ allowed: false, reason: 'loading' });
+  });
+
+  it('allows save when scopes are present and not loading', () => {
+    expect(
+      canSaveStaffPermissionChanges({
+        member: baseMember(),
+        scopesLoading: false,
+        capabilityChangesAttempted: true,
+      }),
+    ).toEqual({ allowed: true });
+  });
+
+  it('blocks save without scopes after loading finished', () => {
+    expect(
+      canSaveStaffPermissionChanges({
+        member: baseMember({ scopes: [] }),
+        scopesLoading: false,
+        capabilityChangesAttempted: true,
+      }),
+    ).toEqual({ allowed: false, reason: 'missing_scope' });
   });
 });
 

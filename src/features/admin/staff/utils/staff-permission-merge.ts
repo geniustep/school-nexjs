@@ -58,6 +58,46 @@ function sameCodeSet(a: string[], b: string[]): boolean {
   return sortedA.every((code, index) => code === sortedB[index]);
 }
 
+export function memberHasPermissionScopes(member: StaffMember | null | undefined): boolean {
+  return (member?.scopes?.length ?? 0) > 0;
+}
+
+/** Prefer hydrated staff-center detail (with scopes) over list/seed rows. */
+export function resolvePermissionEditorMember(input: {
+  seed?: StaffMember | null;
+  hydrated?: StaffMember | null;
+}): StaffMember | null {
+  const { seed, hydrated } = input;
+
+  if (hydrated && memberHasPermissionScopes(hydrated)) {
+    if (!seed) return hydrated;
+    return {
+      ...seed,
+      ...hydrated,
+      scopes: hydrated.scopes,
+      assigned_capabilities: hydrated.assigned_capabilities ?? seed.assigned_capabilities,
+      effective_capabilities: hydrated.effective_capabilities ?? seed.effective_capabilities,
+      effective_permissions: hydrated.effective_permissions ?? seed.effective_permissions,
+      permissions_mode: hydrated.permissions_mode ?? seed.permissions_mode,
+      capabilities_editable: hydrated.capabilities_editable ?? seed.capabilities_editable,
+    };
+  }
+
+  if (seed && memberHasPermissionScopes(seed)) return seed;
+  return hydrated ?? seed ?? null;
+}
+
+export function canSaveStaffPermissionChanges(input: {
+  member: StaffMember | null;
+  scopesLoading: boolean;
+  capabilityChangesAttempted: boolean;
+}): { allowed: boolean; reason?: 'loading' | 'missing_scope' } {
+  if (!input.capabilityChangesAttempted) return { allowed: true };
+  if (input.scopesLoading) return { allowed: false, reason: 'loading' };
+  if (!memberHasPermissionScopes(input.member)) return { allowed: false, reason: 'missing_scope' };
+  return { allowed: true };
+}
+
 export function scopeStoredCapabilityCodes(scope: StaffScope): string[] {
   return uniqueCodes(filterDisplayPermissionCodes(scope.capability_codes ?? scope.capabilities));
 }
