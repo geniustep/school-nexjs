@@ -7,6 +7,7 @@ import { canViewSettings, canViewStaff } from '@/lib/permissions/academic-setup'
 import { FINANCE_VIEW } from '@/lib/permissions/finance';
 import { ADMISSION_VIEW } from '@/lib/permissions/admission';
 import { isConfiguredAdmin } from '@/lib/permissions/scope';
+import { shouldUseTeacherWorkspace } from '@/lib/auth/teacher-workspace';
 
 export interface NavItem {
   labelKey: string;
@@ -207,7 +208,7 @@ function teacherNav(): NavSection[] {
   return [
     { items: [{ labelKey: 'nav.dashboard', href: '/teacher/dashboard', icon: '🏠' }] },
     {
-      titleKey: 'nav.teaching',
+      titleKey: 'teacher.myTeachingTasks',
       items: [
         { labelKey: 'nav.myClasses', href: '/teacher/classes', icon: '🏫' },
         { labelKey: 'nav.attendance', href: '/teacher/attendance', icon: '🗓️' },
@@ -247,6 +248,10 @@ function teacherNav(): NavSection[] {
     {
       titleKey: 'nav.communication',
       items: [{ labelKey: 'nav.channels', href: '/teacher/channels', icon: '💬' }],
+    },
+    {
+      titleKey: 'teacher.workspaceNavProfile',
+      items: [{ labelKey: 'teacher.myProfileNav', href: '/teacher/profile', icon: '👤' }],
     },
   ];
 }
@@ -294,8 +299,8 @@ export const ADMIN_NAV_BY_PERMISSION: { permission: Permission; href: string; la
   { permission: 'view_students', href: '/admin/students', labelKey: 'nav.students' },
   { permission: 'view_parents', href: '/admin/parents', labelKey: 'nav.parents' },
   { permission: 'view_teachers', href: '/admin/teachers', labelKey: 'nav.teachers' },
-  { permission: 'view_classes', href: '/admin/staff', labelKey: 'nav.staffCenter' },
   { permission: 'view_classes', href: '/admin/classes', labelKey: 'nav.classes' },
+  { permission: 'view_classes', href: '/admin/staff', labelKey: 'nav.staffCenter' },
   { permission: 'view_attendance', href: '/admin/attendance', labelKey: 'nav.attendance' },
   { permission: 'view_channels', href: '/admin/channels', labelKey: 'nav.channels' },
   { permission: 'view_homeworks', href: '/admin/homeworks', labelKey: 'nav.homework' },
@@ -307,6 +312,8 @@ export const ADMIN_NAV_BY_PERMISSION: { permission: Permission; href: string; la
 ];
 
 export function navForUser(user: CurrentUser): NavSection[] {
+  if (shouldUseTeacherWorkspace(user)) return teacherNav();
+
   switch (user.role) {
     case 'admin':
       if (!isConfiguredAdmin(user)) {

@@ -183,9 +183,16 @@ export function normalizeMeUser(raw: CurrentUser): CurrentUser {
     raw.school ??
     null;
 
+  const teacher_id =
+    typeof raw.teacher_id === 'number' && raw.teacher_id > 0 ? raw.teacher_id : undefined;
+
   return {
     ...base,
     admin_kind: raw.admin_kind as AdminKind | undefined,
+    teacher_id,
+    is_teacher: raw.is_teacher === true ? true : raw.is_teacher === false ? false : undefined,
+    creation_template_code:
+      typeof raw.creation_template_code === 'string' ? raw.creation_template_code : undefined,
     roles: Array.isArray(raw.roles) ? raw.roles.filter((r): r is string => typeof r === 'string') : raw.roles,
     active_role: typeof raw.active_role === 'string' ? raw.active_role : undefined,
     available_roles: Array.isArray(raw.available_roles)

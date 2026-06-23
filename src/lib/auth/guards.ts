@@ -5,7 +5,8 @@
 import 'server-only';
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/api/server';
-import { homeForRole } from '@/lib/routes/role-routes';
+import { shouldUseTeacherWorkspace } from '@/lib/auth/teacher-workspace';
+import { homeForUser } from '@/lib/routes/role-routes';
 import type { CurrentUser, Role } from '@/types/user';
 
 /** Require any authenticated user. Redirects to /login otherwise. */
@@ -21,6 +22,13 @@ export async function requireUser(): Promise<CurrentUser> {
  */
 export async function requireRole(role: Role): Promise<CurrentUser> {
   const user = await requireUser();
-  if (user.role !== role) redirect(homeForRole(user.role));
+  if (role === 'teacher') {
+    if (shouldUseTeacherWorkspace(user)) return user;
+    redirect(homeForUser(user));
+  }
+  if (role === 'admin' && shouldUseTeacherWorkspace(user)) {
+    redirect(homeForUser(user));
+  }
+  if (user.role !== role) redirect(homeForUser(user));
   return user;
 }

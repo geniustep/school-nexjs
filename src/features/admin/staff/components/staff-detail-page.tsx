@@ -28,6 +28,7 @@ import {
   staffUserTypeLabelKeys,
 } from '@/features/admin/staff/utils/normalize-staff-center';
 import { resolveStaffCreationTemplateLabel, resolveStaffRoleDisplayLabel } from '@/features/admin/staff/utils/staff-center-present';
+import { canViewStaffAdminPrivateFields } from '@/lib/auth/teacher-workspace';
 import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { statusLabel } from '@/lib/utils/labels';
@@ -63,11 +64,19 @@ export function StaffDetailPage({ userId }: { userId: number }) {
       </Link>
 
       <ResourceView state={viewState} loadingLabel={t('common.loading')}>
-        {(member: StaffMember) => (
+        {(member: StaffMember) => {
+          const staffUserId = resolveStaffUserId(member);
+          const showAdminPrivate = canViewStaffAdminPrivateFields(sessionUser, staffUserId);
+
+          return (
           <>
             <PageHeader
               title={resolveStaffDisplayName(member)}
-              subtitle={resolveStaffLogin(member) || member.email || undefined}
+              subtitle={
+                showAdminPrivate
+                  ? resolveStaffLogin(member) || member.email || undefined
+                  : undefined
+              }
               actions={
                 <div className="col" style={{ gap: 8, alignItems: 'flex-end' }}>
                   <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
@@ -98,7 +107,9 @@ export function StaffDetailPage({ userId }: { userId: number }) {
             />
 
             <StaffWarningsPanel warnings={member.warnings} />
-            <StaffAccountPasswordBanner member={member} onSetPassword={() => setEditOpen(true)} />
+            {showAdminPrivate ? (
+              <StaffAccountPasswordBanner member={member} onSetPassword={() => setEditOpen(true)} />
+            ) : null}
 
             <div className="staff-center-detail-grid">
               <Card className="staff-center-section">
@@ -106,27 +117,45 @@ export function StaffDetailPage({ userId }: { userId: number }) {
                 <DefinitionList
                   items={[
                     { label: t('admin.fullName'), value: resolveStaffDisplayName(member) },
-                    { label: t('admin.staffCenter.userId'), value: resolveStaffUserId(member) },
-                    {
-                      label: t('admin.staffCenter.partnerId'),
-                      value: member.partner_id ?? t('common.dash'),
-                    },
-                    { label: t('admin.phone'), value: member.mobile ?? member.phone ?? t('common.dash') },
-                    { label: t('admin.email'), value: member.email ?? t('common.dash') },
+                    ...(showAdminPrivate
+                      ? [
+                          {
+                            label: t('admin.staffCenter.userId'),
+                            value: resolveStaffUserId(member),
+                          },
+                          {
+                            label: t('admin.staffCenter.partnerId'),
+                            value: member.partner_id ?? t('common.dash'),
+                          },
+                          {
+                            label: t('admin.phone'),
+                            value: member.mobile ?? member.phone ?? t('common.dash'),
+                          },
+                          {
+                            label: t('admin.email'),
+                            value: member.email ?? t('common.dash'),
+                          },
+                        ]
+                      : []),
                     {
                       label: t('admin.staffCenter.primarySchool'),
                       value: resolveStaffPrimarySchoolName(member) ?? t('common.dash'),
                     },
-                    {
-                      label: t('admin.staffCenter.schools'),
-                      value: member.schools?.length
-                        ? member.schools.map((school) => school.name).join(', ')
-                        : t('common.dash'),
-                    },
+                    ...(showAdminPrivate
+                      ? [
+                          {
+                            label: t('admin.staffCenter.schools'),
+                            value: member.schools?.length
+                              ? member.schools.map((school) => school.name).join(', ')
+                              : t('common.dash'),
+                          },
+                        ]
+                      : []),
                   ]}
                 />
               </Card>
 
+              {showAdminPrivate ? (
               <Card className="staff-center-section">
                 <SectionHead title={t('admin.staffCenter.accountTitle')} />
                 <DefinitionList
@@ -172,17 +201,24 @@ export function StaffDetailPage({ userId }: { userId: number }) {
                   ]}
                 />
               </Card>
+              ) : null}
             </div>
 
+            {showAdminPrivate ? (
+              <>
             <StaffRoleTemplatesSection member={member} />
             <StaffScopesSection member={member} />
             <StaffPermissionsSection member={member} payload={detailState.permissionsPayload} />
+              </>
+            ) : null}
             <StaffTeacherSection member={member} />
 
+            {showAdminPrivate ? (
             <Card className="staff-center-section">
               <SectionHead title={t('admin.staffCenter.operationalNotesTitle')} />
               <p className="muted">{t('admin.staffCenter.operationalNotesDesc')}</p>
             </Card>
+            ) : null}
 
             <StaffFormDrawer
               open={editOpen}
@@ -215,7 +251,8 @@ export function StaffDetailPage({ userId }: { userId: number }) {
               }}
             />
           </>
-        )}
+          );
+        }}
       </ResourceView>
     </div>
   );

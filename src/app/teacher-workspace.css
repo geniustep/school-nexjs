@@ -67,6 +67,14 @@
   letter-spacing: 0.04em;
 }
 
+.sidebar--teacher .sidebar__scope-label {
+  color: var(--t-accent, var(--c-blue));
+}
+
+.sidebar--teacher .sidebar__scope-desc {
+  color: var(--c-text-muted);
+}
+
 .sidebar--teacher .sidebar__profile-school {
   margin-block-start: 4px;
   font-size: 11px;

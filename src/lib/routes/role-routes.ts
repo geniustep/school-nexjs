@@ -1,7 +1,8 @@
 // Role → home route mapping and post-login redirect logic.
 // API_REPORT.md "AFTER LOGIN REDIRECT".
 
-import type { Role } from '@/types/user';
+import { shouldUseTeacherWorkspace } from '@/lib/auth/teacher-workspace';
+import type { CurrentUser, Role } from '@/types/user';
 
 export const ROLE_HOME: Record<Role, string> = {
   admin: '/admin',
@@ -12,6 +13,12 @@ export const ROLE_HOME: Record<Role, string> = {
 
 export function homeForRole(role: Role): string {
   return ROLE_HOME[role] ?? '/login';
+}
+
+/** Post-login home — Smart Staff teachers with role=admin still land in /teacher. */
+export function homeForUser(user: CurrentUser): string {
+  if (shouldUseTeacherWorkspace(user)) return ROLE_HOME.teacher;
+  return homeForRole(user.role);
 }
 
 /** The top-level path segment that a role is allowed to access. */

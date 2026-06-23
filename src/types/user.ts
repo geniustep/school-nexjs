@@ -57,6 +57,10 @@ export interface CurrentUser {
   bindings?: AdminBinding[];
 
   profile_id?: number;
+  /** Teacher profile id from GET /me — Smart Staff accounts may have role=admin + teacher_id. */
+  teacher_id?: number | null;
+  is_teacher?: boolean;
+  creation_template_code?: string | null;
   code?: string;
   scope?: AdminScope;
   /** Top-level /me fields when returned by Odoo (mirrors scope.type / scopes.length). */

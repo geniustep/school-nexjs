@@ -20,8 +20,10 @@ import { BrandLogo } from '@/components/brand/brand-logo';
 import { IconMenu } from '@/components/icons/admin-icons';
 import { AdminAccountSheet } from '@/components/layout/admin-account-sheet';
 import { useBodyScrollLock } from '@/hooks/use-body-scroll-lock';
+import { shouldUseTeacherWorkspace } from '@/lib/auth/teacher-workspace';
 
 function roleSubtitle(user: CurrentUser, t: (k: string) => string): string {
+  if (shouldUseTeacherWorkspace(user)) return t('roles.teacher');
   if (user.role === 'admin' && user.admin_kind) {
     const kindKey = `roles.adminKind.${user.admin_kind}`;
     const kindLabel = t(kindKey);
@@ -62,8 +64,8 @@ export function AppShell({
   const sections = navForUser(user);
   const t = useT();
   const scopeDesc = scopeDescription(user, t);
-  const isTeacher = user.role === 'teacher';
-  const isAdmin = user.role === 'admin';
+  const isTeacher = shouldUseTeacherWorkspace(user);
+  const isAdmin = user.role === 'admin' && !isTeacher;
   const multiSchoolPm =
     isAdmin && isMultiSchoolAdmin(user) && isAdminKind(user, 'project_manager');
   const topbarTitle = isTeacher
@@ -160,10 +162,17 @@ export function AppShell({
           )}
         </nav>
 
-        {scopeDesc && (
+        {scopeDesc && !isTeacher && (
           <div className="sidebar__scope">
             <span className="sidebar__scope-label">{t('admin.limitedAccess')}</span>
             <span className="sidebar__scope-desc">{scopeDesc}</span>
+          </div>
+        )}
+
+        {isTeacher && (
+          <div className="sidebar__scope sidebar__scope--teacher">
+            <span className="sidebar__scope-label">{t('teacher.workspaceTitle')}</span>
+            <span className="sidebar__scope-desc">{t('teacher.workspaceSidebarDesc')}</span>
           </div>
         )}
 

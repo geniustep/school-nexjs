@@ -5,7 +5,7 @@
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { authApi } from '@/lib/api/client';
-import { homeForRole } from '@/lib/routes/role-routes';
+import { homeForUser } from '@/lib/routes/role-routes';
 import { useT } from '@/features/i18n/locale-context';
 import { BrandLogo } from '@/components/brand/brand-logo';
 
@@ -34,8 +34,7 @@ export function LoginForm() {
     setSubmitting(true);
     const res = await authApi.login(login.trim(), password);
     if (res.success) {
-      const role = res.data.user.role;
-      router.replace(homeForRole(role));
+      router.replace(homeForUser(res.data.user));
       router.refresh();
       return;
     }

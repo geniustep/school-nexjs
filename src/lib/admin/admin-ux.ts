@@ -2,6 +2,7 @@
 // Does not change backend contracts; complements permissions[] from /me.
 
 import { resolveSchoolIds } from '@/lib/auth/normalize-user';
+import { shouldUseTeacherWorkspace } from '@/lib/auth/teacher-workspace';
 import { ADMIN_NAV_BY_PERMISSION } from '@/components/navigation/nav-config';
 import { hasAnyPermission, hasPermission } from '@/lib/permissions/permissions';
 import { isConfiguredAdmin, isScopedAdmin } from '@/lib/permissions/scope';
@@ -69,16 +70,19 @@ export function canShowAdminNavPermission(
   return hasPermission(user, permission);
 }
 
-/** First admin module href the user may open (sidebar order). */
+/** First admin module href the user may open (sidebar order). Skips Staff Center as a landing target. */
 export function firstAllowedAdminPath(user: CurrentUser): string {
-  const first = ADMIN_NAV_BY_PERMISSION.find((item) =>
-    canShowAdminNavPermission(user, item.permission),
+  const first = ADMIN_NAV_BY_PERMISSION.find(
+    (item) =>
+      item.href !== '/admin/staff' && canShowAdminNavPermission(user, item.permission),
   );
   return first?.href ?? '/admin/dashboard';
 }
 
 /** Post-login /admin index redirect target. */
 export function adminLandingPath(user: CurrentUser): string {
+  if (shouldUseTeacherWorkspace(user)) return '/teacher/dashboard';
+
   if (user.role !== 'admin') return '/admin';
 
   if (user.admin_kind === 'admin_staff') {
