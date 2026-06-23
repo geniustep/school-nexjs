@@ -2,6 +2,7 @@ import type {
   StaffCreationTemplate,
   StaffSmartCreateFormState,
   StaffTemplateAssignments,
+  StaffTemplateBundleMeta,
   StaffTemplateBundleSelection,
   StaffTemplateCapabilityItem,
   StaffTemplateCreatePayload,
@@ -15,7 +16,10 @@ import type {
 } from '@/types/staff-templates';
 import type { StaffPasswordPolicy } from '@/types/academic-setup';
 import type { Locale } from '@/lib/i18n/config';
-import { resolveCapabilityLabel } from '@/features/admin/academic-setup/utils/capability-present';
+import {
+  looksLikeEnglishLabel,
+  resolveCapabilityLabel,
+} from '@/features/admin/academic-setup/utils/capability-present';
 import {
   meetsStaffPasswordPolicy,
   validateStaffPasswordForm,
@@ -50,17 +54,59 @@ function normalizeBundleCodeList(raw: unknown): string[] {
   if (!Array.isArray(raw)) return [];
   const codes: string[] = [];
   for (const entry of raw) {
-    if (typeof entry === 'string' && entry.trim()) {
-      codes.push(entry.trim());
-      continue;
-    }
-    if (!entry || typeof entry !== 'object') continue;
-    const code = (entry as { code?: unknown }).code;
-    if (typeof code === 'string' && code.trim()) {
-      codes.push(code.trim());
-    }
+    const code = resolveStaffTemplateBundleCode(entry);
+    if (code) codes.push(code);
   }
   return uniqueStrings(codes);
+}
+
+function resolveStaffTemplateBundleCode(raw: unknown): string | null {
+  if (typeof raw === 'string' && raw.trim()) return raw.trim();
+  if (!raw || typeof raw !== 'object') return null;
+  const code = (raw as { code?: unknown }).code;
+  return typeof code === 'string' && code.trim() ? code.trim() : null;
+}
+
+function extractStaffTemplateBundleMeta(raw: unknown): StaffTemplateBundleMeta | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const item = raw as Record<string, unknown>;
+  const display_name =
+    typeof item.display_name === 'string' && item.display_name.trim()
+      ? item.display_name.trim()
+      : typeof item.name === 'string' && item.name.trim()
+        ? item.name.trim()
+        : undefined;
+  const display_name_ar =
+    typeof item.display_name_ar === 'string' && item.display_name_ar.trim()
+      ? item.display_name_ar.trim()
+      : undefined;
+  if (!display_name && !display_name_ar) return null;
+  return { display_name, display_name_ar };
+}
+
+function mergeStaffTemplateBundleMetadata(
+  target: Record<string, StaffTemplateBundleMeta>,
+  raw: unknown,
+): void {
+  const code = resolveStaffTemplateBundleCode(raw);
+  if (!code) return;
+  const meta = extractStaffTemplateBundleMeta(raw);
+  if (!meta) return;
+  const key = code.toLowerCase();
+  target[key] = { ...target[key], ...meta };
+}
+
+function collectStaffTemplateBundleMetadata(
+  ...sources: unknown[]
+): Record<string, StaffTemplateBundleMeta> {
+  const metadata: Record<string, StaffTemplateBundleMeta> = {};
+  for (const source of sources) {
+    if (!Array.isArray(source)) continue;
+    for (const entry of source) {
+      mergeStaffTemplateBundleMetadata(metadata, entry);
+    }
+  }
+  return metadata;
 }
 
 function uniqueStrings(values: string[]): string[] {
@@ -307,10 +353,17 @@ export function normalizeStaffTemplatePreview(raw: unknown): StaffTemplatePrevie
   );
 
   const responsibility_bundles = Array.isArray(item.responsibility_bundles)
-    ? item.responsibility_bundles.filter((v): v is string => typeof v === 'string')
+    ? item.responsibility_bundles
+        .map((entry) => resolveStaffTemplateBundleCode(entry))
+        .filter((code): code is string => Boolean(code))
     : [];
 
   const selected_bundle_codes = normalizeStringArray(item.selected_bundle_codes);
+  const bundle_metadata = collectStaffTemplateBundleMetadata(
+    item.responsibility_bundles,
+    item.selected_bundle_codes,
+    item.bundle_items,
+  );
 
   const required_fields = Array.isArray(item.required_fields)
     ? item.required_fields.filter((v): v is string => typeof v === 'string')
@@ -352,6 +405,7 @@ export function normalizeStaffTemplatePreview(raw: unknown): StaffTemplatePrevie
     effective_capabilities,
     effective_capability_items,
     responsibility_bundles,
+    bundle_metadata: Object.keys(bundle_metadata).length ? bundle_metadata : undefined,
     selected_bundle_codes,
     scope,
     required_fields,
@@ -1093,24 +1147,50 @@ export const STAFF_TEMPLATE_CAPABILITY_DISPLAY_LIMIT = 8;
 
 const STAFF_TEMPLATE_BUNDLE_I18N_PREFIX = 'admin.staffCenter.smartCreate.bundles.';
 
+export type StaffTemplateBundleLabelOptions = {
+  locale?: Locale;
+  metadata?: Record<string, StaffTemplateBundleMeta>;
+};
+
 export function resolveStaffTemplateBundleLabel(
   code: string,
   t: (key: string) => string,
+  options?: StaffTemplateBundleLabelOptions,
 ): string {
   const normalized = code.trim().toLowerCase();
   if (!normalized) return '';
+
+  const meta = options?.metadata?.[normalized] ?? options?.metadata?.[code.trim()];
+  if (meta) {
+    if (options?.locale === 'ar' && meta.display_name_ar?.trim()) {
+      return meta.display_name_ar.trim();
+    }
+    if (meta.display_name?.trim() && (options?.locale === 'en' || !looksLikeEnglishLabel(meta.display_name))) {
+      return meta.display_name.trim();
+    }
+    if (meta.display_name_ar?.trim() && options?.locale !== 'en') {
+      return meta.display_name_ar.trim();
+    }
+  }
+
   const key = `${STAFF_TEMPLATE_BUNDLE_I18N_PREFIX}${normalized}`;
   const label = t(key);
   if (label !== key) return label;
   return formatStaffTemplateDisplayToken(code);
 }
 
+export function staffTemplatePasswordsMismatch(form: StaffSmartCreateFormState): boolean {
+  if (!form.createAccount || !form.assignPasswordNow) return false;
+  return form.password !== form.confirmPassword;
+}
+
 export function resolveStaffTemplateAddBundleActionLabel(
   code: string,
   t: (key: string, params?: Record<string, string | number>) => string,
+  options?: StaffTemplateBundleLabelOptions,
 ): string {
   return t('admin.staffCenter.smartCreate.addBundleNamedAction', {
-    name: resolveStaffTemplateBundleLabel(code, t),
+    name: resolveStaffTemplateBundleLabel(code, t, options),
   });
 }
 
@@ -1130,13 +1210,34 @@ export function resolveStaffTemplateCapabilityLabel(
   item: StaffTemplateCapabilityItem,
   locale: Locale,
   t: (key: string) => string,
+  bundleMetadata?: Record<string, StaffTemplateBundleMeta>,
 ): string {
-  if (item.label?.trim()) return item.label.trim();
   const normalized = item.code.trim().toLowerCase();
   const key = `${STAFF_TEMPLATE_CAPABILITY_I18N_PREFIX}${normalized.replace(/\./g, '_')}`;
   const translated = t(key);
   if (translated !== key) return translated;
-  return resolveCapabilityLabel(locale, { code: item.code, label: '' });
+
+  const fromCatalog = resolveCapabilityLabel(locale, {
+    code: item.code,
+    label: item.label ?? '',
+  });
+  if (fromCatalog && fromCatalog !== item.code) {
+    const tokenFallback = formatStaffTemplateDisplayToken(item.code);
+    if (fromCatalog !== tokenFallback || locale === 'en') return fromCatalog;
+  }
+
+  const bundleLabel = resolveStaffTemplateBundleLabel(item.code, t, {
+    locale,
+    metadata: bundleMetadata,
+  });
+  const tokenFallback = formatStaffTemplateDisplayToken(item.code);
+  if (bundleLabel !== tokenFallback) return bundleLabel;
+
+  const apiLabel = item.label?.trim();
+  if (apiLabel && locale === 'en') return apiLabel;
+  if (apiLabel && !looksLikeEnglishLabel(apiLabel)) return apiLabel;
+
+  return tokenFallback;
 }
 
 export function payloadContainsForbiddenClientFields(payload: unknown): boolean {

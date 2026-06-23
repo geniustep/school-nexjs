@@ -82,7 +82,7 @@ export function validateStaffPasswordForm(
   if (input.requirePassword && !confirmPassword) {
     errors.confirmPassword = t('admin.academicSetup.staffPassword.errors.confirmPasswordRequired');
   } else if (password !== confirmPassword) {
-    errors.confirmPassword = t('admin.academicSetup.staffPassword.errors.passwordMismatch');
+    errors.confirmPassword = t('admin.academicSetup.staffPassword.errors.confirmPasswordMismatchHint');
   }
 
   return { valid: Object.keys(errors).length === 0, errors };

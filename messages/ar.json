@@ -1215,7 +1215,8 @@
           "subjectRequired": "المادة مطلوبة لهذا القالب.",
           "classesRequired": "قسم واحد على الأقل مطلوب لهذا القالب.",
           "academicYearRequired": "السنة الدراسية مطلوبة لهذا القالب.",
-          "passwordRequiredBeforeCreate": "يرجى تعيين كلمة مرور لحساب الموظف قبل الإنشاء."
+          "passwordRequiredBeforeCreate": "يرجى تعيين كلمة مرور لحساب الموظف قبل الإنشاء.",
+          "passwordMismatchReview": "تعذر إنشاء الحساب لأن كلمة المرور وتأكيدها غير متطابقين. يرجى مراجعة بيانات الحساب."
         },
         "warnings": {
           "blockedCreation": "المعلومات المطلوبة غير مكتملة، لذلك الإنشاء غير مسموح بعد.",
@@ -1936,6 +1937,7 @@
           "passwordRequired": "كلمة المرور مطلوبة.",
           "confirmPasswordRequired": "يرجى تأكيد كلمة المرور.",
           "passwordMismatch": "كلمة المرور وتأكيدها غير متطابقين.",
+          "confirmPasswordMismatchHint": "أعد كتابة تأكيد كلمة المرور بنفس كلمة المرور.",
           "weakPassword": "كلمة المرور ضعيفة. يجب أن تتكون من 8 أحرف على الأقل وتحتوي حرفًا ورقمًا.",
           "loginAlreadyExists": "اسم المستخدم أو البريد مستعمل من قبل.",
           "accountCreateForbidden": "ليست لديك صلاحية إنشاء أو تعديل حساب هذا الموظف."

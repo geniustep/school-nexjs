@@ -121,7 +121,7 @@ function capabilityTranslationKeys(code: string): string[] {
   return keys;
 }
 
-function looksLikeEnglishLabel(label: string): boolean {
+export function looksLikeEnglishLabel(label: string): boolean {
   return /^[\x00-\x7F\s]+$/.test(label.trim()) && /[a-zA-Z]/.test(label);
 }
 

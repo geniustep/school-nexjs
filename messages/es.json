@@ -1215,7 +1215,8 @@
           "subjectRequired": "La materia es obligatoria para esta plantilla.",
           "classesRequired": "Al menos una clase es obligatoria para esta plantilla.",
           "academicYearRequired": "El año académico es obligatorio para esta plantilla.",
-          "passwordRequiredBeforeCreate": "Establezca una contraseña para la cuenta antes de crear."
+          "passwordRequiredBeforeCreate": "Establezca una contraseña para la cuenta antes de crear.",
+          "passwordMismatchReview": "No se pudo crear la cuenta porque la contraseña y la confirmación no coinciden. Revise los datos de la cuenta."
         },
         "warnings": {
           "blockedCreation": "Faltan datos obligatorios; la creación aún no está permitida.",
@@ -1909,6 +1910,7 @@
           "passwordRequired": "La contraseña es obligatoria.",
           "confirmPasswordRequired": "Confirme la contraseña.",
           "passwordMismatch": "La contraseña y la confirmación no coinciden.",
+          "confirmPasswordMismatchHint": "Vuelva a escribir la confirmación con la misma contraseña.",
           "weakPassword": "Contraseña demasiado débil. Use al menos 8 caracteres con letras y números.",
           "loginAlreadyExists": "Este usuario o correo ya está en uso.",
           "accountCreateForbidden": "No tiene permiso para crear o modificar esta cuenta."

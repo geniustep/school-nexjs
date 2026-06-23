@@ -26,6 +26,7 @@ function CapabilityItemsList({
   variant,
   emptyLabel,
   moreLabelKey,
+  bundleMetadata,
   t,
 }: {
   items: StaffTemplateCapabilityItem[];
@@ -33,6 +34,7 @@ function CapabilityItemsList({
   variant: 'allowed' | 'forbidden';
   emptyLabel: string;
   moreLabelKey: string;
+  bundleMetadata?: Record<string, import('@/types/staff-templates').StaffTemplateBundleMeta>;
   t: TranslateFn;
 }) {
   const { visible, overflowCount } = splitStaffTemplateDisplayList(
@@ -51,7 +53,7 @@ function CapabilityItemsList({
     >
       {visible.map((item) => (
         <li key={item.code}>
-          {marker} {resolveStaffTemplateCapabilityLabel(item, locale, t)}
+          {marker} {resolveStaffTemplateCapabilityLabel(item, locale, t, bundleMetadata)}
         </li>
       ))}
       {overflowCount > 0 ? (
@@ -131,6 +133,8 @@ export function StaffTemplatePreviewPanel({
     STAFF_TEMPLATE_CAPABILITY_DISPLAY_LIMIT,
   );
 
+  const bundleLabelOptions = { locale, metadata: preview.bundle_metadata };
+
   return (
     <div className="staff-smart-create__preview">
       {!hideSummaryTitle ? (
@@ -161,7 +165,7 @@ export function StaffTemplatePreviewPanel({
                 {bundleSplit.visible.map((item) => (
                   <li key={item}>
                     <span className="staff-smart-create__bundle-chip">
-                      {resolveStaffTemplateBundleLabel(item, t)}
+                      {resolveStaffTemplateBundleLabel(item, t, bundleLabelOptions)}
                     </span>
                   </li>
                 ))}
@@ -186,6 +190,7 @@ export function StaffTemplatePreviewPanel({
               variant="allowed"
               emptyLabel={t('admin.staffCenter.noEffectiveCapabilities')}
               moreLabelKey="admin.staffCenter.smartCreate.moreCapabilities"
+              bundleMetadata={preview.bundle_metadata}
               t={t}
             />
           </div>
@@ -200,6 +205,7 @@ export function StaffTemplatePreviewPanel({
               variant="forbidden"
               emptyLabel={t('admin.staffCenter.smartCreate.noForbiddenCapabilities')}
               moreLabelKey="admin.staffCenter.smartCreate.moreCapabilities"
+              bundleMetadata={preview.bundle_metadata}
               t={t}
             />
           </div>

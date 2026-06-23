@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useT } from '@/features/i18n/locale-context';
+import { useLocale, useT } from '@/features/i18n/locale-context';
 import {
   isStaffTemplateBundleRemovable,
   resolveAddableStaffTemplateBundleCodes,
@@ -26,6 +26,8 @@ export function StaffTemplateBundleEditor({
   onChange: (next: string[]) => void;
 }) {
   const t = useT();
+  const { locale } = useLocale();
+  const bundleLabelOptions = { locale };
 
   const requiredCodes = useMemo(() => resolveRequiredBundleCodes(template), [template]);
   const editableCodes = useMemo(
@@ -69,7 +71,7 @@ export function StaffTemplateBundleEditor({
             {requiredCodes.map((code) => (
               <li key={code}>
                 <span className="staff-smart-create__bundle-chip staff-smart-create__bundle-chip--required">
-                  {resolveStaffTemplateBundleLabel(code, t)}
+                  {resolveStaffTemplateBundleLabel(code, t, bundleLabelOptions)}
                 </span>
               </li>
             ))}
@@ -86,7 +88,7 @@ export function StaffTemplateBundleEditor({
             {editableCodes.map((code) => (
               <li key={code}>
                 <span className="staff-smart-create__bundle-chip staff-smart-create__bundle-chip--editable">
-                  {resolveStaffTemplateBundleLabel(code, t)}
+                  {resolveStaffTemplateBundleLabel(code, t, bundleLabelOptions)}
                   {isStaffTemplateBundleRemovable(template, code) ? (
                     <button
                       type="button"
@@ -121,7 +123,7 @@ export function StaffTemplateBundleEditor({
                   disabled={disabled}
                   onClick={() => addBundle(code)}
                 >
-                  {resolveStaffTemplateAddBundleActionLabel(code, t)}
+                  {resolveStaffTemplateAddBundleActionLabel(code, t, bundleLabelOptions)}
                 </button>
               </li>
             ))}
@@ -140,7 +142,7 @@ export function StaffTemplateBundleEditor({
             {forbiddenCodes.map((code) => (
               <li key={code}>
                 <span className="staff-smart-create__bundle-chip staff-smart-create__bundle-chip--forbidden">
-                  {resolveStaffTemplateBundleLabel(code, t)}
+                  {resolveStaffTemplateBundleLabel(code, t, bundleLabelOptions)}
                 </span>
               </li>
             ))}

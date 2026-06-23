@@ -1215,7 +1215,8 @@
           "subjectRequired": "La matière est requise pour ce modèle.",
           "classesRequired": "Au moins une classe est requise pour ce modèle.",
           "academicYearRequired": "L'année scolaire est requise pour ce modèle.",
-          "passwordRequiredBeforeCreate": "Veuillez définir un mot de passe pour le compte avant la création."
+          "passwordRequiredBeforeCreate": "Veuillez définir un mot de passe pour le compte avant la création.",
+          "passwordMismatchReview": "Impossible de créer le compte : le mot de passe et sa confirmation ne correspondent pas. Veuillez vérifier les données du compte."
         },
         "warnings": {
           "blockedCreation": "Les informations requises sont incomplètes ; la création n'est pas encore autorisée.",
@@ -1909,6 +1910,7 @@
           "passwordRequired": "Le mot de passe est obligatoire.",
           "confirmPasswordRequired": "Veuillez confirmer le mot de passe.",
           "passwordMismatch": "Le mot de passe et sa confirmation ne correspondent pas.",
+          "confirmPasswordMismatchHint": "Saisissez à nouveau la confirmation avec le même mot de passe.",
           "weakPassword": "Mot de passe trop faible. Utilisez au moins 8 caractères avec lettres et chiffres.",
           "loginAlreadyExists": "Ce login ou e-mail est déjà utilisé.",
           "accountCreateForbidden": "Vous n'êtes pas autorisé à créer ou modifier ce compte personnel."

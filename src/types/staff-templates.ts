@@ -21,6 +21,11 @@ export interface StaffTemplateCapabilityItem {
   category?: string;
 }
 
+export interface StaffTemplateBundleMeta {
+  display_name?: string;
+  display_name_ar?: string;
+}
+
 export interface StaffCreationTemplate {
   code: string;
   name: string;
@@ -67,6 +72,7 @@ export interface StaffTemplatePreview {
   effective_capabilities?: string[];
   effective_capability_items?: StaffTemplateCapabilityItem[];
   responsibility_bundles?: string[];
+  bundle_metadata?: Record<string, StaffTemplateBundleMeta>;
   selected_bundle_codes?: string[];
   scope?: StaffTemplateScope;
   required_fields?: string[];

@@ -1,7 +1,7 @@
 'use client';
 
 import { Badge } from '@/components/ui/primitives';
-import { useT, type TranslateFn } from '@/features/i18n/locale-context';
+import { useLocale, useT, type TranslateFn } from '@/features/i18n/locale-context';
 import {
   groupStaffTemplatesByMainPosition,
   resolveStaffTemplateBundleLabel,
@@ -14,9 +14,11 @@ import type { StaffCreationTemplate } from '@/types/staff-templates';
 function TemplateBundleChips({
   bundleCodes,
   t,
+  locale,
 }: {
   bundleCodes: string[];
   t: TranslateFn;
+  locale: 'ar' | 'en' | 'fr' | 'es';
 }) {
   const { visible, overflowCount } = splitStaffTemplateDisplayList(
     bundleCodes,
@@ -30,7 +32,7 @@ function TemplateBundleChips({
       {visible.map((code) => (
         <li key={code}>
           <span className="staff-smart-create__bundle-chip">
-            {resolveStaffTemplateBundleLabel(code, t)}
+            {resolveStaffTemplateBundleLabel(code, t, { locale })}
           </span>
         </li>
       ))}
@@ -55,6 +57,7 @@ export function StaffTemplatePicker({
   onSelect: (template: StaffCreationTemplate) => void;
 }) {
   const t = useT();
+  const { locale } = useLocale();
   const groups = groupStaffTemplatesByMainPosition(templates);
 
   return (
@@ -116,7 +119,7 @@ export function StaffTemplatePicker({
                         <span className="tiny muted staff-smart-create__template-bundles-label">
                           {t('admin.staffCenter.smartCreate.responsibilityBundles')}
                         </span>
-                        <TemplateBundleChips bundleCodes={template.bundle_codes} t={t} />
+                        <TemplateBundleChips bundleCodes={template.bundle_codes} t={t} locale={locale} />
                       </div>
                     ) : null}
                     <div className="staff-smart-create__template-actions">

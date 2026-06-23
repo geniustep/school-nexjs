@@ -1215,7 +1215,8 @@
           "subjectRequired": "Subject is required for this template.",
           "classesRequired": "At least one class is required for this template.",
           "academicYearRequired": "Academic year is required for this template.",
-          "passwordRequiredBeforeCreate": "Please set a staff account password before creating."
+          "passwordRequiredBeforeCreate": "Please set a staff account password before creating.",
+          "passwordMismatchReview": "Could not create the account because the password and confirmation do not match. Please review the account details."
         },
         "warnings": {
           "blockedCreation": "Required information is incomplete, so creation is not allowed yet.",
@@ -1909,6 +1910,7 @@
           "passwordRequired": "Password is required.",
           "confirmPasswordRequired": "Please confirm the password.",
           "passwordMismatch": "Password and confirmation do not match.",
+          "confirmPasswordMismatchHint": "Re-enter the confirmation using the same password.",
           "weakPassword": "Password is too weak. Use at least 8 characters with letters and numbers.",
           "loginAlreadyExists": "This login or email is already in use.",
           "accountCreateForbidden": "You are not allowed to create or update this staff account."

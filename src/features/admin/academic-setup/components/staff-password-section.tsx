@@ -1,6 +1,6 @@
 'use client';
 
-import { useId } from 'react';
+import { useId, type RefObject } from 'react';
 import { useT } from '@/features/i18n/locale-context';
 import {
   computeStaffPasswordStrength,
@@ -23,6 +23,7 @@ export function StaffPasswordSection({
   onConfirmPasswordChange,
   onShowPasswordChange,
   onAssignPasswordNowChange,
+  confirmInputRef,
 }: {
   password: string;
   confirmPassword: string;
@@ -36,6 +37,7 @@ export function StaffPasswordSection({
   onConfirmPasswordChange: (value: string) => void;
   onShowPasswordChange: (value: boolean) => void;
   onAssignPasswordNowChange: (value: boolean) => void;
+  confirmInputRef?: RefObject<HTMLInputElement | null>;
 }) {
   const t = useT();
   const formId = useId();
@@ -169,6 +171,7 @@ export function StaffPasswordSection({
           >
             <span className={labelClass}>{t('admin.academicSetup.staffPassword.confirmPassword')}</span>
             <input
+              ref={confirmInputRef}
               id={confirmId}
               className="input"
               type={showPassword ? 'text' : 'password'}

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AccountFieldsSection } from '@/features/admin/account/account-fields-section';
 import { StaffPasswordSection } from '@/features/admin/academic-setup/components/staff-password-section';
 import { useStaffOptions } from '@/features/admin/academic-setup/hooks/use-staff';
@@ -46,11 +46,12 @@ import {
   validateStaffTemplateAssignments,
   validateStaffTemplatePersonForm,
   mapStaffTemplateCreateError,
+  staffTemplatePasswordsMismatch,
   type StaffTemplatePersonFieldErrors,
 } from '@/features/admin/staff/utils/staff-template-utils';
 import { StaffCreateSuccessPanel } from '@/features/admin/staff/components/staff-create-success-panel';
 import { useAdminSession } from '@/features/auth/admin-session-context';
-import { useT } from '@/features/i18n/locale-context';
+import { useLocale, useT } from '@/features/i18n/locale-context';
 import { sanitizeUserFacingErrorMessage } from '@/lib/utils/user-facing-error';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { endpoints } from '@/lib/api/endpoints';
@@ -74,6 +75,7 @@ function stepIndex(step: StaffSmartCreateWizardStep): number {
 
 export function StaffSmartCreateWizard() {
   const t = useT();
+  const { locale } = useLocale();
   const toast = useToast();
   const { activeSchoolId } = useAdminSession();
 
@@ -96,6 +98,8 @@ export function StaffSmartCreateWizard() {
   const [showPassword, setShowPassword] = useState(false);
   const [personErrors, setPersonErrors] = useState<StaffTemplatePersonFieldErrors>({});
   const [passwordErrors, setPasswordErrors] = useState<StaffPasswordFieldErrors>({});
+  const [passwordFormError, setPasswordFormError] = useState<string | null>(null);
+  const confirmPasswordRef = useRef<HTMLInputElement>(null);
   const [assignmentsError, setAssignmentsError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [createResult, setCreateResult] = useState<StaffTemplateCreateResult | null>(null);
@@ -116,6 +120,19 @@ export function StaffSmartCreateWizard() {
   );
 
   const passwordPolicy = normalizeStaffPasswordPolicy(staffOptionsState.options?.password_policy);
+  const bundleLabelOptions = useMemo(
+    () => ({ locale, metadata: preview?.bundle_metadata }),
+    [locale, preview?.bundle_metadata],
+  );
+  const passwordMismatchOnReview = useMemo(
+    () => step === 'review' && staffTemplatePasswordsMismatch(form),
+    [step, form],
+  );
+
+  function focusPasswordConfirm() {
+    confirmPasswordRef.current?.focus();
+    confirmPasswordRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
 
   const allClasses = useMemo(
     () =>
@@ -230,6 +247,7 @@ export function StaffSmartCreateWizard() {
     }));
     setPersonErrors({});
     setPasswordErrors({});
+    setPasswordFormError(null);
     setAssignmentsError(null);
     setAssignmentPicker(defaultStaffAssignmentPickerState());
     resetPreview();
@@ -257,6 +275,11 @@ export function StaffSmartCreateWizard() {
       );
       setPasswordErrors(result.errors);
       passwordValid = result.valid;
+      if (!passwordValid && staffTemplatePasswordsMismatch(form)) {
+        setPasswordFormError(t('admin.academicSetup.staffPassword.errors.passwordMismatch'));
+      } else if (passwordValid) {
+        setPasswordFormError(null);
+      }
     } else {
       setPasswordErrors({});
     }
@@ -284,6 +307,10 @@ export function StaffSmartCreateWizard() {
     const valid = personValidation.valid && passwordValid && assignmentsValidation.valid;
     if (!valid) {
       requestAnimationFrame(() => {
+        if (!passwordValid && staffTemplatePasswordsMismatch(form)) {
+          focusPasswordConfirm();
+          return;
+        }
         document
           .querySelector(
             '.staff-smart-create__details [aria-invalid="true"], .staff-smart-create__details .account-password-fields__error, .staff-smart-create__assignments .staff-smart-create__section-desc--error',
@@ -325,13 +352,29 @@ export function StaffSmartCreateWizard() {
   }
 
   async function handleCreate() {
-    if (!selectedTemplate || !canSubmitStaffTemplateCreate({
-      template: selectedTemplate,
-      preview,
-      form,
-      passwordPolicy,
-      t,
-    })) {
+    if (!selectedTemplate) return;
+
+    const detailsValid = validateDetailsStep();
+    if (!detailsValid) {
+      if (step === 'review') {
+        setStep('details');
+        if (staffTemplatePasswordsMismatch(form)) {
+          setPasswordFormError(t('admin.staffCenter.smartCreate.errors.passwordMismatchReview'));
+        }
+      }
+      return;
+    }
+    setPasswordFormError(null);
+
+    if (
+      !canSubmitStaffTemplateCreate({
+        template: selectedTemplate,
+        preview,
+        form,
+        passwordPolicy,
+        t,
+      })
+    ) {
       return;
     }
 
@@ -342,6 +385,15 @@ export function StaffSmartCreateWizard() {
     setSaving(false);
 
     if (!res.ok) {
+      if (res.error.code === 'password_mismatch') {
+        setStep('details');
+        setPasswordFormError(t('admin.staffCenter.smartCreate.errors.passwordMismatchReview'));
+        setPasswordErrors({
+          confirmPassword: t('admin.academicSetup.staffPassword.errors.confirmPasswordMismatchHint'),
+        });
+        requestAnimationFrame(() => focusPasswordConfirm());
+        return;
+      }
       toast.error(mapStaffTemplateCreateError(res.error, t));
       return;
     }
@@ -361,6 +413,7 @@ export function StaffSmartCreateWizard() {
     resetPreview();
     setPersonErrors({});
     setPasswordErrors({});
+    setPasswordFormError(null);
     setAssignmentsError(null);
   }
 
@@ -471,6 +524,9 @@ export function StaffSmartCreateWizard() {
 
           {step === 'details' && selectedTemplate ? (
             <div className="staff-smart-create__details">
+              {passwordFormError ? (
+                <InfoBanner tone="amber" icon="⚠" title={passwordFormError} />
+              ) : null}
               <InfoBanner
                 tone="blue"
                 title={selectedTemplate.name}
@@ -609,6 +665,7 @@ export function StaffSmartCreateWizard() {
                         assignPasswordNow={form.assignPasswordNow}
                         policy={passwordPolicy}
                         errors={passwordErrors}
+                        confirmInputRef={confirmPasswordRef}
                         disabled={saving}
                         onPasswordChange={(value) =>
                           setForm((current) => ({ ...current, password: value }))
@@ -721,6 +778,14 @@ export function StaffSmartCreateWizard() {
 
           {step === 'review' && selectedTemplate ? (
             <div className="staff-smart-create__review">
+              {passwordMismatchOnReview ? (
+                <InfoBanner
+                  tone="amber"
+                  icon="⚠"
+                  title={t('admin.academicSetup.staffPassword.errors.passwordMismatch')}
+                  description={t('admin.staffCenter.smartCreate.errors.passwordMismatchReview')}
+                />
+              ) : null}
               <section className="staff-smart-create__section-card staff-smart-create__review-summary">
                 <div className="staff-smart-create__section-heading">
                   <h3 className="staff-smart-create__section-title">
@@ -753,7 +818,7 @@ export function StaffSmartCreateWizard() {
                           <dt>{t('admin.staffCenter.smartCreate.selectedBundlesPreviewTitle')}</dt>
                           <dd>
                             {form.selectedBundleCodes
-                              .map((code) => resolveStaffTemplateBundleLabel(code, t))
+                              .map((code) => resolveStaffTemplateBundleLabel(code, t, bundleLabelOptions))
                               .join('، ')}
                           </dd>
                         </div>
