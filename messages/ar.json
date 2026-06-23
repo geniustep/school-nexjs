@@ -598,6 +598,7 @@
     "profileQuickLinksTitle": "اختصارات يومية",
     "dashboardLoadFailedTitle": "تعذر تحميل لوحة الأستاذ",
     "profileNotLinkedDesc": "لم يتم ربط حسابك بملف أستاذ بعد، أو لا توجد تكليفات تعليمية مفعلة. يرجى التواصل مع الإدارة.",
+    "profileNotLinkedCompact": "لم يتم ربط حسابك بملف أستاذ بعد، أو لا توجد تكليفات تعليمية مفعلة.",
     "openNextClass": "فتح القسم القادم",
     "quickActions": "إجراءات سريعة",
     "todayWork": "عمل اليوم",

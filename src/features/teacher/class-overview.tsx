@@ -1,10 +1,14 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useResource } from '@/lib/hooks/use-resource';
 import { ResourceView } from '@/components/states/resource';
+import { LoadingState } from '@/components/states/states';
 import { WorkflowBadge } from '@/components/badges/workflow-badge';
+import { TeacherLinkingState } from '@/features/teacher/teacher-linking-state';
 import { TeacherWorkspaceCard, TeacherQuickChip, TeacherEmptyState } from '@/features/teacher/ui/teacher-primitives';
+import { shouldRenderTeacherLinkingState } from '@/lib/auth/teacher-workspace-api';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
@@ -43,6 +47,7 @@ function AttendanceSummaryChips({
 export function ClassOverview({ classId }: { classId: number }) {
   const t = useT();
   const { formatDate } = useFormat();
+  const pathname = usePathname();
   const id = String(classId);
 
   const attendance = useResource<AttendanceToday>(endpoints.teacher.attendanceToday(classId));
@@ -64,7 +69,7 @@ export function ClassOverview({ classId }: { classId: number }) {
           </Link>
         }
       >
-        <ResourceView state={attendance} loadingLabel={t('common.loading')}>
+        <ResourceView state={attendance} loadingLabel={t('common.loading')} compactLinking>
           {(data) => (
             <>
               <AttendanceSummaryChips summary={data.summary} t={t} />
@@ -79,7 +84,11 @@ export function ClassOverview({ classId }: { classId: number }) {
       </TeacherWorkspaceCard>
 
       <TeacherWorkspaceCard title={t('teacher.overviewTodayLesson')} icon="📅">
-        {todaySlot ? (
+        {timetable.loading && !timetable.data ? (
+          <LoadingState label={t('common.loading')} />
+        ) : shouldRenderTeacherLinkingState(timetable.error, { pathname }) ? (
+          <TeacherLinkingState compact onRetry={timetable.reload} />
+        ) : todaySlot ? (
           <div className="t-overview-lesson">
             <strong>{todaySlot.subject?.name ?? t('common.dash')}</strong>
             {todaySlot.start_time && (
@@ -103,7 +112,7 @@ export function ClassOverview({ classId }: { classId: number }) {
           </Link>
         }
       >
-        <ResourceView state={homeworks} loadingLabel={t('common.loading')}>
+        <ResourceView state={homeworks} loadingLabel={t('common.loading')} compactLinking>
           {(items) =>
             items.length === 0 ? (
               <TeacherEmptyState compact icon="📝" title={t('empty.homework')} />
@@ -137,7 +146,7 @@ export function ClassOverview({ classId }: { classId: number }) {
           </Link>
         }
       >
-        <ResourceView state={resources} loadingLabel={t('common.loading')}>
+        <ResourceView state={resources} loadingLabel={t('common.loading')} compactLinking>
           {(items) =>
             items.length === 0 ? (
               <TeacherEmptyState compact icon="📚" title={t('empty.resources')} />
@@ -166,7 +175,7 @@ export function ClassOverview({ classId }: { classId: number }) {
           </Link>
         }
       >
-        <ResourceView state={exams} loadingLabel={t('common.loading')}>
+        <ResourceView state={exams} loadingLabel={t('common.loading')} compactLinking>
           {(items) =>
             items.length === 0 ? (
               <TeacherEmptyState compact icon="📋" title={t('empty.exams')} />

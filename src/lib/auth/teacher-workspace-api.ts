@@ -24,3 +24,14 @@ export function isTeacherWorkspaceLoadError(error: ApiErrorBody | null | undefin
   }
   return false;
 }
+
+/** True when a teacher workspace page/card should show linking UI instead of forbidden. */
+export function shouldRenderTeacherLinkingState(
+  error: ApiErrorBody | null | undefined,
+  options: { teacherWorkspace?: boolean; pathname?: string | null } = {},
+): boolean {
+  const inTeacherWorkspace =
+    options.teacherWorkspace === true ||
+    (options.teacherWorkspace !== false && (options.pathname?.startsWith('/teacher') ?? false));
+  return inTeacherWorkspace && isTeacherWorkspaceLoadError(error);
+}
