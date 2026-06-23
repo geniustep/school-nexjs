@@ -28,6 +28,7 @@ import {
   type AdmissionCreateFormState,
 } from '../utils/admission-create-payload';
 import { admissionApiErrorMessage } from '../utils/admission-errors';
+import { SiblingsFormFields } from './siblings-form-fields';
 import '../admissions.css';
 
 function FormSection({ title, children }: { title: string; children: ReactNode }) {
@@ -317,8 +318,30 @@ export function AdmissionCreatePage() {
               onChange={(e) => updateField('massar_code', e.target.value.replace(/\s/g, ''))}
             />
           </div>
+        </FormSection>
+
+        <FormSection title={t('admin.admissions.extraFields.sectionTitle')}>
+          <div className="field">
+            <label htmlFor="external_reference">{t('admin.admissions.extraFields.externalReference')}</label>
+            <input
+              id="external_reference"
+              className="input"
+              dir="ltr"
+              value={form.external_reference}
+              onChange={(e) => updateField('external_reference', e.target.value)}
+            />
+          </div>
           <div className="field admissions-create-grid__wide">
-            <label htmlFor="previous_school">{t('admin.admissions.fields.previousSchool')}</label>
+            <label htmlFor="residence_address">{t('admin.admissions.extraFields.residenceAddress')}</label>
+            <input
+              id="residence_address"
+              className="input"
+              value={form.residence_address}
+              onChange={(e) => updateField('residence_address', e.target.value)}
+            />
+          </div>
+          <div className="field admissions-create-grid__wide">
+            <label htmlFor="previous_school">{t('admin.admissions.extraFields.previousSchool')}</label>
             <input
               id="previous_school"
               className="input"
@@ -326,6 +349,31 @@ export function AdmissionCreatePage() {
               onChange={(e) => updateField('previous_school', e.target.value)}
             />
           </div>
+          <div className="field admissions-create-grid__wide">
+            <label htmlFor="internal_notes">{t('admin.admissions.extraFields.internalNotes')}</label>
+            <textarea
+              id="internal_notes"
+              className="input"
+              rows={3}
+              value={form.internal_notes}
+              onChange={(e) => updateField('internal_notes', e.target.value)}
+            />
+          </div>
+        </FormSection>
+
+        <FormSection title={t('admin.siblings.sectionTitle')}>
+          <SiblingsFormFields
+            hasSiblings={form.has_siblings}
+            siblingsRawText={form.siblings_raw_text}
+            siblingsLevels={form.siblings_levels}
+            siblingLines={form.sibling_lines}
+            onChange={(patch) => {
+              if (patch.hasSiblings != null) updateField('has_siblings', patch.hasSiblings);
+              if (patch.siblingsRawText != null) updateField('siblings_raw_text', patch.siblingsRawText);
+              if (patch.siblingsLevels != null) updateField('siblings_levels', patch.siblingsLevels);
+              if (patch.siblingLines != null) updateField('sibling_lines', patch.siblingLines);
+            }}
+          />
         </FormSection>
 
         <FormSection title={t('admin.admissions.create.studySection')}>
@@ -519,20 +567,6 @@ export function AdmissionCreatePage() {
             onChange={(value) => updateField('next_action_date', value)}
           />
         </FormSection>
-
-        <section className="admissions-create-section admissions-create-section--notes">
-          <h2 className="admissions-create-section__title">{t('admin.admissions.create.notesSection')}</h2>
-          <div className="field">
-            <label htmlFor="internal_notes">{t('admin.admissions.fields.internalNotes')}</label>
-            <textarea
-              id="internal_notes"
-              className="input"
-              rows={3}
-              value={form.internal_notes}
-              onChange={(e) => updateField('internal_notes', e.target.value)}
-            />
-          </div>
-        </section>
 
         <div className="admissions-create-actions">
           <button type="submit" className="btn btn--primary" disabled={submitting}>

@@ -2,6 +2,9 @@
 
 import type { Ref } from './api';
 import type { UserAccountInfo } from './account';
+import type { SiblingLine, SiblingsFieldsSource } from './sibling-line';
+
+export type { SiblingLine, SiblingsFieldsSource } from './sibling-line';
 
 export type StudentStatus =
   | 'draft'
@@ -30,7 +33,7 @@ export interface StudentNameFields {
   name?: string | null;
 }
 
-export interface Student extends StudentNameFields {
+export interface Student extends StudentNameFields, SiblingsFieldsSource {
   id: number;
   code: string | null;
   school_number?: string | null;
@@ -44,6 +47,10 @@ export interface Student extends StudentNameFields {
   gender: Gender | null;
   date_of_birth: string | null;
   admission_date: string | null;
+  external_reference?: string | null;
+  residence_address?: string | null;
+  previous_school?: string | null;
+  admission_notes?: string | null;
   email: string | null;
   phone: string | null;
   login?: string | null;

@@ -11,7 +11,9 @@ import type {
   StudentUpdatePayload,
 } from '@/types/student-360';
 import type { FeePlanSuggestResult, StudentCreateFinanceFormState } from '@/types/student-enrollment-finance';
+import type { SiblingLine } from '@/types/sibling-line';
 import { buildStudentCreateFinancePayload } from './student-enrollment-finance';
+import { buildSiblingLinesPayload, normalizeSiblingLines, siblingLinesFingerprint } from '@/features/admin/admissions/utils/sibling-lines';
 
 export const DEPARTURE_STATUSES = new Set(['withdrawn', 'transferred']);
 
@@ -39,6 +41,13 @@ export interface StudentProfileFormState {
   classId: string;
   registrationType: string;
   previousSchool: string;
+  externalReference: string;
+  residenceAddress: string;
+  hasSiblings: boolean;
+  siblingsLevels: string;
+  siblingsRawText: string;
+  siblingLines: SiblingLine[];
+  admissionNotes: string;
   isRepeating: boolean;
   actualJoinDate: string;
   registrationNotes: string;
@@ -199,6 +208,13 @@ export function defaultStudentProfileFormState(options: StudentOptions | null): 
     classId: '',
     registrationType: options?.registrationTypes[0]?.value ?? 'new',
     previousSchool: '',
+    externalReference: '',
+    residenceAddress: '',
+    hasSiblings: false,
+    siblingsLevels: '',
+    siblingsRawText: '',
+    siblingLines: [],
+    admissionNotes: '',
     isRepeating: false,
     actualJoinDate: today,
     registrationNotes: '',
@@ -252,7 +268,14 @@ export function studentProfileFormStateFromStudent(
     levelId: String(enrollment?.level?.id ?? student.level?.id ?? ''),
     classId: String(enrollment?.class?.id ?? student.class?.id ?? ''),
     registrationType: enrollment?.registration_type ?? base.registrationType,
-    previousSchool: enrollment?.previous_school ?? '',
+    previousSchool: student.previous_school ?? enrollment?.previous_school ?? '',
+    externalReference: student.external_reference ?? '',
+    residenceAddress: student.residence_address ?? '',
+    hasSiblings: student.has_siblings === true,
+    siblingsLevels: student.siblings_levels ?? '',
+    siblingsRawText: student.siblings_raw_text ?? '',
+    siblingLines: normalizeSiblingLines(student.sibling_lines),
+    admissionNotes: student.admission_notes ?? '',
     isRepeating: enrollment?.is_repeating ?? false,
     actualJoinDate: enrollment?.actual_join_date ?? '',
     registrationNotes: enrollment?.registration_notes ?? '',
@@ -452,6 +475,24 @@ function buildEnrollmentBlock(state: StudentProfileFormState): StudentEnrollment
   return Object.keys(block).length > 0 ? block : undefined;
 }
 
+function applyAdmissionDataFields(payload: StudentCreatePayload, state: StudentProfileFormState): void {
+  const externalReference = optionalString(state.externalReference);
+  if (externalReference) payload.external_reference = externalReference;
+  const residenceAddress = optionalString(state.residenceAddress);
+  if (residenceAddress) payload.residence_address = residenceAddress;
+  const previousSchool = optionalString(state.previousSchool);
+  if (previousSchool) payload.previous_school = previousSchool;
+  if (state.hasSiblings) payload.has_siblings = true;
+  const siblingsLevels = optionalString(state.siblingsLevels);
+  if (siblingsLevels) payload.siblings_levels = siblingsLevels;
+  const siblingsRawText = optionalString(state.siblingsRawText);
+  if (siblingsRawText) payload.siblings_raw_text = siblingsRawText;
+  const siblingLines = buildSiblingLinesPayload(state.siblingLines);
+  if (siblingLines?.length) payload.sibling_lines = siblingLines;
+  const admissionNotes = optionalString(state.admissionNotes);
+  if (admissionNotes) payload.admission_notes = admissionNotes;
+}
+
 function applyIdentityFields(
   payload: StudentCreatePayload,
   state: StudentProfileFormState,
@@ -576,6 +617,7 @@ export function buildStudentCreatePayload(
   applyIdentityFields(payload, state);
   applyContactFields(payload, state);
   applyEmergencyFields(payload, state);
+  applyAdmissionDataFields(payload, state);
   const classId = optionalNumber(state.classId);
   if (classId != null) payload.class_id = classId;
   const enrollment = buildEnrollmentBlock(state);
@@ -605,6 +647,13 @@ function enrollmentChanged(
     current.isRepeating !== original.isRepeating ||
     current.actualJoinDate !== original.actualJoinDate ||
     current.registrationNotes !== original.registrationNotes ||
+    current.externalReference !== original.externalReference ||
+    current.residenceAddress !== original.residenceAddress ||
+    current.hasSiblings !== original.hasSiblings ||
+    current.siblingsLevels !== original.siblingsLevels ||
+    current.siblingsRawText !== original.siblingsRawText ||
+    siblingLinesFingerprint(current.siblingLines) !== siblingLinesFingerprint(original.siblingLines) ||
+    current.admissionNotes !== original.admissionNotes ||
     current.departureReason !== original.departureReason
   );
 }
@@ -673,7 +722,38 @@ export function buildStudentPartialUpdatePayload(
     if (v) payload.departure_reason = v;
   }
 
-  const contactPairs: Array<[keyof StudentCreatePayload, keyof StudentProfileFormState]> = [
+  const admissionStringFields: Array<
+    [keyof StudentCreatePayload, 'externalReference' | 'residenceAddress' | 'previousSchool' | 'siblingsLevels' | 'siblingsRawText' | 'admissionNotes']
+  > = [
+    ['external_reference', 'externalReference'],
+    ['residence_address', 'residenceAddress'],
+    ['previous_school', 'previousSchool'],
+    ['siblings_levels', 'siblingsLevels'],
+    ['siblings_raw_text', 'siblingsRawText'],
+    ['admission_notes', 'admissionNotes'],
+  ];
+  for (const [payloadKey, stateKey] of admissionStringFields) {
+    if (fieldChanged(current[stateKey], original[stateKey])) {
+      const v = optionalString(current[stateKey]);
+      if (v) (payload as Record<string, unknown>)[payloadKey] = v;
+    }
+  }
+  if (fieldChanged(current.hasSiblings, original.hasSiblings)) {
+    payload.has_siblings = current.hasSiblings;
+  }
+  if (
+    siblingLinesFingerprint(current.siblingLines) !== siblingLinesFingerprint(original.siblingLines)
+  ) {
+    const lines = buildSiblingLinesPayload(current.siblingLines);
+    if (lines?.length) payload.sibling_lines = lines;
+  }
+
+  const contactPairs: Array<
+    [
+      keyof StudentCreatePayload,
+      'phone' | 'mobile' | 'email' | 'street' | 'district' | 'city' | 'zip' | 'emergencyContactName' | 'emergencyRelationship' | 'emergencyPhone' | 'emergencyPhoneAlt' | 'emergencyNotes',
+    ]
+  > = [
     ['phone', 'phone'],
     ['mobile', 'mobile'],
     ['email', 'email'],
@@ -690,7 +770,7 @@ export function buildStudentPartialUpdatePayload(
 
   for (const [payloadKey, stateKey] of contactPairs) {
     if (fieldChanged(current[stateKey], original[stateKey])) {
-      const v = optionalString(current[stateKey] as string);
+      const v = optionalString(current[stateKey]);
       if (v) (payload as Record<string, unknown>)[payloadKey] = v;
     }
   }

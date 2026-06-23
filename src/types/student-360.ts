@@ -4,6 +4,7 @@ import type { Ref } from './api';
 import type { UserAccountInfo } from './account';
 import type { StudentFinanceOverviewSummary } from './student-finance';
 import type { Gender, ParentLink, StudentNameFields, StudentStatus } from './student';
+import type { SiblingLine } from './sibling-line';
 
 export type RelationshipType =
   | 'father'
@@ -55,6 +56,16 @@ export interface StudentSummary extends StudentNameFields {
   gender?: Gender | null;
   date_of_birth?: string | null;
   admission_date?: string | null;
+  external_reference?: string | null;
+  residence_address?: string | null;
+  previous_school?: string | null;
+  admission_notes?: string | null;
+  has_siblings?: boolean | null;
+  siblings_levels?: string | null;
+  siblings_raw_text?: string | null;
+  sibling_count?: number | null;
+  siblings_summary?: string | null;
+  sibling_lines?: SiblingLine[] | null;
   departure_reason?: string | null;
   email?: string | null;
   phone?: string | null;
@@ -331,6 +342,14 @@ export interface StudentCreatePayload {
   emergency_phone?: string;
   emergency_phone_alt?: string;
   emergency_notes?: string;
+  external_reference?: string;
+  residence_address?: string;
+  previous_school?: string;
+  has_siblings?: boolean;
+  siblings_levels?: string;
+  siblings_raw_text?: string;
+  sibling_lines?: SiblingLine[];
+  admission_notes?: string;
   class_id?: number;
   enrollment?: StudentEnrollmentBlock;
   academic?: StudentCreateAcademicBlock;

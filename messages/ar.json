@@ -413,7 +413,14 @@
     "inactiveUser": "هذا الحساب معطّل. تواصل مع مدرستك.",
     "unsupportedRole": "هذا الحساب لا يملك دورًا مدرسيًا.",
     "validationError": "يرجى إدخال اسم الدخول وكلمة المرور.",
-    "networkError": "تعذّر الاتصال بالخادم. حاول مجددًا."
+    "networkError": "تعذّر الاتصال بالخادم. حاول مجددًا.",
+    "hero": {
+      "panelLabel": "ترحيب المدرسة",
+      "schoolNameDefault": "مدرستكم",
+      "welcome": "مرحبًا بكم في فضاء مدرستكم",
+      "secureNote": "ولوج آمن إلى فضاء المدرسة حسب الصلاحيات",
+      "academicYear": "السنة الدراسية {year}"
+    }
   },
   "channels": {
     "title": "القنوات",
@@ -3049,6 +3056,19 @@
         "offerAccepted": "العرض مقبول",
         "overdue": "متأخر"
       },
+      "list": {
+        "hasSiblingsBadge": "له إخوة"
+      },
+      "extraFields": {
+        "sectionTitle": "بيانات إضافية من التسجيل",
+        "externalReference": "المرجع الخارجي",
+        "residenceAddress": "عنوان السكن",
+        "previousSchool": "المؤسسة السابقة",
+        "hasSiblings": "له إخوة",
+        "siblingsLevels": "مستويات الإخوة",
+        "internalNotes": "ملاحظات داخلية",
+        "notMentioned": "غير مذكور"
+      },
       "stateChange": {
         "label": "تغيير حالة الطلب",
         "success": "تم تغيير حالة الطلب.",
@@ -3359,6 +3379,33 @@
       },
       "errors": {
         "notFound": "طلب التسجيل غير موجود."
+      }
+    },
+    "siblings": {
+      "sectionTitle": "معلومات الإخوة",
+      "hasSiblings": "له إخوة",
+      "hasSiblingsHint": "حدّد إذا كان للتلميذ إخوة",
+      "siblingCount": "عدد الإخوة",
+      "summary": "ملخص الإخوة",
+      "rawText": "النص الأصلي للإخوة",
+      "legacyLevels": "مستويات الإخوة",
+      "addLine": "إضافة أخ/أخت",
+      "linesEditor": "تفاصيل الإخوة",
+      "empty": "لا توجد معلومات إخوة",
+      "notMentioned": "غير مذكور",
+      "currentStudentHint": "مسجّل حاليًا في المدرسة",
+      "linkedStudentHint": "تلميذ مرتبط:",
+      "relationship": {
+        "brother": "أخ",
+        "sister": "أخت"
+      },
+      "table": {
+        "name": "الاسم",
+        "relationship": "صلة القرابة",
+        "ageAtAdmission": "العمر وقت التسجيل",
+        "level": "المستوى الدراسي",
+        "currentStudent": "تلميذ حالي في المدرسة",
+        "notes": "ملاحظات"
       }
     },
     "student360": {
@@ -3696,6 +3743,14 @@
       "departureReason": "سبب المغادرة",
       "registrationType": "نوع التسجيل",
       "previousSchool": "المؤسسة السابقة",
+      "admissionData": {
+        "sectionTitle": "بيانات التسجيل والإخوة",
+        "registrationSectionTitle": "بيانات التسجيل",
+        "externalReference": "المرجع الخارجي",
+        "residenceAddress": "عنوان السكن",
+        "previousSchool": "المؤسسة السابقة",
+        "admissionNotes": "ملاحظات التسجيل"
+      },
       "isRepeating": "تلميذ معيد",
       "isRepeatingHint": "هذا التلميذ يعيد السنة الدراسية",
       "isRepeatingOptional": "يمكن تحديده عند الحاجة",

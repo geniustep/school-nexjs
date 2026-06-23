@@ -1,6 +1,9 @@
 // Admissions API types — ADMISSION-CORE-1 / ADMISSION-WORKFLOW-1.
 
 import type { Ref } from './api';
+import type { SiblingLine, SiblingsFieldsSource } from './sibling-line';
+
+export type { SiblingLine, SiblingsFieldsSource } from './sibling-line';
 
 export type AdmissionState =
   | 'new'
@@ -41,11 +44,19 @@ export interface AdmissionsDashboard {
 export interface AdmissionListItem {
   id: number;
   reference?: string | null;
+  external_reference?: string | null;
   student_name: string;
   guardian_name: string | null;
   guardian_phone: string | null;
   source: Ref | string | null;
   requested_level: Ref | string | null;
+  previous_school?: string | null;
+  has_siblings?: boolean | null;
+  siblings_levels?: string | null;
+  siblings_raw_text?: string | null;
+  sibling_count?: number | null;
+  siblings_summary?: string | null;
+  sibling_lines?: SiblingLine[] | null;
   state: AdmissionState | string;
   next_action: string | null;
   next_action_date: string | null;
@@ -143,7 +154,7 @@ export interface AdmissionDuplicate {
   guardian_phone?: string | null;
 }
 
-export interface AdmissionDetail {
+export interface AdmissionDetail extends SiblingsFieldsSource {
   id: number;
   reference?: string | null;
   name?: string | null;
@@ -155,6 +166,8 @@ export interface AdmissionDetail {
   student_last_name?: string | null;
   birth_date?: string | null;
   gender?: string | null;
+  external_reference?: string | null;
+  residence_address?: string | null;
   previous_school?: string | null;
   massar_code?: string | null;
   guardian_name?: string | null;
@@ -310,7 +323,13 @@ export interface CreateAdmissionPayload {
   requested_level_id?: number;
   requested_stream_id?: number;
   requested_class_id?: number;
+  external_reference?: string;
+  residence_address?: string;
   previous_school?: string;
+  has_siblings?: boolean;
+  siblings_levels?: string;
+  siblings_raw_text?: string;
+  sibling_lines?: SiblingLine[];
   massar_code?: string;
   guardian_name?: string;
   guardian_phone?: string;
@@ -327,10 +346,31 @@ export interface CreateAdmissionPayload {
 export interface PatchAdmissionPayload {
   next_action?: string;
   next_action_date?: string;
+  external_reference?: string;
+  residence_address?: string;
+  previous_school?: string;
+  has_siblings?: boolean;
+  siblings_levels?: string;
+  siblings_raw_text?: string;
+  sibling_lines?: SiblingLine[];
   internal_notes?: string;
   assigned_user_id?: number;
   priority?: string;
   state?: string;
+  /** Reimport upsert — student / guardian / academic fields */
+  child_first_name_ar?: string;
+  child_last_name_ar?: string;
+  child_first_name_fr?: string;
+  child_last_name_fr?: string;
+  child_name?: string;
+  student_name?: string;
+  guardian_phone?: string;
+  guardian_whatsapp?: string;
+  guardian_relationship?: string;
+  relationship?: string;
+  academic_year_id?: number;
+  source_id?: number;
+  requested_level_id?: number;
 }
 
 export interface CreateActivityPayload {

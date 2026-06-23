@@ -413,7 +413,14 @@
     "inactiveUser": "This account is disabled. Please contact your school.",
     "unsupportedRole": "This account does not have a school role assigned.",
     "validationError": "Please enter both your login and password.",
-    "networkError": "Could not reach the server. Please try again."
+    "networkError": "Could not reach the server. Please try again.",
+    "hero": {
+      "panelLabel": "School welcome",
+      "schoolNameDefault": "Your school",
+      "welcome": "Welcome to your school workspace",
+      "secureNote": "Secure sign-in to your role-based school space",
+      "academicYear": "Academic year {year}"
+    }
   },
   "channels": {
     "title": "Channels",
@@ -3022,6 +3029,19 @@
         "offerAccepted": "Offer accepted",
         "overdue": "Overdue"
       },
+      "list": {
+        "hasSiblingsBadge": "Has siblings"
+      },
+      "extraFields": {
+        "sectionTitle": "Additional registration data",
+        "externalReference": "External reference",
+        "residenceAddress": "Residence address",
+        "previousSchool": "Previous school",
+        "hasSiblings": "Has siblings",
+        "siblingsLevels": "Siblings' levels",
+        "internalNotes": "Internal notes",
+        "notMentioned": "Not mentioned"
+      },
       "stateChange": {
         "label": "Change request state",
         "success": "Request state updated.",
@@ -3332,6 +3352,33 @@
       },
       "errors": {
         "notFound": "Admission request not found."
+      }
+    },
+    "siblings": {
+      "sectionTitle": "Sibling information",
+      "hasSiblings": "Has siblings",
+      "hasSiblingsHint": "Check if the student has siblings",
+      "siblingCount": "Number of siblings",
+      "summary": "Sibling summary",
+      "rawText": "Original sibling text",
+      "legacyLevels": "Sibling levels",
+      "addLine": "Add sibling",
+      "linesEditor": "Sibling details",
+      "empty": "No sibling information",
+      "notMentioned": "Not mentioned",
+      "currentStudentHint": "Currently enrolled at the school",
+      "linkedStudentHint": "Linked student:",
+      "relationship": {
+        "brother": "Brother",
+        "sister": "Sister"
+      },
+      "table": {
+        "name": "Name",
+        "relationship": "Relationship",
+        "ageAtAdmission": "Age at registration",
+        "level": "School level",
+        "currentStudent": "Current student at school",
+        "notes": "Notes"
       }
     },
     "student360": {
@@ -3669,6 +3716,14 @@
       "departureReason": "Departure reason",
       "registrationType": "Registration type",
       "previousSchool": "Previous school",
+      "admissionData": {
+        "sectionTitle": "Registration and sibling data",
+        "registrationSectionTitle": "Registration data",
+        "externalReference": "External reference",
+        "residenceAddress": "Residence address",
+        "previousSchool": "Previous school",
+        "admissionNotes": "Registration notes"
+      },
       "isRepeating": "Repeating year",
       "isRepeatingHint": "Student is repeating the academic year",
       "isRepeatingOptional": "Optional when applicable",

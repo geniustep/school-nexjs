@@ -59,6 +59,7 @@ import {
   StudentCreateAdditionalFields,
   StudentCreateEnrollmentFields,
   StudentCreateIdentityFields,
+  StudentAdmissionAndSiblingsFields,
 } from './student-form-fields';
 import { StudentCreateStepper } from './student-create-stepper';
 import { StudentCreateBillingStep } from './student-create-billing-step';
@@ -858,6 +859,12 @@ export function StudentCreateForm({
               onLevelChange={handleLevelChange}
               onRetryOptions={optionsState.reload}
             />
+          </div>
+          <div className="student-create-form__subsection">
+            <h3 className="student-create-form__subsection-title">
+              {t('admin.student360.admissionData.sectionTitle')}
+            </h3>
+            <StudentAdmissionAndSiblingsFields state={state} onChange={patch} />
           </div>
         </section>
       ) : null}

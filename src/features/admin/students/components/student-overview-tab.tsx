@@ -13,6 +13,8 @@ import { StudentStatusSummary } from './student-status-summary';
 import { StudentOverviewAlerts } from './student-overview-alerts';
 import { StudentOverviewCards } from './student-overview-cards';
 import { StudentProfileDetailPanel } from './student-profile-detail-panel';
+import { StudentAdmissionDataPanel } from './student-admission-data-panel';
+import { StudentSiblingsInfoPanel } from './student-siblings-info-panel';
 import type { StudentOverviewData } from '@/types/student-overview';
 import type { Student360TabId } from '../utils/student-360-tabs';
 import type { StudentDetailsData } from '@/types/student-360';
@@ -116,6 +118,9 @@ export function StudentOverviewTab({
         onEditProfile={onEditProfile}
         onAccountChanged={onAccountChanged}
       />
+
+      <StudentAdmissionDataPanel student={details.student} />
+      <StudentSiblingsInfoPanel student={details.student} />
     </div>
   );
 }

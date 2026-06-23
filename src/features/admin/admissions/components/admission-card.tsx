@@ -11,6 +11,7 @@ import {
   formatAdmissionReference,
   isOverdueNextAction,
 } from '../utils/admission-labels';
+import { parseExtraFieldBool } from '../utils/admission-extra-fields';
 import type { AdmissionListItem } from '@/types/admission';
 
 const DRAG_MIME = 'application/x-admission-id';
@@ -53,6 +54,10 @@ export function AdmissionCard({
   const nextAction = cleanDisplayValue(item.next_action);
   const nextActionDate = item.next_action_date ? formatDate(item.next_action_date) : '';
   const nextActionLine = [nextAction, nextActionDate].filter(Boolean).join(' — ');
+  const externalReference = cleanDisplayValue(item.external_reference ?? '');
+  const previousSchool = cleanDisplayValue(item.previous_school ?? '');
+  const siblingsSummary = cleanDisplayValue(item.siblings_summary ?? '');
+  const hasSiblings = parseExtraFieldBool(item.has_siblings);
 
   const card = (
     <Link
@@ -74,6 +79,23 @@ export function AdmissionCard({
       <div className="admission-card__title">
         {studentName || t('common.dash')}
       </div>
+
+      {(externalReference || previousSchool || hasSiblings || siblingsSummary) && (
+        <div className="admission-card__meta">
+          {externalReference ? (
+            <Badge tone="slate">{externalReference}</Badge>
+          ) : null}
+          {previousSchool ? (
+            <span className="admission-card__previous-school tiny muted">{previousSchool}</span>
+          ) : null}
+          {siblingsSummary ? (
+            <span className="admission-card__siblings-summary tiny muted">{siblingsSummary}</span>
+          ) : null}
+          {hasSiblings && !siblingsSummary ? (
+            <Badge tone="blue">{t('admin.admissions.list.hasSiblingsBadge')}</Badge>
+          ) : null}
+        </div>
+      )}
 
       <dl className="admission-card__details">
         {guardianName ? (

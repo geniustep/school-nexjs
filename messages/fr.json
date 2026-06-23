@@ -413,7 +413,14 @@
     "inactiveUser": "Ce compte est désactivé. Contactez votre école.",
     "unsupportedRole": "Ce compte n'a pas de rôle scolaire.",
     "validationError": "Veuillez saisir l'identifiant et le mot de passe.",
-    "networkError": "Impossible de joindre le serveur. Réessayez."
+    "networkError": "Impossible de joindre le serveur. Réessayez.",
+    "hero": {
+      "panelLabel": "Accueil de l'établissement",
+      "schoolNameDefault": "Votre établissement",
+      "welcome": "Bienvenue dans l'espace de votre établissement",
+      "secureNote": "Accès sécurisé à l'espace scolaire selon votre rôle",
+      "academicYear": "Année scolaire {year}"
+    }
   },
   "channels": {
     "title": "Canaux",
@@ -3022,6 +3029,19 @@
         "offerAccepted": "Offre acceptée",
         "overdue": "En retard"
       },
+      "list": {
+        "hasSiblingsBadge": "A des frères/sœurs"
+      },
+      "extraFields": {
+        "sectionTitle": "Données complémentaires d'inscription",
+        "externalReference": "Référence externe",
+        "residenceAddress": "Adresse de résidence",
+        "previousSchool": "Établissement précédent",
+        "hasSiblings": "A des frères/sœurs",
+        "siblingsLevels": "Niveaux des frères/sœurs",
+        "internalNotes": "Notes internes",
+        "notMentioned": "Non mentionné"
+      },
       "stateChange": {
         "label": "Changer l'état de la demande",
         "success": "État de la demande mis à jour.",
@@ -3328,6 +3348,33 @@
         "linkFailed": "L'élève a été créé, mais la liaison à la demande a échoué. Ouvrez le dossier élève pour continuer."
       },
       "errors": { "notFound": "Demande introuvable." }
+    },
+    "siblings": {
+      "sectionTitle": "Informations sur les frères et sœurs",
+      "hasSiblings": "A des frères/sœurs",
+      "hasSiblingsHint": "Cochez si l'élève a des frères ou sœurs",
+      "siblingCount": "Nombre de frères/sœurs",
+      "summary": "Résumé des frères/sœurs",
+      "rawText": "Texte original sur les frères/sœurs",
+      "legacyLevels": "Niveaux des frères/sœurs",
+      "addLine": "Ajouter un frère/une sœur",
+      "linesEditor": "Détails des frères/sœurs",
+      "empty": "Aucune information sur les frères/sœurs",
+      "notMentioned": "Non mentionné",
+      "currentStudentHint": "Actuellement inscrit à l'école",
+      "linkedStudentHint": "Élève lié :",
+      "relationship": {
+        "brother": "Frère",
+        "sister": "Sœur"
+      },
+      "table": {
+        "name": "Nom",
+        "relationship": "Lien de parenté",
+        "ageAtAdmission": "Âge à l'inscription",
+        "level": "Niveau scolaire",
+        "currentStudent": "Élève actuel à l'école",
+        "notes": "Notes"
+      }
     },
     "student360": {
       "tabsAria": "Sections du dossier élève",
@@ -3664,6 +3711,14 @@
       "departureReason": "Motif de départ",
       "registrationType": "Type d'inscription",
       "previousSchool": "Établissement précédent",
+      "admissionData": {
+        "sectionTitle": "Données d'inscription et fratrie",
+        "registrationSectionTitle": "Données d'inscription",
+        "externalReference": "Référence externe",
+        "residenceAddress": "Adresse de résidence",
+        "previousSchool": "Établissement précédent",
+        "admissionNotes": "Notes d'inscription"
+      },
       "isRepeating": "Redoublement",
       "isRepeatingHint": "L'élève redouble l'année",
       "isRepeatingOptional": "Optionnel si applicable",

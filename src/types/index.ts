@@ -19,3 +19,4 @@ export * from './resource';
 export * from './exam';
 export * from './timetable';
 export * from './admission';
+export * from './sibling-line';

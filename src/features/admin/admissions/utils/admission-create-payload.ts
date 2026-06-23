@@ -1,7 +1,9 @@
 import type { CreateAdmissionPayload } from '@/types/admission';
 import type { AdmissionLevelOption } from '@/types/admission';
+import type { SiblingLine } from '@/types/sibling-line';
 import { buildAdmissionChildFullName } from './admission-child-name';
 import { findAdmissionLevel } from './admission-options';
+import { buildSiblingLinesPayload } from './sibling-lines';
 
 export interface AdmissionCreateFormState {
   child_first_name_ar: string;
@@ -12,6 +14,12 @@ export interface AdmissionCreateFormState {
   birth_date: string;
   massar_code: string;
   previous_school: string;
+  external_reference: string;
+  residence_address: string;
+  has_siblings: boolean;
+  siblings_raw_text: string;
+  siblings_levels: string;
+  sibling_lines: SiblingLine[];
   academic_year_id?: number;
   requested_cycle_code: string;
   requested_level_id?: number;
@@ -37,6 +45,12 @@ export function emptyAdmissionCreateForm(today: string): AdmissionCreateFormStat
     birth_date: '',
     massar_code: '',
     previous_school: '',
+    external_reference: '',
+    residence_address: '',
+    has_siblings: false,
+    siblings_raw_text: '',
+    siblings_levels: '',
+    sibling_lines: [],
     requested_cycle_code: '',
     guardian_name: '',
     guardian_phone: '',
@@ -75,6 +89,12 @@ export function buildCreateAdmissionPayload(
     birth_date: form.birth_date || undefined,
     massar_code: form.massar_code.trim() || undefined,
     previous_school: form.previous_school.trim() || undefined,
+    external_reference: form.external_reference.trim() || undefined,
+    residence_address: form.residence_address.trim() || undefined,
+    has_siblings: form.has_siblings || undefined,
+    siblings_raw_text: form.siblings_raw_text.trim() || undefined,
+    siblings_levels: form.siblings_levels.trim() || undefined,
+    sibling_lines: buildSiblingLinesPayload(form.sibling_lines),
     academic_year_id: form.academic_year_id,
     requested_cycle_code: form.requested_cycle_code.trim() || undefined,
     requested_level_id: form.requested_level_id,

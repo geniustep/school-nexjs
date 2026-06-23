@@ -11,6 +11,8 @@ import {
   refName,
 } from '../utils/admission-labels';
 import { AdmissionNextActionBox } from './admission-next-action-box';
+import { AdmissionExtraFieldsPanel } from './admission-extra-fields-panel';
+import { SiblingsInfoPanel } from './siblings-info-panel';
 import type { AdmissionDetail } from '@/types/admission';
 
 function OverviewCard({ title, children }: { title: string; children: ReactNode }) {
@@ -101,10 +103,6 @@ export function AdmissionOverviewTab({
             }
           />
           <OverviewRow
-            label={t('admin.admissions.fields.previousSchool')}
-            value={detail.previous_school || empty}
-          />
-          <OverviewRow
             label={t('admin.admissions.fields.massarCode')}
             value={detail.massar_code || empty}
             dir="ltr"
@@ -153,6 +151,9 @@ export function AdmissionOverviewTab({
         </OverviewCard>
       </div>
 
+      <AdmissionExtraFieldsPanel detail={detail} />
+      <SiblingsInfoPanel detail={detail} />
+
       {(detail.duplicates?.length ?? 0) > 0 && (
         <section className="card admissions-overview-card">
           <h2 className="admissions-overview-card__title">
@@ -171,12 +172,6 @@ export function AdmissionOverviewTab({
         </section>
       )}
 
-      {detail.internal_notes ? (
-        <section className="card admissions-overview-card">
-          <h2 className="admissions-overview-card__title">{t('admin.admissions.create.notesSection')}</h2>
-          <p className="admissions-overview-notes">{detail.internal_notes}</p>
-        </section>
-      ) : null}
     </div>
   );
 }

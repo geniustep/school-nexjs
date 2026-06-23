@@ -23,7 +23,10 @@ import {
   StudentEmergencyFields,
   StudentEnrollmentFields,
   StudentIdentityFields,
+  StudentAdmissionDataFields,
+  StudentAdmissionAndSiblingsFields,
 } from './student-form-fields';
+import { SiblingsFormFields } from '@/features/admin/admissions/components/siblings-form-fields';
 import type { GuardianRelationship, StudentEnrollment, StudentSummary } from '@/types/student-360';
 
 export function StudentForm({
@@ -184,6 +187,29 @@ export function StudentForm({
           registrationTypes={options?.registrationTypes ?? []}
           onChange={patch}
           onLevelChange={handleLevelChange}
+        />
+      </Card>
+
+      <Card>
+        <SectionHead title={t('admin.student360.admissionData.registrationSectionTitle')} />
+        <StudentAdmissionDataFields state={state} onChange={patch} />
+      </Card>
+
+      <Card>
+        <SectionHead title={t('admin.siblings.sectionTitle')} />
+        <SiblingsFormFields
+          hasSiblings={state.hasSiblings}
+          siblingsRawText={state.siblingsRawText}
+          siblingsLevels={state.siblingsLevels}
+          siblingLines={state.siblingLines}
+          onChange={(siblingsPatch) => {
+            const next: Partial<StudentProfileFormState> = {};
+            if (siblingsPatch.hasSiblings != null) next.hasSiblings = siblingsPatch.hasSiblings;
+            if (siblingsPatch.siblingsRawText != null) next.siblingsRawText = siblingsPatch.siblingsRawText;
+            if (siblingsPatch.siblingsLevels != null) next.siblingsLevels = siblingsPatch.siblingsLevels;
+            if (siblingsPatch.siblingLines != null) next.siblingLines = siblingsPatch.siblingLines;
+            patch(next);
+          }}
         />
       </Card>
 

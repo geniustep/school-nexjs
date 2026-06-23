@@ -2,6 +2,9 @@ import type { AdmissionPrefill } from '@/types/admission';
 import type { StudentProfileFormState } from '@/features/admin/students/utils/student-profile';
 import { admissionDisplayReference } from './admission-registration';
 
+import { parseExtraFieldBool } from './admission-extra-fields';
+import { normalizeSiblingLines } from './sibling-lines';
+
 function str(value: unknown): string {
   if (value == null || value === false) return '';
   return String(value).trim();
@@ -108,7 +111,7 @@ export function mapAdmissionPrefillToStudentProfile(
   }
 
   const guardianNotes = buildGuardianNotes(guardian);
-  const registrationNotes = [buildRegistrationNotes(admission), guardianNotes].filter(Boolean).join('\n');
+  const registrationNotes = [guardianNotes].filter(Boolean).join('\n');
 
   return {
     firstName,
@@ -121,6 +124,17 @@ export function mapAdmissionPrefillToStudentProfile(
     dateOfBirth: str(student.birth_date),
     massarCode: str(student.massar_code),
     previousSchool: str(student.previous_school),
+    externalReference: str(student.external_reference),
+    residenceAddress: str(student.residence_address),
+    hasSiblings:
+      parseExtraFieldBool(student.has_siblings) || parseExtraFieldBool(admission.has_siblings),
+    siblingsLevels: str(student.siblings_levels) || str(admission.siblings_levels),
+    siblingsRawText: str(student.siblings_raw_text) || str(admission.siblings_raw_text),
+    siblingLines: normalizeSiblingLines(student.sibling_lines ?? admission.sibling_lines),
+    admissionNotes:
+      str(student.admission_notes) ||
+      str(admission.internal_notes) ||
+      buildRegistrationNotes(admission),
     schoolId: idStr(academic.school_id),
     academicYearId: idStr(academic.academic_year_id),
     levelId: idStr(academic.requested_level_id),

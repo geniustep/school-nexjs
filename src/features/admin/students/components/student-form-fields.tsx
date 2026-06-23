@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useT } from '@/features/i18n/locale-context';
+import { SiblingsFormFields } from '@/features/admin/admissions/components/siblings-form-fields';
 import type { StudentNationalityOption } from '@/types/student-360';
 import type { StudentProfileFieldErrors, StudentProfileFormState } from '../utils/student-profile';
 import {
@@ -911,6 +912,89 @@ export function StudentCreateEnrollmentFields({
           onChange={(e) => onChange({ registrationNotes: e.target.value })}
         />
       </Field>
+    </div>
+  );
+}
+
+export function StudentAdmissionDataFields({
+  state,
+  onChange,
+}: {
+  state: StudentProfileFormState;
+  onChange: (patch: Partial<StudentProfileFormState>) => void;
+}) {
+  const t = useT();
+
+  return (
+    <div className="student-360-form__grid">
+      <Field label={t('admin.student360.admissionData.externalReference')}>
+        <input
+          className="input"
+          dir="ltr"
+          value={state.externalReference}
+          onChange={(e) => onChange({ externalReference: e.target.value })}
+        />
+      </Field>
+      <Field label={t('admin.student360.admissionData.residenceAddress')}>
+        <input
+          className="input"
+          value={state.residenceAddress}
+          onChange={(e) => onChange({ residenceAddress: e.target.value })}
+        />
+      </Field>
+      <Field label={t('admin.student360.admissionData.previousSchool')}>
+        <input
+          className="input"
+          value={state.previousSchool}
+          onChange={(e) => onChange({ previousSchool: e.target.value })}
+        />
+      </Field>
+      <Field label={t('admin.student360.admissionData.admissionNotes')}>
+        <textarea
+          className="input"
+          rows={2}
+          value={state.admissionNotes}
+          onChange={(e) => onChange({ admissionNotes: e.target.value })}
+        />
+      </Field>
+    </div>
+  );
+}
+
+export function StudentAdmissionAndSiblingsFields({
+  state,
+  onChange,
+}: {
+  state: StudentProfileFormState;
+  onChange: (patch: Partial<StudentProfileFormState>) => void;
+}) {
+  const t = useT();
+
+  return (
+    <div className="col" style={{ gap: 16 }}>
+      <div>
+        <h3 className="student-create-form__subsection-title">
+          {t('admin.student360.admissionData.registrationSectionTitle')}
+        </h3>
+        <StudentAdmissionDataFields state={state} onChange={onChange} />
+      </div>
+      <div>
+        <h3 className="student-create-form__subsection-title">{t('admin.siblings.sectionTitle')}</h3>
+        <SiblingsFormFields
+          hasSiblings={state.hasSiblings}
+          siblingsRawText={state.siblingsRawText}
+          siblingsLevels={state.siblingsLevels}
+          siblingLines={state.siblingLines}
+          onChange={(patch) => {
+            const next: Partial<StudentProfileFormState> = {};
+            if (patch.hasSiblings != null) next.hasSiblings = patch.hasSiblings;
+            if (patch.siblingsRawText != null) next.siblingsRawText = patch.siblingsRawText;
+            if (patch.siblingsLevels != null) next.siblingsLevels = patch.siblingsLevels;
+            if (patch.siblingLines != null) next.siblingLines = patch.siblingLines;
+            onChange(next);
+          }}
+        />
+      </div>
     </div>
   );
 }

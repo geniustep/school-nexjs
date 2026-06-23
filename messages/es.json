@@ -413,7 +413,14 @@
     "inactiveUser": "Esta cuenta está desactivada. Contacta a tu escuela.",
     "unsupportedRole": "Esta cuenta no tiene un rol escolar.",
     "validationError": "Introduce usuario y contraseña.",
-    "networkError": "No se pudo conectar al servidor. Inténtalo de nuevo."
+    "networkError": "No se pudo conectar al servidor. Inténtalo de nuevo.",
+    "hero": {
+      "panelLabel": "Bienvenida del centro",
+      "schoolNameDefault": "Su centro escolar",
+      "welcome": "Bienvenido al espacio de su centro escolar",
+      "secureNote": "Acceso seguro al espacio escolar según su rol",
+      "academicYear": "Curso escolar {year}"
+    }
   },
   "channels": {
     "title": "Canales",
@@ -3022,6 +3029,19 @@
         "offerAccepted": "Oferta aceptada",
         "overdue": "Atrasada"
       },
+      "list": {
+        "hasSiblingsBadge": "Tiene hermanos"
+      },
+      "extraFields": {
+        "sectionTitle": "Datos adicionales de inscripción",
+        "externalReference": "Referencia externa",
+        "residenceAddress": "Dirección de residencia",
+        "previousSchool": "Centro anterior",
+        "hasSiblings": "Tiene hermanos",
+        "siblingsLevels": "Niveles de los hermanos",
+        "internalNotes": "Notas internas",
+        "notMentioned": "No indicado"
+      },
       "stateChange": {
         "label": "Cambiar estado de la solicitud",
         "success": "Estado de la solicitud actualizado.",
@@ -3328,6 +3348,33 @@
         "linkFailed": "El alumno se creó, pero falló la vinculación con la solicitud. Abra el perfil del alumno para continuar."
       },
       "errors": { "notFound": "Solicitud no encontrada." }
+    },
+    "siblings": {
+      "sectionTitle": "Información de hermanos",
+      "hasSiblings": "Tiene hermanos",
+      "hasSiblingsHint": "Marque si el alumno tiene hermanos",
+      "siblingCount": "Número de hermanos",
+      "summary": "Resumen de hermanos",
+      "rawText": "Texto original de hermanos",
+      "legacyLevels": "Niveles de los hermanos",
+      "addLine": "Añadir hermano/hermana",
+      "linesEditor": "Detalles de hermanos",
+      "empty": "No hay información de hermanos",
+      "notMentioned": "No indicado",
+      "currentStudentHint": "Matriculado actualmente en el centro",
+      "linkedStudentHint": "Alumno vinculado:",
+      "relationship": {
+        "brother": "Hermano",
+        "sister": "Hermana"
+      },
+      "table": {
+        "name": "Nombre",
+        "relationship": "Parentesco",
+        "ageAtAdmission": "Edad en la matrícula",
+        "level": "Nivel escolar",
+        "currentStudent": "Alumno actual en el centro",
+        "notes": "Notas"
+      }
     },
     "student360": {
       "tabsAria": "Secciones del expediente del alumno",
@@ -3664,6 +3711,14 @@
       "departureReason": "Motivo de baja",
       "registrationType": "Tipo de matrícula",
       "previousSchool": "Centro anterior",
+      "admissionData": {
+        "sectionTitle": "Datos de inscripción y hermanos",
+        "registrationSectionTitle": "Datos de inscripción",
+        "externalReference": "Referencia externa",
+        "residenceAddress": "Dirección de residencia",
+        "previousSchool": "Centro anterior",
+        "admissionNotes": "Notas de inscripción"
+      },
       "isRepeating": "Repite curso",
       "isRepeatingHint": "El alumno repite el año académico",
       "isRepeatingOptional": "Opcional cuando aplique",
