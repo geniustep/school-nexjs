@@ -1011,7 +1011,8 @@
       "teacherAccountCardDesc": "Manage login, password, and permissions from the staff page.",
       "manageStaffAccount": "Manage account & permissions",
       "creationTemplates": {
-        "subject_teacher": "Subject teacher"
+        "subject_teacher": "Subject teacher",
+        "registration_collections_officer": "Registration & collections officer"
       },
       "operationalNotesTitle": "Operational notes",
       "operationalNotesDesc": "Sensitive actions are defined by the system only. Full permission editing stays in academic setup when available.",
@@ -1197,7 +1198,14 @@
           "transport": "School transport",
           "hr_basic": "Basic HR",
           "accounts_management": "Accounts management",
-          "system_settings_limited": "Limited settings"
+          "system_settings_limited": "Limited settings",
+          "student_registration_management": "Student registration management",
+          "guardian_registration_management": "Guardian registration management",
+          "student_guardian_linking": "Student–guardian linking",
+          "student_limited_update": "Limited student data updates",
+          "admission_basic_management": "Basic admissions management",
+          "student_collection_registration_limited": "Collections registration only",
+          "audit_tracked_operations": "Tracked operations audit"
         },
         "errors": {
           "templateRequired": "Choose a template to continue.",

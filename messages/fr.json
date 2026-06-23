@@ -1011,7 +1011,8 @@
       "teacherAccountCardDesc": "Gérez la connexion, le mot de passe et les permissions depuis la page du personnel.",
       "manageStaffAccount": "Gérer le compte et les permissions",
       "creationTemplates": {
-        "subject_teacher": "Professeur de matière"
+        "subject_teacher": "Professeur de matière",
+        "registration_collections_officer": "Responsable inscriptions et recouvrements"
       },
       "operationalNotesTitle": "Notes opérationnelles",
       "operationalNotesDesc": "Les actions sensibles sont définies par le système uniquement. L'édition complète des permissions reste dans la configuration académique si disponible.",
@@ -1197,7 +1198,14 @@
           "transport": "Transport scolaire",
           "hr_basic": "RH de base",
           "accounts_management": "Gestion des comptes",
-          "system_settings_limited": "Paramètres limités"
+          "system_settings_limited": "Paramètres limités",
+          "student_registration_management": "Gestion des inscriptions élèves",
+          "guardian_registration_management": "Gestion des parents",
+          "student_guardian_linking": "Liaison élèves–parents",
+          "student_limited_update": "Mise à jour limitée des élèves",
+          "admission_basic_management": "Gestion de base des admissions",
+          "student_collection_registration_limited": "Inscription recouvrements uniquement",
+          "audit_tracked_operations": "Suivi des opérations"
         },
         "errors": {
           "templateRequired": "Choisissez un modèle pour continuer.",

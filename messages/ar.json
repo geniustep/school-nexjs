@@ -1011,7 +1011,8 @@
       "teacherAccountCardDesc": "إدارة حساب الدخول وكلمة المرور والصلاحيات من صفحة الطاقم.",
       "manageStaffAccount": "إدارة الحساب والصلاحيات",
       "creationTemplates": {
-        "subject_teacher": "أستاذ مادة"
+        "subject_teacher": "أستاذ مادة",
+        "registration_collections_officer": "مسؤول التسجيل والتحصيلات"
       },
       "operationalNotesTitle": "ملاحظات تشغيلية",
       "operationalNotesDesc": "الإجراءات الحساسة محددة من النظام فقط. تحرير الصلاحيات الكامل يبقى في الإعداد الأكاديمي عند توفره.",
@@ -1197,7 +1198,14 @@
           "transport": "النقل المدرسي",
           "hr_basic": "الموارد البشرية الأساسية",
           "accounts_management": "إدارة الحسابات",
-          "system_settings_limited": "إعدادات محدودة"
+          "system_settings_limited": "إعدادات محدودة",
+          "student_registration_management": "إدارة تسجيل التلاميذ",
+          "guardian_registration_management": "إدارة أولياء الأمور",
+          "student_guardian_linking": "ربط التلاميذ بأولياء الأمور",
+          "student_limited_update": "تعديل محدود لبيانات التلميذ",
+          "admission_basic_management": "إدارة أولية للتسجيلات",
+          "student_collection_registration_limited": "تسجيل التحصيلات فقط",
+          "audit_tracked_operations": "تتبع العمليات"
         },
         "errors": {
           "templateRequired": "اختر قالبًا للمتابعة.",

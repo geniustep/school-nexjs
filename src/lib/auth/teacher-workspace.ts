@@ -1,6 +1,6 @@
 // Teacher workspace routing — Smart Staff teachers may arrive with role=admin + teacher_id.
 
-import type { CurrentUser } from '@/types/user';
+import type { AdminBinding, CurrentUser } from '@/types/user';
 
 const ADMIN_MANAGEMENT_KINDS = new Set([
   'project_manager',
@@ -10,29 +10,40 @@ const ADMIN_MANAGEMENT_KINDS = new Set([
   'super_admin',
 ]);
 
-export function resolveTeacherId(user: Pick<CurrentUser, 'teacher_id' | 'profile_id' | 'role'>): number | null {
+function resolveTeacherProfileIdFromBindings(bindings?: AdminBinding[]): number | null {
+  if (!bindings?.length) return null;
+  for (const binding of bindings) {
+    const candidate = binding.teacher_profile_id ?? binding.teacher_id;
+    if (typeof candidate === 'number' && candidate > 0) return candidate;
+  }
+  return null;
+}
+
+export function resolveTeacherId(
+  user: Pick<CurrentUser, 'teacher_id' | 'profile_id' | 'role' | 'bindings' | 'is_teacher'>,
+): number | null {
   if (typeof user.teacher_id === 'number' && user.teacher_id > 0) return user.teacher_id;
+
+  const fromBindings = resolveTeacherProfileIdFromBindings(user.bindings);
+  if (fromBindings != null) return fromBindings;
+
   if (user.role === 'teacher' && typeof user.profile_id === 'number' && user.profile_id > 0) {
     return user.profile_id;
   }
+
+  if (user.is_teacher === true && typeof user.profile_id === 'number' && user.profile_id > 0) {
+    return user.profile_id;
+  }
+
   return null;
 }
 
 /** True when the session is linked to a concrete teacher profile id. */
 export function hasLinkedTeacherProfile(
-  user: Pick<CurrentUser, 'teacher_id' | 'profile_id' | 'role'> | null,
+  user: Pick<CurrentUser, 'teacher_id' | 'profile_id' | 'role' | 'bindings' | 'is_teacher'> | null,
 ): boolean {
   if (!user) return false;
   return resolveTeacherId(user) != null;
-}
-
-function hasTeacherMeIndicator(user: CurrentUser): boolean {
-  if (user.role === 'teacher') return true;
-  if (typeof user.teacher_id === 'number' && user.teacher_id > 0) return true;
-  if (user.is_teacher === true) return true;
-  if (user.active_role === 'teacher') return true;
-  if (user.roles?.includes('teacher')) return true;
-  return false;
 }
 
 /** True when the account should use /teacher/* (not admin Staff Center). */
@@ -40,13 +51,11 @@ export function shouldUseTeacherWorkspace(user: CurrentUser | null): boolean {
   if (!user) return false;
   if (user.role === 'teacher') return true;
   if (user.role !== 'admin') return false;
-  if (!hasTeacherMeIndicator(user)) return false;
   if (user.admin_kind && ADMIN_MANAGEMENT_KINDS.has(user.admin_kind)) return false;
-  if (user.admin_kind === 'admin_staff') return true;
-  return resolveTeacherId(user) != null;
+  return hasLinkedTeacherProfile(user);
 }
 
-export function teacherProfilePath(user: Pick<CurrentUser, 'teacher_id' | 'profile_id' | 'role'>): string {
+export function teacherProfilePath(_user: Pick<CurrentUser, 'teacher_id' | 'profile_id' | 'role'>): string {
   return '/teacher/profile';
 }
 
