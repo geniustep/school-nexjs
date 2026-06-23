@@ -596,6 +596,8 @@
     "profileIdentityTitle": "Identidad docente",
     "profileTeachingTitle": "Asignaciones",
     "profileQuickLinksTitle": "Accesos rápidos",
+    "dashboardLoadFailedTitle": "No se pudo cargar el panel del profesor",
+    "profileNotLinkedDesc": "Su cuenta aún no está vinculada a un perfil de profesor, o no tiene asignaciones docentes activas. Contacte con la administración.",
     "openNextClass": "Abrir la próxima clase",
     "quickActions": "Acciones rápidas",
     "todayWork": "Trabajo de hoy",

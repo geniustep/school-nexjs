@@ -596,6 +596,8 @@
     "profileIdentityTitle": "Teaching identity",
     "profileTeachingTitle": "Assignments",
     "profileQuickLinksTitle": "Daily shortcuts",
+    "dashboardLoadFailedTitle": "Could not load teacher dashboard",
+    "profileNotLinkedDesc": "Your account is not linked to a teacher profile yet, or you have no active teaching assignments. Please contact your school administration.",
     "openNextClass": "Open next class",
     "quickActions": "Quick actions",
     "todayWork": "Today's work",

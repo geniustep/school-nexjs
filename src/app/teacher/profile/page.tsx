@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { useResource } from '@/lib/hooks/use-resource';
-import { ResourceView } from '@/components/states/resource';
 import { Card, DefinitionList, PageHeader, SectionHead } from '@/components/ui/primitives';
+import { TeacherWorkspaceResourceView } from '@/features/teacher/teacher-workspace-resource-view';
 import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
@@ -44,7 +44,11 @@ export default function TeacherProfilePage() {
         />
       </Card>
 
-      <ResourceView state={classesState} loadingLabel={t('common.loading')}>
+      <TeacherWorkspaceResourceView
+        state={classesState}
+        loadingLabel={t('common.loading')}
+        linkingTitleKey="teacher.dashboardLoadFailedTitle"
+      >
         {(classes) => (
           <>
             <Card className="staff-center-section">
@@ -89,7 +93,7 @@ export default function TeacherProfilePage() {
             </Card>
           </>
         )}
-      </ResourceView>
+      </TeacherWorkspaceResourceView>
     </div>
   );
 }

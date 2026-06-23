@@ -596,6 +596,8 @@
     "profileIdentityTitle": "Identité pédagogique",
     "profileTeachingTitle": "Affectations",
     "profileQuickLinksTitle": "Raccourcis quotidiens",
+    "dashboardLoadFailedTitle": "Impossible de charger le tableau de bord enseignant",
+    "profileNotLinkedDesc": "Votre compte n'est pas encore lié à un profil enseignant, ou vous n'avez pas de missions pédagogiques actives. Veuillez contacter l'administration.",
     "openNextClass": "Ouvrir la prochaine classe",
     "quickActions": "Actions rapides",
     "todayWork": "Travail du jour",

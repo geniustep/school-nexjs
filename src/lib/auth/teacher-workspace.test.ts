@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   canViewStaffAdminPrivateFields,
   canViewTeacherAdminPrivateFields,
+  hasLinkedTeacherProfile,
   resolveTeacherId,
   shouldUseTeacherWorkspace,
 } from '@/lib/auth/teacher-workspace';
@@ -81,6 +82,24 @@ describe('homeForUser', () => {
 describe('resolveTeacherId', () => {
   it('reads teacher_id from /me payload', () => {
     expect(resolveTeacherId(user({ id: 1, role: 'admin', teacher_id: 1306 }))).toBe(1306);
+  });
+});
+
+describe('hasLinkedTeacherProfile', () => {
+  it('returns false when teacher_id is missing', () => {
+    expect(
+      hasLinkedTeacherProfile(
+        user({ id: 4905, role: 'admin', admin_kind: 'admin_staff', roles: ['admin', 'teacher'] }),
+      ),
+    ).toBe(false);
+  });
+
+  it('returns true when teacher_id is present', () => {
+    expect(
+      hasLinkedTeacherProfile(
+        user({ id: 4706, role: 'admin', admin_kind: 'admin_staff', teacher_id: 1306 }),
+      ),
+    ).toBe(true);
   });
 });
 

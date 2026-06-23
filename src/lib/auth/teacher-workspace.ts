@@ -18,6 +18,14 @@ export function resolveTeacherId(user: Pick<CurrentUser, 'teacher_id' | 'profile
   return null;
 }
 
+/** True when the session is linked to a concrete teacher profile id. */
+export function hasLinkedTeacherProfile(
+  user: Pick<CurrentUser, 'teacher_id' | 'profile_id' | 'role'> | null,
+): boolean {
+  if (!user) return false;
+  return resolveTeacherId(user) != null;
+}
+
 function hasTeacherMeIndicator(user: CurrentUser): boolean {
   if (user.role === 'teacher') return true;
   if (typeof user.teacher_id === 'number' && user.teacher_id > 0) return true;

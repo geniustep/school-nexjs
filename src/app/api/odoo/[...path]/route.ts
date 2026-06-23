@@ -14,6 +14,8 @@ import { odooApiFetch } from '@/lib/api/odoo-server';
 import { getCurrentUser } from '@/lib/api/server';
 import { getActiveSchoolCookie, setActiveSchoolCookieValue } from '@/lib/auth/active-school';
 import { guardTenantFromRequest } from '@/lib/auth/tenant-guard';
+import { isOdooAdminRoleTeacherEndpointBlock } from '@/lib/auth/teacher-workspace-api';
+import { shouldUseTeacherWorkspace } from '@/lib/auth/teacher-workspace';
 
 export const dynamic = 'force-dynamic';
 
@@ -81,6 +83,35 @@ async function handle(request: NextRequest, segments: string[]) {
 
   if (result.status === 204) {
     return new NextResponse(null, { status: 204 });
+  }
+
+  if (
+    result.kind === 'json' &&
+    path.startsWith('/teacher/') &&
+    result.status === 403 &&
+    method === 'GET'
+  ) {
+    const user = await getCurrentUser();
+    const odooMessage =
+      !result.body.success && result.body.error?.message ? result.body.error.message : '';
+    if (
+      user &&
+      shouldUseTeacherWorkspace(user) &&
+      isOdooAdminRoleTeacherEndpointBlock(odooMessage)
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'teacher_workspace_unavailable',
+            message: odooMessage,
+            details: { odoo_status: 403, reason: 'admin_role_on_teacher_endpoint' },
+          },
+          meta: {},
+        },
+        { status: 403 },
+      );
+    }
   }
 
   return NextResponse.json(result.body, { status: result.status });
