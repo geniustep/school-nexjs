@@ -67,7 +67,7 @@ export function formatAdmissionReference(id: number, reference?: string | null):
 }
 
 /** Strip empty, null-ish, and boolean string noise from display fields. */
-export function cleanDisplayValue(value: string | null | undefined): string {
+export function cleanDisplayValue(value: unknown): string {
   if (value == null) return '';
   const trimmed = String(value).trim();
   if (!trimmed) return '';

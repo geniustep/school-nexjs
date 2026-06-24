@@ -1,6 +1,7 @@
 'use client';
 
 import { useT } from '@/features/i18n/locale-context';
+import { cleanDisplayValue } from '@/features/admin/admissions/utils/admission-labels';
 import { Student360FieldGrid } from './student-360-field-grid';
 import type { StudentSummary } from '@/types/student-360';
 
@@ -11,19 +12,19 @@ export function StudentAdmissionDataPanel({ student }: { student: StudentSummary
   const items = [
     {
       label: t('admin.student360.admissionData.externalReference'),
-      value: student.external_reference?.trim() || empty,
+      value: cleanDisplayValue(student.external_reference) || empty,
     },
     {
       label: t('admin.student360.admissionData.residenceAddress'),
-      value: student.residence_address?.trim() || empty,
+      value: cleanDisplayValue(student.residence_address) || empty,
     },
     {
       label: t('admin.student360.admissionData.previousSchool'),
-      value: student.previous_school?.trim() || empty,
+      value: cleanDisplayValue(student.previous_school) || empty,
     },
     {
       label: t('admin.student360.admissionData.admissionNotes'),
-      value: student.admission_notes?.trim() || empty,
+      value: cleanDisplayValue(student.admission_notes) || empty,
     },
   ];
 

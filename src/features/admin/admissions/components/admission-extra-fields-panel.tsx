@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import { useT } from '@/features/i18n/locale-context';
 import type { SiblingsFieldsSource } from '@/types/sibling-line';
+import { cleanDisplayValue } from '../utils/admission-labels';
 
 function OverviewCard({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -45,20 +46,20 @@ export function AdmissionExtraFieldsPanel({ detail }: { detail: AdmissionExtraFi
     <OverviewCard title={t('admin.admissions.extraFields.sectionTitle')}>
       <OverviewRow
         label={t('admin.admissions.extraFields.externalReference')}
-        value={detail.external_reference?.trim() || empty}
+        value={cleanDisplayValue(detail.external_reference) || empty}
         dir="ltr"
       />
       <OverviewRow
         label={t('admin.admissions.extraFields.residenceAddress')}
-        value={detail.residence_address?.trim() || empty}
+        value={cleanDisplayValue(detail.residence_address) || empty}
       />
       <OverviewRow
         label={t('admin.admissions.extraFields.previousSchool')}
-        value={detail.previous_school?.trim() || empty}
+        value={cleanDisplayValue(detail.previous_school) || empty}
       />
       <OverviewRow
         label={t('admin.admissions.extraFields.internalNotes')}
-        value={detail.internal_notes?.trim() || empty}
+        value={cleanDisplayValue(detail.internal_notes) || empty}
       />
     </OverviewCard>
   );
