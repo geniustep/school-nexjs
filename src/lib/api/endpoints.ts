@@ -281,6 +281,17 @@ export const endpoints = {
       `/admin/finance/agreements/${agreementId}/adjustments/${adjustmentId}`,
     financeEligibleBillingPartners: (studentId: number | string) =>
       `/admin/finance/students/${studentId}/eligible-billing-partners`,
+    financeStudentFamilySummary: (studentId: number | string) =>
+      `/admin/finance/students/${studentId}/family-summary`,
+    financeFamilySummary: (familyId: number | string) =>
+      `/admin/finance/families/${familyId}/summary`,
+    financeStudentFamilyPlanContext: (studentId: number | string) =>
+      `/admin/finance/students/${studentId}/family-plan-context`,
+    financeStudentFamilyCollectionContext: (studentId: number | string) =>
+      `/admin/finance/students/${studentId}/family-collection-context`,
+    financeFamilyCollectionContext: (familyId: number | string) =>
+      `/admin/finance/families/${familyId}/collection-context`,
+    financeFamilyCollectionPreview: '/admin/finance/family-collections/preview',
     financeCheques: '/admin/finance/cheques',
     financeCheque: (id: number | string) => `/admin/finance/cheques/${id}`,
     financeChequeDeposit: (id: number | string) => `/admin/finance/cheques/${id}/deposit`,

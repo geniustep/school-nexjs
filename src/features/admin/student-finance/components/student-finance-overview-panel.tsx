@@ -15,6 +15,7 @@ import { resolveStudentBillingSourcePresentation } from '../utils/resolve-studen
 import { resolveFinanceAgreementStateLabel } from '../utils/reference-labels';
 import { resolveChangePlanEligibility } from '../utils/resolve-change-plan-eligibility';
 import { resolveBillingContextPresentation } from '../utils/resolve-billing-context-presentation';
+import { FamilyFinanceSummarySection } from './family-finance-summary-section';
 
 function installmentStatusKey(state: string | null | undefined): string | null {
   if (!state) return null;
@@ -446,6 +447,8 @@ export function StudentFinanceOverviewPanel({
           )}
         </article>
       </div>
+
+      <FamilyFinanceSummarySection studentId={studentId} />
     </div>
   );
 }

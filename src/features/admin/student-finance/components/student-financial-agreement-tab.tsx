@@ -76,6 +76,7 @@ import {
   isOrphanCurrentFeesDraft,
   resolveExistingCurrentFeesDraft,
 } from '../utils/resolve-existing-current-fees-draft';
+import { FamilyPlanContextCard } from './family-plan-context-card';
 
 export function StudentFinancialAgreementTab({
   studentId,
@@ -687,6 +688,7 @@ export function StudentFinancialAgreementTab({
         ) : null}
         {isBackgroundRefreshing ? <StudentInlineLoading /> : null}
         {renderCreateFromFeesNotice()}
+        <FamilyPlanContextCard studentId={studentId} />
 
         {draftAgreement ? (
           <Card className="student-finance-section student-finance-draft-agreement">
@@ -984,6 +986,7 @@ export function StudentFinancialAgreementTab({
       ) : null}
       {isBackgroundRefreshing ? <StudentInlineLoading /> : null}
       {renderCreateFromFeesNotice()}
+      <FamilyPlanContextCard studentId={studentId} />
 
       {isInactiveAgreementState(activeAgreement.state) ? (
         <div className="student-finance-section student-finance-card-alert" role="alert">

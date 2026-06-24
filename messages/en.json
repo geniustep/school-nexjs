@@ -4747,6 +4747,94 @@
         "openFinanceOverview": "Open financial overview",
         "openPaymentSchedule": "Open payment schedule"
       },
+      "familyFinance": {
+        "title": "Family finance",
+        "description": "Unified summary for all students linked to the same billing account.",
+        "accountName": "Guardian / family account name",
+        "childrenCount": "Children count",
+        "siblings": "Siblings",
+        "currentStudent": "Current student",
+        "openBillingAccount": "Open billing account",
+        "openInstallments": "Open installments",
+        "metrics": {
+          "totalNetDue": "Total due",
+          "totalPaid": "Total paid",
+          "remaining": "Remaining",
+          "overdue": "Overdue",
+          "creditBalance": "Credit balance",
+          "unallocated": "Unallocated"
+        },
+        "children": {
+          "name": "Name",
+          "classLevel": "Class / level",
+          "services": "Services",
+          "empty": "No students are linked to this account."
+        },
+        "services": {
+          "tuition": "Tuition",
+          "registration": "Registration",
+          "transport": "Transport",
+          "canteen": "Canteen",
+          "books": "Books",
+          "activities": "Activities",
+          "other": "Other"
+        },
+        "errors": {
+          "loadFailed": "Family finance could not be loaded right now.",
+          "notResolved": "Family finance cannot be shown because this student's billing profile is incomplete.",
+          "forbidden": "You do not have permission to view family finance.",
+          "notFound": "Student or family was not found."
+        },
+        "planContext": {
+          "title": "Family financial context",
+          "lead": "This student has siblings linked to the same family billing account.",
+          "siblingCount": "Sibling count",
+          "siblingNames": "Sibling names",
+          "activeAgreements": "Active sibling agreements",
+          "familyOverdue": "Family overdue balance",
+          "discountHint": "This student may be eligible for a sibling discount per school policy."
+        },
+        "collectionContext": {
+          "title": "Family-level collection",
+          "description": "Open installments for all children linked to the same billing account.",
+          "emptyInstallments": "No open installments at the moment.",
+          "overdue": "Overdue",
+          "notOverdue": "Not overdue",
+          "columns": {
+            "student": "Student",
+            "item": "Item",
+            "dueDate": "Due date",
+            "remaining": "Remaining amount",
+            "overdueState": "Overdue / not overdue"
+          }
+        },
+        "preview": {
+          "title": "Allocation preview",
+          "description": "Preview how a collection amount would be allocated across siblings without recording a payment.",
+          "amount": "Amount received",
+          "mode": "Allocation mode",
+          "action": "Preview allocation",
+          "invalidAmount": "Enter a valid amount greater than zero.",
+          "comingSoon": "Later",
+          "disclaimer": "This is preview only. No collection will be recorded until a later confirmation phase.",
+          "modes": {
+            "oldestDueFirst": "Oldest due first",
+            "byStudent": "By student",
+            "byService": "By service",
+            "manual": "Manual",
+            "leaveAsCredit": "Leave as family credit"
+          },
+          "columns": {
+            "allocated": "Allocated amount"
+          },
+          "result": {
+            "amount": "Amount",
+            "allocated": "Allocated",
+            "unallocated": "Unallocated",
+            "credit": "Credit balance"
+          }
+        }
+      },
       "financeOps": {
         "pageTitle": "Finance",
         "pageDescription": "Actual receivables, collections, cheques, and operational installments.",

@@ -4742,6 +4742,94 @@
         "openFinanceOverview": "Open financial overview",
         "openPaymentSchedule": "Open payment schedule"
       },
+      "familyFinance": {
+        "title": "Finances familiales",
+        "description": "Résumé unifié pour tous les élèves liés au même compte de facturation.",
+        "accountName": "Nom du tuteur / compte familial",
+        "childrenCount": "Nombre d'enfants",
+        "siblings": "Fratrie",
+        "currentStudent": "Élève actuel",
+        "openBillingAccount": "Ouvrir le compte de facturation",
+        "openInstallments": "Échéances ouvertes",
+        "metrics": {
+          "totalNetDue": "Total dû",
+          "totalPaid": "Total payé",
+          "remaining": "Restant",
+          "overdue": "En retard",
+          "creditBalance": "Solde créditeur",
+          "unallocated": "Non alloué"
+        },
+        "children": {
+          "name": "Nom",
+          "classLevel": "Classe / niveau",
+          "services": "Services",
+          "empty": "Aucun élève n'est lié à ce compte."
+        },
+        "services": {
+          "tuition": "Scolarité",
+          "registration": "Inscription",
+          "transport": "Transport",
+          "canteen": "Cantine",
+          "books": "Livres",
+          "activities": "Activités",
+          "other": "Autre"
+        },
+        "errors": {
+          "loadFailed": "Impossible de charger les finances familiales pour le moment.",
+          "notResolved": "Les finances familiales ne peuvent pas être affichées car le profil de facturation de cet élève est incomplet.",
+          "forbidden": "Vous n'avez pas l'autorisation d'afficher les finances familiales.",
+          "notFound": "Élève ou famille introuvable."
+        },
+        "planContext": {
+          "title": "Contexte financier familial",
+          "lead": "Cet élève a des frères et sœurs liés au même compte de facturation.",
+          "siblingCount": "Nombre de frères et sœurs",
+          "siblingNames": "Noms des frères et sœurs",
+          "activeAgreements": "Accords actifs de la fratrie",
+          "familyOverdue": "Retards familiaux",
+          "discountHint": "Cet élève peut être éligible à une remise fratrie selon la politique de l'école."
+        },
+        "collectionContext": {
+          "title": "Encaissement au niveau familial",
+          "description": "Échéances ouvertes pour tous les enfants liés au même compte de facturation.",
+          "emptyInstallments": "Aucune échéance ouverte pour le moment.",
+          "overdue": "En retard",
+          "notOverdue": "Non en retard",
+          "columns": {
+            "student": "Élève",
+            "item": "Poste",
+            "dueDate": "Date d'échéance",
+            "remaining": "Montant restant",
+            "overdueState": "En retard / non en retard"
+          }
+        },
+        "preview": {
+          "title": "Aperçu de répartition",
+          "description": "Prévisualiser la répartition d'un montant d'encaissement entre les frères et sœurs sans enregistrer de paiement.",
+          "amount": "Montant reçu",
+          "mode": "Mode de répartition",
+          "action": "Aperçu de la répartition",
+          "invalidAmount": "Saisissez un montant valide supérieur à zéro.",
+          "comingSoon": "Plus tard",
+          "disclaimer": "Ceci est un aperçu uniquement. Aucun encaissement ne sera enregistré avant une phase de confirmation ultérieure.",
+          "modes": {
+            "oldestDueFirst": "Le plus ancien d'abord",
+            "byStudent": "Par élève",
+            "byService": "Par service",
+            "manual": "Manuel",
+            "leaveAsCredit": "Laisser en crédit familial"
+          },
+          "columns": {
+            "allocated": "Montant alloué"
+          },
+          "result": {
+            "amount": "Montant",
+            "allocated": "Alloué",
+            "unallocated": "Non alloué",
+            "credit": "Solde créditeur"
+          }
+        }
+      },
       "financeOps": {
         "pageTitle": "Finance",
         "pageDescription": "Créances, encaissements, chèques et échéances.",

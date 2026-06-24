@@ -4774,6 +4774,94 @@
         "openFinanceOverview": "فتح النظرة المالية",
         "openPaymentSchedule": "فتح جدول الدفعات"
       },
+      "familyFinance": {
+        "title": "مالية الأسرة",
+        "description": "ملخص موحد لكل التلاميذ المرتبطين بنفس حساب الفوترة.",
+        "accountName": "اسم ولي الأمر / الحساب الأسري",
+        "childrenCount": "عدد الأبناء",
+        "siblings": "الإخوة",
+        "currentStudent": "التلميذ الحالي",
+        "openBillingAccount": "فتح حساب الفوترة",
+        "openInstallments": "الأقساط المفتوحة",
+        "metrics": {
+          "totalNetDue": "إجمالي المستحق",
+          "totalPaid": "إجمالي المؤدى",
+          "remaining": "المتبقي",
+          "overdue": "المتأخر",
+          "creditBalance": "الرصيد الدائن",
+          "unallocated": "غير موزع"
+        },
+        "children": {
+          "name": "الاسم",
+          "classLevel": "القسم / المستوى",
+          "services": "الخدمات",
+          "empty": "لا يوجد تلاميذ مرتبطون بهذا الحساب."
+        },
+        "services": {
+          "tuition": "تمدرس",
+          "registration": "تسجيل",
+          "transport": "نقل",
+          "canteen": "مطعم",
+          "books": "كتب",
+          "activities": "أنشطة",
+          "other": "أخرى"
+        },
+        "errors": {
+          "loadFailed": "تعذر تحميل مالية الأسرة حاليًا.",
+          "notResolved": "لا يمكن عرض مالية الأسرة لأن ملف الفوترة غير مكتمل لهذا التلميذ.",
+          "forbidden": "لا تملك صلاحية عرض مالية الأسرة.",
+          "notFound": "لم يتم العثور على التلميذ أو الأسرة."
+        },
+        "planContext": {
+          "title": "سياق الأسرة المالية",
+          "lead": "لهذا التلميذ إخوة مرتبطون بنفس الحساب الأسري.",
+          "siblingCount": "عدد الإخوة",
+          "siblingNames": "أسماء الإخوة",
+          "activeAgreements": "اتفاقات نشطة للإخوة",
+          "familyOverdue": "متأخرات على الأسرة",
+          "discountHint": "قد يكون هذا التلميذ مؤهلًا لخصم الإخوة حسب سياسة المدرسة."
+        },
+        "collectionContext": {
+          "title": "تحصيل على مستوى الأسرة",
+          "description": "الأقساط المفتوحة لكل الأبناء المرتبطين بنفس حساب الفوترة.",
+          "emptyInstallments": "لا توجد أقساط مفتوحة حاليًا.",
+          "overdue": "متأخر",
+          "notOverdue": "غير متأخر",
+          "columns": {
+            "student": "التلميذ",
+            "item": "البند",
+            "dueDate": "تاريخ الاستحقاق",
+            "remaining": "المبلغ المتبقي",
+            "overdueState": "متأخر / غير متأخر"
+          }
+        },
+        "preview": {
+          "title": "معاينة التوزيع",
+          "description": "معاينة توزيع مبلغ تحصيل على أقساط الإخوة دون تسجيل تحصيل فعلي.",
+          "amount": "المبلغ المقبوض",
+          "mode": "طريقة التوزيع",
+          "action": "معاينة التوزيع",
+          "invalidAmount": "أدخل مبلغًا صالحًا أكبر من صفر.",
+          "comingSoon": "لاحقًا",
+          "disclaimer": "هذه معاينة فقط، ولن يتم تسجيل أي تحصيل حتى اعتماد مرحلة التأكيد لاحقًا.",
+          "modes": {
+            "oldestDueFirst": "الأقدم استحقاقًا أولًا",
+            "byStudent": "حسب التلميذ",
+            "byService": "حسب الخدمة",
+            "manual": "يدوي",
+            "leaveAsCredit": "ترك كرصد دائن للأسرة"
+          },
+          "columns": {
+            "allocated": "المبلغ الموزع"
+          },
+          "result": {
+            "amount": "المبلغ",
+            "allocated": "المبلغ الموزع",
+            "unallocated": "غير الموزع",
+            "credit": "الرصيد الدائن"
+          }
+        }
+      },
       "financeOps": {
         "pageTitle": "المالية",
         "pageDescription": "المستحقات الفعلية والتحصيلات والشيكات والأقساط التشغيلية.",

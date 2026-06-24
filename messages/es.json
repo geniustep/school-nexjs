@@ -4742,6 +4742,94 @@
         "openFinanceOverview": "Open financial overview",
         "openPaymentSchedule": "Open payment schedule"
       },
+      "familyFinance": {
+        "title": "Finanzas familiares",
+        "description": "Resumen unificado de todos los alumnos vinculados a la misma cuenta de facturación.",
+        "accountName": "Nombre del tutor / cuenta familiar",
+        "childrenCount": "Número de hijos",
+        "siblings": "Hermanos",
+        "currentStudent": "Alumno actual",
+        "openBillingAccount": "Abrir cuenta de facturación",
+        "openInstallments": "Cuotas abiertas",
+        "metrics": {
+          "totalNetDue": "Total adeudado",
+          "totalPaid": "Total pagado",
+          "remaining": "Pendiente",
+          "overdue": "Vencido",
+          "creditBalance": "Saldo a favor",
+          "unallocated": "Sin asignar"
+        },
+        "children": {
+          "name": "Nombre",
+          "classLevel": "Clase / nivel",
+          "services": "Servicios",
+          "empty": "No hay alumnos vinculados a esta cuenta."
+        },
+        "services": {
+          "tuition": "Matrícula",
+          "registration": "Inscripción",
+          "transport": "Transporte",
+          "canteen": "Comedor",
+          "books": "Libros",
+          "activities": "Actividades",
+          "other": "Otro"
+        },
+        "errors": {
+          "loadFailed": "No se pudieron cargar las finanzas familiares en este momento.",
+          "notResolved": "No se pueden mostrar las finanzas familiares porque el perfil de facturación de este alumno está incompleto.",
+          "forbidden": "No tiene permiso para ver las finanzas familiares.",
+          "notFound": "No se encontró el alumno o la familia."
+        },
+        "planContext": {
+          "title": "Contexto financiero familiar",
+          "lead": "Este alumno tiene hermanos vinculados a la misma cuenta de facturación.",
+          "siblingCount": "Número de hermanos",
+          "siblingNames": "Nombres de los hermanos",
+          "activeAgreements": "Acuerdos activos de hermanos",
+          "familyOverdue": "Atrasos familiares",
+          "discountHint": "Este alumno puede ser elegible para un descuento por hermanos según la política del centro."
+        },
+        "collectionContext": {
+          "title": "Cobro a nivel familiar",
+          "description": "Cuotas abiertas de todos los hijos vinculados a la misma cuenta de facturación.",
+          "emptyInstallments": "No hay cuotas abiertas en este momento.",
+          "overdue": "Vencido",
+          "notOverdue": "No vencido",
+          "columns": {
+            "student": "Alumno",
+            "item": "Concepto",
+            "dueDate": "Fecha de vencimiento",
+            "remaining": "Importe pendiente",
+            "overdueState": "Vencido / no vencido"
+          }
+        },
+        "preview": {
+          "title": "Vista previa de asignación",
+          "description": "Previsualizar cómo se asignaría un importe de cobro entre hermanos sin registrar un pago.",
+          "amount": "Importe recibido",
+          "mode": "Modo de asignación",
+          "action": "Vista previa de asignación",
+          "invalidAmount": "Introduzca un importe válido mayor que cero.",
+          "comingSoon": "Más adelante",
+          "disclaimer": "Esto es solo una vista previa. No se registrará ningún cobro hasta una fase de confirmación posterior.",
+          "modes": {
+            "oldestDueFirst": "El más antiguo primero",
+            "byStudent": "Por alumno",
+            "byService": "Por servicio",
+            "manual": "Manual",
+            "leaveAsCredit": "Dejar como crédito familiar"
+          },
+          "columns": {
+            "allocated": "Importe asignado"
+          },
+          "result": {
+            "amount": "Importe",
+            "allocated": "Asignado",
+            "unallocated": "Sin asignar",
+            "credit": "Saldo a favor"
+          }
+        }
+      },
       "financeOps": {
         "pageTitle": "Finanzas",
         "pageDescription": "Deudas, cobros, cheques y cuotas.",

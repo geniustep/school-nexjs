@@ -18,6 +18,7 @@ import { EmptyState } from '@/components/states/states';
 import { Student360SectionHeader } from '@/features/admin/students/components/student-360-section-header';
 import { resolveStudentFinanceCurrency } from '../utils/resolve-student-finance-currency';
 import type { StudentFinancePanelProps } from './student-finance-panel-props';
+import { FamilyCollectionContextSection } from './family-collection-context-section';
 
 export function StudentFinanceCollectionsPanel({
   studentId,
@@ -93,6 +94,12 @@ export function StudentFinanceCollectionsPanel({
 
   return (
     <>
+      <FamilyCollectionContextSection
+        studentId={studentId}
+        familyId={financialOverview?.billing_profile?.billing_partner_id ?? workspace?.billing_partner?.id}
+        refreshSignal={financeRefreshSignal}
+      />
+
       <Card className="student-finance-section">
         <Student360SectionHeader
           title={t('admin.student360.financeWorkspace.tabs.collections')}
