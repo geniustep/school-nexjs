@@ -61,8 +61,9 @@ export function admissionStateTone(state: string): 'green' | 'red' | 'amber' | '
   }
 }
 
-export function formatAdmissionReference(id: number, reference?: string | null): string {
-  if (reference?.trim()) return reference.trim();
+export function formatAdmissionReference(id: number, reference?: unknown): string {
+  const cleaned = cleanDisplayValue(reference);
+  if (cleaned) return cleaned;
   return `#${id}`;
 }
 

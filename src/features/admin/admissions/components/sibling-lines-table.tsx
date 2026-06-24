@@ -2,13 +2,15 @@
 
 import Link from 'next/link';
 import { useT } from '@/features/i18n/locale-context';
+import { cleanDisplayValue } from '../utils/admission-labels';
 import type { SiblingLine } from '@/types/sibling-line';
 
 function relationshipLabel(t: (key: string) => string, value: string | null | undefined): string {
-  if (!value?.trim()) return t('admin.siblings.notMentioned');
-  const key = `admin.siblings.relationship.${value}`;
+  const normalized = cleanDisplayValue(value);
+  if (!normalized) return t('admin.siblings.notMentioned');
+  const key = `admin.siblings.relationship.${normalized}`;
   const translated = t(key);
-  return translated !== key ? translated : value;
+  return translated !== key ? translated : normalized;
 }
 
 export function SiblingLinesTable({ lines }: { lines: SiblingLine[] }) {
@@ -33,12 +35,12 @@ export function SiblingLinesTable({ lines }: { lines: SiblingLine[] }) {
         <tbody>
           {lines.map((line, index) => (
             <tr key={line.sequence ?? index}>
-              <td dir="auto">{line.name?.trim() || empty}</td>
+              <td dir="auto">{cleanDisplayValue(line.name) || empty}</td>
               <td>{relationshipLabel(t, line.relationship)}</td>
               <td dir="ltr">
                 {line.age_years_at_admission != null ? line.age_years_at_admission : empty}
               </td>
-              <td dir="auto">{line.level_text?.trim() || empty}</td>
+              <td dir="auto">{cleanDisplayValue(line.level_text) || empty}</td>
               <td>
                 {line.is_current_student === true
                   ? t('common.yes')
@@ -46,7 +48,7 @@ export function SiblingLinesTable({ lines }: { lines: SiblingLine[] }) {
                     ? t('common.no')
                     : empty}
               </td>
-              <td dir="auto">{line.notes?.trim() || empty}</td>
+              <td dir="auto">{cleanDisplayValue(line.notes) || empty}</td>
             </tr>
           ))}
         </tbody>

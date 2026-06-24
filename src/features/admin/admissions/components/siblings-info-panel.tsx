@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { useT } from '@/features/i18n/locale-context';
+import { cleanDisplayValue } from '../utils/admission-labels';
 import { parseExtraFieldBool } from '../utils/admission-extra-fields';
 import { normalizeSiblingLines } from '../utils/sibling-lines';
 import { SiblingLinesTable } from './sibling-lines-table';
@@ -41,9 +42,9 @@ export function SiblingsInfoPanel({ detail }: { detail: SiblingsFieldsSource }) 
   const hasAnyData = Boolean(
     detail.has_siblings != null ||
       detail.sibling_count != null ||
-      detail.siblings_summary?.trim() ||
-      detail.siblings_raw_text?.trim() ||
-      detail.siblings_levels?.trim() ||
+      cleanDisplayValue(detail.siblings_summary) ||
+      cleanDisplayValue(detail.siblings_raw_text) ||
+      cleanDisplayValue(detail.siblings_levels) ||
       siblingLines.length > 0,
   );
 
@@ -68,15 +69,15 @@ export function SiblingsInfoPanel({ detail }: { detail: SiblingsFieldsSource }) 
       />
       <OverviewRow
         label={t('admin.siblings.summary')}
-        value={detail.siblings_summary?.trim() || empty}
+        value={cleanDisplayValue(detail.siblings_summary) || empty}
       />
       <OverviewRow
         label={t('admin.siblings.rawText')}
-        value={detail.siblings_raw_text?.trim() || empty}
+        value={cleanDisplayValue(detail.siblings_raw_text) || empty}
       />
       <OverviewRow
         label={t('admin.siblings.legacyLevels')}
-        value={detail.siblings_levels?.trim() || empty}
+        value={cleanDisplayValue(detail.siblings_levels) || empty}
       />
       {siblingLines.length > 0 ? (
         <div className="admissions-overview-card__table">
