@@ -13,6 +13,7 @@ import {
   refName,
 } from '../utils/admission-labels';
 import { AdmissionStateSelect } from './admission-state-select';
+import { parseExtraFieldBool } from '../utils/admission-extra-fields';
 import type { AdmissionListItem } from '@/types/admission';
 
 export function AdmissionsTable({
@@ -41,9 +42,21 @@ export function AdmissionsTable({
         header: t('admin.admissions.table.student'),
         render: (row) => {
           const name = cleanDisplayValue(row.student_name);
+          const externalRef = cleanDisplayValue(row.external_reference ?? '');
+          const hasSiblings = parseExtraFieldBool(row.has_siblings);
           return (
             <Link href={`/admin/admissions/${row.id}`} className="admissions-table__student-link">
               <strong>{name || t('common.dash')}</strong>
+              {externalRef ? (
+                <span className="admissions-table__external-ref tiny muted mono" dir="ltr">
+                  {externalRef}
+                </span>
+              ) : null}
+              {hasSiblings ? (
+                <span className="admissions-table__siblings-hint tiny muted">
+                  {t('admin.admissions.list.hasSiblingsBadge')}
+                </span>
+              ) : null}
             </Link>
           );
         },
