@@ -52,12 +52,39 @@ const schoolLevels: StudentLevelOption[] = [
 ];
 
 describe('inferCycleCodeFromLevelCode', () => {
-  it('maps common level code prefixes', () => {
+  it('maps reference level codes', () => {
     expect(inferCycleCodeFromLevelCode('P6')).toBe('primary');
     expect(inferCycleCodeFromLevelCode('M1')).toBe('middle_school');
     expect(inferCycleCodeFromLevelCode('PRE1')).toBe('preschool');
+    expect(inferCycleCodeFromLevelCode('H_TC')).toBe('high_school');
+  });
+
+  it('maps nibras / MEN school codes without broad prefix mistakes', () => {
+    expect(inferCycleCodeFromLevelCode('PS')).toBe('preschool');
+    expect(inferCycleCodeFromLevelCode('MS')).toBe('preschool');
+    expect(inferCycleCodeFromLevelCode('GS')).toBe('preschool');
+    expect(inferCycleCodeFromLevelCode('1AEP')).toBe('primary');
+    expect(inferCycleCodeFromLevelCode('6AEP')).toBe('primary');
+    expect(inferCycleCodeFromLevelCode('1ASC')).toBe('middle_school');
+    expect(inferCycleCodeFromLevelCode('3ASC')).toBe('middle_school');
+    expect(inferCycleCodeFromLevelCode('TC')).toBe('high_school');
+    expect(inferCycleCodeFromLevelCode('1BAC')).toBe('high_school');
+    expect(inferCycleCodeFromLevelCode('2BAC')).toBe('high_school');
+  });
+
+  it('does not classify PS as primary or MS as middle_school', () => {
+    expect(inferCycleCodeFromLevelCode('PS')).not.toBe('primary');
+    expect(inferCycleCodeFromLevelCode('MS')).not.toBe('middle_school');
   });
 });
+
+const nibrasSchoolLevels: StudentLevelOption[] = [
+  { id: 1, name: 'الأولي 1', code: 'PS', display_alias: 'PS — الأولي 1' },
+  { id: 2, name: 'الأولي 2', code: 'MS', display_alias: 'MS — الأولي 2' },
+  { id: 3, name: 'الأولي 3', code: 'GS', display_alias: 'GS — الأولي 3' },
+  { id: 4, name: 'الأولى ابتدائي', code: '1AEP', display_alias: '1AEP — الأولى ابتدائي' },
+  { id: 10, name: 'الأولى إعدادي', code: '1ASC', display_alias: '1ASC — الأولى إعدادي' },
+];
 
 describe('filterLevelsByCycleId', () => {
   it('keeps only levels in the selected cycle', () => {
@@ -66,6 +93,19 @@ describe('filterLevelsByCycleId', () => {
 
     const middleLevels = filterLevelsByCycleId(schoolLevels, '3', referenceLevels, cycles);
     expect(middleLevels.map((level) => level.code)).toEqual(['M1']);
+  });
+
+  it('filters nibras codes by cycle without mixing PS into primary', () => {
+    const preschoolLevels = filterLevelsByCycleId(nibrasSchoolLevels, '1', [], cycles);
+    expect(preschoolLevels.map((level) => level.code)).toEqual(['PS', 'MS', 'GS']);
+
+    const primaryLevels = filterLevelsByCycleId(nibrasSchoolLevels, '2', [], cycles);
+    expect(primaryLevels.map((level) => level.code)).toEqual(['1AEP']);
+    expect(primaryLevels.some((level) => level.code === 'PS')).toBe(false);
+
+    const middleLevels = filterLevelsByCycleId(nibrasSchoolLevels, '3', [], cycles);
+    expect(middleLevels.map((level) => level.code)).toEqual(['1ASC']);
+    expect(middleLevels.some((level) => level.code === 'MS')).toBe(false);
   });
 
   it('returns empty list when cycle is not selected', () => {

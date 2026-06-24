@@ -5,8 +5,16 @@ import type { StudentLevelOption } from '@/types/student-360';
 /**
  * Cycles come from GET /admin/levels/options (`cycles`).
  * School levels from students/options are matched to reference levels by `code`
- * to resolve cycle_id. Prefix inference is a fallback when no reference match exists.
+ * to resolve cycle_id. Explicit code mapping runs before any prefix fallback.
  */
+
+/** Moroccan school codes (nibras / MEN) and reference codes — checked before loose prefix rules. */
+const PRESCHOOL_LEVEL_CODES = new Set(['PS', 'MS', 'GS', 'PRE1', 'PRE2', 'PRE3']);
+const HIGH_SCHOOL_LEVEL_CODES = new Set(['TC', '1BAC', '2BAC', 'H_TC', 'H1', 'H2']);
+const PRIMARY_AEP_PATTERN = /^[1-6]AEP$/;
+const MIDDLE_ASC_PATTERN = /^[1-3]ASC$/;
+const REFERENCE_PRIMARY_PATTERN = /^P[1-6]$/;
+const REFERENCE_MIDDLE_PATTERN = /^M[1-3]$/;
 
 export function buildReferenceLevelCycleMap(
   referenceLevels: ReferenceLevelOption[],
@@ -24,10 +32,13 @@ export function buildReferenceLevelCycleMap(
 export function inferCycleCodeFromLevelCode(levelCode: string): string | null {
   const code = normalizeLevelCode(levelCode);
   if (!code) return null;
+  if (PRESCHOOL_LEVEL_CODES.has(code)) return 'preschool';
+  if (PRIMARY_AEP_PATTERN.test(code)) return 'primary';
+  if (MIDDLE_ASC_PATTERN.test(code)) return 'middle_school';
+  if (HIGH_SCHOOL_LEVEL_CODES.has(code)) return 'high_school';
+  if (REFERENCE_PRIMARY_PATTERN.test(code)) return 'primary';
+  if (REFERENCE_MIDDLE_PATTERN.test(code)) return 'middle_school';
   if (code.startsWith('PRE')) return 'preschool';
-  if (/^P\d/.test(code) || code === 'P1' || code.startsWith('P')) return 'primary';
-  if (code.startsWith('M')) return 'middle_school';
-  if (code.startsWith('H')) return 'high_school';
   return null;
 }
 
