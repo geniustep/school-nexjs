@@ -2,6 +2,7 @@
 
 import { useState, type CSSProperties } from 'react';
 import { loginSchoolLogoBffPath } from '@/lib/public-school-branding/client';
+import { useT } from '@/features/i18n/locale-context';
 import type { LoginSchoolBrandingView } from '@/types/public-school-branding';
 
 function schoolMonogram(label: string): string {
@@ -19,6 +20,7 @@ export function SchoolBrandingPreview({
   logoPreviewUrl,
   logoCacheKey,
   clearLogo,
+  showLiveBadge = true,
 }: {
   branding: LoginSchoolBrandingView;
   schoolLabel: string;
@@ -28,7 +30,9 @@ export function SchoolBrandingPreview({
   logoPreviewUrl: string | null;
   logoCacheKey?: number;
   clearLogo: boolean;
+  showLiveBadge?: boolean;
 }) {
+  const t = useT();
   const [remoteFailed, setRemoteFailed] = useState(false);
   const [localFailed, setLocalFailed] = useState(false);
 
@@ -72,6 +76,13 @@ export function SchoolBrandingPreview({
 
       <h3 className="school-branding-preview__school">{schoolLabel}</h3>
       <p className="school-branding-preview__greeting">{greeting}</p>
+
+      {showLiveBadge ? (
+        <span className="school-branding-preview__badge">
+          <span className="school-branding-preview__badge-dot" aria-hidden="true" />
+          {t('admin.settings.schoolBranding.preview.live')}
+        </span>
+      ) : null}
     </div>
   );
 }

@@ -15,29 +15,34 @@ export function SchoolBrandingColorField({
   onChange: (value: string) => void;
 }) {
   const t = useT();
-  const previewColor = SCHOOL_BRANDING_HEX_COLOR.test(value.trim()) ? value.trim() : '#E5E7EB';
+  const trimmed = value.trim();
+  const previewColor = SCHOOL_BRANDING_HEX_COLOR.test(trimmed) ? trimmed : '#E5E7EB';
 
   return (
-    <label className="school-branding-color col" style={{ gap: 4 }}>
-      <span className="tiny muted">{label}</span>
+    <div className="school-branding-color">
+      <span className="school-branding-color__label">{label}</span>
       <div className="school-branding-color__row">
-        <span
-          className="school-branding-color__swatch"
-          style={{ backgroundColor: previewColor }}
-          aria-hidden="true"
-        />
+        <div className="school-branding-color__picker-wrap">
+          <input
+            type="color"
+            value={previewColor}
+            onChange={(e) => onChange(e.target.value.toUpperCase())}
+            className="school-branding-color__picker"
+            aria-label={label}
+          />
+        </div>
         <input
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={t('admin.settings.schoolBranding.colors.placeholder')}
-          className="school-branding-color__input mono"
+          className="school-branding-color__input"
           spellCheck={false}
           autoComplete="off"
           maxLength={7}
         />
       </div>
-      {error ? <p className="form-error">{error}</p> : null}
-    </label>
+      {error ? <p className="school-branding-field-error">{error}</p> : null}
+    </div>
   );
 }

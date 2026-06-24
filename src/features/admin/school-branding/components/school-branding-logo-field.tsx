@@ -96,26 +96,31 @@ export function SchoolBrandingLogoField({
 
   return (
     <div className="school-branding-logo">
-      <div className="school-branding-logo__preview" aria-hidden={showMonogram}>
-        {showImage ? (
-          <img
-            src={displaySrc}
-            alt=""
-            decoding="async"
-            onError={() => {
-              if (previewUrl) {
-                setLocalFailed(true);
-                onError(t('admin.settings.schoolBranding.logo.loadFailed'));
-              } else {
-                setRemoteFailed(true);
-              }
-            }}
-          />
-        ) : (
-          <span className="school-branding-logo__placeholder" aria-hidden="true">
-            {schoolMonogram(schoolLabel)}
-          </span>
-        )}
+      <div className="school-branding-logo__preview-wrap">
+        <div
+          className={`school-branding-logo__preview${showImage ? ' school-branding-logo__preview--has-image' : ''}`}
+          aria-hidden={showMonogram}
+        >
+          {showImage ? (
+            <img
+              src={displaySrc}
+              alt=""
+              decoding="async"
+              onError={() => {
+                if (previewUrl) {
+                  setLocalFailed(true);
+                  onError(t('admin.settings.schoolBranding.logo.loadFailed'));
+                } else {
+                  setRemoteFailed(true);
+                }
+              }}
+            />
+          ) : (
+            <span className="school-branding-logo__placeholder" aria-hidden="true">
+              {schoolMonogram(schoolLabel)}
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="school-branding-logo__actions">
@@ -127,19 +132,29 @@ export function SchoolBrandingLogoField({
           id="school-branding-logo-input"
           onChange={(e) => handleFile(e.target.files?.[0] ?? null)}
         />
-        <label htmlFor="school-branding-logo-input" className="btn btn--secondary btn--sm">
-          {t('admin.settings.schoolBranding.logo.choose')}
-        </label>
-        {previewUrl ? (
-          <button type="button" className="btn btn--ghost btn--sm" onClick={clearLocalPreview}>
-            {t('admin.settings.schoolBranding.logo.clearPreview')}
-          </button>
-        ) : null}
-        {logoAvailable && !clearLogo && !previewUrl ? (
-          <button type="button" className="btn btn--ghost btn--sm" onClick={removeServerLogo}>
-            {t('admin.settings.schoolBranding.logo.remove')}
-          </button>
-        ) : null}
+        <div className="school-branding-logo__btn-row">
+          <label htmlFor="school-branding-logo-input" className="school-branding-btn school-branding-btn--soft school-branding-btn--sm">
+            {t('admin.settings.schoolBranding.logo.choose')}
+          </label>
+          {previewUrl ? (
+            <button
+              type="button"
+              className="school-branding-btn school-branding-btn--ghost school-branding-btn--sm"
+              onClick={clearLocalPreview}
+            >
+              {t('admin.settings.schoolBranding.logo.clearPreview')}
+            </button>
+          ) : null}
+          {logoAvailable && !clearLogo && !previewUrl ? (
+            <button
+              type="button"
+              className="school-branding-btn school-branding-btn--danger-soft school-branding-btn--sm"
+              onClick={removeServerLogo}
+            >
+              {t('admin.settings.schoolBranding.logo.remove')}
+            </button>
+          ) : null}
+        </div>
         <p className="school-branding-logo__hint">{t('admin.settings.schoolBranding.logo.hint')}</p>
       </div>
     </div>

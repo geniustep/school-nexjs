@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import '@/features/admin/school-branding/school-branding-settings.css';
-import { Card, InfoBanner, PageHeader } from '@/components/ui/primitives';
+import { InfoBanner, PageHeader } from '@/components/ui/primitives';
 import { LoadingState, ErrorState } from '@/components/states/states';
 import { useToast } from '@/components/ui/toast';
 import { useT } from '@/features/i18n/locale-context';
@@ -261,9 +261,11 @@ export function SchoolBrandingSettingsPage() {
     !logoError &&
     !saving;
 
+  const counterNearLimit = draftSubtitle.length >= SCHOOL_BRANDING_WELCOME_SUBTITLE_MAX - 10;
+
   return (
-    <>
-      <Link href="/admin/settings" className="school-branding-settings__back">
+    <div className="school-branding-page">
+      <Link href="/admin/settings" className="school-branding-page__back">
         {t('admin.settings.backToSettings')}
       </Link>
 
@@ -281,140 +283,205 @@ export function SchoolBrandingSettingsPage() {
         />
       ) : null}
 
-      <div className="school-branding-settings">
-        <Card>
-          <section className="school-branding-settings__section" aria-labelledby="school-branding-logo-heading">
-            <h2 id="school-branding-logo-heading" className="school-branding-settings__section-title">
-              {t('admin.settings.schoolBranding.logo.title')}
-            </h2>
-            <p className="school-branding-settings__section-desc">
-              {t('admin.settings.schoolBranding.logo.desc')}
-            </p>
-            <SchoolBrandingLogoField
-              schoolCode={ready.branding.schoolCode}
-              schoolLabel={schoolLabel}
-              logoAvailable={ready.branding.logoAvailable}
-              logoCacheKey={logoCacheKey}
-              previewUrl={logoPreviewUrl}
-              clearLogo={clearLogo}
-              onPreviewUrlChange={setLogoPreviewUrl}
-              onPendingFileChange={setPendingLogoFile}
-              onClearLogoChange={setClearLogo}
-              onError={setLogoError}
-            />
-            {logoError ? <p className="form-error">{logoError}</p> : null}
-          </section>
-        </Card>
+      <div className="school-branding-layout">
+        <div className="school-branding-form">
+          <article className="school-branding-card">
+            <header className="school-branding-card__head">
+              <span className="school-branding-card__icon school-branding-card__icon--logo" aria-hidden="true">
+                🖼
+              </span>
+              <div className="school-branding-card__titles">
+                <h2 id="school-branding-logo-heading" className="school-branding-card__title">
+                  {t('admin.settings.schoolBranding.logo.title')}
+                </h2>
+                <p className="school-branding-card__desc">
+                  {t('admin.settings.schoolBranding.logo.desc')}
+                </p>
+              </div>
+            </header>
+            <div className="school-branding-card__body">
+              <SchoolBrandingLogoField
+                schoolCode={ready.branding.schoolCode}
+                schoolLabel={schoolLabel}
+                logoAvailable={ready.branding.logoAvailable}
+                logoCacheKey={logoCacheKey}
+                previewUrl={logoPreviewUrl}
+                clearLogo={clearLogo}
+                onPreviewUrlChange={setLogoPreviewUrl}
+                onPendingFileChange={setPendingLogoFile}
+                onClearLogoChange={setClearLogo}
+                onError={setLogoError}
+              />
+              {logoError ? <p className="school-branding-field-error">{logoError}</p> : null}
+            </div>
+          </article>
 
-        <Card>
-          <section className="school-branding-settings__section" aria-labelledby="school-branding-slogan-heading">
-            <h2 id="school-branding-slogan-heading" className="school-branding-settings__section-title">
-              {t('admin.settings.schoolBranding.slogan.title')}
-            </h2>
-            <p className="school-branding-settings__section-desc">
-              {t('admin.settings.schoolBranding.slogan.desc')}
-            </p>
-            <div className="school-branding-slogan col" style={{ gap: 6 }}>
-              <label className="col" style={{ gap: 4 }}>
-                <span className="tiny muted">{t('admin.settings.schoolBranding.slogan.label')}</span>
-                <input
-                  type="text"
-                  value={draftSubtitle}
-                  maxLength={SCHOOL_BRANDING_WELCOME_SUBTITLE_MAX}
-                  placeholder={t('admin.settings.schoolBranding.slogan.placeholder')}
-                  onChange={(e) => {
-                    setDraftSubtitle(e.target.value);
-                    setFieldErrors((prev) => ({ ...prev, welcomeSubtitle: undefined }));
+          <article className="school-branding-card">
+            <header className="school-branding-card__head">
+              <span className="school-branding-card__icon school-branding-card__icon--slogan" aria-hidden="true">
+                ✏️
+              </span>
+              <div className="school-branding-card__titles">
+                <h2 id="school-branding-slogan-heading" className="school-branding-card__title">
+                  {t('admin.settings.schoolBranding.slogan.title')}
+                </h2>
+                <p className="school-branding-card__desc">
+                  {t('admin.settings.schoolBranding.slogan.desc')}
+                </p>
+              </div>
+            </header>
+            <div className="school-branding-card__body">
+              <div className="school-branding-slogan">
+                <label className="school-branding-slogan__label" htmlFor="school-branding-slogan-input">
+                  {t('admin.settings.schoolBranding.slogan.label')}
+                </label>
+                <div className="school-branding-slogan__field">
+                  <input
+                    id="school-branding-slogan-input"
+                    type="text"
+                    className="school-branding-slogan__input"
+                    value={draftSubtitle}
+                    maxLength={SCHOOL_BRANDING_WELCOME_SUBTITLE_MAX}
+                    placeholder={t('admin.settings.schoolBranding.slogan.placeholder')}
+                    onChange={(e) => {
+                      setDraftSubtitle(e.target.value);
+                      setFieldErrors((prev) => ({ ...prev, welcomeSubtitle: undefined }));
+                    }}
+                  />
+                  <span
+                    className={`school-branding-slogan__counter${counterNearLimit ? ' school-branding-slogan__counter--warn' : ''}`}
+                  >
+                    {draftSubtitle.length}/{SCHOOL_BRANDING_WELCOME_SUBTITLE_MAX}
+                  </span>
+                </div>
+                {fieldErrors.welcomeSubtitle ? (
+                  <p className="school-branding-field-error">{fieldErrors.welcomeSubtitle}</p>
+                ) : null}
+              </div>
+            </div>
+          </article>
+
+          <article className="school-branding-card">
+            <header className="school-branding-card__head">
+              <span className="school-branding-card__icon school-branding-card__icon--colors" aria-hidden="true">
+                🎨
+              </span>
+              <div className="school-branding-card__titles">
+                <h2 id="school-branding-colors-heading" className="school-branding-card__title">
+                  {t('admin.settings.schoolBranding.colors.title')}
+                </h2>
+                <p className="school-branding-card__desc">
+                  {t('admin.settings.schoolBranding.colors.desc')}
+                </p>
+              </div>
+            </header>
+            <div className="school-branding-card__body">
+              <div className="school-branding-colors">
+                <SchoolBrandingColorField
+                  label={t('admin.settings.schoolBranding.colors.primary')}
+                  value={draftPrimary}
+                  error={fieldErrors.primaryColor}
+                  onChange={(value) => {
+                    setDraftPrimary(value);
+                    setFieldErrors((prev) => ({ ...prev, primaryColor: undefined }));
                   }}
                 />
-              </label>
-              <span className="school-branding-slogan__counter">
-                {draftSubtitle.length}/{SCHOOL_BRANDING_WELCOME_SUBTITLE_MAX}
-              </span>
-              {fieldErrors.welcomeSubtitle ? (
-                <p className="form-error">{fieldErrors.welcomeSubtitle}</p>
-              ) : null}
+                <SchoolBrandingColorField
+                  label={t('admin.settings.schoolBranding.colors.secondary')}
+                  value={draftSecondary}
+                  error={fieldErrors.secondaryColor}
+                  onChange={(value) => {
+                    setDraftSecondary(value);
+                    setFieldErrors((prev) => ({ ...prev, secondaryColor: undefined }));
+                  }}
+                />
+              </div>
             </div>
-          </section>
-        </Card>
+          </article>
+        </div>
 
-        <Card>
-          <section className="school-branding-settings__section" aria-labelledby="school-branding-colors-heading">
-            <h2 id="school-branding-colors-heading" className="school-branding-settings__section-title">
-              {t('admin.settings.schoolBranding.colors.title')}
-            </h2>
-            <p className="school-branding-settings__section-desc">
-              {t('admin.settings.schoolBranding.colors.desc')}
-            </p>
-            <div className="school-branding-colors">
-              <SchoolBrandingColorField
-                label={t('admin.settings.schoolBranding.colors.primary')}
-                value={draftPrimary}
-                error={fieldErrors.primaryColor}
-                onChange={(value) => {
-                  setDraftPrimary(value);
-                  setFieldErrors((prev) => ({ ...prev, primaryColor: undefined }));
-                }}
-              />
-              <SchoolBrandingColorField
-                label={t('admin.settings.schoolBranding.colors.secondary')}
-                value={draftSecondary}
-                error={fieldErrors.secondaryColor}
-                onChange={(value) => {
-                  setDraftSecondary(value);
-                  setFieldErrors((prev) => ({ ...prev, secondaryColor: undefined }));
-                }}
+        <aside className="school-branding-aside" aria-labelledby="school-branding-preview-heading">
+          <div className="school-branding-aside__card">
+            <header className="school-branding-aside__head">
+              <h2 id="school-branding-preview-heading" className="school-branding-aside__title">
+                {t('admin.settings.schoolBranding.preview.title')}
+              </h2>
+              <p className="school-branding-aside__desc">
+                {t('admin.settings.schoolBranding.preview.desc')}
+              </p>
+            </header>
+            <div className="school-branding-aside__body">
+              <SchoolBrandingPreview
+                branding={ready.branding}
+                schoolLabel={schoolLabel}
+                welcomeSubtitle={draftSubtitle}
+                primaryColor={draftPrimary}
+                secondaryColor={draftSecondary}
+                logoPreviewUrl={logoPreviewUrl}
+                logoCacheKey={logoCacheKey}
+                clearLogo={clearLogo}
               />
             </div>
-          </section>
-        </Card>
-
-        <Card>
-          <section className="school-branding-settings__section" aria-labelledby="school-branding-preview-heading">
-            <h2 id="school-branding-preview-heading" className="school-branding-settings__section-title">
-              {t('admin.settings.schoolBranding.preview.title')}
-            </h2>
-            <p className="school-branding-settings__section-desc">
-              {t('admin.settings.schoolBranding.preview.desc')}
-            </p>
-            <SchoolBrandingPreview
-              branding={ready.branding}
-              schoolLabel={schoolLabel}
-              welcomeSubtitle={draftSubtitle}
-              primaryColor={draftPrimary}
-              secondaryColor={draftSecondary}
-              logoPreviewUrl={logoPreviewUrl}
-              logoCacheKey={logoCacheKey}
-              clearLogo={clearLogo}
-            />
-            <p className="school-branding-settings__readonly-note">
+            <p className="school-branding-aside__note">
               {t('admin.settings.schoolBranding.preview.readOnlyNote')}
             </p>
-          </section>
-        </Card>
-
-        <div className="school-branding-settings__actions">
-          <button
-            type="button"
-            className="btn btn--primary"
-            disabled={!canSave}
-            onClick={() => void handleSave()}
-          >
-            {saving ? t('common.loading') : t('admin.settings.schoolBranding.save')}
-          </button>
-          <button type="button" className="btn btn--ghost" onClick={handleCancel} disabled={saving}>
-            {dirty ? t('common.cancel') : t('admin.settings.schoolBranding.back')}
-          </button>
-          <button
-            type="button"
-            className="btn btn--ghost"
-            onClick={() => void handleReload()}
-            disabled={reloading || saving}
-          >
-            {reloading ? t('common.loading') : t('admin.settings.schoolBranding.reload')}
-          </button>
-        </div>
+          </div>
+        </aside>
       </div>
-    </>
+
+      <footer className="school-branding-footer">
+        <div className="school-branding-footer__inner">
+          <div className="school-branding-footer__status">
+            {dirty ? (
+              <span className="school-branding-footer__dirty">
+                {t('admin.settings.schoolBranding.unsavedChanges')}
+              </span>
+            ) : (
+              <span>{t('admin.settings.schoolBranding.noPendingChanges')}</span>
+            )}
+          </div>
+          <div className="school-branding-footer__actions">
+            <button
+              type="button"
+              className="school-branding-btn school-branding-btn--primary"
+              disabled={!canSave}
+              onClick={() => void handleSave()}
+            >
+              {saving ? (
+                <>
+                  <span className="school-branding-btn__spinner" aria-hidden="true" />
+                  {t('common.loading')}
+                </>
+              ) : (
+                t('admin.settings.schoolBranding.save')
+              )}
+            </button>
+            <button
+              type="button"
+              className="school-branding-btn school-branding-btn--ghost"
+              onClick={handleCancel}
+              disabled={saving}
+            >
+              {dirty ? t('common.cancel') : t('admin.settings.schoolBranding.back')}
+            </button>
+            <button
+              type="button"
+              className="school-branding-btn school-branding-btn--ghost"
+              onClick={() => void handleReload()}
+              disabled={reloading || saving}
+            >
+              {reloading ? (
+                <>
+                  <span className="school-branding-btn__spinner" aria-hidden="true" />
+                  {t('common.loading')}
+                </>
+              ) : (
+                t('admin.settings.schoolBranding.reload')
+              )}
+            </button>
+          </div>
+        </div>
+      </footer>
+    </div>
   );
 }
