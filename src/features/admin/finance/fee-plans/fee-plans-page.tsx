@@ -27,12 +27,20 @@ import { useLevelOptions } from '@/features/admin/academic-setup/hooks/use-level
 import { buildFeePlanScopeGroups } from './fee-plan-level-scope';
 import type { FeePlanDrawerMode } from './fee-plan-types';
 import { normalizeFeePlans } from './normalize-fee-plan';
-import { feePlanState } from '@/lib/utils/finance';
+import {
+  FEE_PLANS_CLIENT_SEARCH_FETCH_SIZE,
+  FEE_PLANS_LIST_PAGE_SIZE,
+  feePlansListUsesClientFilter,
+  filterFeePlansWorkspaceRows,
+  paginateFeePlansClient,
+} from './fee-plans-list-filters';
 import '@/features/admin/finance/finance-ui.css';
+import './fee-plans-workspace.css';
 
 const EMPTY_FILTERS: FeePlanFiltersState = {
   search: '',
   yearId: '',
+  cycleId: '',
   levelId: '',
   stateFilter: '',
 };
@@ -72,23 +80,24 @@ export function FeePlansPage() {
     }
   }, [searchParams, router]);
 
+  const clientFilterActive = feePlansListUsesClientFilter(query);
+
   const params: ListParams = useMemo(
     () => ({
-      page,
-      page_size: 20,
-      search: query.search || undefined,
+      page: clientFilterActive ? 1 : page,
+      page_size: clientFilterActive ? FEE_PLANS_CLIENT_SEARCH_FETCH_SIZE : FEE_PLANS_LIST_PAGE_SIZE,
       state: query.stateFilter || undefined,
       academic_year_id: query.yearId || undefined,
       level_id: query.levelId || undefined,
     }),
-    [page, query],
+    [clientFilterActive, page, query],
   );
 
   const state = useAdminResource<FeePlan[]>(endpoints.admin.financeFeePlans, params);
   const pg = state.meta?.pagination;
 
   const hasActiveFilters = Boolean(
-    query.search || query.yearId || query.levelId || query.stateFilter,
+    query.search || query.yearId || query.cycleId || query.levelId || query.stateFilter,
   );
 
   function openCreateDrawer() {
@@ -109,9 +118,17 @@ export function FeePlansPage() {
     setPage(1);
   }
 
+  function applyStateFilter(stateFilter: string) {
+    const next = { ...filters, stateFilter };
+    setFilters(next);
+    setPage(1);
+    setQuery(next);
+  }
+
   return (
     <RequireAdminPermission permission={FINANCE_VIEW}>
-      <Link href="/admin/finance" className="back-link">
+      <div className="fee-plans-workspace">
+      <Link href="/admin/finance" className="back-link fee-plans-workspace__back">
         ‹ {t('admin.finance.backToFinance')}
       </Link>
 
@@ -121,14 +138,20 @@ export function FeePlansPage() {
         onAdd={openCreateDrawer}
         onManageCatalog={() => setCatalogOpen(true)}
       />
-      <FeePlansMetrics />
+      <FeePlansMetrics
+        activeStateFilter={query.stateFilter}
+        onStateFilterChange={applyStateFilter}
+      />
 
       <FeePlansFilters
         filters={filters}
         onChange={(patch) => setFilters((prev) => ({ ...prev, ...patch }))}
         onSearch={() => {
           setPage(1);
-          setQuery({ ...filters });
+          setFilters((current) => {
+            setQuery(current);
+            return current;
+          });
         }}
         onSearchSubmit={(next) => {
           setFilters(next);
@@ -137,14 +160,25 @@ export function FeePlansPage() {
         }}
         onClear={clearFilters}
         hasActiveFilters={
-          Boolean(filters.search || filters.yearId || filters.levelId || filters.stateFilter)
+          Boolean(
+            filters.search ||
+              filters.yearId ||
+              filters.cycleId ||
+              filters.levelId ||
+              filters.stateFilter,
+          )
         }
       />
 
+      <div className="card fee-plans-workspace__panel">
       <ResourceView
         state={state}
         loadingLabel={t('common.loading')}
-        isEmpty={(rows) => rows.length === 0}
+        isEmpty={(rows) => {
+          if (!rows.length) return true;
+          const filtered = filterFeePlansWorkspaceRows(normalizeFeePlans(rows), query, scopeGroups);
+          return filtered.length === 0;
+        }}
         empty={
           hasActiveFilters ? (
             <FeePlanEmptyState variant="filtered" onClearFilters={clearFilters} />
@@ -158,13 +192,16 @@ export function FeePlansPage() {
       >
         {(rows) => {
           const normalized = normalizeFeePlans(rows);
-          const visibleRows = query.stateFilter
-            ? normalized
-            : normalized.filter((plan) => feePlanState(plan) !== 'archived');
+          const filteredRows = filterFeePlansWorkspaceRows(normalized, query, scopeGroups);
+          const { rows: visibleRows, pagination: clientPagination } = clientFilterActive
+            ? paginateFeePlansClient(filteredRows, page)
+            : { rows: filteredRows, pagination: undefined };
+          const pagination = clientPagination
+            ?? (pg ? { page: pg.page, total_pages: pg.total_pages, total: pg.total } : undefined);
           return (
           <FeePlansList
             rows={visibleRows}
-            pagination={pg ? { page: pg.page, total_pages: pg.total_pages, total: pg.total } : undefined}
+            pagination={pagination}
             canManage={canManage}
             scopeGroups={scopeGroups}
             onPage={setPage}
@@ -175,6 +212,7 @@ export function FeePlansPage() {
           );
         }}
       </ResourceView>
+      </div>
 
       {canManage && (
         <FeePlanDrawer
@@ -194,6 +232,7 @@ export function FeePlansPage() {
           onChanged={() => state.reload()}
         />
       ) : null}
+      </div>
     </RequireAdminPermission>
   );
 }

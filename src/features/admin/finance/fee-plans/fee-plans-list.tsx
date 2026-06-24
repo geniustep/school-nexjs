@@ -64,25 +64,25 @@ export function FeePlansList({
         header: t('admin.finance.planName'),
         render: (row) => (
           <button type="button" className="fee-plans-list__name-link" onClick={() => onView(row)}>
-            <strong>{row.name}</strong>
+            <strong dir="auto">{row.name}</strong>
+            <span className="fee-plans-list__code-chip mono">{row.code}</span>
           </button>
         ),
       },
       {
-        key: 'code',
-        header: t('admin.finance.feeTypeCode'),
-        render: (row) => <span className="mono">{row.code}</span>,
-      },
-      {
         key: 'academic_year',
         header: t('admin.finance.academicYear'),
-        render: (row) => academicYearLabel(row),
+        render: (row) => (
+          <span className="fee-plans-list__meta-cell" dir="auto">
+            {academicYearLabel(row)}
+          </span>
+        ),
       },
       {
         key: 'level',
         header: t('nav.levels'),
         render: (row) => (
-          <span className="fee-plan-level-scope-summary">
+          <span className="fee-plan-level-scope-summary fee-plans-list__meta-cell" dir="auto">
             {feePlanLevelScopeLabel(row, scopeGroups, scopeLabels)}
           </span>
         ),
@@ -90,7 +90,9 @@ export function FeePlansList({
       {
         key: 'lines',
         header: t('admin.finance.feePlansWorkspace.lineCount'),
-        render: (row) => feePlanLineCount(row),
+        render: (row) => (
+          <span className="fee-plans-list__line-count">{feePlanLineCount(row)}</span>
+        ),
       },
       {
         key: 'total',
@@ -110,7 +112,7 @@ export function FeePlansList({
           const canConfirmRow = canManage && feePlanAllowsAction(row, 'confirm');
           const canArchiveRow = canManage && feePlanAllowsAction(row, 'archive');
           return (
-            <div className="fee-plans-list__actions row" onClick={(e) => e.stopPropagation()}>
+            <div className="fee-plans-list__actions" onClick={(e) => e.stopPropagation()}>
               <button type="button" className="btn btn--ghost btn--sm" onClick={() => onView(row)}>
                 {t('admin.finance.feePlansWorkspace.viewDetails')}
               </button>
@@ -145,32 +147,38 @@ export function FeePlansList({
   );
 
   return (
-    <>
-      <div className="fee-plans-list__desktop" data-testid="fee-plans-table">
+    <div className="fee-plans-workspace__list-wrap">
+      <div className="fee-plans-list__desktop fee-plans-workspace__table-wrap" data-testid="fee-plans-table">
         <DataTable columns={columns} rows={rows} rowKey={(row) => row.id} onRowClick={onView} />
       </div>
       <div className="fee-plans-list__mobile" data-testid="fee-plans-cards">
         {rows.map((row) => (
           <article key={row.id} className="card fee-plan-card" onClick={() => onView(row)}>
             <div className="fee-plan-card__head">
-              <strong>{row.name}</strong>
+              <div>
+                <h3 className="fee-plan-card__title" dir="auto">
+                  {row.name}
+                </h3>
+                <p className="fee-plans-list__code-chip fee-plan-card__code mono">{row.code}</p>
+              </div>
               <FinanceStatusBadge state={feePlanState(row)} />
             </div>
-            <p className="mono muted">{row.code}</p>
-            <dl className="detail-list compact">
-              <div>
+            <dl className="fee-plan-card__stats">
+              <div className="fee-plan-card__stat">
                 <dt>{t('admin.finance.academicYear')}</dt>
-                <dd>
-                  {academicYearLabel(row)}
-                </dd>
+                <dd dir="auto">{academicYearLabel(row)}</dd>
               </div>
-              <div>
+              <div className="fee-plan-card__stat">
+                <dt>{t('admin.finance.feePlansWorkspace.lineCount')}</dt>
+                <dd>{feePlanLineCount(row)}</dd>
+              </div>
+              <div className="fee-plan-card__stat">
                 <dt>{t('nav.levels')}</dt>
-                <dd className="fee-plan-level-scope-summary fee-plan-level-scope-summary--multiline">
+                <dd className="fee-plan-level-scope-summary fee-plan-level-scope-summary--multiline" dir="auto">
                   {feePlanLevelScopeLabel(row, scopeGroups, scopeLabels)}
                 </dd>
               </div>
-              <div>
+              <div className="fee-plan-card__total">
                 <dt>{t('admin.finance.feePlansWorkspace.planTotal')}</dt>
                 <dd>
                   <FinanceMoney amount={row.total_amount} currency={row.currency} />
@@ -180,14 +188,16 @@ export function FeePlansList({
           </article>
         ))}
       </div>
-      {pagination && pagination.total > 0 && (
-        <Pagination
-          page={pagination.page}
-          totalPages={pagination.total_pages}
-          total={pagination.total}
-          onPage={onPage}
-        />
-      )}
-    </>
+      {pagination && pagination.total > 0 ? (
+        <div className="fee-plans-workspace__pagination">
+          <Pagination
+            page={pagination.page}
+            totalPages={pagination.total_pages}
+            total={pagination.total}
+            onPage={onPage}
+          />
+        </div>
+      ) : null}
+    </div>
   );
 }

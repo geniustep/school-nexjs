@@ -16,31 +16,41 @@ export function FeePlanEmptyState({
 
   if (variant === 'filtered') {
     return (
-      <EmptyState
-        title={t('admin.finance.feePlansWorkspace.emptyFilteredTitle')}
-        description={t('admin.finance.feePlansWorkspace.emptyFilteredDesc')}
-        action={
-          onClearFilters ? (
-            <button type="button" className="btn btn--primary btn--sm" onClick={onClearFilters}>
-              {t('admin.finance.feePlansWorkspace.clearFilters')}
-            </button>
-          ) : undefined
-        }
-      />
+      <div className="fee-plans-workspace__empty">
+        <div className="fee-plans-workspace__empty-icon" aria-hidden>
+          🔎
+        </div>
+        <EmptyState
+          title={t('admin.finance.feePlansWorkspace.emptyFilteredTitle')}
+          description={t('admin.finance.feePlansWorkspace.emptyFilteredDesc')}
+          action={
+            onClearFilters ? (
+              <button type="button" className="btn btn--primary btn--sm" onClick={onClearFilters}>
+                {t('admin.finance.feePlansWorkspace.clearFilters')}
+              </button>
+            ) : undefined
+          }
+        />
+      </div>
     );
   }
 
   return (
-    <EmptyState
-      title={t('admin.finance.feePlansWorkspace.emptyTitle')}
-      description={t('admin.finance.feePlansWorkspace.emptyDesc')}
-      action={
-        onAdd ? (
-          <button type="button" className="btn btn--primary btn--sm" onClick={onAdd}>
-            {t('admin.finance.feePlansWorkspace.addPlan')}
-          </button>
-        ) : undefined
-      }
-    />
+    <div className="fee-plans-workspace__empty">
+      <div className="fee-plans-workspace__empty-icon" aria-hidden>
+        📋
+      </div>
+      <EmptyState
+        title={t('admin.finance.feePlansWorkspace.emptyTitle')}
+        description={t('admin.finance.feePlansWorkspace.emptyDesc')}
+        action={
+          onAdd ? (
+            <button type="button" className="btn btn--primary btn--sm" onClick={onAdd}>
+              {t('admin.finance.feePlansWorkspace.addPlan')}
+            </button>
+          ) : undefined
+        }
+      />
+    </div>
   );
 }
