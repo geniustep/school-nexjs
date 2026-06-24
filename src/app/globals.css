@@ -1044,22 +1044,256 @@ table.data tbody tr:hover {
 .toast--success { background: var(--c-green); }
 
 /* ---------- Login ---------- */
-.login-wrap {
+.login-page {
+  --login-brand-primary: var(--raqeem-primary);
+  --login-brand-accent: var(--c-primary-soft);
   min-height: 100vh;
+  min-height: 100dvh;
   display: grid;
-  place-items: center;
-  padding: 24px;
-  background: var(--raqeem-background);
+  grid-template-columns: 1fr;
+  gap: clamp(16px, 2.5vw, 28px);
+  align-items: start;
+  padding: clamp(12px, 2.5vw, 28px);
+  background: linear-gradient(180deg, #f9fafb 0%, var(--raqeem-background) 100%);
+  overflow-x: hidden;
 }
 
+.login-page__hero,
+.login-page__form {
+  min-width: 0;
+}
+
+.login-page__hero-full {
+  display: none;
+}
+
+.login-page__form {
+  display: flex;
+  justify-content: center;
+}
+
+@media (min-width: 900px) {
+  .login-page {
+    grid-template-columns: 1fr minmax(300px, 400px);
+    align-items: center;
+    padding-block: clamp(16px, 3vh, 32px);
+  }
+
+  html[dir='rtl'] .login-page {
+    grid-template-columns: minmax(300px, 400px) 1fr;
+  }
+
+  .login-page__hero {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .login-page__form {
+    grid-column: 2;
+    grid-row: 1;
+    justify-content: flex-end;
+  }
+
+  html[dir='rtl'] .login-page__hero {
+    grid-column: 2;
+  }
+
+  html[dir='rtl'] .login-page__form {
+    grid-column: 1;
+    justify-content: flex-start;
+  }
+
+  .login-page__hero-compact {
+    display: none;
+  }
+
+  .login-page__hero-full {
+    display: block;
+  }
+
+  .login-card__brand {
+    display: none;
+  }
+
+  .login-card h1 {
+    margin-block-start: 0;
+  }
+}
+
+@media (min-width: 900px) and (max-height: 820px) {
+  .login-page {
+    gap: 14px;
+    padding-block: 12px;
+  }
+
+  .login-welcome {
+    padding: 18px 22px;
+  }
+
+  .login-card {
+    padding: 20px 22px;
+    box-shadow: var(--shadow);
+  }
+
+  .login-card h1 {
+    font-size: 20px;
+  }
+
+  .login-card p.sub {
+    margin-bottom: 18px;
+  }
+}
+
+@media (max-width: 899px) {
+  .login-page {
+    padding-block: 16px 24px;
+  }
+}
+
+/* School welcome panel */
+.login-welcome {
+  padding: clamp(16px, 2.5vw, 28px);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--login-brand-accent) 42%, white 58%);
+  border: 1px solid color-mix(in srgb, var(--login-brand-primary) 12%, var(--c-border) 88%);
+}
+
+.login-welcome--compact {
+  padding: 14px 16px;
+  border-radius: 14px;
+  text-align: center;
+}
+
+.login-welcome__mark {
+  margin-block-end: 14px;
+}
+
+.login-welcome--compact .login-welcome__mark {
+  margin-block-end: 10px;
+  display: flex;
+  justify-content: center;
+}
+
+.login-welcome__logo.brand-logo__full {
+  height: 40px;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  object-position: start center;
+}
+
+.login-welcome__logo--school {
+  height: auto;
+  max-height: 56px;
+  width: auto;
+  max-width: min(220px, 100%);
+  object-fit: contain;
+  object-position: start center;
+}
+
+.login-welcome__logo.brand-logo__mark {
+  height: 36px;
+  width: auto;
+}
+
+.login-school-monogram {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--login-brand-accent) 55%, white 45%);
+  border: 1px solid color-mix(in srgb, var(--login-brand-primary) 18%, var(--c-border) 82%);
+  color: var(--login-brand-primary);
+}
+
+.login-school-monogram--compact {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  margin-inline: auto;
+}
+
+.login-school-monogram__glyph {
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.login-school-monogram--compact .login-school-monogram__glyph {
+  font-size: 1.1rem;
+}
+
+.login-welcome--compact .login-welcome__logo.brand-logo__mark {
+  height: 32px;
+}
+
+.login-welcome__year {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--login-brand-primary);
+  background: color-mix(in srgb, var(--login-brand-accent) 50%, white 50%);
+  border: 1px solid color-mix(in srgb, var(--login-brand-primary) 14%, var(--c-border) 86%);
+  margin-block-end: 12px;
+}
+
+.login-welcome--compact .login-welcome__year {
+  margin-block-end: 8px;
+}
+
+.login-welcome__school {
+  margin: 0 0 6px;
+  font-size: clamp(1.15rem, 2vw, 1.5rem);
+  line-height: 1.3;
+  color: var(--c-text);
+  font-weight: 700;
+}
+
+.login-welcome--compact .login-welcome__school {
+  font-size: 1.05rem;
+  margin-bottom: 4px;
+}
+
+.login-welcome__greeting {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--c-text-body);
+  max-width: 36ch;
+}
+
+.login-welcome--compact .login-welcome__greeting {
+  font-size: 0.875rem;
+  margin-bottom: 4px;
+  max-width: none;
+}
+
+.login-welcome__note {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--c-text-muted);
+  max-width: 38ch;
+}
+
+.login-welcome--compact .login-welcome__note {
+  font-size: 0.75rem;
+  max-width: none;
+}
+
+/* Login card */
 .login-card {
   width: 100%;
   max-width: 400px;
   background: var(--c-surface);
   border: 1px solid var(--c-border);
-  border-radius: 20px;
-  box-shadow: 0 20px 60px rgba(15, 42, 68, 0.12), 0 4px 16px rgba(15, 23, 42, 0.06);
-  padding: 36px;
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: clamp(20px, 3vw, 28px);
 }
 
 .login-card__brand {
@@ -1083,6 +1317,16 @@ table.data tbody tr:hover {
 .login-card p.sub {
   color: var(--c-text-muted);
   margin: 4px 0 24px;
+}
+
+.login-card .btn--primary {
+  background: var(--login-brand-primary);
+  border-color: var(--login-brand-primary);
+}
+
+.login-card .input,
+.login-card .btn {
+  min-height: 44px;
 }
 
 .form-error {

@@ -13,6 +13,11 @@ export const endpoints = {
     me: '/me',
   },
 
+  public: {
+    schoolBranding: '/public/school-branding',
+    schoolBrandingLogo: '/public/school-branding/logo',
+  },
+
   admin: {
     dashboard: '/admin/dashboard',
 
