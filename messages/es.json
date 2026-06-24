@@ -3070,7 +3070,9 @@
         "scrollHint": "Desplázate para ver más etapas",
         "scrollBack": "Desplazar a etapas anteriores",
         "scrollForward": "Desplazar a etapas siguientes",
-        "boardLabel": "Tablero de etapas de admisión"
+        "boardLabel": "Tablero de etapas de admisión",
+        "loadMore": "Ver más",
+        "loadingMore": "Cargando…"
       },
       "card": {
         "guardian": "Tutor",

@@ -3070,7 +3070,9 @@
         "scrollHint": "Scroll to see more stages",
         "scrollBack": "Scroll to earlier stages",
         "scrollForward": "Scroll to later stages",
-        "boardLabel": "Admission pipeline board"
+        "boardLabel": "Admission pipeline board",
+        "loadMore": "Load more",
+        "loadingMore": "Loading…"
       },
       "card": {
         "guardian": "Guardian",

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { ResourceView } from '@/components/states/resource';
+import { Pagination } from '@/components/tables/data-table';
 import { InfoBanner } from '@/components/ui/primitives';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { useDebouncedValue } from '@/features/admin/students/hooks/use-debounced-value';
@@ -10,36 +11,55 @@ import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import type { AdmissionListItem, AdmissionsDashboard } from '@/types/admission';
 import type { ListParams } from '@/types/api';
-import { buildAdmissionsDashboardFromList } from '../utils/admission-dashboard-from-list';
+import { useAdmissionsKanbanBoard } from '../hooks/use-admissions-kanban-board';
 import { AdmissionsDashboardSummary } from './admissions-dashboard-summary';
 import { AdmissionsKanban } from './admissions-kanban';
 import { AdmissionsTable } from './admissions-table';
-import { ALL_KANBAN_STATES } from '../utils/admission-labels';
+import { ACTIVE_KANBAN_STATES, ALL_KANBAN_STATES, CLOSED_KANBAN_STATES } from '../utils/admission-labels';
 import '../admissions.css';
 
 type ViewMode = 'kanban' | 'table';
 
+const TABLE_PAGE_SIZE = 25;
+
 export function AdmissionsListPage() {
   const t = useT();
   const [view, setView] = useState<ViewMode>('kanban');
+  const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [stateFilter, setStateFilter] = useState('');
   const [showClosed, setShowClosed] = useState(false);
   const debouncedSearch = useDebouncedValue(search, 400);
 
-  const listParams: ListParams = useMemo(
+  const displayStates = showClosed
+    ? [...ACTIVE_KANBAN_STATES, ...CLOSED_KANBAN_STATES]
+    : ACTIVE_KANBAN_STATES;
+  const fetchStates = stateFilter ? [stateFilter] : displayStates;
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, stateFilter, view, showClosed]);
+
+  const tableParams: ListParams = useMemo(
     () => ({
+      page,
+      page_size: TABLE_PAGE_SIZE,
       search: debouncedSearch.trim() || undefined,
       state: stateFilter || undefined,
-      page_size: 200,
     }),
-    [debouncedSearch, stateFilter],
+    [page, debouncedSearch, stateFilter],
   );
 
-  const listState = useAdminResource<AdmissionListItem[]>(
-    endpoints.admin.admissions,
-    listParams,
+  const tableState = useAdminResource<AdmissionListItem[]>(
+    view === 'table' ? endpoints.admin.admissions : null,
+    tableParams,
   );
+
+  const kanbanBoard = useAdmissionsKanbanBoard({
+    columns: fetchStates,
+    search: debouncedSearch.trim() || undefined,
+    enabled: view === 'kanban',
+  });
 
   const [dashboardApiEnabled, setDashboardApiEnabled] = useState(true);
   const dashboardState = useAdminResource<AdmissionsDashboard>(
@@ -52,13 +72,8 @@ export function AdmissionsListPage() {
     }
   }, [dashboardState.error, dashboardApiEnabled]);
 
-  const dashboardData = useMemo(() => {
-    if (dashboardState.data) return dashboardState.data;
-    if (listState.data?.length) return buildAdmissionsDashboardFromList(listState.data);
-    return null;
-  }, [dashboardState.data, listState.data]);
-
-  const dashboardFromFallback = !dashboardState.data && !!listState.data && !!dashboardState.error;
+  const dashboardData = dashboardState.data ?? null;
+  const tablePagination = tableState.meta?.pagination;
 
   function retryDashboard() {
     setDashboardApiEnabled(true);
@@ -77,6 +92,14 @@ export function AdmissionsListPage() {
     }
   }
 
+  function reloadCurrentView() {
+    if (view === 'kanban') {
+      kanbanBoard.reload();
+      return;
+    }
+    tableState.reload();
+  }
+
   return (
     <div className="admissions-page admissions-list-page">
       <header className="admissions-list-header">
@@ -90,23 +113,20 @@ export function AdmissionsListPage() {
       </header>
 
       {dashboardData ? (
-        <>
-          {dashboardFromFallback ? (
-            <div className="admissions-dashboard-fallback">
-              <InfoBanner
-                tone="amber"
-                title={t('admin.admissions.dashboard.fallbackTitle')}
-                description={t('admin.admissions.dashboard.fallbackDescription')}
-              />
-              <button type="button" className="btn btn--ghost btn--sm" onClick={retryDashboard}>
-                {t('common.retry')}
-              </button>
-            </div>
-          ) : null}
-          <AdmissionsDashboardSummary data={dashboardData} onKpiClick={handleKpiClick} />
-        </>
+        <AdmissionsDashboardSummary data={dashboardData} onKpiClick={handleKpiClick} />
       ) : dashboardState.loading && dashboardApiEnabled ? (
         <div className="muted">{t('common.loading')}</div>
+      ) : dashboardState.error ? (
+        <div className="admissions-dashboard-fallback">
+          <InfoBanner
+            tone="amber"
+            title={t('admin.admissions.dashboard.fallbackTitle')}
+            description={t('admin.admissions.dashboard.fallbackDescription')}
+          />
+          <button type="button" className="btn btn--ghost btn--sm" onClick={retryDashboard}>
+            {t('common.retry')}
+          </button>
+        </div>
       ) : null}
 
       <div className="card admissions-list-toolbar">
@@ -166,15 +186,38 @@ export function AdmissionsListPage() {
         </div>
       </div>
 
-      <ResourceView state={listState}>
-        {(rows) =>
-          view === 'kanban' ? (
-            <AdmissionsKanban items={rows} showClosed={showClosed} onUpdated={listState.reload} />
-          ) : (
-            <AdmissionsTable items={rows} onUpdated={listState.reload} />
-          )
-        }
-      </ResourceView>
+      {view === 'kanban' ? (
+        kanbanBoard.initialLoading ? (
+          <div className="muted">{t('common.loading')}</div>
+        ) : kanbanBoard.error ? (
+          <div className="alert alert--error">{kanbanBoard.error.message}</div>
+        ) : (
+          <AdmissionsKanban
+            columns={kanbanBoard.grouped}
+            displayStates={displayStates}
+            showClosed={showClosed}
+            onUpdated={reloadCurrentView}
+            onLoadMore={kanbanBoard.loadMore}
+          />
+        )
+      ) : (
+        <ResourceView state={tableState}>
+          {(rows) => (
+            <>
+              <AdmissionsTable items={rows} onUpdated={reloadCurrentView} />
+              {tablePagination ? (
+                <Pagination
+                  page={tablePagination.page}
+                  pageSize={tablePagination.page_size}
+                  totalPages={tablePagination.total_pages}
+                  total={tablePagination.total}
+                  onPage={setPage}
+                />
+              ) : null}
+            </>
+          )}
+        </ResourceView>
+      )}
     </div>
   );
 }

@@ -428,6 +428,11 @@
   background: color-mix(in srgb, var(--border, #e2e8f0) 6%, white);
 }
 
+.admissions-kanban__load-more {
+  width: 100%;
+  justify-content: center;
+}
+
 .admission-card {
   display: block;
   border: 1px solid var(--border, var(--c-border));

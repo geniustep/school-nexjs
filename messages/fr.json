@@ -3070,7 +3070,9 @@
         "scrollHint": "Faites défiler pour voir les autres étapes",
         "scrollBack": "Défiler vers les étapes précédentes",
         "scrollForward": "Défiler vers les étapes suivantes",
-        "boardLabel": "Tableau des étapes d'admission"
+        "boardLabel": "Tableau des étapes d'admission",
+        "loadMore": "Voir plus",
+        "loadingMore": "Chargement…"
       },
       "card": {
         "guardian": "Responsable",

@@ -21,23 +21,38 @@ function scrollToBoardStart(el: HTMLElement, dir: 'rtl' | 'ltr') {
   el.scrollLeft = dir === 'rtl' ? max : 0;
 }
 
+import type { AdmissionsKanbanColumn } from '../hooks/use-admissions-kanban-board';
+
 export function AdmissionsKanban({
-  items,
+  columns: columnGroups,
+  displayStates,
   showClosed,
   onUpdated,
+  onLoadMore,
 }: {
-  items: AdmissionListItem[];
+  columns: AdmissionsKanbanColumn[];
+  displayStates: string[];
   showClosed: boolean;
   onUpdated?: () => void;
+  onLoadMore?: (state: string) => void;
 }) {
   const t = useT();
   const { dir } = useLocale();
   const scrollRef = useRef<HTMLDivElement>(null);
-  const columns = showClosed
-    ? [...ACTIVE_KANBAN_STATES, ...CLOSED_KANBAN_STATES]
-    : ACTIVE_KANBAN_STATES;
+  const columns = displayStates.length
+    ? displayStates
+    : showClosed
+      ? [...ACTIVE_KANBAN_STATES, ...CLOSED_KANBAN_STATES]
+      : ACTIVE_KANBAN_STATES;
 
-  const [localItems, setLocalItems] = useState(items);
+  const columnByState = useMemo(
+    () => new Map(columnGroups.map((col) => [col.state, col])),
+    [columnGroups],
+  );
+
+  const allItems = useMemo(() => columnGroups.flatMap((col) => col.items), [columnGroups]);
+
+  const [localItems, setLocalItems] = useState(allItems);
   const [draggingId, setDraggingId] = useState<number | null>(null);
   const [dropTargetState, setDropTargetState] = useState<string | null>(null);
   const [canScrollBack, setCanScrollBack] = useState(false);
@@ -45,16 +60,23 @@ export function AdmissionsKanban({
   const { changeState, isPending } = useAdmissionStateChange(onUpdated);
 
   useEffect(() => {
-    setLocalItems(items);
-  }, [items]);
+    setLocalItems(allItems);
+  }, [allItems]);
 
   const grouped = useMemo(
     () =>
-      columns.map((state) => ({
-        state,
-        items: localItems.filter((item) => item.state === state),
-      })),
-    [columns, localItems],
+      columns.map((state) => {
+        const meta = columnByState.get(state);
+        return {
+          state,
+          items: localItems.filter((item) => item.state === state),
+          total: meta?.total ?? localItems.filter((item) => item.state === state).length,
+          hasMore: meta?.hasMore ?? false,
+          loadingMore: meta?.loadingMore ?? false,
+          loading: meta?.loading ?? false,
+        };
+      }),
+    [columns, columnByState, localItems],
   );
 
   const updateScrollEdges = useCallback(() => {
@@ -151,7 +173,7 @@ export function AdmissionsKanban({
     void moveItem(admissionId, state);
   }
 
-  if (!items.length) {
+  if (!allItems.length && !columnGroups.some((col) => col.loading)) {
     return (
       <EmptyState
         icon="📋"
@@ -197,7 +219,7 @@ export function AdmissionsKanban({
             aria-label={t('admin.admissions.kanban.boardLabel')}
           >
             <div className="admissions-kanban" data-pipeline-start={firstColumnLabel} data-dir={dir}>
-              {grouped.map(({ state, items: columnItems }) => (
+              {grouped.map(({ state, items: columnItems, total, hasMore, loadingMore, loading }) => (
                 <section
                   key={state}
                   className={cn(
@@ -216,12 +238,14 @@ export function AdmissionsKanban({
                         {t(`admin.admissions.states.${state}`)}
                       </span>
                       <span className="admissions-kanban__column-count" aria-hidden="true">
-                        {columnItems.length}
+                        {total}
                       </span>
                     </div>
                   </header>
                   <div className="admissions-kanban__column-body">
-                    {columnItems.length === 0 ? (
+                    {loading ? (
+                      <p className="admissions-kanban__empty muted">{t('common.loading')}</p>
+                    ) : columnItems.length === 0 ? (
                       <p className="admissions-kanban__empty">{t('admin.admissions.kanban.emptyColumn')}</p>
                     ) : (
                       columnItems.map((item) => (
@@ -237,6 +261,18 @@ export function AdmissionsKanban({
                         />
                       ))
                     )}
+                    {hasMore ? (
+                      <button
+                        type="button"
+                        className="btn btn--ghost btn--sm admissions-kanban__load-more"
+                        disabled={loadingMore}
+                        onClick={() => onLoadMore?.(state)}
+                      >
+                        {loadingMore
+                          ? t('admin.admissions.kanban.loadingMore')
+                          : t('admin.admissions.kanban.loadMore')}
+                      </button>
+                    ) : null}
                   </div>
                 </section>
               ))}
