@@ -1237,6 +1237,16 @@
       }
     },
     "classesListDesc": "Manage classes",
+    "classesBrowser": {
+      "overviewLabel": "Classes overview",
+      "activeClasses": "Active classes",
+      "searchPlaceholder": "Search classes or levels…",
+      "journeyHint": "Organized by academic path from preschool through secondary.",
+      "journeyLabel": "Academic path",
+      "noMatch": "No classes match your current search.",
+      "studentCount": "{count} students",
+      "levelMeta": "{classes} classes · {students} students"
+    },
     "levelsListDesc": "Manage levels",
     "subjectsListDesc": "Manage subjects",
     "settings": {

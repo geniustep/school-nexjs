@@ -1,34 +1,35 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { ResourceView } from '@/components/states/resource';
-import { EmptyState } from '@/components/states/states';
-import { DataTable, type Column } from '@/components/tables/data-table';
-import { PageHeader, Badge } from '@/components/ui/primitives';
+import { PageHeader } from '@/components/ui/primitives';
 import { AdminListActions } from '@/features/admin/admin-list-actions';
+import { AdminClassesBrowser } from '@/features/admin/classes/components/admin-classes-browser';
 import { CsvImportPanel } from '@/features/admin/csv-import-panel';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
-import { statusLabel } from '@/lib/utils/labels';
-import type { SchoolClass } from '@/types/class';
+import type { Level, SchoolClass } from '@/types/class';
 
 export default function AdminClassesPage() {
-  const router = useRouter();
   const t = useT();
   const [importOpen, setImportOpen] = useState(false);
-  const state = useAdminResource<SchoolClass[]>(endpoints.admin.classes);
+  const classesState = useAdminResource<SchoolClass[]>(endpoints.admin.classes);
+  const levelsState = useAdminResource<Level[]>(endpoints.admin.levels);
 
-  const columns: Column<SchoolClass>[] = useMemo(
-    () => [
-      { key: 'name', header: t('nav.classes'), render: (c) => <strong>{c.name}</strong> },
-      { key: 'level', header: t('nav.levels'), render: (c) => c.level?.name ?? t('common.dash') },
-      { key: 'students', header: t('nav.students'), render: (c) => <span className="mono">{c.student_count}{c.capacity ? ` / ${c.capacity}` : ''}</span> },
-      { key: 'status', header: t('academic.status'), render: (c) => <Badge tone={c.status === 'active' ? 'green' : 'slate'}>{statusLabel(t, c.status)}</Badge> },
-    ],
-    [t],
-  );
+  const combinedState = {
+    data:
+      classesState.data != null
+        ? { classes: classesState.data, levels: levelsState.data ?? [] }
+        : null,
+    loading: classesState.loading || levelsState.loading,
+    initialLoading: classesState.initialLoading || levelsState.initialLoading,
+    error: classesState.error ?? levelsState.error,
+    reload: () => {
+      classesState.reload();
+      levelsState.reload();
+    },
+  };
 
   return (
     <>
@@ -47,9 +48,17 @@ export default function AdminClassesPage() {
           />
         }
       />
-      {importOpen && <CsvImportPanel importPath={endpoints.admin.classesImport} onDone={() => state.reload()} />}
-      <ResourceView state={state} loadingLabel={t('common.loading')} isEmpty={(d) => d.length === 0} empty={<EmptyState icon="🏫" title={t('empty.classes')} />}>
-        {(classes) => <DataTable columns={columns} rows={classes} rowKey={(c) => c.id} onRowClick={(c) => router.push(`/admin/classes/${c.id}`)} />}
+      {importOpen && (
+        <CsvImportPanel
+          importPath={endpoints.admin.classesImport}
+          onDone={() => combinedState.reload()}
+        />
+      )}
+      <ResourceView
+        state={combinedState}
+        loadingLabel={t('common.loading')}
+      >
+        {(data) => <AdminClassesBrowser classes={data.classes} levels={data.levels} />}
       </ResourceView>
     </>
   );

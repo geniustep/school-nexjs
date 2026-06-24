@@ -1237,6 +1237,16 @@
       }
     },
     "classesListDesc": "Gérer les classes",
+    "classesBrowser": {
+      "overviewLabel": "Vue d'ensemble des classes",
+      "activeClasses": "Classes actives",
+      "searchPlaceholder": "Rechercher des classes ou niveaux…",
+      "journeyHint": "Organisées par parcours scolaire, de la maternelle au secondaire.",
+      "journeyLabel": "Parcours scolaire",
+      "noMatch": "Aucune classe ne correspond à votre recherche.",
+      "studentCount": "{count} élèves",
+      "levelMeta": "{classes} classes · {students} élèves"
+    },
     "levelsListDesc": "Gérer les niveaux",
     "subjectsListDesc": "Gérer les matières",
     "settings": {

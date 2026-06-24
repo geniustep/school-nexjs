@@ -1237,6 +1237,16 @@
       }
     },
     "classesListDesc": "Gestionar clases",
+    "classesBrowser": {
+      "overviewLabel": "Resumen de clases",
+      "activeClasses": "Clases activas",
+      "searchPlaceholder": "Buscar clases o niveles…",
+      "journeyHint": "Organizadas por trayectoria académica, desde preescolar hasta secundaria.",
+      "journeyLabel": "Trayectoria académica",
+      "noMatch": "Ninguna clase coincide con la búsqueda actual.",
+      "studentCount": "{count} estudiantes",
+      "levelMeta": "{classes} clases · {students} estudiantes"
+    },
     "levelsListDesc": "Gestionar niveles",
     "subjectsListDesc": "Gestionar materias",
     "settings": {

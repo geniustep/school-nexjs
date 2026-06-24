@@ -1237,6 +1237,16 @@
       }
     },
     "classesListDesc": "إدارة الأقسام",
+    "classesBrowser": {
+      "overviewLabel": "ملخص الأقسام",
+      "activeClasses": "أقسام نشطة",
+      "searchPlaceholder": "بحث في الأقسام أو المستويات…",
+      "journeyHint": "مرتبة حسب المسار الدراسي من التعليم الأولي إلى الثانوي.",
+      "journeyLabel": "المسار الدراسي",
+      "noMatch": "لا توجد أقسام تطابق البحث الحالي.",
+      "studentCount": "{count} تلميذ",
+      "levelMeta": "{classes} أقسام · {students} تلميذ"
+    },
     "levelsListDesc": "إدارة المستويات",
     "subjectsListDesc": "إدارة المواد",
     "settings": {
