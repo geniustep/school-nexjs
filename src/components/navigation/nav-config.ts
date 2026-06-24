@@ -4,6 +4,7 @@ import type { CurrentUser } from '@/types/user';
 import type { Permission } from '@/types/permissions';
 import { canAccessAdminDashboard, canShowAdminNavPermission, useScopedNavLabels } from '@/lib/admin/admin-ux';
 import { canViewSettings, canViewStaff } from '@/lib/permissions/academic-setup';
+import { canViewSchoolBrandingSettings } from '@/lib/permissions/school-branding-settings';
 import { FINANCE_VIEW } from '@/lib/permissions/finance';
 import { ADMISSION_VIEW } from '@/lib/permissions/admission';
 import { isConfiguredAdmin } from '@/lib/permissions/scope';
@@ -186,7 +187,7 @@ function adminNav(user: CurrentUser): NavSection[] {
     });
   }
 
-  if (canViewSettings(user)) {
+  if (canViewSettings(user) || canViewSchoolBrandingSettings(user)) {
     pushSection(sections, {
       groupId: 'system',
       titleKey: scopedNavTitle('nav.adminSystem', 'nav.adminScopedSystem', scopedLabels),

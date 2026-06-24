@@ -26,6 +26,7 @@
     "no": "No",
     "dash": "—",
     "signOut": "Sign out",
+    "signingOut": "Signing out…",
     "room": "Room {room}",
     "saving": "Saving…",
     "submitting": "Submitting…",
@@ -1239,7 +1240,53 @@
       "subtitle": "School configuration and organisation",
       "backToSettings": "Back to settings",
       "organisationCard": "School organisation",
-      "organisationCardDesc": "Manage levels, classes, subjects, staff and teaching assignments."
+      "organisationCardDesc": "Manage levels, classes, subjects, staff and teaching assignments.",
+      "schoolBranding": {
+        "card": "School identity settings",
+        "cardDesc": "Control the school logo and tagline shown on the login page.",
+        "title": "School identity settings",
+        "subtitle": "Control the school logo and tagline shown on the login page.",
+        "loadError": "Could not load school identity settings.",
+        "save": "Save changes",
+        "saveSuccess": "School identity saved successfully.",
+        "saveError": "Could not save school identity settings.",
+        "saveContractError": "Save is not available on this school server — the admin save contract is not deployed yet.",
+        "readOnlyTitle": "Read-only — save unavailable",
+        "readOnlyDesc": "The admin save contract is not deployed on this school server yet. Showing public branding data only.",
+        "back": "Back",
+        "reload": "Reload data",
+        "logo": {
+          "title": "School logo",
+          "desc": "Shown on the login page and public surfaces.",
+          "choose": "Choose new image",
+          "clearPreview": "Clear preview",
+          "remove": "Remove logo",
+          "hint": "PNG, JPG, WebP or GIF — up to 2 MB.",
+          "invalidType": "Unsupported image type. Use PNG, JPG, WebP or GIF.",
+          "tooLarge": "Image is too large. Maximum size is 2 MB.",
+          "loadFailed": "Could not display the selected image."
+        },
+        "slogan": {
+          "title": "School tagline",
+          "desc": "Short text shown on the login welcome card.",
+          "label": "Welcome tagline",
+          "placeholder": "Welcome to the school portal",
+          "required": "Tagline is required and cannot be empty."
+        },
+        "colors": {
+          "title": "Brand colors",
+          "desc": "Primary colors shown on the login page.",
+          "primary": "Primary color",
+          "secondary": "Secondary color",
+          "placeholder": "#1565C0",
+          "invalid": "Enter a valid HEX color such as #1565C0."
+        },
+        "preview": {
+          "title": "Login preview",
+          "desc": "Approximate preview of the welcome card.",
+          "readOnlyNote": "School name and academic year are display-only — they cannot be edited on this page."
+        }
+      }
     },
     "academicSetup": {
       "title": "Academic setup & staff",

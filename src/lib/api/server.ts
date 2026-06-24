@@ -67,6 +67,26 @@ export async function serverGet<T>(
   return result.body;
 }
 
+/** Low-level server PUT returning the full envelope. */
+export async function serverPut<T>(path: string, body?: unknown): Promise<ApiResponse<T>> {
+  const sid = await sessionId();
+  const mergedQuery = await mergeAdminQuery(path, undefined);
+  const result = await odooApiFetch<T>(path, {
+    method: 'PUT',
+    sessionId: sid,
+    query: mergedQuery,
+    body,
+  });
+  if (result.kind === 'file') {
+    return {
+      success: false,
+      error: { code: 'server_error', message: 'Unexpected file response.', details: {} },
+      meta: {},
+    };
+  }
+  return result.body;
+}
+
 /** Low-level server POST returning the full envelope. */
 export async function serverPost<T>(path: string, body?: unknown): Promise<ApiResponse<T>> {
   const sid = await sessionId();

@@ -59,6 +59,8 @@ function inferErrorCode(message: string, status: number): string {
     return 'missing_cheque_number';
   }
   if (status === 422) return 'validation_error';
+  const fromStatus = errorCodeFromStatus(status);
+  if (fromStatus !== 'server_error') return fromStatus;
   return 'server_error';
 }
 

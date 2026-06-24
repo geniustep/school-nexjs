@@ -4,11 +4,12 @@ import { config } from '@/lib/config';
 import { buildOdooApiUrl } from '@/lib/api/build-odoo-api-url';
 import { resolveOdooBaseUrlForTenant } from '@/lib/api/odoo-backend';
 import { endpoints } from '@/lib/api/endpoints';
-import { resolveLoginSchoolCode } from '@/lib/login-school-brand';
+import { normalizePublicSchoolLogoBytes } from '@/lib/public-school-branding/logo-bytes';
 import {
   fallbackLoginSchoolBrandingView,
   mapOdooBrandingToLoginView,
 } from '@/lib/public-school-branding/map';
+import { resolvePublicSchoolCodeFromServer } from '@/lib/public-school-branding/school-code';
 import type {
   LoginSchoolBrandingView,
   PublicSchoolBrandingData,
@@ -54,14 +55,37 @@ export async function fetchPublicSchoolBrandingFromOdoo(
   return { ok: true, data: body.data, meta: body.meta ?? {} };
 }
 
-export async function resolveLoginSchoolBranding(
-  schoolCode: string = resolveLoginSchoolCode(),
-): Promise<LoginSchoolBrandingView> {
+export async function fetchPublicSchoolLogoFromOdoo(schoolCode: string) {
+  const url = publicSchoolBrandingLogoOdooUrl(schoolCode);
+
+  let res: Response;
+  try {
+    res = await fetch(url, { cache: 'no-store' });
+  } catch {
+    return null;
+  }
+
+  if (!res.ok) return null;
+
+  const raw = new Uint8Array(await res.arrayBuffer());
+  return normalizePublicSchoolLogoBytes(raw);
+}
+
+export async function resolveLoginSchoolBranding(): Promise<LoginSchoolBrandingView> {
+  const schoolCode = await resolvePublicSchoolCodeFromServer();
   const result = await fetchPublicSchoolBrandingFromOdoo(schoolCode);
   if (!result.ok) {
     return fallbackLoginSchoolBrandingView(schoolCode);
   }
-  return mapOdooBrandingToLoginView(result.data);
+
+  let branding = mapOdooBrandingToLoginView(result.data);
+  if (branding.logoAvailable) {
+    const logo = await fetchPublicSchoolLogoFromOdoo(schoolCode);
+    if (!logo) {
+      branding = { ...branding, logoAvailable: false };
+    }
+  }
+  return branding;
 }
 
 export function publicSchoolBrandingLogoOdooUrl(schoolCode: string): string {

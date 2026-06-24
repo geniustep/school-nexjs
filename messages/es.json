@@ -26,6 +26,7 @@
     "no": "No",
     "dash": "—",
     "signOut": "Cerrar sesión",
+    "signingOut": "Cerrando sesión…",
     "room": "Aula {room}",
     "saving": "Guardando…",
     "submitting": "Enviando…",
@@ -1239,7 +1240,53 @@
       "subtitle": "Configuración y organización del centro",
       "backToSettings": "Volver a ajustes",
       "organisationCard": "Organización del centro",
-      "organisationCardDesc": "Gestione niveles, clases, materias, equipo y asignaciones docentes."
+      "organisationCardDesc": "Gestione niveles, clases, materias, equipo y asignaciones docentes.",
+      "schoolBranding": {
+        "card": "Identidad visual del centro",
+        "cardDesc": "Controle el logotipo y la frase que aparecen en la página de acceso.",
+        "title": "Identidad visual del centro",
+        "subtitle": "Controle el logotipo y la frase que aparecen en la página de acceso.",
+        "loadError": "No se pudieron cargar los ajustes de identidad visual.",
+        "save": "Guardar cambios",
+        "saveSuccess": "Identidad visual guardada correctamente.",
+        "saveError": "No se pudieron guardar los ajustes de identidad visual.",
+        "saveContractError": "El guardado no está disponible en este servidor — el contrato administrativo aún no está desplegado.",
+        "readOnlyTitle": "Solo lectura — guardado no disponible",
+        "readOnlyDesc": "El contrato de guardado administrativo aún no está desplegado en este servidor. Se muestran solo los datos públicos.",
+        "back": "Volver",
+        "reload": "Recargar datos",
+        "logo": {
+          "title": "Logotipo del centro",
+          "desc": "Se muestra en la página de acceso y superficies públicas.",
+          "choose": "Elegir imagen nueva",
+          "clearPreview": "Borrar vista previa",
+          "remove": "Quitar logotipo",
+          "hint": "PNG, JPG, WebP o GIF — hasta 2 MB.",
+          "invalidType": "Tipo de imagen no admitido. Use PNG, JPG, WebP o GIF.",
+          "tooLarge": "La imagen es demasiado grande. Tamaño máximo: 2 MB.",
+          "loadFailed": "No se pudo mostrar la imagen seleccionada."
+        },
+        "slogan": {
+          "title": "Frase del centro",
+          "desc": "Texto breve en la tarjeta de bienvenida del acceso.",
+          "label": "Frase de bienvenida",
+          "placeholder": "Bienvenidos al portal del centro",
+          "required": "La frase es obligatoria y no puede quedar vacía."
+        },
+        "colors": {
+          "title": "Colores de identidad",
+          "desc": "Colores principales que aparecen en la página de acceso.",
+          "primary": "Color principal",
+          "secondary": "Color secundario",
+          "placeholder": "#1565C0",
+          "invalid": "Introduzca un color HEX válido, p. ej. #1565C0."
+        },
+        "preview": {
+          "title": "Vista previa de acceso",
+          "desc": "Vista previa aproximada de la tarjeta de bienvenida.",
+          "readOnlyNote": "El nombre del centro y el año académico son solo lectura — no se pueden editar aquí."
+        }
+      }
     },
     "academicSetup": {
       "title": "Configuración académica y equipo",

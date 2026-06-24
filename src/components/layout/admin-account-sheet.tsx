@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Avatar } from '@/components/ui/primitives';
 import { MobileBottomSheet } from '@/components/ui/mobile-bottom-sheet';
+import { SignOutButton } from '@/components/layout/sign-out-button';
 import { LocaleSwitcher } from '@/components/i18n/locale-switcher';
 import { SchoolSwitcher } from '@/components/admin/school-switcher';
 import { useT } from '@/features/i18n/locale-context';
@@ -67,17 +68,15 @@ export function AdminAccountSheet({
             <LocaleSwitcher />
           </div>
 
-          <button
-            type="button"
-            className="btn btn--ghost admin-account-sheet__logout"
+          <SignOutButton
+            loggingOut={loggingOut}
             onClick={() => {
               setOpen(false);
               onLogout();
             }}
-            disabled={loggingOut}
-          >
-            {loggingOut ? '…' : t('common.signOut')}
-          </button>
+            className="admin-account-sheet__logout"
+            block
+          />
         </div>
       </MobileBottomSheet>
     </>

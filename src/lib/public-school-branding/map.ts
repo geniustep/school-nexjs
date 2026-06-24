@@ -13,8 +13,11 @@ export function mapOdooBrandingToLoginView(
     welcomeSubtitle: useApiText ? data.welcome_subtitle : null,
     academicYearLabel: useApiText ? data.academic_year_label : null,
     primaryColor: sanitizeCssHexColor(data.primary_color),
-    accentColor: sanitizeCssHexColor(data.accent_color),
-    logoAvailable: !data.fallback_brand && !!data.logo_url,
+    accentColor:
+      sanitizeCssHexColor(data.secondary_color) ?? sanitizeCssHexColor(data.accent_color),
+    logoAvailable:
+      !data.fallback_brand &&
+      (data.logo_available === true || (data.logo_available !== false && !!data.logo_url)),
   };
 }
 

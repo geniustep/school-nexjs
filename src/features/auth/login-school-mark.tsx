@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { BrandLogo } from '@/components/brand/brand-logo';
 import { loginSchoolLogoBffPath } from '@/lib/public-school-branding/client';
+import { cn } from '@/lib/utils/cn';
 import type { LoginSchoolBrandingView } from '@/types/public-school-branding';
 
 function schoolMonogram(label: string): string {
@@ -12,14 +13,16 @@ function schoolMonogram(label: string): string {
   return first ?? 'S';
 }
 
+export type LoginSchoolMarkPlacement = 'brand';
+
 export function LoginSchoolMark({
   branding,
   schoolLabel,
-  compact = false,
+  placement = 'brand',
 }: {
   branding: LoginSchoolBrandingView;
   schoolLabel: string;
-  compact?: boolean;
+  placement?: LoginSchoolMarkPlacement;
 }) {
   const [logoFailed, setLogoFailed] = useState(false);
   const showLogo = branding.logoAvailable && !logoFailed;
@@ -29,7 +32,7 @@ export function LoginSchoolMark({
       <img
         src={loginSchoolLogoBffPath(branding.schoolCode)}
         alt={schoolLabel}
-        className="login-welcome__logo login-welcome__logo--school"
+        className={cn('login-mark__logo', placement === 'brand' && 'login-mark__logo--brand')}
         decoding="async"
         onError={() => setLogoFailed(true)}
       />
@@ -38,14 +41,11 @@ export function LoginSchoolMark({
 
   if (branding.fromApi) {
     return (
-      <div
-        className={compact ? 'login-school-monogram login-school-monogram--compact' : 'login-school-monogram'}
-        aria-hidden="true"
-      >
-        <span className="login-school-monogram__glyph">{schoolMonogram(schoolLabel)}</span>
+      <div className="login-mark__monogram login-mark__monogram--brand" aria-hidden="true">
+        <span className="login-mark__monogram-glyph">{schoolMonogram(schoolLabel)}</span>
       </div>
     );
   }
 
-  return <BrandLogo variant={compact ? 'compact' : 'full'} className="login-welcome__logo" />;
+  return <BrandLogo variant="full" className="login-mark__platform login-mark__platform--brand" />;
 }

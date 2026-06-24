@@ -1,15 +1,16 @@
 'use client';
 
-// Login form. Talks to the BFF /api/auth/login route, then redirects by role.
-
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { authApi } from '@/lib/api/client';
 import { homeForUser } from '@/lib/routes/role-routes';
 import { useT } from '@/features/i18n/locale-context';
 import { BrandLogo } from '@/components/brand/brand-logo';
-import { LoginHeroPanel } from '@/features/auth/login-hero-panel';
+import { LocaleSwitcher } from '@/components/i18n/locale-switcher';
+import { LoginAmbientBackground } from '@/features/auth/login-branded-background';
+import { LoginBrandPanel } from '@/features/auth/login-brand-panel';
 import { loginBrandingStyle, loginPageBranded } from '@/lib/public-school-branding/client';
+import { loginSchoolBrand } from '@/lib/login-school-brand';
 import type { LoginSchoolBrandingView } from '@/types/public-school-branding';
 
 export function LoginForm({ branding }: { branding: LoginSchoolBrandingView }) {
@@ -48,36 +49,51 @@ export function LoginForm({ branding }: { branding: LoginSchoolBrandingView }) {
   const branded = loginPageBranded(branding);
   const pageStyle = loginBrandingStyle(branding);
 
+  const schoolName = branding.fromApi
+    ? (branding.schoolName ?? t('auth.hero.schoolNameDefault'))
+    : (loginSchoolBrand.schoolDisplayName ?? t('auth.hero.schoolNameDefault'));
+
+  const yearLabel = branding.fromApi
+    ? branding.academicYearLabel
+    : t('auth.hero.academicYear', { year: loginSchoolBrand.academicYear });
+
+  const tagline = branding.fromApi
+    ? branding.welcomeSubtitle
+    : t('auth.hero.welcome');
+
   return (
     <div
       className="login-page"
       data-branded={branded ? 'true' : undefined}
       style={pageStyle}
     >
-      <div className="login-page__hero">
-        <div className="login-page__hero-compact">
-          <LoginHeroPanel branding={branding} compact />
-        </div>
-        <div className="login-page__hero-full">
-          <LoginHeroPanel branding={branding} />
-        </div>
+      <LoginAmbientBackground />
+
+      <div className="login-page__locale">
+        <LocaleSwitcher variant="login" />
       </div>
-      <div className="login-page__form">
-        <div className="login-card">
-          <div className="login-card__brand">
-            <BrandLogo variant="full" />
+
+      <main className="login-page__shell">
+        <LoginBrandPanel
+          branding={branding}
+          schoolName={schoolName}
+          tagline={tagline}
+          yearLabel={yearLabel}
+        />
+
+        <div className="login-card" data-submitting={submitting ? 'true' : undefined}>
+          <div className="login-card__mark">
+            <BrandLogo variant="full" className="login-card__raqeem-logo" />
           </div>
-          <h1>{t('auth.welcome')}</h1>
-          <p className="sub">{t('auth.subtitle')}</p>
+          <h1 className="login-card__title">{t('auth.welcome')}</h1>
+          <p className="login-card__sub">{t('auth.subtitle')}</p>
 
           {expired && (
-            <div className="form-error" style={{ background: 'var(--c-amber-soft)', color: 'var(--c-amber)' }}>
-              {t('auth.sessionExpired')}
-            </div>
+            <div className="form-error form-error--amber">{t('auth.sessionExpired')}</div>
           )}
           {error && <div className="form-error">{error}</div>}
 
-          <form onSubmit={onSubmit}>
+          <form onSubmit={onSubmit} aria-busy={submitting}>
             <div className="field">
               <label htmlFor="login">{t('auth.loginLabel')}</label>
               <input
@@ -89,6 +105,7 @@ export function LoginForm({ branding }: { branding: LoginSchoolBrandingView }) {
                 onChange={(e) => setLogin(e.target.value)}
                 placeholder={t('auth.loginPlaceholder')}
                 required
+                disabled={submitting}
               />
             </div>
             <div className="field">
@@ -102,14 +119,29 @@ export function LoginForm({ branding }: { branding: LoginSchoolBrandingView }) {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
+                disabled={submitting}
               />
             </div>
-            <button className="btn btn--primary btn--block mt-2" type="submit" disabled={submitting}>
-              {submitting ? t('auth.signingIn') : t('auth.signIn')}
+            <button
+              className={`btn btn--primary btn--block login-card__submit${submitting ? ' login-card__submit--busy' : ''}`}
+              type="submit"
+              disabled={submitting}
+              aria-live="polite"
+            >
+              <span className="login-card__submit-inner">
+                {submitting ? (
+                  <>
+                    <span className="login-card__submit-spinner" aria-hidden="true" />
+                    <span>{t('auth.signingIn')}</span>
+                  </>
+                ) : (
+                  t('auth.signIn')
+                )}
+              </span>
             </button>
           </form>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

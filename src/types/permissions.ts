@@ -70,4 +70,5 @@ export type Permission =
   | 'admission.decide'
   | 'admission.offer'
   | 'admission.prefill'
-  | 'admission.link_student';
+  | 'admission.link_student'
+  | 'school.manage_branding';

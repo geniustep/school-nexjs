@@ -26,6 +26,7 @@
     "no": "Non",
     "dash": "—",
     "signOut": "Se déconnecter",
+    "signingOut": "Déconnexion…",
     "room": "Salle {room}",
     "saving": "Enregistrement…",
     "submitting": "Envoi…",
@@ -1239,7 +1240,53 @@
       "subtitle": "Configuration et organisation de l'établissement",
       "backToSettings": "Retour aux paramètres",
       "organisationCard": "Organisation de l'établissement",
-      "organisationCardDesc": "Gérez les niveaux, les classes, les matières, l'équipe et les affectations pédagogiques."
+      "organisationCardDesc": "Gérez les niveaux, les classes, les matières, l'équipe et les affectations pédagogiques.",
+      "schoolBranding": {
+        "card": "Identité visuelle de l'établissement",
+        "cardDesc": "Gérez le logo et la phrase affichés sur la page de connexion.",
+        "title": "Identité visuelle de l'établissement",
+        "subtitle": "Gérez le logo et la phrase affichés sur la page de connexion.",
+        "loadError": "Impossible de charger les paramètres d'identité visuelle.",
+        "save": "Enregistrer les modifications",
+        "saveSuccess": "Identité visuelle enregistrée avec succès.",
+        "saveError": "Impossible d'enregistrer l'identité visuelle.",
+        "saveContractError": "L'enregistrement n'est pas disponible sur ce serveur — le contrat admin n'est pas encore déployé.",
+        "readOnlyTitle": "Lecture seule — enregistrement indisponible",
+        "readOnlyDesc": "Le contrat d'enregistrement admin n'est pas encore déployé sur ce serveur. Affichage des données publiques uniquement.",
+        "back": "Retour",
+        "reload": "Recharger les données",
+        "logo": {
+          "title": "Logo de l'établissement",
+          "desc": "Affiché sur la page de connexion et les surfaces publiques.",
+          "choose": "Choisir une nouvelle image",
+          "clearPreview": "Effacer l'aperçu",
+          "remove": "Supprimer le logo",
+          "hint": "PNG, JPG, WebP ou GIF — jusqu'à 2 Mo.",
+          "invalidType": "Type d'image non pris en charge. Utilisez PNG, JPG, WebP ou GIF.",
+          "tooLarge": "Image trop volumineuse. Taille maximale : 2 Mo.",
+          "loadFailed": "Impossible d'afficher l'image sélectionnée."
+        },
+        "slogan": {
+          "title": "Phrase d'accueil",
+          "desc": "Texte court affiché sur la carte de bienvenue de connexion.",
+          "label": "Phrase d'accueil",
+          "placeholder": "Bienvenue sur le portail de l'établissement",
+          "required": "La phrase est obligatoire et ne peut pas être vide."
+        },
+        "colors": {
+          "title": "Couleurs de l'identité",
+          "desc": "Couleurs principales affichées sur la page de connexion.",
+          "primary": "Couleur principale",
+          "secondary": "Couleur secondaire",
+          "placeholder": "#1565C0",
+          "invalid": "Saisissez une couleur HEX valide, par ex. #1565C0."
+        },
+        "preview": {
+          "title": "Aperçu de connexion",
+          "desc": "Aperçu approximatif de la carte de bienvenue.",
+          "readOnlyNote": "Le nom de l'établissement et l'année scolaire sont en lecture seule — ils ne peuvent pas être modifiés ici."
+        }
+      }
     },
     "academicSetup": {
       "title": "Configuration académique et équipe",

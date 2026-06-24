@@ -8,7 +8,10 @@ export interface PublicSchoolBrandingData {
   welcome_subtitle: string;
   academic_year_label: string;
   primary_color: string;
+  /** Odoo secondary brand color (preferred for accent mapping). */
+  secondary_color?: string;
   accent_color: string;
+  logo_available?: boolean;
   fallback_brand: boolean;
 }
 

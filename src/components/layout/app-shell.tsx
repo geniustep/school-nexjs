@@ -19,6 +19,7 @@ import { isScopedAdmin } from '@/lib/permissions/scope';
 import { BrandLogo } from '@/components/brand/brand-logo';
 import { IconMenu } from '@/components/icons/admin-icons';
 import { AdminAccountSheet } from '@/components/layout/admin-account-sheet';
+import { SignOutButton } from '@/components/layout/sign-out-button';
 import { useBodyScrollLock } from '@/hooks/use-body-scroll-lock';
 import { shouldUseTeacherWorkspace } from '@/lib/auth/teacher-workspace';
 
@@ -78,9 +79,14 @@ export function AppShell({
   useBodyScrollLock(mainDrawerOpen);
 
   async function logout() {
+    if (loggingOut) return;
     setLoggingOut(true);
-    await authApi.logout();
-    router.replace('/login');
+    try {
+      await authApi.logout();
+      router.replace('/login');
+    } finally {
+      setLoggingOut(false);
+    }
   }
 
   function linkActive(href: string, item?: { isActive?: (pathname: string) => boolean }): boolean {
@@ -181,14 +187,12 @@ export function AppShell({
             <span className="sidebar__footer-label">{t('common.language')}</span>
             <LocaleSwitcher />
           </div>
-          <button
-            type="button"
-            className="btn btn--ghost sidebar__footer-logout"
+          <SignOutButton
+            loggingOut={loggingOut}
             onClick={logout}
-            disabled={loggingOut}
-          >
-            {loggingOut ? '…' : t('common.signOut')}
-          </button>
+            className="sidebar__footer-logout"
+            block
+          />
         </div>
       </aside>
 
@@ -221,14 +225,7 @@ export function AppShell({
                 </div>
               </div>
             )}
-            <button
-              type="button"
-              className="btn btn--ghost btn--sm"
-              onClick={logout}
-              disabled={loggingOut}
-            >
-              {loggingOut ? '…' : t('common.signOut')}
-            </button>
+            <SignOutButton loggingOut={loggingOut} onClick={logout} size="sm" />
           </div>
           {!isTeacher && (
             <div className="topbar__right topbar__right--mobile">

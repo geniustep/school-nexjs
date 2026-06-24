@@ -7,21 +7,12 @@ import {
   mapOdooBrandingToLoginView,
   fallbackLoginSchoolBrandingView,
 } from '@/lib/public-school-branding/server';
-import { resolveLoginSchoolCode } from '@/lib/login-school-brand';
-import { resolveTenantFromRequest } from '@/lib/tenant';
+import { resolvePublicSchoolCodeFromRequest } from '@/lib/public-school-branding/school-code';
 
 export const dynamic = 'force-dynamic';
 
-function schoolCodeFromRequest(request: Request): string {
-  const fromQuery = new URL(request.url).searchParams.get('school_code')?.trim();
-  if (fromQuery) return fromQuery;
-  const resolved = resolveTenantFromRequest(request);
-  if (resolved.ok) return resolved.tenant;
-  return resolveLoginSchoolCode();
-}
-
 export async function GET(request: Request) {
-  const schoolCode = schoolCodeFromRequest(request);
+  const schoolCode = resolvePublicSchoolCodeFromRequest(request);
   const result = await fetchPublicSchoolBrandingFromOdoo(schoolCode);
 
   if (!result.ok) {
