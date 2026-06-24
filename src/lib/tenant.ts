@@ -27,10 +27,19 @@ export function getHostFromHeaders(hdrs: Headers): string | null {
   return normalizeHost(hdrs.get('host'));
 }
 
+/** Private LAN IPv4 (192.168/16) — dev-only for mobile testing over local network. */
+const DEV_LAN_IPV4_RE = /^192\.168(?:\.\d{1,3}){2}$/;
+
+/** True when host is a normalized 192.168.x.x address (no port). */
+export function isDevLanHost(host: string): boolean {
+  return DEV_LAN_IPV4_RE.test(host);
+}
+
 /** Hosts that use ODOO_DB instead of subdomain extraction. */
 export function isFallbackHost(host: string): boolean {
   if (host === 'localhost' || host === '127.0.0.1') return true;
   if (host.endsWith('.vercel.app')) return true;
+  if (process.env.NODE_ENV === 'development' && isDevLanHost(host)) return true;
   return false;
 }
 

@@ -1,7 +1,8 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { tenantDisplayName } from '@/lib/tenant-public';
 import {
   getHostFromHeaders,
+  isDevLanHost,
   isFallbackHost,
   isValidTenantSlug,
   normalizeHost,
@@ -97,12 +98,52 @@ describe('isValidTenantSlug', () => {
   });
 });
 
+describe('isDevLanHost', () => {
+  it('matches 192.168.x.x IPv4 addresses', () => {
+    expect(isDevLanHost('192.168.0.191')).toBe(true);
+    expect(isDevLanHost('192.168.1.1')).toBe(true);
+    expect(isDevLanHost('10.0.0.1')).toBe(false);
+    expect(isDevLanHost('localhost')).toBe(false);
+  });
+});
+
 describe('isFallbackHost', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it('detects preview and local hosts', () => {
     expect(isFallbackHost('localhost')).toBe(true);
     expect(isFallbackHost('127.0.0.1')).toBe(true);
     expect(isFallbackHost('branch-preview.vercel.app')).toBe(true);
     expect(isFallbackHost('alwah.raqeem.ma')).toBe(false);
+  });
+
+  it('accepts 192.168.x.x only when NODE_ENV=development', () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    expect(isFallbackHost('192.168.0.191')).toBe(true);
+    expect(resolveTenantFromHost('192.168.0.191', ROOT, FALLBACK)).toEqual({
+      ok: true,
+      tenant: FALLBACK,
+      source: 'fallback',
+    });
+  });
+
+  it('rejects 192.168.x.x outside development', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    expect(isFallbackHost('192.168.0.191')).toBe(false);
+    expect(resolveTenantFromHost('192.168.0.191', ROOT, FALLBACK).ok).toBe(false);
+  });
+
+  it('resolves LAN host with port via normalizeHost + dev fallback', () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    const host = normalizeHost('192.168.0.191:3000');
+    expect(host).toBe('192.168.0.191');
+    expect(resolveTenantFromHost(host, ROOT, FALLBACK)).toEqual({
+      ok: true,
+      tenant: FALLBACK,
+      source: 'fallback',
+    });
   });
 });
 
