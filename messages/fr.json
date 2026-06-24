@@ -406,6 +406,8 @@
     "sessionExpired": "Votre session a expiré. Veuillez vous reconnecter.",
     "loginLabel": "Identifiant",
     "passwordLabel": "Mot de passe",
+    "showPassword": "Afficher le mot de passe",
+    "hidePassword": "Masquer le mot de passe",
     "loginPlaceholder": "you@school.ma",
     "signIn": "Se connecter",
     "signingIn": "Connexion…",
@@ -1255,6 +1257,8 @@
         "readOnlyDesc": "Le contrat d'enregistrement admin n'est pas encore déployé sur ce serveur. Affichage des données publiques uniquement.",
         "back": "Retour",
         "reload": "Recharger les données",
+        "unsavedChanges": "Modifications non enregistrées",
+        "noPendingChanges": "Aucune modification en attente",
         "logo": {
           "title": "Logo de l'établissement",
           "desc": "Affiché sur la page de connexion et les surfaces publiques.",
@@ -1284,7 +1288,8 @@
         "preview": {
           "title": "Aperçu de connexion",
           "desc": "Aperçu approximatif de la carte de bienvenue.",
-          "readOnlyNote": "Le nom de l'établissement et l'année scolaire sont en lecture seule — ils ne peuvent pas être modifiés ici."
+          "readOnlyNote": "Le nom de l'établissement et l'année scolaire sont en lecture seule — ils ne peuvent pas être modifiés ici.",
+          "live": "Aperçu en direct"
         }
       }
     },

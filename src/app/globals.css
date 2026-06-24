@@ -1378,6 +1378,105 @@ table.data tbody tr:hover {
     0 1px 0 color-mix(in srgb, white 80%, transparent 20%) inset;
 }
 
+.login-password-field {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  min-height: 44px;
+  padding: 0;
+  padding-inline-end: 6px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--c-surface) 52%, transparent 48%);
+  border: 1px solid color-mix(in srgb, white 58%, var(--login-brand-primary) 22%);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 1px 0 color-mix(in srgb, white 70%, transparent 30%) inset;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.login-password-field:focus-within {
+  border-color: color-mix(in srgb, var(--login-brand-primary) 45%, white 55%);
+  background: color-mix(in srgb, var(--c-surface) 78%, transparent 22%);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--login-brand-primary) 14%, transparent 86%),
+    0 1px 0 color-mix(in srgb, white 80%, transparent 20%) inset;
+}
+
+.login-password-field__input {
+  flex: 1;
+  min-width: 0;
+  width: auto;
+  min-height: 42px;
+  padding: 10px 12px;
+  padding-inline-end: 6px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.login-card .login-password-field__input {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.login-card .login-password-field__input:focus,
+.login-card .login-password-field__input:focus-visible {
+  border: 0;
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+}
+
+.login-password-field__toggle {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  color: color-mix(in srgb, var(--c-text-muted) 78%, var(--login-brand-primary) 22%);
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.login-password-field__toggle:hover:not(:disabled) {
+  color: var(--c-text);
+  background: color-mix(in srgb, var(--login-brand-primary) 10%, transparent 90%);
+}
+
+.login-password-field__toggle:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--login-brand-primary) 55%, white 45%);
+  outline-offset: 0;
+}
+
+.login-password-field__toggle:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.login-card[data-submitting='true'] .login-password-field {
+  background: color-mix(in srgb, var(--c-surface) 40%, transparent 60%);
+}
+
+.login-card[data-submitting='true'] .login-password-field__input:disabled {
+  background: transparent;
+}
+
 .login-card .btn--primary {
   background: linear-gradient(
     165deg,

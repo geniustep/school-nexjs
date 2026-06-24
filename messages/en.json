@@ -406,6 +406,8 @@
     "sessionExpired": "Your session has expired. Please sign in again.",
     "loginLabel": "Login",
     "passwordLabel": "Password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
     "loginPlaceholder": "you@school.ma",
     "signIn": "Sign in",
     "signingIn": "Signing in…",
@@ -1255,6 +1257,8 @@
         "readOnlyDesc": "The admin save contract is not deployed on this school server yet. Showing public branding data only.",
         "back": "Back",
         "reload": "Reload data",
+        "unsavedChanges": "Unsaved changes",
+        "noPendingChanges": "No pending changes",
         "logo": {
           "title": "School logo",
           "desc": "Shown on the login page and public surfaces.",
@@ -1284,7 +1288,8 @@
         "preview": {
           "title": "Login preview",
           "desc": "Approximate preview of the welcome card.",
-          "readOnlyNote": "School name and academic year are display-only — they cannot be edited on this page."
+          "readOnlyNote": "School name and academic year are display-only — they cannot be edited on this page.",
+          "live": "Live preview"
         }
       }
     },

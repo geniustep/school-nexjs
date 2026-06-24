@@ -406,6 +406,8 @@
     "sessionExpired": "Tu sesión ha expirado. Inicia sesión de nuevo.",
     "loginLabel": "Usuario",
     "passwordLabel": "Contraseña",
+    "showPassword": "Mostrar contraseña",
+    "hidePassword": "Ocultar contraseña",
     "loginPlaceholder": "you@school.ma",
     "signIn": "Iniciar sesión",
     "signingIn": "Iniciando sesión…",
@@ -1255,6 +1257,8 @@
         "readOnlyDesc": "El contrato de guardado administrativo aún no está desplegado en este servidor. Se muestran solo los datos públicos.",
         "back": "Volver",
         "reload": "Recargar datos",
+        "unsavedChanges": "Cambios sin guardar",
+        "noPendingChanges": "No hay cambios pendientes",
         "logo": {
           "title": "Logotipo del centro",
           "desc": "Se muestra en la página de acceso y superficies públicas.",
@@ -1284,7 +1288,8 @@
         "preview": {
           "title": "Vista previa de acceso",
           "desc": "Vista previa aproximada de la tarjeta de bienvenida.",
-          "readOnlyNote": "El nombre del centro y el año académico son solo lectura — no se pueden editar aquí."
+          "readOnlyNote": "El nombre del centro y el año académico son solo lectura — no se pueden editar aquí.",
+          "live": "Vista previa en vivo"
         }
       }
     },
