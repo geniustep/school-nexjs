@@ -13,10 +13,16 @@ export const dynamic = 'force-dynamic';
 export async function POST() {
   const store = await cookies();
   const sessionId = store.get(config.sessionCookieName)?.value ?? null;
+  const tenant = store.get(config.tenantCookieName)?.value ?? undefined;
 
   if (sessionId) {
     try {
-      await odooApiFetch(endpoints.auth.logout, { method: 'POST', sessionId, body: {} });
+      await odooApiFetch(endpoints.auth.logout, {
+        method: 'POST',
+        sessionId,
+        tenant,
+        body: {},
+      });
     } catch {
       /* ignore — logout is best-effort */
     }

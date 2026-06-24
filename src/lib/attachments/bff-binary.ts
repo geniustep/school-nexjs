@@ -3,6 +3,7 @@ import 'server-only';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { config } from '@/lib/config';
+import { resolveOdooBaseUrlForTenant } from '@/lib/api/odoo-backend';
 import { guardTenantFromServerHeaders } from '@/lib/auth/tenant-guard';
 
 export type AttachmentBinaryKind = 'download' | 'preview' | 'thumbnail';
@@ -16,8 +17,10 @@ export async function forwardAttachmentBinary(
 
   const store = await cookies();
   const sessionId = store.get(config.sessionCookieName)?.value ?? null;
+  const tenant = store.get(config.tenantCookieName)?.value?.trim();
+  const baseUrl = tenant ? resolveOdooBaseUrlForTenant(tenant) : config.odooBaseUrl;
 
-  const url = `${config.odooBaseUrl}${config.apiPrefix}/attachments/${encodeURIComponent(id)}/${kind}`;
+  const url = `${baseUrl}${config.apiPrefix}/attachments/${encodeURIComponent(id)}/${kind}`;
 
   let res: Response;
   try {

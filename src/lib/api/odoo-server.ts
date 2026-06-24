@@ -8,6 +8,7 @@
 
 import 'server-only';
 import { config } from '@/lib/config';
+import { getStoredTenantSlug, resolveOdooBaseUrlForTenant } from '@/lib/api/odoo-backend';
 import { isOdooBinaryResponse } from '@/lib/api/odoo-binary-response';
 import { buildOdooApiUrl } from '@/lib/api/build-odoo-api-url';
 import {
@@ -43,9 +44,10 @@ export async function authenticateOdoo(
   login: string,
   password: string,
 ): Promise<OdooAuthResult> {
+  const baseUrl = resolveOdooBaseUrlForTenant(database);
   let res: Response;
   try {
-    res = await fetch(`${config.odooBaseUrl}/web/session/authenticate`, {
+    res = await fetch(`${baseUrl}/web/session/authenticate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       cache: 'no-store',
@@ -84,10 +86,18 @@ export async function authenticateOdoo(
 export interface OdooFetchOptions {
   method?: string;
   sessionId: string | null;
+  /** Tenant slug (Odoo db) — selects per-tenant backend; falls back to session cookie. */
+  tenant?: string;
   query?: Record<string, string | number | undefined>;
   body?: unknown;
   /** When set, body is forwarded as multipart/form-data (Content-Type with boundary is auto-set). */
   formData?: FormData;
+}
+
+async function resolveOdooBaseUrl(opts: OdooFetchOptions): Promise<string> {
+  const tenant = opts.tenant?.trim() || (await getStoredTenantSlug());
+  if (tenant) return resolveOdooBaseUrlForTenant(tenant);
+  return config.odooBaseUrl;
 }
 
 function errorEnvelope(code: ApiErrorCode, message: string): ApiResponse<never> {
@@ -136,7 +146,8 @@ export async function odooApiFetch<T = unknown>(
     };
   }
 
-  const url = buildOdooApiUrl(config.odooBaseUrl, config.apiPrefix, path, opts.query);
+  const baseUrl = await resolveOdooBaseUrl(opts);
+  const url = buildOdooApiUrl(baseUrl, config.apiPrefix, path, opts.query);
   const method = opts.method ?? 'GET';
 
   let res: Response;

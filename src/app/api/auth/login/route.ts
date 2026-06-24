@@ -69,6 +69,7 @@ export async function POST(request: Request) {
   // the client can redirect immediately.
   const me = await odooApiFetch<MeResponse>(endpoints.auth.me, {
     sessionId: auth.sessionId,
+    tenant: tenant.tenant,
   });
 
   if (me.kind !== 'json' || !me.body.success) {

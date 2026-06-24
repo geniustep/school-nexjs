@@ -83,6 +83,7 @@ npm run dev                 # http://localhost:3000
 | -------------------- | -------------------------------------------------- | ------------------------ |
 | `ODOO_BASE_URL`      | Odoo backend base URL (server-only, never exposed) | `http://localhost:8069`  |
 | `ODOO_DB`            | Odoo database name for authentication              | `alwah`                  |
+| `TENANT_ODOO_URL_*`  | Per-tenant Odoo URL (e.g. `TENANT_ODOO_URL_NIBRAS`) | falls back to `ODOO_BASE_URL` |
 | `SESSION_COOKIE_NAME`| Name of the local httpOnly session cookie          | `scc_session`            |
 
 ```bash

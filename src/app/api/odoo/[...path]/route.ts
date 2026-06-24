@@ -10,6 +10,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { config } from '@/lib/config';
 import { buildBffProxyPath } from '@/lib/api/build-odoo-api-url';
+import { getStoredTenantSlug } from '@/lib/api/odoo-backend';
 import { odooApiFetch } from '@/lib/api/odoo-server';
 import { getCurrentUser } from '@/lib/api/server';
 import { getActiveSchoolCookie, setActiveSchoolCookieValue } from '@/lib/auth/active-school';
@@ -25,6 +26,7 @@ async function handle(request: NextRequest, segments: string[]) {
 
   const store = await cookies();
   const sessionId = store.get(config.sessionCookieName)?.value ?? null;
+  const tenant = await getStoredTenantSlug();
 
   const path = buildBffProxyPath(segments);
   const query: Record<string, string> = {};
@@ -63,6 +65,7 @@ async function handle(request: NextRequest, segments: string[]) {
   const result = await odooApiFetch(path, {
     method,
     sessionId,
+    tenant: tenant ?? undefined,
     query,
     body,
     formData,

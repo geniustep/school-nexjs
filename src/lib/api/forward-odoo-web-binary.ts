@@ -3,6 +3,7 @@ import 'server-only';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { config } from '@/lib/config';
+import { resolveOdooBaseUrlForTenant } from '@/lib/api/odoo-backend';
 import { guardTenantFromServerHeaders } from '@/lib/auth/tenant-guard';
 
 /** Allowed Odoo web subpaths for same-origin proxy (session-scoped). */
@@ -34,7 +35,9 @@ export async function forwardOdooWebBinary(pathSegments: string[]): Promise<Next
     );
   }
 
-  const url = `${config.odooBaseUrl.replace(/\/$/, '')}/web/${path}`;
+  const tenant = store.get(config.tenantCookieName)?.value?.trim();
+  const baseUrl = tenant ? resolveOdooBaseUrlForTenant(tenant) : config.odooBaseUrl;
+  const url = `${baseUrl}/web/${path}`;
 
   let res: Response;
   try {

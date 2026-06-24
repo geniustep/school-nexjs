@@ -7,10 +7,37 @@ import { loadAccountPassword, primeQaEnvFromLocal } from './qa-env.mjs';
 primeQaEnvFromLocal();
 
 const DOMAINS = [
-  { host: 'school.raqeem.ma', tenant: 'school', login: 'admin' },
-  { host: 'nibras.raqeem.ma', tenant: 'nibras', login: 'admin' },
-  { host: 'alwah.raqeem.ma', tenant: 'alwah', login: 'admin' },
+  {
+    host: 'school.raqeem.ma',
+    tenant: 'school',
+    login: 'admin',
+    expectedBackendEnv: 'ODOO_BASE_URL',
+  },
+  {
+    host: 'nibras.raqeem.ma',
+    tenant: 'nibras',
+    login: 'admin',
+    expectedBackendEnv: 'TENANT_ODOO_URL_NIBRAS',
+  },
+  {
+    host: 'alwah.raqeem.ma',
+    tenant: 'alwah',
+    login: 'admin',
+    expectedBackendEnv: 'ODOO_BASE_URL',
+  },
 ];
+
+function tenantOdooUrlEnvKey(tenant) {
+  return `TENANT_ODOO_URL_${tenant.toUpperCase().replace(/-/g, '_')}`;
+}
+
+function expectedBackendConfigured(tenant, expectedBackendEnv) {
+  if (expectedBackendEnv === 'ODOO_BASE_URL') {
+    return Boolean(process.env.ODOO_BASE_URL?.trim());
+  }
+  const key = tenantOdooUrlEnvKey(tenant);
+  return Boolean(process.env[key]?.trim());
+}
 
 function baseUrl(host) {
   return `https://${host}`;
@@ -113,10 +140,11 @@ report.bodyDbIgnored = await loginOn('school.raqeem.ma', 'admin', { db: 'nibras'
 console.log('body db ignored (school host + db=nibras):', report.bodyDbIgnored);
 
 for (const d of DOMAINS) {
-  console.log(`\n--- ${d.host} (expected tenant: ${d.tenant}) ---`);
+  const backendEnvConfigured = expectedBackendConfigured(d.tenant, d.expectedBackendEnv);
+  console.log(`\n--- ${d.host} (expected tenant: ${d.tenant}, backend env: ${d.expectedBackendEnv}, configured: ${backendEnvConfigured}) ---`);
   const login = await loginOn(d.host, d.login);
   console.log('login:', login);
-  report.domains.push({ ...d, login });
+  report.domains.push({ ...d, backendEnvConfigured, login });
 
   if (!login.jar) continue;
 
