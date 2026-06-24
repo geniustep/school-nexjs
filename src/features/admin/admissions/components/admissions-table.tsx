@@ -12,6 +12,7 @@ import {
   isOverdueNextAction,
   refName,
 } from '../utils/admission-labels';
+import { AdmissionCard } from './admission-card';
 import { AdmissionStateSelect } from './admission-state-select';
 import { parseExtraFieldBool } from '../utils/admission-extra-fields';
 import type { AdmissionListItem } from '@/types/admission';
@@ -128,8 +129,15 @@ export function AdmissionsTable({
   }
 
   return (
-    <div className="admissions-list-table">
-      <DataTable columns={columns} rows={items} rowKey={(row) => row.id} />
-    </div>
+    <>
+      <div className="admissions-list-table admissions-table__desktop">
+        <DataTable columns={columns} rows={items} rowKey={(row) => row.id} />
+      </div>
+      <div className="admissions-table__mobile" aria-label={t('admin.admissions.viewTable')}>
+        {items.map((item) => (
+          <AdmissionCard key={item.id} item={item} showStateBadge />
+        ))}
+      </div>
+    </>
   );
 }

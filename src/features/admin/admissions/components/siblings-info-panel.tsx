@@ -177,7 +177,12 @@ export function SiblingsInfoPanel({
       />
       {siblingLines.length > 0 ? (
         <div className="admissions-overview-card__table">
-          <SiblingLinesTable lines={siblingLines} />
+          <div className="admissions-sibling-lines__desktop">
+            <SiblingLinesTable lines={siblingLines} />
+          </div>
+          <div className="admissions-sibling-lines__mobile">
+            <SiblingLinesCards lines={siblingLines} />
+          </div>
         </div>
       ) : null}
     </OverviewCard>
