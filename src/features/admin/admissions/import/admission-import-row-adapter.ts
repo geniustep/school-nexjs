@@ -2,6 +2,7 @@ import {
   mapAdmissionImportSiblingsFields,
   type AdmissionImportSiblingsInput,
 } from './admission-siblings-import-adapter';
+import { mapAdmissionReimportRow } from './admission-reimport-row-mapper';
 
 export interface AdmissionImportRowInput extends AdmissionImportSiblingsInput {
   external_reference?: string | null;
@@ -17,7 +18,23 @@ function trim(value: unknown): string | undefined {
 }
 
 /** Maps a 2026-2027 admission import row to API-ready sibling + extra field payload. */
-export function mapAdmissionImportRow(input: AdmissionImportRowInput): Record<string, unknown> {
+export function mapAdmissionImportRow(
+  input: AdmissionImportRowInput,
+  options?: { mode?: 'import' | 'upsert'; reimport?: boolean },
+): Record<string, unknown> {
+  if (options?.mode === 'upsert' || options?.reimport) {
+    return mapAdmissionReimportRow({
+      row_number: 0,
+      external_reference: input.external_reference,
+      residence_address: input.residence_address,
+      previous_school: input.previous_school,
+      internal_notes: input.internal_notes,
+      has_siblings: input.has_siblings,
+      siblings_levels: input.siblings_levels,
+      siblings_raw_text: input.siblings_text ?? input.siblings_levels,
+    }).payload;
+  }
+
   const payload: Record<string, unknown> = {};
 
   const externalReference = trim(input.external_reference);
