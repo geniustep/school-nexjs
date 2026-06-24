@@ -20,7 +20,7 @@ export function feePlansListUsesClientFilter(
 export function feePlansListUsesClientSearch(
   filters: Pick<FeePlanFiltersState, 'search'>,
 ): boolean {
-  return feePlansListUsesClientFilter(filters);
+  return feePlansListUsesClientFilter({ search: filters.search, cycleId: '' });
 }
 
 export function feePlanMatchesCycle(
