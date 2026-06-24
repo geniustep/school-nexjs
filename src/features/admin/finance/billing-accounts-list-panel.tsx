@@ -271,16 +271,16 @@ export function BillingAccountsListPanel({
         />
       ) : null}
 
-      {state.loading ? <LoadingState label={t('common.loading')} /> : null}
+      {state.initialLoading ? <LoadingState label={t('common.loading')} /> : null}
 
-      {!state.loading && !state.error && rows.length === 0 ? (
+      {!state.initialLoading && !state.error && rows.length === 0 ? (
         <EmptyState
           title={t('admin.finance.billingAccounts.emptyListTitle')}
           description={t('admin.finance.billingAccounts.emptyListDesc')}
         />
       ) : null}
 
-      {!state.loading && rows.length > 0 ? (
+      {!state.initialLoading && rows.length > 0 ? (
         <>
           <div className="finance-billing-accounts-table-wrap">
             <DataTable

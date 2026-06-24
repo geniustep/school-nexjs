@@ -135,7 +135,7 @@ export default function AcademicSetupTeachersPage() {
     </button>
   ) : undefined;
 
-  if (lists.loading) {
+  if (lists.initialLoading) {
     return (
       <>
         <AcademicPageHeader title={t('admin.academicSetup.nav.teachers')} skeleton />

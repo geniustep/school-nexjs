@@ -91,7 +91,7 @@ export default function AcademicSetupSubjectsPage() {
     enableAction.dismissActionParam();
   }
 
-  if (lists.loading) {
+  if (lists.initialLoading) {
     return (
       <>
         <AcademicPageHeader title={t('admin.academicSetup.nav.subjects')} skeleton />

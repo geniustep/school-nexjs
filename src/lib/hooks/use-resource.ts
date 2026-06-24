@@ -50,7 +50,8 @@ export function useResource<T>(
         setError(null);
       } else {
         setError(res.error);
-        setData(null);
+        // Keep stale data during refetch errors so lists do not flash empty.
+        setData((prev) => prev);
       }
       setLoading(false);
     });

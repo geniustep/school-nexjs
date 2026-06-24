@@ -73,16 +73,16 @@ export function BillingAccountsDataQualityPanel() {
 
       {state.error ? <ApiErrorView error={state.error} onRetry={state.reload} /> : null}
 
-      {state.loading ? <LoadingState label={t('common.loading')} /> : null}
+      {state.initialLoading ? <LoadingState label={t('common.loading')} /> : null}
 
-      {!state.loading && !state.error && totalIssues === 0 ? (
+      {!state.initialLoading && !state.error && totalIssues === 0 ? (
         <EmptyState
           title={t('admin.finance.billingAccounts.dataQuality.emptyTitle')}
           description={t('admin.finance.billingAccounts.dataQuality.emptyDesc')}
         />
       ) : null}
 
-      {!state.loading ? (
+      {!state.initialLoading ? (
         <div className="finance-billing-dq-grid">
           {sections.map((section) => (
             <section key={section.key} className="card finance-billing-dq-card">

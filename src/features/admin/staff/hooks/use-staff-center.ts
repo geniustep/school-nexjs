@@ -26,6 +26,8 @@ export function useStaffCenterList(query?: ListParams) {
   return {
     staff,
     loading: state.loading,
+    initialLoading: state.initialLoading,
+    fetching: state.fetching,
     error: state.error,
     meta: state.meta,
     reload,

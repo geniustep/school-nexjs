@@ -13,7 +13,7 @@ export function useAdminResource<T>(
   path: string | null,
   query?: ListParams,
 ): ResourceState<T> {
-  const { activeSchoolId, requiresActiveSchool, schools } = useAdminSession();
+  const { activeSchoolId, requiresActiveSchool, schools, switching } = useAdminSession();
   const allowedSchoolIds = useMemo(() => schools.map((s) => s.id), [schools]);
   const safeActiveSchoolId =
     activeSchoolId != null && allowedSchoolIds.includes(activeSchoolId) ? activeSchoolId : null;
@@ -23,8 +23,21 @@ export function useAdminResource<T>(
     return { ...query, active_school_id: safeActiveSchoolId };
   }, [path, query, safeActiveSchoolId]);
 
-  const effectivePath =
-    isAdminApiPath(path) && requiresActiveSchool && safeActiveSchoolId == null ? null : path;
+  const pendingActiveSchool =
+    !!path && isAdminApiPath(path) && requiresActiveSchool && safeActiveSchoolId == null;
 
-  return useResource<T>(effectivePath, mergedQuery);
+  const effectivePath = pendingActiveSchool ? null : path;
+
+  const state = useResource<T>(effectivePath, mergedQuery);
+
+  return useMemo(() => {
+    const waiting = pendingActiveSchool || switching;
+    const loading = state.loading || waiting;
+    return {
+      ...state,
+      loading,
+      initialLoading: loading && state.data === null,
+      fetching: state.fetching && !waiting,
+    };
+  }, [pendingActiveSchool, switching, state]);
 }

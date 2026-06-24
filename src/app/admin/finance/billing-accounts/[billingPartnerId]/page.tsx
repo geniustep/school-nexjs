@@ -107,9 +107,9 @@ export default function AdminFinanceBillingAccountDetailPage({
         <BillingAccountDetailError code={state.error.code} onRetry={state.reload} />
       ) : null}
 
-      {state.loading ? <BillingAccountDetailSkeleton /> : null}
+      {state.initialLoading ? <BillingAccountDetailSkeleton /> : null}
 
-      {detail && !state.loading ? (
+      {detail && !state.initialLoading ? (
           <>
             <div className="finance-billing-detail-header card">
               <div className="finance-billing-detail-header__main">

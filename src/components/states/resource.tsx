@@ -40,7 +40,7 @@ export function ResourceView<T>({
 }: ResourceViewProps<T>) {
   const pathname = usePathname();
 
-  if (state.loading && state.data === null) {
+  if (state.initialLoading) {
     return <>{loadingFallback ?? <LoadingState label={loadingLabel} />}</>;
   }
   if (state.error) {
@@ -61,9 +61,9 @@ export function ResourceView<T>({
     return <ApiErrorView error={state.error} onRetry={state.reload} />;
   }
   if (state.data === null) {
-    return <LoadingState label={loadingLabel} />;
+    return <>{loadingFallback ?? <LoadingState label={loadingLabel} />}</>;
   }
-  if (isEmpty && isEmpty(state.data)) {
+  if (!state.loading && !state.error && isEmpty?.(state.data)) {
     return <>{empty ?? <EmptyState />}</>;
   }
   return <>{children(state.data)}</>;

@@ -182,7 +182,7 @@ export default function AcademicSetupClassesPage() {
     />
   );
 
-  if (lists.loading) {
+  if (lists.initialLoading) {
     return (
       <>
         <ClassesPageHero title={t('admin.academicSetup.classesPageTitle')} skeleton />

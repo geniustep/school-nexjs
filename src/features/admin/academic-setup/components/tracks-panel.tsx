@@ -92,7 +92,7 @@ export function TracksPanel({
     setEditTrack(null);
   }
 
-  if (listState.loading || optionsState.loading) {
+  if (listState.initialLoading || optionsState.initialLoading) {
     return <p className="muted">{t('common.loading')}</p>;
   }
 

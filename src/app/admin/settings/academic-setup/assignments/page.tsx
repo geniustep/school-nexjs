@@ -25,7 +25,7 @@ export default function AcademicSetupAssignmentsPage() {
     };
   }, [readinessState.data]);
 
-  if (lists.loading) {
+  if (lists.initialLoading) {
     return (
       <>
         <AcademicPageHeader title={t('admin.academicSetup.nav.assignments')} skeleton />

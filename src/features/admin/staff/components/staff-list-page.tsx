@@ -31,9 +31,9 @@ export function StaffListPage() {
   const resourceState = useMemo(
     () => ({
       loading: listState.loading,
-      initialLoading: listState.loading && listState.staff.length === 0,
-      fetching: listState.loading && listState.staff.length > 0,
-      data: listState.staff,
+      initialLoading: listState.initialLoading,
+      fetching: listState.fetching,
+      data: listState.initialLoading ? null : listState.staff,
       meta: listState.meta,
       error: listState.error,
       reload: listState.reload,

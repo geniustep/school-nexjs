@@ -99,7 +99,7 @@ export default function AcademicSetupStaffPage() {
 
   const filterStats = formatStaffFilterStats(t, locale, statusFilter, listState.staff.length);
 
-  if (listState.loading || optionsState.loading) {
+  if (listState.initialLoading || optionsState.initialLoading) {
     return (
       <div className="academic-staff-page">
         <AcademicPageHeader title={t('admin.academicSetup.staffPageTitle')} skeleton />

@@ -35,7 +35,10 @@ export default function AcademicSetupOverviewPage() {
   const [allIssuesOpen, setAllIssuesOpen] = useState(false);
   const issuesSectionRef = useRef<HTMLElement>(null);
 
-  const loading = readinessState.loading || lists.loading || trackOptionsState.loading;
+  const loading =
+    readinessState.initialLoading ||
+    lists.initialLoading ||
+    trackOptionsState.initialLoading;
   const error = readinessState.error ?? lists.error ?? trackOptionsState.error;
 
   const guidedContext = useMemo((): GuidedStepContext | null => {

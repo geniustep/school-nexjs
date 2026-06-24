@@ -18,6 +18,8 @@ export function useStaffList(query?: ListParams) {
   return {
     staff,
     loading: state.loading,
+    initialLoading: state.initialLoading,
+    fetching: state.fetching,
     error: state.error,
     meta: state.meta,
     reload,
@@ -29,6 +31,8 @@ export function useStaffOptions() {
   return {
     options: state.data,
     loading: state.loading,
+    initialLoading: state.initialLoading,
+    fetching: state.fetching,
     error: state.error,
     reload: state.reload,
   };

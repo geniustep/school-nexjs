@@ -53,6 +53,8 @@ export function useSetupReadiness(query?: ListParams) {
   return {
     data,
     loading: state.loading,
+    initialLoading: state.initialLoading,
+    fetching: state.fetching,
     error: state.error,
     reload,
   };

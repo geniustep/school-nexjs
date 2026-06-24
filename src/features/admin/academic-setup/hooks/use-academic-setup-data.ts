@@ -24,6 +24,15 @@ export function useAcademicSetupLists() {
     teachersState.loading ||
     staffState.loading;
 
+  const initialLoading =
+    levelsState.initialLoading ||
+    classesState.initialLoading ||
+    subjectsState.initialLoading ||
+    teachersState.initialLoading ||
+    staffState.initialLoading;
+
+  const fetching = loading && !initialLoading;
+
   const error =
     levelsState.error ??
     classesState.error ??
@@ -48,6 +57,8 @@ export function useAcademicSetupLists() {
       teachers: teachersState.data ?? [],
       staff: staffState.data ?? [],
       loading,
+      initialLoading,
+      fetching,
       error,
       reload,
     }),
@@ -58,6 +69,8 @@ export function useAcademicSetupLists() {
       teachersState.data,
       staffState.data,
       loading,
+      initialLoading,
+      fetching,
       error,
     ],
   );

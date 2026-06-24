@@ -37,7 +37,7 @@ export function useSchoolBrandingSettings() {
   const [state, setState] = useState<LoadState>({ status: 'loading' });
 
   const reload = useCallback(async (): Promise<SchoolBrandingSettingsData | null> => {
-    setState({ status: 'loading' });
+    setState((prev) => (prev.status === 'ready' ? prev : { status: 'loading' }));
     try {
       const res = await fetch('/api/admin/school-branding', {
         headers: { Accept: 'application/json' },

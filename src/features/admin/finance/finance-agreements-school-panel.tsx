@@ -97,16 +97,16 @@ export function FinanceAgreementsSchoolPanel({
       />
       {state.error ? <ApiErrorView error={state.error} onRetry={state.reload} /> : null}
 
-      {state.loading ? <LoadingState label={t('common.loading')} /> : null}
+      {state.initialLoading ? <LoadingState label={t('common.loading')} /> : null}
 
-      {!state.loading && !state.error && rows.length === 0 ? (
+      {!state.initialLoading && !state.error && rows.length === 0 ? (
         <EmptyState
           title={t('admin.finance.agreements.emptyTitle')}
           description={t('admin.finance.billingAccounts.filteredEmptyDesc')}
         />
       ) : null}
 
-      {!state.loading && rows.length > 0 ? (
+      {!state.initialLoading && rows.length > 0 ? (
         <>
           <DataTable
             columns={columns}

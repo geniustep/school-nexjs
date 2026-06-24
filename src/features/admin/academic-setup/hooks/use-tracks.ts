@@ -13,6 +13,8 @@ export function useTracksList(query?: ListParams) {
   return {
     tracks: state.data ?? [],
     loading: state.loading,
+    initialLoading: state.initialLoading,
+    fetching: state.fetching,
     error: state.error,
     meta: state.meta,
     reload,
@@ -24,6 +26,8 @@ export function useTrackOptions() {
   return {
     options: state.data,
     loading: state.loading,
+    initialLoading: state.initialLoading,
+    fetching: state.fetching,
     error: state.error,
     reload: state.reload,
   };
