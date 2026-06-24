@@ -70,6 +70,27 @@ describe('buildStudentCreatePayload', () => {
     expect('parent_ids' in payload).toBe(false);
   });
 
+  it('omits massar_code when empty and normalizes when present', () => {
+    const empty = buildStudentCreatePayload({
+      ...defaultStudentProfileFormState(options),
+      firstName: 'A',
+      lastName: 'B',
+      massarCode: '',
+      code: 'STU-1',
+    });
+    expect(empty.massar_code).toBeUndefined();
+
+    const normalized = buildStudentCreatePayload({
+      ...defaultStudentProfileFormState(options),
+      firstName: 'A',
+      lastName: 'B',
+      massarCode: 'g412252321@taalim.ma',
+      code: 'STU-1',
+    });
+    expect(normalized.massar_code).toBe('G412252321');
+    expect(normalized.code).toBe('STU-1');
+  });
+
   it('composes name_ar from first and last when nameAr is empty', () => {
     const state = {
       ...defaultStudentProfileFormState(options),
@@ -269,6 +290,13 @@ describe('buildStudentPartialUpdatePayload', () => {
     expect(payload.enrollment?.registration_type).toBe('transfer');
     expect(payload.enrollment?.previous_school).toBe('Other');
   });
+
+  it('clears massar_code when field is emptied on edit', () => {
+    const original = { ...defaultStudentProfileFormState(options), massarCode: 'G412252321' };
+    const current = { ...original, massarCode: '' };
+    const payload = buildStudentPartialUpdatePayload(current, original);
+    expect(payload.massar_code).toBe('');
+  });
 });
 
 describe('validateStudentProfileForm', () => {
@@ -307,7 +335,7 @@ describe('validateStudentCreateIdentityStep', () => {
       ...defaultStudentProfileFormState(options),
       firstName: 'zaki',
       lastName: 'ham',
-      massarCode: '1234567890',
+      code: 'STU-001',
       academicYearId: '',
       levelId: '',
     };
@@ -315,6 +343,17 @@ describe('validateStudentCreateIdentityStep', () => {
     expect(result.valid).toBe(true);
     expect(result.errors.academicYearId).toBeUndefined();
     expect(result.errors.levelId).toBeUndefined();
+  });
+
+  it('allows identity step with empty massar when school number or code is present', () => {
+    const state = {
+      ...defaultStudentProfileFormState(options),
+      firstName: 'zaki',
+      lastName: 'ham',
+      massarCode: '',
+      schoolNumber: '2026001',
+    };
+    expect(validateStudentCreateIdentityStep(state, t).valid).toBe(true);
   });
 
   it('rejects identity step without student identifier', () => {
@@ -325,17 +364,19 @@ describe('validateStudentCreateIdentityStep', () => {
     };
     const result = validateStudentCreateIdentityStep(state, t);
     expect(result.valid).toBe(false);
-    expect(result.errors.massarCode).toBe('admin.student360.create.errors.studentIdentifierRequired');
+    expect(result.errors.schoolNumber).toBe('admin.student360.create.errors.studentIdentifierRequired');
+    expect(result.errors.massarCode).toBeUndefined();
   });
 
-  it('accepts massar_code as student identifier', () => {
+  it('accepts valid massar_code format', () => {
     const state = {
       ...defaultStudentProfileFormState(options),
       firstName: 'A',
       lastName: 'B',
-      massarCode: '1234567890',
+      massarCode: 'G412252321',
     };
-    expect(validateStudentCreateIdentifier(state, t).valid).toBe(true);
+    expect(validateStudentCreateIdentifier(state, t).valid).toBe(false);
+    expect(validateStudentCreateIdentityStep(state, t).valid).toBe(false);
   });
 
   it('accepts school number as student identifier', () => {
@@ -365,7 +406,7 @@ describe('validateStudentCreateForm', () => {
       ...defaultStudentProfileFormState(options),
       firstName: 'A',
       lastName: 'B',
-      massarCode: '1234567890',
+      code: 'STU-001',
       academicYearId: '',
       levelId: '',
     };
@@ -385,20 +426,52 @@ describe('validateStudentCreateForm', () => {
     };
     const result = validateStudentCreateForm(state, t);
     expect(result.valid).toBe(false);
-    expect(result.errors.massarCode).toBe('admin.student360.create.errors.studentIdentifierRequired');
+    expect(result.errors.schoolNumber).toBe('admin.student360.create.errors.studentIdentifierRequired');
+    expect(result.errors.massarCode).toBeUndefined();
   });
 
-  it('rejects massar with spaces', () => {
+  it('allows create form without massar when other identifiers exist', () => {
     const state = {
       ...defaultStudentProfileFormState(options),
       firstName: 'A',
       lastName: 'B',
       academicYearId: '1',
       levelId: '77',
-      massarCode: '123 456',
+      cycleId: '1',
+      massarCode: '',
       schoolNumber: '2026001',
     };
-    expect(validateStudentCreateForm(state, t).valid).toBe(false);
+    expect(validateStudentCreateForm(state, t).valid).toBe(true);
+  });
+
+  it('rejects invalid massar format', () => {
+    const state = {
+      ...defaultStudentProfileFormState(options),
+      firstName: 'A',
+      lastName: 'B',
+      academicYearId: '1',
+      levelId: '77',
+      cycleId: '1',
+      massarCode: '412252321',
+      schoolNumber: '2026001',
+    };
+    const result = validateStudentCreateForm(state, t);
+    expect(result.valid).toBe(false);
+    expect(result.errors.massarCode).toBe('admin.student360.create.errors.invalidMassarCode');
+  });
+
+  it('accepts normalized massar after spaces and email suffix', () => {
+    const state = {
+      ...defaultStudentProfileFormState(options),
+      firstName: 'A',
+      lastName: 'B',
+      academicYearId: '1',
+      levelId: '77',
+      cycleId: '1',
+      massarCode: 'g412252321@taalim.ma',
+      schoolNumber: '2026001',
+    };
+    expect(validateStudentCreateForm(state, t).valid).toBe(true);
   });
 });
 

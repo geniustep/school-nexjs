@@ -13,6 +13,7 @@ import {
   type StudentIdentifierFieldCheck,
   type StudentIdentifierQueryField,
 } from '../utils/student-identifier-check';
+import { shouldCheckMassarCodeDuplicate } from '../utils/massar-code';
 
 export type { StudentCreateIdentifierChecks, StudentIdentifierFieldCheck };
 
@@ -29,8 +30,13 @@ const FIELD_MAP: Record<CheckKey, StudentIdentifierQueryField> = {
   code: 'code',
 };
 
-function isFieldCheckClear(value: string, check: StudentIdentifierFieldCheck): boolean {
-  if (!shouldCheckStudentIdentifier(value)) return true;
+function shouldRunIdentifierCheck(key: CheckKey, value: string): boolean {
+  if (key === 'massarCode') return shouldCheckMassarCodeDuplicate(value);
+  return shouldCheckStudentIdentifier(value);
+}
+
+function isFieldCheckClear(key: CheckKey, value: string, check: StudentIdentifierFieldCheck): boolean {
+  if (!shouldRunIdentifierCheck(key, value)) return true;
   return check.status === 'available';
 }
 
@@ -65,8 +71,7 @@ export function useStudentCreateIdentifierChecks(input: {
   };
 
   const runCheck = useCallback(async (key: CheckKey, value: string): Promise<StudentIdentifierFieldCheck> => {
-    const trimmed = value.trim();
-    if (!shouldCheckStudentIdentifier(trimmed)) {
+    if (!shouldRunIdentifierCheck(key, value)) {
       return IDLE_IDENTIFIER_CHECK;
     }
 
@@ -75,7 +80,7 @@ export function useStudentCreateIdentifierChecks(input: {
 
     const result = await checkStudentIdentifierDuplicate(
       FIELD_MAP[key],
-      trimmed,
+      value,
       latestValues.current.schoolId,
     );
 
@@ -93,14 +98,13 @@ export function useStudentCreateIdentifierChecks(input: {
       const timer = debounceTimers.current[key];
       if (timer != null) window.clearTimeout(timer);
 
-      const trimmed = value.trim();
-      if (!shouldCheckStudentIdentifier(trimmed)) {
+      if (!shouldRunIdentifierCheck(key, value)) {
         setChecks((prev) => ({ ...prev, [key]: IDLE_IDENTIFIER_CHECK }));
         return;
       }
 
       debounceTimers.current[key] = window.setTimeout(() => {
-        void runCheck(key, trimmed);
+        void runCheck(key, value);
       }, input.debounceMs ?? 400);
     },
     [input.debounceMs, runCheck],
@@ -146,8 +150,8 @@ export function useStudentCreateIdentifierChecks(input: {
 
     await Promise.all(
       keys.map(async (key) => {
-        const value = latestValues.current[key].trim();
-        if (!shouldCheckStudentIdentifier(value)) {
+        const value = latestValues.current[key];
+        if (!shouldRunIdentifierCheck(key, value)) {
           nextChecks[key] = IDLE_IDENTIFIER_CHECK;
           return;
         }
@@ -163,16 +167,23 @@ export function useStudentCreateIdentifierChecks(input: {
 
     setChecks(nextChecks);
 
-    const ok = keys.every((key) => isFieldCheckClear(latestValues.current[key], nextChecks[key]));
+    const ok = keys.every((key) =>
+      isFieldCheckClear(key, latestValues.current[key], nextChecks[key]),
+    );
     return { ok, checks: nextChecks };
   }, []);
 
-  const massarBlocksProgress = identifierFieldBlocksProgress(input.massarCode, checks.massarCode);
+  const massarBlocksProgress = identifierFieldBlocksProgress(
+    input.massarCode,
+    checks.massarCode,
+    'massarCode',
+  );
   const schoolNumberBlocksProgress = identifierFieldBlocksProgress(
     input.schoolNumber,
     checks.schoolNumber,
+    'schoolNumber',
   );
-  const codeBlocksProgress = identifierFieldBlocksProgress(input.code, checks.code);
+  const codeBlocksProgress = identifierFieldBlocksProgress(input.code, checks.code, 'code');
 
   return {
     checks,

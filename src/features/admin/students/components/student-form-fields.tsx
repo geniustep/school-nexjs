@@ -9,20 +9,24 @@ import {
   localizeStudentGenderOptions,
   sortNationalityOptions,
 } from '../utils/student-profile';
+import { normalizeMassarCodeInput } from '../utils/massar-code';
 
 function Field({
   label,
   error,
+  hint,
   children,
 }: {
   label: string;
   error?: string;
+  hint?: string;
   children: React.ReactNode;
 }) {
   return (
     <label className="col" style={{ gap: 4 }}>
       <span className="tiny muted">{label}</span>
       {children}
+      {hint ? <span className="tiny muted">{hint}</span> : null}
       {error ? (
         <span className="tiny" style={{ color: 'var(--danger)' }}>
           {error}
@@ -223,8 +227,22 @@ export function StudentIdentityFields({
           onChange={(nationalityId) => onChange({ nationalityId })}
         />
       </Field>
-      <Field label={t('admin.massarCode')} error={errors.massarCode}>
-        <input className="input" value={state.massarCode} onChange={(e) => onChange({ massarCode: e.target.value })} dir="ltr" />
+      <Field
+        label={t('admin.massarCode')}
+        error={errors.massarCode}
+        hint={t('admin.student360.create.massarCodeHint')}
+      >
+        <input
+          className="input"
+          value={state.massarCode}
+          onChange={(e) => onChange({ massarCode: e.target.value })}
+          onBlur={() => {
+            const normalized = normalizeMassarCodeInput(state.massarCode);
+            if (normalized !== state.massarCode) onChange({ massarCode: normalized });
+          }}
+          dir="ltr"
+          autoComplete="off"
+        />
       </Field>
       <Field label={t('admin.studentCode')}>
         <input className="input" value={state.code} onChange={(e) => onChange({ code: e.target.value })} dir="ltr" />
@@ -623,17 +641,22 @@ export function StudentCreateIdentityFields({
         />
       </Field>
       <div data-field="massarCode">
-        <Field label={t('admin.massarCode')} error={errors.massarCode}>
+        <Field
+          label={t('admin.massarCode')}
+          error={errors.massarCode}
+          hint={fieldHints?.massarCode ?? t('admin.student360.create.massarCodeHint')}
+        >
           <input
             className="input"
             value={state.massarCode}
-            onChange={(e) => onChange({ massarCode: e.target.value.replace(/\s/g, '') })}
+            onChange={(e) => onChange({ massarCode: e.target.value })}
+            onBlur={() => {
+              const normalized = normalizeMassarCodeInput(state.massarCode);
+              if (normalized !== state.massarCode) onChange({ massarCode: normalized });
+            }}
             dir="ltr"
-            inputMode="numeric"
+            autoComplete="off"
           />
-          <span className="tiny muted">
-            {fieldHints?.massarCode ?? t('admin.student360.create.identityIdentifierHint')}
-          </span>
         </Field>
       </div>
     </div>

@@ -14,6 +14,7 @@ import type { FeePlanSuggestResult, StudentCreateFinanceFormState } from '@/type
 import type { SiblingLine } from '@/types/sibling-line';
 import { buildStudentCreateFinancePayload } from './student-enrollment-finance';
 import { buildSiblingLinesPayload, normalizeSiblingLines, siblingLinesFingerprint } from '@/features/admin/admissions/utils/sibling-lines';
+import { normalizeMassarCodeInput, isValidMassarCodeNormalized } from './massar-code';
 
 export const DEPARTURE_STATUSES = new Set(['withdrawn', 'transferred']);
 
@@ -39,6 +40,7 @@ export interface StudentProfileFormState {
   academicYearId: string;
   levelId: string;
   classId: string;
+  streamId: string;
   registrationType: string;
   previousSchool: string;
   externalReference: string;
@@ -48,6 +50,10 @@ export interface StudentProfileFormState {
   siblingsRawText: string;
   siblingLines: SiblingLine[];
   admissionNotes: string;
+  sourceId: string;
+  firstContactDate: string;
+  nextAction: string;
+  nextActionDate: string;
   isRepeating: boolean;
   actualJoinDate: string;
   registrationNotes: string;
@@ -206,6 +212,7 @@ export function defaultStudentProfileFormState(options: StudentOptions | null): 
     academicYearId: options?.academicYears[0] ? String(options.academicYears[0].id) : '',
     levelId: '',
     classId: '',
+    streamId: '',
     registrationType: options?.registrationTypes[0]?.value ?? 'new',
     previousSchool: '',
     externalReference: '',
@@ -215,6 +222,10 @@ export function defaultStudentProfileFormState(options: StudentOptions | null): 
     siblingsRawText: '',
     siblingLines: [],
     admissionNotes: '',
+    sourceId: '',
+    firstContactDate: today,
+    nextAction: '',
+    nextActionDate: '',
     isRepeating: false,
     actualJoinDate: today,
     registrationNotes: '',
@@ -347,11 +358,33 @@ export function validateStudentProfileForm(
   if (trim(state.emergencyContactName) && !trim(state.emergencyPhone)) {
     errors.emergencyPhone = t('admin.student360.errors.emergencyPhoneRecommended');
   }
+  applyMassarCodeValidation(state, t, errors);
   return { valid: Object.keys(errors).length === 0, errors };
 }
 
 export function hasStudentCreateIdentifier(state: StudentProfileFormState): boolean {
-  return Boolean(trim(state.massarCode) || trim(state.schoolNumber) || trim(state.code));
+  return Boolean(trim(state.schoolNumber) || trim(state.code));
+}
+
+function massarCodeFieldError(
+  raw: string,
+  t: (key: string) => string,
+): string | undefined {
+  const normalized = normalizeMassarCodeInput(raw);
+  if (!normalized) return undefined;
+  if (!isValidMassarCodeNormalized(normalized)) {
+    return t('admin.student360.create.errors.invalidMassarCode');
+  }
+  return undefined;
+}
+
+function applyMassarCodeValidation(
+  state: StudentProfileFormState,
+  t: (key: string) => string,
+  errors: StudentProfileFieldErrors,
+): void {
+  const massarError = massarCodeFieldError(state.massarCode, t);
+  if (massarError) errors.massarCode = massarError;
 }
 
 export function validateStudentCreateIdentifier(
@@ -365,7 +398,6 @@ export function validateStudentCreateIdentifier(
   return {
     valid: false,
     errors: {
-      massarCode: message,
       schoolNumber: message,
       code: message,
     },
@@ -399,11 +431,6 @@ export function validateStudentCreateIdentityStep(
     errors.lastName = t('admin.student360.errors.lastNameRequired');
   } else if (!/\S/.test(trim(state.lastName))) {
     errors.lastName = t('admin.student360.errors.lastNameRequired');
-  }
-
-  const massar = trim(state.massarCode);
-  if (massar && /\s/.test(massar)) {
-    errors.massarCode = t('admin.student360.create.errors.massarNoSpaces');
   }
 
   applyStudentCreateIdentifierValidation(state, t, errors);
@@ -441,11 +468,6 @@ export function validateStudentCreateForm(
     errors.levelId = t('admin.student360.create.errors.levelRequired');
   } else if (positiveIdFromState(state.levelId) == null) {
     errors.levelId = t('admin.student360.create.errors.levelRequired');
-  }
-
-  const massar = trim(state.massarCode);
-  if (massar && /\s/.test(massar)) {
-    errors.massarCode = t('admin.student360.create.errors.massarNoSpaces');
   }
 
   applyStudentCreateIdentifierValidation(state, t, errors);
@@ -517,7 +539,7 @@ function applyIdentityFields(
   if (birthPlace) payload.birth_place = birthPlace;
   const nationalityId = optionalNumber(state.nationalityId);
   if (nationalityId != null) payload.nationality_id = nationalityId;
-  const massar = optionalString(state.massarCode);
+  const massar = normalizeMassarCodeInput(state.massarCode);
   if (massar) payload.massar_code = massar;
   const code = optionalString(state.code);
   if (code) payload.code = code;
@@ -699,8 +721,7 @@ export function buildStudentPartialUpdatePayload(
     if (v != null) payload.nationality_id = v;
   }
   if (fieldChanged(current.massarCode, original.massarCode)) {
-    const v = optionalString(current.massarCode);
-    if (v) payload.massar_code = v;
+    payload.massar_code = normalizeMassarCodeInput(current.massarCode) || '';
   }
   if (fieldChanged(current.code, original.code)) {
     const v = optionalString(current.code);

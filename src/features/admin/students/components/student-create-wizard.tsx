@@ -375,7 +375,6 @@ export function StudentCreateForm({
     setFieldErrors((prev) => ({ ...prev, ...result.errors }));
     toast.error(result.toastMessage);
     if (result.focusIdentity && current !== 'identity') setStep('identity');
-    if (result.openAdditional) setAdditionalOpen(true);
     focusFirstError(result.errors);
     return false;
   }
@@ -506,7 +505,9 @@ export function StudentCreateForm({
     if (!identifierValidation.valid) {
       setFieldErrors((prev) => ({ ...prev, ...identifierValidation.errors }));
       const identifierMessage =
-        identifierValidation.errors.massarCode ?? t('admin.student360.create.errors.studentIdentifierRequired');
+        identifierValidation.errors.schoolNumber ??
+        identifierValidation.errors.code ??
+        t('admin.student360.create.errors.studentIdentifierRequired');
       toast.error(identifierMessage);
       if (current !== 'identity') {
         setStep('identity');

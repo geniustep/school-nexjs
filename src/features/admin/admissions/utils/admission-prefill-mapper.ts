@@ -4,6 +4,7 @@ import { admissionDisplayReference } from './admission-registration';
 
 import { parseExtraFieldBool } from './admission-extra-fields';
 import { normalizeSiblingLines } from './sibling-lines';
+import { normalizeMassarCodeInput } from '@/features/admin/students/utils/massar-code';
 
 function str(value: unknown): string {
   if (value == null || value === false) return '';
@@ -122,7 +123,7 @@ export function mapAdmissionPrefillToStudentProfile(
     nameLatin: str(student.name_latin),
     gender: str(student.gender),
     dateOfBirth: str(student.birth_date),
-    massarCode: str(student.massar_code),
+    massarCode: normalizeMassarCodeInput(str(student.massar_code)),
     previousSchool: str(student.previous_school),
     externalReference: str(student.external_reference),
     residenceAddress: str(student.residence_address),

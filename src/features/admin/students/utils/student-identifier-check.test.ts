@@ -61,6 +61,12 @@ describe('identifierFieldBlocksProgress', () => {
     expect(identifierFieldBlocksProgress('1234', { status: 'duplicate' })).toBe(true);
     expect(identifierFieldBlocksProgress('1234', { status: 'available' })).toBe(false);
     expect(identifierFieldBlocksProgress('12', { status: 'idle' })).toBe(false);
+    expect(
+      identifierFieldBlocksProgress('G412252321', { status: 'idle' }, 'massarCode'),
+    ).toBe(true);
+    expect(
+      identifierFieldBlocksProgress('G41225', { status: 'idle' }, 'massarCode'),
+    ).toBe(false);
   });
 });
 
@@ -73,7 +79,7 @@ describe('validateStudentCreateIdentifierDuplicateChecks', () => {
         ...INITIAL_STUDENT_CREATE_IDENTIFIER_CHECKS,
         massarCode: { status: 'duplicate' },
       },
-      massarCode: 'E258532',
+      massarCode: 'G412252321',
       schoolNumber: '',
       code: '',
       t,
@@ -88,7 +94,7 @@ describe('validateStudentCreateIdentifierDuplicateChecks', () => {
   it('rejects checkable massar that is still idle', () => {
     const result = validateStudentCreateIdentifierDuplicateChecks({
       checks: INITIAL_STUDENT_CREATE_IDENTIFIER_CHECKS,
-      massarCode: 'E258532',
+      massarCode: 'G412252321',
       schoolNumber: '',
       code: '',
       t,
@@ -103,7 +109,7 @@ describe('validateStudentCreateIdentifierDuplicateChecks', () => {
         ...INITIAL_STUDENT_CREATE_IDENTIFIER_CHECKS,
         massarCode: { status: 'available' },
       },
-      massarCode: 'E258532',
+      massarCode: 'G412252321',
       schoolNumber: '',
       code: '',
       t,
@@ -117,7 +123,7 @@ describe('studentCreateIdentifierChecksBlockProgress', () => {
   it('blocks when any checkable field is not available', () => {
     expect(
       studentCreateIdentifierChecksBlockProgress({
-        massarCode: '12345',
+        massarCode: 'G412252321',
         schoolNumber: '',
         code: '',
         checks: {

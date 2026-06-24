@@ -82,6 +82,20 @@ function isDuplicateStudentCodeMessage(message: string): boolean {
   return lower.includes('duplicate') && lower.includes('code') && !lower.includes('massar');
 }
 
+function isInvalidMassarMessage(message: string): boolean {
+  const lower = message.toLowerCase();
+  return (
+    lower.includes('invalid_massar') ||
+    lower.includes('invalid massar') ||
+    (lower.includes('massar_code') && lower.includes('invalid'))
+  );
+}
+
+function mapInvalidMassarError(t: (key: string) => string): StudentApiErrorContext {
+  const message = t('admin.student360.create.errors.invalidMassarCode');
+  return { message, fieldErrors: { massarCode: message } };
+}
+
 function mapDuplicateMassarError(t: (key: string) => string): StudentApiErrorContext {
   const message = t('admin.student360.errors.duplicateMassar');
   return { message, fieldErrors: { massarCode: message } };
@@ -104,7 +118,6 @@ function mapMissingStudentIdentifierError(
   return {
     message,
     fieldErrors: {
-      massarCode: message,
       schoolNumber: message,
       code: message,
     },
@@ -133,6 +146,8 @@ export function mapStudentApiError(
     case 'duplicate_massar_code':
       fieldErrors.massarCode = t('admin.student360.errors.duplicateMassar');
       return { message: t('admin.student360.errors.duplicateMassar'), fieldErrors };
+    case 'invalid_massar_code':
+      return mapInvalidMassarError(t);
     case 'duplicate_school_number':
     case 'duplicate_record':
     case 'conflict':
@@ -186,6 +201,9 @@ export function mapStudentApiError(
         const duplicate = mapDuplicateIdentifierMessages(message, t);
         if (duplicate) return duplicate;
       }
+      if (isInvalidMassarMessage(message)) {
+        return mapInvalidMassarError(t);
+      }
       if (msgIncludes(message, 'class', 'school', 'مؤسسة', 'قسم', 'scope', 'نطاق', 'outside')) {
         fieldErrors.classId = t('admin.studentClassForbidden');
         return { message: t('admin.studentClassForbidden'), fieldErrors };
@@ -214,6 +232,9 @@ export function mapStudentApiError(
       {
         const duplicate = mapDuplicateIdentifierMessages(message, t);
         if (duplicate) return duplicate;
+      }
+      if (isInvalidMassarMessage(message)) {
+        return mapInvalidMassarError(t);
       }
       if (message && !msgIncludes(message, '<', 'traceback', 'html')) {
         return { message };

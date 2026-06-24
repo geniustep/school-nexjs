@@ -18,9 +18,9 @@ describe('mapStudentApiError', () => {
       t,
     );
     expect(mapped.message).toBe('يجب إدخال رقم مسار أو رقم التسجيل أو رمز داخلي للتلميذ.');
-    expect(mapped.fieldErrors?.massarCode).toBe(mapped.message);
     expect(mapped.fieldErrors?.schoolNumber).toBe(mapped.message);
     expect(mapped.fieldErrors?.code).toBe(mapped.message);
+    expect(mapped.fieldErrors?.massarCode).toBeUndefined();
   });
 
   it('does not expose raw English identifier message to the user', () => {
@@ -82,6 +82,18 @@ describe('mapStudentApiError', () => {
       expect(mapped.fieldErrors?.massarCode).toBe(mapped.message);
       expect(mapped.message).not.toContain('massar_code');
     }
+  });
+
+  it('maps invalid_massar_code to massar field', () => {
+    const mapped = mapStudentApiError(
+      { code: 'invalid_massar_code', message: 'invalid massar_code' },
+      (key) =>
+        key === 'admin.student360.create.errors.invalidMassarCode'
+          ? 'رقم مسار يجب أن يتكون من حرف لاتيني واحد متبوعًا بتسعة أرقام.'
+          : key,
+    );
+    expect(mapped.fieldErrors?.massarCode).toBe(mapped.message);
+    expect(mapped.message).toContain('رقم مسار');
   });
 
   it('translates finance agreement activation forbidden', () => {

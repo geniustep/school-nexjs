@@ -1,6 +1,7 @@
 import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
 import type { Student } from '@/types/student';
+import { normalizeMassarCodeInput, shouldCheckMassarCodeDuplicate } from './massar-code';
 
 export const MIN_STUDENT_IDENTIFIER_CHECK_LENGTH = 4;
 
@@ -37,8 +38,11 @@ function isBlockingIdentifierStatus(status: StudentIdentifierCheckStatus): boole
 export function identifierFieldBlocksProgress(
   value: string,
   check: StudentIdentifierFieldCheck,
+  field?: 'massarCode' | 'schoolNumber' | 'code',
 ): boolean {
-  if (!shouldCheckStudentIdentifier(value)) return false;
+  const shouldCheck =
+    field === 'massarCode' ? shouldCheckMassarCodeDuplicate(value) : shouldCheckStudentIdentifier(value);
+  if (!shouldCheck) return false;
   return isBlockingIdentifierStatus(check.status) || check.status === 'idle';
 }
 
@@ -49,9 +53,9 @@ export function studentCreateIdentifierChecksBlockProgress(input: {
   checks: StudentCreateIdentifierChecks;
 }): boolean {
   return (
-    identifierFieldBlocksProgress(input.massarCode, input.checks.massarCode) ||
-    identifierFieldBlocksProgress(input.schoolNumber, input.checks.schoolNumber) ||
-    identifierFieldBlocksProgress(input.code, input.checks.code)
+    identifierFieldBlocksProgress(input.massarCode, input.checks.massarCode, 'massarCode') ||
+    identifierFieldBlocksProgress(input.schoolNumber, input.checks.schoolNumber, 'schoolNumber') ||
+    identifierFieldBlocksProgress(input.code, input.checks.code, 'code')
   );
 }
 
@@ -79,7 +83,6 @@ export type StudentCreateIdentifierDuplicateValidationResult =
       errors: Partial<Record<'massarCode' | 'schoolNumber' | 'code', string>>;
       toastMessage: string;
       focusIdentity?: boolean;
-      openAdditional?: boolean;
     };
 
 export function validateStudentCreateIdentifierDuplicateChecks(input: {
@@ -102,7 +105,7 @@ export function validateStudentCreateIdentifierDuplicateChecks(input: {
       focusIdentity: input.current !== 'identity',
     };
   }
-  if (checks.massarCode.status === 'error' && shouldCheckStudentIdentifier(input.massarCode)) {
+  if (checks.massarCode.status === 'error' && shouldCheckMassarCodeDuplicate(input.massarCode)) {
     const message = input.t('admin.student360.create.errors.identifierCheckFailed');
     return {
       valid: false,
@@ -121,7 +124,7 @@ export function validateStudentCreateIdentifierDuplicateChecks(input: {
     };
   }
   if (
-    shouldCheckStudentIdentifier(input.massarCode) &&
+    shouldCheckMassarCodeDuplicate(input.massarCode) &&
     checks.massarCode.status !== 'available'
   ) {
     const message = input.t('admin.student360.create.errors.checkingMassar');
@@ -140,7 +143,6 @@ export function validateStudentCreateIdentifierDuplicateChecks(input: {
       valid: false,
       errors: checkErrors,
       toastMessage: message,
-      openAdditional: input.current === 'identity',
     };
   }
   if (checks.code.status === 'duplicate') {
@@ -149,7 +151,6 @@ export function validateStudentCreateIdentifierDuplicateChecks(input: {
       valid: false,
       errors: checkErrors,
       toastMessage: message,
-      openAdditional: input.current === 'identity',
     };
   }
 
@@ -206,8 +207,13 @@ export async function checkStudentIdentifierDuplicate(
   value: string,
   schoolId: number | null | undefined,
 ): Promise<StudentIdentifierCheckResult> {
-  const trimmed = value.trim();
-  if (!shouldCheckStudentIdentifier(trimmed)) {
+  const trimmed =
+    field === 'massar_code' ? normalizeMassarCodeInput(value) : value.trim();
+  const shouldCheck =
+    field === 'massar_code'
+      ? shouldCheckMassarCodeDuplicate(value)
+      : shouldCheckStudentIdentifier(trimmed);
+  if (!shouldCheck) {
     return { status: 'idle' };
   }
 
