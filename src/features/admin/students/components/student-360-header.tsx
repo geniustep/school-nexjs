@@ -89,6 +89,14 @@ function buildHeaderBadges(
     });
   }
 
+  if (!details.student.massar_code?.trim()) {
+    badges.push({
+      key: 'missing-massar',
+      label: t('admin.student360.overview.badges.missingMassar'),
+      tone: 'amber',
+    });
+  }
+
   return badges;
 }
 

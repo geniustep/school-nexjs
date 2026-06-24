@@ -107,3 +107,19 @@ export function buildSiblingLinesPayload(lines: SiblingLine[]): SiblingLine[] | 
 export function emptySiblingLine(sequence = 1): SiblingLine {
   return { sequence, is_current_student: false };
 }
+
+/** Returns an error message when a current-student sibling has no linked student. */
+export function validateSiblingLinesLinkedStudents(
+  lines: SiblingLine[],
+  t: (key: string) => string,
+): string | null {
+  for (const line of lines) {
+    if (
+      line.is_current_student === true &&
+      (line.linked_student_id == null || line.linked_student_id <= 0)
+    ) {
+      return t('admin.siblings.linkedStudentRequired');
+    }
+  }
+  return null;
+}

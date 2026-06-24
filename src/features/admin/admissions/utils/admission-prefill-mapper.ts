@@ -112,7 +112,7 @@ export function mapAdmissionPrefillToStudentProfile(
   }
 
   const guardianNotes = buildGuardianNotes(guardian);
-  const registrationNotes = [guardianNotes].filter(Boolean).join('\n');
+  const prefillRegistrationNotes = str(admission.registration_notes);
 
   return {
     firstName,
@@ -123,7 +123,12 @@ export function mapAdmissionPrefillToStudentProfile(
     nameLatin: str(student.name_latin),
     gender: str(student.gender),
     dateOfBirth: str(student.birth_date),
+    birthPlace: str(student.birth_place),
+    nationalityId: idStr(student.nationality_id),
     massarCode: normalizeMassarCodeInput(str(student.massar_code)),
+    schoolNumber: str(student.school_number),
+    code: str(student.code),
+    admissionDate: str(student.admission_date) || str(admission.admission_date),
     previousSchool: str(student.previous_school),
     externalReference: str(student.external_reference),
     residenceAddress: str(student.residence_address),
@@ -139,14 +144,22 @@ export function mapAdmissionPrefillToStudentProfile(
     schoolId: idStr(academic.school_id),
     academicYearId: idStr(academic.academic_year_id),
     levelId: idStr(academic.requested_level_id),
+    streamId: idStr(academic.requested_stream_id),
     classId: idStr(academic.requested_class_id),
+    registrationType: str(admission.registration_type) || 'new',
+    actualJoinDate: str(admission.actual_join_date),
+    isRepeating: parseExtraFieldBool(admission.is_repeating),
+    registrationNotes: prefillRegistrationNotes,
+    sourceId: idStr(admission.source_id),
+    firstContactDate: str(admission.first_contact_date),
+    nextAction: str(admission.next_action),
+    nextActionDate: str(admission.next_action_date),
     emergencyContactName: str(guardian.name),
     emergencyPhone: str(guardian.phone),
     emergencyRelationship: str(guardian.relationship) || str(guardian.guardian_relationship),
     emergencyNotes: guardianNotes,
     mobile: str(guardian.phone),
     email: str(guardian.email),
-    registrationNotes,
   };
 }
 

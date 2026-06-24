@@ -20,6 +20,8 @@
     "publish": "نشر",
     "close": "إغلاق",
     "edit": "تعديل",
+    "delete": "حذف",
+    "clear": "مسح",
     "download": "تحميل",
     "markRead": "تعليم كمقروء",
     "yes": "نعم",
@@ -3076,6 +3078,10 @@
       "subtitle": "إدارة طلبات التسجيل والقبول",
       "createButton": "طلب تسجيل جديد",
       "backToList": "العودة إلى القائمة",
+      "breadcrumb": {
+        "aria": "مسار طلبات التسجيل",
+        "list": "طلبات التسجيل"
+      },
       "nextAction": "الإجراء القادم",
       "assignedUser": "المسؤول",
       "viewMode": "طريقة العرض",
@@ -3208,6 +3214,11 @@
         "title": "طلب تسجيل جديد",
         "subtitle": "أنشئ طلب تسجيل أولي دون إنشاء تلميذ رسمي.",
         "studentSection": "بيانات الطفل",
+        "studentSectionLead": "الهوية، التعريف، وملاحظات القبول الأولية — أكمل ما يتوفر لديك.",
+        "siblingsSectionLead": "حدّد إن كان للطفل إخوة مسجّلين أو ذُكروا في الطلب.",
+        "studySectionLead": "السنة، السلك، المستوى، والقسم المطلوب مع تفاصيل التسجيل.",
+        "guardianSectionLead": "بيانات التواصل مع ولي الأمر أو المسؤول عن المتابعة.",
+        "followUpSectionLead": "مصدر القدوم والإجراء التالي لمتابعة الطلب.",
         "guardianSection": "بيانات ولي الأمر",
         "studySection": "الدراسة المطلوبة",
         "followUpSection": "المتابعة",
@@ -3435,6 +3446,22 @@
         "notFound": "طلب التسجيل غير موجود."
       }
     },
+    "enrollmentIntake": {
+      "admissionNotes": "ملاحظات داخلية",
+      "residenceAddressHint": "سطر واحد يجمع العنوان إن لم تُملأ الحقول أدناه.",
+      "groups": {
+        "names": "الأسماء",
+        "personal": "البيانات الشخصية",
+        "identifiers": "رموز التعريف",
+        "adminDates": "التواريخ الإدارية",
+        "academicStructure": "الهيكل الأكاديمي",
+        "registrationDetails": "تفاصيل التسجيل",
+        "guardian": "ولي الأمر",
+        "followUp": "المتابعة",
+        "address": "العنوان",
+        "admissionContext": "سياق التسجيل"
+      }
+    },
     "siblings": {
       "sectionTitle": "معلومات الإخوة",
       "hasSiblings": "له إخوة",
@@ -3445,10 +3472,18 @@
       "legacyLevels": "مستويات الإخوة",
       "addLine": "إضافة أخ/أخت",
       "linesEditor": "تفاصيل الإخوة",
+      "linesEditorLead": "أدخل تفاصيل كل أخ أو أخت مسجّل.",
+      "emptyLinesHint": "اضغط «إضافة أخ/أخت» لبدء الإدخال.",
+      "legacyFieldsToggle": "حقول نصية قديمة (اختياري)",
+      "cardTitle": "أخ/أخت {number}",
       "empty": "لا توجد معلومات إخوة",
       "notMentioned": "غير مذكور",
       "currentStudentHint": "مسجّل حاليًا في المدرسة",
       "linkedStudentHint": "تلميذ مرتبط:",
+      "linkedStudentRequired": "يجب تحديد التلميذ المرتبط عند تفعيل «تلميذ حالي في المدرسة».",
+      "selectLinkedStudent": "التلميذ في المدرسة",
+      "searchStudentPlaceholder": "ابحث بالاسم أو الرقم…",
+      "searchStudentEmpty": "لا توجد نتائج مطابقة",
       "relationship": {
         "brother": "أخ",
         "sister": "أخت"
@@ -3456,6 +3491,7 @@
       "table": {
         "name": "الاسم",
         "relationship": "صلة القرابة",
+        "birthDate": "تاريخ الازدياد",
         "ageAtAdmission": "العمر وقت التسجيل",
         "level": "المستوى الدراسي",
         "currentStudent": "تلميذ حالي في المدرسة",
@@ -3670,7 +3706,8 @@
           "tripConsentPending": "بانتظار موافقة الرحلات",
           "tripConsentDenied": "موافقة الرحلات غير ممنوحة",
           "consentsIncomplete": "الموافقات غير مكتملة",
-          "financeOverdue": "متأخرات مالية"
+          "financeOverdue": "متأخرات مالية",
+          "missingMassar": "رقم مسار ناقص"
         },
         "cards": {
           "schooling": "الدراسة",
@@ -3849,13 +3886,18 @@
       "guardianAfterCreateHint": "بعد حفظ التلميذ، يمكنك إضافة أولياء الأمر من تبويب «أولياء الأمر».",
       "create": {
         "pageDesc": "أدخل بيانات التلميذ والتسجيل الأكاديمي والخطة المالية المقترحة قبل الحفظ النهائي.",
+        "identityStepLead": "جميع حقول الهوية معروضة — أكمل ما ينطبق على التلميذ.",
+        "enrollmentStepLead": "حدّد السنة والسلك والمستوى والقسم، ثم أكمل بيانات القبول وولي الأمر.",
+        "financeStepLead": "راجع الخطة المقترحة وعدّلها عند الحاجة قبل الحفظ.",
+        "reviewStepLead": "تحقق من صحة البيانات قبل إنشاء التلميذ.",
         "additionalInfo": "معلومات إضافية",
         "firstNameAr": "الاسم الشخصي (عربي)",
         "lastNameAr": "الاسم العائلي (عربي)",
-        "firstNameLatin": "الاسم الشخصي (لاتيني)",
-        "lastNameLatin": "الاسم العائلي (لاتيني)",
+        "firstNameLatin": "الاسم الشخصي (فرنسي)",
+        "lastNameLatin": "الاسم العائلي (فرنسي)",
         "fullNamePreview": "الاسم الكامل",
         "internalCodeHint": "اتركه فارغًا ليولّده النظام تلقائيًا.",
+        "schoolNumberOptionalHint": "اختياري — يمكن إكماله لاحقًا من ملف التلميذ.",
         "massarCodeHint": "اختياري. إذا توفر، أدخله بصيغة حرف لاتيني متبوع بتسعة أرقام، مثال: G412252321.",
         "identityIdentifierHint": "أدخل رقم التسجيل المدرسي أو الرمز الداخلي أدناه.",
         "admissionDateHint": "يُستخدم عند استيراد سجل تاريخي أو عند الحاجة الإدارية.",
@@ -4021,6 +4063,7 @@
           "expectedMonthlyInstallment": "القسط الشهري المتوقع",
           "reviewFinanceBeforeSave": "يرجى مراجعة تخصيص الخطة المالية قبل الحفظ.",
           "missingStudentIdentifier": "لا يمكن الحفظ: معرّف التلميذ ناقص.",
+          "optionalMassarHint": "رقم مسار غير مُدخل — يمكن إكماله لاحقًا من ملف التلميذ.",
           "missingAcademicYearForFinance": "لا يمكن الحفظ: يجب اختيار السنة الدراسية قبل حفظ الخطة المالية.",
           "missingClassForFinance": "لا يمكن الحفظ: القسم مطلوب لإعداد الخطة المالية.",
           "duplicateMassar": "لا يمكن الحفظ: رقم مسار مكرر.",

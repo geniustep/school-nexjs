@@ -7,6 +7,27 @@ import { InfoBanner } from '@/components/ui/primitives';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
 import type { AdmissionRegistrationContext } from '@/features/admin/admissions/utils/admission-prefill-mapper';
+import { useAdmissionOptions } from '@/features/admin/admissions/hooks/use-admission-options';
+import {
+  admissionOptionId,
+  filterStreamsByLevel,
+  findAdmissionLevel,
+} from '@/features/admin/admissions/utils/admission-options';
+import {
+  EnrollmentIntakeAcademicFields,
+  EnrollmentIntakeAdmissionExtrasFields,
+  EnrollmentIntakeFollowUpFields,
+  EnrollmentIntakeGuardianFields,
+  EnrollmentIntakeIdentityFields,
+  EnrollmentIntakeRegistrationFields,
+  EnrollmentIntakeSiblingsFields,
+} from '@/features/admin/enrollment-intake/enrollment-intake-fields';
+import {
+  intakeErrorsFromStudentProfile,
+  intakeFromStudentProfile,
+  patchStudentProfileFromIntake,
+} from '@/features/admin/enrollment-intake/mappers';
+import type { EnrollmentIntakePatch } from '@/features/admin/enrollment-intake/types';
 import {
   formatPrefillFieldValue,
   formatPrefillMessage,
@@ -30,10 +51,9 @@ import {
   buildStudentCreatePayload,
   defaultStudentProfileFormState,
   getStudentCreateFinanceBlockReason,
+  localizeStudentGenderOptions,
   validateStudentCreateForm,
   validateStudentCreateIdentityStep,
-  validateStudentCreateIdentifier,
-  hasStudentCreateIdentifier,
   type StudentProfileFieldErrors,
   type StudentProfileFormState,
 } from '../utils/student-profile';
@@ -55,13 +75,8 @@ import {
   resolveStudentCreateIdentifierCheckErrors,
   validateStudentCreateIdentifierDuplicateChecks,
 } from '../utils/student-identifier-check';
-import {
-  StudentCreateAdditionalFields,
-  StudentCreateEnrollmentFields,
-  StudentCreateIdentityFields,
-  StudentAdmissionAndSiblingsFields,
-} from './student-form-fields';
 import { StudentCreateStepper } from './student-create-stepper';
+import { StudentCreateStyledSection } from './student-create-section-header';
 import { StudentCreateBillingStep } from './student-create-billing-step';
 import { StudentCreateFeePlanSection } from './student-create-fee-plan-section';
 import { StudentCreateReviewSection } from './student-create-review-section';
@@ -120,6 +135,7 @@ export function StudentCreateForm({
   const toast = useToast();
   const { activeSchoolId } = useAdminSession();
   const optionsState = useStudentOptions();
+  const admissionOptionsState = useAdmissionOptions();
   const levelOptionsState = useLevelOptions(true, { include_enabled: 'true' });
   const options = optionsState.options;
   const formRef = useRef<HTMLFormElement>(null);
@@ -140,7 +156,6 @@ export function StudentCreateForm({
   const [saveMode, setSaveMode] = useState<StudentCreateSaveMode>('setup');
   const [financeActivationMode, setFinanceActivationMode] =
     useState<StudentCreateFinanceActivationMode>('draft');
-  const [additionalOpen, setAdditionalOpen] = useState(false);
   const [classClearedNotice, setClassClearedNotice] = useState(false);
   const [cycleChangedNotice, setCycleChangedNotice] = useState(false);
   const [planChangeWarning, setPlanChangeWarning] = useState(false);
@@ -179,26 +194,37 @@ export function StudentCreateForm({
     return null;
   }, [state.schoolId, activeSchoolId, options?.schools]);
 
+  const levelsForEnrollment = useMemo(() => {
+    const levels = options?.levels ?? [];
+    const yearId = state.academicYearId.trim();
+    if (!yearId) return levels;
+    return levels.filter(
+      (level) => level.academic_year_id == null || String(level.academic_year_id) === yearId,
+    );
+  }, [options?.levels, state.academicYearId]);
+
   const enrollmentCycles = useMemo(
     () =>
       buildEnrollmentCycleOptions(
-        options?.levels ?? [],
+        levelsForEnrollment,
         levelOptionsState.options?.reference_levels ?? [],
         levelOptionsState.options?.cycles ?? [],
       ),
-    [options?.levels, levelOptionsState.options],
+    [levelsForEnrollment, levelOptionsState.options],
   );
 
   const filteredLevels = useMemo(
     () =>
       filterLevelsByCycleId(
-        options?.levels ?? [],
+        levelsForEnrollment,
         state.cycleId,
         levelOptionsState.options?.reference_levels ?? [],
         levelOptionsState.options?.cycles ?? [],
       ),
-    [options?.levels, state.cycleId, levelOptionsState.options],
+    [levelsForEnrollment, state.cycleId, levelOptionsState.options],
   );
+
+  const intakeValues = useMemo(() => intakeFromStudentProfile(state), [state]);
 
   const suggestQuery = useMemo(
     () => buildFeePlanSuggestQuery(state, resolvedSchoolId, financeState.selectedFeePlanId),
@@ -264,6 +290,63 @@ export function StudentCreateForm({
     [options?.classes, state.levelId],
   );
 
+  const admissionLevels = admissionOptionsState.options?.levels ?? [];
+  const admissionStreams = admissionOptionsState.options?.streams ?? [];
+
+  const selectedAdmissionLevel = useMemo(
+    () => findAdmissionLevel(admissionLevels, state.levelId ? Number(state.levelId) : undefined),
+    [admissionLevels, state.levelId],
+  );
+
+  const showStreamField = Boolean(selectedAdmissionLevel?.requires_stream);
+
+  const filteredStreams = useMemo(
+    () => filterStreamsByLevel(admissionStreams, state.levelId ? Number(state.levelId) : undefined),
+    [admissionStreams, state.levelId],
+  );
+
+  const intakeCycles = useMemo(
+    () =>
+      enrollmentCycles.map((cycle) => ({
+        mode: 'id' as const,
+        id: cycle.id,
+        name: cycle.name,
+      })),
+    [enrollmentCycles],
+  );
+
+  const localizedGenders = useMemo(
+    () => localizeStudentGenderOptions(options?.genders ?? [], t),
+    [options?.genders, t],
+  );
+
+  const relationshipLoadFailed =
+    !admissionOptionsState.loading &&
+    (admissionOptionsState.error != null ||
+      (admissionOptionsState.options != null &&
+        admissionOptionsState.options.relationships.length === 0));
+
+  function handleIntakePatch(intakePatch: EnrollmentIntakePatch) {
+    if (intakePatch.cycleId != null && intakePatch.cycleId !== state.cycleId) {
+      handleCycleChange(intakePatch.cycleId);
+      const profilePatch = patchStudentProfileFromIntake(intakePatch);
+      const { cycleId: _cycleId, levelId: _levelId, streamId: _streamId, classId: _classId, ...rest } =
+        profilePatch;
+      if (Object.keys(rest).length > 0) patch(rest);
+      return;
+    }
+
+    if (intakePatch.levelId != null && intakePatch.levelId !== state.levelId) {
+      handleLevelChange(intakePatch.levelId);
+      const profilePatch = patchStudentProfileFromIntake(intakePatch);
+      const { levelId: _levelId, streamId: _streamId, classId: _classId, ...rest } = profilePatch;
+      if (Object.keys(rest).length > 0) patch(rest);
+      return;
+    }
+
+    patch(patchStudentProfileFromIntake(intakePatch));
+  }
+
   const financeBlocked =
     suggestState.error?.code === 'no_default_fee_plan_for_level' &&
     !canSkipFinanceOnCreate(suggestState.error, suggestState.suggest?.allowed_actions);
@@ -309,6 +392,7 @@ export function StudentCreateForm({
     patch({
       cycleId,
       levelId: '',
+      streamId: '',
       classId: '',
     });
     resetFinancePlan();
@@ -326,6 +410,7 @@ export function StudentCreateForm({
 
     patch({
       levelId,
+      streamId: '',
       classId: classStillValid ? state.classId : '',
     });
 
@@ -408,6 +493,11 @@ export function StudentCreateForm({
     ...fieldErrors,
     ...resolveIdentifierCheckFieldErrors(),
   };
+
+  const intakeFieldErrors = useMemo(
+    () => intakeErrorsFromStudentProfile(displayFieldErrors),
+    [displayFieldErrors],
+  );
 
   function focusFirstError(errors: StudentProfileFieldErrors) {
     const firstKey = FIELD_ORDER.find((key) => errors[key]);
@@ -501,21 +591,6 @@ export function StudentCreateForm({
     current: StudentCreateWizardStep,
     identifierChecks = identifierChecksState.checks,
   ): boolean {
-    const identifierValidation = validateStudentCreateIdentifier(state, t);
-    if (!identifierValidation.valid) {
-      setFieldErrors((prev) => ({ ...prev, ...identifierValidation.errors }));
-      const identifierMessage =
-        identifierValidation.errors.schoolNumber ??
-        identifierValidation.errors.code ??
-        t('admin.student360.create.errors.studentIdentifierRequired');
-      toast.error(identifierMessage);
-      if (current !== 'identity') {
-        setStep('identity');
-      }
-      focusFirstError(identifierValidation.errors);
-      return false;
-    }
-
     if (!validateIdentifierDuplicateChecks(current, identifierChecks)) {
       return false;
     }
@@ -698,7 +773,6 @@ export function StudentCreateForm({
   }
 
   const onLastStep = step === 'review';
-  const identifierMissing = !hasStudentCreateIdentifier(state);
   const financeBlockReason =
     levelSelected && Boolean(suggestState.suggest)
       ? getStudentCreateFinanceBlockReason(state, resolvedSchoolId)
@@ -730,7 +804,6 @@ export function StudentCreateForm({
   const saveDisabled =
     saving ||
     financeBlocked ||
-    identifierMissing ||
     financePrerequisitesMissing ||
     massarDuplicate ||
     identifierChecksState.identifierChecksBlockProgress;
@@ -785,38 +858,23 @@ export function StudentCreateForm({
       <StudentCreateStepper activeStep={step} />
 
       {step === 'identity' ? (
-        <section className="student-create-form__section">
-          <h2 className="student-create-form__section-title">
-            {t('admin.student360.sections.identity')}
-          </h2>
-          <div data-field="firstName">
-            <StudentCreateIdentityFields
-              state={state}
-              errors={displayFieldErrors}
-              fieldHints={identityFieldHints()}
-              optionsLoading={optionsState.loading}
-              genders={options?.genders ?? []}
-              onChange={patch}
-            />
-          </div>
-          <details
-            className="student-create-form__collapsible"
-            open={additionalOpen}
-            onToggle={(e) => setAdditionalOpen((e.target as HTMLDetailsElement).open)}
-          >
-            <summary className="student-create-form__collapsible-summary">
-              {t('admin.student360.create.additionalInfo')}
-            </summary>
-            <StudentCreateAdditionalFields
-              state={state}
-              errors={displayFieldErrors}
-              fieldHints={identityFieldHints()}
-              optionsLoading={optionsState.loading}
-              nationalities={options?.nationalities ?? []}
-              onChange={patch}
-            />
-          </details>
-        </section>
+        <StudentCreateStyledSection
+          icon="identity"
+          title={t('admin.student360.sections.identity')}
+          lead={t('admin.student360.create.identityStepLead')}
+          className="student-create-form__section--identity"
+        >
+          <EnrollmentIntakeIdentityFields
+            values={intakeValues}
+            errors={intakeFieldErrors}
+            fieldHints={identityFieldHints()}
+            onPatch={handleIntakePatch}
+            optionsLoading={optionsState.loading}
+            genders={localizedGenders}
+            nationalities={options?.nationalities ?? []}
+          />
+          <EnrollmentIntakeAdmissionExtrasFields values={intakeValues} onPatch={handleIntakePatch} />
+        </StudentCreateStyledSection>
       ) : null}
 
       {step === 'billing' ? (
@@ -824,10 +882,11 @@ export function StudentCreateForm({
       ) : null}
 
       {step === 'enrollment' ? (
-        <section className="student-create-form__section">
-          <h2 className="student-create-form__section-title">
-            {t('admin.student360.sections.enrollment')}
-          </h2>
+        <StudentCreateStyledSection
+          icon="enrollment"
+          title={t('admin.student360.sections.enrollment')}
+          lead={t('admin.student360.create.enrollmentStepLead')}
+        >
           {cycleChangedNotice ? (
             <p className="student-create-form__notice" role="status">
               {t('admin.student360.cycleChangedOnEnrollment')}
@@ -843,31 +902,73 @@ export function StudentCreateForm({
               {t('admin.student360.create.errors.classOptionalWithoutFinanceHint')}
             </p>
           ) : null}
-          <div data-field="academicYearId">
-            <StudentCreateEnrollmentFields
-              state={state}
-              errors={fieldErrors}
-              optionsLoading={optionsState.loading}
-              optionsError={!!optionsState.error}
-              years={options?.academicYears ?? []}
-              cycles={enrollmentCycles}
-              cyclesLoading={levelOptionsState.loading}
-              levels={filteredLevels}
-              classes={filteredClasses}
-              registrationTypes={options?.registrationTypes ?? []}
-              onChange={patch}
-              onCycleChange={handleCycleChange}
-              onLevelChange={handleLevelChange}
-              onRetryOptions={optionsState.reload}
-            />
-          </div>
-          <div className="student-create-form__subsection">
-            <h3 className="student-create-form__subsection-title">
-              {t('admin.student360.admissionData.sectionTitle')}
-            </h3>
-            <StudentAdmissionAndSiblingsFields state={state} onChange={patch} />
-          </div>
-        </section>
+          <EnrollmentIntakeSiblingsFields
+            values={intakeValues}
+            onPatch={handleIntakePatch}
+            errors={intakeFieldErrors}
+          />
+          <EnrollmentIntakeAcademicFields
+            values={intakeValues}
+            errors={intakeErrorsFromStudentProfile(fieldErrors)}
+            onPatch={handleIntakePatch}
+            academic={{
+              cycleMode: 'id',
+              years: options?.academicYears ?? [],
+              cycles: intakeCycles,
+              levels: filteredLevels,
+              streams: filteredStreams,
+              classes: filteredClasses,
+              registrationTypes: options?.registrationTypes ?? [],
+              levelRequiresStream: showStreamField,
+              optionsLoading: optionsState.loading,
+              cyclesLoading: levelOptionsState.loading,
+              optionsError: !!optionsState.error,
+              onRetryOptions: optionsState.reload,
+              levelPlaceholder: !state.cycleId.trim()
+                ? t('admin.student360.create.selectCycleFirst')
+                : levelOptionsState.loading
+                  ? t('admin.student360.create.loadingLevels')
+                  : filteredLevels.length === 0
+                    ? t('admin.student360.create.noLevelsForCycle')
+                    : undefined,
+              classPlaceholder: !state.levelId.trim()
+                ? t('admin.student360.create.selectLevelFirst')
+                : optionsState.loading
+                  ? t('admin.student360.create.loadingClasses')
+                  : filteredClasses.length === 0
+                    ? t('admin.student360.create.noClassesForLevel')
+                    : undefined,
+              streamRequired: showStreamField,
+            }}
+          />
+          <EnrollmentIntakeRegistrationFields
+            values={intakeValues}
+            errors={intakeErrorsFromStudentProfile(fieldErrors)}
+            onPatch={handleIntakePatch}
+            registrationTypes={options?.registrationTypes ?? []}
+            optionsLoading={optionsState.loading}
+          />
+          <EnrollmentIntakeGuardianFields
+            values={intakeValues}
+            onPatch={handleIntakePatch}
+            guardian={{
+              relationships: admissionOptionsState.options?.relationships ?? [],
+              relationshipsLoading: admissionOptionsState.loading,
+              relationshipLoadFailed,
+            }}
+          />
+          <EnrollmentIntakeFollowUpFields
+            values={intakeValues}
+            onPatch={handleIntakePatch}
+            followUp={{
+              sources: (admissionOptionsState.options?.sources ?? []).map((source) => ({
+                id: admissionOptionId(source) ?? undefined,
+                label: source.label,
+              })),
+              sourcesLoading: admissionOptionsState.loading,
+            }}
+          />
+        </StudentCreateStyledSection>
       ) : null}
 
       {step === 'finance' ? (

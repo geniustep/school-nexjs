@@ -13,7 +13,7 @@ import type {
 import type { FeePlanSuggestResult, StudentCreateFinanceFormState } from '@/types/student-enrollment-finance';
 import type { SiblingLine } from '@/types/sibling-line';
 import { buildStudentCreateFinancePayload } from './student-enrollment-finance';
-import { buildSiblingLinesPayload, normalizeSiblingLines, siblingLinesFingerprint } from '@/features/admin/admissions/utils/sibling-lines';
+import { buildSiblingLinesPayload, normalizeSiblingLines, siblingLinesFingerprint, validateSiblingLinesLinkedStudents } from '@/features/admin/admissions/utils/sibling-lines';
 import { normalizeMassarCodeInput, isValidMassarCodeNormalized } from './massar-code';
 
 export const DEPARTURE_STATUSES = new Set(['withdrawn', 'transferred']);
@@ -88,6 +88,7 @@ export interface StudentProfileFieldErrors {
   academicYearId?: string;
   cycleId?: string;
   levelId?: string;
+  siblingLines?: string;
 }
 
 export interface StudentProfileValidationResult {
@@ -363,7 +364,13 @@ export function validateStudentProfileForm(
 }
 
 export function hasStudentCreateIdentifier(state: StudentProfileFormState): boolean {
-  return Boolean(trim(state.schoolNumber) || trim(state.code));
+  return Boolean(
+    normalizeMassarCodeInput(state.massarCode) || trim(state.schoolNumber) || trim(state.code),
+  );
+}
+
+export function hasStudentMassarCode(state: StudentProfileFormState): boolean {
+  return Boolean(normalizeMassarCodeInput(state.massarCode));
 }
 
 function massarCodeFieldError(
@@ -388,31 +395,18 @@ function applyMassarCodeValidation(
 }
 
 export function validateStudentCreateIdentifier(
-  state: StudentProfileFormState,
-  t: (key: string) => string,
+  _state: StudentProfileFormState,
+  _t: (key: string) => string,
 ): StudentProfileValidationResult {
-  if (hasStudentCreateIdentifier(state)) {
-    return { valid: true, errors: {} };
-  }
-  const message = t('admin.student360.create.errors.studentIdentifierRequired');
-  return {
-    valid: false,
-    errors: {
-      schoolNumber: message,
-      code: message,
-    },
-  };
+  return { valid: true, errors: {} };
 }
 
 function applyStudentCreateIdentifierValidation(
-  state: StudentProfileFormState,
-  t: (key: string) => string,
-  errors: StudentProfileFieldErrors,
+  _state: StudentProfileFormState,
+  _t: (key: string) => string,
+  _errors: StudentProfileFieldErrors,
 ): void {
-  const identifier = validateStudentCreateIdentifier(state, t);
-  if (!identifier.valid) {
-    Object.assign(errors, identifier.errors);
-  }
+  // Identifiers are optional during student create — format/duplicate checks still apply when filled.
 }
 
 export function validateStudentCreateIdentityStep(
@@ -471,6 +465,13 @@ export function validateStudentCreateForm(
   }
 
   applyStudentCreateIdentifierValidation(state, t, errors);
+
+  if (state.hasSiblings) {
+    const siblingError = validateSiblingLinesLinkedStudents(state.siblingLines, t);
+    if (siblingError) {
+      errors.siblingLines = siblingError;
+    }
+  }
 
   return { valid: Object.keys(errors).length === 0, errors };
 }

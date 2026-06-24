@@ -2,6 +2,7 @@
 
 import { useT } from '@/features/i18n/locale-context';
 import type { StudentCreateBillingFormState } from '@/types/student-enrollment-finance';
+import { StudentCreateStyledSection } from './student-create-section-header';
 
 export function StudentCreateBillingStep({
   state,
@@ -13,14 +14,14 @@ export function StudentCreateBillingStep({
   const t = useT();
 
   return (
-    <section className="student-create-form__section">
-      <h2 className="student-create-form__section-title">
-        {t('admin.student360.create.billing.title')}
-      </h2>
-      <p className="student-create-form__notice">{t('admin.student360.create.billing.desc')}</p>
+    <StudentCreateStyledSection
+      icon="billing"
+      title={t('admin.student360.create.billing.title')}
+      lead={t('admin.student360.create.billing.desc')}
+    >
       <div className="student-create-form__grid">
         <label className="student-create-field">
-          <span className="tiny muted">{t('admin.finance.billingPartnerType')}</span>
+          <span className="student-create-field__label">{t('admin.finance.billingPartnerType')}</span>
           <select
             className="input"
             value={state.billingPartnerType}
@@ -34,10 +35,12 @@ export function StudentCreateBillingStep({
             <option value="student">{t('admin.finance.partnerStudent')}</option>
             <option value="other">{t('admin.student360.create.billing.partnerOther')}</option>
           </select>
-          <span className="tiny muted">{t('admin.student360.create.billing.partnerHint')}</span>
+          <span className="student-create-field__hint">
+            {t('admin.student360.create.billing.partnerHint')}
+          </span>
         </label>
       </div>
-      <p className="tiny muted">{t('admin.student360.guardianAfterCreateHint')}</p>
-    </section>
+      <p className="student-create-form__footnote">{t('admin.student360.guardianAfterCreateHint')}</p>
+    </StudentCreateStyledSection>
   );
 }

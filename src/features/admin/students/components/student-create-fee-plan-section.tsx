@@ -12,6 +12,7 @@ import {
   StudentCreateFinancePreview,
   StudentCreateFinanceSummary,
 } from './student-create-finance-panels';
+import { StudentCreateStyledSection } from './student-create-section-header';
 import type {
   EnrollmentPlanPreviewResult,
   FeePlanSuggestError,
@@ -31,9 +32,15 @@ function MetaStat({ label, value }: { label: string; value: string }) {
 }
 
 function FeePlanLoadingState({ message }: { message: string }) {
+  const t = useT();
   return (
-    <section className="student-create-form__section student-create-fee-plan" aria-live="polite">
-      <div className="student-create-fee-plan__state student-create-fee-plan__state--loading">
+    <StudentCreateStyledSection
+      icon="finance"
+      title={t('admin.student360.create.finance.suggestedPlanTitle')}
+      lead={t('admin.student360.create.financeStepLead')}
+      className="student-create-fee-plan"
+    >
+      <div className="student-create-fee-plan__state student-create-fee-plan__state--loading" aria-live="polite">
         <div className="student-create-fee-plan__skeleton student-create-fee-plan__skeleton--hero" />
         <div className="student-create-fee-plan__skeleton-row">
           <div className="student-create-fee-plan__skeleton student-create-fee-plan__skeleton--stat" />
@@ -42,20 +49,26 @@ function FeePlanLoadingState({ message }: { message: string }) {
         </div>
         <p className="student-create-fee-plan__state-text">{message}</p>
       </div>
-    </section>
+    </StudentCreateStyledSection>
   );
 }
 
 function FeePlanEmptyState({ message }: { message: string }) {
+  const t = useT();
   return (
-    <section className="student-create-form__section student-create-fee-plan">
+    <StudentCreateStyledSection
+      icon="finance"
+      title={t('admin.student360.create.finance.suggestedPlanTitle')}
+      lead={t('admin.student360.create.financeStepLead')}
+      className="student-create-fee-plan"
+    >
       <div className="student-create-fee-plan__state student-create-fee-plan__state--empty">
         <span className="student-create-fee-plan__state-icon" aria-hidden="true">
           ◌
         </span>
         <p className="student-create-fee-plan__state-text">{message}</p>
       </div>
-    </section>
+    </StudentCreateStyledSection>
   );
 }
 
@@ -102,15 +115,17 @@ export function StudentCreateFeePlanSection({
     const message = resolveNoDefaultFeePlanMessage(error, t);
     const candidates = error.candidate_plans ?? [];
     return (
-      <section className="student-create-form__section" role="alert">
-        <div className="student-create-fee-plan__alert">
-          <h2 className="student-create-form__section-title">
-            {t('admin.student360.create.finance.noPlanTitle')}
-          </h2>
+      <StudentCreateStyledSection
+        icon="finance"
+        title={t('admin.student360.create.finance.noPlanTitle')}
+        lead={t('admin.student360.create.financeStepLead')}
+        className="student-create-fee-plan"
+      >
+        <div className="student-create-fee-plan__alert" role="alert">
           <p>{message}</p>
           {candidates.length > 0 ? (
             <div className="student-create-fee-plan__candidates">
-              <p className="tiny muted">{t('admin.student360.create.finance.candidatePlans')}</p>
+              <p className="student-create-field__hint">{t('admin.student360.create.finance.candidatePlans')}</p>
               <ul className="student-create-fee-plan__candidate-list">
                 {candidates.map((candidate) => (
                   <li key={candidate.id}>
@@ -123,20 +138,27 @@ export function StudentCreateFeePlanSection({
             </div>
           ) : null}
         </div>
-      </section>
+      </StudentCreateStyledSection>
     );
   }
 
   if (error) {
     return (
-      <section className="student-create-form__section" role="alert">
-        <p className="student-create-form__notice">{t('admin.student360.create.finance.loadError')}</p>
-        {onRetry ? (
-          <button type="button" className="btn btn--ghost btn--sm" onClick={onRetry}>
-            {t('common.retry')}
-          </button>
-        ) : null}
-      </section>
+      <StudentCreateStyledSection
+        icon="finance"
+        title={t('admin.student360.create.finance.suggestedPlanTitle')}
+        lead={t('admin.student360.create.financeStepLead')}
+        className="student-create-fee-plan"
+      >
+        <div role="alert">
+          <p className="student-create-form__notice">{t('admin.student360.create.finance.loadError')}</p>
+          {onRetry ? (
+            <button type="button" className="btn btn--ghost btn--sm" onClick={onRetry}>
+              {t('common.retry')}
+            </button>
+          ) : null}
+        </div>
+      </StudentCreateStyledSection>
     );
   }
 
@@ -161,16 +183,12 @@ export function StudentCreateFeePlanSection({
   const planLines = suggest.plan_lines ?? [];
 
   return (
-    <section className="student-create-form__section student-create-fee-plan">
-      <header className="student-create-fee-plan__section-head">
-        <h2 className="student-create-form__section-title">
-          {t('admin.student360.create.finance.suggestedPlanTitle')}
-        </h2>
-        {performanceWindow ? (
-          <p className="student-create-fee-plan__section-lead">{performanceWindow}</p>
-        ) : null}
-      </header>
-
+    <StudentCreateStyledSection
+      icon="finance"
+      title={t('admin.student360.create.finance.suggestedPlanTitle')}
+      lead={performanceWindow ?? t('admin.student360.create.financeStepLead')}
+      className="student-create-fee-plan"
+    >
       {planChangeWarning ? (
         <p className="student-create-fee-plan__warning" role="status">
           {t('admin.student360.create.finance.planChangeWarning')}
@@ -351,6 +369,6 @@ export function StudentCreateFeePlanSection({
           currency={suggest.currency}
         />
       ) : null}
-    </section>
+    </StudentCreateStyledSection>
   );
 }

@@ -356,27 +356,28 @@ describe('validateStudentCreateIdentityStep', () => {
     expect(validateStudentCreateIdentityStep(state, t).valid).toBe(true);
   });
 
-  it('rejects identity step without student identifier', () => {
+  it('allows identity step without any student identifier', () => {
     const state = {
       ...defaultStudentProfileFormState(options),
       firstName: 'zaki',
       lastName: 'ham',
     };
     const result = validateStudentCreateIdentityStep(state, t);
-    expect(result.valid).toBe(false);
-    expect(result.errors.schoolNumber).toBe('admin.student360.create.errors.studentIdentifierRequired');
+    expect(result.valid).toBe(true);
+    expect(result.errors.schoolNumber).toBeUndefined();
+    expect(result.errors.code).toBeUndefined();
     expect(result.errors.massarCode).toBeUndefined();
   });
 
-  it('accepts valid massar_code format', () => {
+  it('accepts valid massar_code format without school number or code', () => {
     const state = {
       ...defaultStudentProfileFormState(options),
       firstName: 'A',
       lastName: 'B',
       massarCode: 'G412252321',
     };
-    expect(validateStudentCreateIdentifier(state, t).valid).toBe(false);
-    expect(validateStudentCreateIdentityStep(state, t).valid).toBe(false);
+    expect(validateStudentCreateIdentifier(state, t).valid).toBe(true);
+    expect(validateStudentCreateIdentityStep(state, t).valid).toBe(true);
   });
 
   it('accepts school number as student identifier', () => {
@@ -416,18 +417,19 @@ describe('validateStudentCreateForm', () => {
     expect(result.errors.levelId).toBeDefined();
   });
 
-  it('rejects create form without student identifier', () => {
+  it('allows create form without any student identifier', () => {
     const state = {
       ...defaultStudentProfileFormState(options),
       firstName: 'A',
       lastName: 'B',
       academicYearId: '1',
       levelId: '77',
+      cycleId: '1',
     };
     const result = validateStudentCreateForm(state, t);
-    expect(result.valid).toBe(false);
-    expect(result.errors.schoolNumber).toBe('admin.student360.create.errors.studentIdentifierRequired');
-    expect(result.errors.massarCode).toBeUndefined();
+    expect(result.valid).toBe(true);
+    expect(result.errors.schoolNumber).toBeUndefined();
+    expect(result.errors.code).toBeUndefined();
   });
 
   it('allows create form without massar when other identifiers exist', () => {

@@ -26,6 +26,7 @@ export function SiblingLinesTable({ lines }: { lines: SiblingLine[] }) {
           <tr>
             <th>{t('admin.siblings.table.name')}</th>
             <th>{t('admin.siblings.table.relationship')}</th>
+            <th>{t('admin.siblings.table.birthDate')}</th>
             <th>{t('admin.siblings.table.ageAtAdmission')}</th>
             <th>{t('admin.siblings.table.level')}</th>
             <th>{t('admin.siblings.table.currentStudent')}</th>
@@ -37,6 +38,7 @@ export function SiblingLinesTable({ lines }: { lines: SiblingLine[] }) {
             <tr key={line.sequence ?? index}>
               <td dir="auto">{cleanDisplayValue(line.name) || empty}</td>
               <td>{relationshipLabel(t, line.relationship)}</td>
+              <td dir="ltr">{cleanDisplayValue(line.birth_date) || empty}</td>
               <td dir="ltr">
                 {line.age_years_at_admission != null ? line.age_years_at_admission : empty}
               </td>

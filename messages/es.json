@@ -20,6 +20,8 @@
     "publish": "Publicar",
     "close": "Cerrar",
     "edit": "Editar",
+    "delete": "Eliminar",
+    "clear": "Borrar",
     "download": "Descargar",
     "markRead": "Marcar como leído",
     "yes": "Sí",
@@ -3049,6 +3051,10 @@
       "subtitle": "Gestión de solicitudes de ingreso",
       "createButton": "Nueva solicitud",
       "backToList": "Volver al listado",
+      "breadcrumb": {
+        "aria": "Ruta de admisiones",
+        "list": "Admisiones"
+      },
       "nextAction": "Próxima acción",
       "assignedUser": "Responsable",
       "viewMode": "Modo de vista",
@@ -3178,6 +3184,11 @@
         "title": "Nueva solicitud de inscripción",
         "subtitle": "Cree una solicitud de inscripción inicial sin crear un alumno oficial.",
         "studentSection": "Datos del alumno",
+        "studentSectionLead": "Identidad, identificadores y notas iniciales — complete lo que tenga.",
+        "siblingsSectionLead": "Indique si el alumno tiene hermanos en el centro o mencionados en la solicitud.",
+        "studySectionLead": "Año, ciclo, nivel, clase solicitados y detalles de matrícula.",
+        "guardianSectionLead": "Datos de contacto del tutor o responsable del seguimiento.",
+        "followUpSectionLead": "Origen de la solicitud y próxima acción de seguimiento.",
         "guardianSection": "Datos del tutor",
         "studySection": "Estudios solicitados",
         "followUpSection": "Seguimiento",
@@ -3403,6 +3414,22 @@
       },
       "errors": { "notFound": "Solicitud no encontrada." }
     },
+    "enrollmentIntake": {
+      "admissionNotes": "Notas internas",
+      "residenceAddressHint": "Una línea con la dirección completa si los campos de abajo están vacíos.",
+      "groups": {
+        "names": "Nombres",
+        "personal": "Datos personales",
+        "identifiers": "Identificadores",
+        "adminDates": "Fechas administrativas",
+        "academicStructure": "Estructura académica",
+        "registrationDetails": "Detalles de matrícula",
+        "guardian": "Tutor",
+        "followUp": "Seguimiento",
+        "address": "Dirección",
+        "admissionContext": "Contexto de matrícula"
+      }
+    },
     "siblings": {
       "sectionTitle": "Información de hermanos",
       "hasSiblings": "Tiene hermanos",
@@ -3413,10 +3440,18 @@
       "legacyLevels": "Niveles de los hermanos",
       "addLine": "Añadir hermano/hermana",
       "linesEditor": "Detalles de hermanos",
+      "linesEditorLead": "Introduzca los datos de cada hermano o hermana.",
+      "emptyLinesHint": "Pulse «Añadir» para empezar a introducir datos.",
+      "legacyFieldsToggle": "Campos de texto heredados (opcional)",
+      "cardTitle": "Hermano/a {number}",
       "empty": "No hay información de hermanos",
       "notMentioned": "No indicado",
       "currentStudentHint": "Matriculado actualmente en el centro",
       "linkedStudentHint": "Alumno vinculado:",
+      "linkedStudentRequired": "Debe seleccionar el alumno vinculado cuando «Alumno actual» está marcado.",
+      "selectLinkedStudent": "Alumno en el centro",
+      "searchStudentPlaceholder": "Buscar por nombre o n.º…",
+      "searchStudentEmpty": "No hay alumnos coincidentes",
       "relationship": {
         "brother": "Hermano",
         "sister": "Hermana"
@@ -3424,6 +3459,7 @@
       "table": {
         "name": "Nombre",
         "relationship": "Parentesco",
+        "birthDate": "Fecha de nacimiento",
         "ageAtAdmission": "Edad en la matrícula",
         "level": "Nivel escolar",
         "currentStudent": "Alumno actual en el centro",
@@ -3638,7 +3674,8 @@
           "tripConsentPending": "Autorización de salida pendiente",
           "tripConsentDenied": "Autorización de salida no concedida",
           "consentsIncomplete": "Autorizaciones incompletas",
-          "financeOverdue": "Atrasos financieros"
+          "financeOverdue": "Atrasos financieros",
+          "missingMassar": "Número Massar pendiente"
         },
         "cards": {
           "schooling": "Escolaridad",
@@ -3817,13 +3854,18 @@
       "guardianAfterCreateHint": "Tras guardar el alumno, añada tutores desde la pestaña Tutores.",
       "create": {
         "pageDesc": "Introduzca la identidad básica y la matrícula. Puede completar el resto del expediente más tarde.",
+        "identityStepLead": "Todos los campos de identidad están visibles — complete lo que corresponda a este alumno.",
+        "enrollmentStepLead": "Elija el año, ciclo, nivel y clase, luego complete los datos de admisión y del tutor.",
+        "financeStepLead": "Revise el plan sugerido y ajústelo si es necesario antes de guardar.",
+        "reviewStepLead": "Verifique que todo sea correcto antes de crear el alumno.",
         "additionalInfo": "Información adicional",
         "firstNameAr": "Nombre (árabe)",
         "lastNameAr": "Apellido (árabe)",
-        "firstNameLatin": "Nombre (latino)",
-        "lastNameLatin": "Apellido (latino)",
+        "firstNameLatin": "Nombre (francés)",
+        "lastNameLatin": "Apellido (francés)",
         "fullNamePreview": "Nombre completo",
         "internalCodeHint": "Deje en blanco para generación automática.",
+        "schoolNumberOptionalHint": "Opcional — puede completarse más tarde desde el expediente del alumno.",
         "massarCodeHint": "Opcional. Si está disponible, introduzca una letra latina seguida de nueve dígitos, ej. G412252321.",
         "identityIdentifierHint": "Introduzca un número de matrícula escolar o código interno a continuación.",
         "admissionDateHint": "Se usa para registros históricos o cuando se requiera administrativamente.",
@@ -3989,6 +4031,7 @@
           "expectedMonthlyInstallment": "Cuota mensual esperada",
           "reviewFinanceBeforeSave": "Revise la personalización del plan financiero antes de guardar.",
           "missingStudentIdentifier": "No se puede guardar: falta el identificador del alumno.",
+          "optionalMassarHint": "Número Massar no introducido — puede completarlo más tarde desde el expediente del alumno.",
           "missingAcademicYearForFinance": "No se puede guardar: seleccione un año académico antes de guardar el plan financiero.",
           "missingClassForFinance": "No se puede guardar: se requiere una clase para configurar el plan financiero.",
           "duplicateMassar": "No se puede guardar: número Massar duplicado.",

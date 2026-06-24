@@ -5,6 +5,13 @@ import { buildAdmissionChildFullName } from './admission-child-name';
 import { findAdmissionLevel } from './admission-options';
 import { buildSiblingLinesPayload } from './sibling-lines';
 
+function composeResidenceAddress(form: AdmissionCreateFormState): string {
+  const explicit = form.residence_address.trim();
+  if (explicit) return explicit;
+  const parts = [form.street.trim(), form.city.trim(), form.zip.trim()].filter(Boolean);
+  return parts.join('، ');
+}
+
 export interface AdmissionCreateFormState {
   child_first_name_ar: string;
   child_last_name_ar: string;
@@ -12,10 +19,18 @@ export interface AdmissionCreateFormState {
   child_last_name_fr: string;
   gender: string;
   birth_date: string;
+  birth_place: string;
+  nationality_id?: number;
   massar_code: string;
+  school_number: string;
+  code: string;
+  admission_date: string;
   previous_school: string;
   external_reference: string;
   residence_address: string;
+  street: string;
+  city: string;
+  zip: string;
   has_siblings: boolean;
   siblings_raw_text: string;
   siblings_levels: string;
@@ -24,6 +39,11 @@ export interface AdmissionCreateFormState {
   requested_cycle_code: string;
   requested_level_id?: number;
   requested_stream_id?: number;
+  requested_class_id?: number;
+  registration_type: string;
+  actual_join_date: string;
+  is_repeating: boolean;
+  registration_notes: string;
   guardian_name: string;
   guardian_phone: string;
   guardian_relationship: string;
@@ -43,15 +63,26 @@ export function emptyAdmissionCreateForm(today: string): AdmissionCreateFormStat
     child_last_name_fr: '',
     gender: '',
     birth_date: '',
+    birth_place: '',
     massar_code: '',
+    school_number: '',
+    code: '',
+    admission_date: today,
     previous_school: '',
     external_reference: '',
     residence_address: '',
+    street: '',
+    city: '',
+    zip: '',
     has_siblings: false,
     siblings_raw_text: '',
     siblings_levels: '',
     sibling_lines: [],
     requested_cycle_code: '',
+    registration_type: 'new',
+    actual_join_date: today,
+    is_repeating: false,
+    registration_notes: '',
     guardian_name: '',
     guardian_phone: '',
     guardian_relationship: '',
@@ -87,10 +118,15 @@ export function buildCreateAdmissionPayload(
     child_name: childName || undefined,
     gender: form.gender || undefined,
     birth_date: form.birth_date || undefined,
+    birth_place: form.birth_place.trim() || undefined,
+    nationality_id: form.nationality_id,
     massar_code: form.massar_code.trim() || undefined,
+    school_number: form.school_number.trim() || undefined,
+    code: form.code.trim() || undefined,
+    admission_date: form.admission_date || undefined,
     previous_school: form.previous_school.trim() || undefined,
     external_reference: form.external_reference.trim() || undefined,
-    residence_address: form.residence_address.trim() || undefined,
+    residence_address: composeResidenceAddress(form) || undefined,
     has_siblings: form.has_siblings || undefined,
     siblings_raw_text: form.siblings_raw_text.trim() || undefined,
     siblings_levels: form.siblings_levels.trim() || undefined,
@@ -99,6 +135,11 @@ export function buildCreateAdmissionPayload(
     requested_cycle_code: form.requested_cycle_code.trim() || undefined,
     requested_level_id: form.requested_level_id,
     requested_stream_id: includeStream ? form.requested_stream_id : undefined,
+    requested_class_id: form.requested_class_id,
+    registration_type: form.registration_type || undefined,
+    actual_join_date: form.actual_join_date || undefined,
+    is_repeating: form.is_repeating || undefined,
+    registration_notes: form.registration_notes.trim() || undefined,
     guardian_name: form.guardian_name.trim() || undefined,
     guardian_phone: form.guardian_phone.trim() || undefined,
     guardian_relationship: form.guardian_relationship || undefined,

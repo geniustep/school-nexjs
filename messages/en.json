@@ -20,6 +20,8 @@
     "publish": "Publish",
     "close": "Close",
     "edit": "Edit",
+    "delete": "Delete",
+    "clear": "Clear",
     "download": "Download",
     "markRead": "Mark as read",
     "yes": "Yes",
@@ -3049,6 +3051,10 @@
       "subtitle": "Manage intake and enrollment requests",
       "createButton": "New request",
       "backToList": "Back to list",
+      "breadcrumb": {
+        "aria": "Admissions navigation",
+        "list": "Admissions"
+      },
       "nextAction": "Next action",
       "assignedUser": "Assigned to",
       "viewMode": "View mode",
@@ -3181,6 +3187,11 @@
         "title": "New registration request",
         "subtitle": "Create an initial registration request without creating an official student record.",
         "studentSection": "Child information",
+        "studentSectionLead": "Identity, identifiers, and initial admission notes — complete what you have.",
+        "siblingsSectionLead": "Indicate whether the child has siblings at the school or mentioned in the request.",
+        "studySectionLead": "Requested year, cycle, level, class, and registration details.",
+        "guardianSectionLead": "Contact details for the guardian or person responsible for follow-up.",
+        "followUpSectionLead": "Lead source and next action to track this request.",
         "guardianSection": "Guardian information",
         "studySection": "Requested study",
         "followUpSection": "Follow-up",
@@ -3408,6 +3419,22 @@
         "notFound": "Admission request not found."
       }
     },
+    "enrollmentIntake": {
+      "admissionNotes": "Internal notes",
+      "residenceAddressHint": "One line for the full address if the fields below are left empty.",
+      "groups": {
+        "names": "Names",
+        "personal": "Personal details",
+        "identifiers": "Identifiers",
+        "adminDates": "Administrative dates",
+        "academicStructure": "Academic structure",
+        "registrationDetails": "Registration details",
+        "guardian": "Guardian",
+        "followUp": "Follow-up",
+        "address": "Address",
+        "admissionContext": "Registration context"
+      }
+    },
     "siblings": {
       "sectionTitle": "Sibling information",
       "hasSiblings": "Has siblings",
@@ -3418,10 +3445,18 @@
       "legacyLevels": "Sibling levels",
       "addLine": "Add sibling",
       "linesEditor": "Sibling details",
+      "linesEditorLead": "Enter details for each sibling.",
+      "emptyLinesHint": "Click «Add sibling» to start entering details.",
+      "legacyFieldsToggle": "Legacy text fields (optional)",
+      "cardTitle": "Sibling {number}",
       "empty": "No sibling information",
       "notMentioned": "Not mentioned",
       "currentStudentHint": "Currently enrolled at the school",
       "linkedStudentHint": "Linked student:",
+      "linkedStudentRequired": "You must select the linked student when «Current student at school» is checked.",
+      "selectLinkedStudent": "Student at school",
+      "searchStudentPlaceholder": "Search by name or ID…",
+      "searchStudentEmpty": "No matching students",
       "relationship": {
         "brother": "Brother",
         "sister": "Sister"
@@ -3429,6 +3464,7 @@
       "table": {
         "name": "Name",
         "relationship": "Relationship",
+        "birthDate": "Date of birth",
         "ageAtAdmission": "Age at registration",
         "level": "School level",
         "currentStudent": "Current student at school",
@@ -3643,7 +3679,8 @@
           "tripConsentPending": "Trip consent pending",
           "tripConsentDenied": "Trip consent not granted",
           "consentsIncomplete": "Consents incomplete",
-          "financeOverdue": "Finance overdue"
+          "financeOverdue": "Finance overdue",
+          "missingMassar": "Massar number missing"
         },
         "cards": {
           "schooling": "Schooling",
@@ -3822,13 +3859,18 @@
       "guardianAfterCreateHint": "After saving the student, add guardians from the Guardians tab.",
       "create": {
         "pageDesc": "Enter pupil details, academic enrollment, and the suggested fee plan before final save.",
+        "identityStepLead": "All identity fields are shown — complete what applies to this pupil.",
+        "enrollmentStepLead": "Choose the year, cycle, level, and class, then complete admission and guardian details.",
+        "financeStepLead": "Review the suggested plan and adjust it if needed before saving.",
+        "reviewStepLead": "Verify everything is correct before creating the pupil.",
         "additionalInfo": "Additional information",
         "firstNameAr": "First name (Arabic)",
         "lastNameAr": "Last name (Arabic)",
-        "firstNameLatin": "First name (Latin)",
-        "lastNameLatin": "Last name (Latin)",
+        "firstNameLatin": "First name (French)",
+        "lastNameLatin": "Last name (French)",
         "fullNamePreview": "Full name",
         "internalCodeHint": "Leave blank to auto-generate.",
+        "schoolNumberOptionalHint": "Optional — can be completed later from the student profile.",
         "massarCodeHint": "Optional. If available, enter one Latin letter followed by nine digits, e.g. G412252321.",
         "identityIdentifierHint": "Enter a school registration number or internal code below.",
         "admissionDateHint": "Used for historical records or when required administratively.",
@@ -3994,6 +4036,7 @@
           "expectedMonthlyInstallment": "Expected monthly installment",
           "reviewFinanceBeforeSave": "Please review the financial plan customization before saving.",
           "missingStudentIdentifier": "Cannot save: student identifier is missing.",
+          "optionalMassarHint": "Massar number not entered — you can complete it later from the student profile.",
           "missingAcademicYearForFinance": "Cannot save: select an academic year before saving the financial plan.",
           "missingClassForFinance": "Cannot save: a class is required to set up the financial plan.",
           "duplicateMassar": "Cannot save: duplicate Massar number.",

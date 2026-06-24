@@ -2,7 +2,7 @@
 
 import { useLocale, useT } from '@/features/i18n/locale-context';
 import { useFormat } from '@/features/i18n/use-format';
-import { buildFullNamePreview, hasStudentCreateIdentifier } from '../utils/student-profile';
+import { buildFullNamePreview, hasStudentMassarCode } from '../utils/student-profile';
 import { formatFinanceCurrency } from '../utils/student-finance-format';
 import { buildEnrollmentFinanceReviewModel, enrollmentFinancePreviewStatus } from '../utils/enrollment-finance-review';
 import { formatCustomizationReason } from '../utils/student-enrollment-finance';
@@ -14,6 +14,7 @@ import type {
   StudentCreateFinanceFormState,
 } from '@/types/student-enrollment-finance';
 import type { StudentProfileFormState } from '../utils/student-profile';
+import { StudentCreateStyledSection } from './student-create-section-header';
 
 function billingPartnerLabel(
   t: (key: string) => string,
@@ -53,7 +54,7 @@ export function StudentCreateReviewSection({
   const { locale } = useLocale();
   const { formatDate } = useFormat();
   const fullName = buildFullNamePreview(profileState.firstName, profileState.lastName);
-  const identifierMissing = !hasStudentCreateIdentifier(profileState);
+  const massarMissing = !hasStudentMassarCode(profileState);
   const formatReason = (reason: string) => formatCustomizationReason(reason, t);
   const financeReview =
     suggest != null ? buildEnrollmentFinanceReviewModel(suggest, financeState, preview, formatReason) : null;
@@ -71,60 +72,68 @@ export function StudentCreateReviewSection({
   const lastDue = selectedPeriods[selectedPeriods.length - 1]?.due_date;
 
   return (
-    <section className="student-create-form__section student-create-review">
-      <h2 className="student-create-form__section-title">{t('admin.student360.create.review.title')}</h2>
-
-      {identifierMissing ? (
-        <p className="student-create-finance-preview__error" role="alert">
-          {t('admin.student360.create.review.missingStudentIdentifier')}
+    <StudentCreateStyledSection
+      icon="review"
+      title={t('admin.student360.create.review.title')}
+      lead={t('admin.student360.create.reviewStepLead')}
+      className="student-create-review"
+    >
+      {massarMissing ? (
+        <p className="student-create-form__notice" role="status">
+          {t('admin.student360.create.review.optionalMassarHint')}
         </p>
       ) : null}
-      {!identifierMissing && !profileState.academicYearId.trim() && suggest ? (
-        <p className="student-create-finance-preview__error" role="alert">
+      {!profileState.academicYearId.trim() && suggest ? (
+        <p className="student-create-review__alert" role="alert">
           {t('admin.student360.create.review.missingAcademicYearForFinance')}
         </p>
       ) : null}
-      {!identifierMissing && classMissingForFinance && suggest ? (
-        <p className="student-create-finance-preview__error" role="alert">
+      {classMissingForFinance && suggest ? (
+        <p className="student-create-review__alert" role="alert">
           {t('admin.student360.create.review.missingClassForFinance')}
         </p>
       ) : null}
       {massarDuplicate ? (
-        <p className="student-create-finance-preview__error" role="alert">
+        <p className="student-create-review__alert" role="alert">
           {t('admin.student360.create.review.duplicateMassar')}
         </p>
       ) : null}
 
-      <dl className="student-create-review__list">
-        <div className="student-create-review__row">
-          <dt>{t('admin.student360.create.review.student')}</dt>
-          <dd dir="auto">{fullName || t('common.dash')}</dd>
-        </div>
-        <div className="student-create-review__row">
-          <dt>{t('admin.student360.create.review.enrollmentDate')}</dt>
-          <dd>{formatDate(profileState.actualJoinDate) || t('common.dash')}</dd>
-        </div>
-        <div className="student-create-review__row">
-          <dt>{t('nav.classes')}</dt>
-          <dd dir="auto">{enrollmentClassLabel ?? t('common.dash')}</dd>
-        </div>
-        <div className="student-create-review__row">
-          <dt>{t('admin.student360.create.review.billingPartner')}</dt>
-          <dd>{billingPartnerLabel(t, billingState.billingPartnerType)}</dd>
-        </div>
-      </dl>
+      <article className="student-create-review__card">
+        <h3 className="student-create-review__card-title">
+          {t('admin.student360.create.review.studentOverview')}
+        </h3>
+        <dl className="student-create-review__list">
+          <div className="student-create-review__row">
+            <dt>{t('admin.student360.create.review.student')}</dt>
+            <dd dir="auto">{fullName || t('common.dash')}</dd>
+          </div>
+          <div className="student-create-review__row">
+            <dt>{t('admin.student360.create.review.enrollmentDate')}</dt>
+            <dd>{formatDate(profileState.actualJoinDate) || t('common.dash')}</dd>
+          </div>
+          <div className="student-create-review__row">
+            <dt>{t('nav.classes')}</dt>
+            <dd dir="auto">{enrollmentClassLabel ?? t('common.dash')}</dd>
+          </div>
+          <div className="student-create-review__row">
+            <dt>{t('admin.student360.create.review.billingPartner')}</dt>
+            <dd>{billingPartnerLabel(t, billingState.billingPartnerType)}</dd>
+          </div>
+        </dl>
+      </article>
 
       {financeBlocked ? (
         <div className="student-create-fee-plan__alert" role="alert">
           <p>{t('admin.student360.create.finance.noPlanMessage')}</p>
         </div>
       ) : suggest && financeReview ? (
-        <div className="student-create-review__finance-block">
-          <h3 className="student-create-review__subtitle">
+        <article className="student-create-review__card student-create-review__card--finance">
+          <h3 className="student-create-review__card-title">
             {t('admin.student360.create.review.financeSectionTitle')}
           </h3>
           {financeState.customizePlan && previewStatus !== 'ready' && previewStatus !== 'not_needed' ? (
-            <p className="student-create-finance-preview__error" role="alert">
+            <p className="student-create-review__alert" role="alert">
               {previewError?.trim() || t('admin.student360.create.review.reviewFinanceBeforeSave')}
             </p>
           ) : null}
@@ -269,10 +278,10 @@ export function StudentCreateReviewSection({
               </div>
             ) : null}
           </dl>
-        </div>
+        </article>
       ) : (
-        <p className="tiny muted">{t('admin.student360.create.finance.waitingEnrollment')}</p>
+        <p className="student-create-form__footnote">{t('admin.student360.create.finance.waitingEnrollment')}</p>
       )}
-    </section>
+    </StudentCreateStyledSection>
   );
 }

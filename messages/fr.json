@@ -20,6 +20,8 @@
     "publish": "Publier",
     "close": "Fermer",
     "edit": "Modifier",
+    "delete": "Supprimer",
+    "clear": "Effacer",
     "download": "Télécharger",
     "markRead": "Marquer comme lu",
     "yes": "Oui",
@@ -3049,6 +3051,10 @@
       "subtitle": "Gestion des demandes d'inscription",
       "createButton": "Nouvelle demande",
       "backToList": "Retour à la liste",
+      "breadcrumb": {
+        "aria": "Fil d'Ariane des admissions",
+        "list": "Admissions"
+      },
       "nextAction": "Prochaine action",
       "assignedUser": "Responsable",
       "viewMode": "Mode d'affichage",
@@ -3178,6 +3184,11 @@
         "title": "Nouvelle demande d'inscription",
         "subtitle": "Créez une demande d'inscription initiale sans créer d'élève officiel.",
         "studentSection": "Informations sur l'enfant",
+        "studentSectionLead": "Identité, identifiants et notes initiales — complétez ce que vous avez.",
+        "siblingsSectionLead": "Indiquez si l'enfant a des frères ou sœurs à l'école ou mentionnés dans la demande.",
+        "studySectionLead": "Année, cycle, niveau, classe demandés et détails d'inscription.",
+        "guardianSectionLead": "Coordonnées du responsable légal ou de la personne à contacter.",
+        "followUpSectionLead": "Source de la demande et prochaine action de suivi.",
         "guardianSection": "Informations sur le responsable",
         "studySection": "Scolarité demandée",
         "followUpSection": "Suivi",
@@ -3403,6 +3414,22 @@
       },
       "errors": { "notFound": "Demande introuvable." }
     },
+    "enrollmentIntake": {
+      "admissionNotes": "Notes internes",
+      "residenceAddressHint": "Une ligne pour l'adresse complète si les champs ci-dessous sont vides.",
+      "groups": {
+        "names": "Noms",
+        "personal": "Données personnelles",
+        "identifiers": "Identifiants",
+        "adminDates": "Dates administratives",
+        "academicStructure": "Structure académique",
+        "registrationDetails": "Détails d'inscription",
+        "guardian": "Responsable légal",
+        "followUp": "Suivi",
+        "address": "Adresse",
+        "admissionContext": "Contexte d'inscription"
+      }
+    },
     "siblings": {
       "sectionTitle": "Informations sur les frères et sœurs",
       "hasSiblings": "A des frères/sœurs",
@@ -3413,10 +3440,18 @@
       "legacyLevels": "Niveaux des frères/sœurs",
       "addLine": "Ajouter un frère/une sœur",
       "linesEditor": "Détails des frères/sœurs",
+      "linesEditorLead": "Saisissez les détails de chaque frère ou sœur.",
+      "emptyLinesHint": "Cliquez sur « Ajouter » pour commencer la saisie.",
+      "legacyFieldsToggle": "Champs texte hérités (optionnel)",
+      "cardTitle": "Frère/sœur {number}",
       "empty": "Aucune information sur les frères/sœurs",
       "notMentioned": "Non mentionné",
       "currentStudentHint": "Actuellement inscrit à l'école",
       "linkedStudentHint": "Élève lié :",
+      "linkedStudentRequired": "Vous devez sélectionner l'élève lié lorsque « Élève actuel » est coché.",
+      "selectLinkedStudent": "Élève à l'école",
+      "searchStudentPlaceholder": "Rechercher par nom ou n°…",
+      "searchStudentEmpty": "Aucun élève correspondant",
       "relationship": {
         "brother": "Frère",
         "sister": "Sœur"
@@ -3424,6 +3459,7 @@
       "table": {
         "name": "Nom",
         "relationship": "Lien de parenté",
+        "birthDate": "Date de naissance",
         "ageAtAdmission": "Âge à l'inscription",
         "level": "Niveau scolaire",
         "currentStudent": "Élève actuel à l'école",
@@ -3638,7 +3674,8 @@
           "tripConsentPending": "Autorisation sortie en attente",
           "tripConsentDenied": "Autorisation sortie non accordée",
           "consentsIncomplete": "Autorisations incomplètes",
-          "financeOverdue": "Retards financiers"
+          "financeOverdue": "Retards financiers",
+          "missingMassar": "Numéro Massar manquant"
         },
         "cards": {
           "schooling": "Scolarité",
@@ -3817,13 +3854,18 @@
       "guardianAfterCreateHint": "Après l'enregistrement, ajoutez les responsables depuis l'onglet Responsables.",
       "create": {
         "pageDesc": "Saisissez l'identité de base et l'inscription. Vous pourrez compléter le dossier plus tard.",
+        "identityStepLead": "Tous les champs d'identité sont affichés — complétez ce qui s'applique à cet élève.",
+        "enrollmentStepLead": "Choisissez l'année, le cycle, le niveau et la classe, puis complétez les données d'admission et du responsable.",
+        "financeStepLead": "Vérifiez le plan proposé et personnalisez-le si nécessaire avant l'enregistrement.",
+        "reviewStepLead": "Vérifiez que tout est correct avant de créer l'élève.",
         "additionalInfo": "Informations complémentaires",
         "firstNameAr": "Prénom (arabe)",
         "lastNameAr": "Nom de famille (arabe)",
-        "firstNameLatin": "Prénom (latin)",
-        "lastNameLatin": "Nom de famille (latin)",
+        "firstNameLatin": "Prénom (français)",
+        "lastNameLatin": "Nom de famille (français)",
         "fullNamePreview": "Nom complet",
         "internalCodeHint": "Laisser vide pour génération automatique.",
+        "schoolNumberOptionalHint": "Optionnel — peut être complété plus tard depuis le dossier élève.",
         "massarCodeHint": "Optionnel. Si disponible, saisissez une lettre latine suivie de neuf chiffres, ex. G412252321.",
         "identityIdentifierHint": "Saisissez un numéro d'inscription scolaire ou un code interne ci-dessous.",
         "admissionDateHint": "Utilisé pour les dossiers historiques ou si requis administrativement.",
@@ -3989,6 +4031,7 @@
           "expectedMonthlyInstallment": "Échéance mensuelle attendue",
           "reviewFinanceBeforeSave": "Veuillez vérifier la personnalisation du plan financier avant l'enregistrement.",
           "missingStudentIdentifier": "Enregistrement impossible : identifiant de l'élève manquant.",
+          "optionalMassarHint": "Numéro Massar non saisi — vous pourrez le compléter plus tard depuis le dossier élève.",
           "missingAcademicYearForFinance": "Enregistrement impossible : sélectionnez une année scolaire avant d'enregistrer le plan financier.",
           "missingClassForFinance": "Enregistrement impossible : une classe est requise pour configurer le plan financier.",
           "duplicateMassar": "Enregistrement impossible : numéro Massar en double.",

@@ -230,6 +230,18 @@ export function filterStreamsByLevel(
   return streams.filter((stream) => stream.level_id === levelId);
 }
 
+/** Only cycles that have at least one configured school level. */
+export function filterAdmissionCyclesByLevels(
+  cycles: AdmissionCycleOption[],
+  levels: AdmissionLevelOption[],
+): AdmissionCycleOption[] {
+  const codes = new Set(levels.map((level) => level.cycle.trim()).filter(Boolean));
+  if (codes.size === 0) return [];
+  return cycles
+    .filter((cycle) => codes.has(cycle.code))
+    .sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0) || a.name.localeCompare(b.name));
+}
+
 export function resolveAdmissionValueLabel(
   options: AdmissionValueLabelOption[],
   value: string | null | undefined,

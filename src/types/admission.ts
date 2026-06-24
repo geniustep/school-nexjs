@@ -314,6 +314,8 @@ export interface CreateAdmissionPayload {
   student_first_name?: string;
   student_last_name?: string;
   birth_date?: string;
+  birth_place?: string;
+  nationality_id?: number;
   gender?: string;
   school_id?: number;
   academic_year_id?: number;
@@ -331,6 +333,13 @@ export interface CreateAdmissionPayload {
   siblings_raw_text?: string;
   sibling_lines?: SiblingLine[];
   massar_code?: string;
+  school_number?: string;
+  code?: string;
+  admission_date?: string;
+  registration_type?: string;
+  actual_join_date?: string;
+  is_repeating?: boolean;
+  registration_notes?: string;
   guardian_name?: string;
   guardian_phone?: string;
   guardian_whatsapp?: string;

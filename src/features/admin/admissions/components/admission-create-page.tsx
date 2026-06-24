@@ -2,21 +2,32 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { cn } from '@/lib/utils/cn';
+import { useEffect, useMemo, useState } from 'react';
 import { useStudentOptions } from '@/features/admin/students/hooks/use-student-options';
-import {
-  buildFullNamePreview,
-  localizeStudentGenderOptions,
-  todayIsoDate,
-} from '@/features/admin/students/utils/student-profile';
+import { localizeStudentGenderOptions, resolveDefaultNationalityId, todayIsoDate } from '@/features/admin/students/utils/student-profile';
+import { filterClassesForEnrollment } from '@/features/admin/students/utils/student-options';
+import { StudentCreateStyledSection } from '@/features/admin/students/components/student-create-section-header';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useLocale, useT } from '@/features/i18n/locale-context';
+import {
+  EnrollmentIntakeAcademicFields,
+  EnrollmentIntakeAdmissionExtrasFields,
+  EnrollmentIntakeFollowUpFields,
+  EnrollmentIntakeGuardianFields,
+  EnrollmentIntakeIdentityFields,
+  EnrollmentIntakeRegistrationFields,
+  EnrollmentIntakeSiblingsFields,
+} from '@/features/admin/enrollment-intake/enrollment-intake-fields';
+import {
+  intakeFromAdmissionForm,
+  patchAdmissionFormFromIntake,
+} from '@/features/admin/enrollment-intake/mappers';
+import type { EnrollmentIntakePatch } from '@/features/admin/enrollment-intake/types';
 import { createAdmission } from '../api/admissions-api';
 import { useAdmissionOptions } from '../hooks/use-admission-options';
-import { buildAdmissionChildFullName } from '../utils/admission-child-name';
 import {
   admissionOptionId,
+  filterAdmissionCyclesByLevels,
   filterLevelsByCycle,
   filterStreamsByLevel,
   findAdmissionLevel,
@@ -28,45 +39,9 @@ import {
   type AdmissionCreateFormState,
 } from '../utils/admission-create-payload';
 import { admissionApiErrorMessage } from '../utils/admission-errors';
-import { SiblingsFormFields } from './siblings-form-fields';
+import { validateSiblingLinesLinkedStudents } from '../utils/sibling-lines';
+import '@/features/admin/students/student-360.css';
 import '../admissions.css';
-
-function FormSection({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <section className="admissions-create-section">
-      <h2 className="admissions-create-section__title">{title}</h2>
-      <div className="admissions-create-grid">{children}</div>
-    </section>
-  );
-}
-
-function DateField({
-  id,
-  label,
-  value,
-  placeholder,
-  onChange,
-}: {
-  id: string;
-  label: string;
-  value: string;
-  placeholder: string;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <div className="field admissions-date-field">
-      <label htmlFor={id}>{label}</label>
-      <input
-        id={id}
-        type="date"
-        className={cn('input input--date', !value && 'input--date-empty')}
-        data-placeholder={placeholder}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      />
-    </div>
-  );
-}
 
 export function AdmissionCreatePage() {
   const t = useT();
@@ -93,6 +68,11 @@ export function AdmissionCreatePage() {
     [allLevels, form.requested_cycle_code],
   );
 
+  const filteredCycles = useMemo(
+    () => filterAdmissionCyclesByLevels(cycles, allLevels),
+    [cycles, allLevels],
+  );
+
   const selectedLevel = useMemo(
     () => findAdmissionLevel(allLevels, form.requested_level_id),
     [allLevels, form.requested_level_id],
@@ -103,32 +83,28 @@ export function AdmissionCreatePage() {
     () => filterStreamsByLevel(allStreams, form.requested_level_id),
     [allStreams, form.requested_level_id],
   );
+  const filteredClasses = useMemo(
+    () =>
+      filterClassesForEnrollment(
+        studentOptionsState.options?.classes ?? [],
+        form.requested_level_id != null ? String(form.requested_level_id) : '',
+      ),
+    [studentOptionsState.options?.classes, form.requested_level_id],
+  );
+  const intakeValues = useMemo(() => intakeFromAdmissionForm(form), [form]);
   const genders = useMemo(
     () => localizeStudentGenderOptions(studentOptionsState.options?.genders ?? [], t),
     [studentOptionsState.options?.genders, t],
   );
 
-  const childFullName = useMemo(
-    () =>
-      buildAdmissionChildFullName(
-        form.child_first_name_ar,
-        form.child_last_name_ar,
-        form.child_first_name_fr,
-        form.child_last_name_fr,
-      ),
-    [
-      form.child_first_name_ar,
-      form.child_last_name_ar,
-      form.child_first_name_fr,
-      form.child_last_name_fr,
-    ],
-  );
+  function handleIntakePatch(patch: EnrollmentIntakePatch) {
+    setForm((prev) => ({ ...prev, ...patchAdmissionFormFromIntake(patch) }));
+  }
 
   useEffect(() => {
     if (defaultsApplied || !admissionOptionsState.options?.sources.length) return;
     const sourceId = resolveDefaultAdmissionSourceId(admissionOptionsState.options.sources);
     if (sourceId == null) {
-      console.warn('[admissions] No admission sources available for default');
       setDefaultsApplied(true);
       return;
     }
@@ -136,10 +112,19 @@ export function AdmissionCreatePage() {
     setDefaultsApplied(true);
   }, [admissionOptionsState.options?.sources, defaultsApplied]);
 
+  useEffect(() => {
+    if (studentOptionsState.loading || !studentOptionsState.options?.nationalities.length) return;
+    const defaultNationality = resolveDefaultNationalityId(studentOptionsState.options.nationalities);
+    if (!defaultNationality) return;
+    setForm((prev) =>
+      prev.nationality_id != null && prev.nationality_id > 0
+        ? prev
+        : { ...prev, nationality_id: Number(defaultNationality) },
+    );
+  }, [studentOptionsState.loading, studentOptionsState.options?.nationalities]);
+
   const lookupError =
-    studentOptionsState.error?.message ??
-    admissionOptionsState.error?.message ??
-    null;
+    studentOptionsState.error?.message ?? admissionOptionsState.error?.message ?? null;
 
   const relationshipLoadFailed =
     !admissionOptionsState.loading &&
@@ -147,36 +132,18 @@ export function AdmissionCreatePage() {
       (admissionOptionsState.options != null &&
         admissionOptionsState.options.relationships.length === 0));
 
-  const datePlaceholder = t('admin.admissions.create.datePlaceholder');
-
-  function updateField<K extends keyof AdmissionCreateFormState>(
-    key: K,
-    value: AdmissionCreateFormState[K],
-  ) {
-    setForm((prev) => {
-      const next = { ...prev, [key]: value };
-      if (key === 'requested_cycle_code') {
-        next.requested_level_id = undefined;
-        next.requested_stream_id = undefined;
-      }
-      if (key === 'requested_level_id') {
-        next.requested_stream_id = undefined;
-      }
-      return next;
-    });
-  }
-
-  function handleRequiredInvalid(e: React.InvalidEvent<HTMLInputElement>) {
-    e.currentTarget.setCustomValidity(t('admin.admissions.create.fieldRequired'));
-  }
-
-  function clearRequiredValidity(e: React.FormEvent<HTMLInputElement>) {
-    e.currentTarget.setCustomValidity('');
-  }
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (activeSchoolId == null) return;
+
+    if (form.has_siblings) {
+      const siblingError = validateSiblingLinesLinkedStudents(form.sibling_lines, t);
+      if (siblingError) {
+        setError(siblingError);
+        return;
+      }
+    }
+
     setSubmitting(true);
     setError(null);
 
@@ -196,383 +163,137 @@ export function AdmissionCreatePage() {
   }
 
   return (
-    <div className="admissions-page admissions-create-page">
-      <header className="admissions-create-header">
-        <Link href="/admin/admissions" className="btn btn--ghost admissions-create-header__back">
-          {t('common.back')}
-        </Link>
-        <div className="admissions-create-header__main">
-          <h1 className="admissions-create-header__title">{t('admin.admissions.create.title')}</h1>
-          <p className="admissions-create-header__subtitle">{t('admin.admissions.create.subtitle')}</p>
-        </div>
+    <div className="admissions-page admissions-create-page student-create-page">
+      <nav className="student-360-breadcrumb" aria-label={t('admin.admissions.breadcrumb.aria')}>
+        <ol className="student-360-breadcrumb__list">
+          <li className="student-360-breadcrumb__item">
+            <Link href="/admin/admissions">{t('admin.admissions.breadcrumb.list')}</Link>
+          </li>
+          <li className="student-360-breadcrumb__item">
+            <span aria-current="page">{t('admin.admissions.create.title')}</span>
+          </li>
+        </ol>
+      </nav>
+
+      <Link href="/admin/admissions" className="admissions-create-header__back back-link">
+        ‹ {t('common.back')}
+      </Link>
+
+      <header className="student-create-page__header admissions-create-page__hero">
+        <h1 className="student-create-page__title">{t('admin.admissions.create.title')}</h1>
+        <p className="student-create-page__desc">{t('admin.admissions.create.subtitle')}</p>
       </header>
 
-      <form className="card admissions-create-card" onSubmit={handleSubmit} lang={locale}>
-        {lookupError && (
+      <form className="student-create-form admissions-create-form" onSubmit={handleSubmit} lang={locale}>
+        {lookupError ? (
           <div className="alert alert--warning" role="status">
             {lookupError}
           </div>
-        )}
-        {error && (
+        ) : null}
+        {error ? (
           <div className="alert alert--error" role="alert">
             {error}
           </div>
-        )}
+        ) : null}
 
-        <FormSection title={t('admin.admissions.create.studentSection')}>
-          <div className="field">
-            <label htmlFor="child_first_name_ar">
-              {t('admin.admissions.fields.firstNameAr')} <span aria-hidden="true">*</span>
-            </label>
-            <input
-              id="child_first_name_ar"
-              className="input"
-              required
-              value={form.child_first_name_ar}
-              onChange={(e) => updateField('child_first_name_ar', e.target.value)}
-              onInvalid={handleRequiredInvalid}
-              onInput={clearRequiredValidity}
-              autoComplete="off"
-            />
-          </div>
-          <div className="field">
-            <label htmlFor="child_last_name_ar">
-              {t('admin.admissions.fields.lastNameAr')} <span aria-hidden="true">*</span>
-            </label>
-            <input
-              id="child_last_name_ar"
-              className="input"
-              required
-              value={form.child_last_name_ar}
-              onChange={(e) => updateField('child_last_name_ar', e.target.value)}
-              onInvalid={handleRequiredInvalid}
-              onInput={clearRequiredValidity}
-              autoComplete="off"
-            />
-          </div>
-          <div className="field">
-            <label htmlFor="child_first_name_fr">{t('admin.admissions.fields.firstNameFr')}</label>
-            <input
-              id="child_first_name_fr"
-              className="input"
-              dir="ltr"
-              value={form.child_first_name_fr}
-              onChange={(e) => updateField('child_first_name_fr', e.target.value)}
-              autoComplete="off"
-            />
-          </div>
-          <div className="field">
-            <label htmlFor="child_last_name_fr">{t('admin.admissions.fields.lastNameFr')}</label>
-            <input
-              id="child_last_name_fr"
-              className="input"
-              dir="ltr"
-              value={form.child_last_name_fr}
-              onChange={(e) => updateField('child_last_name_fr', e.target.value)}
-              autoComplete="off"
-            />
-          </div>
-          <div className="field admissions-create-grid__wide admissions-create-full-name">
-            <span className="admissions-create-full-name__label">{t('admin.admissions.fields.fullName')}</span>
-            <span className="admissions-create-full-name__value" dir="auto">
-              {childFullName || t('common.dash')}
-            </span>
-            {form.child_first_name_fr || form.child_last_name_fr ? (
-              <span className="tiny muted" dir="ltr">
-                {buildFullNamePreview(form.child_first_name_fr, form.child_last_name_fr) ||
-                  t('common.dash')}
-              </span>
-            ) : null}
-          </div>
-          <div className="field">
-            <label htmlFor="gender">{t('admin.admissions.fields.gender')}</label>
-            <select
-              id="gender"
-              className="input"
-              value={form.gender}
-              onChange={(e) => updateField('gender', e.target.value)}
-              disabled={studentOptionsState.loading}
-            >
-              <option value="">{t('admin.admissions.create.selectGender')}</option>
-              {genders.map((g) => (
-                <option key={g.value} value={g.value}>
-                  {g.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <DateField
-            id="birth_date"
-            label={t('admin.admissions.fields.birthDate')}
-            placeholder={datePlaceholder}
-            value={form.birth_date}
-            onChange={(value) => updateField('birth_date', value)}
+        <StudentCreateStyledSection
+          icon="identity"
+          title={t('admin.admissions.create.studentSection')}
+          lead={t('admin.admissions.create.studentSectionLead')}
+          className="student-create-form__section--identity"
+        >
+          <EnrollmentIntakeIdentityFields
+            values={intakeValues}
+            onPatch={handleIntakePatch}
+            optionsLoading={studentOptionsState.loading}
+            genders={genders}
+            nationalities={studentOptionsState.options?.nationalities ?? []}
+            requireArabicNames
           />
-          <div className="field">
-            <label htmlFor="massar_code">{t('admin.admissions.fields.massarCode')}</label>
-            <input
-              id="massar_code"
-              className="input"
-              dir="ltr"
-              value={form.massar_code}
-              onChange={(e) => updateField('massar_code', e.target.value.replace(/\s/g, ''))}
-            />
-          </div>
-        </FormSection>
+          <EnrollmentIntakeAdmissionExtrasFields values={intakeValues} onPatch={handleIntakePatch} />
+        </StudentCreateStyledSection>
 
-        <FormSection title={t('admin.admissions.extraFields.sectionTitle')}>
-          <div className="field">
-            <label htmlFor="external_reference">{t('admin.admissions.extraFields.externalReference')}</label>
-            <input
-              id="external_reference"
-              className="input"
-              dir="ltr"
-              value={form.external_reference}
-              onChange={(e) => updateField('external_reference', e.target.value)}
-            />
-          </div>
-          <div className="field admissions-create-grid__wide">
-            <label htmlFor="residence_address">{t('admin.admissions.extraFields.residenceAddress')}</label>
-            <input
-              id="residence_address"
-              className="input"
-              value={form.residence_address}
-              onChange={(e) => updateField('residence_address', e.target.value)}
-            />
-          </div>
-          <div className="field admissions-create-grid__wide">
-            <label htmlFor="previous_school">{t('admin.admissions.extraFields.previousSchool')}</label>
-            <input
-              id="previous_school"
-              className="input"
-              value={form.previous_school}
-              onChange={(e) => updateField('previous_school', e.target.value)}
-            />
-          </div>
-          <div className="field admissions-create-grid__wide">
-            <label htmlFor="internal_notes">{t('admin.admissions.extraFields.internalNotes')}</label>
-            <textarea
-              id="internal_notes"
-              className="input"
-              rows={3}
-              value={form.internal_notes}
-              onChange={(e) => updateField('internal_notes', e.target.value)}
-            />
-          </div>
-        </FormSection>
+        <StudentCreateStyledSection
+          icon="siblings"
+          title={t('admin.siblings.sectionTitle')}
+          lead={t('admin.admissions.create.siblingsSectionLead')}
+          className="student-create-form__section--siblings"
+        >
+          <EnrollmentIntakeSiblingsFields values={intakeValues} onPatch={handleIntakePatch} />
+        </StudentCreateStyledSection>
 
-        <FormSection title={t('admin.siblings.sectionTitle')}>
-          <SiblingsFormFields
-            hasSiblings={form.has_siblings}
-            siblingsRawText={form.siblings_raw_text}
-            siblingsLevels={form.siblings_levels}
-            siblingLines={form.sibling_lines}
-            onChange={(patch) => {
-              if (patch.hasSiblings != null) updateField('has_siblings', patch.hasSiblings);
-              if (patch.siblingsRawText != null) updateField('siblings_raw_text', patch.siblingsRawText);
-              if (patch.siblingsLevels != null) updateField('siblings_levels', patch.siblingsLevels);
-              if (patch.siblingLines != null) updateField('sibling_lines', patch.siblingLines);
+        <StudentCreateStyledSection
+          icon="enrollment"
+          title={t('admin.admissions.create.studySection')}
+          lead={t('admin.admissions.create.studySectionLead')}
+          className="student-create-form__section--enrollment"
+        >
+          <EnrollmentIntakeAcademicFields
+            values={intakeValues}
+            onPatch={handleIntakePatch}
+            academic={{
+              cycleMode: 'code',
+              years: academicYears,
+              cycles: filteredCycles.map((c) => ({ mode: 'code' as const, code: c.code, name: c.name })),
+              levels: filteredLevels,
+              streams: filteredStreams,
+              classes: filteredClasses,
+              registrationTypes: studentOptionsState.options?.registrationTypes ?? [],
+              levelRequiresStream: showStreamField,
+              optionsLoading: admissionOptionsState.loading || studentOptionsState.loading,
+              cyclesLoading: admissionOptionsState.loading,
+              streamRequired: showStreamField,
             }}
           />
-        </FormSection>
-
-        <FormSection title={t('admin.admissions.create.studySection')}>
-          <div className="field">
-            <label htmlFor="academic_year_id">{t('admin.admissions.fields.academicYear')}</label>
-            <select
-              id="academic_year_id"
-              className="input"
-              value={form.academic_year_id ?? ''}
-              onChange={(e) =>
-                updateField('academic_year_id', e.target.value ? Number(e.target.value) : undefined)
-              }
-              disabled={admissionOptionsState.loading}
-            >
-              <option value="">{t('admin.admissions.create.selectAcademicYear')}</option>
-              {academicYears.map((year) => (
-                <option key={year.id} value={year.id}>
-                  {year.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="field">
-            <label htmlFor="requested_cycle_code">{t('admin.admissions.fields.cycle')}</label>
-            <select
-              id="requested_cycle_code"
-              className="input"
-              value={form.requested_cycle_code}
-              onChange={(e) => updateField('requested_cycle_code', e.target.value)}
-              disabled={admissionOptionsState.loading}
-            >
-              <option value="">{t('admin.admissions.create.selectCycle')}</option>
-              {cycles.map((cycle) => (
-                <option key={cycle.code} value={cycle.code}>
-                  {cycle.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="field">
-            <label htmlFor="requested_level_id">{t('admin.admissions.fields.requestedLevel')}</label>
-            <select
-              id="requested_level_id"
-              className="input"
-              value={form.requested_level_id ?? ''}
-              onChange={(e) =>
-                updateField('requested_level_id', e.target.value ? Number(e.target.value) : undefined)
-              }
-              disabled={admissionOptionsState.loading || !form.requested_cycle_code}
-            >
-              <option value="">{t('admin.admissions.create.selectLevel')}</option>
-              {filteredLevels.map((level) => (
-                <option key={level.id} value={level.id}>
-                  {level.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          {showStreamField ? (
-            <div className="field">
-              <label htmlFor="requested_stream_id">{t('admin.admissions.fields.stream')}</label>
-              <select
-                id="requested_stream_id"
-                className="input"
-                value={form.requested_stream_id ?? ''}
-                onChange={(e) =>
-                  updateField(
-                    'requested_stream_id',
-                    e.target.value ? Number(e.target.value) : undefined,
-                  )
-                }
-                disabled={admissionOptionsState.loading}
-                required
-              >
-                <option value="">{t('admin.admissions.create.selectStream')}</option>
-                {filteredStreams.map((stream) => (
-                  <option key={stream.id} value={stream.id}>
-                    {stream.name}
-                  </option>
-                ))}
-              </select>
-              <p className="tiny muted">{t('admin.admissions.create.streamRequiredHint')}</p>
-            </div>
-          ) : null}
-        </FormSection>
-
-        <FormSection title={t('admin.admissions.create.guardianSection')}>
-          <div className="field">
-            <label htmlFor="guardian_name">{t('admin.admissions.fields.guardianName')}</label>
-            <input
-              id="guardian_name"
-              className="input"
-              value={form.guardian_name}
-              onChange={(e) => updateField('guardian_name', e.target.value)}
-            />
-          </div>
-          <div className="field">
-            <label htmlFor="guardian_phone">{t('admin.admissions.fields.guardianPhone')}</label>
-            <input
-              id="guardian_phone"
-              className="input"
-              dir="ltr"
-              value={form.guardian_phone}
-              onChange={(e) => updateField('guardian_phone', e.target.value)}
-            />
-          </div>
-          <div className="field">
-            <label htmlFor="guardian_relationship">{t('admin.admissions.fields.relationship')}</label>
-            {relationshipLoadFailed ? (
-              <p className="tiny muted" role="status">
-                {t('admin.admissions.create.relationshipLoadError')}
-              </p>
-            ) : (
-              <select
-                id="guardian_relationship"
-                className="input"
-                value={form.guardian_relationship}
-                onChange={(e) => updateField('guardian_relationship', e.target.value)}
-                disabled={admissionOptionsState.loading}
-              >
-                <option value="">{t('admin.admissions.create.selectRelationship')}</option>
-                {(admissionOptionsState.options?.relationships ?? []).map((rel) => {
-                  const value = String(rel.value ?? rel.id ?? '');
-                  return (
-                    <option key={value} value={value}>
-                      {rel.label}
-                    </option>
-                  );
-                })}
-              </select>
-            )}
-          </div>
-          <div className="field">
-            <label htmlFor="guardian_email">{t('admin.admissions.fields.guardianEmail')}</label>
-            <input
-              id="guardian_email"
-              type="email"
-              className="input"
-              dir="ltr"
-              value={form.guardian_email}
-              onChange={(e) => updateField('guardian_email', e.target.value)}
-            />
-          </div>
-        </FormSection>
-
-        <FormSection title={t('admin.admissions.create.followUpSection')}>
-          <div className="field">
-            <label htmlFor="source_id">{t('admin.admissions.fields.source')}</label>
-            <select
-              id="source_id"
-              className="input"
-              value={form.source_id ?? ''}
-              onChange={(e) =>
-                updateField('source_id', e.target.value ? Number(e.target.value) : undefined)
-              }
-              disabled={admissionOptionsState.loading}
-            >
-              <option value="">{t('admin.admissions.create.selectSource')}</option>
-              {(admissionOptionsState.options?.sources ?? []).map((source) => {
-                const id = admissionOptionId(source);
-                if (id == null) return null;
-                return (
-                  <option key={id} value={id}>
-                    {source.label}
-                  </option>
-                );
-              })}
-            </select>
-          </div>
-          <DateField
-            id="first_contact_date"
-            label={t('admin.admissions.fields.firstVisitDate')}
-            placeholder={datePlaceholder}
-            value={form.first_contact_date}
-            onChange={(value) => updateField('first_contact_date', value)}
+          <EnrollmentIntakeRegistrationFields
+            values={intakeValues}
+            onPatch={handleIntakePatch}
+            registrationTypes={studentOptionsState.options?.registrationTypes ?? []}
+            optionsLoading={studentOptionsState.loading}
           />
-          <div className="field">
-            <label htmlFor="next_action">{t('admin.admissions.fields.nextAction')}</label>
-            <input
-              id="next_action"
-              className="input"
-              value={form.next_action}
-              onChange={(e) => updateField('next_action', e.target.value)}
-            />
-          </div>
-          <DateField
-            id="next_action_date"
-            label={t('admin.admissions.fields.nextActionDate')}
-            placeholder={datePlaceholder}
-            value={form.next_action_date}
-            onChange={(value) => updateField('next_action_date', value)}
-          />
-        </FormSection>
+        </StudentCreateStyledSection>
 
-        <div className="admissions-create-actions">
+        <StudentCreateStyledSection
+          icon="guardian"
+          title={t('admin.admissions.create.guardianSection')}
+          lead={t('admin.admissions.create.guardianSectionLead')}
+          className="student-create-form__section--guardian"
+        >
+          <EnrollmentIntakeGuardianFields
+            values={intakeValues}
+            onPatch={handleIntakePatch}
+            guardian={{
+              relationships: admissionOptionsState.options?.relationships ?? [],
+              relationshipsLoading: admissionOptionsState.loading,
+              relationshipLoadFailed,
+            }}
+          />
+        </StudentCreateStyledSection>
+
+        <StudentCreateStyledSection
+          icon="followUp"
+          title={t('admin.admissions.create.followUpSection')}
+          lead={t('admin.admissions.create.followUpSectionLead')}
+          className="student-create-form__section--followUp"
+        >
+          <EnrollmentIntakeFollowUpFields
+            values={intakeValues}
+            onPatch={handleIntakePatch}
+            followUp={{
+              sources: (admissionOptionsState.options?.sources ?? []).map((s) => ({
+                id: admissionOptionId(s) ?? undefined,
+                label: s.label,
+              })),
+              sourcesLoading: admissionOptionsState.loading,
+            }}
+          />
+        </StudentCreateStyledSection>
+
+        <div className="student-create-form__actions admissions-create-actions">
           <button type="submit" className="btn btn--primary" disabled={submitting}>
             {submitting ? t('admin.admissions.create.submitting') : t('admin.admissions.create.submit')}
           </button>
-          <Link href="/admin/admissions" className="btn">
+          <Link href="/admin/admissions" className="btn btn--ghost">
             {t('admin.admissions.create.cancel')}
           </Link>
         </div>
