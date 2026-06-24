@@ -3,14 +3,11 @@
 import Link from 'next/link';
 import { useT } from '@/features/i18n/locale-context';
 import { cleanDisplayValue } from '../utils/admission-labels';
+import { localizeSiblingRelationship } from '../utils/sibling-display';
 import type { SiblingLine } from '@/types/sibling-line';
 
 function relationshipLabel(t: (key: string) => string, value: string | null | undefined): string {
-  const normalized = cleanDisplayValue(value);
-  if (!normalized) return t('admin.siblings.notMentioned');
-  const key = `admin.siblings.relationship.${normalized}`;
-  const translated = t(key);
-  return translated !== key ? translated : normalized;
+  return localizeSiblingRelationship(t, value) ?? t('admin.siblings.notMentioned');
 }
 
 export function SiblingLinesTable({ lines }: { lines: SiblingLine[] }) {
@@ -40,7 +37,9 @@ export function SiblingLinesTable({ lines }: { lines: SiblingLine[] }) {
               <td>{relationshipLabel(t, line.relationship)}</td>
               <td dir="ltr">{cleanDisplayValue(line.birth_date) || empty}</td>
               <td dir="ltr">
-                {line.age_years_at_admission != null ? line.age_years_at_admission : empty}
+                {line.age_years_at_admission != null && Number.isFinite(line.age_years_at_admission)
+                  ? line.age_years_at_admission
+                  : empty}
               </td>
               <td dir="auto">{cleanDisplayValue(line.level_text) || empty}</td>
               <td>

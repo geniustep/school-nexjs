@@ -112,6 +112,7 @@ export function StudentOverviewTab({
         endpointUnavailable={overviewEndpointUnavailable}
       />
 
+      <div className="student-360-overview__details-layout">
       <StudentProfileDetailPanel
         details={details}
         canManage={canManage}
@@ -119,8 +120,11 @@ export function StudentOverviewTab({
         onAccountChanged={onAccountChanged}
       />
 
-      <StudentAdmissionDataPanel student={details.student} />
-      <StudentSiblingsInfoPanel student={details.student} />
+      <div className="student-360-overview__details-aside">
+        <StudentAdmissionDataPanel student={details.student} />
+        <StudentSiblingsInfoPanel student={details.student} />
+      </div>
+      </div>
     </div>
   );
 }

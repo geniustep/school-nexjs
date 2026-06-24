@@ -4,5 +4,5 @@ import { SiblingsInfoPanel } from '@/features/admin/admissions/components/siblin
 import type { StudentSummary } from '@/types/student-360';
 
 export function StudentSiblingsInfoPanel({ student }: { student: StudentSummary }) {
-  return <SiblingsInfoPanel detail={student} />;
+  return <SiblingsInfoPanel detail={student} layout="panel" />;
 }

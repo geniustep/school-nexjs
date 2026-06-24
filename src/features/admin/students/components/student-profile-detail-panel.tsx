@@ -6,8 +6,12 @@ import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { getStudentDisplayName } from '@/lib/utils/student';
-import { displayCountryState } from '../utils/student-profile';
+import { statusLabel } from '@/lib/utils/labels';
 import { computeStudentAge } from '../utils/student-age';
+import {
+  nationalityLabel,
+  refDisplayLabel,
+} from '../utils/student-profile-display';
 import { Student360FieldGrid } from './student-360-field-grid';
 import type { StudentDetailsData } from '@/types/student-360';
 
@@ -15,61 +19,50 @@ function dash(t: (k: string) => string, value: string | null | undefined): strin
   return value?.trim() ? value : t('common.dash');
 }
 
-function buildStudentRefFields(
+function monoValue(
   t: (k: string) => string,
-  dashFn: typeof dash,
-  schoolNumber: string | null | undefined,
-  code: string | null | undefined,
-  massarCode: string | null | undefined,
-): Array<{ label: string; value: ReactNode }> {
-  const massar = massarCode?.trim() || '';
-  const school = (schoolNumber ?? code)?.trim() || '';
+  value: string | null | undefined,
+): ReactNode {
+  if (!value?.trim()) {
+    return <span className="student-360-field__value--empty">{t('common.dash')}</span>;
+  }
+  return (
+    <span className="mono" dir="auto">
+      {value}
+    </span>
+  );
+}
 
-  if (massar && school && massar === school) {
-    return [
-      {
-        label: t('admin.student360.schoolNumber'),
-        value: (
-          <span className="mono" dir="auto">
-            {massar}
-          </span>
-        ),
-      },
-    ];
-  }
-
-  const items: Array<{ label: string; value: ReactNode }> = [];
-  if (massar) {
-    items.push({
-      label: t('admin.massarCode'),
-      value: (
-        <span className="mono" dir="auto">
-          {massar}
+function ProfileBlock({
+  title,
+  icon,
+  iconTone,
+  children,
+}: {
+  title: string;
+  icon: string;
+  iconTone?: 'alert';
+  children: ReactNode;
+}) {
+  return (
+    <article className="student-profile-panel__block">
+      <h3 className="student-profile-panel__block-title">
+        <span
+          className={[
+            'student-profile-panel__block-icon',
+            iconTone === 'alert' ? 'student-profile-panel__block-icon--alert' : '',
+          ]
+            .filter(Boolean)
+            .join(' ')}
+          aria-hidden="true"
+        >
+          {icon}
         </span>
-      ),
-    });
-  }
-  if (school && school !== massar) {
-    items.push({
-      label: t('admin.student360.schoolNumber'),
-      value: (
-        <span className="mono" dir="auto">
-          {school}
-        </span>
-      ),
-    });
-  }
-  if (items.length === 0) {
-    items.push({
-      label: t('admin.student360.schoolNumber'),
-      value: (
-        <span className="mono student-360-field__value--empty" dir="auto">
-          {dashFn(t, undefined)}
-        </span>
-      ),
-    });
-  }
-  return items;
+        {title}
+      </h3>
+      {children}
+    </article>
+  );
 }
 
 export function StudentProfileDetailPanel({
@@ -95,6 +88,20 @@ export function StudentProfileDetailPanel({
         ? t('admin.female')
         : dash(t, s.gender ?? undefined);
 
+  const nameFields = [
+    { label: t('admin.firstName'), value: dash(t, s.first_name) },
+    { label: t('admin.lastName'), value: dash(t, s.last_name) },
+    { label: t('admin.student360.nameAr'), value: dash(t, s.name_ar) },
+    {
+      label: t('admin.student360.nameLatin'),
+      value: s.name_latin?.trim() ? (
+        <span dir="ltr">{s.name_latin}</span>
+      ) : (
+        t('common.dash')
+      ),
+    },
+  ];
+
   const identityFields = [
     { label: t('admin.gender'), value: genderLabel },
     { label: t('admin.dateOfBirth'), value: formatDate(s.date_of_birth) },
@@ -102,24 +109,41 @@ export function StudentProfileDetailPanel({
       label: t('admin.student360.header.age'),
       value: age != null ? t('admin.student360.header.ageYears', { age }) : t('common.dash'),
     },
-    ...buildStudentRefFields(t, dash, s.school_number, s.code, s.massar_code),
+    { label: t('admin.student360.birthPlace'), value: dash(t, s.birth_place) },
+    { label: t('admin.student360.nationality'), value: dash(t, nationalityLabel(s) || undefined) },
+    { label: t('admin.massarCode'), value: monoValue(t, s.massar_code) },
+    {
+      label: t('admin.student360.schoolNumber'),
+      value: monoValue(t, s.school_number),
+    },
+    { label: t('admin.studentCode'), value: monoValue(t, s.code) },
+    { label: t('admin.student360.studentStatus'), value: statusLabel(t, s.status) },
   ];
 
   const contactFields = [
     { label: t('admin.phone'), value: dash(t, s.phone) },
     { label: t('admin.student360.mobile'), value: dash(t, s.mobile) },
     { label: t('admin.email'), value: dash(t, s.email) },
+    { label: t('admin.student360.street'), value: dash(t, s.street) },
+    { label: t('admin.student360.district'), value: dash(t, s.district) },
     { label: t('admin.student360.city'), value: dash(t, s.city) },
+    { label: t('admin.student360.zip'), value: dash(t, s.zip) },
     {
       label: t('admin.student360.country'),
-      value: displayCountryState(s.country) || t('common.dash'),
+      value: refDisplayLabel(s.country) || t('common.dash'),
+    },
+    {
+      label: t('admin.student360.state'),
+      value: refDisplayLabel(s.state) || t('common.dash'),
     },
   ];
 
   const emergencyFields = [
     { label: t('admin.student360.emergencyContactName'), value: dash(t, s.emergency_contact_name) },
+    { label: t('admin.student360.emergencyRelationship'), value: dash(t, s.emergency_relationship) },
     { label: t('admin.student360.emergencyPhone'), value: dash(t, s.emergency_phone) },
     { label: t('admin.student360.emergencyPhoneAlt'), value: dash(t, s.emergency_phone_alt) },
+    { label: t('admin.student360.emergencyNotes'), value: dash(t, s.emergency_notes) },
   ];
 
   return (
@@ -132,7 +156,7 @@ export function StudentProfileDetailPanel({
           <div>
             <p className="student-profile-panel__eyebrow">{t('admin.student360.sections.profileDetail')}</p>
             <h2 id="student-profile-panel-title" className="student-profile-panel__title">
-              {t('admin.student360.sections.basicInfo')}
+              {getStudentDisplayName(s)}
             </h2>
             <p className="student-profile-panel__desc">{t('admin.student360.profile.detailDesc')}</p>
           </div>
@@ -145,13 +169,20 @@ export function StudentProfileDetailPanel({
       </header>
 
       <div className="student-profile-panel__body">
-        <article className="student-profile-panel__block student-profile-panel__block--identity">
-          <h3 className="student-profile-panel__block-title">
-            <span className="student-profile-panel__block-icon" aria-hidden="true">
-              ◫
-            </span>
-            {t('admin.student360.sections.identity')}
-          </h3>
+        <ProfileBlock title={t('admin.student360.sections.basicInfo')} icon="◫">
+          <div className="student-profile-panel__identity-grid student-profile-panel__identity-grid--names">
+            {nameFields.map((field) => (
+              <div key={field.label} className="student-profile-field-chip">
+                <span className="student-profile-field-chip__label">{field.label}</span>
+                <span className="student-profile-field-chip__value" dir="auto">
+                  {field.value}
+                </span>
+              </div>
+            ))}
+          </div>
+        </ProfileBlock>
+
+        <ProfileBlock title={t('admin.student360.sections.identity')} icon="◎">
           <div className="student-profile-panel__identity-grid">
             {identityFields.map((field) => (
               <div key={field.label} className="student-profile-field-chip">
@@ -162,32 +193,14 @@ export function StudentProfileDetailPanel({
               </div>
             ))}
           </div>
-        </article>
+        </ProfileBlock>
 
         <div className="student-profile-panel__duo">
-          <article className="student-profile-panel__block">
-            <h3 className="student-profile-panel__block-title">
-              <span className="student-profile-panel__block-icon" aria-hidden="true">
-                ✉
-              </span>
-              {t('admin.student360.sections.contact')}
-            </h3>
-            <Student360FieldGrid
-              columns={1}
-              compact
-              hideEmpty
-              emptyMessage={t('admin.student360.profile.noContactData')}
-              items={contactFields}
-            />
-          </article>
+          <ProfileBlock title={t('admin.student360.sections.contact')} icon="✉">
+            <Student360FieldGrid columns={2} compact items={contactFields} />
+          </ProfileBlock>
 
-          <article className="student-profile-panel__block">
-            <h3 className="student-profile-panel__block-title">
-              <span className="student-profile-panel__block-icon student-profile-panel__block-icon--alert" aria-hidden="true">
-                ⚠
-              </span>
-              {t('admin.student360.sections.emergency')}
-            </h3>
+          <ProfileBlock title={t('admin.student360.sections.emergency')} icon="⚠" iconTone="alert">
             <Student360FieldGrid
               columns={1}
               compact
@@ -195,7 +208,7 @@ export function StudentProfileDetailPanel({
               emptyMessage={t('admin.student360.profile.noEmergencyData')}
               items={emergencyFields}
             />
-          </article>
+          </ProfileBlock>
         </div>
 
         {canManage ? (

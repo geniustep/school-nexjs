@@ -12,7 +12,7 @@ import type { AcademicClassOption, AcademicLevelOption, StudentDetailsData } fro
 import type { StudentOverviewData } from '@/types/student-overview';
 import { consentHeaderBadgeKind } from '../utils/student-consent-flags';
 
-const MAX_VISIBLE_ALERT_BADGES = 2;
+const MAX_VISIBLE_ALERT_BADGES = 4;
 
 function hasBasicIdentityGap(details: StudentDetailsData): boolean {
   const s = details.student;

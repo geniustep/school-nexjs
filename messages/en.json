@@ -3450,6 +3450,12 @@
       "legacyFieldsToggle": "Legacy text fields (optional)",
       "cardTitle": "Sibling {number}",
       "empty": "No sibling information",
+      "detailsTitle": "Sibling details",
+      "summaryWord": "siblings",
+      "summaryTechnical": "{count} siblings: {names}",
+      "summaryTechnicalWithYear": "{count} siblings — born {year}: {names}",
+      "ageYears": "{age} years",
+      "lessThanOneYear": "Less than 1 year",
       "notMentioned": "Not mentioned",
       "currentStudentHint": "Currently enrolled at the school",
       "linkedStudentHint": "Linked student:",
@@ -3794,7 +3800,7 @@
       "profile": {
         "noContactData": "No contact details on file.",
         "noEmergencyData": "No emergency contact on file.",
-        "detailDesc": "Personal details, contact, emergency contact, and login account.",
+        "detailDesc": "Names, identity, contact, address, emergency contact, and login account.",
         "accountDesc": "Portal login for the student or guardian."
       },
       "nameAr": "Arabic name",

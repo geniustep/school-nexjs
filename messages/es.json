@@ -3445,6 +3445,12 @@
       "legacyFieldsToggle": "Campos de texto heredados (opcional)",
       "cardTitle": "Hermano/a {number}",
       "empty": "No hay información de hermanos",
+      "detailsTitle": "Detalles de hermanos",
+      "summaryWord": "hermanos",
+      "summaryTechnical": "{count} hermanos: {names}",
+      "summaryTechnicalWithYear": "{count} hermanos — nacidos en {year}: {names}",
+      "ageYears": "{age} años",
+      "lessThanOneYear": "Menos de 1 año",
       "notMentioned": "No indicado",
       "currentStudentHint": "Matriculado actualmente en el centro",
       "linkedStudentHint": "Alumno vinculado:",
@@ -3789,7 +3795,7 @@
       "profile": {
         "noContactData": "No hay datos de contacto registrados.",
         "noEmergencyData": "No hay contacto de emergencia registrado.",
-        "detailDesc": "Datos personales, contacto, emergencia y cuenta de acceso.",
+        "detailDesc": "Nombres, identidad, contacto, dirección, emergencia y cuenta de acceso.",
         "accountDesc": "Cuenta del portal para el alumno o el tutor."
       },
       "nameAr": "Nombre en árabe",

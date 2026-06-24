@@ -3477,6 +3477,12 @@
       "legacyFieldsToggle": "حقول نصية قديمة (اختياري)",
       "cardTitle": "أخ/أخت {number}",
       "empty": "لا توجد معلومات إخوة",
+      "detailsTitle": "تفاصيل الإخوة",
+      "summaryWord": "إخوة",
+      "summaryTechnical": "{count} إخوة: {names}",
+      "summaryTechnicalWithYear": "{count} إخوة — مواليد {year}: {names}",
+      "ageYears": "{age} سنة",
+      "lessThanOneYear": "أقل من سنة",
       "notMentioned": "غير مذكور",
       "currentStudentHint": "مسجّل حاليًا في المدرسة",
       "linkedStudentHint": "تلميذ مرتبط:",
@@ -3821,7 +3827,7 @@
       "profile": {
         "noContactData": "لا توجد بيانات اتصال مسجّلة.",
         "noEmergencyData": "لا توجد جهة طوارئ مسجّلة.",
-        "detailDesc": "البيانات الشخصية والاتصال وجهة الطوارئ وحساب الدخول.",
+        "detailDesc": "الأسماء والهوية والاتصال والعنوان وجهة الطوارئ وحساب الدخول.",
         "accountDesc": "حساب الدخول للبوابة الإلكترونية للتلميذ أو ولي الأمر."
       },
       "nameAr": "الاسم بالعربية",
