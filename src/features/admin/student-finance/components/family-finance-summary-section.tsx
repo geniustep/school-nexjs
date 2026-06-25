@@ -16,6 +16,7 @@ import {
 } from '@/lib/utils/normalize-family-finance';
 import type { ApiErrorBody } from '@/types/api';
 import type { FamilyFinanceChild, FamilyFinanceSummary } from '@/types/family-finance';
+import { resolveFamilyChildrenView } from '../utils/family-children-view';
 import { useStudentFamilyFinanceSummary } from '../hooks/use-student-family-finance';
 
 function FamilyFinanceSummaryMetrics({
@@ -213,6 +214,8 @@ export function FamilyFinanceSummarySection({
 
   if (!data) return null;
 
+  const childrenView = resolveFamilyChildrenView(data.children, studentId);
+
   const headerAction =
     familyId != null ? (
       <Link
@@ -242,13 +245,20 @@ export function FamilyFinanceSummarySection({
       </dl>
       <FamilyFinanceSummaryMetrics summary={data} currency={data.currency} />
       <h4 className="student-finance-family-children-title">
-        {t('admin.student360.familyFinance.siblings')}
+        {childrenView.hasOtherSiblings
+          ? t('admin.student360.familyFinance.linkedChildrenTitle')
+          : t('admin.student360.familyFinance.linkedStudentsTitle')}
       </h4>
       <FamilyFinanceChildrenTable
         children={data.children}
         currentStudentId={studentId}
         currency={data.currency}
       />
+      {childrenView.showOnlyCurrentNote ? (
+        <p className="muted tiny student-finance-family-no-siblings">
+          {t('admin.student360.familyFinance.noOtherSiblings')}
+        </p>
+      ) : null}
     </Card>
   );
 }

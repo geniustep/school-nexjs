@@ -6871,6 +6871,48 @@
   color: var(--text-muted, #64748b);
 }
 
+.student-siblings-panel__empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px dashed var(--c-border-subtle, #e8edf2);
+  background: var(--surface-2, #f8fafc);
+}
+
+.student-siblings-panel__empty-title {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--text, #0f172a);
+}
+
+.student-siblings-panel__empty-desc {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--text-muted, #64748b);
+}
+
+.student-siblings-panel__empty-action {
+  margin-top: 2px;
+  align-self: flex-start;
+}
+
+.student-siblings-panel__count {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text, #0f172a);
+}
+
+.student-finance-family-no-siblings {
+  margin: 8px 0 0;
+}
+
 .student-siblings-panel__summary {
   margin: 0;
   padding: 10px 12px;

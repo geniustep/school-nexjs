@@ -11,6 +11,7 @@ import {
 } from '../utils/sibling-display';
 import { SiblingLinesCards } from './sibling-lines-cards';
 import { SiblingLinesTable } from './sibling-lines-table';
+import { resolveSiblingsPanelView } from '@/features/admin/students/utils/siblings-panel-view';
 import type { SiblingsFieldsSource } from '@/types/sibling-line';
 
 function OverviewCard({ title, children }: { title: string; children: ReactNode }) {
@@ -39,23 +40,16 @@ function OverviewRow({
   );
 }
 
-function PanelChip({ label, value }: { label: string; value: ReactNode }) {
-  return (
-    <div className="student-aside-chip">
-      <span className="student-aside-chip__label">{label}</span>
-      <span className="student-aside-chip__value" dir="auto">
-        {value}
-      </span>
-    </div>
-  );
-}
-
 export function SiblingsInfoPanel({
   detail,
   layout = 'legacy',
+  canManage = false,
+  onAddSibling,
 }: {
   detail: SiblingsFieldsSource;
   layout?: 'legacy' | 'panel';
+  canManage?: boolean;
+  onAddSibling?: () => void;
 }) {
   const t = useT();
   const empty = t('admin.siblings.notMentioned');
@@ -73,10 +67,15 @@ export function SiblingsInfoPanel({
       siblingLines.length > 0,
   );
 
-  if (!hasAnyData) {
-    if (layout === 'panel') {
+  if (layout === 'panel') {
+    const view = resolveSiblingsPanelView(detail);
+
+    if (view.isEmpty) {
       return (
-        <section className="student-siblings-panel card" aria-labelledby="student-siblings-panel-title">
+        <section
+          className="student-siblings-panel card"
+          aria-labelledby="student-siblings-panel-title"
+        >
           <header className="student-siblings-panel__hero">
             <span className="student-siblings-panel__glyph" aria-hidden="true">
               ◫
@@ -86,19 +85,28 @@ export function SiblingsInfoPanel({
             </h3>
           </header>
           <div className="student-siblings-panel__body">
-            <p className="student-siblings-panel__empty">{t('admin.siblings.empty')}</p>
+            <div className="student-siblings-panel__empty-state">
+              <p className="student-siblings-panel__empty-title">
+                {t('admin.siblings.emptyStateTitle')}
+              </p>
+              <p className="student-siblings-panel__empty-desc">
+                {t('admin.siblings.emptyStateDescription')}
+              </p>
+              {canManage && onAddSibling ? (
+                <button
+                  type="button"
+                  className="btn btn--ghost btn--sm student-siblings-panel__empty-action"
+                  onClick={onAddSibling}
+                >
+                  {t('admin.siblings.addSiblingAction')}
+                </button>
+              ) : null}
+            </div>
           </div>
         </section>
       );
     }
-    return (
-      <OverviewCard title={t('admin.siblings.sectionTitle')}>
-        <p className="admissions-overview-notes muted">{t('admin.siblings.empty')}</p>
-      </OverviewCard>
-    );
-  }
 
-  if (layout === 'panel') {
     return (
       <section className="student-siblings-panel card" aria-labelledby="student-siblings-panel-title">
         <header className="student-siblings-panel__hero">
@@ -111,15 +119,15 @@ export function SiblingsInfoPanel({
         </header>
 
         <div className="student-siblings-panel__body">
-          <div className="student-aside-chip-grid student-aside-chip-grid--2">
-            <PanelChip
-              label={t('admin.siblings.hasSiblings')}
-              value={hasSiblings ? t('common.yes') : t('common.no')}
-            />
-            {detail.sibling_count != null ? (
-              <PanelChip label={t('admin.siblings.siblingCount')} value={detail.sibling_count} />
-            ) : null}
-          </div>
+          {view.registeredCount != null ? (
+            <p className="student-siblings-panel__count" dir="auto">
+              {t('admin.siblings.countRegistered', { count: view.registeredCount })}
+            </p>
+          ) : view.flagOnly ? (
+            <p className="student-siblings-panel__count" dir="auto">
+              {t('admin.siblings.hasSiblingsNote')}
+            </p>
+          ) : null}
 
           {summary && siblingLines.length === 0 ? (
             <p className="student-siblings-panel__summary" dir="auto">
@@ -152,6 +160,14 @@ export function SiblingsInfoPanel({
           ) : null}
         </div>
       </section>
+    );
+  }
+
+  if (!hasAnyData) {
+    return (
+      <OverviewCard title={t('admin.siblings.sectionTitle')}>
+        <p className="admissions-overview-notes muted">{t('admin.siblings.empty')}</p>
+      </OverviewCard>
     );
   }
 

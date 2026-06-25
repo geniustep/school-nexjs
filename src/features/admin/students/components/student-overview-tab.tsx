@@ -122,7 +122,11 @@ export function StudentOverviewTab({
 
       <div className="student-360-overview__details-aside">
         <StudentAdmissionDataPanel student={details.student} />
-        <StudentSiblingsInfoPanel student={details.student} />
+        <StudentSiblingsInfoPanel
+          student={details.student}
+          canManage={canManage}
+          onAddSibling={onEditProfile}
+        />
       </div>
       </div>
     </div>
