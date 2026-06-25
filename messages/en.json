@@ -3248,6 +3248,7 @@
         "empty": "No activities yet",
         "systemMessages": {
           "statusChanged": "Status changed from {from} to {to}.",
+          "linkedToStudent": "Admission converted to official student: {student}.",
           "offerSent": "Registration offer sent.",
           "offerCreated": "Registration offer created.",
           "decisionMade": "Decision made: {decision}.",
@@ -3958,13 +3959,16 @@
         "finance": {
           "loading": "Suggesting fee plan…",
           "waitingEnrollment": "Complete academic enrollment to suggest a fee plan.",
+          "waitingJoinDate": "Set the actual join date to suggest a fee plan.",
+          "noEligiblePlan": "No eligible fee plan for this cycle or level.",
           "selectLevelForPlan": "Select a level to suggest the fee plan.",
           "required": "A fee plan is required before creating the pupil.",
           "loadError": "Could not load the suggested fee plan.",
           "noPlanTitle": "No default fee plan",
           "noPlanMessage": "No default fee plan exists for this level in this season. Create a fee plan or assign one manually with the right permissions.",
           "diagnostics": {
-            "notDefault": "Fee plans exist for this level, but none are marked as default."
+            "notDefault": "Fee plans exist for this level, but none are marked as default.",
+            "inactive": "Fee plans exist for this level, but they are not active."
           },
           "candidatePlans": "Candidate plans:",
           "suggestedPlanTitle": "Suggested fee plan",

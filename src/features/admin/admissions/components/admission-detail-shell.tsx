@@ -46,23 +46,89 @@ function isForbiddenError(code: string): boolean {
   return code === 'forbidden' || code === 'permission_denied';
 }
 
+type FactIcon = 'guardian' | 'phone' | 'level' | 'action';
+
+function FactGlyph({ icon }: { icon: FactIcon }) {
+  const common = {
+    width: 16,
+    height: 16,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.8,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+    'aria-hidden': true,
+  };
+  switch (icon) {
+    case 'guardian':
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="8" r="3.5" />
+          <path d="M5 20a7 7 0 0 1 14 0" />
+        </svg>
+      );
+    case 'phone':
+      return (
+        <svg {...common}>
+          <path d="M5 4h3l2 5-2.5 1.5a11 11 0 0 0 5 5L19 13l-1 6h-2A13 13 0 0 1 5 6Z" />
+        </svg>
+      );
+    case 'level':
+      return (
+        <svg {...common}>
+          <path d="M3 8l9-4 9 4-9 4Z" />
+          <path d="M7 11v4c0 1.5 2.5 3 5 3s5-1.5 5-3v-4" />
+        </svg>
+      );
+    case 'action':
+      return (
+        <svg {...common}>
+          <rect x="4" y="5" width="16" height="16" rx="2" />
+          <path d="M4 9h16M9 3v4M15 3v4" />
+        </svg>
+      );
+    default:
+      return null;
+  }
+}
+
 function DetailFact({
   label,
   value,
   dir,
+  icon,
 }: {
   label: string;
   value: string;
   dir?: 'ltr' | 'rtl' | 'auto';
+  icon: FactIcon;
 }) {
   return (
-    <div className="admissions-detail-header__fact">
-      <span className="admissions-detail-header__fact-label">{label}</span>
-      <span className="admissions-detail-header__fact-value" dir={dir}>
-        {value}
+    <div className="admissions-detail-fact">
+      <span className="admissions-detail-fact__icon" aria-hidden="true">
+        <FactGlyph icon={icon} />
+      </span>
+      <span className="admissions-detail-fact__body">
+        <span className="admissions-detail-fact__label">{label}</span>
+        <span className="admissions-detail-fact__value" dir={dir}>
+          {value}
+        </span>
       </span>
     </div>
   );
+}
+
+function studentInitials(name: string): string {
+  const parts = name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (parts.length === 0) return '—';
+  const first = parts[0]?.[0] ?? '';
+  const last = parts.length > 1 ? (parts[parts.length - 1]?.[0] ?? '') : '';
+  const initials = (first + last).trim();
+  return initials || '—';
 }
 
 export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
@@ -163,12 +229,19 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
         </div>
 
         <div className="admissions-detail-header-card__main">
+          <div
+            className={`admissions-detail-header-card__avatar${
+              convertedToStudent ? ' admissions-detail-header-card__avatar--converted' : ''
+            }`}
+            aria-hidden="true"
+          >
+            {studentInitials(detail.student_name)}
+          </div>
           <div className="admissions-detail-header-card__identity">
             <h1 className="admissions-detail-header-card__title">{detail.student_name}</h1>
             <div className="admissions-detail-header-card__meta">
-              <span className="mono">{formatAdmissionReference(detail.id, detail.reference)}</span>
-              <span className="admissions-detail-header-card__sep" aria-hidden="true">
-                ·
+              <span className="admissions-detail-header-card__ref mono">
+                {formatAdmissionReference(detail.id, detail.reference)}
               </span>
               {convertedToStudent ? (
                 <div className="admissions-detail-header-card__converted">
@@ -196,26 +269,30 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
               )}
             </div>
           </div>
+        </div>
 
-          <div className="admissions-detail-header-card__facts">
-            <DetailFact
-              label={t('admin.admissions.card.guardian')}
-              value={detail.guardian_name || unspecified}
-            />
-            <DetailFact
-              label={t('admin.admissions.card.phone')}
-              value={detail.guardian_phone || unspecified}
-              dir="ltr"
-            />
-            <DetailFact
-              label={t('admin.admissions.fields.requestedLevel')}
-              value={refName(detail.requested_level) || unspecified}
-            />
-            <DetailFact
-              label={t('admin.admissions.nextAction')}
-              value={nextActionParts || unspecified}
-            />
-          </div>
+        <div className="admissions-detail-header-card__facts">
+          <DetailFact
+            icon="guardian"
+            label={t('admin.admissions.card.guardian')}
+            value={detail.guardian_name || unspecified}
+          />
+          <DetailFact
+            icon="phone"
+            label={t('admin.admissions.card.phone')}
+            value={detail.guardian_phone || unspecified}
+            dir="ltr"
+          />
+          <DetailFact
+            icon="level"
+            label={t('admin.admissions.fields.requestedLevel')}
+            value={refName(detail.requested_level) || unspecified}
+          />
+          <DetailFact
+            icon="action"
+            label={t('admin.admissions.nextAction')}
+            value={nextActionParts || unspecified}
+          />
         </div>
 
         <AdmissionRegistrationActions detail={detail} />

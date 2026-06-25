@@ -3245,6 +3245,7 @@
         "empty": "Sin actividades",
         "systemMessages": {
           "statusChanged": "Estado cambiado de {from} a {to}.",
+          "linkedToStudent": "Solicitud convertida en alumno oficial: {student}.",
           "offerSent": "Oferta de inscripción enviada.",
           "offerCreated": "Oferta de inscripción creada.",
           "decisionMade": "Decisión tomada: {decision}.",
@@ -3953,13 +3954,16 @@
         "finance": {
           "loading": "Sugiriendo plan de tasas…",
           "waitingEnrollment": "Complete la matrícula académica para sugerir un plan.",
+          "waitingJoinDate": "Indique la fecha real de ingreso para sugerir un plan.",
+          "noEligiblePlan": "No hay plan de tarifas elegible para este ciclo o nivel.",
           "selectLevelForPlan": "Seleccione un nivel para sugerir el plan de tasas.",
           "required": "Se requiere un plan de tasas antes de crear el alumno.",
           "loadError": "No se pudo cargar el plan sugerido.",
           "noPlanTitle": "Sin plan predeterminado",
           "noPlanMessage": "No hay plan predeterminado para este nivel en esta temporada. Cree un plan o asígnelo manualmente.",
           "diagnostics": {
-            "notDefault": "Existen planes para este nivel, pero ninguno está marcado como predeterminado."
+            "notDefault": "Existen planes para este nivel, pero ninguno está marcado como predeterminado.",
+            "inactive": "Existen planes para este nivel, pero no están activos."
           },
           "candidatePlans": "Planes candidatos:",
           "suggestedPlanTitle": "Plan de tasas sugerido",

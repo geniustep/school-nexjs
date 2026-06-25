@@ -66,10 +66,18 @@ export function AdmissionNextActionBox({
 
       {!editing ? (
         <>
-          <p>{detail.next_action || empty}</p>
-          <p className="muted">
-            {detail.next_action_date ? formatDate(detail.next_action_date) : empty}
-          </p>
+          {detail.next_action || detail.next_action_date ? (
+            <>
+              {detail.next_action ? (
+                <p className="admissions-next-action__text">{detail.next_action}</p>
+              ) : null}
+              {detail.next_action_date ? (
+                <p className="muted admissions-next-action__date">{formatDate(detail.next_action_date)}</p>
+              ) : null}
+            </>
+          ) : (
+            <p className="muted admissions-next-action__empty">{empty}</p>
+          )}
           {canEdit && (
             <button type="button" className="btn btn--sm" onClick={() => setEditing(true)}>
               {t('common.edit')}

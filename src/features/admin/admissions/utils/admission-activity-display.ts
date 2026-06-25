@@ -164,6 +164,13 @@ const SYSTEM_NOTE_PATTERNS: {
       }),
   },
   {
+    match: /^Admission application linked to official student[:\s]+(.+?)\.?$/i,
+    format: ([student], t) =>
+      t('admin.admissions.timeline.systemMessages.linkedToStudent', {
+        student: student.trim().replace(/\.$/, ''),
+      }),
+  },
+  {
     match: /^Registration offer sent\.?$/i,
     format: (_g, t) => t('admin.admissions.timeline.systemMessages.offerSent'),
   },

@@ -3245,6 +3245,7 @@
         "empty": "Aucune activité",
         "systemMessages": {
           "statusChanged": "Statut changé de {from} à {to}.",
+          "linkedToStudent": "Demande convertie en élève officiel : {student}.",
           "offerSent": "Offre d'inscription envoyée.",
           "offerCreated": "Offre d'inscription créée.",
           "decisionMade": "Décision prise : {decision}.",
@@ -3953,13 +3954,16 @@
         "finance": {
           "loading": "Suggestion du plan de frais…",
           "waitingEnrollment": "Complétez l'inscription académique pour suggérer un plan.",
+          "waitingJoinDate": "Indiquez la date d'entrée effective pour suggérer un plan.",
+          "noEligiblePlan": "Aucun plan tarifaire éligible pour ce cycle ou ce niveau.",
           "selectLevelForPlan": "Choisissez un niveau pour suggérer le plan de frais.",
           "required": "Un plan de frais est requis avant la création.",
           "loadError": "Impossible de charger le plan suggéré.",
           "noPlanTitle": "Aucun plan par défaut",
           "noPlanMessage": "Aucun plan par défaut pour ce niveau dans cette saison. Créez un plan ou assignez-en un manuellement.",
           "diagnostics": {
-            "notDefault": "Des plans existent pour ce niveau, mais aucun n'est défini par défaut."
+            "notDefault": "Des plans existent pour ce niveau, mais aucun n'est défini par défaut.",
+            "inactive": "Des plans existent pour ce niveau, mais ils ne sont pas actifs."
           },
           "candidatePlans": "Plans candidats :",
           "suggestedPlanTitle": "Plan de frais suggéré",
