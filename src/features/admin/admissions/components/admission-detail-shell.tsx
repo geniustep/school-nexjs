@@ -26,6 +26,7 @@ import {
   type AdmissionTabId,
 } from '../utils/admission-detail-tabs';
 import { hasAdmissionAllowedAction } from '../utils/admission-allowed-actions';
+import { isAdmissionConvertedToStudent } from '../utils/admission-registration';
 import { AdmissionOverviewTab } from './admission-overview-tab';
 import { AdmissionTimelineTab } from './admission-timeline-tab';
 import { AdmissionAppointmentsTab } from './admission-appointments-tab';
@@ -94,6 +95,7 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
 
   const detail = data;
   const actions = detail.allowed_actions ?? {};
+  const convertedToStudent = isAdmissionConvertedToStudent(detail);
   const visibleTabs = showPrefill ? ADMISSION_TABS : ADMISSION_TABS.filter((id) => id !== 'prefill');
   const unspecified = t('admin.admissions.detail.unspecified');
   const nextActionParts = [detail.next_action, detail.next_action_date ? formatDate(detail.next_action_date) : '']
@@ -168,7 +170,18 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
               <span className="admissions-detail-header-card__sep" aria-hidden="true">
                 ·
               </span>
-              {actions.edit === false ? (
+              {convertedToStudent ? (
+                <div className="admissions-detail-header-card__converted">
+                  <Badge tone="green">
+                    {t('admin.admissions.registration.convertedStatus')}
+                  </Badge>
+                  <span className="admissions-detail-header-card__converted-note tiny muted">
+                    {t('admin.admissions.registration.preConversionState', {
+                      state: t(`admin.admissions.states.${detail.state}`),
+                    })}
+                  </span>
+                </div>
+              ) : actions.edit === false ? (
                 <Badge tone={admissionStateTone(detail.state)}>
                   {t(`admin.admissions.states.${detail.state}`)}
                 </Badge>

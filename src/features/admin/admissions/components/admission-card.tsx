@@ -12,6 +12,7 @@ import {
   isOverdueNextAction,
 } from '../utils/admission-labels';
 import { parseExtraFieldBool } from '../utils/admission-extra-fields';
+import { isAdmissionConvertedToStudent } from '../utils/admission-registration';
 import type { AdmissionListItem } from '@/types/admission';
 
 const DRAG_MIME = 'application/x-admission-id';
@@ -58,6 +59,7 @@ export function AdmissionCard({
   const previousSchool = cleanDisplayValue(item.previous_school ?? '');
   const siblingsSummary = cleanDisplayValue(item.siblings_summary ?? '');
   const hasSiblings = parseExtraFieldBool(item.has_siblings);
+  const convertedToStudent = isAdmissionConvertedToStudent(item);
 
   const card = (
     <Link
@@ -127,9 +129,18 @@ export function AdmissionCard({
         ) : null}
       </dl>
 
-      {(showStateBadge || item.duplicate_count > 0 || item.offer_state === 'accepted' || overdue) && (
+      {(showStateBadge || convertedToStudent || item.duplicate_count > 0 || item.offer_state === 'accepted' || overdue) && (
         <div className="admission-card__status-row">
-          {showStateBadge ? (
+          {convertedToStudent ? (
+            <span className="admission-card__converted">
+              <Badge tone="green">{t('admin.admissions.registration.convertedBadge')}</Badge>
+              <span className="admission-card__converted-note tiny muted">
+                {t('admin.admissions.registration.convertedBadgePrevState', {
+                  state: t(`admin.admissions.states.${item.state}`),
+                })}
+              </span>
+            </span>
+          ) : showStateBadge ? (
             <Badge tone={admissionStateTone(item.state)}>
               {t(`admin.admissions.states.${item.state}`)}
             </Badge>

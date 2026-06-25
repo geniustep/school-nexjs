@@ -1744,3 +1744,28 @@
 .admissions-detail-header-card__meta .admission-state-select--detail {
   width: auto;
 }
+
+/* NEXTJS-ADMISSIONS-CONVERTED-STUDENT-STATUS-UX-1 — converted status display */
+.admissions-detail-header-card__converted {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+}
+
+.admissions-detail-header-card__converted-note {
+  font-size: 0.7rem;
+}
+
+.admission-card__converted,
+.admissions-table__converted {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+}
+
+.admission-card__converted-note,
+.admissions-table__converted-note {
+  font-size: 0.68rem;
+}

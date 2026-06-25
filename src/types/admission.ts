@@ -58,6 +58,13 @@ export interface AdmissionListItem {
   siblings_summary?: string | null;
   sibling_lines?: SiblingLine[] | null;
   state: AdmissionState | string;
+  /**
+   * Linkage fields — optional on the list payload. Present only when the
+   * backend serializes them; used to surface a "converted to student" badge.
+   * No new fields are assumed beyond the existing admission contract.
+   */
+  student_id?: number | false | null;
+  registration_flow_state?: AdmissionRegistrationFlowState | null;
   next_action: string | null;
   next_action_date: string | null;
   duplicate_count: number;
