@@ -3506,6 +3506,30 @@
     },
     "student360": {
       "tabsAria": "Sections du dossier élève",
+      "coGuardian": {
+        "title": "Élèves liés au même tuteur",
+        "candidateCount": "{count} élèves liés",
+        "badgeSameGuardian": "Même tuteur",
+        "badgeConfirmedSibling": "Lié comme frère/sœur",
+        "sharedGuardiansNames": "Tuteur commun : {names}",
+        "sharedGuardiansCount": "{count} tuteurs communs",
+        "unnamedStudent": "Élève sans nom",
+        "emptyNoCandidates": "Aucun autre élève n'est lié au même tuteur.",
+        "emptyNoGuardian": "Informations de tuteur insuffisantes pour détecter des élèves liés au même tuteur.",
+        "disclaimer": "Cette liste aide l'administration à découvrir des relations possibles et ne constitue pas un lien officiel de fratrie.",
+        "status": {
+          "active": "Actif",
+          "inactive": "Inactif",
+          "archived": "Archivé",
+          "graduated": "Diplômé",
+          "transferred": "Transféré",
+          "expelled": "Renvoyé",
+          "suspended": "Suspendu",
+          "withdrawn": "Retiré",
+          "prospective": "Candidat",
+          "draft": "Brouillon"
+        }
+      },
       "tabs": {
         "overview": "Aperçu",
         "enrollment": "Inscription",
@@ -6068,6 +6092,13 @@
         }
       },
       "collections": {
+        "studentSelector": {
+          "title": "Choisir l’élève",
+          "desc": "Choisissez l’un des élèves liés à ce compte pour enregistrer l’encaissement.",
+          "noOpenInstallments": "Cet élève n’a aucune échéance ouverte.",
+          "contextError": "Impossible de charger le contexte d’encaissement.",
+          "loading": "Chargement du contexte d’encaissement…"
+        },
         "columns": {
           "reference": "Référence",
           "payer": "Payeur",

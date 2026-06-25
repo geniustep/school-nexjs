@@ -3511,6 +3511,30 @@
     },
     "student360": {
       "tabsAria": "Student profile sections",
+      "coGuardian": {
+        "title": "Students linked to the same guardian",
+        "candidateCount": "{count} linked students",
+        "badgeSameGuardian": "Same guardian",
+        "badgeConfirmedSibling": "Linked as sibling",
+        "sharedGuardiansNames": "Shared guardian: {names}",
+        "sharedGuardiansCount": "{count} shared guardians",
+        "unnamedStudent": "Unnamed student",
+        "emptyNoCandidates": "No other students are linked to the same guardian.",
+        "emptyNoGuardian": "Not enough guardian information to detect students linked to the same guardian.",
+        "disclaimer": "This list helps administration discover possible relationships and is not an official sibling link.",
+        "status": {
+          "active": "Active",
+          "inactive": "Inactive",
+          "archived": "Archived",
+          "graduated": "Graduated",
+          "transferred": "Transferred",
+          "expelled": "Expelled",
+          "suspended": "Suspended",
+          "withdrawn": "Withdrawn",
+          "prospective": "Prospective",
+          "draft": "Draft"
+        }
+      },
       "tabs": {
         "overview": "Overview",
         "enrollment": "Enrollment",
@@ -6073,6 +6097,13 @@
         }
       },
       "collections": {
+        "studentSelector": {
+          "title": "Select student",
+          "desc": "Choose one of the students linked to this account to record the collection for.",
+          "noOpenInstallments": "This student has no open installments.",
+          "contextError": "Unable to load the collection context.",
+          "loading": "Loading collection context…"
+        },
         "columns": {
           "reference": "Reference",
           "payer": "Payer",

@@ -3506,6 +3506,30 @@
     },
     "student360": {
       "tabsAria": "Secciones del expediente del alumno",
+      "coGuardian": {
+        "title": "Alumnos vinculados al mismo tutor",
+        "candidateCount": "{count} alumnos vinculados",
+        "badgeSameGuardian": "Mismo tutor",
+        "badgeConfirmedSibling": "Vinculado como hermano/a",
+        "sharedGuardiansNames": "Tutor común: {names}",
+        "sharedGuardiansCount": "{count} tutores comunes",
+        "unnamedStudent": "Alumno sin nombre",
+        "emptyNoCandidates": "No hay otros alumnos vinculados al mismo tutor.",
+        "emptyNoGuardian": "No hay información de tutor suficiente para detectar alumnos vinculados al mismo tutor.",
+        "disclaimer": "Esta lista ayuda a la administración a descubrir posibles relaciones y no constituye un vínculo oficial de hermanos.",
+        "status": {
+          "active": "Activo",
+          "inactive": "Inactivo",
+          "archived": "Archivado",
+          "graduated": "Graduado",
+          "transferred": "Transferido",
+          "expelled": "Expulsado",
+          "suspended": "Suspendido",
+          "withdrawn": "Retirado",
+          "prospective": "Candidato",
+          "draft": "Borrador"
+        }
+      },
       "tabs": {
         "overview": "Resumen",
         "enrollment": "Matrícula",
@@ -6068,6 +6092,13 @@
         }
       },
       "collections": {
+        "studentSelector": {
+          "title": "Seleccionar alumno",
+          "desc": "Elija uno de los alumnos vinculados a esta cuenta para registrar el cobro.",
+          "noOpenInstallments": "Este alumno no tiene cuotas abiertas.",
+          "contextError": "No se pudo cargar el contexto de cobro.",
+          "loading": "Cargando el contexto de cobro…"
+        },
         "columns": {
           "reference": "Referencia",
           "payer": "Pagador",

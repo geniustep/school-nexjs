@@ -299,6 +299,86 @@
   box-shadow: none;
 }
 
+.finance-collection-account-context {
+  display: grid;
+  gap: 16px;
+}
+
+.finance-collection-account-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+}
+
+.finance-collection-account-summary__identity {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.finance-collection-account-summary__name {
+  font-size: 1.05rem;
+}
+
+.finance-collection-account-summary__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.finance-collection-student-picker__list {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.finance-collection-student-picker__option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  text-align: start;
+  cursor: pointer;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 12px;
+  background: var(--c-surface, #fff);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.finance-collection-student-picker__option:hover {
+  border-color: var(--c-primary, #2563eb);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+.finance-collection-student-picker__name {
+  font-weight: 600;
+}
+
+.finance-collection-student-picker__meta {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+.finance-collection-student-picker__selected {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 12px;
+  background: var(--c-surface-muted, #f8fafc);
+}
+
 .finance-collection-workflow__success-panel {
   display: grid;
   gap: 12px;

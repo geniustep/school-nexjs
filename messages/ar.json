@@ -3538,6 +3538,30 @@
     },
     "student360": {
       "tabsAria": "أقسام ملف التلميذ",
+      "coGuardian": {
+        "title": "تلاميذ مرتبطون بنفس الولي",
+        "candidateCount": "{count} تلميذ مرتبط",
+        "badgeSameGuardian": "نفس الولي",
+        "badgeConfirmedSibling": "مرتبط كأخ/أخت",
+        "sharedGuardiansNames": "ولي مشترك: {names}",
+        "sharedGuardiansCount": "{count} ولي مشترك",
+        "unnamedStudent": "تلميذ بدون اسم",
+        "emptyNoCandidates": "لا يوجد تلاميذ آخرون مرتبطون بنفس الولي.",
+        "emptyNoGuardian": "لا توجد علاقة ولي أمر كافية لاكتشاف تلاميذ مرتبطين بنفس الولي.",
+        "disclaimer": "هذه القائمة تساعد الإدارة على اكتشاف العلاقات المحتملة، ولا تعتبر ربطًا رسميًا للإخوة.",
+        "status": {
+          "active": "نشط",
+          "inactive": "غير نشط",
+          "archived": "مؤرشف",
+          "graduated": "متخرج",
+          "transferred": "منقول",
+          "expelled": "مطرود",
+          "suspended": "موقوف",
+          "withdrawn": "منسحب",
+          "prospective": "مرشح للتسجيل",
+          "draft": "مسودة"
+        }
+      },
       "tabs": {
         "overview": "نظرة عامة",
         "enrollment": "التسجيل الدراسي",
@@ -6110,6 +6134,13 @@
         }
       },
       "collections": {
+        "studentSelector": {
+          "title": "اختر التلميذ",
+          "desc": "اختر أحد التلاميذ المرتبطين بهذا الحساب لتسجيل التحصيل عليه.",
+          "noOpenInstallments": "لا توجد أقساط مفتوحة لهذا التلميذ.",
+          "contextError": "تعذر تحميل سياق التحصيل.",
+          "loading": "جارٍ تحميل سياق التحصيل…"
+        },
         "columns": {
           "reference": "المرجع",
           "payer": "الدافع",

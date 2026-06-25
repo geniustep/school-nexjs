@@ -5,6 +5,11 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
 import { PageHeader } from '@/components/ui/primitives';
 import { FinanceCollectionForm } from '@/features/admin/finance/collection-form';
+import { BillingAccountCollectionContext } from '@/features/admin/finance/billing-account-collection-context';
+import {
+  readCollectionNewParams,
+  shouldUseBillingAccountStudentSelector,
+} from '@/features/admin/finance/billing-account-collection-selection';
 import '@/features/admin/finance/finance-ui.css';
 import { useT } from '@/features/i18n/locale-context';
 import { FINANCE_VIEW_PAYMENTS, canCollectPayments } from '@/lib/permissions/finance';
@@ -24,12 +29,10 @@ export default function AdminFinanceCollectionNewPage() {
   const user = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const studentId = searchParams.get('studentId') ?? searchParams.get('student_id') ?? '';
-  const billingPartnerId =
-    searchParams.get('billing_partner_id') ?? searchParams.get('billingPartnerId') ?? '';
-  const academicYearId =
-    searchParams.get('academic_year_id') ?? searchParams.get('academicYearId') ?? '';
-  const returnTo = sanitizeReturnTo(searchParams.get('returnTo'), '/admin/finance/collections');
+  const params = readCollectionNewParams(searchParams);
+  const { studentId, billingPartnerId, academicYearId } = params;
+  const returnTo = sanitizeReturnTo(params.returnTo, '/admin/finance/collections');
+  const useAccountSelector = shouldUseBillingAccountStudentSelector(params);
 
   if (!canCollectPayments(user)) {
     return <PermissionDeniedState description={t('admin.pageForbidden')} />;
@@ -42,16 +45,27 @@ export default function AdminFinanceCollectionNewPage() {
       </Link>
       <PageHeader title={t('admin.finance.recordCollection')} subtitle={t('admin.finance.recordCollectionDesc')} />
       <div className="finance-collection-new-page">
-        <FinanceCollectionForm
-          initialStudentId={studentId || undefined}
-          initialBillingPartnerId={billingPartnerId || undefined}
-          initialAcademicYearId={academicYearId || undefined}
-          lockStudent={!!studentId}
-          onDone={(id) =>
-            router.push(appendReturnTo(`/admin/finance/collections/${id}`, returnTo))
-          }
-          onCancel={() => router.push(returnTo)}
-        />
+        {useAccountSelector ? (
+          <BillingAccountCollectionContext
+            billingPartnerId={billingPartnerId}
+            academicYearId={academicYearId || undefined}
+            onDone={(id) =>
+              router.push(appendReturnTo(`/admin/finance/collections/${id}`, returnTo))
+            }
+            onCancel={() => router.push(returnTo)}
+          />
+        ) : (
+          <FinanceCollectionForm
+            initialStudentId={studentId || undefined}
+            initialBillingPartnerId={billingPartnerId || undefined}
+            initialAcademicYearId={academicYearId || undefined}
+            lockStudent={!!studentId}
+            onDone={(id) =>
+              router.push(appendReturnTo(`/admin/finance/collections/${id}`, returnTo))
+            }
+            onCancel={() => router.push(returnTo)}
+          />
+        )}
       </div>
     </RequireAdminPermission>
   );
