@@ -1,0 +1,368 @@
+'use client';
+
+import Link from 'next/link';
+import { useCallback, useState } from 'react';
+import { SetupDrawer } from '@/features/admin/academic-setup/components/setup-drawer';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
+import { LoadingState } from '@/components/states/states';
+import { useToast } from '@/components/ui/toast';
+import { useT, useLocale } from '@/features/i18n/locale-context';
+import { FinanceMoney } from '@/features/admin/finance/finance-money';
+import { Student360CompactEmpty } from '@/features/admin/students/components/student-360-compact-empty';
+import { formatFinanceCurrency } from '@/features/admin/students/utils/student-finance-format';
+import {
+  candidatePlanScopeSummary,
+  candidatePlanTotal,
+} from '@/features/admin/students/utils/student-enrollment-finance';
+import type { FeePlanCandidatePlan } from '@/types/student-enrollment-finance';
+import type { AssignPlanPreviewState } from '@/types/student-finance-assign-plan';
+import {
+  assignStudentFinancePlan,
+  buildAssignPlanBody,
+  previewStudentFinancePlan,
+} from '../api/assign-plan-api';
+import { classifyAssignPlanPreview } from '../utils/normalize-assign-plan-preview';
+
+function tk(key: string): string {
+  return `admin.student360.finance.assignPlan.${key}`;
+}
+
+function CandidateCard({
+  candidate,
+  onUse,
+  disabled,
+}: {
+  candidate: FeePlanCandidatePlan;
+  onUse: (planId: number) => void;
+  disabled: boolean;
+}) {
+  const t = useT();
+  const { locale } = useLocale();
+  const total = candidatePlanTotal(candidate);
+  const currency = candidate.currency ? { name: candidate.currency, symbol: candidate.currency } : null;
+  const scope = candidatePlanScopeSummary(candidate);
+  const year = candidate.academic_year?.name ?? candidate.academic_year_name ?? null;
+  const reason = candidate.hint?.trim() || t(tk('candidateReasonNotDefault'));
+
+  return (
+    <li className="assign-finance-plan__candidate-card card">
+      <div className="assign-finance-plan__candidate-head">
+        <strong dir="auto">
+          {candidate.name}
+          <span className="mono tiny muted"> #{candidate.id}</span>
+        </strong>
+      </div>
+      <dl className="detail-list compact assign-finance-plan__candidate-meta">
+        {year ? (
+          <div>
+            <dt>{t(tk('academicYear'))}</dt>
+            <dd dir="auto">{year}</dd>
+          </div>
+        ) : null}
+        {total != null ? (
+          <div>
+            <dt>{t(tk('total'))}</dt>
+            <dd className="mono">{formatFinanceCurrency(total, currency, locale)}</dd>
+          </div>
+        ) : null}
+        {scope ? (
+          <div>
+            <dt>{t(tk('level'))}</dt>
+            <dd dir="auto">{scope}</dd>
+          </div>
+        ) : null}
+        <div>
+          <dt>{t(tk('candidateReasonLabel'))}</dt>
+          <dd dir="auto">{reason}</dd>
+        </div>
+      </dl>
+      <div className="assign-finance-plan__candidate-actions row">
+        <Link
+          className="btn btn--ghost btn--sm"
+          href={`/admin/finance/fee-plans/${candidate.id}`}
+          target="_blank"
+          rel="noreferrer"
+        >
+          {t('common.view')}
+        </Link>
+        <button
+          type="button"
+          className="btn btn--primary btn--sm"
+          disabled={disabled}
+          onClick={() => onUse(candidate.id)}
+        >
+          {t(tk('useThisPlan'))}
+        </button>
+      </div>
+    </li>
+  );
+}
+
+export function AssignFinancePlanPanel({
+  studentId,
+  academicYearId,
+  enrollmentEditHref,
+  emptyTitle,
+  emptyDescription,
+  onAssigned,
+}: {
+  studentId: number;
+  academicYearId?: string | null;
+  enrollmentEditHref?: string;
+  emptyTitle?: string;
+  emptyDescription?: string;
+  onAssigned: () => void;
+}) {
+  const t = useT();
+  const toast = useToast();
+
+  const [open, setOpen] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [state, setState] = useState<AssignPlanPreviewState | null>(null);
+  const [assignLoading, setAssignLoading] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  const academicYearNum =
+    academicYearId && Number.isFinite(Number(academicYearId)) ? Number(academicYearId) : null;
+
+  const runPreview = useCallback(
+    async (feePlanId?: number) => {
+      setPreviewLoading(true);
+      setState(null);
+      const res = await previewStudentFinancePlan(studentId, {
+        ...(academicYearNum != null ? { academic_year_id: academicYearNum } : {}),
+        ...(feePlanId != null ? { fee_plan_id: feePlanId } : {}),
+      });
+      setPreviewLoading(false);
+      setState(classifyAssignPlanPreview(res));
+    },
+    [studentId, academicYearNum],
+  );
+
+  function openPanel() {
+    setOpen(true);
+    void runPreview();
+  }
+
+  function closePanel() {
+    setOpen(false);
+    setState(null);
+    setShowConfirm(false);
+  }
+
+  async function handleAssign() {
+    if (state?.kind !== 'ready' || state.plan.feePlanId == null) return;
+    setAssignLoading(true);
+    const res = await assignStudentFinancePlan(
+      studentId,
+      buildAssignPlanBody({
+        feePlanId: state.plan.feePlanId,
+        academicYearId: state.plan.academicYearId ?? academicYearNum,
+      }),
+    );
+    setAssignLoading(false);
+    setShowConfirm(false);
+    if (!res.success) {
+      const reclassified = classifyAssignPlanPreview(res);
+      if (reclassified.kind !== 'error') {
+        setState(reclassified);
+        return;
+      }
+      toast.error(res.error.message);
+      return;
+    }
+    toast.success(t(tk('assignSuccess')));
+    closePanel();
+    onAssigned();
+  }
+
+  return (
+    <>
+      <Student360CompactEmpty
+        title={emptyTitle ?? t(tk('emptyTitle'))}
+        description={emptyDescription ?? t(tk('emptyDescription'))}
+        action={
+          <button type="button" className="btn btn--primary" onClick={openPanel}>
+            {t(tk('setupAction'))}
+          </button>
+        }
+      />
+
+      <SetupDrawer
+        open={open}
+        title={t(tk('panelTitle'))}
+        subtitle={t(tk('panelSubtitle'))}
+        onClose={closePanel}
+      >
+        {previewLoading ? <LoadingState label={t(tk('loadingPreview'))} /> : null}
+
+        {!previewLoading && state ? (
+          <AssignPreviewBody
+            state={state}
+            enrollmentEditHref={enrollmentEditHref}
+            assignLoading={assignLoading}
+            onUseCandidate={(planId) => void runPreview(planId)}
+            onRetry={() => void runPreview()}
+            onConfirm={() => setShowConfirm(true)}
+            onCancel={closePanel}
+          />
+        ) : null}
+      </SetupDrawer>
+
+      <ConfirmationDialog
+        open={showConfirm}
+        title={t(tk('confirmTitle'))}
+        body={t(tk('confirmBody'))}
+        confirmLabel={t(tk('confirm'))}
+        cancelLabel={t('common.cancel')}
+        loading={assignLoading}
+        onConfirm={handleAssign}
+        onClose={() => setShowConfirm(false)}
+      />
+    </>
+  );
+}
+
+function AssignPreviewBody({
+  state,
+  enrollmentEditHref,
+  assignLoading,
+  onUseCandidate,
+  onRetry,
+  onConfirm,
+  onCancel,
+}: {
+  state: AssignPlanPreviewState;
+  enrollmentEditHref?: string;
+  assignLoading: boolean;
+  onUseCandidate: (planId: number) => void;
+  onRetry: () => void;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  const t = useT();
+
+  if (state.kind === 'active_agreement_exists') {
+    return (
+      <div className="assign-finance-plan__notice" role="status">
+        <p>{t(tk('activeAgreementExists'))}</p>
+        <button type="button" className="btn btn--ghost" onClick={onCancel}>
+          {t('common.close')}
+        </button>
+      </div>
+    );
+  }
+
+  if (state.kind === 'missing_academic_enrollment') {
+    return (
+      <div className="assign-finance-plan__notice" role="status">
+        <p>{t(tk('missingAcademicEnrollment'))}</p>
+        {enrollmentEditHref ? (
+          <Link href={enrollmentEditHref} className="btn btn--ghost btn--sm">
+            {t(tk('editEnrollment'))}
+          </Link>
+        ) : null}
+      </div>
+    );
+  }
+
+  if (state.kind === 'no_eligible_plan') {
+    return (
+      <div className="assign-finance-plan__notice" role="status">
+        <p>{t(tk('noEligiblePlan'))}</p>
+        <p className="tiny muted">{t(tk('noEligiblePlanHint'))}</p>
+      </div>
+    );
+  }
+
+  if (state.kind === 'candidate_selection') {
+    return (
+      <div className="assign-finance-plan__candidates stack">
+        <p className="assign-finance-plan__candidates-title">{t(tk('candidatesTitle'))}</p>
+        <p className="tiny muted">{t(tk('candidatesHint'))}</p>
+        <ul className="assign-finance-plan__candidate-list">
+          {state.candidates.map((candidate) => (
+            <CandidateCard
+              key={candidate.id}
+              candidate={candidate}
+              onUse={onUseCandidate}
+              disabled={assignLoading}
+            />
+          ))}
+        </ul>
+      </div>
+    );
+  }
+
+  if (state.kind === 'error') {
+    return (
+      <div className="assign-finance-plan__notice" role="alert">
+        <p className="form-error">{state.message ?? t(tk('previewError'))}</p>
+        <button type="button" className="btn btn--ghost btn--sm" onClick={onRetry}>
+          {t(tk('retry'))}
+        </button>
+      </div>
+    );
+  }
+
+  const { plan } = state;
+
+  return (
+    <div className="assign-finance-plan__preview stack">
+      <dl className="detail-list">
+        {plan.planName ? (
+          <div>
+            <dt>{t(tk('planName'))}</dt>
+            <dd dir="auto">{plan.planName}</dd>
+          </div>
+        ) : null}
+        {plan.academicYearName ? (
+          <div>
+            <dt>{t(tk('academicYear'))}</dt>
+            <dd dir="auto">{plan.academicYearName}</dd>
+          </div>
+        ) : null}
+        {plan.levelName ? (
+          <div>
+            <dt>{t(tk('level'))}</dt>
+            <dd dir="auto">{plan.levelName}</dd>
+          </div>
+        ) : null}
+        {plan.total != null ? (
+          <div>
+            <dt>{t(tk('total'))}</dt>
+            <dd>
+              <FinanceMoney amount={plan.total} currency={plan.currency ?? undefined} />
+            </dd>
+          </div>
+        ) : null}
+        {plan.installmentCount != null ? (
+          <div>
+            <dt>{t(tk('installmentCount'))}</dt>
+            <dd>{plan.installmentCount}</dd>
+          </div>
+        ) : null}
+      </dl>
+
+      {plan.allowedActions.length > 0 ? (
+        <p className="tiny muted">
+          {t(tk('allowedActions'))}: {plan.allowedActions.join('، ')}
+        </p>
+      ) : null}
+
+      <div className="assign-finance-plan__actions row">
+        <button
+          type="button"
+          className="btn btn--primary"
+          disabled={!plan.canAssign || plan.feePlanId == null || assignLoading}
+          onClick={onConfirm}
+        >
+          {t(tk('confirm'))}
+        </button>
+        <button type="button" className="btn btn--ghost" onClick={onCancel} disabled={assignLoading}>
+          {t('common.cancel')}
+        </button>
+      </div>
+    </div>
+  );
+}

@@ -7,6 +7,7 @@ import { StudentCollectionDrawer } from '@/features/admin/finance/student-collec
 import { useT } from '@/features/i18n/locale-context';
 import { getStudentDisplayName } from '@/lib/utils/student';
 import {
+  canAssignStudentFees,
   canCollectStudentPayments,
   canViewStudentPayments,
 } from '@/features/admin/students/utils/resolve-capabilities';
@@ -48,6 +49,7 @@ import { postAgreementAction } from '../api/finance-admin-api';
 import { ChangePlanDrawer } from './change-plan-drawer';
 import { InactiveAgreementFinanceBanner } from './inactive-agreement-finance-banner';
 import { resolveChangePlanVisibility } from '../utils/resolve-change-plan-visibility';
+import { AssignFinancePlanPanel } from './assign-finance-plan-panel';
 import { resolveBillingContextPresentation } from '../utils/resolve-billing-context-presentation';
 import type { ChangePlanMode } from '@/types/student-finance-change-plan';
 import { useToast } from '@/components/ui/toast';
@@ -126,6 +128,7 @@ export function StudentFinanceWorkspaceShell({
   const financeCaps = workspace?.capabilities as StudentFinanceCapabilities | undefined;
   const canViewPayments = canViewStudentPayments(capabilities, financeCaps);
   const canCollectCapability = canCollectStudentPayments(capabilities, financeCaps);
+  const canAssignFeesCapability = canAssignStudentFees(capabilities, financeCaps);
 
   const billingContext = useMemo(
     () =>
@@ -386,10 +389,19 @@ export function StudentFinanceWorkspaceShell({
 
       <div className="student-finance-workspace__panel">
       {showFinanceEmpty && !sectionsWithoutEmptyGate.includes(subTab) ? (
-        <Student360CompactEmpty
-          title={t('admin.student360.financeOps.emptyTitle')}
-          description={t('admin.student360.financeOps.emptyDescription')}
-        />
+        canAssignFeesCapability ? (
+          <AssignFinancePlanPanel
+            studentId={studentId}
+            academicYearId={effectiveYearId}
+            enrollmentEditHref={`/admin/students/${studentId}?tab=enrollment`}
+            onAssigned={refreshFinanceData}
+          />
+        ) : (
+          <Student360CompactEmpty
+            title={t('admin.student360.financeOps.emptyTitle')}
+            description={t('admin.student360.financeOps.emptyDescription')}
+          />
+        )
       ) : (
         <>
           {subTab === 'overview' ? <StudentFinanceOverviewPanel {...sharedPanelProps} /> : null}
