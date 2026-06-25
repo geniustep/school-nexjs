@@ -3,17 +3,35 @@ import { changePlanErrorMessageKey } from './change-plan-errors';
 import { resolveChangePlanVisibility } from './resolve-change-plan-visibility';
 
 describe('resolve-change-plan-visibility', () => {
-  it('shows actions for active agreement with assign capability', () => {
+  it('shows change plan actions when an active agreement is present in UI', () => {
     expect(
       resolveChangePlanVisibility({
         workspace: { current_agreement: { id: 1, state: 'active' } } as never,
         financialOverview: null,
         studentCapabilities: { can_assign_fees: true } as never,
       }),
-    ).toEqual({ showChangePlan: true, showSpecialAdjustment: true });
+    ).toEqual({
+      showChangePlan: true,
+      showSpecialAdjustment: true,
+      showReviewAgreement: false,
+      reviewAgreementKind: 'review',
+      eligibility: {
+        hasActiveAgreementInUi: true,
+        hasBillableFinanceContext: false,
+        hasFinanceAccess: true,
+        agreementState: 'active',
+      },
+      inactiveAgreement: {
+        showWorkspaceBanner: false,
+        showRepairCard: false,
+        showReviewAction: false,
+        reviewActionKind: 'review',
+        hasInactiveAgreementRecord: false,
+      },
+    });
   });
 
-  it('shows actions when agreement context comes from financial overview installments', () => {
+  it('shows review agreement when billable context exists without an active agreement', () => {
     expect(
       resolveChangePlanVisibility({
         workspace: null,
@@ -23,27 +41,81 @@ describe('resolve-change-plan-visibility', () => {
         } as never,
         studentCapabilities: { can_collect_payments: true } as never,
       }),
-    ).toEqual({ showChangePlan: true, showSpecialAdjustment: true });
+    ).toEqual({
+      showChangePlan: false,
+      showSpecialAdjustment: false,
+      showReviewAgreement: true,
+      reviewAgreementKind: 'review',
+      eligibility: {
+        hasActiveAgreementInUi: false,
+        hasBillableFinanceContext: true,
+        hasFinanceAccess: true,
+        agreementState: null,
+      },
+      inactiveAgreement: {
+        showWorkspaceBanner: true,
+        showRepairCard: false,
+        showReviewAction: true,
+        reviewActionKind: 'review',
+        hasInactiveAgreementRecord: false,
+      },
+    });
   });
 
-  it('shows actions when workspace agreement is manageable but not strictly active', () => {
+  it('hides change plan when agreement is manageable but not active in UI eligibility', () => {
     expect(
       resolveChangePlanVisibility({
         workspace: { current_agreement: { id: 9, state: 'approved' } } as never,
         financialOverview: null,
         studentCapabilities: { can_assign_fees: true } as never,
       }),
-    ).toEqual({ showChangePlan: true, showSpecialAdjustment: true });
+    ).toEqual({
+      showChangePlan: false,
+      showSpecialAdjustment: false,
+      showReviewAgreement: false,
+      reviewAgreementKind: 'review',
+      eligibility: {
+        hasActiveAgreementInUi: false,
+        hasBillableFinanceContext: false,
+        hasFinanceAccess: true,
+        agreementState: null,
+      },
+      inactiveAgreement: {
+        showWorkspaceBanner: false,
+        showRepairCard: false,
+        showReviewAction: false,
+        reviewActionKind: 'review',
+        hasInactiveAgreementRecord: false,
+      },
+    });
   });
 
-  it('hides actions without agreement context', () => {
+  it('hides actions without agreement or billable finance context', () => {
     expect(
       resolveChangePlanVisibility({
         workspace: { current_agreement: null } as never,
         financialOverview: { counts: { installments_count: 0, fees_count: 0 }, totals: { annual_total: 0 } } as never,
         studentCapabilities: { can_assign_fees: true } as never,
       }),
-    ).toEqual({ showChangePlan: false, showSpecialAdjustment: false });
+    ).toEqual({
+      showChangePlan: false,
+      showSpecialAdjustment: false,
+      showReviewAgreement: false,
+      reviewAgreementKind: 'review',
+      eligibility: {
+        hasActiveAgreementInUi: false,
+        hasBillableFinanceContext: false,
+        hasFinanceAccess: true,
+        agreementState: null,
+      },
+      inactiveAgreement: {
+        showWorkspaceBanner: false,
+        showRepairCard: false,
+        showReviewAction: false,
+        reviewActionKind: 'review',
+        hasInactiveAgreementRecord: false,
+      },
+    });
   });
 });
 
