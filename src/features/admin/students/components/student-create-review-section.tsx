@@ -5,8 +5,7 @@ import { useFormat } from '@/features/i18n/use-format';
 import { buildFullNamePreview, hasStudentMassarCode } from '../utils/student-profile';
 import { formatFinanceCurrency } from '../utils/student-finance-format';
 import { buildEnrollmentFinanceReviewModel, enrollmentFinancePreviewStatus } from '../utils/enrollment-finance-review';
-import { formatCustomizationReason } from '../utils/student-enrollment-finance';
-import { selectedFinancePeriods } from '../utils/student-enrollment-finance';
+import { formatCustomizationReason, getFeePlanSuggestPendingReason, resolveFeePlanSuggestEmptyMessage, selectedFinancePeriods } from '../utils/student-enrollment-finance';
 import type {
   EnrollmentPlanPreviewResult,
   FeePlanSuggestResult,
@@ -38,6 +37,7 @@ export function StudentCreateReviewSection({
   massarDuplicate = false,
   classMissingForFinance = false,
   enrollmentClassLabel = null,
+  schoolId = null,
 }: {
   profileState: StudentProfileFormState;
   billingState: StudentCreateBillingFormState;
@@ -51,6 +51,7 @@ export function StudentCreateReviewSection({
   massarDuplicate?: boolean;
   classMissingForFinance?: boolean;
   enrollmentClassLabel?: string | null;
+  schoolId?: number | null;
 }) {
   const t = useT();
   const { locale } = useLocale();
@@ -287,7 +288,17 @@ export function StudentCreateReviewSection({
           </dl>
         </article>
       ) : financeSkipped ? null : (
-        <p className="student-create-form__footnote">{t('admin.student360.create.finance.waitingEnrollment')}</p>
+        <p className="student-create-form__footnote">
+          {resolveFeePlanSuggestEmptyMessage(
+            getFeePlanSuggestPendingReason({
+              schoolId: schoolId ?? null,
+              academicYearId: profileState.academicYearId,
+              levelId: profileState.levelId,
+              enrollmentDate: profileState.actualJoinDate,
+            }),
+            t,
+          )}
+        </p>
       )}
     </StudentCreateStyledSection>
   );

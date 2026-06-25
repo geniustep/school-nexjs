@@ -39,7 +39,11 @@ import { useFeePlanSuggest } from '../hooks/use-fee-plan-suggest';
 import { useEnrollmentPlanPreview } from '../hooks/use-enrollment-plan-preview';
 import { useStudentCreateIdentifierChecks } from '../hooks/use-student-create-identifier-checks';
 import { mapStudentApiError } from '../utils/student-api-errors';
-import { filterClassesForEnrollment } from '../utils/student-options';
+import {
+  filterClassesForEnrollment,
+  buildEnrollmentClassScope,
+  isEnrollmentClassIdInScope,
+} from '../utils/student-options';
 import {
   buildEnrollmentCycleOptions,
   filterLevelsByCycleId,
@@ -52,6 +56,7 @@ import {
   defaultStudentProfileFormState,
   getStudentCreateFinanceBlockReason,
   localizeStudentGenderOptions,
+  validateStudentCreateEnrollmentClass,
   validateStudentCreateForm,
   validateStudentCreateIdentityStep,
   type StudentProfileFieldErrors,
@@ -164,6 +169,7 @@ export function StudentCreateForm({
   const financeTouchedRef = useRef(false);
   const lastSuggestFingerprintRef = useRef('');
   const lastFeePlanIdRef = useRef<number | null>(null);
+  const admissionPrefillHadClassRef = useRef(Boolean(initialProfilePatch?.classId?.trim()));
 
   useEffect(() => {
     if (optionsState.loading) return;
@@ -195,6 +201,40 @@ export function StudentCreateForm({
     if (options?.schools.length === 1) return options.schools[0].id;
     return null;
   }, [state.schoolId, activeSchoolId, options?.schools]);
+
+  const enrollmentClassScope = useMemo(
+    () => buildEnrollmentClassScope(state.levelId, state.academicYearId, resolvedSchoolId),
+    [state.levelId, state.academicYearId, resolvedSchoolId],
+  );
+
+  useEffect(() => {
+    if (optionsState.loading || !options?.classes?.length) return;
+    const classId = state.classId.trim();
+    if (!classId || !state.levelId.trim()) return;
+
+    const inScope = isEnrollmentClassIdInScope(classId, options.classes, enrollmentClassScope);
+    if (inScope) return;
+
+    const fromPrefill = admissionPrefillHadClassRef.current;
+    admissionPrefillHadClassRef.current = false;
+
+    setState((prev) => ({ ...prev, classId: '' }));
+    if (fromPrefill) {
+      setFieldErrors((prev) => ({
+        ...prev,
+        classId: t('admin.student360.create.prefillClassUnavailable'),
+      }));
+    } else {
+      setClassClearedNotice(true);
+    }
+  }, [
+    optionsState.loading,
+    options?.classes,
+    state.classId,
+    state.levelId,
+    enrollmentClassScope,
+    t,
+  ]);
 
   const levelsForEnrollment = useMemo(() => {
     const levels = options?.levels ?? [];
@@ -288,8 +328,8 @@ export function StudentCreateForm({
   }, [suggestFingerprint, suggestState.suggest]);
 
   const filteredClasses = useMemo(
-    () => filterClassesForEnrollment(options?.classes ?? [], state.levelId),
-    [options?.classes, state.levelId],
+    () => filterClassesForEnrollment(options?.classes ?? [], enrollmentClassScope),
+    [options?.classes, enrollmentClassScope],
   );
 
   const admissionLevels = admissionOptionsState.options?.levels ?? [];
@@ -334,6 +374,21 @@ export function StudentCreateForm({
       const profilePatch = patchStudentProfileFromIntake(intakePatch);
       const { cycleId: _cycleId, levelId: _levelId, streamId: _streamId, classId: _classId, ...rest } =
         profilePatch;
+      if (Object.keys(rest).length > 0) patch(rest);
+      return;
+    }
+
+    if (intakePatch.academicYearId != null && intakePatch.academicYearId !== state.academicYearId) {
+      handleAcademicYearChange(intakePatch.academicYearId);
+      const profilePatch = patchStudentProfileFromIntake(intakePatch);
+      const {
+        academicYearId: _academicYearId,
+        cycleId: _cycleId,
+        levelId: _levelId,
+        streamId: _streamId,
+        classId: _classId,
+        ...rest
+      } = profilePatch;
       if (Object.keys(rest).length > 0) patch(rest);
       return;
     }
@@ -405,7 +460,8 @@ export function StudentCreateForm({
   }
 
   function handleLevelChange(levelId: string) {
-    const compatible = filterClassesForEnrollment(options?.classes ?? [], levelId);
+    const scope = buildEnrollmentClassScope(levelId, state.academicYearId, resolvedSchoolId);
+    const compatible = filterClassesForEnrollment(options?.classes ?? [], scope);
     const classStillValid = compatible.some((c) => String(c.id) === state.classId);
     const levelChanged = Boolean(state.levelId) && state.levelId !== levelId;
     const hadCustomization = financeTouchedRef.current || financeState.customizePlan;
@@ -426,6 +482,54 @@ export function StudentCreateForm({
         setPlanChangeWarning(true);
       }
     }
+  }
+
+  function handleAcademicYearChange(academicYearId: string) {
+    const yearChanged = Boolean(state.academicYearId) && state.academicYearId !== academicYearId;
+    const levelsAfterYear = (options?.levels ?? []).filter(
+      (level) => level.academic_year_id == null || String(level.academic_year_id) === academicYearId,
+    );
+    const levelStillValid = levelsAfterYear.some((level) => String(level.id) === state.levelId);
+    let nextClassId = '';
+    if (levelStillValid && state.classId) {
+      const scope = buildEnrollmentClassScope(state.levelId, academicYearId, resolvedSchoolId);
+      const compatible = filterClassesForEnrollment(options?.classes ?? [], scope);
+      nextClassId = compatible.some((c) => String(c.id) === state.classId) ? state.classId : '';
+    }
+
+    patch({
+      academicYearId,
+      cycleId: levelStillValid ? state.cycleId : '',
+      levelId: levelStillValid ? state.levelId : '',
+      streamId: '',
+      classId: nextClassId,
+    });
+
+    if (state.classId && !nextClassId) {
+      setClassClearedNotice(true);
+    }
+
+    if (yearChanged) {
+      resetFinancePlan();
+    }
+  }
+
+  function applyEnrollmentClassScopeFailure(context: 'save' | 'step'): boolean {
+    const validation = validateStudentCreateEnrollmentClass(
+      state,
+      options?.classes ?? [],
+      resolvedSchoolId,
+      t,
+    );
+    if (validation.valid) return true;
+
+    setFieldErrors((prev) => ({ ...prev, ...validation.errors }));
+    setStep('enrollment');
+    if (context === 'save') {
+      toast.error(validation.errors.classId ?? t('admin.studentClassForbidden'));
+    }
+    focusFirstError(validation.errors);
+    return false;
   }
 
   useEffect(() => {
@@ -622,6 +726,9 @@ export function StudentCreateForm({
           return applyFinancePrerequisiteFailure('class', 'step');
         }
       }
+      if (state.classId.trim() && !applyEnrollmentClassScopeFailure('step')) {
+        return false;
+      }
     }
     if (current === 'finance' || current === 'review') {
       if (current === 'review') {
@@ -631,6 +738,9 @@ export function StudentCreateForm({
           const firstError = FIELD_ORDER.map((key) => profileValidation.errors[key]).find(Boolean);
           toast.error(firstError ?? t('errors.validationFailed'));
           focusFirstError(profileValidation.errors);
+          return false;
+        }
+        if (state.classId.trim() && !applyEnrollmentClassScopeFailure('save')) {
           return false;
         }
       }
@@ -699,6 +809,10 @@ export function StudentCreateForm({
     }
     if (!validateStep('review', flushed.checks)) return;
 
+    if (state.classId.trim() && !applyEnrollmentClassScopeFailure('save')) {
+      return;
+    }
+
     const attachFinance = !skipFinance && Boolean(suggestState.suggest);
 
     if (attachFinance) {
@@ -730,12 +844,19 @@ export function StudentCreateForm({
     setSaveMode(mode);
     setFinanceActivationMode(activation);
     setSaving(true);
-    const payload = buildStudentCreatePayload(state, {
-      suggest: attachFinance ? suggestState.suggest : null,
-      financeState,
-      schoolId: resolvedSchoolId,
-      activationMode: activation === 'activate' ? 'activate' : undefined,
-    });
+    const payload = buildStudentCreatePayload(
+      state,
+      {
+        suggest: attachFinance ? suggestState.suggest : null,
+        financeState,
+        schoolId: resolvedSchoolId,
+        activationMode: activation === 'activate' ? 'activate' : undefined,
+      },
+      {
+        schoolId: resolvedSchoolId,
+        classes: options?.classes ?? [],
+      },
+    );
 
     if (payload.finance && payload.academic?.academic_year_id == null) {
       applyFinancePrerequisiteFailure('academic_year', 'save');
@@ -1021,6 +1142,8 @@ export function StudentCreateForm({
               loading={suggestState.loading}
               error={suggestState.error}
               levelSelected={levelSelected}
+              profileState={state}
+              schoolId={resolvedSchoolId}
               financeState={financeState}
               planChangeWarning={planChangeWarning}
               preview={previewState.preview}
@@ -1028,6 +1151,10 @@ export function StudentCreateForm({
               previewError={previewState.error}
               onFinanceChange={patchFinance}
               onSelectPlan={handleSelectFeePlan}
+              onSkipFinance={() => {
+                setSkipFinance(true);
+                setFinanceError(null);
+              }}
               onRetry={suggestState.reload}
             />
           )}
@@ -1054,6 +1181,7 @@ export function StudentCreateForm({
             massarDuplicate={massarDuplicate}
             classMissingForFinance={!skipFinance && classMissingForFinance}
             enrollmentClassLabel={enrollmentClassLabel}
+            schoolId={resolvedSchoolId}
           />
         </>
       ) : null}

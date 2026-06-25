@@ -51,14 +51,25 @@ async function parse<T>(res: Response): Promise<ApiResponse<T>> {
         code: status === 403 ? 'forbidden' : status === 409 ? 'conflict' : status === 422 ? 'validation_error' : 'server_error',
         message: 'Request failed.',
       };
+      // Preserve any extra top-level error fields (e.g. diagnostics, candidate_plans,
+      // selectable_candidate_plans) that the BFF returns at the error root. The typed
+      // ApiErrorBody only carries code/message/details, so fold extras into details
+      // instead of dropping them.
+      const { code: _code, message: _message, details: errorDetails, ...extraErrorFields } =
+        error as Record<string, unknown> & {
+          code: string;
+          message?: string;
+          details?: Record<string, unknown>;
+        };
       return {
         success: false,
         error: {
           code: error.code,
           message: sanitizeClientApiErrorMessage(error.message),
           details: {
-            ...(error.details ?? {}),
-            status: typeof error.details?.status === 'number' ? error.details.status : status,
+            ...extraErrorFields,
+            ...(errorDetails ?? {}),
+            status: typeof errorDetails?.status === 'number' ? errorDetails.status : status,
           },
         },
         meta: payload.meta ?? {},

@@ -1,4 +1,5 @@
 import type {
+  FeePlanCandidatePlan,
   FeePlanCustomizationReason,
   FeePlanSuggestError,
   FeePlanSuggestQuery,
@@ -40,13 +41,38 @@ export function canRequestFeePlanSuggest(input: {
   levelId: string;
   enrollmentDate: string;
 }): boolean {
-  return (
-    input.schoolId != null &&
-    input.schoolId > 0 &&
-    Boolean(input.academicYearId.trim()) &&
-    Boolean(input.levelId.trim()) &&
-    Boolean(input.enrollmentDate.trim())
-  );
+  return getFeePlanSuggestPendingReason(input) == null;
+}
+
+export type FeePlanSuggestPendingReason = 'school' | 'academic_year' | 'level' | 'join_date';
+
+export function getFeePlanSuggestPendingReason(input: {
+  schoolId: number | null;
+  academicYearId: string;
+  levelId: string;
+  enrollmentDate: string;
+}): FeePlanSuggestPendingReason | null {
+  if (input.schoolId == null || input.schoolId <= 0) return 'school';
+  if (!input.academicYearId.trim()) return 'academic_year';
+  if (!input.levelId.trim()) return 'level';
+  if (!input.enrollmentDate.trim()) return 'join_date';
+  return null;
+}
+
+export function resolveFeePlanSuggestEmptyMessage(
+  pendingReason: FeePlanSuggestPendingReason | null,
+  t: (key: string) => string,
+): string {
+  if (pendingReason === 'join_date') {
+    return t('admin.student360.create.finance.waitingJoinDate');
+  }
+  if (pendingReason === 'academic_year' || pendingReason === 'school') {
+    return t('admin.student360.create.finance.waitingEnrollment');
+  }
+  if (pendingReason === 'level') {
+    return t('admin.student360.create.finance.selectLevelForPlan');
+  }
+  return t('admin.student360.create.finance.waitingEnrollment');
 }
 
 export function buildFeePlanSuggestQuery(
@@ -242,6 +268,8 @@ export function buildFeePlanSuggestErrorFromApi(error: {
   details?: Record<string, unknown>;
   diagnostics?: FeePlanSuggestError['diagnostics'];
   candidate_plans?: FeePlanSuggestError['candidate_plans'];
+  selectable_candidate_plans?: FeePlanSuggestError['selectable_candidate_plans'];
+  requires_manual_selection?: boolean;
 }): FeePlanSuggestError {
   const details = error.details ?? {};
   const diagnostics =
@@ -254,13 +282,88 @@ export function buildFeePlanSuggestErrorFromApi(error: {
     (Array.isArray(details.candidate_plans)
       ? (details.candidate_plans as FeePlanSuggestError['candidate_plans'])
       : undefined);
+  const selectableCandidatePlans =
+    error.selectable_candidate_plans ??
+    (Array.isArray(details.selectable_candidate_plans)
+      ? (details.selectable_candidate_plans as FeePlanSuggestError['selectable_candidate_plans'])
+      : undefined);
+  const requiresManualSelection =
+    error.requires_manual_selection ??
+    (typeof details.requires_manual_selection === 'boolean'
+      ? (details.requires_manual_selection as boolean)
+      : undefined);
 
   return {
     code: error.code ?? 'server_error',
     message: error.message,
     diagnostics,
     candidate_plans: candidatePlans,
+    selectable_candidate_plans: selectableCandidatePlans,
+    requires_manual_selection: requiresManualSelection,
   };
+}
+
+/**
+ * Reasons (from `reason_not_selected`) that a client may safely treat as
+ * manually selectable when the backend does not send an explicit `selectable`
+ * flag. Only `not_default` is safe: the plan matches the level and academic
+ * year but is simply not marked as default. Inactive / unconfirmed / wrong-year
+ * plans are NOT auto-selectable client-side.
+ */
+const CLIENT_SELECTABLE_REASONS = new Set(['not_default']);
+
+export function isCandidateSelectable(candidate: FeePlanCandidatePlan): boolean {
+  if (typeof candidate.selectable === 'boolean') return candidate.selectable;
+  if (candidate.allowed_action === 'select_manually') return true;
+  if (candidate.reason_not_selected) {
+    return CLIENT_SELECTABLE_REASONS.has(candidate.reason_not_selected);
+  }
+  return false;
+}
+
+/**
+ * Returns the candidate plans the user may select manually. Prefers the
+ * backend `selectable_candidate_plans` list (new contract); otherwise derives
+ * from `candidate_plans` using conservative client-side rules.
+ */
+export function resolveSelectableCandidatePlans(
+  error: FeePlanSuggestError | null,
+): FeePlanCandidatePlan[] {
+  if (!error) return [];
+  if (Array.isArray(error.selectable_candidate_plans) && error.selectable_candidate_plans.length > 0) {
+    return error.selectable_candidate_plans;
+  }
+  const candidates = error.candidate_plans ?? [];
+  return candidates.filter(isCandidateSelectable);
+}
+
+/**
+ * True when there is no plan at all matching this level/cycle for the year, so
+ * the student should be created without a finance plan. Robust to both the new
+ * `no_eligible_fee_plan_for_level` code and the legacy
+ * `no_default_fee_plan_for_level` with zero matching plans / no candidates.
+ */
+export function hasNoEligibleFeePlan(error: FeePlanSuggestError | null): boolean {
+  if (!error) return false;
+  if (error.code === 'no_eligible_fee_plan_for_level') return true;
+  if (error.code !== 'no_default_fee_plan_for_level') return false;
+  const matching = error.diagnostics?.matching_level_plans;
+  const hasCandidates = (error.candidate_plans?.length ?? 0) > 0;
+  const hasSelectable = resolveSelectableCandidatePlans(error).length > 0;
+  return matching === 0 && !hasCandidates && !hasSelectable;
+}
+
+/** Localized scope/levels summary for a candidate plan, if data is available. */
+export function candidatePlanScopeSummary(candidate: FeePlanCandidatePlan): string | null {
+  if (candidate.scope_summary?.trim()) return candidate.scope_summary.trim();
+  if (Array.isArray(candidate.level_names) && candidate.level_names.length > 0) {
+    return candidate.level_names.join('، ');
+  }
+  return null;
+}
+
+export function candidatePlanTotal(candidate: FeePlanCandidatePlan): number | null {
+  return candidate.expected_total ?? candidate.total ?? null;
 }
 
 export function resolveNoDefaultFeePlanMessage(
@@ -269,11 +372,17 @@ export function resolveNoDefaultFeePlanMessage(
 ): string {
   if (!error) return t('admin.student360.create.finance.noPlanMessage');
   const diagnostics = error.diagnostics;
+  if ((diagnostics?.matching_level_plans ?? 0) === 0) {
+    return t('admin.student360.create.finance.noEligiblePlan');
+  }
   if (
     (diagnostics?.matching_level_plans ?? 0) > 0 &&
     (diagnostics?.plans_not_default ?? 0) > 0
   ) {
     return t('admin.student360.create.finance.diagnostics.notDefault');
+  }
+  if ((diagnostics?.plans_inactive ?? 0) > 0) {
+    return t('admin.student360.create.finance.diagnostics.inactive');
   }
   if (error.message?.trim()) return error.message.trim();
   return t('admin.student360.create.finance.noPlanMessage');

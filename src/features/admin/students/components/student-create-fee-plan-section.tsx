@@ -4,7 +4,19 @@ import Link from 'next/link';
 import { useLocale, useT } from '@/features/i18n/locale-context';
 import { useFormat } from '@/features/i18n/use-format';
 import { formatFinanceCurrency } from '../utils/student-finance-format';
-import { ensureFinancePeriodOverrides, resolveFinanceSuggestedPeriods, resolveNoDefaultFeePlanMessage, selectedFinancePeriods } from '../utils/student-enrollment-finance';
+import {
+  candidatePlanScopeSummary,
+  candidatePlanTotal,
+  ensureFinancePeriodOverrides,
+  getFeePlanSuggestPendingReason,
+  hasNoEligibleFeePlan,
+  resolveFinanceSuggestedPeriods,
+  resolveFeePlanSuggestEmptyMessage,
+  resolveNoDefaultFeePlanMessage,
+  resolveSelectableCandidatePlans,
+  selectedFinancePeriods,
+} from '../utils/student-enrollment-finance';
+import type { StudentProfileFormState } from '../utils/student-profile';
 import {
   StudentCreateFinanceCustomization,
   StudentCreateFinancePlanLines,
@@ -15,6 +27,7 @@ import {
 import { StudentCreateStyledSection } from './student-create-section-header';
 import type {
   EnrollmentPlanPreviewResult,
+  FeePlanCandidatePlan,
   FeePlanSuggestError,
   FeePlanSuggestResult,
   StudentCreateFinanceFormState,
@@ -72,11 +85,93 @@ function FeePlanEmptyState({ message }: { message: string }) {
   );
 }
 
+function CandidatePlanCard({
+  candidate,
+  selected,
+  onUse,
+}: {
+  candidate: FeePlanCandidatePlan;
+  selected: boolean;
+  onUse: (planId: number) => void;
+}) {
+  const t = useT();
+  const { locale } = useLocale();
+  const total = candidatePlanTotal(candidate);
+  const currency = candidate.currency ? { name: candidate.currency, symbol: candidate.currency } : null;
+  const scope = candidatePlanScopeSummary(candidate);
+  const year = candidate.academic_year?.name ?? candidate.academic_year_name ?? null;
+  const reason = candidate.hint?.trim() || t('admin.student360.create.finance.candidateNotDefaultReason');
+
+  return (
+    <li
+      className={`student-create-fee-plan__candidate-card${selected ? ' student-create-fee-plan__candidate-card--selected' : ''}`}
+    >
+      <div className="student-create-fee-plan__candidate-head">
+        <span className="student-create-fee-plan__candidate-name" dir="auto">
+          {candidate.name}
+          <span className="mono tiny muted"> #{candidate.id}</span>
+        </span>
+        {selected ? (
+          <span className="student-create-fee-plan__candidate-badge">
+            {t('admin.student360.create.finance.selectedCandidateBadge')}
+          </span>
+        ) : null}
+      </div>
+      <dl className="student-create-fee-plan__candidate-meta">
+        {year ? (
+          <div>
+            <dt>{t('admin.student360.create.finance.candidateYear')}</dt>
+            <dd dir="auto">{year}</dd>
+          </div>
+        ) : null}
+        {total != null ? (
+          <div>
+            <dt>{t('admin.student360.create.finance.candidateTotal')}</dt>
+            <dd className="mono">{formatFinanceCurrency(total, currency, locale)}</dd>
+          </div>
+        ) : null}
+        {scope ? (
+          <div>
+            <dt>{t('admin.student360.create.finance.candidateScope')}</dt>
+            <dd dir="auto">{scope}</dd>
+          </div>
+        ) : null}
+        <div>
+          <dt>{t('admin.student360.create.finance.candidateReasonLabel')}</dt>
+          <dd dir="auto">{reason}</dd>
+        </div>
+      </dl>
+      <div className="student-create-fee-plan__candidate-actions">
+        <Link
+          className="btn btn--ghost btn--sm"
+          href={`/admin/finance/fee-plans/${candidate.id}`}
+          target="_blank"
+          rel="noreferrer"
+        >
+          {t('common.view')}
+        </Link>
+        <button
+          type="button"
+          className="btn btn--primary btn--sm"
+          disabled={selected}
+          onClick={() => onUse(candidate.id)}
+        >
+          {selected
+            ? t('admin.student360.create.finance.selectedCandidateBadge')
+            : t('admin.student360.create.finance.useThisPlan')}
+        </button>
+      </div>
+    </li>
+  );
+}
+
 export function StudentCreateFeePlanSection({
   suggest,
   loading,
   error,
   levelSelected,
+  profileState,
+  schoolId,
   financeState,
   planChangeWarning,
   preview,
@@ -84,12 +179,15 @@ export function StudentCreateFeePlanSection({
   previewError,
   onFinanceChange,
   onSelectPlan,
+  onSkipFinance,
   onRetry,
 }: {
   suggest: FeePlanSuggestResult | null;
   loading: boolean;
   error: FeePlanSuggestError | null;
   levelSelected: boolean;
+  profileState: StudentProfileFormState;
+  schoolId: number | null;
   financeState: StudentCreateFinanceFormState;
   planChangeWarning: boolean;
   preview: EnrollmentPlanPreviewResult | null;
@@ -97,6 +195,7 @@ export function StudentCreateFeePlanSection({
   previewError: string | null;
   onFinanceChange: (patch: Partial<StudentCreateFinanceFormState>) => void;
   onSelectPlan: (planId: number) => void;
+  onSkipFinance?: () => void;
   onRetry?: () => void;
 }) {
   const t = useT();
@@ -111,9 +210,42 @@ export function StudentCreateFeePlanSection({
     return <FeePlanLoadingState message={t('admin.student360.create.finance.loading')} />;
   }
 
-  if (error?.code === 'no_default_fee_plan_for_level') {
-    const message = resolveNoDefaultFeePlanMessage(error, t);
-    const candidates = error.candidate_plans ?? [];
+  if (
+    error?.code === 'no_default_fee_plan_for_level' ||
+    error?.code === 'no_eligible_fee_plan_for_level'
+  ) {
+    const selectedId = financeState.selectedFeePlanId;
+    const selectableCandidates = resolveSelectableCandidatePlans(error);
+    const noEligible = hasNoEligibleFeePlan(error);
+    const allCandidates = error.candidate_plans ?? [];
+    const selectableIds = new Set(selectableCandidates.map((c) => c.id));
+    const otherCandidates = allCandidates.filter((c) => !selectableIds.has(c.id));
+    const backendMessage = error.message?.trim();
+
+    if (noEligible) {
+      return (
+        <StudentCreateStyledSection
+          icon="finance"
+          title={t('admin.student360.create.finance.noPlanTitle')}
+          lead={t('admin.student360.create.financeStepLead')}
+          className="student-create-fee-plan"
+        >
+          <div className="student-create-fee-plan__alert" role="status">
+            <p>{t('admin.student360.create.finance.noEligibleTitle')}</p>
+            {onSkipFinance ? (
+              <button
+                type="button"
+                className="btn btn--primary btn--sm"
+                onClick={onSkipFinance}
+              >
+                {t('admin.student360.create.finance.createWithoutPlan')}
+              </button>
+            ) : null}
+          </div>
+        </StudentCreateStyledSection>
+      );
+    }
+
     return (
       <StudentCreateStyledSection
         icon="finance"
@@ -121,23 +253,63 @@ export function StudentCreateFeePlanSection({
         lead={t('admin.student360.create.financeStepLead')}
         className="student-create-fee-plan"
       >
-        <div className="student-create-fee-plan__alert" role="alert">
-          <p>{message}</p>
-          {candidates.length > 0 ? (
-            <div className="student-create-fee-plan__candidates">
-              <p className="student-create-field__hint">{t('admin.student360.create.finance.candidatePlans')}</p>
-              <ul className="student-create-fee-plan__candidate-list">
-                {candidates.map((candidate) => (
-                  <li key={candidate.id}>
-                    <Link href={`/admin/finance/fee-plans/${candidate.id}`}>
-                      {candidate.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-        </div>
+        {selectableCandidates.length > 0 ? (
+          <div className="student-create-fee-plan__candidates" role="group">
+            <p className="student-create-fee-plan__candidates-title">
+              {t('admin.student360.create.finance.candidateSelectableTitle')}
+            </p>
+            <p className="student-create-field__hint">
+              {t('admin.student360.create.finance.candidateSelectableHint')}
+            </p>
+            <ul className="student-create-fee-plan__candidate-cards">
+              {selectableCandidates.map((candidate) => (
+                <CandidatePlanCard
+                  key={candidate.id}
+                  candidate={candidate}
+                  selected={selectedId === candidate.id}
+                  onUse={onSelectPlan}
+                />
+              ))}
+            </ul>
+          </div>
+        ) : (
+          <div className="student-create-fee-plan__alert" role="alert">
+            <p>{resolveNoDefaultFeePlanMessage(error, t)}</p>
+          </div>
+        )}
+
+        {otherCandidates.length > 0 ? (
+          <div className="student-create-fee-plan__candidates student-create-fee-plan__candidates--other">
+            <p className="student-create-field__hint">
+              {t('admin.student360.create.finance.otherCandidatesTitle')}
+            </p>
+            <ul className="student-create-fee-plan__candidate-list">
+              {otherCandidates.map((candidate) => (
+                <li key={candidate.id}>
+                  <Link href={`/admin/finance/fee-plans/${candidate.id}`} target="_blank" rel="noreferrer">
+                    {candidate.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        {backendMessage && selectedId != null ? (
+          <p className="student-create-form__notice" role="alert">
+            {backendMessage}
+          </p>
+        ) : null}
+
+        {onSkipFinance ? (
+          <button
+            type="button"
+            className="btn btn--ghost btn--sm student-create-fee-plan__skip-inline"
+            onClick={onSkipFinance}
+          >
+            {t('admin.student360.create.finance.createWithoutPlan')}
+          </button>
+        ) : null}
       </StudentCreateStyledSection>
     );
   }
@@ -163,7 +335,17 @@ export function StudentCreateFeePlanSection({
   }
 
   if (!suggest) {
-    return <FeePlanEmptyState message={t('admin.student360.create.finance.waitingEnrollment')} />;
+    const pendingReason = getFeePlanSuggestPendingReason({
+      schoolId,
+      academicYearId: profileState.academicYearId,
+      levelId: profileState.levelId,
+      enrollmentDate: profileState.actualJoinDate,
+    });
+    return (
+      <FeePlanEmptyState
+        message={resolveFeePlanSuggestEmptyMessage(pendingReason, t)}
+      />
+    );
   }
 
   const selectedPeriods = selectedFinancePeriods(suggest, financeState);

@@ -12,6 +12,8 @@ import type {
 } from '@/types/student-360';
 import type { FeePlanSuggestResult, StudentCreateFinanceFormState } from '@/types/student-enrollment-finance';
 import type { SiblingLine } from '@/types/sibling-line';
+import type { StudentClassOption } from '@/types/student-360';
+import { buildEnrollmentClassScope, isEnrollmentClassIdInScope } from './student-options';
 import { buildStudentCreateFinancePayload } from './student-enrollment-finance';
 import { buildSiblingLinesPayload, normalizeSiblingLines, siblingLinesFingerprint, validateSiblingLinesLinkedStudents } from '@/features/admin/admissions/utils/sibling-lines';
 import { normalizeMassarCodeInput, isValidMassarCodeNormalized } from './massar-code';
@@ -476,6 +478,45 @@ export function validateStudentCreateForm(
   return { valid: Object.keys(errors).length === 0, errors };
 }
 
+export type StudentCreatePayloadScope = {
+  schoolId?: number | null;
+  classes?: StudentClassOption[];
+};
+
+export function validateStudentCreateEnrollmentClass(
+  state: StudentProfileFormState,
+  classes: StudentClassOption[],
+  schoolId: number | null,
+  t: (key: string) => string,
+): StudentProfileValidationResult {
+  if (!trim(state.classId)) return { valid: true, errors: {} };
+  const inScope = isEnrollmentClassIdInScope(
+    state.classId,
+    classes,
+    buildEnrollmentClassScope(state.levelId, state.academicYearId, schoolId),
+  );
+  if (inScope) return { valid: true, errors: {} };
+  return {
+    valid: false,
+    errors: { classId: t('admin.studentClassForbidden') },
+  };
+}
+
+function resolveScopedClassIdForCreate(
+  state: StudentProfileFormState,
+  scope?: StudentCreatePayloadScope,
+): number | null {
+  const classId = optionalNumber(state.classId);
+  if (classId == null) return null;
+  if (!scope?.classes?.length) return classId;
+  const inScope = isEnrollmentClassIdInScope(
+    state.classId,
+    scope.classes,
+    buildEnrollmentClassScope(state.levelId, state.academicYearId, scope.schoolId ?? null),
+  );
+  return inScope ? classId : null;
+}
+
 function buildEnrollmentBlock(state: StudentProfileFormState): StudentEnrollmentBlock | undefined {
   const block: StudentEnrollmentBlock = {};
   if (state.registrationType) block.registration_type = state.registrationType;
@@ -607,6 +648,7 @@ export function canAttachFinanceToStudentCreatePayload(
 export function buildStudentCreateAcademicBlock(
   state: StudentProfileFormState,
   schoolId: number,
+  scopedClassId?: number | null,
 ): StudentCreateAcademicBlock | null {
   const academicYearId = optionalNumber(state.academicYearId);
   const levelId = optionalNumber(state.levelId);
@@ -619,7 +661,7 @@ export function buildStudentCreateAcademicBlock(
     level_id: levelId,
     enrollment_date: enrollmentDate,
   };
-  const classId = optionalNumber(state.classId);
+  const classId = scopedClassId ?? optionalNumber(state.classId);
   if (classId != null) block.class_id = classId;
   return block;
 }
@@ -632,6 +674,7 @@ export function buildStudentCreatePayload(
     schoolId?: number | null;
     activationMode?: 'activate';
   } | null,
+  scope?: StudentCreatePayloadScope,
 ): StudentCreatePayload {
   const payload: StudentCreatePayload = {
     first_name: '',
@@ -641,12 +684,16 @@ export function buildStudentCreatePayload(
   applyContactFields(payload, state);
   applyEmergencyFields(payload, state);
   applyAdmissionDataFields(payload, state);
-  const classId = optionalNumber(state.classId);
-  if (classId != null) payload.class_id = classId;
+  const scopedClassId = resolveScopedClassIdForCreate(state, scope);
+  if (scopedClassId != null) payload.class_id = scopedClassId;
   const enrollment = buildEnrollmentBlock(state);
   if (enrollment) payload.enrollment = enrollment;
   if (finance?.suggest && canAttachFinanceToStudentCreatePayload(state, finance.schoolId)) {
-    const academic = buildStudentCreateAcademicBlock(state, finance.schoolId as number);
+    const academic = buildStudentCreateAcademicBlock(
+      state,
+      finance.schoolId as number,
+      scopedClassId,
+    );
     if (academic?.class_id != null) {
       payload.academic = academic;
       payload.finance = buildStudentCreateFinancePayload(

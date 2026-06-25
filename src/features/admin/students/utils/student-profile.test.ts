@@ -12,6 +12,7 @@ import {
   requiresDepartureReason,
   requiresPreviousSchool,
   getStudentCreateFinanceBlockReason,
+  validateStudentCreateEnrollmentClass,
   validateStudentCreateForm,
   validateStudentCreateIdentityStep,
   validateStudentCreateIdentifier,
@@ -269,6 +270,63 @@ describe('buildStudentCreatePayload', () => {
     });
     expect(payload.academic?.class_id).toBe(2058);
     expect(payload.finance?.periods?.length).toBe(1);
+  });
+
+  it('drops class_id from payload when class is outside active school scope', () => {
+    const state = {
+      ...defaultStudentProfileFormState(options),
+      firstName: 'A',
+      lastName: 'B',
+      academicYearId: '1',
+      levelId: '77',
+      classId: '9999',
+    };
+    const classes = [
+      { id: 2053, name: 'P1A', level: { id: 77, name: 'P1' }, school_id: 3, academic_year_id: 1 },
+      { id: 9999, name: 'Other', level: { id: 77, name: 'P1' }, school_id: 88, academic_year_id: 1 },
+    ];
+    const payload = buildStudentCreatePayload(state, null, { schoolId: 3, classes });
+    expect(payload.class_id).toBeUndefined();
+  });
+
+  it('keeps class_id when class matches school, year, and level scope', () => {
+    const state = {
+      ...defaultStudentProfileFormState(options),
+      firstName: 'A',
+      lastName: 'B',
+      academicYearId: '1',
+      levelId: '77',
+      classId: '2053',
+    };
+    const classes = [
+      { id: 2053, name: 'P1A', level: { id: 77, name: 'P1' }, school_id: 3, academic_year_id: 1 },
+    ];
+    const payload = buildStudentCreatePayload(state, null, { schoolId: 3, classes });
+    expect(payload.class_id).toBe(2053);
+  });
+});
+
+describe('validateStudentCreateEnrollmentClass', () => {
+  const classes = [
+    { id: 2053, name: 'P1A', level: { id: 77, name: 'P1' }, school_id: 3, academic_year_id: 1 },
+    { id: 9999, name: 'Other', level: { id: 77, name: 'P1' }, school_id: 88, academic_year_id: 1 },
+  ];
+
+  it('accepts empty class id', () => {
+    const state = { ...defaultStudentProfileFormState(options), classId: '' };
+    expect(validateStudentCreateEnrollmentClass(state, classes, 3, t).valid).toBe(true);
+  });
+
+  it('rejects class outside school scope', () => {
+    const state = {
+      ...defaultStudentProfileFormState(options),
+      academicYearId: '1',
+      levelId: '77',
+      classId: '9999',
+    };
+    const result = validateStudentCreateEnrollmentClass(state, classes, 3, t);
+    expect(result.valid).toBe(false);
+    expect(result.errors.classId).toBe('admin.studentClassForbidden');
   });
 });
 

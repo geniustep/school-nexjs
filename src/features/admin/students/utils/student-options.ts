@@ -105,12 +105,63 @@ export function normalizeStudentOptions(
   };
 }
 
+export type EnrollmentClassScopeInput = {
+  levelId?: string;
+  academicYearId?: string;
+  schoolId?: number | null;
+};
+
+function resolveEnrollmentClassScope(
+  levelIdOrScope: string | EnrollmentClassScopeInput,
+): EnrollmentClassScopeInput {
+  return typeof levelIdOrScope === 'string' ? { levelId: levelIdOrScope } : levelIdOrScope;
+}
+
+/** Classes eligible for enrollment given active school, year, and level. */
 export function filterClassesForEnrollment(
   classes: StudentClassOption[],
-  levelId: string,
+  levelIdOrScope: string | EnrollmentClassScopeInput,
 ): StudentClassOption[] {
-  if (!levelId) return classes;
+  const scope = resolveEnrollmentClassScope(levelIdOrScope);
+  const levelId = scope.levelId?.trim() ?? '';
+  if (!levelId) return [];
   const levelNum = Number(levelId);
-  if (!Number.isFinite(levelNum)) return classes;
-  return classes.filter((c) => c.level?.id === levelNum);
+  if (!Number.isFinite(levelNum)) return [];
+
+  let filtered = classes.filter((c) => c.level?.id === levelNum);
+
+  const yearId = scope.academicYearId?.trim() ?? '';
+  if (yearId) {
+    const yearNum = Number(yearId);
+    if (Number.isFinite(yearNum)) {
+      filtered = filtered.filter(
+        (c) => c.academic_year_id == null || c.academic_year_id === yearNum,
+      );
+    }
+  }
+
+  const schoolId = scope.schoolId;
+  if (schoolId != null && schoolId > 0) {
+    filtered = filtered.filter((c) => c.school_id == null || c.school_id === schoolId);
+  }
+
+  return filtered;
+}
+
+export function isEnrollmentClassIdInScope(
+  classId: string,
+  classes: StudentClassOption[],
+  scope: EnrollmentClassScopeInput,
+): boolean {
+  const normalized = classId.trim();
+  if (!normalized || !scope.levelId?.trim()) return false;
+  return filterClassesForEnrollment(classes, scope).some((c) => String(c.id) === normalized);
+}
+
+export function buildEnrollmentClassScope(
+  levelId: string,
+  academicYearId: string,
+  schoolId: number | null,
+): EnrollmentClassScopeInput {
+  return { levelId, academicYearId, schoolId };
 }

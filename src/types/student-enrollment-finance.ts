@@ -158,7 +158,33 @@ export interface FeePlanSuggestResult {
   preview?: EnrollmentPlanPreviewResult | null;
 }
 
-export type FeePlanSuggestErrorCode = 'no_default_fee_plan_for_level' | string;
+export type FeePlanSuggestErrorCode =
+  | 'no_default_fee_plan_for_level'
+  | 'no_eligible_fee_plan_for_level'
+  | string;
+
+export interface FeePlanCandidatePlan {
+  id: number;
+  name: string;
+  reason_not_selected?: string;
+  /** Backend explicit flag (new contract). When absent, derived from reason. */
+  selectable?: boolean;
+  /** Backend action hint, e.g. 'select_manually'. */
+  allowed_action?: string;
+  /** Human-readable hint for why/how this plan can be used. */
+  hint?: string;
+  is_default_for_level?: boolean;
+  academic_year?: Ref | null;
+  academic_year_name?: string | null;
+  currency?: string | null;
+  total?: number | null;
+  expected_total?: number | null;
+  monthly_due_total?: number | null;
+  one_time_total?: number | null;
+  level_ids?: number[];
+  level_names?: string[];
+  scope_summary?: string | null;
+}
 
 export interface FeePlanSuggestError {
   code: string;
@@ -171,11 +197,11 @@ export interface FeePlanSuggestError {
     plans_wrong_school?: number;
     plans_inactive?: number;
   };
-  candidate_plans?: Array<{
-    id: number;
-    name: string;
-    reason_not_selected?: string;
-  }>;
+  candidate_plans?: FeePlanCandidatePlan[];
+  /** New contract: candidates the user may select manually. */
+  selectable_candidate_plans?: FeePlanCandidatePlan[];
+  /** New contract: true when a matching plan exists but needs manual choice. */
+  requires_manual_selection?: boolean;
 }
 
 export interface StudentCreateFinancePeriodPayload {
