@@ -3468,6 +3468,14 @@
       "countRegistered": "Hermanos registrados: {count}",
       "hasSiblingsNote": "Este alumno tiene hermanos registrados.",
       "detailsTitle": "Detalles de hermanos",
+      "declaredWithoutDetails": "Se declararon hermanos sin detalles suficientes.",
+      "admissionNotesTitle": "Notas de la solicitud de admisión",
+      "source": {
+        "linked": "Vinculado a una ficha de alumno",
+        "admission": "De la solicitud de admisión",
+        "unlinked": "Aún no vinculado a una ficha de alumno",
+        "admissionNote": "Esta información se guarda a partir de los datos de admisión y aún no está vinculada a un alumno matriculado."
+      },
       "summaryWord": "hermanos",
       "summaryTechnical": "{count} hermanos: {names}",
       "summaryTechnicalWithYear": "{count} hermanos — nacidos en {year}: {names}",

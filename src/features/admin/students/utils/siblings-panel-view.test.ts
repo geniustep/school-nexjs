@@ -30,6 +30,7 @@ describe('resolveSiblingsPanelView', () => {
     // declared true keeps it out of the empty state
     expect(view.isEmpty).toBe(false);
     expect(view.flagOnly).toBe(true);
+    expect(view.declaredWithoutDetails).toBe(true);
   });
 
   it('surfaces a positive registered count and is not empty', () => {
@@ -40,6 +41,44 @@ describe('resolveSiblingsPanelView', () => {
 
     expect(view.isEmpty).toBe(false);
     expect(view.registeredCount).toBe(3);
+  });
+
+  it('flags declaredWithoutDetails when a count is declared but no concrete details exist', () => {
+    const view = resolveSiblingsPanelView({
+      sibling_count: 3,
+    } as SiblingsFieldsSource);
+
+    expect(view.declaredWithoutDetails).toBe(true);
+    expect(view.registeredCount).toBe(3);
+  });
+
+  it('does not flag declaredWithoutDetails once structured lines are present', () => {
+    const view = resolveSiblingsPanelView({
+      has_siblings: true,
+      sibling_count: 1,
+      sibling_lines: [{ name: 'Sara', linked_student_id: 12 }],
+    } as SiblingsFieldsSource);
+
+    expect(view.declaredWithoutDetails).toBe(false);
+  });
+
+  it('does not flag declaredWithoutDetails when legacy free-text carries content', () => {
+    const view = resolveSiblingsPanelView({
+      has_siblings: true,
+      siblings_raw_text: 'أخ في نفس المدرسة',
+    } as SiblingsFieldsSource);
+
+    expect(view.declaredWithoutDetails).toBe(false);
+  });
+
+  it('does not flag declaredWithoutDetails when there are no siblings at all', () => {
+    const view = resolveSiblingsPanelView({
+      has_siblings: false,
+      sibling_count: 0,
+    } as SiblingsFieldsSource);
+
+    expect(view.declaredWithoutDetails).toBe(false);
+    expect(view.isEmpty).toBe(true);
   });
 
   it('is not empty when structured sibling lines exist even without flags', () => {

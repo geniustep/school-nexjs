@@ -3473,6 +3473,14 @@
       "countRegistered": "Registered siblings: {count}",
       "hasSiblingsNote": "This student has registered siblings.",
       "detailsTitle": "Sibling details",
+      "declaredWithoutDetails": "Siblings were declared without enough details.",
+      "admissionNotesTitle": "Notes from the admission request",
+      "source": {
+        "linked": "Linked to a student profile",
+        "admission": "From the admission request",
+        "unlinked": "Not linked to a student profile yet",
+        "admissionNote": "This information is saved from the admission data and is not yet linked to an enrolled student."
+      },
       "summaryWord": "siblings",
       "summaryTechnical": "{count} siblings: {names}",
       "summaryTechnicalWithYear": "{count} siblings — born {year}: {names}",

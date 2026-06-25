@@ -77,6 +77,23 @@ export function siblingLineDisplayName(line: SiblingLine): string {
   return cleanDisplayValue(line.name) || '';
 }
 
+export type SiblingLineSource = 'linked' | 'admission';
+
+/** Returns the positive linked student id when the sibling line points to a real student profile. */
+export function siblingLineLinkedStudentId(line: SiblingLine): number | null {
+  const id = line.linked_student_id;
+  return typeof id === 'number' && Number.isFinite(id) && id > 0 ? id : null;
+}
+
+/**
+ * Classifies the provenance/confidence of a single sibling line:
+ *  - `linked`: bound to an actual student profile (`linked_student_id > 0`).
+ *  - `admission`: captured from the admission request, not yet linked to a student.
+ */
+export function resolveSiblingLineSource(line: SiblingLine): SiblingLineSource {
+  return siblingLineLinkedStudentId(line) != null ? 'linked' : 'admission';
+}
+
 export function shouldShowSiblingLegacyFields(
   detail: SiblingsFieldsSource,
   lines: SiblingLine[],

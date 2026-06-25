@@ -3500,6 +3500,14 @@
       "countRegistered": "عدد الإخوة المسجلين: {count}",
       "hasSiblingsNote": "له إخوة مسجلون.",
       "detailsTitle": "تفاصيل الإخوة",
+      "declaredWithoutDetails": "تم التصريح بوجود إخوة دون تفاصيل كافية.",
+      "admissionNotesTitle": "ملاحظات من طلب التسجيل",
+      "source": {
+        "linked": "مرتبط بملف تلميذ",
+        "admission": "من طلب التسجيل",
+        "unlinked": "غير مرتبط بملف تلميذ بعد",
+        "admissionNote": "هذه المعلومة محفوظة من بيانات التسجيل، ولم تُربط بعد بتلميذ مسجل."
+      },
       "summaryWord": "إخوة",
       "summaryTechnical": "{count} إخوة: {names}",
       "summaryTechnicalWithYear": "{count} إخوة — مواليد {year}: {names}",

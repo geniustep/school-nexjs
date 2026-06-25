@@ -3468,6 +3468,14 @@
       "countRegistered": "Frères/sœurs enregistrés : {count}",
       "hasSiblingsNote": "Cet élève a des frères/sœurs enregistrés.",
       "detailsTitle": "Détails des frères/sœurs",
+      "declaredWithoutDetails": "Des frères/sœurs ont été déclarés sans détails suffisants.",
+      "admissionNotesTitle": "Notes de la demande d'inscription",
+      "source": {
+        "linked": "Lié à une fiche élève",
+        "admission": "Issu de la demande d'inscription",
+        "unlinked": "Pas encore lié à une fiche élève",
+        "admissionNote": "Cette information est enregistrée à partir des données d'inscription et n'est pas encore liée à un élève inscrit."
+      },
       "summaryWord": "frères/sœurs",
       "summaryTechnical": "{count} frères/sœurs : {names}",
       "summaryTechnicalWithYear": "{count} frères/sœurs — nés en {year} : {names}",

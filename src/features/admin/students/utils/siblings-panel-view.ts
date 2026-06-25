@@ -18,6 +18,11 @@ export interface SiblingsPanelView {
   declaredHasSiblings: boolean;
   /** True when the only signal we have is the boolean flag (no count, no details). */
   flagOnly: boolean;
+  /**
+   * True when siblings were declared (via flag or count) but there are no structured
+   * lines, no summary, and no legacy free-text — i.e. nothing concrete to show.
+   */
+  declaredWithoutDetails: boolean;
 }
 
 /**
@@ -41,6 +46,8 @@ export function resolveSiblingsPanelView(detail: SiblingsFieldsSource): Siblings
   const hasDetails = lines.length > 0 || hasSummary || hasLegacyText;
   const isEmpty = !hasDetails && registeredCount == null && !declaredHasSiblings;
   const flagOnly = !hasDetails && registeredCount == null && declaredHasSiblings;
+  const declaredAny = declaredHasSiblings || registeredCount != null;
+  const declaredWithoutDetails = declaredAny && !hasDetails;
 
   return {
     isEmpty,
@@ -50,5 +57,6 @@ export function resolveSiblingsPanelView(detail: SiblingsFieldsSource): Siblings
     hasLegacyText,
     declaredHasSiblings,
     flagOnly,
+    declaredWithoutDetails,
   };
 }

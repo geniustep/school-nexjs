@@ -7009,6 +7009,54 @@
   border: 1px solid color-mix(in srgb, var(--c-violet, #7c3aed) 14%, transparent);
 }
 
+.sibling-line-card__source {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 0.66rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.sibling-line-card__source--linked {
+  color: var(--c-green, #047857);
+  background: color-mix(in srgb, var(--c-green, #047857) 12%, var(--surface, #fff));
+  border: 1px solid color-mix(in srgb, var(--c-green, #047857) 22%, transparent);
+}
+
+.sibling-line-card__source--admission {
+  color: var(--c-amber, #b45309);
+  background: color-mix(in srgb, var(--c-amber, #b45309) 12%, var(--surface, #fff));
+  border: 1px solid color-mix(in srgb, var(--c-amber, #b45309) 22%, transparent);
+}
+
+.sibling-line-card__source-note {
+  margin: 6px 0 0;
+  line-height: 1.5;
+}
+
+.student-siblings-panel__declared-note {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px dashed color-mix(in srgb, var(--c-amber, #b45309) 30%, var(--c-border-subtle, #e8edf2));
+  background: color-mix(in srgb, var(--c-amber, #b45309) 7%, var(--surface-2, #f8fafc));
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--text, #0f172a);
+}
+
+.student-siblings-panel__legacy-title {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted, #64748b);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
 .sibling-line-card__link {
   flex-shrink: 0;
   font-size: 0.75rem;

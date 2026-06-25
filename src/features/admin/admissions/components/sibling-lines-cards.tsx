@@ -4,7 +4,12 @@ import Link from 'next/link';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { cleanDisplayValue } from '../utils/admission-labels';
-import { formatSiblingAgeAtAdmission, localizeSiblingRelationship } from '../utils/sibling-display';
+import {
+  formatSiblingAgeAtAdmission,
+  localizeSiblingRelationship,
+  resolveSiblingLineSource,
+  siblingLineLinkedStudentId,
+} from '../utils/sibling-display';
 import type { SiblingLine } from '@/types/sibling-line';
 
 function SiblingLineCard({ line }: { line: SiblingLine }) {
@@ -16,7 +21,8 @@ function SiblingLineCard({ line }: { line: SiblingLine }) {
   const age = formatSiblingAgeAtAdmission(line.age_years_at_admission, t);
   const level = cleanDisplayValue(line.level_text);
   const notes = cleanDisplayValue(line.notes);
-  const linkedId = line.linked_student_id ?? null;
+  const linkedId = siblingLineLinkedStudentId(line);
+  const source = resolveSiblingLineSource(line);
 
   const meta: Array<{ label: string; value: string }> = [];
   if (birthDate) {
@@ -47,6 +53,13 @@ function SiblingLineCard({ line }: { line: SiblingLine }) {
           {relationship ? (
             <span className="sibling-line-card__relation">{relationship}</span>
           ) : null}
+          <span
+            className={`sibling-line-card__source sibling-line-card__source--${source}`}
+          >
+            {source === 'linked'
+              ? t('admin.siblings.source.linked')
+              : t('admin.siblings.source.admission')}
+          </span>
         </div>
         {linkedId ? (
           <Link className="sibling-line-card__link" href={`/admin/students/${linkedId}`}>
@@ -54,6 +67,11 @@ function SiblingLineCard({ line }: { line: SiblingLine }) {
           </Link>
         ) : null}
       </header>
+      {source === 'admission' ? (
+        <p className="sibling-line-card__source-note tiny muted" dir="auto">
+          {t('admin.siblings.source.admissionNote')}
+        </p>
+      ) : null}
       {meta.length > 0 ? (
         <dl className="sibling-line-card__meta">
           {meta.map((item) => (

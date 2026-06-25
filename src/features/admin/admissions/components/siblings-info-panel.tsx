@@ -123,9 +123,11 @@ export function SiblingsInfoPanel({
             <p className="student-siblings-panel__count" dir="auto">
               {t('admin.siblings.countRegistered', { count: view.registeredCount })}
             </p>
-          ) : view.flagOnly ? (
-            <p className="student-siblings-panel__count" dir="auto">
-              {t('admin.siblings.hasSiblingsNote')}
+          ) : null}
+
+          {view.declaredWithoutDetails ? (
+            <p className="student-siblings-panel__declared-note" dir="auto">
+              {t('admin.siblings.declaredWithoutDetails')}
             </p>
           ) : null}
 
@@ -144,6 +146,9 @@ export function SiblingsInfoPanel({
 
           {showLegacy ? (
             <div className="student-siblings-panel__legacy">
+              <h4 className="student-siblings-panel__legacy-title">
+                {t('admin.siblings.admissionNotesTitle')}
+              </h4>
               {cleanDisplayValue(detail.siblings_raw_text) ? (
                 <p className="student-siblings-panel__legacy-item" dir="auto">
                   <span className="student-siblings-panel__legacy-label">{t('admin.siblings.rawText')}</span>
