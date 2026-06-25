@@ -5,6 +5,7 @@
   },
   "common": {
     "loading": "Cargando…",
+    "search": "Buscar",
     "retry": "Reintentar",
     "save": "Guardar",
     "cancel": "Cancelar",
@@ -5502,6 +5503,8 @@
         "detailSubtitle": "Espacio unificado de cuenta de pagador",
         "searchPlaceholder": "Buscar por nombre o referencia…",
         "totalAccounts": "{count} cuentas",
+        "accountCountLabel": "Cuentas",
+        "pageTotalsHint": "Solo totales de la página actual",
         "studentCountLabel": "{count} alumnos",
         "selectedYear": "Año seleccionado",
         "openFile": "Abrir cuenta",

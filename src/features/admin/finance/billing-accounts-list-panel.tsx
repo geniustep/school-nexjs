@@ -82,6 +82,21 @@ export function BillingAccountsListPanel({
   const pg = parsed.pagination ?? state.meta?.pagination;
   const totalCount = pg?.total ?? 0;
 
+  const pageTotals = useMemo(
+    () =>
+      rows.reduce(
+        (acc, row) => {
+          acc.totalDue += row.total_due ?? 0;
+          acc.remaining += row.total_remaining ?? 0;
+          acc.overdue += row.total_overdue ?? 0;
+          return acc;
+        },
+        { totalDue: 0, remaining: 0, overdue: 0 },
+      ),
+    [rows],
+  );
+  const pageCurrency = rows.find((row) => row.currency)?.currency;
+
   const columns: Column<BillingAccountListItem>[] = useMemo(
     () => [
       {
@@ -189,16 +204,46 @@ export function BillingAccountsListPanel({
 
   return (
     <>
-      <div className="finance-billing-accounts-meta">
+      <header className="finance-billing-accounts-header">
         {activeSchool ? (
-          <p className="muted">
+          <p className="muted finance-billing-accounts-school">
             {t('admin.finance.activeSchool')}: <strong dir="auto">{activeSchool.name}</strong>
           </p>
         ) : null}
-        <p className="muted">
-          {t('admin.finance.billingAccounts.totalAccounts', { count: String(totalCount) })}
-        </p>
-      </div>
+        <div className="finance-metrics-grid finance-billing-accounts-metrics">
+          <div className="card finance-metric-card">
+            <span className="muted">{t('admin.finance.billingAccounts.accountCountLabel')}</span>
+            {state.loading && !rows.length ? (
+              <span className="finance-skeleton finance-skeleton--metric" aria-hidden />
+            ) : (
+              <strong className="mono">{totalCount}</strong>
+            )}
+          </div>
+          <div className="card finance-metric-card">
+            <span className="muted">{t('admin.finance.billingAccounts.metrics.totalDue')}</span>
+            <strong>
+              <FinanceMoney amount={pageTotals.totalDue} currency={pageCurrency} />
+            </strong>
+          </div>
+          <div className="card finance-metric-card finance-metric-card--remaining">
+            <span className="muted">{t('admin.finance.billingAccounts.metrics.remaining')}</span>
+            <strong>
+              <FinanceMoney amount={pageTotals.remaining} currency={pageCurrency} />
+            </strong>
+          </div>
+          <div className="card finance-metric-card finance-metric-card--overdue">
+            <span className="muted">{t('admin.finance.billingAccounts.metrics.overdue')}</span>
+            <strong>
+              <FinanceMoney amount={pageTotals.overdue} currency={pageCurrency} />
+            </strong>
+          </div>
+        </div>
+        {rows.length > 0 ? (
+          <p className="tiny muted finance-billing-accounts-hint">
+            {t('admin.finance.billingAccounts.pageTotalsHint')}
+          </p>
+        ) : null}
+      </header>
 
       <form
         className="toolbar finance-hub-filters finance-billing-accounts-filters"
@@ -282,7 +327,7 @@ export function BillingAccountsListPanel({
 
       {!state.initialLoading && rows.length > 0 ? (
         <>
-          <div className="finance-billing-accounts-table-wrap">
+          <div className="finance-billing-accounts-table-wrap finance-billing-accounts-desktop">
             <DataTable
               columns={columns}
               rows={rows}
@@ -291,6 +336,57 @@ export function BillingAccountsListPanel({
                 window.location.href = `/admin/finance/billing-accounts/${row.billing_partner_id}`;
               }}
             />
+          </div>
+          <div className="finance-billing-accounts-mobile">
+            {rows.map((row) => (
+              <article key={row.billing_partner_id} className="card finance-billing-account-card">
+                <div className="finance-billing-account-card__head">
+                  <div className="finance-billing-account-card__identity">
+                    <strong dir="auto" className="finance-billing-account-name">
+                      {accountLabel(row)}
+                    </strong>
+                    {row.reference ? (
+                      <span className="mono tiny muted">{row.reference}</span>
+                    ) : null}
+                  </div>
+                  {row.status_label ?? row.status ? (
+                    <span className="finance-billing-account-card__status" dir="auto">
+                      {row.status_label ?? row.status}
+                    </span>
+                  ) : null}
+                </div>
+                <dl className="finance-billing-account-card__metrics">
+                  <div>
+                    <dt>{t('admin.finance.billingAccounts.columns.totalDue')}</dt>
+                    <dd>
+                      <FinanceMoney amount={row.total_due} currency={row.currency} />
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>{t('admin.finance.billingAccounts.columns.remaining')}</dt>
+                    <dd>
+                      <FinanceMoney amount={row.total_remaining} currency={row.currency} />
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>{t('admin.finance.billingAccounts.columns.overdue')}</dt>
+                    <dd>
+                      <FinanceMoney amount={row.total_overdue} currency={row.currency} />
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>{t('admin.finance.billingAccounts.columns.studentCount')}</dt>
+                    <dd className="mono">{row.student_count ?? t('common.dash')}</dd>
+                  </div>
+                </dl>
+                <Link
+                  href={`/admin/finance/billing-accounts/${row.billing_partner_id}${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ''}`}
+                  className="btn btn--ghost btn--sm finance-billing-account-card__action"
+                >
+                  {t('admin.finance.billingAccounts.openFile')}
+                </Link>
+              </article>
+            ))}
           </div>
           {pg ? (
             <Pagination

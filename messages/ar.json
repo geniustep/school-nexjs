@@ -5,6 +5,7 @@
   },
   "common": {
     "loading": "جاري التحميل…",
+    "search": "بحث",
     "retry": "إعادة المحاولة",
     "save": "حفظ",
     "cancel": "إلغاء",
@@ -5544,6 +5545,8 @@
         "detailSubtitle": "ملف الحساب المالي الموحد",
         "searchPlaceholder": "بحث بالاسم أو المرجع…",
         "totalAccounts": "{count} حساب",
+        "accountCountLabel": "عدد الحسابات",
+        "pageTotalsHint": "إجماليات الصفحة الحالية فقط",
         "studentCountLabel": "{count} تلميذ",
         "selectedYear": "سنة محددة",
         "openFile": "فتح الملف",

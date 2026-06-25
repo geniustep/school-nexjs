@@ -10,7 +10,6 @@ import {
   BillingAccountsListPanel,
   type BillingAccountsListFilters,
 } from '@/features/admin/finance/billing-accounts-list-panel';
-import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { FINANCE_VIEW, canViewStudentBalance } from '@/lib/permissions/finance';
 import { PermissionDeniedState } from '@/components/states/states';
@@ -45,8 +44,6 @@ export default function AdminFinanceBillingAccountsPage() {
   const user = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { schools, activeSchoolId } = useAdminSession();
-  const activeSchool = schools.find((s) => s.id === activeSchoolId);
   const returnTo = sanitizeReturnTo(searchParams.get('returnTo'), '/admin/finance/billing-accounts');
   const filters = useMemo(() => readFilters(searchParams), [searchParams]);
 
@@ -92,11 +89,6 @@ export default function AdminFinanceBillingAccountsPage() {
           </div>
         }
       />
-      {activeSchool ? (
-        <p className="muted finance-billing-page-school">
-          {t('admin.finance.activeSchool')}: <strong dir="auto">{activeSchool.name}</strong>
-        </p>
-      ) : null}
       <BillingAccountsListPanel
         filters={filters}
         onFiltersChange={onFiltersChange}

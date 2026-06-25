@@ -3195,20 +3195,162 @@
   margin-bottom: 12px;
 }
 
+/* Billing accounts — list header */
+.finance-billing-accounts-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.finance-billing-accounts-school {
+  margin: 0;
+}
+
+.finance-billing-accounts-metrics {
+  margin-block: 8px 0;
+}
+
+.finance-billing-accounts-hint {
+  margin: 0;
+}
+
+.finance-metric-card--remaining strong {
+  color: var(--c-blue, #2563eb);
+}
+
+.finance-metric-card--overdue strong {
+  color: #b42318;
+}
+
+/* Billing accounts — filters */
 .finance-billing-accounts-filters,
 .finance-billing-detail-filters {
   margin-bottom: 16px;
+}
+
+.finance-filter-field {
+  display: grid;
+  gap: 4px;
+  flex: 1 1 180px;
+  min-width: min(100%, 180px);
+}
+
+.finance-filter-field .input {
+  width: 100%;
 }
 
 .finance-filter-checkbox {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  align-self: end;
+  align-self: flex-end;
+  padding-block: 8px;
+  white-space: nowrap;
 }
 
+.finance-filter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-end;
+  align-self: flex-end;
+  margin-inline-start: auto;
+}
+
+.finance-page-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.finance-billing-account-name {
+  font-weight: 600;
+}
+
+/* Billing accounts — responsive list */
 .finance-billing-accounts-table-wrap {
   overflow-x: auto;
+}
+
+.finance-billing-accounts-mobile {
+  display: none;
+}
+
+.finance-billing-account-card {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.finance-billing-account-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.finance-billing-account-card__identity {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.finance-billing-account-card__status {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--c-surface-2, #f2f4f7);
+  color: var(--c-muted, #475467);
+}
+
+.finance-billing-account-card__metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 12px;
+  margin: 0;
+}
+
+.finance-billing-account-card__metrics dt {
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--c-muted, #64748b);
+}
+
+.finance-billing-account-card__metrics dd {
+  margin: 2px 0 0;
+  font-weight: 600;
+}
+
+.finance-billing-account-card__action {
+  justify-self: stretch;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .finance-billing-accounts-desktop {
+    display: none;
+  }
+
+  .finance-billing-accounts-mobile {
+    display: block;
+  }
+
+  .finance-billing-accounts-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .finance-filter-actions {
+    margin-inline-start: 0;
+    width: 100%;
+  }
+
+  .finance-filter-actions .btn {
+    flex: 1 1 auto;
+  }
 }
 
 .finance-billing-summary-grid {

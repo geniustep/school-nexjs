@@ -5,6 +5,7 @@
   },
   "common": {
     "loading": "Chargement…",
+    "search": "Rechercher",
     "retry": "Réessayer",
     "save": "Enregistrer",
     "cancel": "Annuler",
@@ -5502,6 +5503,8 @@
         "detailSubtitle": "Espace compte payeur unifié",
         "searchPlaceholder": "Rechercher par nom ou référence…",
         "totalAccounts": "{count} comptes",
+        "accountCountLabel": "Comptes",
+        "pageTotalsHint": "Totaux de la page actuelle uniquement",
         "studentCountLabel": "{count} élèves",
         "selectedYear": "Année sélectionnée",
         "openFile": "Ouvrir le dossier",
