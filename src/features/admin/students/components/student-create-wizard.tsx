@@ -71,6 +71,7 @@ import {
   resolveStudentCreateAgreementState,
   type StudentCreateFinanceActivationMode,
 } from '../utils/student-create-finance-activation';
+import { resolveStudentCreateFinanceStepGate } from '../utils/student-create-finance-skip';
 import {
   resolveStudentCreateIdentifierCheckErrors,
   validateStudentCreateIdentifierDuplicateChecks,
@@ -159,6 +160,7 @@ export function StudentCreateForm({
   const [classClearedNotice, setClassClearedNotice] = useState(false);
   const [cycleChangedNotice, setCycleChangedNotice] = useState(false);
   const [planChangeWarning, setPlanChangeWarning] = useState(false);
+  const [skipFinance, setSkipFinance] = useState(false);
   const financeTouchedRef = useRef(false);
   const lastSuggestFingerprintRef = useRef('');
   const lastFeePlanIdRef = useRef<number | null>(null);
@@ -632,27 +634,36 @@ export function StudentCreateForm({
           return false;
         }
       }
-      if (Boolean(suggestState.suggest)) {
-        const financeReason = getStudentCreateFinanceBlockReason(state, resolvedSchoolId);
-        if (financeReason !== 'ok') {
-          return applyFinancePrerequisiteFailure(financeReason, 'step');
-        }
+      const gate = resolveStudentCreateFinanceStepGate({
+        skipFinance,
+        levelSelected,
+        suggestLoading: suggestState.loading,
+        financeBlocked,
+        suggest: suggestState.suggest,
+        prerequisiteReason: getStudentCreateFinanceBlockReason(state, resolvedSchoolId),
+      });
+      if (gate.status === 'skip') {
+        setFinanceError(null);
+        return true;
       }
-      if (!levelSelected) {
+      if (gate.status === 'prerequisite') {
+        return applyFinancePrerequisiteFailure(gate.prerequisiteReason ?? 'class', 'step');
+      }
+      if (gate.status === 'select_level') {
         toast.error(t('admin.student360.create.finance.selectLevelForPlan'));
         return false;
       }
-      if (suggestState.loading) {
+      if (gate.status === 'loading') {
         toast.error(t('admin.student360.create.finance.loading'));
         return false;
       }
-      if (financeBlocked) {
+      if (gate.status === 'blocked') {
         const message = resolveNoDefaultFeePlanMessage(suggestState.error, t);
         setFinanceError(message);
         toast.error(message);
         return false;
       }
-      if (!suggestState.suggest) {
+      if (gate.status === 'no_plan') {
         toast.error(t('admin.student360.create.finance.required'));
         return false;
       }
@@ -688,7 +699,9 @@ export function StudentCreateForm({
     }
     if (!validateStep('review', flushed.checks)) return;
 
-    if (suggestState.suggest) {
+    const attachFinance = !skipFinance && Boolean(suggestState.suggest);
+
+    if (attachFinance) {
       const financeReason = getStudentCreateFinanceBlockReason(state, resolvedSchoolId);
       if (financeReason !== 'ok') {
         applyFinancePrerequisiteFailure(financeReason, 'save');
@@ -696,7 +709,7 @@ export function StudentCreateForm({
       }
     }
 
-    if (activation === 'activate' && suggestState.suggest) {
+    if (activation === 'activate' && attachFinance) {
       if (
         !canOfferFinanceAgreementActivation({
           suggest: suggestState.suggest,
@@ -718,7 +731,7 @@ export function StudentCreateForm({
     setFinanceActivationMode(activation);
     setSaving(true);
     const payload = buildStudentCreatePayload(state, {
-      suggest: suggestState.suggest,
+      suggest: attachFinance ? suggestState.suggest : null,
       financeState,
       schoolId: resolvedSchoolId,
       activationMode: activation === 'activate' ? 'activate' : undefined,
@@ -790,21 +803,22 @@ export function StudentCreateForm({
     identifierChecksState.checks.massarCode.status === 'duplicate' ||
     displayFieldErrors.massarCode === t('admin.student360.errors.duplicateMassar');
 
-  const canActivateFinanceAgreement = canOfferFinanceAgreementActivation({
-    suggest: suggestState.suggest,
-    financeBlocked,
-    state,
-    schoolId: resolvedSchoolId,
-    financeState,
-    previewLoading: previewState.loading,
-    previewError: previewState.error,
-    preview: previewState.preview,
-  });
+  const canActivateFinanceAgreement =
+    !skipFinance &&
+    canOfferFinanceAgreementActivation({
+      suggest: suggestState.suggest,
+      financeBlocked,
+      state,
+      schoolId: resolvedSchoolId,
+      financeState,
+      previewLoading: previewState.loading,
+      previewError: previewState.error,
+      preview: previewState.preview,
+    });
 
   const saveDisabled =
     saving ||
-    financeBlocked ||
-    financePrerequisitesMissing ||
+    (!skipFinance && (financeBlocked || financePrerequisitesMissing)) ||
     massarDuplicate ||
     identifierChecksState.identifierChecksBlockProgress;
 
@@ -973,25 +987,50 @@ export function StudentCreateForm({
 
       {step === 'finance' ? (
         <>
-          {financeError ? (
+          {financeError && !skipFinance ? (
             <p className="student-create-form__notice" role="alert">
               {financeError}
             </p>
           ) : null}
-          <StudentCreateFeePlanSection
-            suggest={suggestState.suggest}
-            loading={suggestState.loading}
-            error={suggestState.error}
-            levelSelected={levelSelected}
-            financeState={financeState}
-            planChangeWarning={planChangeWarning}
-            preview={previewState.preview}
-            previewLoading={previewState.loading}
-            previewError={previewState.error}
-            onFinanceChange={patchFinance}
-            onSelectPlan={handleSelectFeePlan}
-            onRetry={suggestState.reload}
-          />
+          <div className="student-create-form__skip-finance">
+            <label className="student-create-form__checkbox">
+              <input
+                type="checkbox"
+                checked={skipFinance}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setSkipFinance(checked);
+                  if (checked) setFinanceError(null);
+                }}
+              />
+              <span className="student-create-form__checkbox-text">
+                <span>{t('admin.student360.create.finance.skipFinanceToggle')}</span>
+                <span className="tiny muted">
+                  {t('admin.student360.create.finance.skipFinanceHint')}
+                </span>
+              </span>
+            </label>
+          </div>
+          {skipFinance ? (
+            <p className="student-create-form__notice" role="status">
+              {t('admin.student360.create.finance.skipFinanceActive')}
+            </p>
+          ) : (
+            <StudentCreateFeePlanSection
+              suggest={suggestState.suggest}
+              loading={suggestState.loading}
+              error={suggestState.error}
+              levelSelected={levelSelected}
+              financeState={financeState}
+              planChangeWarning={planChangeWarning}
+              preview={previewState.preview}
+              previewLoading={previewState.loading}
+              previewError={previewState.error}
+              onFinanceChange={patchFinance}
+              onSelectPlan={handleSelectFeePlan}
+              onRetry={suggestState.reload}
+            />
+          )}
         </>
       ) : null}
 
@@ -1005,14 +1044,15 @@ export function StudentCreateForm({
           <StudentCreateReviewSection
             profileState={state}
             billingState={billingState}
-            suggest={suggestState.suggest}
+            suggest={skipFinance ? null : suggestState.suggest}
             financeState={financeState}
             preview={previewState.preview}
             previewLoading={previewState.loading}
             previewError={previewState.error}
-            financeBlocked={financeBlocked}
+            financeBlocked={!skipFinance && financeBlocked}
+            financeSkipped={skipFinance}
             massarDuplicate={massarDuplicate}
-            classMissingForFinance={classMissingForFinance}
+            classMissingForFinance={!skipFinance && classMissingForFinance}
             enrollmentClassLabel={enrollmentClassLabel}
           />
         </>

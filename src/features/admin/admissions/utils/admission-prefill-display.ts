@@ -5,6 +5,8 @@ const PREFILL_MESSAGE_KEYS: Record<string, string> = {
   'Registration offer is not accepted yet.': 'admin.admissions.prefill.messages.offerNotAccepted',
   'Application is not confirmed yet.': 'admin.admissions.prefill.messages.applicationNotConfirmed',
   'Guardian contact information is missing.': 'admin.admissions.prefill.messages.guardianContactMissing',
+  'Guardian phone is required.': 'admin.admissions.prefill.messages.guardianPhoneRequired',
+  'Application is already linked to a student.': 'admin.admissions.prefill.messages.applicationAlreadyLinkedToStudent',
   'Student name is missing.': 'admin.admissions.prefill.messages.studentNameMissing',
   'Birth date is missing.': 'admin.admissions.prefill.messages.birthDateMissing',
   'Gender is missing.': 'admin.admissions.prefill.messages.genderMissing',

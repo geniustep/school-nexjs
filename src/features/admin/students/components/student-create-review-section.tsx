@@ -34,6 +34,7 @@ export function StudentCreateReviewSection({
   previewLoading,
   previewError,
   financeBlocked,
+  financeSkipped = false,
   massarDuplicate = false,
   classMissingForFinance = false,
   enrollmentClassLabel = null,
@@ -46,6 +47,7 @@ export function StudentCreateReviewSection({
   previewLoading?: boolean;
   previewError?: string | null;
   financeBlocked: boolean;
+  financeSkipped?: boolean;
   massarDuplicate?: boolean;
   classMissingForFinance?: boolean;
   enrollmentClassLabel?: string | null;
@@ -81,6 +83,11 @@ export function StudentCreateReviewSection({
       {massarMissing ? (
         <p className="student-create-form__notice" role="status">
           {t('admin.student360.create.review.optionalMassarHint')}
+        </p>
+      ) : null}
+      {financeSkipped ? (
+        <p className="student-create-form__notice" role="status">
+          {t('admin.student360.create.review.financeSkippedNotice')}
         </p>
       ) : null}
       {!profileState.academicYearId.trim() && suggest ? (
@@ -279,7 +286,7 @@ export function StudentCreateReviewSection({
             ) : null}
           </dl>
         </article>
-      ) : (
+      ) : financeSkipped ? null : (
         <p className="student-create-form__footnote">{t('admin.student360.create.finance.waitingEnrollment')}</p>
       )}
     </StudentCreateStyledSection>
