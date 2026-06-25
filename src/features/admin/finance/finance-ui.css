@@ -3219,20 +3219,237 @@
   margin: 6px 0 0;
 }
 
-.finance-billing-detail-header {
+/* Billing account detail — page shell */
+.finance-billing-detail-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 1200px;
+  margin-inline: auto;
+}
+
+.finance-billing-detail-page .back-link {
+  align-self: flex-start;
+}
+
+/* Billing account detail — hero */
+.finance-billing-hero {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 16px;
-  padding: 16px;
+  align-items: flex-start;
+  gap: 16px 24px;
+  padding: 20px 22px;
+  border-radius: 16px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--c-blue-soft, #eff6ff) 60%, var(--surface, #fff)),
+    var(--surface, #fff)
+  );
 }
 
-.finance-billing-detail-header__meta,
-.finance-billing-detail-header__contact {
+.finance-billing-hero__main {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  min-width: 0;
+  flex: 1 1 320px;
+}
+
+.finance-billing-hero__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  flex-shrink: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--c-blue, #2563eb);
+  background: color-mix(in srgb, var(--c-blue, #2563eb) 12%, var(--surface, #fff));
+  border: 1px solid color-mix(in srgb, var(--c-blue, #2563eb) 20%, transparent);
+}
+
+.finance-billing-hero__identity {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.finance-billing-hero__eyebrow {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted, #64748b);
+}
+
+.finance-billing-hero__title {
+  margin: 0;
+  font-size: clamp(1.3rem, 2.5vw, 1.7rem);
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.finance-billing-hero__reference {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+  color: var(--text-muted, #64748b);
+}
+
+.finance-billing-hero__meta {
   display: flex;
   flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.finance-billing-hero__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  background: var(--surface, #fff);
+  border: 1px solid var(--c-border, #e2e8f0);
+  color: var(--text, #0f172a);
+}
+
+.finance-billing-hero__chip svg {
+  color: var(--text-muted, #64748b);
+  flex-shrink: 0;
+}
+
+.finance-billing-hero__contact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-top: 8px;
+}
+
+.finance-billing-hero__contact-link {
+  font-size: 0.82rem;
+  color: var(--c-blue, #2563eb);
+  text-decoration: none;
+}
+
+.finance-billing-hero__contact-link:hover {
+  text-decoration: underline;
+}
+
+/* Billing account detail — filters */
+.finance-billing-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px 16px;
+  padding: 14px 16px;
+  border-radius: 12px;
+}
+
+.finance-billing-filters__field {
+  display: grid;
+  gap: 4px;
+  min-width: min(100%, 180px);
+  flex: 1 1 180px;
+}
+
+.finance-billing-filters__label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted, #64748b);
+}
+
+.finance-billing-filters__submit {
+  flex: 0 0 auto;
+}
+
+/* Billing account detail — KPI cards */
+.finance-billing-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
   gap: 12px;
+}
+
+.finance-billing-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  background: var(--surface, #fff);
+  min-height: 88px;
+}
+
+.finance-billing-kpi__label {
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: var(--text-muted, #64748b);
+}
+
+.finance-billing-kpi__value {
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text, #0f172a);
+}
+
+.finance-billing-kpi__amount {
+  font-variant-numeric: tabular-nums;
+}
+
+.finance-billing-kpi__hint {
+  margin: auto 0 0;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: var(--text-muted, #64748b);
+}
+
+.finance-billing-kpi--blue {
+  border-color: color-mix(in srgb, var(--c-blue, #2563eb) 22%, var(--c-border, #e2e8f0));
+  background: linear-gradient(180deg, var(--c-blue-soft, #eff6ff), var(--surface, #fff));
+}
+
+.finance-billing-kpi--blue .finance-billing-kpi__value {
+  color: var(--c-blue, #2563eb);
+}
+
+.finance-billing-kpi--green {
+  border-color: color-mix(in srgb, var(--c-green, #16a34a) 22%, var(--c-border, #e2e8f0));
+  background: linear-gradient(180deg, var(--c-green-soft, #f0fdf4), var(--surface, #fff));
+}
+
+.finance-billing-kpi--green .finance-billing-kpi__value {
+  color: var(--c-green, #16a34a);
+}
+
+.finance-billing-kpi--amber {
+  border-color: color-mix(in srgb, var(--c-amber, #d97706) 22%, var(--c-border, #e2e8f0));
+  background: linear-gradient(180deg, var(--c-amber-soft, #fffbeb), var(--surface, #fff));
+}
+
+.finance-billing-kpi--amber .finance-billing-kpi__value {
+  color: var(--c-amber, #d97706);
+}
+
+.finance-billing-kpi--red {
+  border-color: color-mix(in srgb, var(--c-red, #dc2626) 22%, var(--c-border, #e2e8f0));
+  background: linear-gradient(180deg, var(--c-red-soft, #fef2f2), var(--surface, #fff));
+}
+
+.finance-billing-kpi--red .finance-billing-kpi__value {
+  color: var(--c-red, #dc2626);
+}
+
+.finance-billing-kpi--slate {
+  background: color-mix(in srgb, var(--c-border, #e2e8f0) 16%, var(--surface, #fff));
 }
 
 .finance-billing-actions {
@@ -3314,6 +3531,18 @@
   justify-content: space-between;
 }
 
+.finance-billing-activity-state {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: var(--c-surface-2, #f1f5f9);
+  border: 1px solid var(--c-border, #e2e8f0);
+  color: var(--text, #0f172a);
+}
+
 .finance-billing-dq-grid {
   display: grid;
   gap: 16px;
@@ -3374,8 +3603,20 @@
     display: block;
   }
 
-  .finance-billing-detail-header {
+  .finance-billing-hero {
     flex-direction: column;
+  }
+
+  .finance-billing-hero .finance-billing-actions {
+    width: 100%;
+  }
+
+  .finance-billing-filters__submit {
+    width: 100%;
+  }
+
+  .finance-billing-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .finance-credit-list-desktop,

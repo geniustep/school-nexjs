@@ -790,6 +790,7 @@
       "subtitleWithCount": "{total} تلميذ في نطاقك",
       "resultsCount": "{count} نتيجة",
       "resetFilters": "إعادة الضبط",
+      "applyFilters": "تطبيق الفلاتر",
       "columnStudent": "التلميذ",
       "columnClassLevel": "القسم / المستوى"
     },
@@ -5605,10 +5606,29 @@
             "confirmed_collection": "تحصيل مؤكد",
             "receipt_issued": "إيصال صادر",
             "unallocated_amount": "مبلغ غير موزع",
+            "cheque_received": "استلام شيك",
+            "cheque_collected": "تحصيل شيك",
+            "cheque_deposited": "إيداع شيك",
             "cheque_rejected": "شيك مرفوض",
             "cheque_cleared": "شيك محصل",
             "collection_reversed": "تحصيل معكوس",
             "new_due": "مستحق جديد"
+          },
+          "states": {
+            "received": "مستلم",
+            "deposited": "مودع",
+            "cleared": "محصّل",
+            "bounced": "مرتجع",
+            "rejected": "مرفوض",
+            "replaced": "مستبدل",
+            "cancelled": "ملغى",
+            "confirmed": "مؤكد",
+            "pending": "قيد المعالجة",
+            "reversed": "معكوس",
+            "settled": "مُسوّى",
+            "unallocated": "غير موزّع",
+            "allocated": "موزّع",
+            "partially_allocated": "موزّع جزئيًا"
           }
         },
         "actions": {

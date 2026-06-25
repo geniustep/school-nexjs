@@ -790,6 +790,7 @@
       "subtitleWithCount": "{total} élèves dans votre périmètre",
       "resultsCount": "{count} résultats",
       "resetFilters": "Réinitialiser",
+      "applyFilters": "Appliquer les filtres",
       "columnStudent": "Élève",
       "columnClassLevel": "Classe / Niveau"
     },
@@ -5563,10 +5564,29 @@
             "confirmed_collection": "Encaissement confirmé",
             "receipt_issued": "Reçu émis",
             "unallocated_amount": "Montant non affecté",
+            "cheque_received": "Chèque reçu",
+            "cheque_collected": "Chèque encaissé",
+            "cheque_deposited": "Chèque déposé",
             "cheque_rejected": "Chèque rejeté",
             "cheque_cleared": "Chèque encaissé",
             "collection_reversed": "Encaissement annulé",
             "new_due": "Nouvelle échéance"
+          },
+          "states": {
+            "received": "Reçu",
+            "deposited": "Déposé",
+            "cleared": "Encaissé",
+            "bounced": "Rejeté par la banque",
+            "rejected": "Rejeté",
+            "replaced": "Remplacé",
+            "cancelled": "Annulé",
+            "confirmed": "Confirmé",
+            "pending": "En attente",
+            "reversed": "Annulé",
+            "settled": "Réglé",
+            "unallocated": "Non affecté",
+            "allocated": "Affecté",
+            "partially_allocated": "Partiellement affecté"
           }
         },
         "actions": {

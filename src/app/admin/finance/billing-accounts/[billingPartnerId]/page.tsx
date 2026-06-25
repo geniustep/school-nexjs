@@ -5,9 +5,8 @@ import { use, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import '@/features/admin/finance/finance-ui.css';
 import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
-import { PageHeader } from '@/components/ui/primitives';
 import { EmptyState } from '@/components/states/states';
-import { LoadingState } from '@/components/states/states';
+import { IconUsers, IconBuilding, IconGraduationCap } from '@/components/icons/admin-icons';
 import {
   BillingAccountActionsBar,
   BillingAccountActivitySection,
@@ -92,55 +91,88 @@ export default function AdminFinanceBillingAccountDetailPage({
     detail?.billing_account.name ??
     `#${billingPartnerId}`;
 
+  const accountInitials = getAccountInitials(accountName);
+  const studentCount = detail
+    ? detail.summary.student_count ?? detail.students.length
+    : 0;
+  const selectedYearLabel = academicYearId
+    ? yearOptions.find((y) => String(y.id) === academicYearId)?.name ??
+      t('admin.finance.billingAccounts.selectedYear')
+    : t('admin.finance.hub.allAcademicYears');
+
   return (
     <RequireAdminPermission permission={FINANCE_VIEW}>
-      <Link href={returnTo} className="back-link">
-        ‹ {t('admin.finance.billingAccounts.backToList')}
-      </Link>
+      <div className="finance-billing-detail-page">
+        <Link href={returnTo} className="back-link">
+          ‹ {t('admin.finance.billingAccounts.backToList')}
+        </Link>
 
-      <PageHeader
-        title={accountName}
-        subtitle={t('admin.finance.billingAccounts.detailSubtitle')}
-      />
+        {state.error ? (
+          <BillingAccountDetailError code={state.error.code} onRetry={state.reload} />
+        ) : null}
 
-      {state.error ? (
-        <BillingAccountDetailError code={state.error.code} onRetry={state.reload} />
-      ) : null}
+        {state.initialLoading ? <BillingAccountDetailSkeleton /> : null}
 
-      {state.initialLoading ? <BillingAccountDetailSkeleton /> : null}
-
-      {detail && !state.initialLoading ? (
+        {detail && !state.initialLoading ? (
           <>
-            <div className="finance-billing-detail-header card">
-              <div className="finance-billing-detail-header__main">
-                <h1 dir="auto">{accountName}</h1>
-                {detail.billing_account.reference ? (
-                  <p className="mono muted">{detail.billing_account.reference}</p>
-                ) : null}
-                <div className="finance-billing-detail-header__meta muted">
-                  <span>
-                    {t('admin.finance.billingAccounts.studentCountLabel', {
-                      count: String(detail.summary.student_count ?? detail.students.length),
-                    })}
-                  </span>
-                  {activeSchool ? (
-                    <span dir="auto">
-                      {t('admin.finance.activeSchool')}: {activeSchool.name}
-                    </span>
+            <header className="finance-billing-hero card">
+              <div className="finance-billing-hero__main">
+                <span className="finance-billing-hero__avatar" aria-hidden>
+                  {accountInitials}
+                </span>
+                <div className="finance-billing-hero__identity">
+                  <p className="finance-billing-hero__eyebrow">
+                    {t('admin.finance.billingAccounts.detailSubtitle')}
+                  </p>
+                  <h1 className="finance-billing-hero__title" dir="auto">
+                    {accountName}
+                  </h1>
+                  {detail.billing_account.reference ? (
+                    <p className="finance-billing-hero__reference mono">
+                      {detail.billing_account.reference}
+                    </p>
                   ) : null}
-                  <span>
-                    {academicYearId
-                      ? yearOptions.find((y) => String(y.id) === academicYearId)?.name ??
-                        t('admin.finance.billingAccounts.selectedYear')
-                      : t('admin.finance.hub.allAcademicYears')}
-                  </span>
-                </div>
-                {detail.billing_account.phone || detail.billing_account.email ? (
-                  <div className="finance-billing-detail-header__contact muted tiny">
-                    {detail.billing_account.phone ? <span dir="ltr">{detail.billing_account.phone}</span> : null}
-                    {detail.billing_account.email ? <span dir="ltr">{detail.billing_account.email}</span> : null}
+                  <div className="finance-billing-hero__meta">
+                    <span className="finance-billing-hero__chip">
+                      <IconUsers size={14} />
+                      {t('admin.finance.billingAccounts.studentCountLabel', {
+                        count: String(studentCount),
+                      })}
+                    </span>
+                    {activeSchool ? (
+                      <span className="finance-billing-hero__chip" dir="auto">
+                        <IconBuilding size={14} />
+                        {activeSchool.name}
+                      </span>
+                    ) : null}
+                    <span className="finance-billing-hero__chip">
+                      <IconGraduationCap size={14} />
+                      {selectedYearLabel}
+                    </span>
                   </div>
-                ) : null}
+                  {detail.billing_account.phone || detail.billing_account.email ? (
+                    <div className="finance-billing-hero__contact">
+                      {detail.billing_account.phone ? (
+                        <a
+                          className="finance-billing-hero__contact-link mono"
+                          href={`tel:${detail.billing_account.phone}`}
+                          dir="ltr"
+                        >
+                          {detail.billing_account.phone}
+                        </a>
+                      ) : null}
+                      {detail.billing_account.email ? (
+                        <a
+                          className="finance-billing-hero__contact-link"
+                          href={`mailto:${detail.billing_account.email}`}
+                          dir="ltr"
+                        >
+                          {detail.billing_account.email}
+                        </a>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </div>
               </div>
               <BillingAccountActionsBar
                 billingPartnerId={Number(billingPartnerId)}
@@ -149,10 +181,10 @@ export default function AdminFinanceBillingAccountDetailPage({
                 academicYearId={academicYearId}
                 account={detail.billing_account}
               />
-            </div>
+            </header>
 
             <form
-              className="toolbar finance-hub-filters finance-billing-detail-filters"
+              className="finance-billing-filters card"
               onSubmit={(e) => {
                 e.preventDefault();
                 const fd = new FormData(e.currentTarget);
@@ -163,8 +195,10 @@ export default function AdminFinanceBillingAccountDetailPage({
                 });
               }}
             >
-              <label className="finance-filter-field">
-                <span className="tiny muted">{t('admin.finance.hub.filterAcademicYear')}</span>
+              <label className="finance-billing-filters__field">
+                <span className="finance-billing-filters__label">
+                  {t('admin.finance.hub.filterAcademicYear')}
+                </span>
                 <select
                   className="input"
                   name="academic_year_id"
@@ -178,15 +212,19 @@ export default function AdminFinanceBillingAccountDetailPage({
                   ))}
                 </select>
               </label>
-              <label className="finance-filter-field">
-                <span className="tiny muted">{t('admin.finance.billingAccounts.filters.class')}</span>
+              <label className="finance-billing-filters__field">
+                <span className="finance-billing-filters__label">
+                  {t('admin.finance.billingAccounts.filters.class')}
+                </span>
                 <input className="input" name="class_id" defaultValue={classId} inputMode="numeric" />
               </label>
-              <label className="finance-filter-field">
-                <span className="tiny muted">{t('admin.finance.billingAccounts.filters.level')}</span>
+              <label className="finance-billing-filters__field">
+                <span className="finance-billing-filters__label">
+                  {t('admin.finance.billingAccounts.filters.level')}
+                </span>
                 <input className="input" name="level_id" defaultValue={levelId} inputMode="numeric" />
               </label>
-              <button type="submit" className="btn btn--primary btn--sm">
+              <button type="submit" className="btn btn--primary finance-billing-filters__submit">
                 {t('admin.studentsList.applyFilters')}
               </button>
             </form>
@@ -223,6 +261,17 @@ export default function AdminFinanceBillingAccountDetailPage({
             />
           </>
         ) : null}
+      </div>
     </RequireAdminPermission>
   );
+}
+
+function getAccountInitials(name: string): string {
+  const cleaned = name.replace(/^#/, '').trim();
+  if (!cleaned) return '#';
+  const words = cleaned.split(/\s+/).filter(Boolean);
+  if (words.length === 1) {
+    return words[0].slice(0, 2).toUpperCase();
+  }
+  return (words[0][0] + words[words.length - 1][0]).toUpperCase();
 }

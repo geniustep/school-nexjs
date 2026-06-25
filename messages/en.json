@@ -790,6 +790,7 @@
       "subtitleWithCount": "{total} pupils in your scope",
       "resultsCount": "{count} results",
       "resetFilters": "Reset filters",
+      "applyFilters": "Apply filters",
       "columnStudent": "Pupil",
       "columnClassLevel": "Class / Level"
     },
@@ -5568,10 +5569,29 @@
             "confirmed_collection": "Confirmed collection",
             "receipt_issued": "Receipt issued",
             "unallocated_amount": "Unallocated amount",
+            "cheque_received": "Cheque received",
+            "cheque_collected": "Cheque collected",
+            "cheque_deposited": "Cheque deposited",
             "cheque_rejected": "Cheque rejected",
             "cheque_cleared": "Cheque cleared",
             "collection_reversed": "Collection reversed",
             "new_due": "New due amount"
+          },
+          "states": {
+            "received": "Received",
+            "deposited": "Deposited",
+            "cleared": "Cleared",
+            "bounced": "Bounced",
+            "rejected": "Rejected",
+            "replaced": "Replaced",
+            "cancelled": "Cancelled",
+            "confirmed": "Confirmed",
+            "pending": "Pending",
+            "reversed": "Reversed",
+            "settled": "Settled",
+            "unallocated": "Unallocated",
+            "allocated": "Allocated",
+            "partially_allocated": "Partially allocated"
           }
         },
         "actions": {

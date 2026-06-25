@@ -790,6 +790,7 @@
       "subtitleWithCount": "{total} alumnos en su ámbito",
       "resultsCount": "{count} resultados",
       "resetFilters": "Restablecer",
+      "applyFilters": "Aplicar filtros",
       "columnStudent": "Alumno",
       "columnClassLevel": "Clase / Nivel"
     },
@@ -5563,10 +5564,29 @@
             "confirmed_collection": "Cobro confirmado",
             "receipt_issued": "Recibo emitido",
             "unallocated_amount": "Importe sin asignar",
+            "cheque_received": "Cheque recibido",
+            "cheque_collected": "Cheque cobrado",
+            "cheque_deposited": "Cheque depositado",
             "cheque_rejected": "Cheque rechazado",
             "cheque_cleared": "Cheque cobrado",
             "collection_reversed": "Cobro revertido",
             "new_due": "Nueva deuda"
+          },
+          "states": {
+            "received": "Recibido",
+            "deposited": "Depositado",
+            "cleared": "Cobrado",
+            "bounced": "Devuelto",
+            "rejected": "Rechazado",
+            "replaced": "Reemplazado",
+            "cancelled": "Cancelado",
+            "confirmed": "Confirmado",
+            "pending": "Pendiente",
+            "reversed": "Revertido",
+            "settled": "Liquidado",
+            "unallocated": "Sin asignar",
+            "allocated": "Asignado",
+            "partially_allocated": "Asignado parcialmente"
           }
         },
         "actions": {

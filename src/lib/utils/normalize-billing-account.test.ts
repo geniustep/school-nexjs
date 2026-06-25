@@ -8,7 +8,10 @@ import {
   normalizeBillingAccountList,
   normalizeBillingAccountListItem,
   normalizeBillingAccountSummary,
+  normalizeBillingActivityStateKey,
   parseBillingAccountListResponse,
+  resolveBillingActivityStateLabel,
+  resolveBillingActivityTypeLabel,
 } from '@/lib/utils/normalize-billing-account';
 
 describe('normalizeBillingAccountListItem', () => {
@@ -141,5 +144,42 @@ describe('financial metric separation', () => {
     expect(row?.confirmed_paid).toBe(900);
     expect(row?.confirmed_collection_amount).toBe(1000);
     expect(row?.confirmed_paid).not.toBe(row?.confirmed_collection_amount);
+  });
+});
+
+describe('billing account activity labels', () => {
+  const t = (key: string) => {
+    const map: Record<string, string> = {
+      'admin.finance.billingAccounts.activity.types.cheque_received': 'استلام شيك',
+      'admin.finance.billingAccounts.activity.types.cheque_collected': 'تحصيل شيك',
+      'admin.finance.billingAccounts.activity.states.deposited': 'مودع',
+      'admin.finance.billingAccounts.activity.states.bounced': 'مرتجع',
+    };
+    return map[key] ?? key;
+  };
+
+  it('resolves known activity types', () => {
+    expect(
+      resolveBillingActivityTypeLabel({ activity_type: 'cheque_received' }, t),
+    ).toBe('استلام شيك');
+    expect(
+      resolveBillingActivityTypeLabel({ activity_type: 'cheque_collected' }, t),
+    ).toBe('تحصيل شيك');
+  });
+
+  it('prefers backend label when provided', () => {
+    expect(
+      resolveBillingActivityTypeLabel(
+        { activity_type: 'cheque_received', label: 'Custom label' },
+        t,
+      ),
+    ).toBe('Custom label');
+  });
+
+  it('normalizes activity state labels from API English text', () => {
+    expect(normalizeBillingActivityStateKey(null, 'Deposited')).toBe('deposited');
+    expect(normalizeBillingActivityStateKey('bounced', null)).toBe('bounced');
+    expect(resolveBillingActivityStateLabel({ state_label: 'Deposited' }, t)).toBe('مودع');
+    expect(resolveBillingActivityStateLabel({ state: 'bounced' }, t)).toBe('مرتجع');
   });
 });

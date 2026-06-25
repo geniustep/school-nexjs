@@ -12,6 +12,8 @@ import {
   billingAccountErrorMessageKey,
   buildBillingAccountCollectHref,
   buildBillingAccountDrillDownHref,
+  resolveBillingActivityStateLabel,
+  resolveBillingActivityTypeLabel,
 } from '@/lib/utils/normalize-billing-account';
 import { buildStudentFinanceLink } from '@/lib/utils/finance-navigation';
 import type {
@@ -26,30 +28,34 @@ function hasAction(actions: BillingAccountAllowedAction[], action: BillingAccoun
   return actions.includes(action);
 }
 
+type BillingKpiTone = 'blue' | 'green' | 'amber' | 'red' | 'slate';
+
 function SummaryCard({
   label,
   amount,
   currency,
   hint,
   loading,
+  tone = 'slate',
 }: {
   label: string;
   amount?: number | null;
   currency?: unknown;
   hint?: string;
   loading?: boolean;
+  tone?: BillingKpiTone;
 }) {
   return (
-    <div className="card finance-metric-card finance-billing-summary-card">
-      <span className="muted">{label}</span>
+    <div className={`finance-billing-kpi finance-billing-kpi--${tone}`}>
+      <span className="finance-billing-kpi__label">{label}</span>
       {loading ? (
         <span className="finance-skeleton finance-skeleton--metric" aria-hidden />
       ) : (
-        <strong>
-          <FinanceMoney amount={amount} currency={currency} />
+        <strong className="finance-billing-kpi__value">
+          <FinanceMoney amount={amount} currency={currency} className="finance-billing-kpi__amount" />
         </strong>
       )}
-      {hint ? <p className="tiny muted finance-billing-summary-hint">{hint}</p> : null}
+      {hint ? <p className="finance-billing-kpi__hint">{hint}</p> : null}
     </div>
   );
 }
@@ -65,36 +71,41 @@ export function BillingAccountSummaryCards({
 }) {
   const t = useT();
   return (
-    <div className="finance-metrics-grid finance-billing-summary-grid">
+    <div className="finance-billing-kpis">
       <SummaryCard
         label={t('admin.finance.billingAccounts.metrics.totalDue')}
         amount={summary?.total_due}
         currency={currency ?? summary?.currency}
         loading={loading}
+        tone="blue"
       />
       <SummaryCard
         label={t('admin.finance.billingAccounts.metrics.confirmedPaid')}
         amount={summary?.confirmed_paid}
         currency={currency ?? summary?.currency}
         loading={loading}
+        tone="green"
       />
       <SummaryCard
         label={t('admin.finance.billingAccounts.metrics.remaining')}
         amount={summary?.total_remaining}
         currency={currency ?? summary?.currency}
         loading={loading}
+        tone="amber"
       />
       <SummaryCard
         label={t('admin.finance.billingAccounts.metrics.overdue')}
         amount={summary?.total_overdue}
         currency={currency ?? summary?.currency}
         loading={loading}
+        tone="red"
       />
       <SummaryCard
         label={t('admin.finance.billingAccounts.metrics.pendingCheque')}
         amount={summary?.pending_cheque_amount}
         currency={currency ?? summary?.currency}
         loading={loading}
+        tone="amber"
       />
       <SummaryCard
         label={t('admin.finance.billingAccounts.metrics.confirmedCollections')}
@@ -102,6 +113,7 @@ export function BillingAccountSummaryCards({
         currency={currency ?? summary?.currency}
         hint={t('admin.finance.billingAccounts.metrics.collectionsHint')}
         loading={loading}
+        tone="green"
       />
       <SummaryCard
         label={t('admin.finance.billingAccounts.metrics.unallocated')}
@@ -109,6 +121,7 @@ export function BillingAccountSummaryCards({
         currency={currency ?? summary?.currency}
         hint={t('admin.finance.billingAccounts.metrics.unallocatedHint')}
         loading={loading}
+        tone="slate"
       />
     </div>
   );
@@ -315,9 +328,8 @@ export function BillingAccountActivitySection({
       <ul className="finance-billing-activity-list">
         {activities.map((activity, index) => {
           const href = resolveActivityHref(activity, billingPartnerId, returnTo);
-          const typeLabel =
-            activity.label ??
-            t(`admin.finance.billingAccounts.activity.types.${activity.activity_type ?? activity.type ?? 'generic'}`);
+          const typeLabel = resolveBillingActivityTypeLabel(activity, t);
+          const stateLabel = resolveBillingActivityStateLabel(activity, t);
           const content = (
             <>
               <div className="finance-billing-activity-list__main">
@@ -330,8 +342,8 @@ export function BillingAccountActivitySection({
                 <span>{activity.date ? formatDate(activity.date) : t('common.dash')}</span>
                 {activity.student_name ? <span dir="auto">{activity.student_name}</span> : null}
                 {activity.reference ? <span className="mono">{activity.reference}</span> : null}
-                {activity.state_label ?? activity.state ? (
-                  <span>{activity.state_label ?? activity.state}</span>
+                {stateLabel ? (
+                  <span className="finance-billing-activity-state">{stateLabel}</span>
                 ) : null}
               </div>
             </>
@@ -424,9 +436,9 @@ export function BillingAccountActionsBar({
 
 export function BillingAccountDetailSkeleton() {
   return (
-    <div className="finance-metrics-grid finance-billing-summary-grid" aria-hidden>
+    <div className="finance-billing-kpis" aria-hidden>
       {Array.from({ length: 7 }).map((_, index) => (
-        <div key={index} className="card finance-metric-card">
+        <div key={index} className="finance-billing-kpi finance-billing-kpi--slate">
           <span className="finance-skeleton finance-skeleton--label" />
           <span className="finance-skeleton finance-skeleton--metric" />
         </div>

@@ -354,6 +354,55 @@ export function buildBillingAccountDrillDownHref(
   return `/admin/finance/${target}?${params.toString()}`;
 }
 
+export function normalizeBillingActivityStateKey(
+  state?: string | null,
+  stateLabel?: string | null,
+): string | null {
+  const raw = (state ?? stateLabel ?? '').trim();
+  if (!raw) return null;
+  return raw
+    .toLowerCase()
+    .replace(/[\s-]+/g, '_')
+    .replace(/[^a-z0-9_]/g, '');
+}
+
+type BillingActivityLabelInput = Pick<
+  BillingAccountActivity,
+  'label' | 'activity_type' | 'type' | 'state' | 'state_label'
+>;
+
+type TranslateFn = (key: string, params?: Record<string, string | number>) => string;
+
+export function resolveBillingActivityTypeLabel(
+  activity: Pick<BillingActivityLabelInput, 'label' | 'activity_type' | 'type'>,
+  t: TranslateFn,
+): string {
+  const custom = activity.label?.trim();
+  if (custom) return custom;
+  const type = activity.activity_type ?? activity.type ?? 'generic';
+  const key = `admin.finance.billingAccounts.activity.types.${type}`;
+  const label = t(key);
+  return label !== key ? label : type.replace(/_/g, ' ');
+}
+
+export function resolveBillingActivityStateLabel(
+  activity: Pick<BillingActivityLabelInput, 'state' | 'state_label'>,
+  t: TranslateFn,
+): string | null {
+  const stateKey = normalizeBillingActivityStateKey(activity.state, activity.state_label);
+  if (!stateKey) return null;
+
+  const activityStateKey = `admin.finance.billingAccounts.activity.states.${stateKey}`;
+  const activityLabel = t(activityStateKey);
+  if (activityLabel !== activityStateKey) return activityLabel;
+
+  const chequeKey = `admin.finance.cheques.states.${stateKey}`;
+  const chequeLabel = t(chequeKey);
+  if (chequeLabel !== chequeKey) return chequeLabel;
+
+  return activity.state_label?.trim() || activity.state?.trim() || null;
+}
+
 export function buildBillingAccountCollectHref(
   billingPartnerId: number | string,
   returnTo: string,
