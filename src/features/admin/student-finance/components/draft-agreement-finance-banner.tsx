@@ -67,6 +67,10 @@ export function DraftAgreementFinanceBanner({
         </div>
       </div>
 
+      <p className="student-finance-draft-banner__note" role="note">
+        {t('admin.student360.financeWorkspace.draftAgreement.collectionNote')}
+      </p>
+
       {summary ? (
         <dl className="student-finance-draft-banner__metrics">
           {summary.original_total != null ? (

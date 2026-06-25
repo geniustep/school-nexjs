@@ -4527,10 +4527,13 @@
           "editEnrollment": "Editar matrícula académica",
           "noEligiblePlan": "No hay un plan financiero correspondiente a este nivel en este año académico.",
           "noEligiblePlanHint": "El alumno puede quedarse sin plan financiero y configurarlo más tarde.",
-          "candidatesTitle": "Existen planes financieros correspondientes pero ninguno está marcado como predeterminado.",
+          "candidatesTitle": "Un plan financiero correspondiente requiere una elección manual.",
           "candidatesHint": "Elige un plan para usar en el acuerdo financiero.",
           "candidateReasonLabel": "Motivo de no selección automática",
           "candidateReasonNotDefault": "No está definido como plan predeterminado para este nivel.",
+          "candidateScopeLevelsCount": "Incluye {count} niveles",
+          "candidateScopeShowDetails": "Mostrar detalles",
+          "candidateScopeHideDetails": "Ocultar detalles",
           "useThisPlan": "Usar este plan"
         },
         "receipt": "Recibo",
@@ -4701,7 +4704,7 @@
         "confirmActivateShort": "¿Activar y crear deudas?",
         "confirmActivate": "¿Activar? Neto: {net}, cuotas: {count}, pagador: {party}, año: {year}",
         "confirmCancel": "¿Cancelar este acuerdo?",
-        "noSpecialAgreementTitle": "No hay acuerdo financiero especial para este alumno.",
+        "noSpecialAgreementTitle": "No hay acuerdo financiero para este alumno.",
         "noSpecialAgreementDesc": "Las tasas escolares y el calendario de pagos existen de forma independiente. El acuerdo especial se usa para descuentos, reprogramaciones o condiciones excepcionales.",
         "createSpecialAgreement": "Crear acuerdo especial",
         "viewFeesAndSchedule": "Ver tasas y calendario",
@@ -4729,7 +4732,7 @@
             "draftAlreadyExistsHint": "Puede revisarlo y completar el circuito de aprobación.",
             "draftAlreadyExistsFull": "Ya existe un borrador de acuerdo desde las tasas actuales. Puede revisarlo y completar el circuito de aprobación.",
             "activeAgreementExists": "Este alumno ya tiene un acuerdo financiero activo.",
-            "generic": "No se pudo crear el acuerdo desde las tasas actuales.",
+            "generic": "No se puede crear un acuerdo desde las tasas actuales. Usa la configuración del plan financiero.",
             "forbidden": "No tiene permiso para crear un acuerdo desde las tasas.",
             "missingYear": "Seleccione primero un año académico."
           }
@@ -4788,7 +4791,7 @@
             "save": "Guardar"
           }
         },
-        "noSpecialAgreementTitle": "No special financial agreement for this student.",
+        "noSpecialAgreementTitle": "No hay acuerdo financiero para este alumno.",
         "noSpecialAgreementDesc": "School fee plan fees and payment schedule were created directly. Special agreements are only for discounts, custom schedules, or special terms.",
         "viewFeesAndSchedule": "View fees and payment schedule",
         "createSpecialAgreement": "Create special agreement",
@@ -5085,7 +5088,7 @@
           "bannerTitle": "Existe un expediente financiero con movimientos, pero no hay un acuerdo financiero activo gestionable.",
           "bannerBody": "Los cobros, cuotas y cheques mostrados están vinculados a un expediente anterior o inactivo. Los cambios de plan requieren un acuerdo activo válido.",
           "planChangeBlockedHint": "No puede cambiar el plan ni aplicar un ajuste financiero especial hasta que exista un acuerdo activo. Revise el acuerdo actual o cree uno nuevo.",
-          "fixAction": "Corregir acuerdo financiero",
+          "fixAction": "Revisar acuerdo financiero",
           "reviewAction": "Revisar acuerdo financiero",
           "agreementTabWarning": "Hay actividad financiera, pero este acuerdo está inactivo y no sirve para modificaciones. Revíselo o cree uno nuevo.",
           "currentState": "Estado del acuerdo: {state}",
@@ -5106,7 +5109,8 @@
           "reviewAction": "Revisar acuerdo financiero"
         },
         "collectPayment": {
-          "blockedMessage": "No se puede registrar un pago hasta que exista un acuerdo financiero activo."
+          "blockedMessage": "No se puede registrar un pago hasta que exista un acuerdo financiero activo.",
+          "blockedDraftMessage": "Aprueba el acuerdo financiero antes de registrar pagos."
         },
         "inactiveAgreementReference": {
           "title": "Acuerdo anterior inactivo",
@@ -5312,6 +5316,7 @@
           "badge": "Draft agreement",
           "title": "A financial agreement is in draft",
           "description": "Confirmed receivables will not appear until the agreement is approved.",
+          "collectionNote": "El acuerdo está en borrador, por lo que las cuotas no se contabilizan en el cobro hasta que se apruebe.",
           "reviewAgreement": "Review financial agreement",
           "feesIntro": "Services and fees exist within a draft financial agreement.",
           "lineAfterDiscount": "After discount",

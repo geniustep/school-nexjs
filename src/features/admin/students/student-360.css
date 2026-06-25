@@ -1750,6 +1750,39 @@
   padding-inline-start: 1.2rem;
 }
 
+/* Assign-finance-plan candidate card: keep the primary card compact and put
+   long level lists behind a "show details" toggle. */
+.assign-finance-plan__candidate-details-toggle {
+  margin-inline-start: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--c-primary, #2563eb);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.assign-finance-plan__candidate-levels {
+  margin: 6px 0 0;
+  padding-inline-start: 1.1rem;
+  display: grid;
+  gap: 2px;
+}
+
+.assign-finance-plan__candidate-actions {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Draft agreement: short note clarifying receivables are not yet collectible. */
+.student-finance-draft-banner__note {
+  margin: 12px 0 0;
+  color: var(--c-muted, #64748b);
+  font-size: 13px;
+}
+
 .student-finance-hero__head {
   display: flex;
   flex-wrap: wrap;

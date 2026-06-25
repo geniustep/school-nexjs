@@ -4532,10 +4532,13 @@
           "editEnrollment": "Edit academic enrollment",
           "noEligiblePlan": "No matching finance plan for this level in this academic year.",
           "noEligiblePlanHint": "The student can stay without a finance plan and it can be set up later.",
-          "candidatesTitle": "Matching finance plans exist but none is marked as default.",
+          "candidatesTitle": "A matching finance plan needs a manual choice.",
           "candidatesHint": "Pick a plan to use for the finance agreement.",
           "candidateReasonLabel": "Reason not auto-selected",
           "candidateReasonNotDefault": "Not set as the default plan for this level.",
+          "candidateScopeLevelsCount": "Covers {count} levels",
+          "candidateScopeShowDetails": "Show details",
+          "candidateScopeHideDetails": "Hide details",
           "useThisPlan": "Use this plan"
         },
         "receipt": "Receipt",
@@ -4706,7 +4709,7 @@
         "confirmActivateShort": "Activate and create operational charges?",
         "confirmActivate": "Activate agreement?\nNet: {net}\nInstallments: {count}\nPayer: {party}\nYear: {year}\n\nActivation creates operational fees and installments.",
         "confirmCancel": "Cancel this agreement?",
-        "noSpecialAgreementTitle": "No special financial agreement for this student.",
+        "noSpecialAgreementTitle": "No financial agreement for this student.",
         "noSpecialAgreementDesc": "School fees and the payment schedule exist independently. Special agreements are used for discounts, rescheduling, or exceptional terms.",
         "createSpecialAgreement": "Create special agreement",
         "viewFeesAndSchedule": "View fees and schedule",
@@ -4734,7 +4737,7 @@
             "draftAlreadyExistsHint": "You can review it and complete the approval workflow.",
             "draftAlreadyExistsFull": "A draft agreement from current fees already exists. You can review it and complete the approval workflow.",
             "activeAgreementExists": "This student already has an active financial agreement.",
-            "generic": "Could not create an agreement from current fees.",
+            "generic": "Cannot create an agreement from current fees. Use the finance plan setup.",
             "forbidden": "You are not allowed to create an agreement from fees.",
             "missingYear": "Select an academic year first."
           }
@@ -4793,7 +4796,7 @@
             "save": "Save"
           }
         },
-        "noSpecialAgreementTitle": "No special financial agreement for this student.",
+        "noSpecialAgreementTitle": "No financial agreement for this student.",
         "noSpecialAgreementDesc": "School fee plan fees and payment schedule were created directly. Special agreements are only for discounts, custom schedules, or special terms.",
         "viewFeesAndSchedule": "View fees and payment schedule",
         "createSpecialAgreement": "Create special agreement",
@@ -5090,7 +5093,7 @@
           "bannerTitle": "A financial file with recorded activity exists, but there is no active manageable financial agreement.",
           "bannerBody": "Collections, installments, and cheques shown are linked to a previous or inactive financial file. Plan changes and adjustments require a valid active agreement.",
           "planChangeBlockedHint": "You cannot change the plan or apply a special financial adjustment until an active financial agreement exists. Review the current agreement or create a new one.",
-          "fixAction": "Fix financial agreement",
+          "fixAction": "Review financial agreement",
           "reviewAction": "Review financial agreement",
           "agreementTabWarning": "Financial activity exists, but this agreement is inactive and cannot be used for plan changes or adjustments. Review it or create a new agreement.",
           "currentState": "Agreement state: {state}",
@@ -5111,7 +5114,8 @@
           "reviewAction": "Review financial agreement"
         },
         "collectPayment": {
-          "blockedMessage": "Payments cannot be recorded until an active financial agreement exists."
+          "blockedMessage": "Payments cannot be recorded until an active financial agreement exists.",
+          "blockedDraftMessage": "Approve the financial agreement before recording payments."
         },
         "inactiveAgreementReference": {
           "title": "Previous inactive agreement",
@@ -5317,6 +5321,7 @@
           "badge": "Draft agreement",
           "title": "A financial agreement is in draft",
           "description": "Confirmed receivables will not appear until the agreement is approved.",
+          "collectionNote": "The agreement is in draft, so receivables are not counted toward collection until it is approved.",
           "reviewAgreement": "Review financial agreement",
           "feesIntro": "Services and fees exist within a draft financial agreement. They become confirmed receivables after approval.",
           "lineAfterDiscount": "After discount",

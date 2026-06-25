@@ -362,6 +362,20 @@ export function candidatePlanScopeSummary(candidate: FeePlanCandidatePlan): stri
   return null;
 }
 
+/** Cleaned list of level names for a candidate plan (drops blanks/dupes). */
+export function candidatePlanLevelNames(candidate: FeePlanCandidatePlan): string[] {
+  if (!Array.isArray(candidate.level_names)) return [];
+  const seen = new Set<string>();
+  const names: string[] = [];
+  for (const raw of candidate.level_names) {
+    const name = typeof raw === 'string' ? raw.trim() : '';
+    if (!name || seen.has(name)) continue;
+    seen.add(name);
+    names.push(name);
+  }
+  return names;
+}
+
 export function candidatePlanTotal(candidate: FeePlanCandidatePlan): number | null {
   return candidate.expected_total ?? candidate.total ?? null;
 }

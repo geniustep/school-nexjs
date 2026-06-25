@@ -4527,10 +4527,13 @@
           "editEnrollment": "Modifier l'inscription scolaire",
           "noEligiblePlan": "Aucun plan financier correspondant à ce niveau pour cette année scolaire.",
           "noEligiblePlanHint": "L'élève peut rester sans plan financier ; il pourra être configuré plus tard.",
-          "candidatesTitle": "Des plans financiers correspondants existent mais aucun n'est défini par défaut.",
+          "candidatesTitle": "Un plan financier correspondant nécessite un choix manuel.",
           "candidatesHint": "Choisissez un plan à utiliser pour l'accord financier.",
           "candidateReasonLabel": "Raison de non-sélection automatique",
           "candidateReasonNotDefault": "Non défini comme plan par défaut pour ce niveau.",
+          "candidateScopeLevelsCount": "Couvre {count} niveaux",
+          "candidateScopeShowDetails": "Afficher les détails",
+          "candidateScopeHideDetails": "Masquer les détails",
           "useThisPlan": "Utiliser ce plan"
         },
         "receipt": "Reçu",
@@ -4701,7 +4704,7 @@
         "confirmActivateShort": "Activer et créer les créances ?",
         "confirmActivate": "Activer ? Net: {net}, échéances: {count}, payeur: {party}, année: {year}",
         "confirmCancel": "Annuler cet accord ?",
-        "noSpecialAgreementTitle": "Aucun accord financier spécial pour cet élève.",
+        "noSpecialAgreementTitle": "Aucun accord financier pour cet élève.",
         "noSpecialAgreementDesc": "Les frais scolaires et l'échéancier existent indépendamment. L'accord spécial sert aux remises, rééchelonnements ou conditions exceptionnelles.",
         "createSpecialAgreement": "Créer un accord spécial",
         "viewFeesAndSchedule": "Voir frais et échéancier",
@@ -4729,7 +4732,7 @@
             "draftAlreadyExistsHint": "Vous pouvez le réviser et compléter le circuit d'approbation.",
             "draftAlreadyExistsFull": "Un brouillon d'accord issu des frais actuels existe déjà. Vous pouvez le réviser et compléter le circuit d'approbation.",
             "activeAgreementExists": "Cet élève a déjà un accord financier actif.",
-            "generic": "Impossible de créer l'accord à partir des frais actuels.",
+            "generic": "Impossible de créer un accord à partir des frais actuels. Utilisez la configuration du plan financier.",
             "forbidden": "Vous n'êtes pas autorisé à créer un accord à partir des frais.",
             "missingYear": "Sélectionnez d'abord une année scolaire."
           }
@@ -4788,7 +4791,7 @@
             "save": "Enregistrer"
           }
         },
-        "noSpecialAgreementTitle": "No special financial agreement for this student.",
+        "noSpecialAgreementTitle": "Aucun accord financier pour cet élève.",
         "noSpecialAgreementDesc": "School fee plan fees and payment schedule were created directly. Special agreements are only for discounts, custom schedules, or special terms.",
         "viewFeesAndSchedule": "View fees and payment schedule",
         "createSpecialAgreement": "Create special agreement",
@@ -5085,7 +5088,7 @@
           "bannerTitle": "Un dossier financier avec des mouvements existe, mais aucun accord financier actif n'est gérable.",
           "bannerBody": "Les encaissements, échéances et chèques affichés sont liés à un dossier antérieur ou inactif. Les changements de plan exigent un accord actif valide.",
           "planChangeBlockedHint": "Impossible de changer le plan ou d'appliquer un ajustement financier spécial sans accord actif. Consultez l'accord actuel ou créez-en un nouveau.",
-          "fixAction": "Corriger l'accord financier",
+          "fixAction": "Revoir l'accord financier",
           "reviewAction": "Consulter l'accord financier",
           "agreementTabWarning": "Des mouvements financiers existent, mais cet accord est inactif et ne peut servir aux modifications. Consultez-le ou créez un nouvel accord.",
           "currentState": "État de l'accord : {state}",
@@ -5106,7 +5109,8 @@
           "reviewAction": "Réviser l'accord financier"
         },
         "collectPayment": {
-          "blockedMessage": "Impossible d'enregistrer un paiement tant qu'il n'existe pas d'accord financier actif."
+          "blockedMessage": "Impossible d'enregistrer un paiement tant qu'il n'existe pas d'accord financier actif.",
+          "blockedDraftMessage": "Approuvez l'accord financier avant d'enregistrer des paiements."
         },
         "inactiveAgreementReference": {
           "title": "Accord antérieur inactif",
@@ -5312,6 +5316,7 @@
           "badge": "Draft agreement",
           "title": "A financial agreement is in draft",
           "description": "Confirmed receivables will not appear until the agreement is approved.",
+          "collectionNote": "L'accord est à l'état de brouillon ; les créances ne sont pas comptabilisées dans le recouvrement tant qu'il n'est pas approuvé.",
           "reviewAgreement": "Review financial agreement",
           "feesIntro": "Services and fees exist within a draft financial agreement.",
           "lineAfterDiscount": "After discount",

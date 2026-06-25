@@ -235,8 +235,10 @@ export function StudentFinanceWorkspaceShell({
       canCollect={canCollectCapability}
       collectPaymentAllowed={billingContext.collectPaymentAllowed}
       collectBlockMessage={
-        billingContext.collectBlockMessage ??
-        (billingContext.collectBlockMessageKey ? t(billingContext.collectBlockMessageKey) : null)
+        draftPresentation.hasDraftAgreement && !billingContext.collectPaymentAllowed
+          ? t('admin.student360.financeWorkspace.collectPayment.blockedDraftMessage')
+          : billingContext.collectBlockMessage ??
+            (billingContext.collectBlockMessageKey ? t(billingContext.collectBlockMessageKey) : null)
       }
       onOpenSchedule={() => syncSubTabToUrl('schedule')}
       onOpenAgreements={() => syncSubTabToUrl('agreements')}

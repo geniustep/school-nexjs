@@ -11,6 +11,7 @@ import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { Student360CompactEmpty } from '@/features/admin/students/components/student-360-compact-empty';
 import { formatFinanceCurrency } from '@/features/admin/students/utils/student-finance-format';
 import {
+  candidatePlanLevelNames,
   candidatePlanScopeSummary,
   candidatePlanTotal,
 } from '@/features/admin/students/utils/student-enrollment-finance';
@@ -38,9 +39,17 @@ function CandidateCard({
 }) {
   const t = useT();
   const { locale } = useLocale();
+  const [showLevelDetails, setShowLevelDetails] = useState(false);
   const total = candidatePlanTotal(candidate);
   const currency = candidate.currency ? { name: candidate.currency, symbol: candidate.currency } : null;
-  const scope = candidatePlanScopeSummary(candidate);
+  const levelNames = candidatePlanLevelNames(candidate);
+  const fullScope = candidatePlanScopeSummary(candidate);
+  // Keep the primary card compact: show a short summary and hide a long level
+  // list behind a secondary "عرض التفاصيل" toggle.
+  const hasLevelDetails = levelNames.length > 1;
+  const shortScope = hasLevelDetails
+    ? t(tk('candidateScopeLevelsCount'), { count: levelNames.length })
+    : fullScope;
   const year = candidate.academic_year?.name ?? candidate.academic_year_name ?? null;
   const reason = candidate.hint?.trim() || t(tk('candidateReasonNotDefault'));
 
@@ -65,10 +74,35 @@ function CandidateCard({
             <dd className="mono">{formatFinanceCurrency(total, currency, locale)}</dd>
           </div>
         ) : null}
-        {scope ? (
+        {shortScope ? (
           <div>
             <dt>{t(tk('level'))}</dt>
-            <dd dir="auto">{scope}</dd>
+            <dd dir="auto">
+              <span>{shortScope}</span>
+              {hasLevelDetails ? (
+                <>
+                  <button
+                    type="button"
+                    className="assign-finance-plan__candidate-details-toggle"
+                    aria-expanded={showLevelDetails}
+                    onClick={() => setShowLevelDetails((v) => !v)}
+                  >
+                    {showLevelDetails
+                      ? t(tk('candidateScopeHideDetails'))
+                      : t(tk('candidateScopeShowDetails'))}
+                  </button>
+                  {showLevelDetails ? (
+                    <ul className="assign-finance-plan__candidate-levels tiny muted">
+                      {levelNames.map((name) => (
+                        <li key={name} dir="auto">
+                          {name}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </>
+              ) : null}
+            </dd>
           </div>
         ) : null}
         <div>

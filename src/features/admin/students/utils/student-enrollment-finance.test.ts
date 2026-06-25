@@ -4,6 +4,7 @@ import {
   buildFeePlanSuggestErrorFromApi,
   buildEnrollmentPlanPreviewBody,
   buildStudentCreateFinancePayload,
+  candidatePlanLevelNames,
   candidatePlanScopeSummary,
   candidatePlanTotal,
   canRequestFeePlanSuggest,
@@ -193,6 +194,17 @@ describe('candidate plan selection helpers', () => {
     expect(candidatePlanTotal({ id: 1, name: 'X', expected_total: 4500 })).toBe(4500);
     expect(candidatePlanTotal({ id: 1, name: 'X', total: 1200 })).toBe(1200);
     expect(candidatePlanTotal({ id: 1, name: 'X' })).toBeNull();
+  });
+
+  it('cleans candidate level names (trims, drops blanks and duplicates)', () => {
+    expect(
+      candidatePlanLevelNames({
+        id: 1,
+        name: 'X',
+        level_names: [' الأولي 1 ', 'الأولي 2', 'الأولي 1', '', '  '],
+      }),
+    ).toEqual(['الأولي 1', 'الأولي 2']);
+    expect(candidatePlanLevelNames({ id: 1, name: 'X' })).toEqual([]);
   });
 });
 

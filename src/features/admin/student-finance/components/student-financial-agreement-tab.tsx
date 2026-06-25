@@ -23,11 +23,15 @@ import {
 import { Student360MetricGrid } from '@/features/admin/students/components/student-360-metric-grid';
 import { Student360SectionHeader } from '@/features/admin/students/components/student-360-section-header';
 import { relationshipTypeLabel } from '@/features/admin/students/utils/relationship-types';
+import { canAssignStudentFees } from '@/features/admin/students/utils/resolve-capabilities';
+import type { StudentFinanceCapabilities } from '@/types/student-finance';
 import {
   postAgreementAction,
   createAgreementFromCurrentFees,
   deleteAgreementAdjustment,
 } from '../api/finance-admin-api';
+import { AssignFinancePlanPanel } from './assign-finance-plan-panel';
+import { isCreateFromCurrentFeesActionAllowed } from '../utils/resolve-create-from-current-fees-action';
 import { AgreementCreateDrawer } from './agreement-create-drawer';
 import { AgreementFromFeesDrawer } from './agreement-from-fees-drawer';
 import { AgreementAdjustmentDrawer } from './agreement-adjustment-drawer';
@@ -181,7 +185,16 @@ export function StudentFinancialAgreementTab({
     [workspace],
   );
 
+  // The legacy "create agreement from current fees" flow is only surfaced when
+  // the backend explicitly allows it. For students without an agreement the
+  // primary path is "إعداد الخطة المالية" (assign finance plan), so the legacy
+  // creation button stays hidden to avoid an unnecessary 422.
+  const createFromFeesAllowed = isCreateFromCurrentFeesActionAllowed({ workspace });
   const showCreateFromFeesAction = !billingContext.hasActiveAgreement && canCreate;
+  const canAssignFees = canAssignStudentFees(
+    capabilities,
+    (workspace?.capabilities as StudentFinanceCapabilities | undefined) ?? null,
+  );
 
   const scrollToCurrentFeesDraftReview = useCallback(() => {
     setFocusCurrentFeesDraft(true);
@@ -228,8 +241,8 @@ export function StudentFinancialAgreementTab({
   );
 
   const renderCurrentFeesDraftCta = (className = 'btn btn--primary btn--sm') => {
-    if (!showCreateFromFeesAction) return null;
-
+    // Reviewing an existing draft created from current fees is always safe to
+    // surface — it never calls the legacy creation endpoint.
     if (existingCurrentFeesDraft) {
       if (
         !isOrphanCurrentFeesDraft({
@@ -248,6 +261,10 @@ export function StudentFinancialAgreementTab({
         </button>
       );
     }
+
+    // Legacy creation: only when there is no active agreement AND the backend
+    // explicitly allows creating an agreement from current fees.
+    if (!showCreateFromFeesAction || !createFromFeesAllowed) return null;
 
     return (
       <button
@@ -745,31 +762,53 @@ export function StudentFinancialAgreementTab({
         {renderCurrentFeesDraftReviewPanel()}
 
         {!billingContext.inactiveAgreement ? (
-        <Student360CompactEmpty
-          title={t('admin.student360.financialAgreement.noSpecialAgreementTitle')}
-          description={t('admin.student360.financialAgreement.noSpecialAgreementDesc')}
-          action={
-            <div className="row student-finance-agreement-empty-actions">
-              <Link
-                href={`/admin/students/${studentId}?tab=finance&financeSubTab=overview`}
-                className="btn btn--ghost btn--sm"
-              >
-                {t('admin.student360.financialAgreement.openFinanceOverview')}
-              </Link>
-              <Link
-                href={`/admin/students/${studentId}?tab=finance&financeSubTab=schedule`}
-                className="btn btn--ghost btn--sm"
-              >
-                {t('admin.student360.financialAgreement.openPaymentSchedule')}
-              </Link>
-              {canCreate && !showCreateFromFeesAction ? (
-                <button type="button" className="btn btn--primary btn--sm" onClick={() => setShowFromFees(true)}>
-                  {t('admin.student360.financialAgreement.fromFees.createButton')}
-                </button>
-              ) : renderCurrentFeesDraftCta()}
-            </div>
-          }
-        />
+          canAssignFees ? (
+            <>
+              <AssignFinancePlanPanel
+                studentId={studentId}
+                academicYearId={effectiveYearId}
+                enrollmentEditHref={`/admin/students/${studentId}?tab=enrollment`}
+                onAssigned={refreshAll}
+              />
+              <div className="row student-finance-agreement-empty-actions">
+                <Link
+                  href={`/admin/students/${studentId}?tab=finance&financeSubTab=overview`}
+                  className="btn btn--ghost btn--sm"
+                >
+                  {t('admin.student360.financialAgreement.openFinanceOverview')}
+                </Link>
+                <Link
+                  href={`/admin/students/${studentId}?tab=finance&financeSubTab=schedule`}
+                  className="btn btn--ghost btn--sm"
+                >
+                  {t('admin.student360.financialAgreement.openPaymentSchedule')}
+                </Link>
+                {renderCurrentFeesDraftCta('btn btn--ghost btn--sm')}
+              </div>
+            </>
+          ) : (
+            <Student360CompactEmpty
+              title={t('admin.student360.financialAgreement.noSpecialAgreementTitle')}
+              description={t('admin.student360.financialAgreement.noSpecialAgreementDesc')}
+              action={
+                <div className="row student-finance-agreement-empty-actions">
+                  <Link
+                    href={`/admin/students/${studentId}?tab=finance&financeSubTab=overview`}
+                    className="btn btn--ghost btn--sm"
+                  >
+                    {t('admin.student360.financialAgreement.openFinanceOverview')}
+                  </Link>
+                  <Link
+                    href={`/admin/students/${studentId}?tab=finance&financeSubTab=schedule`}
+                    className="btn btn--ghost btn--sm"
+                  >
+                    {t('admin.student360.financialAgreement.openPaymentSchedule')}
+                  </Link>
+                  {renderCurrentFeesDraftCta()}
+                </div>
+              }
+            />
+          )
         ) : (
           <div className="row student-finance-agreement-empty-actions">
             <Link
