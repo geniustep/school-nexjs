@@ -5,11 +5,13 @@ import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { useT } from '@/features/i18n/locale-context';
 import { resolveStudentFinanceCurrency } from '../utils/resolve-student-finance-currency';
 import type { DraftAgreementPresentation } from '../utils/resolve-draft-agreement-presentation';
+import type { StudentFinanceActionState } from '../utils/resolve-student-finance-action-state';
 import type { StudentFinancialOverview } from '@/types/student-financial-overview';
 
 export function DraftAgreementFinanceBanner({
   studentId,
   presentation,
+  actionState,
   financialOverview,
   onOpenAgreement,
   onSubmitAgreement,
@@ -17,6 +19,7 @@ export function DraftAgreementFinanceBanner({
 }: {
   studentId: number;
   presentation: DraftAgreementPresentation;
+  actionState: StudentFinanceActionState;
   financialOverview: StudentFinancialOverview | null;
   onOpenAgreement?: () => void;
   onSubmitAgreement?: () => void;
@@ -26,9 +29,10 @@ export function DraftAgreementFinanceBanner({
   const currency = resolveStudentFinanceCurrency({ financialOverview });
   const summary = presentation.summary;
 
-  if (!presentation.hasDraftAgreement) return null;
+  if (actionState.scenario !== 'draft_agreement') return null;
 
   const agreementHref = `/admin/students/${studentId}?tab=finance&financeSubTab=agreements`;
+  const showSubmit = actionState.canActivateAgreement && !!onSubmitAgreement;
 
   return (
     <section className="student-finance-draft-banner" aria-live="polite">
@@ -38,23 +42,26 @@ export function DraftAgreementFinanceBanner({
             {t('admin.student360.financeWorkspace.draftAgreement.badge')}
           </p>
           <h3 className="student-finance-draft-banner__title">
-            {t('admin.student360.financeWorkspace.draftAgreement.title')}
+            {t('admin.student360.financeWorkspace.actionState.draft.title')}
           </h3>
           <p className="student-finance-draft-banner__desc">
-            {t('admin.student360.financeWorkspace.draftAgreement.description')}
+            {t('admin.student360.financeWorkspace.actionState.draft.impact')}
+          </p>
+          <p className="student-finance-draft-banner__step tiny muted">
+            {t('admin.student360.financeWorkspace.actionState.draft.nextStep')}
           </p>
         </div>
         <div className="student-finance-draft-banner__actions">
           {onOpenAgreement ? (
             <button type="button" className="btn btn--ghost btn--sm" onClick={onOpenAgreement}>
-              {t('admin.student360.financeWorkspace.draftAgreement.reviewAgreement')}
+              {t('admin.student360.financeWorkspace.actionState.reviewDraft')}
             </button>
           ) : (
             <Link href={agreementHref} className="btn btn--ghost btn--sm">
-              {t('admin.student360.financeWorkspace.draftAgreement.reviewAgreement')}
+              {t('admin.student360.financeWorkspace.actionState.reviewDraft')}
             </Link>
           )}
-          {presentation.allowedActions.submit && onSubmitAgreement ? (
+          {showSubmit ? (
             <button
               type="button"
               className="btn btn--primary btn--sm"

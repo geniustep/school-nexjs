@@ -5126,6 +5126,29 @@
           "recordPayment": "Registrar pago",
           "manageAgreement": "Gestionar acuerdo financiero"
         },
+        "actionState": {
+          "reviewDraft": "Revisar borrador",
+          "reviewAgreement": "Revisar acuerdo financiero",
+          "createAgreement": "Crear acuerdo de cuotas",
+          "blockedByDraft": "Las cuotas aún no están aprobadas y no aparecerán como adeudos confirmados hasta que se apruebe el acuerdo.",
+          "blockedByNoActive": "No puede cambiar el plan ni aplicar un ajuste financiero especial hasta que exista un acuerdo de cuotas activo.",
+          "draft": {
+            "title": "Hay un acuerdo de cuotas en estado de borrador",
+            "problem": "Problema: el acuerdo de cuotas todavía está en estado de borrador.",
+            "impact": "Impacto: las cuotas no aparecerán como adeudos confirmados hasta que se apruebe el acuerdo.",
+            "nextStep": "Siguiente paso: revise el borrador y luego apruébelo si es correcto."
+          },
+          "historyWithoutActive": {
+            "title": "Actividad financiera anterior sin un acuerdo de cuotas activo",
+            "problem": "Este estudiante tiene actividad financiera anterior, pero actualmente no hay un acuerdo de cuotas activo.",
+            "impact": "Impacto: no se puede gestionar el plan ni realizar un cobro confirmado hasta activar un acuerdo de cuotas válido.",
+            "nextStep": "Siguiente paso: revise el acuerdo anterior o cree uno nuevo según corresponda."
+          },
+          "noActive": {
+            "title": "No hay un acuerdo de cuotas activo para este estudiante",
+            "impact": "Cree un acuerdo de cuotas para generar las cuotas y dar seguimiento al cobro."
+          }
+        },
         "inactiveAgreement": {
           "bannerTitle": "Existe un expediente financiero con movimientos, pero no hay un acuerdo financiero activo gestionable.",
           "bannerBody": "Los cobros, cuotas y cheques mostrados están vinculados a un expediente anterior o inactivo. Los cambios de plan requieren un acuerdo activo válido.",

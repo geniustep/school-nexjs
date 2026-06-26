@@ -51,6 +51,7 @@ import { InactiveAgreementFinanceBanner } from './inactive-agreement-finance-ban
 import { resolveChangePlanVisibility } from '../utils/resolve-change-plan-visibility';
 import { AssignFinancePlanPanel } from './assign-finance-plan-panel';
 import { resolveBillingContextPresentation } from '../utils/resolve-billing-context-presentation';
+import { resolveStudentFinanceActionState } from '../utils/resolve-student-finance-action-state';
 import type { ChangePlanMode } from '@/types/student-finance-change-plan';
 import { useToast } from '@/components/ui/toast';
 
@@ -223,6 +224,19 @@ export function StudentFinanceWorkspaceShell({
     [workspace, financialOverviewState.data, capabilities, subTab, canCollectCapability],
   );
 
+  const financeActionState = useMemo(
+    () =>
+      resolveStudentFinanceActionState({
+        workspace: workspace ?? null,
+        financialOverview: financialOverviewState.data,
+        draftPresentation,
+        billingContext,
+        eligibility: changePlanVisibility.eligibility,
+        inactiveAgreement: changePlanVisibility.inactiveAgreement,
+      }),
+    [workspace, financialOverviewState.data, draftPresentation, billingContext, changePlanVisibility],
+  );
+
   const workspaceHeader = (
     <StudentFinanceWorkspaceHeader
       studentId={studentId}
@@ -325,11 +339,12 @@ export function StudentFinanceWorkspaceShell({
       <DraftAgreementFinanceBanner
         studentId={studentId}
         presentation={draftPresentation}
+        actionState={financeActionState}
         financialOverview={financialOverviewState.data}
         onOpenAgreement={() => syncSubTabToUrl('agreements')}
         submitLoading={draftSubmitLoading}
         onSubmitAgreement={
-          draftPresentation.allowedActions.submit && draftPresentation.agreementId
+          financeActionState.canActivateAgreement && draftPresentation.agreementId
             ? async () => {
                 setDraftSubmitLoading(true);
                 const res = await postAgreementAction(draftPresentation.agreementId as number, 'submit');
@@ -351,15 +366,21 @@ export function StudentFinanceWorkspaceShell({
             ? { ...changePlanVisibility.inactiveAgreement, showWorkspaceBanner: false }
             : changePlanVisibility.inactiveAgreement
         }
+        actionState={financeActionState}
         billingContext={billingContext}
         inactiveAgreementState={workspace?.inactive_agreement?.state ?? null}
         onReviewAgreement={() => syncSubTabToUrl('agreements')}
+        onCreateAgreement={() => syncSubTabToUrl('agreements')}
       />
 
       <StudentFinanceExecutiveSummary
         metrics={overviewMetrics}
         chequeSummary={financialOverviewState.data?.cheque_summary ?? null}
-        billingContextHeadlineKey={billingContext.billingContextHeadlineKey}
+        billingContextHeadlineKey={
+          financeActionState.showExecutiveContextHeadline
+            ? billingContext.billingContextHeadlineKey
+            : null
+        }
         billingContextMessage={billingContext.billingContextMessage}
       />
 

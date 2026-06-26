@@ -5131,6 +5131,29 @@
           "recordPayment": "Record payment",
           "manageAgreement": "Manage financial agreement"
         },
+        "actionState": {
+          "reviewDraft": "Review draft",
+          "reviewAgreement": "Review financial agreement",
+          "createAgreement": "Create fee agreement",
+          "blockedByDraft": "Installments are not approved yet and will not appear as confirmed dues until the agreement is approved.",
+          "blockedByNoActive": "You cannot change the plan or apply a special financial adjustment until an active fee agreement exists.",
+          "draft": {
+            "title": "A fee agreement is in draft state",
+            "problem": "Problem: the fee agreement is still in draft state.",
+            "impact": "Impact: installments will not appear as confirmed dues until the agreement is approved.",
+            "nextStep": "Next step: review the draft, then approve it if it is correct."
+          },
+          "historyWithoutActive": {
+            "title": "Previous financial activity without an active fee agreement",
+            "problem": "This student has previous financial activity, but there is no active fee agreement right now.",
+            "impact": "Impact: the plan cannot be managed and confirmed collection is not possible until a valid fee agreement is activated.",
+            "nextStep": "Next step: review the previous agreement or create a new one as appropriate."
+          },
+          "noActive": {
+            "title": "There is no active fee agreement for this student",
+            "impact": "Create a fee agreement so installments are generated and collection can be tracked."
+          }
+        },
         "inactiveAgreement": {
           "bannerTitle": "A financial file with recorded activity exists, but there is no active manageable financial agreement.",
           "bannerBody": "Collections, installments, and cheques shown are linked to a previous or inactive financial file. Plan changes and adjustments require a valid active agreement.",

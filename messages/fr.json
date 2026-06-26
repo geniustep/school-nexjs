@@ -5126,6 +5126,29 @@
           "recordPayment": "Enregistrer un paiement",
           "manageAgreement": "Gérer l'accord financier"
         },
+        "actionState": {
+          "reviewDraft": "Consulter le brouillon",
+          "reviewAgreement": "Consulter l'accord financier",
+          "createAgreement": "Créer un accord de frais",
+          "blockedByDraft": "Les échéances ne sont pas encore approuvées et n'apparaîtront comme dues confirmées qu'après approbation de l'accord.",
+          "blockedByNoActive": "Impossible de changer le plan ou d'appliquer un ajustement financier spécial sans accord de frais actif.",
+          "draft": {
+            "title": "Un accord de frais est à l'état de brouillon",
+            "problem": "Problème : l'accord de frais est toujours à l'état de brouillon.",
+            "impact": "Impact : les échéances n'apparaîtront comme dues confirmées qu'après approbation de l'accord.",
+            "nextStep": "Étape suivante : consultez le brouillon, puis approuvez-le s'il est correct."
+          },
+          "historyWithoutActive": {
+            "title": "Activité financière antérieure sans accord de frais actif",
+            "problem": "Cet élève présente une activité financière antérieure, mais aucun accord de frais actif n'existe actuellement.",
+            "impact": "Impact : le plan ne peut pas être géré et l'encaissement confirmé est impossible tant qu'un accord de frais valide n'est pas activé.",
+            "nextStep": "Étape suivante : consultez l'accord précédent ou créez-en un nouveau selon le cas."
+          },
+          "noActive": {
+            "title": "Aucun accord de frais actif pour cet élève",
+            "impact": "Créez un accord de frais pour générer les échéances et suivre l'encaissement."
+          }
+        },
         "inactiveAgreement": {
           "bannerTitle": "Un dossier financier avec des mouvements existe, mais aucun accord financier actif n'est gérable.",
           "bannerBody": "Les encaissements, échéances et chèques affichés sont liés à un dossier antérieur ou inactif. Les changements de plan exigent un accord actif valide.",

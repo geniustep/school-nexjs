@@ -1711,6 +1711,11 @@
   color: var(--text-muted, #64748b);
 }
 
+.student-finance-draft-banner__step {
+  margin: 6px 0 0;
+  line-height: 1.55;
+}
+
 .student-finance-draft-banner__actions {
   display: flex;
   flex-wrap: wrap;
@@ -2115,11 +2120,20 @@
 
 .student-finance-inactive-agreement-banner__body,
 .student-finance-inactive-agreement-banner__explain,
+.student-finance-inactive-agreement-banner__step,
 .student-finance-inactive-agreement-banner__state {
   margin: 0 0 6px;
   font-size: 0.8125rem;
   line-height: 1.55;
   color: var(--text-secondary, #475569);
+}
+
+.student-finance-inactive-agreement-banner__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex-shrink: 0;
+  align-self: center;
 }
 
 .student-finance-inactive-agreement-banner__action {
