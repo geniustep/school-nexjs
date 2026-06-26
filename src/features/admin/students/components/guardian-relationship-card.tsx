@@ -8,6 +8,7 @@ import { CreateAccountDialog } from '@/features/admin/account/create-account-dia
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { resolveAccountStatus } from '@/lib/account/account-utils';
+import { initials } from '@/lib/utils/format';
 import { GuardianRelationshipBadges } from './guardian-relationship-badges';
 import { formatMoroccanPhoneDisplay } from '../utils/normalize-moroccan-phone';
 import {
@@ -107,104 +108,119 @@ export function GuardianRelationshipCard({
           .filter(Boolean)
           .join(' ')}
       >
-        <div className="student-360-guardian-card__head">
-          <div className="student-360-guardian-card__identity">
-            <Link href={`/admin/parents/${rel.guardian.id}`} className="student-360-guardian-card__name" dir="auto">
-              {rel.guardian.name}
-            </Link>
-            <div className="student-360-guardian-card__role-badges">
-              <Badge tone="blue">{relationshipLine}</Badge>
-              {schoolRoleBadges.map((badge) => (
-                <Badge key={`${rel.relationship_id}-${badge.id}`} tone="slate">
-                  {badge.label}
-                </Badge>
-              ))}
-              {personHasLoginAccount(rel.guardian) &&
-              !schoolRoleBadges.some((badge) => badge.id === 'login') ? (
-                <Badge tone="green">{t('admin.student360.schoolRoleHasLoginAccount')}</Badge>
-              ) : null}
-            </div>
-            {rel.is_primary_contact ? (
-              <p className="student-360-guardian-card__meta tiny muted">
-                {t('admin.student360.primaryGuardianShort')}
-              </p>
-            ) : null}
-            {rel.needs_review ? (
-              <Badge tone="amber">{t('admin.student360.recordNeedsReview')}</Badge>
-            ) : null}
-          </div>
-          <Badge tone={active ? 'green' : 'slate'}>
-            {active ? t('admin.student360.relationshipActive') : t('admin.student360.relationshipEnded')}
-          </Badge>
-        </div>
+        {rel.is_primary_contact && active ? (
+          <div className="student-360-guardian-card__accent" aria-hidden="true" />
+        ) : null}
 
-        <div className="student-360-guardian-card__contact">
-          {!contactComplete ? (
-            <div className="student-360-guardian-card__contact-empty">
-              <p className="student-360-guardian-card__contact-empty-title">
-                {t('admin.student360.guardiansContactIncompleteTitle')}
-              </p>
-              <p className="tiny muted">{t('admin.student360.guardiansContactIncompleteDesc')}</p>
-              {canManage && active ? (
-                <Link href={`/admin/parents/${rel.guardian.id}`} className="btn btn--secondary btn--sm">
-                  {t('admin.student360.guardiansCompleteProfile')}
+        <div className="student-360-guardian-card__layout">
+          <div
+            className={`student-360-guardian-card__avatar${active ? '' : ' student-360-guardian-card__avatar--muted'}`}
+            aria-hidden="true"
+          >
+            {initials(rel.guardian.name)}
+          </div>
+
+          <div className="student-360-guardian-card__main">
+            <div className="student-360-guardian-card__head">
+              <div className="student-360-guardian-card__identity">
+                <Link href={`/admin/parents/${rel.guardian.id}`} className="student-360-guardian-card__name" dir="auto">
+                  {rel.guardian.name}
                 </Link>
-              ) : null}
-            </div>
-          ) : (
-            <>
-              {hasPhone ? (
-                <div className="student-360-guardian-card__contact-row">
-                  <a href={`tel:${phone}`} className="mono" dir="ltr">
-                    {formatMoroccanPhoneDisplay(phone)}
-                  </a>
-                  {onCopyPhone ? (
-                    <button type="button" className="btn btn--ghost btn--sm" onClick={() => onCopyPhone(phone)}>
-                      {t('admin.student360.guardiansCopyPhone')}
-                    </button>
+                <div className="student-360-guardian-card__role-badges">
+                  <Badge tone="blue">{relationshipLine}</Badge>
+                  {schoolRoleBadges.map((badge) => (
+                    <Badge key={`${rel.relationship_id}-${badge.id}`} tone="slate">
+                      {badge.label}
+                    </Badge>
+                  ))}
+                  {personHasLoginAccount(rel.guardian) &&
+                  !schoolRoleBadges.some((badge) => badge.id === 'login') ? (
+                    <Badge tone="green">{t('admin.student360.schoolRoleHasLoginAccount')}</Badge>
                   ) : null}
                 </div>
-              ) : null}
-              {hasSecondaryPhone ? (
-                <div className="student-360-guardian-card__contact-row">
-                  <span className="tiny muted">{t('admin.student360.secondaryPhone')}</span>
-                  <a href={`tel:${secondaryPhone}`} className="mono" dir="ltr">
-                    {formatMoroccanPhoneDisplay(secondaryPhone)}
-                  </a>
-                </div>
-              ) : null}
-              {hasUsableEmail ? (
-                <div className="student-360-guardian-card__contact-row">
-                  <a href={`mailto:${emailPresentation.email}`} className="student-360-guardian-card__email" dir="ltr">
-                    {emailPresentation.email}
-                  </a>
-                </div>
-              ) : emailPresentation.kind === 'hidden_technical' ? (
-                <p className="tiny muted">{t('admin.student360.guardiansNoValidEmail')}</p>
-              ) : hasPhone ? (
-                <p className="tiny muted">{t('admin.student360.guardiansEmailUnavailable')}</p>
-              ) : null}
-            </>
-          )}
-        </div>
-
-        <GuardianRelationshipBadges rel={rel} isDefaultBilling={isDefaultBilling} />
-
-        <div className="student-360-guardian-card__account">
-            {hasAccount ? (
-              <>
-                {rolesLine && !schoolRoleBadges.length ? (
-                  <p className="tiny muted">
-                    {t('admin.student360.accountRoles')}: {rolesLine}
+                {rel.is_primary_contact ? (
+                  <p className="student-360-guardian-card__meta tiny muted">
+                    {t('admin.student360.primaryGuardianShort')}
                   </p>
                 ) : null}
-                {isMultiRole && hasAccount ? (
-                  <p className="tiny muted">{t('admin.student360.singleLoginForRoles')}</p>
+                {rel.needs_review ? (
+                  <Badge tone="amber">{t('admin.student360.recordNeedsReview')}</Badge>
                 ) : null}
-              </>
-            ) : (
-              <AccountStatusBadge entity={accountEntity} showLogin={false} />
-            )}
+              </div>
+              <Badge tone={active ? 'green' : 'slate'}>
+                {active ? t('admin.student360.relationshipActive') : t('admin.student360.relationshipEnded')}
+              </Badge>
+            </div>
+
+            <div className="student-360-guardian-card__contact">
+              {!contactComplete ? (
+                <div className="student-360-guardian-card__contact-empty">
+                  <p className="student-360-guardian-card__contact-empty-title">
+                    {t('admin.student360.guardiansContactIncompleteTitle')}
+                  </p>
+                  <p className="tiny muted">{t('admin.student360.guardiansContactIncompleteDesc')}</p>
+                  {canManage && active ? (
+                    <Link href={`/admin/parents/${rel.guardian.id}`} className="btn btn--secondary btn--sm">
+                      {t('admin.student360.guardiansCompleteProfile')}
+                    </Link>
+                  ) : null}
+                </div>
+              ) : (
+                <>
+                  {hasPhone ? (
+                    <div className="student-360-guardian-card__contact-row">
+                      <a href={`tel:${phone}`} className="mono student-360-guardian-card__contact-value" dir="ltr">
+                        {formatMoroccanPhoneDisplay(phone)}
+                      </a>
+                      {onCopyPhone ? (
+                        <button type="button" className="btn btn--ghost btn--sm" onClick={() => onCopyPhone(phone)}>
+                          {t('admin.student360.guardiansCopyPhone')}
+                        </button>
+                      ) : null}
+                    </div>
+                  ) : null}
+                  {hasSecondaryPhone ? (
+                    <div className="student-360-guardian-card__contact-row">
+                      <span className="student-360-guardian-card__contact-label">{t('admin.student360.secondaryPhone')}</span>
+                      <a href={`tel:${secondaryPhone}`} className="mono student-360-guardian-card__contact-value" dir="ltr">
+                        {formatMoroccanPhoneDisplay(secondaryPhone)}
+                      </a>
+                    </div>
+                  ) : null}
+                  {hasUsableEmail ? (
+                    <div className="student-360-guardian-card__contact-row">
+                      <a href={`mailto:${emailPresentation.email}`} className="student-360-guardian-card__email student-360-guardian-card__contact-value" dir="ltr">
+                        {emailPresentation.email}
+                      </a>
+                    </div>
+                  ) : emailPresentation.kind === 'hidden_technical' ? (
+                    <p className="tiny muted">{t('admin.student360.guardiansNoValidEmail')}</p>
+                  ) : hasPhone ? (
+                    <p className="tiny muted">{t('admin.student360.guardiansEmailUnavailable')}</p>
+                  ) : null}
+                </>
+              )}
+            </div>
+
+            <GuardianRelationshipBadges rel={rel} isDefaultBilling={isDefaultBilling} />
+
+            <div className="student-360-guardian-card__account">
+              {hasAccount ? (
+                <>
+                  {rolesLine && !schoolRoleBadges.length ? (
+                    <p className="tiny muted">
+                      {t('admin.student360.accountRoles')}: {rolesLine}
+                    </p>
+                  ) : null}
+                  {isMultiRole && hasAccount ? (
+                    <p className="tiny muted">{t('admin.student360.singleLoginForRoles')}</p>
+                  ) : null}
+                </>
+              ) : (
+                <AccountStatusBadge entity={accountEntity} showLogin={false} />
+              )}
+            </div>
+          </div>
         </div>
 
         {canManage && active ? (

@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { SectionHead } from '@/components/ui/primitives';
 import { useToast } from '@/components/ui/toast';
 import { useT } from '@/features/i18n/locale-context';
 import { GuardianRelationshipCard } from './guardian-relationship-card';
@@ -137,29 +136,34 @@ export function StudentGuardiansTab({
   });
 
   return (
-    <div className="student-360-tab-panel">
-      <div className="student-360-section-header student-360-section-header--guardians">
-        <div className="student-360-section-header__main">
-          <div className="student-360-section-header__title-row">
-            <h2 className="student-360-section-header__title">{t('admin.student360.guardiansTitle')}</h2>
+    <div className="student-360-tab-panel student-360-guardians-tab">
+      <header className="student-360-guardians-toolbar">
+        <div className="student-360-guardians-toolbar__main">
+          <div className="student-360-guardians-toolbar__title-row">
+            <h2 className="student-360-guardians-toolbar__title">{t('admin.student360.guardiansTitle')}</h2>
             {active.length > 0 ? (
-              <span className="student-360-section-header__count">{t('admin.student360.guardiansActiveCount', { count: active.length })}</span>
+              <span className="student-360-guardians-toolbar__stat">
+                {t('admin.student360.guardiansActiveCount', { count: active.length })}
+              </span>
             ) : null}
           </div>
-          <p className="student-360-section-header__desc">{t('admin.student360.pages.guardians.description')}</p>
+          <p className="student-360-guardians-toolbar__desc">{t('admin.student360.pages.guardians.description')}</p>
         </div>
         {canManageGuardians ? (
-          <div className="student-360-section-header__actions">
+          <div className="student-360-guardians-toolbar__actions">
             <button type="button" className="btn btn--primary btn--sm" onClick={() => setAddOpen(true)}>
               {t('admin.student360.addGuardian')}
             </button>
           </div>
         ) : null}
-      </div>
+      </header>
 
       {duplicateMessage ? (
         <div className="student-360-guardians-alert" role="status">
-          <p>{duplicateMessage}</p>
+          <div className="student-360-guardians-alert__content">
+            <span className="student-360-guardians-alert__icon" aria-hidden="true">!</span>
+            <p>{duplicateMessage}</p>
+          </div>
           <button type="button" className="btn btn--ghost btn--sm" onClick={() => sortedActive[1] && setEditRel(sortedActive[1])}>
             {t('admin.student360.guardiansReviewRelationships')}
           </button>
@@ -168,6 +172,7 @@ export function StudentGuardiansTab({
 
       {active.length === 0 && ended.length === 0 ? (
         <Student360CompactEmpty
+          className="student-360-compact-empty--guardians"
           title={t('admin.student360.noGuardiansTitle')}
           description={t('admin.student360.guardiansEmptyDesc')}
           action={
@@ -184,7 +189,7 @@ export function StudentGuardiansTab({
           }
         />
       ) : (
-        <>
+        <div className="student-360-guardians-tab__body">
           <div className="student-360-guardians-grid">
             {sortedActive.map((rel) => (
               <GuardianRelationshipCard
@@ -200,9 +205,12 @@ export function StudentGuardiansTab({
             ))}
           </div>
           {ended.length > 0 ? (
-            <section className="student-360-section">
-              <SectionHead title={t('admin.student360.endedRelationships')} />
-              <div className="student-360-guardians-grid">
+            <section className="student-360-guardians-ended">
+              <header className="student-360-guardians-ended__head">
+                <h3 className="student-360-guardians-ended__title">{t('admin.student360.endedRelationships')}</h3>
+                <span className="student-360-guardians-ended__count">{ended.length}</span>
+              </header>
+              <div className="student-360-guardians-grid student-360-guardians-grid--ended">
                 {ended.map((rel) => (
                   <GuardianRelationshipCard
                     key={rel.relationship_id}
@@ -215,7 +223,7 @@ export function StudentGuardiansTab({
               </div>
             </section>
           ) : null}
-        </>
+        </div>
       )}
 
       <StudentCoGuardianStudentsPanel studentId={studentId} />
