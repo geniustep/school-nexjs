@@ -4838,6 +4838,13 @@
         "confirmActivateShort": "Activer et créer les créances ?",
         "confirmActivate": "Activer ? Net: {net}, échéances: {count}, payeur: {party}, année: {year}",
         "confirmCancel": "Annuler cet accord ?",
+        "confirmCancelDraft": "Annuler le brouillon de cet accord ?",
+        "errors": {
+          "actionTargetMissing": "Action impossible — l'accord n'est pas chargé. Rechargez la page.",
+          "actionFailed": "Impossible de terminer l'action. Réessayez plus tard.",
+          "cancelNotAllowed": "Cet accord ne peut pas être annulé.",
+          "cancelFinancialImpact": "Un accord actif avec impact financier ne peut pas être annulé directement."
+        },
         "noSpecialAgreementTitle": "Aucun accord financier pour cet élève.",
         "noSpecialAgreementDesc": "Les frais scolaires et l'échéancier existent indépendamment. L'accord spécial sert aux remises, rééchelonnements ou conditions exceptionnelles.",
         "createSpecialAgreement": "Créer un accord spécial",

@@ -4870,6 +4870,13 @@
         "confirmActivateShort": "تفعيل الاتفاق وإنشاء المستحقات التشغيلية؟",
         "confirmActivate": "تفعيل الاتفاق؟\nالمبلغ الصافي: {net}\nعدد الأقساط: {count}\nالمسؤول: {party}\nالسنة: {year}\n\nسينشئ التفعيل الرسوم والأقساط التشغيلية.",
         "confirmCancel": "إلغاء هذا الاتفاق؟",
+        "confirmCancelDraft": "إلغاء مسودة هذا الاتفاق؟",
+        "errors": {
+          "actionTargetMissing": "تعذر تنفيذ الإجراء — لم يُحدَّد الاتفاق. أعد تحميل الصفحة ثم حاول مجددًا.",
+          "actionFailed": "تعذر تنفيذ الإجراء. حاول لاحقًا.",
+          "cancelNotAllowed": "لا يمكن إلغاء هذا الاتفاق.",
+          "cancelFinancialImpact": "لا يمكن إلغاء اتفاق نشط له أثر مالي."
+        },
         "noSpecialAgreementTitle": "لا يوجد اتفاق مالي لهذا التلميذ.",
         "noSpecialAgreementDesc": "خطة الرسوم مطبقة، والرسوم وجدول الدفعات متاحان داخل الملف المالي.",
         "createSpecialAgreement": "إنشاء اتفاق خاص",

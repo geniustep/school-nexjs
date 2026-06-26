@@ -4843,6 +4843,13 @@
         "confirmActivateShort": "Activate and create operational charges?",
         "confirmActivate": "Activate agreement?\nNet: {net}\nInstallments: {count}\nPayer: {party}\nYear: {year}\n\nActivation creates operational fees and installments.",
         "confirmCancel": "Cancel this agreement?",
+        "confirmCancelDraft": "Cancel this draft agreement?",
+        "errors": {
+          "actionTargetMissing": "Could not run this action — the agreement is not loaded. Reload the page and try again.",
+          "actionFailed": "Could not complete the action. Try again later.",
+          "cancelNotAllowed": "This agreement cannot be cancelled.",
+          "cancelFinancialImpact": "An active agreement with financial impact cannot be cancelled directly."
+        },
         "noSpecialAgreementTitle": "No financial agreement for this student.",
         "noSpecialAgreementDesc": "School fees and the payment schedule exist independently. Special agreements are used for discounts, rescheduling, or exceptional terms.",
         "createSpecialAgreement": "Create special agreement",

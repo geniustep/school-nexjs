@@ -4838,6 +4838,13 @@
         "confirmActivateShort": "¿Activar y crear deudas?",
         "confirmActivate": "¿Activar? Neto: {net}, cuotas: {count}, pagador: {party}, año: {year}",
         "confirmCancel": "¿Cancelar este acuerdo?",
+        "confirmCancelDraft": "¿Cancelar el borrador de este acuerdo?",
+        "errors": {
+          "actionTargetMissing": "No se pudo ejecutar la acción: el acuerdo no está cargado. Recargue la página.",
+          "actionFailed": "No se pudo completar la acción. Inténtelo más tarde.",
+          "cancelNotAllowed": "No se puede cancelar este acuerdo.",
+          "cancelFinancialImpact": "No se puede cancelar directamente un acuerdo activo con impacto financiero."
+        },
         "noSpecialAgreementTitle": "No hay acuerdo financiero para este alumno.",
         "noSpecialAgreementDesc": "Las tasas escolares y el calendario de pagos existen de forma independiente. El acuerdo especial se usa para descuentos, reprogramaciones o condiciones excepcionales.",
         "createSpecialAgreement": "Crear acuerdo especial",

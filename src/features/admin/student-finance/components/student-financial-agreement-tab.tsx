@@ -83,6 +83,11 @@ import {
 import { FamilyPlanContextCard } from './family-plan-context-card';
 import { AgreementDraftCustomizationSection } from './agreement-draft-customization-section';
 import { isAgreementEditableBeforeActivation } from '../utils/resolve-agreement-draft-customization';
+import {
+  buildAgreementActionExecutionPlan,
+  logAgreementActionBlocked,
+  resolveAgreementActionErrorMessage,
+} from '../utils/agreement-workflow-action';
 
 export function StudentFinancialAgreementTab({
   studentId,
@@ -443,27 +448,67 @@ export function StudentFinancialAgreementTab({
 
   const runAction = useCallback(
     async (action: 'submit' | 'approve' | 'activate' | 'cancel', targetAgreementId?: number) => {
-      const id = targetAgreementId ?? agreement?.id;
-      if (!id) return;
-      setActionLoading(action);
-      const res = await postAgreementAction(id, action);
-      setActionLoading(null);
-      setPendingConfirm(null);
-      if (!res.success) {
-        toast.error(res.error.message);
+      const plan = buildAgreementActionExecutionPlan({
+        pending: { action, agreementId: targetAgreementId },
+        targetAgreementId,
+        displayedAgreementId: displayAgreement?.id,
+        currentAgreementId: agreement?.id,
+        inactiveDraftId,
+        orphanDraftId: orphanCurrentFeesDraftId,
+        actionLoading,
+      });
+
+      if (plan.kind === 'blocked') return;
+      if (plan.kind === 'missing_target') {
+        logAgreementActionBlocked('missing_target', action);
+        toast.error(t('admin.student360.financialAgreement.errors.actionTargetMissing'));
+        setPendingConfirm(null);
         return;
       }
-      toast.success(t(`admin.student360.financialAgreement.actions.${action}Success`));
-      refreshAll();
+
+      setActionLoading(action);
+      try {
+        const res = await postAgreementAction(plan.agreementId, action);
+        if (!res.success) {
+          toast.error(
+            resolveAgreementActionErrorMessage(t, action, res.error.code) || res.error.message,
+          );
+          return;
+        }
+        toast.success(t(`admin.student360.financialAgreement.actions.${action}Success`));
+        refreshAll();
+      } finally {
+        setActionLoading(null);
+        setPendingConfirm(null);
+      }
     },
-    [agreement?.id, t, toast, refreshAll],
+    [
+      actionLoading,
+      agreement?.id,
+      displayAgreement?.id,
+      inactiveDraftId,
+      orphanCurrentFeesDraftId,
+      t,
+      toast,
+      refreshAll,
+    ],
   );
 
-  function requestAction(action: 'submit' | 'approve' | 'activate' | 'cancel', confirmKey: string) {
+  const confirmPendingAction = useCallback(async () => {
+    if (!pendingConfirm) return;
+    await runAction(pendingConfirm.action, pendingConfirm.agreementId);
+  }, [pendingConfirm, runAction]);
+
+  function requestAction(
+    action: 'submit' | 'approve' | 'activate' | 'cancel',
+    confirmKey: string,
+    targetAgreementId?: number,
+  ) {
     setPendingConfirm({
       action,
       title: t('common.confirm'),
       body: t(confirmKey),
+      agreementId: targetAgreementId,
     });
   }
 
@@ -768,7 +813,13 @@ export function StudentFinancialAgreementTab({
               <button
                 type="button"
                 className="btn btn--ghost btn--sm"
-                onClick={() => requestAction('cancel', 'admin.student360.financialAgreement.confirmCancelDraft')}
+                onClick={() =>
+                  requestAction(
+                    'cancel',
+                    'admin.student360.financialAgreement.confirmCancelDraft',
+                    agreement?.id ?? inactiveDraftId ?? undefined,
+                  )
+                }
               >
                 {t('admin.student360.financialAgreement.cancelDraft')}
               </button>
@@ -861,6 +912,21 @@ export function StudentFinancialAgreementTab({
                             }
                           >
                             {t('admin.student360.financialAgreement.actions.approve')}
+                          </button>
+                        ) : null}
+                        {inactiveDraftDetailState.data?.allowed_actions?.cancel ? (
+                          <button
+                            type="button"
+                            className="btn btn--ghost btn--sm"
+                            disabled={actionLoading === 'cancel'}
+                            onClick={() =>
+                              requestInactiveDraftAction(
+                                'cancel',
+                                'admin.student360.financialAgreement.confirmCancel',
+                              )
+                            }
+                          >
+                            {t('admin.student360.financialAgreement.actions.cancel')}
                           </button>
                         ) : null}
                         {inactiveDraftDetailState.data?.allowed_actions?.activate &&
@@ -1043,9 +1109,7 @@ export function StudentFinancialAgreementTab({
           title={pendingConfirm?.title ?? t('common.confirm')}
           body={pendingConfirm?.body ?? ''}
           loading={actionLoading != null}
-          onConfirm={() => {
-            if (pendingConfirm) void runAction(pendingConfirm.action, pendingConfirm.agreementId);
-          }}
+          onConfirm={confirmPendingAction}
           onClose={() => setPendingConfirm(null)}
         />
       </div>
@@ -1091,7 +1155,13 @@ export function StudentFinancialAgreementTab({
             <button
               type="button"
               className="btn btn--ghost btn--sm"
-              onClick={() => requestAction('cancel', 'admin.student360.financialAgreement.confirmCancelDraft')}
+              onClick={() =>
+                requestAction(
+                  'cancel',
+                  'admin.student360.financialAgreement.confirmCancelDraft',
+                  activeAgreement.id,
+                )
+              }
             >
               {t('admin.student360.financialAgreement.cancelDraft')}
             </button>
@@ -1115,9 +1185,7 @@ export function StudentFinancialAgreementTab({
           title={pendingConfirm?.title ?? t('common.confirm')}
           body={pendingConfirm?.body ?? ''}
           loading={actionLoading != null}
-          onConfirm={() => {
-            if (pendingConfirm) void runAction(pendingConfirm.action, pendingConfirm.agreementId);
-          }}
+          onConfirm={confirmPendingAction}
           onClose={() => setPendingConfirm(null)}
         />
       </div>
@@ -1558,7 +1626,9 @@ export function StudentFinancialAgreementTab({
             type="button"
             className="btn btn--primary btn--sm"
             disabled={actionLoading === 'submit'}
-            onClick={() => requestAction('submit', 'admin.student360.financialAgreement.confirmSubmit')}
+            onClick={() =>
+              requestAction('submit', 'admin.student360.financialAgreement.confirmSubmit', activeAgreement.id)
+            }
           >
             {t('admin.student360.financialAgreement.actions.submit')}
           </button>
@@ -1568,7 +1638,9 @@ export function StudentFinancialAgreementTab({
             type="button"
             className="btn btn--ghost btn--sm"
             disabled={actionLoading === 'approve'}
-            onClick={() => requestAction('approve', 'admin.student360.financialAgreement.confirmApprove')}
+            onClick={() =>
+              requestAction('approve', 'admin.student360.financialAgreement.confirmApprove', activeAgreement.id)
+            }
           >
             {t('admin.student360.financialAgreement.actions.approve')}
           </button>
@@ -1590,7 +1662,9 @@ export function StudentFinancialAgreementTab({
             type="button"
             className="btn btn--ghost btn--sm"
             disabled={actionLoading === 'cancel'}
-            onClick={() => requestAction('cancel', 'admin.student360.financialAgreement.confirmCancel')}
+            onClick={() =>
+              requestAction('cancel', 'admin.student360.financialAgreement.confirmCancel', activeAgreement.id)
+            }
           >
             {t('admin.student360.financialAgreement.actions.cancel')}
           </button>
@@ -1661,9 +1735,7 @@ export function StudentFinancialAgreementTab({
         title={pendingConfirm?.title ?? t('common.confirm')}
         body={pendingConfirm?.body ?? ''}
         loading={actionLoading != null}
-        onConfirm={() => {
-          if (pendingConfirm) void runAction(pendingConfirm.action, pendingConfirm.agreementId);
-        }}
+        onConfirm={confirmPendingAction}
         onClose={() => setPendingConfirm(null)}
       />
     </div>
