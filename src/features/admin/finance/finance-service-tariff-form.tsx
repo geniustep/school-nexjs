@@ -25,7 +25,7 @@ export function FinanceServiceTariffForm({
     page_size: 100,
     active: 1,
   });
-  const services = parseFinanceList(servicesState.data);
+  const services = parseFinanceList<FinanceServiceCatalogItem>(servicesState.data);
 
   const commitmentTypes = refState.data?.commitment_types ?? [];
   const pricingUnits = refState.data?.pricing_units ?? [];
