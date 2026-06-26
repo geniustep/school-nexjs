@@ -60,6 +60,7 @@ import {
   resolveAgreementFinanceSummary,
   resolveDraftAgreementPresentation,
 } from '../utils/resolve-draft-agreement-presentation';
+import { buildAgreementSummaryCards } from '../utils/build-agreement-summary-cards';
 import { AgreementEnrollmentCustomizationsSection } from './agreement-enrollment-customizations-section';
 import { hasFinanceSummaryMetrics } from '../utils/normalize-student-finance-workspace';
 import {
@@ -1218,77 +1219,43 @@ export function StudentFinancialAgreementTab({
   const guardianRel = billingProfile?.guardian_id
     ? details.guardian_relationships.find((r) => r.guardian.id === billingProfile.guardian_id)
     : null;
+  const billingPartyName = billingPartner ? refName(billingPartner) : null;
+  const billingPartyTypeLabel = resolveReferenceLabel(
+    t,
+    'billing_party_type',
+    billingProfile?.billing_party_type ?? '',
+    undefined,
+  );
+  const billingPartyInitials = billingPartyName
+    ? billingPartyName
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0]?.toUpperCase() ?? '')
+        .join('')
+    : '?';
 
-  const summaryCards = financeSummary
-    ? [
-        {
-          key: 'original',
-          label: t('admin.student360.financialAgreement.summary.originalTotal'),
-          value: financeSummary.original_total,
-        },
-        {
-          key: 'discount',
-          label: t('admin.student360.financialAgreement.summary.discountTotal'),
-          value: financeSummary.discount_total,
-        },
-        {
-          key: 'final',
-          label: t('admin.student360.financialAgreement.summary.finalAfterCustomization'),
-          value: financeSummary.final_total ?? financeSummary.net_total,
-        },
-        {
-          key: 'recurring',
-          label: t('admin.student360.financialAgreement.summary.recurringAfterDiscount'),
-          value: financeSummary.recurring_total_after_discount,
-        },
-        {
-          key: 'monthly',
-          label: t('admin.student360.financialAgreement.summary.expectedMonthlyDue'),
-          value: financeSummary.monthly_due_amount,
-        },
-        {
-          key: 'schedule',
-          label: t('admin.student360.financialAgreement.summary.scheduleTotal'),
-          value: financeSummary.schedule_total,
-        },
-      ].filter((item) => item.value != null)
-    : [
-    {
-      key: 'original',
-      label: t('admin.student360.financialAgreement.summary.originalTotal'),
-      value: activeAgreement.original_total ?? activeAgreement.gross_amount,
+  const summaryCards = buildAgreementSummaryCards({
+    financeSummary,
+    agreement: activeAgreement,
+    labels: {
+      original: t('admin.student360.financialAgreement.summary.originalTotal'),
+      discount: t('admin.student360.financialAgreement.summary.discountTotal'),
+      final: t('admin.student360.financialAgreement.summary.finalAfterCustomization'),
+      recurring: t('admin.student360.financialAgreement.summary.recurringAfterDiscount'),
+      monthly: t('admin.student360.financialAgreement.summary.expectedMonthlyDue'),
+      schedule: t('admin.student360.financialAgreement.summary.scheduleTotal'),
+      surcharge: t('admin.student360.financialAgreement.summary.surchargeTotal'),
+      net: t('admin.student360.financialAgreement.summary.netTotal'),
+      paid: t('admin.student360.financialAgreement.summary.paidTotal'),
+      remaining: t('admin.student360.financialAgreement.summary.remainingTotal'),
     },
-    {
-      key: 'discount',
-      label: t('admin.student360.financialAgreement.summary.discountTotal'),
-      value: activeAgreement.discount_total ?? activeAgreement.discount_amount,
-    },
-    {
-      key: 'surcharge',
-      label: t('admin.student360.financialAgreement.summary.surchargeTotal'),
-      value: activeAgreement.surcharge_total,
-    },
-    {
-      key: 'net',
-      label: t('admin.student360.financialAgreement.summary.netTotal'),
-      value: activeAgreement.net_total ?? activeAgreement.net_amount,
-    },
-    {
-      key: 'paid',
-      label: t('admin.student360.financialAgreement.summary.paidTotal'),
-      value: activeAgreement.paid_total,
-    },
-    {
-      key: 'remaining',
-      label: t('admin.student360.financialAgreement.summary.remainingTotal'),
-      value: activeAgreement.remaining_total,
-    },
-  ].filter((item) => item.value != null || item.key === 'net' || item.key === 'original');
+  });
 
   const policies = activeAgreement.schedule_policies;
 
   return (
-    <div className={`${embedded ? 'student-finance-agreement-embedded' : 'student-finance-tab student-360-tab-panel'}${isBackgroundRefreshing ? ' student-360-tab-panel--refreshing' : ''}`}>
+    <div className={`student-finance-agreement-panel ${embedded ? 'student-finance-agreement-embedded' : 'student-finance-tab student-360-tab-panel'}${isBackgroundRefreshing ? ' student-360-tab-panel--refreshing' : ''}`}>
       {!embedded ? (
         <Student360SectionHeader
           title={t('admin.student360.financialAgreement.pageTitle')}
@@ -1311,31 +1278,22 @@ export function StudentFinancialAgreementTab({
       ) : null}
 
       <Card className="student-finance-agreement-header card">
-        <dl className="detail-list student-finance-agreement-meta">
-          <div>
-            <dt>{t('admin.student360.financialAgreement.fields.academicYear')}</dt>
-            <dd>{refName(activeAgreement.academic_year) ?? t('common.dash')}</dd>
+        <div className="student-finance-agreement-header__top">
+          <div className="student-finance-agreement-header__identity">
+            <span className="student-finance-agreement-header__eyebrow">
+              {refName(activeAgreement.academic_year) ?? t('common.dash')}
+            </span>
+            <h3 className="student-finance-agreement-header__number mono" dir="auto">
+              {activeAgreement.number ?? activeAgreement.name ?? t('common.dash')}
+            </h3>
           </div>
-          <div>
-            <dt>{t('admin.student360.financialAgreement.fields.number')}</dt>
-            <dd>{activeAgreement.number ?? activeAgreement.name ?? t('common.dash')}</dd>
-          </div>
-          <div>
-            <dt>{t('admin.student360.financialAgreement.fields.state')}</dt>
-            <dd>
-              <AgreementStateBadge
-                state={activeAgreement.state}
-                financeContext
-                hasBillableContext={financeEligibility.hasBillableFinanceContext}
-              />
-            </dd>
-          </div>
-          {billingSource.originalPlanName ? (
-            <div>
-              <dt>{t('admin.student360.financialAgreement.fields.originalFeePlan')}</dt>
-              <dd dir="auto">{billingSource.originalPlanName}</dd>
-            </div>
-          ) : null}
+          <AgreementStateBadge
+            state={activeAgreement.state}
+            financeContext
+            hasBillableContext={financeEligibility.hasBillableFinanceContext}
+          />
+        </div>
+        <dl className="student-finance-agreement-meta student-finance-agreement-header__meta">
           <div>
             <dt>{t('admin.student360.financialAgreement.fields.agreementDate')}</dt>
             <dd>{formatDate(activeAgreement.agreement_date)}</dd>
@@ -1344,23 +1302,34 @@ export function StudentFinancialAgreementTab({
             <dt>{t('admin.student360.financialAgreement.fields.validity')}</dt>
             <dd>{formatPeriodRange(formatDate, activeAgreement.valid_from, activeAgreement.valid_until)}</dd>
           </div>
+          {billingSource.originalPlanName ? (
+            <div className="student-finance-agreement-header__plan">
+              <dt>{t('admin.student360.financialAgreement.fields.originalFeePlan')}</dt>
+              <dd dir="auto">{billingSource.originalPlanName}</dd>
+            </div>
+          ) : null}
         </dl>
         {billingSource.hasActiveAgreement ? (
-          <p className="student-finance-billing-source__hint tiny muted">
+          <p className="student-finance-agreement-header__hint">
             {t('admin.student360.financeWorkspace.billingSourcePlanTemplateHint')}
           </p>
         ) : null}
       </Card>
 
-      <Student360MetricGrid
-        items={summaryCards.map((item) => ({
-          key: item.key,
-          label: item.label,
-          value: (
-            <FinanceMoney amount={item.value as number | undefined} currency={currency?.name} />
-          ),
-        }))}
-      />
+      {summaryCards.length ? (
+        <Student360MetricGrid
+          variant="finance"
+          className="student-finance-agreement-summary"
+          items={summaryCards.map((item) => ({
+            key: item.key,
+            label: item.label,
+            tone: item.tone,
+            value: (
+              <FinanceMoney amount={item.value} currency={currency?.name} />
+            ),
+          }))}
+        />
+      ) : null}
 
       {draftPresentation.totalsMismatch ? (
         <p className="student-finance-card-alert" role="note">
@@ -1378,146 +1347,154 @@ export function StudentFinancialAgreementTab({
         />
       ) : null}
 
-      <Card className="student-finance-section student-finance-billing-card">
-        <Student360SectionHeader title={t('admin.student360.financialAgreement.billingPartyTitle')} />
-        {billingPartner ? (
-          <dl className="detail-list student-finance-billing-details">
-            <div>
-              <dt>{t('admin.student360.financialAgreement.fields.billingParty')}</dt>
-              <dd>
+      <div className="student-finance-agreement-details-grid">
+        <article className="student-finance-agreement-detail-card">
+          <h4 className="student-finance-agreement-detail-card__title">
+            {t('admin.student360.financialAgreement.billingPartyTitle')}
+          </h4>
+          {billingPartner ? (
+            <div className="student-finance-billing-profile">
+              <span className="student-finance-billing-profile__avatar" aria-hidden="true">
+                {billingPartyInitials}
+              </span>
+              <div className="student-finance-billing-profile__body">
+                <div className="student-finance-billing-profile__head">
+                  {guardianRel ? (
+                    <Link
+                      href={`/admin/parents/${guardianRel.guardian.id}`}
+                      className="student-finance-billing-profile__name student-finance-billing-link"
+                      dir="auto"
+                    >
+                      {billingPartyName}
+                    </Link>
+                  ) : (
+                    <span className="student-finance-billing-profile__name" dir="auto">
+                      {billingPartyName}
+                    </span>
+                  )}
+                  <span className="student-finance-billing-profile__type">{billingPartyTypeLabel}</span>
+                </div>
                 {guardianRel ? (
-                  <Link href={`/admin/parents/${guardianRel.guardian.id}`} className="student-finance-billing-link">
-                    {refName(billingPartner)}
-                  </Link>
-                ) : (
-                  refName(billingPartner)
-                )}
-              </dd>
+                  <dl className="student-finance-billing-profile__meta">
+                    <div>
+                      <dt>{t('admin.student360.financialAgreement.fields.relationship')}</dt>
+                      <dd>{relationshipTypeLabel(t, guardianRel.relationship_type)}</dd>
+                    </div>
+                    {guardianRel.guardian?.email ? (
+                      <div>
+                        <dt>{t('admin.email')}</dt>
+                        <dd>
+                          <a href={`mailto:${guardianRel.guardian.email}`}>{guardianRel.guardian.email}</a>
+                        </dd>
+                      </div>
+                    ) : null}
+                    {guardianRel.guardian?.phone ? (
+                      <div>
+                        <dt>{t('admin.phone')}</dt>
+                        <dd>
+                          <a href={`tel:${guardianRel.guardian.phone}`} dir="auto">
+                            {guardianRel.guardian.phone}
+                          </a>
+                        </dd>
+                      </div>
+                    ) : null}
+                  </dl>
+                ) : null}
+              </div>
             </div>
-            <div>
-              <dt>{t('admin.student360.financialAgreement.fields.partyType')}</dt>
-              <dd>
-                {resolveReferenceLabel(
-                  t,
-                  'billing_party_type',
-                  billingProfile?.billing_party_type ?? '',
-                  undefined,
-                )}
-              </dd>
-            </div>
-            {guardianRel ? (
-              <div>
-                <dt>{t('admin.student360.financialAgreement.fields.relationship')}</dt>
-                <dd>{relationshipTypeLabel(t, guardianRel.relationship_type)}</dd>
-              </div>
-            ) : null}
-            {guardianRel?.guardian?.email ? (
-              <div>
-                <dt>{t('admin.email')}</dt>
-                <dd>
-                  <a href={`mailto:${guardianRel.guardian.email}`}>{guardianRel.guardian.email}</a>
-                </dd>
-              </div>
-            ) : null}
-            {guardianRel?.guardian?.phone ? (
-              <div>
-                <dt>{t('admin.phone')}</dt>
-                <dd>
-                  <a href={`tel:${guardianRel.guardian.phone}`} dir="auto">
-                    {guardianRel.guardian.phone}
-                  </a>
-                </dd>
-              </div>
-            ) : null}
-          </dl>
-        ) : (
-          <Student360CompactEmpty
-            title={t('admin.student360.financialAgreement.noBillingParty')}
-            description={t('admin.student360.financialAgreement.noBillingPartyDesc')}
-            action={
-              onOpenGuardians ? (
-                <button type="button" className="btn btn--ghost btn--sm" onClick={onOpenGuardians}>
-                  {t('admin.student360.financialAgreement.openGuardians')}
-                </button>
-              ) : undefined
-            }
-          />
-        )}
-      </Card>
+          ) : (
+            <Student360CompactEmpty
+              className="student-finance-agreement-detail-empty"
+              title={t('admin.student360.financialAgreement.noBillingParty')}
+              description={t('admin.student360.financialAgreement.noBillingPartyDesc')}
+              action={
+                onOpenGuardians ? (
+                  <button type="button" className="btn btn--ghost btn--sm" onClick={onOpenGuardians}>
+                    {t('admin.student360.financialAgreement.openGuardians')}
+                  </button>
+                ) : undefined
+              }
+            />
+          )}
+        </article>
 
-      <Card className="student-finance-section">
-        <Student360SectionHeader
-          title={t('admin.student360.financialAgreement.adjustments.title')}
-          action={
-            activeAgreement.state === 'draft' && allowed.edit ? (
+        <article className="student-finance-agreement-detail-card">
+          <div className="student-finance-agreement-detail-card__head">
+            <h4 className="student-finance-agreement-detail-card__title">
+              {t('admin.student360.financialAgreement.adjustments.title')}
+            </h4>
+            {activeAgreement.state === 'draft' && allowed.edit ? (
               <button type="button" className="btn btn--primary btn--sm" onClick={() => setShowAdjustment(true)}>
                 {t('admin.student360.financialAgreement.adjustments.addButton')}
               </button>
-            ) : null
-          }
-        />
-        {(activeAgreement.adjustments?.length ?? 0) === 0 ? (
-          <p className="muted">
-            {draftPresentation.enrollmentCustomizations.length > 0
-              ? t('admin.student360.financialAgreement.adjustments.emptyWithEnrollmentCustomizations')
-              : t('admin.student360.financialAgreement.adjustments.empty')}
-          </p>
-        ) : (
-          <div className="student-finance-table-wrap student-finance-adjustments-list">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>{t('admin.student360.financialAgreement.adjustments.type')}</th>
-                  <th>{t('admin.student360.financialAgreement.adjustments.amount')}</th>
-                  <th>{t('admin.student360.financialAgreement.adjustments.reason')}</th>
-                  <th>{t('admin.student360.financialAgreement.adjustments.policy')}</th>
-                  {activeAgreement.state === 'draft' ? <th>{t('common.actions')}</th> : null}
-                </tr>
-              </thead>
-              <tbody>
-                {activeAgreement.adjustments?.map((adj) => (
-                  <tr key={adj.id}>
-                    <td>{resolveAdjustmentTypeLabel(t, adj.adjustment_type)}</td>
-                    <td>
-                      {adj.percentage != null ? (
-                        <span dir="ltr">{adj.percentage}%</span>
-                      ) : (
-                        <FinanceMoney amount={adj.amount ?? undefined} currency={currency?.name} />
-                      )}
-                    </td>
-                    <td dir="auto">{adj.reason ?? t('common.dash')}</td>
-                    <td>
-                      {resolveAdjustmentPolicyLabel(t, adj.application_policy)}
-                    </td>
-                    {activeAgreement.state === 'draft' ? (
-                      <td>
-                        <button
-                          type="button"
-                          className="btn btn--ghost btn--sm"
-                          disabled={!!actionLoading}
-                          onClick={async () => {
-                            setActionLoading(`delete-adj-${adj.id}`);
-                            const res = await deleteAgreementAdjustment(activeAgreement.id, adj.id);
-                            setActionLoading(null);
-                            if (!res.success) {
-                              toast.error(res.error.message);
-                              return;
-                            }
-                            toast.success(t('admin.student360.financialAgreement.adjustments.deleteSuccess'));
-                            refreshAll();
-                          }}
-                        >
-                          {t('common.delete')}
-                        </button>
-                      </td>
-                    ) : null}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            ) : null}
           </div>
-        )}
-      </Card>
+          {(activeAgreement.adjustments?.length ?? 0) === 0 ? (
+            <div className="student-finance-agreement-detail-empty-inline" role="status">
+              <span className="student-finance-agreement-detail-empty-inline__icon" aria-hidden="true">
+                —
+              </span>
+              <p>
+                {draftPresentation.enrollmentCustomizations.length > 0
+                  ? t('admin.student360.financialAgreement.adjustments.emptyWithEnrollmentCustomizations')
+                  : t('admin.student360.financialAgreement.adjustments.empty')}
+              </p>
+            </div>
+          ) : (
+            <div className="student-finance-table-wrap student-finance-adjustments-list">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>{t('admin.student360.financialAgreement.adjustments.type')}</th>
+                    <th>{t('admin.student360.financialAgreement.adjustments.amount')}</th>
+                    <th>{t('admin.student360.financialAgreement.adjustments.reason')}</th>
+                    <th>{t('admin.student360.financialAgreement.adjustments.policy')}</th>
+                    {activeAgreement.state === 'draft' ? <th>{t('common.actions')}</th> : null}
+                  </tr>
+                </thead>
+                <tbody>
+                  {activeAgreement.adjustments?.map((adj) => (
+                    <tr key={adj.id}>
+                      <td>{resolveAdjustmentTypeLabel(t, adj.adjustment_type)}</td>
+                      <td>
+                        {adj.percentage != null ? (
+                          <span dir="ltr">{adj.percentage}%</span>
+                        ) : (
+                          <FinanceMoney amount={adj.amount ?? undefined} currency={currency?.name} />
+                        )}
+                      </td>
+                      <td dir="auto">{adj.reason ?? t('common.dash')}</td>
+                      <td>{resolveAdjustmentPolicyLabel(t, adj.application_policy)}</td>
+                      {activeAgreement.state === 'draft' ? (
+                        <td>
+                          <button
+                            type="button"
+                            className="btn btn--ghost btn--sm"
+                            disabled={!!actionLoading}
+                            onClick={async () => {
+                              setActionLoading(`delete-adj-${adj.id}`);
+                              const res = await deleteAgreementAdjustment(activeAgreement.id, adj.id);
+                              setActionLoading(null);
+                              if (!res.success) {
+                                toast.error(res.error.message);
+                                return;
+                              }
+                              toast.success(t('admin.student360.financialAgreement.adjustments.deleteSuccess'));
+                              refreshAll();
+                            }}
+                          >
+                            {t('common.delete')}
+                          </button>
+                        </td>
+                      ) : null}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </article>
+      </div>
 
       {!canCustomizeAgreement ? (
       <Card className="student-finance-section">

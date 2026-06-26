@@ -221,9 +221,12 @@ export function AgreementDraftCustomizationSection({
 
   if (isActive) {
     return (
-      <Card className="student-finance-section student-finance-agreement-active-notice">
+      <div className="student-finance-agreement-callout" role="note">
+        <span className="student-finance-agreement-callout__icon" aria-hidden="true">
+          ✓
+        </span>
         <p>{t('admin.student360.financialAgreement.customization.activeAgreementNotice')}</p>
-      </Card>
+      </div>
     );
   }
 
