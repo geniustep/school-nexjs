@@ -3,7 +3,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { DataTable, type Column } from '@/components/tables/data-table';
 import { Card } from '@/components/ui/primitives';
-import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { useToast } from '@/components/ui/toast';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { useFormat } from '@/features/i18n/use-format';
@@ -14,7 +13,6 @@ import { ServiceCategoryDetailsList } from './service-category-details-list';
 import {
   generateAgreementSchedule,
   previewAgreementSchedule,
-  updateFinancialAgreement,
 } from '../api/finance-admin-api';
 import type {
   AgreementScheduleItem,
@@ -22,7 +20,6 @@ import type {
   FinancialAgreementLine,
 } from '../types';
 import { formatPeriodRange } from '../utils/format-period';
-import { buildAgreementLinesReplacePayload, validateAgreementLinesReplacePatch } from '../utils/build-agreement-lines-patch';
 import {
   canGenerateAgreementSchedule,
   canMutateAgreementLines,
@@ -32,7 +29,7 @@ import {
 } from '../utils/resolve-agreement-draft-customization';
 import { agreementLineCategoryDetails } from '../utils/service-category-details';
 import { resolveServiceDisplayName } from '../utils/reference-labels';
-import { AgreementLineFormDrawer } from './agreement-line-form-drawer';
+import { AgreementLineDeleteDrawer, AgreementLineFormDrawer } from './agreement-line-form-drawer';
 import { ScheduleItemStateBadge } from './cheque-dual-badges';
 
 export function AgreementDraftCustomizationSection({
@@ -222,36 +219,6 @@ export function AgreementDraftCustomizationSection({
     onChanged();
   }, [agreement.id, onChanged, t, toast]);
 
-  const confirmDelete = useCallback(async () => {
-    if (!deleteTarget?.id) return;
-    const payload = buildAgreementLinesReplacePayload({
-      lines,
-      excludeLineId: deleteTarget.id,
-    });
-    const validation = validateAgreementLinesReplacePatch({
-      sourceLines: lines,
-      operation: 'delete',
-      payload,
-      excludeLineId: deleteTarget.id,
-      agreementNetAmount: agreement.net_amount ?? agreement.net_total,
-    });
-    if (!validation.ok) {
-      toast.error(t(`admin.student360.financialAgreement.customization.errors.${validation.reason}`));
-      setDeleteTarget(null);
-      return;
-    }
-    setActionLoading(`delete-${deleteTarget.id}`);
-    const res = await updateFinancialAgreement(agreement.id, payload);
-    setActionLoading(null);
-    setDeleteTarget(null);
-    if (!res.success) {
-      toast.error(res.error.message);
-      return;
-    }
-    toast.success(t('admin.student360.financialAgreement.customization.lineDeleted'));
-    handleLineChanged();
-  }, [agreement.id, agreement.net_amount, agreement.net_total, deleteTarget, handleLineChanged, lines, t, toast]);
-
   if (isActive) {
     return (
       <Card className="student-finance-section student-finance-agreement-active-notice">
@@ -362,6 +329,7 @@ export function AgreementDraftCustomizationSection({
           existingLines={lines}
           line={editingLine}
           agreementNetAmount={agreement.net_amount ?? agreement.net_total}
+          currency={currency}
           onClose={() => {
             setLineFormMode(null);
             setEditingLine(null);
@@ -370,14 +338,18 @@ export function AgreementDraftCustomizationSection({
         />
       ) : null}
 
-      <ConfirmationDialog
-        open={deleteTarget != null}
-        title={t('admin.student360.financialAgreement.customization.deleteLine')}
-        body={t('admin.student360.financialAgreement.customization.deleteConfirm')}
-        loading={actionLoading != null}
-        onConfirm={() => void confirmDelete()}
-        onClose={() => setDeleteTarget(null)}
-      />
+      {deleteTarget ? (
+        <AgreementLineDeleteDrawer
+          open
+          agreementId={agreement.id}
+          existingLines={lines}
+          line={deleteTarget}
+          agreementNetAmount={agreement.net_amount ?? agreement.net_total}
+          currency={currency}
+          onClose={() => setDeleteTarget(null)}
+          onSuccess={handleLineChanged}
+        />
+      ) : null}
     </>
   );
 }

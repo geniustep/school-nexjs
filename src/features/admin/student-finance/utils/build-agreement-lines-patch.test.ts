@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildAgreementLinesReplacePayload,
+  computeAgreementLineAmounts,
+  isSpecialUnitPrice,
+  resolveAgreementLineReasonKind,
+  resolveDefaultUnitPrice,
   serializeAgreementLineForPatch,
+  validateAgreementLineReason,
   validateAgreementLinesReplacePatch,
 } from './build-agreement-lines-patch';
 import type { FinancialAgreementLine } from '../types';
@@ -23,12 +28,18 @@ describe('buildAgreementLinesReplacePayload', () => {
     expect(payload.lines[0]).toMatchObject({ id: 1, service_id: 10, unit_price: 2500 });
   });
 
-  it('updates one line while keeping siblings', () => {
+  it('updates discount on one line while preserving unit_price', () => {
     const payload = buildAgreementLinesReplacePayload({
       lines: sampleLines,
-      updateLine: { id: 2, patch: { unit_price: 450, reason: 'Sibling discount' } },
+      updateLine: {
+        id: 2,
+        patch: { discount_type: 'fixed', discount_value: 100, reason: 'Sibling discount' },
+      },
     });
-    expect(payload.lines.find((l) => l.id === 2)?.unit_price).toBe(450);
+    const updated = payload.lines.find((l) => l.id === 2);
+    expect(updated?.unit_price).toBe(400);
+    expect(updated?.discount_type).toBe('fixed');
+    expect(updated?.discount_value).toBe(100);
     expect(payload.lines.find((l) => l.id === 1)?.unit_price).toBe(2500);
   });
 
@@ -68,7 +79,7 @@ describe('buildAgreementLinesReplacePayload', () => {
     ];
     const payload = buildAgreementLinesReplacePayload({
       lines: linesWithGap,
-      updateLine: { id: 2, patch: { unit_price: 450 } },
+      updateLine: { id: 2, patch: { discount_type: 'fixed', discount_value: 75 } },
     });
     const result = validateAgreementLinesReplacePatch({
       sourceLines: linesWithGap,
@@ -97,6 +108,89 @@ describe('serializeAgreementLineForPatch', () => {
   it('maps discount_value from discount_amount fallback', () => {
     const row = serializeAgreementLineForPatch(sampleLines[1]!);
     expect(row.discount_value).toBe(50);
+  });
+});
+
+describe('agreement line reason rules', () => {
+  it('does not require reason when adding a line without discount or special price', () => {
+    const result = validateAgreementLineReason(
+      { mode: 'add', discountType: 'none', unitPrice: 100, defaultPrice: 100 },
+      '',
+    );
+    expect(result.ok).toBe(true);
+    expect(resolveAgreementLineReasonKind({ mode: 'add', discountType: 'none', unitPrice: 100, defaultPrice: 100 })).toBe(
+      'optional',
+    );
+  });
+
+  it('requires reason when adding a line with discount', () => {
+    const result = validateAgreementLineReason(
+      { mode: 'add', discountType: 'percent', discountValue: 10, unitPrice: 100, defaultPrice: 100 },
+      '',
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.errorKey).toBe('discountReasonRequired');
+  });
+
+  it('requires reason when adding a line with special price vs known default', () => {
+    expect(isSpecialUnitPrice(120, 100)).toBe(true);
+    const result = validateAgreementLineReason(
+      { mode: 'add', discountType: 'none', unitPrice: 120, defaultPrice: 100 },
+      '',
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.errorKey).toBe('specialPriceReasonRequired');
+  });
+
+  it('does not treat entered price as special when default price is unknown', () => {
+    expect(resolveDefaultUnitPrice({ service: { default_amount: 0 }, tariff: null })).toBeNull();
+    const result = validateAgreementLineReason(
+      { mode: 'add', discountType: 'none', unitPrice: 999, defaultPrice: null },
+      '',
+    );
+    expect(result.ok).toBe(true);
+  });
+
+  it('preserves unit_price when editing an existing line', () => {
+    const payload = buildAgreementLinesReplacePayload({
+      lines: sampleLines,
+      updateLine: { id: 1, patch: { discount_type: 'percent', discount_value: 5 } },
+    });
+    expect(payload.lines.find((l) => l.id === 1)?.unit_price).toBe(2500);
+  });
+
+  it('requires reason when editing an existing line with discount', () => {
+    const result = validateAgreementLineReason(
+      { mode: 'edit', discountType: 'fixed', discountValue: 200 },
+      '',
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.errorKey).toBe('discountReasonRequired');
+  });
+
+  it('does not require reason when editing an existing line without discount', () => {
+    const result = validateAgreementLineReason({ mode: 'edit', discountType: 'none' }, '');
+    expect(result.ok).toBe(true);
+  });
+
+  it('requires reason when deleting a line', () => {
+    const result = validateAgreementLineReason({ mode: 'delete', discountType: 'none' }, '');
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.errorKey).toBe('deleteReasonRequired');
+  });
+});
+
+describe('computeAgreementLineAmounts', () => {
+  it('computes net after percent discount', () => {
+    const amounts = computeAgreementLineAmounts({
+      unitPrice: 2500,
+      quantity: 1,
+      discountType: 'percent',
+      discountValue: 10,
+    });
+    expect(amounts.gross).toBe(2500);
+    expect(amounts.discount).toBe(250);
+    expect(amounts.net).toBe(2250);
   });
 });
 

@@ -1,5 +1,88 @@
 import type { FinancialAgreementLine } from '../types';
 
+export type AgreementLineReasonMode = 'add' | 'edit' | 'delete';
+
+export type AgreementLineReasonContext = {
+  mode: AgreementLineReasonMode;
+  discountType: string;
+  discountValue?: number;
+  unitPrice?: number;
+  defaultPrice?: number | null;
+};
+
+export type AgreementLineReasonKind = 'optional' | 'discount' | 'special_price' | 'delete';
+
+export function hasAgreementLineDiscount(discountType: string, discountValue?: number | null): boolean {
+  if (discountType === 'none' || !discountType) return false;
+  return Number(discountValue) > 0;
+}
+
+export function resolveDefaultUnitPrice(input: {
+  service?: { default_amount?: number | null } | null;
+  tariff?: { unit_price?: number | null } | null;
+}): number | null {
+  if (input.tariff?.unit_price != null && Number.isFinite(input.tariff.unit_price)) {
+    return input.tariff.unit_price;
+  }
+  const serviceDefault = input.service?.default_amount;
+  if (serviceDefault != null && Number.isFinite(serviceDefault) && serviceDefault > 0) {
+    return serviceDefault;
+  }
+  return null;
+}
+
+export function isSpecialUnitPrice(unitPrice: number, defaultPrice?: number | null): boolean {
+  if (defaultPrice == null || !Number.isFinite(defaultPrice)) return false;
+  return Math.abs(unitPrice - defaultPrice) > 0.001;
+}
+
+export function resolveAgreementLineReasonKind(context: AgreementLineReasonContext): AgreementLineReasonKind {
+  if (context.mode === 'delete') return 'delete';
+  if (hasAgreementLineDiscount(context.discountType, context.discountValue)) return 'discount';
+  if (context.mode === 'add' && isSpecialUnitPrice(context.unitPrice ?? 0, context.defaultPrice)) {
+    return 'special_price';
+  }
+  return 'optional';
+}
+
+export function isAgreementLineReasonRequired(context: AgreementLineReasonContext): boolean {
+  return resolveAgreementLineReasonKind(context) !== 'optional';
+}
+
+export function validateAgreementLineReason(
+  context: AgreementLineReasonContext,
+  reason: string,
+): { ok: true } | { ok: false; errorKey: string } {
+  const kind = resolveAgreementLineReasonKind(context);
+  if (kind === 'optional') return { ok: true };
+  if (!reason.trim()) {
+    const errorKeys: Record<Exclude<AgreementLineReasonKind, 'optional'>, string> = {
+      discount: 'discountReasonRequired',
+      special_price: 'specialPriceReasonRequired',
+      delete: 'deleteReasonRequired',
+    };
+    return { ok: false, errorKey: errorKeys[kind] };
+  }
+  return { ok: true };
+}
+
+export function computeAgreementLineAmounts(input: {
+  unitPrice: number;
+  quantity: number;
+  discountType: string;
+  discountValue: number;
+}): { gross: number; discount: number; net: number } {
+  const gross = input.unitPrice * input.quantity;
+  let discount = 0;
+  if (input.discountType === 'percent') {
+    discount = gross * (input.discountValue / 100);
+  } else if (input.discountType === 'fixed') {
+    discount = input.discountValue;
+  }
+  discount = Math.min(Math.max(0, discount), gross);
+  return { gross, discount, net: Math.max(0, gross - discount) };
+}
+
 export type AgreementLinePatchInput = {
   service_id: number;
   tariff_id?: number | null;
@@ -92,7 +175,7 @@ export function buildAgreementLinesReplacePayload(input: {
   lines: FinancialAgreementLine[];
   excludeLineId?: number;
   updateLine?: { id: number; patch: Partial<AgreementLinePatchInput> & { reason?: string } };
-  appendLine?: AgreementLinePatchInput;
+  appendLine?: AgreementLinePatchInput & { reason?: string };
 }): { lines: Array<(AgreementLinePatchInput & { id?: number; reason?: string })> } {
   let serialized: Array<AgreementLinePatchInput & { id?: number; reason?: string }> = input.lines
     .filter((line) => line.id != null && line.service_id != null)
@@ -107,7 +190,8 @@ export function buildAgreementLinesReplacePayload(input: {
     });
 
   if (input.appendLine) {
-    serialized = [...serialized, input.appendLine];
+    const { reason, ...line } = input.appendLine;
+    serialized = [...serialized, { ...line, ...(reason ? { reason } : {}) }];
   }
 
   return { lines: serialized };

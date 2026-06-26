@@ -22,6 +22,7 @@
     "close": "Fermer",
     "edit": "Modifier",
     "delete": "Supprimer",
+    "actions": "Actions",
     "clear": "Effacer",
     "download": "Télécharger",
     "markRead": "Marquer comme lu",
@@ -4705,12 +4706,14 @@
         "customization": {
           "sectionTitle": "Personnaliser l'accord avant activation",
           "sectionDesc": "Vous pouvez modifier les lignes de cet accord avant qu'il ne devienne officiel et encaissable. Le plan de frais d'origine reste inchangé.",
+          "drawerDesc": "Ces changements concernent uniquement l'accord de cet élève et ne modifient pas le plan de frais d'origine.",
           "addLine": "Ajouter une ligne à l'accord",
           "editLine": "Modifier la ligne",
           "deleteLine": "Retirer la ligne de l'accord",
-          "deleteConfirm": "Cette ligne sera retirée de l'accord de cet élève uniquement. Le plan de frais d'origine ne changera pas.",
+          "deleteConfirm": "Cette ligne sera retirée de l'accord de cet élève uniquement. Le plan de frais d'origine ne sera pas modifié.",
           "addLineTitle": "Ajouter une ligne à l'accord",
-          "editLineTitle": "Modifier la ligne",
+          "editLineTitle": "Modifier la remise de la ligne",
+          "deleteLineTitle": "Retirer une ligne de l'accord",
           "lineAdded": "Ligne ajoutée à l'accord.",
           "lineUpdated": "Ligne mise à jour. Revoyez le calendrier d'échéances avant d'activer l'accord.",
           "lineDeleted": "Ligne retirée de l'accord.",
@@ -4725,11 +4728,23 @@
           "emptyLinesDesc": "Ajoutez des lignes à l'accord de cet élève depuis le catalogue des frais.",
           "fields": {
             "feeType": "Type de frais",
+            "defaultTariff": "Tarif / prix par défaut",
+            "defaultPriceHint": "Prix par défaut",
             "unitPrice": "Prix",
+            "originalPriceLabel": "Prix d'origine",
             "quantity": "Quantité ou périodes",
             "discountType": "Type de remise",
             "discountValue": "Valeur de remise",
-            "reason": "Motif de personnalisation"
+            "reason": "Motif de personnalisation",
+            "internalNoteOptional": "Note interne — facultatif",
+            "discountReasonRequired": "Motif de remise — obligatoire",
+            "specialPriceReasonRequired": "Motif du prix spécial — obligatoire",
+            "deleteReasonRequired": "Motif de suppression — obligatoire"
+          },
+          "summary": {
+            "gross": "Montant d'origine",
+            "discount": "Remise",
+            "net": "Nouveau net"
           },
           "columns": {
             "lineName": "Nom de la ligne",
@@ -4747,8 +4762,12 @@
             "unknown": "Non spécifié"
           },
           "errors": {
+            "formInvalid": "Vérifiez les champs signalés et corrigez les erreurs avant d'enregistrer.",
             "serviceRequired": "Sélectionnez un type de frais.",
             "reasonRequired": "Le motif de personnalisation est obligatoire.",
+            "discountReasonRequired": "Le motif de remise est obligatoire.",
+            "specialPriceReasonRequired": "Le motif du prix spécial est obligatoire.",
+            "deleteReasonRequired": "Le motif de suppression est obligatoire.",
             "priceRequired": "Saisissez un prix valide.",
             "incomplete_patchable_lines": "Impossible de préparer les lignes. Rechargez la page puis réessayez.",
             "lines_not_loaded": "Les lignes ne sont pas encore chargées. Attendez la fin du chargement.",

@@ -22,6 +22,7 @@
     "close": "إغلاق",
     "edit": "تعديل",
     "delete": "حذف",
+    "actions": "إجراءات",
     "clear": "مسح",
     "download": "تحميل",
     "markRead": "تعليم كمقروء",
@@ -4721,12 +4722,14 @@
         "customization": {
           "sectionTitle": "تخصيص الاتفاق قبل التفعيل",
           "sectionDesc": "يمكنك تعديل بنود هذا الاتفاق قبل أن يصبح رسميًا وقابلًا للتحصيل. خطة الرسوم الأصلية تبقى دون تغيير.",
+          "drawerDesc": "هذه التغييرات تخص اتفاق هذا التلميذ فقط ولا تعدّل خطة الرسوم الأصلية.",
           "addLine": "إضافة بند إلى الاتفاق",
           "editLine": "تعديل البند",
           "deleteLine": "حذف البند من الاتفاق",
-          "deleteConfirm": "سيتم حذف هذا البند من اتفاق هذا التلميذ فقط، ولن تتغير خطة الرسوم الأصلية.",
+          "deleteConfirm": "سيتم حذف هذا البند من اتفاق هذا التلميذ فقط، ولن يتم تعديل خطة الرسوم الأصلية.",
           "addLineTitle": "إضافة بند إلى الاتفاق",
-          "editLineTitle": "تعديل البند",
+          "editLineTitle": "تعديل تخفيض البند",
+          "deleteLineTitle": "حذف بند من الاتفاق",
           "lineAdded": "تمت إضافة البند إلى الاتفاق.",
           "lineUpdated": "تم تحديث البند. راجع جدول الأقساط قبل تفعيل الاتفاق.",
           "lineDeleted": "تم حذف البند من الاتفاق.",
@@ -4741,11 +4744,23 @@
           "emptyLinesDesc": "أضف بنودًا إلى اتفاق هذا التلميذ من قائمة الرسوم.",
           "fields": {
             "feeType": "نوع الرسوم",
+            "defaultTariff": "التعريفة / السعر الافتراضي",
+            "defaultPriceHint": "السعر الافتراضي",
             "unitPrice": "السعر",
+            "originalPriceLabel": "السعر الأصلي",
             "quantity": "الكمية أو عدد الفترات",
-            "discountType": "نوع الخصم",
-            "discountValue": "قيمة الخصم",
-            "reason": "سبب التخصيص"
+            "discountType": "نوع التخفيض",
+            "discountValue": "قيمة التخفيض",
+            "reason": "سبب التخصيص",
+            "internalNoteOptional": "ملاحظة داخلية — اختياري",
+            "discountReasonRequired": "سبب التخفيض — إلزامي",
+            "specialPriceReasonRequired": "سبب السعر الخاص — إلزامي",
+            "deleteReasonRequired": "سبب الحذف — إلزامي"
+          },
+          "summary": {
+            "gross": "المبلغ الأصلي",
+            "discount": "التخفيض",
+            "net": "الصافي الجديد"
           },
           "columns": {
             "lineName": "اسم البند",
@@ -4763,8 +4778,12 @@
             "unknown": "غير محدد"
           },
           "errors": {
+            "formInvalid": "راجع الحقول المحددة وأصلح الأخطاء قبل الحفظ.",
             "serviceRequired": "اختر نوع الرسوم.",
             "reasonRequired": "سبب التخصيص إلزامي.",
+            "discountReasonRequired": "سبب التخفيض إلزامي.",
+            "specialPriceReasonRequired": "سبب السعر الخاص إلزامي.",
+            "deleteReasonRequired": "سبب الحذف إلزامي.",
             "priceRequired": "أدخل سعرًا صالحًا.",
             "incomplete_patchable_lines": "تعذر تجهيز البنود للحفظ. أعد تحميل الصفحة ثم حاول مجددًا.",
             "lines_not_loaded": "لم تُحمَّل بنود الاتفاق بعد. انتظر اكتمال التحميل قبل الحفظ.",

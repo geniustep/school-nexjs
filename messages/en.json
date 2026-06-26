@@ -22,6 +22,7 @@
     "close": "Close",
     "edit": "Edit",
     "delete": "Delete",
+    "actions": "Actions",
     "clear": "Clear",
     "download": "Download",
     "markRead": "Mark as read",
@@ -4710,12 +4711,14 @@
         "customization": {
           "sectionTitle": "Customize agreement before activation",
           "sectionDesc": "You can edit this agreement's lines before it becomes official and collectible. The original fee plan is unchanged.",
+          "drawerDesc": "These changes apply to this student's agreement only and do not modify the original fee plan.",
           "addLine": "Add line to agreement",
           "editLine": "Edit line",
           "deleteLine": "Remove line from agreement",
-          "deleteConfirm": "This line will be removed from this student's agreement only. The original fee plan will not change.",
+          "deleteConfirm": "This line will be removed from this student's agreement only. The original fee plan will not be modified.",
           "addLineTitle": "Add line to agreement",
-          "editLineTitle": "Edit line",
+          "editLineTitle": "Edit line discount",
+          "deleteLineTitle": "Remove line from agreement",
           "lineAdded": "Line added to the agreement.",
           "lineUpdated": "Line updated. Review the installment schedule before activating the agreement.",
           "lineDeleted": "Line removed from the agreement.",
@@ -4730,11 +4733,23 @@
           "emptyLinesDesc": "Add lines to this student's agreement from the fee catalog.",
           "fields": {
             "feeType": "Fee type",
+            "defaultTariff": "Tariff / default price",
+            "defaultPriceHint": "Default price",
             "unitPrice": "Price",
+            "originalPriceLabel": "Original price",
             "quantity": "Quantity or periods",
             "discountType": "Discount type",
             "discountValue": "Discount value",
-            "reason": "Customization reason"
+            "reason": "Customization reason",
+            "internalNoteOptional": "Internal note — optional",
+            "discountReasonRequired": "Discount reason — required",
+            "specialPriceReasonRequired": "Special price reason — required",
+            "deleteReasonRequired": "Deletion reason — required"
+          },
+          "summary": {
+            "gross": "Original amount",
+            "discount": "Discount",
+            "net": "New net amount"
           },
           "columns": {
             "lineName": "Line name",
@@ -4752,8 +4767,12 @@
             "unknown": "Unspecified"
           },
           "errors": {
+            "formInvalid": "Review the highlighted fields and fix errors before saving.",
             "serviceRequired": "Select a fee type.",
             "reasonRequired": "Customization reason is required.",
+            "discountReasonRequired": "Discount reason is required.",
+            "specialPriceReasonRequired": "Special price reason is required.",
+            "deleteReasonRequired": "Deletion reason is required.",
             "priceRequired": "Enter a valid price.",
             "incomplete_patchable_lines": "Could not prepare lines for save. Reload the page and try again.",
             "lines_not_loaded": "Agreement lines are not loaded yet. Wait for loading to finish before saving.",

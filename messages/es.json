@@ -22,6 +22,7 @@
     "close": "Cerrar",
     "edit": "Editar",
     "delete": "Eliminar",
+    "actions": "Acciones",
     "clear": "Borrar",
     "download": "Descargar",
     "markRead": "Marcar como leído",
@@ -4705,12 +4706,14 @@
         "customization": {
           "sectionTitle": "Personalizar acuerdo antes de la activación",
           "sectionDesc": "Puede editar las líneas de este acuerdo antes de que sea oficial y cobrable. El plan de tasas original no cambia.",
+          "drawerDesc": "Estos cambios afectan solo al acuerdo de este alumno y no modifican el plan de tasas original.",
           "addLine": "Añadir línea al acuerdo",
           "editLine": "Editar línea",
           "deleteLine": "Eliminar línea del acuerdo",
-          "deleteConfirm": "Esta línea se eliminará solo del acuerdo de este alumno. El plan de tasas original no cambiará.",
+          "deleteConfirm": "Esta línea se eliminará solo del acuerdo de este alumno. El plan de tasas original no se modificará.",
           "addLineTitle": "Añadir línea al acuerdo",
-          "editLineTitle": "Editar línea",
+          "editLineTitle": "Editar descuento de la línea",
+          "deleteLineTitle": "Eliminar línea del acuerdo",
           "lineAdded": "Línea añadida al acuerdo.",
           "lineUpdated": "Línea actualizada. Revise el calendario de cuotas antes de activar el acuerdo.",
           "lineDeleted": "Línea eliminada del acuerdo.",
@@ -4725,11 +4728,23 @@
           "emptyLinesDesc": "Añada líneas al acuerdo de este alumno desde el catálogo de tasas.",
           "fields": {
             "feeType": "Tipo de tasa",
+            "defaultTariff": "Tarifa / precio predeterminado",
+            "defaultPriceHint": "Precio predeterminado",
             "unitPrice": "Precio",
+            "originalPriceLabel": "Precio original",
             "quantity": "Cantidad o periodos",
             "discountType": "Tipo de descuento",
             "discountValue": "Valor del descuento",
-            "reason": "Motivo de personalización"
+            "reason": "Motivo de personalización",
+            "internalNoteOptional": "Nota interna — opcional",
+            "discountReasonRequired": "Motivo del descuento — obligatorio",
+            "specialPriceReasonRequired": "Motivo del precio especial — obligatorio",
+            "deleteReasonRequired": "Motivo de eliminación — obligatorio"
+          },
+          "summary": {
+            "gross": "Importe original",
+            "discount": "Descuento",
+            "net": "Nuevo neto"
           },
           "columns": {
             "lineName": "Nombre de la línea",
@@ -4747,8 +4762,12 @@
             "unknown": "No especificado"
           },
           "errors": {
+            "formInvalid": "Revise los campos marcados y corrija los errores antes de guardar.",
             "serviceRequired": "Seleccione un tipo de tasa.",
             "reasonRequired": "El motivo de personalización es obligatorio.",
+            "discountReasonRequired": "El motivo del descuento es obligatorio.",
+            "specialPriceReasonRequired": "El motivo del precio especial es obligatorio.",
+            "deleteReasonRequired": "El motivo de eliminación es obligatorio.",
             "priceRequired": "Introduzca un precio válido.",
             "incomplete_patchable_lines": "No se pudieron preparar las líneas. Recargue la página e inténtelo de nuevo.",
             "lines_not_loaded": "Las líneas aún no están cargadas. Espere a que termine la carga.",

@@ -5090,6 +5090,142 @@
   opacity: 0.7;
 }
 
+.student-finance-line-drawer .academic-setup-drawer__body {
+  padding: 0;
+}
+
+.student-finance-line-drawer__content {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  overflow-x: hidden;
+}
+
+.student-finance-line-drawer__field {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.student-finance-line-drawer__field .input,
+.student-finance-line-drawer__field select.input,
+.student-finance-line-drawer__field textarea.input {
+  font-weight: 400;
+  width: 100%;
+  max-width: 100%;
+}
+
+.student-finance-line-drawer__field-error {
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.student-finance-line-drawer__form-error {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+}
+
+.student-finance-line-drawer__line-card {
+  display: grid;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 10px;
+  background: var(--c-surface-2, #f8fafc);
+}
+
+.student-finance-line-drawer__facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 14px;
+  margin: 0;
+}
+
+.student-finance-line-drawer__facts div {
+  display: grid;
+  gap: 2px;
+}
+
+.student-finance-line-drawer__facts dt {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--c-muted, #64748b);
+}
+
+.student-finance-line-drawer__facts dd {
+  margin: 0;
+  font-weight: 500;
+}
+
+.student-finance-line-drawer__notice {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--c-muted, #64748b);
+}
+
+.student-finance-line-drawer__hint {
+  display: block;
+}
+
+.student-finance-line-drawer__footer {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+}
+
+.student-finance-line-drawer__summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 8px;
+  background: var(--c-surface-2, #f8fafc);
+}
+
+.student-finance-line-drawer__summary-label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--c-muted, #64748b);
+  margin-bottom: 2px;
+}
+
+.student-finance-line-drawer__footer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+[dir='rtl'] .student-finance-line-drawer__footer-actions {
+  flex-direction: row-reverse;
+}
+
+@media (max-width: 640px) {
+  .student-finance-line-drawer__summary {
+    grid-template-columns: 1fr;
+  }
+
+  .student-finance-line-drawer__facts {
+    grid-template-columns: 1fr;
+  }
+
+  .student-finance-line-drawer__footer-actions {
+    flex-direction: column;
+  }
+
+  .student-finance-line-drawer__footer-actions .btn {
+    width: 100%;
+  }
+}
+
 .student-finance-schedule-policy ul {
   margin: 0.5rem 0 0;
   padding-inline-start: 1.25rem;
