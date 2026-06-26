@@ -11,12 +11,18 @@ import { endpoints } from '@/lib/api/endpoints';
 import { updateFinancialAgreement } from '../api/finance-admin-api';
 import type { FinanceServiceCatalogItem, FinanceServiceTariff, FinancialAgreementLine } from '../types';
 import {
-  buildAgreementLinesReplacePayload,
+  buildAgreementLineAddPayload,
+  buildAgreementLineDeletePayload,
+  buildAgreementLineDiscountPatchPayload,
   computeAgreementLineAmounts,
+  logAgreementLinePatchBlocked,
   resolveAgreementLineReasonKind,
   resolveDefaultUnitPrice,
+  validateAgreementLineAddPatch,
+  validateAgreementLineDeletePatch,
+  validateAgreementLineDiscountPatch,
+  validateAgreementLinePatchSafety,
   validateAgreementLineReason,
-  validateAgreementLinesReplacePatch,
 } from '../utils/build-agreement-lines-patch';
 
 export type AgreementLineFormMode = 'add' | 'edit';
@@ -82,18 +88,20 @@ export function AgreementLineDeleteDrawer({
       return;
     }
 
-    const payload = buildAgreementLinesReplacePayload({
-      lines: existingLines,
-      excludeLineId: line.id,
-    });
-    const validation = validateAgreementLinesReplacePatch({
+    const payload = buildAgreementLineDeletePayload(line.id);
+    const validation = validateAgreementLineDeletePatch({
       sourceLines: existingLines,
-      operation: 'delete',
+      lineId: line.id,
       payload,
-      excludeLineId: line.id,
-      agreementNetAmount,
     });
     if (!validation.ok) {
+      const safety = validateAgreementLinePatchSafety({
+        operation: 'delete',
+        sourceLines: existingLines,
+        payload,
+        targetLineId: line.id,
+      });
+      if (!safety.ok) logAgreementLinePatchBlocked(safety.detail);
       toast.error(t(`admin.student360.financialAgreement.customization.errors.${validation.reason}`));
       return;
     }
@@ -334,43 +342,46 @@ export function AgreementLineFormDrawer({
 
     const trimmedReason = reason.trim();
     let payload;
-    const operation = mode === 'edit' && line?.id ? 'update' : 'add';
+    let validation: { ok: true } | { ok: false; reason: string };
 
     if (mode === 'edit' && line?.id) {
-      payload = buildAgreementLinesReplacePayload({
-        lines: existingLines,
-        updateLine: {
-          id: line.id,
-          patch: {
-            ...discountPayload,
-            ...(trimmedReason ? { reason: trimmedReason } : {}),
-          },
-        },
+      payload = buildAgreementLineDiscountPatchPayload({
+        lineId: line.id,
+        discountType: discountPayload.discount_type,
+        discountValue: discountPayload.discount_value,
+        reason: trimmedReason || undefined,
+      });
+      validation = validateAgreementLineDiscountPatch({
+        sourceLines: existingLines,
+        lineId: line.id,
+        payload,
       });
     } else {
       const tariff = selectedTariff;
-      payload = buildAgreementLinesReplacePayload({
-        lines: existingLines,
-        appendLine: {
-          service_id: Number(selectedServiceId),
-          tariff_id: selectedTariffId ? Number(selectedTariffId) : null,
-          quantity: parsedQuantity,
-          unit_price: Number(unitPrice) || tariff?.unit_price,
-          ...discountPayload,
-          is_selected: true,
-          ...(trimmedReason ? { reason: trimmedReason } : {}),
-        },
+      payload = buildAgreementLineAddPayload({
+        service_id: Number(selectedServiceId),
+        tariff_id: selectedTariffId ? Number(selectedTariffId) : undefined,
+        quantity: parsedQuantity,
+        unit_price: Number(unitPrice) || tariff?.unit_price,
+        ...discountPayload,
+        is_selected: true,
+        ...(trimmedReason ? { reason: trimmedReason } : {}),
       });
+      if (existingLines.length === 0 && (agreementNetAmount ?? 0) > 0) {
+        validation = { ok: false, reason: 'lines_not_loaded' };
+      } else {
+        validation = validateAgreementLineAddPatch({ payload });
+      }
     }
 
-    const validation = validateAgreementLinesReplacePatch({
-      sourceLines: existingLines,
-      operation,
-      payload,
-      updateLineId: mode === 'edit' ? line?.id : undefined,
-      agreementNetAmount,
-    });
     if (!validation.ok) {
+      const safety = validateAgreementLinePatchSafety({
+        operation: mode === 'edit' ? 'discount' : 'add',
+        sourceLines: existingLines,
+        payload,
+        targetLineId: mode === 'edit' ? line?.id : undefined,
+      });
+      if (!safety.ok) logAgreementLinePatchBlocked(safety.detail);
       setFormError(t(`admin.student360.financialAgreement.customization.errors.${validation.reason}`));
       return;
     }

@@ -95,8 +95,12 @@ export interface FinancialAgreementLine {
   service_name?: string;
   tariff_id?: number | null;
   tariff?: Ref | null;
+  fee_plan_line_id?: number | null;
   commitment_type?: string;
   pricing_unit?: string;
+  charge_generation_mode?: string;
+  service_from?: string | null;
+  service_until?: string | null;
   period_start?: string | null;
   period_end?: string | null;
   quantity?: number;

@@ -1,11 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildAgreementLineAddPayload,
+  buildAgreementLineDeletePayload,
+  buildAgreementLineDiscountPatchPayload,
   buildAgreementLinesReplacePayload,
   computeAgreementLineAmounts,
   isSpecialUnitPrice,
+  pickAgreementLineMetadata,
   resolveAgreementLineReasonKind,
   resolveDefaultUnitPrice,
   serializeAgreementLineForPatch,
+  validateAgreementLineAddPatch,
+  validateAgreementLineDeletePatch,
+  validateAgreementLineDiscountPatch,
+  validateAgreementLinePatchSafety,
   validateAgreementLineReason,
   validateAgreementLinesReplacePatch,
 } from './build-agreement-lines-patch';
@@ -21,32 +29,178 @@ const sampleLines: FinancialAgreementLine[] = [
   { id: 2, service_id: 11, quantity: 1, unit_price: 400, discount_amount: 50, is_selected: true },
 ];
 
-describe('buildAgreementLinesReplacePayload', () => {
-  it('serializes existing lines for full replace patch', () => {
-    const payload = buildAgreementLinesReplacePayload({ lines: sampleLines });
-    expect(payload.lines).toHaveLength(2);
-    expect(payload.lines[0]).toMatchObject({ id: 1, service_id: 10, unit_price: 2500 });
+/** Fixture mirroring FA/2026/00003 tuition line on nibras (student 5). */
+const fa202600003Lines: FinancialAgreementLine[] = [
+  {
+    id: 101,
+    service_id: 1,
+    service_name: 'التسجيل',
+    quantity: 1,
+    unit_price: 2000,
+    discount_amount: 0,
+    commitment_type: 'one_time',
+    pricing_unit: 'academic_year',
+    is_selected: true,
+  },
+  {
+    id: 102,
+    service_id: 2,
+    service_name: 'التمدرس',
+    fee_plan_line_id: 55,
+    quantity: 10,
+    unit_price: 1600,
+    discount_type: 'fixed',
+    discount_value: 2000,
+    discount_amount: 2000,
+    commitment_type: 'recurring',
+    pricing_unit: 'month',
+    charge_generation_mode: 'monthly',
+    service_from: '2026-09-01',
+    service_until: '2027-06-30',
+    is_selected: true,
+  },
+  {
+    id: 103,
+    service_id: 3,
+    service_name: 'النقل',
+    quantity: 10,
+    unit_price: 400,
+    discount_amount: 0,
+    commitment_type: 'recurring',
+    pricing_unit: 'month',
+    is_selected: true,
+  },
+];
+
+describe('buildAgreementLineDiscountPatchPayload', () => {
+  it('sends line id and changed discount fields only', () => {
+    const payload = buildAgreementLineDiscountPatchPayload({
+      lineId: 102,
+      discountType: 'fixed',
+      discountValue: 1500,
+      reason: 'Sibling discount',
+    });
+    expect(payload.lines).toHaveLength(1);
+    expect(payload.lines?.[0]).toEqual({
+      id: 102,
+      discount_type: 'fixed',
+      discount_value: 1500,
+      reason: 'Sibling discount',
+    });
+    expect(payload.lines?.[0]).not.toHaveProperty('quantity');
+    expect(payload.lines?.[0]).not.toHaveProperty('fee_plan_line_id');
+    expect(payload.lines?.[0]).not.toHaveProperty('service_id');
   });
 
-  it('updates discount on one line while preserving unit_price', () => {
+  it('does not send quantity: null', () => {
+    const payload = buildAgreementLineDiscountPatchPayload({
+      lineId: 2,
+      discountType: 'percent',
+      discountValue: 5,
+    });
+    const row = payload.lines?.[0] as Record<string, unknown>;
+    expect(row.quantity).toBeUndefined();
+    expect(row).not.toHaveProperty('quantity', null);
+  });
+
+  it('does not send fee_plan_line_id: null', () => {
+    const payload = buildAgreementLineDiscountPatchPayload({
+      lineId: 102,
+      discountType: 'none',
+      discountValue: 0,
+    });
+    const row = payload.lines?.[0] as Record<string, unknown>;
+    expect(row.fee_plan_line_id).toBeUndefined();
+    expect(row).not.toHaveProperty('fee_plan_line_id', null);
+  });
+
+  it('passes safety validation for FA/2026/00003 tuition discount edit', () => {
+    const payload = buildAgreementLineDiscountPatchPayload({
+      lineId: 102,
+      discountType: 'fixed',
+      discountValue: 2500,
+      reason: 'QA discount note',
+    });
+    const result = validateAgreementLineDiscountPatch({
+      sourceLines: fa202600003Lines,
+      lineId: 102,
+      payload,
+    });
+    expect(result.ok).toBe(true);
+  });
+});
+
+describe('serializeAgreementLineForPatch', () => {
+  it('maps discount_value from discount_amount fallback', () => {
+    const row = serializeAgreementLineForPatch(sampleLines[1]!);
+    expect(row.discount_value).toBe(50);
+  });
+
+  it('preserves billing metadata from Odoo response', () => {
+    const tuition = fa202600003Lines[1]!;
+    const row = serializeAgreementLineForPatch(tuition);
+    expect(row.quantity).toBe(10);
+    expect(row.fee_plan_line_id).toBe(55);
+    expect(row.commitment_type).toBe('recurring');
+    expect(row.pricing_unit).toBe('month');
+    expect(row.charge_generation_mode).toBe('monthly');
+    expect(row.service_from).toBe('2026-09-01');
+    expect(row.service_until).toBe('2027-06-30');
+  });
+
+  it('does not default quantity to 1 when missing from response', () => {
+    const line: FinancialAgreementLine = { id: 9, service_id: 3, unit_price: 100 };
+    const row = serializeAgreementLineForPatch(line);
+    expect(row.quantity).toBeUndefined();
+  });
+
+  it('does not send tariff_id: null when absent', () => {
+    const row = serializeAgreementLineForPatch(sampleLines[0]!);
+    expect(row.tariff_id).toBeUndefined();
+  });
+});
+
+describe('pickAgreementLineMetadata', () => {
+  it('copies only present metadata keys', () => {
+    const meta = pickAgreementLineMetadata(fa202600003Lines[1]!);
+    expect(meta).toMatchObject({
+      fee_plan_line_id: 55,
+      commitment_type: 'recurring',
+      pricing_unit: 'month',
+    });
+    expect(meta).not.toHaveProperty('period_start');
+  });
+});
+
+describe('buildAgreementLinesReplacePayload', () => {
+  it('serializes existing lines for full replace patch with metadata', () => {
+    const payload = buildAgreementLinesReplacePayload({ lines: fa202600003Lines });
+    expect(payload.lines).toHaveLength(3);
+    const tuition = payload.lines?.find((l) => l.id === 102);
+    expect(tuition?.quantity).toBe(10);
+    expect((tuition as Record<string, unknown>).fee_plan_line_id).toBe(55);
+  });
+
+  it('updates discount on one line while preserving unit_price and metadata', () => {
     const payload = buildAgreementLinesReplacePayload({
-      lines: sampleLines,
+      lines: fa202600003Lines,
       updateLine: {
-        id: 2,
+        id: 102,
         patch: { discount_type: 'fixed', discount_value: 100, reason: 'Sibling discount' },
       },
     });
-    const updated = payload.lines.find((l) => l.id === 2);
-    expect(updated?.unit_price).toBe(400);
+    const updated = payload.lines?.find((l) => l.id === 102);
+    expect(updated?.unit_price).toBe(1600);
+    expect(updated?.quantity).toBe(10);
+    expect((updated as Record<string, unknown>).fee_plan_line_id).toBe(55);
     expect(updated?.discount_type).toBe('fixed');
     expect(updated?.discount_value).toBe(100);
-    expect(payload.lines.find((l) => l.id === 1)?.unit_price).toBe(2500);
   });
 
   it('excludes deleted line from replace payload', () => {
     const payload = buildAgreementLinesReplacePayload({ lines: sampleLines, excludeLineId: 2 });
     expect(payload.lines).toHaveLength(1);
-    expect(payload.lines[0]?.id).toBe(1);
+    expect(payload.lines?.[0]?.id).toBe(1);
   });
 
   it('appends a new line without id', () => {
@@ -55,8 +209,8 @@ describe('buildAgreementLinesReplacePayload', () => {
       appendLine: { service_id: 12, quantity: 1, unit_price: 100, is_selected: true },
     });
     expect(payload.lines).toHaveLength(3);
-    expect(payload.lines[2]).toMatchObject({ service_id: 12, unit_price: 100 });
-    expect(payload.lines[2]?.id).toBeUndefined();
+    expect(payload.lines?.[2]).toMatchObject({ service_id: 12, unit_price: 100 });
+    expect(payload.lines?.[2]?.id).toBeUndefined();
   });
 
   it('blocks delete when source lines are empty but agreement net is positive', () => {
@@ -64,7 +218,7 @@ describe('buildAgreementLinesReplacePayload', () => {
     const result = validateAgreementLinesReplacePatch({
       sourceLines: [],
       operation: 'delete',
-      payload,
+      payload: payload as { lines: Array<{ id?: number }> },
       excludeLineId: 1,
       agreementNetAmount: 4900,
     });
@@ -84,7 +238,7 @@ describe('buildAgreementLinesReplacePayload', () => {
     const result = validateAgreementLinesReplacePatch({
       sourceLines: linesWithGap,
       operation: 'update',
-      payload,
+      payload: payload as { lines: Array<{ id?: number }> },
       updateLineId: 2,
     });
     expect(result.ok).toBe(false);
@@ -96,18 +250,134 @@ describe('buildAgreementLinesReplacePayload', () => {
     const result = validateAgreementLinesReplacePatch({
       sourceLines: sampleLines,
       operation: 'delete',
-      payload,
+      payload: payload as { lines: Array<{ id?: number }> },
       excludeLineId: 2,
       agreementNetAmount: 2900,
     });
     expect(result.ok).toBe(true);
   });
+
+  it('FA/2026/000003 tuition keeps quantity=10 after full-replace discount patch', () => {
+    const payload = buildAgreementLinesReplacePayload({
+      lines: fa202600003Lines,
+      updateLine: { id: 102, patch: { discount_type: 'fixed', discount_value: 2000 } },
+    });
+    const tuition = payload.lines?.find((l) => l.id === 102);
+    expect(tuition?.quantity).toBe(10);
+    const safety = validateAgreementLinePatchSafety({
+      operation: 'full_replace',
+      sourceLines: fa202600003Lines,
+      payload,
+    });
+    expect(safety.ok).toBe(true);
+  });
 });
 
-describe('serializeAgreementLineForPatch', () => {
-  it('maps discount_value from discount_amount fallback', () => {
-    const row = serializeAgreementLineForPatch(sampleLines[1]!);
-    expect(row.discount_value).toBe(50);
+describe('buildAgreementLineDeletePayload', () => {
+  it('uses explicit line_ids_to_delete', () => {
+    const payload = buildAgreementLineDeletePayload(102);
+    expect(payload).toEqual({ line_ids_to_delete: [102] });
+    expect(payload.lines).toBeUndefined();
+  });
+
+  it('passes delete validation without accidental line omission', () => {
+    const payload = buildAgreementLineDeletePayload(2);
+    const result = validateAgreementLineDeletePatch({
+      sourceLines: sampleLines,
+      lineId: 2,
+      payload,
+    });
+    expect(result.ok).toBe(true);
+  });
+});
+
+describe('buildAgreementLineAddPayload', () => {
+  it('sends only the new line', () => {
+    const payload = buildAgreementLineAddPayload({
+      service_id: 12,
+      quantity: 1,
+      unit_price: 100,
+      is_selected: true,
+    });
+    expect(payload.lines).toHaveLength(1);
+    expect(payload.lines?.[0]?.id).toBeUndefined();
+    expect(validateAgreementLineAddPatch({ payload }).ok).toBe(true);
+  });
+
+  it('does not send null tariff_id', () => {
+    const payload = buildAgreementLineAddPayload({
+      service_id: 12,
+      tariff_id: undefined,
+      quantity: 1,
+      unit_price: 100,
+      is_selected: true,
+    });
+    expect(payload.lines?.[0]).not.toHaveProperty('tariff_id', null);
+  });
+});
+
+describe('validateAgreementLinePatchSafety', () => {
+  it('blocks full-replace that would strip fee_plan_line_id metadata', () => {
+    const unsafePayload = {
+      lines: [
+        {
+          id: 102,
+          service_id: 2,
+          quantity: 1,
+          unit_price: 1600,
+          discount_type: 'fixed',
+          discount_value: 2000,
+        },
+      ],
+    };
+    const result = validateAgreementLinePatchSafety({
+      operation: 'full_replace',
+      sourceLines: fa202600003Lines,
+      payload: unsafePayload,
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe('line_metadata_stripped');
+  });
+
+  it('blocks discount patch that includes quantity', () => {
+    const payload = {
+      lines: [{ id: 102, discount_type: 'fixed', discount_value: 100, quantity: 10 }],
+    };
+    const result = validateAgreementLinePatchSafety({
+      operation: 'discount',
+      sourceLines: fa202600003Lines,
+      payload,
+      targetLineId: 102,
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.detail).toContain('quantity');
+  });
+
+  it('does not infer recurrence from service name', () => {
+    const lineNamedMonthly: FinancialAgreementLine = {
+      id: 50,
+      service_id: 9,
+      service_name: 'رسوم شهرية',
+      quantity: 10,
+      unit_price: 500,
+      commitment_type: 'recurring',
+      pricing_unit: 'month',
+    };
+    const payload = buildAgreementLineDiscountPatchPayload({
+      lineId: 50,
+      discountType: 'fixed',
+      discountValue: 50,
+    });
+    const row = payload.lines?.[0] as Record<string, unknown>;
+    expect(row.commitment_type).toBeUndefined();
+    expect(row.pricing_unit).toBeUndefined();
+    expect(
+      validateAgreementLineDiscountPatch({
+        sourceLines: [lineNamedMonthly],
+        lineId: 50,
+        payload,
+      }).ok,
+    ).toBe(true);
   });
 });
 
@@ -151,12 +421,12 @@ describe('agreement line reason rules', () => {
     expect(result.ok).toBe(true);
   });
 
-  it('preserves unit_price when editing an existing line', () => {
+  it('preserves unit_price when editing an existing line via full replace', () => {
     const payload = buildAgreementLinesReplacePayload({
       lines: sampleLines,
       updateLine: { id: 1, patch: { discount_type: 'percent', discount_value: 5 } },
     });
-    expect(payload.lines.find((l) => l.id === 1)?.unit_price).toBe(2500);
+    expect(payload.lines?.find((l) => l.id === 1)?.unit_price).toBe(2500);
   });
 
   it('requires reason when editing an existing line with discount', () => {

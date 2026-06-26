@@ -4780,7 +4780,9 @@
             "missing_target": "The requested line could not be found.",
             "unexpected_delete_count": "Could not delete the line safely. Reload the page.",
             "unexpected_update_count": "Could not update the line safely. Reload the page.",
-            "unexpected_add_count": "Could not add the line safely. Reload the page."
+            "unexpected_add_count": "Could not add the line safely. Reload the page.",
+            "line_patch_unsafe": "Could not save — line data is incomplete. Reload the page and try again.",
+            "line_metadata_stripped": "Could not save — billing metadata for the line is incomplete. Reload the page."
           }
         },
         "columns": {

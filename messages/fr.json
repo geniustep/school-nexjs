@@ -4775,7 +4775,9 @@
             "missing_target": "Ligne introuvable.",
             "unexpected_delete_count": "Suppression non sécurisée. Rechargez la page.",
             "unexpected_update_count": "Mise à jour non sécurisée. Rechargez la page.",
-            "unexpected_add_count": "Ajout non sécurisé. Rechargez la page."
+            "unexpected_add_count": "Ajout non sécurisé. Rechargez la page.",
+            "line_patch_unsafe": "Enregistrement impossible — données de ligne incomplètes. Rechargez la page.",
+            "line_metadata_stripped": "Enregistrement impossible — métadonnées de facturation incomplètes. Rechargez la page."
           }
         },
         "columns": {

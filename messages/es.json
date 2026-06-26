@@ -4775,7 +4775,9 @@
             "missing_target": "No se encontró la línea solicitada.",
             "unexpected_delete_count": "No se pudo eliminar la línea de forma segura. Recargue la página.",
             "unexpected_update_count": "No se pudo actualizar la línea de forma segura. Recargue la página.",
-            "unexpected_add_count": "No se pudo añadir la línea de forma segura. Recargue la página."
+            "unexpected_add_count": "No se pudo añadir la línea de forma segura. Recargue la página.",
+            "line_patch_unsafe": "No se pudo guardar: los datos de la línea están incompletos. Recargue la página.",
+            "line_metadata_stripped": "No se pudo guardar: faltan metadatos de facturación. Recargue la página."
           }
         },
         "columns": {
