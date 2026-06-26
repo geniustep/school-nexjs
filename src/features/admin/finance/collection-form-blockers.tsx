@@ -18,6 +18,8 @@ const BLOCKER_KEYS: Record<CollectionFormBlockerKey, string> = {
   allocationTotalMismatch: 'admin.finance.collections.blockers.allocationTotalMismatch',
   unallocatedRemainder: 'admin.finance.collections.blockers.unallocatedRemainder',
   paymentReferenceRequired: 'admin.finance.collections.blockers.paymentReferenceRequired',
+  previewRequired: 'admin.finance.collections.blockers.previewRequired',
+  collectionBlocked: 'admin.finance.collections.blockers.collectionBlocked',
 };
 
 export function CollectionFormBlockers({ blockers }: { blockers: CollectionFormBlockerKey[] }) {

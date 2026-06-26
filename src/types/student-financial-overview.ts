@@ -1,6 +1,11 @@
 // Official student finance contracts — GET financial-overview, collectible-items, etc.
 
 import type {
+  CollectionGate,
+  CollectibleBillingContext,
+} from '@/types/payment-collection-preview';
+
+import type {
   AgreementCustomization,
   AgreementFinancialSummary,
 } from '@/types/agreement-finance-summary';
@@ -148,8 +153,12 @@ export interface CollectibleItemsResponse {
   billing_partner_id?: number | null;
   billing_partner_name?: string | null;
   billing_party_type?: string | null;
+  billing_context?: CollectibleBillingContext | null;
+  collection_gate?: CollectionGate | null;
   summary: CollectibleItemsSummary;
   items: CollectibleItem[];
+  /** All installments returned by API — used for preview labels. */
+  lookup_items?: CollectibleItem[];
 }
 
 export interface AssignedStudentFinancialSummary {

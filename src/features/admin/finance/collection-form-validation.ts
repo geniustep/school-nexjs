@@ -14,7 +14,9 @@ export type CollectionFormBlockerKey =
   | 'allocateOrSkip'
   | 'allocationTotalMismatch'
   | 'unallocatedRemainder'
-  | 'paymentReferenceRequired';
+  | 'paymentReferenceRequired'
+  | 'previewRequired'
+  | 'collectionBlocked';
 
 export function getCollectionSubmitBlockers(input: {
   hasStudent: boolean;
@@ -43,6 +45,9 @@ export function getCollectionSubmitBlockers(input: {
   allocatedTotal: number;
   collectionAmount: number;
   selectedInstallmentCount?: number;
+  flexiblePrepayment?: boolean;
+  previewValid?: boolean;
+  collectionBlocked?: boolean;
 }): CollectionFormBlockerKey[] {
   const blockers: CollectionFormBlockerKey[] = [];
   if (!input.hasStudent) blockers.push('selectStudent');
@@ -101,6 +106,12 @@ export function getCollectionSubmitBlockers(input: {
     input.allocatedTotal <= 0
   ) {
     blockers.push('allocateOrSkip');
+  }
+  if (input.flexiblePrepayment && input.collectionBlocked) {
+    blockers.push('collectionBlocked');
+  }
+  if (input.flexiblePrepayment && !input.previewValid) {
+    blockers.push('previewRequired');
   }
   return blockers;
 }

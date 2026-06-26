@@ -27,6 +27,18 @@ export function collectionErrorMessageKey(code: string | undefined): string | nu
     case 'early_payment_not_allowed':
     case 'earlyPaymentNotAllowed':
       return 'admin.finance.collectionWorkflow.errors.earlyPaymentNotAllowed';
+    case 'agreement_not_active':
+      return 'admin.finance.collectionWorkflow.errors.agreementNotActive';
+    case 'amount_exceeds_remaining_balance':
+    case 'amountExceedsRemainingBalance':
+      return 'admin.finance.collectionWorkflow.errors.amountExceedsRemainingBalance';
+    case 'remaining_zero':
+    case 'no_open_balance':
+    case 'noOpenBalance':
+      return 'admin.finance.collectionWorkflow.errors.noOpenBalance';
+    case 'over_allocation':
+    case 'overAllocation':
+      return 'admin.finance.collectionWorkflow.errors.overAllocation';
     case 'duplicate_cheque':
     case 'duplicateCheque':
       return 'admin.finance.collectionWorkflow.errors.duplicateCheque';

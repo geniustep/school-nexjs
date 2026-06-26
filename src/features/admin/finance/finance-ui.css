@@ -5065,3 +5065,123 @@
     padding: 14px;
   }
 }
+
+.collection-prepayment-summary {
+  border: 1px solid var(--border-subtle, #e2e8f0);
+  border-radius: 12px;
+  padding: 14px 16px;
+  background: var(--surface-muted, #f8fafc);
+}
+
+.collection-prepayment-summary__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 16px;
+  margin: 0;
+}
+
+.collection-prepayment-summary__grid dt {
+  font-size: 0.75rem;
+  color: var(--text-muted, #64748b);
+}
+
+.collection-prepayment-summary__grid dd {
+  margin: 2px 0 0;
+  font-weight: 600;
+}
+
+.collection-prepayment-summary__badge.is-yes {
+  color: var(--success-text, #047857);
+}
+
+.collection-prepayment-summary__badge.is-muted {
+  color: var(--text-muted, #64748b);
+}
+
+.collection-prepayment-summary__alert {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--danger, #dc2626) 8%, transparent);
+  color: var(--danger-text, #b91c1c);
+}
+
+.finance-amount-field--prominent .finance-amount-field__input {
+  font-size: 1.125rem;
+}
+
+.finance-amount-field__hint {
+  display: block;
+  margin-top: 6px;
+  max-width: 52ch;
+  line-height: 1.45;
+}
+
+.finance-collection-workflow__preview-actions {
+  display: flex;
+  align-items: flex-end;
+}
+
+.collection-allocation-preview {
+  margin-top: 12px;
+  border: 1px solid var(--border-subtle, #e2e8f0);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.collection-allocation-preview__metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.collection-allocation-preview__warning {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--warning, #d97706) 10%, transparent);
+  color: var(--warning-text, #92400e);
+  font-size: 0.8125rem;
+}
+
+.collection-allocation-preview__list {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.collection-allocation-preview__list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px 12px;
+  align-items: center;
+  padding: 8px 0;
+  border-top: 1px solid var(--border-subtle, #e2e8f0);
+}
+
+.collection-allocation-preview__status.is-paid {
+  color: var(--success-text, #047857);
+}
+
+.collection-allocation-preview__status.is-partial {
+  color: var(--warning-text, #92400e);
+}
+
+.collection-form-preview-error {
+  margin-top: 0;
+}
+
+@media (max-width: 640px) {
+  .collection-prepayment-summary__grid,
+  .collection-allocation-preview__metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .collection-allocation-preview__list li {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}

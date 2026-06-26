@@ -16,6 +16,7 @@ import type {
   AgreementFinancialSummary,
 } from '@/types/agreement-finance-summary';
 import type { StudentFinanceCurrency } from '@/types/student-finance';
+import type { CollectionGate, CollectibleBillingContext } from '@/types/payment-collection-preview';
 import { normalizeBillingProfile } from '@/features/admin/students/utils/normalize-student-finance';
 
 function readMoney(value: unknown): number {
@@ -372,13 +373,71 @@ function normalizeCollectibleSummary(raw: unknown): CollectibleItemsSummary {
   };
 }
 
+function normalizeCollectionGate(raw: unknown): CollectionGate | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const obj = raw as Record<string, unknown>;
+  return {
+    collect_allowed: obj.collect_allowed === true,
+    collect_block_reason:
+      typeof obj.collect_block_reason === 'string' ? obj.collect_block_reason : null,
+    collect_block_message:
+      typeof obj.collect_block_message === 'string' ? obj.collect_block_message : null,
+    prepayment_allowed: obj.prepayment_allowed === true,
+  };
+}
+
+function normalizeBillingContext(raw: unknown): CollectibleBillingContext | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const obj = raw as Record<string, unknown>;
+  return {
+    mode: typeof obj.mode === 'string' ? obj.mode : null,
+    has_active_agreement: obj.has_active_agreement === true,
+    has_operational_fees: obj.has_operational_fees === true,
+    message: typeof obj.message === 'string' ? obj.message : null,
+  };
+}
+
+function normalizeCollectibleItemLoose(raw: unknown): CollectibleItem | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const obj = raw as Record<string, unknown>;
+  const installmentId =
+    typeof obj.installment_id === 'number'
+      ? obj.installment_id
+      : typeof obj.id === 'number'
+        ? obj.id
+        : null;
+  if (installmentId == null) return null;
+  const remaining = readMoney(obj.remaining_amount ?? obj.remaining);
+  return {
+    id: installmentId,
+    installment_id: installmentId,
+    student_fee_id: typeof obj.student_fee_id === 'number' ? obj.student_fee_id : null,
+    fee_name: typeof obj.fee_name === 'string' ? obj.fee_name : null,
+    fee_type_name: typeof obj.fee_type_name === 'string' ? obj.fee_type_name : null,
+    display_label: typeof obj.display_label === 'string' ? obj.display_label : null,
+    period_label: typeof obj.period_label === 'string' ? obj.period_label : null,
+    period_start: typeof obj.period_start === 'string' ? obj.period_start : null,
+    period_end: typeof obj.period_end === 'string' ? obj.period_end : null,
+    due_date: typeof obj.due_date === 'string' ? obj.due_date : null,
+    original_amount: readMoney(obj.original_amount ?? obj.amount),
+    paid_amount: readMoney(obj.paid_amount ?? obj.paid),
+    remaining_amount: remaining,
+    state: typeof obj.state === 'string' ? obj.state : null,
+    display_state: typeof obj.display_state === 'string' ? obj.display_state : null,
+    timing_status: typeof obj.timing_status === 'string' ? obj.timing_status : null,
+    payment_status: typeof obj.payment_status === 'string' ? obj.payment_status : null,
+    selectable: obj.selectable !== false,
+  };
+}
+
 export function normalizeCollectibleItemsResponse(data: unknown): CollectibleItemsResponse | null {
   if (!data || typeof data !== 'object') return null;
   const raw = data as Record<string, unknown>;
   const itemsRaw = Array.isArray(raw.items) ? raw.items : [];
-  const items = itemsRaw
-    .map(normalizeCollectibleItem)
-    .filter((item): item is CollectibleItem => item != null && item.selectable);
+  const lookupItems = itemsRaw
+    .map(normalizeCollectibleItemLoose)
+    .filter((item): item is CollectibleItem => item != null);
+  const items = lookupItems.filter((item) => item.selectable && item.remaining_amount > 0);
   return {
     academic_year_id: typeof raw.academic_year_id === 'number' ? raw.academic_year_id : undefined,
     billing_profile_id:
@@ -404,7 +463,10 @@ export function normalizeCollectibleItemsResponse(data: unknown): CollectibleIte
               ?.billing_party_type === 'string'
           ? (raw.billing_profile as { billing_party_type: string }).billing_party_type
           : null,
+    billing_context: normalizeBillingContext(raw.billing_context),
+    collection_gate: normalizeCollectionGate(raw.collection_gate),
     summary: normalizeCollectibleSummary(raw.summary),
     items,
+    lookup_items: lookupItems,
   };
 }
