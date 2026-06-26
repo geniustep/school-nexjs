@@ -61,10 +61,10 @@ import type { FinancialAgreement } from '../types';
 import type { ChangePlanMode } from '@/types/student-finance-change-plan';
 import { useToast } from '@/components/ui/toast';
 
-const FINANCE_TAB_GROUPS: { tabs: StudentFinanceSubTab[]; dividerAfter?: boolean }[] = [
-  { tabs: ['overview'], dividerAfter: true },
-  { tabs: ['fees', 'agreements', 'schedule'], dividerAfter: true },
-  { tabs: ['collections', 'cheques'], dividerAfter: true },
+const FINANCE_TAB_GROUPS: { tabs: StudentFinanceSubTab[] }[] = [
+  { tabs: ['overview'] },
+  { tabs: ['fees', 'agreements', 'schedule'] },
+  { tabs: ['collections', 'cheques'] },
   { tabs: ['adjustments', 'ledger'] },
 ];
 
@@ -444,29 +444,28 @@ export function StudentFinanceWorkspaceShell({
       )}
 
         <nav className="student-finance-subtabs" aria-label={t('admin.student360.financeWorkspace.tabsAria')}>
-          {FINANCE_TAB_GROUPS.map((group, groupIndex) => (
-            <div key={`group-${groupIndex}`} className="student-finance-subtabs__group">
-              {group.tabs.map((tab) => (
-                <button
-                  key={tab}
-                  type="button"
-                  role="tab"
-                  aria-selected={subTab === tab}
-                  data-tab={tab}
-                  className={`student-finance-subtabs__tab${subTab === tab ? ' is-active' : ''}`}
-                  onClick={() => syncSubTabToUrl(tab)}
-                >
-                  <span className="student-finance-subtabs__icon" aria-hidden="true">
-                    {FINANCE_TAB_ICONS[tab]}
-                  </span>
-                  <span className="student-finance-subtabs__label">{t(studentFinanceSubTabLabelKey(tab))}</span>
-                </button>
-              ))}
-              {group.dividerAfter ? (
-                <span className="student-finance-subtabs__divider" aria-hidden="true" />
-              ) : null}
-            </div>
-          ))}
+          <div className="student-finance-subtabs__rail">
+            {FINANCE_TAB_GROUPS.map((group, groupIndex) => (
+              <div key={`group-${groupIndex}`} className="student-finance-subtabs__group">
+                {group.tabs.map((tab) => (
+                  <button
+                    key={tab}
+                    type="button"
+                    role="tab"
+                    aria-selected={subTab === tab}
+                    data-tab={tab}
+                    className={`student-finance-subtabs__tab${subTab === tab ? ' is-active' : ''}`}
+                    onClick={() => syncSubTabToUrl(tab)}
+                  >
+                    <span className="student-finance-subtabs__icon" aria-hidden="true">
+                      {FINANCE_TAB_ICONS[tab]}
+                    </span>
+                    <span className="student-finance-subtabs__label">{t(studentFinanceSubTabLabelKey(tab))}</span>
+                  </button>
+                ))}
+              </div>
+            ))}
+          </div>
         </nav>
       </div>
 
