@@ -363,9 +363,11 @@ export function StudentFinanceWorkspaceShell({
 
   if (phase !== 'ready') {
     return (
-      <div className="student-finance-tab student-360-tab-panel">
-        {workspaceHeader}
-        <StudentFinanceSkeleton />
+      <div className="student-finance-tab student-finance-workspace student-360-tab-panel">
+        <div className="student-finance-workspace__shell">
+          {workspaceHeader}
+          <StudentFinanceSkeleton />
+        </div>
       </div>
     );
   }
@@ -387,10 +389,11 @@ export function StudentFinanceWorkspaceShell({
     <div
       className={`student-finance-tab student-finance-workspace student-360-tab-panel${isRefreshing ? ' student-360-tab-panel--refreshing' : ''}`}
     >
-      {workspaceHeader}
-      {isRefreshing ? <StudentInlineLoading /> : null}
+      <div className="student-finance-workspace__shell">
+        {workspaceHeader}
+        {isRefreshing ? <StudentInlineLoading /> : null}
 
-      <DraftAgreementFinanceBanner
+        <DraftAgreementFinanceBanner
         studentId={studentId}
         presentation={draftPresentation}
         actionState={financeActionState}
@@ -440,31 +443,32 @@ export function StudentFinanceWorkspaceShell({
         />
       )}
 
-      <nav className="student-finance-subtabs" aria-label={t('admin.student360.financeWorkspace.tabsAria')}>
-        {FINANCE_TAB_GROUPS.map((group, groupIndex) => (
-          <div key={`group-${groupIndex}`} className="student-finance-subtabs__group">
-            {group.tabs.map((tab) => (
-              <button
-                key={tab}
-                type="button"
-                role="tab"
-                aria-selected={subTab === tab}
-                data-tab={tab}
-                className={`student-finance-subtabs__tab${subTab === tab ? ' is-active' : ''}`}
-                onClick={() => syncSubTabToUrl(tab)}
-              >
-                <span className="student-finance-subtabs__icon" aria-hidden="true">
-                  {FINANCE_TAB_ICONS[tab]}
-                </span>
-                <span className="student-finance-subtabs__label">{t(studentFinanceSubTabLabelKey(tab))}</span>
-              </button>
-            ))}
-            {group.dividerAfter ? (
-              <span className="student-finance-subtabs__divider" aria-hidden="true" />
-            ) : null}
-          </div>
-        ))}
-      </nav>
+        <nav className="student-finance-subtabs" aria-label={t('admin.student360.financeWorkspace.tabsAria')}>
+          {FINANCE_TAB_GROUPS.map((group, groupIndex) => (
+            <div key={`group-${groupIndex}`} className="student-finance-subtabs__group">
+              {group.tabs.map((tab) => (
+                <button
+                  key={tab}
+                  type="button"
+                  role="tab"
+                  aria-selected={subTab === tab}
+                  data-tab={tab}
+                  className={`student-finance-subtabs__tab${subTab === tab ? ' is-active' : ''}`}
+                  onClick={() => syncSubTabToUrl(tab)}
+                >
+                  <span className="student-finance-subtabs__icon" aria-hidden="true">
+                    {FINANCE_TAB_ICONS[tab]}
+                  </span>
+                  <span className="student-finance-subtabs__label">{t(studentFinanceSubTabLabelKey(tab))}</span>
+                </button>
+              ))}
+              {group.dividerAfter ? (
+                <span className="student-finance-subtabs__divider" aria-hidden="true" />
+              ) : null}
+            </div>
+          ))}
+        </nav>
+      </div>
 
       <div className="student-finance-workspace__panel">
       {showFinanceEmpty && !sectionsWithoutEmptyGate.includes(subTab) ? (
@@ -503,6 +507,7 @@ export function StudentFinanceWorkspaceShell({
           />
         ) : (
           <Student360CompactEmpty
+            className="student-360-compact-empty--finance"
             title={t('admin.student360.financeOps.emptyTitle')}
             description={t('admin.student360.financeOps.emptyDescription')}
           />

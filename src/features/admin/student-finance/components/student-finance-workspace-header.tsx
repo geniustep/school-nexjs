@@ -81,6 +81,8 @@ export function StudentFinanceWorkspaceHeader({
 
   return (
     <header className="student-finance-command-bar">
+      <div className="student-finance-command-bar__accent" aria-hidden="true" />
+      <div className="student-finance-command-bar__inner">
       <div className="student-finance-command-bar__top">
         <div className="student-finance-command-bar__identity">
           <span className="student-finance-command-bar__glyph" aria-hidden="true">
@@ -227,6 +229,7 @@ export function StudentFinanceWorkspaceHeader({
           </div>
         </div>
       ) : null}
+      </div>
     </header>
   );
 }
