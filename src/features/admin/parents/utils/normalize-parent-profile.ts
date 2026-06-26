@@ -364,7 +364,7 @@ export function parentAccountEntityFields(parent: Parent): import('@/types/accou
 export function normalizeParentListItem(data: unknown): Parent | null {
   const parent = normalizeParentProfile(data);
   if (!parent) return null;
-  if (parent.children.length > 0) return parent;
+  if ((parent.children?.length ?? 0) > 0) return parent;
 
   const raw = asRecord(data);
   if (!raw) return parent;
