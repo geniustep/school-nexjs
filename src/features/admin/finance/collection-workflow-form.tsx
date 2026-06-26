@@ -66,6 +66,7 @@ import { CollectionChequeFields } from './collection-cheque-fields';
 import {
   formatPaymentJournalLabel,
   journalsSupportingMethod,
+  resolveDefaultPaymentJournal,
 } from './format-payment-journal';
 import { resolveCollectionBilling } from './collection-billing-context';
 import { CollectionReviewStep } from './collection-review-step';
@@ -243,6 +244,7 @@ function CollectionWorkflowFormReady({
   const [manualAllocation, setManualAllocation] = useState(false);
   const idempotencyKeyRef = useRef<string | null>(null);
   const postedCollectionIdRef = useRef<number | null>(null);
+  const amountManuallyEditedRef = useRef(false);
   const [chequeNumber, setChequeNumber] = useState('');
   const [chequeBank, setChequeBank] = useState('');
   const [chequeBranch, setChequeBranch] = useState('');
@@ -332,10 +334,10 @@ function CollectionWorkflowFormReady({
   const journalReadOnly = singleJournal || (isChequePayment(paymentMethod) && chequeCapableJournals.length === 1);
 
   useEffect(() => {
-    if (singleJournal && !journalId) {
-      setJournalId(String(journals[0].id));
-    }
-  }, [singleJournal, journals, journalId]);
+    if (journalId || !journals.length) return;
+    const defaultJournal = resolveDefaultPaymentJournal(journals);
+    if (defaultJournal) setJournalId(String(defaultJournal.id));
+  }, [journals, journalId]);
 
   useEffect(() => {
     if (!isChequePayment(paymentMethod) || chequeCapableJournals.length !== 1) return;
@@ -444,7 +446,18 @@ function CollectionWorkflowFormReady({
     [openInstallments, selectedInstallmentIds],
   );
 
+  function handleAmountChange(value: string) {
+    amountManuallyEditedRef.current = true;
+    setAmount(value);
+  }
+
+  function handleSelectedInstallmentIdsChange(ids: number[]) {
+    amountManuallyEditedRef.current = false;
+    setSelectedInstallmentIds(ids);
+  }
+
   function applyQuickSelection(mode: 'overdue' | 'due' | 'next' | 'all_open' | 'custom') {
+    amountManuallyEditedRef.current = false;
     if (mode === 'all_open') {
       const ids = openInstallments.map((row) => row.id);
       setSelectedInstallmentIds(ids);
@@ -477,10 +490,8 @@ function CollectionWorkflowFormReady({
     if (!selectedInstallmentIds.length || manualAllocation) return;
     const rows = selectedInstallments;
     if (!rows.length) return;
-    if (Number.isFinite(parsedAmount) && parsedAmount > 0) {
-      setAllocationInputs(autoAllocateOldest(rows, parsedAmount));
-      return;
-    }
+    if (amountManuallyEditedRef.current) return;
+
     const total = rows.reduce((sum, row) => sum + (row.remaining_amount ?? 0), 0);
     if (total > 0) setAmount(String(total));
     const allocation: Record<number, string> = {};
@@ -488,7 +499,16 @@ function CollectionWorkflowFormReady({
       allocation[row.id] = String(row.remaining_amount ?? 0);
     }
     setAllocationInputs(allocation);
-  }, [selectedInstallmentIds, selectedInstallments, parsedAmount, manualAllocation]);
+  }, [selectedInstallmentIds, selectedInstallments, manualAllocation]);
+
+  useEffect(() => {
+    if (!selectedInstallmentIds.length || manualAllocation) return;
+    if (!amountManuallyEditedRef.current) return;
+    const rows = selectedInstallments;
+    if (!rows.length) return;
+    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) return;
+    setAllocationInputs(autoAllocateOldest(rows, parsedAmount));
+  }, [parsedAmount, selectedInstallments, selectedInstallmentIds, manualAllocation]);
 
   const submitBlockers = useMemo(
     () =>
@@ -551,6 +571,14 @@ function CollectionWorkflowFormReady({
   );
 
   const canProceedPayment = submitBlockers.length === 0 && !cashSessionBlocked && !checkingCashSession;
+  const canContinueFromDues = Number.isFinite(parsedAmount) && parsedAmount > 0;
+
+  function goToPaymentStep() {
+    if (selectedInstallmentIds.length === 0) {
+      setManualAllocation(true);
+    }
+    setStep('payment');
+  }
 
   function resolveErrorMessage(code: string | undefined, fallback: string): string {
     return resolveCollectionErrorMessage(code, fallback, t, [
@@ -801,8 +829,8 @@ function CollectionWorkflowFormReady({
           currency={journalCurrency}
           selectedIds={selectedInstallmentIds}
           amount={amount}
-          onAmountChange={setAmount}
-          onSelectedIdsChange={setSelectedInstallmentIds}
+          onAmountChange={handleAmountChange}
+          onSelectedIdsChange={handleSelectedInstallmentIdsChange}
           onQuickSelect={applyQuickSelection}
         />
       ) : null}
@@ -972,7 +1000,7 @@ function CollectionWorkflowFormReady({
               ) : null}
             </div>
 
-            {installmentFlow && !manualAllocation ? (
+            {installmentFlow && !manualAllocation && selectedInstallments.length > 0 ? (
               <CollectionAllocationSummary
                 installments={selectedInstallments}
                 allocationInputs={allocationInputs}
@@ -983,7 +1011,7 @@ function CollectionWorkflowFormReady({
               />
             ) : null}
 
-            {installmentFlow && manualAllocation ? (
+            {installmentFlow && (manualAllocation || selectedInstallments.length === 0) ? (
               <ReceivableAllocationSection
                 installments={selectedInstallments.length ? selectedInstallments : openInstallments}
                 loading={collectibleState.loading}
@@ -1158,9 +1186,9 @@ function CollectionWorkflowFormReady({
 
       {selectedStudent ? (
         <div className="finance-collection-workflow__actions">
-          {installmentFlow && step === 'dues' && selectedInstallmentIds.length === 0 ? (
-            <p className="collection-dues-selection__hint" role="status">
-              {t('admin.finance.collectionWorkflow.selectDuesDesc')}
+          {installmentFlow && step === 'dues' && !canContinueFromDues ? (
+            <p className="collection-dues-selection__hint finance-collection-workflow__footer-hint" role="status">
+              {t('admin.finance.collectionWorkflow.enterCollectionAmountHint')}
             </p>
           ) : (
             <CollectionFormBlockers blockers={installmentFlow && step === 'dues' ? [] : submitBlockers} />
@@ -1170,8 +1198,8 @@ function CollectionWorkflowFormReady({
               <button
                 type="button"
                 className="btn btn--primary"
-                disabled={selectedInstallmentIds.length === 0 || !Number.isFinite(parsedAmount) || parsedAmount <= 0}
-                onClick={() => setStep('payment')}
+                disabled={!canContinueFromDues}
+                onClick={goToPaymentStep}
               >
                 {t('admin.finance.collectionWorkflow.continueToPayment')}
               </button>

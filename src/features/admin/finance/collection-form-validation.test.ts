@@ -71,4 +71,15 @@ describe('collection form validation', () => {
       }),
     ).toEqual([]);
   });
+
+  it('allows manual allocation without step-one installment selection', () => {
+    expect(
+      getCollectionSubmitBlockers({
+        ...base,
+        allocatedTotal: 100,
+        collectionAmount: 100,
+        selectedInstallmentCount: 0,
+      }),
+    ).toEqual([]);
+  });
 });

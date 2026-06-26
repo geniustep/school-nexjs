@@ -67,10 +67,17 @@
 .finance-collection-drawer .academic-setup-drawer__head {
   padding: 18px 20px;
   background: linear-gradient(180deg, #f8fafc 0%, #fff 100%);
+  border-bottom: 1px solid var(--c-border, #e2e8f0);
 }
 
 .finance-collection-drawer .academic-setup-drawer__head-text strong {
   font-size: 1.0625rem;
+  letter-spacing: -0.01em;
+}
+
+.finance-collection-drawer .academic-setup-drawer__subtitle {
+  font-size: 0.8125rem;
+  color: var(--c-text-muted, #64748b);
 }
 
 .finance-collection-drawer .academic-setup-drawer__body {
@@ -78,6 +85,7 @@
   flex-direction: column;
   padding: 0;
   overflow: hidden;
+  background: #f8fafc;
 }
 
 .academic-setup-drawer__head-text {

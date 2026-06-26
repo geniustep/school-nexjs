@@ -1,3 +1,4 @@
+import { isCashJournal } from '@/lib/utils/cash-payment';
 import type { PaymentJournal } from '@/types/finance';
 
 function paymentMethodCode(method: string | { code?: string }): string | undefined {
@@ -22,4 +23,11 @@ export function journalsSupportingMethod(
       return code === methodCode || (methodCode === 'cheque' && code === 'check');
     }),
   );
+}
+
+/** Prefer the cash journal when multiple payment journals are available. */
+export function resolveDefaultPaymentJournal(journals: PaymentJournal[]): PaymentJournal | null {
+  if (!journals.length) return null;
+  if (journals.length === 1) return journals[0];
+  return journals.find(isCashJournal) ?? journals[0];
 }

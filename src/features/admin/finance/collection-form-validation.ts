@@ -94,7 +94,12 @@ export function getCollectionSubmitBlockers(input: {
       blockers.push('unallocatedRemainder');
     }
   }
-  if ((input.selectedInstallmentCount ?? 0) === 0 && input.showAllocationStep && !input.skipAllocation) {
+  if (
+    (input.selectedInstallmentCount ?? 0) === 0 &&
+    input.showAllocationStep &&
+    !input.skipAllocation &&
+    input.allocatedTotal <= 0
+  ) {
     blockers.push('allocateOrSkip');
   }
   return blockers;

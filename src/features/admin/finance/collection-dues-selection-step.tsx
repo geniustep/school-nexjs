@@ -139,6 +139,29 @@ export function CollectionDuesSelectionStep({
         </button>
       </div>
 
+      <div className="collection-dues-selection__amount-card">
+        <div className="collection-dues-selection__amount-head">
+          <label className="finance-amount-field collection-dues-selection__amount" htmlFor="collection-dues-amount">
+            <span className="finance-amount-field__label">{t('admin.finance.collectionAmount')}</span>
+          </label>
+          {selectedIds.length > 0 ? (
+            <span className="collection-dues-selection__amount-meta tiny muted">
+              {selectedIds.length} / {selectableCount}
+            </span>
+          ) : null}
+        </div>
+        <div className="finance-amount-field__input collection-dues-selection__amount-input">
+          <FinanceAmountInput
+            id="collection-dues-amount"
+            value={amount}
+            onChange={onAmountChange}
+            className="input finance-amount-input collection-dues-selection__amount-field"
+            aria-label={t('admin.finance.collectionAmount')}
+          />
+          {currency ? <span className="finance-amount-field__suffix">{currency}</span> : null}
+        </div>
+      </div>
+
       <div className="collection-dues-selection__list-head">
         <span className="collection-dues-selection__list-title">
           {t('admin.finance.collectionWorkflow.stepSelectDues')}
@@ -205,16 +228,6 @@ export function CollectionDuesSelectionStep({
             </label>
           );
         })}
-      </div>
-
-      <div className="collection-dues-selection__amount-card">
-        <label className="finance-amount-field collection-dues-selection__amount">
-          <span className="finance-amount-field__label">{t('admin.finance.collectionAmount')}</span>
-          <div className="finance-amount-field__input">
-            <FinanceAmountInput value={amount} onChange={onAmountChange} />
-            {currency ? <span className="finance-amount-field__suffix">{currency}</span> : null}
-          </div>
-        </label>
       </div>
     </section>
   );
