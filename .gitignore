@@ -25,6 +25,7 @@ yarn-error.log*
 .env.qa.local
 
 # QA generated output (may contain session cookies)
+.diag-output/
 scripts/qa-rbac-output.json
 scripts/qa-f1-live-results.json
 scripts/*output*.json
