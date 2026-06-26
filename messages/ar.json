@@ -958,6 +958,23 @@
     "noLinkedParents": "لا يوجد أولياء مرتبطون",
     "noLinkedChildren": "لا يوجد أبناء مرتبطون",
     "parentsListDesc": "إدارة أولياء الأمور",
+    "parentsList": {
+      "subtitleWithCount": "{total} ولي أمر في نطاقك",
+      "resultsCount": "{count} عائلة",
+      "resetFilters": "إعادة ضبط الفلاتر",
+      "guardiansTitle": "ولي الأمر",
+      "filterChildren": "الأبناء",
+      "filterChildrenAll": "كل الحالات",
+      "filterChildrenLinked": "لديهم أبناء مرتبطون",
+      "filterChildrenNone": "بدون أبناء مرتبطين",
+      "hideWithoutChildren": "إخفاء الأولياء بدون تلاميذ",
+      "filterRelationship": "صلة القرابة",
+      "filterRelationshipAll": "كل العلاقات",
+      "filterLanguageAll": "كل اللغات",
+      "languageAr": "العربية",
+      "languageFr": "الفرنسية",
+      "languageEn": "الإنجليزية"
+    },
     "teachersListDesc": "إدارة الأساتذة",
     "staffCenter": {
       "pageTitle": "مركز الطاقم",

@@ -958,6 +958,23 @@
     "noLinkedParents": "No linked parents",
     "noLinkedChildren": "No linked children",
     "parentsListDesc": "Manage parents",
+    "parentsList": {
+      "subtitleWithCount": "{total} guardians in your scope",
+      "resultsCount": "{count} families",
+      "resetFilters": "Reset filters",
+      "guardiansTitle": "Guardians",
+      "filterChildren": "Children",
+      "filterChildrenAll": "All cases",
+      "filterChildrenLinked": "With linked children",
+      "filterChildrenNone": "Without linked children",
+      "hideWithoutChildren": "Hide guardians without pupils",
+      "filterRelationship": "Relationship",
+      "filterRelationshipAll": "All relationships",
+      "filterLanguageAll": "All languages",
+      "languageAr": "Arabic",
+      "languageFr": "French",
+      "languageEn": "English"
+    },
     "teachersListDesc": "Manage teachers",
     "staffCenter": {
       "pageTitle": "Staff center",

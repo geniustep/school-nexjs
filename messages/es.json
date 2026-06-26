@@ -958,6 +958,23 @@
     "noLinkedParents": "Sin padres vinculados",
     "noLinkedChildren": "Sin hijos vinculados",
     "parentsListDesc": "Gestionar padres",
+    "parentsList": {
+      "subtitleWithCount": "{total} tutores en su ámbito",
+      "resultsCount": "{count} familias",
+      "resetFilters": "Restablecer filtros",
+      "guardiansTitle": "Tutores",
+      "filterChildren": "Hijos",
+      "filterChildrenAll": "Todos los casos",
+      "filterChildrenLinked": "Con hijos vinculados",
+      "filterChildrenNone": "Sin hijos vinculados",
+      "hideWithoutChildren": "Ocultar tutores sin alumnos",
+      "filterRelationship": "Parentesco",
+      "filterRelationshipAll": "Todos los parentescos",
+      "filterLanguageAll": "Todos los idiomas",
+      "languageAr": "Árabe",
+      "languageFr": "Francés",
+      "languageEn": "Inglés"
+    },
     "teachersListDesc": "Gestionar profesores",
     "staffCenter": {
       "pageTitle": "Centro de personal",

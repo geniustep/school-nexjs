@@ -357,6 +357,33 @@ export function parentAccountEntityFields(parent: Parent): import('@/types/accou
   return { id: parent.id, email, login, user_id: userId };
 }
 
+/**
+ * Normalize a row from GET /admin/parents list.
+ * List payloads may ship legacy `children` while unified `relationships` is empty — unlike detail profile.
+ */
+export function normalizeParentListItem(data: unknown): Parent | null {
+  const parent = normalizeParentProfile(data);
+  if (!parent) return null;
+  if (parent.children.length > 0) return parent;
+
+  const raw = asRecord(data);
+  if (!raw) return parent;
+
+  const legacyRaw = raw.children ?? raw.linked_students ?? raw.students ?? raw.student_links;
+  if (!Array.isArray(legacyRaw) || legacyRaw.length === 0) return parent;
+
+  const legacyChildren = legacyRaw
+    .map(normalizeLegacyChild)
+    .filter((c): c is ParentChild => c != null);
+
+  return legacyChildren.length > 0 ? { ...parent, children: legacyChildren } : parent;
+}
+
+export function normalizeParentListItems(data: unknown): Parent[] {
+  if (!Array.isArray(data)) return [];
+  return data.map(normalizeParentListItem).filter((p): p is Parent => p != null);
+}
+
 /** @internal — test helper for relationship resolution rules. */
 export function __testResolveActiveChildren(raw: Record<string, unknown>): ParentChild[] {
   return resolveActiveChildren(raw);

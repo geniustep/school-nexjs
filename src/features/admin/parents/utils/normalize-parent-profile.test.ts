@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { __testResolveActiveChildren, normalizeParentProfile } from './normalize-parent-profile';
+import {
+  __testResolveActiveChildren,
+  normalizeParentListItem,
+  normalizeParentProfile,
+} from './normalize-parent-profile';
 import { isActiveGuardianRelationship } from './parent-relationships-normalize';
 
 describe('normalizeParentProfile relationships', () => {
@@ -57,6 +61,18 @@ describe('normalizeParentProfile relationships', () => {
 
     const parent = normalizeParentProfile(raw);
     expect(parent?.relationships).toEqual([]);
+  });
+
+  it('uses legacy children on list rows when relationships is empty', () => {
+    const parent = normalizeParentListItem({
+      id: 275,
+      name: 'Legacy Parent',
+      relationships: [],
+      children: [{ id: 727, name: 'Student' }],
+    });
+
+    expect(parent?.children).toHaveLength(1);
+    expect(parent?.children?.[0]?.id).toBe(727);
   });
 });
 

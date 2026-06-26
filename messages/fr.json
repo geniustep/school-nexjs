@@ -958,6 +958,23 @@
     "noLinkedParents": "Aucun parent lié",
     "noLinkedChildren": "Aucun enfant lié",
     "parentsListDesc": "Gérer les parents",
+    "parentsList": {
+      "subtitleWithCount": "{total} responsables dans votre périmètre",
+      "resultsCount": "{count} familles",
+      "resetFilters": "Réinitialiser les filtres",
+      "guardiansTitle": "Responsables",
+      "filterChildren": "Enfants",
+      "filterChildrenAll": "Tous les cas",
+      "filterChildrenLinked": "Avec enfants liés",
+      "filterChildrenNone": "Sans enfants liés",
+      "hideWithoutChildren": "Masquer les responsables sans élèves",
+      "filterRelationship": "Lien de parenté",
+      "filterRelationshipAll": "Tous les liens",
+      "filterLanguageAll": "Toutes les langues",
+      "languageAr": "Arabe",
+      "languageFr": "Français",
+      "languageEn": "Anglais"
+    },
     "teachersListDesc": "Gérer les enseignants",
     "staffCenter": {
       "pageTitle": "Centre du personnel",
