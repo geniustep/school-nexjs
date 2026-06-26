@@ -4596,7 +4596,63 @@
           "candidateScopeLevelsCount": "Incluye {count} niveles",
           "candidateScopeShowDetails": "Mostrar detalles",
           "candidateScopeHideDetails": "Ocultar detalles",
-          "useThisPlan": "Usar este plan"
+          "useThisPlan": "Usar este plan",
+          "viewPlanDetails": "Ver detalles",
+          "candidateAutoSuggested": "Sugerida automáticamente",
+          "candidateManualChoice": "Requiere elección manual",
+          "setupState": {
+            "openSchedule": "Abrir calendario de pagos",
+            "openAgreements": "Abrir acuerdos",
+            "openOverview": "Abrir vista financiera",
+            "clean": {
+              "title": "No hay plan financiero activo para este alumno.",
+              "description": "Puede configurar un plan financiero y vincularlo al alumno."
+            },
+            "preActive": {
+              "title": "Hay un acuerdo financiero en borrador",
+              "description": "Este acuerdo aún no está activo, por lo que no aparece un plan activo.",
+              "reviewAction": "Revisar borrador"
+            },
+            "assignedFees": {
+              "title": "Ya hay tasas o cuotas aplicadas",
+              "description": "No hay plan activo, pero el expediente financiero tiene importes pendientes. Revise el calendario de pagos antes de crear un acuerdo nuevo."
+            },
+            "inactiveWithFees": {
+              "title": "Acuerdo anterior inactivo con tasas pendientes",
+              "description": "Este acuerdo no puede usarse para cobro o edición, pero quedan tasas o cuotas vinculadas al alumno."
+            },
+            "unknown": {
+              "title": "No se puede determinar con seguridad el estado del plan",
+              "description": "Revise el expediente financiero antes de crear un acuerdo nuevo."
+            }
+          },
+          "drawer": {
+            "verification": {
+              "title": "Comprobar antes de crear el acuerdo",
+              "student": "Alumno",
+              "priorFees": "Tasas anteriores",
+              "priorAgreements": "Acuerdos anteriores",
+              "safeToCreate": "¿Es seguro crear?"
+            },
+            "unsafe": {
+              "preActive": {
+                "title": "Existe un acuerdo en borrador",
+                "body": "No se puede crear un acuerdo nuevo porque este alumno ya tiene un borrador. Revise el acuerdo existente."
+              },
+              "assignedFees": {
+                "title": "Hay tasas o cuotas pendientes",
+                "body": "No se puede crear un acuerdo nuevo porque este alumno ya tiene tasas o cuotas aplicadas. Revise el calendario de pagos o los acuerdos anteriores."
+              },
+              "inactiveWithFees": {
+                "title": "Acuerdo anterior inactivo",
+                "body": "No se puede crear un acuerdo nuevo porque hay tasas pendientes vinculadas a un acuerdo anterior inactivo. Revise acuerdos y calendario de pagos."
+              },
+              "unsafeGeneric": {
+                "title": "No se puede crear un acuerdo nuevo",
+                "body": "No se puede crear un acuerdo nuevo porque este alumno tiene tasas o cuotas pendientes. Revise el calendario de pagos o los acuerdos anteriores."
+              }
+            }
+          }
         },
         "receipt": "Recibo",
         "openReceipt": "Abrir recibo",
@@ -6718,6 +6774,9 @@
         "optionalLinePlanMismatch": "Incoherencia de contrato entre la opción y el plan.",
         "feePlanAlreadyAssigned": "Ya existe un borrador de acuerdo financiero vinculado a este plan para este alumno. Abra el acuerdo actual en lugar de crear uno nuevo.",
         "draftAgreementBlocksAssignPlan": "Ya existe un borrador de acuerdo financiero vinculado a este plan para este alumno. Abra el acuerdo actual en lugar de crear uno nuevo.",
+        "assignedFeesBlocksAssignPlan": "Ya hay tasas o cuotas aplicadas de este plan para este alumno. Revise el calendario de pagos antes de crear un acuerdo nuevo.",
+        "inactiveAgreementFeesBlocksAssignPlan": "Hay tasas pendientes vinculadas a un acuerdo anterior inactivo. Revise acuerdos y calendario de pagos antes de crear un acuerdo nuevo.",
+        "feesAlreadyAssignedFallback": "No se puede asignar este plan porque ya existen tasas relacionadas para este alumno.",
         "billingProfileCreationFailed": "No se pudo crear el perfil de facturación del alumno.",
         "billingPartnerAmbiguous": "No se pudo determinar la parte facturada automáticamente. Revise los tutores.",
         "billingPartnerInvalid": "La parte facturada no es válida.",

@@ -1,5 +1,11 @@
+import type { FinanceSetupStateKind } from '@/features/admin/student-finance/utils/resolve-finance-setup-state';
+import { resolveAlreadyAssignedErrorKey } from '@/features/admin/student-finance/utils/resolve-finance-setup-state';
+
 /** Map assign-fee-plan API error codes to i18n keys under admin.finance.assignErrors. */
-export function feePlanAssignErrorMessageKey(code: string | undefined): string | null {
+export function feePlanAssignErrorMessageKey(
+  code: string | undefined,
+  setupKind?: FinanceSetupStateKind | null,
+): string | null {
   switch (code) {
     case 'invalid_fee_plan':
       return 'admin.finance.assignErrors.invalidFeePlan';
@@ -10,7 +16,7 @@ export function feePlanAssignErrorMessageKey(code: string | undefined): string |
     case 'optional_line_plan_mismatch':
       return 'admin.finance.assignErrors.optionalLinePlanMismatch';
     case 'fee_plan_already_assigned':
-      return 'admin.finance.assignErrors.draftAgreementBlocksAssignPlan';
+      return resolveAlreadyAssignedErrorKey(setupKind);
     case 'billing_profile_creation_failed':
       return 'admin.finance.assignErrors.billingProfileCreationFailed';
     case 'billing_partner_ambiguous':
@@ -50,18 +56,29 @@ export function resolveAssignErrorMessage(
   code: string | undefined,
   message: string | undefined,
   t: (key: string) => string,
+  setupKind?: FinanceSetupStateKind | null,
 ): string {
-  const key = feePlanAssignErrorMessageKey(code);
+  const key = feePlanAssignErrorMessageKey(code, setupKind);
   if (key) return t(key);
 
   if (code === 'business_error') {
     const normalized = (message ?? '').toLowerCase();
     if (ALREADY_ASSIGNED_PATTERNS.some((pattern) => normalized.includes(pattern))) {
-      return t('admin.finance.assignErrors.draftAgreementBlocksAssignPlan');
+      return t(resolveAlreadyAssignedErrorKey(setupKind));
     }
   }
 
   return message && message !== 'business_error' ? message : t('admin.finance.assignFlow.assignFailed');
+}
+
+export function isAlreadyAssignedAssignError(
+  code: string | undefined,
+  message: string | undefined,
+): boolean {
+  if (code === 'fee_plan_already_assigned') return true;
+  if (code !== 'business_error') return false;
+  const normalized = (message ?? '').toLowerCase();
+  return ALREADY_ASSIGNED_PATTERNS.some((pattern) => normalized.includes(pattern));
 }
 
 export function shouldReloadPlansOnAssignError(code: string | undefined): boolean {

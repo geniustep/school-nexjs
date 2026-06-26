@@ -52,10 +52,10 @@ import { ChangePlanDrawer } from './change-plan-drawer';
 import { InactiveAgreementFinanceBanner } from './inactive-agreement-finance-banner';
 import { resolveChangePlanVisibility } from '../utils/resolve-change-plan-visibility';
 import { AssignFinancePlanPanel } from './assign-finance-plan-panel';
-import { PreActiveAgreementFinancePanel } from './pre-active-agreement-finance-panel';
+import { FinanceSetupStatePanel } from './finance-setup-state-panel';
 import { resolveBillingContextPresentation } from '../utils/resolve-billing-context-presentation';
 import { resolveStudentFinanceActionState } from '../utils/resolve-student-finance-action-state';
-import { resolvePreActiveFinancialAgreement } from '../utils/resolve-pre-active-financial-agreement';
+import { resolveFinanceSetupState } from '../utils/resolve-finance-setup-state';
 import type { FinancialAgreement } from '../types';
 import type { ChangePlanMode } from '@/types/student-finance-change-plan';
 import { useToast } from '@/components/ui/toast';
@@ -174,20 +174,25 @@ export function StudentFinanceWorkspaceShell({
     ],
   );
 
-  const preActiveAgreement = useMemo(
+  const financeSetupState = useMemo(
     () =>
-      resolvePreActiveFinancialAgreement({
-        specialAgreement: financialOverviewState.data?.special_agreement ?? null,
-        workspaceAgreement: workspace?.current_agreement ?? null,
-        inactiveAgreement: workspace?.inactive_agreement ?? null,
+      resolveFinanceSetupState({
+        workspace: workspace ?? null,
+        financialOverview: financialOverviewState.data,
         agreementsList,
+        inactiveAgreement: workspace?.inactive_agreement ?? null,
         academicYearId: effectiveYearId ? Number(effectiveYearId) : null,
+        financialOverviewLoaded: !financialOverviewState.loading,
+        agreementsListLoaded: !agreementsListState.loading,
+        workspaceLoaded: !workspaceState.initialLoading,
       }),
     [
-      financialOverviewState.data?.special_agreement,
-      workspace?.current_agreement,
-      workspace?.inactive_agreement,
+      workspace,
+      financialOverviewState.data,
+      financialOverviewState.loading,
       agreementsList,
+      agreementsListState.loading,
+      workspaceState.initialLoading,
       effectiveYearId,
     ],
   );
@@ -237,16 +242,16 @@ export function StudentFinanceWorkspaceShell({
     [financialOverviewState, workspaceState],
   );
 
-  const emptyFinance =
-    (financialOverviewState.data?.totals?.annual_total ?? 0) === 0 &&
-    (financialOverviewState.data?.counts?.fees_count ?? 0) === 0 &&
-    (workspace?.recent_collections?.length ?? 0) === 0 &&
-    !draftPresentation.hasDraftAgreement;
-
   const showFinanceEmpty = shouldShowFinanceEmptyState({
     phase,
     workspaceLoaded: !!workspace && !workspaceState.initialLoading,
-    emptyFinance,
+    emptyFinance:
+      financeSetupState.kind !== 'active_agreement' &&
+      (financeSetupState.kind === 'clean_no_finance' ||
+        financeSetupState.kind === 'pre_active_agreement' ||
+        financeSetupState.kind === 'assigned_fees_without_active_agreement' ||
+        financeSetupState.kind === 'cancelled_or_inactive_agreement_with_fees' ||
+        financeSetupState.kind === 'unknown_or_api_gap'),
   });
 
   const billingPartnerId = workspace?.finance_profile?.billing_partner?.id ?? null;
@@ -275,6 +280,14 @@ export function StudentFinanceWorkspaceShell({
       }),
     [workspace, financialOverviewState.data, draftPresentation, billingContext, changePlanVisibility],
   );
+
+  const sectionsWithoutEmptyGate: StudentFinanceSubTab[] = useMemo(() => {
+    const base: StudentFinanceSubTab[] = ['agreements', 'cheques', 'adjustments', 'ledger'];
+    if (financeSetupState.kind !== 'clean_no_finance' && financeSetupState.kind !== 'active_agreement') {
+      return [...base, 'schedule', 'fees', 'overview', 'collections'];
+    }
+    return base;
+  }, [financeSetupState.kind]);
 
   const workspaceHeader = (
     <StudentFinanceWorkspaceHeader
@@ -368,13 +381,6 @@ export function StudentFinanceWorkspaceShell({
     return <ApiErrorView error={workspaceState.error} onRetry={workspaceState.reload} />;
   }
 
-  const sectionsWithoutEmptyGate: StudentFinanceSubTab[] = [
-    'agreements',
-    'cheques',
-    'adjustments',
-    'ledger',
-  ];
-
   return (
     <div
       className={`student-finance-tab student-finance-workspace student-360-tab-panel${isRefreshing ? ' student-360-tab-panel--refreshing' : ''}`}
@@ -460,18 +466,38 @@ export function StudentFinanceWorkspaceShell({
 
       <div className="student-finance-workspace__panel">
       {showFinanceEmpty && !sectionsWithoutEmptyGate.includes(subTab) ? (
-        preActiveAgreement ? (
-          <PreActiveAgreementFinancePanel
+        financeSetupState.kind === 'clean_no_finance' && canAssignFeesCapability ? (
+          <AssignFinancePlanPanel
             studentId={studentId}
-            agreement={preActiveAgreement}
-            onReviewAgreement={() => syncSubTabToUrl('agreements')}
+            academicYearId={effectiveYearId}
+            studentLabel={getStudentDisplayName(details.student)}
+            setupState={financeSetupState}
+            enrollmentEditHref={`/admin/students/${studentId}?tab=enrollment`}
+            onAssigned={refreshFinanceData}
+            onOpenSchedule={() => syncSubTabToUrl('schedule')}
+            onOpenAgreements={() => syncSubTabToUrl('agreements')}
+            onOpenOverview={() => syncSubTabToUrl('overview')}
+          />
+        ) : financeSetupState.kind !== 'active_agreement' ? (
+          <FinanceSetupStatePanel
+            studentId={studentId}
+            setupState={financeSetupState}
+            onReviewDraft={() => syncSubTabToUrl('agreements')}
+            onOpenAgreements={() => syncSubTabToUrl('agreements')}
+            onOpenSchedule={() => syncSubTabToUrl('schedule')}
+            onOpenOverview={() => syncSubTabToUrl('overview')}
           />
         ) : canAssignFeesCapability ? (
           <AssignFinancePlanPanel
             studentId={studentId}
             academicYearId={effectiveYearId}
+            studentLabel={getStudentDisplayName(details.student)}
+            setupState={financeSetupState}
             enrollmentEditHref={`/admin/students/${studentId}?tab=enrollment`}
             onAssigned={refreshFinanceData}
+            onOpenSchedule={() => syncSubTabToUrl('schedule')}
+            onOpenAgreements={() => syncSubTabToUrl('agreements')}
+            onOpenOverview={() => syncSubTabToUrl('overview')}
           />
         ) : (
           <Student360CompactEmpty

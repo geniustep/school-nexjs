@@ -31,6 +31,8 @@ import {
   deleteAgreementAdjustment,
 } from '../api/finance-admin-api';
 import { AssignFinancePlanPanel } from './assign-finance-plan-panel';
+import { FinanceSetupStatePanel } from './finance-setup-state-panel';
+import { resolveFinanceSetupState } from '../utils/resolve-finance-setup-state';
 import { isCreateFromCurrentFeesActionAllowed } from '../utils/resolve-create-from-current-fees-action';
 import { AgreementCreateDrawer } from './agreement-create-drawer';
 import { AgreementFromFeesDrawer } from './agreement-from-fees-drawer';
@@ -213,6 +215,20 @@ export function StudentFinancialAgreementTab({
   const billingContext = useMemo(
     () => resolveBillingContextPresentation({ workspace }),
     [workspace],
+  );
+
+  const financeSetupState = useMemo(
+    () =>
+      resolveFinanceSetupState({
+        workspace: workspace ?? null,
+        financialOverview: financialOverview ?? null,
+        inactiveAgreement: workspace?.inactive_agreement ?? null,
+        academicYearId: effectiveYearId ? Number(effectiveYearId) : null,
+        financialOverviewLoaded: true,
+        agreementsListLoaded: true,
+        workspaceLoaded: !workspaceState.initialLoading,
+      }),
+    [workspace, financialOverview, effectiveYearId, workspaceState.initialLoading],
   );
 
   // The legacy "create agreement from current fees" flow is only surfaced when
@@ -993,12 +1009,17 @@ export function StudentFinancialAgreementTab({
         {!billingContext.inactiveAgreement ? (
           canAssignFees ? (
             <>
-              <AssignFinancePlanPanel
-                studentId={studentId}
-                academicYearId={effectiveYearId}
-                enrollmentEditHref={`/admin/students/${studentId}?tab=enrollment`}
-                onAssigned={refreshAll}
-              />
+              {financeSetupState.kind === 'clean_no_finance' ? (
+                <AssignFinancePlanPanel
+                  studentId={studentId}
+                  academicYearId={effectiveYearId}
+                  setupState={financeSetupState}
+                  enrollmentEditHref={`/admin/students/${studentId}?tab=enrollment`}
+                  onAssigned={refreshAll}
+                />
+              ) : financeSetupState.kind !== 'active_agreement' ? (
+                <FinanceSetupStatePanel studentId={studentId} setupState={financeSetupState} />
+              ) : null}
               <div className="row student-finance-agreement-empty-actions">
                 <Link
                   href={`/admin/students/${studentId}?tab=finance&financeSubTab=overview`}

@@ -4596,7 +4596,63 @@
           "candidateScopeLevelsCount": "Couvre {count} niveaux",
           "candidateScopeShowDetails": "Afficher les détails",
           "candidateScopeHideDetails": "Masquer les détails",
-          "useThisPlan": "Utiliser ce plan"
+          "useThisPlan": "Utiliser ce plan",
+          "viewPlanDetails": "Voir les détails",
+          "candidateAutoSuggested": "Suggéré automatiquement",
+          "candidateManualChoice": "Nécessite un choix manuel",
+          "setupState": {
+            "openSchedule": "Ouvrir l'échéancier",
+            "openAgreements": "Ouvrir les accords",
+            "openOverview": "Ouvrir la vue financière",
+            "clean": {
+              "title": "Aucun plan financier actif pour cet élève.",
+              "description": "Vous pouvez configurer un plan financier et le lier à l'élève."
+            },
+            "preActive": {
+              "title": "Un accord financier est en brouillon",
+              "description": "Cet accord n'est pas encore actif, donc aucun plan actif n'apparaît.",
+              "reviewAction": "Consulter le brouillon"
+            },
+            "assignedFees": {
+              "title": "Des frais ou échéances sont déjà appliqués",
+              "description": "Il n'y a pas de plan actif, mais le dossier financier contient des montants en cours. Consultez l'échéancier avant de créer un nouvel accord."
+            },
+            "inactiveWithFees": {
+              "title": "Accord antérieur inactif avec frais en cours",
+              "description": "Cet accord ne peut pas servir au recouvrement ou à la modification, mais des frais ou échéances restent liés à l'élève."
+            },
+            "unknown": {
+              "title": "Impossible de déterminer l'état du plan en toute sécurité",
+              "description": "Consultez le dossier financier avant de créer un nouvel accord."
+            }
+          },
+          "drawer": {
+            "verification": {
+              "title": "Vérifier avant de créer l'accord",
+              "student": "Élève",
+              "priorFees": "Frais antérieurs",
+              "priorAgreements": "Accords antérieurs",
+              "safeToCreate": "Création sûre ?"
+            },
+            "unsafe": {
+              "preActive": {
+                "title": "Un accord en brouillon existe",
+                "body": "Un nouvel accord ne peut pas être créé car cet élève a déjà un brouillon. Consultez l'accord existant."
+              },
+              "assignedFees": {
+                "title": "Frais ou échéances en cours",
+                "body": "Un nouvel accord ne peut pas être créé car cet élève a déjà des frais ou échéances appliqués. Consultez l'échéancier ou les accords antérieurs."
+              },
+              "inactiveWithFees": {
+                "title": "Accord antérieur inactif",
+                "body": "Un nouvel accord ne peut pas être créé car des frais en cours sont liés à un accord antérieur inactif. Consultez les accords et l'échéancier."
+              },
+              "unsafeGeneric": {
+                "title": "Impossible de créer un nouvel accord",
+                "body": "Un nouvel accord ne peut pas être créé car cet élève a des frais ou échéances en cours. Consultez l'échéancier ou les accords antérieurs."
+              }
+            }
+          }
         },
         "receipt": "Reçu",
         "openReceipt": "Ouvrir le reçu",
@@ -6718,6 +6774,9 @@
         "optionalLinePlanMismatch": "Incohérence de contrat entre l'option et le plan.",
         "feePlanAlreadyAssigned": "Un brouillon d'accord financier est déjà lié à ce plan pour cet élève. Ouvrez l'accord existant au lieu d'en créer un nouveau.",
         "draftAgreementBlocksAssignPlan": "Un brouillon d'accord financier est déjà lié à ce plan pour cet élève. Ouvrez l'accord existant au lieu d'en créer un nouveau.",
+        "assignedFeesBlocksAssignPlan": "Des frais ou échéances de ce plan ont déjà été appliqués à cet élève. Consultez l'échéancier avant de créer un nouvel accord.",
+        "inactiveAgreementFeesBlocksAssignPlan": "Des frais en cours sont liés à un accord antérieur inactif. Consultez les accords et l'échéancier avant de créer un nouvel accord.",
+        "feesAlreadyAssignedFallback": "Ce plan ne peut pas être attribué car des frais liés existent déjà pour cet élève.",
         "billingProfileCreationFailed": "Impossible de créer le profil de facturation de l'élève.",
         "billingPartnerAmbiguous": "Impossible de déterminer la partie facturée automatiquement. Vérifiez les tuteurs.",
         "billingPartnerInvalid": "La partie facturée est invalide.",

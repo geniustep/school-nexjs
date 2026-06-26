@@ -4601,7 +4601,63 @@
           "candidateScopeLevelsCount": "Covers {count} levels",
           "candidateScopeShowDetails": "Show details",
           "candidateScopeHideDetails": "Hide details",
-          "useThisPlan": "Use this plan"
+          "useThisPlan": "Use this plan",
+          "viewPlanDetails": "View details",
+          "candidateAutoSuggested": "Auto-suggested",
+          "candidateManualChoice": "Requires manual choice",
+          "setupState": {
+            "openSchedule": "Open payment schedule",
+            "openAgreements": "Open agreements",
+            "openOverview": "Open financial overview",
+            "clean": {
+              "title": "No active finance plan for this student.",
+              "description": "You can set up a finance plan and link it to the student."
+            },
+            "preActive": {
+              "title": "A financial agreement is in draft",
+              "description": "This agreement is not active yet, so no active plan is shown.",
+              "reviewAction": "Review draft"
+            },
+            "assignedFees": {
+              "title": "Fees or installments already applied",
+              "description": "There is no active plan, but the financial file has outstanding amounts. Review the payment schedule before creating a new agreement."
+            },
+            "inactiveWithFees": {
+              "title": "Inactive prior agreement with outstanding fees",
+              "description": "This agreement cannot be used for collection or editing, but fees or installments remain linked to the student."
+            },
+            "unknown": {
+              "title": "Cannot safely determine finance plan status",
+              "description": "Review the financial file before creating a new agreement."
+            }
+          },
+          "drawer": {
+            "verification": {
+              "title": "Check before creating the agreement",
+              "student": "Student",
+              "priorFees": "Prior fees",
+              "priorAgreements": "Prior agreements",
+              "safeToCreate": "Safe to create?"
+            },
+            "unsafe": {
+              "preActive": {
+                "title": "Draft agreement exists",
+                "body": "A new agreement cannot be created because this student already has a draft agreement. Review the existing agreement."
+              },
+              "assignedFees": {
+                "title": "Outstanding fees or installments",
+                "body": "A new agreement cannot be created because this student already has applied fees or installments. Review the payment schedule or prior agreements."
+              },
+              "inactiveWithFees": {
+                "title": "Inactive prior agreement",
+                "body": "A new agreement cannot be created because outstanding fees are linked to an inactive prior agreement. Review agreements and the payment schedule."
+              },
+              "unsafeGeneric": {
+                "title": "Cannot create a new agreement",
+                "body": "A new agreement cannot be created because this student has outstanding fees or installments. Review the payment schedule or prior agreements."
+              }
+            }
+          }
         },
         "receipt": "Receipt",
         "openReceipt": "Open receipt",
@@ -6723,6 +6779,9 @@
         "optionalLinePlanMismatch": "Contract mismatch between the option and the plan.",
         "feePlanAlreadyAssigned": "A draft financial agreement is already linked to this plan for this student. Open the existing agreement instead of creating a new one.",
         "draftAgreementBlocksAssignPlan": "A draft financial agreement is already linked to this plan for this student. Open the existing agreement instead of creating a new one.",
+        "assignedFeesBlocksAssignPlan": "Fees or installments from this plan were already applied to this student. Review the payment schedule before creating a new agreement.",
+        "inactiveAgreementFeesBlocksAssignPlan": "Outstanding fees are linked to an inactive prior agreement. Review agreements and the payment schedule before creating a new agreement.",
+        "feesAlreadyAssignedFallback": "This plan cannot be assigned because related fees already exist for this student.",
         "billingProfileCreationFailed": "Could not create the student billing profile.",
         "billingPartnerAmbiguous": "Could not determine the billing party automatically. Review guardian data.",
         "billingPartnerInvalid": "The billing party is invalid.",

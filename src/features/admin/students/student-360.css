@@ -2041,6 +2041,118 @@
   color: var(--c-text, #0f172a);
 }
 
+.student-finance-setup-state {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+}
+
+.student-finance-setup-state__eyebrow {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--c-primary, #2563eb);
+}
+
+.student-finance-setup-state__title {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.student-finance-setup-state__desc {
+  margin: 0;
+  line-height: 1.55;
+  color: var(--c-muted, #64748b);
+}
+
+.student-finance-setup-state__ref {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.student-finance-setup-state__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.assign-finance-plan__candidate-head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.assign-finance-plan__candidate-mode {
+  display: block;
+}
+
+.assign-finance-plan__unsafe-alert,
+.assign-finance-plan__inline-error {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--c-warning, #d97706) 35%, var(--c-border, #e2e8f0));
+  background: color-mix(in srgb, var(--c-warning-soft, #fff7ed) 70%, #fff);
+}
+
+.assign-finance-plan__unsafe-alert-title,
+.assign-finance-plan__inline-error p {
+  margin: 0;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.assign-finance-plan__unsafe-alert-body {
+  margin: 0;
+  line-height: 1.55;
+  color: var(--c-muted, #64748b);
+}
+
+.assign-finance-plan__unsafe-alert-actions,
+.assign-finance-plan__inline-error-actions {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.assign-finance-plan__verification {
+  padding: 14px 16px;
+}
+
+.assign-finance-plan__verification-title {
+  margin: 0 0 10px;
+  font-weight: 700;
+}
+
+.assign-finance-plan-drawer .afp-footer--sticky {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  margin-inline: -20px;
+  margin-bottom: -20px;
+  padding: 16px 20px;
+  background: color-mix(in srgb, var(--c-bg, #f8fafc) 92%, #fff);
+  border-top: 1px solid var(--c-border, #e2e8f0);
+  box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.06);
+}
+
+.text-success {
+  color: var(--c-success, #15803d);
+  font-weight: 700;
+}
+
+.text-danger {
+  color: var(--c-danger, #b91c1c);
+  font-weight: 700;
+}
+
 @media (min-width: 480px) {
   .afp-footer {
     flex-direction: row;

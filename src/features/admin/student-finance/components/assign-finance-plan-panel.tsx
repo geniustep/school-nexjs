@@ -3,12 +3,10 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { SetupDrawer } from '@/features/admin/academic-setup/components/setup-drawer';
-import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { LoadingState } from '@/components/states/states';
 import { useToast } from '@/components/ui/toast';
 import { useT, useLocale } from '@/features/i18n/locale-context';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
-import { Student360CompactEmpty } from '@/features/admin/students/components/student-360-compact-empty';
 import {
   StudentCreateFinanceCustomization,
   StudentCreateFinancePlanPicker,
@@ -31,9 +29,13 @@ import {
   previewStudentFinancePlan,
 } from '../api/assign-plan-api';
 import { classifyAssignPlanPreview } from '../utils/normalize-assign-plan-preview';
-import { resolveAssignErrorMessage } from '@/features/admin/finance/fee-plan-assign-errors';
-import { PreActiveAgreementFinancePanel } from './pre-active-agreement-finance-panel';
-import type { PreActiveFinancialAgreementRef } from '../utils/resolve-pre-active-financial-agreement';
+import {
+  isAlreadyAssignedAssignError,
+  resolveAssignErrorMessage,
+} from '@/features/admin/finance/fee-plan-assign-errors';
+import type { StudentFinanceCurrency } from '@/types/student-finance';
+import { FinanceSetupStatePanel } from './finance-setup-state-panel';
+import type { FinanceSetupState } from '../utils/resolve-finance-setup-state';
 
 function tk(key: string): string {
   return `admin.student360.finance.assignPlan.${key}`;
@@ -48,8 +50,6 @@ function humanizeAction(action: string): string {
 function translateAction(t: ReturnType<typeof useT>, action: string): string {
   const key = tk(`actionLabels.${action}`);
   const label = t(key);
-  // `translate` returns the key itself when no message is found; fall back to a
-  // human-readable version so raw codes never leak into the UI.
   return label === key ? humanizeAction(action) : label;
 }
 
@@ -76,10 +76,16 @@ function CandidateCard({
   candidate,
   onUse,
   disabled,
+  assignPlanSafe,
+  onOpenSchedule,
+  onOpenAgreements,
 }: {
   candidate: FeePlanCandidatePlan;
   onUse: (planId: number) => void;
   disabled: boolean;
+  assignPlanSafe: boolean;
+  onOpenSchedule?: () => void;
+  onOpenAgreements?: () => void;
 }) {
   const t = useT();
   const { locale } = useLocale();
@@ -88,14 +94,16 @@ function CandidateCard({
   const currency = candidate.currency ? { name: candidate.currency, symbol: candidate.currency } : null;
   const levelNames = candidatePlanLevelNames(candidate);
   const fullScope = candidatePlanScopeSummary(candidate);
-  // Keep the primary card compact: show a short summary and hide a long level
-  // list behind a secondary "عرض التفاصيل" toggle.
   const hasLevelDetails = levelNames.length > 1;
   const shortScope = hasLevelDetails
     ? t(tk('candidateScopeLevelsCount'), { count: levelNames.length })
     : fullScope;
   const year = candidate.academic_year?.name ?? candidate.academic_year_name ?? null;
   const reason = candidate.hint?.trim() || t(tk('candidateReasonNotDefault'));
+  const selectionMode =
+    candidate.is_default_for_level === true
+      ? t(tk('candidateAutoSuggested'))
+      : t(tk('candidateManualChoice'));
 
   return (
     <li className="assign-finance-plan__candidate-card card">
@@ -104,6 +112,7 @@ function CandidateCard({
           {candidate.name}
           <span className="mono tiny muted"> #{candidate.id}</span>
         </strong>
+        <span className="assign-finance-plan__candidate-mode tiny muted">{selectionMode}</span>
       </div>
       <dl className="detail-list compact assign-finance-plan__candidate-meta">
         {year ? (
@@ -161,18 +170,154 @@ function CandidateCard({
           target="_blank"
           rel="noreferrer"
         >
-          {t('common.view')}
+          {t(tk('viewPlanDetails'))}
         </Link>
-        <button
-          type="button"
-          className="btn btn--primary btn--sm"
-          disabled={disabled}
-          onClick={() => onUse(candidate.id)}
-        >
-          {t(tk('useThisPlan'))}
-        </button>
+        {assignPlanSafe ? (
+          <button
+            type="button"
+            className="btn btn--primary btn--sm"
+            disabled={disabled}
+            onClick={() => onUse(candidate.id)}
+          >
+            {t(tk('useThisPlan'))}
+          </button>
+        ) : (
+          <>
+            {onOpenSchedule ? (
+              <button type="button" className="btn btn--primary btn--sm" onClick={onOpenSchedule}>
+                {t(tk('setupState.openSchedule'))}
+              </button>
+            ) : null}
+            {onOpenAgreements ? (
+              <button type="button" className="btn btn--ghost btn--sm" onClick={onOpenAgreements}>
+                {t(tk('setupState.openAgreements'))}
+              </button>
+            ) : null}
+          </>
+        )}
       </div>
     </li>
+  );
+}
+
+function AssignPlanUnsafeAlert({
+  setupState,
+  onOpenSchedule,
+  onOpenAgreements,
+  onCancel,
+}: {
+  setupState: FinanceSetupState;
+  onOpenSchedule?: () => void;
+  onOpenAgreements?: () => void;
+  onCancel: () => void;
+}) {
+  const t = useT();
+  const alertKey =
+    setupState.kind === 'pre_active_agreement'
+      ? 'preActive'
+      : setupState.kind === 'assigned_fees_without_active_agreement'
+        ? 'assignedFees'
+        : setupState.kind === 'cancelled_or_inactive_agreement_with_fees'
+          ? 'inactiveWithFees'
+          : 'unsafeGeneric';
+
+  return (
+    <div className="assign-finance-plan__unsafe-alert" role="alert">
+      <p className="assign-finance-plan__unsafe-alert-title">
+        {t(tk(`drawer.unsafe.${alertKey}.title`))}
+      </p>
+      <p className="assign-finance-plan__unsafe-alert-body">
+        {t(tk(`drawer.unsafe.${alertKey}.body`))}
+      </p>
+      <div className="assign-finance-plan__unsafe-alert-actions row">
+        {onOpenSchedule ? (
+          <button type="button" className="btn btn--primary btn--sm" onClick={onOpenSchedule}>
+            {t(tk('setupState.openSchedule'))}
+          </button>
+        ) : null}
+        {onOpenAgreements ? (
+          <button type="button" className="btn btn--ghost btn--sm" onClick={onOpenAgreements}>
+            {t(tk('setupState.openAgreements'))}
+          </button>
+        ) : null}
+        <button type="button" className="btn btn--ghost btn--sm" onClick={onCancel}>
+          {t('common.cancel')}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function AssignPlanVerificationChecklist({
+  setupState,
+  planName,
+  academicYearName,
+  total,
+  currency,
+  installmentCount,
+  studentLabel,
+}: {
+  setupState: FinanceSetupState;
+  planName?: string | null;
+  academicYearName?: string | null;
+  total?: number | null;
+  currency?: StudentFinanceCurrency | null;
+  installmentCount?: number | null;
+  studentLabel?: string | null;
+}) {
+  const t = useT();
+  const { locale } = useLocale();
+
+  return (
+    <div className="assign-finance-plan__verification card">
+      <p className="assign-finance-plan__verification-title">{t(tk('drawer.verification.title'))}</p>
+      <dl className="detail-list compact assign-finance-plan__verification-list">
+        {studentLabel ? (
+          <div>
+            <dt>{t(tk('drawer.verification.student'))}</dt>
+            <dd dir="auto">{studentLabel}</dd>
+          </div>
+        ) : null}
+        {academicYearName ? (
+          <div>
+            <dt>{t(tk('academicYear'))}</dt>
+            <dd dir="auto">{academicYearName}</dd>
+          </div>
+        ) : null}
+        {planName ? (
+          <div>
+            <dt>{t(tk('planName'))}</dt>
+            <dd dir="auto">{planName}</dd>
+          </div>
+        ) : null}
+        {total != null ? (
+          <div>
+            <dt>{t(tk('total'))}</dt>
+            <dd className="mono">{formatFinanceCurrency(total, currency, locale)}</dd>
+          </div>
+        ) : null}
+        {installmentCount != null ? (
+          <div>
+            <dt>{t(tk('installmentCount'))}</dt>
+            <dd>{installmentCount}</dd>
+          </div>
+        ) : null}
+        <div>
+          <dt>{t(tk('drawer.verification.priorFees'))}</dt>
+          <dd>{setupState.hasExistingFees ? t('common.yes') : t('common.no')}</dd>
+        </div>
+        <div>
+          <dt>{t(tk('drawer.verification.priorAgreements'))}</dt>
+          <dd>{setupState.hasPriorAgreements ? t('common.yes') : t('common.no')}</dd>
+        </div>
+        <div>
+          <dt>{t(tk('drawer.verification.safeToCreate'))}</dt>
+          <dd className={setupState.canSafelyAssignPlan ? 'text-success' : 'text-danger'}>
+            {setupState.canSafelyAssignPlan ? t('common.yes') : t('common.no')}
+          </dd>
+        </div>
+      </dl>
+    </div>
   );
 }
 
@@ -180,22 +325,22 @@ export function AssignFinancePlanPanel({
   studentId,
   academicYearId,
   enrollmentEditHref,
-  emptyTitle,
-  emptyDescription,
+  studentLabel,
+  setupState,
   onAssigned,
-  assignPlanBlocked = false,
-  preActiveAgreement = null,
-  onReviewAgreement,
+  onOpenSchedule,
+  onOpenAgreements,
+  onOpenOverview,
 }: {
   studentId: number;
   academicYearId?: string | null;
   enrollmentEditHref?: string;
-  emptyTitle?: string;
-  emptyDescription?: string;
+  studentLabel?: string | null;
+  setupState: FinanceSetupState;
   onAssigned: () => void;
-  assignPlanBlocked?: boolean;
-  preActiveAgreement?: PreActiveFinancialAgreementRef | null;
-  onReviewAgreement?: () => void;
+  onOpenSchedule?: () => void;
+  onOpenAgreements?: () => void;
+  onOpenOverview?: () => void;
 }) {
   const t = useT();
   const toast = useToast();
@@ -204,16 +349,20 @@ export function AssignFinancePlanPanel({
   const [previewLoading, setPreviewLoading] = useState(false);
   const [state, setState] = useState<AssignPlanPreviewState | null>(null);
   const [assignLoading, setAssignLoading] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
   const [activeAction, setActiveAction] = useState<AssignPlanActionKey | null>(null);
   const [financeState, setFinanceState] = useState<StudentCreateFinanceFormState | null>(null);
+  const [inlineAssignError, setInlineAssignError] = useState<string | null>(null);
+  const [showVerification, setShowVerification] = useState(false);
 
+  const assignPlanSafe = setupState.canSafelyAssignPlan;
   const academicYearNum =
     academicYearId && Number.isFinite(Number(academicYearId)) ? Number(academicYearId) : null;
 
   const resetActionState = useCallback(() => {
     setActiveAction(null);
     setFinanceState(null);
+    setInlineAssignError(null);
+    setShowVerification(false);
   }, []);
 
   const runPreview = useCallback(
@@ -241,9 +390,8 @@ export function AssignFinancePlanPanel({
   }, [state]);
 
   function openPanel() {
-    if (assignPlanBlocked) {
-      toast.error(t('admin.student360.finance.assignPlan.preActive.blockedToast'));
-      onReviewAgreement?.();
+    if (!assignPlanSafe) {
+      setInlineAssignError(t(tk('drawer.unsafe.unsafeGeneric.body')));
       return;
     }
     setOpen(true);
@@ -253,18 +401,21 @@ export function AssignFinancePlanPanel({
   function closePanel() {
     setOpen(false);
     setState(null);
-    setShowConfirm(false);
+    setShowVerification(false);
     resetActionState();
   }
 
+  function navigateFromDrawer(action?: () => void) {
+    closePanel();
+    action?.();
+  }
+
   async function handleAssign() {
-    if (assignPlanBlocked) {
-      toast.error(t('admin.student360.finance.assignPlan.preActive.blockedToast'));
-      return;
-    }
+    if (!assignPlanSafe) return;
     if (state?.kind !== 'ready' || state.plan.feePlanId == null) return;
     const suggest = state.plan.suggestSnapshot;
     setAssignLoading(true);
+    setInlineAssignError(null);
     const res = await assignStudentFinancePlan(
       studentId,
       buildAssignPlanBody({
@@ -275,14 +426,24 @@ export function AssignFinancePlanPanel({
       }),
     );
     setAssignLoading(false);
-    setShowConfirm(false);
+    setShowVerification(false);
     if (!res.success) {
       const reclassified = classifyAssignPlanPreview(res);
       if (reclassified.kind !== 'error') {
         setState(reclassified);
         return;
       }
-      toast.error(resolveAssignErrorMessage(res.error.code, res.error.message, t));
+      const message = resolveAssignErrorMessage(
+        res.error.code,
+        res.error.message,
+        t,
+        setupState.kind,
+      );
+      if (isAlreadyAssignedAssignError(res.error.code, res.error.message)) {
+        setInlineAssignError(message);
+        return;
+      }
+      setInlineAssignError(message);
       return;
     }
     toast.success(t(tk('assignSuccess')));
@@ -290,27 +451,13 @@ export function AssignFinancePlanPanel({
     onAssigned();
   }
 
-  if (assignPlanBlocked && preActiveAgreement) {
-    return (
-      <PreActiveAgreementFinancePanel
-        studentId={studentId}
-        agreement={preActiveAgreement}
-        onReviewAgreement={onReviewAgreement}
-      />
-    );
+  if (setupState.kind !== 'clean_no_finance') {
+    return null;
   }
 
   return (
     <>
-      <Student360CompactEmpty
-        title={emptyTitle ?? t(tk('emptyTitle'))}
-        description={emptyDescription ?? t(tk('emptyDescription'))}
-        action={
-          <button type="button" className="btn btn--primary" onClick={openPanel}>
-            {t(tk('setupAction'))}
-          </button>
-        }
-      />
+      <FinanceSetupStatePanel setupState={setupState} onSetupPlan={openPanel} studentId={studentId} />
 
       <SetupDrawer
         open={open}
@@ -320,68 +467,107 @@ export function AssignFinancePlanPanel({
         className="assign-finance-plan-drawer"
         iconClose
       >
-        {previewLoading ? <LoadingState label={t(tk('loadingPreview'))} /> : null}
+        {!assignPlanSafe ? (
+          <AssignPlanUnsafeAlert
+            setupState={setupState}
+            onOpenSchedule={() => navigateFromDrawer(onOpenSchedule)}
+            onOpenAgreements={() => navigateFromDrawer(onOpenAgreements)}
+            onCancel={closePanel}
+          />
+        ) : null}
 
-        {!previewLoading && state ? (
+        {assignPlanSafe && previewLoading ? <LoadingState label={t(tk('loadingPreview'))} /> : null}
+
+        {assignPlanSafe && !previewLoading && state ? (
           <AssignPreviewBody
             state={state}
+            setupState={setupState}
+            studentLabel={studentLabel}
             enrollmentEditHref={enrollmentEditHref}
             assignLoading={assignLoading}
+            assignPlanSafe={assignPlanSafe}
             activeAction={activeAction}
             financeState={financeState}
+            inlineAssignError={inlineAssignError}
+            showVerification={showVerification}
             onActiveActionChange={setActiveAction}
             onFinanceChange={(patch) =>
               setFinanceState((prev) => (prev ? { ...prev, ...patch } : prev))
             }
             onUseCandidate={(planId) => void runPreview(planId)}
             onRetry={() => void runPreview()}
-            onConfirm={() => setShowConfirm(true)}
+            onConfirm={() => setShowVerification(true)}
             onCancel={closePanel}
+            onAssign={handleAssign}
+            onOpenSchedule={() => navigateFromDrawer(onOpenSchedule)}
+            onOpenAgreements={() => navigateFromDrawer(onOpenAgreements)}
+            onOpenOverview={() => navigateFromDrawer(onOpenOverview)}
+            onDismissVerification={() => setShowVerification(false)}
           />
         ) : null}
       </SetupDrawer>
-
-      <ConfirmationDialog
-        open={showConfirm}
-        title={t(tk('confirmTitle'))}
-        body={t(tk('confirmBody'))}
-        confirmLabel={t(tk('confirm'))}
-        cancelLabel={t('common.cancel')}
-        loading={assignLoading}
-        onConfirm={handleAssign}
-        onClose={() => setShowConfirm(false)}
-      />
     </>
   );
 }
 
 function AssignPreviewBody({
   state,
+  setupState,
+  studentLabel,
   enrollmentEditHref,
   assignLoading,
+  assignPlanSafe,
   activeAction,
   financeState,
+  inlineAssignError,
+  showVerification,
   onActiveActionChange,
   onFinanceChange,
   onUseCandidate,
   onRetry,
   onConfirm,
   onCancel,
+  onAssign,
+  onOpenSchedule,
+  onOpenAgreements,
+  onOpenOverview,
+  onDismissVerification,
 }: {
   state: AssignPlanPreviewState;
+  setupState: FinanceSetupState;
+  studentLabel?: string | null;
   enrollmentEditHref?: string;
   assignLoading: boolean;
+  assignPlanSafe: boolean;
   activeAction: AssignPlanActionKey | null;
   financeState: StudentCreateFinanceFormState | null;
+  inlineAssignError: string | null;
+  showVerification: boolean;
   onActiveActionChange: (action: AssignPlanActionKey | null) => void;
   onFinanceChange: (patch: Partial<StudentCreateFinanceFormState>) => void;
   onUseCandidate: (planId: number) => void;
   onRetry: () => void;
   onConfirm: () => void;
   onCancel: () => void;
+  onAssign: () => void;
+  onOpenSchedule?: () => void;
+  onOpenAgreements?: () => void;
+  onOpenOverview?: () => void;
+  onDismissVerification: () => void;
 }) {
   const t = useT();
   const { locale } = useLocale();
+
+  if (!assignPlanSafe) {
+    return (
+      <AssignPlanUnsafeAlert
+        setupState={setupState}
+        onOpenSchedule={onOpenSchedule}
+        onOpenAgreements={onOpenAgreements}
+        onCancel={onCancel}
+      />
+    );
+  }
 
   if (state.kind === 'active_agreement_exists') {
     return (
@@ -428,6 +614,9 @@ function AssignPreviewBody({
               candidate={candidate}
               onUse={onUseCandidate}
               disabled={assignLoading}
+              assignPlanSafe={assignPlanSafe}
+              onOpenSchedule={onOpenSchedule}
+              onOpenAgreements={onOpenAgreements}
             />
           ))}
         </ul>
@@ -453,7 +642,7 @@ function AssignPreviewBody({
     if (!isAssignPlanActionKey(action)) return;
 
     if (action === 'assign_plan' || action === 'confirm_plan') {
-      onConfirm();
+      if (assignPlanSafe) onConfirm();
       return;
     }
 
@@ -487,8 +676,79 @@ function AssignPreviewBody({
     onUseCandidate(planId);
   }
 
+  if (showVerification) {
+    return (
+      <div className="assign-finance-plan__preview">
+        <AssignPlanVerificationChecklist
+          setupState={setupState}
+          planName={plan.planName}
+          academicYearName={plan.academicYearName}
+          total={plan.total}
+          currency={plan.currency}
+          installmentCount={plan.installmentCount}
+          studentLabel={studentLabel}
+        />
+        {inlineAssignError ? (
+          <div className="assign-finance-plan__inline-error" role="alert">
+            <p>{inlineAssignError}</p>
+            <div className="assign-finance-plan__inline-error-actions row">
+              {onOpenSchedule ? (
+                <button type="button" className="btn btn--primary btn--sm" onClick={onOpenSchedule}>
+                  {t(tk('setupState.openSchedule'))}
+                </button>
+              ) : null}
+              {onOpenAgreements ? (
+                <button type="button" className="btn btn--ghost btn--sm" onClick={onOpenAgreements}>
+                  {t(tk('setupState.openAgreements'))}
+                </button>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+        <div className="afp-footer">
+          {assignPlanSafe ? (
+            <button
+              type="button"
+              className="btn btn--primary afp-footer__confirm"
+              disabled={!plan.canAssign || plan.feePlanId == null || assignLoading}
+              onClick={onAssign}
+            >
+              {t(tk('confirm'))}
+            </button>
+          ) : null}
+          <button
+            type="button"
+            className="btn btn--ghost afp-footer__cancel"
+            onClick={onDismissVerification}
+            disabled={assignLoading}
+          >
+            {t('common.back')}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="assign-finance-plan__preview">
+      {inlineAssignError ? (
+        <div className="assign-finance-plan__inline-error" role="alert">
+          <p>{inlineAssignError}</p>
+          <div className="assign-finance-plan__inline-error-actions row">
+            {onOpenSchedule ? (
+              <button type="button" className="btn btn--primary btn--sm" onClick={onOpenSchedule}>
+                {t(tk('setupState.openSchedule'))}
+              </button>
+            ) : null}
+            {onOpenAgreements ? (
+              <button type="button" className="btn btn--ghost btn--sm" onClick={onOpenAgreements}>
+                {t(tk('setupState.openAgreements'))}
+              </button>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+
       <div className="afp-summary">
         {plan.planName ? (
           <div className="afp-summary__plan">
@@ -536,12 +796,13 @@ function AssignPreviewBody({
             {plan.allowedActions.map((action) => {
               const actionable = isAssignPlanActionKey(action);
               const isActive = actionable && activeAction === action;
+              const isAssignAction = action === 'assign_plan' || action === 'confirm_plan';
               return (
                 <li key={action}>
                   <button
                     type="button"
                     className={`afp-chip afp-chip--action${isActive ? ' afp-chip--active' : ''}`}
-                    disabled={assignLoading || !actionable}
+                    disabled={assignLoading || !actionable || (isAssignAction && !assignPlanSafe)}
                     aria-pressed={isActive}
                     onClick={() => handleActionClick(action)}
                   >
@@ -594,15 +855,17 @@ function AssignPreviewBody({
         </div>
       ) : null}
 
-      <div className="afp-footer">
-        <button
-          type="button"
-          className="btn btn--primary afp-footer__confirm"
-          disabled={!plan.canAssign || plan.feePlanId == null || assignLoading}
-          onClick={onConfirm}
-        >
-          {t(tk('confirm'))}
-        </button>
+      <div className="afp-footer afp-footer--sticky">
+        {assignPlanSafe ? (
+          <button
+            type="button"
+            className="btn btn--primary afp-footer__confirm"
+            disabled={!plan.canAssign || plan.feePlanId == null || assignLoading}
+            onClick={onConfirm}
+          >
+            {t(tk('confirm'))}
+          </button>
+        ) : null}
         <button
           type="button"
           className="btn btn--ghost afp-footer__cancel"

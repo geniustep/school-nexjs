@@ -75,18 +75,18 @@ describe('resolveDraftAgreementPresentation with agreements list', () => {
 describe('assign-plan duplicate error translation', () => {
   const t = (key: string) => key;
 
-  it('translates raw already-assigned backend message', () => {
+  it('translates raw already-assigned backend message with fallback when no setup context', () => {
     expect(
       resolveAssignErrorMessage(
         'business_error',
         'Fees from this plan were already assigned to the student.',
         t,
       ),
-    ).toBe('admin.finance.assignErrors.draftAgreementBlocksAssignPlan');
+    ).toBe('admin.finance.assignErrors.feesAlreadyAssignedFallback');
   });
 
-  it('maps fee_plan_already_assigned code to draft message', () => {
-    expect(resolveAssignErrorMessage('fee_plan_already_assigned', '', t)).toBe(
+  it('maps fee_plan_already_assigned code using setup context', () => {
+    expect(resolveAssignErrorMessage('fee_plan_already_assigned', '', t, 'pre_active_agreement')).toBe(
       'admin.finance.assignErrors.draftAgreementBlocksAssignPlan',
     );
   });
