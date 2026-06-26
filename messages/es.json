@@ -4080,6 +4080,13 @@
           "customizationReason": "Motivo de personalización",
           "customizationReasonHint": "Este motivo se aplica a todos los descuentos y ajustes. Puede definir un motivo específico por línea si hace falta.",
           "customizationNotes": "Notas",
+          "customizationTypeLabel": "Tipo de personalización",
+          "customizationTypes": {
+            "plan_discount": "Descuento del plan",
+            "line_discounts": "Descuentos por línea",
+            "one_time_lines": "Cuotas únicas",
+            "periods": "Meses y plazos"
+          },
           "reasonRequired": "Seleccione un motivo de personalización antes de continuar.",
           "lineDiscountSpecificReason": "Motivo específico de este descuento",
           "inheritGeneralReason": "Igual que el motivo general",

@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useMemo, useState } from 'react';
 import { useLocale, useT } from '@/features/i18n/locale-context';
 import { useFormat } from '@/features/i18n/use-format';
 import type {
@@ -290,6 +291,42 @@ export function StudentCreateFinancePreview({
   );
 }
 
+export type FinanceCustomizationMode =
+  | 'plan_discount'
+  | 'line_discounts'
+  | 'one_time_lines'
+  | 'periods';
+
+function resolveFinanceCustomizationModes(suggest: FeePlanSuggestResult): FinanceCustomizationMode[] {
+  const contract = suggest.customization_contract;
+  const allowCustomizeAmounts = suggest.allowed_actions?.customize_amounts !== false;
+  const allowCustomizeDueDates = suggest.allowed_actions?.customize_due_dates !== false;
+  const allowCustomizePeriods = suggest.allowed_actions?.customize_periods !== false;
+  const planLines = suggest.plan_lines ?? [];
+  const modes: FinanceCustomizationMode[] = [];
+
+  if (contract?.supports_plan_discount !== false) {
+    modes.push('plan_discount');
+  }
+  if (contract?.supports_line_discount !== false && planLines.length > 0) {
+    modes.push('line_discounts');
+  }
+  const hasOneTimeLines =
+    planLines.some((line) => line.is_one_time || line.frequency === 'one_time') ||
+    (contract?.one_time_lines?.length ?? 0) > 0;
+  if (hasOneTimeLines) {
+    modes.push('one_time_lines');
+  }
+  if (
+    (suggest.suggested_periods?.length ?? 0) > 0 &&
+    (allowCustomizePeriods || allowCustomizeAmounts || allowCustomizeDueDates)
+  ) {
+    modes.push('periods');
+  }
+
+  return modes;
+}
+
 export function StudentCreateFinanceCustomization({
   suggest,
   financeState,
@@ -314,6 +351,14 @@ export function StudentCreateFinanceCustomization({
   const lastDue = selectedPeriods[selectedPeriods.length - 1]?.due_date;
   const oneTimeLineRecords = Object.entries(financeState.oneTimeLines);
   const planLines = suggest.plan_lines ?? [];
+  const availableModes = useMemo(() => resolveFinanceCustomizationModes(suggest), [suggest]);
+  const [selectedMode, setSelectedMode] = useState<FinanceCustomizationMode | null>(null);
+
+  useEffect(() => {
+    setSelectedMode((previous) =>
+      previous && availableModes.includes(previous) ? previous : (availableModes[0] ?? null),
+    );
+  }, [availableModes, suggest.fee_plan_id]);
 
   return (
     <div className="student-create-fee-plan__customize-panel">
@@ -344,7 +389,32 @@ export function StudentCreateFinanceCustomization({
         <span className="tiny muted">{t('admin.student360.create.finance.customizationReasonHint')}</span>
       </label>
 
-      {allowNotes ? (
+      {availableModes.length > 0 ? (
+        <div className="student-create-finance-customize-modes">
+          <span className="tiny muted student-create-finance-customize-modes__label">
+            {t('admin.student360.create.finance.customizationTypeLabel')}
+          </span>
+          <ul className="student-create-finance-customize-modes__list">
+            {availableModes.map((mode) => {
+              const active = selectedMode === mode;
+              return (
+                <li key={mode}>
+                  <button
+                    type="button"
+                    className={`student-create-finance-customize-modes__chip${active ? ' student-create-finance-customize-modes__chip--active' : ''}`}
+                    aria-pressed={active}
+                    onClick={() => setSelectedMode(mode)}
+                  >
+                    {t(`admin.student360.create.finance.customizationTypes.${mode}`)}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ) : null}
+
+      {allowNotes && selectedMode ? (
         <label className="student-create-field">
           <span className="tiny muted">{t('admin.student360.create.finance.customizationNotes')}</span>
           <textarea
@@ -356,7 +426,7 @@ export function StudentCreateFinanceCustomization({
         </label>
       ) : null}
 
-      {contract?.supports_plan_discount !== false ? (
+      {selectedMode === 'plan_discount' && contract?.supports_plan_discount !== false ? (
         <DiscountFields
           label={t('admin.student360.create.finance.planDiscount')}
           value={financeState.planDiscount}
@@ -366,7 +436,9 @@ export function StudentCreateFinanceCustomization({
         />
       ) : null}
 
-      {contract?.supports_line_discount !== false && planLines.length > 0 ? (
+      {selectedMode === 'line_discounts' &&
+      contract?.supports_line_discount !== false &&
+      planLines.length > 0 ? (
         <div className="student-create-finance-line-discounts">
           <h4 className="student-create-finance-line-discounts__title">
             {t('admin.student360.create.finance.lineDiscounts')}
@@ -399,7 +471,7 @@ export function StudentCreateFinanceCustomization({
         </div>
       ) : null}
 
-      {oneTimeLineRecords.length > 0 ? (
+      {selectedMode === 'one_time_lines' && oneTimeLineRecords.length > 0 ? (
         <div className="student-create-finance-one-time">
           <h4 className="student-create-finance-one-time__title">
             {t('admin.student360.create.finance.oneTimeLinesTitle')}
@@ -471,6 +543,7 @@ export function StudentCreateFinanceCustomization({
         </div>
       ) : null}
 
+      {selectedMode === 'periods' ? (
       <div className="student-create-fee-plan__customize-table-wrap">
         <h4 className="student-create-finance-periods__title">{t('admin.student360.create.finance.periodsTitle')}</h4>
         <table className="student-create-fee-plan__customize-table">
@@ -562,8 +635,9 @@ export function StudentCreateFinanceCustomization({
           </tbody>
         </table>
       </div>
+      ) : null}
 
-      {firstDue && lastDue ? (
+      {selectedMode === 'periods' && firstDue && lastDue ? (
         <p className="tiny muted">
           {t('admin.student360.create.finance.previewRange', {
             first: formatDate(firstDue),

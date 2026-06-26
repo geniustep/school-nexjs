@@ -4080,6 +4080,13 @@
           "customizationReason": "Motif de personnalisation",
           "customizationReasonHint": "Ce motif s'applique à toutes les remises et ajustements. Vous pouvez définir un motif spécifique par ligne si nécessaire.",
           "customizationNotes": "Notes",
+          "customizationTypeLabel": "Type de personnalisation",
+          "customizationTypes": {
+            "plan_discount": "Remise sur le plan",
+            "line_discounts": "Remises par ligne",
+            "one_time_lines": "Frais ponctuels",
+            "periods": "Mois et échéances"
+          },
           "reasonRequired": "Sélectionnez un motif de personnalisation avant de continuer.",
           "lineDiscountSpecificReason": "Motif spécifique à cette remise",
           "inheritGeneralReason": "Identique au motif général",

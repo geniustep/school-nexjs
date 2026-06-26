@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { SetupDrawer } from '@/features/admin/academic-setup/components/setup-drawer';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { LoadingState } from '@/components/states/states';
@@ -9,13 +9,21 @@ import { useToast } from '@/components/ui/toast';
 import { useT, useLocale } from '@/features/i18n/locale-context';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { Student360CompactEmpty } from '@/features/admin/students/components/student-360-compact-empty';
+import {
+  StudentCreateFinanceCustomization,
+  StudentCreateFinancePlanPicker,
+} from '@/features/admin/students/components/student-create-finance-panels';
 import { formatFinanceCurrency } from '@/features/admin/students/utils/student-finance-format';
 import {
   candidatePlanLevelNames,
   candidatePlanScopeSummary,
   candidatePlanTotal,
+  defaultStudentCreateFinanceFormState,
 } from '@/features/admin/students/utils/student-enrollment-finance';
-import type { FeePlanCandidatePlan } from '@/types/student-enrollment-finance';
+import type {
+  FeePlanCandidatePlan,
+  StudentCreateFinanceFormState,
+} from '@/types/student-enrollment-finance';
 import type { AssignPlanPreviewState } from '@/types/student-finance-assign-plan';
 import {
   assignStudentFinancePlan,
@@ -40,6 +48,25 @@ function translateAction(t: ReturnType<typeof useT>, action: string): string {
   // `translate` returns the key itself when no message is found; fall back to a
   // human-readable version so raw codes never leak into the UI.
   return label === key ? humanizeAction(action) : label;
+}
+
+type AssignPlanActionKey =
+  | 'assign_plan'
+  | 'confirm_plan'
+  | 'customize_plan'
+  | 'select_other_plan'
+  | 'edit_plan'
+  | 'preview_plan';
+
+function isAssignPlanActionKey(action: string): action is AssignPlanActionKey {
+  return (
+    action === 'assign_plan' ||
+    action === 'confirm_plan' ||
+    action === 'customize_plan' ||
+    action === 'select_other_plan' ||
+    action === 'edit_plan' ||
+    action === 'preview_plan'
+  );
 }
 
 function CandidateCard({
@@ -169,14 +196,22 @@ export function AssignFinancePlanPanel({
   const [state, setState] = useState<AssignPlanPreviewState | null>(null);
   const [assignLoading, setAssignLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [activeAction, setActiveAction] = useState<AssignPlanActionKey | null>(null);
+  const [financeState, setFinanceState] = useState<StudentCreateFinanceFormState | null>(null);
 
   const academicYearNum =
     academicYearId && Number.isFinite(Number(academicYearId)) ? Number(academicYearId) : null;
+
+  const resetActionState = useCallback(() => {
+    setActiveAction(null);
+    setFinanceState(null);
+  }, []);
 
   const runPreview = useCallback(
     async (feePlanId?: number) => {
       setPreviewLoading(true);
       setState(null);
+      resetActionState();
       const res = await previewStudentFinancePlan(studentId, {
         ...(academicYearNum != null ? { academic_year_id: academicYearNum } : {}),
         ...(feePlanId != null ? { fee_plan_id: feePlanId } : {}),
@@ -184,8 +219,17 @@ export function AssignFinancePlanPanel({
       setPreviewLoading(false);
       setState(classifyAssignPlanPreview(res));
     },
-    [studentId, academicYearNum],
+    [studentId, academicYearNum, resetActionState],
   );
+
+  useEffect(() => {
+    if (state?.kind !== 'ready' || !state.plan.suggestSnapshot) {
+      setFinanceState(null);
+      return;
+    }
+    setFinanceState(defaultStudentCreateFinanceFormState(state.plan.suggestSnapshot));
+    setActiveAction(null);
+  }, [state]);
 
   function openPanel() {
     setOpen(true);
@@ -196,16 +240,20 @@ export function AssignFinancePlanPanel({
     setOpen(false);
     setState(null);
     setShowConfirm(false);
+    resetActionState();
   }
 
   async function handleAssign() {
     if (state?.kind !== 'ready' || state.plan.feePlanId == null) return;
+    const suggest = state.plan.suggestSnapshot;
     setAssignLoading(true);
     const res = await assignStudentFinancePlan(
       studentId,
       buildAssignPlanBody({
         feePlanId: state.plan.feePlanId,
         academicYearId: state.plan.academicYearId ?? academicYearNum,
+        financeState,
+        suggestPeriods: suggest?.suggested_periods,
       }),
     );
     setAssignLoading(false);
@@ -251,6 +299,12 @@ export function AssignFinancePlanPanel({
             state={state}
             enrollmentEditHref={enrollmentEditHref}
             assignLoading={assignLoading}
+            activeAction={activeAction}
+            financeState={financeState}
+            onActiveActionChange={setActiveAction}
+            onFinanceChange={(patch) =>
+              setFinanceState((prev) => (prev ? { ...prev, ...patch } : prev))
+            }
             onUseCandidate={(planId) => void runPreview(planId)}
             onRetry={() => void runPreview()}
             onConfirm={() => setShowConfirm(true)}
@@ -277,6 +331,10 @@ function AssignPreviewBody({
   state,
   enrollmentEditHref,
   assignLoading,
+  activeAction,
+  financeState,
+  onActiveActionChange,
+  onFinanceChange,
   onUseCandidate,
   onRetry,
   onConfirm,
@@ -285,12 +343,17 @@ function AssignPreviewBody({
   state: AssignPlanPreviewState;
   enrollmentEditHref?: string;
   assignLoading: boolean;
+  activeAction: AssignPlanActionKey | null;
+  financeState: StudentCreateFinanceFormState | null;
+  onActiveActionChange: (action: AssignPlanActionKey | null) => void;
+  onFinanceChange: (patch: Partial<StudentCreateFinanceFormState>) => void;
   onUseCandidate: (planId: number) => void;
   onRetry: () => void;
   onConfirm: () => void;
   onCancel: () => void;
 }) {
   const t = useT();
+  const { locale } = useLocale();
 
   if (state.kind === 'active_agreement_exists') {
     return (
@@ -356,6 +419,45 @@ function AssignPreviewBody({
   }
 
   const { plan } = state;
+  const suggest = plan.suggestSnapshot;
+
+  function handleActionClick(action: string) {
+    if (!isAssignPlanActionKey(action)) return;
+
+    if (action === 'assign_plan' || action === 'confirm_plan') {
+      onConfirm();
+      return;
+    }
+
+    if (action === 'edit_plan') {
+      if (plan.feePlanId == null) return;
+      window.open(`/admin/finance/fee-plans/${plan.feePlanId}`, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    if (action === 'customize_plan') {
+      const next = activeAction === 'customize_plan' ? null : 'customize_plan';
+      onActiveActionChange(next);
+      if (next === 'customize_plan') {
+        onFinanceChange({ customizePlan: true });
+      }
+      return;
+    }
+
+    if (action === 'select_other_plan') {
+      onActiveActionChange(activeAction === 'select_other_plan' ? null : 'select_other_plan');
+      return;
+    }
+
+    if (action === 'preview_plan') {
+      onActiveActionChange(activeAction === 'preview_plan' ? null : 'preview_plan');
+    }
+  }
+
+  function handleSelectPlan(planId: number) {
+    onFinanceChange({ selectedFeePlanId: planId });
+    onUseCandidate(planId);
+  }
 
   return (
     <div className="assign-finance-plan__preview">
@@ -403,9 +505,61 @@ function AssignPreviewBody({
         <div className="afp-actions-hint">
           <span className="afp-actions-hint__label">{t(tk('allowedActions'))}</span>
           <ul className="afp-chips">
-            {plan.allowedActions.map((action) => (
-              <li key={action} className="afp-chip">
-                {translateAction(t, action)}
+            {plan.allowedActions.map((action) => {
+              const actionable = isAssignPlanActionKey(action);
+              const isActive = actionable && activeAction === action;
+              return (
+                <li key={action}>
+                  <button
+                    type="button"
+                    className={`afp-chip afp-chip--action${isActive ? ' afp-chip--active' : ''}`}
+                    disabled={assignLoading || !actionable}
+                    aria-pressed={isActive}
+                    onClick={() => handleActionClick(action)}
+                  >
+                    {translateAction(t, action)}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ) : null}
+
+      {activeAction === 'select_other_plan' && suggest ? (
+        <div className="afp-action-panel">
+          <StudentCreateFinancePlanPicker
+            suggest={suggest}
+            financeState={financeState ?? defaultStudentCreateFinanceFormState(suggest)}
+            onSelectPlan={handleSelectPlan}
+          />
+        </div>
+      ) : null}
+
+      {activeAction === 'customize_plan' && suggest && financeState ? (
+        <div className="afp-action-panel">
+          <StudentCreateFinanceCustomization
+            suggest={suggest}
+            financeState={financeState}
+            previewError={null}
+            onFinanceChange={onFinanceChange}
+          />
+        </div>
+      ) : null}
+
+      {activeAction === 'preview_plan' && suggest?.plan_lines && suggest.plan_lines.length > 0 ? (
+        <div className="afp-action-panel afp-action-panel--lines">
+          <ul className="afp-plan-lines">
+            {suggest.plan_lines.map((line) => (
+              <li key={line.line_id} className="afp-plan-lines__item">
+                <span dir="auto">{line.fee_type_name}</span>
+                <span className="mono">
+                  {formatFinanceCurrency(
+                    line.total_amount ?? line.amount ?? line.base_amount,
+                    suggest.currency,
+                    locale,
+                  )}
+                </span>
               </li>
             ))}
           </ul>

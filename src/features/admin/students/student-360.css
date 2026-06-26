@@ -1946,6 +1946,61 @@
   border: 1px solid color-mix(in srgb, var(--c-primary, #2563eb) 18%, transparent);
 }
 
+.afp-chip--action {
+  cursor: pointer;
+  font: inherit;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.afp-chip--action:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--c-primary-soft, #e8edf5) 70%, #fff);
+  border-color: color-mix(in srgb, var(--c-primary, #2563eb) 35%, transparent);
+}
+
+.afp-chip--action:focus-visible {
+  outline: 2px solid var(--c-primary, #2563eb);
+  outline-offset: 2px;
+}
+
+.afp-chip--active {
+  color: #fff;
+  background: var(--c-primary, #2563eb);
+  border-color: var(--c-primary, #2563eb);
+  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.25);
+}
+
+.afp-chip--action:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.afp-action-panel {
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  background: var(--c-surface, #fff);
+}
+
+.afp-plan-lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.afp-plan-lines__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.875rem;
+}
+
 /* Footer action bar */
 .afp-footer {
   display: flex;
@@ -6108,6 +6163,54 @@
   gap: 12px;
   padding-top: 12px;
   border-top: 1px solid var(--border, #e2e8f0);
+}
+
+.student-create-finance-customize-modes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.student-create-finance-customize-modes__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.student-create-finance-customize-modes__chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--c-primary, #2563eb) 18%, var(--c-border, #e2e8f0));
+  background: var(--c-primary-soft, #e8edf5);
+  color: var(--c-primary-dark, #1a2d52);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.student-create-finance-customize-modes__chip:hover {
+  border-color: color-mix(in srgb, var(--c-primary, #2563eb) 35%, var(--c-border, #e2e8f0));
+}
+
+.student-create-finance-customize-modes__chip--active {
+  color: #fff;
+  background: var(--c-primary, #2563eb);
+  border-color: var(--c-primary, #2563eb);
+}
+
+.student-create-finance-customize-modes__chip:focus-visible {
+  outline: 2px solid var(--c-primary, #2563eb);
+  outline-offset: 2px;
 }
 
 .student-create-fee-plan__customize-table-wrap {

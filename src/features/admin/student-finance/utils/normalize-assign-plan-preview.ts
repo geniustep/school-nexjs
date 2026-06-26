@@ -1,6 +1,16 @@
 import type { ApiResponse } from '@/types/api';
 import type { StudentFinanceCurrency } from '@/types/student-finance';
 import type {
+  EligibleFeePlan,
+  EnrollmentCustomizationContract,
+  EnrollmentFinancialSummary,
+  EnrollmentPlanLine,
+  FeePlanExcludedPeriod,
+  FeePlanSuggestAllowedActions,
+  FeePlanSuggestResult,
+  FeePlanSuggestedPeriod,
+} from '@/types/student-enrollment-finance';
+import type {
   AssignPlanPreview,
   AssignPlanPreviewState,
 } from '@/types/student-finance-assign-plan';
@@ -72,6 +82,59 @@ function readAllowedActions(value: unknown): string[] {
     .map(([key]) => key);
 }
 
+function readAllowedActionsMap(value: unknown): FeePlanSuggestAllowedActions | undefined {
+  const record = asRecord(value);
+  if (!record) return undefined;
+  const map: FeePlanSuggestAllowedActions = {};
+  for (const [key, raw] of Object.entries(record)) {
+    const enabled = asBoolean(raw);
+    if (enabled == null) continue;
+    map[key as keyof FeePlanSuggestAllowedActions] = enabled;
+  }
+  return Object.keys(map).length > 0 ? map : undefined;
+}
+
+function readArray<T>(value: unknown): T[] | undefined {
+  return Array.isArray(value) ? (value as T[]) : undefined;
+}
+
+/** Builds a suggest-shaped snapshot so assign-plan UI can reuse create-flow panels. */
+export function buildAssignPlanSuggestSnapshot(payload: unknown): FeePlanSuggestResult | null {
+  const record = asRecord(payload) ?? {};
+  const plan = asRecord(record.fee_plan) ?? asRecord(record.plan);
+  const feePlanId = asNumber(record.fee_plan_id) ?? readRefId(record.fee_plan) ?? readRefId(record.plan);
+  if (feePlanId == null) return null;
+
+  const summary = asRecord(record.financial_summary) ?? asRecord(record.summary);
+  const planName =
+    asString(record.fee_plan_name) ?? readRefName(record.fee_plan) ?? readRefName(record.plan) ?? '';
+
+  return {
+    ok: true,
+    fee_plan_id: feePlanId,
+    fee_plan_name: planName,
+    is_default_for_level: asBoolean(plan?.is_default_for_level) ?? undefined,
+    academic_year: asRecord(record.academic_year) as FeePlanSuggestResult['academic_year'],
+    level: asRecord(record.level) as FeePlanSuggestResult['level'],
+    suggested_periods: readArray<FeePlanSuggestedPeriod>(record.suggested_periods) ?? [],
+    excluded_periods: readArray<FeePlanExcludedPeriod>(record.excluded_periods) ?? [],
+    total_due:
+      asNumber(record.total) ??
+      asNumber(record.expected_total) ??
+      asNumber(summary?.expected_total) ??
+      null,
+    currency:
+      readCurrency(record.currency) ??
+      readCurrency(summary?.currency) ??
+      (asString(summary?.currency) ? { name: asString(summary?.currency)!, symbol: asString(summary?.currency)! } : null),
+    allowed_actions: readAllowedActionsMap(record.allowed_actions),
+    eligible_plans: readArray<EligibleFeePlan>(record.eligible_plans),
+    plan_lines: readArray<EnrollmentPlanLine>(record.plan_lines),
+    financial_summary: (summary as EnrollmentFinancialSummary | null) ?? null,
+    customization_contract: (asRecord(record.customization_contract) as EnrollmentCustomizationContract | null) ?? null,
+  };
+}
+
 /** Reads the success-shaped preview body into the UI model. */
 export function normalizeAssignPlanPreview(payload: unknown): AssignPlanPreview {
   const record = asRecord(payload) ?? {};
@@ -114,6 +177,7 @@ export function normalizeAssignPlanPreview(payload: unknown): AssignPlanPreview 
     installmentCount,
     allowedActions: readAllowedActions(record.allowed_actions),
     canAssign: canAssign ?? true,
+    suggestSnapshot: buildAssignPlanSuggestSnapshot(record),
   };
 }
 

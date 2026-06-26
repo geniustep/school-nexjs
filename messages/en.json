@@ -4085,6 +4085,13 @@
           "customizationReason": "Customization reason",
           "customizationReasonHint": "This reason applies to all discounts and adjustments. You can set a line-specific reason when needed.",
           "customizationNotes": "Customization notes",
+          "customizationTypeLabel": "Customization type",
+          "customizationTypes": {
+            "plan_discount": "Plan discount",
+            "line_discounts": "Line discounts",
+            "one_time_lines": "One-time fees",
+            "periods": "Months & installments"
+          },
           "reasonRequired": "Select a customization reason before continuing.",
           "lineDiscountSpecificReason": "Reason specific to this discount",
           "inheritGeneralReason": "Same as general customization reason",

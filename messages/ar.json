@@ -4112,6 +4112,13 @@
           "customizationReason": "سبب التخصيص",
           "customizationReasonHint": "سيُطبّق هذا السبب على جميع الخصومات والتعديلات، ويمكن تحديد سبب خاص لبند معيّن عند الحاجة.",
           "customizationNotes": "ملاحظات التخصيص",
+          "customizationTypeLabel": "نوع التخصيص",
+          "customizationTypes": {
+            "plan_discount": "خصم على الخطة",
+            "line_discounts": "خصم على البنود",
+            "one_time_lines": "رسوم لمرة واحدة",
+            "periods": "الأشهر والأقساط"
+          },
           "reasonRequired": "اختر سبب التخصيص قبل المتابعة.",
           "lineDiscountSpecificReason": "سبب خاص لهذا الخصم",
           "inheritGeneralReason": "نفس سبب التخصيص العام",

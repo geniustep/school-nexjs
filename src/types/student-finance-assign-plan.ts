@@ -1,5 +1,11 @@
 import type { StudentFinanceCurrency } from '@/types/student-finance';
-import type { FeePlanCandidatePlan } from '@/types/student-enrollment-finance';
+import type {
+  FeePlanCandidatePlan,
+  FeePlanSuggestResult,
+  StudentCreateFinanceDiscountPayload,
+  StudentCreateFinanceOneTimeLinePayload,
+  StudentCreateFinancePeriodPayload,
+} from '@/types/student-enrollment-finance';
 
 /** Activation mode used when assigning a plan to an existing student. */
 export type AssignPlanActivationMode = 'draft' | 'activate';
@@ -18,8 +24,12 @@ export interface StudentFinanceAssignPlanBody {
   academic_year_id?: number;
   activation_mode: AssignPlanActivationMode;
   customize_plan: boolean;
-  discounts: never[];
-  selected_optional_line_ids: never[];
+  customization_reason?: string;
+  customization_notes?: string;
+  periods?: StudentCreateFinancePeriodPayload[];
+  discounts?: StudentCreateFinanceDiscountPayload[];
+  one_time_lines?: StudentCreateFinanceOneTimeLinePayload[];
+  selected_optional_line_ids?: number[];
 }
 
 /** Normalized, UI-friendly view of a successful plan preview. */
@@ -32,9 +42,11 @@ export interface AssignPlanPreview {
   total: number | null;
   currency: StudentFinanceCurrency | null;
   installmentCount: number | null;
-  /** Enabled allowed-action keys (display only). */
+  /** Enabled allowed-action keys the user may invoke. */
   allowedActions: string[];
   canAssign: boolean;
+  /** Full suggest-shaped snapshot for customization and plan picking. */
+  suggestSnapshot: FeePlanSuggestResult | null;
 }
 
 /**

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { ApiResponse } from '@/types/api';
 import {
+  buildAssignPlanSuggestSnapshot,
   classifyAssignPlanPreview,
   normalizeAssignPlanPreview,
 } from './normalize-assign-plan-preview';
@@ -45,6 +46,8 @@ describe('normalizeAssignPlanPreview', () => {
     expect(plan.installmentCount).toBe(10);
     expect(plan.allowedActions).toEqual(['customize_plan']);
     expect(plan.canAssign).toBe(true);
+    expect(plan.suggestSnapshot?.fee_plan_id).toBe(42);
+    expect(plan.suggestSnapshot?.suggested_periods).toEqual([]);
   });
 
   it('falls back to nested plan/summary fields and derives installments from periods', () => {
@@ -57,6 +60,28 @@ describe('normalizeAssignPlanPreview', () => {
     expect(plan.planName).toBe('Nested');
     expect(plan.total).toBe(5000);
     expect(plan.installmentCount).toBe(2);
+    expect(plan.suggestSnapshot?.fee_plan_id).toBe(9);
+    expect(plan.suggestSnapshot?.suggested_periods).toHaveLength(2);
+  });
+});
+
+describe('buildAssignPlanSuggestSnapshot', () => {
+  it('maps preview payload into a suggest snapshot for UI panels', () => {
+    const snapshot = buildAssignPlanSuggestSnapshot({
+      plan: { id: 3, name: 'Primary plan' },
+      eligible_plans: [{ id: 3, name: 'Primary plan', is_selected: true }],
+      suggested_periods: [{ period_key: '2026-09', label: 'Sep', due_date: '2026-09-05' }],
+      plan_lines: [{ line_id: 1, fee_type_name: 'Tuition', total_amount: 1000 }],
+      allowed_actions: { customize_plan: true, select_other_plan: true },
+      financial_summary: { expected_total: 1000, currency: 'MAD' },
+    });
+
+    expect(snapshot?.fee_plan_id).toBe(3);
+    expect(snapshot?.fee_plan_name).toBe('Primary plan');
+    expect(snapshot?.eligible_plans).toHaveLength(1);
+    expect(snapshot?.plan_lines).toHaveLength(1);
+    expect(snapshot?.allowed_actions?.customize_plan).toBe(true);
+    expect(snapshot?.allowed_actions?.select_other_plan).toBe(true);
   });
 });
 
