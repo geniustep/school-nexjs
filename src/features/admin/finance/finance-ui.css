@@ -384,6 +384,45 @@
   gap: 12px;
 }
 
+.finance-collection-success__hero {
+  display: grid;
+  gap: 8px;
+}
+
+.finance-collection-success__receipt {
+  margin-top: 4px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--color-success, #067647) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-success, #067647) 18%, transparent);
+}
+
+.finance-collection-success__receipt-label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted, #64748b);
+  margin-bottom: 4px;
+}
+
+.finance-collection-success__receipt-value {
+  display: block;
+  font-size: 1.05rem;
+  word-break: break-word;
+}
+
+.finance-collection-success__facts {
+  margin-top: 4px;
+}
+
+.finance-collection-success__overview {
+  margin-top: 8px;
+}
+
+.finance-collection-success__actions {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .finance-collection-workflow__success-panel .detail-list {
   margin: 0;
   padding: 12px 14px;

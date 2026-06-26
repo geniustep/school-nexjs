@@ -97,7 +97,14 @@ export function getCollectionPayerLabel(coll: PaymentCollection, unavailable = '
 }
 
 export function formatCollectionReference(coll: PaymentCollection): string {
-  return coll.reference?.trim() || coll.name?.trim() || `#${coll.id}`;
+  const reference = coll.reference?.trim();
+  if (reference && reference !== 'undefined' && reference !== 'null') return reference;
+  const name = coll.name?.trim();
+  if (name && name !== 'undefined' && name !== 'null') return name;
+  if (typeof coll.id === 'number' && Number.isFinite(coll.id)) {
+    return `Collection #${coll.id}`;
+  }
+  return '';
 }
 
 export function getCollectionJournalLabel(coll: PaymentCollection): string | null {

@@ -78,6 +78,12 @@ import {
   isCollectionPreviewStale,
   normalizePaymentCollectionPreview,
 } from '@/lib/finance/normalize-collection-preview';
+import { CollectionSuccessPanel } from './collection-success-panel';
+import {
+  mergeCreateCollectionResponse,
+  resolveCollectionSuccessSummary,
+  type CollectionSuccessFallback,
+} from './resolve-collection-success-summary';
 import { resolveCollectionGateBlocked } from '@/lib/finance/collection-gate';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import type { PaymentCollectionPreview } from '@/types/payment-collection-preview';
@@ -267,6 +273,7 @@ function CollectionWorkflowFormReady({
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [createdCollection, setCreatedCollection] = useState<PaymentCollection | null>(null);
+  const [successFallback, setSuccessFallback] = useState<CollectionSuccessFallback | null>(null);
   const [updatedOverview, setUpdatedOverview] = useState<CollectionUpdatedOverview | null>(null);
   const [hasCashSession, setHasCashSession] = useState<boolean | null>(null);
   const [checkingCashSession, setCheckingCashSession] = useState(false);
@@ -781,10 +788,8 @@ function CollectionWorkflowFormReady({
     }
     idempotencyKeyRef.current = null;
     const body = res.data;
-    const collection =
-      body && typeof body === 'object' && 'collection' in body
-        ? (body as CreatePaymentCollectionResponse).collection
-        : (body as PaymentCollection);
+    const merged = mergeCreateCollectionResponse(body);
+    const collection = merged.collection;
     const overview =
       body && typeof body === 'object' && 'updated_overview' in body
         ? (body as CreatePaymentCollectionResponse).updated_overview ?? null
@@ -794,6 +799,12 @@ function CollectionWorkflowFormReady({
       postedCollectionIdRef.current = collection.id;
       if (overview) onOverviewUpdate?.(overview);
     }
+    setSuccessFallback({
+      amount: parsedAmount,
+      paymentMethod,
+      journalLabel: selectedJournal ? formatPaymentJournalLabel(selectedJournal) : null,
+      ...merged.fallback,
+    });
     setCreatedCollection(collection);
     setUpdatedOverview(overview);
     setStep('success');
@@ -825,82 +836,22 @@ function CollectionWorkflowFormReady({
   }, [preview, openInstallments, selectedInstallments]);
 
   if (step === 'success' && createdCollection) {
+    const successSummary = resolveCollectionSuccessSummary(createdCollection, successFallback ?? undefined);
     return (
       <div className={`${wrapperClass} finance-collection-workflow__success-panel`}>
         {installmentFlow || flexiblePrepaymentFlow || pageMode ? (
           <CollectionWorkflowSteps step={step} flexiblePrepayment={flexiblePrepaymentFlow} />
         ) : null}
-        <h3>{t('admin.finance.collectionWorkflow.paymentSuccessTitle')}</h3>
-        <p>{t('admin.finance.collectionWorkflow.paymentSuccessBody')}</p>
-        <dl className="detail-list">
-          <div>
-            <dt>{t('admin.finance.reference')}</dt>
-            <dd>{createdCollection.reference ?? createdCollection.name ?? `#${createdCollection.id}`}</dd>
-          </div>
-          <div>
-            <dt>{t('admin.finance.paymentMethod')}</dt>
-            <dd>{paymentMethodLabel(createdCollection.payment_method, t)}</dd>
-          </div>
-          <div>
-            <dt>{t('admin.finance.collectionAmount')}</dt>
-            <dd>
-              <FinanceMoney amount={createdCollection.amount ?? createdCollection.total_amount} />
-            </dd>
-          </div>
-          <div>
-            <dt>{t('admin.finance.collectionWorkflow.allocationsCount')}</dt>
-            <dd>{createdCollection.allocations?.length ?? 0}</dd>
-          </div>
-          {createdCollection.receipt_number || createdCollection.receipt_id ? (
-            <div>
-              <dt>{t('admin.finance.receiptNumber')}</dt>
-              <dd>{createdCollection.receipt_number ?? `#${createdCollection.receipt_id}`}</dd>
-            </div>
-          ) : null}
-          <div>
-            <dt>{t('admin.finance.collectionWorkflow.allocatedAmount')}</dt>
-            <dd><FinanceMoney amount={createdCollection.allocated_amount} /></dd>
-          </div>
-          <div>
-            <dt>{t('admin.finance.collectionWorkflow.unallocatedAmount')}</dt>
-            <dd><FinanceMoney amount={createdCollection.unallocated_amount} /></dd>
-          </div>
-          {updatedOverview?.totals ? (
-            <>
-              <div>
-                <dt>{t('admin.student360.financeWorkspace.metrics.remaining')}</dt>
-                <dd><FinanceMoney amount={updatedOverview.totals.remaining} /></dd>
-              </div>
-              <div>
-                <dt>{t('admin.student360.financeWorkspace.metrics.overdue')}</dt>
-                <dd><FinanceMoney amount={updatedOverview.totals.overdue} /></dd>
-              </div>
-            </>
-          ) : null}
-        </dl>
-        {isChequePayment(createdCollection.payment_method) ? (
+        <CollectionSuccessPanel
+          summary={successSummary}
+          updatedOverview={updatedOverview}
+          pageMode={pageMode}
+          onViewCollection={() => onDone(createdCollection)}
+          onClose={() => (pageMode ? onCancel() : onDone(createdCollection))}
+        />
+        {isChequePayment(successSummary.paymentMethodCode ?? createdCollection.payment_method) ? (
           <p className="finance-cheque-pending-note">{t('admin.finance.collectionWorkflow.chequePendingNote')}</p>
         ) : null}
-        <div className="row form-actions">
-          {pageMode ? (
-            <>
-              <button
-                type="button"
-                className="btn btn--primary btn--sm"
-                onClick={() => onDone(createdCollection)}
-              >
-                {t('admin.finance.collectionWorkflow.viewCollection')}
-              </button>
-              <button type="button" className="btn btn--ghost btn--sm" onClick={onCancel}>
-                {t('admin.finance.backToCollections')}
-              </button>
-            </>
-          ) : (
-            <button type="button" className="btn btn--primary btn--sm" onClick={() => onDone(createdCollection)}>
-              {t('common.close')}
-            </button>
-          )}
-        </div>
       </div>
     );
   }

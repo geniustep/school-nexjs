@@ -5,6 +5,8 @@ import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
+import { FinanceServiceForm } from '@/features/admin/finance/finance-service-form';
+import { FinanceServiceTariffForm } from '@/features/admin/finance/finance-service-tariff-form';
 import { FinanceStatusBadge } from '@/features/admin/finance/finance-status-badge';
 import type { FinanceServiceCatalogItem, FinanceServiceTariff } from '@/features/admin/student-finance/types';
 import { resolveReferenceLabel } from '@/features/admin/student-finance/utils/reference-labels';
@@ -15,12 +17,23 @@ import { endpoints } from '@/lib/api/endpoints';
 import { refName } from '@/lib/utils/finance';
 import { parseFinanceList } from '@/lib/utils/finance-normalize';
 
-type Tab = 'services' | 'tariffs';
+export type ServicesTariffsTab = 'services' | 'tariffs';
 
-export function ServicesTariffsPanel() {
+export function ServicesTariffsPanel({
+  tab,
+  onTabChange,
+  showForm,
+  onShowFormChange,
+  canManage,
+}: {
+  tab: ServicesTariffsTab;
+  onTabChange: (tab: ServicesTariffsTab) => void;
+  showForm: boolean;
+  onShowFormChange: (show: boolean) => void;
+  canManage: boolean;
+}) {
   const t = useT();
   const refState = useFinanceReferenceData();
-  const [tab, setTab] = useState<Tab>('services');
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [query, setQuery] = useState('');
@@ -131,6 +144,15 @@ export function ServicesTariffsPanel() {
     [t, refState.data?.commitment_types, refState.data?.pricing_units],
   );
 
+  function closeForm() {
+    onShowFormChange(false);
+  }
+
+  function onFormDone() {
+    closeForm();
+    activeState.reload();
+  }
+
   return (
     <div className="form-stack">
       <div className="finance-hub-tabs">
@@ -138,7 +160,8 @@ export function ServicesTariffsPanel() {
           type="button"
           className={`btn btn--ghost btn--sm${tab === 'services' ? ' is-active' : ''}`}
           onClick={() => {
-            setTab('services');
+            onTabChange('services');
+            closeForm();
             setPage(1);
           }}
         >
@@ -148,13 +171,22 @@ export function ServicesTariffsPanel() {
           type="button"
           className={`btn btn--ghost btn--sm${tab === 'tariffs' ? ' is-active' : ''}`}
           onClick={() => {
-            setTab('tariffs');
+            onTabChange('tariffs');
+            closeForm();
             setPage(1);
           }}
         >
           {t('admin.finance.services.tabs.tariffs')}
         </button>
       </div>
+
+      {showForm && canManage ? (
+        tab === 'services' ? (
+          <FinanceServiceForm onDone={onFormDone} onCancel={closeForm} />
+        ) : (
+          <FinanceServiceTariffForm onDone={onFormDone} onCancel={closeForm} />
+        )
+      ) : null}
 
       <form
         className="toolbar"
@@ -186,6 +218,15 @@ export function ServicesTariffsPanel() {
                 : t('admin.finance.services.emptyTariffsTitle')
             }
             description={t('admin.finance.services.emptyDesc')}
+            action={
+              canManage ? (
+                <button type="button" className="btn btn--primary btn--sm" onClick={() => onShowFormChange(true)}>
+                  {tab === 'services'
+                    ? t('admin.finance.services.addService')
+                    : t('admin.finance.services.addTariff')}
+                </button>
+              ) : undefined
+            }
           />
         }
       >
