@@ -184,3 +184,72 @@ describe('resolveStudentFinanceActionState', () => {
     expect(state.scenario).toBe('draft_agreement');
   });
 });
+
+describe('resolveStudentFinanceActionState — schedule & collection guard', () => {
+  it('1) draft agreement only → no collection, draft preview schedule, suppressed amounts', () => {
+    const state = resolveStudentFinanceActionState({
+      draftPresentation: draft({ hasDraftAgreement: true, agreementId: 2, state: 'draft' }),
+      billingContext: billing(),
+      eligibility: eligibility(),
+      inactiveAgreement: inactive(),
+    });
+    expect(state.scheduleMode).toBe('draft_preview');
+    expect(state.shouldShowDraftSchedulePreview).toBe(true);
+    expect(state.shouldShowOfficialSchedule).toBe(false);
+    expect(state.shouldAllowInstallmentCollection).toBe(false);
+    expect(state.shouldSuppressExecutiveAmounts).toBe(true);
+  });
+
+  it('2) draft agreement + historical installments → still no collection, draft preview', () => {
+    const state = resolveStudentFinanceActionState({
+      draftPresentation: draft({ hasDraftAgreement: true, agreementId: 2, state: 'draft' }),
+      billingContext: billing(),
+      eligibility: eligibility({ hasBillableFinanceContext: true }),
+      inactiveAgreement: inactive({ showWorkspaceBanner: true, hasInactiveAgreementRecord: true }),
+    });
+    expect(state.scenario).toBe('draft_agreement');
+    expect(state.scheduleMode).toBe('draft_preview');
+    expect(state.shouldAllowInstallmentCollection).toBe(false);
+    expect(state.shouldSuppressExecutiveAmounts).toBe(true);
+  });
+
+  it('3) active agreement → official schedule, collection allowed, amounts shown', () => {
+    const state = resolveStudentFinanceActionState({
+      draftPresentation: draft(),
+      billingContext: billing({ hasActiveAgreement: true }),
+      eligibility: eligibility({ hasActiveAgreementInUi: true, hasBillableFinanceContext: true }),
+      inactiveAgreement: inactive(),
+    });
+    expect(state.scheduleMode).toBe('official');
+    expect(state.shouldShowOfficialSchedule).toBe(true);
+    expect(state.shouldShowDraftSchedulePreview).toBe(false);
+    expect(state.shouldAllowInstallmentCollection).toBe(true);
+    expect(state.shouldSuppressExecutiveAmounts).toBe(false);
+  });
+
+  it('4) no active and no draft → official schedule, no draft preview, amounts shown', () => {
+    const state = resolveStudentFinanceActionState({
+      draftPresentation: draft(),
+      billingContext: billing(),
+      eligibility: eligibility(),
+      inactiveAgreement: inactive(),
+    });
+    expect(state.scenario).toBe('no_agreement');
+    expect(state.scheduleMode).toBe('official');
+    expect(state.shouldAllowInstallmentCollection).toBe(true);
+    expect(state.shouldSuppressExecutiveAmounts).toBe(false);
+  });
+
+  it('5) history without active agreement → official schedule path preserved (no draft preview)', () => {
+    const state = resolveStudentFinanceActionState({
+      draftPresentation: draft(),
+      billingContext: billing(),
+      eligibility: eligibility({ hasBillableFinanceContext: true }),
+      inactiveAgreement: inactive({ showWorkspaceBanner: true, hasInactiveAgreementRecord: true }),
+    });
+    expect(state.scenario).toBe('history_without_active_agreement');
+    expect(state.scheduleMode).toBe('official');
+    expect(state.shouldShowDraftSchedulePreview).toBe(false);
+    expect(state.shouldSuppressExecutiveAmounts).toBe(false);
+  });
+});

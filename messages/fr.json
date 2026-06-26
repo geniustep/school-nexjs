@@ -5409,6 +5409,11 @@
         },
         "schedule": {
           "description": "Official payment schedule from the backend.",
+          "draftPreview": {
+            "title": "Aperçu des échéances non approuvées",
+            "description": "Ces échéances proviennent d'un accord de frais à l'état de brouillon.",
+            "explanation": "Ces échéances proviennent d'un accord de frais à l'état de brouillon et ne peuvent pas être encaissées tant que l'accord n'est pas approuvé. Consultez le brouillon, puis approuvez-le s'il est correct."
+          },
           "emptyTitle": "No installments.",
           "columns": {
             "installment": "Installment",

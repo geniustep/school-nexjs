@@ -5414,6 +5414,11 @@
         },
         "schedule": {
           "description": "Official payment schedule from the backend.",
+          "draftPreview": {
+            "title": "Unapproved installments preview",
+            "description": "These installments come from a fee agreement in draft state.",
+            "explanation": "These installments come from a fee agreement in draft state and cannot be collected until the agreement is approved. Review the draft, then approve it if it is correct."
+          },
           "emptyTitle": "No installments.",
           "columns": {
             "installment": "Installment",

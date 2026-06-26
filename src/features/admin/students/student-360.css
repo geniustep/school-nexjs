@@ -2668,6 +2668,27 @@
   margin-bottom: 12px;
 }
 
+.student-finance-schedule-draft-preview {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--c-amber, #d97706) 30%, var(--c-border, #e2e8f0));
+  background: color-mix(in srgb, var(--c-amber, #d97706) 8%, var(--surface, #fff));
+}
+
+.student-finance-schedule-draft-preview__text {
+  margin: 0;
+  flex: 1 1 320px;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--text-secondary, #475569);
+}
+
 .collection-dues-selection__list {
   display: grid;
   gap: 8px;

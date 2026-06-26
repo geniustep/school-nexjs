@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import { ApiErrorView } from '@/components/states/states';
 import { EmptyState } from '@/components/states/states';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
@@ -38,10 +39,17 @@ export function StudentFinanceSchedulePanel({
   financeRefreshSignal = 0,
   onOpenCollection,
   canCollect,
+  scheduleMode = 'official',
+  allowInstallmentCollection = true,
 }: StudentFinancePanelProps) {
   const t = useT();
   const { locale } = useLocale();
   const { formatDate } = useFormat();
+  // A draft fee agreement renders the schedule as a non-binding preview: never
+  // allow collection, regardless of capability, until the agreement is approved.
+  const isDraftPreview = scheduleMode === 'draft_preview';
+  const allowCollection = canCollect && allowInstallmentCollection && !isDraftPreview;
+  const agreementsHref = `/admin/students/${studentId}?tab=finance&financeSubTab=agreements`;
   const [page, setPage] = useState(1);
   const [paymentStatus, setPaymentStatus] = useState('');
   const [timingStatus, setTimingStatus] = useState('');
@@ -75,7 +83,7 @@ export function StudentFinanceSchedulePanel({
 
   const scheduleSummary = useMemo(() => {
     const rows = installmentsState.data;
-    const counts = computeScheduleSummaryCounts(rows, canCollect);
+    const counts = computeScheduleSummaryCounts(rows, allowCollection);
     return {
       total: summary?.total_count ?? rows.length,
       paid: counts.paid,
@@ -83,14 +91,14 @@ export function StudentFinanceSchedulePanel({
       overdue: counts.overdue,
       upcoming: counts.upcoming,
     };
-  }, [installmentsState.data, summary?.total_count, canCollect]);
+  }, [installmentsState.data, summary?.total_count, allowCollection]);
 
   const scheduleCtx = useMemo(
     () => ({
-      canCollect,
+      canCollect: allowCollection,
       minUnpaidSequence: resolveMinUnpaidInstallmentSequence(installmentsState.data),
     }),
-    [installmentsState.data, canCollect],
+    [installmentsState.data, allowCollection],
   );
 
   const columns: Column<StudentInstallment>[] = useMemo(
@@ -160,7 +168,7 @@ export function StudentFinanceSchedulePanel({
         key: 'actions',
         header: t('admin.student360.financeWorkspace.schedule.columns.actions'),
         render: (row) =>
-          canCollect && (row.remaining_amount ?? 0) > 0 ? (
+          allowCollection && (row.remaining_amount ?? 0) > 0 ? (
             <button type="button" className="btn btn--ghost btn--sm" onClick={onOpenCollection}>
               {t('admin.finance.collectionWorkflow.recordPayment')}
             </button>
@@ -169,15 +177,34 @@ export function StudentFinanceSchedulePanel({
           ),
       },
     ],
-    [t, formatDate, currency, canCollect, onOpenCollection, locale, scheduleCtx],
+    [t, formatDate, currency, allowCollection, onOpenCollection, locale, scheduleCtx],
   );
 
   return (
     <Card className="student-finance-section">
       <Student360SectionHeader
-        title={t('admin.student360.financeWorkspace.tabs.schedule')}
-        description={t('admin.student360.financeWorkspace.schedule.description')}
+        title={
+          isDraftPreview
+            ? t('admin.student360.financeWorkspace.schedule.draftPreview.title')
+            : t('admin.student360.financeWorkspace.tabs.schedule')
+        }
+        description={
+          isDraftPreview
+            ? t('admin.student360.financeWorkspace.schedule.draftPreview.description')
+            : t('admin.student360.financeWorkspace.schedule.description')
+        }
       />
+
+      {isDraftPreview ? (
+        <div className="student-finance-schedule-draft-preview" role="note">
+          <p className="student-finance-schedule-draft-preview__text">
+            {t('admin.student360.financeWorkspace.schedule.draftPreview.explanation')}
+          </p>
+          <Link href={agreementsHref} className="btn btn--primary btn--sm">
+            {t('admin.student360.financeWorkspace.actionState.reviewDraft')}
+          </Link>
+        </div>
+      ) : null}
 
       <dl className="detail-list compact student-finance-schedule-summary">
         <div>

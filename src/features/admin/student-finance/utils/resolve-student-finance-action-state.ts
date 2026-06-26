@@ -31,6 +31,15 @@ export interface StudentFinanceAction {
   labelKey: string;
 }
 
+/**
+ * How the installment schedule must be presented:
+ * - `official`: real, billable schedule — collection allowed per capabilities.
+ * - `draft_preview`: installments come from an unapproved draft fee agreement —
+ *   show them clearly as a non-binding preview, never as collectable dues.
+ * - `blocked`: schedule must not be shown as an actionable table.
+ */
+export type StudentFinanceScheduleMode = 'official' | 'draft_preview' | 'blocked';
+
 export interface StudentFinanceActionState {
   scenario: StudentFinanceScenario;
   hasActiveAgreement: boolean;
@@ -47,6 +56,16 @@ export interface StudentFinanceActionState {
   showConsolidatedBanner: boolean;
   /** Suppresses the redundant executive-summary context headline when a banner already explains the state. */
   showExecutiveContextHeadline: boolean;
+  /** Presentation mode for the installment schedule (official vs draft preview). */
+  scheduleMode: StudentFinanceScheduleMode;
+  /** True when the schedule should be rendered as the official, billable table. */
+  shouldShowOfficialSchedule: boolean;
+  /** True when the schedule should be rendered as an explicit unapproved preview. */
+  shouldShowDraftSchedulePreview: boolean;
+  /** Gate for per-installment "record payment" actions — false for a draft agreement. */
+  shouldAllowInstallmentCollection: boolean;
+  /** True when executive KPI amounts (overdue/remaining) must not be shown as confirmed dues. */
+  shouldSuppressExecutiveAmounts: boolean;
 }
 
 const T = {
@@ -147,6 +166,16 @@ export function resolveStudentFinanceActionState(input: {
   const showConsolidatedBanner =
     scenario === 'draft_agreement' || scenario === 'history_without_active_agreement';
 
+  // A draft fee agreement must never let its installments behave like official
+  // billable dues: no collection, schedule shown only as an explicit preview,
+  // and executive overdue/remaining amounts suppressed (they are not confirmed).
+  const isDraftScenario = scenario === 'draft_agreement';
+  const scheduleMode: StudentFinanceScheduleMode = isDraftScenario ? 'draft_preview' : 'official';
+  const shouldAllowInstallmentCollection = !isDraftScenario;
+  const shouldShowDraftSchedulePreview = isDraftScenario;
+  const shouldShowOfficialSchedule = !isDraftScenario;
+  const shouldSuppressExecutiveAmounts = isDraftScenario;
+
   return {
     scenario,
     hasActiveAgreement,
@@ -162,5 +191,10 @@ export function resolveStudentFinanceActionState(input: {
     // The banner already carries the problem/impact/action copy, so the
     // executive headline only shows when no banner is present.
     showExecutiveContextHeadline: !showConsolidatedBanner,
+    scheduleMode,
+    shouldShowOfficialSchedule,
+    shouldShowDraftSchedulePreview,
+    shouldAllowInstallmentCollection,
+    shouldSuppressExecutiveAmounts,
   };
 }

@@ -247,7 +247,9 @@ export function StudentFinanceWorkspaceShell({
       billingPartnerId={billingPartnerId}
       subTab={subTab}
       canCollect={canCollectCapability}
-      collectPaymentAllowed={billingContext.collectPaymentAllowed}
+      collectPaymentAllowed={
+        billingContext.collectPaymentAllowed && financeActionState.shouldAllowInstallmentCollection
+      }
       collectBlockMessage={
         draftPresentation.hasDraftAgreement && !billingContext.collectPaymentAllowed
           ? t('admin.student360.financeWorkspace.collectPayment.blockedDraftMessage')
@@ -283,6 +285,8 @@ export function StudentFinanceWorkspaceShell({
       onRefresh: refreshFinanceData,
       onOpenCollection: () => setShowCollectionDrawer(true),
       financeRefreshSignal,
+      scheduleMode: financeActionState.scheduleMode,
+      allowInstallmentCollection: financeActionState.shouldAllowInstallmentCollection,
     }),
     [
       studentId,
@@ -297,6 +301,8 @@ export function StudentFinanceWorkspaceShell({
       canCollectCapability,
       refreshFinanceData,
       financeRefreshSignal,
+      financeActionState.scheduleMode,
+      financeActionState.shouldAllowInstallmentCollection,
     ],
   );
 
@@ -373,16 +379,18 @@ export function StudentFinanceWorkspaceShell({
         onCreateAgreement={() => syncSubTabToUrl('agreements')}
       />
 
-      <StudentFinanceExecutiveSummary
-        metrics={overviewMetrics}
-        chequeSummary={financialOverviewState.data?.cheque_summary ?? null}
-        billingContextHeadlineKey={
-          financeActionState.showExecutiveContextHeadline
-            ? billingContext.billingContextHeadlineKey
-            : null
-        }
-        billingContextMessage={billingContext.billingContextMessage}
-      />
+      {financeActionState.shouldSuppressExecutiveAmounts ? null : (
+        <StudentFinanceExecutiveSummary
+          metrics={overviewMetrics}
+          chequeSummary={financialOverviewState.data?.cheque_summary ?? null}
+          billingContextHeadlineKey={
+            financeActionState.showExecutiveContextHeadline
+              ? billingContext.billingContextHeadlineKey
+              : null
+          }
+          billingContextMessage={billingContext.billingContextMessage}
+        />
+      )}
 
       <nav className="student-finance-subtabs" aria-label={t('admin.student360.financeWorkspace.tabsAria')}>
         {FINANCE_TAB_GROUPS.map((group, groupIndex) => (

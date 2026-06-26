@@ -5409,6 +5409,11 @@
         },
         "schedule": {
           "description": "Official payment schedule from the backend.",
+          "draftPreview": {
+            "title": "Vista previa de cuotas no aprobadas",
+            "description": "Estas cuotas provienen de un acuerdo de cuotas en estado de borrador.",
+            "explanation": "Estas cuotas provienen de un acuerdo de cuotas en estado de borrador y no se pueden cobrar hasta que se apruebe el acuerdo. Revise el borrador y luego apruébelo si es correcto."
+          },
           "emptyTitle": "No installments.",
           "columns": {
             "installment": "Installment",
