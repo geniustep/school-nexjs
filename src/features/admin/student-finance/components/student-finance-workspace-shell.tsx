@@ -247,6 +247,7 @@ export function StudentFinanceWorkspaceShell({
       billingPartnerId={billingPartnerId}
       subTab={subTab}
       canCollect={canCollectCapability}
+      allowInstallmentCollection={financeActionState.shouldAllowInstallmentCollection}
       collectPaymentAllowed={
         billingContext.collectPaymentAllowed && financeActionState.shouldAllowInstallmentCollection
       }

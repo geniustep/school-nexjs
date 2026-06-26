@@ -15,6 +15,7 @@ export function StudentFinanceWorkspaceHeader({
   subTab,
   canCollect,
   collectPaymentAllowed,
+  allowInstallmentCollection = true,
   collectBlockMessage,
   onOpenSchedule,
   onOpenAgreements,
@@ -36,6 +37,12 @@ export function StudentFinanceWorkspaceHeader({
   subTab: StudentFinanceSubTab;
   canCollect: boolean;
   collectPaymentAllowed?: boolean;
+  /**
+   * When false (e.g. a draft fee agreement), the collect-payment CTA is hidden
+   * entirely — not just disabled — because no collection path exists at all and
+   * a visible disabled/no-op button is misleading. Defaults to true.
+   */
+  allowInstallmentCollection?: boolean;
   collectBlockMessage?: string | null;
   onOpenSchedule: () => void;
   onOpenAgreements: () => void;
@@ -52,7 +59,8 @@ export function StudentFinanceWorkspaceHeader({
 
   const showSchedule = subTab !== 'schedule' && subTab !== 'agreements';
   const showAgreement = subTab !== 'agreements';
-  const showCollectButton = canCollect && subTab !== 'agreements' && subTab !== 'ledger';
+  const showCollectButton =
+    canCollect && allowInstallmentCollection && subTab !== 'agreements' && subTab !== 'ledger';
   const showCollectEnabled = showCollectButton && collectPaymentAllowed !== false;
   const showCollectDisabled = showCollectButton && collectPaymentAllowed === false;
   const hasActions =
