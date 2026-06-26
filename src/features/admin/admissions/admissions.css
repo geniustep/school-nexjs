@@ -10,6 +10,13 @@
   padding-block-end: 1rem;
 }
 
+.admissions-list__results {
+  margin: 0.25rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--c-text-muted, var(--muted));
+  text-align: start;
+}
+
 .admissions-list-header {
   display: flex;
   flex-wrap: wrap;

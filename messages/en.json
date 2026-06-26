@@ -3094,7 +3094,11 @@
         "search": "Search…",
         "state": "Status",
         "allStates": "All statuses",
-        "showClosed": "Show closed requests"
+        "showClosed": "Show closed requests",
+        "hideConverted": "Hide requests converted to pupils",
+        "reset": "Reset filters",
+        "resultsCount": "{count} requests shown",
+        "hiddenConvertedCount": "{count} converted hidden"
       },
       "empty": {
         "title": "No requests",

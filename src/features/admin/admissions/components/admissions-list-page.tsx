@@ -16,6 +16,12 @@ import { AdmissionsDashboardSummary } from './admissions-dashboard-summary';
 import { AdmissionsKanban } from './admissions-kanban';
 import { AdmissionsTable } from './admissions-table';
 import { ACTIVE_KANBAN_STATES, ALL_KANBAN_STATES, CLOSED_KANBAN_STATES } from '../utils/admission-labels';
+import {
+  countHiddenConvertedAdmissionListItems,
+  filterAdmissionListItems,
+  hasActiveAdmissionListFilters,
+} from '../utils/filter-admission-list-items';
+import { buildAdmissionsDashboardFromList } from '../utils/admission-dashboard-from-list';
 import '../admissions.css';
 
 type ViewMode = 'kanban' | 'table';
@@ -29,6 +35,7 @@ export function AdmissionsListPage() {
   const [search, setSearch] = useState('');
   const [stateFilter, setStateFilter] = useState('');
   const [showClosed, setShowClosed] = useState(false);
+  const [hideConverted, setHideConverted] = useState(true);
   const debouncedSearch = useDebouncedValue(search, 400);
 
   const displayStates = showClosed
@@ -38,7 +45,7 @@ export function AdmissionsListPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch, stateFilter, view, showClosed]);
+  }, [debouncedSearch, stateFilter, view, showClosed, hideConverted]);
 
   const tableParams: ListParams = useMemo(
     () => ({
@@ -74,6 +81,60 @@ export function AdmissionsListPage() {
 
   const dashboardData = dashboardState.data ?? null;
   const tablePagination = tableState.meta?.pagination;
+
+  const filteredTableRows = useMemo(
+    () => filterAdmissionListItems(tableState.data ?? [], hideConverted),
+    [tableState.data, hideConverted],
+  );
+
+  const filteredKanbanGrouped = useMemo(
+    () =>
+      kanbanBoard.grouped.map((column) => {
+        const items = filterAdmissionListItems(column.items, hideConverted);
+        return {
+          ...column,
+          items,
+          visibleTotal: items.length,
+        };
+      }),
+    [kanbanBoard.grouped, hideConverted],
+  );
+
+  const visibleSummary = useMemo(() => {
+    if (view === 'kanban') {
+      return filteredKanbanGrouped.reduce((sum, column) => sum + column.items.length, 0);
+    }
+    return filteredTableRows.length;
+  }, [view, filteredKanbanGrouped, filteredTableRows]);
+
+  const hiddenConvertedOnPage = useMemo(() => {
+    const source = view === 'kanban' ? kanbanBoard.allItems : (tableState.data ?? []);
+    return countHiddenConvertedAdmissionListItems(source, hideConverted);
+  }, [view, kanbanBoard.allItems, tableState.data, hideConverted]);
+
+  const displayDashboard = useMemo(() => {
+    if (!hideConverted) return dashboardData;
+    const sourceItems = view === 'kanban' ? kanbanBoard.allItems : (tableState.data ?? []);
+    if (sourceItems.length === 0) return dashboardData;
+    return buildAdmissionsDashboardFromList(filterAdmissionListItems(sourceItems, true));
+  }, [hideConverted, dashboardData, view, kanbanBoard.allItems, tableState.data]);
+
+  const isListLoading = view === 'kanban' ? kanbanBoard.initialLoading : tableState.initialLoading;
+
+  const hasActiveFilters = hasActiveAdmissionListFilters({
+    search: debouncedSearch,
+    stateFilter,
+    showClosed,
+    hideConverted,
+  });
+
+  function resetFilters() {
+    setSearch('');
+    setStateFilter('');
+    setShowClosed(false);
+    setHideConverted(true);
+    setPage(1);
+  }
 
   function retryDashboard() {
     setDashboardApiEnabled(true);
@@ -112,8 +173,8 @@ export function AdmissionsListPage() {
         </Link>
       </header>
 
-      {dashboardData ? (
-        <AdmissionsDashboardSummary data={dashboardData} onKpiClick={handleKpiClick} />
+      {displayDashboard ? (
+        <AdmissionsDashboardSummary data={displayDashboard} onKpiClick={handleKpiClick} />
       ) : dashboardState.loading && dashboardApiEnabled ? (
         <div className="muted">{t('common.loading')}</div>
       ) : dashboardState.error ? (
@@ -161,6 +222,19 @@ export function AdmissionsListPage() {
               />
               <span>{t('admin.admissions.filters.showClosed')}</span>
             </label>
+            <label className="admissions-list-toolbar__closed checkbox-row">
+              <input
+                type="checkbox"
+                checked={hideConverted}
+                onChange={(e) => setHideConverted(e.target.checked)}
+              />
+              <span>{t('admin.admissions.filters.hideConverted')}</span>
+            </label>
+            {hasActiveFilters ? (
+              <button type="button" className="btn btn--ghost btn--sm" onClick={resetFilters}>
+                {t('admin.admissions.filters.reset')}
+              </button>
+            ) : null}
           </div>
 
           <div
@@ -193,7 +267,7 @@ export function AdmissionsListPage() {
           <div className="alert alert--error">{kanbanBoard.error.message}</div>
         ) : (
           <AdmissionsKanban
-            columns={kanbanBoard.grouped}
+            columns={filteredKanbanGrouped}
             displayStates={displayStates}
             showClosed={showClosed}
             onUpdated={reloadCurrentView}
@@ -201,10 +275,13 @@ export function AdmissionsListPage() {
           />
         )
       ) : (
-        <ResourceView state={tableState}>
-          {(rows) => (
+        <ResourceView
+          state={tableState}
+          isEmpty={() => filteredTableRows.length === 0}
+        >
+          {() => (
             <>
-              <AdmissionsTable items={rows} onUpdated={reloadCurrentView} />
+              <AdmissionsTable items={filteredTableRows} onUpdated={reloadCurrentView} />
               {tablePagination ? (
                 <Pagination
                   page={tablePagination.page}
@@ -218,6 +295,15 @@ export function AdmissionsListPage() {
           )}
         </ResourceView>
       )}
+
+      {!isListLoading ? (
+        <p className="admissions-list__results">
+          {t('admin.admissions.filters.resultsCount', { count: visibleSummary })}
+          {hideConverted && hiddenConvertedOnPage > 0
+            ? ` · ${t('admin.admissions.filters.hiddenConvertedCount', { count: hiddenConvertedOnPage })}`
+            : ''}
+        </p>
+      ) : null}
     </div>
   );
 }

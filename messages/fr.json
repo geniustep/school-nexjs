@@ -3094,7 +3094,11 @@
         "search": "Rechercher…",
         "state": "Statut",
         "allStates": "Tous les statuts",
-        "showClosed": "Afficher les demandes fermées"
+        "showClosed": "Afficher les demandes fermées",
+        "hideConverted": "Masquer les demandes converties en élève",
+        "reset": "Réinitialiser les filtres",
+        "resultsCount": "{count} demandes affichées",
+        "hiddenConvertedCount": "{count} converties masquées"
       },
       "empty": {
         "title": "Aucune demande",

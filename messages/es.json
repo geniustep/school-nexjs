@@ -3094,7 +3094,11 @@
         "search": "Buscar…",
         "state": "Estado",
         "allStates": "Todos los estados",
-        "showClosed": "Mostrar solicitudes cerradas"
+        "showClosed": "Mostrar solicitudes cerradas",
+        "hideConverted": "Ocultar solicitudes convertidas en alumno",
+        "reset": "Restablecer filtros",
+        "resultsCount": "{count} solicitudes visibles",
+        "hiddenConvertedCount": "{count} convertidas ocultas"
       },
       "empty": {
         "title": "Sin solicitudes",

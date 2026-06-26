@@ -67,10 +67,13 @@ export function AdmissionsKanban({
     () =>
       columns.map((state) => {
         const meta = columnByState.get(state);
+        const columnItems = localItems.filter((item) => item.state === state);
+        const visibleTotal =
+          typeof meta?.visibleTotal === 'number' ? meta.visibleTotal : columnItems.length;
         return {
           state,
-          items: localItems.filter((item) => item.state === state),
-          total: meta?.total ?? localItems.filter((item) => item.state === state).length,
+          items: columnItems,
+          total: visibleTotal,
           hasMore: meta?.hasMore ?? false,
           loadingMore: meta?.loadingMore ?? false,
           loading: meta?.loading ?? false,
@@ -173,7 +176,11 @@ export function AdmissionsKanban({
     void moveItem(admissionId, state);
   }
 
-  if (!allItems.length && !columnGroups.some((col) => col.loading)) {
+  if (
+    !columnGroups.some((col) => col.loading) &&
+    allItems.length === 0 &&
+    !columnGroups.some((col) => col.hasMore)
+  ) {
     return (
       <EmptyState
         icon="📋"

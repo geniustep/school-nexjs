@@ -12,6 +12,8 @@ export interface AdmissionsKanbanColumn {
   state: string;
   items: AdmissionListItem[];
   total: number;
+  /** Visible count after client-side filters (falls back to items.length). */
+  visibleTotal?: number;
   page: number;
   hasMore: boolean;
   loading: boolean;

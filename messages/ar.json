@@ -3121,7 +3121,11 @@
         "search": "بحث…",
         "state": "الحالة",
         "allStates": "كل الحالات",
-        "showClosed": "إظهار الطلبات المغلقة"
+        "showClosed": "إظهار الطلبات المغلقة",
+        "hideConverted": "إخفاء الطلبات المحوّلة إلى تلميذ",
+        "reset": "إعادة ضبط الفلاتر",
+        "resultsCount": "{count} طلب ظاهر",
+        "hiddenConvertedCount": "{count} محوّل مخفي"
       },
       "empty": {
         "title": "لا توجد طلبات",
