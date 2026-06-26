@@ -4587,6 +4587,14 @@
           "total": "المبلغ الإجمالي",
           "installmentCount": "عدد الأقساط",
           "allowedActions": "الإجراءات المتاحة",
+          "actionLabels": {
+            "assign_plan": "إسناد الخطة",
+            "customize_plan": "تخصيص الخطة",
+            "select_other_plan": "اختيار خطة أخرى",
+            "edit_plan": "تعديل الخطة",
+            "preview_plan": "معاينة الخطة",
+            "confirm_plan": "تأكيد الخطة"
+          },
           "confirm": "تأكيد إنشاء الاتفاق المالي",
           "confirmTitle": "تأكيد إنشاء الاتفاق المالي",
           "confirmBody": "سيتم إنشاء اتفاق مالي لهذا التلميذ بناءً على الخطة المعروضة.",

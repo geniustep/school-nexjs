@@ -28,6 +28,20 @@ function tk(key: string): string {
   return `admin.student360.finance.assignPlan.${key}`;
 }
 
+function humanizeAction(action: string): string {
+  const cleaned = action.replace(/[_-]+/g, ' ').trim();
+  if (!cleaned) return action;
+  return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+}
+
+function translateAction(t: ReturnType<typeof useT>, action: string): string {
+  const key = tk(`actionLabels.${action}`);
+  const label = t(key);
+  // `translate` returns the key itself when no message is found; fall back to a
+  // human-readable version so raw codes never leak into the UI.
+  return label === key ? humanizeAction(action) : label;
+}
+
 function CandidateCard({
   candidate,
   onUse,
@@ -227,6 +241,8 @@ export function AssignFinancePlanPanel({
         title={t(tk('panelTitle'))}
         subtitle={t(tk('panelSubtitle'))}
         onClose={closePanel}
+        className="assign-finance-plan-drawer"
+        iconClose
       >
         {previewLoading ? <LoadingState label={t(tk('loadingPreview'))} /> : null}
 
@@ -342,36 +358,41 @@ function AssignPreviewBody({
   const { plan } = state;
 
   return (
-    <div className="assign-finance-plan__preview stack">
-      <dl className="detail-list">
+    <div className="assign-finance-plan__preview">
+      <div className="afp-summary">
         {plan.planName ? (
-          <div>
-            <dt>{t(tk('planName'))}</dt>
-            <dd dir="auto">{plan.planName}</dd>
+          <div className="afp-summary__plan">
+            <span className="afp-summary__plan-label">{t(tk('planName'))}</span>
+            <strong className="afp-summary__plan-name" dir="auto">
+              {plan.planName}
+            </strong>
           </div>
         ) : null}
+        {plan.total != null ? (
+          <div className="afp-summary__total">
+            <span className="afp-summary__total-label">{t(tk('total'))}</span>
+            <span className="afp-summary__total-value">
+              <FinanceMoney amount={plan.total} currency={plan.currency ?? undefined} />
+            </span>
+          </div>
+        ) : null}
+      </div>
+
+      <dl className="afp-meta">
         {plan.academicYearName ? (
-          <div>
+          <div className="afp-meta__item">
             <dt>{t(tk('academicYear'))}</dt>
             <dd dir="auto">{plan.academicYearName}</dd>
           </div>
         ) : null}
         {plan.levelName ? (
-          <div>
+          <div className="afp-meta__item">
             <dt>{t(tk('level'))}</dt>
             <dd dir="auto">{plan.levelName}</dd>
           </div>
         ) : null}
-        {plan.total != null ? (
-          <div>
-            <dt>{t(tk('total'))}</dt>
-            <dd>
-              <FinanceMoney amount={plan.total} currency={plan.currency ?? undefined} />
-            </dd>
-          </div>
-        ) : null}
         {plan.installmentCount != null ? (
-          <div>
+          <div className="afp-meta__item">
             <dt>{t(tk('installmentCount'))}</dt>
             <dd>{plan.installmentCount}</dd>
           </div>
@@ -379,21 +400,33 @@ function AssignPreviewBody({
       </dl>
 
       {plan.allowedActions.length > 0 ? (
-        <p className="tiny muted">
-          {t(tk('allowedActions'))}: {plan.allowedActions.join('، ')}
-        </p>
+        <div className="afp-actions-hint">
+          <span className="afp-actions-hint__label">{t(tk('allowedActions'))}</span>
+          <ul className="afp-chips">
+            {plan.allowedActions.map((action) => (
+              <li key={action} className="afp-chip">
+                {translateAction(t, action)}
+              </li>
+            ))}
+          </ul>
+        </div>
       ) : null}
 
-      <div className="assign-finance-plan__actions row">
+      <div className="afp-footer">
         <button
           type="button"
-          className="btn btn--primary"
+          className="btn btn--primary afp-footer__confirm"
           disabled={!plan.canAssign || plan.feePlanId == null || assignLoading}
           onClick={onConfirm}
         >
           {t(tk('confirm'))}
         </button>
-        <button type="button" className="btn btn--ghost" onClick={onCancel} disabled={assignLoading}>
+        <button
+          type="button"
+          className="btn btn--ghost afp-footer__cancel"
+          onClick={onCancel}
+          disabled={assignLoading}
+        >
           {t('common.cancel')}
         </button>
       </div>

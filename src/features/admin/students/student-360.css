@@ -1781,6 +1781,227 @@
   gap: 8px;
 }
 
+/* ============================================================
+   Assign finance plan drawer — modern UI/UX redesign
+   ============================================================ */
+
+.assign-finance-plan-drawer .academic-setup-drawer__head {
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--c-border, #e2e8f0);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--c-primary-soft, #e8edf5) 55%, #fff) 0%,
+    var(--c-surface, #fff) 100%
+  );
+}
+
+.assign-finance-plan-drawer .academic-setup-drawer__head-text strong {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--c-text, #0f172a);
+}
+
+.assign-finance-plan-drawer .academic-setup-drawer__subtitle {
+  white-space: normal;
+  line-height: 1.45;
+  margin-top: 2px;
+}
+
+.assign-finance-plan-drawer .academic-setup-drawer__body {
+  padding: 20px;
+  background: var(--c-bg, #f8fafc);
+}
+
+.assign-finance-plan__preview {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Hero summary: plan name + prominent total */
+.afp-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--c-primary, #2563eb) 16%, var(--c-border, #e2e8f0));
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--c-primary-soft, #e8edf5) 65%, #fff) 0%,
+    var(--c-surface, #fff) 100%
+  );
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.afp-summary__plan {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.afp-summary__plan-label,
+.afp-summary__total-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--c-muted, #64748b);
+}
+
+.afp-summary__plan-name {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--c-text, #0f172a);
+}
+
+.afp-summary__total {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 14px;
+  border-top: 1px dashed color-mix(in srgb, var(--c-primary, #2563eb) 22%, var(--c-border, #e2e8f0));
+}
+
+.afp-summary__total-value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--c-primary-dark, #1a2d52);
+}
+
+.afp-summary__total-value .finance-amount {
+  font-weight: 800;
+}
+
+/* Meta grid: secondary plan details */
+.afp-meta {
+  margin: 0;
+  display: grid;
+  gap: 0;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 14px;
+  background: var(--c-surface, #fff);
+  overflow: hidden;
+}
+
+.afp-meta__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+}
+
+.afp-meta__item + .afp-meta__item {
+  border-top: 1px solid var(--c-border, #eef2f7);
+}
+
+.afp-meta__item dt {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--c-muted, #64748b);
+}
+
+.afp-meta__item dd {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--c-text, #0f172a);
+  text-align: end;
+}
+
+/* Allowed actions as chips */
+.afp-actions-hint {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.afp-actions-hint__label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--c-muted, #64748b);
+}
+
+.afp-chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.afp-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--c-primary-dark, #1a2d52);
+  background: var(--c-primary-soft, #e8edf5);
+  border: 1px solid color-mix(in srgb, var(--c-primary, #2563eb) 18%, transparent);
+}
+
+/* Footer action bar */
+.afp-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+  padding-top: 16px;
+  border-top: 1px solid var(--c-border, #e2e8f0);
+}
+
+.afp-footer__confirm {
+  width: 100%;
+  justify-content: center;
+  padding-block: 11px;
+  font-weight: 700;
+}
+
+.afp-footer__cancel {
+  width: 100%;
+  justify-content: center;
+}
+
+/* Notice / empty states inside the drawer */
+.assign-finance-plan__notice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 18px;
+  border-radius: 14px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  background: var(--c-surface, #fff);
+}
+
+.assign-finance-plan__notice p {
+  margin: 0;
+  line-height: 1.55;
+  color: var(--c-text, #0f172a);
+}
+
+@media (min-width: 480px) {
+  .afp-footer {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .afp-footer__confirm {
+    flex: 1 1 auto;
+  }
+
+  .afp-footer__cancel {
+    width: auto;
+    flex: 0 0 auto;
+  }
+}
+
 /* Draft agreement: short note clarifying receivables are not yet collectible. */
 .student-finance-draft-banner__note {
   margin: 12px 0 0;

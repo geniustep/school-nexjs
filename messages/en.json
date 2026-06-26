@@ -4560,6 +4560,14 @@
           "total": "Total amount",
           "installmentCount": "Installments",
           "allowedActions": "Allowed actions",
+          "actionLabels": {
+            "assign_plan": "Assign plan",
+            "customize_plan": "Customize plan",
+            "select_other_plan": "Select another plan",
+            "edit_plan": "Edit plan",
+            "preview_plan": "Preview plan",
+            "confirm_plan": "Confirm plan"
+          },
           "confirm": "Confirm finance agreement",
           "confirmTitle": "Confirm finance agreement",
           "confirmBody": "A finance agreement will be created for this student based on the previewed plan.",
