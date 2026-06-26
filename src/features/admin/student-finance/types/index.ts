@@ -327,6 +327,34 @@ export interface FinanceCollectionGate {
   collect_block_message?: string | null;
 }
 
+export interface FinanceOperationHistoryRecord {
+  id?: number | string;
+  date?: string;
+  performed_at?: string;
+  created_at?: string;
+  type?: string;
+  operation_type?: string;
+  operation_kind?: string;
+  event_type?: string;
+  label?: string;
+  description?: string;
+  note?: string;
+  summary?: string;
+  performed_by?: Ref | string;
+  user_name?: string;
+  audit_user?: string;
+  status?: string;
+  state?: string;
+  reference?: string;
+  receipt_number?: string;
+  agreement_number?: string;
+  number?: string;
+  name?: string;
+  amount?: number;
+  value?: number;
+  currency?: FinanceCurrency | string;
+}
+
 export interface StudentFinanceWorkspace {
   student?: Ref & { class?: Ref };
   academic_year?: Ref;
@@ -352,7 +380,13 @@ export interface StudentFinanceWorkspace {
   allowed_actions?: AllowedActionsMap & {
     collect_payment?: boolean;
     collect_block_message?: string | null;
+    reset_financial_agreement?: boolean;
   };
+  action_reasons?: {
+    reset_financial_agreement?: string | null;
+  };
+  requires_finance_review?: boolean;
+  finance_operations_history?: FinanceOperationHistoryRecord[];
   capabilities?: Record<string, boolean>;
 }
 

@@ -32,6 +32,7 @@ export function resolveFinanceAgreementActions(input: {
   agreement?: FinancialAgreement | null;
   resetVisible?: boolean;
   resetEnabled?: boolean;
+  resetDisabledReasonText?: string | null;
 }): FinanceAgreementActionItem[] {
   const hasActiveAgreement = hasActiveFinancialAgreement({
     workspace: input.workspace,
@@ -58,6 +59,7 @@ export function resolveFinanceAgreementActions(input: {
       disabledTooltipKey: input.resetEnabled
         ? null
         : 'admin.student360.financeWorkspace.agreementContext.reset.serverUnavailable',
+      disabledTooltipText: input.resetEnabled ? null : input.resetDisabledReasonText ?? null,
       primary: true,
     });
   }

@@ -5285,7 +5285,12 @@
           "collections": "Encaissements et reçus",
           "cheques": "Chèques",
           "adjustments": "Ajustements",
-          "ledger": "Journal financier"
+          "ledger": "Journal financier",
+          "historical": "Historique des opérations financières"
+        },
+        "historical": {
+          "description": "Journal chronologique des opérations financières du élève tel que renvoyé par le serveur.",
+          "countLabel": "opérations"
         },
         "actions": {
           "recordPayment": "Enregistrer un paiement",
@@ -5350,6 +5355,7 @@
           "noValidFeePlan": "Aucun plan de frais valide n'a encore été associé",
           "performedByLabel": "Par",
           "performedByUser": "Par : {user}",
+          "performedByManager": "Par : le directeur",
           "performedBySystem": "Par : Système",
           "performedByUnavailable": "Utilisateur indisponible",
           "collectBlockedBeforeAgreement": "Le recouvrement ne peut pas être enregistré avant la création ou l'activation d'un accord financier valide.",
@@ -5387,19 +5393,22 @@
               "type": "Type d'opération",
               "description": "Description",
               "state": "Statut",
-              "reference": "Référence"
+              "reference": "Référence",
+              "amount": "Montant"
             },
             "types": {
-              "create_agreement": "Créer un accord",
-              "update_agreement": "Modifier un accord",
-              "cancel_agreement": "Annuler un accord",
-              "activate_agreement": "Activer un accord",
-              "generate_installments": "Générer les échéances",
-              "record_collection": "Enregistrer un recouvrement",
-              "issue_receipt": "Émettre un reçu",
-              "reverse_operation": "Annuler/inverser une opération",
-              "reset_financial_agreement": "Réinitialiser l'accord financier",
-              "unknown": "Opération"
+              "agreement_created": "Accord financier créé",
+              "agreement_submitted": "Accord envoyé pour revue",
+              "agreement_approved": "Accord financier approuvé",
+              "agreement_activated": "Accord financier activé",
+              "agreement_cancelled": "Accord financier annulé",
+              "agreement_reset": "Accord financier réinitialisé",
+              "fees_generated": "Frais générés",
+              "installments_generated": "Échéances générées",
+              "payment_collected": "Recouvrement enregistré",
+              "receipt_issued": "Reçu émis",
+              "collection_reversed": "Recouvrement annulé",
+              "unknown": "Opération financière"
             }
           },
           "actions": {
@@ -5419,10 +5428,20 @@
           "reset": {
             "title": "Réinitialiser l'accord financier",
             "reason": "Un accord annulé ou invalide bloque le recouvrement.",
+            "warning": "L'état financier invalide sera annulé et un accord financier sera reconstruit à partir du plan de frais officiel si le serveur l'autorise.",
             "reasonField": "Motif de réinitialisation",
             "reasonRequired": "Le motif de réinitialisation est obligatoire.",
             "serverUnavailable": "Cette action nécessite une activation côté serveur.",
-            "success": "La réinitialisation de l'accord financier a été demandée."
+            "success": "L'accord financier a été réinitialisé avec succès.",
+            "amountChangedWarning": "Le montant de l'accord a changé de {oldAmount} à {newAmount}.",
+            "errors": {
+              "reasonRequired": "Le motif de réinitialisation est obligatoire.",
+              "financialImpactExists": "L'accord financier ne peut pas être réinitialisé en raison d'un impact financier antérieur.",
+              "feePlanNotFound": "Aucun plan de frais valide n'est disponible pour reconstruire l'accord financier.",
+              "agreementNotFound": "Aucun accord financier révisable n'a été trouvé.",
+              "notAllowed": "Le serveur n'autorise pas la réinitialisation de cet accord.",
+              "generic": "Impossible de réinitialiser l'accord financier. Réessayez ou contactez le support technique."
+            }
           }
         },
         "inactiveAgreementReference": {

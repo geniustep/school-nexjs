@@ -5285,7 +5285,12 @@
           "collections": "Cobros y recibos",
           "cheques": "Cheques",
           "adjustments": "Ajustes",
-          "ledger": "Registro financiero"
+          "ledger": "Registro financiero",
+          "historical": "Historial de operaciones financieras"
+        },
+        "historical": {
+          "description": "Registro cronológico de operaciones financieras del alumno según lo devuelve el servidor.",
+          "countLabel": "operaciones"
         },
         "actions": {
           "recordPayment": "Registrar pago",
@@ -5350,6 +5355,7 @@
           "noValidFeePlan": "Aún no se ha vinculado un plan de cuotas válido",
           "performedByLabel": "Por",
           "performedByUser": "Por: {user}",
+          "performedByManager": "Por: el director",
           "performedBySystem": "Por: Sistema",
           "performedByUnavailable": "Usuario no disponible",
           "collectBlockedBeforeAgreement": "No se puede registrar cobro antes de crear o activar un acuerdo financiero válido.",
@@ -5387,19 +5393,22 @@
               "type": "Tipo de operación",
               "description": "Descripción",
               "state": "Estado",
-              "reference": "Referencia"
+              "reference": "Referencia",
+              "amount": "Importe"
             },
             "types": {
-              "create_agreement": "Crear acuerdo",
-              "update_agreement": "Modificar acuerdo",
-              "cancel_agreement": "Cancelar acuerdo",
-              "activate_agreement": "Activar acuerdo",
-              "generate_installments": "Generar cuotas",
-              "record_collection": "Registrar cobro",
-              "issue_receipt": "Emitir recibo",
-              "reverse_operation": "Anular/revertir operación",
-              "reset_financial_agreement": "Restablecer acuerdo financiero",
-              "unknown": "Operación"
+              "agreement_created": "Acuerdo financiero creado",
+              "agreement_submitted": "Acuerdo enviado a revisión",
+              "agreement_approved": "Acuerdo financiero aprobado",
+              "agreement_activated": "Acuerdo financiero activado",
+              "agreement_cancelled": "Acuerdo financiero cancelado",
+              "agreement_reset": "Acuerdo financiero restablecido",
+              "fees_generated": "Cuotas generadas",
+              "installments_generated": "Plazos generados",
+              "payment_collected": "Cobro registrado",
+              "receipt_issued": "Recibo emitido",
+              "collection_reversed": "Cobro revertido",
+              "unknown": "Operación financiera"
             }
           },
           "actions": {
@@ -5419,10 +5428,20 @@
           "reset": {
             "title": "Restablecer acuerdo financiero",
             "reason": "Un acuerdo cancelado o no válido impide el cobro.",
+            "warning": "Se anulará el estado financiero no válido y se reconstruirá un acuerdo financiero desde el plan de cuotas oficial si el servidor lo permite.",
             "reasonField": "Motivo del restablecimiento",
             "reasonRequired": "El motivo del restablecimiento es obligatorio.",
             "serverUnavailable": "Esta acción requiere habilitación en el servidor.",
-            "success": "Se solicitó restablecer el acuerdo financiero."
+            "success": "El acuerdo financiero se restableció correctamente.",
+            "amountChangedWarning": "El importe del acuerdo cambió de {oldAmount} a {newAmount}.",
+            "errors": {
+              "reasonRequired": "El motivo del restablecimiento es obligatorio.",
+              "financialImpactExists": "No se puede restablecer el acuerdo financiero porque existe actividad financiera previa.",
+              "feePlanNotFound": "No hay un plan de cuotas válido para reconstruir el acuerdo financiero.",
+              "agreementNotFound": "No se encontró un acuerdo financiero revisable.",
+              "notAllowed": "El servidor no permite restablecer este acuerdo.",
+              "generic": "No se pudo restablecer el acuerdo financiero. Inténtelo de nuevo o contacte con soporte técnico."
+            }
           }
         },
         "inactiveAgreementReference": {

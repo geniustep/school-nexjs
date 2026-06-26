@@ -5290,7 +5290,12 @@
           "collections": "Collections & receipts",
           "cheques": "Cheques",
           "adjustments": "Adjustments",
-          "ledger": "Financial ledger"
+          "ledger": "Financial ledger",
+          "historical": "Financial operations history"
+        },
+        "historical": {
+          "description": "Chronological log of financial operations for this student as returned by the server.",
+          "countLabel": "operations"
         },
         "actions": {
           "recordPayment": "Record payment",
@@ -5355,6 +5360,7 @@
           "noValidFeePlan": "No valid fee plan has been linked yet",
           "performedByLabel": "Performed by",
           "performedByUser": "By: {user}",
+          "performedByManager": "By: Manager",
           "performedBySystem": "By: System",
           "performedByUnavailable": "User unavailable",
           "collectBlockedBeforeAgreement": "Collection cannot be recorded until a valid financial agreement is created or activated.",
@@ -5392,19 +5398,22 @@
               "type": "Operation type",
               "description": "Description",
               "state": "Status",
-              "reference": "Reference"
+              "reference": "Reference",
+              "amount": "Amount"
             },
             "types": {
-              "create_agreement": "Create agreement",
-              "update_agreement": "Update agreement",
-              "cancel_agreement": "Cancel agreement",
-              "activate_agreement": "Activate agreement",
-              "generate_installments": "Generate installments",
-              "record_collection": "Record collection",
-              "issue_receipt": "Issue receipt",
-              "reverse_operation": "Reverse operation",
-              "reset_financial_agreement": "Reset financial agreement",
-              "unknown": "Operation"
+              "agreement_created": "Financial agreement created",
+              "agreement_submitted": "Agreement submitted for review",
+              "agreement_approved": "Financial agreement approved",
+              "agreement_activated": "Financial agreement activated",
+              "agreement_cancelled": "Financial agreement cancelled",
+              "agreement_reset": "Financial agreement reset",
+              "fees_generated": "Fees generated",
+              "installments_generated": "Installments generated",
+              "payment_collected": "Payment collected",
+              "receipt_issued": "Receipt issued",
+              "collection_reversed": "Collection reversed",
+              "unknown": "Financial operation"
             }
           },
           "actions": {
@@ -5424,10 +5433,20 @@
           "reset": {
             "title": "Reset financial agreement",
             "reason": "A cancelled or invalid agreement is blocking collection.",
+            "warning": "The invalid financial state will be cleared and a financial agreement will be rebuilt from the official fee plan if the server allows it.",
             "reasonField": "Reset reason",
             "reasonRequired": "Reset reason is required.",
             "serverUnavailable": "This action requires server-side enablement.",
-            "success": "Financial agreement reset was requested."
+            "success": "Financial agreement was reset successfully.",
+            "amountChangedWarning": "Agreement amount changed from {oldAmount} to {newAmount}.",
+            "errors": {
+              "reasonRequired": "Reset reason is required.",
+              "financialImpactExists": "The financial agreement cannot be reset because prior financial activity exists.",
+              "feePlanNotFound": "No valid fee plan is available to rebuild the financial agreement.",
+              "agreementNotFound": "No reviewable financial agreement was found.",
+              "notAllowed": "The server does not allow resetting this agreement.",
+              "generic": "Could not reset the financial agreement. Try again or contact technical support."
+            }
           }
         },
         "inactiveAgreementReference": {

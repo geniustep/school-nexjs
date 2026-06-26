@@ -18,6 +18,22 @@ import type {
 } from '../types';
 import type { ChangePlanPayload } from '@/types/student-finance-change-plan';
 import type { CancelFutureTargetState } from '../utils/cancel-future-validation';
+import type {
+  ResetFinancialAgreementPayload,
+  ResetFinancialAgreementMode,
+} from '../utils/build-reset-financial-agreement-payload';
+
+export interface ResetFinancialAgreementResponse {
+  new_agreement?: unknown;
+  billing_partner?: unknown;
+  finance_operations_history?: unknown[];
+  finance_workspace?: StudentFinanceWorkspace;
+  warning?: string;
+  old_amount?: number;
+  new_amount?: number;
+}
+
+export type { ResetFinancialAgreementPayload, ResetFinancialAgreementMode };
 
 export async function fetchStudentFinanceWorkspace(
   studentId: number | string,
@@ -222,12 +238,15 @@ export async function applyStudentChangePlan(
 
 export async function postResetFinancialAgreement(
   studentId: number | string,
-  payload: { reason: string },
+  payload: ResetFinancialAgreementPayload,
   query?: ListParams,
-): Promise<ApiResponse<unknown>> {
-  return api.post<unknown>(
+): Promise<ApiResponse<ResetFinancialAgreementResponse>> {
+  return api.post<ResetFinancialAgreementResponse>(
     endpoints.admin.studentFinanceResetAgreement(studentId),
     payload,
     query,
   );
 }
+
+/** Alias aligned with finance admin naming conventions. */
+export const financeResetFinancialAgreement = postResetFinancialAgreement;

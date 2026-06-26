@@ -5326,7 +5326,12 @@
           "collections": "التحصيلات والإيصالات",
           "cheques": "الشيكات",
           "adjustments": "التعديلات",
-          "ledger": "السجل المالي"
+          "ledger": "السجل المالي",
+          "historical": "سجل العمليات المالية"
+        },
+        "historical": {
+          "description": "سجل زمني للعمليات المالية المرتبطة بالتلميذ كما يعيده الخادم.",
+          "countLabel": "عملية"
         },
         "actions": {
           "recordPayment": "تسجيل دفعة",
@@ -5391,6 +5396,7 @@
           "noValidFeePlan": "لم يتم ربط خطة رسوم صالحة بعد",
           "performedByLabel": "بواسطة",
           "performedByUser": "بواسطة: {user}",
+          "performedByManager": "بواسطة: المدير",
           "performedBySystem": "بواسطة: النظام",
           "performedByUnavailable": "المستخدم غير متاح",
           "collectBlockedBeforeAgreement": "لا يمكن تسجيل تحصيل قبل إنشاء أو تفعيل اتفاق مالي صحيح.",
@@ -5428,19 +5434,22 @@
               "type": "نوع العملية",
               "description": "الوصف",
               "state": "الحالة",
-              "reference": "المرجع"
+              "reference": "المرجع",
+              "amount": "المبلغ"
             },
             "types": {
-              "create_agreement": "إنشاء اتفاق",
-              "update_agreement": "تعديل اتفاق",
-              "cancel_agreement": "إلغاء اتفاق",
-              "activate_agreement": "تفعيل اتفاق",
-              "generate_installments": "توليد أقساط",
-              "record_collection": "تسجيل تحصيل",
-              "issue_receipt": "إصدار إيصال",
-              "reverse_operation": "إلغاء/عكس عملية",
-              "reset_financial_agreement": "إعادة ضبط اتفاق مالي",
-              "unknown": "عملية"
+              "agreement_created": "إنشاء اتفاق مالي",
+              "agreement_submitted": "إرسال اتفاق للمراجعة",
+              "agreement_approved": "اعتماد اتفاق مالي",
+              "agreement_activated": "تفعيل اتفاق مالي",
+              "agreement_cancelled": "إلغاء اتفاق مالي",
+              "agreement_reset": "إعادة ضبط اتفاق مالي",
+              "fees_generated": "توليد رسوم",
+              "installments_generated": "توليد أقساط",
+              "payment_collected": "تسجيل تحصيل",
+              "receipt_issued": "إصدار إيصال",
+              "collection_reversed": "عكس تحصيل",
+              "unknown": "عملية مالية"
             }
           },
           "actions": {
@@ -5460,10 +5469,20 @@
           "reset": {
             "title": "إعادة ضبط الاتفاق المالي",
             "reason": "يوجد اتفاق ملغى أو غير صالح يمنع التحصيل.",
+            "warning": "سيتم إلغاء الحالة المالية غير الصالحة وإعادة بناء اتفاق مالي من خطة الرسوم الرسمية، إذا سمح الخادم بذلك.",
             "reasonField": "سبب إعادة الضبط",
-            "reasonRequired": "سبب إعادة الضبط مطلوب.",
+            "reasonRequired": "يجب إدخال سبب إعادة الضبط.",
             "serverUnavailable": "هذا الإجراء يحتاج تفعيلًا من الخادم.",
-            "success": "تم طلب إعادة ضبط الاتفاق المالي."
+            "success": "تمت إعادة ضبط الاتفاق المالي بنجاح.",
+            "amountChangedWarning": "تغيّر مبلغ الاتفاق من {oldAmount} إلى {newAmount}.",
+            "errors": {
+              "reasonRequired": "يجب إدخال سبب إعادة الضبط.",
+              "financialImpactExists": "لا يمكن إعادة ضبط الاتفاق المالي لوجود أثر مالي سابق.",
+              "feePlanNotFound": "لا توجد خطة رسوم صالحة لإعادة بناء الاتفاق المالي.",
+              "agreementNotFound": "لم يتم العثور على اتفاق مالي قابل للمراجعة.",
+              "notAllowed": "لا يسمح الخادم بإعادة ضبط هذا الاتفاق.",
+              "generic": "تعذر إعادة ضبط الاتفاق المالي. حاول مرة أخرى أو راجع المسؤول التقني."
+            }
           }
         },
         "inactiveAgreementReference": {

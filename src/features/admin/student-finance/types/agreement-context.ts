@@ -43,15 +43,17 @@ export interface FinanceAgreementStatusPresentation {
 }
 
 export type FinanceOperationKind =
-  | 'create_agreement'
-  | 'update_agreement'
-  | 'cancel_agreement'
-  | 'activate_agreement'
-  | 'generate_installments'
-  | 'record_collection'
-  | 'issue_receipt'
-  | 'reverse_operation'
-  | 'reset_financial_agreement'
+  | 'agreement_created'
+  | 'agreement_submitted'
+  | 'agreement_approved'
+  | 'agreement_activated'
+  | 'agreement_cancelled'
+  | 'agreement_reset'
+  | 'fees_generated'
+  | 'installments_generated'
+  | 'payment_collected'
+  | 'receipt_issued'
+  | 'collection_reversed'
   | 'unknown';
 
 export interface FinanceOperationHistoryEntry {
@@ -64,6 +66,8 @@ export interface FinanceOperationHistoryEntry {
   performedByKey: string;
   state: string | null;
   reference: string | null;
+  amount: number | null;
+  currency: FinanceCurrency | null;
 }
 
 export type FinanceAgreementActionKind =
@@ -84,6 +88,7 @@ export interface FinanceAgreementActionItem {
   labelKey: string;
   enabled: boolean;
   disabledTooltipKey: string | null;
+  disabledTooltipText?: string | null;
   primary?: boolean;
 }
 
@@ -91,5 +96,6 @@ export interface ResetFinancialAgreementPresentation {
   visible: boolean;
   enabled: boolean;
   endpointAvailable: boolean;
-  reasonKey: string;
+  disabledReasonText: string | null;
+  warningKey: string;
 }

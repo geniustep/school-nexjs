@@ -66,6 +66,7 @@ export function StudentFinanceWorkspaceHeader({
     allowInstallmentCollection &&
     subTab !== 'agreements' &&
     subTab !== 'ledger' &&
+    subTab !== 'historical' &&
     !shouldHideCollectButton;
   const showCollectEnabled = showCollectButton && collectPaymentAllowed !== false;
   const showCollectDisabled = showCollectButton && collectPaymentAllowed === false;

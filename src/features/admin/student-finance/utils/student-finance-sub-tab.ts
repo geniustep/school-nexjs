@@ -7,7 +7,8 @@ export type StudentFinanceSubTab =
   | 'collections'
   | 'cheques'
   | 'adjustments'
-  | 'ledger';
+  | 'ledger'
+  | 'historical';
 
 export const STUDENT_FINANCE_SUB_TABS: StudentFinanceSubTab[] = [
   'overview',
@@ -18,6 +19,7 @@ export const STUDENT_FINANCE_SUB_TABS: StudentFinanceSubTab[] = [
   'cheques',
   'adjustments',
   'ledger',
+  'historical',
 ];
 
 const SUB_TAB_SET = new Set<string>(STUDENT_FINANCE_SUB_TABS);

@@ -54,6 +54,7 @@ import { resolveChangePlanVisibility } from '../utils/resolve-change-plan-visibi
 import { AssignFinancePlanPanel } from './assign-finance-plan-panel';
 import { FinanceSetupStatePanel } from './finance-setup-state-panel';
 import { StudentFinanceAgreementContextPanel } from './student-finance-agreement-context-panel';
+import { StudentFinanceOperationsHistoryPanel } from './student-finance-operations-history-panel';
 import { resolveBillingContextPresentation } from '../utils/resolve-billing-context-presentation';
 import { resolveStudentFinanceActionState } from '../utils/resolve-student-finance-action-state';
 import { resolveFinanceSetupState } from '../utils/resolve-finance-setup-state';
@@ -65,7 +66,7 @@ const FINANCE_TAB_GROUPS: { tabs: StudentFinanceSubTab[] }[] = [
   { tabs: ['overview'] },
   { tabs: ['fees', 'agreements', 'schedule'] },
   { tabs: ['collections', 'cheques'] },
-  { tabs: ['adjustments', 'ledger'] },
+  { tabs: ['adjustments', 'ledger', 'historical'] },
 ];
 
 const FINANCE_TAB_ICONS: Record<StudentFinanceSubTab, string> = {
@@ -77,6 +78,7 @@ const FINANCE_TAB_ICONS: Record<StudentFinanceSubTab, string> = {
   cheques: '☰',
   adjustments: '±',
   ledger: '≡',
+  historical: '◷',
 };
 
 function resolveInitialSubTab(searchParams: URLSearchParams): StudentFinanceSubTab {
@@ -283,7 +285,7 @@ export function StudentFinanceWorkspaceShell({
   );
 
   const sectionsWithoutEmptyGate: StudentFinanceSubTab[] = useMemo(() => {
-    const base: StudentFinanceSubTab[] = ['agreements', 'cheques', 'adjustments', 'ledger'];
+    const base: StudentFinanceSubTab[] = ['agreements', 'cheques', 'adjustments', 'ledger', 'historical'];
     if (financeSetupState.kind !== 'clean_no_finance' && financeSetupState.kind !== 'active_agreement') {
       return [...base, 'schedule', 'fees', 'overview', 'collections'];
     }
@@ -545,6 +547,9 @@ export function StudentFinanceWorkspaceShell({
           {subTab === 'cheques' ? <StudentFinanceChequesPanel {...sharedPanelProps} /> : null}
           {subTab === 'adjustments' ? <StudentFinanceAdjustmentsPanel {...sharedPanelProps} /> : null}
           {subTab === 'ledger' ? <StudentFinanceLedgerPanel /> : null}
+          {subTab === 'historical' ? (
+            <StudentFinanceOperationsHistoryPanel workspace={workspace} />
+          ) : null}
         </>
       )}
       </div>

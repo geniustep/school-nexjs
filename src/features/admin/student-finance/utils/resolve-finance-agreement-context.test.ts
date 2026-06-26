@@ -70,6 +70,12 @@ describe('resolvePerformedByLabel', () => {
     expect(resolvePerformedByLabel({ user_name: 'sara' }).performedByLabel).toBe('sara');
     expect(resolvePerformedByLabel({ performed_by: 'system' }).performedByKey).toContain('System');
   });
+
+  it('maps OdooBot to manager label key', () => {
+    const result = resolvePerformedByLabel({ performed_by: { name: 'OdooBot' } });
+    expect(result.performedByKey).toContain('performedByManager');
+    expect(result.performedByLabel).toBe('');
+  });
 });
 
 describe('resolveBillingContextPresentation', () => {
@@ -117,27 +123,47 @@ describe('resolveFinanceAgreementActions', () => {
   });
 
   it('6) shows disabled reset when endpoint is unavailable', () => {
-    const reset = resolveResetFinancialAgreementPresentation({
-      workspace: {
-        summary: {},
-        requires_finance_review: true,
-        allowed_actions: { create_agreement: true },
-      } as StudentFinanceWorkspace & { requires_finance_review?: boolean },
-    });
+    const workspace = {
+      summary: {},
+      requires_finance_review: true,
+      allowed_actions: { reset_financial_agreement: false },
+      action_reasons: { reset_financial_agreement: 'لا يسمح الخادم بإعادة ضبط هذا الاتفاق.' },
+    } as StudentFinanceWorkspace;
+
+    const reset = resolveResetFinancialAgreementPresentation({ workspace });
     expect(reset.visible).toBe(true);
     expect(reset.enabled).toBe(false);
+    expect(reset.disabledReasonText).toBe('لا يسمح الخادم بإعادة ضبط هذا الاتفاق.');
 
     const actions = resolveFinanceAgreementActions({
-      workspace: {
-        summary: {},
-        requires_finance_review: true,
-        allowed_actions: { create_agreement: true },
-      } as StudentFinanceWorkspace & { requires_finance_review?: boolean },
+      workspace,
+      resetVisible: reset.visible,
+      resetEnabled: reset.enabled,
+      resetDisabledReasonText: reset.disabledReasonText,
+    });
+    const resetAction = actions.find((action) => action.kind === 'reset_financial_agreement');
+    expect(resetAction?.enabled).toBe(false);
+    expect(resetAction?.disabledTooltipText).toBe('لا يسمح الخادم بإعادة ضبط هذا الاتفاق.');
+  });
+
+  it('4) shows enabled reset when requires_review and reset allowed', () => {
+    const workspace = {
+      summary: {},
+      requires_finance_review: true,
+      allowed_actions: { reset_financial_agreement: true },
+    } as StudentFinanceWorkspace;
+
+    const reset = resolveResetFinancialAgreementPresentation({ workspace });
+    expect(reset.visible).toBe(true);
+    expect(reset.enabled).toBe(true);
+
+    const actions = resolveFinanceAgreementActions({
+      workspace,
       resetVisible: reset.visible,
       resetEnabled: reset.enabled,
     });
     const resetAction = actions.find((action) => action.kind === 'reset_financial_agreement');
-    expect(resetAction?.enabled).toBe(false);
+    expect(resetAction?.enabled).toBe(true);
   });
 
   it('7) does not expose direct edit action for active agreement', () => {
@@ -187,9 +213,10 @@ describe('Odoo remediation — active agreement FA/2026/00004', () => {
     expect(plan.billingPartnerLabel).toBe('امحمد الطالبي');
   });
 
-  it('2) hides reset when requires_finance_review=false', () => {
+  it('3) hides reset when requires_finance_review=false', () => {
     const reset = resolveResetFinancialAgreementPresentation({ workspace: remediatedWorkspace });
     expect(reset.visible).toBe(false);
+    expect(reset.enabled).toBe(false);
   });
 
   it('3) allows collect when collect_allowed=true', () => {
@@ -216,31 +243,73 @@ describe('Odoo remediation — active agreement FA/2026/00004', () => {
     expect(plan.agreementNumber).not.toBe('FA/2026/00003');
     expect(plan.agreementState).toBe('active');
   });
+
+  it('6) renders finance_operations_history for remediated student 5', () => {
+    const history = resolveFinanceOperationsHistory({
+      ...remediatedWorkspace,
+      finance_operations_history: Array.from({ length: 8 }, (_, index) => ({
+        id: index + 1,
+        date: '2026-06-01',
+        type: 'payment_collected',
+        performed_by: { name: 'Finance User' },
+        reference: `RC/2026/${String(index + 1).padStart(5, '0')}`,
+      })),
+    } as StudentFinanceWorkspace);
+    expect(history).toHaveLength(8);
+    expect(history.every((entry) => entry.operationKind === 'payment_collected')).toBe(true);
+  });
 });
 
 describe('resolveFinanceOperationsHistory', () => {
-  it('8) renders history when API returns entries and empty state otherwise', () => {
+  it('1) renders history when API returns entries', () => {
     const withHistory = resolveFinanceOperationsHistory({
       summary: {},
       finance_operations_history: [
         {
           id: 1,
           date: '2026-01-10',
-          operation_type: 'cancel_agreement',
+          operation_type: 'agreement_cancelled',
           user_name: 'sara',
           reference: 'FA/2026/00003',
+          amount: 18300,
+          currency: { id: 1, name: 'MAD' },
         },
       ],
-    } as StudentFinanceWorkspace & { finance_operations_history?: unknown[] });
+    } as StudentFinanceWorkspace);
     expect(withHistory).toHaveLength(1);
     expect(withHistory[0]?.reference).toBe('FA/2026/00003');
+    expect(withHistory[0]?.operationKind).toBe('agreement_cancelled');
+    expect(withHistory[0]?.amount).toBe(18300);
+    expect(withHistory[0]?.currency?.name).toBe('MAD');
     expect(hasFinanceOperationsHistoryApi({
       summary: {},
       finance_operations_history: [{ id: 1 }],
-    } as never)).toBe(true);
+    } as StudentFinanceWorkspace)).toBe(true);
+  });
 
-    expect(resolveFinanceOperationsHistory({ summary: {} } as StudentFinanceWorkspace)).toEqual([]);
+  it('2) shows empty state signal when history=[]', () => {
+    expect(resolveFinanceOperationsHistory({
+      summary: {},
+      finance_operations_history: [],
+    } as StudentFinanceWorkspace)).toEqual([]);
+    expect(hasFinanceOperationsHistoryApi({
+      summary: {},
+      finance_operations_history: [],
+    } as StudentFinanceWorkspace)).toBe(true);
     expect(hasFinanceOperationsHistoryApi({ summary: {} } as StudentFinanceWorkspace)).toBe(false);
+  });
+
+  it('11) never returns undefined/null/NaN in normalized history rows', () => {
+    const entries = resolveFinanceOperationsHistory({
+      summary: {},
+      finance_operations_history: [{ id: 2, type: 'unknown_type_xyz' }],
+    } as StudentFinanceWorkspace);
+    expect(entries).toHaveLength(1);
+    const row = entries[0]!;
+    expect(row.id).toBeTruthy();
+    expect(row.operationKind).toBe('unknown');
+    expect(row.amount).toBeNull();
+    expect(Number.isNaN(row.amount as never)).toBe(false);
   });
 });
 

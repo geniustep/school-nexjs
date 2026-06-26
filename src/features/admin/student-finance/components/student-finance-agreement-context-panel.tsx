@@ -11,12 +11,10 @@ import type { StudentFinancialOverview } from '@/types/student-financial-overvie
 import type { FinancialAgreement, StudentFinanceWorkspace } from '../types';
 import type { FinanceAgreementActionItem } from '../types/agreement-context';
 import { postResetFinancialAgreement } from '../api/finance-admin-api';
+import { buildResetFinancialAgreementPayload, canSubmitResetFinancialAgreement } from '../utils/build-reset-financial-agreement-payload';
+import { resolveResetFinancialAgreementErrorMessage } from '../utils/reset-financial-agreement-errors';
 import { resolveFeePlanPresentation } from '../utils/resolve-fee-plan-presentation';
 import { resolveAgreementStatusPresentation } from '../utils/resolve-agreement-status-presentation';
-import {
-  hasFinanceOperationsHistoryApi,
-  resolveFinanceOperationsHistory,
-} from '../utils/resolve-finance-operations-history';
 import { resolveFinanceAgreementActions } from '../utils/resolve-finance-agreement-actions';
 import { resolveResetFinancialAgreementPresentation } from '../utils/resolve-reset-financial-agreement-action';
 import { resolveFinanceAgreementStateLabel } from '../utils/reference-labels';
@@ -36,7 +34,11 @@ function AgreementActionButton({
 }) {
   const t = useT();
   const className = action.primary ? 'btn btn--primary btn--sm' : 'btn btn--ghost btn--sm';
-  const title = !action.enabled && action.disabledTooltipKey ? t(action.disabledTooltipKey) : undefined;
+  const title =
+    !action.enabled
+      ? (action.disabledTooltipText ??
+        (action.disabledTooltipKey ? t(action.disabledTooltipKey) : undefined))
+      : undefined;
 
   return (
     <button
@@ -107,12 +109,10 @@ export function StudentFinanceAgreementContextPanel({
         agreement,
         resetVisible: resetPresentation.visible,
         resetEnabled: resetPresentation.enabled,
+        resetDisabledReasonText: resetPresentation.disabledReasonText,
       }),
     [workspace, financialOverview, agreement, resetPresentation],
   );
-
-  const operations = useMemo(() => resolveFinanceOperationsHistory(workspace), [workspace]);
-  const operationsApiAvailable = hasFinanceOperationsHistoryApi(workspace);
 
   const handleActionClick = useCallback(
     (action: FinanceAgreementActionItem) => {
@@ -134,8 +134,7 @@ export function StudentFinanceAgreementContextPanel({
   );
 
   const handleResetConfirm = useCallback(async () => {
-    const reason = resetReason.trim();
-    if (!reason) {
+    if (!canSubmitResetFinancialAgreement(resetReason)) {
       toast.error(t('admin.student360.financeWorkspace.agreementContext.reset.reasonRequired'));
       return;
     }
@@ -144,29 +143,33 @@ export function StudentFinanceAgreementContextPanel({
       return;
     }
     setResetLoading(true);
-    const res = await postResetFinancialAgreement(studentId, { reason });
+    const payload = buildResetFinancialAgreementPayload(resetReason, workspace);
+    const res = await postResetFinancialAgreement(studentId, payload);
     setResetLoading(false);
     if (!res.success) {
-      toast.error(res.error.message || t('admin.student360.financeWorkspace.agreementContext.reset.serverUnavailable'));
+      toast.error(
+        resolveResetFinancialAgreementErrorMessage(res.error?.code, res.error?.message, t),
+      );
       return;
     }
     toast.success(t('admin.student360.financeWorkspace.agreementContext.reset.success'));
+    if (res.data?.warning === 'amount_changed') {
+      const oldAmount = res.data.old_amount;
+      const newAmount = res.data.new_amount;
+      if (oldAmount != null && newAmount != null) {
+        toast.show(
+          t('admin.student360.financeWorkspace.agreementContext.reset.amountChangedWarning', {
+            oldAmount: String(oldAmount),
+            newAmount: String(newAmount),
+          }),
+          'info',
+        );
+      }
+    }
     setResetOpen(false);
     setResetReason('');
     onRefresh?.();
-  }, [onRefresh, resetPresentation.endpointAvailable, resetReason, studentId, t, toast]);
-
-  const renderPerformedBy = (performedByKey: string, performedByLabel: string) => {
-    if (performedByKey.endsWith('performedByUser') && performedByLabel) {
-      return t('admin.student360.financeWorkspace.agreementContext.performedByUser', {
-        user: performedByLabel,
-      });
-    }
-    if (performedByKey.endsWith('performedBySystem')) {
-      return t('admin.student360.financeWorkspace.agreementContext.performedBySystem');
-    }
-    return t('admin.student360.financeWorkspace.agreementContext.performedByUnavailable');
-  };
+  }, [onRefresh, resetPresentation.endpointAvailable, resetReason, studentId, t, toast, workspace]);
 
   return (
     <section className="student-finance-agreement-context" aria-label={t('admin.student360.financeWorkspace.agreementContext.sectionAria')}>
@@ -298,46 +301,6 @@ export function StudentFinanceAgreementContextPanel({
         </article>
       </div>
 
-      <section className="student-finance-agreement-context__history">
-        <header className="student-finance-agreement-context__history-head">
-          <h3>{t('admin.student360.financeWorkspace.agreementContext.operationsHistoryTitle')}</h3>
-        </header>
-        {operations.length ? (
-          <div className="student-finance-agreement-context__history-table-wrap">
-            <table className="student-finance-agreement-context__history-table">
-              <thead>
-                <tr>
-                  <th>{t('admin.student360.financeWorkspace.agreementContext.operations.columns.date')}</th>
-                  <th>{t('admin.student360.financeWorkspace.agreementContext.operations.columns.type')}</th>
-                  <th>{t('admin.student360.financeWorkspace.agreementContext.operations.columns.description')}</th>
-                  <th>{t('admin.student360.financeWorkspace.agreementContext.performedByLabel')}</th>
-                  <th>{t('admin.student360.financeWorkspace.agreementContext.operations.columns.state')}</th>
-                  <th>{t('admin.student360.financeWorkspace.agreementContext.operations.columns.reference')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {operations.map((entry) => (
-                  <tr key={entry.id}>
-                    <td>{entry.date ? formatDate(entry.date) : t('common.dash')}</td>
-                    <td>{t(entry.operationLabelKey)}</td>
-                    <td dir="auto">{entry.description ?? t('common.dash')}</td>
-                    <td dir="auto">{renderPerformedBy(entry.performedByKey, entry.performedByLabel)}</td>
-                    <td>{entry.state ?? t('common.dash')}</td>
-                    <td dir="auto" className="mono">{entry.reference ?? t('common.dash')}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <p className="student-finance-agreement-context__empty">
-            {operationsApiAvailable
-              ? t('admin.student360.financeWorkspace.agreementContext.operations.empty')
-              : t('admin.student360.financeWorkspace.agreementContext.operations.unavailable')}
-          </p>
-        )}
-      </section>
-
       <ConfirmationDialog
         open={resetOpen}
         title={t('admin.student360.financeWorkspace.agreementContext.reset.title')}
@@ -352,7 +315,7 @@ export function StudentFinanceAgreementContextPanel({
         }}
         body={
           <>
-            <p>{t(resetPresentation.reasonKey)}</p>
+            <p>{t(resetPresentation.warningKey)}</p>
             <label className="student-finance-agreement-context__reset-reason">
               <span>{t('admin.student360.financeWorkspace.agreementContext.reset.reasonField')}</span>
               <textarea
@@ -360,6 +323,7 @@ export function StudentFinanceAgreementContextPanel({
                 onChange={(e) => setResetReason(e.target.value)}
                 rows={3}
                 required
+                disabled={resetLoading}
               />
             </label>
           </>
