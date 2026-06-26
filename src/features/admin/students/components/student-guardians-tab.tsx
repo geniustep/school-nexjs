@@ -9,6 +9,7 @@ import { GuardianAddDialog } from './guardian-add-dialog';
 import { GuardianEditDialog } from './guardian-edit-dialog';
 import { GuardianRemoveDialog } from './guardian-remove-dialog';
 import { Student360CompactEmpty } from './student-360-compact-empty';
+import { StudentCoGuardianStudentsPanel } from './student-co-guardian-students-panel';
 import { isRelationshipActive } from '../utils/relationship-types';
 import { studentClassLabel } from '../utils/student-academic-labels';
 import {
@@ -216,6 +217,8 @@ export function StudentGuardiansTab({
           ) : null}
         </>
       )}
+
+      <StudentCoGuardianStudentsPanel studentId={studentId} />
 
       <GuardianAddDialog
         open={addOpen}
