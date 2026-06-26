@@ -9,6 +9,29 @@
   container-name: student-360;
 }
 
+/* ── Profile hero: header + tabs as one card ── */
+.student-360-profile-hero {
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--bg, #fff);
+  box-shadow:
+    0 1px 2px rgb(15 23 42 / 0.04),
+    0 4px 16px rgb(15 23 42 / 0.05);
+}
+
+.student-360-profile-hero .student-360-tabs-sticky {
+  position: sticky;
+  top: var(--app-topbar-height, var(--topbar-h, 60px));
+  z-index: 15;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--c-border-subtle, #f1f5f9);
+  border-bottom: none;
+  background: linear-gradient(to bottom, var(--surface-1, #fafbfc) 0%, var(--bg, #fff) 100%);
+  box-shadow: none;
+}
+
 .student-360-tabs-sticky {
   position: sticky;
   top: var(--app-topbar-height, var(--topbar-h, 60px));
@@ -24,36 +47,66 @@
 .student-360-section-card,
 .student-readiness,
 .student-360-tab-header {
-  scroll-margin-top: calc(var(--app-topbar-height, var(--topbar-h, 60px)) + 56px);
+  scroll-margin-top: calc(var(--app-topbar-height, var(--topbar-h, 60px)) + 64px);
 }
 
 .student-360-header {
   margin-bottom: 0;
-  padding: 12px 14px 10px;
-  border: 1px solid var(--c-border, #e2e8f0);
-  border-radius: 12px;
-  box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
-  background: var(--bg, #fff);
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  position: relative;
+}
+
+.student-360-header__accent {
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--c-primary, #2563eb) 0%,
+    color-mix(in srgb, var(--c-primary, #2563eb) 60%, #6366f1) 100%
+  );
+}
+
+.student-360-header--active .student-360-header__accent {
+  background: linear-gradient(
+    90deg,
+    var(--c-green, #16a34a) 0%,
+    color-mix(in srgb, var(--c-green, #16a34a) 55%, var(--c-primary, #2563eb)) 100%
+  );
+}
+
+.student-360-header--has-critical .student-360-header__accent {
+  background: linear-gradient(
+    90deg,
+    var(--c-amber, #d97706) 0%,
+    var(--c-red, #dc2626) 100%
+  );
+}
+
+.student-360-header__inner {
+  padding: 18px 20px 16px;
 }
 
 .student-360-header__row--primary {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: start;
-  gap: 12px;
+  gap: 16px;
   min-width: 0;
 }
 
 .student-360-header__row--secondary {
-  margin-top: 10px;
-  padding-top: 10px;
+  margin-top: 14px;
+  padding-top: 14px;
   border-top: 1px solid var(--c-border-subtle, #f1f5f9);
 }
 
 .student-360-header__body {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   min-width: 0;
 }
 
@@ -62,15 +115,15 @@
   flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 8px 12px;
+  gap: 10px 16px;
   min-width: 0;
 }
 
 .student-360-header__title-block {
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 6px 10px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
   min-width: 0;
   flex: 1 1 auto;
 }
@@ -111,12 +164,19 @@
 }
 
 .student-360-header__ref {
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
   color: var(--text-muted, #64748b);
   flex-shrink: 0;
-  padding: 1px 6px;
-  border-radius: 4px;
-  background: var(--surface-2, #f1f5f9);
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--surface-2, #f8fafc);
+  border: 1px solid var(--c-border-subtle, #f1f5f9);
+  letter-spacing: 0.01em;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .student-360-header__title-row {
@@ -126,24 +186,59 @@
   gap: 8px 12px;
 }
 
+.student-360-header__meta-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
 .student-360-header__status-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px 6px;
+  gap: 5px;
 }
 
 .student-360-header__alerts {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
-  gap: 4px 6px;
-  padding-top: 2px;
+  gap: 5px;
+  padding: 6px 10px;
+  margin-top: 2px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--c-amber, #d97706) 4%, var(--surface-2, #f8fafc));
+  border: 1px solid color-mix(in srgb, var(--c-amber, #d97706) 12%, var(--c-border, #e2e8f0));
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.student-360-header--has-critical .student-360-header__alerts {
+  background: color-mix(in srgb, var(--c-red, #dc2626) 4%, var(--surface-2, #f8fafc));
+  border-color: color-mix(in srgb, var(--c-red, #dc2626) 12%, var(--c-border, #e2e8f0));
 }
 
 .student-360-header__avatar-wrap {
   flex-shrink: 0;
   position: relative;
+  padding: 3px;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    var(--c-primary, #2563eb) 0%,
+    color-mix(in srgb, var(--c-primary, #2563eb) 40%, #6366f1) 100%
+  );
+}
+
+.student-360-header__avatar-wrap--active {
+  background: linear-gradient(
+    135deg,
+    var(--c-green, #16a34a) 0%,
+    color-mix(in srgb, var(--c-green, #16a34a) 45%, var(--c-primary, #2563eb)) 100%
+  );
 }
 
 .student-360-header__avatar-wrap--loading::after {
@@ -165,8 +260,8 @@
 
 .student-360-header__facts-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 130px), 1fr));
-  gap: 8px 14px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 148px), 1fr));
+  gap: 8px;
   margin: 0;
   padding: 0;
 }
@@ -175,17 +270,27 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 2px;
+  gap: 3px;
   min-width: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--surface-2, #f8fafc);
+  border: 1px solid var(--c-border-subtle, #f1f5f9);
+  transition: border-color 140ms ease, background 140ms ease;
+}
+
+.student-360-header__fact-item:hover {
+  border-color: color-mix(in srgb, var(--c-primary, #2563eb) 18%, var(--c-border, #e2e8f0));
+  background: color-mix(in srgb, var(--c-primary, #2563eb) 3%, var(--surface-2, #f8fafc));
 }
 
 .student-360-header__fact-item dt {
   margin: 0;
-  font-size: 0.6875rem;
-  font-weight: 500;
-  letter-spacing: normal;
-  text-transform: none;
-  color: var(--text-muted, #64748b);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted, #94a3b8);
   line-height: 1.3;
 }
 
@@ -197,7 +302,8 @@
   margin: 0;
   font-size: 0.8125rem;
   font-weight: 600;
-  line-height: 1.35;
+  line-height: 1.4;
+  color: var(--text, #0f172a);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -214,11 +320,12 @@
 
 .student-360-header__gap-badge {
   font-size: 0.6875rem;
-  padding: 2px 7px;
+  font-weight: 600;
+  padding: 3px 8px;
   border-radius: 999px;
   background: var(--c-amber-soft, #fffbeb);
   color: var(--c-amber, #d97706);
-  border: 1px solid rgb(217 119 6 / 0.35);
+  border: 1px solid rgb(217 119 6 / 0.2);
 }
 
 .student-360-header__facts {
@@ -252,6 +359,19 @@
   align-items: center;
   justify-content: flex-end;
   gap: 6px;
+  padding: 4px;
+  border-radius: 10px;
+  background: var(--surface-2, #f8fafc);
+  border: 1px solid var(--c-border-subtle, #f1f5f9);
+}
+
+.student-360-quick-actions .btn--primary {
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.08);
+}
+
+.student-360-quick-actions__secondary {
+  background: var(--bg, #fff) !important;
+  border: 1px solid var(--c-border, #e2e8f0) !important;
 }
 
 .student-360-quick-actions__more {
@@ -302,6 +422,11 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  position: relative;
+}
+
+.student-360-tab-bar__label {
+  line-height: 1.3;
 }
 
 .student-360-tab-bar__indicator {
@@ -312,6 +437,37 @@
   border-radius: 999px;
   background: var(--surface-2, #eef2f7);
   color: var(--text-muted, #64748b);
+  flex-shrink: 0;
+}
+
+.student-360-tab-bar__indicator--dot {
+  width: 7px;
+  height: 7px;
+  min-width: 7px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 0;
+  line-height: 0;
+  overflow: hidden;
+}
+
+.student-360-tab-bar__indicator--alert {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  border-radius: 50%;
+}
+
+.student-360-tab-bar__indicator--count {
+  min-width: 20px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 
 .student-360-tab-bar__indicator--red {
@@ -762,11 +918,13 @@
 
 .student-360-header__overview-badge {
   font-size: 0.6875rem;
-  font-weight: 500;
-  padding: 2px 7px;
-  border-radius: 6px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 999px;
   border: 1px solid transparent;
   line-height: 1.35;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .student-360-header__overview-badge--amber {
@@ -3700,12 +3858,12 @@
 }
 
 @media (max-width: 640px) {
-  .student-360-header {
-    padding: 10px 12px 8px;
+  .student-360-header__inner {
+    padding: 14px 14px 12px;
   }
 
   .student-360-header__row--primary {
-    gap: 10px;
+    gap: 12px;
   }
 
   .student-360-header__topline {
@@ -3727,18 +3885,22 @@
   }
 
   .student-360-header__avatar {
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
     font-size: 0.9375rem;
   }
 
   .student-360-header__title {
-    font-size: 1rem;
+    font-size: 1.0625rem;
   }
 
   .student-360-header__facts-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px 10px;
+    gap: 6px;
+  }
+
+  .student-360-header__fact-item {
+    padding: 8px 10px;
   }
 
   .student-overview-alert {
@@ -3769,7 +3931,7 @@
 
 
 .student-360-breadcrumb {
-  margin-block-end: 4px;
+  margin-block-end: 2px;
 }
 
 .student-360-breadcrumb__list {
@@ -3785,12 +3947,14 @@
 }
 
 .student-360-breadcrumb__item a {
-  color: var(--c-primary, #2563eb);
+  color: var(--text-muted, #64748b);
   text-decoration: none;
+  transition: color 120ms ease;
 }
 
 .student-360-breadcrumb__item a:hover {
-  text-decoration: underline;
+  color: var(--c-primary, #2563eb);
+  text-decoration: none;
 }
 
 .student-360-breadcrumb__item span[aria-current='page'] {
@@ -3799,37 +3963,38 @@
 }
 
 .student-360-breadcrumb__sep {
-  color: var(--text-muted, #94a3b8);
+  color: var(--text-muted, #cbd5e1);
   user-select: none;
+  font-weight: 300;
 }
 
 .student-360-header__avatar {
-  width: 52px;
-  height: 52px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   background: var(--surface-2, #eef2f7);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-muted, #64748b);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--c-primary, #2563eb);
   flex-shrink: 0;
-  transform: scale(1);
-  transform-origin: center center;
-  transition: transform 160ms ease;
   border: 2px solid var(--bg, #fff);
-  box-shadow: 0 0 0 1px var(--c-border, #e2e8f0);
+  box-shadow: none;
+}
+
+.student-360-header__avatar--photo {
+  background: var(--surface-2, #eef2f7);
 }
 
 .student-360-header__title {
   margin: 0;
-  font-size: 1.0625rem;
+  font-size: 1.25rem;
   line-height: 1.25;
   font-weight: 700;
-  transform: scale(1);
-  transform-origin: start center;
-  transition: transform 160ms ease;
+  letter-spacing: -0.01em;
+  color: var(--text, #0f172a);
 }
 
 .student-360-tabs {
@@ -3838,39 +4003,51 @@
 
 .student-360-tab-bar {
   margin-block-end: 0;
-  border-block-end: 1px solid var(--c-border, #e2e8f0);
+  border-block-end: none;
+}
+
+.student-360-profile-hero .student-360-tab-bar {
+  padding-inline: 8px;
 }
 
 .student-360-tab-bar__scroll {
   display: flex;
-  gap: 4px;
+  gap: 2px;
   overflow-x: auto;
   overscroll-behavior-x: contain;
   scrollbar-width: thin;
-  padding-block: 4px;
+  padding-block: 6px 0;
   -webkit-overflow-scrolling: touch;
 }
 
 .student-360-tab-bar__item {
   flex: 0 0 auto;
-  min-height: 34px;
-  padding: 6px 12px;
+  min-height: 40px;
+  padding: 8px 14px;
   border: none;
   border-radius: 8px 8px 0 0;
   background: transparent;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 500;
   color: var(--text-muted, #64748b);
   text-decoration: none;
   white-space: nowrap;
   cursor: pointer;
+  transition: color 140ms ease, background 140ms ease;
+}
+
+.student-360-tab-bar__item:hover {
+  color: var(--text, #0f172a);
+  background: color-mix(in srgb, var(--c-primary, #2563eb) 4%, transparent);
 }
 
 .student-360-tab-bar__item--active {
   color: var(--c-primary, #2563eb);
   font-weight: 700;
-  background: var(--c-primary-soft, #eff6ff);
-  box-shadow: inset 0 -3px 0 var(--c-primary, #2563eb);
+  background: var(--bg, #fff);
+  box-shadow:
+    inset 0 -2px 0 var(--c-primary, #2563eb),
+    0 -1px 0 var(--bg, #fff);
 }
 
 .student-360-tab-header__title {
@@ -6944,23 +7121,27 @@
 .student-360-header__readiness-badge {
   font-size: 0.6875rem;
   font-weight: 600;
-  padding: 2px 7px;
+  padding: 3px 8px;
   border-radius: 999px;
+  border: 1px solid transparent;
 }
 
 .student-360-header__readiness-badge--draft {
-  background: #f1f5f9;
+  background: var(--surface-2, #f1f5f9);
   color: #475569;
+  border-color: var(--c-border-subtle, #e2e8f0);
 }
 
 .student-360-header__readiness-badge--in_progress {
-  background: #fff7ed;
+  background: var(--c-amber-soft, #fff7ed);
   color: #c2410c;
+  border-color: rgb(194 65 12 / 0.15);
 }
 
 .student-360-header__readiness-badge--ready {
-  background: #ecfdf5;
+  background: var(--c-green-soft, #ecfdf5);
   color: #047857;
+  border-color: rgb(4 120 87 / 0.15);
 }
 
 @media (max-width: 640px) {

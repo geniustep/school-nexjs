@@ -172,92 +172,107 @@ export function Student360Header({
       : null,
   ].filter(Boolean) as { label: string; value: string }[];
 
-  return (
-    <header className="student-360-header card">
-      <div className="student-360-header__row student-360-header__row--primary">
-        <div
-          className={`student-360-header__avatar-wrap${showAvatarSkeleton ? ' student-360-header__avatar-wrap--loading' : ''}`}
-        >
-          <Student360HeaderAvatar
-            photo={photo}
-            legacyImageUrl={s.image_url}
-            displayName={displayName}
-          />
-        </div>
+  const statusAccent = status === 'active' ? 'active' : 'default';
 
-        <div className="student-360-header__body">
-          <div className="student-360-header__topline">
-            <div className="student-360-header__title-block">
-              <h1 className="student-360-header__title">{displayName}</h1>
-              {ref ? (
-                <span className="student-360-header__ref mono" dir="auto" title={ref}>
-                  {ref}
-                </span>
-              ) : null}
-            </div>
-            {actions ? <div className="student-360-header__actions">{actions}</div> : null}
+  return (
+    <header
+      className={`student-360-header student-360-header--${statusAccent}${headerBadges.some((b) => b.tone === 'red') ? ' student-360-header--has-critical' : ''}`}
+    >
+      <div className="student-360-header__accent" aria-hidden="true" />
+
+      <div className="student-360-header__inner">
+        <div className="student-360-header__row student-360-header__row--primary">
+          <div
+            className={`student-360-header__avatar-wrap student-360-header__avatar-wrap--${statusAccent}${showAvatarSkeleton ? ' student-360-header__avatar-wrap--loading' : ''}`}
+          >
+            <Student360HeaderAvatar
+              photo={photo}
+              legacyImageUrl={s.image_url}
+              displayName={displayName}
+            />
           </div>
 
-          <div className="student-360-header__status-row">
-            <Badge tone={status === 'active' ? 'green' : 'slate'}>{statusText}</Badge>
-            <span
-              className={`student-360-header__readiness-badge student-360-header__readiness-badge--${profileReadiness}`}
-            >
-              {t(`admin.student360.profileReadiness.${profileReadiness}`)}
-            </span>
-            {missingBasic ? (
-              <span className="student-360-header__gap-badge" title={t('admin.student360.header.incompleteData')}>
-                {t('admin.student360.header.incompleteData')}
-              </span>
+          <div className="student-360-header__body">
+            <div className="student-360-header__topline">
+              <div className="student-360-header__title-block">
+                <h1 className="student-360-header__title">{displayName}</h1>
+                {ref ? (
+                  <span className="student-360-header__ref mono" dir="auto" title={ref}>
+                    {ref}
+                  </span>
+                ) : null}
+              </div>
+              {actions ? <div className="student-360-header__actions">{actions}</div> : null}
+            </div>
+
+            <div className="student-360-header__meta-strip">
+              <div className="student-360-header__status-row">
+                <Badge tone={status === 'active' ? 'green' : 'slate'}>{statusText}</Badge>
+                <span
+                  className={`student-360-header__readiness-badge student-360-header__readiness-badge--${profileReadiness}`}
+                >
+                  {t(`admin.student360.profileReadiness.${profileReadiness}`)}
+                </span>
+                {missingBasic ? (
+                  <span
+                    className="student-360-header__gap-badge"
+                    title={t('admin.student360.header.incompleteData')}
+                  >
+                    {t('admin.student360.header.incompleteData')}
+                  </span>
+                ) : null}
+              </div>
+            </div>
+
+            {visibleAlertBadges.length > 0 || hiddenBadgeCount > 0 ? (
+              <div className="student-360-header__alerts" role="list">
+                {visibleAlertBadges.map((badge) => (
+                  <span
+                    key={badge.key}
+                    role="listitem"
+                    className={`student-360-header__overview-badge student-360-header__overview-badge--${badge.tone}`}
+                  >
+                    {badge.label}
+                  </span>
+                ))}
+                {hiddenBadgeCount > 0 ? (
+                  <span
+                    role="listitem"
+                    className="student-360-header__overview-badge student-360-header__overview-badge--slate"
+                    title={headerBadges
+                      .slice(MAX_VISIBLE_ALERT_BADGES)
+                      .map((b) => b.label)
+                      .join(' · ')}
+                  >
+                    {t('admin.student360.overview.header.moreBadges', { count: hiddenBadgeCount })}
+                  </span>
+                ) : null}
+              </div>
             ) : null}
           </div>
+        </div>
 
-          {visibleAlertBadges.length > 0 || hiddenBadgeCount > 0 ? (
-            <div className="student-360-header__alerts" role="list">
-              {visibleAlertBadges.map((badge) => (
-                <span
-                  key={badge.key}
-                  role="listitem"
-                  className={`student-360-header__overview-badge student-360-header__overview-badge--${badge.tone}`}
-                >
-                  {badge.label}
-                </span>
+        {factItems.length > 0 ? (
+          <div className="student-360-header__row student-360-header__row--secondary">
+            <dl className="student-360-header__facts-grid">
+              {factItems.map((item) => (
+                <div key={item.label} className="student-360-header__fact-item">
+                  <dt>{item.label}</dt>
+                  <dd dir="auto" title={item.value}>
+                    {item.value}
+                  </dd>
+                </div>
               ))}
-              {hiddenBadgeCount > 0 ? (
-                <span
-                  role="listitem"
-                  className="student-360-header__overview-badge student-360-header__overview-badge--slate"
-                  title={headerBadges
-                    .slice(MAX_VISIBLE_ALERT_BADGES)
-                    .map((b) => b.label)
-                    .join(' · ')}
-                >
-                  {t('admin.student360.overview.header.moreBadges', { count: hiddenBadgeCount })}
-                </span>
-              ) : null}
-            </div>
-          ) : null}
-        </div>
+            </dl>
+          </div>
+        ) : null}
+
+        {photo?.external_publish_allowed === true ? (
+          <p className="student-360-header__photo-note muted">
+            {t('admin.student360.overview.header.externalPublishAllowed')}
+          </p>
+        ) : null}
       </div>
-
-      {factItems.length > 0 ? (
-        <div className="student-360-header__row student-360-header__row--secondary">
-          <dl className="student-360-header__facts-grid">
-            {factItems.map((item) => (
-              <div key={item.label} className="student-360-header__fact-item">
-                <dt>{item.label}</dt>
-                <dd dir="auto">{item.value}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-      ) : null}
-
-      {photo?.external_publish_allowed === true ? (
-        <p className="student-360-header__photo-note muted">
-          {t('admin.student360.overview.header.externalPublishAllowed')}
-        </p>
-      ) : null}
     </header>
   );
 }

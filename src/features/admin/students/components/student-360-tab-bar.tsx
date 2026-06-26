@@ -44,6 +44,9 @@ export function Student360TabBar({
                   className={cn(
                     'student-360-tab-bar__indicator',
                     indicator.tone && `student-360-tab-bar__indicator--${indicator.tone}`,
+                    indicator.label === '●' && 'student-360-tab-bar__indicator--dot',
+                    indicator.label === '!' && 'student-360-tab-bar__indicator--alert',
+                    /^\d+$/.test(indicator.label) && 'student-360-tab-bar__indicator--count',
                   )}
                   aria-hidden="true"
                 >

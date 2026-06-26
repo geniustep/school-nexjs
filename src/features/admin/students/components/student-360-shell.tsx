@@ -166,38 +166,40 @@ export function Student360Shell({ studentId }: { studentId: string }) {
         </Link>
       ) : null}
 
-      <Student360Header
-        details={resolvedDetails}
-        overview={overviewState.data}
-        overviewLoading={overviewState.loading && !overviewState.data}
-        actions={
-          !editing ? (
-            <Student360QuickActions
-              details={resolvedDetails}
-              caps={caps}
-              overview={overviewState.data}
-              archived={archived}
-              onEdit={() => setEditing(true)}
-              onOpenTab={(next) =>
-                router.push(buildStudent360TabHref(studentId, next), { scroll: false })
-              }
-              onArchiveSuccess={() => router.push('/admin/students')}
-            />
-          ) : null
-        }
-      />
+      <div className="student-360-profile-hero">
+        <Student360Header
+          details={resolvedDetails}
+          overview={overviewState.data}
+          overviewLoading={overviewState.loading && !overviewState.data}
+          actions={
+            !editing ? (
+              <Student360QuickActions
+                details={resolvedDetails}
+                caps={caps}
+                overview={overviewState.data}
+                archived={archived}
+                onEdit={() => setEditing(true)}
+                onOpenTab={(next) =>
+                  router.push(buildStudent360TabHref(studentId, next), { scroll: false })
+                }
+                onArchiveSuccess={() => router.push('/admin/students')}
+              />
+            ) : null
+          }
+        />
 
-      {!editing ? (
-        <div className="student-360-tabs-sticky">
-          <Student360TabBar
-            studentId={studentId}
-            activeTab={tab}
-            tabs={availableTabs}
-            ariaLabel={t('admin.student360.tabsAria')}
-            indicators={tabIndicators}
-          />
-        </div>
-      ) : null}
+        {!editing ? (
+          <div className="student-360-tabs-sticky">
+            <Student360TabBar
+              studentId={studentId}
+              activeTab={tab}
+              tabs={availableTabs}
+              ariaLabel={t('admin.student360.tabsAria')}
+              indicators={tabIndicators}
+            />
+          </div>
+        ) : null}
+      </div>
 
       {editing ? (
         <StudentForm
