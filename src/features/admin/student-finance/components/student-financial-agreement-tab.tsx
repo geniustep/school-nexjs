@@ -81,6 +81,8 @@ import {
   resolveExistingCurrentFeesDraft,
 } from '../utils/resolve-existing-current-fees-draft';
 import { FamilyPlanContextCard } from './family-plan-context-card';
+import { AgreementDraftCustomizationSection } from './agreement-draft-customization-section';
+import { isAgreementEditableBeforeActivation } from '../utils/resolve-agreement-draft-customization';
 
 export function StudentFinancialAgreementTab({
   studentId,
@@ -165,25 +167,35 @@ export function StudentFinancialAgreementTab({
       : null;
   const inactiveDraftDetailState = useFinancialAgreement(inactiveDraftId, !!inactiveDraftId);
 
+  const allowed = agreement?.allowed_actions ?? workspace?.allowed_actions ?? {};
+  const displayAgreement =
+    hasAgreementData(agreement) ? agreement : inactiveDraftDetailState.data ?? null;
+  const displayAllowed = displayAgreement?.allowed_actions ?? allowed;
+  const currency = displayAgreement?.currency ?? agreement?.currency ?? workspace?.summary?.currency;
+
   const phase = resolveFinanceTabLoadPhase({
     yearsLoading: refState.loading,
     effectiveYearId,
     workspaceInitialLoading: workspaceState.initialLoading,
-    agreementId,
-    agreementDetailInitialLoading: agreementState.initialLoading,
+    agreementId: agreementId ?? inactiveDraftId,
+    agreementDetailInitialLoading:
+      (agreementId ? agreementState.initialLoading : false) ||
+      (inactiveDraftId ? inactiveDraftDetailState.initialLoading : false),
   });
 
   const showAgreementEmpty = shouldShowAgreementEmptyState({
     phase,
-    agreement,
+    agreement: displayAgreement,
     workspaceLoaded: !!workspace && !workspaceState.initialLoading,
   });
 
   const isBackgroundRefreshing = isRefreshing || agreementState.fetching;
 
-  const currency = agreement?.currency ?? workspace?.summary?.currency;
-  const allowed = agreement?.allowed_actions ?? workspace?.allowed_actions ?? {};
   const canCreate = allowed.create_agreement === true;
+  const canCustomizeAgreement = isAgreementEditableBeforeActivation(
+    displayAgreement?.state,
+    displayAllowed,
+  );
 
   const refreshAll = useCallback(() => {
     workspaceState.reload();
@@ -690,7 +702,7 @@ export function StudentFinancialAgreementTab({
             </button>
           </>
         ) : null}
-        {agreement && allowed.edit ? (
+        {agreement && allowed.edit && !canCustomizeAgreement ? (
           <button
             type="button"
             className="btn btn--ghost btn--sm"
@@ -1040,7 +1052,8 @@ export function StudentFinancialAgreementTab({
     );
   }
 
-  const activeAgreement = agreement as FinancialAgreement;
+  const activeAgreement = displayAgreement as FinancialAgreement;
+  const workflowAllowed = displayAllowed;
   const draftPresentation = resolveDraftAgreementPresentation({
     financialOverview,
     workspaceAgreement: workspace?.current_agreement ?? null,
@@ -1268,6 +1281,14 @@ export function StudentFinancialAgreementTab({
 
       <AgreementEnrollmentCustomizationsSection presentation={draftPresentation} />
 
+      {canCustomizeAgreement || activeAgreement.state === 'active' ? (
+        <AgreementDraftCustomizationSection
+          agreement={activeAgreement}
+          currency={currency?.name}
+          onChanged={refreshAll}
+        />
+      ) : null}
+
       <Card className="student-finance-section student-finance-billing-card">
         <Student360SectionHeader title={t('admin.student360.financialAgreement.billingPartyTitle')} />
         {billingPartner ? (
@@ -1409,6 +1430,7 @@ export function StudentFinancialAgreementTab({
         )}
       </Card>
 
+      {!canCustomizeAgreement ? (
       <Card className="student-finance-section">
         <Student360SectionHeader title={t('admin.student360.financialAgreement.linesTitle')} />
         {(activeAgreement.lines?.length ?? 0) === 0 ? (
@@ -1427,6 +1449,7 @@ export function StudentFinancialAgreementTab({
           </div>
         )}
       </Card>
+      ) : null}
 
       <Card className="student-finance-section">
         <Student360SectionHeader title={t('admin.student360.financialAgreement.scheduleTitle')} />
@@ -1530,7 +1553,7 @@ export function StudentFinancialAgreementTab({
 
       <div className="student-finance-agreement-actions-bar">
       <div className="student-finance-agreement-actions row">
-        {allowed.submit ? (
+        {workflowAllowed.submit ? (
           <button
             type="button"
             className="btn btn--primary btn--sm"
@@ -1540,7 +1563,7 @@ export function StudentFinancialAgreementTab({
             {t('admin.student360.financialAgreement.actions.submit')}
           </button>
         ) : null}
-        {allowed.approve ? (
+        {workflowAllowed.approve ? (
           <button
             type="button"
             className="btn btn--ghost btn--sm"
@@ -1550,7 +1573,7 @@ export function StudentFinancialAgreementTab({
             {t('admin.student360.financialAgreement.actions.approve')}
           </button>
         ) : null}
-        {allowed.activate ? (
+        {workflowAllowed.activate ? (
           <button
             type="button"
             className="btn btn--primary btn--sm"
@@ -1562,7 +1585,7 @@ export function StudentFinancialAgreementTab({
             {t('admin.student360.financialAgreement.actions.activate')}
           </button>
         ) : null}
-        {allowed.cancel ? (
+        {workflowAllowed.cancel ? (
           <button
             type="button"
             className="btn btn--ghost btn--sm"
@@ -1572,7 +1595,7 @@ export function StudentFinancialAgreementTab({
             {t('admin.student360.financialAgreement.actions.cancel')}
           </button>
         ) : null}
-        {allowed.cancel_future_installments ? (
+        {workflowAllowed.cancel_future_installments ? (
           <button
             type="button"
             className="btn btn--ghost btn--sm"

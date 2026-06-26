@@ -4607,8 +4607,8 @@
         }
       },
       "financialAgreement": {
-        "pageTitle": "Acuerdo financiero especial",
-        "pageDescription": "El acuerdo financiero especial se usa para descuentos individuales, exenciones, reprogramaciones y condiciones excepcionales. Las tasas generales provienen del plan aplicado al alumno.",
+        "pageTitle": "Acuerdo de tasas",
+        "pageDescription": "El acuerdo de tasas personaliza las cuotas de este alumno antes de la activación. El plan de tasas original sigue siendo una plantilla compartida y no se edita aquí.",
         "inactiveWarning": "Este acuerdo está inactivo. Sus plazos no son obligaciones cobrables salvo confirmación del backend.",
         "create": "Crear acuerdo financiero",
         "applyFeePlan": "Aplicar plan de cuotas",
@@ -4619,7 +4619,7 @@
         "noIndependentAgreementTitle": "No hay acuerdo financiero independiente para este alumno.",
         "noIndependentAgreementDesc": "Aplique un plan de tasas o cree un acuerdo manual para casos especiales.",
         "billingPartyTitle": "Pagador",
-        "linesTitle": "Servicios y líneas",
+        "linesTitle": "Líneas del acuerdo",
         "noLines": "Sin servicios añadidos.",
         "noLinesDesc": "Añada servicios del catálogo para construir el acuerdo.",
         "scheduleTitle": "Calendario del acuerdo",
@@ -4702,6 +4702,63 @@
           "title": "Enrollment customizations",
           "description": "These customizations were applied when the agreement was created."
         },
+        "customization": {
+          "sectionTitle": "Personalizar acuerdo antes de la activación",
+          "sectionDesc": "Puede editar las líneas de este acuerdo antes de que sea oficial y cobrable. El plan de tasas original no cambia.",
+          "addLine": "Añadir línea al acuerdo",
+          "editLine": "Editar línea",
+          "deleteLine": "Eliminar línea del acuerdo",
+          "deleteConfirm": "Esta línea se eliminará solo del acuerdo de este alumno. El plan de tasas original no cambiará.",
+          "addLineTitle": "Añadir línea al acuerdo",
+          "editLineTitle": "Editar línea",
+          "lineAdded": "Línea añadida al acuerdo.",
+          "lineUpdated": "Línea actualizada. Revise el calendario de cuotas antes de activar el acuerdo.",
+          "lineDeleted": "Línea eliminada del acuerdo.",
+          "scheduleRefreshRequired": "Se modificaron las líneas del acuerdo. Previsualice o regenere el calendario antes de la activación.",
+          "previewSchedule": "Previsualizar calendario de cuotas",
+          "regenerateSchedule": "Regenerar calendario de cuotas",
+          "previewTitle": "Vista previa del calendario",
+          "previewTotal": "Total de la vista previa: {total}",
+          "previewReady": "Vista previa del calendario lista.",
+          "scheduleUpdated": "Calendario actualizado.",
+          "activeAgreementNotice": "Este acuerdo está activo y es oficial. Los cambios posteriores requieren un ajuste documentado o un nuevo acuerdo.",
+          "emptyLinesDesc": "Añada líneas al acuerdo de este alumno desde el catálogo de tasas.",
+          "fields": {
+            "feeType": "Tipo de tasa",
+            "unitPrice": "Precio",
+            "quantity": "Cantidad o periodos",
+            "discountType": "Tipo de descuento",
+            "discountValue": "Valor del descuento",
+            "reason": "Motivo de personalización"
+          },
+          "columns": {
+            "lineName": "Nombre de la línea",
+            "billingMode": "Modo de facturación",
+            "originalPrice": "Precio original",
+            "quantity": "Cantidad o periodos",
+            "discount": "Descuento",
+            "net": "Neto",
+            "expectedInstallments": "Total de cuotas previsto"
+          },
+          "billingMode": {
+            "oneTime": "Pago único",
+            "monthly": "Mensual",
+            "periodic": "Periódico",
+            "unknown": "No especificado"
+          },
+          "errors": {
+            "serviceRequired": "Seleccione un tipo de tasa.",
+            "reasonRequired": "El motivo de personalización es obligatorio.",
+            "priceRequired": "Introduzca un precio válido.",
+            "incomplete_patchable_lines": "No se pudieron preparar las líneas. Recargue la página e inténtelo de nuevo.",
+            "lines_not_loaded": "Las líneas aún no están cargadas. Espere a que termine la carga.",
+            "empty_source": "No hay líneas cargadas para modificar.",
+            "missing_target": "No se encontró la línea solicitada.",
+            "unexpected_delete_count": "No se pudo eliminar la línea de forma segura. Recargue la página.",
+            "unexpected_update_count": "No se pudo actualizar la línea de forma segura. Recargue la página.",
+            "unexpected_add_count": "No se pudo añadir la línea de forma segura. Recargue la página."
+          }
+        },
         "columns": {
           "service": "Servicio",
           "category": "Categoría",
@@ -4731,8 +4788,8 @@
         "states": {
           "draft": "Borrador",
           "new": "Nuevo",
-          "pending_approval": "Pendiente",
-          "approved": "Aprobado",
+          "pending_approval": "En revisión",
+          "approved": "Autorizado",
           "active": "Activo",
           "amended": "Modificado",
           "completed": "Completado",
@@ -4744,13 +4801,14 @@
           "waived": "Exonerado"
         },
         "actions": {
-          "submit": "Enviar",
-          "approve": "Aprobar",
-          "activate": "Activar",
+          "submit": "Enviar para revisión",
+          "approve": "Autorizar acuerdo",
+          "activate": "Activar acuerdo",
+          "approveAndActivate": "Autorizar y activar",
           "cancel": "Cancelar",
           "cancelFuture": "Cancelar cuotas futuras",
-          "submitSuccess": "Acuerdo enviado.",
-          "approveSuccess": "Acuerdo aprobado.",
+          "submitSuccess": "Acuerdo enviado para revisión.",
+          "approveSuccess": "Acuerdo autorizado.",
           "activateSuccess": "Acuerdo activado.",
           "cancelSuccess": "Acuerdo cancelado."
         },

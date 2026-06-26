@@ -4612,8 +4612,8 @@
         }
       },
       "financialAgreement": {
-        "pageTitle": "Special financial agreement",
-        "pageDescription": "The special financial agreement is used for individual discounts, waivers, rescheduling, and exceptional terms. General fees come from the fee plan applied to the student.",
+        "pageTitle": "Fee agreement",
+        "pageDescription": "The fee agreement customizes this student's fees before activation. The original fee plan stays a shared template and is not edited here.",
         "inactiveWarning": "This agreement is inactive. Its installments are not collectible obligations unless the backend confirms otherwise.",
         "create": "Create financial agreement",
         "applyFeePlan": "Apply fee plan",
@@ -4624,10 +4624,10 @@
         "noIndependentAgreementTitle": "No standalone financial agreement for this student.",
         "noIndependentAgreementDesc": "Apply a fee plan or create a manual agreement for special cases.",
         "billingPartyTitle": "Payer",
-        "linesTitle": "Services & agreement lines",
+        "linesTitle": "Agreement lines",
         "noLines": "No services added yet.",
         "noLinesDesc": "Add services from the catalog to build the agreement.",
-        "scheduleTitle": "Agreement schedule",
+        "scheduleTitle": "Installment schedule",
         "noSchedule": "No schedule generated yet.",
         "noScheduleDesc": "Installments will appear after services are added and the schedule is generated.",
         "noBillingParty": "No billing party assigned",
@@ -4707,6 +4707,63 @@
           "title": "Enrollment customizations",
           "description": "These customizations were applied when the agreement was created and are not later adjustments."
         },
+        "customization": {
+          "sectionTitle": "Customize agreement before activation",
+          "sectionDesc": "You can edit this agreement's lines before it becomes official and collectible. The original fee plan is unchanged.",
+          "addLine": "Add line to agreement",
+          "editLine": "Edit line",
+          "deleteLine": "Remove line from agreement",
+          "deleteConfirm": "This line will be removed from this student's agreement only. The original fee plan will not change.",
+          "addLineTitle": "Add line to agreement",
+          "editLineTitle": "Edit line",
+          "lineAdded": "Line added to the agreement.",
+          "lineUpdated": "Line updated. Review the installment schedule before activating the agreement.",
+          "lineDeleted": "Line removed from the agreement.",
+          "scheduleRefreshRequired": "Agreement lines were changed. Preview or regenerate the installment schedule before activation.",
+          "previewSchedule": "Preview installment schedule",
+          "regenerateSchedule": "Regenerate installment schedule",
+          "previewTitle": "Installment schedule preview",
+          "previewTotal": "Preview total: {total}",
+          "previewReady": "Installment schedule preview is ready.",
+          "scheduleUpdated": "Installment schedule updated.",
+          "activeAgreementNotice": "This agreement is active and official. Further changes require a documented adjustment or a new agreement.",
+          "emptyLinesDesc": "Add lines to this student's agreement from the fee catalog.",
+          "fields": {
+            "feeType": "Fee type",
+            "unitPrice": "Price",
+            "quantity": "Quantity or periods",
+            "discountType": "Discount type",
+            "discountValue": "Discount value",
+            "reason": "Customization reason"
+          },
+          "columns": {
+            "lineName": "Line name",
+            "billingMode": "Billing mode",
+            "originalPrice": "Original price",
+            "quantity": "Quantity or periods",
+            "discount": "Discount",
+            "net": "Net",
+            "expectedInstallments": "Expected installment total"
+          },
+          "billingMode": {
+            "oneTime": "One-time",
+            "monthly": "Monthly",
+            "periodic": "Periodic",
+            "unknown": "Unspecified"
+          },
+          "errors": {
+            "serviceRequired": "Select a fee type.",
+            "reasonRequired": "Customization reason is required.",
+            "priceRequired": "Enter a valid price.",
+            "incomplete_patchable_lines": "Could not prepare lines for save. Reload the page and try again.",
+            "lines_not_loaded": "Agreement lines are not loaded yet. Wait for loading to finish before saving.",
+            "empty_source": "No loaded lines to modify.",
+            "missing_target": "The requested line could not be found.",
+            "unexpected_delete_count": "Could not delete the line safely. Reload the page.",
+            "unexpected_update_count": "Could not update the line safely. Reload the page.",
+            "unexpected_add_count": "Could not add the line safely. Reload the page."
+          }
+        },
         "columns": {
           "service": "Service",
           "category": "Category",
@@ -4736,8 +4793,8 @@
         "states": {
           "draft": "Draft",
           "new": "New",
-          "pending_approval": "Pending approval",
-          "approved": "Approved",
+          "pending_approval": "Under review",
+          "approved": "Authorized",
           "active": "Active",
           "amended": "Amended",
           "completed": "Completed",
@@ -4749,13 +4806,14 @@
           "waived": "Waived"
         },
         "actions": {
-          "submit": "Submit",
-          "approve": "Approve",
-          "activate": "Activate",
+          "submit": "Submit for review",
+          "approve": "Authorize agreement",
+          "activate": "Activate agreement",
+          "approveAndActivate": "Authorize and activate",
           "cancel": "Cancel agreement",
           "cancelFuture": "Cancel future installments",
-          "submitSuccess": "Agreement submitted.",
-          "approveSuccess": "Agreement approved.",
+          "submitSuccess": "Agreement submitted for review.",
+          "approveSuccess": "Agreement authorized.",
           "activateSuccess": "Agreement activated.",
           "cancelSuccess": "Agreement cancelled."
         },

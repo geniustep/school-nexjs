@@ -92,6 +92,7 @@ export interface FinancialAgreementLine {
   id?: number;
   service_id?: number;
   service?: Ref & { category?: string; code?: string };
+  service_name?: string;
   tariff_id?: number | null;
   tariff?: Ref | null;
   commitment_type?: string;
@@ -101,6 +102,8 @@ export interface FinancialAgreementLine {
   quantity?: number;
   unit_price?: number;
   gross_amount?: number;
+  discount_type?: string | null;
+  discount_value?: number | null;
   discount_amount?: number;
   net_amount?: number;
   is_mandatory?: boolean;
@@ -409,6 +412,7 @@ export interface UpdateFinancialAgreementPayload {
   discount_reason?: string | null;
   schedule_policies?: Partial<AgreementSchedulePolicies>;
   lines?: Partial<FinancialAgreementLine>[];
+  line_ids_to_delete?: number[];
 }
 
 export interface InstallmentListParams extends ListParams {

@@ -71,7 +71,7 @@ export interface StudentFinanceActionState {
 const T = {
   reviewDraft: 'admin.student360.financeWorkspace.actionState.reviewDraft',
   reviewAgreement: 'admin.student360.financeWorkspace.actionState.reviewAgreement',
-  // Reuse the accurate existing label ("إرسال للاعتماد") — never mislabel the safe submit step.
+  // Reuse the accurate existing label for the safe submit step.
   activateAgreement: 'admin.student360.financialAgreement.actions.submit',
   createAgreement: 'admin.student360.financeWorkspace.actionState.createAgreement',
   blockedByDraft: 'admin.student360.financeWorkspace.actionState.blockedByDraft',

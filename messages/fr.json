@@ -4607,8 +4607,8 @@
         }
       },
       "financialAgreement": {
-        "pageTitle": "Accord financier spécial",
-        "pageDescription": "L'accord financier spécial sert aux remises individuelles, dispenses, rééchelonnements et conditions exceptionnelles. Les frais généraux proviennent du plan appliqué à l'élève.",
+        "pageTitle": "Accord de frais",
+        "pageDescription": "L'accord de frais personnalise les frais de cet élève avant activation. Le plan de frais d'origine reste un modèle partagé et n'est pas modifié ici.",
         "inactiveWarning": "Cet accord est inactif. Ses échéances ne constituent pas une obligation encaissable sauf confirmation du backend.",
         "create": "Créer un accord financier",
         "applyFeePlan": "Appliquer un plan de frais",
@@ -4619,7 +4619,7 @@
         "noIndependentAgreementTitle": "Aucun accord financier distinct pour cet élève.",
         "noIndependentAgreementDesc": "Appliquez un plan de frais ou créez un accord manuel pour les cas particuliers.",
         "billingPartyTitle": "Payeur",
-        "linesTitle": "Services et lignes",
+        "linesTitle": "Lignes de l'accord",
         "noLines": "Aucun service ajouté.",
         "noLinesDesc": "Ajoutez des services du catalogue pour construire l'accord.",
         "scheduleTitle": "Calendrier de l'accord",
@@ -4702,6 +4702,63 @@
           "title": "Enrollment customizations",
           "description": "These customizations were applied when the agreement was created."
         },
+        "customization": {
+          "sectionTitle": "Personnaliser l'accord avant activation",
+          "sectionDesc": "Vous pouvez modifier les lignes de cet accord avant qu'il ne devienne officiel et encaissable. Le plan de frais d'origine reste inchangé.",
+          "addLine": "Ajouter une ligne à l'accord",
+          "editLine": "Modifier la ligne",
+          "deleteLine": "Retirer la ligne de l'accord",
+          "deleteConfirm": "Cette ligne sera retirée de l'accord de cet élève uniquement. Le plan de frais d'origine ne changera pas.",
+          "addLineTitle": "Ajouter une ligne à l'accord",
+          "editLineTitle": "Modifier la ligne",
+          "lineAdded": "Ligne ajoutée à l'accord.",
+          "lineUpdated": "Ligne mise à jour. Revoyez le calendrier d'échéances avant d'activer l'accord.",
+          "lineDeleted": "Ligne retirée de l'accord.",
+          "scheduleRefreshRequired": "Les lignes de l'accord ont été modifiées. Prévisualisez ou régénérez le calendrier avant l'activation.",
+          "previewSchedule": "Prévisualiser le calendrier",
+          "regenerateSchedule": "Régénérer le calendrier",
+          "previewTitle": "Aperçu du calendrier",
+          "previewTotal": "Total de l'aperçu : {total}",
+          "previewReady": "Aperçu du calendrier prêt.",
+          "scheduleUpdated": "Calendrier mis à jour.",
+          "activeAgreementNotice": "Cet accord est actif et officiel. Toute modification ultérieure nécessite un ajustement documenté ou un nouvel accord.",
+          "emptyLinesDesc": "Ajoutez des lignes à l'accord de cet élève depuis le catalogue des frais.",
+          "fields": {
+            "feeType": "Type de frais",
+            "unitPrice": "Prix",
+            "quantity": "Quantité ou périodes",
+            "discountType": "Type de remise",
+            "discountValue": "Valeur de remise",
+            "reason": "Motif de personnalisation"
+          },
+          "columns": {
+            "lineName": "Nom de la ligne",
+            "billingMode": "Mode de facturation",
+            "originalPrice": "Prix d'origine",
+            "quantity": "Quantité ou périodes",
+            "discount": "Remise",
+            "net": "Net",
+            "expectedInstallments": "Total d'échéances prévu"
+          },
+          "billingMode": {
+            "oneTime": "Unique",
+            "monthly": "Mensuel",
+            "periodic": "Périodique",
+            "unknown": "Non spécifié"
+          },
+          "errors": {
+            "serviceRequired": "Sélectionnez un type de frais.",
+            "reasonRequired": "Le motif de personnalisation est obligatoire.",
+            "priceRequired": "Saisissez un prix valide.",
+            "incomplete_patchable_lines": "Impossible de préparer les lignes. Rechargez la page puis réessayez.",
+            "lines_not_loaded": "Les lignes ne sont pas encore chargées. Attendez la fin du chargement.",
+            "empty_source": "Aucune ligne chargée à modifier.",
+            "missing_target": "Ligne introuvable.",
+            "unexpected_delete_count": "Suppression non sécurisée. Rechargez la page.",
+            "unexpected_update_count": "Mise à jour non sécurisée. Rechargez la page.",
+            "unexpected_add_count": "Ajout non sécurisé. Rechargez la page."
+          }
+        },
         "columns": {
           "service": "Service",
           "category": "Catégorie",
@@ -4731,8 +4788,8 @@
         "states": {
           "draft": "Brouillon",
           "new": "Nouveau",
-          "pending_approval": "En attente",
-          "approved": "Approuvé",
+          "pending_approval": "En cours de revue",
+          "approved": "Autorisé",
           "active": "Actif",
           "amended": "Modifié",
           "completed": "Terminé",
@@ -4744,13 +4801,14 @@
           "waived": "Dispensé"
         },
         "actions": {
-          "submit": "Soumettre",
-          "approve": "Approuver",
-          "activate": "Activer",
+          "submit": "Envoyer pour revue",
+          "approve": "Autoriser l'accord",
+          "activate": "Activer l'accord",
+          "approveAndActivate": "Autoriser et activer",
           "cancel": "Annuler",
           "cancelFuture": "Annuler échéances futures",
-          "submitSuccess": "Accord soumis.",
-          "approveSuccess": "Accord approuvé.",
+          "submitSuccess": "Accord envoyé pour revue.",
+          "approveSuccess": "Accord autorisé.",
           "activateSuccess": "Accord activé.",
           "cancelSuccess": "Accord annulé."
         },
