@@ -5383,6 +5383,89 @@
           "blockedMessage": "لا يمكن تسجيل دفعة قبل وجود اتفاق مالي نشط.",
           "blockedDraftMessage": "اعتمد الاتفاق المالي أولًا قبل تسجيل الدفعات."
         },
+        "agreementContext": {
+          "sectionAria": "سياق الاتفاق المالي وخطة الرسوم",
+          "feePlanTitle": "خطة الرسوم",
+          "statusTitle": "حالة الاتفاق المالي",
+          "operationsHistoryTitle": "سجل العمليات المالية",
+          "noValidFeePlan": "لم يتم ربط خطة رسوم صالحة بعد",
+          "performedByLabel": "بواسطة",
+          "performedByUser": "بواسطة: {user}",
+          "performedBySystem": "بواسطة: النظام",
+          "performedByUnavailable": "المستخدم غير متاح",
+          "collectBlockedBeforeAgreement": "لا يمكن تسجيل تحصيل قبل إنشاء أو تفعيل اتفاق مالي صحيح.",
+          "collectBlockedBeforeActivation": "لا يمكن تسجيل تحصيل قبل تفعيل الاتفاق.",
+          "collectNeedsFinanceReview": "تحتاج المالية إلى مراجعة قبل التحصيل.",
+          "status": {
+            "active": "نشط",
+            "draft": "مسودة",
+            "pendingApproval": "بانتظار الاعتماد",
+            "approved": "معتمد",
+            "cancelled": "ملغى",
+            "requiresReview": "يحتاج مراجعة",
+            "none": "لا يوجد اتفاق"
+          },
+          "fields": {
+            "feePlanName": "اسم خطة الرسوم",
+            "feePlanId": "معرف خطة الرسوم",
+            "cycle": "الدورة",
+            "level": "المستوى",
+            "class": "القسم",
+            "agreementNumber": "رقم الاتفاق",
+            "agreementState": "حالة الاتفاق",
+            "validFrom": "ساري من",
+            "validUntil": "ساري إلى",
+            "grossAmount": "المبلغ الإجمالي",
+            "discountAmount": "التخفيض",
+            "netAmount": "الصافي",
+            "remainingAmount": "المتبقي"
+          },
+          "operations": {
+            "unavailable": "لا يتوفر سجل عمليات مفصل من الخادم بعد.",
+            "empty": "لا توجد عمليات مسجلة في السجل.",
+            "columns": {
+              "date": "التاريخ",
+              "type": "نوع العملية",
+              "description": "الوصف",
+              "state": "الحالة",
+              "reference": "المرجع"
+            },
+            "types": {
+              "create_agreement": "إنشاء اتفاق",
+              "update_agreement": "تعديل اتفاق",
+              "cancel_agreement": "إلغاء اتفاق",
+              "activate_agreement": "تفعيل اتفاق",
+              "generate_installments": "توليد أقساط",
+              "record_collection": "تسجيل تحصيل",
+              "issue_receipt": "إصدار إيصال",
+              "reverse_operation": "إلغاء/عكس عملية",
+              "reset_financial_agreement": "إعادة ضبط اتفاق مالي",
+              "unknown": "عملية"
+            }
+          },
+          "actions": {
+            "createFinancialAgreement": "إنشاء اتفاق مالي",
+            "resetFinancialAgreement": "إعادة ضبط الاتفاق المالي",
+            "customizeAgreement": "تخصيص الاتفاق",
+            "submitForReview": "إرسال للمراجعة",
+            "activateAgreement": "تفعيل الاتفاق",
+            "cancelAgreement": "إلغاء الاتفاق",
+            "createAmendment": "إنشاء تعديل على الاتفاق",
+            "addServiceFromDate": "إضافة خدمة من تاريخ",
+            "stopServiceFromDate": "إيقاف خدمة من تاريخ",
+            "rescheduleRemaining": "إعادة جدولة المتبقي",
+            "terminateFromDate": "إنهاء الاتفاق من تاريخ",
+            "futureDatedAmendmentUnavailable": "سيتوفر بعد تفعيل مسار التعديل المؤرخ."
+          },
+          "reset": {
+            "title": "إعادة ضبط الاتفاق المالي",
+            "reason": "يوجد اتفاق ملغى أو غير صالح يمنع التحصيل.",
+            "reasonField": "سبب إعادة الضبط",
+            "reasonRequired": "سبب إعادة الضبط مطلوب.",
+            "serverUnavailable": "هذا الإجراء يحتاج تفعيلًا من الخادم.",
+            "success": "تم طلب إعادة ضبط الاتفاق المالي."
+          }
+        },
         "inactiveAgreementReference": {
           "title": "اتفاق سابق غير نشط",
           "stateLabel": "الحالة",

@@ -5342,6 +5342,89 @@
           "blockedMessage": "No se puede registrar un pago hasta que exista un acuerdo financiero activo.",
           "blockedDraftMessage": "Aprueba el acuerdo financiero antes de registrar pagos."
         },
+        "agreementContext": {
+          "sectionAria": "Contexto del acuerdo financiero y plan de cuotas",
+          "feePlanTitle": "Plan de cuotas",
+          "statusTitle": "Estado del acuerdo financiero",
+          "operationsHistoryTitle": "Historial de operaciones financieras",
+          "noValidFeePlan": "Aún no se ha vinculado un plan de cuotas válido",
+          "performedByLabel": "Por",
+          "performedByUser": "Por: {user}",
+          "performedBySystem": "Por: Sistema",
+          "performedByUnavailable": "Usuario no disponible",
+          "collectBlockedBeforeAgreement": "No se puede registrar cobro antes de crear o activar un acuerdo financiero válido.",
+          "collectBlockedBeforeActivation": "No se puede registrar cobro antes de activar el acuerdo.",
+          "collectNeedsFinanceReview": "Se requiere revisión financiera antes del cobro.",
+          "status": {
+            "active": "Activo",
+            "draft": "Borrador",
+            "pendingApproval": "Pendiente de aprobación",
+            "approved": "Aprobado",
+            "cancelled": "Cancelado",
+            "requiresReview": "Necesita revisión",
+            "none": "Sin acuerdo"
+          },
+          "fields": {
+            "feePlanName": "Nombre del plan de cuotas",
+            "feePlanId": "ID del plan de cuotas",
+            "cycle": "Ciclo",
+            "level": "Nivel",
+            "class": "Clase",
+            "agreementNumber": "Número de acuerdo",
+            "agreementState": "Estado del acuerdo",
+            "validFrom": "Válido desde",
+            "validUntil": "Válido hasta",
+            "grossAmount": "Importe bruto",
+            "discountAmount": "Descuento",
+            "netAmount": "Importe neto",
+            "remainingAmount": "Importe pendiente"
+          },
+          "operations": {
+            "unavailable": "El historial detallado de operaciones aún no está disponible en el servidor.",
+            "empty": "No hay operaciones registradas en el historial.",
+            "columns": {
+              "date": "Fecha",
+              "type": "Tipo de operación",
+              "description": "Descripción",
+              "state": "Estado",
+              "reference": "Referencia"
+            },
+            "types": {
+              "create_agreement": "Crear acuerdo",
+              "update_agreement": "Modificar acuerdo",
+              "cancel_agreement": "Cancelar acuerdo",
+              "activate_agreement": "Activar acuerdo",
+              "generate_installments": "Generar cuotas",
+              "record_collection": "Registrar cobro",
+              "issue_receipt": "Emitir recibo",
+              "reverse_operation": "Anular/revertir operación",
+              "reset_financial_agreement": "Restablecer acuerdo financiero",
+              "unknown": "Operación"
+            }
+          },
+          "actions": {
+            "createFinancialAgreement": "Crear acuerdo financiero",
+            "resetFinancialAgreement": "Restablecer acuerdo financiero",
+            "customizeAgreement": "Personalizar acuerdo",
+            "submitForReview": "Enviar a revisión",
+            "activateAgreement": "Activar acuerdo",
+            "cancelAgreement": "Cancelar acuerdo",
+            "createAmendment": "Crear enmienda del acuerdo",
+            "addServiceFromDate": "Añadir servicio desde fecha",
+            "stopServiceFromDate": "Detener servicio desde fecha",
+            "rescheduleRemaining": "Reprogramar saldo pendiente",
+            "terminateFromDate": "Terminar acuerdo desde fecha",
+            "futureDatedAmendmentUnavailable": "Disponible cuando el servidor habilite el flujo de enmiendas fechadas."
+          },
+          "reset": {
+            "title": "Restablecer acuerdo financiero",
+            "reason": "Un acuerdo cancelado o no válido impide el cobro.",
+            "reasonField": "Motivo del restablecimiento",
+            "reasonRequired": "El motivo del restablecimiento es obligatorio.",
+            "serverUnavailable": "Esta acción requiere habilitación en el servidor.",
+            "success": "Se solicitó restablecer el acuerdo financiero."
+          }
+        },
         "inactiveAgreementReference": {
           "title": "Acuerdo anterior inactivo",
           "stateLabel": "Estado",

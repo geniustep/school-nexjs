@@ -5342,6 +5342,89 @@
           "blockedMessage": "Impossible d'enregistrer un paiement tant qu'il n'existe pas d'accord financier actif.",
           "blockedDraftMessage": "Approuvez l'accord financier avant d'enregistrer des paiements."
         },
+        "agreementContext": {
+          "sectionAria": "Contexte de l'accord financier et du plan de frais",
+          "feePlanTitle": "Plan de frais",
+          "statusTitle": "Statut de l'accord financier",
+          "operationsHistoryTitle": "Historique des opérations financières",
+          "noValidFeePlan": "Aucun plan de frais valide n'a encore été associé",
+          "performedByLabel": "Par",
+          "performedByUser": "Par : {user}",
+          "performedBySystem": "Par : Système",
+          "performedByUnavailable": "Utilisateur indisponible",
+          "collectBlockedBeforeAgreement": "Le recouvrement ne peut pas être enregistré avant la création ou l'activation d'un accord financier valide.",
+          "collectBlockedBeforeActivation": "Le recouvrement ne peut pas être enregistré avant l'activation de l'accord.",
+          "collectNeedsFinanceReview": "Une revue financière est nécessaire avant le recouvrement.",
+          "status": {
+            "active": "Actif",
+            "draft": "Brouillon",
+            "pendingApproval": "En attente d'approbation",
+            "approved": "Approuvé",
+            "cancelled": "Annulé",
+            "requiresReview": "Nécessite une revue",
+            "none": "Aucun accord"
+          },
+          "fields": {
+            "feePlanName": "Nom du plan de frais",
+            "feePlanId": "ID du plan de frais",
+            "cycle": "Cycle",
+            "level": "Niveau",
+            "class": "Classe",
+            "agreementNumber": "Numéro d'accord",
+            "agreementState": "Statut de l'accord",
+            "validFrom": "Valide à partir de",
+            "validUntil": "Valide jusqu'au",
+            "grossAmount": "Montant brut",
+            "discountAmount": "Remise",
+            "netAmount": "Montant net",
+            "remainingAmount": "Montant restant"
+          },
+          "operations": {
+            "unavailable": "L'historique détaillé des opérations n'est pas encore disponible côté serveur.",
+            "empty": "Aucune opération n'est enregistrée dans l'historique.",
+            "columns": {
+              "date": "Date",
+              "type": "Type d'opération",
+              "description": "Description",
+              "state": "Statut",
+              "reference": "Référence"
+            },
+            "types": {
+              "create_agreement": "Créer un accord",
+              "update_agreement": "Modifier un accord",
+              "cancel_agreement": "Annuler un accord",
+              "activate_agreement": "Activer un accord",
+              "generate_installments": "Générer les échéances",
+              "record_collection": "Enregistrer un recouvrement",
+              "issue_receipt": "Émettre un reçu",
+              "reverse_operation": "Annuler/inverser une opération",
+              "reset_financial_agreement": "Réinitialiser l'accord financier",
+              "unknown": "Opération"
+            }
+          },
+          "actions": {
+            "createFinancialAgreement": "Créer un accord financier",
+            "resetFinancialAgreement": "Réinitialiser l'accord financier",
+            "customizeAgreement": "Personnaliser l'accord",
+            "submitForReview": "Envoyer pour revue",
+            "activateAgreement": "Activer l'accord",
+            "cancelAgreement": "Annuler l'accord",
+            "createAmendment": "Créer un avenant",
+            "addServiceFromDate": "Ajouter un service à partir d'une date",
+            "stopServiceFromDate": "Arrêter un service à partir d'une date",
+            "rescheduleRemaining": "Replanifier le solde restant",
+            "terminateFromDate": "Terminer l'accord à partir d'une date",
+            "futureDatedAmendmentUnavailable": "Disponible après activation du flux d'avenant daté côté serveur."
+          },
+          "reset": {
+            "title": "Réinitialiser l'accord financier",
+            "reason": "Un accord annulé ou invalide bloque le recouvrement.",
+            "reasonField": "Motif de réinitialisation",
+            "reasonRequired": "Le motif de réinitialisation est obligatoire.",
+            "serverUnavailable": "Cette action nécessite une activation côté serveur.",
+            "success": "La réinitialisation de l'accord financier a été demandée."
+          }
+        },
         "inactiveAgreementReference": {
           "title": "Accord antérieur inactif",
           "stateLabel": "Statut",

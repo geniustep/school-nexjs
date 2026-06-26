@@ -202,7 +202,7 @@ export function StudentFinanceOverviewPanel({
                 <button type="button" className="btn btn--primary btn--sm" onClick={onOpenCollection}>
                   {t('admin.student360.financeWorkspace.actions.recordPayment')}
                 </button>
-              ) : canCollect ? (
+              ) : canCollect && !billingContext.shouldHideCollectButton ? (
                 <span
                   className="student-finance-collect-blocked"
                   title={

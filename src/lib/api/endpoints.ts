@@ -250,6 +250,8 @@ export const endpoints = {
       `/admin/students/${studentId}/finance/plan-preview`,
     studentFinanceAssignPlan: (studentId: number | string) =>
       `/admin/students/${studentId}/finance/assign-plan`,
+    studentFinanceResetAgreement: (studentId: number | string) =>
+      `/admin/students/${studentId}/finance/reset-financial-agreement`,
     financePaymentCollections: '/admin/finance/payment-collections',
     financePaymentCollectionPreview: '/admin/finance/payment-collections/preview',
     financePaymentCollection: (id: number | string) => `/admin/finance/payment-collections/${id}`,

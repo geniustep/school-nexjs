@@ -53,6 +53,7 @@ import { InactiveAgreementFinanceBanner } from './inactive-agreement-finance-ban
 import { resolveChangePlanVisibility } from '../utils/resolve-change-plan-visibility';
 import { AssignFinancePlanPanel } from './assign-finance-plan-panel';
 import { FinanceSetupStatePanel } from './finance-setup-state-panel';
+import { StudentFinanceAgreementContextPanel } from './student-finance-agreement-context-panel';
 import { resolveBillingContextPresentation } from '../utils/resolve-billing-context-presentation';
 import { resolveStudentFinanceActionState } from '../utils/resolve-student-finance-action-state';
 import { resolveFinanceSetupState } from '../utils/resolve-finance-setup-state';
@@ -309,6 +310,7 @@ export function StudentFinanceWorkspaceShell({
           : billingContext.collectBlockMessage ??
             (billingContext.collectBlockMessageKey ? t(billingContext.collectBlockMessageKey) : null)
       }
+      shouldHideCollectButton={billingContext.shouldHideCollectButton}
       onOpenSchedule={() => syncSubTabToUrl('schedule')}
       onOpenAgreements={() => syncSubTabToUrl('agreements')}
       onRecordPayment={() => setShowCollectionDrawer(true)}
@@ -507,7 +509,22 @@ export function StudentFinanceWorkspaceShell({
         )
       ) : (
         <>
-          {subTab === 'overview' ? <StudentFinanceOverviewPanel {...sharedPanelProps} /> : null}
+          {subTab === 'overview' ? (
+            <>
+              <StudentFinanceAgreementContextPanel
+                studentId={studentId}
+                details={details}
+                workspace={workspace}
+                financialOverview={financialOverviewState.data}
+                agreement={workspace?.current_agreement ?? null}
+                collectBlockReason={billingContext.collectBlockReason}
+                onOpenAgreements={() => syncSubTabToUrl('agreements')}
+                onCreateAgreement={() => syncSubTabToUrl('agreements')}
+                onRefresh={refreshFinanceData}
+              />
+              <StudentFinanceOverviewPanel {...sharedPanelProps} />
+            </>
+          ) : null}
           {subTab === 'fees' ? <StudentFinanceFeesPanel {...sharedPanelProps} /> : null}
           {subTab === 'agreements' ? (
             <StudentFinancialAgreementTab

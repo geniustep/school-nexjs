@@ -219,3 +219,15 @@ export async function applyStudentChangePlan(
     query,
   );
 }
+
+export async function postResetFinancialAgreement(
+  studentId: number | string,
+  payload: { reason: string },
+  query?: ListParams,
+): Promise<ApiResponse<unknown>> {
+  return api.post<unknown>(
+    endpoints.admin.studentFinanceResetAgreement(studentId),
+    payload,
+    query,
+  );
+}

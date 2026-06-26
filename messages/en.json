@@ -5347,6 +5347,89 @@
           "blockedMessage": "Payments cannot be recorded until an active financial agreement exists.",
           "blockedDraftMessage": "Approve the financial agreement before recording payments."
         },
+        "agreementContext": {
+          "sectionAria": "Financial agreement and fee plan context",
+          "feePlanTitle": "Fee plan",
+          "statusTitle": "Financial agreement status",
+          "operationsHistoryTitle": "Financial operations history",
+          "noValidFeePlan": "No valid fee plan has been linked yet",
+          "performedByLabel": "Performed by",
+          "performedByUser": "By: {user}",
+          "performedBySystem": "By: System",
+          "performedByUnavailable": "User unavailable",
+          "collectBlockedBeforeAgreement": "Collection cannot be recorded until a valid financial agreement is created or activated.",
+          "collectBlockedBeforeActivation": "Collection cannot be recorded until the agreement is activated.",
+          "collectNeedsFinanceReview": "Finance review is required before collection.",
+          "status": {
+            "active": "Active",
+            "draft": "Draft",
+            "pendingApproval": "Pending approval",
+            "approved": "Approved",
+            "cancelled": "Cancelled",
+            "requiresReview": "Needs review",
+            "none": "No agreement"
+          },
+          "fields": {
+            "feePlanName": "Fee plan name",
+            "feePlanId": "Fee plan ID",
+            "cycle": "Cycle",
+            "level": "Level",
+            "class": "Class",
+            "agreementNumber": "Agreement number",
+            "agreementState": "Agreement state",
+            "validFrom": "Valid from",
+            "validUntil": "Valid until",
+            "grossAmount": "Gross amount",
+            "discountAmount": "Discount",
+            "netAmount": "Net amount",
+            "remainingAmount": "Remaining amount"
+          },
+          "operations": {
+            "unavailable": "Detailed operation history is not available from the server yet.",
+            "empty": "No operations are recorded in the history.",
+            "columns": {
+              "date": "Date",
+              "type": "Operation type",
+              "description": "Description",
+              "state": "Status",
+              "reference": "Reference"
+            },
+            "types": {
+              "create_agreement": "Create agreement",
+              "update_agreement": "Update agreement",
+              "cancel_agreement": "Cancel agreement",
+              "activate_agreement": "Activate agreement",
+              "generate_installments": "Generate installments",
+              "record_collection": "Record collection",
+              "issue_receipt": "Issue receipt",
+              "reverse_operation": "Reverse operation",
+              "reset_financial_agreement": "Reset financial agreement",
+              "unknown": "Operation"
+            }
+          },
+          "actions": {
+            "createFinancialAgreement": "Create financial agreement",
+            "resetFinancialAgreement": "Reset financial agreement",
+            "customizeAgreement": "Customize agreement",
+            "submitForReview": "Send for review",
+            "activateAgreement": "Activate agreement",
+            "cancelAgreement": "Cancel agreement",
+            "createAmendment": "Create agreement amendment",
+            "addServiceFromDate": "Add service from date",
+            "stopServiceFromDate": "Stop service from date",
+            "rescheduleRemaining": "Reschedule remaining balance",
+            "terminateFromDate": "Terminate agreement from date",
+            "futureDatedAmendmentUnavailable": "Available after the dated amendment workflow is enabled on the server."
+          },
+          "reset": {
+            "title": "Reset financial agreement",
+            "reason": "A cancelled or invalid agreement is blocking collection.",
+            "reasonField": "Reset reason",
+            "reasonRequired": "Reset reason is required.",
+            "serverUnavailable": "This action requires server-side enablement.",
+            "success": "Financial agreement reset was requested."
+          }
+        },
         "inactiveAgreementReference": {
           "title": "Previous inactive agreement",
           "stateLabel": "Status",

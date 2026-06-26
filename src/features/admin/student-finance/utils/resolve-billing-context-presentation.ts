@@ -1,5 +1,6 @@
 import type { StudentFinanceWorkspace } from '../types';
 import { normalizeReferenceValue } from './reference-labels';
+import { resolveFinanceCollectBlockPresentation } from './resolve-finance-collect-block-presentation';
 
 export type BillingContextMode =
   | 'active_agreement'
@@ -23,6 +24,8 @@ export interface BillingContextPresentation {
   collectPaymentAllowed: boolean;
   collectBlockMessage: string | null;
   collectBlockMessageKey: string | null;
+  collectBlockReason: string | null;
+  shouldHideCollectButton: boolean;
   billingContextHeadlineKey: string | null;
   showNoActiveAgreement: boolean;
 }
@@ -62,9 +65,23 @@ function resolveCollectPaymentAllowed(
   return true;
 }
 
+function resolveCollectBlockReason(workspace?: StudentFinanceWorkspace | null): string | null {
+  const gateReason = workspace?.collection_gate?.collect_block_reason;
+  if (typeof gateReason === 'string' && gateReason.trim()) return gateReason.trim();
+  if (workspace?.allowed_actions?.collect_payment === false) {
+    return 'agreement_not_active';
+  }
+  return null;
+}
+
 function resolveCollectBlockMessage(
   workspace?: StudentFinanceWorkspace | null,
-): { apiMessage: string | null; messageKey: string | null } {
+): {
+  apiMessage: string | null;
+  messageKey: string | null;
+  reason: string | null;
+  shouldHideCollectButton: boolean;
+} {
   const apiMessage =
     (typeof workspace?.allowed_actions?.collect_block_message === 'string'
       ? workspace.allowed_actions.collect_block_message.trim()
@@ -73,26 +90,28 @@ function resolveCollectBlockMessage(
       ? workspace.collection_gate.collect_block_message.trim()
       : null);
 
-  if (apiMessage) {
-    return { apiMessage, messageKey: null };
-  }
+  const reason = resolveCollectBlockReason(workspace);
+  const presentation = resolveFinanceCollectBlockPresentation({
+    workspace,
+    collectBlockReason: reason,
+    collectBlockMessage: apiMessage,
+  });
 
-  const reason = workspace?.collection_gate?.collect_block_reason;
-  if (reason === 'active_agreement_required') {
+  if (apiMessage && !presentation.messageKey) {
     return {
-      apiMessage: null,
-      messageKey: 'admin.student360.financeWorkspace.collectPayment.blockedMessage',
+      apiMessage,
+      messageKey: null,
+      reason,
+      shouldHideCollectButton: presentation.shouldHideCollectButton,
     };
   }
 
-  if (workspace?.allowed_actions?.collect_payment === false) {
-    return {
-      apiMessage: null,
-      messageKey: 'admin.student360.financeWorkspace.collectPayment.blockedMessage',
-    };
-  }
-
-  return { apiMessage: null, messageKey: null };
+  return {
+    apiMessage,
+    messageKey: presentation.messageKey,
+    reason,
+    shouldHideCollectButton: presentation.shouldHideCollectButton,
+  };
 }
 
 function resolveRepairRecommendedActionKey(
@@ -166,6 +185,8 @@ export function resolveBillingContextPresentation(input: {
     ),
     collectBlockMessage: collectBlock.apiMessage,
     collectBlockMessageKey: collectBlock.messageKey,
+    collectBlockReason: collectBlock.reason,
+    shouldHideCollectButton: collectBlock.shouldHideCollectButton,
     billingContextHeadlineKey: resolveBillingContextHeadlineKey(workspace, hasActiveAgreement),
     showNoActiveAgreement: !hasActiveAgreement,
   };

@@ -34,6 +34,8 @@ function billing(overrides: Partial<BillingContextPresentation> = {}): BillingCo
     collectPaymentAllowed: false,
     collectBlockMessage: null,
     collectBlockMessageKey: null,
+    collectBlockReason: null,
+    shouldHideCollectButton: false,
     billingContextHeadlineKey: null,
     showNoActiveAgreement: true,
     ...overrides,

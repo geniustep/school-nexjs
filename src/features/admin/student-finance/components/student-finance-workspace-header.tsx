@@ -17,6 +17,7 @@ export function StudentFinanceWorkspaceHeader({
   collectPaymentAllowed,
   allowInstallmentCollection = true,
   collectBlockMessage,
+  shouldHideCollectButton = false,
   onOpenSchedule,
   onOpenAgreements,
   onRecordPayment,
@@ -44,6 +45,7 @@ export function StudentFinanceWorkspaceHeader({
    */
   allowInstallmentCollection?: boolean;
   collectBlockMessage?: string | null;
+  shouldHideCollectButton?: boolean;
   onOpenSchedule: () => void;
   onOpenAgreements: () => void;
   onRecordPayment: () => void;
@@ -60,7 +62,11 @@ export function StudentFinanceWorkspaceHeader({
   const showSchedule = subTab !== 'schedule' && subTab !== 'agreements';
   const showAgreement = subTab !== 'agreements';
   const showCollectButton =
-    canCollect && allowInstallmentCollection && subTab !== 'agreements' && subTab !== 'ledger';
+    canCollect &&
+    allowInstallmentCollection &&
+    subTab !== 'agreements' &&
+    subTab !== 'ledger' &&
+    !shouldHideCollectButton;
   const showCollectEnabled = showCollectButton && collectPaymentAllowed !== false;
   const showCollectDisabled = showCollectButton && collectPaymentAllowed === false;
   const hasActions =
