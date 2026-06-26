@@ -4555,6 +4555,14 @@
           "total": "Importe total",
           "installmentCount": "Plazos",
           "allowedActions": "Acciones permitidas",
+          "actionLabels": {
+            "assign_plan": "Asignar plan",
+            "customize_plan": "Personalizar plan",
+            "select_other_plan": "Seleccionar otro plan",
+            "edit_plan": "Editar plan",
+            "preview_plan": "Vista previa del plan",
+            "confirm_plan": "Confirmar plan"
+          },
           "confirm": "Confirmar acuerdo financiero",
           "confirmTitle": "Confirmar acuerdo financiero",
           "confirmBody": "Se creará un acuerdo financiero para este alumno según el plan mostrado.",
@@ -4626,7 +4634,8 @@
           "billingParty": "Pagador",
           "partyType": "Tipo pagador",
           "relationship": "Parentesco",
-          "contact": "Contacto"
+          "contact": "Contacto",
+          "installmentCount": "Plazos"
         },
         "replaceDraftFromFees": "Reemplazar por acuerdo desde las tasas actuales",
         "replaceDraftConfirmTitle": "Reemplazar borrador vacío",
@@ -5181,7 +5190,11 @@
           "title": "Acuerdo anterior inactivo",
           "stateLabel": "Estado",
           "requiresReviewWarning": "Este acuerdo está inactivo y no puede usarse para cobros ni cambios. Cree un acuerdo nuevo a partir de las cuotas actuales o revise el expediente financiero.",
-          "createFromFeesAction": "Crear acuerdo financiero a partir de las cuotas actuales"
+          "createFromFeesAction": "Crear acuerdo financiero a partir de las cuotas actuales",
+          "draftTitle": "Acuerdo de cuotas en borrador",
+          "draftDesc": "Este acuerdo aún no está activo. Revise los importes y complete el siguiente paso.",
+          "noActionFromServer": "Este borrador no puede activarse desde la interfaz actual porque la acción de activación no está disponible en el servidor.",
+          "backToOverview": "Volver a la vista financiera"
         },
         "agreementStatus": {
           "noActive": "No hay acuerdo financiero activo",

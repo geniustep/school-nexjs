@@ -4639,7 +4639,8 @@
           "billingParty": "Payer",
           "partyType": "Payer type",
           "relationship": "Relationship",
-          "contact": "Contact"
+          "contact": "Contact",
+          "installmentCount": "Installments"
         },
         "replaceDraftFromFees": "Replace with agreement from current fees",
         "replaceDraftConfirmTitle": "Replace empty draft",
@@ -5194,7 +5195,11 @@
           "title": "Previous inactive agreement",
           "stateLabel": "Status",
           "requiresReviewWarning": "This agreement is inactive and cannot be used for collection or changes. Create a new agreement from current fees or review the financial file.",
-          "createFromFeesAction": "Create financial agreement from current fees"
+          "createFromFeesAction": "Create financial agreement from current fees",
+          "draftTitle": "Draft fee agreement",
+          "draftDesc": "This agreement is not yet active. Review the amounts and complete the next step.",
+          "noActionFromServer": "This draft cannot be activated from the current interface because the activation action is not available from the server.",
+          "backToOverview": "Back to financial overview"
         },
         "agreementStatus": {
           "noActive": "No active financial agreement",

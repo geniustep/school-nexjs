@@ -4555,6 +4555,14 @@
           "total": "Montant total",
           "installmentCount": "Échéances",
           "allowedActions": "Actions autorisées",
+          "actionLabels": {
+            "assign_plan": "Affecter le plan",
+            "customize_plan": "Personnaliser le plan",
+            "select_other_plan": "Choisir un autre plan",
+            "edit_plan": "Modifier le plan",
+            "preview_plan": "Aperçu du plan",
+            "confirm_plan": "Confirmer le plan"
+          },
           "confirm": "Confirmer l'accord financier",
           "confirmTitle": "Confirmer l'accord financier",
           "confirmBody": "Un accord financier sera créé pour cet élève selon le plan affiché.",
@@ -4626,7 +4634,8 @@
           "billingParty": "Payeur",
           "partyType": "Type payeur",
           "relationship": "Lien",
-          "contact": "Contact"
+          "contact": "Contact",
+          "installmentCount": "Échéances"
         },
         "replaceDraftFromFees": "Remplacer par un accord issu des frais actuels",
         "replaceDraftConfirmTitle": "Remplacer le brouillon vide",
@@ -5181,7 +5190,11 @@
           "title": "Accord antérieur inactif",
           "stateLabel": "Statut",
           "requiresReviewWarning": "Cet accord est inactif et ne peut pas être utilisé pour le recouvrement ou les modifications. Créez un nouvel accord à partir des frais actuels ou révisez le dossier financier.",
-          "createFromFeesAction": "Créer un accord financier à partir des frais actuels"
+          "createFromFeesAction": "Créer un accord financier à partir des frais actuels",
+          "draftTitle": "Accord de frais en brouillon",
+          "draftDesc": "Cet accord n'est pas encore actif. Vérifiez les montants puis effectuez l'étape suivante.",
+          "noActionFromServer": "Ce brouillon ne peut pas être activé depuis l'interface actuelle car l'action d'activation n'est pas disponible depuis le serveur.",
+          "backToOverview": "Retour à la vue financière"
         },
         "agreementStatus": {
           "noActive": "Aucun accord financier actif",

@@ -153,6 +153,18 @@ export function StudentFinancialAgreementTab({
 
   const reviewDraftState = useFinancialAgreement(orphanCurrentFeesDraftId, !!orphanCurrentFeesDraftId);
 
+  // Load full detail when the workspace exposes an actionable inactive agreement
+  // (draft / pending_approval / approved) so the UI can surface action buttons.
+  const inactiveDraftId =
+    workspace?.inactive_agreement != null &&
+    typeof workspace.inactive_agreement.id === 'number' &&
+    (workspace.inactive_agreement.state === 'draft' ||
+      workspace.inactive_agreement.state === 'pending_approval' ||
+      workspace.inactive_agreement.state === 'approved')
+      ? workspace.inactive_agreement.id
+      : null;
+  const inactiveDraftDetailState = useFinancialAgreement(inactiveDraftId, !!inactiveDraftId);
+
   const phase = resolveFinanceTabLoadPhase({
     yearsLoading: refState.loading,
     effectiveYearId,
@@ -177,8 +189,9 @@ export function StudentFinancialAgreementTab({
     workspaceState.reload();
     agreementState.reload();
     if (orphanCurrentFeesDraftId) reviewDraftState.reload();
+    if (inactiveDraftId) inactiveDraftDetailState.reload();
     onChanged();
-  }, [workspaceState, agreementState, orphanCurrentFeesDraftId, reviewDraftState, onChanged]);
+  }, [workspaceState, agreementState, orphanCurrentFeesDraftId, reviewDraftState, inactiveDraftId, inactiveDraftDetailState, onChanged]);
 
   const billingContext = useMemo(
     () => resolveBillingContextPresentation({ workspace }),
@@ -482,6 +495,32 @@ export function StudentFinancialAgreementTab({
     });
   }
 
+  function requestInactiveDraftAction(action: 'submit' | 'approve' | 'activate' | 'cancel', confirmKey: string) {
+    if (!inactiveDraftId) return;
+    setPendingConfirm({
+      action,
+      title: t('common.confirm'),
+      body: t(confirmKey),
+      agreementId: inactiveDraftId,
+    });
+  }
+
+  function requestInactiveDraftActivate(draftDetail: FinancialAgreement, partyLabel: string) {
+    if (!inactiveDraftId) return;
+    const msg = t('admin.student360.financialAgreement.confirmActivate', {
+      net: String(draftDetail.net_amount ?? '—'),
+      count: String(draftDetail.schedule_summary?.installment_count ?? '—'),
+      party: partyLabel,
+      year: refName(draftDetail.academic_year) ?? '—',
+    });
+    setPendingConfirm({
+      action: 'activate',
+      title: t('admin.student360.financialAgreement.actions.activate'),
+      body: msg,
+      agreementId: inactiveDraftId,
+    });
+  }
+
   const lineColumns: Column<FinancialAgreementLine>[] = useMemo(
     () => [
       {
@@ -727,35 +766,147 @@ export function StudentFinancialAgreementTab({
 
         {billingContext.inactiveAgreement ? (
           <Card className="student-finance-section student-finance-inactive-agreement-reference">
-            <Student360SectionHeader
-              title={t('admin.student360.financeWorkspace.inactiveAgreementReference.title')}
-            />
-            <p className="student-finance-inactive-agreement-reference__status">
-              {t('admin.student360.financeWorkspace.inactiveAgreementReference.stateLabel')}:{' '}
-              {billingContext.inactiveAgreement.state
-                ? resolveFinanceAgreementStateLabel(t, billingContext.inactiveAgreement.state, {
-                    hasBillableContext: true,
-                  })
-                : t('common.dash')}
-            </p>
-            {billingSource.agreementNumber ? (
-              <p className="tiny muted" dir="auto">
-                {billingSource.agreementNumber}
-              </p>
-            ) : null}
-            {billingContext.inactiveAgreement.requires_review ? (
-              <div className="student-finance-section student-finance-card-alert" role="alert">
-                <p>{t('admin.student360.financeWorkspace.inactiveAgreementReference.requiresReviewWarning')}</p>
-              </div>
-            ) : null}
-            {existingCurrentFeesDraft && !orphanCurrentFeesDraftId ? (
-              <p className="tiny muted">
-                {t('admin.student360.financialAgreement.fromFees.errors.draftAlreadyExists')}{' '}
-                {t('admin.student360.financialAgreement.fromFees.errors.draftAlreadyExistsHint')}{' '}
-                <span className="mono">#{existingCurrentFeesDraft.id}</span>
-              </p>
-            ) : null}
-            <div className="row">{renderCurrentFeesDraftCta()}</div>
+            {inactiveDraftId ? (
+              <>
+                <Student360SectionHeader
+                  title={t('admin.student360.financeWorkspace.inactiveAgreementReference.draftTitle')}
+                />
+                <p>{t('admin.student360.financeWorkspace.inactiveAgreementReference.draftDesc')}</p>
+                <dl className="detail-list student-finance-agreement-meta">
+                  <div>
+                    <dt>{t('admin.student360.financialAgreement.fields.number')}</dt>
+                    <dd className="mono">#{billingContext.inactiveAgreement.id}</dd>
+                  </div>
+                  <div>
+                    <dt>{t('admin.student360.financialAgreement.fields.state')}</dt>
+                    <dd>
+                      <AgreementStateBadge state={billingContext.inactiveAgreement.state ?? 'draft'} />
+                    </dd>
+                  </div>
+                  {(() => {
+                    const inactiveSummary = resolveAgreementFinanceSummary(inactiveDraftDetailState.data);
+                    const displayAmount = inactiveSummary?.final_total ?? inactiveSummary?.net_total;
+                    return displayAmount != null ? (
+                      <div>
+                        <dt>{t('admin.student360.financialAgreement.summary.finalAfterCustomization')}</dt>
+                        <dd>
+                          <FinanceMoney
+                            amount={displayAmount}
+                            currency={inactiveDraftDetailState.data?.currency?.name ?? currency?.name}
+                          />
+                        </dd>
+                      </div>
+                    ) : null;
+                  })()}
+                  {(inactiveDraftDetailState.data?.schedule_summary?.installment_count ?? 0) > 0 ? (
+                    <div>
+                      <dt>{t('admin.student360.financialAgreement.fields.installmentCount')}</dt>
+                      <dd>{inactiveDraftDetailState.data!.schedule_summary!.installment_count}</dd>
+                    </div>
+                  ) : null}
+                </dl>
+                {inactiveDraftDetailState.loading ? <StudentInlineLoading /> : null}
+                {inactiveDraftDetailState.error ? (
+                  <ApiErrorView error={inactiveDraftDetailState.error} onRetry={inactiveDraftDetailState.reload} />
+                ) : null}
+                {!inactiveDraftDetailState.loading && !inactiveDraftDetailState.initialLoading ? (
+                  <div className="row student-finance-inactive-draft-actions">
+                    {!inactiveDraftDetailState.data?.allowed_actions?.submit &&
+                    !inactiveDraftDetailState.data?.allowed_actions?.approve &&
+                    !inactiveDraftDetailState.data?.allowed_actions?.activate ? (
+                      <>
+                        <p className="tiny muted">
+                          {t('admin.student360.financeWorkspace.inactiveAgreementReference.noActionFromServer')}
+                        </p>
+                        <Link
+                          href={`/admin/students/${studentId}?tab=finance&financeSubTab=overview`}
+                          className="btn btn--ghost btn--sm"
+                        >
+                          {t('admin.student360.financeWorkspace.inactiveAgreementReference.backToOverview')}
+                        </Link>
+                      </>
+                    ) : (
+                      <>
+                        {inactiveDraftDetailState.data?.allowed_actions?.submit ? (
+                          <button
+                            type="button"
+                            className="btn btn--primary btn--sm"
+                            disabled={actionLoading === 'submit'}
+                            onClick={() =>
+                              requestInactiveDraftAction('submit', 'admin.student360.financialAgreement.confirmSubmit')
+                            }
+                          >
+                            {t('admin.student360.financialAgreement.actions.submit')}
+                          </button>
+                        ) : null}
+                        {inactiveDraftDetailState.data?.allowed_actions?.approve ? (
+                          <button
+                            type="button"
+                            className="btn btn--ghost btn--sm"
+                            disabled={actionLoading === 'approve'}
+                            onClick={() =>
+                              requestInactiveDraftAction('approve', 'admin.student360.financialAgreement.confirmApprove')
+                            }
+                          >
+                            {t('admin.student360.financialAgreement.actions.approve')}
+                          </button>
+                        ) : null}
+                        {inactiveDraftDetailState.data?.allowed_actions?.activate &&
+                        inactiveDraftDetailState.data ? (
+                          <button
+                            type="button"
+                            className="btn btn--primary btn--sm"
+                            disabled={actionLoading === 'activate'}
+                            onClick={() =>
+                              requestInactiveDraftActivate(
+                                inactiveDraftDetailState.data!,
+                                refName(
+                                  inactiveDraftDetailState.data!.billing_partner ?? workspace?.billing_partner,
+                                ) ?? '—',
+                              )
+                            }
+                          >
+                            {t('admin.student360.financialAgreement.actions.activate')}
+                          </button>
+                        ) : null}
+                      </>
+                    )}
+                  </div>
+                ) : null}
+              </>
+            ) : (
+              <>
+                <Student360SectionHeader
+                  title={t('admin.student360.financeWorkspace.inactiveAgreementReference.title')}
+                />
+                <p className="student-finance-inactive-agreement-reference__status">
+                  {t('admin.student360.financeWorkspace.inactiveAgreementReference.stateLabel')}:{' '}
+                  {billingContext.inactiveAgreement.state
+                    ? resolveFinanceAgreementStateLabel(t, billingContext.inactiveAgreement.state, {
+                        hasBillableContext: true,
+                      })
+                    : t('common.dash')}
+                </p>
+                {billingSource.agreementNumber ? (
+                  <p className="tiny muted" dir="auto">
+                    {billingSource.agreementNumber}
+                  </p>
+                ) : null}
+                {billingContext.inactiveAgreement.requires_review ? (
+                  <div className="student-finance-section student-finance-card-alert" role="alert">
+                    <p>{t('admin.student360.financeWorkspace.inactiveAgreementReference.requiresReviewWarning')}</p>
+                  </div>
+                ) : null}
+                {existingCurrentFeesDraft && !orphanCurrentFeesDraftId ? (
+                  <p className="tiny muted">
+                    {t('admin.student360.financialAgreement.fromFees.errors.draftAlreadyExists')}{' '}
+                    {t('admin.student360.financialAgreement.fromFees.errors.draftAlreadyExistsHint')}{' '}
+                    <span className="mono">#{existingCurrentFeesDraft.id}</span>
+                  </p>
+                ) : null}
+                <div className="row">{renderCurrentFeesDraftCta()}</div>
+              </>
+            )}
           </Card>
         ) : null}
 
@@ -875,6 +1026,16 @@ export function StudentFinancialAgreementTab({
             refreshAll();
           }}
         />
+        <ConfirmationDialog
+          open={pendingConfirm != null}
+          title={pendingConfirm?.title ?? t('common.confirm')}
+          body={pendingConfirm?.body ?? ''}
+          loading={actionLoading != null}
+          onConfirm={() => {
+            if (pendingConfirm) void runAction(pendingConfirm.action, pendingConfirm.agreementId);
+          }}
+          onClose={() => setPendingConfirm(null)}
+        />
       </div>
     );
   }
@@ -936,6 +1097,16 @@ export function StudentFinancialAgreementTab({
             </div>
           </Card>
         ) : null}
+        <ConfirmationDialog
+          open={pendingConfirm != null}
+          title={pendingConfirm?.title ?? t('common.confirm')}
+          body={pendingConfirm?.body ?? ''}
+          loading={actionLoading != null}
+          onConfirm={() => {
+            if (pendingConfirm) void runAction(pendingConfirm.action, pendingConfirm.agreementId);
+          }}
+          onClose={() => setPendingConfirm(null)}
+        />
       </div>
     );
   }
