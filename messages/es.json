@@ -4582,6 +4582,13 @@
           "editEnrollment": "Editar matrícula académica",
           "noEligiblePlan": "No hay un plan financiero correspondiente a este nivel en este año académico.",
           "noEligiblePlanHint": "El alumno puede quedarse sin plan financiero y configurarlo más tarde.",
+          "preActive": {
+            "badge": "Acuerdo en borrador",
+            "title": "Hay un acuerdo financiero en borrador",
+            "description": "Este acuerdo aún no está activo, por eso el plan no aparece como plan activo. Revise el acuerdo y envíelo a revisión o edítelo antes de crear uno nuevo.",
+            "reviewAction": "Revisar borrador",
+            "blockedToast": "Este alumno ya tiene un acuerdo financiero en borrador. Abra el acuerdo existente en lugar de crear uno nuevo."
+          },
           "candidatesTitle": "Un plan financiero correspondiente requiere una elección manual.",
           "candidatesHint": "Elige un plan para usar en el acuerdo financiero.",
           "candidateReasonLabel": "Motivo de no selección automática",
@@ -6709,7 +6716,8 @@
         "invalidFeePlanState": "El plan ya no está confirmado. Se recargó la lista.",
         "invalidOptionalLine": "Una opción seleccionada ya no es válida. Recargue el plan.",
         "optionalLinePlanMismatch": "Incoherencia de contrato entre la opción y el plan.",
-        "feePlanAlreadyAssigned": "Este plan ya está asignado a este alumno.",
+        "feePlanAlreadyAssigned": "Ya existe un borrador de acuerdo financiero vinculado a este plan para este alumno. Abra el acuerdo actual en lugar de crear uno nuevo.",
+        "draftAgreementBlocksAssignPlan": "Ya existe un borrador de acuerdo financiero vinculado a este plan para este alumno. Abra el acuerdo actual en lugar de crear uno nuevo.",
         "billingProfileCreationFailed": "No se pudo crear el perfil de facturación del alumno.",
         "billingPartnerAmbiguous": "No se pudo determinar la parte facturada automáticamente. Revise los tutores.",
         "billingPartnerInvalid": "La parte facturada no es válida.",

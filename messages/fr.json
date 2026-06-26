@@ -4582,6 +4582,13 @@
           "editEnrollment": "Modifier l'inscription scolaire",
           "noEligiblePlan": "Aucun plan financier correspondant à ce niveau pour cette année scolaire.",
           "noEligiblePlanHint": "L'élève peut rester sans plan financier ; il pourra être configuré plus tard.",
+          "preActive": {
+            "badge": "Accord en brouillon",
+            "title": "Un accord financier est en brouillon",
+            "description": "Cet accord n'est pas encore actif, le plan n'apparaît donc pas comme plan actif. Consultez l'accord et soumettez-le pour validation ou modifiez-le avant d'en créer un nouveau.",
+            "reviewAction": "Consulter le brouillon",
+            "blockedToast": "Cet élève a déjà un accord financier en brouillon. Ouvrez l'accord existant au lieu d'en créer un nouveau."
+          },
           "candidatesTitle": "Un plan financier correspondant nécessite un choix manuel.",
           "candidatesHint": "Choisissez un plan à utiliser pour l'accord financier.",
           "candidateReasonLabel": "Raison de non-sélection automatique",
@@ -6709,7 +6716,8 @@
         "invalidFeePlanState": "Le plan n'est plus confirmé. La liste a été rechargée.",
         "invalidOptionalLine": "Une option sélectionnée n'est plus valide. Rechargez le plan.",
         "optionalLinePlanMismatch": "Incohérence de contrat entre l'option et le plan.",
-        "feePlanAlreadyAssigned": "Ce plan est déjà attribué à cet élève pour cette période.",
+        "feePlanAlreadyAssigned": "Un brouillon d'accord financier est déjà lié à ce plan pour cet élève. Ouvrez l'accord existant au lieu d'en créer un nouveau.",
+        "draftAgreementBlocksAssignPlan": "Un brouillon d'accord financier est déjà lié à ce plan pour cet élève. Ouvrez l'accord existant au lieu d'en créer un nouveau.",
         "billingProfileCreationFailed": "Impossible de créer le profil de facturation de l'élève.",
         "billingPartnerAmbiguous": "Impossible de déterminer la partie facturée automatiquement. Vérifiez les tuteurs.",
         "billingPartnerInvalid": "La partie facturée est invalide.",

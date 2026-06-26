@@ -10,7 +10,7 @@ export function feePlanAssignErrorMessageKey(code: string | undefined): string |
     case 'optional_line_plan_mismatch':
       return 'admin.finance.assignErrors.optionalLinePlanMismatch';
     case 'fee_plan_already_assigned':
-      return 'admin.finance.assignErrors.feePlanAlreadyAssigned';
+      return 'admin.finance.assignErrors.draftAgreementBlocksAssignPlan';
     case 'billing_profile_creation_failed':
       return 'admin.finance.assignErrors.billingProfileCreationFailed';
     case 'billing_partner_ambiguous':
@@ -57,7 +57,7 @@ export function resolveAssignErrorMessage(
   if (code === 'business_error') {
     const normalized = (message ?? '').toLowerCase();
     if (ALREADY_ASSIGNED_PATTERNS.some((pattern) => normalized.includes(pattern))) {
-      return t('admin.finance.assignErrors.feePlanAlreadyAssigned');
+      return t('admin.finance.assignErrors.draftAgreementBlocksAssignPlan');
     }
   }
 

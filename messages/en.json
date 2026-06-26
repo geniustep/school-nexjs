@@ -4587,6 +4587,13 @@
           "editEnrollment": "Edit academic enrollment",
           "noEligiblePlan": "No matching finance plan for this level in this academic year.",
           "noEligiblePlanHint": "The student can stay without a finance plan and it can be set up later.",
+          "preActive": {
+            "badge": "Draft agreement",
+            "title": "A financial agreement is in draft",
+            "description": "This agreement is not active yet, so the plan does not appear as an active plan. Review the agreement and submit it for review or edit it before creating a new one.",
+            "reviewAction": "Review draft",
+            "blockedToast": "This student already has a draft financial agreement. Open the existing agreement instead of creating a new one."
+          },
           "candidatesTitle": "A matching finance plan needs a manual choice.",
           "candidatesHint": "Pick a plan to use for the finance agreement.",
           "candidateReasonLabel": "Reason not auto-selected",
@@ -6714,7 +6721,8 @@
         "invalidFeePlanState": "The plan is no longer confirmed. The list was reloaded.",
         "invalidOptionalLine": "A selected option is no longer valid. Reload the plan.",
         "optionalLinePlanMismatch": "Contract mismatch between the option and the plan.",
-        "feePlanAlreadyAssigned": "This plan is already assigned to this student for this period.",
+        "feePlanAlreadyAssigned": "A draft financial agreement is already linked to this plan for this student. Open the existing agreement instead of creating a new one.",
+        "draftAgreementBlocksAssignPlan": "A draft financial agreement is already linked to this plan for this student. Open the existing agreement instead of creating a new one.",
         "billingProfileCreationFailed": "Could not create the student billing profile.",
         "billingPartnerAmbiguous": "Could not determine the billing party automatically. Review guardian data.",
         "billingPartnerInvalid": "The billing party is invalid.",

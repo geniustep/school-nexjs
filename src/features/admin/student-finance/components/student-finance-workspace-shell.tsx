@@ -22,6 +22,8 @@ import {
 import { StudentFinanceWorkspaceHeader } from './student-finance-workspace-header';
 import { useStudentFinanceTabState } from '../hooks/use-student-finance-tab-state';
 import { useStudentFinancialOverview } from '../hooks/use-student-financial-overview';
+import { useAdminResource } from '@/lib/hooks/use-admin-resource';
+import { endpoints } from '@/lib/api/endpoints';
 import {
   LEGACY_FINANCE_AGREEMENT_SECTION,
   parseStudentFinanceSubTab,
@@ -50,8 +52,11 @@ import { ChangePlanDrawer } from './change-plan-drawer';
 import { InactiveAgreementFinanceBanner } from './inactive-agreement-finance-banner';
 import { resolveChangePlanVisibility } from '../utils/resolve-change-plan-visibility';
 import { AssignFinancePlanPanel } from './assign-finance-plan-panel';
+import { PreActiveAgreementFinancePanel } from './pre-active-agreement-finance-panel';
 import { resolveBillingContextPresentation } from '../utils/resolve-billing-context-presentation';
 import { resolveStudentFinanceActionState } from '../utils/resolve-student-finance-action-state';
+import { resolvePreActiveFinancialAgreement } from '../utils/resolve-pre-active-financial-agreement';
+import type { FinancialAgreement } from '../types';
 import type { ChangePlanMode } from '@/types/student-finance-change-plan';
 import { useToast } from '@/components/ui/toast';
 
@@ -118,6 +123,12 @@ export function StudentFinanceWorkspaceShell({
     financeRefreshSignal,
   );
 
+  const agreementsListState = useAdminResource<FinancialAgreement[]>(
+    effectiveYearId ? endpoints.admin.studentFinancialAgreements(studentId) : null,
+    effectiveYearId ? { academic_year_id: Number(effectiveYearId) } : undefined,
+  );
+  const agreementsList = agreementsListState.data ?? null;
+
   const phase = resolveFinanceTabLoadPhase({
     yearsLoading: refState.loading,
     effectiveYearId,
@@ -150,8 +161,35 @@ export function StudentFinanceWorkspaceShell({
       resolveDraftAgreementPresentation({
         financialOverview: financialOverviewState.data,
         workspaceAgreement: workspace?.current_agreement ?? null,
+        inactiveAgreement: workspace?.inactive_agreement ?? null,
+        agreementsList,
+        academicYearId: effectiveYearId ? Number(effectiveYearId) : null,
       }),
-    [financialOverviewState.data, workspace?.current_agreement],
+    [
+      financialOverviewState.data,
+      workspace?.current_agreement,
+      workspace?.inactive_agreement,
+      agreementsList,
+      effectiveYearId,
+    ],
+  );
+
+  const preActiveAgreement = useMemo(
+    () =>
+      resolvePreActiveFinancialAgreement({
+        specialAgreement: financialOverviewState.data?.special_agreement ?? null,
+        workspaceAgreement: workspace?.current_agreement ?? null,
+        inactiveAgreement: workspace?.inactive_agreement ?? null,
+        agreementsList,
+        academicYearId: effectiveYearId ? Number(effectiveYearId) : null,
+      }),
+    [
+      financialOverviewState.data?.special_agreement,
+      workspace?.current_agreement,
+      workspace?.inactive_agreement,
+      agreementsList,
+      effectiveYearId,
+    ],
   );
 
   const syncSubTabToUrl = useCallback(
@@ -179,8 +217,9 @@ export function StudentFinanceWorkspaceShell({
     setFinanceRefreshSignal((n) => n + 1);
     workspaceState.reload();
     financialOverviewState.reload();
+    agreementsListState.reload();
     onChanged?.();
-  }, [workspaceState, financialOverviewState, onChanged]);
+  }, [workspaceState, financialOverviewState, agreementsListState, onChanged]);
 
   useEffect(() => {
     return subscribeFinanceRefresh((detail) => {
@@ -421,7 +460,13 @@ export function StudentFinanceWorkspaceShell({
 
       <div className="student-finance-workspace__panel">
       {showFinanceEmpty && !sectionsWithoutEmptyGate.includes(subTab) ? (
-        canAssignFeesCapability ? (
+        preActiveAgreement ? (
+          <PreActiveAgreementFinancePanel
+            studentId={studentId}
+            agreement={preActiveAgreement}
+            onReviewAgreement={() => syncSubTabToUrl('agreements')}
+          />
+        ) : canAssignFeesCapability ? (
           <AssignFinancePlanPanel
             studentId={studentId}
             academicYearId={effectiveYearId}

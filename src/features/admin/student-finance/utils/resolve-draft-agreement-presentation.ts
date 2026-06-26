@@ -4,7 +4,11 @@ import type {
   AgreementFinanceSummarySource,
 } from '@/types/agreement-finance-summary';
 import type { SpecialAgreementSummary } from '@/types/student-financial-overview';
-import type { FinancialAgreement } from '../types';
+import type { FinancialAgreement, InactiveAgreementSummary } from '../types';
+import {
+  isPreActiveAgreementState,
+  resolvePreActiveFinancialAgreement,
+} from './resolve-pre-active-financial-agreement';
 
 export interface DraftAgreementPresentation {
   hasDraftAgreement: boolean;
@@ -156,7 +160,7 @@ export function isPresentableDraftSpecialAgreement(
   agreement: SpecialAgreementSummary | null | undefined,
 ): boolean {
   if (!agreement || agreement.exists === false) return false;
-  if (agreement.state !== 'draft') return false;
+  if (!isPreActiveAgreementState(agreement.state)) return false;
   if (agreement.empty_draft) return false;
   if (resolveSpecialAgreementId(agreement) == null) return false;
 
@@ -171,7 +175,7 @@ export function isPresentableDraftSpecialAgreement(
 export function isPresentableDraftFinancialAgreement(
   agreement: FinancialAgreement | null | undefined,
 ): boolean {
-  if (!agreement || agreement.state !== 'draft') return false;
+  if (!agreement || !isPreActiveAgreementState(agreement.state)) return false;
   if (agreement.empty_draft) return false;
 
   const summary = resolveAgreementFinanceSummary(agreement);
@@ -179,23 +183,38 @@ export function isPresentableDraftFinancialAgreement(
     (summary?.final_total ?? summary?.net_total ?? agreement.net_amount ?? agreement.total_amount ?? 0) > 0;
   const hasCustomizations = (agreement.customizations?.length ?? 0) > 0;
   const hasLines = (agreement.lines?.length ?? agreement.line_count ?? 0) > 0;
-  return hasTotals || hasCustomizations || hasLines;
+  return hasTotals || hasCustomizations || hasLines || agreement.id != null;
 }
 
 export function resolveDraftAgreementPresentation(input: {
   financialOverview?: { special_agreement?: SpecialAgreementSummary | null } | null;
   workspaceAgreement?: FinancialAgreement | null;
   agreementDetail?: FinancialAgreement | null;
+  inactiveAgreement?: InactiveAgreementSummary | null;
+  agreementsList?: FinancialAgreement[] | null;
+  academicYearId?: number | null;
 }): DraftAgreementPresentation {
   const special = input.financialOverview?.special_agreement ?? null;
   const workspaceAgreement = input.workspaceAgreement ?? null;
   const agreementDetail = input.agreementDetail ?? null;
   const agreement = agreementDetail ?? workspaceAgreement;
 
+  const preActive = resolvePreActiveFinancialAgreement({
+    specialAgreement: special,
+    workspaceAgreement,
+    agreementDetail,
+    inactiveAgreement: input.inactiveAgreement,
+    agreementsList: input.agreementsList,
+    academicYearId: input.academicYearId,
+  });
+
   const hasDraftAgreement =
-    isPresentableDraftSpecialAgreement(special) || isPresentableDraftFinancialAgreement(agreement);
+    preActive != null ||
+    isPresentableDraftSpecialAgreement(special) ||
+    isPresentableDraftFinancialAgreement(agreement);
 
   const agreementId =
+    preActive?.id ??
     resolveSpecialAgreementId(special) ??
     (typeof agreement?.id === 'number' ? agreement.id : null);
 
@@ -215,7 +234,7 @@ export function resolveDraftAgreementPresentation(input: {
   return {
     hasDraftAgreement,
     agreementId,
-    state: agreement?.state ?? special?.state ?? null,
+    state: preActive?.state ?? agreement?.state ?? special?.state ?? null,
     isPlanCustomized: agreement?.is_plan_customized === true || special?.is_plan_customized === true,
     createsDueAfterConfirmation:
       agreement?.creates_due_after_confirmation === true ||

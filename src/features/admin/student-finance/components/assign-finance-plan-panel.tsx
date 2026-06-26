@@ -31,6 +31,9 @@ import {
   previewStudentFinancePlan,
 } from '../api/assign-plan-api';
 import { classifyAssignPlanPreview } from '../utils/normalize-assign-plan-preview';
+import { resolveAssignErrorMessage } from '@/features/admin/finance/fee-plan-assign-errors';
+import { PreActiveAgreementFinancePanel } from './pre-active-agreement-finance-panel';
+import type { PreActiveFinancialAgreementRef } from '../utils/resolve-pre-active-financial-agreement';
 
 function tk(key: string): string {
   return `admin.student360.finance.assignPlan.${key}`;
@@ -180,6 +183,9 @@ export function AssignFinancePlanPanel({
   emptyTitle,
   emptyDescription,
   onAssigned,
+  assignPlanBlocked = false,
+  preActiveAgreement = null,
+  onReviewAgreement,
 }: {
   studentId: number;
   academicYearId?: string | null;
@@ -187,6 +193,9 @@ export function AssignFinancePlanPanel({
   emptyTitle?: string;
   emptyDescription?: string;
   onAssigned: () => void;
+  assignPlanBlocked?: boolean;
+  preActiveAgreement?: PreActiveFinancialAgreementRef | null;
+  onReviewAgreement?: () => void;
 }) {
   const t = useT();
   const toast = useToast();
@@ -232,6 +241,11 @@ export function AssignFinancePlanPanel({
   }, [state]);
 
   function openPanel() {
+    if (assignPlanBlocked) {
+      toast.error(t('admin.student360.finance.assignPlan.preActive.blockedToast'));
+      onReviewAgreement?.();
+      return;
+    }
     setOpen(true);
     void runPreview();
   }
@@ -244,6 +258,10 @@ export function AssignFinancePlanPanel({
   }
 
   async function handleAssign() {
+    if (assignPlanBlocked) {
+      toast.error(t('admin.student360.finance.assignPlan.preActive.blockedToast'));
+      return;
+    }
     if (state?.kind !== 'ready' || state.plan.feePlanId == null) return;
     const suggest = state.plan.suggestSnapshot;
     setAssignLoading(true);
@@ -264,12 +282,22 @@ export function AssignFinancePlanPanel({
         setState(reclassified);
         return;
       }
-      toast.error(res.error.message);
+      toast.error(resolveAssignErrorMessage(res.error.code, res.error.message, t));
       return;
     }
     toast.success(t(tk('assignSuccess')));
     closePanel();
     onAssigned();
+  }
+
+  if (assignPlanBlocked && preActiveAgreement) {
+    return (
+      <PreActiveAgreementFinancePanel
+        studentId={studentId}
+        agreement={preActiveAgreement}
+        onReviewAgreement={onReviewAgreement}
+      />
+    );
   }
 
   return (
