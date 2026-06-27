@@ -49,6 +49,120 @@ describe('normalizePaymentCollectionPreview', () => {
     expect(preview?.is_prepayment).toBe(true);
     expect(preview?.allocations).toHaveLength(2);
   });
+
+  it('defaults credit-balance fields to zero for the legacy contract', () => {
+    const preview = normalizePaymentCollectionPreview({
+      amount: 500,
+      prepayment_allowed: true,
+      remaining_total: 1000,
+      allocated_amount: 500,
+      unallocated_amount: 0,
+      allocations: [{ installment_id: 1, amount: 500, status_after: 'partial' }],
+      errors: [],
+    });
+    expect(preview?.resulting_credit_balance).toBe(0);
+    expect(preview?.warnings).toEqual([]);
+    expect(preview?.payment_summary?.allocated_amount).toBe(500);
+    expect(preview?.is_valid).toBe(true);
+  });
+});
+
+describe('normalizePaymentCollectionPreview credit balance contract', () => {
+  it('keeps allocated=2000, unallocated=8000, resulting_credit_balance=8000', () => {
+    const preview = normalizePaymentCollectionPreview({
+      payment_amount: 10000,
+      amount: 10000,
+      allocated_amount: 2000,
+      unallocated_amount: 8000,
+      resulting_credit_balance: 8000,
+      credit_amount: 0,
+      allocations: [
+        { installment_id: 14181, student_fee_id: 4605, amount: 2000, allocated_amount: 2000, status_after: 'paid', is_future_allocation: true },
+      ],
+      warnings: [],
+      errors: [],
+      payment_summary: { amount_paid: 10000, allocated_amount: 2000, unallocated_amount: 8000, resulting_credit_balance: 8000 },
+      allocation_summary: { mode: 'selected_installments', allocations_count: 1, future_allocations_count: 1 },
+      allowed_actions: { can_confirm_with_credit_balance: true, can_allocate_to_future_installments: true },
+      prepayment_allowed: true,
+      remaining_total: 29000,
+    });
+
+    expect(preview?.allocated_amount).toBe(2000);
+    expect(preview?.unallocated_amount).toBe(8000);
+    expect(preview?.resulting_credit_balance).toBe(8000);
+    expect(preview?.payment_summary?.resulting_credit_balance).toBe(8000);
+    expect(preview?.allocations[0].is_future_allocation).toBe(true);
+    expect(preview?.is_valid).toBe(true);
+  });
+
+  it('allows a full credit-balance payment when Odoo permits confirming credit', () => {
+    const preview = normalizePaymentCollectionPreview({
+      amount: 5000,
+      allocated_amount: 0,
+      unallocated_amount: 5000,
+      resulting_credit_balance: 5000,
+      allocations: [],
+      warnings: [],
+      errors: [],
+      payment_summary: { amount_paid: 5000, allocated_amount: 0, unallocated_amount: 5000, resulting_credit_balance: 5000 },
+      allowed_actions: { can_confirm_with_credit_balance: true },
+      prepayment_allowed: true,
+      remaining_total: 12000,
+    });
+    expect(preview?.allocated_amount).toBe(0);
+    expect(preview?.resulting_credit_balance).toBe(5000);
+    expect(preview?.is_valid).toBe(true);
+  });
+
+  it('blocks a credit-only payment when Odoo does not allow confirming credit', () => {
+    const preview = normalizePaymentCollectionPreview({
+      amount: 5000,
+      allocated_amount: 0,
+      unallocated_amount: 5000,
+      resulting_credit_balance: 5000,
+      allocations: [],
+      warnings: [],
+      errors: [],
+      allowed_actions: { can_confirm_with_credit_balance: false },
+      prepayment_allowed: true,
+      remaining_total: 12000,
+    });
+    expect(preview?.is_valid).toBe(false);
+  });
+
+  it('extracts warning messages whether Odoo sends strings or objects', () => {
+    const preview = normalizePaymentCollectionPreview({
+      amount: 10000,
+      allocated_amount: 2000,
+      unallocated_amount: 8000,
+      resulting_credit_balance: 8000,
+      allocations: [{ installment_id: 1, amount: 2000, status_after: 'paid' }],
+      warnings: [
+        { code: 'payment_creates_credit_balance', message: 'This payment will create a credit balance.', amount: 8000 },
+        'plain_warning',
+      ],
+      errors: [],
+      allowed_actions: { can_confirm_with_credit_balance: true },
+    });
+    expect(preview?.warnings).toEqual([
+      'This payment will create a credit balance.',
+      'plain_warning',
+    ]);
+  });
+
+  it('never marks an installment paid from a credit balance (status comes from Odoo)', () => {
+    const preview = normalizePaymentCollectionPreview({
+      amount: 1000,
+      allocated_amount: 1000,
+      unallocated_amount: 0,
+      resulting_credit_balance: 0,
+      allocations: [{ installment_id: 7, amount: 1000, status_after: 'partial' }],
+      errors: [],
+    });
+    expect(preview?.allocations[0].status_after).toBe('partial');
+    expect(preview?.resulting_credit_balance).toBe(0);
+  });
 });
 
 describe('collection preview error codes', () => {

@@ -74,6 +74,11 @@ export function CollectionAllocationSummary({
           <dd><FinanceMoney amount={unallocated} currency={currency} /></dd>
         </div>
       </dl>
+      {unallocated > 0.0001 ? (
+        <p className="collection-allocation-summary__credit-notice" role="status">
+          {t('admin.finance.collectionWorkflow.unallocatedBecomesCreditNotice')}
+        </p>
+      ) : null}
       {!manualMode ? (
         <button type="button" className="btn btn--ghost btn--sm" onClick={onEditManual}>
           {t('admin.finance.collectionWorkflow.editAllocationManually')}

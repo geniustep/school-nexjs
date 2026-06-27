@@ -6,10 +6,35 @@ export interface PaymentCollectionPreviewAllocation {
   installment_id: number;
   student_fee_id?: number | null;
   amount: number;
+  /** Amount Odoo reports as allocated to this installment (defaults to `amount`). */
+  allocated_amount?: number;
   status_after: PaymentCollectionPreviewAllocationStatus;
+  /** True when Odoo allocates this payment to a future (not-yet-due) installment. */
+  is_future_allocation?: boolean;
   period_label?: string | null;
   display_label?: string | null;
   fee_name?: string | null;
+}
+
+/** Payment-level summary returned by the Odoo advance-payment / credit-balance contract. */
+export interface PaymentCollectionPaymentSummary {
+  amount_paid: number;
+  allocated_amount: number;
+  unallocated_amount: number;
+  resulting_credit_balance: number;
+}
+
+/** Allocation-level summary returned by Odoo (display only, no recompute in Next.js). */
+export interface PaymentCollectionAllocationSummary {
+  mode?: string | null;
+  allocations_count?: number | null;
+  future_allocations_count?: number | null;
+}
+
+/** Actions Odoo permits for this preview. Next.js only toggles UI states from these. */
+export interface PaymentCollectionPreviewAllowedActions {
+  can_confirm_with_credit_balance?: boolean;
+  can_allocate_to_future_installments?: boolean;
 }
 
 export interface PaymentCollectionPreview {
@@ -18,8 +43,19 @@ export interface PaymentCollectionPreview {
   remaining_total: number;
   allocated_amount: number;
   unallocated_amount: number;
+  /**
+   * Credit balance Odoo will record after this payment. Source of truth — never
+   * recomputed in Next.js. A positive value does NOT make any installment paid.
+   */
+  resulting_credit_balance: number;
+  /** Existing credit applied/available as reported by Odoo (display only). */
+  credit_amount: number;
   allocations: PaymentCollectionPreviewAllocation[];
+  warnings: string[];
   errors: string[];
+  payment_summary: PaymentCollectionPaymentSummary | null;
+  allocation_summary: PaymentCollectionAllocationSummary | null;
+  allowed_actions: PaymentCollectionPreviewAllowedActions | null;
   /** True when preview succeeded and amount can be submitted. */
   is_valid: boolean;
   /** True when amount covers more than the first open installment. */

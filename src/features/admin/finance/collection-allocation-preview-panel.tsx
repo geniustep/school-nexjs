@@ -1,6 +1,7 @@
 'use client';
 
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
+import { CollectionCreditBalanceCard } from '@/features/admin/finance/collection-credit-balance-card';
 import { normalizeInstallmentDisplayLabel } from '@/features/admin/finance/collection-labels';
 import { useLocale, useT } from '@/features/i18n/locale-context';
 import type { PaymentCollectionPreview } from '@/types/payment-collection-preview';
@@ -90,6 +91,8 @@ export function CollectionAllocationPreviewPanel({
           </dd>
         </div>
       </dl>
+
+      <CollectionCreditBalanceCard preview={preview} currency={currency} />
 
       {preview.is_prepayment && preview.prepayment_allowed ? (
         <p className="collection-allocation-preview__warning" role="status">
