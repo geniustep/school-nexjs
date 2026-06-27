@@ -62,11 +62,19 @@ export interface PaymentCollectionPreview {
   is_prepayment: boolean;
 }
 
+export interface PaymentCollectionPreviewRequestAllocation {
+  installment_id: number;
+  student_fee_id?: number;
+  amount: number;
+}
+
 export interface PaymentCollectionPreviewRequest {
   student_id: number;
   academic_year_id: number;
   amount: number;
   strategy?: PaymentCollectionAllocationStrategy;
+  allocation_mode?: 'oldest_due_first' | 'selected_installments';
+  allocations?: PaymentCollectionPreviewRequestAllocation[];
   agreement_id?: number;
   billing_partner_id?: number;
   billing_profile_id?: number;

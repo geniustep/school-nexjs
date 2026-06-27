@@ -13,7 +13,13 @@ const CREDIT_BALANCE_KEYS = [
   'creditBalanceNotReducingDuesWarning',
   'unallocatedBecomesCreditNotice',
   'fullCreditBalanceNotice',
+  'previewRemainingCurrent',
+  'manualAllocationToggle',
+  'manualAllocationHint',
+  'autoAllocationHint',
 ] as const;
+
+const COLLECTIONS_KEYS = ['openReceipt', 'activeAgreement', 'noActiveAgreement'] as const;
 
 function loadMessages(locale: string): Record<string, unknown> {
   const file = resolve(process.cwd(), 'messages', `${locale}.json`);
@@ -31,6 +37,23 @@ describe('credit balance i18n keys', () => {
       for (const key of CREDIT_BALANCE_KEYS) {
         const value = workflow?.[key];
         expect(typeof value, `${locale}.collectionWorkflow.${key}`).toBe('string');
+        expect((value as string).trim().length).toBeGreaterThan(0);
+      }
+    });
+  }
+});
+
+describe('collection context i18n keys', () => {
+  for (const locale of LOCALES) {
+    it(`defines collection context keys (incl. openReceipt) for ${locale}`, () => {
+      const messages = loadMessages(locale);
+      const collections = (messages as any)?.admin?.finance?.collections as
+        | Record<string, unknown>
+        | undefined;
+      expect(collections, `admin.finance.collections missing in ${locale}`).toBeTruthy();
+      for (const key of COLLECTIONS_KEYS) {
+        const value = collections?.[key];
+        expect(typeof value, `${locale}.collections.${key}`).toBe('string');
         expect((value as string).trim().length).toBeGreaterThan(0);
       }
     });

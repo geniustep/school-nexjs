@@ -6,13 +6,15 @@ import {
   resolveCollectionGateBlocked,
   resolvePrepaymentBadgeKey,
 } from '@/lib/finance/collection-gate';
-import type { CollectionGate } from '@/types/payment-collection-preview';
+import { resolveAgreementContextLabel } from '@/features/admin/finance/collection-agreement-label';
+import type { CollectibleBillingContext, CollectionGate } from '@/types/payment-collection-preview';
 import type { CollectibleItemsSummary, SpecialAgreementSummary } from '@/types/student-financial-overview';
 
 export function CollectionPrepaymentSummaryCard({
   studentName,
   studentCode,
   agreement,
+  billingContext,
   summary,
   collectionGate,
   currency,
@@ -20,6 +22,7 @@ export function CollectionPrepaymentSummaryCard({
   studentName?: string | null;
   studentCode?: string | null;
   agreement?: SpecialAgreementSummary | null;
+  billingContext?: CollectibleBillingContext | null;
   summary?: CollectibleItemsSummary | null;
   collectionGate?: CollectionGate | null;
   currency?: string | null;
@@ -27,9 +30,12 @@ export function CollectionPrepaymentSummaryCard({
   const t = useT();
   const gateBlock = resolveCollectionGateBlocked(collectionGate, summary);
   const prepaymentKey = resolvePrepaymentBadgeKey(collectionGate, agreement?.state);
+  const agreementLabelInfo = resolveAgreementContextLabel(agreement, billingContext);
   const agreementLabel =
-    agreement?.name?.trim() ||
-    (agreement?.id ? `#${agreement.id}` : t('common.dash'));
+    agreementLabelInfo.value ??
+    (agreementLabelInfo.kind === 'active'
+      ? t('admin.finance.collections.activeAgreement')
+      : t('admin.finance.collections.noActiveAgreement'));
 
   return (
     <section className="collection-prepayment-summary" aria-label={t('admin.finance.collectionWorkflow.prepaymentSummaryTitle')}>

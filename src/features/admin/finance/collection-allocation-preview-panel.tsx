@@ -75,7 +75,7 @@ export function CollectionAllocationPreviewPanel({
 
       <dl className="collection-allocation-preview__metrics detail-list compact">
         <div>
-          <dt>{t('admin.finance.collectionWorkflow.previewRemainingAfter')}</dt>
+          <dt>{t('admin.finance.collectionWorkflow.previewRemainingCurrent')}</dt>
           <dd>
             <FinanceMoney amount={preview.remaining_total} currency={currency} />
           </dd>

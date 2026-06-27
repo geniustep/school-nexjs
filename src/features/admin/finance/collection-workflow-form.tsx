@@ -650,12 +650,19 @@ function CollectionWorkflowFormReady({
       agreementSummary?.agreement_id ??
       undefined;
 
+    const manualLines = manualAllocation
+      ? buildAllocationPayload(allocationInputs, openInstallments)
+      : [];
+    const useManual = manualAllocation && manualLines.length > 0;
+
     const res = await previewPaymentCollection(
       {
         student_id: Number(selectedStudent.id),
         academic_year_id: Number(academicYearId),
         amount: parsedAmount,
-        strategy: 'oldest_due_first',
+        ...(useManual
+          ? { allocation_mode: 'selected_installments' as const, allocations: manualLines }
+          : { strategy: 'oldest_due_first' as const }),
         ...(agreementId ? { agreement_id: agreementId } : {}),
         ...(resolvedBilling.billingPartnerId
           ? { billing_partner_id: resolvedBilling.billingPartnerId }
@@ -716,7 +723,7 @@ function CollectionWorkflowFormReady({
         setError(t('admin.finance.collections.blockers.previewRequired'));
         return null;
       }
-      payload.allocation_mode = 'oldest_due_first';
+      payload.allocation_mode = manualAllocation ? 'selected_installments' : 'oldest_due_first';
       payload.allocations = preview.allocations.map((row) => ({
         installment_id: row.installment_id,
         student_fee_id: row.student_fee_id ?? undefined,
@@ -893,6 +900,7 @@ function CollectionWorkflowFormReady({
           studentName={selectedStudent.name ?? selectedStudent.full_name}
           studentCode={selectedStudent.code}
           agreement={agreementSummary}
+          billingContext={collectibleData?.billing_context ?? null}
           summary={collectibleData?.summary ?? null}
           collectionGate={collectionGate}
           currency={journalCurrency}
@@ -1033,6 +1041,24 @@ function CollectionWorkflowFormReady({
 
               {flexiblePrepaymentFlow ? (
                 <div className="finance-collection-workflow__preview-actions">
+                  <label className="collection-skip-allocation">
+                    <input
+                      type="checkbox"
+                      checked={manualAllocation}
+                      onChange={(e) => {
+                        setManualAllocation(e.target.checked);
+                        setAllocationInputs({});
+                        setPreview(null);
+                        setPreviewError(null);
+                      }}
+                    />
+                    <span>{t('admin.finance.collectionWorkflow.manualAllocationToggle')}</span>
+                  </label>
+                  <p className="tiny muted">
+                    {manualAllocation
+                      ? t('admin.finance.collectionWorkflow.manualAllocationHint')
+                      : t('admin.finance.collectionWorkflow.autoAllocationHint')}
+                  </p>
                   <button
                     type="button"
                     className="btn btn--secondary btn--sm"
@@ -1099,6 +1125,22 @@ function CollectionWorkflowFormReady({
                 </label>
               ) : null}
             </div>
+
+            {flexiblePrepaymentFlow && manualAllocation && step === 'payment' ? (
+              <ReceivableAllocationSection
+                installments={openInstallments}
+                loading={collectibleState.loading}
+                currency={journalCurrency}
+                collectionAmount={parsedAmount}
+                allocationInputs={allocationInputs}
+                onAllocationChange={(values) => {
+                  setAllocationInputs(values);
+                  setPreview(null);
+                }}
+                skipAllocation={false}
+                onSkipAllocationChange={() => undefined}
+              />
+            ) : null}
 
             {flexiblePrepaymentFlow && step === 'payment' ? (
               <CollectionAllocationPreviewPanel
