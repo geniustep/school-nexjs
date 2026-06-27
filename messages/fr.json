@@ -5465,6 +5465,64 @@
             }
           }
         },
+        "agreementAmendment": {
+          "title": "Modifier l'accord financier",
+          "subtitle": "Modifier une ligne de l'accord actif à partir d'une période future. Les paiements et reçus passés ne sont pas modifiés.",
+          "action": "Modifier l'accord",
+          "operation": {
+            "label": "Type d'opération",
+            "addLine": "Ajouter une ligne",
+            "cancelLine": "Annuler une ligne",
+            "modifyLine": "Modifier une ligne"
+          },
+          "effectivePeriod": "Période d'effet",
+          "reason": "Motif",
+          "preview": "Prévisualiser l'impact",
+          "apply": "Confirmer la modification",
+          "previewTitle": "Résultat de la prévisualisation",
+          "allowed": "Application autorisée",
+          "allowedYes": "Oui",
+          "blocked": "Bloqué",
+          "warnings": "Avertissements",
+          "blockingReasons": "Motifs de blocage",
+          "lockedPeriods": "Périodes verrouillées",
+          "lockedPeriodsWarning": "Certaines périodes sont verrouillées en raison de paiements ou recouvrements antérieurs. La modification s'appliquera uniquement aux périodes ouvertes.",
+          "amountBefore": "Montant avant",
+          "amountAfter": "Montant après",
+          "delta": "Écart",
+          "affectedPeriods": "Périodes affectées",
+          "createdInstallments": "Nouvelles échéances (aperçu)",
+          "updatedInstallments": "Échéances modifiées (aperçu)",
+          "cancelledInstallments": "Échéances annulées (aperçu)",
+          "success": "L'accord financier a été modifié avec succès.",
+          "noPermission": "La modification de l'accord n'est pas disponible pour le moment.",
+          "noPeriodsHint": "Aucune période de facturation disponible dans les données de l'accord. Essayez la prévisualisation après avoir saisi un motif si le serveur renvoie des périodes.",
+          "fields": {
+            "feeType": "Type de frais",
+            "line": "Ligne",
+            "amount": "Montant"
+          },
+          "applyConfirm": {
+            "title": "Confirmer la modification de l'accord",
+            "body": "La modification s'appliquera uniquement aux périodes ouvertes. Continuer ?"
+          },
+          "errors": {
+            "reasonRequired": "Le motif de modification est obligatoire.",
+            "formIncomplete": "Complétez tous les champs requis avant la prévisualisation.",
+            "agreementNotFound": "Accord financier introuvable.",
+            "agreementNotActive": "L'accord financier n'est pas actif.",
+            "agreementCancelled": "L'accord financier est annulé.",
+            "crossSchoolForbidden": "Impossible de modifier l'accord d'un élève d'une autre école.",
+            "billingCalendarRequired": "Un calendrier de facturation est requis pour modifier l'accord.",
+            "noOpenPeriods": "Aucune période ouverte disponible pour la modification.",
+            "lockedFinancialRecords": "Des enregistrements financiers verrouillés empêchent cette modification.",
+            "amendmentNotAllowed": "La modification de l'accord n'est pas autorisée pour le moment.",
+            "invalidOperationType": "Type d'opération invalide.",
+            "invalidEffectivePeriod": "Période d'effet invalide.",
+            "effectivePeriodRequired": "Sélectionnez une période d'effet valide dans le calendrier de facturation.",
+            "generic": "Impossible de prévisualiser la modification de l'accord. Réessayez ou contactez l'administration financière."
+          }
+        },
         "inactiveAgreementReference": {
           "title": "Accord antérieur inactif",
           "stateLabel": "Statut",

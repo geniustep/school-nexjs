@@ -5465,6 +5465,64 @@
             }
           }
         },
+        "agreementAmendment": {
+          "title": "Modificar acuerdo financiero",
+          "subtitle": "Cambiar una línea del acuerdo activo a partir de un periodo futuro. Los pagos y recibos anteriores no se modifican.",
+          "action": "Modificar acuerdo",
+          "operation": {
+            "label": "Tipo de operación",
+            "addLine": "Añadir línea",
+            "cancelLine": "Cancelar línea",
+            "modifyLine": "Modificar línea"
+          },
+          "effectivePeriod": "Periodo de vigencia",
+          "reason": "Motivo",
+          "preview": "Previsualizar impacto",
+          "apply": "Confirmar modificación",
+          "previewTitle": "Resultado de la previsualización",
+          "allowed": "Permitido aplicar",
+          "allowedYes": "Sí",
+          "blocked": "Bloqueado",
+          "warnings": "Advertencias",
+          "blockingReasons": "Motivos de bloqueo",
+          "lockedPeriods": "Periodos bloqueados",
+          "lockedPeriodsWarning": "Algunos periodos están bloqueados por pagos o cobros anteriores. La modificación se aplicará solo a periodos abiertos.",
+          "amountBefore": "Importe antes",
+          "amountAfter": "Importe después",
+          "delta": "Diferencia",
+          "affectedPeriods": "Periodos afectados",
+          "createdInstallments": "Cuotas nuevas (vista previa)",
+          "updatedInstallments": "Cuotas actualizadas (vista previa)",
+          "cancelledInstallments": "Cuotas canceladas (vista previa)",
+          "success": "Acuerdo financiero modificado correctamente.",
+          "noPermission": "La modificación del acuerdo no está disponible ahora.",
+          "noPeriodsHint": "No hay periodos de facturación disponibles en los datos del acuerdo. Pruebe la previsualización tras indicar un motivo si el servidor devuelve periodos.",
+          "fields": {
+            "feeType": "Tipo de cuota",
+            "line": "Línea",
+            "amount": "Importe"
+          },
+          "applyConfirm": {
+            "title": "Confirmar modificación del acuerdo",
+            "body": "La modificación se aplicará solo a periodos abiertos. ¿Continuar?"
+          },
+          "errors": {
+            "reasonRequired": "El motivo de la modificación es obligatorio.",
+            "formIncomplete": "Complete todos los campos requeridos antes de la previsualización.",
+            "agreementNotFound": "No se encontró el acuerdo financiero.",
+            "agreementNotActive": "El acuerdo financiero no está activo.",
+            "agreementCancelled": "El acuerdo financiero está cancelado.",
+            "crossSchoolForbidden": "No se puede modificar el acuerdo de un alumno de otra escuela.",
+            "billingCalendarRequired": "Se requiere calendario de facturación para modificar el acuerdo.",
+            "noOpenPeriods": "No hay periodos abiertos disponibles para la modificación.",
+            "lockedFinancialRecords": "Registros financieros bloqueados impiden esta modificación.",
+            "amendmentNotAllowed": "La modificación del acuerdo no está permitida ahora.",
+            "invalidOperationType": "Tipo de operación no válido.",
+            "invalidEffectivePeriod": "Periodo de vigencia no válido.",
+            "effectivePeriodRequired": "Seleccione un periodo de vigencia válido del calendario de facturación.",
+            "generic": "No se pudo previsualizar la modificación del acuerdo. Inténtelo de nuevo o contacte con administración financiera."
+          }
+        },
         "inactiveAgreementReference": {
           "title": "Acuerdo anterior inactivo",
           "stateLabel": "Estado",

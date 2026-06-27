@@ -78,6 +78,7 @@ export type FinanceAgreementActionKind =
   | 'activate_agreement'
   | 'cancel_agreement'
   | 'create_amendment'
+  | 'amend_financial_agreement'
   | 'add_service_from_date'
   | 'stop_service_from_date'
   | 'reschedule_remaining'

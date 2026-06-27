@@ -17,6 +17,11 @@ import type {
   UpdateFinancialAgreementPayload,
 } from '../types';
 import type { ChangePlanPayload } from '@/types/student-finance-change-plan';
+import type {
+  AgreementAmendmentPreviewResponse,
+  AgreementAmendmentRequestPayload,
+  AgreementAmendmentPeriodOption,
+} from '../types/agreement-amendment';
 import type { CancelFutureTargetState } from '../utils/cancel-future-validation';
 import type {
   ResetFinancialAgreementPayload,
@@ -250,3 +255,39 @@ export async function postResetFinancialAgreement(
 
 /** Alias aligned with finance admin naming conventions. */
 export const financeResetFinancialAgreement = postResetFinancialAgreement;
+
+export async function previewAgreementAmendment(
+  studentId: number | string,
+  payload: AgreementAmendmentRequestPayload,
+  query?: ListParams,
+): Promise<ApiResponse<AgreementAmendmentPreviewResponse>> {
+  return api.post<AgreementAmendmentPreviewResponse>(
+    endpoints.admin.studentFinanceAgreementAmendmentPreview(studentId),
+    payload,
+    query,
+  );
+}
+
+export async function applyAgreementAmendment(
+  studentId: number | string,
+  payload: AgreementAmendmentRequestPayload,
+  query?: ListParams,
+): Promise<ApiResponse<unknown>> {
+  return api.post<unknown>(
+    endpoints.admin.studentFinanceAgreementAmendmentApply(studentId),
+    payload,
+    query,
+  );
+}
+
+export async function fetchAgreementAmendmentEffectivePeriods(
+  studentId: number | string,
+  agreementId: number,
+): Promise<ApiResponse<AgreementAmendmentPeriodOption[]>> {
+  const params = new URLSearchParams({ agreement_id: String(agreementId) });
+  const res = await fetch(
+    `/api/admin/students/${studentId}/finance/agreement-amendments/effective-periods?${params.toString()}`,
+    { method: 'GET', credentials: 'same-origin', cache: 'no-store' },
+  );
+  return res.json();
+}

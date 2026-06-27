@@ -18,6 +18,8 @@ import { resolveAgreementStatusPresentation } from '../utils/resolve-agreement-s
 import { resolveFinanceAgreementActions } from '../utils/resolve-finance-agreement-actions';
 import { resolveResetFinancialAgreementPresentation } from '../utils/resolve-reset-financial-agreement-action';
 import { resolveFinanceAgreementStateLabel } from '../utils/reference-labels';
+import { StudentFinanceAgreementAmendmentDialog } from './student-finance-agreement-amendment-dialog';
+import { isAgreementAmendmentAllowed } from '../utils/resolve-agreement-amendment-action';
 
 function statusPillClass(tone: string): string {
   return `student-finance-status-pill student-finance-status-pill--${tone === 'ok' ? 'ok' : tone === 'danger' ? 'danger' : tone === 'warn' ? 'warn' : 'neutral'}`;
@@ -80,6 +82,7 @@ export function StudentFinanceAgreementContextPanel({
   const [resetOpen, setResetOpen] = useState(false);
   const [resetReason, setResetReason] = useState('');
   const [resetLoading, setResetLoading] = useState(false);
+  const [amendmentOpen, setAmendmentOpen] = useState(false);
 
   const feePlan = useMemo(
     () => resolveFeePlanPresentation({ workspace, financialOverview, details }),
@@ -126,6 +129,11 @@ export function StudentFinanceAgreementContextPanel({
       }
       if (action.kind === 'create_agreement') {
         onCreateAgreement?.();
+        return;
+      }
+      if (action.kind === 'amend_financial_agreement') {
+        if (!action.enabled) return;
+        setAmendmentOpen(true);
         return;
       }
       onOpenAgreements?.();
@@ -328,6 +336,15 @@ export function StudentFinanceAgreementContextPanel({
             </label>
           </>
         }
+      />
+
+      <StudentFinanceAgreementAmendmentDialog
+        open={amendmentOpen}
+        studentId={studentId}
+        agreement={agreement ?? workspace?.current_agreement ?? null}
+        workspaceAllowed={isAgreementAmendmentAllowed(workspace, agreement ?? workspace?.current_agreement)}
+        onClose={() => setAmendmentOpen(false)}
+        onSuccess={() => onRefresh?.()}
       />
     </section>
   );

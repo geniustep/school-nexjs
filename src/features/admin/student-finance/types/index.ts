@@ -384,6 +384,8 @@ export interface StudentFinanceWorkspace {
   };
   action_reasons?: {
     reset_financial_agreement?: string | null;
+    amend_financial_agreement?: string | null;
+    create_amendment?: string | null;
   };
   requires_finance_review?: boolean;
   finance_operations_history?: FinanceOperationHistoryRecord[];

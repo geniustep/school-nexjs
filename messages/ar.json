@@ -5506,6 +5506,64 @@
             }
           }
         },
+        "agreementAmendment": {
+          "title": "تعديل الاتفاقية المالية",
+          "subtitle": "تعديل بند في الاتفاق النشط ابتداءً من فترة مستقبلية. الماضي والتحصيلات السابقة لا تتغير.",
+          "action": "تعديل الاتفاقية",
+          "operation": {
+            "label": "نوع العملية",
+            "addLine": "إضافة بند",
+            "cancelLine": "إلغاء بند",
+            "modifyLine": "تعديل بند"
+          },
+          "effectivePeriod": "فترة الفعالية",
+          "reason": "السبب",
+          "preview": "معاينة الأثر",
+          "apply": "تأكيد التعديل",
+          "previewTitle": "نتيجة المعاينة",
+          "allowed": "مسموح بالتطبيق",
+          "allowedYes": "نعم",
+          "blocked": "محظور",
+          "warnings": "تحذيرات",
+          "blockingReasons": "أسباب المنع",
+          "lockedPeriods": "فترات مقفلة",
+          "lockedPeriodsWarning": "بعض الفترات مقفلة بسبب أداء أو تحصيل سابق، وسيتم تطبيق التعديل فقط على الفترات المفتوحة.",
+          "amountBefore": "المبلغ قبل",
+          "amountAfter": "المبلغ بعد",
+          "delta": "الفرق",
+          "affectedPeriods": "الفترات المتأثرة",
+          "createdInstallments": "أقساط جديدة (معاينة)",
+          "updatedInstallments": "أقساط معدّلة (معاينة)",
+          "cancelledInstallments": "أقساط ملغاة (معاينة)",
+          "success": "تم تعديل الاتفاقية المالية بنجاح.",
+          "noPermission": "تعديل الاتفاقية غير متاح حاليًا.",
+          "noPeriodsHint": "لا توجد فترات فوترة متاحة من بيانات الاتفاق. جرّب المعاينة بعد اختيار السبب إذا أرجع الخادم فتراتًا.",
+          "fields": {
+            "feeType": "نوع الرسوم",
+            "line": "البند",
+            "amount": "المبلغ"
+          },
+          "applyConfirm": {
+            "title": "تأكيد تعديل الاتفاقية",
+            "body": "سيتم تطبيق التعديل على الفترات المفتوحة فقط. هل تريد المتابعة؟"
+          },
+          "errors": {
+            "reasonRequired": "يجب إدخال سبب التعديل.",
+            "formIncomplete": "أكمل جميع الحقول المطلوبة قبل المعاينة.",
+            "agreementNotFound": "لم يتم العثور على الاتفاق المالي.",
+            "agreementNotActive": "الاتفاق المالي غير نشط.",
+            "agreementCancelled": "الاتفاق المالي ملغى.",
+            "crossSchoolForbidden": "لا يمكن تعديل اتفاق تلميذ من مدرسة أخرى.",
+            "billingCalendarRequired": "تقويم الفوترة مطلوب لتعديل الاتفاق.",
+            "noOpenPeriods": "لا توجد فترات مفتوحة قابلة للتعديل.",
+            "lockedFinancialRecords": "توجد سجلات مالية مقفلة تمنع هذا التعديل.",
+            "amendmentNotAllowed": "تعديل الاتفاقية غير مسموح حاليًا.",
+            "invalidOperationType": "نوع العملية غير صالح.",
+            "invalidEffectivePeriod": "فترة الفعالية غير صالحة.",
+            "effectivePeriodRequired": "يجب اختيار فترة فعالية صالحة من تقويم الفوترة.",
+            "generic": "تعذر معاينة تعديل الاتفاقية. حاول مرة أخرى أو راجع الإدارة المالية."
+          }
+        },
         "inactiveAgreementReference": {
           "title": "اتفاق سابق غير نشط",
           "stateLabel": "الحالة",

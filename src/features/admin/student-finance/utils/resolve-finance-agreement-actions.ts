@@ -2,6 +2,7 @@ import type { StudentFinancialOverview } from '@/types/student-financial-overvie
 import type { FinancialAgreement, StudentFinanceWorkspace } from '../types';
 import type { FinanceAgreementActionItem } from '../types/agreement-context';
 import { normalizeReferenceValue } from './reference-labels';
+import { resolveAgreementAmendmentAction } from './resolve-agreement-amendment-action';
 import { readRequiresFinanceReview } from './resolve-fee-plan-presentation';
 import { hasActiveFinancialAgreement } from './resolve-student-billing-source-presentation';
 
@@ -75,13 +76,16 @@ export function resolveFinanceAgreementActions(input: {
   }
 
   if (hasActiveAgreement) {
+    const amendmentAction = resolveAgreementAmendmentAction({
+      workspace: input.workspace,
+      agreement: input.agreement ?? input.workspace?.current_agreement ?? null,
+      financialOverview: input.financialOverview,
+    });
+    if (amendmentAction) {
+      pushAction(actions, amendmentAction);
+    }
+
     const futureActions: FinanceAgreementActionItem[] = [
-      {
-        kind: 'create_amendment',
-        labelKey: 'admin.student360.financeWorkspace.agreementContext.actions.createAmendment',
-        enabled: allowed.create_amendment === true,
-        disabledTooltipKey: FUTURE_ACTION_TOOLTIP,
-      },
       {
         kind: 'add_service_from_date',
         labelKey: 'admin.student360.financeWorkspace.agreementContext.actions.addServiceFromDate',

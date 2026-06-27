@@ -176,7 +176,7 @@ describe('resolveFinanceAgreementActions', () => {
       } as StudentFinanceWorkspace,
     });
     expect(actions.some((action) => action.kind === 'customize_agreement')).toBe(false);
-    expect(actions.some((action) => action.kind === 'create_amendment')).toBe(true);
+    expect(actions.some((action) => action.kind === 'amend_financial_agreement')).toBe(true);
   });
 });
 

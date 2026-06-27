@@ -252,6 +252,12 @@ export const endpoints = {
       `/admin/students/${studentId}/finance/assign-plan`,
     studentFinanceResetAgreement: (studentId: number | string) =>
       `/admin/students/${studentId}/finance/reset-financial-agreement`,
+    studentFinanceAgreementAmendmentPreview: (studentId: number | string) =>
+      `/admin/students/${studentId}/finance/agreement-amendments/preview`,
+    studentFinanceAgreementAmendmentApply: (studentId: number | string) =>
+      `/admin/students/${studentId}/finance/agreement-amendments/apply`,
+    studentFinanceAgreementAmendmentEffectivePeriods: (studentId: number | string) =>
+      `/admin/students/${studentId}/finance/agreement-amendments/effective-periods`,
     financePaymentCollections: '/admin/finance/payment-collections',
     financePaymentCollectionPreview: '/admin/finance/payment-collections/preview',
     financePaymentCollection: (id: number | string) => `/admin/finance/payment-collections/${id}`,

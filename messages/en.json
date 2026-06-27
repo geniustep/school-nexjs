@@ -5470,6 +5470,64 @@
             }
           }
         },
+        "agreementAmendment": {
+          "title": "Amend financial agreement",
+          "subtitle": "Change a line on the active agreement from a future period. Past payments and receipts are not modified.",
+          "action": "Amend agreement",
+          "operation": {
+            "label": "Operation type",
+            "addLine": "Add line",
+            "cancelLine": "Cancel line",
+            "modifyLine": "Modify line"
+          },
+          "effectivePeriod": "Effective period",
+          "reason": "Reason",
+          "preview": "Preview impact",
+          "apply": "Confirm amendment",
+          "previewTitle": "Preview result",
+          "allowed": "Allowed to apply",
+          "allowedYes": "Yes",
+          "blocked": "Blocked",
+          "warnings": "Warnings",
+          "blockingReasons": "Blocking reasons",
+          "lockedPeriods": "Locked periods",
+          "lockedPeriodsWarning": "Some periods are locked because of past payments or collection. The amendment applies only to open periods.",
+          "amountBefore": "Amount before",
+          "amountAfter": "Amount after",
+          "delta": "Delta",
+          "affectedPeriods": "Affected periods",
+          "createdInstallments": "New installments (preview)",
+          "updatedInstallments": "Updated installments (preview)",
+          "cancelledInstallments": "Cancelled installments (preview)",
+          "success": "Financial agreement amended successfully.",
+          "noPermission": "Agreement amendment is not available right now.",
+          "noPeriodsHint": "No billing periods are available from agreement data. Try preview after entering a reason if the server returns periods.",
+          "fields": {
+            "feeType": "Fee type",
+            "line": "Line",
+            "amount": "Amount"
+          },
+          "applyConfirm": {
+            "title": "Confirm agreement amendment",
+            "body": "The amendment will apply to open periods only. Continue?"
+          },
+          "errors": {
+            "reasonRequired": "Amendment reason is required.",
+            "formIncomplete": "Complete all required fields before preview.",
+            "agreementNotFound": "Financial agreement was not found.",
+            "agreementNotActive": "Financial agreement is not active.",
+            "agreementCancelled": "Financial agreement is cancelled.",
+            "crossSchoolForbidden": "Cannot amend a student agreement from another school.",
+            "billingCalendarRequired": "Billing calendar is required to amend the agreement.",
+            "noOpenPeriods": "No open periods are available for amendment.",
+            "lockedFinancialRecords": "Locked financial records prevent this amendment.",
+            "amendmentNotAllowed": "Agreement amendment is not allowed right now.",
+            "invalidOperationType": "Invalid operation type.",
+            "invalidEffectivePeriod": "Invalid effective period.",
+            "effectivePeriodRequired": "Select a valid effective period from the billing calendar.",
+            "generic": "Could not preview the agreement amendment. Try again or contact finance administration."
+          }
+        },
         "inactiveAgreementReference": {
           "title": "Previous inactive agreement",
           "stateLabel": "Status",
