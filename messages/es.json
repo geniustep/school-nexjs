@@ -5455,6 +5455,12 @@
             "serverUnavailable": "Esta acción requiere habilitación en el servidor.",
             "success": "El acuerdo financiero se restableció correctamente.",
             "amountChangedWarning": "El importe del acuerdo cambió de {oldAmount} a {newAmount}.",
+            "amountChangedDetails": {
+              "summary": "Antes del restablecimiento: {oldAmount} — Después: {newAmount}",
+              "lineChanged": "Línea «{label}»: de {oldAmount} a {newAmount}",
+              "monthlyRecurringPreservedYes": "Matrícula y transporte se mantuvieron como cuotas mensuales.",
+              "monthlyRecurringPreservedNo": "Revise las líneas mensuales (matrícula y transporte) tras el restablecimiento."
+            },
             "errors": {
               "reasonRequired": "El motivo del restablecimiento es obligatorio.",
               "financialImpactExists": "No se puede restablecer el acuerdo financiero porque existe actividad financiera previa.",
@@ -5475,7 +5481,9 @@
             "cancelLine": "Cancelar línea",
             "modifyLine": "Modificar línea"
           },
-          "effectivePeriod": "Periodo de vigencia",
+          "effectivePeriod": "La modificación empieza en el mes",
+          "effectivePeriodHint": "La modificación se aplicará desde este mes hasta el fin del acuerdo, solo en meses abiertos y no pagados.",
+          "effectivePeriodOptionLabel": "{label} y posteriores",
           "reason": "Motivo",
           "preview": "Previsualizar impacto",
           "apply": "Confirmar modificación",
@@ -5500,7 +5508,23 @@
           "fields": {
             "feeType": "Tipo de cuota",
             "line": "Línea",
-            "amount": "Importe"
+            "amount": "Importe",
+            "monthlyNewUnitPrice": "Nuevo precio mensual",
+            "monthlyNewUnitPriceHint": "Este precio se aplicará a cada mes restante desde el mes de inicio.",
+            "monthlyNewUnitPriceExample": "Ejemplo: si introduce 1800 y quedan 10 meses, el total de esta línea será 18000."
+          },
+          "pricingContract": {
+            "title": "Resumen de precios",
+            "currentUnitPrice": "Precio mensual actual",
+            "newUnitPrice": "Nuevo precio mensual",
+            "affectedPeriodCount": "Meses afectados",
+            "currentTotal": "Total antes de la modificación",
+            "newTotal": "Total después de la modificación",
+            "deltaTotal": "Diferencia"
+          },
+          "reasonCodes": {
+            "one_time_line_not_period_amendable": "La matrícula es una línea única y no puede modificarse desde un mes. Elija una línea mensual como matrícula escolar o transporte, o use más adelante el flujo de corrección única.",
+            "monthly_unit_price_seems_high": "Aviso: introdujo {newUnitPrice} como nuevo precio mensual. Se aplicará a {affectedPeriodCount} meses, con un total de {newTotalForAffectedPeriods}. Si quería un total anual de 18.000, el precio mensual es {suggestedMonthlyUnitPrice}."
           },
           "applyConfirm": {
             "title": "Confirmar modificación del acuerdo",

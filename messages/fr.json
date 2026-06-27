@@ -5455,6 +5455,12 @@
             "serverUnavailable": "Cette action nécessite une activation côté serveur.",
             "success": "L'accord financier a été réinitialisé avec succès.",
             "amountChangedWarning": "Le montant de l'accord a changé de {oldAmount} à {newAmount}.",
+            "amountChangedDetails": {
+              "summary": "Avant réinitialisation : {oldAmount} — Après réinitialisation : {newAmount}",
+              "lineChanged": "Ligne « {label} » : de {oldAmount} à {newAmount}",
+              "monthlyRecurringPreservedYes": "Scolarité et transport conservés en échéances mensuelles.",
+              "monthlyRecurringPreservedNo": "Vérifiez les lignes mensuelles (scolarité et transport) après réinitialisation."
+            },
             "errors": {
               "reasonRequired": "Le motif de réinitialisation est obligatoire.",
               "financialImpactExists": "L'accord financier ne peut pas être réinitialisé en raison d'un impact financier antérieur.",
@@ -5475,7 +5481,9 @@
             "cancelLine": "Annuler une ligne",
             "modifyLine": "Modifier une ligne"
           },
-          "effectivePeriod": "Période d'effet",
+          "effectivePeriod": "La modification commence au mois",
+          "effectivePeriodHint": "La modification s'applique de ce mois jusqu'à la fin de l'accord, uniquement sur les mois ouverts et impayés.",
+          "effectivePeriodOptionLabel": "{label} et après",
           "reason": "Motif",
           "preview": "Prévisualiser l'impact",
           "apply": "Confirmer la modification",
@@ -5500,7 +5508,23 @@
           "fields": {
             "feeType": "Type de frais",
             "line": "Ligne",
-            "amount": "Montant"
+            "amount": "Montant",
+            "monthlyNewUnitPrice": "Nouveau prix mensuel",
+            "monthlyNewUnitPriceHint": "Ce prix s'appliquera à chaque mois restant à partir du mois de début.",
+            "monthlyNewUnitPriceExample": "Exemple : si vous saisissez 1800 et qu'il reste 10 mois, le total de cette ligne devient 18000."
+          },
+          "pricingContract": {
+            "title": "Résumé tarifaire",
+            "currentUnitPrice": "Prix mensuel actuel",
+            "newUnitPrice": "Nouveau prix mensuel",
+            "affectedPeriodCount": "Mois concernés",
+            "currentTotal": "Total avant modification",
+            "newTotal": "Total après modification",
+            "deltaTotal": "Écart"
+          },
+          "reasonCodes": {
+            "one_time_line_not_period_amendable": "L'inscription est une ligne unique et ne peut pas être modifiée à partir d'un mois. Choisissez une ligne mensuelle (scolarité ou transport), ou utilisez plus tard le flux de correction unique.",
+            "monthly_unit_price_seems_high": "Avertissement : vous avez saisi {newUnitPrice} comme nouveau prix mensuel. Il s'appliquera à {affectedPeriodCount} mois, pour un total de {newTotalForAffectedPeriods}. Si vous visiez un total annuel de 18 000, le prix mensuel est {suggestedMonthlyUnitPrice}."
           },
           "applyConfirm": {
             "title": "Confirmer la modification de l'accord",

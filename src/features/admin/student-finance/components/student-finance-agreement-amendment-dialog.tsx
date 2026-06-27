@@ -21,6 +21,17 @@ import type {
   NormalizedAgreementAmendmentPreview,
 } from '../types/agreement-amendment';
 import { resolveAgreementAmendmentErrorMessage } from '../utils/agreement-amendment-errors';
+import { filterPeriodAmendableLineOptions } from '../utils/agreement-amendment-line-eligibility';
+import { formatAmendmentEffectivePeriodLabel } from '../utils/agreement-amendment-period-labels';
+import {
+  hasAgreementAmendmentPricingContract,
+  isBlockedByOneTimeLineNotPeriodAmendable,
+  shouldShowAgreementAmendmentLegacyAmounts,
+} from '../utils/agreement-amendment-pricing-contract';
+import {
+  resolveAgreementAmendmentBlockingMessage,
+  resolveAgreementAmendmentWarningMessage,
+} from '../utils/resolve-agreement-amendment-warning';
 import {
   buildAgreementAmendmentApplyPayload,
   buildAgreementAmendmentPreviewPayload,
@@ -32,6 +43,7 @@ import {
   resolveAmendmentAgreementLineOptions,
   resolveAmendmentEffectivePeriodOptions,
 } from '../utils/resolve-amendment-form-options';
+import { AgreementAmendmentPricingContractPreview } from './agreement-amendment-pricing-contract-preview';
 
 function defaultForm(): AgreementAmendmentFormState {
   return {
@@ -108,10 +120,19 @@ export function StudentFinanceAgreementAmendmentDialog({
   const agreementId = agreement?.id ?? null;
   const canEdit = workspaceAllowed === true && agreementId != null;
 
-  const lineOptions = useMemo(
-    () => resolveAmendmentAgreementLineOptions(agreementDetails ?? agreement),
-    [agreement, agreementDetails],
+  const lineOptions = useMemo(() => {
+    const allLines = resolveAmendmentAgreementLineOptions(agreementDetails ?? agreement);
+    if (form.operationType === 'add_line') return allLines;
+    return filterPeriodAmendableLineOptions(allLines);
+  }, [agreement, agreementDetails, form.operationType]);
+
+  const selectedLine = useMemo(
+    () => lineOptions.find((line) => String(line.id) === form.sourceLineId) ?? null,
+    [form.sourceLineId, lineOptions],
   );
+
+  const showMonthlyAmountField =
+    form.operationType === 'modify_line' && selectedLine != null && selectedLine.isOneTime !== true;
 
   const periodOptions = useMemo(
     () =>
@@ -301,6 +322,9 @@ export function StudentFinanceAgreementAmendmentDialog({
             <span className="tiny muted">
               {t('admin.student360.financeWorkspace.agreementAmendment.effectivePeriod')}
             </span>
+            <p className="tiny muted student-finance-amendment-form__hint">
+              {t('admin.student360.financeWorkspace.agreementAmendment.effectivePeriodHint')}
+            </p>
             <select
               className="input"
               value={form.effectivePeriodId}
@@ -313,7 +337,7 @@ export function StudentFinanceAgreementAmendmentDialog({
               <option value="">{t('common.dash')}</option>
               {periodOptions.map((period) => (
                 <option key={period.id} value={period.id}>
-                  {period.label}
+                  {formatAmendmentEffectivePeriodLabel(period, t)}
                 </option>
               ))}
             </select>
@@ -409,8 +433,20 @@ export function StudentFinanceAgreementAmendmentDialog({
               {form.operationType === 'modify_line' ? (
                 <label>
                   <span className="tiny muted">
-                    {t('admin.student360.financeWorkspace.agreementAmendment.fields.amount')}
+                    {showMonthlyAmountField
+                      ? t('admin.student360.financeWorkspace.agreementAmendment.fields.monthlyNewUnitPrice')
+                      : t('admin.student360.financeWorkspace.agreementAmendment.fields.amount')}
                   </span>
+                  {showMonthlyAmountField ? (
+                    <>
+                      <p className="tiny muted student-finance-amendment-form__hint">
+                        {t('admin.student360.financeWorkspace.agreementAmendment.fields.monthlyNewUnitPriceHint')}
+                      </p>
+                      <p className="tiny muted student-finance-amendment-form__example">
+                        {t('admin.student360.financeWorkspace.agreementAmendment.fields.monthlyNewUnitPriceExample')}
+                      </p>
+                    </>
+                  ) : null}
                   <input
                     className="input"
                     type="number"
@@ -429,6 +465,19 @@ export function StudentFinanceAgreementAmendmentDialog({
           )}
 
           {formError ? <p className="form-error">{formError}</p> : null}
+
+          {preview?.warnings.length ? (
+            <div className="student-finance-amendment-preview__warnings-banner" role="status">
+              <h4>{t('admin.student360.financeWorkspace.agreementAmendment.warnings')}</h4>
+              <ul className="student-finance-amendment-preview__warnings">
+                {preview.warnings.map((warning) => (
+                  <li key={`${warning.code}-${warning.message ?? ''}`}>
+                    {resolveAgreementAmendmentWarningMessage(warning, t, preview.pricingContract)}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
 
           <div className="row">
             <button type="submit" className="btn btn--primary" disabled={previewLoading || !canEdit}>
@@ -452,6 +501,15 @@ export function StudentFinanceAgreementAmendmentDialog({
         {preview ? (
           <section className="student-finance-amendment-preview stack" aria-live="polite">
             <h3>{t('admin.student360.financeWorkspace.agreementAmendment.previewTitle')}</h3>
+
+            {isBlockedByOneTimeLineNotPeriodAmendable(preview) ? (
+              <div className="student-finance-amendment-preview__blocker-banner" role="alert">
+                {preview.blockingReasons.map((reason) => (
+                  <p key={reason.code}>{resolveAgreementAmendmentBlockingMessage(reason, t)}</p>
+                ))}
+              </div>
+            ) : null}
+
             <dl className="detail-list compact">
               <div>
                 <dt>{t('admin.student360.financeWorkspace.agreementAmendment.allowed')}</dt>
@@ -461,7 +519,7 @@ export function StudentFinanceAgreementAmendmentDialog({
                     : t('admin.student360.financeWorkspace.agreementAmendment.blocked')}
                 </dd>
               </div>
-              {preview.amountBefore != null ? (
+              {shouldShowAgreementAmendmentLegacyAmounts(preview) && preview.amountBefore != null ? (
                 <div>
                   <dt>{t('admin.student360.financeWorkspace.agreementAmendment.amountBefore')}</dt>
                   <dd>
@@ -472,7 +530,7 @@ export function StudentFinanceAgreementAmendmentDialog({
                   </dd>
                 </div>
               ) : null}
-              {preview.amountAfter != null ? (
+              {shouldShowAgreementAmendmentLegacyAmounts(preview) && preview.amountAfter != null ? (
                 <div>
                   <dt>{t('admin.student360.financeWorkspace.agreementAmendment.amountAfter')}</dt>
                   <dd>
@@ -483,7 +541,7 @@ export function StudentFinanceAgreementAmendmentDialog({
                   </dd>
                 </div>
               ) : null}
-              {preview.delta != null ? (
+              {shouldShowAgreementAmendmentLegacyAmounts(preview) && preview.delta != null ? (
                 <div>
                   <dt>{t('admin.student360.financeWorkspace.agreementAmendment.delta')}</dt>
                   <dd>
@@ -505,6 +563,13 @@ export function StudentFinanceAgreementAmendmentDialog({
               ) : null}
             </dl>
 
+            {hasAgreementAmendmentPricingContract(preview.pricingContract) && preview.pricingContract ? (
+              <AgreementAmendmentPricingContractPreview
+                contract={preview.pricingContract}
+                currency={preview.currency}
+              />
+            ) : null}
+
             {preview.lockedPeriods.length ? (
               <p className="student-finance-amendment-preview__locked-warning" role="note">
                 {t('admin.student360.financeWorkspace.agreementAmendment.lockedPeriodsWarning')}
@@ -516,21 +581,21 @@ export function StudentFinanceAgreementAmendmentDialog({
                 <h4>{t('admin.student360.financeWorkspace.agreementAmendment.warnings')}</h4>
                 <ul className="student-finance-amendment-preview__warnings">
                   {preview.warnings.map((warning) => (
-                    <li key={warning}>
-                      {resolveAgreementAmendmentErrorMessage(warning, undefined, t)}
+                    <li key={`${warning.code}-${warning.message ?? ''}`}>
+                      {resolveAgreementAmendmentWarningMessage(warning, t, preview.pricingContract)}
                     </li>
                   ))}
                 </ul>
               </div>
             ) : null}
 
-            {preview.blockingReasons.length ? (
+            {preview.blockingReasons.length && !isBlockedByOneTimeLineNotPeriodAmendable(preview) ? (
               <div>
                 <h4>{t('admin.student360.financeWorkspace.agreementAmendment.blockingReasons')}</h4>
                 <ul className="student-finance-amendment-preview__blockers">
                   {preview.blockingReasons.map((reason) => (
-                    <li key={reason}>
-                      {resolveAgreementAmendmentErrorMessage(reason, undefined, t)}
+                    <li key={reason.code}>
+                      {resolveAgreementAmendmentBlockingMessage(reason, t)}
                     </li>
                   ))}
                 </ul>

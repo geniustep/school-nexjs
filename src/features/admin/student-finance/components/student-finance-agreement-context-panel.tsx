@@ -20,6 +20,10 @@ import { resolveResetFinancialAgreementPresentation } from '../utils/resolve-res
 import { resolveFinanceAgreementStateLabel } from '../utils/reference-labels';
 import { StudentFinanceAgreementAmendmentDialog } from './student-finance-agreement-amendment-dialog';
 import { isAgreementAmendmentAllowed } from '../utils/resolve-agreement-amendment-action';
+import {
+  buildResetAmountChangedMessages,
+  normalizeResetAmountChangedPresentation,
+} from '../utils/normalize-reset-amount-changed';
 
 function statusPillClass(tone: string): string {
   return `student-finance-status-pill student-finance-status-pill--${tone === 'ok' ? 'ok' : tone === 'danger' ? 'danger' : tone === 'warn' ? 'warn' : 'neutral'}`;
@@ -161,14 +165,18 @@ export function StudentFinanceAgreementContextPanel({
       return;
     }
     toast.success(t('admin.student360.financeWorkspace.agreementContext.reset.success'));
-    if (res.data?.warning === 'amount_changed') {
-      const oldAmount = res.data.old_amount;
-      const newAmount = res.data.new_amount;
-      if (oldAmount != null && newAmount != null) {
+    const amountChanged = normalizeResetAmountChangedPresentation(res.data);
+    if (amountChanged) {
+      const detailMessages = buildResetAmountChangedMessages(amountChanged, t);
+      if (detailMessages.length) {
+        for (const message of detailMessages) {
+          toast.show(message, 'info');
+        }
+      } else if (amountChanged.oldAmount != null && amountChanged.newAmount != null) {
         toast.show(
           t('admin.student360.financeWorkspace.agreementContext.reset.amountChangedWarning', {
-            oldAmount: String(oldAmount),
-            newAmount: String(newAmount),
+            oldAmount: String(amountChanged.oldAmount),
+            newAmount: String(amountChanged.newAmount),
           }),
           'info',
         );

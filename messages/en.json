@@ -5460,6 +5460,12 @@
             "serverUnavailable": "This action requires server-side enablement.",
             "success": "Financial agreement was reset successfully.",
             "amountChangedWarning": "Agreement amount changed from {oldAmount} to {newAmount}.",
+            "amountChangedDetails": {
+              "summary": "Before reset: {oldAmount} — After reset: {newAmount}",
+              "lineChanged": "Line \"{label}\" changed from {oldAmount} to {newAmount}",
+              "monthlyRecurringPreservedYes": "Tuition and transport were kept as monthly installments.",
+              "monthlyRecurringPreservedNo": "Review monthly lines (tuition and transport) after reset."
+            },
             "errors": {
               "reasonRequired": "Reset reason is required.",
               "financialImpactExists": "The financial agreement cannot be reset because prior financial activity exists.",
@@ -5480,7 +5486,9 @@
             "cancelLine": "Cancel line",
             "modifyLine": "Modify line"
           },
-          "effectivePeriod": "Effective period",
+          "effectivePeriod": "Amendment starts from month",
+          "effectivePeriodHint": "The amendment applies from this month through the end of the agreement, only on open and unpaid months.",
+          "effectivePeriodOptionLabel": "{label} and after",
           "reason": "Reason",
           "preview": "Preview impact",
           "apply": "Confirm amendment",
@@ -5505,7 +5513,23 @@
           "fields": {
             "feeType": "Fee type",
             "line": "Line",
-            "amount": "Amount"
+            "amount": "Amount",
+            "monthlyNewUnitPrice": "New monthly unit price",
+            "monthlyNewUnitPriceHint": "This price will apply to every remaining month starting from the selected start month.",
+            "monthlyNewUnitPriceExample": "Example: if you enter 1800 and 10 months remain, this line total becomes 18000."
+          },
+          "pricingContract": {
+            "title": "Pricing summary",
+            "currentUnitPrice": "Current monthly price",
+            "newUnitPrice": "New monthly price",
+            "affectedPeriodCount": "Affected months",
+            "currentTotal": "Total before amendment",
+            "newTotal": "Total after amendment",
+            "deltaTotal": "Difference"
+          },
+          "reasonCodes": {
+            "one_time_line_not_period_amendable": "Registration is a one-time line and cannot be amended from a start month. Choose a monthly line such as tuition or transport, or use a one-time correction flow later.",
+            "monthly_unit_price_seems_high": "Warning: you entered {newUnitPrice} as the new monthly price. It will apply to {affectedPeriodCount} months, for a line total of {newTotalForAffectedPeriods}. If you meant an annual total of 18,000, the monthly price is {suggestedMonthlyUnitPrice}."
           },
           "applyConfirm": {
             "title": "Confirm agreement amendment",
@@ -5523,8 +5547,8 @@
             "lockedFinancialRecords": "Locked financial records prevent this amendment.",
             "amendmentNotAllowed": "Agreement amendment is not allowed right now.",
             "invalidOperationType": "Invalid operation type.",
-            "invalidEffectivePeriod": "Invalid effective period.",
-            "effectivePeriodRequired": "Select a valid effective period from the billing calendar.",
+            "invalidEffectivePeriod": "Invalid start month.",
+            "effectivePeriodRequired": "Select a valid start month from the billing calendar.",
             "generic": "Could not preview the agreement amendment. Try again or contact finance administration."
           }
         },

@@ -30,16 +30,34 @@ export interface AgreementAmendmentInstallmentPreview {
   state?: string | null;
 }
 
+export interface AgreementAmendmentPricingContract {
+  amountSemantics?: string | null;
+  currentUnitPrice?: number | null;
+  newUnitPrice?: number | null;
+  affectedPeriodCount?: number | null;
+  currentTotalForAffectedPeriods?: number | null;
+  newTotalForAffectedPeriods?: number | null;
+  deltaTotal?: number | null;
+}
+
+export interface AgreementAmendmentWarning {
+  code: string;
+  message?: string | null;
+  params?: Record<string, string | number>;
+}
+
 export interface AgreementAmendmentPreviewResponse {
   allowed?: boolean;
   amount_before?: number;
   amount_after?: number;
   delta?: number;
   currency?: string;
+  pricing_contract?: unknown;
   affected_periods?: unknown[];
   locked_periods?: unknown[];
   warnings?: unknown[];
   blocking_reasons?: unknown[];
+  reason?: string;
   open_periods?: unknown[];
   available_periods?: unknown[];
   effective_periods?: unknown[];
@@ -64,10 +82,11 @@ export interface NormalizedAgreementAmendmentPreview {
   amountAfter: number | null;
   delta: number | null;
   currency: string | null;
+  pricingContract: AgreementAmendmentPricingContract | null;
   affectedPeriods: string[];
   lockedPeriods: string[];
-  warnings: string[];
-  blockingReasons: string[];
+  warnings: AgreementAmendmentWarning[];
+  blockingReasons: AgreementAmendmentWarning[];
   createdInstallments: AgreementAmendmentInstallmentPreview[];
   updatedInstallments: AgreementAmendmentInstallmentPreview[];
   cancelledInstallments: AgreementAmendmentInstallmentPreview[];

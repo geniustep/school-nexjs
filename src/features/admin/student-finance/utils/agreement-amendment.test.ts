@@ -162,7 +162,7 @@ describe('normalizeAgreementAmendmentPreview', () => {
     expect(normalized.delta).toBe(300);
     expect(normalized.affectedPeriods).toEqual(['April 2026']);
     expect(normalized.lockedPeriods).toEqual(['January 2026']);
-    expect(normalized.warnings).toEqual(['locked_financial_records']);
+    expect(normalized.warnings).toEqual([{ code: 'locked_financial_records' }]);
     expect(normalized.createdInstallments[0]?.amount).toBe(300);
     expect(Object.values(normalized).every((value) => value !== undefined)).toBe(true);
   });
@@ -173,7 +173,7 @@ describe('normalizeAgreementAmendmentPreview', () => {
       blocking_reasons: ['no_open_periods'],
     });
     expect(normalized.allowed).toBe(false);
-    expect(normalized.blockingReasons).toContain('no_open_periods');
+    expect(normalized.blockingReasons).toEqual([{ code: 'no_open_periods' }]);
   });
 
   it('10) preview.allowed=true permits apply', () => {
@@ -188,7 +188,7 @@ describe('normalizeAgreementAmendmentPreview', () => {
       warnings: ['Some periods are locked'],
     });
     expect(normalized.lockedPeriods).toEqual(['March 2026']);
-    expect(normalized.warnings).toEqual(['Some periods are locked']);
+    expect(normalized.warnings).toEqual([{ code: 'Some periods are locked' }]);
   });
 });
 

@@ -5496,6 +5496,12 @@
             "serverUnavailable": "هذا الإجراء يحتاج تفعيلًا من الخادم.",
             "success": "تمت إعادة ضبط الاتفاق المالي بنجاح.",
             "amountChangedWarning": "تغيّر مبلغ الاتفاق من {oldAmount} إلى {newAmount}.",
+            "amountChangedDetails": {
+              "summary": "قبل إعادة الضبط: {oldAmount} — بعد إعادة الضبط: {newAmount}",
+              "lineChanged": "تغيّر بند «{label}»: من {oldAmount} إلى {newAmount}",
+              "monthlyRecurringPreservedYes": "تم الحفاظ على التمدرس والنقل كأقساط شهرية.",
+              "monthlyRecurringPreservedNo": "تحقّق من البنود الشهرية (التمدرس والنقل) بعد إعادة الضبط."
+            },
             "errors": {
               "reasonRequired": "يجب إدخال سبب إعادة الضبط.",
               "financialImpactExists": "لا يمكن إعادة ضبط الاتفاق المالي لوجود أثر مالي سابق.",
@@ -5516,7 +5522,9 @@
             "cancelLine": "إلغاء بند",
             "modifyLine": "تعديل بند"
           },
-          "effectivePeriod": "فترة الفعالية",
+          "effectivePeriod": "يبدأ التعديل من شهر",
+          "effectivePeriodHint": "سيُطبّق التعديل من هذا الشهر إلى نهاية الاتفاق، فقط على الأشهر المفتوحة وغير المؤداة.",
+          "effectivePeriodOptionLabel": "{label} وما بعده",
           "reason": "السبب",
           "preview": "معاينة الأثر",
           "apply": "تأكيد التعديل",
@@ -5541,7 +5549,23 @@
           "fields": {
             "feeType": "نوع الرسوم",
             "line": "البند",
-            "amount": "المبلغ"
+            "amount": "المبلغ",
+            "monthlyNewUnitPrice": "السعر الشهري الجديد",
+            "monthlyNewUnitPriceHint": "هذا السعر سيُطبّق على كل شهر متبقٍ ابتداءً من شهر البداية.",
+            "monthlyNewUnitPriceExample": "مثال: إذا أدخلت 1800 و بقيت 10 أشهر، يصبح مجموع هذا البند 18000."
+          },
+          "pricingContract": {
+            "title": "ملخص السعر",
+            "currentUnitPrice": "السعر الحالي للشهر",
+            "newUnitPrice": "السعر الجديد للشهر",
+            "affectedPeriodCount": "عدد الأشهر المتأثرة",
+            "currentTotal": "المجموع قبل التعديل",
+            "newTotal": "المجموع بعد التعديل",
+            "deltaTotal": "الفرق"
+          },
+          "reasonCodes": {
+            "one_time_line_not_period_amendable": "بند التسجيل هو بند مرة واحدة ولا يمكن تعديله من شهر فعالية. اختر بندًا شهريًا مثل التمدرس أو النقل، أو استعمل لاحقًا مسار تصحيح بند مرة واحدة.",
+            "monthly_unit_price_seems_high": "تنبيه: أدخلت {newUnitPrice} كسعر شهري جديد. سيتم تطبيقه على {affectedPeriodCount} أشهر، ليصبح مجموع البند {newTotalForAffectedPeriods} درهم. إذا كنت تقصد مجموعًا سنويًا 18,000 درهم، فالسعر الشهري هو {suggestedMonthlyUnitPrice} درهم."
           },
           "applyConfirm": {
             "title": "تأكيد تعديل الاتفاقية",
@@ -5559,8 +5583,8 @@
             "lockedFinancialRecords": "توجد سجلات مالية مقفلة تمنع هذا التعديل.",
             "amendmentNotAllowed": "تعديل الاتفاقية غير مسموح حاليًا.",
             "invalidOperationType": "نوع العملية غير صالح.",
-            "invalidEffectivePeriod": "فترة الفعالية غير صالحة.",
-            "effectivePeriodRequired": "يجب اختيار فترة فعالية صالحة من تقويم الفوترة.",
+            "invalidEffectivePeriod": "شهر البداية غير صالح.",
+            "effectivePeriodRequired": "يجب اختيار شهر بداية صالح من تقويم الفوترة.",
             "generic": "تعذر معاينة تعديل الاتفاقية. حاول مرة أخرى أو راجع الإدارة المالية."
           }
         },

@@ -1,4 +1,11 @@
-/** Map agreement-amendment API error codes to i18n keys. */
+/** Map agreement-amendment API error/warning codes to i18n keys. */
+export function agreementAmendmentReasonMessageKey(code: string | undefined): string | null {
+  if (!code) return null;
+  const reasonKey = `admin.student360.financeWorkspace.agreementAmendment.reasonCodes.${code}`;
+  return reasonKey;
+}
+
+/** @deprecated Use agreementAmendmentReasonMessageKey for warnings; kept for API errors. */
 export function agreementAmendmentErrorMessageKey(code: string | undefined): string | null {
   switch (code) {
     case 'reason_required':
@@ -26,6 +33,8 @@ export function agreementAmendmentErrorMessageKey(code: string | undefined): str
       return 'admin.student360.financeWorkspace.agreementAmendment.errors.invalidEffectivePeriod';
     case 'effective_period_required':
       return 'admin.student360.financeWorkspace.agreementAmendment.errors.effectivePeriodRequired';
+    case 'one_time_line_not_period_amendable':
+      return 'admin.student360.financeWorkspace.agreementAmendment.reasonCodes.one_time_line_not_period_amendable';
     default:
       return null;
   }

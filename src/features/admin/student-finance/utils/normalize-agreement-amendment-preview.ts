@@ -3,7 +3,9 @@ import type {
   AgreementAmendmentPreviewResponse,
   NormalizedAgreementAmendmentPreview,
 } from '../types/agreement-amendment';
+import { normalizeAgreementAmendmentPricingContract } from './agreement-amendment-pricing-contract';
 import { mergeAgreementAmendmentPeriodOptions } from './normalize-agreement-amendment-period-options';
+import { readAgreementAmendmentReasonCodes, readAgreementAmendmentWarnings } from './resolve-agreement-amendment-warning';
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === 'object' && !Array.isArray(value)
@@ -84,14 +86,18 @@ export function normalizeAgreementAmendmentPreview(
   const data = preview as AgreementAmendmentPreviewResponse;
 
   const blockingReasons = [
-    ...new Set([
-      ...readReasonCodes(data.blocking_reasons),
-      ...readReasonCodes(root.blocking_reasons),
-    ]),
-  ];
-  const warnings = [
-    ...new Set([...readReasonCodes(data.warnings), ...readReasonCodes(root.warnings)]),
-  ];
+    ...readAgreementAmendmentReasonCodes(data.blocking_reasons),
+    ...readAgreementAmendmentReasonCodes(root.blocking_reasons),
+    ...(data.allowed === false && readString(data.reason)
+      ? [{ code: readString(data.reason)! }]
+      : []),
+  ].filter((reason, index, list) => list.findIndex((item) => item.code === reason.code) === index);
+  const warnings = readAgreementAmendmentWarnings(data.warnings);
+  for (const warning of readAgreementAmendmentWarnings(root.warnings)) {
+    if (!warnings.some((item) => item.code === warning.code && item.message === warning.message)) {
+      warnings.push(warning);
+    }
+  }
 
   const allowedExplicit =
     typeof data.allowed === 'boolean'
@@ -100,6 +106,10 @@ export function normalizeAgreementAmendmentPreview(
         ? root.allowed
         : blockingReasons.length === 0;
 
+  const pricingContract =
+    normalizeAgreementAmendmentPricingContract(data.pricing_contract) ??
+    normalizeAgreementAmendmentPricingContract(root.pricing_contract);
+
   return {
     allowed: allowedExplicit,
     amountBefore:
@@ -107,6 +117,7 @@ export function normalizeAgreementAmendmentPreview(
     amountAfter: readFiniteNumber(data.amount_after) ?? readFiniteNumber(root.amount_after),
     delta: readFiniteNumber(data.delta) ?? readFiniteNumber(root.delta),
     currency: readString(data.currency) ?? readString(root.currency),
+    pricingContract,
     affectedPeriods: [
       ...new Set([
         ...readPeriodLabels(data.affected_periods),

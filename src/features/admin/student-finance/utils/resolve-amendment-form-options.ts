@@ -1,5 +1,6 @@
 import type { FinancialAgreement } from '../types';
 import type { AgreementAmendmentPeriodOption } from '../types/agreement-amendment';
+import { isOneTimeAgreementLine } from './agreement-amendment-line-eligibility';
 import { mergeAgreementAmendmentPeriodOptions } from './normalize-agreement-amendment-period-options';
 
 function readFiniteNumber(value: unknown): number | null {
@@ -22,6 +23,7 @@ export interface AgreementAmendmentLineOption {
   label: string;
   feeTypeId: number | null;
   amount: number | null;
+  isOneTime?: boolean;
 }
 
 export function resolveAmendmentAgreementLineOptions(
@@ -47,6 +49,7 @@ export function resolveAmendmentAgreementLineOptions(
       label,
       feeTypeId,
       amount: readFiniteNumber(line.net_amount) ?? readFiniteNumber(line.gross_amount),
+      isOneTime: isOneTimeAgreementLine(raw),
     });
   }
   return options;
