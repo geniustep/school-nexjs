@@ -5505,6 +5505,14 @@
           "success": "L'accord financier a été modifié avec succès.",
           "noPermission": "La modification de l'accord n'est pas disponible pour le moment.",
           "noPeriodsHint": "Aucune période de facturation disponible dans les données de l'accord. Essayez la prévisualisation après avoir saisi un motif si le serveur renvoie des périodes.",
+          "noPeriodAmendableLinesHint": "Aucune ligne mensuelle ne peut être modifiée à partir d'un mois sur cet accord.",
+          "notAllowedTitle": "Application non autorisée",
+          "oneTimeBlockedHint": "Choisissez une ligne mensuelle comme la scolarité ou le transport.",
+          "oneTimeNoMonthlyPrice": "Cette ligne n'utilise pas de prix mensuel.",
+          "lineOptions": {
+            "monthly": "{label} — mensuel",
+            "oneTimeDisabled": "{label} — unique, non modifiable à partir d'un mois"
+          },
           "fields": {
             "feeType": "Type de frais",
             "line": "Ligne",

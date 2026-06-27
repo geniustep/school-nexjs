@@ -137,7 +137,8 @@ describe('agreement amendment pricing contract UI', () => {
           id: 100,
           service_id: 10,
           service_name: 'التمدرس',
-          commitment_type: 'monthly',
+          commitment_type: 'renewable_subscription',
+          pricing_unit: 'month',
           net_amount: 2000,
         },
         {
@@ -145,6 +146,7 @@ describe('agreement amendment pricing contract UI', () => {
           service_id: 11,
           service_name: 'التسجيل',
           commitment_type: 'one_time',
+          pricing_unit: 'academic_year',
           net_amount: 2500,
         },
       ],

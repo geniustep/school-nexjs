@@ -5,17 +5,46 @@ function readString(value: unknown): string | null {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
+function normalizeToken(value: unknown): string | null {
+  const raw = readString(value);
+  if (!raw) return null;
+  return raw.toLowerCase().replace(/\s+/g, '_');
+}
+
+export function isMonthlyAgreementLine(line: Record<string, unknown>): boolean {
+  const commitmentType = normalizeToken(line.commitment_type);
+  const pricingUnit = normalizeToken(line.pricing_unit);
+  const frequency = normalizeToken(line.frequency);
+
+  if (pricingUnit === 'month') return true;
+  if (frequency === 'monthly' || frequency === 'month') return true;
+  if (
+    commitmentType === 'renewable_subscription' ||
+    commitmentType === 'recurring' ||
+    commitmentType === 'monthly'
+  ) {
+    return true;
+  }
+  return false;
+}
+
 export function isOneTimeAgreementLine(line: Record<string, unknown>): boolean {
+  if (isMonthlyAgreementLine(line)) return false;
   if (line.is_one_time === true) return true;
-  const commitmentType = readString(line.commitment_type)?.toLowerCase();
+
+  const commitmentType = normalizeToken(line.commitment_type);
   if (commitmentType === 'one_time' || commitmentType === 'once') return true;
-  const pricingUnit = readString(line.pricing_unit)?.toLowerCase();
+
+  const pricingUnit = normalizeToken(line.pricing_unit);
   if (pricingUnit === 'one_time' || pricingUnit === 'once') return true;
-  if (pricingUnit === 'academic_year' && commitmentType === 'one_time') return true;
-  const frequency = readString(line.frequency)?.toLowerCase();
+  if (pricingUnit === 'academic_year') return true;
+
+  const frequency = normalizeToken(line.frequency);
   if (frequency === 'one_time' || frequency === 'once') return true;
-  const chargeGenerationMode = readString(line.charge_generation_mode)?.toLowerCase();
+
+  const chargeGenerationMode = normalizeToken(line.charge_generation_mode);
   if (chargeGenerationMode === 'one_time' || chargeGenerationMode === 'once') return true;
+
   return false;
 }
 

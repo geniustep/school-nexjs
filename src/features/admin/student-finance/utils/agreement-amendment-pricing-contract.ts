@@ -80,3 +80,9 @@ export function isBlockedByOneTimeLineNotPeriodAmendable(
       reason.code.includes('one_time_line_not_period_amendable'),
   );
 }
+
+export function shouldShowAgreementAmendmentAllowedStatus(
+  preview: NormalizedAgreementAmendmentPreview,
+): boolean {
+  return preview.allowed;
+}

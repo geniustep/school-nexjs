@@ -5510,6 +5510,14 @@
           "success": "Financial agreement amended successfully.",
           "noPermission": "Agreement amendment is not available right now.",
           "noPeriodsHint": "No billing periods are available from agreement data. Try preview after entering a reason if the server returns periods.",
+          "noPeriodAmendableLinesHint": "No monthly lines are available to amend from a start month on this agreement.",
+          "notAllowedTitle": "Not allowed to apply",
+          "oneTimeBlockedHint": "Choose a monthly line such as tuition or transport.",
+          "oneTimeNoMonthlyPrice": "This line does not use a monthly unit price.",
+          "lineOptions": {
+            "monthly": "{label} — monthly",
+            "oneTimeDisabled": "{label} — one-time, not amendable from a month"
+          },
           "fields": {
             "feeType": "Fee type",
             "line": "Line",

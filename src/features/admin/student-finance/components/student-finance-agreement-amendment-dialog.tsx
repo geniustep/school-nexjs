@@ -22,10 +22,12 @@ import type {
 } from '../types/agreement-amendment';
 import { resolveAgreementAmendmentErrorMessage } from '../utils/agreement-amendment-errors';
 import { filterPeriodAmendableLineOptions } from '../utils/agreement-amendment-line-eligibility';
+import { formatAmendmentLineOptionLabel } from '../utils/agreement-amendment-line-labels';
 import { formatAmendmentEffectivePeriodLabel } from '../utils/agreement-amendment-period-labels';
 import {
   hasAgreementAmendmentPricingContract,
   isBlockedByOneTimeLineNotPeriodAmendable,
+  shouldShowAgreementAmendmentAllowedStatus,
   shouldShowAgreementAmendmentLegacyAmounts,
 } from '../utils/agreement-amendment-pricing-contract';
 import {
@@ -120,19 +122,35 @@ export function StudentFinanceAgreementAmendmentDialog({
   const agreementId = agreement?.id ?? null;
   const canEdit = workspaceAllowed === true && agreementId != null;
 
+  const isPeriodBasedLineOperation =
+    form.operationType === 'modify_line' || form.operationType === 'cancel_line';
+
   const lineOptions = useMemo(() => {
     const allLines = resolveAmendmentAgreementLineOptions(agreementDetails ?? agreement);
-    if (form.operationType === 'add_line') return allLines;
+    if (!isPeriodBasedLineOperation) return allLines;
     return filterPeriodAmendableLineOptions(allLines);
-  }, [agreement, agreementDetails, form.operationType]);
+  }, [agreement, agreementDetails, isPeriodBasedLineOperation]);
 
-  const selectedLine = useMemo(
-    () => lineOptions.find((line) => String(line.id) === form.sourceLineId) ?? null,
-    [form.sourceLineId, lineOptions],
-  );
+  const selectedLine = useMemo(() => {
+    if (!form.sourceLineId) return null;
+    return (
+      lineOptions.find((line) => String(line.id) === form.sourceLineId) ??
+      resolveAmendmentAgreementLineOptions(agreementDetails ?? agreement).find(
+        (line) => String(line.id) === form.sourceLineId,
+      ) ??
+      null
+    );
+  }, [agreement, agreementDetails, form.sourceLineId, lineOptions]);
+
+  const previewBlockedOneTime =
+    preview != null && isBlockedByOneTimeLineNotPeriodAmendable(preview);
 
   const showMonthlyAmountField =
-    form.operationType === 'modify_line' && selectedLine != null && selectedLine.isOneTime !== true;
+    form.operationType === 'modify_line' &&
+    selectedLine != null &&
+    selectedLine.isOneTime !== true &&
+    selectedLine.isMonthly !== false &&
+    !previewBlockedOneTime;
 
   const periodOptions = useMemo(
     () =>
@@ -189,6 +207,19 @@ export function StudentFinanceAgreementAmendmentDialog({
       cancelled = true;
     };
   }, [open, agreementId]);
+
+  useEffect(() => {
+    if (!isPeriodBasedLineOperation || !form.sourceLineId) return;
+    const stillSelectable = lineOptions.some((line) => String(line.id) === form.sourceLineId);
+    if (stillSelectable) return;
+    setForm((prev) => ({
+      ...prev,
+      sourceLineId: '',
+      amount: prev.operationType === 'cancel_line' ? '0' : '',
+    }));
+    setPreview(null);
+    setPreviewReady(false);
+  }, [form.sourceLineId, isPeriodBasedLineOperation, lineOptions]);
 
   function resetAndClose() {
     setForm(defaultForm());
@@ -425,28 +456,27 @@ export function StudentFinanceAgreementAmendmentDialog({
                   <option value="">{t('common.dash')}</option>
                   {lineOptions.map((line) => (
                     <option key={line.id} value={line.id}>
-                      {line.label}
+                      {formatAmendmentLineOptionLabel(line, t)}
                     </option>
                   ))}
                 </select>
+                {isPeriodBasedLineOperation && !lineOptions.length ? (
+                  <span className="tiny muted">
+                    {t('admin.student360.financeWorkspace.agreementAmendment.noPeriodAmendableLinesHint')}
+                  </span>
+                ) : null}
               </label>
-              {form.operationType === 'modify_line' ? (
+              {form.operationType === 'modify_line' && showMonthlyAmountField ? (
                 <label>
                   <span className="tiny muted">
-                    {showMonthlyAmountField
-                      ? t('admin.student360.financeWorkspace.agreementAmendment.fields.monthlyNewUnitPrice')
-                      : t('admin.student360.financeWorkspace.agreementAmendment.fields.amount')}
+                    {t('admin.student360.financeWorkspace.agreementAmendment.fields.monthlyNewUnitPrice')}
                   </span>
-                  {showMonthlyAmountField ? (
-                    <>
-                      <p className="tiny muted student-finance-amendment-form__hint">
-                        {t('admin.student360.financeWorkspace.agreementAmendment.fields.monthlyNewUnitPriceHint')}
-                      </p>
-                      <p className="tiny muted student-finance-amendment-form__example">
-                        {t('admin.student360.financeWorkspace.agreementAmendment.fields.monthlyNewUnitPriceExample')}
-                      </p>
-                    </>
-                  ) : null}
+                  <p className="tiny muted student-finance-amendment-form__hint">
+                    {t('admin.student360.financeWorkspace.agreementAmendment.fields.monthlyNewUnitPriceHint')}
+                  </p>
+                  <p className="tiny muted student-finance-amendment-form__example">
+                    {t('admin.student360.financeWorkspace.agreementAmendment.fields.monthlyNewUnitPriceExample')}
+                  </p>
                   <input
                     className="input"
                     type="number"
@@ -460,6 +490,11 @@ export function StudentFinanceAgreementAmendmentDialog({
                     disabled={!canEdit}
                   />
                 </label>
+              ) : null}
+              {form.operationType === 'modify_line' && previewBlockedOneTime ? (
+                <p className="tiny muted student-finance-amendment-form__hint" role="note">
+                  {t('admin.student360.financeWorkspace.agreementAmendment.oneTimeNoMonthlyPrice')}
+                </p>
               ) : null}
             </>
           )}
@@ -502,23 +537,27 @@ export function StudentFinanceAgreementAmendmentDialog({
           <section className="student-finance-amendment-preview stack" aria-live="polite">
             <h3>{t('admin.student360.financeWorkspace.agreementAmendment.previewTitle')}</h3>
 
-            {isBlockedByOneTimeLineNotPeriodAmendable(preview) ? (
-              <div className="student-finance-amendment-preview__blocker-banner" role="alert">
+            {!shouldShowAgreementAmendmentAllowedStatus(preview) ? (
+              <div className="student-finance-amendment-preview__not-allowed" role="alert">
+                <h4>{t('admin.student360.financeWorkspace.agreementAmendment.notAllowedTitle')}</h4>
                 {preview.blockingReasons.map((reason) => (
                   <p key={reason.code}>{resolveAgreementAmendmentBlockingMessage(reason, t)}</p>
                 ))}
+                {isBlockedByOneTimeLineNotPeriodAmendable(preview) ? (
+                  <p className="student-finance-amendment-preview__not-allowed-hint">
+                    {t('admin.student360.financeWorkspace.agreementAmendment.oneTimeBlockedHint')}
+                  </p>
+                ) : null}
               </div>
             ) : null}
 
             <dl className="detail-list compact">
-              <div>
-                <dt>{t('admin.student360.financeWorkspace.agreementAmendment.allowed')}</dt>
-                <dd>
-                  {preview.allowed
-                    ? t('admin.student360.financeWorkspace.agreementAmendment.allowedYes')
-                    : t('admin.student360.financeWorkspace.agreementAmendment.blocked')}
-                </dd>
-              </div>
+              {shouldShowAgreementAmendmentAllowedStatus(preview) ? (
+                <div>
+                  <dt>{t('admin.student360.financeWorkspace.agreementAmendment.allowed')}</dt>
+                  <dd>{t('admin.student360.financeWorkspace.agreementAmendment.allowedYes')}</dd>
+                </div>
+              ) : null}
               {shouldShowAgreementAmendmentLegacyAmounts(preview) && preview.amountBefore != null ? (
                 <div>
                   <dt>{t('admin.student360.financeWorkspace.agreementAmendment.amountBefore')}</dt>

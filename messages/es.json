@@ -5505,6 +5505,14 @@
           "success": "Acuerdo financiero modificado correctamente.",
           "noPermission": "La modificación del acuerdo no está disponible ahora.",
           "noPeriodsHint": "No hay periodos de facturación disponibles en los datos del acuerdo. Pruebe la previsualización tras indicar un motivo si el servidor devuelve periodos.",
+          "noPeriodAmendableLinesHint": "No hay líneas mensuales que se puedan modificar desde un mes en este acuerdo.",
+          "notAllowedTitle": "No permitido aplicar",
+          "oneTimeBlockedHint": "Elija una línea mensual como matrícula escolar o transporte.",
+          "oneTimeNoMonthlyPrice": "Esta línea no usa precio mensual.",
+          "lineOptions": {
+            "monthly": "{label} — mensual",
+            "oneTimeDisabled": "{label} — única, no modificable desde un mes"
+          },
           "fields": {
             "feeType": "Tipo de cuota",
             "line": "Línea",
