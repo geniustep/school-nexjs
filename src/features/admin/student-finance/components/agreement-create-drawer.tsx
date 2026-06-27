@@ -339,9 +339,6 @@ export function AgreementCreateDrawer({
     onSuccess();
   }
 
-  const services = servicesState.data ?? [];
-  const tariffs = tariffsState.data ?? [];
-
   const stepLabels = useMemo(
     () =>
       STEPS.map((s) => t(`admin.student360.financialAgreement.createDrawer.steps.${s}`)),
