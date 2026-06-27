@@ -2375,6 +2375,18 @@
 }
 
 /* Draft agreement: short note clarifying receivables are not yet collectible. */
+.student-finance-parallel-draft-banner__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: 8px;
+}
+
+.student-finance-parallel-draft-banner__number {
+  font-size: 0.875rem;
+}
+
 .student-finance-draft-banner__note {
   margin: 12px 0 0;
   color: var(--c-muted, #64748b);

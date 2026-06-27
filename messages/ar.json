@@ -5609,6 +5609,13 @@
             "generic": "تعذر معاينة تعديل الاتفاقية. حاول مرة أخرى أو راجع الإدارة المالية."
           }
         },
+        "parallelDraftAgreements": {
+          "badge": "مسودة غير مفعّلة",
+          "title": "توجد مسودة اتفاق مالي غير مفعّلة",
+          "titleWithCount": "توجد {count} مسودات اتفاق مالي غير مفعّلة",
+          "openInFinanceHub": "فتح المسودة في مركز المالية",
+          "viewAllInFinanceHub": "عرض كل المسودات في مركز المالية"
+        },
         "inactiveAgreementReference": {
           "title": "اتفاق سابق غير نشط",
           "stateLabel": "الحالة",

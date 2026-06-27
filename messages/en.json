@@ -5573,6 +5573,13 @@
             "generic": "Could not preview the agreement amendment. Try again or contact finance administration."
           }
         },
+        "parallelDraftAgreements": {
+          "badge": "Inactive draft",
+          "title": "An inactive financial agreement draft exists",
+          "titleWithCount": "{count} inactive financial agreement drafts exist",
+          "openInFinanceHub": "Open draft in Finance Hub",
+          "viewAllInFinanceHub": "View all drafts in Finance Hub"
+        },
         "inactiveAgreementReference": {
           "title": "Previous inactive agreement",
           "stateLabel": "Status",

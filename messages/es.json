@@ -5568,6 +5568,13 @@
             "generic": "No se pudo previsualizar la modificación del acuerdo. Inténtelo de nuevo o contacte con administración financiera."
           }
         },
+        "parallelDraftAgreements": {
+          "badge": "Borrador inactivo",
+          "title": "Existe un borrador de acuerdo financiero inactivo",
+          "titleWithCount": "Existen {count} borradores de acuerdo financiero inactivos",
+          "openInFinanceHub": "Abrir borrador en el hub Finanzas",
+          "viewAllInFinanceHub": "Ver todos los borradores en el hub Finanzas"
+        },
         "inactiveAgreementReference": {
           "title": "Acuerdo anterior inactivo",
           "stateLabel": "Estado",

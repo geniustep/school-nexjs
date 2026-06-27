@@ -85,6 +85,8 @@ import {
 } from '../utils/resolve-existing-current-fees-draft';
 import { FamilyPlanContextCard } from './family-plan-context-card';
 import { AgreementDraftCustomizationSection } from './agreement-draft-customization-section';
+import { ParallelDraftAgreementsBanner } from './parallel-draft-agreements-banner';
+import { resolveParallelDraftAgreementsPresentation } from '../utils/resolve-parallel-draft-agreements';
 import { isAgreementEditableBeforeActivation } from '../utils/resolve-agreement-draft-customization';
 import {
   buildAgreementActionExecutionPlan,
@@ -715,6 +717,11 @@ export function StudentFinancialAgreementTab({
     [workspace, financialOverview, capabilities],
   );
 
+  const parallelDraftAgreements = useMemo(
+    () => resolveParallelDraftAgreementsPresentation({ workspace, studentId }),
+    [workspace, studentId],
+  );
+
   if (workspaceState.error?.code === 'forbidden') {
     return (
       <Student360CompactEmpty
@@ -1266,6 +1273,7 @@ export function StudentFinancialAgreementTab({
       {isBackgroundRefreshing ? <StudentInlineLoading /> : null}
       {renderCreateFromFeesNotice()}
       <FamilyPlanContextCard studentId={studentId} />
+      <ParallelDraftAgreementsBanner presentation={parallelDraftAgreements} />
 
       {isInactiveAgreementState(activeAgreement.state) ? (
         <div className="student-finance-section student-finance-card-alert" role="alert">
