@@ -17,6 +17,8 @@ const CREDIT_BALANCE_KEYS = [
   'manualAllocationToggle',
   'manualAllocationHint',
   'autoAllocationHint',
+  'reviewCreditNoticeTitle',
+  'reviewCreditConfirmNotice',
 ] as const;
 
 const COLLECTIONS_KEYS = ['openReceipt', 'activeAgreement', 'noActiveAgreement'] as const;

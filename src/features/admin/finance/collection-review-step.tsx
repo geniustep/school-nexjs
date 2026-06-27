@@ -6,8 +6,10 @@ import { useFormat } from '@/features/i18n/use-format';
 import { useLocale, useT } from '@/features/i18n/locale-context';
 import { paymentMethodLabel } from '@/lib/utils/finance';
 import { formatPeriodRange } from '@/features/admin/student-finance/utils/format-period';
+import { resolveReviewCreditNotice } from '@/features/admin/finance/collection-review-credit-notice';
 import type { StudentInstallment } from '@/features/admin/student-finance/types';
 import type { ResolvedCollectionBilling } from '@/features/admin/finance/collection-billing-context';
+import type { PaymentCollectionPreview } from '@/types/payment-collection-preview';
 
 export type CollectionReviewCheque = {
   holderName: string;
@@ -32,6 +34,7 @@ export function CollectionReviewStep({
   selectedInstallments,
   allocationInputs,
   allocatedTotal,
+  preview,
   cheque,
 }: {
   studentName: string;
@@ -47,12 +50,14 @@ export function CollectionReviewStep({
   selectedInstallments: StudentInstallment[];
   allocationInputs: Record<number, string>;
   allocatedTotal: number;
+  preview?: PaymentCollectionPreview | null;
   cheque?: CollectionReviewCheque;
 }) {
   const t = useT();
   const { locale } = useLocale();
   const { formatDate } = useFormat();
   const unallocated = Math.max(0, amount - allocatedTotal);
+  const creditNotice = resolveReviewCreditNotice(preview);
 
   return (
     <section className="collection-form-section collection-review-section">
@@ -177,6 +182,50 @@ export function CollectionReviewStep({
             })}
           </ul>
         </div>
+      ) : null}
+
+      {creditNotice ? (
+        <section
+          className="collection-review-credit-notice"
+          role="status"
+          aria-label={t('admin.finance.collectionWorkflow.reviewCreditNoticeTitle')}
+        >
+          <h5 className="collection-review-credit-notice__title">
+            {t('admin.finance.collectionWorkflow.reviewCreditNoticeTitle')}
+          </h5>
+          <dl className="detail-list compact collection-review-credit-notice__metrics">
+            <div>
+              <dt>{t('admin.finance.collectionWorkflow.amountPaid')}</dt>
+              <dd>
+                <FinanceMoney amount={creditNotice.amountPaid} currency={currency} />
+              </dd>
+            </div>
+            <div>
+              <dt>{t('admin.finance.collectionWorkflow.allocatedToInstallments')}</dt>
+              <dd>
+                <FinanceMoney amount={creditNotice.allocatedAmount} currency={currency} />
+              </dd>
+            </div>
+            <div>
+              <dt>{t('admin.finance.collectionWorkflow.unallocatedAmount')}</dt>
+              <dd>
+                <FinanceMoney amount={creditNotice.unallocatedAmount} currency={currency} />
+              </dd>
+            </div>
+            <div>
+              <dt>{t('admin.finance.collectionWorkflow.resultingCreditBalance')}</dt>
+              <dd>
+                <FinanceMoney amount={creditNotice.resultingCreditBalance} currency={currency} />
+              </dd>
+            </div>
+          </dl>
+          <p className="collection-review-credit-notice__warning">
+            {t('admin.finance.collectionWorkflow.creditBalanceNotReducingDuesWarning')}
+          </p>
+          <p className="collection-review-credit-notice__confirm-hint">
+            {t('admin.finance.collectionWorkflow.reviewCreditConfirmNotice')}
+          </p>
+        </section>
       ) : null}
     </section>
   );

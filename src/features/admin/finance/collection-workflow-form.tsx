@@ -1232,6 +1232,7 @@ function CollectionWorkflowFormReady({
           selectedInstallments={reviewInstallments}
           allocationInputs={reviewAllocationInputs}
           allocatedTotal={preview?.allocated_amount ?? allocatedTotal}
+          preview={preview}
           cheque={
             isCheque
               ? {

@@ -6883,6 +6883,8 @@
         "resultingCreditBalance": "Solde créditeur résultant",
         "creditBalanceLabel": "Solde créditeur non affecté",
         "creditBalanceNotReducingDuesWarning": "Ce solde ne réduira pas les montants dus tant qu'il n'est pas affecté.",
+        "reviewCreditNoticeTitle": "Une partie de ce paiement sera enregistrée comme solde créditeur non affecté",
+        "reviewCreditConfirmNotice": "En enregistrant cet encaissement, le montant non affecté restera en solde créditeur.",
         "unallocatedBecomesCreditNotice": "La différence sera enregistrée comme solde créditeur non affecté et ne sera pas considérée comme une échéance payée tant qu'elle n'est pas affectée.",
         "fullCreditBalanceNotice": "Il s'agit d'un solde créditeur non affecté ; il ne réduit pas les montants dus avant d'être affecté.",
         "recordCollectionAction": "Enregistrer l'encaissement",

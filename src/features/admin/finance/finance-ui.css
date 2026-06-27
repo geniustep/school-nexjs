@@ -674,6 +674,39 @@
   border-bottom: 1px solid var(--c-border, #e2e8f0);
 }
 
+.collection-review-credit-notice {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--c-warning-border, #f5c451);
+  border-radius: 10px;
+  background: var(--c-warning-surface, #fff8e6);
+  display: grid;
+  gap: 10px;
+}
+
+.collection-review-credit-notice__title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--c-warning-text, #8a5a00);
+}
+
+.collection-review-credit-notice__metrics {
+  margin: 0;
+}
+
+.collection-review-credit-notice__warning {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--c-warning-text, #8a5a00);
+}
+
+.collection-review-credit-notice__confirm-hint {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
 .collection-form-section__subtitle {
   margin: 12px 0 8px;
   font-size: 0.9rem;

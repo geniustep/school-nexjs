@@ -6937,6 +6937,8 @@
         "resultingCreditBalance": "الرصيد الدائن الناتج",
         "creditBalanceLabel": "الرصيد الدائن غير الموزع",
         "creditBalanceNotReducingDuesWarning": "لن يخفض هذا الرصيد المستحقات قبل تخصيصه.",
+        "reviewCreditNoticeTitle": "سيُسجل جزء من هذه الدفعة كرصد دائن غير موزع",
+        "reviewCreditConfirmNotice": "بتسجيل التحصيل، سيبقى المبلغ غير الموزع كرصد دائن.",
         "unallocatedBecomesCreditNotice": "سيُسجل الفرق كرصيد دائن غير موزع، ولن يُعتبر قسطًا مدفوعًا حتى يتم تخصيصه.",
         "fullCreditBalanceNotice": "هذا رصيد دائن غير موزع، لا يخفض المستحقات قبل تخصيصه.",
         "recordCollectionAction": "تسجيل التحصيل",

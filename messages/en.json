@@ -6888,6 +6888,8 @@
         "resultingCreditBalance": "Resulting credit balance",
         "creditBalanceLabel": "Unallocated credit balance",
         "creditBalanceNotReducingDuesWarning": "This balance will not reduce the dues until it is allocated.",
+        "reviewCreditNoticeTitle": "Part of this payment will be recorded as an unallocated credit balance",
+        "reviewCreditConfirmNotice": "By recording this collection, the unallocated amount will remain as a credit balance.",
         "unallocatedBecomesCreditNotice": "The difference will be recorded as an unallocated credit balance and will not count as a paid installment until it is allocated.",
         "fullCreditBalanceNotice": "This is an unallocated credit balance; it does not reduce the dues before it is allocated.",
         "recordCollectionAction": "Record collection",
