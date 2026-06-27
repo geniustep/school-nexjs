@@ -11,10 +11,13 @@ import { endpoints } from '@/lib/api/endpoints';
 import { updateFinancialAgreement } from '../api/finance-admin-api';
 import type { FinanceServiceCatalogItem, FinanceServiceTariff, FinancialAgreementLine } from '../types';
 import {
+  buildAgreementLineAddInput,
   buildAgreementLineAddPayload,
   buildAgreementLineDeletePayload,
   buildAgreementLineDiscountPatchPayload,
   computeAgreementLineAmounts,
+  isAgreementLinePricingRecurrenceOdooError,
+  logAgreementLineAddApiError,
   logAgreementLinePatchBlocked,
   resolveAgreementLineReasonKind,
   resolveDefaultUnitPrice,
@@ -180,6 +183,7 @@ export function AgreementLineFormDrawer({
   existingLines,
   line,
   agreementNetAmount,
+  academicYearId,
   currency,
   onClose,
   onSuccess,
@@ -190,6 +194,7 @@ export function AgreementLineFormDrawer({
   existingLines: FinancialAgreementLine[];
   line?: FinancialAgreementLine | null;
   agreementNetAmount?: number | null;
+  academicYearId?: number | null;
   currency?: string | null;
   onClose: () => void;
   onSuccess: () => void;
@@ -358,15 +363,21 @@ export function AgreementLineFormDrawer({
       });
     } else {
       const tariff = selectedTariff;
-      payload = buildAgreementLineAddPayload({
+      const addLine = buildAgreementLineAddInput({
         service_id: Number(selectedServiceId),
         tariff_id: selectedTariffId ? Number(selectedTariffId) : undefined,
         quantity: parsedQuantity,
         unit_price: Number(unitPrice) || tariff?.unit_price,
         ...discountPayload,
         is_selected: true,
-        ...(trimmedReason ? { reason: trimmedReason } : {}),
+        reason: trimmedReason || undefined,
+        selectedTariff: tariff,
+        tariffs,
+        service: selectedService,
+        existingLines,
+        academicYearId,
       });
+      payload = buildAgreementLineAddPayload(addLine);
       if (existingLines.length === 0 && (agreementNetAmount ?? 0) > 0) {
         validation = { ok: false, reason: 'lines_not_loaded' };
       } else {
@@ -390,7 +401,14 @@ export function AgreementLineFormDrawer({
     const res = await updateFinancialAgreement(agreementId, payload);
     setSaving(false);
     if (!res.success) {
-      setFormError(res.error.message);
+      if (isAgreementLinePricingRecurrenceOdooError(res.error.message)) {
+        logAgreementLineAddApiError(res.error.message);
+        setFormError(
+          t('admin.student360.financialAgreement.customization.errors.odooMissingPricingRecurrenceMetadata'),
+        );
+      } else {
+        setFormError(res.error.message);
+      }
       return;
     }
 

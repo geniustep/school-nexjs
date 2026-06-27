@@ -4866,7 +4866,9 @@
             "unexpected_update_count": "Could not update the line safely. Reload the page.",
             "unexpected_add_count": "Could not add the line safely. Reload the page.",
             "line_patch_unsafe": "Could not save — line data is incomplete. Reload the page and try again.",
-            "line_metadata_stripped": "Could not save — billing metadata for the line is incomplete. Reload the page."
+            "line_metadata_stripped": "Could not save — billing metadata for the line is incomplete. Reload the page.",
+            "missing_pricing_recurrence_metadata": "This line cannot be added because the fee type is missing required pricing and recurrence details. Select a tariff or review fee type settings.",
+            "odooMissingPricingRecurrenceMetadata": "This line cannot be added because pricing or recurrence details are missing. Select a valid tariff or ensure the fee type defines whether it is monthly or one-time."
           }
         },
         "columns": {

@@ -4861,7 +4861,9 @@
             "unexpected_update_count": "No se pudo actualizar la línea de forma segura. Recargue la página.",
             "unexpected_add_count": "No se pudo añadir la línea de forma segura. Recargue la página.",
             "line_patch_unsafe": "No se pudo guardar: los datos de la línea están incompletos. Recargue la página.",
-            "line_metadata_stripped": "No se pudo guardar: faltan metadatos de facturación. Recargue la página."
+            "line_metadata_stripped": "No se pudo guardar: faltan metadatos de facturación. Recargue la página.",
+            "missing_pricing_recurrence_metadata": "No se puede añadir esta línea porque el tipo de tarifa no incluye la información de precios y recurrencia requerida. Seleccione una tarifa o revise la configuración del tipo de tarifa.",
+            "odooMissingPricingRecurrenceMetadata": "No se puede añadir esta línea porque faltan datos de precios o recurrencia. Seleccione una tarifa válida o confirme si el tipo de tarifa es mensual o de pago único."
           }
         },
         "columns": {

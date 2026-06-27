@@ -1,12 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildAgreementLineAddInput,
   buildAgreementLineAddPayload,
   buildAgreementLineDeletePayload,
   buildAgreementLineDiscountPatchPayload,
   buildAgreementLinesReplacePayload,
   computeAgreementLineAmounts,
+  hasAgreementLinePricingRecurrenceMetadata,
+  isAgreementLinePricingRecurrenceOdooError,
   isSpecialUnitPrice,
   pickAgreementLineMetadata,
+  pickTariffMetadata,
+  resolveAgreementLineAddMetadata,
+  resolveAgreementLineAddQuantity,
   resolveAgreementLineReasonKind,
   resolveDefaultUnitPrice,
   serializeAgreementLineForPatch,
@@ -17,7 +23,7 @@ import {
   validateAgreementLineReason,
   validateAgreementLinesReplacePatch,
 } from './build-agreement-lines-patch';
-import type { FinancialAgreementLine } from '../types';
+import type { FinanceServiceTariff, FinancialAgreementLine } from '../types';
 import {
   canGenerateAgreementSchedule,
   canPreviewAgreementSchedule,
@@ -292,27 +298,172 @@ describe('buildAgreementLineDeletePayload', () => {
 });
 
 describe('buildAgreementLineAddPayload', () => {
-  it('sends only the new line', () => {
-    const payload = buildAgreementLineAddPayload({
-      service_id: 12,
-      quantity: 1,
-      unit_price: 100,
+  const transportTariff: FinanceServiceTariff = {
+    id: 501,
+    service_id: 3,
+    commitment_type: 'recurring',
+    pricing_unit: 'month',
+    charge_generation_mode: 'monthly',
+    unit_price: 400,
+  };
+
+  it('sends only the new line with metadata when tariff template is available', () => {
+    const addLine = buildAgreementLineAddInput({
+      service_id: 3,
+      quantity: 10,
+      unit_price: 400,
       is_selected: true,
+      tariffs: [transportTariff],
     });
+    const payload = buildAgreementLineAddPayload(addLine);
     expect(payload.lines).toHaveLength(1);
     expect(payload.lines?.[0]?.id).toBeUndefined();
+    expect(payload.lines?.[0]).toMatchObject({
+      service_id: 3,
+      quantity: 10,
+      unit_price: 400,
+      commitment_type: 'recurring',
+      pricing_unit: 'month',
+      charge_generation_mode: 'monthly',
+    });
     expect(validateAgreementLineAddPatch({ payload }).ok).toBe(true);
   });
 
   it('does not send null tariff_id', () => {
+    const addLine = buildAgreementLineAddInput({
+      service_id: 12,
+      quantity: 1,
+      unit_price: 100,
+      is_selected: true,
+      selectedTariff: {
+        id: 9,
+        commitment_type: 'one_time',
+        pricing_unit: 'academic_year',
+        unit_price: 100,
+      },
+    });
+    const payload = buildAgreementLineAddPayload(addLine);
+    expect(payload.lines?.[0]).not.toHaveProperty('tariff_id', null);
+  });
+
+  it('uses manual price without tariff_id while keeping metadata from fee type tariffs', () => {
+    const addLine = buildAgreementLineAddInput({
+      service_id: 3,
+      quantity: 10,
+      unit_price: 400,
+      is_selected: true,
+      tariffs: [transportTariff],
+    });
+    expect(addLine.tariff_id).toBeUndefined();
+    expect(addLine).toMatchObject({
+      commitment_type: 'recurring',
+      pricing_unit: 'month',
+      unit_price: 400,
+    });
+  });
+
+  it('forces quantity=1 for one-time metadata', () => {
+    const addLine = buildAgreementLineAddInput({
+      service_id: 1,
+      quantity: 10,
+      unit_price: 2000,
+      is_selected: true,
+      selectedTariff: {
+        id: 11,
+        commitment_type: 'one_time',
+        pricing_unit: 'academic_year',
+      },
+    });
+    expect(addLine.quantity).toBe(1);
+  });
+
+  it('blocks add payload without pricing/recurrence metadata', () => {
     const payload = buildAgreementLineAddPayload({
       service_id: 12,
-      tariff_id: undefined,
       quantity: 1,
       unit_price: 100,
       is_selected: true,
     });
-    expect(payload.lines?.[0]).not.toHaveProperty('tariff_id', null);
+    const result = validateAgreementLineAddPatch({ payload });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe('missing_pricing_recurrence_metadata');
+  });
+});
+
+describe('resolveAgreementLineAddMetadata', () => {
+  it('prefers selected tariff metadata', () => {
+    const metadata = resolveAgreementLineAddMetadata({
+      serviceId: 3,
+      selectedTariff: {
+        id: 1,
+        commitment_type: 'recurring',
+        pricing_unit: 'month',
+      },
+      tariffs: [
+        {
+          id: 2,
+          commitment_type: 'one_time',
+          pricing_unit: 'academic_year',
+        },
+      ],
+    });
+    expect(metadata).toEqual({
+      commitment_type: 'recurring',
+      pricing_unit: 'month',
+    });
+  });
+
+  it('falls back to template tariff when no tariff is selected', () => {
+    const metadata = resolveAgreementLineAddMetadata({
+      serviceId: 3,
+      tariffs: [
+        {
+          id: 501,
+          commitment_type: 'recurring',
+          pricing_unit: 'month',
+          charge_generation_mode: 'monthly',
+        },
+      ],
+    });
+    expect(metadata).toEqual({
+      commitment_type: 'recurring',
+      pricing_unit: 'month',
+      charge_generation_mode: 'monthly',
+    });
+  });
+
+  it('detects incomplete metadata', () => {
+    expect(hasAgreementLinePricingRecurrenceMetadata({ commitment_type: 'recurring' })).toBe(false);
+    expect(
+      hasAgreementLinePricingRecurrenceMetadata({
+        commitment_type: 'recurring',
+        pricing_unit: 'month',
+      }),
+    ).toBe(true);
+  });
+
+  it('maps Odoo pricing/recurrence validation errors', () => {
+    expect(
+      isAgreementLinePricingRecurrenceOdooError(
+        'Cannot create agreement line without required pricing and recurrence metadata.',
+      ),
+    ).toBe(true);
+    expect(isAgreementLinePricingRecurrenceOdooError('Permission denied')).toBe(false);
+  });
+
+  it('resolves one-time quantity helper', () => {
+    expect(
+      resolveAgreementLineAddQuantity(10, {
+        commitment_type: 'one_time',
+        pricing_unit: 'academic_year',
+      }),
+    ).toBe(1);
+    expect(
+      resolveAgreementLineAddQuantity(10, {
+        commitment_type: 'recurring',
+        pricing_unit: 'month',
+      }),
+    ).toBe(10);
   });
 });
 

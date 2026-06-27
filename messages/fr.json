@@ -4861,7 +4861,9 @@
             "unexpected_update_count": "Mise à jour non sécurisée. Rechargez la page.",
             "unexpected_add_count": "Ajout non sécurisé. Rechargez la page.",
             "line_patch_unsafe": "Enregistrement impossible — données de ligne incomplètes. Rechargez la page.",
-            "line_metadata_stripped": "Enregistrement impossible — métadonnées de facturation incomplètes. Rechargez la page."
+            "line_metadata_stripped": "Enregistrement impossible — métadonnées de facturation incomplètes. Rechargez la page.",
+            "missing_pricing_recurrence_metadata": "Impossible d'ajouter cette ligne : le type de frais ne contient pas les informations de tarification et de récurrence requises. Choisissez un tarif ou vérifiez la configuration du type de frais.",
+            "odooMissingPricingRecurrenceMetadata": "Impossible d'ajouter cette ligne : les informations de tarification ou de récurrence sont incomplètes. Choisissez un tarif valide ou vérifiez si le type de frais est mensuel ou ponctuel."
           }
         },
         "columns": {

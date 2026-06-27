@@ -22,6 +22,13 @@ import type {
   StudentFinanceWorkspace,
 } from '../types';
 import { formatPeriodRange } from '../utils/format-period';
+import {
+  buildAgreementLineAddInput,
+  buildAgreementLineAddPayload,
+  isAgreementLinePricingRecurrenceOdooError,
+  logAgreementLineAddApiError,
+  validateAgreementLineAddPatch,
+} from '../utils/build-agreement-lines-patch';
 import { useFormat } from '@/features/i18n/use-format';
 
 const STEPS = ['basic', 'services', 'discounts', 'schedule', 'preview', 'save'] as const;
@@ -164,22 +171,39 @@ export function AgreementCreateDrawer({
     setError(null);
     const id = await ensureAgreementId();
     if (!id) return;
-    const tariff = tariffsState.data?.find((row) => row.id === Number(selectedTariffId));
-    setSaving(true);
-    const res = await updateFinancialAgreement(id, {
-      lines: [
-        {
-          service_id: Number(selectedServiceId),
-          tariff_id: selectedTariffId ? Number(selectedTariffId) : null,
-          quantity: Number(lineQuantity) || 1,
-          unit_price: tariff?.unit_price,
-          is_selected: true,
-        },
-      ],
+    const services = servicesState.data ?? [];
+    const tariffs = tariffsState.data ?? [];
+    const selectedService = services.find((row) => row.id === Number(selectedServiceId));
+    const tariff = tariffs.find((row) => row.id === Number(selectedTariffId));
+    const addLine = buildAgreementLineAddInput({
+      service_id: Number(selectedServiceId),
+      tariff_id: selectedTariffId ? Number(selectedTariffId) : undefined,
+      quantity: Number(lineQuantity) || 1,
+      unit_price: tariff?.unit_price,
+      is_selected: true,
+      selectedTariff: tariff,
+      tariffs,
+      service: selectedService,
+      academicYearId,
     });
+    const payload = buildAgreementLineAddPayload(addLine);
+    const validation = validateAgreementLineAddPatch({ payload });
+    if (!validation.ok) {
+      setError(t(`admin.student360.financialAgreement.customization.errors.${validation.reason}`));
+      return;
+    }
+    setSaving(true);
+    const res = await updateFinancialAgreement(id, payload);
     setSaving(false);
     if (!res.success) {
-      setError(res.error.message);
+      if (isAgreementLinePricingRecurrenceOdooError(res.error.message)) {
+        logAgreementLineAddApiError(res.error.message);
+        setError(
+          t('admin.student360.financialAgreement.customization.errors.odooMissingPricingRecurrenceMetadata'),
+        );
+      } else {
+        setError(res.error.message);
+      }
       return;
     }
     toast.success(t('admin.student360.financialAgreement.createDrawer.lineAdded'));

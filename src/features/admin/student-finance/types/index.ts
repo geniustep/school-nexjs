@@ -403,6 +403,11 @@ export interface FinanceServiceCatalogItem {
   requires_subscription?: boolean;
   requires_usage_tracking?: boolean;
   active?: boolean;
+  /** Present on some Odoo service catalog responses — never inferred locally. */
+  commitment_type?: string;
+  pricing_unit?: string;
+  charge_generation_mode?: string;
+  frequency?: string;
 }
 
 export interface FinanceServiceTariff {

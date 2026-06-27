@@ -332,6 +332,7 @@ export function AgreementDraftCustomizationSection({
           existingLines={lines}
           line={editingLine}
           agreementNetAmount={agreement.net_amount ?? agreement.net_total}
+          academicYearId={agreement.academic_year_id}
           currency={currency}
           onClose={() => {
             setLineFormMode(null);

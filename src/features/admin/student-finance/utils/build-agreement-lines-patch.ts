@@ -1,4 +1,10 @@
-import type { FinancialAgreementLine, UpdateFinancialAgreementPayload } from '../types';
+import type {
+  FinanceServiceCatalogItem,
+  FinanceServiceTariff,
+  FinancialAgreementLine,
+  UpdateFinancialAgreementPayload,
+} from '../types';
+import { isOneTimeAgreementLine } from './agreement-amendment-line-eligibility';
 
 export type AgreementLineReasonMode = 'add' | 'edit' | 'delete';
 
@@ -11,6 +17,19 @@ export type AgreementLineReasonContext = {
 };
 
 export type AgreementLineReasonKind = 'optional' | 'discount' | 'special_price' | 'delete';
+
+/** Pricing/recurrence fields copied from Odoo tariff or agreement line responses. */
+export const AGREEMENT_LINE_TARIFF_METADATA_KEYS = [
+  'commitment_type',
+  'pricing_unit',
+  'charge_generation_mode',
+] as const;
+
+/** Minimum metadata Odoo requires when creating a new agreement line. */
+export const AGREEMENT_LINE_ADD_REQUIRED_METADATA_KEYS = [
+  'commitment_type',
+  'pricing_unit',
+] as const;
 
 /** Metadata fields copied from Odoo agreement line responses — never invented locally. */
 export const AGREEMENT_LINE_METADATA_KEYS = [
@@ -128,6 +147,165 @@ export function countPatchableAgreementLines(lines: FinancialAgreementLine[]): n
 
 function lineRecord(line: FinancialAgreementLine): Record<string, unknown> {
   return line as Record<string, unknown>;
+}
+
+function readRecord(value: unknown): Record<string, unknown> {
+  return value != null && typeof value === 'object' ? (value as Record<string, unknown>) : {};
+}
+
+function pickMetadataKeys(
+  source: Record<string, unknown>,
+  keys: readonly string[],
+): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const key of keys) {
+    const value = source[key];
+    if (value !== undefined && value !== null && value !== '') {
+      out[key] = value;
+    }
+  }
+  return out;
+}
+
+/** Copy pricing/recurrence metadata from a service tariff — never null placeholders. */
+export function pickTariffMetadata(tariff: FinanceServiceTariff | null | undefined): Record<string, unknown> {
+  if (!tariff) return {};
+  return pickMetadataKeys(readRecord(tariff), AGREEMENT_LINE_TARIFF_METADATA_KEYS);
+}
+
+/** Copy pricing/recurrence metadata from a service catalog row when Odoo provides it. */
+export function pickServiceCatalogMetadata(
+  service: FinanceServiceCatalogItem | null | undefined,
+): Record<string, unknown> {
+  if (!service) return {};
+  return pickMetadataKeys(readRecord(service), AGREEMENT_LINE_TARIFF_METADATA_KEYS);
+}
+
+function readTariffAcademicYearId(tariff: FinanceServiceTariff): number | null {
+  const year = tariff.academic_year;
+  if (typeof year === 'number' && Number.isFinite(year)) return year;
+  if (year && typeof year === 'object' && 'id' in year) {
+    const id = (year as { id?: number }).id;
+    return typeof id === 'number' && Number.isFinite(id) ? id : null;
+  }
+  return null;
+}
+
+function resolveTemplateTariff(
+  tariffs: FinanceServiceTariff[],
+  academicYearId?: number | null,
+): FinanceServiceTariff | undefined {
+  if (!tariffs.length) return undefined;
+  if (academicYearId != null) {
+    const match = tariffs.find((tariff) => readTariffAcademicYearId(tariff) === academicYearId);
+    if (match) return match;
+  }
+  return tariffs.find((tariff) => tariff.active !== false) ?? tariffs[0];
+}
+
+export function pickExistingLineMetadataForService(
+  existingLines: FinancialAgreementLine[],
+  serviceId: number,
+): Record<string, unknown> {
+  const match = existingLines.find((line) => line.service_id === serviceId);
+  return match ? pickAgreementLineMetadata(match) : {};
+}
+
+/** Resolve add-line metadata from Odoo-provided catalog sources only — never inferred locally. */
+export function resolveAgreementLineAddMetadata(input: {
+  serviceId: number;
+  selectedTariff?: FinanceServiceTariff | null;
+  tariffs?: FinanceServiceTariff[];
+  service?: FinanceServiceCatalogItem | null;
+  existingLines?: FinancialAgreementLine[];
+  academicYearId?: number | null;
+}): Record<string, unknown> {
+  if (input.selectedTariff) {
+    const fromTariff = pickTariffMetadata(input.selectedTariff);
+    if (Object.keys(fromTariff).length > 0) return fromTariff;
+  }
+
+  const templateTariff = resolveTemplateTariff(input.tariffs ?? [], input.academicYearId);
+  if (templateTariff) {
+    const fromTemplate = pickTariffMetadata(templateTariff);
+    if (Object.keys(fromTemplate).length > 0) return fromTemplate;
+  }
+
+  const fromExisting = pickExistingLineMetadataForService(input.existingLines ?? [], input.serviceId);
+  if (Object.keys(fromExisting).length > 0) {
+    return pickMetadataKeys(fromExisting, AGREEMENT_LINE_TARIFF_METADATA_KEYS);
+  }
+
+  return pickServiceCatalogMetadata(input.service);
+}
+
+export function hasAgreementLinePricingRecurrenceMetadata(record: Record<string, unknown>): boolean {
+  return AGREEMENT_LINE_ADD_REQUIRED_METADATA_KEYS.every((key) => {
+    const value = record[key];
+    return value !== undefined && value !== null && value !== '';
+  });
+}
+
+export function resolveAgreementLineAddQuantity(
+  quantity: number,
+  metadata: Record<string, unknown>,
+): number {
+  if (isOneTimeAgreementLine(metadata)) return 1;
+  return quantity > 0 ? quantity : 1;
+}
+
+export function buildAgreementLineAddInput(input: {
+  service_id: number;
+  tariff_id?: number | null;
+  quantity: number;
+  unit_price?: number;
+  discount_type?: string | null;
+  discount_value?: number | null;
+  is_selected?: boolean;
+  reason?: string;
+  selectedTariff?: FinanceServiceTariff | null;
+  tariffs?: FinanceServiceTariff[];
+  service?: FinanceServiceCatalogItem | null;
+  existingLines?: FinancialAgreementLine[];
+  academicYearId?: number | null;
+}): AgreementLinePatchInput & { reason?: string } & Record<string, unknown> {
+  const metadata = resolveAgreementLineAddMetadata({
+    serviceId: input.service_id,
+    selectedTariff: input.selectedTariff,
+    tariffs: input.tariffs,
+    service: input.service,
+    existingLines: input.existingLines,
+    academicYearId: input.academicYearId,
+  });
+  const quantity = resolveAgreementLineAddQuantity(input.quantity, metadata);
+  const row: Record<string, unknown> = {
+    service_id: input.service_id,
+    quantity,
+    unit_price: input.unit_price,
+    discount_type: input.discount_type,
+    discount_value: input.discount_value,
+    is_selected: input.is_selected ?? true,
+    ...metadata,
+  };
+  if (input.tariff_id != null) row.tariff_id = input.tariff_id;
+  if (input.reason?.trim()) row.reason = input.reason.trim();
+  return omitNullishFields(row) as AgreementLinePatchInput & { reason?: string } & Record<string, unknown>;
+}
+
+const AGREEMENT_LINE_PRICING_RECURRENCE_ODOO_PATTERNS = [
+  'cannot create agreement line without required pricing and recurrence metadata',
+  'pricing and recurrence metadata',
+] as const;
+
+export function isAgreementLinePricingRecurrenceOdooError(message: string): boolean {
+  const lower = message.toLowerCase();
+  return AGREEMENT_LINE_PRICING_RECURRENCE_ODOO_PATTERNS.some((pattern) => lower.includes(pattern));
+}
+
+export function logAgreementLineAddApiError(message: string): void {
+  if (typeof console !== 'undefined' && console.error) {
+    console.error('[agreement-line-add] Odoo rejected add line:', message);
+  }
 }
 
 /** Copy metadata from Odoo response only when present — never null placeholders. */
@@ -514,6 +692,14 @@ export function validateAgreementLineAddPatch(input: {
     payload: input.payload,
   });
   if (!safety.ok) return { ok: false, reason: safety.reason };
+
+  for (const patchLine of input.payload.lines ?? []) {
+    const row = patchLine as Record<string, unknown>;
+    if (row.id != null) continue;
+    if (!hasAgreementLinePricingRecurrenceMetadata(row)) {
+      return { ok: false, reason: 'missing_pricing_recurrence_metadata' };
+    }
+  }
   return { ok: true };
 }
 
