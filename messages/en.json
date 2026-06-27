@@ -5580,6 +5580,16 @@
           "openInFinanceHub": "Open draft in Finance Hub",
           "viewAllInFinanceHub": "View all drafts in Finance Hub"
         },
+        "executiveSummary": {
+          "title": "Executive summary",
+          "counts": "Active {active} · Drafts {draft} · Past {historical}",
+          "status": "Agreement status",
+          "total": "Agreement total",
+          "paid": "Collected",
+          "remaining": "Remaining",
+          "installments": "Installments",
+          "openInFinanceHub": "Open in Finance Hub"
+        },
         "inactiveAgreementReference": {
           "title": "Previous inactive agreement",
           "stateLabel": "Status",

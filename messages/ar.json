@@ -5616,6 +5616,16 @@
           "openInFinanceHub": "فتح المسودة في مركز المالية",
           "viewAllInFinanceHub": "عرض كل المسودات في مركز المالية"
         },
+        "executiveSummary": {
+          "title": "ملخص تنفيذي",
+          "counts": "نشط {active} · مسودات {draft} · سابقة {historical}",
+          "status": "حالة الاتفاق",
+          "total": "إجمالي الاتفاق",
+          "paid": "المحصّل",
+          "remaining": "المتبقي",
+          "installments": "عدد الأقساط",
+          "openInFinanceHub": "فتح في مركز المالية"
+        },
         "inactiveAgreementReference": {
           "title": "اتفاق سابق غير نشط",
           "stateLabel": "الحالة",

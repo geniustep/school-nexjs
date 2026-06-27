@@ -5575,6 +5575,16 @@
           "openInFinanceHub": "Abrir borrador en el hub Finanzas",
           "viewAllInFinanceHub": "Ver todos los borradores en el hub Finanzas"
         },
+        "executiveSummary": {
+          "title": "Resumen ejecutivo",
+          "counts": "Activo {active} · Borradores {draft} · Anteriores {historical}",
+          "status": "Estado del acuerdo",
+          "total": "Total del acuerdo",
+          "paid": "Cobrado",
+          "remaining": "Restante",
+          "installments": "Cuotas",
+          "openInFinanceHub": "Abrir en el hub Finanzas"
+        },
         "inactiveAgreementReference": {
           "title": "Acuerdo anterior inactivo",
           "stateLabel": "Estado",

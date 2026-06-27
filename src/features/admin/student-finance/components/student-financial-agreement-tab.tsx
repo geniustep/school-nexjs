@@ -87,6 +87,8 @@ import { FamilyPlanContextCard } from './family-plan-context-card';
 import { AgreementDraftCustomizationSection } from './agreement-draft-customization-section';
 import { ParallelDraftAgreementsBanner } from './parallel-draft-agreements-banner';
 import { resolveParallelDraftAgreementsPresentation } from '../utils/resolve-parallel-draft-agreements';
+import { AgreementsExecutiveSummary } from './agreements-executive-summary';
+import { resolveAgreementsExecutiveSummary } from '../utils/resolve-agreements-executive-summary';
 import { isAgreementEditableBeforeActivation } from '../utils/resolve-agreement-draft-customization';
 import {
   buildAgreementActionExecutionPlan,
@@ -1261,6 +1263,12 @@ export function StudentFinancialAgreementTab({
 
   const policies = activeAgreement.schedule_policies;
 
+  const executiveSummary = resolveAgreementsExecutiveSummary({
+    workspace,
+    agreement: activeAgreement,
+    studentId,
+  });
+
   return (
     <div className={`student-finance-agreement-panel ${embedded ? 'student-finance-agreement-embedded' : 'student-finance-tab student-360-tab-panel'}${isBackgroundRefreshing ? ' student-360-tab-panel--refreshing' : ''}`}>
       {!embedded ? (
@@ -1274,6 +1282,11 @@ export function StudentFinancialAgreementTab({
       {renderCreateFromFeesNotice()}
       <FamilyPlanContextCard studentId={studentId} />
       <ParallelDraftAgreementsBanner presentation={parallelDraftAgreements} />
+      <AgreementsExecutiveSummary
+        presentation={executiveSummary}
+        currency={currency}
+        hasBillableContext={financeEligibility.hasBillableFinanceContext}
+      />
 
       {isInactiveAgreementState(activeAgreement.state) ? (
         <div className="student-finance-section student-finance-card-alert" role="alert">

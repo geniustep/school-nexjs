@@ -5575,6 +5575,16 @@
           "openInFinanceHub": "Ouvrir le brouillon dans le hub Finance",
           "viewAllInFinanceHub": "Voir tous les brouillons dans le hub Finance"
         },
+        "executiveSummary": {
+          "title": "Résumé exécutif",
+          "counts": "Actif {active} · Brouillons {draft} · Antérieurs {historical}",
+          "status": "Statut de l'accord",
+          "total": "Total de l'accord",
+          "paid": "Encaissé",
+          "remaining": "Restant",
+          "installments": "Échéances",
+          "openInFinanceHub": "Ouvrir dans le hub Finance"
+        },
         "inactiveAgreementReference": {
           "title": "Accord antérieur inactif",
           "stateLabel": "Statut",
