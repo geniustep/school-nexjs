@@ -5,10 +5,12 @@ import {
   buildAgreementLineDeletePayload,
   buildAgreementLineDiscountPatchPayload,
   buildAgreementLinesReplacePayload,
+  buildManualAgreementLineBillingMetadata,
   computeAgreementLineAmounts,
   hasAgreementLinePricingRecurrenceMetadata,
   isAgreementLinePricingRecurrenceOdooError,
   isSpecialUnitPrice,
+  needsAgreementLineManualBillingMode,
   pickAgreementLineMetadata,
   pickTariffMetadata,
   resolveAgreementLineAddMetadata,
@@ -16,6 +18,7 @@ import {
   resolveAgreementLineReasonKind,
   resolveDefaultUnitPrice,
   serializeAgreementLineForPatch,
+  validateAgreementLineAddInput,
   validateAgreementLineAddPatch,
   validateAgreementLineDeletePatch,
   validateAgreementLineDiscountPatch,
@@ -307,17 +310,15 @@ describe('buildAgreementLineAddPayload', () => {
     unit_price: 400,
   };
 
-  it('sends only the new line with metadata when tariff template is available', () => {
+  it('sends metadata from selected tariff when tariff is chosen', () => {
     const addLine = buildAgreementLineAddInput({
       service_id: 3,
       quantity: 10,
       unit_price: 400,
       is_selected: true,
-      tariffs: [transportTariff],
+      selectedTariff: transportTariff,
     });
     const payload = buildAgreementLineAddPayload(addLine);
-    expect(payload.lines).toHaveLength(1);
-    expect(payload.lines?.[0]?.id).toBeUndefined();
     expect(payload.lines?.[0]).toMatchObject({
       service_id: 3,
       quantity: 10,
@@ -326,6 +327,27 @@ describe('buildAgreementLineAddPayload', () => {
       pricing_unit: 'month',
       charge_generation_mode: 'monthly',
     });
+    expect(validateAgreementLineAddPatch({ payload }).ok).toBe(true);
+  });
+
+  it('1) without tariff + manual monthly + price 400 + quantity 10 sends recurrence metadata', () => {
+    const addLine = buildAgreementLineAddInput({
+      service_id: 3,
+      quantity: 10,
+      unit_price: 400,
+      is_selected: true,
+      manualBillingMode: 'monthly',
+    });
+    const payload = buildAgreementLineAddPayload(addLine);
+    expect(payload.lines?.[0]).toMatchObject({
+      service_id: 3,
+      quantity: 10,
+      unit_price: 400,
+      commitment_type: 'recurring',
+      pricing_unit: 'month',
+      charge_generation_mode: 'monthly',
+    });
+    expect(payload.lines?.[0]).not.toHaveProperty('tariff_id');
     expect(validateAgreementLineAddPatch({ payload }).ok).toBe(true);
   });
 
@@ -346,47 +368,77 @@ describe('buildAgreementLineAddPayload', () => {
     expect(payload.lines?.[0]).not.toHaveProperty('tariff_id', null);
   });
 
-  it('uses manual price without tariff_id while keeping metadata from fee type tariffs', () => {
-    const addLine = buildAgreementLineAddInput({
-      service_id: 3,
-      quantity: 10,
-      unit_price: 400,
-      is_selected: true,
-      tariffs: [transportTariff],
-    });
-    expect(addLine.tariff_id).toBeUndefined();
-    expect(addLine).toMatchObject({
-      commitment_type: 'recurring',
-      pricing_unit: 'month',
-      unit_price: 400,
-    });
-  });
-
-  it('forces quantity=1 for one-time metadata', () => {
+  it('3) without tariff + manual one-time forces quantity=1 and one-time metadata', () => {
     const addLine = buildAgreementLineAddInput({
       service_id: 1,
       quantity: 10,
       unit_price: 2000,
       is_selected: true,
-      selectedTariff: {
-        id: 11,
-        commitment_type: 'one_time',
-        pricing_unit: 'academic_year',
-      },
+      manualBillingMode: 'one_time',
     });
     expect(addLine.quantity).toBe(1);
+    expect(addLine).toMatchObject({
+      commitment_type: 'one_time',
+      pricing_unit: 'academic_year',
+      charge_generation_mode: 'one_time',
+    });
   });
 
-  it('blocks add payload without pricing/recurrence metadata', () => {
+  it('2) without tariff + no metadata + no manual billing mode blocks with billing_mode_required', () => {
+    const validation = validateAgreementLineAddInput({
+      service_id: 12,
+    });
+    expect(validation.ok).toBe(false);
+    if (!validation.ok) expect(validation.reason).toBe('billing_mode_required');
+
     const payload = buildAgreementLineAddPayload({
       service_id: 12,
       quantity: 1,
       unit_price: 100,
       is_selected: true,
     });
-    const result = validateAgreementLineAddPatch({ payload });
-    expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.reason).toBe('missing_pricing_recurrence_metadata');
+    const patchValidation = validateAgreementLineAddPatch({ payload });
+    expect(patchValidation.ok).toBe(false);
+    if (!patchValidation.ok) expect(patchValidation.reason).toBe('billing_mode_required');
+  });
+
+  it('4) Odoo metadata from selected tariff keeps priority over manual selection', () => {
+    const addLine = buildAgreementLineAddInput({
+      service_id: 3,
+      quantity: 10,
+      unit_price: 400,
+      is_selected: true,
+      selectedTariff: transportTariff,
+      manualBillingMode: 'one_time',
+    });
+    expect(addLine).toMatchObject({
+      commitment_type: 'recurring',
+      pricing_unit: 'month',
+      quantity: 10,
+    });
+  });
+
+  it('5) does not infer recurrence from service name النقل', () => {
+    const addLine = buildAgreementLineAddInput({
+      service_id: 3,
+      quantity: 10,
+      unit_price: 400,
+      is_selected: true,
+      service: { id: 3, name: 'النقل', code: 'transport' },
+    });
+    expect(hasAgreementLinePricingRecurrenceMetadata(addLine)).toBe(false);
+    expect(needsAgreementLineManualBillingMode({
+      serviceId: 3,
+      service: { id: 3, name: 'النقل' },
+    })).toBe(true);
+  });
+
+  it('maps manual monthly billing metadata from explicit user choice', () => {
+    expect(buildManualAgreementLineBillingMetadata('monthly')).toEqual({
+      commitment_type: 'recurring',
+      pricing_unit: 'month',
+      charge_generation_mode: 'monthly',
+    });
   });
 });
 
@@ -399,13 +451,6 @@ describe('resolveAgreementLineAddMetadata', () => {
         commitment_type: 'recurring',
         pricing_unit: 'month',
       },
-      tariffs: [
-        {
-          id: 2,
-          commitment_type: 'one_time',
-          pricing_unit: 'academic_year',
-        },
-      ],
     });
     expect(metadata).toEqual({
       commitment_type: 'recurring',
@@ -413,22 +458,14 @@ describe('resolveAgreementLineAddMetadata', () => {
     });
   });
 
-  it('falls back to template tariff when no tariff is selected', () => {
+  it('uses existing agreement line metadata for the same service', () => {
     const metadata = resolveAgreementLineAddMetadata({
       serviceId: 3,
-      tariffs: [
-        {
-          id: 501,
-          commitment_type: 'recurring',
-          pricing_unit: 'month',
-          charge_generation_mode: 'monthly',
-        },
-      ],
+      existingLines: fa202600003Lines,
     });
-    expect(metadata).toEqual({
+    expect(metadata).toMatchObject({
       commitment_type: 'recurring',
       pricing_unit: 'month',
-      charge_generation_mode: 'monthly',
     });
   });
 
@@ -464,6 +501,15 @@ describe('resolveAgreementLineAddMetadata', () => {
         pricing_unit: 'month',
       }),
     ).toBe(10);
+  });
+
+  it('needs manual billing mode when service name alone is not enough', () => {
+    expect(
+      needsAgreementLineManualBillingMode({
+        serviceId: 99,
+        service: { id: 99, name: 'النقل' },
+      }),
+    ).toBe(true);
   });
 });
 

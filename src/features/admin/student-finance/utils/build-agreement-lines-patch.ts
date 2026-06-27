@@ -181,28 +181,6 @@ export function pickServiceCatalogMetadata(
   return pickMetadataKeys(readRecord(service), AGREEMENT_LINE_TARIFF_METADATA_KEYS);
 }
 
-function readTariffAcademicYearId(tariff: FinanceServiceTariff): number | null {
-  const year = tariff.academic_year;
-  if (typeof year === 'number' && Number.isFinite(year)) return year;
-  if (year && typeof year === 'object' && 'id' in year) {
-    const id = (year as { id?: number }).id;
-    return typeof id === 'number' && Number.isFinite(id) ? id : null;
-  }
-  return null;
-}
-
-function resolveTemplateTariff(
-  tariffs: FinanceServiceTariff[],
-  academicYearId?: number | null,
-): FinanceServiceTariff | undefined {
-  if (!tariffs.length) return undefined;
-  if (academicYearId != null) {
-    const match = tariffs.find((tariff) => readTariffAcademicYearId(tariff) === academicYearId);
-    if (match) return match;
-  }
-  return tariffs.find((tariff) => tariff.active !== false) ?? tariffs[0];
-}
-
 export function pickExistingLineMetadataForService(
   existingLines: FinancialAgreementLine[],
   serviceId: number,
@@ -212,23 +190,44 @@ export function pickExistingLineMetadataForService(
 }
 
 /** Resolve add-line metadata from Odoo-provided catalog sources only — never inferred locally. */
+export type AgreementLineManualBillingMode = 'monthly' | 'one_time';
+
+/** Explicit user billing choices mapped to Odoo enum values used in existing agreement lines. */
+export const MANUAL_AGREEMENT_LINE_BILLING_METADATA: Record<
+  AgreementLineManualBillingMode,
+  Record<string, string>
+> = {
+  monthly: {
+    commitment_type: 'recurring',
+    pricing_unit: 'month',
+    charge_generation_mode: 'monthly',
+  },
+  one_time: {
+    commitment_type: 'one_time',
+    pricing_unit: 'academic_year',
+    charge_generation_mode: 'one_time',
+  },
+};
+
+export function buildManualAgreementLineBillingMetadata(
+  mode: AgreementLineManualBillingMode,
+): Record<string, unknown> {
+  return { ...MANUAL_AGREEMENT_LINE_BILLING_METADATA[mode] };
+}
+
+export function isAgreementLineManualBillingMode(value: string): value is AgreementLineManualBillingMode {
+  return value === 'monthly' || value === 'one_time';
+}
+
 export function resolveAgreementLineAddMetadata(input: {
   serviceId: number;
   selectedTariff?: FinanceServiceTariff | null;
-  tariffs?: FinanceServiceTariff[];
   service?: FinanceServiceCatalogItem | null;
   existingLines?: FinancialAgreementLine[];
-  academicYearId?: number | null;
 }): Record<string, unknown> {
   if (input.selectedTariff) {
     const fromTariff = pickTariffMetadata(input.selectedTariff);
     if (Object.keys(fromTariff).length > 0) return fromTariff;
-  }
-
-  const templateTariff = resolveTemplateTariff(input.tariffs ?? [], input.academicYearId);
-  if (templateTariff) {
-    const fromTemplate = pickTariffMetadata(templateTariff);
-    if (Object.keys(fromTemplate).length > 0) return fromTemplate;
   }
 
   const fromExisting = pickExistingLineMetadataForService(input.existingLines ?? [], input.serviceId);
@@ -237,6 +236,23 @@ export function resolveAgreementLineAddMetadata(input: {
   }
 
   return pickServiceCatalogMetadata(input.service);
+}
+
+/** True when add-line flow needs an explicit billing mode because Odoo metadata is incomplete. */
+export function needsAgreementLineManualBillingMode(input: {
+  serviceId: number;
+  selectedTariff?: FinanceServiceTariff | null;
+  service?: FinanceServiceCatalogItem | null;
+  existingLines?: FinancialAgreementLine[];
+}): boolean {
+  if (
+    input.selectedTariff &&
+    hasAgreementLinePricingRecurrenceMetadata(pickTariffMetadata(input.selectedTariff))
+  ) {
+    return false;
+  }
+  const metadata = resolveAgreementLineAddMetadata(input);
+  return !hasAgreementLinePricingRecurrenceMetadata(metadata);
 }
 
 export function hasAgreementLinePricingRecurrenceMetadata(record: Record<string, unknown>): boolean {
@@ -264,19 +280,22 @@ export function buildAgreementLineAddInput(input: {
   is_selected?: boolean;
   reason?: string;
   selectedTariff?: FinanceServiceTariff | null;
-  tariffs?: FinanceServiceTariff[];
   service?: FinanceServiceCatalogItem | null;
   existingLines?: FinancialAgreementLine[];
-  academicYearId?: number | null;
+  manualBillingMode?: AgreementLineManualBillingMode;
 }): AgreementLinePatchInput & { reason?: string } & Record<string, unknown> {
-  const metadata = resolveAgreementLineAddMetadata({
+  let metadata = resolveAgreementLineAddMetadata({
     serviceId: input.service_id,
     selectedTariff: input.selectedTariff,
-    tariffs: input.tariffs,
     service: input.service,
     existingLines: input.existingLines,
-    academicYearId: input.academicYearId,
   });
+  if (!hasAgreementLinePricingRecurrenceMetadata(metadata) && input.manualBillingMode) {
+    metadata = {
+      ...metadata,
+      ...buildManualAgreementLineBillingMetadata(input.manualBillingMode),
+    };
+  }
   const quantity = resolveAgreementLineAddQuantity(input.quantity, metadata);
   const row: Record<string, unknown> = {
     service_id: input.service_id,
@@ -290,6 +309,27 @@ export function buildAgreementLineAddInput(input: {
   if (input.tariff_id != null) row.tariff_id = input.tariff_id;
   if (input.reason?.trim()) row.reason = input.reason.trim();
   return omitNullishFields(row) as AgreementLinePatchInput & { reason?: string } & Record<string, unknown>;
+}
+
+export function validateAgreementLineAddInput(input: {
+  service_id: number;
+  selectedTariff?: FinanceServiceTariff | null;
+  service?: FinanceServiceCatalogItem | null;
+  existingLines?: FinancialAgreementLine[];
+  manualBillingMode?: AgreementLineManualBillingMode;
+}): { ok: true } | { ok: false; reason: string } {
+  const metadata = resolveAgreementLineAddMetadata({
+    serviceId: input.service_id,
+    selectedTariff: input.selectedTariff,
+    service: input.service,
+    existingLines: input.existingLines,
+  });
+  if (hasAgreementLinePricingRecurrenceMetadata(metadata)) return { ok: true };
+  if (input.manualBillingMode) return { ok: true };
+  if (input.selectedTariff) {
+    return { ok: false, reason: 'missing_pricing_recurrence_metadata' };
+  }
+  return { ok: false, reason: 'billing_mode_required' };
 }
 
 const AGREEMENT_LINE_PRICING_RECURRENCE_ODOO_PATTERNS = [
@@ -697,7 +737,7 @@ export function validateAgreementLineAddPatch(input: {
     const row = patchLine as Record<string, unknown>;
     if (row.id != null) continue;
     if (!hasAgreementLinePricingRecurrenceMetadata(row)) {
-      return { ok: false, reason: 'missing_pricing_recurrence_metadata' };
+      return { ok: false, reason: 'billing_mode_required' };
     }
   }
   return { ok: true };

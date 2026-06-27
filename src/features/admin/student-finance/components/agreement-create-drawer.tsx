@@ -25,9 +25,13 @@ import { formatPeriodRange } from '../utils/format-period';
 import {
   buildAgreementLineAddInput,
   buildAgreementLineAddPayload,
+  isAgreementLineManualBillingMode,
   isAgreementLinePricingRecurrenceOdooError,
   logAgreementLineAddApiError,
+  needsAgreementLineManualBillingMode,
+  validateAgreementLineAddInput,
   validateAgreementLineAddPatch,
+  type AgreementLineManualBillingMode,
 } from '../utils/build-agreement-lines-patch';
 import { useFormat } from '@/features/i18n/use-format';
 
@@ -76,6 +80,8 @@ export function AgreementCreateDrawer({
   const [selectedServiceId, setSelectedServiceId] = useState<number | ''>('');
   const [selectedTariffId, setSelectedTariffId] = useState<number | ''>('');
   const [lineQuantity, setLineQuantity] = useState('1');
+  const [lineUnitPrice, setLineUnitPrice] = useState('');
+  const [manualBillingMode, setManualBillingMode] = useState<AgreementLineManualBillingMode | ''>('');
 
   const [discountType, setDiscountType] = useState(agreement?.discount_type ?? 'none');
   const [discountAmount, setDiscountAmount] = useState(String(agreement?.discount_amount ?? ''));
@@ -112,6 +118,29 @@ export function AgreementCreateDrawer({
       ? { page: 1, page_size: 50, service_id: Number(selectedServiceId) }
       : undefined,
   );
+
+  const services = servicesState.data ?? [];
+  const tariffs = tariffsState.data ?? [];
+  const selectedService = services.find((row) => row.id === Number(selectedServiceId));
+  const selectedTariff = tariffs.find((row) => row.id === Number(selectedTariffId));
+
+  const showManualBillingMode =
+    !!selectedServiceId &&
+    !selectedTariffId &&
+    needsAgreementLineManualBillingMode({
+      serviceId: Number(selectedServiceId),
+      selectedTariff: null,
+      service: selectedService,
+      existingLines: [],
+    });
+
+  const isManualOneTime = manualBillingMode === 'one_time';
+
+  useEffect(() => {
+    if (isManualOneTime && lineQuantity !== '1') {
+      setLineQuantity('1');
+    }
+  }, [isManualOneTime, lineQuantity]);
 
   useEffect(() => {
     if (agreementDate) return;
@@ -171,20 +200,37 @@ export function AgreementCreateDrawer({
     setError(null);
     const id = await ensureAgreementId();
     if (!id) return;
-    const services = servicesState.data ?? [];
-    const tariffs = tariffsState.data ?? [];
-    const selectedService = services.find((row) => row.id === Number(selectedServiceId));
-    const tariff = tariffs.find((row) => row.id === Number(selectedTariffId));
+    const tariff = selectedTariff;
+    if (!Number.isFinite(Number(lineUnitPrice)) && tariff?.unit_price == null) {
+      setError(t('admin.student360.financialAgreement.customization.errors.priceRequired'));
+      return;
+    }
+    if (showManualBillingMode && !manualBillingMode) {
+      setError(t('admin.student360.financialAgreement.customization.errors.billingModeRequired'));
+      return;
+    }
+    const addInputValidation = validateAgreementLineAddInput({
+      service_id: Number(selectedServiceId),
+      selectedTariff: tariff,
+      service: selectedService,
+      existingLines: [],
+      manualBillingMode: manualBillingMode || undefined,
+    });
+    if (!addInputValidation.ok) {
+      setError(t(`admin.student360.financialAgreement.customization.errors.${addInputValidation.reason}`));
+      return;
+    }
+    const quantity = isManualOneTime ? 1 : Number(lineQuantity) || 1;
     const addLine = buildAgreementLineAddInput({
       service_id: Number(selectedServiceId),
       tariff_id: selectedTariffId ? Number(selectedTariffId) : undefined,
-      quantity: Number(lineQuantity) || 1,
-      unit_price: tariff?.unit_price,
+      quantity,
+      unit_price: Number(lineUnitPrice) || tariff?.unit_price,
       is_selected: true,
       selectedTariff: tariff,
-      tariffs,
       service: selectedService,
-      academicYearId,
+      existingLines: [],
+      manualBillingMode: manualBillingMode || undefined,
     });
     const payload = buildAgreementLineAddPayload(addLine);
     const validation = validateAgreementLineAddPatch({ payload });
@@ -210,6 +256,8 @@ export function AgreementCreateDrawer({
     setSelectedServiceId('');
     setSelectedTariffId('');
     setLineQuantity('1');
+    setLineUnitPrice('');
+    setManualBillingMode('');
   }
 
   async function saveDiscounts(next: Step) {
@@ -375,6 +423,8 @@ export function AgreementCreateDrawer({
                 onChange={(e) => {
                   setSelectedServiceId(e.target.value ? Number(e.target.value) : '');
                   setSelectedTariffId('');
+                  setManualBillingMode('');
+                  setLineUnitPrice('');
                 }}
               >
                 <option value="">{t('admin.student360.financialAgreement.createDrawer.selectService')}</option>
@@ -392,7 +442,15 @@ export function AgreementCreateDrawer({
                   <select
                     className="input"
                     value={selectedTariffId}
-                    onChange={(e) => setSelectedTariffId(e.target.value ? Number(e.target.value) : '')}
+                    onChange={(e) => {
+                      const next = e.target.value ? Number(e.target.value) : '';
+                      setSelectedTariffId(next);
+                      if (next) {
+                        setManualBillingMode('');
+                        const tariff = tariffs.find((row) => row.id === Number(next));
+                        if (tariff?.unit_price != null) setLineUnitPrice(String(tariff.unit_price));
+                      }
+                    }}
                   >
                     <option value="">{t('admin.student360.financialAgreement.createDrawer.noTariff')}</option>
                     {tariffs.map((tariff) => (
@@ -402,10 +460,64 @@ export function AgreementCreateDrawer({
                     ))}
                   </select>
                 </label>
+                {showManualBillingMode ? (
+                  <label>
+                    {t('admin.student360.financialAgreement.customization.fields.billingMode')}
+                    <select
+                      className="input"
+                      value={manualBillingMode}
+                      onChange={(e) => {
+                        const next = e.target.value;
+                        if (isAgreementLineManualBillingMode(next)) {
+                          setManualBillingMode(next);
+                          if (next === 'one_time') setLineQuantity('1');
+                        } else {
+                          setManualBillingMode('');
+                        }
+                      }}
+                    >
+                      <option value="">
+                        {t('admin.student360.financialAgreement.customization.fields.billingModePlaceholder')}
+                      </option>
+                      <option value="monthly">
+                        {t('admin.student360.financialAgreement.customization.fields.billingModeMonthly')}
+                      </option>
+                      <option value="one_time">
+                        {t('admin.student360.financialAgreement.customization.fields.billingModeOneTime')}
+                      </option>
+                    </select>
+                    {manualBillingMode === 'monthly' ? (
+                      <span className="tiny muted" dir="auto">
+                        {t('admin.student360.financialAgreement.customization.fields.billingModeMonthlyHint')}
+                      </span>
+                    ) : null}
+                    {manualBillingMode === 'one_time' ? (
+                      <span className="tiny muted" dir="auto">
+                        {t('admin.student360.financialAgreement.customization.fields.billingModeOneTimeHint')}
+                      </span>
+                    ) : null}
+                  </label>
+                ) : null}
                 <label>
-                  {t('admin.student360.financialAgreement.columns.quantity')}
-                  <input className="input" value={lineQuantity} onChange={(e) => setLineQuantity(e.target.value)} />
+                  {isManualOneTime
+                    ? t('admin.student360.financialAgreement.customization.fields.unitPriceOneTime')
+                    : showManualBillingMode && manualBillingMode === 'monthly'
+                      ? t('admin.student360.financialAgreement.customization.fields.unitPriceMonthly')
+                      : t('admin.student360.financialAgreement.customization.fields.unitPrice')}
+                  <input
+                    className="input"
+                    value={lineUnitPrice}
+                    onChange={(e) => setLineUnitPrice(e.target.value)}
+                  />
                 </label>
+                {!isManualOneTime ? (
+                  <label>
+                    {showManualBillingMode && manualBillingMode === 'monthly'
+                      ? t('admin.student360.financialAgreement.customization.fields.periodCount')
+                      : t('admin.student360.financialAgreement.columns.quantity')}
+                    <input className="input" value={lineQuantity} onChange={(e) => setLineQuantity(e.target.value)} />
+                  </label>
+                ) : null}
                 <button type="button" className="btn btn--ghost btn--sm" disabled={saving} onClick={() => void addServiceLine()}>
                   {t('admin.student360.financialAgreement.createDrawer.addLine')}
                 </button>
