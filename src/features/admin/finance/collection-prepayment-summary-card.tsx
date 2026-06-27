@@ -18,6 +18,7 @@ export function CollectionPrepaymentSummaryCard({
   summary,
   collectionGate,
   currency,
+  loading = false,
 }: {
   studentName?: string | null;
   studentCode?: string | null;
@@ -26,8 +27,24 @@ export function CollectionPrepaymentSummaryCard({
   summary?: CollectibleItemsSummary | null;
   collectionGate?: CollectionGate | null;
   currency?: string | null;
+  loading?: boolean;
 }) {
   const t = useT();
+
+  if (loading) {
+    return (
+      <section
+        className="collection-prepayment-summary collection-prepayment-summary--loading"
+        aria-label={t('admin.finance.collectionWorkflow.prepaymentSummaryTitle')}
+        aria-busy="true"
+      >
+        <p className="muted" role="status">
+          {t('admin.finance.collectionWorkflow.contextLoading')}
+        </p>
+      </section>
+    );
+  }
+
   const gateBlock = resolveCollectionGateBlocked(collectionGate, summary);
   const prepaymentKey = resolvePrepaymentBadgeKey(collectionGate, agreement?.state);
   const agreementLabelInfo = resolveAgreementContextLabel(agreement, billingContext);

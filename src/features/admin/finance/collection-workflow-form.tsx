@@ -72,6 +72,7 @@ import { resolveCollectionBilling } from './collection-billing-context';
 import { CollectionReviewStep } from './collection-review-step';
 import { FinanceAmountInput } from './finance-amount-input';
 import { CollectionPrepaymentSummaryCard } from './collection-prepayment-summary-card';
+import { isCollectionContextLoading } from './collection-context-view';
 import { CollectionAllocationPreviewPanel } from './collection-allocation-preview-panel';
 import { previewPaymentCollection } from '@/lib/finance/payment-collection-api';
 import {
@@ -904,6 +905,11 @@ function CollectionWorkflowFormReady({
           summary={collectibleData?.summary ?? null}
           collectionGate={collectionGate}
           currency={journalCurrency}
+          loading={isCollectionContextLoading({
+            loading: collectibleState.loading,
+            hasData: collectibleData != null,
+            hasError: collectibleState.error != null,
+          })}
         />
       ) : null}
 

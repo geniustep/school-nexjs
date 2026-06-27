@@ -6859,6 +6859,7 @@
         "paidAmountLabel": "Importe pagado",
         "paidAmountHint": "Puede introducir un importe menor o mayor que una cuota. Se repartirá automáticamente en las cuotas abiertas por antigüedad, dentro del saldo pendiente.",
         "prepaymentSummaryTitle": "Resumen del cobro",
+        "contextLoading": "Cargando el contexto del cobro…",
         "agreementLabel": "Acuerdo",
         "prepaymentAllowedLabel": "Anticipo permitido",
         "prepaymentAllowedYes": "Sí",

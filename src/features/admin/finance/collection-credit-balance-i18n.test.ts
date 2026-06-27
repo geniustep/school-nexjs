@@ -19,6 +19,7 @@ const CREDIT_BALANCE_KEYS = [
   'autoAllocationHint',
   'reviewCreditNoticeTitle',
   'reviewCreditConfirmNotice',
+  'contextLoading',
 ] as const;
 
 const COLLECTIONS_KEYS = ['openReceipt', 'activeAgreement', 'noActiveAgreement'] as const;
@@ -60,4 +61,18 @@ describe('collection context i18n keys', () => {
       }
     });
   }
+});
+
+describe('Arabic credit-balance wording', () => {
+  it('uses "رصيد دائن" and never the typo "رصد دائن" anywhere in ar.json', () => {
+    const raw = readFileSync(resolve(process.cwd(), 'messages', 'ar.json'), 'utf8');
+    expect(raw.includes('رصد دائن')).toBe(false);
+  });
+
+  it('review notice/confirm strings use the corrected "رصيد دائن"', () => {
+    const messages = loadMessages('ar');
+    const workflow = (messages as any).admin.finance.collectionWorkflow as Record<string, string>;
+    expect(workflow.reviewCreditNoticeTitle).toContain('رصيد دائن');
+    expect(workflow.reviewCreditConfirmNotice).toContain('رصيد دائن');
+  });
 });

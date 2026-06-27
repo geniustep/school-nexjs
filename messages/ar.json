@@ -5151,7 +5151,7 @@
             "byStudent": "حسب التلميذ",
             "byService": "حسب الخدمة",
             "manual": "يدوي",
-            "leaveAsCredit": "ترك كرصد دائن للأسرة"
+            "leaveAsCredit": "ترك كرصيد دائن للأسرة"
           },
           "columns": {
             "allocated": "المبلغ الموزع"
@@ -6913,6 +6913,7 @@
         "paidAmountLabel": "المبلغ المدفوع",
         "paidAmountHint": "يمكن إدخال مبلغ أقل أو أكبر من القسط. سيتم توزيع المبلغ تلقائيًا على الأقساط المفتوحة حسب الأقدمية، داخل حدود المتبقي.",
         "prepaymentSummaryTitle": "ملخص التحصيل",
+        "contextLoading": "جارٍ تحميل سياق التحصيل…",
         "agreementLabel": "الاتفاق",
         "prepaymentAllowedLabel": "السماح بالأداء المسبق",
         "prepaymentAllowedYes": "نعم",
@@ -6937,8 +6938,8 @@
         "resultingCreditBalance": "الرصيد الدائن الناتج",
         "creditBalanceLabel": "الرصيد الدائن غير الموزع",
         "creditBalanceNotReducingDuesWarning": "لن يخفض هذا الرصيد المستحقات قبل تخصيصه.",
-        "reviewCreditNoticeTitle": "سيُسجل جزء من هذه الدفعة كرصد دائن غير موزع",
-        "reviewCreditConfirmNotice": "بتسجيل التحصيل، سيبقى المبلغ غير الموزع كرصد دائن.",
+        "reviewCreditNoticeTitle": "سيُسجل جزء من هذه الدفعة كرصيد دائن غير موزع",
+        "reviewCreditConfirmNotice": "بتسجيل التحصيل، سيبقى المبلغ غير الموزع كرصيد دائن.",
         "unallocatedBecomesCreditNotice": "سيُسجل الفرق كرصيد دائن غير موزع، ولن يُعتبر قسطًا مدفوعًا حتى يتم تخصيصه.",
         "fullCreditBalanceNotice": "هذا رصيد دائن غير موزع، لا يخفض المستحقات قبل تخصيصه.",
         "recordCollectionAction": "تسجيل التحصيل",

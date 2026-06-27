@@ -6859,6 +6859,7 @@
         "paidAmountLabel": "Montant payé",
         "paidAmountHint": "Vous pouvez saisir un montant inférieur ou supérieur à une échéance. Il sera réparti automatiquement sur les échéances ouvertes par ordre d'ancienneté, dans la limite du solde restant.",
         "prepaymentSummaryTitle": "Résumé de l'encaissement",
+        "contextLoading": "Chargement du contexte d'encaissement…",
         "agreementLabel": "Accord",
         "prepaymentAllowedLabel": "Acompte autorisé",
         "prepaymentAllowedYes": "Oui",
