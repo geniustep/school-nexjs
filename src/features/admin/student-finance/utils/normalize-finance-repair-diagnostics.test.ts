@@ -161,4 +161,46 @@ describe('normalizeFinanceRepairDiagnostics', () => {
     expect(result.actions).toHaveLength(1);
     expect(result.actions[0].code).toBe('from_recommended');
   });
+
+  it('reads the adopt_correct_schedule_into_kept_plan action with adopt mode', () => {
+    const result = normalizeFinanceRepairDiagnostics({
+      overall_status: 'blocked',
+      can_apply_actions: true,
+      recommended_actions: [
+        {
+          action_code: 'adopt_correct_schedule_into_kept_plan',
+          title: 'اعتماد الخطة الرسمية مع جدول الأقساط الصحيح',
+          requires_reason: true,
+          requires_confirmation: true,
+          candidate_plans: [
+            { fee_plan_id: 2461, fee_plan_name: 'خطة رسوم الابتدائي 2026-2027', total_amount: 4500 },
+            {
+              fee_plan_id: 2587,
+              fee_plan_name: 'خطة اختبار السعر الشهري للابتدائي',
+              total_amount: 22500,
+            },
+          ],
+        },
+      ],
+    });
+    expect(result.actions).toHaveLength(1);
+    expect(result.actions[0].code).toBe('adopt_correct_schedule_into_kept_plan');
+    expect(result.actions[0].planSelectionMode).toBe('adopt');
+    expect(result.actions[0].candidatePlans).toHaveLength(2);
+    expect(result.actions[0].candidatePlans[1].name).toBe('خطة اختبار السعر الشهري للابتدائي');
+  });
+
+  it('does not break when the adopt action is absent (backend not deployed yet)', () => {
+    const result = normalizeFinanceRepairDiagnostics({
+      overall_status: 'blocked',
+      recommended_actions: [
+        { action_code: 'keep_fee_plan_and_cancel_overlapping_plan', title: 'الإبقاء' },
+      ],
+    });
+    expect(result.actions).toHaveLength(1);
+    expect(
+      result.actions.some((a) => a.code === 'adopt_correct_schedule_into_kept_plan'),
+    ).toBe(false);
+    expect(result.available).toBe(true);
+  });
 });

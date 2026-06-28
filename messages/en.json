@@ -5420,13 +5420,22 @@
           "regularizeAction": "Create agreement from current installments",
           "actionLabels": {
             "keepFeePlan": "Choose the correct plan and cancel the overlapping plan",
-            "removeDuplicatePlan": "Cancel an unpaid duplicate fee plan"
+            "removeDuplicatePlan": "Cancel an unpaid duplicate fee plan",
+            "adoptCorrectSchedule": "Keep the official plan with the correct installment schedule"
           },
           "planSelection": {
             "keepTitle": "Choose the plan to keep",
             "cancelTitle": "Choose the plan to cancel",
+            "adoptTitle": "Keep the official plan with the correct schedule",
             "keepIntro": "Select the financial plan that should remain. The other overlapping plan will be cancelled if it has no payments.",
             "cancelIntro": "Select the duplicate fee plan to cancel. Only unpaid plans can be cancelled.",
+            "adoptIntro": "Choose the official plan whose identity should be kept, then choose the plan whose correct installment schedule will be adopted. They must be two different plans.",
+            "officialLegend": "Official plan to keep",
+            "sourceLegend": "Plan to take the correct schedule from",
+            "officialHint": "This plan's identity is kept.",
+            "sourceHint": "The installment schedule is adopted from this plan.",
+            "samePlanError": "You cannot choose the same plan in both fields. Pick two different plans.",
+            "alreadyChosen": "This plan is selected in the other field.",
             "insufficientPlans": "There are not enough plans to choose which one should remain.",
             "total": "Total",
             "fees": "Number of fees",
@@ -5435,6 +5444,10 @@
             "hasPayments": "This plan has recorded payments.",
             "keepHint": "This plan can be kept.",
             "cancelHint": "This plan can be cancelled if it is unpaid."
+          },
+          "previewMode": {
+            "relinkUnpaid": "Unpaid records will be re-linked to the official plan.",
+            "adoptScheduleAsIs": "Installments will not be recreated; the existing schedule will be adopted as-is."
           },
           "previewTitle": "Preview processing before applying",
           "previewIntro": "Review the impact before applying. Nothing is applied at this stage.",
@@ -5455,6 +5468,9 @@
             "affectedInstallments": "Affected installments",
             "cancelledFees": "Fees to be cancelled",
             "cancelledInstallments": "Installments to be cancelled",
+            "relinkedFees": "Fees to be re-linked",
+            "officialPlan": "Official plan to keep",
+            "sourcePlan": "Plan the schedule was taken from",
             "totalAmount": "Total amount after processing",
             "plans": "Resulting plans"
           },

@@ -6,13 +6,17 @@ import { useT } from '@/features/i18n/locale-context';
 import { useFinanceRepairDiagnostics } from '../hooks/use-finance-repair-diagnostics';
 import { FinanceRepairActionPreviewDrawer } from './finance-repair-action-preview-drawer';
 import {
+  ADOPT_CORRECT_SCHEDULE_ACTION,
   KEEP_FEE_PLAN_ACTION,
   REGULARIZE_AFTER_CLEANUP_ACTION,
   REMOVE_DUPLICATE_PLAN_ACTION,
   type FinanceRepairAction,
 } from '../types/finance-repair';
 import { canExecuteRepairAction } from '../utils/repair-action-guards';
-import { actionRequiresPlanSelection } from '../utils/repair-action-plan-selection';
+import {
+  actionRequiresDualPlanSelection,
+  actionRequiresPlanSelection,
+} from '../utils/repair-action-plan-selection';
 
 function tk(key: string): string {
   return `admin.student360.financeWorkspace.repairCenter.${key}`;
@@ -21,6 +25,7 @@ function tk(key: string): string {
 function actionLabelKey(code: string): string | null {
   if (code === KEEP_FEE_PLAN_ACTION) return 'actionLabels.keepFeePlan';
   if (code === REMOVE_DUPLICATE_PLAN_ACTION) return 'actionLabels.removeDuplicatePlan';
+  if (code === ADOPT_CORRECT_SCHEDULE_ACTION) return 'actionLabels.adoptCorrectSchedule';
   if (code === REGULARIZE_AFTER_CLEANUP_ACTION) return 'regularizeAction';
   return null;
 }
@@ -96,6 +101,10 @@ export function FinanceRepairCenterCard({
 
   function canOpenPreview(action: FinanceRepairAction): boolean {
     if (!canExecuteRepairAction(action, canApplyActionsFlag)) return false;
+    if (actionRequiresDualPlanSelection(action.planSelectionMode)) {
+      // Need at least two distinct plans to choose official + schedule source.
+      return action.candidatePlans.length >= 2;
+    }
     if (!actionRequiresPlanSelection(action.planSelectionMode)) return true;
     return action.candidatePlans.filter((p) => p.removable).length > 0;
   }
@@ -173,9 +182,11 @@ export function FinanceRepairCenterCard({
               const isRegularize = action.code === REGULARIZE_AFTER_CLEANUP_ACTION;
               const displayLabel = resolveActionLabel(action);
               const previewAllowed = canOpenPreview(action);
+              const isDual = actionRequiresDualPlanSelection(action.planSelectionMode);
               const needsPlan = actionRequiresPlanSelection(action.planSelectionMode);
-              const insufficientPlans =
-                needsPlan && action.candidatePlans.filter((p) => p.removable).length === 0;
+              const insufficientPlans = isDual
+                ? action.candidatePlans.length < 2
+                : needsPlan && action.candidatePlans.filter((p) => p.removable).length === 0;
 
               return (
                 <li key={action.code} className="student-finance-repair-action">

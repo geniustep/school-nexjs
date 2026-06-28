@@ -64,6 +64,26 @@ describe('repair center i18n copy', () => {
     }
   });
 
+  it('provides adopt-schedule action labels and dual-selection copy in every locale', () => {
+    for (const [locale, messages] of LOCALES) {
+      const repairCenter = (
+        messages as unknown as {
+          admin: { student360: { financeWorkspace: { repairCenter: Json } } };
+        }
+      ).admin.student360.financeWorkspace.repairCenter;
+      const actionLabels = repairCenter.actionLabels as Json;
+      const planSelection = repairCenter.planSelection as Json;
+      const previewMode = repairCenter.previewMode as Json;
+      expect(actionLabels.adoptCorrectSchedule, `[${locale}] adoptCorrectSchedule`).toBeTruthy();
+      expect(planSelection.adoptTitle, `[${locale}] adoptTitle`).toBeTruthy();
+      expect(planSelection.officialLegend, `[${locale}] officialLegend`).toBeTruthy();
+      expect(planSelection.sourceLegend, `[${locale}] sourceLegend`).toBeTruthy();
+      expect(planSelection.samePlanError, `[${locale}] samePlanError`).toBeTruthy();
+      expect(previewMode.relinkUnpaid, `[${locale}] relinkUnpaid`).toBeTruthy();
+      expect(previewMode.adoptScheduleAsIs, `[${locale}] adoptScheduleAsIs`).toBeTruthy();
+    }
+  });
+
   it('never leaks Arabic technical terms in the Arabic copy', () => {
     const strings = getRepairCenterStrings(ar as unknown as Json);
     for (const str of strings) {

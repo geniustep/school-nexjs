@@ -45,9 +45,10 @@ export interface FinanceRepairCandidatePlan {
  * How a selected plan id maps to the preview/apply request body.
  * - keep: send { keep_plan_id }
  * - cancel: send { target_plan_id } (plan to remove)
+ * - adopt: send { official_plan_id, source_schedule_plan_id } (dual selection)
  * - none: no plan selection required
  */
-export type FinanceRepairPlanSelectionMode = 'keep' | 'cancel' | 'none';
+export type FinanceRepairPlanSelectionMode = 'keep' | 'cancel' | 'adopt' | 'none';
 
 /** A suggested repair action the admin can preview/apply. */
 export interface FinanceRepairAction {
@@ -83,8 +84,12 @@ export interface FinanceRepairBeforeSnapshot {
 
 /** "After" outcome for a repair preview. */
 export interface FinanceRepairAfterOutcome {
+  /** Plan kept / official plan whose identity remains. */
   keptPlanName: string | null;
+  /** Plan removed (single-plan actions) — the overlapping/duplicate plan. */
   cancelledPlanName: string | null;
+  /** Plan whose correct schedule is adopted (adopt action only). */
+  sourcePlanName: string | null;
   affectedFeeCount: number | null;
   affectedInstallmentCount: number | null;
   totalAmount: number | null;
@@ -98,6 +103,12 @@ export interface NormalizedFinanceRepairPreview {
   after: FinanceRepairAfterOutcome;
   cancelledFeeCount: number | null;
   cancelledInstallmentCount: number | null;
+  /** Count of records re-linked onto the kept/official plan, when provided. */
+  relinkedFeeCount: number | null;
+  /** Processing mode code from backend (e.g. relink_unpaid_records), when provided. */
+  mode: string | null;
+  /** Whether the schedule is rebuilt; false means the existing schedule is adopted as-is. */
+  rebuild: boolean | null;
   warnings: FinanceRepairReason[];
   blockingReasons: FinanceRepairReason[];
   requiresReason: boolean;
@@ -113,6 +124,8 @@ export interface FinanceRepairActionPayload {
   confirmed?: boolean;
   keep_plan_id?: number;
   target_plan_id?: number;
+  official_plan_id?: number;
+  source_schedule_plan_id?: number;
   [key: string]: unknown;
 }
 
@@ -167,3 +180,9 @@ export interface FinanceRepairDiagnosticsRaw {
 export const REGULARIZE_AFTER_CLEANUP_ACTION = 'regularize_agreement_after_cleanup';
 export const KEEP_FEE_PLAN_ACTION = 'keep_fee_plan_and_cancel_overlapping_plan';
 export const REMOVE_DUPLICATE_PLAN_ACTION = 'remove_unpaid_duplicate_fee_plan_assignment';
+/**
+ * Keep the official plan identity while adopting the correct installment schedule
+ * from another plan, then safely cancel the overlapping effect. Requires picking
+ * two plans: the official plan to keep, and the plan whose schedule is adopted.
+ */
+export const ADOPT_CORRECT_SCHEDULE_ACTION = 'adopt_correct_schedule_into_kept_plan';

@@ -108,12 +108,17 @@ function readAfter(
   const cancelFeeIds = readIdList(
     affectedRecords?.cancel_fee_ids ?? rec.cancel_fee_ids ?? rec.cancelled_fee_ids,
   );
+  // Adopt action: fees whose plan provides the correct schedule.
+  const adoptedFeeIds = readIdList(rec.adopted_fee_ids ?? rec.source_fee_ids);
 
   const keptPlan =
-    findPlanByFeeIds(beforePlans, keptFeeIds) ??
-    (readString(rec.kept_plan ?? rec.kept_plan_name)
-      ? { id: null, name: readString(rec.kept_plan ?? rec.kept_plan_name)!, feeIds: keptFeeIds }
-      : null);
+    (readString(rec.official_plan_name ?? rec.kept_plan ?? rec.kept_plan_name)
+      ? {
+          id: readFiniteNumber(rec.official_plan_id),
+          name: readString(rec.official_plan_name ?? rec.kept_plan ?? rec.kept_plan_name)!,
+          feeIds: keptFeeIds,
+        }
+      : null) ?? findPlanByFeeIds(beforePlans, keptFeeIds);
   const cancelledPlan =
     findPlanByFeeIds(beforePlans, cancelFeeIds) ??
     (readString(rec.cancelled_plan ?? rec.cancelled_plan_name)
@@ -123,12 +128,21 @@ function readAfter(
           feeIds: cancelFeeIds,
         }
       : null);
+  const sourcePlan =
+    (readString(rec.source_plan_name ?? rec.source_schedule_plan_name)
+      ? {
+          id: readFiniteNumber(rec.source_schedule_plan_id ?? rec.source_plan_id),
+          name: readString(rec.source_plan_name ?? rec.source_schedule_plan_name)!,
+          feeIds: adoptedFeeIds,
+        }
+      : null) ?? findPlanByFeeIds(beforePlans, adoptedFeeIds);
 
   const cancelInstallmentIds = readIdList(affectedRecords?.cancel_installment_ids);
 
   return {
     keptPlanName: keptPlan?.name ?? null,
     cancelledPlanName: cancelledPlan?.name ?? null,
+    sourcePlanName: sourcePlan?.name ?? null,
     affectedFeeCount:
       readFiniteNumber(rec.affected_fee_count ?? rec.affected_fees ?? rec.fees_affected) ??
       (cancelFeeIds.length > 0 ? cancelFeeIds.length : null),
@@ -136,7 +150,9 @@ function readAfter(
       readFiniteNumber(
         rec.affected_installment_count ?? rec.affected_installments ?? rec.installments_affected,
       ) ?? (cancelInstallmentIds.length > 0 ? cancelInstallmentIds.length : null),
-    totalAmount: readFiniteNumber(rec.total_amount ?? rec.total ?? rec.amount),
+    totalAmount: readFiniteNumber(
+      rec.final_total ?? rec.total_amount ?? rec.total ?? rec.amount,
+    ),
     planNames: readPlanNames(rec.plan_names ?? rec.plans ?? rec.fee_plans),
   };
 }
@@ -163,10 +179,17 @@ export function normalizeFinanceRepairPreview(raw: unknown): NormalizedFinanceRe
   const beforeRaw = data.before ?? data.current ?? data.before_snapshot;
   const beforePlans = readFeePlanRefs(asRecord(beforeRaw)?.fee_plans ?? beforeRaw);
   const affectedRecords = asRecord(data.affected_records ?? root.affected_records);
-  const after = readAfter(data.after ?? data.result ?? data.after_outcome, beforePlans, affectedRecords);
+  const afterRaw = data.after ?? data.result ?? data.after_outcome;
+  const afterRec = asRecord(afterRaw);
+  const after = readAfter(afterRaw, beforePlans, affectedRecords);
 
   const cancelFeeIds = readIdList(affectedRecords?.cancel_fee_ids);
   const cancelInstallmentIds = readIdList(affectedRecords?.cancel_installment_ids);
+  const relinkedFeeIds = readIdList(
+    affectedRecords?.relink_fee_ids ??
+      affectedRecords?.relinked_fee_ids ??
+      affectedRecords?.reassign_fee_ids,
+  );
 
   return {
     allowed,
@@ -175,6 +198,11 @@ export function normalizeFinanceRepairPreview(raw: unknown): NormalizedFinanceRe
     after,
     cancelledFeeCount: cancelFeeIds.length > 0 ? cancelFeeIds.length : null,
     cancelledInstallmentCount: cancelInstallmentIds.length > 0 ? cancelInstallmentIds.length : null,
+    relinkedFeeCount:
+      readFiniteNumber(data.relinked_fee_count ?? data.relink_count) ??
+      (relinkedFeeIds.length > 0 ? relinkedFeeIds.length : null),
+    mode: readString(afterRec?.mode ?? data.mode ?? root.mode),
+    rebuild: readBool(afterRec?.rebuild) ?? readBool(data.rebuild) ?? readBool(root.rebuild),
     warnings,
     blockingReasons,
     requiresReason: readBool(data.requires_reason) ?? readBool(root.requires_reason) ?? false,

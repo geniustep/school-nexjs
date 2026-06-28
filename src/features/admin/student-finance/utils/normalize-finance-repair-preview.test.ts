@@ -73,6 +73,65 @@ describe('normalizeFinanceRepairPreview', () => {
     expect(result.blockingReasons).toHaveLength(1);
   });
 
+  it('parses live adopt_correct_schedule preview (final_total 22500, mode in after, rebuild=false)', () => {
+    // Shape mirrors the live student 705 response from the deployed backend.
+    const result = normalizeFinanceRepairPreview({
+      action_code: 'adopt_correct_schedule_into_kept_plan',
+      title: 'اعتماد الخطة الرسمية مع استعمال جدول الأقساط الصحيح',
+      summary: 'سيتم اعتماد الخطة الرسمية مع جدول الأقساط الصحيح (22500.0).',
+      before: {
+        fees_count: 4,
+        total_amount: 27000,
+        fee_plans: [
+          {
+            fee_plan_id: 2461,
+            fee_plan_name: 'خطة رسوم الابتدائي 2026-2027',
+            fee_ids: [2351, 2352],
+          },
+          {
+            fee_plan_id: 2587,
+            fee_plan_name: 'خطة اختبار السعر الشهري للابتدائي 2025-2026',
+            fee_ids: [2395, 2396],
+          },
+        ],
+      },
+      after: {
+        official_plan_id: 2461,
+        official_plan_name: 'خطة رسوم الابتدائي 2026-2027',
+        final_total: 22500,
+        adopted_fee_ids: [2395, 2396],
+        cancelled_fee_ids: [2351, 2352],
+        mode: 'relink_unpaid_records',
+        rebuild: false,
+      },
+      affected_records: {
+        relink_fee_ids: [2395, 2396],
+        relink_installment_ids: [3552, 3553, 3554],
+        cancel_fee_ids: [2351, 2352],
+        cancel_installment_ids: [3449, 3450, 3451, 3452],
+      },
+      blocked: false,
+      blocking_reasons: [],
+      warnings: [],
+      requires_confirmation: true,
+      requires_reason: true,
+      confirmation_label: 'تأكيد اعتماد الخطة الرسمية بالجدول الصحيح',
+    });
+
+    expect(result.allowed).toBe(true);
+    expect(result.after.totalAmount).toBe(22500);
+    expect(result.before.totalAmount).toBe(27000);
+    expect(result.mode).toBe('relink_unpaid_records');
+    expect(result.rebuild).toBe(false);
+    expect(result.relinkedFeeCount).toBe(2);
+    expect(result.cancelledFeeCount).toBe(2);
+    expect(result.cancelledInstallmentCount).toBe(4);
+    expect(result.after.keptPlanName).toBe('خطة رسوم الابتدائي 2026-2027');
+    expect(result.after.sourcePlanName).toBe('خطة اختبار السعر الشهري للابتدائي 2025-2026');
+    expect(result.requiresReason).toBe(true);
+    expect(result.requiresConfirmation).toBe(true);
+  });
+
   it('reads nested preview root and a follow-up action code', () => {
     const result = normalizeFinanceRepairPreview({
       preview: {

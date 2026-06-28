@@ -5415,13 +5415,22 @@
           "regularizeAction": "Crear acuerdo a partir de las cuotas actuales",
           "actionLabels": {
             "keepFeePlan": "Elegir el plan correcto y cancelar el plan superpuesto",
-            "removeDuplicatePlan": "Cancelar un plan de tasas duplicado no pagado"
+            "removeDuplicatePlan": "Cancelar un plan de tasas duplicado no pagado",
+            "adoptCorrectSchedule": "Mantener el plan oficial con el calendario de cuotas correcto"
           },
           "planSelection": {
             "keepTitle": "Elegir el plan que se mantiene",
             "cancelTitle": "Elegir el plan que se cancela",
+            "adoptTitle": "Mantener el plan oficial con el calendario correcto",
             "keepIntro": "Seleccione el plan financiero que debe mantenerse. El otro plan superpuesto se cancelará si no tiene pagos.",
             "cancelIntro": "Seleccione el plan de tasas duplicado que se cancelará. Solo se pueden cancelar planes no pagados.",
+            "adoptIntro": "Elija el plan oficial cuya identidad debe mantenerse y luego el plan cuyo calendario de cuotas correcto se adoptará. Deben ser dos planes diferentes.",
+            "officialLegend": "Plan oficial que se mantiene",
+            "sourceLegend": "Plan del que se toma el calendario correcto",
+            "officialHint": "Se mantiene la identidad de este plan.",
+            "sourceHint": "El calendario de cuotas se adopta de este plan.",
+            "samePlanError": "No puede elegir el mismo plan en ambos campos. Seleccione dos planes diferentes.",
+            "alreadyChosen": "Este plan está seleccionado en el otro campo.",
             "insufficientPlans": "No hay planes suficientes para elegir cuál debe mantenerse.",
             "total": "Total",
             "fees": "Número de tasas",
@@ -5430,6 +5439,10 @@
             "hasPayments": "Este plan tiene pagos registrados.",
             "keepHint": "Este plan puede mantenerse.",
             "cancelHint": "Este plan puede cancelarse si no está pagado."
+          },
+          "previewMode": {
+            "relinkUnpaid": "Los registros no pagados se volverán a vincular al plan oficial.",
+            "adoptScheduleAsIs": "Las cuotas no se recrearán; se adoptará el calendario existente tal cual."
           },
           "previewTitle": "Previsualizar el tratamiento antes de aplicar",
           "previewIntro": "Revise el impacto antes de aplicar. No se aplica nada en esta etapa.",
@@ -5450,6 +5463,9 @@
             "affectedInstallments": "Cuotas afectadas",
             "cancelledFees": "Tasas que se cancelarán",
             "cancelledInstallments": "Cuotas que se cancelarán",
+            "relinkedFees": "Tasas que se volverán a vincular",
+            "officialPlan": "Plan oficial que se mantiene",
+            "sourcePlan": "Plan del que se tomó el calendario",
             "totalAmount": "Importe total tras el tratamiento",
             "plans": "Planes resultantes"
           },

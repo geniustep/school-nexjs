@@ -12,8 +12,11 @@ import {
 import { normalizeFinanceRepairPreview } from '../utils/normalize-finance-repair-preview';
 import { validateRepairApply } from '../utils/repair-action-guards';
 import {
-  actionRequiresPlanSelection,
+  actionRequiresAnyPlanSelection,
+  actionRequiresDualPlanSelection,
   buildRepairActionPayload,
+  isAdoptSelectionValid,
+  type RepairPlanSelection,
 } from '../utils/repair-action-plan-selection';
 import type {
   FinanceRepairAction,
@@ -27,6 +30,7 @@ function tk(key: string): string {
 }
 
 type DrawerStage = 'select_plan' | 'preview' | 'confirm';
+type PlanRole = 'keep' | 'cancel' | 'official' | 'source';
 
 function ReasonList({ reasons, className }: { reasons: FinanceRepairReason[]; className: string }) {
   if (reasons.length === 0) return null;
@@ -43,30 +47,44 @@ function ReasonList({ reasons, className }: { reasons: FinanceRepairReason[]; cl
 
 function PlanOption({
   plan,
-  mode,
+  role,
+  groupName,
   selected,
+  disabled,
   currencyName,
   onSelect,
 }: {
   plan: FinanceRepairCandidatePlan;
-  mode: 'keep' | 'cancel';
+  role: PlanRole;
+  groupName: string;
   selected: boolean;
+  disabled?: boolean;
   currencyName?: string | null;
   onSelect: () => void;
 }) {
   const t = useT();
-  const inputId = `repair-plan-${plan.id}`;
+  const inputId = `${groupName}-${plan.id}`;
+  const unusable = !plan.removable && (role === 'keep' || role === 'cancel');
+  const isDisabled = disabled || unusable;
+  const hintKey =
+    role === 'keep'
+      ? 'planSelection.keepHint'
+      : role === 'cancel'
+        ? 'planSelection.cancelHint'
+        : role === 'official'
+          ? 'planSelection.officialHint'
+          : 'planSelection.sourceHint';
   return (
     <label
       htmlFor={inputId}
-      className={`student-finance-repair-plan-option${selected ? ' student-finance-repair-plan-option--selected' : ''}${!plan.removable ? ' student-finance-repair-plan-option--disabled' : ''}`}
+      className={`student-finance-repair-plan-option${selected ? ' student-finance-repair-plan-option--selected' : ''}${isDisabled ? ' student-finance-repair-plan-option--disabled' : ''}`}
     >
       <input
         id={inputId}
         type="radio"
-        name="repair-plan-selection"
+        name={groupName}
         checked={selected}
-        disabled={!plan.removable}
+        disabled={isDisabled}
         onChange={onSelect}
       />
       <div className="student-finance-repair-plan-option__body">
@@ -95,14 +113,14 @@ function PlanOption({
             </div>
           ) : null}
         </dl>
-        {!plan.removable ? (
+        {disabled ? (
+          <p className="tiny muted">{t(tk('planSelection.alreadyChosen'))}</p>
+        ) : unusable ? (
           <p className="tiny muted">{t(tk('planSelection.notRemovable'))}</p>
-        ) : plan.hasPayments ? (
+        ) : plan.hasPayments && (role === 'keep' || role === 'cancel') ? (
           <p className="tiny muted">{t(tk('planSelection.hasPayments'))}</p>
-        ) : mode === 'keep' ? (
-          <p className="tiny muted">{t(tk('planSelection.keepHint'))}</p>
         ) : (
-          <p className="tiny muted">{t(tk('planSelection.cancelHint'))}</p>
+          <p className="tiny muted">{t(tk(hintKey))}</p>
         )}
       </div>
     </label>
@@ -130,7 +148,8 @@ export function FinanceRepairActionPreviewDrawer({
   const toast = useToast();
 
   const [stage, setStage] = useState<DrawerStage>('select_plan');
-  const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
+  const [primaryPlanId, setPrimaryPlanId] = useState<number | null>(null);
+  const [sourceSchedulePlanId, setSourceSchedulePlanId] = useState<number | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [preview, setPreview] = useState<NormalizedFinanceRepairPreview | null>(null);
@@ -140,14 +159,30 @@ export function FinanceRepairActionPreviewDrawer({
   const [applying, setApplying] = useState(false);
 
   const actionCode = action?.code ?? null;
-  const needsPlanSelection = action ? actionRequiresPlanSelection(action.planSelectionMode) : false;
-  const selectablePlans = (action?.candidatePlans ?? []).filter((p) => p.removable);
+  const mode = action?.planSelectionMode ?? 'none';
+  const isDual = actionRequiresDualPlanSelection(mode);
+  const needsPlanSelection = actionRequiresAnyPlanSelection(mode);
+  const selectablePlans = (action?.candidatePlans ?? []).filter(
+    (p) => isDual || p.removable,
+  );
+
+  const currentSelection: RepairPlanSelection = {
+    primaryPlanId,
+    sourceSchedulePlanId,
+  };
+
+  const selectionReady = isDual
+    ? isAdoptSelectionValid(currentSelection)
+    : primaryPlanId != null;
 
   const resetState = useCallback(() => {
     const initialStage: DrawerStage =
-      action && actionRequiresPlanSelection(action.planSelectionMode) ? 'select_plan' : 'preview';
+      action && actionRequiresAnyPlanSelection(action.planSelectionMode)
+        ? 'select_plan'
+        : 'preview';
     setStage(initialStage);
-    setSelectedPlanId(null);
+    setPrimaryPlanId(null);
+    setSourceSchedulePlanId(null);
     setPreview(null);
     setPreviewError(null);
     setPreviewLoading(false);
@@ -163,12 +198,12 @@ export function FinanceRepairActionPreviewDrawer({
   }, [open, action, actionCode, resetState]);
 
   const loadPreview = useCallback(
-    async (planId: number | null) => {
+    async (selection: RepairPlanSelection) => {
       if (!actionCode) return;
       setPreviewLoading(true);
       setPreviewError(null);
       setPreview(null);
-      const payload = buildRepairActionPayload(actionCode, planId);
+      const payload = buildRepairActionPayload(actionCode, selection);
       const res = await previewFinanceRepairAction(studentId, actionCode, payload);
       setPreviewLoading(false);
       if (!res.success) {
@@ -183,7 +218,7 @@ export function FinanceRepairActionPreviewDrawer({
 
   useEffect(() => {
     if (!open || !actionCode || needsPlanSelection) return;
-    void loadPreview(null);
+    void loadPreview({ primaryPlanId: null });
   }, [open, actionCode, needsPlanSelection, loadPreview]);
 
   const requiresReason = preview?.requiresReason ?? action?.requiresReason ?? false;
@@ -202,7 +237,7 @@ export function FinanceRepairActionPreviewDrawer({
     setFormError(null);
     setApplying(true);
     const payload = {
-      ...buildRepairActionPayload(actionCode, selectedPlanId),
+      ...buildRepairActionPayload(actionCode, currentSelection),
       ...(requiresReason ? { reason: reason.trim() } : {}),
       ...(requiresConfirmation ? { confirmed: true } : {}),
     };
@@ -221,7 +256,8 @@ export function FinanceRepairActionPreviewDrawer({
     onApplied();
   }, [
     actionCode,
-    selectedPlanId,
+    primaryPlanId,
+    sourceSchedulePlanId,
     requiresReason,
     requiresConfirmation,
     reason,
@@ -239,9 +275,11 @@ export function FinanceRepairActionPreviewDrawer({
 
   const drawerTitle =
     stage === 'select_plan'
-      ? action.planSelectionMode === 'keep'
+      ? mode === 'keep'
         ? t(tk('planSelection.keepTitle'))
-        : t(tk('planSelection.cancelTitle'))
+        : mode === 'cancel'
+          ? t(tk('planSelection.cancelTitle'))
+          : t(tk('planSelection.adoptTitle'))
       : stage === 'preview'
         ? t(tk('previewTitle'))
         : t(tk('confirmTitle'));
@@ -253,8 +291,8 @@ export function FinanceRepairActionPreviewDrawer({
           <button
             type="button"
             className="btn btn--primary btn--sm"
-            disabled={selectedPlanId == null || previewLoading}
-            onClick={() => void loadPreview(selectedPlanId)}
+            disabled={!selectionReady || previewLoading}
+            onClick={() => void loadPreview(currentSelection)}
           >
             {previewLoading ? t(tk('previewLoading')) : t(tk('previewAction'))}
           </button>
@@ -316,26 +354,86 @@ export function FinanceRepairActionPreviewDrawer({
     >
       {stage === 'select_plan' ? (
         <div className="form-stack student-finance-repair-plan-select">
-          <p className="muted">
-            {action.planSelectionMode === 'keep'
-              ? t(tk('planSelection.keepIntro'))
-              : t(tk('planSelection.cancelIntro'))}
-          </p>
-          {selectablePlans.length === 0 ? (
-            <p className="form-error">{t(tk('planSelection.insufficientPlans'))}</p>
+          {isDual ? (
+            <>
+              <p className="muted">{t(tk('planSelection.adoptIntro'))}</p>
+              {action.candidatePlans.length < 2 ? (
+                <p className="form-error">{t(tk('planSelection.insufficientPlans'))}</p>
+              ) : (
+                <>
+                  <fieldset className="student-finance-repair-plan-group">
+                    <legend className="student-finance-repair-plan-group__legend">
+                      {t(tk('planSelection.officialLegend'))}
+                    </legend>
+                    <div className="student-finance-repair-plan-select__list">
+                      {action.candidatePlans.map((plan) => (
+                        <PlanOption
+                          key={`official-${plan.id}`}
+                          plan={plan}
+                          role="official"
+                          groupName="repair-official-plan"
+                          selected={primaryPlanId === plan.id}
+                          disabled={sourceSchedulePlanId === plan.id}
+                          currencyName={currencyName}
+                          onSelect={() => setPrimaryPlanId(plan.id)}
+                        />
+                      ))}
+                    </div>
+                  </fieldset>
+
+                  <fieldset className="student-finance-repair-plan-group">
+                    <legend className="student-finance-repair-plan-group__legend">
+                      {t(tk('planSelection.sourceLegend'))}
+                    </legend>
+                    <div className="student-finance-repair-plan-select__list">
+                      {action.candidatePlans.map((plan) => (
+                        <PlanOption
+                          key={`source-${plan.id}`}
+                          plan={plan}
+                          role="source"
+                          groupName="repair-source-plan"
+                          selected={sourceSchedulePlanId === plan.id}
+                          disabled={primaryPlanId === plan.id}
+                          currencyName={currencyName}
+                          onSelect={() => setSourceSchedulePlanId(plan.id)}
+                        />
+                      ))}
+                    </div>
+                  </fieldset>
+
+                  {primaryPlanId != null &&
+                  sourceSchedulePlanId != null &&
+                  primaryPlanId === sourceSchedulePlanId ? (
+                    <p className="form-error">{t(tk('planSelection.samePlanError'))}</p>
+                  ) : null}
+                </>
+              )}
+            </>
           ) : (
-            <div className="student-finance-repair-plan-select__list">
-              {action.candidatePlans.map((plan) => (
-                <PlanOption
-                  key={plan.id}
-                  plan={plan}
-                  mode={action.planSelectionMode === 'keep' ? 'keep' : 'cancel'}
-                  selected={selectedPlanId === plan.id}
-                  currencyName={currencyName}
-                  onSelect={() => setSelectedPlanId(plan.id)}
-                />
-              ))}
-            </div>
+            <>
+              <p className="muted">
+                {mode === 'keep'
+                  ? t(tk('planSelection.keepIntro'))
+                  : t(tk('planSelection.cancelIntro'))}
+              </p>
+              {selectablePlans.length === 0 ? (
+                <p className="form-error">{t(tk('planSelection.insufficientPlans'))}</p>
+              ) : (
+                <div className="student-finance-repair-plan-select__list">
+                  {action.candidatePlans.map((plan) => (
+                    <PlanOption
+                      key={plan.id}
+                      plan={plan}
+                      role={mode === 'keep' ? 'keep' : 'cancel'}
+                      groupName="repair-plan-selection"
+                      selected={primaryPlanId === plan.id}
+                      currencyName={currencyName}
+                      onSelect={() => setPrimaryPlanId(plan.id)}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
       ) : stage === 'preview' ? (
@@ -389,14 +487,25 @@ export function FinanceRepairActionPreviewDrawer({
                 <dl className="detail-list">
                   {preview.after.keptPlanName ? (
                     <div>
-                      <dt>{t(tk('after.keptPlan'))}</dt>
+                      <dt>{isDual ? t(tk('after.officialPlan')) : t(tk('after.keptPlan'))}</dt>
                       <dd dir="auto">{preview.after.keptPlanName}</dd>
                     </div>
                   ) : null}
-                  {preview.after.cancelledPlanName ? (
+                  {isDual && preview.after.sourcePlanName ? (
+                    <div>
+                      <dt>{t(tk('after.sourcePlan'))}</dt>
+                      <dd dir="auto">{preview.after.sourcePlanName}</dd>
+                    </div>
+                  ) : !isDual && preview.after.cancelledPlanName ? (
                     <div>
                       <dt>{t(tk('after.cancelledPlan'))}</dt>
                       <dd dir="auto">{preview.after.cancelledPlanName}</dd>
+                    </div>
+                  ) : null}
+                  {preview.relinkedFeeCount != null ? (
+                    <div>
+                      <dt>{t(tk('after.relinkedFees'))}</dt>
+                      <dd>{preview.relinkedFeeCount}</dd>
                     </div>
                   ) : null}
                   {preview.cancelledFeeCount != null ? (
@@ -420,6 +529,12 @@ export function FinanceRepairActionPreviewDrawer({
                     </div>
                   ) : null}
                 </dl>
+                {preview.mode === 'relink_unpaid_records' ? (
+                  <p className="tiny muted">{t(tk('previewMode.relinkUnpaid'))}</p>
+                ) : null}
+                {preview.rebuild === false ? (
+                  <p className="tiny muted">{t(tk('previewMode.adoptScheduleAsIs'))}</p>
+                ) : null}
               </section>
 
               {preview.warnings.length > 0 ? (

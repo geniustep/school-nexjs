@@ -5415,13 +5415,22 @@
           "regularizeAction": "Créer un accord à partir des échéances actuelles",
           "actionLabels": {
             "keepFeePlan": "Choisir le bon plan et annuler le plan qui chevauche",
-            "removeDuplicatePlan": "Annuler un plan de frais en double non payé"
+            "removeDuplicatePlan": "Annuler un plan de frais en double non payé",
+            "adoptCorrectSchedule": "Conserver le plan officiel avec le bon échéancier"
           },
           "planSelection": {
             "keepTitle": "Choisir le plan à conserver",
             "cancelTitle": "Choisir le plan à annuler",
+            "adoptTitle": "Conserver le plan officiel avec le bon échéancier",
             "keepIntro": "Sélectionnez le plan financier à conserver. L'autre plan qui chevauche sera annulé s'il ne contient aucun paiement.",
             "cancelIntro": "Sélectionnez le plan de frais en double à annuler. Seuls les plans non payés peuvent être annulés.",
+            "adoptIntro": "Choisissez le plan officiel dont l'identité doit être conservée, puis le plan dont le bon échéancier sera adopté. Ce doivent être deux plans différents.",
+            "officialLegend": "Plan officiel à conserver",
+            "sourceLegend": "Plan dont provient le bon échéancier",
+            "officialHint": "L'identité de ce plan est conservée.",
+            "sourceHint": "L'échéancier est adopté à partir de ce plan.",
+            "samePlanError": "Vous ne pouvez pas choisir le même plan dans les deux champs. Sélectionnez deux plans différents.",
+            "alreadyChosen": "Ce plan est sélectionné dans l'autre champ.",
             "insufficientPlans": "Il n'y a pas assez de plans pour choisir celui qui doit rester.",
             "total": "Total",
             "fees": "Nombre de frais",
@@ -5430,6 +5439,10 @@
             "hasPayments": "Ce plan contient des paiements enregistrés.",
             "keepHint": "Ce plan peut être conservé.",
             "cancelHint": "Ce plan peut être annulé s'il n'est pas payé."
+          },
+          "previewMode": {
+            "relinkUnpaid": "Les enregistrements non payés seront rattachés au plan officiel.",
+            "adoptScheduleAsIs": "Les échéances ne seront pas recréées ; l'échéancier existant sera adopté tel quel."
           },
           "previewTitle": "Aperçu du traitement avant application",
           "previewIntro": "Examinez l'impact avant d'appliquer. Rien n'est appliqué à cette étape.",
@@ -5450,6 +5463,9 @@
             "affectedInstallments": "Échéances concernées",
             "cancelledFees": "Frais qui seront annulés",
             "cancelledInstallments": "Échéances qui seront annulées",
+            "relinkedFees": "Frais qui seront rattachés",
+            "officialPlan": "Plan officiel à conserver",
+            "sourcePlan": "Plan d'où provient l'échéancier",
             "totalAmount": "Montant total après traitement",
             "plans": "Plans résultants"
           },
