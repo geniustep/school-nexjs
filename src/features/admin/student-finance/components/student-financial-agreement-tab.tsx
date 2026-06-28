@@ -47,6 +47,7 @@ import { useFinancialAgreement } from '../hooks/use-financial-agreement';
 import { useStudentFinanceTabState } from '../hooks/use-student-finance-tab-state';
 import type { AgreementScheduleItem, FinancialAgreementLine } from '../types';
 import { formatPeriodRange } from '../utils/format-period';
+import { formatAgreementLineQuantityDisplay } from '../utils/agreement-line-quantity-edit';
 import { agreementLineCategoryDetails } from '../utils/service-category-details';
 import {
   hasAgreementData,
@@ -678,7 +679,7 @@ export function StudentFinancialAgreementTab({
       {
         key: 'quantity',
         header: t('admin.student360.financialAgreement.columns.quantity'),
-        render: (row) => row.quantity ?? t('common.dash'),
+        render: (row) => <span dir="auto">{formatAgreementLineQuantityDisplay(t, row)}</span>,
       },
       {
         key: 'unit_price',

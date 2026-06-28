@@ -56,7 +56,7 @@ export const AGREEMENT_LINE_PROTECTED_KEYS = [
   'period_end',
 ] as const;
 
-export type AgreementLinePatchOperation = 'discount' | 'add' | 'delete' | 'full_replace';
+export type AgreementLinePatchOperation = 'discount' | 'edit' | 'add' | 'delete' | 'full_replace';
 
 export function hasAgreementLineDiscount(discountType: string, discountValue?: number | null): boolean {
   if (discountType === 'none' || !discountType) return false;
@@ -590,6 +590,55 @@ export function validateAgreementLinePatchSafety(input: {
     return { ok: true };
   }
 
+  if (operation === 'edit') {
+    if (patchLines.length !== 1) {
+      return {
+        ok: false,
+        reason: 'line_patch_unsafe',
+        detail: `edit patch must send exactly one line, got ${patchLines.length}`,
+      };
+    }
+    const row = patchLines[0] as Record<string, unknown>;
+    if (row.id == null) {
+      return { ok: false, reason: 'line_patch_unsafe', detail: 'edit patch missing line id' };
+    }
+    if (targetLineId != null && row.id !== targetLineId) {
+      return { ok: false, reason: 'missing_target', detail: 'edit patch id mismatch' };
+    }
+    const forbiddenKeys = [
+      'fee_plan_line_id',
+      'commitment_type',
+      'pricing_unit',
+      'charge_generation_mode',
+      'service_from',
+      'service_until',
+      'period_start',
+      'period_end',
+      'service_id',
+      'tariff_id',
+      'unit_price',
+    ];
+    for (const key of forbiddenKeys) {
+      if (key in row) {
+        return {
+          ok: false,
+          reason: 'line_patch_unsafe',
+          detail: `edit patch must not include ${key}`,
+        };
+      }
+    }
+    const hasQuantityField = 'quantity' in row || 'periods_count' in row;
+    const hasDiscountField = 'discount_type' in row || 'discount_value' in row;
+    if (!hasQuantityField && !hasDiscountField) {
+      return {
+        ok: false,
+        reason: 'line_patch_unsafe',
+        detail: 'edit patch must include quantity or discount fields',
+      };
+    }
+    return { ok: true };
+  }
+
   if (operation === 'add') {
     for (const patchLine of patchLines) {
       const row = patchLine as Record<string, unknown>;
@@ -684,6 +733,24 @@ export function validateAgreementLinesReplacePatch(input: {
   if (patchable === 0 && outCount !== 1) {
     return { ok: false, reason: 'unexpected_add_count' };
   }
+  return { ok: true };
+}
+
+export function validateAgreementLineEditPatch(input: {
+  sourceLines: FinancialAgreementLine[];
+  lineId: number;
+  payload: UpdateFinancialAgreementPayload;
+}): { ok: true } | { ok: false; reason: string } {
+  if (!input.sourceLines.some((line) => line.id === input.lineId)) {
+    return { ok: false, reason: 'missing_target' };
+  }
+  const safety = validateAgreementLinePatchSafety({
+    operation: 'edit',
+    sourceLines: input.sourceLines,
+    payload: input.payload,
+    targetLineId: input.lineId,
+  });
+  if (!safety.ok) return { ok: false, reason: safety.reason };
   return { ok: true };
 }
 

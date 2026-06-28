@@ -8,13 +8,12 @@ import { useToast } from '@/components/ui/toast';
 import { useT } from '@/features/i18n/locale-context';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { endpoints } from '@/lib/api/endpoints';
-import { updateFinancialAgreement } from '../api/finance-admin-api';
+import { updateFinancialAgreement, previewFinancialAgreementLineEdit } from '../api/finance-admin-api';
 import type { FinanceServiceCatalogItem, FinanceServiceTariff, FinancialAgreementLine } from '../types';
 import {
   buildAgreementLineAddInput,
   buildAgreementLineAddPayload,
   buildAgreementLineDeletePayload,
-  buildAgreementLineDiscountPatchPayload,
   computeAgreementLineAmounts,
   isAgreementLineManualBillingMode,
   isAgreementLinePricingRecurrenceOdooError,
@@ -26,11 +25,27 @@ import {
   validateAgreementLineAddInput,
   validateAgreementLineAddPatch,
   validateAgreementLineDeletePatch,
-  validateAgreementLineDiscountPatch,
+  validateAgreementLineEditPatch,
   validateAgreementLinePatchSafety,
   validateAgreementLineReason,
   type AgreementLineManualBillingMode,
 } from '../utils/build-agreement-lines-patch';
+import {
+  buildAgreementLineEditPayload,
+  formatAgreementLineQuantityDisplay,
+  hasAgreementLineEditChanges,
+  isAgreementLineQuantityEditable,
+  needsAgreementLinePeriodReductionReason,
+  resolveAgreementLineEditableQuantity,
+  resolveAgreementLineMaxQuantity,
+  resolveAgreementLineQuantityFieldKey,
+  resolveAgreementLineQuantityLabelKey,
+  resolveAgreementLineQuantitySemantics,
+  validateAgreementLineQuantityValue,
+} from '../utils/agreement-line-quantity-edit';
+import { normalizeAgreementLineEditPreview } from '../utils/normalize-agreement-line-edit-preview';
+import type { NormalizedAgreementLineEditPreview } from '../types/agreement-line-edit';
+import type { UpdateFinancialAgreementPayload } from '../types';
 
 export type AgreementLineFormMode = 'add' | 'edit';
 
@@ -49,6 +64,20 @@ function FieldError({ message }: { message?: string }) {
       {message}
     </span>
   );
+}
+
+function sanitizeAgreementLineUserMessage(message: string | null | undefined): string | null {
+  if (!message?.trim()) return null;
+  if (/\b(odoo|api|endpoint|orm|traceback)\b/i.test(message)) return null;
+  return message.trim();
+}
+
+function previewQuantityLabel(
+  snapshot: { periods_count?: number | null; quantity?: number | null } | null,
+  fallback: string,
+): string {
+  const value = snapshot?.periods_count ?? snapshot?.quantity;
+  return value != null ? String(value) : fallback;
 }
 
 export function AgreementLineDeleteDrawer({
@@ -223,20 +252,36 @@ export function AgreementLineFormDrawer({
   const [discountType, setDiscountType] = useState(lineDiscountType === 'none' ? 'none' : lineDiscountType);
   const [discountValue, setDiscountValue] = useState(String(lineDiscountValue || ''));
   const [reason, setReason] = useState('');
+  const [internalNote, setInternalNote] = useState('');
   const [manualBillingMode, setManualBillingMode] = useState<AgreementLineManualBillingMode | ''>('');
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewResult, setPreviewResult] = useState<NormalizedAgreementLineEditPreview | null>(null);
+  const [approvedPayload, setApprovedPayload] = useState<UpdateFinancialAgreementPayload | null>(null);
+
+  const quantitySemantics = resolveAgreementLineQuantitySemantics(line);
+  const quantityEditable = mode === 'edit' && isAgreementLineQuantityEditable(line);
+  const maxQuantity = resolveAgreementLineMaxQuantity(line);
 
   useEffect(() => {
     if (!open) return;
     setSelectedServiceId(line?.service_id ?? '');
     setSelectedTariffId(line?.tariff_id ?? '');
-    setQuantity(String(line?.quantity ?? 1));
+    setQuantity(
+      mode === 'edit' && line
+        ? String(resolveAgreementLineEditableQuantity(line))
+        : String(line?.quantity ?? 1),
+    );
     setUnitPrice(String(line?.unit_price ?? ''));
     setDiscountType(lineDiscountType === 'none' ? 'none' : lineDiscountType);
     setDiscountValue(String(lineDiscountValue || ''));
     setReason('');
+    setInternalNote(line?.internal_note ?? '');
     setManualBillingMode('');
     setFormError(null);
     setFieldErrors({});
+    setPreviewLoading(false);
+    setPreviewResult(null);
+    setApprovedPayload(null);
   }, [open, line, lineDiscountType, lineDiscountValue]);
 
   const servicesState = useAdminResource<FinanceServiceCatalogItem[]>(endpoints.admin.financeServices, {
@@ -257,7 +302,9 @@ export function AgreementLineFormDrawer({
   const selectedTariff = tariffs.find((row) => row.id === Number(selectedTariffId));
 
   const lockedUnitPrice = mode === 'edit' ? Number(line?.unit_price ?? 0) : Number(unitPrice);
-  const parsedQuantity = Number(quantity) || 1;
+  const parsedQuantity =
+    mode === 'edit' ? resolveAgreementLineEditableQuantity(line) : Number(quantity) || 1;
+  const editQuantityValue = mode === 'edit' ? Number(quantity) || parsedQuantity : parsedQuantity;
   const parsedDiscountValue = Number(discountValue) || 0;
   const defaultPrice = resolveDefaultUnitPrice({ service: selectedService, tariff: selectedTariff });
 
@@ -273,7 +320,7 @@ export function AgreementLineFormDrawer({
     });
 
   const isManualOneTime = manualBillingMode === 'one_time';
-  const effectiveQuantity = isManualOneTime ? 1 : parsedQuantity;
+  const effectiveQuantity = mode === 'edit' ? editQuantityValue : isManualOneTime ? 1 : parsedQuantity;
 
   useEffect(() => {
     if (isManualOneTime && quantity !== '1') {
@@ -300,7 +347,15 @@ export function AgreementLineFormDrawer({
     defaultPrice: mode === 'add' ? defaultPrice : null,
   });
 
+  const periodReductionReasonRequired =
+    mode === 'edit' &&
+    !!line &&
+    needsAgreementLinePeriodReductionReason({ line, nextQuantity: editQuantityValue });
+
   const reasonLabelKey = useMemo(() => {
+    if (periodReductionReasonRequired) {
+      return 'admin.student360.financialAgreement.customization.fields.periodReductionReason';
+    }
     const keys = {
       optional: 'internalNoteOptional',
       discount: 'discountReasonRequired',
@@ -308,7 +363,19 @@ export function AgreementLineFormDrawer({
       delete: 'deleteReasonRequired',
     } as const;
     return `admin.student360.financialAgreement.customization.fields.${keys[reasonKind]}`;
-  }, [reasonKind]);
+  }, [reasonKind, periodReductionReasonRequired]);
+
+  const editPreviewReady =
+    mode === 'edit' &&
+    previewResult?.allowed === true &&
+    approvedPayload != null &&
+    !hasAgreementLineEditChanges({
+      line: line!,
+      quantityValue: editQuantityValue,
+      discountType,
+      discountValue: parsedDiscountValue,
+      internalNote,
+    });
 
   const title = useMemo(
     () =>
@@ -327,7 +394,155 @@ export function AgreementLineFormDrawer({
     });
   }
 
+  function clearPreview() {
+    setPreviewResult(null);
+    setApprovedPayload(null);
+  }
+
+  function invalidatePreviewOnChange() {
+    clearPreview();
+    clearFieldError('reason');
+  }
+
+  function validateEditForm(): UpdateFinancialAgreementPayload | null {
+    if (mode !== 'edit' || !line?.id) return null;
+    setFormError(null);
+    setFieldErrors({});
+    const nextFieldErrors: Record<string, string> = {};
+
+    const quantityValidation = validateAgreementLineQuantityValue({
+      line,
+      value: editQuantityValue,
+    });
+    if (!quantityValidation.ok) {
+      nextFieldErrors.quantity = t(
+        `admin.student360.financialAgreement.customization.errors.${quantityValidation.errorKey}`,
+      );
+    }
+
+    if (periodReductionReasonRequired && !reason.trim()) {
+      nextFieldErrors.reason = t(
+        'admin.student360.financialAgreement.customization.errors.periodReductionReasonRequired',
+      );
+    } else {
+      const reasonValidation = validateAgreementLineReason(
+        {
+          mode,
+          discountType,
+          discountValue: parsedDiscountValue,
+        },
+        reason,
+      );
+      if (!reasonValidation.ok) {
+        nextFieldErrors.reason = t(
+          `admin.student360.financialAgreement.customization.errors.${reasonValidation.errorKey}`,
+        );
+      }
+    }
+
+    if (!hasAgreementLineEditChanges({
+      line,
+      quantityValue: editQuantityValue,
+      discountType,
+      discountValue: parsedDiscountValue,
+      internalNote,
+    })) {
+      setFormError(t('admin.student360.financialAgreement.customization.errors.noChanges'));
+      return null;
+    }
+
+    if (Object.keys(nextFieldErrors).length > 0) {
+      setFieldErrors(nextFieldErrors);
+      setFormError(t('admin.student360.financialAgreement.customization.errors.formInvalid'));
+      return null;
+    }
+
+    const payload = buildAgreementLineEditPayload({
+      lineId: line.id,
+      quantityValue: editQuantityValue,
+      quantitySemantics,
+      discountType,
+      discountValue: parsedDiscountValue,
+      reason: reason.trim() || undefined,
+      internalNote: internalNote.trim() || undefined,
+    });
+
+    const validation = validateAgreementLineEditPatch({
+      sourceLines: existingLines,
+      lineId: line.id,
+      payload,
+    });
+    if (!validation.ok) {
+      const safety = validateAgreementLinePatchSafety({
+        operation: 'edit',
+        sourceLines: existingLines,
+        payload,
+        targetLineId: line.id,
+      });
+      if (!safety.ok) logAgreementLinePatchBlocked(safety.detail);
+      setFormError(t(`admin.student360.financialAgreement.customization.errors.${validation.reason}`));
+      return null;
+    }
+
+    return payload;
+  }
+
+  async function runPreview() {
+    const payload = validateEditForm();
+    if (!payload || !line?.id) return;
+
+    setPreviewLoading(true);
+    clearPreview();
+    const res = await previewFinancialAgreementLineEdit(agreementId, payload);
+    setPreviewLoading(false);
+
+    if (!res.success) {
+      const safeMessage =
+        sanitizeAgreementLineUserMessage(res.error.message) ??
+        t('admin.student360.financialAgreement.customization.errors.previewFailed');
+      setFormError(safeMessage);
+      return;
+    }
+
+    const normalized = normalizeAgreementLineEditPreview(res.data, line.id);
+    setPreviewResult(normalized);
+
+    if (!normalized.allowed || normalized.blocked) {
+      const safeMessage =
+        sanitizeAgreementLineUserMessage(normalized.errorMessage) ??
+        t('admin.student360.financialAgreement.customization.errors.previewBlocked');
+      setFormError(safeMessage);
+      return;
+    }
+
+    setApprovedPayload(payload);
+    setFormError(null);
+  }
+
   async function save() {
+    if (mode === 'edit' && line?.id) {
+      if (!editPreviewReady || !approvedPayload) {
+        setFormError(t('admin.student360.financialAgreement.customization.errors.previewRequired'));
+        return;
+      }
+
+      setSaving(true);
+      const res = await updateFinancialAgreement(agreementId, approvedPayload);
+      setSaving(false);
+      if (!res.success) {
+        const safeMessage =
+          sanitizeAgreementLineUserMessage(res.error.message) ??
+          t('admin.student360.financialAgreement.customization.errors.saveFailed');
+        setFormError(safeMessage);
+        return;
+      }
+
+      toast.success(t('admin.student360.financialAgreement.customization.lineEditSaved'));
+      onSuccess();
+      onClose();
+      return;
+    }
+
     setFormError(null);
     setFieldErrors({});
 
@@ -381,61 +596,46 @@ export function AgreementLineFormDrawer({
     let payload;
     let validation: { ok: true } | { ok: false; reason: string };
 
-    if (mode === 'edit' && line?.id) {
-      payload = buildAgreementLineDiscountPatchPayload({
-        lineId: line.id,
-        discountType: discountPayload.discount_type,
-        discountValue: discountPayload.discount_value,
-        reason: trimmedReason || undefined,
-      });
-      validation = validateAgreementLineDiscountPatch({
-        sourceLines: existingLines,
-        lineId: line.id,
-        payload,
-      });
-    } else {
-      const tariff = selectedTariff;
-      const addInputValidation = validateAgreementLineAddInput({
-        service_id: Number(selectedServiceId),
-        selectedTariff: tariff,
-        service: selectedService,
-        existingLines,
-        manualBillingMode: manualBillingMode || undefined,
-      });
-      if (!addInputValidation.ok) {
-        setFormError(
-          t(`admin.student360.financialAgreement.customization.errors.${addInputValidation.reason}`),
-        );
-        return;
-      }
+    const tariff = selectedTariff;
+    const addInputValidation = validateAgreementLineAddInput({
+      service_id: Number(selectedServiceId),
+      selectedTariff: tariff,
+      service: selectedService,
+      existingLines,
+      manualBillingMode: manualBillingMode || undefined,
+    });
+    if (!addInputValidation.ok) {
+      setFormError(
+        t(`admin.student360.financialAgreement.customization.errors.${addInputValidation.reason}`),
+      );
+      return;
+    }
 
-      const addLine = buildAgreementLineAddInput({
-        service_id: Number(selectedServiceId),
-        tariff_id: selectedTariffId ? Number(selectedTariffId) : undefined,
-        quantity: effectiveQuantity,
-        unit_price: Number(unitPrice) || tariff?.unit_price,
-        ...discountPayload,
-        is_selected: true,
-        reason: trimmedReason || undefined,
-        selectedTariff: tariff,
-        service: selectedService,
-        existingLines,
-        manualBillingMode: manualBillingMode || undefined,
-      });
-      payload = buildAgreementLineAddPayload(addLine);
-      if (existingLines.length === 0 && (agreementNetAmount ?? 0) > 0) {
-        validation = { ok: false, reason: 'lines_not_loaded' };
-      } else {
-        validation = validateAgreementLineAddPatch({ payload });
-      }
+    const addLine = buildAgreementLineAddInput({
+      service_id: Number(selectedServiceId),
+      tariff_id: selectedTariffId ? Number(selectedTariffId) : undefined,
+      quantity: effectiveQuantity,
+      unit_price: Number(unitPrice) || tariff?.unit_price,
+      ...discountPayload,
+      is_selected: true,
+      reason: trimmedReason || undefined,
+      selectedTariff: tariff,
+      service: selectedService,
+      existingLines,
+      manualBillingMode: manualBillingMode || undefined,
+    });
+    payload = buildAgreementLineAddPayload(addLine);
+    if (existingLines.length === 0 && (agreementNetAmount ?? 0) > 0) {
+      validation = { ok: false, reason: 'lines_not_loaded' };
+    } else {
+      validation = validateAgreementLineAddPatch({ payload });
     }
 
     if (!validation.ok) {
       const safety = validateAgreementLinePatchSafety({
-        operation: mode === 'edit' ? 'discount' : 'add',
+        operation: 'add',
         sourceLines: existingLines,
         payload,
-        targetLineId: mode === 'edit' ? line?.id : undefined,
       });
       if (!safety.ok) logAgreementLinePatchBlocked(safety.detail);
       setFormError(t(`admin.student360.financialAgreement.customization.errors.${validation.reason}`));
@@ -457,11 +657,7 @@ export function AgreementLineFormDrawer({
       return;
     }
 
-    toast.success(
-      mode === 'add'
-        ? t('admin.student360.financialAgreement.customization.lineAdded')
-        : t('admin.student360.financialAgreement.customization.lineUpdated'),
-    );
+    toast.success(t('admin.student360.financialAgreement.customization.lineAdded'));
     onSuccess();
     onClose();
   }
@@ -503,10 +699,35 @@ export function AgreementLineFormDrawer({
             </div>
           </div>
           <div className="student-finance-line-drawer__footer-actions">
-            <button type="button" className="btn btn--primary" disabled={saving} onClick={() => void save()}>
-              {saving ? t('common.saving') : t('common.save')}
-            </button>
-            <button type="button" className="btn btn--ghost" disabled={saving} onClick={onClose}>
+            {mode === 'edit' ? (
+              <>
+                <button
+                  type="button"
+                  className="btn btn--ghost"
+                  disabled={saving || previewLoading}
+                  onClick={() => void runPreview()}
+                >
+                  {previewLoading
+                    ? t('common.loading')
+                    : t('admin.student360.financialAgreement.customization.lineEditPreview')}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn--primary"
+                  disabled={saving || previewLoading || !editPreviewReady}
+                  onClick={() => void save()}
+                >
+                  {saving
+                    ? t('common.saving')
+                    : t('admin.student360.financialAgreement.customization.lineEditSave')}
+                </button>
+              </>
+            ) : (
+              <button type="button" className="btn btn--primary" disabled={saving} onClick={() => void save()}>
+                {saving ? t('common.saving') : t('common.save')}
+              </button>
+            )}
+            <button type="button" className="btn btn--ghost" disabled={saving || previewLoading} onClick={onClose}>
               {t('common.cancel')}
             </button>
           </div>
@@ -531,22 +752,112 @@ export function AgreementLineFormDrawer({
                 </dd>
               </div>
               <div>
-                <dt>{t('admin.student360.financialAgreement.customization.fields.quantity')}</dt>
-                <dd>{line.quantity ?? t('common.dash')}</dd>
-              </div>
-              <div>
-                <dt>{t('admin.student360.financialAgreement.customization.columns.discount')}</dt>
-                <dd>
-                  <FinanceMoney amount={line.discount_amount} currency={currency ?? undefined} />
-                </dd>
-              </div>
-              <div>
-                <dt>{t('admin.student360.financialAgreement.customization.columns.net')}</dt>
-                <dd>
-                  <FinanceMoney amount={line.net_amount} currency={currency ?? undefined} />
-                </dd>
+                <dt>{t('admin.student360.financialAgreement.customization.columns.quantity')}</dt>
+                <dd dir="auto">{formatAgreementLineQuantityDisplay(t, line)}</dd>
               </div>
             </dl>
+          </div>
+        ) : null}
+
+        {mode === 'edit' && line ? (
+          quantityEditable && maxQuantity != null ? (
+            <label className="student-finance-line-drawer__field">
+              <span>{t(resolveAgreementLineQuantityLabelKey(quantitySemantics))}</span>
+              <input
+                className={`input${fieldErrors.quantity ? ' input--error' : ''}`}
+                type="number"
+                min={1}
+                max={maxQuantity}
+                value={quantity}
+                onChange={(e) => {
+                  setQuantity(e.target.value);
+                  invalidatePreviewOnChange();
+                  clearFieldError('quantity');
+                }}
+              />
+              <FieldError message={fieldErrors.quantity} />
+            </label>
+          ) : quantitySemantics === 'fixed_one_time' || !quantityEditable ? (
+            <p className="student-finance-line-drawer__notice muted" dir="auto">
+              {t('admin.student360.financialAgreement.customization.quantityNotEditable')}
+            </p>
+          ) : null
+        ) : null}
+
+        {mode === 'edit' && previewResult?.allowed ? (
+          <div className="student-finance-line-drawer__preview">
+            <h4 className="student-finance-line-drawer__preview-title">
+              {t('admin.student360.financialAgreement.customization.lineEditPreviewTitle')}
+            </h4>
+            <div className="student-finance-line-drawer__preview-grid">
+              <div>
+                <p className="student-finance-line-drawer__preview-section">
+                  {t('admin.student360.financialAgreement.customization.lineEditBefore')}
+                </p>
+                <dl className="student-finance-line-drawer__facts">
+                  <div>
+                    <dt>{t('admin.student360.financialAgreement.customization.columns.quantity')}</dt>
+                    <dd>
+                      {previewQuantityLabel(previewResult.before, t('common.dash'))}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>{t('admin.student360.financialAgreement.customization.fields.originalPriceLabel')}</dt>
+                    <dd>
+                      <FinanceMoney amount={previewResult.before?.unit_price} currency={currency ?? undefined} />
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>{t('admin.student360.financialAgreement.customization.columns.discount')}</dt>
+                    <dd>
+                      <FinanceMoney amount={previewResult.before?.discount_amount} currency={currency ?? undefined} />
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>{t('admin.student360.financialAgreement.customization.columns.net')}</dt>
+                    <dd>
+                      <FinanceMoney amount={previewResult.before?.net_amount} currency={currency ?? undefined} />
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>{t('admin.student360.financialAgreement.customization.columns.expectedInstallments')}</dt>
+                    <dd>
+                      <FinanceMoney amount={previewResult.before?.schedule_total} currency={currency ?? undefined} />
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+              <div>
+                <p className="student-finance-line-drawer__preview-section">
+                  {t('admin.student360.financialAgreement.customization.lineEditAfter')}
+                </p>
+                <dl className="student-finance-line-drawer__facts">
+                  <div>
+                    <dt>{t('admin.student360.financialAgreement.customization.columns.quantity')}</dt>
+                    <dd>
+                      {previewQuantityLabel(previewResult.after, t('common.dash'))}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>{t('admin.student360.financialAgreement.customization.columns.net')}</dt>
+                    <dd>
+                      <FinanceMoney amount={previewResult.after?.net_amount} currency={currency ?? undefined} />
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>{t('admin.student360.financialAgreement.customization.columns.expectedInstallments')}</dt>
+                    <dd>
+                      <FinanceMoney amount={previewResult.after?.schedule_total} currency={currency ?? undefined} />
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+            </div>
+            {previewResult.requiresScheduleRegeneration ? (
+              <p className="student-finance-line-drawer__notice" dir="auto" role="note">
+                {t('admin.student360.financialAgreement.customization.scheduleRegenerationNotice')}
+              </p>
+            ) : null}
           </div>
         ) : null}
 
@@ -682,7 +993,7 @@ export function AgreementLineFormDrawer({
             value={discountType}
             onChange={(e) => {
               setDiscountType(e.target.value);
-              clearFieldError('reason');
+              invalidatePreviewOnChange();
             }}
           >
             <option value="none">{t('admin.student360.financialAgreement.createDrawer.discountNone')}</option>
@@ -698,7 +1009,20 @@ export function AgreementLineFormDrawer({
               value={discountValue}
               onChange={(e) => {
                 setDiscountValue(e.target.value);
-                clearFieldError('reason');
+                invalidatePreviewOnChange();
+              }}
+            />
+          </label>
+        ) : null}
+        {mode === 'edit' ? (
+          <label className="student-finance-line-drawer__field">
+            <span>{t('admin.student360.financialAgreement.customization.fields.internalNoteOptional')}</span>
+            <input
+              className="input"
+              value={internalNote}
+              onChange={(e) => {
+                setInternalNote(e.target.value);
+                invalidatePreviewOnChange();
               }}
             />
           </label>
@@ -710,6 +1034,7 @@ export function AgreementLineFormDrawer({
             value={reason}
             onChange={(e) => {
               setReason(e.target.value);
+              invalidatePreviewOnChange();
               clearFieldError('reason');
             }}
           />

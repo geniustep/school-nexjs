@@ -88,6 +88,16 @@ export interface BillingProfile {
   active?: boolean;
 }
 
+export type AgreementLineQuantitySemantics = 'period_count' | 'fixed_one_time' | 'item_count';
+
+export interface AgreementLineQuantityEditContract {
+  quantity_semantics?: AgreementLineQuantitySemantics;
+  current_quantity?: number;
+  max_quantity?: number;
+  quantity_allowed?: boolean;
+  quantity_readonly_reason?: string | null;
+}
+
 export interface FinancialAgreementLine {
   id?: number;
   service_id?: number;
@@ -104,12 +114,17 @@ export interface FinancialAgreementLine {
   period_start?: string | null;
   period_end?: string | null;
   quantity?: number;
+  periods_count?: number;
+  schedule_period_count?: number;
+  schedule_total?: number;
+  quantity_edit_contract?: AgreementLineQuantityEditContract | null;
   unit_price?: number;
   gross_amount?: number;
   discount_type?: string | null;
   discount_value?: number | null;
   discount_amount?: number;
   net_amount?: number;
+  internal_note?: string | null;
   is_mandatory?: boolean;
   is_selected?: boolean;
   canteen_settings?: Record<string, unknown> | null;

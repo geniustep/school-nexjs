@@ -28,6 +28,7 @@ import {
   resolveAgreementBillingModeLabelKey,
 } from '../utils/resolve-agreement-draft-customization';
 import { agreementLineCategoryDetails } from '../utils/service-category-details';
+import { formatAgreementLineQuantityDisplay } from '../utils/agreement-line-quantity-edit';
 import { resolveServiceDisplayName } from '../utils/reference-labels';
 import { AgreementLineDeleteDrawer, AgreementLineFormDrawer } from './agreement-line-form-drawer';
 import { ScheduleItemStateBadge } from './cheque-dual-badges';
@@ -90,7 +91,7 @@ export function AgreementDraftCustomizationSection({
       {
         key: 'quantity',
         header: t('admin.student360.financialAgreement.customization.columns.quantity'),
-        render: (row) => row.quantity ?? t('common.dash'),
+        render: (row) => <span dir="auto">{formatAgreementLineQuantityDisplay(t, row)}</span>,
       },
       {
         key: 'discount',

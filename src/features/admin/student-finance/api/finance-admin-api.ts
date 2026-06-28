@@ -92,6 +92,18 @@ export async function updateFinancialAgreement(
   );
 }
 
+export async function previewFinancialAgreementLineEdit(
+  agreementId: number | string,
+  payload: UpdateFinancialAgreementPayload,
+  query?: ListParams,
+): Promise<ApiResponse<unknown>> {
+  return api.post<unknown>(
+    endpoints.admin.financialAgreementLinesPreview(agreementId),
+    payload,
+    query,
+  );
+}
+
 export async function postAgreementAction(
   agreementId: number | string,
   action: 'submit' | 'approve' | 'activate' | 'cancel',
