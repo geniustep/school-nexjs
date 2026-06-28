@@ -3,13 +3,21 @@ import type { UpdateFinancialAgreementPayload } from '../types';
 import type {
   AgreementLineEditFormInput,
   AgreementLineEditPreviewSnapshot,
+  NormalizedAgreementLineEditPreview,
 } from '../types/agreement-line-edit';
 import type {
   AgreementLineQuantityEditContract,
   AgreementLineQuantitySemantics,
   FinancialAgreementLine,
 } from '../types';
+import type { AgreementLineReasonKind } from './build-agreement-lines-patch';
 import { omitNullishFields } from './build-agreement-lines-patch';
+
+export type AgreementLinePreviewQuantityContext = {
+  quantitySemantics?: AgreementLineQuantitySemantics;
+  quantityAllowed?: boolean;
+  commitmentType?: string | null;
+};
 
 export function resolveAgreementLineQuantitySemantics(
   line: FinancialAgreementLine | null | undefined,
@@ -53,6 +61,48 @@ export function resolveAgreementLineQuantityFieldKey(
   semantics: AgreementLineQuantitySemantics | undefined,
 ): 'periods_count' | 'quantity' {
   return semantics === 'item_count' ? 'quantity' : 'periods_count';
+}
+
+function isAgreementLineOneTimeQuantityContext(
+  context: AgreementLinePreviewQuantityContext | undefined,
+): boolean {
+  if (!context) return false;
+  return (
+    context.quantitySemantics === 'fixed_one_time' ||
+    context.quantityAllowed === false ||
+    context.commitmentType === 'one_time'
+  );
+}
+
+export function formatAgreementLinePreviewQuantityDisplay(
+  t: TranslateFn,
+  snapshot: AgreementLineEditPreviewSnapshot | null,
+  context?: AgreementLinePreviewQuantityContext,
+): string {
+  if (!snapshot) return t('common.dash');
+
+  const oneTimeKey = 'admin.student360.financialAgreement.customization.quantityDisplay.oneTime';
+  if (isAgreementLineOneTimeQuantityContext(context)) {
+    return t(oneTimeKey);
+  }
+
+  const value = snapshot.periods_count ?? snapshot.quantity;
+  if (value == null || value <= 0) {
+    if (context?.commitmentType === 'one_time' || context?.quantitySemantics === 'fixed_one_time') {
+      return t(oneTimeKey);
+    }
+    return value === 0 ? t(oneTimeKey) : t('common.dash');
+  }
+
+  if (context?.quantitySemantics === 'item_count') {
+    return t('admin.student360.financialAgreement.customization.quantityDisplay.itemCount', {
+      count: String(value),
+    });
+  }
+
+  return t('admin.student360.financialAgreement.customization.quantityDisplay.periodCount', {
+    count: String(value),
+  });
 }
 
 export function formatAgreementLineQuantityDisplay(
@@ -143,6 +193,88 @@ export function buildAgreementLineEditPayload(
   if (input.internalNote?.trim()) row.internal_note = input.internalNote.trim();
 
   return { lines: [omitNullishFields(row)] };
+}
+
+export function shouldShowEditReasonField(input: {
+  reasonKind: AgreementLineReasonKind;
+  periodReductionReasonRequired: boolean;
+}): boolean {
+  if (input.periodReductionReasonRequired) return true;
+  if (input.reasonKind === 'optional') return false;
+  return input.reasonKind === 'discount' || input.reasonKind === 'special_price';
+}
+
+export function formMatchesApprovedEditPayload(input: {
+  approvedPayload: UpdateFinancialAgreementPayload;
+  quantityValue: number;
+  discountType: string;
+  discountValue: number;
+  reason?: string;
+  internalNote?: string;
+}): boolean {
+  const row = input.approvedPayload.lines?.[0] as Record<string, unknown> | undefined;
+  if (!row) return false;
+
+  const approvedQty = readFinitePayloadNumber(row.periods_count) ?? readFinitePayloadNumber(row.quantity);
+  if (approvedQty != null && input.quantityValue !== approvedQty) return false;
+
+  const approvedDiscountType = (row.discount_type as string | undefined) ?? 'none';
+  const approvedDiscountValue = readFinitePayloadNumber(row.discount_value) ?? 0;
+  const normalizedDiscountValue = input.discountType === 'none' ? 0 : input.discountValue;
+
+  if (input.discountType !== approvedDiscountType) return false;
+  if (normalizedDiscountValue !== approvedDiscountValue) return false;
+
+  const approvedReason = typeof row.reason === 'string' ? row.reason.trim() : '';
+  const currentReason = input.reason?.trim() ?? '';
+  if (approvedReason !== currentReason) return false;
+
+  const approvedNote = typeof row.internal_note === 'string' ? row.internal_note.trim() : '';
+  const currentNote = input.internalNote?.trim() ?? '';
+  return approvedNote === currentNote;
+}
+
+function readFinitePayloadNumber(value: unknown): number | null {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+export function resolveEditSaveDisabledReasonKey(input: {
+  previewResult: NormalizedAgreementLineEditPreview | null;
+  approvedPayload: UpdateFinancialAgreementPayload | null;
+  formMatchesPreview: boolean;
+  periodReductionReasonRequired: boolean;
+  reasonKind: AgreementLineReasonKind;
+  reason: string;
+}): string | null {
+  if (
+    input.approvedPayload &&
+    input.previewResult?.allowed === true &&
+    input.formMatchesPreview
+  ) {
+    return null;
+  }
+
+  if (input.approvedPayload && !input.formMatchesPreview) {
+    return 'admin.student360.financialAgreement.customization.errors.saveDisabledRepreviewRequired';
+  }
+
+  if (
+    (input.periodReductionReasonRequired || input.reasonKind === 'discount') &&
+    !input.reason.trim()
+  ) {
+    return 'admin.student360.financialAgreement.customization.errors.saveDisabledReasonRequired';
+  }
+
+  if (!input.previewResult || !input.approvedPayload) {
+    return 'admin.student360.financialAgreement.customization.errors.previewRequired';
+  }
+
+  if (input.previewResult.blocked || !input.previewResult.allowed) {
+    return 'admin.student360.financialAgreement.customization.errors.previewBlocked';
+  }
+
+  return 'admin.student360.financialAgreement.customization.errors.previewRequired';
 }
 
 export function hasAgreementLineEditChanges(input: {

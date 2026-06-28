@@ -1,10 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildAgreementLineEditPayload,
+  formatAgreementLinePreviewQuantityDisplay,
   formatAgreementLineQuantityDisplay,
+  formMatchesApprovedEditPayload,
   isAgreementLineQuantityEditable,
   needsAgreementLinePeriodReductionReason,
   resolveAgreementLineQuantityLabelKey,
+  resolveEditSaveDisabledReasonKey,
+  shouldShowEditReasonField,
   validateAgreementLineQuantityValue,
 } from './agreement-line-quantity-edit';
 import {
@@ -119,6 +123,189 @@ describe('formatAgreementLineQuantityDisplay', () => {
   });
 });
 
+describe('formatAgreementLinePreviewQuantityDisplay', () => {
+  it('shows one-time label instead of 0 for registration preview snapshots', () => {
+    expect(
+      formatAgreementLinePreviewQuantityDisplay(
+        translate,
+        { quantity: 0, periods_count: 0 },
+        {
+          quantitySemantics: 'fixed_one_time',
+          quantityAllowed: false,
+          commitmentType: 'one_time',
+        },
+      ),
+    ).toBe('مرة واحدة');
+  });
+
+  it('shows period count for monthly preview snapshots', () => {
+    expect(
+      formatAgreementLinePreviewQuantityDisplay(
+        translate,
+        { periods_count: 10, quantity: 10 },
+        { quantitySemantics: 'period_count', quantityAllowed: true },
+      ),
+    ).toBe('10 فترات');
+  });
+
+  it('does not leak technical terms in Arabic preview strings', () => {
+    const text = formatAgreementLinePreviewQuantityDisplay(
+      translate,
+      { quantity: 0 },
+      { quantitySemantics: 'fixed_one_time', quantityAllowed: false },
+    );
+    expect(text).not.toMatch(/odoo|api|endpoint|orm|traceback|requires_schedule/i);
+  });
+});
+
+describe('shouldShowEditReasonField', () => {
+  it('hides optional reason field in edit mode to avoid duplicating internal note', () => {
+    expect(shouldShowEditReasonField({ reasonKind: 'optional', periodReductionReasonRequired: false })).toBe(
+      false,
+    );
+  });
+
+  it('shows period reduction reason field when required', () => {
+    expect(shouldShowEditReasonField({ reasonKind: 'optional', periodReductionReasonRequired: true })).toBe(
+      true,
+    );
+  });
+
+  it('shows discount reason field when discount is applied', () => {
+    expect(shouldShowEditReasonField({ reasonKind: 'discount', periodReductionReasonRequired: false })).toBe(
+      true,
+    );
+  });
+});
+
+describe('formMatchesApprovedEditPayload', () => {
+  it('matches approved preview payload when form is unchanged after preview', () => {
+    const approvedPayload = buildAgreementLineEditPayload({
+      lineId: 102,
+      quantityValue: 9,
+      quantitySemantics: 'period_count',
+      discountType: 'fixed',
+      discountValue: 500,
+      reason: 'Period reduction',
+      internalNote: 'Note',
+    });
+
+    expect(
+      formMatchesApprovedEditPayload({
+        approvedPayload,
+        quantityValue: 9,
+        discountType: 'fixed',
+        discountValue: 500,
+        reason: 'Period reduction',
+        internalNote: 'Note',
+      }),
+    ).toBe(true);
+  });
+
+  it('detects form drift after preview', () => {
+    const approvedPayload = buildAgreementLineEditPayload({
+      lineId: 102,
+      quantityValue: 9,
+      quantitySemantics: 'period_count',
+      discountType: 'none',
+      discountValue: 0,
+      reason: 'Period reduction',
+    });
+
+    expect(
+      formMatchesApprovedEditPayload({
+        approvedPayload,
+        quantityValue: 8,
+        discountType: 'none',
+        discountValue: 0,
+        reason: 'Period reduction',
+      }),
+    ).toBe(false);
+  });
+});
+
+describe('resolveEditSaveDisabledReasonKey', () => {
+  const allowedPreview = {
+    allowed: true,
+    blocked: false,
+    errorMessage: null,
+    requiresScheduleRegeneration: false,
+    before: null,
+    after: null,
+    reasonCodes: [],
+  };
+
+  it('returns null when preview succeeded and form still matches', () => {
+    const approvedPayload = buildAgreementLineEditPayload({
+      lineId: 101,
+      quantityValue: 1,
+      quantitySemantics: 'fixed_one_time',
+      discountType: 'fixed',
+      discountValue: 100,
+      reason: 'Discount QA',
+    });
+
+    expect(
+      resolveEditSaveDisabledReasonKey({
+        previewResult: allowedPreview,
+        approvedPayload,
+        formMatchesPreview: true,
+        periodReductionReasonRequired: false,
+        reasonKind: 'discount',
+        reason: 'Discount QA',
+      }),
+    ).toBeNull();
+  });
+
+  it('requires repreview when values changed after preview', () => {
+    const approvedPayload = buildAgreementLineEditPayload({
+      lineId: 101,
+      quantityValue: 1,
+      quantitySemantics: 'fixed_one_time',
+      discountType: 'fixed',
+      discountValue: 100,
+      reason: 'Discount QA',
+    });
+
+    expect(
+      resolveEditSaveDisabledReasonKey({
+        previewResult: allowedPreview,
+        approvedPayload,
+        formMatchesPreview: false,
+        periodReductionReasonRequired: false,
+        reasonKind: 'discount',
+        reason: 'Discount QA',
+      }),
+    ).toBe('admin.student360.financialAgreement.customization.errors.saveDisabledRepreviewRequired');
+  });
+
+  it('requires reason before save when discount reason is missing', () => {
+    expect(
+      resolveEditSaveDisabledReasonKey({
+        previewResult: null,
+        approvedPayload: null,
+        formMatchesPreview: false,
+        periodReductionReasonRequired: false,
+        reasonKind: 'discount',
+        reason: '',
+      }),
+    ).toBe('admin.student360.financialAgreement.customization.errors.saveDisabledReasonRequired');
+  });
+
+  it('requires preview before save when no preview was run', () => {
+    expect(
+      resolveEditSaveDisabledReasonKey({
+        previewResult: null,
+        approvedPayload: null,
+        formMatchesPreview: false,
+        periodReductionReasonRequired: false,
+        reasonKind: 'optional',
+        reason: '',
+      }),
+    ).toBe('admin.student360.financialAgreement.customization.errors.previewRequired');
+  });
+});
+
 describe('agreement line quantity edit UX', () => {
   it('uses period count label for monthly lines', () => {
     expect(resolveAgreementLineQuantityLabelKey('period_count')).toBe(
@@ -210,6 +397,17 @@ describe('normalizeAgreementLineEditPreview', () => {
     expect(preview.requiresScheduleRegeneration).toBe(true);
     expect(preview.before?.periods_count).toBe(10);
     expect(preview.after?.periods_count).toBe(9);
+  });
+
+  it('uses admin-friendly schedule notice messages without technical terms', () => {
+    const arMessages = {
+      single:
+        'قد يتم تحديث الأقساط المرتبطة بهذا البند لتتوافق مع التعديل.',
+      multi: 'قد يتم تحديث جدول الأقساط ليتوافق مع التعديلات.',
+    };
+    for (const message of Object.values(arMessages)) {
+      expect(message).not.toMatch(/odoo|api|endpoint|orm|traceback|requires_schedule/i);
+    }
   });
 
   it('marks blocked preview as not allowed for save', () => {

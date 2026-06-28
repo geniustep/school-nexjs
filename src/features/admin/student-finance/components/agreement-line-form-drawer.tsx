@@ -32,7 +32,9 @@ import {
 } from '../utils/build-agreement-lines-patch';
 import {
   buildAgreementLineEditPayload,
+  formatAgreementLinePreviewQuantityDisplay,
   formatAgreementLineQuantityDisplay,
+  formMatchesApprovedEditPayload,
   hasAgreementLineEditChanges,
   isAgreementLineQuantityEditable,
   needsAgreementLinePeriodReductionReason,
@@ -41,6 +43,8 @@ import {
   resolveAgreementLineQuantityFieldKey,
   resolveAgreementLineQuantityLabelKey,
   resolveAgreementLineQuantitySemantics,
+  resolveEditSaveDisabledReasonKey,
+  shouldShowEditReasonField,
   validateAgreementLineQuantityValue,
 } from '../utils/agreement-line-quantity-edit';
 import { normalizeAgreementLineEditPreview } from '../utils/normalize-agreement-line-edit-preview';
@@ -72,12 +76,12 @@ function sanitizeAgreementLineUserMessage(message: string | null | undefined): s
   return message.trim();
 }
 
-function previewQuantityLabel(
-  snapshot: { periods_count?: number | null; quantity?: number | null } | null,
-  fallback: string,
-): string {
-  const value = snapshot?.periods_count ?? snapshot?.quantity;
-  return value != null ? String(value) : fallback;
+function previewQuantityContext(line: FinancialAgreementLine | null | undefined) {
+  return {
+    quantitySemantics: resolveAgreementLineQuantitySemantics(line),
+    quantityAllowed: line?.quantity_edit_contract?.quantity_allowed,
+    commitmentType: line?.commitment_type ?? null,
+  };
 }
 
 export function AgreementLineDeleteDrawer({
@@ -365,17 +369,38 @@ export function AgreementLineFormDrawer({
     return `admin.student360.financialAgreement.customization.fields.${keys[reasonKind]}`;
   }, [reasonKind, periodReductionReasonRequired]);
 
+  const editFormMatchesPreview =
+    approvedPayload != null &&
+    formMatchesApprovedEditPayload({
+      approvedPayload,
+      quantityValue: editQuantityValue,
+      discountType,
+      discountValue: parsedDiscountValue,
+      reason,
+      internalNote,
+    });
+
   const editPreviewReady =
     mode === 'edit' &&
     previewResult?.allowed === true &&
     approvedPayload != null &&
-    !hasAgreementLineEditChanges({
-      line: line!,
-      quantityValue: editQuantityValue,
-      discountType,
-      discountValue: parsedDiscountValue,
-      internalNote,
-    });
+    editFormMatchesPreview;
+
+  const editSaveDisabledReasonKey =
+    mode === 'edit' && !editPreviewReady && !saving && !previewLoading
+      ? resolveEditSaveDisabledReasonKey({
+          previewResult,
+          approvedPayload,
+          formMatchesPreview: editFormMatchesPreview,
+          periodReductionReasonRequired,
+          reasonKind,
+          reason,
+        })
+      : null;
+
+  const showEditReasonField =
+    mode === 'edit' &&
+    shouldShowEditReasonField({ reasonKind, periodReductionReasonRequired });
 
   const title = useMemo(
     () =>
@@ -721,6 +746,11 @@ export function AgreementLineFormDrawer({
                     ? t('common.saving')
                     : t('admin.student360.financialAgreement.customization.lineEditSave')}
                 </button>
+                {editSaveDisabledReasonKey ? (
+                  <p className="tiny muted student-finance-line-drawer__save-hint" dir="auto" role="status">
+                    {t(editSaveDisabledReasonKey)}
+                  </p>
+                ) : null}
               </>
             ) : (
               <button type="button" className="btn btn--primary" disabled={saving} onClick={() => void save()}>
@@ -798,7 +828,11 @@ export function AgreementLineFormDrawer({
                   <div>
                     <dt>{t('admin.student360.financialAgreement.customization.columns.quantity')}</dt>
                     <dd>
-                      {previewQuantityLabel(previewResult.before, t('common.dash'))}
+                      {formatAgreementLinePreviewQuantityDisplay(
+                        t,
+                        previewResult.before,
+                        previewQuantityContext(line),
+                      )}
                     </dd>
                   </div>
                   <div>
@@ -835,7 +869,11 @@ export function AgreementLineFormDrawer({
                   <div>
                     <dt>{t('admin.student360.financialAgreement.customization.columns.quantity')}</dt>
                     <dd>
-                      {previewQuantityLabel(previewResult.after, t('common.dash'))}
+                      {formatAgreementLinePreviewQuantityDisplay(
+                        t,
+                        previewResult.after,
+                        previewQuantityContext(line),
+                      )}
                     </dd>
                   </div>
                   <div>
@@ -855,7 +893,7 @@ export function AgreementLineFormDrawer({
             </div>
             {previewResult.requiresScheduleRegeneration ? (
               <p className="student-finance-line-drawer__notice" dir="auto" role="note">
-                {t('admin.student360.financialAgreement.customization.scheduleRegenerationNotice')}
+                {t('admin.student360.financialAgreement.customization.scheduleRegenerationNoticeSingleLine')}
               </p>
             ) : null}
           </div>
@@ -1027,19 +1065,21 @@ export function AgreementLineFormDrawer({
             />
           </label>
         ) : null}
-        <label className="student-finance-line-drawer__field">
-          <span>{t(reasonLabelKey)}</span>
-          <input
-            className={`input${fieldErrors.reason ? ' input--error' : ''}`}
-            value={reason}
-            onChange={(e) => {
-              setReason(e.target.value);
-              invalidatePreviewOnChange();
-              clearFieldError('reason');
-            }}
-          />
-          <FieldError message={fieldErrors.reason} />
-        </label>
+        {mode === 'add' || showEditReasonField ? (
+          <label className="student-finance-line-drawer__field">
+            <span>{t(reasonLabelKey)}</span>
+            <input
+              className={`input${fieldErrors.reason ? ' input--error' : ''}`}
+              value={reason}
+              onChange={(e) => {
+                setReason(e.target.value);
+                invalidatePreviewOnChange();
+                clearFieldError('reason');
+              }}
+            />
+            <FieldError message={fieldErrors.reason} />
+          </label>
+        ) : null}
       </div>
     </SetupDrawer>
   );
