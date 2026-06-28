@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { useT } from '@/features/i18n/locale-context';
 import {
@@ -21,6 +22,8 @@ export function FinanceSetupStatePanel({
   onOpenOverview,
   onReviewDraft,
   onSetupPlan,
+  surface = 'workspace',
+  regularizeSlot,
 }: {
   studentId: number;
   setupState: FinanceSetupState;
@@ -29,9 +32,21 @@ export function FinanceSetupStatePanel({
   onOpenOverview?: () => void;
   onReviewDraft?: () => void;
   onSetupPlan?: () => void;
+  /**
+   * Where the panel is rendered. When `agreements`, the user is already inside
+   * the agreements sub-tab, so the redundant "open agreements" button is hidden.
+   */
+  surface?: 'workspace' | 'agreements';
+  /**
+   * Optional real "create agreement from current installments" CTA, owned by the
+   * agreements tab. When provided (agreements surface), it becomes the primary
+   * action for the `assigned_fees_without_active_agreement` state.
+   */
+  regularizeSlot?: ReactNode;
 }) {
   const t = useT();
   const { kind, preActiveAgreement, inactiveAgreement } = setupState;
+  const inAgreementsTab = surface === 'agreements';
 
   const agreementsHref = buildStudentFinanceAgreementsHref(studentId);
   const scheduleHref = buildStudentFinanceScheduleHref(studentId);
@@ -78,28 +93,50 @@ export function FinanceSetupStatePanel({
   }
 
   if (kind === 'assigned_fees_without_active_agreement') {
+    // Inside the agreements tab the actionable step is to regularize the file
+    // (create an agreement from the current installments). The schedule link is
+    // the secondary action, and the redundant "open agreements" button is gone.
+    const scheduleButton = onOpenSchedule ? (
+      <button
+        type="button"
+        className={inAgreementsTab ? 'btn btn--ghost' : 'btn btn--primary'}
+        onClick={onOpenSchedule}
+      >
+        {t(tk('openSchedule'))}
+      </button>
+    ) : (
+      <Link href={scheduleHref} className={inAgreementsTab ? 'btn btn--ghost' : 'btn btn--primary'}>
+        {t(tk('openSchedule'))}
+      </Link>
+    );
+
     return (
       <section className="student-finance-setup-state card student-finance-setup-state--assigned-fees">
-        <h3 className="student-finance-setup-state__title">{t(tk('assignedFees.title'))}</h3>
-        <p className="student-finance-setup-state__desc">{t(tk('assignedFees.description'))}</p>
+        <h3 className="student-finance-setup-state__title">
+          {t(inAgreementsTab ? tk('assignedFees.agreementsTabTitle') : tk('assignedFees.title'))}
+        </h3>
+        <p className="student-finance-setup-state__desc">
+          {t(inAgreementsTab ? tk('assignedFees.agreementsTabDescription') : tk('assignedFees.description'))}
+        </p>
         <div className="student-finance-setup-state__actions">
-          {onOpenSchedule ? (
-            <button type="button" className="btn btn--primary" onClick={onOpenSchedule}>
-              {t(tk('openSchedule'))}
-            </button>
+          {inAgreementsTab ? (
+            <>
+              {regularizeSlot}
+              {scheduleButton}
+            </>
           ) : (
-            <Link href={scheduleHref} className="btn btn--primary">
-              {t(tk('openSchedule'))}
-            </Link>
-          )}
-          {onOpenAgreements ? (
-            <button type="button" className="btn btn--ghost" onClick={onOpenAgreements}>
-              {t(tk('openAgreements'))}
-            </button>
-          ) : (
-            <Link href={agreementsHref} className="btn btn--ghost">
-              {t(tk('openAgreements'))}
-            </Link>
+            <>
+              {scheduleButton}
+              {onOpenAgreements ? (
+                <button type="button" className="btn btn--ghost" onClick={onOpenAgreements}>
+                  {t(tk('openAgreements'))}
+                </button>
+              ) : (
+                <Link href={agreementsHref} className="btn btn--ghost">
+                  {t(tk('openAgreements'))}
+                </Link>
+              )}
+            </>
           )}
         </div>
       </section>
@@ -126,7 +163,7 @@ export function FinanceSetupStatePanel({
               {t(tk('openSchedule'))}
             </Link>
           )}
-          {onOpenAgreements ? (
+          {inAgreementsTab ? null : onOpenAgreements ? (
             <button type="button" className="btn btn--ghost" onClick={onOpenAgreements}>
               {t(tk('openAgreements'))}
             </button>
@@ -164,7 +201,7 @@ export function FinanceSetupStatePanel({
               {t(tk('openOverview'))}
             </Link>
           )}
-          {onOpenAgreements ? (
+          {inAgreementsTab ? null : onOpenAgreements ? (
             <button type="button" className="btn btn--ghost" onClick={onOpenAgreements}>
               {t(tk('openAgreements'))}
             </button>

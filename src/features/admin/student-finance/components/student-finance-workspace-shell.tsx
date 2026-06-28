@@ -201,13 +201,22 @@ export function StudentFinanceWorkspaceShell({
   );
 
   const syncSubTabToUrl = useCallback(
-    (next: StudentFinanceSubTab) => {
+    (next: StudentFinanceSubTab, extraQuery?: string) => {
       setSubTab(next);
       const base = `/admin/students/${studentId}?tab=finance`;
-      const href = next === 'overview' ? base : `${base}&financeSubTab=${next}`;
+      let href = next === 'overview' ? base : `${base}&financeSubTab=${next}`;
+      if (extraQuery) href += `&${extraQuery}`;
       router.replace(href, { scroll: false });
     },
     [router, studentId],
+  );
+
+  // Case B regularization: route into the agreements tab with an explicit query
+  // so the tab surfaces the "create agreement from current installments" callout
+  // instead of silently re-rendering the same agreements view.
+  const goToAgreementsRegularize = useCallback(
+    () => syncSubTabToUrl('agreements', 'agreementAction=regularize'),
+    [syncSubTabToUrl],
   );
 
   useEffect(() => {
@@ -430,6 +439,8 @@ export function StudentFinanceWorkspaceShell({
         inactiveAgreementState={workspace?.inactive_agreement?.state ?? null}
         onReviewAgreement={() => syncSubTabToUrl('agreements')}
         onCreateAgreement={() => syncSubTabToUrl('agreements')}
+        onRegularizeAgreement={goToAgreementsRegularize}
+        onOpenSchedule={() => syncSubTabToUrl('schedule')}
       />
 
       {financeActionState.shouldSuppressExecutiveAmounts ? null : (

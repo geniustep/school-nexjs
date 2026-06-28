@@ -4636,7 +4636,9 @@
             },
             "assignedFees": {
               "title": "Des frais ou échéances sont déjà appliqués",
-              "description": "Il n'y a pas de plan actif, mais le dossier financier contient des montants en cours. Consultez l'échéancier avant de créer un nouvel accord."
+              "description": "Il n'y a pas de plan actif, mais le dossier financier contient des montants en cours. Consultez l'échéancier avant de créer un nouvel accord.",
+              "agreementsTabTitle": "Des frais ou échéances sont déjà appliqués, mais ils ne sont pas liés à un accord financier actif.",
+              "agreementsTabDescription": "Cet élève a un échéancier et des frais enregistrés, mais aucun accord financier actif qui les explique. Créez un accord à partir des échéances actuelles sans dupliquer les frais, ou consultez l'échéancier."
             },
             "inactiveWithFees": {
               "title": "Accord antérieur inactif avec frais en cours",
@@ -5334,6 +5336,17 @@
           "reviewDraft": "Consulter le brouillon",
           "reviewAgreement": "Consulter l'accord financier",
           "createAgreement": "Créer un accord de frais",
+          "regularizeAgreement": "Créer un accord à partir des échéances actuelles",
+          "openSchedule": "Ouvrir l'échéancier",
+          "feesWithoutAgreement": {
+            "title": "Des frais ou échéances sont déjà appliqués sans accord actif",
+            "problem": "Cet élève a un échéancier et des frais enregistrés, mais aucun accord financier actif qui les explique.",
+            "impact": "Impact : le plan ne peut pas être géré et le recouvrement confirmé n'est pas possible tant que ces frais ne sont pas liés à un accord actif.",
+            "nextStep": "Étape suivante : créez un accord à partir des échéances actuelles sans dupliquer les frais, ou consultez l'échéancier.",
+            "calloutTitle": "Régulariser l'accord financier à partir des échéances actuelles",
+            "calloutBody": "L'objectif ici est de créer un accord financier basé sur les frais et échéances déjà existants, sans créer de nouveaux frais par-dessus. Aucun accord n'a encore été créé.",
+            "noCreatePathHint": "Il n'existe actuellement aucun parcours dans l'interface pour créer un accord à partir des échéances actuelles de cet élève ; cela nécessite une prise en charge côté serveur (Odoo/API)."
+          },
           "blockedByDraft": "Les échéances ne sont pas encore approuvées et n'apparaîtront comme dues confirmées qu'après approbation de l'accord.",
           "blockedByNoActive": "Impossible de changer le plan ou d'appliquer un ajustement financier spécial sans accord de frais actif.",
           "draft": {

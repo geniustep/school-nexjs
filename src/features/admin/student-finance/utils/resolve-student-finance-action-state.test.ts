@@ -162,6 +162,41 @@ describe('resolveStudentFinanceActionState', () => {
     );
   });
 
+  it('4b) Case B: fees/installments but NO agreement record → regularize primary (never review)', () => {
+    const state = resolveStudentFinanceActionState({
+      draftPresentation: draft(),
+      billingContext: billing(),
+      eligibility: eligibility({ hasBillableFinanceContext: true }),
+      // No inactive agreement record: there is nothing to "review".
+      inactiveAgreement: inactive({ showWorkspaceBanner: true, hasInactiveAgreementRecord: false }),
+    });
+    expect(state.scenario).toBe('history_without_active_agreement');
+    expect(state.needsRegularization).toBe(true);
+    expect(state.canReviewAgreement).toBe(false);
+    expect(state.primaryAction?.kind).toBe('regularize_agreement');
+    // The Case B primary must NOT be the "review agreement" label/action.
+    expect(state.primaryAction?.kind).not.toBe('review_agreement');
+    expect(state.primaryAction?.labelKey).toBe(
+      'admin.student360.financeWorkspace.actionState.regularizeAgreement',
+    );
+  });
+
+  it('4c) Case B: regularize-from-fees flagged when backend exposes the path', () => {
+    const workspace = {
+      allowed_actions: { create_agreement_from_current_fees: true },
+    } as unknown as StudentFinanceWorkspace;
+    const state = resolveStudentFinanceActionState({
+      workspace,
+      draftPresentation: draft(),
+      billingContext: billing(),
+      eligibility: eligibility({ hasBillableFinanceContext: true }),
+      inactiveAgreement: inactive({ showWorkspaceBanner: true, hasInactiveAgreementRecord: false }),
+    });
+    expect(state.needsRegularization).toBe(true);
+    expect(state.canRegularizeFromFees).toBe(true);
+    expect(state.primaryAction?.kind).toBe('regularize_agreement');
+  });
+
   it('5) action unavailable: history scenario without backend create → no create secondary action', () => {
     const state = resolveStudentFinanceActionState({
       workspace: { allowed_actions: {} } as unknown as StudentFinanceWorkspace,

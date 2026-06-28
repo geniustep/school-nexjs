@@ -1,7 +1,8 @@
 'use client';
 
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { ApiErrorView } from '@/components/states/states';
 import { DataTable, type Column } from '@/components/tables/data-table';
 import { Card } from '@/components/ui/primitives';
@@ -116,6 +117,11 @@ export function StudentFinancialAgreementTab({
   const t = useT();
   const toast = useToast();
   const { formatDate } = useFormat();
+  const searchParams = useSearchParams();
+  // Set by the Case B "regularize" CTA in the workspace banner / setup-state
+  // panel. It only drives a clarifying callout — it never implies an agreement
+  // was created.
+  const regularizeRequested = searchParams.get('agreementAction') === 'regularize';
   const {
     refState,
     academicYears,
@@ -440,6 +446,36 @@ export function StudentFinancialAgreementTab({
         <p>{createFromFeesNotice}</p>
       </div>
     ) : null;
+
+  // Clarifying callout shown when the user lands here via the Case B "regularize"
+  // CTA (agreementAction=regularize). It explains that the next step is to build
+  // an agreement from the EXISTING installments — never to duplicate fees.
+  const renderRegularizeCallout = () =>
+    regularizeRequested ? (
+      <div
+        className="student-finance-card-alert student-finance-regularize-callout"
+        role="status"
+      >
+        <p className="student-finance-regularize-callout__title">
+          {t('admin.student360.financeWorkspace.actionState.feesWithoutAgreement.calloutTitle')}
+        </p>
+        <p>{t('admin.student360.financeWorkspace.actionState.feesWithoutAgreement.calloutBody')}</p>
+      </div>
+    ) : null;
+
+  // Primary action node for the assigned-fees state inside the agreements tab.
+  // Prefers the real backend "create from current fees" path; when the backend
+  // exposes no such path we surface a clear, honest gap note instead of a button
+  // that would silently reload the same view.
+  const renderRegularizeSlot = (): ReactNode => {
+    const cta = renderCurrentFeesDraftCta('btn btn--primary btn--sm');
+    if (cta) return cta;
+    return (
+      <p className="student-finance-regularize-callout__gap tiny muted">
+        {t('admin.student360.financeWorkspace.actionState.feesWithoutAgreement.noCreatePathHint')}
+      </p>
+    );
+  };
 
   const renderCompleteDraftAction = (
     draftTarget: Parameters<typeof canCompleteDraftAgreement>[0],
@@ -826,6 +862,7 @@ export function StudentFinancialAgreementTab({
           />
         ) : null}
         {isBackgroundRefreshing ? <StudentInlineLoading /> : null}
+        {renderRegularizeCallout()}
         {renderCreateFromFeesNotice()}
         <FamilyPlanContextCard studentId={studentId} />
 
@@ -1028,7 +1065,12 @@ export function StudentFinancialAgreementTab({
                   onAssigned={refreshAll}
                 />
               ) : financeSetupState.kind !== 'active_agreement' ? (
-                <FinanceSetupStatePanel studentId={studentId} setupState={financeSetupState} />
+                <FinanceSetupStatePanel
+                  studentId={studentId}
+                  setupState={financeSetupState}
+                  surface="agreements"
+                  regularizeSlot={renderRegularizeSlot()}
+                />
               ) : null}
               <div className="row student-finance-agreement-empty-actions">
                 <Link
@@ -1037,13 +1079,19 @@ export function StudentFinancialAgreementTab({
                 >
                   {t('admin.student360.financialAgreement.openFinanceOverview')}
                 </Link>
-                <Link
-                  href={`/admin/students/${studentId}?tab=finance&financeSubTab=schedule`}
-                  className="btn btn--ghost btn--sm"
-                >
-                  {t('admin.student360.financialAgreement.openPaymentSchedule')}
-                </Link>
-                {renderCurrentFeesDraftCta('btn btn--ghost btn--sm')}
+                {/* The assigned-fees panel already renders the schedule + regularize
+                    CTA as its own actions, so we avoid duplicating them here. */}
+                {financeSetupState.kind !== 'assigned_fees_without_active_agreement' ? (
+                  <>
+                    <Link
+                      href={`/admin/students/${studentId}?tab=finance&financeSubTab=schedule`}
+                      className="btn btn--ghost btn--sm"
+                    >
+                      {t('admin.student360.financialAgreement.openPaymentSchedule')}
+                    </Link>
+                    {renderCurrentFeesDraftCta('btn btn--ghost btn--sm')}
+                  </>
+                ) : null}
               </div>
             </>
           ) : (

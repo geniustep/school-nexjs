@@ -4641,7 +4641,9 @@
             },
             "assignedFees": {
               "title": "Fees or installments already applied",
-              "description": "There is no active plan, but the financial file has outstanding amounts. Review the payment schedule before creating a new agreement."
+              "description": "There is no active plan, but the financial file has outstanding amounts. Review the payment schedule before creating a new agreement.",
+              "agreementsTabTitle": "Fees or installments are already applied, but they are not tied to an active financial agreement.",
+              "agreementsTabDescription": "This student has a recorded payment schedule and fees, but no active financial agreement that explains them. Create an agreement from the current installments without duplicating fees, or review the payment schedule."
             },
             "inactiveWithFees": {
               "title": "Inactive prior agreement with outstanding fees",
@@ -5339,6 +5341,17 @@
           "reviewDraft": "Review draft",
           "reviewAgreement": "Review financial agreement",
           "createAgreement": "Create fee agreement",
+          "regularizeAgreement": "Create agreement from current installments",
+          "openSchedule": "Open payment schedule",
+          "feesWithoutAgreement": {
+            "title": "Fees or installments already applied without an active agreement",
+            "problem": "This student has a recorded payment schedule and fees, but no active financial agreement that explains them.",
+            "impact": "Impact: the plan cannot be managed and confirmed collection is not possible until these fees are tied to an active agreement.",
+            "nextStep": "Next step: create an agreement from the current installments without duplicating fees, or review the payment schedule.",
+            "calloutTitle": "Regularize the financial agreement from current installments",
+            "calloutBody": "The goal here is to create a financial agreement based on the existing fees and installments, without adding new fees on top of them. No agreement has been created yet.",
+            "noCreatePathHint": "There is currently no UI path to create an agreement from current installments for this student; it requires backend (Odoo/API) support."
+          },
           "blockedByDraft": "Installments are not approved yet and will not appear as confirmed dues until the agreement is approved.",
           "blockedByNoActive": "You cannot change the plan or apply a special financial adjustment until an active fee agreement exists.",
           "draft": {

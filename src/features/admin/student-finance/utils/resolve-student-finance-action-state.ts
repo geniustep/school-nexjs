@@ -4,6 +4,7 @@ import type { DraftAgreementPresentation } from './resolve-draft-agreement-prese
 import type { BillingContextPresentation } from './resolve-billing-context-presentation';
 import type { ChangePlanEligibility } from './resolve-change-plan-eligibility';
 import type { InactiveAgreementPresentation } from './resolve-inactive-agreement-presentation';
+import { isCreateFromCurrentFeesActionAllowed } from './resolve-create-from-current-fees-action';
 
 /**
  * Single source of truth for the actionable finance state shown in the student
@@ -24,7 +25,11 @@ export type StudentFinanceScenario =
 export type StudentFinanceActionKind =
   | 'review_agreement'
   | 'activate_agreement'
-  | 'create_agreement';
+  | 'create_agreement'
+  // Case B: there is no agreement record at all, only previously applied
+  // fees/installments. The actionable next step is to "regularize" the file by
+  // creating an agreement from the CURRENT fees — never a generic "review".
+  | 'regularize_agreement';
 
 export interface StudentFinanceAction {
   kind: StudentFinanceActionKind;
@@ -48,6 +53,18 @@ export interface StudentFinanceActionState {
   canReviewAgreement: boolean;
   canCreateAgreement: boolean;
   canActivateAgreement: boolean;
+  /**
+   * True when the file has previously applied fees/installments but NO agreement
+   * record (active or inactive). The UI must offer "regularize / create from
+   * current installments" instead of a generic "review agreement" action.
+   */
+  needsRegularization: boolean;
+  /**
+   * True when the backend exposes a real "create agreement from current fees"
+   * path. When false, the regularize action only opens a callout explaining the
+   * Odoo/API contract gap — it must never claim an agreement was created.
+   */
+  canRegularizeFromFees: boolean;
   primaryAction: StudentFinanceAction | null;
   secondaryActions: StudentFinanceAction[];
   /** i18n key describing why finance management is blocked, or null when nothing is blocked. */
@@ -74,6 +91,7 @@ const T = {
   // Reuse the accurate existing label for the safe submit step.
   activateAgreement: 'admin.student360.financialAgreement.actions.submit',
   createAgreement: 'admin.student360.financeWorkspace.actionState.createAgreement',
+  regularizeAgreement: 'admin.student360.financeWorkspace.actionState.regularizeAgreement',
   blockedByDraft: 'admin.student360.financeWorkspace.actionState.blockedByDraft',
   blockedByNoActive: 'admin.student360.financeWorkspace.actionState.blockedByNoActive',
 } as const;
@@ -111,6 +129,11 @@ export function resolveStudentFinanceActionState(input: {
   const canCreateAgreement =
     !hasActiveAgreement && readBackendCreateAgreementAllowed(input.workspace);
 
+  const canRegularizeFromFees =
+    !hasActiveAgreement && isCreateFromCurrentFeesActionAllowed({ workspace: input.workspace });
+
+  const hasInactiveAgreementRecord = inactiveAgreement.hasInactiveAgreementRecord;
+
   // Decide the single scenario. Order matters: an active agreement wins, then a
   // draft (always actionable), then a billable history, then the empty case.
   let scenario: StudentFinanceScenario;
@@ -118,16 +141,23 @@ export function resolveStudentFinanceActionState(input: {
     scenario = 'active_agreement';
   } else if (hasDraftAgreement) {
     scenario = 'draft_agreement';
-  } else if (hasHistoricalMovements || inactiveAgreement.hasInactiveAgreementRecord) {
+  } else if (hasHistoricalMovements || hasInactiveAgreementRecord) {
     scenario = 'history_without_active_agreement';
   } else {
     scenario = 'no_agreement';
   }
 
+  // Case B: fees/installments exist but there is NO agreement record (neither
+  // active nor inactive). "Review" is meaningless here — the file needs to be
+  // regularized into a real agreement built from the current installments.
+  const needsRegularization =
+    scenario === 'history_without_active_agreement' && !hasInactiveAgreementRecord;
+
+  // "Review" is only meaningful when an actual (inactive) agreement record
+  // exists to look at, or for a draft.
   const canReviewAgreement =
     scenario === 'draft_agreement' ||
-    (scenario === 'history_without_active_agreement' &&
-      (inactiveAgreement.hasInactiveAgreementRecord || hasHistoricalMovements));
+    (scenario === 'history_without_active_agreement' && hasInactiveAgreementRecord);
 
   let primaryAction: StudentFinanceAction | null = null;
   const secondaryActions: StudentFinanceAction[] = [];
@@ -146,9 +176,15 @@ export function resolveStudentFinanceActionState(input: {
     }
     case 'history_without_active_agreement': {
       blockingReason = T.blockedByNoActive;
-      primaryAction = { kind: 'review_agreement', labelKey: T.reviewAgreement };
-      if (canCreateAgreement) {
-        secondaryActions.push({ kind: 'create_agreement', labelKey: T.createAgreement });
+      if (needsRegularization) {
+        // No agreement to review — drive the user toward creating an agreement
+        // from the existing installments (regularization), not a no-op "review".
+        primaryAction = { kind: 'regularize_agreement', labelKey: T.regularizeAgreement };
+      } else {
+        primaryAction = { kind: 'review_agreement', labelKey: T.reviewAgreement };
+        if (canCreateAgreement) {
+          secondaryActions.push({ kind: 'create_agreement', labelKey: T.createAgreement });
+        }
       }
       break;
     }
@@ -184,6 +220,8 @@ export function resolveStudentFinanceActionState(input: {
     canReviewAgreement,
     canCreateAgreement,
     canActivateAgreement,
+    needsRegularization,
+    canRegularizeFromFees,
     primaryAction,
     secondaryActions,
     blockingReason,
