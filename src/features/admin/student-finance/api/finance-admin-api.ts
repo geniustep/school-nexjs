@@ -24,6 +24,10 @@ import type {
 } from '../types/agreement-amendment';
 import type { CancelFutureTargetState } from '../utils/cancel-future-validation';
 import type {
+  FinanceRepairActionPayload,
+  FinanceRepairApplyResponse,
+} from '../types/finance-repair';
+import type {
   ResetFinancialAgreementPayload,
   ResetFinancialAgreementMode,
 } from '../utils/build-reset-financial-agreement-payload';
@@ -275,6 +279,43 @@ export async function applyAgreementAmendment(
 ): Promise<ApiResponse<unknown>> {
   return api.post<unknown>(
     endpoints.admin.studentFinanceAgreementAmendmentApply(studentId),
+    payload,
+    query,
+  );
+}
+
+/**
+ * Finance Repair Center — diagnostics, preview, apply.
+ * These wrap the documented Odoo contract only; no new endpoints are assumed.
+ */
+export async function fetchFinanceRepairDiagnostics(
+  studentId: number | string,
+  query?: ListParams,
+): Promise<ApiResponse<unknown>> {
+  return api.get<unknown>(endpoints.admin.studentFinanceRepairDiagnostics(studentId), query);
+}
+
+export async function previewFinanceRepairAction(
+  studentId: number | string,
+  actionCode: string,
+  payload?: FinanceRepairActionPayload,
+  query?: ListParams,
+): Promise<ApiResponse<unknown>> {
+  return api.post<unknown>(
+    endpoints.admin.studentFinanceRepairActionPreview(studentId, actionCode),
+    payload ?? {},
+    query,
+  );
+}
+
+export async function applyFinanceRepairAction(
+  studentId: number | string,
+  actionCode: string,
+  payload: FinanceRepairActionPayload,
+  query?: ListParams,
+): Promise<ApiResponse<FinanceRepairApplyResponse>> {
+  return api.post<FinanceRepairApplyResponse>(
+    endpoints.admin.studentFinanceRepairActionApply(studentId, actionCode),
     payload,
     query,
   );

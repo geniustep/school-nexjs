@@ -258,6 +258,12 @@ export const endpoints = {
       `/admin/students/${studentId}/finance/agreement-amendments/apply`,
     studentFinanceAgreementAmendmentEffectivePeriods: (studentId: number | string) =>
       `/admin/students/${studentId}/finance/agreement-amendments/effective-periods`,
+    studentFinanceRepairDiagnostics: (studentId: number | string) =>
+      `/admin/students/${studentId}/finance/repair-diagnostics`,
+    studentFinanceRepairActionPreview: (studentId: number | string, actionCode: string) =>
+      `/admin/students/${studentId}/finance/repair-actions/${actionCode}/preview`,
+    studentFinanceRepairActionApply: (studentId: number | string, actionCode: string) =>
+      `/admin/students/${studentId}/finance/repair-actions/${actionCode}/apply`,
     financePaymentCollections: '/admin/finance/payment-collections',
     financePaymentCollectionPreview: '/admin/finance/payment-collections/preview',
     financePaymentCollection: (id: number | string) => `/admin/finance/payment-collections/${id}`,

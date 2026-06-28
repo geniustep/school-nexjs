@@ -50,6 +50,7 @@ import { subscribeFinanceRefresh } from '@/lib/finance/finance-refresh-bus';
 import { postAgreementAction } from '../api/finance-admin-api';
 import { ChangePlanDrawer } from './change-plan-drawer';
 import { InactiveAgreementFinanceBanner } from './inactive-agreement-finance-banner';
+import { FinanceRepairCenterCard } from './finance-repair-center-card';
 import { resolveChangePlanVisibility } from '../utils/resolve-change-plan-visibility';
 import { AssignFinancePlanPanel } from './assign-finance-plan-panel';
 import { FinanceSetupStatePanel } from './finance-setup-state-panel';
@@ -528,6 +529,12 @@ export function StudentFinanceWorkspaceShell({
         <>
           {subTab === 'overview' ? (
             <>
+              <FinanceRepairCenterCard
+                studentId={studentId}
+                currencyName={workspace?.summary?.currency?.name ?? null}
+                refreshSignal={financeRefreshSignal}
+                onRepaired={refreshFinanceData}
+              />
               <StudentFinanceAgreementContextPanel
                 studentId={studentId}
                 details={details}
