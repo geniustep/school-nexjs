@@ -35,6 +35,8 @@ export function agreementAmendmentErrorMessageKey(code: string | undefined): str
       return 'admin.student360.financeWorkspace.agreementAmendment.errors.effectivePeriodRequired';
     case 'one_time_line_not_period_amendable':
       return 'admin.student360.financeWorkspace.agreementAmendment.reasonCodes.one_time_line_not_period_amendable';
+    case 'ambiguous_agreement_line_target':
+      return 'admin.student360.financeWorkspace.agreementAmendment.errors.ambiguousAgreementLineTarget';
     default:
       return null;
   }

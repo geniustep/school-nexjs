@@ -1,4 +1,5 @@
 import type { AgreementAmendmentPeriodOption } from '../types/agreement-amendment';
+import { sortAgreementAmendmentPeriodOptions } from './sort-agreement-amendment-period-options';
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === 'object' && !Array.isArray(value)
@@ -14,6 +15,10 @@ function readString(value: unknown): string | null {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
+function readBoolean(value: unknown): boolean | undefined {
+  return typeof value === 'boolean' ? value : undefined;
+}
+
 function readPeriodOption(raw: unknown): AgreementAmendmentPeriodOption | null {
   const rec = asRecord(raw);
   if (!rec) return null;
@@ -23,14 +28,28 @@ function readPeriodOption(raw: unknown): AgreementAmendmentPeriodOption | null {
     readString(rec.label) ??
     readString(rec.name) ??
     readString(rec.period_label) ??
+    readString(rec.periodKey) ??
     readString(rec.period_key) ??
     String(id);
+  const selectable = readBoolean(rec.selectable);
   return {
     id,
     label,
-    periodKey: readString(rec.period_key),
-    periodStart: readString(rec.period_start),
-    periodEnd: readString(rec.period_end),
+    periodKey: readString(rec.periodKey) ?? readString(rec.period_key),
+    periodStart:
+      readString(rec.periodStart) ??
+      readString(rec.period_start) ??
+      readString(rec.date_start),
+    periodEnd:
+      readString(rec.periodEnd) ??
+      readString(rec.period_end) ??
+      readString(rec.date_end),
+    sequence: readFiniteNumber(rec.sequence),
+    selectable: selectable ?? true,
+    disabledReason:
+      readString(rec.disabledReason) ??
+      readString(rec.disabled_reason) ??
+      readString(rec.block_reason),
   };
 }
 
@@ -62,11 +81,7 @@ export function normalizeAgreementAmendmentPeriodOptions(raw: unknown): Agreemen
     }
   }
 
-  return [...map.values()].sort((a, b) => {
-    const aKey = a.periodKey ?? a.label;
-    const bKey = b.periodKey ?? b.label;
-    return aKey.localeCompare(bKey);
-  });
+  return sortAgreementAmendmentPeriodOptions([...map.values()]);
 }
 
 export function mergeAgreementAmendmentPeriodOptions(
@@ -84,9 +99,5 @@ export function mergeAgreementAmendmentPeriodOptions(
       if (!map.has(option.id)) map.set(option.id, option);
     }
   }
-  return [...map.values()].sort((a, b) => {
-    const aKey = a.periodKey ?? a.label;
-    const bKey = b.periodKey ?? b.label;
-    return aKey.localeCompare(bKey);
-  });
+  return sortAgreementAmendmentPeriodOptions([...map.values()]);
 }

@@ -21,8 +21,7 @@ import type {
   NormalizedAgreementAmendmentPreview,
 } from '../types/agreement-amendment';
 import { resolveAgreementAmendmentErrorMessage } from '../utils/agreement-amendment-errors';
-import { filterPeriodAmendableLineOptions } from '../utils/agreement-amendment-line-eligibility';
-import { formatAmendmentLineOptionLabel } from '../utils/agreement-amendment-line-labels';
+import { isLineSelectableForPeriodAmendment } from '../utils/agreement-amendment-line-eligibility';
 import { formatAmendmentEffectivePeriodLabel } from '../utils/agreement-amendment-period-labels';
 import {
   hasAgreementAmendmentPricingContract,
@@ -44,8 +43,16 @@ import { normalizeAgreementAmendmentPreview } from '../utils/normalize-agreement
 import {
   resolveAmendmentAgreementLineOptions,
   resolveAmendmentEffectivePeriodOptions,
+  type AgreementAmendmentLineOption,
 } from '../utils/resolve-amendment-form-options';
+import {
+  readAmbiguousAgreementLineCandidates,
+  isAmbiguousAgreementLineTargetError,
+} from '../utils/resolve-agreement-amendment-ambiguous-target';
+import type { AgreementAmendmentAmbiguousLineCandidate } from '../types/agreement-amendment';
 import { AgreementAmendmentPricingContractPreview } from './agreement-amendment-pricing-contract-preview';
+import { AgreementAmendmentLinePicker } from './agreement-amendment-line-picker';
+import { AgreementAmendmentMonthRail } from './agreement-amendment-month-rail';
 
 function defaultForm(): AgreementAmendmentFormState {
   return {
@@ -118,29 +125,47 @@ export function StudentFinanceAgreementAmendmentDialog({
   const [fetchedPeriods, setFetchedPeriods] = useState<AgreementAmendmentPeriodOption[]>([]);
   const [periodsLoading, setPeriodsLoading] = useState(false);
   const [periodsError, setPeriodsError] = useState<string | null>(null);
+  const [ambiguousCandidates, setAmbiguousCandidates] = useState<
+    AgreementAmendmentAmbiguousLineCandidate[]
+  >([]);
 
   const agreementId = agreement?.id ?? null;
   const canEdit = workspaceAllowed === true && agreementId != null;
+  const currency = agreementDetails?.currency?.name ?? agreement?.currency?.name ?? null;
 
   const isPeriodBasedLineOperation =
     form.operationType === 'modify_line' || form.operationType === 'cancel_line';
 
-  const lineOptions = useMemo(() => {
-    const allLines = resolveAmendmentAgreementLineOptions(agreementDetails ?? agreement);
-    if (!isPeriodBasedLineOperation) return allLines;
-    return filterPeriodAmendableLineOptions(allLines);
-  }, [agreement, agreementDetails, isPeriodBasedLineOperation]);
+  const allLineOptions = useMemo(
+    () => resolveAmendmentAgreementLineOptions(agreementDetails ?? agreement),
+    [agreement, agreementDetails],
+  );
+
+  const lineOptions = allLineOptions;
+
+  const periodOptions = useMemo(
+    () =>
+      resolveAmendmentEffectivePeriodOptions({
+        fetchedPeriods,
+        previewOpenPeriods: preview?.openPeriods,
+      }),
+    [fetchedPeriods, preview?.openPeriods],
+  );
 
   const selectedLine = useMemo(() => {
     if (!form.sourceLineId) return null;
-    return (
-      lineOptions.find((line) => String(line.id) === form.sourceLineId) ??
-      resolveAmendmentAgreementLineOptions(agreementDetails ?? agreement).find(
-        (line) => String(line.id) === form.sourceLineId,
-      ) ??
-      null
-    );
-  }, [agreement, agreementDetails, form.sourceLineId, lineOptions]);
+    return lineOptions.find((line) => String(line.id) === form.sourceLineId) ?? null;
+  }, [form.sourceLineId, lineOptions]);
+
+  const selectedPeriod = useMemo(() => {
+    if (!form.effectivePeriodId) return null;
+    return periodOptions.find((period) => String(period.id) === form.effectivePeriodId) ?? null;
+  }, [form.effectivePeriodId, periodOptions]);
+
+  const hasSelectablePeriodLines = useMemo(() => {
+    if (!isPeriodBasedLineOperation) return lineOptions.length > 0;
+    return lineOptions.some(isLineSelectableForPeriodAmendment);
+  }, [isPeriodBasedLineOperation, lineOptions]);
 
   const previewBlockedOneTime =
     preview != null && isBlockedByOneTimeLineNotPeriodAmendable(preview);
@@ -152,15 +177,6 @@ export function StudentFinanceAgreementAmendmentDialog({
     selectedLine.isMonthly !== false &&
     !previewBlockedOneTime;
 
-  const periodOptions = useMemo(
-    () =>
-      resolveAmendmentEffectivePeriodOptions({
-        fetchedPeriods,
-        previewOpenPeriods: preview?.openPeriods,
-      }),
-    [fetchedPeriods, preview?.openPeriods],
-  );
-
   useEffect(() => {
     if (!open) return;
     setForm(defaultForm());
@@ -171,6 +187,7 @@ export function StudentFinanceAgreementAmendmentDialog({
     setAgreementDetails(agreement);
     setFetchedPeriods([]);
     setPeriodsError(null);
+    setAmbiguousCandidates([]);
   }, [open, agreementId, agreement]);
 
   useEffect(() => {
@@ -209,9 +226,8 @@ export function StudentFinanceAgreementAmendmentDialog({
   }, [open, agreementId]);
 
   useEffect(() => {
-    if (!isPeriodBasedLineOperation || !form.sourceLineId) return;
-    const stillSelectable = lineOptions.some((line) => String(line.id) === form.sourceLineId);
-    if (stillSelectable) return;
+    if (!isPeriodBasedLineOperation || !form.sourceLineId || !selectedLine) return;
+    if (isLineSelectableForPeriodAmendment(selectedLine)) return;
     setForm((prev) => ({
       ...prev,
       sourceLineId: '',
@@ -219,7 +235,7 @@ export function StudentFinanceAgreementAmendmentDialog({
     }));
     setPreview(null);
     setPreviewReady(false);
-  }, [form.sourceLineId, isPeriodBasedLineOperation, lineOptions]);
+  }, [form.sourceLineId, isPeriodBasedLineOperation, selectedLine]);
 
   function resetAndClose() {
     setForm(defaultForm());
@@ -248,6 +264,7 @@ export function StudentFinanceAgreementAmendmentDialog({
 
   function handleLineSelection(sourceLineId: string) {
     const selected = lineOptions.find((line) => String(line.id) === sourceLineId);
+    setAmbiguousCandidates([]);
     setForm((prev) => ({
       ...prev,
       sourceLineId,
@@ -255,6 +272,39 @@ export function StudentFinanceAgreementAmendmentDialog({
       amount:
         prev.operationType === 'modify_line' && selected?.amount != null
           ? String(selected.amount)
+          : prev.operationType === 'cancel_line'
+            ? '0'
+            : prev.amount,
+    }));
+    invalidatePreview();
+  }
+
+  function handleAmbiguousCandidateSelection(candidate: AgreementAmendmentAmbiguousLineCandidate) {
+    const matched =
+      lineOptions.find((line) => line.id === candidate.sourceLineId) ??
+      ({
+        id: candidate.sourceLineId,
+        sourceLineId: candidate.sourceLineId,
+        agreementLineId: candidate.agreementLineId,
+        label: candidate.serviceName,
+        feeTypeId: null,
+        amount: candidate.netAmount,
+        unitPrice: candidate.unitPrice,
+        quantity: candidate.quantity,
+        commitmentType: candidate.commitmentType,
+        pricingUnit: candidate.pricingUnit,
+        periodAmendable: candidate.periodAmendable,
+        amendmentBlockReason: candidate.amendmentBlockReason,
+        duplicateServiceWarning: candidate.duplicateServiceWarning,
+      } satisfies AgreementAmendmentLineOption);
+    setAmbiguousCandidates([]);
+    setForm((prev) => ({
+      ...prev,
+      sourceLineId: String(matched.id),
+      feeTypeId: matched.feeTypeId != null ? String(matched.feeTypeId) : prev.feeTypeId,
+      amount:
+        prev.operationType === 'modify_line' && matched.amount != null
+          ? String(matched.amount)
           : prev.operationType === 'cancel_line'
             ? '0'
             : prev.amount,
@@ -270,22 +320,28 @@ export function StudentFinanceAgreementAmendmentDialog({
       setFormError(t('admin.student360.financeWorkspace.agreementAmendment.errors.reasonRequired'));
       return;
     }
-    if (!canSubmitAgreementAmendmentForm(form)) {
+    if (!canSubmitAgreementAmendmentForm(form, selectedLine)) {
       setFormError(t('admin.student360.financeWorkspace.agreementAmendment.errors.formIncomplete'));
       return;
     }
 
     setPreviewLoading(true);
-    const payload = buildAgreementAmendmentPreviewPayload(agreementId, form);
+    const payload = buildAgreementAmendmentPreviewPayload(agreementId, form, selectedLine);
     const res = await previewAgreementAmendment(studentId, payload);
     setPreviewLoading(false);
 
     if (!res.success) {
+      if (isAmbiguousAgreementLineTargetError(res.error?.code)) {
+        const candidates = readAmbiguousAgreementLineCandidates(res.error);
+        setAmbiguousCandidates(candidates);
+      }
       setFormError(
         resolveAgreementAmendmentErrorMessage(res.error?.code, res.error?.message, t),
       );
       return;
     }
+
+    setAmbiguousCandidates([]);
 
     const normalized = normalizeAgreementAmendmentPreview(res.data);
     setPreview(normalized);
@@ -295,10 +351,10 @@ export function StudentFinanceAgreementAmendmentDialog({
 
   async function handleApplyConfirmed() {
     if (!previewReady || !preview?.allowed || agreementId == null) return;
-    if (!canSubmitAgreementAmendmentForm(form)) return;
+    if (!canSubmitAgreementAmendmentForm(form, selectedLine)) return;
 
     setApplyLoading(true);
-    const payload = buildAgreementAmendmentApplyPayload(agreementId, form);
+    const payload = buildAgreementAmendmentApplyPayload(agreementId, form, selectedLine);
     const res = await applyAgreementAmendment(studentId, payload);
     setApplyLoading(false);
 
@@ -349,39 +405,28 @@ export function StudentFinanceAgreementAmendmentDialog({
             </select>
           </label>
 
-          <label>
+          <div>
             <span className="tiny muted">
               {t('admin.student360.financeWorkspace.agreementAmendment.effectivePeriod')}
             </span>
-            <p className="tiny muted student-finance-amendment-form__hint">
-              {t('admin.student360.financeWorkspace.agreementAmendment.effectivePeriodHint')}
-            </p>
-            <select
-              className="input"
-              value={form.effectivePeriodId}
-              onChange={(e) => {
-                setForm((prev) => ({ ...prev, effectivePeriodId: e.target.value }));
+            <AgreementAmendmentMonthRail
+              periods={periodOptions}
+              selectedPeriodId={form.effectivePeriodId}
+              loading={periodsLoading}
+              disabled={!canEdit}
+              onSelect={(periodId) => {
+                setForm((prev) => ({ ...prev, effectivePeriodId: periodId }));
                 invalidatePreview();
               }}
-              disabled={!canEdit || periodsLoading || !periodOptions.length}
-            >
-              <option value="">{t('common.dash')}</option>
-              {periodOptions.map((period) => (
-                <option key={period.id} value={period.id}>
-                  {formatAmendmentEffectivePeriodLabel(period, t)}
-                </option>
-              ))}
-            </select>
-            {periodsLoading ? (
-              <span className="tiny muted">{t('common.loading')}</span>
-            ) : periodsError ? (
+            />
+            {periodsError ? (
               <span className="tiny muted">{periodsError}</span>
-            ) : !periodOptions.length ? (
+            ) : !periodOptions.length && !periodsLoading ? (
               <span className="tiny muted">
                 {t('admin.student360.financeWorkspace.agreementAmendment.noPeriodsHint')}
               </span>
             ) : null}
-          </label>
+          </div>
 
           <label>
             <span className="tiny muted">
@@ -443,29 +488,24 @@ export function StudentFinanceAgreementAmendmentDialog({
             </>
           ) : (
             <>
-              <label>
+              <div>
                 <span className="tiny muted">
                   {t('admin.student360.financeWorkspace.agreementAmendment.fields.line')}
                 </span>
-                <select
-                  className="input"
-                  value={form.sourceLineId}
-                  onChange={(e) => handleLineSelection(e.target.value)}
+                <AgreementAmendmentLinePicker
+                  lines={lineOptions}
+                  selectedLineId={form.sourceLineId}
+                  currency={currency}
+                  periodBasedOperation={isPeriodBasedLineOperation}
                   disabled={!canEdit || !lineOptions.length}
-                >
-                  <option value="">{t('common.dash')}</option>
-                  {lineOptions.map((line) => (
-                    <option key={line.id} value={line.id}>
-                      {formatAmendmentLineOptionLabel(line, t)}
-                    </option>
-                  ))}
-                </select>
-                {isPeriodBasedLineOperation && !lineOptions.length ? (
+                  onSelect={handleLineSelection}
+                />
+                {isPeriodBasedLineOperation && !hasSelectablePeriodLines ? (
                   <span className="tiny muted">
                     {t('admin.student360.financeWorkspace.agreementAmendment.noPeriodAmendableLinesHint')}
                   </span>
                 ) : null}
-              </label>
+              </div>
               {form.operationType === 'modify_line' && showMonthlyAmountField ? (
                 <label>
                   <span className="tiny muted">
@@ -498,6 +538,55 @@ export function StudentFinanceAgreementAmendmentDialog({
               ) : null}
             </>
           )}
+
+          {selectedLine && selectedPeriod ? (
+            <section className="student-finance-amendment-selection-summary" aria-live="polite">
+              <h4>{t('admin.student360.financeWorkspace.agreementAmendment.selectionSummaryTitle')}</h4>
+              <dl className="detail-list compact">
+                <div>
+                  <dt>{t('admin.student360.financeWorkspace.agreementAmendment.fields.line')}</dt>
+                  <dd dir="auto">{selectedLine.label}</dd>
+                </div>
+                <div>
+                  <dt>{t('admin.student360.financeWorkspace.agreementAmendment.effectivePeriod')}</dt>
+                  <dd dir="auto">{formatAmendmentEffectivePeriodLabel(selectedPeriod, t)}</dd>
+                </div>
+                {preview?.affectedPeriods.length ? (
+                  <div>
+                    <dt>{t('admin.student360.financeWorkspace.agreementAmendment.affectedPeriods')}</dt>
+                    <dd dir="auto">{preview.affectedPeriods.join(', ')}</dd>
+                  </div>
+                ) : null}
+                {preview?.lockedPeriods.length ? (
+                  <div>
+                    <dt>{t('admin.student360.financeWorkspace.agreementAmendment.lockedPeriods')}</dt>
+                    <dd dir="auto">{preview.lockedPeriods.join(', ')}</dd>
+                  </div>
+                ) : null}
+              </dl>
+            </section>
+          ) : null}
+
+          {ambiguousCandidates.length ? (
+            <section className="student-finance-amendment-ambiguous" role="alert">
+              <p>{t('admin.student360.financeWorkspace.agreementAmendment.errors.ambiguousAgreementLineTarget')}</p>
+              <ul className="student-finance-amendment-ambiguous__list">
+                {ambiguousCandidates.map((candidate) => (
+                  <li key={candidate.sourceLineId}>
+                    <button
+                      type="button"
+                      className="student-finance-amendment-line-picker__card"
+                      onClick={() => handleAmbiguousCandidateSelection(candidate)}
+                    >
+                      <span className="student-finance-amendment-line-picker__name" dir="auto">
+                        {candidate.serviceName}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
 
           {formError ? <p className="form-error">{formError}</p> : null}
 

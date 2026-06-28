@@ -9955,3 +9955,177 @@
   margin: 0;
   font-weight: 500;
 }
+
+.student-finance-amendment-form.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.student-finance-amendment-form__hint {
+  margin: 0.25rem 0 0;
+}
+
+.student-finance-amendment-line-picker__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.student-finance-amendment-line-picker__card {
+  width: 100%;
+  text-align: start;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 10px;
+  padding: 0.75rem 0.875rem;
+  background: var(--surface, #fff);
+  cursor: pointer;
+}
+
+.student-finance-amendment-line-picker__card--selected {
+  border-color: color-mix(in srgb, var(--c-primary, #2563eb) 55%, var(--c-border, #e2e8f0));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--c-primary, #2563eb) 35%, transparent);
+}
+
+.student-finance-amendment-line-picker__card--disabled,
+.student-finance-amendment-line-picker__card:disabled {
+  opacity: 0.72;
+  cursor: not-allowed;
+}
+
+.student-finance-amendment-line-picker__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.student-finance-amendment-line-picker__name {
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
+.student-finance-amendment-line-picker__badge {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--c-amber, #d97706) 14%, var(--surface, #fff));
+  color: var(--c-amber, #b45309);
+}
+
+.student-finance-amendment-line-picker__badge--muted {
+  background: color-mix(in srgb, var(--text-secondary, #64748b) 12%, var(--surface, #fff));
+  color: var(--text-secondary, #64748b);
+}
+
+.student-finance-amendment-line-picker__meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+  gap: 0.375rem 0.75rem;
+  margin: 0;
+}
+
+.student-finance-amendment-line-picker__meta dt {
+  font-size: 0.6875rem;
+  color: var(--text-secondary, #64748b);
+}
+
+.student-finance-amendment-line-picker__meta dd {
+  margin: 0;
+  font-size: 0.8125rem;
+}
+
+.student-finance-amendment-line-picker__reason {
+  margin: 0.5rem 0 0;
+  font-size: 0.75rem;
+  color: var(--text-secondary, #64748b);
+}
+
+.student-finance-amendment-month-rail__scroll {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding: 0.375rem 0.125rem 0.625rem;
+  scroll-snap-type: x proximity;
+}
+
+.student-finance-amendment-month-rail__chip {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 999px;
+  padding: 0.45rem 0.85rem;
+  background: var(--surface, #fff);
+  font-size: 0.8125rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.student-finance-amendment-month-rail__chip--selected {
+  border-color: var(--c-primary, #2563eb);
+  background: color-mix(in srgb, var(--c-primary, #2563eb) 10%, var(--surface, #fff));
+  color: var(--c-primary, #2563eb);
+  font-weight: 600;
+}
+
+.student-finance-amendment-month-rail__chip--disabled,
+.student-finance-amendment-month-rail__chip:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.student-finance-amendment-selection-summary {
+  border: 1px solid color-mix(in srgb, var(--c-primary, #2563eb) 18%, var(--c-border, #e2e8f0));
+  border-radius: 10px;
+  padding: 0.75rem 0.875rem;
+  background: color-mix(in srgb, var(--c-primary, #2563eb) 4%, var(--surface, #fff));
+}
+
+.student-finance-amendment-selection-summary h4 {
+  margin: 0 0 0.5rem;
+  font-size: 0.875rem;
+}
+
+.student-finance-amendment-ambiguous {
+  border: 1px solid color-mix(in srgb, var(--c-amber, #d97706) 35%, var(--c-border, #e2e8f0));
+  border-radius: 10px;
+  padding: 0.75rem 0.875rem;
+  background: color-mix(in srgb, var(--c-amber, #d97706) 6%, var(--surface, #fff));
+}
+
+.student-finance-amendment-ambiguous__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.student-finance-amendment-preview.stack {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--c-border, #e2e8f0);
+}
+
+.student-finance-amendment-preview__warnings-banner {
+  border-radius: 8px;
+  padding: 0.75rem;
+  background: color-mix(in srgb, var(--c-amber, #d97706) 8%, var(--surface, #fff));
+}
+
+.student-finance-amendment-preview__not-allowed {
+  border-radius: 8px;
+  padding: 0.75rem;
+  background: color-mix(in srgb, var(--c-red, #dc2626) 6%, var(--surface, #fff));
+}
+
+.student-finance-amendment-preview__installments ul {
+  margin: 0.25rem 0 0;
+  padding-inline-start: 1.25rem;
+}

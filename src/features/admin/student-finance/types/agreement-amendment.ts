@@ -2,8 +2,23 @@ export type AgreementAmendmentOperationType = 'add_line' | 'cancel_line' | 'modi
 
 export interface AgreementAmendmentLinePayload {
   source_line_id?: number;
-  fee_type_id: number;
+  agreement_line_id?: number;
+  fee_type_id?: number;
   amount: number;
+}
+
+export interface AgreementAmendmentAmbiguousLineCandidate {
+  sourceLineId: number;
+  agreementLineId: number | null;
+  serviceName: string;
+  commitmentType: string | null;
+  pricingUnit: string | null;
+  quantity: number | null;
+  unitPrice: number | null;
+  netAmount: number | null;
+  periodAmendable: boolean;
+  amendmentBlockReason: string | null;
+  duplicateServiceWarning: boolean;
 }
 
 export interface AgreementAmendmentRequestPayload {
@@ -21,6 +36,9 @@ export interface AgreementAmendmentPeriodOption {
   periodKey?: string | null;
   periodStart?: string | null;
   periodEnd?: string | null;
+  sequence?: number | null;
+  selectable?: boolean;
+  disabledReason?: string | null;
 }
 
 export interface AgreementAmendmentInstallmentPreview {

@@ -81,7 +81,16 @@ export function normalizeFinancialAgreementLine(raw: unknown): FinancialAgreemen
   const line: FinancialAgreementLine = {
     ...(raw as FinancialAgreementLine),
     id,
+    source_line_id: readFiniteNumber(o.source_line_id) ?? (raw as FinancialAgreementLine).source_line_id,
+    agreement_line_id:
+      readFiniteNumber(o.agreement_line_id) ?? (raw as FinancialAgreementLine).agreement_line_id,
     service_id,
+    period_amendable: readBoolean(o.period_amendable) ?? (raw as FinancialAgreementLine).period_amendable,
+    amendment_block_reason:
+      readString(o.amendment_block_reason) ?? (raw as FinancialAgreementLine).amendment_block_reason,
+    duplicate_service_warning:
+      o.duplicate_service_warning === true ||
+      (raw as FinancialAgreementLine).duplicate_service_warning === true,
     quantity: readFiniteNumber(o.quantity) ?? (raw as FinancialAgreementLine).quantity,
     periods_count: readFiniteNumber(o.periods_count),
     schedule_period_count: readFiniteNumber(o.schedule_period_count),
@@ -97,6 +106,9 @@ export function normalizeFinancialAgreementLine(raw: unknown): FinancialAgreemen
   };
 
   if (id == null && service_id == null) return null;
+  if (id == null && readFiniteNumber(o.agreement_line_id) == null && readFiniteNumber(o.source_line_id) == null) {
+    return null;
+  }
   return line;
 }
 

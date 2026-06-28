@@ -5651,6 +5651,11 @@
           "noPermission": "La modification de l'accord n'est pas disponible pour le moment.",
           "noPeriodsHint": "Aucune période de facturation disponible dans les données de l'accord. Essayez la prévisualisation après avoir saisi un motif si le serveur renvoie des périodes.",
           "noPeriodAmendableLinesHint": "Aucune ligne mensuelle ne peut être modifiée à partir d'un mois sur cet accord.",
+          "selectLineHint": "Choisissez la ligne à modifier",
+          "notPeriodAmendable": "Non modifiable mensuellement",
+          "duplicateServiceWarning": "Ligne similaire existante",
+          "monthSelection": "Sélection du mois",
+          "selectionSummaryTitle": "Résumé avant application",
           "notAllowedTitle": "Application non autorisée",
           "oneTimeBlockedHint": "Choisissez une ligne mensuelle comme la scolarité ou le transport.",
           "oneTimeNoMonthlyPrice": "Cette ligne n'utilise pas de prix mensuel.",
@@ -5677,6 +5682,7 @@
           },
           "reasonCodes": {
             "one_time_line_not_period_amendable": "L'inscription est une ligne unique et ne peut pas être modifiée à partir d'un mois. Choisissez une ligne mensuelle (scolarité ou transport), ou utilisez plus tard le flux de correction unique.",
+            "one_time_line_not_period_amendable_short": "Cette ligne est unique et ne peut pas être modifiée mensuellement.",
             "monthly_unit_price_seems_high": "Avertissement : vous avez saisi {newUnitPrice} comme nouveau prix mensuel. Il s'appliquera à {affectedPeriodCount} mois, pour un total de {newTotalForAffectedPeriods}. Si vous visiez un total annuel de 18 000, le prix mensuel est {suggestedMonthlyUnitPrice}."
           },
           "applyConfirm": {
@@ -5697,6 +5703,7 @@
             "invalidOperationType": "Type d'opération invalide.",
             "invalidEffectivePeriod": "Période d'effet invalide.",
             "effectivePeriodRequired": "Sélectionnez une période d'effet valide dans le calendrier de facturation.",
+            "ambiguousAgreementLineTarget": "Plusieurs lignes correspondent. Choisissez la ligne souhaitée dans la liste.",
             "generic": "Impossible de prévisualiser la modification de l'accord. Réessayez ou contactez l'administration financière."
           }
         },

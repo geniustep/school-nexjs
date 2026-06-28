@@ -5,6 +5,10 @@ function readString(value: unknown): string | null {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
+function readBoolean(value: unknown): boolean | undefined {
+  return typeof value === 'boolean' ? value : undefined;
+}
+
 function normalizeToken(value: unknown): string | null {
   const raw = readString(value);
   if (!raw) return null;
@@ -48,10 +52,21 @@ export function isOneTimeAgreementLine(line: Record<string, unknown>): boolean {
   return false;
 }
 
+/** Prefer Odoo period_amendable contract; fall back to legacy heuristics. */
+export function resolvePeriodAmendableFromLine(
+  line: Record<string, unknown>,
+): boolean {
+  const explicit = readBoolean(line.period_amendable);
+  if (explicit != null) return explicit;
+  return !isOneTimeAgreementLine(line);
+}
+
 export function isPeriodAmendableLineOption(line: AgreementAmendmentLineOption): boolean {
+  if (typeof line.periodAmendable === 'boolean') return line.periodAmendable;
   return line.isOneTime !== true;
 }
 
+/** @deprecated Use all lines in picker with disabled state instead of filtering. */
 export function filterPeriodAmendableLineOptions(
   lines: AgreementAmendmentLineOption[],
 ): AgreementAmendmentLineOption[] {
@@ -61,4 +76,8 @@ export function filterPeriodAmendableLineOptions(
 export function agreementHasOneTimeLineMetadata(agreement?: FinancialAgreement | null): boolean {
   const lines = agreement?.lines ?? agreement?.source_fees ?? [];
   return lines.some((line) => isOneTimeAgreementLine(line as Record<string, unknown>));
+}
+
+export function isLineSelectableForPeriodAmendment(line: AgreementAmendmentLineOption): boolean {
+  return isPeriodAmendableLineOption(line);
 }

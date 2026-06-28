@@ -100,9 +100,14 @@ export interface AgreementLineQuantityEditContract {
 
 export interface FinancialAgreementLine {
   id?: number;
+  source_line_id?: number | null;
+  agreement_line_id?: number | null;
   service_id?: number;
   service?: Ref & { category?: string; code?: string };
   service_name?: string;
+  period_amendable?: boolean;
+  amendment_block_reason?: string | null;
+  duplicate_service_warning?: boolean;
   tariff_id?: number | null;
   tariff?: Ref | null;
   fee_plan_line_id?: number | null;

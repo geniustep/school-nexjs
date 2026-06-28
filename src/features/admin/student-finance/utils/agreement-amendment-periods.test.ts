@@ -27,12 +27,24 @@ describe('normalizeAgreementAmendmentPeriodOptions', () => {
         periodKey: '2027-06',
         periodStart: '2027-06-01',
         periodEnd: '2027-06-30',
+        sequence: null,
+        selectable: true,
+        disabledReason: null,
       },
     ]);
   });
 
   it('does not treat month labels without ids as options', () => {
     expect(normalizeAgreementAmendmentPeriodOptions(['2027-06', '2026-09'])).toEqual([]);
+  });
+
+  it('preserves camelCase period fields when re-normalizing API data', () => {
+    const options = normalizeAgreementAmendmentPeriodOptions([
+      { id: 298, label: 'أبريل 2027', periodKey: '2027-04', periodStart: '2027-04-01' },
+      { id: 291, label: 'شتنبر 2026', periodKey: '2026-09', periodStart: '2026-09-01' },
+    ]);
+    expect(options.map((item) => item.id)).toEqual([291, 298]);
+    expect(options[0]?.periodStart).toBe('2026-09-01');
   });
 });
 

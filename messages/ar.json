@@ -5692,6 +5692,11 @@
           "noPermission": "تعديل الاتفاقية غير متاح حاليًا.",
           "noPeriodsHint": "لا توجد فترات فوترة متاحة من بيانات الاتفاق. جرّب المعاينة بعد اختيار السبب إذا أرجع الخادم فتراتًا.",
           "noPeriodAmendableLinesHint": "لا توجد بنود شهرية قابلة للتعديل من شهر في هذا الاتفاق.",
+          "selectLineHint": "اختر البند المراد تعديله",
+          "notPeriodAmendable": "غير قابل للتعديل الشهري",
+          "duplicateServiceWarning": "بند مشابه موجود",
+          "monthSelection": "اختيار الشهر",
+          "selectionSummaryTitle": "ملخص قبل التنفيذ",
           "notAllowedTitle": "غير مسموح بالتطبيق",
           "oneTimeBlockedHint": "اختر بندًا شهريًا مثل التمدرس أو النقل.",
           "oneTimeNoMonthlyPrice": "هذا البند لا يستخدم السعر الشهري.",
@@ -5718,6 +5723,7 @@
           },
           "reasonCodes": {
             "one_time_line_not_period_amendable": "بند التسجيل هو بند مرة واحدة ولا يمكن تعديله من شهر فعالية. اختر بندًا شهريًا مثل التمدرس أو النقل، أو استعمل لاحقًا مسار تصحيح بند مرة واحدة.",
+            "one_time_line_not_period_amendable_short": "هذا البند مرة واحدة ولا يمكن تعديله شهريًا.",
             "monthly_unit_price_seems_high": "تنبيه: أدخلت {newUnitPrice} كسعر شهري جديد. سيتم تطبيقه على {affectedPeriodCount} أشهر، ليصبح مجموع البند {newTotalForAffectedPeriods} درهم. إذا كنت تقصد مجموعًا سنويًا 18,000 درهم، فالسعر الشهري هو {suggestedMonthlyUnitPrice} درهم."
           },
           "applyConfirm": {
@@ -5738,6 +5744,7 @@
             "invalidOperationType": "نوع العملية غير صالح.",
             "invalidEffectivePeriod": "شهر البداية غير صالح.",
             "effectivePeriodRequired": "يجب اختيار شهر بداية صالح من تقويم الفوترة.",
+            "ambiguousAgreementLineTarget": "يوجد أكثر من بند مطابق. اختر البند المطلوب من القائمة.",
             "generic": "تعذر معاينة تعديل الاتفاقية. حاول مرة أخرى أو راجع الإدارة المالية."
           }
         },

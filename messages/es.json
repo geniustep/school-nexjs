@@ -5651,6 +5651,11 @@
           "noPermission": "La modificación del acuerdo no está disponible ahora.",
           "noPeriodsHint": "No hay periodos de facturación disponibles en los datos del acuerdo. Pruebe la previsualización tras indicar un motivo si el servidor devuelve periodos.",
           "noPeriodAmendableLinesHint": "No hay líneas mensuales que se puedan modificar desde un mes en este acuerdo.",
+          "selectLineHint": "Seleccione la línea a modificar",
+          "notPeriodAmendable": "No modificable mensualmente",
+          "duplicateServiceWarning": "Existe una línea similar",
+          "monthSelection": "Selección de mes",
+          "selectionSummaryTitle": "Resumen antes de aplicar",
           "notAllowedTitle": "No permitido aplicar",
           "oneTimeBlockedHint": "Elija una línea mensual como matrícula escolar o transporte.",
           "oneTimeNoMonthlyPrice": "Esta línea no usa precio mensual.",
@@ -5677,6 +5682,7 @@
           },
           "reasonCodes": {
             "one_time_line_not_period_amendable": "La matrícula es una línea única y no puede modificarse desde un mes. Elija una línea mensual como matrícula escolar o transporte, o use más adelante el flujo de corrección única.",
+            "one_time_line_not_period_amendable_short": "Esta línea es única y no puede modificarse mensualmente.",
             "monthly_unit_price_seems_high": "Aviso: introdujo {newUnitPrice} como nuevo precio mensual. Se aplicará a {affectedPeriodCount} meses, con un total de {newTotalForAffectedPeriods}. Si quería un total anual de 18.000, el precio mensual es {suggestedMonthlyUnitPrice}."
           },
           "applyConfirm": {
@@ -5697,6 +5703,7 @@
             "invalidOperationType": "Tipo de operación no válido.",
             "invalidEffectivePeriod": "Periodo de vigencia no válido.",
             "effectivePeriodRequired": "Seleccione un periodo de vigencia válido del calendario de facturación.",
+            "ambiguousAgreementLineTarget": "Hay más de una línea coincidente. Seleccione la línea deseada de la lista.",
             "generic": "No se pudo previsualizar la modificación del acuerdo. Inténtelo de nuevo o contacte con administración financiera."
           }
         },
