@@ -5345,7 +5345,7 @@
             "nextStep": "Étape suivante : créez un accord à partir des échéances actuelles sans dupliquer les frais, ou consultez l'échéancier.",
             "calloutTitle": "Régulariser l'accord financier à partir des échéances actuelles",
             "calloutBody": "L'objectif ici est de créer un accord financier basé sur les frais et échéances déjà existants, sans créer de nouveaux frais par-dessus. Aucun accord n'a encore été créé.",
-            "noCreatePathHint": "Il n'existe actuellement aucun parcours dans l'interface pour créer un accord à partir des échéances actuelles de cet élève ; cela nécessite une prise en charge côté serveur (Odoo/API)."
+            "noCreatePathHint": "L'accord financier de cet élève ne peut pas être régularisé automatiquement pour le moment. Consultez l'échéancier ou demandez à un responsable autorisé de traiter le dossier financier."
           },
           "blockedByDraft": "Les échéances ne sont pas encore approuvées et n'apparaîtront comme dues confirmées qu'après approbation de l'accord.",
           "blockedByNoActive": "Impossible de changer le plan ou d'appliquer un ajustement financier spécial sans accord de frais actif.",

@@ -5345,7 +5345,7 @@
             "nextStep": "Siguiente paso: cree un acuerdo a partir de las cuotas actuales sin duplicar tasas, o revise el calendario de pagos.",
             "calloutTitle": "Regularizar el acuerdo financiero a partir de las cuotas actuales",
             "calloutBody": "El objetivo aquí es crear un acuerdo financiero basado en las tasas y cuotas ya existentes, sin crear tasas nuevas encima. Todavía no se ha creado ningún acuerdo.",
-            "noCreatePathHint": "Actualmente no hay una ruta en la interfaz para crear un acuerdo a partir de las cuotas actuales de este alumno; requiere soporte del servidor (Odoo/API)."
+            "noCreatePathHint": "No se puede regularizar automáticamente el acuerdo financiero de este alumno en este momento. Revise el calendario de pagos o solicite a un responsable autorizado que tramite el expediente financiero."
           },
           "blockedByDraft": "Las cuotas aún no están aprobadas y no aparecerán como adeudos confirmados hasta que se apruebe el acuerdo.",
           "blockedByNoActive": "No puede cambiar el plan ni aplicar un ajuste financiero especial hasta que exista un acuerdo de cuotas activo.",
