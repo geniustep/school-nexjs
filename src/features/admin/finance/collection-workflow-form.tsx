@@ -14,11 +14,11 @@ import { collectionErrorMessageKey, resolveCollectionErrorMessage } from '@/lib/
 import { cashSessionErrorMessageKey } from '@/lib/utils/cash-session-errors';
 import { isChequePayment } from '@/lib/utils/cheque';
 import { isCashJournal, paymentMethodRequiresCashSession } from '@/lib/utils/cash-payment';
-import { cashSessionIsActive } from '@/lib/utils/cash-session-normalize';
 import { fetchCurrentCashSession } from '@/lib/api/finance-cash-desk';
 import {
   CollectionCashSessionGate,
   collectionBlockedByCashSession,
+  resolveCashSessionCollectionAccess,
 } from '@/features/admin/finance/cash-desk/collection-cash-session-gate';
 import { FinanceStudentSearch } from '@/features/admin/finance/finance-student-search';
 import { BillingPartnerSelect } from '@/features/admin/finance/billing-partner-select';
@@ -46,6 +46,7 @@ import type {
   PaymentCollection,
   PaymentJournal,
 } from '@/types/finance';
+import type { CashSession } from '@/types/finance-cash-desk';
 import { useStudentCollectibleItems } from '@/features/admin/student-finance/hooks/use-student-collectible-items';
 import { collectibleItemsToInstallments } from './collectible-item-mapper';
 import {
@@ -87,6 +88,7 @@ import {
 } from './resolve-collection-success-summary';
 import { resolveCollectionGateBlocked } from '@/lib/finance/collection-gate';
 import { useAdminSession } from '@/features/auth/admin-session-context';
+import { useSession } from '@/features/auth/session-context';
 import type { PaymentCollectionPreview } from '@/types/payment-collection-preview';
 import type { StudentFinancialOverview } from '@/types/student-financial-overview';
 
@@ -241,6 +243,7 @@ function CollectionWorkflowFormReady({
   onCancel: () => void;
 }) {
   const t = useT();
+  const user = useSession();
   const { activeSchoolId } = useAdminSession();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -276,7 +279,7 @@ function CollectionWorkflowFormReady({
   const [createdCollection, setCreatedCollection] = useState<PaymentCollection | null>(null);
   const [successFallback, setSuccessFallback] = useState<CollectionSuccessFallback | null>(null);
   const [updatedOverview, setUpdatedOverview] = useState<CollectionUpdatedOverview | null>(null);
-  const [hasCashSession, setHasCashSession] = useState<boolean | null>(null);
+  const [cashSession, setCashSession] = useState<CashSession | null>(null);
   const [checkingCashSession, setCheckingCashSession] = useState(false);
   const [preview, setPreview] = useState<PaymentCollectionPreview | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
@@ -437,14 +440,14 @@ function CollectionWorkflowFormReady({
 
   useEffect(() => {
     if (!requiresCashSession || !selectedJournal?.id) {
-      setHasCashSession(null);
+      setCashSession(null);
       return;
     }
     let active = true;
     setCheckingCashSession(true);
     void fetchCurrentCashSession(selectedJournal.id).then((session) => {
       if (!active) return;
-      setHasCashSession(!!session && cashSessionIsActive(session.state));
+      setCashSession(session);
       setCheckingCashSession(false);
     });
     return () => {
@@ -452,11 +455,17 @@ function CollectionWorkflowFormReady({
     };
   }, [requiresCashSession, selectedJournal?.id]);
 
-  const cashSessionBlocked = collectionBlockedByCashSession({
-    journal: selectedJournal,
-    paymentMethod,
-    hasOpenSession: hasCashSession,
-  });
+  const cashSessionAccess = useMemo(
+    () =>
+      resolveCashSessionCollectionAccess({
+        requiresSession: requiresCashSession,
+        checking: checkingCashSession,
+        session: cashSession,
+        currentUserId: user?.id,
+      }),
+    [requiresCashSession, checkingCashSession, cashSession, user?.id],
+  );
+  const cashSessionBlocked = collectionBlockedByCashSession(cashSessionAccess);
   const allocatedTotal = sumAllocationAmounts(allocationInputs);
   const showSelectionStep = false;
   const showAllocationStep = false;
@@ -776,7 +785,11 @@ function CollectionWorkflowFormReady({
     const payload = buildPayload();
     if (!payload) return;
     if (cashSessionBlocked) {
-      setError(t('admin.finance.cashDesk.collectionGateDesc'));
+      setError(
+        cashSessionAccess.kind === 'blocked_no_permission'
+          ? t('admin.finance.cashDesk.collectionNoPermissionDesc')
+          : t('admin.finance.cashDesk.collectionGateDesc'),
+      );
       return;
     }
     if (submitting) return;
@@ -1185,6 +1198,8 @@ function CollectionWorkflowFormReady({
               journal={selectedJournal}
               paymentMethod={paymentMethod}
               collectionPath={collectionPath}
+              session={cashSession}
+              checking={checkingCashSession}
             />
 
             {isCheque ? (

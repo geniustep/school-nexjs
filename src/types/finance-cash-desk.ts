@@ -98,6 +98,7 @@ export interface CashSession {
   journal_id?: number;
   journal?: PaymentJournal | Ref;
   cashier?: Ref;
+  cashier_id?: number;
   cashier_name?: string;
   school?: SchoolRef | Ref;
   school_id?: number;

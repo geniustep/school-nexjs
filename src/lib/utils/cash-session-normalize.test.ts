@@ -48,6 +48,34 @@ describe('cash session normalize', () => {
     expect(cashSessionAllowsAction(session, 'close')).toBe(false);
   });
 
+  it('normalizes allowed_actions map and session_id alias', () => {
+    const session = normalizeCashSession({
+      session_id: 9,
+      state: 'open',
+      cashier_id: 8,
+      cashier_name: 'bouchra',
+      allowed_actions: { view: true, add_cash_collection: true, close: false },
+    });
+    expect(session?.id).toBe(9);
+    expect(session?.cashier_id).toBe(8);
+    expect(cashSessionAllowsAction(session, 'add_cash_collection')).toBe(true);
+    expect(cashSessionAllowsAction(session, 'close')).toBe(false);
+  });
+
+  it('normalizes shared current session wrapper for another cashier', () => {
+    const session = normalizeCurrentCashSession({
+      session: {
+        id: 1,
+        state: 'open',
+        cashier_id: 8,
+        cashier_name: 'bouchra',
+        allowed_actions: ['view', 'add_cash_collection'],
+      },
+    });
+    expect(session?.cashier_id).toBe(8);
+    expect(cashSessionAllowsAction(session, 'add_cash_collection')).toBe(true);
+  });
+
   it('previews counted difference only for UI', () => {
     expect(previewCashDifference(120, 100)).toBe(20);
     expect(previewCashDifference(90, 100)).toBe(-10);

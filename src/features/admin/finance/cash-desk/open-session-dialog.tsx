@@ -3,20 +3,25 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { useToast } from '@/components/ui/toast';
 import { useT } from '@/features/i18n/locale-context';
-import { openCashSession } from '@/lib/api/finance-cash-desk';
+import { fetchCurrentCashSession, openCashSession } from '@/lib/api/finance-cash-desk';
+import { cashSessionCashierName } from '@/lib/utils/cash-session-access';
 import { resolveCashSessionErrorMessage } from '@/lib/utils/cash-session-errors';
+import { cashSessionIsActive } from '@/lib/utils/cash-session-normalize';
 import type { PaymentJournal } from '@/types/finance';
+import type { CashSession } from '@/types/finance-cash-desk';
 
 export function OpenCashSessionDialog({
   open,
   journals,
   defaultJournalId,
+  existingSession,
   onClose,
   onSuccess,
 }: {
   open: boolean;
   journals: PaymentJournal[];
   defaultJournalId?: number | string;
+  existingSession?: CashSession | null;
   onClose: () => void;
   onSuccess: (sessionId: number) => void;
 }) {
@@ -30,6 +35,9 @@ export function OpenCashSessionDialog({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const blockedByExistingSession =
+    !!existingSession && cashSessionIsActive(existingSession.state);
+
   useEffect(() => {
     if (!open) return;
     triggerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -39,6 +47,15 @@ export function OpenCashSessionDialog({
     const fallback = defaultJournalId ?? journals[0]?.id;
     setJournalId(fallback != null ? String(fallback) : '');
   }, [open, defaultJournalId, journals]);
+
+  useEffect(() => {
+    if (!open || !blockedByExistingSession) return;
+    setError(
+      t('admin.finance.cashDesk.openBlockedExistingSession', {
+        cashierName: cashSessionCashierName(existingSession) ?? t('common.dash'),
+      }),
+    );
+  }, [blockedByExistingSession, existingSession, open, t]);
 
   useEffect(() => {
     if (!open) return;
@@ -59,7 +76,11 @@ export function OpenCashSessionDialog({
     selectedJournal?.currency ?? selectedJournal?.currency_code ?? null;
   const parsedOpening = Number(openingBalance);
   const canSubmit =
-    !!journalId && !Number.isNaN(parsedOpening) && parsedOpening >= 0 && !submitting;
+    !!journalId &&
+    !Number.isNaN(parsedOpening) &&
+    parsedOpening >= 0 &&
+    !submitting &&
+    !blockedByExistingSession;
 
   const handleSubmit = useCallback(async () => {
     if (!canSubmit) return;
@@ -72,11 +93,16 @@ export function OpenCashSessionDialog({
     });
     setSubmitting(false);
     if (!res.success) {
-      setError(resolveCashSessionErrorMessage(res.error, t));
       if (res.error.code === 'cash_session_already_open') {
-        toast.error(t('admin.finance.cashDesk.errors.cashSessionAlreadyOpen'));
+        const current = await fetchCurrentCashSession(journalId);
+        const cashierName = cashSessionCashierName(current) ?? t('common.dash');
+        const message = t('admin.finance.cashDesk.openBlockedExistingSession', { cashierName });
+        setError(message);
+        toast.error(message);
         onSuccess(0);
+        return;
       }
+      setError(resolveCashSessionErrorMessage(res.error, t));
       return;
     }
     toast.success(t('admin.finance.cashDesk.openSuccess'));
@@ -127,7 +153,7 @@ export function OpenCashSessionDialog({
                     const next = e.target.value;
                     if (next === '' || Number(next) >= 0) setOpeningBalance(next);
                   }}
-                  disabled={submitting}
+                  disabled={submitting || blockedByExistingSession}
                   aria-describedby={`${titleId}-opening-hint`}
                 />
                 {currencyLabel ? (
@@ -147,7 +173,7 @@ export function OpenCashSessionDialog({
                 rows={2}
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                disabled={submitting}
+                disabled={submitting || blockedByExistingSession}
               />
             </label>
             {error ? <p className="form-error" role="alert">{error}</p> : null}

@@ -23,6 +23,32 @@ function asRecord(value: unknown): Record<string, unknown> | null {
     : null;
 }
 
+function actionValueTruthy(value: unknown): boolean {
+  if (value === true) return true;
+  if (typeof value === 'number') return value > 0;
+  return false;
+}
+
+function normalizeCashSessionAllowedActions(raw: unknown): CashSessionAction[] | undefined {
+  if (Array.isArray(raw)) {
+    const actions = raw.filter((item) => typeof item === 'string') as CashSessionAction[];
+    return actions.length ? actions : undefined;
+  }
+  const map = asRecord(raw);
+  if (!map) return undefined;
+  const actions = Object.entries(map)
+    .filter(([, value]) => actionValueTruthy(value))
+    .map(([key]) => key as CashSessionAction);
+  return actions.length ? actions : undefined;
+}
+
+function normalizeCashSessionId(row: Record<string, unknown>): number | null {
+  const rawId = row.id ?? row.session_id;
+  if (rawId == null) return null;
+  const parsed = Number(rawId);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 function normalizeSummary(raw: unknown, row?: Record<string, unknown>): CashSessionSummary | undefined {
   const summaryRow = asRecord(raw);
   const base: CashSessionSummary = summaryRow
@@ -220,7 +246,8 @@ export function normalizeCashSession(raw: unknown): CashSession | null {
   if (row.session && typeof row.session === 'object') {
     return normalizeCashSession(row.session);
   }
-  if (row.id == null) return null;
+  const sessionId = normalizeCashSessionId(row);
+  if (sessionId == null) return null;
 
   const summary = normalizeSummary(row.summary ?? row.balances ?? row.totals, row);
   const currency = currencyCode(row.currency ?? row.currency_code) ?? undefined;
@@ -228,7 +255,7 @@ export function normalizeCashSession(raw: unknown): CashSession | null {
   const schoolName = typeof row.school_name === 'string' ? row.school_name : undefined;
 
   return {
-    id: Number(row.id),
+    id: sessionId,
     number: typeof row.number === 'string' ? row.number : typeof row.name === 'string' ? row.name : undefined,
     name: typeof row.name === 'string' ? row.name : undefined,
     state: typeof row.state === 'string' ? row.state : undefined,
@@ -243,6 +270,12 @@ export function normalizeCashSession(raw: unknown): CashSession | null {
       (row.journal as CashSession['journal']) ??
       (journalName ? { id: row.journal_id as number, name: journalName } : undefined),
     cashier: row.cashier as CashSession['cashier'],
+    cashier_id:
+      typeof row.cashier_id === 'number'
+        ? row.cashier_id
+        : typeof (row.cashier as { id?: number } | undefined)?.id === 'number'
+          ? (row.cashier as { id: number }).id
+          : undefined,
     cashier_name:
       typeof row.cashier_name === 'string' ? row.cashier_name : refName(row.cashier as never) ?? undefined,
     school:
@@ -292,9 +325,7 @@ export function normalizeCashSession(raw: unknown): CashSession | null {
     audit_events: parseFinanceList<CashSessionAuditEvent>(row.audit_events ?? row.audit)
       .map((item, index) => normalizeAuditEvent(item, index))
       .filter(Boolean) as CashSessionAuditEvent[],
-    allowed_actions: Array.isArray(row.allowed_actions)
-      ? (row.allowed_actions.filter((a) => typeof a === 'string') as CashSessionAction[])
-      : undefined,
+    allowed_actions: normalizeCashSessionAllowedActions(row.allowed_actions),
   };
 }
 

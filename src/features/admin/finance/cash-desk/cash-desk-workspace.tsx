@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ApiErrorView } from '@/components/states/states';
+import { InfoBanner } from '@/components/ui/primitives';
 import { CashDeskPageHeader } from '@/features/admin/finance/cash-desk/cash-desk-page-header';
 import { CashSessionDetailView } from '@/features/admin/finance/cash-desk/cash-session-detail-view';
 import { CashSessionKpiSkeleton } from '@/features/admin/finance/cash-desk/cash-session-kpi-grid';
@@ -14,6 +15,11 @@ import { useT } from '@/features/i18n/locale-context';
 import '@/features/admin/finance/cash-desk/cash-desk-ui.css';
 import { fetchCashSession, fetchCurrentCashSession } from '@/lib/api/finance-cash-desk';
 import { canOpenCashSession } from '@/lib/permissions/finance';
+import {
+  cashDeskHasOpenSession,
+  cashSessionCashierName,
+  cashSessionOwnedByUser,
+} from '@/lib/utils/cash-session-access';
 import { cashSessionDisplayNumber } from '@/lib/utils/cash-session-normalize';
 import { refName } from '@/lib/utils/finance';
 import { appendReturnTo, isSafeInternalReturnPath } from '@/lib/utils/safe-return-url';
@@ -38,6 +44,10 @@ export function CashDeskWorkspace({ returnTo }: { returnTo?: string | null }) {
     returnTo && isSafeInternalReturnPath(returnTo) ? returnTo : null;
   const activeSchool = schools.find((s) => s.id === activeSchoolId);
   const selectedJournal = journals.find((j) => String(j.id) === journalId);
+  const hasOpenSession = cashDeskHasOpenSession(session);
+  const sharedSession =
+    hasOpenSession && session != null && !cashSessionOwnedByUser(session, user?.id);
+  const sharedCashierName = sharedSession ? cashSessionCashierName(session) : undefined;
 
   useEffect(() => {
     if (!journals.length) return;
@@ -77,8 +87,8 @@ export function CashDeskWorkspace({ returnTo }: { returnTo?: string | null }) {
   }, [journalId, journalsLoading, loadSession, activeSchoolId]);
 
   const canOpen = useMemo(
-    () => !session && journals.length > 0 && canOpenCashSession(user),
-    [session, journals.length, user],
+    () => !hasOpenSession && journals.length > 0 && canOpenCashSession(user),
+    [hasOpenSession, journals.length, user],
   );
 
   const handleOpenSuccess = useCallback(
@@ -106,12 +116,23 @@ export function CashDeskWorkspace({ returnTo }: { returnTo?: string | null }) {
     <div className="cash-desk-workspace">
       <CashDeskPageHeader
         schoolName={activeSchool?.name ?? refName(activeSchool) ?? null}
-        sessionState={session?.state ?? null}
-        sessionLabel={session ? cashSessionDisplayNumber(session) : null}
+        sessionState={hasOpenSession ? session?.state ?? null : null}
+        sessionLabel={hasOpenSession && session ? cashSessionDisplayNumber(session) : null}
         onRefresh={() => void loadSession()}
         refreshing={refreshing}
         returnTo={safeReturnTo}
       />
+
+      {sharedSession ? (
+        <InfoBanner
+          tone="amber"
+          icon="!"
+          title={t('admin.finance.cashDesk.sharedSessionBannerTitle')}
+          description={t('admin.finance.cashDesk.sharedSessionBannerDesc', {
+            cashierName: sharedCashierName ?? t('common.dash'),
+          })}
+        />
+      ) : null}
 
       {journals.length > 1 ? (
         <label className="field cash-desk-journal-picker">
@@ -147,7 +168,7 @@ export function CashDeskWorkspace({ returnTo }: { returnTo?: string | null }) {
         </div>
       ) : null}
 
-      {!loading && !session ? (
+      {!loading && !hasOpenSession ? (
         <article className="card cash-desk-no-session">
           <div className="cash-desk-no-session__content">
             <h2 className="cash-desk-no-session__title">{t('admin.finance.cashDesk.noSessionTitle')}</h2>
@@ -168,7 +189,7 @@ export function CashDeskWorkspace({ returnTo }: { returnTo?: string | null }) {
         </article>
       ) : null}
 
-      {session ? (
+      {hasOpenSession && session ? (
         <CashSessionDetailView
           session={session}
           onReload={() => void loadSession()}
@@ -181,6 +202,7 @@ export function CashDeskWorkspace({ returnTo }: { returnTo?: string | null }) {
         open={openDialog}
         journals={journals}
         defaultJournalId={journalId}
+        existingSession={hasOpenSession ? session : null}
         onClose={() => setOpenDialog(false)}
         onSuccess={handleOpenSuccess}
       />
