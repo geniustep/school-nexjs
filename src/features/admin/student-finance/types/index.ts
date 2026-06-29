@@ -107,6 +107,9 @@ export interface FinancialAgreementLine {
   service_name?: string;
   period_amendable?: boolean;
   amendment_block_reason?: string | null;
+  amount_amendable?: boolean;
+  amount_amendment_block_reason?: string | null;
+  supported_amendment_operations?: string[];
   duplicate_service_warning?: boolean;
   tariff_id?: number | null;
   tariff?: Ref | null;

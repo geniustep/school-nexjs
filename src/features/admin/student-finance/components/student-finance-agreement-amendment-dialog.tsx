@@ -18,14 +18,20 @@ import type { FinancialAgreement } from '../types';
 import type {
   AgreementAmendmentFormState,
   AgreementAmendmentOperationType,
+  AgreementAmendmentPath,
   NormalizedAgreementAmendmentPreview,
 } from '../types/agreement-amendment';
 import { resolveAgreementAmendmentErrorMessage } from '../utils/agreement-amendment-errors';
-import { isLineSelectableForPeriodAmendment } from '../utils/agreement-amendment-line-eligibility';
+import {
+  isLineSelectableForAmendmentOperation,
+  resolveAvailableAmendmentPaths,
+  resolveDefaultAmendmentPath,
+} from '../utils/agreement-amendment-path';
 import { formatAmendmentEffectivePeriodLabel } from '../utils/agreement-amendment-period-labels';
 import {
   hasAgreementAmendmentPricingContract,
   isBlockedByOneTimeLineNotPeriodAmendable,
+  resolveAgreementAmendmentPricingContractLabelMode,
   shouldShowAgreementAmendmentAllowedStatus,
   shouldShowAgreementAmendmentLegacyAmounts,
 } from '../utils/agreement-amendment-pricing-contract';
@@ -38,6 +44,7 @@ import {
   buildAgreementAmendmentPreviewPayload,
   canSubmitAgreementAmendmentForm,
   canSubmitAgreementAmendmentReason,
+  usesPeriodRangeForForm,
 } from '../utils/build-agreement-amendment-payload';
 import { normalizeAgreementAmendmentPreview } from '../utils/normalize-agreement-amendment-preview';
 import {
@@ -51,13 +58,16 @@ import {
 } from '../utils/resolve-agreement-amendment-ambiguous-target';
 import type { AgreementAmendmentAmbiguousLineCandidate } from '../types/agreement-amendment';
 import { AgreementAmendmentPricingContractPreview } from './agreement-amendment-pricing-contract-preview';
+import { AgreementAmendmentAmountAdjustmentPanel } from './agreement-amendment-amount-adjustment-panel';
 import { AgreementAmendmentLinePicker } from './agreement-amendment-line-picker';
-import { AgreementAmendmentMonthRail } from './agreement-amendment-month-rail';
+import { AgreementAmendmentRangeRail } from './agreement-amendment-range-rail';
 
 function defaultForm(): AgreementAmendmentFormState {
   return {
     operationType: 'modify_line',
+    amendmentPath: '',
     effectivePeriodId: '',
+    effectivePeriodEndId: '',
     reason: '',
     sourceLineId: '',
     feeTypeId: '',
@@ -162,16 +172,31 @@ export function StudentFinanceAgreementAmendmentDialog({
     return periodOptions.find((period) => String(period.id) === form.effectivePeriodId) ?? null;
   }, [form.effectivePeriodId, periodOptions]);
 
-  const hasSelectablePeriodLines = useMemo(() => {
-    if (!isPeriodBasedLineOperation) return lineOptions.length > 0;
-    return lineOptions.some(isLineSelectableForPeriodAmendment);
-  }, [isPeriodBasedLineOperation, lineOptions]);
+  const hasSelectableLines = useMemo(() => {
+    if (form.operationType === 'add_line') return true;
+    return lineOptions.some((line) => isLineSelectableForAmendmentOperation(line, form.operationType));
+  }, [form.operationType, lineOptions]);
+
+  const availableAmendmentPaths = useMemo(() => {
+    if (!selectedLine || form.operationType === 'add_line') return [];
+    return resolveAvailableAmendmentPaths(selectedLine, form.operationType);
+  }, [form.operationType, selectedLine]);
+
+  const showAmendmentPathSelector = availableAmendmentPaths.length > 1;
+
+  const showRangeRail = usesPeriodRangeForForm(form);
+
+  const showAmountAdjustmentPanel =
+    form.operationType === 'modify_line' &&
+    form.amendmentPath === 'adjust_amount' &&
+    selectedLine != null;
 
   const previewBlockedOneTime =
     preview != null && isBlockedByOneTimeLineNotPeriodAmendable(preview);
 
   const showMonthlyAmountField =
     form.operationType === 'modify_line' &&
+    form.amendmentPath === 'period_range' &&
     selectedLine != null &&
     selectedLine.isOneTime !== true &&
     selectedLine.isMonthly !== false &&
@@ -227,15 +252,29 @@ export function StudentFinanceAgreementAmendmentDialog({
 
   useEffect(() => {
     if (!isPeriodBasedLineOperation || !form.sourceLineId || !selectedLine) return;
-    if (isLineSelectableForPeriodAmendment(selectedLine)) return;
+    if (isLineSelectableForAmendmentOperation(selectedLine, form.operationType)) return;
     setForm((prev) => ({
       ...prev,
       sourceLineId: '',
+      amendmentPath: '',
       amount: prev.operationType === 'cancel_line' ? '0' : '',
     }));
     setPreview(null);
     setPreviewReady(false);
-  }, [form.sourceLineId, isPeriodBasedLineOperation, selectedLine]);
+  }, [form.operationType, form.sourceLineId, isPeriodBasedLineOperation, selectedLine]);
+
+  useEffect(() => {
+    if (!selectedLine || form.operationType === 'add_line') return;
+    const paths = resolveAvailableAmendmentPaths(selectedLine, form.operationType);
+    const defaultPath = resolveDefaultAmendmentPath(selectedLine, form.operationType);
+    setForm((prev) => {
+      if (paths.length === 1) {
+        return prev.amendmentPath === paths[0] ? prev : { ...prev, amendmentPath: paths[0]! };
+      }
+      if (prev.amendmentPath && paths.includes(prev.amendmentPath)) return prev;
+      return { ...prev, amendmentPath: defaultPath };
+    });
+  }, [form.operationType, selectedLine]);
 
   function resetAndClose() {
     setForm(defaultForm());
@@ -255,26 +294,57 @@ export function StudentFinanceAgreementAmendmentDialog({
     setForm((prev) => ({
       ...prev,
       operationType,
+      amendmentPath: operationType === 'cancel_line' ? 'period_range' : '',
       sourceLineId: '',
       feeTypeId: '',
+      effectivePeriodId: '',
+      effectivePeriodEndId: '',
       amount: operationType === 'cancel_line' ? '0' : '',
+    }));
+    invalidatePreview();
+  }
+
+  function updateAmendmentPath(amendmentPath: AgreementAmendmentPath) {
+    setForm((prev) => ({
+      ...prev,
+      amendmentPath,
+      effectivePeriodId: amendmentPath === 'adjust_amount' ? '' : prev.effectivePeriodId,
+      effectivePeriodEndId: amendmentPath === 'adjust_amount' ? '' : prev.effectivePeriodEndId,
+      amount:
+        amendmentPath === 'adjust_amount' && selectedLine?.unitPrice != null
+          ? String(selectedLine.unitPrice)
+          : amendmentPath === 'period_range' && selectedLine?.amount != null
+            ? String(selectedLine.amount)
+            : prev.amount,
     }));
     invalidatePreview();
   }
 
   function handleLineSelection(sourceLineId: string) {
     const selected = lineOptions.find((line) => String(line.id) === sourceLineId);
+    const defaultPath = resolveDefaultAmendmentPath(selected ?? null, form.operationType);
     setAmbiguousCandidates([]);
     setForm((prev) => ({
       ...prev,
       sourceLineId,
+      amendmentPath:
+        prev.operationType === 'cancel_line'
+          ? 'period_range'
+          : defaultPath || prev.amendmentPath,
       feeTypeId: selected?.feeTypeId != null ? String(selected.feeTypeId) : prev.feeTypeId,
       amount:
-        prev.operationType === 'modify_line' && selected?.amount != null
-          ? String(selected.amount)
-          : prev.operationType === 'cancel_line'
-            ? '0'
-            : prev.amount,
+        prev.operationType === 'modify_line' &&
+        (defaultPath === 'adjust_amount' || selected?.amountAmendable)
+          ? selected?.unitPrice != null
+            ? String(selected.unitPrice)
+            : selected?.amount != null
+              ? String(selected.amount)
+              : ''
+          : prev.operationType === 'modify_line' && selected?.amount != null
+            ? String(selected.amount)
+            : prev.operationType === 'cancel_line'
+              ? '0'
+              : prev.amount,
     }));
     invalidatePreview();
   }
@@ -295,6 +365,9 @@ export function StudentFinanceAgreementAmendmentDialog({
         pricingUnit: candidate.pricingUnit,
         periodAmendable: candidate.periodAmendable,
         amendmentBlockReason: candidate.amendmentBlockReason,
+        amountAmendable: candidate.amountAmendable,
+        amountAmendmentBlockReason: candidate.amountAmendmentBlockReason,
+        supportedAmendmentOperations: candidate.supportedAmendmentOperations,
         duplicateServiceWarning: candidate.duplicateServiceWarning,
       } satisfies AgreementAmendmentLineOption);
     setAmbiguousCandidates([]);
@@ -405,29 +478,6 @@ export function StudentFinanceAgreementAmendmentDialog({
             </select>
           </label>
 
-          <div>
-            <span className="tiny muted">
-              {t('admin.student360.financeWorkspace.agreementAmendment.effectivePeriod')}
-            </span>
-            <AgreementAmendmentMonthRail
-              periods={periodOptions}
-              selectedPeriodId={form.effectivePeriodId}
-              loading={periodsLoading}
-              disabled={!canEdit}
-              onSelect={(periodId) => {
-                setForm((prev) => ({ ...prev, effectivePeriodId: periodId }));
-                invalidatePreview();
-              }}
-            />
-            {periodsError ? (
-              <span className="tiny muted">{periodsError}</span>
-            ) : !periodOptions.length && !periodsLoading ? (
-              <span className="tiny muted">
-                {t('admin.student360.financeWorkspace.agreementAmendment.noPeriodsHint')}
-              </span>
-            ) : null}
-          </div>
-
           <label>
             <span className="tiny muted">
               {t('admin.student360.financeWorkspace.agreementAmendment.reason')}
@@ -485,6 +535,33 @@ export function StudentFinanceAgreementAmendmentDialog({
                   disabled={!canEdit}
                 />
               </label>
+              <div>
+                <span className="tiny muted">
+                  {t('admin.student360.financeWorkspace.agreementAmendment.choosePeriodRange')}
+                </span>
+                <AgreementAmendmentRangeRail
+                  periods={periodOptions}
+                  startPeriodId={form.effectivePeriodId}
+                  endPeriodId={form.effectivePeriodEndId}
+                  loading={periodsLoading}
+                  disabled={!canEdit}
+                  onStartSelect={(periodId) => {
+                    setForm((prev) => ({ ...prev, effectivePeriodId: periodId, effectivePeriodEndId: '' }));
+                    invalidatePreview();
+                  }}
+                  onEndSelect={(periodId) => {
+                    setForm((prev) => ({ ...prev, effectivePeriodEndId: periodId }));
+                    invalidatePreview();
+                  }}
+                />
+                {periodsError ? (
+                  <span className="tiny muted">{periodsError}</span>
+                ) : !periodOptions.length && !periodsLoading ? (
+                  <span className="tiny muted">
+                    {t('admin.student360.financeWorkspace.agreementAmendment.noPeriodsHint')}
+                  </span>
+                ) : null}
+              </div>
             </>
           ) : (
             <>
@@ -496,16 +573,110 @@ export function StudentFinanceAgreementAmendmentDialog({
                   lines={lineOptions}
                   selectedLineId={form.sourceLineId}
                   currency={currency}
-                  periodBasedOperation={isPeriodBasedLineOperation}
+                  operationType={form.operationType}
                   disabled={!canEdit || !lineOptions.length}
                   onSelect={handleLineSelection}
                 />
-                {isPeriodBasedLineOperation && !hasSelectablePeriodLines ? (
+                {isPeriodBasedLineOperation && !hasSelectableLines ? (
                   <span className="tiny muted">
                     {t('admin.student360.financeWorkspace.agreementAmendment.noPeriodAmendableLinesHint')}
                   </span>
                 ) : null}
               </div>
+
+              {selectedLine && availableAmendmentPaths.length === 0 ? (
+                <p className="form-error" role="alert">
+                  {selectedLine.amountAmendmentBlockReason
+                    ? resolveAgreementAmendmentErrorMessage(
+                        selectedLine.amountAmendmentBlockReason,
+                        undefined,
+                        t,
+                      )
+                    : t('admin.student360.financeWorkspace.agreementAmendment.lineAmountNotAmendable')}
+                </p>
+              ) : null}
+
+              {showAmendmentPathSelector ? (
+                <fieldset className="student-finance-amendment-path-selector">
+                  <legend className="tiny muted">
+                    {t('admin.student360.financeWorkspace.agreementAmendment.amendmentPathLegend')}
+                  </legend>
+                  <div className="row">
+                    {availableAmendmentPaths.includes('adjust_amount') ? (
+                      <label className="student-finance-amendment-path-selector__option">
+                        <input
+                          type="radio"
+                          name="amendmentPath"
+                          checked={form.amendmentPath === 'adjust_amount'}
+                          onChange={() => updateAmendmentPath('adjust_amount')}
+                          disabled={!canEdit}
+                        />
+                        {t('admin.student360.financeWorkspace.agreementAmendment.adjustLineAmountTitle')}
+                      </label>
+                    ) : null}
+                    {availableAmendmentPaths.includes('period_range') ? (
+                      <label className="student-finance-amendment-path-selector__option">
+                        <input
+                          type="radio"
+                          name="amendmentPath"
+                          checked={form.amendmentPath === 'period_range'}
+                          onChange={() => updateAmendmentPath('period_range')}
+                          disabled={!canEdit}
+                        />
+                        {t('admin.student360.financeWorkspace.agreementAmendment.periodRangeTitle')}
+                      </label>
+                    ) : null}
+                  </div>
+                </fieldset>
+              ) : null}
+
+              {showAmountAdjustmentPanel && selectedLine ? (
+                <AgreementAmendmentAmountAdjustmentPanel
+                  line={selectedLine}
+                  currency={currency}
+                  newAmount={form.amount}
+                  disabled={!canEdit}
+                  onAmountChange={(amount) => {
+                    setForm((prev) => ({ ...prev, amount }));
+                    invalidatePreview();
+                  }}
+                />
+              ) : null}
+
+              {showRangeRail ? (
+                <div>
+                  <span className="tiny muted">
+                    {t('admin.student360.financeWorkspace.agreementAmendment.choosePeriodRange')}
+                  </span>
+                  <AgreementAmendmentRangeRail
+                    periods={periodOptions}
+                    startPeriodId={form.effectivePeriodId}
+                    endPeriodId={form.effectivePeriodEndId}
+                    loading={periodsLoading}
+                    disabled={!canEdit}
+                    onStartSelect={(periodId) => {
+                      setForm((prev) => ({
+                        ...prev,
+                        effectivePeriodId: periodId,
+                        effectivePeriodEndId: '',
+                      }));
+                      invalidatePreview();
+                    }}
+                    onEndSelect={(periodId) => {
+                      setForm((prev) => ({ ...prev, effectivePeriodEndId: periodId }));
+                      invalidatePreview();
+                    }}
+                  />
+                  {periodsError ? (
+                    <span className="tiny muted">{periodsError}</span>
+                  ) : !periodOptions.length && !periodsLoading ? (
+                    <span className="tiny muted">
+                      {t('admin.student360.financeWorkspace.agreementAmendment.noPeriodsHint')}
+                    </span>
+                  ) : null}
+                </div>
+              ) : null}
+
               {form.operationType === 'modify_line' && showMonthlyAmountField ? (
                 <label>
                   <span className="tiny muted">
@@ -607,7 +778,9 @@ export function StudentFinanceAgreementAmendmentDialog({
             <button type="submit" className="btn btn--primary" disabled={previewLoading || !canEdit}>
               {previewLoading
                 ? t('common.loading')
-                : t('admin.student360.financeWorkspace.agreementAmendment.preview')}
+                : showAmountAdjustmentPanel
+                  ? t('admin.student360.financeWorkspace.agreementAmendment.previewAdjustAmount')
+                  : t('admin.student360.financeWorkspace.agreementAmendment.preview')}
             </button>
             {previewReady && preview?.allowed ? (
               <button
@@ -695,6 +868,10 @@ export function StudentFinanceAgreementAmendmentDialog({
               <AgreementAmendmentPricingContractPreview
                 contract={preview.pricingContract}
                 currency={preview.currency}
+                labelMode={resolveAgreementAmendmentPricingContractLabelMode(
+                  form.operationType,
+                  form.amendmentPath,
+                )}
               />
             ) : null}
 

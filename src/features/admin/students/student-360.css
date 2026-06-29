@@ -10079,6 +10079,153 @@
   cursor: not-allowed;
 }
 
+.student-finance-amendment-line-picker__card--amount-only {
+  opacity: 1;
+}
+
+.student-finance-amendment-line-picker__badge--positive {
+  background: color-mix(in srgb, var(--c-green, #059669) 14%, var(--surface, #fff));
+  color: var(--c-green, #047857);
+}
+
+.student-finance-amendment-line-picker__reason--positive {
+  color: var(--c-green, #047857);
+}
+
+.student-finance-amendment-range-rail {
+  margin-top: 0.5rem;
+}
+
+.student-finance-amendment-range-rail__track-wrap {
+  position: relative;
+  margin-top: 0.5rem;
+}
+
+.student-finance-amendment-range-rail__track {
+  position: absolute;
+  top: 0.95rem;
+  inset-inline: 0.75rem;
+  height: 2px;
+  background: var(--c-border, #e2e8f0);
+  pointer-events: none;
+}
+
+.student-finance-amendment-range-rail__scroll {
+  display: flex;
+  gap: 0.25rem;
+  overflow-x: auto;
+  padding: 0.25rem 0.125rem 1.5rem;
+  scroll-snap-type: x proximity;
+  position: relative;
+}
+
+.student-finance-amendment-range-rail__point {
+  flex: 0 0 auto;
+  min-width: 4.5rem;
+  scroll-snap-align: center;
+  border: none;
+  background: transparent;
+  padding: 0.25rem 0.35rem 0;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.student-finance-amendment-range-rail__point--disabled,
+.student-finance-amendment-range-rail__point:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.student-finance-amendment-range-rail__dot {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 999px;
+  border: 2px solid var(--c-border, #cbd5e1);
+  background: var(--surface, #fff);
+}
+
+.student-finance-amendment-range-rail__point--in-range .student-finance-amendment-range-rail__dot {
+  border-color: color-mix(in srgb, var(--c-primary, #2563eb) 55%, var(--c-border, #e2e8f0));
+  background: color-mix(in srgb, var(--c-primary, #2563eb) 18%, var(--surface, #fff));
+}
+
+.student-finance-amendment-range-rail__point--start .student-finance-amendment-range-rail__dot,
+.student-finance-amendment-range-rail__point--end .student-finance-amendment-range-rail__dot {
+  border-color: var(--c-primary, #2563eb);
+  background: var(--c-primary, #2563eb);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-primary, #2563eb) 22%, transparent);
+}
+
+.student-finance-amendment-range-rail__label {
+  font-size: 0.6875rem;
+  text-align: center;
+  line-height: 1.2;
+  max-width: 5.5rem;
+}
+
+.student-finance-amendment-range-rail__handle {
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: var(--c-primary, #2563eb);
+}
+
+.student-finance-amendment-range-rail__summary {
+  margin: 0.25rem 0 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.student-finance-amendment-range-rail__backend-note {
+  margin: 0.375rem 0 0;
+}
+
+.student-finance-amendment-amount-panel {
+  border: 1px solid color-mix(in srgb, var(--c-green, #059669) 22%, var(--c-border, #e2e8f0));
+  border-radius: 10px;
+  padding: 0.875rem;
+  background: color-mix(in srgb, var(--c-green, #059669) 4%, var(--surface, #fff));
+}
+
+.student-finance-amendment-amount-panel h4 {
+  margin: 0 0 0.375rem;
+  font-size: 0.9375rem;
+}
+
+.student-finance-amendment-amount-panel__note {
+  margin: 0 0 0.75rem;
+}
+
+.student-finance-amendment-amount-panel__delta {
+  margin: 0.5rem 0 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.student-finance-amendment-amount-panel__delta--decrease {
+  color: var(--c-green, #047857);
+}
+
+.student-finance-amendment-amount-panel__delta--increase {
+  color: var(--c-amber, #b45309);
+}
+
+.student-finance-amendment-path-selector {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.student-finance-amendment-path-selector__option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-inline-end: 1rem;
+  font-size: 0.875rem;
+}
+
 .student-finance-amendment-selection-summary {
   border: 1px solid color-mix(in srgb, var(--c-primary, #2563eb) 18%, var(--c-border, #e2e8f0));
   border-radius: 10px;

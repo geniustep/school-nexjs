@@ -2,12 +2,18 @@
 
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { useT } from '@/features/i18n/locale-context';
+import type { AgreementAmendmentOperationType } from '../types/agreement-amendment';
 import type { AgreementAmendmentLineOption } from '../utils/resolve-amendment-form-options';
 import { resolveReferenceLabel } from '../utils/reference-labels';
 import { resolveAgreementAmendmentBlockReasonKey } from '../utils/agreement-amendment-line-display';
-import { isLineSelectableForPeriodAmendment } from '../utils/agreement-amendment-line-eligibility';
+import {
+  isLineFullyBlockedForAmendment,
+  lineSupportsAdjustLineAmount,
+  lineSupportsPeriodAmendment,
+} from '../utils/agreement-amendment-line-eligibility';
+import { isLineSelectableForAmendmentOperation } from '../utils/agreement-amendment-path';
 
-function resolveBlockReasonLabel(
+function resolvePeriodBlockReasonLabel(
   line: AgreementAmendmentLineOption,
   t: (key: string) => string,
 ): string | null {
@@ -27,18 +33,30 @@ function resolveBlockReasonLabel(
   return translated !== key ? translated : null;
 }
 
+function resolveAmountBlockReasonLabel(
+  line: AgreementAmendmentLineOption,
+  t: (key: string) => string,
+): string | null {
+  const reason = line.amountAmendmentBlockReason;
+  if (!reason) return null;
+  const key = resolveAgreementAmendmentBlockReasonKey(reason);
+  if (!key) return null;
+  const translated = t(key);
+  return translated !== key ? translated : null;
+}
+
 export function AgreementAmendmentLinePicker({
   lines,
   selectedLineId,
   currency,
-  periodBasedOperation,
+  operationType,
   disabled,
   onSelect,
 }: {
   lines: AgreementAmendmentLineOption[];
   selectedLineId: string;
   currency?: string | null;
-  periodBasedOperation: boolean;
+  operationType: AgreementAmendmentOperationType;
   disabled?: boolean;
   onSelect: (lineId: string) => void;
 }) {
@@ -49,11 +67,19 @@ export function AgreementAmendmentLinePicker({
       <p className="tiny muted student-finance-amendment-line-picker__hint">
         {t('admin.student360.financeWorkspace.agreementAmendment.selectLineHint')}
       </p>
-      <ul className="student-finance-amendment-line-picker__list" role="listbox" aria-label={t('admin.student360.financeWorkspace.agreementAmendment.fields.line')}>
+      <ul
+        className="student-finance-amendment-line-picker__list"
+        role="listbox"
+        aria-label={t('admin.student360.financeWorkspace.agreementAmendment.fields.line')}
+      >
         {lines.map((line) => {
-          const selectable = !periodBasedOperation || isLineSelectableForPeriodAmendment(line);
+          const selectable = isLineSelectableForAmendmentOperation(line, operationType);
           const isSelected = selectedLineId === String(line.id);
-          const blockReason = resolveBlockReasonLabel(line, t);
+          const periodBlockReason = resolvePeriodBlockReasonLabel(line, t);
+          const amountBlockReason = resolveAmountBlockReasonLabel(line, t);
+          const amountAmendable = lineSupportsAdjustLineAmount(line);
+          const periodAmendable = lineSupportsPeriodAmendment(line);
+          const fullyBlocked = isLineFullyBlockedForAmendment(line);
 
           return (
             <li key={line.id}>
@@ -63,7 +89,16 @@ export function AgreementAmendmentLinePicker({
                 aria-selected={isSelected}
                 aria-disabled={!selectable}
                 disabled={disabled || !selectable}
-                className={`student-finance-amendment-line-picker__card${isSelected ? ' student-finance-amendment-line-picker__card--selected' : ''}${!selectable ? ' student-finance-amendment-line-picker__card--disabled' : ''}`}
+                className={[
+                  'student-finance-amendment-line-picker__card',
+                  isSelected ? 'student-finance-amendment-line-picker__card--selected' : '',
+                  !selectable ? 'student-finance-amendment-line-picker__card--disabled' : '',
+                  selectable && amountAmendable && !periodAmendable
+                    ? 'student-finance-amendment-line-picker__card--amount-only'
+                    : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
                 onClick={() => {
                   if (!selectable || disabled) return;
                   onSelect(String(line.id));
@@ -78,9 +113,14 @@ export function AgreementAmendmentLinePicker({
                       {t('admin.student360.financeWorkspace.agreementAmendment.duplicateServiceWarning')}
                     </span>
                   ) : null}
-                  {!selectable ? (
+                  {!periodAmendable ? (
                     <span className="student-finance-amendment-line-picker__badge student-finance-amendment-line-picker__badge--muted">
                       {t('admin.student360.financeWorkspace.agreementAmendment.notPeriodAmendable')}
+                    </span>
+                  ) : null}
+                  {amountAmendable ? (
+                    <span className="student-finance-amendment-line-picker__badge student-finance-amendment-line-picker__badge--positive">
+                      {t('admin.student360.financeWorkspace.agreementAmendment.amountAmendableBadge')}
                     </span>
                   ) : null}
                 </div>
@@ -126,9 +166,16 @@ export function AgreementAmendmentLinePicker({
                     </dd>
                   </div>
                 </dl>
-                {!selectable && blockReason ? (
+                {selectable && amountAmendable && !periodAmendable ? (
+                  <p className="student-finance-amendment-line-picker__reason student-finance-amendment-line-picker__reason--positive">
+                    {t('admin.student360.financeWorkspace.agreementAmendment.oneTimeAmountAmendableNote')}
+                  </p>
+                ) : null}
+                {!selectable && fullyBlocked ? (
                   <p className="student-finance-amendment-line-picker__reason" role="note">
-                    {blockReason}
+                    {amountBlockReason ??
+                      periodBlockReason ??
+                      t('admin.student360.financeWorkspace.agreementAmendment.lineAmountNotAmendable')}
                   </p>
                 ) : null}
               </button>

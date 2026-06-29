@@ -1,7 +1,51 @@
 import type {
+  AgreementAmendmentOperationType,
+  AgreementAmendmentPath,
   AgreementAmendmentPricingContract,
   NormalizedAgreementAmendmentPreview,
 } from '../types/agreement-amendment';
+import { resolvePayloadOperationType } from './agreement-amendment-path';
+
+export type AgreementAmendmentPricingContractLabelMode = 'line_amount' | 'monthly';
+
+const PRICING_CONTRACT_I18N_BASE =
+  'admin.student360.financeWorkspace.agreementAmendment.pricingContract';
+
+export function resolveAgreementAmendmentPricingContractLabelMode(
+  operationType: AgreementAmendmentOperationType,
+  amendmentPath: AgreementAmendmentPath | '' = '',
+): AgreementAmendmentPricingContractLabelMode {
+  const payloadOperation = resolvePayloadOperationType(operationType, amendmentPath);
+  return payloadOperation === 'adjust_line_amount' ? 'line_amount' : 'monthly';
+}
+
+export function resolveAgreementAmendmentPricingContractLabelKeys(
+  mode: AgreementAmendmentPricingContractLabelMode,
+): {
+  title: string;
+  currentUnitPrice: string;
+  newUnitPrice: string;
+  deltaTotal: string;
+  showMonthlyAggregates: boolean;
+} {
+  if (mode === 'line_amount') {
+    return {
+      title: `${PRICING_CONTRACT_I18N_BASE}.titleLineAmount`,
+      currentUnitPrice: `${PRICING_CONTRACT_I18N_BASE}.lineCurrentAmount`,
+      newUnitPrice: `${PRICING_CONTRACT_I18N_BASE}.lineNewAmount`,
+      deltaTotal: `${PRICING_CONTRACT_I18N_BASE}.deltaTotal`,
+      showMonthlyAggregates: false,
+    };
+  }
+
+  return {
+    title: `${PRICING_CONTRACT_I18N_BASE}.title`,
+    currentUnitPrice: `${PRICING_CONTRACT_I18N_BASE}.monthlyCurrentUnitPrice`,
+    newUnitPrice: `${PRICING_CONTRACT_I18N_BASE}.monthlyNewUnitPrice`,
+    deltaTotal: `${PRICING_CONTRACT_I18N_BASE}.deltaTotal`,
+    showMonthlyAggregates: true,
+  };
+}
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === 'object' && !Array.isArray(value)

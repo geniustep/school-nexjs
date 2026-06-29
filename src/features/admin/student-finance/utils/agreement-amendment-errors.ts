@@ -37,6 +37,14 @@ export function agreementAmendmentErrorMessageKey(code: string | undefined): str
       return 'admin.student360.financeWorkspace.agreementAmendment.reasonCodes.one_time_line_not_period_amendable';
     case 'ambiguous_agreement_line_target':
       return 'admin.student360.financeWorkspace.agreementAmendment.errors.ambiguousAgreementLineTarget';
+    case 'source_line_id_required_for_adjust_line_amount':
+    case 'line_amount_not_amendable':
+    case 'line_has_confirmed_collections':
+    case 'new_unit_price_required':
+    case 'invalid_adjusted_amount':
+    case 'adjusted_amount_must_be_non_negative':
+    case 'no_open_installments_to_adjust':
+      return agreementAmendmentReasonMessageKey(code);
     default:
       return null;
   }

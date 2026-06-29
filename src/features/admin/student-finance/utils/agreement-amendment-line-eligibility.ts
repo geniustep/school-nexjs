@@ -1,3 +1,4 @@
+import type { AgreementAmendmentOperationType } from '../types/agreement-amendment';
 import type { FinancialAgreement } from '../types';
 import type { AgreementAmendmentLineOption } from './resolve-amendment-form-options';
 
@@ -14,6 +15,13 @@ function normalizeToken(value: unknown): string | null {
   if (!raw) return null;
   return raw.toLowerCase().replace(/\s+/g, '_');
 }
+
+const VALID_AMENDMENT_OPERATIONS = new Set<AgreementAmendmentOperationType>([
+  'add_line',
+  'cancel_line',
+  'modify_line',
+  'adjust_line_amount',
+]);
 
 export function isMonthlyAgreementLine(line: Record<string, unknown>): boolean {
   const commitmentType = normalizeToken(line.commitment_type);
@@ -53,17 +61,59 @@ export function isOneTimeAgreementLine(line: Record<string, unknown>): boolean {
 }
 
 /** Prefer Odoo period_amendable contract; fall back to legacy heuristics. */
-export function resolvePeriodAmendableFromLine(
-  line: Record<string, unknown>,
-): boolean {
+export function resolvePeriodAmendableFromLine(line: Record<string, unknown>): boolean {
   const explicit = readBoolean(line.period_amendable);
   if (explicit != null) return explicit;
   return !isOneTimeAgreementLine(line);
 }
 
+/** Prefer Odoo amount_amendable; legacy agreements default to false. */
+export function resolveAmountAmendableFromLine(line: Record<string, unknown>): boolean {
+  const explicit = readBoolean(line.amount_amendable);
+  if (explicit != null) return explicit;
+  return false;
+}
+
+export function resolveSupportedAmendmentOperationsFromLine(
+  line: Record<string, unknown>,
+): AgreementAmendmentOperationType[] {
+  const raw = line.supported_amendment_operations;
+  if (Array.isArray(raw) && raw.length > 0) {
+    const ops = raw
+      .map((entry) => normalizeToken(entry))
+      .filter((entry): entry is AgreementAmendmentOperationType =>
+        entry != null && VALID_AMENDMENT_OPERATIONS.has(entry as AgreementAmendmentOperationType),
+      );
+    if (ops.length > 0) return ops;
+  }
+
+  const inferred: AgreementAmendmentOperationType[] = [];
+  if (resolvePeriodAmendableFromLine(line)) {
+    inferred.push('modify_line', 'cancel_line');
+  }
+  if (resolveAmountAmendableFromLine(line)) {
+    inferred.push('adjust_line_amount');
+  }
+  return inferred;
+}
+
 export function isPeriodAmendableLineOption(line: AgreementAmendmentLineOption): boolean {
   if (typeof line.periodAmendable === 'boolean') return line.periodAmendable;
   return line.isOneTime !== true;
+}
+
+export function lineSupportsAdjustLineAmount(line: AgreementAmendmentLineOption): boolean {
+  if (line.amountAmendable !== true) return false;
+  if (line.supportedAmendmentOperations.length === 0) return true;
+  return line.supportedAmendmentOperations.includes('adjust_line_amount');
+}
+
+export function lineSupportsPeriodAmendment(line: AgreementAmendmentLineOption): boolean {
+  if (!isPeriodAmendableLineOption(line)) return false;
+  if (line.supportedAmendmentOperations.length === 0) return true;
+  return line.supportedAmendmentOperations.some(
+    (operation) => operation === 'modify_line' || operation === 'cancel_line',
+  );
 }
 
 /** @deprecated Use all lines in picker with disabled state instead of filtering. */
@@ -79,5 +129,13 @@ export function agreementHasOneTimeLineMetadata(agreement?: FinancialAgreement |
 }
 
 export function isLineSelectableForPeriodAmendment(line: AgreementAmendmentLineOption): boolean {
-  return isPeriodAmendableLineOption(line);
+  return lineSupportsPeriodAmendment(line);
+}
+
+export function isLineSelectableForAmountAmendment(line: AgreementAmendmentLineOption): boolean {
+  return lineSupportsAdjustLineAmount(line);
+}
+
+export function isLineFullyBlockedForAmendment(line: AgreementAmendmentLineOption): boolean {
+  return !lineSupportsAdjustLineAmount(line) && !lineSupportsPeriodAmendment(line);
 }

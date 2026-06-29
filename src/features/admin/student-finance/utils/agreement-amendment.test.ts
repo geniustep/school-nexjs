@@ -18,7 +18,9 @@ import type { StudentFinanceWorkspace } from '../types';
 
 const baseForm: AgreementAmendmentFormState = {
   operationType: 'modify_line',
+  amendmentPath: 'period_range',
   effectivePeriodId: '456',
+  effectivePeriodEndId: '',
   reason: 'Transport amount changed from April',
   sourceLineId: '999',
   feeTypeId: '10',
@@ -90,7 +92,9 @@ describe('buildAgreementAmendmentPayload', () => {
   it('5) builds add_line payload correctly', () => {
     const payload = buildAgreementAmendmentPreviewPayload(123, {
       operationType: 'add_line',
+      amendmentPath: '',
       effectivePeriodId: '456',
+      effectivePeriodEndId: '',
       reason: 'Parent added canteen from January',
       sourceLineId: '',
       feeTypeId: '10',
@@ -233,7 +237,27 @@ describe('isAgreementAmendmentAllowed', () => {
 
 describe('canSubmitAgreementAmendmentForm', () => {
   it('requires complete form for modify_line', () => {
-    expect(canSubmitAgreementAmendmentForm(baseForm)).toBe(true);
-    expect(canSubmitAgreementAmendmentForm({ ...baseForm, reason: '' })).toBe(false);
+    const selectedLine = {
+      id: 999,
+      sourceLineId: 999,
+      agreementLineId: 999,
+      label: 'Transport',
+      feeTypeId: 10,
+      amount: 500,
+      unitPrice: 500,
+      quantity: 1,
+      commitmentType: 'renewable_subscription',
+      pricingUnit: 'month',
+      periodAmendable: true,
+      amendmentBlockReason: null,
+      amountAmendable: false,
+      amountAmendmentBlockReason: null,
+      supportedAmendmentOperations: ['modify_line', 'cancel_line'],
+      duplicateServiceWarning: false,
+      isMonthly: true,
+    } as import('./resolve-amendment-form-options').AgreementAmendmentLineOption;
+
+    expect(canSubmitAgreementAmendmentForm(baseForm, selectedLine)).toBe(true);
+    expect(canSubmitAgreementAmendmentForm({ ...baseForm, reason: '' }, selectedLine)).toBe(false);
   });
 });

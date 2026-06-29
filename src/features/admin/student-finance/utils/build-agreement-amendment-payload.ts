@@ -4,6 +4,11 @@ import type {
   AgreementAmendmentRequestPayload,
 } from '../types/agreement-amendment';
 import type { AgreementAmendmentLineOption } from './resolve-amendment-form-options';
+import {
+  lineSupportsAdjustLineAmount,
+  lineSupportsPeriodAmendment,
+} from './agreement-amendment-line-eligibility';
+import { resolvePayloadOperationType } from './agreement-amendment-path';
 
 function stripUndefined<T extends Record<string, unknown>>(obj: T): T {
   const out: Record<string, unknown> = {};
@@ -32,6 +37,14 @@ function readLinePayload(
       : undefined;
   const feeTypeId = form.feeTypeId ? Number(form.feeTypeId) : selectedLine?.feeTypeId ?? undefined;
 
+  if (operationType === 'adjust_line_amount') {
+    return stripUndefined({
+      source_line_id: sourceLineId,
+      agreement_line_id: agreementLineId,
+      new_unit_price: Number(form.amount),
+    });
+  }
+
   if (operationType === 'cancel_line') {
     return stripUndefined({
       source_line_id: sourceLineId,
@@ -49,21 +62,31 @@ function readLinePayload(
   });
 }
 
+export function usesPeriodRangeForForm(form: AgreementAmendmentFormState): boolean {
+  if (form.operationType === 'add_line') return true;
+  if (form.operationType === 'cancel_line') return true;
+  if (form.operationType === 'modify_line') return form.amendmentPath === 'period_range';
+  return false;
+}
+
 export function buildAgreementAmendmentPreviewPayload(
   agreementId: number,
   form: AgreementAmendmentFormState,
   selectedLine?: AgreementAmendmentLineOption | null,
 ): AgreementAmendmentRequestPayload {
-  const effectivePeriodId = form.effectivePeriodId.trim();
+  const payloadOperationType = resolvePayloadOperationType(form.operationType, form.amendmentPath);
   const payload: AgreementAmendmentRequestPayload = {
     agreement_id: agreementId,
-    operation_type: form.operationType,
+    operation_type: payloadOperationType,
     reason: form.reason.trim(),
-    line: readLinePayload(form.operationType, form, selectedLine),
+    line: readLinePayload(payloadOperationType, form, selectedLine),
   };
 
-  if (effectivePeriodId) {
-    payload.effective_period_id = Number(effectivePeriodId);
+  if (payloadOperationType !== 'adjust_line_amount' && usesPeriodRangeForForm(form)) {
+    const effectivePeriodId = form.effectivePeriodId.trim();
+    if (effectivePeriodId) {
+      payload.effective_period_id = Number(effectivePeriodId);
+    }
   }
 
   return stripUndefined(
@@ -88,14 +111,31 @@ export function canSubmitAgreementAmendmentForm(
   selectedLine?: AgreementAmendmentLineOption | null,
 ): boolean {
   if (!canSubmitAgreementAmendmentReason(form.reason)) return false;
-  if (!form.effectivePeriodId.trim()) return false;
 
   if (form.operationType === 'add_line') {
+    if (!usesPeriodRangeForForm(form) || !form.effectivePeriodId.trim()) return false;
     return Boolean(form.feeTypeId) && form.amount.trim() !== '' && Number.isFinite(Number(form.amount));
   }
 
-  if (!form.sourceLineId) return false;
-  if (selectedLine && selectedLine.periodAmendable === false) return false;
-  if (form.operationType === 'cancel_line') return true;
-  return form.amount.trim() !== '' && Number.isFinite(Number(form.amount));
+  if (!form.sourceLineId || !selectedLine) return false;
+
+  if (form.operationType === 'cancel_line') {
+    if (!lineSupportsPeriodAmendment(selectedLine)) return false;
+    return Boolean(form.effectivePeriodId.trim());
+  }
+
+  if (form.operationType === 'modify_line') {
+    if (form.amendmentPath === 'adjust_amount') {
+      if (!lineSupportsAdjustLineAmount(selectedLine)) return false;
+      return form.amount.trim() !== '' && Number.isFinite(Number(form.amount)) && Number(form.amount) >= 0;
+    }
+    if (form.amendmentPath === 'period_range') {
+      if (!lineSupportsPeriodAmendment(selectedLine)) return false;
+      if (!form.effectivePeriodId.trim()) return false;
+      return form.amount.trim() !== '' && Number.isFinite(Number(form.amount));
+    }
+    return false;
+  }
+
+  return false;
 }

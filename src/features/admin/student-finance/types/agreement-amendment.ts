@@ -1,10 +1,17 @@
-export type AgreementAmendmentOperationType = 'add_line' | 'cancel_line' | 'modify_line';
+export type AgreementAmendmentOperationType =
+  | 'add_line'
+  | 'cancel_line'
+  | 'modify_line'
+  | 'adjust_line_amount';
+
+export type AgreementAmendmentPath = 'adjust_amount' | 'period_range';
 
 export interface AgreementAmendmentLinePayload {
   source_line_id?: number;
   agreement_line_id?: number;
   fee_type_id?: number;
-  amount: number;
+  amount?: number;
+  new_unit_price?: number;
 }
 
 export interface AgreementAmendmentAmbiguousLineCandidate {
@@ -18,6 +25,9 @@ export interface AgreementAmendmentAmbiguousLineCandidate {
   netAmount: number | null;
   periodAmendable: boolean;
   amendmentBlockReason: string | null;
+  amountAmendable: boolean;
+  amountAmendmentBlockReason: string | null;
+  supportedAmendmentOperations: AgreementAmendmentOperationType[];
   duplicateServiceWarning: boolean;
 }
 
@@ -25,6 +35,7 @@ export interface AgreementAmendmentRequestPayload {
   agreement_id: number;
   operation_type: AgreementAmendmentOperationType;
   effective_period_id?: number;
+  effective_period_end_id?: number;
   effective_date?: string;
   reason: string;
   line: AgreementAmendmentLinePayload;
@@ -113,7 +124,9 @@ export interface NormalizedAgreementAmendmentPreview {
 
 export interface AgreementAmendmentFormState {
   operationType: AgreementAmendmentOperationType;
+  amendmentPath: AgreementAmendmentPath | '';
   effectivePeriodId: string;
+  effectivePeriodEndId: string;
   reason: string;
   sourceLineId: string;
   feeTypeId: string;

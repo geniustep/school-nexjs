@@ -4,7 +4,11 @@ import {
   resolveAgreementLineServiceName,
   resolveAgreementLineTargetId,
 } from './agreement-amendment-line-display';
-import { resolvePeriodAmendableFromLine } from './agreement-amendment-line-eligibility';
+import {
+  resolveAmountAmendableFromLine,
+  resolvePeriodAmendableFromLine,
+  resolveSupportedAmendmentOperationsFromLine,
+} from './agreement-amendment-line-eligibility';
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === 'object' && !Array.isArray(value)
@@ -58,6 +62,9 @@ export function readAmbiguousAgreementLineCandidates(
       netAmount: readFiniteNumber(rec.net_amount),
       periodAmendable: resolvePeriodAmendableFromLine(rec),
       amendmentBlockReason: readString(rec.amendment_block_reason),
+      amountAmendable: resolveAmountAmendableFromLine(rec),
+      amountAmendmentBlockReason: readString(rec.amount_amendment_block_reason),
+      supportedAmendmentOperations: resolveSupportedAmendmentOperationsFromLine(rec),
       duplicateServiceWarning: readBoolean(rec.duplicate_service_warning),
     });
   }

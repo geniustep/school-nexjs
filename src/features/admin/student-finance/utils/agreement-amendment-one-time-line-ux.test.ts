@@ -64,11 +64,26 @@ const schoolAgreement = {
 } as FinancialAgreement;
 
 describe('agreement amendment one-time line UX', () => {
-  it('1) hides one-time lines from modify_line selectable options', () => {
-    const allLines = resolveAmendmentAgreementLineOptions(schoolAgreement);
+  it('1) keeps legacy one-time lines out of period-only filter but amount-amendable lines stay in full list', () => {
+    const allLines = resolveAmendmentAgreementLineOptions({
+      ...schoolAgreement,
+      lines: [
+        ...(schoolAgreement.lines ?? []),
+        {
+          id: 1006,
+          service_name: 'رسوم التسجيل الجديدة',
+          commitment_type: 'one_time',
+          pricing_unit: 'academic_year',
+          period_amendable: false,
+          amount_amendable: true,
+          supported_amendment_operations: ['adjust_line_amount'],
+        },
+      ],
+    });
     const selectable = filterPeriodAmendableLineOptions(allLines);
     expect(selectable.map((line) => line.id)).toEqual([1004, 1005]);
-    expect(selectable.some((line) => line.label.includes('التسجيل'))).toBe(false);
+    const amountAmendable = allLines.find((line) => line.id === 1006);
+    expect(amountAmendable?.amountAmendable).toBe(true);
   });
 
   it('2) hides one-time lines from cancel_line selectable options', () => {

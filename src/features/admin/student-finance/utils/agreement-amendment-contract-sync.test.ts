@@ -92,7 +92,9 @@ describe('agreement amendment contract sync', () => {
     } as FinancialAgreement);
     const form: AgreementAmendmentFormState = {
       operationType: 'modify_line',
+      amendmentPath: 'period_range',
       effectivePeriodId: '456',
+      effectivePeriodEndId: '',
       reason: 'QA',
       sourceLineId: String(lines[0]!.id),
       feeTypeId: '',

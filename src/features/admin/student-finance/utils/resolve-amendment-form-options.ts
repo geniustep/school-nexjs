@@ -1,10 +1,15 @@
 import type { FinancialAgreement } from '../types';
-import type { AgreementAmendmentPeriodOption } from '../types/agreement-amendment';
+import type {
+  AgreementAmendmentOperationType,
+  AgreementAmendmentPeriodOption,
+} from '../types/agreement-amendment';
 import { resolveAgreementLineServiceName, resolveAgreementLineTargetId } from './agreement-amendment-line-display';
 import {
   isMonthlyAgreementLine,
   isOneTimeAgreementLine,
+  resolveAmountAmendableFromLine,
   resolvePeriodAmendableFromLine,
+  resolveSupportedAmendmentOperationsFromLine,
 } from './agreement-amendment-line-eligibility';
 import { mergeAgreementAmendmentPeriodOptions } from './normalize-agreement-amendment-period-options';
 import { sortAgreementAmendmentPeriodOptions } from './sort-agreement-amendment-period-options';
@@ -43,6 +48,9 @@ export interface AgreementAmendmentLineOption {
   pricingUnit: string | null;
   periodAmendable: boolean;
   amendmentBlockReason: string | null;
+  amountAmendable: boolean;
+  amountAmendmentBlockReason: string | null;
+  supportedAmendmentOperations: AgreementAmendmentOperationType[];
   duplicateServiceWarning: boolean;
   isOneTime?: boolean;
   isMonthly?: boolean;
@@ -69,6 +77,8 @@ export function resolveAmendmentAgreementLineOptions(
 
     const label = resolveAgreementLineServiceName(line);
     const periodAmendable = resolvePeriodAmendableFromLine(raw);
+    const amountAmendable = resolveAmountAmendableFromLine(raw);
+    const supportedAmendmentOperations = resolveSupportedAmendmentOperationsFromLine(raw);
     const isOneTime = isOneTimeAgreementLine(raw);
     const isMonthly = isMonthlyAgreementLine(raw);
 
@@ -86,6 +96,9 @@ export function resolveAmendmentAgreementLineOptions(
       pricingUnit: readString(line.pricing_unit),
       periodAmendable,
       amendmentBlockReason: readString(raw.amendment_block_reason),
+      amountAmendable,
+      amountAmendmentBlockReason: readString(raw.amount_amendment_block_reason),
+      supportedAmendmentOperations,
       duplicateServiceWarning: readBoolean(raw.duplicate_service_warning),
       isOneTime,
       isMonthly,

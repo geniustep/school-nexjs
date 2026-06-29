@@ -7,6 +7,8 @@ import { formatAmendmentEffectivePeriodLabel } from './agreement-amendment-perio
 import {
   isBlockedByOneTimeLineNotPeriodAmendable,
   normalizeAgreementAmendmentPricingContract,
+  resolveAgreementAmendmentPricingContractLabelKeys,
+  resolveAgreementAmendmentPricingContractLabelMode,
   shouldShowAgreementAmendmentLegacyAmounts,
 } from './agreement-amendment-pricing-contract';
 import { normalizeAgreementAmendmentPreview } from './normalize-agreement-amendment-preview';
@@ -36,6 +38,18 @@ const t = (key: string, params?: Record<string, string | number>) => {
       'تنبيه: أدخلت {newUnitPrice} كسعر شهري جديد على {affectedPeriodCount} أشهر.',
     'admin.student360.financeWorkspace.agreementAmendment.pricingContract.currentUnitPrice':
       'السعر الحالي للشهر',
+    'admin.student360.financeWorkspace.agreementAmendment.pricingContract.titleLineAmount':
+      'مبلغ البند',
+    'admin.student360.financeWorkspace.agreementAmendment.pricingContract.lineCurrentAmount':
+      'المبلغ الحالي',
+    'admin.student360.financeWorkspace.agreementAmendment.pricingContract.lineNewAmount':
+      'المبلغ الجديد',
+    'admin.student360.financeWorkspace.agreementAmendment.pricingContract.monthlyCurrentUnitPrice':
+      'السعر الشهري الحالي',
+    'admin.student360.financeWorkspace.agreementAmendment.pricingContract.monthlyNewUnitPrice':
+      'السعر الشهري الجديد',
+    'admin.student360.financeWorkspace.agreementAmendment.pricingContract.deltaTotal':
+      'الفرق',
   };
 
   const template = translations[key] ?? key;
@@ -182,6 +196,33 @@ describe('agreement amendment pricing contract UI', () => {
 
   it('does not invent pricing contract values when Odoo sends empty object', () => {
     expect(normalizeAgreementAmendmentPricingContract({})).toBeNull();
+  });
+
+  it('uses line amount labels for adjust_line_amount preview pricing contract', () => {
+    expect(resolveAgreementAmendmentPricingContractLabelMode('modify_line', 'adjust_amount')).toBe(
+      'line_amount',
+    );
+    expect(resolveAgreementAmendmentPricingContractLabelMode('adjust_line_amount')).toBe('line_amount');
+
+    const labels = resolveAgreementAmendmentPricingContractLabelKeys('line_amount');
+    expect(t(labels.title)).toBe('مبلغ البند');
+    expect(t(labels.currentUnitPrice)).toBe('المبلغ الحالي');
+    expect(t(labels.newUnitPrice)).toBe('المبلغ الجديد');
+    expect(t(labels.deltaTotal)).toBe('الفرق');
+    expect(t(labels.currentUnitPrice)).not.toContain('السعر الشهري');
+    expect(t(labels.newUnitPrice)).not.toContain('السعر الشهري');
+    expect(labels.showMonthlyAggregates).toBe(false);
+  });
+
+  it('uses monthly labels for modify_line period amendment preview pricing contract', () => {
+    expect(resolveAgreementAmendmentPricingContractLabelMode('modify_line', 'period_range')).toBe(
+      'monthly',
+    );
+
+    const labels = resolveAgreementAmendmentPricingContractLabelKeys('monthly');
+    expect(t(labels.currentUnitPrice)).toBe('السعر الشهري الحالي');
+    expect(t(labels.newUnitPrice)).toBe('السعر الشهري الجديد');
+    expect(labels.showMonthlyAggregates).toBe(true);
   });
 
   it('shows legacy amounts when pricing contract is absent and values are meaningful', () => {
