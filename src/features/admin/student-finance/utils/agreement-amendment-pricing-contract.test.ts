@@ -10,6 +10,7 @@ import {
   resolveAgreementAmendmentPricingContractLabelKeys,
   resolveAgreementAmendmentPricingContractLabelMode,
   shouldShowAgreementAmendmentLegacyAmounts,
+  shouldShowAgreementAmendmentBlockingReasons,
 } from './agreement-amendment-pricing-contract';
 import { normalizeAgreementAmendmentPreview } from './normalize-agreement-amendment-preview';
 import {
@@ -48,6 +49,8 @@ const t = (key: string, params?: Record<string, string | number>) => {
       'السعر الشهري الحالي',
     'admin.student360.financeWorkspace.agreementAmendment.pricingContract.monthlyNewUnitPrice':
       'السعر الشهري الجديد',
+    'admin.student360.financeWorkspace.agreementAmendment.errors.amendmentNotAllowed':
+      'تعديل الاتفاقية غير مسموح حاليًا.',
     'admin.student360.financeWorkspace.agreementAmendment.pricingContract.deltaTotal':
       'الفرق',
   };
@@ -244,5 +247,37 @@ describe('agreement amendment pricing contract UI', () => {
     } satisfies NormalizedAgreementAmendmentPreview;
 
     expect(shouldShowAgreementAmendmentLegacyAmounts(preview)).toBe(true);
+  });
+
+  it('drops stale blocking reasons when preview is allowed', () => {
+    const normalized = normalizeAgreementAmendmentPreview({
+      allowed: true,
+      blocked: false,
+      blocking_reasons: ['amendment_not_allowed'],
+      amount_before: 2300,
+      amount_after: 2000,
+      delta: -300,
+    });
+
+    expect(normalized.allowed).toBe(true);
+    expect(normalized.blockingReasons).toEqual([]);
+    expect(shouldShowAgreementAmendmentBlockingReasons(normalized)).toBe(false);
+  });
+
+  it('shows blocking reasons only when preview is disallowed', () => {
+    const blocked = normalizeAgreementAmendmentPreview({
+      allowed: false,
+      blocking_reasons: ['amendment_not_allowed'],
+    });
+    expect(shouldShowAgreementAmendmentBlockingReasons(blocked)).toBe(true);
+    expect(
+      resolveAgreementAmendmentBlockingMessage({ code: 'amendment_not_allowed' }, t),
+    ).toBe('تعديل الاتفاقية غير مسموح حاليًا.');
+
+    const allowed = normalizeAgreementAmendmentPreview({
+      allowed: true,
+      blocking_reasons: ['amendment_not_allowed'],
+    });
+    expect(shouldShowAgreementAmendmentBlockingReasons(allowed)).toBe(false);
   });
 });

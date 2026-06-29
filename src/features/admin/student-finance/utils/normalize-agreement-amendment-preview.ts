@@ -106,6 +106,11 @@ export function normalizeAgreementAmendmentPreview(
         ? root.allowed
         : blockingReasons.length === 0;
 
+  const effectiveBlockingReasons =
+    allowedExplicit === true
+      ? []
+      : blockingReasons;
+
   const pricingContract =
     normalizeAgreementAmendmentPricingContract(data.pricing_contract) ??
     normalizeAgreementAmendmentPricingContract(root.pricing_contract);
@@ -131,7 +136,7 @@ export function normalizeAgreementAmendmentPreview(
       ]),
     ],
     warnings,
-    blockingReasons,
+    blockingReasons: effectiveBlockingReasons,
     createdInstallments: [
       ...readInstallmentPreviews(data.created_installments),
       ...readInstallmentPreviews(data.created_installments_preview),

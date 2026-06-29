@@ -33,6 +33,7 @@ import {
   isBlockedByOneTimeLineNotPeriodAmendable,
   resolveAgreementAmendmentPricingContractLabelMode,
   shouldShowAgreementAmendmentAllowedStatus,
+  shouldShowAgreementAmendmentBlockingReasons,
   shouldShowAgreementAmendmentLegacyAmounts,
 } from '../utils/agreement-amendment-pricing-contract';
 import {
@@ -288,6 +289,7 @@ export function StudentFinanceAgreementAmendmentDialog({
   function invalidatePreview() {
     setPreview(null);
     setPreviewReady(false);
+    setFormError(null);
   }
 
   function updateOperationType(operationType: AgreementAmendmentOperationType) {
@@ -399,6 +401,9 @@ export function StudentFinanceAgreementAmendmentDialog({
     }
 
     setPreviewLoading(true);
+    setFormError(null);
+    setPreview(null);
+    setPreviewReady(false);
     const payload = buildAgreementAmendmentPreviewPayload(agreementId, form, selectedLine);
     const res = await previewAgreementAmendment(studentId, payload);
     setPreviewLoading(false);
@@ -408,6 +413,8 @@ export function StudentFinanceAgreementAmendmentDialog({
         const candidates = readAmbiguousAgreementLineCandidates(res.error);
         setAmbiguousCandidates(candidates);
       }
+      setPreview(null);
+      setPreviewReady(false);
       setFormError(
         resolveAgreementAmendmentErrorMessage(res.error?.code, res.error?.message, t),
       );
@@ -799,7 +806,7 @@ export function StudentFinanceAgreementAmendmentDialog({
           <section className="student-finance-amendment-preview stack" aria-live="polite">
             <h3>{t('admin.student360.financeWorkspace.agreementAmendment.previewTitle')}</h3>
 
-            {!shouldShowAgreementAmendmentAllowedStatus(preview) ? (
+            {shouldShowAgreementAmendmentBlockingReasons(preview) ? (
               <div className="student-finance-amendment-preview__not-allowed" role="alert">
                 <h4>{t('admin.student360.financeWorkspace.agreementAmendment.notAllowedTitle')}</h4>
                 {preview.blockingReasons.map((reason) => (
@@ -894,7 +901,8 @@ export function StudentFinanceAgreementAmendmentDialog({
               </div>
             ) : null}
 
-            {preview.blockingReasons.length && !isBlockedByOneTimeLineNotPeriodAmendable(preview) ? (
+            {shouldShowAgreementAmendmentBlockingReasons(preview) &&
+            !isBlockedByOneTimeLineNotPeriodAmendable(preview) ? (
               <div>
                 <h4>{t('admin.student360.financeWorkspace.agreementAmendment.blockingReasons')}</h4>
                 <ul className="student-finance-amendment-preview__blockers">

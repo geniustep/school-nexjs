@@ -185,6 +185,28 @@ describe('normalizeAgreementAmendmentPreview', () => {
     expect(normalized.allowed).toBe(true);
   });
 
+  it('10b) allowed preview ignores stale amendment_not_allowed blockers', () => {
+    const normalized = normalizeAgreementAmendmentPreview({
+      allowed: true,
+      blocked: false,
+      blocking_reasons: ['amendment_not_allowed'],
+      amount_before: 2300,
+      amount_after: 2000,
+      delta: -300,
+    });
+    expect(normalized.allowed).toBe(true);
+    expect(normalized.blockingReasons).toEqual([]);
+  });
+
+  it('10c) disallowed preview keeps amendment_not_allowed blockers', () => {
+    const normalized = normalizeAgreementAmendmentPreview({
+      allowed: false,
+      blocking_reasons: ['amendment_not_allowed'],
+    });
+    expect(normalized.allowed).toBe(false);
+    expect(normalized.blockingReasons).toEqual([{ code: 'amendment_not_allowed' }]);
+  });
+
   it('11) locked_periods and warnings are surfaced', () => {
     const normalized = normalizeAgreementAmendmentPreview({
       allowed: true,

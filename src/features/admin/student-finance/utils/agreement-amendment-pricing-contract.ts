@@ -130,3 +130,10 @@ export function shouldShowAgreementAmendmentAllowedStatus(
 ): boolean {
   return preview.allowed;
 }
+
+/** Blockers apply only when the current preview is disallowed. */
+export function shouldShowAgreementAmendmentBlockingReasons(
+  preview: NormalizedAgreementAmendmentPreview,
+): boolean {
+  return !preview.allowed && preview.blockingReasons.length > 0;
+}
