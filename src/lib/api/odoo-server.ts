@@ -8,7 +8,11 @@
 
 import 'server-only';
 import { config } from '@/lib/config';
-import { getStoredTenantSlug, resolveOdooBaseUrlForTenant } from '@/lib/api/odoo-backend';
+import {
+  getStoredTenantSlug,
+  resolveOdooBaseUrlForTenant,
+  type BackendBaseUrlResolution,
+} from '@/lib/api/odoo-backend';
 import { isOdooBinaryResponse } from '@/lib/api/odoo-binary-response';
 import { buildOdooApiUrl } from '@/lib/api/build-odoo-api-url';
 import {
@@ -43,8 +47,16 @@ export async function authenticateOdoo(
   database: string,
   login: string,
   password: string,
+  backendBaseUrl?: string,
 ): Promise<OdooAuthResult> {
-  const baseUrl = resolveOdooBaseUrlForTenant(database);
+  let baseUrl: string | null = backendBaseUrl?.trim() ?? null;
+  if (!baseUrl) {
+    const resolved = resolveOdooBaseUrlForTenant(database);
+    if (!resolved.ok) {
+      return { ok: false, sessionId: null, uid: null, errorName: 'tenant_backend_not_configured' };
+    }
+    baseUrl = resolved.baseUrl;
+  }
   let res: Response;
   try {
     res = await fetch(`${baseUrl}/web/session/authenticate`, {
@@ -88,16 +100,27 @@ export interface OdooFetchOptions {
   sessionId: string | null;
   /** Tenant slug (Odoo db) — selects per-tenant backend; falls back to session cookie. */
   tenant?: string;
+  /** Pre-resolved backend URL from tenant runtime config (preferred). */
+  backendBaseUrl?: string;
+  /** Request host for dev/preview fallback detection. */
+  host?: string | null;
   query?: Record<string, string | number | undefined>;
   body?: unknown;
   /** When set, body is forwarded as multipart/form-data (Content-Type with boundary is auto-set). */
   formData?: FormData;
 }
 
-async function resolveOdooBaseUrl(opts: OdooFetchOptions): Promise<string> {
+async function resolveOdooBaseUrl(opts: OdooFetchOptions): Promise<BackendBaseUrlResolution> {
+  if (opts.backendBaseUrl?.trim()) {
+    return { ok: true, baseUrl: opts.backendBaseUrl.trim().replace(/\/$/, '') };
+  }
+
   const tenant = opts.tenant?.trim() || (await getStoredTenantSlug());
-  if (tenant) return resolveOdooBaseUrlForTenant(tenant);
-  return config.odooBaseUrl;
+  if (tenant) return resolveOdooBaseUrlForTenant(tenant, { host: opts.host });
+
+  const fallbackUrl = config.odooBaseUrl?.trim();
+  if (!fallbackUrl) return { ok: false, code: 'TENANT_BACKEND_NOT_CONFIGURED' };
+  return { ok: true, baseUrl: fallbackUrl.replace(/\/$/, '') };
 }
 
 function errorEnvelope(code: ApiErrorCode, message: string): ApiResponse<never> {
@@ -146,7 +169,18 @@ export async function odooApiFetch<T = unknown>(
     };
   }
 
-  const baseUrl = await resolveOdooBaseUrl(opts);
+  const baseResolved = await resolveOdooBaseUrl(opts);
+  if (!baseResolved.ok) {
+    return {
+      kind: 'json',
+      status: 503,
+      body: errorEnvelope(
+        'tenant_backend_not_configured' as ApiErrorCode,
+        'Tenant backend is not configured.',
+      ) as ApiResponse<T>,
+    };
+  }
+  const baseUrl = baseResolved.baseUrl;
   const url = buildOdooApiUrl(baseUrl, config.apiPrefix, path, opts.query);
   const method = opts.method ?? 'GET';
 
