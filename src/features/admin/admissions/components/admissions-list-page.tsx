@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ResourceView } from '@/components/states/resource';
 import { Pagination } from '@/components/tables/data-table';
 import { InfoBanner } from '@/components/ui/primitives';
+import { cn } from '@/lib/utils/cn';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { useDebouncedValue } from '@/features/admin/students/hooks/use-debounced-value';
 import { useT } from '@/features/i18n/locale-context';
@@ -33,7 +34,6 @@ import {
   filterAdmissionListItems,
   hasActiveAdmissionListFilters,
 } from '../utils/filter-admission-list-items';
-import { buildAdmissionsDashboardFromList } from '../utils/admission-dashboard-from-list';
 import '../admissions.css';
 
 type ViewMode = 'kanban' | 'table';
@@ -162,13 +162,6 @@ export function AdmissionsListPage() {
     return countHiddenConvertedAdmissionListItems(source, hideConverted);
   }, [view, kanbanBoard.allItems, tableState.data, hideConverted]);
 
-  const displayDashboard = useMemo(() => {
-    if (!hideConverted) return dashboardData;
-    const sourceItems = view === 'kanban' ? kanbanBoard.allItems : (tableState.data ?? []);
-    if (sourceItems.length === 0) return dashboardData;
-    return buildAdmissionsDashboardFromList(filterAdmissionListItems(sourceItems, true));
-  }, [hideConverted, dashboardData, view, kanbanBoard.allItems, tableState.data]);
-
   const isListLoading = view === 'kanban' ? kanbanBoard.initialLoading : tableState.initialLoading;
 
   const hasActiveFilters = hasActiveAdmissionListFilters({
@@ -195,11 +188,6 @@ export function AdmissionsListPage() {
     if (key === 'total_open') {
       setStateFilter('');
       setShowClosed(false);
-      return;
-    }
-    if (key === 'lost_count') {
-      setStateFilter(CLOSED_UI_STAGE);
-      setShowClosed(true);
     }
   }
 
@@ -223,8 +211,8 @@ export function AdmissionsListPage() {
         </Link>
       </header>
 
-      {displayDashboard ? (
-        <AdmissionsDashboardSummary data={displayDashboard} onKpiClick={handleKpiClick} />
+      {dashboardData ? (
+        <AdmissionsDashboardSummary data={dashboardData} onKpiClick={handleKpiClick} />
       ) : dashboardState.loading && dashboardApiEnabled ? (
         <div className="muted">{t('common.loading')}</div>
       ) : dashboardState.error ? (
@@ -240,55 +228,51 @@ export function AdmissionsListPage() {
         </div>
       ) : null}
 
-      <div className="card admissions-list-toolbar">
-        <div className="admissions-list-toolbar__row">
-          <div className="admissions-list-toolbar__filters">
-            <input
-              className="input admissions-list-toolbar__search"
-              type="search"
-              placeholder={t('admin.admissions.filters.search')}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              aria-label={t('admin.admissions.filters.search')}
-            />
-            <select
-              className="input admissions-list-toolbar__state"
-              value={stateFilter}
-              onChange={(e) => setStateFilter(e.target.value as AdmissionUiStage | '')}
+      <div className="admissions-list-toolbar">
+        <div className="admissions-list-toolbar__primary">
+          <div className="admissions-list-toolbar__fields">
+            <div className="admissions-list-toolbar__search-wrap">
+              <input
+                className="input admissions-list-toolbar__search"
+                type="search"
+                placeholder={t('admin.admissions.filters.search')}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                aria-label={t('admin.admissions.filters.search')}
+              />
+            </div>
+            <div
+              className="admissions-list-toolbar__controls"
+              role="group"
               aria-label={t('admin.admissions.filters.state')}
             >
-              <option value="">{t('admin.admissions.filters.allStates')}</option>
-              {ALL_UI_STAGES.map((stage) => (
-                <option key={stage} value={stage}>
-                  {t(`admin.admissions.uiStages.${stage}`)}
-                </option>
-              ))}
-            </select>
-            <label className="admissions-list-toolbar__closed checkbox-row">
-              <input
-                type="checkbox"
-                checked={showClosed}
-                onChange={(e) => {
-                  const checked = e.target.checked;
-                  setShowClosed(checked);
-                  if (!checked && stateFilter === CLOSED_UI_STAGE) setStateFilter('');
-                }}
-              />
-              <span>{t('admin.admissions.filters.showClosed')}</span>
-            </label>
-            <label className="admissions-list-toolbar__closed checkbox-row">
-              <input
-                type="checkbox"
-                checked={hideConverted}
-                onChange={(e) => setHideConverted(e.target.checked)}
-              />
-              <span>{t('admin.admissions.filters.hideConverted')}</span>
-            </label>
-            {hasActiveFilters ? (
-              <button type="button" className="btn btn--ghost btn--sm" onClick={resetFilters}>
-                {t('admin.admissions.filters.reset')}
+              <button
+                type="button"
+                className={cn(
+                  'admissions-quick-filter',
+                  stateFilter === 'in_evaluation' && 'admissions-quick-filter--active',
+                )}
+                aria-pressed={stateFilter === 'in_evaluation'}
+                onClick={() =>
+                  setStateFilter((current) => (current === 'in_evaluation' ? '' : 'in_evaluation'))
+                }
+              >
+                {t('admin.admissions.uiStages.in_evaluation')}
               </button>
-            ) : null}
+              <select
+                className="input admissions-list-toolbar__state"
+                value={stateFilter}
+                onChange={(e) => setStateFilter(e.target.value as AdmissionUiStage | '')}
+                aria-label={t('admin.admissions.filters.state')}
+              >
+                <option value="">{t('admin.admissions.filters.allStates')}</option>
+                {ALL_UI_STAGES.map((stage) => (
+                  <option key={stage} value={stage}>
+                    {t(`admin.admissions.uiStages.${stage}`)}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div
@@ -312,6 +296,52 @@ export function AdmissionsListPage() {
             </button>
           </div>
         </div>
+
+        <div className="admissions-list-toolbar__secondary">
+          <div className="admissions-list-toolbar__options">
+            <label
+              className={cn(
+                'admissions-toolbar-option',
+                showClosed && 'admissions-toolbar-option--on',
+              )}
+            >
+              <input
+                type="checkbox"
+                className="admissions-toolbar-option__input"
+                checked={showClosed}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setShowClosed(checked);
+                  if (!checked && stateFilter === CLOSED_UI_STAGE) setStateFilter('');
+                }}
+              />
+              <span>{t('admin.admissions.filters.showClosed')}</span>
+            </label>
+            <label
+              className={cn(
+                'admissions-toolbar-option',
+                hideConverted && 'admissions-toolbar-option--on',
+              )}
+            >
+              <input
+                type="checkbox"
+                className="admissions-toolbar-option__input"
+                checked={hideConverted}
+                onChange={(e) => setHideConverted(e.target.checked)}
+              />
+              <span>{t('admin.admissions.filters.hideConverted')}</span>
+            </label>
+          </div>
+          {hasActiveFilters ? (
+            <button
+              type="button"
+              className="admissions-list-toolbar__reset"
+              onClick={resetFilters}
+            >
+              {t('admin.admissions.filters.reset')}
+            </button>
+          ) : null}
+        </div>
       </div>
 
       {view === 'kanban' ? (
@@ -333,30 +363,41 @@ export function AdmissionsListPage() {
           state={tableState}
           isEmpty={() => filteredTableRows.length === 0}
         >
-          {() => (
-            <>
-              <AdmissionsTable items={filteredTableRows} onUpdated={reloadCurrentView} />
-              {tablePagination ? (
-                <Pagination
-                  page={tablePagination.page}
-                  pageSize={tablePagination.page_size}
-                  totalPages={tablePagination.total_pages}
-                  total={tablePagination.total}
-                  onPage={setPage}
-                />
-              ) : null}
-            </>
-          )}
+          {() => <AdmissionsTable items={filteredTableRows} onUpdated={reloadCurrentView} />}
         </ResourceView>
       )}
 
       {!isListLoading ? (
-        <p className="admissions-list__results">
-          {t('admin.admissions.filters.resultsCount', { count: visibleSummary })}
-          {hideConverted && hiddenConvertedOnPage > 0
-            ? ` · ${t('admin.admissions.filters.hiddenConvertedCount', { count: hiddenConvertedOnPage })}`
-            : ''}
-        </p>
+        <footer
+          className={cn(
+            'admissions-list-footer',
+            view === 'kanban' && 'admissions-list-footer--kanban',
+          )}
+        >
+          <div className="admissions-list-footer__stats">
+            <span className="admissions-list-footer__stat">
+              {t('admin.admissions.filters.resultsCount', { count: visibleSummary })}
+            </span>
+            {hideConverted && hiddenConvertedOnPage > 0 ? (
+              <span className="admissions-list-footer__stat admissions-list-footer__stat--muted">
+                {t('admin.admissions.filters.hiddenConvertedCount', {
+                  count: hiddenConvertedOnPage,
+                })}
+              </span>
+            ) : null}
+          </div>
+          {view === 'table' && tablePagination ? (
+            <div className="admissions-list-footer__pagination">
+              <Pagination
+                page={tablePagination.page}
+                pageSize={tablePagination.page_size}
+                totalPages={tablePagination.total_pages}
+                total={tablePagination.total}
+                onPage={setPage}
+              />
+            </div>
+          ) : null}
+        </footer>
       ) : null}
     </div>
   );

@@ -3193,7 +3193,7 @@
         "closed": "مغلق"
       },
       "dashboard": {
-        "total_open": "الطلبات المفتوحة",
+        "total_open": "الطلبات النشطة",
         "new_count": "الطلبات الجديدة",
         "visit_pending_count": "الزيارات المعلقة",
         "under_review_count": "قيد المراجعة",
@@ -3202,7 +3202,7 @@
         "confirmed_count": "المؤكدة",
         "lost_count": "طلبات مفقودة",
         "today_appointments": "مواعيد اليوم",
-        "overdue_next_actions": "إجراءات متأخرة",
+        "overdue_next_actions": "تحتاج متابعة",
         "fallbackTitle": "إحصائيات تقديرية",
         "fallbackDescription": "تعذّر تحميل لوحة الإحصائيات من الخادم. الأرقام أدناه محسوبة من القائمة المعروضة حاليًا."
       },

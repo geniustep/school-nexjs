@@ -7,7 +7,7 @@ import type { AdmissionsDashboard } from '@/types/admission';
 
 type DashboardKey = keyof AdmissionsDashboard;
 
-/** Core daily KPIs only — pipeline stages live in Kanban columns. */
+/** Core daily KPIs — pipeline stages live in Kanban columns. */
 const DASHBOARD_ITEMS: {
   key: DashboardKey;
   tone: 'blue' | 'amber' | 'red';
@@ -15,9 +15,8 @@ const DASHBOARD_ITEMS: {
 }[] = [
   { key: 'total_open', tone: 'blue', filterable: true },
   { key: 'new_count', tone: 'blue' },
-  { key: 'today_appointments', tone: 'amber' },
   { key: 'overdue_next_actions', tone: 'red' },
-  { key: 'lost_count', tone: 'red', filterable: true },
+  { key: 'today_appointments', tone: 'amber' },
 ];
 
 export function AdmissionsDashboardSummary({
