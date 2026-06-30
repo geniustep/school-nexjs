@@ -3,8 +3,9 @@ import 'server-only';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { config } from '@/lib/config';
-import { resolveOdooBaseUrlForTenant } from '@/lib/api/odoo-backend';
+import { tenantBackendNotConfiguredResponse } from '@/lib/api/odoo-backend';
 import { guardTenantFromServerHeaders } from '@/lib/auth/tenant-guard';
+import { resolveTenantRuntimeConfigFromServerHeaders } from '@/lib/tenant';
 
 export type AttachmentBinaryKind = 'download' | 'preview' | 'thumbnail';
 
@@ -15,10 +16,20 @@ export async function forwardAttachmentBinary(
   const tenantGuard = await guardTenantFromServerHeaders();
   if (!tenantGuard.ok) return tenantGuard.response;
 
+  const runtime = await resolveTenantRuntimeConfigFromServerHeaders();
+  if (!runtime.ok) {
+    if (runtime.reason === 'tenant_backend_not_configured') {
+      return tenantBackendNotConfiguredResponse();
+    }
+    return NextResponse.json(
+      { success: false, error: { code: 'invalid_tenant', message: 'Invalid or unsupported host.' } },
+      { status: 404 },
+    );
+  }
+
   const store = await cookies();
   const sessionId = store.get(config.sessionCookieName)?.value ?? null;
-  const tenant = store.get(config.tenantCookieName)?.value?.trim();
-  const baseUrl = tenant ? resolveOdooBaseUrlForTenant(tenant) : config.odooBaseUrl;
+  const baseUrl = runtime.config.backendBaseUrl;
 
   const url = `${baseUrl}${config.apiPrefix}/attachments/${encodeURIComponent(id)}/${kind}`;
 

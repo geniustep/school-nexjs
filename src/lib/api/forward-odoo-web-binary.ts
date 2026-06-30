@@ -3,8 +3,9 @@ import 'server-only';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { config } from '@/lib/config';
-import { resolveOdooBaseUrlForTenant } from '@/lib/api/odoo-backend';
+import { tenantBackendNotConfiguredResponse } from '@/lib/api/odoo-backend';
 import { guardTenantFromServerHeaders } from '@/lib/auth/tenant-guard';
+import { resolveTenantRuntimeConfigFromServerHeaders } from '@/lib/tenant';
 
 /** Allowed Odoo web subpaths for same-origin proxy (session-scoped). */
 const ALLOWED_WEB_PREFIXES = ['image/'] as const;
@@ -17,6 +18,17 @@ function isAllowedOdooWebPath(path: string): boolean {
 export async function forwardOdooWebBinary(pathSegments: string[]): Promise<NextResponse> {
   const tenantGuard = await guardTenantFromServerHeaders();
   if (!tenantGuard.ok) return tenantGuard.response;
+
+  const runtime = await resolveTenantRuntimeConfigFromServerHeaders();
+  if (!runtime.ok) {
+    if (runtime.reason === 'tenant_backend_not_configured') {
+      return tenantBackendNotConfiguredResponse();
+    }
+    return NextResponse.json(
+      { success: false, error: { code: 'invalid_tenant', message: 'Invalid or unsupported host.' } },
+      { status: 404 },
+    );
+  }
 
   const path = pathSegments.map((segment) => decodeURIComponent(segment)).join('/');
   if (!path || !isAllowedOdooWebPath(path)) {
@@ -35,8 +47,7 @@ export async function forwardOdooWebBinary(pathSegments: string[]): Promise<Next
     );
   }
 
-  const tenant = store.get(config.tenantCookieName)?.value?.trim();
-  const baseUrl = tenant ? resolveOdooBaseUrlForTenant(tenant) : config.odooBaseUrl;
+  const baseUrl = runtime.config.backendBaseUrl;
   const url = `${baseUrl}/web/${path}`;
 
   let res: Response;
