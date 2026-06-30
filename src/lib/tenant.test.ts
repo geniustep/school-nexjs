@@ -205,13 +205,13 @@ describe('resolveTenantRuntimeConfigFromHost', () => {
     expect(result.config.isOfficial).toBe(false);
   });
 
-  it('resolves alwah tenant backend without mandatory school code', () => {
+  it('maps alwah tenant to its Odoo public school code (ecole-alwah)', () => {
     const result = resolveTenantRuntimeConfigFromHost('alwah.raqeem.ma', ROOT, FALLBACK);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.config.tenantCode).toBe('alwah');
     expect(result.config.backendBaseUrl).toBe('https://api-alwah.raqeem.ma');
-    expect(result.config.defaultPublicSchoolCode).toBeUndefined();
+    expect(result.config.defaultPublicSchoolCode).toBe('ecole-alwah');
     expect(result.config).not.toHaveProperty('schoolCode');
   });
 
@@ -260,7 +260,7 @@ describe('resolveTenantRuntimeConfigFromRequest', () => {
     expect(result.config.tenantCode).toBe('nibras');
   });
 
-  it('maps alwah host to api-alwah backend without inventing school code', () => {
+  it('maps alwah host to api-alwah backend with ecole-alwah public school code', () => {
     const request = new Request('https://alwah.raqeem.ma/api/odoo/admin/students', {
       headers: { host: 'alwah.raqeem.ma' },
     });
@@ -268,7 +268,7 @@ describe('resolveTenantRuntimeConfigFromRequest', () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.config.backendBaseUrl).toBe('https://api-alwah.raqeem.ma');
-    expect(result.config.defaultPublicSchoolCode).toBeUndefined();
+    expect(result.config.defaultPublicSchoolCode).toBe('ecole-alwah');
   });
 
   it('uses localhost fallback backend for dev hosts', () => {

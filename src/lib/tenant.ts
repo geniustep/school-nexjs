@@ -169,6 +169,7 @@ const TENANT_REGISTRY: readonly TenantRegistryEntry[] = [
   },
   {
     tenantCode: 'alwah',
+    defaultPublicSchoolCode: 'ecole-alwah',
     backendBaseUrl: 'https://api-alwah.raqeem.ma',
     active: true,
     isOfficial: true,

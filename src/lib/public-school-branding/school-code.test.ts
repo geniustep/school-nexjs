@@ -33,12 +33,12 @@ describe('resolvePublicSchoolCodeFromRequest', () => {
     expect(resolvePublicSchoolCodeFromRequest(request)).toBe('nibras');
   });
 
-  it('does not invent school_code for alwah without query or default', () => {
+  it('maps alwah host to its registry default public school code (ecole-alwah)', () => {
     const request = new Request('https://alwah.raqeem.ma/login', {
       headers: { host: 'alwah.raqeem.ma' },
     });
     expect(resolvePublicTenantCodeFromRequest(request)).toBe('alwah');
-    expect(resolvePublicSchoolCodeFromRequest(request)).toBeNull();
+    expect(resolvePublicSchoolCodeFromRequest(request)).toBe('ecole-alwah');
   });
 
   it('does not equate alwah tenant code with school_code=alwah', () => {
@@ -49,7 +49,7 @@ describe('resolvePublicSchoolCodeFromRequest', () => {
     const schoolCode = resolvePublicSchoolCodeFromRequest(request);
     expect(tenantCode).toBe('alwah');
     expect(schoolCode).not.toBe('alwah');
-    expect(schoolCode).toBeNull();
+    expect(schoolCode).toBe('ecole-alwah');
   });
 
   it('passes explicit school_code query through for alwah', () => {
