@@ -3,6 +3,7 @@ import {
   itemMatchesUiStageFilter,
   rawStatesForUiStageFetch,
   resolveAdmissionUiStage,
+  resolveKanbanDisplayStages,
 } from '@/features/admin/admissions/utils/admission-ui-stage';
 import type { AdmissionListItem } from '@/types/admission';
 
@@ -73,5 +74,31 @@ describe('itemMatchesUiStageFilter', () => {
     const item = makeItem({ id: 10, state: 'qualified' });
     expect(itemMatchesUiStageFilter(item, 'in_follow_up')).toBe(true);
     expect(itemMatchesUiStageFilter(item, 'new')).toBe(false);
+  });
+});
+
+describe('resolveKanbanDisplayStages', () => {
+  it('hides registered column when hideConverted is enabled', () => {
+    const stages = resolveKanbanDisplayStages({ showClosed: false, hideConverted: true });
+    expect(stages).not.toContain('registered');
+    expect(stages).toContain('ready_for_registration');
+  });
+
+  it('shows registered column when hideConverted is disabled', () => {
+    const stages = resolveKanbanDisplayStages({ showClosed: false, hideConverted: false });
+    expect(stages).toContain('registered');
+    expect(stages).not.toContain('closed');
+  });
+
+  it('shows closed only when showClosed or closed filter is active', () => {
+    expect(
+      resolveKanbanDisplayStages({ showClosed: false, hideConverted: true, stateFilter: '' }),
+    ).not.toContain('closed');
+    expect(
+      resolveKanbanDisplayStages({ showClosed: true, hideConverted: true, stateFilter: '' }),
+    ).toContain('closed');
+    expect(
+      resolveKanbanDisplayStages({ showClosed: false, hideConverted: true, stateFilter: 'closed' }),
+    ).toContain('closed');
   });
 });

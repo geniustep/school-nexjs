@@ -25,6 +25,7 @@ import {
   rawStatesForUiStageColumns,
   rawStatesForUiStageFetch,
   resolveAdmissionUiStage,
+  resolveKanbanDisplayStages,
   type AdmissionUiStage,
 } from '../utils/admission-ui-stage';
 import {
@@ -49,9 +50,16 @@ export function AdmissionsListPage() {
   const [hideConverted, setHideConverted] = useState(true);
   const debouncedSearch = useDebouncedValue(search, 400);
 
-  const displayUiStages = useMemo(
-    () => (showClosed ? [...ACTIVE_UI_STAGES, CLOSED_UI_STAGE] : ACTIVE_UI_STAGES),
-    [showClosed],
+  const showClosedColumn = showClosed || stateFilter === CLOSED_UI_STAGE;
+
+  const kanbanDisplayStages = useMemo(
+    () =>
+      resolveKanbanDisplayStages({
+        showClosed,
+        hideConverted,
+        stateFilter,
+      }),
+    [showClosed, hideConverted, stateFilter],
   );
 
   const fetchRawStates = useMemo(() => {
@@ -59,8 +67,8 @@ export function AdmissionsListPage() {
       const raw = rawStatesForUiStageFetch(stateFilter);
       return raw.length > 0 ? raw : rawStatesForUiStageColumns(ACTIVE_UI_STAGES);
     }
-    return rawStatesForUiStageColumns(displayUiStages);
-  }, [stateFilter, displayUiStages]);
+    return rawStatesForUiStageColumns(kanbanDisplayStages);
+  }, [stateFilter, kanbanDisplayStages]);
 
   useEffect(() => {
     setPage(1);
@@ -123,7 +131,7 @@ export function AdmissionsListPage() {
   }, [tableState.data, hideConverted, showClosed]);
 
   const filteredKanbanGrouped = useMemo(() => {
-    const uiColumns = groupKanbanColumnsByUiStage(kanbanBoard.grouped, displayUiStages);
+    const uiColumns = groupKanbanColumnsByUiStage(kanbanBoard.grouped, kanbanDisplayStages);
     return uiColumns.map((column) => {
       const items = filterAdmissionListItems(column.items, hideConverted);
       return {
@@ -132,7 +140,7 @@ export function AdmissionsListPage() {
         total: items.length,
       };
     });
-  }, [kanbanBoard.grouped, displayUiStages, hideConverted]);
+  }, [kanbanBoard.grouped, kanbanDisplayStages, hideConverted]);
 
   const handleKanbanLoadMore = useCallback(
     (stage: AdmissionUiStage) => {
@@ -260,7 +268,11 @@ export function AdmissionsListPage() {
               <input
                 type="checkbox"
                 checked={showClosed}
-                onChange={(e) => setShowClosed(e.target.checked)}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setShowClosed(checked);
+                  if (!checked && stateFilter === CLOSED_UI_STAGE) setStateFilter('');
+                }}
               />
               <span>{t('admin.admissions.filters.showClosed')}</span>
             </label>
@@ -310,8 +322,8 @@ export function AdmissionsListPage() {
         ) : (
           <AdmissionsKanban
             columns={filteredKanbanGrouped}
-            displayStages={displayUiStages}
-            showClosed={showClosed}
+            displayStages={kanbanDisplayStages}
+            showClosed={showClosedColumn}
             onUpdated={reloadCurrentView}
             onLoadMore={handleKanbanLoadMore}
           />
