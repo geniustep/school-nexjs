@@ -3107,6 +3107,7 @@
       "kanban": {
         "emptyColumn": "No requests in this stage",
         "dragHint": "Drag a card to another column to change its state.",
+        "uiStageHint": "Change state from the request detail page. Columns show simplified stages.",
         "scrollHint": "Scroll to see more stages",
         "scrollBack": "Scroll to earlier stages",
         "scrollForward": "Scroll to later stages",
@@ -3154,6 +3155,15 @@
         "lost": "Could not reach",
         "cancelled": "Cancelled",
         "duplicate": "Duplicate"
+      },
+      "uiStages": {
+        "new": "New",
+        "in_follow_up": "In follow-up",
+        "in_evaluation": "In evaluation",
+        "accepted": "Accepted",
+        "ready_for_registration": "Ready to register",
+        "registered": "Registered",
+        "closed": "Closed"
       },
       "dashboard": {
         "total_open": "Open requests",

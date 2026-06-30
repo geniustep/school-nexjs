@@ -15,7 +15,7 @@ import {
 import { AdmissionCard } from './admission-card';
 import { AdmissionStateSelect } from './admission-state-select';
 import { parseExtraFieldBool } from '../utils/admission-extra-fields';
-import { isAdmissionConvertedToStudent } from '../utils/admission-registration';
+import { admissionUiStageTone, resolveAdmissionUiStage } from '../utils/admission-ui-stage';
 import { Badge } from '@/components/ui/primitives';
 import type { AdmissionListItem } from '@/types/admission';
 
@@ -90,24 +90,22 @@ export function AdmissionsTable({
       {
         key: 'state',
         header: t('admin.admissions.table.state'),
-        render: (row) =>
-          isAdmissionConvertedToStudent(row) ? (
-            <span className="admissions-table__converted">
-              <Badge tone="green">{t('admin.admissions.registration.convertedBadge')}</Badge>
-              <span className="admissions-table__converted-note tiny muted">
-                {t('admin.admissions.registration.convertedBadgePrevState', {
-                  state: t(`admin.admissions.states.${row.state}`),
-                })}
-              </span>
-            </span>
-          ) : (
-            <AdmissionStateSelect
-              admissionId={row.id}
-              value={row.state}
-              onChanged={onUpdated}
-              className="admission-state-select--table"
-            />
-          ),
+        render: (row) => {
+          const uiStage = resolveAdmissionUiStage(row);
+          return (
+            <div className="admissions-table__state-cell">
+              <Badge tone={admissionUiStageTone(uiStage)}>
+                {t(`admin.admissions.uiStages.${uiStage}`)}
+              </Badge>
+              <AdmissionStateSelect
+                admissionId={row.id}
+                value={row.state}
+                onChanged={onUpdated}
+                className="admission-state-select--table"
+              />
+            </div>
+          );
+        },
       },
       {
         key: 'next_action',

@@ -3107,6 +3107,7 @@
       "kanban": {
         "emptyColumn": "No hay solicitudes en esta etapa",
         "dragHint": "Arrastra una tarjeta a otra columna para cambiar el estado.",
+        "uiStageHint": "Cambia el estado desde la ficha de la solicitud. Las columnas muestran etapas simplificadas.",
         "scrollHint": "Desplázate para ver más etapas",
         "scrollBack": "Desplazar a etapas anteriores",
         "scrollForward": "Desplazar a etapas siguientes",
@@ -3154,6 +3155,15 @@
         "lost": "No localizable",
         "cancelled": "Cancelada",
         "duplicate": "Duplicada"
+      },
+      "uiStages": {
+        "new": "Nueva",
+        "in_follow_up": "En seguimiento",
+        "in_evaluation": "En evaluación",
+        "accepted": "Aceptada",
+        "ready_for_registration": "Lista para inscribir",
+        "registered": "Inscrita",
+        "closed": "Cerrada"
       },
       "dashboard": {
         "total_open": "Solicitudes abiertas",

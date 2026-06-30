@@ -3134,6 +3134,7 @@
       "kanban": {
         "emptyColumn": "لا توجد طلبات في هذه المرحلة",
         "dragHint": "اسحب البطاقة إلى عمود آخر لتغيير الحالة.",
+        "uiStageHint": "غيّر الحالة من صفحة تفاصيل الطلب. الأعمدة تعرض مراحل مبسّطة.",
         "scrollHint": "مرّر لرؤية باقي المراحل",
         "scrollBack": "التمرير للمراحل السابقة",
         "scrollForward": "التمرير للمراحل التالية",
@@ -3181,6 +3182,15 @@
         "lost": "تعذر التواصل",
         "cancelled": "ملغى",
         "duplicate": "مكرر"
+      },
+      "uiStages": {
+        "new": "جديد",
+        "in_follow_up": "قيد المتابعة",
+        "in_evaluation": "في التقييم",
+        "accepted": "مقبول",
+        "ready_for_registration": "جاهز للتسجيل",
+        "registered": "مسجل",
+        "closed": "مغلق"
       },
       "dashboard": {
         "total_open": "الطلبات المفتوحة",

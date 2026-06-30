@@ -6,13 +6,15 @@ import { cn } from '@/lib/utils/cn';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import {
-  admissionStateTone,
   cleanDisplayValue,
   formatAdmissionReference,
   isOverdueNextAction,
 } from '../utils/admission-labels';
 import { parseExtraFieldBool } from '../utils/admission-extra-fields';
-import { isAdmissionConvertedToStudent } from '../utils/admission-registration';
+import {
+  admissionUiStageTone,
+  resolveAdmissionUiStage,
+} from '../utils/admission-ui-stage';
 import type { AdmissionListItem } from '@/types/admission';
 
 const DRAG_MIME = 'application/x-admission-id';
@@ -59,7 +61,8 @@ export function AdmissionCard({
   const previousSchool = cleanDisplayValue(item.previous_school ?? '');
   const siblingsSummary = cleanDisplayValue(item.siblings_summary ?? '');
   const hasSiblings = parseExtraFieldBool(item.has_siblings);
-  const convertedToStudent = isAdmissionConvertedToStudent(item);
+  const uiStage = resolveAdmissionUiStage(item);
+  const showOfferAcceptedBadge = item.offer_state === 'accepted' && uiStage !== 'accepted';
 
   const card = (
     <Link
@@ -129,28 +132,19 @@ export function AdmissionCard({
         ) : null}
       </dl>
 
-      {(showStateBadge || convertedToStudent || item.duplicate_count > 0 || item.offer_state === 'accepted' || overdue) && (
+      {(showStateBadge || item.duplicate_count > 0 || showOfferAcceptedBadge || overdue) && (
         <div className="admission-card__status-row">
-          {convertedToStudent ? (
-            <span className="admission-card__converted">
-              <Badge tone="green">{t('admin.admissions.registration.convertedBadge')}</Badge>
-              <span className="admission-card__converted-note tiny muted">
-                {t('admin.admissions.registration.convertedBadgePrevState', {
-                  state: t(`admin.admissions.states.${item.state}`),
-                })}
-              </span>
-            </span>
-          ) : showStateBadge ? (
-            <Badge tone={admissionStateTone(item.state)}>
-              {t(`admin.admissions.states.${item.state}`)}
+          {showStateBadge ? (
+            <Badge tone={admissionUiStageTone(uiStage)}>
+              {t(`admin.admissions.uiStages.${uiStage}`)}
             </Badge>
           ) : null}
-          {(item.duplicate_count > 0 || item.offer_state === 'accepted' || overdue) && (
+          {(item.duplicate_count > 0 || showOfferAcceptedBadge || overdue) && (
             <div className="admission-card__badges">
               {item.duplicate_count > 0 && (
                 <Badge tone="amber">{t('admin.admissions.badges.possibleDuplicate')}</Badge>
               )}
-              {item.offer_state === 'accepted' && (
+              {showOfferAcceptedBadge && (
                 <Badge tone="green">{t('admin.admissions.badges.offerAccepted')}</Badge>
               )}
               {overdue && <Badge tone="red">{t('admin.admissions.badges.overdue')}</Badge>}

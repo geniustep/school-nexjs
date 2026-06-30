@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ResourceView } from '@/components/states/resource';
 import { Pagination } from '@/components/tables/data-table';
 import { InfoBanner } from '@/components/ui/primitives';
@@ -12,10 +12,21 @@ import { endpoints } from '@/lib/api/endpoints';
 import type { AdmissionListItem, AdmissionsDashboard } from '@/types/admission';
 import type { ListParams } from '@/types/api';
 import { useAdmissionsKanbanBoard } from '../hooks/use-admissions-kanban-board';
+import { useAdmissionsUiStageTableList } from '../hooks/use-admissions-ui-stage-table-list';
 import { AdmissionsDashboardSummary } from './admissions-dashboard-summary';
 import { AdmissionsKanban } from './admissions-kanban';
 import { AdmissionsTable } from './admissions-table';
-import { ACTIVE_KANBAN_STATES, ALL_KANBAN_STATES, CLOSED_KANBAN_STATES } from '../utils/admission-labels';
+import {
+  ACTIVE_UI_STAGES,
+  ALL_UI_STAGES,
+  CLOSED_UI_STAGE,
+  groupKanbanColumnsByUiStage,
+  pickRawStateForUiStageLoadMore,
+  rawStatesForUiStageColumns,
+  rawStatesForUiStageFetch,
+  resolveAdmissionUiStage,
+  type AdmissionUiStage,
+} from '../utils/admission-ui-stage';
 import {
   countHiddenConvertedAdmissionListItems,
   filterAdmissionListItems,
@@ -33,20 +44,23 @@ export function AdmissionsListPage() {
   const [view, setView] = useState<ViewMode>('kanban');
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
-  const [stateFilter, setStateFilter] = useState('');
+  const [stateFilter, setStateFilter] = useState<AdmissionUiStage | ''>('');
   const [showClosed, setShowClosed] = useState(false);
   const [hideConverted, setHideConverted] = useState(true);
   const debouncedSearch = useDebouncedValue(search, 400);
 
-  const displayStates = useMemo(
-    () =>
-      showClosed ? [...ACTIVE_KANBAN_STATES, ...CLOSED_KANBAN_STATES] : ACTIVE_KANBAN_STATES,
+  const displayUiStages = useMemo(
+    () => (showClosed ? [...ACTIVE_UI_STAGES, CLOSED_UI_STAGE] : ACTIVE_UI_STAGES),
     [showClosed],
   );
-  const fetchStates = useMemo(
-    () => (stateFilter ? [stateFilter] : displayStates),
-    [stateFilter, displayStates],
-  );
+
+  const fetchRawStates = useMemo(() => {
+    if (stateFilter) {
+      const raw = rawStatesForUiStageFetch(stateFilter);
+      return raw.length > 0 ? raw : rawStatesForUiStageColumns(ACTIVE_UI_STAGES);
+    }
+    return rawStatesForUiStageColumns(displayUiStages);
+  }, [stateFilter, displayUiStages]);
 
   useEffect(() => {
     setPage(1);
@@ -57,18 +71,27 @@ export function AdmissionsListPage() {
       page,
       page_size: TABLE_PAGE_SIZE,
       search: debouncedSearch.trim() || undefined,
-      state: stateFilter || undefined,
     }),
-    [page, debouncedSearch, stateFilter],
+    [page, debouncedSearch],
   );
 
-  const tableState = useAdminResource<AdmissionListItem[]>(
-    view === 'table' ? endpoints.admin.admissions : null,
+  const tableStateDefault = useAdminResource<AdmissionListItem[]>(
+    view === 'table' && !stateFilter ? endpoints.admin.admissions : null,
     tableParams,
   );
 
+  const tableStateFiltered = useAdmissionsUiStageTableList({
+    page,
+    pageSize: TABLE_PAGE_SIZE,
+    search: debouncedSearch.trim() || undefined,
+    uiStageFilter: stateFilter || 'new',
+    enabled: view === 'table' && !!stateFilter,
+  });
+
+  const tableState = stateFilter ? tableStateFiltered : tableStateDefault;
+
   const kanbanBoard = useAdmissionsKanbanBoard({
-    columns: fetchStates,
+    columns: fetchRawStates,
     search: debouncedSearch.trim() || undefined,
     enabled: view === 'kanban',
   });
@@ -87,22 +110,32 @@ export function AdmissionsListPage() {
   const dashboardData = dashboardState.data ?? null;
   const tablePagination = tableState.meta?.pagination;
 
-  const filteredTableRows = useMemo(
-    () => filterAdmissionListItems(tableState.data ?? [], hideConverted),
-    [tableState.data, hideConverted],
-  );
+  const filteredTableRows = useMemo(() => {
+    const rows = filterAdmissionListItems(tableState.data ?? [], hideConverted);
+    if (!showClosed) {
+      return rows.filter((item) => resolveAdmissionUiStage(item) !== CLOSED_UI_STAGE);
+    }
+    return rows;
+  }, [tableState.data, hideConverted, showClosed]);
 
-  const filteredKanbanGrouped = useMemo(
-    () =>
-      kanbanBoard.grouped.map((column) => {
-        const items = filterAdmissionListItems(column.items, hideConverted);
-        return {
-          ...column,
-          items,
-          visibleTotal: items.length,
-        };
-      }),
-    [kanbanBoard.grouped, hideConverted],
+  const filteredKanbanGrouped = useMemo(() => {
+    const uiColumns = groupKanbanColumnsByUiStage(kanbanBoard.grouped, displayUiStages);
+    return uiColumns.map((column) => {
+      const items = filterAdmissionListItems(column.items, hideConverted);
+      return {
+        ...column,
+        items,
+        total: items.length,
+      };
+    });
+  }, [kanbanBoard.grouped, displayUiStages, hideConverted]);
+
+  const handleKanbanLoadMore = useCallback(
+    (stage: AdmissionUiStage) => {
+      const rawState = pickRawStateForUiStageLoadMore(stage, kanbanBoard.grouped);
+      if (rawState) kanbanBoard.loadMore(rawState);
+    },
+    [kanbanBoard],
   );
 
   const visibleSummary = useMemo(() => {
@@ -153,7 +186,7 @@ export function AdmissionsListPage() {
       return;
     }
     if (key === 'lost_count') {
-      setStateFilter('lost');
+      setStateFilter(CLOSED_UI_STAGE);
       setShowClosed(true);
     }
   }
@@ -209,13 +242,13 @@ export function AdmissionsListPage() {
             <select
               className="input admissions-list-toolbar__state"
               value={stateFilter}
-              onChange={(e) => setStateFilter(e.target.value)}
+              onChange={(e) => setStateFilter(e.target.value as AdmissionUiStage | '')}
               aria-label={t('admin.admissions.filters.state')}
             >
               <option value="">{t('admin.admissions.filters.allStates')}</option>
-              {ALL_KANBAN_STATES.map((state) => (
-                <option key={state} value={state}>
-                  {t(`admin.admissions.states.${state}`)}
+              {ALL_UI_STAGES.map((stage) => (
+                <option key={stage} value={stage}>
+                  {t(`admin.admissions.uiStages.${stage}`)}
                 </option>
               ))}
             </select>
@@ -273,10 +306,10 @@ export function AdmissionsListPage() {
         ) : (
           <AdmissionsKanban
             columns={filteredKanbanGrouped}
-            displayStates={displayStates}
+            displayStages={displayUiStages}
             showClosed={showClosed}
             onUpdated={reloadCurrentView}
-            onLoadMore={kanbanBoard.loadMore}
+            onLoadMore={handleKanbanLoadMore}
           />
         )
       ) : (
