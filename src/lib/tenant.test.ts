@@ -1,12 +1,23 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { tenantDisplayName } from '@/lib/tenant-public';
+
+vi.mock('@/lib/config', () => ({
+  config: {
+    odooBaseUrl: 'https://default-odoo.example',
+    odooDb: 'school',
+    tenantRootDomain: 'raqeem.ma',
+  },
+}));
+
 import {
   getHostFromHeaders,
   isDevLanHost,
   isFallbackHost,
   isValidTenantSlug,
   normalizeHost,
+  resolveEntryBackendUrl,
   resolveTenantFromHost,
+  resolveTenantRuntimeConfigFromHost,
   tenantSessionMatches,
 } from './tenant';
 
@@ -162,5 +173,76 @@ describe('tenantSessionMatches', () => {
 describe('tenantDisplayName', () => {
   it('defaults to the tenant slug', () => {
     expect(tenantDisplayName('school')).toBe('school');
+  });
+});
+
+const MOCK_ODOO_BASE = 'https://default-odoo.example';
+
+describe('resolveTenantRuntimeConfigFromHost', () => {
+  it('maps nibras host to api-nibras backend from registry', () => {
+    const result = resolveTenantRuntimeConfigFromHost('nibras.raqeem.ma', ROOT, FALLBACK);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.config).toMatchObject({
+      host: 'nibras.raqeem.ma',
+      tenantCode: 'nibras',
+      defaultPublicSchoolCode: 'nibras',
+      backendBaseUrl: 'https://api-nibras.raqeem.ma',
+      active: true,
+      isOfficial: true,
+    });
+    expect(result.config).not.toHaveProperty('schoolCode');
+    expect(result.source).toBe('registry');
+  });
+
+  it('maps school host to explicit ODOO_BASE_URL backend', () => {
+    const result = resolveTenantRuntimeConfigFromHost('school.raqeem.ma', ROOT, FALLBACK);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.config.backendBaseUrl).toBe(MOCK_ODOO_BASE);
+    expect(result.config.tenantCode).toBe('school');
+    expect(result.config.isOfficial).toBe(false);
+  });
+
+  it('resolves alwah tenant backend without mandatory school code', () => {
+    const result = resolveTenantRuntimeConfigFromHost('alwah.raqeem.ma', ROOT, FALLBACK);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.config.tenantCode).toBe('alwah');
+    expect(result.config.backendBaseUrl).toBe('https://api-alwah.raqeem.ma');
+    expect(result.config.defaultPublicSchoolCode).toBeUndefined();
+    expect(result.config).not.toHaveProperty('schoolCode');
+  });
+
+  it('uses fallback config for localhost without registry official backend', () => {
+    const result = resolveTenantRuntimeConfigFromHost('localhost', ROOT, FALLBACK);
+    expect(result).toEqual({
+      ok: true,
+      source: 'fallback',
+      config: {
+        host: 'localhost',
+        tenantCode: FALLBACK,
+        defaultPublicSchoolCode: FALLBACK,
+        backendBaseUrl: MOCK_ODOO_BASE,
+        active: true,
+        isOfficial: false,
+      },
+    });
+  });
+
+  it('fails closed when official entry has no backend URL', () => {
+    const url = resolveEntryBackendUrl({
+      tenantCode: 'test-official',
+      backendBaseUrl: null,
+      active: true,
+      isOfficial: true,
+      hosts: [],
+    });
+    expect(url).toBeNull();
+  });
+
+  it('rejects unknown production subdomain not in registry', () => {
+    const result = resolveTenantRuntimeConfigFromHost('newschool.raqeem.ma', ROOT, FALLBACK);
+    expect(result).toEqual({ ok: false, reason: 'tenant_not_in_registry' });
   });
 });

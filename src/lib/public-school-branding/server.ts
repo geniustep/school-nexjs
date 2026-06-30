@@ -2,14 +2,18 @@ import 'server-only';
 
 import { config } from '@/lib/config';
 import { buildOdooApiUrl } from '@/lib/api/build-odoo-api-url';
-import { resolveOdooBaseUrlForTenant } from '@/lib/api/odoo-backend';
 import { endpoints } from '@/lib/api/endpoints';
 import { normalizePublicSchoolLogoBytes } from '@/lib/public-school-branding/logo-bytes';
 import {
   fallbackLoginSchoolBrandingView,
+  fallbackTenantBrandingView,
   mapOdooBrandingToLoginView,
 } from '@/lib/public-school-branding/map';
-import { resolvePublicSchoolCodeFromServer } from '@/lib/public-school-branding/school-code';
+import {
+  resolvePublicSchoolCodeFromServer,
+  resolvePublicTenantCodeFromServer,
+} from '@/lib/public-school-branding/school-code';
+import { resolveTenantRuntimeConfigFromServerHeaders } from '@/lib/tenant';
 import type {
   LoginSchoolBrandingView,
   PublicSchoolBrandingData,
@@ -28,8 +32,11 @@ function brandingCacheSeconds(meta?: PublicSchoolBrandingMeta): number {
 
 export async function fetchPublicSchoolBrandingFromOdoo(
   schoolCode: string,
+  backendBaseUrl?: string,
 ): Promise<PublicSchoolBrandingFetchResult> {
-  const baseUrl = resolveOdooBaseUrlForTenant(schoolCode);
+  const baseUrl = backendBaseUrl ?? (await resolveBrandingBackendBaseUrl());
+  if (!baseUrl) return { ok: false, reason: 'http' };
+
   const url = buildOdooApiUrl(baseUrl, config.apiPrefix, endpoints.public.schoolBranding, {
     school_code: schoolCode,
   });
@@ -55,8 +62,8 @@ export async function fetchPublicSchoolBrandingFromOdoo(
   return { ok: true, data: body.data, meta: body.meta ?? {} };
 }
 
-export async function fetchPublicSchoolLogoFromOdoo(schoolCode: string) {
-  const url = publicSchoolBrandingLogoOdooUrl(schoolCode);
+export async function fetchPublicSchoolLogoFromOdoo(schoolCode: string, backendBaseUrl?: string) {
+  const url = publicSchoolBrandingLogoOdooUrl(schoolCode, backendBaseUrl);
 
   let res: Response;
   try {
@@ -72,15 +79,26 @@ export async function fetchPublicSchoolLogoFromOdoo(schoolCode: string) {
 }
 
 export async function resolveLoginSchoolBranding(): Promise<LoginSchoolBrandingView> {
+  const runtime = await resolveTenantRuntimeConfigFromServerHeaders();
   const schoolCode = await resolvePublicSchoolCodeFromServer();
-  const result = await fetchPublicSchoolBrandingFromOdoo(schoolCode);
+  const backendBaseUrl = runtime.ok ? runtime.config.backendBaseUrl : undefined;
+
+  if (!schoolCode) {
+    const tenantCode =
+      (runtime.ok ? runtime.config.tenantCode : null) ??
+      (await resolvePublicTenantCodeFromServer());
+    if (tenantCode) return fallbackTenantBrandingView(tenantCode);
+    return fallbackLoginSchoolBrandingView('');
+  }
+
+  const result = await fetchPublicSchoolBrandingFromOdoo(schoolCode, backendBaseUrl);
   if (!result.ok) {
     return fallbackLoginSchoolBrandingView(schoolCode);
   }
 
   let branding = mapOdooBrandingToLoginView(result.data);
   if (branding.logoAvailable) {
-    const logo = await fetchPublicSchoolLogoFromOdoo(schoolCode);
+    const logo = await fetchPublicSchoolLogoFromOdoo(schoolCode, backendBaseUrl);
     if (!logo) {
       branding = { ...branding, logoAvailable: false };
     }
@@ -88,11 +106,16 @@ export async function resolveLoginSchoolBranding(): Promise<LoginSchoolBrandingV
   return branding;
 }
 
-export function publicSchoolBrandingLogoOdooUrl(schoolCode: string): string {
-  const baseUrl = resolveOdooBaseUrlForTenant(schoolCode);
+async function resolveBrandingBackendBaseUrl(): Promise<string | null> {
+  const runtime = await resolveTenantRuntimeConfigFromServerHeaders();
+  return runtime.ok ? runtime.config.backendBaseUrl : null;
+}
+
+export function publicSchoolBrandingLogoOdooUrl(schoolCode: string, backendBaseUrl?: string): string {
+  const baseUrl = backendBaseUrl ?? config.odooBaseUrl;
   return buildOdooApiUrl(baseUrl, config.apiPrefix, endpoints.public.schoolBrandingLogo, {
     school_code: schoolCode,
   });
 }
 
-export { brandingCacheSeconds, mapOdooBrandingToLoginView, fallbackLoginSchoolBrandingView };
+export { brandingCacheSeconds, mapOdooBrandingToLoginView, fallbackLoginSchoolBrandingView, fallbackTenantBrandingView };

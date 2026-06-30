@@ -25,7 +25,7 @@ export function LoginSchoolMark({
   placement?: LoginSchoolMarkPlacement;
 }) {
   const [logoFailed, setLogoFailed] = useState(false);
-  const showLogo = branding.logoAvailable && !logoFailed;
+  const showLogo = branding.logoAvailable && branding.schoolCode && !logoFailed;
 
   if (showLogo) {
     return (
@@ -39,7 +39,7 @@ export function LoginSchoolMark({
     );
   }
 
-  if (branding.fromApi) {
+  if (branding.fromApi || branding.tenantCode) {
     return (
       <div className="login-mark__monogram login-mark__monogram--brand" aria-hidden="true">
         <span className="login-mark__monogram-glyph">{schoolMonogram(schoolLabel)}</span>

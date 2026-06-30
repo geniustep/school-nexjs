@@ -23,7 +23,10 @@ export interface PublicSchoolBrandingMeta {
 
 /** Resolved branding passed from server page → login UI. */
 export interface LoginSchoolBrandingView {
+  /** Empty when branding is tenant-level only (no school context). */
   schoolCode: string;
+  /** Set when using tenant/domain fallback instead of a specific school. */
+  tenantCode?: string;
   /** When true, text fields come from API as-is (not translated). */
   fromApi: boolean;
   schoolName: string | null;

@@ -52,7 +52,7 @@ export function LoginForm({ branding }: { branding: LoginSchoolBrandingView }) {
 
   const schoolName = branding.fromApi
     ? (branding.schoolName ?? t('auth.hero.schoolNameDefault'))
-    : (loginSchoolBrand.schoolDisplayName ?? t('auth.hero.schoolNameDefault'));
+    : (branding.schoolName ?? loginSchoolBrand.schoolDisplayName ?? t('auth.hero.schoolNameDefault'));
 
   const yearLabel = branding.fromApi
     ? branding.academicYearLabel

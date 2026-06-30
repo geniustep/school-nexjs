@@ -1,4 +1,5 @@
 import { sanitizeCssHexColor } from '@/lib/public-school-branding/colors';
+import { tenantDisplayName } from '@/lib/tenant-public';
 import type { PublicSchoolBrandingData, LoginSchoolBrandingView } from '@/types/public-school-branding';
 
 export function mapOdooBrandingToLoginView(
@@ -26,6 +27,21 @@ export function fallbackLoginSchoolBrandingView(schoolCode: string): LoginSchool
     schoolCode,
     fromApi: false,
     schoolName: null,
+    welcomeSubtitle: null,
+    academicYearLabel: null,
+    primaryColor: null,
+    accentColor: null,
+    logoAvailable: false,
+  };
+}
+
+/** Tenant/domain branding when no school context is available (multi-school tenants). */
+export function fallbackTenantBrandingView(tenantCode: string): LoginSchoolBrandingView {
+  return {
+    schoolCode: '',
+    tenantCode,
+    fromApi: false,
+    schoolName: tenantDisplayName(tenantCode),
     welcomeSubtitle: null,
     academicYearLabel: null,
     primaryColor: null,

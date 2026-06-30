@@ -5,12 +5,19 @@ import {
   fetchPublicSchoolLogoFromOdoo,
 } from '@/lib/public-school-branding/server';
 import { resolvePublicSchoolCodeFromRequest } from '@/lib/public-school-branding/school-code';
+import { resolveTenantRuntimeConfigFromRequest } from '@/lib/tenant';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   const schoolCode = resolvePublicSchoolCodeFromRequest(request);
-  const logo = await fetchPublicSchoolLogoFromOdoo(schoolCode);
+  if (!schoolCode) {
+    return new Response(null, { status: 404 });
+  }
+
+  const runtime = resolveTenantRuntimeConfigFromRequest(request);
+  const backendBaseUrl = runtime.ok ? runtime.config.backendBaseUrl : undefined;
+  const logo = await fetchPublicSchoolLogoFromOdoo(schoolCode, backendBaseUrl);
 
   if (!logo) {
     return new Response(null, { status: 404 });

@@ -2,7 +2,7 @@
 
 import { NextResponse } from 'next/server';
 import { tenantDisplayName } from '@/lib/tenant-public';
-import { resolveTenantFromRequest } from '@/lib/tenant';
+import { resolveTenantRuntimeConfigFromRequest } from '@/lib/tenant';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,20 +14,27 @@ function err(code: string, message: string, status: number) {
 }
 
 export async function GET(request: Request) {
-  const resolved = resolveTenantFromRequest(request);
+  const resolved = resolveTenantRuntimeConfigFromRequest(request);
   if (!resolved.ok) {
-    const status = resolved.reason === 'missing_host' ? 400 : 404;
+    if (resolved.reason === 'tenant_backend_not_configured') {
+      return err('TENANT_BACKEND_NOT_CONFIGURED', 'Tenant backend is not configured.', 503);
+    }
+    const status =
+      resolved.reason === 'missing_host' || resolved.reason === 'missing_fallback_db' ? 400 : 404;
     return err('invalid_tenant', 'Invalid or unsupported host.', status);
   }
 
-  const code = resolved.tenant;
+  const { tenantCode, active, defaultPublicSchoolCode } = resolved.config;
   return NextResponse.json(
     {
       success: true,
       data: {
-        code,
-        name: tenantDisplayName(code),
-        active: true,
+        tenantCode,
+        ...(defaultPublicSchoolCode ? { defaultPublicSchoolCode } : {}),
+        name: tenantDisplayName(tenantCode),
+        active,
+        backendConfigured: Boolean(resolved.config.backendBaseUrl),
+        source: resolved.source,
       },
       meta: {},
     },

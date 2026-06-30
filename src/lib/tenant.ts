@@ -102,3 +102,199 @@ export function tenantSessionMatches(
   if (!resolved.ok || !storedTenant) return false;
   return storedTenant === resolved.tenant;
 }
+
+// ---------------------------------------------------------------------------
+// Tenant registry — host / tenantCode / backend (school context is separate)
+// ---------------------------------------------------------------------------
+
+export type TenantRuntimeConfig = {
+  host: string;
+  tenantCode: string;
+  backendBaseUrl: string;
+  active: boolean;
+  isOfficial: boolean;
+  /**
+   * Optional only.
+   * Do not assume every tenant has one school.
+   * Use only for public pages when explicitly configured.
+   */
+  defaultPublicSchoolCode?: string;
+};
+
+export type TenantRuntimeConfigSource = 'registry' | 'fallback';
+
+export type TenantRuntimeFailureReason =
+  | 'missing_host'
+  | 'invalid_domain'
+  | 'nested_subdomain'
+  | 'invalid_tenant_slug'
+  | 'missing_fallback_db'
+  | 'tenant_not_in_registry'
+  | 'tenant_backend_not_configured'
+  | 'tenant_inactive';
+
+export type TenantRuntimeConfigResolution =
+  | { ok: true; config: TenantRuntimeConfig; source: TenantRuntimeConfigSource }
+  | { ok: false; reason: TenantRuntimeFailureReason };
+
+type TenantRegistryEntry = {
+  tenantCode: string;
+  defaultPublicSchoolCode?: string;
+  /** Explicit URL, or null when resolved from config.odooBaseUrl at runtime. */
+  backendBaseUrl: string | null;
+  useOdooBaseUrl?: boolean;
+  active: boolean;
+  isOfficial: boolean;
+  hosts: readonly string[];
+};
+
+/** Server-only registry — extend here when onboarding new schools. */
+const TENANT_REGISTRY: readonly TenantRegistryEntry[] = [
+  {
+    tenantCode: 'school',
+    defaultPublicSchoolCode: 'school',
+    backendBaseUrl: null,
+    useOdooBaseUrl: true,
+    active: true,
+    isOfficial: false,
+    hosts: ['school.raqeem.ma'],
+  },
+  {
+    tenantCode: 'nibras',
+    defaultPublicSchoolCode: 'nibras',
+    backendBaseUrl: 'https://api-nibras.raqeem.ma',
+    active: true,
+    isOfficial: true,
+    hosts: ['nibras.raqeem.ma'],
+  },
+  {
+    tenantCode: 'alwah',
+    backendBaseUrl: 'https://api-alwah.raqeem.ma',
+    active: true,
+    isOfficial: true,
+    hosts: ['alwah.raqeem.ma'],
+  },
+] as const;
+
+const REGISTRY_BY_CODE = new Map<string, TenantRegistryEntry>(
+  TENANT_REGISTRY.map((entry) => [entry.tenantCode, entry]),
+);
+
+const REGISTRY_BY_HOST = new Map<string, TenantRegistryEntry>(
+  TENANT_REGISTRY.flatMap((entry) => entry.hosts.map((host) => [host, entry] as const)),
+);
+
+function normalizeBaseUrl(url: string): string {
+  return url.replace(/\/$/, '');
+}
+
+/** Resolve backend URL for a registry entry (exported for odoo-backend). */
+export function resolveEntryBackendUrl(entry: TenantRegistryEntry): string | null {
+  if (entry.useOdooBaseUrl) {
+    const url = config.odooBaseUrl?.trim();
+    return url ? normalizeBaseUrl(url) : null;
+  }
+  const explicit = entry.backendBaseUrl?.trim();
+  return explicit ? normalizeBaseUrl(explicit) : null;
+}
+
+function runtimeConfigFromEntry(host: string, entry: TenantRegistryEntry): TenantRuntimeConfigResolution {
+  if (!entry.active) {
+    return { ok: false, reason: 'tenant_inactive' };
+  }
+
+  const backendBaseUrl = resolveEntryBackendUrl(entry);
+  if (!backendBaseUrl) {
+    return { ok: false, reason: 'tenant_backend_not_configured' };
+  }
+
+  const config: TenantRuntimeConfig = {
+    host,
+    tenantCode: entry.tenantCode,
+    backendBaseUrl,
+    active: entry.active,
+    isOfficial: entry.isOfficial,
+  };
+  if (entry.defaultPublicSchoolCode) {
+    config.defaultPublicSchoolCode = entry.defaultPublicSchoolCode;
+  }
+
+  return { ok: true, source: 'registry', config };
+}
+
+function fallbackRuntimeConfig(host: string, fallbackDb: string): TenantRuntimeConfigResolution {
+  const backendBaseUrl = config.odooBaseUrl?.trim();
+  if (!backendBaseUrl) {
+    return { ok: false, reason: 'tenant_backend_not_configured' };
+  }
+
+  return {
+    ok: true,
+    source: 'fallback',
+    config: {
+      host,
+      tenantCode: fallbackDb,
+      defaultPublicSchoolCode: fallbackDb,
+      backendBaseUrl: normalizeBaseUrl(backendBaseUrl),
+      active: true,
+      isOfficial: false,
+    },
+  };
+}
+
+/** Lookup a registry entry by tenant code (Odoo db slug). */
+export function getTenantRegistryEntry(tenantCode: string): TenantRegistryEntry | undefined {
+  return REGISTRY_BY_CODE.get(tenantCode.trim().toLowerCase());
+}
+
+/**
+ * Resolve full tenant runtime config from a normalized hostname.
+ * Production hosts use the registry; localhost / preview use ODOO_DB + ODOO_BASE_URL.
+ */
+export function resolveTenantRuntimeConfigFromHost(
+  host: string | null,
+  rootDomain: string = config.tenantRootDomain,
+  fallbackDb: string = config.odooDb,
+): TenantRuntimeConfigResolution {
+  if (!host) return { ok: false, reason: 'missing_host' };
+
+  if (isFallbackHost(host)) {
+    if (!fallbackDb) return { ok: false, reason: 'missing_fallback_db' };
+    return fallbackRuntimeConfig(host, fallbackDb);
+  }
+
+  const byHost = REGISTRY_BY_HOST.get(host);
+  if (byHost) return runtimeConfigFromEntry(host, byHost);
+
+  const tenantResolution = resolveTenantFromHost(host, rootDomain, fallbackDb);
+  if (!tenantResolution.ok) {
+    const reasonMap: Record<string, TenantRuntimeFailureReason> = {
+      invalid_domain: 'invalid_domain',
+      nested_subdomain: 'nested_subdomain',
+      invalid_tenant_slug: 'invalid_tenant_slug',
+      missing_fallback_db: 'missing_fallback_db',
+    };
+    return {
+      ok: false,
+      reason: reasonMap[tenantResolution.reason] ?? 'tenant_not_in_registry',
+    };
+  }
+
+  const byCode = REGISTRY_BY_CODE.get(tenantResolution.tenant);
+  if (!byCode) return { ok: false, reason: 'tenant_not_in_registry' };
+
+  return runtimeConfigFromEntry(host, byCode);
+}
+
+export function resolveTenantRuntimeConfigFromRequest(request: Request): TenantRuntimeConfigResolution {
+  const host = getHostFromHeaders(request.headers);
+  return resolveTenantRuntimeConfigFromHost(host);
+}
+
+/** Resolve tenant runtime config during RSC / route handlers without a Request object. */
+export async function resolveTenantRuntimeConfigFromServerHeaders(): Promise<TenantRuntimeConfigResolution> {
+  const { headers } = await import('next/headers');
+  const hdrs = await headers();
+  const host = getHostFromHeaders(hdrs);
+  return resolveTenantRuntimeConfigFromHost(host);
+}

@@ -49,6 +49,16 @@ async function fetchPublicAdminFallback(): Promise<
   | { ok: false; error: ApiErrorBody }
 > {
   const schoolCode = await resolvePublicSchoolCodeFromServer();
+  if (!schoolCode) {
+    return {
+      ok: false,
+      error: {
+        code: 'load_failed',
+        message: 'Could not load school branding.',
+        details: { reason: 'no_school_context' },
+      },
+    };
+  }
   const publicResult = await fetchPublicSchoolBrandingFromOdoo(schoolCode);
   if (!publicResult.ok) {
     return {

@@ -5,6 +5,8 @@ const DEFAULT_BASE = 'https://default-odoo.example';
 vi.mock('@/lib/config', () => ({
   config: {
     odooBaseUrl: DEFAULT_BASE,
+    odooDb: 'school',
+    tenantRootDomain: 'raqeem.ma',
     tenantCookieName: 'scc_tenant',
   },
 }));
@@ -29,24 +31,75 @@ describe('resolveOdooBaseUrlForTenant', () => {
     return import('./odoo-backend');
   }
 
-  it('uses TENANT_ODOO_URL_NIBRAS for nibras tenant', async () => {
-    process.env.TENANT_ODOO_URL_NIBRAS = 'https://api-nibras.raqeem.ma/';
+  it('uses registry api-nibras for nibras without TENANT_ODOO_URL_NIBRAS', async () => {
     const { resolveOdooBaseUrlForTenant } = await load();
-    expect(resolveOdooBaseUrlForTenant('nibras')).toBe('https://api-nibras.raqeem.ma');
+    expect(resolveOdooBaseUrlForTenant('nibras')).toEqual({
+      ok: true,
+      baseUrl: 'https://api-nibras.raqeem.ma',
+    });
   });
 
-  it('falls back to ODOO_BASE_URL for school when no override', async () => {
+  it('uses explicit ODOO_BASE_URL mapping for school tenant', async () => {
     const { resolveOdooBaseUrlForTenant } = await load();
-    expect(resolveOdooBaseUrlForTenant('school')).toBe(DEFAULT_BASE);
+    expect(resolveOdooBaseUrlForTenant('school')).toEqual({
+      ok: true,
+      baseUrl: DEFAULT_BASE,
+    });
   });
 
-  it('falls back to ODOO_BASE_URL when TENANT_ODOO_URL_NIBRAS is unset', async () => {
+  it('uses registry api-alwah for alwah tenant', async () => {
     const { resolveOdooBaseUrlForTenant } = await load();
-    expect(resolveOdooBaseUrlForTenant('nibras')).toBe(DEFAULT_BASE);
+    expect(resolveOdooBaseUrlForTenant('alwah')).toEqual({
+      ok: true,
+      baseUrl: 'https://api-alwah.raqeem.ma',
+    });
+  });
+
+  it('fails closed for unknown tenant instead of ODOO_BASE_URL fallback', async () => {
+    const { resolveOdooBaseUrlForTenant } = await load();
+    expect(resolveOdooBaseUrlForTenant('unknown-tenant')).toEqual({
+      ok: false,
+      code: 'TENANT_BACKEND_NOT_CONFIGURED',
+    });
+  });
+
+  it('does not use ODOO_BASE_URL for nibras when registry mapping exists', async () => {
+    const { resolveOdooBaseUrlForTenant } = await load();
+    const result = resolveOdooBaseUrlForTenant('nibras');
+    expect(result).toEqual({ ok: true, baseUrl: 'https://api-nibras.raqeem.ma' });
+    if (result.ok) {
+      expect(result.baseUrl).not.toBe(DEFAULT_BASE);
+    }
+  });
+
+  it('uses ODOO_BASE_URL on fallback host even for official tenant slug', async () => {
+    const { resolveOdooBaseUrlForTenant } = await load();
+    expect(
+      resolveOdooBaseUrlForTenant('nibras', { host: 'localhost' }),
+    ).toEqual({ ok: true, baseUrl: DEFAULT_BASE });
+  });
+
+  it('still allows env override as secondary to registry', async () => {
+    process.env.TENANT_ODOO_URL_NIBRAS = 'https://env-override.example/';
+    const { resolveOdooBaseUrlForTenant } = await load();
+    expect(resolveOdooBaseUrlForTenant('nibras')).toEqual({
+      ok: true,
+      baseUrl: 'https://env-override.example',
+    });
   });
 
   it('builds env key from tenant slug with hyphens', async () => {
     const { tenantOdooUrlEnvKey } = await load();
     expect(tenantOdooUrlEnvKey('my-school')).toBe('TENANT_ODOO_URL_MY_SCHOOL');
+  });
+});
+
+describe('tenantBackendNotConfiguredResponse', () => {
+  it('returns 503 with TENANT_BACKEND_NOT_CONFIGURED', async () => {
+    const { tenantBackendNotConfiguredResponse } = await import('./odoo-backend');
+    const res = tenantBackendNotConfiguredResponse();
+    expect(res.status).toBe(503);
+    const body = await res.json();
+    expect(body.error.code).toBe('TENANT_BACKEND_NOT_CONFIGURED');
   });
 });

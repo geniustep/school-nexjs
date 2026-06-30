@@ -6,14 +6,44 @@ import {
   fetchPublicSchoolBrandingFromOdoo,
   mapOdooBrandingToLoginView,
   fallbackLoginSchoolBrandingView,
+  fallbackTenantBrandingView,
 } from '@/lib/public-school-branding/server';
-import { resolvePublicSchoolCodeFromRequest } from '@/lib/public-school-branding/school-code';
+import {
+  resolvePublicSchoolCodeFromRequest,
+  resolvePublicTenantCodeFromRequest,
+} from '@/lib/public-school-branding/school-code';
+import { resolveTenantRuntimeConfigFromRequest } from '@/lib/tenant';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   const schoolCode = resolvePublicSchoolCodeFromRequest(request);
-  const result = await fetchPublicSchoolBrandingFromOdoo(schoolCode);
+
+  if (!schoolCode) {
+    const tenantCode = resolvePublicTenantCodeFromRequest(request);
+    const view = tenantCode
+      ? fallbackTenantBrandingView(tenantCode)
+      : fallbackLoginSchoolBrandingView('');
+    return NextResponse.json(
+      {
+        success: true,
+        data: {
+          branding: view,
+          source: 'tenant_fallback',
+          reason: 'needs_school_selection',
+        },
+        meta: {},
+      },
+      {
+        status: 200,
+        headers: { 'Cache-Control': 'private, no-store' },
+      },
+    );
+  }
+
+  const runtime = resolveTenantRuntimeConfigFromRequest(request);
+  const backendBaseUrl = runtime.ok ? runtime.config.backendBaseUrl : undefined;
+  const result = await fetchPublicSchoolBrandingFromOdoo(schoolCode, backendBaseUrl);
 
   if (!result.ok) {
     const view = fallbackLoginSchoolBrandingView(schoolCode);
