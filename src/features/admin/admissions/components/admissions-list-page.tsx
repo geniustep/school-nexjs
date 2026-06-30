@@ -38,10 +38,15 @@ export function AdmissionsListPage() {
   const [hideConverted, setHideConverted] = useState(true);
   const debouncedSearch = useDebouncedValue(search, 400);
 
-  const displayStates = showClosed
-    ? [...ACTIVE_KANBAN_STATES, ...CLOSED_KANBAN_STATES]
-    : ACTIVE_KANBAN_STATES;
-  const fetchStates = stateFilter ? [stateFilter] : displayStates;
+  const displayStates = useMemo(
+    () =>
+      showClosed ? [...ACTIVE_KANBAN_STATES, ...CLOSED_KANBAN_STATES] : ACTIVE_KANBAN_STATES,
+    [showClosed],
+  );
+  const fetchStates = useMemo(
+    () => (stateFilter ? [stateFilter] : displayStates),
+    [stateFilter, displayStates],
+  );
 
   useEffect(() => {
     setPage(1);

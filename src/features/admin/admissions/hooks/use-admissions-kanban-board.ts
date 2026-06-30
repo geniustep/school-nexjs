@@ -8,6 +8,19 @@ import type { ApiErrorBody, ApiResponse, Pagination } from '@/types/api';
 
 export const ADMISSIONS_KANBAN_COLUMN_PAGE_SIZE = 30;
 
+/**
+ * Stable fetch key for a set of kanban columns. The board effect keys off this
+ * string instead of the `columns` array reference: callers frequently pass a
+ * freshly-built array on every render (e.g. `[stateFilter]` or
+ * `[...ACTIVE, ...CLOSED]`), and depending on the array identity would re-run
+ * the effect — and re-fire one Odoo request per column — on every render,
+ * producing a request storm. Two logically-equal column sets must yield the
+ * same key regardless of array identity.
+ */
+export function kanbanColumnsKey(columns: string[]): string {
+  return columns.join(',');
+}
+
 export interface AdmissionsKanbanColumn {
   state: string;
   items: AdmissionListItem[];
@@ -84,11 +97,14 @@ export function useAdmissionsKanbanBoard({
   const [initialLoading, setInitialLoading] = useState(enabled);
   const [nonce, setNonce] = useState(0);
 
-  const columnsKey = columns.join(',');
+  const columnsKey = kanbanColumnsKey(columns);
   const searchKey = search?.trim() ?? '';
 
   useEffect(() => {
-    if (!enabled || activeSchoolId == null || columns.length === 0) {
+    // Derive the column list from the stable string key, not the `columns`
+    // prop, so a new-but-equal array reference does not re-trigger the effect.
+    const activeColumns = columnsKey ? columnsKey.split(',') : [];
+    if (!enabled || activeSchoolId == null || activeColumns.length === 0) {
       setInitialLoading(false);
       setColumnStates({});
       return;
@@ -98,7 +114,7 @@ export function useAdmissionsKanbanBoard({
     setInitialLoading(true);
     setColumnStates(
       Object.fromEntries(
-        columns.map((state) => [
+        activeColumns.map((state) => [
           state,
           {
             state,
@@ -116,7 +132,7 @@ export function useAdmissionsKanbanBoard({
 
     void (async () => {
       const results = await Promise.all(
-        columns.map(async (state) => {
+        activeColumns.map(async (state) => {
           const res = await fetchAdmissions({
             active_school_id: activeSchoolId,
             state,
@@ -141,7 +157,7 @@ export function useAdmissionsKanbanBoard({
     return () => {
       cancelled = true;
     };
-  }, [enabled, activeSchoolId, columnsKey, searchKey, nonce, columns]);
+  }, [enabled, activeSchoolId, columnsKey, searchKey, nonce]);
 
   const loadMore = useCallback(
     async (state: string) => {
