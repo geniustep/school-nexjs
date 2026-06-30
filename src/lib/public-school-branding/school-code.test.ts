@@ -41,6 +41,17 @@ describe('resolvePublicSchoolCodeFromRequest', () => {
     expect(resolvePublicSchoolCodeFromRequest(request)).toBeNull();
   });
 
+  it('does not equate alwah tenant code with school_code=alwah', () => {
+    const request = new Request('https://alwah.raqeem.ma/login', {
+      headers: { host: 'alwah.raqeem.ma' },
+    });
+    const tenantCode = resolvePublicTenantCodeFromRequest(request);
+    const schoolCode = resolvePublicSchoolCodeFromRequest(request);
+    expect(tenantCode).toBe('alwah');
+    expect(schoolCode).not.toBe('alwah');
+    expect(schoolCode).toBeNull();
+  });
+
   it('passes explicit school_code query through for alwah', () => {
     const request = new Request('https://alwah.raqeem.ma/login?school_code=alwah-school', {
       headers: { host: 'alwah.raqeem.ma' },

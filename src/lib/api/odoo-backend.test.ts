@@ -92,6 +92,18 @@ describe('resolveOdooBaseUrlForTenant', () => {
     const { tenantOdooUrlEnvKey } = await load();
     expect(tenantOdooUrlEnvKey('my-school')).toBe('TENANT_ODOO_URL_MY_SCHOOL');
   });
+
+  it('returns an object envelope, not a string URL (prevents [object Object] regressions)', async () => {
+    const { resolveOdooBaseUrlForTenant } = await load();
+    const result = resolveOdooBaseUrlForTenant('nibras');
+    expect(typeof result).toBe('object');
+    expect(`${result}`).toContain('[object Object]');
+    if (result.ok) {
+      expect(typeof result.baseUrl).toBe('string');
+      expect(result.baseUrl).toMatch(/^https:\/\//);
+      expect(`${result.baseUrl}/web/image/x`).not.toContain('[object Object]');
+    }
+  });
 });
 
 describe('tenantBackendNotConfiguredResponse', () => {

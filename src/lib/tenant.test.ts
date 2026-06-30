@@ -18,6 +18,7 @@ import {
   resolveEntryBackendUrl,
   resolveTenantFromHost,
   resolveTenantRuntimeConfigFromHost,
+  resolveTenantRuntimeConfigFromRequest,
   tenantSessionMatches,
 } from './tenant';
 
@@ -244,5 +245,40 @@ describe('resolveTenantRuntimeConfigFromHost', () => {
   it('rejects unknown production subdomain not in registry', () => {
     const result = resolveTenantRuntimeConfigFromHost('newschool.raqeem.ma', ROOT, FALLBACK);
     expect(result).toEqual({ ok: false, reason: 'tenant_not_in_registry' });
+  });
+});
+
+describe('resolveTenantRuntimeConfigFromRequest', () => {
+  it('maps nibras host to api-nibras backend for login/proxy routes', () => {
+    const request = new Request('https://nibras.raqeem.ma/api/auth/login', {
+      headers: { host: 'nibras.raqeem.ma' },
+    });
+    const result = resolveTenantRuntimeConfigFromRequest(request);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.config.backendBaseUrl).toBe('https://api-nibras.raqeem.ma');
+    expect(result.config.tenantCode).toBe('nibras');
+  });
+
+  it('maps alwah host to api-alwah backend without inventing school code', () => {
+    const request = new Request('https://alwah.raqeem.ma/api/odoo/admin/students', {
+      headers: { host: 'alwah.raqeem.ma' },
+    });
+    const result = resolveTenantRuntimeConfigFromRequest(request);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.config.backendBaseUrl).toBe('https://api-alwah.raqeem.ma');
+    expect(result.config.defaultPublicSchoolCode).toBeUndefined();
+  });
+
+  it('uses localhost fallback backend for dev hosts', () => {
+    const request = new Request('http://localhost:3000/api/odoo/admin/students', {
+      headers: { host: 'localhost:3000' },
+    });
+    const result = resolveTenantRuntimeConfigFromRequest(request);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.config.backendBaseUrl).toBe(MOCK_ODOO_BASE);
+    expect(result.source).toBe('fallback');
   });
 });
