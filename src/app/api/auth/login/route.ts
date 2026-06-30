@@ -14,7 +14,8 @@ import {
 } from '@/lib/auth/active-school';
 import { setTenantCookie } from '@/lib/auth/tenant-guard';
 import { normalizeMeUser, resolveActiveSchoolId } from '@/lib/auth/normalize-user';
-import { resolveTenantFromRequest } from '@/lib/tenant';
+import { resolveTenantFromRequest, resolveTenantRuntimeConfigFromRequest } from '@/lib/tenant';
+import { tenantBackendNotConfiguredResponse } from '@/lib/api/odoo-backend';
 import type { MeResponse } from '@/types/user';
 
 export const dynamic = 'force-dynamic';
@@ -57,8 +58,24 @@ export async function POST(request: Request) {
     return err('invalid_tenant', 'Invalid or unsupported host.', 400);
   }
 
-  const auth = await authenticateOdoo(tenant.tenant, login, password);
+  const runtime = resolveTenantRuntimeConfigFromRequest(request);
+  if (!runtime.ok) {
+    if (runtime.reason === 'tenant_backend_not_configured') {
+      return tenantBackendNotConfiguredResponse();
+    }
+    return err('invalid_tenant', 'Invalid or unsupported host.', 400);
+  }
+
+  const auth = await authenticateOdoo(
+    tenant.tenant,
+    login,
+    password,
+    runtime.config.backendBaseUrl,
+  );
   if (!auth.ok || !auth.sessionId) {
+    if (auth.errorName === 'tenant_backend_not_configured') {
+      return tenantBackendNotConfiguredResponse();
+    }
     if (auth.errorName === 'network_error') {
       return err('network_error', 'Could not reach the server. Please try again.', 502);
     }
@@ -70,6 +87,7 @@ export async function POST(request: Request) {
   const me = await odooApiFetch<MeResponse>(endpoints.auth.me, {
     sessionId: auth.sessionId,
     tenant: tenant.tenant,
+    backendBaseUrl: runtime.config.backendBaseUrl,
   });
 
   if (me.kind !== 'json' || !me.body.success) {

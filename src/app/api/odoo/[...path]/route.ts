@@ -10,23 +10,42 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { config } from '@/lib/config';
 import { buildBffProxyPath } from '@/lib/api/build-odoo-api-url';
-import { getStoredTenantSlug } from '@/lib/api/odoo-backend';
+import { getStoredTenantSlug, tenantBackendNotConfiguredResponse } from '@/lib/api/odoo-backend';
 import { odooApiFetch } from '@/lib/api/odoo-server';
 import { getCurrentUser } from '@/lib/api/server';
 import { getActiveSchoolCookie, setActiveSchoolCookieValue } from '@/lib/auth/active-school';
 import { guardTenantFromRequest } from '@/lib/auth/tenant-guard';
 import { isOdooAdminRoleTeacherEndpointBlock } from '@/lib/auth/teacher-workspace-api';
 import { shouldUseTeacherWorkspace } from '@/lib/auth/teacher-workspace';
+import { getHostFromHeaders, resolveTenantRuntimeConfigFromRequest } from '@/lib/tenant';
 
 export const dynamic = 'force-dynamic';
 
 async function handle(request: NextRequest, segments: string[]) {
+  const runtime = resolveTenantRuntimeConfigFromRequest(request);
+  if (!runtime.ok) {
+    if (runtime.reason === 'tenant_backend_not_configured') {
+      return tenantBackendNotConfiguredResponse();
+    }
+    const status =
+      runtime.reason === 'missing_host' || runtime.reason === 'missing_fallback_db' ? 400 : 404;
+    return NextResponse.json(
+      {
+        success: false,
+        error: { code: 'invalid_tenant', message: 'Invalid or unsupported host.', details: {} },
+        meta: {},
+      },
+      { status },
+    );
+  }
+
   const tenantGuard = await guardTenantFromRequest(request);
   if (!tenantGuard.ok) return tenantGuard.response;
 
   const store = await cookies();
   const sessionId = store.get(config.sessionCookieName)?.value ?? null;
   const tenant = await getStoredTenantSlug();
+  const host = getHostFromHeaders(request.headers);
 
   const path = buildBffProxyPath(segments);
   const query: Record<string, string> = {};
@@ -66,6 +85,8 @@ async function handle(request: NextRequest, segments: string[]) {
     method,
     sessionId,
     tenant: tenant ?? undefined,
+    backendBaseUrl: runtime.config.backendBaseUrl,
+    host,
     query,
     body,
     formData,
