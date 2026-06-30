@@ -3158,7 +3158,7 @@
       },
       "uiStages": {
         "new": "Nouveau",
-        "in_follow_up": "En suivi",
+        "in_follow_up": "En cours de suivi",
         "in_evaluation": "En évaluation",
         "accepted": "Accepté",
         "ready_for_registration": "Prêt à inscrire",

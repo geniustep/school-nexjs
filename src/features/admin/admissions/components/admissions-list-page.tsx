@@ -66,6 +66,10 @@ export function AdmissionsListPage() {
     setPage(1);
   }, [debouncedSearch, stateFilter, view, showClosed, hideConverted]);
 
+  useEffect(() => {
+    if (stateFilter === CLOSED_UI_STAGE) setShowClosed(true);
+  }, [stateFilter]);
+
   const tableParams: ListParams = useMemo(
     () => ({
       page,
