@@ -20,7 +20,19 @@ import {
   mergeHttpStatusIntoEnvelope,
   normalizeOdooHttpError,
 } from '@/lib/api/parse-odoo-error-response';
+import { getHostFromHeaders } from '@/lib/tenant';
 import type { ApiResponse, ApiErrorCode } from '@/types/api';
+
+/** Host from next/headers when callers omit opts.host (RSC, guards, serverGet). */
+async function resolveServerRequestHost(): Promise<string | null> {
+  try {
+    const { headers } = await import('next/headers');
+    const hdrs = await headers();
+    return getHostFromHeaders(hdrs);
+  } catch {
+    return null;
+  }
+}
 
 export interface OdooAuthResult {
   ok: boolean;
@@ -116,7 +128,8 @@ async function resolveOdooBaseUrl(opts: OdooFetchOptions): Promise<BackendBaseUr
   }
 
   const tenant = opts.tenant?.trim() || (await getStoredTenantSlug());
-  if (tenant) return resolveOdooBaseUrlForTenant(tenant, { host: opts.host });
+  const host = opts.host ?? (await resolveServerRequestHost());
+  if (tenant) return resolveOdooBaseUrlForTenant(tenant, { host });
 
   const fallbackUrl = config.odooBaseUrl?.trim();
   if (!fallbackUrl) return { ok: false, code: 'TENANT_BACKEND_NOT_CONFIGURED' };
