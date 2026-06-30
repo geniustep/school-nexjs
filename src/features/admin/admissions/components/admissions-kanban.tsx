@@ -197,7 +197,7 @@ export function AdmissionsKanban({
                       <p className="admissions-kanban__empty">{t('admin.admissions.kanban.emptyColumn')}</p>
                     ) : (
                       columnItems.map((item: AdmissionListItem) => (
-                        <AdmissionCard key={item.id} item={item} showStateBadge />
+                        <AdmissionCard key={item.id} item={item} showStateBadge={false} />
                       ))
                     )}
                     {hasMore ? (
