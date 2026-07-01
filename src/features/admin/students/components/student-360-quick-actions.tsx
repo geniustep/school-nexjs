@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { IconMoreHorizontal } from '@/components/icons/admin-icons';
 import { ConfirmActionButton } from '@/features/admin/confirm-action-button';
 import { useT } from '@/features/i18n/locale-context';
@@ -21,6 +22,7 @@ export function Student360QuickActions({
   overview,
   archived,
   onEdit,
+  editHref,
   onOpenTab,
   onArchiveSuccess,
 }: {
@@ -29,6 +31,7 @@ export function Student360QuickActions({
   overview?: StudentOverviewData | null;
   archived: boolean;
   onEdit: () => void;
+  editHref: string;
   onOpenTab: (tab: Student360TabId) => void;
   onArchiveSuccess: () => void;
 }) {
@@ -97,9 +100,9 @@ export function Student360QuickActions({
   }
   return (
     <div className="student-360-quick-actions" ref={rootRef}>
-      <button type="button" className="btn btn--primary btn--sm" onClick={onEdit}>
+      <Link href={editHref} className="btn btn--primary btn--sm">
         {t('admin.student360.quickActions.editProfile')}
-      </button>
+      </Link>
 
       {secondaryActions.slice(0, 1).map((action) => (
         <button

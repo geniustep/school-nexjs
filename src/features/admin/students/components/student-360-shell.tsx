@@ -43,7 +43,6 @@ import { StudentHealthTab } from './student-health-tab';
 import { StudentFinanceWorkspaceShell } from '@/features/admin/student-finance/components/student-finance-workspace-shell';
 import { StudentCreateForm } from './student-create-form';
 import type { StudentCreateSaveMode, StudentCreateSaveOutcome } from './student-create-form';
-import { StudentForm } from './student-form';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useToast } from '@/components/ui/toast';
 import {
@@ -85,7 +84,6 @@ export function Student360Shell({ studentId }: { studentId: string }) {
   const user = useSession();
   const state = useStudentDetails(studentId);
   const overviewState = useStudentOverview(studentId, Boolean(state.data));
-  const [editing, setEditing] = useState(false);
 
   const details = state.data;
   const caps = details ? resolveStudentCapabilities(details.capabilities, user) : null;
@@ -172,118 +170,100 @@ export function Student360Shell({ studentId }: { studentId: string }) {
           overview={overviewState.data}
           overviewLoading={overviewState.loading && !overviewState.data}
           actions={
-            !editing ? (
-              <Student360QuickActions
-                details={resolvedDetails}
-                caps={caps}
-                overview={overviewState.data}
-                archived={archived}
-                onEdit={() => setEditing(true)}
-                onOpenTab={(next) =>
-                  router.push(buildStudent360TabHref(studentId, next), { scroll: false })
-                }
-                onArchiveSuccess={() => router.push('/admin/students')}
-              />
-            ) : null
+            <Student360QuickActions
+              details={resolvedDetails}
+              caps={caps}
+              overview={overviewState.data}
+              archived={archived}
+              editHref={`/admin/students/${studentId}/edit`}
+              onEdit={() => router.push(`/admin/students/${studentId}/edit?tab=schooling`)}
+              onOpenTab={(next) =>
+                router.push(buildStudent360TabHref(studentId, next), { scroll: false })
+              }
+              onArchiveSuccess={() => router.push('/admin/students')}
+            />
           }
         />
 
-        {!editing ? (
-          <div className="student-360-tabs-sticky">
-            <Student360TabBar
-              studentId={studentId}
-              activeTab={tab}
-              tabs={availableTabs}
-              ariaLabel={t('admin.student360.tabsAria')}
-              indicators={tabIndicators}
-            />
-          </div>
-        ) : null}
+        <div className="student-360-tabs-sticky">
+          <Student360TabBar
+            studentId={studentId}
+            activeTab={tab}
+            tabs={availableTabs}
+            ariaLabel={t('admin.student360.tabsAria')}
+            indicators={tabIndicators}
+          />
+        </div>
       </div>
 
-      {editing ? (
-        <StudentForm
-          student={s}
-          enrollment={resolvedDetails.current_enrollment}
-          guardianRelationships={resolvedDetails.guardian_relationships}
-          onSaved={() => {
-            setEditing(false);
-            state.reload();
-          }}
-          onCancel={() => setEditing(false)}
-        />
-      ) : (
-        <>
-          <Student360TabPageHeader tab={tab} />
+      <Student360TabPageHeader tab={tab} />
 
-          <Student360TabErrorBoundary studentId={studentId} tab={tab} onRetry={state.reload}>
-            {tab === 'overview' && (
-              <StudentOverviewTab
-                studentId={studentId}
-                details={resolvedDetails}
-                overview={overviewState.data}
-                overviewLoading={overviewState.loading}
-                overviewEndpointUnavailable={overviewState.endpointUnavailable}
-                canManage={resolveOverviewEditAllowed(overviewState.data, caps)}
-                showDocuments={showDocuments}
-                showHealth={showHealth}
-                showFinance={showFinance}
-                setupMode={setupMode}
-                onOpenTab={(next, options) => {
-                  if (options?.financeSubTab) {
-                    const base = `/admin/students/${studentId}?tab=finance`;
-                    const href =
-                      options.financeSubTab === 'overview'
-                        ? base
-                        : `${base}&financeSubTab=${options.financeSubTab}`;
-                    router.push(href, { scroll: false });
-                    return;
-                  }
-                  router.push(buildStudent360TabHref(studentId, next), { scroll: false });
-                }}
-                onEditProfile={() => setEditing(true)}
-                onAccountChanged={state.reload}
-              />
-            )}
-            {tab === 'enrollment' && (
-              <StudentEnrollmentTab
-                details={resolvedDetails}
-                canManage={caps.can_manage && !archived}
-                onCreateEnrollment={() => setEditing(true)}
-              />
-            )}
-            {tab === 'guardians' && (
-              <StudentGuardiansTab
-                details={resolvedDetails}
-                canManageGuardians={caps.can_manage_guardians}
-                onChanged={state.reload}
-              />
-            )}
-            {tab === 'finance' && showFinance && (
-              <StudentFinanceWorkspaceShell
-                studentId={s.id}
-                details={resolvedDetails}
-                capabilities={caps}
-                onChanged={state.reload}
-              />
-            )}
-            {tab === 'health' && showHealth && (
-              <StudentHealthTab
-                studentId={s.id}
-                canManage={canManageStudentHealth(caps)}
-                onChanged={state.reload}
-              />
-            )}
-            {tab === 'documents' && showDocuments && (
-              <StudentDocumentsTab
-                studentId={s.id}
-                canManage={canManageStudentDocuments(caps)}
-                onChanged={state.reload}
-              />
-            )}
-          </Student360TabErrorBoundary>
-        </>
-      )}
+      <Student360TabErrorBoundary studentId={studentId} tab={tab} onRetry={state.reload}>
+        {tab === 'overview' && (
+          <StudentOverviewTab
+            studentId={studentId}
+            details={resolvedDetails}
+            overview={overviewState.data}
+            overviewLoading={overviewState.loading}
+            overviewEndpointUnavailable={overviewState.endpointUnavailable}
+            canManage={resolveOverviewEditAllowed(overviewState.data, caps)}
+            showDocuments={showDocuments}
+            showHealth={showHealth}
+            showFinance={showFinance}
+            setupMode={setupMode}
+            onOpenTab={(next, options) => {
+              if (options?.financeSubTab) {
+                const base = `/admin/students/${studentId}?tab=finance`;
+                const href =
+                  options.financeSubTab === 'overview'
+                    ? base
+                    : `${base}&financeSubTab=${options.financeSubTab}`;
+                router.push(href, { scroll: false });
+                return;
+              }
+              router.push(buildStudent360TabHref(studentId, next), { scroll: false });
+            }}
+            onEditProfile={() => router.push(`/admin/students/${studentId}/edit`)}
+            onAccountChanged={state.reload}
+          />
+        )}
+        {tab === 'enrollment' && (
+          <StudentEnrollmentTab
+            details={resolvedDetails}
+            canManage={caps.can_manage && !archived}
+            onCreateEnrollment={() => router.push(`/admin/students/${studentId}/edit?tab=schooling`)}
+          />
+        )}
+        {tab === 'guardians' && (
+          <StudentGuardiansTab
+            details={resolvedDetails}
+            canManageGuardians={caps.can_manage_guardians}
+            onChanged={state.reload}
+          />
+        )}
+        {tab === 'finance' && showFinance && (
+          <StudentFinanceWorkspaceShell
+            studentId={s.id}
+            details={resolvedDetails}
+            capabilities={caps}
+            onChanged={state.reload}
+          />
+        )}
+        {tab === 'health' && showHealth && (
+          <StudentHealthTab
+            studentId={s.id}
+            canManage={canManageStudentHealth(caps)}
+            onChanged={state.reload}
+          />
+        )}
+        {tab === 'documents' && showDocuments && (
+          <StudentDocumentsTab
+            studentId={s.id}
+            canManage={canManageStudentDocuments(caps)}
+            onChanged={state.reload}
+          />
+        )}
+      </Student360TabErrorBoundary>
     </div>
   );
 }

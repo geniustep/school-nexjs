@@ -4,12 +4,14 @@ import { DatePickerInput } from '@/components/ui/date-picker-input';
 import { useMemo, useState } from 'react';
 import { useT } from '@/features/i18n/locale-context';
 import { SiblingsFormFields } from '@/features/admin/admissions/components/siblings-form-fields';
-import type { StudentNationalityOption } from '@/types/student-360';
+import type { StudentNationalityOption, StudentSummary } from '@/types/student-360';
 import type { StudentProfileFieldErrors, StudentProfileFormState } from '../utils/student-profile';
 import {
   localizeStudentGenderOptions,
+  requiresDepartureReason,
   sortNationalityOptions,
   todayIsoDate,
+  displayCountryState,
 } from '../utils/student-profile';
 import { normalizeMassarCodeInput } from '../utils/massar-code';
 
@@ -165,7 +167,7 @@ export function StudentIdentityFields({
   onChange: (patch: Partial<StudentProfileFormState>) => void;
 }) {
   const t = useT();
-  const showDeparture = state.status === 'withdrawn' || state.status === 'transferred';
+  const showDeparture = requiresDepartureReason(state.status);
   const localizedGenders = useMemo(
     () => localizeStudentGenderOptions(genders, t),
     [genders, t],
@@ -1020,4 +1022,377 @@ export function StudentAdmissionAndSiblingsFields({
       </div>
     </div>
   );
+}
+
+export function StudentPersonalNameFields({
+  state,
+  errors,
+  optionsLoading,
+  genders,
+  nationalities,
+  onChange,
+}: {
+  state: StudentProfileFormState;
+  errors: StudentProfileFieldErrors;
+  optionsLoading: boolean;
+  genders: { value: string; label: string }[];
+  nationalities: StudentNationalityOption[];
+  onChange: (patch: Partial<StudentProfileFormState>) => void;
+}) {
+  const t = useT();
+  const localizedGenders = useMemo(
+    () => localizeStudentGenderOptions(genders, t),
+    [genders, t],
+  );
+  const birthDateMax = useMemo(() => todayIsoDate(), []);
+
+  return (
+    <div className="student-360-form__grid">
+      <Field label={t('admin.firstName')} error={errors.firstName}>
+        <input
+          className="input"
+          value={state.firstName}
+          onChange={(e) => onChange({ firstName: e.target.value })}
+          required
+        />
+      </Field>
+      <Field label={t('admin.lastName')} error={errors.lastName}>
+        <input
+          className="input"
+          value={state.lastName}
+          onChange={(e) => onChange({ lastName: e.target.value })}
+          required
+        />
+      </Field>
+      <Field label={t('admin.student360.nameAr')}>
+        <input className="input" value={state.nameAr} onChange={(e) => onChange({ nameAr: e.target.value })} />
+      </Field>
+      <Field label={t('admin.student360.nameLatin')}>
+        <input className="input" value={state.nameLatin} onChange={(e) => onChange({ nameLatin: e.target.value })} dir="ltr" />
+      </Field>
+      <Field label={t('admin.gender')}>
+        <select
+          className="input"
+          value={state.gender}
+          onChange={(e) => onChange({ gender: e.target.value })}
+          disabled={optionsLoading}
+        >
+          <option value="">{t('common.dash')}</option>
+          {localizedGenders.map((g) => (
+            <option key={g.value} value={g.value}>
+              {g.label}
+            </option>
+          ))}
+        </select>
+      </Field>
+      <Field label={t('admin.dateOfBirth')} error={errors.dateOfBirth}>
+        <DatePickerInput
+          value={state.dateOfBirth}
+          onChange={(dateOfBirth) => onChange({ dateOfBirth })}
+          max={birthDateMax}
+          presets={false}
+        />
+      </Field>
+      <Field label={t('admin.student360.birthPlace')}>
+        <input className="input" value={state.birthPlace} onChange={(e) => onChange({ birthPlace: e.target.value })} />
+      </Field>
+      <Field label={t('admin.student360.nationality')}>
+        <StudentNationalitySelect
+          value={state.nationalityId}
+          options={nationalities}
+          disabled={optionsLoading}
+          onChange={(nationalityId) => onChange({ nationalityId })}
+        />
+      </Field>
+      <Field label={t('admin.student360.admissionData.residenceAddress')}>
+        <input
+          className="input"
+          value={state.residenceAddress}
+          onChange={(e) => onChange({ residenceAddress: e.target.value })}
+        />
+      </Field>
+    </div>
+  );
+}
+
+export function StudentIdentityCodeFields({
+  state,
+  errors,
+  onChange,
+}: {
+  state: StudentProfileFormState;
+  errors: StudentProfileFieldErrors;
+  onChange: (patch: Partial<StudentProfileFormState>) => void;
+}) {
+  const t = useT();
+
+  return (
+    <div className="student-360-form__grid">
+      <Field
+        label={t('admin.massarCode')}
+        error={errors.massarCode}
+        hint={t('admin.student360.create.massarCodeHint')}
+      >
+        <input
+          className="input"
+          value={state.massarCode}
+          onChange={(e) => onChange({ massarCode: e.target.value })}
+          onBlur={() => {
+            const normalized = normalizeMassarCodeInput(state.massarCode);
+            if (normalized !== state.massarCode) onChange({ massarCode: normalized });
+          }}
+          dir="ltr"
+          autoComplete="off"
+        />
+      </Field>
+      <Field label={t('admin.studentCode')}>
+        <input className="input" value={state.code} onChange={(e) => onChange({ code: e.target.value })} dir="ltr" />
+      </Field>
+      <Field label={t('admin.student360.schoolNumber')} error={errors.schoolNumber}>
+        <input className="input" value={state.schoolNumber} onChange={(e) => onChange({ schoolNumber: e.target.value })} dir="ltr" />
+      </Field>
+      <Field label={t('admin.student360.admissionData.externalReference')}>
+        <input
+          className="input"
+          dir="ltr"
+          value={state.externalReference}
+          onChange={(e) => onChange({ externalReference: e.target.value })}
+        />
+      </Field>
+    </div>
+  );
+}
+
+export function StudentAdminStatusFields({
+  state,
+  errors,
+  optionsLoading,
+  statuses,
+  onChange,
+}: {
+  state: StudentProfileFormState;
+  errors: StudentProfileFieldErrors;
+  optionsLoading: boolean;
+  statuses: { value: string; label: string }[];
+  onChange: (patch: Partial<StudentProfileFormState>) => void;
+}) {
+  const t = useT();
+  const showDeparture = requiresDepartureReason(state.status);
+
+  return (
+    <div className="student-360-form__grid">
+      <Field label={t('admin.student360.studentStatus')}>
+        <select
+          className="input"
+          value={state.status}
+          onChange={(e) => onChange({ status: e.target.value })}
+          disabled={optionsLoading}
+        >
+          {statuses.map((s) => (
+            <option key={s.value} value={s.value}>
+              {s.label}
+            </option>
+          ))}
+        </select>
+      </Field>
+      <Field label={t('admin.student360.editPage.active')}>
+        <label className="row" style={{ gap: 8, alignItems: 'center' }}>
+          <input
+            type="checkbox"
+            checked={state.active}
+            onChange={(e) => onChange({ active: e.target.checked })}
+          />
+          <span className="tiny">{t('admin.student360.editPage.activeHint')}</span>
+        </label>
+      </Field>
+      {showDeparture ? (
+        <Field label={t('admin.student360.departureReason')} error={errors.departureReason}>
+          <input
+            className="input"
+            value={state.departureReason}
+            onChange={(e) => onChange({ departureReason: e.target.value })}
+          />
+        </Field>
+      ) : null}
+      <Field label={t('admin.student360.editPage.adminNotes')}>
+        <textarea
+          className="input"
+          rows={3}
+          value={state.notes}
+          onChange={(e) => onChange({ notes: e.target.value })}
+        />
+      </Field>
+      <Field label={t('admin.student360.admissionData.admissionNotes')}>
+        <textarea
+          className="input"
+          rows={2}
+          value={state.admissionNotes}
+          onChange={(e) => onChange({ admissionNotes: e.target.value })}
+        />
+      </Field>
+    </div>
+  );
+}
+
+export function StudentEnrollmentEditFields({
+  state,
+  errors,
+  optionsLoading,
+  schoolName,
+  levelName,
+  academicYearName,
+  classes,
+  registrationTypes,
+  onChange,
+}: {
+  state: StudentProfileFormState;
+  errors: StudentProfileFieldErrors;
+  optionsLoading: boolean;
+  schoolName: string;
+  levelName: string;
+  academicYearName: string;
+  classes: { id: number; name: string; display_name?: string | null; display_alias?: string | null }[];
+  registrationTypes: { value: string; label: string }[];
+  onChange: (patch: Partial<StudentProfileFormState>) => void;
+}) {
+  const t = useT();
+  const showPrevious = state.registrationType === 'transfer';
+  const showRepeating = state.registrationType === 're_enrollment';
+
+  return (
+    <div className="student-360-form__grid">
+      <Field label={t('admin.finance.activeSchool')}>
+        <input className="input" value={schoolName} readOnly disabled />
+      </Field>
+      <Field label={t('admin.academicYearId')}>
+        <input className="input" value={academicYearName} readOnly disabled />
+      </Field>
+      <Field label={t('nav.levels')}>
+        <input className="input" value={levelName} readOnly disabled />
+      </Field>
+      <Field label={t('nav.classes')} error={errors.classId}>
+        <select
+          className="input"
+          value={state.classId}
+          onChange={(e) => onChange({ classId: e.target.value })}
+          disabled={optionsLoading}
+        >
+          <option value="">{t('admin.selectClass')}</option>
+          {classes.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.display_name ?? c.display_alias ?? c.name ?? c.id}
+            </option>
+          ))}
+        </select>
+      </Field>
+      <Field label={t('admin.admissionDate')}>
+        <DatePickerInput
+          value={state.admissionDate}
+          onChange={(admissionDate) => onChange({ admissionDate })}
+        />
+      </Field>
+      <Field label={t('admin.student360.registrationType')}>
+        <select
+          className="input"
+          value={state.registrationType}
+          onChange={(e) => onChange({ registrationType: e.target.value })}
+          disabled={optionsLoading}
+        >
+          {registrationTypes.map((r) => (
+            <option key={r.value} value={r.value}>
+              {r.label}
+            </option>
+          ))}
+        </select>
+      </Field>
+      <Field label={t('admin.student360.actualJoinDate')} error={errors.actualJoinDate}>
+        <input
+          className="input"
+          type="date"
+          value={state.actualJoinDate}
+          onChange={(e) => onChange({ actualJoinDate: e.target.value })}
+        />
+      </Field>
+      {showPrevious ? (
+        <Field label={t('admin.student360.previousSchool')} error={errors.previousSchool}>
+          <input
+            className="input"
+            value={state.previousSchool}
+            onChange={(e) => onChange({ previousSchool: e.target.value })}
+          />
+        </Field>
+      ) : null}
+      {showRepeating ? (
+        <Field label={t('admin.student360.isRepeating')}>
+          <label className="row" style={{ gap: 8, alignItems: 'center' }}>
+            <input
+              type="checkbox"
+              checked={state.isRepeating}
+              onChange={(e) => onChange({ isRepeating: e.target.checked })}
+            />
+            <span className="tiny">{t('admin.student360.isRepeatingHint')}</span>
+          </label>
+        </Field>
+      ) : (
+        <Field label={t('admin.student360.isRepeating')}>
+          <label className="row" style={{ gap: 8, alignItems: 'center' }}>
+            <input
+              type="checkbox"
+              checked={state.isRepeating}
+              onChange={(e) => onChange({ isRepeating: e.target.checked })}
+            />
+            <span className="tiny">{t('admin.student360.isRepeatingOptional')}</span>
+          </label>
+        </Field>
+      )}
+      <Field label={t('admin.student360.registrationNotes')}>
+        <textarea
+          className="input"
+          rows={2}
+          value={state.registrationNotes}
+          onChange={(e) => onChange({ registrationNotes: e.target.value })}
+        />
+      </Field>
+      <p className="tiny muted student-360-form__hint">
+        {t('admin.student360.admissionVsJoinHint')}
+      </p>
+    </div>
+  );
+}
+
+export function StudentEditReadonlyLocationFields({
+  stateLabel,
+  countryLabel,
+  displayAge,
+}: {
+  stateLabel: string;
+  countryLabel: string;
+  displayAge?: string | null;
+}) {
+  const t = useT();
+
+  return (
+    <div className="student-360-form__grid">
+      <Field label={t('admin.student360.state')}>
+        <input className="input" value={stateLabel || t('common.dash')} readOnly disabled />
+      </Field>
+      <Field label={t('admin.student360.country')}>
+        <input className="input" value={countryLabel || t('common.dash')} readOnly disabled />
+      </Field>
+      {displayAge ? (
+        <Field label={t('admin.student360.header.age')} hint={t('admin.student360.editPage.readonlyHint')}>
+          <input className="input" value={displayAge} readOnly disabled />
+        </Field>
+      ) : null}
+    </div>
+  );
+}
+
+export function studentLocationLabels(
+  student: Pick<StudentSummary, 'state' | 'country'>,
+): { stateLabel: string; countryLabel: string } {
+  return {
+    stateLabel: displayCountryState(student.state),
+    countryLabel: displayCountryState(student.country),
+  };
 }
