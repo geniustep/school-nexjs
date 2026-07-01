@@ -1220,6 +1220,7 @@ export function resolveStaffTemplateCapabilityLabel(
   const fromCatalog = resolveCapabilityLabel(locale, {
     code: item.code,
     label: item.label ?? '',
+    category: item.category ?? 'other',
   });
   if (fromCatalog && fromCatalog !== item.code) {
     const tokenFallback = formatStaffTemplateDisplayToken(item.code);

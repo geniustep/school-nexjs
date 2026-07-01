@@ -47,7 +47,7 @@ describe('fee-plans-list-filters', () => {
         plan({ id: 1, state: 'confirmed' }),
         plan({ id: 2, state: 'archived' }),
       ],
-      { search: '', stateFilter: '' },
+      { search: '', stateFilter: '', cycleId: '' },
     );
     expect(rows.map((row) => row.id)).toEqual([1]);
   });
@@ -55,7 +55,7 @@ describe('fee-plans-list-filters', () => {
   it('keeps archived plans when state filter targets archived', () => {
     const rows = filterFeePlansWorkspaceRows(
       [plan({ id: 2, state: 'archived' })],
-      { search: '', stateFilter: 'archived' },
+      { search: '', stateFilter: 'archived', cycleId: '' },
     );
     expect(rows.map((row) => row.id)).toEqual([2]);
   });

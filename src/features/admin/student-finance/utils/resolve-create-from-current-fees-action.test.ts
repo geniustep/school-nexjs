@@ -33,9 +33,10 @@ describe('isCreateFromCurrentFeesActionAllowed', () => {
         workspace: ws({
           current_agreement: {
             id: 1,
+            student_id: 1,
             state: 'draft',
             allowed_actions: { create_agreement_from_current_fees: true },
-          } as StudentFinanceWorkspace['current_agreement'],
+          },
         }),
       }),
     ).toBe(true);

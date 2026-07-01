@@ -198,7 +198,7 @@ export function resolveStaffPermissionLabel(
   const smartLabel = t(smartKey);
   if (smartLabel !== smartKey) return smartLabel;
 
-  return resolveCapabilityLabel(locale, { code: trimmed, label: '' });
+  return resolveCapabilityLabel(locale, { code: trimmed, label: '', category: 'other' });
 }
 
 export function resolveStaffCreationTemplateLabel(

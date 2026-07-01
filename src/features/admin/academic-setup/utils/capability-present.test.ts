@@ -4,7 +4,11 @@ import { resolveCapabilityLabel } from './capability-present';
 describe('resolveCapabilityLabel', () => {
   it('translates admission capability codes via i18n map', () => {
     expect(
-      resolveCapabilityLabel('ar', { code: 'admission.create', label: 'create' }),
+      resolveCapabilityLabel('ar', {
+        code: 'admission.create',
+        label: 'create',
+        category: 'registration',
+      }),
     ).toBe('إنشاء طلب تسجيل');
   });
 
@@ -13,6 +17,7 @@ describe('resolveCapabilityLabel', () => {
       resolveCapabilityLabel('ar', {
         code: 'finance.apply_social_discount',
         label: 'Finance — Apply Social Discount',
+        category: 'finance',
       }),
     ).toBe('تطبيق خصم اجتماعي');
   });
