@@ -137,6 +137,19 @@ export function buildFullNamePreview(firstName: string, lastName: string): strin
   return [trim(firstName), trim(lastName)].filter(Boolean).join(' ');
 }
 
+export function splitStudentFullName(fullName: string): { firstName: string; lastName: string } {
+  const parts = trim(fullName).split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return { firstName: '', lastName: '' };
+  if (parts.length === 1) return { firstName: parts[0], lastName: '' };
+  return { firstName: parts[0], lastName: parts.slice(1).join(' ') };
+}
+
+export function resolveStudentNameLatin(state: Pick<StudentProfileFormState, 'nameLatin' | 'firstNameLatin' | 'lastNameLatin'>): string {
+  const fromParts = buildFullNamePreview(state.firstNameLatin, state.lastNameLatin);
+  if (fromParts) return fromParts;
+  return optionalString(state.nameLatin) ?? '';
+}
+
 export function buildStudentCreatePageTitleParts(
   state: Pick<
     StudentProfileFormState,
@@ -292,12 +305,16 @@ export function studentProfileFormStateFromStudent(
   options: StudentOptions | null,
 ): StudentProfileFormState {
   const base = defaultStudentProfileFormState(options);
+  const nameLatin = student.name_latin ?? '';
+  const latinParts = splitStudentFullName(nameLatin);
   return {
     ...base,
     firstName: student.first_name ?? '',
     lastName: student.last_name ?? '',
+    firstNameLatin: latinParts.firstName,
+    lastNameLatin: latinParts.lastName,
     nameAr: student.name_ar ?? '',
-    nameLatin: student.name_latin ?? '',
+    nameLatin,
     gender: student.gender ?? '',
     dateOfBirth: student.date_of_birth ?? '',
     birthPlace: student.birth_place ?? '',
@@ -798,9 +815,8 @@ export function buildStudentPartialUpdatePayload(
     const v = optionalString(current.nameAr);
     if (v) payload.name_ar = v;
   }
-  if (fieldChanged(current.nameLatin, original.nameLatin)) {
-    const v = optionalString(current.nameLatin);
-    if (v) payload.name_latin = v;
+  if (fieldChanged(resolveStudentNameLatin(current), resolveStudentNameLatin(original))) {
+    payload.name_latin = resolveStudentNameLatin(current);
   }
   if (fieldChanged(current.gender, original.gender)) {
     const v = optionalString(current.gender);

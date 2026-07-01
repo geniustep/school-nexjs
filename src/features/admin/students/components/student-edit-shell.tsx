@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ApiErrorView, LoadingState } from '@/components/states/states';
@@ -29,7 +29,7 @@ import {
   studentLocationLabels,
 } from './student-form-fields';
 import { mapStudentApiError } from '../utils/student-api-errors';
-import { pickStudentEditSectionPayload } from '../utils/student-edit-payload';
+import { pickStudentEditSectionPayload, validateStudentEditSection, firstStudentEditFieldError, focusStudentEditFieldError } from '../utils/student-edit-payload';
 import {
   buildStudentEditTabHref,
   parseStudentEditTab,
@@ -40,8 +40,8 @@ import {
 } from '../utils/student-edit-tabs';
 import {
   defaultStudentProfileFormState,
+  resolveDefaultNationalityId,
   studentProfileFormStateFromStudent,
-  validateStudentProfileForm,
   type StudentProfileFieldErrors,
   type StudentProfileFormState,
 } from '../utils/student-profile';
@@ -67,38 +67,63 @@ function refName(value: { name?: string } | string | null | undefined): string {
 }
 
 function StudentEditTabBar({
-  studentId,
   activeTab,
   tabs,
   onSelect,
 }: {
-  studentId: string;
   activeTab: StudentEditTabId;
   tabs: StudentEditTabId[];
   onSelect: (tab: StudentEditTabId) => void;
 }) {
   const t = useT();
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const root = scrollRef.current;
+    if (!root) return;
+    const active = root.querySelector<HTMLElement>('[aria-selected="true"]');
+    active?.scrollIntoView({ inline: 'nearest', block: 'nearest', behavior: 'smooth' });
+  }, [activeTab]);
 
   return (
-    <nav className="student-edit-tabs" aria-label={t('admin.student360.editPage.tabsAria')}>
-      <ul className="student-edit-tabs__list" role="tablist">
-        {tabs.map((tab) => (
-          <li key={tab} role="presentation">
+    <nav className="student-edit-tabs student-edit-tabs--sticky" aria-label={t('admin.student360.editPage.tabsAria')}>
+      <div ref={scrollRef} className="student-edit-tabs__scroll" role="tablist">
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab;
+          return (
             <button
+              key={tab}
               type="button"
               role="tab"
               id={`student-edit-tab-${tab}`}
-              aria-selected={activeTab === tab}
+              aria-selected={isActive}
               aria-controls={`student-edit-panel-${tab}`}
-              className={`student-edit-tabs__btn${activeTab === tab ? ' student-edit-tabs__btn--active' : ''}`}
+              className={`student-edit-tabs__btn${isActive ? ' student-edit-tabs__btn--active' : ''}`}
               onClick={() => onSelect(tab)}
             >
               {t(`admin.student360.editPage.tabs.${tab}`)}
             </button>
-          </li>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
+
+function StudentEditValidationAlert({ errors }: { errors: StudentProfileFieldErrors }) {
+  const t = useT();
+  const messages = Object.values(errors).filter(Boolean);
+  if (!messages.length) return null;
+
+  return (
+    <div className="student-edit-validation-alert" role="alert">
+      <p className="student-edit-validation-alert__title">{t('admin.student360.editPage.validationTitle')}</p>
+      <ul className="student-edit-validation-alert__list">
+        {messages.map((message) => (
+          <li key={message}>{message}</li>
         ))}
       </ul>
-    </nav>
+    </div>
   );
 }
 
@@ -186,6 +211,7 @@ export function StudentEditShell({ studentId }: { studentId: string }) {
   const [originalSiblingLines, setOriginalSiblingLines] = useState<SiblingLine[]>([]);
   const [fieldErrors, setFieldErrors] = useState<StudentProfileFieldErrors>({});
   const [saving, setSaving] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   const details = detailsState.data;
   const caps = details ? resolveStudentCapabilities(details.capabilities, user) : null;
@@ -211,10 +237,18 @@ export function StudentEditShell({ studentId }: { studentId: string }) {
   useEffect(() => {
     if (!details || optionsState.loading) return;
     const next = studentProfileFormStateFromStudent(details.student, enrollment, options);
-    setState(next);
+    const defaultNationalityId = resolveDefaultNationalityId(options?.nationalities);
+    const studentHasNationality =
+      details.student.nationality_id != null || details.student.nationality?.id != null;
+    const displayState =
+      !studentHasNationality && defaultNationalityId && !next.nationalityId.trim()
+        ? { ...next, nationalityId: defaultNationalityId }
+        : next;
+
+    setState(displayState);
     setBaseline(next);
     setOriginalSiblingLines(next.siblingLines);
-  }, [details?.student.id, enrollment?.id, optionsState.loading, options]);
+  }, [details?.student.id, details?.student.write_date, enrollment?.id, optionsState.loading, options]);
 
   useEffect(() => {
     const tabParam = searchParams.get('tab');
@@ -263,10 +297,11 @@ export function StudentEditShell({ studentId }: { studentId: string }) {
     const section = studentEditTabToSaveSection(tab);
     if (!section || !student) return;
 
-    const validation = validateStudentProfileForm(state, t);
+    const validation = validateStudentEditSection(state, baseline, originalSiblingLines, section, t);
     if (!validation.valid) {
       setFieldErrors(validation.errors);
-      toast.error(t('errors.validationFailed'));
+      focusStudentEditFieldError(panelRef.current, validation.errors, section);
+      toast.error(firstStudentEditFieldError(validation.errors, section) ?? t('errors.validationFailed'));
       return;
     }
 
@@ -288,7 +323,10 @@ export function StudentEditShell({ studentId }: { studentId: string }) {
 
     if (!res.success) {
       const mapped = mapStudentApiError(res.error, t);
-      if (mapped.fieldErrors) setFieldErrors(mapped.fieldErrors);
+      if (mapped.fieldErrors) {
+        setFieldErrors(mapped.fieldErrors);
+        focusStudentEditFieldError(panelRef.current, mapped.fieldErrors, section);
+      }
       toast.error(mapped.message);
     }
   }
@@ -330,33 +368,40 @@ export function StudentEditShell({ studentId }: { studentId: string }) {
         </ol>
       </nav>
 
-      <header className="student-edit-page__header">
-        <div>
-          <h1 className="student-edit-page__title">{t('admin.student360.editPage.title')}</h1>
-          <p className="student-edit-page__subtitle">{getStudentDisplayName(student)}</p>
+      <header className="student-edit-page__hero">
+        <div className="student-edit-page__hero-top">
+          <div className="student-edit-page__hero-text">
+            <p className="student-edit-page__eyebrow">{t('admin.student360.editPage.title')}</p>
+            <h1 className="student-edit-page__title">{getStudentDisplayName(student)}</h1>
+            {schoolName || levelName || academicYearName ? (
+              <p className="student-edit-page__meta">
+                {[schoolName, levelName, academicYearName].filter(Boolean).join(' · ')}
+              </p>
+            ) : null}
+          </div>
+          <Link href={`/admin/students/${studentId}`} className="student-edit-page__back btn btn--ghost btn--sm">
+            {t('admin.student360.editPage.backToProfile')}
+          </Link>
         </div>
-        <Link href={`/admin/students/${studentId}`} className="btn btn--ghost btn--sm">
-          {t('admin.student360.editPage.backToProfile')}
-        </Link>
+
+        <StudentEditTabBar
+          activeTab={tab}
+          tabs={availableTabs}
+          onSelect={(next) => router.push(buildStudentEditTabHref(studentId, next), { scroll: false })}
+        />
       </header>
 
-      <StudentEditTabBar
-        studentId={studentId}
-        activeTab={tab}
-        tabs={availableTabs}
-        onSelect={(next) => router.push(buildStudentEditTabHref(studentId, next), { scroll: false })}
-      />
-
       <div
+        ref={panelRef}
         className="student-edit-page__panel"
         role="tabpanel"
         id={`student-edit-panel-${tab}`}
         aria-labelledby={`student-edit-tab-${tab}`}
       >
+        <StudentEditValidationAlert errors={fieldErrors} />
         {tab === 'personal' ? (
-          <Card>
-            <SectionHead title={t('admin.student360.editPage.tabs.personal')} />
-            <div className="col" style={{ gap: 16 }}>
+          <Card className="student-edit-page__card">
+            <div className="student-create-form student-create-identity">
               <StudentPersonalNameFields
                 state={state}
                 errors={fieldErrors}
@@ -365,31 +410,29 @@ export function StudentEditShell({ studentId }: { studentId: string }) {
                 nationalities={options?.nationalities ?? []}
                 onChange={patch}
               />
-              <SectionHead title={t('admin.student360.sections.contact')} />
               <StudentContactFields state={state} errors={fieldErrors} onChange={patch} />
-              <SectionHead title={t('admin.student360.editPage.locationReadonly')} />
               <StudentEditReadonlyLocationFields
                 stateLabel={location.stateLabel}
                 countryLabel={location.countryLabel}
                 displayAge={displayAge}
               />
-              <StudentEditSectionSave saving={saving} onSave={saveCurrentSection} />
             </div>
+            <StudentEditSectionSave saving={saving} onSave={saveCurrentSection} />
           </Card>
         ) : null}
 
         {tab === 'identity' ? (
-          <Card>
-            <SectionHead title={t('admin.student360.editPage.tabs.identity')} />
-            <StudentIdentityCodeFields state={state} errors={fieldErrors} onChange={patch} />
+          <Card className="student-edit-page__card">
+            <div className="student-create-form">
+              <StudentIdentityCodeFields state={state} errors={fieldErrors} onChange={patch} />
+            </div>
             <StudentEditSectionSave saving={saving} onSave={saveCurrentSection} />
           </Card>
         ) : null}
 
         {tab === 'schooling' ? (
-          <Card>
-            <SectionHead title={t('admin.student360.editPage.tabs.schooling')} />
-            <div className="col" style={{ gap: 16 }}>
+          <Card className="student-edit-page__card">
+            <div className="student-create-form col" style={{ gap: 0 }}>
               <StudentEnrollmentEditFields
                 state={state}
                 errors={fieldErrors}
@@ -402,37 +445,39 @@ export function StudentEditShell({ studentId }: { studentId: string }) {
                 onChange={patch}
               />
               <EnrollmentHistoryList items={details.enrollment_history} />
-              <StudentEditSectionSave saving={saving} onSave={saveCurrentSection} />
             </div>
+            <StudentEditSectionSave saving={saving} onSave={saveCurrentSection} />
           </Card>
         ) : null}
 
         {tab === 'admin' ? (
-          <Card>
-            <SectionHead title={t('admin.student360.editPage.tabs.admin')} />
-            <StudentAdminStatusFields
-              state={state}
-              errors={fieldErrors}
-              optionsLoading={optionsState.loading}
-              statuses={options?.studentStatuses ?? []}
-              onChange={patch}
-            />
+          <Card className="student-edit-page__card">
+            <div className="student-create-form">
+              <StudentAdminStatusFields
+                state={state}
+                errors={fieldErrors}
+                optionsLoading={optionsState.loading}
+                statuses={options?.studentStatuses ?? []}
+                onChange={patch}
+              />
+            </div>
             <StudentEditSectionSave saving={saving} onSave={saveCurrentSection} />
           </Card>
         ) : null}
 
         {tab === 'emergency' ? (
-          <Card>
-            <SectionHead title={t('admin.student360.editPage.tabs.emergency')} />
-            <StudentEmergencyFields
-              state={state}
-              errors={fieldErrors}
-              emergencyRelationships={options?.emergencyRelationships ?? []}
-              optionsLoading={optionsState.loading}
-              onChange={patch}
-              onFillFromPrimary={fillEmergencyFromPrimary}
-              canFillFromPrimary={!!primaryHasPhone}
-            />
+          <Card className="student-edit-page__card">
+            <div className="student-create-form">
+              <StudentEmergencyFields
+                state={state}
+                errors={fieldErrors}
+                emergencyRelationships={options?.emergencyRelationships ?? []}
+                optionsLoading={optionsState.loading}
+                onChange={patch}
+                onFillFromPrimary={fillEmergencyFromPrimary}
+                canFillFromPrimary={!!primaryHasPhone}
+              />
+            </div>
             <StudentEditSectionSave saving={saving} onSave={saveCurrentSection} />
           </Card>
         ) : null}

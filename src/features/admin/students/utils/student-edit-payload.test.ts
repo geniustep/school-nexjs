@@ -7,6 +7,7 @@ import {
   hasForbiddenStudentUpdateKeys,
   pickStudentEditSectionPayload,
   STUDENT_UPDATE_FORBIDDEN_KEYS,
+  validateStudentEditSection,
 } from './student-edit-payload';
 import { defaultStudentProfileFormState } from './student-profile';
 import type { StudentOptions } from '@/types/student-360';
@@ -133,5 +134,34 @@ describe('STUDENT_UPDATE_FORBIDDEN_KEYS', () => {
     expect(STUDENT_UPDATE_FORBIDDEN_KEYS).toContain('blood_type');
     expect(STUDENT_UPDATE_FORBIDDEN_KEYS).toContain('guardian_relationship_ids');
     expect(STUDENT_UPDATE_FORBIDDEN_KEYS).toContain('image_1920');
+  });
+});
+
+describe('validateStudentEditSection', () => {
+  const t = (key: string) => key;
+
+  it('validates only changed fields in the section payload', () => {
+    const original = { ...baseline, email: 'valid@school.ma', city: '' };
+    const state = {
+      ...original,
+      massarCode: 'bad code with spaces',
+      city: 'Rabat',
+    };
+    const personal = validateStudentEditSection(state, original, [], 'personal', t);
+    expect(personal.valid).toBe(true);
+    expect(personal.errors.email).toBeUndefined();
+
+    const contactOriginal = { ...baseline, email: 'valid@school.ma' };
+    const contactState = { ...contactOriginal, email: 'not-an-email' };
+    const contact = validateStudentEditSection(contactState, contactOriginal, [], 'personal', t);
+    expect(contact.valid).toBe(false);
+    expect(contact.errors.email).toBeTruthy();
+    expect(contact.errors.massarCode).toBeUndefined();
+  });
+
+  it('skips validation when the section payload is empty', () => {
+    const state = { ...baseline, massarCode: 'bad code with spaces' };
+    const result = validateStudentEditSection(state, baseline, [], 'personal', t);
+    expect(result.valid).toBe(true);
   });
 });

@@ -6,8 +6,67 @@ import {
 } from '@/features/admin/admissions/utils/sibling-lines';
 import {
   buildStudentPartialUpdatePayload,
+  validateStudentProfileForm,
+  type StudentProfileFieldErrors,
   type StudentProfileFormState,
+  type StudentProfileValidationResult,
 } from './student-profile';
+
+const PAYLOAD_KEY_TO_FORM_ERROR_KEY: Partial<
+  Record<keyof StudentUpdatePayload, keyof StudentProfileFieldErrors>
+> = {
+  first_name: 'firstName',
+  last_name: 'lastName',
+  date_of_birth: 'dateOfBirth',
+  email: 'email',
+  massar_code: 'massarCode',
+  school_number: 'schoolNumber',
+  code: 'code',
+  class_id: 'classId',
+  departure_reason: 'departureReason',
+  previous_school: 'previousSchool',
+  emergency_phone: 'emergencyPhone',
+};
+
+const SECTION_FIELD_FOCUS_ORDER: Record<StudentEditSaveSection, (keyof StudentProfileFieldErrors)[]> = {
+  personal: ['firstName', 'lastName', 'dateOfBirth', 'email'],
+  identity: ['massarCode', 'schoolNumber', 'code'],
+  schooling: ['actualJoinDate', 'previousSchool', 'classId'],
+  admin: ['departureReason'],
+  emergency: ['emergencyPhone'],
+  siblings: ['siblingLines'],
+};
+
+function formErrorKeysForSectionPayload(
+  payload: StudentUpdatePayload,
+  current: StudentProfileFormState,
+): (keyof StudentProfileFieldErrors)[] {
+  const keys = new Set<keyof StudentProfileFieldErrors>();
+
+  for (const payloadKey of Object.keys(payload) as (keyof StudentUpdatePayload)[]) {
+    if (payloadKey === 'enrollment') {
+      const enrollment = payload.enrollment;
+      if (enrollment?.actual_join_date !== undefined) keys.add('actualJoinDate');
+      if (enrollment?.previous_school !== undefined) keys.add('previousSchool');
+      if (enrollment?.registration_type !== undefined) keys.add('previousSchool');
+      continue;
+    }
+    const formKey = PAYLOAD_KEY_TO_FORM_ERROR_KEY[payloadKey];
+    if (formKey) keys.add(formKey);
+  }
+
+  if ('status' in payload) keys.add('departureReason');
+  if (trim(current.emergencyContactName) && 'emergency_contact_name' in payload) {
+    keys.add('emergencyPhone');
+  }
+  if ('sibling_lines' in payload) keys.add('siblingLines');
+
+  return Array.from(keys);
+}
+
+function trim(value: string): string {
+  return value.trim();
+}
 
 /** Keys that must never be sent via POST /students/<id>/update. */
 export const STUDENT_UPDATE_FORBIDDEN_KEYS = [
@@ -156,4 +215,60 @@ export function pickStudentEditSectionPayload(
 export function hasForbiddenStudentUpdateKeys(payload: StudentUpdatePayload): string[] {
   const forbidden = new Set<string>(STUDENT_UPDATE_FORBIDDEN_KEYS);
   return Object.keys(payload).filter((key) => forbidden.has(key));
+}
+
+/** Validates only fields that are actually being sent in this section save. */
+export function validateStudentEditSection(
+  current: StudentProfileFormState,
+  original: StudentProfileFormState,
+  originalSiblingLines: SiblingLine[],
+  section: StudentEditSaveSection,
+  t: (key: string) => string,
+): StudentProfileValidationResult {
+  const payload = pickStudentEditSectionPayload(current, original, originalSiblingLines, section);
+  if (Object.keys(payload).length === 0) {
+    return { valid: true, errors: {} };
+  }
+
+  const full = validateStudentProfileForm(current, t);
+  const errors: StudentProfileFieldErrors = {};
+  for (const key of formErrorKeysForSectionPayload(payload, current)) {
+    const message = full.errors[key];
+    if (message) errors[key] = message;
+  }
+  return { valid: Object.keys(errors).length === 0, errors };
+}
+
+export function firstStudentEditFieldError(
+  errors: StudentProfileFieldErrors,
+  section: StudentEditSaveSection,
+): string | undefined {
+  for (const key of SECTION_FIELD_FOCUS_ORDER[section]) {
+    const message = errors[key];
+    if (message) return message;
+  }
+  for (const message of Object.values(errors)) {
+    if (message) return message;
+  }
+  return undefined;
+}
+
+export function focusStudentEditFieldError(
+  root: HTMLElement | null,
+  errors: StudentProfileFieldErrors,
+  section: StudentEditSaveSection,
+): void {
+  if (!root) return;
+  const firstKey =
+    SECTION_FIELD_FOCUS_ORDER[section].find((key) => errors[key]) ??
+    (Object.keys(errors)[0] as keyof StudentProfileFieldErrors | undefined);
+  if (!firstKey) return;
+  const el = root.querySelector<HTMLElement>(`[data-field="${firstKey}"]`);
+  if (!el) return;
+  const focusable =
+    el.matches('input, select, textarea, button')
+      ? el
+      : el.querySelector<HTMLElement>('input, select, textarea, button');
+  (focusable ?? el).focus({ preventScroll: true });
+  (focusable ?? el).scrollIntoView({ behavior: 'smooth', block: 'center' });
 }

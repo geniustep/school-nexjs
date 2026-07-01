@@ -9,6 +9,9 @@ import {
   hasStudentCreateIdentifier,
   localizeStudentGenderOptions,
   resolveDefaultNationalityId,
+  resolveStudentNameLatin,
+  splitStudentFullName,
+  studentProfileFormStateFromStudent,
   sortNationalityOptions,
   requiresDepartureReason,
   requiresPreviousSchool,
@@ -331,6 +334,34 @@ describe('validateStudentCreateEnrollmentClass', () => {
   });
 });
 
+describe('splitStudentFullName', () => {
+  it('splits a full latin name into first and last parts', () => {
+    expect(splitStudentFullName('Mohammed Alaoui')).toEqual({
+      firstName: 'Mohammed',
+      lastName: 'Alaoui',
+    });
+  });
+});
+
+describe('studentProfileFormStateFromStudent', () => {
+  it('hydrates latin name parts from name_latin', () => {
+    const state = studentProfileFormStateFromStudent(
+      {
+        id: 1,
+        first_name: 'محمد',
+        last_name: 'العلوي',
+        name_latin: 'Mohammed Alaoui',
+        status: 'active',
+      },
+      null,
+      options,
+    );
+    expect(state.firstNameLatin).toBe('Mohammed');
+    expect(state.lastNameLatin).toBe('Alaoui');
+    expect(resolveStudentNameLatin(state)).toBe('Mohammed Alaoui');
+  });
+});
+
 describe('buildStudentPartialUpdatePayload', () => {
   it('sends only changed fields', () => {
     const original = defaultStudentProfileFormState(options);
@@ -355,6 +386,29 @@ describe('buildStudentPartialUpdatePayload', () => {
     const current = { ...original, massarCode: '' };
     const payload = buildStudentPartialUpdatePayload(current, original);
     expect(payload.massar_code).toBe('');
+  });
+
+  it('sends name_latin when latin first or last name changes', () => {
+    const original = defaultStudentProfileFormState(options);
+    const current = {
+      ...original,
+      firstNameLatin: 'Mohammed',
+      lastNameLatin: 'Alaoui',
+    };
+    const payload = buildStudentPartialUpdatePayload(current, original);
+    expect(payload.name_latin).toBe('Mohammed Alaoui');
+  });
+
+  it('clears name_latin when latin parts are removed', () => {
+    const original = {
+      ...defaultStudentProfileFormState(options),
+      firstNameLatin: 'Mohammed',
+      lastNameLatin: 'Alaoui',
+      nameLatin: 'Mohammed Alaoui',
+    };
+    const current = { ...original, firstNameLatin: '', lastNameLatin: '', nameLatin: '' };
+    const payload = buildStudentPartialUpdatePayload(current, original);
+    expect(payload.name_latin).toBe('');
   });
 });
 

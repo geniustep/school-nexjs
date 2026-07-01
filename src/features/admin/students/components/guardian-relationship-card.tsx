@@ -104,6 +104,7 @@ export function GuardianRelationshipCard({
           'student-360-guardian-card',
           rel.is_primary_contact && active ? 'student-360-guardian-card--primary' : '',
           active ? '' : 'student-360-guardian-card--ended',
+          menuOpen ? 'student-360-guardian-card--menu-open' : '',
         ]
           .filter(Boolean)
           .join(' ')}

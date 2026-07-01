@@ -40,6 +40,69 @@ function Field({
   );
 }
 
+/** Field layout aligned with student create / enrollment intake forms. */
+function EditField({
+  label,
+  error,
+  hint,
+  layout = 'default',
+  field,
+  children,
+}: {
+  label: string;
+  error?: string;
+  hint?: string;
+  layout?: 'default' | 'half' | 'full';
+  field?: string;
+  children: React.ReactNode;
+}) {
+  const cellClass =
+    layout === 'full'
+      ? 'student-create-form__cell student-create-form__cell--full'
+      : layout === 'half'
+        ? 'student-create-form__cell student-create-form__cell--half'
+        : 'student-create-form__cell';
+
+  return (
+    <div className={cellClass} {...(field ? { 'data-field': field } : {})}>
+      <label className={`student-create-field${error ? ' student-create-field--invalid' : ''}`}>
+        <span className="student-create-field__label">{label}</span>
+        {children}
+        {hint ? <span className="student-create-field__hint">{hint}</span> : null}
+        {error ? <span className="student-create-field__error">{error}</span> : null}
+      </label>
+    </div>
+  );
+}
+
+function EditFieldGroup({
+  title,
+  icon,
+  layout = 'grid',
+  children,
+}: {
+  title: string;
+  icon: string;
+  layout?: 'grid' | 'stack';
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="student-create-form__group">
+      <div className="student-create-form__group-head">
+        <span className="student-create-form__group-icon" aria-hidden="true">
+          {icon}
+        </span>
+        <h3 className="student-create-form__group-title">{title}</h3>
+      </div>
+      {layout === 'stack' ? (
+        <div className="student-create-form__group-stack">{children}</div>
+      ) : (
+        <div className="student-create-form__grid">{children}</div>
+      )}
+    </div>
+  );
+}
+
 export function StudentNationalitySelect({
   value,
   options,
@@ -460,35 +523,66 @@ export function StudentContactFields({
   const t = useT();
 
   return (
-    <div className="student-360-form__grid">
-      <Field label={t('admin.phone')}>
-        <input className="input" value={state.phone} onChange={(e) => onChange({ phone: e.target.value })} dir="ltr" />
-      </Field>
-      <Field label={t('admin.student360.mobile')}>
-        <input className="input" value={state.mobile} onChange={(e) => onChange({ mobile: e.target.value })} dir="ltr" />
-      </Field>
-      <Field label={t('admin.email')} error={errors.email}>
-        <input
-          className="input"
-          type="email"
-          value={state.email}
-          onChange={(e) => onChange({ email: e.target.value })}
-          dir="ltr"
-        />
-      </Field>
-      <Field label={t('admin.student360.street')}>
-        <input className="input" value={state.street} onChange={(e) => onChange({ street: e.target.value })} />
-      </Field>
-      <Field label={t('admin.student360.district')}>
-        <input className="input" value={state.district} onChange={(e) => onChange({ district: e.target.value })} />
-      </Field>
-      <Field label={t('admin.student360.city')}>
-        <input className="input" value={state.city} onChange={(e) => onChange({ city: e.target.value })} />
-      </Field>
-      <Field label={t('admin.student360.zip')}>
-        <input className="input" value={state.zip} onChange={(e) => onChange({ zip: e.target.value })} dir="ltr" />
-      </Field>
-    </div>
+    <>
+      <EditFieldGroup title={t('admin.student360.sections.contact')} icon="☎">
+        <EditField label={t('admin.phone')}>
+          <input
+            className="input"
+            value={state.phone}
+            onChange={(e) => onChange({ phone: e.target.value })}
+            dir="ltr"
+            autoComplete="off"
+          />
+        </EditField>
+        <EditField label={t('admin.student360.mobile')}>
+          <input
+            className="input"
+            value={state.mobile}
+            onChange={(e) => onChange({ mobile: e.target.value })}
+            dir="ltr"
+            autoComplete="off"
+          />
+        </EditField>
+        <EditField field="email" label={t('admin.email')} error={errors.email}>
+          <input
+            className="input"
+            type="email"
+            value={state.email}
+            onChange={(e) => onChange({ email: e.target.value })}
+            dir="ltr"
+            autoComplete="off"
+          />
+        </EditField>
+      </EditFieldGroup>
+
+      <EditFieldGroup title={t('admin.enrollmentIntake.groups.address')} icon="⌂">
+        <EditField layout="full" label={t('admin.student360.admissionData.residenceAddress')}>
+          <input
+            className="input"
+            value={state.residenceAddress}
+            onChange={(e) => onChange({ residenceAddress: e.target.value })}
+            placeholder={t('admin.enrollmentIntake.residenceAddressHint')}
+          />
+        </EditField>
+        <EditField label={t('admin.student360.street')}>
+          <input className="input" value={state.street} onChange={(e) => onChange({ street: e.target.value })} />
+        </EditField>
+        <EditField label={t('admin.student360.district')}>
+          <input className="input" value={state.district} onChange={(e) => onChange({ district: e.target.value })} />
+        </EditField>
+        <EditField label={t('admin.student360.city')}>
+          <input className="input" value={state.city} onChange={(e) => onChange({ city: e.target.value })} />
+        </EditField>
+        <EditField label={t('admin.student360.zip')}>
+          <input
+            className="input"
+            value={state.zip}
+            onChange={(e) => onChange({ zip: e.target.value })}
+            dir="ltr"
+          />
+        </EditField>
+      </EditFieldGroup>
+    </>
   );
 }
 
@@ -512,21 +606,23 @@ export function StudentEmergencyFields({
   const t = useT();
 
   return (
-    <div className="col" style={{ gap: 12 }}>
+    <EditFieldGroup title={t('admin.student360.editPage.tabs.emergency')} icon="⚠" layout="stack">
       {canFillFromPrimary && onFillFromPrimary ? (
-        <button type="button" className="btn btn--ghost btn--sm" onClick={onFillFromPrimary}>
-          {t('admin.student360.usePrimaryGuardianEmergency')}
-        </button>
+        <div className="student-create-form__notice">
+          <button type="button" className="btn btn--ghost btn--sm" onClick={onFillFromPrimary}>
+            {t('admin.student360.usePrimaryGuardianEmergency')}
+          </button>
+        </div>
       ) : null}
-      <div className="student-360-form__grid">
-        <Field label={t('admin.student360.emergencyContactName')}>
+      <div className="student-create-form__grid">
+        <EditField label={t('admin.student360.emergencyContactName')}>
           <input
             className="input"
             value={state.emergencyContactName}
             onChange={(e) => onChange({ emergencyContactName: e.target.value })}
           />
-        </Field>
-        <Field label={t('admin.student360.emergencyRelationship')}>
+        </EditField>
+        <EditField label={t('admin.student360.emergencyRelationship')}>
           <select
             className="input"
             value={state.emergencyRelationship}
@@ -540,33 +636,33 @@ export function StudentEmergencyFields({
               </option>
             ))}
           </select>
-        </Field>
-        <Field label={t('admin.student360.emergencyPhone')} error={errors.emergencyPhone}>
+        </EditField>
+        <EditField field="emergencyPhone" label={t('admin.student360.emergencyPhone')} error={errors.emergencyPhone}>
           <input
             className="input"
             value={state.emergencyPhone}
             onChange={(e) => onChange({ emergencyPhone: e.target.value })}
             dir="ltr"
           />
-        </Field>
-        <Field label={t('admin.student360.emergencyPhoneAlt')}>
+        </EditField>
+        <EditField label={t('admin.student360.emergencyPhoneAlt')}>
           <input
             className="input"
             value={state.emergencyPhoneAlt}
             onChange={(e) => onChange({ emergencyPhoneAlt: e.target.value })}
             dir="ltr"
           />
-        </Field>
-        <Field label={t('admin.student360.emergencyNotes')}>
+        </EditField>
+        <EditField layout="full" label={t('admin.student360.emergencyNotes')}>
           <textarea
             className="input"
             rows={2}
             value={state.emergencyNotes}
             onChange={(e) => onChange({ emergencyNotes: e.target.value })}
           />
-        </Field>
+        </EditField>
       </div>
-    </div>
+    </EditFieldGroup>
   );
 }
 
@@ -1045,73 +1141,119 @@ export function StudentPersonalNameFields({
     [genders, t],
   );
   const birthDateMax = useMemo(() => todayIsoDate(), []);
+  const fullNameAr = [state.firstName.trim(), state.lastName.trim()].filter(Boolean).join(' ');
+  const fullNameFr = [state.firstNameLatin.trim(), state.lastNameLatin.trim()].filter(Boolean).join(' ');
 
   return (
-    <div className="student-360-form__grid">
-      <Field label={t('admin.firstName')} error={errors.firstName}>
-        <input
-          className="input"
-          value={state.firstName}
-          onChange={(e) => onChange({ firstName: e.target.value })}
-          required
-        />
-      </Field>
-      <Field label={t('admin.lastName')} error={errors.lastName}>
-        <input
-          className="input"
-          value={state.lastName}
-          onChange={(e) => onChange({ lastName: e.target.value })}
-          required
-        />
-      </Field>
-      <Field label={t('admin.student360.nameAr')}>
-        <input className="input" value={state.nameAr} onChange={(e) => onChange({ nameAr: e.target.value })} />
-      </Field>
-      <Field label={t('admin.student360.nameLatin')}>
-        <input className="input" value={state.nameLatin} onChange={(e) => onChange({ nameLatin: e.target.value })} dir="ltr" />
-      </Field>
-      <Field label={t('admin.gender')}>
-        <select
-          className="input"
-          value={state.gender}
-          onChange={(e) => onChange({ gender: e.target.value })}
-          disabled={optionsLoading}
+    <>
+      <EditFieldGroup title={t('admin.enrollmentIntake.groups.names')} icon="أ">
+        <EditField
+          field="firstName"
+          label={t('admin.student360.create.firstNameAr')}
+          error={errors.firstName}
         >
-          <option value="">{t('common.dash')}</option>
-          {localizedGenders.map((g) => (
-            <option key={g.value} value={g.value}>
-              {g.label}
-            </option>
-          ))}
-        </select>
-      </Field>
-      <Field label={t('admin.dateOfBirth')} error={errors.dateOfBirth}>
-        <DatePickerInput
-          value={state.dateOfBirth}
-          onChange={(dateOfBirth) => onChange({ dateOfBirth })}
-          max={birthDateMax}
-          presets={false}
-        />
-      </Field>
-      <Field label={t('admin.student360.birthPlace')}>
-        <input className="input" value={state.birthPlace} onChange={(e) => onChange({ birthPlace: e.target.value })} />
-      </Field>
-      <Field label={t('admin.student360.nationality')}>
-        <StudentNationalitySelect
-          value={state.nationalityId}
-          options={nationalities}
-          disabled={optionsLoading}
-          onChange={(nationalityId) => onChange({ nationalityId })}
-        />
-      </Field>
-      <Field label={t('admin.student360.admissionData.residenceAddress')}>
-        <input
-          className="input"
-          value={state.residenceAddress}
-          onChange={(e) => onChange({ residenceAddress: e.target.value })}
-        />
-      </Field>
-    </div>
+          <input
+            className="input"
+            value={state.firstName}
+            onChange={(e) => onChange({ firstName: e.target.value })}
+            autoComplete="off"
+            required
+          />
+        </EditField>
+        <EditField
+          field="lastName"
+          label={t('admin.student360.create.lastNameAr')}
+          error={errors.lastName}
+        >
+          <input
+            className="input"
+            value={state.lastName}
+            onChange={(e) => onChange({ lastName: e.target.value })}
+            autoComplete="off"
+            required
+          />
+        </EditField>
+        <EditField label={t('admin.student360.create.firstNameLatin')}>
+          <input
+            className="input"
+            value={state.firstNameLatin}
+            onChange={(e) => onChange({ firstNameLatin: e.target.value })}
+            dir="ltr"
+            autoComplete="off"
+          />
+        </EditField>
+        <EditField label={t('admin.student360.create.lastNameLatin')}>
+          <input
+            className="input"
+            value={state.lastNameLatin}
+            onChange={(e) => onChange({ lastNameLatin: e.target.value })}
+            dir="ltr"
+            autoComplete="off"
+          />
+        </EditField>
+        {fullNameAr || fullNameFr ? (
+          <div className="student-create-form__name-preview student-create-form__cell--full">
+            {fullNameAr ? (
+              <div className="student-create-form__name-preview-row">
+                <span className="student-create-form__name-preview-tag">عربي</span>
+                <span className="student-create-form__name-preview-value" dir="auto">
+                  {fullNameAr}
+                </span>
+              </div>
+            ) : null}
+            {fullNameFr ? (
+              <div className="student-create-form__name-preview-row">
+                <span className="student-create-form__name-preview-tag">FR</span>
+                <span className="student-create-form__name-preview-value" dir="ltr">
+                  {fullNameFr}
+                </span>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+      </EditFieldGroup>
+
+      <EditFieldGroup title={t('admin.enrollmentIntake.groups.personal')} icon="◉">
+        <EditField label={t('admin.gender')}>
+          <select
+            className="input"
+            value={state.gender}
+            onChange={(e) => onChange({ gender: e.target.value })}
+            disabled={optionsLoading}
+          >
+            <option value="">{t('common.dash')}</option>
+            {localizedGenders.map((g) => (
+              <option key={g.value} value={g.value}>
+                {g.label}
+              </option>
+            ))}
+          </select>
+        </EditField>
+        <EditField field="dateOfBirth" label={t('admin.dateOfBirth')} error={errors.dateOfBirth}>
+          <DatePickerInput
+            value={state.dateOfBirth}
+            onChange={(dateOfBirth) => onChange({ dateOfBirth })}
+            max={birthDateMax}
+            presets={false}
+          />
+        </EditField>
+        <EditField label={t('admin.student360.birthPlace')}>
+          <input
+            className="input"
+            value={state.birthPlace}
+            onChange={(e) => onChange({ birthPlace: e.target.value })}
+          />
+        </EditField>
+        <EditField label={t('admin.student360.nationality')}>
+          <StudentNationalitySelect
+            value={state.nationalityId}
+            options={nationalities}
+            disabled={optionsLoading}
+            onChange={(nationalityId) => onChange({ nationalityId })}
+          />
+        </EditField>
+      </EditFieldGroup>
+    </>
   );
 }
 
@@ -1127,8 +1269,9 @@ export function StudentIdentityCodeFields({
   const t = useT();
 
   return (
-    <div className="student-360-form__grid">
-      <Field
+    <EditFieldGroup title={t('admin.enrollmentIntake.groups.identifiers')} icon="#">
+      <EditField
+        field="massarCode"
         label={t('admin.massarCode')}
         error={errors.massarCode}
         hint={t('admin.student360.create.massarCodeHint')}
@@ -1144,22 +1287,35 @@ export function StudentIdentityCodeFields({
           dir="ltr"
           autoComplete="off"
         />
-      </Field>
-      <Field label={t('admin.studentCode')}>
-        <input className="input" value={state.code} onChange={(e) => onChange({ code: e.target.value })} dir="ltr" />
-      </Field>
-      <Field label={t('admin.student360.schoolNumber')} error={errors.schoolNumber}>
-        <input className="input" value={state.schoolNumber} onChange={(e) => onChange({ schoolNumber: e.target.value })} dir="ltr" />
-      </Field>
-      <Field label={t('admin.student360.admissionData.externalReference')}>
+      </EditField>
+      <EditField
+        label={t('admin.studentCode')}
+        hint={t('admin.student360.create.internalCodeHint')}
+      >
+        <input
+          className="input"
+          value={state.code}
+          onChange={(e) => onChange({ code: e.target.value })}
+          dir="ltr"
+        />
+      </EditField>
+      <EditField label={t('admin.student360.schoolNumber')} error={errors.schoolNumber}>
+        <input
+          className="input"
+          value={state.schoolNumber}
+          onChange={(e) => onChange({ schoolNumber: e.target.value })}
+          dir="ltr"
+        />
+      </EditField>
+      <EditField label={t('admin.student360.admissionData.externalReference')}>
         <input
           className="input"
           dir="ltr"
           value={state.externalReference}
           onChange={(e) => onChange({ externalReference: e.target.value })}
         />
-      </Field>
-    </div>
+      </EditField>
+    </EditFieldGroup>
   );
 }
 
@@ -1180,57 +1336,61 @@ export function StudentAdminStatusFields({
   const showDeparture = requiresDepartureReason(state.status);
 
   return (
-    <div className="student-360-form__grid">
-      <Field label={t('admin.student360.studentStatus')}>
-        <select
-          className="input"
-          value={state.status}
-          onChange={(e) => onChange({ status: e.target.value })}
-          disabled={optionsLoading}
-        >
-          {statuses.map((s) => (
-            <option key={s.value} value={s.value}>
-              {s.label}
-            </option>
-          ))}
-        </select>
-      </Field>
-      <Field label={t('admin.student360.editPage.active')}>
-        <label className="row" style={{ gap: 8, alignItems: 'center' }}>
-          <input
-            type="checkbox"
-            checked={state.active}
-            onChange={(e) => onChange({ active: e.target.checked })}
-          />
-          <span className="tiny">{t('admin.student360.editPage.activeHint')}</span>
-        </label>
-      </Field>
-      {showDeparture ? (
-        <Field label={t('admin.student360.departureReason')} error={errors.departureReason}>
-          <input
+    <EditFieldGroup title={t('admin.student360.editPage.tabs.admin')} icon="◇" layout="stack">
+      <div className="student-create-form__grid">
+        <EditField label={t('admin.student360.studentStatus')}>
+          <select
             className="input"
-            value={state.departureReason}
-            onChange={(e) => onChange({ departureReason: e.target.value })}
+            value={state.status}
+            onChange={(e) => onChange({ status: e.target.value })}
+            disabled={optionsLoading}
+          >
+            {statuses.map((s) => (
+              <option key={s.value} value={s.value}>
+                {s.label}
+              </option>
+            ))}
+          </select>
+        </EditField>
+        <EditField label={t('admin.student360.editPage.active')}>
+          <label className="student-create-form__checkbox">
+            <input
+              type="checkbox"
+              checked={state.active}
+              onChange={(e) => onChange({ active: e.target.checked })}
+            />
+            <span className="student-create-form__checkbox-text">
+              {t('admin.student360.editPage.activeHint')}
+            </span>
+          </label>
+        </EditField>
+        {showDeparture ? (
+          <EditField label={t('admin.student360.departureReason')} error={errors.departureReason}>
+            <input
+              className="input"
+              value={state.departureReason}
+              onChange={(e) => onChange({ departureReason: e.target.value })}
+            />
+          </EditField>
+        ) : null}
+        <EditField layout="full" label={t('admin.student360.editPage.adminNotes')}>
+          <textarea
+            className="input"
+            rows={3}
+            value={state.notes}
+            onChange={(e) => onChange({ notes: e.target.value })}
           />
-        </Field>
-      ) : null}
-      <Field label={t('admin.student360.editPage.adminNotes')}>
-        <textarea
-          className="input"
-          rows={3}
-          value={state.notes}
-          onChange={(e) => onChange({ notes: e.target.value })}
-        />
-      </Field>
-      <Field label={t('admin.student360.admissionData.admissionNotes')}>
-        <textarea
-          className="input"
-          rows={2}
-          value={state.admissionNotes}
-          onChange={(e) => onChange({ admissionNotes: e.target.value })}
-        />
-      </Field>
-    </div>
+        </EditField>
+        <EditField layout="full" label={t('admin.student360.admissionData.admissionNotes')}>
+          <textarea
+            className="input"
+            rows={2}
+            value={state.admissionNotes}
+            onChange={(e) => onChange({ admissionNotes: e.target.value })}
+          />
+        </EditField>
+      </div>
+    </EditFieldGroup>
   );
 }
 
@@ -1260,103 +1420,112 @@ export function StudentEnrollmentEditFields({
   const showRepeating = state.registrationType === 're_enrollment';
 
   return (
-    <div className="student-360-form__grid">
-      <Field label={t('admin.finance.activeSchool')}>
-        <input className="input" value={schoolName} readOnly disabled />
-      </Field>
-      <Field label={t('admin.academicYearId')}>
-        <input className="input" value={academicYearName} readOnly disabled />
-      </Field>
-      <Field label={t('nav.levels')}>
-        <input className="input" value={levelName} readOnly disabled />
-      </Field>
-      <Field label={t('nav.classes')} error={errors.classId}>
-        <select
-          className="input"
-          value={state.classId}
-          onChange={(e) => onChange({ classId: e.target.value })}
-          disabled={optionsLoading}
-        >
-          <option value="">{t('admin.selectClass')}</option>
-          {classes.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.display_name ?? c.display_alias ?? c.name ?? c.id}
-            </option>
-          ))}
-        </select>
-      </Field>
-      <Field label={t('admin.admissionDate')}>
-        <DatePickerInput
-          value={state.admissionDate}
-          onChange={(admissionDate) => onChange({ admissionDate })}
-        />
-      </Field>
-      <Field label={t('admin.student360.registrationType')}>
-        <select
-          className="input"
-          value={state.registrationType}
-          onChange={(e) => onChange({ registrationType: e.target.value })}
-          disabled={optionsLoading}
-        >
-          {registrationTypes.map((r) => (
-            <option key={r.value} value={r.value}>
-              {r.label}
-            </option>
-          ))}
-        </select>
-      </Field>
-      <Field label={t('admin.student360.actualJoinDate')} error={errors.actualJoinDate}>
-        <input
-          className="input"
-          type="date"
-          value={state.actualJoinDate}
-          onChange={(e) => onChange({ actualJoinDate: e.target.value })}
-        />
-      </Field>
-      {showPrevious ? (
-        <Field label={t('admin.student360.previousSchool')} error={errors.previousSchool}>
-          <input
+    <>
+      <EditFieldGroup title={t('admin.enrollmentIntake.groups.academicStructure')} icon="◈">
+        <EditField label={t('admin.finance.activeSchool')}>
+          <input className="input" value={schoolName} readOnly disabled />
+        </EditField>
+        <EditField label={t('admin.academicYearId')}>
+          <input className="input" value={academicYearName} readOnly disabled />
+        </EditField>
+        <EditField label={t('nav.levels')}>
+          <input className="input" value={levelName} readOnly disabled />
+        </EditField>
+        <EditField label={t('nav.classes')} error={errors.classId}>
+          <select
             className="input"
-            value={state.previousSchool}
-            onChange={(e) => onChange({ previousSchool: e.target.value })}
-          />
-        </Field>
-      ) : null}
-      {showRepeating ? (
-        <Field label={t('admin.student360.isRepeating')}>
-          <label className="row" style={{ gap: 8, alignItems: 'center' }}>
-            <input
-              type="checkbox"
-              checked={state.isRepeating}
-              onChange={(e) => onChange({ isRepeating: e.target.checked })}
+            value={state.classId}
+            onChange={(e) => onChange({ classId: e.target.value })}
+            disabled={optionsLoading}
+          >
+            <option value="">{t('admin.selectClass')}</option>
+            {classes.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.display_name ?? c.display_alias ?? c.name ?? c.id}
+              </option>
+            ))}
+          </select>
+        </EditField>
+      </EditFieldGroup>
+
+      <EditFieldGroup title={t('admin.enrollmentIntake.groups.registrationDetails')} icon="✎" layout="stack">
+        <div className="student-create-form__grid">
+          <EditField label={t('admin.admissionDate')}>
+            <DatePickerInput
+              value={state.admissionDate}
+              onChange={(admissionDate) => onChange({ admissionDate })}
             />
-            <span className="tiny">{t('admin.student360.isRepeatingHint')}</span>
-          </label>
-        </Field>
-      ) : (
-        <Field label={t('admin.student360.isRepeating')}>
-          <label className="row" style={{ gap: 8, alignItems: 'center' }}>
+          </EditField>
+          <EditField label={t('admin.student360.registrationType')}>
+            <select
+              className="input"
+              value={state.registrationType}
+              onChange={(e) => onChange({ registrationType: e.target.value })}
+              disabled={optionsLoading}
+            >
+              {registrationTypes.map((r) => (
+                <option key={r.value} value={r.value}>
+                  {r.label}
+                </option>
+              ))}
+            </select>
+          </EditField>
+          <EditField label={t('admin.student360.actualJoinDate')} error={errors.actualJoinDate}>
             <input
-              type="checkbox"
-              checked={state.isRepeating}
-              onChange={(e) => onChange({ isRepeating: e.target.checked })}
+              className="input"
+              type="date"
+              value={state.actualJoinDate}
+              onChange={(e) => onChange({ actualJoinDate: e.target.value })}
             />
-            <span className="tiny">{t('admin.student360.isRepeatingOptional')}</span>
-          </label>
-        </Field>
-      )}
-      <Field label={t('admin.student360.registrationNotes')}>
-        <textarea
-          className="input"
-          rows={2}
-          value={state.registrationNotes}
-          onChange={(e) => onChange({ registrationNotes: e.target.value })}
-        />
-      </Field>
-      <p className="tiny muted student-360-form__hint">
-        {t('admin.student360.admissionVsJoinHint')}
-      </p>
-    </div>
+          </EditField>
+          {showPrevious ? (
+            <EditField label={t('admin.student360.previousSchool')} error={errors.previousSchool}>
+              <input
+                className="input"
+                value={state.previousSchool}
+                onChange={(e) => onChange({ previousSchool: e.target.value })}
+              />
+            </EditField>
+          ) : null}
+          {showRepeating ? (
+            <EditField label={t('admin.student360.isRepeating')}>
+              <label className="student-create-form__checkbox">
+                <input
+                  type="checkbox"
+                  checked={state.isRepeating}
+                  onChange={(e) => onChange({ isRepeating: e.target.checked })}
+                />
+                <span className="student-create-form__checkbox-text">
+                  {t('admin.student360.isRepeatingHint')}
+                </span>
+              </label>
+            </EditField>
+          ) : (
+            <EditField label={t('admin.student360.isRepeating')}>
+              <label className="student-create-form__checkbox">
+                <input
+                  type="checkbox"
+                  checked={state.isRepeating}
+                  onChange={(e) => onChange({ isRepeating: e.target.checked })}
+                />
+                <span className="student-create-form__checkbox-text">
+                  {t('admin.student360.isRepeatingOptional')}
+                </span>
+              </label>
+            </EditField>
+          )}
+          <EditField layout="full" label={t('admin.student360.registrationNotes')}>
+            <textarea
+              className="input"
+              rows={2}
+              value={state.registrationNotes}
+              onChange={(e) => onChange({ registrationNotes: e.target.value })}
+            />
+          </EditField>
+        </div>
+        <p className="student-create-form__footnote">{t('admin.student360.admissionVsJoinHint')}</p>
+      </EditFieldGroup>
+    </>
   );
 }
 
@@ -1370,21 +1539,37 @@ export function StudentEditReadonlyLocationFields({
   displayAge?: string | null;
 }) {
   const t = useT();
+  const hasLocation = Boolean(stateLabel.trim() || countryLabel.trim());
 
   return (
-    <div className="student-360-form__grid">
-      <Field label={t('admin.student360.state')}>
-        <input className="input" value={stateLabel || t('common.dash')} readOnly disabled />
-      </Field>
-      <Field label={t('admin.student360.country')}>
-        <input className="input" value={countryLabel || t('common.dash')} readOnly disabled />
-      </Field>
-      {displayAge ? (
-        <Field label={t('admin.student360.header.age')} hint={t('admin.student360.editPage.readonlyHint')}>
-          <input className="input" value={displayAge} readOnly disabled />
-        </Field>
+    <EditFieldGroup
+      title={t('admin.student360.editPage.locationReadonly')}
+      icon="⌖"
+      layout="stack"
+    >
+      <p className="student-create-form__footnote student-edit-location-meta__hint">
+        {t('admin.student360.editPage.locationDerivedHint')}
+      </p>
+      {hasLocation ? (
+        <dl className="student-edit-location-meta__list">
+          <div className="student-edit-location-meta__item">
+            <dt>{t('admin.student360.state')}</dt>
+            <dd>{stateLabel || t('common.dash')}</dd>
+          </div>
+          <div className="student-edit-location-meta__item">
+            <dt>{t('admin.student360.country')}</dt>
+            <dd>{countryLabel || t('common.dash')}</dd>
+          </div>
+        </dl>
       ) : null}
-    </div>
+      {displayAge ? (
+        <div className="student-edit-location-meta__age">
+          <span className="student-edit-location-meta__age-label">{t('admin.student360.header.age')}</span>
+          <span className="student-edit-location-meta__age-value">{displayAge}</span>
+          <span className="student-edit-location-meta__age-hint">{t('admin.student360.editPage.readonlyHint')}</span>
+        </div>
+      ) : null}
+    </EditFieldGroup>
   );
 }
 
