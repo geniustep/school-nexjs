@@ -16,6 +16,7 @@ import { useT } from '@/features/i18n/locale-context';
 import { useAdmissionDetail } from '../hooks/use-admission-detail';
 import {
   admissionStateTone,
+  cleanDisplayValue,
   formatAdmissionReference,
   refName,
 } from '../utils/admission-labels';
@@ -280,15 +281,15 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
           <DetailFact
             icon="guardian"
             label={t('admin.admissions.card.guardian')}
-            value={detail.guardian_name ?? ''}
-            empty={!detail.guardian_name?.trim()}
+            value={cleanDisplayValue(detail.guardian_name)}
+            empty={!cleanDisplayValue(detail.guardian_name)}
           />
           <DetailFact
             icon="phone"
             label={t('admin.admissions.card.phone')}
-            value={detail.guardian_phone ?? ''}
+            value={cleanDisplayValue(detail.guardian_phone)}
             dir="ltr"
-            empty={!detail.guardian_phone?.trim()}
+            empty={!cleanDisplayValue(detail.guardian_phone)}
           />
           <DetailFact
             icon="level"
