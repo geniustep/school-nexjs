@@ -45,6 +45,15 @@
     "status": "الحالة",
     "date": "التاريخ",
     "class": "القسم",
+    "datePicker": {
+      "selectDate": "اختر تاريخًا",
+      "placeholder": "jj/mm/aaaa",
+      "openCalendar": "فتح التقويم",
+      "invalidDate": "تاريخ غير صالح",
+      "today": "اليوم",
+      "yesterday": "أمس",
+      "startOfMonth": "بداية الشهر"
+    },
     "pagination": {
       "previous": "السابق",
       "next": "التالي",

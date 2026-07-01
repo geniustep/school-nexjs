@@ -45,6 +45,15 @@
     "status": "Status",
     "date": "Date",
     "class": "Class",
+    "datePicker": {
+      "selectDate": "Select a date",
+      "placeholder": "dd/mm/yyyy",
+      "openCalendar": "Open calendar",
+      "invalidDate": "Invalid date",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "startOfMonth": "Start of month"
+    },
     "pagination": {
       "previous": "Previous",
       "next": "Next",

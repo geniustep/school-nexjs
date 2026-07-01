@@ -1,5 +1,6 @@
 'use client';
 
+import { DatePickerInput } from '@/components/ui/date-picker-input';
 import { useMemo, useState } from 'react';
 import { useT } from '@/features/i18n/locale-context';
 import { SiblingsFormFields } from '@/features/admin/admissions/components/siblings-form-fields';
@@ -8,6 +9,7 @@ import type { StudentProfileFieldErrors, StudentProfileFormState } from '../util
 import {
   localizeStudentGenderOptions,
   sortNationalityOptions,
+  todayIsoDate,
 } from '../utils/student-profile';
 import { normalizeMassarCodeInput } from '../utils/massar-code';
 
@@ -168,6 +170,7 @@ export function StudentIdentityFields({
     () => localizeStudentGenderOptions(genders, t),
     [genders, t],
   );
+  const birthDateMax = useMemo(() => todayIsoDate(), []);
 
   return (
     <div className="student-360-form__grid">
@@ -209,11 +212,11 @@ export function StudentIdentityFields({
         </select>
       </Field>
       <Field label={t('admin.dateOfBirth')} error={errors.dateOfBirth}>
-        <input
-          className="input"
-          type="date"
+        <DatePickerInput
           value={state.dateOfBirth}
-          onChange={(e) => onChange({ dateOfBirth: e.target.value })}
+          onChange={(dateOfBirth) => onChange({ dateOfBirth })}
+          max={birthDateMax}
+          presets={false}
         />
       </Field>
       <Field label={t('admin.student360.birthPlace')}>
@@ -265,11 +268,9 @@ export function StudentIdentityFields({
         </select>
       </Field>
       <Field label={t('admin.admissionDate')}>
-        <input
-          className="input"
-          type="date"
+        <DatePickerInput
           value={state.admissionDate}
-          onChange={(e) => onChange({ admissionDate: e.target.value })}
+          onChange={(admissionDate) => onChange({ admissionDate })}
         />
       </Field>
       {showDeparture ? (
@@ -588,6 +589,7 @@ export function StudentCreateIdentityFields({
     () => localizeStudentGenderOptions(genders, t),
     [genders, t],
   );
+  const birthDateMax = useMemo(() => todayIsoDate(), []);
 
   return (
     <div className="student-create-form__grid">
@@ -633,11 +635,11 @@ export function StudentCreateIdentityFields({
         </select>
       </Field>
       <Field label={t('admin.dateOfBirth')} error={errors.dateOfBirth}>
-        <input
-          className="input"
-          type="date"
+        <DatePickerInput
           value={state.dateOfBirth}
-          onChange={(e) => onChange({ dateOfBirth: e.target.value })}
+          onChange={(dateOfBirth) => onChange({ dateOfBirth })}
+          max={birthDateMax}
+          presets={false}
         />
       </Field>
       <div data-field="massarCode">
@@ -733,11 +735,9 @@ export function StudentCreateAdditionalFields({
         </Field>
       </div>
       <Field label={t('admin.admissionDate')}>
-        <input
-          className="input"
-          type="date"
+        <DatePickerInput
           value={state.admissionDate}
-          onChange={(e) => onChange({ admissionDate: e.target.value })}
+          onChange={(admissionDate) => onChange({ admissionDate })}
         />
         <span className="tiny muted">{t('admin.student360.create.admissionDateHint')}</span>
       </Field>

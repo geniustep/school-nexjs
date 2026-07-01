@@ -52,6 +52,7 @@ import {
   getStudentCreateFinanceBlockReason,
   localizeStudentGenderOptions,
   resolveDefaultNationalityId,
+  todayIsoDate,
   validateStudentCreateEnrollmentClass,
   validateStudentCreateForm,
   validateStudentCreateIdentityStep,
@@ -179,6 +180,10 @@ export function StudentCreateForm({
     const defaultNationalityId = resolveDefaultNationalityId(options?.nationalities);
     if (!merged.nationalityId.trim() && defaultNationalityId) {
       merged = { ...merged, nationalityId: defaultNationalityId };
+    }
+
+    if (!merged.admissionDate.trim()) {
+      merged = { ...merged, admissionDate: todayIsoDate() };
     }
 
     if (merged.levelId && !merged.cycleId && options?.levels?.length) {

@@ -7,9 +7,11 @@ import { StudentNationalitySelect } from '@/features/admin/students/components/s
 import {
   localizeStudentGenderOptions,
   requiresPreviousSchool,
+  todayIsoDate,
 } from '@/features/admin/students/utils/student-profile';
 import { normalizeMassarCodeInput } from '@/features/admin/students/utils/massar-code';
 import type { StudentNationalityOption } from '@/types/student-360';
+import { DatePickerInput } from '@/components/ui/date-picker-input';
 import type { EnrollmentIntakeFieldErrors, EnrollmentIntakePatch, EnrollmentIntakeValues } from './types';
 
 function CreateField({
@@ -138,6 +140,7 @@ export function EnrollmentIntakeIdentityFields({
     () => localizeStudentGenderOptions(genders, t),
     [genders, t],
   );
+  const birthDateMax = useMemo(() => todayIsoDate(), []);
 
   return (
     <div className="student-create-identity">
@@ -225,11 +228,11 @@ export function EnrollmentIntakeIdentityFields({
           </select>
         </CreateField>
         <CreateField field="dateOfBirth" label={t('admin.dateOfBirth')} error={errors.birthDate}>
-          <input
-            className="input"
-            type="date"
+          <DatePickerInput
             value={values.birthDate}
-            onChange={(e) => onPatch({ birthDate: e.target.value })}
+            onChange={(birthDate) => onPatch({ birthDate })}
+            max={birthDateMax}
+            presets={false}
           />
         </CreateField>
         <CreateField label={t('admin.student360.birthPlace')}>
@@ -268,11 +271,9 @@ export function EnrollmentIntakeIdentityFields({
             label={t('admin.admissionDate')}
             hint={t('admin.student360.create.admissionDateHint')}
           >
-            <input
-              className="input"
-              type="date"
+            <DatePickerInput
               value={values.admissionDate}
-              onChange={(e) => onPatch({ admissionDate: e.target.value })}
+              onChange={(admissionDate) => onPatch({ admissionDate })}
             />
           </CreateField>
           <CreateField
@@ -374,11 +375,9 @@ export function EnrollmentIntakeIdentityFields({
           label={t('admin.admissionDate')}
           hint={t('admin.student360.create.admissionDateHint')}
         >
-          <input
-            className="input"
-            type="date"
+          <DatePickerInput
             value={values.admissionDate}
-            onChange={(e) => onPatch({ admissionDate: e.target.value })}
+            onChange={(admissionDate) => onPatch({ admissionDate })}
           />
         </CreateField>
       </CreateFieldGroup>
