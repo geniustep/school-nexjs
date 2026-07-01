@@ -346,6 +346,7 @@ export const endpoints = {
     admissionAppointments: (id: number | string) => `/admin/admissions/${id}/appointments`,
     admissionAssessments: (id: number | string) => `/admin/admissions/${id}/assessments`,
     admissionDecision: (id: number | string) => `/admin/admissions/${id}/decision`,
+    admissionReopen: (id: number | string) => `/admin/admissions/${id}/reopen`,
     admissionOffers: (id: number | string) => `/admin/admissions/${id}/offers`,
     admissionOfferSend: (id: number | string, offerId: number | string) =>
       `/admin/admissions/${id}/offers/${offerId}/send`,

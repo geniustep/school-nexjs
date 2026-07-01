@@ -3439,6 +3439,20 @@
         "rejected": "Rejected",
         "needs_reassessment": "Needs reassessment"
       },
+      "rejection": {
+        "status": "Rejected",
+        "reason": "Rejection reason",
+        "decidedAt": "Decision date",
+        "decidedBy": "Decided by",
+        "reopenButton": "Reopen request",
+        "reopenDialogHint": "The request will return to the contacted stage. You can add an optional note.",
+        "reopenTargetState": "Target state",
+        "reopenNotePlaceholder": "Optional note explaining why the request is being reopened",
+        "reopenSuccess": "Request reopened successfully",
+        "cannotLinkStudent": "A closed or rejected request cannot be converted to a student. Reopen the request first if allowed.",
+        "reasonRequired": "Enter a rejection reason",
+        "reasonPlaceholder": "Enter the rejection reason"
+      },
       "offerStates": {
         "draft": "Draft",
         "sent": "Sent",

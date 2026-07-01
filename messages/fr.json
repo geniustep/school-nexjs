@@ -3436,6 +3436,20 @@
         "rejected": "Refusé",
         "needs_reassessment": "Réévaluation nécessaire"
       },
+      "rejection": {
+        "status": "Refusé",
+        "reason": "Motif du refus",
+        "decidedAt": "Date de la décision",
+        "decidedBy": "Décision prise par",
+        "reopenButton": "Rouvrir la demande",
+        "reopenDialogHint": "La demande repassera à l'état « contacté ». Vous pouvez ajouter une note facultative.",
+        "reopenTargetState": "État cible",
+        "reopenNotePlaceholder": "Note facultative expliquant la réouverture",
+        "reopenSuccess": "Demande rouverte avec succès",
+        "cannotLinkStudent": "Une demande clôturée ou refusée ne peut pas être convertie en élève. Rouvrez la demande d'abord si cela est autorisé.",
+        "reasonRequired": "Saisissez le motif du refus",
+        "reasonPlaceholder": "Saisissez le motif du refus"
+      },
       "offerStates": {
         "draft": "Brouillon",
         "sent": "Envoyée",

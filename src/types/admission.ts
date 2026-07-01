@@ -84,6 +84,14 @@ export interface AdmissionAllowedActions {
   decline_offer?: boolean;
   get_prefill?: boolean;
   link_student?: boolean;
+  reopen?: boolean;
+}
+
+export interface AdmissionRejection {
+  is_rejected: boolean;
+  reason?: string | null;
+  decided_at?: string | null;
+  decided_by?: Ref | { id: number; name: string } | null;
 }
 
 export type AdmissionRegistrationFlowState =
@@ -204,6 +212,12 @@ export interface AdmissionDetail extends SiblingsFieldsSource {
   allowed_actions: AdmissionAllowedActions;
   readiness?: Record<string, unknown> | null;
   prefill_status?: string | null;
+  lost_reason?: string | null;
+  state_before_close?: string | null;
+  is_terminal?: boolean;
+  can_reopen?: boolean;
+  can_link_student?: boolean;
+  rejection?: AdmissionRejection | null;
 }
 
 export interface AdmissionPrefill {
@@ -421,6 +435,11 @@ export interface CreateDecisionPayload {
   decision: DecisionType | string;
   decision_notes?: string;
   conditions?: string;
+}
+
+export interface ReopenAdmissionPayload {
+  target_state?: string;
+  note?: string;
 }
 
 export interface CreateOfferPayload {

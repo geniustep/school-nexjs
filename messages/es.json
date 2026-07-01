@@ -3436,6 +3436,20 @@
         "rejected": "Rechazada",
         "needs_reassessment": "Requiere reevaluación"
       },
+      "rejection": {
+        "status": "Rechazada",
+        "reason": "Motivo del rechazo",
+        "decidedAt": "Fecha de la decisión",
+        "decidedBy": "Decidido por",
+        "reopenButton": "Reabrir solicitud",
+        "reopenDialogHint": "La solicitud volverá al estado « contactado ». Puede añadir una nota opcional.",
+        "reopenTargetState": "Estado objetivo",
+        "reopenNotePlaceholder": "Nota opcional que explique la reapertura",
+        "reopenSuccess": "Solicitud reabierta correctamente",
+        "cannotLinkStudent": "No se puede convertir una solicitud cerrada o rechazada en alumno. Reabra la solicitud primero si está permitido.",
+        "reasonRequired": "Introduzca el motivo del rechazo",
+        "reasonPlaceholder": "Introduzca el motivo del rechazo"
+      },
       "offerStates": {
         "draft": "Borrador",
         "sent": "Enviada",

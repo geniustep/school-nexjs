@@ -28,6 +28,7 @@ import {
 } from '../utils/admission-detail-tabs';
 import { hasAdmissionAllowedAction } from '../utils/admission-allowed-actions';
 import { isAdmissionConvertedToStudent } from '../utils/admission-registration';
+import { isAdmissionRejected, canReopenAdmission } from '../utils/admission-rejection';
 import { AdmissionOverviewTab } from './admission-overview-tab';
 import { AdmissionTimelineTab } from './admission-timeline-tab';
 import { AdmissionAppointmentsTab } from './admission-appointments-tab';
@@ -36,6 +37,8 @@ import { AdmissionDecisionTab } from './admission-decision-tab';
 import { AdmissionOffersTab } from './admission-offers-tab';
 import { AdmissionPrefillTab } from './admission-prefill-tab';
 import { AdmissionRegistrationActions } from './admission-registration-actions';
+import { AdmissionRejectionBanner } from './admission-rejection-banner';
+import { AdmissionReopenAction } from './admission-reopen-action';
 import { AdmissionStateSelect } from './admission-state-select';
 import { OverviewEmptyValue } from './admission-overview-primitives';
 import '../admissions.css';
@@ -169,6 +172,7 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
   const detail = data;
   const actions = detail.allowed_actions ?? {};
   const convertedToStudent = isAdmissionConvertedToStudent(detail);
+  const rejected = isAdmissionRejected(detail);
   const visibleTabs = showPrefill ? ADMISSION_TABS : ADMISSION_TABS.filter((id) => id !== 'prefill');
   const nextActionParts = [detail.next_action, detail.next_action_date ? formatDate(detail.next_action_date) : '']
     .filter(Boolean)
@@ -261,9 +265,14 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
                   </span>
                 </div>
               ) : actions.edit === false ? (
-                <Badge tone={admissionStateTone(detail.state)}>
-                  {t(`admin.admissions.states.${detail.state}`)}
-                </Badge>
+                <div className="admissions-detail-header-card__state-badges">
+                  <Badge tone={admissionStateTone(detail.state)}>
+                    {t(`admin.admissions.states.${detail.state}`)}
+                  </Badge>
+                  {rejected ? (
+                    <Badge tone="red">{t('admin.admissions.rejection.status')}</Badge>
+                  ) : null}
+                </div>
               ) : (
                 <AdmissionStateSelect
                   admissionId={detail.id}
@@ -276,6 +285,14 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
             </div>
           </div>
         </div>
+
+        <AdmissionRejectionBanner detail={detail} onUpdated={reload} />
+
+        {!rejected && canReopenAdmission(detail) ? (
+          <div className="admissions-reopen-action">
+            <AdmissionReopenAction detail={detail} onUpdated={reload} className="btn btn--primary btn--sm" />
+          </div>
+        ) : null}
 
         <div className="admissions-detail-header-card__facts">
           <DetailFact

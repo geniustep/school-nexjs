@@ -3466,6 +3466,20 @@
         "rejected": "مرفوض",
         "needs_reassessment": "يحتاج إعادة تقييم"
       },
+      "rejection": {
+        "status": "مرفوض",
+        "reason": "سبب الرفض",
+        "decidedAt": "تاريخ القرار",
+        "decidedBy": "اتخذ القرار",
+        "reopenButton": "إعادة فتح الطلب",
+        "reopenDialogHint": "سيُعاد الطلب إلى حالة «تم التواصل». يمكنك إضافة ملاحظة اختيارية.",
+        "reopenTargetState": "الحالة المستهدفة",
+        "reopenNotePlaceholder": "ملاحظة اختيارية توضّح سبب إعادة الفتح",
+        "reopenSuccess": "تم إعادة فتح الطلب",
+        "cannotLinkStudent": "لا يمكن تحويل طلب مغلق أو مرفوض إلى تلميذ. أعد فتح الطلب أولًا إن كان ذلك مسموحًا.",
+        "reasonRequired": "أدخل سبب الرفض",
+        "reasonPlaceholder": "أدخل سبب الرفض"
+      },
       "offerStates": {
         "draft": "مسودة",
         "sent": "مُرسَل",

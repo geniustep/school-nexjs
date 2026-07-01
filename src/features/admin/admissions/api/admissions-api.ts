@@ -15,6 +15,7 @@ import type {
   CreateDecisionPayload,
   CreateOfferPayload,
   PatchAdmissionPayload,
+  ReopenAdmissionPayload,
   AdmissionPrefillApiEnvelope,
 } from '@/types/admission';
 import { normalizeAdmissionDetail } from '../utils/admission-allowed-actions';
@@ -101,7 +102,23 @@ export async function createAdmissionDecision(
   payload: CreateDecisionPayload,
   query?: ListParams,
 ): Promise<ApiResponse<AdmissionDetail>> {
-  return api.post<AdmissionDetail>(endpoints.admin.admissionDecision(id), payload, query);
+  const res = await api.post<AdmissionDetail>(endpoints.admin.admissionDecision(id), payload, query);
+  if (res.success && res.data) {
+    return { ...res, data: normalizeAdmissionDetail(res.data) };
+  }
+  return res;
+}
+
+export async function reopenAdmission(
+  id: number | string,
+  payload: ReopenAdmissionPayload,
+  query?: ListParams,
+): Promise<ApiResponse<AdmissionDetail>> {
+  const res = await api.post<AdmissionDetail>(endpoints.admin.admissionReopen(id), payload, query);
+  if (res.success && res.data) {
+    return { ...res, data: normalizeAdmissionDetail(res.data) };
+  }
+  return res;
 }
 
 export async function createAdmissionOffer(

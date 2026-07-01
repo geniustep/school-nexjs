@@ -1,5 +1,6 @@
 import type { AdmissionDetail, AdmissionState } from '@/types/admission';
 import { hasAdmissionAllowedAction } from './admission-allowed-actions';
+import { shouldBlockStudentConversion } from './admission-rejection';
 import { formatAdmissionReference } from './admission-labels';
 
 const CLOSED_REGISTRATION_STATES = new Set<AdmissionState>(['lost', 'cancelled', 'duplicate']);
@@ -39,6 +40,7 @@ export function isAdmissionConvertedToStudent(
 export function canContinueStudentRegistration(detail: AdmissionDetail): boolean {
   if (!hasAdmissionAllowedAction(detail.allowed_actions, 'get_prefill')) return false;
   if (isAdmissionLinked(detail)) return false;
+  if (shouldBlockStudentConversion(detail)) return false;
   if (CLOSED_REGISTRATION_STATES.has(detail.state as AdmissionState)) return false;
   return true;
 }

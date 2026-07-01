@@ -6,6 +6,7 @@ import { useT } from '@/features/i18n/locale-context';
 import { createAdmissionDecision } from '../api/admissions-api';
 import { admissionApiErrorMessage } from '../utils/admission-errors';
 import { refName } from '../utils/admission-labels';
+import { isAdmissionRejected, resolveRejectionReason } from '../utils/admission-rejection';
 import type { AdmissionDetail, DecisionType } from '@/types/admission';
 
 const DECISION_OPTIONS: DecisionType[] = [
@@ -28,6 +29,7 @@ export function AdmissionDecisionTab({
   const t = useT();
   const { activeSchoolId } = useAdminSession();
   const decision = detail.decision;
+  const rejected = isAdmissionRejected(detail);
   const [decisionValue, setDecisionValue] = useState<DecisionType>('accepted');
   const [decisionNotes, setDecisionNotes] = useState('');
   const [conditions, setConditions] = useState('');
@@ -37,13 +39,17 @@ export function AdmissionDecisionTab({
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (activeSchoolId == null) return;
+    if (decisionValue === 'rejected' && !decisionNotes.trim()) {
+      setError(t('admin.admissions.rejection.reasonRequired'));
+      return;
+    }
     setSubmitting(true);
     setError(null);
     const res = await createAdmissionDecision(
       detail.id,
       {
         decision: decisionValue,
-        decision_notes: decisionNotes || undefined,
+        decision_notes: decisionNotes.trim() || undefined,
         conditions: conditions || undefined,
       },
       { active_school_id: activeSchoolId },
@@ -56,6 +62,8 @@ export function AdmissionDecisionTab({
     setError(admissionApiErrorMessage(res.error, t));
   }
 
+  const rejectionNotesRequired = decisionValue === 'rejected';
+
   return (
     <div className="admissions-section">
       {decision?.decision ? (
@@ -63,13 +71,27 @@ export function AdmissionDecisionTab({
           <h2 className="admissions-section__title">{t('admin.admissions.decision.current')}</h2>
           <dl className="admissions-dl">
             <dt>{t('admin.admissions.decision.label')}</dt>
-            <dd>{t(`admin.admissions.decisions.${decision.decision}`)}</dd>
+            <dd>
+              {rejected
+                ? t('admin.admissions.rejection.status')
+                : t(`admin.admissions.decisions.${decision.decision}`)}
+            </dd>
+            {rejected ? (
+              <>
+                <dt>{t('admin.admissions.rejection.reason')}</dt>
+                <dd>{resolveRejectionReason(detail) || t('common.dash')}</dd>
+              </>
+            ) : null}
             <dt>{t('common.date')}</dt>
             <dd>{decision.decision_date || t('common.dash')}</dd>
             <dt>{t('admin.admissions.decision.by')}</dt>
             <dd>{refName(decision.decision_user) || t('common.dash')}</dd>
-            <dt>{t('common.note')}</dt>
-            <dd>{decision.decision_notes || t('common.dash')}</dd>
+            {!rejected ? (
+              <>
+                <dt>{t('common.note')}</dt>
+                <dd>{decision.decision_notes || t('common.dash')}</dd>
+              </>
+            ) : null}
             <dt>{t('admin.admissions.decision.conditions')}</dt>
             <dd>{decision.conditions || t('common.dash')}</dd>
           </dl>
@@ -98,13 +120,25 @@ export function AdmissionDecisionTab({
             </select>
           </div>
           <div className="field">
-            <label htmlFor="decision-notes">{t('common.note')}</label>
+            <label htmlFor="decision-notes">
+              {rejectionNotesRequired
+                ? t('admin.admissions.rejection.reason')
+                : t('common.note')}
+              {rejectionNotesRequired ? ' *' : ''}
+            </label>
             <textarea
               id="decision-notes"
               className="input"
               rows={2}
               value={decisionNotes}
               onChange={(e) => setDecisionNotes(e.target.value)}
+              placeholder={
+                rejectionNotesRequired
+                  ? t('admin.admissions.rejection.reasonPlaceholder')
+                  : undefined
+              }
+              required={rejectionNotesRequired}
+              aria-required={rejectionNotesRequired}
             />
           </div>
           <div className="field">
