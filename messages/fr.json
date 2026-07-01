@@ -3086,6 +3086,7 @@
         "list": "Admissions"
       },
       "nextAction": "Prochaine action",
+      "markNextActionDone": "Fait",
       "assignedUser": "Responsable",
       "viewMode": "Mode d'affichage",
       "viewKanban": "Tableau",

@@ -36,6 +36,7 @@ import { AdmissionOffersTab } from './admission-offers-tab';
 import { AdmissionPrefillTab } from './admission-prefill-tab';
 import { AdmissionRegistrationActions } from './admission-registration-actions';
 import { AdmissionStateSelect } from './admission-state-select';
+import { OverviewEmptyValue } from './admission-overview-primitives';
 import '../admissions.css';
 
 function isAuthError(code: string): boolean {
@@ -98,11 +99,13 @@ function DetailFact({
   value,
   dir,
   icon,
+  empty,
 }: {
   label: string;
   value: string;
   dir?: 'ltr' | 'rtl' | 'auto';
   icon: FactIcon;
+  empty?: boolean;
 }) {
   return (
     <div className="admissions-detail-fact">
@@ -111,8 +114,11 @@ function DetailFact({
       </span>
       <span className="admissions-detail-fact__body">
         <span className="admissions-detail-fact__label">{label}</span>
-        <span className="admissions-detail-fact__value" dir={dir}>
-          {value}
+        <span
+          className={`admissions-detail-fact__value${empty ? ' admissions-detail-fact__value--empty' : ''}`}
+          dir={dir}
+        >
+          {empty ? <OverviewEmptyValue /> : value}
         </span>
       </span>
     </div>
@@ -163,7 +169,6 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
   const actions = detail.allowed_actions ?? {};
   const convertedToStudent = isAdmissionConvertedToStudent(detail);
   const visibleTabs = showPrefill ? ADMISSION_TABS : ADMISSION_TABS.filter((id) => id !== 'prefill');
-  const unspecified = t('admin.admissions.detail.unspecified');
   const nextActionParts = [detail.next_action, detail.next_action_date ? formatDate(detail.next_action_date) : '']
     .filter(Boolean)
     .join(' — ');
@@ -275,23 +280,27 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
           <DetailFact
             icon="guardian"
             label={t('admin.admissions.card.guardian')}
-            value={detail.guardian_name || unspecified}
+            value={detail.guardian_name ?? ''}
+            empty={!detail.guardian_name?.trim()}
           />
           <DetailFact
             icon="phone"
             label={t('admin.admissions.card.phone')}
-            value={detail.guardian_phone || unspecified}
+            value={detail.guardian_phone ?? ''}
             dir="ltr"
+            empty={!detail.guardian_phone?.trim()}
           />
           <DetailFact
             icon="level"
             label={t('admin.admissions.fields.requestedLevel')}
-            value={refName(detail.requested_level) || unspecified}
+            value={refName(detail.requested_level)}
+            empty={!refName(detail.requested_level)}
           />
           <DetailFact
             icon="action"
             label={t('admin.admissions.nextAction')}
-            value={nextActionParts || unspecified}
+            value={nextActionParts}
+            empty={!nextActionParts}
           />
         </div>
 

@@ -3113,6 +3113,7 @@
         "list": "طلبات التسجيل"
       },
       "nextAction": "الإجراء القادم",
+      "markNextActionDone": "تم",
       "assignedUser": "المسؤول",
       "viewMode": "طريقة العرض",
       "viewKanban": "لوحة",

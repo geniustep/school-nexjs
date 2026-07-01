@@ -260,6 +260,32 @@ const SYSTEM_NOTE_PATTERNS: {
   },
 ];
 
+function tryTranslateStandaloneKnownLabel(text: string, t: TranslateFn): string | null {
+  const trimmed = text.trim();
+  if (!trimmed) return null;
+
+  if (EN_STATE_LABELS[trimmed]) {
+    return translateStateLabel(trimmed, t);
+  }
+
+  const snakeKey = trimmed.toLowerCase().replace(/\s+/g, '_');
+  const stateI18nKey = `admin.admissions.states.${snakeKey}`;
+  const stateLabel = t(stateI18nKey);
+  if (stateLabel !== stateI18nKey) return stateLabel;
+
+  if (EN_DECISION_LABELS[trimmed]) {
+    return translateDecisionLabel(trimmed, t);
+  }
+
+  const activityKey = `${ACTIVITY_TYPE_KEY}.${snakeKey}`;
+  const activityLabel = t(activityKey);
+  if (activityLabel !== activityKey && !activityLabel.startsWith('admin.admissions.')) {
+    return activityLabel;
+  }
+
+  return null;
+}
+
 export function formatAdmissionActivityNote(
   note: string | null | undefined,
   locale: Locale,
@@ -276,6 +302,9 @@ export function formatAdmissionActivityNote(
       return format(groups.slice(1), t);
     }
   }
+
+  const standalone = tryTranslateStandaloneKnownLabel(text, t);
+  if (standalone) return standalone;
 
   return text;
 }

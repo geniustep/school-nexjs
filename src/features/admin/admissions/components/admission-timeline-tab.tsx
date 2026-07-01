@@ -13,6 +13,7 @@ import {
   resolveActivityTypeLabel,
 } from '../utils/admission-activity-display';
 import { refName } from '../utils/admission-labels';
+import { OverviewEmptyValue } from './admission-overview-primitives';
 import type { AdmissionDetail, ActivityType } from '@/types/admission';
 
 const ACTIVITY_TYPES: ActivityType[] = ['note', 'call', 'whatsapp', 'follow_up', 'visit_note'];
@@ -148,34 +149,42 @@ export function AdmissionTimelineTab({
       {activities.length === 0 ? (
         <EmptyState compact title={t('admin.admissions.timeline.empty')} />
       ) : (
-        <div className="admissions-timeline">
+        <ol className="admissions-timeline" aria-label={t('admin.admissions.tabs.timeline')}>
           {activities.map((activity) => {
             const noteText = formatAdmissionActivityNote(activity.note, locale, t);
             const nextDate = activity.next_action_date
               ? formatDate(activity.next_action_date)
               : '';
+            const userName = refName(activity.user);
             return (
-              <article key={activity.id} className="admissions-timeline__item">
-                <header className="admissions-timeline__item-head">
-                  <strong>{resolveActivityTypeLabel(activity.activity_type, t)}</strong>
-                  <time className="admissions-timeline__item-date" dateTime={activity.date}>
-                    {formatDate(activity.date) || activity.date}
-                  </time>
-                </header>
-                {noteText ? <p className="admissions-timeline__item-note">{noteText}</p> : null}
-                <footer className="admissions-timeline__item-meta">
-                  <span>{refName(activity.user) || t('admin.admissions.detail.unspecified')}</span>
-                  {activity.next_action ? (
-                    <span>
-                      {t('admin.admissions.nextAction')}: {activity.next_action}
-                      {nextDate ? ` — ${nextDate}` : ''}
+              <li key={activity.id} className="admissions-timeline__item">
+                <div className="admissions-timeline__item-marker" aria-hidden="true" />
+                <div className="admissions-timeline__item-card">
+                  <header className="admissions-timeline__item-head">
+                    <span className="admissions-timeline__item-type">
+                      {resolveActivityTypeLabel(activity.activity_type, t)}
                     </span>
-                  ) : null}
-                </footer>
-              </article>
+                    <time className="admissions-timeline__item-date" dateTime={activity.date}>
+                      {formatDate(activity.date) || activity.date}
+                    </time>
+                  </header>
+                  {noteText ? <p className="admissions-timeline__item-note">{noteText}</p> : null}
+                  <footer className="admissions-timeline__item-meta">
+                    <span className="admissions-timeline__item-user">
+                      {userName || <OverviewEmptyValue />}
+                    </span>
+                    {activity.next_action ? (
+                      <span className="admissions-timeline__item-next">
+                        {t('admin.admissions.nextAction')}: {activity.next_action}
+                        {nextDate ? ` — ${nextDate}` : ''}
+                      </span>
+                    ) : null}
+                  </footer>
+                </div>
+              </li>
             );
           })}
-        </div>
+        </ol>
       )}
     </div>
   );

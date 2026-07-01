@@ -1,6 +1,5 @@
 'use client';
 
-import type { ReactNode } from 'react';
 import { useT } from '@/features/i18n/locale-context';
 import { cleanDisplayValue } from '../utils/admission-labels';
 import { parseExtraFieldBool } from '../utils/admission-extra-fields';
@@ -9,36 +8,11 @@ import {
   localizeSiblingSummary,
   shouldShowSiblingLegacyFields,
 } from '../utils/sibling-display';
+import { OverviewBlock, OverviewCard, OverviewRow } from './admission-overview-primitives';
 import { SiblingLinesCards } from './sibling-lines-cards';
 import { SiblingLinesTable } from './sibling-lines-table';
 import { resolveSiblingsPanelView } from '@/features/admin/students/utils/siblings-panel-view';
 import type { SiblingsFieldsSource } from '@/types/sibling-line';
-
-function OverviewCard({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <section className="card admissions-overview-card">
-      <h2 className="admissions-overview-card__title">{title}</h2>
-      <div className="admissions-overview-card__body">{children}</div>
-    </section>
-  );
-}
-
-function OverviewRow({
-  label,
-  value,
-  dir,
-}: {
-  label: string;
-  value: ReactNode;
-  dir?: 'ltr' | 'rtl' | 'auto';
-}) {
-  return (
-    <dl className="admissions-overview-card__dl admissions-overview-card__dl--row">
-      <dt>{label}</dt>
-      <dd dir={dir}>{value}</dd>
-    </dl>
-  );
-}
 
 export function SiblingsInfoPanel({
   detail,
@@ -52,18 +26,19 @@ export function SiblingsInfoPanel({
   onAddSibling?: () => void;
 }) {
   const t = useT();
-  const empty = t('admin.siblings.notMentioned');
   const hasSiblings = parseExtraFieldBool(detail.has_siblings);
   const siblingLines = normalizeSiblingLines(detail.sibling_lines);
   const summary = localizeSiblingSummary(detail.siblings_summary, t);
   const showLegacy = shouldShowSiblingLegacyFields(detail, siblingLines);
+  const rawText = cleanDisplayValue(detail.siblings_raw_text);
+  const legacyLevels = cleanDisplayValue(detail.siblings_levels);
 
   const hasAnyData = Boolean(
     detail.has_siblings != null ||
       detail.sibling_count != null ||
       summary ||
-      cleanDisplayValue(detail.siblings_raw_text) ||
-      cleanDisplayValue(detail.siblings_levels) ||
+      rawText ||
+      legacyLevels ||
       siblingLines.length > 0,
   );
 
@@ -149,16 +124,16 @@ export function SiblingsInfoPanel({
               <h4 className="student-siblings-panel__legacy-title">
                 {t('admin.siblings.admissionNotesTitle')}
               </h4>
-              {cleanDisplayValue(detail.siblings_raw_text) ? (
+              {rawText ? (
                 <p className="student-siblings-panel__legacy-item" dir="auto">
                   <span className="student-siblings-panel__legacy-label">{t('admin.siblings.rawText')}</span>
-                  {cleanDisplayValue(detail.siblings_raw_text)}
+                  {rawText}
                 </p>
               ) : null}
-              {cleanDisplayValue(detail.siblings_levels) ? (
+              {legacyLevels ? (
                 <p className="student-siblings-panel__legacy-item" dir="auto">
                   <span className="student-siblings-panel__legacy-label">{t('admin.siblings.legacyLevels')}</span>
-                  {cleanDisplayValue(detail.siblings_levels)}
+                  {legacyLevels}
                 </p>
               ) : null}
             </div>
@@ -171,7 +146,7 @@ export function SiblingsInfoPanel({
   if (!hasAnyData) {
     return (
       <OverviewCard title={t('admin.siblings.sectionTitle')}>
-        <p className="admissions-overview-notes muted">{t('admin.siblings.empty')}</p>
+        <OverviewRow label={t('admin.siblings.hasSiblings')} value={null} />
       </OverviewCard>
     );
   }
@@ -180,31 +155,31 @@ export function SiblingsInfoPanel({
     <OverviewCard title={t('admin.siblings.sectionTitle')}>
       <OverviewRow
         label={t('admin.siblings.hasSiblings')}
-        value={hasSiblings ? t('common.yes') : t('common.no')}
+        value={hasSiblings == null ? null : hasSiblings ? t('common.yes') : t('common.no')}
       />
-      <OverviewRow
-        label={t('admin.siblings.siblingCount')}
-        value={detail.sibling_count != null ? detail.sibling_count : empty}
-        dir="ltr"
-      />
-      <OverviewRow label={t('admin.siblings.summary')} value={summary || empty} />
-      <OverviewRow
-        label={t('admin.siblings.rawText')}
-        value={cleanDisplayValue(detail.siblings_raw_text) || empty}
-      />
-      <OverviewRow
-        label={t('admin.siblings.legacyLevels')}
-        value={cleanDisplayValue(detail.siblings_levels) || empty}
-      />
+      {detail.sibling_count != null ? (
+        <OverviewRow
+          label={t('admin.siblings.siblingCount')}
+          value={String(detail.sibling_count)}
+          dir="ltr"
+        />
+      ) : null}
+      {summary ? <OverviewRow label={t('admin.siblings.summary')} value={summary} /> : null}
+      {showLegacy && rawText ? (
+        <OverviewRow label={t('admin.siblings.rawText')} value={rawText} />
+      ) : null}
+      {showLegacy && legacyLevels ? (
+        <OverviewRow label={t('admin.siblings.legacyLevels')} value={legacyLevels} />
+      ) : null}
       {siblingLines.length > 0 ? (
-        <div className="admissions-overview-card__table">
+        <OverviewBlock>
           <div className="admissions-sibling-lines__desktop">
             <SiblingLinesTable lines={siblingLines} />
           </div>
           <div className="admissions-sibling-lines__mobile">
             <SiblingLinesCards lines={siblingLines} />
           </div>
-        </div>
+        </OverviewBlock>
       ) : null}
     </OverviewCard>
   );

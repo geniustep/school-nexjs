@@ -3086,6 +3086,7 @@
         "list": "Admissions"
       },
       "nextAction": "Next action",
+      "markNextActionDone": "Done",
       "assignedUser": "Assigned to",
       "viewMode": "View mode",
       "viewKanban": "Board",

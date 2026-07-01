@@ -922,17 +922,17 @@
 .admissions-detail-header-card {
   position: relative;
   overflow: hidden;
-  padding: 1rem 1.15rem 1.15rem;
+  padding: 0.7rem 0.85rem 0.75rem;
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 0.55rem;
   background:
     linear-gradient(
       135deg,
-      color-mix(in srgb, var(--c-primary, #243b6b) 7%, white) 0%,
-      color-mix(in srgb, var(--raqeem-secondary, #24a6a1) 5%, white) 100%
+      color-mix(in srgb, var(--c-primary, #243b6b) 5%, white) 0%,
+      color-mix(in srgb, var(--raqeem-secondary, #24a6a1) 3%, white) 100%
     );
-  border-color: color-mix(in srgb, var(--c-primary, #243b6b) 14%, var(--c-border, #e2e8f0));
+  border-color: color-mix(in srgb, var(--c-primary, #243b6b) 12%, var(--c-border, #e2e8f0));
 }
 
 /* Decorative accent ribbon along the inline-start edge */
@@ -965,7 +965,7 @@
 .admissions-detail-header-card__main {
   display: flex;
   align-items: center;
-  gap: 0.85rem;
+  gap: 0.65rem;
   min-width: 0;
 }
 
@@ -973,17 +973,17 @@
   flex-shrink: 0;
   display: grid;
   place-items: center;
-  width: 3.25rem;
-  height: 3.25rem;
+  width: 2.65rem;
+  height: 2.65rem;
   border-radius: 50%;
-  font-size: 1.15rem;
+  font-size: 0.95rem;
   font-weight: 700;
   line-height: 1;
   color: #fff;
   background: linear-gradient(135deg, var(--c-primary, #243b6b) 0%, var(--c-primary-dark, #1a2d52) 100%);
   box-shadow:
-    0 4px 12px color-mix(in srgb, var(--c-primary, #243b6b) 30%, transparent),
-    0 0 0 4px color-mix(in srgb, var(--c-surface, #fff) 70%, transparent);
+    0 2px 8px color-mix(in srgb, var(--c-primary, #243b6b) 22%, transparent),
+    0 0 0 3px color-mix(in srgb, var(--c-surface, #fff) 75%, transparent);
   user-select: none;
 }
 
@@ -1001,7 +1001,7 @@
 
 .admissions-detail-header-card__title {
   margin: 0;
-  font-size: clamp(1.25rem, 2.6vw, 1.55rem);
+  font-size: clamp(1.1rem, 2.2vw, 1.35rem);
   line-height: 1.3;
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -1012,8 +1012,8 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.4rem 0.55rem;
-  margin-top: 0.45rem;
+  gap: 0.35rem 0.45rem;
+  margin-top: 0.3rem;
   font-size: 0.8125rem;
   color: var(--c-text-muted, var(--muted));
 }
@@ -1032,70 +1032,71 @@
 
 .admissions-detail-header-card__facts {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.5rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.35rem;
   min-width: 0;
 }
 
 .admissions-detail-fact {
   display: flex;
-  align-items: center;
-  gap: 0.55rem;
+  align-items: flex-start;
+  gap: 0.4rem;
   min-width: 0;
-  padding: 0.55rem 0.65rem;
+  padding: 0.4rem 0.5rem;
   border-radius: var(--radius-sm, 8px);
-  background: color-mix(in srgb, var(--c-surface, #fff) 78%, transparent);
-  border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 80%, transparent);
-  transition: border-color 0.15s, box-shadow 0.15s;
+  background: color-mix(in srgb, var(--c-surface, #fff) 82%, transparent);
+  border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 78%, transparent);
 }
 
 .admissions-detail-fact:hover {
-  border-color: color-mix(in srgb, var(--c-primary, #243b6b) 28%, var(--c-border, #e2e8f0));
-  box-shadow: var(--shadow-sm, 0 1px 2px rgba(15, 23, 42, 0.06));
+  border-color: color-mix(in srgb, var(--c-primary, #243b6b) 20%, var(--c-border, #e2e8f0));
 }
 
 .admissions-detail-fact__icon {
   flex-shrink: 0;
   display: grid;
   place-items: center;
-  width: 2rem;
-  height: 2rem;
+  width: 1.65rem;
+  height: 1.65rem;
   border-radius: 50%;
   color: var(--c-primary, #243b6b);
-  background: color-mix(in srgb, var(--c-primary, #243b6b) 9%, white);
+  background: color-mix(in srgb, var(--c-primary, #243b6b) 8%, white);
 }
 
 .admissions-detail-fact__body {
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
+  gap: 0.05rem;
   min-width: 0;
 }
 
 .admissions-detail-fact__label {
-  font-size: 0.7rem;
+  font-size: 0.66rem;
   color: var(--c-text-muted, var(--muted));
   font-weight: 600;
+  line-height: 1.25;
 }
 
 .admissions-detail-fact__value {
-  font-size: 0.84rem;
+  font-size: 0.78rem;
   font-weight: 600;
   line-height: 1.35;
   color: var(--c-text, inherit);
   word-break: break-word;
-  overflow: hidden;
-  text-overflow: ellipsis;
+}
+
+.admissions-detail-fact__value--empty {
+  font-weight: 500;
 }
 
 .admissions-registration-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.55rem;
-  padding-top: 0.85rem;
-  margin-top: 0.1rem;
-  border-top: 1px solid color-mix(in srgb, var(--c-primary, #243b6b) 12%, var(--border, var(--c-border)));
+  gap: 0.45rem;
+  padding-top: 0.55rem;
+  margin-top: 0.05rem;
+  border-top: 1px solid color-mix(in srgb, var(--c-primary, #243b6b) 10%, var(--border, var(--c-border)));
 }
 
 .admissions-registration-actions--linked {
@@ -1117,107 +1118,169 @@
   gap: 0.2rem;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 0.3rem;
-  background: var(--c-surface, #fff);
-  border: 1px solid var(--border, var(--c-border));
+  padding: 0.35rem 0.4rem;
+  background: color-mix(in srgb, var(--c-primary, #243b6b) 7%, var(--surface-2, #eef2f8));
+  border: 1px solid color-mix(in srgb, var(--c-primary, #243b6b) 14%, var(--c-border, #e2e8f0));
   border-radius: var(--radius);
-  box-shadow: var(--shadow-sm, 0 1px 2px rgba(15, 23, 42, 0.06));
+  box-shadow:
+    0 1px 0 color-mix(in srgb, white 55%, transparent) inset,
+    0 2px 10px color-mix(in srgb, var(--c-text, #0f172a) 7%, transparent);
   scrollbar-width: thin;
 }
 
 .admissions-tabs a,
 .admissions-tabs button {
-  border: 1px solid transparent;
-  background: transparent;
-  padding: 0.45rem 0.9rem;
-  border-radius: var(--radius-sm, 8px);
+  border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 82%, transparent);
+  background: color-mix(in srgb, var(--c-surface, #fff) 88%, transparent);
+  padding: 0.42rem 0.82rem;
+  border-radius: calc(var(--radius-sm, 8px) - 1px);
   cursor: pointer;
   font: inherit;
   font-size: 0.8125rem;
+  font-weight: 500;
   text-decoration: none;
-  color: var(--c-text-muted, var(--muted));
+  color: var(--c-text-body, var(--c-text, #334155));
   white-space: nowrap;
-  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  transition: color 0.15s, border-color 0.15s, background 0.15s, box-shadow 0.15s;
 }
 
 .admissions-tabs a:hover,
 .admissions-tabs button:hover {
-  color: var(--c-text, inherit);
-  background: var(--c-surface-2, #eef2f8);
+  color: var(--c-navy, var(--c-primary));
+  background: var(--c-surface, #fff);
+  border-color: color-mix(in srgb, var(--c-primary, #243b6b) 22%, var(--c-border, #e2e8f0));
 }
 
 .admissions-tabs a[aria-current='page'],
 .admissions-tabs button[aria-current='page'] {
-  background: var(--c-primary-soft, #e8edf5);
-  color: var(--c-navy, var(--c-primary));
+  background: var(--c-primary, #243b6b);
+  color: #fff;
   font-weight: 650;
-  border-color: color-mix(in srgb, var(--c-primary, #243b6b) 22%, transparent);
+  border-color: color-mix(in srgb, var(--c-primary, #243b6b) 88%, #1a2d52);
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--c-primary, #243b6b) 28%, transparent);
 }
 
 .admissions-overview {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .admissions-overview-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.65rem;
+  grid-auto-rows: min-content;
+  align-items: start;
+  gap: 0.45rem;
+}
+
+.admissions-overview-grid > .admissions-overview-card,
+.admissions-overview-grid > .card.admissions-overview-card {
+  height: auto;
+  min-height: 0;
+  min-width: 0;
+}
+
+.admissions-overview-card--full {
+  grid-column: 1 / -1;
 }
 
 .admissions-overview-card {
-  padding: 0.85rem 0.95rem;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  padding: 0.55rem 0.65rem;
+  align-self: start;
 }
 
 .admissions-overview-card:hover {
-  border-color: color-mix(in srgb, var(--c-primary, #243b6b) 22%, var(--c-border, #e2e8f0));
-  box-shadow: var(--shadow-sm, 0 1px 2px rgba(15, 23, 42, 0.06));
+  border-color: color-mix(in srgb, var(--c-primary, #243b6b) 18%, var(--c-border, #e2e8f0));
 }
 
 .admissions-overview-card__title {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin: 0 0 0.7rem;
-  padding-bottom: 0.5rem;
-  font-size: 0.92rem;
+  gap: 0.4rem;
+  margin: 0 0 0.35rem;
+  padding-bottom: 0.3rem;
+  font-size: 0.82rem;
   font-weight: 700;
   letter-spacing: -0.01em;
-  border-bottom: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 70%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 65%, transparent);
 }
 
 .admissions-overview-card__title::before {
   content: '';
   flex-shrink: 0;
   width: 3px;
-  height: 0.95rem;
+  height: 0.8rem;
   border-radius: 999px;
   background: linear-gradient(to bottom, var(--c-primary, #243b6b), var(--raqeem-secondary, #24a6a1));
 }
 
 .admissions-overview-card__dl {
-  display: grid;
-  grid-template-columns: minmax(6.5rem, 38%) 1fr;
-  gap: 0.3rem 0.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.22rem;
   margin: 0;
-  font-size: 0.8125rem;
+  font-size: 0.8rem;
 }
 
-.admissions-overview-card__dl dt {
-  margin: 0;
-  color: var(--c-text-muted, var(--muted));
-}
-
-.admissions-overview-card__dl dd {
-  margin: 0;
+.admissions-overview-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: 0.25rem 0.4rem;
   min-width: 0;
+  padding-block: 0.1rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 50%, transparent);
+}
+
+.admissions-overview-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.admissions-overview-block {
+  width: 100%;
+  margin-top: 0.2rem;
+  padding-top: 0.2rem;
+  border-top: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 65%, transparent);
+}
+
+.admissions-overview-row__label {
+  margin: 0;
+  flex: 0 0 auto;
+  color: var(--c-text-muted, var(--muted));
+  font-size: 0.74rem;
+  font-weight: 500;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.admissions-overview-row__label::after {
+  content: ':';
+  margin-inline-start: 0.12rem;
+  opacity: 0.65;
+}
+
+.admissions-overview-row__value {
+  margin: 0;
+  flex: 0 1 auto;
+  min-width: 0;
+  line-height: 1.4;
+  font-size: 0.8rem;
   word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.admissions-overview-value--empty {
+  color: var(--c-text-muted, var(--muted));
+  font-weight: 400;
+  opacity: 0.72;
 }
 
 .admissions-overview-card__table {
-  grid-column: 1 / -1;
+  width: 100%;
   min-width: 0;
 }
 
@@ -1250,7 +1313,7 @@
 }
 
 .admissions-timeline-form {
-  padding: 0.75rem 0.85rem;
+  padding: 0.6rem 0.7rem;
 }
 
 .admissions-timeline-form__title {
@@ -1289,18 +1352,48 @@
 .admissions-timeline {
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .admissions-timeline__item {
-  border-inline-start: 3px solid var(--border, var(--c-border));
-  padding-inline-start: 0.75rem;
-  padding-block: 0.35rem 0.45rem;
-  background: var(--card-bg, #fff);
-  border-radius: 0 calc(var(--radius) - 2px) calc(var(--radius) - 2px) 0;
-  border: 1px solid var(--border, var(--c-border));
-  border-inline-start-width: 3px;
-  border-inline-start-color: var(--primary, var(--c-primary));
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.1rem minmax(0, 1fr);
+  gap: 0.45rem;
+  padding-block: 0.35rem;
+}
+
+.admissions-timeline__item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0.45rem;
+  top: 1.35rem;
+  bottom: -0.1rem;
+  width: 2px;
+  background: color-mix(in srgb, var(--c-border, #e2e8f0) 85%, transparent);
+}
+
+.admissions-timeline__item-marker {
+  width: 0.55rem;
+  height: 0.55rem;
+  margin-top: 0.45rem;
+  margin-inline-start: 0.18rem;
+  border-radius: 50%;
+  background: var(--c-surface, #fff);
+  border: 2px solid var(--primary, var(--c-primary));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary, var(--c-primary)) 12%, white);
+  z-index: 1;
+}
+
+.admissions-timeline__item-card {
+  min-width: 0;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 88%, transparent);
+  border-radius: var(--radius-sm, 8px);
+  background: color-mix(in srgb, var(--c-surface, #fff) 92%, var(--surface-2, #f8fafc));
 }
 
 .admissions-timeline__item-head {
@@ -1308,27 +1401,41 @@
   flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
-  gap: 0.35rem 0.65rem;
-  font-size: 0.8125rem;
+  gap: 0.25rem 0.5rem;
+  font-size: 0.78rem;
+}
+
+.admissions-timeline__item-type {
+  font-weight: 650;
+  color: var(--c-text, inherit);
 }
 
 .admissions-timeline__item-date {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: var(--c-text-muted, var(--muted));
+  font-variant-numeric: tabular-nums;
 }
 
 .admissions-timeline__item-note {
-  margin: 0.35rem 0 0;
-  font-size: 0.8125rem;
+  margin: 0.28rem 0 0;
+  font-size: 0.78rem;
   line-height: 1.45;
+  color: var(--c-text, inherit);
 }
 
 .admissions-timeline__item-meta {
   display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  margin-top: 0.35rem;
-  font-size: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.65rem;
+  margin-top: 0.3rem;
+  padding-top: 0.28rem;
+  border-top: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 70%, transparent);
+  font-size: 0.72rem;
+  color: var(--c-text-muted, var(--muted));
+}
+
+.admissions-timeline__item-next {
   color: var(--c-text-muted, var(--muted));
 }
 
@@ -1369,17 +1476,144 @@
 }
 
 .admissions-next-action {
-  border: 1px solid color-mix(in srgb, var(--c-primary, #243b6b) 16%, var(--border, var(--c-border)));
-  border-inline-start: 4px solid var(--c-primary, #243b6b);
+  border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 90%, transparent);
+  border-inline-start: 3px solid var(--c-primary, #243b6b);
   border-radius: var(--radius);
-  padding: 0.85rem 1rem;
-  background: color-mix(in srgb, var(--c-primary, #243b6b) 5%, white);
+  padding: 0.5rem 0.65rem;
+  background: color-mix(in srgb, var(--c-surface-2, #f8fafc) 55%, white);
 }
 
 .admissions-next-action--overdue {
-  border-color: color-mix(in srgb, var(--c-red, #dc2626) 30%, var(--border, var(--c-border)));
+  border-color: color-mix(in srgb, var(--c-red, #dc2626) 18%, var(--border, var(--c-border)));
   border-inline-start-color: var(--c-red, #dc2626);
-  background: color-mix(in srgb, var(--c-red, #dc2626) 6%, white);
+  background: color-mix(in srgb, var(--c-red-soft, #fef2f2) 35%, white);
+}
+
+.admissions-next-action__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem 0.65rem;
+  min-width: 0;
+}
+
+.admissions-next-action__main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.55rem;
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+
+.admissions-next-action__title {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  font-weight: 650;
+  font-size: 0.84rem;
+  line-height: 1.35;
+  flex-shrink: 0;
+}
+
+.admissions-next-action__inline {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.3rem 0.45rem;
+  margin: 0;
+  min-width: 0;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.admissions-next-action__text {
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.admissions-next-action__sep {
+  color: var(--c-text-muted, var(--muted));
+  opacity: 0.7;
+}
+
+.admissions-next-action__date {
+  font-size: 0.78rem;
+  color: var(--c-text-muted, var(--muted));
+  font-variant-numeric: tabular-nums;
+}
+
+.admissions-next-action__date--overdue {
+  color: color-mix(in srgb, var(--c-red, #dc2626) 78%, var(--c-text-muted, var(--muted)));
+  font-weight: 600;
+}
+
+.admissions-next-action__empty {
+  margin: 0;
+}
+
+.admissions-next-action__actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  margin-inline-start: auto;
+}
+
+.admissions-next-action__edit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.admissions-next-action__edit-fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.45rem 0.65rem;
+  min-width: 0;
+}
+
+.admissions-next-action__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  flex: 1 1 10rem;
+  min-width: 0;
+  margin: 0;
+}
+
+.admissions-next-action__field label {
+  font-size: 0.72rem;
+  color: var(--c-text-muted, var(--muted));
+  font-weight: 500;
+}
+
+.admissions-next-action__field .input {
+  min-height: 2.1rem;
+  padding: 0.35rem 0.55rem;
+  font-size: 0.8125rem;
+}
+
+.admissions-next-action__edit-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin-inline-start: auto;
+}
+
+.admissions-next-action__badge {
+  margin-inline-start: 0;
+  font-size: 0.62rem;
+  padding: 0.1rem 0.4rem;
+  font-weight: 600;
+  line-height: 1.3;
 }
 
 .admissions-admission-prefill-banner {
@@ -1619,8 +1853,10 @@
   color: var(--primary, var(--c-primary));
 }
 
-.admissions-next-action__badge {
-  margin-inline-start: 0.5rem;
+@media (max-width: 1024px) {
+  .admissions-detail-header-card__facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 768px) {
@@ -1636,32 +1872,31 @@
     grid-template-columns: 1fr;
   }
 
-  .admissions-overview-card__dl {
-    grid-template-columns: 1fr;
-    gap: 0.15rem 0;
+  .admissions-overview-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.1rem;
+    padding-block: 0.28rem;
   }
 
-  .admissions-overview-card__dl dt {
-    font-size: 0.68rem;
+  .admissions-overview-row__label {
+    max-width: none;
+    font-size: 0.7rem;
     font-weight: 600;
-    color: var(--c-text-muted, var(--muted));
-    margin-top: 0.4rem;
   }
 
-  .admissions-overview-card__dl dt:first-child {
-    margin-top: 0;
+  .admissions-overview-row__label::after {
+    content: none;
   }
 
-  .admissions-overview-card__dl dd {
-    font-size: 0.875rem;
+  .admissions-overview-row__value {
+    flex: none;
+    font-size: 0.8125rem;
     line-height: 1.4;
-    padding-bottom: 0.35rem;
-    border-bottom: 1px solid color-mix(in srgb, var(--border, #e2e8f0) 55%, transparent);
   }
 
-  .admissions-overview-card__dl dd:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
+  .admissions-overview-card__dl {
+    gap: 0;
   }
 
   /* ── Detail page — mobile layout ── */
@@ -1754,11 +1989,14 @@
     position: sticky;
     top: 0;
     z-index: 4;
-    background: var(--c-surface, #fff);
-    padding-block: 0.15rem 0;
+    background: color-mix(in srgb, var(--c-primary, #243b6b) 7%, var(--surface-2, #eef2f8));
+    padding-block: 0.3rem;
     margin-inline: -0.05rem;
-    gap: 0.15rem;
+    gap: 0.18rem;
     scrollbar-width: none;
+    box-shadow:
+      0 1px 0 color-mix(in srgb, white 55%, transparent) inset,
+      0 4px 14px color-mix(in srgb, var(--c-text, #0f172a) 8%, transparent);
   }
 
   .admissions-detail-shell .admissions-tabs::-webkit-scrollbar {
@@ -1768,8 +2006,8 @@
   .admissions-detail-shell .admissions-tabs a,
   .admissions-detail-shell .admissions-tabs button {
     flex: 0 0 auto;
-    padding: 0.45rem 0.65rem;
-    font-size: 0.78rem;
+    padding: 0.45rem 0.7rem;
+    font-size: 0.8rem;
     min-height: 36px;
   }
 
@@ -1791,7 +2029,29 @@
   }
 
   .admissions-next-action {
-    padding: 0.65rem 0.7rem;
+    padding: 0.55rem 0.6rem;
+  }
+
+  .admissions-next-action__row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admissions-next-action__actions,
+  .admissions-next-action__edit-actions {
+    width: 100%;
+    margin-inline-start: 0;
+    justify-content: flex-start;
+  }
+
+  .admissions-next-action__edit-fields {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admissions-next-action__field {
+    flex: none;
+    width: 100%;
   }
 
   .admissions-section__title {
