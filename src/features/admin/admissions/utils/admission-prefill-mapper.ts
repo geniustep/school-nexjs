@@ -158,8 +158,7 @@ export function mapAdmissionPrefillToStudentProfile(
     emergencyPhone: str(guardian.phone),
     emergencyRelationship: str(guardian.relationship) || str(guardian.guardian_relationship),
     emergencyNotes: guardianNotes,
-    mobile: str(guardian.phone),
-    email: str(guardian.email),
+    guardianEmail: str(guardian.email),
   };
 }
 

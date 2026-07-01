@@ -717,61 +717,89 @@ export function EnrollmentIntakeGuardianFields({
   values,
   onPatch,
   guardian,
+  embedded = false,
+  lockProfileFields = false,
+  profileReadOnly = false,
 }: {
   values: EnrollmentIntakeValues;
   onPatch: (patch: EnrollmentIntakePatch) => void;
   guardian: EnrollmentIntakeGuardianOptions;
+  embedded?: boolean;
+  /** Disables name/phone/email until an existing guardian is selected. */
+  lockProfileFields?: boolean;
+  /** Read-only name/phone/email after linking an existing guardian. */
+  profileReadOnly?: boolean;
 }) {
   const t = useT();
+  const profileDisabled = lockProfileFields || profileReadOnly;
+  const fields = (
+    <>
+      <CreateField label={t('admin.admissions.fields.guardianName')}>
+        <input
+          className="input"
+          value={values.guardianName}
+          onChange={(e) => onPatch({ guardianName: e.target.value })}
+          disabled={lockProfileFields}
+          readOnly={profileReadOnly}
+          aria-disabled={profileDisabled || undefined}
+        />
+      </CreateField>
+      <CreateField label={t('admin.admissions.fields.guardianPhone')}>
+        <input
+          className="input"
+          dir="ltr"
+          value={values.guardianPhone}
+          onChange={(e) => onPatch({ guardianPhone: e.target.value })}
+          disabled={lockProfileFields}
+          readOnly={profileReadOnly}
+          aria-disabled={profileDisabled || undefined}
+        />
+      </CreateField>
+      <CreateField label={t('admin.admissions.fields.relationship')}>
+        {guardian.relationshipLoadFailed ? (
+          <p className="student-create-field__hint">{t('admin.admissions.create.relationshipLoadError')}</p>
+        ) : (
+          <select
+            className="input"
+            value={values.guardianRelationship}
+            onChange={(e) => onPatch({ guardianRelationship: e.target.value })}
+            disabled={lockProfileFields || guardian.relationshipsLoading}
+          >
+            <option value="">{t('admin.admissions.create.selectRelationship')}</option>
+            {guardian.relationships.map((rel) => {
+              const value = String(rel.value ?? rel.id ?? '');
+              return (
+                <option key={value} value={value}>
+                  {rel.label}
+                </option>
+              );
+            })}
+          </select>
+        )}
+      </CreateField>
+      <CreateField label={t('admin.admissions.fields.guardianEmail')} error={undefined}>
+        <input
+          className="input"
+          type="email"
+          dir="ltr"
+          value={values.guardianEmail}
+          onChange={(e) => onPatch({ guardianEmail: e.target.value })}
+          disabled={lockProfileFields}
+          readOnly={profileReadOnly}
+          aria-disabled={profileDisabled || undefined}
+        />
+      </CreateField>
+    </>
+  );
+
+  if (embedded) {
+    return <div className="student-create-form__grid">{fields}</div>;
+  }
+
   return (
     <div className="student-create-form__grid">
       <CreateFieldGroup title={t('admin.enrollmentIntake.groups.guardian')} icon="◉">
-        <CreateField label={t('admin.admissions.fields.guardianName')}>
-          <input
-            className="input"
-            value={values.guardianName}
-            onChange={(e) => onPatch({ guardianName: e.target.value })}
-          />
-        </CreateField>
-        <CreateField label={t('admin.admissions.fields.guardianPhone')}>
-          <input
-            className="input"
-            dir="ltr"
-            value={values.guardianPhone}
-            onChange={(e) => onPatch({ guardianPhone: e.target.value })}
-          />
-        </CreateField>
-        <CreateField label={t('admin.admissions.fields.relationship')}>
-          {guardian.relationshipLoadFailed ? (
-            <p className="student-create-field__hint">{t('admin.admissions.create.relationshipLoadError')}</p>
-          ) : (
-            <select
-              className="input"
-              value={values.guardianRelationship}
-              onChange={(e) => onPatch({ guardianRelationship: e.target.value })}
-              disabled={guardian.relationshipsLoading}
-            >
-              <option value="">{t('admin.admissions.create.selectRelationship')}</option>
-              {guardian.relationships.map((rel) => {
-                const value = String(rel.value ?? rel.id ?? '');
-                return (
-                  <option key={value} value={value}>
-                    {rel.label}
-                  </option>
-                );
-              })}
-            </select>
-          )}
-        </CreateField>
-        <CreateField label={t('admin.admissions.fields.guardianEmail')} error={undefined}>
-          <input
-            className="input"
-            type="email"
-            dir="ltr"
-            value={values.guardianEmail}
-            onChange={(e) => onPatch({ guardianEmail: e.target.value })}
-          />
-        </CreateField>
+        {fields}
       </CreateFieldGroup>
     </div>
   );

@@ -16,10 +16,8 @@ import {
   EnrollmentIntakeAcademicFields,
   EnrollmentIntakeAdmissionExtrasFields,
   EnrollmentIntakeFollowUpFields,
-  EnrollmentIntakeGuardianFields,
   EnrollmentIntakeIdentityFields,
   EnrollmentIntakeRegistrationFields,
-  EnrollmentIntakeSiblingsFields,
 } from '@/features/admin/enrollment-intake/enrollment-intake-fields';
 import {
   intakeErrorsFromStudentProfile,
@@ -83,6 +81,8 @@ import { StudentCreatePageHeader } from './student-create-page-header';
 import { StudentCreateStepper } from './student-create-stepper';
 import { StudentCreateStyledSection } from './student-create-section-header';
 import { StudentCreateBillingStep } from './student-create-billing-step';
+import { linkExistingPersonAsGuardian } from '../utils/guardian-link-person';
+import type { PersonSearchResult, RelationshipType } from '@/types/student-360';
 import { StudentCreateFeePlanSection } from './student-create-fee-plan-section';
 import { StudentCreateReviewSection } from './student-create-review-section';
 import type {
@@ -151,6 +151,8 @@ export function StudentCreateForm({
   );
   const [billingState, setBillingState] = useState<StudentCreateBillingFormState>({
     billingPartnerType: 'guardian',
+    guardianSourceMode: 'new',
+    linkedGuardianPartnerId: null,
   });
   const [financeState, setFinanceState] = useState<StudentCreateFinanceFormState>(
     defaultStudentCreateFinanceFormState(null),
@@ -169,6 +171,7 @@ export function StudentCreateForm({
   const lastSuggestFingerprintRef = useRef('');
   const lastFeePlanIdRef = useRef<number | null>(null);
   const admissionPrefillHadClassRef = useRef(Boolean(initialProfilePatch?.classId?.trim()));
+  const skipGuardianLinkClearRef = useRef(false);
 
   useEffect(() => {
     if (optionsState.loading) return;
@@ -184,6 +187,10 @@ export function StudentCreateForm({
 
     if (!merged.admissionDate.trim()) {
       merged = { ...merged, admissionDate: todayIsoDate() };
+    }
+
+    if (!merged.emergencyRelationship.trim()) {
+      merged = { ...merged, emergencyRelationship: 'father' };
     }
 
     if (merged.levelId && !merged.cycleId && options?.levels?.length) {
@@ -376,6 +383,20 @@ export function StudentCreateForm({
       (admissionOptionsState.options != null &&
         admissionOptionsState.options.relationships.length === 0));
 
+  function finishGuardianLinkState(intakePatch: EnrollmentIntakePatch) {
+    const touchesGuardianContact =
+      intakePatch.guardianName != null ||
+      intakePatch.guardianPhone != null ||
+      intakePatch.guardianEmail != null;
+
+    if (touchesGuardianContact && !skipGuardianLinkClearRef.current) {
+      setBillingState((prev) =>
+        prev.linkedGuardianPartnerId != null ? { ...prev, linkedGuardianPartnerId: null } : prev,
+      );
+    }
+    skipGuardianLinkClearRef.current = false;
+  }
+
   function handleIntakePatch(intakePatch: EnrollmentIntakePatch) {
     if (intakePatch.cycleId != null && intakePatch.cycleId !== state.cycleId) {
       handleCycleChange(intakePatch.cycleId);
@@ -383,6 +404,7 @@ export function StudentCreateForm({
       const { cycleId: _cycleId, levelId: _levelId, streamId: _streamId, classId: _classId, ...rest } =
         profilePatch;
       if (Object.keys(rest).length > 0) patch(rest);
+      finishGuardianLinkState(intakePatch);
       return;
     }
 
@@ -398,6 +420,7 @@ export function StudentCreateForm({
         ...rest
       } = profilePatch;
       if (Object.keys(rest).length > 0) patch(rest);
+      finishGuardianLinkState(intakePatch);
       return;
     }
 
@@ -406,10 +429,57 @@ export function StudentCreateForm({
       const profilePatch = patchStudentProfileFromIntake(intakePatch);
       const { levelId: _levelId, streamId: _streamId, classId: _classId, ...rest } = profilePatch;
       if (Object.keys(rest).length > 0) patch(rest);
+      finishGuardianLinkState(intakePatch);
       return;
     }
 
     patch(patchStudentProfileFromIntake(intakePatch));
+    finishGuardianLinkState(intakePatch);
+  }
+
+  function clearGuardianIntakeFields() {
+    skipGuardianLinkClearRef.current = true;
+    patch(
+      patchStudentProfileFromIntake({
+        guardianName: '',
+        guardianPhone: '',
+        guardianEmail: '',
+      }),
+    );
+    skipGuardianLinkClearRef.current = false;
+  }
+
+  function handleLinkExistingGuardian(person: PersonSearchResult) {
+    skipGuardianLinkClearRef.current = true;
+    setBillingState((prev) => ({
+      ...prev,
+      guardianSourceMode: 'existing',
+      linkedGuardianPartnerId: person.partner_id,
+    }));
+    patch(
+      patchStudentProfileFromIntake({
+        guardianName: person.name,
+        guardianPhone: person.phone ?? '',
+        guardianEmail: person.email ?? '',
+      }),
+    );
+    skipGuardianLinkClearRef.current = false;
+  }
+
+  function handleClearLinkedGuardian() {
+    setBillingState((prev) => ({ ...prev, linkedGuardianPartnerId: null }));
+    clearGuardianIntakeFields();
+  }
+
+  function handleGuardianSourceModeChange(mode: StudentCreateBillingFormState['guardianSourceMode']) {
+    if (mode === 'existing') {
+      clearGuardianIntakeFields();
+    }
+    setBillingState((prev) => ({
+      ...prev,
+      guardianSourceMode: mode,
+      linkedGuardianPartnerId: null,
+    }));
   }
 
   const financeBlocked =
@@ -863,6 +933,7 @@ export function StudentCreateForm({
       {
         schoolId: resolvedSchoolId,
         classes: options?.classes ?? [],
+        deferGuardianContact: true,
       },
     );
 
@@ -877,7 +948,6 @@ export function StudentCreateForm({
       return;
     }
     const res = await api.post(endpoints.admin.students, payload);
-    setSaving(false);
 
     if (res.success && res.data) {
       const data =
@@ -885,6 +955,27 @@ export function StudentCreateForm({
           ? (res.data as Record<string, unknown>)
           : null;
       const id = data && 'id' in data ? Number(data.id) : 0;
+
+      if (
+        id > 0 &&
+        billingState.guardianSourceMode === 'existing' &&
+        billingState.linkedGuardianPartnerId != null
+      ) {
+        const relationshipType = (state.emergencyRelationship.trim() || 'father') as RelationshipType;
+        const linkRes = await linkExistingPersonAsGuardian(id, {
+          partner_id: billingState.linkedGuardianPartnerId,
+          relationship_type: relationshipType,
+          is_primary_contact: true,
+          is_emergency_contact: true,
+          is_financial_responsible: billingState.billingPartnerType === 'guardian',
+          receives_notifications: true,
+        });
+        if (!linkRes.success) {
+          toast.error(t('admin.student360.create.billing.guardianLinkFailed'));
+        }
+      }
+
+      setSaving(false);
       const agreementState = resolveStudentCreateAgreementState(
         data as { id?: number; agreement_state?: string; finance?: { agreement_state?: string } },
       );
@@ -903,6 +994,8 @@ export function StudentCreateForm({
       });
       return;
     }
+
+    setSaving(false);
 
     if (!res.success) {
       const mapped = mapStudentApiError(res.error, t);
@@ -984,7 +1077,21 @@ export function StudentCreateForm({
       ) : null}
 
       {step === 'billing' ? (
-        <StudentCreateBillingStep state={billingState} onChange={(patch) => setBillingState((prev) => ({ ...prev, ...patch }))} />
+        <StudentCreateBillingStep
+          billingState={billingState}
+          onBillingChange={(patch) => setBillingState((prev) => ({ ...prev, ...patch }))}
+          intakeValues={intakeValues}
+          intakeErrors={intakeFieldErrors}
+          onIntakePatch={handleIntakePatch}
+          onLinkExistingGuardian={handleLinkExistingGuardian}
+          onClearLinkedGuardian={handleClearLinkedGuardian}
+          onGuardianSourceModeChange={handleGuardianSourceModeChange}
+          guardian={{
+            relationships: admissionOptionsState.options?.relationships ?? [],
+            relationshipsLoading: admissionOptionsState.loading,
+            relationshipLoadFailed,
+          }}
+        />
       ) : null}
 
       {step === 'enrollment' ? (
@@ -1008,11 +1115,6 @@ export function StudentCreateForm({
               {t('admin.student360.create.errors.classOptionalWithoutFinanceHint')}
             </p>
           ) : null}
-          <EnrollmentIntakeSiblingsFields
-            values={intakeValues}
-            onPatch={handleIntakePatch}
-            errors={intakeFieldErrors}
-          />
           <EnrollmentIntakeAcademicFields
             values={intakeValues}
             errors={intakeErrorsFromStudentProfile(fieldErrors)}
@@ -1053,15 +1155,6 @@ export function StudentCreateForm({
             onPatch={handleIntakePatch}
             registrationTypes={options?.registrationTypes ?? []}
             optionsLoading={optionsState.loading}
-          />
-          <EnrollmentIntakeGuardianFields
-            values={intakeValues}
-            onPatch={handleIntakePatch}
-            guardian={{
-              relationships: admissionOptionsState.options?.relationships ?? [],
-              relationshipsLoading: admissionOptionsState.loading,
-              relationshipLoadFailed,
-            }}
           />
           <EnrollmentIntakeFollowUpFields
             values={intakeValues}

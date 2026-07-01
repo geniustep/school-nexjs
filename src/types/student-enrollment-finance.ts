@@ -271,8 +271,12 @@ export interface StudentCreateFinanceFormState {
   oneTimeLines: Record<string, EnrollmentFinanceOneTimeLineFormState>;
 }
 
+export type StudentCreateGuardianSourceMode = 'new' | 'existing';
+
 export interface StudentCreateBillingFormState {
   billingPartnerType: StudentCreateBillingPartnerType;
+  guardianSourceMode: StudentCreateGuardianSourceMode;
+  linkedGuardianPartnerId: number | null;
 }
 
 export interface EnrollmentPlanPreviewQuery {

@@ -18,7 +18,7 @@ import { buildStudentCreateFinancePayload } from './student-enrollment-finance';
 import { buildSiblingLinesPayload, normalizeSiblingLines, siblingLinesFingerprint, validateSiblingLinesLinkedStudents } from '@/features/admin/admissions/utils/sibling-lines';
 import { normalizeMassarCodeInput, isValidMassarCodeNormalized } from './massar-code';
 
-export const DEPARTURE_STATUSES = new Set(['withdrawn', 'transferred']);
+export const DEPARTURE_STATUSES = new Set(['withdrawn', 'transferred', 'expelled']);
 
 export interface StudentProfileFormState {
   firstName: string;
@@ -71,6 +71,9 @@ export interface StudentProfileFormState {
   emergencyPhone: string;
   emergencyPhoneAlt: string;
   emergencyNotes: string;
+  guardianEmail: string;
+  notes: string;
+  active: boolean;
 }
 
 export interface StudentProfileFieldErrors {
@@ -253,10 +256,13 @@ export function defaultStudentProfileFormState(options: StudentOptions | null): 
     city: '',
     zip: '',
     emergencyContactName: '',
-    emergencyRelationship: '',
+    emergencyRelationship: 'father',
     emergencyPhone: '',
     emergencyPhoneAlt: '',
     emergencyNotes: '',
+    guardianEmail: '',
+    notes: '',
+    active: true,
   };
 }
 
@@ -318,6 +324,8 @@ export function studentProfileFormStateFromStudent(
     emergencyPhone: student.emergency_phone ?? '',
     emergencyPhoneAlt: student.emergency_phone_alt ?? '',
     emergencyNotes: student.emergency_notes ?? '',
+    notes: student.notes ?? '',
+    active: student.active !== false,
   };
 }
 
@@ -494,6 +502,8 @@ export function validateStudentCreateForm(
 export type StudentCreatePayloadScope = {
   schoolId?: number | null;
   classes?: StudentClassOption[];
+  /** Wizard stores guardian contact in emergency* fields but links/creates guardian separately. */
+  deferGuardianContact?: boolean;
 };
 
 export function validateStudentCreateEnrollmentClass(
@@ -607,6 +617,9 @@ function applyIdentityFields(
     const reason = trim(state.departureReason);
     if (reason) payload.departure_reason = reason;
   }
+  payload.active = state.active;
+  const notes = optionalString(state.notes);
+  if (notes) payload.notes = notes;
 }
 
 function applyContactFields(payload: StudentCreatePayload, state: StudentProfileFormState): void {
@@ -695,7 +708,9 @@ export function buildStudentCreatePayload(
   };
   applyIdentityFields(payload, state);
   applyContactFields(payload, state);
-  applyEmergencyFields(payload, state);
+  if (!scope?.deferGuardianContact) {
+    applyEmergencyFields(payload, state);
+  }
   applyAdmissionDataFields(payload, state);
   const scopedClassId = resolveScopedClassIdForCreate(state, scope);
   if (scopedClassId != null) payload.class_id = scopedClassId;
@@ -737,7 +752,9 @@ function enrollmentChanged(
     current.siblingsRawText !== original.siblingsRawText ||
     siblingLinesFingerprint(current.siblingLines) !== siblingLinesFingerprint(original.siblingLines) ||
     current.admissionNotes !== original.admissionNotes ||
-    current.departureReason !== original.departureReason
+    current.departureReason !== original.departureReason ||
+    current.notes !== original.notes ||
+    current.active !== original.active
   );
 }
 
@@ -802,6 +819,14 @@ export function buildStudentPartialUpdatePayload(
   if (fieldChanged(current.departureReason, original.departureReason)) {
     const v = trim(current.departureReason);
     if (v) payload.departure_reason = v;
+  }
+  if (fieldChanged(current.active, original.active)) {
+    payload.active = current.active;
+  }
+  if (fieldChanged(current.notes, original.notes)) {
+    const v = optionalString(current.notes);
+    if (v) payload.notes = v;
+    else if (trim(original.notes)) payload.notes = '';
   }
 
   const admissionStringFields: Array<

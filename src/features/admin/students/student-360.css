@@ -7492,6 +7492,208 @@
   border-top: 1px dashed var(--c-border);
 }
 
+.student-create-form__subsection--siblings {
+  margin-top: 12px;
+  padding-top: 16px;
+}
+
+.student-create-guardian-billing__link {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--c-primary) 6%, var(--c-surface-2));
+  border-inline-start: 3px solid var(--c-primary);
+  font-size: 0.8125rem;
+  color: var(--c-text-body);
+  line-height: 1.45;
+}
+
+.student-create-guardian-link {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.student-create-guardian-source {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.student-create-guardian-source__picker {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.student-create-guardian-source__legend {
+  margin: 0 0 8px;
+  padding: 0;
+  font-size: 0.75rem;
+  font-weight: 650;
+  color: var(--c-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.student-create-guardian-source__modes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.student-create-guardian-source__search {
+  --sc-grid-cols: 2;
+}
+
+.student-create-guardian-source__mode {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  background: var(--c-surface);
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.student-create-guardian-source__mode input {
+  flex-shrink: 0;
+}
+
+.student-create-guardian-source__mode-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--c-text-body);
+}
+
+.student-create-guardian-source__mode--active {
+  border-color: color-mix(in srgb, var(--c-primary) 45%, var(--c-border));
+  background: color-mix(in srgb, var(--c-primary) 6%, var(--c-surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c-primary) 18%, transparent);
+}
+
+.student-create-guardian-source__box {
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--c-border);
+  background: var(--c-surface-2);
+}
+
+.student-create-guardian-source__box-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.student-create-guardian-source__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.student-create-guardian-source__box-title {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 650;
+  color: var(--c-text);
+}
+
+.student-create-guardian-source__box-lead {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--c-text-muted);
+}
+
+.student-create-guardian-source__linked-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed color-mix(in srgb, var(--c-border) 80%, transparent);
+}
+
+.student-create-guardian-source__meta-item {
+  font-size: 0.8125rem;
+  color: var(--c-text-body);
+}
+
+.student-create-guardian-source__box--new {
+  border-color: color-mix(in srgb, var(--raqeem-secondary) 28%, var(--c-border));
+  background: color-mix(in srgb, var(--raqeem-secondary) 5%, var(--c-surface-2));
+}
+
+.student-create-guardian-source__box--new .student-create-guardian-source__badge {
+  background: color-mix(in srgb, var(--raqeem-secondary) 14%, #fff);
+  color: var(--raqeem-secondary);
+}
+
+.student-create-guardian-source__box--linked,
+.student-create-guardian-source__box--existing {
+  border-color: color-mix(in srgb, var(--c-green) 30%, var(--c-border));
+  background: color-mix(in srgb, var(--c-green) 5%, var(--c-surface-2));
+}
+
+.student-create-guardian-source__box--linked .student-create-guardian-source__badge,
+.student-create-guardian-source__box--existing .student-create-guardian-source__badge {
+  background: var(--c-green-soft);
+  color: var(--c-green);
+}
+
+.student-create-guardian-source__box--matches {
+  border-color: color-mix(in srgb, var(--c-amber) 35%, var(--c-border));
+  background: color-mix(in srgb, var(--c-amber) 6%, var(--c-surface-2));
+}
+
+.student-create-guardian-source__box--matches .student-create-guardian-source__badge {
+  background: var(--c-amber-soft);
+  color: var(--c-amber);
+}
+
+.student-create-guardian-source__box--searching,
+.student-create-guardian-source__box--idle {
+  border-color: color-mix(in srgb, var(--c-primary) 20%, var(--c-border));
+  background: color-mix(in srgb, var(--c-primary) 4%, var(--c-surface-2));
+}
+
+.student-create-guardian-source__box--searching .student-create-guardian-source__badge,
+.student-create-guardian-source__box--idle .student-create-guardian-source__badge {
+  background: color-mix(in srgb, var(--c-primary) 12%, #fff);
+  color: var(--c-primary);
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-guardian-source,
+.student-create-page:not(.admissions-create-page) .student-create-guardian-link,
+.student-create-page:not(.admissions-create-page) .guardian-duplicate-suggestions {
+  grid-column: 1 / -1;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__section--guardian .student-create-form__grid {
+  display: grid;
+  grid-template-columns: repeat(var(--sc-grid-cols), minmax(0, 1fr));
+  gap: var(--sc-field-gap) 10px;
+  grid-column: 1 / -1;
+}
+
+.student-create-form__subsection-header {
+  margin-bottom: 14px;
+}
+
 .student-create-form__subsection-title {
   margin: 0 0 14px;
   font-size: 0.875rem;
@@ -8794,7 +8996,8 @@
   color: var(--c-text-muted);
 }
 
-.student-create-page:not(.admissions-create-page) .student-create-form__section--identity .student-create-form__section-body {
+.student-create-page:not(.admissions-create-page) .student-create-form__section--identity .student-create-form__section-body,
+.student-create-page:not(.admissions-create-page) .student-create-form__section--guardian .student-create-form__section-body {
   display: grid;
   grid-template-columns: repeat(var(--sc-grid-cols), minmax(0, 1fr));
   gap: var(--sc-field-gap) 10px;
@@ -8822,7 +9025,9 @@
 .student-create-page:not(.admissions-create-page) .student-create-form__notice,
 .student-create-page:not(.admissions-create-page) .student-create-form__footnote,
 .student-create-page:not(.admissions-create-page) .enrollment-intake-siblings,
-.student-create-page:not(.admissions-create-page) .siblings-form {
+.student-create-page:not(.admissions-create-page) .siblings-form,
+.student-create-page:not(.admissions-create-page) .student-create-guardian-billing,
+.student-create-page:not(.admissions-create-page) .student-create-form__section--guardian .student-create-form__subsection {
   grid-column: 1 / -1;
 }
 

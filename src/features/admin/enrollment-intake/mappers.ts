@@ -167,7 +167,7 @@ export function intakeFromStudentProfile(state: StudentProfileFormState): Enroll
     guardianName: state.emergencyContactName,
     guardianPhone: state.emergencyPhone,
     guardianRelationship: state.emergencyRelationship,
-    guardianEmail: state.email,
+    guardianEmail: state.guardianEmail,
     sourceId: state.sourceId,
     firstContactDate: state.firstContactDate,
     nextAction: state.nextAction,
@@ -212,12 +212,9 @@ export function patchStudentProfileFromIntake(
   if (patch.isRepeating != null) next.isRepeating = patch.isRepeating;
   if (patch.registrationNotes != null) next.registrationNotes = patch.registrationNotes;
   if (patch.guardianName != null) next.emergencyContactName = patch.guardianName;
-  if (patch.guardianPhone != null) {
-    next.emergencyPhone = patch.guardianPhone;
-    next.mobile = patch.guardianPhone;
-  }
+  if (patch.guardianPhone != null) next.emergencyPhone = patch.guardianPhone;
   if (patch.guardianRelationship != null) next.emergencyRelationship = patch.guardianRelationship;
-  if (patch.guardianEmail != null) next.email = patch.guardianEmail;
+  if (patch.guardianEmail != null) next.guardianEmail = patch.guardianEmail;
   if (patch.sourceId != null) next.sourceId = patch.sourceId;
   if (patch.firstContactDate != null) next.firstContactDate = patch.firstContactDate;
   if (patch.nextAction != null) next.nextAction = patch.nextAction;
