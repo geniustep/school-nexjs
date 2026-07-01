@@ -224,12 +224,19 @@ export function impactSummaryDisplayLines(
   });
 }
 
+export function canDetachGuardianRelationship(
+  allowedActions?: GuardianAllowedActions | null,
+  canManage = true,
+): boolean {
+  if (!canManage) return false;
+  return allowedActions?.remove_relationship === true;
+}
+
 export function isRemovalBlocked(
   impact: GuardianRemovalImpact | null | undefined,
   allowedActions?: GuardianAllowedActions | null,
 ): boolean {
   if (allowedActions?.remove_relationship === false) return true;
-  if (allowedActions?.remove_guardian_relationship === false) return true;
   if (!impact) return false;
   if (impact.blocked === true) return true;
   if (impact.can_remove === false) return true;
@@ -240,8 +247,7 @@ export function canSubmitRemoval(
   impact: GuardianRemovalImpact | null | undefined,
   allowedActions?: GuardianAllowedActions | null,
 ): boolean {
+  if (!canDetachGuardianRelationship(allowedActions)) return false;
   if (isRemovalBlocked(impact, allowedActions)) return false;
-  if (allowedActions?.remove_relationship === false) return false;
-  if (allowedActions?.remove_guardian_relationship === false) return false;
   return true;
 }

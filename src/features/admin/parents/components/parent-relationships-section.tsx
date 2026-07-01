@@ -12,6 +12,7 @@ import { hasPermission } from '@/lib/permissions/permissions';
 import { statusLabel } from '@/lib/utils/labels';
 import { getStudentDisplayName } from '@/lib/utils/student';
 import { relationshipTypeLabel, isRelationshipActive } from '@/features/admin/students/utils/relationship-types';
+import { canDetachGuardianRelationship } from '@/features/admin/students/utils/guardian-removal-shared';
 import { parentChildToGuardianRelationship } from '../utils/parent-child-guardian-relationship';
 import { ParentLinkStudentDialog } from './parent-link-student-dialog';
 import type { Parent, ParentChild } from '@/types/parent';
@@ -68,7 +69,7 @@ function RelationshipRowMenu({
               onRemove();
             }}
           >
-            {t('admin.parentProfile.removeRelationship')}
+            {t('admin.parentProfile.detachRelationship')}
           </button>
         </div>
       ) : null}
@@ -113,6 +114,7 @@ export function ParentRelationshipsSection({
     hasPermission(user, 'manage_parents') &&
     parent.allowed_actions?.edit_relationship !== false &&
     parent.status !== 'archived';
+  const canManageRelationships = hasPermission(user, 'manage_parents');
 
   return (
     <section className="parent-relationships">
@@ -161,8 +163,9 @@ export function ParentRelationshipsSection({
             const active = rel ? isRelationshipActive(rel.state ?? 'active', rel.active) : true;
             const canEdit = rel?.allowed_actions?.edit_relationship !== false && active && !!guardianRel;
             const canRemove =
-              rel?.relationship_id != null &&
-              rel?.allowed_actions?.remove_relationship !== false &&
+              guardianRel != null &&
+              canManageRelationships &&
+              canDetachGuardianRelationship(rel?.allowed_actions, true) &&
               rel?.state !== 'ended';
 
             return (

@@ -17,6 +17,14 @@ export interface GuardianRemovalBlockerContext {
   suggestedActions?: Array<{ label: string; href?: string }>;
 }
 
+export function isGuardianRelationshipConfirmRequiredError(error: ApiErrorBody): boolean {
+  const code = String(error.code ?? '');
+  if (code === 'guardian_relationship_has_financial_dependencies') return true;
+  const details = error.details as Record<string, unknown> | undefined;
+  const status = typeof details?.status === 'number' ? details.status : undefined;
+  return status === 409 && code === 'guardian_relationship_has_financial_dependencies';
+}
+
 export function mapGuardianRemovalBlocker(
   error: ApiErrorBody,
   t: TranslateFn,
@@ -39,6 +47,8 @@ export function mapGuardianRemovalBlocker(
   }
 
   switch (code) {
+    case 'guardian_relationship_has_financial_dependencies':
+      return null;
     case 'guardian_removal_blocked':
     case 'financial_agreement_blocks_removal':
     case 'active_financial_agreement':
@@ -65,10 +75,26 @@ export function mapGuardianRemovalBlocker(
       };
     default: {
       const msg = error.message?.trim();
+      const lower = msg?.toLowerCase() ?? '';
+      if (
+        lower.includes('finance profile') ||
+        lower.includes('financial agreement') ||
+        lower.includes('financial responsible') ||
+        lower.includes('active finance') ||
+        lower.includes('billing profile')
+      ) {
+        return {
+          code: code || 'financial_agreement_blocks_removal',
+          message: t('admin.student360.removeGuardianFinancialBlocker'),
+          suggestedActions: suggestedActions.length
+            ? suggestedActions
+            : [{ label: t('admin.student360.editRelationship') }],
+        };
+      }
       if (
         msg &&
         !msg.includes('<') &&
-        !msg.toLowerCase().includes('traceback') &&
+        !lower.includes('traceback') &&
         (code.includes('block') || code.includes('conflict') || msg.length > 12)
       ) {
         return { code, message: msg, suggestedActions };

@@ -65,38 +65,27 @@ export async function fetchGuardianRelationshipDetail(
 
 export interface RemoveGuardianRelationshipPayload {
   confirm: boolean;
-  notes?: string;
+  reason?: string;
 }
 
+export function buildDetachRelationshipPayload(
+  confirm: boolean,
+  reason?: string,
+): RemoveGuardianRelationshipPayload {
+  const trimmed = reason?.trim();
+  return {
+    confirm,
+    reason: trimmed || undefined,
+  };
+}
+
+/** POST /api/v1/admin/students/{student_id}/guardians/{relationship_id}/remove */
 export async function removeGuardianRelationship(
   studentId: number,
   relationshipId: number,
   payload: RemoveGuardianRelationshipPayload,
 ) {
-  const removeRes = await api.post(
-    endpoints.admin.studentGuardianRemove(studentId, relationshipId),
-    payload,
-  );
-  if (removeRes.success) return removeRes;
-
-  const code = String(removeRes.error?.code ?? '');
-  const status = removeRes.error?.details && typeof removeRes.error.details === 'object'
-    ? (removeRes.error.details as Record<string, unknown>).status
-    : undefined;
-
-  const isConfirmed404 = code === 'not_found' || status === 404;
-  if (isConfirmed404) {
-    if (process.env.NODE_ENV === 'development') {
-      console.warn(
-        `[guardian-remove] POST /remove returned 404 for student=${studentId} relationship=${relationshipId}; falling back to /end`,
-      );
-    }
-    return api.post(endpoints.admin.studentGuardianEnd(studentId, relationshipId), {
-      notes: payload.notes,
-    });
-  }
-
-  return removeRes;
+  return api.post(endpoints.admin.studentGuardianRemove(studentId, relationshipId), payload);
 }
 
 /** @deprecated Use fetchGuardianRelationshipDetail */

@@ -284,7 +284,7 @@ export function GuardianRelationshipCard({
                         onRemove();
                       }}
                     >
-                      {t('admin.student360.removeGuardianFromStudent')}
+                      {t('admin.student360.detachRelationship')}
                     </button>
                   ) : null}
                 </div>
