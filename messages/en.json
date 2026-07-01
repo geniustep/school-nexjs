@@ -3953,6 +3953,7 @@
       },
       "guardianAfterCreateHint": "After saving the student, add guardians from the Guardians tab.",
       "create": {
+        "pageTitleNamed": "Adding pupil {name}",
         "pageDesc": "Enter pupil details, academic enrollment, and the suggested fee plan before final save.",
         "identityStepLead": "All identity fields are shown — complete what applies to this pupil.",
         "enrollmentStepLead": "Choose the year, cycle, level, and class, then complete admission and guardian details.",

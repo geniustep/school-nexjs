@@ -3,6 +3,7 @@ import {
   buildStudentCreatePayload,
   buildStudentPartialUpdatePayload,
   buildFullNamePreview,
+  buildStudentCreatePageTitleParts,
   canAttachFinanceToStudentCreatePayload,
   defaultStudentProfileFormState,
   hasStudentCreateIdentifier,
@@ -538,6 +539,35 @@ describe('validateStudentCreateForm', () => {
 describe('buildFullNamePreview', () => {
   it('joins trimmed parts', () => {
     expect(buildFullNamePreview(' محمد ', ' العلوي ')).toBe('محمد العلوي');
+  });
+});
+
+describe('buildStudentCreatePageTitleParts', () => {
+  it('shows latin only when different from arabic', () => {
+    expect(
+      buildStudentCreatePageTitleParts({
+        firstName: 'محمد',
+        lastName: 'كمال',
+        firstNameLatin: 'mohamed',
+        lastNameLatin: 'kamel',
+      }),
+    ).toEqual({
+      hasName: true,
+      ar: 'محمد كمال',
+      latin: 'mohamed kamel',
+      showLatin: true,
+    });
+  });
+
+  it('hides duplicate latin spelling', () => {
+    expect(
+      buildStudentCreatePageTitleParts({
+        firstName: 'QA',
+        lastName: 'Test Child',
+        firstNameLatin: 'QA',
+        lastNameLatin: 'Test Child',
+      }).showLatin,
+    ).toBe(false);
   });
 });
 

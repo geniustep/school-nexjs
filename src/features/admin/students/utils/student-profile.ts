@@ -114,6 +114,19 @@ export function buildFullNamePreview(firstName: string, lastName: string): strin
   return [trim(firstName), trim(lastName)].filter(Boolean).join(' ');
 }
 
+export function buildStudentCreatePageTitleParts(
+  state: Pick<
+    StudentProfileFormState,
+    'firstName' | 'lastName' | 'firstNameLatin' | 'lastNameLatin'
+  >,
+): { hasName: boolean; ar: string; latin: string; showLatin: boolean } {
+  const ar = buildFullNamePreview(state.firstName, state.lastName);
+  const latin = buildFullNamePreview(state.firstNameLatin, state.lastNameLatin);
+  const hasName = Boolean(ar || latin);
+  const showLatin = Boolean(latin && latin.toLocaleLowerCase() !== ar.toLocaleLowerCase());
+  return { hasName, ar, latin, showLatin };
+}
+
 function optionalString(value: string): string | undefined {
   const v = trim(value);
   return v || undefined;

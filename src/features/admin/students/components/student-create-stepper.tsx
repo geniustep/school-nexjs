@@ -25,45 +25,48 @@ export function StudentCreateStepper({ activeStep }: { activeStep: StudentCreate
     STEP_ORDER.length > 1 ? (activeIndex / (STEP_ORDER.length - 1)) * 100 : 0;
 
   return (
-    <div className="student-create-stepper-wrap">
+    <nav
+      className="student-create-steps"
+      aria-label={t('admin.student360.create.stepperAria')}
+    >
       <div
-        className="student-create-stepper__track"
+        className="student-create-steps__progress"
         role="progressbar"
         aria-valuenow={activeIndex + 1}
         aria-valuemin={1}
         aria-valuemax={STEP_ORDER.length}
-        aria-label={t('admin.student360.create.stepperAria')}
       >
         <div
-          className="student-create-stepper__track-fill"
+          className="student-create-steps__progress-fill"
           style={{ width: `${progress}%` }}
         />
       </div>
-      <ol className="student-create-stepper" aria-label={t('admin.student360.create.stepperAria')}>
+      <ol className="student-create-steps__list">
         {STEP_ORDER.map((step, index) => {
           const active = step === activeStep;
           const done = index < activeIndex;
           return (
             <li
               key={step}
-              className="student-create-stepper__item"
+              className="student-create-steps__item"
               data-active={active || undefined}
               data-done={done || undefined}
+              aria-current={active ? 'step' : undefined}
             >
-              <span className="student-create-stepper__badge" aria-hidden="true">
+              <span className="student-create-steps__index" aria-hidden="true">
                 {done ? (
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                 ) : (
                   index + 1
                 )}
               </span>
-              <span className="student-create-stepper__label">{labels[step]}</span>
+              <span className="student-create-steps__label">{labels[step]}</span>
             </li>
           );
         })}
       </ol>
-    </div>
+    </nav>
   );
 }

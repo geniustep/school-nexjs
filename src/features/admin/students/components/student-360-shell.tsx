@@ -401,10 +401,6 @@ export function Student360CreatePage() {
           ‹ {t('admin.finance.hub.backToPrevious')}
         </Link>
       ) : null}
-      <header className="student-create-page__header">
-        <h1 className="student-create-page__title">{t('admin.addStudent')}</h1>
-        <p className="student-create-page__desc">{t('admin.student360.create.pageDesc')}</p>
-      </header>
       <StudentCreateForm
         initialProfilePatch={prefillPatch}
         admissionBanner={admissionBanner}

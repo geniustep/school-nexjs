@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '@/lib/api/client';
 import { useToast } from '@/components/ui/toast';
-import { InfoBanner } from '@/components/ui/primitives';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
 import type { AdmissionRegistrationContext } from '@/features/admin/admissions/utils/admission-prefill-mapper';
@@ -28,10 +27,6 @@ import {
   patchStudentProfileFromIntake,
 } from '@/features/admin/enrollment-intake/mappers';
 import type { EnrollmentIntakePatch } from '@/features/admin/enrollment-intake/types';
-import {
-  formatPrefillFieldValue,
-  formatPrefillMessage,
-} from '@/features/admin/admissions/utils/admission-prefill-display';
 import { endpoints } from '@/lib/api/endpoints';
 import { useLevelOptions } from '@/features/admin/academic-setup/hooks/use-level-options';
 import { useStudentOptions } from '../hooks/use-student-options';
@@ -56,6 +51,7 @@ import {
   defaultStudentProfileFormState,
   getStudentCreateFinanceBlockReason,
   localizeStudentGenderOptions,
+  resolveDefaultNationalityId,
   validateStudentCreateEnrollmentClass,
   validateStudentCreateForm,
   validateStudentCreateIdentityStep,
@@ -81,6 +77,8 @@ import {
   resolveStudentCreateIdentifierCheckErrors,
   validateStudentCreateIdentifierDuplicateChecks,
 } from '../utils/student-identifier-check';
+import { StudentCreatePrefillBanner } from './student-create-prefill-banner';
+import { StudentCreatePageHeader } from './student-create-page-header';
 import { StudentCreateStepper } from './student-create-stepper';
 import { StudentCreateStyledSection } from './student-create-section-header';
 import { StudentCreateBillingStep } from './student-create-billing-step';
@@ -177,6 +175,11 @@ export function StudentCreateForm({
     let merged: StudentProfileFormState = initialProfilePatch
       ? { ...base, ...initialProfilePatch }
       : base;
+
+    const defaultNationalityId = resolveDefaultNationalityId(options?.nationalities);
+    if (!merged.nationalityId.trim() && defaultNationalityId) {
+      merged = { ...merged, nationalityId: defaultNationalityId };
+    }
 
     if (merged.levelId && !merged.cycleId && options?.levels?.length) {
       const level = options.levels.find((item) => String(item.id) === merged.levelId);
@@ -944,52 +947,10 @@ export function StudentCreateForm({
     identifierChecksState.identifierChecksBlockProgress;
 
   return (
-    <form ref={formRef} className="student-create-form" onSubmit={(e) => e.preventDefault()}>
-      {admissionBanner ? (
-        <div className="admissions-admission-prefill-banner">
-          <InfoBanner
-            tone="blue"
-            title={t('admin.admissions.registration.prefillBannerTitle', {
-              reference: admissionBanner.reference,
-            })}
-            description={t('admin.admissions.registration.prefillBannerDescription')}
-          />
-          <dl className="admissions-dl admissions-dl--compact">
-            {admissionBanner.decision ? (
-              <>
-                <dt>{t('admin.admissions.registration.prefillDecision')}</dt>
-                <dd>{formatPrefillFieldValue('decision', admissionBanner.decision, t)}</dd>
-              </>
-            ) : null}
-            {admissionBanner.offerState ? (
-              <>
-                <dt>{t('admin.admissions.registration.prefillOfferState')}</dt>
-                <dd>{formatPrefillFieldValue('offer_state', admissionBanner.offerState, t)}</dd>
-              </>
-            ) : null}
-          </dl>
-          {(admissionBanner.warnings?.length ?? 0) > 0 ? (
-            <div className="alert alert--warning">
-              <strong>{t('admin.admissions.prefill.warnings')}</strong>
-              <ul>
-                {admissionBanner.warnings!.map((item, index) => (
-                  <li key={index}>{formatPrefillMessage(item, t)}</li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-          {(admissionBanner.blockingIssues?.length ?? 0) > 0 ? (
-            <div className="alert alert--error">
-              <strong>{t('admin.admissions.prefill.blockingIssues')}</strong>
-              <ul>
-                {admissionBanner.blockingIssues!.map((item, index) => (
-                  <li key={index}>{formatPrefillMessage(item, t)}</li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-        </div>
-      ) : null}
+    <>
+      <StudentCreatePageHeader state={state} />
+      <form ref={formRef} className="student-create-form" onSubmit={(e) => e.preventDefault()}>
+      {admissionBanner ? <StudentCreatePrefillBanner banner={admissionBanner} /> : null}
       <StudentCreateStepper activeStep={step} />
 
       {step === 'identity' ? (
@@ -1007,8 +968,13 @@ export function StudentCreateForm({
             optionsLoading={optionsState.loading}
             genders={localizedGenders}
             nationalities={options?.nationalities ?? []}
+            variant="studentCreate"
           />
-          <EnrollmentIntakeAdmissionExtrasFields values={intakeValues} onPatch={handleIntakePatch} />
+          <EnrollmentIntakeAdmissionExtrasFields
+            values={intakeValues}
+            onPatch={handleIntakePatch}
+            variant="studentCreate"
+          />
         </StudentCreateStyledSection>
       ) : null}
 
@@ -1264,5 +1230,6 @@ export function StudentCreateForm({
         </button>
       </div>
     </form>
+    </>
   );
 }

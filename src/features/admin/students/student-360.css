@@ -8399,6 +8399,766 @@
   text-align: right;
 }
 
+/* ── Student registration (students/new) — compact workspace ── */
+.student-create-page:not(.admissions-create-page) {
+  --sc-page-gap: 10px;
+  --sc-panel-pad: 14px;
+  --sc-field-gap: 8px;
+  --sc-grid-cols: 4;
+  max-width: min(1200px, 100%);
+  margin-inline: auto;
+  padding-bottom: 0.75rem;
+}
+
+.student-create-page:not(.admissions-create-page) .student-360-breadcrumb {
+  display: none;
+}
+
+.student-create-page:not(.admissions-create-page) > .back-link {
+  display: inline-flex;
+  align-items: center;
+  margin-block: 0 6px;
+  font-size: 0.8125rem;
+  opacity: 0.85;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-page__header {
+  display: block;
+  margin: 0 0 0;
+  padding: 10px 14px;
+  border: 1px solid var(--c-border);
+  border-block-end: none;
+  border-radius: var(--radius) var(--radius) 0 0;
+  background: var(--c-surface);
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-page__header::before {
+  display: none;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-page__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-page__title::after {
+  display: none;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-page__title-latin {
+  font-weight: 500;
+  color: var(--c-text-muted);
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-page__desc {
+  display: none;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form {
+  gap: 0;
+  border: 1px solid var(--c-border);
+  border-block-start: none;
+  border-radius: 0 0 var(--radius) var(--radius);
+  background: var(--c-surface);
+  box-shadow: var(--shadow-sm);
+  overflow: clip;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-prefill {
+  padding: 10px 14px;
+  border-block-end: 1px solid var(--c-border);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--c-primary) 5%, var(--c-surface)) 0%,
+    var(--c-surface) 100%
+  );
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-prefill__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-prefill__lead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  min-width: 0;
+  flex: 1 1 12rem;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-prefill__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--c-primary) 18%, var(--c-border));
+  background: var(--c-primary-soft);
+  color: var(--c-primary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.6875rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-prefill__note {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: var(--c-text-muted);
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-prefill__status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-prefill__status-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--c-border);
+  background: var(--c-surface);
+  font-size: 0.6875rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-prefill__status-item--success {
+  border-color: color-mix(in srgb, var(--c-green) 28%, var(--c-border));
+  background: color-mix(in srgb, var(--c-green) 8%, var(--c-surface));
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-prefill__status-label {
+  color: var(--c-text-muted);
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-prefill__status-value {
+  font-weight: 650;
+  color: var(--c-text);
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-prefill__status-item--success .student-create-prefill__status-value {
+  color: var(--c-green);
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-prefill__flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-prefill__flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.6875rem;
+  line-height: 1.35;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-prefill__flag-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 0.875rem;
+  height: 0.875rem;
+  border-radius: 999px;
+  font-size: 0.5625rem;
+  font-weight: 800;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-prefill__flag--warn {
+  background: var(--c-amber-soft);
+  color: #92400e;
+  border: 1px solid color-mix(in srgb, var(--c-amber) 28%, transparent);
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-prefill__flag--warn .student-create-prefill__flag-icon {
+  background: color-mix(in srgb, var(--c-amber) 22%, #fff);
+  color: #b45309;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-prefill__flag--block {
+  background: var(--c-red-soft);
+  color: var(--c-red);
+  border: 1px solid color-mix(in srgb, var(--c-red) 22%, transparent);
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-prefill__flag--block .student-create-prefill__flag-icon {
+  background: color-mix(in srgb, var(--c-red) 18%, #fff);
+  color: var(--c-red);
+}
+
+@media (min-width: 768px) {
+  .student-create-page:not(.admissions-create-page) .student-create-form__section-lead {
+    display: none;
+  }
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-steps {
+  background: color-mix(in srgb, var(--c-primary) 5%, var(--c-surface-2));
+  border-block-end: 1px solid color-mix(in srgb, var(--c-primary) 10%, var(--c-border));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 60%, transparent);
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-steps__progress {
+  height: 2px;
+  background: color-mix(in srgb, var(--c-primary) 8%, var(--c-border));
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-steps__progress-fill {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--c-primary) 0%,
+    var(--raqeem-secondary, #0d9488) 100%
+  );
+  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[dir='rtl'] .student-create-page:not(.admissions-create-page) .student-create-steps__progress-fill {
+  margin-inline-start: auto;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-steps__list {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  margin: 0;
+  padding: 0 6px;
+  list-style: none;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-steps__list::-webkit-scrollbar {
+  display: none;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-steps__item {
+  flex: 1 1 0;
+  min-width: max(4.5rem, 16%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 9px 6px;
+  border-block-end: 2px solid transparent;
+  margin-block-end: -1px;
+  color: var(--c-text-muted);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1.2;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-steps__item[data-active] {
+  color: var(--c-primary);
+  border-block-end-color: var(--c-primary);
+  background: color-mix(in srgb, var(--c-surface) 88%, transparent);
+  font-weight: 650;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-steps__item[data-done] {
+  color: color-mix(in srgb, var(--c-green) 75%, var(--c-text-muted));
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-steps__index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--c-surface) 75%, var(--c-surface-2));
+  border: 1px solid color-mix(in srgb, var(--c-border) 80%, transparent);
+  color: var(--c-text-muted);
+  font-size: 0.5625rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-steps__item[data-active] .student-create-steps__index {
+  background: var(--c-primary);
+  color: #fff;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-steps__item[data-done] .student-create-steps__index {
+  background: var(--c-green-soft);
+  color: var(--c-green);
+  border: 1px solid color-mix(in srgb, var(--c-green) 30%, transparent);
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-steps__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__section {
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__section-header {
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: var(--sc-panel-pad) var(--sc-panel-pad) 8px;
+  border-block-end: 1px solid color-mix(in srgb, var(--c-border) 75%, transparent);
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__section-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__section-title {
+  font-size: 0.875rem;
+  font-weight: 650;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__section-lead {
+  margin-block-start: 1px;
+  font-size: 0.6875rem;
+  line-height: 1.35;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__section-body {
+  padding: 8px var(--sc-panel-pad) var(--sc-panel-pad);
+  gap: 0;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__section-body.student-create-fee-plan,
+.student-create-page:not(.admissions-create-page) .student-create-form__section--finance .student-create-form__section-body {
+  gap: var(--sc-field-gap);
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__group {
+  padding: 0;
+  border: none;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__group-head {
+  margin-block-end: 6px;
+  gap: 6px;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__section--identity .student-create-form__group-head {
+  margin-block-end: 0;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__group-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: 4px;
+  font-size: 0.5625rem;
+  background: color-mix(in srgb, var(--c-primary) 10%, var(--c-surface-2));
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__group-title {
+  font-size: 0.75rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--c-text-muted);
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__section--identity .student-create-form__section-body {
+  display: grid;
+  grid-template-columns: repeat(var(--sc-grid-cols), minmax(0, 1fr));
+  gap: var(--sc-field-gap) 10px;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__grid {
+  display: grid;
+  grid-template-columns: repeat(var(--sc-grid-cols), minmax(0, 1fr));
+  gap: var(--sc-field-gap) 10px;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__section--identity .student-create-identity,
+.student-create-page:not(.admissions-create-page) .student-create-form__section--identity .student-create-form__group,
+.student-create-page:not(.admissions-create-page) .student-create-form__section--identity .student-create-form__grid {
+  display: contents;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__cell {
+  min-width: 0;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__cell--full,
+.student-create-page:not(.admissions-create-page) .student-create-form__name-preview,
+.student-create-page:not(.admissions-create-page) .student-create-form__section--identity .student-create-form__group-head,
+.student-create-page:not(.admissions-create-page) .student-create-form__notice,
+.student-create-page:not(.admissions-create-page) .student-create-form__footnote,
+.student-create-page:not(.admissions-create-page) .enrollment-intake-siblings,
+.student-create-page:not(.admissions-create-page) .siblings-form {
+  grid-column: 1 / -1;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__cell--half {
+  grid-column: span 2;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__section--identity .student-create-form__group-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding-block: 0;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__section--identity .student-create-form__group-head:not(:first-child) {
+  margin-block-start: 4px;
+  padding-block-start: 10px;
+  border-block-start: 1px solid color-mix(in srgb, var(--c-border) 55%, transparent);
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__group-stack {
+  display: grid;
+  grid-template-columns: repeat(var(--sc-grid-cols), minmax(0, 1fr));
+  gap: var(--sc-field-gap) 10px;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-finance-discount__fields,
+.student-create-page:not(.admissions-create-page) .student-create-finance-one-time__fields,
+.student-create-page:not(.admissions-create-page) .student-create-fee-plan__meta,
+.student-create-page:not(.admissions-create-page) .student-create-finance-lines__grid,
+.student-create-page:not(.admissions-create-page) .student-create-finance-summary__grid,
+.student-create-page:not(.admissions-create-page) .sibling-line-card__grid {
+  grid-template-columns: repeat(var(--sc-grid-cols), minmax(0, 1fr));
+  gap: var(--sc-field-gap) 10px;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-field {
+  gap: 3px;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-field__label {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-field__hint,
+.student-create-page:not(.admissions-create-page) .student-create-field__error {
+  font-size: 0.6875rem;
+  line-height: 1.35;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-field .input,
+.student-create-page:not(.admissions-create-page) .student-create-field select.input {
+  min-height: 34px;
+  padding: 6px 10px;
+  font-size: 0.875rem;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__name-preview {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 12px;
+  padding: 6px 10px;
+  background: var(--c-surface-2);
+  border: 1px dashed color-mix(in srgb, var(--c-primary) 20%, var(--c-border));
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__name-preview-row {
+  gap: 6px;
+  justify-content: center;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__name-preview-tag {
+  min-width: auto;
+  padding: 1px 6px;
+  font-size: 0.625rem;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__name-preview-value {
+  font-size: 0.8125rem;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__subsection {
+  margin-block-start: 10px;
+  padding-block-start: 10px;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__subsection-title {
+  margin-block-end: 8px;
+  font-size: 0.8125rem;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__notice,
+.student-create-page:not(.admissions-create-page) .student-create-form__footnote {
+  margin-block-end: 8px;
+  padding: 7px 10px;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__skip-finance {
+  padding: 0 var(--sc-panel-pad) var(--sc-panel-pad);
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+  margin: 0;
+  padding: 8px var(--sc-panel-pad);
+  gap: 8px;
+  border: none;
+  border-block-start: 1px solid var(--c-border);
+  border-radius: 0;
+  background: color-mix(in srgb, var(--c-surface) 94%, transparent);
+  backdrop-filter: blur(6px);
+  box-shadow: none;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-review__list {
+  gap: 0;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-review__card {
+  padding: 0 0 10px;
+  margin-block-end: 10px;
+  background: transparent;
+  border: none;
+  border-block-end: 1px solid color-mix(in srgb, var(--c-border) 70%, transparent);
+  border-radius: 0;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-review__card:last-child {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-review__card--finance {
+  background: transparent;
+  border-block-end-color: color-mix(in srgb, var(--c-primary) 18%, var(--c-border));
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-review__card-title {
+  margin-block-end: 6px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--c-text-muted);
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-review__row {
+  grid-template-columns: minmax(96px, 140px) 1fr;
+  gap: 4px 10px;
+  padding: 5px 0;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-review__row dt {
+  font-size: 0.75rem;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-review__row dd {
+  font-size: 0.8125rem;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-fee-plan {
+  gap: var(--sc-field-gap);
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-fee-plan__hero {
+  padding: 10px 12px;
+  gap: 8px;
+  border-radius: var(--radius-sm);
+  background: var(--c-surface-2);
+  border-color: var(--c-border);
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-fee-plan__plan-name {
+  font-size: 1rem;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-fee-plan__stats {
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 6px;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-fee-plan__stat {
+  padding: 7px 9px;
+  border-radius: var(--radius-sm);
+  background: var(--c-surface);
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-fee-plan__periods-card,
+.student-create-page:not(.admissions-create-page) .student-create-fee-plan__customize-box,
+.student-create-page:not(.admissions-create-page) .student-create-fee-plan__card {
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--c-surface-2);
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-fee-plan__candidate-card {
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-finance-plan-picker__list {
+  gap: 6px;
+  margin-block-end: 8px;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-finance-plan-picker__card {
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-finance-lines__grid {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 6px;
+  margin-block-end: 8px;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-finance-lines__card {
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--c-surface-2);
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-finance-summary__grid {
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 6px;
+  margin-block-end: 8px;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-finance-summary__row {
+  padding: 7px 9px;
+  border-radius: var(--radius-sm);
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-finance-discount,
+.student-create-page:not(.admissions-create-page) .student-create-finance-one-time__row {
+  padding: 8px 10px;
+  margin-block-end: 6px;
+  border-radius: var(--radius-sm);
+  background: var(--c-surface-2);
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-fee-plan__subtitle,
+.student-create-page:not(.admissions-create-page) .student-create-finance-line-discounts__title,
+.student-create-page:not(.admissions-create-page) .student-create-finance-one-time__title,
+.student-create-page:not(.admissions-create-page) .student-create-finance-periods__title {
+  margin: 8px 0 6px;
+  font-size: 0.8125rem;
+}
+
+.student-create-page:not(.admissions-create-page) .siblings-form {
+  gap: 0.5rem;
+}
+
+.student-create-page:not(.admissions-create-page) .siblings-form__toggle {
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm);
+}
+
+.student-create-page:not(.admissions-create-page) .siblings-form__details {
+  gap: 0.5rem;
+  padding: 0.625rem 0 0;
+  border: none;
+  border-block-start: 1px dashed color-mix(in srgb, var(--c-border) 80%, transparent);
+  border-radius: 0;
+  background: transparent;
+}
+
+.student-create-page:not(.admissions-create-page) .siblings-form__cards {
+  gap: 0.5rem;
+}
+
+.student-create-page:not(.admissions-create-page) .sibling-line-card {
+  border-radius: var(--radius-sm);
+}
+
+.student-create-page:not(.admissions-create-page) .sibling-line-card__header {
+  padding: 0.45rem 0.75rem;
+}
+
+.student-create-page:not(.admissions-create-page) .sibling-line-card__grid {
+  padding: 0.625rem 0.75rem;
+  gap: 0.5rem;
+}
+
+@media (max-width: 1024px) {
+  .student-create-page:not(.admissions-create-page) {
+    --sc-grid-cols: 2;
+  }
+
+  .student-create-page:not(.admissions-create-page) .student-create-form__cell--half {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 900px) {
+  .student-create-page:not(.admissions-create-page) .student-create-steps__label {
+    display: none;
+  }
+
+  .student-create-page:not(.admissions-create-page) .student-create-steps__item {
+    min-width: 2.75rem;
+    padding: 8px 4px;
+  }
+}
+
+@media (max-width: 560px) {
+  .student-create-page:not(.admissions-create-page) {
+    --sc-grid-cols: 1;
+  }
+
+  .student-create-page:not(.admissions-create-page) .student-create-form__cell--half {
+    grid-column: span 1;
+  }
+
+  .student-create-page:not(.admissions-create-page) .student-create-page__header {
+    padding: 8px 12px;
+  }
+
+  .student-create-page:not(.admissions-create-page) .student-create-prefill {
+    padding: 8px 10px;
+  }
+
+  .student-create-page:not(.admissions-create-page) .student-create-prefill__status {
+    width: 100%;
+  }
+}
+
 .student-create-finance-plan-picker__list {
   display: grid;
   gap: 8px;

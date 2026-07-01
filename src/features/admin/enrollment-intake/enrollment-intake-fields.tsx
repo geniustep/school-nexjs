@@ -16,20 +16,33 @@ function CreateField({
   label,
   error,
   hint,
+  layout = 'default',
+  field,
   children,
 }: {
   label: string;
   error?: string;
   hint?: string;
+  layout?: 'default' | 'half' | 'full';
+  field?: string;
   children: React.ReactNode;
 }) {
+  const cellClass =
+    layout === 'full'
+      ? 'student-create-form__cell student-create-form__cell--full'
+      : layout === 'half'
+        ? 'student-create-form__cell student-create-form__cell--half'
+        : 'student-create-form__cell';
+
   return (
-    <label className="student-create-field">
-      <span className="student-create-field__label">{label}</span>
-      {children}
-      {hint ? <span className="student-create-field__hint">{hint}</span> : null}
-      {error ? <span className="student-create-field__error">{error}</span> : null}
-    </label>
+    <div className={cellClass} {...(field ? { 'data-field': field } : {})}>
+      <label className="student-create-field">
+        <span className="student-create-field__label">{label}</span>
+        {children}
+        {hint ? <span className="student-create-field__hint">{hint}</span> : null}
+        {error ? <span className="student-create-field__error">{error}</span> : null}
+      </label>
+    </div>
   );
 }
 
@@ -52,13 +65,11 @@ function CreateFieldGroup({
         </span>
         <h3 className="student-create-form__group-title">{title}</h3>
       </div>
-      <div
-        className={
-          layout === 'stack' ? 'student-create-form__group-stack' : 'student-create-form__grid'
-        }
-      >
-        {children}
-      </div>
+      {layout === 'stack' ? (
+        <div className="student-create-form__group-stack">{children}</div>
+      ) : (
+        <div className="student-create-form__grid">{children}</div>
+      )}
     </div>
   );
 }
@@ -105,6 +116,7 @@ type IntakeProps = {
   genders: { value: string; label: string }[];
   nationalities: StudentNationalityOption[];
   requireArabicNames?: boolean;
+  variant?: 'default' | 'studentCreate';
 };
 
 export function EnrollmentIntakeIdentityFields({
@@ -116,8 +128,10 @@ export function EnrollmentIntakeIdentityFields({
   genders,
   nationalities,
   requireArabicNames = false,
+  variant = 'default',
 }: IntakeProps) {
   const t = useT();
+  const isStudentCreate = variant === 'studentCreate';
   const fullNameAr = [values.firstNameAr.trim(), values.lastNameAr.trim()].filter(Boolean).join(' ');
   const fullNameFr = [values.firstNameFr.trim(), values.lastNameFr.trim()].filter(Boolean).join(' ');
   const localizedGenders = useMemo(
@@ -128,28 +142,32 @@ export function EnrollmentIntakeIdentityFields({
   return (
     <div className="student-create-identity">
       <CreateFieldGroup title={t('admin.enrollmentIntake.groups.names')} icon="أ">
-        <div data-field="firstName">
-          <CreateField label={t('admin.student360.create.firstNameAr')} error={errors.firstNameAr}>
-            <input
-              className="input"
-              value={values.firstNameAr}
-              onChange={(e) => onPatch({ firstNameAr: e.target.value })}
-              autoComplete="off"
-              required={requireArabicNames}
-            />
-          </CreateField>
-        </div>
-        <div data-field="lastName">
-          <CreateField label={t('admin.student360.create.lastNameAr')} error={errors.lastNameAr}>
-            <input
-              className="input"
-              value={values.lastNameAr}
-              onChange={(e) => onPatch({ lastNameAr: e.target.value })}
-              autoComplete="off"
-              required={requireArabicNames}
-            />
-          </CreateField>
-        </div>
+        <CreateField
+          field="firstName"
+          label={t('admin.student360.create.firstNameAr')}
+          error={errors.firstNameAr}
+        >
+          <input
+            className="input"
+            value={values.firstNameAr}
+            onChange={(e) => onPatch({ firstNameAr: e.target.value })}
+            autoComplete="off"
+            required={requireArabicNames}
+          />
+        </CreateField>
+        <CreateField
+          field="lastName"
+          label={t('admin.student360.create.lastNameAr')}
+          error={errors.lastNameAr}
+        >
+          <input
+            className="input"
+            value={values.lastNameAr}
+            onChange={(e) => onPatch({ lastNameAr: e.target.value })}
+            autoComplete="off"
+            required={requireArabicNames}
+          />
+        </CreateField>
         <CreateField label={t('admin.student360.create.firstNameLatin')}>
           <input
             className="input"
@@ -169,7 +187,7 @@ export function EnrollmentIntakeIdentityFields({
           />
         </CreateField>
         {fullNameAr || fullNameFr ? (
-          <div className="student-create-form__name-preview">
+          <div className="student-create-form__name-preview student-create-form__cell--full">
             {fullNameAr ? (
               <div className="student-create-form__name-preview-row">
                 <span className="student-create-form__name-preview-tag">عربي</span>
@@ -206,16 +224,14 @@ export function EnrollmentIntakeIdentityFields({
             ))}
           </select>
         </CreateField>
-        <div data-field="dateOfBirth">
-          <CreateField label={t('admin.dateOfBirth')} error={errors.birthDate}>
-            <input
-              className="input"
-              type="date"
-              value={values.birthDate}
-              onChange={(e) => onPatch({ birthDate: e.target.value })}
-            />
-          </CreateField>
-        </div>
+        <CreateField field="dateOfBirth" label={t('admin.dateOfBirth')} error={errors.birthDate}>
+          <input
+            className="input"
+            type="date"
+            value={values.birthDate}
+            onChange={(e) => onPatch({ birthDate: e.target.value })}
+          />
+        </CreateField>
         <CreateField label={t('admin.student360.birthPlace')}>
           <input
             className="input"
@@ -233,9 +249,34 @@ export function EnrollmentIntakeIdentityFields({
         </CreateField>
       </CreateFieldGroup>
 
-      <CreateFieldGroup title={t('admin.enrollmentIntake.groups.identifiers')} icon="#">
-        <div data-field="massarCode">
+      {isStudentCreate ? (
+        <CreateFieldGroup title={t('admin.enrollmentIntake.groups.address')} icon="⌂">
+          <CreateField layout="full" label={t('admin.student360.admissionData.residenceAddress')}>
+            <input
+              className="input"
+              value={values.residenceAddress}
+              onChange={(e) => onPatch({ residenceAddress: e.target.value })}
+              placeholder={t('admin.enrollmentIntake.residenceAddressHint')}
+            />
+          </CreateField>
+        </CreateFieldGroup>
+      ) : null}
+
+      {isStudentCreate ? (
+        <CreateFieldGroup title={t('admin.enrollmentIntake.groups.admissionContext')} icon="◇">
           <CreateField
+            label={t('admin.admissionDate')}
+            hint={t('admin.student360.create.admissionDateHint')}
+          >
+            <input
+              className="input"
+              type="date"
+              value={values.admissionDate}
+              onChange={(e) => onPatch({ admissionDate: e.target.value })}
+            />
+          </CreateField>
+          <CreateField
+            field="massarCode"
             label={t('admin.massarCode')}
             error={errors.massarCode}
             hint={fieldHints?.massarCode ?? t('admin.student360.create.massarCodeHint')}
@@ -252,37 +293,82 @@ export function EnrollmentIntakeIdentityFields({
               autoComplete="off"
             />
           </CreateField>
-        </div>
-        <div data-field="schoolNumber">
-          <CreateField
-            label={t('admin.student360.schoolNumber')}
-            error={errors.schoolNumber}
-            hint={fieldHints?.schoolNumber ?? t('admin.student360.create.schoolNumberOptionalHint')}
-          >
+          <CreateField label={t('admin.student360.admissionData.previousSchool')}>
             <input
               className="input"
-              value={values.schoolNumber}
-              onChange={(e) => onPatch({ schoolNumber: e.target.value })}
-              dir="ltr"
+              value={values.previousSchool}
+              onChange={(e) => onPatch({ previousSchool: e.target.value })}
             />
           </CreateField>
-        </div>
-        <div data-field="code">
-          <CreateField
-            label={t('admin.studentCode')}
-            error={errors.code}
-            hint={fieldHints?.code ?? t('admin.student360.create.internalCodeHint')}
-          >
-            <input
-              className="input"
-              value={values.code}
-              onChange={(e) => onPatch({ code: e.target.value })}
-              dir="ltr"
-            />
-          </CreateField>
-        </div>
-      </CreateFieldGroup>
+        </CreateFieldGroup>
+      ) : null}
 
+      {isStudentCreate ? (
+        <CreateFieldGroup title={t('admin.student360.create.additionalInfo')} icon="✎">
+          <CreateField layout="full" label={t('admin.enrollmentIntake.admissionNotes')}>
+            <textarea
+              className="input"
+              rows={2}
+              value={values.admissionNotes}
+              onChange={(e) => onPatch({ admissionNotes: e.target.value })}
+            />
+          </CreateField>
+        </CreateFieldGroup>
+      ) : null}
+
+      {!isStudentCreate ? (
+      <CreateFieldGroup
+        title={t('admin.enrollmentIntake.groups.identifiers')}
+        icon="#"
+      >
+        <CreateField
+          field="massarCode"
+          label={t('admin.massarCode')}
+          error={errors.massarCode}
+          hint={fieldHints?.massarCode ?? t('admin.student360.create.massarCodeHint')}
+        >
+          <input
+            className="input"
+            value={values.massarCode}
+            onChange={(e) => onPatch({ massarCode: e.target.value })}
+            onBlur={() => {
+              const normalized = normalizeMassarCodeInput(values.massarCode);
+              if (normalized !== values.massarCode) onPatch({ massarCode: normalized });
+            }}
+            dir="ltr"
+            autoComplete="off"
+          />
+        </CreateField>
+        <CreateField
+          field="schoolNumber"
+          label={t('admin.student360.schoolNumber')}
+          error={errors.schoolNumber}
+          hint={fieldHints?.schoolNumber ?? t('admin.student360.create.schoolNumberOptionalHint')}
+        >
+          <input
+            className="input"
+            value={values.schoolNumber}
+            onChange={(e) => onPatch({ schoolNumber: e.target.value })}
+            dir="ltr"
+          />
+        </CreateField>
+        <CreateField
+          field="code"
+          label={t('admin.studentCode')}
+          error={errors.code}
+          hint={fieldHints?.code ?? t('admin.student360.create.internalCodeHint')}
+        >
+          <input
+            className="input"
+            value={values.code}
+            onChange={(e) => onPatch({ code: e.target.value })}
+            dir="ltr"
+          />
+        </CreateField>
+      </CreateFieldGroup>
+      ) : null}
+
+      {!isStudentCreate ? (
       <CreateFieldGroup title={t('admin.enrollmentIntake.groups.adminDates')} icon="ت">
         <CreateField
           label={t('admin.admissionDate')}
@@ -296,6 +382,7 @@ export function EnrollmentIntakeIdentityFields({
           />
         </CreateField>
       </CreateFieldGroup>
+      ) : null}
     </div>
   );
 }
@@ -303,12 +390,19 @@ export function EnrollmentIntakeIdentityFields({
 export function EnrollmentIntakeAdmissionExtrasFields({
   values,
   onPatch,
-}: Pick<IntakeProps, 'values' | 'onPatch'>) {
+  variant = 'default',
+}: Pick<IntakeProps, 'values' | 'onPatch' | 'variant'>) {
   const t = useT();
+  const isStudentCreate = variant === 'studentCreate';
+
+  if (isStudentCreate) {
+    return null;
+  }
+
   return (
-    <div className="student-create-enrollment">
+    <>
       <CreateFieldGroup title={t('admin.student360.admissionData.sectionTitle')} icon="◇">
-        <CreateField label={t('admin.student360.admissionData.externalReference')}>
+        <CreateField layout="half" label={t('admin.student360.admissionData.externalReference')}>
           <input
             className="input"
             dir="ltr"
@@ -318,7 +412,7 @@ export function EnrollmentIntakeAdmissionExtrasFields({
         </CreateField>
       </CreateFieldGroup>
       <CreateFieldGroup title={t('admin.enrollmentIntake.groups.address')} icon="⌂">
-        <CreateField label={t('admin.student360.admissionData.residenceAddress')}>
+        <CreateField layout="full" label={t('admin.student360.admissionData.residenceAddress')}>
           <input
             className="input"
             value={values.residenceAddress}
@@ -357,7 +451,7 @@ export function EnrollmentIntakeAdmissionExtrasFields({
             onChange={(e) => onPatch({ previousSchool: e.target.value })}
           />
         </CreateField>
-        <CreateField label={t('admin.enrollmentIntake.admissionNotes')}>
+        <CreateField layout="full" label={t('admin.enrollmentIntake.admissionNotes')}>
           <textarea
             className="input"
             rows={2}
@@ -366,7 +460,7 @@ export function EnrollmentIntakeAdmissionExtrasFields({
           />
         </CreateField>
       </CreateFieldGroup>
-    </div>
+    </>
   );
 }
 
@@ -409,10 +503,9 @@ export function EnrollmentIntakeAcademicFields({
   const showStream = academic.levelRequiresStream;
 
   return (
-    <div className="student-create-enrollment">
+    <div className="student-create-form__grid">
       <CreateFieldGroup title={t('admin.enrollmentIntake.groups.academicStructure')} icon="◈">
-        <div data-field="academicYearId">
-          <CreateField label={t('admin.academicYearId')} error={errors.academicYearId}>
+        <CreateField field="academicYearId" label={t('admin.academicYearId')} error={errors.academicYearId}>
           {academic.optionsLoading && academic.years.length === 0 ? (
             <p className="student-create-field__hint">{t('admin.student360.create.loadingYears')}</p>
           ) : academic.optionsError ? (
@@ -440,9 +533,8 @@ export function EnrollmentIntakeAcademicFields({
             </select>
           )}
         </CreateField>
-        </div>
-        <div data-field="cycleId">
         <CreateField
+          field="cycleId"
           label={t('admin.student360.create.cycle')}
           error={academic.cycleMode === 'code' ? errors.cycleCode : errors.cycleId}
         >
@@ -480,9 +572,7 @@ export function EnrollmentIntakeAcademicFields({
             </select>
           )}
         </CreateField>
-        </div>
-        <div data-field="levelId">
-        <CreateField label={t('nav.levels')} error={errors.levelId}>
+        <CreateField field="levelId" label={t('nav.levels')} error={errors.levelId}>
           <select
             className="input"
             value={values.levelId}
@@ -501,7 +591,6 @@ export function EnrollmentIntakeAcademicFields({
             ))}
           </select>
         </CreateField>
-        </div>
         {showStream ? (
           <CreateField
             label={t('admin.admissions.fields.stream')}
@@ -524,8 +613,8 @@ export function EnrollmentIntakeAcademicFields({
             </select>
           </CreateField>
         ) : null}
-        <div data-field="classId">
         <CreateField
+          field="classId"
           label={t('nav.classes')}
           error={errors.classId}
           hint={!values.classId && values.levelId ? t('admin.student360.create.classOptionalHint') : undefined}
@@ -544,7 +633,6 @@ export function EnrollmentIntakeAcademicFields({
             ))}
           </select>
         </CreateField>
-        </div>
       </CreateFieldGroup>
     </div>
   );
@@ -567,7 +655,7 @@ export function EnrollmentIntakeRegistrationFields({
   const showPrevious = requiresPreviousSchool(values.registrationType);
 
   return (
-    <div className="student-create-enrollment">
+    <div className="student-create-form__grid">
       <CreateFieldGroup title={t('admin.enrollmentIntake.groups.registrationDetails')} icon="✎">
         <CreateField label={t('admin.student360.registrationType')}>
           <select
@@ -591,7 +679,7 @@ export function EnrollmentIntakeRegistrationFields({
             onChange={(e) => onPatch({ actualJoinDate: e.target.value })}
           />
         </CreateField>
-        <CreateField label={t('admin.student360.isRepeating')}>
+        <div className="student-create-form__cell student-create-form__cell--full">
           <label className="student-create-form__checkbox">
             <input
               type="checkbox"
@@ -603,7 +691,7 @@ export function EnrollmentIntakeRegistrationFields({
               <span className="student-create-field__hint">{t('admin.student360.create.repeatingHint')}</span>
             </span>
           </label>
-        </CreateField>
+        </div>
         {showPrevious ? (
           <CreateField label={t('admin.student360.previousSchool')} error={errors.previousSchool}>
             <input
@@ -613,7 +701,7 @@ export function EnrollmentIntakeRegistrationFields({
             />
           </CreateField>
         ) : null}
-        <CreateField label={t('admin.student360.registrationNotes')}>
+        <CreateField layout="full" label={t('admin.student360.registrationNotes')}>
           <textarea
             className="input"
             rows={2}
@@ -637,7 +725,7 @@ export function EnrollmentIntakeGuardianFields({
 }) {
   const t = useT();
   return (
-    <div className="student-create-enrollment">
+    <div className="student-create-form__grid">
       <CreateFieldGroup title={t('admin.enrollmentIntake.groups.guardian')} icon="◉">
         <CreateField label={t('admin.admissions.fields.guardianName')}>
           <input
@@ -701,7 +789,7 @@ export function EnrollmentIntakeFollowUpFields({
 }) {
   const t = useT();
   return (
-    <div className="student-create-enrollment">
+    <div className="student-create-form__grid">
       <CreateFieldGroup title={t('admin.enrollmentIntake.groups.followUp')} icon="◎">
         <CreateField label={t('admin.admissions.fields.source')}>
           <select

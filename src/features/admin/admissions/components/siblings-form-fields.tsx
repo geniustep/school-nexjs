@@ -19,12 +19,16 @@ function SiblingField({
   wide?: boolean;
 }) {
   return (
-    <label className={`student-create-field${wide ? ' sibling-line-card__field--wide' : ''}`}>
-      <span className="student-create-field__label">{label}</span>
-      {children}
-      {hint ? <span className="student-create-field__hint">{hint}</span> : null}
-      {error ? <span className="student-create-field__error">{error}</span> : null}
-    </label>
+    <div
+      className={`student-create-form__cell${wide ? ' student-create-form__cell--full' : ''}`}
+    >
+      <label className="student-create-field">
+        <span className="student-create-field__label">{label}</span>
+        {children}
+        {hint ? <span className="student-create-field__hint">{hint}</span> : null}
+        {error ? <span className="student-create-field__error">{error}</span> : null}
+      </label>
+    </div>
   );
 }
 

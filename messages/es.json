@@ -3948,6 +3948,7 @@
       },
       "guardianAfterCreateHint": "Tras guardar el alumno, añada tutores desde la pestaña Tutores.",
       "create": {
+        "pageTitleNamed": "Añadir alumno {name}",
         "pageDesc": "Introduzca la identidad básica y la matrícula. Puede completar el resto del expediente más tarde.",
         "identityStepLead": "Todos los campos de identidad están visibles — complete lo que corresponda a este alumno.",
         "enrollmentStepLead": "Elija el año, ciclo, nivel y clase, luego complete los datos de admisión y del tutor.",
