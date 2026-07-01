@@ -8997,7 +8997,8 @@
 }
 
 .student-create-page:not(.admissions-create-page) .student-create-form__section--identity .student-create-form__section-body,
-.student-create-page:not(.admissions-create-page) .student-create-form__section--guardian .student-create-form__section-body {
+.student-create-page:not(.admissions-create-page) .student-create-form__section--guardian .student-create-form__section-body,
+.student-create-page:not(.admissions-create-page) .student-create-form__section--enrollment .student-create-form__section-body {
   display: grid;
   grid-template-columns: repeat(var(--sc-grid-cols), minmax(0, 1fr));
   gap: var(--sc-field-gap) 10px;
@@ -9015,6 +9016,154 @@
   display: contents;
 }
 
+.student-create-page:not(.admissions-create-page) .student-create-form__section--enrollment .student-create-enrollment,
+.student-create-page:not(.admissions-create-page) .student-create-form__section--enrollment .student-create-form__group,
+.student-create-page:not(.admissions-create-page) .student-create-form__section--enrollment .student-create-form__grid {
+  display: contents;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__section--enrollment .student-create-form__group-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding-block: 0;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__section--enrollment .student-create-form__group-head:not(:first-child) {
+  margin-block-start: 4px;
+  padding-block-start: 10px;
+  border-block-start: 1px solid color-mix(in srgb, var(--c-border) 55%, transparent);
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__section--enrollment .date-picker {
+  width: 100%;
+  min-width: 0;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__section--enrollment .date-picker__control {
+  width: 100%;
+}
+
+.enrollment-class-summary {
+  margin-top: 4px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--c-info) 22%, var(--c-border));
+  background: color-mix(in srgb, var(--c-info) 5%, var(--c-surface-2));
+}
+
+.enrollment-class-summary--loading,
+.enrollment-class-summary--error {
+  font-size: 0.8125rem;
+  color: var(--c-text-muted);
+}
+
+.enrollment-class-summary--error {
+  border-color: color-mix(in srgb, var(--c-danger) 25%, var(--c-border));
+  background: color-mix(in srgb, var(--c-danger) 5%, var(--c-surface-2));
+  color: var(--c-danger);
+}
+
+.enrollment-class-summary--full {
+  border-color: color-mix(in srgb, var(--c-amber) 30%, var(--c-border));
+  background: color-mix(in srgb, var(--c-amber) 6%, var(--c-surface-2));
+}
+
+.enrollment-class-summary__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin-bottom: 10px;
+}
+
+.enrollment-class-summary__title {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 650;
+  color: var(--c-text-body);
+}
+
+.enrollment-class-summary__code {
+  font-size: 0.75rem;
+  color: var(--c-text-muted);
+}
+
+.enrollment-class-summary__track {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  color: var(--c-text-muted);
+}
+
+.enrollment-class-summary__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px 14px;
+  margin: 0;
+}
+
+.enrollment-class-summary__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.enrollment-class-summary__stat dt {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--c-text-muted);
+}
+
+.enrollment-class-summary__stat dd {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--c-text-body);
+}
+
+.enrollment-class-summary__warn {
+  color: var(--c-amber);
+}
+
+.enrollment-class-summary__capacity {
+  margin-top: 10px;
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--c-border) 70%, transparent);
+  overflow: hidden;
+}
+
+.enrollment-class-summary__capacity-bar {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--c-info) 80%, var(--c-primary)),
+    var(--c-info)
+  );
+}
+
+.enrollment-class-summary--full .enrollment-class-summary__capacity-bar {
+  background: linear-gradient(90deg, var(--c-amber), color-mix(in srgb, var(--c-danger) 70%, var(--c-amber)));
+}
+
+.enrollment-class-summary__notice {
+  margin: 10px 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--c-amber);
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__section--enrollment .enrollment-class-summary {
+  grid-column: 1 / -1;
+}
+
 .student-create-page:not(.admissions-create-page) .student-create-form__cell {
   min-width: 0;
 }
@@ -9022,6 +9171,7 @@
 .student-create-page:not(.admissions-create-page) .student-create-form__cell--full,
 .student-create-page:not(.admissions-create-page) .student-create-form__name-preview,
 .student-create-page:not(.admissions-create-page) .student-create-form__section--identity .student-create-form__group-head,
+.student-create-page:not(.admissions-create-page) .student-create-form__section--enrollment .student-create-form__group-head,
 .student-create-page:not(.admissions-create-page) .student-create-form__notice,
 .student-create-page:not(.admissions-create-page) .student-create-form__footnote,
 .student-create-page:not(.admissions-create-page) .enrollment-intake-siblings,
@@ -11240,4 +11390,120 @@
 .student-finance-amendment-preview__installments ul {
   margin: 0.25rem 0 0;
   padding-inline-start: 1.25rem;
+}
+
+/* Student full edit page */
+.student-edit-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 960px;
+}
+
+.student-edit-page__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.student-edit-page__title {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.student-edit-page__subtitle {
+  margin: 0.25rem 0 0;
+  color: var(--muted, #64748b);
+  font-size: 0.95rem;
+}
+
+.student-edit-tabs__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.student-edit-tabs__btn {
+  border: 1px solid var(--border, #e2e8f0);
+  background: var(--surface, #fff);
+  border-radius: 999px;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.student-edit-tabs__btn--active {
+  background: color-mix(in srgb, var(--primary, #2563eb) 12%, var(--surface, #fff));
+  border-color: color-mix(in srgb, var(--primary, #2563eb) 35%, var(--border, #e2e8f0));
+  font-weight: 600;
+}
+
+.student-edit-section__title {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+}
+
+.student-edit-section__actions {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border, #e2e8f0);
+}
+
+.student-edit-enrollment-history__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.student-edit-enrollment-history__item {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.5rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface-muted, #f8fafc) 80%, var(--surface, #fff));
+}
+
+.student-edit-photo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.student-edit-photo__img {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid var(--border, #e2e8f0);
+}
+
+.student-edit-photo__placeholder {
+  width: 96px;
+  height: 96px;
+  border-radius: 12px;
+  border: 1px dashed var(--border, #e2e8f0);
+  display: grid;
+  place-items: center;
+  font-size: 0.75rem;
+  color: var(--muted, #64748b);
+  text-align: center;
+  padding: 0.5rem;
+}
+
+.student-edit-siblings__existing {
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface-muted, #f8fafc) 70%, var(--surface, #fff));
 }

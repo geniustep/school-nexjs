@@ -7,11 +7,15 @@ import { StudentNationalitySelect } from '@/features/admin/students/components/s
 import {
   localizeStudentGenderOptions,
   requiresPreviousSchool,
+  resolveDefaultAcademicYearId,
+  syncActualJoinDateFromAdmission,
   todayIsoDate,
 } from '@/features/admin/students/utils/student-profile';
+import { registrationTypeLabel } from '@/features/admin/students/utils/enrollment-labels';
 import { normalizeMassarCodeInput } from '@/features/admin/students/utils/massar-code';
 import type { StudentNationalityOption } from '@/types/student-360';
 import { DatePickerInput } from '@/components/ui/date-picker-input';
+import { EnrollmentClassSummaryPanel } from '@/features/admin/students/components/enrollment-class-summary-panel';
 import type { EnrollmentIntakeFieldErrors, EnrollmentIntakePatch, EnrollmentIntakeValues } from './types';
 
 function CreateField({
@@ -96,6 +100,8 @@ export interface EnrollmentIntakeAcademicOptions {
   levelPlaceholder?: string;
   classPlaceholder?: string;
   streamRequired?: boolean;
+  activeSchoolId?: number | null;
+  showClassSummary?: boolean;
 }
 
 export interface EnrollmentIntakeGuardianOptions {
@@ -491,20 +497,27 @@ export function EnrollmentIntakeAcademicFields({
   errors = {},
   onPatch,
   academic,
+  variant = 'default',
 }: {
   values: EnrollmentIntakeValues;
   errors?: EnrollmentIntakeFieldErrors;
   onPatch: (patch: EnrollmentIntakePatch) => void;
   academic: EnrollmentIntakeAcademicOptions;
+  variant?: 'default' | 'studentCreate';
 }) {
   const t = useT();
   const cycleValue = academic.cycleMode === 'code' ? values.cycleCode : values.cycleId;
   const showStream = academic.levelRequiresStream;
+  const fieldLayout = variant === 'studentCreate' ? 'half' : 'default';
 
-  return (
-    <div className="student-create-form__grid">
-      <CreateFieldGroup title={t('admin.enrollmentIntake.groups.academicStructure')} icon="◈">
-        <CreateField field="academicYearId" label={t('admin.academicYearId')} error={errors.academicYearId}>
+  const content = (
+    <CreateFieldGroup title={t('admin.enrollmentIntake.groups.academicStructure')} icon="◈">
+        <CreateField
+          field="academicYearId"
+          layout={fieldLayout}
+          label={t('admin.academicYearId')}
+          error={errors.academicYearId}
+        >
           {academic.optionsLoading && academic.years.length === 0 ? (
             <p className="student-create-field__hint">{t('admin.student360.create.loadingYears')}</p>
           ) : academic.optionsError ? (
@@ -534,6 +547,7 @@ export function EnrollmentIntakeAcademicFields({
         </CreateField>
         <CreateField
           field="cycleId"
+          layout={fieldLayout}
           label={t('admin.student360.create.cycle')}
           error={academic.cycleMode === 'code' ? errors.cycleCode : errors.cycleId}
         >
@@ -571,7 +585,7 @@ export function EnrollmentIntakeAcademicFields({
             </select>
           )}
         </CreateField>
-        <CreateField field="levelId" label={t('nav.levels')} error={errors.levelId}>
+        <CreateField field="levelId" layout={fieldLayout} label={t('nav.levels')} error={errors.levelId}>
           <select
             className="input"
             value={values.levelId}
@@ -592,6 +606,7 @@ export function EnrollmentIntakeAcademicFields({
         </CreateField>
         {showStream ? (
           <CreateField
+            layout={fieldLayout}
             label={t('admin.admissions.fields.stream')}
             error={errors.streamId}
             hint={academic.streamRequired ? t('admin.admissions.create.streamRequiredHint') : undefined}
@@ -614,6 +629,7 @@ export function EnrollmentIntakeAcademicFields({
         ) : null}
         <CreateField
           field="classId"
+          layout={fieldLayout}
           label={t('nav.classes')}
           error={errors.classId}
           hint={!values.classId && values.levelId ? t('admin.student360.create.classOptionalHint') : undefined}
@@ -632,9 +648,22 @@ export function EnrollmentIntakeAcademicFields({
             ))}
           </select>
         </CreateField>
+        {academic.showClassSummary && values.classId.trim() ? (
+          <div className="student-create-form__cell student-create-form__cell--full">
+            <EnrollmentClassSummaryPanel
+              classId={values.classId}
+              activeSchoolId={academic.activeSchoolId}
+            />
+          </div>
+        ) : null}
       </CreateFieldGroup>
-    </div>
   );
+
+  if (variant === 'studentCreate') {
+    return content;
+  }
+
+  return <div className="student-create-form__grid">{content}</div>;
 }
 
 export function EnrollmentIntakeRegistrationFields({
@@ -643,20 +672,22 @@ export function EnrollmentIntakeRegistrationFields({
   onPatch,
   registrationTypes,
   optionsLoading = false,
+  variant = 'default',
 }: {
   values: EnrollmentIntakeValues;
   errors?: EnrollmentIntakeFieldErrors;
   onPatch: (patch: EnrollmentIntakePatch) => void;
   registrationTypes: { value: string; label: string }[];
   optionsLoading?: boolean;
+  variant?: 'default' | 'studentCreate';
 }) {
   const t = useT();
   const showPrevious = requiresPreviousSchool(values.registrationType);
+  const fieldLayout = variant === 'studentCreate' ? 'half' : 'default';
 
-  return (
-    <div className="student-create-form__grid">
-      <CreateFieldGroup title={t('admin.enrollmentIntake.groups.registrationDetails')} icon="✎">
-        <CreateField label={t('admin.student360.registrationType')}>
+  const content = (
+    <CreateFieldGroup title={t('admin.enrollmentIntake.groups.registrationDetails')} icon="✎">
+        <CreateField layout={fieldLayout} label={t('admin.student360.registrationType')}>
           <select
             className="input"
             value={values.registrationType}
@@ -665,17 +696,15 @@ export function EnrollmentIntakeRegistrationFields({
           >
             {registrationTypes.map((r) => (
               <option key={r.value} value={r.value}>
-                {r.label}
+                {registrationTypeLabel(t, r.value, registrationTypes)}
               </option>
             ))}
           </select>
         </CreateField>
-        <CreateField label={t('admin.student360.actualJoinDate')} error={errors.actualJoinDate}>
-          <input
-            className="input"
-            type="date"
+        <CreateField layout={fieldLayout} label={t('admin.student360.actualJoinDate')} error={errors.actualJoinDate}>
+          <DatePickerInput
             value={values.actualJoinDate}
-            onChange={(e) => onPatch({ actualJoinDate: e.target.value })}
+            onChange={(actualJoinDate) => onPatch({ actualJoinDate })}
           />
         </CreateField>
         <div className="student-create-form__cell student-create-form__cell--full">
@@ -709,8 +738,13 @@ export function EnrollmentIntakeRegistrationFields({
           />
         </CreateField>
       </CreateFieldGroup>
-    </div>
   );
+
+  if (variant === 'studentCreate') {
+    return content;
+  }
+
+  return <div className="student-create-form__grid">{content}</div>;
 }
 
 export function EnrollmentIntakeGuardianFields({

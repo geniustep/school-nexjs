@@ -113,6 +113,26 @@ export function todayIsoDate(): string {
   return `${y}-${m}-${d}`;
 }
 
+export function resolveDefaultAcademicYearId(
+  years: { id: number; is_current?: boolean }[],
+): string {
+  if (!years.length) return '';
+  const current = years.find((y) => y.is_current);
+  return String((current ?? years[0]).id);
+}
+
+export function syncActualJoinDateFromAdmission(
+  admissionDate: string,
+  currentAdmissionDate: string,
+  actualJoinDate: string,
+): string | undefined {
+  if (!admissionDate.trim()) return undefined;
+  if (!actualJoinDate.trim() || actualJoinDate === currentAdmissionDate) {
+    return admissionDate;
+  }
+  return undefined;
+}
+
 export function buildFullNamePreview(firstName: string, lastName: string): string {
   return [trim(firstName), trim(lastName)].filter(Boolean).join(' ');
 }
@@ -228,7 +248,7 @@ export function defaultStudentProfileFormState(options: StudentOptions | null): 
     departureReason: '',
     schoolId: options?.schools.length === 1 ? String(options.schools[0].id) : '',
     cycleId: '',
-    academicYearId: options?.academicYears[0] ? String(options.academicYears[0].id) : '',
+    academicYearId: resolveDefaultAcademicYearId(options?.academicYears ?? []),
     levelId: '',
     classId: '',
     streamId: '',

@@ -58,12 +58,19 @@ function schools(value: unknown): { id: number; name: string }[] {
   );
 }
 
-function academicYears(value: unknown): { id: number; name: string; code?: string | null }[] {
+function academicYears(value: unknown): { id: number; name: string; code?: string | null; is_current?: boolean }[] {
   if (!Array.isArray(value)) return [];
-  return value.filter(
-    (item): item is { id: number; name: string; code?: string | null } =>
-      !!item && typeof item === 'object' && typeof (item as { id?: unknown }).id === 'number',
-  );
+  return value
+    .filter(
+      (item): item is { id: number; name: string; code?: string | null; is_current?: boolean } =>
+        !!item && typeof item === 'object' && typeof (item as { id?: unknown }).id === 'number',
+    )
+    .map((item) => ({
+      id: item.id,
+      name: item.name,
+      code: typeof item.code === 'string' ? item.code : null,
+      is_current: item.is_current === true,
+    }));
 }
 
 function documentTypes(value: unknown): StudentDocumentTypeOption[] {

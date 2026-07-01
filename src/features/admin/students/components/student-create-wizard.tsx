@@ -8,14 +8,12 @@ import { useT } from '@/features/i18n/locale-context';
 import type { AdmissionRegistrationContext } from '@/features/admin/admissions/utils/admission-prefill-mapper';
 import { useAdmissionOptions } from '@/features/admin/admissions/hooks/use-admission-options';
 import {
-  admissionOptionId,
   filterStreamsByLevel,
   findAdmissionLevel,
 } from '@/features/admin/admissions/utils/admission-options';
 import {
   EnrollmentIntakeAcademicFields,
   EnrollmentIntakeAdmissionExtrasFields,
-  EnrollmentIntakeFollowUpFields,
   EnrollmentIntakeIdentityFields,
   EnrollmentIntakeRegistrationFields,
 } from '@/features/admin/enrollment-intake/enrollment-intake-fields';
@@ -49,7 +47,9 @@ import {
   defaultStudentProfileFormState,
   getStudentCreateFinanceBlockReason,
   localizeStudentGenderOptions,
+  resolveDefaultAcademicYearId,
   resolveDefaultNationalityId,
+  syncActualJoinDateFromAdmission,
   todayIsoDate,
   validateStudentCreateEnrollmentClass,
   validateStudentCreateForm,
@@ -187,6 +187,17 @@ export function StudentCreateForm({
 
     if (!merged.admissionDate.trim()) {
       merged = { ...merged, admissionDate: todayIsoDate() };
+    }
+
+    if (!merged.academicYearId.trim()) {
+      merged = {
+        ...merged,
+        academicYearId: resolveDefaultAcademicYearId(options?.academicYears ?? []),
+      };
+    }
+
+    if (!merged.actualJoinDate.trim() && merged.admissionDate.trim()) {
+      merged = { ...merged, actualJoinDate: merged.admissionDate };
     }
 
     if (!merged.emergencyRelationship.trim()) {
@@ -433,7 +444,18 @@ export function StudentCreateForm({
       return;
     }
 
-    patch(patchStudentProfileFromIntake(intakePatch));
+    const profilePatch = patchStudentProfileFromIntake(intakePatch);
+    const syncedJoinDate =
+      intakePatch.admissionDate != null
+        ? syncActualJoinDateFromAdmission(
+            intakePatch.admissionDate,
+            state.admissionDate,
+            state.actualJoinDate,
+          )
+        : undefined;
+    patch(
+      syncedJoinDate != null ? { ...profilePatch, actualJoinDate: syncedJoinDate } : profilePatch,
+    );
     finishGuardianLinkState(intakePatch);
   }
 
@@ -1115,7 +1137,9 @@ export function StudentCreateForm({
               {t('admin.student360.create.errors.classOptionalWithoutFinanceHint')}
             </p>
           ) : null}
+          <div className="student-create-enrollment">
           <EnrollmentIntakeAcademicFields
+            variant="studentCreate"
             values={intakeValues}
             errors={intakeErrorsFromStudentProfile(fieldErrors)}
             onPatch={handleIntakePatch}
@@ -1147,26 +1171,19 @@ export function StudentCreateForm({
                     ? t('admin.student360.create.noClassesForLevel')
                     : undefined,
               streamRequired: showStreamField,
+              activeSchoolId: resolvedSchoolId,
+              showClassSummary: true,
             }}
           />
           <EnrollmentIntakeRegistrationFields
+            variant="studentCreate"
             values={intakeValues}
             errors={intakeErrorsFromStudentProfile(fieldErrors)}
             onPatch={handleIntakePatch}
             registrationTypes={options?.registrationTypes ?? []}
             optionsLoading={optionsState.loading}
           />
-          <EnrollmentIntakeFollowUpFields
-            values={intakeValues}
-            onPatch={handleIntakePatch}
-            followUp={{
-              sources: (admissionOptionsState.options?.sources ?? []).map((source) => ({
-                id: admissionOptionId(source) ?? undefined,
-                label: source.label,
-              })),
-              sourcesLoading: admissionOptionsState.loading,
-            }}
-          />
+          </div>
         </StudentCreateStyledSection>
       ) : null}
 

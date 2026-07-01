@@ -67,6 +67,8 @@ export interface StudentSummary extends StudentNameFields {
   siblings_summary?: string | null;
   sibling_lines?: SiblingLine[] | null;
   departure_reason?: string | null;
+  notes?: string | null;
+  active?: boolean | null;
   email?: string | null;
   phone?: string | null;
   mobile?: string | null;
@@ -291,7 +293,7 @@ export interface StudentOptions {
   bloodTypes: StudentRefOption[];
   nationalities: StudentNationalityOption[];
   schools: { id: number; name: string }[];
-  academicYears: { id: number; name: string; code?: string | null }[];
+  academicYears: { id: number; name: string; code?: string | null; is_current?: boolean }[];
   levels: StudentLevelOption[];
   classes: StudentClassOption[];
 }
@@ -330,6 +332,8 @@ export interface StudentCreatePayload {
   status?: string;
   admission_date?: string;
   departure_reason?: string;
+  active?: boolean;
+  notes?: string;
   phone?: string;
   mobile?: string;
   email?: string;

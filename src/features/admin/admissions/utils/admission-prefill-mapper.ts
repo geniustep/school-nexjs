@@ -147,7 +147,10 @@ export function mapAdmissionPrefillToStudentProfile(
     streamId: idStr(academic.requested_stream_id),
     classId: idStr(academic.requested_class_id),
     registrationType: str(admission.registration_type) || 'new',
-    actualJoinDate: str(admission.actual_join_date),
+    actualJoinDate:
+      str(admission.actual_join_date) ||
+      str(student.admission_date) ||
+      str(admission.admission_date),
     isRepeating: parseExtraFieldBool(admission.is_repeating),
     registrationNotes: prefillRegistrationNotes,
     sourceId: idStr(admission.source_id),
