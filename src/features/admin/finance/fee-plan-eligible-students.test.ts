@@ -173,6 +173,6 @@ describe('assign flow integration contract', () => {
       path.join(process.cwd(), 'src/features/admin/finance/fee-plans/fee-plan-detail-view.tsx'),
       'utf8',
     );
-    expect(detail).toContain('detailMonthlyInstallmentCount');
+    expect(detail).toContain('detailExpectedMonthlyInstallment');
   });
 });

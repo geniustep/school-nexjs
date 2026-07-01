@@ -34,7 +34,7 @@ describe('staff-password-utils', () => {
     );
     expect(mismatch.valid).toBe(false);
     expect(mismatch.errors.confirmPassword).toBe(
-      'admin.academicSetup.staffPassword.errors.passwordMismatch',
+      'admin.academicSetup.staffPassword.errors.confirmPasswordMismatchHint',
     );
   });
 

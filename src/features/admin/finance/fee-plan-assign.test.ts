@@ -326,7 +326,7 @@ describe('filterFeePlansForAcademicYear', () => {
 describe('fee plan assign errors', () => {
   it('maps fee_plan_already_assigned', () => {
     expect(feePlanAssignErrorMessageKey('fee_plan_already_assigned')).toBe(
-      'admin.finance.assignErrors.feePlanAlreadyAssigned',
+      'admin.finance.assignErrors.feesAlreadyAssignedFallback',
     );
   });
 

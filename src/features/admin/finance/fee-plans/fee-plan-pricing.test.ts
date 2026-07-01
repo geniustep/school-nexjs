@@ -163,7 +163,9 @@ describe('computePlanFinancialBreakdown preview 22500', () => {
 describe('resolveAssignErrorMessage', () => {
   it('maps duplicate business_error to Arabic key path', () => {
     const message = resolveAssignErrorMessage('business_error', 'Fee plan already assigned to student', (key) =>
-      key === 'admin.finance.assignErrors.feePlanAlreadyAssigned' ? 'تم تطبيق هذه الخطة على التلميذ سابقًا.' : key,
+      key === 'admin.finance.assignErrors.feesAlreadyAssignedFallback'
+        ? 'تم تطبيق هذه الخطة على التلميذ سابقًا.'
+        : key,
     );
     expect(message).toBe('تم تطبيق هذه الخطة على التلميذ سابقًا.');
   });

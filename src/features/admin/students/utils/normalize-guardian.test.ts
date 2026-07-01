@@ -21,7 +21,10 @@ describe('normalizeGuardianSummary', () => {
       partner_id: undefined,
       person_id: undefined,
       teacher_id: null,
+      staff_id: null,
       user_id: null,
+      guardian_links_count: undefined,
+      linked_students_count: 2,
       name: 'QA Parent',
       phone: '0612345678',
       secondary_phone: null,
@@ -31,6 +34,7 @@ describe('normalizeGuardianSummary', () => {
       children_count: 2,
       existing_roles: undefined,
       role_labels: undefined,
+      has_user: false,
       has_user_account: false,
       has_account: false,
     });
