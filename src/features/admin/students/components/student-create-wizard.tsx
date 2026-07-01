@@ -1188,13 +1188,13 @@ export function StudentCreateForm({
       ) : null}
 
       {step === 'finance' ? (
-        <>
+        <div className="student-create-finance-flow">
           {financeError && !skipFinance ? (
-            <p className="student-create-form__notice" role="alert">
+            <p className="student-create-form__notice student-create-finance-flow__alert" role="alert">
               {financeError}
             </p>
           ) : null}
-          <div className="student-create-form__skip-finance">
+          <div className="student-create-finance-skip-card">
             <label className="student-create-form__checkbox">
               <input
                 type="checkbox"
@@ -1207,14 +1207,14 @@ export function StudentCreateForm({
               />
               <span className="student-create-form__checkbox-text">
                 <span>{t('admin.student360.create.finance.skipFinanceToggle')}</span>
-                <span className="tiny muted">
+                <span className="student-create-field__hint">
                   {t('admin.student360.create.finance.skipFinanceHint')}
                 </span>
               </span>
             </label>
           </div>
           {skipFinance ? (
-            <p className="student-create-form__notice" role="status">
+            <p className="student-create-form__notice student-create-finance-flow__skipped" role="status">
               {t('admin.student360.create.finance.skipFinanceActive')}
             </p>
           ) : (
@@ -1239,13 +1239,13 @@ export function StudentCreateForm({
               onRetry={suggestState.reload}
             />
           )}
-        </>
+        </div>
       ) : null}
 
       {step === 'review' ? (
-        <>
+        <div className="student-create-review-flow-wrap">
           {financeError ? (
-            <p className="student-create-form__notice" role="alert">
+            <p className="student-create-form__notice student-create-review-flow-wrap__alert" role="alert">
               {financeError}
             </p>
           ) : null}
@@ -1264,7 +1264,7 @@ export function StudentCreateForm({
             enrollmentClassLabel={enrollmentClassLabel}
             schoolId={resolvedSchoolId}
           />
-        </>
+        </div>
       ) : null}
 
       <div className="student-create-form__actions">

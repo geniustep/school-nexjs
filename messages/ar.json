@@ -4134,6 +4134,9 @@
           "guardianSourceSearchingTitle": "جارٍ التحقق"
         },
         "finance": {
+          "stagePlan": "الخطة المقترحة",
+          "stageBreakdown": "تفاصيل الاشتراك",
+          "stageCustomize": "تخصيص اختياري",
           "loading": "جارٍ اقتراح الخطة المالية…",
           "waitingEnrollment": "أكمل التسجيل الأكاديمي لاقتراح الخطة المالية.",
           "waitingJoinDate": "حدد تاريخ الالتحاق الفعلي لاقتراح الخطة المالية.",
@@ -4252,6 +4255,8 @@
         },
         "review": {
           "title": "المراجعة النهائية",
+          "stageStudent": "ملخص التلميذ",
+          "stageFinance": "ملخص الخطة المالية",
           "studentOverview": "نظرة عامة على التلميذ",
           "student": "التلميذ",
           "enrollmentDate": "تاريخ الالتحاق",

@@ -369,7 +369,7 @@ export function StudentCreateFeePlanSection({
       icon="finance"
       title={t('admin.student360.create.finance.suggestedPlanTitle')}
       lead={performanceWindow ?? t('admin.student360.create.financeStepLead')}
-      className="student-create-fee-plan"
+      className={`student-create-fee-plan${financeState.customizePlan ? ' student-create-fee-plan--customizing' : ''}`}
     >
       {planChangeWarning ? (
         <p className="student-create-fee-plan__warning" role="status">
@@ -377,13 +377,17 @@ export function StudentCreateFeePlanSection({
         </p>
       ) : null}
 
-      <StudentCreateFinancePlanPicker
-        suggest={suggest}
-        financeState={financeState}
-        onSelectPlan={onSelectPlan}
-      />
+      <div
+        className="student-create-finance-stage student-create-finance-stage--plan"
+        data-stage-label={t('admin.student360.create.finance.stagePlan')}
+      >
+        <StudentCreateFinancePlanPicker
+          suggest={suggest}
+          financeState={financeState}
+          onSelectPlan={onSelectPlan}
+        />
 
-      <article className="student-create-fee-plan__hero">
+        <article className="student-create-fee-plan__hero student-create-finance-card student-create-finance-card--hero">
         <div className="student-create-fee-plan__hero-main">
           <p className="student-create-fee-plan__eyebrow">
             {t('admin.student360.create.steps.finance')}
@@ -438,11 +442,16 @@ export function StudentCreateFeePlanSection({
           ) : null}
         </div>
       </article>
+      </div>
 
-      <StudentCreateFinancePlanLines lines={planLines} currency={suggest.currency} />
-      <StudentCreateFinanceSummary summary={summary} lines={planLines} currency={suggest.currency} />
+      <div
+        className="student-create-finance-stage student-create-finance-stage--breakdown"
+        data-stage-label={t('admin.student360.create.finance.stageBreakdown')}
+      >
+        <StudentCreateFinancePlanLines lines={planLines} currency={suggest.currency} />
+        <StudentCreateFinanceSummary summary={summary} lines={planLines} currency={suggest.currency} />
 
-      <div className="student-create-fee-plan__periods-card">
+        <div className="student-create-fee-plan__periods-card student-create-finance-card">
         <div className="student-create-fee-plan__periods-head">
           <h3 className="student-create-fee-plan__subtitle">
             {t('admin.student360.create.finance.includedMonths')}
@@ -491,7 +500,7 @@ export function StudentCreateFeePlanSection({
       </div>
 
       {suggest.excluded_periods.length > 0 ? (
-        <div className="student-create-fee-plan__periods student-create-fee-plan__periods--excluded">
+        <div className="student-create-fee-plan__periods student-create-fee-plan__periods--excluded student-create-finance-card student-create-finance-card--subtle">
           <h3 className="student-create-fee-plan__subtitle">
             {t('admin.student360.create.finance.excludedMonths')}
           </h3>
@@ -504,8 +513,13 @@ export function StudentCreateFeePlanSection({
           </ul>
         </div>
       ) : null}
+      </div>
 
-      <div className="student-create-fee-plan__customize-box">
+      <div
+        className={`student-create-finance-stage student-create-finance-stage--customize${financeState.customizePlan ? ' student-create-finance-stage--active' : ''}`}
+        data-stage-label={t('admin.student360.create.finance.stageCustomize')}
+      >
+      <div className="student-create-fee-plan__customize-box student-create-finance-card">
         <label className="student-create-form__checkbox student-create-fee-plan__customize-toggle">
           <input
             type="checkbox"
@@ -551,6 +565,7 @@ export function StudentCreateFeePlanSection({
           currency={suggest.currency}
         />
       ) : null}
+      </div>
     </StudentCreateStyledSection>
   );
 }

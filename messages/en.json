@@ -4107,6 +4107,9 @@
           "guardianSourceSearchingTitle": "Checking"
         },
         "finance": {
+          "stagePlan": "Suggested plan",
+          "stageBreakdown": "Subscription details",
+          "stageCustomize": "Optional customization",
           "loading": "Suggesting fee plan…",
           "waitingEnrollment": "Complete academic enrollment to suggest a fee plan.",
           "waitingJoinDate": "Set the actual join date to suggest a fee plan.",
@@ -4225,6 +4228,8 @@
         },
         "review": {
           "title": "Final review",
+          "stageStudent": "Student summary",
+          "stageFinance": "Finance summary",
           "studentOverview": "Student overview",
           "student": "Pupil",
           "enrollmentDate": "Enrollment date",

@@ -4102,6 +4102,9 @@
           "guardianSourceSearchingTitle": "Vérification en cours"
         },
         "finance": {
+          "stagePlan": "Plan proposé",
+          "stageBreakdown": "Détails de l'abonnement",
+          "stageCustomize": "Personnalisation optionnelle",
           "loading": "Suggestion du plan de frais…",
           "waitingEnrollment": "Complétez l'inscription académique pour suggérer un plan.",
           "waitingJoinDate": "Indiquez la date d'entrée effective pour suggérer un plan.",
@@ -4220,6 +4223,8 @@
         },
         "review": {
           "title": "Revue finale",
+          "stageStudent": "Résumé de l'élève",
+          "stageFinance": "Résumé financier",
           "studentOverview": "Aperçu de l'élève",
           "student": "Élève",
           "enrollmentDate": "Date d'inscription",

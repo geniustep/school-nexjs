@@ -9657,6 +9657,811 @@
   font-size: 0.875rem;
 }
 
+/* ── Student create — finance step (simplified card flow) ── */
+.student-create-finance-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.student-create-finance-flow__alert,
+.student-create-finance-flow__skipped {
+  margin: 0 var(--sc-panel-pad);
+}
+
+.student-create-finance-skip-card {
+  margin: 0 var(--sc-panel-pad);
+  padding: 12px 14px;
+  border: 1px dashed color-mix(in srgb, var(--c-amber) 35%, var(--c-border));
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--c-amber) 5%, var(--c-surface));
+}
+
+.student-create-finance-skip-card .student-create-form__checkbox-text {
+  gap: 2px;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__section--finance {
+  border: 1px solid color-mix(in srgb, var(--c-amber) 22%, var(--c-border));
+  border-radius: var(--radius);
+  background: var(--c-surface);
+  overflow: hidden;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__section--finance .student-create-form__section-body {
+  padding: 0 0 14px;
+  gap: 0;
+}
+
+.student-create-fee-plan {
+  counter-reset: finance-stage;
+  gap: 10px;
+}
+
+.student-create-finance-stage {
+  counter-increment: finance-stage;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0 var(--sc-panel-pad);
+  padding: 38px 14px 14px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  background: var(--c-surface-2);
+}
+
+.student-create-finance-stage::before {
+  content: counter(finance-stage);
+  position: absolute;
+  top: 10px;
+  inset-inline-start: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.375rem;
+  height: 1.375rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--c-amber) 16%, #fff);
+  border: 1px solid color-mix(in srgb, var(--c-amber) 35%, var(--c-border));
+  color: color-mix(in srgb, var(--c-amber) 85%, #000);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.student-create-finance-stage::after {
+  position: absolute;
+  top: 12px;
+  inset-inline-start: 2.75rem;
+  font-size: 0.75rem;
+  font-weight: 650;
+  color: var(--c-text-body);
+  line-height: 1.2;
+}
+
+.student-create-finance-stage--plan::after {
+  content: attr(data-stage-label);
+}
+
+.student-create-finance-stage--breakdown::after {
+  content: attr(data-stage-label);
+}
+
+.student-create-finance-stage--customize::after {
+  content: attr(data-stage-label);
+}
+
+.student-create-finance-card {
+  padding: 12px 14px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  background: var(--c-surface);
+}
+
+.student-create-finance-card--hero {
+  padding: 14px 16px;
+  border-color: color-mix(in srgb, var(--c-amber) 28%, var(--c-border));
+  background: color-mix(in srgb, var(--c-amber) 4%, var(--c-surface));
+}
+
+.student-create-finance-card--subtle {
+  background: color-mix(in srgb, var(--c-surface-2) 80%, var(--c-surface));
+}
+
+.student-create-finance-card--preview {
+  border-color: color-mix(in srgb, var(--c-green) 30%, var(--c-border));
+  background: color-mix(in srgb, var(--c-green) 5%, var(--c-surface));
+}
+
+.student-create-finance-stage > .student-create-finance-card,
+.student-create-finance-stage > .student-create-finance-plan-picker,
+.student-create-finance-stage > .student-create-finance-lines,
+.student-create-finance-stage > .student-create-finance-summary,
+.student-create-finance-stage > .student-create-finance-preview,
+.student-create-finance-stage > .student-create-fee-plan__periods-card,
+.student-create-finance-stage > .student-create-fee-plan__periods--excluded,
+.student-create-finance-stage > .student-create-fee-plan__customize-box {
+  margin: 0;
+}
+
+.student-create-finance-stage--plan .student-create-finance-plan-picker {
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.student-create-finance-stage--plan .student-create-finance-plan-picker__head p {
+  display: none;
+}
+
+.student-create-finance-stage--plan .student-create-finance-plan-picker__head {
+  margin-bottom: 6px;
+}
+
+.student-create-finance-stage--plan .student-create-finance-plan-picker__list {
+  margin-bottom: 0;
+}
+
+.student-create-fee-plan:not(.student-create-fee-plan--customizing) .student-create-finance-summary {
+  display: none;
+}
+
+.student-create-fee-plan--customizing .student-create-fee-plan__periods-card {
+  display: none;
+}
+
+.student-create-fee-plan__hero {
+  display: grid;
+  gap: 12px;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+}
+
+.student-create-fee-plan__eyebrow {
+  color: color-mix(in srgb, var(--c-amber) 80%, #000);
+}
+
+.student-create-fee-plan__plan-id {
+  border-color: color-mix(in srgb, var(--c-amber) 25%, var(--c-border));
+  background: var(--c-surface);
+  color: var(--c-text-muted);
+}
+
+.student-create-fee-plan__plan-name {
+  font-size: 1.0625rem;
+  color: var(--c-text);
+}
+
+.student-create-fee-plan__tag {
+  background: var(--c-surface);
+  border-color: var(--c-border);
+  color: var(--c-text-muted);
+}
+
+.student-create-fee-plan__total-value {
+  color: color-mix(in srgb, var(--c-green) 75%, #000);
+}
+
+.student-create-fee-plan__stats {
+  gap: 8px;
+}
+
+.student-create-fee-plan__stat {
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--c-surface);
+  border-color: var(--c-border);
+}
+
+.student-create-fee-plan__periods-card {
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.student-create-fee-plan__periods-head {
+  margin-bottom: 10px;
+}
+
+.student-create-fee-plan__periods-count {
+  background: color-mix(in srgb, var(--c-green) 12%, var(--c-surface));
+  color: var(--c-green);
+}
+
+.student-create-fee-plan__period-grid {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  padding-bottom: 2px;
+  scrollbar-width: thin;
+}
+
+.student-create-fee-plan__period-chip {
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  border-color: color-mix(in srgb, var(--c-green) 22%, var(--c-border));
+  background: var(--c-surface);
+}
+
+.student-create-fee-plan__period-chip--off {
+  opacity: 0.55;
+  border-color: var(--c-border);
+  background: var(--c-surface-2);
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-fee-plan__periods-card {
+  padding: 8px 10px;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-fee-plan__periods-head {
+  margin-bottom: 6px;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-fee-plan__period-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  font-size: 0.625rem;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-fee-plan__period-body {
+  flex-direction: row;
+  align-items: center;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-fee-plan__period-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-fee-plan__period-due,
+.student-create-page:not(.admissions-create-page) .student-create-fee-plan__period-amount {
+  display: none;
+}
+
+.student-create-fee-plan__customize-box {
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.student-create-finance-stage--customize:not(.student-create-finance-stage--active) {
+  border-style: dashed;
+  background: transparent;
+}
+
+.student-create-fee-plan--customizing .student-create-finance-stage--customize {
+  border-style: solid;
+  background: var(--c-surface-2);
+}
+
+.student-create-finance-plan-picker__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.student-create-finance-plan-picker__card {
+  min-height: 100%;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border-color: var(--c-border);
+  background: var(--c-surface);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.student-create-finance-plan-picker__card:hover {
+  border-color: color-mix(in srgb, var(--c-amber) 40%, var(--c-border));
+}
+
+.student-create-finance-plan-picker__card--selected {
+  border-color: color-mix(in srgb, var(--c-amber) 50%, var(--c-border));
+  background: color-mix(in srgb, var(--c-amber) 6%, var(--c-surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c-amber) 18%, transparent);
+}
+
+.student-create-finance-lines__grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.student-create-finance-lines__card {
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border-color: var(--c-border);
+  background: var(--c-surface);
+}
+
+.student-create-finance-lines__amount {
+  font-size: 0.9375rem;
+  font-weight: 650;
+  margin: 0;
+}
+
+.student-create-finance-summary__grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 130px), 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.student-create-finance-summary__row {
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--c-border);
+  background: var(--c-surface);
+}
+
+.student-create-finance-summary__row--emphasis {
+  border-color: color-mix(in srgb, var(--c-green) 35%, var(--c-border));
+  background: color-mix(in srgb, var(--c-green) 8%, var(--c-surface));
+}
+
+.student-create-fee-plan__customize-panel {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--c-border);
+}
+
+.student-create-finance-customize-modes__list {
+  gap: 6px;
+}
+
+.student-create-finance-customize-modes__chip {
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 0.75rem;
+}
+
+.student-create-fee-plan__candidate-cards {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 10px;
+}
+
+.student-create-fee-plan__candidate-card {
+  border-radius: var(--radius-sm);
+  border-color: var(--c-border);
+  background: var(--c-surface);
+}
+
+.student-create-fee-plan__candidate-card--selected {
+  border-color: color-mix(in srgb, var(--c-amber) 45%, var(--c-border));
+  background: color-mix(in srgb, var(--c-amber) 6%, var(--c-surface));
+}
+
+.student-create-finance-stage--plan .student-create-fee-plan__eyebrow {
+  display: none;
+}
+
+.student-create-finance-card > .student-create-fee-plan__subtitle {
+  font-size: 0.8125rem;
+  color: var(--c-text-muted);
+  margin-bottom: 8px;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-finance-stage {
+  margin-inline: var(--sc-panel-pad);
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__skip-finance {
+  display: none;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-finance-stage::after {
+  max-width: calc(100% - 3.5rem);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-fee-plan__warning {
+  margin: 0 var(--sc-panel-pad) 4px;
+}
+
+/* ── Student create — review step (numbered stage flow) ── */
+.student-create-review-flow-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.student-create-review-flow-wrap__alert {
+  margin: 0 var(--sc-panel-pad);
+}
+
+.student-create-review-flow {
+  counter-reset: review-stage;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.student-create-review-flow__alerts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 var(--sc-panel-pad);
+}
+
+.student-create-review-flow__footnote {
+  margin: 0 var(--sc-panel-pad);
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__section--review {
+  border: 1px solid color-mix(in srgb, var(--c-green) 22%, var(--c-border));
+  border-radius: var(--radius);
+  background: var(--c-surface);
+  overflow: hidden;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-form__section--review .student-create-form__section-body {
+  padding: 0 0 14px;
+  gap: 0;
+}
+
+.student-create-review-stage {
+  counter-increment: review-stage;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0 var(--sc-panel-pad);
+  padding: 38px 14px 14px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  background: var(--c-surface-2);
+}
+
+.student-create-review-stage::before {
+  content: counter(review-stage);
+  position: absolute;
+  top: 10px;
+  inset-inline-start: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.375rem;
+  height: 1.375rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--c-green) 16%, #fff);
+  border: 1px solid color-mix(in srgb, var(--c-green) 35%, var(--c-border));
+  color: color-mix(in srgb, var(--c-green) 85%, #000);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.student-create-review-stage::after {
+  content: attr(data-stage-label);
+  position: absolute;
+  top: 12px;
+  inset-inline-start: 2.75rem;
+  font-size: 0.75rem;
+  font-weight: 650;
+  color: var(--c-text-body);
+  line-height: 1.2;
+}
+
+.student-create-review-card {
+  padding: 12px 14px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  background: var(--c-surface);
+}
+
+.student-create-review-card--student {
+  border-color: color-mix(in srgb, var(--c-info) 24%, var(--c-border));
+  background: color-mix(in srgb, var(--c-info) 4%, var(--c-surface));
+}
+
+.student-create-review-card--finance {
+  border-color: color-mix(in srgb, var(--c-green) 28%, var(--c-border));
+  background: color-mix(in srgb, var(--c-green) 4%, var(--c-surface));
+}
+
+.student-create-review-hero {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-block-end: 1px solid color-mix(in srgb, var(--c-border) 75%, transparent);
+}
+
+.student-create-review-hero__eyebrow {
+  margin: 0 0 4px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--c-text-muted);
+}
+
+.student-create-review-hero__name {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--c-text-body);
+}
+
+.student-create-review-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px 14px;
+  margin: 0;
+}
+
+.student-create-review-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.student-create-review-stat dt {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--c-text-muted);
+}
+
+.student-create-review-stat dd {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--c-text-body);
+}
+
+.student-create-review-finance-hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px 16px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-block-end: 1px solid color-mix(in srgb, var(--c-border) 75%, transparent);
+}
+
+.student-create-review-finance-hero__main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1 1 200px;
+}
+
+.student-create-review-finance-hero__label {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--c-text-muted);
+}
+
+.student-create-review-finance-hero__name {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 650;
+  line-height: 1.35;
+  color: var(--c-text-body);
+}
+
+.student-create-review-finance-hero__id {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--c-text-muted);
+}
+
+.student-create-review-badge {
+  display: inline-flex;
+  align-self: flex-start;
+  margin-top: 2px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--c-green);
+  background: var(--c-green-soft);
+  border: 1px solid color-mix(in srgb, var(--c-green) 28%, transparent);
+}
+
+.student-create-review-badge--custom {
+  color: var(--c-amber);
+  background: color-mix(in srgb, var(--c-amber) 10%, var(--c-surface));
+  border-color: color-mix(in srgb, var(--c-amber) 30%, transparent);
+}
+
+.student-create-review-finance-hero__total {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  margin: 0;
+  text-align: end;
+}
+
+.student-create-review-finance-hero__total-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--c-text-muted);
+}
+
+.student-create-review-finance-hero__total-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--c-green);
+  line-height: 1.2;
+}
+
+.student-create-review-totals {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0 0 10px;
+}
+
+.student-create-review-totals__row {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) auto;
+  gap: 8px 16px;
+  padding: 7px 0;
+  border-block-end: 1px solid color-mix(in srgb, var(--c-border) 65%, transparent);
+}
+
+.student-create-review-totals__row:last-child {
+  border-block-end: none;
+  padding-block-end: 0;
+}
+
+.student-create-review-totals__row dt {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--c-text-muted);
+}
+
+.student-create-review-totals__row dd {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: end;
+  color: var(--c-text-body);
+}
+
+.student-create-review-meta {
+  margin: 0 0 8px;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--c-text-body);
+}
+
+.student-create-review-meta:last-child {
+  margin-bottom: 0;
+}
+
+.student-create-review-meta__label {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--c-text-muted);
+}
+
+.student-create-review-meta--installments .student-create-review-meta__label {
+  margin-bottom: 4px;
+}
+
+.student-create-review-meta__sep {
+  margin-inline: 6px;
+  color: var(--c-text-muted);
+}
+
+.student-create-review-customization {
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--c-amber) 22%, var(--c-border));
+  background: color-mix(in srgb, var(--c-amber) 5%, var(--c-surface));
+}
+
+.student-create-review-customization__title {
+  margin: 0 0 6px;
+  font-size: 0.75rem;
+  font-weight: 650;
+  color: var(--c-text-muted);
+}
+
+.student-create-review-customization__list {
+  margin: 0;
+  padding-inline-start: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--c-text-body);
+}
+
+.student-create-review-card .student-create-review__alert {
+  margin-bottom: 10px;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-review-stage {
+  margin-inline: var(--sc-panel-pad);
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-review-stage::after {
+  max-width: calc(100% - 3.5rem);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-review-stats {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px 10px;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-review-stat dt {
+  font-size: 0.625rem;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-review-stat dd {
+  font-size: 0.8125rem;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-review-hero__name {
+  font-size: 1rem;
+}
+
+.student-create-page:not(.admissions-create-page) .student-create-review-finance-hero__total-value {
+  font-size: 1.125rem;
+}
+
+@media (max-width: 640px) {
+  .student-create-review-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .student-create-review-finance-hero__total {
+    align-items: flex-start;
+    text-align: start;
+  }
+
+  .student-create-review-totals__row {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+
+  .student-create-review-totals__row dd {
+    text-align: start;
+  }
+}
+
+[dir='rtl'] .student-create-review-stat,
+[dir='rtl'] .student-create-review-totals__row {
+  text-align: right;
+}
+
+[dir='rtl'] .student-create-review-finance-hero__total {
+  align-items: flex-start;
+  text-align: start;
+}
+
 .nationality-combobox {
   position: relative;
 }
@@ -9795,8 +10600,8 @@
     grid-template-columns: 1fr;
   }
 
-  .student-create-fee-plan__period-grid {
-    grid-template-columns: 1fr;
+  .student-create-page:not(.admissions-create-page) .student-create-fee-plan__period-grid {
+    flex-wrap: nowrap;
   }
 }
 

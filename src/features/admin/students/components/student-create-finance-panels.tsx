@@ -113,7 +113,7 @@ export function StudentCreateFinancePlanPicker({
   const selectedId = financeState.selectedFeePlanId ?? suggest.fee_plan_id;
 
   return (
-    <section className="student-create-finance-plan-picker">
+    <section className="student-create-finance-plan-picker student-create-finance-card">
       <div className="student-create-finance-plan-picker__head">
         <h3 className="student-create-fee-plan__subtitle">{t('admin.student360.create.finance.planChoiceTitle')}</h3>
         <p className="tiny muted">
@@ -165,7 +165,7 @@ export function StudentCreateFinancePlanLines({
   if (lines.length === 0) return null;
 
   return (
-    <section className="student-create-finance-lines">
+    <section className="student-create-finance-lines student-create-finance-card">
       <h3 className="student-create-fee-plan__subtitle">{t('admin.student360.create.finance.planLinesTitle')}</h3>
       <div className="student-create-finance-lines__grid">
         {lines.map((line) => {
@@ -226,7 +226,7 @@ export function StudentCreateFinanceSummary({
   if (rows.length === 0) return null;
 
   return (
-    <section className="student-create-finance-summary">
+    <section className="student-create-finance-summary student-create-finance-card student-create-finance-card--subtle">
       <h3 className="student-create-fee-plan__subtitle">{t('admin.student360.create.finance.summaryTitle')}</h3>
       <dl className="student-create-finance-summary__grid">
         {rows.map((row) => (
@@ -255,7 +255,7 @@ export function StudentCreateFinancePreview({
   const { locale } = useLocale();
 
   return (
-    <section className="student-create-finance-preview" aria-live="polite">
+    <section className="student-create-finance-preview student-create-finance-card student-create-finance-card--preview" aria-live="polite">
       <h3 className="student-create-fee-plan__subtitle">{t('admin.student360.create.finance.previewTitle')}</h3>
       {error ? <p className="student-create-finance-preview__error">{error}</p> : null}
       {loading ? <p className="tiny muted">{t('admin.student360.create.finance.previewLoading')}</p> : null}

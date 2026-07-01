@@ -4102,6 +4102,9 @@
           "guardianSourceSearchingTitle": "Comprobando"
         },
         "finance": {
+          "stagePlan": "Plan sugerido",
+          "stageBreakdown": "Detalles de la suscripción",
+          "stageCustomize": "Personalización opcional",
           "loading": "Sugiriendo plan de tasas…",
           "waitingEnrollment": "Complete la matrícula académica para sugerir un plan.",
           "waitingJoinDate": "Indique la fecha real de ingreso para sugerir un plan.",
@@ -4220,6 +4223,8 @@
         },
         "review": {
           "title": "Revisión final",
+          "stageStudent": "Resumen del alumno",
+          "stageFinance": "Resumen financiero",
           "studentOverview": "Resumen del alumno",
           "student": "Alumno",
           "enrollmentDate": "Fecha de ingreso",
