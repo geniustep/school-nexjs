@@ -2151,19 +2151,52 @@
           "accept_early_payments": "Accepter paiement anticipé"
         },
         "admission": {
-          "create": "Créer",
-          "view": "Voir",
-          "manage": "Gérer",
-          "evaluate": "Évaluer",
-          "schedule": "Planifier",
-          "offer": "Proposer",
-          "prefill": "Préremplir",
-          "link_student": "Lier élève",
-          "decide": "Décider"
+          "create": "Créer une demande d'inscription",
+          "view": "Voir les demandes d'inscription",
+          "manage": "Gérer les demandes d'inscription",
+          "evaluate": "Évaluer une demande d'inscription",
+          "schedule": "Planifier un rendez-vous d'inscription",
+          "offer": "Émettre une offre d'inscription",
+          "prefill": "Préremplir une demande d'inscription",
+          "link_student": "Lier un élève à une demande d'inscription",
+          "decide": "Décider d'une demande d'inscription"
+        },
+        "student": {
+          "create": "Créer un élève",
+          "update_limited": "Modification limitée des données de l'élève",
+          "link_to_student": "Lier un élève à une demande d'inscription",
+          "unlink_from_student": "Délier l'élève de la demande",
+          "link_guardians": "Lier des parents à un élève",
+          "manage_guardian_links": "Gérer les liens élève–parents",
+          "manage_registration_data": "Gérer les données d'inscription de l'élève",
+          "manage_approvals": "Gérer les validations des élèves",
+          "view_approvals": "Voir les validations des élèves",
+          "manage_documents": "Gérer les documents des élèves",
+          "view_documents": "Voir les documents des élèves",
+          "manage_health": "Gérer les dossiers santé des élèves",
+          "view_health": "Voir les dossiers santé des élèves"
+        },
+        "students": {
+          "import": "Import groupé des élèves",
+          "create": "Créer un élève"
         },
         "guardian": {
-          "delete_permanently": "Supprimer définitivement"
-        }
+          "delete_permanently": "Supprimer définitivement le profil parent",
+          "create": "Créer un parent",
+          "link_to_student": "Lier un parent à un élève",
+          "unlink_from_student": "Délier le parent de l'élève",
+          "update_limited": "Modifier les parents (champs de contact limités)"
+        },
+        "school": {
+          "manage_branding": "Gérer l'identité visuelle de l'établissement"
+        },
+        "link_to_student": "Lier un élève à une demande d'inscription",
+        "unlink_from_student": "Délier l'élève de la demande",
+        "update_limited": "Modification limitée des données",
+        "link_guardians": "Lier des parents à un élève",
+        "manage_registration_data": "Gérer les données d'inscription de l'élève",
+        "manage_student_guardian_links": "Gérer les liens élève–parents",
+        "manage_branding": "Gérer l'identité visuelle de l'établissement"
       },
       "suggestReasons": {
         "teaches_subject": "Enseigne la matière",

@@ -45,7 +45,53 @@ const CAPABILITY_CODE_ALIASES: Record<string, string> = {
   'admission.offer': 'admission.offer',
   'admission.prefill': 'admission.prefill',
   'admission.link_student': 'admission.link_student',
+  'admission.decide': 'admission.decide',
   'guardian.delete_permanently': 'guardian.delete_permanently',
+  link_to_student: 'student.link_to_student',
+  unlink_from_student: 'student.unlink_from_student',
+  update_limited: 'student.update_limited',
+  link_guardians: 'student.link_guardians',
+  manage_registration_data: 'student.manage_registration_data',
+  manage_student_guardian_links: 'student.manage_guardian_links',
+  'student.manage_student_guardian_links': 'student.manage_guardian_links',
+  'students.bulk_import': 'students.import',
+  manage_branding: 'school.manage_branding',
+  'guardian.create': 'guardian.create',
+  'guardian.link_to_student': 'guardian.link_to_student',
+  'guardian.unlink_from_student': 'guardian.unlink_from_student',
+  'guardian.update_limited': 'guardian.update_limited',
+  create_guardians: 'guardian.create',
+  link_guardian_to_student: 'guardian.link_to_student',
+  unlink_guardian_from_student: 'guardian.unlink_from_student',
+  update_guardians_limited: 'guardian.update_limited',
+};
+
+/** English API labels → canonical translation path suffix. */
+const CAPABILITY_ENGLISH_LABEL_ALIASES: Record<string, string> = {
+  'link to student': 'student.link_to_student',
+  'unlink from student': 'student.unlink_from_student',
+  'update limited': 'student.update_limited',
+  'link guardians': 'student.link_guardians',
+  'manage registration data': 'student.manage_registration_data',
+  'manage student-guardian links': 'student.manage_guardian_links',
+  'manage student–guardian links': 'student.manage_guardian_links',
+  'manage branding': 'school.manage_branding',
+  'manage student documents': 'student.manage_documents',
+  'view student documents': 'student.view_documents',
+  'manage student health records': 'student.manage_health',
+  'view student health records': 'student.view_health',
+  'manage student approvals': 'student.manage_approvals',
+  'view student approvals': 'student.view_approvals',
+  'bulk import for students': 'students.import',
+  'create guardians': 'guardian.create',
+  'link guardian to student': 'guardian.link_to_student',
+  'unlink guardian from student': 'guardian.unlink_from_student',
+  'update guardians': 'guardian.update_limited',
+  'update guardians (limited contact fields)': 'guardian.update_limited',
+  'link guardians to students': 'student.link_guardians',
+  'manage student registration data': 'student.manage_registration_data',
+  'update students': 'student.update_limited',
+  'update students (limited registration fields)': 'student.update_limited',
 };
 
 export const SENSITIVE_CAPABILITY_CODES = new Set<string>([
@@ -94,6 +140,14 @@ function formatCategoryCodeLabel(categoryCode: string, locale: Locale): string {
   return formatCodeAsLabel(categoryCode, locale);
 }
 
+function capabilityCodeVariants(code: string): string[] {
+  const trimmed = code.trim();
+  const variants = new Set<string>([trimmed]);
+  if (trimmed.includes('_')) variants.add(trimmed.replace(/_/g, '.'));
+  if (trimmed.includes('.')) variants.add(trimmed.replace(/\./g, '_'));
+  return [...variants];
+}
+
 function capabilityTranslationKeys(code: string): string[] {
   const keys: string[] = [];
   const seen = new Set<string>();
@@ -104,21 +158,50 @@ function capabilityTranslationKeys(code: string): string[] {
     }
   };
 
-  push(`${CAPABILITY_KEY_PREFIX}.${code}`);
+  for (const variant of capabilityCodeVariants(code)) {
+    push(`${CAPABILITY_KEY_PREFIX}.${variant}`);
 
-  const alias = CAPABILITY_CODE_ALIASES[code];
-  if (alias) push(`${CAPABILITY_KEY_PREFIX}.${alias}`);
+    const alias = CAPABILITY_CODE_ALIASES[variant];
+    if (alias) push(`${CAPABILITY_KEY_PREFIX}.${alias}`);
 
-  if (code.includes('.')) {
-    const [prefix, ...rest] = code.split('.');
-    if (prefix === 'finance' && rest.length) {
-      push(`${CAPABILITY_KEY_PREFIX}.finance.${rest.join('.')}`);
+    if (variant.includes('.')) {
+      const [prefix, ...rest] = variant.split('.');
+      if (prefix === 'finance' && rest.length) {
+        push(`${CAPABILITY_KEY_PREFIX}.finance.${rest.join('.')}`);
+      }
+    } else if (variant.startsWith('finance_')) {
+      push(`${CAPABILITY_KEY_PREFIX}.finance.${variant.slice('finance_'.length)}`);
     }
-  } else if (code.startsWith('finance_')) {
-    push(`${CAPABILITY_KEY_PREFIX}.finance.${code.slice('finance_'.length)}`);
   }
 
   return keys;
+}
+
+function normalizeEnglishLabelKey(label: string): string {
+  return label
+    .trim()
+    .toLowerCase()
+    .replace(/[–—]/g, '-')
+    .replace(/\s*\([^)]*\)\s*/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function resolveCapabilityTranslation(locale: Locale, code: string, apiLabel?: string): string | undefined {
+  for (const key of capabilityTranslationKeys(code)) {
+    const translated = getMessage(MESSAGES[locale], key) ?? getMessage(MESSAGES.en, key);
+    if (translated) return translated;
+  }
+
+  const labelKey = apiLabel ? CAPABILITY_ENGLISH_LABEL_ALIASES[normalizeEnglishLabelKey(apiLabel)] : undefined;
+  if (labelKey) {
+    const translated =
+      getMessage(MESSAGES[locale], `${CAPABILITY_KEY_PREFIX}.${labelKey}`) ??
+      getMessage(MESSAGES.en, `${CAPABILITY_KEY_PREFIX}.${labelKey}`);
+    if (translated) return translated;
+  }
+
+  return undefined;
 }
 
 export function looksLikeEnglishLabel(label: string): boolean {
@@ -127,18 +210,26 @@ export function looksLikeEnglishLabel(label: string): boolean {
 
 export function resolveCapabilityLabel(
   locale: Locale,
-  cap: Pick<StaffCapabilityOption, 'code' | 'label'>,
+  cap: Pick<StaffCapabilityOption, 'code' | 'label' | 'category'>,
 ): string {
-  for (const key of capabilityTranslationKeys(cap.code)) {
-    const translated = getMessage(MESSAGES[locale], key) ?? getMessage(MESSAGES.en, key);
-    if (translated) return translated;
+  const apiLabel = cap.label?.trim() ?? '';
+  const translated = resolveCapabilityTranslation(locale, cap.code, apiLabel);
+  if (translated) return translated;
+
+  if (apiLabel && !looksLikeEnglishLabel(apiLabel)) {
+    return apiLabel;
   }
 
-  if (locale !== 'en' && cap.label && looksLikeEnglishLabel(cap.label)) {
-    return formatCodeAsLabel(cap.code, locale);
+  if (locale !== 'en' && apiLabel && looksLikeEnglishLabel(apiLabel)) {
+    const fromEnglishLabel = resolveCapabilityTranslation(locale, apiLabel.replace(/\s+/g, '_'), apiLabel);
+    if (fromEnglishLabel) return fromEnglishLabel;
   }
 
-  return cap.label?.trim() || formatCodeAsLabel(cap.code, locale);
+  if (apiLabel && looksLikeEnglishLabel(apiLabel) && locale === 'en') {
+    return apiLabel;
+  }
+
+  return apiLabel || formatCodeAsLabel(cap.code, locale);
 }
 
 export function resolveCapabilityCategoryLabel(

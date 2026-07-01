@@ -2178,19 +2178,52 @@
           "accept_early_payments": "قبول مبكر"
         },
         "admission": {
-          "create": "إنشاء",
-          "view": "عرض",
-          "manage": "إدارة",
-          "evaluate": "تقييم",
-          "schedule": "جدولة",
-          "offer": "عرض",
-          "prefill": "تعبئة مسبقة",
-          "link_student": "ربط تلميذ",
-          "decide": "قرار"
+          "create": "إنشاء طلب تسجيل",
+          "view": "عرض طلبات التسجيل",
+          "manage": "إدارة طلبات التسجيل",
+          "evaluate": "تقييم طلب تسجيل",
+          "schedule": "جدولة موعد تسجيل",
+          "offer": "إصدار عرض تسجيل",
+          "prefill": "تعبئة مسبقة لطلب تسجيل",
+          "link_student": "ربط تلميذ بطلب تسجيل",
+          "decide": "اتخاذ قرار بشأن طلب التسجيل"
+        },
+        "student": {
+          "create": "إنشاء تلميذ",
+          "update_limited": "تعديل محدود لبيانات التلميذ",
+          "link_to_student": "ربط تلميذ بطلب تسجيل",
+          "unlink_from_student": "فك ربط التلميذ من الطلب",
+          "link_guardians": "ربط أولياء أمور بتلميذ",
+          "manage_guardian_links": "إدارة روابط التلميذ وأولياء الأمور",
+          "manage_registration_data": "إدارة بيانات التسجيل الدراسي",
+          "manage_approvals": "إدارة موافقات التلاميذ",
+          "view_approvals": "عرض موافقات التلاميذ",
+          "manage_documents": "إدارة وثائق التلاميذ",
+          "view_documents": "عرض وثائق التلاميذ",
+          "manage_health": "إدارة الملفات الصحية للتلاميذ",
+          "view_health": "عرض الملفات الصحية للتلاميذ"
+        },
+        "students": {
+          "import": "استيراد جماعي للتلاميذ",
+          "create": "إنشاء تلميذ"
         },
         "guardian": {
-          "delete_permanently": "حذف نهائي"
-        }
+          "delete_permanently": "حذف ملف ولي الأمر نهائيًا",
+          "create": "إنشاء ولي أمر",
+          "link_to_student": "ربط ولي أمر بتلميذ",
+          "unlink_from_student": "فك ربط ولي الأمر عن التلميذ",
+          "update_limited": "تعديل محدود لبيانات اتصال ولي الأمر"
+        },
+        "school": {
+          "manage_branding": "إدارة هوية المؤسسة"
+        },
+        "link_to_student": "ربط تلميذ بطلب تسجيل",
+        "unlink_from_student": "فك ربط التلميذ من الطلب",
+        "update_limited": "تعديل محدود للبيانات",
+        "link_guardians": "ربط أولياء أمور بتلميذ",
+        "manage_registration_data": "إدارة بيانات التسجيل الدراسي",
+        "manage_student_guardian_links": "إدارة روابط التلميذ وأولياء الأمور",
+        "manage_branding": "إدارة هوية المؤسسة"
       },
       "suggestReasons": {
         "teaches_subject": "يدرّس المادة",

@@ -2151,19 +2151,52 @@
           "accept_early_payments": "Aceptar pago anticipado"
         },
         "admission": {
-          "create": "Crear",
-          "view": "Ver",
-          "manage": "Gestionar",
-          "evaluate": "Evaluar",
-          "schedule": "Programar",
-          "offer": "Ofrecer",
-          "prefill": "Rellenar",
-          "link_student": "Vincular alumno",
-          "decide": "Decidir"
+          "create": "Crear solicitud de inscripción",
+          "view": "Ver solicitudes de inscripción",
+          "manage": "Gestionar solicitudes de inscripción",
+          "evaluate": "Evaluar solicitud de inscripción",
+          "schedule": "Programar cita de inscripción",
+          "offer": "Emitir oferta de inscripción",
+          "prefill": "Rellenar solicitud de inscripción",
+          "link_student": "Vincular alumno a solicitud de inscripción",
+          "decide": "Decidir solicitud de inscripción"
+        },
+        "student": {
+          "create": "Crear alumno",
+          "update_limited": "Edición limitada de datos del alumno",
+          "link_to_student": "Vincular alumno a solicitud de inscripción",
+          "unlink_from_student": "Desvincular alumno de la solicitud",
+          "link_guardians": "Vincular tutores al alumno",
+          "manage_guardian_links": "Gestionar vínculos alumno–tutores",
+          "manage_registration_data": "Gestionar datos de inscripción del alumno",
+          "manage_approvals": "Gestionar aprobaciones de alumnos",
+          "view_approvals": "Ver aprobaciones de alumnos",
+          "manage_documents": "Gestionar documentos del alumno",
+          "view_documents": "Ver documentos del alumno",
+          "manage_health": "Gestionar fichas de salud del alumno",
+          "view_health": "Ver fichas de salud del alumno"
+        },
+        "students": {
+          "import": "Importación masiva de alumnos",
+          "create": "Crear alumno"
         },
         "guardian": {
-          "delete_permanently": "Eliminar permanentemente"
-        }
+          "delete_permanently": "Eliminar permanentemente el perfil del tutor",
+          "create": "Crear tutor",
+          "link_to_student": "Vincular tutor al alumno",
+          "unlink_from_student": "Desvincular tutor del alumno",
+          "update_limited": "Editar tutores (campos de contacto limitados)"
+        },
+        "school": {
+          "manage_branding": "Gestionar identidad visual del centro"
+        },
+        "link_to_student": "Vincular alumno a solicitud de inscripción",
+        "unlink_from_student": "Desvincular alumno de la solicitud",
+        "update_limited": "Edición limitada de datos",
+        "link_guardians": "Vincular tutores al alumno",
+        "manage_registration_data": "Gestionar datos de inscripción del alumno",
+        "manage_student_guardian_links": "Gestionar vínculos alumno–tutores",
+        "manage_branding": "Gestionar identidad visual del centro"
       },
       "suggestReasons": {
         "teaches_subject": "Imparte la asignatura",

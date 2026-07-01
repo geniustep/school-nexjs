@@ -2151,19 +2151,52 @@
           "accept_early_payments": "Accept early payments"
         },
         "admission": {
-          "create": "Create admission",
-          "view": "View admissions",
-          "manage": "Manage admissions",
-          "evaluate": "Evaluate admission",
-          "schedule": "Schedule admission",
-          "offer": "Offer admission",
-          "prefill": "Prefill admission",
-          "link_student": "Link student",
-          "decide": "Decide admission"
+          "create": "Create admission request",
+          "view": "View admission requests",
+          "manage": "Manage admission requests",
+          "evaluate": "Evaluate admission request",
+          "schedule": "Schedule admission appointment",
+          "offer": "Issue admission offer",
+          "prefill": "Prefill admission request",
+          "link_student": "Link student to admission request",
+          "decide": "Decide admission request"
+        },
+        "student": {
+          "create": "Create student",
+          "update_limited": "Limited student data update",
+          "link_to_student": "Link student to admission request",
+          "unlink_from_student": "Unlink student from request",
+          "link_guardians": "Link guardians to student",
+          "manage_guardian_links": "Manage student–guardian links",
+          "manage_registration_data": "Manage student registration data",
+          "manage_approvals": "Manage student approvals",
+          "view_approvals": "View student approvals",
+          "manage_documents": "Manage student documents",
+          "view_documents": "View student documents",
+          "manage_health": "Manage student health records",
+          "view_health": "View student health records"
+        },
+        "students": {
+          "import": "Bulk import students",
+          "create": "Create student"
         },
         "guardian": {
-          "delete_permanently": "Delete guardian permanently"
-        }
+          "delete_permanently": "Permanently delete guardian profile",
+          "create": "Create guardian",
+          "link_to_student": "Link guardian to student",
+          "unlink_from_student": "Unlink guardian from student",
+          "update_limited": "Update guardians (limited contact fields)"
+        },
+        "school": {
+          "manage_branding": "Manage school branding"
+        },
+        "link_to_student": "Link student to admission request",
+        "unlink_from_student": "Unlink student from request",
+        "update_limited": "Limited data update",
+        "link_guardians": "Link guardians to student",
+        "manage_registration_data": "Manage student registration data",
+        "manage_student_guardian_links": "Manage student–guardian links",
+        "manage_branding": "Manage school branding"
       },
       "suggestReasons": {
         "teaches_subject": "Teaches subject",
