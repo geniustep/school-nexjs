@@ -6975,6 +6975,23 @@
             "permission": "Vous n'avez pas la permission d'annuler l'encaissement.",
             "notAllowed": "Cet encaissement ne peut pas être annulé dans son état actuel."
           },
+          "receiptState": "État du reçu",
+          "reverse": {
+            "title": "Contrepasser l'encaissement",
+            "warning": "Cette action ne supprime pas l'encaissement. Elle contrepasse l'effet financier et conserve le reçu pour audit.",
+            "reasonLabel": "Motif du contrepassage",
+            "reasonRequired": "Le motif du contrepassage est obligatoire.",
+            "confirm": "Confirmer le contrepassage",
+            "success": "Encaissement contrepassé avec succès.",
+            "cancellationReason": "Motif du contrepassage",
+            "cancelledAt": "Contrepassé le",
+            "errors": {
+              "forbidden": "Vous n'avez pas la permission de contrepasser cet encaissement.",
+              "notFound": "Encaissement introuvable.",
+              "cannotReverse": "Cet encaissement ne peut pas être contrepassé dans son état actuel.",
+              "generic": "Impossible de contrepasser l'encaissement. Réessayez."
+            }
+          },
           "timeline": {
             "draftCreated": "Brouillon créé",
             "confirmed": "Encaissement confirmé",

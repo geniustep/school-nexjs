@@ -161,15 +161,13 @@ describe('collection detail review', () => {
     );
   });
 
-  it('uses allowed_actions array for confirm and hides cancel when absent', () => {
+  it('uses allowed_actions array for confirm and hides reverse when cancel is absent', () => {
     const actions = resolveCollectionReviewActions(draftChequeCollection, {
       canCollect: true,
-      canCancel: true,
       t,
     });
     expect(actions.canConfirm).toBe(true);
-    expect(actions.canCancel).toBe(false);
-    expect(actions.cancelDisabledReason).toBe('admin.finance.collections.detail.cancelDisabled.notAllowed');
+    expect(actions.canReverseCollection).toBe(false);
   });
 
   it('shows draft status banner key', () => {
@@ -254,14 +252,13 @@ describe('confirmed cheque collection polish', () => {
   it('reads allowed_actions map for receipt and cheque actions', () => {
     const actions = resolveCollectionReviewActions(confirmedChequeCollection, {
       canCollect: true,
-      canCancel: true,
       t,
     });
     expect(actions.canViewReceipt).toBe(true);
     expect(actions.canDownloadReceipt).toBe(true);
     expect(actions.canViewCheque).toBe(true);
     expect(actions.canOpenStudentFinance).toBe(true);
-    expect(actions.canCancel).toBe(true);
+    expect(actions.canReverseCollection).toBe(true);
     expect(actions.canConfirm).toBe(false);
   });
 

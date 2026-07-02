@@ -7,6 +7,7 @@ import { ConfirmActionButton } from '@/features/admin/confirm-action-button';
 import { CollectionReceiptSection } from '@/features/admin/finance/collection-receipt-section';
 import { CollectionStudentCell } from '@/features/admin/finance/collection-student-cell';
 import { ChequeStatusBadge } from '@/features/admin/finance/cheque-status-badge';
+import { CollectionReverseButton } from '@/features/admin/finance/collection-reverse-dialog';
 import {
   buildChequeReviewDisplay,
   buildCollectionDetailTitle,
@@ -23,8 +24,10 @@ import {
   resolvePartiesDisplay,
   resolveStudentUnavailableReason,
 } from '@/features/admin/finance/collection-detail-review';
+import { collectionReceiptState } from '@/features/admin/finance/collection-reverse';
 import { formatAllocationRowDetails } from '@/features/admin/finance/collection-normalize';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
+import { ReceiptStateBadge } from '@/features/admin/finance/receipt-status-badges';
 import { FinanceStatusBadge } from '@/features/admin/finance/finance-status-badge';
 import { billingPartyTypeLabelKey } from '@/features/admin/finance/fee-plans/fee-plan-pricing';
 import { useFinanceReferenceData } from '@/features/admin/finance/use-finance-lookups';
@@ -36,7 +39,6 @@ import { ChequeLifecycleDialogs } from '@/features/admin/finance/cheque-lifecycl
 import {
   canClearCheques,
   canRejectCheques,
-  canCancelPayments,
   canCollectPayments,
 } from '@/lib/permissions/finance';
 import type { ChequeLifecycleAction } from '@/lib/utils/cheque';
@@ -197,7 +199,6 @@ export function CollectionDetailsView({
       coll
         ? resolveCollectionReviewActions(coll, {
             canCollect: canCollectPayments(user),
-            canCancel: canCancelPayments(user),
             t,
           })
         : null,
@@ -216,6 +217,7 @@ export function CollectionDetailsView({
   const academicYearLabel = coll ? getCollectionAcademicYearLabel(coll, academicYears) : null;
   const journalLabel = coll ? getCollectionJournalDisplayLabel(coll, t) : null;
   const receiptLabel = coll ? getCollectionReceiptLabel(coll, t) : null;
+  const receiptState = coll ? collectionReceiptState(coll) : null;
   const hasReceipt =
     !!coll?.receipt_id || (typeof coll?.receipt_number === 'string' && !!coll.receipt_number.trim());
 
@@ -438,6 +440,21 @@ export function CollectionDetailsView({
                 <span dir="auto">{receiptLabel}</span>
               )}
             </SummaryRow>
+            {receiptState ? (
+              <SummaryRow label={t('admin.finance.collections.detail.receiptState')}>
+                <ReceiptStateBadge state={receiptState} />
+              </SummaryRow>
+            ) : null}
+            {status === 'cancelled' && coll.cancellation_reason?.trim() ? (
+              <SummaryRow label={t('admin.finance.collections.detail.reverse.cancellationReason')}>
+                <span dir="auto">{coll.cancellation_reason.trim()}</span>
+              </SummaryRow>
+            ) : null}
+            {status === 'cancelled' && coll.cancelled_at ? (
+              <SummaryRow label={t('admin.finance.collections.detail.reverse.cancelledAt')}>
+                {formatDateTime(coll.cancelled_at)}
+              </SummaryRow>
+            ) : null}
           </section>
 
           <section className="card collection-details__section collection-parties-card">
@@ -558,30 +575,11 @@ export function CollectionDetailsView({
                 </div>
               ) : null}
 
-              {reviewActions.canCancel ? (
-                <ConfirmActionButton
-                  label={
-                    status === 'draft'
-                      ? t('admin.finance.collections.detail.cancelDraft')
-                      : t('admin.finance.cancelCollection')
-                  }
-                  confirmMessage={
-                    status === 'draft'
-                      ? t('admin.finance.collections.detail.cancelDraftMessage')
-                      : t('admin.finance.cancelCollectionMessage')
-                  }
-                  confirmTitle={t('admin.finance.cancelCollection')}
-                  path={endpoints.admin.financePaymentCollectionCancel(collectionId)}
-                  variant="danger"
+              {reviewActions.canReverseCollection ? (
+                <CollectionReverseButton
+                  collectionId={coll.id}
                   onSuccess={() => state.reload()}
                 />
-              ) : reviewActions.cancelDisabledReason && status === 'draft' ? (
-                <div className="collection-review-actions__disabled">
-                  <button type="button" className="btn btn--sm" disabled>
-                    {t('admin.finance.collections.detail.cancelDraft')}
-                  </button>
-                  <DisabledActionHint reasonKey={reviewActions.cancelDisabledReason} t={t} />
-                </div>
               ) : null}
             </div>
           </section>

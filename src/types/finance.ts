@@ -730,6 +730,14 @@ export interface PaymentCollection {
   reversal_applied?: boolean;
   receipt_id?: number | null;
   receipt_number?: string | null;
+  receipt?: {
+    id?: number;
+    state?: 'issued' | 'reversed' | string;
+    receipt_number?: string | null;
+  } | null;
+  account_payment_state?: string | null;
+  cancellation_reason?: string | null;
+  cancelled_at?: string | null;
   collection_amount?: number;
   allocated_amount?: number;
   unallocated_amount?: number;

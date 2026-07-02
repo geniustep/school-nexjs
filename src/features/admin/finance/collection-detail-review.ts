@@ -1,5 +1,6 @@
 import type { TranslateFn } from '@/features/i18n/locale-context';
 import { collectionAllowsAction } from '@/features/admin/finance/collection-allowed-actions';
+import { collectionCanReverse } from '@/features/admin/finance/collection-reverse';
 import { formatFinanceMoney } from '@/lib/i18n/format-money';
 import type { Locale } from '@/lib/i18n/config';
 import { isChequePayment } from '@/lib/utils/cheque';
@@ -33,9 +34,8 @@ export type CollectionReviewAction =
 
 export interface CollectionReviewActions {
   canConfirm: boolean;
-  canCancel: boolean;
+  canReverseCollection: boolean;
   confirmDisabledReason: string | null;
-  cancelDisabledReason: string | null;
   canViewReceipt: boolean;
   canDownloadReceipt: boolean;
   canPrintReceipt: boolean;
@@ -373,7 +373,6 @@ export function resolveCollectionReviewActions(
   coll: PaymentCollection,
   options: {
     canCollect: boolean;
-    canCancel: boolean;
     t: TranslateFn;
   },
 ): CollectionReviewActions {
@@ -387,12 +386,8 @@ export function resolveCollectionReviewActions(
   const canConfirmByApi = hasAllowedActions
     ? collectionAllowsAction(coll, 'confirm')
     : status === 'draft';
-  const canCancelByApi = hasAllowedActions
-    ? collectionAllowsAction(coll, 'cancel')
-    : status === 'draft';
 
   let confirmDisabledReason: string | null = null;
-  let cancelDisabledReason: string | null = null;
 
   if (!readOnly) {
     if (!options.canCollect) {
@@ -400,18 +395,12 @@ export function resolveCollectionReviewActions(
     } else if (!canConfirmByApi) {
       confirmDisabledReason = 'admin.finance.collections.detail.confirmDisabled.notAllowed';
     }
-    if (!options.canCancel) {
-      cancelDisabledReason = 'admin.finance.collections.detail.cancelDisabled.permission';
-    } else if (!canCancelByApi) {
-      cancelDisabledReason = 'admin.finance.collections.detail.cancelDisabled.notAllowed';
-    }
   }
 
   return {
     canConfirm: !readOnly && options.canCollect && canConfirmByApi,
-    canCancel: options.canCancel && canCancelByApi,
+    canReverseCollection: collectionCanReverse(coll),
     confirmDisabledReason,
-    cancelDisabledReason,
     canViewReceipt:
       !!coll.receipt_id ||
       collectionAllowsAction(coll, 'view_receipt') ||

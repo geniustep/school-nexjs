@@ -6980,6 +6980,23 @@
             "permission": "You do not have permission to cancel collections.",
             "notAllowed": "This collection cannot be cancelled in its current state."
           },
+          "receiptState": "Receipt state",
+          "reverse": {
+            "title": "Reverse collection",
+            "warning": "This does not delete the collection. It reverses the financial effect and keeps the receipt for audit.",
+            "reasonLabel": "Reversal reason",
+            "reasonRequired": "A reversal reason is required.",
+            "confirm": "Confirm reversal",
+            "success": "Collection reversed successfully.",
+            "cancellationReason": "Reversal reason",
+            "cancelledAt": "Reversed at",
+            "errors": {
+              "forbidden": "You do not have permission to reverse this collection.",
+              "notFound": "Collection not found.",
+              "cannotReverse": "This collection cannot be reversed in its current state.",
+              "generic": "Unable to reverse the collection. Please try again."
+            }
+          },
           "timeline": {
             "draftCreated": "Draft created",
             "confirmed": "Collection confirmed",

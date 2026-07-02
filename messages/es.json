@@ -6975,6 +6975,23 @@
             "permission": "No tiene permiso para cancelar cobros.",
             "notAllowed": "Este cobro no puede cancelarse en su estado actual."
           },
+          "receiptState": "Estado del recibo",
+          "reverse": {
+            "title": "Revertir cobro",
+            "warning": "Esta acción no elimina el cobro. Revierte el efecto financiero y conserva el recibo para auditoría.",
+            "reasonLabel": "Motivo de la reversión",
+            "reasonRequired": "El motivo de la reversión es obligatorio.",
+            "confirm": "Confirmar reversión",
+            "success": "Cobro revertido correctamente.",
+            "cancellationReason": "Motivo de la reversión",
+            "cancelledAt": "Revertido el",
+            "errors": {
+              "forbidden": "No tiene permiso para revertir este cobro.",
+              "notFound": "Cobro no encontrado.",
+              "cannotReverse": "Este cobro no puede revertirse en su estado actual.",
+              "generic": "No se pudo revertir el cobro. Inténtelo de nuevo."
+            }
+          },
           "timeline": {
             "draftCreated": "Borrador creado",
             "confirmed": "Cobro confirmado",
