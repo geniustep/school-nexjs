@@ -7,7 +7,10 @@ import {
   shouldHideSchoolWideDashboardKpis,
   shouldShowMultiSchoolPortfolioNotice,
 } from '@/lib/admin/admin-ux';
-import { canViewAcademicSetup } from '@/lib/permissions/academic-setup';
+import { ADMISSION_VIEW } from '@/lib/permissions/admission';
+import { canViewAcademicSetup, canViewSettings } from '@/lib/permissions/academic-setup';
+import { canViewFinance } from '@/lib/permissions/finance';
+import { canViewSchoolBrandingSettings } from '@/lib/permissions/school-branding-settings';
 import { hasPermission } from '@/lib/permissions/permissions';
 import { canSeeChannels, canSeeStudentData, isConfiguredAdmin, isScopedAdmin } from '@/lib/permissions/scope';
 import type { CurrentUser } from '@/types/user';
@@ -58,6 +61,45 @@ export interface AdminDashboardWidgets {
   latestMessages: boolean;
   quickActions: AdminQuickActionId[];
 }
+
+export type AdminDashboardPermissionAreaId =
+  | 'students'
+  | 'enrollments'
+  | 'attendance'
+  | 'messages'
+  | 'finance'
+  | 'settings';
+
+export interface AdminDashboardPermissionArea {
+  id: AdminDashboardPermissionAreaId;
+  allowed: boolean;
+}
+
+export interface AdminDashboardContextPresentation {
+  variantLabelKey: string;
+  headlineKey: string;
+  mode: 'full' | 'limited';
+  hiddenReasonKey: string | null;
+  permissionAreas: AdminDashboardPermissionArea[];
+}
+
+const VARIANT_LABEL_KEYS: Record<Exclude<AdminDashboardVariantId, 'denied'>, string> = {
+  project_manager: 'admin.dashboardContext.variantProjectManager',
+  school_manager: 'admin.dashboardContext.variantSchoolManager',
+  general_supervisor_scoped: 'admin.dashboardContext.variantGeneralSupervisor',
+  admin_staff: 'admin.dashboardContext.variantAdminStaff',
+  legacy_admin: 'admin.dashboardContext.variantLegacyAdmin',
+  scoped_admin: 'admin.dashboardContext.variantScopedAdmin',
+};
+
+const PERMISSION_AREA_LABEL_KEYS: Record<AdminDashboardPermissionAreaId, string> = {
+  students: 'admin.dashboardContext.permStudents',
+  enrollments: 'admin.dashboardContext.permEnrollments',
+  attendance: 'admin.dashboardContext.permAttendance',
+  messages: 'admin.dashboardContext.permMessages',
+  finance: 'admin.dashboardContext.permFinance',
+  settings: 'admin.dashboardContext.permSettings',
+};
 
 const DENIED_VARIANT: AdminDashboardVariant = {
   id: 'denied',
@@ -199,4 +241,96 @@ export function resolveDashboardWidgets(user: CurrentUser | null): AdminDashboar
     latestMessages: canViewChannels,
     quickActions,
   };
+}
+
+function resolveDashboardHeadlineKey(variant: AdminDashboardVariant): string {
+  if (variant.id === 'admin_staff') {
+    return 'admin.dashboardContext.headlineAdminStaff';
+  }
+  if (variant.hideSchoolWideKpis || variant.scopedMode) {
+    return 'admin.dashboardContext.headlineScoped';
+  }
+  return 'admin.dashboardContext.headlineFull';
+}
+
+function resolveDashboardHiddenReasonKey(
+  variant: AdminDashboardVariant,
+  permissionAreas: AdminDashboardPermissionArea[],
+): string | null {
+  const scopedHidden = variant.hideSchoolWideKpis || variant.scopedMode;
+  const permissionGaps = permissionAreas.some((area) => !area.allowed);
+
+  if (scopedHidden && permissionGaps) {
+    return 'admin.dashboardContext.hiddenReasonBoth';
+  }
+  if (scopedHidden) {
+    return 'admin.dashboardContext.hiddenReasonScoped';
+  }
+  if (permissionGaps) {
+    return 'admin.dashboardContext.hiddenReasonPermissions';
+  }
+  return null;
+}
+
+function resolveDashboardPermissionAreas(
+  user: CurrentUser,
+  widgets: AdminDashboardWidgets,
+): AdminDashboardPermissionArea[] {
+  return [
+    {
+      id: 'students',
+      allowed: widgets.dataQuality || widgets.schoolStructureStudents,
+    },
+    {
+      id: 'enrollments',
+      allowed: hasPermission(user, ADMISSION_VIEW),
+    },
+    {
+      id: 'attendance',
+      allowed: widgets.heroAttendance,
+    },
+    {
+      id: 'messages',
+      allowed: widgets.latestMessages,
+    },
+    {
+      id: 'finance',
+      allowed: canViewFinance(user),
+    },
+    {
+      id: 'settings',
+      allowed: canViewSettings(user) || canViewSchoolBrandingSettings(user),
+    },
+  ];
+}
+
+/** Role-aware dashboard context copy + permission summary for the context panel. */
+export function resolveDashboardContextPresentation(
+  user: CurrentUser | null,
+): AdminDashboardContextPresentation | null {
+  const variant = resolveDashboardVariant(user);
+  if (!user || !variant.canAccess) {
+    return null;
+  }
+
+  const widgets = resolveDashboardWidgets(user);
+  const permissionAreas = resolveDashboardPermissionAreas(user, widgets);
+  const mode: 'full' | 'limited' =
+    variant.shell === 'readonly' || variant.hideSchoolWideKpis || variant.id === 'admin_staff'
+      ? 'limited'
+      : 'full';
+
+  return {
+    variantLabelKey: VARIANT_LABEL_KEYS[variant.id as Exclude<AdminDashboardVariantId, 'denied'>],
+    headlineKey: resolveDashboardHeadlineKey(variant),
+    mode,
+    hiddenReasonKey: resolveDashboardHiddenReasonKey(variant, permissionAreas),
+    permissionAreas,
+  };
+}
+
+export function dashboardPermissionAreaLabelKey(
+  id: AdminDashboardPermissionAreaId,
+): string {
+  return PERMISSION_AREA_LABEL_KEYS[id];
 }

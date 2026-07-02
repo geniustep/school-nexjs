@@ -22,6 +22,149 @@
   margin-block-end: 2px;
 }
 
+.admin-dashboard-context {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-inline-start: 4px solid var(--admin-accent);
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+}
+
+.admin-dashboard-context__header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.admin-dashboard-context__eyebrow {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+}
+
+.admin-dashboard-context__headline {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.45;
+  color: var(--c-text);
+}
+
+.admin-dashboard-context__meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px 14px;
+  margin: 0;
+}
+
+.admin-dashboard-context__meta > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.admin-dashboard-context__meta dt {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--c-muted);
+}
+
+.admin-dashboard-context__meta dd {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-text);
+}
+
+.admin-dashboard-context__mode {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.admin-dashboard-context__mode--full {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.admin-dashboard-context__mode--limited {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.admin-dashboard-context__reason {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #9a3412;
+}
+
+.admin-dashboard-context__perms {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.admin-dashboard-context__perms-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--c-muted);
+}
+
+.admin-dashboard-context__perm-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-dashboard-context__perm {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1.3;
+  border: 1px solid transparent;
+}
+
+.admin-dashboard-context__perm--on {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #065f46;
+}
+
+.admin-dashboard-context__perm--off {
+  background: #f3f4f6;
+  border-color: #e5e7eb;
+  color: #6b7280;
+}
+
+.admin-dashboard-context__perm-name {
+  font-weight: 600;
+}
+
+.admin-dashboard-context__perm-state {
+  font-size: 11px;
+  font-weight: 700;
+  opacity: 0.9;
+}
+
 /* Normal document flow — prevent any section from overlaying others while scrolling */
 .admin-workspace--dashboard > *,
 .admin-workspace--dashboard .admin-hero,

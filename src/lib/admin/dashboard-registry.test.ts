@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { adminLandingPath } from '@/lib/admin/admin-ux';
 import {
+  resolveDashboardContextPresentation,
   resolveDashboardVariant,
   resolveDashboardWidgets,
 } from '@/lib/admin/dashboard-registry';
@@ -193,5 +194,73 @@ describe('resolveDashboardWidgets', () => {
     expect(widgets.academicActivity).toBe(false);
     expect(widgets.intervention).toBe(true);
     expect(widgets.dataQuality).toBe(true);
+  });
+});
+
+describe('resolveDashboardContextPresentation', () => {
+  it('wide project_manager gets full headline and mode', () => {
+    const user = admin({
+      admin_kind: 'project_manager',
+      permissions: [
+        'view_dashboard',
+        'view_students',
+        'view_attendance',
+        'view_channels',
+        'admission.view',
+        'finance.view',
+        'view_classes',
+      ],
+    });
+
+    const context = resolveDashboardContextPresentation(user);
+
+    expect(context).not.toBeNull();
+    expect(context?.headlineKey).toBe('admin.dashboardContext.headlineFull');
+    expect(context?.mode).toBe('full');
+    expect(context?.variantLabelKey).toBe('admin.dashboardContext.variantProjectManager');
+    expect(context?.permissionAreas.find((a) => a.id === 'students')?.allowed).toBe(true);
+    expect(context?.permissionAreas.find((a) => a.id === 'finance')?.allowed).toBe(true);
+  });
+
+  it('scoped general_supervisor gets limited scoped headline and hidden reason', () => {
+    const user = admin({
+      admin_kind: 'general_supervisor',
+      permissions: ['view_dashboard', 'view_students'],
+      scope: {
+        type: 'classes',
+        allowed_level_ids: [],
+        allowed_class_ids: [1],
+        allowed_channel_ids: [],
+      },
+    });
+
+    const context = resolveDashboardContextPresentation(user);
+
+    expect(context?.headlineKey).toBe('admin.dashboardContext.headlineScoped');
+    expect(context?.mode).toBe('limited');
+    expect(context?.variantLabelKey).toBe('admin.dashboardContext.variantGeneralSupervisor');
+    expect(context?.hiddenReasonKey).toBe('admin.dashboardContext.hiddenReasonBoth');
+  });
+
+  it('admin_staff with view_dashboard gets staff headline and limited mode', () => {
+    const user = admin({
+      admin_kind: 'admin_staff',
+      permissions: ['view_dashboard', 'view_students'],
+    });
+
+    const context = resolveDashboardContextPresentation(user);
+
+    expect(context?.headlineKey).toBe('admin.dashboardContext.headlineAdminStaff');
+    expect(context?.mode).toBe('limited');
+    expect(context?.variantLabelKey).toBe('admin.dashboardContext.variantAdminStaff');
+  });
+
+  it('returns null when dashboard access is denied', () => {
+    expect(resolveDashboardContextPresentation(admin({ role: 'teacher' }))).toBeNull();
+    expect(
+      resolveDashboardContextPresentation(
+        admin({ admin_kind: 'admin_staff', permissions: ['view_students'] }),
+      ),
+    ).toBeNull();
   });
 });

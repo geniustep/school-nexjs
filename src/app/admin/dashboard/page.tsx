@@ -5,6 +5,7 @@ import { ResourceView } from '@/components/states/resource';
 import { PermissionDeniedState } from '@/components/states/states';
 import { Card, InfoBanner } from '@/components/ui/primitives';
 import { AdminCommandDashboard } from '@/features/admin/command-center/admin-command-dashboard';
+import { AdminDashboardContextPanel } from '@/features/admin/dashboard/admin-dashboard-context-panel';
 import { AdminReadonlyDashboard } from '@/features/admin/dashboard/admin-readonly-dashboard';
 import { useSession } from '@/features/auth/session-context';
 import { useAdminSession } from '@/features/auth/admin-session-context';
@@ -60,6 +61,7 @@ export default function AdminDashboardPage() {
   if (variant.shell === 'readonly') {
     return (
       <div className="admin-workspace admin-workspace--dashboard">
+        <AdminDashboardContextPanel user={user} schoolLabel={schoolLabel} />
         {scopeBanner}
         <AdminReadonlyDashboard />
       </div>
@@ -68,6 +70,7 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="admin-workspace admin-workspace--dashboard">
+      <AdminDashboardContextPanel user={user} schoolLabel={schoolLabel} />
       {variant.showMultiSchoolPortfolioNotice && (
         <InfoBanner
           tone="blue"
