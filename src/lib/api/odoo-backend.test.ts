@@ -55,6 +55,14 @@ describe('resolveOdooBaseUrlForTenant', () => {
     });
   });
 
+  it('uses registry api-ahlen for ahlen tenant', async () => {
+    const { resolveOdooBaseUrlForTenant } = await load();
+    expect(resolveOdooBaseUrlForTenant('ahlen')).toEqual({
+      ok: true,
+      baseUrl: 'https://api-ahlen.raqeem.ma',
+    });
+  });
+
   it('fails closed for unknown tenant instead of ODOO_BASE_URL fallback', async () => {
     const { resolveOdooBaseUrlForTenant } = await load();
     expect(resolveOdooBaseUrlForTenant('unknown-tenant')).toEqual({

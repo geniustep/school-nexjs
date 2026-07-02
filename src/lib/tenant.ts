@@ -175,6 +175,14 @@ const TENANT_REGISTRY: readonly TenantRegistryEntry[] = [
     isOfficial: true,
     hosts: ['alwah.raqeem.ma'],
   },
+  {
+    tenantCode: 'ahlen',
+    defaultPublicSchoolCode: 'ahlen',
+    backendBaseUrl: 'https://api-ahlen.raqeem.ma',
+    active: true,
+    isOfficial: true,
+    hosts: ['ahlen.raqeem.ma'],
+  },
 ] as const;
 
 const REGISTRY_BY_CODE = new Map<string, TenantRegistryEntry>(
