@@ -23,3 +23,7 @@ export async function cancelPaymentCollection(
     reason,
   });
 }
+
+export async function discardCollection(collectionId: number): Promise<ApiResponse<unknown>> {
+  return api.post<unknown>(endpoints.admin.financePaymentCollectionDiscard(collectionId));
+}

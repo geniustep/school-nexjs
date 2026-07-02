@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { cancelPaymentCollection } from '@/lib/finance/payment-collection-api';
+import { cancelPaymentCollection, discardCollection } from '@/lib/finance/payment-collection-api';
 import { endpoints } from '@/lib/api/endpoints';
 
 const postMock = vi.fn();
@@ -23,5 +23,12 @@ describe('payment collection api', () => {
     });
     const path = String(postMock.mock.calls[0][0]);
     expect(path).toContain('/cancel');
+  });
+
+  it('posts discard without body', async () => {
+    await discardCollection(42);
+    expect(postMock).toHaveBeenCalledWith(endpoints.admin.financePaymentCollectionDiscard(42));
+    const path = String(postMock.mock.calls[0][0]);
+    expect(path).toBe('/admin/finance/payment-collections/42/discard');
   });
 });

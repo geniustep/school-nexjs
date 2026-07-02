@@ -6945,8 +6945,35 @@
           "allocationSettlement": "Liquidación",
           "installmentSequence": "Cuota {seq}/{count}",
           "openStudentFinanceProfile": "Abrir expediente financiero del alumno",
-          "cancelDraft": "Cancelar borrador",
-          "cancelDraftMessage": "¿Cancelar este borrador? No afectará saldos ni emitirá recibo.",
+          "discardDraft": {
+            "title": "Eliminar borrador",
+            "warning": "Esto elimina solo el borrador de cobro no confirmado. No revierte un recibo ni afecta un cobro confirmado.",
+            "confirm": "Confirmar eliminación",
+            "success": "Borrador eliminado correctamente.",
+            "errors": {
+              "forbidden": "No tiene permiso para eliminar este borrador.",
+              "notFound": "No se encontró el borrador.",
+              "cannotDiscard": "Este borrador no puede eliminarse en su estado actual.",
+              "generic": "No se pudo eliminar el borrador. Inténtelo de nuevo."
+            }
+          },
+          "reverse": {
+            "title": "Revertir cobro",
+            "warning": "Esto no elimina el cobro. Revierte el efecto financiero y conserva el recibo para auditoría.",
+            "reasonLabel": "Motivo de la reversión",
+            "reasonPlaceholder": "Describa por qué se revierte este cobro…",
+            "reasonRequired": "El motivo de la reversión es obligatorio.",
+            "confirm": "Confirmar reversión",
+            "success": "Cobro revertido correctamente.",
+            "cancellationReason": "Motivo de la reversión",
+            "cancelledAt": "Revertido el",
+            "errors": {
+              "forbidden": "No tiene permiso para revertir este cobro.",
+              "notFound": "Cobro no encontrado.",
+              "cannotReverse": "Este cobro no puede revertirse en su estado actual.",
+              "generic": "No se pudo revertir el cobro. Inténtelo de nuevo."
+            }
+          },
           "confirmMessage": "¿Confirmar y contabilizar este cobro?",
           "notFoundTitle": "Cobro no encontrado",
           "notFoundDesc": "Puede haberse eliminado o estar fuera del ámbito de la escuela.",

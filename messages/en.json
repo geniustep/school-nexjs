@@ -6950,8 +6950,35 @@
           "allocationSettlement": "Settlement",
           "installmentSequence": "Installment {seq}/{count}",
           "openStudentFinanceProfile": "Open student finance profile",
-          "cancelDraft": "Cancel draft",
-          "cancelDraftMessage": "Cancel this draft? It will not affect balances and no receipt will be issued.",
+          "discardDraft": {
+            "title": "Delete draft",
+            "warning": "This deletes the unconfirmed draft collection only. It does not reverse a receipt or affect a confirmed collection.",
+            "confirm": "Confirm delete",
+            "success": "Draft deleted successfully.",
+            "errors": {
+              "forbidden": "You do not have permission to delete this draft.",
+              "notFound": "Draft collection not found.",
+              "cannotDiscard": "This draft cannot be deleted in its current state.",
+              "generic": "Unable to delete the draft. Please try again."
+            }
+          },
+          "reverse": {
+            "title": "Reverse collection",
+            "warning": "This does not delete the collection. It reverses the financial effect and keeps the receipt for audit.",
+            "reasonLabel": "Reversal reason",
+            "reasonPlaceholder": "Describe why this collection is being reversed…",
+            "reasonRequired": "A reversal reason is required.",
+            "confirm": "Confirm reversal",
+            "success": "Collection reversed successfully.",
+            "cancellationReason": "Reversal reason",
+            "cancelledAt": "Reversed at",
+            "errors": {
+              "forbidden": "You do not have permission to reverse this collection.",
+              "notFound": "Collection not found.",
+              "cannotReverse": "This collection cannot be reversed in its current state.",
+              "generic": "Unable to reverse the collection. Please try again."
+            }
+          },
           "confirmMessage": "Confirm and post this collection?",
           "notFoundTitle": "Collection not found",
           "notFoundDesc": "It may have been removed or is outside your school scope.",

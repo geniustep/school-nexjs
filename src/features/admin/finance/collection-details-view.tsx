@@ -4,10 +4,11 @@ import { useMemo, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/primitives';
 import { ConfirmActionButton } from '@/features/admin/confirm-action-button';
+import { CollectionDiscardButton } from '@/features/admin/finance/collection-discard-dialog';
 import { CollectionReceiptSection } from '@/features/admin/finance/collection-receipt-section';
+import { CollectionReverseButton } from '@/features/admin/finance/collection-reverse-dialog';
 import { CollectionStudentCell } from '@/features/admin/finance/collection-student-cell';
 import { ChequeStatusBadge } from '@/features/admin/finance/cheque-status-badge';
-import { CollectionReverseButton } from '@/features/admin/finance/collection-reverse-dialog';
 import {
   buildChequeReviewDisplay,
   buildCollectionDetailTitle,
@@ -573,6 +574,10 @@ export function CollectionDetailsView({
                   </button>
                   <DisabledActionHint reasonKey={reviewActions.confirmDisabledReason} t={t} />
                 </div>
+              ) : null}
+
+              {reviewActions.canDiscardDraft ? (
+                <CollectionDiscardButton collectionId={coll.id} returnTo={returnTo} />
               ) : null}
 
               {reviewActions.canReverseCollection ? (

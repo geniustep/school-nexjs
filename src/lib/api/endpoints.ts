@@ -273,6 +273,8 @@ export const endpoints = {
       `/admin/finance/payment-collections/${id}/confirm`,
     financePaymentCollectionCancel: (id: number | string) =>
       `/admin/finance/payment-collections/${id}/cancel`,
+    financePaymentCollectionDiscard: (id: number | string) =>
+      `/admin/finance/payment-collections/${id}/discard`,
     financePaymentCollectionReceipt: (id: number | string) =>
       `/admin/finance/payment-collections/${id}/receipt`,
     financePaymentCollectionIssueReceipt: (id: number | string) =>

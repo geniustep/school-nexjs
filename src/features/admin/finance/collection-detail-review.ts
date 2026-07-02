@@ -1,5 +1,6 @@
 import type { TranslateFn } from '@/features/i18n/locale-context';
 import { collectionAllowsAction } from '@/features/admin/finance/collection-allowed-actions';
+import { collectionCanDiscardDraft } from '@/features/admin/finance/collection-discard';
 import { collectionCanReverse } from '@/features/admin/finance/collection-reverse';
 import { formatFinanceMoney } from '@/lib/i18n/format-money';
 import type { Locale } from '@/lib/i18n/config';
@@ -34,6 +35,7 @@ export type CollectionReviewAction =
 
 export interface CollectionReviewActions {
   canConfirm: boolean;
+  canDiscardDraft: boolean;
   canReverseCollection: boolean;
   confirmDisabledReason: string | null;
   canViewReceipt: boolean;
@@ -399,6 +401,7 @@ export function resolveCollectionReviewActions(
 
   return {
     canConfirm: !readOnly && options.canCollect && canConfirmByApi,
+    canDiscardDraft: collectionCanDiscardDraft(coll),
     canReverseCollection: collectionCanReverse(coll),
     confirmDisabledReason,
     canViewReceipt:

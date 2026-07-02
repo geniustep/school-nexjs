@@ -6945,8 +6945,35 @@
           "allocationSettlement": "Règlement",
           "installmentSequence": "Échéance {seq}/{count}",
           "openStudentFinanceProfile": "Ouvrir le dossier financier de l'élève",
-          "cancelDraft": "Annuler le brouillon",
-          "cancelDraftMessage": "Annuler ce brouillon ? Il n'affectera pas les soldes et aucun reçu ne sera émis.",
+          "discardDraft": {
+            "title": "Supprimer le brouillon",
+            "warning": "Cela supprime uniquement le brouillon d'encaissement non confirmé. Cela ne contre-passe pas un reçu ni n'affecte un encaissement confirmé.",
+            "confirm": "Confirmer la suppression",
+            "success": "Brouillon supprimé avec succès.",
+            "errors": {
+              "forbidden": "Vous n'avez pas la permission de supprimer ce brouillon.",
+              "notFound": "Brouillon introuvable.",
+              "cannotDiscard": "Ce brouillon ne peut pas être supprimé dans son état actuel.",
+              "generic": "Impossible de supprimer le brouillon. Veuillez réessayer."
+            }
+          },
+          "reverse": {
+            "title": "Contre-passer l'encaissement",
+            "warning": "Cela ne supprime pas l'encaissement. Cela contre-passe l'effet financier et conserve le reçu pour audit.",
+            "reasonLabel": "Motif de la contre-passation",
+            "reasonPlaceholder": "Décrivez pourquoi cet encaissement est contre-passé…",
+            "reasonRequired": "Le motif de la contre-passation est obligatoire.",
+            "confirm": "Confirmer la contre-passation",
+            "success": "Encaissement contre-passé avec succès.",
+            "cancellationReason": "Motif de la contre-passation",
+            "cancelledAt": "Contre-passé le",
+            "errors": {
+              "forbidden": "Vous n'avez pas la permission de contre-passer cet encaissement.",
+              "notFound": "Encaissement introuvable.",
+              "cannotReverse": "Cet encaissement ne peut pas être contre-passé dans son état actuel.",
+              "generic": "Impossible de contre-passer l'encaissement. Veuillez réessayer."
+            }
+          },
           "confirmMessage": "Confirmer et comptabiliser cet encaissement ?",
           "notFoundTitle": "Encaissement introuvable",
           "notFoundDesc": "Il a peut-être été supprimé ou est hors du périmètre de l'école.",

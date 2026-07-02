@@ -161,12 +161,13 @@ describe('collection detail review', () => {
     );
   });
 
-  it('uses allowed_actions array for confirm and hides reverse when cancel is absent', () => {
+  it('uses allowed_actions array for confirm and hides discard and reverse when absent', () => {
     const actions = resolveCollectionReviewActions(draftChequeCollection, {
       canCollect: true,
       t,
     });
     expect(actions.canConfirm).toBe(true);
+    expect(actions.canDiscardDraft).toBe(false);
     expect(actions.canReverseCollection).toBe(false);
   });
 
@@ -260,6 +261,7 @@ describe('confirmed cheque collection polish', () => {
     expect(actions.canOpenStudentFinance).toBe(true);
     expect(actions.canReverseCollection).toBe(true);
     expect(actions.canConfirm).toBe(false);
+    expect(actions.canDiscardDraft).toBe(false);
   });
 
   it('uses chequeSettled banner when settlement_status is settled', () => {
