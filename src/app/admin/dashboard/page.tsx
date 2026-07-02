@@ -5,18 +5,13 @@ import { ResourceView } from '@/components/states/resource';
 import { PermissionDeniedState } from '@/components/states/states';
 import { Card, InfoBanner } from '@/components/ui/primitives';
 import { AdminCommandDashboard } from '@/features/admin/command-center/admin-command-dashboard';
+import { AdminReadonlyDashboard } from '@/features/admin/dashboard/admin-readonly-dashboard';
 import { useSession } from '@/features/auth/session-context';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
-import {
-  canAccessScopedAdminDashboard,
-  isMultiSchoolAdmin,
-  shouldShowMultiSchoolPortfolioNotice,
-} from '@/lib/admin/admin-ux';
-import { AdminReadonlyDashboard } from '@/features/admin/dashboard/admin-readonly-dashboard';
+import { resolveDashboardVariant } from '@/lib/admin/dashboard-registry';
 import { formatSchoolLabel } from '@/lib/admin/school-label';
-import { hasPermission } from '@/lib/permissions/permissions';
-import { isConfiguredAdmin, isScopedAdmin } from '@/lib/permissions/scope';
+import { isConfiguredAdmin } from '@/lib/permissions/scope';
 import { endpoints } from '@/lib/api/endpoints';
 import type { AdminDashboard } from '@/types/dashboard';
 
@@ -24,10 +19,9 @@ export default function AdminDashboardPage() {
   const user = useSession();
   const { activeSchoolId, schools } = useAdminSession();
   const t = useT();
-  const fullDashboard = hasPermission(user, 'view_dashboard');
-  const scopedDashboard = canAccessScopedAdminDashboard(user);
+  const variant = resolveDashboardVariant(user);
   const state = useAdminResource<AdminDashboard>(
-    fullDashboard ? endpoints.admin.dashboard : null,
+    variant.fetchFullDashboardApi ? endpoints.admin.dashboard : null,
   );
 
   if (!isConfiguredAdmin(user)) {
@@ -40,7 +34,7 @@ export default function AdminDashboardPage() {
     );
   }
 
-  if (!fullDashboard && !scopedDashboard) {
+  if (!variant.canAccess) {
     return (
       <div className="admin-workspace">
         <Card>
@@ -50,13 +44,11 @@ export default function AdminDashboardPage() {
     );
   }
 
-  const scoped = isScopedAdmin(user) || user.admin_kind === 'general_supervisor';
-  const multiSchool = isMultiSchoolAdmin(user);
   const activeRef =
     schools.find((s) => s.id === activeSchoolId) ?? user.school ?? null;
   const schoolLabel = formatSchoolLabel(activeRef, t);
 
-  const scopeBanner = scoped ? (
+  const scopeBanner = variant.showScopedAccessBanner ? (
     <InfoBanner
       tone="amber"
       icon="&#128274;"
@@ -65,7 +57,7 @@ export default function AdminDashboardPage() {
     />
   ) : null;
 
-  if (!fullDashboard && scopedDashboard) {
+  if (variant.shell === 'readonly') {
     return (
       <div className="admin-workspace admin-workspace--dashboard">
         {scopeBanner}
@@ -76,7 +68,7 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="admin-workspace admin-workspace--dashboard">
-      {shouldShowMultiSchoolPortfolioNotice(user) && (
+      {variant.showMultiSchoolPortfolioNotice && (
         <InfoBanner
           tone="blue"
           icon="&#127979;"
@@ -85,7 +77,7 @@ export default function AdminDashboardPage() {
         />
       )}
 
-      {multiSchool && (
+      {variant.showActiveSchoolBanner && (
         <InfoBanner
           tone="blue"
           title={t('admin.activeSchool')}

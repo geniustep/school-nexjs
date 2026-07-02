@@ -7,10 +7,11 @@ import { Card } from '@/components/ui/primitives';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { useSession } from '@/features/auth/session-context';
-import { hasPermission } from '@/lib/permissions/permissions';
-import { canSeeChannels, canSeeStudentData, isScopedAdmin } from '@/lib/permissions/scope';
-import { shouldHideSchoolWideDashboardKpis } from '@/lib/admin/admin-ux';
-import { canViewAcademicSetup } from '@/lib/permissions/academic-setup';
+import {
+  resolveDashboardVariant,
+  resolveDashboardWidgets,
+  type AdminQuickActionId,
+} from '@/lib/admin/dashboard-registry';
 import { formatSchoolLabel } from '@/lib/admin/school-label';
 import type { AdminDashboard } from '@/types/dashboard';
 import type { AttendanceStatus } from '@/types/attendance';
@@ -193,15 +194,10 @@ export function AdminCommandDashboard({
   const totalRecorded = att?.total_recorded ?? att?.total ?? 0;
   const hasAttendance = totalRecorded > 0;
 
-  const canViewAttendance =
-    canSeeStudentData(effectiveUser) && hasPermission(effectiveUser, 'view_attendance');
-  const canCorrectAttendance =
-    canSeeStudentData(effectiveUser) && hasPermission(effectiveUser, 'manage_attendance');
-  const canViewChannels =
-    canSeeChannels(effectiveUser) && hasPermission(effectiveUser, 'view_channels');
-  const hideSchoolWideKpis = shouldHideSchoolWideDashboardKpis(effectiveUser);
-  const scopedMode =
-    isScopedAdmin(effectiveUser) || effectiveUser.admin_kind === 'general_supervisor';
+  const variant = resolveDashboardVariant(effectiveUser);
+  const widgets = resolveDashboardWidgets(effectiveUser);
+  const hideSchoolWideKpis = variant.hideSchoolWideKpis;
+  const scopedMode = variant.scopedMode;
 
   const actionItems = useMemo(() => buildActionItems(d, t), [d, t]);
   const dataQualityItems = useMemo(() => buildDataQualityItems(d, t), [d, t]);
@@ -216,60 +212,46 @@ export function AdminCommandDashboard({
     : hasClickableInterventions
       ? t('admin.cmd.interventionDesc')
       : t('admin.cmd.interventionDescNeutral');
-  const canOpenStudents =
-    canSeeStudentData(effectiveUser) && hasPermission(effectiveUser, 'view_students');
-
   const schoolName = formatSchoolLabel(effectiveUser.school, t);
 
   const quickActions = useMemo(() => {
-    const actions: { id: string; href: string; icon: string; label: string; show: boolean }[] = [
-      {
-        id: 'add-student',
+    const catalog: Record<
+      AdminQuickActionId,
+      { href: string; icon: string; label: string }
+    > = {
+      'add-student': {
         href: '/admin/students/new',
         icon: '🎓',
         label: t('admin.addStudent'),
-        show:
-          hasPermission(effectiveUser, 'manage_students') &&
-          hasPermission(effectiveUser, 'view_students'),
       },
-      {
-        id: 'attendance',
+      attendance: {
         href: '/admin/attendance?date=today',
         icon: '🗓️',
         label: t('nav.attendance'),
-        show: canViewAttendance,
       },
-      {
-        id: 'classes',
+      classes: {
         href: '/admin/classes',
         icon: '🏫',
         label: t('nav.classes'),
-        show: hasPermission(effectiveUser, 'view_classes'),
       },
-      {
-        id: 'import-csv',
+      'import-csv': {
         href: '/admin/students',
         icon: '📥',
         label: t('admin.importCsv'),
-        show: hasPermission(effectiveUser, 'import_data'),
       },
-      {
-        id: 'channels',
+      channels: {
         href: '/admin/channels',
         icon: '💬',
         label: t('nav.channels'),
-        show: canViewChannels,
       },
-      {
-        id: 'settings',
+      settings: {
         href: '/admin/settings',
         icon: '⚙️',
         label: t('admin.settings.title'),
-        show: canViewAcademicSetup(effectiveUser),
       },
-    ];
-    return actions.filter((a) => a.show);
-  }, [effectiveUser, t, today, canViewAttendance, canViewChannels]);
+    };
+    return widgets.quickActions.map((id) => ({ id, ...catalog[id] }));
+  }, [widgets.quickActions, t]);
 
   return (
     <>
@@ -284,7 +266,7 @@ export function AdminCommandDashboard({
         }
         summary={scopedMode ? t('admin.cmd.scopedOperationsSummary') : t('admin.cmd.operationsSummary')}
         kpis={
-          canViewAttendance && hasAttendance ? (
+          widgets.heroAttendance && hasAttendance ? (
             <>
               {ATT_KEYS.map((k) => (
                 <AdminHeroKpi
@@ -298,19 +280,19 @@ export function AdminCommandDashboard({
             </>
           ) : (
             <span className="admin-hero__kpi">
-              {canViewAttendance ? t('admin.cmd.attendanceUnavailable') : t('admin.cmd.attendanceNoAccess')}
+              {widgets.heroAttendance ? t('admin.cmd.attendanceUnavailable') : t('admin.cmd.attendanceNoAccess')}
             </span>
           )
         }
         primaryAction={
-          canViewAttendance ? (
+          widgets.heroAttendance ? (
             <AdminHeroButton href="/admin/attendance?date=today" variant="primary">
               {t('admin.cmd.openAttendance')}
             </AdminHeroButton>
           ) : undefined
         }
         secondaryAction={
-          canCorrectAttendance ? (
+          widgets.heroCorrectAttendance ? (
             <AdminHeroButton href="/admin/attendance?date=today&correct=1" variant="ghost">
               {t('admin.cmd.correctAttendance')}
             </AdminHeroButton>
@@ -319,7 +301,7 @@ export function AdminCommandDashboard({
       />
 
       <div className="admin-ops-grid">
-        {canViewAttendance && (
+        {widgets.attendanceOperations && (
           <AdminOperationCard
             title={t('admin.cmd.attendanceOpsTitle')}
             description={t('admin.cmd.attendanceOpsDesc')}
@@ -383,7 +365,7 @@ export function AdminCommandDashboard({
             <AdminActionList items={actionItems} emptyLabel={t('admin.cmd.noInterventions')} />
           </div>
 
-          {canOpenStudents && (
+          {widgets.dataQuality && (
             <div className="admin-intervention-dq">
               <p className="admin-intervention-section__label">{t('admin.cmd.dataQualitySectionLabel')}</p>
               {hasDataQualityIssues ? (
@@ -403,34 +385,29 @@ export function AdminCommandDashboard({
         </div>
       </div>
 
-      {canSeeStudentData(effectiveUser) &&
-        !hideSchoolWideKpis &&
-        (hasPermission(effectiveUser, 'view_students') ||
-          hasPermission(effectiveUser, 'view_teachers') ||
-          hasPermission(effectiveUser, 'view_parents') ||
-          hasPermission(effectiveUser, 'view_classes')) && (
+      {widgets.schoolStructure && (
         <AdminSection title={t('admin.cmd.schoolStructureTitle')}>
           <AdminSchoolStrip
             cells={[
-              hasPermission(effectiveUser, 'view_students') && {
+              widgets.schoolStructureStudents && {
                 href: '/admin/students',
                 label: t('nav.students'),
                 value: d.total_students,
                 icon: '🎓',
               },
-              hasPermission(effectiveUser, 'view_teachers') && {
+              widgets.schoolStructureTeachers && {
                 href: '/admin/teachers',
                 label: t('nav.teachers'),
                 value: d.total_teachers,
                 icon: '👩‍🏫',
               },
-              hasPermission(effectiveUser, 'view_parents') && {
+              widgets.schoolStructureParents && {
                 href: '/admin/parents',
                 label: t('nav.parents'),
                 value: d.total_parents,
                 icon: '👪',
               },
-              hasPermission(effectiveUser, 'view_classes') && {
+              widgets.schoolStructureClasses && {
                 href: '/admin/classes',
                 label: t('nav.classes'),
                 value: d.total_classes,
@@ -442,9 +419,7 @@ export function AdminCommandDashboard({
       )}
 
       <div className="admin-dashboard-tail">
-      {hasPermission(effectiveUser, 'view_classes') &&
-        canSeeStudentData(effectiveUser) &&
-        !hideSchoolWideKpis && (
+      {widgets.academicActivity && (
         <AdminSection
           className="admin-section--academic"
           title={t('admin.cmd.academicActivityTitle')}
@@ -511,7 +486,7 @@ export function AdminCommandDashboard({
         </AdminSection>
       )}
 
-      {canViewChannels && (
+      {widgets.latestMessages && (
         <AdminSection
           className="admin-section--messages"
           title={t('dashboard.latestMessages')}
