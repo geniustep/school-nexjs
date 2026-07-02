@@ -43,6 +43,7 @@ describe('resolveTenantFromHost', () => {
   it('maps school subdomains to Odoo database names', () => {
     for (const [host, db] of [
       ['alwah.raqeem.ma', 'alwah'],
+      ['ahlen.raqeem.ma', 'ahlen'],
       ['nibras.raqeem.ma', 'nibras'],
       ['school.raqeem.ma', 'school'],
     ]) {
@@ -215,6 +216,21 @@ describe('resolveTenantRuntimeConfigFromHost', () => {
     expect(result.config).not.toHaveProperty('schoolCode');
   });
 
+  it('maps ahlen host to api-ahlen backend from registry', () => {
+    const result = resolveTenantRuntimeConfigFromHost('ahlen.raqeem.ma', ROOT, FALLBACK);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.config).toMatchObject({
+      host: 'ahlen.raqeem.ma',
+      tenantCode: 'ahlen',
+      defaultPublicSchoolCode: 'ahlen',
+      backendBaseUrl: 'https://api-ahlen.raqeem.ma',
+      active: true,
+      isOfficial: true,
+    });
+    expect(result.source).toBe('registry');
+  });
+
   it('uses fallback config for localhost without registry official backend', () => {
     const result = resolveTenantRuntimeConfigFromHost('localhost', ROOT, FALLBACK);
     expect(result).toEqual({
@@ -269,6 +285,18 @@ describe('resolveTenantRuntimeConfigFromRequest', () => {
     if (!result.ok) return;
     expect(result.config.backendBaseUrl).toBe('https://api-alwah.raqeem.ma');
     expect(result.config.defaultPublicSchoolCode).toBe('ecole-alwah');
+  });
+
+  it('maps ahlen host to api-ahlen backend for login/proxy routes', () => {
+    const request = new Request('https://ahlen.raqeem.ma/api/auth/login', {
+      headers: { host: 'ahlen.raqeem.ma' },
+    });
+    const result = resolveTenantRuntimeConfigFromRequest(request);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.config.backendBaseUrl).toBe('https://api-ahlen.raqeem.ma');
+    expect(result.config.tenantCode).toBe('ahlen');
+    expect(result.config.defaultPublicSchoolCode).toBe('ahlen');
   });
 
   it('uses localhost fallback backend for dev hosts', () => {

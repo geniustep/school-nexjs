@@ -59,6 +59,14 @@ describe('resolvePublicSchoolCodeFromRequest', () => {
     expect(resolvePublicSchoolCodeFromRequest(request)).toBe('alwah-school');
   });
 
+  it('maps ahlen host to ahlen tenant and school code', () => {
+    const request = new Request('https://ahlen.raqeem.ma/login', {
+      headers: { host: 'ahlen.raqeem.ma' },
+    });
+    expect(resolvePublicTenantCodeFromRequest(request)).toBe('ahlen');
+    expect(resolvePublicSchoolCodeFromRequest(request)).toBe('ahlen');
+  });
+
   it('uses fallback defaultPublicSchoolCode on localhost dev host', () => {
     const request = new Request('http://localhost:3000/login', {
       headers: { host: 'localhost:3000' },
