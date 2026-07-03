@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   buildStaffTemplateCreatePayload,
   buildStaffTemplatePreviewPayload,
+  buildClientCatalogStaffMemberPayload,
+  resolveStaffSmartCreateSaveStrategy,
+  staffMemberToTemplateCreateResult,
   buildStaffAssignmentClassOptions,
   buildStaffAssignmentLevelOptions,
   buildStaffAssignmentSubjectOptions,
@@ -41,11 +44,17 @@ import {
   unionStaffTemplateBundleSelection,
   resolveStaffTemplateCapabilityItems,
   resolveStaffTemplateCapabilityLabel,
+  collectStaffSmartCreateFormIssues,
+  resolveStaffTemplateCreateBlockMessageKey,
   splitStaffTemplateDisplayList,
   STAFF_TEMPLATE_BUNDLE_DISPLAY_LIMIT,
   templateAllowsCreate,
+  isValidStaffContactEmail,
+  staffTemplatePersonRequiresEmail,
   validateStaffTemplateAssignments,
+  validateStaffTemplatePersonForm,
 } from './staff-template-utils';
+import { PEDAGOGICAL_DIRECTOR_TEMPLATE_CODE } from './staff-creation-template-catalog';
 import type { StaffCreationTemplate, StaffSmartCreateFormState, StaffTemplatePreview } from '@/types/staff-templates';
 
 const t = (key: string) => key;
@@ -662,5 +671,253 @@ describe('staff-template-utils', () => {
     }
 
     expect(smartCreate.openTeacherProfile).toBe('فتح ملف الأستاذ');
+  });
+
+  it('resolves create block reasons for preview and form validation', () => {
+    const template: StaffCreationTemplate = {
+      code: 'pedagogical_director',
+      name: 'Pedagogical Director',
+      requires_user_account: true,
+    };
+    const passwordPolicy = {
+      min_length: 8,
+      requires_letter: true,
+      requires_number: true,
+    };
+    const emptyForm: StaffSmartCreateFormState = {
+      templateCode: 'pedagogical_director',
+      person: { name: '', phone: '', email: '' },
+      createAccount: true,
+      assignPasswordNow: true,
+      login: '',
+      useDifferentLogin: false,
+      password: '',
+      confirmPassword: '',
+      selectedBundleCodes: [],
+      assignments: {},
+    };
+
+    expect(
+      resolveStaffTemplateCreateBlockMessageKey({
+        template,
+        preview: null,
+        previewLoading: true,
+        form: emptyForm,
+        passwordPolicy,
+      }),
+    ).toBe('admin.staffCenter.smartCreate.errors.createBlockedPreviewLoading');
+
+    expect(
+      resolveStaffTemplateCreateBlockMessageKey({
+        template,
+        preview: { allowed_to_create: false },
+        form: emptyForm,
+        passwordPolicy,
+      }),
+    ).toBe('admin.staffCenter.smartCreate.errors.createBlockedNotAllowed');
+
+    expect(
+      resolveStaffTemplateCreateBlockMessageKey({
+        template,
+        preview: { allowed_to_create: true },
+        form: emptyForm,
+        passwordPolicy,
+      }),
+    ).toBe('admin.staffCenter.smartCreate.errors.nameRequired');
+
+    expect(
+      resolveStaffTemplateCreateBlockMessageKey({
+        template,
+        preview: { allowed_to_create: true },
+        form: {
+          ...emptyForm,
+          person: { name: 'Test User', phone: '', email: 'test@example.com' },
+          password: 'Secret123!',
+          confirmPassword: 'Secret123!',
+        },
+        passwordPolicy,
+      }),
+    ).toBeNull();
+  });
+
+  it('collects live form validation issues for details step', () => {
+    const template: StaffCreationTemplate = {
+      code: 'pedagogical_director',
+      name: 'Pedagogical Director',
+      requires_user_account: true,
+    };
+    const issues = collectStaffSmartCreateFormIssues({
+      template,
+      form: {
+        templateCode: 'pedagogical_director',
+        person: { name: '', phone: '', email: '' },
+        createAccount: true,
+        assignPasswordNow: false,
+        login: '',
+        useDifferentLogin: false,
+        password: '',
+        confirmPassword: '',
+        selectedBundleCodes: [],
+        assignments: {},
+      },
+      passwordPolicy: { min_length: 8, requires_letter: true, requires_number: true },
+      preview: null,
+      previewLoading: true,
+      previewError: false,
+      needsAssignments: false,
+    });
+
+    expect(issues.find((item) => item.id === 'identity_name')?.ok).toBe(false);
+    expect(issues.find((item) => item.id === 'account_password')?.ok).toBe(false);
+    expect(issues.find((item) => item.id === 'preview_ready')?.ok).toBe(false);
+  });
+
+  it('routes backend templates to from-template and local catalog to staff member create', () => {
+    expect(
+      resolveStaffSmartCreateSaveStrategy({
+        code: 'subject_teacher',
+        name: 'Subject teacher',
+      }),
+    ).toBe('from_template');
+
+    expect(
+      resolveStaffSmartCreateSaveStrategy({
+        code: PEDAGOGICAL_DIRECTOR_TEMPLATE_CODE,
+        name: 'Pedagogical director',
+        client_catalog: true,
+        admin_kind: 'pedagogical_director',
+      }),
+    ).toBe('staff_member');
+  });
+
+  it('builds staff member payload for local pedagogical_director without template_code', () => {
+    const template: StaffCreationTemplate = {
+      code: PEDAGOGICAL_DIRECTOR_TEMPLATE_CODE,
+      name: 'مدير تربوي',
+      client_catalog: true,
+      admin_kind: 'pedagogical_director',
+      main_position: { code: 'senior_administration', name: 'الإدارة العليا' },
+      requires_user_account: true,
+    };
+    const form: StaffSmartCreateFormState = {
+      templateCode: PEDAGOGICAL_DIRECTOR_TEMPLATE_CODE,
+      selectedBundleCodes: [],
+      person: { name: 'أحمد', phone: '0600000000', email: 'ahmed@school.test' },
+      createAccount: true,
+      assignPasswordNow: true,
+      login: '',
+      useDifferentLogin: false,
+      password: 'Secret123!',
+      confirmPassword: 'Secret123!',
+      assignments: {},
+    };
+
+    const memberPayload = buildClientCatalogStaffMemberPayload(form, template);
+    const templatePayload = buildStaffTemplateCreatePayload(form, 3, template);
+
+    expect(memberPayload.admin_kind).toBe('pedagogical_director');
+    expect(memberPayload.name).toBe('أحمد');
+    expect(memberPayload.email).toBe('ahmed@school.test');
+    expect(memberPayload.job_title).toBe('الإدارة العليا');
+    expect(memberPayload.template_code).toBeUndefined();
+    expect(memberPayload.selected_bundle_codes).toBeUndefined();
+    expect(memberPayload.capability_ids).toBeUndefined();
+    expect(memberPayload.account).toEqual({
+      create: true,
+      login: 'ahmed@school.test',
+      password: 'Secret123!',
+      password_confirm: 'Secret123!',
+    });
+
+    expect(templatePayload.template_code).toBe(PEDAGOGICAL_DIRECTOR_TEMPLATE_CODE);
+  });
+
+  it('maps staff member create response into smart-create success result', () => {
+    const result = staffMemberToTemplateCreateResult({
+      id: 99,
+      user_id: 4706,
+      name: 'أحمد',
+      email: 'ahmed@school.test',
+      phone: null,
+      job_title: 'الإدارة العليا',
+      admin_kind: 'pedagogical_director',
+      active: true,
+      account_status: 'active',
+      schools: [],
+      default_school: null,
+      permissions: [],
+    });
+
+    expect(result.user_id).toBe(4706);
+    expect(result.name).toBe('أحمد');
+    expect(result.login).toBe('ahmed@school.test');
+    expect(result.template_code).toBeUndefined();
+  });
+
+  it('validates email on details step when account creation uses email as login', () => {
+    const template: StaffCreationTemplate = {
+      code: 'pedagogical_director',
+      name: 'Pedagogical Director',
+      requires_user_account: true,
+      client_catalog: true,
+      admin_kind: 'pedagogical_director',
+    };
+    const form: StaffSmartCreateFormState = {
+      templateCode: 'pedagogical_director',
+      selectedBundleCodes: [],
+      person: { name: 'Test User', phone: '', email: 'not-an-email' },
+      createAccount: true,
+      assignPasswordNow: true,
+      login: '',
+      useDifferentLogin: false,
+      password: 'Secret123!',
+      confirmPassword: 'Secret123!',
+      assignments: {},
+    };
+
+    expect(staffTemplatePersonRequiresEmail(template, form)).toBe(true);
+    expect(isValidStaffContactEmail('not-an-email')).toBe(false);
+
+    const validation = validateStaffTemplatePersonForm(form.person, t, { requireEmail: true });
+    expect(validation.valid).toBe(false);
+    expect(validation.errors.email).toBe('admin.staffCenter.smartCreate.errors.invalidEmail');
+
+    expect(
+      resolveStaffTemplateCreateBlockMessageKey({
+        template,
+        preview: { allowed_to_create: true },
+        form,
+        passwordPolicy: { min_length: 8, requires_letter: true, requires_number: true },
+      }),
+    ).toBe('admin.staffCenter.smartCreate.errors.invalidEmail');
+  });
+
+  it('blocks review/create when email is missing for account creation', () => {
+    const template: StaffCreationTemplate = {
+      code: 'pedagogical_director',
+      name: 'Pedagogical Director',
+      requires_user_account: true,
+    };
+    const form: StaffSmartCreateFormState = {
+      templateCode: 'pedagogical_director',
+      selectedBundleCodes: [],
+      person: { name: 'Test User', phone: '', email: '' },
+      createAccount: true,
+      assignPasswordNow: true,
+      login: '',
+      useDifferentLogin: false,
+      password: 'Secret123!',
+      confirmPassword: 'Secret123!',
+      assignments: {},
+    };
+
+    expect(
+      resolveStaffTemplateCreateBlockMessageKey({
+        template,
+        preview: { allowed_to_create: true },
+        form,
+        passwordPolicy: { min_length: 8, requires_letter: true, requires_number: true },
+      }),
+    ).toBe('admin.staffCenter.smartCreate.errors.emailRequired');
   });
 });

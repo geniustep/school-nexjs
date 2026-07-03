@@ -97,7 +97,7 @@ export function StaffTemplatePreviewPanel({
         tone="amber"
         icon="⚠"
         title={t('admin.staffCenter.smartCreate.previewErrorTitle')}
-        description={t('admin.staffCenter.smartCreate.previewErrorDesc')}
+        description={error || t('admin.staffCenter.smartCreate.previewErrorDesc')}
       />
     );
   }
@@ -119,8 +119,7 @@ export function StaffTemplatePreviewPanel({
     .map((field) => formatStaffTemplateRequiredField(field, t));
 
   const assignmentsComplete = assignmentsSatisfyTemplateRequirements(template, assignments ?? {});
-  const showCreationBlocked =
-    !preview.allowed_to_create && requiredFields.length > 0 && !assignmentsComplete;
+  const showCreationBlocked = !preview.allowed_to_create;
 
   const bundleCodes = preview.selected_bundle_codes?.length
     ? preview.selected_bundle_codes
@@ -143,13 +142,13 @@ export function StaffTemplatePreviewPanel({
         </h3>
       ) : null}
 
-      {!preview.allowed_to_create && showCreationBlocked ? (
+      {showCreationBlocked ? (
         <InfoBanner
           tone="amber"
           icon="⚠"
           title={t('admin.staffCenter.smartCreate.notAllowedTitle')}
           description={
-            requiredFields.length
+            requiredFields.length && !assignmentsComplete
               ? t('admin.staffCenter.smartCreate.notAllowedMissingDesc')
               : t('admin.staffCenter.smartCreate.notAllowedDesc')
           }

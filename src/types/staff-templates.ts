@@ -1,4 +1,4 @@
-import type { ApiWarning } from '@/types/academic-setup';
+import type { ApiWarning, StaffAdminKind } from '@/types/academic-setup';
 
 export interface StaffTemplateMainPosition {
   code: string;
@@ -29,6 +29,9 @@ export interface StaffTemplateBundleMeta {
 export interface StaffCreationTemplate {
   code: string;
   name: string;
+  /** Present on UI-only catalog templates until the backend publishes the same code. */
+  client_catalog?: boolean;
+  admin_kind?: StaffAdminKind;
   description?: string | null;
   main_position?: StaffTemplateMainPosition | null;
   bundle_codes?: string[];

@@ -47,8 +47,8 @@ export function useStaffMember(id: number | null) {
   return { ...state, data };
 }
 
-export async function createStaffMember(payload: Record<string, unknown>) {
-  return api.post<StaffMember>(endpoints.admin.staff, payload);
+export async function createStaffMember(payload: Record<string, unknown>, query?: ListParams) {
+  return api.post<StaffMember>(endpoints.admin.staff, payload, query);
 }
 
 export async function updateStaffMember(id: number, payload: Record<string, unknown>) {

@@ -14,7 +14,7 @@ import type {
   StaffTemplateScope,
   StaffAssignmentPickerState,
 } from '@/types/staff-templates';
-import type { StaffPasswordPolicy } from '@/types/academic-setup';
+import type { StaffPasswordPolicy, StaffMember } from '@/types/academic-setup';
 import type { Locale } from '@/lib/i18n/config';
 import {
   looksLikeEnglishLabel,
@@ -24,6 +24,9 @@ import {
   meetsStaffPasswordPolicy,
   validateStaffPasswordForm,
 } from '@/features/admin/academic-setup/utils/staff-password-utils';
+import { normalizeStaffMember, resolveStaffLogin } from '@/features/admin/academic-setup/utils/staff-utils';
+import { buildAccountIdentityPayload } from '@/lib/account/account-utils';
+import { isClientCatalogStaffTemplate } from '@/features/admin/staff/utils/staff-creation-template-catalog';
 import type { ApiErrorBody } from '@/types/api';
 import { mapAcademicSetupApiError } from '@/features/admin/academic-setup/utils/api-errors';
 import { isUnsafeUserFacingErrorMessage } from '@/lib/utils/user-facing-error';
@@ -38,6 +41,9 @@ export function mapStaffTemplateCreateError(
   }
   if (code === 'password_mismatch') {
     return t('admin.academicSetup.staffPassword.errors.passwordMismatch');
+  }
+  if (code === 'invalid_email') {
+    return t('admin.staffCenter.smartCreate.errors.invalidEmail');
   }
   return mapAcademicSetupApiError(error, t, 'staff');
 }
@@ -727,6 +733,83 @@ export function buildStaffTemplateCreatePayload(
   return payload;
 }
 
+export type StaffSmartCreateSaveStrategy = 'from_template' | 'staff_member';
+
+export function resolveStaffSmartCreateSaveStrategy(
+  template: StaffCreationTemplate | null | undefined,
+): StaffSmartCreateSaveStrategy {
+  return isClientCatalogStaffTemplate(template) ? 'staff_member' : 'from_template';
+}
+
+/** Maps smart-create form to POST /admin/staff for UI-only catalog templates. */
+export function buildClientCatalogStaffMemberPayload(
+  form: StaffSmartCreateFormState,
+  template: StaffCreationTemplate,
+): Record<string, unknown> {
+  if (!template.admin_kind) {
+    throw new Error('Client catalog template is missing admin_kind');
+  }
+
+  const person: StaffTemplatePersonInput = {
+    name: form.person.name.trim(),
+    phone: form.person.phone.trim(),
+    email: form.person.email.trim(),
+  };
+
+  const identity = buildAccountIdentityPayload({
+    email: person.email,
+    login: form.login,
+    useDifferentLogin: form.useDifferentLogin,
+    isCreate: true,
+  });
+
+  const payload: Record<string, unknown> = {
+    name: person.name,
+    ...identity,
+    phone: person.phone || undefined,
+    admin_kind: template.admin_kind,
+  };
+
+  const jobTitle = template.main_position?.name?.trim();
+  if (jobTitle) {
+    payload.job_title = jobTitle;
+  }
+
+  const requiresAccount = template.requires_user_account || form.createAccount;
+  if (requiresAccount && form.createAccount && form.assignPasswordNow) {
+    const login = resolveStaffTemplateAccountLogin(person, form.login, form.useDifferentLogin);
+    if (login && form.password.trim() && form.confirmPassword.trim()) {
+      payload.account = {
+        create: true,
+        login,
+        password: form.password,
+        password_confirm: form.confirmPassword,
+      };
+    }
+  }
+
+  return payload;
+}
+
+export function staffMemberToTemplateCreateResult(member: StaffMember): StaffTemplateCreateResult {
+  const normalized = normalizeStaffMember(member);
+  const userId = normalized.user_id ?? normalized.id;
+
+  return {
+    id: normalized.id,
+    user_id: userId,
+    teacher_id: normalized.teacher_id ?? null,
+    name: normalized.name,
+    role_display_name: normalized.role_display_name ?? null,
+    login: resolveStaffLogin(normalized) || null,
+    staff: {
+      user_id: userId,
+      teacher_id: normalized.teacher_id ?? null,
+      name: normalized.name,
+    },
+  };
+}
+
 export function normalizeStaffTemplateCreateResult(raw: unknown): StaffTemplateCreateResult {
   if (!raw || typeof raw !== 'object') return {};
   const item = raw as Record<string, unknown>;
@@ -787,17 +870,44 @@ export function normalizeStaffTemplateCreateResult(raw: unknown): StaffTemplateC
 
 export interface StaffTemplatePersonFieldErrors {
   name?: string;
+  email?: string;
   login?: string;
+}
+
+const STAFF_CONTACT_EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export function isValidStaffContactEmail(value: string): boolean {
+  const trimmed = value.trim();
+  if (!trimmed) return false;
+  return STAFF_CONTACT_EMAIL_PATTERN.test(trimmed);
+}
+
+export function staffTemplatePersonRequiresEmail(
+  template: StaffCreationTemplate | null | undefined,
+  form: StaffSmartCreateFormState,
+): boolean {
+  const requiresAccount = Boolean(template?.requires_user_account || form.createAccount);
+  return requiresAccount && form.createAccount && !form.useDifferentLogin;
 }
 
 export function validateStaffTemplatePersonForm(
   person: StaffTemplatePersonInput,
   t: (key: string) => string,
+  options?: { requireEmail?: boolean },
 ): { valid: boolean; errors: StaffTemplatePersonFieldErrors } {
   const errors: StaffTemplatePersonFieldErrors = {};
   if (!person.name.trim()) {
     errors.name = t('admin.staffCenter.smartCreate.errors.nameRequired');
   }
+
+  const email = person.email.trim();
+  const requireEmail = options?.requireEmail === true;
+  if (requireEmail && !email) {
+    errors.email = t('admin.staffCenter.smartCreate.errors.emailRequired');
+  } else if (email && !isValidStaffContactEmail(email)) {
+    errors.email = t('admin.staffCenter.smartCreate.errors.invalidEmail');
+  }
+
   return { valid: Object.keys(errors).length === 0, errors };
 }
 
@@ -843,29 +953,162 @@ export function validateStaffTemplateAssignments(
   return { valid: true };
 }
 
-export function canSubmitStaffTemplateCreate(input: {
+export interface StaffSmartCreateFormIssue {
+  id: string;
+  labelKey: string;
+  section: 'identity' | 'account' | 'assignments' | 'preview';
+  ok: boolean;
+}
+
+export function collectStaffSmartCreateFormIssues(input: {
   template: StaffCreationTemplate | null;
-  preview: StaffTemplatePreview | null;
   form: StaffSmartCreateFormState;
   passwordPolicy: StaffPasswordPolicy;
-  t: (key: string, params?: Record<string, string | number>) => string;
-}): boolean {
-  const { template, preview, form, passwordPolicy, t } = input;
-  if (!template || !templateAllowsCreate(template)) return false;
-  if (!preview?.allowed_to_create) return false;
+  preview: StaffTemplatePreview | null;
+  previewLoading: boolean;
+  previewError: boolean;
+  needsAssignments: boolean;
+}): StaffSmartCreateFormIssue[] {
+  const { template, form, passwordPolicy, preview, previewLoading, previewError, needsAssignments } =
+    input;
+  if (!template) return [];
 
-  const personValidation = validateStaffTemplatePersonForm(form.person, t);
-  if (!personValidation.valid) return false;
+  const issues: StaffSmartCreateFormIssue[] = [];
 
-  const assignmentsValidation = validateStaffTemplateAssignments(template, form.assignments, t);
-  if (!assignmentsValidation.valid) return false;
+  issues.push({
+    id: 'identity_name',
+    labelKey: 'admin.staffCenter.smartCreate.validation.identityName',
+    section: 'identity',
+    ok: Boolean(form.person.name.trim()),
+  });
+
+  const requireEmail = staffTemplatePersonRequiresEmail(template, form);
+  const personValidation = validateStaffTemplatePersonForm(form.person, (key) => key, {
+    requireEmail,
+  });
+  issues.push({
+    id: 'identity_email',
+    labelKey: 'admin.staffCenter.smartCreate.validation.identityEmail',
+    section: 'identity',
+    ok: !personValidation.errors.email,
+  });
+
+  const requiresAccount = template.requires_user_account || form.createAccount;
+  if (requiresAccount && form.createAccount) {
+    const login = resolveStaffTemplateAccountLogin(form.person, form.login, form.useDifferentLogin);
+    issues.push({
+      id: 'account_login',
+      labelKey: 'admin.staffCenter.smartCreate.validation.accountLogin',
+      section: 'account',
+      ok: Boolean(login),
+    });
+
+    const passwordRequired = template.requires_user_account || form.assignPasswordNow;
+    if (passwordRequired) {
+      const passwordValidation = validateStaffPasswordForm(
+        {
+          password: form.password,
+          confirmPassword: form.confirmPassword,
+          requirePassword: form.assignPasswordNow,
+        },
+        passwordPolicy,
+        (key) => key,
+      );
+      issues.push({
+        id: 'account_password',
+        labelKey: 'admin.staffCenter.smartCreate.validation.accountPassword',
+        section: 'account',
+        ok: form.assignPasswordNow ? passwordValidation.valid : false,
+      });
+    }
+  }
+
+  if (needsAssignments) {
+    issues.push({
+      id: 'assignments',
+      labelKey: 'admin.staffCenter.smartCreate.validation.assignments',
+      section: 'assignments',
+      ok: validateStaffTemplateAssignments(template, form.assignments, (key) => key).valid,
+    });
+  }
+
+  issues.push({
+    id: 'preview_ready',
+    labelKey: 'admin.staffCenter.smartCreate.validation.previewReady',
+    section: 'preview',
+    ok: !previewLoading && !previewError && Boolean(preview),
+  });
+
+  if (preview && !previewLoading && !previewError) {
+    issues.push({
+      id: 'preview_allowed',
+      labelKey: 'admin.staffCenter.smartCreate.validation.previewAllowed',
+      section: 'preview',
+      ok: preview.allowed_to_create === true,
+    });
+  }
+
+  return issues;
+}
+
+export function resolveStaffTemplateCreateBlockMessageKey(input: {
+  template: StaffCreationTemplate | null;
+  preview: StaffTemplatePreview | null;
+  previewLoading?: boolean;
+  previewError?: boolean;
+  form: StaffSmartCreateFormState;
+  passwordPolicy: StaffPasswordPolicy;
+}): string | null {
+  const { template, preview, previewLoading, previewError, form, passwordPolicy } = input;
+  const prefix = 'admin.staffCenter.smartCreate.errors';
+
+  if (!template) return `${prefix}.templateRequired`;
+  if (!templateAllowsCreate(template)) return `${prefix}.templateCreateDisabled`;
+  if (previewLoading) return `${prefix}.createBlockedPreviewLoading`;
+  if (previewError) return `${prefix}.createBlockedPreviewError`;
+  if (!preview) return `${prefix}.createBlockedPreviewPending`;
+  if (!preview.allowed_to_create) return `${prefix}.createBlockedNotAllowed`;
+
+  const personValidation = validateStaffTemplatePersonForm(form.person, (key) => key, {
+    requireEmail: staffTemplatePersonRequiresEmail(template, form),
+  });
+  if (!personValidation.valid) {
+    if (personValidation.errors.name) return `${prefix}.nameRequired`;
+    if (personValidation.errors.email) {
+      const email = form.person.email.trim();
+      if (!email && staffTemplatePersonRequiresEmail(template, form)) {
+        return `${prefix}.emailRequired`;
+      }
+      return `${prefix}.invalidEmail`;
+    }
+    return `${prefix}.formInvalid`;
+  }
+
+  const assignmentsValidation = validateStaffTemplateAssignments(template, form.assignments, (key) => key);
+  if (!assignmentsValidation.valid) {
+    const required = template.required_assignments ?? [];
+    const normalized = normalizeStaffTemplateAssignments(form.assignments);
+    if (
+      (required.includes('subject_id') || required.includes('subject_ids')) &&
+      !(normalized.subject_ids ?? []).length
+    ) {
+      return `${prefix}.subjectRequired`;
+    }
+    if (required.includes('class_ids') && !(normalized.class_ids ?? []).length) {
+      return `${prefix}.classesRequired`;
+    }
+    if (required.includes('academic_year_id') && normalized.academic_year_id == null) {
+      return `${prefix}.academicYearRequired`;
+    }
+    return `${prefix}.formInvalid`;
+  }
 
   const requiresAccount = template.requires_user_account;
   if (requiresAccount || form.createAccount) {
-    if (!form.createAccount && requiresAccount) return false;
+    if (!form.createAccount && requiresAccount) return `${prefix}.formInvalid`;
     const login = resolveStaffTemplateAccountLogin(form.person, form.login, form.useDifferentLogin);
-    if (!login) return false;
-    if (!form.assignPasswordNow) return false;
+    if (!login) return `${prefix}.loginRequired`;
+    if (!form.assignPasswordNow) return `${prefix}.passwordRequiredBeforeCreate`;
     const passwordValidation = validateStaffPasswordForm(
       {
         password: form.password,
@@ -873,12 +1116,34 @@ export function canSubmitStaffTemplateCreate(input: {
         requirePassword: true,
       },
       passwordPolicy,
-      t,
+      (key) => key,
     );
-    if (!passwordValidation.valid) return false;
+    if (!passwordValidation.valid) {
+      if (staffTemplatePasswordsMismatch(form)) {
+        return 'admin.academicSetup.staffPassword.errors.passwordMismatch';
+      }
+      return `${prefix}.formInvalid`;
+    }
   }
 
-  return true;
+  return null;
+}
+
+export function canSubmitStaffTemplateCreate(input: {
+  template: StaffCreationTemplate | null;
+  preview: StaffTemplatePreview | null;
+  form: StaffSmartCreateFormState;
+  passwordPolicy: StaffPasswordPolicy;
+  t: (key: string, params?: Record<string, string | number>) => string;
+}): boolean {
+  return (
+    resolveStaffTemplateCreateBlockMessageKey({
+      template: input.template,
+      preview: input.preview,
+      form: input.form,
+      passwordPolicy: input.passwordPolicy,
+    }) == null
+  );
 }
 
 export function formatPreviewWarning(warning: string | { code?: string; message?: string }): string {

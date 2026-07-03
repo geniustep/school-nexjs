@@ -1083,7 +1083,8 @@
       "manageStaffAccount": "Manage account & permissions",
       "creationTemplates": {
         "subject_teacher": "Subject teacher",
-        "registration_collections_officer": "Registration & collections officer"
+        "registration_collections_officer": "Registration & collections officer",
+        "pedagogical_director": "Pedagogical Director"
       },
       "operationalNotesTitle": "Operational notes",
       "operationalNotesDesc": "Sensitive actions are defined by the system only. Full permission editing stays in academic setup when available.",
@@ -1130,6 +1131,14 @@
         "chooseTemplateTitle": "Choose a template",
         "otherPositionGroup": "Other roles",
         "mainPosition": "Main position",
+        "mainPositions": {
+          "senior_administration": "Senior administration"
+        },
+        "templates": {
+          "pedagogical_director": {
+            "description": "Academic and pedagogical lead who oversees teachers, classes, subjects, attendance, timetables, and results — without default finance permissions."
+          }
+        },
         "responsibilityBundles": "Responsibility bundles",
         "createsLoginAccount": "Creates login account",
         "createsTeacherProfile": "Creates teacher profile",
@@ -1142,7 +1151,25 @@
         "previewOnlyNotice": "This is a preview only. The template has not been selected yet.",
         "selectThisTemplateAction": "Select this template",
         "selectedTemplateHint": "Complete the person details and required assignments below.",
+        "identitySectionHint": "Enter the staff member's basic identity details.",
+        "changeTemplateAction": "Change role",
+        "detailsStepProgress": "Step {current} of {total}",
+        "validation": {
+          "title": "Creation readiness",
+          "hint": "This checklist updates live as you fill the form.",
+          "allComplete": "Ready to continue",
+          "pendingCount": "{count} remaining",
+          "identityName": "Full name",
+          "identityEmail": "Email address",
+          "accountLogin": "Login name",
+          "accountPassword": "Password",
+          "assignments": "Required assignments",
+          "previewReady": "Permission preview ready",
+          "previewAllowed": "Creation allowed per preview"
+        },
         "createAccount": "Create login account",
+        "emailPlaceholder": "name@school.ma",
+        "loginPlaceholder": "Enter a custom login name",
         "requiredAssignments": "Required assignments",
         "requiredAssignmentsHint": "Choose the cycle, level, subject, academic year, then one or more classes.",
         "studyCycle": "School cycle",
@@ -1210,6 +1237,15 @@
         "identitySection": "Identity details",
         "accountSection": "Account information",
         "passwordSection": "Password",
+        "passwordToolbarHint": "Generate a strong password or enter one manually.",
+        "passwordCopied": "Copied",
+        "passwordsMatch": "Passwords match",
+        "passwordsMismatch": "Passwords do not match",
+        "passwordsMatchPending": "Complete password confirmation",
+        "passwordRequirementsLabel": "Password requirements",
+        "passwordRequirementMin": "At least {min} characters",
+        "passwordRequirementLetter": "At least one letter",
+        "passwordRequirementNumber": "At least one number",
         "bundleEditorTitle": "Responsibility bundles",
         "requiredBundlesTitle": "Core — cannot be removed",
         "selectedBundlesTitle": "Selected bundles",
@@ -1282,10 +1318,18 @@
           "templateRequired": "Choose a template to continue.",
           "templateCreateDisabled": "This template does not allow creation from this screen.",
           "nameRequired": "Full name is required.",
+          "emailRequired": "A valid email is required to create the account.",
+          "invalidEmail": "Enter a valid email address.",
           "loginRequired": "Login is required when creating an account.",
           "subjectRequired": "Subject is required for this template.",
           "classesRequired": "At least one class is required for this template.",
           "academicYearRequired": "Academic year is required for this template.",
+          "formInvalid": "Review the highlighted fields and fix errors before continuing.",
+          "createBlockedTitle": "Staff cannot be created yet",
+          "createBlockedPreviewLoading": "Wait for the permission preview to finish before creating.",
+          "createBlockedPreviewError": "Could not verify template permissions. Review the form or refresh the preview.",
+          "createBlockedPreviewPending": "Permission preview is not ready yet.",
+          "createBlockedNotAllowed": "Creation is not allowed with the current data. Review the preview and missing fields.",
           "passwordRequiredBeforeCreate": "Please set a staff account password before creating.",
           "passwordMismatchReview": "Could not create the account because the password and confirmation do not match. Please review the account details."
         },

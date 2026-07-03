@@ -75,5 +75,11 @@ export function useStaffTemplatePreview() {
     setLoading(false);
   }, []);
 
-  return { preview, loading, error, loadPreview, resetPreview };
+  const applyLocalPreview = useCallback((next: StaffTemplatePreview) => {
+    setPreview(next);
+    setError(null);
+    setLoading(false);
+  }, []);
+
+  return { preview, loading, error, loadPreview, resetPreview, applyLocalPreview };
 }

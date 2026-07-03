@@ -1083,7 +1083,8 @@
       "manageStaffAccount": "إدارة الحساب والصلاحيات",
       "creationTemplates": {
         "subject_teacher": "أستاذ مادة",
-        "registration_collections_officer": "مسؤول التسجيل والتحصيلات"
+        "registration_collections_officer": "مسؤول التسجيل والتحصيلات",
+        "pedagogical_director": "مدير تربوي"
       },
       "operationalNotesTitle": "ملاحظات تشغيلية",
       "operationalNotesDesc": "الإجراءات الحساسة محددة من النظام فقط. تحرير الصلاحيات الكامل يبقى في الإعداد الأكاديمي عند توفره.",
@@ -1130,6 +1131,14 @@
         "chooseTemplateTitle": "اختر قالبًا",
         "otherPositionGroup": "أدوار أخرى",
         "mainPosition": "المنصب الرئيسي",
+        "mainPositions": {
+          "senior_administration": "الإدارة العليا"
+        },
+        "templates": {
+          "pedagogical_director": {
+            "description": "مسؤول أكاديمي وتربوي يتابع الأساتذة، الأقسام، المواد، الحضور، استعمال الزمن، والنتائج دون صلاحيات مالية افتراضية."
+          }
+        },
         "responsibilityBundles": "باقات المسؤولية",
         "createsLoginAccount": "ينشئ حساب دخول",
         "createsTeacherProfile": "ينشئ ملف أستاذ",
@@ -1142,7 +1151,25 @@
         "previewOnlyNotice": "هذه معاينة فقط. لم يتم اختيار القالب بعد.",
         "selectThisTemplateAction": "اختيار هذا القالب",
         "selectedTemplateHint": "أكمل بيانات الشخص والتكليفات المطلوبة أدناه.",
+        "identitySectionHint": "أدخل بيانات الهوية الأساسية لعضو الطاقم.",
+        "changeTemplateAction": "تغيير الدور",
+        "detailsStepProgress": "الخطوة {current} من {total}",
+        "validation": {
+          "title": "جاهزية الإنشاء",
+          "hint": "تتحدّث هذه القائمة مباشرة أثناء تعبئة النموذج.",
+          "allComplete": "جاهز للمتابعة",
+          "pendingCount": "{count} متبقٍ",
+          "identityName": "الاسم الكامل",
+          "identityEmail": "البريد الإلكتروني",
+          "accountLogin": "اسم الدخول",
+          "accountPassword": "كلمة المرور",
+          "assignments": "التكليفات المطلوبة",
+          "previewReady": "معاينة الصلاحيات جاهزة",
+          "previewAllowed": "الإنشاء مسموح حسب المعاينة"
+        },
         "createAccount": "إنشاء الحساب",
+        "emailPlaceholder": "name@school.ma",
+        "loginPlaceholder": "أدخل اسم تسجيل الدخول",
         "requiredAssignments": "التكليفات المطلوبة",
         "requiredAssignmentsHint": "اختر السلك ثم المستوى ثم المادة والسنة الدراسية ثم القسم أو الأقسام.",
         "studyCycle": "السلك الدراسي",
@@ -1210,6 +1237,15 @@
         "identitySection": "بيانات الهوية",
         "accountSection": "معلومات الحساب",
         "passwordSection": "كلمة المرور",
+        "passwordToolbarHint": "أنشئ كلمة مرور قوية أو أدخلها يدويًا.",
+        "passwordCopied": "تم النسخ",
+        "passwordsMatch": "كلمتا المرور متطابقتان",
+        "passwordsMismatch": "كلمتا المرور غير متطابقتين",
+        "passwordsMatchPending": "أكمل تأكيد كلمة المرور",
+        "passwordRequirementsLabel": "متطلبات كلمة المرور",
+        "passwordRequirementMin": "على الأقل {min} أحرف",
+        "passwordRequirementLetter": "حرف واحد على الأقل",
+        "passwordRequirementNumber": "رقم واحد على الأقل",
         "bundleEditorTitle": "باقات المسؤولية",
         "requiredBundlesTitle": "أساسية — لا يمكن حذفها",
         "selectedBundlesTitle": "باقات مختارة",
@@ -1282,10 +1318,18 @@
           "templateRequired": "اختر قالبًا للمتابعة.",
           "templateCreateDisabled": "هذا القالب لا يسمح بالإنشاء من هذه الشاشة.",
           "nameRequired": "الاسم الكامل مطلوب.",
+          "emailRequired": "البريد الإلكتروني مطلوب لإنشاء الحساب.",
+          "invalidEmail": "أدخل بريدًا إلكترونيًا صالحًا.",
           "loginRequired": "اسم الدخول مطلوب عند إنشاء حساب.",
           "subjectRequired": "المادة مطلوبة لهذا القالب.",
           "classesRequired": "قسم واحد على الأقل مطلوب لهذا القالب.",
           "academicYearRequired": "السنة الدراسية مطلوبة لهذا القالب.",
+          "formInvalid": "راجع الحقول المحددة وأصلح الأخطاء قبل المتابعة.",
+          "createBlockedTitle": "لا يمكن إنشاء الطاقم بعد",
+          "createBlockedPreviewLoading": "انتظر اكتمال معاينة الصلاحيات قبل الإنشاء.",
+          "createBlockedPreviewError": "تعذر التحقق من صلاحيات القالب. راجع البيانات أو حدّث المعاينة.",
+          "createBlockedPreviewPending": "معاينة الصلاحيات غير جاهزة بعد.",
+          "createBlockedNotAllowed": "الإنشاء غير مسموح بالبيانات الحالية. راجع المعاينة والحقول الناقصة.",
           "passwordRequiredBeforeCreate": "يرجى تعيين كلمة مرور لحساب الموظف قبل الإنشاء.",
           "passwordMismatchReview": "تعذر إنشاء الحساب لأن كلمة المرور وتأكيدها غير متطابقين. يرجى مراجعة بيانات الحساب."
         },

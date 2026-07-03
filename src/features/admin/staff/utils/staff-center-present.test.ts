@@ -3,6 +3,7 @@ import {
   filterDisplayPermissionCodes,
   isNoisePermissionCode,
   resolveStaffPermissionLabel,
+  resolveStaffCreationTemplateLabel,
   resolveStaffRoleDisplayLabel,
   resolveStaffRoleTemplateChipLabel,
   resolveStaffScopeRoleTemplateLabel,
@@ -25,12 +26,17 @@ const tAr = (key: string) => {
     'admin.staffCenter.warnings.unknown': 'غير محدد',
     'admin.staffCenter.warnings.generic': 'ملاحظة تشغيلية',
     'admin.staffCenter.creationTemplates.subject_teacher': 'أستاذ مادة',
+    'admin.staffCenter.creationTemplates.pedagogical_director': 'مدير تربوي',
     'common.dash': '—',
   };
   return labels[key] ?? key;
 };
 
 describe('staff-center-present', () => {
+  it('resolves pedagogical director creation template label', () => {
+    expect(resolveStaffCreationTemplateLabel('pedagogical_director', tAr)).toBe('مدير تربوي');
+  });
+
   it('redirects teacher creates to teacher profile first', () => {
     const redirect = resolveStaffTemplateCreateRedirect(
       { user_id: 4706, teacher_id: 1306 },

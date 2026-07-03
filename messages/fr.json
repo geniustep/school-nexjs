@@ -1083,7 +1083,8 @@
       "manageStaffAccount": "Gérer le compte et les permissions",
       "creationTemplates": {
         "subject_teacher": "Professeur de matière",
-        "registration_collections_officer": "Responsable inscriptions et recouvrements"
+        "registration_collections_officer": "Responsable inscriptions et recouvrements",
+        "pedagogical_director": "Directeur pédagogique"
       },
       "operationalNotesTitle": "Notes opérationnelles",
       "operationalNotesDesc": "Les actions sensibles sont définies par le système uniquement. L'édition complète des permissions reste dans la configuration académique si disponible.",
@@ -1130,6 +1131,14 @@
         "chooseTemplateTitle": "Choisir un modèle",
         "otherPositionGroup": "Autres rôles",
         "mainPosition": "Poste principal",
+        "mainPositions": {
+          "senior_administration": "Direction générale"
+        },
+        "templates": {
+          "pedagogical_director": {
+            "description": "Responsable académique et pédagogique qui suit les enseignants, les classes, les matières, la présence, l'emploi du temps et les résultats — sans permissions financières par défaut."
+          }
+        },
         "responsibilityBundles": "Paquets de responsabilité",
         "createsLoginAccount": "Crée un compte de connexion",
         "createsTeacherProfile": "Crée un profil enseignant",
@@ -1142,7 +1151,25 @@
         "previewOnlyNotice": "Ceci est un aperçu uniquement. Le modèle n'a pas encore été sélectionné.",
         "selectThisTemplateAction": "Choisir ce modèle",
         "selectedTemplateHint": "Complétez les données et les affectations requises ci-dessous.",
+        "identitySectionHint": "Saisissez les informations d'identité de base du membre du personnel.",
+        "changeTemplateAction": "Changer de rôle",
+        "detailsStepProgress": "Étape {current} sur {total}",
+        "validation": {
+          "title": "Préparation à la création",
+          "hint": "Cette liste se met à jour en direct pendant la saisie.",
+          "allComplete": "Prêt pour la suite",
+          "pendingCount": "{count} restant(s)",
+          "identityName": "Nom complet",
+          "identityEmail": "Adresse e-mail",
+          "accountLogin": "Identifiant de connexion",
+          "accountPassword": "Mot de passe",
+          "assignments": "Affectations requises",
+          "previewReady": "Aperçu des permissions prêt",
+          "previewAllowed": "Création autorisée selon l'aperçu"
+        },
         "createAccount": "Créer le compte",
+        "emailPlaceholder": "nom@ecole.ma",
+        "loginPlaceholder": "Saisissez l'identifiant de connexion",
         "requiredAssignments": "Affectations requises",
         "requiredAssignmentsHint": "Choisissez le cycle, le niveau, la matière, l'année scolaire, puis une ou plusieurs classes.",
         "studyCycle": "Cycle scolaire",
@@ -1210,6 +1237,15 @@
         "identitySection": "Identité",
         "accountSection": "Informations du compte",
         "passwordSection": "Mot de passe",
+        "passwordToolbarHint": "Générez un mot de passe fort ou saisissez-le manuellement.",
+        "passwordCopied": "Copié",
+        "passwordsMatch": "Les mots de passe correspondent",
+        "passwordsMismatch": "Les mots de passe ne correspondent pas",
+        "passwordsMatchPending": "Complétez la confirmation du mot de passe",
+        "passwordRequirementsLabel": "Exigences du mot de passe",
+        "passwordRequirementMin": "Au moins {min} caractères",
+        "passwordRequirementLetter": "Au moins une lettre",
+        "passwordRequirementNumber": "Au moins un chiffre",
         "bundleEditorTitle": "Paquets de responsabilité",
         "requiredBundlesTitle": "Essentiels — non supprimables",
         "selectedBundlesTitle": "Paquets sélectionnés",
@@ -1282,10 +1318,18 @@
           "templateRequired": "Choisissez un modèle pour continuer.",
           "templateCreateDisabled": "Ce modèle n'autorise pas la création depuis cet écran.",
           "nameRequired": "Le nom complet est requis.",
+          "emailRequired": "Une adresse e-mail valide est requise pour créer le compte.",
+          "invalidEmail": "Saisissez une adresse e-mail valide.",
           "loginRequired": "L'identifiant est requis pour créer un compte.",
           "subjectRequired": "La matière est requise pour ce modèle.",
           "classesRequired": "Au moins une classe est requise pour ce modèle.",
           "academicYearRequired": "L'année scolaire est requise pour ce modèle.",
+          "formInvalid": "Vérifiez les champs signalés et corrigez les erreurs avant de continuer.",
+          "createBlockedTitle": "La création du personnel n'est pas encore possible",
+          "createBlockedPreviewLoading": "Attendez la fin de l'aperçu des permissions avant de créer.",
+          "createBlockedPreviewError": "Impossible de vérifier les permissions du modèle. Vérifiez le formulaire ou actualisez l'aperçu.",
+          "createBlockedPreviewPending": "L'aperçu des permissions n'est pas encore prêt.",
+          "createBlockedNotAllowed": "La création n'est pas autorisée avec les données actuelles. Consultez l'aperçu et les champs manquants.",
           "passwordRequiredBeforeCreate": "Veuillez définir un mot de passe pour le compte avant la création.",
           "passwordMismatchReview": "Impossible de créer le compte : le mot de passe et sa confirmation ne correspondent pas. Veuillez vérifier les données du compte."
         },

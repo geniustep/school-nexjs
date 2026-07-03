@@ -1083,7 +1083,8 @@
       "manageStaffAccount": "Gestionar cuenta y permisos",
       "creationTemplates": {
         "subject_teacher": "Profesor de materia",
-        "registration_collections_officer": "Responsable de inscripciones y cobros"
+        "registration_collections_officer": "Responsable de inscripciones y cobros",
+        "pedagogical_director": "Director pedagógico"
       },
       "operationalNotesTitle": "Notas operativas",
       "operationalNotesDesc": "Las acciones sensibles las define el sistema únicamente. La edición completa de permisos permanece en la configuración académica cuando esté disponible.",
@@ -1130,6 +1131,14 @@
         "chooseTemplateTitle": "Elegir una plantilla",
         "otherPositionGroup": "Otros roles",
         "mainPosition": "Puesto principal",
+        "mainPositions": {
+          "senior_administration": "Dirección superior"
+        },
+        "templates": {
+          "pedagogical_director": {
+            "description": "Responsable académico y pedagógico que supervisa profesores, clases, materias, asistencia, horarios y resultados, sin permisos financieros por defecto."
+          }
+        },
         "responsibilityBundles": "Paquetes de responsabilidad",
         "createsLoginAccount": "Crea cuenta de acceso",
         "createsTeacherProfile": "Crea perfil de profesor",
@@ -1142,7 +1151,25 @@
         "previewOnlyNotice": "Esto es solo una vista previa. La plantilla aún no ha sido seleccionada.",
         "selectThisTemplateAction": "Elegir esta plantilla",
         "selectedTemplateHint": "Complete los datos y las asignaciones requeridas abajo.",
+        "identitySectionHint": "Introduzca los datos básicos de identidad del miembro del personal.",
+        "changeTemplateAction": "Cambiar rol",
+        "detailsStepProgress": "Paso {current} de {total}",
+        "validation": {
+          "title": "Preparación para la creación",
+          "hint": "Esta lista se actualiza en directo mientras rellena el formulario.",
+          "allComplete": "Listo para continuar",
+          "pendingCount": "{count} pendiente(s)",
+          "identityName": "Nombre completo",
+          "identityEmail": "Correo electrónico",
+          "accountLogin": "Usuario de acceso",
+          "accountPassword": "Contraseña",
+          "assignments": "Asignaciones requeridas",
+          "previewReady": "Vista previa de permisos lista",
+          "previewAllowed": "Creación permitida según la vista previa"
+        },
         "createAccount": "Crear cuenta",
+        "emailPlaceholder": "nombre@colegio.ma",
+        "loginPlaceholder": "Introduce el usuario de acceso",
         "requiredAssignments": "Asignaciones requeridas",
         "requiredAssignmentsHint": "Elija el ciclo, el nivel, la materia, el año escolar y luego una o más clases.",
         "studyCycle": "Ciclo escolar",
@@ -1210,6 +1237,15 @@
         "identitySection": "Datos de identidad",
         "accountSection": "Información de la cuenta",
         "passwordSection": "Contraseña",
+        "passwordToolbarHint": "Genera una contraseña segura o introdúcela manualmente.",
+        "passwordCopied": "Copiado",
+        "passwordsMatch": "Las contraseñas coinciden",
+        "passwordsMismatch": "Las contraseñas no coinciden",
+        "passwordsMatchPending": "Completa la confirmación de la contraseña",
+        "passwordRequirementsLabel": "Requisitos de la contraseña",
+        "passwordRequirementMin": "Al menos {min} caracteres",
+        "passwordRequirementLetter": "Al menos una letra",
+        "passwordRequirementNumber": "Al menos un número",
         "bundleEditorTitle": "Paquetes de responsabilidad",
         "requiredBundlesTitle": "Esenciales — no se pueden quitar",
         "selectedBundlesTitle": "Paquetes seleccionados",
@@ -1282,10 +1318,18 @@
           "templateRequired": "Elija una plantilla para continuar.",
           "templateCreateDisabled": "Esta plantilla no permite crear desde esta pantalla.",
           "nameRequired": "El nombre completo es obligatorio.",
+          "emailRequired": "Se requiere un correo electrónico válido para crear la cuenta.",
+          "invalidEmail": "Introduce un correo electrónico válido.",
           "loginRequired": "El usuario es obligatorio al crear una cuenta.",
           "subjectRequired": "La materia es obligatoria para esta plantilla.",
           "classesRequired": "Al menos una clase es obligatoria para esta plantilla.",
           "academicYearRequired": "El año académico es obligatorio para esta plantilla.",
+          "formInvalid": "Revise los campos marcados y corrija los errores antes de continuar.",
+          "createBlockedTitle": "Aún no se puede crear el personal",
+          "createBlockedPreviewLoading": "Espere a que termine la vista previa de permisos antes de crear.",
+          "createBlockedPreviewError": "No se pudieron verificar los permisos de la plantilla. Revise el formulario o actualice la vista previa.",
+          "createBlockedPreviewPending": "La vista previa de permisos aún no está lista.",
+          "createBlockedNotAllowed": "La creación no está permitida con los datos actuales. Revise la vista previa y los campos faltantes.",
           "passwordRequiredBeforeCreate": "Establezca una contraseña para la cuenta antes de crear.",
           "passwordMismatchReview": "No se pudo crear la cuenta porque la contraseña y la confirmación no coinciden. Revise los datos de la cuenta."
         },
