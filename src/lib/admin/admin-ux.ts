@@ -166,13 +166,9 @@ export function adminLandingPath(user: CurrentUser): string {
   return firstAllowedAdminPath(user);
 }
 
-/** Scoped admins use softer nav section labels. */
+/** Scoped admins use softer nav section labels. Pedagogical directors use neutral wide labels. */
 export function useScopedNavLabels(user: CurrentUser | null): boolean {
-  return (
-    isScopedAdmin(user) ||
-    user?.admin_kind === 'general_supervisor' ||
-    user?.admin_kind === 'pedagogical_director'
-  );
+  return isScopedAdmin(user) || user?.admin_kind === 'general_supervisor';
 }
 
 /** Hide school-wide structure KPIs on the command dashboard. */
