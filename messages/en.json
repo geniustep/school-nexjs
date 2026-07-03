@@ -1465,7 +1465,20 @@
       "tierHigh": "High school",
       "tierOther": "Other",
       "detailSequence": "Sequence",
-      "detailCreditHours": "Credit hours"
+      "detailCreditHours": "Credit hours",
+      "detailBack": "← Subjects",
+      "detailStats": "Subject metrics",
+      "detailIdentity": "Identity",
+      "detailAcademic": "Academic scope",
+      "detailSettings": "Settings",
+      "detailReferenceId": "Reference ID",
+      "detailLevelCodes": "Level codes",
+      "detailSource": "Source",
+      "detailCategory": "Category",
+      "detailDuplicateBanner": "This name is used by {count} subjects — distinguished by code and cycle",
+      "detailWeeklyHours": "Weekly hours",
+      "assignmentsCountLabel": "Teaching assignments",
+      "tierLabel": "Cycle"
     },
     "settings": {
       "title": "Settings",

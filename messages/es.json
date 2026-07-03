@@ -1463,7 +1463,20 @@
       "tierHigh": "Bachillerato",
       "tierOther": "Otros",
       "detailSequence": "Orden",
-      "detailCreditHours": "Horas crédito"
+      "detailCreditHours": "Horas crédito",
+      "detailBack": "← Materias",
+      "detailStats": "Indicadores de la materia",
+      "detailIdentity": "Identidad",
+      "detailAcademic": "Ámbito académico",
+      "detailSettings": "Ajustes",
+      "detailReferenceId": "ID de referencia",
+      "detailLevelCodes": "Códigos de nivel",
+      "detailSource": "Origen",
+      "detailCategory": "Categoría",
+      "detailDuplicateBanner": "Este nombre se usa en {count} materias — se distingue por código y ciclo",
+      "detailWeeklyHours": "Horas semanales",
+      "assignmentsCountLabel": "Asignaciones docentes",
+      "tierLabel": "Ciclo"
     },
     "settings": {
       "title": "Ajustes",

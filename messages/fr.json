@@ -1463,7 +1463,20 @@
       "tierHigh": "Lycée",
       "tierOther": "Autres",
       "detailSequence": "Ordre",
-      "detailCreditHours": "Heures crédit"
+      "detailCreditHours": "Heures crédit",
+      "detailBack": "← Matières",
+      "detailStats": "Indicateurs de la matière",
+      "detailIdentity": "Identité",
+      "detailAcademic": "Périmètre académique",
+      "detailSettings": "Paramètres",
+      "detailReferenceId": "Identifiant",
+      "detailLevelCodes": "Codes niveau",
+      "detailSource": "Source",
+      "detailCategory": "Catégorie",
+      "detailDuplicateBanner": "Ce nom est utilisé par {count} matières — distingué par code et cycle",
+      "detailWeeklyHours": "Heures hebdomadaires",
+      "assignmentsCountLabel": "Affectations d'enseignement",
+      "tierLabel": "Cycle"
     },
     "settings": {
       "title": "Paramètres",

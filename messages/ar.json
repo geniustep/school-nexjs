@@ -1465,7 +1465,20 @@
       "tierHigh": "تأهيلي",
       "tierOther": "أخرى",
       "detailSequence": "الترتيب",
-      "detailCreditHours": "ساعات معتمدة"
+      "detailCreditHours": "ساعات معتمدة",
+      "detailBack": "← المواد",
+      "detailStats": "مؤشرات المادة",
+      "detailIdentity": "الهوية",
+      "detailAcademic": "النطاق الأكاديمي",
+      "detailSettings": "الإعدادات",
+      "detailReferenceId": "المعرّف",
+      "detailLevelCodes": "رموز المستويات",
+      "detailSource": "المصدر",
+      "detailCategory": "الفئة",
+      "detailDuplicateBanner": "هذا الاسم يُستخدم في {count} مواد — يُميَّز بالرمز والمرحلة",
+      "detailWeeklyHours": "ساعات أسبوعية",
+      "assignmentsCountLabel": "إسنادات التدريس",
+      "tierLabel": "المرحلة"
     },
     "settings": {
       "title": "الإعدادات",
