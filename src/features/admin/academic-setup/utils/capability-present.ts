@@ -121,6 +121,8 @@ export function getStaffCapabilityUxMode(adminKind: string): StaffCapabilityUxMo
       return 'role_summary';
     case 'general_supervisor':
       return 'supervisor';
+    case 'pedagogical_director':
+      return 'full_editor';
     default:
       return 'full_editor';
   }

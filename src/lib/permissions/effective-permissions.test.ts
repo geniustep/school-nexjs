@@ -239,3 +239,84 @@ describe('finance page-level permission matrix', () => {
     expect(hasPermission(user, 'finance.view')).toBe(true);
   });
 });
+
+const PEDAGOGICAL_ACADEMIC_PERMISSIONS = [
+  'view_teachers',
+  'view_classes',
+  'view_timetable',
+  'view_exam_results',
+  'view_attendance',
+  'view_reports',
+] as const;
+
+function pedagogicalDirector(overrides: Partial<CurrentUser> = {}): CurrentUser {
+  return {
+    id: 3,
+    name: 'Pedagogical Director',
+    email: 'pd@test.ma',
+    role: 'admin',
+    admin_kind: 'pedagogical_director',
+    permissions_mode: 'scoped',
+    capabilities_editable: true,
+    permissions: [...PEDAGOGICAL_ACADEMIC_PERMISSIONS],
+    effective_capabilities: [...PEDAGOGICAL_ACADEMIC_PERMISSIONS, 'exam.results.publish_limited'],
+    school: { id: 10, name: 'School A' },
+    school_ids: [10],
+    ...overrides,
+  };
+}
+
+describe('pedagogical_director RBAC', () => {
+  const user = pedagogicalDirector();
+
+  it('normalizes without breaking metadata', () => {
+    const normalized = normalizeMeUser(user);
+    expect(normalized.admin_kind).toBe('pedagogical_director');
+    expect(normalized.permissions_mode).toBe('scoped');
+    expect(normalized.capabilities_editable).toBe(true);
+    expect(normalized.effective_capabilities).toContain('exam.results.publish_limited');
+    expect(normalized.permissions).toEqual([...PEDAGOGICAL_ACADEMIC_PERMISSIONS]);
+  });
+
+  it('resolves scoped permissions_mode from admin_kind fallback', () => {
+    expect(resolvePermissionsMode(user)).toBe('scoped');
+  });
+
+  it('does not infer finance permissions from scoped mode', () => {
+    expect(canViewFinance(user)).toBe(false);
+    expect(canCollectPayments(user)).toBe(false);
+    expect(canManageFeeCatalog(user)).toBe(false);
+    expect(canViewCheques(user)).toBe(false);
+    expect(canAccessFinanceDomain(user)).toBe(false);
+    expect(hasPermission(user, 'finance.view_cash_sessions')).toBe(false);
+  });
+
+  it('allows academic navigation items from effective permissions', () => {
+    expect(canShowAdminNavPermission(user, 'view_teachers')).toBe(true);
+    expect(canShowAdminNavPermission(user, 'view_classes')).toBe(true);
+    expect(canShowAdminNavPermission(user, 'view_timetable')).toBe(true);
+    expect(canShowAdminNavPermission(user, 'view_exam_results')).toBe(true);
+    expect(canShowAdminNavPermission(user, 'view_attendance')).toBe(true);
+    expect(canShowAdminNavPermission(user, FINANCE_VIEW)).toBe(false);
+    expect(canShowAdminNavPermission(user, 'view_students')).toBe(false);
+    expect(canShowAdminNavPermission(user, 'view_parents')).toBe(false);
+  });
+
+  it('builds academic nav without finance section', () => {
+    const sections = navForUser(user);
+    const hrefs = sections.flatMap((s) => s.items.map((i) => i.href));
+    expect(hrefs).toContain('/admin/teachers');
+    expect(hrefs).toContain('/admin/classes');
+    expect(hrefs).toContain('/admin/timetable');
+    expect(hrefs).toContain('/admin/exam-results');
+    expect(hrefs).toContain('/admin/attendance?date=today');
+    expect(hrefs.some((h) => h.startsWith('/admin/finance'))).toBe(false);
+    expect(hrefs.some((h) => h.startsWith('/admin/students'))).toBe(false);
+  });
+
+  it('keeps school_manager finance access unchanged', () => {
+    const managerUser = manager();
+    expect(canViewFinance(managerUser)).toBe(true);
+    expect(canShowAdminNavPermission(managerUser, FINANCE_VIEW)).toBe(true);
+  });
+});

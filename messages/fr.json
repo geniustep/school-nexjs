@@ -69,6 +69,7 @@
     "adminKind": {
       "project_manager": "Directeur général",
       "school_manager": "Directeur d'établissement",
+      "pedagogical_director": "Directeur pédagogique",
       "general_supervisor": "Surveillant général",
       "admin_staff": "Assistant administratif",
       "legacy_admin": "Administrateur",
@@ -2093,6 +2094,7 @@
         "admin": "Directeur d'établissement",
         "project_manager": "Responsable plateforme",
         "school_manager": "Directeur d'établissement",
+        "pedagogical_director": "Directeur pédagogique",
         "general_supervisor": "Superviseur général",
         "admin_staff": "Personnel administratif"
       },
@@ -2147,6 +2149,7 @@
       "adminKind": {
         "project_manager": "Directeur général",
         "school_manager": "Directeur d'établissement",
+        "pedagogical_director": "Directeur pédagogique",
         "general_supervisor": "Superviseur général",
         "admin_staff": "Personnel administratif"
       },

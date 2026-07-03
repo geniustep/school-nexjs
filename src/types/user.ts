@@ -15,6 +15,7 @@ export interface UserRoleOption {
 export type AdminKind =
   | 'project_manager'
   | 'school_manager'
+  | 'pedagogical_director'
   | 'general_supervisor'
   | 'admin_staff'
   | 'legacy_admin'

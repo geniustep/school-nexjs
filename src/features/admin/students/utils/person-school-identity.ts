@@ -6,6 +6,7 @@ export const STAFF_ROLE_CODES = [
   'admin',
   'employee',
   'school_manager',
+  'pedagogical_director',
   'general_supervisor',
   'admin_staff',
   'project_manager',

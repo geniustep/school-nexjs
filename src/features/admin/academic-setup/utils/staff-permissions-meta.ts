@@ -97,6 +97,9 @@ export function resolveStaffCapabilityDisplayMode(
   if (meta.permissions_mode === 'assigned' && meta.capabilities_editable !== false) {
     return 'assigned_editor';
   }
+  if (adminKind === 'pedagogical_director' && meta.capabilities_editable !== false) {
+    return 'assigned_editor';
+  }
   if (meta.permissions_mode === 'scoped' || adminKind === 'general_supervisor') {
     return 'supervisor_scoped';
   }

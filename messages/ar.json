@@ -69,6 +69,7 @@
     "adminKind": {
       "project_manager": "المدير العام",
       "school_manager": "مدير المدرسة",
+      "pedagogical_director": "مدير تربوي",
       "general_supervisor": "الحارس العام",
       "admin_staff": "مساعد إداري",
       "legacy_admin": "مدير (قديم)",
@@ -2122,6 +2123,7 @@
         "admin": "مدير المؤسسة",
         "project_manager": "مدير المنصة",
         "school_manager": "مدير المؤسسة",
+        "pedagogical_director": "مدير تربوي",
         "general_supervisor": "مشرف عام",
         "admin_staff": "موظف إداري"
       },
@@ -2176,6 +2178,7 @@
       "adminKind": {
         "project_manager": "مدير عام",
         "school_manager": "مدير مدرسة",
+        "pedagogical_director": "مدير تربوي",
         "general_supervisor": "مشرف عام",
         "admin_staff": "موظف إداري"
       },

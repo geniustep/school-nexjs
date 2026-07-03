@@ -168,12 +168,20 @@ export function adminLandingPath(user: CurrentUser): string {
 
 /** Scoped admins use softer nav section labels. */
 export function useScopedNavLabels(user: CurrentUser | null): boolean {
-  return isScopedAdmin(user) || user?.admin_kind === 'general_supervisor';
+  return (
+    isScopedAdmin(user) ||
+    user?.admin_kind === 'general_supervisor' ||
+    user?.admin_kind === 'pedagogical_director'
+  );
 }
 
 /** Hide school-wide structure KPIs on the command dashboard. */
 export function shouldHideSchoolWideDashboardKpis(user: CurrentUser | null): boolean {
-  return isScopedAdmin(user) || user?.admin_kind === 'general_supervisor';
+  return (
+    isScopedAdmin(user) ||
+    user?.admin_kind === 'general_supervisor' ||
+    user?.admin_kind === 'pedagogical_director'
+  );
 }
 
 /** Multi-school portfolio notice for project managers. */
