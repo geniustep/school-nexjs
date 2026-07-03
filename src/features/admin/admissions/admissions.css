@@ -962,6 +962,13 @@
   backdrop-filter: blur(2px);
 }
 
+.admissions-detail-header-card__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-shrink: 0;
+}
+
 .admissions-detail-header-card__main {
   display: flex;
   align-items: center;

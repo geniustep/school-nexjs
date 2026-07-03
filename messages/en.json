@@ -72,7 +72,8 @@
       "general_supervisor": "General supervisor",
       "admin_staff": "Administrative assistant",
       "legacy_admin": "Administrator",
-      "super_admin": "Super administrator"
+      "super_admin": "Super administrator",
+      "pedagogical_director": "Pedagogical director"
     }
   },
   "nav": {
@@ -787,6 +788,100 @@
     "readonlyDashboardDesc": "Quick overview within your scope — {school}",
     "staffNoDashboardTitle": "Dashboard not available",
     "staffNoDashboardDesc": "Your account has limited permissions. Use the menu to open allowed pages.",
+    "pedagogicalDashboard": {
+      "title": "Pedagogical director dashboard",
+      "subtitle": "Follow classes, teachers, students, attendance, resources, homework, exams, results, and timetable from one place.",
+      "roleDescription": "Responsible for academic and pedagogical oversight within the school.",
+      "metricsTitle": "Pedagogical monitoring",
+      "metricsLead": "A quick view of school life, academic organization, learning, and your team.",
+      "workCenterTitle": "Today's work center",
+      "workCenterLead": "Start your daily tasks here — main actions up front.",
+      "secondaryActionsTitle": "More actions",
+      "attentionTitle": "Needs your attention today",
+      "attentionEmpty": "Nothing needs your action right now.",
+      "reports": "Pedagogical reports",
+      "emptyWorkspace": "Start from today's work center or the sidebar to open your tools.",
+      "metrics": {
+        "attendanceToday": "Today's attendance"
+      },
+      "metricGroups": {
+        "schoolLife": "School life",
+        "academicOrg": "Academic organization",
+        "learningAssessment": "Learning & assessment",
+        "team": "Team"
+      },
+      "metricHint": {
+        "students": "Enrolled student records",
+        "admissions": "Current admission requests",
+        "parents": "Parent accounts",
+        "attendance": "Today's attendance entries",
+        "classes": "Active classes",
+        "levels": "School levels",
+        "subjects": "Subjects and tracks",
+        "timetable": "Class timetable",
+        "homeworks": "Published homework",
+        "resources": "Learning resources",
+        "exams": "Upcoming exams",
+        "examResults": "Published results",
+        "reports": "Pedagogical reports",
+        "teachers": "Teacher profiles",
+        "staffCenter": "Staff and assignments"
+      },
+      "metricEmpty": {
+        "students": "No student records yet",
+        "admissions": "No current admission requests",
+        "parents": "No parent records yet",
+        "teachers": "This section is not set up yet",
+        "classes": "Classes are not set up yet",
+        "levels": "Levels are not set up yet",
+        "subjects": "Subjects are not set up yet",
+        "attendance": "Waiting for attendance to be recorded",
+        "timetable": "Timetable is not set up yet",
+        "homeworks": "No homework published yet",
+        "resources": "No resources published yet",
+        "exams": "No upcoming exams right now",
+        "examResults": "No results recorded yet",
+        "reports": "No reports published yet",
+        "staffCenter": "No staff records yet"
+      },
+      "actions": {
+        "teachers": "Manage teachers",
+        "classes": "Classes",
+        "levels": "Levels",
+        "subjects": "Subjects",
+        "attendance": "Monitor attendance",
+        "timetable": "Timetable",
+        "examResults": "Exam results",
+        "reports": "Reports",
+        "academicSetup": "Academic setup",
+        "admissions": "Admission requests",
+        "students": "Students",
+        "parents": "Parents",
+        "homeworks": "Homework",
+        "resources": "Resources",
+        "exams": "Exams",
+        "channels": "Channels",
+        "staffCenter": "Staff center"
+      },
+      "actionDesc": {
+        "attendance": "Review today's attendance by class",
+        "teachers": "Follow teacher profiles and assignments",
+        "classes": "Review class structure and levels",
+        "examResults": "See the latest published results",
+        "timetable": "Review the school timetable",
+        "admissions": "Follow new admission requests",
+        "students": "Browse student records",
+        "parents": "Review parent accounts",
+        "levels": "Manage school levels",
+        "subjects": "Manage subjects and tracks",
+        "homeworks": "Follow published homework",
+        "resources": "Review learning resources",
+        "exams": "Browse upcoming exams",
+        "channels": "Communicate with teams and classes",
+        "staffCenter": "Review staff profiles and assignments",
+        "academicSetup": "Complete academic school setup"
+      }
+    },
     "dashboardContext": {
       "title": "Your dashboard context",
       "variantLabel": "Dashboard type",
@@ -810,6 +905,7 @@
       "variantAdminStaff": "Admin staff",
       "variantLegacyAdmin": "Legacy admin",
       "variantScopedAdmin": "Scoped supervisor",
+      "variantPedagogicalDirector": "Pedagogical director",
       "permStudents": "Students",
       "permEnrollments": "Enrollments",
       "permAttendance": "Attendance",
@@ -1352,6 +1448,25 @@
     },
     "levelsListDesc": "Manage levels",
     "subjectsListDesc": "Manage subjects",
+    "subjectsList": {
+      "subtitle": "Browse enabled subjects with code and cycle context to tell duplicates apart",
+      "stats": "{subjects} subjects · {levels} linked levels",
+      "duplicateNamesCount": "{count} shared names",
+      "duplicateHint": "Shared name — distinguished by code and cycle",
+      "levelLabel": "Level",
+      "assignmentsCount": "{count} assignments",
+      "withAssignments": "With assignments",
+      "sharedNames": "Shared names",
+      "filterLabel": "Filter subjects",
+      "searchPlaceholder": "Search by name, code, or level…",
+      "tierAll": "All cycles",
+      "tierPrimary": "Primary",
+      "tierMiddle": "Middle",
+      "tierHigh": "High school",
+      "tierOther": "Other",
+      "detailSequence": "Sequence",
+      "detailCreditHours": "Credit hours"
+    },
     "settings": {
       "title": "Settings",
       "subtitle": "School configuration and organisation",
@@ -2163,6 +2278,15 @@
           "highlight2": "View reports within scope",
           "highlight3": "Communication and class oversight",
           "highlight4": "Additional permissions when customization is needed"
+        },
+        "pedagogical_director": {
+          "title": "Pedagogical director permissions",
+          "description": "Academic and pedagogical oversight without default finance access.",
+          "autoGrantedLabel": "Granted automatically by role",
+          "highlight1": "Supervise teachers and classes",
+          "highlight2": "Monitor attendance and academic discipline",
+          "highlight3": "View timetable and exam results",
+          "highlight4": "Pedagogical reports without default finance permissions"
         }
       },
       "capabilities": {
@@ -3204,6 +3328,7 @@
       },
       "nextAction": "Next action",
       "markNextActionDone": "Done",
+      "editRequest": "Edit request",
       "assignedUser": "Assigned to",
       "viewMode": "View mode",
       "viewKanban": "Board",

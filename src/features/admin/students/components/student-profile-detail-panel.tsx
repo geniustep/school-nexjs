@@ -2,6 +2,8 @@
 
 import type { ReactNode } from 'react';
 import { EntityAccountPanel } from '@/features/admin/account/entity-account-panel';
+import { useSession } from '@/features/auth/session-context';
+import { canManageStudentAccounts } from '@/lib/permissions/academic-capabilities';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
@@ -77,6 +79,8 @@ export function StudentProfileDetailPanel({
   onAccountChanged: () => void;
 }) {
   const t = useT();
+  const user = useSession();
+  const canManageAccount = canManageStudentAccounts(user);
   const { formatDate } = useFormat();
   const s = details.student;
   const age = computeStudentAge(s.date_of_birth);
@@ -211,7 +215,7 @@ export function StudentProfileDetailPanel({
           </ProfileBlock>
         </div>
 
-        {canManage ? (
+        {canManageAccount ? (
           <article
             className="student-profile-panel__block student-profile-panel__block--account"
             id="student-login-account"

@@ -25,10 +25,12 @@ function hasNextActionContent(detail: AdmissionDetail): boolean {
 export function AdmissionNextActionBox({
   detail,
   canEdit,
+  editRequestSeq = 0,
   onUpdated,
 }: {
   detail: AdmissionDetail;
   canEdit: boolean;
+  editRequestSeq?: number;
   onUpdated: () => void;
 }) {
   const t = useT();
@@ -52,6 +54,13 @@ export function AdmissionNextActionBox({
       setHidden(false);
     }
   }, [detail.id, detail.next_action, detail.next_action_date]);
+
+  useEffect(() => {
+    if (!canEdit || editRequestSeq <= 0) return;
+    setEditing(true);
+    setHidden(false);
+    setError(null);
+  }, [canEdit, editRequestSeq]);
 
   async function persistNextAction(action: string, actionDate: string) {
     if (activeSchoolId == null) return;
@@ -85,9 +94,11 @@ export function AdmissionNextActionBox({
     await persistNextAction('', '');
   }
 
-  if ((hidden || !hasContent) && !editing) {
+  if ((hidden || !hasContent) && !editing && !canEdit) {
     return null;
   }
+
+  const showEmptyHint = canEdit && !hasContent && !editing;
 
   return (
     <section
@@ -124,6 +135,8 @@ export function AdmissionNextActionBox({
                   </time>
                 ) : null}
               </p>
+            ) : showEmptyHint ? (
+              <p className="muted admissions-next-action__empty">{t('common.dash')}</p>
             ) : null}
           </div>
           {canEdit ? (
@@ -138,9 +151,11 @@ export function AdmissionNextActionBox({
                   {saving ? t('common.saving') : t('admin.admissions.markNextActionDone')}
                 </button>
               ) : null}
-              <button type="button" className="btn btn--ghost btn--sm" onClick={() => setEditing(true)}>
-                {t('common.edit')}
-              </button>
+              {!editing ? (
+                <button type="button" className="btn btn--ghost btn--sm" onClick={() => setEditing(true)}>
+                  {t('common.edit')}
+                </button>
+              ) : null}
             </div>
           ) : null}
         </div>

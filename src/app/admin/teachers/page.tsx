@@ -41,6 +41,7 @@ export default function AdminTeachersPage() {
         actions={
           <AdminListActions
             addHref="/admin/teachers/new"
+            addCapability="manage_teachers"
             managePermission="manage_teachers"
             exportPath={endpoints.admin.teachersExport}
             exportFilename="teachers.csv"

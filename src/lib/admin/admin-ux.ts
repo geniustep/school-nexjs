@@ -4,8 +4,10 @@
 import { resolveSchoolIds } from '@/lib/auth/normalize-user';
 import { shouldUseTeacherWorkspace } from '@/lib/auth/teacher-workspace';
 import { ADMIN_NAV_BY_PERMISSION } from '@/components/navigation/nav-config';
+import { canViewAcademicSetup } from '@/lib/permissions/academic-setup';
+import { canAccessAdminAcademic } from '@/lib/permissions/admin-pages';
 import { hasAnyPermission, hasPermission } from '@/lib/permissions/permissions';
-import { isConfiguredAdmin, isScopedAdmin } from '@/lib/permissions/scope';
+import { isConfiguredAdmin, isScopedAdmin, isSuperAdmin } from '@/lib/permissions/scope';
 import type { Permission } from '@/types/permissions';
 import type { AdminKind, CurrentUser } from '@/types/user';
 
@@ -20,6 +22,30 @@ const SCOPED_DASHBOARD_PERMISSIONS: Permission[] = [
   'view_exam_results',
   'view_timetable',
   'view_channels',
+  'view_reports',
+];
+
+/** Academic workspace permissions — used for landing and scoped dashboard UX. */
+export const ACADEMIC_WORKSPACE_PERMISSIONS: Permission[] = [
+  'view_teachers',
+  'view_classes',
+  'view_timetable',
+  'view_exam_results',
+  'view_attendance',
+  'view_reports',
+];
+
+const ACADEMIC_LANDING_CANDIDATES: {
+  canAccess: (user: CurrentUser) => boolean;
+  path: string;
+}[] = [
+  { canAccess: canViewAcademicSetup, path: '/admin/settings/academic-setup' },
+  { canAccess: canAccessAdminAcademic, path: '/admin/academic' },
+  { canAccess: (user) => hasPermission(user, 'view_teachers'), path: '/admin/teachers' },
+  { canAccess: (user) => hasPermission(user, 'view_attendance'), path: '/admin/attendance' },
+  { canAccess: (user) => hasPermission(user, 'view_timetable'), path: '/admin/timetable' },
+  { canAccess: (user) => hasPermission(user, 'view_classes'), path: '/admin/classes' },
+  { canAccess: (user) => hasPermission(user, 'view_exam_results'), path: '/admin/exam-results' },
 ];
 
 export function adminSchoolCount(user: CurrentUser | null): number {
@@ -43,6 +69,31 @@ export function hasScopedDashboardPermissions(user: CurrentUser | null): boolean
   return hasAnyPermission(user, SCOPED_DASHBOARD_PERMISSIONS);
 }
 
+export function hasAcademicWorkspacePermissions(user: CurrentUser | null): boolean {
+  return hasAnyPermission(user, ACADEMIC_WORKSPACE_PERMISSIONS);
+}
+
+export function isPedagogicalDirector(user: CurrentUser | null): boolean {
+  return !!user && user.role === 'admin' && user.admin_kind === 'pedagogical_director';
+}
+
+function hasSchoolLevelAdminContext(user: CurrentUser): boolean {
+  return isSuperAdmin(user) || (user.school_ids?.length ?? 0) > 0 || !!user.school;
+}
+
+/** Best practical landing route for academic admins without view_dashboard. */
+export function resolveAcademicAdminLandingPath(user: CurrentUser): string | null {
+  if (!hasAcademicWorkspacePermissions(user) && !isPedagogicalDirector(user)) {
+    return null;
+  }
+
+  for (const candidate of ACADEMIC_LANDING_CANDIDATES) {
+    if (candidate.canAccess(user)) return candidate.path;
+  }
+
+  return null;
+}
+
 /** Limited dashboard for general_supervisor / scoped admins without view_dashboard. */
 export function canAccessScopedAdminDashboard(user: CurrentUser | null): boolean {
   if (!user || user.role !== 'admin') return false;
@@ -51,6 +102,13 @@ export function canAccessScopedAdminDashboard(user: CurrentUser | null): boolean
 
   if (user.admin_kind === 'general_supervisor') {
     return !!(user.scope || (user.scopes?.length ?? 0) > 0);
+  }
+
+  if (
+    (isPedagogicalDirector(user) || hasAcademicWorkspacePermissions(user)) &&
+    hasSchoolLevelAdminContext(user)
+  ) {
+    return true;
   }
 
   return isScopedAdmin(user);
@@ -76,7 +134,14 @@ export function firstAllowedAdminPath(user: CurrentUser): string {
     (item) =>
       item.href !== '/admin/staff' && canShowAdminNavPermission(user, item.permission),
   );
-  return first?.href ?? '/admin/dashboard';
+  if (first) return first.href;
+
+  const academicPath = resolveAcademicAdminLandingPath(user);
+  if (academicPath) return academicPath;
+
+  if (canAccessAdminDashboard(user)) return '/admin/dashboard';
+
+  return '/admin';
 }
 
 /** Post-login /admin index redirect target. */
@@ -87,6 +152,11 @@ export function adminLandingPath(user: CurrentUser): string {
 
   if (user.admin_kind === 'admin_staff') {
     return canAccessAdminDashboard(user) ? '/admin/dashboard' : firstAllowedAdminPath(user);
+  }
+
+  if (!hasPermission(user, 'view_dashboard')) {
+    const academicPath = resolveAcademicAdminLandingPath(user);
+    if (academicPath) return academicPath;
   }
 
   if (canAccessAdminDashboard(user)) {

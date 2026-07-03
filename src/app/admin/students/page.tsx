@@ -16,6 +16,7 @@ import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { hasStudentImportCapability } from '@/features/admin/students/import/student-import-capability';
+import { canCreateStudents } from '@/lib/permissions/academic-capabilities';
 import { hasPermission } from '@/lib/permissions/permissions';
 import { statusLabel } from '@/lib/utils/labels';
 import { getStudentDisplayName } from '@/lib/utils/student';
@@ -35,8 +36,13 @@ export default function AdminStudentsPage() {
   const router = useRouter();
   const t = useT();
   const user = useSession();
-  const canManageStudents = hasPermission(user, 'manage_students');
+  const canAddStudent = canCreateStudents(user);
   const canImportStudents = hasStudentImportCapability(user);
+  const canShowListActions =
+    canAddStudent ||
+    canImportStudents ||
+    hasPermission(user, 'export_data') ||
+    hasPermission(user, 'import_data');
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebouncedValue(search, 400);
@@ -156,13 +162,12 @@ export default function AdminStudentsPage() {
             : t('admin.studentsListDesc')
         }
         actions={
-          canManageStudents ? (
+          canShowListActions ? (
             <div className="students-list__header-actions">
-              <Link href="/admin/students/new" className="btn btn--primary btn--sm">
-                {t('admin.addStudent')}
-              </Link>
               <AdminListActions
-                addHref={undefined}
+                addHref="/admin/students/new"
+                addLabel={t('admin.addStudent')}
+                addCapability="students.create"
                 managePermission="manage_students"
                 exportPath={endpoints.admin.studentsExport}
                 exportFilename="students.csv"

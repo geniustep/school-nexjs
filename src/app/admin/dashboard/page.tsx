@@ -6,11 +6,13 @@ import { PermissionDeniedState } from '@/components/states/states';
 import { Card, InfoBanner } from '@/components/ui/primitives';
 import { AdminCommandDashboard } from '@/features/admin/command-center/admin-command-dashboard';
 import { AdminDashboardContextPanel } from '@/features/admin/dashboard/admin-dashboard-context-panel';
+import { AdminPedagogicalDashboard } from '@/features/admin/dashboard/admin-pedagogical-dashboard';
 import { AdminReadonlyDashboard } from '@/features/admin/dashboard/admin-readonly-dashboard';
 import { useSession } from '@/features/auth/session-context';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { resolveDashboardVariant } from '@/lib/admin/dashboard-registry';
+import { shouldUsePedagogicalDashboard } from '@/lib/admin/pedagogical-dashboard';
 import { formatSchoolLabel } from '@/lib/admin/school-label';
 import { isConfiguredAdmin } from '@/lib/permissions/scope';
 import { endpoints } from '@/lib/api/endpoints';
@@ -57,6 +59,14 @@ export default function AdminDashboardPage() {
       description={t('admin.scopedDashboardDesc')}
     />
   ) : null;
+
+  if (shouldUsePedagogicalDashboard(user)) {
+    return (
+      <div className="admin-workspace admin-workspace--dashboard">
+        <AdminPedagogicalDashboard />
+      </div>
+    );
+  }
 
   if (variant.shell === 'readonly') {
     return (

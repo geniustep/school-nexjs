@@ -133,6 +133,7 @@ export default function AdminParentsPage() {
         actions={
           <AdminListActions
             addHref="/admin/parents/new"
+            addCapability="guardians.create"
             managePermission="manage_parents"
             exportPath={endpoints.admin.parentsExport}
             exportFilename="parents.csv"

@@ -3,12 +3,13 @@
 import type { CurrentUser } from '@/types/user';
 import type { Permission } from '@/types/permissions';
 import { canAccessAdminDashboard, canShowAdminNavPermission, useScopedNavLabels } from '@/lib/admin/admin-ux';
-import { canViewSettings, canViewStaff } from '@/lib/permissions/academic-setup';
+import { canViewSettings, canAccessStaffCenter } from '@/lib/permissions/academic-setup';
 import { canViewSchoolBrandingSettings } from '@/lib/permissions/school-branding-settings';
 import { FINANCE_VIEW } from '@/lib/permissions/finance';
 import { ADMISSION_VIEW } from '@/lib/permissions/admission';
 import { isConfiguredAdmin } from '@/lib/permissions/scope';
 import { shouldUseTeacherWorkspace } from '@/lib/auth/teacher-workspace';
+import { shouldUsePedagogicalNav } from '@/lib/admin/pedagogical-dashboard';
 
 export interface NavItem {
   labelKey: string;
@@ -41,10 +42,11 @@ function scopedNavTitle(baseKey: string, scopedKey: string, scoped: boolean): st
 
 function adminNav(user: CurrentUser): NavSection[] {
   const sections: NavSection[] = [];
-  const scopedLabels = useScopedNavLabels(user);
+  const pedagogicalNav = shouldUsePedagogicalNav(user);
+  const scopedLabels = pedagogicalNav ? false : useScopedNavLabels(user);
 
   const opsItems: NavItem[] = [];
-  pushIf(opsItems, canShowAdminNavPermission(user, 'view_dashboard'), {
+  pushIf(opsItems, canShowAdminNavPermission(user, 'view_dashboard') || pedagogicalNav, {
     labelKey: 'nav.dashboard',
     href: '/admin/dashboard',
     icon: '🏠',
@@ -95,7 +97,7 @@ function adminNav(user: CurrentUser): NavSection[] {
     href: '/admin/teachers',
     icon: '👩‍🏫',
   });
-  pushIf(staffItems, canViewStaff(user), {
+  pushIf(staffItems, canAccessStaffCenter(user), {
     labelKey: 'nav.staffCenter',
     href: '/admin/staff',
     icon: '🧑‍💼',
@@ -188,18 +190,20 @@ function adminNav(user: CurrentUser): NavSection[] {
   }
 
   if (canViewSettings(user) || canViewSchoolBrandingSettings(user)) {
-    pushSection(sections, {
-      groupId: 'system',
-      titleKey: scopedNavTitle('nav.adminSystem', 'nav.adminScopedSystem', scopedLabels),
-      items: [
-        {
-          labelKey: 'nav.settings',
-          href: '/admin/settings',
-          icon: '⚙️',
-          isActive: (pathname) => pathname.startsWith('/admin/settings'),
-        },
-      ],
-    });
+    if (!pedagogicalNav || canViewSettings(user)) {
+      pushSection(sections, {
+        groupId: 'system',
+        titleKey: scopedNavTitle('nav.adminSystem', 'nav.adminScopedSystem', scopedLabels),
+        items: [
+          {
+            labelKey: 'nav.settings',
+            href: '/admin/settings',
+            icon: '⚙️',
+            isActive: (pathname) => pathname.startsWith('/admin/settings'),
+          },
+        ],
+      });
+    }
   }
 
   return sections;

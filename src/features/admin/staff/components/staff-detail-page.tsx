@@ -108,7 +108,10 @@ export function StaffDetailPage({ userId }: { userId: number }) {
 
             <StaffWarningsPanel warnings={member.warnings} />
             {showAdminPrivate ? (
-              <StaffAccountPasswordBanner member={member} onSetPassword={() => setEditOpen(true)} />
+              <StaffAccountPasswordBanner
+                member={member}
+                onSetPassword={canManage ? () => setEditOpen(true) : undefined}
+              />
             ) : null}
 
             <div className="staff-center-detail-grid">

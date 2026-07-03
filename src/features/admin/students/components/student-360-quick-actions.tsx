@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { IconMoreHorizontal } from '@/components/icons/admin-icons';
 import { ConfirmActionButton } from '@/features/admin/confirm-action-button';
+import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { isRelationshipActive } from '../utils/relationship-types';
@@ -36,12 +37,13 @@ export function Student360QuickActions({
   onArchiveSuccess: () => void;
 }) {
   const t = useT();
+  const user = useSession();
   const [menuOpen, setMenuOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const s = details.student;
   const canManage = resolveOverviewEditAllowed(overview, caps) && !archived;
   const canManageGuardians = resolveOverviewManageGuardiansAllowed(overview, caps);
-  const canArchive = resolveOverviewArchiveAllowed(overview, caps) && !archived;
+  const canArchive = resolveOverviewArchiveAllowed(overview, caps, user) && !archived;
 
   const activeGuardians = details.guardian_relationships.filter((r) =>
     isRelationshipActive(r.state, r.active),

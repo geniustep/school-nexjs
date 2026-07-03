@@ -5,7 +5,9 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { ResourceView } from '@/components/states/resource';
-import { NotFoundState } from '@/components/states/states';
+import { NotFoundState, PermissionDeniedState } from '@/components/states/states';
+import { canCreateGuardians } from '@/lib/permissions/academic-capabilities';
+import { useSession } from '@/features/auth/session-context';
 import { PageHeader } from '@/components/ui/primitives';
 import { ParentForm } from '@/features/admin/entity-forms';
 import { ParentProfileView } from '@/features/admin/parents/components/parent-profile-view';
@@ -16,6 +18,7 @@ import { endpoints } from '@/lib/api/endpoints';
 export default function AdminParentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const t = useT();
+  const user = useSession();
   const router = useRouter();
   const isNew = id === 'new';
   const [editing, setEditing] = useState(isNew);
@@ -27,6 +30,16 @@ export default function AdminParentDetailPage({ params }: { params: Promise<{ id
   );
 
   if (isNew) {
+    if (!canCreateGuardians(user)) {
+      return (
+        <>
+          <Link href="/admin/parents" className="back-link">
+            ‹ {t('nav.parents')}
+          </Link>
+          <PermissionDeniedState description={t('admin.pageForbidden')} />
+        </>
+      );
+    }
     return (
       <>
         <Link href="/admin/parents" className="back-link">

@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import { RequireAdminAcademicHub } from '@/components/admin/require-admin-academic-hub';
-import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
+import { RequireAdminPermission, RequireStaffCenterAccess } from '@/components/admin/require-admin-permission';
 import { RequireAcademicSetupAccess } from '@/features/admin/academic-setup/permissions/require-academic-setup';
 import { RequireSettingsHubAccess } from '@/features/admin/settings/permissions/require-settings-hub';
 import { RequireSchoolBrandingSettingsAccess } from '@/features/admin/school-branding/permissions/require-school-branding-settings';
@@ -26,6 +26,9 @@ export function AdminPageGuard({ children }: { children: ReactNode }) {
   }
   if (isAdminAcademicPath(pathname)) {
     return <RequireAdminAcademicHub>{children}</RequireAdminAcademicHub>;
+  }
+  if (base.startsWith('/admin/staff')) {
+    return <RequireStaffCenterAccess>{children}</RequireStaffCenterAccess>;
   }
   const permission = permissionForAdminPath(pathname);
   if (!permission) return <>{children}</>;

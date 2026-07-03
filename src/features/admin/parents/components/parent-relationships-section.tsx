@@ -8,7 +8,7 @@ import { GuardianEditDialog } from '@/features/admin/students/components/guardia
 import { GuardianRemoveDialog } from '@/features/admin/students/components/guardian-remove-dialog';
 import { GuardianRelationshipBadges } from '@/features/admin/students/components/guardian-relationship-badges';
 import { useT } from '@/features/i18n/locale-context';
-import { hasPermission } from '@/lib/permissions/permissions';
+import { canManageGuardianRelationships } from '@/lib/permissions/academic-capabilities';
 import { statusLabel } from '@/lib/utils/labels';
 import { getStudentDisplayName } from '@/lib/utils/student';
 import { relationshipTypeLabel, isRelationshipActive } from '@/features/admin/students/utils/relationship-types';
@@ -111,10 +111,10 @@ export function ParentRelationshipsSection({
   );
 
   const canLink =
-    hasPermission(user, 'manage_parents') &&
+    canManageGuardianRelationships(user) &&
     parent.allowed_actions?.edit_relationship !== false &&
     parent.status !== 'archived';
-  const canManageRelationships = hasPermission(user, 'manage_parents');
+  const canManageRelationships = canManageGuardianRelationships(user);
 
   return (
     <section className="parent-relationships">

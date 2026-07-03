@@ -7,6 +7,7 @@ import {
   shouldHideSchoolWideDashboardKpis,
   shouldShowMultiSchoolPortfolioNotice,
 } from '@/lib/admin/admin-ux';
+import { shouldUsePedagogicalDashboard } from '@/lib/admin/pedagogical-dashboard';
 import { ADMISSION_VIEW } from '@/lib/permissions/admission';
 import { canViewAcademicSetup, canViewSettings } from '@/lib/permissions/academic-setup';
 import { canViewFinance } from '@/lib/permissions/finance';
@@ -22,6 +23,7 @@ export type AdminDashboardVariantId =
   | 'admin_staff'
   | 'legacy_admin'
   | 'scoped_admin'
+  | 'pedagogical_director'
   | 'denied';
 
 export type AdminDashboardShell = 'command' | 'readonly' | 'denied';
@@ -90,6 +92,7 @@ const VARIANT_LABEL_KEYS: Record<Exclude<AdminDashboardVariantId, 'denied'>, str
   admin_staff: 'admin.dashboardContext.variantAdminStaff',
   legacy_admin: 'admin.dashboardContext.variantLegacyAdmin',
   scoped_admin: 'admin.dashboardContext.variantScopedAdmin',
+  pedagogical_director: 'admin.dashboardContext.variantPedagogicalDirector',
 };
 
 const PERMISSION_AREA_LABEL_KEYS: Record<AdminDashboardPermissionAreaId, string> = {
@@ -132,6 +135,8 @@ function resolveVariantId(user: CurrentUser, shell: AdminDashboardShell): AdminD
       return 'admin_staff';
     case 'legacy_admin':
       return 'legacy_admin';
+    case 'pedagogical_director':
+      return 'pedagogical_director';
     default:
       return resolveScopedMode(user) ? 'scoped_admin' : 'school_manager';
   }
@@ -153,18 +158,23 @@ export function resolveDashboardVariant(user: CurrentUser | null): AdminDashboar
   const scopedMode = resolveScopedMode(user);
   const hideSchoolWideKpis = shouldHideSchoolWideDashboardKpis(user);
   const multiSchool = isMultiSchoolAdmin(user);
-  const shell: AdminDashboardShell = fullDashboard ? 'command' : 'readonly';
+  const pedagogicalDashboard = shouldUsePedagogicalDashboard(user);
+  const shell: AdminDashboardShell = pedagogicalDashboard
+    ? 'readonly'
+    : fullDashboard
+      ? 'command'
+      : 'readonly';
 
   return {
     id: resolveVariantId(user, shell),
     shell,
     canAccess: true,
-    scopedMode,
-    hideSchoolWideKpis,
+    scopedMode: pedagogicalDashboard ? false : scopedMode,
+    hideSchoolWideKpis: pedagogicalDashboard ? false : hideSchoolWideKpis,
     showMultiSchoolPortfolioNotice: shouldShowMultiSchoolPortfolioNotice(user),
     showActiveSchoolBanner: multiSchool,
-    showScopedAccessBanner: scopedMode,
-    fetchFullDashboardApi: fullDashboard,
+    showScopedAccessBanner: pedagogicalDashboard ? false : scopedMode,
+    fetchFullDashboardApi: fullDashboard && !pedagogicalDashboard,
   };
 }
 
@@ -244,6 +254,9 @@ export function resolveDashboardWidgets(user: CurrentUser | null): AdminDashboar
 }
 
 function resolveDashboardHeadlineKey(variant: AdminDashboardVariant): string {
+  if (variant.id === 'pedagogical_director') {
+    return 'admin.pedagogicalDashboard.title';
+  }
   if (variant.id === 'admin_staff') {
     return 'admin.dashboardContext.headlineAdminStaff';
   }
@@ -308,6 +321,10 @@ function resolveDashboardPermissionAreas(
 export function resolveDashboardContextPresentation(
   user: CurrentUser | null,
 ): AdminDashboardContextPresentation | null {
+  if (shouldUsePedagogicalDashboard(user)) {
+    return null;
+  }
+
   const variant = resolveDashboardVariant(user);
   if (!user || !variant.canAccess) {
     return null;

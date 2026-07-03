@@ -72,7 +72,10 @@ import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { endpoints } from '@/lib/api/endpoints';
 import { InfoBanner, PageHeader } from '@/components/ui/primitives';
 import { ResourceView } from '@/components/states/resource';
+import { PermissionDeniedState } from '@/components/states/states';
 import { useToast } from '@/components/ui/toast';
+import { canManageStaff } from '@/lib/permissions/academic-setup';
+import { useSession } from '@/features/auth/session-context';
 import type { Level, SchoolClass, Subject } from '@/types/class';
 import type {
   StaffAssignmentPickerState,
@@ -89,6 +92,15 @@ function stepIndex(step: StaffSmartCreateWizardStep): number {
 }
 
 export function StaffSmartCreateWizard() {
+  const user = useSession();
+  const t = useT();
+  if (!canManageStaff(user)) {
+    return <PermissionDeniedState description={t('admin.pageForbidden')} />;
+  }
+  return <StaffSmartCreateWizardContent />;
+}
+
+function StaffSmartCreateWizardContent() {
   const t = useT();
   const { locale } = useLocale();
   const toast = useToast();

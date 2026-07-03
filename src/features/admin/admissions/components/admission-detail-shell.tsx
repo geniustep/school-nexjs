@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   ApiErrorView,
@@ -11,6 +11,7 @@ import {
   SessionExpiredState,
 } from '@/components/states/states';
 import { Badge } from '@/components/ui/primitives';
+import { useSession } from '@/features/auth/session-context';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { useAdmissionDetail } from '../hooks/use-admission-detail';
@@ -26,7 +27,11 @@ import {
   parseAdmissionTab,
   type AdmissionTabId,
 } from '../utils/admission-detail-tabs';
-import { hasAdmissionAllowedAction } from '../utils/admission-allowed-actions';
+import {
+  canChangeAdmissionState,
+  canEditAdmissionDetail,
+  hasAdmissionAllowedAction,
+} from '../utils/admission-allowed-actions';
 import { isAdmissionConvertedToStudent } from '../utils/admission-registration';
 import { isAdmissionRejected, canReopenAdmission } from '../utils/admission-rejection';
 import { AdmissionOverviewTab } from './admission-overview-tab';
@@ -146,15 +151,33 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
   const { formatDate } = useFormat();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const user = useSession();
   const { loading, data, error, reload } = useAdmissionDetail(admissionId);
   const searchTab = searchParams.get('tab');
   const showPrefill = hasAdmissionAllowedAction(data?.allowed_actions, 'get_prefill');
   const tab = parseAdmissionTab(searchTab, showPrefill);
+  const [editRequestSeq, setEditRequestSeq] = useState(0);
+  const [pendingEditRequest, setPendingEditRequest] = useState(false);
 
   useEffect(() => {
     if (!data || !searchTab || searchTab === tab) return;
     router.replace(buildAdmissionTabHref(admissionId, tab), { scroll: false });
   }, [data, searchTab, tab, admissionId, router]);
+
+  useEffect(() => {
+    if (!pendingEditRequest || tab !== 'overview') return;
+    setEditRequestSeq((seq) => seq + 1);
+    setPendingEditRequest(false);
+  }, [pendingEditRequest, tab]);
+
+  function requestLimitedEdit() {
+    if (tab !== 'overview') {
+      setPendingEditRequest(true);
+      router.push(buildAdmissionTabHref(admissionId, 'overview'), { scroll: false });
+      return;
+    }
+    setEditRequestSeq((seq) => seq + 1);
+  }
 
   if (loading && !data) {
     return <LoadingState label={t('common.loading')} />;
@@ -171,6 +194,8 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
 
   const detail = data;
   const actions = detail.allowed_actions ?? {};
+  const canEdit = canEditAdmissionDetail(actions, user);
+  const canChangeState = canChangeAdmissionState(actions);
   const convertedToStudent = isAdmissionConvertedToStudent(detail);
   const rejected = isAdmissionRejected(detail);
   const visibleTabs = showPrefill ? ADMISSION_TABS : ADMISSION_TABS.filter((id) => id !== 'prefill');
@@ -184,7 +209,8 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
         return (
           <AdmissionOverviewTab
             detail={detail}
-            canEdit={Boolean(actions.edit)}
+            canEdit={canEdit}
+            editRequestSeq={editRequestSeq}
             onUpdated={reload}
           />
         );
@@ -236,6 +262,18 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
           <Link href="/admin/admissions" className="btn btn--ghost btn--sm admissions-detail-header-card__back">
             {t('admin.admissions.backToList')}
           </Link>
+          {canEdit ? (
+            <div className="admissions-detail-header-card__header-actions">
+              <button
+                type="button"
+                className="btn btn--primary btn--sm"
+                data-testid="admission-edit-request"
+                onClick={requestLimitedEdit}
+              >
+                {t('admin.admissions.editRequest')}
+              </button>
+            </div>
+          ) : null}
         </div>
 
         <div className="admissions-detail-header-card__main">
@@ -264,7 +302,7 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
                     })}
                   </span>
                 </div>
-              ) : actions.edit === false ? (
+              ) : !canChangeState ? (
                 <div className="admissions-detail-header-card__state-badges">
                   <Badge tone={admissionStateTone(detail.state)}>
                     {t(`admin.admissions.states.${detail.state}`)}

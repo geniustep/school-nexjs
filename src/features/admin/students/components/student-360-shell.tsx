@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ApiErrorView, LoadingState } from '@/components/states/states';
+import { ApiErrorView, LoadingState, PermissionDeniedState } from '@/components/states/states';
 import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { getStudentDisplayName } from '@/lib/utils/student';
@@ -57,6 +57,7 @@ import {
 import type { StudentProfileFormState } from '../utils/student-profile';
 import type { ApiErrorBody } from '@/types/api';
 import '@/features/admin/admissions/admissions.css';
+import { canCreateStudents, canManageStudentAccounts } from '@/lib/permissions/academic-capabilities';
 import { resolveOverviewEditAllowed } from '../utils/resolve-overview-allowed-actions';
 import { sanitizeReturnTo, isSafeInternalReturnPath } from '@/lib/utils/safe-return-url';
 import { buildStudent360TabIndicators } from '../utils/student-360-tab-indicators';
@@ -207,6 +208,7 @@ export function Student360Shell({ studentId }: { studentId: string }) {
             overviewLoading={overviewState.loading}
             overviewEndpointUnavailable={overviewState.endpointUnavailable}
             canManage={resolveOverviewEditAllowed(overviewState.data, caps)}
+            canManageAccount={canManageStudentAccounts(user)}
             showDocuments={showDocuments}
             showHealth={showHealth}
             showFinance={showFinance}
@@ -270,6 +272,7 @@ export function Student360Shell({ studentId }: { studentId: string }) {
 
 export function Student360CreatePage() {
   const t = useT();
+  const user = useSession();
   const toast = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -352,6 +355,10 @@ export function Student360CreatePage() {
       if (safeReturnTo) router.push(safeReturnTo);
       else router.push(`/admin/students/${id}`);
     })();
+  }
+
+  if (!canCreateStudents(user)) {
+    return <PermissionDeniedState description={t('admin.pageForbidden')} />;
   }
 
   if (admissionId && prefillLoading) {

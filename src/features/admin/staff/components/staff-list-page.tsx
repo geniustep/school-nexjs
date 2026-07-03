@@ -18,6 +18,8 @@ import {
 import { staffWarningCount } from '@/features/admin/staff/utils/staff-warnings';
 import { resolveStaffAdminKindLabel } from '@/features/admin/academic-setup/utils/staff-present';
 import { isStaffInactive } from '@/features/admin/academic-setup/utils/staff-utils';
+import { canManageStaff } from '@/lib/permissions/academic-setup';
+import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { statusLabel } from '@/lib/utils/labels';
 import type { StaffMember } from '@/types/academic-setup';
@@ -25,7 +27,9 @@ import '@/features/admin/staff/staff-center.css';
 
 export function StaffListPage() {
   const router = useRouter();
+  const user = useSession();
   const t = useT();
+  const canManage = canManageStaff(user);
   const [search, setSearch] = useState('');
   const listState = useStaffCenterList({ limit: 200 });
   const resourceState = useMemo(
@@ -135,9 +139,11 @@ export function StaffListPage() {
         title={t('admin.staffCenter.pageTitle')}
         subtitle={t('admin.staffCenter.pageSubtitle')}
         actions={
-          <Link href="/admin/staff/create" className="btn btn--primary btn--sm">
-            + {t('admin.staffCenter.smartCreate.entryButton')}
-          </Link>
+          canManage ? (
+            <Link href="/admin/staff/create" className="btn btn--primary btn--sm">
+              + {t('admin.staffCenter.smartCreate.entryButton')}
+            </Link>
+          ) : undefined
         }
       />
 

@@ -70,7 +70,8 @@ export type StaffAdminKind =
   | 'project_manager'
   | 'school_manager'
   | 'general_supervisor'
-  | 'admin_staff';
+  | 'admin_staff'
+  | 'pedagogical_director';
 
 export type PermissionsMode =
   | 'full_school'

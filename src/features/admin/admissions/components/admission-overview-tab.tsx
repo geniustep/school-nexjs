@@ -18,10 +18,12 @@ import type { AdmissionDetail } from '@/types/admission';
 export function AdmissionOverviewTab({
   detail,
   canEdit,
+  editRequestSeq = 0,
   onUpdated,
 }: {
   detail: AdmissionDetail;
   canEdit: boolean;
+  editRequestSeq?: number;
   onUpdated: () => void;
 }) {
   const t = useT();
@@ -29,7 +31,12 @@ export function AdmissionOverviewTab({
 
   return (
     <div className="admissions-overview">
-      <AdmissionNextActionBox detail={detail} canEdit={canEdit} onUpdated={onUpdated} />
+      <AdmissionNextActionBox
+        detail={detail}
+        canEdit={canEdit}
+        editRequestSeq={editRequestSeq}
+        onUpdated={onUpdated}
+      />
 
       <div className="admissions-overview-grid">
         <OverviewCard title={t('admin.admissions.detail.summary')}>

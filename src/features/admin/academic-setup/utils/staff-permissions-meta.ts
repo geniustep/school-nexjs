@@ -30,6 +30,10 @@ const LEGACY_ADMIN_KIND_DEFAULTS: Record<StaffAdminKind, RolePermissionMetadata>
     permissions_mode: 'assigned',
     capabilities_editable: true,
   },
+  pedagogical_director: {
+    permissions_mode: 'assigned',
+    capabilities_editable: true,
+  },
 };
 
 export const SCHOOL_MANAGER_PERMISSION_GROUP_COUNT = 9;

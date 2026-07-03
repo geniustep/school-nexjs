@@ -15,6 +15,16 @@
 import { hasAnyPermission, hasPermission } from '@/lib/permissions/permissions';
 import type { CurrentUser } from '@/types/user';
 
+/** Odoo capability codes for staff center (not legacy Permission keys). */
+export const STAFF_VIEW_CAPABILITY = 'staff.view';
+export const STAFF_MANAGE_SCHOOL_ACCESS_CAPABILITY = 'school.manage_admin_school_access';
+
+function hasStaffCapability(user: CurrentUser | null, code: string): boolean {
+  if (!user) return false;
+  if (user.effective_capabilities?.includes(code)) return true;
+  return (user.permissions ?? []).some((perm) => perm === code);
+}
+
 export const ACADEMIC_SETUP_VIEW_PERMISSIONS = ['view_classes', 'view_teachers'] as const;
 export const ACADEMIC_SETUP_MANAGE_STRUCTURE = 'manage_classes' as const;
 export const ACADEMIC_SETUP_MANAGE_TEACHERS = 'manage_teachers' as const;
@@ -65,9 +75,10 @@ export function canManageTeachingAssignments(user: CurrentUser | null): boolean 
   return canManageClasses(user) && canManageTeachers(user);
 }
 
-/** Staff write access — backend is authoritative; UI hides mutations for admin_staff by default. */
+/** Staff mutations — requires school admin access capability or legacy full-school admin kinds. */
 export function canManageStaff(user: CurrentUser | null): boolean {
   if (!user || user.role !== 'admin') return false;
+  if (hasStaffCapability(user, STAFF_MANAGE_SCHOOL_ACCESS_CAPABILITY)) return true;
   const kind = user.admin_kind;
   return (
     kind === 'project_manager' ||
@@ -78,7 +89,14 @@ export function canManageStaff(user: CurrentUser | null): boolean {
 }
 
 export function canViewStaff(user: CurrentUser | null): boolean {
-  return canViewAcademicSetup(user);
+  return canAccessStaffCenter(user);
+}
+
+/** Staff center — read-only list/detail when staff.view is granted (legacy: view_classes/view_teachers). */
+export function canAccessStaffCenter(user: CurrentUser | null): boolean {
+  if (!user || user.role !== 'admin') return false;
+  if (hasStaffCapability(user, STAFF_VIEW_CAPABILITY)) return true;
+  return hasAnyPermission(user, [...ACADEMIC_SETUP_VIEW_PERMISSIONS]);
 }
 
 export function canViewSettings(user: CurrentUser | null): boolean {

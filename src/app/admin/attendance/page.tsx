@@ -12,6 +12,7 @@ import {
   AdminAttendanceFiltersCard,
   AdminAttendanceOpsHeader,
   AdminAttendanceStatusBadge,
+  AdminAttendanceStudentCell,
   AdminAttendanceTableSection,
   AdminAttendanceTodaySummary,
 } from '@/features/admin/attendance/admin-attendance-ops-ui';
@@ -29,6 +30,7 @@ import { formatDate } from '@/lib/utils/format';
 import { getStudentDisplayName } from '@/lib/utils/student';
 import type { AttendanceRecord } from '@/types/attendance';
 import type { SchoolClass } from '@/types/class';
+import '@/features/admin/attendance/admin-attendance.css';
 
 function AdminAttendanceInner() {
   const t = useT();
@@ -87,12 +89,14 @@ function AdminAttendanceInner() {
       {
         key: 'student',
         header: t('attendance.student'),
-        render: (a) => <strong className="admin-att-table__student">{getStudentDisplayName(a.student)}</strong>,
+        render: (a) => (
+          <AdminAttendanceStudentCell name={getStudentDisplayName(a.student)} />
+        ),
       },
       {
         key: 'class',
         header: t('nav.classes'),
-        render: (a) => a.class?.name ?? t('common.dash'),
+        render: (a) => <span className="admin-att-table__meta">{a.class?.name ?? t('common.dash')}</span>,
       },
       {
         key: 'status',
@@ -113,7 +117,9 @@ function AdminAttendanceInner() {
         key: 'note',
         header: t('attendance.note'),
         render: (a) => (
-          <span className="admin-att-table__note">{a.note?.trim() ? a.note : t('common.dash')}</span>
+          <span className="admin-att-table__note" title={a.note?.trim() || undefined}>
+            {a.note?.trim() ? a.note : t('common.dash')}
+          </span>
         ),
       },
     ],
@@ -121,7 +127,7 @@ function AdminAttendanceInner() {
   );
 
   return (
-    <div className="admin-workspace admin-attendance-page admin-attendance-ops">
+    <div className="admin-workspace admin-attendance-page">
       <AdminAttendanceOpsHeader
         schoolName={user.school?.name}
         dateLabel={dateLabel}
@@ -163,7 +169,7 @@ function AdminAttendanceInner() {
             {records.length === 0 && showReset ? (
               <AdminAttendanceEmptyFiltered onReset={resetFilters} />
             ) : records.length > 0 ? (
-              <AdminAttendanceTableSection title={t('admin.attendanceOps.tableTitle')}>
+              <AdminAttendanceTableSection title={t('admin.attendanceOps.tableTitle')} count={pg?.total}>
                 <DataTable columns={columns} rows={records} rowKey={(a) => a.id} />
                 {pg && (
                   <Pagination
@@ -186,7 +192,7 @@ export default function AdminAttendancePage() {
   const t = useT();
   return (
     <RequireAdminPermission permission="view_attendance">
-      <Suspense fallback={<p className="muted admin-att-ops-loading">{t('admin.attendanceList.loading')}</p>}>
+      <Suspense fallback={<p className="admin-att-loading">{t('admin.attendanceList.loading')}</p>}>
         <AdminAttendanceInner />
       </Suspense>
     </RequireAdminPermission>

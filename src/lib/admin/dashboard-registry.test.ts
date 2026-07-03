@@ -137,6 +137,27 @@ describe('resolveDashboardVariant', () => {
     expect(variant.id).toBe('legacy_admin');
     expect(variant.shell).toBe('command');
   });
+
+  it('pedagogical_director without view_dashboard gets scoped readonly dashboard when opened directly', () => {
+    const user = admin({
+      admin_kind: 'pedagogical_director',
+      permissions: ['view_teachers', 'view_classes', 'view_attendance'],
+      scope: {
+        type: 'school',
+        allowed_level_ids: [],
+        allowed_class_ids: [],
+        allowed_channel_ids: [],
+      },
+    });
+
+    const variant = resolveDashboardVariant(user);
+
+    expect(variant.id).toBe('pedagogical_director');
+    expect(variant.shell).toBe('readonly');
+    expect(variant.canAccess).toBe(true);
+    expect(variant.showScopedAccessBanner).toBe(false);
+    expect(adminLandingPath(user)).toBe('/admin/settings/academic-setup');
+  });
 });
 
 describe('resolveDashboardWidgets', () => {

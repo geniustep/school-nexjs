@@ -22,22 +22,6 @@ function scrollToBoardStart(el: HTMLElement, dir: 'rtl' | 'ltr') {
   el.scrollLeft = dir === 'rtl' ? max : 0;
 }
 
-function alignPipelineStartColumn(
-  scroller: HTMLElement,
-  firstColumn: HTMLElement | null,
-  dir: 'rtl' | 'ltr',
-) {
-  if (firstColumn) {
-    firstColumn.scrollIntoView({
-      behavior: 'instant',
-      block: 'nearest',
-      inline: dir === 'rtl' ? 'end' : 'start',
-    });
-    return;
-  }
-  scrollToBoardStart(scroller, dir);
-}
-
 export function AdmissionsKanban({
   columns: columnGroups,
   displayStages,
@@ -53,7 +37,6 @@ export function AdmissionsKanban({
   const t = useT();
   const { dir } = useLocale();
   const scrollRef = useRef<HTMLDivElement>(null);
-  const firstColumnRef = useRef<HTMLElement | null>(null);
   const thumbDragRef = useRef<{ startX: number; startScroll: number } | null>(null);
   const stages = displayStages.length
     ? displayStages
@@ -164,7 +147,7 @@ export function AdmissionsKanban({
   const resetScrollPosition = useCallback(() => {
     const scroller = scrollRef.current;
     if (!scroller) return;
-    alignPipelineStartColumn(scroller, firstColumnRef.current, dir);
+    scrollToBoardStart(scroller, dir);
     requestAnimationFrame(syncScrollUi);
   }, [dir, syncScrollUi]);
 
@@ -321,7 +304,6 @@ export function AdmissionsKanban({
               {grouped.map(({ stage, items: columnItems, total, hasMore, loadingMore, loading }) => (
                 <section
                   key={stage}
-                  ref={stage === stages[0] ? firstColumnRef : undefined}
                   className={cn(
                     'admissions-kanban__column',
                     stage === stages[0] && 'admissions-kanban__column--first',

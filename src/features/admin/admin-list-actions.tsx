@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ExportButton } from '@/features/admin/export-button';
 import { useSession } from '@/features/auth/session-context';
 import { hasPermission } from '@/lib/permissions/permissions';
+import { canShowAcademicListAdd } from '@/lib/permissions/academic-capabilities';
 import { isAdminReadOnlyPhase } from '@/lib/admin/phase';
 import { useT } from '@/features/i18n/locale-context';
 import type { Permission } from '@/types/permissions';
@@ -12,6 +13,8 @@ interface AdminListActionsProps {
   addHref?: string;
   addLabel?: string;
   managePermission?: Permission;
+  /** Odoo capability code (e.g. students.create) — checked alongside managePermission. */
+  addCapability?: string;
   exportPath?: string;
   exportFilename?: string;
   exportPermission?: Permission;
@@ -27,6 +30,7 @@ export function AdminListActions({
   addHref,
   addLabel,
   managePermission,
+  addCapability,
   exportPath,
   exportFilename = 'export.csv',
   exportPermission = 'export_data',
@@ -43,7 +47,11 @@ export function AdminListActions({
   if (readOnly) return null;
 
   const showAdd =
-    !!addHref && !!managePermission && hasPermission(user, managePermission);
+    !!addHref &&
+    canShowAcademicListAdd(user, {
+      legacyPermission: managePermission,
+      capability: addCapability,
+    });
   const showExport =
     !!exportPath && !!exportPermission && hasPermission(user, exportPermission);
   const showImportBtn =

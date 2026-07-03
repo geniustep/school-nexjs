@@ -1,6 +1,6 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils/cn';
 import { AttendanceBadge } from '@/components/badges/attendance-badge';
@@ -20,6 +20,14 @@ const TONE: Record<AttendanceStatus, string> = {
   absent: 'red',
   late: 'amber',
   left_early: 'blue',
+};
+
+const KPI_ICON: Record<AttendanceStatus | 'total', string> = {
+  present: '✓',
+  absent: '✕',
+  late: '⏱',
+  left_early: '↩',
+  total: '∑',
 };
 
 export function AdminAttendanceOpsHeader({
@@ -44,44 +52,46 @@ export function AdminAttendanceOpsHeader({
   const t = useT();
 
   return (
-    <header className="admin-att-ops-header">
-      <div className="admin-att-ops-header__main">
-        <span className="admin-att-ops-header__eyebrow">{schoolName ?? t('admin.cmd.defaultSchool')}</span>
-        <h1 className="admin-att-ops-header__title">{t('admin.attendanceList.title')}</h1>
-        <p className="admin-att-ops-header__subtitle">{t('admin.attendanceOps.pageSubtitle')}</p>
-        <div className="admin-att-ops-header__meta">
-          <span>
-            <strong>{t('admin.attendanceOps.selectedDate')}:</strong> {dateLabel}
-          </span>
-          <span>
-            <strong>{t('admin.attendanceOps.selectedClass')}:</strong> {classLabel}
-          </span>
+    <header className="admin-att-hero">
+      <div className="admin-att-hero__glow" aria-hidden="true" />
+      <div className="admin-att-hero__content">
+        <div className="admin-att-hero__intro">
+          <span className="admin-att-hero__eyebrow">{schoolName ?? t('admin.cmd.defaultSchool')}</span>
+          <h1 className="admin-att-hero__title">{t('admin.attendanceList.title')}</h1>
+          <p className="admin-att-hero__subtitle">{t('admin.attendanceOps.pageSubtitle')}</p>
+          <div className="admin-att-hero__pills">
+            <span className="admin-att-pill">
+              <span aria-hidden="true">📅</span>
+              {dateLabel}
+            </span>
+            <span className="admin-att-pill">
+              <span aria-hidden="true">🏫</span>
+              {classLabel}
+            </span>
+          </div>
         </div>
-      </div>
-      <div className="admin-att-ops-header__actions">
-        {canCorrect && (
+        <div className="admin-att-hero__actions">
+          {canCorrect && (
+            <button
+              type="button"
+              className={cn('btn btn--sm', showCorrect ? 'btn--primary' : 'btn--ghost')}
+              onClick={onToggleCorrect}
+            >
+              {showCorrect ? t('admin.attendanceList.closeCorrect') : t('admin.attendanceList.correctRecord')}
+            </button>
+          )}
           <button
             type="button"
-            className={cn(
-              'btn btn--sm',
-              showCorrect ? 'btn--primary admin-att-ops-header__btn--active' : 'btn--ghost',
-            )}
-            onClick={onToggleCorrect}
+            className="btn btn--ghost btn--sm"
+            onClick={onRefresh}
+            disabled={refreshing}
           >
-            {showCorrect ? t('admin.attendanceList.closeCorrect') : t('admin.attendanceList.correctRecord')}
+            {refreshing ? t('common.loading') : t('admin.attendanceOps.refresh')}
           </button>
-        )}
-        <button
-          type="button"
-          className="btn btn--ghost btn--sm"
-          onClick={onRefresh}
-          disabled={refreshing}
-        >
-          {refreshing ? t('common.loading') : t('admin.attendanceOps.refresh')}
-        </button>
-        <Link href="/admin/dashboard" className="btn btn--ghost btn--sm">
-          {t('admin.attendanceOps.backToDashboard')}
-        </Link>
+          <Link href="/admin/dashboard" className="btn btn--ghost btn--sm">
+            {t('admin.attendanceOps.backToDashboard')}
+          </Link>
+        </div>
       </div>
     </header>
   );
@@ -100,39 +110,58 @@ export function AdminAttendanceTodaySummary({
 
   if (total === 0) {
     return (
-      <div className="admin-att-ops-summary admin-att-ops-summary--empty">
-        <p className="admin-att-ops-summary__empty-title">{t('admin.attendanceOps.noRecordsToday')}</p>
+      <section className="admin-att-stats admin-att-stats--empty" aria-label={t('admin.attendanceOps.todaySummary')}>
+        <p className="admin-att-stats__empty-title">{t('admin.attendanceOps.noRecordsToday')}</p>
         {pageScoped && listTotal === 0 && (
-          <p className="admin-att-ops-summary__empty-hint">{t('admin.attendanceList.summaryPageScope')}</p>
+          <p className="admin-att-stats__empty-hint">{t('admin.attendanceList.summaryPageScope')}</p>
         )}
-      </div>
+      </section>
     );
   }
 
   return (
-    <section className="admin-att-ops-summary" aria-label={t('admin.attendanceOps.todaySummary')}>
-      <div className="admin-att-ops-summary__head">
-        <h2 className="admin-att-ops-summary__title">{t('admin.attendanceOps.todaySummary')}</h2>
-        {presentPct != null && (
-          <span className="admin-att-ops-summary__pct">
-            {t('admin.attendanceOps.presentRate', { pct: presentPct })}
-          </span>
-        )}
+    <section className="admin-att-stats" aria-label={t('admin.attendanceOps.todaySummary')}>
+      <div className="admin-att-stats__head">
+        <h2 className="admin-att-stats__title">{t('admin.attendanceOps.todaySummary')}</h2>
       </div>
-      <div className="admin-att-ops-summary__grid">
+
+      {presentPct != null && (
+        <div className="admin-att-stats__ring-wrap">
+          <div
+            className="admin-att-stats__ring"
+            style={{ '--pct': presentPct } as CSSProperties}
+            role="img"
+            aria-label={t('admin.attendanceOps.presentRate', { pct: presentPct })}
+          >
+            <div className="admin-att-stats__ring-inner">
+              <span className="admin-att-stats__ring-value">{presentPct}%</span>
+              <span className="admin-att-stats__ring-label">{t('attendance.present')}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="admin-att-stats__cards">
         {ATT_STATUSES.map((s) => (
-          <div key={s} className={cn('admin-att-ops-kpi', `admin-att-ops-kpi--${TONE[s]}`)}>
-            <span className="admin-att-ops-kpi__value">{counts[s]}</span>
-            <span className="admin-att-ops-kpi__label">{t(attendanceStatusLabelKey(s))}</span>
+          <div key={s} className={cn('admin-att-kpi', `admin-att-kpi--${TONE[s]}`)}>
+            <span className="admin-att-kpi__icon" aria-hidden="true">
+              {KPI_ICON[s]}
+            </span>
+            <span className="admin-att-kpi__value">{counts[s]}</span>
+            <span className="admin-att-kpi__label">{t(attendanceStatusLabelKey(s))}</span>
           </div>
         ))}
-        <div className="admin-att-ops-kpi admin-att-ops-kpi--total">
-          <span className="admin-att-ops-kpi__value">{total}</span>
-          <span className="admin-att-ops-kpi__label">{t('admin.totalRecorded')}</span>
+        <div className="admin-att-kpi admin-att-kpi--total">
+          <span className="admin-att-kpi__icon" aria-hidden="true">
+            {KPI_ICON.total}
+          </span>
+          <span className="admin-att-kpi__value">{total}</span>
+          <span className="admin-att-kpi__label">{t('admin.totalRecorded')}</span>
         </div>
       </div>
+
       {pageScoped && (
-        <p className="admin-att-ops-summary__scope">{t('admin.attendanceList.summaryPageScope')}</p>
+        <p className="admin-att-stats__scope">{t('admin.attendanceList.summaryPageScope')}</p>
       )}
     </section>
   );
@@ -160,13 +189,26 @@ export function AdminAttendanceFiltersCard({
   showReset: boolean;
 }) {
   const t = useT();
+  const isToday = date === todayIso();
+
+  function toggleStatus(next: AttendanceStatus) {
+    onStatusChange(status === next ? '' : next);
+  }
 
   return (
-    <section className="admin-att-ops-filters" aria-label={t('admin.attendanceOps.filtersTitle')}>
-      <h2 className="admin-att-ops-filters__title">{t('admin.attendanceOps.filtersTitle')}</h2>
-      <div className="admin-att-ops-filters__row toolbar">
-        <label className="admin-att-ops-field">
-          <span className="admin-att-ops-field__label">{t('attendance.dateLabel')}</span>
+    <section className="admin-att-toolbar" aria-label={t('admin.attendanceOps.filtersTitle')}>
+      <div className="admin-att-toolbar__head">
+        <h2 className="admin-att-toolbar__title">{t('admin.attendanceOps.filtersTitle')}</h2>
+        {showReset && (
+          <button type="button" className="btn btn--ghost btn--sm" onClick={onReset}>
+            {t('admin.attendanceOps.resetFilters')}
+          </button>
+        )}
+      </div>
+
+      <div className="admin-att-toolbar__row">
+        <label className="admin-att-field">
+          <span className="admin-att-field__label">{t('attendance.dateLabel')}</span>
           <input
             className="input"
             type="date"
@@ -174,8 +216,8 @@ export function AdminAttendanceFiltersCard({
             onChange={(e) => onDateChange(e.target.value)}
           />
         </label>
-        <label className="admin-att-ops-field">
-          <span className="admin-att-ops-field__label">{t('nav.classes')}</span>
+        <label className="admin-att-field">
+          <span className="admin-att-field__label">{t('nav.classes')}</span>
           <select className="select" value={classId} onChange={(e) => onClassChange(e.target.value)}>
             <option value="">{t('admin.allClasses')}</option>
             {classes.map((c) => (
@@ -185,8 +227,8 @@ export function AdminAttendanceFiltersCard({
             ))}
           </select>
         </label>
-        <label className="admin-att-ops-field">
-          <span className="admin-att-ops-field__label">{t('attendance.statusColumn')}</span>
+        <label className="admin-att-field">
+          <span className="admin-att-field__label">{t('attendance.statusColumn')}</span>
           <select className="select" value={status} onChange={(e) => onStatusChange(e.target.value)}>
             <option value="">{t('admin.attendanceList.allStatuses')}</option>
             {ATT_STATUSES.map((s) => (
@@ -196,11 +238,30 @@ export function AdminAttendanceFiltersCard({
             ))}
           </select>
         </label>
-        {showReset && (
-          <button type="button" className="btn btn--ghost btn--sm admin-att-ops-filters__reset" onClick={onReset}>
-            {t('admin.attendanceOps.resetFilters')}
+      </div>
+
+      <div className="admin-att-toolbar__quick">
+        <button
+          type="button"
+          className={cn('admin-att-quick-chip', isToday && 'admin-att-quick-chip--active')}
+          onClick={() => onDateChange(todayIso())}
+        >
+          {t('attendance.today')}
+        </button>
+        {ATT_STATUSES.map((s) => (
+          <button
+            key={s}
+            type="button"
+            className={cn(
+              'admin-att-quick-chip',
+              `admin-att-quick-chip--${s}`,
+              status === s && 'admin-att-quick-chip--active',
+            )}
+            onClick={() => toggleStatus(s)}
+          >
+            {t(attendanceStatusLabelKey(s))}
           </button>
-        )}
+        ))}
       </div>
     </section>
   );
@@ -217,10 +278,10 @@ export function AdminAttendanceCorrectionPanel({
   if (!open) return null;
 
   return (
-    <section className="admin-att-ops-correction" aria-label={t('admin.attendanceOps.correctionMode')}>
-      <div className="admin-att-ops-correction__banner">
-        <span className="admin-att-ops-correction__badge">{t('admin.attendanceOps.correctionMode')}</span>
-        <p className="admin-att-ops-correction__hint">{t('admin.attendanceOps.correctionHint')}</p>
+    <section className="admin-att-correction" aria-label={t('admin.attendanceOps.correctionMode')}>
+      <div className="admin-att-correction__banner">
+        <span className="admin-att-correction__badge">{t('admin.attendanceOps.correctionMode')}</span>
+        <p className="admin-att-correction__hint">{t('admin.attendanceOps.correctionHint')}</p>
       </div>
       <AttendanceCorrectPanel onSuccess={onSuccess} />
     </section>
@@ -231,12 +292,12 @@ export function AdminAttendanceEmptyFiltered({ onReset }: { onReset: () => void 
   const t = useT();
 
   return (
-    <div className="admin-att-ops-empty">
-      <span className="admin-att-ops-empty__icon" aria-hidden="true">
+    <div className="admin-att-empty">
+      <span className="admin-att-empty__icon" aria-hidden="true">
         🗓️
       </span>
-      <p className="admin-att-ops-empty__title">{t('admin.attendanceOps.emptyFiltered')}</p>
-      <p className="admin-att-ops-empty__desc">{t('admin.attendanceOps.emptyFilteredDesc')}</p>
+      <p className="admin-att-empty__title">{t('admin.attendanceOps.emptyFiltered')}</p>
+      <p className="admin-att-empty__desc">{t('admin.attendanceOps.emptyFilteredDesc')}</p>
       <button type="button" className="btn btn--primary btn--sm" onClick={onReset}>
         {t('admin.attendanceOps.resetFilters')}
       </button>
@@ -246,19 +307,38 @@ export function AdminAttendanceEmptyFiltered({ onReset }: { onReset: () => void 
 
 export function AdminAttendanceTableSection({
   title,
+  count,
   children,
 }: {
   title: string;
+  count?: number;
   children: ReactNode;
 }) {
   return (
-    <section className="admin-att-ops-table-section">
-      <h2 className="admin-att-ops-table-section__title">{title}</h2>
-      <div className="admin-att-ops-table-wrap">{children}</div>
+    <section className="admin-att-table-section">
+      <div className="admin-att-table-section__head">
+        <h2 className="admin-att-table-section__title">{title}</h2>
+        {count != null && count > 0 ? (
+          <span className="admin-att-table-section__count">{count}</span>
+        ) : null}
+      </div>
+      <div className="admin-att-table-wrap">{children}</div>
     </section>
   );
 }
 
 export function AdminAttendanceStatusBadge({ status }: { status: AttendanceStatus }) {
   return <AttendanceBadge status={status} />;
+}
+
+export function AdminAttendanceStudentCell({ name }: { name: string }) {
+  const initial = name.trim().charAt(0) || '?';
+  return (
+    <div className="admin-att-student-cell">
+      <span className="admin-att-student-cell__avatar" aria-hidden="true">
+        {initial}
+      </span>
+      <strong className="admin-att-student-cell__name">{name}</strong>
+    </div>
+  );
 }

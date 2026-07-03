@@ -72,7 +72,8 @@
       "general_supervisor": "الحارس العام",
       "admin_staff": "مساعد إداري",
       "legacy_admin": "مدير (قديم)",
-      "super_admin": "مدير عام"
+      "super_admin": "مدير عام",
+      "pedagogical_director": "مدير تربوي"
     }
   },
   "nav": {
@@ -787,6 +788,100 @@
     "readonlyDashboardDesc": "نظرة سريعة ضمن نطاقك — {school}",
     "staffNoDashboardTitle": "لوحة التحكم غير متاحة",
     "staffNoDashboardDesc": "حسابك محدود الصلاحيات. استخدم القائمة للانتقال إلى الصفحات المسموح بها.",
+    "pedagogicalDashboard": {
+      "title": "لوحة المدير التربوي",
+      "subtitle": "تابع الأقسام، الأساتذة، التلاميذ، الحضور، الموارد، الواجبات، الامتحانات، النتائج، واستعمال الزمن من مكان واحد.",
+      "roleDescription": "مسؤول عن المتابعة التربوية والأكاديمية داخل المدرسة.",
+      "metricsTitle": "مؤشرات المتابعة التربوية",
+      "metricsLead": "نظرة سريعة على الحياة المدرسية والتنظيم الأكاديمي والتعلم والفريق.",
+      "workCenterTitle": "مركز العمل اليومي",
+      "workCenterLead": "ابدأ مهامك اليومية من هنا — الإجراءات الرئيسية في المقدمة.",
+      "secondaryActionsTitle": "إجراءات إضافية",
+      "attentionTitle": "ما يحتاج انتباهك اليوم",
+      "attentionEmpty": "لا توجد عناصر تحتاج تدخلك الآن.",
+      "reports": "التقارير التربوية",
+      "emptyWorkspace": "ابدأ من مركز العمل اليومي أو من القائمة الجانبية للوصول إلى أدواتك.",
+      "metrics": {
+        "attendanceToday": "الحضور اليومي"
+      },
+      "metricGroups": {
+        "schoolLife": "الحياة المدرسية",
+        "academicOrg": "التنظيم الأكاديمي",
+        "learningAssessment": "التعلم والتقييم",
+        "team": "الفريق"
+      },
+      "metricHint": {
+        "students": "سجلات التلاميذ المسجّلين",
+        "admissions": "طلبات التسجيل الجارية",
+        "parents": "حسابات أولياء الأمور",
+        "attendance": "تسجيلات حضور اليوم",
+        "classes": "الأقسام النشطة",
+        "levels": "المستويات الدراسية",
+        "subjects": "المواد والمقررات",
+        "timetable": "جدول الحصص المدرسي",
+        "homeworks": "الواجبات المنشورة",
+        "resources": "الموارد التعليمية",
+        "exams": "الامتحانات القادمة",
+        "examResults": "النتائج المنشورة",
+        "reports": "التقارير التربوية",
+        "teachers": "ملفات الأساتذة",
+        "staffCenter": "إدارة الطاقم والتكليفات"
+      },
+      "metricEmpty": {
+        "students": "لم تُسجَّل بيانات التلاميذ بعد",
+        "admissions": "لا توجد طلبات تسجيل حالية",
+        "parents": "لم تُسجَّل بيانات الأولياء بعد",
+        "teachers": "لم يتم إعداد هذا القسم بعد",
+        "classes": "لم يتم إعداد الأقسام بعد",
+        "levels": "لم يتم إعداد المستويات بعد",
+        "subjects": "لم يتم إعداد المواد بعد",
+        "attendance": "في انتظار تسجيل الحضور",
+        "timetable": "لم يتم إعداد استعمال الزمن بعد",
+        "homeworks": "لا توجد واجبات منشورة حاليًا",
+        "resources": "لا توجد موارد منشورة حاليًا",
+        "exams": "لا توجد امتحانات قادمة حاليًا",
+        "examResults": "لم تُسجَّل نتائج بعد",
+        "reports": "لا توجد تقارير منشورة حاليًا",
+        "staffCenter": "لم يُسجَّل طاقم بعد"
+      },
+      "actions": {
+        "teachers": "إدارة الأساتذة",
+        "classes": "الأقسام",
+        "levels": "المستويات",
+        "subjects": "المواد",
+        "attendance": "متابعة الحضور",
+        "timetable": "استعمال الزمن",
+        "examResults": "نتائج الامتحانات",
+        "reports": "التقارير",
+        "academicSetup": "الإعداد الأكاديمي",
+        "admissions": "طلبات التسجيل",
+        "students": "التلاميذ",
+        "parents": "أولياء الأمور",
+        "homeworks": "الواجبات",
+        "resources": "الموارد",
+        "exams": "الامتحانات",
+        "channels": "القنوات",
+        "staffCenter": "مركز الطاقم"
+      },
+      "actionDesc": {
+        "attendance": "راجع حضور اليوم والأقسام",
+        "teachers": "تابع ملفات الأساتذة وتكليفاتهم",
+        "classes": "راجع هيكلة الأقسام والمستويات",
+        "examResults": "اطلع على آخر النتائج المنشورة",
+        "timetable": "راجع استعمال الزمن المدرسي",
+        "admissions": "تابع طلبات التسجيل الجديدة",
+        "students": "استعرض سجلات التلاميذ",
+        "parents": "راجع حسابات الأولياء",
+        "levels": "أدر المستويات الدراسية",
+        "subjects": "أدر المواد والمقررات",
+        "homeworks": "تابع الواجبات المنشورة",
+        "resources": "راجع الموارد التعليمية",
+        "exams": "استعرض الامتحانات القادمة",
+        "channels": "تواصل مع الفرق والأقسام",
+        "staffCenter": "راجع ملفات الطاقم والتكليفات",
+        "academicSetup": "أكمل إعداد المدرسة الأكاديمي"
+      }
+    },
     "dashboardContext": {
       "title": "سياق لوحتك",
       "variantLabel": "نوع اللوحة",
@@ -810,6 +905,7 @@
       "variantAdminStaff": "موظف إداري",
       "variantLegacyAdmin": "مدير Legacy",
       "variantScopedAdmin": "مشرف بنطاق محدود",
+      "variantPedagogicalDirector": "مدير تربوي",
       "permStudents": "التلاميذ",
       "permEnrollments": "التسجيلات",
       "permAttendance": "الحضور",
@@ -1352,6 +1448,25 @@
     },
     "levelsListDesc": "إدارة المستويات",
     "subjectsListDesc": "إدارة المواد",
+    "subjectsList": {
+      "subtitle": "استعرض المواد المفعّلة مع تمييز الرمز والمرحلة لتجنّب التكرار المربك",
+      "stats": "{subjects} مادة · {levels} مستوى مرتبط",
+      "duplicateNamesCount": "{count} اسم مكرر",
+      "duplicateHint": "اسم مشترك — يُميَّز بالرمز والمرحلة",
+      "levelLabel": "المستوى",
+      "assignmentsCount": "{count} إسناد",
+      "withAssignments": "لها إسناد",
+      "sharedNames": "أسماء مشتركة",
+      "filterLabel": "تصفية المواد",
+      "searchPlaceholder": "بحث بالاسم أو الرمز أو المستوى…",
+      "tierAll": "كل المراحل",
+      "tierPrimary": "ابتدائي",
+      "tierMiddle": "إعدادي",
+      "tierHigh": "تأهيلي",
+      "tierOther": "أخرى",
+      "detailSequence": "الترتيب",
+      "detailCreditHours": "ساعات معتمدة"
+    },
     "settings": {
       "title": "الإعدادات",
       "subtitle": "إعدادات المدرسة والتنظيم",
@@ -2190,6 +2305,15 @@
           "highlight2": "الاطلاع على التقارير ضمن النطاق",
           "highlight3": "التواصل والإشراف على الأقسام",
           "highlight4": "صلاحيات إضافية قابلة للتخصيص عند الحاجة"
+        },
+        "pedagogical_director": {
+          "title": "صلاحيات المدير التربوي",
+          "description": "إشراف أكاديمي وتربوي دون صلاحيات مالية افتراضية.",
+          "autoGrantedLabel": "ممنوحة تلقائيًا حسب الدور",
+          "highlight1": "الإشراف على الأساتذة والأقسام",
+          "highlight2": "متابعة الحضور والانضباط الأكاديمي",
+          "highlight3": "الاطلاع على استعمال الزمن والنتائج",
+          "highlight4": "تقارير تربوية دون صلاحيات مالية افتراضية"
         }
       },
       "capabilities": {
@@ -3231,6 +3355,7 @@
       },
       "nextAction": "الإجراء القادم",
       "markNextActionDone": "تم",
+      "editRequest": "تعديل الطلب",
       "assignedUser": "المسؤول",
       "viewMode": "طريقة العرض",
       "viewKanban": "لوحة",

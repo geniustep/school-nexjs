@@ -14,6 +14,10 @@ import { useSession } from '@/features/auth/session-context';
 import { useRouter } from 'next/navigation';
 import { endpoints } from '@/lib/api/endpoints';
 import { hasPermission } from '@/lib/permissions/permissions';
+import {
+  canUpdateGuardiansLimited,
+  canManageGuardianRelationships,
+} from '@/lib/permissions/academic-capabilities';
 import { statusLabel } from '@/lib/utils/labels';
 import { formatMoroccanPhoneDisplay } from '@/features/admin/students/utils/normalize-moroccan-phone';
 import { getGuardianEmailPresentation } from '@/features/admin/students/utils/guardian-email-presentation';
@@ -138,6 +142,7 @@ export function ParentProfileView({
   const canRestore = canRestoreGuardianProfile(parent.allowed_actions);
   const canDelete = canDeleteGuardianProfile(parent.allowed_actions, user);
   const canManageAccount = !!user && hasPermission(user, 'manage_parents');
+  const canEditProfile = !!user && canUpdateGuardiansLimited(user);
   const accountEntity = parentAccountEntityFields(parent);
   const accountStatus = resolveAccountStatus(accountEntity);
   const account = normalizeAccountInfo(accountEntity);
@@ -287,7 +292,7 @@ export function ParentProfileView({
           </div>
         </div>
         <div className="parent-profile__hero-actions">
-          {!archived ? (
+          {!archived && canEditProfile ? (
             <button type="button" className="btn btn--primary btn--sm" onClick={onEdit}>
               {t('common.edit')}
             </button>

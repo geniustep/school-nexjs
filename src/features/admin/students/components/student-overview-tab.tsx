@@ -33,6 +33,7 @@ export function StudentOverviewTab({
   overviewLoading,
   overviewEndpointUnavailable,
   canManage,
+  canManageAccount = false,
   showDocuments = false,
   showHealth = false,
   showFinance = false,
@@ -47,6 +48,7 @@ export function StudentOverviewTab({
   overviewLoading: boolean;
   overviewEndpointUnavailable: boolean;
   canManage: boolean;
+  canManageAccount?: boolean;
   showDocuments?: boolean;
   showHealth?: boolean;
   showFinance?: boolean;
@@ -103,7 +105,7 @@ export function StudentOverviewTab({
         setupMode={setupMode}
         onOpenTab={(tab, options) => openTab(tab, options)}
         onEditProfile={onEditProfile}
-        onCreateAccount={canManage ? scrollToLoginAccount : undefined}
+        onCreateAccount={canManageAccount ? scrollToLoginAccount : undefined}
       />
 
       <StudentOverviewCards

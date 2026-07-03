@@ -1,11 +1,8 @@
 'use client';
 
-import Link from 'next/link';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { ResourceView } from '@/components/states/resource';
-import { EmptyState } from '@/components/states/states';
-import { PageHeader, Card, Badge, SectionHead } from '@/components/ui/primitives';
-import { AdminListActions } from '@/features/admin/admin-list-actions';
+import { AdminLevelsList } from '@/features/admin/levels/components/admin-levels-list';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import type { Level } from '@/types/class';
@@ -15,33 +12,14 @@ export default function AdminLevelsPage() {
   const state = useAdminResource<Level[]>(endpoints.admin.levels);
 
   return (
-    <>
-      <PageHeader
-        title={t('nav.levels')}
-        subtitle={t('admin.levelsListDesc')}
-        actions={
-          <AdminListActions
-            addHref="/admin/levels/new"
-            managePermission="manage_classes"
-            exportPath={endpoints.admin.levelsExport}
-            exportFilename="levels.csv"
-          />
-        }
-      />
-      <ResourceView state={state} loadingLabel={t('common.loading')} isEmpty={(d) => d.length === 0} empty={<EmptyState icon="📚" title={t('admin.noLevels')} />}>
-        {(levels) => (
-          <div className="grid grid--cards">
-            {levels.map((lvl) => (
-              <Link key={lvl.id} href={`/admin/levels/${lvl.id}`}>
-                <Card className="row-link">
-                  <SectionHead title={lvl.name} />
-                  {lvl.code && <p className="tiny faint mono">{lvl.code}</p>}
-                </Card>
-              </Link>
-            ))}
-          </div>
-        )}
+    <div className="admin-workspace">
+      <ResourceView
+        state={state}
+        loadingLabel={t('common.loading')}
+        isEmpty={(d) => d.length === 0}
+      >
+        {(levels) => <AdminLevelsList levels={levels} />}
       </ResourceView>
-    </>
+    </div>
   );
 }
