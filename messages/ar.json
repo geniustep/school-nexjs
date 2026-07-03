@@ -69,6 +69,7 @@
     "adminKind": {
       "project_manager": "المدير العام",
       "school_manager": "مدير المدرسة",
+      "pedagogical_director": "مدير تربوي",
       "general_supervisor": "الحارس العام",
       "admin_staff": "مساعد إداري",
       "legacy_admin": "مدير (قديم)",
@@ -1920,6 +1921,7 @@
         "admin": "مدير المؤسسة",
         "project_manager": "مدير المنصة",
         "school_manager": "مدير المؤسسة",
+        "pedagogical_director": "مدير تربوي",
         "general_supervisor": "مشرف عام",
         "admin_staff": "موظف إداري"
       },
@@ -1974,6 +1976,7 @@
       "adminKind": {
         "project_manager": "مدير عام",
         "school_manager": "مدير مدرسة",
+        "pedagogical_director": "مدير تربوي",
         "general_supervisor": "مشرف عام",
         "admin_staff": "موظف إداري"
       },
@@ -2116,6 +2119,15 @@
           "highlight2": "الاطلاع على التقارير ضمن النطاق",
           "highlight3": "التواصل والإشراف على الأقسام",
           "highlight4": "صلاحيات إضافية قابلة للتخصيص عند الحاجة"
+        },
+        "pedagogical_director": {
+          "title": "صلاحيات المدير التربوي",
+          "description": "مسؤولية أكاديمية وتربوية فقط — بدون وصول مالي افتراضي.",
+          "autoGrantedLabel": "قابلة للتخصيص حسب الدور",
+          "highlight1": "الإشراف على الأساتذة والأقسام",
+          "highlight2": "متابعة استعمال الزمن والامتحانات",
+          "highlight3": "الاطلاع على الحضور والتقارير الأكاديمية",
+          "highlight4": "نشر محدود لنتائج الامتحانات عند التفعيل"
         }
       },
       "capabilities": {

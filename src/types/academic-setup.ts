@@ -69,6 +69,7 @@ export interface TeachingAssignmentSuggestionsResponse {
 export type StaffAdminKind =
   | 'project_manager'
   | 'school_manager'
+  | 'pedagogical_director'
   | 'general_supervisor'
   | 'admin_staff';
 

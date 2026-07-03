@@ -48,6 +48,7 @@ export const FINANCE_PLATFORM_ONLY_ALIASES = [
 const LEGACY_ADMIN_KIND_PERMISSIONS_MODE: Partial<Record<AdminKind, PermissionsMode>> = {
   school_manager: 'full_school',
   project_manager: 'full_platform',
+  pedagogical_director: 'scoped',
   general_supervisor: 'scoped',
   admin_staff: 'assigned',
 };

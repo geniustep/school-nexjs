@@ -22,6 +22,10 @@ const LEGACY_ADMIN_KIND_DEFAULTS: Record<StaffAdminKind, RolePermissionMetadata>
     permissions_mode: 'full_platform',
     capabilities_editable: false,
   },
+  pedagogical_director: {
+    permissions_mode: 'scoped',
+    capabilities_editable: true,
+  },
   general_supervisor: {
     permissions_mode: 'scoped',
     capabilities_editable: false,
@@ -91,6 +95,9 @@ export function resolveStaffCapabilityDisplayMode(
   if (meta.permissions_mode === 'full_school') return 'full_school_readonly';
   if (meta.permissions_mode === 'full_platform') return 'platform_readonly';
   if (meta.permissions_mode === 'assigned' && meta.capabilities_editable !== false) {
+    return 'assigned_editor';
+  }
+  if (adminKind === 'pedagogical_director' && meta.capabilities_editable !== false) {
     return 'assigned_editor';
   }
   if (meta.permissions_mode === 'scoped' || adminKind === 'general_supervisor') {

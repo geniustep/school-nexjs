@@ -9,6 +9,7 @@ const TECHNICAL_JOB_TITLE_KEYS: Record<string, string> = {
   admin: 'admin.academicSetup.technicalRole.administrator',
   'project manager': 'admin.academicSetup.technicalRole.project_manager',
   'school manager': 'admin.academicSetup.technicalRole.school_manager',
+  'pedagogical director': 'admin.academicSetup.technicalRole.pedagogical_director',
   'general supervisor': 'admin.academicSetup.technicalRole.general_supervisor',
   'admin staff': 'admin.academicSetup.technicalRole.admin_staff',
   'administrator staff': 'admin.academicSetup.technicalRole.admin_staff',
@@ -19,6 +20,7 @@ const ADMIN_KIND_FOR_TECHNICAL: Partial<Record<string, StaffAdminKind>> = {
   admin: 'school_manager',
   'project manager': 'project_manager',
   'school manager': 'school_manager',
+  'pedagogical director': 'pedagogical_director',
   'general supervisor': 'general_supervisor',
   'admin staff': 'admin_staff',
 };

@@ -69,6 +69,7 @@
     "adminKind": {
       "project_manager": "General director",
       "school_manager": "School director",
+      "pedagogical_director": "Pedagogical Director",
       "general_supervisor": "General supervisor",
       "admin_staff": "Administrative assistant",
       "legacy_admin": "Administrator",
@@ -1893,6 +1894,7 @@
         "admin": "School manager",
         "project_manager": "Platform manager",
         "school_manager": "School manager",
+        "pedagogical_director": "Pedagogical Director",
         "general_supervisor": "General supervisor",
         "admin_staff": "Administrative staff"
       },
@@ -1947,6 +1949,7 @@
       "adminKind": {
         "project_manager": "Project manager",
         "school_manager": "School manager",
+        "pedagogical_director": "Pedagogical Director",
         "general_supervisor": "General supervisor",
         "admin_staff": "Administrative staff"
       },
@@ -2089,6 +2092,15 @@
           "highlight2": "View reports within scope",
           "highlight3": "Communication and class oversight",
           "highlight4": "Additional permissions when customization is needed"
+        },
+        "pedagogical_director": {
+          "title": "Pedagogical director permissions",
+          "description": "Academic and pedagogical responsibility only — no default finance access.",
+          "autoGrantedLabel": "Customizable by role",
+          "highlight1": "Oversee teachers and classes",
+          "highlight2": "Monitor timetable and exams",
+          "highlight3": "View attendance and academic reports",
+          "highlight4": "Limited exam results publishing when enabled"
         }
       },
       "capabilities": {

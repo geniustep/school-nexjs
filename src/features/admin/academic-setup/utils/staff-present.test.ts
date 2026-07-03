@@ -30,6 +30,8 @@ describe('resolveStaffAdminKindLabel', () => {
   it('translates known admin kinds', () => {
     expect(resolveStaffAdminKindLabel('admin_staff', tAr)).toBe('موظف إداري');
     expect(resolveStaffAdminKindLabel('school_manager', tAr)).toBe('مدير مدرسة');
+    expect(resolveStaffAdminKindLabel('pedagogical_director', tAr)).toBe('مدير تربوي');
+    expect(resolveStaffAdminKindLabel('pedagogical_director', tEn)).toBe('Pedagogical Director');
   });
 
   it('maps legacy administrator label to translated role', () => {

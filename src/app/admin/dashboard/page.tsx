@@ -11,12 +11,13 @@ import { useT } from '@/features/i18n/locale-context';
 import {
   canAccessScopedAdminDashboard,
   isMultiSchoolAdmin,
+  shouldHideSchoolWideDashboardKpis,
   shouldShowMultiSchoolPortfolioNotice,
 } from '@/lib/admin/admin-ux';
 import { AdminReadonlyDashboard } from '@/features/admin/dashboard/admin-readonly-dashboard';
 import { formatSchoolLabel } from '@/lib/admin/school-label';
 import { hasPermission } from '@/lib/permissions/permissions';
-import { isConfiguredAdmin, isScopedAdmin } from '@/lib/permissions/scope';
+import { isConfiguredAdmin } from '@/lib/permissions/scope';
 import { endpoints } from '@/lib/api/endpoints';
 import type { AdminDashboard } from '@/types/dashboard';
 
@@ -50,7 +51,7 @@ export default function AdminDashboardPage() {
     );
   }
 
-  const scoped = isScopedAdmin(user) || user.admin_kind === 'general_supervisor';
+  const scoped = shouldHideSchoolWideDashboardKpis(user);
   const multiSchool = isMultiSchoolAdmin(user);
   const activeRef =
     schools.find((s) => s.id === activeSchoolId) ?? user.school ?? null;

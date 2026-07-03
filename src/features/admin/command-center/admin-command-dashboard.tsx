@@ -8,7 +8,7 @@ import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { useSession } from '@/features/auth/session-context';
 import { hasPermission } from '@/lib/permissions/permissions';
-import { canSeeChannels, canSeeStudentData, isScopedAdmin } from '@/lib/permissions/scope';
+import { canSeeChannels, canSeeStudentData } from '@/lib/permissions/scope';
 import { shouldHideSchoolWideDashboardKpis } from '@/lib/admin/admin-ux';
 import { canViewAcademicSetup } from '@/lib/permissions/academic-setup';
 import { formatSchoolLabel } from '@/lib/admin/school-label';
@@ -200,8 +200,7 @@ export function AdminCommandDashboard({
   const canViewChannels =
     canSeeChannels(effectiveUser) && hasPermission(effectiveUser, 'view_channels');
   const hideSchoolWideKpis = shouldHideSchoolWideDashboardKpis(effectiveUser);
-  const scopedMode =
-    isScopedAdmin(effectiveUser) || effectiveUser.admin_kind === 'general_supervisor';
+  const scopedMode = shouldHideSchoolWideDashboardKpis(effectiveUser);
 
   const actionItems = useMemo(() => buildActionItems(d, t), [d, t]);
   const dataQualityItems = useMemo(() => buildDataQualityItems(d, t), [d, t]);

@@ -36,6 +36,12 @@ const options: StaffOptions = {
       permissions_mode: 'scoped',
       capabilities_editable: false,
     },
+    {
+      value: 'pedagogical_director',
+      label: 'Pedagogical Director',
+      permissions_mode: 'scoped',
+      capabilities_editable: true,
+    },
   ],
   schools: [],
   capabilities: [],
@@ -68,6 +74,10 @@ describe('resolveAdminKindMetadata', () => {
   it('falls back to legacy defaults when options missing', () => {
     expect(resolveAdminKindMetadata('admin_staff')).toEqual({
       permissions_mode: 'assigned',
+      capabilities_editable: true,
+    });
+    expect(resolveAdminKindMetadata('pedagogical_director')).toEqual({
+      permissions_mode: 'scoped',
       capabilities_editable: true,
     });
   });
@@ -115,6 +125,12 @@ describe('resolveStaffCapabilityDisplayMode', () => {
     expect(
       resolveStaffCapabilityDisplayMode('admin_staff', {
         permissions_mode: 'assigned',
+        capabilities_editable: true,
+      }),
+    ).toBe('assigned_editor');
+    expect(
+      resolveStaffCapabilityDisplayMode('pedagogical_director', {
+        permissions_mode: 'scoped',
         capabilities_editable: true,
       }),
     ).toBe('assigned_editor');

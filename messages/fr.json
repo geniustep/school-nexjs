@@ -69,6 +69,7 @@
     "adminKind": {
       "project_manager": "Directeur général",
       "school_manager": "Directeur d'établissement",
+      "pedagogical_director": "Directeur pédagogique",
       "general_supervisor": "Surveillant général",
       "admin_staff": "Assistant administratif",
       "legacy_admin": "Administrateur",
@@ -1893,6 +1894,7 @@
         "admin": "Directeur d'établissement",
         "project_manager": "Responsable plateforme",
         "school_manager": "Directeur d'établissement",
+        "pedagogical_director": "Directeur pédagogique",
         "general_supervisor": "Superviseur général",
         "admin_staff": "Personnel administratif"
       },
@@ -1947,6 +1949,7 @@
       "adminKind": {
         "project_manager": "Directeur général",
         "school_manager": "Directeur d'établissement",
+        "pedagogical_director": "Directeur pédagogique",
         "general_supervisor": "Superviseur général",
         "admin_staff": "Personnel administratif"
       },
@@ -2089,6 +2092,15 @@
           "highlight2": "Consulter les rapports dans le périmètre",
           "highlight3": "Communication et supervision des classes",
           "highlight4": "Permissions supplémentaires si personnalisation nécessaire"
+        },
+        "pedagogical_director": {
+          "title": "Permissions du directeur pédagogique",
+          "description": "Responsabilité académique et pédagogique uniquement — pas d'accès financier par défaut.",
+          "autoGrantedLabel": "Personnalisable selon le rôle",
+          "highlight1": "Superviser les enseignants et les classes",
+          "highlight2": "Suivre l'emploi du temps et les examens",
+          "highlight3": "Consulter la présence et les rapports académiques",
+          "highlight4": "Publication limitée des résultats d'examens si activée"
         }
       },
       "capabilities": {
