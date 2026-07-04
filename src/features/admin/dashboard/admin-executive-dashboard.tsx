@@ -22,6 +22,11 @@ import { normalizeFinanceOverview, normalizeMoneyValue } from '@/lib/utils/finan
 import { useFinanceReferenceData } from '@/features/admin/finance/use-finance-lookups';
 import { AdminCommandDashboard } from '@/features/admin/command-center/admin-command-dashboard';
 import {
+  buildExecutiveDataQualityItems,
+  mergeExecutiveInterventions,
+  normalizeExecutiveDashboard,
+} from '@/lib/admin/executive-dashboard-contract';
+import {
   ATT_KEYS,
   attendancePercent,
   buildDashboardActionItems,
@@ -173,37 +178,77 @@ function ExecutiveDirectorView({
   const activeRef = schools.find((s) => s.id === activeSchoolId) ?? user.school ?? null;
   const schoolName = formatSchoolLabel(activeRef, t);
 
+  const executiveState = useAdminResource<unknown>(endpoints.admin.executiveDashboard);
+  const executive = useMemo(
+    () =>
+      executiveState.data != null ? normalizeExecutiveDashboard(executiveState.data) : null,
+    [executiveState.data],
+  );
+  const executiveAvailable = executiveState.data != null && executive != null;
+  const executiveFailed =
+    !executiveState.loading && executiveState.data == null && !!executiveState.error;
+
   const financeState = useAdminResource<AdminFinanceOverview>(
-    widgets.financeSummary ? endpoints.admin.financeOverview : null,
+    widgets.financeSummary && executiveFailed ? endpoints.admin.financeOverview : null,
   );
   const admissionsState = useAdminResource<AdmissionsDashboard>(
-    widgets.admissionsSummary ? endpoints.admin.admissionsDashboard : null,
+    widgets.admissionsSummary && executiveFailed ? endpoints.admin.admissionsDashboard : null,
   );
   const financeRef = useFinanceReferenceData();
 
   const activeYearLabel = useMemo(() => {
+    if (executiveAvailable && executive?.active_academic_year?.name) {
+      return executive.active_academic_year.name;
+    }
+    if (executiveAvailable) return null;
     const years = financeRef.academicYears;
     const current = years.find((y) => y.is_current);
     if (current?.name) return current.name;
     if (years.length === 1) return years[0]?.name ?? null;
     return null;
-  }, [financeRef.academicYears]);
+  }, [executiveAvailable, executive?.active_academic_year?.name, financeRef.academicYears]);
 
-  const dashboardItems = useMemo(() => buildDashboardActionItems(d, t), [d, t]);
-  const dataQualityItems = useMemo(() => buildDataQualityItems(d, t), [d, t]);
+  const executiveFinance = executiveAvailable ? executive?.finance_summary ?? null : null;
+  const executiveAdmissions = executiveAvailable ? executive?.admissions_summary ?? null : null;
+  const attendanceGaps = executiveAvailable ? executive?.attendance_gaps ?? null : null;
+
+  const dashboardItems = useMemo(() => {
+    const items = buildDashboardActionItems(d, t);
+    if (executiveAvailable) {
+      return items.filter((item) => !item.id.startsWith('alert-'));
+    }
+    return items;
+  }, [d, t, executiveAvailable]);
+
+  const dataQualityItems = useMemo(() => {
+    if (executiveAvailable && executive) {
+      return buildExecutiveDataQualityItems(executive, t);
+    }
+    return buildDataQualityItems(d, t);
+  }, [d, t, executiveAvailable, executive]);
+
   const financeItems = useMemo(
-    () => buildFinanceInterventions(financeState.data, t),
-    [financeState.data, t],
+    () => (executiveAvailable ? [] : buildFinanceInterventions(financeState.data, t)),
+    [executiveAvailable, financeState.data, t],
   );
   const admissionsItems = useMemo(
-    () => buildAdmissionsInterventions(admissionsState.data, t),
-    [admissionsState.data, t],
+    () => (executiveAvailable ? [] : buildAdmissionsInterventions(admissionsState.data, t)),
+    [executiveAvailable, admissionsState.data, t],
   );
 
-  const allInterventionItems = useMemo(
-    () => [...dashboardItems, ...financeItems, ...admissionsItems],
-    [dashboardItems, financeItems, admissionsItems],
-  );
+  const allInterventionItems = useMemo(() => {
+    if (executiveAvailable && executive) {
+      const seen = new Set<string>();
+      const merged: AdminActionItem[] = [];
+      for (const item of [...mergeExecutiveInterventions(executive, t), ...dashboardItems]) {
+        if (seen.has(item.id)) continue;
+        seen.add(item.id);
+        merged.push(item);
+      }
+      return merged;
+    }
+    return [...dashboardItems, ...financeItems, ...admissionsItems];
+  }, [executiveAvailable, executive, dashboardItems, financeItems, admissionsItems, t]);
 
   const hasDataQualityIssues = dataQualityItems.length > 0;
   const hasInterventionIssues = allInterventionItems.length > 0 || hasDataQualityIssues;
@@ -218,17 +263,49 @@ function ExecutiveDirectorView({
       ? t('admin.executive.interventionDesc')
       : t('admin.executive.interventionDescNeutral');
 
-  const financeTotals = pickFinanceTotals(financeState.data);
-  const admissions = admissionsState.data;
+  const financeTotals = executiveFinance
+    ? null
+    : pickFinanceTotals(financeState.data);
+  const admissions = executiveAdmissions
+    ? null
+    : admissionsState.data;
+  const legacyAdmissions = admissions as AdmissionsDashboard | null;
+
+  const useLegacyAttendance = !executiveAvailable || attendanceGaps == null;
+  const attendancePct = useLegacyAttendance ? pct : attendanceGaps?.attendance_rate_today ?? null;
+  const hasExecutiveAttendance =
+    attendanceGaps != null &&
+    (attendanceGaps.attendance_rate_today > 0 ||
+      attendanceGaps.absent_today_count > 0 ||
+      attendanceGaps.late_today_count > 0 ||
+      (attendanceGaps.classes_without_attendance_count ?? 0) > 0);
+  const showAttendance = useLegacyAttendance ? hasAttendance : hasExecutiveAttendance;
 
   const partialDataWarnings: string[] = [];
-  if (widgets.financeSummary && financeState.error && !financeState.loading) {
+  if (executiveFailed) {
+    partialDataWarnings.push(t('admin.executive.partialExecutive'));
+  }
+  if (widgets.financeSummary && executiveFailed && financeState.error && !financeState.loading) {
     partialDataWarnings.push(t('admin.executive.partialFinance'));
   }
-  if (widgets.admissionsSummary && admissionsState.error && !admissionsState.loading) {
+  if (
+    widgets.admissionsSummary &&
+    executiveFailed &&
+    admissionsState.error &&
+    !admissionsState.loading
+  ) {
     partialDataWarnings.push(t('admin.executive.partialAdmissions'));
   }
-  if (widgets.financeSummary && !financeRef.loading && !activeYearLabel) {
+  if (
+    !executiveAvailable &&
+    widgets.financeSummary &&
+    executiveFailed &&
+    !financeRef.loading &&
+    !activeYearLabel
+  ) {
+    partialDataWarnings.push(t('admin.executive.academicYearUnavailable'));
+  }
+  if (executiveAvailable && !executive?.active_academic_year?.name) {
     partialDataWarnings.push(t('admin.executive.academicYearUnavailable'));
   }
 
@@ -308,23 +385,46 @@ function ExecutiveDirectorView({
     }
 
     if (widgets.admissionsSummary) {
-      if (admissionsState.loading) {
+      const admissionsLoading = executiveAvailable
+        ? executiveState.loading && !executiveAdmissions
+        : admissionsState.loading;
+      const admissionsData = executiveAdmissions;
+      const legacyData = legacyAdmissions;
+
+      if (admissionsLoading && !admissionsData && !legacyData) {
         cards.push({
           id: 'admissions',
           label: t('admin.executive.kpiAdmissions'),
           value: '…',
           hint: t('common.loading'),
         });
-      } else if (admissions) {
+      } else if (admissionsData) {
         cards.push({
           id: 'admissions',
           label: t('admin.executive.kpiAdmissions'),
-          value: admissions.total_open ?? 0,
-          hint: t('admin.executive.kpiAdmissionsHint', {
-            new: admissions.new_count ?? 0,
-          }),
-          tone: (admissions.overdue_next_actions ?? 0) > 0 ? 'amber' : 'blue',
+          value: admissionsData.open,
+          hint: t('admin.executive.kpiAdmissionsHint', { new: admissionsData.new }),
+          tone: admissionsData.overdue_actions > 0 ? 'amber' : 'blue',
           href: '/admin/admissions',
+        });
+      } else if (legacyData) {
+        cards.push({
+          id: 'admissions',
+          label: t('admin.executive.kpiAdmissions'),
+          value: legacyData.total_open ?? 0,
+          hint: t('admin.executive.kpiAdmissionsHint', {
+            new: legacyData.new_count ?? 0,
+          }),
+          tone: (legacyData.overdue_next_actions ?? 0) > 0 ? 'amber' : 'blue',
+          href: '/admin/admissions',
+        });
+      } else if (executiveAvailable) {
+        cards.push({
+          id: 'admissions',
+          label: t('admin.executive.kpiAdmissions'),
+          value: '—',
+          hint: t('admin.executive.admissionsUnavailable'),
+          empty: true,
         });
       } else {
         cards.push({
@@ -338,37 +438,68 @@ function ExecutiveDirectorView({
     }
 
     if (widgets.financeSummary) {
-      const collected =
-        financeTotals?.period_collections_amount ??
-        financeTotals?.collections_amount ??
-        financeTotals?.total_collected_period ??
-        financeTotals?.total_collected;
-      if (financeState.loading) {
+      const financeLoading = executiveAvailable
+        ? executiveState.loading && executiveFinance == null && !executiveFailed
+        : financeState.loading;
+
+      if (financeLoading) {
         cards.push({
           id: 'collected',
           label: t('admin.executive.kpiCollected'),
           value: '…',
           hint: t('common.loading'),
         });
-      } else if (collected != null) {
+      } else if (executiveFinance) {
         cards.push({
           id: 'collected',
           label: t('admin.executive.kpiCollected'),
-          value: <FinanceMoney amount={collected} currency={financeTotals?.currency} />,
+          value: (
+            <FinanceMoney
+              amount={executiveFinance.collected_month}
+              currency={executiveFinance.currency}
+            />
+          ),
           href: '/admin/finance/collections',
         });
-      } else {
         cards.push({
-          id: 'collected',
-          label: t('admin.executive.kpiCollected'),
-          value: '—',
-          hint: t('admin.executive.financePendingActivation'),
-          empty: true,
+          id: 'overdue',
+          label: t('admin.executive.kpiOverdue'),
+          value: (
+            <FinanceMoney
+              amount={executiveFinance.overdue}
+              currency={executiveFinance.currency}
+            />
+          ),
+          tone: executiveFinance.overdue > 0 ? 'red' : undefined,
+          href:
+            executiveFinance.overdue > 0
+              ? '/admin/finance/installments?status=overdue'
+              : '/admin/finance',
         });
-      }
+      } else if (financeTotals) {
+        const collected =
+          financeTotals.period_collections_amount ??
+          financeTotals.collections_amount ??
+          financeTotals.total_collected_period ??
+          financeTotals.total_collected;
+        if (collected != null) {
+          cards.push({
+            id: 'collected',
+            label: t('admin.executive.kpiCollected'),
+            value: <FinanceMoney amount={collected} currency={financeTotals.currency} />,
+            href: '/admin/finance/collections',
+          });
+        } else {
+          cards.push({
+            id: 'collected',
+            label: t('admin.executive.kpiCollected'),
+            value: '—',
+            hint: t('admin.executive.financePendingActivation'),
+            empty: true,
+          });
+        }
 
-      const overdue = financeTotals?.total_overdue ?? financeTotals?.overdue_amount;
-      if (!financeState.loading) {
+        const overdue = financeTotals.total_overdue ?? financeTotals.overdue_amount;
         cards.push({
           id: 'overdue',
           label: t('admin.executive.kpiOverdue'),
@@ -382,6 +513,29 @@ function ExecutiveDirectorView({
           hint: overdue == null ? t('admin.executive.financePendingActivation') : undefined,
           href: overdue != null && overdue > 0 ? '/admin/finance/installments?status=overdue' : '/admin/finance',
         });
+      } else if (executiveAvailable) {
+        cards.push({
+          id: 'collected',
+          label: t('admin.executive.kpiCollected'),
+          value: '—',
+          hint: t('admin.executive.financeUnavailable'),
+          empty: true,
+        });
+        cards.push({
+          id: 'overdue',
+          label: t('admin.executive.kpiOverdue'),
+          value: '—',
+          hint: t('admin.executive.financeUnavailable'),
+          empty: true,
+        });
+      } else {
+        cards.push({
+          id: 'collected',
+          label: t('admin.executive.kpiCollected'),
+          value: '—',
+          hint: t('admin.executive.financePendingActivation'),
+          empty: true,
+        });
       }
     }
 
@@ -389,12 +543,23 @@ function ExecutiveDirectorView({
       cards.push({
         id: 'attendance',
         label: t('admin.executive.kpiAttendance'),
-        value: hasAttendance && pct != null ? `${pct}%` : '—',
-        hint: hasAttendance
-          ? t('admin.executive.kpiAttendanceHint', { recorded: totalRecorded })
-          : t('admin.cmd.attendanceUnavailable'),
+        value: showAttendance && attendancePct != null ? `${Math.round(attendancePct)}%` : '—',
+        hint: useLegacyAttendance
+          ? hasAttendance
+            ? t('admin.executive.kpiAttendanceHint', { recorded: totalRecorded })
+            : t('admin.cmd.attendanceUnavailable')
+          : attendanceGaps
+            ? t('admin.executive.kpiAttendanceExecutiveHint', {
+                absent: attendanceGaps.absent_today_count,
+                late: attendanceGaps.late_today_count,
+              })
+            : t('admin.cmd.attendanceUnavailable'),
         tone:
-          pct != null && pct < 75 ? 'amber' : pct != null && pct >= 90 ? 'green' : 'blue',
+          attendancePct != null && attendancePct < 75
+            ? 'amber'
+            : attendancePct != null && attendancePct >= 90
+              ? 'green'
+              : 'blue',
         href: '/admin/attendance?date=today',
       });
     }
@@ -416,18 +581,30 @@ function ExecutiveDirectorView({
     widgets,
     hideSchoolWideKpis,
     d.total_students,
+    executiveAvailable,
+    executiveState.loading,
+    executiveAdmissions,
+    executiveFinance,
+    executiveFailed,
     admissionsState.loading,
-    admissions,
+    legacyAdmissions,
     financeState.loading,
     financeTotals,
+    useLegacyAttendance,
+    showAttendance,
+    attendancePct,
+    attendanceGaps,
     hasAttendance,
-    pct,
     totalRecorded,
     criticalCount,
     t,
   ]);
 
-  const updatedLabel = financeState.loading || admissionsState.loading
+  const isRefreshing =
+    executiveState.loading ||
+    (executiveFailed && (financeState.loading || admissionsState.loading));
+
+  const updatedLabel = isRefreshing
     ? t('admin.executive.dataRefreshing')
     : t('admin.executive.dataUpdated', { time: formatDateTime(new Date().toISOString()) });
 
@@ -451,7 +628,7 @@ function ExecutiveDirectorView({
             <div className="exec-hero__chip">
               <dt>{t('admin.executive.metaYear')}</dt>
               <dd>
-                {widgets.financeSummary && financeRef.loading
+                {executiveState.loading && !activeYearLabel
                   ? t('common.loading')
                   : activeYearLabel ?? t('admin.executive.academicYearUnavailableShort')}
               </dd>
@@ -466,7 +643,7 @@ function ExecutiveDirectorView({
                 <span
                   className={cn(
                     'exec-hero__pulse',
-                    (financeState.loading || admissionsState.loading) && 'exec-hero__pulse--live',
+                    (isRefreshing) && 'exec-hero__pulse--live',
                   )}
                   aria-hidden="true"
                 />
@@ -563,7 +740,46 @@ function ExecutiveDirectorView({
                   </Link>
                 }
               >
-                {financeState.loading ? (
+                {executiveState.loading && executiveFinance == null && !executiveFailed ? (
+                  <ExecutiveEmpty icon="…" title={t('common.loading')} />
+                ) : executiveFinance ? (
+                  <div className="exec-metric-grid">
+                    {[
+                      {
+                        key: 'collected',
+                        label: t('admin.executive.financeCollected'),
+                        value: executiveFinance.collected_month,
+                      },
+                      {
+                        key: 'remaining',
+                        label: t('admin.executive.financeRemaining'),
+                        value: executiveFinance.remaining,
+                      },
+                      {
+                        key: 'overdue',
+                        label: t('admin.executive.financeOverdue'),
+                        value: executiveFinance.overdue,
+                        warn: true,
+                      },
+                    ].map((m) => {
+                      const raw = normalizeMoneyValue(m.value);
+                      return (
+                        <ExecutiveMetricTile
+                          key={m.key}
+                          label={m.label}
+                          warn={!!(m.warn && raw != null && raw > 0)}
+                          value={
+                            raw != null ? (
+                              <FinanceMoney amount={raw} currency={executiveFinance.currency} />
+                            ) : (
+                              t('common.dash')
+                            )
+                          }
+                        />
+                      );
+                    })}
+                  </div>
+                ) : financeState.loading ? (
                   <ExecutiveEmpty icon="…" title={t('common.loading')} />
                 ) : financeState.error ? (
                   <ExecutiveEmpty
@@ -607,6 +823,11 @@ function ExecutiveDirectorView({
                       );
                     })}
                   </div>
+                ) : executiveAvailable ? (
+                  <ExecutiveEmpty
+                    icon="◌"
+                    title={t('admin.executive.financeUnavailable')}
+                  />
                 ) : (
                   <ExecutiveEmpty
                     icon="◌"
@@ -635,36 +856,66 @@ function ExecutiveDirectorView({
                   </Link>
                 }
               >
-                {admissionsState.loading ? (
+                {executiveState.loading && !executiveAdmissions && !legacyAdmissions ? (
+                  <ExecutiveEmpty icon="…" title={t('common.loading')} />
+                ) : executiveAdmissions ? (
+                  <div className="exec-adm-grid">
+                    <ExecutiveAdmissionStat
+                      label={t('admin.admissions.dashboard.new_count')}
+                      value={executiveAdmissions.new}
+                      tone="blue"
+                    />
+                    <ExecutiveAdmissionStat
+                      label={t('admin.admissions.dashboard.under_review_count')}
+                      value={executiveAdmissions.in_progress}
+                      tone="amber"
+                    />
+                    <ExecutiveAdmissionStat
+                      label={t('admin.admissions.dashboard.accepted_count')}
+                      value={executiveAdmissions.accepted}
+                      tone="green"
+                    />
+                    <ExecutiveAdmissionStat
+                      label={t('admin.admissions.dashboard.overdue_next_actions')}
+                      value={executiveAdmissions.overdue_actions}
+                      tone="red"
+                    />
+                  </div>
+                ) : admissionsState.loading ? (
                   <ExecutiveEmpty icon="…" title={t('common.loading')} />
                 ) : admissionsState.error ? (
                   <ExecutiveEmpty
                     icon="◌"
                     title={t('admin.executive.admissionsUnavailable')}
                   />
-                ) : admissions ? (
+                ) : legacyAdmissions ? (
                   <div className="exec-adm-grid">
                     <ExecutiveAdmissionStat
                       label={t('admin.admissions.dashboard.new_count')}
-                      value={admissions.new_count ?? 0}
+                      value={legacyAdmissions.new_count ?? 0}
                       tone="blue"
                     />
                     <ExecutiveAdmissionStat
                       label={t('admin.admissions.dashboard.under_review_count')}
-                      value={admissions.under_review_count ?? 0}
+                      value={legacyAdmissions.under_review_count ?? 0}
                       tone="amber"
                     />
                     <ExecutiveAdmissionStat
                       label={t('admin.admissions.dashboard.accepted_count')}
-                      value={admissions.accepted_count ?? 0}
+                      value={legacyAdmissions.accepted_count ?? 0}
                       tone="green"
                     />
                     <ExecutiveAdmissionStat
                       label={t('admin.admissions.dashboard.overdue_next_actions')}
-                      value={admissions.overdue_next_actions ?? 0}
+                      value={legacyAdmissions.overdue_next_actions ?? 0}
                       tone="red"
                     />
                   </div>
+                ) : executiveAvailable ? (
+                  <ExecutiveEmpty
+                    icon="◌"
+                    title={t('admin.executive.admissionsUnavailable')}
+                  />
                 ) : (
                   <ExecutiveEmpty
                     icon="◌"
@@ -689,27 +940,62 @@ function ExecutiveDirectorView({
                 </Link>
               }
             >
-              {hasAttendance ? (
+              {showAttendance ? (
                 <>
                   <div className="exec-attendance-highlight">
-                    {pct != null && (
-                      <span className="exec-attendance-highlight__pct">{pct}%</span>
+                    {attendancePct != null && (
+                      <span className="exec-attendance-highlight__pct">
+                        {Math.round(attendancePct)}%
+                      </span>
                     )}
                     <span className="exec-attendance-highlight__label">
                       {t('admin.executive.kpiAttendance')}
                     </span>
                   </div>
-                  <div className="exec-attendance-grid">
-                    {ATT_KEYS.map((k) => (
-                      <div key={k} className={cn('exec-attendance-cell', `exec-attendance-cell--${ATT_TONE[k]}`)}>
-                        <strong>{att?.[k] ?? 0}</strong>
-                        <span>{t(`attendance.${k === 'left_early' ? 'leftEarly' : k}`)}</span>
+                  {useLegacyAttendance ? (
+                    <>
+                      <div className="exec-attendance-grid">
+                        {ATT_KEYS.map((k) => (
+                          <div
+                            key={k}
+                            className={cn(
+                              'exec-attendance-cell',
+                              `exec-attendance-cell--${ATT_TONE[k]}`,
+                            )}
+                          >
+                            <strong>{att?.[k] ?? 0}</strong>
+                            <span>
+                              {t(`attendance.${k === 'left_early' ? 'leftEarly' : k}`)}
+                            </span>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                  <p className="exec-attendance-foot">
-                    {t('admin.totalRecorded')}: <strong>{totalRecorded}</strong>
-                  </p>
+                      <p className="exec-attendance-foot">
+                        {t('admin.totalRecorded')}: <strong>{totalRecorded}</strong>
+                      </p>
+                    </>
+                  ) : attendanceGaps ? (
+                    <>
+                      <div className="exec-attendance-grid exec-attendance-grid--compact">
+                        <div className="exec-attendance-cell exec-attendance-cell--red">
+                          <strong>{attendanceGaps.absent_today_count}</strong>
+                          <span>{t('attendance.absent')}</span>
+                        </div>
+                        <div className="exec-attendance-cell exec-attendance-cell--amber">
+                          <strong>{attendanceGaps.late_today_count}</strong>
+                          <span>{t('attendance.late')}</span>
+                        </div>
+                      </div>
+                      {attendanceGaps.classes_without_attendance_count != null &&
+                        attendanceGaps.classes_without_attendance_count > 0 && (
+                          <p className="exec-attendance-foot">
+                            {t('admin.executive.attendanceClassesMissing', {
+                              count: attendanceGaps.classes_without_attendance_count,
+                            })}
+                          </p>
+                        )}
+                    </>
+                  ) : null}
                 </>
               ) : (
                 <ExecutiveEmpty

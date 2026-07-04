@@ -20,6 +20,7 @@ export const endpoints = {
 
   admin: {
     dashboard: '/admin/dashboard',
+    executiveDashboard: '/admin/dashboard/executive',
     schoolBranding: '/admin/school-branding',
 
     students: '/admin/students',
