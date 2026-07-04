@@ -1,10 +1,14 @@
 import { describe, expect, it } from 'vitest';
+import { translate } from '@/lib/i18n/messages';
 import {
   buildDashboardActionItems,
+  buildDataQualityItems,
   buildImportantAlertItems,
 } from '@/features/admin/dashboard/dashboard-interventions';
 import { parseDashboardAlertItem } from '@/features/admin/dashboard/dashboard-alert-text';
 import type { AdminDashboard } from '@/types/dashboard';
+
+const t = (key: string, params?: Record<string, string | number>) => translate('ar', key, params);
 
 function dashboard(overrides: Partial<AdminDashboard> = {}): AdminDashboard {
   return {
@@ -21,7 +25,7 @@ function dashboard(overrides: Partial<AdminDashboard> = {}): AdminDashboard {
 
 describe('dashboard alert text normalization', () => {
   it('Case A — command dashboard with string message shows correct text', () => {
-    const items = buildImportantAlertItems(dashboard({ important_alerts: ['توجد متأخرات'] }), 'ar');
+    const items = buildImportantAlertItems(dashboard({ important_alerts: ['توجد متأخرات'] }), t, 'ar');
     expect(items).toHaveLength(1);
     expect(items[0]?.label).toBe('توجد متأخرات');
     expect(items[0]?.label).not.toContain('[object Object]');
@@ -44,6 +48,7 @@ describe('dashboard alert text normalization', () => {
           },
         ],
       }),
+      t,
       'ar',
     );
     expect(items[0]?.label).toBe('توجد متأخرات');
@@ -85,11 +90,48 @@ describe('dashboard alert text normalization', () => {
           },
         ],
       }),
-      (key) => key,
+      t,
       'ar',
     );
     expect(items.some((item) => item.label.includes('[object Object]'))).toBe(false);
-    expect(items[0]?.label).toBe('متابعة المتأخرات مطلوبة');
     expect(items[0]?.id).toBe('overdue_followup_needed');
+    expect(items[0]?.href).toBe('/admin/finance/billing-accounts?has_overdue=true');
+    expect(items[0]?.hint).toBe('عرض الحسابات');
+  });
+});
+
+describe('command dashboard alert actions', () => {
+  it('applies registry deep links and action hints for data quality items', () => {
+    const items = buildDataQualityItems(
+      {
+        ...dashboard(),
+        data_quality: {
+          students_without_class: 4,
+          students_incomplete_profile: 2,
+        },
+      } as AdminDashboard,
+      t,
+      'ar',
+    );
+
+    expect(items).toHaveLength(2);
+    expect(items[0]?.label).toBe('4 تلاميذ بدون قسم');
+    expect(items[0]?.href).toBe('/admin/students');
+    expect(items[0]?.hint).toBe('عرض التلاميذ');
+    expect(items[0]?.label).not.toMatch(/\(ات\)|\(أقسام\)|\(تلاميذ\)/);
+  });
+
+  it('uses pluralized exam alerts with deep links', () => {
+    const items = buildDashboardActionItems(
+      dashboard({ exams_missing_results: 3, draft_exam_results_count: 2 }),
+      t,
+      'ar',
+    );
+
+    expect(items.some((item) => item.id === 'exams-missing-results' && item.label.includes('3'))).toBe(
+      true,
+    );
+    expect(items.find((item) => item.id === 'exams-missing-results')?.href).toBe('/admin/exams');
+    expect(items.find((item) => item.id === 'draft-results')?.href).toBe('/admin/exam-results');
   });
 });

@@ -10,6 +10,13 @@ import type {
 import type { Locale } from '@/lib/i18n/config';
 import { DEFAULT_LOCALE } from '@/lib/i18n/config';
 import { normalizeLocalizedText } from '@/lib/i18n/normalize-localized-text';
+import {
+  buildRegistryDashboardAlert,
+  dedupeDashboardAlertItems,
+  enrichDashboardAlertItem,
+  type DashboardAlertCandidate,
+} from '@/lib/admin/dashboard-alert-registry';
+import type { TranslateFn } from '@/features/i18n/locale-context';
 
 function readNumber(value: unknown, fallback = 0): number {
   if (typeof value === 'number' && Number.isFinite(value)) return value;
@@ -208,211 +215,282 @@ function severityIcon(severity: ExecutiveAlertSeverity): string {
   return 'ℹ️';
 }
 
-function pushUniqueItem(items: AdminActionItem[], seen: Set<string>, item: AdminActionItem): void {
-  const key = item.id;
-  if (seen.has(key)) return;
-  seen.add(key);
-  items.push(item);
+function collectExecutiveInterventionCandidates(
+  executive: AdminExecutiveDashboard,
+  t: TranslateFn,
+  locale: Locale,
+): DashboardAlertCandidate[] {
+  const candidates: DashboardAlertCandidate[] = [];
+
+  for (const alert of executive.important_alerts) {
+    candidates.push(
+      enrichDashboardAlertItem(
+        {
+          id: alert.code,
+          label: alert.message,
+          href: alert.href ?? undefined,
+          icon: severityIcon(alert.severity),
+          tone: severityTone(alert.severity),
+        },
+        t,
+        locale,
+        executive,
+      ),
+    );
+  }
+
+  for (const alert of executive.staff_alerts) {
+    candidates.push(
+      enrichDashboardAlertItem(
+        {
+          id: alert.code,
+          label: alert.message,
+          href: alert.href ?? undefined,
+          icon: severityIcon(alert.severity),
+          tone: severityTone(alert.severity),
+        },
+        t,
+        locale,
+        executive,
+      ),
+    );
+  }
+
+  const finance = executive.finance_summary;
+  if (finance?.overdue != null && finance.overdue > 0) {
+    const item = buildRegistryDashboardAlert('finance-overdue', t, locale, {
+      executive,
+      icon: '💰',
+      tone: 'amber',
+    });
+    if (item) candidates.push(item);
+  }
+  if ((finance?.families_overdue_count ?? 0) > 0) {
+    const item = buildRegistryDashboardAlert('finance-families-overdue', t, locale, {
+      executive,
+      count: finance!.families_overdue_count,
+      icon: '📞',
+      tone: 'amber',
+    });
+    if (item) candidates.push(item);
+  }
+  if ((finance?.promises_due_soon_count ?? 0) > 0) {
+    const item = buildRegistryDashboardAlert('finance-promises-due', t, locale, {
+      executive,
+      count: finance!.promises_due_soon_count,
+      icon: '📆',
+      tone: 'amber',
+    });
+    if (item) candidates.push(item);
+  }
+
+  const admissions = executive.admissions_summary;
+  if ((admissions?.overdue_actions ?? 0) > 0) {
+    const item = buildRegistryDashboardAlert('admissions-overdue', t, locale, {
+      executive,
+      count: admissions!.overdue_actions,
+      icon: '📝',
+      tone: 'amber',
+    });
+    if (item) candidates.push(item);
+  }
+  if ((admissions?.new ?? 0) > 0) {
+    const item = buildRegistryDashboardAlert('admissions-new', t, locale, {
+      executive,
+      count: admissions!.new,
+      icon: '✨',
+      tone: 'amber',
+    });
+    if (item) candidates.push(item);
+  }
+  if ((admissions?.in_progress ?? 0) > 0) {
+    const item = buildRegistryDashboardAlert('admissions-review', t, locale, {
+      executive,
+      count: admissions!.in_progress,
+      icon: '🔍',
+    });
+    if (item) candidates.push(item);
+  }
+
+  const attendanceCount = executive.attendance_gaps?.classes_without_attendance_count;
+  if (attendanceCount != null && attendanceCount > 0) {
+    const item = buildRegistryDashboardAlert('attendance-classes-missing', t, locale, {
+      executive,
+      count: attendanceCount,
+      icon: '🗓️',
+      tone: 'amber',
+    });
+    if (item) candidates.push(item);
+  }
+
+  return candidates;
 }
 
 export function buildExecutiveAlertItems(
   executive: AdminExecutiveDashboard,
+  t: TranslateFn,
+  locale: Locale = DEFAULT_LOCALE,
 ): AdminActionItem[] {
-  const items: AdminActionItem[] = [];
-  const seen = new Set<string>();
-
-  for (const alert of executive.important_alerts) {
-    pushUniqueItem(items, seen, {
-      id: alert.code,
-      label: alert.message,
-      href: alert.href ?? undefined,
-      icon: severityIcon(alert.severity),
-      tone: severityTone(alert.severity),
-    });
-  }
-
-  for (const alert of executive.staff_alerts) {
-    pushUniqueItem(items, seen, {
-      id: alert.code,
-      label: alert.message,
-      href: alert.href ?? undefined,
-      icon: severityIcon(alert.severity),
-      tone: severityTone(alert.severity),
-    });
-  }
-
-  return items;
+  const candidates = collectExecutiveInterventionCandidates(executive, t, locale).filter(
+    (item) =>
+      executive.important_alerts.some((alert) => alert.code === item.id) ||
+      executive.staff_alerts.some((alert) => alert.code === item.id),
+  );
+  return dedupeDashboardAlertItems(candidates);
 }
 
 export function buildExecutiveFinanceInterventions(
   executive: AdminExecutiveDashboard,
-  t: (k: string, p?: Record<string, string | number>) => string,
+  t: TranslateFn,
+  locale: Locale = DEFAULT_LOCALE,
 ): AdminActionItem[] {
   const finance = executive.finance_summary;
   if (!finance) return [];
 
-  const items: AdminActionItem[] = [];
-  const seen = new Set<string>();
+  const candidates: DashboardAlertCandidate[] = [];
 
   if (finance.overdue > 0) {
-    pushUniqueItem(items, seen, {
-      id: 'finance-overdue',
-      label: t('admin.executive.financeOverdueAlert'),
-      href: '/admin/finance/installments?status=overdue',
+    const item = buildRegistryDashboardAlert('finance-overdue', t, locale, {
+      executive,
       icon: '💰',
       tone: 'amber',
     });
+    if (item) candidates.push(item);
   }
 
   if (finance.families_overdue_count > 0) {
-    pushUniqueItem(items, seen, {
-      id: 'finance-families-overdue',
-      label: t('admin.executive.financeFollowupCount', { count: finance.families_overdue_count }),
-      href: '/admin/finance/billing-accounts',
+    const item = buildRegistryDashboardAlert('finance-families-overdue', t, locale, {
+      executive,
+      count: finance.families_overdue_count,
       icon: '📞',
       tone: 'amber',
     });
+    if (item) candidates.push(item);
   }
 
   if (finance.promises_due_soon_count > 0) {
-    pushUniqueItem(items, seen, {
-      id: 'finance-promises-due',
-      label: t('admin.executive.financePromisesDueSoon', {
-        count: finance.promises_due_soon_count,
-      }),
-      href: '/admin/finance/collections',
+    const item = buildRegistryDashboardAlert('finance-promises-due', t, locale, {
+      executive,
+      count: finance.promises_due_soon_count,
       icon: '📆',
       tone: 'amber',
     });
+    if (item) candidates.push(item);
   }
 
-  return items;
+  return dedupeDashboardAlertItems(candidates);
 }
 
 export function buildExecutiveAdmissionsInterventions(
   executive: AdminExecutiveDashboard,
-  t: (k: string, p?: Record<string, string | number>) => string,
+  t: TranslateFn,
+  locale: Locale = DEFAULT_LOCALE,
 ): AdminActionItem[] {
   const admissions = executive.admissions_summary;
   if (!admissions) return [];
 
-  const items: AdminActionItem[] = [];
-  const seen = new Set<string>();
+  const candidates: DashboardAlertCandidate[] = [];
 
   if (admissions.overdue_actions > 0) {
-    pushUniqueItem(items, seen, {
-      id: 'admissions-overdue',
-      label: t('admin.executive.admissionsOverdueActions', { count: admissions.overdue_actions }),
-      href: '/admin/admissions',
+    const item = buildRegistryDashboardAlert('admissions-overdue', t, locale, {
+      executive,
+      count: admissions.overdue_actions,
       icon: '📝',
       tone: 'amber',
     });
+    if (item) candidates.push(item);
   }
 
   if (admissions.new > 0) {
-    pushUniqueItem(items, seen, {
-      id: 'admissions-new',
-      label: t('admin.executive.admissionsNewPending', { count: admissions.new }),
-      href: '/admin/admissions?state=new',
+    const item = buildRegistryDashboardAlert('admissions-new', t, locale, {
+      executive,
+      count: admissions.new,
       icon: '✨',
       tone: 'amber',
     });
+    if (item) candidates.push(item);
   }
 
   if (admissions.in_progress > 0) {
-    pushUniqueItem(items, seen, {
-      id: 'admissions-review',
-      label: t('admin.executive.admissionsUnderReview', { count: admissions.in_progress }),
-      href: '/admin/admissions?state=under_review',
+    const item = buildRegistryDashboardAlert('admissions-review', t, locale, {
+      executive,
+      count: admissions.in_progress,
       icon: '🔍',
     });
+    if (item) candidates.push(item);
   }
 
-  return items;
+  return dedupeDashboardAlertItems(candidates);
 }
 
 export function buildExecutiveAttendanceInterventions(
   executive: AdminExecutiveDashboard,
-  t: (k: string, p?: Record<string, string | number>) => string,
+  t: TranslateFn,
+  locale: Locale = DEFAULT_LOCALE,
 ): AdminActionItem[] {
   const gaps = executive.attendance_gaps;
   if (!gaps) return [];
 
-  const items: AdminActionItem[] = [];
   const count = gaps.classes_without_attendance_count;
-  if (count != null && count > 0) {
-    items.push({
-      id: 'attendance-classes-missing',
-      label: t('admin.executive.attendanceClassesMissing', { count }),
-      href: '/admin/attendance?date=today',
-      icon: '🗓️',
-      tone: 'amber',
-    });
-  }
+  if (count == null || count <= 0) return [];
 
-  return items;
+  const item = buildRegistryDashboardAlert('attendance-classes-missing', t, locale, {
+    executive,
+    count,
+    icon: '🗓️',
+    tone: 'amber',
+  });
+
+  return item ? [item] : [];
 }
 
 export function buildExecutiveDataQualityItems(
   executive: AdminExecutiveDashboard,
-  t: (k: string, p?: Record<string, string | number>) => string,
+  t: TranslateFn,
+  locale: Locale = DEFAULT_LOCALE,
 ): AdminActionItem[] {
   const dq = executive.data_quality;
   if (!dq) return [];
 
-  const items: AdminActionItem[] = [];
-  const studentsHref = '/admin/students';
+  const candidates: DashboardAlertCandidate[] = [];
 
   if ((dq.students_missing_guardian_count ?? 0) > 0) {
-    items.push({
-      id: 'dq-missing-guardian',
-      label: t('admin.executive.dqMissingGuardian', { count: dq.students_missing_guardian_count! }),
-      href: studentsHref,
+    const item = buildRegistryDashboardAlert('dq-missing-guardian', t, locale, {
+      executive,
+      count: dq.students_missing_guardian_count,
       icon: '👪',
       tone: 'amber',
     });
+    if (item) candidates.push(item);
   }
 
   if ((dq.students_missing_required_data_count ?? 0) > 0) {
-    items.push({
-      id: 'dq-missing-required',
-      label: t('admin.executive.dqMissingRequiredData', {
-        count: dq.students_missing_required_data_count!,
-      }),
-      href: studentsHref,
+    const item = buildRegistryDashboardAlert('dq-missing-required', t, locale, {
+      executive,
+      count: dq.students_missing_required_data_count,
       icon: '📝',
       tone: 'amber',
     });
+    if (item) candidates.push(item);
   }
 
   if ((dq.students_missing_massar_count ?? 0) > 0) {
-    items.push({
-      id: 'dq-missing-massar',
-      label: t('admin.executive.dqMissingMassar', { count: dq.students_missing_massar_count! }),
-      href: studentsHref,
+    const item = buildRegistryDashboardAlert('dq-missing-massar', t, locale, {
+      executive,
+      count: dq.students_missing_massar_count,
       icon: '🪪',
       tone: 'amber',
     });
+    if (item) candidates.push(item);
   }
 
-  return items;
+  return dedupeDashboardAlertItems(candidates);
 }
 
 export function mergeExecutiveInterventions(
   executive: AdminExecutiveDashboard,
-  t: (k: string, p?: Record<string, string | number>) => string,
+  t: TranslateFn,
+  locale: Locale = DEFAULT_LOCALE,
 ): AdminActionItem[] {
-  const items: AdminActionItem[] = [];
-  const seen = new Set<string>();
-
-  for (const item of [
-    ...buildExecutiveAlertItems(executive),
-    ...buildExecutiveFinanceInterventions(executive, t),
-    ...buildExecutiveAdmissionsInterventions(executive, t),
-    ...buildExecutiveAttendanceInterventions(executive, t),
-  ]) {
-    pushUniqueItem(items, seen, item);
-  }
-
-  return items;
+  return dedupeDashboardAlertItems(collectExecutiveInterventionCandidates(executive, t, locale));
 }

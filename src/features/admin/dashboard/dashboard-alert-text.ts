@@ -1,5 +1,6 @@
 import type { Locale } from '@/lib/i18n/config';
 import { normalizeLocalizedText } from '@/lib/i18n/normalize-localized-text';
+import { resolveDashboardAlertHref } from '@/lib/admin/dashboard-alert-registry';
 import type { AdminActionItem } from '@/features/admin/command-center/primitives';
 
 function readNullableHref(value: unknown): string | undefined {
@@ -61,7 +62,7 @@ export function parseDashboardAlertItem(
   return {
     id: code,
     label,
-    href: readNullableHref(record.href),
+    href: resolveDashboardAlertHref(code, readNullableHref(record.href)),
     icon: severityIcon(record.severity),
     tone: readAlertSeverity(record.severity),
   };

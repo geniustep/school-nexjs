@@ -236,10 +236,10 @@ function ExecutiveDirectorView({
       return [];
     }
     if (executiveAvailable && executive) {
-      return buildExecutiveDataQualityItems(executive, t);
+      return buildExecutiveDataQualityItems(executive, t, locale);
     }
-    return buildDataQualityItems(d, t);
-  }, [d, t, executivePending, executiveAvailable, executive]);
+    return buildDataQualityItems(d, t, locale);
+  }, [d, t, locale, executivePending, executiveAvailable, executive]);
 
   const financeItems = useMemo(
     () => (executiveAvailable ? [] : buildFinanceInterventions(financeState.data, t)),
@@ -257,7 +257,7 @@ function ExecutiveDirectorView({
     if (executiveAvailable && executive) {
       const seen = new Set<string>();
       const merged: AdminActionItem[] = [];
-      for (const item of [...mergeExecutiveInterventions(executive, t), ...dashboardItems]) {
+      for (const item of [...mergeExecutiveInterventions(executive, t, locale), ...dashboardItems]) {
         if (seen.has(item.id)) continue;
         seen.add(item.id);
         merged.push(item);
