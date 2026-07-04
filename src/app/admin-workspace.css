@@ -1383,9 +1383,9 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  min-height: 118px;
-  padding: 14px 14px 12px;
+  gap: 0;
+  min-height: 100px;
+  padding: 12px;
   border-radius: 14px;
   background: var(--c-surface);
   border: 1px solid color-mix(in srgb, var(--c-border) 88%, transparent);
@@ -1417,7 +1417,7 @@
 }
 
 .exec-kpi__label {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   line-height: 1.35;
   color: var(--c-muted);
@@ -1434,16 +1434,38 @@
 }
 
 .exec-kpi__value {
-  font-size: clamp(20px, 2vw, 26px);
+  margin-top: 8px;
+  font-size: clamp(28px, 2.2vw, 32px);
   font-weight: 800;
-  line-height: 1.15;
+  line-height: 1.12;
   letter-spacing: -0.02em;
   color: var(--c-text);
 }
 
+.exec-kpi__money {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35em;
+  font-variant-numeric: tabular-nums;
+  unicode-bidi: isolate;
+}
+
+.exec-kpi__money-amount {
+  font-size: clamp(24px, 2vw, 28px);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+}
+
+.exec-kpi__money-currency {
+  font-size: clamp(15px, 1.4vw, 17px);
+  font-weight: 700;
+  color: var(--c-text-muted);
+}
+
 .exec-kpi__hint {
-  margin: 0;
-  font-size: 11px;
+  margin: 6px 0 0;
+  font-size: 12px;
   line-height: 1.4;
   color: var(--c-text-muted);
 }
@@ -1469,7 +1491,8 @@
 .exec-kpi--green { border-top: 3px solid #22c55e; }
 .exec-kpi--amber { border-top: 3px solid #f59e0b; }
 .exec-kpi--red { border-top: 3px solid #ef4444; }
-.exec-kpi--neutral { border-top: 3px solid color-mix(in srgb, var(--c-border) 80%, var(--c-muted)); }
+.exec-kpi--indigo { border-top: 3px solid #6366f1; }
+.exec-kpi--neutral { border-top: 3px solid #94a3b8; }
 
 /* Layout */
 .exec-layout {
@@ -1803,6 +1826,7 @@
 .exec-adm-stat--green .exec-adm-stat__value { color: #16a34a; }
 .exec-adm-stat--amber .exec-adm-stat__value { color: #d97706; }
 .exec-adm-stat--red .exec-adm-stat__value { color: #dc2626; }
+.exec-adm-stat--indigo .exec-adm-stat__value { color: #4f46e5; }
 
 /* Link row */
 .exec-link-row {

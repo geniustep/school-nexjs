@@ -3,8 +3,10 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils/cn';
+import { useLocale } from '@/features/i18n/locale-context';
+import { formatExecutiveKpiMoneyParts } from '@/features/admin/dashboard/executive-kpi-utils';
 
-export type ExecutiveTone = 'blue' | 'green' | 'amber' | 'red' | 'neutral';
+export type ExecutiveTone = 'blue' | 'green' | 'amber' | 'red' | 'neutral' | 'indigo';
 
 const TONE_LABEL: Record<ExecutiveTone, string> = {
   blue: 'exec-kpi--blue',
@@ -12,7 +14,27 @@ const TONE_LABEL: Record<ExecutiveTone, string> = {
   amber: 'exec-kpi--amber',
   red: 'exec-kpi--red',
   neutral: 'exec-kpi--neutral',
+  indigo: 'exec-kpi--indigo',
 };
+
+export function ExecutiveKpiMoney({
+  amount,
+  currency,
+}: {
+  amount?: number | null;
+  currency?: unknown;
+}) {
+  const { locale } = useLocale();
+  const parts = formatExecutiveKpiMoneyParts(amount, currency, locale);
+  if (!parts) return <>—</>;
+
+  return (
+    <span className="exec-kpi__money" dir="ltr">
+      <span className="exec-kpi__money-amount">{parts.amount}</span>
+      <span className="exec-kpi__money-currency">{parts.currency}</span>
+    </span>
+  );
+}
 
 export function ExecutiveKpiCard({
   label,
@@ -239,6 +261,7 @@ export function ExecutiveAdmissionStat({
     amber: 'exec-adm-stat--amber',
     red: 'exec-adm-stat--red',
     neutral: 'exec-adm-stat--neutral',
+    indigo: 'exec-adm-stat--indigo',
   };
 
   return (

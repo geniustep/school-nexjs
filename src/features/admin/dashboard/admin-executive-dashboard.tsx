@@ -6,7 +6,12 @@ import { cn } from '@/lib/utils/cn';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT, useLocale } from '@/features/i18n/locale-context';
 import { useAdminSession } from '@/features/auth/admin-session-context';
+import { ExecutiveKpiMoney } from '@/features/admin/dashboard/executive-dashboard-ui';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
+import {
+  resolveExecutiveAttendanceKpi,
+  resolveLegacyAttendanceKpi,
+} from '@/features/admin/dashboard/executive-kpi-utils';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { endpoints } from '@/lib/api/endpoints';
 import {
@@ -33,7 +38,6 @@ import {
 } from '@/lib/admin/executive-dashboard';
 import {
   ATT_KEYS,
-  attendancePercent,
   buildDashboardActionItems,
   buildDataQualityItems,
   todayIso,
@@ -172,9 +176,7 @@ function ExecutiveDirectorView({
 
   const today = todayIso();
   const att = d.attendance_today;
-  const pct = attendancePercent(att);
   const totalRecorded = att?.total_recorded ?? att?.total ?? 0;
-  const hasAttendance = totalRecorded > 0;
 
   const variant = resolveDashboardVariant(user);
   const widgets = resolveDashboardWidgets(user);
@@ -298,14 +300,11 @@ function ExecutiveDirectorView({
   const legacyAdmissions = admissions as AdmissionsDashboard | null;
 
   const useLegacyAttendance = !executiveAvailable || attendanceGaps == null;
-  const attendancePct = useLegacyAttendance ? pct : attendanceGaps?.attendance_rate_today ?? null;
-  const hasExecutiveAttendance =
-    attendanceGaps != null &&
-    (attendanceGaps.attendance_rate_today > 0 ||
-      attendanceGaps.absent_today_count > 0 ||
-      attendanceGaps.late_today_count > 0 ||
-      (attendanceGaps.classes_without_attendance_count ?? 0) > 0);
-  const showAttendance = useLegacyAttendance ? hasAttendance : hasExecutiveAttendance;
+  const attendanceKpi = useLegacyAttendance
+    ? resolveLegacyAttendanceKpi(att)
+    : resolveExecutiveAttendanceKpi(attendanceGaps);
+  const showAttendance = attendanceKpi.state !== 'unavailable';
+  const attendancePct = attendanceKpi.rate;
 
   const partialDataWarnings: string[] = [];
   if (executiveFailed) {
@@ -335,7 +334,7 @@ function ExecutiveDirectorView({
     partialDataWarnings.push(t('admin.executive.academicYearUnavailable'));
   }
 
-  const criticalCount = allInterventionItems.filter((i) => i.tone === 'amber').length;
+  const interventionCount = allInterventionItems.length;
 
   const quickActions = useMemo(() => {
     const catalog: Record<AdminQuickActionId, { href: string; icon: string; label: string }> = {
@@ -405,6 +404,9 @@ function ExecutiveDirectorView({
         id: 'students',
         label: t('admin.executive.kpiActiveStudents'),
         value: d.total_students ?? '—',
+        hint: activeYearLabel
+          ? t('admin.executive.kpiActiveStudentsHint', { year: activeYearLabel })
+          : t('admin.executive.kpiActiveStudentsHintDefault'),
         tone: 'blue',
         href: '/admin/students',
       });
@@ -432,7 +434,7 @@ function ExecutiveDirectorView({
           label: t('admin.executive.kpiAdmissions'),
           value: admissionsData.open,
           hint: t('admin.executive.kpiAdmissionsHint', { new: admissionsData.new }),
-          tone: admissionsData.overdue_actions > 0 ? 'amber' : 'blue',
+          tone: 'indigo',
           href: '/admin/admissions',
         });
       } else if (legacyData) {
@@ -443,7 +445,7 @@ function ExecutiveDirectorView({
           hint: t('admin.executive.kpiAdmissionsHint', {
             new: legacyData.new_count ?? 0,
           }),
-          tone: (legacyData.overdue_next_actions ?? 0) > 0 ? 'amber' : 'blue',
+          tone: 'indigo',
           href: '/admin/admissions',
         });
       } else if (executivePending) {
@@ -491,23 +493,31 @@ function ExecutiveDirectorView({
           id: 'collected',
           label: t('admin.executive.kpiCollected'),
           value: (
-            <FinanceMoney
+            <ExecutiveKpiMoney
               amount={executiveFinance.collected_month}
               currency={executiveFinance.currency}
             />
           ),
+          hint: t('admin.executive.kpiCollectedHint'),
+          tone: 'green',
           href: '/admin/finance/collections',
         });
         cards.push({
           id: 'overdue',
           label: t('admin.executive.kpiOverdue'),
           value: (
-            <FinanceMoney
+            <ExecutiveKpiMoney
               amount={executiveFinance.overdue}
               currency={executiveFinance.currency}
             />
           ),
-          tone: executiveFinance.overdue > 0 ? 'red' : undefined,
+          hint:
+            executiveFinance.families_overdue_count > 0
+              ? t('admin.executive.kpiOverdueHint', {
+                  count: executiveFinance.families_overdue_count,
+                })
+              : t('admin.executive.kpiOverdueHintDefault'),
+          tone: executiveFinance.overdue > 0 ? 'red' : 'neutral',
           href:
             executiveFinance.overdue > 0
               ? '/admin/finance/installments?status=overdue'
@@ -523,7 +533,9 @@ function ExecutiveDirectorView({
           cards.push({
             id: 'collected',
             label: t('admin.executive.kpiCollected'),
-            value: <FinanceMoney amount={collected} currency={financeTotals.currency} />,
+            value: <ExecutiveKpiMoney amount={collected} currency={financeTotals.currency} />,
+            hint: t('admin.executive.kpiCollectedHint'),
+            tone: 'green',
             href: '/admin/finance/collections',
           });
         } else {
@@ -542,12 +554,15 @@ function ExecutiveDirectorView({
           label: t('admin.executive.kpiOverdue'),
           value:
             overdue != null ? (
-              <FinanceMoney amount={overdue} currency={financeTotals?.currency} />
+              <ExecutiveKpiMoney amount={overdue} currency={financeTotals?.currency} />
             ) : (
               '—'
             ),
           tone: overdue != null && overdue > 0 ? 'red' : undefined,
-          hint: overdue == null ? t('admin.executive.financePendingActivation') : undefined,
+          hint:
+            overdue == null
+              ? t('admin.executive.financePendingActivation')
+              : t('admin.executive.kpiOverdueHintDefault'),
           href: overdue != null && overdue > 0 ? '/admin/finance/installments?status=overdue' : '/admin/finance',
         });
       } else if (executiveAvailable) {
@@ -580,38 +595,38 @@ function ExecutiveDirectorView({
       cards.push({
         id: 'attendance',
         label: t('admin.executive.kpiAttendance'),
-        value: showAttendance && attendancePct != null ? `${Math.round(attendancePct)}%` : '—',
-        hint: useLegacyAttendance
-          ? hasAttendance
-            ? t('admin.executive.kpiAttendanceHint', { recorded: totalRecorded })
-            : t('admin.cmd.attendanceUnavailable')
-          : attendanceGaps
-            ? t('admin.executive.kpiAttendanceExecutiveHint', {
-                absent: attendanceGaps.absent_today_count,
-                late: attendanceGaps.late_today_count,
-              })
-            : t('admin.cmd.attendanceUnavailable'),
-        tone:
-          attendancePct != null && attendancePct < 75
-            ? 'amber'
-            : attendancePct != null && attendancePct >= 90
-              ? 'green'
-              : 'blue',
-        href: '/admin/attendance?date=today',
+        value: attendanceKpi.displayValue,
+        hint:
+          attendanceKpi.state === 'unavailable'
+            ? t('admin.executive.kpiAttendanceUnavailable')
+            : attendanceKpi.state === 'partial' && !useLegacyAttendance
+              ? t('admin.executive.kpiAttendanceExecutiveHint', {
+                  absent: attendanceGaps?.absent_today_count ?? 0,
+                  late: attendanceGaps?.late_today_count ?? 0,
+                })
+              : useLegacyAttendance
+                ? t('admin.executive.kpiAttendanceHint', { recorded: totalRecorded })
+                : t('admin.executive.kpiAttendanceExecutiveHint', {
+                    absent: attendanceGaps?.absent_today_count ?? 0,
+                    late: attendanceGaps?.late_today_count ?? 0,
+                  }),
+        tone: attendanceKpi.tone,
+        empty: attendanceKpi.state === 'unavailable',
+        href: attendanceKpi.state === 'unavailable' ? undefined : '/admin/attendance?date=today',
       });
     }
 
     cards.push({
       id: 'alerts',
-      label: t('admin.executive.kpiAlerts'),
-      value: executivePending ? '…' : criticalCount,
-      tone: executivePending ? 'neutral' : criticalCount > 0 ? 'amber' : 'green',
+      label: t('admin.executive.kpiIntervention'),
+      value: executivePending ? '…' : interventionCount,
+      tone: executivePending ? 'neutral' : interventionCount > 0 ? 'amber' : 'green',
       badge: executivePending
         ? t('common.loading')
-        : criticalCount > 0
-          ? t('admin.executive.kpiAlertsActive')
-          : t('admin.executive.kpiAlertsClear'),
-      hint: executivePending ? t('common.loading') : t('admin.executive.kpiAlertsHint'),
+        : interventionCount > 0
+          ? t('admin.executive.kpiInterventionActive')
+          : t('admin.executive.kpiInterventionClear'),
+      hint: executivePending ? t('common.loading') : t('admin.executive.kpiInterventionHint'),
     });
 
     return cards.slice(0, 6);
@@ -629,13 +644,12 @@ function ExecutiveDirectorView({
     legacyAdmissions,
     financeState.loading,
     financeTotals,
+    activeYearLabel,
     useLegacyAttendance,
-    showAttendance,
-    attendancePct,
+    attendanceKpi,
     attendanceGaps,
-    hasAttendance,
     totalRecorded,
-    criticalCount,
+    interventionCount,
     t,
   ]);
 

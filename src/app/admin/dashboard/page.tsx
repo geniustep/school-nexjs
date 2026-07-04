@@ -11,7 +11,7 @@ import { AdminReadonlyDashboard } from '@/features/admin/dashboard/admin-readonl
 import { useSession } from '@/features/auth/session-context';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
-import { resolveDashboardVariant } from '@/lib/admin/dashboard-registry';
+import { resolveDashboardVariant, shouldShowActiveSchoolBannerOnDashboard } from '@/lib/admin/dashboard-registry';
 import { shouldShowDashboardContextPanel } from '@/lib/admin/executive-dashboard';
 import { shouldUsePedagogicalDashboard } from '@/lib/admin/pedagogical-dashboard';
 import { formatSchoolLabel } from '@/lib/admin/school-label';
@@ -93,7 +93,7 @@ export default function AdminDashboardPage() {
         />
       )}
 
-      {variant.showActiveSchoolBanner && (
+      {shouldShowActiveSchoolBannerOnDashboard(user) && (
         <InfoBanner
           tone="blue"
           title={t('admin.activeSchool')}

@@ -4,6 +4,7 @@ import {
   resolveDashboardContextPresentation,
   resolveDashboardVariant,
   resolveDashboardWidgets,
+  shouldShowActiveSchoolBannerOnDashboard,
 } from '@/lib/admin/dashboard-registry';
 import type { CurrentUser } from '@/types/user';
 
@@ -157,6 +158,36 @@ describe('resolveDashboardVariant', () => {
     expect(variant.canAccess).toBe(true);
     expect(variant.showScopedAccessBanner).toBe(false);
     expect(adminLandingPath(user)).toBe('/admin/settings/academic-setup');
+  });
+});
+
+describe('shouldShowActiveSchoolBannerOnDashboard', () => {
+  it('hides active-school banner on executive dashboard while keeping it for command dashboard', () => {
+    const executiveUser = admin({
+      admin_kind: 'project_manager',
+      school_ids: [10, 20],
+      schools: [
+        { id: 10, name: 'School A' },
+        { id: 20, name: 'School B' },
+      ],
+      permissions: ['view_dashboard', 'view_students'],
+    });
+    expect(resolveDashboardVariant(executiveUser).showActiveSchoolBanner).toBe(true);
+    expect(resolveDashboardWidgets(executiveUser).executiveLayout).toBe(true);
+    expect(shouldShowActiveSchoolBannerOnDashboard(executiveUser)).toBe(false);
+
+    const commandUser = admin({
+      admin_kind: 'admin_staff',
+      school_ids: [10, 20],
+      schools: [
+        { id: 10, name: 'School A' },
+        { id: 20, name: 'School B' },
+      ],
+      permissions: ['view_dashboard', 'view_students'],
+    });
+    expect(resolveDashboardVariant(commandUser).showActiveSchoolBanner).toBe(true);
+    expect(resolveDashboardWidgets(commandUser).executiveLayout).toBe(false);
+    expect(shouldShowActiveSchoolBannerOnDashboard(commandUser)).toBe(true);
   });
 });
 

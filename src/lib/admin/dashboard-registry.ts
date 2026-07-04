@@ -184,6 +184,13 @@ export function resolveDashboardVariant(user: CurrentUser | null): AdminDashboar
   };
 }
 
+/** Active-school banner is redundant on the executive dashboard (school is in hero + header). */
+export function shouldShowActiveSchoolBannerOnDashboard(user: CurrentUser | null): boolean {
+  const variant = resolveDashboardVariant(user);
+  const widgets = resolveDashboardWidgets(user);
+  return variant.showActiveSchoolBanner && !widgets.executiveLayout;
+}
+
 /** Resolves command-dashboard widget visibility from permissions, scope, and admin_kind. */
 export function resolveDashboardWidgets(user: CurrentUser | null): AdminDashboardWidgets {
   if (!user) {
