@@ -128,12 +128,12 @@ export function isBlockedByOneTimeLineNotPeriodAmendable(
 export function shouldShowAgreementAmendmentAllowedStatus(
   preview: NormalizedAgreementAmendmentPreview,
 ): boolean {
-  return preview.allowed;
+  return preview.canApply;
 }
 
-/** Blockers apply only when the current preview is disallowed. */
+/** Blockers apply only when the current preview cannot be applied. */
 export function shouldShowAgreementAmendmentBlockingReasons(
   preview: NormalizedAgreementAmendmentPreview,
 ): boolean {
-  return !preview.allowed && preview.blockingReasons.length > 0;
+  return !preview.canApply && preview.blockingReasons.length > 0;
 }

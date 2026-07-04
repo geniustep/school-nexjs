@@ -231,6 +231,9 @@ describe('agreement amendment pricing contract UI', () => {
   it('shows legacy amounts when pricing contract is absent and values are meaningful', () => {
     const preview = {
       allowed: true,
+      canApply: true,
+      amendBlockCode: null,
+      financeReviewReasons: [],
       amountBefore: 1000,
       amountAfter: 1200,
       delta: 200,

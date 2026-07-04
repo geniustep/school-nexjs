@@ -66,6 +66,8 @@ export const endpoints = {
     financialAgreementApprove: (id: number | string) => `/admin/financial-agreements/${id}/approve`,
     financialAgreementActivate: (id: number | string) => `/admin/financial-agreements/${id}/activate`,
     financialAgreementCancel: (id: number | string) => `/admin/financial-agreements/${id}/cancel`,
+    financialAgreementResolveFinanceReview: (id: number | string) =>
+      `/admin/financial-agreements/${id}/resolve-finance-review`,
     financialAgreementSchedule: (id: number | string) => `/admin/financial-agreements/${id}/schedule`,
     financialAgreementLinesPreview: (id: number | string) =>
       `/admin/financial-agreements/${id}/lines/preview`,

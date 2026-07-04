@@ -3,6 +3,7 @@ import type { FinancialAgreement, StudentFinanceWorkspace } from '../types';
 import type { FinanceAgreementActionItem } from '../types/agreement-context';
 import { normalizeReferenceValue } from './reference-labels';
 import { resolveAgreementAmendmentAction } from './resolve-agreement-amendment-action';
+import { resolveFinanceReviewResolveAction } from './resolve-finance-review-action';
 import { readRequiresFinanceReview } from './resolve-fee-plan-presentation';
 import { hasActiveFinancialAgreement } from './resolve-student-billing-source-presentation';
 
@@ -76,6 +77,11 @@ export function resolveFinanceAgreementActions(input: {
   }
 
   if (hasActiveAgreement) {
+    const resolveReviewAction = resolveFinanceReviewResolveAction({ workspace: input.workspace });
+    if (resolveReviewAction) {
+      pushAction(actions, resolveReviewAction);
+    }
+
     const amendmentAction = resolveAgreementAmendmentAction({
       workspace: input.workspace,
       agreement: input.agreement ?? input.workspace?.current_agreement ?? null,

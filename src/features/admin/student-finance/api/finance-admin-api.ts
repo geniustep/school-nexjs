@@ -31,6 +31,10 @@ import type {
   ResetFinancialAgreementPayload,
   ResetFinancialAgreementMode,
 } from '../utils/build-reset-financial-agreement-payload';
+import type {
+  ResolveFinanceReviewPayload,
+  ResolveFinanceReviewResponse,
+} from '../types/finance-review';
 
 export interface ResetFinancialAgreementResponse {
   new_agreement?: unknown;
@@ -252,6 +256,18 @@ export async function applyStudentChangePlan(
 ): Promise<ApiResponse<unknown>> {
   return api.post<unknown>(
     endpoints.admin.financeStudentChangePlanApply(studentId),
+    payload,
+    query,
+  );
+}
+
+export async function postResolveFinanceReview(
+  agreementId: number | string,
+  payload: ResolveFinanceReviewPayload,
+  query?: ListParams,
+): Promise<ApiResponse<ResolveFinanceReviewResponse>> {
+  return api.post<ResolveFinanceReviewResponse>(
+    endpoints.admin.financialAgreementResolveFinanceReview(agreementId),
     payload,
     query,
   );

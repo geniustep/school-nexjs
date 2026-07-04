@@ -17,8 +17,11 @@ import { resolveFeePlanPresentation } from '../utils/resolve-fee-plan-presentati
 import { resolveAgreementStatusPresentation } from '../utils/resolve-agreement-status-presentation';
 import { resolveFinanceAgreementActions } from '../utils/resolve-finance-agreement-actions';
 import { resolveResetFinancialAgreementPresentation } from '../utils/resolve-reset-financial-agreement-action';
+import { resolveFinanceReviewPresentation } from '../utils/resolve-finance-review-presentation';
 import { resolveFinanceAgreementStateLabel } from '../utils/reference-labels';
 import { StudentFinanceAgreementAmendmentDialog } from './student-finance-agreement-amendment-dialog';
+import { FinanceReviewBillingPartnerSection } from './finance-review-billing-partner-section';
+import { BillingPartnerAlignmentDialog } from './billing-partner-alignment-dialog';
 import { isAgreementAmendmentAllowed } from '../utils/resolve-agreement-amendment-action';
 import {
   buildResetAmountChangedMessages,
@@ -87,6 +90,7 @@ export function StudentFinanceAgreementContextPanel({
   const [resetReason, setResetReason] = useState('');
   const [resetLoading, setResetLoading] = useState(false);
   const [amendmentOpen, setAmendmentOpen] = useState(false);
+  const [alignmentOpen, setAlignmentOpen] = useState(false);
 
   const feePlan = useMemo(
     () => resolveFeePlanPresentation({ workspace, financialOverview, details }),
@@ -107,6 +111,17 @@ export function StudentFinanceAgreementContextPanel({
     () => resolveResetFinancialAgreementPresentation({ workspace, financialOverview }),
     [workspace, financialOverview],
   );
+
+  const financeReview = useMemo(
+    () => resolveFinanceReviewPresentation(workspace),
+    [workspace],
+  );
+
+  const alignmentAgreementId =
+    financeReview.billingPartnerMismatch?.agreementId ??
+    agreement?.id ??
+    workspace?.current_agreement?.id ??
+    null;
 
   const actions = useMemo(
     () =>
@@ -138,6 +153,11 @@ export function StudentFinanceAgreementContextPanel({
       if (action.kind === 'amend_financial_agreement') {
         if (!action.enabled) return;
         setAmendmentOpen(true);
+        return;
+      }
+      if (action.kind === 'resolve_finance_review') {
+        if (!action.enabled) return;
+        setAlignmentOpen(true);
         return;
       }
       onOpenAgreements?.();
@@ -302,6 +322,9 @@ export function StudentFinanceAgreementContextPanel({
               {t(agreementStatus.collectBlockedAlertKey)}
             </div>
           ) : null}
+          {financeReview.visible && financeReview.billingPartnerMismatch ? (
+            <FinanceReviewBillingPartnerSection mismatch={financeReview.billingPartnerMismatch} />
+          ) : null}
           {actions.length ? (
             <div className="student-finance-agreement-context__actions">
               {actions.map((action) => (
@@ -354,6 +377,16 @@ export function StudentFinanceAgreementContextPanel({
         onClose={() => setAmendmentOpen(false)}
         onSuccess={() => onRefresh?.()}
       />
+
+      {financeReview.billingPartnerMismatch && alignmentAgreementId != null ? (
+        <BillingPartnerAlignmentDialog
+          open={alignmentOpen}
+          agreementId={alignmentAgreementId}
+          mismatch={financeReview.billingPartnerMismatch}
+          onClose={() => setAlignmentOpen(false)}
+          onSuccess={() => onRefresh?.()}
+        />
+      ) : null}
     </section>
   );
 }

@@ -78,6 +78,27 @@ function readInstallmentPreviews(value: unknown): AgreementAmendmentInstallmentP
   return items;
 }
 
+function readBool(value: unknown): boolean | null {
+  if (value === true) return true;
+  if (value === false) return false;
+  return null;
+}
+
+function readStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  const codes: string[] = [];
+  for (const item of value) {
+    if (typeof item === 'string' && item.trim()) {
+      codes.push(item.trim());
+      continue;
+    }
+    const rec = asRecord(item);
+    const code = readString(rec?.code) ?? readString(rec?.message);
+    if (code) codes.push(code);
+  }
+  return [...new Set(codes)];
+}
+
 export function normalizeAgreementAmendmentPreview(
   raw: unknown,
 ): NormalizedAgreementAmendmentPreview {
@@ -106,10 +127,30 @@ export function normalizeAgreementAmendmentPreview(
         ? root.allowed
         : blockingReasons.length === 0;
 
+  const canApplyExplicit =
+    readBool(data.can_apply) ??
+    readBool(root.can_apply) ??
+    readBool(preview.can_apply);
+
+  const canApply = canApplyExplicit ?? allowedExplicit;
+
   const effectiveBlockingReasons =
-    allowedExplicit === true
+    canApply === true
       ? []
       : blockingReasons;
+
+  const amendBlockCode =
+    readString(data.amend_block_code) ??
+    readString(root.amend_block_code) ??
+    readString(preview.amend_block_code);
+
+  const financeReviewReasons = [
+    ...new Set([
+      ...readStringArray(data.finance_review_reasons),
+      ...readStringArray(root.finance_review_reasons),
+      ...readStringArray(preview.finance_review_reasons),
+    ]),
+  ];
 
   const pricingContract =
     normalizeAgreementAmendmentPricingContract(data.pricing_contract) ??
@@ -117,6 +158,9 @@ export function normalizeAgreementAmendmentPreview(
 
   return {
     allowed: allowedExplicit,
+    canApply,
+    amendBlockCode,
+    financeReviewReasons,
     amountBefore:
       readFiniteNumber(data.amount_before) ?? readFiniteNumber(root.amount_before),
     amountAfter: readFiniteNumber(data.amount_after) ?? readFiniteNumber(root.amount_after),

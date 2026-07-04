@@ -1,4 +1,6 @@
 /** Map agreement-amendment API error/warning codes to i18n keys. */
+import type { ApiErrorBody } from '@/types/api';
+import { readSscErrorDetails } from './resolve-finance-review-errors';
 export function agreementAmendmentReasonMessageKey(code: string | undefined): string | null {
   if (!code) return null;
   const reasonKey = `admin.student360.financeWorkspace.agreementAmendment.reasonCodes.${code}`;
@@ -54,7 +56,32 @@ export function resolveAgreementAmendmentErrorMessage(
   code: string | undefined,
   message: string | undefined,
   t: (key: string) => string,
+  error?: ApiErrorBody | null,
 ): string {
+  if (code === 'amendment_not_allowed' && error) {
+    const ssc = readSscErrorDetails(error);
+    if (ssc.amendBlockCode) {
+      const blockKey = agreementAmendmentReasonMessageKey(ssc.amendBlockCode);
+      if (blockKey) {
+        const blockLabel = t(blockKey);
+        if (blockLabel !== blockKey) return blockLabel;
+      }
+    }
+    if (ssc.financeReviewReasons.includes('billing_partner_mismatch')) {
+      const reviewLabel = t(
+        'admin.student360.financeWorkspace.financeReview.billingPartnerMismatchReason',
+      );
+      if (reviewLabel) return reviewLabel;
+    }
+    for (const blocker of ssc.blockingReasons) {
+      const blockerKey = agreementAmendmentReasonMessageKey(blocker);
+      if (blockerKey) {
+        const blockerLabel = t(blockerKey);
+        if (blockerLabel !== blockerKey) return blockerLabel;
+      }
+    }
+  }
+
   const key = agreementAmendmentErrorMessageKey(code);
   if (key) {
     const label = t(key);

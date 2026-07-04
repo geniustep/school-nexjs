@@ -73,6 +73,7 @@ export interface FinanceOperationHistoryEntry {
 export type FinanceAgreementActionKind =
   | 'create_agreement'
   | 'reset_financial_agreement'
+  | 'resolve_finance_review'
   | 'customize_agreement'
   | 'submit_for_review'
   | 'activate_agreement'

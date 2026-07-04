@@ -6079,6 +6079,28 @@
             }
           }
         },
+        "financeReview": {
+          "title": "Agreement needs review",
+          "billingPartnerMismatchReason": "The agreement billing partner does not match the current billing partner on the finance profile.",
+          "agreementPartnerLabel": "Agreement billing partner",
+          "profilePartnerLabel": "Current billing partner",
+          "resolveAction": "Align billing partner",
+          "resolveUnavailable": "This review cannot be resolved from the UI right now.",
+          "dialogTitle": "Align billing partner",
+          "dialogIntro": "The billing partner on the current agreement will be updated to match the finance profile according to server rules.",
+          "dialogAgreementPartner": "Current agreement",
+          "dialogProfilePartner": "Current billing profile",
+          "reasonField": "Reason",
+          "confirmLabel": "Confirm alignment",
+          "success": "Billing partner aligned successfully.",
+          "errors": {
+            "reasonRequired": "A review reason is required.",
+            "notResolvable": "This finance review cannot be resolved right now.",
+            "noMismatch": "No billing partner mismatch was found that requires alignment.",
+            "syncFailed": "Finance review state could not be synchronized. Reload the page.",
+            "generic": "Could not align the billing partner. Try again or contact support."
+          }
+        },
         "agreementAmendment": {
           "title": "Amend financial agreement",
           "subtitle": "Change a line on the active agreement from a future period. Past payments and receipts are not modified.",

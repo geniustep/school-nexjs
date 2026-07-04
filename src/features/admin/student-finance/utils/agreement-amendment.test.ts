@@ -177,17 +177,31 @@ describe('normalizeAgreementAmendmentPreview', () => {
       blocking_reasons: ['no_open_periods'],
     });
     expect(normalized.allowed).toBe(false);
+    expect(normalized.canApply).toBe(false);
     expect(normalized.blockingReasons).toEqual([{ code: 'no_open_periods' }]);
+  });
+
+  it('9b) preview.can_apply=false blocks apply even when allowed=true', () => {
+    const normalized = normalizeAgreementAmendmentPreview({
+      allowed: true,
+      can_apply: false,
+      blocking_reasons: ['finance_review_required'],
+    });
+    expect(normalized.allowed).toBe(true);
+    expect(normalized.canApply).toBe(false);
+    expect(normalized.blockingReasons).toEqual([{ code: 'finance_review_required' }]);
   });
 
   it('10) preview.allowed=true permits apply', () => {
     const normalized = normalizeAgreementAmendmentPreview({ allowed: true, blocking_reasons: [] });
     expect(normalized.allowed).toBe(true);
+    expect(normalized.canApply).toBe(true);
   });
 
   it('10b) allowed preview ignores stale amendment_not_allowed blockers', () => {
     const normalized = normalizeAgreementAmendmentPreview({
       allowed: true,
+      can_apply: true,
       blocked: false,
       blocking_reasons: ['amendment_not_allowed'],
       amount_before: 2300,
@@ -195,6 +209,7 @@ describe('normalizeAgreementAmendmentPreview', () => {
       delta: -300,
     });
     expect(normalized.allowed).toBe(true);
+    expect(normalized.canApply).toBe(true);
     expect(normalized.blockingReasons).toEqual([]);
   });
 

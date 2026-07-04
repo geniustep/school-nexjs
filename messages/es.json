@@ -6072,6 +6072,28 @@
             }
           }
         },
+        "financeReview": {
+          "title": "El acuerdo necesita revisión",
+          "billingPartnerMismatchReason": "El socio de facturación del acuerdo no coincide con el socio actual del perfil financiero.",
+          "agreementPartnerLabel": "Socio de facturación del acuerdo",
+          "profilePartnerLabel": "Socio de facturación actual",
+          "resolveAction": "Alinear socio de facturación",
+          "resolveUnavailable": "Esta revisión no puede resolverse desde la interfaz en este momento.",
+          "dialogTitle": "Alinear socio de facturación",
+          "dialogIntro": "El socio de facturación del acuerdo vigente se actualizará para coincidir con el perfil financiero según las reglas del servidor.",
+          "dialogAgreementPartner": "Acuerdo actual",
+          "dialogProfilePartner": "Perfil de facturación actual",
+          "reasonField": "Motivo",
+          "confirmLabel": "Confirmar alineación",
+          "success": "Socio de facturación alineado correctamente.",
+          "errors": {
+            "reasonRequired": "Se requiere un motivo de revisión.",
+            "notResolvable": "Esta revisión financiera no puede resolverse en este momento.",
+            "noMismatch": "No se encontró discrepancia de socio de facturación que requiera alineación.",
+            "syncFailed": "No se pudo sincronizar el estado de la revisión financiera. Recargue la página.",
+            "generic": "No se pudo alinear el socio de facturación. Inténtelo de nuevo o contacte al soporte."
+          }
+        },
         "agreementAmendment": {
           "title": "Modificar acuerdo financiero",
           "subtitle": "Cambiar una línea del acuerdo activo a partir de un periodo futuro. Los pagos y recibos anteriores no se modifican.",

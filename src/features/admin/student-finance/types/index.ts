@@ -407,10 +407,13 @@ export interface StudentFinanceWorkspace {
   };
   action_reasons?: {
     reset_financial_agreement?: string | null;
+    resolve_finance_review?: string | null;
     amend_financial_agreement?: string | null;
     create_amendment?: string | null;
   };
   requires_finance_review?: boolean;
+  finance_review_reasons?: string[];
+  finance_review_details?: unknown;
   finance_operations_history?: FinanceOperationHistoryRecord[];
   capabilities?: Record<string, boolean>;
 }

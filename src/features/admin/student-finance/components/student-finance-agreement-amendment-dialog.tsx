@@ -416,7 +416,7 @@ export function StudentFinanceAgreementAmendmentDialog({
       setPreview(null);
       setPreviewReady(false);
       setFormError(
-        resolveAgreementAmendmentErrorMessage(res.error?.code, res.error?.message, t),
+        resolveAgreementAmendmentErrorMessage(res.error?.code, res.error?.message, t, res.error),
       );
       return;
     }
@@ -430,7 +430,7 @@ export function StudentFinanceAgreementAmendmentDialog({
   }
 
   async function handleApplyConfirmed() {
-    if (!previewReady || !preview?.allowed || agreementId == null) return;
+    if (!previewReady || !preview?.canApply || agreementId == null) return;
     if (!canSubmitAgreementAmendmentForm(form, selectedLine)) return;
 
     setApplyLoading(true);
@@ -440,7 +440,7 @@ export function StudentFinanceAgreementAmendmentDialog({
 
     if (!res.success) {
       setFormError(
-        resolveAgreementAmendmentErrorMessage(res.error?.code, res.error?.message, t),
+        resolveAgreementAmendmentErrorMessage(res.error?.code, res.error?.message, t, res.error),
       );
       setShowApplyConfirm(false);
       return;
@@ -789,7 +789,7 @@ export function StudentFinanceAgreementAmendmentDialog({
                   ? t('admin.student360.financeWorkspace.agreementAmendment.previewAdjustAmount')
                   : t('admin.student360.financeWorkspace.agreementAmendment.preview')}
             </button>
-            {previewReady && preview?.allowed ? (
+            {previewReady && preview?.canApply ? (
               <button
                 type="button"
                 className="btn btn--ghost"

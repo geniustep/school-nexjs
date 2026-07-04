@@ -6072,6 +6072,28 @@
             }
           }
         },
+        "financeReview": {
+          "title": "L'accord nécessite une revue",
+          "billingPartnerMismatchReason": "Le partenaire de facturation de l'accord ne correspond pas au partenaire actuel du profil financier.",
+          "agreementPartnerLabel": "Partenaire de facturation sur l'accord",
+          "profilePartnerLabel": "Partenaire de facturation actuel",
+          "resolveAction": "Aligner le partenaire de facturation",
+          "resolveUnavailable": "Cette revue ne peut pas être résolue depuis l'interface pour le moment.",
+          "dialogTitle": "Aligner le partenaire de facturation",
+          "dialogIntro": "Le partenaire de facturation de l'accord en cours sera mis à jour pour correspondre au profil financier selon les règles du serveur.",
+          "dialogAgreementPartner": "Accord actuel",
+          "dialogProfilePartner": "Profil de facturation actuel",
+          "reasonField": "Motif",
+          "confirmLabel": "Confirmer l'alignement",
+          "success": "Partenaire de facturation aligné avec succès.",
+          "errors": {
+            "reasonRequired": "Un motif de revue est requis.",
+            "notResolvable": "Cette revue financière ne peut pas être résolue pour le moment.",
+            "noMismatch": "Aucun écart de partenaire de facturation nécessitant un alignement n'a été trouvé.",
+            "syncFailed": "Impossible de synchroniser l'état de la revue financière. Rechargez la page.",
+            "generic": "Impossible d'aligner le partenaire de facturation. Réessayez ou contactez le support."
+          }
+        },
         "agreementAmendment": {
           "title": "Modifier l'accord financier",
           "subtitle": "Modifier une ligne de l'accord actif à partir d'une période future. Les paiements et reçus passés ne sont pas modifiés.",

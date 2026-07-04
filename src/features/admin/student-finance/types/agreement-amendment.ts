@@ -77,6 +77,10 @@ export interface AgreementAmendmentWarning {
 
 export interface AgreementAmendmentPreviewResponse {
   allowed?: boolean;
+  can_apply?: boolean;
+  amend_block_code?: string;
+  requires_finance_review?: boolean;
+  finance_review_reasons?: unknown[];
   amount_before?: number;
   amount_after?: number;
   delta?: number;
@@ -107,6 +111,9 @@ export interface AgreementAmendmentPreviewResponse {
 
 export interface NormalizedAgreementAmendmentPreview {
   allowed: boolean;
+  canApply: boolean;
+  amendBlockCode: string | null;
+  financeReviewReasons: string[];
   amountBefore: number | null;
   amountAfter: number | null;
   delta: number | null;
