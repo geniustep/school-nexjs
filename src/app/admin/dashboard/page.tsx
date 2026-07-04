@@ -4,7 +4,7 @@ import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { ResourceView } from '@/components/states/resource';
 import { PermissionDeniedState } from '@/components/states/states';
 import { Card, InfoBanner } from '@/components/ui/primitives';
-import { AdminCommandDashboard } from '@/features/admin/command-center/admin-command-dashboard';
+import { AdminExecutiveDashboard } from '@/features/admin/dashboard/admin-executive-dashboard';
 import { AdminDashboardContextPanel } from '@/features/admin/dashboard/admin-dashboard-context-panel';
 import { AdminPedagogicalDashboard } from '@/features/admin/dashboard/admin-pedagogical-dashboard';
 import { AdminReadonlyDashboard } from '@/features/admin/dashboard/admin-readonly-dashboard';
@@ -12,6 +12,7 @@ import { useSession } from '@/features/auth/session-context';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { resolveDashboardVariant } from '@/lib/admin/dashboard-registry';
+import { shouldShowDashboardContextPanel } from '@/lib/admin/executive-dashboard';
 import { shouldUsePedagogicalDashboard } from '@/lib/admin/pedagogical-dashboard';
 import { formatSchoolLabel } from '@/lib/admin/school-label';
 import { isConfiguredAdmin } from '@/lib/permissions/scope';
@@ -80,7 +81,9 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="admin-workspace admin-workspace--dashboard">
-      <AdminDashboardContextPanel user={user} schoolLabel={schoolLabel} />
+      {shouldShowDashboardContextPanel(user) && (
+        <AdminDashboardContextPanel user={user} schoolLabel={schoolLabel} />
+      )}
       {variant.showMultiSchoolPortfolioNotice && (
         <InfoBanner
           tone="blue"
@@ -101,7 +104,7 @@ export default function AdminDashboardPage() {
       {scopeBanner}
 
       <ResourceView state={state} loadingLabel={t('common.loading')}>
-        {(d) => <AdminCommandDashboard data={d} user={user} />}
+        {(d) => <AdminExecutiveDashboard data={d} user={user} />}
       </ResourceView>
     </div>
   );

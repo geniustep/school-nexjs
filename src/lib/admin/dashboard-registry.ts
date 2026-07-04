@@ -7,7 +7,9 @@ import {
   shouldHideSchoolWideDashboardKpis,
   shouldShowMultiSchoolPortfolioNotice,
 } from '@/lib/admin/admin-ux';
+import { isExecutiveDirectorVariantId } from '@/lib/admin/executive-dashboard';
 import { shouldUsePedagogicalDashboard } from '@/lib/admin/pedagogical-dashboard';
+import { canAccessStaffCenter } from '@/lib/permissions/academic-setup';
 import { ADMISSION_VIEW } from '@/lib/permissions/admission';
 import { canViewAcademicSetup, canViewSettings } from '@/lib/permissions/academic-setup';
 import { canViewFinance } from '@/lib/permissions/finance';
@@ -49,6 +51,10 @@ export type AdminQuickActionId =
   | 'settings';
 
 export interface AdminDashboardWidgets {
+  executiveLayout: boolean;
+  financeSummary: boolean;
+  admissionsSummary: boolean;
+  staffSummary: boolean;
   heroAttendance: boolean;
   heroCorrectAttendance: boolean;
   attendanceOperations: boolean;
@@ -182,6 +188,10 @@ export function resolveDashboardVariant(user: CurrentUser | null): AdminDashboar
 export function resolveDashboardWidgets(user: CurrentUser | null): AdminDashboardWidgets {
   if (!user) {
     return {
+      executiveLayout: false,
+      financeSummary: false,
+      admissionsSummary: false,
+      staffSummary: false,
       heroAttendance: false,
       heroCorrectAttendance: false,
       attendanceOperations: false,
@@ -198,6 +208,9 @@ export function resolveDashboardWidgets(user: CurrentUser | null): AdminDashboar
     };
   }
 
+  const variant = resolveDashboardVariant(user);
+  const executiveLayout =
+    variant.shell === 'command' && isExecutiveDirectorVariantId(variant.id);
   const hideSchoolWideKpis = shouldHideSchoolWideDashboardKpis(user);
   const canViewAttendance =
     canSeeStudentData(user) && hasPermission(user, 'view_attendance');
@@ -224,7 +237,8 @@ export function resolveDashboardWidgets(user: CurrentUser | null): AdminDashboar
   const academicActivity =
     hasPermission(user, 'view_classes') &&
     canSeeStudentData(user) &&
-    !hideSchoolWideKpis;
+    !hideSchoolWideKpis &&
+    !executiveLayout;
 
   const quickActions: AdminQuickActionId[] = [];
   if (hasPermission(user, 'manage_students') && hasPermission(user, 'view_students')) {
@@ -237,6 +251,14 @@ export function resolveDashboardWidgets(user: CurrentUser | null): AdminDashboar
   if (canViewAcademicSetup(user)) quickActions.push('settings');
 
   return {
+    executiveLayout,
+    financeSummary: executiveLayout && canViewFinance(user),
+    admissionsSummary: executiveLayout && hasPermission(user, ADMISSION_VIEW),
+    staffSummary:
+      executiveLayout &&
+      (canAccessStaffCenter(user) ||
+        hasPermission(user, 'view_teachers') ||
+        canViewSettings(user)),
     heroAttendance: canViewAttendance,
     heroCorrectAttendance: canCorrectAttendance,
     attendanceOperations: canViewAttendance,
@@ -248,7 +270,7 @@ export function resolveDashboardWidgets(user: CurrentUser | null): AdminDashboar
     schoolStructureParents,
     schoolStructureClasses,
     academicActivity,
-    latestMessages: canViewChannels,
+    latestMessages: canViewChannels && !executiveLayout,
     quickActions,
   };
 }
@@ -256,6 +278,9 @@ export function resolveDashboardWidgets(user: CurrentUser | null): AdminDashboar
 function resolveDashboardHeadlineKey(variant: AdminDashboardVariant): string {
   if (variant.id === 'pedagogical_director') {
     return 'admin.pedagogicalDashboard.title';
+  }
+  if (isExecutiveDirectorVariantId(variant.id)) {
+    return 'admin.executive.contextHeadline';
   }
   if (variant.id === 'admin_staff') {
     return 'admin.dashboardContext.headlineAdminStaff';

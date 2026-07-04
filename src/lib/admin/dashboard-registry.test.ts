@@ -170,12 +170,13 @@ describe('resolveDashboardWidgets', () => {
 
     const widgets = resolveDashboardWidgets(user);
 
+    expect(widgets.executiveLayout).toBe(true);
     expect(widgets.heroAttendance).toBe(true);
     expect(widgets.attendanceOperations).toBe(true);
     expect(widgets.schoolStructure).toBe(true);
     expect(widgets.schoolStructureClasses).toBe(true);
-    expect(widgets.academicActivity).toBe(true);
-    expect(widgets.latestMessages).toBe(true);
+    expect(widgets.academicActivity).toBe(false);
+    expect(widgets.latestMessages).toBe(false);
     expect(widgets.quickActions).toContain('attendance');
     expect(widgets.quickActions).toContain('classes');
     expect(widgets.quickActions).toContain('channels');
@@ -236,7 +237,7 @@ describe('resolveDashboardContextPresentation', () => {
     const context = resolveDashboardContextPresentation(user);
 
     expect(context).not.toBeNull();
-    expect(context?.headlineKey).toBe('admin.dashboardContext.headlineFull');
+    expect(context?.headlineKey).toBe('admin.executive.contextHeadline');
     expect(context?.mode).toBe('full');
     expect(context?.variantLabelKey).toBe('admin.dashboardContext.variantProjectManager');
     expect(context?.permissionAreas.find((a) => a.id === 'students')?.allowed).toBe(true);
