@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
+import { translate } from '@/lib/i18n/messages';
 import {
+  isExecutiveDashboardFailed,
+  isExecutiveDashboardPending,
   isExecutiveDirectorUser,
   isExecutiveDirectorVariantId,
+  shouldIncludeLegacyImportantAlerts,
   shouldShowDashboardContextPanel,
 } from '@/lib/admin/executive-dashboard';
 import {
@@ -11,6 +15,8 @@ import {
 } from '@/lib/admin/executive-dashboard-contract';
 import { resolveDashboardContextPresentation, resolveDashboardWidgets } from '@/lib/admin/dashboard-registry';
 import type { CurrentUser } from '@/types/user';
+
+const t = (key: string, params?: Record<string, string | number>) => translate('ar', key, params);
 
 function admin(overrides: Partial<CurrentUser> = {}): CurrentUser {
   return {
@@ -138,9 +144,65 @@ describe('executive dashboard contract', () => {
       },
     });
 
-    const items = buildExecutiveDataQualityItems(executive, (key, params) =>
-      params?.count != null ? `${key}:${params.count}` : key,
-    );
+    const items = buildExecutiveDataQualityItems(executive, t);
     expect(items.map((item) => item.id)).toEqual(['dq-missing-guardian', 'dq-missing-massar']);
+  });
+
+  it('normalizes localized executive alert messages by locale', () => {
+    const executive = normalizeExecutiveDashboard(
+      {
+        important_alerts: [
+          {
+            type: 'finance',
+            code: 'families_overdue',
+            message: {
+              ar: 'توجد متأخرات',
+              fr: 'Des impayés existent',
+              en: 'Overdue balances exist',
+            },
+            severity: 'warning',
+          },
+        ],
+      },
+      'fr',
+    );
+
+    expect(executive.important_alerts[0]?.message).toBe('Des impayés existent');
+  });
+});
+
+describe('executive dashboard loading helpers', () => {
+  it('Case E — executive pending suppresses legacy important alerts', () => {
+    expect(
+      shouldIncludeLegacyImportantAlerts({
+        executiveLayout: true,
+        executivePending: true,
+        executiveAvailable: false,
+      }),
+    ).toBe(false);
+    expect(isExecutiveDashboardPending({ loading: true, data: null, error: null })).toBe(true);
+  });
+
+  it('Case F — executive success uses executive contract and not legacy alerts', () => {
+    expect(
+      shouldIncludeLegacyImportantAlerts({
+        executiveLayout: true,
+        executivePending: false,
+        executiveAvailable: true,
+      }),
+    ).toBe(false);
+  });
+
+  it('Case G — executive failure keeps legacy fallback path', () => {
+    expect(
+      shouldIncludeLegacyImportantAlerts({
+        executiveLayout: true,
+        executivePending: false,
+        executiveAvailable: false,
+      }),
+    ).toBe(true);
+    expect(isExecutiveDashboardFailed({ loading: false, data: null, error: new Error('x') })).toBe(
+      true,
+    );
   });
 });

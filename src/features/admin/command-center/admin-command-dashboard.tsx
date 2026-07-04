@@ -5,7 +5,7 @@ import { useMemo } from 'react';
 import { cn } from '@/lib/utils/cn';
 import { Card } from '@/components/ui/primitives';
 import { useFormat } from '@/features/i18n/use-format';
-import { useT } from '@/features/i18n/locale-context';
+import { useT, useLocale } from '@/features/i18n/locale-context';
 import { useSession } from '@/features/auth/session-context';
 import {
   resolveDashboardVariant,
@@ -50,6 +50,7 @@ export function AdminCommandDashboard({
   user: CurrentUser;
 }) {
   const t = useT();
+  const { locale } = useLocale();
   const { formatDate, formatDateTime } = useFormat();
   const session = useSession();
   const effectiveUser = user ?? session;
@@ -65,8 +66,8 @@ export function AdminCommandDashboard({
   const hideSchoolWideKpis = variant.hideSchoolWideKpis;
   const scopedMode = variant.scopedMode;
 
-  const actionItems = useMemo(() => buildDashboardActionItems(d, t), [d, t]);
-  const dataQualityItems = useMemo(() => buildDataQualityItems(d, t), [d, t]);
+  const actionItems = useMemo(() => buildDashboardActionItems(d, t, locale), [d, t, locale]);
+  const dataQualityItems = useMemo(() => buildDataQualityItems(d, t, locale), [d, t, locale]);
   const hasDataQualityIssues = dataQualityItems.length > 0;
   const hasInterventionIssues = actionItems.length > 0 || hasDataQualityIssues;
   const hasClickableInterventions =

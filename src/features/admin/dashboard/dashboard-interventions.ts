@@ -1,5 +1,7 @@
 import type { AdminDashboard } from '@/types/dashboard';
 import type { AdminActionItem } from '@/features/admin/command-center/primitives';
+import type { Locale } from '@/lib/i18n/config';
+import { parseDashboardAlertItem } from '@/features/admin/dashboard/dashboard-alert-text';
 
 const ATT_KEYS = ['present', 'absent', 'late', 'left_early'] as const;
 
@@ -18,19 +20,34 @@ export function attendancePercent(att: AdminDashboard['attendance_today']): numb
   return Math.round((att.present / total) * 100);
 }
 
-export function buildDashboardActionItems(
+export function buildImportantAlertItems(
   d: AdminDashboard,
-  t: (k: string, p?: Record<string, string | number>) => string,
+  locale: Locale | string = 'ar',
 ): AdminActionItem[] {
   const items: AdminActionItem[] = [];
 
   if (Array.isArray(d.important_alerts)) {
     d.important_alerts.forEach((a, i) => {
-      const text = String(a).trim();
-      if (text) {
-        items.push({ id: `alert-${i}`, label: text, icon: '⚠️', tone: 'amber' });
+      const parsed = parseDashboardAlertItem(a, locale, i);
+      if (parsed) {
+        items.push(parsed);
       }
     });
+  }
+
+  return items;
+}
+
+export function buildDashboardActionItems(
+  d: AdminDashboard,
+  t: (k: string, p?: Record<string, string | number>) => string,
+  locale: Locale | string = 'ar',
+  options?: { includeImportantAlerts?: boolean },
+): AdminActionItem[] {
+  const items: AdminActionItem[] = [];
+
+  if (options?.includeImportantAlerts !== false) {
+    items.push(...buildImportantAlertItems(d, locale));
   }
 
   const missing = d.exams_missing_results ?? 0;

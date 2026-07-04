@@ -7,6 +7,9 @@ import type {
   ExecutiveImportantAlert,
   ExecutiveStaffAlert,
 } from '@/types/executive-dashboard';
+import type { Locale } from '@/lib/i18n/config';
+import { DEFAULT_LOCALE } from '@/lib/i18n/config';
+import { normalizeLocalizedText } from '@/lib/i18n/normalize-localized-text';
 
 function readNumber(value: unknown, fallback = 0): number {
   if (typeof value === 'number' && Number.isFinite(value)) return value;
@@ -23,13 +26,13 @@ function readNullableNumber(value: unknown): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-function readString(value: unknown, fallback = ''): string {
-  return typeof value === 'string' ? value : fallback;
+function readString(value: unknown, fallback = '', locale: Locale | string = DEFAULT_LOCALE): string {
+  return normalizeLocalizedText(value, locale, { fallback }) ?? fallback;
 }
 
-function readNullableString(value: unknown): string | null {
+function readNullableString(value: unknown, locale: Locale | string = DEFAULT_LOCALE): string | null {
   if (value == null) return null;
-  const s = readString(value).trim();
+  const s = readString(value, '', locale).trim();
   return s || null;
 }
 
@@ -38,11 +41,14 @@ function readSeverity(value: unknown): ExecutiveAlertSeverity {
   return 'info';
 }
 
-function readAcademicYear(raw: unknown): AdminExecutiveDashboard['active_academic_year'] {
+function readAcademicYear(
+  raw: unknown,
+  locale: Locale | string = DEFAULT_LOCALE,
+): AdminExecutiveDashboard['active_academic_year'] {
   if (!raw || typeof raw !== 'object') return null;
   const o = raw as Record<string, unknown>;
   const id = readNumber(o.id, NaN);
-  const name = readString(o.name).trim();
+  const name = readString(o.name, '', locale).trim();
   if (!Number.isFinite(id) || !name) return null;
   return { id, name };
 }
@@ -90,31 +96,34 @@ function readAttendanceGaps(raw: unknown): AdminExecutiveDashboard['attendance_g
   };
 }
 
-function readStaffAlert(raw: unknown): ExecutiveStaffAlert | null {
+function readStaffAlert(raw: unknown, locale: Locale | string = DEFAULT_LOCALE): ExecutiveStaffAlert | null {
   if (!raw || typeof raw !== 'object') return null;
   const o = raw as Record<string, unknown>;
-  const message = readString(o.message).trim();
+  const message = readString(o.message, '', locale).trim();
   if (!message) return null;
-  const code = readString(o.code).trim() || `staff-${message.slice(0, 24)}`;
+  const code = readString(o.code, '', locale).trim() || `staff-${message.slice(0, 24)}`;
   return {
     code,
     message,
-    href: readNullableString(o.href),
+    href: readNullableString(o.href, locale),
     severity: readSeverity(o.severity),
   };
 }
 
-function readImportantAlert(raw: unknown): ExecutiveImportantAlert | null {
+function readImportantAlert(
+  raw: unknown,
+  locale: Locale | string = DEFAULT_LOCALE,
+): ExecutiveImportantAlert | null {
   if (!raw || typeof raw !== 'object') return null;
   const o = raw as Record<string, unknown>;
-  const message = readString(o.message).trim();
+  const message = readString(o.message, '', locale).trim();
   if (!message) return null;
-  const code = readString(o.code).trim() || `alert-${message.slice(0, 24)}`;
+  const code = readString(o.code, '', locale).trim() || `alert-${message.slice(0, 24)}`;
   return {
-    type: readString(o.type),
+    type: readString(o.type, '', locale),
     code,
     message,
-    href: readNullableString(o.href),
+    href: readNullableString(o.href, locale),
     severity: readSeverity(o.severity),
   };
 }
@@ -143,34 +152,42 @@ function readDataQuality(raw: unknown): AdminExecutiveDashboard['data_quality'] 
   };
 }
 
-function readQuickLink(raw: unknown): AdminExecutiveDashboard['quick_links'][number] | null {
+function readQuickLink(
+  raw: unknown,
+  locale: Locale | string = DEFAULT_LOCALE,
+): AdminExecutiveDashboard['quick_links'][number] | null {
   if (!raw || typeof raw !== 'object') return null;
   const o = raw as Record<string, unknown>;
-  const label = readString(o.label).trim();
-  const href = readString(o.href).trim();
+  const label = readString(o.label, '', locale).trim();
+  const href = readString(o.href, '', locale).trim();
   if (!label || !href) return null;
-  const code = readString(o.code).trim() || href;
+  const code = readString(o.code, '', locale).trim() || href;
   return { code, label, href };
 }
 
 /** Flexible parser — keeps the page resilient to partial Odoo payloads. */
-export function normalizeExecutiveDashboard(raw: unknown): AdminExecutiveDashboard {
+export function normalizeExecutiveDashboard(
+  raw: unknown,
+  locale: Locale | string = DEFAULT_LOCALE,
+): AdminExecutiveDashboard {
   const o = raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : {};
 
   const staffAlerts = Array.isArray(o.staff_alerts)
-    ? o.staff_alerts.map(readStaffAlert).filter((a): a is ExecutiveStaffAlert => a != null)
+    ? o.staff_alerts.map((item) => readStaffAlert(item, locale)).filter((a): a is ExecutiveStaffAlert => a != null)
     : [];
 
   const importantAlerts = Array.isArray(o.important_alerts)
-    ? o.important_alerts.map(readImportantAlert).filter((a): a is ExecutiveImportantAlert => a != null)
+    ? o.important_alerts
+        .map((item) => readImportantAlert(item, locale))
+        .filter((a): a is ExecutiveImportantAlert => a != null)
     : [];
 
   const quickLinks = Array.isArray(o.quick_links)
-    ? o.quick_links.map(readQuickLink).filter((l): l is NonNullable<typeof l> => l != null)
+    ? o.quick_links.map((item) => readQuickLink(item, locale)).filter((l): l is NonNullable<typeof l> => l != null)
     : [];
 
   return {
-    active_academic_year: readAcademicYear(o.active_academic_year),
+    active_academic_year: readAcademicYear(o.active_academic_year, locale),
     finance_summary: readFinanceSummary(o.finance_summary),
     admissions_summary: readAdmissionsSummary(o.admissions_summary),
     attendance_gaps: readAttendanceGaps(o.attendance_gaps),

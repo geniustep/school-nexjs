@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useMemo, type ReactNode } from 'react';
 import { cn } from '@/lib/utils/cn';
 import { useFormat } from '@/features/i18n/use-format';
-import { useT } from '@/features/i18n/locale-context';
+import { useT, useLocale } from '@/features/i18n/locale-context';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
@@ -26,6 +26,11 @@ import {
   mergeExecutiveInterventions,
   normalizeExecutiveDashboard,
 } from '@/lib/admin/executive-dashboard-contract';
+import {
+  isExecutiveDashboardFailed,
+  isExecutiveDashboardPending,
+  shouldIncludeLegacyImportantAlerts,
+} from '@/lib/admin/executive-dashboard';
 import {
   ATT_KEYS,
   attendancePercent,
@@ -161,6 +166,7 @@ function ExecutiveDirectorView({
   user: CurrentUser;
 }) {
   const t = useT();
+  const { locale } = useLocale();
   const { formatDate, formatDateTime } = useFormat();
   const { schools, activeSchoolId } = useAdminSession();
 
@@ -181,12 +187,17 @@ function ExecutiveDirectorView({
   const executiveState = useAdminResource<unknown>(endpoints.admin.executiveDashboard);
   const executive = useMemo(
     () =>
-      executiveState.data != null ? normalizeExecutiveDashboard(executiveState.data) : null,
-    [executiveState.data],
+      executiveState.data != null ? normalizeExecutiveDashboard(executiveState.data, locale) : null,
+    [executiveState.data, locale],
   );
   const executiveAvailable = executiveState.data != null && executive != null;
-  const executiveFailed =
-    !executiveState.loading && executiveState.data == null && !!executiveState.error;
+  const executiveFailed = isExecutiveDashboardFailed(executiveState);
+  const executivePending = isExecutiveDashboardPending(executiveState);
+  const includeLegacyImportantAlerts = shouldIncludeLegacyImportantAlerts({
+    executiveLayout: widgets.executiveLayout,
+    executivePending,
+    executiveAvailable,
+  });
 
   const financeState = useAdminResource<AdminFinanceOverview>(
     widgets.financeSummary && executiveFailed ? endpoints.admin.financeOverview : null,
@@ -212,20 +223,23 @@ function ExecutiveDirectorView({
   const executiveAdmissions = executiveAvailable ? executive?.admissions_summary ?? null : null;
   const attendanceGaps = executiveAvailable ? executive?.attendance_gaps ?? null : null;
 
-  const dashboardItems = useMemo(() => {
-    const items = buildDashboardActionItems(d, t);
-    if (executiveAvailable) {
-      return items.filter((item) => !item.id.startsWith('alert-'));
-    }
-    return items;
-  }, [d, t, executiveAvailable]);
+  const dashboardItems = useMemo(
+    () =>
+      buildDashboardActionItems(d, t, locale, {
+        includeImportantAlerts: includeLegacyImportantAlerts,
+      }),
+    [d, t, locale, includeLegacyImportantAlerts],
+  );
 
   const dataQualityItems = useMemo(() => {
+    if (executivePending) {
+      return [];
+    }
     if (executiveAvailable && executive) {
       return buildExecutiveDataQualityItems(executive, t);
     }
     return buildDataQualityItems(d, t);
-  }, [d, t, executiveAvailable, executive]);
+  }, [d, t, executivePending, executiveAvailable, executive]);
 
   const financeItems = useMemo(
     () => (executiveAvailable ? [] : buildFinanceInterventions(financeState.data, t)),
@@ -237,6 +251,9 @@ function ExecutiveDirectorView({
   );
 
   const allInterventionItems = useMemo(() => {
+    if (executivePending) {
+      return [];
+    }
     if (executiveAvailable && executive) {
       const seen = new Set<string>();
       const merged: AdminActionItem[] = [];
@@ -248,10 +265,19 @@ function ExecutiveDirectorView({
       return merged;
     }
     return [...dashboardItems, ...financeItems, ...admissionsItems];
-  }, [executiveAvailable, executive, dashboardItems, financeItems, admissionsItems, t]);
+  }, [
+    executivePending,
+    executiveAvailable,
+    executive,
+    dashboardItems,
+    financeItems,
+    admissionsItems,
+    t,
+  ]);
 
-  const hasDataQualityIssues = dataQualityItems.length > 0;
-  const hasInterventionIssues = allInterventionItems.length > 0 || hasDataQualityIssues;
+  const hasDataQualityIssues = !executivePending && dataQualityItems.length > 0;
+  const hasInterventionIssues =
+    !executivePending && (allInterventionItems.length > 0 || hasDataQualityIssues);
   const hasClickableInterventions =
     allInterventionItems.some((item) => !!item.href) || hasDataQualityIssues;
 
@@ -385,9 +411,11 @@ function ExecutiveDirectorView({
     }
 
     if (widgets.admissionsSummary) {
-      const admissionsLoading = executiveAvailable
-        ? executiveState.loading && !executiveAdmissions
-        : admissionsState.loading;
+      const admissionsLoading =
+        executivePending ||
+        (executiveAvailable
+          ? executiveState.loading && !executiveAdmissions
+          : admissionsState.loading);
       const admissionsData = executiveAdmissions;
       const legacyData = legacyAdmissions;
 
@@ -418,6 +446,13 @@ function ExecutiveDirectorView({
           tone: (legacyData.overdue_next_actions ?? 0) > 0 ? 'amber' : 'blue',
           href: '/admin/admissions',
         });
+      } else if (executivePending) {
+        cards.push({
+          id: 'admissions',
+          label: t('admin.executive.kpiAdmissions'),
+          value: '…',
+          hint: t('common.loading'),
+        });
       } else if (executiveAvailable) {
         cards.push({
           id: 'admissions',
@@ -438,9 +473,11 @@ function ExecutiveDirectorView({
     }
 
     if (widgets.financeSummary) {
-      const financeLoading = executiveAvailable
-        ? executiveState.loading && executiveFinance == null && !executiveFailed
-        : financeState.loading;
+      const financeLoading =
+        executivePending ||
+        (executiveAvailable
+          ? executiveState.loading && executiveFinance == null && !executiveFailed
+          : financeState.loading);
 
       if (financeLoading) {
         cards.push({
@@ -567,13 +604,14 @@ function ExecutiveDirectorView({
     cards.push({
       id: 'alerts',
       label: t('admin.executive.kpiAlerts'),
-      value: criticalCount,
-      tone: criticalCount > 0 ? 'amber' : 'green',
-      badge:
-        criticalCount > 0
+      value: executivePending ? '…' : criticalCount,
+      tone: executivePending ? 'neutral' : criticalCount > 0 ? 'amber' : 'green',
+      badge: executivePending
+        ? t('common.loading')
+        : criticalCount > 0
           ? t('admin.executive.kpiAlertsActive')
           : t('admin.executive.kpiAlertsClear'),
-      hint: t('admin.executive.kpiAlertsHint'),
+      hint: executivePending ? t('common.loading') : t('admin.executive.kpiAlertsHint'),
     });
 
     return cards.slice(0, 6);
@@ -581,6 +619,7 @@ function ExecutiveDirectorView({
     widgets,
     hideSchoolWideKpis,
     d.total_students,
+    executivePending,
     executiveAvailable,
     executiveState.loading,
     executiveAdmissions,
@@ -704,16 +743,22 @@ function ExecutiveDirectorView({
             }
           >
             <p className="exec-decision-panel__lead">{t('admin.executive.interventionLead')}</p>
-            <ExecutiveDecisionList
-              items={allInterventionItems}
-              emptyTitle={t('admin.executive.noInterventions')}
-              emptyDescription={t('admin.executive.noInterventionsDesc')}
-            />
+            {executivePending ? (
+              <ExecutiveEmpty icon="…" title={t('common.loading')} />
+            ) : (
+              <ExecutiveDecisionList
+                items={allInterventionItems}
+                emptyTitle={t('admin.executive.noInterventions')}
+                emptyDescription={t('admin.executive.noInterventionsDesc')}
+              />
+            )}
 
             {widgets.dataQuality && (
               <div className="exec-decision-panel__dq">
                 <p className="exec-decision-panel__sub">{t('admin.cmd.dataQualitySectionLabel')}</p>
-                {hasDataQualityIssues ? (
+                {executivePending ? (
+                  <ExecutiveEmpty icon="…" title={t('common.loading')} />
+                ) : hasDataQualityIssues ? (
                   <ExecutiveDecisionList items={dataQualityItems} emptyTitle="" />
                 ) : (
                   <ExecutiveEmpty

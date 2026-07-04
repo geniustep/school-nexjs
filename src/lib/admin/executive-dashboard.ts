@@ -30,3 +30,28 @@ export function shouldShowDashboardContextPanel(user: CurrentUser | null): boole
   if (!variant.canAccess || variant.shell !== 'command') return false;
   return !isExecutiveDirectorVariantId(variant.id);
 }
+
+export function isExecutiveDashboardPending(state: {
+  loading: boolean;
+  data: unknown;
+  error: unknown;
+}): boolean {
+  return state.loading && state.data == null && state.error == null;
+}
+
+export function isExecutiveDashboardFailed(state: {
+  loading: boolean;
+  data: unknown;
+  error: unknown;
+}): boolean {
+  return !state.loading && state.data == null && state.error != null;
+}
+
+export function shouldIncludeLegacyImportantAlerts(options: {
+  executiveLayout: boolean;
+  executivePending: boolean;
+  executiveAvailable: boolean;
+}): boolean {
+  if (!options.executiveLayout) return true;
+  return !options.executivePending && !options.executiveAvailable;
+}
