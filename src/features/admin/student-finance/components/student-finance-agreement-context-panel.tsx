@@ -323,7 +323,10 @@ export function StudentFinanceAgreementContextPanel({
             </div>
           ) : null}
           {financeReview.visible && financeReview.billingPartnerMismatch ? (
-            <FinanceReviewBillingPartnerSection mismatch={financeReview.billingPartnerMismatch} />
+            <FinanceReviewBillingPartnerSection
+              studentId={studentId}
+              mismatch={financeReview.billingPartnerMismatch}
+            />
           ) : null}
           {actions.length ? (
             <div className="student-finance-agreement-context__actions">

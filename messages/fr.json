@@ -6079,6 +6079,8 @@
           "profilePartnerLabel": "Partenaire de facturation actuel",
           "resolveAction": "Aligner le partenaire de facturation",
           "resolveUnavailable": "Cette revue ne peut pas être résolue depuis l'interface pour le moment.",
+          "confirmedOperationsBlockExplanation": "Des opérations financières confirmées sont liées à cet accord ; le partenaire de facturation ne peut pas être modifié directement.",
+          "viewCollectionsAndReceipts": "Voir les encaissements et reçus",
           "dialogTitle": "Aligner le partenaire de facturation",
           "dialogIntro": "Le partenaire de facturation de l'accord en cours sera mis à jour pour correspondre au profil financier selon les règles du serveur.",
           "dialogAgreementPartner": "Accord actuel",
@@ -6434,7 +6436,12 @@
         "specialAgreement": "Special agreement",
         "hasSpecialAgreement": "Special agreement exists",
         "noSpecialAgreement": "No special agreement",
-        "openSchedule": "Open payment schedule",
+        "openSchedule": "Ouvrir l'échéancier",
+        "latestCollectionPreview": {
+          "title": "Dernier encaissement",
+          "viewCollectionsAndReceipts": "Voir les encaissements et reçus",
+          "receiptNumber": "Numéro de reçu"
+        },
         "openFinanceProfile": "Open full finance profile",
         "draftAgreement": {
           "badge": "Draft agreement",

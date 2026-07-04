@@ -6079,6 +6079,8 @@
           "profilePartnerLabel": "Socio de facturación actual",
           "resolveAction": "Alinear socio de facturación",
           "resolveUnavailable": "Esta revisión no puede resolverse desde la interfaz en este momento.",
+          "confirmedOperationsBlockExplanation": "Hay operaciones financieras confirmadas vinculadas al acuerdo, por lo que no se puede cambiar el socio de facturación directamente.",
+          "viewCollectionsAndReceipts": "Ver cobros y recibos",
           "dialogTitle": "Alinear socio de facturación",
           "dialogIntro": "El socio de facturación del acuerdo vigente se actualizará para coincidir con el perfil financiero según las reglas del servidor.",
           "dialogAgreementPartner": "Acuerdo actual",
@@ -6434,7 +6436,12 @@
         "specialAgreement": "Special agreement",
         "hasSpecialAgreement": "Special agreement exists",
         "noSpecialAgreement": "No special agreement",
-        "openSchedule": "Open payment schedule",
+        "openSchedule": "Abrir calendario de pagos",
+        "latestCollectionPreview": {
+          "title": "Último cobro",
+          "viewCollectionsAndReceipts": "Ver cobros y recibos",
+          "receiptNumber": "Número de recibo"
+        },
         "openFinanceProfile": "Open full finance profile",
         "draftAgreement": {
           "badge": "Draft agreement",

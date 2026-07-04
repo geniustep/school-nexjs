@@ -6245,6 +6245,8 @@
           "profilePartnerLabel": "شريك الفوترة الحالي",
           "resolveAction": "مواءمة شريك الفوترة",
           "resolveUnavailable": "لا يمكن حل هذه المراجعة من الواجهة حاليًا.",
+          "confirmedOperationsBlockExplanation": "توجد عمليات مالية مؤكدة مرتبطة بالاتفاق، لذلك لا يمكن تغيير شريك الفوترة مباشرة.",
+          "viewCollectionsAndReceipts": "عرض التحصيلات والإيصالات",
           "dialogTitle": "مواءمة شريك الفوترة",
           "dialogIntro": "ستُحدَّث جهة الفوترة على الاتفاق الجاري لتطابق الملف المالي وفق قواعد الخادم.",
           "dialogAgreementPartner": "الاتفاق الحالي",
@@ -6601,6 +6603,11 @@
         "hasSpecialAgreement": "يوجد اتفاق خاص",
         "noSpecialAgreement": "لا يوجد اتفاق خاص",
         "openSchedule": "فتح جدول الدفعات",
+        "latestCollectionPreview": {
+          "title": "آخر تحصيل",
+          "viewCollectionsAndReceipts": "عرض التحصيلات والإيصالات",
+          "receiptNumber": "رقم الإيصال"
+        },
         "openFinanceProfile": "فتح الملف المالي الكامل",
         "draftAgreement": {
           "badge": "اتفاق مسودة",

@@ -16,6 +16,7 @@ import { resolveFinanceAgreementStateLabel } from '../utils/reference-labels';
 import { resolveChangePlanEligibility } from '../utils/resolve-change-plan-eligibility';
 import { resolveBillingContextPresentation } from '../utils/resolve-billing-context-presentation';
 import { FamilyFinanceSummarySection } from './family-finance-summary-section';
+import { StudentFinanceLatestCollectionPreview } from './student-finance-latest-collection-preview';
 
 function installmentStatusKey(state: string | null | undefined): string | null {
   if (!state) return null;
@@ -156,6 +157,11 @@ export function StudentFinanceOverviewPanel({
         </div>
       ) : null}
       <div className="student-finance-bento">
+        <StudentFinanceLatestCollectionPreview
+          studentId={studentId}
+          workspace={workspace}
+          financialOverview={financialOverview}
+        />
         {nextInstallment ? (
           <article className="student-finance-bento__card student-finance-bento__card--featured">
             <header className="student-finance-bento__card-head">

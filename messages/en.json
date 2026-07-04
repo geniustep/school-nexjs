@@ -6086,6 +6086,8 @@
           "profilePartnerLabel": "Current billing partner",
           "resolveAction": "Align billing partner",
           "resolveUnavailable": "This review cannot be resolved from the UI right now.",
+          "confirmedOperationsBlockExplanation": "Confirmed financial operations are linked to this agreement, so the billing partner cannot be changed directly.",
+          "viewCollectionsAndReceipts": "View collections and receipts",
           "dialogTitle": "Align billing partner",
           "dialogIntro": "The billing partner on the current agreement will be updated to match the finance profile according to server rules.",
           "dialogAgreementPartner": "Current agreement",
@@ -6442,6 +6444,11 @@
         "hasSpecialAgreement": "Special agreement exists",
         "noSpecialAgreement": "No special agreement",
         "openSchedule": "Open payment schedule",
+        "latestCollectionPreview": {
+          "title": "Latest collection",
+          "viewCollectionsAndReceipts": "View collections and receipts",
+          "receiptNumber": "Receipt number"
+        },
         "openFinanceProfile": "Open full finance profile",
         "draftAgreement": {
           "badge": "Draft agreement",
