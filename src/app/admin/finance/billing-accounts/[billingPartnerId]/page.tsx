@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { use, useMemo } from 'react';
+import { use, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import '@/features/admin/finance/finance-ui.css';
 import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
@@ -16,6 +16,8 @@ import {
   BillingAccountSummaryCards,
 } from '@/features/admin/finance/billing-account-detail-sections';
 import { BillingAccountCreditSection } from '@/features/admin/finance/credit-balance/credit-balance-detail-sections';
+import { FamilyCollectionDrawer } from '@/features/admin/finance/family-collection-drawer';
+import { resolveBillingAccountKind } from '@/features/admin/finance/billing-account-kind';
 import { useAcademicYearOptions } from '@/features/admin/finance/use-finance-lookups';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
@@ -67,6 +69,29 @@ export default function AdminFinanceBillingAccountDetailPage({
   );
   const detail = useMemo(() => normalizeBillingAccountSummary(state.data), [state.data]);
   const pageReturnTo = `/admin/finance/billing-accounts/${billingPartnerId}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+  const [familyDrawerOpen, setFamilyDrawerOpen] = useState(false);
+
+  const accountKind = resolveBillingAccountKind(
+    detail?.summary.student_count ?? detail?.students.length,
+  );
+
+  useEffect(() => {
+    if (searchParams.get('family_collect') === '1' && accountKind === 'family') {
+      setFamilyDrawerOpen(true);
+    }
+  }, [searchParams, accountKind]);
+
+  const clearFamilyCollectParam = () => {
+    if (!searchParams.get('family_collect')) return;
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('family_collect');
+    const qs = params.toString();
+    router.replace(
+      qs
+        ? `/admin/finance/billing-accounts/${billingPartnerId}?${qs}`
+        : `/admin/finance/billing-accounts/${billingPartnerId}`,
+    );
+  };
 
   const onScopeChange = (updates: Record<string, string | null>) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -90,6 +115,20 @@ export default function AdminFinanceBillingAccountDetailPage({
     detail?.billing_account.display_name ??
     detail?.billing_account.name ??
     `#${billingPartnerId}`;
+
+  const detailSubtitleKey =
+    accountKind === 'family'
+      ? 'admin.finance.billingAccounts.detailFamilySubtitle'
+      : accountKind === 'individual'
+        ? 'admin.finance.billingAccounts.detailIndividualSubtitle'
+        : 'admin.finance.billingAccounts.detailEmptySubtitle';
+
+  const detailTitleKey =
+    accountKind === 'family'
+      ? 'admin.finance.billingAccounts.detailFamilyTitle'
+      : accountKind === 'individual'
+        ? 'admin.finance.billingAccounts.detailIndividualTitle'
+        : 'admin.finance.billingAccounts.detailEmptyTitle';
 
   const accountInitials = getAccountInitials(accountName);
   const studentCount = detail
@@ -121,12 +160,13 @@ export default function AdminFinanceBillingAccountDetailPage({
                   {accountInitials}
                 </span>
                 <div className="finance-billing-hero__identity">
-                  <p className="finance-billing-hero__eyebrow">
-                    {t('admin.finance.billingAccounts.detailSubtitle')}
-                  </p>
+                  <p className="finance-billing-hero__eyebrow">{t(detailSubtitleKey)}</p>
                   <h1 className="finance-billing-hero__title" dir="auto">
-                    {accountName}
+                    {t(detailTitleKey)}
                   </h1>
+                  <p className="finance-billing-hero__reference" dir="auto">
+                    {accountName}
+                  </p>
                   {detail.billing_account.reference ? (
                     <p className="finance-billing-hero__reference mono">
                       {detail.billing_account.reference}
@@ -180,8 +220,26 @@ export default function AdminFinanceBillingAccountDetailPage({
                 returnTo={pageReturnTo}
                 academicYearId={academicYearId}
                 account={detail.billing_account}
+                studentCount={studentCount}
+                onFamilyCollect={
+                  accountKind === 'family'
+                    ? () => setFamilyDrawerOpen(true)
+                    : undefined
+                }
               />
             </header>
+
+            {accountKind === 'family' ? (
+              <div className="finance-billing-kind-notice finance-billing-kind-notice--family" role="status">
+                <p>{t('admin.finance.billingAccounts.familyNotice')}</p>
+              </div>
+            ) : null}
+
+            {accountKind === 'empty' ? (
+              <div className="finance-billing-kind-notice finance-billing-kind-notice--warning" role="alert">
+                <p>{t('admin.finance.billingAccounts.noStudentsWarning')}</p>
+              </div>
+            ) : null}
 
             <form
               className="finance-billing-filters card"
@@ -258,6 +316,19 @@ export default function AdminFinanceBillingAccountDetailPage({
               activities={detail.recent_activity}
               billingPartnerId={Number(billingPartnerId)}
               returnTo={pageReturnTo}
+            />
+
+            <FamilyCollectionDrawer
+              open={familyDrawerOpen}
+              familyId={Number(billingPartnerId)}
+              accountName={accountName}
+              onClose={() => {
+                setFamilyDrawerOpen(false);
+                clearFamilyCollectParam();
+              }}
+              onSuccess={() => {
+                state.reload();
+              }}
             />
           </>
         ) : null}

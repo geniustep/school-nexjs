@@ -117,3 +117,43 @@ export interface FamilyCollectionPreviewResponse {
   warnings: string[];
   errors: string[];
 }
+
+export interface FamilyCollectionCreateRequest {
+  family_id: number;
+  student_id?: number | null;
+  amount: number;
+  allocation_mode: FamilyCollectionAllocationMode;
+  journal_id: number;
+  payment_method: string;
+  collection_date: string;
+  academic_year_id: number;
+  manual_allocations?: unknown[];
+  notes?: string | null;
+}
+
+export interface FamilyCollectionRecord {
+  id: number;
+  name?: string | null;
+  student_id?: number | null;
+  amount?: number | null;
+  state?: string | null;
+}
+
+export interface FamilyCollectionReceiptRecord {
+  id: number;
+  name?: string | null;
+  collection_id?: number | null;
+}
+
+export interface FamilyCollectionCreateResponse {
+  ok?: boolean;
+  family_id?: number | null;
+  billing_partner_id?: number | null;
+  collections: FamilyCollectionRecord[];
+  receipts: FamilyCollectionReceiptRecord[];
+  total_received?: number | null;
+  total_allocated?: number | null;
+  total_unallocated?: number | null;
+  allocation_mode?: FamilyCollectionAllocationMode | string | null;
+  warnings: string[];
+}

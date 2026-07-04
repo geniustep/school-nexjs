@@ -3,7 +3,10 @@ import type {
   FamilyCollectionAllocation,
   FamilyCollectionAllocationMode,
   FamilyCollectionContext,
+  FamilyCollectionCreateResponse,
   FamilyCollectionPreviewResponse,
+  FamilyCollectionRecord,
+  FamilyCollectionReceiptRecord,
   FamilyFinanceChild,
   FamilyFinanceServiceSummary,
   FamilyFinanceServiceType,
@@ -278,7 +281,7 @@ export function normalizeFamilyCollectionPreviewResponse(
     ? row.errors.filter((item): item is string => typeof item === 'string')
     : [];
   return {
-    amount: normalizeMoneyValue(row.amount),
+    amount: normalizeMoneyValue(row.amount ?? row.payment_amount),
     allocated_amount: normalizeMoneyValue(row.allocated_amount),
     unallocated_amount: normalizeMoneyValue(row.unallocated_amount),
     credit_amount: normalizeMoneyValue(row.credit_amount),
@@ -290,6 +293,64 @@ export function normalizeFamilyCollectionPreviewResponse(
     allocations,
     warnings,
     errors,
+  };
+}
+
+function normalizeCollectionRecord(raw: unknown): FamilyCollectionRecord | null {
+  const row = readRecord(raw);
+  if (!row) return null;
+  const id = readNumber(row.id);
+  if (id == null) return null;
+  return {
+    id,
+    name: readString(row.name),
+    student_id: readNumber(row.student_id),
+    amount: normalizeMoneyValue(row.amount),
+    state: readString(row.state),
+  };
+}
+
+function normalizeReceiptRecord(raw: unknown): FamilyCollectionReceiptRecord | null {
+  const row = readRecord(raw);
+  if (!row) return null;
+  const id = readNumber(row.id);
+  if (id == null) return null;
+  return {
+    id,
+    name: readString(row.name),
+    collection_id: readNumber(row.collection_id),
+  };
+}
+
+export function normalizeFamilyCollectionCreateResponse(
+  raw: unknown,
+): FamilyCollectionCreateResponse | null {
+  const row = readRecord(raw);
+  if (!row) return null;
+  const collections = Array.isArray(row.collections)
+    ? row.collections
+        .map(normalizeCollectionRecord)
+        .filter((item): item is FamilyCollectionRecord => item != null)
+    : [];
+  const receipts = Array.isArray(row.receipts)
+    ? row.receipts
+        .map(normalizeReceiptRecord)
+        .filter((item): item is FamilyCollectionReceiptRecord => item != null)
+    : [];
+  const warnings = Array.isArray(row.warnings)
+    ? row.warnings.filter((item): item is string => typeof item === 'string')
+    : [];
+  return {
+    ok: readBoolean(row.ok) ?? undefined,
+    family_id: readFamilyId(row),
+    billing_partner_id: readNumber(row.billing_partner_id),
+    collections,
+    receipts,
+    total_received: normalizeMoneyValue(row.total_received),
+    total_allocated: normalizeMoneyValue(row.total_allocated),
+    total_unallocated: normalizeMoneyValue(row.total_unallocated),
+    allocation_mode: readString(row.allocation_mode) as FamilyCollectionAllocationMode | null,
+    warnings,
   };
 }
 

@@ -7,6 +7,13 @@ import { EmptyState } from '@/components/states/states';
 import { LoadingState } from '@/components/states/states';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
+import {
+  accountKindFilterToApiParam,
+  billingAccountKindBadgeClass,
+  billingAccountKindLabelKey,
+  resolveBillingAccountKindFromRow,
+  type BillingAccountKindFilter,
+} from '@/features/admin/finance/billing-account-kind';
 import { useAcademicYearOptions } from '@/features/admin/finance/use-finance-lookups';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
@@ -26,6 +33,7 @@ export type BillingAccountsListFilters = {
   levelId: string;
   hasBalance: boolean;
   hasOverdue: boolean;
+  accountKind: BillingAccountKindFilter;
   page: number;
 };
 
@@ -59,8 +67,9 @@ export function BillingAccountsListPanel({
   const activeSchool = schools.find((s) => s.id === activeSchoolId);
   const { options: yearOptions } = useAcademicYearOptions(null);
 
-  const query: ListParams = useMemo(
-    () => ({
+  const query: ListParams = useMemo(() => {
+    const accountKind = accountKindFilterToApiParam(filters.accountKind);
+    return {
       page: filters.page,
       page_size: 20,
       search: filters.search || undefined,
@@ -69,9 +78,9 @@ export function BillingAccountsListPanel({
       level_id: filters.levelId || undefined,
       has_balance: filters.hasBalance ? 1 : undefined,
       has_overdue: filters.hasOverdue ? 1 : undefined,
-    }),
-    [filters],
-  );
+      account_kind: accountKind,
+    };
+  }, [filters]);
 
   const state = useAdminResource<unknown>(endpoints.admin.financeBillingAccounts, query);
   const parsed = useMemo(
@@ -102,11 +111,19 @@ export function BillingAccountsListPanel({
       {
         key: 'payer',
         header: t('admin.finance.billingAccounts.columns.payer'),
-        render: (row) => (
-          <span dir="auto" className="finance-billing-account-name">
-            {accountLabel(row)}
-          </span>
-        ),
+        render: (row) => {
+          const kind = resolveBillingAccountKindFromRow(row);
+          return (
+            <span className="finance-billing-account-name-cell">
+              <span dir="auto" className="finance-billing-account-name">
+                {accountLabel(row)}
+              </span>
+              <span className={billingAccountKindBadgeClass(kind)}>
+                {t(billingAccountKindLabelKey(kind))}
+              </span>
+            </span>
+          );
+        },
       },
       {
         key: 'reference',
@@ -164,15 +181,35 @@ export function BillingAccountsListPanel({
       {
         key: 'actions',
         header: t('admin.finance.billingAccounts.columns.actions'),
-        render: (row) => (
-          <Link
-            href={`/admin/finance/billing-accounts/${row.billing_partner_id}${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ''}`}
-            className="btn btn--ghost btn--sm"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {t('admin.finance.billingAccounts.openFile')}
-          </Link>
-        ),
+        render: (row) => {
+          const kind = resolveBillingAccountKindFromRow(row);
+          const detailHref = `/admin/finance/billing-accounts/${row.billing_partner_id}${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ''}`;
+          const familyCollectHref = `${detailHref}${detailHref.includes('?') ? '&' : '?'}family_collect=1`;
+          return (
+            <div className="finance-billing-account-row-actions">
+              <Link href={detailHref} className="btn btn--ghost btn--sm" onClick={(e) => e.stopPropagation()}>
+                {t('admin.finance.billingAccounts.openAccount')}
+              </Link>
+              {kind === 'family' ? (
+                <Link
+                  href={familyCollectHref}
+                  className="btn btn--primary btn--sm"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {t('admin.finance.billingAccounts.receiveFamilyPayment')}
+                </Link>
+              ) : kind === 'individual' ? (
+                <Link
+                  href={`/admin/finance/collections/new?billing_partner_id=${row.billing_partner_id}&returnTo=${encodeURIComponent(detailHref)}`}
+                  className="btn btn--secondary btn--sm"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {t('admin.finance.billingAccounts.receivePayment')}
+                </Link>
+              ) : null}
+            </div>
+          );
+        },
       },
     ],
     [t, returnTo],
@@ -184,7 +221,8 @@ export function BillingAccountsListPanel({
     filters.classId ||
     filters.levelId ||
     filters.hasBalance ||
-    filters.hasOverdue
+    filters.hasOverdue ||
+    filters.accountKind !== 'all'
   );
 
   function resetAll() {
@@ -195,8 +233,35 @@ export function BillingAccountsListPanel({
       levelId: null,
       hasBalance: null,
       hasOverdue: null,
+      accountKind: 'all',
       page: 1,
     });
+  }
+
+  function emptyListTitle(): string {
+    switch (filters.accountKind) {
+      case 'family':
+        return t('admin.finance.billingAccounts.familyFilterEmptyTitle');
+      case 'individual':
+        return t('admin.finance.billingAccounts.individualFilterEmptyTitle');
+      case 'empty':
+        return t('admin.finance.billingAccounts.emptyKindFilterEmptyTitle');
+      default:
+        return t('admin.finance.billingAccounts.emptyListTitle');
+    }
+  }
+
+  function emptyListDescription(): string {
+    switch (filters.accountKind) {
+      case 'family':
+        return t('admin.finance.billingAccounts.familyFilterEmptyDesc');
+      case 'individual':
+        return t('admin.finance.billingAccounts.individualFilterEmptyDesc');
+      case 'empty':
+        return t('admin.finance.billingAccounts.emptyKindFilterEmptyDesc');
+      default:
+        return t('admin.finance.billingAccounts.emptyListDesc');
+    }
   }
 
   const errorMessage =
@@ -255,6 +320,7 @@ export function BillingAccountsListPanel({
             academicYearId: String(fd.get('academic_year_id') ?? '') || null,
             classId: String(fd.get('class_id') ?? '').trim() || null,
             levelId: String(fd.get('level_id') ?? '').trim() || null,
+            accountKind: (String(fd.get('account_kind') ?? 'all') as BillingAccountKindFilter) || 'all',
             hasBalance: fd.get('has_balance') === 'on',
             hasOverdue: fd.get('has_overdue') === 'on',
             page: 1,
@@ -289,6 +355,15 @@ export function BillingAccountsListPanel({
           <span className="tiny muted">{t('admin.finance.billingAccounts.filters.level')}</span>
           <input className="input" name="level_id" defaultValue={filters.levelId} inputMode="numeric" />
         </label>
+        <label className="finance-filter-field">
+          <span className="tiny muted">{t('admin.finance.billingAccounts.filters.accountKind')}</span>
+          <select className="input" name="account_kind" defaultValue={filters.accountKind}>
+            <option value="all">{t('admin.finance.billingAccounts.filters.accountKindAll')}</option>
+            <option value="family">{t('admin.finance.billingAccounts.filters.accountKindFamily')}</option>
+            <option value="individual">{t('admin.finance.billingAccounts.filters.accountKindIndividual')}</option>
+            <option value="empty">{t('admin.finance.billingAccounts.filters.accountKindNoStudents')}</option>
+          </select>
+        </label>
         <label className="finance-filter-checkbox">
           <input type="checkbox" name="has_balance" defaultChecked={filters.hasBalance} />
           <span>{t('admin.finance.billingAccounts.filters.hasBalance')}</span>
@@ -319,10 +394,7 @@ export function BillingAccountsListPanel({
       {state.initialLoading ? <LoadingState label={t('common.loading')} /> : null}
 
       {!state.initialLoading && !state.error && rows.length === 0 ? (
-        <EmptyState
-          title={t('admin.finance.billingAccounts.emptyListTitle')}
-          description={t('admin.finance.billingAccounts.emptyListDesc')}
-        />
+        <EmptyState title={emptyListTitle()} description={emptyListDescription()} />
       ) : null}
 
       {!state.initialLoading && rows.length > 0 ? (
@@ -338,13 +410,18 @@ export function BillingAccountsListPanel({
             />
           </div>
           <div className="finance-billing-accounts-mobile">
-            {rows.map((row) => (
+            {rows.map((row) => {
+              const kind = resolveBillingAccountKindFromRow(row);
+              return (
               <article key={row.billing_partner_id} className="card finance-billing-account-card">
                 <div className="finance-billing-account-card__head">
                   <div className="finance-billing-account-card__identity">
                     <strong dir="auto" className="finance-billing-account-name">
                       {accountLabel(row)}
                     </strong>
+                    <span className={billingAccountKindBadgeClass(kind)}>
+                      {t(billingAccountKindLabelKey(kind))}
+                    </span>
                     {row.reference ? (
                       <span className="mono tiny muted">{row.reference}</span>
                     ) : null}
@@ -379,14 +456,25 @@ export function BillingAccountsListPanel({
                     <dd className="mono">{row.student_count ?? t('common.dash')}</dd>
                   </div>
                 </dl>
-                <Link
-                  href={`/admin/finance/billing-accounts/${row.billing_partner_id}${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ''}`}
-                  className="btn btn--ghost btn--sm finance-billing-account-card__action"
-                >
-                  {t('admin.finance.billingAccounts.openFile')}
-                </Link>
+                <div className="finance-billing-account-card__actions row">
+                  <Link
+                    href={`/admin/finance/billing-accounts/${row.billing_partner_id}${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ''}`}
+                    className="btn btn--ghost btn--sm"
+                  >
+                    {t('admin.finance.billingAccounts.openAccount')}
+                  </Link>
+                  {kind === 'family' ? (
+                    <Link
+                      href={`/admin/finance/billing-accounts/${row.billing_partner_id}?family_collect=1${returnTo ? `&returnTo=${encodeURIComponent(returnTo)}` : ''}`}
+                      className="btn btn--primary btn--sm"
+                    >
+                      {t('admin.finance.billingAccounts.receiveFamilyPayment')}
+                    </Link>
+                  ) : null}
+                </div>
               </article>
-            ))}
+            );
+            })}
           </div>
           {pg ? (
             <Pagination

@@ -5,6 +5,8 @@ import { endpoints } from '@/lib/api/endpoints';
 import type { ApiResponse, ListParams } from '@/types/api';
 import type {
   FamilyCollectionContext,
+  FamilyCollectionCreateRequest,
+  FamilyCollectionCreateResponse,
   FamilyCollectionPreviewRequest,
   FamilyCollectionPreviewResponse,
   FamilyFinanceSummary,
@@ -64,6 +66,17 @@ export async function previewFamilyCollectionAllocation(
 ): Promise<ApiResponse<FamilyCollectionPreviewResponse>> {
   return api.post<FamilyCollectionPreviewResponse>(
     endpoints.admin.financeFamilyCollectionPreview,
+    payload,
+    query,
+  );
+}
+
+export async function submitFamilyCollection(
+  payload: FamilyCollectionCreateRequest,
+  query?: ListParams,
+): Promise<ApiResponse<FamilyCollectionCreateResponse>> {
+  return api.post<FamilyCollectionCreateResponse>(
+    endpoints.admin.financeFamilyCollections,
     payload,
     query,
   );

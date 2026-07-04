@@ -4,6 +4,7 @@ import {
   normalizePagination,
   parseFinanceList,
 } from '@/lib/utils/finance-normalize';
+import { normalizeApiAccountKind } from '@/features/admin/finance/billing-account-kind';
 import type {
   BillingAccountActivity,
   BillingAccountAllowedAction,
@@ -126,6 +127,7 @@ export function normalizeBillingAccountListItem(raw: unknown): BillingAccountLis
     display_name: partner?.display_name ?? partner?.name,
     reference: partner?.reference ?? null,
     student_count: metrics.student_count ?? partner?.student_count,
+    account_kind: normalizeApiAccountKind(row.account_kind) ?? undefined,
     total_due: metrics.total_due ?? undefined,
     confirmed_paid: metrics.confirmed_paid ?? undefined,
     total_remaining: metrics.total_remaining ?? undefined,
@@ -374,7 +376,7 @@ type BillingActivityLabelInput = Pick<
 type TranslateFn = (key: string, params?: Record<string, string | number>) => string;
 
 export function resolveBillingActivityTypeLabel(
-  activity: Pick<BillingActivityLabelInput, 'label' | 'activity_type' | 'type'>,
+  activity: Partial<Pick<BillingActivityLabelInput, 'label' | 'activity_type' | 'type'>>,
   t: TranslateFn,
 ): string {
   const custom = activity.label?.trim();
@@ -386,7 +388,7 @@ export function resolveBillingActivityTypeLabel(
 }
 
 export function resolveBillingActivityStateLabel(
-  activity: Pick<BillingActivityLabelInput, 'state' | 'state_label'>,
+  activity: Partial<Pick<BillingActivityLabelInput, 'state' | 'state_label'>>,
   t: TranslateFn,
 ): string | null {
   const stateKey = normalizeBillingActivityStateKey(activity.state, activity.state_label);

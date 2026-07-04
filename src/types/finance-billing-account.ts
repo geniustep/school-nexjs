@@ -52,6 +52,7 @@ export type BillingAccountListItem = {
   display_name?: string;
   reference?: string | null;
   student_count?: number;
+  account_kind?: 'family' | 'individual' | 'empty' | string | null;
   total_due?: number;
   confirmed_paid?: number;
   total_remaining?: number;
@@ -113,6 +114,7 @@ export type BillingAccountAppliedFilters = {
   level_id?: number | null;
   has_balance?: boolean;
   has_overdue?: boolean;
+  account_kind?: string | null;
 };
 
 export type BillingAccountSummaryPayload = {

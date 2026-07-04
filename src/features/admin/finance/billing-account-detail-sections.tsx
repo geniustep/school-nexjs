@@ -15,6 +15,7 @@ import {
   resolveBillingActivityStateLabel,
   resolveBillingActivityTypeLabel,
 } from '@/lib/utils/normalize-billing-account';
+import { resolveBillingAccountKind } from '@/features/admin/finance/billing-account-kind';
 import { buildStudentFinanceLink } from '@/lib/utils/finance-navigation';
 import type {
   BillingAccountActivity,
@@ -371,14 +372,19 @@ export function BillingAccountActionsBar({
   returnTo,
   academicYearId,
   account,
+  studentCount,
+  onFamilyCollect,
 }: {
   billingPartnerId: number;
   allowedActions: BillingAccountAllowedAction[];
   returnTo: string;
   academicYearId?: string;
   account: BillingAccountPartner;
+  studentCount?: number;
+  onFamilyCollect?: () => void;
 }) {
   const t = useT();
+  const kind = resolveBillingAccountKind(studentCount ?? account.student_count);
   const links = [
     hasAction(allowedActions, 'view_agreements')
       ? {
@@ -421,12 +427,17 @@ export function BillingAccountActionsBar({
           </Link>
         ))}
       </div>
-      {hasAction(allowedActions, 'collect_payment') ? (
+      {hasAction(allowedActions, 'collect_payment') && kind === 'family' && onFamilyCollect ? (
+        <button type="button" className="btn btn--primary btn--sm" onClick={onFamilyCollect}>
+          {t('admin.finance.billingAccounts.receiveFamilyPayment')}
+        </button>
+      ) : null}
+      {hasAction(allowedActions, 'collect_payment') && kind === 'individual' ? (
         <Link
           href={buildBillingAccountCollectHref(billingPartnerId, returnTo, academicYearId)}
           className="btn btn--primary btn--sm"
         >
-          {t('admin.finance.billingAccounts.actions.collect')}
+          {t('admin.finance.billingAccounts.receivePayment')}
         </Link>
       ) : null}
       <span className="sr-only">{account.display_name ?? account.name}</span>

@@ -28,6 +28,23 @@ describe('normalizeBillingAccountListItem', () => {
     expect(row?.confirmed_paid).toBe(900);
     expect(row?.unallocated_collection_amount).toBe(100);
   });
+
+  it('normalizes account_kind from API', () => {
+    expect(
+      normalizeBillingAccountListItem({
+        billing_partner_id: 1,
+        student_count: 1,
+        account_kind: 'family',
+      })?.account_kind,
+    ).toBe('family');
+    expect(
+      normalizeBillingAccountListItem({
+        billing_partner_id: 2,
+        student_count: 0,
+        account_kind: 'no_students',
+      })?.account_kind,
+    ).toBe('empty');
+  });
 });
 
 describe('parseBillingAccountListResponse', () => {
