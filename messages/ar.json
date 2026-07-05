@@ -6780,6 +6780,95 @@
       "backToStudentFees": "العودة إلى المستحقات",
       "backToCollections": "العودة إلى التحصيلات",
       "receiptNumber": "رقم الإيصال",
+      "arrears": {
+        "hubTitle": "مركز متابعة المتأخرات",
+        "hubDesc": "متابعة الأسر المتأخرة وتسجيل الاتصالات ووعود الدفع والتحصيل.",
+        "pageTitle": "مركز متابعة المتأخرات",
+        "pageDesc": "أداة عمل يومية لمتابعة الأسر المتأخرة وتسجيل الاتصالات ووعود الدفع.",
+        "kpiSection": "مؤشرات المتأخرات",
+        "searchPlaceholder": "بحث بالاسم أو المرجع…",
+        "emptyTitle": "لا توجد أسر متأخرة",
+        "emptyDesc": "لا توجد أسر متأخرة ضمن الفلتر الحالي.",
+        "drawerTitle": "متابعة الأسرة",
+        "drawerSubtitle": "تسجيل اتصال أو وعد دفع",
+        "summarySection": "ملخص الأسرة",
+        "lastFollowupSection": "آخر متابعة",
+        "lastFollowupDate": "تاريخ المتابعة",
+        "contactFormTitle": "تسجيل اتصال",
+        "promiseFormTitle": "تسجيل وعد بالدفع",
+        "contactSaved": "تم تسجيل الاتصال بنجاح.",
+        "promiseSaved": "تم تسجيل وعد الدفع بنجاح.",
+        "resolveSaved": "تم حل المتابعة.",
+        "kpis": {
+          "overdueFamilies": "عدد الأسر المتأخرة",
+          "totalOverdue": "إجمالي المتأخر",
+          "paymentPromises": "عدد وعود الدفع",
+          "todayFollowups": "متابعات اليوم"
+        },
+        "tabs": {
+          "all": "كل المتأخرات",
+          "needsFollowup": "تحتاج متابعة",
+          "paymentPromises": "وعود بالدفع",
+          "todayFollowup": "متابعة اليوم",
+          "escalated": "مصعّدة",
+          "resolved": "محلولة"
+        },
+        "columns": {
+          "family": "الأسرة / ولي الأمر",
+          "studentCount": "عدد الأبناء",
+          "totalOverdue": "إجمالي المتأخر",
+          "totalRemaining": "إجمالي المتبقي",
+          "oldestOverdue": "أقدم تأخر",
+          "followupStatus": "حالة المتابعة",
+          "paymentPromise": "وعد الدفع",
+          "nextFollowup": "موعد المتابعة القادم",
+          "assignedUser": "الموظف المسؤول",
+          "actions": "إجراءات"
+        },
+        "actions": {
+          "openAccount": "فتح الحساب",
+          "logContact": "تسجيل اتصال",
+          "logPromise": "وعد بالدفع",
+          "receivePayment": "استلام دفعة",
+          "resolveFollowup": "حل المتابعة"
+        },
+        "fields": {
+          "contactMethod": "طريقة الاتصال",
+          "contactResult": "نتيجة الاتصال",
+          "contactNotes": "ملاحظات",
+          "contactNotesPlaceholder": "ملاحظات الاتصال…",
+          "nextFollowupDate": "موعد المتابعة القادم",
+          "promiseDate": "تاريخ الوعد",
+          "promiseAmount": "مبلغ الوعد",
+          "promiseNotes": "ملاحظات الوعد"
+        },
+        "contactMethods": {
+          "phone": "هاتف",
+          "whatsapp": "واتساب",
+          "sms": "رسالة نصية",
+          "email": "بريد إلكتروني",
+          "in_person": "حضوري"
+        },
+        "contactResults": {
+          "reached": "تم التواصل",
+          "no_answer": "لا رد",
+          "busy": "مشغول",
+          "wrong_number": "رقم خاطئ",
+          "callback_requested": "طلب إعادة الاتصال"
+        },
+        "validation": {
+          "contactRequired": "اختر طريقة ونتيجة الاتصال.",
+          "promiseDateRequired": "تاريخ الوعد مطلوب.",
+          "promiseAmountRequired": "مبلغ الوعد مطلوب ويجب أن يكون أكبر من صفر."
+        },
+        "errors": {
+          "loadDetailFailed": "تعذّر تحميل متابعة الأسرة.",
+          "contactFailed": "تعذّر تسجيل الاتصال.",
+          "promiseFailed": "تعذّر تسجيل وعد الدفع.",
+          "resolveFailed": "تعذّر حل المتابعة."
+        },
+        "followupApiUnavailable": "بيانات المتابعة غير متاحة حالياً — تُعرض الأسر المتأخرة من حسابات الدافعين."
+      },
       "billingAccounts": {
         "hubTitle": "حسابات الدافعين",
         "hubDesc": "ملخص موحد لمستحقات الأسرة والتحصيلات والإيصالات.",
@@ -7679,6 +7768,35 @@
       "details": {
         "moreActions": "المزيد",
         "actionUnavailable": "هذا الإجراء غير متاح حاليًا."
+      },
+      "quickPayment": {
+        "title": "استلام دفعة",
+        "intro": "أدخل المبلغ وطريقة الأداء",
+        "studentContext": "سيتم توزيع الدفعة على مستحقات التلميذ حسب الأقدمية.",
+        "familyContext": "سيتم توزيع الدفعة على مستحقات الأسرة حسب الأقدمية.",
+        "amountLabel": "المبلغ المدفوع",
+        "paymentSection": "طريقة الأداء",
+        "previewAction": "معاينة التوزيع",
+        "confirmAction": "تأكيد وإصدار الإيصال",
+        "additionalDetails": "تفاصيل إضافية",
+        "limitToStudent": "تخصيص الدفعة لتلميذ معين",
+        "arrearsContext": "هذه الدفعة مرتبطة بمتابعة المتأخرات. سيقترح النظام توزيعها تلقائيًا على أقدم المستحقات.",
+        "currentOverdueLabel": "المتأخر الحالي",
+        "useOverdueAmount": "استعمال مبلغ المتأخر",
+        "cashDeskAccount": "الصندوق / الحساب",
+        "selectCashDeskAccount": "اختر الصندوق أو الحساب",
+        "recordedIn": "سيتم تسجيل الدفعة في: {journal} — {method}",
+        "suggestedAmountHint": "يمكنك استعمال هذا المبلغ أو إدخال مبلغ مختلف قبل المعاينة.",
+        "suggestedAmountEditableHint": "يمكنك استعمال هذا المبلغ أو إدخال مبلغ مختلف.",
+        "familyChoice": {
+          "title": "استلام دفعة",
+          "description": "هذا التلميذ ينتمي إلى حساب فوترة عائلي يضم أكثر من تلميذ. كيف تريد تسجيل هذه الدفعة؟",
+          "student": "دفعة لهذا التلميذ فقط",
+          "studentDescription": "سيتم توزيع المبلغ على مستحقات هذا التلميذ فقط.",
+          "family": "دفعة للأسرة كاملة",
+          "familyDescription": "سيتم توزيع المبلغ تلقائيًا على مستحقات جميع أبناء الأسرة حسب قواعد النظام.",
+          "continue": "متابعة"
+        }
       },
       "collectionWorkflow": {
         "drawerTitle": "تسجيل دفعة",

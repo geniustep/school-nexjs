@@ -31,6 +31,10 @@ import {
   normalizeBillingAccountSummary,
 } from '@/lib/utils/normalize-billing-account';
 import { sanitizeReturnTo } from '@/lib/utils/safe-return-url';
+import {
+  familyCollectQueryParamKeys,
+  parseFamilyCollectQuery,
+} from '@/features/admin/finance/family-collect-query';
 import type { ListParams } from '@/types/api';
 
 export default function AdminFinanceBillingAccountDetailPage({
@@ -75,6 +79,11 @@ export default function AdminFinanceBillingAccountDetailPage({
     detail?.summary.student_count ?? detail?.students.length,
   );
 
+  const familyCollectQuery = useMemo(
+    () => parseFamilyCollectQuery(searchParams),
+    [searchParams],
+  );
+
   useEffect(() => {
     if (searchParams.get('family_collect') === '1' && accountKind === 'family') {
       setFamilyDrawerOpen(true);
@@ -84,7 +93,9 @@ export default function AdminFinanceBillingAccountDetailPage({
   const clearFamilyCollectParam = () => {
     if (!searchParams.get('family_collect')) return;
     const params = new URLSearchParams(searchParams.toString());
-    params.delete('family_collect');
+    for (const key of familyCollectQueryParamKeys()) {
+      params.delete(key);
+    }
     const qs = params.toString();
     router.replace(
       qs
@@ -322,6 +333,9 @@ export default function AdminFinanceBillingAccountDetailPage({
               open={familyDrawerOpen}
               familyId={Number(billingPartnerId)}
               accountName={accountName}
+              suggestedAmount={familyCollectQuery.suggestedAmount}
+              source={familyCollectQuery.source}
+              currency={detail.summary.currency}
               onClose={() => {
                 setFamilyDrawerOpen(false);
                 clearFamilyCollectParam();

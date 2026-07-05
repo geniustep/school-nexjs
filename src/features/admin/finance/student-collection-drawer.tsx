@@ -1,11 +1,10 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import '@/features/admin/finance/finance-ui.css';
-import { SetupDrawer } from '@/features/admin/academic-setup/components/setup-drawer';
 import { useToast } from '@/components/ui/toast';
 import { useT } from '@/features/i18n/locale-context';
 import { CollectionWorkflowForm } from './collection-workflow-form';
+import { QuickPaymentDrawer } from './quick-payment-drawer';
 import type { PaymentCollection } from '@/types/finance';
 import type { CollectionUpdatedOverview, StudentFinancialOverview } from '@/types/student-financial-overview';
 
@@ -42,8 +41,6 @@ export function StudentCollectionDrawer({
     if (!open) handledCollectionIdRef.current = null;
   }, [open]);
 
-  if (!open) return null;
-
   const subtitleParts = [studentName?.trim(), studentCode?.trim()].filter(Boolean);
   const subtitle = subtitleParts.length ? subtitleParts.join(' · ') : undefined;
 
@@ -66,15 +63,7 @@ export function StudentCollectionDrawer({
   }
 
   return (
-    <SetupDrawer
-      open={open}
-      title={t('admin.finance.collectionWorkflow.drawerTitle')}
-      subtitle={subtitle || undefined}
-      onClose={onClose}
-      size="collection"
-      className="finance-collection-drawer"
-      iconClose
-    >
+    <QuickPaymentDrawer open={open} mode="student" subtitle={subtitle} onClose={onClose}>
       <CollectionWorkflowForm
         embedded
         initialStudentId={studentId}
@@ -88,6 +77,6 @@ export function StudentCollectionDrawer({
         onDone={handleDone}
         onCancel={onClose}
       />
-    </SetupDrawer>
+    </QuickPaymentDrawer>
   );
 }

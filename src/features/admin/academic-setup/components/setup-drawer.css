@@ -65,7 +65,7 @@
 }
 
 .finance-collection-drawer .academic-setup-drawer__head {
-  padding: 18px 20px;
+  padding: 20px 20px 18px;
   background: linear-gradient(180deg, #f8fafc 0%, #fff 100%);
   border-bottom: 1px solid var(--c-border, #e2e8f0);
 }
@@ -85,6 +85,7 @@
   flex-direction: column;
   padding: 0;
   overflow: hidden;
+  min-height: 0;
   background: #f8fafc;
 }
 

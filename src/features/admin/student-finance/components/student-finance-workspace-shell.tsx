@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ApiErrorView } from '@/components/states/states';
-import { StudentCollectionDrawer } from '@/features/admin/finance/student-collection-drawer';
+import { Student360PaymentEntry } from './student-360-payment-entry';
 import { useT } from '@/features/i18n/locale-context';
 import { getStudentDisplayName } from '@/lib/utils/student';
 import {
@@ -105,7 +105,7 @@ export function StudentFinanceWorkspaceShell({
   const searchParams = useSearchParams();
   const initialSubTab = resolveInitialSubTab(searchParams);
   const [subTab, setSubTab] = useState<StudentFinanceSubTab>(initialSubTab);
-  const [showCollectionDrawer, setShowCollectionDrawer] = useState(false);
+  const [paymentEntryOpen, setPaymentEntryOpen] = useState(false);
   const [financeRefreshSignal, setFinanceRefreshSignal] = useState(0);
   const [draftSubmitLoading, setDraftSubmitLoading] = useState(false);
   const [changePlanMode, setChangePlanMode] = useState<ChangePlanMode | null>(null);
@@ -227,7 +227,7 @@ export function StudentFinanceWorkspaceShell({
 
   useEffect(() => {
     if (searchParams.get('collect') === '1' && billingContext.collectPaymentAllowed) {
-      setShowCollectionDrawer(true);
+      setPaymentEntryOpen(true);
     }
   }, [searchParams, billingContext.collectPaymentAllowed]);
 
@@ -325,7 +325,7 @@ export function StudentFinanceWorkspaceShell({
       shouldHideCollectButton={billingContext.shouldHideCollectButton}
       onOpenSchedule={() => syncSubTabToUrl('schedule')}
       onOpenAgreements={() => syncSubTabToUrl('agreements')}
-      onRecordPayment={() => setShowCollectionDrawer(true)}
+      onRecordPayment={() => setPaymentEntryOpen(true)}
       showChangePlan={changePlanVisibility.showChangePlan}
       showSpecialAdjustment={changePlanVisibility.showSpecialAdjustment}
       showReviewAgreement={changePlanVisibility.showReviewAgreement && subTab !== 'agreements'}
@@ -350,7 +350,7 @@ export function StudentFinanceWorkspaceShell({
       canViewPayments,
       canCollect: canCollectCapability,
       onRefresh: refreshFinanceData,
-      onOpenCollection: () => setShowCollectionDrawer(true),
+      onOpenCollection: () => setPaymentEntryOpen(true),
       financeRefreshSignal,
       scheduleMode: financeActionState.scheduleMode,
       allowInstallmentCollection: financeActionState.shouldAllowInstallmentCollection,
@@ -572,18 +572,17 @@ export function StudentFinanceWorkspaceShell({
       )}
       </div>
 
-      <StudentCollectionDrawer
-        open={showCollectionDrawer}
+      <Student360PaymentEntry
+        open={paymentEntryOpen}
         studentId={studentId}
-        studentName={getStudentDisplayName(details.student)}
-        studentCode={details.student.code ?? details.student.school_number ?? undefined}
+        details={details}
         academicYearId={effectiveYearId ? Number(effectiveYearId) : undefined}
         billingProfileId={financialOverviewState.data?.billing_profile_id ?? undefined}
         billingPartnerId={
-          financialOverviewState.data?.billing_profile?.billing_partner_id ?? undefined
+          financialOverviewState.data?.billing_profile?.billing_partner_id ?? billingPartnerId
         }
         financialOverview={financialOverviewState.data}
-        onClose={() => setShowCollectionDrawer(false)}
+        onOpenChange={setPaymentEntryOpen}
         onSuccess={refreshFinanceData}
         onOverviewUpdate={handleCollectionOverviewPatch}
       />

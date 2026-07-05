@@ -140,22 +140,38 @@ export function BillingAccountsListPanel({
       {
         key: 'total_due',
         header: t('admin.finance.billingAccounts.columns.totalDue'),
-        render: (row) => <FinanceMoney amount={row.total_due} currency={row.currency} />,
+        className: 'finance-table-money',
+        render: (row) => (
+          <FinanceMoney amount={row.total_due} currency={row.currency} className="finance-table-money__value" />
+        ),
       },
       {
         key: 'confirmed_paid',
         header: t('admin.finance.billingAccounts.columns.confirmedPaid'),
-        render: (row) => <FinanceMoney amount={row.confirmed_paid} currency={row.currency} />,
+        className: 'finance-table-money',
+        render: (row) => (
+          <FinanceMoney amount={row.confirmed_paid} currency={row.currency} className="finance-table-money__value" />
+        ),
       },
       {
         key: 'remaining',
         header: t('admin.finance.billingAccounts.columns.remaining'),
-        render: (row) => <FinanceMoney amount={row.total_remaining} currency={row.currency} />,
+        className: 'finance-table-money',
+        render: (row) => (
+          <FinanceMoney amount={row.total_remaining} currency={row.currency} className="finance-table-money__value" />
+        ),
       },
       {
         key: 'overdue',
         header: t('admin.finance.billingAccounts.columns.overdue'),
-        render: (row) => <FinanceMoney amount={row.total_overdue} currency={row.currency} />,
+        className: 'finance-table-money finance-table-money--danger',
+        render: (row) => (
+          <FinanceMoney
+            amount={row.total_overdue}
+            currency={row.currency}
+            className="finance-table-money__value finance-table-money__value--danger"
+          />
+        ),
       },
       {
         key: 'pending_cheque',
@@ -275,30 +291,38 @@ export function BillingAccountsListPanel({
             {t('admin.finance.activeSchool')}: <strong dir="auto">{activeSchool.name}</strong>
           </p>
         ) : null}
-        <div className="finance-metrics-grid finance-billing-accounts-metrics">
-          <div className="card finance-metric-card">
-            <span className="muted">{t('admin.finance.billingAccounts.accountCountLabel')}</span>
+        <div className="finance-billing-kpis finance-billing-kpis--compact finance-billing-accounts-metrics">
+          <div className="finance-billing-kpi finance-billing-kpi--slate">
+            <span className="finance-billing-kpi__label">
+              {t('admin.finance.billingAccounts.accountCountLabel')}
+            </span>
             {state.loading && !rows.length ? (
               <span className="finance-skeleton finance-skeleton--metric" aria-hidden />
             ) : (
-              <strong className="mono">{totalCount}</strong>
+              <strong className="finance-billing-kpi__value mono">{totalCount}</strong>
             )}
           </div>
-          <div className="card finance-metric-card">
-            <span className="muted">{t('admin.finance.billingAccounts.metrics.totalDue')}</span>
-            <strong>
+          <div className="finance-billing-kpi finance-billing-kpi--blue">
+            <span className="finance-billing-kpi__label">
+              {t('admin.finance.billingAccounts.metrics.totalDue')}
+            </span>
+            <strong className="finance-billing-kpi__value">
               <FinanceMoney amount={pageTotals.totalDue} currency={pageCurrency} />
             </strong>
           </div>
-          <div className="card finance-metric-card finance-metric-card--remaining">
-            <span className="muted">{t('admin.finance.billingAccounts.metrics.remaining')}</span>
-            <strong>
+          <div className="finance-billing-kpi finance-billing-kpi--amber">
+            <span className="finance-billing-kpi__label">
+              {t('admin.finance.billingAccounts.metrics.remaining')}
+            </span>
+            <strong className="finance-billing-kpi__value">
               <FinanceMoney amount={pageTotals.remaining} currency={pageCurrency} />
             </strong>
           </div>
-          <div className="card finance-metric-card finance-metric-card--overdue">
-            <span className="muted">{t('admin.finance.billingAccounts.metrics.overdue')}</span>
-            <strong>
+          <div className="finance-billing-kpi finance-billing-kpi--red">
+            <span className="finance-billing-kpi__label">
+              {t('admin.finance.billingAccounts.metrics.overdue')}
+            </span>
+            <strong className="finance-billing-kpi__value">
               <FinanceMoney amount={pageTotals.overdue} currency={pageCurrency} />
             </strong>
           </div>
@@ -404,6 +428,7 @@ export function BillingAccountsListPanel({
               columns={columns}
               rows={rows}
               rowKey={(row) => row.billing_partner_id}
+              stickyHeader
               onRowClick={(row) => {
                 window.location.href = `/admin/finance/billing-accounts/${row.billing_partner_id}`;
               }}

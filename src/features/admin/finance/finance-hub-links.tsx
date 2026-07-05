@@ -50,6 +50,20 @@ export function FinanceHubLinks({ overview }: { overview: AdminFinanceOverview |
 
   const operations: HubLink[] = [
     {
+      href: '/admin/finance/arrears',
+      icon: <IconWallet size={22} />,
+      labelKey: 'admin.finance.arrears.hubTitle',
+      descKey: 'admin.finance.arrears.hubDesc',
+      badge:
+        totals?.overdue_installments_count != null && totals.overdue_installments_count > 0
+          ? {
+              labelKey: 'admin.finance.hub.linkInstallmentsOverdueBadge',
+              count: totals.overdue_installments_count,
+            }
+          : null,
+      show: canViewStudentBalance(user),
+    },
+    {
       href: '/admin/finance/billing-accounts',
       icon: <IconUsers size={22} />,
       labelKey: 'admin.finance.billingAccounts.hubTitle',

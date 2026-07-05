@@ -57,16 +57,13 @@ import {
 } from './collection-allocation-utils';
 import {
   CollectionAllocationSummary,
-  collectionReferenceLabel,
 } from './collection-allocation-summary';
 import {
   buildChequeRegistrationPayload,
   resolveChequeCollectionReference,
 } from './collection-cheque-payload';
-import { CollectionChequeFields } from './collection-cheque-fields';
 import {
   formatPaymentJournalLabel,
-  journalsSupportingMethod,
   resolveDefaultPaymentJournal,
 } from './format-payment-journal';
 import { resolveCollectionBilling } from './collection-billing-context';
@@ -81,6 +78,7 @@ import {
   normalizePaymentCollectionPreview,
 } from '@/lib/finance/normalize-collection-preview';
 import { CollectionSuccessPanel } from './collection-success-panel';
+import { QuickPaymentCoreFields } from './quick-payment-core-fields';
 import {
   mergeCreateCollectionResponse,
   resolveCollectionSuccessSummary,
@@ -351,26 +349,14 @@ function CollectionWorkflowFormReady({
     () => normalizePaymentMethodOptions(selectedJournal?.allowed_payment_methods),
     [selectedJournal],
   );
-  const chequeCapableJournals = useMemo(
-    () => journalsSupportingMethod(journals, 'cheque'),
-    [journals],
-  );
   const singleJournal = journals.length === 1;
-  const journalReadOnly = singleJournal || (isChequePayment(paymentMethod) && chequeCapableJournals.length === 1);
+  const journalReadOnly = singleJournal;
 
   useEffect(() => {
     if (journalId || !journals.length) return;
     const defaultJournal = resolveDefaultPaymentJournal(journals);
     if (defaultJournal) setJournalId(String(defaultJournal.id));
   }, [journals, journalId]);
-
-  useEffect(() => {
-    if (!isChequePayment(paymentMethod) || chequeCapableJournals.length !== 1) return;
-    const onlyId = String(chequeCapableJournals[0].id);
-    if (journalId !== onlyId) setJournalId(onlyId);
-  }, [paymentMethod, chequeCapableJournals, journalId]);
-
-  const journalSelectOptions = isChequePayment(paymentMethod) ? chequeCapableJournals : journals;
 
   useEffect(() => {
     const current = academicYears.find((y) => y.is_current);
@@ -417,12 +403,8 @@ function CollectionWorkflowFormReady({
   useEffect(() => {
     if (!allowedMethods.length) return;
     const codes = allowedMethods.map((m) => m.code);
-    if (!paymentMethod) {
-      setPaymentMethod(codes[0]);
-      return;
-    }
-    if (!codes.includes(paymentMethod)) {
-      setPaymentMethod(codes[0]);
+    if (paymentMethod && !codes.includes(paymentMethod)) {
+      setPaymentMethod('');
     }
   }, [allowedMethods, paymentMethod]);
 
@@ -841,6 +823,15 @@ function CollectionWorkflowFormReady({
   const wrapperClass = embedded ? 'form-stack finance-collection-workflow' : 'card form-stack finance-collection-workflow finance-collection-workflow--page';
   const pageMode = !embedded;
   const installmentFlow = false;
+  const previewActionLabel = embedded
+    ? t('admin.finance.quickPayment.previewAction')
+    : t('admin.finance.collectionWorkflow.previewDistributionAction');
+  const confirmActionLabel = embedded
+    ? t('admin.finance.quickPayment.confirmAction')
+    : t('admin.finance.collectionWorkflow.recordCollectionAction');
+  const reviewConfirmActionLabel = embedded
+    ? t('admin.finance.quickPayment.confirmAction')
+    : t('admin.finance.collectionWorkflow.confirmPaymentAndReceipt');
   const reviewAllocationInputs = useMemo(() => {
     if (!preview?.allocations.length) return allocationInputs;
     const mapped: Record<number, string> = {};
@@ -974,35 +965,6 @@ function CollectionWorkflowFormReady({
                 </select>
               </label>
 
-              {journalReadOnly && selectedJournal ? (
-                <div className="finance-collection-workflow__journal-readonly">
-                  <span className="tiny muted">{t('admin.finance.paymentJournal')}</span>
-                  <strong dir="auto">{formatPaymentJournalLabel(selectedJournal)}</strong>
-                </div>
-              ) : (
-                <label>
-                  {t('admin.finance.paymentJournal')}
-                  <select
-                    className="input"
-                    required
-                    value={journalId}
-                    onChange={(e) => setJournalId(e.target.value)}
-                    disabled={refLoading}
-                  >
-                    <option value="">
-                      {refLoading
-                        ? t('admin.finance.collections.loadingJournals')
-                        : t('admin.finance.selectPaymentJournal')}
-                    </option>
-                    {journalSelectOptions.map((j) => (
-                      <option key={j.id} value={j.id}>
-                        {formatPaymentJournalLabel(j)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              )}
-
               <div className="finance-collection-workflow__billing-readonly">
                 <span className="tiny muted">{t('admin.finance.billingPartyTitle')}</span>
                 <strong dir="auto">
@@ -1035,115 +997,99 @@ function CollectionWorkflowFormReady({
           </section>
 
           <section className="collection-form-section">
-            <h4 className="collection-form-section__title">{t('admin.finance.collections.paymentSection')}</h4>
-            <div className="finance-collection-workflow__fields finance-collection-workflow__fields--payment">
-              <label className="finance-amount-field finance-amount-field--prominent">
-                {flexiblePrepaymentFlow
+            <h4 className="collection-form-section__title">
+              {embedded
+                ? t('admin.finance.quickPayment.paymentSection')
+                : t('admin.finance.collections.paymentSection')}
+            </h4>
+            <QuickPaymentCoreFields
+              amount={amount}
+              onAmountChange={handleAmountChange}
+              amountLabel={
+                flexiblePrepaymentFlow
                   ? t('admin.finance.collectionWorkflow.paidAmountLabel')
-                  : t('admin.finance.collectionAmount')}
-                <div className="finance-amount-field__input">
-                  <FinanceAmountInput
-                    value={amount}
-                    onChange={handleAmountChange}
-                    disabled={flexiblePrepaymentFlow && gateBlock.blocked}
-                  />
-                  {journalCurrency ? (
-                    <span className="finance-amount-field__suffix">{journalCurrency}</span>
-                  ) : null}
-                </div>
-                {flexiblePrepaymentFlow ? (
-                  <span className="finance-amount-field__hint tiny muted">
-                    {t('admin.finance.collectionWorkflow.paidAmountHint')}
-                  </span>
-                ) : null}
-              </label>
-
-              {flexiblePrepaymentFlow ? (
-                <div className="finance-collection-workflow__preview-actions">
-                  <label className="collection-skip-allocation">
-                    <input
-                      type="checkbox"
-                      checked={manualAllocation}
-                      onChange={(e) => {
-                        setManualAllocation(e.target.checked);
-                        setAllocationInputs({});
-                        setPreview(null);
-                        setPreviewError(null);
-                      }}
-                    />
-                    <span>{t('admin.finance.collectionWorkflow.manualAllocationToggle')}</span>
-                  </label>
-                  <p className="tiny muted">
-                    {manualAllocation
-                      ? t('admin.finance.collectionWorkflow.manualAllocationHint')
-                      : t('admin.finance.collectionWorkflow.autoAllocationHint')}
-                  </p>
-                  <button
-                    type="button"
-                    className="btn btn--secondary btn--sm"
-                    disabled={
-                      previewLoading ||
-                      gateBlock.blocked ||
-                      !Number.isFinite(parsedAmount) ||
-                      parsedAmount <= 0
-                    }
-                    onClick={() => void runCollectionPreview()}
-                  >
-                    {previewLoading
-                      ? t('common.loading')
-                      : t('admin.finance.collectionWorkflow.previewDistributionAction')}
-                  </button>
-                </div>
-              ) : null}
-
-              <label>
-                {t('admin.finance.paymentMethod')}
-                <select
-                  className="input"
-                  required
-                  value={paymentMethod}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
-                  disabled={!journalId || allowedMethods.length === 0}
-                >
-                  <option value="">
-                    {!journalId
-                      ? t('admin.finance.collections.selectJournalFirst')
-                      : t('admin.finance.selectPaymentMethod')}
-                  </option>
-                  {allowedMethods.map((m) => (
-                    <option key={m.code} value={m.code}>
-                      {paymentMethodLabel(m.code, t)}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label>
-                {t('admin.finance.collectionDate')}
-                <input
-                  className="input"
-                  required
-                  type="date"
-                  value={collectionDate}
-                  onChange={(e) => setCollectionDate(e.target.value)}
-                />
-              </label>
-
-              {collectionReferenceLabel(paymentMethod, t) ? (
-                <label>
-                  {collectionReferenceLabel(paymentMethod, t)}
-                  <input
-                    className="input"
-                    dir="ltr"
-                    required={
-                      paymentMethod === 'transfer' || paymentMethod === 'bank_transfer'
-                    }
-                    value={reference}
-                    onChange={(e) => setReference(e.target.value)}
-                  />
-                </label>
-              ) : null}
-            </div>
+                  : t('admin.finance.collectionAmount')
+              }
+              amountHint={
+                flexiblePrepaymentFlow
+                  ? t('admin.finance.collectionWorkflow.paidAmountHint')
+                  : undefined
+              }
+              amountDisabled={flexiblePrepaymentFlow && gateBlock.blocked}
+              currency={journalCurrency}
+              journalId={journalId}
+              onJournalChange={setJournalId}
+              journals={journals}
+              selectedJournal={selectedJournal}
+              journalReadOnly={journalReadOnly}
+              journalsLoading={refLoading}
+              paymentMethod={paymentMethod}
+              onPaymentMethodChange={setPaymentMethod}
+              allowedMethods={allowedMethods}
+              collectionDate={collectionDate}
+              onCollectionDateChange={setCollectionDate}
+              reference={reference}
+              onReferenceChange={setReference}
+              chequeValues={{
+                chequeNumber,
+                chequeBank,
+                chequeHolder,
+                chequeWrittenDate,
+                chequePostdated,
+                chequeDueDate,
+                chequeNotes,
+                chequeBranch,
+              }}
+              onChequeChange={(patch) => {
+                if (patch.chequeNumber !== undefined) setChequeNumber(patch.chequeNumber);
+                if (patch.chequeBank !== undefined) setChequeBank(patch.chequeBank);
+                if (patch.chequeHolder !== undefined) setChequeHolder(patch.chequeHolder);
+                if (patch.chequeWrittenDate !== undefined) setChequeWrittenDate(patch.chequeWrittenDate);
+                if (patch.chequePostdated !== undefined) setChequePostdated(patch.chequePostdated);
+                if (patch.chequeDueDate !== undefined) setChequeDueDate(patch.chequeDueDate);
+                if (patch.chequeNotes !== undefined) setChequeNotes(patch.chequeNotes);
+                if (patch.chequeBranch !== undefined) setChequeBranch(patch.chequeBranch);
+              }}
+              notes={notes}
+              onNotesChange={setNotes}
+              afterAmount={
+                flexiblePrepaymentFlow ? (
+                  <div className="finance-collection-workflow__preview-actions">
+                    <label className="collection-skip-allocation">
+                      <input
+                        type="checkbox"
+                        checked={manualAllocation}
+                        onChange={(e) => {
+                          setManualAllocation(e.target.checked);
+                          setAllocationInputs({});
+                          setPreview(null);
+                          setPreviewError(null);
+                        }}
+                      />
+                      <span>{t('admin.finance.collectionWorkflow.manualAllocationToggle')}</span>
+                    </label>
+                    <p className="tiny muted">
+                      {manualAllocation
+                        ? t('admin.finance.collectionWorkflow.manualAllocationHint')
+                        : t('admin.finance.collectionWorkflow.autoAllocationHint')}
+                    </p>
+                    <button
+                      type="button"
+                      className="btn btn--secondary btn--sm"
+                      disabled={
+                        previewLoading ||
+                        gateBlock.blocked ||
+                        !Number.isFinite(parsedAmount) ||
+                        parsedAmount <= 0
+                      }
+                      onClick={() => void runCollectionPreview()}
+                    >
+                      {previewLoading ? t('common.loading') : previewActionLabel}
+                    </button>
+                  </div>
+                ) : null
+              }
+            />
 
             {flexiblePrepaymentFlow && manualAllocation && step === 'payment' ? (
               <ReceivableAllocationSection
@@ -1201,39 +1147,6 @@ function CollectionWorkflowFormReady({
               session={cashSession}
               checking={checkingCashSession}
             />
-
-            {isCheque ? (
-              <CollectionChequeFields
-                collectionDate={collectionDate}
-                values={{
-                  chequeNumber,
-                  chequeBank,
-                  chequeHolder,
-                  chequeWrittenDate,
-                  chequePostdated,
-                  chequeDueDate,
-                  chequeNotes,
-                  chequeBranch,
-                }}
-                onChange={(patch) => {
-                  if (patch.chequeNumber !== undefined) setChequeNumber(patch.chequeNumber);
-                  if (patch.chequeBank !== undefined) setChequeBank(patch.chequeBank);
-                  if (patch.chequeHolder !== undefined) setChequeHolder(patch.chequeHolder);
-                  if (patch.chequeWrittenDate !== undefined) setChequeWrittenDate(patch.chequeWrittenDate);
-                  if (patch.chequePostdated !== undefined) setChequePostdated(patch.chequePostdated);
-                  if (patch.chequeDueDate !== undefined) setChequeDueDate(patch.chequeDueDate);
-                  if (patch.chequeNotes !== undefined) setChequeNotes(patch.chequeNotes);
-                  if (patch.chequeBranch !== undefined) setChequeBranch(patch.chequeBranch);
-                }}
-              />
-            ) : null}
-
-            {!isCheque ? (
-              <label className="finance-collection-workflow__full-width">
-                {t('common.note')}
-                <textarea className="input" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
-              </label>
-            ) : null}
           </section>
         </>
       ) : null}
@@ -1411,7 +1324,7 @@ function CollectionWorkflowFormReady({
                 <button type="submit" className="btn btn--primary" disabled={submitting || !canProceedPayment || !previewValid}>
                   {submitting
                     ? t('admin.finance.collections.submitting')
-                    : t('admin.finance.collectionWorkflow.recordCollectionAction')}
+                    : confirmActionLabel}
                 </button>
               </>
             ) : null}
@@ -1453,7 +1366,7 @@ function CollectionWorkflowFormReady({
                 <button type="submit" className="btn btn--primary" disabled={submitting || !canProceedPayment}>
                   {submitting
                     ? t('admin.finance.collections.submitting')
-                    : t('admin.finance.collectionWorkflow.confirmPaymentAndReceipt')}
+                    : reviewConfirmActionLabel}
                 </button>
               </>
             ) : null}

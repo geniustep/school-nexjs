@@ -178,6 +178,56 @@
   flex-direction: row-reverse;
 }
 
+.finance-family-payment-choice {
+  max-width: 28rem;
+}
+
+.finance-family-payment-choice__description {
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+
+.finance-family-payment-choice__options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.finance-family-payment-choice__option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-subtle, #e4e7ec);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.finance-family-payment-choice__option:has(input:checked) {
+  border-color: var(--color-primary, #175cd3);
+  background: color-mix(in srgb, var(--color-primary, #175cd3) 6%, transparent);
+}
+
+.finance-family-payment-choice__option input {
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
+.finance-family-payment-choice__option-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.finance-family-payment-choice__option-title {
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.finance-family-payment-choice__option-desc {
+  line-height: 1.4;
+}
+
 .btn.btn--danger {
   background: var(--color-danger, #b42318);
   border-color: var(--color-danger, #b42318);
@@ -4385,7 +4435,7 @@
   flex-direction: column;
   gap: 8px;
   margin: 0;
-  padding: 10px 16px 12px;
+  padding: 12px 20px 20px;
   border-top: 1px solid var(--c-border, #e2e8f0);
   background: #fff;
   box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.05);
@@ -5483,4 +5533,538 @@
   border-radius: 8px;
   background: #fffbeb;
   border: 1px solid #fde68a;
+}
+
+/* Arrears follow-up center */
+.finance-arrears-kpis {
+  margin-bottom: 16px;
+}
+
+.finance-arrears-tabs {
+  margin-bottom: 12px;
+}
+
+.finance-arrears-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-start;
+}
+
+.finance-arrears-family-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--c-primary, #2563eb);
+  cursor: pointer;
+  text-align: inherit;
+  font: inherit;
+  text-decoration: underline;
+}
+
+.finance-arrears-family-link:hover {
+  color: var(--c-primary-hover, #1d4ed8);
+}
+
+.finance-arrears-promise-cell {
+  white-space: nowrap;
+}
+
+.finance-arrears-drawer-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.finance-arrears-section-title {
+  margin: 0 0 12px;
+  font-size: 0.95rem;
+}
+
+.finance-arrears-status-line {
+  margin: 12px 0 0;
+}
+
+.finance-arrears-last-dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px 16px;
+  margin: 0;
+}
+
+.finance-arrears-last-dl dt {
+  font-size: 0.75rem;
+  color: var(--text-muted, #64748b);
+}
+
+.finance-arrears-last-dl dd {
+  margin: 4px 0 0;
+}
+
+.finance-arrears-last-notes {
+  grid-column: 1 / -1;
+}
+
+.finance-arrears-form {
+  display: grid;
+  gap: 12px;
+}
+
+.finance-arrears-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.finance-arrears-field > span {
+  font-size: 0.82rem;
+  color: var(--text-muted, #64748b);
+}
+
+.finance-arrears-form-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.finance-arrears-validation-error {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.finance-arrears-resolve-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.finance-billing-kpis--compact {
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+}
+
+.finance-arrears-form-section {
+  padding: 14px 16px;
+}
+
+.finance-arrears-drawer-summary,
+.finance-arrears-drawer-last {
+  padding: 14px 16px;
+}
+
+.finance-quick-payment-drawer__intro,
+.finance-quick-payment-drawer__context {
+  margin: 0 0 8px;
+}
+
+.finance-quick-payment-drawer__context {
+  margin-bottom: 16px;
+}
+
+.finance-quick-payment-core {
+  gap: 12px;
+}
+
+.finance-quick-payment-details {
+  margin-top: 4px;
+}
+
+.finance-quick-payment-details__toggle {
+  padding-inline: 0;
+}
+
+.finance-quick-payment-details__panel {
+  margin-top: 8px;
+}
+
+.finance-quick-payment-details__panel summary {
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.finance-quick-payment-suggestion {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--finance-border, #e2e8f0);
+  background: #fffbeb;
+}
+
+.finance-quick-payment-suggestion__main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.finance-quick-payment-suggestion__badge {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #92400e;
+}
+
+.finance-quick-payment-suggestion__amount {
+  font-weight: 700;
+  color: #b45309;
+}
+
+.finance-quick-payment-suggestion__hint {
+  margin: 0;
+}
+
+/* ── Finance UX polish (billing, collection, arrears) ── */
+
+.finance-billing-kpi {
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 80%, transparent);
+}
+
+.finance-billing-hero.card {
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  border: 1px solid var(--c-border, #e2e8f0);
+}
+
+.finance-billing-actions {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  min-width: min(100%, 220px);
+}
+
+.finance-billing-actions .btn--primary {
+  order: -1;
+  min-height: 44px;
+  font-weight: 600;
+}
+
+.finance-billing-actions__links {
+  flex-wrap: wrap;
+}
+
+.finance-metric-card--overdue strong {
+  color: var(--c-red, #b42318);
+}
+
+.table-wrap--sticky-head {
+  overflow-x: auto;
+}
+
+.table-wrap--sticky-head thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--c-surface, #fff);
+  box-shadow: 0 1px 0 var(--c-border, #e2e8f0);
+}
+
+.finance-table-money {
+  text-align: end;
+  white-space: nowrap;
+}
+
+.finance-table-money__value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.finance-table-money--danger .finance-table-money__value,
+.finance-table-money__value--danger {
+  color: var(--c-red, #b42318);
+  font-weight: 700;
+}
+
+.finance-arrears-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.finance-arrears-badge--red {
+  background: var(--c-red-soft, #fef2f2);
+  color: var(--c-red, #b42318);
+}
+
+.finance-arrears-badge--amber {
+  background: var(--c-amber-soft, #fffbeb);
+  color: var(--c-amber, #b54708);
+}
+
+.finance-arrears-badge--blue {
+  background: var(--c-blue-soft, #eff6ff);
+  color: var(--c-blue, #2563eb);
+}
+
+.finance-arrears-badge--green {
+  background: var(--c-green-soft, #ecfdf3);
+  color: var(--c-green, #027a48);
+}
+
+.finance-arrears-next-date {
+  font-weight: 600;
+  color: var(--c-amber, #b54708);
+}
+
+.finance-arrears-row-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  min-width: 9rem;
+}
+
+.finance-arrears-row-actions__primary {
+  width: 100%;
+  justify-content: center;
+  min-height: 36px;
+}
+
+.finance-arrears-row-actions__secondary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.finance-arrears-tabs .btn.is-active {
+  border-color: var(--c-primary, #2563eb);
+  background: var(--c-primary-soft, #eff6ff);
+  color: var(--c-primary, #2563eb);
+  font-weight: 600;
+}
+
+.finance-arrears-desktop {
+  display: block;
+}
+
+.finance-arrears-mobile {
+  display: none;
+}
+
+.finance-arrears-card {
+  display: grid;
+  gap: 12px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  background: var(--c-surface, #fff);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  border: 1px solid var(--c-border, #e2e8f0);
+}
+
+.finance-arrears-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.finance-arrears-card__title {
+  font-size: 1rem;
+  font-weight: 700;
+  text-align: inherit;
+}
+
+.finance-arrears-card__metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.finance-arrears-card__metrics dt {
+  font-size: 0.75rem;
+  color: var(--c-text-muted, #64748b);
+}
+
+.finance-arrears-card__metrics dd {
+  margin: 4px 0 0;
+}
+
+.finance-arrears-card__collect {
+  width: 100%;
+  justify-content: center;
+  min-height: 40px;
+}
+
+.finance-quick-payment-drawer__intro {
+  margin-bottom: 4px;
+}
+
+.finance-quick-payment-drawer__context {
+  margin-bottom: 12px;
+  line-height: 1.45;
+}
+
+.finance-family-collection-drawer .finance-quick-payment-drawer__shell {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+}
+
+.finance-family-collection-drawer .finance-quick-payment-drawer__header-copy {
+  flex-shrink: 0;
+  padding: 16px 20px 4px;
+}
+
+.finance-family-collection-drawer .finance-quick-payment-drawer__header-copy .finance-quick-payment-drawer__context {
+  margin-bottom: 0;
+}
+
+.finance-family-collection-drawer .finance-quick-payment-drawer__content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.finance-quick-payment-journal-summary {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--c-surface-2, #f8fafc);
+  border: 1px solid var(--c-border, #e2e8f0);
+}
+
+.finance-quick-payment-journal-summary .tiny {
+  line-height: 1.45;
+}
+
+.finance-family-collection-drawer .academic-setup-drawer__body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 0;
+}
+
+.finance-family-collection-drawer .finance-collection-workflow {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.finance-family-collection-drawer .finance-collection-workflow__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px 20px 16px;
+  scrollbar-gutter: stable;
+}
+
+.finance-family-collection-workflow__balance {
+  margin: 0;
+}
+
+.finance-quick-payment-primary.collection-form-section {
+  padding: 18px 20px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  border: 1px solid var(--c-border, #e2e8f0);
+}
+
+.finance-collection-advanced {
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px dashed var(--c-border, #cbd5e1);
+  background: var(--c-surface-2, #f8fafc);
+}
+
+.finance-collection-advanced summary {
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--c-text-muted, #64748b);
+}
+
+.finance-collection-advanced__body {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.finance-collection-advanced__body .collection-skip-allocation {
+  margin: 0;
+}
+
+.finance-family-collection-drawer .collection-allocation-preview {
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid var(--c-border, #e2e8f0);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.finance-quick-payment-suggestion {
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--c-amber, #f59e0b) 35%, var(--c-border, #e2e8f0));
+  background: var(--c-amber-soft, #fffbeb);
+  box-shadow: none;
+}
+
+.finance-billing-section {
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--c-surface, #fff);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  border: 1px solid var(--c-border, #e2e8f0);
+}
+
+.finance-billing-account-card,
+.finance-billing-student-card {
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  border: 1px solid var(--c-border, #e2e8f0);
+}
+
+@media (max-width: 900px) {
+  .finance-arrears-desktop {
+    display: none;
+  }
+
+  .finance-arrears-mobile {
+    display: grid;
+    gap: 0;
+  }
+
+  .finance-billing-hero {
+    flex-direction: column;
+  }
+
+  .finance-billing-hero .finance-billing-actions {
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .table-wrap--sticky-head {
+    max-height: min(55vh, 420px);
+    overflow-y: auto;
+  }
+
+  .finance-collection-drawer .finance-collection-workflow__footer.form-actions {
+    flex-wrap: wrap;
+  }
+
+  .finance-collection-drawer .finance-collection-workflow__footer .btn--primary {
+    flex: 1 1 100%;
+    order: 3;
+  }
+
+  .finance-collection-drawer .finance-collection-workflow__footer .btn--secondary {
+    flex: 1 1 calc(50% - 4px);
+  }
+
+  .finance-collection-drawer .finance-collection-workflow__footer .btn--ghost {
+    flex: 1 1 calc(50% - 4px);
+  }
 }

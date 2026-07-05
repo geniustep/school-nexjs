@@ -1,23 +1,29 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { SetupDrawer } from '@/features/admin/academic-setup/components/setup-drawer';
 import { useToast } from '@/components/ui/toast';
 import { useT } from '@/features/i18n/locale-context';
+import type { FamilyCollectSource } from '@/features/admin/finance/family-collect-query';
 import { FamilyCollectionWorkflowForm } from './family-collection-workflow-form';
+import { QuickPaymentDrawer } from './quick-payment-drawer';
 import type { FamilyCollectionCreateResponse } from '@/types/family-finance';
-import './finance-ui.css';
 
 export function FamilyCollectionDrawer({
   open,
   familyId,
   accountName,
+  suggestedAmount,
+  source,
+  currency,
   onClose,
   onSuccess,
 }: {
   open: boolean;
   familyId: number;
   accountName?: string;
+  suggestedAmount?: number | null;
+  source?: FamilyCollectSource | null;
+  currency?: unknown;
   onClose: () => void;
   onSuccess?: (result: FamilyCollectionCreateResponse) => void;
 }) {
@@ -28,8 +34,6 @@ export function FamilyCollectionDrawer({
   useEffect(() => {
     if (!open) handledRef.current = false;
   }, [open]);
-
-  if (!open) return null;
 
   function handleDone(result: FamilyCollectionCreateResponse) {
     if (handledRef.current) {
@@ -43,21 +47,22 @@ export function FamilyCollectionDrawer({
   }
 
   return (
-    <SetupDrawer
+    <QuickPaymentDrawer
       open={open}
-      title={t('admin.finance.billingAccounts.familyCollection.drawerTitle')}
+      mode="family"
       subtitle={accountName}
+      source={source}
       onClose={onClose}
-      size="collection"
-      className="finance-collection-drawer finance-family-collection-drawer"
-      iconClose
     >
       <FamilyCollectionWorkflowForm
         familyId={familyId}
         accountName={accountName}
+        suggestedAmount={suggestedAmount}
+        source={source}
+        currency={currency}
         onDone={handleDone}
         onCancel={onClose}
       />
-    </SetupDrawer>
+    </QuickPaymentDrawer>
   );
 }

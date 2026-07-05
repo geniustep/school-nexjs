@@ -7517,6 +7517,35 @@
         "moreActions": "More",
         "actionUnavailable": "This action is not available right now."
       },
+      "quickPayment": {
+        "title": "Receive payment",
+        "intro": "Enter the amount and payment method",
+        "studentContext": "The payment will be allocated to the student's receivables, oldest due first.",
+        "familyContext": "The payment will be allocated across the family's receivables, oldest due first.",
+        "amountLabel": "Amount paid",
+        "paymentSection": "Payment method",
+        "previewAction": "Preview allocation",
+        "confirmAction": "Confirm and issue receipt",
+        "additionalDetails": "Additional details",
+        "limitToStudent": "Limit payment to one student",
+        "arrearsContext": "This payment is linked to arrears follow-up. The system will suggest allocating it to the oldest receivables.",
+        "currentOverdueLabel": "Current overdue",
+        "useOverdueAmount": "Use overdue amount",
+        "cashDeskAccount": "Cash desk / account",
+        "selectCashDeskAccount": "Select cash desk or account",
+        "recordedIn": "Payment will be recorded in: {journal} — {method}",
+        "suggestedAmountHint": "You can use this amount or enter a different one before preview.",
+        "suggestedAmountEditableHint": "You can use this amount or enter a different one.",
+        "familyChoice": {
+          "title": "Receive payment",
+          "description": "This student belongs to a family billing account with more than one student. How would you like to record this payment?",
+          "student": "Payment for this student only",
+          "studentDescription": "The amount will be allocated to this student's receivables only.",
+          "family": "Payment for the whole family",
+          "familyDescription": "The amount will be allocated automatically across all family members' receivables according to system rules.",
+          "continue": "Continue"
+        }
+      },
       "collectionWorkflow": {
         "drawerTitle": "Record payment",
         "detailTitle": "Collection details",

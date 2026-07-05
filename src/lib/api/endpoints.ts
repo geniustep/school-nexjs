@@ -321,6 +321,9 @@ export const endpoints = {
       `/admin/finance/families/${familyId}/collection-context`,
     financeFamilyCollectionPreview: '/admin/finance/family-collections/preview',
     financeFamilyCollections: '/admin/finance/family-collections',
+    financeArrearsFollowups: '/admin/finance/arrears-followups',
+    financeFamilyArrearsFollowup: (familyId: number | string) =>
+      `/admin/finance/families/${familyId}/arrears-followup`,
     financeCheques: '/admin/finance/cheques',
     financeCheque: (id: number | string) => `/admin/finance/cheques/${id}`,
     financeChequeDeposit: (id: number | string) => `/admin/finance/cheques/${id}/deposit`,

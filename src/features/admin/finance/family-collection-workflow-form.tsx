@@ -3,15 +3,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { DataTable, type Column } from '@/components/tables/data-table';
 import { ApiErrorView, LoadingState } from '@/components/states/states';
-import { FinanceAmountInput } from '@/features/admin/finance/finance-amount-input';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
+import { QuickPaymentCoreFields } from '@/features/admin/finance/quick-payment-core-fields';
+import type { FamilyCollectSource } from '@/features/admin/finance/family-collect-query';
 import {
   CollectionCashSessionGate,
   collectionBlockedByCashSession,
   resolveCashSessionCollectionAccess,
 } from '@/features/admin/finance/cash-desk/collection-cash-session-gate';
 import {
-  formatPaymentJournalLabel,
   resolveDefaultPaymentJournal,
 } from '@/features/admin/finance/format-payment-journal';
 import { useFamilyCollectionContext } from '@/features/admin/finance/hooks/use-family-collection-context';
@@ -21,7 +21,7 @@ import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { useFormat } from '@/features/i18n/use-format';
 import { fetchCurrentCashSession } from '@/lib/api/finance-cash-desk';
-import { currencyCode, paymentMethodLabel } from '@/lib/utils/finance';
+import { currencyCode } from '@/lib/utils/finance';
 import {
   familyFinanceServiceTypeLabelKey,
   normalizeFamilyCollectionCreateResponse,
@@ -31,6 +31,7 @@ import { isCashJournal, paymentMethodRequiresCashSession } from '@/lib/utils/cas
 import {
   previewFamilyCollectionAllocation,
   submitFamilyCollection,
+  getFamilyFinanceSummary,
 } from '@/features/admin/student-finance/api/family-finance-api';
 import type {
   FamilyCollectionAllocation,
@@ -55,18 +56,37 @@ function uniqueStudentsFromInstallments(
   }));
 }
 
-function resolveMethodCode(method: string | { code?: string }): string {
-  return typeof method === 'string' ? method : method.code ?? '';
+function mergeFamilyStudentOptions(
+  accountStudents: Array<{ student_id: number; student_name: string }>,
+  installmentStudents: Array<{ student_id: number; student_name: string }>,
+): Array<{ student_id: number; student_name: string }> {
+  const map = new Map<number, string>();
+  for (const student of accountStudents) {
+    map.set(student.student_id, student.student_name);
+  }
+  for (const student of installmentStudents) {
+    const name = student.student_name?.trim();
+    if (name) map.set(student.student_id, name);
+  }
+  return Array.from(map.entries())
+    .map(([student_id, student_name]) => ({ student_id, student_name }))
+    .sort((a, b) => a.student_name.localeCompare(b.student_name, undefined, { sensitivity: 'base' }));
 }
 
 export function FamilyCollectionWorkflowForm({
   familyId,
   accountName,
+  suggestedAmount,
+  source,
+  currency: suggestedCurrency,
   onDone,
   onCancel,
 }: {
   familyId: number;
   accountName?: string;
+  suggestedAmount?: number | null;
+  source?: FamilyCollectSource | null;
+  currency?: unknown;
   onDone: (result: FamilyCollectionCreateResponse) => void;
   onCancel: () => void;
 }) {
@@ -92,14 +112,47 @@ export function FamilyCollectionWorkflowForm({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [cashSession, setCashSession] = useState<CashSession | null>(null);
   const [checkingCashSession, setCheckingCashSession] = useState(false);
+  const [accountStudents, setAccountStudents] = useState<Array<{ student_id: number; student_name: string }>>(
+    [],
+  );
 
   const context = contextState.data;
   const currency = context?.currency;
   const parsedAmount = Number.parseFloat(amount.replace(',', '.'));
-  const students = useMemo(
+  const installmentStudents = useMemo(
     () => uniqueStudentsFromInstallments(context?.open_installments ?? []),
     [context?.open_installments],
   );
+  const students = useMemo(
+    () => mergeFamilyStudentOptions(accountStudents, installmentStudents),
+    [accountStudents, installmentStudents],
+  );
+
+  useEffect(() => {
+    if (!familyId) {
+      setAccountStudents([]);
+      return;
+    }
+    let active = true;
+    const query: Record<string, number> = {};
+    if (activeSchoolId != null) query.active_school_id = activeSchoolId;
+
+    void getFamilyFinanceSummary(familyId, query).then((res) => {
+      if (!active || !res.success || !res.data) return;
+      setAccountStudents(
+        res.data.children
+          .filter((child) => typeof child.student_id === 'number')
+          .map((child) => ({
+            student_id: child.student_id,
+            student_name: child.student_name?.trim() || `#${child.student_id}`,
+          })),
+      );
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [familyId, activeSchoolId]);
 
   const selectedJournal = useMemo(
     () => journals.find((j) => String(j.id) === journalId) ?? null,
@@ -119,14 +172,6 @@ export function FamilyCollectionWorkflowForm({
     const current = academicYears.find((y) => y.is_current) ?? academicYears[0];
     if (current) setAcademicYearId(String(current.id));
   }, [academicYears, academicYearId]);
-
-  useEffect(() => {
-    if (!allowedMethods?.length) return;
-    const codes = allowedMethods.map((m) => resolveMethodCode(m as string | { code?: string }));
-    if (!paymentMethod || !codes.includes(paymentMethod)) {
-      setPaymentMethod(codes[0] ?? '');
-    }
-  }, [allowedMethods, paymentMethod]);
 
   const requiresCashSession =
     !!selectedJournal &&
@@ -305,246 +350,205 @@ export function FamilyCollectionWorkflowForm({
   }
 
   return (
-    <form className="finance-family-collection-workflow form-stack" onSubmit={handleSubmit}>
-      <section className="card finance-family-collection-workflow__intro">
-        <p className="finance-family-collection-workflow__account" dir="auto">
-          <strong>{accountName ?? `#${familyId}`}</strong>
-        </p>
-        <p className="muted tiny">{t('admin.finance.billingAccounts.familyCollection.intro')}</p>
-        {context?.total_remaining != null ? (
-          <p className="tiny">
+    <form className="finance-collection-workflow finance-family-collection-workflow" onSubmit={handleSubmit}>
+      <div className="finance-collection-workflow__scroll">
+        {suggestedAmount != null && suggestedAmount > 0 ? (
+          <section
+            className="finance-quick-payment-suggestion"
+            aria-label={t('admin.finance.quickPayment.currentOverdueLabel')}
+          >
+            <div className="finance-quick-payment-suggestion__main">
+              <span className="finance-quick-payment-suggestion__badge">
+                {t('admin.finance.quickPayment.currentOverdueLabel')}
+              </span>
+              <FinanceMoney
+                amount={suggestedAmount}
+                currency={suggestedCurrency ?? currency}
+                className="finance-quick-payment-suggestion__amount"
+              />
+            </div>
+            <button
+              type="button"
+              className="btn btn--secondary btn--sm"
+              onClick={() => {
+                setAmount(String(suggestedAmount));
+                setPreview(null);
+                setPreviewError(null);
+              }}
+            >
+              {t('admin.finance.quickPayment.useOverdueAmount')}
+            </button>
+          </section>
+        ) : context?.total_remaining != null ? (
+          <p className="finance-family-collection-workflow__balance tiny muted">
             {t('admin.finance.billingAccounts.metrics.remaining')}:{' '}
             <FinanceMoney amount={context.total_remaining} currency={currency} />
           </p>
         ) : null}
-      </section>
 
-      <section className="finance-collection-form-section">
-        <h4 className="collection-form-section__title">
-          {t('admin.finance.billingAccounts.familyCollection.amountSection')}
-        </h4>
-        <label className="finance-amount-field finance-amount-field--prominent">
-          {t('admin.finance.collectionWorkflow.paidAmountLabel')}
-          <div className="finance-amount-field__input">
-            <FinanceAmountInput
-              value={amount}
-              onChange={(value) => {
-                setAmount(value);
-                setPreview(null);
-                setPreviewError(null);
-              }}
-            />
-            {journalCurrency ? (
-              <span className="finance-amount-field__suffix">{journalCurrency}</span>
-            ) : null}
-          </div>
-        </label>
-      </section>
-
-      <section className="finance-collection-form-section">
-        <h4 className="collection-form-section__title">
-          {t('admin.finance.billingAccounts.familyCollection.paymentSection')}
-        </h4>
-        <div className="finance-collection-workflow__fields">
-          <label>
-            {t('admin.finance.hub.filterAcademicYear')}
-            <select
-              className="input"
-              required
-              value={academicYearId}
-              onChange={(e) => {
-                setAcademicYearId(e.target.value);
-                setPreview(null);
-              }}
-            >
-              <option value="">{t('admin.finance.selectAcademicYear')}</option>
-              {academicYears.map((y) => (
-                <option key={y.id} value={y.id}>
-                  {y.name}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label>
-            {t('admin.finance.paymentJournal')}
-            <select
-              className="input"
-              required
-              value={journalId}
-              onChange={(e) => {
-                setJournalId(e.target.value);
-                setPreview(null);
-              }}
-            >
-              <option value="">
-                {refLoading
-                  ? t('admin.finance.collections.loadingJournals')
-                  : t('admin.finance.selectPaymentJournal')}
-              </option>
-              {journals.map((j) => (
-                <option key={j.id} value={j.id}>
-                  {formatPaymentJournalLabel(j)}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label>
-            {t('admin.finance.paymentMethod')}
-            <select
-              className="input"
-              required
-              value={paymentMethod}
-              onChange={(e) => {
-                setPaymentMethod(e.target.value);
-                setPreview(null);
-              }}
-              disabled={!journalId || !allowedMethods?.length}
-            >
-              <option value="">
-                {!journalId
-                  ? t('admin.finance.collections.selectJournalFirst')
-                  : t('admin.finance.selectPaymentMethod')}
-              </option>
-              {(allowedMethods ?? []).map((m) => {
-                const code = resolveMethodCode(m as string | { code?: string });
-                return (
-                  <option key={code} value={code}>
-                    {paymentMethodLabel(code, t)}
-                  </option>
-                );
-              })}
-            </select>
-          </label>
-
-          <label>
-            {t('admin.finance.collectionDate')}
-            <input
-              className="input"
-              required
-              type="date"
-              value={collectionDate}
-              onChange={(e) => setCollectionDate(e.target.value)}
-            />
-          </label>
-        </div>
-      </section>
-
-      <section className="finance-collection-form-section">
-        <label className="collection-skip-allocation">
-          <input
-            type="checkbox"
-            checked={limitToStudent}
-            onChange={(e) => {
-              setLimitToStudent(e.target.checked);
-              if (!e.target.checked) setSelectedStudentId('');
+        <section className="collection-form-section finance-quick-payment-primary">
+          <QuickPaymentCoreFields
+            amount={amount}
+            onAmountChange={(value) => {
+              setAmount(value);
               setPreview(null);
               setPreviewError(null);
             }}
+            amountLabel={t('admin.finance.quickPayment.amountLabel')}
+            currency={journalCurrency}
+            journalId={journalId}
+            onJournalChange={(value) => {
+              setJournalId(value);
+              setPreview(null);
+            }}
+            journals={journals}
+            selectedJournal={selectedJournal}
+            journalsLoading={refLoading}
+            paymentMethod={paymentMethod}
+            onPaymentMethodChange={(value) => {
+              setPaymentMethod(value);
+              setPreview(null);
+            }}
+            allowedMethods={allowedMethods ?? []}
+            collectionDate={collectionDate}
+            onCollectionDateChange={setCollectionDate}
           />
-          <span>{t('admin.finance.billingAccounts.familyCollection.limitToStudent')}</span>
-        </label>
-        {limitToStudent ? (
-          <label>
-            {t('admin.finance.billingAccounts.familyCollection.selectStudent')}
-            <select
-              className="input"
-              value={selectedStudentId}
-              onChange={(e) => {
-                setSelectedStudentId(e.target.value);
-                setPreview(null);
-              }}
-            >
-              <option value="">{t('admin.finance.billingAccounts.familyCollection.chooseStudent')}</option>
-              {students.map((s) => (
-                <option key={s.student_id} value={s.student_id}>
-                  {s.student_name}
-                </option>
-              ))}
-            </select>
-          </label>
-        ) : (
-          <p className="tiny muted">{t('admin.finance.billingAccounts.familyCollection.autoAllocationHint')}</p>
-        )}
-      </section>
+        </section>
 
-      <div className="finance-collection-workflow__preview-actions">
-        <button
-          type="button"
-          className="btn btn--secondary btn--sm"
-          disabled={previewLoading || !Number.isFinite(parsedAmount) || parsedAmount <= 0}
-          onClick={() => void runPreview()}
-        >
-          {previewLoading
-            ? t('common.loading')
-            : t('admin.finance.collectionWorkflow.previewDistributionAction')}
-        </button>
+        <details className="finance-collection-advanced">
+          <summary>{t('admin.finance.quickPayment.additionalDetails')}</summary>
+          <div className="finance-collection-advanced__body">
+            <label>
+              {t('admin.finance.hub.filterAcademicYear')}
+              <select
+                className="input"
+                required
+                value={academicYearId}
+                onChange={(e) => {
+                  setAcademicYearId(e.target.value);
+                  setPreview(null);
+                }}
+              >
+                <option value="">{t('admin.finance.selectAcademicYear')}</option>
+                {academicYears.map((y) => (
+                  <option key={y.id} value={y.id}>
+                    {y.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="collection-skip-allocation">
+              <input
+                type="checkbox"
+                checked={limitToStudent}
+                onChange={(e) => {
+                  setLimitToStudent(e.target.checked);
+                  if (!e.target.checked) setSelectedStudentId('');
+                  setPreview(null);
+                  setPreviewError(null);
+                }}
+              />
+              <span>{t('admin.finance.quickPayment.limitToStudent')}</span>
+            </label>
+            {limitToStudent ? (
+              <label>
+                {t('admin.finance.billingAccounts.familyCollection.selectStudent')}
+                <select
+                  className="input"
+                  value={selectedStudentId}
+                  onChange={(e) => {
+                    setSelectedStudentId(e.target.value);
+                    setPreview(null);
+                  }}
+                >
+                  <option value="">{t('admin.finance.billingAccounts.familyCollection.chooseStudent')}</option>
+                  {students.map((s) => (
+                    <option key={s.student_id} value={s.student_id}>
+                      {s.student_name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
+          </div>
+        </details>
+
+        {previewError ? <p className="form-error collection-form-preview-error">{previewError}</p> : null}
+
+        {preview ? (
+          <section className="collection-allocation-preview">
+            <h4>{t('admin.finance.billingAccounts.familyCollection.preview.title')}</h4>
+            <dl className="detail-list finance-family-collection-preview-metrics">
+              <div>
+                <dt>{t('admin.finance.billingAccounts.familyCollection.preview.allocated')}</dt>
+                <dd>
+                  <FinanceMoney amount={preview.allocated_amount} currency={currency} />
+                </dd>
+              </div>
+              <div>
+                <dt>{t('admin.finance.billingAccounts.familyCollection.preview.unallocated')}</dt>
+                <dd>
+                  <FinanceMoney amount={preview.unallocated_amount} currency={currency} />
+                </dd>
+              </div>
+              <div>
+                <dt>{t('admin.finance.billingAccounts.familyCollection.preview.credit')}</dt>
+                <dd>
+                  <FinanceMoney amount={preview.credit_amount ?? preview.credit_balance} currency={currency} />
+                </dd>
+              </div>
+            </dl>
+            {preview.warnings.length ? (
+              <div className="collection-allocation-preview__warning" role="status">
+                {preview.warnings.join(' · ')}
+              </div>
+            ) : null}
+            {preview.allocations.length ? (
+              <DataTable
+                columns={allocationColumns}
+                rows={preview.allocations}
+                rowKey={(row) => `${row.student_id ?? 'na'}-${row.installment_id ?? row.due_date ?? 'row'}`}
+              />
+            ) : null}
+          </section>
+        ) : null}
+
+        <CollectionCashSessionGate
+          journal={selectedJournal}
+          paymentMethod={paymentMethod}
+          collectionPath={`/admin/finance/billing-accounts/${familyId}`}
+          session={cashSession}
+          checking={checkingCashSession}
+        />
+
+        {submitError ? <p className="form-error">{submitError}</p> : null}
       </div>
 
-      {previewError ? <p className="form-error collection-form-preview-error">{previewError}</p> : null}
-
-      {preview ? (
-        <section className="collection-allocation-preview card">
-          <h4>{t('admin.finance.billingAccounts.familyCollection.preview.title')}</h4>
-          <dl className="detail-list finance-family-collection-preview-metrics">
-            <div>
-              <dt>{t('admin.finance.billingAccounts.familyCollection.preview.allocated')}</dt>
-              <dd>
-                <FinanceMoney amount={preview.allocated_amount} currency={currency} />
-              </dd>
-            </div>
-            <div>
-              <dt>{t('admin.finance.billingAccounts.familyCollection.preview.unallocated')}</dt>
-              <dd>
-                <FinanceMoney amount={preview.unallocated_amount} currency={currency} />
-              </dd>
-            </div>
-            <div>
-              <dt>{t('admin.finance.billingAccounts.familyCollection.preview.credit')}</dt>
-              <dd>
-                <FinanceMoney amount={preview.credit_amount ?? preview.credit_balance} currency={currency} />
-              </dd>
-            </div>
-          </dl>
-          {preview.warnings.length ? (
-            <div className="collection-allocation-preview__warning" role="status">
-              {preview.warnings.join(' · ')}
-            </div>
-          ) : null}
-          {preview.allocations.length ? (
-            <DataTable
-              columns={allocationColumns}
-              rows={preview.allocations}
-              rowKey={(row) => `${row.student_id ?? 'na'}-${row.installment_id ?? row.due_date ?? 'row'}`}
-            />
-          ) : null}
-        </section>
-      ) : null}
-
-      <CollectionCashSessionGate
-        journal={selectedJournal}
-        paymentMethod={paymentMethod}
-        collectionPath={`/admin/finance/billing-accounts/${familyId}`}
-        session={cashSession}
-        checking={checkingCashSession}
-      />
-
-      {submitError ? <p className="form-error">{submitError}</p> : null}
-
-      <div className="finance-family-collection-workflow__actions row">
-        <button type="button" className="btn btn--ghost" onClick={onCancel} disabled={submitting}>
-          {t('common.cancel')}
-        </button>
-        <button
-          type="submit"
-          className="btn btn--primary"
-          disabled={submitting || !previewValid || cashSessionBlocked}
-        >
-          {submitting
-            ? t('admin.finance.collections.submitting')
-            : t('admin.finance.billingAccounts.familyCollection.confirmAction')}
-        </button>
+      <div className="finance-collection-workflow__actions">
+        <div className="finance-collection-workflow__footer form-actions">
+          <button
+            type="button"
+            className="btn btn--secondary"
+            disabled={previewLoading || !Number.isFinite(parsedAmount) || parsedAmount <= 0}
+            onClick={() => void runPreview()}
+          >
+            {previewLoading
+              ? t('common.loading')
+              : t('admin.finance.quickPayment.previewAction')}
+          </button>
+          <button type="button" className="btn btn--ghost" onClick={onCancel} disabled={submitting}>
+            {t('common.cancel')}
+          </button>
+          <button
+            type="submit"
+            className="btn btn--primary"
+            disabled={submitting || !previewValid || cashSessionBlocked}
+          >
+            {submitting
+              ? t('admin.finance.collections.submitting')
+              : t('admin.finance.quickPayment.confirmAction')}
+          </button>
+        </div>
       </div>
     </form>
   );
