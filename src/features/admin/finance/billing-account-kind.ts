@@ -29,6 +29,21 @@ export function resolveBillingAccountKindFromRow(
   return normalizeApiAccountKind(row.account_kind) ?? resolveBillingAccountKind(row.student_count);
 }
 
+/** Reads `account_kind` from URL search params; absent param means `all`. */
+export function readBillingAccountKindFromSearchParams(
+  searchParams: Pick<URLSearchParams, 'get'>,
+): BillingAccountKindFilter {
+  return parseAccountKindUrlParam(searchParams.get('account_kind'));
+}
+
+export function writeBillingAccountKindSearchParam(
+  params: URLSearchParams,
+  value: BillingAccountKindFilter,
+): void {
+  if (value === 'all') params.delete('account_kind');
+  else params.set('account_kind', value);
+}
+
 export function parseAccountKindUrlParam(raw: string | null): BillingAccountKindFilter {
   if (!raw) return 'all';
   const normalized = raw.trim().toLowerCase();

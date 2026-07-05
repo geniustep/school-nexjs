@@ -37,6 +37,23 @@ export type BillingAccountsListFilters = {
   page: number;
 };
 
+export function buildBillingAccountsListQuery(
+  filters: BillingAccountsListFilters,
+): ListParams {
+  const accountKind = accountKindFilterToApiParam(filters.accountKind);
+  return {
+    page: filters.page,
+    page_size: 20,
+    search: filters.search || undefined,
+    academic_year_id: filters.academicYearId || undefined,
+    class_id: filters.classId || undefined,
+    level_id: filters.levelId || undefined,
+    has_balance: filters.hasBalance ? 1 : undefined,
+    has_overdue: filters.hasOverdue ? 1 : undefined,
+    account_kind: accountKind,
+  };
+}
+
 type BillingAccountsListPanelProps = {
   filters: BillingAccountsListFilters;
   onFiltersChange: (
@@ -67,20 +84,7 @@ export function BillingAccountsListPanel({
   const activeSchool = schools.find((s) => s.id === activeSchoolId);
   const { options: yearOptions } = useAcademicYearOptions(null);
 
-  const query: ListParams = useMemo(() => {
-    const accountKind = accountKindFilterToApiParam(filters.accountKind);
-    return {
-      page: filters.page,
-      page_size: 20,
-      search: filters.search || undefined,
-      academic_year_id: filters.academicYearId || undefined,
-      class_id: filters.classId || undefined,
-      level_id: filters.levelId || undefined,
-      has_balance: filters.hasBalance ? 1 : undefined,
-      has_overdue: filters.hasOverdue ? 1 : undefined,
-      account_kind: accountKind,
-    };
-  }, [filters]);
+  const query: ListParams = useMemo(() => buildBillingAccountsListQuery(filters), [filters]);
 
   const state = useAdminResource<unknown>(endpoints.admin.financeBillingAccounts, query);
   const parsed = useMemo(

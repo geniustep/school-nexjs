@@ -11,7 +11,10 @@ import {
   type BillingAccountsListFilters,
 } from '@/features/admin/finance/billing-accounts-list-panel';
 import type { BillingAccountKindFilter } from '@/features/admin/finance/billing-account-kind';
-import { parseAccountKindUrlParam } from '@/features/admin/finance/billing-account-kind';
+import {
+  readBillingAccountKindFromSearchParams,
+  writeBillingAccountKindSearchParam,
+} from '@/features/admin/finance/billing-account-kind';
 import { useT } from '@/features/i18n/locale-context';
 import { FINANCE_VIEW, canViewStudentBalance } from '@/lib/permissions/finance';
 import { PermissionDeniedState } from '@/components/states/states';
@@ -20,7 +23,7 @@ import { sanitizeReturnTo } from '@/lib/utils/safe-return-url';
 
 function readFilters(searchParams: URLSearchParams): BillingAccountsListFilters {
   const pageRaw = searchParams.get('page');
-  const accountKind = parseAccountKindUrlParam(searchParams.get('account_kind'));
+  const accountKind = readBillingAccountKindFromSearchParams(searchParams);
   return {
     search: searchParams.get('search') ?? '',
     academicYearId: searchParams.get('academic_year_id') ?? '',
@@ -65,8 +68,7 @@ export default function AdminFinanceBillingAccountsPage() {
           if (value === true) params.set(paramKey, 'true');
           else params.delete(paramKey);
         } else if (key === 'accountKind') {
-          if (value === 'all') params.delete(paramKey);
-          else params.set(paramKey, String(value));
+          writeBillingAccountKindSearchParam(params, String(value) as BillingAccountKindFilter);
         } else {
           params.set(paramKey, String(value));
         }
