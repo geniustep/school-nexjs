@@ -2,28 +2,26 @@
  * Local smoke: student 854 health tab contract (API + mapper).
  * Usage: node scripts/smoke-student-health.mjs [baseUrl]
  */
-import { readFileSync } from 'node:fs';
+import { loadAccountPassword, primeQaEnvFromLocal } from './qa-env.mjs';
+import {
+  hasCriticalHealthAlert,
+  normalizeStudentHealthProfile,
+  normalizeStudentHealthSummary,
+} from '../src/features/admin/students/utils/normalize-student-health.ts';
+import { buildStudent360TabIndicators } from '../src/features/admin/students/utils/student-360-tab-indicators.ts';
+
+primeQaEnvFromLocal();
 
 const base = process.argv[2] ?? 'http://localhost:3000';
 const login = process.env.STUDENT_360_QA_LOGIN ?? 'done';
-const password = process.env.STUDENT_360_QA_PASSWORD ?? 'admin123';
 
-function loadEnvLocal() {
-  try {
-    const raw = readFileSync('.env.local', 'utf8');
-    for (const line of raw.split(/\r?\n/)) {
-      const m = line.match(/^([^#=]+)=(.*)$/);
-      if (!m) continue;
-      const key = m[1].trim();
-      const val = m[2].trim();
-      if (!process.env[key]) process.env[key] = val;
-    }
-  } catch {
-    /* optional */
-  }
+let password;
+try {
+  password = loadAccountPassword(login);
+} catch (err) {
+  console.error(err instanceof Error ? err.message : 'Missing QA credentials.');
+  process.exit(1);
 }
-
-loadEnvLocal();
 
 const jar = new Map();
 
@@ -59,13 +57,6 @@ async function api(path, init = {}) {
   }
   return { res, body };
 }
-
-import {
-  hasCriticalHealthAlert,
-  normalizeStudentHealthProfile,
-  normalizeStudentHealthSummary,
-} from '../src/features/admin/students/utils/normalize-student-health.ts';
-import { buildStudent360TabIndicators } from '../src/features/admin/students/utils/student-360-tab-indicators.ts';
 
 const results = [];
 
@@ -117,7 +108,7 @@ const loginRes = await api('/api/auth/login', {
   body: JSON.stringify({ login, password }),
 });
 if (!loginRes.res.ok) {
-  console.error('Login failed', loginRes.body);
+  console.error('Login failed', loginRes.res.status);
   process.exit(1);
 }
 pass('login', String(loginRes.res.status));
