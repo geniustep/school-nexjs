@@ -352,6 +352,10 @@ export function FamilyCollectionWorkflowForm({
   return (
     <form className="finance-collection-workflow finance-family-collection-workflow" onSubmit={handleSubmit}>
       <div className="finance-collection-workflow__scroll">
+        <p className="finance-family-collection-workflow__intro muted">
+          {t('admin.finance.billingAccounts.familyCollection.intro')}
+        </p>
+
         {suggestedAmount != null && suggestedAmount > 0 ? (
           <section
             className="finance-quick-payment-suggestion"
@@ -415,6 +419,47 @@ export function FamilyCollectionWorkflowForm({
           />
         </section>
 
+        <section className="finance-family-collection-allocation-options">
+          {!limitToStudent ? (
+            <p className="tiny muted finance-family-collection-allocation-options__hint" role="status">
+              {t('admin.finance.billingAccounts.familyCollection.autoAllocationHint')}
+            </p>
+          ) : null}
+          <label className="collection-skip-allocation">
+            <input
+              type="checkbox"
+              checked={limitToStudent}
+              onChange={(e) => {
+                setLimitToStudent(e.target.checked);
+                if (!e.target.checked) setSelectedStudentId('');
+                setPreview(null);
+                setPreviewError(null);
+              }}
+            />
+            <span>{t('admin.finance.billingAccounts.familyCollection.limitToStudent')}</span>
+          </label>
+          {limitToStudent ? (
+            <label>
+              {t('admin.finance.billingAccounts.familyCollection.selectStudent')}
+              <select
+                className="input"
+                value={selectedStudentId}
+                onChange={(e) => {
+                  setSelectedStudentId(e.target.value);
+                  setPreview(null);
+                }}
+              >
+                <option value="">{t('admin.finance.billingAccounts.familyCollection.chooseStudent')}</option>
+                {students.map((s) => (
+                  <option key={s.student_id} value={s.student_id}>
+                    {s.student_name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+        </section>
+
         <details className="finance-collection-advanced">
           <summary>{t('admin.finance.quickPayment.additionalDetails')}</summary>
           <div className="finance-collection-advanced__body">
@@ -437,39 +482,6 @@ export function FamilyCollectionWorkflowForm({
                 ))}
               </select>
             </label>
-            <label className="collection-skip-allocation">
-              <input
-                type="checkbox"
-                checked={limitToStudent}
-                onChange={(e) => {
-                  setLimitToStudent(e.target.checked);
-                  if (!e.target.checked) setSelectedStudentId('');
-                  setPreview(null);
-                  setPreviewError(null);
-                }}
-              />
-              <span>{t('admin.finance.quickPayment.limitToStudent')}</span>
-            </label>
-            {limitToStudent ? (
-              <label>
-                {t('admin.finance.billingAccounts.familyCollection.selectStudent')}
-                <select
-                  className="input"
-                  value={selectedStudentId}
-                  onChange={(e) => {
-                    setSelectedStudentId(e.target.value);
-                    setPreview(null);
-                  }}
-                >
-                  <option value="">{t('admin.finance.billingAccounts.familyCollection.chooseStudent')}</option>
-                  {students.map((s) => (
-                    <option key={s.student_id} value={s.student_id}>
-                      {s.student_name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            ) : null}
           </div>
         </details>
 
@@ -534,7 +546,7 @@ export function FamilyCollectionWorkflowForm({
           >
             {previewLoading
               ? t('common.loading')
-              : t('admin.finance.quickPayment.previewAction')}
+              : t('admin.finance.billingAccounts.familyCollection.preview.title')}
           </button>
           <button type="button" className="btn btn--ghost" onClick={onCancel} disabled={submitting}>
             {t('common.cancel')}
@@ -546,7 +558,7 @@ export function FamilyCollectionWorkflowForm({
           >
             {submitting
               ? t('admin.finance.collections.submitting')
-              : t('admin.finance.quickPayment.confirmAction')}
+              : t('admin.finance.billingAccounts.familyCollection.confirmAction')}
           </button>
         </div>
       </div>

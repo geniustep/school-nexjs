@@ -64,7 +64,7 @@ export function FinanceHubLinks({ overview }: { overview: AdminFinanceOverview |
       show: canViewStudentBalance(user),
     },
     {
-      href: '/admin/finance/billing-accounts',
+      href: '/admin/finance/billing-accounts?account_kind=family',
       icon: <IconUsers size={22} />,
       labelKey: 'admin.finance.billingAccounts.hubTitle',
       descKey: 'admin.finance.billingAccounts.hubDesc',
