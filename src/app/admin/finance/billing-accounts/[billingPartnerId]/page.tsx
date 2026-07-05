@@ -16,8 +16,13 @@ import {
   BillingAccountSummaryCards,
 } from '@/features/admin/finance/billing-account-detail-sections';
 import { BillingAccountCreditSection } from '@/features/admin/finance/credit-balance/credit-balance-detail-sections';
+import { BillingAccountMembersSection } from '@/features/admin/finance/billing-membership/billing-account-members-section';
 import { FamilyCollectionDrawer } from '@/features/admin/finance/family-collection-drawer';
-import { resolveBillingAccountKind } from '@/features/admin/finance/billing-account-kind';
+import {
+  billingAccountKindBadgeClass,
+  billingAccountKindLabelKey,
+  resolveBillingAccountKind,
+} from '@/features/admin/finance/billing-account-kind';
 import { useAcademicYearOptions } from '@/features/admin/finance/use-finance-lookups';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
@@ -174,6 +179,9 @@ export default function AdminFinanceBillingAccountDetailPage({
                   <p className="finance-billing-hero__eyebrow">{t(detailSubtitleKey)}</p>
                   <h1 className="finance-billing-hero__title" dir="auto">
                     {t(detailTitleKey)}
+                    <span className={billingAccountKindBadgeClass(accountKind)}>
+                      {t(billingAccountKindLabelKey(accountKind))}
+                    </span>
                   </h1>
                   <p className="finance-billing-hero__reference" dir="auto">
                     {accountName}
@@ -306,6 +314,12 @@ export default function AdminFinanceBillingAccountDetailPage({
               currency={detail.summary.currency}
               billingPartnerId={Number(billingPartnerId)}
               returnTo={pageReturnTo}
+            />
+
+            <BillingAccountMembersSection
+              billingPartnerId={Number(billingPartnerId)}
+              academicYearId={academicYearId ? Number(academicYearId) : null}
+              onMembershipChanged={state.reload}
             />
 
             {!billingAccountHasFinancialData(detail.summary) &&

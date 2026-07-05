@@ -7034,6 +7034,149 @@
           "cheques": "الشيكات",
           "collect": "تسجيل تحصيل"
         },
+        "members": {
+          "title": "أعضاء الحساب",
+          "loadError": "تعذر تحميل أعضاء الحساب.",
+          "emptyTitle": "لا يوجد أعضاء",
+          "emptyDesc": "لا يوجد تلاميذ مرتبطون بعضوية هذا الحساب حاليًا.",
+          "columns": {
+            "startDate": "تاريخ بداية العضوية",
+            "status": "الحالة",
+            "warnings": "تحذيرات"
+          },
+          "status": {
+            "active": "نشط",
+            "ended": "منتهٍ",
+            "pending": "قيد البدء"
+          },
+          "add": {
+            "action": "إضافة تلميذ إلى الحساب",
+            "title": "إضافة تلميذ إلى الحساب",
+            "reasonLabel": "سبب الإضافة",
+            "startDateLabel": "تاريخ البداية (اختياري)",
+            "changeStudent": "تغيير التلميذ",
+            "selectStudentRequired": "اختر تلميذًا للإضافة.",
+            "reasonRequired": "أدخل سببًا واضحًا للإضافة (3 أحرف على الأقل).",
+            "conflictMessage": "هذا التلميذ مرتبط بحساب فوترة آخر. هل تريد نقله إلى هذا الحساب؟",
+            "success": "تمت إضافة التلميذ إلى الحساب."
+          },
+          "transfer": {
+            "confirm": "نقل إلى هذا الحساب",
+            "success": "تم نقل التلميذ إلى هذا الحساب."
+          },
+          "preview": {
+            "action": "معاينة الأثر المالي",
+            "openFromConflict": "متابعة النقل — معاينة الأثر",
+            "defaultReason": "مراجعة نقل العضوية",
+            "transferTitle": "نقل التلميذ إلى هذا الحساب",
+            "realignmentTitle": "محاذاة الرسوم مع مسؤول الفوترة",
+            "subtitle": "معاينة الأثر المالي قبل أي تنفيذ.",
+            "modeLegend": "سياسة نقل الرسوم",
+            "loading": "جاري تحميل المعاينة…",
+            "refreshPreview": "تحديث المعاينة",
+            "selectAtLeastOneFee": "اختر رسمًا واحدًا على الأقل.",
+            "selectedItemsTitle": "اختيار الرسوم",
+            "selectedItemsHint": "اختر الرسوم المؤهلة ثم حدّث المعاينة.",
+            "alignedNoOp": "الحساب الحالي والرسوم المالية متطابقة بالفعل. لا يوجد شيء يحتاج إلى نقل.",
+            "realignmentNotice": "سيتم محاذاة الرسوم مع مسؤول الفوترة الحالي، وليس نقل عضوية جديدة.",
+            "blockedNotice": "لا يمكن إتمام النقل بهذه السياسة بسبب قيود على بعض الرسوم.",
+            "applyNextPhase": "التنفيذ الفعلي سيتوفر في مرحلة لاحقة بعد مراجعة هذه المعاينة.",
+            "fromPartner": "من حساب",
+            "toPartner": "إلى حساب",
+            "movableTitle": "سيتم نقلها",
+            "preservedTitle": "ستبقى على الحساب الحالي",
+            "blockedTitle": "لا يمكن نقلها",
+            "movableEmpty": "لا توجد رسوم قابلة للنقل.",
+            "preservedEmpty": "لا توجد رسوم محفوظة.",
+            "blockedEmpty": "لا توجد رسوم محجوبة.",
+            "modes": {
+              "membershipOnly": {
+                "label": "تغيير العضوية فقط",
+                "hint": "ينقل العضوية دون نقل الرسوم المفتوحة."
+              },
+              "futureOnly": {
+                "label": "نقل المستحقات المستقبلية",
+                "hint": "ينقل الرسوم المستقبلية فقط."
+              },
+              "openUnpaid": {
+                "label": "نقل المستحقات المفتوحة غير المؤداة",
+                "hint": "ينقل الرسوم المفتوحة غير المسددة حسب الأهلية."
+              },
+              "selectedItems": {
+                "label": "اختيار الرسوم يدويًا",
+                "hint": "اختر رسومًا محددة ثم اعرض أثرها."
+              }
+            },
+            "reasons": {
+              "alreadyOnTarget": "الرسم مرتبط بالفعل بالحساب المستهدف.",
+              "partialFeeSplitRequired": "يتطلب هذا الرسم تقسيمًا جزئيًا قبل النقل.",
+              "membershipFeeDrift": "العضوية والرسوم غير متطابقتين.",
+              "paidOrClosed": "الرسم مسدد أو مغلق.",
+              "blockedByPolicy": "الرسم محجوب بموجب سياسة الفوترة.",
+              "unknown": "سبب غير معروف."
+            },
+            "warnings": {
+              "membershipFeeDrift": "توجد فجوة بين العضوية الحالية وموقع بعض الرسوم.",
+              "partialFeeSplitRequired": "بعض الرسوم تتطلب تقسيمًا جزئيًا قبل النقل.",
+              "feeTransferBlocked": "نقل الرسوم محجوب لهذه الحالة.",
+              "generic": "تحقق من التحذيرات قبل المتابعة."
+            }
+          },
+          "apply": {
+            "continueToConfirm": "متابعة إلى التأكيد",
+            "continueToConfirmRealignment": "متابعة إلى تأكيد المحاذاة",
+            "confirmTitle": "تأكيد قبل التنفيذ",
+            "confirmTitleRealignment": "تأكيد محاذاة الرسوم",
+            "realignmentConfirmNotice": "العضوية موجودة بالفعل على هذا الحساب. سيتم نقل الرسوم المؤهلة فقط لتتطابق مع مسؤول الفوترة الحالي.",
+            "confirmTransfer": "تأكيد النقل",
+            "confirmRealignment": "محاذاة الرسوم",
+            "reasonLabel": "سبب إداري",
+            "reasonRequired": "أدخل سببًا واضحًا (3 أحرف على الأقل).",
+            "summaryStudent": "التلميذ",
+            "summaryFrom": "الحساب الحالي",
+            "summaryTo": "الحساب الهدف",
+            "summaryOperation": "نوع العملية",
+            "summaryMovableCount": "عدد الرسوم المتأثرة",
+            "summaryAmountMoved": "المبلغ الذي سيتحرك",
+            "summaryAmountPreserved": "المبلغ الذي سيبقى",
+            "summaryAmountBlocked": "المبلغ المحجوب",
+            "operationTransfer": "نقل العضوية",
+            "operationRealignment": "محاذاة الرسوم",
+            "executing": "جارٍ التنفيذ…",
+            "backToPreview": "العودة إلى المعاينة",
+            "resultTitle": "نتيجة العملية",
+            "successTransfer": "تم نقل التلميذ إلى حساب الفوترة الجديد.",
+            "successRealignment": "تمت محاذاة الرسوم مع مسؤول الفوترة الحالي.",
+            "successNoOp": "لا توجد تغييرات مالية مطلوبة.",
+            "resultMovedCount": "تم نقل {count} رسوم",
+            "resultAmountMoved": "المبلغ المنقول",
+            "resultMembershipChanged": "تغيّرت العضوية",
+            "staleDuringApply": "تغيّرت الحالة المالية منذ المعاينة السابقة. راجع الأثر المحدّث ثم أكّد من جديد."
+          },
+          "end": {
+            "action": "إنهاء العضوية",
+            "title": "إنهاء العضوية",
+            "reasonLabel": "سبب الإنهاء",
+            "endDateLabel": "تاريخ الإنهاء (اختياري)",
+            "reasonRequired": "أدخل سببًا واضحًا للإنهاء (3 أحرف على الأقل).",
+            "confirm": "تأكيد إنهاء العضوية",
+            "success": "تم إنهاء عضوية التلميذ."
+          },
+          "errors": {
+            "conflict": "التلميذ مرتبط بحساب فوترة آخر.",
+            "notFound": "العضوية غير موجودة.",
+            "studentNotFound": "التلميذ غير موجود.",
+            "alreadyMember": "التلميذ عضو بالفعل في هذا الحساب.",
+            "forbidden": "لا تملك صلاحية إدارة عضوية الحساب.",
+            "validation": "تحقق من البيانات المدخلة وحاول مجددًا.",
+            "previewStale": "تغيرت الحالة المالية؛ أعد المعاينة.",
+            "feeTransferBlocked": "نقل الرسوم غير مسموح لهذه الحالة.",
+            "feeIdsNotEligible": "بعض الرسوم المختارة غير مؤهلة للنقل.",
+            "previewTokenRequired": "يلزم تحديث المعاينة قبل التنفيذ.",
+            "invalidFilter": "أحد معاملات المعاينة غير صالح.",
+            "generic": "تعذر تنفيذ العملية. حاول مجددًا."
+          }
+        },
         "errors": {
           "notFound": "تعذر العثور على حساب الدافع.",
           "yearOutOfScope": "السنة الدراسية المختارة غير متاحة لهذه المدرسة.",

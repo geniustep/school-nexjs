@@ -24,7 +24,6 @@ describe('billing accounts list row kind rendering', () => {
   it('infers kind from student_count only when account_kind is absent', () => {
     expect(
       resolveBillingAccountKindFromRow({
-        billing_partner_id: 7086,
         student_count: 3,
       }),
     ).toBe('family');

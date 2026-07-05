@@ -6785,6 +6785,149 @@
           "cheques": "Cheques",
           "collect": "Record collection"
         },
+        "members": {
+          "title": "Account members",
+          "loadError": "Could not load account members.",
+          "emptyTitle": "No members",
+          "emptyDesc": "No students are currently linked to this billing account membership.",
+          "columns": {
+            "startDate": "Membership start",
+            "status": "Status",
+            "warnings": "Warnings"
+          },
+          "status": {
+            "active": "Active",
+            "ended": "Ended",
+            "pending": "Pending start"
+          },
+          "add": {
+            "action": "Add student to account",
+            "title": "Add student to account",
+            "reasonLabel": "Reason for adding",
+            "startDateLabel": "Start date (optional)",
+            "changeStudent": "Change student",
+            "selectStudentRequired": "Select a student to add.",
+            "reasonRequired": "Enter a clear reason for adding (at least 3 characters).",
+            "conflictMessage": "This student is linked to another billing account. Do you want to transfer them to this account?",
+            "success": "Student added to the account."
+          },
+          "transfer": {
+            "confirm": "Transfer to this account",
+            "success": "Student transferred to this account."
+          },
+          "preview": {
+            "action": "Preview financial impact",
+            "openFromConflict": "Continue transfer — preview impact",
+            "defaultReason": "Membership transfer review",
+            "transferTitle": "Transfer student to this account",
+            "realignmentTitle": "Realign fees with billing partner",
+            "subtitle": "Preview financial impact before any execution.",
+            "modeLegend": "Fee transfer policy",
+            "loading": "Loading preview…",
+            "refreshPreview": "Refresh preview",
+            "selectAtLeastOneFee": "Select at least one fee.",
+            "selectedItemsTitle": "Fee selection",
+            "selectedItemsHint": "Choose eligible fees, then refresh the preview.",
+            "alignedNoOp": "The current account and fees are already aligned. Nothing needs to be moved.",
+            "realignmentNotice": "Fees will be realigned to the current billing partner, not a new membership transfer.",
+            "blockedNotice": "Transfer cannot proceed with this policy because some fees are blocked.",
+            "applyNextPhase": "Execution will be available in a later phase after reviewing this preview.",
+            "fromPartner": "From account",
+            "toPartner": "To account",
+            "movableTitle": "Will be moved",
+            "preservedTitle": "Stays on current account",
+            "blockedTitle": "Cannot be moved",
+            "movableEmpty": "No movable fees.",
+            "preservedEmpty": "No preserved fees.",
+            "blockedEmpty": "No blocked fees.",
+            "modes": {
+              "membershipOnly": {
+                "label": "Membership change only",
+                "hint": "Changes membership without moving open fees."
+              },
+              "futureOnly": {
+                "label": "Move future charges",
+                "hint": "Moves future fees only."
+              },
+              "openUnpaid": {
+                "label": "Move open unpaid charges",
+                "hint": "Moves open unpaid fees based on eligibility."
+              },
+              "selectedItems": {
+                "label": "Select fees manually",
+                "hint": "Pick specific fees and preview their impact."
+              }
+            },
+            "reasons": {
+              "alreadyOnTarget": "Fee is already on the target account.",
+              "partialFeeSplitRequired": "This fee requires a partial split before transfer.",
+              "membershipFeeDrift": "Membership and fee locations do not match.",
+              "paidOrClosed": "Fee is paid or closed.",
+              "blockedByPolicy": "Fee is blocked by billing policy.",
+              "unknown": "Unknown reason."
+            },
+            "warnings": {
+              "membershipFeeDrift": "There is a gap between current membership and some fee locations.",
+              "partialFeeSplitRequired": "Some fees require a partial split before transfer.",
+              "feeTransferBlocked": "Fee transfer is blocked for this case.",
+              "generic": "Review warnings before continuing."
+            }
+          },
+          "apply": {
+            "continueToConfirm": "Continue to confirmation",
+            "continueToConfirmRealignment": "Continue to realignment confirmation",
+            "confirmTitle": "Confirm before execution",
+            "confirmTitleRealignment": "Confirm fee realignment",
+            "realignmentConfirmNotice": "Membership is already on this billing account. Only eligible fees will be moved to match the current billing partner.",
+            "confirmTransfer": "Confirm transfer",
+            "confirmRealignment": "Realign fees",
+            "reasonLabel": "Administrative reason",
+            "reasonRequired": "Enter a clear reason (at least 3 characters).",
+            "summaryStudent": "Student",
+            "summaryFrom": "Current account",
+            "summaryTo": "Target account",
+            "summaryOperation": "Operation type",
+            "summaryMovableCount": "Fees to be affected",
+            "summaryAmountMoved": "Amount to move",
+            "summaryAmountPreserved": "Amount staying",
+            "summaryAmountBlocked": "Blocked amount",
+            "operationTransfer": "Membership transfer",
+            "operationRealignment": "Fee realignment",
+            "executing": "Executing…",
+            "backToPreview": "Back to preview",
+            "resultTitle": "Operation result",
+            "successTransfer": "The student was transferred to the new billing account.",
+            "successRealignment": "Fees were realigned with the current billing partner.",
+            "successNoOp": "No financial changes were required.",
+            "resultMovedCount": "{count} fee(s) moved",
+            "resultAmountMoved": "Amount moved",
+            "resultMembershipChanged": "Membership changed",
+            "staleDuringApply": "Financial state changed since the previous preview. Review the updated impact and confirm again."
+          },
+          "end": {
+            "action": "End membership",
+            "title": "End membership",
+            "reasonLabel": "Reason for ending",
+            "endDateLabel": "End date (optional)",
+            "reasonRequired": "Enter a clear reason for ending (at least 3 characters).",
+            "confirm": "Confirm end membership",
+            "success": "Student membership ended."
+          },
+          "errors": {
+            "conflict": "The student is linked to another billing account.",
+            "notFound": "Membership not found.",
+            "studentNotFound": "Student not found.",
+            "alreadyMember": "The student is already a member of this account.",
+            "forbidden": "You are not allowed to manage account membership.",
+            "validation": "Check the entered data and try again.",
+            "previewStale": "Financial state changed; refresh the preview.",
+            "feeTransferBlocked": "Fee transfer is not allowed for this case.",
+            "feeIdsNotEligible": "Some selected fees are not eligible for transfer.",
+            "previewTokenRequired": "Preview must be refreshed before execution.",
+            "invalidFilter": "One preview parameter is invalid.",
+            "generic": "Could not complete the operation. Try again."
+          }
+        },
         "errors": {
           "notFound": "Payer account not found.",
           "yearOutOfScope": "The selected academic year is not available for this school.",

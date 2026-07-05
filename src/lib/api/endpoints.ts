@@ -295,6 +295,21 @@ export const endpoints = {
     financeBillingAccountsDataQuality: '/admin/finance/billing-accounts/data-quality',
     financeBillingAccountSummary: (billingPartnerId: number | string) =>
       `/admin/finance/billing-accounts/${billingPartnerId}/summary`,
+    financeBillingAccountMembers: (billingPartnerId: number | string) =>
+      `/admin/finance/billing-accounts/${billingPartnerId}/members`,
+    financeBillingAccountMemberTransferInPreview: (
+      billingPartnerId: number | string,
+      studentId: number | string,
+    ) =>
+      `/admin/finance/billing-accounts/${billingPartnerId}/members/${studentId}/transfer-in/preview`,
+    financeBillingAccountMemberTransferIn: (
+      billingPartnerId: number | string,
+      studentId: number | string,
+    ) => `/admin/finance/billing-accounts/${billingPartnerId}/members/${studentId}/transfer-in`,
+    financeBillingAccountMemberEnd: (
+      billingPartnerId: number | string,
+      studentId: number | string,
+    ) => `/admin/finance/billing-accounts/${billingPartnerId}/members/${studentId}/end`,
     financeCreditBalances: '/admin/finance/credit-balances',
     financeBillingAccountCreditBalance: (billingPartnerId: number | string) =>
       `/admin/finance/billing-accounts/${billingPartnerId}/credit-balance`,

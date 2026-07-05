@@ -11,6 +11,7 @@ export const FINANCE_MANAGE_DISCOUNTS: Permission = 'finance.manage_discounts';
 export const FINANCE_COLLECT: Permission = 'finance.collect_payments';
 export const FINANCE_CANCEL_PAYMENTS: Permission = 'finance.cancel_payments';
 export const FINANCE_MANAGE_BILLING: Permission = 'finance.manage_billing_profile';
+export const FINANCE_MANAGE_BILLING_MEMBERSHIP: Permission = 'finance.manage_billing_membership';
 export const FINANCE_VIEW_BILLING: Permission = 'finance.view_billing_profile';
 export const FINANCE_VIEW_PAYMENTS: Permission = 'finance.view_payments';
 export const FINANCE_VIEW_STUDENT_BALANCE: Permission = 'finance.view_student_balance';
@@ -73,6 +74,10 @@ export function canCancelPayments(user: CurrentUser | null): boolean {
 
 export function canManageBillingProfile(user: CurrentUser | null): boolean {
   return hasPermission(user, FINANCE_MANAGE_BILLING);
+}
+
+export function canManageBillingMembership(user: CurrentUser | null): boolean {
+  return hasPermission(user, FINANCE_MANAGE_BILLING_MEMBERSHIP);
 }
 
 export function canViewBillingProfile(user: CurrentUser | null): boolean {

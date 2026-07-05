@@ -44,6 +44,7 @@ export type Permission =
   | 'finance.collect_payments'
   | 'finance.cancel_payments'
   | 'finance.manage_billing_profile'
+  | 'finance.manage_billing_membership'
   | 'finance.view_billing_profile'
   | 'finance.view_payments'
   | 'finance.view_student_balance'

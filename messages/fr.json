@@ -6778,6 +6778,149 @@
           "cheques": "Chèques",
           "collect": "Enregistrer un encaissement"
         },
+        "members": {
+          "title": "Membres du compte",
+          "loadError": "Impossible de charger les membres du compte.",
+          "emptyTitle": "Aucun membre",
+          "emptyDesc": "Aucun élève n'est actuellement lié à l'adhésion de ce compte.",
+          "columns": {
+            "startDate": "Début d'adhésion",
+            "status": "Statut",
+            "warnings": "Avertissements"
+          },
+          "status": {
+            "active": "Actif",
+            "ended": "Terminé",
+            "pending": "En attente"
+          },
+          "add": {
+            "action": "Ajouter un élève au compte",
+            "title": "Ajouter un élève au compte",
+            "reasonLabel": "Motif d'ajout",
+            "startDateLabel": "Date de début (optionnel)",
+            "changeStudent": "Changer d'élève",
+            "selectStudentRequired": "Sélectionnez un élève à ajouter.",
+            "reasonRequired": "Saisissez un motif clair (au moins 3 caractères).",
+            "conflictMessage": "Cet élève est lié à un autre compte de facturation. Voulez-vous le transférer vers ce compte ?",
+            "success": "Élève ajouté au compte."
+          },
+          "transfer": {
+            "confirm": "Transférer vers ce compte",
+            "success": "Élève transféré vers ce compte."
+          },
+          "preview": {
+            "action": "Aperçu de l'impact financier",
+            "openFromConflict": "Poursuivre — aperçu de l'impact",
+            "defaultReason": "Revue de transfert d'adhésion",
+            "transferTitle": "Transférer l'élève vers ce compte",
+            "realignmentTitle": "Réaligner les frais avec le payeur",
+            "subtitle": "Aperçu de l'impact financier avant toute exécution.",
+            "modeLegend": "Politique de transfert des frais",
+            "loading": "Chargement de l'aperçu…",
+            "refreshPreview": "Actualiser l'aperçu",
+            "selectAtLeastOneFee": "Sélectionnez au moins un frais.",
+            "selectedItemsTitle": "Sélection des frais",
+            "selectedItemsHint": "Choisissez les frais éligibles puis actualisez l'aperçu.",
+            "alignedNoOp": "Le compte et les frais sont déjà alignés. Rien à déplacer.",
+            "realignmentNotice": "Les frais seront réalignés avec le payeur actuel, sans nouvelle adhésion.",
+            "blockedNotice": "Le transfert ne peut pas continuer avec cette politique.",
+            "applyNextPhase": "L'exécution sera disponible dans une phase ultérieure.",
+            "fromPartner": "Depuis le compte",
+            "toPartner": "Vers le compte",
+            "movableTitle": "Seront déplacés",
+            "preservedTitle": "Restent sur le compte actuel",
+            "blockedTitle": "Ne peuvent pas être déplacés",
+            "movableEmpty": "Aucun frais déplaçable.",
+            "preservedEmpty": "Aucun frais conservé.",
+            "blockedEmpty": "Aucun frais bloqué.",
+            "modes": {
+              "membershipOnly": {
+                "label": "Changement d'adhésion seulement",
+                "hint": "Change l'adhésion sans déplacer les frais ouverts."
+              },
+              "futureOnly": {
+                "label": "Déplacer les échéances futures",
+                "hint": "Déplace uniquement les frais futurs."
+              },
+              "openUnpaid": {
+                "label": "Déplacer les impayés ouverts",
+                "hint": "Déplace les frais ouverts non payés selon l'éligibilité."
+              },
+              "selectedItems": {
+                "label": "Sélection manuelle des frais",
+                "hint": "Choisissez des frais précis puis prévisualisez l'impact."
+              }
+            },
+            "reasons": {
+              "alreadyOnTarget": "Frais déjà sur le compte cible.",
+              "partialFeeSplitRequired": "Ce frais nécessite un fractionnement partiel.",
+              "membershipFeeDrift": "Adhésion et frais ne correspondent pas.",
+              "paidOrClosed": "Frais payé ou clôturé.",
+              "blockedByPolicy": "Frais bloqué par la politique.",
+              "unknown": "Motif inconnu."
+            },
+            "warnings": {
+              "membershipFeeDrift": "Écart entre l'adhésion actuelle et certains frais.",
+              "partialFeeSplitRequired": "Certains frais nécessitent un fractionnement partiel.",
+              "feeTransferBlocked": "Transfert de frais bloqué pour ce cas.",
+              "generic": "Vérifiez les avertissements avant de continuer."
+            }
+          },
+          "apply": {
+            "continueToConfirm": "Continuer vers la confirmation",
+            "continueToConfirmRealignment": "Continuer vers la confirmation de réalignement",
+            "confirmTitle": "Confirmer avant exécution",
+            "confirmTitleRealignment": "Confirmer le réalignement des frais",
+            "realignmentConfirmNotice": "L'adhésion est déjà sur ce compte. Seuls les frais éligibles seront déplacés pour correspondre au responsable de facturation actuel.",
+            "confirmTransfer": "Confirmer le transfert",
+            "confirmRealignment": "Réaligner les frais",
+            "reasonLabel": "Motif administratif",
+            "reasonRequired": "Saisissez un motif clair (au moins 3 caractères).",
+            "summaryStudent": "Élève",
+            "summaryFrom": "Compte actuel",
+            "summaryTo": "Compte cible",
+            "summaryOperation": "Type d'opération",
+            "summaryMovableCount": "Frais concernés",
+            "summaryAmountMoved": "Montant à déplacer",
+            "summaryAmountPreserved": "Montant conservé",
+            "summaryAmountBlocked": "Montant bloqué",
+            "operationTransfer": "Transfert d'adhésion",
+            "operationRealignment": "Réalignement des frais",
+            "executing": "Exécution…",
+            "backToPreview": "Retour à l'aperçu",
+            "resultTitle": "Résultat de l'opération",
+            "successTransfer": "L'élève a été transféré vers le nouveau compte de facturation.",
+            "successRealignment": "Les frais ont été réalignés avec le responsable de facturation actuel.",
+            "successNoOp": "Aucun changement financier n'était nécessaire.",
+            "resultMovedCount": "{count} frais déplacé(s)",
+            "resultAmountMoved": "Montant déplacé",
+            "resultMembershipChanged": "Adhésion modifiée",
+            "staleDuringApply": "L'état financier a changé depuis l'aperçu précédent. Revoyez l'impact mis à jour puis confirmez à nouveau."
+          },
+          "end": {
+            "action": "Mettre fin à l'adhésion",
+            "title": "Mettre fin à l'adhésion",
+            "reasonLabel": "Motif de fin",
+            "endDateLabel": "Date de fin (optionnel)",
+            "reasonRequired": "Saisissez un motif clair (au moins 3 caractères).",
+            "confirm": "Confirmer la fin d'adhésion",
+            "success": "Adhésion de l'élève terminée."
+          },
+          "errors": {
+            "conflict": "L'élève est lié à un autre compte de facturation.",
+            "notFound": "Adhésion introuvable.",
+            "studentNotFound": "Élève introuvable.",
+            "alreadyMember": "L'élève est déjà membre de ce compte.",
+            "forbidden": "Vous n'êtes pas autorisé à gérer l'adhésion du compte.",
+            "validation": "Vérifiez les données saisies et réessayez.",
+            "previewStale": "L'état financier a changé ; actualisez l'aperçu.",
+            "feeTransferBlocked": "Transfert de frais non autorisé pour ce cas.",
+            "feeIdsNotEligible": "Certains frais sélectionnés ne sont pas éligibles.",
+            "previewTokenRequired": "L'aperçu doit être actualisé avant l'exécution.",
+            "invalidFilter": "Un paramètre d'aperçu est invalide.",
+            "generic": "Impossible d'effectuer l'opération. Réessayez."
+          }
+        },
         "errors": {
           "notFound": "Compte payeur introuvable.",
           "yearOutOfScope": "L'année scolaire sélectionnée n'est pas disponible pour cet établissement.",

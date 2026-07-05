@@ -6778,6 +6778,149 @@
           "cheques": "Cheques",
           "collect": "Registrar cobro"
         },
+        "members": {
+          "title": "Miembros de la cuenta",
+          "loadError": "No se pudieron cargar los miembros de la cuenta.",
+          "emptyTitle": "Sin miembros",
+          "emptyDesc": "Ningún alumno está vinculado actualmente a la membresía de esta cuenta.",
+          "columns": {
+            "startDate": "Inicio de membresía",
+            "status": "Estado",
+            "warnings": "Advertencias"
+          },
+          "status": {
+            "active": "Activo",
+            "ended": "Finalizado",
+            "pending": "Pendiente"
+          },
+          "add": {
+            "action": "Añadir alumno a la cuenta",
+            "title": "Añadir alumno a la cuenta",
+            "reasonLabel": "Motivo de la adición",
+            "startDateLabel": "Fecha de inicio (opcional)",
+            "changeStudent": "Cambiar alumno",
+            "selectStudentRequired": "Seleccione un alumno para añadir.",
+            "reasonRequired": "Introduzca un motivo claro (al menos 3 caracteres).",
+            "conflictMessage": "Este alumno está vinculado a otra cuenta de facturación. ¿Desea transferirlo a esta cuenta?",
+            "success": "Alumno añadido a la cuenta."
+          },
+          "transfer": {
+            "confirm": "Transferir a esta cuenta",
+            "success": "Alumno transferido a esta cuenta."
+          },
+          "preview": {
+            "action": "Vista previa del impacto financiero",
+            "openFromConflict": "Continuar — vista previa del impacto",
+            "defaultReason": "Revisión de transferencia de membresía",
+            "transferTitle": "Transferir alumno a esta cuenta",
+            "realignmentTitle": "Realinear cargos con el responsable de facturación",
+            "subtitle": "Vista previa del impacto financiero antes de ejecutar.",
+            "modeLegend": "Política de transferencia de cargos",
+            "loading": "Cargando vista previa…",
+            "refreshPreview": "Actualizar vista previa",
+            "selectAtLeastOneFee": "Seleccione al menos un cargo.",
+            "selectedItemsTitle": "Selección de cargos",
+            "selectedItemsHint": "Elija cargos elegibles y actualice la vista previa.",
+            "alignedNoOp": "La cuenta y los cargos ya están alineados. No hay nada que mover.",
+            "realignmentNotice": "Los cargos se realinearán con el responsable actual, no una nueva membresía.",
+            "blockedNotice": "No se puede continuar con esta política por cargos bloqueados.",
+            "applyNextPhase": "La ejecución estará disponible en una fase posterior.",
+            "fromPartner": "Desde cuenta",
+            "toPartner": "Hacia cuenta",
+            "movableTitle": "Se moverán",
+            "preservedTitle": "Permanecen en la cuenta actual",
+            "blockedTitle": "No se pueden mover",
+            "movableEmpty": "No hay cargos movibles.",
+            "preservedEmpty": "No hay cargos preservados.",
+            "blockedEmpty": "No hay cargos bloqueados.",
+            "modes": {
+              "membershipOnly": {
+                "label": "Solo cambio de membresía",
+                "hint": "Cambia la membresía sin mover cargos abiertos."
+              },
+              "futureOnly": {
+                "label": "Mover cargos futuros",
+                "hint": "Mueve solo cargos futuros."
+              },
+              "openUnpaid": {
+                "label": "Mover impagados abiertos",
+                "hint": "Mueve cargos abiertos no pagados según elegibilidad."
+              },
+              "selectedItems": {
+                "label": "Seleccionar cargos manualmente",
+                "hint": "Elija cargos específicos y previsualice el impacto."
+              }
+            },
+            "reasons": {
+              "alreadyOnTarget": "El cargo ya está en la cuenta destino.",
+              "partialFeeSplitRequired": "Este cargo requiere división parcial.",
+              "membershipFeeDrift": "Membresía y cargos no coinciden.",
+              "paidOrClosed": "Cargo pagado o cerrado.",
+              "blockedByPolicy": "Cargo bloqueado por política.",
+              "unknown": "Motivo desconocido."
+            },
+            "warnings": {
+              "membershipFeeDrift": "Hay diferencia entre la membresía y algunos cargos.",
+              "partialFeeSplitRequired": "Algunos cargos requieren división parcial.",
+              "feeTransferBlocked": "Transferencia de cargos bloqueada.",
+              "generic": "Revise las advertencias antes de continuar."
+            }
+          },
+          "apply": {
+            "continueToConfirm": "Continuar a la confirmación",
+            "continueToConfirmRealignment": "Continuar a la confirmación de realineación",
+            "confirmTitle": "Confirmar antes de ejecutar",
+            "confirmTitleRealignment": "Confirmar realineación de cargos",
+            "realignmentConfirmNotice": "La membresía ya está en esta cuenta. Solo se moverán los cargos elegibles para alinearlos con el responsable de facturación actual.",
+            "confirmTransfer": "Confirmar transferencia",
+            "confirmRealignment": "Realinear cargos",
+            "reasonLabel": "Motivo administrativo",
+            "reasonRequired": "Introduce un motivo claro (al menos 3 caracteres).",
+            "summaryStudent": "Alumno",
+            "summaryFrom": "Cuenta actual",
+            "summaryTo": "Cuenta destino",
+            "summaryOperation": "Tipo de operación",
+            "summaryMovableCount": "Cargos afectados",
+            "summaryAmountMoved": "Importe a mover",
+            "summaryAmountPreserved": "Importe que permanece",
+            "summaryAmountBlocked": "Importe bloqueado",
+            "operationTransfer": "Transferencia de membresía",
+            "operationRealignment": "Realineación de cargos",
+            "executing": "Ejecutando…",
+            "backToPreview": "Volver a la vista previa",
+            "resultTitle": "Resultado de la operación",
+            "successTransfer": "El alumno se transfirió a la nueva cuenta de facturación.",
+            "successRealignment": "Los cargos se realinearon con el responsable de facturación actual.",
+            "successNoOp": "No se requirieron cambios financieros.",
+            "resultMovedCount": "{count} cargo(s) movido(s)",
+            "resultAmountMoved": "Importe movido",
+            "resultMembershipChanged": "Membresía cambiada",
+            "staleDuringApply": "El estado financiero cambió desde la vista previa anterior. Revise el impacto actualizado y confirme de nuevo."
+          },
+          "end": {
+            "action": "Finalizar membresía",
+            "title": "Finalizar membresía",
+            "reasonLabel": "Motivo de finalización",
+            "endDateLabel": "Fecha de fin (opcional)",
+            "reasonRequired": "Introduzca un motivo claro (al menos 3 caracteres).",
+            "confirm": "Confirmar fin de membresía",
+            "success": "Membresía del alumno finalizada."
+          },
+          "errors": {
+            "conflict": "El alumno está vinculado a otra cuenta de facturación.",
+            "notFound": "Membresía no encontrada.",
+            "studentNotFound": "Alumno no encontrado.",
+            "alreadyMember": "El alumno ya es miembro de esta cuenta.",
+            "forbidden": "No tiene permiso para gestionar la membresía de la cuenta.",
+            "validation": "Revise los datos introducidos e inténtelo de nuevo.",
+            "previewStale": "El estado financiero cambió; actualice la vista previa.",
+            "feeTransferBlocked": "Transferencia de cargos no permitida.",
+            "feeIdsNotEligible": "Algunos cargos seleccionados no son elegibles.",
+            "previewTokenRequired": "Debe actualizar la vista previa antes de ejecutar.",
+            "invalidFilter": "Un parámetro de vista previa no es válido.",
+            "generic": "No se pudo completar la operación. Inténtelo de nuevo."
+          }
+        },
         "errors": {
           "notFound": "No se encontró la cuenta del pagador.",
           "yearOutOfScope": "El año académico seleccionado no está disponible para este centro.",
