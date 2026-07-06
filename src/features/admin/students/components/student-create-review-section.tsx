@@ -6,6 +6,7 @@ import { buildFullNamePreview, hasStudentMassarCode } from '../utils/student-pro
 import { formatFinanceCurrency } from '../utils/student-finance-format';
 import { buildEnrollmentFinanceReviewModel, enrollmentFinancePreviewStatus } from '../utils/enrollment-finance-review';
 import { formatCustomizationReason, getFeePlanSuggestPendingReason, resolveFeePlanSuggestEmptyMessage, selectedFinancePeriods } from '../utils/student-enrollment-finance';
+import { resolveBillingResponsibilitySelectionLabel } from '../utils/student-create-billing-responsibility';
 import type {
   EnrollmentPlanPreviewResult,
   FeePlanSuggestResult,
@@ -15,13 +16,15 @@ import type {
 import type { StudentProfileFormState } from '../utils/student-profile';
 import { StudentCreateStyledSection } from './student-create-section-header';
 
-function billingPartnerLabel(
+function billingResponsibilityReviewLabel(
   t: (key: string) => string,
-  type: StudentCreateBillingFormState['billingPartnerType'],
+  billingState: StudentCreateBillingFormState,
 ): string {
-  if (type === 'student') return t('admin.finance.partnerStudent');
-  if (type === 'other') return t('admin.student360.create.billing.partnerOther');
-  return t('admin.finance.partnerGuardian');
+  const base = resolveBillingResponsibilitySelectionLabel(billingState.responsibilitySelection, t);
+  if (billingState.responsibilitySelection === 'student' && billingState.studentBillingReason.trim()) {
+    return `${base} — ${billingState.studentBillingReason.trim()}`;
+  }
+  return base;
 }
 
 function filterFinanceSummaryRows(
@@ -158,7 +161,7 @@ export function StudentCreateReviewSection({
               </div>
               <div className="student-create-review-stat">
                 <dt>{t('admin.student360.create.review.billingPartner')}</dt>
-                <dd>{billingPartnerLabel(t, billingState.billingPartnerType)}</dd>
+                <dd>{billingResponsibilityReviewLabel(t, billingState)}</dd>
               </div>
             </dl>
           </article>

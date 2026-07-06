@@ -4451,6 +4451,32 @@
           "guardianSourceMatchesLead": "Seleccione la persona correcta abajo o confirme que es un tutor nuevo.",
           "guardianSourceSearchingTitle": "Comprobando"
         },
+        "billingResponsibility": {
+          "title": "Responsabilidad de facturación",
+          "lead": "Elija quién será responsable de la facturación de este alumno. Esta elección se envía explícitamente al backend.",
+          "selectionPlaceholder": "Seleccionar responsabilidad de facturación…",
+          "selectionHint": "La facturación al tutor exige un tutor financiero válido. La facturación al alumno exige confirmación explícita y un motivo.",
+          "guardianUnresolvedHint": "Se seleccionó facturación al tutor. Si aún no hay un tutor financiero válido, la configuración financiera se aplazará tras guardar.",
+          "studentWarning": "El alumno será el tercero de facturación previsto. No se aplica automáticamente cuando falta un tutor.",
+          "studentConfirmLabel": "Confirmo que el alumno debe ser el tercero de facturación",
+          "studentReasonLabel": "Motivo de la facturación al alumno",
+          "studentReasonPlaceholder": "Explique por qué el alumno es el tercero de facturación…",
+          "studentReasonHint": "Obligatorio cuando el alumno es el tercero de facturación.",
+          "unresolvedWarning": "El alumno se creó, pero la responsabilidad de facturación aún no está resuelta. La configuración financiera se aplaza y el cobro queda bloqueado hasta vincular un tutor financiero válido.",
+          "unresolvedCollectBlocked": "El cobro está bloqueado hasta resolver la responsabilidad de facturación.",
+          "refreshVerificationWarning": "El alumno se creó y se vinculó al tutor, pero no se pudo verificar la responsabilidad de facturación. Las acciones financieras siguen restringidas hasta abrir el perfil del alumno.",
+          "errors": {
+            "generic": "No se pudo guardar la responsabilidad de facturación. Revise su elección e inténtelo de nuevo.",
+            "selectionRequired": "Seleccione quién es responsable de la facturación antes de continuar.",
+            "confirmationRequired": "Confirme que el alumno debe ser el tercero de facturación antes de continuar.",
+            "reasonRequired": "Introduzca un motivo para adoptar al alumno como responsable de facturación.",
+            "contractConflict": "La solicitud de responsabilidad de facturación entra en conflicto con otro campo. Revise su elección.",
+            "unresolved": "La responsabilidad de facturación aún no está resuelta. Vincule un tutor financiero válido antes del cobro.",
+            "existingAgreementConflict": "Un acuerdo existente impide esta elección. Resuélvalo desde el espacio financiero.",
+            "invalid": "La solicitud de responsabilidad de facturación no es válida. Revise su elección.",
+            "invalidMode": "El modo de responsabilidad de facturación no es válido. Elija tutor o alumno."
+          }
+        },
         "finance": {
           "stagePlan": "Plan sugerido",
           "stageBreakdown": "Detalles de la suscripción",

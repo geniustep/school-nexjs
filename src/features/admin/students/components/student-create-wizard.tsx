@@ -85,6 +85,16 @@ import { linkExistingPersonAsGuardian } from '../utils/guardian-link-person';
 import type { PersonSearchResult, RelationshipType } from '@/types/student-360';
 import { StudentCreateFeePlanSection } from './student-create-fee-plan-section';
 import { StudentCreateReviewSection } from './student-create-review-section';
+import type { BillingResponsibilityMetadata } from '@/types/billing-responsibility';
+import {
+  applyBillingResponsibilityToPayload,
+  defaultStudentCreateBillingFormState,
+  isGuardianFinancialResponsible,
+  parseBillingResponsibilityOutcome,
+  validateBillingResponsibilityForm,
+  type BillingResponsibilityFieldErrors,
+} from '../utils/student-create-billing-responsibility';
+import { resolvePostCreateBillingOutcome } from '../utils/resolve-post-create-billing-outcome';
 import type {
   StudentCreateBillingFormState,
   StudentCreateFinanceFormState,
@@ -95,6 +105,9 @@ export type StudentCreateSaveMode = 'setup' | 'list';
 export interface StudentCreateSaveOutcome {
   financeActivation?: 'draft' | 'activate';
   agreementState?: string | null;
+  billingResponsibility?: BillingResponsibilityMetadata | null;
+  collectionAllowed?: boolean | null;
+  billingResponsibilityUnresolved?: boolean;
 }
 export type StudentCreateWizardStep = 'identity' | 'billing' | 'enrollment' | 'finance' | 'review';
 
@@ -149,11 +162,10 @@ export function StudentCreateForm({
   const [state, setState] = useState<StudentProfileFormState>(() =>
     defaultStudentProfileFormState(null),
   );
-  const [billingState, setBillingState] = useState<StudentCreateBillingFormState>({
-    billingPartnerType: 'guardian',
-    guardianSourceMode: 'new',
-    linkedGuardianPartnerId: null,
-  });
+  const [billingState, setBillingState] = useState<StudentCreateBillingFormState>(() =>
+    defaultStudentCreateBillingFormState(),
+  );
+  const [billingErrors, setBillingErrors] = useState<BillingResponsibilityFieldErrors>({});
   const [financeState, setFinanceState] = useState<StudentCreateFinanceFormState>(
     defaultStudentCreateFinanceFormState(null),
   );
@@ -801,6 +813,16 @@ export function StudentCreateForm({
       return false;
     }
 
+    if (current === 'billing' || current === 'review') {
+      const billingValidation = validateBillingResponsibilityForm(billingState, t);
+      if (!billingValidation.valid) {
+        setBillingErrors(billingValidation.errors);
+        toast.error(billingValidation.message ?? t('errors.validationFailed'));
+        if (current !== 'billing') setStep('billing');
+        return false;
+      }
+      setBillingErrors({});
+    }
     if (current === 'identity') {
       const validation = validateStudentCreateIdentityStep(state, t);
       if (!validation.valid) {
@@ -909,6 +931,15 @@ export function StudentCreateForm({
     }
     if (!validateStep('review', flushed.checks)) return;
 
+    const billingValidation = validateBillingResponsibilityForm(billingState, t);
+    if (!billingValidation.valid) {
+      setBillingErrors(billingValidation.errors);
+      toast.error(billingValidation.message ?? t('errors.validationFailed'));
+      setStep('billing');
+      return;
+    }
+    setBillingErrors({});
+
     if (state.classId.trim() && !applyEnrollmentClassScopeFailure('save')) {
       return;
     }
@@ -944,19 +975,22 @@ export function StudentCreateForm({
     setSaveMode(mode);
     setFinanceActivationMode(activation);
     setSaving(true);
-    const payload = buildStudentCreatePayload(
-      state,
-      {
-        suggest: attachFinance ? suggestState.suggest : null,
-        financeState,
-        schoolId: resolvedSchoolId,
-        activationMode: activation === 'activate' ? 'activate' : undefined,
-      },
-      {
-        schoolId: resolvedSchoolId,
-        classes: options?.classes ?? [],
-        deferGuardianContact: true,
-      },
+    const payload = applyBillingResponsibilityToPayload(
+      buildStudentCreatePayload(
+        state,
+        {
+          suggest: attachFinance ? suggestState.suggest : null,
+          financeState,
+          schoolId: resolvedSchoolId,
+          activationMode: activation === 'activate' ? 'activate' : undefined,
+        },
+        {
+          schoolId: resolvedSchoolId,
+          classes: options?.classes ?? [],
+          deferGuardianContact: true,
+        },
+      ),
+      billingState,
     );
 
     if (payload.finance && payload.academic?.academic_year_id == null) {
@@ -978,6 +1012,9 @@ export function StudentCreateForm({
           : null;
       const id = data && 'id' in data ? Number(data.id) : 0;
 
+      const initialBillingOutcome = parseBillingResponsibilityOutcome(data);
+      let guardianLinkSucceeded = false;
+
       if (
         id > 0 &&
         billingState.guardianSourceMode === 'existing' &&
@@ -989,20 +1026,40 @@ export function StudentCreateForm({
           relationship_type: relationshipType,
           is_primary_contact: true,
           is_emergency_contact: true,
-          is_financial_responsible: billingState.billingPartnerType === 'guardian',
+          is_financial_responsible: isGuardianFinancialResponsible(billingState),
           receives_notifications: true,
         });
         if (!linkRes.success) {
           toast.error(t('admin.student360.create.billing.guardianLinkFailed'));
+        } else {
+          guardianLinkSucceeded = true;
         }
       }
+
+      const billingResolution = await resolvePostCreateBillingOutcome({
+        studentId: id,
+        initialOutcome: initialBillingOutcome,
+        guardianLinkSucceeded,
+        activeSchoolId: resolvedSchoolId,
+      });
+      const billingOutcome = billingResolution.finalOutcome;
+      const billingUnresolved = billingResolution.billingResponsibilityUnresolved;
 
       setSaving(false);
       const agreementState = resolveStudentCreateAgreementState(
         data as { id?: number; agreement_state?: string; finance?: { agreement_state?: string } },
       );
 
-      if (activation === 'activate' && agreementState === 'active') {
+      if (billingResolution.showRefreshVerificationToast) {
+        toast.show(
+          t('admin.student360.create.billingResponsibility.refreshVerificationWarning'),
+          'info',
+        );
+      }
+      if (billingResolution.showUnresolvedWarningToast) {
+        toast.show(t('admin.student360.create.billingResponsibility.unresolvedWarning'), 'info');
+      }
+      if (activation === 'activate' && agreementState === 'active' && !billingUnresolved) {
         toast.success(t('admin.student360.create.financeActivation.activateSuccess'));
       } else if (payload.finance && activation === 'draft') {
         toast.success(t('admin.student360.create.financeActivation.draftSuccess'));
@@ -1013,15 +1070,32 @@ export function StudentCreateForm({
       onSaved(id, mode, {
         financeActivation: payload.finance ? activation : undefined,
         agreementState,
+        billingResponsibility: billingOutcome.metadata,
+        collectionAllowed: billingOutcome.collectionAllowed,
+        billingResponsibilityUnresolved: billingUnresolved,
       });
       return;
     }
 
     setSaving(false);
 
-    if (!res.success) {
+      if (!res.success) {
       const mapped = mapStudentApiError(res.error, t);
       if (mapped.fieldErrors) {
+        const billingFieldErrors: BillingResponsibilityFieldErrors = {};
+        if (mapped.fieldErrors.billingResponsibilitySelection) {
+          billingFieldErrors.billingResponsibilitySelection = mapped.fieldErrors.billingResponsibilitySelection;
+        }
+        if (mapped.fieldErrors.billingStudentConfirmed) {
+          billingFieldErrors.billingStudentConfirmed = mapped.fieldErrors.billingStudentConfirmed;
+        }
+        if (mapped.fieldErrors.billingStudentReason) {
+          billingFieldErrors.billingStudentReason = mapped.fieldErrors.billingStudentReason;
+        }
+        if (Object.keys(billingFieldErrors).length > 0) {
+          setBillingErrors(billingFieldErrors);
+          setStep('billing');
+        }
         setFieldErrors(mapped.fieldErrors);
         focusFirstError(mapped.fieldErrors);
       }
@@ -1101,7 +1175,11 @@ export function StudentCreateForm({
       {step === 'billing' ? (
         <StudentCreateBillingStep
           billingState={billingState}
-          onBillingChange={(patch) => setBillingState((prev) => ({ ...prev, ...patch }))}
+          billingErrors={billingErrors}
+          onBillingChange={(patch) => {
+            setBillingState((prev) => ({ ...prev, ...patch }));
+            setBillingErrors({});
+          }}
           intakeValues={intakeValues}
           intakeErrors={intakeFieldErrors}
           onIntakePatch={handleIntakePatch}

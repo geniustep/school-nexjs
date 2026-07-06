@@ -1,9 +1,11 @@
 import type { ApiErrorBody } from '@/types/api';
+import type { BillingResponsibilityFieldErrors } from './student-create-billing-responsibility';
 import type { StudentProfileFieldErrors } from './student-profile';
+import { mapBillingResponsibilityApiError } from './billing-responsibility-errors';
 
 export interface StudentApiErrorContext {
   message: string;
-  fieldErrors?: StudentProfileFieldErrors;
+  fieldErrors?: StudentProfileFieldErrors & BillingResponsibilityFieldErrors;
 }
 
 function msgIncludes(message: string, ...needles: string[]): boolean {
@@ -138,6 +140,9 @@ export function mapStudentApiError(
   error: ApiErrorBody,
   t: (key: string) => string,
 ): StudentApiErrorContext {
+  const billingMapped = mapBillingResponsibilityApiError(error, t);
+  if (billingMapped) return billingMapped;
+
   const code = String(error.code ?? '');
   const message = error.message?.trim() ?? '';
   const fieldErrors: StudentProfileFieldErrors = {};

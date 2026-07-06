@@ -4458,6 +4458,32 @@
           "guardianSourceMatchesLead": "Select the right person below, or confirm this is a new guardian.",
           "guardianSourceSearchingTitle": "Checking"
         },
+        "billingResponsibility": {
+          "title": "Billing responsibility",
+          "lead": "Choose who will be responsible for billing this student. This choice is sent explicitly to the backend.",
+          "selectionPlaceholder": "Select billing responsibility…",
+          "selectionHint": "Guardian billing requires a valid financial guardian. Student billing requires explicit confirmation and a reason.",
+          "guardianUnresolvedHint": "Guardian billing is selected. If no valid financial guardian exists yet, finance setup will be deferred after save.",
+          "studentWarning": "The student will be the intended billing party. This is not applied automatically when a guardian is missing.",
+          "studentConfirmLabel": "I confirm that the student should be the billing party",
+          "studentReasonLabel": "Reason for student billing",
+          "studentReasonPlaceholder": "Explain why the student is the billing party…",
+          "studentReasonHint": "Required when the student is the billing party.",
+          "unresolvedWarning": "The student was created, but billing responsibility is not resolved yet. Finance setup is deferred and collection is blocked until a valid financial guardian is linked.",
+          "unresolvedCollectBlocked": "Collection is blocked until billing responsibility is resolved.",
+          "refreshVerificationWarning": "The student was created and the guardian was linked, but billing responsibility could not be verified yet. Finance actions stay restricted until you open the student profile.",
+          "errors": {
+            "generic": "Could not save billing responsibility. Review your choice and try again.",
+            "selectionRequired": "Select who is responsible for billing before continuing.",
+            "confirmationRequired": "Confirm that the student should be the billing party before continuing.",
+            "reasonRequired": "Enter a reason for adopting the student as the billing party.",
+            "contractConflict": "The billing responsibility request conflicts with another field. Review your choice and try again.",
+            "unresolved": "Billing responsibility is not resolved yet. Link a valid financial guardian before collection.",
+            "existingAgreementConflict": "An existing agreement prevents this billing responsibility choice. Resolve it from the finance workspace.",
+            "invalid": "The billing responsibility request is invalid. Review your choice.",
+            "invalidMode": "The billing responsibility mode is invalid. Choose guardian or student."
+          }
+        },
         "finance": {
           "stagePlan": "Suggested plan",
           "stageBreakdown": "Subscription details",

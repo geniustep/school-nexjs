@@ -10,7 +10,10 @@ export type FeePlanCustomizationReason =
   | 'manual_adjustment'
   | 'other';
 
+/** @deprecated UI-only legacy label; use responsibilitySelection for create payload. */
 export type StudentCreateBillingPartnerType = 'guardian' | 'student' | 'other';
+
+export type StudentCreateBillingResponsibilitySelection = 'needs_selection' | 'guardian' | 'student';
 
 export type EnrollmentDiscountScope = 'plan' | 'line' | 'period';
 export type EnrollmentDiscountType = 'percent' | 'fixed_amount';
@@ -274,7 +277,9 @@ export interface StudentCreateFinanceFormState {
 export type StudentCreateGuardianSourceMode = 'new' | 'existing';
 
 export interface StudentCreateBillingFormState {
-  billingPartnerType: StudentCreateBillingPartnerType;
+  responsibilitySelection: StudentCreateBillingResponsibilitySelection;
+  studentBillingConfirmed: boolean;
+  studentBillingReason: string;
   guardianSourceMode: StudentCreateGuardianSourceMode;
   linkedGuardianPartnerId: number | null;
 }

@@ -4451,6 +4451,32 @@
           "guardianSourceMatchesLead": "Sélectionnez la bonne personne ci-dessous, ou confirmez qu'il s'agit d'un nouveau responsable.",
           "guardianSourceSearchingTitle": "Vérification en cours"
         },
+        "billingResponsibility": {
+          "title": "Responsabilité de facturation",
+          "lead": "Choisissez qui sera responsable de la facturation de cet élève. Ce choix est envoyé explicitement au backend.",
+          "selectionPlaceholder": "Sélectionner la responsabilité de facturation…",
+          "selectionHint": "La facturation au tuteur exige un tuteur financier valide. La facturation à l'élève exige une confirmation explicite et un motif.",
+          "guardianUnresolvedHint": "La facturation au tuteur est sélectionnée. S'il n'existe pas encore de tuteur financier valide, la configuration financière sera reportée après l'enregistrement.",
+          "studentWarning": "L'élève sera le tiers de facturation visé. Ce n'est pas appliqué automatiquement en l'absence de tuteur.",
+          "studentConfirmLabel": "Je confirme que l'élève doit être le tiers de facturation",
+          "studentReasonLabel": "Motif de la facturation à l'élève",
+          "studentReasonPlaceholder": "Expliquez pourquoi l'élève est le tiers de facturation…",
+          "studentReasonHint": "Obligatoire lorsque l'élève est le tiers de facturation.",
+          "unresolvedWarning": "L'élève a été créé, mais la responsabilité de facturation n'est pas encore résolue. La configuration financière est reportée et l'encaissement est bloqué jusqu'à la liaison d'un tuteur financier valide.",
+          "unresolvedCollectBlocked": "L'encaissement est bloqué tant que la responsabilité de facturation n'est pas résolue.",
+          "refreshVerificationWarning": "L'élève a été créé et le tuteur a été lié, mais la responsabilité de facturation n'a pas pu être vérifiée. Les actions financières restent limitées jusqu'à l'ouverture du dossier élève.",
+          "errors": {
+            "generic": "Impossible d'enregistrer la responsabilité de facturation. Vérifiez votre choix et réessayez.",
+            "selectionRequired": "Sélectionnez le responsable de facturation avant de continuer.",
+            "confirmationRequired": "Confirmez que l'élève doit être le tiers de facturation avant de continuer.",
+            "reasonRequired": "Saisissez un motif pour adopter l'élève comme responsable de facturation.",
+            "contractConflict": "La demande de responsabilité de facturation entre en conflit avec un autre champ. Vérifiez votre choix.",
+            "unresolved": "La responsabilité de facturation n'est pas encore résolue. Liez un tuteur financier valide avant l'encaissement.",
+            "existingAgreementConflict": "Une convention existante empêche ce choix. Résolvez-la depuis l'espace finance.",
+            "invalid": "La demande de responsabilité de facturation est invalide. Vérifiez votre choix.",
+            "invalidMode": "Le mode de responsabilité de facturation est invalide. Choisissez tuteur ou élève."
+          }
+        },
         "finance": {
           "stagePlan": "Plan proposé",
           "stageBreakdown": "Détails de l'abonnement",

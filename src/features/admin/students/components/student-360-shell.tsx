@@ -344,7 +344,10 @@ export function Student360CreatePage() {
         return;
       }
 
-      if (outcome?.financeActivation === 'activate') {
+      if (
+        outcome?.financeActivation === 'activate' &&
+        !outcome.billingResponsibilityUnresolved
+      ) {
         router.push(`/admin/students/${id}?tab=finance`);
         return;
       }

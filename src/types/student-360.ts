@@ -307,6 +307,7 @@ export interface StudentEnrollmentBlock {
   departure_reason?: string | null;
 }
 
+import type { BillingResponsibilityRequest } from '@/types/billing-responsibility';
 import type { StudentCreateFinancePayload } from '@/types/student-enrollment-finance';
 
 export interface StudentCreateAcademicBlock {
@@ -358,6 +359,7 @@ export interface StudentCreatePayload {
   enrollment?: StudentEnrollmentBlock;
   academic?: StudentCreateAcademicBlock;
   finance?: StudentCreateFinancePayload;
+  billing_responsibility?: BillingResponsibilityRequest;
 }
 
 export type StudentUpdatePayload = Partial<StudentCreatePayload>;
