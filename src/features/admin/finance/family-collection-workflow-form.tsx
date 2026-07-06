@@ -538,28 +538,32 @@ export function FamilyCollectionWorkflowForm({
 
       <div className="finance-collection-workflow__actions">
         <div className="finance-collection-workflow__footer form-actions">
-          <button
-            type="button"
-            className="btn btn--secondary"
-            disabled={previewLoading || !Number.isFinite(parsedAmount) || parsedAmount <= 0}
-            onClick={() => void runPreview()}
-          >
-            {previewLoading
-              ? t('common.loading')
-              : t('admin.finance.billingAccounts.familyCollection.preview.title')}
-          </button>
-          <button type="button" className="btn btn--ghost" onClick={onCancel} disabled={submitting}>
-            {t('common.cancel')}
-          </button>
-          <button
-            type="submit"
-            className="btn btn--primary"
-            disabled={submitting || !previewValid || cashSessionBlocked}
-          >
-            {submitting
-              ? t('admin.finance.collections.submitting')
-              : t('admin.finance.billingAccounts.familyCollection.confirmAction')}
-          </button>
+          <div className="finance-collection-workflow__footer-secondary">
+            <button type="button" className="btn btn--ghost" onClick={onCancel} disabled={submitting}>
+              {t('common.cancel')}
+            </button>
+          </div>
+          <div className="finance-collection-workflow__footer-primary">
+            <button
+              type="button"
+              className="btn btn--secondary"
+              disabled={previewLoading || !Number.isFinite(parsedAmount) || parsedAmount <= 0}
+              onClick={() => void runPreview()}
+            >
+              {previewLoading
+                ? t('common.loading')
+                : t('admin.finance.billingAccounts.familyCollection.preview.title')}
+            </button>
+            <button
+              type="submit"
+              className="btn btn--primary"
+              disabled={submitting || !previewValid || cashSessionBlocked}
+            >
+              {submitting
+                ? t('admin.finance.collections.submitting')
+                : t('admin.finance.billingAccounts.familyCollection.confirmAction')}
+            </button>
+          </div>
         </div>
       </div>
     </form>

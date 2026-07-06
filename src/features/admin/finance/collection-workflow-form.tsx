@@ -868,12 +868,16 @@ function CollectionWorkflowFormReady({
     );
   }
 
+  const showWorkflowSteps = installmentFlow || flexiblePrepaymentFlow || pageMode;
+
   return (
     <form className={wrapperClass} onSubmit={onFormSubmit}>
-      <div className="finance-collection-workflow__scroll">
-      {installmentFlow || flexiblePrepaymentFlow || pageMode ? (
-        <CollectionWorkflowSteps step={step} flexiblePrepayment={flexiblePrepaymentFlow} />
+      {showWorkflowSteps ? (
+        <div className="finance-collection-workflow__steps-wrap">
+          <CollectionWorkflowSteps step={step} flexiblePrepayment={flexiblePrepaymentFlow} />
+        </div>
       ) : null}
+      <div className="finance-collection-workflow__scroll">
       {!embedded ? (
         <p className="muted finance-collection-workflow__intro">
           {flexiblePrepaymentFlow
@@ -1003,6 +1007,7 @@ function CollectionWorkflowFormReady({
                 : t('admin.finance.collections.paymentSection')}
             </h4>
             <QuickPaymentCoreFields
+              variant={embedded ? 'drawer' : 'default'}
               amount={amount}
               onAmountChange={handleAmountChange}
               amountLabel={
@@ -1054,8 +1059,14 @@ function CollectionWorkflowFormReady({
               onNotesChange={setNotes}
               afterAmount={
                 flexiblePrepaymentFlow ? (
-                  <div className="finance-collection-workflow__preview-actions">
-                    <label className="collection-skip-allocation">
+                  <div
+                    className={`finance-quick-payment-allocation-card${
+                      manualAllocation
+                        ? ' finance-quick-payment-allocation-card--manual'
+                        : ' finance-quick-payment-allocation-card--auto'
+                    }`}
+                  >
+                    <label className="finance-quick-payment-allocation-card__toggle collection-skip-allocation">
                       <input
                         type="checkbox"
                         checked={manualAllocation}
@@ -1066,26 +1077,15 @@ function CollectionWorkflowFormReady({
                           setPreviewError(null);
                         }}
                       />
-                      <span>{t('admin.finance.collectionWorkflow.manualAllocationToggle')}</span>
+                      <span className="finance-quick-payment-allocation-card__toggle-copy">
+                        <strong>{t('admin.finance.collectionWorkflow.manualAllocationToggle')}</strong>
+                      </span>
                     </label>
-                    <p className="tiny muted">
+                    <p className="finance-quick-payment-allocation-card__hint" role="status">
                       {manualAllocation
                         ? t('admin.finance.collectionWorkflow.manualAllocationHint')
                         : t('admin.finance.collectionWorkflow.autoAllocationHint')}
                     </p>
-                    <button
-                      type="button"
-                      className="btn btn--secondary btn--sm"
-                      disabled={
-                        previewLoading ||
-                        gateBlock.blocked ||
-                        !Number.isFinite(parsedAmount) ||
-                        parsedAmount <= 0
-                      }
-                      onClick={() => void runCollectionPreview()}
-                    >
-                      {previewLoading ? t('common.loading') : previewActionLabel}
-                    </button>
                   </div>
                 ) : null
               }
@@ -1303,51 +1303,79 @@ function CollectionWorkflowFormReady({
       {selectedStudent ? (
         <div className="finance-collection-workflow__actions">
           <CollectionFormBlockers blockers={submitBlockers} />
+          {installmentFlow && step === 'dues' && !canContinueFromDues ? (
+            <p className="collection-dues-selection__hint finance-collection-workflow__footer-hint" role="status">
+              {t('admin.finance.collectionWorkflow.enterCollectionAmountHint')}
+            </p>
+          ) : null}
           <div className="form-actions finance-collection-workflow__footer">
-            {flexiblePrepaymentFlow && step === 'payment' ? (
-              <>
-                <button
-                  type="button"
-                  className="btn btn--primary"
-                  disabled={!canProceedPayment || !previewValid}
-                  onClick={() => setStep('review')}
-                >
-                  {t('admin.finance.collectionWorkflow.continueToReview')}
-                </button>
-              </>
-            ) : null}
-            {flexiblePrepaymentFlow && step === 'review' ? (
-              <>
+            <div className="finance-collection-workflow__footer-secondary">
+              <button type="button" className="btn btn--ghost" onClick={onCancel}>
+                {t('common.cancel')}
+              </button>
+              {flexiblePrepaymentFlow && step === 'review' ? (
                 <button type="button" className="btn btn--ghost" onClick={() => setStep('payment')}>
                   {t('common.back')}
                 </button>
-                <button type="submit" className="btn btn--primary" disabled={submitting || !canProceedPayment || !previewValid}>
+              ) : null}
+              {installmentFlow && (step === 'payment' || step === 'review') ? (
+                <button
+                  type="button"
+                  className="btn btn--ghost"
+                  onClick={() => setStep(step === 'review' ? 'payment' : 'dues')}
+                >
+                  {t('common.back')}
+                </button>
+              ) : null}
+            </div>
+            <div className="finance-collection-workflow__footer-primary">
+              {flexiblePrepaymentFlow && step === 'payment' ? (
+                <>
+                  <button
+                    type="button"
+                    className="btn btn--secondary"
+                    disabled={
+                      previewLoading ||
+                      gateBlock.blocked ||
+                      !Number.isFinite(parsedAmount) ||
+                      parsedAmount <= 0
+                    }
+                    onClick={() => void runCollectionPreview()}
+                  >
+                    {previewLoading ? t('common.loading') : previewActionLabel}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn--primary"
+                    disabled={!canProceedPayment || !previewValid}
+                    onClick={() => setStep('review')}
+                  >
+                    {t('admin.finance.collectionWorkflow.continueToReview')}
+                  </button>
+                </>
+              ) : null}
+              {flexiblePrepaymentFlow && step === 'review' ? (
+                <button
+                  type="submit"
+                  className="btn btn--primary"
+                  disabled={submitting || !canProceedPayment || !previewValid}
+                >
                   {submitting
                     ? t('admin.finance.collections.submitting')
                     : confirmActionLabel}
                 </button>
-              </>
-            ) : null}
-            {installmentFlow && step === 'dues' && !canContinueFromDues ? (
-              <p className="collection-dues-selection__hint finance-collection-workflow__footer-hint" role="status">
-                {t('admin.finance.collectionWorkflow.enterCollectionAmountHint')}
-              </p>
-            ) : null}
-            {installmentFlow && step === 'dues' ? (
-              <button
-                type="button"
-                className="btn btn--primary"
-                disabled={!canContinueFromDues}
-                onClick={goToPaymentStep}
-              >
-                {t('admin.finance.collectionWorkflow.continueToPayment')}
-              </button>
-            ) : null}
-            {installmentFlow && step === 'payment' ? (
-              <>
-                <button type="button" className="btn btn--ghost" onClick={() => setStep('dues')}>
-                  {t('common.back')}
+              ) : null}
+              {installmentFlow && step === 'dues' ? (
+                <button
+                  type="button"
+                  className="btn btn--primary"
+                  disabled={!canContinueFromDues}
+                  onClick={goToPaymentStep}
+                >
+                  {t('admin.finance.collectionWorkflow.continueToPayment')}
                 </button>
+              ) : null}
+              {installmentFlow && step === 'payment' ? (
                 <button
                   type="button"
                   className="btn btn--primary"
@@ -1356,30 +1384,30 @@ function CollectionWorkflowFormReady({
                 >
                   {t('admin.finance.collectionWorkflow.continueToReview')}
                 </button>
-              </>
-            ) : null}
-            {installmentFlow && step === 'review' ? (
-              <>
-                <button type="button" className="btn btn--ghost" onClick={() => setStep('payment')}>
-                  {t('common.back')}
-                </button>
-                <button type="submit" className="btn btn--primary" disabled={submitting || !canProceedPayment}>
+              ) : null}
+              {installmentFlow && step === 'review' ? (
+                <button
+                  type="submit"
+                  className="btn btn--primary"
+                  disabled={submitting || !canProceedPayment}
+                >
                   {submitting
                     ? t('admin.finance.collections.submitting')
                     : reviewConfirmActionLabel}
                 </button>
-              </>
-            ) : null}
-            {!flexiblePrepaymentFlow && !installmentFlow ? (
-              <button type="submit" className="btn btn--primary" disabled={submitting || !canProceedPayment}>
-                {submitting
-                  ? t('admin.finance.collections.submitting')
-                  : t('admin.finance.collectionWorkflow.recordPayment')}
-              </button>
-            ) : null}
-            <button type="button" className="btn btn--ghost" onClick={onCancel}>
-              {t('common.cancel')}
-            </button>
+              ) : null}
+              {!flexiblePrepaymentFlow && !installmentFlow ? (
+                <button
+                  type="submit"
+                  className="btn btn--primary"
+                  disabled={submitting || !canProceedPayment}
+                >
+                  {submitting
+                    ? t('admin.finance.collections.submitting')
+                    : t('admin.finance.collectionWorkflow.recordPayment')}
+                </button>
+              ) : null}
+            </div>
           </div>
         </div>
       ) : null}

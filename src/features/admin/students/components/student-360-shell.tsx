@@ -182,6 +182,12 @@ export function Student360Shell({ studentId }: { studentId: string }) {
                 router.push(buildStudent360TabHref(studentId, next), { scroll: false })
               }
               onArchiveSuccess={() => router.push('/admin/students')}
+              onRecordPayment={() => {
+                const params = new URLSearchParams(searchParams.toString());
+                params.set('tab', 'finance');
+                params.set('collect', '1');
+                router.push(`/admin/students/${studentId}?${params.toString()}`, { scroll: false });
+              }}
             />
           }
         />

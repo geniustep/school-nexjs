@@ -591,6 +591,14 @@
   max-width: 100%;
 }
 
+.finance-collection-workflow__steps-wrap {
+  flex-shrink: 0;
+}
+
+.finance-collection-workflow--page .finance-collection-workflow__steps-wrap {
+  margin-bottom: 4px;
+}
+
 .finance-collection-workflow__scroll {
   flex: 1;
   min-height: 0;
@@ -4439,10 +4447,11 @@
   flex-direction: column;
   gap: 8px;
   margin: 0;
-  padding: 12px 20px 20px;
+  padding: 14px 20px 18px;
   border-top: 1px solid var(--c-border, #e2e8f0);
   background: #fff;
-  box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.05);
+  box-shadow: 0 -6px 20px rgba(15, 23, 42, 0.06);
+  position: static;
 }
 
 .finance-collection-drawer .finance-collection-workflow__actions .collection-form-blockers {
@@ -4464,12 +4473,39 @@
 
 .finance-collection-drawer .finance-collection-workflow__footer.form-actions {
   display: flex;
-  flex-wrap: nowrap;
-  align-items: stretch;
-  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 12px;
   margin: 0;
   padding: 0;
   border-top: none;
+}
+
+.finance-collection-drawer .finance-collection-workflow__footer-secondary,
+.finance-collection-drawer .finance-collection-workflow__footer-primary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.finance-collection-drawer .finance-collection-workflow__footer-secondary {
+  flex: 0 1 auto;
+}
+
+.finance-collection-drawer .finance-collection-workflow__footer-primary {
+  flex: 1 1 auto;
+  justify-content: flex-end;
+}
+
+[dir='rtl'] .finance-collection-drawer .finance-collection-workflow__footer.form-actions {
+  flex-direction: row;
+}
+
+[dir='rtl'] .finance-collection-drawer .finance-collection-workflow__footer-primary {
+  justify-content: flex-start;
 }
 
 .finance-collection-drawer .finance-collection-workflow__footer .btn {
@@ -4479,18 +4515,13 @@
 }
 
 .finance-collection-drawer .finance-collection-workflow__footer .btn--primary {
-  flex: 1 1 auto;
-  min-width: 0;
-  grid-column: unset;
+  flex: 0 1 auto;
+  min-width: min(100%, 11rem);
 }
 
 .finance-collection-drawer .finance-collection-workflow__footer .btn--ghost {
   flex: 0 0 auto;
   min-width: 4.75rem;
-}
-
-[dir='rtl'] .finance-collection-drawer .finance-collection-workflow__footer.form-actions {
-  flex-direction: row;
 }
 
 /* ── Drawer: steps 2 & 3 (payment, allocation, review) ── */
@@ -5244,8 +5275,8 @@
 }
 
 .finance-collection-workflow__preview-actions {
-  display: flex;
-  align-items: flex-end;
+  display: grid;
+  gap: 10px;
 }
 
 .collection-allocation-preview {
@@ -5659,15 +5690,438 @@
 
 .finance-quick-payment-drawer__intro,
 .finance-quick-payment-drawer__context {
-  margin: 0 0 8px;
+  margin: 0;
 }
 
 .finance-quick-payment-drawer__context {
-  margin-bottom: 16px;
+  line-height: 1.45;
+}
+
+/* ── Quick payment drawer shell (student + family) ── */
+
+.finance-quick-payment-drawer .finance-quick-payment-drawer__shell {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+}
+
+.finance-quick-payment-drawer .finance-quick-payment-drawer__header-copy {
+  flex-shrink: 0;
+  padding: 14px 22px;
+  background: linear-gradient(135deg, var(--qp-accent-soft, #ccfbf1) 0%, #fff 70%);
+  border-bottom: 1px solid color-mix(in srgb, var(--qp-accent, #0d9488) 16%, var(--c-border, #e2e8f0));
+}
+
+.finance-quick-payment-drawer .finance-quick-payment-drawer__intro {
+  margin-bottom: 4px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--qp-accent-strong, #0f766e);
+  line-height: 1.45;
+}
+
+.finance-quick-payment-drawer .finance-quick-payment-drawer__context {
+  font-size: 0.75rem;
+  color: var(--c-text-muted, #64748b);
+  line-height: 1.5;
+}
+
+.finance-quick-payment-drawer .finance-quick-payment-drawer__content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.finance-quick-payment-drawer .finance-collection-workflow.form-stack {
+  gap: 0;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+}
+
+.finance-quick-payment-drawer .finance-collection-workflow__steps-wrap {
+  flex-shrink: 0;
+  padding: 14px 20px 0;
+  background: #f8fafc;
+}
+
+.finance-quick-payment-drawer .finance-collection-workflow__steps--progress {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow:
+    0 1px 3px rgba(15, 23, 42, 0.05),
+    inset 0 0 0 1px var(--c-border, #e2e8f0);
+}
+
+.finance-quick-payment-drawer .finance-collection-workflow__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px 20px;
+  gap: 14px;
+  scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.finance-quick-payment-drawer .finance-collection-workflow__scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.finance-quick-payment-drawer .finance-collection-workflow__scroll::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--c-text-muted, #64748b) 38%, transparent);
+  border-radius: 999px;
+}
+
+.finance-quick-payment-drawer .finance-collection-workflow__scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.finance-quick-payment-drawer .finance-collection-workflow__actions {
+  flex-shrink: 0;
+  margin: 0;
+  position: static;
+  padding-block: 14px 18px;
+  background: #fff;
+  box-shadow: 0 -6px 20px rgba(15, 23, 42, 0.06);
+}
+
+.finance-quick-payment-drawer .finance-collection-workflow__steps--progress .finance-collection-workflow__step-marker {
+  width: 1.75rem;
+  height: 1.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.finance-quick-payment-drawer .finance-collection-workflow__steps--progress .finance-collection-workflow__step-label {
+  font-size: 0.75rem;
+  max-width: none;
+  -webkit-line-clamp: unset;
+}
+
+.finance-quick-payment-drawer .finance-collection-workflow__step-item.is-active .finance-collection-workflow__step-marker {
+  background: linear-gradient(135deg, var(--qp-step-active, #0d9488) 0%, #14b8a6 100%);
+  color: #fff;
+  box-shadow: 0 0 0 3px var(--qp-accent-glow, rgba(13, 148, 136, 0.16));
+}
+
+.finance-quick-payment-drawer .finance-collection-workflow__step-item.is-done .finance-collection-workflow__step-marker {
+  background: linear-gradient(135deg, var(--qp-step-done, #2563eb) 0%, #3b82f6 100%);
+  color: #fff;
+}
+
+.finance-quick-payment-drawer .finance-collection-workflow__step-item.is-active {
+  color: var(--qp-accent-strong, #0f766e);
+  font-weight: 700;
+}
+
+.finance-quick-payment-drawer .collection-form-section {
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--qp-accent, #0d9488) 12%, var(--c-border, #e2e8f0));
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  background: #fff;
+}
+
+.finance-quick-payment-drawer .collection-form-section__title {
+  color: var(--qp-accent-strong, #0f766e);
+}
+
+.finance-quick-payment-drawer .finance-collection-workflow__footer .btn--primary {
+  background: linear-gradient(135deg, var(--qp-accent-strong, #0f766e) 0%, var(--qp-accent, #0d9488) 100%);
+  border-color: var(--qp-accent-strong, #0f766e);
+  box-shadow: 0 2px 8px var(--qp-accent-glow, rgba(13, 148, 136, 0.2));
+}
+
+.finance-quick-payment-drawer .finance-collection-workflow__footer .btn--primary:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+.finance-quick-payment-drawer .finance-collection-workflow__footer .btn--secondary {
+  border-color: color-mix(in srgb, var(--qp-accent, #0d9488) 35%, var(--c-border, #e2e8f0));
+  color: var(--qp-accent-strong, #0f766e);
+  background: #fff;
+}
+
+.finance-quick-payment-drawer .finance-collection-workflow__footer .btn--secondary:hover:not(:disabled) {
+  background: var(--qp-accent-soft, #ccfbf1);
+}
+
+.finance-quick-payment-drawer .collection-prepayment-summary {
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--qp-accent, #0d9488) 22%, var(--c-border, #e2e8f0));
+  background: linear-gradient(180deg, #fff 0%, var(--qp-surface, #f0fdfa) 100%);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+.finance-quick-payment-drawer .finance-collection-workflow__footer-hint {
+  border-radius: 10px;
 }
 
 .finance-quick-payment-core {
   gap: 12px;
+}
+
+.finance-quick-payment-core--drawer {
+  gap: 14px;
+}
+
+/* ── Drawer: payment method, amount, allocation ── */
+
+.finance-quick-payment-drawer-method {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #fff 0%, var(--qp-surface, #f0fdfa) 100%);
+  border: 1px solid color-mix(in srgb, var(--qp-accent, #0d9488) 18%, var(--c-border, #e2e8f0));
+}
+
+.finance-quick-payment-drawer-method__label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--qp-accent-strong, #0f766e);
+}
+
+.finance-quick-payment-drawer-method__value {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  min-width: 0;
+}
+
+.finance-quick-payment-drawer-method__pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--qp-accent-strong, #0f766e) 0%, var(--qp-accent, #0d9488) 100%);
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 700;
+  box-shadow: 0 2px 8px var(--qp-accent-glow, rgba(13, 148, 136, 0.2));
+}
+
+.finance-quick-payment-drawer-method__journal {
+  line-height: 1.4;
+}
+
+.finance-quick-payment-drawer-method__select {
+  min-height: 42px;
+}
+
+.finance-quick-payment-drawer-amount {
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid color-mix(in srgb, var(--qp-accent, #0d9488) 14%, var(--c-border, #e2e8f0));
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+}
+
+.finance-quick-payment-drawer-amount__field {
+  gap: 10px;
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--c-text, #0f172a);
+}
+
+.finance-quick-payment-drawer-amount .finance-amount-field__input {
+  margin-top: 2px;
+}
+
+.finance-quick-payment-drawer-amount .finance-amount-field__input .input {
+  min-height: 52px;
+  font-size: 1.375rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  border-color: color-mix(in srgb, var(--qp-accent, #0d9488) 22%, var(--c-border, #e2e8f0));
+  background: var(--qp-surface-muted, #f8fafc);
+}
+
+.finance-quick-payment-drawer-amount .finance-amount-field__input .input:focus {
+  border-color: var(--qp-accent, #0d9488);
+  box-shadow: 0 0 0 3px var(--qp-accent-glow, rgba(13, 148, 136, 0.16));
+}
+
+.finance-quick-payment-drawer-amount .finance-amount-field__suffix {
+  min-height: 52px;
+  padding-inline: 16px;
+  font-size: 0.9375rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--qp-accent-strong, #0f766e);
+  background: var(--qp-accent-soft, #ccfbf1);
+  border-color: color-mix(in srgb, var(--qp-accent, #0d9488) 22%, var(--c-border, #e2e8f0));
+}
+
+.finance-quick-payment-drawer-amount__hint {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e3a8a;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  max-width: none;
+}
+
+.finance-quick-payment-drawer-amount__hint::before {
+  content: 'ℹ';
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.finance-quick-payment-allocation-card {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  background: #fff;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.finance-quick-payment-allocation-card--auto {
+  border-color: color-mix(in srgb, var(--qp-accent, #0d9488) 24%, var(--c-border, #e2e8f0));
+  background: linear-gradient(180deg, #fff 0%, var(--qp-surface, #f0fdfa) 100%);
+  box-shadow: inset 3px 0 0 var(--qp-accent, #0d9488);
+}
+
+.finance-quick-payment-allocation-card--manual {
+  border-color: color-mix(in srgb, #7c3aed 24%, var(--c-border, #e2e8f0));
+  background: linear-gradient(180deg, #fff 0%, #f5f3ff 100%);
+  box-shadow: inset 3px 0 0 #7c3aed;
+}
+
+.finance-quick-payment-allocation-card__toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.finance-quick-payment-allocation-card__toggle input[type='checkbox'] {
+  margin-top: 3px;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  accent-color: var(--qp-accent, #0d9488);
+}
+
+.finance-quick-payment-allocation-card--manual .finance-quick-payment-allocation-card__toggle input[type='checkbox'] {
+  accent-color: #7c3aed;
+}
+
+.finance-quick-payment-allocation-card__toggle-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.finance-quick-payment-allocation-card__toggle-copy strong {
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.45;
+  color: var(--c-text, #0f172a);
+}
+
+.finance-quick-payment-allocation-card__hint {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+}
+
+.finance-quick-payment-allocation-card--auto .finance-quick-payment-allocation-card__hint {
+  background: color-mix(in srgb, var(--qp-accent-soft, #ccfbf1) 65%, #fff);
+  color: var(--qp-accent-strong, #0f766e);
+  border: 1px solid color-mix(in srgb, var(--qp-accent, #0d9488) 18%, transparent);
+}
+
+.finance-quick-payment-allocation-card--manual .finance-quick-payment-allocation-card__hint {
+  background: #ede9fe;
+  color: #5b21b6;
+  border: 1px solid #ddd6fe;
+}
+
+.finance-quick-payment-drawer-meta {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--c-surface-2, #f8fafc);
+  border: 1px solid var(--c-border, #e2e8f0);
+}
+
+.finance-quick-payment-drawer-meta .finance-collection-workflow__fields--payment {
+  gap: 12px;
+}
+
+.finance-quick-payment-drawer-meta .finance-collection-workflow__fields > label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--c-text-muted, #64748b);
+}
+
+.finance-quick-payment-drawer-meta .input {
+  min-height: 42px;
+}
+
+.finance-quick-payment-drawer-notes {
+  display: grid;
+  gap: 6px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--c-text-muted, #64748b);
+}
+
+.finance-quick-payment-drawer-notes textarea {
+  min-height: 64px;
+  resize: vertical;
+}
+
+.finance-quick-payment-drawer .collection-form-section:has(.finance-quick-payment-core--drawer) {
+  gap: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.finance-quick-payment-drawer .collection-form-section:has(.finance-quick-payment-core--drawer) .collection-form-section__title {
+  margin: 0 0 12px;
+  padding: 0 2px;
+  font-size: 1rem;
 }
 
 .finance-quick-payment-details {
@@ -5897,38 +6351,20 @@
   min-height: 40px;
 }
 
-.finance-quick-payment-drawer__intro {
-  margin-bottom: 4px;
-}
-
-.finance-quick-payment-drawer__context {
-  margin-bottom: 12px;
-  line-height: 1.45;
-}
-
-.finance-family-collection-drawer .finance-quick-payment-drawer__shell {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-  height: 100%;
-}
-
 .finance-family-collection-drawer .finance-quick-payment-drawer__header-copy {
-  flex-shrink: 0;
-  padding: 16px 20px 4px;
+  padding: 16px 20px 12px;
 }
 
 .finance-family-collection-drawer .finance-quick-payment-drawer__header-copy .finance-quick-payment-drawer__context {
   margin-bottom: 0;
 }
 
-.finance-family-collection-drawer .finance-quick-payment-drawer__content {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+.finance-family-collection-drawer .finance-collection-workflow__scroll {
+  padding: 8px 20px 16px;
+}
+
+.finance-family-collection-workflow__balance {
+  margin: 0;
 }
 
 .finance-quick-payment-journal-summary {
@@ -5945,6 +6381,7 @@
 .finance-family-collection-drawer .academic-setup-drawer__body {
   display: flex;
   flex-direction: column;
+  flex: 1;
   min-height: 0;
   padding: 0;
 }
@@ -5954,19 +6391,6 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-}
-
-.finance-family-collection-drawer .finance-collection-workflow__scroll {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 8px 20px 16px;
-  scrollbar-gutter: stable;
-}
-
-.finance-family-collection-workflow__balance {
-  margin: 0;
 }
 
 .finance-quick-payment-primary.collection-form-section {
@@ -6056,20 +6480,34 @@
   }
 
   .finance-collection-drawer .finance-collection-workflow__footer.form-actions {
-    flex-wrap: wrap;
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 10px;
   }
 
-  .finance-collection-drawer .finance-collection-workflow__footer .btn--primary {
-    flex: 1 1 100%;
-    order: 3;
+  .finance-collection-drawer .finance-collection-workflow__footer-secondary,
+  .finance-collection-drawer .finance-collection-workflow__footer-primary {
+    width: 100%;
+    justify-content: stretch;
   }
 
-  .finance-collection-drawer .finance-collection-workflow__footer .btn--secondary {
-    flex: 1 1 calc(50% - 4px);
+  .finance-collection-drawer .finance-collection-workflow__footer-secondary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .finance-collection-drawer .finance-collection-workflow__footer-secondary .btn:only-child {
+    grid-column: 1 / -1;
+  }
+
+  .finance-collection-drawer .finance-collection-workflow__footer-primary .btn--primary {
+    width: 100%;
+    min-width: 0;
   }
 
   .finance-collection-drawer .finance-collection-workflow__footer .btn--ghost {
-    flex: 1 1 calc(50% - 4px);
+    min-width: 0;
   }
 }
 
