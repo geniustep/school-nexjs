@@ -14,8 +14,10 @@ import {
   resolveOverviewEditAllowed,
   resolveOverviewManageGuardiansAllowed,
 } from '../utils/resolve-overview-allowed-actions';
+import { resolveStudentHeaderFinancePaymentPresentation } from '../utils/resolve-student-header-finance-payment';
 import type { StudentOverviewData } from '@/types/student-overview';
 import type { StudentCapabilities, StudentDetailsData } from '@/types/student-360';
+import { canCollectStudentPayments, canViewStudentFinance } from '../utils/resolve-capabilities';
 
 export function Student360QuickActions({
   details,
@@ -26,6 +28,7 @@ export function Student360QuickActions({
   editHref,
   onOpenTab,
   onArchiveSuccess,
+  onRecordPayment,
 }: {
   details: StudentDetailsData;
   caps: StudentCapabilities;
@@ -35,6 +38,7 @@ export function Student360QuickActions({
   editHref: string;
   onOpenTab: (tab: Student360TabId) => void;
   onArchiveSuccess: () => void;
+  onRecordPayment?: () => void;
 }) {
   const t = useT();
   const user = useSession();
@@ -44,6 +48,12 @@ export function Student360QuickActions({
   const canManage = resolveOverviewEditAllowed(overview, caps) && !archived;
   const canManageGuardians = resolveOverviewManageGuardiansAllowed(overview, caps);
   const canArchive = resolveOverviewArchiveAllowed(overview, caps, user) && !archived;
+  const financePayment = resolveStudentHeaderFinancePaymentPresentation({
+    showFinance: canViewStudentFinance(caps),
+    canCollect: canCollectStudentPayments(caps),
+    overviewFinance: overview?.finance_summary,
+    detailsFinance: details.finance_summary,
+  });
 
   const activeGuardians = details.guardian_relationships.filter((r) =>
     isRelationshipActive(r.state, r.active),
@@ -68,7 +78,7 @@ export function Student360QuickActions({
     };
   }, [menuOpen]);
 
-  if (!canManage) return null;
+  if (!canManage && !financePayment.visible) return null;
 
   const secondaryActions: { key: string; label: string; onClick: () => void }[] = [];
 
@@ -102,22 +112,45 @@ export function Student360QuickActions({
   }
   return (
     <div className="student-360-quick-actions" ref={rootRef}>
-      <Link href={editHref} className="btn btn--primary btn--sm">
-        {t('admin.student360.quickActions.editProfile')}
-      </Link>
-
-      {secondaryActions.slice(0, 1).map((action) => (
+      {financePayment.visible ? (
         <button
-          key={action.key}
           type="button"
-          className="btn btn--ghost btn--sm student-360-quick-actions__secondary"
-          onClick={action.onClick}
+          className={`btn btn--sm student-360-quick-actions__payment student-360-quick-actions__payment--${financePayment.tone}`}
+          onClick={onRecordPayment}
+          title={
+            financePayment.tone === 'overdue'
+              ? t('admin.student360.overview.badges.financeOverdue')
+              : undefined
+          }
         >
-          {action.label}
+          <span className="student-360-quick-actions__payment-icon" aria-hidden="true">
+            +
+          </span>
+          {t('admin.student360.financeWorkspace.actions.recordPayment')}
         </button>
-      ))}
+      ) : null}
 
-      <div className="student-360-quick-actions__more">
+      {canManage ? (
+        <Link href={editHref} className="btn btn--ghost btn--sm student-360-quick-actions__edit">
+          {t('admin.student360.quickActions.editProfile')}
+        </Link>
+      ) : null}
+
+      {canManage
+        ? secondaryActions.slice(0, 1).map((action) => (
+            <button
+              key={action.key}
+              type="button"
+              className="btn btn--ghost btn--sm student-360-quick-actions__secondary"
+              onClick={action.onClick}
+            >
+              {action.label}
+            </button>
+          ))
+        : null}
+
+      {canManage ? (
+        <div className="student-360-quick-actions__more">
         <button
           type="button"
           className="btn btn--ghost btn--sm student-360-quick-actions__more-btn"
@@ -160,7 +193,8 @@ export function Student360QuickActions({
             ) : null}
           </div>
         ) : null}
-      </div>
+        </div>
+      ) : null}
     </div>
   );
 }
