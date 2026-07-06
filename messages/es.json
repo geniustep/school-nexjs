@@ -782,6 +782,22 @@
     "limitedAccess": "Ámbito limitado",
     "limitedAccessDesc": "Ve datos solo de su ámbito asignado.",
     "multiSchoolContext": "Gestión multi-centro",
+    "spotlight": {
+      "title": "Buscar alumno",
+      "placeholder": "Buscar por nombre, número escolar, Massar o teléfono del tutor…",
+      "openButton": "Buscar alumno",
+      "shortcutLabel": "Ctrl+K",
+      "minLengthHint": "Escriba al menos {count} caracteres para buscar.",
+      "loading": "Buscando alumnos…",
+      "empty": "No se encontraron alumnos coincidentes.",
+      "error": "No se pudieron cargar los resultados.",
+      "matchedOn": {
+        "name": "Nombre",
+        "guardian_phone": "Teléfono del tutor",
+        "massar": "Número Massar",
+        "student_code": "Número escolar"
+      }
+    },
     "multiSchoolPortfolioPending": "La vista general multi-centro estará disponible cuando la API del panel portfolio esté lista.",
     "activeSchoolWorking": "Centro activo: {school}",
     "schoolFallback": "Escuela #{id}",

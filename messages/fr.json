@@ -782,6 +782,22 @@
     "limitedAccess": "Périmètre limité",
     "limitedAccessDesc": "Vous voyez les données de votre périmètre uniquement.",
     "multiSchoolContext": "Gestion multi-établissements",
+    "spotlight": {
+      "title": "Rechercher un élève",
+      "placeholder": "Rechercher par nom, numéro scolaire, Massar ou téléphone du responsable…",
+      "openButton": "Rechercher un élève",
+      "shortcutLabel": "Ctrl+K",
+      "minLengthHint": "Saisissez au moins {count} caractères pour lancer la recherche.",
+      "loading": "Recherche des élèves…",
+      "empty": "Aucun élève correspondant.",
+      "error": "Impossible de charger les résultats.",
+      "matchedOn": {
+        "name": "Nom",
+        "guardian_phone": "Téléphone du responsable",
+        "massar": "Numéro Massar",
+        "student_code": "Numéro scolaire"
+      }
+    },
     "multiSchoolPortfolioPending": "Une vue d'ensemble multi-établissements sera disponible lorsque l'API du tableau de bord portfolio sera prête.",
     "activeSchoolWorking": "Établissement actif : {school}",
     "schoolFallback": "École #{id}",

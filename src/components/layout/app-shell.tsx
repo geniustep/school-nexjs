@@ -22,6 +22,7 @@ import { AdminAccountSheet } from '@/components/layout/admin-account-sheet';
 import { SignOutButton } from '@/components/layout/sign-out-button';
 import { useBodyScrollLock } from '@/hooks/use-body-scroll-lock';
 import { shouldUseTeacherWorkspace } from '@/lib/auth/teacher-workspace';
+import { AdminStudentSpotlightHost } from '@/features/admin/students/components/admin-student-spotlight-host';
 
 function roleSubtitle(user: CurrentUser, t: (k: string) => string): string {
   if (shouldUseTeacherWorkspace(user)) return t('roles.teacher');
@@ -214,6 +215,7 @@ export function AppShell({
             </span>
           </div>
           <div className="topbar__right topbar__right--desktop">
+            {isAdmin && <AdminStudentSpotlightHost />}
             {isAdmin && <SchoolSwitcher />}
             <LocaleSwitcher compact />
             {!isTeacher && (
