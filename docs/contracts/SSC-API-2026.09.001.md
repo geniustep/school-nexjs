@@ -5,7 +5,7 @@ Compatibility metadata linking **school-nexjs** `origin/dev` to Odoo
 Human-readable source of truth; machine-readable mirror in
 `src/config/backend-contract.ts`.
 
-**Phase:** `NEXTJS-BILLING-RESPONSIBILITY-CONTRACT-ADOPTION-DEV-1`  
+**Phase:** `NEXTJS-BILLING-RESPONSIBILITY-CONTRACT-ADOPTION-DEV-1`
 **Last updated:** 2026-07-06
 
 ---
