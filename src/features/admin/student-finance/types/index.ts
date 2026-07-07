@@ -1,3 +1,4 @@
+import type { BillingResponsibilityMetadata } from '@/types/billing-responsibility';
 import type { ApiMeta, ListParams, Pagination, Ref, SchoolRef } from '@/types/api';
 import type { PaymentCollection } from '@/types/finance';
 import type {
@@ -416,6 +417,10 @@ export interface StudentFinanceWorkspace {
   finance_review_details?: unknown;
   finance_operations_history?: FinanceOperationHistoryRecord[];
   capabilities?: Record<string, boolean>;
+  billing_responsibility?: BillingResponsibilityMetadata | null;
+  finance?: {
+    billing_responsibility?: BillingResponsibilityMetadata | null;
+  } | null;
 }
 
 export interface FinanceServiceCatalogItem {

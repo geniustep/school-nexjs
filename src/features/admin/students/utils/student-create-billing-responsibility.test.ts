@@ -197,6 +197,41 @@ describe('parseBillingResponsibilityOutcome', () => {
     expect(outcome.metadata?.status).toBe('resolved');
     expect(shouldBlockPostCreateCollectionRedirect(outcome)).toBe(false);
   });
+
+  it('blocks post-create finance redirect for needs_selection', () => {
+    const outcome = parseBillingResponsibilityOutcome({
+      id: 15,
+      billing_responsibility: {
+        status: 'needs_selection',
+        requires_selection: true,
+      },
+      collection_gate: { collect_allowed: true },
+    });
+    expect(outcome.metadata?.status).toBe('needs_selection');
+    expect(shouldBlockPostCreateCollectionRedirect(outcome)).toBe(true);
+  });
+
+  it('parses extended billing responsibility metadata fields', () => {
+    const outcome = parseBillingResponsibilityOutcome({
+      billing_responsibility: {
+        status: 'legacy_unknown',
+        billing_partner_id: 42,
+        requires_selection: false,
+        requires_student_confirmation: true,
+        review_required: true,
+        warning_codes: ['legacy_import'],
+        data_quality_flags: ['missing_guardian_link'],
+      },
+    });
+    expect(outcome.metadata).toMatchObject({
+      status: 'legacy_unknown',
+      billing_partner_id: 42,
+      requires_student_confirmation: true,
+      review_required: true,
+      warning_codes: ['legacy_import'],
+      data_quality_flags: ['missing_guardian_link'],
+    });
+  });
 });
 
 describe('admission prefill regression', () => {

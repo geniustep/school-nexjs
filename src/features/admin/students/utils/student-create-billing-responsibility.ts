@@ -94,16 +94,60 @@ function asRecord(value: unknown): Record<string, unknown> | null {
     : null;
 }
 
-function readBillingResponsibilityMetadata(raw: unknown): BillingResponsibilityMetadata | null {
+function readStringArray(raw: unknown): string[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const values = raw.filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
+  return values.length > 0 ? values : undefined;
+}
+
+export function parseBillingResponsibilityMetadata(raw: unknown): BillingResponsibilityMetadata | null {
   const record = asRecord(raw);
   if (!record) return null;
   const mode = record.mode === 'guardian' || record.mode === 'student' ? record.mode : undefined;
   const status =
-    record.status === 'resolved' || record.status === 'unresolved' ? record.status : undefined;
+    record.status === 'resolved' ||
+    record.status === 'unresolved' ||
+    record.status === 'needs_selection' ||
+    record.status === 'legacy_unknown'
+      ? record.status
+      : undefined;
   const source = typeof record.source === 'string' ? record.source : undefined;
+  const billing_partner_id =
+    typeof record.billing_partner_id === 'number' ? record.billing_partner_id : null;
+  const requires_selection = record.requires_selection === true ? true : undefined;
+  const requires_student_confirmation =
+    record.requires_student_confirmation === true ? true : undefined;
   const review_required = record.review_required === true ? true : undefined;
-  if (!mode && !status && !source && review_required == null) return null;
-  return { mode, status, source, review_required };
+  const warning_codes = readStringArray(record.warning_codes);
+  const data_quality_flags = readStringArray(record.data_quality_flags);
+  if (
+    !mode &&
+    !status &&
+    !source &&
+    billing_partner_id == null &&
+    requires_selection == null &&
+    requires_student_confirmation == null &&
+    review_required == null &&
+    !warning_codes &&
+    !data_quality_flags
+  ) {
+    return null;
+  }
+  return {
+    mode,
+    status,
+    source,
+    billing_partner_id,
+    requires_selection,
+    requires_student_confirmation,
+    review_required,
+    warning_codes,
+    data_quality_flags,
+  };
+}
+
+function readBillingResponsibilityMetadata(raw: unknown): BillingResponsibilityMetadata | null {
+  return parseBillingResponsibilityMetadata(raw);
 }
 
 function readCollectionAllowed(data: Record<string, unknown>): boolean | null {
@@ -125,6 +169,7 @@ function readCollectionAllowed(data: Record<string, unknown>): boolean | null {
     data.billing_responsibility ?? finance?.billing_responsibility,
   );
   if (billingResponsibility?.status === 'unresolved') return false;
+  if (billingResponsibility?.status === 'needs_selection') return false;
 
   return null;
 }
@@ -146,7 +191,8 @@ export function parseBillingResponsibilityOutcome(data: unknown): BillingRespons
 }
 
 export function shouldBlockPostCreateCollectionRedirect(outcome: BillingResponsibilityOutcome): boolean {
-  if (outcome.metadata?.status === 'unresolved') return true;
+  const status = outcome.metadata?.status;
+  if (status === 'unresolved' || status === 'needs_selection') return true;
   if (outcome.collectionAllowed === false) return true;
   return false;
 }

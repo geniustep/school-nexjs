@@ -1972,6 +1972,71 @@
   background: color-mix(in srgb, var(--c-primary, #2563eb) 5%, var(--surface, #fff));
 }
 
+.student-finance-billing-responsibility-banner {
+  margin-bottom: 0;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 90%, #000 10%);
+  background: var(--surface, #fff);
+}
+
+.student-finance-billing-responsibility-banner--warn {
+  border-color: color-mix(in srgb, #d97706 28%, var(--c-border, #e2e8f0));
+  background: color-mix(in srgb, #d97706 6%, var(--surface, #fff));
+}
+
+.student-finance-billing-responsibility-banner--danger {
+  border-color: color-mix(in srgb, #dc2626 24%, var(--c-border, #e2e8f0));
+  background: color-mix(in srgb, #dc2626 5%, var(--surface, #fff));
+}
+
+.student-finance-billing-responsibility-banner--review {
+  border-color: color-mix(in srgb, #7c3aed 24%, var(--c-border, #e2e8f0));
+  background: color-mix(in srgb, #7c3aed 5%, var(--surface, #fff));
+}
+
+.student-finance-billing-responsibility-banner__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px 16px;
+}
+
+.student-finance-billing-responsibility-banner__eyebrow,
+.student-finance-billing-responsibility-banner__title,
+.student-finance-billing-responsibility-banner__desc,
+.student-finance-billing-responsibility-banner__review {
+  margin: 0;
+}
+
+.student-finance-billing-responsibility-banner__eyebrow {
+  margin-bottom: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.student-finance-billing-responsibility-banner__title {
+  margin-bottom: 6px;
+  font-size: 1rem;
+}
+
+.student-finance-billing-responsibility-banner__desc {
+  color: var(--text-muted, #64748b);
+}
+
+.student-finance-billing-responsibility-banner__review {
+  margin-top: 8px;
+}
+
+.student-finance-billing-responsibility-banner__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.student-finance-workspace__shell .student-finance-billing-responsibility-banner,
+.student-finance-workspace__shell .student-finance-draft-banner,
 .student-finance-draft-banner__head {
   display: flex;
   flex-wrap: wrap;

@@ -13,12 +13,16 @@ export interface BillingResponsibilityApiErrorContext {
 const ERROR_MESSAGE_KEYS: Record<BillingResponsibilityStableErrorCode, string> = {
   billing_responsibility_contract_conflict:
     'admin.student360.create.billingResponsibility.errors.contractConflict',
+  billing_responsibility_required:
+    'admin.student360.financeWorkspace.billingResponsibility.errors.required',
   student_billing_confirmation_required:
     'admin.student360.create.billingResponsibility.errors.confirmationRequired',
   student_billing_reason_required:
     'admin.student360.create.billingResponsibility.errors.reasonRequired',
+  student_billing_scope_mismatch:
+    'admin.student360.financeWorkspace.billingResponsibility.errors.scopeMismatch',
   billing_responsibility_unresolved:
-    'admin.student360.create.billingResponsibility.errors.unresolved',
+    'admin.student360.financeWorkspace.billingResponsibility.unresolved.message',
   billing_responsibility_existing_agreement_conflict:
     'admin.student360.create.billingResponsibility.errors.existingAgreementConflict',
   invalid_billing_responsibility:
@@ -68,10 +72,14 @@ export function mapBillingResponsibilityApiError(
   if (code === 'student_billing_reason_required') {
     fieldErrors.billingStudentReason = message;
   }
+  if (code === 'billing_responsibility_required') {
+    fieldErrors.billingResponsibilitySelection = message;
+  }
   if (
     code === 'invalid_billing_responsibility' ||
     code === 'invalid_billing_responsibility_mode' ||
-    code === 'billing_responsibility_contract_conflict'
+    code === 'billing_responsibility_contract_conflict' ||
+    code === 'student_billing_scope_mismatch'
   ) {
     fieldErrors.billingResponsibilitySelection = message;
   }

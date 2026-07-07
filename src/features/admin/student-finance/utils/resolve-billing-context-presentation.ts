@@ -1,6 +1,10 @@
 import type { StudentFinanceWorkspace } from '../types';
 import { normalizeReferenceValue } from './reference-labels';
 import { resolveFinanceCollectBlockPresentation } from './resolve-finance-collect-block-presentation';
+import {
+  resolveBillingResponsibilityPresentation,
+  shouldBlockFinanceOperationsForBillingResponsibility,
+} from './resolve-billing-responsibility-presentation';
 
 export type BillingContextMode =
   | 'active_agreement'
@@ -149,8 +153,13 @@ function resolveBillingContextHeadlineKey(
 export function resolveBillingContextPresentation(input: {
   workspace?: StudentFinanceWorkspace | null;
   canCollectCapability?: boolean;
+  canSelectBillingResponsible?: boolean;
 }): BillingContextPresentation {
   const workspace = input.workspace;
+  const billingResponsibility = resolveBillingResponsibilityPresentation({
+    workspace,
+    canSelectBillingResponsible: input.canSelectBillingResponsible,
+  });
   const hasActiveAgreement = resolveHasActiveAgreement(workspace);
   const inactiveAgreement = readInactiveAgreement(workspace);
   const mode =
@@ -170,6 +179,15 @@ export function resolveBillingContextPresentation(input: {
       : null;
 
   const collectBlock = resolveCollectBlockMessage(workspace);
+  const responsibilityBlocksFinance =
+    shouldBlockFinanceOperationsForBillingResponsibility(billingResponsibility);
+  const collectPaymentAllowed =
+    resolveCollectPaymentAllowed(workspace, input.canCollectCapability === true) &&
+    !responsibilityBlocksFinance;
+  const responsibilityBlockMessage =
+    responsibilityBlocksFinance && billingResponsibility.financeBlockMessageKey
+      ? billingResponsibility.financeBlockMessageKey
+      : null;
 
   return {
     mode,
@@ -179,14 +197,15 @@ export function resolveBillingContextPresentation(input: {
     showRepairCard: workspace?.agreement_repair?.required === true,
     repairRecommendedActionKey: resolveRepairRecommendedActionKey(workspace),
     inactiveAgreement,
-    collectPaymentAllowed: resolveCollectPaymentAllowed(
-      workspace,
-      input.canCollectCapability === true,
-    ),
-    collectBlockMessage: collectBlock.apiMessage,
-    collectBlockMessageKey: collectBlock.messageKey,
+    collectPaymentAllowed,
+    collectBlockMessage:
+      responsibilityBlockMessage != null
+        ? null
+        : collectBlock.apiMessage,
+    collectBlockMessageKey: responsibilityBlockMessage ?? collectBlock.messageKey,
     collectBlockReason: collectBlock.reason,
-    shouldHideCollectButton: collectBlock.shouldHideCollectButton,
+    shouldHideCollectButton:
+      responsibilityBlocksFinance || collectBlock.shouldHideCollectButton,
     billingContextHeadlineKey: resolveBillingContextHeadlineKey(workspace, hasActiveAgreement),
     showNoActiveAgreement: !hasActiveAgreement,
   };

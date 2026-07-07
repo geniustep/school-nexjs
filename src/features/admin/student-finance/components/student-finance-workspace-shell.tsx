@@ -57,6 +57,11 @@ import { FinanceSetupStatePanel } from './finance-setup-state-panel';
 import { StudentFinanceAgreementContextPanel } from './student-finance-agreement-context-panel';
 import { StudentFinanceOperationsHistoryPanel } from './student-finance-operations-history-panel';
 import { resolveBillingContextPresentation } from '../utils/resolve-billing-context-presentation';
+import { resolveBillingResponsibilityPresentation } from '../utils/resolve-billing-responsibility-presentation';
+import { canChangeBillingAuthority } from '../utils/resolve-billing-authority-change-visibility';
+import { resolveBillingPartyLabel } from '../utils/resolve-student-finance-overview';
+import { BillingResponsibilityStatusBanner } from './billing-responsibility-status-banner';
+import { BillingAuthorityChangeDialog } from './billing-authority-change-dialog';
 import { resolveStudentFinanceActionState } from '../utils/resolve-student-finance-action-state';
 import { resolveFinanceSetupState } from '../utils/resolve-finance-setup-state';
 import type { FinancialAgreement } from '../types';
@@ -109,6 +114,7 @@ export function StudentFinanceWorkspaceShell({
   const [financeRefreshSignal, setFinanceRefreshSignal] = useState(0);
   const [draftSubmitLoading, setDraftSubmitLoading] = useState(false);
   const [changePlanMode, setChangePlanMode] = useState<ChangePlanMode | null>(null);
+  const [billingAuthorityDialogOpen, setBillingAuthorityDialogOpen] = useState(false);
 
   const {
     refState,
@@ -141,18 +147,30 @@ export function StudentFinanceWorkspaceShell({
     agreementDetailInitialLoading: false,
   });
 
-  const financeCaps = workspace?.capabilities as StudentFinanceCapabilities | undefined;
+  const financeCaps = (financialOverviewState.data?.capabilities ??
+    workspace?.capabilities) as StudentFinanceCapabilities | undefined;
   const canViewPayments = canViewStudentPayments(capabilities, financeCaps);
   const canCollectCapability = canCollectStudentPayments(capabilities, financeCaps);
   const canAssignFeesCapability = canAssignStudentFees(capabilities, financeCaps);
+  const canChangeBillingAuthorityAction = canChangeBillingAuthority(capabilities, financeCaps);
+
+  const billingResponsibilityPresentation = useMemo(
+    () =>
+      resolveBillingResponsibilityPresentation({
+        workspace,
+        canSelectBillingResponsible: canChangeBillingAuthorityAction,
+      }),
+    [workspace, canChangeBillingAuthorityAction],
+  );
 
   const billingContext = useMemo(
     () =>
       resolveBillingContextPresentation({
         workspace,
         canCollectCapability,
+        canSelectBillingResponsible: canChangeBillingAuthorityAction,
       }),
-    [workspace, canCollectCapability],
+    [workspace, canCollectCapability, canChangeBillingAuthorityAction],
   );
 
   const overviewMetrics = useMemo(
@@ -275,6 +293,11 @@ export function StudentFinanceWorkspaceShell({
   });
 
   const billingPartnerId = workspace?.finance_profile?.billing_partner?.id ?? null;
+  const billingAuthorityLabel = resolveBillingPartyLabel({
+    billingProfile: financialOverviewState.data?.billing_profile,
+    billingPartyType: financialOverviewState.data?.billing_profile?.billing_party_type,
+    t,
+  });
 
   const changePlanVisibility = useMemo(
     () =>
@@ -411,6 +434,15 @@ export function StudentFinanceWorkspaceShell({
       <div className="student-finance-workspace__shell">
         {workspaceHeader}
         {isRefreshing ? <StudentInlineLoading /> : null}
+
+        <BillingResponsibilityStatusBanner
+          presentation={billingResponsibilityPresentation}
+          onSelectResponsible={
+            canChangeBillingAuthorityAction
+              ? () => setBillingAuthorityDialogOpen(true)
+              : undefined
+          }
+        />
 
         <DraftAgreementFinanceBanner
         studentId={studentId}
@@ -606,6 +638,18 @@ export function StudentFinanceWorkspaceShell({
           onSuccess={refreshFinanceData}
         />
       ) : null}
+
+      <BillingAuthorityChangeDialog
+        open={billingAuthorityDialogOpen}
+        studentId={studentId}
+        details={details}
+        currentAuthorityName={billingAuthorityLabel}
+        onClose={() => setBillingAuthorityDialogOpen(false)}
+        onSuccess={() => {
+          setBillingAuthorityDialogOpen(false);
+          refreshFinanceData();
+        }}
+      />
     </div>
   );
 }
