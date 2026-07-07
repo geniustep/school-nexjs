@@ -3468,7 +3468,7 @@
       "kanban": {
         "emptyColumn": "Aucune demande à cette étape",
         "dragHint": "Glissez une carte vers une autre colonne pour changer l'étape opérationnelle.",
-        "uiStageHint": "Utilisez la fiche de la demande pour modifier l'état détaillé.",
+        "uiStageHint": "Les étapes du pipeline sont unifiées entre le tableau, la liste et la fiche.",
         "dropBlockedRegistered": "Les demandes inscrites sont liées à un élève — utilisez le parcours d'inscription plutôt que le glisser-déposer.",
         "dropBlockedClosed": "La clôture d'une demande nécessite un motif précis — utilisez la fiche ou le parcours de décision.",
         "scrollHint": "Faites défiler pour voir les autres étapes",
@@ -3504,6 +3504,22 @@
         "label": "Changer l'état de la demande",
         "success": "État de la demande mis à jour.",
         "failed": "Impossible de modifier l'état de la demande."
+      },
+      "selection": {
+        "selectItem": "Sélectionner {name}",
+        "selectVisible": "Sélectionner les demandes visibles",
+        "openDetail": "Ouvrir",
+        "modeHint": "Mode sélection — cliquez sur une carte pour (dé)sélectionner. Le glisser-déposer est désactivé."
+      },
+      "bulk": {
+        "selectedCount": "{count} sélectionné(s)",
+        "changeStage": "Changer l'étape du pipeline",
+        "applyStageChange": "Appliquer",
+        "clearSelection": "Effacer la sélection",
+        "stageChangeSuccess": "{count} demande(s) mise(s) à jour.",
+        "stageChangePartial": "{success} réussie(s), {failed} échouée(s) — les demandes en échec restent sélectionnées.",
+        "stageChangeSkipped": "Aucune demande sélectionnée ne nécessitait un changement d'étape.",
+        "stageChangeFailed": "Impossible de mettre à jour les demandes sélectionnées."
       },
       "states": {
         "new": "Nouveau",

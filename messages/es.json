@@ -3468,7 +3468,7 @@
       "kanban": {
         "emptyColumn": "No hay solicitudes en esta etapa",
         "dragHint": "Arrastra una tarjeta a otra columna para cambiar la etapa operativa.",
-        "uiStageHint": "Usa la ficha de la solicitud para cambiar el estado detallado.",
+        "uiStageHint": "Las etapas del pipeline están unificadas entre tablero, tabla y ficha.",
         "dropBlockedRegistered": "Las solicitudes registradas están vinculadas a un alumno; usa el flujo de matriculación en lugar del arrastre.",
         "dropBlockedClosed": "Cerrar una solicitud requiere un motivo concreto; usa la ficha o el flujo de decisión.",
         "scrollHint": "Desplázate para ver más etapas",
@@ -3504,6 +3504,22 @@
         "label": "Cambiar estado de la solicitud",
         "success": "Estado de la solicitud actualizado.",
         "failed": "No se pudo actualizar el estado de la solicitud."
+      },
+      "selection": {
+        "selectItem": "Seleccionar {name}",
+        "selectVisible": "Seleccionar solicitudes visibles",
+        "openDetail": "Abrir",
+        "modeHint": "Modo selección — haz clic en una tarjeta para seleccionar o deseleccionar. El arrastre está desactivado."
+      },
+      "bulk": {
+        "selectedCount": "{count} seleccionado(s)",
+        "changeStage": "Cambiar etapa del pipeline",
+        "applyStageChange": "Aplicar",
+        "clearSelection": "Borrar selección",
+        "stageChangeSuccess": "{count} solicitud(es) actualizada(s).",
+        "stageChangePartial": "{success} correcta(s), {failed} fallida(s) — las fallidas siguen seleccionadas.",
+        "stageChangeSkipped": "Ninguna solicitud seleccionada necesitaba cambio de etapa.",
+        "stageChangeFailed": "No se pudieron actualizar las solicitudes seleccionadas."
       },
       "states": {
         "new": "Nueva",

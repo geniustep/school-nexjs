@@ -13,7 +13,6 @@ import {
   refName,
 } from '../utils/admission-labels';
 import { AdmissionCard } from './admission-card';
-import { AdmissionStateSelect } from './admission-state-select';
 import { parseExtraFieldBool } from '../utils/admission-extra-fields';
 import { admissionUiStageTone, resolveAdmissionUiStage } from '../utils/admission-ui-stage';
 import { Badge } from '@/components/ui/primitives';
@@ -21,16 +20,59 @@ import type { AdmissionListItem } from '@/types/admission';
 
 export function AdmissionsTable({
   items,
-  onUpdated,
+  selectionMode = false,
+  isSelected,
+  onToggleSelect,
+  onToggleVisible,
+  visibleSelectionState,
 }: {
   items: AdmissionListItem[];
   onUpdated?: () => void;
+  selectionMode?: boolean;
+  isSelected?: (id: number) => boolean;
+  onToggleSelect?: (id: number) => void;
+  onToggleVisible?: () => void;
+  visibleSelectionState?: { allSelected: boolean; someSelected: boolean };
 }) {
   const t = useT();
   const { formatDate } = useFormat();
+  const visibleIds = useMemo(() => items.map((item) => item.id), [items]);
 
   const columns: Column<AdmissionListItem>[] = useMemo(
     () => [
+      {
+        key: 'select',
+        header: (
+          <input
+            type="checkbox"
+            className="admissions-table__select-all"
+            checked={visibleSelectionState?.allSelected ?? false}
+            ref={(el) => {
+              if (el) {
+                el.indeterminate = Boolean(
+                  visibleSelectionState?.someSelected &&
+                    !visibleSelectionState?.allSelected,
+                );
+              }
+            }}
+            aria-label={t('admin.admissions.selection.selectVisible')}
+            onChange={onToggleVisible}
+          />
+        ),
+        width: '2.5rem',
+        className: 'admissions-table__select-cell',
+        render: (row) => (
+          <input
+            type="checkbox"
+            className="admissions-table__select-row"
+            checked={isSelected?.(row.id) ?? false}
+            aria-label={t('admin.admissions.selection.selectItem', {
+              name: cleanDisplayValue(row.student_name) || formatAdmissionReference(row.id, row.reference),
+            })}
+            onChange={() => onToggleSelect?.(row.id)}
+          />
+        ),
+      },
       {
         key: 'reference',
         header: t('admin.admissions.table.reference'),
@@ -93,17 +135,9 @@ export function AdmissionsTable({
         render: (row) => {
           const uiStage = resolveAdmissionUiStage(row);
           return (
-            <div className="admissions-table__state-cell">
-              <Badge tone={admissionUiStageTone(uiStage)}>
-                {t(`admin.admissions.uiStages.${uiStage}`)}
-              </Badge>
-              <AdmissionStateSelect
-                admissionId={row.id}
-                value={row.state}
-                onChanged={onUpdated}
-                className="admission-state-select--table"
-              />
-            </div>
+            <Badge tone={admissionUiStageTone(uiStage)}>
+              {t(`admin.admissions.uiStages.${uiStage}`)}
+            </Badge>
           );
         },
       },
@@ -125,7 +159,7 @@ export function AdmissionsTable({
         render: (row) => refName(row.assigned_user) || t('common.dash'),
       },
     ],
-    [formatDate, t, onUpdated],
+    [formatDate, t, isSelected, onToggleSelect, onToggleVisible, visibleSelectionState],
   );
 
   if (!items.length) {
@@ -145,7 +179,15 @@ export function AdmissionsTable({
       </div>
       <div className="admissions-table__mobile" aria-label={t('admin.admissions.viewTable')}>
         {items.map((item) => (
-          <AdmissionCard key={item.id} item={item} showStateBadge />
+          <AdmissionCard
+            key={item.id}
+            item={item}
+            showStateBadge
+            selectable
+            selected={isSelected?.(item.id) ?? false}
+            selectionMode={selectionMode}
+            onToggleSelect={() => onToggleSelect?.(item.id)}
+          />
         ))}
       </div>
     </>

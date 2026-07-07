@@ -3469,7 +3469,7 @@
       "kanban": {
         "emptyColumn": "No requests in this stage",
         "dragHint": "Drag a card to another column to change its pipeline stage.",
-        "uiStageHint": "Use the detail page to change the detailed state.",
+        "uiStageHint": "Pipeline stages are unified across board, table, and detail.",
         "dropBlockedRegistered": "Registered requests are linked to a pupil — use the registration flow instead of drag-and-drop.",
         "dropBlockedClosed": "Closing a request needs a specific reason — use the detail page or decision workflow.",
         "scrollHint": "Scroll to see more stages",
@@ -3505,6 +3505,22 @@
         "label": "Change request state",
         "success": "Request state updated.",
         "failed": "Could not update request state."
+      },
+      "selection": {
+        "selectItem": "Select {name}",
+        "selectVisible": "Select visible requests",
+        "openDetail": "Open",
+        "modeHint": "Selection mode — click a card to select or deselect. Drag is disabled."
+      },
+      "bulk": {
+        "selectedCount": "{count} selected",
+        "changeStage": "Change pipeline stage",
+        "applyStageChange": "Apply",
+        "clearSelection": "Clear selection",
+        "stageChangeSuccess": "{count} requests updated.",
+        "stageChangePartial": "{success} updated, {failed} failed — failed requests remain selected.",
+        "stageChangeSkipped": "No selected requests needed a stage change.",
+        "stageChangeFailed": "Could not update selected requests."
       },
       "states": {
         "new": "New",

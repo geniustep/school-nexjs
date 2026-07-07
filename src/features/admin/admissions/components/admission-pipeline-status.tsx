@@ -3,17 +3,18 @@
 import { Badge } from '@/components/ui/primitives';
 import { cn } from '@/lib/utils/cn';
 import { useT } from '@/features/i18n/locale-context';
-import { admissionStateTone } from '../utils/admission-labels';
 import { admissionUiStageTone, resolveAdmissionUiStage } from '../utils/admission-ui-stage';
 import type { AdmissionKanbanDragRecord } from '../utils/admission-kanban-drag';
-import { AdmissionStateSelect } from './admission-state-select';
+import {
+  AdmissionDetailedStateBadge,
+  AdmissionUiStageSelect,
+} from './admission-ui-stage-select';
 
 export function AdmissionPipelineStatus({
   record,
   admissionId,
   canChangeState,
   onChanged,
-  includeClosedStates = false,
   className,
   rejected = false,
 }: {
@@ -21,7 +22,6 @@ export function AdmissionPipelineStatus({
   admissionId: number;
   canChangeState: boolean;
   onChanged?: () => void;
-  includeClosedStates?: boolean;
   className?: string;
   rejected?: boolean;
 }) {
@@ -34,28 +34,25 @@ export function AdmissionPipelineStatus({
         <span className="admissions-pipeline-status__label tiny muted">
           {t('admin.admissions.detail.pipelineStage')}
         </span>
-        <Badge tone={admissionUiStageTone(uiStage)}>
-          {t(`admin.admissions.uiStages.${uiStage}`)}
-        </Badge>
+        {canChangeState ? (
+          <AdmissionUiStageSelect
+            record={record}
+            admissionId={admissionId}
+            onChanged={onChanged}
+            className="admission-ui-stage-select--detail"
+          />
+        ) : (
+          <Badge tone={admissionUiStageTone(uiStage)}>
+            {t(`admin.admissions.uiStages.${uiStage}`)}
+          </Badge>
+        )}
       </div>
 
       <div className="admissions-pipeline-status__detailed">
         <span className="admissions-pipeline-status__label tiny muted">
           {t('admin.admissions.detail.detailedState')}
         </span>
-        {canChangeState ? (
-          <AdmissionStateSelect
-            admissionId={admissionId}
-            value={record.state}
-            onChanged={onChanged}
-            includeClosedStates={includeClosedStates}
-            className="admission-state-select--detail"
-          />
-        ) : (
-          <Badge tone={admissionStateTone(record.state)}>
-            {t(`admin.admissions.states.${record.state}`)}
-          </Badge>
-        )}
+        <AdmissionDetailedStateBadge state={record.state} />
       </div>
 
       {rejected ? (

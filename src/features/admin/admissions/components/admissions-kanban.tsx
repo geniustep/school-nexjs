@@ -52,12 +52,18 @@ export function AdmissionsKanban({
   showClosed,
   onUpdated,
   onLoadMore,
+  selectionMode = false,
+  isSelected,
+  onToggleSelect,
 }: {
   columns: AdmissionsUiKanbanColumn[];
   displayStages: AdmissionUiStage[];
   showClosed: boolean;
   onUpdated?: () => void;
   onLoadMore?: (stage: AdmissionUiStage) => void;
+  selectionMode?: boolean;
+  isSelected?: (id: number) => boolean;
+  onToggleSelect?: (id: number) => void;
 }) {
   const t = useT();
   const toast = useToast();
@@ -353,8 +359,14 @@ export function AdmissionsKanban({
     <div className="admissions-kanban-outer">
       <div className="admissions-kanban-board">
         <div className="admissions-kanban-board__head">
-          <p className="admissions-kanban-hint muted">{t('admin.admissions.kanban.dragHint')}</p>
-          <p className="admissions-kanban-hint muted">{t('admin.admissions.kanban.uiStageHint')}</p>
+          {selectionMode ? (
+            <p className="admissions-kanban-hint muted">{t('admin.admissions.selection.modeHint')}</p>
+          ) : (
+            <>
+              <p className="admissions-kanban-hint muted">{t('admin.admissions.kanban.dragHint')}</p>
+              <p className="admissions-kanban-hint muted">{t('admin.admissions.kanban.uiStageHint')}</p>
+            </>
+          )}
           {canScrollForward ? (
             <p className="admissions-kanban-scroll-hint muted">{t('admin.admissions.kanban.scrollHint')}</p>
           ) : null}
@@ -447,7 +459,7 @@ export function AdmissionsKanban({
                       <p className="admissions-kanban__empty">{t('admin.admissions.kanban.emptyColumn')}</p>
                     ) : (
                       columnItems.map((item: AdmissionListItem) => {
-                        const draggable = isAdmissionKanbanDraggable(item);
+                        const draggable = isAdmissionKanbanDraggable(item) && !selectionMode;
                         const saving = isPending(item.id);
                         return (
                           <AdmissionCard
@@ -457,6 +469,10 @@ export function AdmissionsKanban({
                             draggable={draggable}
                             isDragging={draggingAdmissionId === item.id}
                             isSaving={saving}
+                            selectable
+                            selected={isSelected?.(item.id) ?? false}
+                            selectionMode={selectionMode}
+                            onToggleSelect={() => onToggleSelect?.(item.id)}
                             onDragStart={(event) => {
                               event.dataTransfer.setData(
                                 'application/x-admission-id',
