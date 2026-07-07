@@ -13,6 +13,7 @@ import {
 } from '../utils/student-academic-labels';
 import { STUDENT_SEARCH_MIN_QUERY_LENGTH } from '../utils/student-search-query';
 import {
+  buildStudentSpotlightDidYouMeanLabel,
   isStudentSpotlightCloseKey,
   moveSpotlightActiveIndex,
   studentSpotlightMatchedOnLabelKey,
@@ -34,8 +35,9 @@ export function StudentSpotlight({
   const listRef = useRef<HTMLUListElement>(null);
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(-1);
-  const { loading, error, results } = useStudentSearchQuery(query);
+  const { loading, error, results, suggestion } = useStudentSearchQuery(query);
   const trimmedQuery = query.trim();
+  const didYouMeanParts = buildStudentSpotlightDidYouMeanLabel(t);
 
   useEffect(() => {
     if (!open) return;
@@ -60,6 +62,12 @@ export function StudentSpotlight({
   function selectStudent(student: StudentSearchHit) {
     onClose();
     router.push(studentSpotlightNavigatePath(student.id));
+  }
+
+  function applySuggestion(nextQuery: string) {
+    setQuery(nextQuery);
+    setActiveIndex(-1);
+    inputRef.current?.focus();
   }
 
   function handleKeyDown(event: React.KeyboardEvent) {
@@ -90,11 +98,13 @@ export function StudentSpotlight({
     trimmedQuery.length > 0 && trimmedQuery.length < STUDENT_SEARCH_MIN_QUERY_LENGTH;
   const showIdleHint = trimmedQuery.length === 0;
   const showResults = !loading && !error && results.length > 0;
-  const showEmpty =
+  const showZeroResults =
     !loading &&
     !error &&
     trimmedQuery.length >= STUDENT_SEARCH_MIN_QUERY_LENGTH &&
     results.length === 0;
+  const showSuggestion = showZeroResults && suggestion != null;
+  const showEmpty = showZeroResults && suggestion == null;
 
   return (
     <div
@@ -143,6 +153,30 @@ export function StudentSpotlight({
 
           {showEmpty ? (
             <p className="student-spotlight__state">{t('admin.spotlight.empty')}</p>
+          ) : null}
+
+          {showSuggestion ? (
+            <div className="student-spotlight__suggestion-wrap">
+              <p
+                className="student-spotlight__suggestion"
+                aria-label={t('admin.spotlight.didYouMean', { query: suggestion })}
+              >
+                <span aria-hidden="true">
+                  {didYouMeanParts.before}
+                  <button
+                    type="button"
+                    className="student-spotlight__suggestion-query"
+                    onClick={() => applySuggestion(suggestion)}
+                  >
+                    {suggestion}
+                  </button>
+                  {didYouMeanParts.after}
+                </span>
+              </p>
+              <p className="student-spotlight__state student-spotlight__state--secondary">
+                {t('admin.spotlight.empty')}
+              </p>
+            </div>
           ) : null}
 
           {showResults ? (

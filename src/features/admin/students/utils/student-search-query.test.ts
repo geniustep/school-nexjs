@@ -3,6 +3,7 @@ import {
   buildStudentSearchQueryParams,
   executeStudentSearchQuery,
   fetchStudentSearchHits,
+  parseStudentSearchSuggestion,
   shouldFetchStudentSearch,
   STUDENT_SEARCH_MIN_QUERY_LENGTH,
   STUDENT_SEARCH_PAGE,
@@ -65,6 +66,18 @@ describe('buildStudentSearchQueryParams', () => {
   });
 });
 
+describe('parseStudentSearchSuggestion', () => {
+  it('returns null when did_you_mean is absent or null', () => {
+    expect(parseStudentSearchSuggestion(undefined)).toBeNull();
+    expect(parseStudentSearchSuggestion({})).toBeNull();
+    expect(parseStudentSearchSuggestion({ did_you_mean: null })).toBeNull();
+  });
+
+  it('returns the suggested query when did_you_mean is present', () => {
+    expect(parseStudentSearchSuggestion({ did_you_mean: { query: 'غيثة' } })).toBe('غيثة');
+  });
+});
+
 describe('fetchStudentSearchHits', () => {
   beforeEach(() => {
     getMock.mockReset();
@@ -77,7 +90,7 @@ describe('fetchStudentSearchHits', () => {
       meta: {},
     });
 
-    const results = await fetchStudentSearchHits('ahmed', 7);
+    const { results, suggestion } = await fetchStudentSearchHits('ahmed', 7);
 
     expect(getMock).toHaveBeenCalledOnce();
     expect(getMock).toHaveBeenCalledWith('/admin/students', {
@@ -87,6 +100,7 @@ describe('fetchStudentSearchHits', () => {
       active_school_id: 7,
     });
     expect(results).toEqual([expect.objectContaining({ id: 1, matched_on: 'name' })]);
+    expect(suggestion).toBeNull();
   });
 
   it('does not call api when shouldFetchStudentSearch is false', () => {
@@ -104,10 +118,23 @@ describe('fetchStudentSearchHits', () => {
       meta: {},
     });
 
-    const results = await fetchStudentSearchHits('0612', 1);
+    const { results } = await fetchStudentSearchHits('0612', 1);
 
     expect(results[0]?.matched_on).toBe('massar');
     expect(results[1]?.matched_on).toBe('guardian_phone');
+  });
+
+  it('passes did_you_mean suggestion through when there are no results', async () => {
+    getMock.mockResolvedValue({
+      success: true,
+      data: [],
+      meta: { did_you_mean: { query: 'غيثة' } },
+    });
+
+    const { results, suggestion } = await fetchStudentSearchHits('غيثه', 1);
+
+    expect(results).toEqual([]);
+    expect(suggestion).toBe('غيثة');
   });
 });
 
@@ -150,6 +177,24 @@ describe('executeStudentSearchQuery race protection', () => {
     ).resolves.toEqual({
       kind: 'success',
       results: [expect.objectContaining({ id: 4, matched_on: 'name' })],
+      suggestion: null,
+    });
+  });
+
+  it('returns suggestion from meta on zero-result success', async () => {
+    getMock.mockResolvedValue({
+      success: true,
+      data: [],
+      meta: { did_you_mean: { query: 'غيثة' } },
+    });
+
+    let currentSeq = 4;
+    await expect(
+      executeStudentSearchQuery('غيثه', 2, 4, () => currentSeq),
+    ).resolves.toEqual({
+      kind: 'success',
+      results: [],
+      suggestion: 'غيثة',
     });
   });
 });

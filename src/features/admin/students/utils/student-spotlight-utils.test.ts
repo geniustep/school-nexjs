@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildStudentSpotlightDidYouMeanLabel,
   isStudentSpotlightCloseKey,
   isStudentSpotlightOpenShortcut,
   moveSpotlightActiveIndex,
+  splitStudentSpotlightDidYouMeanLabel,
   studentSpotlightMatchedOnLabelKey,
   studentSpotlightNavigatePath,
 } from './student-spotlight-utils';
@@ -65,5 +67,29 @@ describe('studentSpotlightMatchedOnLabelKey', () => {
       'admin.spotlight.matchedOn.student_code',
     );
     expect(studentSpotlightMatchedOnLabelKey(undefined)).toBeNull();
+  });
+});
+
+describe('splitStudentSpotlightDidYouMeanLabel', () => {
+  it('splits a did-you-mean label around the query marker', () => {
+    expect(splitStudentSpotlightDidYouMeanLabel('هل تقصد: \u0000؟')).toEqual({
+      before: 'هل تقصد: ',
+      after: '؟',
+    });
+  });
+});
+
+describe('buildStudentSpotlightDidYouMeanLabel', () => {
+  it('builds before/after parts from the translated did-you-mean label', () => {
+    const parts = buildStudentSpotlightDidYouMeanLabel((key, params) => {
+      expect(key).toBe('admin.spotlight.didYouMean');
+      expect(params?.query).toBe('\u0000');
+      return 'Did you mean: \u0000?';
+    });
+
+    expect(parts).toEqual({
+      before: 'Did you mean: ',
+      after: '?',
+    });
   });
 });

@@ -790,6 +790,7 @@
       "minLengthHint": "Escriba al menos {count} caracteres para buscar.",
       "loading": "Buscando alumnos…",
       "empty": "No se encontraron alumnos coincidentes.",
+      "didYouMean": "¿Quiso decir: {query}?",
       "error": "No se pudieron cargar los resultados.",
       "matchedOn": {
         "name": "Nombre",

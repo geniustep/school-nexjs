@@ -35,6 +35,40 @@
   font-size: 0.875rem;
 }
 
+.student-spotlight__state--secondary {
+  padding-top: 0;
+  font-size: 0.8125rem;
+}
+
+.student-spotlight__suggestion-wrap {
+  padding: 16px 16px 8px;
+}
+
+.student-spotlight__suggestion {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: inherit;
+}
+
+.student-spotlight__suggestion-query {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--c-primary, #2563eb);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.student-spotlight__suggestion-query:hover,
+.student-spotlight__suggestion-query:focus-visible {
+  text-decoration-thickness: 2px;
+  outline: none;
+}
+
 .student-spotlight__list {
   list-style: none;
   margin: 0;

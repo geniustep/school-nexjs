@@ -790,6 +790,7 @@
       "minLengthHint": "Type at least {count} characters to search.",
       "loading": "Searching students…",
       "empty": "No matching students found.",
+      "didYouMean": "Did you mean: {query}?",
       "error": "Could not load search results.",
       "matchedOn": {
         "name": "Name",

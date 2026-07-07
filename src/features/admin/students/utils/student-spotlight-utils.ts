@@ -31,6 +31,30 @@ export function studentSpotlightMatchedOnLabelKey(
   return MATCHED_ON_LABEL_KEYS[matchedOn] ?? null;
 }
 
+const DID_YOU_MEAN_QUERY_MARKER = '\u0000';
+
+export function splitStudentSpotlightDidYouMeanLabel(
+  label: string,
+): { before: string; after: string } {
+  const markerIndex = label.indexOf(DID_YOU_MEAN_QUERY_MARKER);
+  if (markerIndex === -1) {
+    return { before: label, after: '' };
+  }
+  return {
+    before: label.slice(0, markerIndex),
+    after: label.slice(markerIndex + DID_YOU_MEAN_QUERY_MARKER.length),
+  };
+}
+
+export function buildStudentSpotlightDidYouMeanLabel(
+  translate: (key: string, params?: Record<string, string | number>) => string,
+): { before: string; after: string } {
+  const label = translate('admin.spotlight.didYouMean', {
+    query: DID_YOU_MEAN_QUERY_MARKER,
+  });
+  return splitStudentSpotlightDidYouMeanLabel(label);
+}
+
 export function moveSpotlightActiveIndex(
   currentIndex: number,
   resultCount: number,

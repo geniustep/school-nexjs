@@ -790,6 +790,7 @@
       "minLengthHint": "Saisissez au moins {count} caractères pour lancer la recherche.",
       "loading": "Recherche des élèves…",
       "empty": "Aucun élève correspondant.",
+      "didYouMean": "Vouliez-vous dire : {query} ?",
       "error": "Impossible de charger les résultats.",
       "matchedOn": {
         "name": "Nom",
