@@ -1,4 +1,4 @@
-# SSC-API-2026.09.001 — Billing Responsibility Contract (Student Create)
+# SSC-API-2026.10.001 — Billing Responsibility Contract (Student Create)
 
 Compatibility metadata linking **school-nexjs** `origin/dev` to Odoo
 `smart_school_connect` **Billing Responsibility Contract** on student create.
@@ -6,7 +6,9 @@ Human-readable source of truth; machine-readable mirror in
 `src/config/backend-contract.ts`.
 
 **Phase:** `NEXTJS-BILLING-RESPONSIBILITY-CONTRACT-ADOPTION-DEV-1`
-**Last updated:** 2026-07-06
+**Reconciliation:** Renumbered from `SSC-API-2026.09.001` on dev to avoid semantic
+collision with `SSC-API-2026.09.001` on `origin/main` (Manual Billing Authority Change).
+**Last updated:** 2026-07-07
 
 ---
 
@@ -14,10 +16,10 @@ Human-readable source of truth; machine-readable mirror in
 
 | Field | Value |
 |-------|-------|
-| **Contract ID** | `SSC-API-2026.09.001` |
-| **Frontend release** | `school-nextjs-v2026.09.001` |
+| **Contract ID** | `SSC-API-2026.10.001` |
+| **Frontend release** | `school-nextjs-v2026.10.001` |
 | **Required backend capability** | Billing Responsibility Contract |
-| **Required backend contract** | `SSC-API-2026.09.001` |
+| **Required backend contract** | `SSC-API-2026.10.001` |
 | **Odoo repository** | https://github.com/geniustep/smart-school-connect.git |
 | **Reference Odoo commit** | `98a80915c0494d9a52861ef3c091589abef8ff8e` |
 | **Odoo module** | `smart_school_connect` |
@@ -27,6 +29,7 @@ Human-readable source of truth; machine-readable mirror in
 | **Breaking API changes** | **No** (additive request/response metadata; stable error codes) |
 | **Stable HTTP error path** | `response.error.code` |
 | **Prior contract** | `SSC-API-2026.08.001` |
+| **Reserved on main (different feature)** | `SSC-API-2026.09.001` — Manual Billing Authority Change |
 
 ---
 
