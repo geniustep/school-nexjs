@@ -947,6 +947,17 @@
       "applyFilters": "Apply filters",
       "columnStudent": "Pupil",
       "columnClassLevel": "Class / Level",
+      "viewMode": "View mode",
+      "viewList": "List",
+      "viewKanban": "Cards",
+      "cardActionsMenu": "Pupil actions",
+      "kanban": {
+        "actions": {
+          "openProfile": "Open profile"
+        },
+        "selectStudent": "Select {name}",
+        "selectedCount": "{count} selected"
+      },
       "filters": {
         "cycle": "Cycle",
         "allCycles": "All cycles",
@@ -3474,7 +3485,7 @@
         "state": "Status",
         "allStates": "All statuses",
         "showClosed": "Show closed requests",
-        "hideConverted": "Hide requests converted to pupils",
+        "hideConverted": "Hide registered",
         "reset": "Reset filters",
         "resultsCount": "{count} requests shown",
         "hiddenConvertedCount": "{count} converted hidden"
@@ -4073,7 +4084,7 @@
         "pendingSiblingLinesHint": "You can append new lines only. Save appends; it does not replace the list.",
         "appendSiblingLine": "Add sibling line",
         "pendingSiblingLines": "New lines pending save",
-        "photoHint": "To change the photo, add or update the student photo document.",
+        "photoHint": "To change the photo, use the student photo section above.",
         "noPhoto": "No photo",
         "healthHint": "Save the health profile using the edit action in this section.",
         "guardiansHint": "Guardian management uses the actions below — not the main student update.",
@@ -4087,6 +4098,29 @@
           "health": "Health",
           "guardians": "Guardians",
           "documents": "Documents & photo"
+        },
+        "photo": {
+          "title": "Student photo",
+          "description": "Upload or replace the pupil photo. This uses the existing student photo document flow.",
+          "currentAlt": "Current photo of {name}",
+          "previewAlt": "Selected photo preview",
+          "placeholderAria": "Gender-based placeholder illustration",
+          "choosePhoto": "Choose photo",
+          "changePhoto": "Change photo",
+          "upload": "Upload photo",
+          "uploading": "Uploading photo…",
+          "uploadSuccess": "Photo updated",
+          "uploadFailed": "Could not upload the photo",
+          "clearSelection": "Clear selection",
+          "limits": "Accepted formats: JPG, PNG, WEBP. Maximum size 10 MB.",
+          "readOnlyHint": "You can view the photo here. Upload requires document management permission.",
+          "manageLink": "Manage the pupil photo in the photo section above",
+          "errors": {
+            "fileRequired": "Choose a photo file first.",
+            "fileTooLarge": "The file is too large (maximum 10 MB).",
+            "fileTypeNotAllowed": "This file type is not allowed.",
+            "photoFileTypeNotAllowed": "Only image files are allowed (JPG, PNG, WEBP)."
+          }
         }
       },
       "readiness": {

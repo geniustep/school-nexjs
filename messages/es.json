@@ -946,6 +946,17 @@
       "applyFilters": "Aplicar filtros",
       "columnStudent": "Alumno",
       "columnClassLevel": "Clase / Nivel",
+      "viewMode": "Modo de vista",
+      "viewList": "Lista",
+      "viewKanban": "Tarjetas",
+      "cardActionsMenu": "Acciones del alumno",
+      "kanban": {
+        "actions": {
+          "openProfile": "Abrir expediente"
+        },
+        "selectStudent": "Seleccionar {name}",
+        "selectedCount": "{count} seleccionados"
+      },
       "filters": {
         "cycle": "Ciclo",
         "allCycles": "Todos los ciclos",
@@ -3473,7 +3484,7 @@
         "state": "Estado",
         "allStates": "Todos los estados",
         "showClosed": "Mostrar solicitudes cerradas",
-        "hideConverted": "Ocultar solicitudes convertidas en alumno",
+        "hideConverted": "Ocultar registrados",
         "reset": "Restablecer filtros",
         "resultsCount": "{count} solicitudes visibles",
         "hiddenConvertedCount": "{count} convertidas ocultas"
@@ -4067,8 +4078,31 @@
         "pendingSiblingLinesHint": "Solo se pueden añadir líneas nuevas.",
         "appendSiblingLine": "Añadir línea",
         "pendingSiblingLines": "Líneas nuevas pendientes",
-        "photoHint": "Para cambiar la foto, actualice el documento de foto.",
+        "photoHint": "Para cambiar la foto, use la sección de foto de arriba.",
         "noPhoto": "Sin foto",
+        "photo": {
+          "title": "Foto del alumno",
+          "description": "Suba o reemplace la foto del alumno mediante el flujo de documento de foto existente.",
+          "currentAlt": "Foto actual de {name}",
+          "previewAlt": "Vista previa de la foto seleccionada",
+          "placeholderAria": "Ilustración de sustitución según el género",
+          "choosePhoto": "Elegir foto",
+          "changePhoto": "Cambiar foto",
+          "upload": "Subir foto",
+          "uploading": "Subiendo foto…",
+          "uploadSuccess": "Foto actualizada",
+          "uploadFailed": "No se pudo subir la foto",
+          "clearSelection": "Borrar selección",
+          "limits": "Formatos aceptados: JPG, PNG, WEBP. Tamaño máximo 10 MB.",
+          "readOnlyHint": "Puede ver la foto aquí. La subida requiere permiso de gestión de documentos.",
+          "manageLink": "Gestionar la foto del alumno en la sección de foto de arriba",
+          "errors": {
+            "fileRequired": "Elija primero un archivo de foto.",
+            "fileTooLarge": "El archivo es demasiado grande (máximo 10 MB).",
+            "fileTypeNotAllowed": "Este tipo de archivo no está permitido.",
+            "photoFileTypeNotAllowed": "Solo se permiten archivos de imagen (JPG, PNG, WEBP)."
+          }
+        },
         "healthHint": "Guarde el perfil de salud desde esta sección.",
         "guardiansHint": "Los tutores se gestionan abajo, no en la actualización principal.",
         "tabs": {

@@ -120,7 +120,10 @@
 
 .admissions-list-toolbar {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem 0.65rem;
+  padding: 0.65rem 0.85rem;
   border: 1px solid var(--border, var(--c-border));
   border-radius: var(--radius);
   background: var(--card-bg, #fff);
@@ -128,29 +131,24 @@
   box-shadow: 0 1px 2px color-mix(in srgb, var(--c-text, #0f172a) 4%, transparent);
 }
 
-.admissions-list-toolbar__primary {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.65rem 0.85rem;
-  padding: 0.7rem 0.85rem;
-}
-
-.admissions-list-toolbar__fields {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.55rem;
-  flex: 1 1 20rem;
-  min-width: 0;
+@media (min-width: 960px) {
+  .admissions-list-toolbar {
+    flex-wrap: nowrap;
+  }
 }
 
 .admissions-list-toolbar__search-wrap {
   position: relative;
-  flex: 1 1 12rem;
-  min-width: 10rem;
-  max-width: 22rem;
+  flex: 1 1 10rem;
+  min-width: 9rem;
+  max-width: 16rem;
+}
+
+@media (min-width: 960px) {
+  .admissions-list-toolbar__search-wrap {
+    flex: 1 1 12rem;
+    max-width: 18rem;
+  }
 }
 
 .admissions-list-toolbar__search-wrap::after {
@@ -191,6 +189,11 @@
   flex-shrink: 0;
 }
 
+.admissions-list-toolbar__option {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
 .admissions-list-toolbar__state {
   flex: 0 1 auto;
   width: auto;
@@ -203,24 +206,6 @@
   border-radius: var(--radius-sm);
   background: var(--c-surface, #fff);
   cursor: pointer;
-}
-
-.admissions-list-toolbar__secondary {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.45rem 0.75rem;
-  padding: 0.5rem 0.85rem;
-  border-top: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 75%, transparent);
-  background: color-mix(in srgb, var(--surface-2, #f8fafc) 60%, white);
-}
-
-.admissions-list-toolbar__options {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.4rem;
 }
 
 .admissions-toolbar-option {
@@ -268,6 +253,7 @@
 
 .admissions-list-toolbar__reset {
   flex-shrink: 0;
+  margin-inline-start: auto;
   border: none;
   background: transparent;
   color: var(--primary, var(--c-primary));
@@ -2342,24 +2328,13 @@
     position: sticky;
     top: 0;
     z-index: 5;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.45rem;
+    padding: 0.55rem 0.6rem;
     box-shadow:
       0 1px 0 color-mix(in srgb, var(--border, #e2e8f0) 65%, transparent),
       0 4px 12px color-mix(in srgb, var(--c-text, #0f172a) 5%, transparent);
-  }
-
-  .admissions-list-toolbar__primary {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.5rem;
-    padding: 0.55rem 0.6rem;
-  }
-
-  .admissions-list-toolbar__fields {
-    flex: none;
-    width: 100%;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.4rem;
   }
 
   .admissions-list-toolbar__search-wrap {
@@ -2387,28 +2362,20 @@
     flex: 1 1 auto;
   }
 
-  .admissions-list-toolbar__secondary {
-    padding: 0.45rem 0.6rem;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.4rem;
-  }
-
-  .admissions-list-toolbar__options {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.35rem;
-  }
-
-  .admissions-toolbar-option {
+  .admissions-list-toolbar .admissions-toolbar-option {
     width: 100%;
     justify-content: flex-start;
     min-height: 2.35rem;
     border-radius: var(--radius-sm);
   }
 
+  .admissions-list-toolbar__option {
+    width: 100%;
+  }
+
   .admissions-list-toolbar__reset {
     align-self: flex-start;
+    margin-inline-start: 0;
     padding-inline: 0.35rem;
   }
 

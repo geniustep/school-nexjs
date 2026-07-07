@@ -947,6 +947,17 @@
       "applyFilters": "تطبيق الفلاتر",
       "columnStudent": "التلميذ",
       "columnClassLevel": "القسم / المستوى",
+      "viewMode": "طريقة العرض",
+      "viewList": "قائمة",
+      "viewKanban": "بطاقات",
+      "cardActionsMenu": "إجراءات التلميذ",
+      "kanban": {
+        "actions": {
+          "openProfile": "فتح الملف"
+        },
+        "selectStudent": "تحديد {name}",
+        "selectedCount": "{count} محدّد"
+      },
       "filters": {
         "cycle": "السلك",
         "allCycles": "كل الأسلاك",
@@ -3624,7 +3635,7 @@
         "state": "الحالة",
         "allStates": "كل الحالات",
         "showClosed": "إظهار الطلبات المغلقة",
-        "hideConverted": "إخفاء الطلبات المحوّلة إلى تلميذ",
+        "hideConverted": "إخفاء المسجلين",
         "reset": "إعادة ضبط الفلاتر",
         "resultsCount": "{count} طلب ظاهر",
         "hiddenConvertedCount": "{count} محوّل مخفي"
@@ -4223,7 +4234,7 @@
         "pendingSiblingLinesHint": "يمكن إضافة سطور جديدة فقط. الحفظ يُلحق بالقائمة ولا يستبدلها.",
         "appendSiblingLine": "إضافة سطر أخ/أخت",
         "pendingSiblingLines": "سطور جديدة بانتظار الحفظ",
-        "photoHint": "لتغيير الصورة، أضف أو حدّث وثيقة صورة التلميذ من قسم الوثائق.",
+        "photoHint": "لتغيير الصورة، استخدم قسم صورة التلميذ أعلاه.",
         "noPhoto": "لا توجد صورة",
         "healthHint": "يُحفظ الملف الصحي عبر زر التعديل داخل هذا القسم.",
         "guardiansHint": "إدارة الأولياء تتم عبر الأزرار أدناه — لا تُرسل ضمن تحديث الملف الأساسي.",
@@ -4237,6 +4248,29 @@
           "health": "الصحة",
           "guardians": "الأولياء",
           "documents": "الوثائق والصورة"
+        },
+        "photo": {
+          "title": "صورة التلميذ",
+          "description": "ارفع أو استبدل صورة التلميذ عبر مسار وثيقة الصورة الحالي.",
+          "currentAlt": "الصورة الحالية لـ {name}",
+          "previewAlt": "معاينة الصورة المختارة",
+          "placeholderAria": "رسم توضيحي بديل حسب الجنس",
+          "choosePhoto": "اختيار صورة",
+          "changePhoto": "تغيير الصورة",
+          "upload": "رفع الصورة",
+          "uploading": "جارٍ رفع الصورة…",
+          "uploadSuccess": "تم تحديث الصورة",
+          "uploadFailed": "تعذر رفع الصورة",
+          "clearSelection": "إزالة الاختيار",
+          "limits": "الصيغ المقبولة: JPG وPNG وWEBP. الحد الأقصى 10 ميغابايت.",
+          "readOnlyHint": "يمكنك عرض الصورة هنا. الرفع يتطلب صلاحية إدارة الوثائق.",
+          "manageLink": "إدارة صورة التلميذ من قسم الصورة أعلاه",
+          "errors": {
+            "fileRequired": "اختر ملف صورة أولًا.",
+            "fileTooLarge": "حجم الملف كبير جدًا (الحد الأقصى 10 ميغابايت).",
+            "fileTypeNotAllowed": "نوع الملف غير مسموح.",
+            "photoFileTypeNotAllowed": "يُسمح بملفات الصور فقط (JPG وPNG وWEBP)."
+          }
         }
       },
       "readiness": {

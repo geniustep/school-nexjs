@@ -12,6 +12,8 @@ import { AdminListActions } from '@/features/admin/admin-list-actions';
 import { CsvImportPanel } from '@/features/admin/csv-import-panel';
 import { studentClassLabel, studentLevelLabel } from '@/features/admin/students/utils/student-academic-labels';
 import { useDebouncedValue } from '@/features/admin/students/hooks/use-debounced-value';
+import { useStudentsListView } from '@/features/admin/students/hooks/use-students-list-view';
+import { StudentsKanban } from '@/features/admin/students/components/students-kanban';
 import { StudentsListFilters } from '@/features/admin/students/components/students-list-filters';
 import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
@@ -54,6 +56,7 @@ export default function AdminStudentsPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [accountFilter, setAccountFilter] = useState('');
   const [importOpen, setImportOpen] = useState(false);
+  const [view, setView] = useStudentsListView();
 
   useEffect(() => {
     setPage(1);
@@ -206,24 +209,47 @@ export default function AdminStudentsPage() {
         />
       ) : null}
 
-      <StudentsListFilters
-        search={search}
-        cycleCode={cycleCode}
-        levelId={levelId}
-        classId={classId}
-        statusFilter={statusFilter}
-        accountFilter={accountFilter}
-        levels={levelsState.data ?? []}
-        classes={classesState.data ?? []}
-        hasActiveFilters={hasActiveFilters}
-        onSearchChange={setSearch}
-        onCycleCodeChange={setCycleCode}
-        onLevelIdChange={setLevelId}
-        onClassIdChange={setClassId}
-        onStatusFilterChange={setStatusFilter}
-        onAccountFilterChange={setAccountFilter}
-        onReset={resetFilters}
-      />
+      <div className="students-list__toolbar-wrap">
+        <StudentsListFilters
+          search={search}
+          cycleCode={cycleCode}
+          levelId={levelId}
+          classId={classId}
+          statusFilter={statusFilter}
+          accountFilter={accountFilter}
+          levels={levelsState.data ?? []}
+          classes={classesState.data ?? []}
+          hasActiveFilters={hasActiveFilters}
+          onSearchChange={setSearch}
+          onCycleCodeChange={setCycleCode}
+          onLevelIdChange={setLevelId}
+          onClassIdChange={setClassId}
+          onStatusFilterChange={setStatusFilter}
+          onAccountFilterChange={setAccountFilter}
+          onReset={resetFilters}
+        />
+
+        <div
+          className="students-list__view-toggle"
+          role="group"
+          aria-label={t('admin.studentsList.viewMode')}
+        >
+          <button
+            type="button"
+            aria-pressed={view === 'list'}
+            onClick={() => setView('list')}
+          >
+            {t('admin.studentsList.viewList')}
+          </button>
+          <button
+            type="button"
+            aria-pressed={view === 'kanban'}
+            onClick={() => setView('kanban')}
+          >
+            {t('admin.studentsList.viewKanban')}
+          </button>
+        </div>
+      </div>
 
       <ResourceView
         state={state}
@@ -233,14 +259,18 @@ export default function AdminStudentsPage() {
       >
         {(students) => (
           <>
-            <div className="students-list__table">
-              <DataTable
-                columns={columns}
-                rows={students}
-                rowKey={(s) => s.id}
-                onRowClick={(s) => router.push(`/admin/students/${s.id}`)}
-              />
-            </div>
+            {view === 'kanban' ? (
+              <StudentsKanban students={students} />
+            ) : (
+              <div className="students-list__table">
+                <DataTable
+                  columns={columns}
+                  rows={students}
+                  rowKey={(s) => s.id}
+                  onRowClick={(s) => router.push(`/admin/students/${s.id}`)}
+                />
+              </div>
+            )}
             {pg ? (
               <Pagination page={pg.page} totalPages={pg.total_pages} total={pg.total} onPage={setPage} />
             ) : null}

@@ -1,9 +1,26 @@
+import {
+  resolveSecureAttachmentUrl,
+  type AttachmentBinaryAction,
+} from '@/lib/attachments/secure-url';
+
 const ODOO_WEB_BFF = '/api/odoo-web';
+const ATTACHMENT_PATH_RE = /\/attachments\/(\d+)(?:\/(download|preview|thumbnail))?/;
+
+/** Map attachment preview/thumbnail paths to same-origin `/api/attachments/{id}/{action}`. */
+function resolveStudentPhotoAttachmentBffUrl(url: string): string | null {
+  const match = url.match(ATTACHMENT_PATH_RE);
+  if (!match) return null;
+  const action = (match[2] as AttachmentBinaryAction | undefined) ?? 'preview';
+  return resolveSecureAttachmentUrl(url, action, Number(match[1]));
+}
 
 /** Map API-returned student photo paths to same-origin BFF routes. */
 export function resolveStudentPhotoUrl(url: string | null | undefined): string | null {
   if (!url?.trim()) return null;
   const trimmed = url.trim();
+
+  const attachmentBff = resolveStudentPhotoAttachmentBffUrl(trimmed);
+  if (attachmentBff) return attachmentBff;
 
   if (trimmed.startsWith(`${ODOO_WEB_BFF}/`)) return trimmed;
   if (trimmed.startsWith('/api/attachments/')) return trimmed;
@@ -21,7 +38,9 @@ export function resolveStudentPhotoUrl(url: string | null | undefined): string |
         return `${ODOO_WEB_BFF}/${parsed.pathname.slice('/web/'.length)}${parsed.search}`;
       }
       const apiMatch = parsed.pathname.match(/^\/api\/v1(\/.+)$/);
-      if (apiMatch) return `/api/odoo${apiMatch[1]}${parsed.search}`;
+      if (apiMatch && !apiMatch[1].startsWith('/attachments/')) {
+        return `/api/odoo${apiMatch[1]}${parsed.search}`;
+      }
     } catch {
       return null;
     }

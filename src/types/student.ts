@@ -56,6 +56,9 @@ export interface Student extends StudentNameFields, SiblingsFieldsSource {
   login?: string | null;
   user_id?: number | null;
   account?: UserAccountInfo | null;
+  /** May be present on list payloads when Odoo exposes student photo paths. */
+  image_url?: string | null;
+  thumbnail_url?: string | null;
 }
 
 // Compact child shape used by parent endpoints (GET /parent/children).

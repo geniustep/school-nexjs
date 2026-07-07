@@ -265,119 +265,95 @@ export function AdmissionsListPage() {
       ) : null}
 
       <div className="admissions-list-toolbar">
-        <div className="admissions-list-toolbar__primary">
-          <div className="admissions-list-toolbar__fields">
-            <div className="admissions-list-toolbar__search-wrap">
-              <input
-                className="input admissions-list-toolbar__search"
-                type="search"
-                placeholder={t('admin.admissions.filters.search')}
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                aria-label={t('admin.admissions.filters.search')}
-              />
-            </div>
-            <div
-              className="admissions-list-toolbar__controls"
-              role="group"
-              aria-label={t('admin.admissions.filters.state')}
-            >
-              <button
-                type="button"
-                className={cn(
-                  'admissions-quick-filter',
-                  stateFilter === 'in_evaluation' && 'admissions-quick-filter--active',
-                )}
-                aria-pressed={stateFilter === 'in_evaluation'}
-                onClick={() =>
-                  setStateFilter((current) => (current === 'in_evaluation' ? '' : 'in_evaluation'))
-                }
-              >
-                {t('admin.admissions.uiStages.in_evaluation')}
-              </button>
-              <select
-                className="input admissions-list-toolbar__state"
-                value={stateFilter}
-                onChange={(e) => setStateFilter(e.target.value as AdmissionUiStage | '')}
-                aria-label={t('admin.admissions.filters.state')}
-              >
-                <option value="">{t('admin.admissions.filters.allStates')}</option>
-                {ALL_UI_STAGES.map((stage) => (
-                  <option key={stage} value={stage}>
-                    {t(`admin.admissions.uiStages.${stage}`)}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+        <div className="admissions-list-toolbar__search-wrap">
+          <input
+            className="input admissions-list-toolbar__search"
+            type="search"
+            placeholder={t('admin.admissions.filters.search')}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            aria-label={t('admin.admissions.filters.search')}
+          />
+        </div>
 
-          <div
-            className="admissions-view-toggle"
-            role="group"
-            aria-label={t('admin.admissions.viewMode')}
+        <div
+          className="admissions-list-toolbar__controls"
+          role="group"
+          aria-label={t('admin.admissions.filters.state')}
+        >
+          <select
+            className="input admissions-list-toolbar__state"
+            value={stateFilter}
+            onChange={(e) => setStateFilter(e.target.value as AdmissionUiStage | '')}
+            aria-label={t('admin.admissions.filters.state')}
           >
-            <button
-              type="button"
-              aria-pressed={view === 'kanban'}
-              onClick={() => setView('kanban')}
-            >
-              {t('admin.admissions.viewKanban')}
-            </button>
-            <button
-              type="button"
-              aria-pressed={view === 'table'}
-              onClick={() => setView('table')}
-            >
-              {t('admin.admissions.viewTable')}
-            </button>
-          </div>
+            <option value="">{t('admin.admissions.filters.allStates')}</option>
+            {ALL_UI_STAGES.map((stage) => (
+              <option key={stage} value={stage}>
+                {t(`admin.admissions.uiStages.${stage}`)}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            className={cn(
+              'admissions-quick-filter',
+              stateFilter === 'in_evaluation' && 'admissions-quick-filter--active',
+            )}
+            aria-pressed={stateFilter === 'in_evaluation'}
+            onClick={() =>
+              setStateFilter((current) => (current === 'in_evaluation' ? '' : 'in_evaluation'))
+            }
+          >
+            {t('admin.admissions.uiStages.in_evaluation')}
+          </button>
         </div>
 
-        <div className="admissions-list-toolbar__secondary">
-          <div className="admissions-list-toolbar__options">
-            <label
-              className={cn(
-                'admissions-toolbar-option',
-                showClosed && 'admissions-toolbar-option--on',
-              )}
-            >
-              <input
-                type="checkbox"
-                className="admissions-toolbar-option__input"
-                checked={showClosed}
-                onChange={(e) => {
-                  const checked = e.target.checked;
-                  setShowClosed(checked);
-                  if (!checked && stateFilter === CLOSED_UI_STAGE) setStateFilter('');
-                }}
-              />
-              <span>{t('admin.admissions.filters.showClosed')}</span>
-            </label>
-            <label
-              className={cn(
-                'admissions-toolbar-option',
-                hideConverted && 'admissions-toolbar-option--on',
-              )}
-            >
-              <input
-                type="checkbox"
-                className="admissions-toolbar-option__input"
-                checked={hideConverted}
-                onChange={(e) => setHideConverted(e.target.checked)}
-              />
-              <span>{t('admin.admissions.filters.hideConverted')}</span>
-            </label>
-          </div>
-          {hasActiveFilters ? (
-            <button
-              type="button"
-              className="admissions-list-toolbar__reset"
-              onClick={resetFilters}
-            >
-              {t('admin.admissions.filters.reset')}
-            </button>
-          ) : null}
+        <div
+          className="admissions-view-toggle"
+          role="group"
+          aria-label={t('admin.admissions.viewMode')}
+        >
+          <button
+            type="button"
+            aria-pressed={view === 'kanban'}
+            onClick={() => setView('kanban')}
+          >
+            {t('admin.admissions.viewKanban')}
+          </button>
+          <button
+            type="button"
+            aria-pressed={view === 'table'}
+            onClick={() => setView('table')}
+          >
+            {t('admin.admissions.viewTable')}
+          </button>
         </div>
+
+        <label
+          className={cn(
+            'admissions-toolbar-option admissions-list-toolbar__option',
+            hideConverted && 'admissions-toolbar-option--on',
+          )}
+        >
+          <input
+            type="checkbox"
+            className="admissions-toolbar-option__input"
+            checked={hideConverted}
+            onChange={(e) => setHideConverted(e.target.checked)}
+          />
+          <span>{t('admin.admissions.filters.hideConverted')}</span>
+        </label>
+
+        {hasActiveFilters ? (
+          <button
+            type="button"
+            className="admissions-list-toolbar__reset"
+            onClick={resetFilters}
+          >
+            {t('admin.admissions.filters.reset')}
+          </button>
+        ) : null}
       </div>
 
       {selectedCount > 0 ? (

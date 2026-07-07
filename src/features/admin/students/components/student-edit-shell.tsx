@@ -54,10 +54,10 @@ import {
   resolveStudentCapabilities,
 } from '../utils/resolve-capabilities';
 import { resolveOverviewEditAllowed } from '../utils/resolve-overview-allowed-actions';
-import { resolveStudentPhotoCandidates } from '../utils/resolve-student-photo-url';
+import { StudentEditPhotoSection } from './student-edit-photo-section';
 import { studentClassLabel, studentLevelLabel } from '../utils/student-academic-labels';
 import type { SiblingLine } from '@/types/sibling-line';
-import type { StudentEnrollment, StudentSummary } from '@/types/student-360';
+import type { StudentEnrollment } from '@/types/student-360';
 import '../student-360.css';
 
 function refName(value: { name?: string } | string | null | undefined): string {
@@ -167,32 +167,6 @@ function EnrollmentHistoryList({
       </ul>
       <p className="tiny muted">{t('admin.student360.editPage.enrollmentHistoryHint')}</p>
     </section>
-  );
-}
-
-function StudentEditPhotoPreview({
-  student,
-  overviewPhoto,
-}: {
-  student: StudentSummary;
-  overviewPhoto?: { image_url?: string | null; thumbnail_url?: string | null } | null;
-}) {
-  const t = useT();
-  const candidates = resolveStudentPhotoCandidates(overviewPhoto, student.image_url);
-  const src = candidates[0] ?? null;
-
-  return (
-    <div className="student-edit-photo">
-      {src ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={src} alt="" className="student-edit-photo__img" />
-      ) : (
-        <div className="student-edit-photo__placeholder" aria-hidden="true">
-          {t('admin.student360.editPage.noPhoto')}
-        </div>
-      )}
-      <p className="tiny muted">{t('admin.student360.editPage.photoHint')}</p>
-    </div>
   );
 }
 
@@ -391,6 +365,19 @@ export function StudentEditShell({ studentId }: { studentId: string }) {
         />
       </header>
 
+      <StudentEditPhotoSection
+        studentId={student.id}
+        gender={student.gender ?? null}
+        displayName={getStudentDisplayName(student)}
+        imageUrl={overviewState.data?.photo?.image_url ?? student.image_url}
+        thumbnailUrl={overviewState.data?.photo?.thumbnail_url ?? null}
+        canManage={canManageDocuments}
+        onUploaded={() => {
+          detailsState.reload();
+          overviewState.reload();
+        }}
+      />
+
       <div
         ref={panelRef}
         className="student-edit-page__panel"
@@ -523,7 +510,9 @@ export function StudentEditShell({ studentId }: { studentId: string }) {
         {tab === 'documents' && showDocuments ? (
           <Card>
             <SectionHead title={t('admin.student360.editPage.tabs.documents')} />
-            <StudentEditPhotoPreview student={student} overviewPhoto={overviewState.data?.photo} />
+            <p className="tiny muted">
+              <Link href={`#student-photo`}>{t('admin.student360.editPage.photo.manageLink')}</Link>
+            </p>
             <StudentDocumentsTab
               studentId={student.id}
               canManage={canManageDocuments}
