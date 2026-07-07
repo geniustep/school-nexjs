@@ -6770,6 +6770,21 @@
   margin: 0;
 }
 
+.finance-family-collection-student360-context {
+  display: grid;
+  gap: 8px;
+}
+
+.finance-family-collection-student360-context__lead {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.finance-family-collection-student360-context__switch {
+  justify-self: start;
+}
+
 .finance-family-collection-workflow__intro {
   margin: 0 0 8px;
 }
