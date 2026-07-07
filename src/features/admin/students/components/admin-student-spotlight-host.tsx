@@ -1,17 +1,39 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import { IconSearch } from '@/components/icons/admin-icons';
 import { useT } from '@/features/i18n/locale-context';
 import { useBodyScrollLock } from '@/hooks/use-body-scroll-lock';
+import { cn } from '@/lib/utils/cn';
 import {
   getStudentSpotlightShortcutAction,
   isStudentSpotlightOpenShortcut,
 } from '../utils/student-spotlight-utils';
 import { StudentSpotlight } from './student-spotlight';
 
-export function AdminStudentSpotlightHost() {
-  const t = useT();
+type AdminStudentSpotlightContextValue = {
+  openAndFocus: () => void;
+};
+
+const AdminStudentSpotlightContext = createContext<AdminStudentSpotlightContextValue | null>(null);
+
+function useAdminStudentSpotlight() {
+  const context = useContext(AdminStudentSpotlightContext);
+  if (!context) {
+    throw new Error('AdminStudentSpotlightTrigger must be used within AdminStudentSpotlightHost');
+  }
+  return context;
+}
+
+export function AdminStudentSpotlightHost({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const [focusRequest, setFocusRequest] = useState(0);
   const openRef = useRef(open);
@@ -44,17 +66,36 @@ export function AdminStudentSpotlightHost() {
   }, []);
 
   return (
-    <>
-      <button
-        type="button"
-        className="btn btn--ghost btn--sm student-spotlight-trigger"
-        onClick={openAndFocus}
-        aria-label={t('admin.spotlight.openButton')}
-      >
-        <IconSearch size={18} />
-        <span className="student-spotlight-trigger__kbd">{t('admin.spotlight.shortcutLabel')}</span>
-      </button>
+    <AdminStudentSpotlightContext.Provider value={{ openAndFocus }}>
+      {children}
       {open ? <StudentSpotlight onClose={close} focusRequest={focusRequest} /> : null}
-    </>
+    </AdminStudentSpotlightContext.Provider>
+  );
+}
+
+export function AdminStudentSpotlightTrigger({
+  variant = 'desktop',
+}: {
+  variant?: 'desktop' | 'mobile';
+}) {
+  const t = useT();
+  const { openAndFocus } = useAdminStudentSpotlight();
+  const isMobile = variant === 'mobile';
+
+  return (
+    <button
+      type="button"
+      className={cn(
+        'btn btn--ghost btn--sm student-spotlight-trigger',
+        isMobile && 'student-spotlight-trigger--mobile',
+      )}
+      onClick={openAndFocus}
+      aria-label={t('admin.spotlight.openButton')}
+    >
+      <IconSearch size={18} />
+      {!isMobile ? (
+        <span className="student-spotlight-trigger__kbd">{t('admin.spotlight.shortcutLabel')}</span>
+      ) : null}
+    </button>
   );
 }
