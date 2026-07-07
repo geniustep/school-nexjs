@@ -8,13 +8,13 @@ const MATCHED_ON_LABEL_KEYS: Record<StudentSearchMatchedOn, string> = {
 };
 
 export function isStudentSpotlightOpenShortcut(event: {
-  key: string;
+  code: string;
   metaKey?: boolean;
   ctrlKey?: boolean;
   isComposing?: boolean;
 }): boolean {
   if (event.isComposing) return false;
-  if (event.key.toLowerCase() !== 'k') return false;
+  if (event.code !== 'KeyK') return false;
   return Boolean(event.metaKey || event.ctrlKey);
 }
 

@@ -11,27 +11,30 @@ import {
 } from './student-spotlight-utils';
 
 describe('isStudentSpotlightOpenShortcut', () => {
-  it('opens on Ctrl+K', () => {
-    expect(isStudentSpotlightOpenShortcut({ key: 'k', ctrlKey: true })).toBe(true);
-    expect(isStudentSpotlightOpenShortcut({ key: 'K', ctrlKey: true })).toBe(true);
+  it('opens on Ctrl+K using physical KeyK code', () => {
+    expect(isStudentSpotlightOpenShortcut({ code: 'KeyK', ctrlKey: true })).toBe(true);
   });
 
-  it('opens on Cmd+K', () => {
-    expect(isStudentSpotlightOpenShortcut({ key: 'k', metaKey: true })).toBe(true);
+  it('opens on Cmd+K using physical KeyK code', () => {
+    expect(isStudentSpotlightOpenShortcut({ code: 'KeyK', metaKey: true })).toBe(true);
   });
 
-  it('does not open on Cmd+Space or plain k', () => {
-    expect(isStudentSpotlightOpenShortcut({ key: ' ', metaKey: true })).toBe(false);
-    expect(isStudentSpotlightOpenShortcut({ key: 'k' })).toBe(false);
+  it('opens on Ctrl+K with Arabic keyboard layout key label', () => {
+    expect(isStudentSpotlightOpenShortcut({ code: 'KeyK', ctrlKey: true })).toBe(true);
+  });
+
+  it('does not open on Cmd+Space or plain KeyK', () => {
+    expect(isStudentSpotlightOpenShortcut({ code: 'Space', metaKey: true })).toBe(false);
+    expect(isStudentSpotlightOpenShortcut({ code: 'KeyK' })).toBe(false);
   });
 
   it('ignores shortcuts while composing text', () => {
-    expect(isStudentSpotlightOpenShortcut({ key: 'k', ctrlKey: true, isComposing: true })).toBe(
-      false,
-    );
-    expect(isStudentSpotlightOpenShortcut({ key: 'k', metaKey: true, isComposing: true })).toBe(
-      false,
-    );
+    expect(
+      isStudentSpotlightOpenShortcut({ code: 'KeyK', ctrlKey: true, isComposing: true }),
+    ).toBe(false);
+    expect(
+      isStudentSpotlightOpenShortcut({ code: 'KeyK', metaKey: true, isComposing: true }),
+    ).toBe(false);
   });
 });
 
