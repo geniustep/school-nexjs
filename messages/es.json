@@ -953,7 +953,26 @@
       "kanban": {
         "actions": {
           "openProfile": "Abrir expediente"
-        }
+        },
+        "selectStudent": "Seleccionar {name}",
+        "selectedCount": "{count} seleccionados"
+      },
+      "filters": {
+        "cycle": "Ciclo",
+        "allCycles": "Todos los ciclos",
+        "level": "Nivel",
+        "class": "Clase",
+        "status": "Estado del alumno",
+        "account": "Cuenta de usuario",
+        "selectCycleFirst": "Seleccione primero un ciclo",
+        "selectLevelFirst": "Seleccione primero un nivel",
+        "more": "Más filtros",
+        "hideMore": "Ocultar más filtros",
+        "chipSearch": "Búsqueda: {query}",
+        "chipCycle": "Ciclo: {cycle}",
+        "chipLevel": "Nivel: {level}",
+        "chipClass": "Clase: {className}",
+        "chipStatus": "Estado: {status}"
       }
     },
     "search": "Buscar",
@@ -3465,7 +3484,7 @@
         "state": "Estado",
         "allStates": "Todos los estados",
         "showClosed": "Mostrar solicitudes cerradas",
-        "hideConverted": "Ocultar solicitudes convertidas en alumno",
+        "hideConverted": "Ocultar registrados",
         "reset": "Restablecer filtros",
         "resultsCount": "{count} solicitudes visibles",
         "hiddenConvertedCount": "{count} convertidas ocultas"

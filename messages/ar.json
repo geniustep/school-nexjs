@@ -954,7 +954,26 @@
       "kanban": {
         "actions": {
           "openProfile": "فتح الملف"
-        }
+        },
+        "selectStudent": "تحديد {name}",
+        "selectedCount": "{count} محدّد"
+      },
+      "filters": {
+        "cycle": "السلك",
+        "allCycles": "كل الأسلاك",
+        "level": "المستوى",
+        "class": "القسم",
+        "status": "حالة التلميذ",
+        "account": "حساب المستخدم",
+        "selectCycleFirst": "اختر السلك أولًا",
+        "selectLevelFirst": "اختر المستوى أولًا",
+        "more": "فلاتر إضافية",
+        "hideMore": "إخفاء الفلاتر الإضافية",
+        "chipSearch": "بحث: {query}",
+        "chipCycle": "السلك: {cycle}",
+        "chipLevel": "المستوى: {level}",
+        "chipClass": "القسم: {className}",
+        "chipStatus": "الحالة: {status}"
       }
     },
     "search": "بحث",
@@ -3616,7 +3635,7 @@
         "state": "الحالة",
         "allStates": "كل الحالات",
         "showClosed": "إظهار الطلبات المغلقة",
-        "hideConverted": "إخفاء الطلبات المحوّلة إلى تلميذ",
+        "hideConverted": "إخفاء المسجلين",
         "reset": "إعادة ضبط الفلاتر",
         "resultsCount": "{count} طلب ظاهر",
         "hiddenConvertedCount": "{count} محوّل مخفي"
