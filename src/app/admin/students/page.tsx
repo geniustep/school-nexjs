@@ -12,6 +12,7 @@ import { AdminListActions } from '@/features/admin/admin-list-actions';
 import { CsvImportPanel } from '@/features/admin/csv-import-panel';
 import { studentClassLabel, studentLevelLabel } from '@/features/admin/students/utils/student-academic-labels';
 import { useDebouncedValue } from '@/features/admin/students/hooks/use-debounced-value';
+import { StudentsListFilters } from '@/features/admin/students/components/students-list-filters';
 import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
@@ -21,6 +22,7 @@ import { hasPermission } from '@/lib/permissions/permissions';
 import { statusLabel } from '@/lib/utils/labels';
 import { getStudentDisplayName } from '@/lib/utils/student';
 import type { Student } from '@/types/student';
+import type { Level } from '@/types/class';
 import type { ListParams } from '@/types/api';
 import '@/features/admin/students/student-360.css';
 
@@ -46,6 +48,7 @@ export default function AdminStudentsPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebouncedValue(search, 400);
+  const [cycleCode, setCycleCode] = useState('');
   const [classId, setClassId] = useState('');
   const [levelId, setLevelId] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -54,7 +57,7 @@ export default function AdminStudentsPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch, classId, levelId, statusFilter, accountFilter]);
+  }, [debouncedSearch, cycleCode, classId, levelId, statusFilter, accountFilter]);
 
   const params: ListParams = {
     page,
@@ -73,13 +76,21 @@ export default function AdminStudentsPage() {
   };
   const state = useAdminResource<Student[]>(endpoints.admin.students, params);
   const classesState = useAdminResource<import('@/types/class').SchoolClass[]>(endpoints.admin.classes);
-  const levelsState = useAdminResource<import('@/types/api').Ref[]>(endpoints.admin.levels);
+  const levelsState = useAdminResource<Level[]>(endpoints.admin.levels);
   const pg = state.meta?.pagination;
 
-  const hasActiveFilters = !!(debouncedSearch || classId || levelId || statusFilter || accountFilter);
+  const hasActiveFilters = !!(
+    debouncedSearch ||
+    cycleCode ||
+    classId ||
+    levelId ||
+    statusFilter ||
+    accountFilter
+  );
 
   function resetFilters() {
     setSearch('');
+    setCycleCode('');
     setClassId('');
     setLevelId('');
     setStatusFilter('');
@@ -195,47 +206,24 @@ export default function AdminStudentsPage() {
         />
       ) : null}
 
-      <div className="students-list__toolbar">
-        <input
-          className="input students-list__search"
-          placeholder={t('admin.searchStudents')}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          aria-label={t('admin.searchStudents')}
-        />
-        <select className="input" value={classId} onChange={(e) => setClassId(e.target.value)}>
-          <option value="">{t('admin.allClasses')}</option>
-          {(classesState.data ?? []).map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-        <select className="input" value={levelId} onChange={(e) => setLevelId(e.target.value)}>
-          <option value="">{t('admin.allLevels')}</option>
-          {(levelsState.data ?? []).map((l) => (
-            <option key={l.id} value={l.id}>
-              {l.name}
-            </option>
-          ))}
-        </select>
-        <select className="input" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-          <option value="">{t('admin.allStates')}</option>
-          <option value="active">{t('states.active')}</option>
-          <option value="suspended">{t('states.suspended')}</option>
-        </select>
-        <select className="input" value={accountFilter} onChange={(e) => setAccountFilter(e.target.value)}>
-          <option value="">{t('admin.account.filterAll')}</option>
-          <option value="has_account">{t('admin.account.filterHasAccount')}</option>
-          <option value="no_account">{t('admin.account.filterNoAccount')}</option>
-          <option value="inactive_account">{t('admin.account.filterInactiveAccount')}</option>
-        </select>
-        {hasActiveFilters ? (
-          <button type="button" className="btn btn--ghost btn--sm" onClick={resetFilters}>
-            {t('admin.studentsList.resetFilters')}
-          </button>
-        ) : null}
-      </div>
+      <StudentsListFilters
+        search={search}
+        cycleCode={cycleCode}
+        levelId={levelId}
+        classId={classId}
+        statusFilter={statusFilter}
+        accountFilter={accountFilter}
+        levels={levelsState.data ?? []}
+        classes={classesState.data ?? []}
+        hasActiveFilters={hasActiveFilters}
+        onSearchChange={setSearch}
+        onCycleCodeChange={setCycleCode}
+        onLevelIdChange={setLevelId}
+        onClassIdChange={setClassId}
+        onStatusFilterChange={setStatusFilter}
+        onAccountFilterChange={setAccountFilter}
+        onReset={resetFilters}
+      />
 
       <ResourceView
         state={state}

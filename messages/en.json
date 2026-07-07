@@ -946,7 +946,24 @@
       "resetFilters": "Reset filters",
       "applyFilters": "Apply filters",
       "columnStudent": "Pupil",
-      "columnClassLevel": "Class / Level"
+      "columnClassLevel": "Class / Level",
+      "filters": {
+        "cycle": "Cycle",
+        "allCycles": "All cycles",
+        "level": "Level",
+        "class": "Class",
+        "status": "Pupil status",
+        "account": "User account",
+        "selectCycleFirst": "Select a cycle first",
+        "selectLevelFirst": "Select a level first",
+        "more": "More filters",
+        "hideMore": "Hide more filters",
+        "chipSearch": "Search: {query}",
+        "chipCycle": "Cycle: {cycle}",
+        "chipLevel": "Level: {level}",
+        "chipClass": "Class: {className}",
+        "chipStatus": "Status: {status}"
+      }
     },
     "search": "Search",
     "clear": "Clear",

@@ -5057,6 +5057,86 @@
   gap: 8px;
 }
 
+.students-list-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.students-list-filters__primary {
+  display: grid;
+  grid-template-columns: minmax(200px, 2fr) minmax(120px, 0.95fr) minmax(120px, 0.95fr) minmax(120px, 0.95fr) minmax(110px, 0.85fr) auto auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.students-list-filters__search {
+  min-width: 0;
+}
+
+.students-list-filters__cycle:disabled,
+.students-list-filters__level:disabled,
+.students-list-filters__class:disabled {
+  opacity: 0.72;
+  cursor: not-allowed;
+}
+
+.students-list-filters__more-toggle--active {
+  color: var(--c-primary, #2563eb);
+  font-weight: 600;
+}
+
+.students-list-filters__more {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 80%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface-2, #f8fafc) 65%, #fff);
+}
+
+.students-list-filters__more-field {
+  display: grid;
+  gap: 6px;
+  min-width: min(240px, 100%);
+}
+
+.students-list-filters__more-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--c-text-muted, var(--muted));
+}
+
+.students-list-filters__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.students-list-filters__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--c-primary, #2563eb) 18%, var(--c-border, #e2e8f0));
+  background: color-mix(in srgb, var(--c-primary, #2563eb) 6%, #fff);
+  color: var(--text, #0f172a);
+  font-size: 0.75rem;
+  line-height: 1.2;
+}
+
+.students-list-filters__chip--action {
+  cursor: pointer;
+  font: inherit;
+}
+
+.students-list-filters__chip--action:hover {
+  background: color-mix(in srgb, var(--c-primary, #2563eb) 10%, #fff);
+}
+
 .students-list__toolbar {
   display: grid;
   grid-template-columns: minmax(220px, 2fr) repeat(4, minmax(120px, 1fr)) auto;
@@ -5185,6 +5265,14 @@
     grid-template-columns: 1fr;
   }
 
+  .students-list-filters__primary {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .students-list-filters__search {
+    grid-column: 1 / -1;
+  }
+
   .students-list__toolbar {
     grid-template-columns: 1fr 1fr;
   }
@@ -5259,6 +5347,10 @@
 
   .student-360-quick-actions__secondary {
     display: none;
+  }
+
+  .students-list-filters__primary {
+    grid-template-columns: 1fr;
   }
 
   .students-list__toolbar {

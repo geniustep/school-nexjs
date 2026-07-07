@@ -945,7 +945,24 @@
       "resetFilters": "Réinitialiser",
       "applyFilters": "Appliquer les filtres",
       "columnStudent": "Élève",
-      "columnClassLevel": "Classe / Niveau"
+      "columnClassLevel": "Classe / Niveau",
+      "filters": {
+        "cycle": "Cycle",
+        "allCycles": "Tous les cycles",
+        "level": "Niveau",
+        "class": "Classe",
+        "status": "Statut de l'élève",
+        "account": "Compte utilisateur",
+        "selectCycleFirst": "Choisissez d'abord un cycle",
+        "selectLevelFirst": "Choisissez d'abord un niveau",
+        "more": "Filtres supplémentaires",
+        "hideMore": "Masquer les filtres supplémentaires",
+        "chipSearch": "Recherche : {query}",
+        "chipCycle": "Cycle : {cycle}",
+        "chipLevel": "Niveau : {level}",
+        "chipClass": "Classe : {className}",
+        "chipStatus": "Statut : {status}"
+      }
     },
     "search": "Rechercher",
     "clear": "Effacer",

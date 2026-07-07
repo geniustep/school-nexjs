@@ -946,7 +946,24 @@
       "resetFilters": "إعادة الضبط",
       "applyFilters": "تطبيق الفلاتر",
       "columnStudent": "التلميذ",
-      "columnClassLevel": "القسم / المستوى"
+      "columnClassLevel": "القسم / المستوى",
+      "filters": {
+        "cycle": "السلك",
+        "allCycles": "كل الأسلاك",
+        "level": "المستوى",
+        "class": "القسم",
+        "status": "حالة التلميذ",
+        "account": "حساب المستخدم",
+        "selectCycleFirst": "اختر السلك أولًا",
+        "selectLevelFirst": "اختر المستوى أولًا",
+        "more": "فلاتر إضافية",
+        "hideMore": "إخفاء الفلاتر الإضافية",
+        "chipSearch": "بحث: {query}",
+        "chipCycle": "السلك: {cycle}",
+        "chipLevel": "المستوى: {level}",
+        "chipClass": "القسم: {className}",
+        "chipStatus": "الحالة: {status}"
+      }
     },
     "search": "بحث",
     "clear": "مسح",
