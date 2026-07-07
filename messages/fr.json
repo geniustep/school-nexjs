@@ -6443,6 +6443,30 @@
           "cancelledChequesNote": "Les chèques annulés ne sont pas comptés comme rejetés. Consultez les échéances pour connaître le solde restant réel."
         },
         "billingPartyTitle": "Partie facturée",
+        "billingResponsibility": {
+          "badge": "Responsable de facturation",
+          "needsSelection": {
+            "title": "Le responsable de facturation n'est pas encore sélectionné",
+            "message": "Choisissez qui est responsable financièrement de cet élève avant de poursuivre les opérations financières.",
+            "cta": "Sélectionner le responsable de facturation",
+            "financeBlocked": "Sélectionnez un responsable de facturation avant de poursuivre cette opération financière."
+          },
+          "unresolved": {
+            "title": "Responsable de facturation non finalisé",
+            "message": "Un responsable ou payeur était prévu, mais la responsabilité de facturation n'a pas encore été tranchée.",
+            "cta": "Trancher le responsable de facturation",
+            "financeBlocked": "Finalisez la responsabilité de facturation avant de poursuivre cette opération financière."
+          },
+          "legacyUnknown": {
+            "title": "La responsabilité de facturation nécessite une revue",
+            "message": "La responsabilité de facturation de cet élève provient de données héritées et nécessite une revue manuelle.",
+            "reviewWarning": "Le système n'a pas modifié cet enregistrement automatiquement. Revoyez le profil de facturation avant d'utiliser les actions financières."
+          },
+          "errors": {
+            "required": "Sélectionnez un responsable de facturation avant de poursuivre cette opération financière.",
+            "scopeMismatch": "La personne sélectionnée n'est pas disponible dans le périmètre scolaire actuel."
+          }
+        },
         "billingAuthorityChange": {
           "action": "Changer la partie facturée",
           "dialogTitle": "Changer la partie facturée",
