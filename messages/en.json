@@ -6446,6 +6446,30 @@
           "cancelledChequesNote": "Cancelled cheques are not counted as rejected. Review installments for the actual remaining balance."
         },
         "billingPartyTitle": "Billing party",
+        "billingResponsibility": {
+          "badge": "Billing responsibility",
+          "needsSelection": {
+            "title": "Billing responsible not selected yet",
+            "message": "Choose who is financially responsible for this student before continuing with finance operations.",
+            "cta": "Select billing responsible",
+            "financeBlocked": "Select a billing responsible before continuing with this finance operation."
+          },
+          "unresolved": {
+            "title": "Billing responsible not finalized",
+            "message": "A guardian or payer was intended, but billing responsibility has not been finalized yet.",
+            "cta": "Resolve billing responsible",
+            "financeBlocked": "Finalize billing responsibility before continuing with this finance operation."
+          },
+          "legacyUnknown": {
+            "title": "Billing responsibility needs review",
+            "message": "This student's billing responsibility comes from legacy data and needs manual review.",
+            "reviewWarning": "The system has not changed this record automatically. Review the billing profile before relying on finance actions."
+          },
+          "errors": {
+            "required": "Select a billing responsible before continuing with this finance operation.",
+            "scopeMismatch": "The selected person is not available within the current school scope."
+          }
+        },
         "billingAuthorityChange": {
           "action": "Change billing authority",
           "dialogTitle": "Change billing authority",

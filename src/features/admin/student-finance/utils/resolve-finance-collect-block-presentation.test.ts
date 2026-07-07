@@ -15,7 +15,17 @@ describe('resolveFinanceCollectBlockPresentation — billing responsibility unre
     });
     expect(presentation.shouldHideCollectButton).toBe(true);
     expect(presentation.messageKey).toBe(
-      'admin.student360.create.billingResponsibility.unresolvedCollectBlocked',
+      'admin.student360.financeWorkspace.billingResponsibility.unresolved.financeBlocked',
+    );
+  });
+
+  it('hides collect button when collect block reason is billing_responsibility_required', () => {
+    const presentation = resolveFinanceCollectBlockPresentation({
+      collectBlockReason: 'billing_responsibility_required',
+    });
+    expect(presentation.shouldHideCollectButton).toBe(true);
+    expect(presentation.messageKey).toBe(
+      'admin.student360.financeWorkspace.billingResponsibility.needsSelection.financeBlocked',
     );
   });
 });

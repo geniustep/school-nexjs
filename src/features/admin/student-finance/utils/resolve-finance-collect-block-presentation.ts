@@ -10,6 +10,7 @@ const HIDE_COLLECT_REASONS = new Set([
   'agreement_not_active',
   'active_agreement_required',
   'billing_responsibility_unresolved',
+  'billing_responsibility_required',
 ]);
 
 export interface FinanceCollectBlockPresentation {
@@ -49,7 +50,16 @@ export function resolveFinanceCollectBlockPresentation(input: {
 
   if (effectiveReason === 'billing_responsibility_unresolved') {
     return {
-      messageKey: 'admin.student360.create.billingResponsibility.unresolvedCollectBlocked',
+      messageKey: 'admin.student360.financeWorkspace.billingResponsibility.unresolved.financeBlocked',
+      apiMessage,
+      shouldHideCollectButton: true,
+    };
+  }
+
+  if (effectiveReason === 'billing_responsibility_required') {
+    return {
+      messageKey:
+        'admin.student360.financeWorkspace.billingResponsibility.needsSelection.financeBlocked',
       apiMessage,
       shouldHideCollectButton: true,
     };
@@ -66,7 +76,16 @@ export function resolveFinanceCollectBlockPresentation(input: {
   if (input.workspace?.collection_gate?.collect_allowed === false) {
     if (effectiveReason === 'billing_responsibility_unresolved') {
       return {
-        messageKey: 'admin.student360.create.billingResponsibility.unresolvedCollectBlocked',
+        messageKey:
+          'admin.student360.financeWorkspace.billingResponsibility.unresolved.financeBlocked',
+        apiMessage,
+        shouldHideCollectButton: true,
+      };
+    }
+    if (effectiveReason === 'billing_responsibility_required') {
+      return {
+        messageKey:
+          'admin.student360.financeWorkspace.billingResponsibility.needsSelection.financeBlocked',
         apiMessage,
         shouldHideCollectButton: true,
       };

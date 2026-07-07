@@ -10,21 +10,19 @@ const t = (key: string) => `translated:${key}`;
 
 describe('billing responsibility error mapping', () => {
   it.each([
-    ['billing_responsibility_contract_conflict', 'contractConflict'],
-    ['student_billing_confirmation_required', 'confirmationRequired'],
-    ['student_billing_reason_required', 'reasonRequired'],
-    ['billing_responsibility_unresolved', 'unresolved'],
-    ['billing_responsibility_existing_agreement_conflict', 'existingAgreementConflict'],
-    ['invalid_billing_responsibility', 'invalid'],
-    ['invalid_billing_responsibility_mode', 'invalidMode'],
-  ] as const)('maps %s to i18n key', (code, suffix) => {
+    ['billing_responsibility_contract_conflict', 'admin.student360.create.billingResponsibility.errors.contractConflict'],
+    ['student_billing_confirmation_required', 'admin.student360.create.billingResponsibility.errors.confirmationRequired'],
+    ['student_billing_reason_required', 'admin.student360.create.billingResponsibility.errors.reasonRequired'],
+    ['billing_responsibility_required', 'admin.student360.financeWorkspace.billingResponsibility.errors.required'],
+    ['student_billing_scope_mismatch', 'admin.student360.financeWorkspace.billingResponsibility.errors.scopeMismatch'],
+    ['billing_responsibility_unresolved', 'admin.student360.financeWorkspace.billingResponsibility.unresolved.message'],
+    ['billing_responsibility_existing_agreement_conflict', 'admin.student360.create.billingResponsibility.errors.existingAgreementConflict'],
+    ['invalid_billing_responsibility', 'admin.student360.create.billingResponsibility.errors.invalid'],
+    ['invalid_billing_responsibility_mode', 'admin.student360.create.billingResponsibility.errors.invalidMode'],
+  ] as const)('maps %s to i18n key', (code, key) => {
     expect(isBillingResponsibilityStableErrorCode(code)).toBe(true);
-    expect(resolveBillingResponsibilityErrorMessageKey(code)).toBe(
-      `admin.student360.create.billingResponsibility.errors.${suffix}`,
-    );
-    expect(resolveBillingResponsibilityErrorMessage(code, t)).toBe(
-      `translated:admin.student360.create.billingResponsibility.errors.${suffix}`,
-    );
+    expect(resolveBillingResponsibilityErrorMessageKey(code)).toBe(key);
+    expect(resolveBillingResponsibilityErrorMessage(code, t)).toBe(`translated:${key}`);
   });
 
   it('mapStudentApiError uses error.code without parsing message text', () => {
@@ -50,7 +48,18 @@ describe('billing responsibility error mapping', () => {
       t,
     );
     expect(mapped.message).toBe(
-      'translated:admin.student360.create.billingResponsibility.errors.unresolved',
+      'translated:admin.student360.financeWorkspace.billingResponsibility.unresolved.message',
     );
+  });
+
+  it('mapStudentApiError maps billing_responsibility_required to selection field', () => {
+    const mapped = mapStudentApiError(
+      {
+        code: 'billing_responsibility_required',
+        message: 'ignored',
+      },
+      t,
+    );
+    expect(mapped.fieldErrors?.billingResponsibilitySelection).toBe(mapped.message);
   });
 });
