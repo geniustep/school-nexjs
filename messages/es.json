@@ -6455,6 +6455,30 @@
           "cancelledChequesNote": "Los cheques cancelados no se cuentan como rechazados. Revise las cuotas para conocer el saldo pendiente real."
         },
         "billingPartyTitle": "Entidad facturada",
+        "billingResponsibility": {
+          "badge": "Responsable de facturación",
+          "needsSelection": {
+            "title": "Aún no se ha seleccionado el responsable de facturación",
+            "message": "Elija quién es responsable financiero de este alumno antes de continuar con operaciones financieras.",
+            "cta": "Seleccionar responsable de facturación",
+            "financeBlocked": "Seleccione un responsable de facturación antes de continuar con esta operación financiera."
+          },
+          "unresolved": {
+            "title": "Responsable de facturación no finalizado",
+            "message": "Había un tutor o pagador previsto, pero la responsabilidad de facturación aún no se ha definido.",
+            "cta": "Resolver responsable de facturación",
+            "financeBlocked": "Finalice la responsabilidad de facturación antes de continuar con esta operación financiera."
+          },
+          "legacyUnknown": {
+            "title": "La responsabilidad de facturación requiere revisión",
+            "message": "La responsabilidad de facturación de este alumno proviene de datos heredados y requiere revisión manual.",
+            "reviewWarning": "El sistema no ha modificado este registro automáticamente. Revise el perfil de facturación antes de confiar en acciones financieras."
+          },
+          "errors": {
+            "required": "Seleccione un responsable de facturación antes de continuar con esta operación financiera.",
+            "scopeMismatch": "La persona seleccionada no está disponible en el ámbito escolar actual."
+          }
+        },
         "billingAuthorityChange": {
           "action": "Cambiar entidad de facturación",
           "dialogTitle": "Cambiar entidad de facturación",
