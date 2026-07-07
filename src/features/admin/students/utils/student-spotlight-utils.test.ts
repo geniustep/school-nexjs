@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildStudentSpotlightDidYouMeanLabel,
+  getStudentSpotlightShortcutAction,
   isStudentSpotlightCloseKey,
   isStudentSpotlightOpenShortcut,
   moveSpotlightActiveIndex,
@@ -22,6 +23,25 @@ describe('isStudentSpotlightOpenShortcut', () => {
   it('does not open on Cmd+Space or plain k', () => {
     expect(isStudentSpotlightOpenShortcut({ key: ' ', metaKey: true })).toBe(false);
     expect(isStudentSpotlightOpenShortcut({ key: 'k' })).toBe(false);
+  });
+
+  it('ignores shortcuts while composing text', () => {
+    expect(isStudentSpotlightOpenShortcut({ key: 'k', ctrlKey: true, isComposing: true })).toBe(
+      false,
+    );
+    expect(isStudentSpotlightOpenShortcut({ key: 'k', metaKey: true, isComposing: true })).toBe(
+      false,
+    );
+  });
+});
+
+describe('getStudentSpotlightShortcutAction', () => {
+  it('opens when spotlight is closed', () => {
+    expect(getStudentSpotlightShortcutAction(false)).toBe('open');
+  });
+
+  it('refocuses input when spotlight is already open', () => {
+    expect(getStudentSpotlightShortcutAction(true)).toBe('refocus');
   });
 });
 

@@ -11,9 +11,19 @@ export function isStudentSpotlightOpenShortcut(event: {
   key: string;
   metaKey?: boolean;
   ctrlKey?: boolean;
+  isComposing?: boolean;
 }): boolean {
+  if (event.isComposing) return false;
   if (event.key.toLowerCase() !== 'k') return false;
   return Boolean(event.metaKey || event.ctrlKey);
+}
+
+export type StudentSpotlightShortcutAction = 'open' | 'refocus';
+
+export function getStudentSpotlightShortcutAction(
+  isOpen: boolean,
+): StudentSpotlightShortcutAction {
+  return isOpen ? 'refocus' : 'open';
 }
 
 export function isStudentSpotlightCloseKey(key: string): boolean {

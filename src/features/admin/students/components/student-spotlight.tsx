@@ -23,11 +23,11 @@ import type { StudentSearchHit } from '@/types/student-search';
 import './student-spotlight.css';
 
 export function StudentSpotlight({
-  open,
   onClose,
+  focusRequest = 0,
 }: {
-  open: boolean;
   onClose: () => void;
+  focusRequest?: number;
 }) {
   const t = useT();
   const router = useRouter();
@@ -40,12 +40,19 @@ export function StudentSpotlight({
   const didYouMeanParts = buildStudentSpotlightDidYouMeanLabel(t);
 
   useEffect(() => {
-    if (!open) return;
-    setQuery('');
-    setActiveIndex(-1);
     const timer = window.setTimeout(() => inputRef.current?.focus(), 0);
     return () => window.clearTimeout(timer);
-  }, [open]);
+  }, [focusRequest]);
+
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (!isStudentSpotlightCloseKey(event.key)) return;
+      event.preventDefault();
+      onClose();
+    }
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [onClose]);
 
   useEffect(() => {
     setActiveIndex(results.length > 0 ? 0 : -1);
@@ -72,8 +79,6 @@ export function StudentSpotlight({
 
   function handleKeyDown(event: React.KeyboardEvent) {
     if (isStudentSpotlightCloseKey(event.key)) {
-      event.preventDefault();
-      onClose();
       return;
     }
     if (event.key === 'ArrowDown') {
@@ -92,11 +97,8 @@ export function StudentSpotlight({
     }
   }
 
-  if (!open) return null;
-
   const showMinLengthHint =
     trimmedQuery.length > 0 && trimmedQuery.length < STUDENT_SEARCH_MIN_QUERY_LENGTH;
-  const showIdleHint = trimmedQuery.length === 0;
   const showResults = !loading && !error && results.length > 0;
   const showZeroResults =
     !loading &&
@@ -105,15 +107,17 @@ export function StudentSpotlight({
     results.length === 0;
   const showSuggestion = showZeroResults && suggestion != null;
   const showEmpty = showZeroResults && suggestion == null;
+  const hasExpandedBody =
+    loading || Boolean(error) || showResults || showEmpty || showSuggestion;
 
   return (
     <div
-      className="modal-overlay student-spotlight-backdrop"
+      className="student-spotlight-backdrop"
       role="presentation"
       onClick={onClose}
     >
       <div
-        className="modal-content student-spotlight"
+        className={`student-spotlight${hasExpandedBody ? ' student-spotlight--expanded' : ''}`}
         role="dialog"
         aria-modal="true"
         aria-label={t('admin.spotlight.title')}
@@ -136,13 +140,16 @@ export function StudentSpotlight({
           />
         </div>
 
-        <div className="student-spotlight__body" aria-live="polite">
-          {showIdleHint || showMinLengthHint ? (
-            <p className="student-spotlight__state">
-              {t('admin.spotlight.minLengthHint', { count: STUDENT_SEARCH_MIN_QUERY_LENGTH })}
-            </p>
-          ) : null}
+        {showMinLengthHint ? (
+          <p className="student-spotlight__inline-hint">
+            {t('admin.spotlight.minLengthHint', { count: STUDENT_SEARCH_MIN_QUERY_LENGTH })}
+          </p>
+        ) : null}
 
+        <div
+          className={`student-spotlight__body${hasExpandedBody ? ' student-spotlight__body--visible' : ''}`}
+          aria-live="polite"
+        >
           {loading ? (
             <p className="student-spotlight__state">{t('admin.spotlight.loading')}</p>
           ) : null}
