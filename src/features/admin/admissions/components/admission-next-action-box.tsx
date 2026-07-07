@@ -25,12 +25,10 @@ function hasNextActionContent(detail: AdmissionDetail): boolean {
 export function AdmissionNextActionBox({
   detail,
   canEdit,
-  editRequestSeq = 0,
   onUpdated,
 }: {
   detail: AdmissionDetail;
   canEdit: boolean;
-  editRequestSeq?: number;
   onUpdated: () => void;
 }) {
   const t = useT();
@@ -54,13 +52,6 @@ export function AdmissionNextActionBox({
       setHidden(false);
     }
   }, [detail.id, detail.next_action, detail.next_action_date]);
-
-  useEffect(() => {
-    if (!canEdit || editRequestSeq <= 0) return;
-    setEditing(true);
-    setHidden(false);
-    setError(null);
-  }, [canEdit, editRequestSeq]);
 
   async function persistNextAction(action: string, actionDate: string) {
     if (activeSchoolId == null) return;

@@ -115,6 +115,9 @@ export interface EnrollmentIntakeFollowUpOptions {
   sourcesLoading?: boolean;
 }
 
+/** Admission create keeps full intake; edit only exposes patchable overview fields. */
+export type EnrollmentIntakeContext = 'admissionCreate' | 'admissionEdit';
+
 type IntakeProps = {
   values: EnrollmentIntakeValues;
   errors?: EnrollmentIntakeFieldErrors;
@@ -124,6 +127,7 @@ type IntakeProps = {
   genders: { value: string; label: string }[];
   nationalities: StudentNationalityOption[];
   requireArabicNames?: boolean;
+  intakeContext?: EnrollmentIntakeContext;
   variant?: 'default' | 'studentCreate';
 };
 
@@ -136,10 +140,13 @@ export function EnrollmentIntakeIdentityFields({
   genders,
   nationalities,
   requireArabicNames = false,
+  intakeContext = 'admissionCreate',
   variant = 'default',
 }: IntakeProps) {
   const t = useT();
   const isStudentCreate = variant === 'studentCreate';
+  const isAdmissionEdit = intakeContext === 'admissionEdit';
+  const namesRequired = requireArabicNames && !isAdmissionEdit;
   const fullNameAr = [values.firstNameAr.trim(), values.lastNameAr.trim()].filter(Boolean).join(' ');
   const fullNameFr = [values.firstNameFr.trim(), values.lastNameFr.trim()].filter(Boolean).join(' ');
   const localizedGenders = useMemo(
@@ -161,7 +168,7 @@ export function EnrollmentIntakeIdentityFields({
             value={values.firstNameAr}
             onChange={(e) => onPatch({ firstNameAr: e.target.value })}
             autoComplete="off"
-            required={requireArabicNames}
+            required={namesRequired}
           />
         </CreateField>
         <CreateField
@@ -174,7 +181,7 @@ export function EnrollmentIntakeIdentityFields({
             value={values.lastNameAr}
             onChange={(e) => onPatch({ lastNameAr: e.target.value })}
             autoComplete="off"
-            required={requireArabicNames}
+            required={namesRequired}
           />
         </CreateField>
         <CreateField label={t('admin.student360.create.firstNameLatin')}>
@@ -217,6 +224,7 @@ export function EnrollmentIntakeIdentityFields({
         ) : null}
       </CreateFieldGroup>
 
+      {!isAdmissionEdit ? (
       <CreateFieldGroup title={t('admin.enrollmentIntake.groups.personal')} icon="◉">
         <CreateField label={t('admin.gender')}>
           <select
@@ -257,6 +265,7 @@ export function EnrollmentIntakeIdentityFields({
           />
         </CreateField>
       </CreateFieldGroup>
+      ) : null}
 
       {isStudentCreate ? (
         <CreateFieldGroup title={t('admin.enrollmentIntake.groups.address')} icon="⌂">
@@ -323,7 +332,7 @@ export function EnrollmentIntakeIdentityFields({
         </CreateFieldGroup>
       ) : null}
 
-      {!isStudentCreate ? (
+      {!isStudentCreate && !isAdmissionEdit ? (
       <CreateFieldGroup
         title={t('admin.enrollmentIntake.groups.identifiers')}
         icon="#"
@@ -375,7 +384,7 @@ export function EnrollmentIntakeIdentityFields({
       </CreateFieldGroup>
       ) : null}
 
-      {!isStudentCreate ? (
+      {!isStudentCreate && !isAdmissionEdit ? (
       <CreateFieldGroup title={t('admin.enrollmentIntake.groups.adminDates')} icon="ت">
         <CreateField
           label={t('admin.admissionDate')}
@@ -497,17 +506,20 @@ export function EnrollmentIntakeAcademicFields({
   errors = {},
   onPatch,
   academic,
+  intakeContext = 'admissionCreate',
   variant = 'default',
 }: {
   values: EnrollmentIntakeValues;
   errors?: EnrollmentIntakeFieldErrors;
   onPatch: (patch: EnrollmentIntakePatch) => void;
   academic: EnrollmentIntakeAcademicOptions;
+  intakeContext?: EnrollmentIntakeContext;
   variant?: 'default' | 'studentCreate';
 }) {
   const t = useT();
   const cycleValue = academic.cycleMode === 'code' ? values.cycleCode : values.cycleId;
-  const showStream = academic.levelRequiresStream;
+  const showStream = academic.levelRequiresStream && intakeContext !== 'admissionEdit';
+  const streamRequired = intakeContext === 'admissionEdit' ? false : Boolean(academic.streamRequired);
   const fieldLayout = variant === 'studentCreate' ? 'half' : 'default';
 
   const content = (
@@ -609,14 +621,14 @@ export function EnrollmentIntakeAcademicFields({
             layout={fieldLayout}
             label={t('admin.admissions.fields.stream')}
             error={errors.streamId}
-            hint={academic.streamRequired ? t('admin.admissions.create.streamRequiredHint') : undefined}
+            hint={streamRequired ? t('admin.admissions.create.streamRequiredHint') : undefined}
           >
             <select
               className="input"
               value={values.streamId}
               onChange={(e) => onPatch({ streamId: e.target.value, classId: '' })}
               disabled={academic.optionsLoading || !values.levelId}
-              required={academic.streamRequired}
+              required={streamRequired}
             >
               <option value="">{t('admin.admissions.create.selectStream')}</option>
               {academic.streams.map((s) => (
@@ -627,6 +639,7 @@ export function EnrollmentIntakeAcademicFields({
             </select>
           </CreateField>
         ) : null}
+        {intakeContext !== 'admissionEdit' ? (
         <CreateField
           field="classId"
           layout={fieldLayout}
@@ -648,6 +661,7 @@ export function EnrollmentIntakeAcademicFields({
             ))}
           </select>
         </CreateField>
+        ) : null}
         {academic.showClassSummary && values.classId.trim() ? (
           <div className="student-create-form__cell student-create-form__cell--full">
             <EnrollmentClassSummaryPanel
@@ -754,6 +768,7 @@ export function EnrollmentIntakeGuardianFields({
   embedded = false,
   lockProfileFields = false,
   profileReadOnly = false,
+  intakeContext = 'admissionCreate',
 }: {
   values: EnrollmentIntakeValues;
   onPatch: (patch: EnrollmentIntakePatch) => void;
@@ -763,21 +778,25 @@ export function EnrollmentIntakeGuardianFields({
   lockProfileFields?: boolean;
   /** Read-only name/phone/email after linking an existing guardian. */
   profileReadOnly?: boolean;
+  intakeContext?: EnrollmentIntakeContext;
 }) {
   const t = useT();
+  const isAdmissionEdit = intakeContext === 'admissionEdit';
   const profileDisabled = lockProfileFields || profileReadOnly;
   const fields = (
     <>
-      <CreateField label={t('admin.admissions.fields.guardianName')}>
-        <input
-          className="input"
-          value={values.guardianName}
-          onChange={(e) => onPatch({ guardianName: e.target.value })}
-          disabled={lockProfileFields}
-          readOnly={profileReadOnly}
-          aria-disabled={profileDisabled || undefined}
-        />
-      </CreateField>
+      {!isAdmissionEdit ? (
+        <CreateField label={t('admin.admissions.fields.guardianName')}>
+          <input
+            className="input"
+            value={values.guardianName}
+            onChange={(e) => onPatch({ guardianName: e.target.value })}
+            disabled={lockProfileFields}
+            readOnly={profileReadOnly}
+            aria-disabled={profileDisabled || undefined}
+          />
+        </CreateField>
+      ) : null}
       <CreateField label={t('admin.admissions.fields.guardianPhone')}>
         <input
           className="input"
@@ -811,18 +830,20 @@ export function EnrollmentIntakeGuardianFields({
           </select>
         )}
       </CreateField>
-      <CreateField label={t('admin.admissions.fields.guardianEmail')} error={undefined}>
-        <input
-          className="input"
-          type="email"
-          dir="ltr"
-          value={values.guardianEmail}
-          onChange={(e) => onPatch({ guardianEmail: e.target.value })}
-          disabled={lockProfileFields}
-          readOnly={profileReadOnly}
-          aria-disabled={profileDisabled || undefined}
-        />
-      </CreateField>
+      {!isAdmissionEdit ? (
+        <CreateField label={t('admin.admissions.fields.guardianEmail')} error={undefined}>
+          <input
+            className="input"
+            type="email"
+            dir="ltr"
+            value={values.guardianEmail}
+            onChange={(e) => onPatch({ guardianEmail: e.target.value })}
+            disabled={lockProfileFields}
+            readOnly={profileReadOnly}
+            aria-disabled={profileDisabled || undefined}
+          />
+        </CreateField>
+      ) : null}
     </>
   );
 
@@ -843,12 +864,15 @@ export function EnrollmentIntakeFollowUpFields({
   values,
   onPatch,
   followUp,
+  intakeContext = 'admissionCreate',
 }: {
   values: EnrollmentIntakeValues;
   onPatch: (patch: EnrollmentIntakePatch) => void;
   followUp: EnrollmentIntakeFollowUpOptions;
+  intakeContext?: EnrollmentIntakeContext;
 }) {
   const t = useT();
+  const isAdmissionEdit = intakeContext === 'admissionEdit';
   return (
     <div className="student-create-form__grid">
       <CreateFieldGroup title={t('admin.enrollmentIntake.groups.followUp')} icon="◎">
@@ -871,14 +895,16 @@ export function EnrollmentIntakeFollowUpFields({
             })}
           </select>
         </CreateField>
-        <CreateField label={t('admin.admissions.fields.firstVisitDate')}>
-          <input
-            className="input"
-            type="date"
-            value={values.firstContactDate}
-            onChange={(e) => onPatch({ firstContactDate: e.target.value })}
-          />
-        </CreateField>
+        {!isAdmissionEdit ? (
+          <CreateField label={t('admin.admissions.fields.firstVisitDate')}>
+            <input
+              className="input"
+              type="date"
+              value={values.firstContactDate}
+              onChange={(e) => onPatch({ firstContactDate: e.target.value })}
+            />
+          </CreateField>
+        ) : null}
         <CreateField label={t('admin.admissions.fields.nextAction')}>
           <input
             className="input"

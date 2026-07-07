@@ -209,6 +209,7 @@ export function AdmissionCreatePage() {
             genders={genders}
             nationalities={studentOptionsState.options?.nationalities ?? []}
             requireArabicNames
+            intakeContext="admissionCreate"
           />
           <EnrollmentIntakeAdmissionExtrasFields values={intakeValues} onPatch={handleIntakePatch} />
         </StudentCreateStyledSection>
@@ -231,6 +232,7 @@ export function AdmissionCreatePage() {
           <EnrollmentIntakeAcademicFields
             values={intakeValues}
             onPatch={handleIntakePatch}
+            intakeContext="admissionCreate"
             academic={{
               cycleMode: 'code',
               years: academicYears,

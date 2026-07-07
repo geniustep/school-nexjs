@@ -394,13 +394,21 @@ export interface PatchAdmissionPayload {
   child_last_name_fr?: string;
   child_name?: string;
   student_name?: string;
+  birth_date?: string;
+  gender?: string;
+  massar_code?: string;
+  guardian_name?: string;
   guardian_phone?: string;
   guardian_whatsapp?: string;
+  guardian_email?: string;
   guardian_relationship?: string;
   relationship?: string;
+  first_contact_date?: string;
   academic_year_id?: number;
   source_id?: number;
   requested_level_id?: number;
+  requested_stream_id?: number;
+  requested_class_id?: number;
 }
 
 export interface CreateActivityPayload {
