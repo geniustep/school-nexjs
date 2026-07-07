@@ -66,18 +66,18 @@ const student: Student = {
 describe('resolveStudentKanbanActionPriority', () => {
   it('uses admin priority for school managers', () => {
     expect(resolveStudentKanbanActionPriority(adminUser)).toEqual([
+      'results',
       'documents',
       'attendance',
       'finance',
-      'results',
       'timetable',
     ]);
   });
 
   it('uses teacher priority for teacher workspace users', () => {
     expect(resolveStudentKanbanActionPriority(teacherUser)).toEqual([
-      'attendance',
       'results',
+      'attendance',
       'timetable',
     ]);
   });
@@ -99,7 +99,7 @@ describe('resolveStudentKanbanQuickActions', () => {
   it('returns at most two visible quick actions', () => {
     const { visible, more } = resolveStudentKanbanQuickActions(adminUser, student);
     expect(visible.length).toBeLessThanOrEqual(STUDENT_KANBAN_MAX_VISIBLE_ACTIONS);
-    expect(visible.map((action) => action.id)).toEqual(['documents', 'attendance']);
+    expect(visible.map((action) => action.id)).toEqual(['results', 'documents']);
     expect(more.some((action) => action.id === 'finance')).toBe(true);
     expect(more.some((action) => action.id === 'edit')).toBe(true);
     expect(more.some((action) => action.id === 'viewProfile')).toBe(true);
@@ -107,9 +107,9 @@ describe('resolveStudentKanbanQuickActions', () => {
 
   it('uses attendance then results for teachers without finance', () => {
     const { visible, more } = resolveStudentKanbanQuickActions(teacherUser, student);
-    expect(visible.map((action) => action.id)).toEqual(['attendance', 'results']);
-    expect(visible[0]?.href).toBe('/teacher/attendance?class=2062');
-    expect(visible[1]?.href).toBe('/teacher/classes/2062/exam-results');
+    expect(visible.map((action) => action.id)).toEqual(['results', 'attendance']);
+    expect(visible[0]?.href).toBe('/teacher/classes/2062/exam-results');
+    expect(visible[1]?.href).toBe('/teacher/attendance?class=2062');
     expect(visible.some((action) => action.id === 'finance')).toBe(false);
     expect(more.some((action) => action.id === 'finance')).toBe(false);
     expect(more.some((action) => action.id === 'edit')).toBe(false);

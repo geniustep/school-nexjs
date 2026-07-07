@@ -2,27 +2,80 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { IconMoreHorizontal } from '@/components/icons/admin-icons';
-import { Badge } from '@/components/ui/primitives';
+import {
+  IconBookOpen,
+  IconClipboard,
+  IconMoreHorizontal,
+  IconWallet,
+} from '@/components/icons/admin-icons';
 import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
-import { statusLabel } from '@/lib/utils/labels';
 import { getStudentDisplayName } from '@/lib/utils/student';
-import { studentClassLabel, studentLevelLabel } from '../utils/student-academic-labels';
-import { resolveStudentKanbanQuickActions } from '../utils/student-kanban-card-actions';
+import { studentKanbanLevelShortLabel } from '../utils/student-kanban-class-short-label';
+import {
+  resolveStudentKanbanQuickActions,
+  type StudentKanbanAction,
+  type StudentKanbanActionId,
+} from '../utils/student-kanban-card-actions';
+import { resolveStudentKanbanCycleTone } from '../utils/student-kanban-cycle-tone';
 import { StudentPhotoVisual } from './student-photo-visual';
 import type { Student } from '@/types/student';
 
-export function StudentsKanbanCard({ student }: { student: Student }) {
+function KanbanAttendanceIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M8 3v4M16 3v4M3 10h18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function KanbanTimetableIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M12 7v5l3 2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function KanbanQuickActionIcon({ action }: { action: StudentKanbanAction }) {
+  const size = 16;
+  switch (action.icon) {
+    case 'results':
+      return <IconClipboard size={size} aria-hidden="true" />;
+    case 'documents':
+      return <IconBookOpen size={size} aria-hidden="true" />;
+    case 'attendance':
+      return <KanbanAttendanceIcon size={size} />;
+    case 'finance':
+      return <IconWallet size={size} aria-hidden="true" />;
+    case 'timetable':
+      return <KanbanTimetableIcon size={size} />;
+    default:
+      return <IconClipboard size={size} aria-hidden="true" />;
+  }
+}
+
+export function StudentsKanbanCard({
+  student,
+  selected = false,
+  onToggleSelect,
+}: {
+  student: Student;
+  selected?: boolean;
+  onToggleSelect?: (studentId: number, next: boolean) => void;
+}) {
   const t = useT();
   const user = useSession();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [menuUp, setMenuUp] = useState(true);
   const menuRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLElement>(null);
   const displayName = getStudentDisplayName(student);
   const profileHref = `/admin/students/${student.id}`;
-  const classLabel = studentClassLabel(student.class);
-  const levelLabel = studentLevelLabel(student.level);
-  const hasSecondaryInfo = classLabel !== '—' || levelLabel !== '—';
+  const levelShort = studentKanbanLevelShortLabel(student.level);
+  const cycleTone = resolveStudentKanbanCycleTone(student);
 
   const { visible, more } = useMemo(
     () => resolveStudentKanbanQuickActions(user, student),
@@ -45,9 +98,52 @@ export function StudentsKanbanCard({ student }: { student: Student }) {
     };
   }, [menuOpen]);
 
+  function openMenu() {
+    const card = cardRef.current;
+    if (card) {
+      const rect = card.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      setMenuUp(spaceBelow < 180);
+    } else {
+      setMenuUp(true);
+    }
+    setMenuOpen((open) => !open);
+  }
+
   return (
-    <article className="students-kanban-card">
-      <div className="students-kanban-card__identity">
+    <article
+      ref={cardRef}
+      className={[
+        'students-kanban-card',
+        `students-kanban-card--cycle-${cycleTone}`,
+        selected ? 'students-kanban-card--selected' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
+      <div className="students-kanban-card__cycle-accent" aria-hidden="true" />
+
+      <div className="students-kanban-card__top">
+        <div className="students-kanban-card__top-end">
+          {levelShort ? (
+            <span className="students-kanban-card__level" title={levelShort}>
+              {levelShort}
+            </span>
+          ) : null}
+          <label className="students-kanban-card__select">
+            <input
+              type="checkbox"
+              className="students-kanban-card__select-input"
+              checked={selected}
+              aria-label={t('admin.studentsList.kanban.selectStudent', { name: displayName })}
+              onChange={(event) => onToggleSelect?.(student.id, event.target.checked)}
+            />
+            <span className="students-kanban-card__select-box" aria-hidden="true" />
+          </label>
+        </div>
+      </div>
+
+      <div className="students-kanban-card__body">
         <Link
           href={profileHref}
           className="students-kanban-card__avatar-link"
@@ -69,25 +165,6 @@ export function StudentsKanbanCard({ student }: { student: Student }) {
         <Link href={profileHref} className="students-kanban-card__name" dir="auto" title={displayName}>
           {displayName}
         </Link>
-
-        {hasSecondaryInfo ? (
-          <p className="students-kanban-card__meta muted tiny">
-            {levelLabel !== '—' ? levelLabel : null}
-            {levelLabel !== '—' && classLabel !== '—' ? (
-              <span className="students-kanban-card__meta-sep" aria-hidden="true">
-                {' '}
-                ·{' '}
-              </span>
-            ) : null}
-            {classLabel !== '—' ? classLabel : null}
-          </p>
-        ) : null}
-
-        <span className="students-kanban-card__status">
-          <Badge tone={student.status === 'active' ? 'green' : 'slate'}>
-            {statusLabel(t, student.status)}
-          </Badge>
-        </span>
       </div>
 
       {(visible.length > 0 || more.length > 0) && (
@@ -96,9 +173,11 @@ export function StudentsKanbanCard({ student }: { student: Student }) {
             <Link
               key={action.id}
               href={action.href}
-              className="btn btn--ghost btn--sm students-kanban-card__quick"
+              className="students-kanban-card__icon-btn"
+              title={t(action.labelKey)}
+              aria-label={t(action.labelKey)}
             >
-              {t(action.labelKey)}
+              <KanbanQuickActionIcon action={action} />
             </Link>
           ))}
 
@@ -106,16 +185,23 @@ export function StudentsKanbanCard({ student }: { student: Student }) {
             <div className="students-kanban-card__more" ref={menuRef}>
               <button
                 type="button"
-                className="btn btn--ghost btn--sm students-kanban-card__more-btn"
+                className="students-kanban-card__icon-btn students-kanban-card__more-btn"
                 aria-expanded={menuOpen}
                 aria-haspopup="menu"
+                title={t('admin.studentsList.cardActionsMenu')}
                 aria-label={t('admin.studentsList.cardActionsMenu')}
-                onClick={() => setMenuOpen((open) => !open)}
+                onClick={openMenu}
               >
                 <IconMoreHorizontal aria-hidden="true" />
               </button>
               {menuOpen ? (
-                <div className="students-kanban-card__menu" role="menu">
+                <div
+                  className={[
+                    'students-kanban-card__menu',
+                    menuUp ? 'students-kanban-card__menu--up' : 'students-kanban-card__menu--down',
+                  ].join(' ')}
+                  role="menu"
+                >
                   {more.map((action) => (
                     <Link
                       key={action.id}
