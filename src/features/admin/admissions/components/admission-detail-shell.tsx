@@ -16,11 +16,11 @@ import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { useAdmissionDetail } from '../hooks/use-admission-detail';
 import {
-  admissionStateTone,
   cleanDisplayValue,
   formatAdmissionReference,
   refName,
 } from '../utils/admission-labels';
+import { admissionUiStageTone } from '../utils/admission-ui-stage';
 import {
   ADMISSION_TABS,
   buildAdmissionTabHref,
@@ -44,7 +44,7 @@ import { AdmissionPrefillTab } from './admission-prefill-tab';
 import { AdmissionRegistrationActions } from './admission-registration-actions';
 import { AdmissionRejectionBanner } from './admission-rejection-banner';
 import { AdmissionReopenAction } from './admission-reopen-action';
-import { AdmissionStateSelect } from './admission-state-select';
+import { AdmissionPipelineStatus } from './admission-pipeline-status';
 import { OverviewEmptyValue } from './admission-overview-primitives';
 import '../admissions.css';
 
@@ -296,28 +296,23 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
                   <Badge tone="green">
                     {t('admin.admissions.registration.convertedStatus')}
                   </Badge>
+                  <Badge tone={admissionUiStageTone('registered')}>
+                    {t('admin.admissions.uiStages.registered')}
+                  </Badge>
                   <span className="admissions-detail-header-card__converted-note tiny muted">
                     {t('admin.admissions.registration.preConversionState', {
                       state: t(`admin.admissions.states.${detail.state}`),
                     })}
                   </span>
                 </div>
-              ) : !canChangeState ? (
-                <div className="admissions-detail-header-card__state-badges">
-                  <Badge tone={admissionStateTone(detail.state)}>
-                    {t(`admin.admissions.states.${detail.state}`)}
-                  </Badge>
-                  {rejected ? (
-                    <Badge tone="red">{t('admin.admissions.rejection.status')}</Badge>
-                  ) : null}
-                </div>
               ) : (
-                <AdmissionStateSelect
+                <AdmissionPipelineStatus
+                  record={detail}
                   admissionId={detail.id}
-                  value={detail.state}
+                  canChangeState={canChangeState}
                   onChanged={reload}
                   includeClosedStates
-                  className="admission-state-select--detail"
+                  rejected={rejected}
                 />
               )}
             </div>

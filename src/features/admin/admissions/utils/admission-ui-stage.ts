@@ -71,8 +71,13 @@ const RAW_STATE_TO_UI_STAGE: Partial<Record<AdmissionState, AdmissionUiStage>> =
   duplicate: 'closed',
 };
 
+export type AdmissionUiStageSource = Pick<
+  AdmissionListItem,
+  'state' | 'student_id' | 'registration_flow_state'
+>;
+
 /** Maps a list item to its display stage. Registered overrides any raw state. */
-export function resolveAdmissionUiStage(item: AdmissionListItem): AdmissionUiStage {
+export function resolveAdmissionUiStage(item: AdmissionUiStageSource): AdmissionUiStage {
   if (isAdmissionConvertedToStudent(item)) return 'registered';
 
   const mapped = RAW_STATE_TO_UI_STAGE[item.state as AdmissionState];
@@ -133,7 +138,7 @@ export function admissionUiStageTone(
 }
 
 export function itemMatchesUiStageFilter(
-  item: AdmissionListItem,
+  item: AdmissionUiStageSource,
   stageFilter: AdmissionUiStage,
 ): boolean {
   return resolveAdmissionUiStage(item) === stageFilter;
