@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import {
-  parentAccountPresentationSource,
   resolveParentAccountPresentation,
 } from './resolve-parent-account-presentation';
 
@@ -41,14 +40,14 @@ describe('resolveParentAccountPresentation', () => {
   });
 
   it('falls back to root login when account.login is absent', () => {
-    const source = parentAccountPresentationSource({
-      code: 'G-4',
-      login: 'root.login',
-      has_user_account: true,
-      account: { status: 'active', has_user_account: true },
-    });
-
-    expect(resolveParentAccountPresentation(source).login).toBe('root.login');
+    expect(
+      resolveParentAccountPresentation({
+        code: 'G-4',
+        login: 'root.login',
+        has_user_account: true,
+        account: { status: 'active', has_user_account: true },
+      }).login,
+    ).toBe('root.login');
   });
 
   it('handles missing code and login without crashing', () => {

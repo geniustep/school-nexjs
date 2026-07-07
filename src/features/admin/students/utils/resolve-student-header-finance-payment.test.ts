@@ -36,7 +36,7 @@ describe('resolveStudentHeaderFinancePaymentPresentation', () => {
       showFinance: true,
       canCollect: true,
       detailsFinance: {
-        currency: { id: 1, name: 'MAD' },
+        currency: { name: 'MAD', symbol: 'DH' },
         total_assessed: 10000,
         total_discount: 0,
         total_paid: 2000,

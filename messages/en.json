@@ -781,6 +781,23 @@
     "limitedAccess": "Limited scope",
     "limitedAccessDesc": "You see data within your assigned scope only.",
     "multiSchoolContext": "Multi-school management",
+    "spotlight": {
+      "title": "Search students",
+      "placeholder": "Search by name, school number, Massar, or guardian phone…",
+      "openButton": "Search students",
+      "shortcutLabel": "Ctrl+K",
+      "minLengthHint": "Type at least {count} characters to search.",
+      "loading": "Searching students…",
+      "empty": "No matching students found.",
+      "didYouMean": "Did you mean: {query}?",
+      "error": "Could not load search results.",
+      "matchedOn": {
+        "name": "Name",
+        "guardian_phone": "Guardian phone",
+        "massar": "Massar number",
+        "student_code": "School number"
+      }
+    },
     "multiSchoolPortfolioPending": "A multi-school overview will be available when the portfolio dashboard API is ready.",
     "activeSchoolWorking": "Currently working on: {school}",
     "schoolFallback": "School #{id}",

@@ -781,6 +781,23 @@
     "limitedAccess": "نطاق محدود",
     "limitedAccessDesc": "تعرض البيانات ضمن نطاقك فقط. بعض الأقسام أو التلاميذ قد لا يظهرون.",
     "multiSchoolContext": "إدارة متعددة المدارس",
+    "spotlight": {
+      "title": "بحث عن تلميذ",
+      "placeholder": "ابحث بالاسم أو الرقم المدرسي أو مسار أو هاتف ولي الأمر…",
+      "openButton": "بحث عن تلميذ",
+      "shortcutLabel": "Ctrl+K",
+      "minLengthHint": "أدخل {count} أحرف على الأقل للبحث.",
+      "loading": "جارٍ البحث عن التلاميذ…",
+      "empty": "لم نعثر على تلاميذ مطابقين.",
+      "didYouMean": "هل تقصد: {query}؟",
+      "error": "تعذّر تحميل نتائج البحث.",
+      "matchedOn": {
+        "name": "الاسم",
+        "guardian_phone": "هاتف ولي الأمر",
+        "massar": "رقم مسار",
+        "student_code": "الرقم المدرسي"
+      }
+    },
     "multiSchoolPortfolioPending": "ستتوفر نظرة عامة على كل المدارس عند جاهزية واجهة لوحة المحفظة.",
     "activeSchoolWorking": "تعمل حالياً على: {school}",
     "schoolFallback": "مدرسة #{id}",

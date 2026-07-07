@@ -35,6 +35,10 @@ export function buildStudentEditTabHref(studentId: string | number, tab: Student
   return `/admin/students/${studentId}/edit?tab=${tab}`;
 }
 
+export function buildStudentEditPhotoHref(studentId: string | number): string {
+  return `/admin/students/${studentId}/edit#student-photo`;
+}
+
 export function studentEditTabUsesProfileSave(tab: StudentEditTabId): boolean {
   return (
     tab === 'personal' ||

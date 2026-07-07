@@ -782,6 +782,23 @@
     "limitedAccess": "Périmètre limité",
     "limitedAccessDesc": "Vous voyez les données de votre périmètre uniquement.",
     "multiSchoolContext": "Gestion multi-établissements",
+    "spotlight": {
+      "title": "Rechercher un élève",
+      "placeholder": "Rechercher par nom, numéro scolaire, Massar ou téléphone du responsable…",
+      "openButton": "Rechercher un élève",
+      "shortcutLabel": "Ctrl+K",
+      "minLengthHint": "Saisissez au moins {count} caractères pour lancer la recherche.",
+      "loading": "Recherche des élèves…",
+      "empty": "Aucun élève correspondant.",
+      "didYouMean": "Vouliez-vous dire : {query} ?",
+      "error": "Impossible de charger les résultats.",
+      "matchedOn": {
+        "name": "Nom",
+        "guardian_phone": "Téléphone du responsable",
+        "massar": "Numéro Massar",
+        "student_code": "Numéro scolaire"
+      }
+    },
     "multiSchoolPortfolioPending": "Une vue d'ensemble multi-établissements sera disponible lorsque l'API du tableau de bord portfolio sera prête.",
     "activeSchoolWorking": "Établissement actif : {school}",
     "schoolFallback": "École #{id}",
@@ -4478,8 +4495,17 @@
             "unresolved": "La responsabilité de facturation n'est pas encore résolue. Liez un tuteur financier valide avant l'encaissement.",
             "existingAgreementConflict": "Une convention existante empêche ce choix. Résolvez-la depuis l'espace finance.",
             "invalid": "La demande de responsabilité de facturation est invalide. Vérifiez votre choix.",
-            "invalidMode": "Le mode de responsabilité de facturation est invalide. Choisissez tuteur ou élève."
-          }
+            "invalidMode": "Le mode de responsabilité de facturation est invalide. Choisissez tuteur ou élève.",
+            "guardianRequired": "La facturation au tuteur exige au moins un tuteur avant de continuer.",
+            "billingGuardianSelectionRequired": "Sélectionnez le tuteur responsable de la facturation.",
+            "billingGuardianNotLinked": "La personne sélectionnée ne peut pas être utilisée comme tuteur de facturation. Recherchez un profil tuteur existant.",
+            "billingGuardianRelationshipInactive": "La relation du tuteur de facturation sélectionné est inactive. Choisissez un autre tuteur.",
+            "guardianIdentityCandidateExists": "Un tuteur correspondant existe déjà. Recherchez et sélectionnez le tuteur existant au lieu d'en créer un doublon."
+          },
+          "guardianRequiredHint": "Saisissez les coordonnées du tuteur ci-dessus — la facturation au tuteur exige au moins un tuteur.",
+          "billingGuardianLabel": "Tuteur de facturation",
+          "billingGuardianPlaceholder": "Sélectionner le tuteur de facturation…",
+          "billingGuardianSelectionHint": "Choisissez le tuteur financièrement responsable lorsque plusieurs sont listés."
         },
         "finance": {
           "stagePlan": "Plan proposé",
@@ -4638,7 +4664,9 @@
             "oneTimeModified": "Frais unique modifié — {detail}",
             "periodExcluded": "Mois exclu — {name}",
             "periodModified": "Mois modifié — {detail}"
-          }
+          },
+          "stageGuardians": "Responsables légaux",
+          "guardiansOverview": "Identifiants de connexion du tuteur"
         }
       },
       "setup": {
@@ -9089,6 +9117,24 @@
       "billingPartyStudentSelf": "Student",
       "billingPartyGuardian": "Guardian",
       "billingPartyCustom": "Custom party"
+    },
+    "guardianAccount": {
+      "sectionTitle": "Compte de connexion",
+      "codeLabel": "Code tuteur",
+      "statusLabel": "Statut du compte",
+      "copyCode": "Copier le code",
+      "copyLogin": "Copier l'identifiant",
+      "copied": "Copié",
+      "createSuccessTitle": "Identifiants de connexion du tuteur",
+      "createSuccessLead": "Partagez le code tuteur et l'identifiant avec la famille. La configuration du mot de passe se fait séparément.",
+      "dismissOnboarding": "Fermer",
+      "newGuardianReviewHint": "Les identifiants apparaîtront ici après la création de l'élève, s'ils sont renvoyés par le serveur.",
+      "status": {
+        "active": "Compte actif",
+        "inactive": "Compte inactif",
+        "noAccount": "Aucun compte",
+        "unknown": "Statut du compte indisponible"
+      }
     }
   }
 }

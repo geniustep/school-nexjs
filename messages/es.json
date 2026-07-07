@@ -782,6 +782,23 @@
     "limitedAccess": "Ámbito limitado",
     "limitedAccessDesc": "Ve datos solo de su ámbito asignado.",
     "multiSchoolContext": "Gestión multi-centro",
+    "spotlight": {
+      "title": "Buscar alumno",
+      "placeholder": "Buscar por nombre, número escolar, Massar o teléfono del tutor…",
+      "openButton": "Buscar alumno",
+      "shortcutLabel": "Ctrl+K",
+      "minLengthHint": "Escriba al menos {count} caracteres para buscar.",
+      "loading": "Buscando alumnos…",
+      "empty": "No se encontraron alumnos coincidentes.",
+      "didYouMean": "¿Quiso decir: {query}?",
+      "error": "No se pudieron cargar los resultados.",
+      "matchedOn": {
+        "name": "Nombre",
+        "guardian_phone": "Teléfono del tutor",
+        "massar": "Número Massar",
+        "student_code": "Número escolar"
+      }
+    },
     "multiSchoolPortfolioPending": "La vista general multi-centro estará disponible cuando la API del panel portfolio esté lista.",
     "activeSchoolWorking": "Centro activo: {school}",
     "schoolFallback": "Escuela #{id}",
@@ -4478,8 +4495,17 @@
             "unresolved": "La responsabilidad de facturación aún no está resuelta. Vincule un tutor financiero válido antes del cobro.",
             "existingAgreementConflict": "Un acuerdo existente impide esta elección. Resuélvalo desde el espacio financiero.",
             "invalid": "La solicitud de responsabilidad de facturación no es válida. Revise su elección.",
-            "invalidMode": "El modo de responsabilidad de facturación no es válido. Elija tutor o alumno."
-          }
+            "invalidMode": "El modo de responsabilidad de facturación no es válido. Elija tutor o alumno.",
+            "guardianRequired": "La facturación al tutor exige al menos un tutor antes de continuar.",
+            "billingGuardianSelectionRequired": "Seleccione qué tutor es responsable de la facturación.",
+            "billingGuardianNotLinked": "La persona seleccionada no puede usarse como tutor de facturación. Busque un perfil de tutor existente.",
+            "billingGuardianRelationshipInactive": "La relación del tutor de facturación seleccionado está inactiva. Elija otro tutor.",
+            "guardianIdentityCandidateExists": "Ya existe un tutor coincidente. Busque y seleccione el tutor existente en lugar de crear un duplicado."
+          },
+          "guardianRequiredHint": "Introduzca los datos del tutor arriba — la facturación al tutor exige al menos un tutor.",
+          "billingGuardianLabel": "Tutor de facturación",
+          "billingGuardianPlaceholder": "Seleccionar tutor de facturación…",
+          "billingGuardianSelectionHint": "Elija qué tutor es financieramente responsable cuando hay más de uno."
         },
         "finance": {
           "stagePlan": "Plan sugerido",
@@ -4638,7 +4664,9 @@
             "oneTimeModified": "Cargo único modificado — {detail}",
             "periodExcluded": "Mes excluido — {name}",
             "periodModified": "Mes modificado — {detail}"
-          }
+          },
+          "stageGuardians": "Tutores",
+          "guardiansOverview": "Datos de acceso del tutor"
         }
       },
       "setup": {
@@ -9089,6 +9117,24 @@
       "billingPartyStudentSelf": "Student",
       "billingPartyGuardian": "Guardian",
       "billingPartyCustom": "Custom party"
+    },
+    "guardianAccount": {
+      "sectionTitle": "Cuenta de acceso",
+      "codeLabel": "Código del tutor",
+      "statusLabel": "Estado de la cuenta",
+      "copyCode": "Copiar código",
+      "copyLogin": "Copiar usuario",
+      "copied": "Copiado",
+      "createSuccessTitle": "Datos de acceso del tutor",
+      "createSuccessLead": "Comparta el código del tutor y el usuario con la familia. La contraseña se configura por separado.",
+      "dismissOnboarding": "Cerrar",
+      "newGuardianReviewHint": "Los datos de acceso aparecerán aquí tras crear el alumno, si el servidor los devuelve.",
+      "status": {
+        "active": "Cuenta activa",
+        "inactive": "Cuenta inactiva",
+        "noAccount": "Sin cuenta",
+        "unknown": "Estado de cuenta no disponible"
+      }
     }
   }
 }
