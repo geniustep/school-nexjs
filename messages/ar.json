@@ -7080,14 +7080,15 @@
           "hasBalance": "له رصيد متبقٍ",
           "hasOverdue": "لديه متأخرات",
           "accountKind": "نوع الحساب",
-          "accountKindAll": "كل الحسابات",
-          "accountKindFamily": "حسابات عائلية فقط",
-          "accountKindIndividual": "حسابات فردية",
-          "accountKindNoStudents": "حسابات بدون تلاميذ"
+          "accountKindAll": "الكل",
+          "accountKindFamily": "متعدد التلاميذ",
+          "accountKindIndividual": "تلميذ واحد",
+          "accountKindNoStudents": "بدون تلاميذ",
+          "accountKindHint": "يعتمد التصنيف على عدد التلاميذ المفوترين على حساب الفوترة نفسه."
         },
         "kind": {
-          "family": "عائلة",
-          "individual": "فردي",
+          "family": "متعدد التلاميذ",
+          "individual": "تلميذ واحد",
           "noStudents": "بدون تلاميذ"
         },
         "detailFamilyTitle": "الحساب المالي للأسرة",

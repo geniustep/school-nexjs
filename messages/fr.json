@@ -6834,14 +6834,15 @@
           "hasBalance": "Solde restant",
           "hasOverdue": "Arriérés",
           "accountKind": "Type de compte",
-          "accountKindAll": "Tous les comptes",
-          "accountKindFamily": "Comptes familiaux uniquement",
-          "accountKindIndividual": "Comptes individuels",
-          "accountKindNoStudents": "Comptes sans élèves"
+          "accountKindAll": "Tous",
+          "accountKindFamily": "Plusieurs élèves",
+          "accountKindIndividual": "Un seul élève",
+          "accountKindNoStudents": "Sans élèves",
+          "accountKindHint": "Le classement dépend du nombre d'élèves facturés sur le même compte de facturation."
         },
         "kind": {
-          "family": "Famille",
-          "individual": "Individuel",
+          "family": "Plusieurs élèves",
+          "individual": "Un seul élève",
           "noStudents": "Sans élèves"
         },
         "detailFamilyTitle": "Compte financier familial",

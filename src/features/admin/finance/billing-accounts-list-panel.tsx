@@ -391,6 +391,7 @@ export function BillingAccountsListPanel({
             <option value="individual">{t('admin.finance.billingAccounts.filters.accountKindIndividual')}</option>
             <option value="empty">{t('admin.finance.billingAccounts.filters.accountKindNoStudents')}</option>
           </select>
+          <span className="tiny muted">{t('admin.finance.billingAccounts.filters.accountKindHint')}</span>
         </label>
         <label className="finance-filter-checkbox">
           <input type="checkbox" name="has_balance" defaultChecked={filters.hasBalance} />

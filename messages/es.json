@@ -6834,14 +6834,15 @@
           "hasBalance": "Con saldo pendiente",
           "hasOverdue": "Con atrasos",
           "accountKind": "Tipo de cuenta",
-          "accountKindAll": "Todas las cuentas",
-          "accountKindFamily": "Solo cuentas familiares",
-          "accountKindIndividual": "Cuentas individuales",
-          "accountKindNoStudents": "Cuentas sin alumnos"
+          "accountKindAll": "Todos",
+          "accountKindFamily": "Varios alumnos",
+          "accountKindIndividual": "Un solo alumno",
+          "accountKindNoStudents": "Sin alumnos",
+          "accountKindHint": "La clasificación depende de cuántos alumnos se facturan en la misma cuenta de facturación."
         },
         "kind": {
-          "family": "Familia",
-          "individual": "Individual",
+          "family": "Varios alumnos",
+          "individual": "Un solo alumno",
           "noStudents": "Sin alumnos"
         },
         "detailFamilyTitle": "Cuenta financiera familiar",

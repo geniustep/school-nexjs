@@ -6831,14 +6831,15 @@
           "hasBalance": "Has remaining balance",
           "hasOverdue": "Has overdue amounts",
           "accountKind": "Account type",
-          "accountKindAll": "All accounts",
-          "accountKindFamily": "Family accounts only",
-          "accountKindIndividual": "Individual accounts",
-          "accountKindNoStudents": "Accounts without students"
+          "accountKindAll": "All",
+          "accountKindFamily": "Multiple students",
+          "accountKindIndividual": "One student",
+          "accountKindNoStudents": "No students",
+          "accountKindHint": "Classification is based on how many students are billed on the same billing account."
         },
         "kind": {
-          "family": "Family",
-          "individual": "Individual",
+          "family": "Multiple students",
+          "individual": "One student",
           "noStudents": "No students"
         },
         "detailFamilyTitle": "Family financial account",
