@@ -3467,8 +3467,10 @@
       },
       "kanban": {
         "emptyColumn": "Aucune demande à cette étape",
-        "dragHint": "Glissez une carte vers une autre colonne pour changer l'état.",
-        "uiStageHint": "Modifiez l'état depuis la fiche de la demande. Les colonnes affichent des étapes simplifiées.",
+        "dragHint": "Glissez une carte vers une autre colonne pour changer l'étape opérationnelle.",
+        "uiStageHint": "Utilisez la fiche de la demande pour modifier l'état détaillé.",
+        "dropBlockedRegistered": "Les demandes inscrites sont liées à un élève — utilisez le parcours d'inscription plutôt que le glisser-déposer.",
+        "dropBlockedClosed": "La clôture d'une demande nécessite un motif précis — utilisez la fiche ou le parcours de décision.",
         "scrollHint": "Faites défiler pour voir les autres étapes",
         "scrollBack": "Défiler vers les étapes précédentes",
         "scrollForward": "Défiler vers les étapes suivantes",
@@ -3621,6 +3623,8 @@
         "guardian": "Responsable",
         "duplicates": "Doublons possibles",
         "prefillStatus": "Statut prefill",
+        "pipelineStage": "Étape opérationnelle",
+        "detailedState": "État détaillé",
         "tabs": "Sections",
         "unspecified": "Non précisé"
       },

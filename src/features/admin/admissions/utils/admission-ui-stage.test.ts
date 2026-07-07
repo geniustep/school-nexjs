@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  groupKanbanColumnsByUiStage,
   itemMatchesUiStageFilter,
   rawStatesForUiStageFetch,
   resolveAdmissionUiStage,
@@ -100,5 +101,41 @@ describe('resolveKanbanDisplayStages', () => {
     expect(
       resolveKanbanDisplayStages({ showClosed: false, hideConverted: true, stateFilter: 'closed' }),
     ).toContain('closed');
+  });
+});
+
+describe('groupKanbanColumnsByUiStage', () => {
+  it('groups raw columns without losing detailed states', () => {
+    const rawColumns = [
+      {
+        state: 'contacted',
+        items: [makeItem({ id: 1, state: 'contacted' })],
+        hasMore: false,
+        loading: false,
+        loadingMore: false,
+      },
+      {
+        state: 'qualified',
+        items: [makeItem({ id: 2, state: 'qualified' })],
+        hasMore: false,
+        loading: false,
+        loadingMore: false,
+      },
+      {
+        state: 'under_review',
+        items: [makeItem({ id: 3, state: 'under_review' })],
+        hasMore: false,
+        loading: false,
+        loadingMore: false,
+      },
+    ];
+
+    const grouped = groupKanbanColumnsByUiStage(rawColumns, [
+      'in_follow_up',
+      'in_evaluation',
+    ]);
+
+    expect(grouped[0]?.items.map((item) => item.state)).toEqual(['contacted', 'qualified']);
+    expect(grouped[1]?.items.map((item) => item.state)).toEqual(['under_review']);
   });
 });

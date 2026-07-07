@@ -3467,8 +3467,10 @@
       },
       "kanban": {
         "emptyColumn": "No hay solicitudes en esta etapa",
-        "dragHint": "Arrastra una tarjeta a otra columna para cambiar el estado.",
-        "uiStageHint": "Cambia el estado desde la ficha de la solicitud. Las columnas muestran etapas simplificadas.",
+        "dragHint": "Arrastra una tarjeta a otra columna para cambiar la etapa operativa.",
+        "uiStageHint": "Usa la ficha de la solicitud para cambiar el estado detallado.",
+        "dropBlockedRegistered": "Las solicitudes registradas están vinculadas a un alumno; usa el flujo de matriculación en lugar del arrastre.",
+        "dropBlockedClosed": "Cerrar una solicitud requiere un motivo concreto; usa la ficha o el flujo de decisión.",
         "scrollHint": "Desplázate para ver más etapas",
         "scrollBack": "Desplazar a etapas anteriores",
         "scrollForward": "Desplazar a etapas siguientes",
@@ -3621,6 +3623,8 @@
         "guardian": "Tutor",
         "duplicates": "Posibles duplicados",
         "prefillStatus": "Estado prefill",
+        "pipelineStage": "Etapa operativa",
+        "detailedState": "Estado detallado",
         "tabs": "Secciones",
         "unspecified": "Sin especificar"
       },

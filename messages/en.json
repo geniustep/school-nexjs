@@ -3469,8 +3469,10 @@
       },
       "kanban": {
         "emptyColumn": "No requests in this stage",
-        "dragHint": "Drag a card to another column to change its state.",
-        "uiStageHint": "Change state from the request detail page. Columns show simplified stages.",
+        "dragHint": "Drag a card to another column to change its pipeline stage.",
+        "uiStageHint": "Use the detail page to change the detailed state.",
+        "dropBlockedRegistered": "Registered requests are linked to a pupil — use the registration flow instead of drag-and-drop.",
+        "dropBlockedClosed": "Closing a request needs a specific reason — use the detail page or decision workflow.",
         "scrollHint": "Scroll to see more stages",
         "scrollBack": "Scroll to earlier stages",
         "scrollForward": "Scroll to later stages",
@@ -3626,6 +3628,8 @@
         "guardian": "Guardian details",
         "duplicates": "Possible duplicates",
         "prefillStatus": "Prefill status",
+        "pipelineStage": "Pipeline stage",
+        "detailedState": "Detailed state",
         "tabs": "Request sections",
         "unspecified": "Not specified"
       },

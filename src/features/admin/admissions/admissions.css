@@ -1746,6 +1746,23 @@
   margin-top: 0;
 }
 
+.admissions-overview--editing {
+  width: 100%;
+}
+
+.admissions-edit-form {
+  gap: 20px;
+}
+
+.admissions-edit-form__actions {
+  margin-top: 0;
+}
+
+[dir='rtl'] .admissions-edit-form__actions {
+  flex-direction: row-reverse;
+  justify-content: flex-start;
+}
+
 [dir='rtl'] .admissions-create-actions {
   flex-direction: row-reverse;
   justify-content: flex-start;
@@ -2560,6 +2577,34 @@
   outline-offset: -2px;
   background: color-mix(in srgb, var(--primary, var(--c-primary)) 6%, white);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary, var(--c-primary)) 12%, transparent);
+}
+
+.admissions-kanban__column--drop-blocked {
+  outline: 2px dashed color-mix(in srgb, var(--c-danger, #b42318) 35%, transparent);
+  outline-offset: -2px;
+}
+
+.admissions-pipeline-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.65rem 1rem;
+}
+
+.admissions-pipeline-status__primary,
+.admissions-pipeline-status__detailed {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+.admissions-pipeline-status__label {
+  display: block;
+}
+
+.admissions-pipeline-status__rejection {
+  align-self: center;
 }
 
 .admission-card-wrap {

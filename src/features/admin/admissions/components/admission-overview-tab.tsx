@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/primitives';
 import { useFormat } from '@/features/i18n/use-format';
@@ -9,6 +10,8 @@ import {
   formatAdmissionReference,
   refName,
 } from '../utils/admission-labels';
+import { admissionUiStageTone, resolveAdmissionUiStage } from '../utils/admission-ui-stage';
+import { AdmissionEditForm } from './admission-edit-form';
 import { AdmissionNextActionBox } from './admission-next-action-box';
 import { AdmissionExtraFieldsPanel } from './admission-extra-fields-panel';
 import { SiblingsInfoPanel } from './siblings-info-panel';
@@ -28,15 +31,31 @@ export function AdmissionOverviewTab({
 }) {
   const t = useT();
   const { formatDate } = useFormat();
+  const [editing, setEditing] = useState(false);
+
+  useEffect(() => {
+    if (!canEdit || editRequestSeq <= 0) return;
+    setEditing(true);
+  }, [canEdit, editRequestSeq]);
+
+  if (editing) {
+    return (
+      <div className="admissions-overview admissions-overview--editing">
+        <AdmissionEditForm
+          detail={detail}
+          onSaved={() => {
+            setEditing(false);
+            onUpdated();
+          }}
+          onCancel={() => setEditing(false)}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="admissions-overview">
-      <AdmissionNextActionBox
-        detail={detail}
-        canEdit={canEdit}
-        editRequestSeq={editRequestSeq}
-        onUpdated={onUpdated}
-      />
+      <AdmissionNextActionBox detail={detail} canEdit={canEdit} onUpdated={onUpdated} />
 
       <div className="admissions-overview-grid">
         <OverviewCard title={t('admin.admissions.detail.summary')}>
@@ -45,7 +64,15 @@ export function AdmissionOverviewTab({
             value={<span className="mono">{formatAdmissionReference(detail.id, detail.reference)}</span>}
           />
           <OverviewRow
-            label={t('admin.admissions.table.state')}
+            label={t('admin.admissions.detail.pipelineStage')}
+            value={
+              <Badge tone={admissionUiStageTone(resolveAdmissionUiStage(detail))}>
+                {t(`admin.admissions.uiStages.${resolveAdmissionUiStage(detail)}`)}
+              </Badge>
+            }
+          />
+          <OverviewRow
+            label={t('admin.admissions.detail.detailedState')}
             value={
               <Badge tone={admissionStateTone(detail.state)}>
                 {t(`admin.admissions.states.${detail.state}`)}
