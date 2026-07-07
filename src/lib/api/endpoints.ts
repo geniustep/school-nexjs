@@ -247,6 +247,10 @@ export const endpoints = {
       `/admin/finance/students/${studentId}/assign-fee-plan`,
     financeBillingProfile: (studentId: number | string) =>
       `/admin/finance/students/${studentId}/billing-profile`,
+    financeStudentBillingAuthorityChangePreview: (studentId: number | string) =>
+      `/admin/finance/students/${studentId}/billing-authority/change/preview`,
+    financeStudentBillingAuthorityChange: (studentId: number | string) =>
+      `/admin/finance/students/${studentId}/billing-authority/change`,
     financeStudentChangePlanPreview: (studentId: number | string) =>
       `/admin/students/${studentId}/finance/change-plan/preview`,
     financeStudentChangePlanApply: (studentId: number | string) =>

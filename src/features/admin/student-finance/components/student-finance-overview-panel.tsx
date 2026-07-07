@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
@@ -15,8 +15,11 @@ import { resolveStudentBillingSourcePresentation } from '../utils/resolve-studen
 import { resolveFinanceAgreementStateLabel } from '../utils/reference-labels';
 import { resolveChangePlanEligibility } from '../utils/resolve-change-plan-eligibility';
 import { resolveBillingContextPresentation } from '../utils/resolve-billing-context-presentation';
+import { canChangeBillingAuthority } from '../utils/resolve-billing-authority-change-visibility';
 import { FamilyFinanceSummarySection } from './family-finance-summary-section';
 import { StudentFinanceLatestCollectionPreview } from './student-finance-latest-collection-preview';
+import { BillingAuthorityChangeDialog } from './billing-authority-change-dialog';
+import type { StudentFinanceCapabilities } from '@/types/student-finance';
 
 function installmentStatusKey(state: string | null | undefined): string | null {
   if (!state) return null;
@@ -43,16 +46,24 @@ function statusTone(state: string | null | undefined): string {
 
 export function StudentFinanceOverviewPanel({
   studentId,
+  details,
+  capabilities,
   workspace,
   financialOverview,
   financialOverviewLoading,
   financialOverviewError,
   onReloadFinancialOverview,
   canCollect,
+  onRefresh,
   onOpenCollection,
 }: StudentFinancePanelProps) {
   const t = useT();
   const { formatDate } = useFormat();
+  const [billingAuthorityDialogOpen, setBillingAuthorityDialogOpen] = useState(false);
+
+  const financeCaps = (financialOverview?.capabilities ??
+    workspace?.capabilities) as StudentFinanceCapabilities | undefined;
+  const canChangeBillingAuthorityAction = canChangeBillingAuthority(capabilities, financeCaps);
 
   const metrics = useMemo(
     () => resolveStudentFinanceOverviewMetrics(financialOverview),
@@ -312,6 +323,15 @@ export function StudentFinanceOverviewPanel({
             <span className="student-finance-bento__eyebrow">
               {t('admin.student360.financeWorkspace.billingPartyTitle')}
             </span>
+            {canChangeBillingAuthorityAction ? (
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm"
+                onClick={() => setBillingAuthorityDialogOpen(true)}
+              >
+                {t('admin.student360.financeWorkspace.billingAuthorityChange.action')}
+              </button>
+            ) : null}
           </header>
           <dl className="student-finance-bento__facts student-finance-bento__facts--stacked">
             <div>
@@ -455,6 +475,18 @@ export function StudentFinanceOverviewPanel({
       </div>
 
       <FamilyFinanceSummarySection studentId={studentId} />
+
+      <BillingAuthorityChangeDialog
+        open={billingAuthorityDialogOpen}
+        studentId={studentId}
+        details={details}
+        currentAuthorityName={billingLabel}
+        onClose={() => setBillingAuthorityDialogOpen(false)}
+        onSuccess={() => {
+          onReloadFinancialOverview();
+          onRefresh();
+        }}
+      />
     </div>
   );
 }
