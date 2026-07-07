@@ -4,7 +4,15 @@ import { describe, expect, it } from 'vitest';
 import { readBillingAccountKindFromSearchParams } from '@/features/admin/finance/billing-account-kind';
 
 const LOCALES = ['ar', 'en', 'fr', 'es'] as const;
-const FAMILY_COLLECTION_KEYS = ['intro', 'autoAllocationHint', 'limitToStudent', 'confirmAction'] as const;
+const FAMILY_COLLECTION_KEYS = [
+  'intro',
+  'autoAllocationHint',
+  'limitToStudent',
+  'confirmAction',
+  'student360Context',
+  'switchToFamilyAllocation',
+  'familyWideAllocationHint',
+] as const;
 
 const formSource = readFileSync(
   resolve('src/features/admin/finance/family-collection-workflow-form.tsx'),

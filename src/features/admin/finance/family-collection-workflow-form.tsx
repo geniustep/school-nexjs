@@ -79,6 +79,9 @@ export function FamilyCollectionWorkflowForm({
   suggestedAmount,
   source,
   currency: suggestedCurrency,
+  prefilledStudentId,
+  prefilledStudentName,
+  entrySource,
   onDone,
   onCancel,
 }: {
@@ -87,6 +90,9 @@ export function FamilyCollectionWorkflowForm({
   suggestedAmount?: number | null;
   source?: FamilyCollectSource | null;
   currency?: unknown;
+  prefilledStudentId?: number;
+  prefilledStudentName?: string;
+  entrySource?: 'student360';
   onDone: (result: FamilyCollectionCreateResponse) => void;
   onCancel: () => void;
 }) {
@@ -98,8 +104,10 @@ export function FamilyCollectionWorkflowForm({
   const { journals, academicYears, loading: refLoading } = useFinanceReferenceData();
 
   const [amount, setAmount] = useState('');
-  const [limitToStudent, setLimitToStudent] = useState(false);
-  const [selectedStudentId, setSelectedStudentId] = useState('');
+  const [limitToStudent, setLimitToStudent] = useState(prefilledStudentId != null);
+  const [selectedStudentId, setSelectedStudentId] = useState(
+    prefilledStudentId != null ? String(prefilledStudentId) : '',
+  );
   const [journalId, setJournalId] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
   const [collectionDate, setCollectionDate] = useState(() => new Date().toISOString().slice(0, 10));
@@ -208,6 +216,12 @@ export function FamilyCollectionWorkflowForm({
   const cashSessionBlocked = collectionBlockedByCashSession(cashSessionAccess);
 
   const previewValid = !!preview && !preview.errors.length && previewError == null;
+
+  const studentScopedEntry = entrySource === 'student360' && prefilledStudentId != null;
+  const lockedStudentName =
+    prefilledStudentName?.trim() ||
+    students.find((student) => student.student_id === prefilledStudentId)?.student_name ||
+    (prefilledStudentId != null ? `#${prefilledStudentId}` : null);
 
   const allocationColumns: Column<FamilyCollectionAllocation>[] = useMemo(
     () => [
@@ -420,25 +434,51 @@ export function FamilyCollectionWorkflowForm({
         </section>
 
         <section className="finance-family-collection-allocation-options">
+          {studentScopedEntry && limitToStudent ? (
+            <div className="finance-family-collection-student360-context" role="status">
+              <p className="finance-family-collection-student360-context__lead">
+                {t('admin.finance.billingAccounts.familyCollection.student360Context', {
+                  accountName: accountName?.trim() || t('common.dash'),
+                  studentName: lockedStudentName ?? t('common.dash'),
+                })}
+              </p>
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm finance-family-collection-student360-context__switch"
+                onClick={() => {
+                  setLimitToStudent(false);
+                  setSelectedStudentId('');
+                  setPreview(null);
+                  setPreviewError(null);
+                }}
+              >
+                {t('admin.finance.billingAccounts.familyCollection.switchToFamilyAllocation')}
+              </button>
+            </div>
+          ) : null}
           {!limitToStudent ? (
             <p className="tiny muted finance-family-collection-allocation-options__hint" role="status">
-              {t('admin.finance.billingAccounts.familyCollection.autoAllocationHint')}
+              {studentScopedEntry
+                ? t('admin.finance.billingAccounts.familyCollection.familyWideAllocationHint')
+                : t('admin.finance.billingAccounts.familyCollection.autoAllocationHint')}
             </p>
           ) : null}
-          <label className="collection-skip-allocation">
-            <input
-              type="checkbox"
-              checked={limitToStudent}
-              onChange={(e) => {
-                setLimitToStudent(e.target.checked);
-                if (!e.target.checked) setSelectedStudentId('');
-                setPreview(null);
-                setPreviewError(null);
-              }}
-            />
-            <span>{t('admin.finance.billingAccounts.familyCollection.limitToStudent')}</span>
-          </label>
-          {limitToStudent ? (
+          {!studentScopedEntry ? (
+            <label className="collection-skip-allocation">
+              <input
+                type="checkbox"
+                checked={limitToStudent}
+                onChange={(e) => {
+                  setLimitToStudent(e.target.checked);
+                  if (!e.target.checked) setSelectedStudentId('');
+                  setPreview(null);
+                  setPreviewError(null);
+                }}
+              />
+              <span>{t('admin.finance.billingAccounts.familyCollection.limitToStudent')}</span>
+            </label>
+          ) : null}
+          {limitToStudent && !studentScopedEntry ? (
             <label>
               {t('admin.finance.billingAccounts.familyCollection.selectStudent')}
               <select

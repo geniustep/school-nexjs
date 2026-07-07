@@ -15,6 +15,9 @@ export function FamilyCollectionDrawer({
   suggestedAmount,
   source,
   currency,
+  prefilledStudentId,
+  prefilledStudentName,
+  entrySource,
   onClose,
   onSuccess,
 }: {
@@ -24,6 +27,9 @@ export function FamilyCollectionDrawer({
   suggestedAmount?: number | null;
   source?: FamilyCollectSource | null;
   currency?: unknown;
+  prefilledStudentId?: number;
+  prefilledStudentName?: string;
+  entrySource?: 'student360';
   onClose: () => void;
   onSuccess?: (result: FamilyCollectionCreateResponse) => void;
 }) {
@@ -60,6 +66,9 @@ export function FamilyCollectionDrawer({
         suggestedAmount={suggestedAmount}
         source={source}
         currency={currency}
+        prefilledStudentId={prefilledStudentId}
+        prefilledStudentName={prefilledStudentName}
+        entrySource={entrySource}
         onDone={handleDone}
         onCancel={onClose}
       />
