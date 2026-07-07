@@ -42,6 +42,7 @@ export interface StudentFinanceCapabilities {
   can_approve_discounts: boolean;
   can_view_billing_profile: boolean;
   can_manage_billing_profile: boolean;
+  can_change_billing_authority?: boolean;
 }
 
 export interface StudentFinanceConsistency {
