@@ -31,6 +31,36 @@ describe('resolveStudentPhotoUrl', () => {
       '/api/odoo/admin/students/1',
     );
   });
+
+  it('maps relative v1 attachment preview to BFF attachment preview', () => {
+    expect(resolveStudentPhotoUrl('/api/v1/attachments/123/preview')).toBe(
+      '/api/attachments/123/preview',
+    );
+  });
+
+  it('maps relative v1 attachment thumbnail to BFF attachment thumbnail', () => {
+    expect(resolveStudentPhotoUrl('/api/v1/attachments/456/thumbnail')).toBe(
+      '/api/attachments/456/thumbnail',
+    );
+  });
+
+  it('maps absolute backend v1 attachment preview to BFF attachment preview', () => {
+    expect(
+      resolveStudentPhotoUrl('https://school.raqeem.ma/api/v1/attachments/789/preview'),
+    ).toBe('/api/attachments/789/preview');
+  });
+
+  it('keeps BFF attachment preview unchanged', () => {
+    expect(resolveStudentPhotoUrl('/api/attachments/123/preview')).toBe(
+      '/api/attachments/123/preview',
+    );
+  });
+
+  it('returns null for null and empty input', () => {
+    expect(resolveStudentPhotoUrl(null)).toBeNull();
+    expect(resolveStudentPhotoUrl('')).toBeNull();
+    expect(resolveStudentPhotoUrl('   ')).toBeNull();
+  });
 });
 
 describe('resolveStudentPhotoCandidates', () => {
@@ -57,5 +87,22 @@ describe('resolveStudentPhotoCandidates', () => {
   it('returns empty list when no photo URLs are provided', () => {
     expect(resolveStudentPhotoCandidates(null)).toEqual([]);
     expect(resolveStudentPhotoCandidates({})).toEqual([]);
+  });
+
+  it('resolves v1 attachment preview before thumbnail fallback', () => {
+    expect(
+      resolveStudentPhotoCandidates({
+        image_url: '/api/v1/attachments/123/preview',
+        thumbnail_url: '/api/v1/attachments/123/thumbnail',
+      }),
+    ).toEqual(['/api/attachments/123/preview', '/api/attachments/123/thumbnail']);
+  });
+
+  it('falls back to thumbnail when preview is absent', () => {
+    expect(
+      resolveStudentPhotoCandidates({
+        thumbnail_url: '/api/v1/attachments/99/thumbnail',
+      }),
+    ).toEqual(['/api/attachments/99/thumbnail']);
   });
 });

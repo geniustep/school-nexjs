@@ -945,7 +945,16 @@
       "resetFilters": "Réinitialiser",
       "applyFilters": "Appliquer les filtres",
       "columnStudent": "Élève",
-      "columnClassLevel": "Classe / Niveau"
+      "columnClassLevel": "Classe / Niveau",
+      "viewMode": "Mode d'affichage",
+      "viewList": "Liste",
+      "viewKanban": "Cartes",
+      "cardActionsMenu": "Actions élève",
+      "kanban": {
+        "actions": {
+          "openProfile": "Ouvrir le dossier"
+        }
+      }
     },
     "search": "Rechercher",
     "clear": "Effacer",
@@ -4034,8 +4043,31 @@
         "pendingSiblingLinesHint": "Ajout de nouvelles lignes uniquement.",
         "appendSiblingLine": "Ajouter une ligne",
         "pendingSiblingLines": "Nouvelles lignes en attente",
-        "photoHint": "Pour changer la photo, mettez à jour le document photo.",
+        "photoHint": "Pour changer la photo, utilisez la section photo ci-dessus.",
         "noPhoto": "Aucune photo",
+        "photo": {
+          "title": "Photo de l'élève",
+          "description": "Téléversez ou remplacez la photo via le flux document photo existant.",
+          "currentAlt": "Photo actuelle de {name}",
+          "previewAlt": "Aperçu de la photo sélectionnée",
+          "placeholderAria": "Illustration de remplacement selon le genre",
+          "choosePhoto": "Choisir une photo",
+          "changePhoto": "Changer la photo",
+          "upload": "Téléverser la photo",
+          "uploading": "Téléversement de la photo…",
+          "uploadSuccess": "Photo mise à jour",
+          "uploadFailed": "Impossible de téléverser la photo",
+          "clearSelection": "Effacer la sélection",
+          "limits": "Formats acceptés : JPG, PNG, WEBP. Taille maximale 10 Mo.",
+          "readOnlyHint": "Vous pouvez consulter la photo ici. Le téléversement nécessite la permission de gestion des documents.",
+          "manageLink": "Gérer la photo de l'élève dans la section photo ci-dessus",
+          "errors": {
+            "fileRequired": "Choisissez d'abord un fichier photo.",
+            "fileTooLarge": "Le fichier est trop volumineux (maximum 10 Mo).",
+            "fileTypeNotAllowed": "Ce type de fichier n'est pas autorisé.",
+            "photoFileTypeNotAllowed": "Seuls les fichiers image sont autorisés (JPG, PNG, WEBP)."
+          }
+        },
         "healthHint": "Enregistrez le profil santé via l'action dans cette section.",
         "guardiansHint": "Les responsables se gèrent ci-dessous, pas via la mise à jour principale.",
         "tabs": {

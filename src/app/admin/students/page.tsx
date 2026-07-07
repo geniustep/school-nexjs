@@ -12,6 +12,8 @@ import { AdminListActions } from '@/features/admin/admin-list-actions';
 import { CsvImportPanel } from '@/features/admin/csv-import-panel';
 import { studentClassLabel, studentLevelLabel } from '@/features/admin/students/utils/student-academic-labels';
 import { useDebouncedValue } from '@/features/admin/students/hooks/use-debounced-value';
+import { useStudentsListView } from '@/features/admin/students/hooks/use-students-list-view';
+import { StudentsKanban } from '@/features/admin/students/components/students-kanban';
 import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
@@ -51,6 +53,7 @@ export default function AdminStudentsPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [accountFilter, setAccountFilter] = useState('');
   const [importOpen, setImportOpen] = useState(false);
+  const [view, setView] = useStudentsListView();
 
   useEffect(() => {
     setPage(1);
@@ -195,46 +198,69 @@ export default function AdminStudentsPage() {
         />
       ) : null}
 
-      <div className="students-list__toolbar">
-        <input
-          className="input students-list__search"
-          placeholder={t('admin.searchStudents')}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          aria-label={t('admin.searchStudents')}
-        />
-        <select className="input" value={classId} onChange={(e) => setClassId(e.target.value)}>
-          <option value="">{t('admin.allClasses')}</option>
-          {(classesState.data ?? []).map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-        <select className="input" value={levelId} onChange={(e) => setLevelId(e.target.value)}>
-          <option value="">{t('admin.allLevels')}</option>
-          {(levelsState.data ?? []).map((l) => (
-            <option key={l.id} value={l.id}>
-              {l.name}
-            </option>
-          ))}
-        </select>
-        <select className="input" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-          <option value="">{t('admin.allStates')}</option>
-          <option value="active">{t('states.active')}</option>
-          <option value="suspended">{t('states.suspended')}</option>
-        </select>
-        <select className="input" value={accountFilter} onChange={(e) => setAccountFilter(e.target.value)}>
-          <option value="">{t('admin.account.filterAll')}</option>
-          <option value="has_account">{t('admin.account.filterHasAccount')}</option>
-          <option value="no_account">{t('admin.account.filterNoAccount')}</option>
-          <option value="inactive_account">{t('admin.account.filterInactiveAccount')}</option>
-        </select>
-        {hasActiveFilters ? (
-          <button type="button" className="btn btn--ghost btn--sm" onClick={resetFilters}>
-            {t('admin.studentsList.resetFilters')}
+      <div className="students-list__toolbar-wrap">
+        <div className="students-list__toolbar">
+          <input
+            className="input students-list__search"
+            placeholder={t('admin.searchStudents')}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            aria-label={t('admin.searchStudents')}
+          />
+          <select className="input" value={classId} onChange={(e) => setClassId(e.target.value)}>
+            <option value="">{t('admin.allClasses')}</option>
+            {(classesState.data ?? []).map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+          <select className="input" value={levelId} onChange={(e) => setLevelId(e.target.value)}>
+            <option value="">{t('admin.allLevels')}</option>
+            {(levelsState.data ?? []).map((l) => (
+              <option key={l.id} value={l.id}>
+                {l.name}
+              </option>
+            ))}
+          </select>
+          <select className="input" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+            <option value="">{t('admin.allStates')}</option>
+            <option value="active">{t('states.active')}</option>
+            <option value="suspended">{t('states.suspended')}</option>
+          </select>
+          <select className="input" value={accountFilter} onChange={(e) => setAccountFilter(e.target.value)}>
+            <option value="">{t('admin.account.filterAll')}</option>
+            <option value="has_account">{t('admin.account.filterHasAccount')}</option>
+            <option value="no_account">{t('admin.account.filterNoAccount')}</option>
+            <option value="inactive_account">{t('admin.account.filterInactiveAccount')}</option>
+          </select>
+          {hasActiveFilters ? (
+            <button type="button" className="btn btn--ghost btn--sm" onClick={resetFilters}>
+              {t('admin.studentsList.resetFilters')}
+            </button>
+          ) : null}
+        </div>
+
+        <div
+          className="students-list__view-toggle"
+          role="group"
+          aria-label={t('admin.studentsList.viewMode')}
+        >
+          <button
+            type="button"
+            aria-pressed={view === 'list'}
+            onClick={() => setView('list')}
+          >
+            {t('admin.studentsList.viewList')}
           </button>
-        ) : null}
+          <button
+            type="button"
+            aria-pressed={view === 'kanban'}
+            onClick={() => setView('kanban')}
+          >
+            {t('admin.studentsList.viewKanban')}
+          </button>
+        </div>
       </div>
 
       <ResourceView
@@ -245,14 +271,18 @@ export default function AdminStudentsPage() {
       >
         {(students) => (
           <>
-            <div className="students-list__table">
-              <DataTable
-                columns={columns}
-                rows={students}
-                rowKey={(s) => s.id}
-                onRowClick={(s) => router.push(`/admin/students/${s.id}`)}
-              />
-            </div>
+            {view === 'kanban' ? (
+              <StudentsKanban students={students} />
+            ) : (
+              <div className="students-list__table">
+                <DataTable
+                  columns={columns}
+                  rows={students}
+                  rowKey={(s) => s.id}
+                  onRowClick={(s) => router.push(`/admin/students/${s.id}`)}
+                />
+              </div>
+            )}
             {pg ? (
               <Pagination page={pg.page} totalPages={pg.total_pages} total={pg.total} onPage={setPage} />
             ) : null}
