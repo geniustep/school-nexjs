@@ -83,12 +83,11 @@ export function StudentsKanbanCard({ student }: { student: Student }) {
           </p>
         ) : null}
 
-        <Badge
-          tone={student.status === 'active' ? 'green' : 'slate'}
-          className="students-kanban-card__status"
-        >
-          {statusLabel(t, student.status)}
-        </Badge>
+        <span className="students-kanban-card__status">
+          <Badge tone={student.status === 'active' ? 'green' : 'slate'}>
+            {statusLabel(t, student.status)}
+          </Badge>
+        </span>
       </div>
 
       {(visible.length > 0 || more.length > 0) && (
