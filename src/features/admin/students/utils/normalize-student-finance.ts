@@ -19,6 +19,7 @@ const DEFAULT_CAPS: StudentFinanceCapabilities = {
   can_approve_discounts: false,
   can_view_billing_profile: false,
   can_manage_billing_profile: false,
+  can_change_billing_authority: false,
 };
 
 function normalizeCurrency(value: unknown): StudentFinanceCurrency {
@@ -93,6 +94,7 @@ function normalizeCapabilities(value: unknown): StudentFinanceCapabilities {
     can_approve_discounts: raw.can_approve_discounts === true,
     can_view_billing_profile: raw.can_view_billing_profile === true,
     can_manage_billing_profile: raw.can_manage_billing_profile === true,
+    can_change_billing_authority: raw.can_change_billing_authority === true,
   };
 }
 
