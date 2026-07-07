@@ -1,8 +1,10 @@
 'use client';
 
+import Link from 'next/link';
 import { useT } from '@/features/i18n/locale-context';
 import type { StudentOverviewAlert, StudentOverviewAlertAction } from '@/types/student-overview';
 import type { Student360TabId } from '../utils/student-360-tabs';
+import { buildStudentEditPhotoHref } from '../utils/student-edit-tabs';
 import {
   dedupeOverviewAlerts,
   localizeOverviewAlertField,
@@ -11,10 +13,10 @@ import {
 
 export { localizeOverviewAlertField } from '../utils/student-overview-warning-display';
 
-const ALERT_ACTION_KEYS: Record<string, { label: string; tab?: Student360TabId }> = {
+const ALERT_ACTION_KEYS: Record<string, { label: string; tab?: Student360TabId; editPhoto?: boolean }> = {
   upload_photo: {
     label: 'admin.student360.overview.alerts.actions.uploadPhoto',
-    tab: 'documents',
+    editPhoto: true,
   },
   view_documents: {
     label: 'admin.student360.overview.alerts.actions.viewDocuments',
@@ -39,7 +41,7 @@ function translateKey(t: (key: string) => string, key: string | undefined): stri
 function resolveAlertAction(
   t: (key: string) => string,
   action: StudentOverviewAlertAction | null | undefined,
-): { label: string; tab?: Student360TabId; url?: string } | null {
+): { label: string; tab?: Student360TabId; url?: string; editPhoto?: boolean } | null {
   if (!action) return null;
 
   const code = action.code?.trim();
@@ -56,6 +58,7 @@ function resolveAlertAction(
     label,
     tab: (action.tab as Student360TabId | undefined) ?? mapped?.tab,
     url: action.url ?? undefined,
+    editPhoto: mapped?.editPhoto,
   };
 }
 
@@ -75,9 +78,11 @@ function severityLabel(t: (key: string) => string, severity: string): string {
 
 export function StudentOverviewAlerts({
   alerts,
+  studentId,
   onOpenTab,
 }: {
   alerts: StudentOverviewAlert[];
+  studentId?: string | number;
   onOpenTab?: (tab: Student360TabId) => void;
 }) {
   const t = useT();
@@ -112,7 +117,14 @@ export function StudentOverviewAlerts({
                 <p className="student-overview-alert__title">{title}</p>
                 {message ? <p className="student-overview-alert__message">{message}</p> : null}
               </div>
-              {action?.label && action.tab && onOpenTab ? (
+              {action?.label && action.editPhoto && studentId != null ? (
+                <Link
+                  href={buildStudentEditPhotoHref(studentId)}
+                  className="btn btn--ghost btn--sm student-overview-alert__action"
+                >
+                  {action.label}
+                </Link>
+              ) : action?.label && action.tab && onOpenTab ? (
                 <button
                   type="button"
                   className="btn btn--ghost btn--sm student-overview-alert__action"

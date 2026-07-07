@@ -12642,3 +12642,91 @@
   border-radius: 8px;
   background: color-mix(in srgb, var(--surface-muted, #f8fafc) 70%, var(--surface, #fff));
 }
+
+.guardian-account-onboarding {
+  margin-top: 10px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--border, #dbe3ee) 80%, transparent);
+  background: color-mix(in srgb, var(--surface-muted, #f8fafc) 65%, var(--surface, #fff));
+}
+
+.guardian-account-onboarding--compact {
+  margin-top: 8px;
+  padding: 10px 12px;
+}
+
+.guardian-account-onboarding__title {
+  margin: 0 0 8px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.guardian-account-onboarding__list {
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.guardian-account-onboarding__row {
+  display: grid;
+  gap: 4px;
+}
+
+.guardian-account-onboarding__row dt {
+  font-size: 0.75rem;
+  color: var(--text-muted, #64748b);
+}
+
+.guardian-account-onboarding__row dd {
+  margin: 0;
+}
+
+.guardian-account-onboarding__value-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.student-create-guardian-account-card {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--border, #dbe3ee) 80%, transparent);
+  background: var(--surface, #fff);
+}
+
+.student-create-guardian-account-card__name {
+  margin: 0 0 6px;
+  font-weight: 600;
+}
+
+.student-create-guardian-onboarding-banner {
+  margin-bottom: 16px;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent, #2563eb) 25%, var(--border, #dbe3ee));
+  background: color-mix(in srgb, var(--accent-soft, #eff6ff) 55%, var(--surface, #fff));
+}
+
+.student-create-guardian-onboarding-banner__head {
+  margin-bottom: 12px;
+}
+
+.student-create-guardian-onboarding-banner__title {
+  margin: 0 0 4px;
+  font-size: 1rem;
+}
+
+.student-create-guardian-onboarding-banner__lead {
+  margin: 0;
+  color: var(--text-muted, #64748b);
+  font-size: 0.875rem;
+}
+
+.student-create-guardian-onboarding-banner__cards {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 10px;
+}

@@ -29,7 +29,20 @@ const ERROR_MESSAGE_KEYS: Record<BillingResponsibilityStableErrorCode, string> =
     'admin.student360.create.billingResponsibility.errors.invalid',
   invalid_billing_responsibility_mode:
     'admin.student360.create.billingResponsibility.errors.invalidMode',
+  billing_guardian_required:
+    'admin.student360.create.billingResponsibility.errors.guardianRequired',
+  billing_guardian_ambiguous:
+    'admin.student360.create.billingResponsibility.errors.billingGuardianSelectionRequired',
+  billing_guardian_not_linked:
+    'admin.student360.create.billingResponsibility.errors.billingGuardianNotLinked',
+  billing_guardian_relationship_inactive:
+    'admin.student360.create.billingResponsibility.errors.billingGuardianRelationshipInactive',
 };
+
+const GUARDIAN_ATOMIC_ERROR_MESSAGE_KEYS = {
+  guardian_identity_candidate_exists:
+    'admin.student360.create.billingResponsibility.errors.guardianIdentityCandidateExists',
+} as const;
 
 export function isBillingResponsibilityStableErrorCode(
   code: string,
@@ -82,6 +95,41 @@ export function mapBillingResponsibilityApiError(
     code === 'student_billing_scope_mismatch'
   ) {
     fieldErrors.billingResponsibilitySelection = message;
+  }
+  if (
+    code === 'billing_guardian_required' ||
+    code === 'billing_guardian_not_linked' ||
+    code === 'billing_guardian_relationship_inactive'
+  ) {
+    fieldErrors.guardianRequired = message;
+  }
+  if (code === 'billing_guardian_ambiguous') {
+    fieldErrors.billingGuardianSelection = message;
+  }
+
+  return {
+    message,
+    fieldErrors: Object.keys(fieldErrors).length > 0 ? fieldErrors : undefined,
+  };
+}
+
+export function mapStudentCreateGuardianAtomicApiError(
+  error: ApiErrorBody,
+  t: (key: string) => string,
+): BillingResponsibilityApiErrorContext | null {
+  const code = String(error.code ?? '');
+  const key =
+    GUARDIAN_ATOMIC_ERROR_MESSAGE_KEYS[
+      code as keyof typeof GUARDIAN_ATOMIC_ERROR_MESSAGE_KEYS
+    ];
+  if (!key) return null;
+
+  const label = t(key);
+  const message = label !== key ? label : error.message?.trim() || t('admin.student360.create.billingResponsibility.errors.generic');
+  const fieldErrors: BillingResponsibilityFieldErrors = {};
+
+  if (code === 'guardian_identity_candidate_exists') {
+    fieldErrors.guardianRequired = message;
   }
 
   return {

@@ -23,8 +23,9 @@ import { formatMoroccanPhoneDisplay } from '@/features/admin/students/utils/norm
 import { getGuardianEmailPresentation } from '@/features/admin/students/utils/guardian-email-presentation';
 import { formatRoleLabels } from '@/features/admin/students/utils/person-role-presentation';
 import { formatPersonContactLine } from '@/features/admin/students/components/guardian-relationship-impact-alert';
-import { normalizeAccountInfo, resolveAccountStatus } from '@/lib/account/account-utils';
-import { preferredLanguageLabel, parentAccountEntityFields } from '../utils/normalize-parent-profile';
+import { GuardianAccountOnboardingPanel } from '@/features/admin/students/components/guardian-account-onboarding-panel';
+import { preferredLanguageLabel } from '../utils/normalize-parent-profile';
+import { parentAccountPresentationSource } from '../utils/resolve-parent-account-presentation';
 import {
   canDeleteGuardianProfile,
   canRestoreGuardianProfile,
@@ -143,13 +144,6 @@ export function ParentProfileView({
   const canDelete = canDeleteGuardianProfile(parent.allowed_actions, user);
   const canManageAccount = !!user && hasPermission(user, 'manage_parents');
   const canEditProfile = !!user && canUpdateGuardiansLimited(user);
-  const accountEntity = parentAccountEntityFields(parent);
-  const accountStatus = resolveAccountStatus(accountEntity);
-  const account = normalizeAccountInfo(accountEntity);
-  const login =
-    account?.login ??
-    parent.login ??
-    (emailPresentation.kind === 'usable' ? emailPresentation.email : null);
 
   const deleteBlockerLines = useMemo(() => {
     const lines: string[] = [];
@@ -356,21 +350,9 @@ export function ParentProfileView({
         <Card className="parent-profile__account-card">
           <SectionHead title={t('admin.parentProfile.accountAndRoles')} />
           <div className="parent-profile__account-body">
+            <GuardianAccountOnboardingPanel source={parentAccountPresentationSource(parent)} />
             <DefinitionList
               items={[
-                {
-                  label: t('admin.parentProfile.loginAccountLabel'),
-                  value:
-                    accountStatus === 'active'
-                      ? t('admin.account.accountActive')
-                      : accountStatus === 'not_created'
-                        ? t('admin.account.noAccount')
-                        : t('admin.account.accountInactive'),
-                },
-                {
-                  label: t('admin.account.loginName'),
-                  value: login ? <span dir="ltr">{login}</span> : t('common.dash'),
-                },
                 {
                   label: t('admin.parentProfile.currentRoles'),
                   value: roleLine || t('common.dash'),

@@ -21,6 +21,13 @@ export type RelationshipType =
 
 export type GuardianRelationshipState = 'active' | 'ended' | string;
 
+/** Guardian portal account fields from Odoo guardian payloads — display-only contract. */
+export interface GuardianAccountInfo {
+  login?: string | null;
+  status?: string | null;
+  has_user_account?: boolean;
+}
+
 export interface AcademicLevelOption {
   id: number;
   name: string;
@@ -318,6 +325,36 @@ export interface StudentCreateAcademicBlock {
   enrollment_date: string;
 }
 
+export interface StudentCreateGuardianIdentityPayload {
+  full_name: string;
+  phone?: string;
+  secondary_phone?: string;
+  email?: string;
+  address?: string;
+}
+
+export type StudentCreateGuardianRelationshipItem =
+  | {
+      guardian_id: number;
+      relationship_type: RelationshipType;
+      is_primary_contact?: boolean;
+      is_legal_guardian?: boolean;
+      is_financial_responsible?: boolean;
+      receives_notifications?: boolean;
+      is_emergency_contact?: boolean;
+      is_authorized_pickup?: boolean;
+    }
+  | {
+      guardian: StudentCreateGuardianIdentityPayload;
+      relationship_type: RelationshipType;
+      is_primary_contact?: boolean;
+      is_legal_guardian?: boolean;
+      is_financial_responsible?: boolean;
+      receives_notifications?: boolean;
+      is_emergency_contact?: boolean;
+      is_authorized_pickup?: boolean;
+    };
+
 export interface StudentCreatePayload {
   first_name: string;
   last_name: string;
@@ -359,6 +396,7 @@ export interface StudentCreatePayload {
   enrollment?: StudentEnrollmentBlock;
   academic?: StudentCreateAcademicBlock;
   finance?: StudentCreateFinancePayload;
+  guardian_relationships?: StudentCreateGuardianRelationshipItem[];
   billing_responsibility?: BillingResponsibilityRequest;
 }
 
@@ -401,6 +439,7 @@ export interface StudentEnrollment {
 export interface GuardianSummary {
   id: number;
   name: string;
+  code?: string | null;
   phone?: string | null;
   secondary_phone?: string | null;
   email?: string | null;
@@ -409,7 +448,7 @@ export interface GuardianSummary {
   children_count?: number;
   has_account?: boolean;
   has_user_account?: boolean;
-  account?: UserAccountInfo | null;
+  account?: GuardianAccountInfo | UserAccountInfo | null;
   partner_id?: number;
   person_id?: number;
   guardian_id?: number | null;

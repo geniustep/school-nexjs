@@ -10,6 +10,7 @@ import {
   localizeOverviewWarningToken,
 } from '../utils/student-overview-warning-display';
 import { StudentStatusSummary } from './student-status-summary';
+import { StudentCreateGuardianOnboardingBanner } from './student-create-guardian-onboarding-banner';
 import { StudentOverviewAlerts } from './student-overview-alerts';
 import { StudentOverviewCards } from './student-overview-cards';
 import { StudentProfileDetailPanel } from './student-profile-detail-panel';
@@ -83,7 +84,11 @@ export function StudentOverviewTab({
 
   return (
     <div className="student-360-overview student-360-tab-panel">
-      <StudentOverviewAlerts alerts={overview?.alerts ?? []} onOpenTab={(tab) => openTab(tab)} />
+      <StudentOverviewAlerts
+        alerts={overview?.alerts ?? []}
+        studentId={studentId}
+        onOpenTab={(tab) => openTab(tab)}
+      />
 
       {schoolingWarnings.length > 0 ? (
         <div className="student-360-overview__schooling-notes" role="status">
@@ -94,6 +99,8 @@ export function StudentOverviewTab({
           </ul>
         </div>
       ) : null}
+
+      {setupMode ? <StudentCreateGuardianOnboardingBanner studentId={Number(studentId)} /> : null}
 
       <StudentStatusSummary
         details={details}

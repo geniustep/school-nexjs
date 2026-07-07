@@ -81,19 +81,26 @@ import { StudentCreatePageHeader } from './student-create-page-header';
 import { StudentCreateStepper } from './student-create-stepper';
 import { StudentCreateStyledSection } from './student-create-section-header';
 import { StudentCreateBillingStep } from './student-create-billing-step';
-import { linkExistingPersonAsGuardian } from '../utils/guardian-link-person';
-import type { PersonSearchResult, RelationshipType } from '@/types/student-360';
+import type { PersonSearchResult } from '@/types/student-360';
 import { StudentCreateFeePlanSection } from './student-create-fee-plan-section';
 import { StudentCreateReviewSection } from './student-create-review-section';
 import type { BillingResponsibilityMetadata } from '@/types/billing-responsibility';
 import {
-  applyBillingResponsibilityToPayload,
   defaultStudentCreateBillingFormState,
-  isGuardianFinancialResponsible,
   parseBillingResponsibilityOutcome,
   validateBillingResponsibilityForm,
   type BillingResponsibilityFieldErrors,
 } from '../utils/student-create-billing-responsibility';
+import {
+  applyStudentCreateGuardianAtomicContractToPayload,
+  collectStudentCreateGuardianEntries,
+  resolvePersonSchoolParentId,
+  validateStudentCreateGuardianContract,
+} from '../utils/student-create-guardian-payload';
+import {
+  extractGuardianAccountPresentationsFromCreateResponse,
+  persistStudentCreateGuardianOnboarding,
+} from '../utils/resolve-guardian-account-presentation';
 import { resolvePostCreateBillingOutcome } from '../utils/resolve-post-create-billing-outcome';
 import type {
   StudentCreateBillingFormState,
@@ -184,6 +191,7 @@ export function StudentCreateForm({
   const lastFeePlanIdRef = useRef<number | null>(null);
   const admissionPrefillHadClassRef = useRef(Boolean(initialProfilePatch?.classId?.trim()));
   const skipGuardianLinkClearRef = useRef(false);
+  const [linkedGuardianPerson, setLinkedGuardianPerson] = useState<PersonSearchResult | null>(null);
 
   useEffect(() => {
     if (optionsState.loading) return;
@@ -414,8 +422,11 @@ export function StudentCreateForm({
 
     if (touchesGuardianContact && !skipGuardianLinkClearRef.current) {
       setBillingState((prev) =>
-        prev.linkedGuardianPartnerId != null ? { ...prev, linkedGuardianPartnerId: null } : prev,
+        prev.linkedGuardianId != null || prev.billingGuardianEntryKey != null
+          ? { ...prev, linkedGuardianId: null, billingGuardianEntryKey: null }
+          : prev,
       );
+      setLinkedGuardianPerson(null);
     }
     skipGuardianLinkClearRef.current = false;
   }
@@ -484,12 +495,19 @@ export function StudentCreateForm({
   }
 
   function handleLinkExistingGuardian(person: PersonSearchResult) {
+    const guardianId = resolvePersonSchoolParentId(person);
+    if (guardianId == null) {
+      toast.error(t('admin.student360.create.billingResponsibility.errors.billingGuardianNotLinked'));
+      return;
+    }
     skipGuardianLinkClearRef.current = true;
     setBillingState((prev) => ({
       ...prev,
       guardianSourceMode: 'existing',
-      linkedGuardianPartnerId: person.partner_id,
+      linkedGuardianId: guardianId,
+      billingGuardianEntryKey: `existing-${guardianId}`,
     }));
+    setLinkedGuardianPerson(person);
     patch(
       patchStudentProfileFromIntake({
         guardianName: person.name,
@@ -501,7 +519,12 @@ export function StudentCreateForm({
   }
 
   function handleClearLinkedGuardian() {
-    setBillingState((prev) => ({ ...prev, linkedGuardianPartnerId: null }));
+    setBillingState((prev) => ({
+      ...prev,
+      linkedGuardianId: null,
+      billingGuardianEntryKey: null,
+    }));
+    setLinkedGuardianPerson(null);
     clearGuardianIntakeFields();
   }
 
@@ -509,10 +532,12 @@ export function StudentCreateForm({
     if (mode === 'existing') {
       clearGuardianIntakeFields();
     }
+    setLinkedGuardianPerson(null);
     setBillingState((prev) => ({
       ...prev,
       guardianSourceMode: mode,
-      linkedGuardianPartnerId: null,
+      linkedGuardianId: null,
+      billingGuardianEntryKey: null,
     }));
   }
 
@@ -717,6 +742,11 @@ export function StudentCreateForm({
     [displayFieldErrors],
   );
 
+  const guardianEntriesForBilling = useMemo(
+    () => collectStudentCreateGuardianEntries(state, billingState),
+    [state, billingState],
+  );
+
   function focusFirstError(errors: StudentProfileFieldErrors) {
     const firstKey = FIELD_ORDER.find((key) => errors[key]);
     if (!firstKey || !formRef.current) return;
@@ -815,9 +845,17 @@ export function StudentCreateForm({
 
     if (current === 'billing' || current === 'review') {
       const billingValidation = validateBillingResponsibilityForm(billingState, t);
-      if (!billingValidation.valid) {
-        setBillingErrors(billingValidation.errors);
-        toast.error(billingValidation.message ?? t('errors.validationFailed'));
+      const guardianValidation = validateStudentCreateGuardianContract(state, billingState, t);
+      if (!billingValidation.valid || !guardianValidation.valid) {
+        setBillingErrors({
+          ...billingValidation.errors,
+          ...guardianValidation.errors,
+        });
+        toast.error(
+          billingValidation.message ??
+            guardianValidation.message ??
+            t('errors.validationFailed'),
+        );
         if (current !== 'billing') setStep('billing');
         return false;
       }
@@ -975,7 +1013,7 @@ export function StudentCreateForm({
     setSaveMode(mode);
     setFinanceActivationMode(activation);
     setSaving(true);
-    const payload = applyBillingResponsibilityToPayload(
+    const payload = applyStudentCreateGuardianAtomicContractToPayload(
       buildStudentCreatePayload(
         state,
         {
@@ -990,6 +1028,7 @@ export function StudentCreateForm({
           deferGuardianContact: true,
         },
       ),
+      state,
       billingState,
     );
 
@@ -1013,33 +1052,11 @@ export function StudentCreateForm({
       const id = data && 'id' in data ? Number(data.id) : 0;
 
       const initialBillingOutcome = parseBillingResponsibilityOutcome(data);
-      let guardianLinkSucceeded = false;
-
-      if (
-        id > 0 &&
-        billingState.guardianSourceMode === 'existing' &&
-        billingState.linkedGuardianPartnerId != null
-      ) {
-        const relationshipType = (state.emergencyRelationship.trim() || 'father') as RelationshipType;
-        const linkRes = await linkExistingPersonAsGuardian(id, {
-          partner_id: billingState.linkedGuardianPartnerId,
-          relationship_type: relationshipType,
-          is_primary_contact: true,
-          is_emergency_contact: true,
-          is_financial_responsible: isGuardianFinancialResponsible(billingState),
-          receives_notifications: true,
-        });
-        if (!linkRes.success) {
-          toast.error(t('admin.student360.create.billing.guardianLinkFailed'));
-        } else {
-          guardianLinkSucceeded = true;
-        }
-      }
 
       const billingResolution = await resolvePostCreateBillingOutcome({
         studentId: id,
         initialOutcome: initialBillingOutcome,
-        guardianLinkSucceeded,
+        guardianLinkSucceeded: false,
         activeSchoolId: resolvedSchoolId,
       });
       const billingOutcome = billingResolution.finalOutcome;
@@ -1067,6 +1084,11 @@ export function StudentCreateForm({
         toast.success(t('admin.student360.create.success'));
       }
 
+      const createdGuardianAccounts = extractGuardianAccountPresentationsFromCreateResponse(data);
+      if (createdGuardianAccounts.length > 0) {
+        persistStudentCreateGuardianOnboarding(id, createdGuardianAccounts);
+      }
+
       onSaved(id, mode, {
         financeActivation: payload.finance ? activation : undefined,
         agreementState,
@@ -1092,9 +1114,24 @@ export function StudentCreateForm({
         if (mapped.fieldErrors.billingStudentReason) {
           billingFieldErrors.billingStudentReason = mapped.fieldErrors.billingStudentReason;
         }
+        if (mapped.fieldErrors.billingGuardianSelection) {
+          billingFieldErrors.billingGuardianSelection = mapped.fieldErrors.billingGuardianSelection;
+        }
+        if (mapped.fieldErrors.guardianRequired) {
+          billingFieldErrors.guardianRequired = mapped.fieldErrors.guardianRequired;
+        }
         if (Object.keys(billingFieldErrors).length > 0) {
           setBillingErrors(billingFieldErrors);
           setStep('billing');
+        }
+        if (String(res.error?.code ?? '') === 'guardian_identity_candidate_exists') {
+          setBillingState((prev) => ({
+            ...prev,
+            guardianSourceMode: 'existing',
+            linkedGuardianId: null,
+            billingGuardianEntryKey: null,
+          }));
+          setLinkedGuardianPerson(null);
         }
         setFieldErrors(mapped.fieldErrors);
         focusFirstError(mapped.fieldErrors);
@@ -1176,6 +1213,8 @@ export function StudentCreateForm({
         <StudentCreateBillingStep
           billingState={billingState}
           billingErrors={billingErrors}
+          guardianEntries={guardianEntriesForBilling}
+          linkedGuardianPerson={linkedGuardianPerson}
           onBillingChange={(patch) => {
             setBillingState((prev) => ({ ...prev, ...patch }));
             setBillingErrors({});
@@ -1330,6 +1369,8 @@ export function StudentCreateForm({
           <StudentCreateReviewSection
             profileState={state}
             billingState={billingState}
+            linkedGuardianPerson={linkedGuardianPerson}
+            guardianEntries={guardianEntriesForBilling}
             suggest={skipFinance ? null : suggestState.suggest}
             financeState={financeState}
             preview={previewState.preview}

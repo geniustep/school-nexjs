@@ -69,12 +69,11 @@
     "adminKind": {
       "project_manager": "General director",
       "school_manager": "School director",
-      "pedagogical_director": "Pedagogical Director",
+      "pedagogical_director": "Pedagogical director",
       "general_supervisor": "General supervisor",
       "admin_staff": "Administrative assistant",
       "legacy_admin": "Administrator",
-      "super_admin": "Super administrator",
-      "pedagogical_director": "Pedagogical director"
+      "super_admin": "Super administrator"
     }
   },
   "nav": {
@@ -4457,7 +4456,7 @@
           "guardianSourceExistingPendingTitle": "Looking for an existing guardian",
           "guardianSourceExistingPendingLead": "Enter a phone number or name in the search fields, then pick the matching person from suggestions.",
           "guardianSourceLinkedTitle": "Existing guardian — ready to link",
-          "guardianSourceLinkedLead": "{name} will be linked to the student automatically after save.",
+          "guardianSourceLinkedLead": "{name} will be sent with the student in the create request.",
           "guardianSourceMatchesTitle": "Possible matches found",
           "guardianSourceMatchesLead": "Select the right person below, or confirm this is a new guardian.",
           "guardianSourceSearchingTitle": "Checking"
@@ -4467,7 +4466,7 @@
           "lead": "Choose who will be responsible for billing this student. This choice is sent explicitly to the backend.",
           "selectionPlaceholder": "Select billing responsibility…",
           "selectionHint": "Guardian billing requires a valid financial guardian. Student billing requires explicit confirmation and a reason.",
-          "guardianUnresolvedHint": "Guardian billing is selected. If no valid financial guardian exists yet, finance setup will be deferred after save.",
+          "guardianUnresolvedHint": "Guardian billing is selected. Add a guardian above before saving.",
           "studentWarning": "The student will be the intended billing party. This is not applied automatically when a guardian is missing.",
           "studentConfirmLabel": "I confirm that the student should be the billing party",
           "studentReasonLabel": "Reason for student billing",
@@ -4485,8 +4484,17 @@
             "unresolved": "Billing responsibility is not resolved yet. Link a valid financial guardian before collection.",
             "existingAgreementConflict": "An existing agreement prevents this billing responsibility choice. Resolve it from the finance workspace.",
             "invalid": "The billing responsibility request is invalid. Review your choice.",
-            "invalidMode": "The billing responsibility mode is invalid. Choose guardian or student."
-          }
+            "invalidMode": "The billing responsibility mode is invalid. Choose guardian or student.",
+            "guardianRequired": "Guardian billing requires at least one guardian before you can continue.",
+            "billingGuardianSelectionRequired": "Select which guardian is responsible for billing.",
+            "billingGuardianNotLinked": "The selected person cannot be used as a billing guardian. Search for an existing guardian profile.",
+            "billingGuardianRelationshipInactive": "The selected billing guardian relationship is inactive. Choose another guardian.",
+            "guardianIdentityCandidateExists": "A matching guardian already exists. Search and select the existing guardian instead of creating a duplicate."
+          },
+          "guardianRequiredHint": "Enter guardian details above — guardian billing requires at least one guardian.",
+          "billingGuardianLabel": "Billing guardian",
+          "billingGuardianPlaceholder": "Select the billing guardian…",
+          "billingGuardianSelectionHint": "Choose which guardian is financially responsible when more than one is listed."
         },
         "finance": {
           "stagePlan": "Suggested plan",
@@ -4645,7 +4653,9 @@
             "oneTimeModified": "Modified one-time fee — {detail}",
             "periodExcluded": "Excluded month — {name}",
             "periodModified": "Modified month — {detail}"
-          }
+          },
+          "stageGuardians": "Guardians",
+          "guardiansOverview": "Guardian login details"
         }
       },
       "setup": {
@@ -5463,11 +5473,11 @@
           "cancelFinancialImpact": "An active agreement with financial impact cannot be cancelled directly."
         },
         "noSpecialAgreementTitle": "No financial agreement for this student.",
-        "noSpecialAgreementDesc": "School fees and the payment schedule exist independently. Special agreements are used for discounts, rescheduling, or exceptional terms.",
+        "noSpecialAgreementDesc": "School fee plan fees and payment schedule were created directly. Special agreements are only for discounts, custom schedules, or special terms.",
         "createSpecialAgreement": "Create special agreement",
-        "viewFeesAndSchedule": "View fees and schedule",
+        "viewFeesAndSchedule": "View fees and payment schedule",
         "incompleteDraftTitle": "Incomplete agreement draft",
-        "incompleteDraftDesc": "This draft is not shown as an active agreement until completed.",
+        "incompleteDraftDesc": "This draft does not represent fees from the school plan.",
         "completeDraft": "Complete draft",
         "emptyManualDraftBlockedHint": "An empty draft cannot be completed. Create an agreement from current fees instead.",
         "cancelDraft": "Cancel draft",
@@ -5549,15 +5559,6 @@
             "save": "Save"
           }
         },
-        "noSpecialAgreementTitle": "No financial agreement for this student.",
-        "noSpecialAgreementDesc": "School fee plan fees and payment schedule were created directly. Special agreements are only for discounts, custom schedules, or special terms.",
-        "viewFeesAndSchedule": "View fees and payment schedule",
-        "createSpecialAgreement": "Create special agreement",
-        "incompleteDraftTitle": "Incomplete agreement draft",
-        "incompleteDraftDesc": "This draft does not represent fees from the school plan.",
-        "completeDraft": "Complete draft",
-        "emptyManualDraftBlockedHint": "An empty draft cannot be completed. Create an agreement from current fees instead.",
-        "cancelDraft": "Cancel draft",
         "openFinanceOverview": "Open financial overview",
         "openPaymentSchedule": "Open payment schedule"
       },
@@ -7598,7 +7599,6 @@
             "title": "Reverse collection",
             "warning": "This does not delete the collection. It reverses the financial effect and keeps the receipt for audit.",
             "reasonLabel": "Reversal reason",
-            "reasonPlaceholder": "Describe why this collection is being reversed…",
             "reasonRequired": "A reversal reason is required.",
             "confirm": "Confirm reversal",
             "success": "Collection reversed successfully.",
@@ -7640,22 +7640,6 @@
             "notAllowed": "This collection cannot be cancelled in its current state."
           },
           "receiptState": "Receipt state",
-          "reverse": {
-            "title": "Reverse collection",
-            "warning": "This does not delete the collection. It reverses the financial effect and keeps the receipt for audit.",
-            "reasonLabel": "Reversal reason",
-            "reasonRequired": "A reversal reason is required.",
-            "confirm": "Confirm reversal",
-            "success": "Collection reversed successfully.",
-            "cancellationReason": "Reversal reason",
-            "cancelledAt": "Reversed at",
-            "errors": {
-              "forbidden": "You do not have permission to reverse this collection.",
-              "notFound": "Collection not found.",
-              "cannotReverse": "This collection cannot be reversed in its current state.",
-              "generic": "Unable to reverse the collection. Please try again."
-            }
-          },
           "timeline": {
             "draftCreated": "Draft created",
             "confirmed": "Collection confirmed",
@@ -7793,7 +7777,7 @@
         "detailTitle": "Collection details",
         "chequeDetailTitle": "Cheque details",
         "paymentStepDesc": "Choose method and amount, then allocate to receivables.",
-        "stepPayment": "Payment",
+        "stepPayment": "Payment method",
         "stepAllocation": "Allocate payment",
         "continueToAllocation": "Continue to allocation",
         "allocationTitle": "Allocate amount",
@@ -7888,7 +7872,6 @@
           "paid_paid": "Fully paid"
         },
         "dueToday": "Due today",
-        "allocatedAmount": "Allocated amount",
         "recordPayment": "Record payment",
         "flexiblePrepaymentIntro": "Enter the paid amount, preview how it will be allocated to open installments, then confirm.",
         "paidAmountLabel": "Paid amount",
@@ -7926,7 +7909,6 @@
         "recordCollectionAction": "Record collection",
         "stepPaymentAndAmount": "Amount and payment method",
         "stepSelectDues": "Select dues",
-        "stepPayment": "Payment method",
         "stepPaymentMethod": "Payment method",
         "stepReview": "Review and confirm",
         "selectDuesDesc": "Choose the installments you want to collect.",
@@ -9095,6 +9077,24 @@
       "billingPartyStudentSelf": "Student",
       "billingPartyGuardian": "Guardian",
       "billingPartyCustom": "Custom party"
+    },
+    "guardianAccount": {
+      "sectionTitle": "Login account",
+      "codeLabel": "Guardian code",
+      "statusLabel": "Account status",
+      "copyCode": "Copy code",
+      "copyLogin": "Copy login",
+      "copied": "Copied",
+      "createSuccessTitle": "Guardian login details",
+      "createSuccessLead": "Share the guardian code and login with the family. Password setup is handled separately.",
+      "dismissOnboarding": "Dismiss",
+      "newGuardianReviewHint": "Login details will appear here after the student is created, when returned by the server.",
+      "status": {
+        "active": "Account active",
+        "inactive": "Account inactive",
+        "noAccount": "No account",
+        "unknown": "Account status unavailable"
+      }
     }
   }
 }

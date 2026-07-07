@@ -18,6 +18,8 @@ export interface ParentAccountInfo {
   needs_new_account?: boolean;
   can_assign_password?: boolean;
   roles?: string[];
+  login?: string | null;
+  status?: string | null;
 }
 
 export interface ParentGuardianProfile {
@@ -54,6 +56,7 @@ export interface ParentChild extends StudentNameFields {
 
 export interface Parent {
   id: number;
+  code?: string | null;
   name: string;
   display_name?: string | null;
   phone: string | null;

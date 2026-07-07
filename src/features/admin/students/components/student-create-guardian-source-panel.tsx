@@ -14,19 +14,22 @@ import {
   searchGuardiansGlobally,
 } from '../utils/guardian-global-search';
 import { formatMoroccanPhoneDisplay } from '../utils/normalize-moroccan-phone';
+import { GuardianAccountOnboardingPanel } from './guardian-account-onboarding-panel';
 import { GuardianDuplicateSuggestions } from './guardian-duplicate-suggestions';
 
 export function StudentCreateGuardianSourcePanel({
   intakeValues,
   sourceMode,
-  linkedGuardianPartnerId,
+  linkedGuardianId,
+  linkedGuardianPerson,
   onSourceModeChange,
   onLinkExisting,
   onClearLink,
 }: {
   intakeValues: Pick<EnrollmentIntakeValues, 'guardianName' | 'guardianPhone' | 'guardianEmail'>;
   sourceMode: StudentCreateGuardianSourceMode;
-  linkedGuardianPartnerId: number | null;
+  linkedGuardianId: number | null;
+  linkedGuardianPerson: PersonSearchResult | null;
   onSourceModeChange: (mode: StudentCreateGuardianSourceMode) => void;
   onLinkExisting: (person: PersonSearchResult) => void;
   onClearLink: () => void;
@@ -43,7 +46,7 @@ export function StudentCreateGuardianSourcePanel({
   const requestSeq = useRef(0);
   const guardianName = intakeValues.guardianName.trim();
   const isExistingMode = sourceMode === 'existing';
-  const isLinked = isExistingMode && linkedGuardianPartnerId != null;
+  const isLinked = isExistingMode && linkedGuardianId != null;
   const searchQuery = buildGuardianDualSearchQuery(debouncedPhone, debouncedName);
   const hasSearchInput = hasGuardianDualSearchInput(debouncedPhone, debouncedName);
 
@@ -267,6 +270,10 @@ export function StudentCreateGuardianSourcePanel({
               {t('admin.student360.create.billing.guardianClearLink')}
             </button>
           </div>
+        ) : null}
+
+        {boxVariant === 'linked' && linkedGuardianPerson ? (
+          <GuardianAccountOnboardingPanel source={linkedGuardianPerson} compact />
         ) : null}
       </div>
 

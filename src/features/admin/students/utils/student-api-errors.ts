@@ -1,7 +1,7 @@
 import type { ApiErrorBody } from '@/types/api';
 import type { BillingResponsibilityFieldErrors } from './student-create-billing-responsibility';
 import type { StudentProfileFieldErrors } from './student-profile';
-import { mapBillingResponsibilityApiError } from './billing-responsibility-errors';
+import { mapBillingResponsibilityApiError, mapStudentCreateGuardianAtomicApiError } from './billing-responsibility-errors';
 
 export interface StudentApiErrorContext {
   message: string;
@@ -142,6 +142,9 @@ export function mapStudentApiError(
 ): StudentApiErrorContext {
   const billingMapped = mapBillingResponsibilityApiError(error, t);
   if (billingMapped) return billingMapped;
+
+  const guardianAtomicMapped = mapStudentCreateGuardianAtomicApiError(error, t);
+  if (guardianAtomicMapped) return guardianAtomicMapped;
 
   const code = String(error.code ?? '');
   const message = error.message?.trim() ?? '';

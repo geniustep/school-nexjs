@@ -7,6 +7,7 @@ import type { ParentFamilyGroup } from '@/features/admin/parents/utils/group-par
 import { useT } from '@/features/i18n/locale-context';
 import { statusLabel } from '@/lib/utils/labels';
 import { getStudentDisplayName } from '@/lib/utils/student';
+import { ParentAccountIdentityInline } from './parent-account-identity-inline';
 
 export function ParentsFamilyList({ families }: { families: ParentFamilyGroup[] }) {
   const t = useT();
@@ -73,6 +74,7 @@ export function ParentsFamilyList({ families }: { families: ParentFamilyGroup[] 
                             <span className="mono">{parent.phone ?? parent.mobile}</span>
                           ) : null}
                           {parent.email ? <span dir="ltr">{parent.email}</span> : null}
+                          <ParentAccountIdentityInline parent={parent} />
                         </span>
                       </div>
                       <div className="parents-family-card__guardian-actions">

@@ -6,6 +6,7 @@ import { canLinkPersonAsGuardian } from '../utils/guardian-profile-contract';
 import { formatMoroccanPhoneDisplay } from '../utils/normalize-moroccan-phone';
 import { formatRoleLabels } from '../utils/person-role-presentation';
 import type { PersonSearchResult } from '@/types/student-360';
+import { GuardianAccountOnboardingPanel } from './guardian-account-onboarding-panel';
 
 export function GuardianDuplicateSuggestions({
   candidates,
@@ -50,6 +51,7 @@ export function GuardianDuplicateSuggestions({
                     {person.email}
                   </span>
                 ) : null}
+                <GuardianAccountOnboardingPanel source={person} compact />
                 {warnings.map((message) => (
                   <span key={message} className="tiny muted">
                     {message}

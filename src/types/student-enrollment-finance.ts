@@ -1,4 +1,5 @@
 import type { Ref } from '@/types/api';
+import type { RelationshipType } from '@/types/student-360';
 import type { StudentFinanceCurrency } from '@/types/student-finance';
 
 export type FeePlanCustomizationReason =
@@ -276,12 +277,43 @@ export interface StudentCreateFinanceFormState {
 
 export type StudentCreateGuardianSourceMode = 'new' | 'existing';
 
+export interface StudentCreateExistingGuardianEntry {
+  kind: 'existing';
+  entryKey: string;
+  /** Canonical school.parent id — never partner_id */
+  guardian_id: number;
+  displayName: string;
+  relationship_type: RelationshipType;
+  is_primary_contact: boolean;
+  phone?: string;
+  email?: string;
+}
+
+export interface StudentCreateNewGuardianEntry {
+  kind: 'new';
+  entryKey: string;
+  full_name: string;
+  phone?: string;
+  email?: string;
+  relationship_type: RelationshipType;
+  is_primary_contact: boolean;
+}
+
+export type StudentCreateGuardianEntry =
+  | StudentCreateExistingGuardianEntry
+  | StudentCreateNewGuardianEntry;
+
 export interface StudentCreateBillingFormState {
   responsibilitySelection: StudentCreateBillingResponsibilitySelection;
   studentBillingConfirmed: boolean;
   studentBillingReason: string;
   guardianSourceMode: StudentCreateGuardianSourceMode;
-  linkedGuardianPartnerId: number | null;
+  /** Canonical school.parent id selected from search — not partner_id */
+  linkedGuardianId: number | null;
+  /** Required when more than one guardian entry is submitted */
+  billingGuardianEntryKey: string | null;
+  /** Additional guardians beyond the primary wizard slot */
+  guardianEntries: StudentCreateGuardianEntry[];
 }
 
 export interface EnrollmentPlanPreviewQuery {

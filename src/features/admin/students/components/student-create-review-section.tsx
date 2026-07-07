@@ -7,13 +7,17 @@ import { formatFinanceCurrency } from '../utils/student-finance-format';
 import { buildEnrollmentFinanceReviewModel, enrollmentFinancePreviewStatus } from '../utils/enrollment-finance-review';
 import { formatCustomizationReason, getFeePlanSuggestPendingReason, resolveFeePlanSuggestEmptyMessage, selectedFinancePeriods } from '../utils/student-enrollment-finance';
 import { resolveBillingResponsibilitySelectionLabel } from '../utils/student-create-billing-responsibility';
+import type { PersonSearchResult } from '@/types/student-360';
 import type {
   EnrollmentPlanPreviewResult,
   FeePlanSuggestResult,
   StudentCreateBillingFormState,
   StudentCreateFinanceFormState,
+  StudentCreateGuardianEntry,
 } from '@/types/student-enrollment-finance';
 import type { StudentProfileFormState } from '../utils/student-profile';
+import { guardianEntryLabel } from '../utils/student-create-guardian-payload';
+import { StudentCreateGuardianAccountCard } from './student-create-guardian-account-card';
 import { StudentCreateStyledSection } from './student-create-section-header';
 
 function billingResponsibilityReviewLabel(
@@ -41,6 +45,8 @@ function filterFinanceSummaryRows(
 export function StudentCreateReviewSection({
   profileState,
   billingState,
+  linkedGuardianPerson,
+  guardianEntries,
   suggest,
   financeState,
   preview,
@@ -55,6 +61,8 @@ export function StudentCreateReviewSection({
 }: {
   profileState: StudentProfileFormState;
   billingState: StudentCreateBillingFormState;
+  linkedGuardianPerson: PersonSearchResult | null;
+  guardianEntries: StudentCreateGuardianEntry[];
   suggest: FeePlanSuggestResult | null;
   financeState: StudentCreateFinanceFormState;
   preview: EnrollmentPlanPreviewResult | null;
@@ -166,6 +174,36 @@ export function StudentCreateReviewSection({
             </dl>
           </article>
         </div>
+
+        {linkedGuardianPerson || guardianEntries.length > 0 ? (
+          <div
+            className="student-create-review-stage"
+            data-stage-label={t('admin.student360.create.review.stageGuardians')}
+          >
+            <article className="student-create-review-card student-create-review-card--guardians">
+              <p className="student-create-review-hero__eyebrow">
+                {t('admin.student360.create.review.guardiansOverview')}
+              </p>
+              {linkedGuardianPerson ? (
+                <StudentCreateGuardianAccountCard
+                  name={linkedGuardianPerson.name}
+                  source={linkedGuardianPerson}
+                />
+              ) : (
+                guardianEntries.map((entry) => (
+                  <div key={entry.entryKey} className="student-create-guardian-account-card">
+                    <p className="student-create-guardian-account-card__name" dir="auto">
+                      {guardianEntryLabel(entry)}
+                    </p>
+                    <p className="student-create-form__notice tiny" role="status">
+                      {t('admin.guardianAccount.newGuardianReviewHint')}
+                    </p>
+                  </div>
+                ))
+              )}
+            </article>
+          </div>
+        ) : null}
 
         {financeBlocked ? (
           <div className="student-create-fee-plan__alert" role="alert">

@@ -1,4 +1,4 @@
-import type { GuardianQuickCreateResponse, GuardianSummary } from '@/types/student-360';
+import type { GuardianAccountInfo, GuardianQuickCreateResponse, GuardianSummary } from '@/types/student-360';
 import { getGuardianEmailPresentation } from './guardian-email-presentation';
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -16,6 +16,34 @@ function readStringList(value: unknown): string[] | undefined {
   if (!Array.isArray(value)) return undefined;
   const list = value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
   return list.length ? list : undefined;
+}
+
+function readGuardianAccount(raw: Record<string, unknown>): GuardianAccountInfo | null {
+  const accountRaw = asRecord(raw.account);
+  const login =
+    (typeof accountRaw?.login === 'string' && accountRaw.login.trim()) ||
+    (typeof raw.login === 'string' && raw.login.trim()) ||
+    null;
+  const status =
+    (typeof accountRaw?.status === 'string' && accountRaw.status.trim()) ||
+    (typeof raw.account_status === 'string' && raw.account_status.trim()) ||
+    null;
+  const has_user_account =
+    accountRaw?.has_user_account === true
+      ? true
+      : accountRaw?.has_user_account === false
+        ? false
+        : raw.has_user_account === true
+          ? true
+          : raw.has_user_account === false
+            ? false
+            : undefined;
+  if (!login && !status && has_user_account == null) return null;
+  return {
+    login,
+    status,
+    has_user_account,
+  };
 }
 
 /** Map School API guardian payload (flat or nested) to GuardianSummary. */
@@ -44,10 +72,25 @@ export function normalizeGuardianSummary(data: unknown): GuardianSummary | null 
     raw.has_user_account === true ||
     raw.has_account === true ||
     (typeof raw.user_id === 'number' && raw.user_id > 0) ||
-    (asRecord(raw.account)?.user_id != null);
+    readGuardianAccount(raw)?.has_user_account === true;
+
+  const guardianAccount = readGuardianAccount(raw);
+  const legacyAccount = asRecord(raw.account);
+  const account =
+    guardianAccount ??
+    (legacyAccount?.user_id
+      ? {
+          login:
+            (typeof legacyAccount.login === 'string' && legacyAccount.login.trim()) || null,
+          status:
+            (typeof legacyAccount.status === 'string' && legacyAccount.status.trim()) || null,
+          has_user_account: legacyAccount.has_user_account === true || hasUserAccount,
+        }
+      : null);
 
   return {
     id,
+    code: typeof raw.code === 'string' && raw.code.trim() ? raw.code.trim() : null,
     partner_id: typeof raw.partner_id === 'number' ? raw.partner_id : undefined,
     person_id: typeof raw.person_id === 'number' ? raw.person_id : undefined,
     guardian_id: typeof raw.guardian_id === 'number' ? raw.guardian_id : guardianId,
@@ -82,6 +125,7 @@ export function normalizeGuardianSummary(data: unknown): GuardianSummary | null 
     has_user: raw.has_user === true || hasUserAccount,
     has_user_account: hasUserAccount,
     has_account: hasUserAccount,
+    account,
   };
 }
 

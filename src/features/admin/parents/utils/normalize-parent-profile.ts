@@ -164,6 +164,12 @@ function resolveActiveChildren(raw: Record<string, unknown>): ParentChild[] {
 }
 
 
+function readNullableString(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
 function normalizeAccount(raw: unknown): ParentAccountInfo | null {
   const record = asRecord(raw);
   if (!record) return null;
@@ -175,6 +181,8 @@ function normalizeAccount(raw: unknown): ParentAccountInfo | null {
     can_assign_password:
       typeof record.can_assign_password === 'boolean' ? record.can_assign_password : undefined,
     roles: readStringList(record.roles),
+    login: readNullableString(record.login),
+    status: readNullableString(record.status),
   };
 }
 
@@ -259,8 +267,15 @@ export function normalizeParentProfile(data: unknown): Parent | null {
   const existingRoles =
     (person ? readStringList(person.existing_roles) : undefined) ?? readStringList(raw.existing_roles);
 
+  const guardianCode =
+    readNullableString(raw.code) ??
+    (person ? readNullableString(person.code) : null);
+
+  const rootLogin = readNullableString(raw.login) ?? (person ? readNullableString(person.login) : null);
+
   return {
     id: raw.id,
+    code: guardianCode,
     name,
     display_name: person?.display_name && typeof person.display_name === 'string' ? person.display_name : name,
     phone:
@@ -279,7 +294,7 @@ export function normalizeParentProfile(data: unknown): Parent | null {
         (typeof raw.city === 'string' ? raw.city.trim() : null)) ||
       undefined,
     address: (person ? readAddress(person) : null) ?? readAddress(raw),
-    login: typeof raw.login === 'string' ? raw.login : null,
+    login: accountInfo?.login ?? rootLogin,
     user_id: accountInfo?.user_id ?? (typeof raw.user_id === 'number' ? raw.user_id : null),
     has_account: hasUserAccount,
     has_user_account: hasUserAccount,

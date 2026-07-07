@@ -73,8 +73,7 @@
       "general_supervisor": "الحارس العام",
       "admin_staff": "مساعد إداري",
       "legacy_admin": "مدير (قديم)",
-      "super_admin": "مدير عام",
-      "pedagogical_director": "مدير تربوي"
+      "super_admin": "مدير عام"
     }
   },
   "nav": {
@@ -4607,7 +4606,7 @@
           "guardianSourceExistingPendingTitle": "البحث عن ولي موجود",
           "guardianSourceExistingPendingLead": "أدخل رقم الهاتف أو الاسم في حقول البحث، ثم اختر الشخص المطابق من الاقتراحات.",
           "guardianSourceLinkedTitle": "ولي أمر موجود — جاهز للربط",
-          "guardianSourceLinkedLead": "سيتم ربط {name} بالتلميذ تلقائيًا بعد الحفظ.",
+          "guardianSourceLinkedLead": "سيتم إرسال {name} مع التلميذ في طلب الإنشاء.",
           "guardianSourceMatchesTitle": "وُجدت مطابقات محتملة",
           "guardianSourceMatchesLead": "اختر الشخص المناسب من القائمة، أو أكّد أنه ولي جديد.",
           "guardianSourceSearchingTitle": "جارٍ التحقق"
@@ -4617,7 +4616,7 @@
           "lead": "حدّد من سيكون مسؤول الفوترة لهذا التلميذ. يُرسل هذا الاختيار صراحةً إلى النظام.",
           "selectionPlaceholder": "اختر مسؤول الفوترة…",
           "selectionHint": "فوترة الولي تتطلب وليًا ماليًا صالحًا. فوترة التلميذ تتطلب تأكيدًا صريحًا وسببًا.",
-          "guardianUnresolvedHint": "تم اختيار فوترة الولي. إذا لم يوجد ولي مالي صالح بعد، سيُؤجَّل إعداد المالية بعد الحفظ.",
+          "guardianUnresolvedHint": "تم اختيار فوترة الولي. أضف وليًا أعلاه قبل الحفظ.",
           "studentWarning": "سيكون التلميذ مسؤول الفوترة المقصود. لا يُطبَّق ذلك تلقائيًا عند غياب ولي.",
           "studentConfirmLabel": "أؤكد أن التلميذ سيكون مسؤول الفوترة",
           "studentReasonLabel": "سبب اعتماد التلميذ كمسؤول فوترة",
@@ -4635,8 +4634,17 @@
             "unresolved": "لم يتم حل مسؤولية الفوترة بعد. اربط وليًا ماليًا صالحًا قبل التحصيل.",
             "existingAgreementConflict": "اتفاقية موجودة تمنع هذا الاختيار. عالجها من مساحة المالية.",
             "invalid": "طلب مسؤولية الفوترة غير صالح. راجع اختيارك.",
-            "invalidMode": "وضع مسؤولية الفوترة غير صالح. اختر وليًا أو تلميذًا."
-          }
+            "invalidMode": "وضع مسؤولية الفوترة غير صالح. اختر وليًا أو تلميذًا.",
+            "guardianRequired": "فوترة الولي تتطلب وليًا واحدًا على الأقل قبل المتابعة.",
+            "billingGuardianSelectionRequired": "اختر أي ولي مسؤول عن الفوترة.",
+            "billingGuardianNotLinked": "لا يمكن استخدام هذا الشخص كولي فوترة. ابحث عن ملف ولي موجود.",
+            "billingGuardianRelationshipInactive": "علاقة ولي الفوترة المختار غير نشطة. اختر وليًا آخر.",
+            "guardianIdentityCandidateExists": "يوجد ولي مطابق بالفعل. ابحث واختر الولي الموجود بدل إنشاء نسخة جديدة."
+          },
+          "guardianRequiredHint": "أدخل بيانات ولي الأمر أعلاه — فوترة الولي تتطلب وليًا واحدًا على الأقل.",
+          "billingGuardianLabel": "ولي الفوترة",
+          "billingGuardianPlaceholder": "اختر ولي الفوترة…",
+          "billingGuardianSelectionHint": "حدّد أي ولي هو المسؤول ماليًا عند وجود أكثر من ولي."
         },
         "finance": {
           "stagePlan": "الخطة المقترحة",
@@ -4795,7 +4803,9 @@
             "oneTimeModified": "تعديل رسم مرة واحدة — {detail}",
             "periodExcluded": "استبعاد شهر — {name}",
             "periodModified": "تعديل شهر — {detail}"
-          }
+          },
+          "stageGuardians": "أولياء الأمر",
+          "guardiansOverview": "بيانات دخول ولي الأمر"
         }
       },
       "setup": {
@@ -5613,11 +5623,11 @@
           "cancelFinancialImpact": "لا يمكن إلغاء اتفاق نشط له أثر مالي."
         },
         "noSpecialAgreementTitle": "لا يوجد اتفاق مالي لهذا التلميذ.",
-        "noSpecialAgreementDesc": "خطة الرسوم مطبقة، والرسوم وجدول الدفعات متاحان داخل الملف المالي.",
-        "createSpecialAgreement": "إنشاء اتفاق خاص",
+        "noSpecialAgreementDesc": "تم تطبيق خطة رسوم المدرسة وإنشاء الرسوم وجدول الدفعات مباشرة. يُستخدم الاتفاق المالي فقط للخصومات أو الجدولة أو الشروط الخاصة.",
+        "createSpecialAgreement": "إنشاء اتفاق مالي خاص",
         "viewFeesAndSchedule": "عرض الرسوم وجدول الدفعات",
         "incompleteDraftTitle": "مسودة اتفاق غير مكتملة",
-        "incompleteDraftDesc": "هذه المسودة لا تُعرض كاتفاق مالي فعلي حتى إكمالها.",
+        "incompleteDraftDesc": "هذه المسودة لا تمثل الرسوم المطبقة من خطة المدرسة.",
         "completeDraft": "إكمال المسودة",
         "emptyManualDraftBlockedHint": "لا يمكن إكمال مسودة فارغة. أنشئ اتفاقًا من الرسوم الحالية.",
         "cancelDraft": "إلغاء المسودة",
@@ -5699,15 +5709,6 @@
             "save": "الحفظ"
           }
         },
-        "noSpecialAgreementTitle": "لا يوجد اتفاق مالي لهذا التلميذ.",
-        "noSpecialAgreementDesc": "تم تطبيق خطة رسوم المدرسة وإنشاء الرسوم وجدول الدفعات مباشرة. يُستخدم الاتفاق المالي فقط للخصومات أو الجدولة أو الشروط الخاصة.",
-        "viewFeesAndSchedule": "عرض الرسوم وجدول الدفعات",
-        "createSpecialAgreement": "إنشاء اتفاق مالي خاص",
-        "incompleteDraftTitle": "مسودة اتفاق غير مكتملة",
-        "incompleteDraftDesc": "هذه المسودة لا تمثل الرسوم المطبقة من خطة المدرسة.",
-        "completeDraft": "إكمال المسودة",
-        "emptyManualDraftBlockedHint": "لا يمكن إكمال مسودة فارغة. أنشئ اتفاقًا من الرسوم الحالية.",
-        "cancelDraft": "إلغاء المسودة",
         "openFinanceOverview": "فتح النظرة المالية",
         "openPaymentSchedule": "فتح جدول الدفعات"
       },
@@ -7847,7 +7848,6 @@
             "title": "عكس التحصيل",
             "warning": "هذا الإجراء لا يحذف التحصيل. يعكس الأثر المالي ويبقي الإيصال محفوظًا للتدقيق.",
             "reasonLabel": "سبب العكس",
-            "reasonPlaceholder": "اشرح سبب عكس هذا التحصيل…",
             "reasonRequired": "سبب العكس إلزامي.",
             "confirm": "تأكيد العكس",
             "success": "تم عكس التحصيل بنجاح.",
@@ -7889,22 +7889,6 @@
             "notAllowed": "لا يمكن إلغاء هذا التحصيل حسب حالته الحالية."
           },
           "receiptState": "حالة الإيصال",
-          "reverse": {
-            "title": "عكس التحصيل",
-            "warning": "هذا الإجراء لا يحذف التحصيل. يعكس الأثر المالي ويبقي الإيصال محفوظًا للتدقيق.",
-            "reasonLabel": "سبب العكس",
-            "reasonRequired": "سبب العكس إلزامي.",
-            "confirm": "تأكيد العكس",
-            "success": "تم عكس التحصيل بنجاح.",
-            "cancellationReason": "سبب العكس",
-            "cancelledAt": "تاريخ العكس",
-            "errors": {
-              "forbidden": "لا تملك صلاحية عكس هذا التحصيل.",
-              "notFound": "تعذر العثور على التحصيل.",
-              "cannotReverse": "لا يمكن عكس هذا التحصيل في حالته الحالية.",
-              "generic": "تعذر عكس التحصيل. حاول مرة أخرى."
-            }
-          },
           "timeline": {
             "draftCreated": "أُنشئت المسودة",
             "confirmed": "أُكد التحصيل",
@@ -8045,17 +8029,17 @@
         "detailTitle": "تفاصيل التحصيل",
         "chequeDetailTitle": "تفاصيل الشيك",
         "paymentStepDesc": "حدّد طريقة الأداء والمبلغ، ثم وزّع التحصيل على المستحقات.",
-        "stepSelectDues": "المستحقات",
+        "stepSelectDues": "اختيار المستحقات",
         "stepPayment": "طريقة الأداء",
         "stepPaymentMethod": "طريقة الأداء",
         "stepAllocation": "التوزيع",
-        "stepReview": "المراجعة",
+        "stepReview": "المراجعة والتأكيد",
         "stepProgress": "الخطوة {current} من {total} — {label}",
         "reviewDesc": "راجع تفاصيل العملية قبل التأكيد.",
         "fillSelectedDues": "تعبئة كامل المستحقات المحددة",
         "clearAllocation": "مسح التوزيع",
         "confirmPaymentAndReceipt": "تأكيد الدفعة وإصدار الإيصال",
-        "paymentSuccessTitle": "تم تسجيل الدفعة وإصدار الإيصال بنجاح",
+        "paymentSuccessTitle": "تم تسجيل الدفعة بنجاح",
         "continueToAllocation": "متابعة إلى التوزيع",
         "allocationTitle": "توزيع المبلغ",
         "allocationDesc": "وزّع مبلغ العملية على الأقساط المفتوحة.",
@@ -8149,7 +8133,6 @@
           "paid_paid": "مؤدى بالكامل"
         },
         "dueToday": "المستحق اليوم",
-        "allocatedAmount": "المبلغ الموزع",
         "recordPayment": "تسجيل دفعة",
         "flexiblePrepaymentIntro": "أدخل المبلغ المدفوع، ثم اعرض توزيعه على الأقساط المفتوحة قبل التأكيد.",
         "paidAmountLabel": "المبلغ المدفوع",
@@ -8186,21 +8169,15 @@
         "fullCreditBalanceNotice": "هذا رصيد دائن غير موزع، لا يخفض المستحقات قبل تخصيصه.",
         "recordCollectionAction": "تسجيل التحصيل",
         "stepPaymentAndAmount": "المبلغ وطريقة الأداء",
-        "stepSelectDues": "اختيار المستحقات",
-        "stepPayment": "طريقة الأداء",
-        "stepPaymentMethod": "طريقة الأداء",
-        "stepReview": "المراجعة والتأكيد",
         "selectDuesDesc": "اختر المستحقات التي تريد تحصيلها.",
         "enterCollectionAmountHint": "أدخل مبلغ التحصيل للمتابعة. اختيار المستحقات اختياري للتوزيع التلقائي.",
         "installmentFlowIntro": "ابدأ باختيار المستحقات، ثم أكمل طريقة الأداء والتوزيع.",
         "continueToPayment": "متابعة إلى طريقة الأداء",
         "continueToReview": "متابعة إلى المراجعة",
-        "confirmPaymentAndReceipt": "تأكيد الدفعة وإصدار الإيصال",
         "quickOverdue": "تحصيل المتأخرات",
         "quickDueToday": "تحصيل المستحق اليوم",
         "quickNextInstallment": "تحصيل دفعة شهرية",
         "quickFullBalance": "تسديد كامل الرصيد",
-        "paymentSuccessTitle": "تم تسجيل الدفعة بنجاح",
         "paymentSuccessBody": "تم إنشاء العملية والإيصال."
       },
       "searchFeeTypes": "بحث في الرسوم…",
@@ -9360,6 +9337,24 @@
       "billingPartyStudentSelf": "التلميذ نفسه",
       "billingPartyGuardian": "ولي الأمر",
       "billingPartyCustom": "جهة خاصة"
+    },
+    "guardianAccount": {
+      "sectionTitle": "حساب الدخول",
+      "codeLabel": "كود ولي الأمر",
+      "statusLabel": "حالة الحساب",
+      "copyCode": "نسخ الكود",
+      "copyLogin": "نسخ اسم الدخول",
+      "copied": "تم النسخ",
+      "createSuccessTitle": "بيانات دخول ولي الأمر",
+      "createSuccessLead": "شارك كود ولي الأمر واسم الدخول مع العائلة. إعداد كلمة المرور يتم بشكل منفصل.",
+      "dismissOnboarding": "إخفاء",
+      "newGuardianReviewHint": "ستظهر بيانات الدخول هنا بعد إنشاء التلميذ إذا أرجعها الخادم.",
+      "status": {
+        "active": "الحساب نشط",
+        "inactive": "الحساب غير نشط",
+        "noAccount": "لا يوجد حساب",
+        "unknown": "حالة الحساب غير متوفرة"
+      }
     }
   }
 }

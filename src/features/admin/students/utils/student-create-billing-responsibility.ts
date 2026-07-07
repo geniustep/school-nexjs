@@ -10,6 +10,8 @@ export type BillingResponsibilityFieldErrors = {
   billingResponsibilitySelection?: string;
   billingStudentConfirmed?: string;
   billingStudentReason?: string;
+  billingGuardianSelection?: string;
+  guardianRequired?: string;
 };
 
 export function defaultStudentCreateBillingFormState(): StudentCreateBillingFormState {
@@ -18,7 +20,9 @@ export function defaultStudentCreateBillingFormState(): StudentCreateBillingForm
     studentBillingConfirmed: false,
     studentBillingReason: '',
     guardianSourceMode: 'new',
-    linkedGuardianPartnerId: null,
+    linkedGuardianId: null,
+    billingGuardianEntryKey: null,
+    guardianEntries: [],
   };
 }
 

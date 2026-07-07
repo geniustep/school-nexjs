@@ -19,6 +19,10 @@ describe('billing responsibility error mapping', () => {
     ['billing_responsibility_existing_agreement_conflict', 'admin.student360.create.billingResponsibility.errors.existingAgreementConflict'],
     ['invalid_billing_responsibility', 'admin.student360.create.billingResponsibility.errors.invalid'],
     ['invalid_billing_responsibility_mode', 'admin.student360.create.billingResponsibility.errors.invalidMode'],
+    ['billing_guardian_required', 'admin.student360.create.billingResponsibility.errors.guardianRequired'],
+    ['billing_guardian_ambiguous', 'admin.student360.create.billingResponsibility.errors.billingGuardianSelectionRequired'],
+    ['billing_guardian_not_linked', 'admin.student360.create.billingResponsibility.errors.billingGuardianNotLinked'],
+    ['billing_guardian_relationship_inactive', 'admin.student360.create.billingResponsibility.errors.billingGuardianRelationshipInactive'],
   ] as const)('maps %s to i18n key', (code, key) => {
     expect(isBillingResponsibilityStableErrorCode(code)).toBe(true);
     expect(resolveBillingResponsibilityErrorMessageKey(code)).toBe(key);
@@ -61,5 +65,19 @@ describe('billing responsibility error mapping', () => {
       t,
     );
     expect(mapped.fieldErrors?.billingResponsibilitySelection).toBe(mapped.message);
+  });
+
+  it('mapStudentApiError maps guardian_identity_candidate_exists to billing step', () => {
+    const mapped = mapStudentApiError(
+      {
+        code: 'guardian_identity_candidate_exists',
+        message: 'ignored',
+      },
+      t,
+    );
+    expect(mapped.message).toBe(
+      'translated:admin.student360.create.billingResponsibility.errors.guardianIdentityCandidateExists',
+    );
+    expect(mapped.fieldErrors?.guardianRequired).toBe(mapped.message);
   });
 });

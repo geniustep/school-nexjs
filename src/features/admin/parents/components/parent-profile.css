@@ -139,6 +139,41 @@
   gap: 12px;
 }
 
+.parent-profile__account-body .guardian-account-onboarding {
+  margin-top: 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--border, #dbe3ee) 80%, transparent);
+  background: color-mix(in srgb, var(--surface-muted, #f8fafc) 65%, var(--surface, #fff));
+}
+
+.parent-profile__account-body .guardian-account-onboarding__list {
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.parent-profile__account-body .guardian-account-onboarding__row {
+  display: grid;
+  gap: 4px;
+}
+
+.parent-profile__account-body .guardian-account-onboarding__row dt {
+  font-size: 0.75rem;
+  color: var(--text-muted, #64748b);
+}
+
+.parent-profile__account-body .guardian-account-onboarding__row dd {
+  margin: 0;
+}
+
+.parent-profile__account-body .guardian-account-onboarding__value-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
 .parent-profile__contact-link {
   color: inherit;
   text-decoration: none;

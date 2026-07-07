@@ -191,6 +191,30 @@
   color: var(--text-muted, #64748b);
 }
 
+.parents-family-card__account-identity {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  width: 100%;
+}
+
+.parents-family-card__account-code {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+}
+
+.parents-family-card__account-code-label {
+  font-weight: 600;
+}
+
+.parents-family-card__account-status {
+  font-weight: 600;
+  color: var(--text, #334155);
+}
+
 .parents-family-card__guardian-actions {
   display: flex;
   align-items: center;

@@ -1,4 +1,4 @@
-import type { GuardianCandidateWarning, PersonSearchResult } from '@/types/student-360';
+import type { GuardianAccountInfo, GuardianCandidateWarning, PersonSearchResult } from '@/types/student-360';
 import { canLinkGuardianCandidate } from './guardian-candidate-presentation';
 import { normalizeAllowedActionsFromRaw } from './guardian-removal-shared';
 import { normalizeDeleteImpactFromRaw } from './guardian-delete-impact';
@@ -65,6 +65,30 @@ function resolveStatus(raw: Record<string, unknown>): string | undefined {
   return undefined;
 }
 
+function readSearchGuardianAccount(raw: Record<string, unknown>): GuardianAccountInfo | null {
+  const accountRaw = asRecord(raw.account);
+  const login =
+    (typeof accountRaw?.login === 'string' && accountRaw.login.trim()) ||
+    (typeof raw.login === 'string' && raw.login.trim()) ||
+    null;
+  const status =
+    (typeof accountRaw?.status === 'string' && accountRaw.status.trim()) ||
+    (typeof raw.account_status === 'string' && raw.account_status.trim()) ||
+    null;
+  const has_user_account =
+    accountRaw?.has_user_account === true
+      ? true
+      : accountRaw?.has_user_account === false
+        ? false
+        : raw.has_user_account === true
+          ? true
+          : raw.has_user_account === false
+            ? false
+            : undefined;
+  if (!login && !status && has_user_account == null) return null;
+  return { login, status, has_user_account };
+}
+
 /** Map unified person search row from GET /admin/guardians/search or guardian-candidates. */
 export function normalizePersonSearchResult(data: unknown): PersonSearchResult | null {
   const raw = asRecord(data);
@@ -83,7 +107,15 @@ export function normalizePersonSearchResult(data: unknown): PersonSearchResult |
     (typeof raw.full_name === 'string' && raw.full_name.trim()) ||
     '';
 
-  const hasUserAccount = readHasUserAccount(raw);
+  const accountInfo = readSearchGuardianAccount(raw);
+  const hasUserAccount =
+    raw.has_user_account === true ||
+    accountInfo?.has_user_account === true ||
+    raw.has_user === true ||
+    raw.has_user_account === true ||
+    raw.has_account === true ||
+    (typeof raw.user_id === 'number' && raw.user_id > 0) ||
+    (asRecord(raw.account)?.user_id != null);
   const existingRoles = readStringList(raw.existing_roles);
   const roleLabels = readStringList(raw.role_labels);
   const status = resolveStatus(raw);
@@ -111,6 +143,7 @@ export function normalizePersonSearchResult(data: unknown): PersonSearchResult |
     linked_students_count:
       typeof raw.linked_students_count === 'number' ? raw.linked_students_count : undefined,
     name,
+    code: typeof raw.code === 'string' && raw.code.trim() ? raw.code.trim() : null,
     phone:
       (typeof raw.phone === 'string' ? raw.phone : null) ??
       (typeof raw.mobile === 'string' ? raw.mobile : null),
@@ -134,6 +167,7 @@ export function normalizePersonSearchResult(data: unknown): PersonSearchResult |
     has_user: raw.has_user === true || hasUserAccount,
     has_user_account: hasUserAccount,
     has_account: hasUserAccount,
+    account: accountInfo,
     active,
     archived,
     status: status ?? (archived ? 'archived' : 'active'),

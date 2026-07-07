@@ -8,8 +8,10 @@ import { CreateAccountDialog } from '@/features/admin/account/create-account-dia
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { resolveAccountStatus } from '@/lib/account/account-utils';
+import type { AccountEntityFields } from '@/types/account';
 import { initials } from '@/lib/utils/format';
 import { GuardianRelationshipBadges } from './guardian-relationship-badges';
+import { GuardianAccountOnboardingPanel } from './guardian-account-onboarding-panel';
 import { formatMoroccanPhoneDisplay } from '../utils/normalize-moroccan-phone';
 import {
   getGuardianEmailPresentation,
@@ -27,6 +29,7 @@ import {
   buildGuardianCardSchoolBadges,
   personHasLoginAccount,
 } from '../utils/person-school-identity';
+import { resolveGuardianAccountPresentation } from '../utils/resolve-guardian-account-presentation';
 import type { GuardianRelationship } from '@/types/student-360';
 
 export function GuardianRelationshipCard({
@@ -61,11 +64,13 @@ export function GuardianRelationshipCard({
   const hasUsableEmail = emailPresentation.kind === 'usable';
   const contactComplete = hasCompleteGuardianContact(phone, secondaryPhone, rel.guardian.email);
   const accountEntity = {
-    id: rel.guardian.id,
     has_account: rel.guardian.has_account ?? rel.guardian.has_user_account,
-    account: rel.guardian.account ?? null,
+    account:
+      rel.guardian.account && 'user_id' in rel.guardian.account
+        ? rel.guardian.account
+        : null,
     email: hasUsableEmail ? emailPresentation.email : null,
-  };
+  } as AccountEntityFields;
   const accountStatus = resolveAccountStatus(accountEntity);
   const hasAccount = accountStatus !== 'not_created';
   const showCreateAccount = needsNewAccountFromLink(undefined, hasAccount);
@@ -73,6 +78,7 @@ export function GuardianRelationshipCard({
   const rolesLine = formatRoleLabels(rel.guardian.role_labels ?? []);
   const isMultiRole = schoolRoleBadges.length > 0 || personHasTeacherRole(rel.guardian);
   const canRemove = canRemoveGuardianRelationship(rel, canManage) && active;
+  const guardianAccountPresentation = resolveGuardianAccountPresentation(rel.guardian);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -206,7 +212,13 @@ export function GuardianRelationshipCard({
             <GuardianRelationshipBadges rel={rel} isDefaultBilling={isDefaultBilling} />
 
             <div className="student-360-guardian-card__account">
-              {hasAccount ? (
+              {guardianAccountPresentation.hasVisibleAccountInfo ? (
+                <GuardianAccountOnboardingPanel
+                  presentation={guardianAccountPresentation}
+                  title={t('admin.guardianAccount.sectionTitle')}
+                  compact
+                />
+              ) : hasAccount ? (
                 <>
                   {rolesLine && !schoolRoleBadges.length ? (
                     <p className="tiny muted">
@@ -220,6 +232,9 @@ export function GuardianRelationshipCard({
               ) : (
                 <AccountStatusBadge entity={accountEntity} showLogin={false} />
               )}
+              {guardianAccountPresentation.hasVisibleAccountInfo && hasAccount && isMultiRole ? (
+                <p className="tiny muted">{t('admin.student360.singleLoginForRoles')}</p>
+              ) : null}
             </div>
           </div>
         </div>
