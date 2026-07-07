@@ -24,19 +24,20 @@ export type StudentKanbanAction = {
   id: StudentKanbanActionId;
   labelKey: string;
   href: string;
+  icon: StudentKanbanActionId;
 };
 
 const ADMIN_PRIORITY: StudentKanbanActionId[] = [
+  'results',
   'documents',
   'attendance',
   'finance',
-  'results',
   'timetable',
 ];
 
 const TEACHER_PRIORITY: StudentKanbanActionId[] = [
-  'attendance',
   'results',
+  'attendance',
   'timetable',
 ];
 
@@ -121,42 +122,49 @@ function buildAction(
         id,
         labelKey: 'admin.student360.tabs.documents',
         href: buildStudent360TabHref(studentId, 'documents'),
+        icon: id,
       };
     case 'attendance':
       return {
         id,
         labelKey: 'nav.attendance',
         href: todayAttendanceHref(classId, teacherWorkspace),
+        icon: id,
       };
     case 'finance':
       return {
         id,
         labelKey: 'admin.student360.tabs.finance',
         href: buildStudent360TabHref(studentId, 'finance'),
+        icon: id,
       };
     case 'results':
       return {
         id,
         labelKey: 'nav.results',
         href: examResultsHref(classId, teacherWorkspace),
+        icon: id,
       };
     case 'timetable':
       return {
         id,
         labelKey: 'nav.timetable',
         href: timetableHref(teacherWorkspace),
+        icon: id,
       };
     case 'edit':
       return {
         id,
         labelKey: 'common.edit',
         href: `/admin/students/${studentId}/edit`,
+        icon: id,
       };
     case 'viewProfile':
       return {
         id,
         labelKey: 'admin.studentsList.kanban.actions.openProfile',
         href: studentProfileHref(studentId, classId, teacherWorkspace),
+        icon: id,
       };
     default:
       return null;
