@@ -311,7 +311,6 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
                   admissionId={detail.id}
                   canChangeState={canChangeState}
                   onChanged={reload}
-                  includeClosedStates
                   rejected={rejected}
                 />
               )}

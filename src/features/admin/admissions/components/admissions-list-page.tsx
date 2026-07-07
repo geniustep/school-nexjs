@@ -13,7 +13,9 @@ import { endpoints } from '@/lib/api/endpoints';
 import type { AdmissionListItem, AdmissionsDashboard } from '@/types/admission';
 import type { ListParams } from '@/types/api';
 import { useAdmissionsKanbanBoard } from '../hooks/use-admissions-kanban-board';
+import { useAdmissionsSelection } from '../hooks/use-admissions-selection';
 import { useAdmissionsUiStageTableList } from '../hooks/use-admissions-ui-stage-table-list';
+import { AdmissionsBulkActionBar } from './admissions-bulk-action-bar';
 import { AdmissionsDashboardSummary } from './admissions-dashboard-summary';
 import { AdmissionsKanban } from './admissions-kanban';
 import { AdmissionsTable } from './admissions-table';
@@ -49,6 +51,17 @@ export function AdmissionsListPage() {
   const [showClosed, setShowClosed] = useState(false);
   const [hideConverted, setHideConverted] = useState(true);
   const debouncedSearch = useDebouncedValue(search, 400);
+  const {
+    selectedIds,
+    selectedCount,
+    selectionMode,
+    isSelected,
+    toggle,
+    clear: clearSelection,
+    toggleVisible,
+    visibleSelectionState,
+    setSelectedIds,
+  } = useAdmissionsSelection();
 
   const showClosedColumn = showClosed || stateFilter === CLOSED_UI_STAGE;
 
@@ -73,6 +86,10 @@ export function AdmissionsListPage() {
   useEffect(() => {
     setPage(1);
   }, [debouncedSearch, stateFilter, view, showClosed, hideConverted]);
+
+  useEffect(() => {
+    clearSelection();
+  }, [debouncedSearch, stateFilter, showClosed, hideConverted, clearSelection]);
 
   useEffect(() => {
     if (stateFilter === CLOSED_UI_STAGE) setShowClosed(true);
@@ -141,6 +158,25 @@ export function AdmissionsListPage() {
       };
     });
   }, [kanbanBoard.grouped, kanbanDisplayStages, hideConverted]);
+
+  const loadedListItems = useMemo(() => {
+    if (view === 'kanban') {
+      return filterAdmissionListItems(kanbanBoard.allItems, hideConverted);
+    }
+    return filteredTableRows;
+  }, [view, kanbanBoard.allItems, filteredTableRows, hideConverted]);
+
+  const selectedItems = useMemo(
+    () => loadedListItems.filter((item) => selectedIds.has(item.id)),
+    [loadedListItems, selectedIds],
+  );
+
+  const tableVisibleIds = useMemo(
+    () => filteredTableRows.map((item) => item.id),
+    [filteredTableRows],
+  );
+
+  const tableVisibleSelection = visibleSelectionState(tableVisibleIds);
 
   const handleKanbanLoadMore = useCallback(
     (stage: AdmissionUiStage) => {
@@ -344,6 +380,15 @@ export function AdmissionsListPage() {
         </div>
       </div>
 
+      {selectedCount > 0 ? (
+        <AdmissionsBulkActionBar
+          selectedItems={selectedItems}
+          onClearSelection={clearSelection}
+          onUpdated={reloadCurrentView}
+          onPartialFailure={(failedIds) => setSelectedIds(new Set(failedIds))}
+        />
+      ) : null}
+
       {view === 'kanban' ? (
         kanbanBoard.initialLoading ? (
           <div className="muted">{t('common.loading')}</div>
@@ -356,6 +401,9 @@ export function AdmissionsListPage() {
             showClosed={showClosedColumn}
             onUpdated={reloadCurrentView}
             onLoadMore={handleKanbanLoadMore}
+            selectionMode={selectionMode}
+            isSelected={isSelected}
+            onToggleSelect={toggle}
           />
         )
       ) : (
@@ -363,7 +411,16 @@ export function AdmissionsListPage() {
           state={tableState}
           isEmpty={() => filteredTableRows.length === 0}
         >
-          {() => <AdmissionsTable items={filteredTableRows} onUpdated={reloadCurrentView} />}
+          {() => (
+            <AdmissionsTable
+              items={filteredTableRows}
+              selectionMode={selectionMode}
+              isSelected={isSelected}
+              onToggleSelect={toggle}
+              onToggleVisible={() => toggleVisible(tableVisibleIds)}
+              visibleSelectionState={tableVisibleSelection}
+            />
+          )}
         </ResourceView>
       )}
 

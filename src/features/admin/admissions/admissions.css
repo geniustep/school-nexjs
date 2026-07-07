@@ -803,6 +803,7 @@
 }
 
 .admission-card {
+  position: relative;
   display: block;
   border: 1px solid var(--border, var(--c-border));
   border-radius: calc(var(--radius) - 1px);
@@ -2681,4 +2682,114 @@
 .admission-card__converted-note,
 .admissions-table__converted-note {
   font-size: 0.68rem;
+}
+
+.admission-card__select {
+  position: absolute;
+  top: 0.35rem;
+  inset-inline-end: 0.35rem;
+  z-index: 2;
+  display: inline-flex;
+  margin: 0;
+  cursor: pointer;
+}
+
+.admission-card__select-input {
+  width: 0.95rem;
+  height: 0.95rem;
+  margin: 0;
+  cursor: pointer;
+}
+
+.admission-card__open-detail {
+  position: absolute;
+  top: 0.35rem;
+  inset-inline-start: 0.35rem;
+  z-index: 2;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--primary, var(--c-primary));
+  padding: 0.1rem 0.35rem;
+  border-radius: calc(var(--radius) - 2px);
+  background: color-mix(in srgb, var(--primary, var(--c-primary)) 8%, white);
+}
+
+.admission-card--selected {
+  border-color: var(--primary, var(--c-primary));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary, var(--c-primary)) 35%, transparent);
+}
+
+.admission-card--selection-mode {
+  cursor: pointer;
+}
+
+.admissions-bulk-bar {
+  position: sticky;
+  top: 0.5rem;
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem 1rem;
+  padding: 0.65rem 0.85rem;
+  margin-block: 0.65rem;
+  border: 1px solid color-mix(in srgb, var(--primary, var(--c-primary)) 35%, var(--border, #e2e8f0));
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--primary, var(--c-primary)) 6%, var(--card-bg, #fff));
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+}
+
+.admissions-bulk-bar__summary {
+  min-width: 6rem;
+}
+
+.admissions-bulk-bar__count {
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.admissions-bulk-bar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.45rem 0.65rem;
+  flex: 1 1 auto;
+}
+
+.admissions-bulk-bar__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 10rem;
+}
+
+.admissions-bulk-bar__select {
+  min-width: 11rem;
+  font-size: 0.8125rem;
+}
+
+.admissions-bulk-bar__clear {
+  margin-inline-start: auto;
+}
+
+.admissions-table__select-cell {
+  width: 2.5rem;
+  text-align: center;
+}
+
+.admissions-table__select-all,
+.admissions-table__select-row {
+  width: 0.95rem;
+  height: 0.95rem;
+  cursor: pointer;
+}
+
+.admission-ui-stage-select {
+  min-width: 10rem;
+  font-size: 0.8125rem;
+}
+
+.admission-ui-stage-select--detail {
+  max-width: 100%;
 }

@@ -37,6 +37,10 @@ export function AdmissionCard({
   isSaving = false,
   onDragStart,
   onDragEnd,
+  selectable = false,
+  selected = false,
+  selectionMode = false,
+  onToggleSelect,
 }: {
   item: AdmissionListItem;
   draggable?: boolean;
@@ -45,6 +49,10 @@ export function AdmissionCard({
   isSaving?: boolean;
   onDragStart?: (event: React.DragEvent<HTMLDivElement>) => void;
   onDragEnd?: (event: React.DragEvent<HTMLDivElement>) => void;
+  selectable?: boolean;
+  selected?: boolean;
+  selectionMode?: boolean;
+  onToggleSelect?: () => void;
 }) {
   const t = useT();
   const { formatDate } = useFormat();
@@ -63,22 +71,54 @@ export function AdmissionCard({
   const hasSiblings = parseExtraFieldBool(item.has_siblings);
   const uiStage = resolveAdmissionUiStage(item);
   const showOfferAcceptedBadge = item.offer_state === 'accepted' && uiStage !== 'accepted';
+  const dragEnabled = draggable && !selectionMode && !isSaving;
+  const cardNavDisabled = selectionMode;
 
-  const card = (
-    <Link
-      href={href}
-      draggable={false}
-      className={cn(
-        'admission-card',
-        overdue && 'admission-card--overdue',
-        isDragging && 'admission-card--dragging',
-        isSaving && 'admission-card--saving',
-      )}
-    >
-      {draggable ? (
+  function handleCardClick(event: React.MouseEvent) {
+    if (!selectionMode || !onToggleSelect) return;
+    event.preventDefault();
+    event.stopPropagation();
+    onToggleSelect();
+  }
+
+  function handleCheckboxChange(event: React.ChangeEvent<HTMLInputElement>) {
+    event.stopPropagation();
+    onToggleSelect?.();
+  }
+
+  const cardBody = (
+    <>
+      {selectable ? (
+        <label
+          className="admission-card__select"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <input
+            type="checkbox"
+            className="admission-card__select-input"
+            checked={selected}
+            aria-label={t('admin.admissions.selection.selectItem', {
+              name: studentName || reference,
+            })}
+            onChange={handleCheckboxChange}
+          />
+        </label>
+      ) : null}
+
+      {draggable && !selectionMode ? (
         <span className="admission-card__drag-handle" aria-hidden="true" title={t('admin.admissions.kanban.dragHint')}>
           ⋮⋮
         </span>
+      ) : null}
+
+      {selectionMode ? (
+        <Link
+          href={href}
+          className="admission-card__open-detail"
+          onClick={(event) => event.stopPropagation()}
+        >
+          {t('admin.admissions.selection.openDetail')}
+        </Link>
       ) : null}
 
       <div className="admission-card__title">
@@ -156,15 +196,45 @@ export function AdmissionCard({
       <div className="admission-card__footer">
         <span className="admission-card__reference mono">{reference}</span>
       </div>
+    </>
+  );
+
+  const cardClassName = cn(
+    'admission-card',
+    overdue && 'admission-card--overdue',
+    isDragging && 'admission-card--dragging',
+    isSaving && 'admission-card--saving',
+    selected && 'admission-card--selected',
+    selectionMode && 'admission-card--selection-mode',
+  );
+
+  const card = cardNavDisabled ? (
+    <div
+      className={cardClassName}
+      role="button"
+      tabIndex={0}
+      onClick={handleCardClick}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onToggleSelect?.();
+        }
+      }}
+    >
+      {cardBody}
+    </div>
+  ) : (
+    <Link href={href} draggable={false} className={cardClassName}>
+      {cardBody}
     </Link>
   );
 
-  if (!draggable) return card;
+  if (!dragEnabled) return card;
 
   return (
     <div
       className={cn('admission-card-wrap', isDragging && 'admission-card-wrap--dragging')}
-      draggable={!isSaving}
+      draggable
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
     >
