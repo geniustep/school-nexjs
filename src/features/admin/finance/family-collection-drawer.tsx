@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/toast';
 import { useT } from '@/features/i18n/locale-context';
 import type { FamilyCollectSource } from '@/features/admin/finance/family-collect-query';
@@ -33,6 +34,7 @@ export function FamilyCollectionDrawer({
   onClose: () => void;
   onSuccess?: (result: FamilyCollectionCreateResponse) => void;
 }) {
+  const router = useRouter();
   const t = useT();
   const toast = useToast();
   const handledRef = useRef(false);
@@ -49,6 +51,10 @@ export function FamilyCollectionDrawer({
     handledRef.current = true;
     toast.success(t('admin.finance.billingAccounts.familyCollection.successToast'));
     onSuccess?.(result);
+    const receiptId = result.receipt_id ?? result.receipts[0]?.id ?? null;
+    if (receiptId) {
+      router.push(`/admin/finance/receipts/${receiptId}`);
+    }
     onClose();
   }
 

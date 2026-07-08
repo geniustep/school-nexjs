@@ -6877,7 +6877,7 @@
           "selectStudent": "Alumno",
           "chooseStudent": "Elegir alumno",
           "autoAllocationHint": "El pago se asignará automáticamente a los vencimientos familiares.",
-          "student360Context": "El pago se registrará en la cuenta familiar {accountName}. La asignación se limita a {studentName}.",
+          "student360Context": "Abrió esta pantalla desde el expediente de {studentName}. El pago se registrará en la cuenta familiar {accountName}. Puede asignarlo manualmente a las cuotas de cualquier hijo vinculado a la cuenta familiar, según convenga.",
           "switchToFamilyAllocation": "Cambiar a asignación familiar",
           "familyWideAllocationHint": "El pago se asignará automáticamente a los vencimientos de todos los miembros de la familia.",
           "invalidAmount": "Introduzca un importe válido mayor que cero.",
@@ -6886,6 +6886,14 @@
           "submitFailed": "No se pudo registrar el pago.",
           "missingFields": "Complete el año académico, diario y método de pago.",
           "confirmAction": "Confirmar pago familiar",
+          "manualAllocationTitle": "Asignación manual",
+          "manualAllocationHint": "Elige las cuotas y asigna los importes manualmente. Cualquier diferencia no asignada se registra como saldo a favor que no reduce las deudas hasta asignarse.",
+          "saveDraftAction": "Guardar borrador",
+          "reviewAction": "Revisar asignación",
+          "reviewTitle": "Revisar asignación antes de confirmar",
+          "unallocatedNotice": "El importe no asignado ({amount}) se registrará como saldo a favor.",
+          "installmentLabel": "Cuota #{id}",
+          "studentTotal": "Total del alumno",
           "successToast": "Pago familiar recibido y asignado.",
           "preview": {
             "title": "Vista previa de asignación",
@@ -7926,6 +7934,7 @@
           "invalidAmount": "Importe inválido.",
           "invalidAllocation": "Asignación inválida.",
           "duplicateAllocation": "No se puede asignar dos veces al mismo adeudo.",
+          "duplicateAllocationTarget": "Cada cuota solo puede asignarse una vez.",
           "installmentNotCollectible": "Esta cuota no puede cobrarse en su estado actual.",
           "allocationTotalMismatch": "El total de asignaciones no coincide con el importe del pago.",
           "allocationExceedsRemaining": "El importe asignado supera el saldo pendiente de esta cuota.",
@@ -8411,7 +8420,8 @@
           "amounts": "Importes",
           "payment": "Método de pago",
           "cheque": "Cheque",
-          "allocations": "Asignaciones"
+          "allocations": "Asignaciones",
+          "children": "Por alumno"
         },
         "fields": {
           "number": "Número de recibo",

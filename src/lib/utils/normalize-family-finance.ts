@@ -1,8 +1,9 @@
 import { normalizeMoneyValue } from '@/lib/utils/finance-normalize';
 import type {
   FamilyCollectionAllocation,
-  FamilyCollectionAllocationMode,
+  FamilyCollectionConfirmResponse,
   FamilyCollectionContext,
+  FamilyCollectionDetail,
   FamilyCollectionCreateResponse,
   FamilyCollectionPreviewResponse,
   FamilyCollectionRecord,
@@ -205,11 +206,16 @@ export function normalizeFamilyPlanContext(raw: unknown): FamilyPlanContext | nu
 function normalizeOpenInstallment(raw: unknown): FamilyOpenInstallment | null {
   const row = readRecord(raw);
   if (!row) return null;
+  const installmentId = readNumber(row.installment_id) ?? readNumber(row.id);
   const studentId = readNumber(row.student_id);
-  if (studentId == null) return null;
+  if (installmentId == null || studentId == null) return null;
   return {
+    installment_id: installmentId,
     student_id: studentId,
     student_name: readString(row.student_name) ?? readString(row.name),
+    class_name: readString(row.class_name),
+    level_name: readString(row.level_name),
+    section_name: readString(row.section_name),
     service_type: readServiceType(row.service_type),
     service_label: readString(row.service_label) ?? readString(row.label),
     due_date: readString(row.due_date),
@@ -255,20 +261,11 @@ function normalizeAllocation(raw: unknown): FamilyCollectionAllocation | null {
   };
 }
 
-const ALLOCATION_MODES: FamilyCollectionAllocationMode[] = [
-  'oldest_due_first',
-  'by_student',
-  'by_service',
-  'manual',
-  'leave_as_family_credit',
-];
-
 export function normalizeFamilyCollectionPreviewResponse(
   raw: unknown,
 ): FamilyCollectionPreviewResponse | null {
   const row = readRecord(raw);
   if (!row) return null;
-  const mode = readString(row.allocation_mode);
   const allocations = Array.isArray(row.allocations)
     ? row.allocations
         .map(normalizeAllocation)
@@ -286,10 +283,6 @@ export function normalizeFamilyCollectionPreviewResponse(
     unallocated_amount: normalizeMoneyValue(row.unallocated_amount),
     credit_amount: normalizeMoneyValue(row.credit_amount),
     credit_balance: normalizeMoneyValue(row.credit_balance),
-    allocation_mode:
-      mode && ALLOCATION_MODES.includes(mode as FamilyCollectionAllocationMode)
-        ? (mode as FamilyCollectionAllocationMode)
-        : null,
     allocations,
     warnings,
     errors,
@@ -342,15 +335,85 @@ export function normalizeFamilyCollectionCreateResponse(
     : [];
   return {
     ok: readBoolean(row.ok) ?? undefined,
+    id: readNumber(row.id),
+    collection_id: readNumber(row.collection_id) ?? readNumber(row.id),
     family_id: readFamilyId(row),
     billing_partner_id: readNumber(row.billing_partner_id),
+    state: readString(row.state),
+    amount: normalizeMoneyValue(row.amount),
+    allocated_amount: normalizeMoneyValue(row.allocated_amount),
+    unallocated_amount: normalizeMoneyValue(row.unallocated_amount),
+    receipt_id: readNumber(row.receipt_id),
     collections,
     receipts,
     total_received: normalizeMoneyValue(row.total_received),
     total_allocated: normalizeMoneyValue(row.total_allocated),
     total_unallocated: normalizeMoneyValue(row.total_unallocated),
-    allocation_mode: readString(row.allocation_mode) as FamilyCollectionAllocationMode | null,
+    allocations: Array.isArray(row.allocations)
+      ? row.allocations
+          .map(normalizeAllocation)
+          .filter((item): item is FamilyCollectionAllocation => item != null)
+      : [],
     warnings,
+  };
+}
+
+export function normalizeFamilyCollectionDetail(raw: unknown): FamilyCollectionDetail | null {
+  const row = readRecord(raw);
+  if (!row) return null;
+  const id = readNumber(row.id) ?? readNumber(row.collection_id);
+  if (id == null) return null;
+  return {
+    id,
+    family_id: readFamilyId(row),
+    billing_partner_id: readNumber(row.billing_partner_id),
+    state: readString(row.state),
+    amount: normalizeMoneyValue(row.amount),
+    allocated_amount: normalizeMoneyValue(row.allocated_amount),
+    unallocated_amount: normalizeMoneyValue(row.unallocated_amount),
+    payment_method: readString(row.payment_method),
+    journal_id: readNumber(row.journal_id),
+    academic_year_id: readNumber(row.academic_year_id),
+    collection_date: readString(row.collection_date),
+    allocations: Array.isArray(row.allocations)
+      ? row.allocations
+          .map(normalizeAllocation)
+          .filter((item): item is FamilyCollectionAllocation => item != null)
+      : [],
+    receipt_id: readNumber(row.receipt_id),
+    warnings: Array.isArray(row.warnings)
+      ? row.warnings.filter((item): item is string => typeof item === 'string')
+      : [],
+  };
+}
+
+export function normalizeFamilyCollectionConfirmResponse(
+  raw: unknown,
+): FamilyCollectionConfirmResponse | null {
+  const row = readRecord(raw);
+  if (!row) return null;
+  const nested = readRecord(row.collection) ?? readRecord(row.data) ?? row;
+  return {
+    ok: readBoolean(row.ok) ?? readBoolean(nested.ok) ?? undefined,
+    collection_id:
+      readNumber(row.collection_id) ??
+      readNumber(nested.collection_id) ??
+      readNumber(row.id) ??
+      readNumber(nested.id),
+    id: readNumber(row.id) ?? readNumber(nested.id),
+    state: readString(row.state) ?? readString(nested.state),
+    receipt_id:
+      readNumber(row.receipt_id) ??
+      readNumber(nested.receipt_id) ??
+      readNumber(readRecord(row.receipt)?.id),
+    receipt_number: readString(row.receipt_number) ?? readString(nested.receipt_number),
+    allocated_amount: normalizeMoneyValue(row.allocated_amount ?? nested.allocated_amount),
+    unallocated_amount: normalizeMoneyValue(row.unallocated_amount ?? nested.unallocated_amount),
+    warnings: Array.isArray(row.warnings)
+      ? row.warnings.filter((item): item is string => typeof item === 'string')
+      : Array.isArray(nested.warnings)
+        ? nested.warnings.filter((item): item is string => typeof item === 'string')
+        : [],
   };
 }
 

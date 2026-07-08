@@ -7123,7 +7123,7 @@
           "selectStudent": "التلميذ",
           "chooseStudent": "اختر تلميذًا",
           "autoAllocationHint": "سيتم توزيع الدفعة تلقائيًا على مستحقات الأسرة حسب الأقدمية.",
-          "student360Context": "سيتم تسجيل الدفعة على حساب العائلة {accountName}، مع تخصيصها للتلميذ {studentName}.",
+          "student360Context": "فتحت هذه الصفحة من ملف التلميذ {studentName}. سيتم تسجيل الدفعة على حساب العائلة {accountName}، ويمكنك توزيعها يدويًا على مستحقات أي من أبناء الحساب العائلي حسب الحاجة.",
           "switchToFamilyAllocation": "التبديل إلى توزيع عائلي",
           "familyWideAllocationHint": "سيتم توزيع الدفعة تلقائيًا على مستحقات جميع أفراد العائلة.",
           "invalidAmount": "أدخل مبلغًا صالحًا أكبر من صفر.",
@@ -7132,6 +7132,14 @@
           "submitFailed": "تعذر تسجيل الدفعة.",
           "missingFields": "أكمل السنة الدراسية ودفتر التحصيل ووسيلة الأداء.",
           "confirmAction": "تأكيد استلام الدفعة",
+          "manualAllocationTitle": "التوزيع اليدوي",
+          "manualAllocationHint": "اختر الأقساط ووزّع المبالغ يدويًا. سيُسجل الفرق غير الموزع كرصيد دائن لا يخفض المستحقات قبل تخصيصه.",
+          "saveDraftAction": "حفظ المسودة",
+          "reviewAction": "مراجعة التوزيع",
+          "reviewTitle": "مراجعة التوزيع قبل التأكيد",
+          "unallocatedNotice": "المبلغ غير الموزع ({amount}) سيُسجل كرصيد دائن.",
+          "installmentLabel": "قسط #{id}",
+          "studentTotal": "إجمالي التلميذ",
           "successToast": "تم استلام الدفعة وتوزيعها على الأسرة.",
           "preview": {
             "title": "معاينة التوزيع",
@@ -8167,6 +8175,7 @@
           "invalidAmount": "المبلغ غير صالح.",
           "invalidAllocation": "توزيع غير صالح.",
           "duplicateAllocation": "لا يمكن توزيع المبلغ على نفس المستحق مرتين.",
+          "duplicateAllocationTarget": "لا يمكن توزيع المبلغ على نفس القسط أكثر من مرة.",
           "installmentNotCollectible": "لا يمكن تحصيل هذه الدفعة في حالتها الحالية.",
           "allocationTotalMismatch": "مجموع التوزيعات لا يساوي مبلغ الدفعة.",
           "allocationExceedsRemaining": "المبلغ المخصص يتجاوز المتبقي على هذه الدفعة.",
@@ -8648,7 +8657,8 @@
           "amounts": "المبالغ",
           "payment": "وسيلة الأداء",
           "cheque": "الشيك",
-          "allocations": "التوزيعات"
+          "allocations": "التوزيعات",
+          "children": "حسب التلميذ"
         },
         "fields": {
           "number": "رقم الإيصال",

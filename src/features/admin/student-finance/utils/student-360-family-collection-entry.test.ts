@@ -29,12 +29,11 @@ describe('Student 360 family collection entry wiring', () => {
     expect(drawerSource).toContain('entrySource');
   });
 
-  it('preselects the current student and hides the picker in student360 entry mode', () => {
+  it('shows student360 family context while keeping family-wide manual allocation', () => {
     expect(formSource).toContain('entrySource === \'student360\'');
-    expect(formSource).toContain('prefilledStudentId != null ? String(prefilledStudentId) : \'\'');
     expect(formSource).toContain('finance-family-collection-student360-context');
-    expect(formSource).toContain('switchToFamilyAllocation');
-    expect(formSource).toContain('limitToStudent && !studentScopedEntry');
+    expect(formSource).toContain('manualAllocationHint');
+    expect(formSource).toContain('FamilyCollectionAllocationSection');
   });
 
   it('waits for family summary fetch before resolving payment entry route', () => {
@@ -42,7 +41,8 @@ describe('Student 360 family collection entry wiring', () => {
     expect(entrySource).toContain('if (!familyFetchStartedRef.current) return');
   });
 
-  it('keeps preview and submit wired to student_id when limitToStudent is active', () => {
-    expect(formSource).toContain('student_id: limitToStudent ? Number(selectedStudentId) : null');
+  it('keeps payload explicit with installment allocations only', () => {
+    expect(formSource).toContain('parseFamilyAllocationInputs');
+    expect(formSource).not.toContain('allocation_mode');
   });
 });

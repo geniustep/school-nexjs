@@ -6,12 +6,13 @@ import { readBillingAccountKindFromSearchParams } from '@/features/admin/finance
 const LOCALES = ['ar', 'en', 'fr', 'es'] as const;
 const FAMILY_COLLECTION_KEYS = [
   'intro',
-  'autoAllocationHint',
-  'limitToStudent',
+  'manualAllocationHint',
+  'saveDraftAction',
+  'reviewAction',
   'confirmAction',
   'student360Context',
-  'switchToFamilyAllocation',
-  'familyWideAllocationHint',
+  'reviewTitle',
+  'unallocatedNotice',
 ] as const;
 
 const formSource = readFileSync(
@@ -47,32 +48,15 @@ describe('family collection workflow form structure', () => {
     );
   });
 
-  it('does not duplicate accountName in form body (drawer subtitle owns account context)', () => {
-    expect(formSource).not.toMatch(/\{accountName\}/);
+  it('shows account context and payer summary in form body', () => {
+    expect(formSource).toContain("t('admin.finance.payer')");
+    expect(formSource).toContain('accountName?.trim()');
   });
 
-  it('shows autoAllocationHint when automatic allocation is active', () => {
-    expect(formSource).toContain('!limitToStudent ? (');
-    expect(formSource).toContain("t('admin.finance.billingAccounts.familyCollection.autoAllocationHint')");
-  });
-
-  it('clears student selection and stale preview when disabling limitToStudent', () => {
-    expect(formSource).toMatch(/if \(!e\.target\.checked\) setSelectedStudentId\(''\)/);
-    const toggleHandler = formSource.slice(
-      formSource.indexOf('finance-family-collection-allocation-options'),
-      formSource.indexOf('finance-collection-advanced'),
-    );
-    expect(toggleHandler).toContain('setPreview(null)');
-    expect(toggleHandler).toContain('setPreviewError(null)');
-  });
-
-  it('keeps student selector inside allocation section when limitToStudent is enabled', () => {
-    const allocationSection = formSource.slice(
-      formSource.indexOf('finance-family-collection-allocation-options'),
-      formSource.indexOf('finance-collection-advanced'),
-    );
-    expect(allocationSection).toContain('limitToStudent ? (');
-    expect(allocationSection).toContain("t('admin.finance.billingAccounts.familyCollection.selectStudent')");
+  it('uses manual allocation + review-first confirmation', () => {
+    expect(formSource).toContain('FamilyCollectionAllocationSection');
+    expect(formSource).toContain('FamilyCollectionReviewStep');
+    expect(formSource).toContain('confirmFamilyCollection');
   });
 });
 
