@@ -4,12 +4,14 @@ import {
   STUDENT_IMPORT_HEADER_KEY_ROW,
   STUDENT_IMPORT_MAX_ROWS,
   STUDENT_IMPORT_SHEET_INSTRUCTIONS,
+  STUDENT_IMPORT_SHEET_META,
   STUDENT_IMPORT_SHEET_STUDENTS,
   STUDENT_IMPORT_TEMPLATE_VERSION,
   STUDENT_IMPORT_TEMPLATE_VERSION_CELL,
 } from './student-import-constants';
+import { parseOdooV1StudentImportWorkbook } from './student-import-parser-v1';
 import { STUDENT_IMPORT_COLUMN_KEYS, STUDENT_IMPORT_COLUMNS } from './student-import-columns';
-import type { StudentImportIssue, StudentImportParseResult } from './student-import-types';
+import type { StudentImportIssue, StudentImportParseResult, StudentImportTemplateFormat } from './student-import-types';
 
 function cellHasFormula(cell: ExcelJS.Cell): boolean {
   return cell.type === ExcelJS.ValueType.Formula || cell.formula != null;
@@ -36,14 +38,30 @@ function parseTemplateVersion(value: unknown): number | null {
   return match ? Number(match[1]) : null;
 }
 
+export function detectStudentImportTemplateFormat(workbook: ExcelJS.Workbook): StudentImportTemplateFormat {
+  if (workbook.getWorksheet(STUDENT_IMPORT_SHEET_META)) return 'odoo_v1';
+  return 'legacy_raqeem';
+}
+
 export async function parseStudentImportWorkbook(
   buffer: ArrayBuffer,
-  issueMessage: (code: string) => string,
+  issueMessage: (code: string, field?: string) => string,
 ): Promise<StudentImportParseResult> {
-  const fileErrors: StudentImportIssue[] = [];
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.load(buffer);
 
+  if (detectStudentImportTemplateFormat(workbook) === 'odoo_v1') {
+    return parseOdooV1StudentImportWorkbook(workbook, issueMessage);
+  }
+
+  return parseLegacyStudentImportWorkbook(workbook, issueMessage);
+}
+
+async function parseLegacyStudentImportWorkbook(
+  workbook: ExcelJS.Workbook,
+  issueMessage: (code: string) => string,
+): Promise<StudentImportParseResult> {
+  const fileErrors: StudentImportIssue[] = [];
   const studentsSheet = workbook.getWorksheet(STUDENT_IMPORT_SHEET_STUDENTS);
   if (!studentsSheet) {
     fileErrors.push({
@@ -51,7 +69,7 @@ export async function parseStudentImportWorkbook(
       message: issueMessage('missing_students_sheet'),
       severity: 'error',
     });
-    return { templateVersion: null, headers: [], rows: [], fileErrors };
+    return { templateVersion: null, format: 'legacy_raqeem', headers: [], rows: [], fileErrors };
   }
 
   const instructionsSheet = workbook.getWorksheet(STUDENT_IMPORT_SHEET_INSTRUCTIONS);
@@ -133,7 +151,7 @@ export async function parseStudentImportWorkbook(
     });
   }
 
-  return { templateVersion, headers, rows, fileErrors };
+  return { templateVersion, format: 'legacy_raqeem', headers, rows, fileErrors };
 }
 
 export function detectUnknownColumns(headers: string[]): string[] {

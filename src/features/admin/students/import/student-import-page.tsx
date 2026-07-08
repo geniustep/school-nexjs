@@ -48,7 +48,12 @@ export function StudentImportPage() {
     [optionsState.options],
   );
 
-  const flow = useStudentImportFlow(reference);
+  const templateAcademicYearId = useMemo(() => {
+    const years = optionsState.options?.academicYears ?? [];
+    return years.find((year) => year.is_current)?.id ?? years[0]?.id ?? null;
+  }, [optionsState.options]);
+
+  const flow = useStudentImportFlow(reference, { academicYearId: templateAcademicYearId });
   const activeStep = resolveStudentImportUiStep(flow.activePhase);
   const schoolName = resolveSchoolLabel(reference, activeSchoolId);
   const rowDetails = toRowDetails(flow.selectedRow);
@@ -97,7 +102,7 @@ export function StudentImportPage() {
             <button
               type="button"
               className="btn btn--primary btn--sm"
-              disabled={flow.downloading || !reference}
+              disabled={flow.downloading}
               onClick={() => void flow.handleDownloadTemplate()}
             >
               {flow.downloading ? t('common.downloading') : t('admin.studentImport.download.button')}
@@ -136,7 +141,10 @@ export function StudentImportPage() {
 
           <StudentImportSummaryCards summary={localResult.summary} />
 
-          {localResult.summary.invalidRows === 0 && localResult.fileErrors.length === 0 ? (
+          {(localResult.fileErrors.length === 0 &&
+            (localResult.format === 'odoo_v1'
+              ? localResult.rows.length > 0
+              : localResult.summary.invalidRows === 0)) ? (
             <StudentImportServerValidationPanel
               busy={flow.busy && flow.activePhase === 'server_validating'}
               canRun={flow.canRunServerValidation}
@@ -186,7 +194,7 @@ export function StudentImportPage() {
             />
           ) : null}
 
-          {flow.canConfirm && (flow.activePhase === 'confirming' || flow.confirmed) ? (
+          {flow.canShowExecute ? (
             <StudentImportExecutePanel
               busy={flow.busy && (flow.activePhase === 'executing' || flow.activePhase === 'polling')}
               canExecute={flow.canExecute}

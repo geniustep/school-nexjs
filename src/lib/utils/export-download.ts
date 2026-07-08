@@ -9,7 +9,9 @@ function isFileContentType(contentType: string): boolean {
   return (
     ct.includes('text/csv') ||
     ct.includes('application/csv') ||
-    ct.includes('application/octet-stream')
+    ct.includes('application/octet-stream') ||
+    ct.includes('spreadsheetml') ||
+    ct.includes('application/vnd.ms-excel')
   );
 }
 

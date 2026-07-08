@@ -62,6 +62,23 @@ export interface StudentImportNormalizedRow extends Omit<StudentImportRow, 'is_r
   academic_year_id?: number | null;
   level_id?: number | null;
   class_id?: number | null;
+  guardian_id?: number | null;
+  guardian_name?: string | null;
+  guardian_mobile?: string | null;
+  guardian_relationship_type?: string | null;
+  guardian_is_primary_contact?: boolean | null;
+  guardian_is_financial_responsible?: boolean | null;
+}
+
+export type StudentImportTemplateFormat = 'legacy_raqeem' | 'odoo_v1';
+
+export interface StudentImportMetaV1Snapshot {
+  templateVersion: number | null;
+  importMode: string | null;
+  schoolId: number | null;
+  schoolName: string | null;
+  academicYearId: number | null;
+  academicYearName: string | null;
 }
 
 export interface StudentImportIssue {
@@ -91,6 +108,9 @@ export interface StudentImportSummary {
 
 export interface StudentImportValidationResult {
   templateVersion: StudentImportTemplateVersion | null;
+  importMode?: string | null;
+  format?: StudentImportTemplateFormat;
+  meta?: StudentImportMetaV1Snapshot | null;
   fileErrors: StudentImportIssue[];
   rows: StudentImportRowResult[];
   summary: StudentImportSummary;
@@ -146,6 +166,9 @@ export interface StudentImportTemplateMetadata {
 
 export interface StudentImportParseResult {
   templateVersion: StudentImportTemplateVersion | null;
+  importMode?: string | null;
+  format?: StudentImportTemplateFormat;
+  meta?: StudentImportMetaV1Snapshot | null;
   headers: string[];
   rows: Array<{ rowNumber: number; raw: Record<string, unknown> }>;
   fileErrors: StudentImportIssue[];

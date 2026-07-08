@@ -26,6 +26,8 @@ export interface GuardianAccountInfo {
   login?: string | null;
   status?: string | null;
   has_user_account?: boolean;
+  can_assign_password?: boolean;
+  password_was_set?: boolean;
 }
 
 export interface AcademicLevelOption {

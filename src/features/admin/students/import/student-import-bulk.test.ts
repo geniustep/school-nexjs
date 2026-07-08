@@ -5,6 +5,7 @@ import {
   assertValidationPayloadKeys,
   buildStudentImportValidationRequest,
   canExecuteImport,
+  canShowExecutePanel,
   isValidationExpired,
 } from './student-import-payload';
 import {
@@ -122,28 +123,77 @@ describe('student import guards', () => {
     expect(isValidationExpired('2099-01-01 00:00:00')).toBe(false);
   });
 
+  it('shows execute panel when job_id exists and server rows are valid', () => {
+    expect(
+      canShowExecutePanel({
+        jobId: 12,
+        serverInvalidRows: 0,
+        validationExpired: false,
+        hasCapability: true,
+        hasExecution: false,
+      }),
+    ).toBe(true);
+
+    expect(
+      canShowExecutePanel({
+        jobId: null,
+        serverInvalidRows: 0,
+        validationExpired: false,
+        hasCapability: true,
+        hasExecution: false,
+      }),
+    ).toBe(false);
+
+    expect(
+      canShowExecutePanel({
+        jobId: 12,
+        serverInvalidRows: 2,
+        validationExpired: false,
+        hasCapability: true,
+        hasExecution: false,
+      }),
+    ).toBe(false);
+  });
+
   it('blocks execute when invalid or unconfirmed', () => {
     expect(
       canExecuteImport({
+        jobId: 12,
         localInvalidRows: 0,
         serverInvalidRows: 1,
         validationExpired: false,
         hasCapability: true,
         confirmed: true,
         phase: 'confirming',
+        hasExecution: false,
       }),
     ).toBe(false);
 
     expect(
       canExecuteImport({
+        jobId: 12,
         localInvalidRows: 0,
         serverInvalidRows: 0,
         validationExpired: false,
         hasCapability: true,
         confirmed: false,
         phase: 'confirming',
+        hasExecution: false,
       }),
     ).toBe(false);
+
+    expect(
+      canExecuteImport({
+        jobId: 12,
+        localInvalidRows: 0,
+        serverInvalidRows: 0,
+        validationExpired: false,
+        hasCapability: true,
+        confirmed: true,
+        phase: 'confirming',
+        hasExecution: false,
+      }),
+    ).toBe(true);
   });
 
   it('checks students.import capability only', () => {

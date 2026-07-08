@@ -1,10 +1,8 @@
 /**
- * Student bulk import live QA (school database only).
- * Usage: node scripts/student-import-bulk-live-qa.mjs [bffBase]
+ * Short smoke: official v1 validate → execute (school database only).
+ * Usage: node scripts/student-import-v1-validate-execute-smoke-1.mjs [bffBase]
  */
 import { randomUUID } from 'node:crypto';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import ExcelJS from 'exceljs';
 import { loadAccountPassword, primeQaEnvFromLocal } from './qa-env.mjs';
 
@@ -14,14 +12,7 @@ process.env.ODOO_DB = process.env.ODOO_DB_QA ?? 'school';
 const base = (process.argv[2] ?? 'https://school.raqeem.ma').replace(/\/$/, '');
 const LOGIN = process.env.STUDENT_360_QA_LOGIN ?? 'done';
 
-const report = {
-  base,
-  database: process.env.ODOO_DB,
-  login: LOGIN,
-  checks: [],
-  cleanup: { archivedStudentIds: [], jobIds: [] },
-  passed: true,
-};
+const report = { base, database: process.env.ODOO_DB, login: LOGIN, checks: [], passed: true };
 
 function check(name, ok, detail) {
   report.checks.push({ name, ok, detail });
@@ -44,7 +35,6 @@ async function bffLogin(origin, login, password) {
   return {
     ok: body.success === true,
     jar: cookiesFrom(res),
-    user: body.data?.user ?? {},
     schoolId: body.data?.user?.active_school_id ?? body.data?.user?.schools?.[0]?.id ?? null,
   };
 }
@@ -62,23 +52,15 @@ async function bff(path, jar, init = {}) {
   return { status: res.status, body: await res.json().catch(() => ({})) };
 }
 
-async function bffBinary(path, jar, init = {}) {
+async function bffBinary(path, jar) {
   const res = await fetch(`${base}/api/odoo${path}`, {
-    ...init,
     headers: {
       Accept:
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/octet-stream, */*',
       Cookie: jar,
-      ...(init.headers ?? {}),
     },
   });
-  const buffer = await res.arrayBuffer();
-  return {
-    status: res.status,
-    contentType: res.headers.get('content-type') ?? '',
-    disposition: res.headers.get('content-disposition') ?? '',
-    buffer,
-  };
+  return { status: res.status, buffer: await res.arrayBuffer() };
 }
 
 async function readTemplateImportRef(buffer) {
@@ -142,24 +124,6 @@ function buildGuardianFields(guardian) {
   };
 }
 
-async function buildWorkbookRows(rows) {
-  const wb = new ExcelJS.Workbook();
-  const ws = wb.addWorksheet('Students');
-  ws.addRow(['template_version', 1]);
-  ws.addRow([
-    'first_name',
-    'last_name',
-    'school_number',
-    'school_code',
-    'academic_year_code',
-    'level_code',
-    'class_code',
-    'registration_type',
-  ]);
-  for (const row of rows) ws.addRow(row);
-  return wb.xlsx.writeBuffer();
-}
-
 function pickRef(options, schoolId) {
   const school = (options.schools ?? []).find((s) => s.id === schoolId) ?? options.schools?.[0];
   const year = options.academic_years?.[0];
@@ -168,10 +132,6 @@ function pickRef(options, schoolId) {
   const level =
     (options.levels ?? []).find((l) => l.id === cls?.level?.id) ?? cls?.level ?? (options.levels ?? [])[0];
   return {
-    schoolCode: school?.code ?? String(school?.id ?? schoolId),
-    yearCode: year?.code ?? String(year?.id ?? '1'),
-    levelCode: level?.code ?? String(level?.id ?? '176'),
-    classCode: cls?.code ?? String(cls?.id ?? '2059'),
     schoolId: school?.id ?? schoolId,
     yearId: year?.id ?? 1,
     levelId: level?.id ?? cls?.level?.id ?? 176,
@@ -210,128 +170,108 @@ try {
   check('login', auth.ok, base);
   if (!auth.ok) throw new Error('login_failed');
 
-  const caps = auth.user.effective_capabilities ?? [];
-  check('capability_students_import', caps.includes('students.import'), caps.join(', '));
-
   const sq = auth.schoolId ? `?active_school_id=${auth.schoolId}` : '';
-  const templateRes = await bffBinary(`/admin/students/import/template${sq}`, auth.jar);
-  check('template_download_status', templateRes.status === 200, String(templateRes.status));
-  const templateBytes = new Uint8Array(templateRes.buffer);
-  const looksLikeXlsx =
-    templateBytes.length >= 2 && templateBytes[0] === 0x50 && templateBytes[1] === 0x4b;
-  check(
-    'template_download_binary',
-    looksLikeXlsx ||
-      templateRes.contentType.includes('spreadsheetml') ||
-      templateRes.contentType.includes('octet-stream') ||
-      templateRes.disposition.toLowerCase().includes('attachment'),
-    `${templateRes.contentType} ${templateRes.disposition}`,
-  );
-
-  const templateRef = await readTemplateImportRef(templateRes.buffer);
-  const guardian = templateRef.guardian;
-  check('guardian_ref', guardian != null, guardian ? `id=${guardian.id}` : 'missing Ref_Guardians');
-  if (!guardian) throw new Error('guardian_ref_missing');
-
   const optionsRes = await bff(`/admin/students/options${sq}`, auth.jar);
   check('students_options', optionsRes.body.success === true);
+
+  const templateRes = await bffBinary(`/admin/students/import/template${sq}`, auth.jar);
+  check('template_download', templateRes.status === 200, String(templateRes.status));
+  const templateRef =
+    templateRes.status === 200 ? await readTemplateImportRef(templateRes.buffer) : null;
+  check('guardian_ref', templateRef?.guardian != null, templateRef?.guardian ? `id=${templateRef.guardian.id}` : 'missing Ref_Guardians');
+  if (!templateRef?.guardian) throw new Error('guardian_ref_missing');
+  const guardian = templateRef.guardian;
   const ref = mergeImportRef(pickRef(optionsRes.body.data ?? {}, auth.schoolId), templateRef);
 
   const suffix = Date.now().toString(36);
-  const dupNumber = `QA-BULK-DUP-${suffix}`;
-  const validNumber = `QA-BULK-VAL-${suffix}`;
-  const invalidNumber = `QA-BULK-BAD-${suffix}`;
-  const executeNumber = `QA-BULK-EXEC-${suffix}`;
+  const invalidNumber = `QA-V1-BAD-${suffix}`;
+  const executeNumber = `QA-V1-EXEC-${suffix}`;
 
-  const validationRows = [
-    { first_name: 'Valid', last_name: 'Row', school_number: validNumber },
-    { first_name: 'Dup', last_name: 'Row', school_number: dupNumber },
-    { first_name: 'Invalid', last_name: 'Row', school_number: invalidNumber },
-  ];
+  const invalidPayload = validationPayload(ref, 'qa-v1-invalid.xlsx', [
+    { first_name: 'Bad', last_name: 'Row', school_number: invalidNumber },
+  ], guardian);
+  invalidPayload.rows[0].class_id = 99999999;
 
-  const validatePayload = validationPayload(ref, 'qa-validation.xlsx', validationRows, guardian);
-  for (const row of validatePayload.rows) {
-    row.class_id = 99999999;
-  }
-
-  const validateRes = await bff('/admin/students/import/validate', auth.jar, {
+  const validateInvalid = await bff('/admin/students/import/validate', auth.jar, {
     method: 'POST',
-    body: JSON.stringify(validatePayload),
+    body: JSON.stringify(invalidPayload),
   });
-  check('validate_status', validateRes.status === 200, String(validateRes.status));
-  check('validate_success', validateRes.body.success === true);
-  const jobId = validateRes.body.data?.job_id;
-  check('validate_job_id', typeof jobId === 'number', String(jobId));
+  check('validate_invalid_success', validateInvalid.body.success === true);
+  const invalidJobId = validateInvalid.body.data?.job_id;
+  check('validate_invalid_job_id', typeof invalidJobId === 'number', String(invalidJobId));
   check(
-    'validate_invalid_rows',
-    (validateRes.body.data?.summary?.invalid_rows ?? 0) >= 1,
-    JSON.stringify(validateRes.body.data?.summary ?? {}),
+    'validate_invalid_rows_gt_zero',
+    (validateInvalid.body.data?.summary?.invalid_rows ?? 0) > 0,
+    JSON.stringify(validateInvalid.body.data?.summary ?? {}),
   );
-  check(
-    'validate_no_valid_rows',
-    (validateRes.body.data?.summary?.valid_rows ?? 0) === 0,
-    JSON.stringify(validateRes.body.data?.summary ?? {}),
-  );
-  if (jobId) report.cleanup.jobIds.push(jobId);
 
-  const blockedExecute = await bff(`/admin/students/import/${jobId}/execute`, auth.jar, {
+  const blockedExecute = await bff(`/admin/students/import/${invalidJobId}/execute`, auth.jar, {
     method: 'POST',
     body: JSON.stringify({ idempotency_key: randomUUID() }),
   });
   check(
-    'execute_blocked_on_invalid',
+    'execute_blocked_on_invalid_rows',
     blockedExecute.body.success === false ||
       (blockedExecute.body.data?.summary?.created_rows ?? 0) === 0,
     blockedExecute.body.error?.code ?? blockedExecute.body.data?.state ?? 'unexpected',
   );
 
-  const successPayload = validationPayload(ref, 'qa-success.xlsx', [
-    { first_name: 'Bulk', last_name: 'Success', school_number: executeNumber },
+  const validPayload = validationPayload(ref, 'qa-v1-success.xlsx', [
+    { first_name: 'V1', last_name: 'Execute', school_number: executeNumber },
   ], guardian);
   const validateOk = await bff('/admin/students/import/validate', auth.jar, {
     method: 'POST',
-    body: JSON.stringify(successPayload),
+    body: JSON.stringify(validPayload),
   });
-  check('validate_success_file', validateOk.body.success === true);
-  const execJobId = validateOk.body.data?.job_id;
-  if (execJobId) report.cleanup.jobIds.push(execJobId);
+  check('validate_ok', validateOk.body.success === true);
+  const jobId = validateOk.body.data?.job_id;
+  check('validate_ok_job_id', typeof jobId === 'number', String(jobId));
+  check(
+    'validate_ok_no_invalid_rows',
+    (validateOk.body.data?.summary?.invalid_rows ?? 0) === 0,
+    JSON.stringify(validateOk.body.data?.summary ?? {}),
+  );
 
   const idempotencyKey = randomUUID();
-  const executeRes = await bff(`/admin/students/import/${execJobId}/execute`, auth.jar, {
+  const executeRes = await bff(`/admin/students/import/${jobId}/execute`, auth.jar, {
     method: 'POST',
     body: JSON.stringify({ idempotency_key: idempotencyKey }),
   });
   check('execute_success', executeRes.body.success === true, executeRes.body.error?.code);
   check(
-    'execute_state',
+    'execute_terminal_state',
     ['completed', 'completed_with_errors'].includes(executeRes.body.data?.state),
     executeRes.body.data?.state,
   );
+  check(
+    'execute_summary_present',
+    typeof executeRes.body.data?.summary?.created_rows === 'number' ||
+      typeof executeRes.body.data?.summary?.failed_rows === 'number' ||
+      typeof executeRes.body.data?.summary?.skipped_rows === 'number',
+    JSON.stringify(executeRes.body.data?.summary ?? {}),
+  );
 
-  const executeDup = await bff(`/admin/students/import/${execJobId}/execute`, auth.jar, {
+  const executeDup = await bff(`/admin/students/import/${jobId}/execute`, auth.jar, {
     method: 'POST',
     body: JSON.stringify({ idempotency_key: idempotencyKey }),
   });
-  check('idempotency_no_duplicate', executeDup.body.success === true, executeDup.body.error?.code);
-  const created1 = executeRes.body.data?.summary?.created_rows ?? 0;
-  const created2 = executeDup.body.data?.summary?.created_rows ?? 0;
-  check('idempotency_same_created_count', created1 === created2, `${created1} vs ${created2}`);
+  check('idempotency_reuse_ok', executeDup.body.success === true, executeDup.body.error?.code);
+  check(
+    'idempotency_same_created_count',
+    (executeRes.body.data?.summary?.created_rows ?? 0) ===
+      (executeDup.body.data?.summary?.created_rows ?? 0),
+    `${executeRes.body.data?.summary?.created_rows} vs ${executeDup.body.data?.summary?.created_rows}`,
+  );
 
-  const jobStatus = await bff(`/admin/students/import/${execJobId}?page=1&limit=20`, auth.jar);
-  check('job_status', jobStatus.body.success === true, jobStatus.body.data?.state ?? jobStatus.body.data?.job?.state);
-
-  const createdIds = [
-    ...(executeRes.body.data?.rows ?? []),
-    ...(jobStatus.body.data?.rows ?? []),
-    ...(blockedExecute.body.data?.rows ?? []),
-  ]
+  const createdIds = (executeRes.body.data?.rows ?? [])
     .filter((r) => r.status === 'created' && r.student_id)
     .map((r) => r.student_id);
-
   for (const studentId of [...new Set(createdIds)]) {
-    const archive = await bff(`/admin/students/${studentId}/archive`, auth.jar, { method: 'POST', body: '{}' });
+    const archive = await bff(`/admin/students/${studentId}/archive`, auth.jar, {
+      method: 'POST',
+      body: '{}',
+    });
     check(`archive_${studentId}`, archive.body.success === true, archive.body.error?.code);
-    if (archive.body.success) report.cleanup.archivedStudentIds.push(studentId);
   }
 } catch (error) {
   check('runtime', false, error instanceof Error ? error.message : String(error));
