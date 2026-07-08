@@ -3459,6 +3459,8 @@
         "too_many_rows": "Le fichier contient trop de lignes.",
         "unknown_column": "Colonne inconnue : {field}.",
         "missing_students_sheet": "Feuille Students manquante.",
+        "missing_meta_sheet": "La feuille _SSC_Meta est absente de ce modèle.",
+        "missing_import_mode": "Le mode d'import est absent des métadonnées du modèle.",
         "invalid_template_version": "Modèle d'import obsolète. Téléchargez le modèle le plus récent.",
         "missing_emergency_phone": "Téléphone d'urgence recommandé lorsqu'un nom est saisi."
       }

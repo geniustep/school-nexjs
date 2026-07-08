@@ -141,7 +141,10 @@ export function StudentImportPage() {
 
           <StudentImportSummaryCards summary={localResult.summary} />
 
-          {localResult.summary.invalidRows === 0 && localResult.fileErrors.length === 0 ? (
+          {(localResult.fileErrors.length === 0 &&
+            (localResult.format === 'odoo_v1'
+              ? localResult.rows.length > 0
+              : localResult.summary.invalidRows === 0)) ? (
             <StudentImportServerValidationPanel
               busy={flow.busy && flow.activePhase === 'server_validating'}
               canRun={flow.canRunServerValidation}

@@ -3460,6 +3460,8 @@
         "too_many_rows": "The file contains more rows than allowed.",
         "unknown_column": "Unknown column: {field}.",
         "missing_students_sheet": "The Students sheet is missing.",
+        "missing_meta_sheet": "The _SSC_Meta sheet is missing from this template.",
+        "missing_import_mode": "Import mode is missing from template metadata.",
         "invalid_template_version": "This file uses an outdated import template. Download the latest template.",
         "missing_emergency_phone": "Emergency phone is recommended when a contact name is provided."
       }

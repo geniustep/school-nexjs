@@ -85,6 +85,12 @@ export interface StudentImportValidationRequestRow {
   emergency_phone_alt?: string | null;
   emergency_notes?: string | null;
   departure_reason?: string | null;
+  guardian_id?: number | null;
+  guardian_name?: string | null;
+  guardian_mobile?: string | null;
+  guardian_relationship_type?: string | null;
+  guardian_is_primary_contact?: boolean | null;
+  guardian_is_financial_responsible?: boolean | null;
 }
 
 export interface StudentImportValidationRequest {

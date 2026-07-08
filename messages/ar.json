@@ -3610,6 +3610,8 @@
         "too_many_rows": "يحتوي الملف على عدد صفوف أكبر من الحد المسموح.",
         "unknown_column": "عمود غير معروف: {field}.",
         "missing_students_sheet": "ورقة Students مفقودة.",
+        "missing_meta_sheet": "ورقة _SSC_Meta مفقودة من هذا النموذج.",
+        "missing_import_mode": "وضع الاستيراد مفقود من بيانات النموذج.",
         "invalid_template_version": "هذا الملف يستعمل نسخة قديمة من نموذج الاستيراد. حمّل النموذج الأحدث.",
         "missing_emergency_phone": "يُستحسن إدخال هاتف الطوارئ عند وجود اسم جهة الاتصال."
       }

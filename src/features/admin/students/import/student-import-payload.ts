@@ -38,6 +38,12 @@ const PAYLOAD_FIELDS: Array<keyof StudentImportValidationRequestRow> = [
   'emergency_phone_alt',
   'emergency_notes',
   'departure_reason',
+  'guardian_id',
+  'guardian_name',
+  'guardian_mobile',
+  'guardian_relationship_type',
+  'guardian_is_primary_contact',
+  'guardian_is_financial_responsible',
 ];
 
 function buildPayloadRow(row: StudentImportRowResult): StudentImportValidationRequestRow | null {
@@ -82,10 +88,17 @@ function buildPayloadRow(row: StudentImportRowResult): StudentImportValidationRe
     ['emergency_phone_alt', n.emergency_phone_alt],
     ['emergency_notes', n.emergency_notes],
     ['departure_reason', n.departure_reason],
+    ['guardian_id', n.guardian_id],
+    ['guardian_name', n.guardian_name],
+    ['guardian_mobile', n.guardian_mobile],
+    ['guardian_relationship_type', n.guardian_relationship_type],
+    ['guardian_is_primary_contact', n.guardian_is_primary_contact],
+    ['guardian_is_financial_responsible', n.guardian_is_financial_responsible],
   ];
 
   for (const [key, value] of optionalMap) {
     if (value === undefined || value === '') continue;
+    if (value === null) continue;
     (payload as unknown as Record<string, unknown>)[key] = value;
   }
 
@@ -96,13 +109,14 @@ export function buildStudentImportValidationRequest(args: {
   activeSchoolId: number;
   sourceFilename: string;
   rows: StudentImportRowResult[];
+  templateVersion?: number | null;
 }): StudentImportValidationRequest {
   const rows = args.rows
     .map(buildPayloadRow)
     .filter((row): row is StudentImportValidationRequestRow => row != null);
 
   return {
-    template_version: STUDENT_IMPORT_TEMPLATE_VERSION,
+    template_version: args.templateVersion ?? STUDENT_IMPORT_TEMPLATE_VERSION,
     active_school_id: args.activeSchoolId,
     source_filename: args.sourceFilename,
     rows,

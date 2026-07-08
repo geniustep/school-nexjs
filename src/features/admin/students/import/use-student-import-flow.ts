@@ -109,11 +109,15 @@ export function useStudentImportFlow(
 
   const activePhase = phaseFromState({ phase, hasFile: !!file, localResult, serverValidation, execution });
 
+  const isOdooV1Template = localResult?.format === 'odoo_v1';
+
   const canRunServerValidation =
     hasCapability &&
     !!localResult &&
     localResult.fileErrors.length === 0 &&
-    localResult.summary.invalidRows === 0 &&
+    (isOdooV1Template
+      ? localResult.rows.length > 0
+      : localResult.summary.invalidRows === 0) &&
     !busy &&
     !execution;
 
@@ -194,7 +198,20 @@ export function useStudentImportFlow(
       if (validation.fileErrors.some((e) => e.code === 'invalid_template_version')) {
         toast.error(t('admin.studentImport.errors.outdatedTemplate'));
       }
-      setPhase(validation.summary.invalidRows > 0 || validation.fileErrors.length > 0 ? 'local_invalid' : 'local_valid');
+      const localInvalid =
+        validation.format !== 'odoo_v1' &&
+        (validation.summary.invalidRows > 0 || validation.fileErrors.length > 0);
+      setPhase(localInvalid ? 'local_invalid' : 'local_valid');
+
+      if (
+        validation.format === 'odoo_v1' &&
+        validation.fileErrors.length === 0 &&
+        validation.rows.length > 0 &&
+        hasCapability &&
+        activeSchoolId != null
+      ) {
+        await runServerValidation(validation, next);
+      }
     } catch {
       setUploadError(t('admin.studentImport.errors.parseFailed'));
       setLocalResult(null);
@@ -204,15 +221,33 @@ export function useStudentImportFlow(
     }
   }
 
-  async function runServerValidation() {
-    if (!canRunServerValidation || !localResult || !file || activeSchoolId == null) return;
+  async function runServerValidation(
+    validationOverride?: StudentImportValidationResult,
+    fileOverride?: File,
+  ) {
+    const validation = validationOverride ?? localResult;
+    const sourceFile = fileOverride ?? file;
+    const canRun =
+      hasCapability &&
+      !!validation &&
+      validation.fileErrors.length === 0 &&
+      (validation.format === 'odoo_v1'
+        ? validation.rows.length > 0
+        : validation.summary.invalidRows === 0) &&
+      !!sourceFile &&
+      activeSchoolId != null &&
+      (!busy || !!validationOverride) &&
+      !execution;
+
+    if (!canRun) return;
     setBusy(true);
     setPhase('server_validating');
     try {
       const payload = buildStudentImportValidationRequest({
         activeSchoolId,
-        sourceFilename: file.name,
-        rows: localResult.rows,
+        sourceFilename: sourceFile.name,
+        rows: validation.rows,
+        templateVersion: validation.templateVersion,
       });
       assertValidationPayloadKeys(payload);
       const result = await validateStudentImportJob(payload);
@@ -235,7 +270,7 @@ export function useStudentImportFlow(
         return;
       }
 
-      const merged = mergeLocalAndServerRows(localResult.rows, data.rows).map((row) => ({
+      const merged = mergeLocalAndServerRows(validation.rows, data.rows).map((row) => ({
         ...row,
         serverErrors: row.serverErrors.map((issue) => ({
           ...issue,

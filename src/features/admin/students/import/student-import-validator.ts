@@ -1,9 +1,14 @@
-import { STUDENT_IMPORT_REQUIRED_FIELDS } from './student-import-constants';
+import { STUDENT_IMPORT_REQUIRED_FIELDS, STUDENT_IMPORT_V1_REQUIRED_ROW_FIELDS } from './student-import-constants';
 import {
   detectMissingRequiredColumns,
   detectUnknownColumns,
   parseStudentImportWorkbook,
 } from './student-import-parser';
+import {
+  buildStudentImportWorkbookRefMaps,
+  mapV1RawRowToNormalized,
+  parseStudentImportMetaV1,
+} from './student-import-parser-v1';
 import {
   isStudentImportRowEmpty,
   normalizeStudentImportRow,
@@ -43,7 +48,59 @@ function validateEmail(value: string | null | undefined): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
-function validateRow(
+function isV1RowEmpty(normalized: import('./student-import-types').StudentImportNormalizedRow): boolean {
+  return (
+    !normalized.first_name &&
+    !normalized.last_name &&
+    !normalized.school_number &&
+    !normalized.class_code &&
+    !normalized.class_id
+  );
+}
+
+function validateV1Row(
+  rowNumber: number,
+  raw: Record<string, unknown>,
+  meta: import('./student-import-parser-v1').StudentImportMetaV1,
+  refs: import('./student-import-parser-v1').StudentImportWorkbookRefMaps,
+  t: IssueTranslator,
+): StudentImportRowResult {
+  const normalized = mapV1RawRowToNormalized(raw, meta, refs);
+  const errors: StudentImportIssue[] = [];
+  const warnings: StudentImportIssue[] = [];
+
+  if (isV1RowEmpty(normalized)) {
+    return { rowNumber, raw, normalized, errors, warnings, status: 'valid' };
+  }
+
+  for (const field of STUDENT_IMPORT_V1_REQUIRED_ROW_FIELDS) {
+    const value = normalized[field as keyof typeof normalized];
+    if (value == null || value === '') {
+      errors.push(issue('missing_required_field', t('missing_required_field', field), 'error', field));
+    }
+  }
+
+  if (normalized.registration_type === 'transfer' && !normalized.previous_school) {
+    errors.push(
+      issue('missing_required_field', t('missing_required_field', 'previous_school'), 'error', 'previous_school'),
+    );
+  }
+
+  if (normalized.date_of_birth && !/^\d{4}-\d{2}-\d{2}$/.test(normalized.date_of_birth)) {
+    errors.push(issue('invalid_date', t('invalid_date', 'date_of_birth'), 'error', 'date_of_birth'));
+  }
+
+  if (normalized.email && !validateEmail(normalized.email)) {
+    errors.push(issue('invalid_email', t('invalid_email', 'email'), 'error', 'email'));
+  }
+
+  const status: StudentImportRowResult['status'] =
+    errors.length > 0 ? 'invalid' : warnings.length > 0 ? 'warning' : 'valid';
+
+  return { rowNumber, raw, normalized, errors, warnings, status };
+}
+
+function validateLegacyRow(
   rowNumber: number,
   raw: Record<string, unknown>,
   reference: StudentImportReferenceData,
@@ -295,8 +352,31 @@ export async function validateStudentImportWorkbook(
   reference: StudentImportReferenceData,
   t: IssueTranslator,
 ): Promise<StudentImportValidationResult> {
-  const parsed = await parseStudentImportWorkbook(buffer, (code) => t(code));
+  const parsed = await parseStudentImportWorkbook(buffer, (code, field) => t(code, field));
   const fileErrors = [...parsed.fileErrors];
+
+  if (parsed.format === 'odoo_v1') {
+    const ExcelJS = (await import('exceljs')).default;
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(buffer);
+    const meta = parsed.meta ?? parseStudentImportMetaV1(workbook);
+    const refs = buildStudentImportWorkbookRefMaps(workbook);
+
+    const rows = parsed.rows.map((row) => validateV1Row(row.rowNumber, row.raw, meta, refs, t));
+
+    const summary = buildSummary(rows);
+
+    return {
+      templateVersion: parsed.templateVersion,
+      importMode: parsed.importMode,
+      format: parsed.format,
+      meta: parsed.meta,
+      fileErrors,
+      rows,
+      summary,
+      readyForImport: fileErrors.length === 0 && summary.invalidRows === 0,
+    };
+  }
 
   for (const column of detectUnknownColumns(parsed.headers)) {
     fileErrors.push(issue('unknown_column', t('unknown_column', column), 'error', column));
@@ -308,7 +388,7 @@ export async function validateStudentImportWorkbook(
 
   const rows = parsed.rows
     .filter((row) => !isStudentImportRowEmpty(normalizeStudentImportRow(row.raw)))
-    .map((row) => validateRow(row.rowNumber, row.raw, reference, t));
+    .map((row) => validateLegacyRow(row.rowNumber, row.raw, reference, t));
 
   applyDuplicateDetection(rows, t);
 
@@ -317,6 +397,7 @@ export async function validateStudentImportWorkbook(
 
   return {
     templateVersion: parsed.templateVersion,
+    format: parsed.format ?? 'legacy_raqeem',
     fileErrors,
     rows,
     summary,
