@@ -86,6 +86,24 @@ describe('normalizeGuardianSummary account contract', () => {
       has_user_account: true,
     });
   });
+
+  it('reads password contract fields from nested account payload', () => {
+    const guardian = normalizeGuardianSummary({
+      id: 12,
+      name: 'Hassan',
+      account: {
+        login: 'hassan.guardian',
+        status: 'active',
+        has_user_account: true,
+        can_assign_password: true,
+        password_was_set: true,
+      },
+    });
+    expect(guardian?.account).toMatchObject({
+      can_assign_password: true,
+      password_was_set: true,
+    });
+  });
 });
 
 describe('extractGuardianAccountPresentationsFromCreateResponse', () => {

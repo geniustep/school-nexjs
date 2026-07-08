@@ -9199,6 +9199,24 @@
       "createSuccessLead": "Comparta el código del tutor y el usuario con la familia. La contraseña se configura por separado.",
       "dismissOnboarding": "Cerrar",
       "newGuardianReviewHint": "Los datos de acceso aparecerán aquí tras crear el alumno, si el servidor los devuelve.",
+      "password": {
+        "setAction": "Establecer contraseña",
+        "resetAction": "Restablecer contraseña",
+        "setTitle": "Establecer contraseña para {name}",
+        "resetTitle": "Restablecer contraseña para {name}",
+        "setSubmit": "Establecer contraseña",
+        "resetSubmit": "Restablecer contraseña",
+        "subtitle": "Elija una contraseña que cumpla la política del centro.",
+        "notShownAfterSave": "La contraseña no se mostrará de nuevo después de guardar.",
+        "success": "Contraseña guardada correctamente.",
+        "errors": {
+          "passwordRequired": "La contraseña es obligatoria.",
+          "confirmationMismatch": "La confirmación de contraseña no coincide.",
+          "policyViolation": "La contraseña no cumple la política requerida.",
+          "guardianNotFound": "No se encontró el tutor.",
+          "identityMismatch": "La identidad de la cuenta del tutor no coincide."
+        }
+      },
       "status": {
         "active": "Cuenta activa",
         "inactive": "Cuenta inactiva",

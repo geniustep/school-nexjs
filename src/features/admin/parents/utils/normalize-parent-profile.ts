@@ -180,6 +180,8 @@ function normalizeAccount(raw: unknown): ParentAccountInfo | null {
       typeof record.needs_new_account === 'boolean' ? record.needs_new_account : undefined,
     can_assign_password:
       typeof record.can_assign_password === 'boolean' ? record.can_assign_password : undefined,
+    password_was_set:
+      typeof record.password_was_set === 'boolean' ? record.password_was_set : undefined,
     roles: readStringList(record.roles),
     login: readNullableString(record.login),
     status: readNullableString(record.status),

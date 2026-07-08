@@ -9199,6 +9199,24 @@
       "createSuccessLead": "Partagez le code tuteur et l'identifiant avec la famille. La configuration du mot de passe se fait séparément.",
       "dismissOnboarding": "Fermer",
       "newGuardianReviewHint": "Les identifiants apparaîtront ici après la création de l'élève, s'ils sont renvoyés par le serveur.",
+      "password": {
+        "setAction": "Définir le mot de passe",
+        "resetAction": "Réinitialiser le mot de passe",
+        "setTitle": "Définir le mot de passe pour {name}",
+        "resetTitle": "Réinitialiser le mot de passe pour {name}",
+        "setSubmit": "Définir le mot de passe",
+        "resetSubmit": "Réinitialiser le mot de passe",
+        "subtitle": "Choisissez un mot de passe conforme à la politique de l'établissement.",
+        "notShownAfterSave": "Le mot de passe ne sera plus affiché après l'enregistrement.",
+        "success": "Mot de passe enregistré avec succès.",
+        "errors": {
+          "passwordRequired": "Le mot de passe est obligatoire.",
+          "confirmationMismatch": "La confirmation du mot de passe ne correspond pas.",
+          "policyViolation": "Le mot de passe ne respecte pas la politique requise.",
+          "guardianNotFound": "Tuteur introuvable.",
+          "identityMismatch": "L'identité du compte tuteur ne correspond pas."
+        }
+      },
       "status": {
         "active": "Compte actif",
         "inactive": "Compte inactif",

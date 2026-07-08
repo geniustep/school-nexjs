@@ -9436,6 +9436,24 @@
       "createSuccessLead": "شارك كود ولي الأمر واسم الدخول مع العائلة. إعداد كلمة المرور يتم بشكل منفصل.",
       "dismissOnboarding": "إخفاء",
       "newGuardianReviewHint": "ستظهر بيانات الدخول هنا بعد إنشاء التلميذ إذا أرجعها الخادم.",
+      "password": {
+        "setAction": "تعيين كلمة المرور",
+        "resetAction": "إعادة تعيين كلمة المرور",
+        "setTitle": "تعيين كلمة المرور لـ {name}",
+        "resetTitle": "إعادة تعيين كلمة المرور لـ {name}",
+        "setSubmit": "تعيين كلمة المرور",
+        "resetSubmit": "إعادة تعيين كلمة المرور",
+        "subtitle": "اختر كلمة مرور تتوافق مع سياسة المدرسة.",
+        "notShownAfterSave": "لن تُعرض كلمة المرور مرة أخرى بعد الحفظ.",
+        "success": "تم حفظ كلمة المرور بنجاح.",
+        "errors": {
+          "passwordRequired": "كلمة المرور مطلوبة.",
+          "confirmationMismatch": "تأكيد كلمة المرور غير متطابق.",
+          "policyViolation": "كلمة المرور لا تتوافق مع السياسة المطلوبة.",
+          "guardianNotFound": "ولي الأمر غير موجود.",
+          "identityMismatch": "هوية حساب ولي الأمر غير متطابقة."
+        }
+      },
       "status": {
         "active": "الحساب نشط",
         "inactive": "الحساب غير نشط",
