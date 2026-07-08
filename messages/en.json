@@ -9186,6 +9186,9 @@
         "resetSubmit": "Reset password",
         "subtitle": "Choose a password that meets the school policy.",
         "notShownAfterSave": "The password will not be shown again after saving.",
+        "copyPassword": "Copy password",
+        "copied": "Copied",
+        "regeneratePassword": "Generate new password",
         "success": "Password saved successfully.",
         "errors": {
           "passwordRequired": "Password is required.",

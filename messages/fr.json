@@ -9209,6 +9209,9 @@
         "resetSubmit": "Réinitialiser le mot de passe",
         "subtitle": "Choisissez un mot de passe conforme à la politique de l'établissement.",
         "notShownAfterSave": "Le mot de passe ne sera plus affiché après l'enregistrement.",
+        "copyPassword": "Copier le mot de passe",
+        "copied": "Copié",
+        "regeneratePassword": "Générer un nouveau mot de passe",
         "success": "Mot de passe enregistré avec succès.",
         "errors": {
           "passwordRequired": "Le mot de passe est obligatoire.",

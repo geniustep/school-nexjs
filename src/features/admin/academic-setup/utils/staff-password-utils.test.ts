@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  applyGeneratedStaffPassword,
   computeStaffPasswordStrength,
   generateStaffPassword,
   meetsStaffPasswordPolicy,
@@ -43,5 +44,30 @@ describe('staff-password-utils', () => {
     const generated = generateStaffPassword(policy);
     expect(meetsStaffPasswordPolicy(generated, policy)).toBe(true);
     expect(computeStaffPasswordStrength(generated, policy)).not.toBe('weak');
+  });
+
+  it('applyGeneratedStaffPassword fills password fields and reveals value', () => {
+    const policy = normalizeStaffPasswordPolicy(null);
+    let password = '';
+    let confirmPassword = '';
+    let showPassword = false;
+    const generated = applyGeneratedStaffPassword(
+      {
+        setPassword: (value) => {
+          password = value;
+        },
+        setConfirmPassword: (value) => {
+          confirmPassword = value;
+        },
+        setShowPassword: (value) => {
+          showPassword = value;
+        },
+      },
+      policy,
+    );
+    expect(generated).toBe(password);
+    expect(confirmPassword).toBe(password);
+    expect(showPassword).toBe(true);
+    expect(meetsStaffPasswordPolicy(password, policy)).toBe(true);
   });
 });
