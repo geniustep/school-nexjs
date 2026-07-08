@@ -15,6 +15,7 @@ const issueMessage = (code: string, field?: string) => (field ? `${code}:${field
 async function buildV1Workbook(args?: {
   includeMeta?: boolean;
   includeStudents?: boolean;
+  includeSchoolColumns?: boolean;
   dataRows?: Array<Record<string, unknown>>;
 }): Promise<ArrayBuffer> {
   const workbook = new ExcelJS.Workbook();
@@ -31,6 +32,12 @@ async function buildV1Workbook(args?: {
     meta.addRow(['academic_year_name', '2026-2027']);
   }
 
+  if (args?.includeSchoolColumns) {
+    const schools = workbook.addWorksheet('Ref_Schools');
+    schools.addRow(['id', 'name', 'code', 'display_label']);
+    schools.addRow([3, 'Test School', 'SCH3', 'Test School · SCH3']);
+  }
+
   const years = workbook.addWorksheet('Ref_AcademicYears');
   years.addRow(['id', 'code', 'name', 'state', 'is_current']);
   years.addRow([1, '2026-2027', '2026-2027', 'active', 'yes']);
@@ -45,9 +52,10 @@ async function buildV1Workbook(args?: {
 
   if (args?.includeStudents !== false) {
     const students = workbook.addWorksheet('Students');
-    students.addRow([
+    const headers = [
       'row_number',
       'school_number',
+      ...(args?.includeSchoolColumns ? (['school_label', 'school_id'] as const) : []),
       'first_name',
       'last_name',
       'massar_code',
@@ -68,10 +76,12 @@ async function buildV1Workbook(args?: {
       'guardian_relationship_type',
       'guardian_is_primary_contact',
       'guardian_is_financial_responsible',
-    ]);
+    ];
+    students.addRow(headers);
     students.addRow([
       1,
       'STU-EXAMPLE-001',
+      ...(args?.includeSchoolColumns ? ['Test School · SCH3', 3] : []),
       'Example',
       'Row',
       'A123456789',
@@ -98,6 +108,9 @@ async function buildV1Workbook(args?: {
       students.addRow([
         row.row_number ?? index + 1,
         row.school_number ?? `SN-${index + 1}`,
+        ...(args?.includeSchoolColumns
+          ? [row.school_label ?? 'Test School · SCH3', row.school_id ?? '']
+          : []),
         row.first_name ?? 'First',
         row.last_name ?? 'Last',
         row.massar_code ?? 'A123456780',
@@ -245,6 +258,69 @@ describe('student import parser v1', () => {
       guardian_is_primary_contact: true,
       guardian_is_financial_responsible: false,
     });
+    assertValidationPayloadKeys(payload);
+  });
+
+  it('accepts school_label, school_id, and Ref_Schools without unknown_column errors', async () => {
+    const buffer = await buildV1Workbook({
+      includeSchoolColumns: true,
+      dataRows: [
+        {
+          row_number: 2,
+          school_number: 'SN-SCHOOL-ROW',
+          school_label: 'Other School · SCH5',
+          school_id: 5,
+          first_name: 'Row',
+          last_name: 'SchoolId',
+        },
+        {
+          row_number: 3,
+          school_number: 'SN-META-SCHOOL',
+          school_label: 'Test School · SCH3',
+          first_name: 'Row',
+          last_name: 'MetaSchool',
+        },
+      ],
+    });
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(buffer);
+
+    expect(workbook.getWorksheet('Ref_Schools')).toBeTruthy();
+
+    const parsed = parseOdooV1StudentImportWorkbook(workbook, issueMessage);
+    expect(parsed.fileErrors.filter((issue) => issue.code === 'unknown_column')).toEqual([]);
+    expect(parsed.headers).toEqual(
+      expect.arrayContaining(['school_label', 'school_id']),
+    );
+    expect(parsed.rows).toHaveLength(2);
+
+    const meta = parseStudentImportMetaV1(workbook);
+    const refs = buildStudentImportWorkbookRefMaps(workbook);
+
+    const withRowSchoolId = mapV1RawRowToNormalized(parsed.rows[0].raw, meta, refs);
+    expect(withRowSchoolId.school_id).toBe(5);
+
+    const withMetaSchoolId = mapV1RawRowToNormalized(parsed.rows[1].raw, meta, refs);
+    expect(withMetaSchoolId.school_id).toBe(3);
+
+    const payload = buildStudentImportValidationRequest({
+      activeSchoolId: 3,
+      sourceFilename: 'import.xlsx',
+      templateVersion: parsed.templateVersion,
+      rows: parsed.rows.map((row) => ({
+        rowNumber: row.rowNumber,
+        raw: row.raw,
+        normalized: mapV1RawRowToNormalized(row.raw, meta, refs),
+        errors: [],
+        warnings: [],
+        status: 'valid' as const,
+      })),
+    });
+
+    expect(payload.rows[0]?.school_id).toBe(5);
+    expect(payload.rows[1]?.school_id).toBe(3);
+    expect(payload.rows[0]).not.toHaveProperty('school_label');
+    expect(payload.rows[1]).not.toHaveProperty('school_label');
     assertValidationPayloadKeys(payload);
   });
 });

@@ -188,6 +188,12 @@ export function buildStudentImportWorkbookRefMaps(workbook: ExcelJS.Workbook): S
   return maps;
 }
 
+function resolveSchoolId(raw: Record<string, unknown>, meta: StudentImportMetaV1): number | null {
+  const fromCell = parseInteger(raw.school_id);
+  if (fromCell != null) return fromCell;
+  return meta.schoolId;
+}
+
 function resolveAcademicYearId(
   raw: Record<string, unknown>,
   refs: StudentImportWorkbookRefMaps,
@@ -241,7 +247,7 @@ export function mapV1RawRowToNormalized(
     school_number: trimString(raw.school_number),
     registration_type: trimString(raw.registration_type),
     previous_school: trimString(raw.previous_school),
-    school_id: meta.schoolId,
+    school_id: resolveSchoolId(raw, meta),
     academic_year_id: resolveAcademicYearId(raw, refs, meta),
     level_id: resolveLevelId(raw, refs),
     class_id: resolveClassId(raw, refs),

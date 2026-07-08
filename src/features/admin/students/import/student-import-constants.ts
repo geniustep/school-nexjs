@@ -23,6 +23,7 @@ export const STUDENT_IMPORT_V1_DATA_START_ROW = 3;
 export const STUDENT_IMPORT_V1_USER_COLUMNS = [
   'row_number',
   'school_number',
+  'school_label',
   'first_name',
   'last_name',
   'massar_code',
@@ -42,6 +43,7 @@ export const STUDENT_IMPORT_V1_USER_COLUMNS = [
 ] as const;
 
 export const STUDENT_IMPORT_V1_ID_COLUMNS = [
+  'school_id',
   'academic_year_id',
   'level_id',
   'class_id',
