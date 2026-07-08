@@ -18,6 +18,8 @@ export const STUDENT_IMPORT_SHEET_STUDENTS = 'Students';
 
 export const STUDENT_IMPORT_V1_HEADER_ROW = 1;
 
+export const STUDENT_IMPORT_V1_EXAMPLE_ROW = 2;
+
 export const STUDENT_IMPORT_V1_DATA_START_ROW = 3;
 
 export const STUDENT_IMPORT_V1_USER_COLUMNS = [
@@ -52,7 +54,6 @@ export const STUDENT_IMPORT_V1_ID_COLUMNS = [
 
 export const STUDENT_IMPORT_V1_REQUIRED_HEADERS = [
   'row_number',
-  'school_number',
   'first_name',
   'last_name',
   'class_label',
@@ -61,9 +62,10 @@ export const STUDENT_IMPORT_V1_REQUIRED_HEADERS = [
 export const STUDENT_IMPORT_V1_REQUIRED_ROW_FIELDS = [
   'first_name',
   'last_name',
-  'school_number',
   'class_id',
   'registration_type',
+  'guardian_name',
+  'guardian_mobile',
 ] as const;
 
 export const STUDENT_IMPORT_SHEET_REFERENCE = 'Reference';

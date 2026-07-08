@@ -29,6 +29,14 @@ function issue(code: string, message: string, severity: StudentImportIssue['seve
   return { code, field, message, severity };
 }
 
+function hasFileLevelErrors(fileIssues: StudentImportIssue[]): boolean {
+  return fileIssues.some((item) => item.severity === 'error');
+}
+
+export function hasStudentImportFileErrors(fileIssues: StudentImportIssue[]): boolean {
+  return hasFileLevelErrors(fileIssues);
+}
+
 function isFutureDate(value: string): boolean {
   const parts = value.split('-').map(Number);
   if (parts.length !== 3) return false;
@@ -374,7 +382,7 @@ export async function validateStudentImportWorkbook(
       fileErrors,
       rows,
       summary,
-      readyForImport: fileErrors.length === 0 && summary.invalidRows === 0,
+      readyForImport: !hasFileLevelErrors(fileErrors) && summary.invalidRows === 0,
     };
   }
 
@@ -393,7 +401,7 @@ export async function validateStudentImportWorkbook(
   applyDuplicateDetection(rows, t);
 
   const summary = buildSummary(rows);
-  const readyForImport = fileErrors.length === 0 && summary.invalidRows === 0;
+  const readyForImport = !hasFileLevelErrors(fileErrors) && summary.invalidRows === 0;
 
   return {
     templateVersion: parsed.templateVersion,

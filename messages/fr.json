@@ -3462,7 +3462,8 @@
         "missing_meta_sheet": "La feuille _SSC_Meta est absente de ce modèle.",
         "missing_import_mode": "Le mode d'import est absent des métadonnées du modèle.",
         "invalid_template_version": "Modèle d'import obsolète. Téléchargez le modèle le plus récent.",
-        "missing_emergency_phone": "Téléphone d'urgence recommandé lorsqu'un nom est saisi."
+        "missing_emergency_phone": "Téléphone d'urgence recommandé lorsqu'un nom est saisi.",
+        "example_row_ignored": "La ligne 2 est une ligne d'exemple et n'a pas été importée. Saisissez les données réelles à partir de la ligne 3."
       }
     },
     "admissions": {

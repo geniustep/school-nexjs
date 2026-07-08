@@ -24,6 +24,7 @@ import {
 } from './student-import-stepper';
 import { StudentImportSummaryCards } from './student-import-summary';
 import { StudentImportUpload } from './student-import-upload';
+import { hasStudentImportFileErrors } from './student-import-validator';
 import { toRowDetails, useStudentImportFlow } from './use-student-import-flow';
 import './student-import.css';
 
@@ -131,7 +132,11 @@ export function StudentImportPage() {
               <SectionHead title={t('admin.studentImport.fileErrors.title')} />
               <div className="col" style={{ gap: 6 }}>
                 {localResult.fileErrors.map((issue, index) => (
-                  <div key={index} className="tiny" style={{ color: 'var(--danger)' }}>
+                  <div
+                    key={index}
+                    className="tiny"
+                    style={{ color: issue.severity === 'warning' ? 'var(--warning)' : 'var(--danger)' }}
+                  >
                     {issue.message}
                   </div>
                 ))}
@@ -141,7 +146,7 @@ export function StudentImportPage() {
 
           <StudentImportSummaryCards summary={localResult.summary} />
 
-          {(localResult.fileErrors.length === 0 &&
+          {(hasStudentImportFileErrors(localResult.fileErrors) === false &&
             (localResult.format === 'odoo_v1'
               ? localResult.rows.length > 0
               : localResult.summary.invalidRows === 0)) ? (
