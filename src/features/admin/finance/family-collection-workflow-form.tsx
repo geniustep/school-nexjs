@@ -4,7 +4,15 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ApiErrorView, LoadingState } from '@/components/states/states';
 import { CollectionCashSessionGate, collectionBlockedByCashSession, resolveCashSessionCollectionAccess } from '@/features/admin/finance/cash-desk/collection-cash-session-gate';
 import { FamilyCollectionAllocationSection } from '@/features/admin/finance/family-collection-allocation-section';
-import { parseFamilyAllocationInputs, sumFamilyAllocationAmounts, validateFamilyAllocations } from '@/features/admin/finance/family-collection-allocation-utils';
+import {
+  buildSuggestedFamilyAllocations,
+  hasActiveFamilyAllocations,
+  hasUnsavedFamilyCollectionChanges,
+  parseFamilyAllocationInputs,
+  sumFamilyAllocationAmounts,
+  validateFamilyAllocations,
+  type FamilyInstallmentFilter,
+} from '@/features/admin/finance/family-collection-allocation-utils';
 import type { FamilyCollectSource } from '@/features/admin/finance/family-collect-query';
 import { FamilyCollectionReviewStep } from '@/features/admin/finance/family-collection-review-step';
 import { resolveFamilyCollectionReceiptId } from '@/features/admin/finance/family-collection-receipt-resolve';
@@ -72,6 +80,9 @@ export function FamilyCollectionWorkflowForm({
   const [cashSession, setCashSession] = useState<CashSession | null>(null);
   const [checkingCashSession, setCheckingCashSession] = useState(false);
   const [accountStudentCount, setAccountStudentCount] = useState(0);
+  const [installmentFilter, setInstallmentFilter] = useState<FamilyInstallmentFilter>('all');
+  const [expandedStudentIds, setExpandedStudentIds] = useState<Set<number>>(() => new Set());
+  const [suggestionApplied, setSuggestionApplied] = useState(false);
   const idempotencyKeyRef = useRef<string | null>(null);
 
   const context = contextState.data;
@@ -152,6 +163,45 @@ export function FamilyCollectionWorkflowForm({
   const previewValid = !!preview && !preview.errors.length && previewError == null;
   const studentScopedEntry = entrySource === 'student360' && prefilledStudentId != null;
 
+  function handleCancel() {
+    if (
+      hasUnsavedFamilyCollectionChanges({
+        amount,
+        values: allocationInputs,
+        draftId,
+      }) &&
+      !window.confirm(t('admin.finance.billingAccounts.familyCollection.unsavedExitWarning'))
+    ) {
+      return;
+    }
+    onCancel();
+  }
+
+  function handleSuggestAllocation() {
+    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) return;
+    if (!context?.open_installments.length) return;
+
+    if (
+      hasActiveFamilyAllocations(allocationInputs) &&
+      !window.confirm(
+        t('admin.finance.billingAccounts.familyCollection.replaceSuggestionConfirm'),
+      )
+    ) {
+      return;
+    }
+
+    const suggested = buildSuggestedFamilyAllocations(
+      context.open_installments,
+      parsedAmount,
+    );
+    setAllocationInputs(suggested);
+    setSuggestionApplied(true);
+    setExpandedStudentIds(new Set());
+    setPreview(null);
+    setPreviewError(null);
+    setStep('edit');
+  }
+
   function buildQuery() {
     const query: Record<string, number> = {};
     if (activeSchoolId != null) query.active_school_id = activeSchoolId;
@@ -204,7 +254,13 @@ export function FamilyCollectionWorkflowForm({
     setPreviewLoading(false);
 
     if (!res.success) {
-      setPreviewError(res.error.message?.trim() || t('admin.finance.billingAccounts.familyCollection.previewFailed'));
+      setPreviewError(
+        resolveCollectionErrorMessage(
+          res.error.code,
+          res.error.message?.trim() || t('admin.finance.billingAccounts.familyCollection.previewFailed'),
+          t,
+        ),
+      );
       return;
     }
 
@@ -343,7 +399,7 @@ export function FamilyCollectionWorkflowForm({
         <p className="finance-family-collection-workflow__intro muted">
           {t('admin.finance.billingAccounts.familyCollection.intro')}
         </p>
-        <dl className="detail-list compact finance-family-collection-preview-metrics">
+        <dl className="detail-list compact finance-family-collection-account-metrics">
           <div>
             <dt>{t('admin.finance.payer')}</dt>
             <dd dir="auto">{accountName?.trim() || t('common.dash')}</dd>
@@ -351,18 +407,6 @@ export function FamilyCollectionWorkflowForm({
           <div>
             <dt>{t('admin.finance.billingAccounts.columns.studentCount')}</dt>
             <dd>{accountStudentCount || context?.open_installments.length || 0}</dd>
-          </div>
-          <div>
-            <dt>{t('admin.finance.quickPayment.amountLabel')}</dt>
-            <dd><FinanceMoney amount={parsedAmount} currency={currency} /></dd>
-          </div>
-          <div>
-            <dt>{t('admin.finance.billingAccounts.familyCollection.preview.allocated')}</dt>
-            <dd><FinanceMoney amount={allocatedAmount} currency={currency} /></dd>
-          </div>
-          <div>
-            <dt>{t('admin.finance.billingAccounts.familyCollection.preview.unallocated')}</dt>
-            <dd><FinanceMoney amount={unallocatedAmount} currency={currency} /></dd>
           </div>
         </dl>
 
@@ -444,6 +488,21 @@ export function FamilyCollectionWorkflowForm({
               </p>
             </div>
           ) : null}
+          <div className="finance-family-suggestion-actions">
+            <button
+              type="button"
+              className="btn btn--secondary btn--sm"
+              disabled={!Number.isFinite(parsedAmount) || parsedAmount <= 0 || !context?.open_installments.length}
+              onClick={handleSuggestAllocation}
+            >
+              {t('admin.finance.billingAccounts.familyCollection.suggestAllocationAction')}
+            </button>
+          </div>
+          {suggestionApplied ? (
+            <p className="finance-family-suggestion-explainer tiny muted" role="status">
+              {t('admin.finance.billingAccounts.familyCollection.suggestionExplainer')}
+            </p>
+          ) : null}
           <p className="tiny muted finance-family-collection-allocation-options__hint" role="status">
             {t('admin.finance.billingAccounts.familyCollection.manualAllocationHint')}
           </p>
@@ -474,18 +533,52 @@ export function FamilyCollectionWorkflowForm({
           </div>
         </details>
 
+        <div className="finance-family-sticky-summary" aria-live="polite">
+          <div>
+            <span className="tiny muted">
+              {t('admin.finance.billingAccounts.familyCollection.summary.amountPaid')}
+            </span>
+            <FinanceMoney amount={parsedAmount} currency={currency} />
+          </div>
+          <div>
+            <span className="tiny muted">
+              {t('admin.finance.billingAccounts.familyCollection.preview.allocated')}
+            </span>
+            <FinanceMoney amount={allocatedAmount} currency={currency} />
+          </div>
+          <div>
+            <span className="tiny muted">
+              {t('admin.finance.billingAccounts.familyCollection.preview.unallocated')}
+            </span>
+            <FinanceMoney amount={unallocatedAmount} currency={currency} />
+          </div>
+        </div>
+
         {previewError ? <p className="form-error collection-form-preview-error">{previewError}</p> : null}
+        {previewLoading ? (
+          <p className="tiny muted" role="status">
+            {t('admin.finance.billingAccounts.familyCollection.previewLoading')}
+          </p>
+        ) : null}
 
         {context ? (
           <FamilyCollectionAllocationSection
             installments={context.open_installments}
             currency={currency}
+            collectionAmount={parsedAmount || 0}
             allocationInputs={allocationInputs}
+            installmentFilter={installmentFilter}
+            onInstallmentFilterChange={setInstallmentFilter}
+            expandedStudentIds={expandedStudentIds}
+            onExpandedStudentIdsChange={setExpandedStudentIds}
             onAllocationChange={(values) => {
               setAllocationInputs(values);
+              setSuggestionApplied(false);
               setPreview(null);
               setStep('edit');
             }}
+            highlightStudentId={prefilledStudentId}
+            compactAfterSuggestion={suggestionApplied}
           />
         ) : null}
 
@@ -499,6 +592,7 @@ export function FamilyCollectionWorkflowForm({
             currency={currency}
             allocations={preview.allocations}
             installments={context?.open_installments ?? []}
+            onBackToEdit={() => setStep('edit')}
           />
         ) : null}
 
@@ -516,7 +610,7 @@ export function FamilyCollectionWorkflowForm({
       <div className="finance-collection-workflow__actions">
         <div className="finance-collection-workflow__footer form-actions">
           <div className="finance-collection-workflow__footer-secondary">
-            <button type="button" className="btn btn--ghost" onClick={onCancel} disabled={submitting}>
+            <button type="button" className="btn btn--ghost" onClick={handleCancel} disabled={submitting}>
               {t('common.cancel')}
             </button>
           </div>

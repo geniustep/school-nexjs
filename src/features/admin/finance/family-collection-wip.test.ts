@@ -13,6 +13,14 @@ const FAMILY_COLLECTION_KEYS = [
   'student360Context',
   'reviewTitle',
   'unallocatedNotice',
+  'fillRemaining',
+  'clearLine',
+  'allocateAvailableToChild',
+  'unsavedExitWarning',
+  'backToEdit',
+  'suggestAllocationAction',
+  'suggestionExplainer',
+  'replaceSuggestionConfirm',
 ] as const;
 
 const formSource = readFileSync(
