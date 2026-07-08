@@ -9209,6 +9209,9 @@
         "resetSubmit": "Restablecer contraseña",
         "subtitle": "Elija una contraseña que cumpla la política del centro.",
         "notShownAfterSave": "La contraseña no se mostrará de nuevo después de guardar.",
+        "copyPassword": "Copiar contraseña",
+        "copied": "Copiado",
+        "regeneratePassword": "Generar nueva contraseña",
         "success": "Contraseña guardada correctamente.",
         "errors": {
           "passwordRequired": "La contraseña es obligatoria.",

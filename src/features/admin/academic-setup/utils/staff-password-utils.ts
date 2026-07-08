@@ -122,3 +122,19 @@ export function clearStaffPasswordState(setters: {
   setters.setConfirmPassword('');
   setters.setShowPassword(false);
 }
+
+/** Generate a policy-compliant password and apply it to password form state. */
+export function applyGeneratedStaffPassword(
+  setters: {
+    setPassword: (value: string) => void;
+    setConfirmPassword: (value: string) => void;
+    setShowPassword: (value: boolean) => void;
+  },
+  policy: StaffPasswordPolicy = DEFAULT_STAFF_PASSWORD_POLICY,
+): string {
+  const generated = generateStaffPassword(policy);
+  setters.setPassword(generated);
+  setters.setConfirmPassword(generated);
+  setters.setShowPassword(true);
+  return generated;
+}

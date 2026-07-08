@@ -5,9 +5,9 @@ import { useToast } from '@/components/ui/toast';
 import { useT } from '@/features/i18n/locale-context';
 import { mapGuardianPasswordApiError } from '@/lib/account/guardian-password-errors';
 import {
+  applyGeneratedStaffPassword,
   clearStaffPasswordState,
   computeStaffPasswordStrength,
-  generateStaffPassword,
   normalizeStaffPasswordPolicy,
   validateStaffPasswordForm,
 } from '@/features/admin/academic-setup/utils/staff-password-utils';
@@ -41,13 +41,22 @@ export function GuardianPasswordAssignDialog({
   const [showPassword, setShowPassword] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<{ password?: string; confirmPassword?: string }>({});
   const [saving, setSaving] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!open) {
       clearStaffPasswordState({ setPassword, setConfirmPassword, setShowPassword });
       setFieldErrors({});
+      setCopied(false);
+      return;
     }
-  }, [open]);
+    applyGeneratedStaffPassword(
+      { setPassword, setConfirmPassword, setShowPassword },
+      normalizedPolicy,
+    );
+    setFieldErrors({});
+    setCopied(false);
+  }, [open, normalizedPolicy.min_length, normalizedPolicy.requires_letter, normalizedPolicy.requires_number]);
 
   if (!open || guardianId == null) return null;
 
@@ -92,18 +101,20 @@ export function GuardianPasswordAssignDialog({
   }
 
   function handleGenerate() {
-    const generated = generateStaffPassword(normalizedPolicy);
-    setPassword(generated);
-    setConfirmPassword(generated);
-    setShowPassword(true);
+    applyGeneratedStaffPassword(
+      { setPassword, setConfirmPassword, setShowPassword },
+      normalizedPolicy,
+    );
+    setCopied(false);
   }
 
   async function handleCopy() {
     if (!password || !navigator.clipboard?.writeText) return;
     try {
       await navigator.clipboard.writeText(password);
+      setCopied(true);
     } catch {
-      /* ignore */
+      setCopied(false);
     }
   }
 
@@ -160,10 +171,12 @@ export function GuardianPasswordAssignDialog({
 
           <div className="account-password-fields__actions">
             <button type="button" className="btn btn--ghost btn--sm" onClick={handleGenerate}>
-              {t('admin.academicSetup.staffPassword.generatePassword')}
+              {t('admin.guardianAccount.password.regeneratePassword')}
             </button>
-            <button type="button" className="btn btn--ghost btn--sm" onClick={handleCopy} disabled={!password}>
-              {t('admin.academicSetup.staffPassword.copyPassword')}
+            <button type="button" className="btn btn--ghost btn--sm" onClick={() => void handleCopy()} disabled={!password}>
+              {copied
+                ? t('admin.guardianAccount.password.copied')
+                : t('admin.guardianAccount.password.copyPassword')}
             </button>
           </div>
 
