@@ -5,6 +5,7 @@ import {
   STUDENT_IMPORT_SHEET_STUDENTS,
   STUDENT_IMPORT_TEMPLATE_VERSION,
   STUDENT_IMPORT_V1_DATA_START_ROW,
+  STUDENT_IMPORT_V1_EXAMPLE_ROW,
   STUDENT_IMPORT_V1_HEADER_ROW,
   STUDENT_IMPORT_V1_ID_COLUMNS,
   STUDENT_IMPORT_V1_REQUIRED_HEADERS,
@@ -389,6 +390,23 @@ export function parseOdooV1StudentImportWorkbook(
 
   const refs = buildStudentImportWorkbookRefMaps(workbook);
   const rows: Array<{ rowNumber: number; raw: Record<string, unknown> }> = [];
+
+  const exampleRow = studentsSheet.getRow(STUDENT_IMPORT_V1_EXAMPLE_ROW);
+  const exampleRaw: Record<string, unknown> = {};
+  for (const header of headers) {
+    const col = headerIndexes.get(header);
+    if (!col) continue;
+    const value = readStudentImportCellValue(exampleRow.getCell(col));
+    if (value == null || value === '') continue;
+    exampleRaw[header] = value;
+  }
+  if (!isInputRowEmpty(exampleRaw)) {
+    fileErrors.push({
+      code: 'example_row_ignored',
+      message: issueMessage('example_row_ignored'),
+      severity: 'warning',
+    });
+  }
 
   for (
     let sheetRowNumber = STUDENT_IMPORT_V1_DATA_START_ROW;

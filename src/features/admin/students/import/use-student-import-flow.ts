@@ -44,7 +44,7 @@ import type {
   StudentImportRowResult,
   StudentImportValidationResult,
 } from './student-import-types';
-import { filterStudentImportRows, validateStudentImportWorkbook } from './student-import-validator';
+import { filterStudentImportRows, hasStudentImportFileErrors, validateStudentImportWorkbook } from './student-import-validator';
 import { useSession } from '@/features/auth/session-context';
 
 function createIdempotencyKey(): string {
@@ -116,7 +116,7 @@ export function useStudentImportFlow(
   const canRunServerValidation =
     hasCapability &&
     !!localResult &&
-    localResult.fileErrors.length === 0 &&
+    hasStudentImportFileErrors(localResult.fileErrors) === false &&
     (isOdooV1Template
       ? localResult.rows.length > 0
       : localResult.summary.invalidRows === 0) &&
@@ -216,12 +216,12 @@ export function useStudentImportFlow(
       }
       const localInvalid =
         validation.format !== 'odoo_v1' &&
-        (validation.summary.invalidRows > 0 || validation.fileErrors.length > 0);
+        (validation.summary.invalidRows > 0 || hasStudentImportFileErrors(validation.fileErrors));
       setPhase(localInvalid ? 'local_invalid' : 'local_valid');
 
       if (
         validation.format === 'odoo_v1' &&
-        validation.fileErrors.length === 0 &&
+        !hasStudentImportFileErrors(validation.fileErrors) &&
         validation.rows.length > 0 &&
         hasCapability &&
         activeSchoolId != null
@@ -246,7 +246,7 @@ export function useStudentImportFlow(
     const canRun =
       hasCapability &&
       !!validation &&
-      validation.fileErrors.length === 0 &&
+      !hasStudentImportFileErrors(validation.fileErrors) &&
       (validation.format === 'odoo_v1'
         ? validation.rows.length > 0
         : validation.summary.invalidRows === 0) &&

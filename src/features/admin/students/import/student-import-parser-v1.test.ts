@@ -9,8 +9,22 @@ import {
 } from './student-import-parser-v1';
 import { buildStudentImportValidationRequest, assertValidationPayloadKeys } from './student-import-payload';
 import { detectStudentImportTemplateFormat } from './student-import-parser';
+import { validateStudentImportWorkbook } from './student-import-validator';
+import type { StudentImportReferenceData } from './student-import-types';
 
 const issueMessage = (code: string, field?: string) => (field ? `${code}:${field}` : code);
+
+const emptyReference: StudentImportReferenceData = {
+  genders: new Set(),
+  studentStatuses: new Set(),
+  registrationTypes: new Set(),
+  emergencyRelationships: new Set(),
+  nationalities: new Map(),
+  schools: new Map(),
+  academicYears: new Map(),
+  levels: new Map(),
+  classes: new Map(),
+};
 
 async function buildV1Workbook(args?: {
   includeMeta?: boolean;
@@ -107,7 +121,7 @@ async function buildV1Workbook(args?: {
     for (const [index, row] of (args?.dataRows ?? []).entries()) {
       students.addRow([
         row.row_number ?? index + 1,
-        row.school_number ?? `SN-${index + 1}`,
+        'school_number' in row ? row.school_number : `SN-${index + 1}`,
         ...(args?.includeSchoolColumns
           ? [row.school_label ?? 'Test School · SCH3', row.school_id ?? '']
           : []),
@@ -120,14 +134,14 @@ async function buildV1Workbook(args?: {
         row.academic_year_id ?? 1,
         row.level_label ?? 'Level M1',
         row.level_id ?? 176,
-        row.class_label ?? 'M1A · Level M1 · 2026-2027',
-        row.class_id ?? 2059,
+        'class_label' in row ? row.class_label : 'M1A · Level M1 · 2026-2027',
+        'class_id' in row ? row.class_id : 2059,
         row.registration_type ?? 'new',
         row.previous_school ?? '',
         row.guardian_pick ?? '',
         row.guardian_id ?? '',
-        row.guardian_name ?? '',
-        row.guardian_mobile ?? '',
+        row.guardian_name ?? 'Parent Name',
+        row.guardian_mobile ?? '0612345678',
         row.guardian_relationship_type ?? '',
         row.guardian_is_primary_contact ?? '',
         row.guardian_is_financial_responsible ?? '',
@@ -180,12 +194,15 @@ describe('student import parser v1', () => {
     const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.load(buffer);
     const parsed = parseOdooV1StudentImportWorkbook(workbook, issueMessage);
-    expect(parsed.fileErrors).toHaveLength(0);
+    expect(parsed.fileErrors.filter((issue) => issue.severity === 'error')).toHaveLength(0);
+    expect(parsed.fileErrors.some((issue) => issue.code === 'example_row_ignored')).toBe(true);
     expect(parsed.templateVersion).toBe(STUDENT_IMPORT_TEMPLATE_VERSION);
     expect(parsed.importMode).toBe('create');
     expect(parsed.rows).toHaveLength(1);
     expect(parsed.rows[0].rowNumber).toBe(2);
     expect(parsed.rows[0].raw.school_number).toBe('SN-100');
+    expect(parsed.rows[0].raw.first_name).toBe('Ali');
+    expect(workbook.getWorksheet('Students')?.getRow(2).getCell(3).value).toBe('Example');
   });
 
   it('maps v1 row ids and labels into validate payload shape', async () => {
@@ -322,5 +339,69 @@ describe('student import parser v1', () => {
     expect(payload.rows[0]).not.toHaveProperty('school_label');
     expect(payload.rows[1]).not.toHaveProperty('school_label');
     assertValidationPayloadKeys(payload);
+  });
+});
+
+describe('student import v1 local validation', () => {
+  it('accepts a row without school_number when class and guardian fields are present', async () => {
+    const buffer = await buildV1Workbook({
+      dataRows: [
+        {
+          row_number: 2,
+          school_number: '',
+          first_name: 'Ali',
+          last_name: 'Ben',
+          guardian_name: 'Parent',
+          guardian_mobile: '0612345678',
+        },
+      ],
+    });
+    const result = await validateStudentImportWorkbook(buffer, emptyReference, issueMessage);
+    expect(result.fileErrors.filter((issue) => issue.severity === 'error')).toHaveLength(0);
+    expect(result.summary.invalidRows).toBe(0);
+    expect(result.rows).toHaveLength(1);
+    expect(result.rows[0].normalized.school_number).toBeNull();
+    expect(result.readyForImport).toBe(true);
+  });
+
+  it('does not send example row 2 to validation rows', async () => {
+    const buffer = await buildV1Workbook({
+      dataRows: [{ row_number: 2, first_name: 'Real', last_name: 'Student' }],
+    });
+    const result = await validateStudentImportWorkbook(buffer, emptyReference, issueMessage);
+    expect(result.rows.some((row) => row.normalized.first_name === 'Example')).toBe(false);
+    expect(result.fileErrors.some((issue) => issue.code === 'example_row_ignored')).toBe(true);
+  });
+
+  it('sends actual data starting from sheet row 3', async () => {
+    const buffer = await buildV1Workbook({
+      dataRows: [{ row_number: 2, first_name: 'SheetRow3', last_name: 'Student' }],
+    });
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(buffer);
+    const sheetRow3FirstName = workbook.getWorksheet('Students')?.getRow(3).getCell(3).value;
+    const result = await validateStudentImportWorkbook(buffer, emptyReference, issueMessage);
+    expect(sheetRow3FirstName).toBe('SheetRow3');
+    expect(result.rows).toHaveLength(1);
+    expect(result.rows[0].normalized.first_name).toBe('SheetRow3');
+  });
+
+  it('still errors when class_label and class_id are missing', async () => {
+    const buffer = await buildV1Workbook({
+      dataRows: [
+        {
+          row_number: 2,
+          first_name: 'No',
+          last_name: 'Class',
+          class_label: '',
+          class_id: '',
+          guardian_name: 'Parent',
+          guardian_mobile: '0612345678',
+        },
+      ],
+    });
+    const result = await validateStudentImportWorkbook(buffer, emptyReference, issueMessage);
+    expect(result.summary.invalidRows).toBe(1);
+    expect(result.rows[0].errors.some((error) => error.field === 'class_id')).toBe(true);
   });
 });

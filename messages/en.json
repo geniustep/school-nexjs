@@ -3463,7 +3463,8 @@
         "missing_meta_sheet": "The _SSC_Meta sheet is missing from this template.",
         "missing_import_mode": "Import mode is missing from template metadata.",
         "invalid_template_version": "This file uses an outdated import template. Download the latest template.",
-        "missing_emergency_phone": "Emergency phone is recommended when a contact name is provided."
+        "missing_emergency_phone": "Emergency phone is recommended when a contact name is provided.",
+        "example_row_ignored": "Row 2 is an example row and was not imported. Enter actual data starting from row 3."
       }
     },
     "admissions": {

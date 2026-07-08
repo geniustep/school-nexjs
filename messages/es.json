@@ -3462,7 +3462,8 @@
         "missing_meta_sheet": "Falta la hoja _SSC_Meta en esta plantilla.",
         "missing_import_mode": "Falta el modo de importación en los metadatos.",
         "invalid_template_version": "Plantilla de importación obsoleta. Descargue la más reciente.",
-        "missing_emergency_phone": "Se recomienda teléfono de emergencia cuando hay nombre de contacto."
+        "missing_emergency_phone": "Se recomienda teléfono de emergencia cuando hay nombre de contacto.",
+        "example_row_ignored": "La fila 2 es una fila de ejemplo y no se importó. Introduzca los datos reales a partir de la fila 3."
       }
     },
     "admissions": {
