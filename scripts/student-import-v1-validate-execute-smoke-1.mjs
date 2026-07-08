@@ -3,6 +3,7 @@
  * Usage: node scripts/student-import-v1-validate-execute-smoke-1.mjs [bffBase]
  */
 import { randomUUID } from 'node:crypto';
+import ExcelJS from 'exceljs';
 import { loadAccountPassword, primeQaEnvFromLocal } from './qa-env.mjs';
 
 primeQaEnvFromLocal();
@@ -51,6 +52,78 @@ async function bff(path, jar, init = {}) {
   return { status: res.status, body: await res.json().catch(() => ({})) };
 }
 
+async function bffBinary(path, jar) {
+  const res = await fetch(`${base}/api/odoo${path}`, {
+    headers: {
+      Accept:
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/octet-stream, */*',
+      Cookie: jar,
+    },
+  });
+  return { status: res.status, buffer: await res.arrayBuffer() };
+}
+
+async function readTemplateImportRef(buffer) {
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(buffer);
+  const meta = {};
+  const metaSheet = workbook.getWorksheet('_SSC_Meta');
+  if (metaSheet) {
+    for (let r = 2; r <= metaSheet.rowCount; r++) {
+      const key = String(metaSheet.getRow(r).getCell(1).value ?? '').trim();
+      if (key) meta[key] = metaSheet.getRow(r).getCell(2).value;
+    }
+  }
+  const classRow = workbook.getWorksheet('Ref_Classes')?.getRow(2);
+  const guardianRow = workbook.getWorksheet('Ref_Guardians')?.getRow(2);
+  const guardian =
+    guardianRow &&
+    Number.isFinite(Number(guardianRow.getCell(1).value)) &&
+    String(guardianRow.getCell(2).value ?? '').trim() &&
+    String(guardianRow.getCell(3).value ?? '').trim()
+      ? {
+          id: Number(guardianRow.getCell(1).value),
+          name: String(guardianRow.getCell(2).value ?? '').trim(),
+          mobile: String(guardianRow.getCell(3).value ?? '').trim(),
+        }
+      : null;
+  return {
+    schoolId: Number(meta.school_id) || null,
+    yearId: Number(meta.academic_year_id) || null,
+    classId: classRow ? Number(classRow.getCell(1).value) : null,
+    levelId: (() => {
+      const levelId = classRow ? Number(classRow.getCell(4).value) : NaN;
+      return Number.isFinite(levelId) ? levelId : null;
+    })(),
+    guardian,
+  };
+}
+
+function mergeImportRef(optionsRef, templateRef) {
+  const merged = { ...optionsRef };
+  if (templateRef.schoolId != null) merged.schoolId = templateRef.schoolId;
+  if (templateRef.yearId != null) merged.yearId = templateRef.yearId;
+  if (templateRef.classId != null) merged.classId = templateRef.classId;
+  if (Number.isFinite(templateRef.levelId)) {
+    merged.levelId = templateRef.levelId;
+  } else if (templateRef.classId != null) {
+    merged.levelId = undefined;
+  }
+  return merged;
+}
+
+function buildGuardianFields(guardian) {
+  if (!guardian) return {};
+  return {
+    guardian_id: guardian.id,
+    guardian_name: guardian.name,
+    guardian_mobile: guardian.mobile,
+    guardian_relationship_type: 'father',
+    guardian_is_primary_contact: true,
+    guardian_is_financial_responsible: true,
+  };
+}
+
 function pickRef(options, schoolId) {
   const school = (options.schools ?? []).find((s) => s.id === schoolId) ?? options.schools?.[0];
   const year = options.academic_years?.[0];
@@ -66,23 +139,28 @@ function pickRef(options, schoolId) {
   };
 }
 
-function validationPayload(ref, filename, rows) {
+function validationPayload(ref, filename, rows, guardian) {
+  const guardianFields = buildGuardianFields(guardian);
   return {
     template_version: 1,
     active_school_id: ref.schoolId,
     source_filename: filename,
-    rows: rows.map((r, i) => ({
-      row_number: 3 + i,
-      first_name: r.first_name,
-      last_name: r.last_name,
-      school_number: r.school_number,
-      school_id: ref.schoolId,
-      academic_year_id: ref.yearId,
-      level_id: ref.levelId,
-      class_id: ref.classId,
-      registration_type: 'new',
-      status: 'active',
-    })),
+    rows: rows.map((r, i) => {
+      const row = {
+        row_number: 3 + i,
+        first_name: r.first_name,
+        last_name: r.last_name,
+        school_number: r.school_number,
+        school_id: ref.schoolId,
+        academic_year_id: ref.yearId,
+        class_id: ref.classId,
+        registration_type: 'new',
+        status: 'active',
+        ...guardianFields,
+      };
+      if (Number.isFinite(ref.levelId)) row.level_id = ref.levelId;
+      return row;
+    }),
   };
 }
 
@@ -95,7 +173,15 @@ try {
   const sq = auth.schoolId ? `?active_school_id=${auth.schoolId}` : '';
   const optionsRes = await bff(`/admin/students/options${sq}`, auth.jar);
   check('students_options', optionsRes.body.success === true);
-  const ref = pickRef(optionsRes.body.data ?? {}, auth.schoolId);
+
+  const templateRes = await bffBinary(`/admin/students/import/template${sq}`, auth.jar);
+  check('template_download', templateRes.status === 200, String(templateRes.status));
+  const templateRef =
+    templateRes.status === 200 ? await readTemplateImportRef(templateRes.buffer) : null;
+  check('guardian_ref', templateRef?.guardian != null, templateRef?.guardian ? `id=${templateRef.guardian.id}` : 'missing Ref_Guardians');
+  if (!templateRef?.guardian) throw new Error('guardian_ref_missing');
+  const guardian = templateRef.guardian;
+  const ref = mergeImportRef(pickRef(optionsRes.body.data ?? {}, auth.schoolId), templateRef);
 
   const suffix = Date.now().toString(36);
   const invalidNumber = `QA-V1-BAD-${suffix}`;
@@ -103,7 +189,7 @@ try {
 
   const invalidPayload = validationPayload(ref, 'qa-v1-invalid.xlsx', [
     { first_name: 'Bad', last_name: 'Row', school_number: invalidNumber },
-  ]);
+  ], guardian);
   invalidPayload.rows[0].class_id = 99999999;
 
   const validateInvalid = await bff('/admin/students/import/validate', auth.jar, {
@@ -132,7 +218,7 @@ try {
 
   const validPayload = validationPayload(ref, 'qa-v1-success.xlsx', [
     { first_name: 'V1', last_name: 'Execute', school_number: executeNumber },
-  ]);
+  ], guardian);
   const validateOk = await bff('/admin/students/import/validate', auth.jar, {
     method: 'POST',
     body: JSON.stringify(validPayload),
