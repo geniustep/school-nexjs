@@ -55,12 +55,17 @@ const limitedAdmin: CurrentUser = {
 
 const student: Student = {
   id: 854,
+  code: null,
   first_name: 'Amin',
   last_name: 'Test',
   status: 'active',
   gender: 'male',
   class: { id: 2062, name: 'H1' },
   level: { id: 2449, name: 'H1' },
+  date_of_birth: null,
+  admission_date: null,
+  email: null,
+  phone: null,
 };
 
 describe('resolveStudentKanbanActionPriority', () => {
