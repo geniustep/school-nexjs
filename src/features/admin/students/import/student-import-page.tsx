@@ -194,7 +194,7 @@ export function StudentImportPage() {
             />
           ) : null}
 
-          {flow.canConfirm && (flow.activePhase === 'confirming' || flow.confirmed) ? (
+          {flow.canShowExecute ? (
             <StudentImportExecutePanel
               busy={flow.busy && (flow.activePhase === 'executing' || flow.activePhase === 'polling')}
               canExecute={flow.canExecute}

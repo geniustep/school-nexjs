@@ -21,6 +21,8 @@ import {
 import {
   assertValidationPayloadKeys,
   buildStudentImportValidationRequest,
+  canExecuteImport,
+  canShowExecutePanel,
   isValidationExpired,
 } from './student-import-payload';
 import { mapServerIssueMessage } from './student-import-server-normalize';
@@ -128,11 +130,25 @@ export function useStudentImportFlow(
     serverValidation.summary.invalid_rows === 0 &&
     !execution;
 
+  const canShowExecute = canShowExecutePanel({
+    jobId: serverValidation?.jobId,
+    serverInvalidRows: serverValidation?.summary.invalid_rows ?? 0,
+    validationExpired,
+    hasCapability,
+    hasExecution: !!execution,
+  });
+
   const canExecute =
-    canConfirm &&
-    confirmed &&
-    (phase === 'confirming' || phase === 'server_valid') &&
-    !busy;
+    canExecuteImport({
+      jobId: serverValidation?.jobId,
+      localInvalidRows: localResult?.summary.invalidRows ?? 0,
+      serverInvalidRows: serverValidation?.summary.invalid_rows ?? 0,
+      validationExpired,
+      hasCapability,
+      confirmed,
+      phase,
+      hasExecution: !!execution,
+    }) && !busy;
 
   function resetServerState() {
     setServerValidation(null);
@@ -490,6 +506,7 @@ export function useStudentImportFlow(
     validationExpired,
     canRunServerValidation,
     canConfirm,
+    canShowExecute,
     canExecute,
     resultsPage,
     resetAll,
