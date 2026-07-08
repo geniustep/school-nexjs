@@ -91,6 +91,7 @@ export const endpoints = {
     studentsExport: '/admin/students/export',
 
     parents: '/admin/parents',
+    parentsOptions: '/admin/parents/options',
     parent: (id: number | string) => `/admin/parents/${id}`,
     parentUpdate: (id: number | string) => `/admin/parents/${id}/update`,
     parentAccount: (id: number | string) => `/admin/parents/${id}/account`,

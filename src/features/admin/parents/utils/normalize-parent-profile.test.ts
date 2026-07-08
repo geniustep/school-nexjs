@@ -84,6 +84,8 @@ describe('normalizeParentProfile relationships', () => {
         login: 'fatima.parent',
         status: 'active',
         has_user_account: true,
+        can_assign_password: true,
+        password_was_set: false,
       },
     });
 
@@ -91,6 +93,8 @@ describe('normalizeParentProfile relationships', () => {
     expect(parent?.login).toBe('fatima.parent');
     expect(parent?.account?.login).toBe('fatima.parent');
     expect(parent?.account?.status).toBe('active');
+    expect(parent?.account?.can_assign_password).toBe(true);
+    expect(parent?.account?.password_was_set).toBe(false);
     expect(parent?.has_user_account).toBe(true);
   });
 

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Badge, Card } from '@/components/ui/primitives';
 import { AccountStatusBadge } from '@/features/admin/account/account-status-badge';
 import { CreateAccountDialog } from '@/features/admin/account/create-account-dialog';
+import { GuardianPasswordAssignAction } from '@/features/admin/account/guardian-password-assign-action';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { resolveAccountStatus } from '@/lib/account/account-utils';
@@ -51,7 +52,6 @@ export function GuardianRelationshipCard({
 }) {
   const t = useT();
   const [accountDialogOpen, setAccountDialogOpen] = useState(false);
-  const [accountDialogMode, setAccountDialogMode] = useState<'create' | 'reset'>('create');
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -92,12 +92,6 @@ export function GuardianRelationshipCard({
   }, [menuOpen]);
 
   function openCreateAccount() {
-    setAccountDialogMode('create');
-    setAccountDialogOpen(true);
-  }
-
-  function openResetPassword() {
-    setAccountDialogMode('reset');
     setAccountDialogOpen(true);
   }
 
@@ -235,6 +229,15 @@ export function GuardianRelationshipCard({
               {guardianAccountPresentation.hasVisibleAccountInfo && hasAccount && isMultiRole ? (
                 <p className="tiny muted">{t('admin.student360.singleLoginForRoles')}</p>
               ) : null}
+              {canManage && active ? (
+                <GuardianPasswordAssignAction
+                  guardianId={rel.guardian.id}
+                  guardianName={rel.guardian.name}
+                  account={rel.guardian.account}
+                  onAccountUpdated={() => onAccountChanged?.()}
+                  buttonClassName="btn btn--secondary btn--sm"
+                />
+              ) : null}
             </div>
           </div>
         </div>
@@ -276,19 +279,16 @@ export function GuardianRelationshipCard({
                   >
                     {t('admin.student360.guardiansCompleteProfile')}
                   </Link>
-                  {hasAccount ? (
-                    <button
-                      type="button"
-                      className="student-360-guardian-card__menu-item"
-                      role="menuitem"
-                      onClick={() => {
-                        setMenuOpen(false);
-                        openResetPassword();
-                      }}
-                    >
-                      {t('admin.student360.guardiansSetNewPassword')}
-                    </button>
-                  ) : null}
+                  <GuardianPasswordAssignAction
+                    guardianId={rel.guardian.id}
+                    guardianName={rel.guardian.name}
+                    account={rel.guardian.account}
+                    onAccountUpdated={() => {
+                      setMenuOpen(false);
+                      onAccountChanged?.();
+                    }}
+                    buttonClassName="student-360-guardian-card__menu-item"
+                  />
                   {canRemove ? (
                     <button
                       type="button"
@@ -312,16 +312,8 @@ export function GuardianRelationshipCard({
       {canManage && active && (showCreateAccount || accountDialogOpen) ? (
         <CreateAccountDialog
           open={accountDialogOpen}
-          title={
-            accountDialogMode === 'reset'
-              ? t('admin.student360.guardiansResetPasswordTitle', { name: rel.guardian.name })
-              : t('admin.student360.guardiansCreateLoginAccountTitle', { name: rel.guardian.name })
-          }
-          submitLabel={
-            accountDialogMode === 'reset'
-              ? t('admin.student360.guardiansSetNewPassword')
-              : t('admin.student360.guardiansCreateLoginSubmit')
-          }
+          title={t('admin.student360.guardiansCreateLoginAccountTitle', { name: rel.guardian.name })}
+          submitLabel={t('admin.student360.guardiansCreateLoginSubmit')}
           submittingLabel={t('admin.account.creatingAccount')}
           endpoint={endpoints.admin.parentAccount(rel.guardian.id)}
           defaultEmail={hasUsableEmail ? emailPresentation.email : ''}
