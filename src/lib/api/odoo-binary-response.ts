@@ -11,6 +11,8 @@ export function isOdooBinaryResponse(
   if (ct.includes('text/csv')) return true;
   if (ct.includes('application/csv')) return true;
   if (ct.includes('application/octet-stream')) return true;
+  if (ct.includes('spreadsheetml')) return true;
+  if (ct.includes('application/vnd.ms-excel')) return true;
   return false;
 }
 

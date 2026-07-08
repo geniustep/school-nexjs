@@ -62,6 +62,25 @@ async function bff(path, jar, init = {}) {
   return { status: res.status, body: await res.json().catch(() => ({})) };
 }
 
+async function bffBinary(path, jar, init = {}) {
+  const res = await fetch(`${base}/api/odoo${path}`, {
+    ...init,
+    headers: {
+      Accept:
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/octet-stream, */*',
+      Cookie: jar,
+      ...(init.headers ?? {}),
+    },
+  });
+  const buffer = await res.arrayBuffer();
+  return {
+    status: res.status,
+    contentType: res.headers.get('content-type') ?? '',
+    disposition: res.headers.get('content-disposition') ?? '',
+    buffer,
+  };
+}
+
 async function buildWorkbookRows(rows) {
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet('Students');
@@ -129,6 +148,20 @@ try {
   check('capability_students_import', caps.includes('students.import'), caps.join(', '));
 
   const sq = auth.schoolId ? `?active_school_id=${auth.schoolId}` : '';
+  const templateRes = await bffBinary(`/admin/students/import/template${sq}`, auth.jar);
+  check('template_download_status', templateRes.status === 200, String(templateRes.status));
+  const templateBytes = new Uint8Array(templateRes.buffer);
+  const looksLikeXlsx =
+    templateBytes.length >= 2 && templateBytes[0] === 0x50 && templateBytes[1] === 0x4b;
+  check(
+    'template_download_binary',
+    looksLikeXlsx ||
+      templateRes.contentType.includes('spreadsheetml') ||
+      templateRes.contentType.includes('octet-stream') ||
+      templateRes.disposition.toLowerCase().includes('attachment'),
+    `${templateRes.contentType} ${templateRes.disposition}`,
+  );
+
   const optionsRes = await bff(`/admin/students/options${sq}`, auth.jar);
   check('students_options', optionsRes.body.success === true);
   const ref = pickRef(optionsRes.body.data ?? {}, auth.schoolId);

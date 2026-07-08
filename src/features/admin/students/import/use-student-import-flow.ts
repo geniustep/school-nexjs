@@ -12,8 +12,7 @@ import {
   validateStudentImportJob,
 } from './student-import-api';
 import { hasStudentImportCapability } from './student-import-capability';
-import { STUDENT_IMPORT_TEMPLATE_FILENAME } from './student-import-constants';
-import { buildStudentImportTemplateLabels } from './student-import-labels';
+import { downloadStudentImportTemplate } from './student-import-template-download';
 import {
   collectMergedIssues,
   mergeLocalAndServerRows,
@@ -34,7 +33,6 @@ import type {
 import { buildStudentImportResultReportWorkbook } from './student-import-result-report';
 import {
   buildStudentImportErrorReportWorkbook,
-  buildStudentImportTemplateWorkbook,
   downloadArrayBuffer,
 } from './student-import-template';
 import { validateStudentImportFile } from './student-import-upload';
@@ -66,7 +64,10 @@ function phaseFromState(args: {
   return args.phase;
 }
 
-export function useStudentImportFlow(reference: StudentImportReferenceData | null) {
+export function useStudentImportFlow(
+  reference: StudentImportReferenceData | null,
+  options?: { academicYearId?: number | null },
+) {
   const t = useT();
   const toast = useToast();
   const router = useRouter();
@@ -150,15 +151,14 @@ export function useStudentImportFlow(reference: StudentImportReferenceData | nul
   }, []);
 
   async function handleDownloadTemplate() {
-    if (!reference) {
-      toast.error(t('admin.studentImport.errors.referenceUnavailable'));
-      return;
-    }
     setDownloading(true);
     try {
-      const labels = buildStudentImportTemplateLabels(t, reference);
-      const buffer = await buildStudentImportTemplateWorkbook(reference, labels);
-      downloadArrayBuffer(buffer, STUDENT_IMPORT_TEMPLATE_FILENAME);
+      const result = await downloadStudentImportTemplate({
+        academicYearId: options?.academicYearId,
+      });
+      if (!result.ok) {
+        toast.error(t('admin.studentImport.errors.templateDownloadFailed'));
+      }
     } catch {
       toast.error(t('admin.studentImport.errors.templateDownloadFailed'));
     } finally {

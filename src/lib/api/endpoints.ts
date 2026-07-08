@@ -87,6 +87,7 @@ export const endpoints = {
     studentImportValidate: '/admin/students/import/validate',
     studentImportExecute: (jobId: number | string) => `/admin/students/import/${jobId}/execute`,
     studentImportJob: (jobId: number | string) => `/admin/students/import/${jobId}`,
+    studentImportTemplate: '/admin/students/import/template',
     studentsExport: '/admin/students/export',
 
     parents: '/admin/parents',

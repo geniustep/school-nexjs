@@ -16,6 +16,16 @@ describe('odoo-binary-response', () => {
     expect(isOdooBinaryResponse('application/json', null)).toBe(false);
   });
 
+  it('detects xlsx spreadsheet responses as binary', () => {
+    expect(
+      isOdooBinaryResponse(
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        null,
+      ),
+    ).toBe(true);
+    expect(isOdooBinaryResponse('application/vnd.ms-excel', null)).toBe(true);
+  });
+
   it('detects HTML login pages as non-PDF content type', () => {
     expect(isPdfContentType('text/html')).toBe(false);
     expect(isPdfContentType('application/pdf')).toBe(true);
