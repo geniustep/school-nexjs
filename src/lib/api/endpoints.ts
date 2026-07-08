@@ -79,6 +79,7 @@ export const endpoints = {
       `/admin/financial-agreements/${id}/schedule/cancel-future`,
     serviceSubscription: (id: number | string) => `/admin/service-subscriptions/${id}`,
     financeServices: '/admin/finance/services',
+    financeService: (id: number | string) => `/admin/finance/services/${id}`,
     financeServiceTariffs: '/admin/finance/service-tariffs',
     guardiansSearch: '/admin/guardians/search',
     guardiansLinkPartner: '/admin/guardians/link-partner',

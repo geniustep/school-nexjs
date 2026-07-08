@@ -6888,6 +6888,8 @@
           "confirmAction": "Confirmar pago familiar",
           "manualAllocationTitle": "Asignación manual",
           "manualAllocationHint": "Elige las cuotas y asigna los importes manualmente. Cualquier diferencia no asignada se registra como saldo a favor que no reduce las deudas hasta asignarse.",
+          "suggestAllocationAction": "Sugerir asignación",
+          "suggestionExplainability": "La sugerencia sigue las prioridades de cobro definidas por el centro, luego el estado de vencimiento y la fecha de vencimiento. Puede ajustar la asignación antes de confirmar.",
           "saveDraftAction": "Guardar borrador",
           "reviewAction": "Revisar asignación",
           "reviewTitle": "Revisar asignación antes de confirmar",
@@ -6895,42 +6897,6 @@
           "installmentLabel": "Cuota #{id}",
           "studentTotal": "Total del alumno",
           "successToast": "Pago familiar recibido y asignado.",
-          "fillRemaining": "Completar pendiente",
-          "clearLine": "Borrar",
-          "allocateAvailableToChild": "Asignar disponible a este alumno",
-          "childAllocateHint": "Ayuda de relleno editable antes de revisar — según el orden visible.",
-          "childOpenTotal": "Total abierto",
-          "childAllocatedNow": "Asignado ahora",
-          "childRemainingAfter": "Pendiente tras la operación",
-          "remainingBefore": "Pendiente",
-          "remainingAfter": "Tras el pago",
-          "allocateNow": "Asignar ahora",
-          "filterLabel": "Filtrar cuotas",
-          "noOpenInstallments": "No hay cuotas abiertas para esta familia.",
-          "childNoVisibleInstallments": "Ninguna cuota coincide con el filtro actual para este alumno.",
-          "backToEdit": "Volver a editar",
-          "unallocatedWarningTitle": "Hay importe sin asignar",
-          "unsavedExitWarning": "Tiene una asignación sin guardar. ¿Salir de todos modos?",
-          "previewLoading": "Previsualizando asignación…",
-          "suggestAllocationAction": "Sugerir asignación",
-          "replaceSuggestionConfirm": "La asignación actual se reemplazará por la nueva sugerencia. ¿Continuar?",
-          "suggestionExplainer": "La sugerencia sigue este orden: matrícula primero, luego vencidos más antiguos, luego cuotas actuales. Puede editar antes de confirmar.",
-          "allocatedLineCount": "Líneas asignadas",
-          "compactChildSummary": "{count} líneas • asignado {amount}",
-          "showDues": "Ver cuotas / editar",
-          "showDetails": "Ver detalle",
-          "hideDues": "Ocultar detalle",
-          "currentStudentContext": "Alumno actual",
-          "filters": {
-            "all": "Todo",
-            "unallocated": "Sin asignar",
-            "registration": "Matrícula",
-            "tuition": "Escolaridad",
-            "overdue": "Vencido"
-          },
-          "summary": {
-            "amountPaid": "Importe pagado"
-          },
           "preview": {
             "title": "Vista previa de asignación",
             "allocated": "Asignado",
@@ -7607,32 +7573,43 @@
         }
       },
       "services": {
-        "title": "Servicios y tarifas",
-        "subtitle": "Referencia de servicios y tarifas",
+        "title": "Servicios",
+        "subtitle": "Gestionar los servicios del centro y sus prioridades de cobro",
         "addService": "Añadir servicio",
         "addTariff": "Añadir tarifa",
         "createServiceTitle": "Crear nuevo servicio",
+        "editServiceTitle": "Editar servicio",
         "createTariffTitle": "Crear nueva tarifa",
+        "advancedSettings": "Configuración avanzada",
         "chargeGenerationMode": "Modo de generación de cargos",
         "searchPlaceholder": "Buscar…",
         "emptyServicesTitle": "Sin servicios",
         "emptyTariffsTitle": "Sin tarifas",
-        "emptyDesc": "Aún no hay servicios o tarifas configurados.",
+        "emptyDesc": "Aún no hay servicios configurados.",
+        "priorityHint": "Define el orden de este servicio al sugerir la asignación de pagos. No afecta a la asignación manual.",
         "tabs": {
           "services": "Servicios",
           "tariffs": "Tarifas"
+        },
+        "priority": {
+          "first": "Primera",
+          "normal": "Normal",
+          "last": "Última"
         },
         "columns": {
           "code": "Código",
           "name": "Nombre",
           "category": "Categoría",
+          "serviceType": "Tipo de servicio",
+          "collectionPriority": "Prioridad de cobro",
           "requiresSubscription": "Requiere suscripción",
           "requiresUsageTracking": "Requiere seguimiento de uso",
           "service": "Servicio",
           "academicYear": "Año académico",
           "commitmentType": "Tipo de compromiso",
           "pricingUnit": "Unidad de precio",
-          "unitPrice": "Precio unitario"
+          "unitPrice": "Precio unitario",
+          "actions": "Acciones"
         }
       },
       "collections": {
@@ -9229,6 +9206,7 @@
         "upcoming": "Próximo",
         "hidden": "Oculto",
         "active": "Activo",
+        "inactive": "Inactivo",
         "archived": "Archivado"
       },
       "billingPartyStudentSelf": "Student",

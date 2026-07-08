@@ -6888,6 +6888,8 @@
           "confirmAction": "Confirmer le paiement familial",
           "manualAllocationTitle": "Répartition manuelle",
           "manualAllocationHint": "Choisissez les échéances et répartissez les montants manuellement. Toute différence non affectée est enregistrée comme solde créditeur qui ne réduit pas les dus avant son affectation.",
+          "suggestAllocationAction": "Suggérer une répartition",
+          "suggestionExplainability": "La suggestion suit les priorités d'encaissement définies par l'école, puis l'état d'échéance et la date d'échéance. Vous pouvez ajuster la répartition avant de confirmer.",
           "saveDraftAction": "Enregistrer le brouillon",
           "reviewAction": "Réviser la répartition",
           "reviewTitle": "Révision de la répartition avant confirmation",
@@ -6895,42 +6897,6 @@
           "installmentLabel": "Échéance #{id}",
           "studentTotal": "Total élève",
           "successToast": "Paiement familial reçu et réparti.",
-          "fillRemaining": "Remplir le reste",
-          "clearLine": "Effacer",
-          "allocateAvailableToChild": "Allouer le disponible à cet élève",
-          "childAllocateHint": "Aide de saisie modifiable avant la revue — selon l'ordre affiché.",
-          "childOpenTotal": "Solde ouvert",
-          "childAllocatedNow": "Alloué maintenant",
-          "childRemainingAfter": "Reste après opération",
-          "remainingBefore": "Reste",
-          "remainingAfter": "Après paiement",
-          "allocateNow": "Allouer maintenant",
-          "filterLabel": "Filtrer les échéances",
-          "noOpenInstallments": "Aucune échéance ouverte pour cette famille.",
-          "childNoVisibleInstallments": "Aucune échéance ne correspond au filtre pour cet élève.",
-          "backToEdit": "Retour à l'édition",
-          "unallocatedWarningTitle": "Montant non alloué",
-          "unsavedExitWarning": "Vous avez une répartition non enregistrée. Quitter quand même ?",
-          "previewLoading": "Prévisualisation de la répartition…",
-          "suggestAllocationAction": "Proposer une répartition",
-          "replaceSuggestionConfirm": "La répartition actuelle sera remplacée par la nouvelle proposition. Continuer ?",
-          "suggestionExplainer": "La proposition suit cet ordre : frais d'inscription, puis retards les plus anciens, puis échéances courantes. Vous pouvez modifier avant confirmation.",
-          "allocatedLineCount": "Lignes allouées",
-          "compactChildSummary": "{count} lignes • alloué {amount}",
-          "showDues": "Afficher les échéances / modifier",
-          "showDetails": "Afficher le détail",
-          "hideDues": "Masquer le détail",
-          "currentStudentContext": "Élève actuel",
-          "filters": {
-            "all": "Tout",
-            "unallocated": "Non allouées",
-            "registration": "Inscription",
-            "tuition": "Scolarité",
-            "overdue": "En retard"
-          },
-          "summary": {
-            "amountPaid": "Montant payé"
-          },
           "preview": {
             "title": "Aperçu de la répartition",
             "allocated": "Montant réparti",
@@ -7607,32 +7573,43 @@
         }
       },
       "services": {
-        "title": "Services et tarifs",
-        "subtitle": "Référentiel des services et tarifs",
+        "title": "Services",
+        "subtitle": "Gérer les services de l'école et leurs priorités d'encaissement",
         "addService": "Ajouter un service",
         "addTariff": "Ajouter un tarif",
         "createServiceTitle": "Créer un nouveau service",
+        "editServiceTitle": "Modifier le service",
         "createTariffTitle": "Créer un nouveau tarif",
+        "advancedSettings": "Paramètres avancés",
         "chargeGenerationMode": "Mode de génération des charges",
         "searchPlaceholder": "Rechercher…",
         "emptyServicesTitle": "Aucun service",
         "emptyTariffsTitle": "Aucun tarif",
-        "emptyDesc": "Aucun service ou tarif configuré.",
+        "emptyDesc": "Aucun service configuré.",
+        "priorityHint": "Définit l'ordre de ce service lors de la suggestion de répartition. N'affecte pas la répartition manuelle.",
         "tabs": {
           "services": "Services",
           "tariffs": "Tarifs"
+        },
+        "priority": {
+          "first": "Prioritaire",
+          "normal": "Normale",
+          "last": "Dernière"
         },
         "columns": {
           "code": "Code",
           "name": "Nom",
           "category": "Catégorie",
+          "serviceType": "Type de service",
+          "collectionPriority": "Priorité d'encaissement",
           "requiresSubscription": "Abonnement requis",
           "requiresUsageTracking": "Suivi d'usage requis",
           "service": "Service",
           "academicYear": "Année scolaire",
           "commitmentType": "Type d'engagement",
           "pricingUnit": "Unité de tarification",
-          "unitPrice": "Prix unitaire"
+          "unitPrice": "Prix unitaire",
+          "actions": "Actions"
         }
       },
       "collections": {
@@ -9229,6 +9206,7 @@
         "upcoming": "À venir",
         "hidden": "Masqué",
         "active": "Actif",
+        "inactive": "Inactif",
         "archived": "Archivé"
       },
       "billingPartyStudentSelf": "Student",

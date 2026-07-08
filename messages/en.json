@@ -6885,6 +6885,8 @@
           "confirmAction": "Confirm family payment",
           "manualAllocationTitle": "Manual allocation",
           "manualAllocationHint": "Pick installments and allocate amounts manually. Any unallocated difference is recorded as a credit balance that does not reduce dues until allocated.",
+          "suggestAllocationAction": "Suggest allocation",
+          "suggestionExplainability": "The suggestion follows your school's service collection priorities, then due status and due date. You can adjust allocations before confirming.",
           "saveDraftAction": "Save draft",
           "reviewAction": "Review allocation",
           "reviewTitle": "Review allocation before confirming",
@@ -6892,42 +6894,6 @@
           "installmentLabel": "Installment #{id}",
           "studentTotal": "Student total",
           "successToast": "Family payment received and allocated.",
-          "fillRemaining": "Fill remaining",
-          "clearLine": "Clear",
-          "allocateAvailableToChild": "Allocate available to this student",
-          "childAllocateHint": "Helper fill you can edit before review — follows the visible list order.",
-          "childOpenTotal": "Open balance",
-          "childAllocatedNow": "Allocated now",
-          "childRemainingAfter": "Remaining after allocation",
-          "remainingBefore": "Remaining",
-          "remainingAfter": "After payment",
-          "allocateNow": "Allocate now",
-          "filterLabel": "Filter installments",
-          "noOpenInstallments": "No open installments for this family.",
-          "childNoVisibleInstallments": "No installments match the current filter for this student.",
-          "backToEdit": "Back to edit",
-          "unallocatedWarningTitle": "Unallocated amount present",
-          "unsavedExitWarning": "You have unsaved allocation changes. Leave anyway?",
-          "previewLoading": "Previewing allocation…",
-          "suggestAllocationAction": "Suggest allocation",
-          "replaceSuggestionConfirm": "The current allocation will be replaced by the new suggestion. Continue?",
-          "suggestionExplainer": "The suggestion is ordered by: registration fees first, then oldest overdue items, then current dues. You can edit before confirming.",
-          "allocatedLineCount": "Allocated lines",
-          "compactChildSummary": "{count} items • allocated {amount}",
-          "showDues": "Show dues / edit",
-          "showDetails": "Show details",
-          "hideDues": "Hide details",
-          "currentStudentContext": "Current student",
-          "filters": {
-            "all": "All",
-            "unallocated": "Not allocated",
-            "registration": "Registration",
-            "tuition": "Tuition",
-            "overdue": "Overdue"
-          },
-          "summary": {
-            "amountPaid": "Amount paid"
-          },
           "preview": {
             "title": "Allocation preview",
             "allocated": "Allocated",
@@ -7604,32 +7570,43 @@
         }
       },
       "services": {
-        "title": "Services & tariffs",
-        "subtitle": "Reference financial services and tariffs",
+        "title": "Services",
+        "subtitle": "Manage school services and collection priorities",
         "addService": "Add service",
         "addTariff": "Add tariff",
         "createServiceTitle": "Create new service",
+        "editServiceTitle": "Edit service",
         "createTariffTitle": "Create new tariff",
+        "advancedSettings": "Advanced settings",
         "chargeGenerationMode": "Charge generation mode",
         "searchPlaceholder": "Search…",
         "emptyServicesTitle": "No services",
         "emptyTariffsTitle": "No tariffs",
-        "emptyDesc": "No services or tariffs configured yet.",
+        "emptyDesc": "No services configured yet.",
+        "priorityHint": "Sets this service's order when suggesting payment allocation. Does not affect manual allocation.",
         "tabs": {
           "services": "Services",
           "tariffs": "Tariffs"
+        },
+        "priority": {
+          "first": "First",
+          "normal": "Normal",
+          "last": "Last"
         },
         "columns": {
           "code": "Code",
           "name": "Name",
           "category": "Category",
+          "serviceType": "Service type",
+          "collectionPriority": "Collection priority",
           "requiresSubscription": "Requires subscription",
           "requiresUsageTracking": "Requires usage tracking",
           "service": "Service",
           "academicYear": "Academic year",
           "commitmentType": "Commitment type",
           "pricingUnit": "Pricing unit",
-          "unitPrice": "Unit price"
+          "unitPrice": "Unit price",
+          "actions": "Actions"
         }
       },
       "collections": {
@@ -9206,6 +9183,7 @@
         "upcoming": "Upcoming",
         "hidden": "Hidden",
         "active": "Active",
+        "inactive": "Inactive",
         "archived": "Archived"
       },
       "billingPartyStudentSelf": "Student",

@@ -434,6 +434,10 @@ export interface FinanceServiceCatalogItem {
   requires_subscription?: boolean;
   requires_usage_tracking?: boolean;
   active?: boolean;
+  description?: string | null;
+  sequence?: number | null;
+  allocation_priority_level?: 'first' | 'normal' | 'last' | string | null;
+  allocation_priority_weight?: number | null;
   /** Present on some Odoo service catalog responses — never inferred locally. */
   commitment_type?: string;
   pricing_unit?: string;

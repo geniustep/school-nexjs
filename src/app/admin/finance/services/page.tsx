@@ -5,10 +5,7 @@ import { useState } from 'react';
 import '@/features/admin/finance/finance-ui.css';
 import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
 import { PageHeader } from '@/components/ui/primitives';
-import {
-  ServicesTariffsPanel,
-  type ServicesTariffsTab,
-} from '@/features/admin/finance/services-tariffs-panel';
+import { ServicesPanel } from '@/features/admin/finance/services-tariffs-panel';
 import { useT } from '@/features/i18n/locale-context';
 import { FINANCE_VIEW, canManageFeeCatalog, canViewFinanceServices } from '@/lib/permissions/finance';
 import { PermissionDeniedState } from '@/components/states/states';
@@ -17,18 +14,12 @@ import { useSession } from '@/features/auth/session-context';
 export default function AdminFinanceServicesPage() {
   const t = useT();
   const user = useSession();
-  const [tab, setTab] = useState<ServicesTariffsTab>('services');
   const [showForm, setShowForm] = useState(false);
   const canManage = canManageFeeCatalog(user);
 
   if (!canViewFinanceServices(user)) {
     return <PermissionDeniedState description={t('admin.pageForbidden')} />;
   }
-
-  const addLabel =
-    tab === 'services'
-      ? t('admin.finance.services.addService')
-      : t('admin.finance.services.addTariff');
 
   return (
     <RequireAdminPermission permission={FINANCE_VIEW}>
@@ -45,18 +36,12 @@ export default function AdminFinanceServicesPage() {
               className="btn btn--primary btn--sm"
               onClick={() => setShowForm((value) => !value)}
             >
-              {showForm ? t('common.cancel') : addLabel}
+              {showForm ? t('common.cancel') : t('admin.finance.services.addService')}
             </button>
           ) : undefined
         }
       />
-      <ServicesTariffsPanel
-        tab={tab}
-        onTabChange={setTab}
-        showForm={showForm}
-        onShowFormChange={setShowForm}
-        canManage={canManage}
-      />
+      <ServicesPanel showForm={showForm} onShowFormChange={setShowForm} canManage={canManage} />
     </RequireAdminPermission>
   );
 }

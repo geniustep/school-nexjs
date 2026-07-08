@@ -7134,6 +7134,8 @@
           "confirmAction": "تأكيد استلام الدفعة",
           "manualAllocationTitle": "التوزيع اليدوي",
           "manualAllocationHint": "اختر الأقساط ووزّع المبالغ يدويًا. سيُسجل الفرق غير الموزع كرصيد دائن لا يخفض المستحقات قبل تخصيصه.",
+          "suggestAllocationAction": "اقتراح توزيع",
+          "suggestionExplainability": "تم بناء الاقتراح حسب أولوية تحصيل الخدمات التي حددتها المدرسة، ثم حالة الاستحقاق وتاريخ الاستحقاق. يمكنك تعديل التوزيع قبل التأكيد.",
           "saveDraftAction": "حفظ المسودة",
           "reviewAction": "مراجعة التوزيع",
           "reviewTitle": "مراجعة التوزيع قبل التأكيد",
@@ -7141,42 +7143,6 @@
           "installmentLabel": "قسط #{id}",
           "studentTotal": "إجمالي التلميذ",
           "successToast": "تم استلام الدفعة وتوزيعها على الأسرة.",
-          "fillRemaining": "تعبئة المتبقي",
-          "clearLine": "مسح",
-          "allocateAvailableToChild": "تخصيص المتاح لهذا الطفل",
-          "childAllocateHint": "تعبئة مساعدة قابلة للتعديل قبل المراجعة — حسب ترتيب القائمة الظاهر.",
-          "childOpenTotal": "إجمالي المفتوح",
-          "childAllocatedNow": "المخصص الآن",
-          "childRemainingAfter": "المتبقي بعد العملية",
-          "remainingBefore": "المتبقي",
-          "remainingAfter": "بعد الأداء",
-          "allocateNow": "التخصيص الآن",
-          "filterLabel": "تصفية المستحقات",
-          "noOpenInstallments": "لا توجد مستحقات مفتوحة لهذه الأسرة.",
-          "childNoVisibleInstallments": "لا توجد أقساط مطابقة للفلتر الحالي لهذا التلميذ.",
-          "backToEdit": "العودة للتعديل",
-          "unallocatedWarningTitle": "يوجد مبلغ غير موزع",
-          "unsavedExitWarning": "لديك توزيع غير محفوظ. هل تريد الخروج؟",
-          "previewLoading": "جاري معاينة التوزيع…",
-          "suggestAllocationAction": "اقتراح توزيع",
-          "replaceSuggestionConfirm": "سيتم استبدال التوزيع الحالي بالاقتراح الجديد. هل تريد المتابعة؟",
-          "suggestionExplainer": "تم ترتيب الاقتراح حسب: رسوم التسجيل أولًا، ثم المتأخرات الأقدم، ثم المستحقات الحالية. يمكنك تعديل التوزيع قبل التأكيد.",
-          "allocatedLineCount": "بنود مخصصة",
-          "compactChildSummary": "{count} بند • مخصص {amount}",
-          "showDues": "عرض المستحقات / تعديل",
-          "showDetails": "عرض التفاصيل",
-          "hideDues": "إخفاء التفاصيل",
-          "currentStudentContext": "التلميذ الحالي",
-          "filters": {
-            "all": "الكل",
-            "unallocated": "غير الموزع عليها",
-            "registration": "التسجيل",
-            "tuition": "التمدرس",
-            "overdue": "المتأخر"
-          },
-          "summary": {
-            "amountPaid": "المبلغ المدفوع"
-          },
           "preview": {
             "title": "معاينة التوزيع",
             "allocated": "المبلغ الموزع",
@@ -7853,32 +7819,43 @@
         }
       },
       "services": {
-        "title": "الخدمات والتعريفات",
-        "subtitle": "مرجع الخدمات والتعريفات المالية للمدرسة",
+        "title": "الخدمات",
+        "subtitle": "إدارة خدمات المدرسة وأولويات تحصيلها",
         "addService": "إضافة خدمة",
         "addTariff": "إضافة تعريفة",
         "createServiceTitle": "إنشاء خدمة جديدة",
+        "editServiceTitle": "تعديل الخدمة",
         "createTariffTitle": "إنشاء تعريفة جديدة",
+        "advancedSettings": "إعدادات متقدمة",
         "chargeGenerationMode": "وضع إنشاء الرسوم",
         "searchPlaceholder": "بحث…",
         "emptyServicesTitle": "لا توجد خدمات",
         "emptyTariffsTitle": "لا توجد تعريفات",
-        "emptyDesc": "لم يتم إعداد خدمات أو تعريفات بعد.",
+        "emptyDesc": "لم يتم إعداد خدمات بعد.",
+        "priorityHint": "تحدد ترتيب هذه الخدمة عند اقتراح توزيع الدفعات تلقائيًا. لا تؤثر على التوزيع اليدوي.",
         "tabs": {
           "services": "الخدمات",
           "tariffs": "التعريفات"
+        },
+        "priority": {
+          "first": "أولى",
+          "normal": "عادية",
+          "last": "أخيرة"
         },
         "columns": {
           "code": "الرمز",
           "name": "الاسم",
           "category": "الفئة",
+          "serviceType": "نوع الخدمة",
+          "collectionPriority": "أولوية التحصيل",
           "requiresSubscription": "يتطلب اشتراكًا",
           "requiresUsageTracking": "يتطلب تتبع استخدام",
           "service": "الخدمة",
           "academicYear": "السنة الدراسية",
           "commitmentType": "نوع الالتزام",
           "pricingUnit": "وحدة التسعير",
-          "unitPrice": "سعر الوحدة"
+          "unitPrice": "سعر الوحدة",
+          "actions": "إجراءات"
         }
       },
       "collections": {
@@ -9466,6 +9443,7 @@
         "upcoming": "قادم",
         "hidden": "مخفي",
         "active": "نشط",
+        "inactive": "غير نشط",
         "archived": "مؤرشف"
       },
       "billingPartyStudentSelf": "التلميذ نفسه",

@@ -221,6 +221,9 @@ function normalizeOpenInstallment(raw: unknown): FamilyOpenInstallment | null {
     due_date: readString(row.due_date),
     remaining_amount: normalizeMoneyValue(row.remaining_amount ?? row.amount_remaining),
     is_overdue: readBoolean(row.is_overdue) ?? readBoolean(row.overdue),
+    allocation_priority_level: readString(row.allocation_priority_level),
+    allocation_priority_weight: readNumber(row.allocation_priority_weight),
+    suggestion_order: readNumber(row.suggestion_order),
   };
 }
 

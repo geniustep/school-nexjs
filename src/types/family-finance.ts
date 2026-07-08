@@ -1,3 +1,5 @@
+export type CollectionAllocationPriorityLevel = 'first' | 'normal' | 'last';
+
 export type FamilyFinanceServiceType =
   | 'tuition'
   | 'registration'
@@ -74,6 +76,9 @@ export interface FamilyOpenInstallment {
   due_date?: string | null;
   remaining_amount?: number | null;
   is_overdue?: boolean | null;
+  allocation_priority_level?: CollectionAllocationPriorityLevel | string | null;
+  allocation_priority_weight?: number | null;
+  suggestion_order?: number | null;
 }
 
 export interface FamilyCollectionContext {
