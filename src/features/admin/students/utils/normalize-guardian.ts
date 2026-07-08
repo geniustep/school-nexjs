@@ -38,27 +38,11 @@ function readGuardianAccount(raw: Record<string, unknown>): GuardianAccountInfo 
           : raw.has_user_account === false
             ? false
             : undefined;
-  const can_assign_password =
-    typeof accountRaw?.can_assign_password === 'boolean'
-      ? accountRaw.can_assign_password
-      : typeof raw.can_assign_password === 'boolean'
-        ? raw.can_assign_password
-        : undefined;
-  const password_was_set =
-    typeof accountRaw?.password_was_set === 'boolean'
-      ? accountRaw.password_was_set
-      : typeof raw.password_was_set === 'boolean'
-        ? raw.password_was_set
-        : undefined;
-  if (!login && !status && has_user_account == null && can_assign_password == null && password_was_set == null) {
-    return null;
-  }
+  if (!login && !status && has_user_account == null) return null;
   return {
     login,
     status,
     has_user_account,
-    can_assign_password,
-    password_was_set,
   };
 }
 

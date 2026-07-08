@@ -2,7 +2,6 @@
 
 import type { Ref } from './api';
 import type { UserAccountInfo } from './account';
-import type { StaffPasswordPolicy } from './academic-setup';
 import type { StudentNameFields } from './student';
 import type {
   GuardianAllowedActions,
@@ -18,20 +17,9 @@ export interface ParentAccountInfo {
   user_id?: number | null;
   needs_new_account?: boolean;
   can_assign_password?: boolean;
-  password_was_set?: boolean;
   roles?: string[];
   login?: string | null;
   status?: string | null;
-}
-
-export interface ParentAllowedActions {
-  account_assign_password?: boolean;
-}
-
-/** GET /admin/parents/options — SSC-API-2026.12.001 */
-export interface ParentOptions {
-  password_policy?: StaffPasswordPolicy;
-  allowed_parent_actions?: ParentAllowedActions;
 }
 
 export interface ParentGuardianProfile {

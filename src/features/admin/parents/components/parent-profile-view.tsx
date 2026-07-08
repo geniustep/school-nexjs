@@ -24,7 +24,6 @@ import { getGuardianEmailPresentation } from '@/features/admin/students/utils/gu
 import { formatRoleLabels } from '@/features/admin/students/utils/person-role-presentation';
 import { formatPersonContactLine } from '@/features/admin/students/components/guardian-relationship-impact-alert';
 import { GuardianAccountOnboardingPanel } from '@/features/admin/students/components/guardian-account-onboarding-panel';
-import { GuardianPasswordAssignAction } from '@/features/admin/account/guardian-password-assign-action';
 import { preferredLanguageLabel } from '../utils/normalize-parent-profile';
 import { parentAccountPresentationSource } from '../utils/resolve-parent-account-presentation';
 import {
@@ -371,14 +370,6 @@ export function ParentProfileView({
               >
                 {t('admin.parentProfile.manageLoginAccount')}
               </button>
-            ) : null}
-            {!archived && canManageAccount ? (
-              <GuardianPasswordAssignAction
-                guardianId={parent.id}
-                guardianName={parent.display_name ?? parent.name}
-                account={parent.account}
-                onAccountUpdated={() => onReload()}
-              />
             ) : null}
             {!hasAccount && showCreateAccount && canManageAccount ? (
               <button
