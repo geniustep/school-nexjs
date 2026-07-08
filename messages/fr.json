@@ -6877,7 +6877,7 @@
           "selectStudent": "Élève",
           "chooseStudent": "Choisir un élève",
           "autoAllocationHint": "Le paiement sera réparti automatiquement sur les échéances familiales.",
-          "student360Context": "Le paiement sera enregistré sur le compte familial {accountName}. L'affectation est limitée à {studentName}.",
+          "student360Context": "Vous avez ouvert cet écran depuis le dossier de {studentName}. Le paiement sera enregistré sur le compte familial {accountName}. Vous pouvez le répartir manuellement sur les échéances de chaque membre de la famille, selon les besoins.",
           "switchToFamilyAllocation": "Passer à une répartition familiale",
           "familyWideAllocationHint": "Le paiement sera réparti automatiquement sur les échéances de tous les membres de la famille.",
           "invalidAmount": "Saisissez un montant valide supérieur à zéro.",
@@ -6886,6 +6886,14 @@
           "submitFailed": "Impossible d'enregistrer le paiement.",
           "missingFields": "Complétez l'année scolaire, le journal et le mode de paiement.",
           "confirmAction": "Confirmer le paiement familial",
+          "manualAllocationTitle": "Répartition manuelle",
+          "manualAllocationHint": "Choisissez les échéances et répartissez les montants manuellement. Toute différence non affectée est enregistrée comme solde créditeur qui ne réduit pas les dus avant son affectation.",
+          "saveDraftAction": "Enregistrer le brouillon",
+          "reviewAction": "Réviser la répartition",
+          "reviewTitle": "Révision de la répartition avant confirmation",
+          "unallocatedNotice": "Le montant non réparti ({amount}) sera enregistré comme solde créditeur.",
+          "installmentLabel": "Échéance #{id}",
+          "studentTotal": "Total élève",
           "successToast": "Paiement familial reçu et réparti.",
           "preview": {
             "title": "Aperçu de la répartition",
@@ -7926,6 +7934,7 @@
           "invalidAmount": "Montant invalide.",
           "invalidAllocation": "Répartition invalide.",
           "duplicateAllocation": "Impossible d'affecter deux fois la même créance.",
+          "duplicateAllocationTarget": "Chaque échéance ne peut être affectée qu'une seule fois.",
           "installmentNotCollectible": "Cette échéance ne peut pas être encaissée dans son état actuel.",
           "allocationTotalMismatch": "Le total des affectations ne correspond pas au montant du paiement.",
           "allocationExceedsRemaining": "Le montant affecté dépasse le solde restant de cette échéance.",
@@ -8411,7 +8420,8 @@
           "amounts": "Montants",
           "payment": "Mode de paiement",
           "cheque": "Chèque",
-          "allocations": "Affectations"
+          "allocations": "Affectations",
+          "children": "Par élève"
         },
         "fields": {
           "number": "Numéro de reçu",

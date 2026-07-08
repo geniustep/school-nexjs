@@ -63,8 +63,12 @@ export interface FamilyPlanContext {
 }
 
 export interface FamilyOpenInstallment {
+  installment_id: number;
   student_id: number;
   student_name?: string | null;
+  class_name?: string | null;
+  level_name?: string | null;
+  section_name?: string | null;
   service_type?: FamilyFinanceServiceType | string | null;
   service_label?: string | null;
   due_date?: string | null;
@@ -81,19 +85,19 @@ export interface FamilyCollectionContext {
   currency?: string | null;
 }
 
-export type FamilyCollectionAllocationMode =
-  | 'oldest_due_first'
-  | 'by_student'
-  | 'by_service'
-  | 'manual'
-  | 'leave_as_family_credit';
+/** Explicit allocation line sent to the backend (installment_id + amount only). */
+export interface FamilyCollectionAllocationInput {
+  installment_id: number;
+  amount: number;
+}
 
 export interface FamilyCollectionPreviewRequest {
   family_id: number;
-  student_id?: number | null;
   amount: number;
-  allocation_mode: FamilyCollectionAllocationMode;
+  student_id?: number | null;
+  allocation_mode?: FamilyCollectionAllocationMode;
   manual_allocations?: unknown[];
+  allocations?: FamilyCollectionAllocationInput[];
 }
 
 export interface FamilyCollectionAllocation {
@@ -103,6 +107,7 @@ export interface FamilyCollectionAllocation {
   service_type?: FamilyFinanceServiceType | string | null;
   service_label?: string | null;
   allocated_amount?: number | null;
+  amount?: number | null;
   due_date?: string | null;
 }
 
@@ -112,23 +117,38 @@ export interface FamilyCollectionPreviewResponse {
   unallocated_amount?: number | null;
   credit_amount?: number | null;
   credit_balance?: number | null;
-  allocation_mode?: FamilyCollectionAllocationMode | string | null;
   allocations: FamilyCollectionAllocation[];
   warnings: string[];
   errors: string[];
 }
 
-export interface FamilyCollectionCreateRequest {
+export interface FamilyCollectionDraftRequest {
   family_id: number;
-  student_id?: number | null;
-  amount: number;
-  allocation_mode: FamilyCollectionAllocationMode;
-  journal_id: number;
-  payment_method: string;
-  collection_date: string;
   academic_year_id: number;
-  manual_allocations?: unknown[];
+  journal_id: number;
+  amount: number;
+  payment_method: string;
+  collection_date?: string | null;
+  allocations: FamilyCollectionAllocationInput[];
+  idempotency_key?: string;
   notes?: string | null;
+}
+
+export interface FamilyCollectionDetail {
+  id: number;
+  family_id?: number | null;
+  billing_partner_id?: number | null;
+  state?: string | null;
+  amount?: number | null;
+  allocated_amount?: number | null;
+  unallocated_amount?: number | null;
+  payment_method?: string | null;
+  journal_id?: number | null;
+  academic_year_id?: number | null;
+  collection_date?: string | null;
+  allocations: FamilyCollectionAllocation[];
+  receipt_id?: number | null;
+  warnings?: string[];
 }
 
 export interface FamilyCollectionRecord {
@@ -147,13 +167,43 @@ export interface FamilyCollectionReceiptRecord {
 
 export interface FamilyCollectionCreateResponse {
   ok?: boolean;
+  id?: number | null;
+  collection_id?: number | null;
   family_id?: number | null;
   billing_partner_id?: number | null;
+  state?: string | null;
+  amount?: number | null;
+  allocated_amount?: number | null;
+  unallocated_amount?: number | null;
+  receipt_id?: number | null;
   collections: FamilyCollectionRecord[];
   receipts: FamilyCollectionReceiptRecord[];
   total_received?: number | null;
   total_allocated?: number | null;
   total_unallocated?: number | null;
-  allocation_mode?: FamilyCollectionAllocationMode | string | null;
+  allocations?: FamilyCollectionAllocation[];
   warnings: string[];
 }
+
+export interface FamilyCollectionConfirmResponse {
+  ok?: boolean;
+  collection_id?: number | null;
+  id?: number | null;
+  state?: string | null;
+  receipt_id?: number | null;
+  receipt_number?: string | null;
+  allocated_amount?: number | null;
+  unallocated_amount?: number | null;
+  warnings?: string[];
+}
+
+/** @deprecated Use FamilyCollectionDraftRequest — kept for legacy callers during transition. */
+export type FamilyCollectionCreateRequest = FamilyCollectionDraftRequest;
+
+/** @deprecated Removed from backend contract — manual allocations are always explicit. */
+export type FamilyCollectionAllocationMode =
+  | 'oldest_due_first'
+  | 'by_student'
+  | 'by_service'
+  | 'manual'
+  | 'leave_as_family_credit';

@@ -6874,7 +6874,7 @@
           "selectStudent": "Student",
           "chooseStudent": "Choose a student",
           "autoAllocationHint": "The payment will be allocated automatically across family dues by oldest due date.",
-          "student360Context": "Payment will be recorded on the family account {accountName}. Allocation is limited to {studentName}.",
+          "student360Context": "You opened this from {studentName}'s profile. The payment will be recorded on the family account {accountName}. You can manually allocate it to any family member's installments as needed.",
           "switchToFamilyAllocation": "Switch to family-wide allocation",
           "familyWideAllocationHint": "The payment will be allocated automatically across all family members' receivables.",
           "invalidAmount": "Enter a valid amount greater than zero.",
@@ -6883,6 +6883,14 @@
           "submitFailed": "Could not record the payment.",
           "missingFields": "Complete academic year, journal, and payment method.",
           "confirmAction": "Confirm family payment",
+          "manualAllocationTitle": "Manual allocation",
+          "manualAllocationHint": "Pick installments and allocate amounts manually. Any unallocated difference is recorded as a credit balance that does not reduce dues until allocated.",
+          "saveDraftAction": "Save draft",
+          "reviewAction": "Review allocation",
+          "reviewTitle": "Review allocation before confirming",
+          "unallocatedNotice": "Unallocated amount ({amount}) will be recorded as credit balance.",
+          "installmentLabel": "Installment #{id}",
+          "studentTotal": "Student total",
           "successToast": "Family payment received and allocated.",
           "preview": {
             "title": "Allocation preview",
@@ -7906,6 +7914,7 @@
           "invalidAmount": "Invalid amount.",
           "invalidAllocation": "Invalid allocation.",
           "duplicateAllocation": "Cannot allocate to the same receivable twice.",
+          "duplicateAllocationTarget": "Each installment can only be allocated once.",
           "installmentNotCollectible": "This installment cannot be collected in its current state.",
           "allocationTotalMismatch": "Allocation total does not match the payment amount.",
           "allocationExceedsRemaining": "Allocated amount exceeds the remaining balance on this installment.",
@@ -8389,7 +8398,8 @@
           "amounts": "Amounts",
           "payment": "Payment method",
           "cheque": "Cheque",
-          "allocations": "Allocations"
+          "allocations": "Allocations",
+          "children": "By student"
         },
         "fields": {
           "number": "Receipt number",

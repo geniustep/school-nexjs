@@ -886,6 +886,8 @@ export interface FinanceReceiptAllocation {
   due_date?: string | null;
   amount?: number;
   label?: string;
+  student_id?: number;
+  student_name?: string;
 }
 
 export interface FinanceReceiptCheque {
@@ -925,6 +927,13 @@ export interface FinanceReceiptSnapshot {
   totals?: FinanceReceiptTotals;
   settlement?: FinanceReceiptSettlement;
   allocations?: FinanceReceiptAllocation[];
+  children?: Array<{
+    student_id?: number;
+    student_name?: string;
+    allocated_amount?: number;
+    unallocated_amount?: number;
+    allocations?: FinanceReceiptAllocation[];
+  }>;
 }
 
 export interface FinanceReceiptTotals {
@@ -961,6 +970,13 @@ export interface FinanceReceipt {
   snapshot?: FinanceReceiptSnapshot;
   totals?: FinanceReceiptTotals;
   allocations?: FinanceReceiptAllocation[];
+  children?: Array<{
+    student_id?: number;
+    student_name?: string;
+    allocated_amount?: number;
+    unallocated_amount?: number;
+    allocations?: FinanceReceiptAllocation[];
+  }>;
   cheque?: FinanceReceiptCheque;
   currency?: string;
 }

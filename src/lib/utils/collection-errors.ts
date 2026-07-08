@@ -19,8 +19,11 @@ export function collectionErrorMessageKey(code: string | undefined): string | nu
     case 'payment_reference_required':
       return 'admin.finance.collectionWorkflow.errors.paymentReferenceRequired';
     case 'allocation_exceeds_collection_amount':
+    case 'allocation_exceeds_amount':
     case 'allocationExceedsCollection':
       return 'admin.finance.collectionWorkflow.errors.allocationExceedsCollection';
+    case 'duplicate_allocation_target':
+      return 'admin.finance.collectionWorkflow.errors.duplicateAllocationTarget';
     case 'allocation_exceeds_cheque_amount':
     case 'allocationExceedsChequeAmount':
       return 'admin.finance.collectionWorkflow.errors.allocationExceedsChequeAmount';

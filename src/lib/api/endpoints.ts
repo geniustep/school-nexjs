@@ -342,6 +342,7 @@ export const endpoints = {
       `/admin/finance/families/${familyId}/collection-context`,
     financeFamilyCollectionPreview: '/admin/finance/family-collections/preview',
     financeFamilyCollections: '/admin/finance/family-collections',
+    financeFamilyCollection: (id: number | string) => `/admin/finance/family-collections/${id}`,
     financeArrearsFollowups: '/admin/finance/arrears-followups',
     financeFamilyArrearsFollowup: (familyId: number | string) =>
       `/admin/finance/families/${familyId}/arrears-followup`,

@@ -1,77 +1,30 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { DataTable, type Column } from '@/components/tables/data-table';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ApiErrorView, LoadingState } from '@/components/states/states';
+import { CollectionCashSessionGate, collectionBlockedByCashSession, resolveCashSessionCollectionAccess } from '@/features/admin/finance/cash-desk/collection-cash-session-gate';
+import { FamilyCollectionAllocationSection } from '@/features/admin/finance/family-collection-allocation-section';
+import { parseFamilyAllocationInputs, sumFamilyAllocationAmounts, validateFamilyAllocations } from '@/features/admin/finance/family-collection-allocation-utils';
+import type { FamilyCollectSource } from '@/features/admin/finance/family-collect-query';
+import { FamilyCollectionReviewStep } from '@/features/admin/finance/family-collection-review-step';
+import { resolveFamilyCollectionReceiptId } from '@/features/admin/finance/family-collection-receipt-resolve';
+import { resolveDefaultPaymentJournal } from '@/features/admin/finance/format-payment-journal';
+import { useFamilyCollectionContext } from '@/features/admin/finance/hooks/use-family-collection-context';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import { QuickPaymentCoreFields } from '@/features/admin/finance/quick-payment-core-fields';
-import type { FamilyCollectSource } from '@/features/admin/finance/family-collect-query';
-import {
-  CollectionCashSessionGate,
-  collectionBlockedByCashSession,
-  resolveCashSessionCollectionAccess,
-} from '@/features/admin/finance/cash-desk/collection-cash-session-gate';
-import {
-  resolveDefaultPaymentJournal,
-} from '@/features/admin/finance/format-payment-journal';
-import { useFamilyCollectionContext } from '@/features/admin/finance/hooks/use-family-collection-context';
 import { useFinanceReferenceData } from '@/features/admin/finance/use-finance-lookups';
-import { useSession } from '@/features/auth/session-context';
 import { useAdminSession } from '@/features/auth/admin-session-context';
+import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
-import { useFormat } from '@/features/i18n/use-format';
+import { fetchCollectionReceipt } from '@/lib/api/finance-receipt';
 import { fetchCurrentCashSession } from '@/lib/api/finance-cash-desk';
+import { resolveCollectionErrorMessage } from '@/lib/utils/collection-errors';
 import { currencyCode } from '@/lib/utils/finance';
-import {
-  familyFinanceServiceTypeLabelKey,
-  normalizeFamilyCollectionCreateResponse,
-  normalizeFamilyCollectionPreviewResponse,
-} from '@/lib/utils/normalize-family-finance';
 import { isCashJournal, paymentMethodRequiresCashSession } from '@/lib/utils/cash-payment';
-import {
-  previewFamilyCollectionAllocation,
-  submitFamilyCollection,
-  getFamilyFinanceSummary,
-} from '@/features/admin/student-finance/api/family-finance-api';
-import type {
-  FamilyCollectionAllocation,
-  FamilyCollectionAllocationMode,
-  FamilyCollectionCreateResponse,
-  FamilyCollectionPreviewResponse,
-  FamilyOpenInstallment,
-} from '@/types/family-finance';
+import { normalizeFamilyCollectionConfirmResponse, normalizeFamilyCollectionCreateResponse, normalizeFamilyCollectionDetail, normalizeFamilyCollectionPreviewResponse } from '@/lib/utils/normalize-family-finance';
+import { confirmFamilyCollection, getFamilyCollectionById, getFamilyFinanceSummary, previewFamilyCollectionAllocation, submitFamilyCollection, updateFamilyCollectionDraft } from '@/features/admin/student-finance/api/family-finance-api';
+import type { FamilyCollectionCreateResponse, FamilyCollectionDetail, FamilyCollectionPreviewResponse } from '@/types/family-finance';
 import type { CashSession } from '@/types/finance-cash-desk';
-
-function uniqueStudentsFromInstallments(
-  installments: FamilyOpenInstallment[],
-): Array<{ student_id: number; student_name: string }> {
-  const map = new Map<number, string>();
-  for (const row of installments) {
-    if (typeof row.student_id !== 'number') continue;
-    map.set(row.student_id, row.student_name?.trim() || `#${row.student_id}`);
-  }
-  return Array.from(map.entries()).map(([student_id, student_name]) => ({
-    student_id,
-    student_name,
-  }));
-}
-
-function mergeFamilyStudentOptions(
-  accountStudents: Array<{ student_id: number; student_name: string }>,
-  installmentStudents: Array<{ student_id: number; student_name: string }>,
-): Array<{ student_id: number; student_name: string }> {
-  const map = new Map<number, string>();
-  for (const student of accountStudents) {
-    map.set(student.student_id, student.student_name);
-  }
-  for (const student of installmentStudents) {
-    const name = student.student_name?.trim();
-    if (name) map.set(student.student_id, name);
-  }
-  return Array.from(map.entries())
-    .map(([student_id, student_name]) => ({ student_id, student_name }))
-    .sort((a, b) => a.student_name.localeCompare(b.student_name, undefined, { sensitivity: 'base' }));
-}
 
 export function FamilyCollectionWorkflowForm({
   familyId,
@@ -97,64 +50,45 @@ export function FamilyCollectionWorkflowForm({
   onCancel: () => void;
 }) {
   const t = useT();
-  const { formatDate } = useFormat();
   const user = useSession();
   const { activeSchoolId } = useAdminSession();
   const contextState = useFamilyCollectionContext(familyId);
   const { journals, academicYears, loading: refLoading } = useFinanceReferenceData();
 
   const [amount, setAmount] = useState('');
-  const [limitToStudent, setLimitToStudent] = useState(prefilledStudentId != null);
-  const [selectedStudentId, setSelectedStudentId] = useState(
-    prefilledStudentId != null ? String(prefilledStudentId) : '',
-  );
+  const [allocationInputs, setAllocationInputs] = useState<Record<number, string>>({});
   const [journalId, setJournalId] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
   const [collectionDate, setCollectionDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [academicYearId, setAcademicYearId] = useState('');
-  const [allocationMode] = useState<FamilyCollectionAllocationMode>('oldest_due_first');
+  const [step, setStep] = useState<'edit' | 'review'>('edit');
+  const [draftId, setDraftId] = useState<number | null>(null);
   const [preview, setPreview] = useState<FamilyCollectionPreviewResponse | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [confirming, setConfirming] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [cashSession, setCashSession] = useState<CashSession | null>(null);
   const [checkingCashSession, setCheckingCashSession] = useState(false);
-  const [accountStudents, setAccountStudents] = useState<Array<{ student_id: number; student_name: string }>>(
-    [],
-  );
+  const [accountStudentCount, setAccountStudentCount] = useState(0);
+  const idempotencyKeyRef = useRef<string | null>(null);
 
   const context = contextState.data;
   const currency = context?.currency;
   const parsedAmount = Number.parseFloat(amount.replace(',', '.'));
-  const installmentStudents = useMemo(
-    () => uniqueStudentsFromInstallments(context?.open_installments ?? []),
-    [context?.open_installments],
-  );
-  const students = useMemo(
-    () => mergeFamilyStudentOptions(accountStudents, installmentStudents),
-    [accountStudents, installmentStudents],
-  );
+  const allocatedAmount = sumFamilyAllocationAmounts(allocationInputs);
+  const unallocatedAmount = Math.max(0, (parsedAmount || 0) - allocatedAmount);
 
   useEffect(() => {
-    if (!familyId) {
-      setAccountStudents([]);
-      return;
-    }
+    if (!familyId) return;
     let active = true;
     const query: Record<string, number> = {};
     if (activeSchoolId != null) query.active_school_id = activeSchoolId;
 
     void getFamilyFinanceSummary(familyId, query).then((res) => {
       if (!active || !res.success || !res.data) return;
-      setAccountStudents(
-        res.data.children
-          .filter((child) => typeof child.student_id === 'number')
-          .map((child) => ({
-            student_id: child.student_id,
-            student_name: child.student_name?.trim() || `#${child.student_id}`,
-          })),
-      );
+      setAccountStudentCount(res.data.children.length);
     });
 
     return () => {
@@ -216,47 +150,19 @@ export function FamilyCollectionWorkflowForm({
   const cashSessionBlocked = collectionBlockedByCashSession(cashSessionAccess);
 
   const previewValid = !!preview && !preview.errors.length && previewError == null;
-
   const studentScopedEntry = entrySource === 'student360' && prefilledStudentId != null;
-  const lockedStudentName =
-    prefilledStudentName?.trim() ||
-    students.find((student) => student.student_id === prefilledStudentId)?.student_name ||
-    (prefilledStudentId != null ? `#${prefilledStudentId}` : null);
-
-  const allocationColumns: Column<FamilyCollectionAllocation>[] = useMemo(
-    () => [
-      {
-        key: 'student',
-        header: t('admin.finance.billingAccounts.familyCollection.preview.columns.student'),
-        render: (row) => row.student_name ?? t('common.dash'),
-      },
-      {
-        key: 'item',
-        header: t('admin.finance.billingAccounts.familyCollection.preview.columns.item'),
-        render: (row) =>
-          row.service_label?.trim() ||
-          (row.service_type
-            ? t(familyFinanceServiceTypeLabelKey(row.service_type))
-            : t('common.dash')),
-      },
-      {
-        key: 'due_date',
-        header: t('admin.finance.billingAccounts.familyCollection.preview.columns.dueDate'),
-        render: (row) => (row.due_date ? formatDate(row.due_date) : t('common.dash')),
-      },
-      {
-        key: 'allocated',
-        header: t('admin.finance.billingAccounts.familyCollection.preview.columns.allocated'),
-        render: (row) => <FinanceMoney amount={row.allocated_amount} currency={currency} />,
-      },
-    ],
-    [t, formatDate, currency],
-  );
 
   function buildQuery() {
     const query: Record<string, number> = {};
     if (activeSchoolId != null) query.active_school_id = activeSchoolId;
     return query;
+  }
+
+  function ensureIdempotencyKey(): string {
+    if (!idempotencyKeyRef.current) {
+      idempotencyKeyRef.current = `fam-coll-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    }
+    return idempotencyKeyRef.current;
   }
 
   async function runPreview() {
@@ -265,8 +171,19 @@ export function FamilyCollectionWorkflowForm({
       setPreview(null);
       return;
     }
-    if (limitToStudent && !selectedStudentId) {
-      setPreviewError(t('admin.finance.billingAccounts.familyCollection.selectStudentRequired'));
+    const validation = validateFamilyAllocations({
+      amount: parsedAmount,
+      values: allocationInputs,
+      installments: context?.open_installments ?? [],
+    });
+    if (validation) {
+      setPreviewError(
+        resolveCollectionErrorMessage(
+          validation,
+          t('admin.finance.billingAccounts.familyCollection.previewFailed'),
+          t,
+        ),
+      );
       setPreview(null);
       return;
     }
@@ -278,10 +195,8 @@ export function FamilyCollectionWorkflowForm({
     const res = await previewFamilyCollectionAllocation(
       {
         family_id: familyId,
-        student_id: limitToStudent ? Number(selectedStudentId) : null,
         amount: parsedAmount,
-        allocation_mode: allocationMode,
-        manual_allocations: [],
+        allocations: parseFamilyAllocationInputs(allocationInputs),
       },
       buildQuery(),
     );
@@ -298,51 +213,110 @@ export function FamilyCollectionWorkflowForm({
       setPreviewError(t('admin.finance.billingAccounts.familyCollection.previewFailed'));
       return;
     }
-    if (normalized.errors.length) {
-      setPreviewError(normalized.errors.join(' · '));
-    }
+    if (normalized.errors.length) setPreviewError(normalized.errors.join(' · '));
     setPreview(normalized);
+    setStep('review');
   }
 
-  async function handleSubmit(event: React.FormEvent) {
+  async function persistDraft(): Promise<FamilyCollectionDetail | null> {
+    const payload = {
+      family_id: familyId,
+      amount: parsedAmount,
+      journal_id: Number(journalId),
+      payment_method: paymentMethod,
+      collection_date: collectionDate,
+      academic_year_id: Number(academicYearId),
+      allocations: parseFamilyAllocationInputs(allocationInputs),
+    };
+    if (draftId != null) {
+      const updated = await updateFamilyCollectionDraft(draftId, payload, buildQuery());
+      if (!updated.success) return null;
+      const normalized = normalizeFamilyCollectionDetail(updated.data);
+      if (!normalized) return null;
+      const readBack = await getFamilyCollectionById(normalized.id, buildQuery());
+      if (!readBack.success) return normalized;
+      return normalizeFamilyCollectionDetail(readBack.data) ?? normalized;
+    }
+    const created = await submitFamilyCollection(
+      { ...payload, idempotency_key: ensureIdempotencyKey() },
+      buildQuery(),
+    );
+    if (!created.success) return null;
+    const normalized = normalizeFamilyCollectionCreateResponse(created.data);
+    if (!normalized) return null;
+    const id = normalized.id ?? normalized.collection_id ?? normalized.collections[0]?.id ?? null;
+    if (id == null) return null;
+    setDraftId(id);
+    const readBack = await getFamilyCollectionById(id, buildQuery());
+    if (!readBack.success) return null;
+    return normalizeFamilyCollectionDetail(readBack.data);
+  }
+
+  async function handleSaveDraft(event: React.FormEvent) {
     event.preventDefault();
-    if (!previewValid || submitting || cashSessionBlocked) return;
+    if (submitting || cashSessionBlocked) return;
     if (!journalId || !paymentMethod || !academicYearId || !collectionDate) {
       setSubmitError(t('admin.finance.billingAccounts.familyCollection.missingFields'));
       return;
     }
-
     setSubmitting(true);
     setSubmitError(null);
-
-    const res = await submitFamilyCollection(
-      {
-        family_id: familyId,
-        student_id: limitToStudent ? Number(selectedStudentId) : null,
-        amount: parsedAmount,
-        allocation_mode: allocationMode,
-        journal_id: Number(journalId),
-        payment_method: paymentMethod,
-        collection_date: collectionDate,
-        academic_year_id: Number(academicYearId),
-        manual_allocations: [],
-      },
-      buildQuery(),
-    );
-
+    const saved = await persistDraft();
     setSubmitting(false);
-
-    if (!res.success) {
-      setSubmitError(res.error.message?.trim() || t('admin.finance.billingAccounts.familyCollection.submitFailed'));
+    if (!saved) {
+      setSubmitError(t('admin.finance.billingAccounts.familyCollection.submitFailed'));
       return;
     }
+    setPreview((current) =>
+      current
+        ? {
+            ...current,
+            allocations: saved.allocations,
+            allocated_amount: saved.allocated_amount ?? current.allocated_amount,
+            unallocated_amount: saved.unallocated_amount ?? current.unallocated_amount,
+          }
+        : current,
+    );
+    setStep('review');
+  }
 
-    const normalized = normalizeFamilyCollectionCreateResponse(res.data);
+  async function handleConfirm() {
+    if (draftId == null || confirming) return;
+    setConfirming(true);
+    setSubmitError(null);
+    const confirmed = await confirmFamilyCollection(draftId, buildQuery());
+    setConfirming(false);
+    if (!confirmed.success) {
+      setSubmitError(
+        resolveCollectionErrorMessage(
+          confirmed.error.code,
+          confirmed.error.message?.trim() || t('admin.finance.billingAccounts.familyCollection.submitFailed'),
+          t,
+        ),
+      );
+      return;
+    }
+    const normalized = normalizeFamilyCollectionConfirmResponse(confirmed.data);
     if (!normalized) {
       setSubmitError(t('admin.finance.billingAccounts.familyCollection.submitFailed'));
       return;
     }
-    onDone(normalized);
+    const receiptId = await resolveFamilyCollectionReceiptId(
+      draftId,
+      normalized,
+      fetchCollectionReceipt,
+    );
+    idempotencyKeyRef.current = null;
+    onDone({
+      id: draftId,
+      collection_id: normalized.collection_id ?? draftId,
+      receipt_id: receiptId,
+      allocated_amount: normalized.allocated_amount,
+      unallocated_amount: normalized.unallocated_amount,
+      collections: [{ id: normalized.collection_id ?? draftId, state: normalized.state ?? 'confirmed' }],
+      receipts: receiptId ? [{ id: receiptId }] : [],
+      warnings: normalized.warnings ?? [],
+    });
   }
 
   if (contextState.loading || refLoading) {
@@ -364,11 +338,33 @@ export function FamilyCollectionWorkflowForm({
   }
 
   return (
-    <form className="finance-collection-workflow finance-family-collection-workflow" onSubmit={handleSubmit}>
+    <form className="finance-collection-workflow finance-family-collection-workflow" onSubmit={handleSaveDraft}>
       <div className="finance-collection-workflow__scroll">
         <p className="finance-family-collection-workflow__intro muted">
           {t('admin.finance.billingAccounts.familyCollection.intro')}
         </p>
+        <dl className="detail-list compact finance-family-collection-preview-metrics">
+          <div>
+            <dt>{t('admin.finance.payer')}</dt>
+            <dd dir="auto">{accountName?.trim() || t('common.dash')}</dd>
+          </div>
+          <div>
+            <dt>{t('admin.finance.billingAccounts.columns.studentCount')}</dt>
+            <dd>{accountStudentCount || context?.open_installments.length || 0}</dd>
+          </div>
+          <div>
+            <dt>{t('admin.finance.quickPayment.amountLabel')}</dt>
+            <dd><FinanceMoney amount={parsedAmount} currency={currency} /></dd>
+          </div>
+          <div>
+            <dt>{t('admin.finance.billingAccounts.familyCollection.preview.allocated')}</dt>
+            <dd><FinanceMoney amount={allocatedAmount} currency={currency} /></dd>
+          </div>
+          <div>
+            <dt>{t('admin.finance.billingAccounts.familyCollection.preview.unallocated')}</dt>
+            <dd><FinanceMoney amount={unallocatedAmount} currency={currency} /></dd>
+          </div>
+        </dl>
 
         {suggestedAmount != null && suggestedAmount > 0 ? (
           <section
@@ -390,6 +386,7 @@ export function FamilyCollectionWorkflowForm({
               className="btn btn--secondary btn--sm"
               onClick={() => {
                 setAmount(String(suggestedAmount));
+                setStep('edit');
                 setPreview(null);
                 setPreviewError(null);
               }}
@@ -409,6 +406,7 @@ export function FamilyCollectionWorkflowForm({
             amount={amount}
             onAmountChange={(value) => {
               setAmount(value);
+              setStep('edit');
               setPreview(null);
               setPreviewError(null);
             }}
@@ -417,6 +415,7 @@ export function FamilyCollectionWorkflowForm({
             journalId={journalId}
             onJournalChange={(value) => {
               setJournalId(value);
+              setStep('edit');
               setPreview(null);
             }}
             journals={journals}
@@ -425,6 +424,7 @@ export function FamilyCollectionWorkflowForm({
             paymentMethod={paymentMethod}
             onPaymentMethodChange={(value) => {
               setPaymentMethod(value);
+              setStep('edit');
               setPreview(null);
             }}
             allowedMethods={allowedMethods ?? []}
@@ -434,70 +434,19 @@ export function FamilyCollectionWorkflowForm({
         </section>
 
         <section className="finance-family-collection-allocation-options">
-          {studentScopedEntry && limitToStudent ? (
+          {studentScopedEntry ? (
             <div className="finance-family-collection-student360-context" role="status">
               <p className="finance-family-collection-student360-context__lead">
                 {t('admin.finance.billingAccounts.familyCollection.student360Context', {
                   accountName: accountName?.trim() || t('common.dash'),
-                  studentName: lockedStudentName ?? t('common.dash'),
+                  studentName: prefilledStudentName?.trim() || `#${prefilledStudentId}`,
                 })}
               </p>
-              <button
-                type="button"
-                className="btn btn--ghost btn--sm finance-family-collection-student360-context__switch"
-                onClick={() => {
-                  setLimitToStudent(false);
-                  setSelectedStudentId('');
-                  setPreview(null);
-                  setPreviewError(null);
-                }}
-              >
-                {t('admin.finance.billingAccounts.familyCollection.switchToFamilyAllocation')}
-              </button>
             </div>
           ) : null}
-          {!limitToStudent ? (
-            <p className="tiny muted finance-family-collection-allocation-options__hint" role="status">
-              {studentScopedEntry
-                ? t('admin.finance.billingAccounts.familyCollection.familyWideAllocationHint')
-                : t('admin.finance.billingAccounts.familyCollection.autoAllocationHint')}
-            </p>
-          ) : null}
-          {!studentScopedEntry ? (
-            <label className="collection-skip-allocation">
-              <input
-                type="checkbox"
-                checked={limitToStudent}
-                onChange={(e) => {
-                  setLimitToStudent(e.target.checked);
-                  if (!e.target.checked) setSelectedStudentId('');
-                  setPreview(null);
-                  setPreviewError(null);
-                }}
-              />
-              <span>{t('admin.finance.billingAccounts.familyCollection.limitToStudent')}</span>
-            </label>
-          ) : null}
-          {limitToStudent && !studentScopedEntry ? (
-            <label>
-              {t('admin.finance.billingAccounts.familyCollection.selectStudent')}
-              <select
-                className="input"
-                value={selectedStudentId}
-                onChange={(e) => {
-                  setSelectedStudentId(e.target.value);
-                  setPreview(null);
-                }}
-              >
-                <option value="">{t('admin.finance.billingAccounts.familyCollection.chooseStudent')}</option>
-                {students.map((s) => (
-                  <option key={s.student_id} value={s.student_id}>
-                    {s.student_name}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ) : null}
+          <p className="tiny muted finance-family-collection-allocation-options__hint" role="status">
+            {t('admin.finance.billingAccounts.familyCollection.manualAllocationHint')}
+          </p>
         </section>
 
         <details className="finance-collection-advanced">
@@ -527,42 +476,30 @@ export function FamilyCollectionWorkflowForm({
 
         {previewError ? <p className="form-error collection-form-preview-error">{previewError}</p> : null}
 
-        {preview ? (
-          <section className="collection-allocation-preview">
-            <h4>{t('admin.finance.billingAccounts.familyCollection.preview.title')}</h4>
-            <dl className="detail-list finance-family-collection-preview-metrics">
-              <div>
-                <dt>{t('admin.finance.billingAccounts.familyCollection.preview.allocated')}</dt>
-                <dd>
-                  <FinanceMoney amount={preview.allocated_amount} currency={currency} />
-                </dd>
-              </div>
-              <div>
-                <dt>{t('admin.finance.billingAccounts.familyCollection.preview.unallocated')}</dt>
-                <dd>
-                  <FinanceMoney amount={preview.unallocated_amount} currency={currency} />
-                </dd>
-              </div>
-              <div>
-                <dt>{t('admin.finance.billingAccounts.familyCollection.preview.credit')}</dt>
-                <dd>
-                  <FinanceMoney amount={preview.credit_amount ?? preview.credit_balance} currency={currency} />
-                </dd>
-              </div>
-            </dl>
-            {preview.warnings.length ? (
-              <div className="collection-allocation-preview__warning" role="status">
-                {preview.warnings.join(' · ')}
-              </div>
-            ) : null}
-            {preview.allocations.length ? (
-              <DataTable
-                columns={allocationColumns}
-                rows={preview.allocations}
-                rowKey={(row) => `${row.student_id ?? 'na'}-${row.installment_id ?? row.due_date ?? 'row'}`}
-              />
-            ) : null}
-          </section>
+        {context ? (
+          <FamilyCollectionAllocationSection
+            installments={context.open_installments}
+            currency={currency}
+            allocationInputs={allocationInputs}
+            onAllocationChange={(values) => {
+              setAllocationInputs(values);
+              setPreview(null);
+              setStep('edit');
+            }}
+          />
+        ) : null}
+
+        {step === 'review' && preview ? (
+          <FamilyCollectionReviewStep
+            accountName={accountName}
+            amount={parsedAmount}
+            allocated={preview.allocated_amount ?? allocatedAmount}
+            unallocated={preview.unallocated_amount ?? unallocatedAmount}
+            paymentMethod={paymentMethod}
+            currency={currency}
+            allocations={preview.allocations}
+            installments={context?.open_installments ?? []}
+          />
         ) : null}
 
         <CollectionCashSessionGate
@@ -592,14 +529,24 @@ export function FamilyCollectionWorkflowForm({
             >
               {previewLoading
                 ? t('common.loading')
-                : t('admin.finance.billingAccounts.familyCollection.preview.title')}
+                : t('admin.finance.billingAccounts.familyCollection.reviewAction')}
             </button>
             <button
               type="submit"
               className="btn btn--primary"
-              disabled={submitting || !previewValid || cashSessionBlocked}
+              disabled={submitting || cashSessionBlocked}
             >
               {submitting
+                ? t('admin.finance.collections.submitting')
+                : t('admin.finance.billingAccounts.familyCollection.saveDraftAction')}
+            </button>
+            <button
+              type="button"
+              className="btn btn--primary"
+              disabled={confirming || !previewValid || cashSessionBlocked || draftId == null}
+              onClick={() => void handleConfirm()}
+            >
+              {confirming
                 ? t('admin.finance.collections.submitting')
                 : t('admin.finance.billingAccounts.familyCollection.confirmAction')}
             </button>

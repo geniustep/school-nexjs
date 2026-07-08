@@ -74,6 +74,7 @@ export function ReceiptDetailView({
   ];
 
   const allocations = receipt.allocations ?? snapshot?.allocations ?? [];
+  const children = receipt.children ?? snapshot?.children ?? [];
 
   return (
     <div className="receipt-details">
@@ -247,6 +248,29 @@ export function ReceiptDetailView({
           <p className="muted">{t('admin.finance.receipts.noAllocations')}</p>
         )}
       </section>
+
+      {children.length ? (
+        <section className="card receipt-details__section">
+          <h2>{t('admin.finance.receipts.sections.children')}</h2>
+          <div className="receipt-details__children">
+            {children.map((child, idx) => (
+              <article key={`${child.student_id ?? idx}-${idx}`} className="receipt-details__child">
+                <strong dir="auto">{child.student_name ?? `#${child.student_id ?? idx + 1}`}</strong>
+                <dl className="detail-list compact">
+                  <div>
+                    <dt>{t('admin.finance.receipts.fields.allocatedAmount')}</dt>
+                    <dd><FinanceMoney amount={child.allocated_amount} currency={receipt.currency} /></dd>
+                  </div>
+                  <div>
+                    <dt>{t('admin.finance.receipts.fields.unallocatedAmount')}</dt>
+                    <dd><FinanceMoney amount={child.unallocated_amount} currency={receipt.currency} /></dd>
+                  </div>
+                </dl>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

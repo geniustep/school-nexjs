@@ -5,7 +5,9 @@ import { endpoints } from '@/lib/api/endpoints';
 import type { ApiResponse, ListParams } from '@/types/api';
 import type {
   FamilyCollectionContext,
-  FamilyCollectionCreateRequest,
+  FamilyCollectionConfirmResponse,
+  FamilyCollectionDetail,
+  FamilyCollectionDraftRequest,
   FamilyCollectionCreateResponse,
   FamilyCollectionPreviewRequest,
   FamilyCollectionPreviewResponse,
@@ -72,12 +74,45 @@ export async function previewFamilyCollectionAllocation(
 }
 
 export async function submitFamilyCollection(
-  payload: FamilyCollectionCreateRequest,
+  payload: FamilyCollectionDraftRequest,
   query?: ListParams,
 ): Promise<ApiResponse<FamilyCollectionCreateResponse>> {
   return api.post<FamilyCollectionCreateResponse>(
     endpoints.admin.financeFamilyCollections,
     payload,
+    query,
+  );
+}
+
+export async function updateFamilyCollectionDraft(
+  collectionId: number | string,
+  payload: FamilyCollectionDraftRequest,
+  query?: ListParams,
+): Promise<ApiResponse<FamilyCollectionDetail>> {
+  return api.put<FamilyCollectionDetail>(
+    endpoints.admin.financeFamilyCollection(collectionId),
+    payload,
+    query,
+  );
+}
+
+export async function getFamilyCollectionById(
+  collectionId: number | string,
+  query?: ListParams,
+): Promise<ApiResponse<FamilyCollectionDetail>> {
+  return api.get<FamilyCollectionDetail>(
+    endpoints.admin.financeFamilyCollection(collectionId),
+    query,
+  );
+}
+
+export async function confirmFamilyCollection(
+  collectionId: number | string,
+  query?: ListParams,
+): Promise<ApiResponse<FamilyCollectionConfirmResponse>> {
+  return api.post<FamilyCollectionConfirmResponse>(
+    endpoints.admin.financePaymentCollectionConfirm(collectionId),
+    {},
     query,
   );
 }
