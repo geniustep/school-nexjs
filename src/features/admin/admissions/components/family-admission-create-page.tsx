@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useStudentOptions } from '@/features/admin/students/hooks/use-student-options';
 import {
   resolveDefaultNationalityId,
+  resolveDefaultAcademicYearId,
   todayIsoDate,
 } from '@/features/admin/students/utils/student-profile';
 import { useAdminSession } from '@/features/auth/admin-session-context';
@@ -78,13 +79,19 @@ export function FamilyAdmissionCreatePage() {
   useEffect(() => {
     if (defaultsApplied || !admissionOptionsState.options) return;
     const sourceId = resolveDefaultAdmissionSourceId(admissionOptionsState.options.sources);
-    const currentYear = admissionOptionsState.options.academic_years.find((y) => y.is_current);
+    const yearIdRaw = resolveDefaultAcademicYearId(admissionOptionsState.options.academic_years);
+    const yearId = yearIdRaw ? Number(yearIdRaw) : undefined;
     setForm((prev) => ({
       ...prev,
       family: {
         ...prev.family,
         source_id: sourceId ?? prev.family.source_id,
-        academic_year_id: currentYear?.id ?? prev.family.academic_year_id,
+        academic_year_id:
+          prev.family.academic_year_id != null && prev.family.academic_year_id > 0
+            ? prev.family.academic_year_id
+            : yearId && Number.isFinite(yearId)
+              ? yearId
+              : prev.family.academic_year_id,
       },
     }));
     setDefaultsApplied(true);

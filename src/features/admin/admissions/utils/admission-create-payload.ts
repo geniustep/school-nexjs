@@ -135,7 +135,6 @@ export function buildCreateAdmissionPayload(
     requested_cycle_code: form.requested_cycle_code.trim() || undefined,
     requested_level_id: form.requested_level_id,
     requested_stream_id: includeStream ? form.requested_stream_id : undefined,
-    requested_class_id: form.requested_class_id,
     registration_type: form.registration_type || undefined,
     actual_join_date: form.actual_join_date || undefined,
     is_repeating: form.is_repeating || undefined,

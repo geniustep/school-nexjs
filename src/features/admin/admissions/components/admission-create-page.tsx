@@ -4,8 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { useStudentOptions } from '@/features/admin/students/hooks/use-student-options';
-import { localizeStudentGenderOptions, resolveDefaultNationalityId, todayIsoDate } from '@/features/admin/students/utils/student-profile';
-import { filterClassesForEnrollment } from '@/features/admin/students/utils/student-options';
+import { localizeStudentGenderOptions, resolveDefaultAcademicYearId, resolveDefaultNationalityId, todayIsoDate } from '@/features/admin/students/utils/student-profile';
 import { StudentCreateStyledSection } from '@/features/admin/students/components/student-create-section-header';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useLocale, useT } from '@/features/i18n/locale-context';
@@ -83,14 +82,6 @@ export function AdmissionCreatePage() {
     () => filterStreamsByLevel(allStreams, form.requested_level_id),
     [allStreams, form.requested_level_id],
   );
-  const filteredClasses = useMemo(
-    () =>
-      filterClassesForEnrollment(
-        studentOptionsState.options?.classes ?? [],
-        form.requested_level_id != null ? String(form.requested_level_id) : '',
-      ),
-    [studentOptionsState.options?.classes, form.requested_level_id],
-  );
   const intakeValues = useMemo(() => intakeFromAdmissionForm(form), [form]);
   const genders = useMemo(
     () => localizeStudentGenderOptions(studentOptionsState.options?.genders ?? [], t),
@@ -102,15 +93,22 @@ export function AdmissionCreatePage() {
   }
 
   useEffect(() => {
-    if (defaultsApplied || !admissionOptionsState.options?.sources.length) return;
+    if (defaultsApplied || !admissionOptionsState.options) return;
     const sourceId = resolveDefaultAdmissionSourceId(admissionOptionsState.options.sources);
-    if (sourceId == null) {
-      setDefaultsApplied(true);
-      return;
-    }
-    setForm((prev) => ({ ...prev, source_id: sourceId }));
+    const yearIdRaw = resolveDefaultAcademicYearId(admissionOptionsState.options.academic_years);
+    const yearId = yearIdRaw ? Number(yearIdRaw) : undefined;
+    setForm((prev) => ({
+      ...prev,
+      source_id: sourceId ?? prev.source_id,
+      academic_year_id:
+        prev.academic_year_id != null && prev.academic_year_id > 0
+          ? prev.academic_year_id
+          : yearId && Number.isFinite(yearId)
+            ? yearId
+            : prev.academic_year_id,
+    }));
     setDefaultsApplied(true);
-  }, [admissionOptionsState.options?.sources, defaultsApplied]);
+  }, [admissionOptionsState.options, defaultsApplied]);
 
   useEffect(() => {
     if (studentOptionsState.loading || !studentOptionsState.options?.nationalities.length) return;
@@ -239,12 +237,13 @@ export function AdmissionCreatePage() {
               cycles: filteredCycles.map((c) => ({ mode: 'code' as const, code: c.code, name: c.name })),
               levels: filteredLevels,
               streams: filteredStreams,
-              classes: filteredClasses,
+              classes: [],
               registrationTypes: studentOptionsState.options?.registrationTypes ?? [],
               levelRequiresStream: showStreamField,
               optionsLoading: admissionOptionsState.loading || studentOptionsState.loading,
               cyclesLoading: admissionOptionsState.loading,
               streamRequired: showStreamField,
+              showClass: false,
             }}
           />
           <EnrollmentIntakeRegistrationFields
