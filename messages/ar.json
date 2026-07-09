@@ -1371,8 +1371,27 @@
     "parentsListDesc": "إدارة أولياء الأمور",
     "parentsList": {
       "subtitleWithCount": "{total} ولي أمر في نطاقك",
-      "resultsCount": "{count} عائلة",
+      "resultsCount": "{count} عائلة في هذه الصفحة",
+      "paginationNote": "الترقيم حسب سجلات الأولياء ({total} إجمالي)",
       "resetFilters": "إعادة ضبط الفلاتر",
+      "clearSearch": "مسح البحث",
+      "refetching": "جارٍ تحديث النتائج…",
+      "childrenCount": "{count, plural, one {تلميذ واحد} two {تلميذان} few {# تلاميذ} many {# تلميذًا} other {# تلميذ}}",
+      "noData": {
+        "title": "لا يوجد أولياء أمور بعد",
+        "description": "لم يُسجَّل أي ولي أمر في نطاقك بعد."
+      },
+      "noMatch": {
+        "title": "لا توجد عائلات مطابقة",
+        "description": "جرّب تعديل البحث أو الفلاتر، أو أعد ضبطها لعرض كل العائلات."
+      },
+      "filters": {
+        "more": "فلاتر إضافية",
+        "hideMore": "إخفاء الفلاتر",
+        "chipStatus": "الحالة: {status}",
+        "chipRelationship": "صلة القرابة: {relationship}",
+        "chipShowGuardianOnly": "عرض الأولياء بدون تلاميذ"
+      },
       "guardiansTitle": "ولي الأمر",
       "filterChildren": "الأبناء",
       "filterChildrenAll": "كل الحالات",

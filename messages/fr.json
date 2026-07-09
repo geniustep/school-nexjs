@@ -1370,8 +1370,27 @@
     "parentsListDesc": "Gérer les parents",
     "parentsList": {
       "subtitleWithCount": "{total} responsables dans votre périmètre",
-      "resultsCount": "{count} familles",
+      "resultsCount": "{count} familles sur cette page",
+      "paginationNote": "pagination par fiches responsables ({total} au total)",
       "resetFilters": "Réinitialiser les filtres",
+      "clearSearch": "Effacer la recherche",
+      "refetching": "Mise à jour des résultats…",
+      "childrenCount": "{count, plural, one {# enfant} other {# enfants}}",
+      "noData": {
+        "title": "Aucun responsable pour l'instant",
+        "description": "Aucun responsable n'est enregistré dans votre périmètre."
+      },
+      "noMatch": {
+        "title": "Aucune famille correspondante",
+        "description": "Essayez d'ajuster la recherche ou les filtres, ou réinitialisez-les pour tout afficher."
+      },
+      "filters": {
+        "more": "Plus de filtres",
+        "hideMore": "Masquer les filtres",
+        "chipStatus": "Statut : {status}",
+        "chipRelationship": "Lien : {relationship}",
+        "chipShowGuardianOnly": "Affichage des responsables sans élèves"
+      },
       "guardiansTitle": "Responsables",
       "filterChildren": "Enfants",
       "filterChildrenAll": "Tous les cas",

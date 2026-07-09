@@ -1371,8 +1371,27 @@
     "parentsListDesc": "Manage parents",
     "parentsList": {
       "subtitleWithCount": "{total} guardians in your scope",
-      "resultsCount": "{count} families",
+      "resultsCount": "{count} families on this page",
+      "paginationNote": "pagination by guardian records ({total} total)",
       "resetFilters": "Reset filters",
+      "clearSearch": "Clear search",
+      "refetching": "Updating results…",
+      "childrenCount": "{count, plural, one {# child} other {# children}}",
+      "noData": {
+        "title": "No guardians yet",
+        "description": "No guardians are registered in your scope yet."
+      },
+      "noMatch": {
+        "title": "No matching families",
+        "description": "Try adjusting search or filters, or reset them to show all families."
+      },
+      "filters": {
+        "more": "More filters",
+        "hideMore": "Hide filters",
+        "chipStatus": "Status: {status}",
+        "chipRelationship": "Relationship: {relationship}",
+        "chipShowGuardianOnly": "Showing guardians without pupils"
+      },
       "guardiansTitle": "Guardians",
       "filterChildren": "Children",
       "filterChildrenAll": "All cases",

@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { filterParentFamilies } from '@/features/admin/parents/utils/filter-parent-families';
+import {
+  countHiddenGuardianOnlyFamilies,
+  filterParentFamilies,
+} from '@/features/admin/parents/utils/filter-parent-families';
 import type { ParentFamilyGroup } from '@/features/admin/parents/utils/group-parents-by-family';
 import type { Parent } from '@/types/parent';
 
@@ -51,5 +54,18 @@ describe('filterParentFamilies hideWithoutChildren', () => {
       '',
     );
     expect(result).toEqual([withoutChildren]);
+  });
+});
+
+describe('countHiddenGuardianOnlyFamilies', () => {
+  const withChildren = makeFamily([{ id: 10, name: 'ياسر' }], ['محمد']);
+  const withoutChildren = makeFamily([], ['ولي بدون تلميذ']);
+
+  it('counts guardian-only families hidden by default toggle', () => {
+    expect(countHiddenGuardianOnlyFamilies([withChildren, withoutChildren], {}, '')).toBe(1);
+  });
+
+  it('returns zero when search reveals guardian-only families', () => {
+    expect(countHiddenGuardianOnlyFamilies([withChildren, withoutChildren], {}, 'بدون')).toBe(0);
   });
 });

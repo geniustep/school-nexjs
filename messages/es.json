@@ -1370,8 +1370,27 @@
     "parentsListDesc": "Gestionar padres",
     "parentsList": {
       "subtitleWithCount": "{total} tutores en su ámbito",
-      "resultsCount": "{count} familias",
+      "resultsCount": "{count} familias en esta página",
+      "paginationNote": "paginación por registros de tutores ({total} en total)",
       "resetFilters": "Restablecer filtros",
+      "clearSearch": "Borrar búsqueda",
+      "refetching": "Actualizando resultados…",
+      "childrenCount": "{count, plural, one {# hijo} other {# hijos}}",
+      "noData": {
+        "title": "Aún no hay tutores",
+        "description": "No hay tutores registrados en su ámbito."
+      },
+      "noMatch": {
+        "title": "No hay familias coincidentes",
+        "description": "Pruebe a ajustar la búsqueda o los filtros, o restablézcalos para ver todas las familias."
+      },
+      "filters": {
+        "more": "Más filtros",
+        "hideMore": "Ocultar filtros",
+        "chipStatus": "Estado: {status}",
+        "chipRelationship": "Parentesco: {relationship}",
+        "chipShowGuardianOnly": "Mostrando tutores sin alumnos"
+      },
       "guardiansTitle": "Tutores",
       "filterChildren": "Hijos",
       "filterChildrenAll": "Todos los casos",
