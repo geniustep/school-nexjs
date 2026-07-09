@@ -1,12 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { LoadingState } from '@/components/states/states';
 import { Badge } from '@/components/ui/primitives';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { fetchFamilyBatchDetail } from '../api/family-admissions-api';
+import {
+  trackFamilyPanelOpened,
+  trackFamilySiblingLinkClicked,
+} from '../utils/family-admissions-analytics';
 import { familyBatchApplicationReference } from '../utils/family-admission-normalize';
 import { admissionUiStageTone, resolveAdmissionUiStage } from '../utils/admission-ui-stage';
 import type { FamilyBatchDetail } from '@/types/admission';
@@ -27,6 +31,7 @@ export function FamilyAdmissionFamilyPanel({
   const [detail, setDetail] = useState<FamilyBatchDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const panelOpenedSent = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -38,6 +43,12 @@ export function FamilyAdmissionFamilyPanel({
         if (cancelled) return;
         if (res.success && res.data) {
           setDetail(res.data);
+          if (!panelOpenedSent.current) {
+            panelOpenedSent.current = true;
+            trackFamilyPanelOpened(
+              res.data.application_count ?? familySize ?? res.data.applications.length,
+            );
+          }
         } else {
           setError(true);
         }
@@ -94,7 +105,11 @@ export function FamilyAdmissionFamilyPanel({
                     ) : null}
                   </div>
                   {!isCurrent ? (
-                    <Link href={`/admin/admissions/${app.id}`} className="btn btn--ghost btn--sm">
+                    <Link
+                      href={`/admin/admissions/${app.id}`}
+                      className="btn btn--ghost btn--sm"
+                      onClick={() => trackFamilySiblingLinkClicked()}
+                    >
                       {t('admin.admissions.family.openApplication')}
                     </Link>
                   ) : null}
