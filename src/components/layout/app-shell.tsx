@@ -1,5 +1,10 @@
 'use client';
 
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
 import { useState } from 'react';
 import { useMobileNavCoordinator } from '@/hooks/mobile-nav-coordinator';
 import Link from 'next/link';
@@ -202,7 +207,7 @@ export function AppShell({
 
       <div className="main">
         <header className={cn('topbar', isTeacher && 'topbar--teacher', 'admin-mobile-header')}>
-          <div className="topbar__start">
+          <div className="topbar__start topbar__context">
             <button
               type="button"
               className="btn btn--ghost btn--sm menu-toggle admin-mobile-menu-trigger"

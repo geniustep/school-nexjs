@@ -1,5 +1,10 @@
 'use client';
 
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Avatar } from '@/components/ui/primitives';
@@ -125,7 +130,7 @@ export function StudentSpotlight({
         onKeyDown={handleKeyDown}
       >
         <div className="student-spotlight__search-row">
-          <IconSearch size={18} />
+          <IconSearch size={18} aria-hidden="true" />
           <input
             ref={inputRef}
             className="input"
@@ -164,21 +169,17 @@ export function StudentSpotlight({
 
           {showSuggestion ? (
             <div className="student-spotlight__suggestion-wrap">
-              <p
-                className="student-spotlight__suggestion"
-                aria-label={t('admin.spotlight.didYouMean', { query: suggestion })}
-              >
-                <span aria-hidden="true">
-                  {didYouMeanParts.before}
-                  <button
-                    type="button"
-                    className="student-spotlight__suggestion-query"
-                    onClick={() => applySuggestion(suggestion)}
-                  >
-                    {suggestion}
-                  </button>
-                  {didYouMeanParts.after}
-                </span>
+              <p className="student-spotlight__suggestion">
+                <span aria-hidden="true">{didYouMeanParts.before}</span>
+                <button
+                  type="button"
+                  className="student-spotlight__suggestion-query"
+                  onClick={() => applySuggestion(suggestion)}
+                  aria-label={t('admin.spotlight.didYouMean', { query: suggestion })}
+                >
+                  {suggestion}
+                </button>
+                <span aria-hidden="true">{didYouMeanParts.after}</span>
               </p>
               <p className="student-spotlight__state student-spotlight__state--secondary">
                 {t('admin.spotlight.empty')}

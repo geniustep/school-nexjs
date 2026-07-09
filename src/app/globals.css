@@ -370,6 +370,11 @@ h4 {
   gap: 14px;
 }
 
+.topbar__context {
+  flex: 1;
+  min-width: 0;
+}
+
 .user-chip {
   display: flex;
   align-items: center;
