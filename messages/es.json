@@ -799,6 +799,17 @@
         "student_code": "Número escolar"
       }
     },
+    "studentSearchPicker": {
+      "placeholder": "Buscar un alumno…",
+      "minLengthHint": "Escriba al menos {count} caracteres para buscar.",
+      "loading": "Buscando…",
+      "empty": "No hay alumnos coincidentes.",
+      "error": "No se pudieron cargar los resultados.",
+      "matchedOnPrefix": "Coincidencia vía: {field}",
+      "clearSearch": "Borrar búsqueda",
+      "clearSelection": "Quitar selección",
+      "selectedLabel": "Alumno seleccionado"
+    },
     "multiSchoolPortfolioPending": "La vista general multi-centro estará disponible cuando la API del panel portfolio esté lista.",
     "activeSchoolWorking": "Centro activo: {school}",
     "schoolFallback": "Escuela #{id}",

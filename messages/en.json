@@ -798,6 +798,17 @@
         "student_code": "School number"
       }
     },
+    "studentSearchPicker": {
+      "placeholder": "Search for a student…",
+      "minLengthHint": "Type at least {count} characters to search.",
+      "loading": "Searching…",
+      "empty": "No matching students.",
+      "error": "Could not load search results.",
+      "matchedOnPrefix": "Matched via: {field}",
+      "clearSearch": "Clear search",
+      "clearSelection": "Clear selection",
+      "selectedLabel": "Selected student"
+    },
     "multiSchoolPortfolioPending": "A multi-school overview will be available when the portfolio dashboard API is ready.",
     "activeSchoolWorking": "Currently working on: {school}",
     "schoolFallback": "School #{id}",

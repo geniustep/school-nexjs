@@ -799,6 +799,17 @@
         "student_code": "Numéro scolaire"
       }
     },
+    "studentSearchPicker": {
+      "placeholder": "Rechercher un élève…",
+      "minLengthHint": "Saisissez au moins {count} caractères pour lancer la recherche.",
+      "loading": "Recherche…",
+      "empty": "Aucun élève correspondant.",
+      "error": "Impossible de charger les résultats.",
+      "matchedOnPrefix": "Correspondance via : {field}",
+      "clearSearch": "Effacer la recherche",
+      "clearSelection": "Effacer la sélection",
+      "selectedLabel": "Élève sélectionné"
+    },
     "multiSchoolPortfolioPending": "Une vue d'ensemble multi-établissements sera disponible lorsque l'API du tableau de bord portfolio sera prête.",
     "activeSchoolWorking": "Établissement actif : {school}",
     "schoolFallback": "École #{id}",

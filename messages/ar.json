@@ -798,6 +798,17 @@
         "student_code": "الرقم المدرسي"
       }
     },
+    "studentSearchPicker": {
+      "placeholder": "ابحث عن تلميذ…",
+      "minLengthHint": "أدخل {count} أحرف على الأقل للبحث.",
+      "loading": "جارٍ البحث…",
+      "empty": "لا يوجد تلاميذ مطابقون.",
+      "error": "تعذّر تحميل نتائج البحث.",
+      "matchedOnPrefix": "تطابق عبر: {field}",
+      "clearSearch": "مسح البحث",
+      "clearSelection": "إلغاء الاختيار",
+      "selectedLabel": "التلميذ المختار"
+    },
     "multiSchoolPortfolioPending": "ستتوفر نظرة عامة على كل المدارس عند جاهزية واجهة لوحة المحفظة.",
     "activeSchoolWorking": "تعمل حالياً على: {school}",
     "schoolFallback": "مدرسة #{id}",
