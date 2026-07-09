@@ -314,6 +314,8 @@ export interface StudentCreateBillingFormState {
   billingGuardianEntryKey: string | null;
   /** Additional guardians beyond the primary wizard slot */
   guardianEntries: StudentCreateGuardianEntry[];
+  /** Per additional entryKey: new vs existing search UI before the entry is complete */
+  additionalGuardianSourceModeByEntryKey: Record<string, StudentCreateGuardianSourceMode>;
   /** Opt-in portal provisioning per guardian entryKey — omitted/false means no request */
   provisionAccessByEntryKey: Record<string, boolean>;
 }

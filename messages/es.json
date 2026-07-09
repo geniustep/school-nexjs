@@ -4663,7 +4663,10 @@
           "guardianSourceLinkedLead": "{name} se vinculará al alumno automáticamente tras guardar.",
           "guardianSourceMatchesTitle": "Posibles coincidencias",
           "guardianSourceMatchesLead": "Seleccione la persona correcta abajo o confirme que es un tutor nuevo.",
-          "guardianSourceSearchingTitle": "Comprobando"
+          "guardianSourceSearchingTitle": "Comprobando",
+          "addAnotherGuardian": "Añadir otro tutor",
+          "additionalGuardianTitle": "Tutor adicional",
+          "removeAdditionalGuardian": "Quitar"
         },
         "billingResponsibility": {
           "title": "Responsabilidad de facturación",
@@ -4694,7 +4697,9 @@
             "billingGuardianNotLinked": "La persona seleccionada no puede usarse como tutor de facturación. Busque un perfil de tutor existente.",
             "billingGuardianRelationshipInactive": "La relación del tutor de facturación seleccionado está inactiva. Elija otro tutor.",
             "guardianIdentityCandidateExists": "Ya existe un tutor coincidente. Busque y seleccione el tutor existente en lugar de crear un duplicado.",
-            "guardianLoginConflict": "No se pudo crear la cuenta de acceso: los datos de contacto están vinculados a otra cuenta. Revise los datos del tutor sin exponer la otra cuenta."
+            "guardianLoginConflict": "No se pudo crear la cuenta de acceso: los datos de contacto están vinculados a otra cuenta. Revise los datos del tutor sin exponer la otra cuenta.",
+            "duplicateGuardianInWizard": "Este tutor ya figura en este registro. Elija otra persona.",
+            "additionalGuardianIncomplete": "Complete los datos de este tutor o elimine la entrada antes de continuar."
           },
           "guardianRequiredHint": "Introduzca los datos del tutor arriba — la facturación al tutor exige al menos un tutor.",
           "billingGuardianLabel": "Tutor de facturación",
@@ -4866,7 +4871,10 @@
             "periodModified": "Mes modificado — {detail}"
           },
           "stageGuardians": "Tutores",
-          "guardiansOverview": "Datos de acceso del tutor"
+          "guardiansOverview": "Datos de acceso del tutor",
+          "guardianExisting": "Tutor existente",
+          "guardianNew": "Tutor nuevo",
+          "guardianBillingResponsible": "Tutor de facturación"
         }
       },
       "setup": {

@@ -14,8 +14,13 @@ import { GuardianAccountOnboardingPanel } from './guardian-account-onboarding-pa
 function resolveEntryAccountSource(
   entry: StudentCreateGuardianEntry,
   linkedGuardianPerson: PersonSearchResult | null,
+  linkedGuardianPersonsByEntryKey: Record<string, PersonSearchResult>,
 ): PersonSearchResult | null {
   if (entry.kind !== 'existing') return null;
+  const fromMap = linkedGuardianPersonsByEntryKey[entry.entryKey];
+  if (fromMap && entry.guardian_id === fromMap.guardian_id) {
+    return fromMap;
+  }
   if (linkedGuardianPerson && entry.guardian_id === linkedGuardianPerson.guardian_id) {
     return linkedGuardianPerson;
   }
@@ -35,11 +40,13 @@ export function StudentCreateGuardianProvisionSection({
   guardianEntries,
   provisionAccessByEntryKey,
   linkedGuardianPerson,
+  linkedGuardianPersonsByEntryKey = {},
   onProvisionAccessChange,
 }: {
   guardianEntries: StudentCreateGuardianEntry[];
   provisionAccessByEntryKey: Record<string, boolean>;
   linkedGuardianPerson: PersonSearchResult | null;
+  linkedGuardianPersonsByEntryKey?: Record<string, PersonSearchResult>;
   onProvisionAccessChange: (entryKey: string, enabled: boolean) => void;
 }) {
   const t = useT();
@@ -56,7 +63,11 @@ export function StudentCreateGuardianProvisionSection({
       </p>
       <ul className="student-create-guardian-provision__list">
         {guardianEntries.map((entry) => {
-          const accountSource = resolveEntryAccountSource(entry, linkedGuardianPerson);
+          const accountSource = resolveEntryAccountSource(
+            entry,
+            linkedGuardianPerson,
+            linkedGuardianPersonsByEntryKey,
+          );
           const accountPresentation = accountSource
             ? resolveGuardianAccountPresentation(accountSource)
             : null;

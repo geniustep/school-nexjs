@@ -12,6 +12,11 @@ import type {
 import type { StudentProfileFormState } from './student-profile';
 import { buildBillingResponsibilityRequest } from './student-create-billing-responsibility';
 import { relationshipTypeLabel } from './relationship-types';
+import {
+  isCompleteStudentCreateGuardianEntry,
+  validateAdditionalGuardianEntries,
+  type AdditionalGuardianValidationErrors,
+} from './student-create-additional-guardians';
 
 function trim(value: string | undefined | null): string {
   return (value ?? '').trim();
@@ -67,12 +72,17 @@ export function derivePrimaryStudentCreateGuardianEntry(
 export function collectStudentCreateGuardianEntries(
   profileState: StudentProfileFormState,
   billingState: StudentCreateBillingFormState,
+  options?: { completeOnly?: boolean },
 ): StudentCreateGuardianEntry[] {
   const primary = derivePrimaryStudentCreateGuardianEntry(profileState, billingState);
   const additional = billingState.guardianEntries.filter(
     (entry) => entry.entryKey !== primary?.entryKey,
   );
-  return primary ? [primary, ...additional] : additional;
+  const entries = primary ? [primary, ...additional] : additional;
+  if (options?.completeOnly) {
+    return entries.filter(isCompleteStudentCreateGuardianEntry);
+  }
+  return entries;
 }
 
 export function resolveBillingGuardianEntryKey(
@@ -161,7 +171,9 @@ export function applyStudentCreateGuardianAtomicContractToPayload(
   profileState: StudentProfileFormState,
   billingState: StudentCreateBillingFormState,
 ): StudentCreatePayload {
-  const entries = collectStudentCreateGuardianEntries(profileState, billingState);
+  const entries = collectStudentCreateGuardianEntries(profileState, billingState, {
+    completeOnly: true,
+  });
   const billingGuardianEntryKey = resolveBillingGuardianEntryKey(entries, billingState);
   const billingResponsibility = buildStudentCreateBillingResponsibilityRequest(
     billingState,
@@ -192,7 +204,7 @@ export function hasAtomicallySubmittedGuardians(payload: StudentCreatePayload): 
 export type StudentCreateGuardianValidationErrors = {
   billingGuardianSelection?: string;
   guardianRequired?: string;
-};
+} & AdditionalGuardianValidationErrors;
 
 export function validateStudentCreateGuardianContract(
   profileState: StudentProfileFormState,
@@ -202,14 +214,37 @@ export function validateStudentCreateGuardianContract(
   const errors: StudentCreateGuardianValidationErrors = {};
 
   if (billingState.responsibilitySelection !== 'guardian') {
+    const additionalValidation = validateAdditionalGuardianEntries(profileState, billingState, t);
+    if (!additionalValidation.valid) {
+      return {
+        valid: false,
+        errors: { ...errors, ...additionalValidation.errors },
+        message:
+          additionalValidation.errors.duplicateGuardianId ??
+          Object.values(additionalValidation.errors.additionalGuardianErrorsByEntryKey ?? {})[0],
+      };
+    }
     return { valid: true, errors };
   }
 
-  const entries = collectStudentCreateGuardianEntries(profileState, billingState);
+  const entries = collectStudentCreateGuardianEntries(profileState, billingState, {
+    completeOnly: true,
+  });
   if (entries.length === 0) {
     const message = t('admin.student360.create.billingResponsibility.errors.guardianRequired');
     errors.guardianRequired = message;
     return { valid: false, errors, message };
+  }
+
+  const additionalValidation = validateAdditionalGuardianEntries(profileState, billingState, t);
+  if (!additionalValidation.valid) {
+    return {
+      valid: false,
+      errors: { ...errors, ...additionalValidation.errors },
+      message:
+        additionalValidation.errors.duplicateGuardianId ??
+        Object.values(additionalValidation.errors.additionalGuardianErrorsByEntryKey ?? {})[0],
+    };
   }
 
   if (entries.length > 1 && !billingState.billingGuardianEntryKey) {

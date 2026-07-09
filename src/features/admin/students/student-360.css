@@ -13236,6 +13236,62 @@
   font-weight: 600;
 }
 
+.student-create-additional-guardians {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.student-create-additional-guardians__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.student-create-additional-guardians__add {
+  align-self: flex-start;
+}
+
+.student-create-additional-guardian-card {
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--border, #dbe3ee) 80%, transparent);
+  background: color-mix(in srgb, var(--surface, #fff) 96%, var(--muted, #f4f6f9));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.student-create-additional-guardian-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.student-create-additional-guardian-card__title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.student-create-additional-guardian-card__mode {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.student-create-additional-guardian-card__linked {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .student-create-guardian-onboarding-banner {
   margin-bottom: 16px;
   padding: 16px;

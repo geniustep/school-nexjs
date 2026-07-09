@@ -4696,7 +4696,10 @@
           "guardianSourceLinkedLead": "سيتم إرسال {name} مع التلميذ في طلب الإنشاء.",
           "guardianSourceMatchesTitle": "وُجدت مطابقات محتملة",
           "guardianSourceMatchesLead": "اختر الشخص المناسب من القائمة، أو أكّد أنه ولي جديد.",
-          "guardianSourceSearchingTitle": "جارٍ التحقق"
+          "guardianSourceSearchingTitle": "جارٍ التحقق",
+          "addAnotherGuardian": "إضافة ولي آخر",
+          "additionalGuardianTitle": "ولي إضافي",
+          "removeAdditionalGuardian": "إزالة"
         },
         "billingResponsibility": {
           "title": "مسؤولية الفوترة",
@@ -4727,7 +4730,9 @@
             "billingGuardianNotLinked": "لا يمكن استخدام هذا الشخص كولي فوترة. ابحث عن ملف ولي موجود.",
             "billingGuardianRelationshipInactive": "علاقة ولي الفوترة المختار غير نشطة. اختر وليًا آخر.",
             "guardianIdentityCandidateExists": "يوجد ولي مطابق بالبيانات المدخلة. ابحث واختر الولي الموجود بدل إنشاء نسخة جديدة.",
-            "guardianLoginConflict": "تعذّر إنشاء حساب الدخول: بيانات الاتصال مرتبطة بحساب آخر. راجع بيانات الولي أو اطلب المساعدة دون كشف تفاصيل الحساب الآخر."
+            "guardianLoginConflict": "تعذّر إنشاء حساب الدخول: بيانات الاتصال مرتبطة بحساب آخر. راجع بيانات الولي أو اطلب المساعدة دون كشف تفاصيل الحساب الآخر.",
+            "duplicateGuardianInWizard": "هذا الولي مدرج مسبقًا في هذا التسجيل. اختر شخصًا آخر.",
+            "additionalGuardianIncomplete": "أكمل بيانات هذا الولي أو احذف الإدخال قبل المتابعة."
           },
           "guardianRequiredHint": "أدخل بيانات ولي الأمر أعلاه — فوترة الولي تتطلب وليًا واحدًا على الأقل.",
           "billingGuardianLabel": "ولي الفوترة",
@@ -4899,7 +4904,10 @@
             "periodModified": "تعديل شهر — {detail}"
           },
           "stageGuardians": "أولياء الأمر",
-          "guardiansOverview": "بيانات دخول ولي الأمر"
+          "guardiansOverview": "بيانات دخول ولي الأمر",
+          "guardianExisting": "ولي موجود",
+          "guardianNew": "ولي جديد",
+          "guardianBillingResponsible": "ولي الفوترة"
         }
       },
       "setup": {

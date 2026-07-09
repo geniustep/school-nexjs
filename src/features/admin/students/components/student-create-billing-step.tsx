@@ -9,6 +9,7 @@ import {
 import type { EnrollmentIntakeFieldErrors, EnrollmentIntakePatch, EnrollmentIntakeValues } from '@/features/admin/enrollment-intake/types';
 import type { BillingResponsibilityFieldErrors } from '@/features/admin/students/utils/student-create-billing-responsibility';
 import { guardianEntryBillingOptionLabel, guardianEntryLabel } from '@/features/admin/students/utils/student-create-guardian-payload';
+import { isCompleteStudentCreateGuardianEntry } from '@/features/admin/students/utils/student-create-additional-guardians';
 import type {
   StudentCreateBillingFormState,
   StudentCreateGuardianEntry,
@@ -16,6 +17,7 @@ import type {
 import type { PersonSearchResult } from '@/types/student-360';
 import { StudentCreateGuardianSourcePanel } from './student-create-guardian-source-panel';
 import { StudentCreateGuardianProvisionSection } from './student-create-guardian-provision-section';
+import { StudentCreateAdditionalGuardiansSection } from './student-create-additional-guardians-section';
 import { StudentCreateStyledSection } from './student-create-section-header';
 
 export function StudentCreateBillingStep({
@@ -31,6 +33,14 @@ export function StudentCreateBillingStep({
   onClearLinkedGuardian,
   onGuardianSourceModeChange,
   onProvisionAccessChange,
+  onAddAdditionalGuardian,
+  onAdditionalGuardianSourceModeChange,
+  onUpdateAdditionalGuardian,
+  onLinkAdditionalGuardian,
+  onClearAdditionalGuardian,
+  onRemoveAdditionalGuardian,
+  usedGuardianIds,
+  linkedGuardianPersonsByEntryKey,
   guardian,
 }: {
   billingState: StudentCreateBillingFormState;
@@ -45,6 +55,17 @@ export function StudentCreateBillingStep({
   onClearLinkedGuardian: () => void;
   onGuardianSourceModeChange: (mode: StudentCreateBillingFormState['guardianSourceMode']) => void;
   onProvisionAccessChange: (entryKey: string, enabled: boolean) => void;
+  onAddAdditionalGuardian: () => void;
+  onAdditionalGuardianSourceModeChange: (
+    entryKey: string,
+    mode: StudentCreateBillingFormState['guardianSourceMode'],
+  ) => void;
+  onUpdateAdditionalGuardian: (entryKey: string, next: StudentCreateGuardianEntry) => void;
+  onLinkAdditionalGuardian: (entryKey: string, person: PersonSearchResult) => void;
+  onClearAdditionalGuardian: (entryKey: string) => void;
+  onRemoveAdditionalGuardian: (entryKey: string) => void;
+  usedGuardianIds: Set<number>;
+  linkedGuardianPersonsByEntryKey: Record<string, PersonSearchResult>;
   guardian: EnrollmentIntakeGuardianOptions;
 }) {
   const t = useT();
@@ -55,8 +76,9 @@ export function StudentCreateBillingStep({
     billingState.guardianSourceMode === 'existing' && billingState.linkedGuardianId != null;
   const studentMode = billingState.responsibilitySelection === 'student';
   const guardianBillingMode = billingState.responsibilitySelection === 'guardian';
-  const multipleGuardians = guardianEntries.length > 1;
-  const selectedBillingGuardian = guardianEntries.find(
+  const billingGuardianOptions = guardianEntries.filter(isCompleteStudentCreateGuardianEntry);
+  const multipleGuardians = billingGuardianOptions.length > 1;
+  const selectedBillingGuardian = billingGuardianOptions.find(
     (entry) => entry.entryKey === billingState.billingGuardianEntryKey,
   );
 
@@ -67,8 +89,8 @@ export function StudentCreateBillingStep({
       studentBillingConfirmed: selection === 'student' ? billingState.studentBillingConfirmed : false,
       studentBillingReason: selection === 'student' ? billingState.studentBillingReason : '',
       billingGuardianEntryKey:
-        selection === 'guardian' && guardianEntries.length === 1
-          ? guardianEntries[0].entryKey
+        selection === 'guardian' && billingGuardianOptions.length === 1
+          ? billingGuardianOptions[0].entryKey
           : selection === 'guardian'
             ? billingState.billingGuardianEntryKey
             : null,
@@ -98,6 +120,20 @@ export function StudentCreateBillingStep({
         guardian={guardian}
         lockProfileFields={pendingExistingSearch}
         profileReadOnly={linkedExisting}
+      />
+
+      <StudentCreateAdditionalGuardiansSection
+        billingState={billingState}
+        billingErrors={billingErrors}
+        guardian={guardian}
+        usedGuardianIds={usedGuardianIds}
+        linkedGuardianPersonsByEntryKey={linkedGuardianPersonsByEntryKey}
+        onAddGuardian={onAddAdditionalGuardian}
+        onSourceModeChange={onAdditionalGuardianSourceModeChange}
+        onUpdateEntry={onUpdateAdditionalGuardian}
+        onLinkExisting={onLinkAdditionalGuardian}
+        onClearLink={onClearAdditionalGuardian}
+        onRemove={onRemoveAdditionalGuardian}
       />
 
       {billingErrors?.guardianRequired ? (
@@ -161,7 +197,7 @@ export function StudentCreateBillingStep({
                 <option value="">
                   {t('admin.student360.create.billingResponsibility.billingGuardianPlaceholder')}
                 </option>
-                {guardianEntries.map((entry) => (
+                {billingGuardianOptions.map((entry) => (
                   <option key={entry.entryKey} value={entry.entryKey}>
                     {guardianEntryBillingOptionLabel(entry, t)}
                   </option>
@@ -234,6 +270,7 @@ export function StudentCreateBillingStep({
         guardianEntries={guardianEntries}
         provisionAccessByEntryKey={billingState.provisionAccessByEntryKey}
         linkedGuardianPerson={linkedGuardianPerson}
+        linkedGuardianPersonsByEntryKey={linkedGuardianPersonsByEntryKey}
         onProvisionAccessChange={onProvisionAccessChange}
       />
 

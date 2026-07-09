@@ -4669,7 +4669,10 @@
           "guardianSourceLinkedLead": "{name} will be sent with the student in the create request.",
           "guardianSourceMatchesTitle": "Possible matches found",
           "guardianSourceMatchesLead": "Select the right person below, or confirm this is a new guardian.",
-          "guardianSourceSearchingTitle": "Checking"
+          "guardianSourceSearchingTitle": "Checking",
+          "addAnotherGuardian": "Add another guardian",
+          "additionalGuardianTitle": "Additional guardian",
+          "removeAdditionalGuardian": "Remove"
         },
         "billingResponsibility": {
           "title": "Billing responsibility",
@@ -4700,7 +4703,9 @@
             "billingGuardianNotLinked": "The selected person cannot be used as a billing guardian. Search for an existing guardian profile.",
             "billingGuardianRelationshipInactive": "The selected billing guardian relationship is inactive. Choose another guardian.",
             "guardianIdentityCandidateExists": "A matching guardian already exists. Search and select the existing guardian instead of creating a duplicate.",
-            "guardianLoginConflict": "Could not create the login account: the contact details are linked to another account. Review the guardian details or ask for help without exposing the other account."
+            "guardianLoginConflict": "Could not create the login account: the contact details are linked to another account. Review the guardian details or ask for help without exposing the other account.",
+            "duplicateGuardianInWizard": "This guardian is already listed in this registration. Choose a different person.",
+            "additionalGuardianIncomplete": "Complete this guardian's details or remove the entry before continuing."
           },
           "guardianRequiredHint": "Enter guardian details above — guardian billing requires at least one guardian.",
           "billingGuardianLabel": "Billing guardian",
@@ -4872,7 +4877,10 @@
             "periodModified": "Modified month — {detail}"
           },
           "stageGuardians": "Guardians",
-          "guardiansOverview": "Guardian login details"
+          "guardiansOverview": "Guardian login details",
+          "guardianExisting": "Existing guardian",
+          "guardianNew": "New guardian",
+          "guardianBillingResponsible": "Billing guardian"
         }
       },
       "setup": {

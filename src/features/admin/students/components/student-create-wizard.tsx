@@ -98,6 +98,12 @@ import {
   validateStudentCreateGuardianContract,
 } from '../utils/student-create-guardian-payload';
 import {
+  collectUsedGuardianIds,
+  createEmptyAdditionalGuardianEntry,
+  entryFromLinkedExistingGuardian,
+  isCompleteStudentCreateGuardianEntry,
+} from '../utils/student-create-additional-guardians';
+import {
   extractGuardianAccountPresentationsFromCreateResponse,
   persistStudentCreateGuardianOnboarding,
 } from '../utils/resolve-guardian-account-presentation';
@@ -105,6 +111,7 @@ import { resolvePostCreateBillingOutcome } from '../utils/resolve-post-create-bi
 import type {
   StudentCreateBillingFormState,
   StudentCreateFinanceFormState,
+  StudentCreateGuardianEntry,
 } from '@/types/student-enrollment-finance';
 
 export type StudentCreateSaveMode = 'setup' | 'list';
@@ -192,6 +199,9 @@ export function StudentCreateForm({
   const admissionPrefillHadClassRef = useRef(Boolean(initialProfilePatch?.classId?.trim()));
   const skipGuardianLinkClearRef = useRef(false);
   const [linkedGuardianPerson, setLinkedGuardianPerson] = useState<PersonSearchResult | null>(null);
+  const [linkedGuardianPersonsByEntryKey, setLinkedGuardianPersonsByEntryKey] = useState<
+    Record<string, PersonSearchResult>
+  >({});
 
   useEffect(() => {
     if (optionsState.loading) return;
@@ -494,10 +504,28 @@ export function StudentCreateForm({
     skipGuardianLinkClearRef.current = false;
   }
 
+  function guardianIdAlreadyUsedInWizard(
+    guardianId: number,
+    excludeEntryKey?: string,
+  ): boolean {
+    const used = collectUsedGuardianIds(state, billingState);
+    if (excludeEntryKey) {
+      const excluded = billingState.guardianEntries.find((entry) => entry.entryKey === excludeEntryKey);
+      if (excluded?.kind === 'existing') {
+        used.delete(excluded.guardian_id);
+      }
+    }
+    return used.has(guardianId);
+  }
+
   function handleLinkExistingGuardian(person: PersonSearchResult) {
     const guardianId = resolvePersonSchoolParentId(person);
     if (guardianId == null) {
       toast.error(t('admin.student360.create.billingResponsibility.errors.billingGuardianNotLinked'));
+      return;
+    }
+    if (guardianIdAlreadyUsedInWizard(guardianId)) {
+      toast.error(t('admin.student360.create.billingResponsibility.errors.duplicateGuardianInWizard'));
       return;
     }
     skipGuardianLinkClearRef.current = true;
@@ -552,6 +580,201 @@ export function StudentCreateForm({
       return { ...prev, provisionAccessByEntryKey };
     });
   }
+
+  function handleAddAdditionalGuardian() {
+    const entry = createEmptyAdditionalGuardianEntry();
+    setBillingState((prev) => ({
+      ...prev,
+      guardianEntries: [...prev.guardianEntries, entry],
+      additionalGuardianSourceModeByEntryKey: {
+        ...prev.additionalGuardianSourceModeByEntryKey,
+        [entry.entryKey]: 'new',
+      },
+    }));
+  }
+
+  function handleAdditionalGuardianSourceModeChange(
+    entryKey: string,
+    mode: StudentCreateBillingFormState['guardianSourceMode'],
+  ) {
+    setBillingState((prev) => {
+      const entry = prev.guardianEntries.find((item) => item.entryKey === entryKey);
+      if (!entry) return prev;
+
+      const nextEntry: StudentCreateGuardianEntry =
+        mode === 'new'
+          ? {
+              kind: 'new',
+              entryKey,
+              full_name: entry.kind === 'new' ? entry.full_name : entry.displayName,
+              phone: entry.phone,
+              email: entry.email,
+              relationship_type: entry.relationship_type,
+              is_primary_contact: false,
+            }
+          : {
+              kind: 'new',
+              entryKey,
+              full_name: '',
+              relationship_type: entry.relationship_type,
+              is_primary_contact: false,
+            };
+
+      return {
+        ...prev,
+        guardianEntries: prev.guardianEntries.map((item) =>
+          item.entryKey === entryKey ? nextEntry : item,
+        ),
+        additionalGuardianSourceModeByEntryKey: {
+          ...prev.additionalGuardianSourceModeByEntryKey,
+          [entryKey]: mode,
+        },
+        billingGuardianEntryKey:
+          prev.billingGuardianEntryKey === entryKey && mode === 'existing'
+            ? null
+            : prev.billingGuardianEntryKey,
+      };
+    });
+
+    if (mode === 'new') {
+      setLinkedGuardianPersonsByEntryKey((prev) => {
+        const next = { ...prev };
+        delete next[entryKey];
+        return next;
+      });
+    }
+  }
+
+  function handleUpdateAdditionalGuardian(entryKey: string, next: StudentCreateGuardianEntry) {
+    setBillingState((prev) => ({
+      ...prev,
+      guardianEntries: prev.guardianEntries.map((item) =>
+        item.entryKey === entryKey ? next : item,
+      ),
+    }));
+  }
+
+  function handleLinkAdditionalGuardian(entryKey: string, person: PersonSearchResult) {
+    const guardianId = resolvePersonSchoolParentId(person);
+    if (guardianId == null) {
+      toast.error(t('admin.student360.create.billingResponsibility.errors.billingGuardianNotLinked'));
+      return;
+    }
+    if (guardianIdAlreadyUsedInWizard(guardianId, entryKey)) {
+      toast.error(t('admin.student360.create.billingResponsibility.errors.duplicateGuardianInWizard'));
+      return;
+    }
+
+    setBillingState((prev) => {
+      const entry = prev.guardianEntries.find((item) => item.entryKey === entryKey);
+      if (!entry) return prev;
+      return {
+        ...prev,
+        guardianEntries: prev.guardianEntries.map((item) =>
+          item.entryKey === entryKey
+            ? entryFromLinkedExistingGuardian(
+                entryKey,
+                guardianId,
+                person.name,
+                entry.relationship_type,
+                person.phone ?? undefined,
+                person.email ?? undefined,
+              )
+            : item,
+        ),
+        additionalGuardianSourceModeByEntryKey: {
+          ...prev.additionalGuardianSourceModeByEntryKey,
+          [entryKey]: 'existing',
+        },
+      };
+    });
+    setLinkedGuardianPersonsByEntryKey((prev) => ({ ...prev, [entryKey]: person }));
+    setBillingErrors((prev) => {
+      const additionalGuardianErrorsByEntryKey = {
+        ...prev.additionalGuardianErrorsByEntryKey,
+      };
+      delete additionalGuardianErrorsByEntryKey[entryKey];
+      return {
+        ...prev,
+        duplicateGuardianId: undefined,
+        additionalGuardianErrorsByEntryKey:
+          Object.keys(additionalGuardianErrorsByEntryKey).length > 0
+            ? additionalGuardianErrorsByEntryKey
+            : undefined,
+      };
+    });
+  }
+
+  function handleClearAdditionalGuardian(entryKey: string) {
+    setLinkedGuardianPersonsByEntryKey((prev) => {
+      const next = { ...prev };
+      delete next[entryKey];
+      return next;
+    });
+    setBillingState((prev) => {
+      const entry = prev.guardianEntries.find((item) => item.entryKey === entryKey);
+      if (!entry) return prev;
+      return {
+        ...prev,
+        guardianEntries: prev.guardianEntries.map((item) =>
+          item.entryKey === entryKey
+            ? {
+                kind: 'new' as const,
+                entryKey,
+                full_name: '',
+                relationship_type: item.relationship_type,
+                is_primary_contact: false,
+              }
+            : item,
+        ),
+        additionalGuardianSourceModeByEntryKey: {
+          ...prev.additionalGuardianSourceModeByEntryKey,
+          [entryKey]: 'existing',
+        },
+        billingGuardianEntryKey:
+          prev.billingGuardianEntryKey === entryKey ? null : prev.billingGuardianEntryKey,
+      };
+    });
+  }
+
+  function handleRemoveAdditionalGuardian(entryKey: string) {
+    setLinkedGuardianPersonsByEntryKey((prev) => {
+      const next = { ...prev };
+      delete next[entryKey];
+      return next;
+    });
+    setBillingState((prev) => {
+      const provisionAccessByEntryKey = { ...prev.provisionAccessByEntryKey };
+      delete provisionAccessByEntryKey[entryKey];
+      const additionalGuardianSourceModeByEntryKey = {
+        ...prev.additionalGuardianSourceModeByEntryKey,
+      };
+      delete additionalGuardianSourceModeByEntryKey[entryKey];
+      const remainingEntries = prev.guardianEntries.filter((item) => item.entryKey !== entryKey);
+      const completeEntries = collectStudentCreateGuardianEntries(
+        state,
+        { ...prev, guardianEntries: remainingEntries },
+        { completeOnly: true },
+      );
+      let billingGuardianEntryKey = prev.billingGuardianEntryKey;
+      if (billingGuardianEntryKey === entryKey) {
+        billingGuardianEntryKey =
+          completeEntries.length === 1 ? completeEntries[0].entryKey : null;
+      }
+      return {
+        ...prev,
+        guardianEntries: remainingEntries,
+        provisionAccessByEntryKey,
+        additionalGuardianSourceModeByEntryKey,
+        billingGuardianEntryKey,
+      };
+    });
+  }
+
+  const usedGuardianIds = useMemo(
+    () => collectUsedGuardianIds(state, billingState),
+    [state, billingState],
+  );
 
   const financeBlocked =
     suggestState.error?.code === 'no_default_fee_plan_for_level' &&
@@ -1132,6 +1355,13 @@ export function StudentCreateForm({
         if (mapped.fieldErrors.guardianRequired) {
           billingFieldErrors.guardianRequired = mapped.fieldErrors.guardianRequired;
         }
+        if (mapped.fieldErrors.duplicateGuardianId) {
+          billingFieldErrors.duplicateGuardianId = mapped.fieldErrors.duplicateGuardianId;
+        }
+        if (mapped.fieldErrors.additionalGuardianErrorsByEntryKey) {
+          billingFieldErrors.additionalGuardianErrorsByEntryKey =
+            mapped.fieldErrors.additionalGuardianErrorsByEntryKey;
+        }
         if (Object.keys(billingFieldErrors).length > 0) {
           setBillingErrors(billingFieldErrors);
           setStep('billing');
@@ -1238,6 +1468,14 @@ export function StudentCreateForm({
           onClearLinkedGuardian={handleClearLinkedGuardian}
           onGuardianSourceModeChange={handleGuardianSourceModeChange}
           onProvisionAccessChange={handleProvisionAccessChange}
+          onAddAdditionalGuardian={handleAddAdditionalGuardian}
+          onAdditionalGuardianSourceModeChange={handleAdditionalGuardianSourceModeChange}
+          onUpdateAdditionalGuardian={handleUpdateAdditionalGuardian}
+          onLinkAdditionalGuardian={handleLinkAdditionalGuardian}
+          onClearAdditionalGuardian={handleClearAdditionalGuardian}
+          onRemoveAdditionalGuardian={handleRemoveAdditionalGuardian}
+          usedGuardianIds={usedGuardianIds}
+          linkedGuardianPersonsByEntryKey={linkedGuardianPersonsByEntryKey}
           guardian={{
             relationships: admissionOptionsState.options?.relationships ?? [],
             relationshipsLoading: admissionOptionsState.loading,
@@ -1383,7 +1621,9 @@ export function StudentCreateForm({
             profileState={state}
             billingState={billingState}
             linkedGuardianPerson={linkedGuardianPerson}
-            guardianEntries={guardianEntriesForBilling}
+            linkedGuardianPersonsByEntryKey={linkedGuardianPersonsByEntryKey}
+            guardianEntries={guardianEntriesForBilling.filter(isCompleteStudentCreateGuardianEntry)}
+            billingGuardianEntryKey={billingState.billingGuardianEntryKey}
             suggest={skipFinance ? null : suggestState.suggest}
             financeState={financeState}
             preview={previewState.preview}

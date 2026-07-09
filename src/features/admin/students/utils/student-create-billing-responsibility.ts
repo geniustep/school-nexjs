@@ -12,6 +12,8 @@ export type BillingResponsibilityFieldErrors = {
   billingStudentReason?: string;
   billingGuardianSelection?: string;
   guardianRequired?: string;
+  duplicateGuardianId?: string;
+  additionalGuardianErrorsByEntryKey?: Record<string, string>;
 };
 
 export function defaultStudentCreateBillingFormState(): StudentCreateBillingFormState {
@@ -23,6 +25,7 @@ export function defaultStudentCreateBillingFormState(): StudentCreateBillingForm
     linkedGuardianId: null,
     billingGuardianEntryKey: null,
     guardianEntries: [],
+    additionalGuardianSourceModeByEntryKey: {},
     provisionAccessByEntryKey: {},
   };
 }

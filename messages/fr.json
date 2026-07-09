@@ -4663,7 +4663,10 @@
           "guardianSourceLinkedLead": "{name} sera lié à l'élève automatiquement après l'enregistrement.",
           "guardianSourceMatchesTitle": "Correspondances possibles",
           "guardianSourceMatchesLead": "Sélectionnez la bonne personne ci-dessous, ou confirmez qu'il s'agit d'un nouveau responsable.",
-          "guardianSourceSearchingTitle": "Vérification en cours"
+          "guardianSourceSearchingTitle": "Vérification en cours",
+          "addAnotherGuardian": "Ajouter un autre responsable",
+          "additionalGuardianTitle": "Responsable supplémentaire",
+          "removeAdditionalGuardian": "Retirer"
         },
         "billingResponsibility": {
           "title": "Responsabilité de facturation",
@@ -4694,7 +4697,9 @@
             "billingGuardianNotLinked": "La personne sélectionnée ne peut pas être utilisée comme tuteur de facturation. Recherchez un profil tuteur existant.",
             "billingGuardianRelationshipInactive": "La relation du tuteur de facturation sélectionné est inactive. Choisissez un autre tuteur.",
             "guardianIdentityCandidateExists": "Un tuteur correspondant existe déjà. Recherchez et sélectionnez le tuteur existant au lieu d'en créer un doublon.",
-            "guardianLoginConflict": "Impossible de créer le compte de connexion : les coordonnées sont liées à un autre compte. Vérifiez les données du tuteur sans exposer l'autre compte."
+            "guardianLoginConflict": "Impossible de créer le compte de connexion : les coordonnées sont liées à un autre compte. Vérifiez les données du tuteur sans exposer l'autre compte.",
+            "duplicateGuardianInWizard": "Ce tuteur est déjà listé dans cette inscription. Choisissez une autre personne.",
+            "additionalGuardianIncomplete": "Complétez les données de ce tuteur ou supprimez l'entrée avant de continuer."
           },
           "guardianRequiredHint": "Saisissez les coordonnées du tuteur ci-dessus — la facturation au tuteur exige au moins un tuteur.",
           "billingGuardianLabel": "Tuteur de facturation",
@@ -4866,7 +4871,10 @@
             "periodModified": "Mois modifié — {detail}"
           },
           "stageGuardians": "Responsables légaux",
-          "guardiansOverview": "Identifiants de connexion du tuteur"
+          "guardiansOverview": "Identifiants de connexion du tuteur",
+          "guardianExisting": "Tuteur existant",
+          "guardianNew": "Nouveau tuteur",
+          "guardianBillingResponsible": "Tuteur de facturation"
         }
       },
       "setup": {

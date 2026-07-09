@@ -16,7 +16,8 @@ import type {
   StudentCreateGuardianEntry,
 } from '@/types/student-enrollment-finance';
 import type { StudentProfileFormState } from '../utils/student-profile';
-import { guardianEntryBillingOptionLabel, guardianEntryLabel } from '../utils/student-create-guardian-payload';
+import { guardianEntryLabel } from '../utils/student-create-guardian-payload';
+import { relationshipTypeLabel } from '../utils/relationship-types';
 import { StudentCreateGuardianAccountCard } from './student-create-guardian-account-card';
 import { StudentCreateStyledSection } from './student-create-section-header';
 
@@ -46,7 +47,9 @@ export function StudentCreateReviewSection({
   profileState,
   billingState,
   linkedGuardianPerson,
+  linkedGuardianPersonsByEntryKey = {},
   guardianEntries,
+  billingGuardianEntryKey,
   suggest,
   financeState,
   preview,
@@ -62,7 +65,9 @@ export function StudentCreateReviewSection({
   profileState: StudentProfileFormState;
   billingState: StudentCreateBillingFormState;
   linkedGuardianPerson: PersonSearchResult | null;
+  linkedGuardianPersonsByEntryKey?: Record<string, PersonSearchResult>;
   guardianEntries: StudentCreateGuardianEntry[];
+  billingGuardianEntryKey: string | null;
   suggest: FeePlanSuggestResult | null;
   financeState: StudentCreateFinanceFormState;
   preview: EnrollmentPlanPreviewResult | null;
@@ -190,26 +195,44 @@ export function StudentCreateReviewSection({
                   linkedGuardianPerson &&
                   entry.guardian_id === linkedGuardianPerson.guardian_id
                     ? linkedGuardianPerson
-                    : entry.kind === 'existing'
-                      ? {
-                          guardian_id: entry.guardian_id,
-                          partner_id: entry.guardian_id,
-                          id: entry.guardian_id,
-                          name: entry.displayName,
-                          has_user_account: false,
-                          can_link_as_guardian: true,
-                          existing_roles: [],
-                          role_labels: [],
-                        }
-                      : null;
+                    : entry.kind === 'existing' && linkedGuardianPersonsByEntryKey[entry.entryKey]
+                      ? linkedGuardianPersonsByEntryKey[entry.entryKey]
+                      : entry.kind === 'existing'
+                        ? {
+                            guardian_id: entry.guardian_id,
+                            partner_id: entry.guardian_id,
+                            id: entry.guardian_id,
+                            name: entry.displayName,
+                            has_user_account: false,
+                            can_link_as_guardian: true,
+                            existing_roles: [],
+                            role_labels: [],
+                          }
+                        : null;
                 const provisionRequested =
                   billingState.provisionAccessByEntryKey[entry.entryKey] === true;
+                const isBillingGuardian =
+                  billingState.responsibilitySelection === 'guardian' &&
+                  billingGuardianEntryKey != null &&
+                  entry.entryKey === billingGuardianEntryKey;
 
                 return (
                   <div key={entry.entryKey} className="student-create-guardian-account-card">
                     <p className="student-create-guardian-account-card__name" dir="auto">
-                      {guardianEntryBillingOptionLabel(entry, t)}
+                      {guardianEntryLabel(entry)}
                     </p>
+                    <p className="student-create-form__notice tiny" role="status">
+                      {relationshipTypeLabel(t, entry.relationship_type)}
+                      {' · '}
+                      {entry.kind === 'existing'
+                        ? t('admin.student360.create.review.guardianExisting')
+                        : t('admin.student360.create.review.guardianNew')}
+                    </p>
+                    {isBillingGuardian ? (
+                      <p className="student-create-form__notice tiny" role="status">
+                        {t('admin.student360.create.review.guardianBillingResponsible')}
+                      </p>
+                    ) : null}
                     {linkedSource ? (
                       <StudentCreateGuardianAccountCard
                         name={guardianEntryLabel(entry)}
