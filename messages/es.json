@@ -1084,6 +1084,129 @@
       "academicActivityTitle": "Actividad académica",
       "quickOpsTitle": "Accesos rápidos"
     },
+    "dashboardAlerts": {
+      "generic": {
+        "attendanceClassesMissing": "Clases sin asistencia registrada hoy"
+      },
+      "actions": {
+        "viewBillingAccounts": "Ver cuentas",
+        "viewOverdueInstallments": "Ver vencidos",
+        "viewCollections": "Ver cobros",
+        "reviewAdmissions": "Revisar solicitudes",
+        "openAttendance": "Abrir asistencia",
+        "viewStudents": "Ver alumnos",
+        "viewTeachers": "Ver profesores",
+        "reviewExams": "Revisar exámenes",
+        "reviewResults": "Revisar resultados"
+      },
+      "plural": {
+        "billingAccountFollowup": {
+          "zero": "Ninguna cuenta requiere seguimiento de cobro",
+          "one": "1 cuenta requiere seguimiento de cobro",
+          "two": "2 cuentas requieren seguimiento de cobro",
+          "few": "{count} cuentas requieren seguimiento de cobro",
+          "many": "{count} cuentas requieren seguimiento de cobro"
+        },
+        "admissionOverdue": {
+          "zero": "Ninguna solicitud con seguimiento atrasado",
+          "one": "1 solicitud requiere seguimiento",
+          "two": "2 solicitudes requieren seguimiento",
+          "few": "{count} solicitudes requieren seguimiento",
+          "many": "{count} solicitudes requieren seguimiento"
+        },
+        "admissionNew": {
+          "zero": "No hay solicitudes nuevas pendientes",
+          "one": "1 solicitud nueva pendiente de tramitar",
+          "two": "2 solicitudes nuevas pendientes de tramitar",
+          "few": "{count} solicitudes nuevas pendientes de tramitar",
+          "many": "{count} solicitudes nuevas pendientes de tramitar"
+        },
+        "admissionInReview": {
+          "zero": "No hay solicitudes en revisión",
+          "one": "1 solicitud en revisión",
+          "two": "2 solicitudes en revisión",
+          "few": "{count} solicitudes en revisión",
+          "many": "{count} solicitudes en revisión"
+        },
+        "classMissingAttendance": {
+          "zero": "Ninguna clase sin asistencia registrada hoy",
+          "one": "1 clase sin asistencia registrada hoy",
+          "two": "2 clases sin asistencia registrada hoy",
+          "few": "{count} clases sin asistencia registrada hoy",
+          "many": "{count} clases sin asistencia registrada hoy"
+        },
+        "studentMissingGuardian": {
+          "zero": "Ningún alumno sin tutor vinculado",
+          "one": "1 alumno sin tutor vinculado",
+          "two": "2 alumnos sin tutor vinculado",
+          "few": "{count} alumnos sin tutor vinculado",
+          "many": "{count} alumnos sin tutor vinculado"
+        },
+        "studentMissingRequiredData": {
+          "zero": "Ningún alumno con datos obligatorios incompletos",
+          "one": "1 alumno con datos obligatorios incompletos",
+          "two": "2 alumnos con datos obligatorios incompletos",
+          "few": "{count} alumnos con datos obligatorios incompletos",
+          "many": "{count} alumnos con datos obligatorios incompletos"
+        },
+        "studentMissingMassar": {
+          "zero": "Ningún alumno sin identificador Massar",
+          "one": "1 alumno sin identificador Massar",
+          "two": "2 alumnos sin identificador Massar",
+          "few": "{count} alumnos sin identificador Massar",
+          "many": "{count} alumnos sin identificador Massar"
+        },
+        "studentWithoutClass": {
+          "zero": "Ningún alumno sin clase",
+          "one": "1 alumno sin clase",
+          "two": "2 alumnos sin clase",
+          "few": "{count} alumnos sin clase",
+          "many": "{count} alumnos sin clase"
+        },
+        "studentWithoutParent": {
+          "zero": "Ningún alumno sin responsable",
+          "one": "1 alumno sin responsable",
+          "two": "2 alumnos sin responsable",
+          "few": "{count} alumnos sin responsable",
+          "many": "{count} alumnos sin responsable"
+        },
+        "studentWithoutYear": {
+          "zero": "Ningún alumno sin año académico",
+          "one": "1 alumno sin año académico",
+          "two": "2 alumnos sin año académico",
+          "few": "{count} alumnos sin año académico",
+          "many": "{count} alumnos sin año académico"
+        },
+        "studentIncompleteProfile": {
+          "zero": "Ningún alumno con perfil incompleto",
+          "one": "1 alumno con perfil incompleto",
+          "two": "2 alumnos con perfil incompleto",
+          "few": "{count} alumnos con perfil incompleto",
+          "many": "{count} alumnos con perfil incompleto"
+        },
+        "paymentPromiseDue": {
+          "zero": "Ninguna promesa de pago próxima",
+          "one": "1 promesa de pago próxima",
+          "two": "2 promesas de pago próximas",
+          "few": "{count} promesas de pago próximas",
+          "many": "{count} promesas de pago próximas"
+        },
+        "examMissingResults": {
+          "zero": "Ningún examen sin resultados",
+          "one": "1 examen sin resultados",
+          "two": "2 exámenes sin resultados",
+          "few": "{count} exámenes sin resultados",
+          "many": "{count} exámenes sin resultados"
+        },
+        "draftResultPending": {
+          "zero": "Ningún resultado en borrador",
+          "one": "1 resultado en borrador",
+          "two": "2 resultados en borrador",
+          "few": "{count} resultados en borrador",
+          "many": "{count} resultados en borrador"
+        }
+      }
+    },
     "executive": {
       "contextHeadline": "Vista ejecutiva diaria — estado del centro y decisiones pendientes",
       "eyebrow": "Raqeem · Sala de mando",

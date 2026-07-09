@@ -1085,6 +1085,129 @@
       "academicActivityTitle": "Academic activity",
       "quickOpsTitle": "Quick actions"
     },
+    "dashboardAlerts": {
+      "generic": {
+        "attendanceClassesMissing": "Classes without attendance recorded today"
+      },
+      "actions": {
+        "viewBillingAccounts": "View accounts",
+        "viewOverdueInstallments": "View overdue",
+        "viewCollections": "View collections",
+        "reviewAdmissions": "Review admissions",
+        "openAttendance": "Open attendance",
+        "viewStudents": "View pupils",
+        "viewTeachers": "View teachers",
+        "reviewExams": "Review exams",
+        "reviewResults": "Review results"
+      },
+      "plural": {
+        "billingAccountFollowup": {
+          "zero": "No accounts need collection follow-up",
+          "one": "1 account needs collection follow-up",
+          "two": "2 accounts need collection follow-up",
+          "few": "{count} accounts need collection follow-up",
+          "many": "{count} accounts need collection follow-up"
+        },
+        "admissionOverdue": {
+          "zero": "No admissions with overdue follow-up",
+          "one": "1 admission needs follow-up",
+          "two": "2 admissions need follow-up",
+          "few": "{count} admissions need follow-up",
+          "many": "{count} admissions need follow-up"
+        },
+        "admissionNew": {
+          "zero": "No new admissions awaiting processing",
+          "one": "1 new admission awaiting processing",
+          "two": "2 new admissions awaiting processing",
+          "few": "{count} new admissions awaiting processing",
+          "many": "{count} new admissions awaiting processing"
+        },
+        "admissionInReview": {
+          "zero": "No admissions under review",
+          "one": "1 admission under review",
+          "two": "2 admissions under review",
+          "few": "{count} admissions under review",
+          "many": "{count} admissions under review"
+        },
+        "classMissingAttendance": {
+          "zero": "No classes without attendance recorded today",
+          "one": "1 class without attendance recorded today",
+          "two": "2 classes without attendance recorded today",
+          "few": "{count} classes without attendance recorded today",
+          "many": "{count} classes without attendance recorded today"
+        },
+        "studentMissingGuardian": {
+          "zero": "No pupils without a linked guardian",
+          "one": "1 pupil without a linked guardian",
+          "two": "2 pupils without a linked guardian",
+          "few": "{count} pupils without a linked guardian",
+          "many": "{count} pupils without a linked guardian"
+        },
+        "studentMissingRequiredData": {
+          "zero": "No pupils with incomplete required data",
+          "one": "1 pupil with incomplete required data",
+          "two": "2 pupils with incomplete required data",
+          "few": "{count} pupils with incomplete required data",
+          "many": "{count} pupils with incomplete required data"
+        },
+        "studentMissingMassar": {
+          "zero": "No pupils without a Massar ID",
+          "one": "1 pupil without a Massar ID",
+          "two": "2 pupils without a Massar ID",
+          "few": "{count} pupils without a Massar ID",
+          "many": "{count} pupils without a Massar ID"
+        },
+        "studentWithoutClass": {
+          "zero": "No pupils without a class",
+          "one": "1 pupil without a class",
+          "two": "2 pupils without a class",
+          "few": "{count} pupils without a class",
+          "many": "{count} pupils without a class"
+        },
+        "studentWithoutParent": {
+          "zero": "No pupils without a parent",
+          "one": "1 pupil without a parent",
+          "two": "2 pupils without a parent",
+          "few": "{count} pupils without a parent",
+          "many": "{count} pupils without a parent"
+        },
+        "studentWithoutYear": {
+          "zero": "No pupils without an academic year",
+          "one": "1 pupil without an academic year",
+          "two": "2 pupils without an academic year",
+          "few": "{count} pupils without an academic year",
+          "many": "{count} pupils without an academic year"
+        },
+        "studentIncompleteProfile": {
+          "zero": "No pupils with incomplete profiles",
+          "one": "1 pupil with an incomplete profile",
+          "two": "2 pupils with incomplete profiles",
+          "few": "{count} pupils with incomplete profiles",
+          "many": "{count} pupils with incomplete profiles"
+        },
+        "paymentPromiseDue": {
+          "zero": "No payment promises due soon",
+          "one": "1 payment promise due soon",
+          "two": "2 payment promises due soon",
+          "few": "{count} payment promises due soon",
+          "many": "{count} payment promises due soon"
+        },
+        "examMissingResults": {
+          "zero": "No exams missing results",
+          "one": "1 exam missing results",
+          "two": "2 exams missing results",
+          "few": "{count} exams missing results",
+          "many": "{count} exams missing results"
+        },
+        "draftResultPending": {
+          "zero": "No draft results",
+          "one": "1 draft result",
+          "two": "2 draft results",
+          "few": "{count} draft results",
+          "many": "{count} draft results"
+        }
+      }
+    },
     "executive": {
       "contextHeadline": "Daily executive view — institution status and decisions awaiting you",
       "eyebrow": "Raqeem · Command room",
