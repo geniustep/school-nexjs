@@ -1,3 +1,7 @@
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
 // Shared presentational primitives. Server-component-safe (no client hooks).
 
 import type { ReactNode } from 'react';
