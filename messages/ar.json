@@ -989,7 +989,41 @@
     },
     "timetableDesc": "إدارة حصص استعمال الزمن",
     "examsListDesc": "كل الامتحانات",
+    "examsList": {
+      "subtitleWithCount": "{total} امتحانًا ضمن نطاقك",
+      "resetFilters": "إعادة ضبط الفلاتر",
+      "refetching": "جاري تحديث النتائج…",
+      "noData": {
+        "title": "لا توجد امتحانات بعد",
+        "description": "لم يُنشأ أي امتحان ضمن نطاقك بعد."
+      },
+      "noMatch": {
+        "title": "لا توجد امتحانات مطابقة",
+        "description": "جرّب تعديل الفلاتر، أو أعد ضبطها لعرض كل الامتحانات."
+      },
+      "filters": {
+        "chipClass": "القسم: {className}",
+        "chipStatus": "الحالة: {status}"
+      }
+    },
     "examResultsListDesc": "كل نتائج الامتحانات",
+    "examResultsList": {
+      "subtitleWithCount": "{total} نتيجة امتحان ضمن نطاقك",
+      "resetFilters": "إعادة ضبط الفلاتر",
+      "refetching": "جاري تحديث النتائج…",
+      "noData": {
+        "title": "لا توجد نتائج امتحانات بعد",
+        "description": "لم تُسجَّل أي نتيجة امتحان ضمن نطاقك بعد."
+      },
+      "noMatch": {
+        "title": "لا توجد نتائج مطابقة",
+        "description": "جرّب تعديل الفلاتر، أو أعد ضبطها لعرض كل نتائج الامتحانات."
+      },
+      "filters": {
+        "chipClass": "القسم: {className}",
+        "chipStatus": "الحالة: {status}"
+      }
+    },
     "studentsListDesc": "كل التلاميذ ضمن نطاقك",
     "studentsList": {
       "subtitleWithCount": "{total} تلميذ في نطاقك",

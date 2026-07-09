@@ -988,7 +988,41 @@
     },
     "timetableDesc": "Gestionar franjas horarias",
     "examsListDesc": "Todos los exámenes",
+    "examsList": {
+      "subtitleWithCount": "{total} exámenes en su ámbito",
+      "resetFilters": "Restablecer filtros",
+      "refetching": "Actualizando resultados…",
+      "noData": {
+        "title": "Aún no hay exámenes",
+        "description": "Todavía no se ha creado ningún examen en su ámbito."
+      },
+      "noMatch": {
+        "title": "No hay exámenes coincidentes",
+        "description": "Pruebe a ajustar los filtros, o restablézcalos para ver todos los exámenes."
+      },
+      "filters": {
+        "chipClass": "Clase: {className}",
+        "chipStatus": "Estado: {status}"
+      }
+    },
     "examResultsListDesc": "Todos los resultados de exámenes",
+    "examResultsList": {
+      "subtitleWithCount": "{total} resultados de exámenes en su ámbito",
+      "resetFilters": "Restablecer filtros",
+      "refetching": "Actualizando resultados…",
+      "noData": {
+        "title": "Aún no hay resultados de exámenes",
+        "description": "Todavía no se ha registrado ningún resultado de examen en su ámbito."
+      },
+      "noMatch": {
+        "title": "No hay resultados coincidentes",
+        "description": "Pruebe a ajustar los filtros, o restablézcalos para ver todos los resultados."
+      },
+      "filters": {
+        "chipClass": "Clase: {className}",
+        "chipStatus": "Estado: {status}"
+      }
+    },
     "studentsListDesc": "Todos los alumnos de su ámbito",
     "studentsList": {
       "subtitleWithCount": "{total} alumnos en su ámbito",

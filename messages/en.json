@@ -989,7 +989,41 @@
     },
     "timetableDesc": "Manage timetable slots",
     "examsListDesc": "All exams",
+    "examsList": {
+      "subtitleWithCount": "{total} exams in your scope",
+      "resetFilters": "Reset filters",
+      "refetching": "Updating results…",
+      "noData": {
+        "title": "No exams yet",
+        "description": "No exams have been created in your scope yet."
+      },
+      "noMatch": {
+        "title": "No matching exams",
+        "description": "Try adjusting filters, or reset them to show all exams."
+      },
+      "filters": {
+        "chipClass": "Class: {className}",
+        "chipStatus": "Status: {status}"
+      }
+    },
     "examResultsListDesc": "All exam results",
+    "examResultsList": {
+      "subtitleWithCount": "{total} exam results in your scope",
+      "resetFilters": "Reset filters",
+      "refetching": "Updating results…",
+      "noData": {
+        "title": "No exam results yet",
+        "description": "No exam results have been recorded in your scope yet."
+      },
+      "noMatch": {
+        "title": "No matching exam results",
+        "description": "Try adjusting filters, or reset them to show all exam results."
+      },
+      "filters": {
+        "chipClass": "Class: {className}",
+        "chipStatus": "Status: {status}"
+      }
+    },
     "studentsListDesc": "All pupils within your scope",
     "studentsList": {
       "subtitleWithCount": "{total} pupils in your scope",

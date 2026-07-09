@@ -988,7 +988,41 @@
     },
     "timetableDesc": "Gérer les créneaux horaires",
     "examsListDesc": "Tous les examens",
+    "examsList": {
+      "subtitleWithCount": "{total} examens dans votre périmètre",
+      "resetFilters": "Réinitialiser les filtres",
+      "refetching": "Mise à jour des résultats…",
+      "noData": {
+        "title": "Aucun examen pour le moment",
+        "description": "Aucun examen n’a encore été créé dans votre périmètre."
+      },
+      "noMatch": {
+        "title": "Aucun examen correspondant",
+        "description": "Modifiez les filtres, ou réinitialisez-les pour afficher tous les examens."
+      },
+      "filters": {
+        "chipClass": "Classe : {className}",
+        "chipStatus": "Statut : {status}"
+      }
+    },
     "examResultsListDesc": "Tous les résultats d'examens",
+    "examResultsList": {
+      "subtitleWithCount": "{total} résultats d’examens dans votre périmètre",
+      "resetFilters": "Réinitialiser les filtres",
+      "refetching": "Mise à jour des résultats…",
+      "noData": {
+        "title": "Aucun résultat d’examen pour le moment",
+        "description": "Aucun résultat d’examen n’a encore été enregistré dans votre périmètre."
+      },
+      "noMatch": {
+        "title": "Aucun résultat correspondant",
+        "description": "Modifiez les filtres, ou réinitialisez-les pour afficher tous les résultats."
+      },
+      "filters": {
+        "chipClass": "Classe : {className}",
+        "chipStatus": "Statut : {status}"
+      }
+    },
     "studentsListDesc": "Tous les élèves de votre périmètre",
     "studentsList": {
       "subtitleWithCount": "{total} élèves dans votre périmètre",

@@ -1,130 +1,24 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useAdminResource } from '@/lib/hooks/use-admin-resource';
-import { ResourceView } from '@/components/states/resource';
-import { EmptyState } from '@/components/states/states';
-import { WorkflowBadge } from '@/components/badges/workflow-badge';
-import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
-import { PageHeader } from '@/components/ui/primitives';
-import { ExportButton } from '@/features/admin/export-button';
-import { useFormat } from '@/features/i18n/use-format';
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
+import { Suspense } from 'react';
+import { LoadingState } from '@/components/states/states';
+import { ExamResultsListPage } from '@/features/admin/exam-results/components/exam-results-list-page';
 import { useT } from '@/features/i18n/locale-context';
-import { endpoints } from '@/lib/api/endpoints';
-import { getStudentDisplayName } from '@/lib/utils/student';
-import type { ExamResult } from '@/types/exam';
-import type { ListParams } from '@/types/api';
+
+function ExamResultsListFallback() {
+  const t = useT();
+  return <LoadingState label={t('common.loading')} />;
+}
 
 export default function AdminExamResultsPage() {
-  const t = useT();
-  const router = useRouter();
-  const { formatDate } = useFormat();
-  const [page, setPage] = useState(1);
-  const [classId, setClassId] = useState('');
-  const [stateFilter, setStateFilter] = useState('');
-
-  const params: ListParams = {
-    page,
-    page_size: 20,
-    class_id: classId || undefined,
-    state: stateFilter || undefined,
-  };
-  const state = useAdminResource<ExamResult[]>(endpoints.admin.examResults, params);
-  const classesState = useAdminResource<import('@/types/class').SchoolClass[]>(endpoints.admin.classes);
-  const pg = state.meta?.pagination;
-
-  const columns: Column<ExamResult>[] = useMemo(
-    () => [
-      {
-        key: 'student',
-        header: t('actions.students'),
-        render: (r) => <strong>{getStudentDisplayName(r.student)}</strong>,
-      },
-      {
-        key: 'exam',
-        header: t('academic.exam'),
-        render: (r) => r.exam?.name ?? t('common.dash'),
-      },
-      { key: 'class', header: t('nav.classes'), render: (r) => r.class?.name ?? t('common.dash') },
-      {
-        key: 'subject',
-        header: t('academic.subject'),
-        render: (r) => r.subject?.name ?? t('common.dash'),
-      },
-      {
-        key: 'score',
-        header: t('academic.score'),
-        render: (r) => (r.score >= 0 ? `${r.score}/${r.max_score}` : t('common.dash')),
-      },
-      {
-        key: 'grade',
-        header: t('academic.grade'),
-        render: (r) => r.grade_label ?? t('common.dash'),
-      },
-      {
-        key: 'state',
-        header: t('academic.status'),
-        render: (r) => <WorkflowBadge state={r.state} />,
-      },
-      {
-        key: 'date',
-        header: t('academic.date'),
-        render: (r) => formatDate(r.exam?.exam_date),
-      },
-    ],
-    [t, formatDate],
-  );
-
   return (
-    <>
-      <Link href="/admin/academic" className="back-link">
-        ‹ {t('admin.academicCenter')}
-      </Link>
-      <PageHeader
-        title={t('nav.results')}
-        subtitle={t('admin.examResultsListDesc')}
-        actions={
-          <ExportButton path={endpoints.admin.examResultsExport} filename="exam-results.csv" label={t('admin.exportCsv')} />
-        }
-      />
-
-      <form className="toolbar" onSubmit={(e) => e.preventDefault()}>
-        <select className="input" value={classId} onChange={(e) => { setClassId(e.target.value); setPage(1); }}>
-          <option value="">{t('admin.allClasses')}</option>
-          {(classesState.data ?? []).map((c) => (
-            <option key={c.id} value={c.id}>{c.name}</option>
-          ))}
-        </select>
-        <select className="input" value={stateFilter} onChange={(e) => { setStateFilter(e.target.value); setPage(1); }}>
-          <option value="">{t('admin.allStates')}</option>
-          <option value="draft">{t('states.draft')}</option>
-          <option value="published">{t('states.published')}</option>
-          <option value="archived">{t('states.archived')}</option>
-        </select>
-      </form>
-
-      <ResourceView
-        state={state}
-        loadingLabel={t('common.loading')}
-        isEmpty={(d) => d.length === 0}
-        empty={<EmptyState icon="📊" title={t('empty.results')} />}
-      >
-        {(rows) => (
-          <>
-            <DataTable
-              columns={columns}
-              rows={rows}
-              rowKey={(r) => r.id}
-              onRowClick={(r) => router.push(`/admin/exams/${r.exam.id}/results`)}
-            />
-            {pg && (
-              <Pagination page={pg.page} totalPages={pg.total_pages} total={pg.total} onPage={setPage} />
-            )}
-          </>
-        )}
-      </ResourceView>
-    </>
+    <Suspense fallback={<ExamResultsListFallback />}>
+      <ExamResultsListPage />
+    </Suspense>
   );
 }
