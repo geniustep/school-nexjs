@@ -5,9 +5,12 @@ import { ApiErrorView, LoadingState } from '@/components/states/states';
 import { CollectionCashSessionGate, collectionBlockedByCashSession, resolveCashSessionCollectionAccess } from '@/features/admin/finance/cash-desk/collection-cash-session-gate';
 import { FamilyCollectionAllocationSection } from '@/features/admin/finance/family-collection-allocation-section';
 import {
+  buildFamilyStudentAllocationSummaries,
+  familyCollectionConfirmBlockReasonKey,
   hasActiveFamilyAllocations,
-  hasUnsavedFamilyCollectionChanges,
   parseFamilyAllocationInputs,
+  resolveDefaultExpandedStudentIds,
+  resolveFamilyCollectionConfirmState,
   sumFamilyAllocationAmounts,
   validateFamilyAllocations,
   type FamilyInstallmentFilter,
@@ -27,12 +30,61 @@ import { useT } from '@/features/i18n/locale-context';
 import { fetchCollectionReceipt } from '@/lib/api/finance-receipt';
 import { fetchCurrentCashSession } from '@/lib/api/finance-cash-desk';
 import { resolveCollectionErrorMessage } from '@/lib/utils/collection-errors';
-import { currencyCode } from '@/lib/utils/finance';
+import { currencyCode, paymentMethodLabel } from '@/lib/utils/finance';
 import { isCashJournal, paymentMethodRequiresCashSession } from '@/lib/utils/cash-payment';
 import { normalizeFamilyCollectionConfirmResponse, normalizeFamilyCollectionCreateResponse, normalizeFamilyCollectionDetail, normalizeFamilyCollectionPreviewResponse } from '@/lib/utils/normalize-family-finance';
 import { confirmFamilyCollection, getFamilyCollectionById, getFamilyFinanceSummary, previewFamilyCollectionAllocation, submitFamilyCollection, updateFamilyCollectionDraft } from '@/features/admin/student-finance/api/family-finance-api';
 import type { FamilyCollectionCreateResponse, FamilyCollectionDetail, FamilyCollectionPreviewResponse } from '@/types/family-finance';
 import type { CashSession } from '@/types/finance-cash-desk';
+
+type WorkflowStep = 'edit' | 'review';
+
+function FamilyCollectionWorkflowSteps({
+  step,
+  t,
+}: {
+  step: WorkflowStep;
+  t: (key: string, params?: Record<string, string>) => string;
+}) {
+  const steps = [
+    { id: 'amount' as const, label: t('admin.finance.billingAccounts.familyCollection.stepAmount') },
+    { id: 'allocate' as const, label: t('admin.finance.billingAccounts.familyCollection.stepAllocate') },
+    { id: 'review' as const, label: t('admin.finance.billingAccounts.familyCollection.stepReview') },
+    { id: 'confirm' as const, label: t('admin.finance.billingAccounts.familyCollection.stepConfirm') },
+  ];
+  const activeIndex = step === 'review' ? 2 : 1;
+
+  return (
+    <div
+      className="finance-collection-workflow__steps finance-collection-workflow__steps--progress finance-family-collection-workflow__steps"
+      aria-label={t('admin.finance.billingAccounts.familyCollection.stepsLabel')}
+    >
+      <div
+        className="finance-collection-workflow__steps-track"
+        style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))` }}
+      >
+        {steps.map((item, index) => (
+          <div
+            key={item.id}
+            className={`finance-collection-workflow__step-item${
+              index === activeIndex ? ' is-active' : ''
+            }${index < activeIndex ? ' is-done' : ''}`}
+          >
+            <span className="finance-collection-workflow__step-marker" aria-hidden>
+              {index < activeIndex ? '✓' : index + 1}
+            </span>
+            <span className="finance-collection-workflow__step-label">{item.label}</span>
+          </div>
+        ))}
+      </div>
+      <p className="finance-family-collection-workflow__step-hint tiny muted" role="status">
+        {step === 'review'
+          ? t('admin.finance.billingAccounts.familyCollection.stepHintReview')
+          : t('admin.finance.billingAccounts.familyCollection.stepHintAllocate')}
+      </p>
+    </div>
+  );
+}
 
 export function FamilyCollectionWorkflowForm({
   familyId,
@@ -69,7 +121,7 @@ export function FamilyCollectionWorkflowForm({
   const [paymentMethod, setPaymentMethod] = useState('');
   const [collectionDate, setCollectionDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [academicYearId, setAcademicYearId] = useState('');
-  const [step, setStep] = useState<'edit' | 'review'>('edit');
+  const [step, setStep] = useState<WorkflowStep>('edit');
   const [draftId, setDraftId] = useState<number | null>(null);
   const [preview, setPreview] = useState<FamilyCollectionPreviewResponse | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
@@ -90,6 +142,7 @@ export function FamilyCollectionWorkflowForm({
   const parsedAmount = Number.parseFloat(amount.replace(',', '.'));
   const allocatedAmount = sumFamilyAllocationAmounts(allocationInputs);
   const unallocatedAmount = Math.max(0, (parsedAmount || 0) - allocatedAmount);
+  const studentCount = accountStudentCount || new Set(context?.open_installments.map((row) => row.student_id)).size || 0;
 
   useEffect(() => {
     if (!familyId) return;
@@ -160,8 +213,48 @@ export function FamilyCollectionWorkflowForm({
   );
   const cashSessionBlocked = collectionBlockedByCashSession(cashSessionAccess);
 
-  const previewValid = !!preview && !preview.errors.length && previewError == null;
+  const confirmState = useMemo(
+    () =>
+      resolveFamilyCollectionConfirmState({
+        step,
+        preview,
+        previewError,
+        parsedAmount,
+        journalId,
+        paymentMethod,
+        academicYearId,
+        collectionDate,
+        cashSessionBlocked,
+      }),
+    [
+      step,
+      preview,
+      previewError,
+      parsedAmount,
+      journalId,
+      paymentMethod,
+      academicYearId,
+      collectionDate,
+      cashSessionBlocked,
+    ],
+  );
+
   const studentScopedEntry = entrySource === 'student360' && prefilledStudentId != null;
+
+  useEffect(() => {
+    if (!context?.open_installments.length) return;
+    const summaries = buildFamilyStudentAllocationSummaries({
+      installments: context.open_installments,
+      allocationInputs,
+    });
+    setExpandedStudentIds((current) => {
+      if (current.size > 0) return current;
+      return resolveDefaultExpandedStudentIds({
+        summaries,
+        highlightStudentId: prefilledStudentId,
+      });
+    });
+  }, [context?.open_installments, allocationInputs, prefilledStudentId]);
 
   function buildQuery() {
     const query: Record<string, number> = {};
@@ -176,21 +269,7 @@ export function FamilyCollectionWorkflowForm({
     return idempotencyKeyRef.current;
   }
 
-  function handleCancel() {
-    if (
-      hasUnsavedFamilyCollectionChanges({
-        amount,
-        values: allocationInputs,
-        draftId,
-      }) &&
-      !window.confirm(t('admin.finance.billingAccounts.familyCollection.unsavedExitWarning'))
-    ) {
-      return;
-    }
-    onCancel();
-  }
-
-  function handleSuggestAllocation() {
+  function applySuggestedAllocation() {
     if (!Number.isFinite(parsedAmount) || parsedAmount <= 0 || !context?.open_installments.length) {
       return;
     }
@@ -204,14 +283,22 @@ export function FamilyCollectionWorkflowForm({
       return;
     }
 
-    setAllocationInputs(
-      buildSuggestedFamilyAllocations({
-        amount: parsedAmount,
-        installments: context.open_installments,
+    const suggested = buildSuggestedFamilyAllocations({
+      amount: parsedAmount,
+      installments: context.open_installments,
+    });
+    setAllocationInputs(suggested);
+    setSuggestionApplied(true);
+    const summaries = buildFamilyStudentAllocationSummaries({
+      installments: context.open_installments,
+      allocationInputs: suggested,
+    });
+    setExpandedStudentIds(
+      resolveDefaultExpandedStudentIds({
+        summaries,
+        highlightStudentId: prefilledStudentId,
       }),
     );
-    setSuggestionApplied(true);
-    setExpandedStudentIds(new Set());
     setStep('edit');
     setPreview(null);
     setPreviewError(null);
@@ -265,7 +352,11 @@ export function FamilyCollectionWorkflowForm({
       setPreviewError(t('admin.finance.billingAccounts.familyCollection.previewFailed'));
       return;
     }
-    if (normalized.errors.length) setPreviewError(normalized.errors.join(' · '));
+    if (normalized.errors.length) {
+      setPreviewError(normalized.errors.join(' · '));
+      setPreview(null);
+      return;
+    }
     setPreview(normalized);
     setStep('review');
   }
@@ -304,12 +395,12 @@ export function FamilyCollectionWorkflowForm({
     return normalizeFamilyCollectionDetail(readBack.data);
   }
 
-  async function handleSaveDraft(event: React.FormEvent) {
-    event.preventDefault();
-    if (submitting || cashSessionBlocked) return;
+  async function handleSaveDraft(event?: React.FormEvent) {
+    event?.preventDefault();
+    if (submitting || cashSessionBlocked) return false;
     if (!journalId || !paymentMethod || !academicYearId || !collectionDate) {
       setSubmitError(t('admin.finance.billingAccounts.familyCollection.missingFields'));
-      return;
+      return false;
     }
     setSubmitting(true);
     setSubmitError(null);
@@ -317,7 +408,7 @@ export function FamilyCollectionWorkflowForm({
     setSubmitting(false);
     if (!saved) {
       setSubmitError(t('admin.finance.billingAccounts.familyCollection.submitFailed'));
-      return;
+      return false;
     }
     setPreview((current) =>
       current
@@ -329,14 +420,26 @@ export function FamilyCollectionWorkflowForm({
           }
         : current,
     );
-    setStep('review');
+    return true;
   }
 
   async function handleConfirm() {
-    if (draftId == null || confirming) return;
+    if (confirming || !confirmState.canConfirm) return;
     setConfirming(true);
     setSubmitError(null);
-    const confirmed = await confirmFamilyCollection(draftId, buildQuery());
+
+    let collectionId = draftId;
+    if (collectionId == null) {
+      const saved = await persistDraft();
+      if (!saved) {
+        setConfirming(false);
+        setSubmitError(t('admin.finance.billingAccounts.familyCollection.submitFailed'));
+        return;
+      }
+      collectionId = saved.id;
+    }
+
+    const confirmed = await confirmFamilyCollection(collectionId, buildQuery());
     setConfirming(false);
     if (!confirmed.success) {
       setSubmitError(
@@ -354,18 +457,18 @@ export function FamilyCollectionWorkflowForm({
       return;
     }
     const receiptId = await resolveFamilyCollectionReceiptId(
-      draftId,
+      collectionId,
       normalized,
       fetchCollectionReceipt,
     );
     idempotencyKeyRef.current = null;
     onDone({
-      id: draftId,
-      collection_id: normalized.collection_id ?? draftId,
+      id: collectionId,
+      collection_id: normalized.collection_id ?? collectionId,
       receipt_id: receiptId,
       allocated_amount: normalized.allocated_amount,
       unallocated_amount: normalized.unallocated_amount,
-      collections: [{ id: normalized.collection_id ?? draftId, state: normalized.state ?? 'confirmed' }],
+      collections: [{ id: normalized.collection_id ?? collectionId, state: normalized.state ?? 'confirmed' }],
       receipts: receiptId ? [{ id: receiptId }] : [],
       warnings: normalized.warnings ?? [],
     });
@@ -389,36 +492,58 @@ export function FamilyCollectionWorkflowForm({
     );
   }
 
-  return (
-    <form className="finance-collection-workflow finance-family-collection-workflow" onSubmit={handleSaveDraft}>
-      <div className="finance-collection-workflow__scroll">
-        <p className="finance-family-collection-workflow__intro muted">
-          {t('admin.finance.billingAccounts.familyCollection.intro')}
-        </p>
-        <dl className="detail-list compact finance-family-collection-preview-metrics">
-          <div>
-            <dt>{t('admin.finance.payer')}</dt>
-            <dd dir="auto">{accountName?.trim() || t('common.dash')}</dd>
-          </div>
-          <div>
-            <dt>{t('admin.finance.billingAccounts.columns.studentCount')}</dt>
-            <dd>{accountStudentCount || context?.open_installments.length || 0}</dd>
-          </div>
-          <div>
-            <dt>{t('admin.finance.quickPayment.amountLabel')}</dt>
-            <dd><FinanceMoney amount={parsedAmount} currency={currency} /></dd>
-          </div>
-          <div>
-            <dt>{t('admin.finance.billingAccounts.familyCollection.preview.allocated')}</dt>
-            <dd><FinanceMoney amount={allocatedAmount} currency={currency} /></dd>
-          </div>
-          <div>
-            <dt>{t('admin.finance.billingAccounts.familyCollection.preview.unallocated')}</dt>
-            <dd><FinanceMoney amount={unallocatedAmount} currency={currency} /></dd>
-          </div>
-        </dl>
+  const confirmBlockMessage = confirmState.blockReason
+    ? t(familyCollectionConfirmBlockReasonKey(confirmState.blockReason))
+    : null;
 
-        {suggestedAmount != null && suggestedAmount > 0 ? (
+  return (
+    <form
+      className="finance-collection-workflow finance-family-collection-workflow"
+      onSubmit={(event) => {
+        event.preventDefault();
+        void handleSaveDraft(event);
+      }}
+    >
+      <div className="finance-collection-workflow__scroll">
+        <header className="finance-family-collection-header-summary">
+          <h4 className="finance-family-collection-header-summary__title">
+            {t('admin.finance.billingAccounts.familyCollection.headerSummaryTitle')}
+          </h4>
+          <dl className="finance-family-collection-header-summary__grid">
+            <div>
+              <dt>{t('admin.finance.payer')}</dt>
+              <dd dir="auto">{accountName?.trim() || t('common.dash')}</dd>
+            </div>
+            <div>
+              <dt>{t('admin.finance.quickPayment.amountLabel')}</dt>
+              <dd><FinanceMoney amount={parsedAmount} currency={currency} /></dd>
+            </div>
+            <div>
+              <dt>{t('admin.finance.paymentMethod')}</dt>
+              <dd>
+                {paymentMethod
+                  ? paymentMethodLabel(paymentMethod, t)
+                  : t('admin.finance.billingAccounts.familyCollection.paymentMethodPending')}
+              </dd>
+            </div>
+            <div>
+              <dt>{t('admin.finance.billingAccounts.familyCollection.preview.allocated')}</dt>
+              <dd><FinanceMoney amount={allocatedAmount} currency={currency} /></dd>
+            </div>
+            <div>
+              <dt>{t('admin.finance.billingAccounts.familyCollection.preview.unallocated')}</dt>
+              <dd><FinanceMoney amount={unallocatedAmount} currency={currency} /></dd>
+            </div>
+            <div>
+              <dt>{t('admin.finance.billingAccounts.columns.studentCount')}</dt>
+              <dd>{studentCount}</dd>
+            </div>
+          </dl>
+        </header>
+
+        <FamilyCollectionWorkflowSteps step={step} t={t} />
+
+        {suggestedAmount != null && suggestedAmount > 0 && step === 'edit' ? (
           <section
             className="finance-quick-payment-suggestion"
             aria-label={t('admin.finance.quickPayment.currentOverdueLabel')}
@@ -446,128 +571,122 @@ export function FamilyCollectionWorkflowForm({
               {t('admin.finance.quickPayment.useOverdueAmount')}
             </button>
           </section>
-        ) : context?.total_remaining != null ? (
-          <p className="finance-family-collection-workflow__balance tiny muted">
-            {t('admin.finance.billingAccounts.metrics.remaining')}:{' '}
-            <FinanceMoney amount={context.total_remaining} currency={currency} />
-          </p>
         ) : null}
 
-        <section className="collection-form-section finance-quick-payment-primary">
-          <QuickPaymentCoreFields
-            amount={amount}
-            onAmountChange={(value) => {
-              setAmount(value);
-              setSuggestionApplied(false);
-              setStep('edit');
-              setPreview(null);
-              setPreviewError(null);
-            }}
-            amountLabel={t('admin.finance.quickPayment.amountLabel')}
-            currency={journalCurrency}
-            journalId={journalId}
-            onJournalChange={(value) => {
-              setJournalId(value);
-              setStep('edit');
-              setPreview(null);
-            }}
-            journals={journals}
-            selectedJournal={selectedJournal}
-            journalsLoading={refLoading}
-            paymentMethod={paymentMethod}
-            onPaymentMethodChange={(value) => {
-              setPaymentMethod(value);
-              setStep('edit');
-              setPreview(null);
-            }}
-            allowedMethods={allowedMethods ?? []}
-            collectionDate={collectionDate}
-            onCollectionDateChange={setCollectionDate}
-          />
-        </section>
-
-        <section className="finance-family-collection-allocation-options">
-          {studentScopedEntry ? (
-            <div className="finance-family-collection-student360-context" role="status">
-              <p className="finance-family-collection-student360-context__lead">
-                {t('admin.finance.billingAccounts.familyCollection.student360Context', {
-                  accountName: accountName?.trim() || t('common.dash'),
-                  studentName: prefilledStudentName?.trim() || `#${prefilledStudentId}`,
-                })}
-              </p>
-            </div>
-          ) : null}
-          <p className="tiny muted finance-family-collection-allocation-options__hint" role="status">
-            {t('admin.finance.billingAccounts.familyCollection.manualAllocationHint')}
-          </p>
-          <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
-            <button
-              type="button"
-              className="btn btn--secondary btn--sm"
-              disabled={
-                !Number.isFinite(parsedAmount) ||
-                parsedAmount <= 0 ||
-                !context?.open_installments.length
-              }
-              onClick={handleSuggestAllocation}
-            >
-              {t('admin.finance.billingAccounts.familyCollection.suggestAllocationAction')}
-            </button>
-          </div>
-          {suggestionApplied ? (
-            <p className="tiny muted finance-family-collection-allocation-options__hint" role="status">
-              {t('admin.finance.billingAccounts.familyCollection.suggestionExplainability')}
-            </p>
-          ) : null}
-        </section>
-
-        <details className="finance-collection-advanced">
-          <summary>{t('admin.finance.quickPayment.additionalDetails')}</summary>
-          <div className="finance-collection-advanced__body">
-            <label>
-              {t('admin.finance.hub.filterAcademicYear')}
-              <select
-                className="input"
-                required
-                value={academicYearId}
-                onChange={(e) => {
-                  setAcademicYearId(e.target.value);
+        {step === 'edit' ? (
+          <>
+            <section className="collection-form-section finance-quick-payment-primary">
+              <h4 className="collection-form-section__title">
+                {t('admin.finance.billingAccounts.familyCollection.stepAmount')}
+              </h4>
+              <QuickPaymentCoreFields
+                amount={amount}
+                onAmountChange={(value) => {
+                  setAmount(value);
+                  setSuggestionApplied(false);
+                  setStep('edit');
+                  setPreview(null);
+                  setPreviewError(null);
+                }}
+                amountLabel={t('admin.finance.quickPayment.amountLabel')}
+                currency={journalCurrency}
+                journalId={journalId}
+                onJournalChange={(value) => {
+                  setJournalId(value);
+                  setStep('edit');
                   setPreview(null);
                 }}
-              >
-                <option value="">{t('admin.finance.selectAcademicYear')}</option>
-                {academicYears.map((y) => (
-                  <option key={y.id} value={y.id}>
-                    {y.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-        </details>
+                journals={journals}
+                selectedJournal={selectedJournal}
+                journalsLoading={refLoading}
+                paymentMethod={paymentMethod}
+                onPaymentMethodChange={(value) => {
+                  setPaymentMethod(value);
+                  setStep('edit');
+                  setPreview(null);
+                }}
+                allowedMethods={allowedMethods ?? []}
+                collectionDate={collectionDate}
+                onCollectionDateChange={setCollectionDate}
+              />
+            </section>
+
+            <section className="finance-family-collection-allocation-options">
+              {studentScopedEntry ? (
+                <div className="finance-family-collection-student360-context" role="status">
+                  <p className="finance-family-collection-student360-context__lead">
+                    {t('admin.finance.billingAccounts.familyCollection.student360Context', {
+                      accountName: accountName?.trim() || t('common.dash'),
+                      studentName: prefilledStudentName?.trim() || `#${prefilledStudentId}`,
+                    })}
+                  </p>
+                </div>
+              ) : null}
+              <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  className="btn btn--secondary btn--sm"
+                  disabled={
+                    !Number.isFinite(parsedAmount) ||
+                    parsedAmount <= 0 ||
+                    !context?.open_installments.length
+                  }
+                  onClick={applySuggestedAllocation}
+                >
+                  {t('admin.finance.billingAccounts.familyCollection.suggestAllocationAction')}
+                </button>
+              </div>
+            </section>
+
+            <details className="finance-collection-advanced">
+              <summary>{t('admin.finance.quickPayment.additionalDetails')}</summary>
+              <div className="finance-collection-advanced__body">
+                <label>
+                  {t('admin.finance.hub.filterAcademicYear')}
+                  <select
+                    className="input"
+                    required
+                    value={academicYearId}
+                    onChange={(e) => {
+                      setAcademicYearId(e.target.value);
+                      setPreview(null);
+                    }}
+                  >
+                    <option value="">{t('admin.finance.selectAcademicYear')}</option>
+                    {academicYears.map((y) => (
+                      <option key={y.id} value={y.id}>
+                        {y.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            </details>
+
+            {context ? (
+              <FamilyCollectionAllocationSection
+                installments={context.open_installments}
+                currency={currency}
+                collectionAmount={parsedAmount || 0}
+                allocationInputs={allocationInputs}
+                installmentFilter={installmentFilter}
+                onInstallmentFilterChange={setInstallmentFilter}
+                expandedStudentIds={expandedStudentIds}
+                onExpandedStudentIdsChange={setExpandedStudentIds}
+                onAllocationChange={(values) => {
+                  setAllocationInputs(values);
+                  setSuggestionApplied(false);
+                  setPreview(null);
+                  setStep('edit');
+                }}
+                highlightStudentId={prefilledStudentId}
+                compactAfterSuggestion={suggestionApplied}
+              />
+            ) : null}
+          </>
+        ) : null}
 
         {previewError ? <p className="form-error collection-form-preview-error">{previewError}</p> : null}
-
-        {context ? (
-          <FamilyCollectionAllocationSection
-            installments={context.open_installments}
-            currency={currency}
-            collectionAmount={parsedAmount || 0}
-            allocationInputs={allocationInputs}
-            installmentFilter={installmentFilter}
-            onInstallmentFilterChange={setInstallmentFilter}
-            expandedStudentIds={expandedStudentIds}
-            onExpandedStudentIdsChange={setExpandedStudentIds}
-            onAllocationChange={(values) => {
-              setAllocationInputs(values);
-              setSuggestionApplied(false);
-              setPreview(null);
-              setStep('edit');
-            }}
-            highlightStudentId={prefilledStudentId}
-            compactAfterSuggestion={suggestionApplied}
-          />
-        ) : null}
 
         {step === 'review' && preview ? (
           <FamilyCollectionReviewStep
@@ -579,7 +698,6 @@ export function FamilyCollectionWorkflowForm({
             currency={currency}
             allocations={preview.allocations}
             installments={context?.open_installments ?? []}
-            onBackToEdit={() => setStep('edit')}
           />
         ) : null}
 
@@ -597,42 +715,75 @@ export function FamilyCollectionWorkflowForm({
       <div className="finance-collection-workflow__actions">
         <div className="finance-collection-workflow__footer form-actions">
           <div className="finance-collection-workflow__footer-secondary">
-            <button type="button" className="btn btn--ghost" onClick={handleCancel} disabled={submitting}>
+            <button type="button" className="btn btn--ghost" onClick={onCancel} disabled={submitting || confirming}>
               {t('common.cancel')}
             </button>
           </div>
           <div className="finance-collection-workflow__footer-primary">
-            <button
-              type="button"
-              className="btn btn--secondary"
-              disabled={previewLoading || !Number.isFinite(parsedAmount) || parsedAmount <= 0}
-              onClick={() => void runPreview()}
-            >
-              {previewLoading
-                ? t('common.loading')
-                : t('admin.finance.billingAccounts.familyCollection.reviewAction')}
-            </button>
-            <button
-              type="submit"
-              className="btn btn--primary"
-              disabled={submitting || cashSessionBlocked}
-            >
-              {submitting
-                ? t('admin.finance.collections.submitting')
-                : t('admin.finance.billingAccounts.familyCollection.saveDraftAction')}
-            </button>
-            <button
-              type="button"
-              className="btn btn--primary"
-              disabled={confirming || !previewValid || cashSessionBlocked || draftId == null}
-              onClick={() => void handleConfirm()}
-            >
-              {confirming
-                ? t('admin.finance.collections.submitting')
-                : t('admin.finance.billingAccounts.familyCollection.confirmAction')}
-            </button>
+            {step === 'edit' ? (
+              <>
+                <button
+                  type="button"
+                  className="btn btn--primary"
+                  disabled={previewLoading || !Number.isFinite(parsedAmount) || parsedAmount <= 0}
+                  onClick={() => void runPreview()}
+                >
+                  {previewLoading
+                    ? t('common.loading')
+                    : t('admin.finance.billingAccounts.familyCollection.reviewAction')}
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn--secondary"
+                  disabled={submitting || cashSessionBlocked}
+                >
+                  {submitting
+                    ? t('admin.finance.collections.submitting')
+                    : t('admin.finance.billingAccounts.familyCollection.saveDraftAction')}
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className="btn btn--secondary"
+                  disabled={confirming || submitting}
+                  onClick={() => {
+                    setStep('edit');
+                    setSubmitError(null);
+                  }}
+                >
+                  {t('admin.finance.billingAccounts.familyCollection.backToEdit')}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn--secondary"
+                  disabled={submitting || cashSessionBlocked}
+                  onClick={() => void handleSaveDraft()}
+                >
+                  {submitting
+                    ? t('admin.finance.collections.submitting')
+                    : t('admin.finance.billingAccounts.familyCollection.saveDraftAction')}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn--primary"
+                  disabled={confirming || !confirmState.canConfirm}
+                  onClick={() => void handleConfirm()}
+                >
+                  {confirming
+                    ? t('admin.finance.collections.submitting')
+                    : t('admin.finance.billingAccounts.familyCollection.confirmAction')}
+                </button>
+              </>
+            )}
           </div>
         </div>
+        {step === 'review' && !confirmState.canConfirm && confirmBlockMessage ? (
+          <p className="finance-collection-workflow__footer-hint tiny muted" role="status">
+            {confirmBlockMessage}
+          </p>
+        ) : null}
       </div>
     </form>
   );

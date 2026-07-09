@@ -1,7 +1,29 @@
 import type {
   FamilyCollectionAllocationInput,
+  FamilyCollectionPreviewResponse,
   FamilyOpenInstallment,
 } from '@/types/family-finance';
+
+export type FamilyInstallmentFilter = 'all' | 'unallocated' | 'registration' | 'tuition' | 'overdue';
+
+export type FamilyCollectionConfirmBlockReason =
+  | 'not_in_review'
+  | 'preview_missing'
+  | 'preview_errors'
+  | 'missing_fields'
+  | 'cash_session_blocked'
+  | 'invalid_amount';
+
+export interface FamilyStudentAllocationSummary {
+  studentId: number;
+  studentName: string;
+  classLabel: string;
+  openTotal: number;
+  allocatedNow: number;
+  remainingAfter: number;
+  allocatedItemCount: number;
+  hasAllocations: boolean;
+}
 
 export function parseFamilyAllocationInputs(
   values: Record<number, string>,
@@ -17,242 +39,103 @@ export function parseFamilyAllocationInputs(
   return lines;
 }
 
-export function parseAllocationAmount(value: string | undefined): number {
-  const amount = Number(value);
-  return Number.isFinite(amount) && amount > 0 ? amount : 0;
-}
-
 export function sumFamilyAllocationAmounts(
   values: Record<number, string>,
 ): number {
   return Object.values(values).reduce((sum, raw) => sum + (Number(raw) || 0), 0);
 }
 
-export function computeFamilyAvailableAmount(
-  collectionAmount: number,
-  values: Record<number, string>,
-  excludeInstallmentId?: number,
-): number {
-  let allocated = 0;
-  for (const [idRaw, raw] of Object.entries(values)) {
-    const installmentId = Number(idRaw);
-    if (excludeInstallmentId != null && installmentId === excludeInstallmentId) continue;
-    allocated += Number(raw) || 0;
-  }
-  return Math.max(0, collectionAmount - allocated);
+export function hasActiveFamilyAllocations(values: Record<number, string>): boolean {
+  return parseFamilyAllocationInputs(values).length > 0;
 }
 
-export function fillInstallmentAllocation(
-  installment: FamilyOpenInstallment,
-  collectionAmount: number,
-  values: Record<number, string>,
-): Record<number, string> {
-  const available = computeFamilyAvailableAmount(
-    collectionAmount,
-    values,
-    installment.installment_id,
-  );
-  const remaining = installment.remaining_amount ?? 0;
-  const fill = Math.min(remaining, available);
-  if (fill <= 0) {
-    const next = { ...values };
-    delete next[installment.installment_id];
-    return next;
-  }
-  return { ...values, [installment.installment_id]: String(fill) };
-}
-
-export function clearInstallmentAllocation(
+export function installmentAllocationAmount(
   values: Record<number, string>,
   installmentId: number,
-): Record<number, string> {
-  const next = { ...values };
-  delete next[installmentId];
-  return next;
-}
-
-/** Distributes remaining collection amount across one child's rows in list order (explicit user action). */
-export function allocateAvailableToChild(
-  childInstallments: FamilyOpenInstallment[],
-  collectionAmount: number,
-  values: Record<number, string>,
-): Record<number, string> {
-  let available = computeFamilyAvailableAmount(collectionAmount, values);
-  const next = { ...values };
-  for (const row of childInstallments) {
-    if (available <= 0) break;
-    const remaining = row.remaining_amount ?? 0;
-    if (remaining <= 0) continue;
-    const fill = Math.min(remaining, available);
-    next[row.installment_id] = String(fill);
-    available -= fill;
-  }
-  return next;
-}
-
-export function computeChildOpenTotal(rows: FamilyOpenInstallment[]): number {
-  return rows.reduce((sum, row) => sum + (row.remaining_amount ?? 0), 0);
-}
-
-export function computeChildAllocatedNow(
-  rows: FamilyOpenInstallment[],
-  values: Record<number, string>,
 ): number {
-  return rows.reduce(
-    (sum, row) => sum + parseAllocationAmount(values[row.installment_id]),
-    0,
-  );
+  const raw = values[installmentId];
+  const amount = Number(raw);
+  return Number.isFinite(amount) && amount > 0 ? amount : 0;
 }
 
-export function computeChildRemainingAfter(openTotal: number, allocatedNow: number): number {
-  return Math.max(0, openTotal - allocatedNow);
-}
-
-export function computeProjectedRemaining(
-  remainingBefore: number,
-  allocatedNow: number,
-): number {
-  return Math.max(0, remainingBefore - allocatedNow);
-}
-
-export type FamilyInstallmentFilter =
-  | 'all'
-  | 'unallocated'
-  | 'registration'
-  | 'tuition'
-  | 'overdue';
-
-export function matchesFamilyInstallmentFilter(
-  row: FamilyOpenInstallment,
-  filter: FamilyInstallmentFilter,
-  values: Record<number, string>,
-): boolean {
-  switch (filter) {
-    case 'all':
-      return true;
-    case 'unallocated':
-      return parseAllocationAmount(values[row.installment_id]) <= 0;
-    case 'registration':
-      return row.service_type === 'registration';
-    case 'tuition':
-      return row.service_type === 'tuition';
-    case 'overdue':
-      return row.is_overdue === true;
-    default:
-      return true;
-  }
-}
-
-export function familyServiceTypeBadgeClass(
-  serviceType: string | null | undefined,
-): string {
-  const map: Record<string, string> = {
-    registration: 'finance-family-fee-badge finance-family-fee-badge--registration',
-    tuition: 'finance-family-fee-badge finance-family-fee-badge--tuition',
-    transport: 'finance-family-fee-badge finance-family-fee-badge--transport',
-    canteen: 'finance-family-fee-badge finance-family-fee-badge--canteen',
-  };
-  return map[serviceType ?? ''] ?? 'finance-family-fee-badge finance-family-fee-badge--other';
-}
-
-export function hasUnsavedFamilyCollectionChanges(input: {
-  amount: string;
-  values: Record<number, string>;
-  draftId: number | null;
-}): boolean {
-  if (input.draftId != null) return false;
-  const parsedAmount = Number.parseFloat(input.amount.replace(',', '.'));
-  const hasAmount = Number.isFinite(parsedAmount) && parsedAmount > 0;
-  const hasAllocations = Object.values(input.values).some(
-    (value) => parseAllocationAmount(value) > 0,
-  );
-  return hasAmount || hasAllocations;
-}
-
-export function countChildAllocatedLines(
-  rows: FamilyOpenInstallment[],
-  values: Record<number, string>,
-): number {
-  return rows.filter((row) => parseAllocationAmount(values[row.installment_id]) > 0).length;
-}
-
-export function hasActiveFamilyAllocations(values: Record<number, string>): boolean {
-  return Object.values(values).some((value) => parseAllocationAmount(value) > 0);
-}
-
-export type SuggestionPriority = 1 | 2 | 3 | 4 | 5;
-
-export function getSuggestionPriority(
-  row: FamilyOpenInstallment,
-  today: string,
-): SuggestionPriority {
-  const serviceType = row.service_type ?? '';
-
-  if (serviceType === 'registration') return 1;
-
-  const dueDate = row.due_date;
-  if (dueDate && dueDate > today) return 5;
-
-  if (row.is_overdue === true) return 2;
-
-  if (serviceType === 'tuition') return 3;
-
-  return 4;
-}
-
-export function compareSuggestionCandidates(
-  a: FamilyOpenInstallment,
-  b: FamilyOpenInstallment,
-  today: string,
-): number {
-  const priorityDiff = getSuggestionPriority(a, today) - getSuggestionPriority(b, today);
-  if (priorityDiff !== 0) return priorityDiff;
-
-  const dueA = a.due_date ?? '9999-12-31';
-  const dueB = b.due_date ?? '9999-12-31';
-  const dueDiff = dueA.localeCompare(dueB);
-  if (dueDiff !== 0) return dueDiff;
-
-  return a.installment_id - b.installment_id;
-}
-
-/** Explicit user-triggered allocation suggestion — deterministic, reviewable, editable. */
-export function buildSuggestedFamilyAllocations(
+export function filterFamilyInstallments(
   installments: FamilyOpenInstallment[],
-  collectionAmount: number,
-  today: string = new Date().toISOString().slice(0, 10),
-): Record<number, string> {
-  if (!Number.isFinite(collectionAmount) || collectionAmount <= 0) return {};
+  filter: FamilyInstallmentFilter,
+  allocationInputs: Record<number, string>,
+): FamilyOpenInstallment[] {
+  if (filter === 'all') return installments;
 
-  const eligible = installments.filter((row) => (row.remaining_amount ?? 0) > 0);
-  const sorted = [...eligible].sort((a, b) => compareSuggestionCandidates(a, b, today));
-  const current = sorted.filter((row) => getSuggestionPriority(row, today) < 5);
-  const future = sorted.filter((row) => getSuggestionPriority(row, today) === 5);
-
-  const values: Record<number, string> = {};
-  let remainingCollectionAmount = collectionAmount;
-
-  for (const row of current) {
-    if (remainingCollectionAmount <= 0) break;
-    const installmentRemaining = row.remaining_amount ?? 0;
-    const allocation = Math.min(installmentRemaining, remainingCollectionAmount);
-    if (allocation <= 0) continue;
-    values[row.installment_id] = String(allocation);
-    remainingCollectionAmount -= allocation;
-  }
-
-  if (remainingCollectionAmount > 0) {
-    for (const row of future) {
-      if (remainingCollectionAmount <= 0) break;
-      const installmentRemaining = row.remaining_amount ?? 0;
-      const allocation = Math.min(installmentRemaining, remainingCollectionAmount);
-      if (allocation <= 0) continue;
-      values[row.installment_id] = String(allocation);
-      remainingCollectionAmount -= allocation;
+  return installments.filter((row) => {
+    if (filter === 'unallocated') {
+      return installmentAllocationAmount(allocationInputs, row.installment_id) <= 0;
     }
+    if (filter === 'registration') {
+      return row.service_type === 'registration';
+    }
+    if (filter === 'tuition') {
+      return row.service_type === 'tuition';
+    }
+    if (filter === 'overdue') {
+      return row.is_overdue === true;
+    }
+    return true;
+  });
+}
+
+function formatClassLevel(row: FamilyOpenInstallment): string {
+  return [row.level_name, row.class_name, row.section_name].filter(Boolean).join(' — ');
+}
+
+export function buildFamilyStudentAllocationSummaries(input: {
+  installments: FamilyOpenInstallment[];
+  allocationInputs: Record<number, string>;
+  filteredInstallmentIds?: Set<number>;
+}): FamilyStudentAllocationSummary[] {
+  const grouped = new Map<number, FamilyOpenInstallment[]>();
+  for (const row of input.installments) {
+    if (input.filteredInstallmentIds && !input.filteredInstallmentIds.has(row.installment_id)) {
+      continue;
+    }
+    if (!grouped.has(row.student_id)) grouped.set(row.student_id, []);
+    grouped.get(row.student_id)?.push(row);
   }
 
-  return values;
+  return Array.from(grouped.entries()).map(([studentId, rows]) => {
+    const openTotal = rows.reduce((sum, row) => sum + (row.remaining_amount ?? 0), 0);
+    const allocatedNow = rows.reduce(
+      (sum, row) => sum + installmentAllocationAmount(input.allocationInputs, row.installment_id),
+      0,
+    );
+    const allocatedItemCount = rows.filter(
+      (row) => installmentAllocationAmount(input.allocationInputs, row.installment_id) > 0,
+    ).length;
+
+    return {
+      studentId,
+      studentName: rows[0]?.student_name?.trim() || `#${studentId}`,
+      classLabel: formatClassLevel(rows[0] ?? { installment_id: 0, student_id: studentId }),
+      openTotal,
+      allocatedNow,
+      remainingAfter: Math.max(0, openTotal - allocatedNow),
+      allocatedItemCount,
+      hasAllocations: allocatedItemCount > 0,
+    };
+  });
+}
+
+export function resolveDefaultExpandedStudentIds(input: {
+  summaries: FamilyStudentAllocationSummary[];
+  highlightStudentId?: number;
+}): Set<number> {
+  const expanded = new Set<number>();
+  if (input.highlightStudentId != null) {
+    expanded.add(input.highlightStudentId);
+    return expanded;
+  }
+  for (const summary of input.summaries) {
+    if (summary.hasAllocations) expanded.add(summary.studentId);
+  }
+  return expanded;
 }
 
 export function validateFamilyAllocations(input: {
@@ -280,4 +163,49 @@ export function validateFamilyAllocations(input: {
   const allocated = lines.reduce((sum, line) => sum + line.amount, 0);
   if (allocated - input.amount > 0.0001) return 'allocation_exceeds_amount';
   return null;
+}
+
+export function isFamilyCollectionPreviewValid(
+  preview: FamilyCollectionPreviewResponse | null,
+  previewError: string | null,
+): boolean {
+  return !!preview && !preview.errors.length && previewError == null;
+}
+
+export function resolveFamilyCollectionConfirmState(input: {
+  step: 'edit' | 'review';
+  preview: FamilyCollectionPreviewResponse | null;
+  previewError: string | null;
+  parsedAmount: number;
+  journalId: string;
+  paymentMethod: string;
+  academicYearId: string;
+  collectionDate: string;
+  cashSessionBlocked: boolean;
+}): { canConfirm: boolean; blockReason: FamilyCollectionConfirmBlockReason | null } {
+  if (input.step !== 'review') {
+    return { canConfirm: false, blockReason: 'not_in_review' };
+  }
+  if (!Number.isFinite(input.parsedAmount) || input.parsedAmount <= 0) {
+    return { canConfirm: false, blockReason: 'invalid_amount' };
+  }
+  if (!input.journalId || !input.paymentMethod || !input.academicYearId || !input.collectionDate) {
+    return { canConfirm: false, blockReason: 'missing_fields' };
+  }
+  if (input.cashSessionBlocked) {
+    return { canConfirm: false, blockReason: 'cash_session_blocked' };
+  }
+  if (!input.preview) {
+    return { canConfirm: false, blockReason: 'preview_missing' };
+  }
+  if (input.preview.errors.length || input.previewError) {
+    return { canConfirm: false, blockReason: 'preview_errors' };
+  }
+  return { canConfirm: true, blockReason: null };
+}
+
+export function familyCollectionConfirmBlockReasonKey(
+  reason: FamilyCollectionConfirmBlockReason,
+): string {
+  return `admin.finance.billingAccounts.familyCollection.confirmBlockReason.${reason}`;
 }

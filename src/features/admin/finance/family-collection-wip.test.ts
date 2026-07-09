@@ -13,14 +13,6 @@ const FAMILY_COLLECTION_KEYS = [
   'student360Context',
   'reviewTitle',
   'unallocatedNotice',
-  'fillRemaining',
-  'clearLine',
-  'allocateAvailableToChild',
-  'unsavedExitWarning',
-  'backToEdit',
-  'suggestAllocationAction',
-  'suggestionExplainer',
-  'replaceSuggestionConfirm',
 ] as const;
 
 const formSource = readFileSync(
@@ -42,8 +34,9 @@ describe('finance hub billing accounts deep link', () => {
 });
 
 describe('family collection workflow form structure', () => {
-  it('renders familyCollection intro in primary flow', () => {
-    expect(formSource).toContain("t('admin.finance.billingAccounts.familyCollection.intro')");
+  it('renders familyCollection header summary in primary flow', () => {
+    expect(formSource).toContain("t('admin.finance.billingAccounts.familyCollection.headerSummaryTitle')");
+    expect(formSource).toContain('finance-family-collection-header-summary');
   });
 
   it('keeps allocation options outside advanced details', () => {
