@@ -6,6 +6,7 @@ import { CollectionCashSessionGate, collectionBlockedByCashSession, resolveCashS
 import { FamilyCollectionAllocationSection } from '@/features/admin/finance/family-collection-allocation-section';
 import {
   hasActiveFamilyAllocations,
+  hasUnsavedFamilyCollectionChanges,
   parseFamilyAllocationInputs,
   sumFamilyAllocationAmounts,
   validateFamilyAllocations,
@@ -175,7 +176,21 @@ export function FamilyCollectionWorkflowForm({
     return idempotencyKeyRef.current;
   }
 
-  function applySuggestedAllocation() {
+  function handleCancel() {
+    if (
+      hasUnsavedFamilyCollectionChanges({
+        amount,
+        values: allocationInputs,
+        draftId,
+      }) &&
+      !window.confirm(t('admin.finance.billingAccounts.familyCollection.unsavedExitWarning'))
+    ) {
+      return;
+    }
+    onCancel();
+  }
+
+  function handleSuggestAllocation() {
     if (!Number.isFinite(parsedAmount) || parsedAmount <= 0 || !context?.open_installments.length) {
       return;
     }
@@ -494,7 +509,7 @@ export function FamilyCollectionWorkflowForm({
                 parsedAmount <= 0 ||
                 !context?.open_installments.length
               }
-              onClick={applySuggestedAllocation}
+              onClick={handleSuggestAllocation}
             >
               {t('admin.finance.billingAccounts.familyCollection.suggestAllocationAction')}
             </button>
@@ -564,6 +579,7 @@ export function FamilyCollectionWorkflowForm({
             currency={currency}
             allocations={preview.allocations}
             installments={context?.open_installments ?? []}
+            onBackToEdit={() => setStep('edit')}
           />
         ) : null}
 
@@ -581,7 +597,7 @@ export function FamilyCollectionWorkflowForm({
       <div className="finance-collection-workflow__actions">
         <div className="finance-collection-workflow__footer form-actions">
           <div className="finance-collection-workflow__footer-secondary">
-            <button type="button" className="btn btn--ghost" onClick={onCancel} disabled={submitting}>
+            <button type="button" className="btn btn--ghost" onClick={handleCancel} disabled={submitting}>
               {t('common.cancel')}
             </button>
           </div>
