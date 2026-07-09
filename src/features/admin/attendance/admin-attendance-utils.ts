@@ -1,6 +1,15 @@
 import type { AttendanceRecord, AttendanceStatus } from '@/types/attendance';
 
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
 export const ATT_STATUSES: AttendanceStatus[] = ['present', 'absent', 'late', 'left_early'];
+
+export const ATTENDANCE_PAGE_SIZE = 20;
+
+export type AttendanceListEmptyVariant = 'none' | 'no-data' | 'no-match';
 
 export function todayIso(): string {
   const d = new Date();
@@ -32,4 +41,21 @@ export function summarizeRecords(records: AttendanceRecord[]) {
 
 export function isDefaultFilters(date: string, status: string, classId: string): boolean {
   return date === todayIso() && !status && !classId;
+}
+
+export function hasActiveAttendanceFilters(
+  date: string,
+  status: string,
+  classId: string,
+): boolean {
+  return !isDefaultFilters(date, status, classId);
+}
+
+export function resolveAttendanceListEmptyVariant(options: {
+  hasActiveFilters: boolean;
+  recordCount: number;
+}): AttendanceListEmptyVariant {
+  if (options.recordCount > 0) return 'none';
+  if (options.hasActiveFilters) return 'no-match';
+  return 'no-data';
 }

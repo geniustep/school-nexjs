@@ -1,3 +1,8 @@
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
 /* Admin attendance operations — workspace UI */
 
 .admin-attendance-page {
@@ -330,11 +335,50 @@
   color: var(--c-text, #0f172a);
 }
 
+.admin-att-toolbar__context {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.65rem 0.75rem;
+  padding: 0.15rem 0;
+}
+
+.admin-att-toolbar__status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.65rem 0.75rem;
+  padding-top: 0.55rem;
+  border-top: 1px dashed color-mix(in srgb, var(--c-border, #e2e8f0) 85%, transparent);
+}
+
 .admin-att-toolbar__row {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
   gap: 0.65rem 0.75rem;
+}
+
+.admin-att-field--primary {
+  flex: 1 1 11rem;
+  max-width: 16rem;
+}
+
+.admin-att-field--secondary {
+  flex: 1 1 9.5rem;
+  max-width: 14rem;
+}
+
+.admin-att-field__date-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.admin-att-field__date-row .input {
+  flex: 1 1 9rem;
+  min-width: 0;
 }
 
 .admin-att-field {
@@ -364,8 +408,8 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 0.45rem;
-  padding-top: 0.15rem;
-  border-top: 1px dashed color-mix(in srgb, var(--c-border, #e2e8f0) 85%, transparent);
+  flex: 1 1 12rem;
+  min-width: 0;
 }
 
 .admin-att-quick-chip {
@@ -556,6 +600,30 @@
   font-size: 0.875rem;
   font-weight: 700;
   color: var(--c-text, #0f172a);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-att-refetch-hint {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--c-text-muted, #64748b);
+}
+
+.admin-att-results {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  transition: opacity 0.15s ease;
+}
+
+.admin-att-results--fetching {
+  opacity: 0.72;
+}
+
+.admin-att-table-section--fetching .admin-att-table-wrap {
+  opacity: 0.85;
 }
 
 .admin-att-table__note {
