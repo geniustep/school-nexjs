@@ -54,6 +54,7 @@ describe('inferPaymentMethodFromJournal', () => {
       method: 'bank_transfer',
       ambiguous: false,
     });
+    expect(needsManualPaymentMethodSelection(journal)).toBe(true);
   });
 
   it('infers cheque from a cheque-only journal', () => {
@@ -65,6 +66,21 @@ describe('inferPaymentMethodFromJournal', () => {
       allowed_payment_methods: [{ code: 'cheque' }],
     } as never;
     expect(inferPaymentMethodFromJournal(journal)).toEqual({ method: 'cheque', ambiguous: false });
+  });
+
+  it('requires manual selection when bank journal supports cheque and transfer', () => {
+    const journal = {
+      id: 6,
+      name: 'Bank',
+      code: 'BNK1',
+      journal_type: 'bank',
+      allowed_payment_methods: [{ code: 'cheque' }, { code: 'bank_transfer' }],
+    } as never;
+    expect(inferPaymentMethodFromJournal(journal)).toEqual({
+      method: 'bank_transfer',
+      ambiguous: false,
+    });
+    expect(needsManualPaymentMethodSelection(journal)).toBe(true);
   });
 
   it('requires manual selection when multiple methods cannot be inferred', () => {

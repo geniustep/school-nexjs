@@ -1,3 +1,5 @@
+import type { ChequeRegistrationPayload } from '@/types/finance';
+
 export type CollectionAllocationPriorityLevel = 'first' | 'normal' | 'last';
 
 export type FamilyFinanceServiceType =
@@ -76,6 +78,8 @@ export interface FamilyOpenInstallment {
   due_date?: string | null;
   remaining_amount?: number | null;
   is_overdue?: boolean | null;
+  /** When false, installment must not enter allocation payloads. */
+  collectible?: boolean | null;
   allocation_priority_level?: CollectionAllocationPriorityLevel | string | null;
   allocation_priority_weight?: number | null;
   suggestion_order?: number | null;
@@ -138,6 +142,8 @@ export interface FamilyCollectionDraftRequest {
   idempotency_key?: string;
   notes?: string | null;
   actual_payer_name?: string | null;
+  reference?: string | null;
+  cheque?: ChequeRegistrationPayload;
 }
 
 export interface FamilyCollectionDetail {

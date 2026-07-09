@@ -3,6 +3,10 @@ import type {
   FamilyCollectionPreviewResponse,
   FamilyOpenInstallment,
 } from '@/types/family-finance';
+import {
+  filterCollectibleFamilyInstallments,
+  isInstallmentCollectibleForAllocation,
+} from '@/features/admin/finance/family-installment-collectibility';
 import { sortInstallmentsForFamilySuggestion } from '@/features/admin/finance/family-suggested-allocation-utils';
 
 export type FamilyInstallmentFilter = 'all' | 'unallocated' | 'registration' | 'tuition' | 'overdue';
@@ -11,7 +15,9 @@ export type FamilyCollectionConfirmBlockReason =
   | 'missing_fields'
   | 'cash_session_blocked'
   | 'invalid_amount'
-  | 'invalid_allocations';
+  | 'invalid_allocations'
+  | 'complete_cheque_fields'
+  | 'fix_cheque_dates';
 
 export interface FamilyStudentAllocationSummary {
   studentId: number;
@@ -39,6 +45,32 @@ export interface FamilyChildCompactSummary {
   classLabel: string;
   allocatedTotal: number;
   lines: FamilyChildAllocationLine[];
+}
+
+export function sanitizeFamilyAllocationInputs(input: {
+  values: Record<number, string>;
+  installments: FamilyOpenInstallment[];
+}): Record<number, string> {
+  const eligibleIds = new Set(
+    filterCollectibleFamilyInstallments(input.installments).map((row) => row.installment_id),
+  );
+  const next: Record<number, string> = {};
+  for (const [installmentIdRaw, rawAmount] of Object.entries(input.values)) {
+    const installmentId = Number(installmentIdRaw);
+    if (!eligibleIds.has(installmentId)) continue;
+    const amount = Number(rawAmount);
+    if (!Number.isFinite(amount) || amount <= 0) continue;
+    next[installmentId] = rawAmount;
+  }
+  return next;
+}
+
+export function readInstallmentNotCollectibleId(
+  details: Record<string, unknown> | undefined,
+): number | null {
+  const raw = details?.installment_id;
+  if (typeof raw === 'number' && Number.isFinite(raw)) return raw;
+  return null;
 }
 
 export function parseFamilyAllocationInputs(
@@ -362,6 +394,7 @@ export function validateFamilyAllocations(input: {
     seen.add(line.installment_id);
     const target = byInstallment.get(line.installment_id);
     if (!target) return 'duplicate_allocation_target';
+    if (!isInstallmentCollectibleForAllocation(target)) return 'invalid_allocations';
     if (line.amount > (target.remaining_amount ?? 0)) return 'allocation_exceeds_remaining';
   }
 
@@ -386,6 +419,13 @@ export function resolveFamilyCollectionConfirmState(input: {
   cashSessionBlocked: boolean;
   allocationInputs: Record<number, string>;
   installments: FamilyOpenInstallment[];
+  isCheque?: boolean;
+  chequeNumber?: string;
+  chequeBank?: string;
+  chequeHolder?: string;
+  chequeWrittenDate?: string;
+  chequePostdated?: boolean;
+  chequeDueDate?: string;
 }): { canConfirm: boolean; blockReason: FamilyCollectionConfirmBlockReason | null } {
   if (!Number.isFinite(input.parsedAmount) || input.parsedAmount <= 0) {
     return { canConfirm: false, blockReason: 'invalid_amount' };
@@ -395,6 +435,24 @@ export function resolveFamilyCollectionConfirmState(input: {
   }
   if (input.cashSessionBlocked) {
     return { canConfirm: false, blockReason: 'cash_session_blocked' };
+  }
+  if (input.isCheque) {
+    if (
+      !input.chequeNumber?.trim() ||
+      !input.chequeBank?.trim() ||
+      !input.chequeHolder?.trim() ||
+      !input.chequeWrittenDate?.trim()
+    ) {
+      return { canConfirm: false, blockReason: 'complete_cheque_fields' };
+    }
+    if (input.chequePostdated) {
+      if (!input.chequeDueDate?.trim()) {
+        return { canConfirm: false, blockReason: 'complete_cheque_fields' };
+      }
+      if (input.chequeDueDate < input.chequeWrittenDate) {
+        return { canConfirm: false, blockReason: 'fix_cheque_dates' };
+      }
+    }
   }
   const validation = validateFamilyAllocations({
     amount: input.parsedAmount,
@@ -410,5 +468,11 @@ export function resolveFamilyCollectionConfirmState(input: {
 export function familyCollectionConfirmBlockReasonKey(
   reason: FamilyCollectionConfirmBlockReason,
 ): string {
+  if (reason === 'complete_cheque_fields') {
+    return 'admin.finance.collections.blockers.completeChequeFields';
+  }
+  if (reason === 'fix_cheque_dates') {
+    return 'admin.finance.collections.blockers.fixChequeDates';
+  }
   return `admin.finance.billingAccounts.familyCollection.confirmBlockReason.${reason}`;
 }

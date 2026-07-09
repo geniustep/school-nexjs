@@ -7064,6 +7064,7 @@
             "invalid_amount": "Saisissez un montant valide supérieur à zéro.",
             "invalid_allocations": "Corrigez la répartition avant de confirmer."
           },
+          "installmentStateChanged": "L'état d'une échéance a changé et elle n'est plus encaissable. La répartition a été actualisée — vérifiez le montant puis confirmez à nouveau.",
           "smartSummary": {
             "title": "Répartition du paiement",
             "explainability": "La répartition suit les priorités de services de l'école et l'état d'échéance.",

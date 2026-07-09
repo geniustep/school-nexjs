@@ -178,6 +178,7 @@ describe('normalizeFamilyCollectionContext (live Odoo shape)', () => {
           due_date: '2026-06-20',
           remaining_amount: 2500,
           is_overdue: true,
+          collectible: true,
         },
       ],
     });
@@ -189,6 +190,7 @@ describe('normalizeFamilyCollectionContext (live Odoo shape)', () => {
     expect(ctx?.open_installments[0]?.service_type).toBe('registration');
     expect(ctx?.open_installments[0]?.service_label).toContain('التسجيل');
     expect(ctx?.open_installments[0]?.is_overdue).toBe(true);
+    expect(ctx?.open_installments[0]?.collectible).toBe(true);
   });
 });
 

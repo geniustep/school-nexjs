@@ -83,6 +83,8 @@ export function inferPaymentMethodFromJournal(
 export function needsManualPaymentMethodSelection(
   journal: PaymentJournal | null | undefined,
 ): boolean {
+  const allowed = resolveJournalAllowedMethodCodes(journal);
+  if (allowed.length > 1) return true;
   return inferPaymentMethodFromJournal(journal).ambiguous;
 }
 

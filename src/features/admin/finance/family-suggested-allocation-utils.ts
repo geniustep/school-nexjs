@@ -1,4 +1,5 @@
 import type { FamilyOpenInstallment } from '@/types/family-finance';
+import { filterCollectibleFamilyInstallments } from '@/features/admin/finance/family-installment-collectibility';
 
 /** Sort open installments for suggestion using backend `suggestion_order` when present. */
 export function sortInstallmentsForFamilySuggestion(
@@ -34,7 +35,8 @@ export function buildSuggestedFamilyAllocations(input: {
     return {};
   }
 
-  const sorted = sortInstallmentsForFamilySuggestion(installments);
+  const eligible = filterCollectibleFamilyInstallments(installments);
+  const sorted = sortInstallmentsForFamilySuggestion(eligible);
   let remaining = amount;
   const values: Record<number, string> = {};
 

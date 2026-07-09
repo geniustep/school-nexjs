@@ -104,6 +104,12 @@ export function QuickPaymentCoreFields({
   useEffect(() => {
     if (!selectedJournal) return;
     const inference = inferPaymentMethodFromJournal(selectedJournal);
+    if (manualPaymentMethod) {
+      if (!paymentMethod || !methodCodes.includes(paymentMethod)) {
+        onPaymentMethodChange(inference.method ?? methodCodes[0] ?? '');
+      }
+      return;
+    }
     if (!inference.ambiguous && inference.method && inference.method !== paymentMethod) {
       onPaymentMethodChange(inference.method);
       return;
@@ -122,6 +128,7 @@ export function QuickPaymentCoreFields({
     paymentMethod,
     methodCodes,
     onPaymentMethodChange,
+    manualPaymentMethod,
   ]);
 
   const showAdditionalDetails = manualPaymentMethod || Boolean(onNotesChange);

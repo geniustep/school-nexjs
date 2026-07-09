@@ -6,9 +6,17 @@ import { CollectionCashSessionGate, collectionBlockedByCashSession, resolveCashS
 import {
   familyCollectionConfirmBlockReasonKey,
   parseFamilyAllocationInputs,
+  readInstallmentNotCollectibleId,
   resolveFamilyCollectionConfirmState,
+  sanitizeFamilyAllocationInputs,
   sumFamilyAllocationAmounts,
 } from '@/features/admin/finance/family-collection-allocation-utils';
+import {
+  buildChequeRegistrationPayload,
+  resolveChequeCollectionReference,
+} from '@/features/admin/finance/collection-cheque-payload';
+import type { CollectionChequeFieldValues } from '@/features/admin/finance/collection-cheque-fields';
+import { filterCollectibleFamilyInstallments } from '@/features/admin/finance/family-installment-collectibility';
 import { FamilyCollectionManualEditor } from '@/features/admin/finance/family-collection-manual-editor';
 import { resolveFamilyCollectionReceiptId } from '@/features/admin/finance/family-collection-receipt-resolve';
 import { FamilyCollectionSmartSummary } from '@/features/admin/finance/family-collection-smart-summary';
@@ -27,9 +35,11 @@ import { fetchCurrentCashSession } from '@/lib/api/finance-cash-desk';
 import { resolveCollectionErrorMessage } from '@/lib/utils/collection-errors';
 import { currencyCode, paymentMethodLabel } from '@/lib/utils/finance';
 import { isCashJournal, paymentMethodRequiresCashSession } from '@/lib/utils/cash-payment';
+import { isChequePayment } from '@/lib/utils/cheque';
 import { normalizeFamilyCollectionConfirmResponse, normalizeFamilyCollectionCreateResponse, normalizeFamilyCollectionDetail } from '@/lib/utils/normalize-family-finance';
 import { confirmFamilyCollection, getFamilyCollectionById, getFamilyFinanceSummary, submitFamilyCollection, updateFamilyCollectionDraft } from '@/features/admin/student-finance/api/family-finance-api';
 import type { FamilyCollectionCreateResponse, FamilyCollectionDetail } from '@/types/family-finance';
+import type { ApiErrorBody } from '@/types/api';
 import type { CashSession } from '@/types/finance-cash-desk';
 
 function FamilyCollectionWorkflowSteps({
@@ -119,7 +129,16 @@ export function FamilyCollectionWorkflowForm({
   const [checkingCashSession, setCheckingCashSession] = useState(false);
   const [accountStudentCount, setAccountStudentCount] = useState(0);
   const [manualEditorOpen, setManualEditorOpen] = useState(false);
+  const [chequeNumber, setChequeNumber] = useState('');
+  const [chequeBank, setChequeBank] = useState('');
+  const [chequeBranch, setChequeBranch] = useState('');
+  const [chequeHolder, setChequeHolder] = useState('');
+  const [chequeWrittenDate, setChequeWrittenDate] = useState('');
+  const [chequePostdated, setChequePostdated] = useState(false);
+  const [chequeDueDate, setChequeDueDate] = useState('');
+  const [chequeNotes, setChequeNotes] = useState('');
   const idempotencyKeyRef = useRef<string | null>(null);
+  const pendingCollectibilityRefreshRef = useRef(false);
 
   const context = contextState.data;
   const currency = context?.currency;
@@ -128,6 +147,38 @@ export function FamilyCollectionWorkflowForm({
   const unallocatedAmount = Math.max(0, (parsedAmount || 0) - allocatedAmount);
   const studentCount = accountStudentCount || new Set(context?.open_installments.map((row) => row.student_id)).size || 0;
   const openInstallments = context?.open_installments ?? [];
+  const collectibleInstallments = useMemo(
+    () => filterCollectibleFamilyInstallments(openInstallments),
+    [openInstallments],
+  );
+  const isCheque = isChequePayment(paymentMethod);
+  const chequeValues: CollectionChequeFieldValues = {
+    chequeNumber,
+    chequeBank,
+    chequeHolder,
+    chequeWrittenDate,
+    chequePostdated,
+    chequeDueDate,
+    chequeNotes,
+    chequeBranch,
+  };
+
+  useEffect(() => {
+    if (!isCheque) {
+      setChequeNumber('');
+      setChequeBank('');
+      setChequeBranch('');
+      setChequeHolder('');
+      setChequeWrittenDate('');
+      setChequePostdated(false);
+      setChequeDueDate('');
+      setChequeNotes('');
+      return;
+    }
+    if (!chequeWrittenDate && collectionDate) {
+      setChequeWrittenDate(collectionDate);
+    }
+  }, [isCheque, collectionDate, chequeWrittenDate]);
 
   useEffect(() => {
     if (!familyId) return;
@@ -209,6 +260,13 @@ export function FamilyCollectionWorkflowForm({
         cashSessionBlocked,
         allocationInputs,
         installments: openInstallments,
+        isCheque,
+        chequeNumber,
+        chequeBank,
+        chequeHolder,
+        chequeWrittenDate,
+        chequePostdated,
+        chequeDueDate,
       }),
     [
       parsedAmount,
@@ -219,24 +277,74 @@ export function FamilyCollectionWorkflowForm({
       cashSessionBlocked,
       allocationInputs,
       openInstallments,
+      isCheque,
+      chequeNumber,
+      chequeBank,
+      chequeHolder,
+      chequeWrittenDate,
+      chequePostdated,
+      chequeDueDate,
     ],
   );
 
-  const studentScopedEntry = entrySource === 'student360' && prefilledStudentId != null;
   const canAutoSuggest =
     Number.isFinite(parsedAmount) &&
     parsedAmount > 0 &&
-    openInstallments.length > 0 &&
+    collectibleInstallments.length > 0 &&
     paymentMethod.trim().length > 0;
 
   useEffect(() => {
     if (!canAutoSuggest || allocationSource !== 'auto') return;
     const suggested = buildSuggestedFamilyAllocations({
       amount: parsedAmount,
-      installments: openInstallments,
+      installments: collectibleInstallments,
     });
     setAllocationInputs(suggested);
-  }, [canAutoSuggest, allocationSource, parsedAmount, openInstallments]);
+  }, [canAutoSuggest, allocationSource, parsedAmount, collectibleInstallments]);
+
+  useEffect(() => {
+    if (!openInstallments.length) return;
+    setAllocationInputs((current) => {
+      const sanitized = sanitizeFamilyAllocationInputs({
+        values: current,
+        installments: openInstallments,
+      });
+      if (Object.keys(sanitized).length === Object.keys(current).length) {
+        let unchanged = true;
+        for (const [key, value] of Object.entries(current)) {
+          if (sanitized[Number(key)] !== value) {
+            unchanged = false;
+            break;
+          }
+        }
+        if (unchanged) return current;
+      }
+      return sanitized;
+    });
+  }, [openInstallments]);
+
+  useEffect(() => {
+    if (
+      !pendingCollectibilityRefreshRef.current ||
+      contextState.loading ||
+      !canAutoSuggest
+    ) {
+      return;
+    }
+    pendingCollectibilityRefreshRef.current = false;
+    setAllocationInputs(
+      buildSuggestedFamilyAllocations({
+        amount: parsedAmount,
+        installments: collectibleInstallments,
+      }),
+    );
+  }, [
+    contextState.loading,
+    contextState.data,
+    canAutoSuggest,
+    parsedAmount,
+    collectibleInstallments,
+  ]);
 
   function buildQuery() {
     const query: Record<string, number> = {};
@@ -252,6 +360,10 @@ export function FamilyCollectionWorkflowForm({
   }
 
   function buildDraftPayload() {
+    const sanitizedInputs = sanitizeFamilyAllocationInputs({
+      values: allocationInputs,
+      installments: openInstallments,
+    });
     const payload: Parameters<typeof submitFamilyCollection>[0] = {
       family_id: familyId,
       amount: parsedAmount,
@@ -259,20 +371,60 @@ export function FamilyCollectionWorkflowForm({
       payment_method: paymentMethod,
       collection_date: collectionDate,
       academic_year_id: Number(academicYearId),
-      allocations: parseFamilyAllocationInputs(allocationInputs),
+      allocations: parseFamilyAllocationInputs(sanitizedInputs),
     };
     const trimmedPayer = actualPayerName.trim();
     if (trimmedPayer) {
       payload.actual_payer_name = trimmedPayer;
     }
+    if (isCheque) {
+      const chequePayload = buildChequeRegistrationPayload({
+        chequeNumber,
+        chequeBank,
+        chequeHolder,
+        chequeWrittenDate,
+        chequePostdated,
+        chequeDueDate,
+        collectionDate,
+        chequeBranch: chequeBranch.trim() || undefined,
+      });
+      if (chequePayload) {
+        payload.payment_method = 'cheque';
+        payload.reference = resolveChequeCollectionReference(chequeNumber);
+        payload.cheque = chequePayload;
+      }
+      const trimmedNotes = chequeNotes.trim();
+      if (trimmedNotes) {
+        payload.notes = trimmedNotes;
+      }
+    }
     return payload;
+  }
+
+  function handleInstallmentNotCollectible(error: ApiErrorBody) {
+    const installmentId = readInstallmentNotCollectibleId(error.details);
+    setAllocationSource('auto');
+    setSubmitError(
+      t('admin.finance.billingAccounts.familyCollection.installmentStateChanged', {
+        installmentId: installmentId != null ? String(installmentId) : '',
+      }),
+    );
+    if (!pendingCollectibilityRefreshRef.current) {
+      pendingCollectibilityRefreshRef.current = true;
+      contextState.reload();
+    }
   }
 
   async function persistDraft(): Promise<FamilyCollectionDetail | null> {
     const payload = buildDraftPayload();
     if (draftId != null) {
       const updated = await updateFamilyCollectionDraft(draftId, payload, buildQuery());
-      if (!updated.success) return null;
+      if (!updated.success) {
+        if (updated.error.code === 'installment_not_collectible') {
+          handleInstallmentNotCollectible(updated.error);
+        }
+        return null;
+      }
       const normalized = normalizeFamilyCollectionDetail(updated.data);
       if (!normalized) return null;
       const readBack = await getFamilyCollectionById(normalized.id, buildQuery());
@@ -283,7 +435,12 @@ export function FamilyCollectionWorkflowForm({
       { ...payload, idempotency_key: ensureIdempotencyKey() },
       buildQuery(),
     );
-    if (!created.success) return null;
+    if (!created.success) {
+      if (created.error.code === 'installment_not_collectible') {
+        handleInstallmentNotCollectible(created.error);
+      }
+      return null;
+    }
     const normalized = normalizeFamilyCollectionCreateResponse(created.data);
     if (!normalized) return null;
     const id = normalized.id ?? normalized.collection_id ?? normalized.collections[0]?.id ?? null;
@@ -331,6 +488,10 @@ export function FamilyCollectionWorkflowForm({
     const confirmed = await confirmFamilyCollection(collectionId, buildQuery());
     setConfirming(false);
     if (!confirmed.success) {
+      if (confirmed.error.code === 'installment_not_collectible') {
+        handleInstallmentNotCollectible(confirmed.error);
+        return;
+      }
       setSubmitError(
         resolveCollectionErrorMessage(
           confirmed.error.code,
@@ -362,6 +523,8 @@ export function FamilyCollectionWorkflowForm({
       warnings: normalized.warnings ?? [],
     });
   }
+
+  const studentScopedEntry = entrySource === 'student360' && prefilledStudentId != null;
 
   if (contextState.loading || refLoading) {
     return <LoadingState label={t('admin.finance.billingAccounts.familyCollection.loading')} />;
@@ -482,6 +645,17 @@ export function FamilyCollectionWorkflowForm({
             allowedMethods={allowedMethods ?? []}
             collectionDate={collectionDate}
             onCollectionDateChange={setCollectionDate}
+            chequeValues={chequeValues}
+            onChequeChange={(patch) => {
+              if (patch.chequeNumber !== undefined) setChequeNumber(patch.chequeNumber);
+              if (patch.chequeBank !== undefined) setChequeBank(patch.chequeBank);
+              if (patch.chequeHolder !== undefined) setChequeHolder(patch.chequeHolder);
+              if (patch.chequeWrittenDate !== undefined) setChequeWrittenDate(patch.chequeWrittenDate);
+              if (patch.chequePostdated !== undefined) setChequePostdated(patch.chequePostdated);
+              if (patch.chequeDueDate !== undefined) setChequeDueDate(patch.chequeDueDate);
+              if (patch.chequeNotes !== undefined) setChequeNotes(patch.chequeNotes);
+              if (patch.chequeBranch !== undefined) setChequeBranch(patch.chequeBranch);
+            }}
           />
         </section>
 
@@ -513,7 +687,7 @@ export function FamilyCollectionWorkflowForm({
 
         {canAutoSuggest && context ? (
           <FamilyCollectionSmartSummary
-            installments={context.open_installments}
+            installments={collectibleInstallments}
             allocationInputs={allocationInputs}
             currency={currency}
             unallocatedAmount={unallocatedAmount}
@@ -600,7 +774,7 @@ export function FamilyCollectionWorkflowForm({
       {context ? (
         <FamilyCollectionManualEditor
           open={manualEditorOpen}
-          installments={context.open_installments}
+          installments={collectibleInstallments}
           allocationInputs={allocationInputs}
           collectionAmount={parsedAmount || 0}
           currency={currency}

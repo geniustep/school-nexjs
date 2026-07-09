@@ -7061,6 +7061,7 @@
             "invalid_amount": "Enter a valid amount greater than zero.",
             "invalid_allocations": "Fix the allocation before confirming."
           },
+          "installmentStateChanged": "An installment is no longer collectible. The allocation was refreshed — review the amount and confirm again.",
           "smartSummary": {
             "title": "Payment allocation",
             "explainability": "Allocation follows your school's service priorities and due status.",

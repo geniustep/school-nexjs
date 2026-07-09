@@ -7064,6 +7064,7 @@
             "invalid_amount": "Introduzca un importe válido mayor que cero.",
             "invalid_allocations": "Corrija la asignación antes de confirmar."
           },
+          "installmentStateChanged": "El estado de una cuota cambió y ya no es cobrable. Se actualizó la asignación — revise el importe y confirme de nuevo.",
           "smartSummary": {
             "title": "Asignación del pago",
             "explainability": "La asignación sigue las prioridades de servicios del centro y el estado de vencimiento.",
