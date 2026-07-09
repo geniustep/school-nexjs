@@ -12,6 +12,10 @@ import {
 } from '../utils/admission-labels';
 import { parseExtraFieldBool } from '../utils/admission-extra-fields';
 import {
+  resolveFamilyBadgeCount,
+  shouldShowFamilyBadge,
+} from '../utils/family-admission-visibility';
+import {
   admissionUiStageTone,
   resolveAdmissionUiStage,
 } from '../utils/admission-ui-stage';
@@ -138,6 +142,13 @@ export function AdmissionCard({
           ) : null}
           {hasSiblings && !siblingsSummary ? (
             <Badge tone="blue">{t('admin.admissions.list.hasSiblingsBadge')}</Badge>
+          ) : null}
+          {shouldShowFamilyBadge(item) ? (
+            <Badge tone="blue">
+              {t('admin.admissions.family.badge', {
+                count: resolveFamilyBadgeCount(item),
+              })}
+            </Badge>
           ) : null}
         </div>
       )}

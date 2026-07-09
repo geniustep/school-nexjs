@@ -42,6 +42,8 @@ import { AdmissionDecisionTab } from './admission-decision-tab';
 import { AdmissionOffersTab } from './admission-offers-tab';
 import { AdmissionPrefillTab } from './admission-prefill-tab';
 import { AdmissionRegistrationActions } from './admission-registration-actions';
+import { FamilyAdmissionFamilyPanel } from './family-admission-family-panel';
+import { hasFamilyBatchLink } from '../utils/family-admission-visibility';
 import { AdmissionRejectionBanner } from './admission-rejection-banner';
 import { AdmissionReopenAction } from './admission-reopen-action';
 import { AdmissionPipelineStatus } from './admission-pipeline-status';
@@ -356,6 +358,15 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
 
         <AdmissionRegistrationActions detail={detail} />
       </header>
+
+      {hasFamilyBatchLink(detail) && detail.family_batch_id ? (
+        <FamilyAdmissionFamilyPanel
+          batchId={detail.family_batch_id}
+          currentAdmissionId={detail.id}
+          familyReference={detail.family_reference}
+          familySize={detail.family_size}
+        />
+      ) : null}
 
       <nav className="admissions-tabs" aria-label={t('admin.admissions.detail.tabs')}>
         {visibleTabs.map((tabId) => (

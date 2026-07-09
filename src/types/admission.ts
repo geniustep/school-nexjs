@@ -45,6 +45,10 @@ export interface AdmissionListItem {
   id: number;
   reference?: string | null;
   external_reference?: string | null;
+  /** Family batch linkage — present when the request belongs to a multi-child family submission. */
+  family_batch_id?: number | null;
+  family_reference?: string | null;
+  family_size?: number | null;
   student_name: string;
   guardian_name: string | null;
   guardian_phone: string | null;
@@ -173,6 +177,9 @@ export interface AdmissionDetail extends SiblingsFieldsSource {
   id: number;
   reference?: string | null;
   name?: string | null;
+  family_batch_id?: number | null;
+  family_reference?: string | null;
+  family_size?: number | null;
   state: AdmissionState | string;
   student_id?: number | false | null;
   registration_flow_state?: AdmissionRegistrationFlowState | null;
@@ -458,4 +465,88 @@ export interface CreateOfferPayload {
   deadline_date?: string;
   required_documents?: string;
   notes?: string;
+}
+
+/** SSC-API-2026.07.002 — Family admission batch (multi-child intake). */
+export interface FamilyBatchChildPayload {
+  child_first_name_ar?: string;
+  child_last_name_ar?: string;
+  child_first_name_fr?: string;
+  child_last_name_fr?: string;
+  child_name?: string;
+  birth_date?: string;
+  gender?: string;
+  requested_cycle_code?: string;
+  requested_level_id?: number;
+  requested_stream_id?: number;
+  previous_school?: string;
+  massar_code?: string;
+  residence_address?: string;
+  external_reference?: string;
+}
+
+export interface FamilyBatchSharedContactPayload {
+  guardian_id?: number;
+  guardian_name?: string;
+  guardian_phone?: string;
+  guardian_whatsapp?: string;
+  guardian_email?: string;
+  relationship?: string;
+}
+
+export interface CreateFamilyBatchPayload {
+  idempotency_key: string;
+  school_id: number;
+  academic_year_id?: number;
+  source_id?: number;
+  shared_contact: FamilyBatchSharedContactPayload;
+  shared_address?: string;
+  first_contact_date?: string;
+  children: FamilyBatchChildPayload[];
+}
+
+export interface FamilyBatchApplicationSummary {
+  id: number;
+  /** Backend admission reference label, e.g. ADM/2026/04158 */
+  name?: string | null;
+  reference?: string | null;
+  student_name: string;
+  state: AdmissionState | string;
+  requested_level_id?: number | null;
+  requested_level?: Ref | string | null;
+}
+
+/** POST /admin/admissions/family-batches — create response envelope data */
+export interface FamilyBatchCreateResponse {
+  batch_id: number;
+  name?: string | null;
+  family_reference: string;
+  school_id?: number;
+  application_count: number;
+  applications: FamilyBatchApplicationSummary[];
+  replay?: boolean;
+  idempotent_replay?: boolean;
+}
+
+export interface FamilyBatchSharedContact {
+  guardian_id?: number | false | null;
+  guardian_name?: string | null;
+  guardian_phone?: string | null;
+  guardian_whatsapp?: string | null;
+  guardian_email?: string | null;
+  relationship?: string | null;
+}
+
+/** GET /admin/admissions/family-batches/<batch_id> */
+export interface FamilyBatchDetail {
+  batch_id: number;
+  name?: string | null;
+  family_reference: string;
+  school_id?: number;
+  academic_year_id?: number;
+  source_id?: number;
+  shared_contact?: FamilyBatchSharedContact | null;
+  shared_address?: string | null;
+  application_count: number;
+  applications: FamilyBatchApplicationSummary[];
 }
