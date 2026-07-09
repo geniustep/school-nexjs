@@ -1,5 +1,10 @@
 'use client';
 
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
 import { useMemo, useState } from 'react';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import type { ResourceState } from '@/lib/hooks/use-resource';
@@ -40,7 +45,7 @@ export default function AdminClassesPage() {
   );
 
   return (
-    <>
+    <div className="admin-workspace">
       <PageHeader
         title={t('nav.classes')}
         subtitle={t('admin.classesListDesc')}
@@ -56,18 +61,15 @@ export default function AdminClassesPage() {
           />
         }
       />
-      {importOpen && (
+      {importOpen ? (
         <CsvImportPanel
           importPath={endpoints.admin.classesImport}
           onDone={() => combinedState.reload()}
         />
-      )}
-      <ResourceView
-        state={combinedState}
-        loadingLabel={t('common.loading')}
-      >
+      ) : null}
+      <ResourceView state={combinedState} loadingLabel={t('common.loading')}>
         {(data) => <AdminClassesBrowser classes={data.classes} levels={data.levels} />}
       </ResourceView>
-    </>
+    </div>
   );
 }

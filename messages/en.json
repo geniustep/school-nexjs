@@ -1810,13 +1810,33 @@
       "overviewLabel": "Classes overview",
       "activeClasses": "Active classes",
       "searchPlaceholder": "Search classes or levels…",
+      "clearSearch": "Clear search",
       "journeyHint": "Organized by academic path from preschool through secondary.",
       "journeyLabel": "Academic path",
-      "noMatch": "No classes match your current search.",
+      "noData": {
+        "title": "No classes yet",
+        "description": "No classes have been created in your scope yet."
+      },
+      "noMatch": {
+        "title": "No matching classes",
+        "description": "Try adjusting your search, or clear it to show all classes."
+      },
       "studentCount": "{count} students",
       "levelMeta": "{classes} classes · {students} students"
     },
     "levelsListDesc": "Manage levels",
+    "levelsBrowser": {
+      "resetFilters": "Reset filters",
+      "clearSearch": "Clear search",
+      "noData": {
+        "title": "No levels yet",
+        "description": "No levels have been created in your scope yet."
+      },
+      "noMatch": {
+        "title": "No matching levels",
+        "description": "Try adjusting search or filters, or reset them to show all levels."
+      }
+    },
     "subjectsListDesc": "Manage subjects",
     "subjectsList": {
       "subtitle": "Browse enabled subjects with code and cycle context to tell duplicates apart",
@@ -1848,7 +1868,17 @@
       "detailDuplicateBanner": "This name is used by {count} subjects — distinguished by code and cycle",
       "detailWeeklyHours": "Weekly hours",
       "assignmentsCountLabel": "Teaching assignments",
-      "tierLabel": "Cycle"
+      "tierLabel": "Cycle",
+      "resetFilters": "Reset filters",
+      "clearSearch": "Clear search",
+      "noData": {
+        "title": "No subjects yet",
+        "description": "No subjects have been enabled in your scope yet."
+      },
+      "noMatch": {
+        "title": "No matching subjects",
+        "description": "Try adjusting search or filters, or reset them to show all subjects."
+      }
     },
     "settings": {
       "title": "Settings",

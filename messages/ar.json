@@ -1810,13 +1810,33 @@
       "overviewLabel": "ملخص الأقسام",
       "activeClasses": "أقسام نشطة",
       "searchPlaceholder": "بحث في الأقسام أو المستويات…",
+      "clearSearch": "مسح البحث",
       "journeyHint": "مرتبة حسب المسار الدراسي من التعليم الأولي إلى الثانوي.",
       "journeyLabel": "المسار الدراسي",
-      "noMatch": "لا توجد أقسام تطابق البحث الحالي.",
+      "noData": {
+        "title": "لا توجد أقسام بعد",
+        "description": "لم يُنشأ أي قسم ضمن نطاقك بعد."
+      },
+      "noMatch": {
+        "title": "لا توجد أقسام مطابقة",
+        "description": "جرّب تعديل البحث، أو امسحه لعرض كل الأقسام."
+      },
       "studentCount": "{count} تلميذ",
       "levelMeta": "{classes} أقسام · {students} تلميذ"
     },
     "levelsListDesc": "إدارة المستويات",
+    "levelsBrowser": {
+      "resetFilters": "إعادة ضبط الفلاتر",
+      "clearSearch": "مسح البحث",
+      "noData": {
+        "title": "لا توجد مستويات بعد",
+        "description": "لم يُنشأ أي مستوى ضمن نطاقك بعد."
+      },
+      "noMatch": {
+        "title": "لا توجد مستويات مطابقة",
+        "description": "جرّب تعديل البحث أو الفلاتر، أو أعد ضبطها لعرض كل المستويات."
+      }
+    },
     "subjectsListDesc": "إدارة المواد",
     "subjectsList": {
       "subtitle": "استعرض المواد المفعّلة مع تمييز الرمز والمرحلة لتجنّب التكرار المربك",
@@ -1848,7 +1868,17 @@
       "detailDuplicateBanner": "هذا الاسم يُستخدم في {count} مواد — يُميَّز بالرمز والمرحلة",
       "detailWeeklyHours": "ساعات أسبوعية",
       "assignmentsCountLabel": "إسنادات التدريس",
-      "tierLabel": "المرحلة"
+      "tierLabel": "المرحلة",
+      "resetFilters": "إعادة ضبط الفلاتر",
+      "clearSearch": "مسح البحث",
+      "noData": {
+        "title": "لا توجد مواد بعد",
+        "description": "لم تُفعَّل أي مادة ضمن نطاقك بعد."
+      },
+      "noMatch": {
+        "title": "لا توجد مواد مطابقة",
+        "description": "جرّب تعديل البحث أو الفلاتر، أو أعد ضبطها لعرض كل المواد."
+      }
     },
     "settings": {
       "title": "الإعدادات",

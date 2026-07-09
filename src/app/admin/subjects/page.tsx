@@ -1,5 +1,10 @@
 'use client';
 
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { ResourceView } from '@/components/states/resource';
 import { AdminSubjectsList } from '@/features/admin/subjects/components/admin-subjects-list';
@@ -19,13 +24,13 @@ export default function AdminSubjectsPage() {
 
   return (
     <div className="admin-workspace">
-      <ResourceView
-        state={subjectsState}
-        loadingLabel={t('common.loading')}
-        isEmpty={(d) => d.length === 0}
-      >
+      <ResourceView state={subjectsState} loadingLabel={t('common.loading')}>
         {(subjects) => (
-          <AdminSubjectsList subjects={subjects} levels={levelsState.data ?? []} onImportDone={reloadAll} />
+          <AdminSubjectsList
+            subjects={subjects}
+            levels={levelsState.data ?? []}
+            onImportDone={reloadAll}
+          />
         )}
       </ResourceView>
     </div>

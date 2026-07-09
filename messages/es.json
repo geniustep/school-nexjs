@@ -1809,13 +1809,33 @@
       "overviewLabel": "Resumen de clases",
       "activeClasses": "Clases activas",
       "searchPlaceholder": "Buscar clases o niveles…",
+      "clearSearch": "Borrar búsqueda",
       "journeyHint": "Organizadas por trayectoria académica, desde preescolar hasta secundaria.",
       "journeyLabel": "Trayectoria académica",
-      "noMatch": "Ninguna clase coincide con la búsqueda actual.",
+      "noData": {
+        "title": "Aún no hay clases",
+        "description": "Todavía no se ha creado ninguna clase en su ámbito."
+      },
+      "noMatch": {
+        "title": "No hay clases coincidentes",
+        "description": "Pruebe a ajustar la búsqueda, o bórrala para ver todas las clases."
+      },
       "studentCount": "{count} estudiantes",
       "levelMeta": "{classes} clases · {students} estudiantes"
     },
     "levelsListDesc": "Gestionar niveles",
+    "levelsBrowser": {
+      "resetFilters": "Restablecer filtros",
+      "clearSearch": "Borrar búsqueda",
+      "noData": {
+        "title": "Aún no hay niveles",
+        "description": "Todavía no se ha creado ningún nivel en su ámbito."
+      },
+      "noMatch": {
+        "title": "No hay niveles coincidentes",
+        "description": "Pruebe a ajustar la búsqueda o los filtros, o restablézcalos para ver todos los niveles."
+      }
+    },
     "subjectsListDesc": "Gestionar materias",
     "subjectsList": {
       "subtitle": "Consulte las materias activas con código y ciclo para distinguir duplicados",
@@ -1847,7 +1867,17 @@
       "detailDuplicateBanner": "Este nombre se usa en {count} materias — se distingue por código y ciclo",
       "detailWeeklyHours": "Horas semanales",
       "assignmentsCountLabel": "Asignaciones docentes",
-      "tierLabel": "Ciclo"
+      "tierLabel": "Ciclo",
+      "resetFilters": "Restablecer filtros",
+      "clearSearch": "Borrar búsqueda",
+      "noData": {
+        "title": "Aún no hay materias",
+        "description": "Todavía no se ha activado ninguna materia en su ámbito."
+      },
+      "noMatch": {
+        "title": "No hay materias coincidentes",
+        "description": "Pruebe a ajustar la búsqueda o los filtros, o restablézcalos para ver todas las materias."
+      }
     },
     "settings": {
       "title": "Ajustes",

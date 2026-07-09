@@ -1809,13 +1809,33 @@
       "overviewLabel": "Vue d'ensemble des classes",
       "activeClasses": "Classes actives",
       "searchPlaceholder": "Rechercher des classes ou niveaux…",
+      "clearSearch": "Effacer la recherche",
       "journeyHint": "Organisées par parcours scolaire, de la maternelle au secondaire.",
       "journeyLabel": "Parcours scolaire",
-      "noMatch": "Aucune classe ne correspond à votre recherche.",
+      "noData": {
+        "title": "Aucune classe pour le moment",
+        "description": "Aucune classe n'a encore été créée dans votre périmètre."
+      },
+      "noMatch": {
+        "title": "Aucune classe correspondante",
+        "description": "Modifiez la recherche, ou effacez-la pour afficher toutes les classes."
+      },
       "studentCount": "{count} élèves",
       "levelMeta": "{classes} classes · {students} élèves"
     },
     "levelsListDesc": "Gérer les niveaux",
+    "levelsBrowser": {
+      "resetFilters": "Réinitialiser les filtres",
+      "clearSearch": "Effacer la recherche",
+      "noData": {
+        "title": "Aucun niveau pour le moment",
+        "description": "Aucun niveau n'a encore été créé dans votre périmètre."
+      },
+      "noMatch": {
+        "title": "Aucun niveau correspondant",
+        "description": "Modifiez la recherche ou les filtres, ou réinitialisez-les pour afficher tous les niveaux."
+      }
+    },
     "subjectsListDesc": "Gérer les matières",
     "subjectsList": {
       "subtitle": "Parcourez les matières actives avec code et cycle pour éviter la confusion",
@@ -1847,7 +1867,17 @@
       "detailDuplicateBanner": "Ce nom est utilisé par {count} matières — distingué par code et cycle",
       "detailWeeklyHours": "Heures hebdomadaires",
       "assignmentsCountLabel": "Affectations d'enseignement",
-      "tierLabel": "Cycle"
+      "tierLabel": "Cycle",
+      "resetFilters": "Réinitialiser les filtres",
+      "clearSearch": "Effacer la recherche",
+      "noData": {
+        "title": "Aucune matière pour le moment",
+        "description": "Aucune matière n'a encore été activée dans votre périmètre."
+      },
+      "noMatch": {
+        "title": "Aucune matière correspondante",
+        "description": "Modifiez la recherche ou les filtres, ou réinitialisez-les pour afficher toutes les matières."
+      }
     },
     "settings": {
       "title": "Paramètres",
