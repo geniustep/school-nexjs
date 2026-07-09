@@ -1,14 +1,22 @@
 'use client';
 
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
 import Link from 'next/link';
 import { useMemo } from 'react';
-import { SchoolEmptyState } from '@/components/states/states';
+import { EmptyState, SchoolEmptyState } from '@/components/states/states';
+import { Badge } from '@/components/ui/primitives';
+import { AdminQuickAction } from '@/features/admin/command-center/primitives';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { useSession } from '@/features/auth/session-context';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { hasPermission } from '@/lib/permissions/permissions';
 import { ADMISSION_VIEW } from '@/lib/permissions/admission';
 import { useT } from '@/features/i18n/locale-context';
+import { sanitizeUserFacingErrorMessage } from '@/lib/utils/user-facing-error';
 import { endpoints } from '@/lib/api/endpoints';
 import {
   resolvePedagogicalDashboardActions,
@@ -285,12 +293,20 @@ export function AdminPedagogicalDashboard() {
 
   return (
     <div className="admin-pedagogical-dashboard">
+      {dashState.error ? (
+        <p className="admin-pedagogical-dashboard__error muted" role="status">
+          {sanitizeUserFacingErrorMessage(dashState.error.message, t('errors.loadFailedRetry'))}
+        </p>
+      ) : null}
+
       <header className="admin-pedagogical-dashboard__hero">
         <div className="admin-pedagogical-dashboard__hero-accent" aria-hidden="true" />
         <div className="admin-pedagogical-dashboard__hero-grid">
           <div className="admin-pedagogical-dashboard__hero-main">
             {schoolLabel ? (
-              <p className="admin-pedagogical-dashboard__school">{schoolLabel}</p>
+              <p className="admin-pedagogical-dashboard__school" dir="auto">
+                {schoolLabel}
+              </p>
             ) : null}
             <h1 className="admin-pedagogical-dashboard__title">
               {t('admin.pedagogicalDashboard.title')}
@@ -300,9 +316,7 @@ export function AdminPedagogicalDashboard() {
             </p>
           </div>
           <aside className="admin-pedagogical-dashboard__role-card">
-            <span className="admin-pedagogical-dashboard__role-badge">
-              {t('roles.adminKind.pedagogical_director')}
-            </span>
+            <Badge tone="blue">{t('roles.adminKind.pedagogical_director')}</Badge>
             <p className="admin-pedagogical-dashboard__role-desc">
               {t('admin.pedagogicalDashboard.roleDescription')}
             </p>
@@ -381,14 +395,12 @@ export function AdminPedagogicalDashboard() {
               </p>
               <div className="admin-pedagogical-dashboard__secondary-actions">
                 {secondaryActions.map((action) => (
-                  <Link
+                  <AdminQuickAction
                     key={action.id}
                     href={action.href}
-                    className="admin-pedagogical-secondary-action"
-                  >
-                    <span aria-hidden="true">{action.icon}</span>
-                    <span>{t(action.labelKey)}</span>
-                  </Link>
+                    icon={action.icon}
+                    label={t(action.labelKey)}
+                  />
                 ))}
               </div>
             </div>
@@ -400,9 +412,7 @@ export function AdminPedagogicalDashboard() {
         <h2 id="pedagogical-attention" className="admin-pedagogical-dashboard__section-title">
           {t('admin.pedagogicalDashboard.attentionTitle')}
         </h2>
-        <p className="admin-pedagogical-dashboard__attention-empty">
-          {t('admin.pedagogicalDashboard.attentionEmpty')}
-        </p>
+        <EmptyState compact icon="✓" title={t('admin.pedagogicalDashboard.attentionEmpty')} />
       </section>
     </div>
   );

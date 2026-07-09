@@ -42,7 +42,7 @@
   font-weight: 700;
   letter-spacing: 0.02em;
   text-transform: uppercase;
-  color: var(--c-muted);
+  color: var(--c-text-muted);
 }
 
 .admin-dashboard-context__headline {
@@ -71,7 +71,7 @@
   margin: 0;
   font-size: 11px;
   font-weight: 600;
-  color: var(--c-muted);
+  color: var(--c-text-muted);
 }
 
 .admin-dashboard-context__meta dd {
@@ -120,7 +120,7 @@
 .admin-dashboard-context__perms-label {
   font-size: 11px;
   font-weight: 700;
-  color: var(--c-muted);
+  color: var(--c-text-muted);
 }
 
 .admin-dashboard-context__perm-list {
@@ -305,6 +305,18 @@
 .admin-hero__kpi--amber strong { color: #fde68a; }
 .admin-hero__kpi--blue strong { color: #bfdbfe; }
 
+.admin-hero__kpi--summary {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  max-width: 28ch;
+}
+
+.admin-hero__kpi--summary strong {
+  font-size: 15px;
+  font-weight: 800;
+}
+
 .admin-hero__actions {
   display: flex;
   flex-direction: column;
@@ -440,7 +452,7 @@
 .admin-intervention-section + .admin-intervention-dq {
   margin-block-start: 10px;
   padding-block-start: 10px;
-  border-block-start: 1px solid rgba(253, 230, 138, 0.55);
+  border-block-start: 1px dashed color-mix(in srgb, #f59e0b 22%, var(--c-border));
 }
 
 .admin-intervention-section__label {
@@ -827,7 +839,7 @@
   gap: 6px;
   padding: 16px;
   border: 1px solid var(--c-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius);
   background: var(--c-surface);
   text-decoration: none;
   color: inherit;
@@ -856,20 +868,25 @@
 .admin-pedagogical-dashboard {
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  max-width: 1200px;
+  gap: 14px;
+  max-width: 100%;
+}
+
+.admin-pedagogical-dashboard__error {
+  margin: 0;
+  font-size: 13px;
 }
 
 .admin-pedagogical-dashboard__hero {
   position: relative;
   overflow: hidden;
-  padding: 22px 24px;
+  padding: 18px 20px;
   border: 1px solid var(--c-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius);
   background: linear-gradient(
     135deg,
     var(--c-surface) 0%,
-    color-mix(in srgb, var(--c-primary) 8%, var(--c-surface)) 100%
+    color-mix(in srgb, var(--raqeem-primary) 8%, var(--c-surface)) 100%
   );
 }
 
@@ -923,21 +940,13 @@
 
 .admin-pedagogical-dashboard__role-card {
   flex: 0 1 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   padding: 14px 16px;
-  border: 1px solid color-mix(in srgb, var(--c-primary) 18%, var(--c-border));
-  border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--c-surface) 88%, var(--c-primary) 12%);
-}
-
-.admin-pedagogical-dashboard__role-badge {
-  display: inline-block;
-  margin-bottom: 8px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--c-primary) 14%, transparent);
-  color: var(--c-primary);
-  font-size: 12px;
-  font-weight: 600;
+  border: 1px solid color-mix(in srgb, var(--raqeem-primary) 18%, var(--c-border));
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--c-surface) 88%, var(--raqeem-primary) 12%);
 }
 
 .admin-pedagogical-dashboard__role-desc {
@@ -961,8 +970,8 @@
 
 .admin-pedagogical-dashboard__section-title {
   margin: 0;
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
   color: var(--c-text);
 }
 
@@ -985,7 +994,7 @@
   gap: 10px;
   padding: 14px;
   border: 1px solid var(--c-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius);
   background: color-mix(in srgb, var(--c-text-muted) 3%, var(--c-surface));
 }
 
@@ -1070,9 +1079,9 @@
   flex-direction: column;
   gap: 14px;
   padding: 16px 18px;
-  border: 1px solid color-mix(in srgb, var(--c-primary) 16%, var(--c-border));
-  border-radius: var(--radius-lg);
-  background: color-mix(in srgb, var(--c-primary) 4%, var(--c-surface));
+  border: 1px solid color-mix(in srgb, var(--raqeem-primary) 16%, var(--c-border));
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--raqeem-primary) 4%, var(--c-surface));
 }
 
 .admin-pedagogical-dashboard__primary-actions {
@@ -1086,8 +1095,8 @@
   align-items: flex-start;
   gap: 10px;
   padding: 14px 16px;
-  border: 1px solid color-mix(in srgb, var(--c-primary) 22%, var(--c-border));
-  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--raqeem-primary) 22%, var(--c-border));
+  border-radius: var(--radius);
   background: var(--c-surface);
   text-decoration: none;
   color: inherit;
@@ -1125,8 +1134,8 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding-top: 4px;
-  border-top: 1px solid color-mix(in srgb, var(--c-border) 80%, transparent);
+  padding-block-start: 4px;
+  border-block-start: 1px solid color-mix(in srgb, var(--c-border) 80%, transparent);
 }
 
 .admin-pedagogical-dashboard__secondary-label {
@@ -1142,36 +1151,15 @@
   gap: 8px;
 }
 
-.admin-pedagogical-secondary-action {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 11px;
-  border: 1px solid var(--c-border);
-  border-radius: 999px;
-  background: var(--c-surface);
-  text-decoration: none;
-  color: inherit;
-  font-size: 12px;
-  transition: border-color 0.15s, background 0.15s;
-}
-
-.admin-pedagogical-secondary-action:hover {
-  border-color: var(--c-primary);
-  background: color-mix(in srgb, var(--c-primary) 6%, var(--c-surface));
-}
-
 .admin-pedagogical-dashboard__attention {
   padding: 14px 16px;
   border: 1px dashed var(--c-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius);
   background: color-mix(in srgb, var(--c-text-muted) 4%, var(--c-surface));
 }
 
-.admin-pedagogical-dashboard__attention-empty {
-  margin: 8px 0 0;
-  font-size: 13px;
-  color: var(--c-text-muted);
+.admin-pedagogical-dashboard__attention .state--compact {
+  padding: 8px 0 0;
 }
 
 @media (max-width: 640px) {
@@ -1197,7 +1185,7 @@
 .admin-executive-dashboard {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
   padding-block-end: 12px;
 }
 
@@ -1364,13 +1352,14 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--c-muted);
+  color: var(--c-text-muted);
 }
 
 /* KPI cards */
 .exec-kpi-zone {
   display: flex;
   flex-direction: column;
+  gap: 8px;
 }
 
 .exec-kpi-grid {
@@ -1416,21 +1405,18 @@
   gap: 8px;
 }
 
+.exec-kpi__top .badge {
+  flex-shrink: 0;
+  font-size: 10px;
+  padding: 2px 7px;
+  line-height: 1.3;
+}
+
 .exec-kpi__label {
   font-size: 13px;
   font-weight: 600;
   line-height: 1.35;
-  color: var(--c-muted);
-}
-
-.exec-kpi__badge {
-  flex-shrink: 0;
-  padding: 2px 7px;
-  border-radius: 999px;
-  font-size: 10px;
-  font-weight: 700;
-  background: color-mix(in srgb, var(--c-primary) 10%, var(--c-surface));
-  color: var(--c-primary);
+  color: var(--c-text-muted);
 }
 
 .exec-kpi__value {
@@ -1619,7 +1605,7 @@
   margin: 0;
   font-size: 12px;
   font-weight: 600;
-  color: var(--c-muted);
+  color: var(--c-text-muted);
 }
 
 .exec-decision-panel__count {
@@ -1632,15 +1618,16 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding-top: 12px;
-  border-top: 1px dashed color-mix(in srgb, var(--c-border) 80%, transparent);
+  margin-block-start: 4px;
+  padding-block-start: 12px;
+  border-block-start: 1px dashed color-mix(in srgb, #f59e0b 22%, var(--c-border));
 }
 
 .exec-decision-panel__sub {
   margin: 0;
   font-size: 11px;
   font-weight: 700;
-  color: var(--c-muted);
+  color: var(--c-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -1783,7 +1770,7 @@
 .exec-metric-tile__label {
   font-size: 11px;
   font-weight: 600;
-  color: var(--c-muted);
+  color: var(--c-text-muted);
 }
 
 .exec-metric-tile__value {
@@ -1818,7 +1805,7 @@
 .exec-adm-stat__label {
   font-size: 11px;
   font-weight: 600;
-  color: var(--c-muted);
+  color: var(--c-text-muted);
   line-height: 1.35;
 }
 
@@ -1865,7 +1852,7 @@
 .exec-attendance-highlight__label {
   font-size: 12px;
   font-weight: 600;
-  color: var(--c-muted);
+  color: var(--c-text-muted);
 }
 
 .exec-attendance-grid {
@@ -1892,7 +1879,7 @@
 .exec-attendance-cell span {
   font-size: 10px;
   font-weight: 600;
-  color: var(--c-muted);
+  color: var(--c-text-muted);
 }
 
 .exec-attendance-cell--green strong { color: #16a34a; }
@@ -1945,7 +1932,7 @@
 .exec-staff-stat span:last-child {
   font-size: 11px;
   font-weight: 600;
-  color: var(--c-muted);
+  color: var(--c-text-muted);
   text-align: center;
 }
 

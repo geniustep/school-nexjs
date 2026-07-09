@@ -1,5 +1,10 @@
 'use client';
 
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
 import Link from 'next/link';
 import { useMemo } from 'react';
 import { PageHeader } from '@/components/ui/primitives';
