@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { VercelWebAnalytics } from '@/components/analytics/vercel-web-analytics';
 import { LocaleProvider } from '@/features/i18n/locale-context';
 import { ibmPlexArabic, plusJakarta } from '@/lib/fonts';
 
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ar" dir="rtl" suppressHydrationWarning>
       <body className={`${plusJakarta.variable} ${ibmPlexArabic.variable}`}>
         <LocaleProvider>{children}</LocaleProvider>
+        <VercelWebAnalytics />
       </body>
     </html>
   );
