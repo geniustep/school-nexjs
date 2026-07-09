@@ -966,6 +966,26 @@
     },
 
     "resourcesListDesc": "Todos los recursos publicados",
+    "resourcesList": {
+      "subtitleWithCount": "{total} recursos en su ámbito",
+      "resetFilters": "Restablecer filtros",
+      "clearType": "Borrar filtro de tipo",
+      "typePlaceholder": "Filtrar por tipo…",
+      "refetching": "Actualizando resultados…",
+      "noData": {
+        "title": "Aún no hay recursos",
+        "description": "Todavía no se ha creado ningún recurso educativo en su ámbito."
+      },
+      "noMatch": {
+        "title": "No hay recursos coincidentes",
+        "description": "Pruebe a ajustar los filtros, o restablézcalos para ver todos los recursos."
+      },
+      "filters": {
+        "chipClass": "Clase: {className}",
+        "chipStatus": "Estado: {status}",
+        "chipType": "Tipo: {type}"
+      }
+    },
     "timetableDesc": "Gestionar franjas horarias",
     "examsListDesc": "Todos los exámenes",
     "examResultsListDesc": "Todos los resultados de exámenes",

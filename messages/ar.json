@@ -967,6 +967,26 @@
     },
 
     "resourcesListDesc": "كل الموارد المنشورة",
+    "resourcesList": {
+      "subtitleWithCount": "{total} موردًا ضمن نطاقك",
+      "resetFilters": "إعادة ضبط الفلاتر",
+      "clearType": "مسح فلتر النوع",
+      "typePlaceholder": "تصفية حسب النوع…",
+      "refetching": "جاري تحديث النتائج…",
+      "noData": {
+        "title": "لا توجد موارد بعد",
+        "description": "لم يُنشأ أي مورد تعليمي ضمن نطاقك بعد."
+      },
+      "noMatch": {
+        "title": "لا توجد موارد مطابقة",
+        "description": "جرّب تعديل الفلاتر، أو أعد ضبطها لعرض كل الموارد."
+      },
+      "filters": {
+        "chipClass": "القسم: {className}",
+        "chipStatus": "الحالة: {status}",
+        "chipType": "النوع: {type}"
+      }
+    },
     "timetableDesc": "إدارة حصص استعمال الزمن",
     "examsListDesc": "كل الامتحانات",
     "examResultsListDesc": "كل نتائج الامتحانات",

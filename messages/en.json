@@ -967,6 +967,26 @@
     },
 
     "resourcesListDesc": "All published resources",
+    "resourcesList": {
+      "subtitleWithCount": "{total} resources in your scope",
+      "resetFilters": "Reset filters",
+      "clearType": "Clear type filter",
+      "typePlaceholder": "Filter by type…",
+      "refetching": "Updating results…",
+      "noData": {
+        "title": "No resources yet",
+        "description": "No learning resources have been created in your scope yet."
+      },
+      "noMatch": {
+        "title": "No matching resources",
+        "description": "Try adjusting filters, or reset them to show all resources."
+      },
+      "filters": {
+        "chipClass": "Class: {className}",
+        "chipStatus": "Status: {status}",
+        "chipType": "Type: {type}"
+      }
+    },
     "timetableDesc": "Manage timetable slots",
     "examsListDesc": "All exams",
     "examResultsListDesc": "All exam results",
