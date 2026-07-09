@@ -242,9 +242,17 @@ export function AdmissionsListPage() {
           <h1 className="admissions-list-header__title">{t('admin.admissions.title')}</h1>
           <p className="admissions-list-header__subtitle">{t('admin.admissions.subtitle')}</p>
         </div>
-        <Link href="/admin/admissions/new" className="btn btn--primary admissions-list-header__cta">
-          {t('admin.admissions.createButton')}
-        </Link>
+        <div className="admissions-list-header__actions">
+          <Link
+            href="/admin/admissions/family/new"
+            className="btn btn--ghost admissions-list-header__cta-secondary"
+          >
+            {t('admin.admissions.family.createButton')}
+          </Link>
+          <Link href="/admin/admissions/new" className="btn btn--primary admissions-list-header__cta">
+            {t('admin.admissions.createButton')}
+          </Link>
+        </div>
       </header>
 
       {dashboardData ? (

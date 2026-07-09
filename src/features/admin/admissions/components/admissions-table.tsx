@@ -14,6 +14,10 @@ import {
 } from '../utils/admission-labels';
 import { AdmissionCard } from './admission-card';
 import { parseExtraFieldBool } from '../utils/admission-extra-fields';
+import {
+  resolveFamilyBadgeCount,
+  shouldShowFamilyBadge,
+} from '../utils/family-admission-visibility';
 import { admissionUiStageTone, resolveAdmissionUiStage } from '../utils/admission-ui-stage';
 import { Badge } from '@/components/ui/primitives';
 import type { AdmissionListItem } from '@/types/admission';
@@ -101,6 +105,13 @@ export function AdmissionsTable({
                 <span className="admissions-table__siblings-hint tiny muted">
                   {t('admin.admissions.list.hasSiblingsBadge')}
                 </span>
+              ) : null}
+              {shouldShowFamilyBadge(row) ? (
+                <Badge tone="blue">
+                  {t('admin.admissions.family.badge', {
+                    count: resolveFamilyBadgeCount(row),
+                  })}
+                </Badge>
               ) : null}
             </Link>
           );

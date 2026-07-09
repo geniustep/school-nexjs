@@ -386,6 +386,9 @@ export const endpoints = {
       `/admin/admissions/${id}/offers/${offerId}/accept`,
     admissionOfferDecline: (id: number | string, offerId: number | string) =>
       `/admin/admissions/${id}/offers/${offerId}/decline`,
+    admissionFamilyBatches: '/admin/admissions/family-batches',
+    admissionFamilyBatch: (batchId: number | string) =>
+      `/admin/admissions/family-batches/${batchId}`,
   },
 
   teacher: {
