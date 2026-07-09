@@ -184,10 +184,89 @@
   width: 100%;
   min-height: 2.375rem;
   padding-block: 0.45rem;
-  padding-inline: 2.35rem 0.75rem;
+  padding-inline: 2.35rem 2.15rem;
   font-size: 0.8125rem;
   border-radius: var(--radius-sm);
   background: var(--c-surface, #fff);
+}
+
+.admissions-list-toolbar__search-clear {
+  position: absolute;
+  inset-inline-end: 0.35rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.65rem;
+  height: 1.65rem;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--c-text-muted, var(--muted));
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.admissions-list-toolbar__search-clear:hover {
+  background: color-mix(in srgb, var(--c-text, #0f172a) 6%, transparent);
+  color: var(--c-text, #0f172a);
+}
+
+.admissions-list-toolbar__search-clear:focus-visible {
+  outline: 2px solid var(--primary, var(--c-primary));
+  outline-offset: 2px;
+}
+
+.admissions-list-active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.admissions-list-active-filters__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  max-width: 100%;
+  min-height: 1.85rem;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid color-mix(in srgb, var(--primary, var(--c-primary)) 18%, var(--c-border, #e2e8f0));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary, var(--c-primary)) 7%, white);
+  color: var(--c-text, #0f172a);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.admissions-list-active-filters__chip:hover {
+  border-color: color-mix(in srgb, var(--primary, var(--c-primary)) 32%, var(--c-border, #e2e8f0));
+  background: color-mix(in srgb, var(--primary, var(--c-primary)) 12%, white);
+}
+
+.admissions-list-active-filters__chip:focus-visible {
+  outline: 2px solid var(--primary, var(--c-primary));
+  outline-offset: 2px;
+}
+
+.admissions-list-refetching {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--c-text-muted, var(--muted));
+}
+
+.admissions-list-results--fetching {
+  opacity: 0.72;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
 }
 
 .admissions-list-toolbar__controls {

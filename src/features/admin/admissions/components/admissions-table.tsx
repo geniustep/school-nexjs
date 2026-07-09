@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { useMemo } from 'react';
 import { DataTable, type Column } from '@/components/tables/data-table';
-import { EmptyState } from '@/components/states/states';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import {
@@ -95,7 +94,7 @@ export function AdmissionsTable({
           const hasSiblings = parseExtraFieldBool(row.has_siblings);
           return (
             <Link href={`/admin/admissions/${row.id}`} className="admissions-table__student-link">
-              <strong>{name || t('common.dash')}</strong>
+              <strong dir="auto">{name || t('common.dash')}</strong>
               {externalRef ? (
                 <span className="admissions-table__external-ref tiny muted mono" dir="ltr">
                   {externalRef}
@@ -172,16 +171,6 @@ export function AdmissionsTable({
     ],
     [formatDate, t, isSelected, onToggleSelect, onToggleVisible, visibleSelectionState],
   );
-
-  if (!items.length) {
-    return (
-      <EmptyState
-        icon="📋"
-        title={t('admin.admissions.empty.title')}
-        description={t('admin.admissions.empty.description')}
-      />
-    );
-  }
 
   return (
     <>

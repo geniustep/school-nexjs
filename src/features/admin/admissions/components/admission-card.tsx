@@ -125,7 +125,7 @@ export function AdmissionCard({
         </Link>
       ) : null}
 
-      <div className="admission-card__title">
+      <div className="admission-card__title" dir="auto">
         {studentName || t('common.dash')}
       </div>
 

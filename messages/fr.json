@@ -3634,8 +3634,22 @@
         "showClosed": "Afficher les demandes fermées",
         "hideConverted": "Masquer inscrits",
         "reset": "Réinitialiser les filtres",
+        "clearSearch": "Effacer la recherche",
         "resultsCount": "{count} demandes affichées",
-        "hiddenConvertedCount": "{count} converties masquées"
+        "hiddenConvertedCount": "{count} converties masquées",
+        "chipSearch": "Recherche : {query}",
+        "chipState": "Statut : {state}",
+        "chipShowClosed": "Demandes fermées affichées",
+        "chipHideConvertedOff": "Inscrits affichés"
+      },
+      "refetching": "Mise à jour des résultats…",
+      "noData": {
+        "title": "Aucune demande pour l'instant",
+        "description": "Créez une nouvelle demande d'admission pour commencer."
+      },
+      "noMatch": {
+        "title": "Aucune demande correspondante",
+        "description": "Essayez d'ajuster la recherche ou les filtres, ou réinitialisez-les pour tout afficher."
       },
       "empty": {
         "title": "Aucune demande",

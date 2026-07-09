@@ -3662,8 +3662,22 @@
         "showClosed": "إظهار الطلبات المغلقة",
         "hideConverted": "إخفاء المسجلين",
         "reset": "إعادة ضبط الفلاتر",
+        "clearSearch": "مسح البحث",
         "resultsCount": "{count} طلب ظاهر",
-        "hiddenConvertedCount": "{count} محوّل مخفي"
+        "hiddenConvertedCount": "{count} محوّل مخفي",
+        "chipSearch": "بحث: {query}",
+        "chipState": "الحالة: {state}",
+        "chipShowClosed": "الطلبات المغلقة ظاهرة",
+        "chipHideConvertedOff": "المسجّلون ظاهرون"
+      },
+      "refetching": "جاري تحديث النتائج…",
+      "noData": {
+        "title": "لا توجد طلبات بعد",
+        "description": "أنشئ طلب تسجيل جديد للبدء."
+      },
+      "noMatch": {
+        "title": "لا توجد نتائج مطابقة",
+        "description": "جرّب تعديل البحث أو الفلاتر، أو أعد ضبطها لعرض كل الطلبات."
       },
       "empty": {
         "title": "لا توجد طلبات",

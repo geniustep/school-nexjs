@@ -3634,8 +3634,22 @@
         "showClosed": "Mostrar solicitudes cerradas",
         "hideConverted": "Ocultar registrados",
         "reset": "Restablecer filtros",
+        "clearSearch": "Borrar búsqueda",
         "resultsCount": "{count} solicitudes visibles",
-        "hiddenConvertedCount": "{count} convertidas ocultas"
+        "hiddenConvertedCount": "{count} convertidas ocultas",
+        "chipSearch": "Búsqueda: {query}",
+        "chipState": "Estado: {state}",
+        "chipShowClosed": "Solicitudes cerradas visibles",
+        "chipHideConvertedOff": "Registrados visibles"
+      },
+      "refetching": "Actualizando resultados…",
+      "noData": {
+        "title": "Aún no hay solicitudes",
+        "description": "Cree una nueva solicitud de admisión para comenzar."
+      },
+      "noMatch": {
+        "title": "No hay solicitudes coincidentes",
+        "description": "Pruebe a ajustar la búsqueda o los filtros, o restablézcalos para ver todas las solicitudes."
       },
       "empty": {
         "title": "Sin solicitudes",

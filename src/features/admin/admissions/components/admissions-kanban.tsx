@@ -1,7 +1,11 @@
 'use client';
 
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { EmptyState } from '@/components/states/states';
 import { useToast } from '@/components/ui/toast';
 import { cn } from '@/lib/utils/cn';
 import { useLocale, useT } from '@/features/i18n/locale-context';
@@ -81,8 +85,6 @@ export function AdmissionsKanban({
     () => new Map(columnGroups.map((col) => [col.stage, col])),
     [columnGroups],
   );
-
-  const allItems = useMemo(() => columnGroups.flatMap((col) => col.items), [columnGroups]);
 
   const [canScrollBack, setCanScrollBack] = useState(false);
   const [canScrollForward, setCanScrollForward] = useState(false);
@@ -272,20 +274,6 @@ export function AdmissionsKanban({
       ro.disconnect();
     };
   }, [dir, resetScrollPosition, syncScrollUi]);
-
-  if (
-    !columnGroups.some((col) => col.loading) &&
-    allItems.length === 0 &&
-    !columnGroups.some((col) => col.hasMore)
-  ) {
-    return (
-      <EmptyState
-        icon="📋"
-        title={t('admin.admissions.empty.title')}
-        description={t('admin.admissions.empty.description')}
-      />
-    );
-  }
 
   const firstColumnLabel = t(`admin.admissions.uiStages.${stages[0]}`);
   const thumbTravel = Math.max(0, 1 - scrollMetrics.thumbRatio);

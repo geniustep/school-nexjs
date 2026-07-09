@@ -3635,8 +3635,22 @@
         "showClosed": "Show closed requests",
         "hideConverted": "Hide registered",
         "reset": "Reset filters",
+        "clearSearch": "Clear search",
         "resultsCount": "{count} requests shown",
-        "hiddenConvertedCount": "{count} converted hidden"
+        "hiddenConvertedCount": "{count} converted hidden",
+        "chipSearch": "Search: {query}",
+        "chipState": "Status: {state}",
+        "chipShowClosed": "Closed requests shown",
+        "chipHideConvertedOff": "Registered shown"
+      },
+      "refetching": "Updating results…",
+      "noData": {
+        "title": "No requests yet",
+        "description": "Create a new admission request to get started."
+      },
+      "noMatch": {
+        "title": "No matching requests",
+        "description": "Try adjusting search or filters, or reset them to show all requests."
       },
       "empty": {
         "title": "No requests",
