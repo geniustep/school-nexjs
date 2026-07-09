@@ -335,8 +335,14 @@ export interface StudentCreateGuardianIdentityPayload {
   address?: string;
 }
 
+/** Optional provisioning flags returned on atomic student create — display only. */
+export interface StudentCreateGuardianAccessMetadata {
+  access_account_created?: boolean;
+  access_account_exists?: boolean;
+}
+
 export type StudentCreateGuardianRelationshipItem =
-  | {
+  | ({
       guardian_id: number;
       relationship_type: RelationshipType;
       is_primary_contact?: boolean;
@@ -345,8 +351,10 @@ export type StudentCreateGuardianRelationshipItem =
       receives_notifications?: boolean;
       is_emergency_contact?: boolean;
       is_authorized_pickup?: boolean;
-    }
-  | {
+      /** Request-only: opt-in portal account provisioning (default false). */
+      provision_access?: boolean;
+    } & StudentCreateGuardianAccessMetadata)
+  | ({
       guardian: StudentCreateGuardianIdentityPayload;
       relationship_type: RelationshipType;
       is_primary_contact?: boolean;
@@ -355,7 +363,8 @@ export type StudentCreateGuardianRelationshipItem =
       receives_notifications?: boolean;
       is_emergency_contact?: boolean;
       is_authorized_pickup?: boolean;
-    };
+      provision_access?: boolean;
+    } & StudentCreateGuardianAccessMetadata);
 
 export interface StudentCreatePayload {
   first_name: string;

@@ -4699,12 +4699,19 @@
             "billingGuardianSelectionRequired": "Select which guardian is responsible for billing.",
             "billingGuardianNotLinked": "The selected person cannot be used as a billing guardian. Search for an existing guardian profile.",
             "billingGuardianRelationshipInactive": "The selected billing guardian relationship is inactive. Choose another guardian.",
-            "guardianIdentityCandidateExists": "A matching guardian already exists. Search and select the existing guardian instead of creating a duplicate."
+            "guardianIdentityCandidateExists": "A matching guardian already exists. Search and select the existing guardian instead of creating a duplicate.",
+            "guardianLoginConflict": "Could not create the login account: the contact details are linked to another account. Review the guardian details or ask for help without exposing the other account."
           },
           "guardianRequiredHint": "Enter guardian details above — guardian billing requires at least one guardian.",
           "billingGuardianLabel": "Billing guardian",
           "billingGuardianPlaceholder": "Select the billing guardian…",
-          "billingGuardianSelectionHint": "Choose which guardian is financially responsible when more than one is listed."
+          "billingGuardianSelectionHint": "Choose which guardian is financially responsible when more than one is listed.",
+          "provisionAccessTitle": "Guardian login account",
+          "provisionAccessLead": "You may request a login account for any linked guardian. No password is sent at this stage.",
+          "provisionAccessLabel": "Create a login account for this guardian",
+          "provisionAccessHint": "Optional — sent to the server only when enabled. A guardian relationship does not imply a login account.",
+          "provisionAccessReview": "A login account will be requested for this guardian on save.",
+          "existingGuardianHint": "Existing guardian — will be linked without creating a duplicate profile."
         },
         "finance": {
           "stagePlan": "Suggested plan",
@@ -9392,6 +9399,9 @@
       "copied": "Copied",
       "createSuccessTitle": "Guardian login details",
       "createSuccessLead": "Share the guardian code and login with the family. Password setup is handled separately.",
+      "provisioningOutcomeLabel": "Account provisioning",
+      "accessCreated": "A login account was created for this guardian.",
+      "accessExists": "This guardian already has a login account.",
       "dismissOnboarding": "Dismiss",
       "newGuardianReviewHint": "Login details will appear here after the student is created, when returned by the server.",
       "password": {

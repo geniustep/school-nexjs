@@ -541,6 +541,18 @@ export function StudentCreateForm({
     }));
   }
 
+  function handleProvisionAccessChange(entryKey: string, enabled: boolean) {
+    setBillingState((prev) => {
+      const provisionAccessByEntryKey = { ...prev.provisionAccessByEntryKey };
+      if (enabled) {
+        provisionAccessByEntryKey[entryKey] = true;
+      } else {
+        delete provisionAccessByEntryKey[entryKey];
+      }
+      return { ...prev, provisionAccessByEntryKey };
+    });
+  }
+
   const financeBlocked =
     suggestState.error?.code === 'no_default_fee_plan_for_level' &&
     !canSkipFinanceOnCreate(suggestState.error, suggestState.suggest?.allowed_actions);
@@ -1225,6 +1237,7 @@ export function StudentCreateForm({
           onLinkExistingGuardian={handleLinkExistingGuardian}
           onClearLinkedGuardian={handleClearLinkedGuardian}
           onGuardianSourceModeChange={handleGuardianSourceModeChange}
+          onProvisionAccessChange={handleProvisionAccessChange}
           guardian={{
             relationships: admissionOptionsState.options?.relationships ?? [],
             relationshipsLoading: admissionOptionsState.loading,

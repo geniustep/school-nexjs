@@ -80,4 +80,19 @@ describe('billing responsibility error mapping', () => {
     );
     expect(mapped.fieldErrors?.guardianRequired).toBe(mapped.message);
   });
+
+  it('mapStudentApiError maps guardian_login_conflict without exposing backend message', () => {
+    const mapped = mapStudentApiError(
+      {
+        code: 'guardian_login_conflict',
+        message: 'Sensitive backend detail about another user login@secret.com',
+      },
+      t,
+    );
+    expect(mapped.message).toBe(
+      'translated:admin.student360.create.billingResponsibility.errors.guardianLoginConflict',
+    );
+    expect(mapped.message).not.toContain('secret.com');
+    expect(mapped.fieldErrors?.guardianRequired).toBe(mapped.message);
+  });
 });

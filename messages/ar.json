@@ -4726,12 +4726,19 @@
             "billingGuardianSelectionRequired": "اختر أي ولي مسؤول عن الفوترة.",
             "billingGuardianNotLinked": "لا يمكن استخدام هذا الشخص كولي فوترة. ابحث عن ملف ولي موجود.",
             "billingGuardianRelationshipInactive": "علاقة ولي الفوترة المختار غير نشطة. اختر وليًا آخر.",
-            "guardianIdentityCandidateExists": "يوجد ولي مطابق بالفعل. ابحث واختر الولي الموجود بدل إنشاء نسخة جديدة."
+            "guardianIdentityCandidateExists": "يوجد ولي مطابق بالبيانات المدخلة. ابحث واختر الولي الموجود بدل إنشاء نسخة جديدة.",
+            "guardianLoginConflict": "تعذّر إنشاء حساب الدخول: بيانات الاتصال مرتبطة بحساب آخر. راجع بيانات الولي أو اطلب المساعدة دون كشف تفاصيل الحساب الآخر."
           },
           "guardianRequiredHint": "أدخل بيانات ولي الأمر أعلاه — فوترة الولي تتطلب وليًا واحدًا على الأقل.",
           "billingGuardianLabel": "ولي الفوترة",
           "billingGuardianPlaceholder": "اختر ولي الفوترة…",
-          "billingGuardianSelectionHint": "حدّد أي ولي هو المسؤول ماليًا عند وجود أكثر من ولي."
+          "billingGuardianSelectionHint": "حدّد أي ولي هو المسؤول ماليًا عند وجود أكثر من ولي.",
+          "provisionAccessTitle": "حساب دخول ولي الأمر",
+          "provisionAccessLead": "يمكنك طلب إنشاء حساب دخول لأي ولي مرتبط. لا يتم إرسال كلمة مرور في هذه المرحلة.",
+          "provisionAccessLabel": "إنشاء حساب دخول لهذا الولي",
+          "provisionAccessHint": "اختياري — يُرسل للخادم فقط عند التفعيل. وجود علاقة ولي لا يعني وجود حساب دخول.",
+          "provisionAccessReview": "سيُطلب إنشاء حساب دخول لهذا الولي عند الحفظ.",
+          "existingGuardianHint": "ولي موجود — سيتم ربطه دون إنشاء ملف مكرر."
         },
         "finance": {
           "stagePlan": "الخطة المقترحة",
@@ -9529,6 +9536,9 @@
       "copied": "تم النسخ",
       "createSuccessTitle": "بيانات دخول ولي الأمر",
       "createSuccessLead": "شارك كود ولي الأمر واسم الدخول مع العائلة. إعداد كلمة المرور يتم بشكل منفصل.",
+      "provisioningOutcomeLabel": "حالة إنشاء الحساب",
+      "accessCreated": "تم إنشاء حساب الدخول لهذا الولي.",
+      "accessExists": "هذا الولي لديه حساب دخول موجود بالفعل.",
       "dismissOnboarding": "إخفاء",
       "newGuardianReviewHint": "ستظهر بيانات الدخول هنا بعد إنشاء التلميذ إذا أرجعها الخادم.",
       "password": {

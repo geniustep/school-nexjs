@@ -4693,12 +4693,19 @@
             "billingGuardianSelectionRequired": "Sélectionnez le tuteur responsable de la facturation.",
             "billingGuardianNotLinked": "La personne sélectionnée ne peut pas être utilisée comme tuteur de facturation. Recherchez un profil tuteur existant.",
             "billingGuardianRelationshipInactive": "La relation du tuteur de facturation sélectionné est inactive. Choisissez un autre tuteur.",
-            "guardianIdentityCandidateExists": "Un tuteur correspondant existe déjà. Recherchez et sélectionnez le tuteur existant au lieu d'en créer un doublon."
+            "guardianIdentityCandidateExists": "Un tuteur correspondant existe déjà. Recherchez et sélectionnez le tuteur existant au lieu d'en créer un doublon.",
+            "guardianLoginConflict": "Impossible de créer le compte de connexion : les coordonnées sont liées à un autre compte. Vérifiez les données du tuteur sans exposer l'autre compte."
           },
           "guardianRequiredHint": "Saisissez les coordonnées du tuteur ci-dessus — la facturation au tuteur exige au moins un tuteur.",
           "billingGuardianLabel": "Tuteur de facturation",
           "billingGuardianPlaceholder": "Sélectionner le tuteur de facturation…",
-          "billingGuardianSelectionHint": "Choisissez le tuteur financièrement responsable lorsque plusieurs sont listés."
+          "billingGuardianSelectionHint": "Choisissez le tuteur financièrement responsable lorsque plusieurs sont listés.",
+          "provisionAccessTitle": "Compte de connexion du tuteur",
+          "provisionAccessLead": "Vous pouvez demander un compte de connexion pour tout tuteur lié. Aucun mot de passe n'est envoyé à cette étape.",
+          "provisionAccessLabel": "Créer un compte de connexion pour ce tuteur",
+          "provisionAccessHint": "Optionnel — envoyé au serveur uniquement si activé. Une relation de tuteur n'implique pas un compte de connexion.",
+          "provisionAccessReview": "Un compte de connexion sera demandé pour ce tuteur à l'enregistrement.",
+          "existingGuardianHint": "Tuteur existant — sera lié sans créer de profil en double."
         },
         "finance": {
           "stagePlan": "Plan proposé",
@@ -9416,6 +9423,9 @@
       "copied": "Copié",
       "createSuccessTitle": "Identifiants de connexion du tuteur",
       "createSuccessLead": "Partagez le code tuteur et l'identifiant avec la famille. La configuration du mot de passe se fait séparément.",
+      "provisioningOutcomeLabel": "Provisionnement du compte",
+      "accessCreated": "Un compte de connexion a été créé pour ce tuteur.",
+      "accessExists": "Ce tuteur dispose déjà d'un compte de connexion.",
       "dismissOnboarding": "Fermer",
       "newGuardianReviewHint": "Les identifiants apparaîtront ici après la création de l'élève, s'ils sont renvoyés par le serveur.",
       "password": {

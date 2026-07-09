@@ -8,13 +8,14 @@ import {
 } from '@/features/admin/enrollment-intake/enrollment-intake-fields';
 import type { EnrollmentIntakeFieldErrors, EnrollmentIntakePatch, EnrollmentIntakeValues } from '@/features/admin/enrollment-intake/types';
 import type { BillingResponsibilityFieldErrors } from '@/features/admin/students/utils/student-create-billing-responsibility';
-import { guardianEntryLabel } from '@/features/admin/students/utils/student-create-guardian-payload';
+import { guardianEntryBillingOptionLabel, guardianEntryLabel } from '@/features/admin/students/utils/student-create-guardian-payload';
 import type {
   StudentCreateBillingFormState,
   StudentCreateGuardianEntry,
 } from '@/types/student-enrollment-finance';
 import type { PersonSearchResult } from '@/types/student-360';
 import { StudentCreateGuardianSourcePanel } from './student-create-guardian-source-panel';
+import { StudentCreateGuardianProvisionSection } from './student-create-guardian-provision-section';
 import { StudentCreateStyledSection } from './student-create-section-header';
 
 export function StudentCreateBillingStep({
@@ -29,6 +30,7 @@ export function StudentCreateBillingStep({
   onLinkExistingGuardian,
   onClearLinkedGuardian,
   onGuardianSourceModeChange,
+  onProvisionAccessChange,
   guardian,
 }: {
   billingState: StudentCreateBillingFormState;
@@ -42,6 +44,7 @@ export function StudentCreateBillingStep({
   onLinkExistingGuardian: (person: PersonSearchResult) => void;
   onClearLinkedGuardian: () => void;
   onGuardianSourceModeChange: (mode: StudentCreateBillingFormState['guardianSourceMode']) => void;
+  onProvisionAccessChange: (entryKey: string, enabled: boolean) => void;
   guardian: EnrollmentIntakeGuardianOptions;
 }) {
   const t = useT();
@@ -160,7 +163,7 @@ export function StudentCreateBillingStep({
                 </option>
                 {guardianEntries.map((entry) => (
                   <option key={entry.entryKey} value={entry.entryKey}>
-                    {guardianEntryLabel(entry)}
+                    {guardianEntryBillingOptionLabel(entry, t)}
                   </option>
                 ))}
               </select>
@@ -226,6 +229,13 @@ export function StudentCreateBillingStep({
           </div>
         ) : null}
       </div>
+
+      <StudentCreateGuardianProvisionSection
+        guardianEntries={guardianEntries}
+        provisionAccessByEntryKey={billingState.provisionAccessByEntryKey}
+        linkedGuardianPerson={linkedGuardianPerson}
+        onProvisionAccessChange={onProvisionAccessChange}
+      />
 
       <div className="student-create-form__subsection student-create-form__subsection--siblings">
         <EnrollmentIntakeSiblingsFields

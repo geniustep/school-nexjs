@@ -194,6 +194,33 @@ describe('student create guardian atomic payload', () => {
     );
     expect(result.valid).toBe(true);
   });
+
+  it('omits provision_access unless explicitly requested', () => {
+    const entries = collectStudentCreateGuardianEntries(
+      profileWithGuardian(),
+      defaultStudentCreateBillingFormState(),
+    );
+    const billingKey = resolveBillingGuardianEntryKey(entries, defaultStudentCreateBillingFormState());
+    const withoutProvision = buildStudentCreateGuardianRelationships(entries, billingKey);
+    expect(withoutProvision[0]).not.toHaveProperty('provision_access');
+
+    const withProvision = buildStudentCreateGuardianRelationships(entries, billingKey, {
+      'new-primary': true,
+    });
+    expect(withProvision[0]).toMatchObject({ provision_access: true });
+  });
+
+  it('sends provision_access only for opted-in guardians in atomic payload', () => {
+    const payload = applyStudentCreateGuardianAtomicContractToPayload(
+      buildStudentCreatePayload(profileWithGuardian(), null, { deferGuardianContact: true }),
+      profileWithGuardian(),
+      {
+        ...defaultStudentCreateBillingFormState(),
+        provisionAccessByEntryKey: { 'new-primary': true },
+      },
+    );
+    expect(payload.guardian_relationships?.[0]).toMatchObject({ provision_access: true });
+  });
 });
 
 describe('post-201 duplicate link guard', () => {

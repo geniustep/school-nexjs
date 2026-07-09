@@ -125,6 +125,33 @@ describe('extractGuardianAccountPresentationsFromCreateResponse', () => {
     expect(entries[0].name).toBe('Fatima');
     expect(entries[0].presentation.login).toBe('fatima.g');
   });
+
+  it('maps access_account_created and access_account_exists provisioning metadata', () => {
+    const created = extractGuardianAccountPresentationsFromCreateResponse({
+      guardian_relationships: [
+        {
+          access_account_created: true,
+          guardian: { name: 'Hassan', account: { status: 'active', has_user_account: true } },
+        },
+      ],
+    });
+    expect(created[0].presentation.accessProvisioning).toBe('created');
+    expect(created[0].presentation.accessProvisioningLabelKey).toBe('admin.guardianAccount.accessCreated');
+
+    const exists = extractGuardianAccountPresentationsFromCreateResponse({
+      guardian_relationships: [
+        {
+          guardian: {
+            name: 'Sara',
+            access_account_exists: true,
+            account: { login: 'sara.g', status: 'active', has_user_account: true },
+          },
+        },
+      ],
+    });
+    expect(exists[0].presentation.accessProvisioning).toBe('exists');
+    expect(exists[0].presentation.accessProvisioningLabelKey).toBe('admin.guardianAccount.accessExists');
+  });
 });
 
 describe('guardian selection regression', () => {

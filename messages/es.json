@@ -4693,12 +4693,19 @@
             "billingGuardianSelectionRequired": "Seleccione qué tutor es responsable de la facturación.",
             "billingGuardianNotLinked": "La persona seleccionada no puede usarse como tutor de facturación. Busque un perfil de tutor existente.",
             "billingGuardianRelationshipInactive": "La relación del tutor de facturación seleccionado está inactiva. Elija otro tutor.",
-            "guardianIdentityCandidateExists": "Ya existe un tutor coincidente. Busque y seleccione el tutor existente en lugar de crear un duplicado."
+            "guardianIdentityCandidateExists": "Ya existe un tutor coincidente. Busque y seleccione el tutor existente en lugar de crear un duplicado.",
+            "guardianLoginConflict": "No se pudo crear la cuenta de acceso: los datos de contacto están vinculados a otra cuenta. Revise los datos del tutor sin exponer la otra cuenta."
           },
           "guardianRequiredHint": "Introduzca los datos del tutor arriba — la facturación al tutor exige al menos un tutor.",
           "billingGuardianLabel": "Tutor de facturación",
           "billingGuardianPlaceholder": "Seleccionar tutor de facturación…",
-          "billingGuardianSelectionHint": "Elija qué tutor es financieramente responsable cuando hay más de uno."
+          "billingGuardianSelectionHint": "Elija qué tutor es financieramente responsable cuando hay más de uno.",
+          "provisionAccessTitle": "Cuenta de acceso del tutor",
+          "provisionAccessLead": "Puede solicitar una cuenta de acceso para cualquier tutor vinculado. No se envía contraseña en esta etapa.",
+          "provisionAccessLabel": "Crear cuenta de acceso para este tutor",
+          "provisionAccessHint": "Opcional — se envía al servidor solo si está activado. Una relación de tutor no implica una cuenta de acceso.",
+          "provisionAccessReview": "Se solicitará una cuenta de acceso para este tutor al guardar.",
+          "existingGuardianHint": "Tutor existente — se vinculará sin crear un perfil duplicado."
         },
         "finance": {
           "stagePlan": "Plan sugerido",
@@ -9415,6 +9422,9 @@
       "copied": "Copiado",
       "createSuccessTitle": "Datos de acceso del tutor",
       "createSuccessLead": "Comparta el código del tutor y el usuario con la familia. La contraseña se configura por separado.",
+      "provisioningOutcomeLabel": "Provisionamiento de cuenta",
+      "accessCreated": "Se creó una cuenta de acceso para este tutor.",
+      "accessExists": "Este tutor ya tiene una cuenta de acceso.",
       "dismissOnboarding": "Cerrar",
       "newGuardianReviewHint": "Los datos de acceso aparecerán aquí tras crear el alumno, si el servidor los devuelve.",
       "password": {

@@ -23,6 +23,7 @@ export function defaultStudentCreateBillingFormState(): StudentCreateBillingForm
     linkedGuardianId: null,
     billingGuardianEntryKey: null,
     guardianEntries: [],
+    provisionAccessByEntryKey: {},
   };
 }
 

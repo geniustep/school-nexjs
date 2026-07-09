@@ -11,6 +11,7 @@ import type {
 } from '@/types/student-enrollment-finance';
 import type { StudentProfileFormState } from './student-profile';
 import { buildBillingResponsibilityRequest } from './student-create-billing-responsibility';
+import { relationshipTypeLabel } from './relationship-types';
 
 function trim(value: string | undefined | null): string {
   return (value ?? '').trim();
@@ -87,19 +88,26 @@ export function resolveBillingGuardianEntryKey(
 export function buildStudentCreateGuardianRelationships(
   entries: StudentCreateGuardianEntry[],
   billingGuardianEntryKey: string | null,
+  provisionAccessByEntryKey: Record<string, boolean> = {},
 ): StudentCreateGuardianRelationshipItem[] {
   return entries.map((entry) => {
     const isFinancialResponsible =
       billingGuardianEntryKey != null && entry.entryKey === billingGuardianEntryKey;
+    const provisionAccess = provisionAccessByEntryKey[entry.entryKey] === true;
+
+    const relationshipFlags = {
+      relationship_type: entry.relationship_type,
+      is_primary_contact: entry.is_primary_contact,
+      is_financial_responsible: isFinancialResponsible,
+      is_emergency_contact: entry.is_primary_contact,
+      receives_notifications: true,
+      ...(provisionAccess ? { provision_access: true as const } : {}),
+    };
 
     if (entry.kind === 'existing') {
       return {
         guardian_id: entry.guardian_id,
-        relationship_type: entry.relationship_type,
-        is_primary_contact: entry.is_primary_contact,
-        is_financial_responsible: isFinancialResponsible,
-        is_emergency_contact: entry.is_primary_contact,
-        receives_notifications: true,
+        ...relationshipFlags,
       };
     }
 
@@ -109,11 +117,7 @@ export function buildStudentCreateGuardianRelationships(
         ...(entry.phone ? { phone: entry.phone } : {}),
         ...(entry.email ? { email: entry.email } : {}),
       },
-      relationship_type: entry.relationship_type,
-      is_primary_contact: entry.is_primary_contact,
-      is_financial_responsible: isFinancialResponsible,
-      is_emergency_contact: entry.is_primary_contact,
-      receives_notifications: true,
+      ...relationshipFlags,
     };
   });
 }
@@ -174,6 +178,7 @@ export function applyStudentCreateGuardianAtomicContractToPayload(
     next.guardian_relationships = buildStudentCreateGuardianRelationships(
       entries,
       billingGuardianEntryKey,
+      billingState.provisionAccessByEntryKey,
     );
   }
 
@@ -218,4 +223,13 @@ export function validateStudentCreateGuardianContract(
 
 export function guardianEntryLabel(entry: StudentCreateGuardianEntry): string {
   return entry.kind === 'existing' ? entry.displayName : entry.full_name;
+}
+
+export function guardianEntryBillingOptionLabel(
+  entry: StudentCreateGuardianEntry,
+  t: (key: string) => string,
+): string {
+  const name = guardianEntryLabel(entry);
+  const relationship = relationshipTypeLabel(t, entry.relationship_type);
+  return `${name} — ${relationship}`;
 }

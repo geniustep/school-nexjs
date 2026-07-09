@@ -42,6 +42,8 @@ const ERROR_MESSAGE_KEYS: Record<BillingResponsibilityStableErrorCode, string> =
 const GUARDIAN_ATOMIC_ERROR_MESSAGE_KEYS = {
   guardian_identity_candidate_exists:
     'admin.student360.create.billingResponsibility.errors.guardianIdentityCandidateExists',
+  guardian_login_conflict:
+    'admin.student360.create.billingResponsibility.errors.guardianLoginConflict',
 } as const;
 
 export function isBillingResponsibilityStableErrorCode(
@@ -129,6 +131,9 @@ export function mapStudentCreateGuardianAtomicApiError(
   const fieldErrors: BillingResponsibilityFieldErrors = {};
 
   if (code === 'guardian_identity_candidate_exists') {
+    fieldErrors.guardianRequired = message;
+  }
+  if (code === 'guardian_login_conflict') {
     fieldErrors.guardianRequired = message;
   }
 

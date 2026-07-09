@@ -65,6 +65,12 @@ export function GuardianAccountOnboardingPanel({
           <dt>{t('admin.guardianAccount.statusLabel')}</dt>
           <dd>{t(presentation.statusLabelKey)}</dd>
         </div>
+        {presentation.accessProvisioningLabelKey ? (
+          <div className="guardian-account-onboarding__row">
+            <dt>{t('admin.guardianAccount.provisioningOutcomeLabel')}</dt>
+            <dd>{t(presentation.accessProvisioningLabelKey)}</dd>
+          </div>
+        ) : null}
       </dl>
     </div>
   );

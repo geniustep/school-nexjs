@@ -54,6 +54,7 @@ export const BILLING_RESPONSIBILITY_STABLE_ERROR_CODES = [
 
 export const STUDENT_CREATE_GUARDIAN_ATOMIC_ERROR_CODES = [
   'guardian_identity_candidate_exists',
+  'guardian_login_conflict',
 ] as const;
 
 export type StudentCreateGuardianAtomicErrorCode =

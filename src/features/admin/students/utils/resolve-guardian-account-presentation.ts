@@ -3,12 +3,17 @@ import type { UserAccountInfo } from '@/types/account';
 
 export type GuardianAccountPresentationStatus = 'active' | 'inactive' | 'no_account' | 'unknown';
 
+export type GuardianAccessProvisioningOutcome = 'created' | 'exists' | null;
+
 export interface GuardianAccountPresentation {
   code: string | null;
   login: string | null;
   status: GuardianAccountPresentationStatus;
   statusLabelKey: string;
   hasVisibleAccountInfo: boolean;
+  /** Post-create provisioning metadata from atomic student create response */
+  accessProvisioning?: GuardianAccessProvisioningOutcome;
+  accessProvisioningLabelKey?: string | null;
 }
 
 export type GuardianAccountPresentationSource =
@@ -59,8 +64,27 @@ export function normalizeGuardianAccountPresentationStatus(
   return 'unknown';
 }
 
+const ACCESS_PROVISIONING_LABEL_KEYS: Record<Exclude<GuardianAccessProvisioningOutcome, null>, string> = {
+  created: 'admin.guardianAccount.accessCreated',
+  exists: 'admin.guardianAccount.accessExists',
+};
+
+function readAccessProvisioningOutcome(
+  rel: Record<string, unknown>,
+  guardian: Record<string, unknown> | null,
+): GuardianAccessProvisioningOutcome {
+  const created =
+    rel.access_account_created === true || guardian?.access_account_created === true;
+  const exists =
+    rel.access_account_exists === true || guardian?.access_account_exists === true;
+  if (created) return 'created';
+  if (exists) return 'exists';
+  return null;
+}
+
 export function resolveGuardianAccountPresentation(
   source: GuardianAccountPresentationSource,
+  options?: { accessProvisioning?: GuardianAccessProvisioningOutcome },
 ): GuardianAccountPresentation {
   const code = trim(source?.code ?? null);
   const account = readGuardianAccount(source);
@@ -73,7 +97,10 @@ export function resolveGuardianAccountPresentation(
     hasUserAccount,
   });
 
-  const hasVisibleAccountInfo = Boolean(code || login || status !== 'unknown');
+  const hasVisibleAccountInfo = Boolean(
+    code || login || status !== 'unknown' || options?.accessProvisioning,
+  );
+  const accessProvisioning = options?.accessProvisioning ?? null;
 
   return {
     code,
@@ -81,6 +108,10 @@ export function resolveGuardianAccountPresentation(
     status,
     statusLabelKey: STATUS_LABEL_KEYS[status],
     hasVisibleAccountInfo,
+    accessProvisioning,
+    accessProvisioningLabelKey: accessProvisioning
+      ? ACCESS_PROVISIONING_LABEL_KEYS[accessProvisioning]
+      : null,
   };
 }
 
@@ -99,6 +130,7 @@ export function extractGuardianAccountPresentationsFromCreateResponse(
       const guardian = rel.guardian;
       if (!guardian || typeof guardian !== 'object') return null;
       const g = guardian as Record<string, unknown>;
+      const accessProvisioning = readAccessProvisioningOutcome(rel, g);
       const name =
         trim(typeof g.name === 'string' ? g.name : null) ??
         trim(typeof g.display_name === 'string' ? g.display_name : null) ??
@@ -106,15 +138,18 @@ export function extractGuardianAccountPresentationsFromCreateResponse(
         '—';
       return {
         name,
-        presentation: resolveGuardianAccountPresentation({
-          code: trim(typeof g.code === 'string' ? g.code : null),
-          has_user_account:
-            typeof g.has_user_account === 'boolean' ? g.has_user_account : undefined,
-          account:
-            g.account && typeof g.account === 'object'
-              ? (g.account as GuardianAccountInfo)
-              : null,
-        }),
+        presentation: resolveGuardianAccountPresentation(
+          {
+            code: trim(typeof g.code === 'string' ? g.code : null),
+            has_user_account:
+              typeof g.has_user_account === 'boolean' ? g.has_user_account : undefined,
+            account:
+              g.account && typeof g.account === 'object'
+                ? (g.account as GuardianAccountInfo)
+                : null,
+          },
+          { accessProvisioning },
+        ),
       };
     })
     .filter(
