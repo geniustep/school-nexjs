@@ -1,0 +1,75 @@
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
+.teachers-list-page {
+  max-width: min(100%, 1200px);
+  margin-inline: auto;
+  width: 100%;
+}
+
+.teachers-list__header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.teachers-list__identity {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.teachers-list__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.teachers-list__code {
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.teachers-list__academic-col {
+  max-width: 220px;
+}
+
+.teachers-list__academic {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.teachers-list__row-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.teachers-list__view-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 36px;
+  block-size: 36px;
+  border-radius: var(--radius-sm, 8px);
+  color: var(--c-text-muted, #64748b);
+  text-decoration: none;
+}
+
+.teachers-list__view-link:hover {
+  background: var(--c-surface-2, #eef2f8);
+  color: var(--c-text, #0f172a);
+}
+
+@media (max-width: 720px) {
+  .teachers-list__academic-col {
+    max-width: 140px;
+  }
+}
