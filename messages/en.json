@@ -3767,7 +3767,7 @@
         "studentSection": "Child information",
         "studentSectionLead": "Identity, identifiers, and initial admission notes — complete what you have.",
         "siblingsSectionLead": "Indicate whether the child has siblings at the school or mentioned in the request.",
-        "studySectionLead": "Requested year, cycle, level, class, and registration details.",
+        "studySectionLead": "Requested year, cycle, level, and registration details. Class is assigned later at enrollment.",
         "guardianSectionLead": "Contact details for the guardian or person responsible for follow-up.",
         "followUpSectionLead": "Lead source and next action to track this request.",
         "guardianSection": "Guardian information",

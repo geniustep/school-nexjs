@@ -144,12 +144,14 @@ export function FamilyAdmissionChildCard({
             </div>
           </div>
 
-          <EnrollmentIntakeAcademicFields
-            values={intakeValues}
-            onPatch={handleIntakePatch}
-            academic={academic}
-            intakeContext="admissionCreate"
-          />
+          <div className="family-admission-child-card__academic">
+            <EnrollmentIntakeAcademicFields
+              values={intakeValues}
+              onPatch={handleIntakePatch}
+              academic={academic}
+              intakeContext="admissionCreate"
+            />
+          </div>
 
           <div className="family-admission-child-card__address">
             <label className="student-create-form__checkbox">
@@ -243,6 +245,8 @@ export function FamilyAdmissionChildrenStep({
       registrationTypes: [],
       levelRequiresStream: Boolean(selectedLevel?.requires_stream),
       optionsLoading,
+      showAcademicYear: false,
+      showClass: false,
     };
   }
 

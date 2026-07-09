@@ -3763,7 +3763,7 @@
         "studentSection": "Informations sur l'enfant",
         "studentSectionLead": "Identité, identifiants et notes initiales — complétez ce que vous avez.",
         "siblingsSectionLead": "Indiquez si l'enfant a des frères ou sœurs à l'école ou mentionnés dans la demande.",
-        "studySectionLead": "Année, cycle, niveau, classe demandés et détails d'inscription.",
+        "studySectionLead": "Année, cycle, niveau demandés et détails d'inscription. La classe est assignée plus tard.",
         "guardianSectionLead": "Coordonnées du responsable légal ou de la personne à contacter.",
         "followUpSectionLead": "Source de la demande et prochaine action de suivi.",
         "guardianSection": "Informations sur le responsable",

@@ -102,6 +102,10 @@ export interface EnrollmentIntakeAcademicOptions {
   streamRequired?: boolean;
   activeSchoolId?: number | null;
   showClassSummary?: boolean;
+  /** When false, hide academic year (e.g. family child cards — year is family-level). Default true. */
+  showAcademicYear?: boolean;
+  /** When false, hide class. Admission create/edit hide class; student create keeps it. */
+  showClass?: boolean;
 }
 
 export interface EnrollmentIntakeGuardianOptions {
@@ -521,13 +525,17 @@ export function EnrollmentIntakeAcademicFields({
   const showStream = academic.levelRequiresStream && intakeContext !== 'admissionEdit';
   const streamRequired = intakeContext === 'admissionEdit' ? false : Boolean(academic.streamRequired);
   const fieldLayout = variant === 'studentCreate' ? 'half' : 'default';
+  const showAcademicYear = academic.showAcademicYear !== false;
+  const showClassField =
+    academic.showClass ?? (variant === 'studentCreate' && intakeContext !== 'admissionEdit');
 
   const content = (
     <CreateFieldGroup title={t('admin.enrollmentIntake.groups.academicStructure')} icon="◈">
+        {showAcademicYear ? (
         <CreateField
           field="academicYearId"
           layout={fieldLayout}
-          label={t('admin.academicYearId')}
+          label={t('admin.admissions.fields.academicYear')}
           error={errors.academicYearId}
         >
           {academic.optionsLoading && academic.years.length === 0 ? (
@@ -548,7 +556,7 @@ export function EnrollmentIntakeAcademicFields({
               onChange={(e) => onPatch({ academicYearId: e.target.value })}
               disabled={academic.optionsLoading}
             >
-              <option value="">{t('common.dash')}</option>
+              <option value="">{t('admin.admissions.create.selectAcademicYear')}</option>
               {academic.years.map((y) => (
                 <option key={y.id} value={y.id}>
                   {y.name}
@@ -557,10 +565,11 @@ export function EnrollmentIntakeAcademicFields({
             </select>
           )}
         </CreateField>
+        ) : null}
         <CreateField
           field="cycleId"
           layout={fieldLayout}
-          label={t('admin.student360.create.cycle')}
+          label={t('admin.admissions.fields.cycle')}
           error={academic.cycleMode === 'code' ? errors.cycleCode : errors.cycleId}
         >
           {academic.cyclesLoading && academic.cycles.length === 0 ? (
@@ -597,7 +606,12 @@ export function EnrollmentIntakeAcademicFields({
             </select>
           )}
         </CreateField>
-        <CreateField field="levelId" layout={fieldLayout} label={t('nav.levels')} error={errors.levelId}>
+        <CreateField
+          field="levelId"
+          layout={fieldLayout}
+          label={t('admin.admissions.fields.requestedLevel')}
+          error={errors.levelId}
+        >
           <select
             className="input"
             value={values.levelId}
@@ -608,7 +622,7 @@ export function EnrollmentIntakeAcademicFields({
               (academic.cycleMode === 'code' ? !values.cycleCode : !values.cycleId)
             }
           >
-            <option value="">{academic.levelPlaceholder ?? t('admin.selectLevel')}</option>
+            <option value="">{academic.levelPlaceholder ?? t('admin.admissions.create.selectLevel')}</option>
             {academic.levels.map((l) => (
               <option key={l.id} value={l.id}>
                 {l.display_alias ?? l.name ?? l.code}
@@ -639,7 +653,7 @@ export function EnrollmentIntakeAcademicFields({
             </select>
           </CreateField>
         ) : null}
-        {intakeContext !== 'admissionEdit' ? (
+        {showClassField ? (
         <CreateField
           field="classId"
           layout={fieldLayout}
@@ -662,7 +676,7 @@ export function EnrollmentIntakeAcademicFields({
           </select>
         </CreateField>
         ) : null}
-        {academic.showClassSummary && values.classId.trim() ? (
+        {showClassField && academic.showClassSummary && values.classId.trim() ? (
           <div className="student-create-form__cell student-create-form__cell--full">
             <EnrollmentClassSummaryPanel
               classId={values.classId}
@@ -677,7 +691,11 @@ export function EnrollmentIntakeAcademicFields({
     return content;
   }
 
-  return <div className="student-create-form__grid">{content}</div>;
+  return (
+    <div className="student-create-form__grid enrollment-intake-academic enrollment-intake-academic--hierarchy">
+      {content}
+    </div>
+  );
 }
 
 export function EnrollmentIntakeRegistrationFields({

@@ -3763,7 +3763,7 @@
         "studentSection": "Datos del alumno",
         "studentSectionLead": "Identidad, identificadores y notas iniciales — complete lo que tenga.",
         "siblingsSectionLead": "Indique si el alumno tiene hermanos en el centro o mencionados en la solicitud.",
-        "studySectionLead": "Año, ciclo, nivel, clase solicitados y detalles de matrícula.",
+        "studySectionLead": "Año, ciclo, nivel solicitados y detalles de matrícula. La clase se asigna más adelante.",
         "guardianSectionLead": "Datos de contacto del tutor o responsable del seguimiento.",
         "followUpSectionLead": "Origen de la solicitud y próxima acción de seguimiento.",
         "guardianSection": "Datos del tutor",

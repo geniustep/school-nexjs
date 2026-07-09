@@ -368,7 +368,7 @@
   border: 1px solid var(--border, var(--c-border));
   border-radius: 999px;
   overflow: hidden;
-  background: color-mix(in srgb, var(--surface-2, #f8fafc) 70%, white);
+  background: color-mix(in srgb, var(--c-surface-2, #eef2f8) 70%, var(--c-surface, #fff));
   padding: 3px;
   gap: 3px;
 }
@@ -2895,6 +2895,52 @@
   margin-top: 0.85rem;
   padding-top: 0.85rem;
   border-top: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 85%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.family-admission-child-card__academic {
+  padding-top: 0.15rem;
+}
+
+.family-admission-child-card__academic .enrollment-intake-academic--hierarchy,
+.enrollment-intake-academic--hierarchy {
+  gap: 0;
+}
+
+.family-admission-child-card__academic .student-create-form__group,
+.admissions-create-page .enrollment-intake-academic--hierarchy .student-create-form__group,
+.family-admission-page .enrollment-intake-academic--hierarchy .student-create-form__group {
+  margin: 0;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 88%, transparent);
+  border-radius: var(--radius, 8px);
+  background: color-mix(in srgb, var(--c-surface-2, #eef2f8) 55%, var(--c-surface, #fff));
+}
+
+.family-admission-child-card__academic .student-create-form__group-title,
+.admissions-create-page .enrollment-intake-academic--hierarchy .student-create-form__group-title,
+.family-admission-page .enrollment-intake-academic--hierarchy .student-create-form__group-title {
+  font-size: 0.875rem;
+  font-weight: 650;
+  color: var(--raqeem-primary, #243b6b);
+}
+
+.family-admission-child-card__academic .student-create-form__grid,
+.admissions-create-page .enrollment-intake-academic--hierarchy .student-create-form__grid,
+.family-admission-page .enrollment-intake-academic--hierarchy .student-create-form__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem 0.85rem;
+}
+
+@media (max-width: 640px) {
+  .family-admission-child-card__academic .student-create-form__grid,
+  .admissions-create-page .enrollment-intake-academic--hierarchy .student-create-form__grid,
+  .family-admission-page .enrollment-intake-academic--hierarchy .student-create-form__grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .family-admission-child-card__address {
