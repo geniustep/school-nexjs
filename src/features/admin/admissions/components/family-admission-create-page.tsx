@@ -28,6 +28,14 @@ import {
   validateFamilyAdmissionForm,
 } from '../utils/family-admission-payload';
 import { familyAdmissionApiErrorMessage } from '../utils/family-admission-errors';
+import {
+  createFamilyAdmissionWizardAnalyticsGuards,
+  mapFamilyAdmissionSubmitResult,
+  resetFamilyAdmissionWizardAnalyticsGuards,
+  trackFamilyAdmissionStarted,
+  trackFamilyAdmissionStepCompleted,
+  trackFamilyAdmissionSubmitResult,
+} from '../utils/family-admissions-analytics';
 import { normalizeFamilyBatchCreateResponse } from '../utils/family-admission-response';
 import { FamilyAdmissionSteps, type FamilyAdmissionWizardStep } from './family-admission-steps';
 import { FamilyAdmissionFamilyStep } from './family-admission-family-step';
@@ -54,6 +62,11 @@ export function FamilyAdmissionCreatePage() {
   const [successReplay, setSuccessReplay] = useState(false);
   const [defaultsApplied, setDefaultsApplied] = useState(false);
   const idempotencySession = useRef(new FamilyAdmissionIdempotencySession());
+  const analyticsGuards = useRef(createFamilyAdmissionWizardAnalyticsGuards());
+
+  useEffect(() => {
+    trackFamilyAdmissionStarted(analyticsGuards.current);
+  }, []);
 
   const studentOptionsState = useStudentOptions();
   const admissionOptionsState = useAdmissionOptions();
@@ -158,8 +171,21 @@ export function FamilyAdmissionCreatePage() {
       return;
     }
     setError(null);
-    if (step === 'family') setStep('children');
-    else if (step === 'children') setStep('review');
+    if (step === 'family') {
+      trackFamilyAdmissionStepCompleted(
+        analyticsGuards.current,
+        'family',
+        form.children.length,
+      );
+      setStep('children');
+    } else if (step === 'children') {
+      trackFamilyAdmissionStepCompleted(
+        analyticsGuards.current,
+        'children',
+        form.children.length,
+      );
+      setStep('review');
+    }
   }
 
   function goBack() {
@@ -174,8 +200,15 @@ export function FamilyAdmissionCreatePage() {
     const validationMessage = validateCurrentStep();
     if (validationMessage) {
       setError(validationMessage);
+      trackFamilyAdmissionSubmitResult('validation_error', form.children.length);
       return;
     }
+
+    trackFamilyAdmissionStepCompleted(
+      analyticsGuards.current,
+      'review',
+      form.children.length,
+    );
 
     setSubmitting(true);
     setError(null);
@@ -198,6 +231,7 @@ export function FamilyAdmissionCreatePage() {
     const outcome = normalizeFamilyBatchCreateResponse(response, httpStatus);
 
     if (outcome.kind === 'success') {
+      trackFamilyAdmissionSubmitResult('success', form.children.length);
       setSuccessResult(outcome.data);
       setSuccessReplay(outcome.replay);
       setStep('success');
@@ -205,20 +239,27 @@ export function FamilyAdmissionCreatePage() {
     }
 
     if (outcome.kind === 'idempotency_conflict') {
+      trackFamilyAdmissionSubmitResult('conflict', form.children.length);
       setIdempotencyConflict(true);
       setError(t('admin.admissions.family.errors.idempotencyConflict'));
       return;
     }
 
     if (outcome.kind === 'error' && !response.success) {
+      trackFamilyAdmissionSubmitResult(
+        mapFamilyAdmissionSubmitResult(outcome),
+        form.children.length,
+      );
       setError(familyAdmissionApiErrorMessage(response.error, t));
       return;
     }
 
+    trackFamilyAdmissionSubmitResult('server_error', form.children.length);
     setError(t('admin.admissions.family.errors.submitFailed'));
   }
 
   function handleCreateAnother() {
+    resetFamilyAdmissionWizardAnalyticsGuards(analyticsGuards.current);
     idempotencySession.current.reset();
     setForm(emptyFamilyAdmissionFormState(today));
     setSuccessResult(null);
@@ -227,6 +268,7 @@ export function FamilyAdmissionCreatePage() {
     setIdempotencyConflict(false);
     setDefaultsApplied(false);
     setStep('family');
+    trackFamilyAdmissionStarted(analyticsGuards.current);
   }
 
   return (
