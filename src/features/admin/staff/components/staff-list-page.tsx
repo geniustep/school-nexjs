@@ -1,5 +1,10 @@
 'use client';
 
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -68,7 +73,9 @@ export function StaffListPage() {
       {
         key: 'name',
         header: t('admin.fullName'),
-        render: (member) => <strong>{resolveStaffDisplayName(member)}</strong>,
+        render: (member) => (
+          <strong dir="auto">{resolveStaffDisplayName(member)}</strong>
+        ),
       },
       {
         key: 'type',
@@ -147,7 +154,7 @@ export function StaffListPage() {
         }
       />
 
-      <div className="staff-center-toolbar">
+      <div className="toolbar">
         <input
           className="input staff-center-toolbar__search"
           value={search}
@@ -172,9 +179,9 @@ export function StaffListPage() {
         {(staff) => (
           filtered.length === 0 && search.trim() ? (
             <EmptyState
-              icon="🧑‍💼"
-              title={t('admin.staffCenter.emptyTitle')}
-              description={t('admin.staffCenter.emptyDesc')}
+              icon="🔍"
+              title={t('admin.staffCenter.searchNoMatch')}
+              compact
             />
           ) : (
             <DataTable

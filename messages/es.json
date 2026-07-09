@@ -1370,6 +1370,7 @@
       "pageSubtitle": "Revisar personal escolar, permisos y alertas operativas.",
       "backToList": "Volver a la lista de personal",
       "searchPlaceholder": "Buscar por nombre, correo o usuario…",
+      "searchNoMatch": "Ningún miembro del personal coincide con la búsqueda actual.",
       "emptyTitle": "Sin personal",
       "emptyDesc": "No se devolvieron registros de personal para la escuela activa.",
       "userTypeLabel": "Tipo de usuario",

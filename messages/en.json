@@ -1371,6 +1371,7 @@
       "pageSubtitle": "Review school staff, permissions, and operational warnings.",
       "backToList": "Back to staff list",
       "searchPlaceholder": "Search by name, email, or login…",
+      "searchNoMatch": "No staff members match your current search.",
       "emptyTitle": "No staff members",
       "emptyDesc": "No staff records were returned for the active school.",
       "userTypeLabel": "User type",

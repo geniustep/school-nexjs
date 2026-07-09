@@ -1370,6 +1370,7 @@
       "pageSubtitle": "Consulter le personnel, les permissions et les alertes opérationnelles.",
       "backToList": "Retour à la liste du personnel",
       "searchPlaceholder": "Rechercher par nom, e-mail ou identifiant…",
+      "searchNoMatch": "Aucun membre du personnel ne correspond à votre recherche.",
       "emptyTitle": "Aucun membre du personnel",
       "emptyDesc": "Aucun enregistrement du personnel pour l'école active.",
       "userTypeLabel": "Type d'utilisateur",
