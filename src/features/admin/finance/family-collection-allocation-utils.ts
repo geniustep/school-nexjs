@@ -3,6 +3,43 @@ import type {
   FamilyCollectionPreviewResponse,
   FamilyOpenInstallment,
 } from '@/types/family-finance';
+import { sortInstallmentsForFamilySuggestion } from '@/features/admin/finance/family-suggested-allocation-utils';
+
+export type FamilyInstallmentFilter = 'all' | 'unallocated' | 'registration' | 'tuition' | 'overdue';
+
+export type FamilyCollectionConfirmBlockReason =
+  | 'missing_fields'
+  | 'cash_session_blocked'
+  | 'invalid_amount'
+  | 'invalid_allocations';
+
+export interface FamilyStudentAllocationSummary {
+  studentId: number;
+  studentName: string;
+  classLabel: string;
+  openTotal: number;
+  allocatedNow: number;
+  remainingAfter: number;
+  allocatedItemCount: number;
+  hasAllocations: boolean;
+}
+
+export interface FamilyChildAllocationLine {
+  installmentId: number;
+  serviceLabel: string;
+  allocatedAmount: number;
+  installmentRemaining: number;
+  isPartial: boolean;
+  remainingAfterPayment: number;
+}
+
+export interface FamilyChildCompactSummary {
+  studentId: number;
+  studentName: string;
+  classLabel: string;
+  allocatedTotal: number;
+  lines: FamilyChildAllocationLine[];
+}
 
 export type FamilyInstallmentFilter = 'all' | 'unallocated' | 'registration' | 'tuition' | 'overdue';
 
@@ -138,6 +175,195 @@ export function resolveDefaultExpandedStudentIds(input: {
   return expanded;
 }
 
+function resolveInstallmentServiceLabel(row: FamilyOpenInstallment): string {
+  return row.service_label?.trim() || row.service_type?.trim() || '';
+}
+
+export function isPartialFamilyAllocation(
+  allocatedAmount: number,
+  installmentRemaining: number,
+): boolean {
+  return (
+    allocatedAmount > 0 &&
+    installmentRemaining > 0 &&
+    allocatedAmount + 0.0001 < installmentRemaining
+  );
+}
+
+export function buildFamilyChildAllocationLines(input: {
+  installments: FamilyOpenInstallment[];
+  allocationInputs: Record<number, string>;
+  studentId: number;
+}): FamilyChildAllocationLine[] {
+  const lines: FamilyChildAllocationLine[] = [];
+  for (const row of input.installments) {
+    if (row.student_id !== input.studentId) continue;
+    const allocatedAmount = installmentAllocationAmount(input.allocationInputs, row.installment_id);
+    if (allocatedAmount <= 0) continue;
+    const installmentRemaining = row.remaining_amount ?? 0;
+    lines.push({
+      installmentId: row.installment_id,
+      serviceLabel: resolveInstallmentServiceLabel(row),
+      allocatedAmount,
+      installmentRemaining,
+      isPartial: isPartialFamilyAllocation(allocatedAmount, installmentRemaining),
+      remainingAfterPayment: Math.max(0, installmentRemaining - allocatedAmount),
+    });
+  }
+  return lines;
+}
+
+export function buildFamilyCompactChildSummaries(input: {
+  installments: FamilyOpenInstallment[];
+  allocationInputs: Record<number, string>;
+}): FamilyChildCompactSummary[] {
+  const studentIds = new Set<number>();
+  for (const row of input.installments) {
+    studentIds.add(row.student_id);
+  }
+
+  const summaries: FamilyChildCompactSummary[] = [];
+  for (const studentId of studentIds) {
+    const lines = buildFamilyChildAllocationLines({
+      installments: input.installments,
+      allocationInputs: input.allocationInputs,
+      studentId,
+    });
+    if (lines.length === 0) continue;
+    const studentRows = input.installments.filter((row) => row.student_id === studentId);
+    const allocatedTotal = lines.reduce((sum, line) => sum + line.allocatedAmount, 0);
+    summaries.push({
+      studentId,
+      studentName: studentRows[0]?.student_name?.trim() || `#${studentId}`,
+      classLabel: formatClassLevel(studentRows[0] ?? { installment_id: 0, student_id: studentId }),
+      allocatedTotal,
+      lines,
+    });
+  }
+
+  return summaries.sort((a, b) => a.studentId - b.studentId);
+}
+
+export function buildChildShareTotals(input: {
+  installments: FamilyOpenInstallment[];
+  allocationInputs: Record<number, string>;
+}): Array<{ studentId: number; studentName: string; share: number }> {
+  const grouped = new Map<number, FamilyOpenInstallment[]>();
+  for (const row of input.installments) {
+    if (!grouped.has(row.student_id)) grouped.set(row.student_id, []);
+    grouped.get(row.student_id)?.push(row);
+  }
+
+  return Array.from(grouped.entries())
+    .map(([studentId, rows]) => ({
+      studentId,
+      studentName: rows[0]?.student_name?.trim() || `#${studentId}`,
+      share: rows.reduce(
+        (sum, row) => sum + installmentAllocationAmount(input.allocationInputs, row.installment_id),
+        0,
+      ),
+    }))
+    .sort((a, b) => a.studentId - b.studentId);
+}
+
+export function redistributeChildInstallmentAllocations(input: {
+  studentId: number;
+  childShare: number;
+  installments: FamilyOpenInstallment[];
+  currentInputs: Record<number, string>;
+}): Record<number, string> {
+  const childInstallments = input.installments.filter((row) => row.student_id === input.studentId);
+  const sorted = sortInstallmentsForFamilySuggestion(childInstallments);
+  let remaining = Math.max(0, input.childShare);
+  const next = { ...input.currentInputs };
+
+  for (const row of childInstallments) {
+    delete next[row.installment_id];
+  }
+
+  for (const row of sorted) {
+    if (remaining <= 0) break;
+    const due = row.remaining_amount ?? 0;
+    if (due <= 0) continue;
+    const allocated = Math.min(remaining, due);
+    next[row.installment_id] = String(allocated);
+    remaining -= allocated;
+  }
+
+  return next;
+}
+
+export function applyChildShareTotals(input: {
+  shares: Record<number, string>;
+  installments: FamilyOpenInstallment[];
+  currentInputs: Record<number, string>;
+}): Record<number, string> {
+  let next = { ...input.currentInputs };
+  for (const row of input.installments) {
+    delete next[row.installment_id];
+  }
+  for (const [studentIdRaw, rawShare] of Object.entries(input.shares)) {
+    const studentId = Number(studentIdRaw);
+    const share = Number(rawShare);
+    if (!Number.isFinite(studentId) || studentId <= 0) continue;
+    if (!Number.isFinite(share) || share <= 0) continue;
+    next = redistributeChildInstallmentAllocations({
+      studentId,
+      childShare: share,
+      installments: input.installments,
+      currentInputs: next,
+    });
+  }
+  return next;
+}
+
+export function clearChildAllocations(input: {
+  studentId: number;
+  installments: FamilyOpenInstallment[];
+  currentInputs: Record<number, string>;
+}): Record<number, string> {
+  const next = { ...input.currentInputs };
+  for (const row of input.installments) {
+    if (row.student_id === input.studentId) {
+      delete next[row.installment_id];
+    }
+  }
+  return next;
+}
+
+export function fillChildRemainingShare(input: {
+  studentId: number;
+  targetShare: number;
+  installments: FamilyOpenInstallment[];
+  currentInputs: Record<number, string>;
+}): Record<number, string> {
+  const currentShare = buildChildShareTotals({
+    installments: input.installments.filter((row) => row.student_id === input.studentId),
+    allocationInputs: input.currentInputs,
+  })[0]?.share ?? 0;
+  const delta = Math.max(0, input.targetShare - currentShare);
+  if (delta <= 0) return input.currentInputs;
+
+  const childInstallments = sortInstallmentsForFamilySuggestion(
+    input.installments.filter((row) => row.student_id === input.studentId),
+  );
+  let remaining = delta;
+  const next = { ...input.currentInputs };
+
+  for (const row of childInstallments) {
+    if (remaining <= 0) break;
+    const due = row.remaining_amount ?? 0;
+    const already = installmentAllocationAmount(next, row.installment_id);
+    const room = Math.max(0, due - already);
+    if (room <= 0) continue;
+    const add = Math.min(remaining, room);
+    next[row.installment_id] = String(already + add);
+    remaining -= add;
+  }
+
+  return next;
+}
+
 export function validateFamilyAllocations(input: {
   amount: number;
   values: Record<number, string>;
@@ -173,19 +399,15 @@ export function isFamilyCollectionPreviewValid(
 }
 
 export function resolveFamilyCollectionConfirmState(input: {
-  step: 'edit' | 'review';
-  preview: FamilyCollectionPreviewResponse | null;
-  previewError: string | null;
   parsedAmount: number;
   journalId: string;
   paymentMethod: string;
   academicYearId: string;
   collectionDate: string;
   cashSessionBlocked: boolean;
+  allocationInputs: Record<number, string>;
+  installments: FamilyOpenInstallment[];
 }): { canConfirm: boolean; blockReason: FamilyCollectionConfirmBlockReason | null } {
-  if (input.step !== 'review') {
-    return { canConfirm: false, blockReason: 'not_in_review' };
-  }
   if (!Number.isFinite(input.parsedAmount) || input.parsedAmount <= 0) {
     return { canConfirm: false, blockReason: 'invalid_amount' };
   }
@@ -195,11 +417,13 @@ export function resolveFamilyCollectionConfirmState(input: {
   if (input.cashSessionBlocked) {
     return { canConfirm: false, blockReason: 'cash_session_blocked' };
   }
-  if (!input.preview) {
-    return { canConfirm: false, blockReason: 'preview_missing' };
-  }
-  if (input.preview.errors.length || input.previewError) {
-    return { canConfirm: false, blockReason: 'preview_errors' };
+  const validation = validateFamilyAllocations({
+    amount: input.parsedAmount,
+    values: input.allocationInputs,
+    installments: input.installments,
+  });
+  if (validation) {
+    return { canConfirm: false, blockReason: 'invalid_allocations' };
   }
   return { canConfirm: true, blockReason: null };
 }

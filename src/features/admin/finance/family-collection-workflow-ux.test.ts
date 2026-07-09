@@ -13,24 +13,16 @@ import {
 const LOCALES = ['ar', 'en', 'fr', 'es'] as const;
 
 const UX_I18N_KEYS = [
-  'replaceSuggestionConfirm',
-  'backToEdit',
+  'editAllocationAction',
+  'actualPayerName',
+  'actualPayerHint',
   'headerSummaryTitle',
-  'allocationWorkspaceTitle',
-  'reviewGrandTotal',
-  'filters.all',
-  'filters.unallocated',
-  'filters.registration',
-  'filters.tuition',
-  'filters.overdue',
-  'childSummary.openTotal',
-  'childSummary.allocatedNow',
-  'childSummary.remaining',
-  'childSummary.itemCount',
-  'childSummary.showDetails',
-  'childSummary.hideDetails',
-  'childSummary.editAllocation',
-  'confirmBlockReason.preview_missing',
+  'smartSummary.title',
+  'smartSummary.explainability',
+  'smartSummary.showDetails',
+  'manualEditor.title',
+  'manualEditor.childrenHint',
+  'confirmBlockReason.invalid_allocations',
   'confirmBlockReason.missing_fields',
 ] as const;
 
@@ -38,12 +30,8 @@ const workflowSource = readFileSync(
   resolve('src/features/admin/finance/family-collection-workflow-form.tsx'),
   'utf8',
 );
-const allocationSource = readFileSync(
-  resolve('src/features/admin/finance/family-collection-allocation-section.tsx'),
-  'utf8',
-);
-const reviewSource = readFileSync(
-  resolve('src/features/admin/finance/family-collection-review-step.tsx'),
+const smartSummarySource = readFileSync(
+  resolve('src/features/admin/finance/family-collection-smart-summary.tsx'),
   'utf8',
 );
 
@@ -75,44 +63,36 @@ describe('family collection workflow UX i18n', () => {
 });
 
 describe('family collection workflow layout', () => {
-  it('uses header summary and step hints', () => {
+  it('uses header summary and smart summary step hint', () => {
     expect(workflowSource).toContain('finance-family-collection-header-summary');
-    expect(workflowSource).toContain('FamilyCollectionWorkflowSteps');
-    expect(workflowSource).toContain("t('admin.finance.billingAccounts.familyCollection.headerSummaryTitle')");
+    expect(workflowSource).toContain('stepHintSmartSummary');
+    expect(workflowSource).toContain('FamilyCollectionSmartSummary');
   });
 
-  it('renders compact filters and collapsed student summaries', () => {
-    expect(allocationSource).toContain('finance-family-allocation-filters');
-    expect(allocationSource).toContain('finance-family-allocation-student__summary');
-    expect(allocationSource).toContain('expandedStudentIds.has(summary.studentId)');
-    expect(allocationSource).toContain('finance-family-allocation-student__details');
-  });
-
-  it('shows child summary metrics and only expands details on demand', () => {
-    expect(allocationSource).toContain('childSummary.openTotal');
-    expect(allocationSource).toContain('childSummary.allocatedNow');
-    expect(allocationSource).toContain('{expanded && rows.length > 0 ? (');
-  });
-
-  it('cleans review layout with totals and grand total', () => {
-    expect(reviewSource).toContain('finance-family-review__totals');
-    expect(reviewSource).toContain('finance-family-review__grand-total');
-    expect(reviewSource).toContain('finance-family-review-group__head');
+  it('shows child cards with on-demand details only', () => {
+    expect(smartSummarySource).toContain('finance-family-smart-summary__card');
+    expect(smartSummarySource).toContain('expandedStudentIds.has(summary.studentId)');
+    expect(smartSummarySource).toContain('finance-family-smart-summary__card-details');
   });
 });
 
 describe('family collection confirm button state', () => {
-  it('allows confirm with valid preview even without draft id', () => {
+  it('allows direct confirm with valid provisional allocation state', () => {
     const state = resolveFamilyCollectionConfirmState({
-      step: 'review',
-      preview: { allocations: [], warnings: [], errors: [] },
-      previewError: null,
       parsedAmount: 5000,
       journalId: '1',
       paymentMethod: 'cash',
       academicYearId: '2',
       collectionDate: '2026-07-09',
       cashSessionBlocked: false,
+      allocationInputs: { 1: '500' },
+      installments: [
+        {
+          installment_id: 1,
+          student_id: 10,
+          remaining_amount: 1000,
+        },
+      ],
     });
     expect(state.canConfirm).toBe(true);
     expect(state.blockReason).toBeNull();
@@ -120,54 +100,58 @@ describe('family collection confirm button state', () => {
 
   it('does not block confirm because of unallocated amount', () => {
     const state = resolveFamilyCollectionConfirmState({
-      step: 'review',
-      preview: {
-        allocations: [],
-        warnings: [],
-        errors: [],
-        unallocated_amount: 500,
-      },
-      previewError: null,
       parsedAmount: 5000,
       journalId: '1',
       paymentMethod: 'cash',
       academicYearId: '2',
       collectionDate: '2026-07-09',
       cashSessionBlocked: false,
+      allocationInputs: { 1: '500' },
+      installments: [
+        {
+          installment_id: 1,
+          student_id: 10,
+          remaining_amount: 1000,
+        },
+      ],
     });
     expect(state.canConfirm).toBe(true);
   });
 
-  it('shows block reason when preview is missing in review', () => {
+  it('shows block reason when allocations are invalid', () => {
     const state = resolveFamilyCollectionConfirmState({
-      step: 'review',
-      preview: null,
-      previewError: null,
       parsedAmount: 5000,
       journalId: '1',
       paymentMethod: 'cash',
       academicYearId: '2',
       collectionDate: '2026-07-09',
       cashSessionBlocked: false,
+      allocationInputs: { 1: '6000' },
+      installments: [
+        {
+          installment_id: 1,
+          student_id: 10,
+          remaining_amount: 1000,
+        },
+      ],
     });
     expect(state.canConfirm).toBe(false);
-    expect(state.blockReason).toBe('preview_missing');
+    expect(state.blockReason).toBe('invalid_allocations');
     expect(familyCollectionConfirmBlockReasonKey(state.blockReason!)).toBe(
-      'admin.finance.billingAccounts.familyCollection.confirmBlockReason.preview_missing',
+      'admin.finance.billingAccounts.familyCollection.confirmBlockReason.invalid_allocations',
     );
   });
 
   it('auto-persists draft on confirm when draft id is missing', () => {
     expect(workflowSource).toContain('if (collectionId == null)');
     expect(workflowSource).toContain('const saved = await persistDraft()');
-    expect(workflowSource).not.toContain('disabled={confirming || !previewValid || cashSessionBlocked || draftId == null}');
     expect(workflowSource).toContain('disabled={confirming || !confirmState.canConfirm}');
   });
 
-  it('orders footer actions by step', () => {
-    expect(workflowSource).toContain("step === 'edit'");
-    expect(workflowSource).toContain("t('admin.finance.billingAccounts.familyCollection.backToEdit')");
-    expect(workflowSource).toContain('confirmBlockMessage');
+  it('uses direct confirm footer actions', () => {
+    expect(workflowSource).toContain('editAllocationAction');
+    expect(workflowSource).toContain('confirmAction');
+    expect(workflowSource).not.toContain('reviewAction');
   });
 });
 

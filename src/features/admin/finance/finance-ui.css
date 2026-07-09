@@ -7064,3 +7064,158 @@
 .finance-family-review__unallocated {
   margin: 8px 0 0;
 }
+
+.finance-family-smart-summary__head {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.finance-family-smart-summary__cards {
+  display: grid;
+  gap: 10px;
+}
+
+.finance-family-smart-summary__card {
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.finance-family-smart-summary__card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.finance-family-smart-summary__services {
+  margin: 6px 0 0;
+}
+
+.finance-family-smart-summary__details-btn {
+  margin-top: 8px;
+}
+
+.finance-family-smart-summary__card-details {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border, #e5e7eb);
+}
+
+.finance-family-smart-summary__lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.finance-family-smart-summary__lines li {
+  display: grid;
+  gap: 2px;
+}
+
+.finance-family-smart-summary__partial-remaining {
+  grid-column: 1 / -1;
+}
+
+.finance-family-smart-summary__card-total {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+  font-weight: 600;
+}
+
+.finance-family-smart-summary__unallocated {
+  margin-top: 10px;
+}
+
+.finance-family-actual-payer__field {
+  display: grid;
+  gap: 6px;
+}
+
+.finance-family-manual-editor {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgb(15 23 42 / 0.45);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 12px;
+}
+
+@media (min-width: 768px) {
+  .finance-family-manual-editor {
+    align-items: center;
+  }
+}
+
+.finance-family-manual-editor__panel {
+  width: min(720px, 100%);
+  max-height: min(90vh, 900px);
+  overflow: auto;
+  background: var(--surface, #fff);
+  border-radius: 12px;
+  box-shadow: 0 16px 40px rgb(15 23 42 / 0.18);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.finance-family-manual-editor__header,
+.finance-family-manual-editor__footer {
+  padding: 12px 16px;
+}
+
+.finance-family-manual-editor__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--border, #e5e7eb);
+}
+
+.finance-family-manual-editor__body {
+  padding: 12px 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.finance-family-manual-editor__child-shares {
+  display: grid;
+  gap: 10px;
+}
+
+.finance-family-manual-editor__child-row {
+  display: grid;
+  gap: 6px;
+  grid-template-columns: minmax(0, 1fr) minmax(120px, 180px) auto;
+  align-items: center;
+}
+
+@media (max-width: 640px) {
+  .finance-family-manual-editor__child-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.finance-family-manual-editor__installments {
+  display: grid;
+  gap: 10px;
+}
+
+.finance-family-manual-editor__installment {
+  display: grid;
+  gap: 6px;
+}
+
+.finance-family-collection-workflow__actions--sticky {
+  position: sticky;
+  bottom: 0;
+  background: var(--surface, #fff);
+  border-top: 1px solid var(--border, #e5e7eb);
+  padding-top: 8px;
+}

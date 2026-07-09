@@ -6883,6 +6883,12 @@
           "submitFailed": "Could not record the payment.",
           "missingFields": "Complete academic year, journal, and payment method.",
           "confirmAction": "Confirm family payment",
+          "editAllocationAction": "Edit allocation",
+          "actualPayerName": "Actual payer name — optional",
+          "actualPayerNamePlaceholder": "e.g. student's uncle",
+          "actualPayerHint": "Use when someone pays on behalf of the family or billing account holder.",
+          "unallocatedFamilyBalance": "{amount} will remain as unallocated family balance.",
+          "stepHintSmartSummary": "Review the allocation summary, then confirm receipt directly.",
           "manualAllocationTitle": "Manual allocation",
           "manualAllocationHint": "Pick installments and allocate amounts manually. Any unallocated difference is recorded as a credit balance that does not reduce dues until allocated.",
           "suggestAllocationAction": "Suggest allocation",
@@ -6927,12 +6933,32 @@
             "collectionAmountHint": "Collection amount: {amount}"
           },
           "confirmBlockReason": {
-            "not_in_review": "Review the allocation before confirming.",
-            "preview_missing": "Run allocation review first.",
-            "preview_errors": "Fix allocation preview errors before confirming.",
             "missing_fields": "Complete academic year, journal, and payment method.",
             "cash_session_blocked": "Open or join a cash session to confirm this payment.",
-            "invalid_amount": "Enter a valid amount greater than zero."
+            "invalid_amount": "Enter a valid amount greater than zero.",
+            "invalid_allocations": "Fix the allocation before confirming."
+          },
+          "smartSummary": {
+            "title": "Payment allocation",
+            "explainability": "Allocation follows your school's service priorities and due status.",
+            "empty": "Enter amount and payment method to see the suggested allocation.",
+            "showDetails": "Details",
+            "hideDetails": "Hide details",
+            "partialLine": "Partial: {label}",
+            "partialCompact": "Partial {label}",
+            "remainingAfter": "Remaining after payment: {amount}"
+          },
+          "manualEditor": {
+            "title": "Edit allocation",
+            "childrenHint": "Split the amount across children. You can edit each child's installment details.",
+            "childTitle": "Edit {name} details",
+            "editChildDetails": "Edit {name} details",
+            "unallocatedRemaining": "Unallocated remaining: {amount}",
+            "redistributeChild": "Redistribute by priority",
+            "fillRemaining": "Fill remaining",
+            "clearChild": "Clear",
+            "backToChildren": "Back to children totals",
+            "applyChanges": "Apply changes"
           },
           "preview": {
             "title": "Allocation preview",
@@ -8442,6 +8468,8 @@
           "actions": "Actions",
           "description": "Description",
           "dueDate": "Due date",
+          "paidThisReceipt": "Paid this receipt",
+          "remainingAfterPayment": "Remaining after payment",
           "pdf": "PDF"
         },
         "sections": {
@@ -8465,6 +8493,7 @@
           "studentCode": "Student code",
           "classLevel": "Class / level",
           "payer": "Payer",
+          "actualPayer": "Actual payer",
           "collectionAmount": "Collected amount",
           "allocatedAmount": "Allocated amount",
           "unallocatedAmount": "Unallocated amount",

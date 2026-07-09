@@ -68,8 +68,18 @@ export function ReceiptDetailView({
     },
     {
       key: 'amount',
-      header: t('admin.finance.receipts.columns.allocatedAmount'),
+      header: t('admin.finance.receipts.columns.paidThisReceipt'),
       render: (row) => <FinanceMoney amount={row.amount} currency={receipt.currency} />,
+    },
+    {
+      key: 'remaining_after_payment',
+      header: t('admin.finance.receipts.columns.remainingAfterPayment'),
+      render: (row) =>
+        row.is_partial || (row.remaining_after_payment != null && row.remaining_after_payment > 0) ? (
+          <FinanceMoney amount={row.remaining_after_payment} currency={receipt.currency} />
+        ) : (
+          t('common.dash')
+        ),
     },
   ];
 
@@ -159,6 +169,14 @@ export function ReceiptDetailView({
               <span dir="auto">
                 {snapshot?.payer?.name ?? receipt.payer_name ?? t('common.dash')}
               </span>
+            </DetailField>
+            <DetailField
+              label={t('admin.finance.receipts.fields.actualPayer')}
+              hideWhenEmpty
+            >
+              {receipt.actual_payer_name?.trim() ? (
+                <span dir="auto">{receipt.actual_payer_name}</span>
+              ) : null}
             </DetailField>
           </dl>
         </section>

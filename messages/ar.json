@@ -7132,6 +7132,12 @@
           "submitFailed": "تعذر تسجيل الدفعة.",
           "missingFields": "أكمل السنة الدراسية ودفتر التحصيل ووسيلة الأداء.",
           "confirmAction": "تأكيد استلام الدفعة",
+          "editAllocationAction": "تعديل التوزيع",
+          "actualPayerName": "اسم الدافع الفعلي — اختياري",
+          "actualPayerNamePlaceholder": "مثال: عمّ التلميذ",
+          "actualPayerHint": "استخدمه عندما يؤدي شخص نيابة عن الأسرة أو صاحب الحساب المالي.",
+          "unallocatedFamilyBalance": "سيبقى {amount} د.م رصيدًا غير موزع للأسرة.",
+          "stepHintSmartSummary": "راجع توزيع الدفعة ثم أكّد الاستلام مباشرة.",
           "manualAllocationTitle": "التوزيع اليدوي",
           "manualAllocationHint": "اختر الأقساط ووزّع المبالغ يدويًا. سيُسجل الفرق غير الموزع كرصيد دائن لا يخفض المستحقات قبل تخصيصه.",
           "suggestAllocationAction": "اقتراح توزيع",
@@ -7176,12 +7182,32 @@
             "collectionAmountHint": "مبلغ الدفعة: {amount}"
           },
           "confirmBlockReason": {
-            "not_in_review": "راجع التوزيع قبل التأكيد.",
-            "preview_missing": "نفّذ مراجعة التوزيع أولًا.",
-            "preview_errors": "صحّح أخطاء معاينة التوزيع قبل التأكيد.",
             "missing_fields": "أكمل السنة الدراسية ودفتر التحصيل ووسيلة الأداء.",
             "cash_session_blocked": "افتح أو انضم لجلسة صندوق لتأكيد هذه الدفعة.",
-            "invalid_amount": "أدخل مبلغًا صالحًا أكبر من صفر."
+            "invalid_amount": "أدخل مبلغًا صالحًا أكبر من صفر.",
+            "invalid_allocations": "صحّح التوزيع قبل التأكيد."
+          },
+          "smartSummary": {
+            "title": "توزيع الدفعة",
+            "explainability": "أعد رقيم توزيع الدفعة حسب أولوية خدمات المدرسة وحالة الاستحقاق.",
+            "empty": "أدخل المبلغ وطريقة الأداء لعرض التوزيع المقترح.",
+            "showDetails": "تفاصيل",
+            "hideDetails": "إخفاء التفاصيل",
+            "partialLine": "جزء من {label}",
+            "partialCompact": "جزء من {label}",
+            "remainingAfter": "متبقٍ بعد الأداء: {amount} د.م"
+          },
+          "manualEditor": {
+            "title": "تعديل التوزيع",
+            "childrenHint": "وزّع المبلغ بين الأبناء. يمكنك تعديل تفاصيل كل طفل على حدة.",
+            "childTitle": "تعديل تفاصيل {name}",
+            "editChildDetails": "تعديل تفاصيل {name}",
+            "unallocatedRemaining": "المتبقي غير الموزع: {amount}",
+            "redistributeChild": "إعادة توزيع حسب الأولوية",
+            "fillRemaining": "ملء المتبقي",
+            "clearChild": "مسح",
+            "backToChildren": "العودة لتوزيع الأبناء",
+            "applyChanges": "تطبيق التعديلات"
           },
           "preview": {
             "title": "معاينة التوزيع",
@@ -8701,6 +8727,8 @@
           "actions": "إجراءات",
           "description": "الوصف",
           "dueDate": "تاريخ الاستحقاق",
+          "paidThisReceipt": "المؤدى في هذا الإيصال",
+          "remainingAfterPayment": "المتبقي بعد الأداء",
           "pdf": "PDF"
         },
         "sections": {
@@ -8724,6 +8752,7 @@
           "studentCode": "رمز التلميذ",
           "classLevel": "القسم / المستوى",
           "payer": "الدافع",
+          "actualPayer": "الدافع الفعلي",
           "collectionAmount": "المبلغ المقبوض",
           "allocatedAmount": "المبلغ الموزع",
           "unallocatedAmount": "المبلغ غير الموزع",

@@ -39,14 +39,11 @@ describe('family collection workflow form structure', () => {
     expect(formSource).toContain('finance-family-collection-header-summary');
   });
 
-  it('keeps allocation options outside advanced details', () => {
-    const allocationIdx = formSource.indexOf('finance-family-collection-allocation-options');
+  it('keeps smart summary before advanced details', () => {
+    const summaryIdx = formSource.indexOf('FamilyCollectionSmartSummary');
     const advancedIdx = formSource.indexOf('finance-collection-advanced');
-    expect(allocationIdx).toBeGreaterThan(-1);
-    expect(advancedIdx).toBeGreaterThan(allocationIdx);
-    expect(formSource).not.toMatch(
-      /finance-collection-advanced[\s\S]*finance-family-collection-allocation-options/,
-    );
+    expect(summaryIdx).toBeGreaterThan(-1);
+    expect(advancedIdx).toBeGreaterThan(summaryIdx);
   });
 
   it('shows account context and payer summary in form body', () => {
@@ -54,10 +51,10 @@ describe('family collection workflow form structure', () => {
     expect(formSource).toContain('accountName?.trim()');
   });
 
-  it('uses manual allocation + review-first confirmation', () => {
-    expect(formSource).toContain('FamilyCollectionAllocationSection');
-    expect(formSource).toContain('FamilyCollectionReviewStep');
+  it('uses smart summary and direct confirmation', () => {
+    expect(formSource).toContain('FamilyCollectionSmartSummary');
     expect(formSource).toContain('confirmFamilyCollection');
+    expect(formSource).not.toContain('FamilyCollectionReviewStep');
   });
 });
 

@@ -137,6 +137,7 @@ export interface FamilyCollectionDraftRequest {
   allocations: FamilyCollectionAllocationInput[];
   idempotency_key?: string;
   notes?: string | null;
+  actual_payer_name?: string | null;
 }
 
 export interface FamilyCollectionDetail {

@@ -6886,6 +6886,12 @@
           "submitFailed": "No se pudo registrar el pago.",
           "missingFields": "Complete el año académico, diario y método de pago.",
           "confirmAction": "Confirmar pago familiar",
+          "editAllocationAction": "Editar asignación",
+          "actualPayerName": "Nombre del pagador real — opcional",
+          "actualPayerNamePlaceholder": "p. ej. tío del alumno",
+          "actualPayerHint": "Úselo cuando alguien paga en nombre de la familia o del titular de la cuenta.",
+          "unallocatedFamilyBalance": "{amount} permanecerá como saldo familiar no asignado.",
+          "stepHintSmartSummary": "Revise la asignación y confirme la recepción directamente.",
           "manualAllocationTitle": "Asignación manual",
           "manualAllocationHint": "Elige las cuotas y asigna los importes manualmente. Cualquier diferencia no asignada se registra como saldo a favor que no reduce las deudas hasta asignarse.",
           "suggestAllocationAction": "Sugerir asignación",
@@ -6930,12 +6936,32 @@
             "collectionAmountHint": "Importe del cobro: {amount}"
           },
           "confirmBlockReason": {
-            "not_in_review": "Revise la asignación antes de confirmar.",
-            "preview_missing": "Ejecute primero la revisión de la asignación.",
-            "preview_errors": "Corrija los errores de la vista previa antes de confirmar.",
             "missing_fields": "Complete el año académico, diario y método de pago.",
             "cash_session_blocked": "Abra o únase a una sesión de caja para confirmar este pago.",
-            "invalid_amount": "Introduzca un importe válido mayor que cero."
+            "invalid_amount": "Introduzca un importe válido mayor que cero.",
+            "invalid_allocations": "Corrija la asignación antes de confirmar."
+          },
+          "smartSummary": {
+            "title": "Asignación del pago",
+            "explainability": "La asignación sigue las prioridades de servicios del centro y el estado de vencimiento.",
+            "empty": "Introduzca importe y método de pago para ver la asignación sugerida.",
+            "showDetails": "Detalles",
+            "hideDetails": "Ocultar detalles",
+            "partialLine": "Parcial: {label}",
+            "partialCompact": "Parcial {label}",
+            "remainingAfter": "Pendiente tras el pago: {amount}"
+          },
+          "manualEditor": {
+            "title": "Editar asignación",
+            "childrenHint": "Distribuya el importe entre los hijos. Puede editar el detalle de cada hijo.",
+            "childTitle": "Editar detalles de {name}",
+            "editChildDetails": "Editar detalles de {name}",
+            "unallocatedRemaining": "Pendiente sin asignar: {amount}",
+            "redistributeChild": "Redistribuir por prioridad",
+            "fillRemaining": "Completar pendiente",
+            "clearChild": "Borrar",
+            "backToChildren": "Volver a totales por hijo",
+            "applyChanges": "Aplicar cambios"
           },
           "preview": {
             "title": "Vista previa de asignación",
@@ -8464,6 +8490,8 @@
           "actions": "Acciones",
           "description": "Descripción",
           "dueDate": "Fecha de vencimiento",
+          "paidThisReceipt": "Pagado en este recibo",
+          "remainingAfterPayment": "Pendiente tras el pago",
           "pdf": "PDF"
         },
         "sections": {
@@ -8487,6 +8515,7 @@
           "studentCode": "Código alumno",
           "classLevel": "Clase / nivel",
           "payer": "Pagador",
+          "actualPayer": "Pagador real",
           "collectionAmount": "Importe cobrado",
           "allocatedAmount": "Importe asignado",
           "unallocatedAmount": "Importe sin asignar",

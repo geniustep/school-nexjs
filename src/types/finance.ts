@@ -888,6 +888,8 @@ export interface FinanceReceiptAllocation {
   label?: string;
   student_id?: number;
   student_name?: string;
+  is_partial?: boolean;
+  remaining_after_payment?: number;
 }
 
 export interface FinanceReceiptCheque {
@@ -955,6 +957,7 @@ export interface FinanceReceipt {
   student_id?: number;
   student_name?: string;
   payer_name?: string;
+  actual_payer_name?: string;
   payer?: Ref;
   issued_at?: string | null;
   issued_by?: Ref | string | null;

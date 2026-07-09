@@ -34,6 +34,11 @@ function normalizeCheque(raw: unknown): FinanceReceiptCheque | undefined {
 function normalizeAllocation(raw: unknown): FinanceReceiptAllocation | null {
   if (!raw || typeof raw !== 'object') return null;
   const source = raw as Record<string, unknown>;
+  const amount = normalizeMoneyValue(source.amount) ?? undefined;
+  const remainingAfter =
+    normalizeMoneyValue(source.remaining_after_payment) ??
+    normalizeMoneyValue(source.remaining_after) ??
+    undefined;
   return {
     id: typeof source.id === 'number' ? source.id : undefined,
     installment_id: typeof source.installment_id === 'number' ? source.installment_id : undefined,
@@ -47,8 +52,10 @@ function normalizeAllocation(raw: unknown): FinanceReceiptAllocation | null {
             ? source.name
             : undefined,
     due_date: typeof source.due_date === 'string' ? source.due_date : null,
-    amount: normalizeMoneyValue(source.amount) ?? undefined,
+    amount,
     label: typeof source.label === 'string' ? source.label : undefined,
+    is_partial: source.is_partial === true || (amount != null && remainingAfter != null && remainingAfter > 0),
+    remaining_after_payment: remainingAfter,
   };
 }
 
@@ -168,6 +175,8 @@ export function normalizeFinanceReceipt(raw: unknown): FinanceReceipt | null {
     student_id: typeof source.student_id === 'number' ? source.student_id : undefined,
     student_name: typeof source.student_name === 'string' ? source.student_name : undefined,
     payer_name: typeof source.payer_name === 'string' ? source.payer_name : undefined,
+    actual_payer_name:
+      typeof source.actual_payer_name === 'string' ? source.actual_payer_name : undefined,
     issued_at: typeof source.issued_at === 'string' ? source.issued_at : null,
     issued_by:
       typeof source.issued_by === 'string'

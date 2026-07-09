@@ -112,21 +112,16 @@ describe('manual family allocations', () => {
     expect(code).toBe('allocation_exceeds_remaining');
   });
 
-  it('has no client-side auto-allocation for family flow', () => {
+  it('uses provisional allocation inputs in direct confirm flow', () => {
     expect(workflowSource).not.toContain('autoAllocateOldest');
     expect(workflowSource).toContain('parseFamilyAllocationInputs');
-    expect(allocationSectionSource).not.toContain('autoAllocateOldest');
-    expect(allocationSectionSource).not.toContain('useEffect');
-    expect(workflowSource).toContain('handleSuggestAllocation');
-    const effectBlocks = workflowSource.match(/useEffect\(\(\) => \{[\s\S]*?\}, \[[^\]]*\]\);/g) ?? [];
-    for (const block of effectBlocks) {
-      expect(block).not.toContain('buildSuggestedFamilyAllocations');
-    }
+    expect(workflowSource).toContain('buildSuggestedFamilyAllocations');
   });
 
-  it('renders review step grouped by student before confirm', () => {
-    expect(workflowSource).toContain('FamilyCollectionReviewStep');
-    expect(workflowSource).toContain("setStep('review')");
+  it('confirms directly from smart summary without separate review step', () => {
+    expect(workflowSource).toContain('FamilyCollectionSmartSummary');
+    expect(workflowSource).not.toContain('FamilyCollectionReviewStep');
+    expect(workflowSource).not.toContain("setStep('review')");
     expect(workflowSource).toContain('confirmFamilyCollection');
     expect(workflowSource).toContain('resolveFamilyCollectionReceiptId');
   });

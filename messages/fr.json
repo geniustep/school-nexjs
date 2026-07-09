@@ -6886,6 +6886,12 @@
           "submitFailed": "Impossible d'enregistrer le paiement.",
           "missingFields": "Complétez l'année scolaire, le journal et le mode de paiement.",
           "confirmAction": "Confirmer le paiement familial",
+          "editAllocationAction": "Modifier la répartition",
+          "actualPayerName": "Nom du payeur réel — optionnel",
+          "actualPayerNamePlaceholder": "ex. oncle de l'élève",
+          "actualPayerHint": "À utiliser lorsqu'une personne paie au nom de la famille ou du titulaire du compte.",
+          "unallocatedFamilyBalance": "{amount} restera comme solde familial non réparti.",
+          "stepHintSmartSummary": "Vérifiez la répartition, puis confirmez directement la réception.",
           "manualAllocationTitle": "Répartition manuelle",
           "manualAllocationHint": "Choisissez les échéances et répartissez les montants manuellement. Toute différence non affectée est enregistrée comme solde créditeur qui ne réduit pas les dus avant son affectation.",
           "suggestAllocationAction": "Suggérer une répartition",
@@ -6930,12 +6936,32 @@
             "collectionAmountHint": "Montant du paiement : {amount}"
           },
           "confirmBlockReason": {
-            "not_in_review": "Révisez la répartition avant de confirmer.",
-            "preview_missing": "Lancez d'abord la révision de la répartition.",
-            "preview_errors": "Corrigez les erreurs de prévisualisation avant de confirmer.",
             "missing_fields": "Complétez l'année scolaire, le journal et le mode de paiement.",
             "cash_session_blocked": "Ouvrez ou rejoignez une session de caisse pour confirmer ce paiement.",
-            "invalid_amount": "Saisissez un montant valide supérieur à zéro."
+            "invalid_amount": "Saisissez un montant valide supérieur à zéro.",
+            "invalid_allocations": "Corrigez la répartition avant de confirmer."
+          },
+          "smartSummary": {
+            "title": "Répartition du paiement",
+            "explainability": "La répartition suit les priorités de services de l'école et l'état d'échéance.",
+            "empty": "Saisissez le montant et le mode de paiement pour voir la répartition suggérée.",
+            "showDetails": "Détails",
+            "hideDetails": "Masquer les détails",
+            "partialLine": "Partiel : {label}",
+            "partialCompact": "Partiel {label}",
+            "remainingAfter": "Reste après paiement : {amount}"
+          },
+          "manualEditor": {
+            "title": "Modifier la répartition",
+            "childrenHint": "Répartissez le montant entre les enfants. Vous pouvez modifier le détail de chaque enfant.",
+            "childTitle": "Modifier les détails de {name}",
+            "editChildDetails": "Modifier les détails de {name}",
+            "unallocatedRemaining": "Reste non réparti : {amount}",
+            "redistributeChild": "Redistribuer par priorité",
+            "fillRemaining": "Compléter le reste",
+            "clearChild": "Effacer",
+            "backToChildren": "Retour aux totaux par enfant",
+            "applyChanges": "Appliquer les modifications"
           },
           "preview": {
             "title": "Aperçu de la répartition",
@@ -8455,6 +8481,7 @@
           "number": "Numéro de reçu",
           "issuedAt": "Date d'émission",
           "payer": "Payeur",
+          "actualPayer": "Payeur réel",
           "collectionAmount": "Montant encaissé",
           "allocatedAmount": "Montant affecté",
           "unallocatedAmount": "Montant non affecté",
@@ -8464,6 +8491,8 @@
           "actions": "Actions",
           "description": "Description",
           "dueDate": "Date d'échéance",
+          "paidThisReceipt": "Payé sur ce reçu",
+          "remainingAfterPayment": "Reste après paiement",
           "pdf": "PDF"
         },
         "sections": {
@@ -8487,6 +8516,7 @@
           "studentCode": "Code élève",
           "classLevel": "Classe / niveau",
           "payer": "Payeur",
+          "actualPayer": "Payeur réel",
           "collectionAmount": "Montant perçu",
           "allocatedAmount": "Montant affecté",
           "unallocatedAmount": "Montant non affecté",
