@@ -946,6 +946,26 @@
     "academicCenter": "Academic center",
     "academicCenterDesc": "Manage homework, resources, timetable, exams and results",
     "homeworkListDesc": "All homework within your scope",
+    "homeworksList": {
+      "subtitleWithCount": "{total} homework items in your scope",
+      "resetFilters": "Reset filters",
+      "clearSearch": "Clear search",
+      "refetching": "Updating results…",
+      "noData": {
+        "title": "No homework yet",
+        "description": "No homework has been created in your scope yet."
+      },
+      "noMatch": {
+        "title": "No matching homework",
+        "description": "Try adjusting search or filters, or reset them to show all homework."
+      },
+      "filters": {
+        "chipSearch": "Search: {query}",
+        "chipClass": "Class: {className}",
+        "chipStatus": "Status: {status}"
+      }
+    },
+
     "resourcesListDesc": "All published resources",
     "timetableDesc": "Manage timetable slots",
     "examsListDesc": "All exams",

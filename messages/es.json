@@ -945,6 +945,26 @@
     "academicCenter": "Centro académico",
     "academicCenterDesc": "Gestionar tareas, recursos, horario, exámenes y resultados",
     "homeworkListDesc": "Todas las tareas de su ámbito",
+    "homeworksList": {
+      "subtitleWithCount": "{total} tareas en su ámbito",
+      "resetFilters": "Restablecer filtros",
+      "clearSearch": "Borrar búsqueda",
+      "refetching": "Actualizando resultados…",
+      "noData": {
+        "title": "Aún no hay tareas",
+        "description": "Todavía no se ha creado ninguna tarea en su ámbito."
+      },
+      "noMatch": {
+        "title": "No hay tareas coincidentes",
+        "description": "Pruebe a ajustar la búsqueda o los filtros, o restablézcalos para ver todas las tareas."
+      },
+      "filters": {
+        "chipSearch": "Búsqueda: {query}",
+        "chipClass": "Clase: {className}",
+        "chipStatus": "Estado: {status}"
+      }
+    },
+
     "resourcesListDesc": "Todos los recursos publicados",
     "timetableDesc": "Gestionar franjas horarias",
     "examsListDesc": "Todos los exámenes",

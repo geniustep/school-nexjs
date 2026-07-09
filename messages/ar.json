@@ -946,6 +946,26 @@
     "academicCenter": "المركز الأكاديمي",
     "academicCenterDesc": "إدارة الواجبات والموارد واستعمال الزمن والامتحانات والنتائج",
     "homeworkListDesc": "كل الواجبات ضمن نطاقك",
+    "homeworksList": {
+      "subtitleWithCount": "{total} واجبًا ضمن نطاقك",
+      "resetFilters": "إعادة ضبط الفلاتر",
+      "clearSearch": "مسح البحث",
+      "refetching": "جاري تحديث النتائج…",
+      "noData": {
+        "title": "لا توجد واجبات بعد",
+        "description": "لم يُنشأ أي واجب ضمن نطاقك بعد."
+      },
+      "noMatch": {
+        "title": "لا توجد نتائج مطابقة",
+        "description": "جرّب تعديل البحث أو الفلاتر، أو أعد ضبطها لعرض كل الواجبات."
+      },
+      "filters": {
+        "chipSearch": "بحث: {query}",
+        "chipClass": "القسم: {className}",
+        "chipStatus": "الحالة: {status}"
+      }
+    },
+
     "resourcesListDesc": "كل الموارد المنشورة",
     "timetableDesc": "إدارة حصص استعمال الزمن",
     "examsListDesc": "كل الامتحانات",

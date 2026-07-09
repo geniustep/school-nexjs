@@ -945,6 +945,26 @@
     "academicCenter": "Centre académique",
     "academicCenterDesc": "Gérer devoirs, ressources, emploi du temps, examens et résultats",
     "homeworkListDesc": "Tous les devoirs de votre périmètre",
+    "homeworksList": {
+      "subtitleWithCount": "{total} devoirs dans votre périmètre",
+      "resetFilters": "Réinitialiser les filtres",
+      "clearSearch": "Effacer la recherche",
+      "refetching": "Mise à jour des résultats…",
+      "noData": {
+        "title": "Aucun devoir pour le moment",
+        "description": "Aucun devoir n’a encore été créé dans votre périmètre."
+      },
+      "noMatch": {
+        "title": "Aucun devoir correspondant",
+        "description": "Modifiez la recherche ou les filtres, ou réinitialisez-les pour afficher tous les devoirs."
+      },
+      "filters": {
+        "chipSearch": "Recherche : {query}",
+        "chipClass": "Classe : {className}",
+        "chipStatus": "Statut : {status}"
+      }
+    },
+
     "resourcesListDesc": "Toutes les ressources publiées",
     "timetableDesc": "Gérer les créneaux horaires",
     "examsListDesc": "Tous les examens",
