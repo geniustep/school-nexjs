@@ -41,11 +41,12 @@ describe('finance service catalog simplification', () => {
     expect(panelSource).toContain("t('admin.finance.services.columns.collectionPriority')");
   });
 
-  it('moves secondary fields into advanced settings', () => {
+  it('keeps code and description in advanced settings only', () => {
     expect(formSource).toContain('finance-collection-advanced');
     expect(formSource).toContain("t('admin.finance.services.advancedSettings')");
-    expect(formSource).toContain('requires_subscription');
-    expect(formSource).toContain('requires_usage_tracking');
+    const advancedBlock = formSource.slice(formSource.indexOf('finance-collection-advanced'));
+    expect(advancedBlock).toContain("t('admin.finance.services.columns.code')");
+    expect(advancedBlock).toContain("t('common.description')");
   });
 
   it('maps priority levels to backend contract values', () => {

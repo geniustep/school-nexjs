@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { api } from '@/lib/api/client';
-import { endpoints } from '@/lib/api/endpoints';
+import { buildFinanceServiceFormPayload } from '@/features/admin/finance/finance-service-form-payload';
 import {
   COLLECTION_ALLOCATION_PRIORITY_LEVELS,
   normalizeCollectionPriorityLevel,
@@ -10,6 +9,8 @@ import {
 import { useFinanceReferenceData } from '@/features/admin/finance/use-finance-lookups';
 import { resolveReferenceLabel } from '@/features/admin/student-finance/utils/reference-labels';
 import { useT } from '@/features/i18n/locale-context';
+import { api } from '@/lib/api/client';
+import { endpoints } from '@/lib/api/endpoints';
 import type { FinanceServiceCatalogItem } from '@/features/admin/student-finance/types';
 
 export function FinanceServiceForm({
@@ -32,8 +33,6 @@ export function FinanceServiceForm({
   const [priorityLevel, setPriorityLevel] = useState('normal');
   const [active, setActive] = useState(true);
   const [description, setDescription] = useState('');
-  const [requiresSubscription, setRequiresSubscription] = useState(false);
-  const [requiresUsageTracking, setRequiresUsageTracking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -45,8 +44,6 @@ export function FinanceServiceForm({
       setPriorityLevel('normal');
       setActive(true);
       setDescription('');
-      setRequiresSubscription(false);
-      setRequiresUsageTracking(false);
       return;
     }
     setName(service.name ?? '');
@@ -55,8 +52,6 @@ export function FinanceServiceForm({
     setPriorityLevel(normalizeCollectionPriorityLevel(service.allocation_priority_level));
     setActive(service.active !== false);
     setDescription(service.description?.trim() ?? '');
-    setRequiresSubscription(Boolean(service.requires_subscription));
-    setRequiresUsageTracking(Boolean(service.requires_usage_tracking));
   }, [service]);
 
   useEffect(() => {
@@ -70,16 +65,14 @@ export function FinanceServiceForm({
     setSubmitting(true);
     setError(null);
 
-    const payload = {
-      name: name.trim(),
-      category: category || undefined,
-      allocation_priority_level: priorityLevel,
+    const payload = buildFinanceServiceFormPayload({
+      name,
+      category,
+      priorityLevel,
       active,
-      code: code.trim() || undefined,
-      description: description.trim() || undefined,
-      requires_subscription: requiresSubscription || undefined,
-      requires_usage_tracking: requiresUsageTracking || undefined,
-    };
+      code,
+      description,
+    });
 
     const res = isEdit
       ? await api.patch<FinanceServiceCatalogItem>(endpoints.admin.financeService(service.id), payload)
@@ -174,22 +167,6 @@ export function FinanceServiceForm({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
-          </label>
-          <label className="checkbox-row">
-            <input
-              type="checkbox"
-              checked={requiresSubscription}
-              onChange={(e) => setRequiresSubscription(e.target.checked)}
-            />
-            {t('admin.finance.services.columns.requiresSubscription')}
-          </label>
-          <label className="checkbox-row">
-            <input
-              type="checkbox"
-              checked={requiresUsageTracking}
-              onChange={(e) => setRequiresUsageTracking(e.target.checked)}
-            />
-            {t('admin.finance.services.columns.requiresUsageTracking')}
           </label>
         </div>
       </details>
