@@ -4,7 +4,13 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ApiErrorView, LoadingState } from '@/components/states/states';
 import { CollectionCashSessionGate, collectionBlockedByCashSession, resolveCashSessionCollectionAccess } from '@/features/admin/finance/cash-desk/collection-cash-session-gate';
 import { FamilyCollectionAllocationSection } from '@/features/admin/finance/family-collection-allocation-section';
-import { parseFamilyAllocationInputs, sumFamilyAllocationAmounts, validateFamilyAllocations } from '@/features/admin/finance/family-collection-allocation-utils';
+import {
+  hasActiveFamilyAllocations,
+  parseFamilyAllocationInputs,
+  sumFamilyAllocationAmounts,
+  validateFamilyAllocations,
+  type FamilyInstallmentFilter,
+} from '@/features/admin/finance/family-collection-allocation-utils';
 import { buildSuggestedFamilyAllocations } from '@/features/admin/finance/family-suggested-allocation-utils';
 import type { FamilyCollectSource } from '@/features/admin/finance/family-collect-query';
 import { FamilyCollectionReviewStep } from '@/features/admin/finance/family-collection-review-step';
@@ -73,6 +79,8 @@ export function FamilyCollectionWorkflowForm({
   const [cashSession, setCashSession] = useState<CashSession | null>(null);
   const [checkingCashSession, setCheckingCashSession] = useState(false);
   const [accountStudentCount, setAccountStudentCount] = useState(0);
+  const [installmentFilter, setInstallmentFilter] = useState<FamilyInstallmentFilter>('all');
+  const [expandedStudentIds, setExpandedStudentIds] = useState<Set<number>>(() => new Set());
   const [suggestionApplied, setSuggestionApplied] = useState(false);
   const idempotencyKeyRef = useRef<string | null>(null);
 
@@ -171,6 +179,16 @@ export function FamilyCollectionWorkflowForm({
     if (!Number.isFinite(parsedAmount) || parsedAmount <= 0 || !context?.open_installments.length) {
       return;
     }
+
+    if (
+      hasActiveFamilyAllocations(allocationInputs) &&
+      !window.confirm(
+        t('admin.finance.billingAccounts.familyCollection.replaceSuggestionConfirm'),
+      )
+    ) {
+      return;
+    }
+
     setAllocationInputs(
       buildSuggestedFamilyAllocations({
         amount: parsedAmount,
@@ -178,6 +196,7 @@ export function FamilyCollectionWorkflowForm({
       }),
     );
     setSuggestionApplied(true);
+    setExpandedStudentIds(new Set());
     setStep('edit');
     setPreview(null);
     setPreviewError(null);
@@ -518,13 +537,20 @@ export function FamilyCollectionWorkflowForm({
           <FamilyCollectionAllocationSection
             installments={context.open_installments}
             currency={currency}
+            collectionAmount={parsedAmount || 0}
             allocationInputs={allocationInputs}
+            installmentFilter={installmentFilter}
+            onInstallmentFilterChange={setInstallmentFilter}
+            expandedStudentIds={expandedStudentIds}
+            onExpandedStudentIdsChange={setExpandedStudentIds}
             onAllocationChange={(values) => {
               setAllocationInputs(values);
               setSuggestionApplied(false);
               setPreview(null);
               setStep('edit');
             }}
+            highlightStudentId={prefilledStudentId}
+            compactAfterSuggestion={suggestionApplied}
           />
         ) : null}
 
