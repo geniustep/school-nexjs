@@ -944,6 +944,16 @@
       "subtitleWithCount": "{total} تلميذ في نطاقك",
       "resultsCount": "{count} نتيجة",
       "resetFilters": "إعادة الضبط",
+      "clearSearch": "مسح البحث",
+      "refetching": "جاري تحديث النتائج…",
+      "noData": {
+        "title": "لا يوجد تلاميذ بعد",
+        "description": "لم يُسجَّل أي تلميذ ضمن نطاقك حاليًا."
+      },
+      "noMatch": {
+        "title": "لا توجد نتائج مطابقة",
+        "description": "جرّب تعديل البحث أو الفلاتر، أو أعد ضبطها لعرض كل التلاميذ."
+      },
       "applyFilters": "تطبيق الفلاتر",
       "columnStudent": "التلميذ",
       "columnClassLevel": "القسم / المستوى",

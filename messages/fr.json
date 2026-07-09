@@ -943,6 +943,16 @@
       "subtitleWithCount": "{total} élèves dans votre périmètre",
       "resultsCount": "{count} résultats",
       "resetFilters": "Réinitialiser",
+      "clearSearch": "Effacer la recherche",
+      "refetching": "Mise à jour des résultats…",
+      "noData": {
+        "title": "Aucun élève pour l'instant",
+        "description": "Aucun élève n'est enregistré dans votre périmètre pour le moment."
+      },
+      "noMatch": {
+        "title": "Aucun résultat correspondant",
+        "description": "Essayez d'ajuster la recherche ou les filtres, ou réinitialisez-les pour afficher tous les élèves."
+      },
       "applyFilters": "Appliquer les filtres",
       "columnStudent": "Élève",
       "columnClassLevel": "Classe / Niveau",

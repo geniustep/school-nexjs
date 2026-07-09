@@ -1,5 +1,10 @@
 'use client';
 
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
 import { useEffect, useMemo, useState } from 'react';
 import { studentClassLabel, studentLevelLabel } from '../utils/student-academic-labels';
 import {
@@ -12,6 +17,7 @@ import {
   sortCyclesForFilter,
   sortSchoolClassesForFilter,
 } from '../utils/students-list-filter-options';
+import { StudentsListSearchField } from './students-list-search-field';
 import { useT } from '@/features/i18n/locale-context';
 import type { Level, SchoolClass } from '@/types/class';
 
@@ -35,6 +41,7 @@ export function StudentsListFilters({
   classes,
   hasActiveFilters,
   onSearchChange,
+  onSearchClear,
   onCycleCodeChange,
   onLevelIdChange,
   onClassIdChange,
@@ -46,6 +53,7 @@ export function StudentsListFilters({
   classes: SchoolClass[];
   hasActiveFilters: boolean;
   onSearchChange: (value: string) => void;
+  onSearchClear: () => void;
   onCycleCodeChange: (value: string) => void;
   onLevelIdChange: (value: string) => void;
   onClassIdChange: (value: string) => void;
@@ -127,16 +135,23 @@ export function StudentsListFilters({
   }
 
   const hasMoreActive = !!accountFilter;
+  const hasStructuredActive = !!(
+    cycleCode ||
+    levelId ||
+    classId ||
+    statusFilter ||
+    accountFilter
+  );
 
   return (
     <div className="students-list-filters">
       <div className="students-list-filters__primary">
-        <input
-          className="input students-list-filters__search"
-          placeholder={t('admin.searchStudents')}
+        <StudentsListSearchField
           value={search}
-          onChange={(event) => onSearchChange(event.target.value)}
-          aria-label={t('admin.searchStudents')}
+          onChange={onSearchChange}
+          onClear={onSearchClear}
+          placeholder={t('admin.searchStudents')}
+          label={t('admin.searchStudents')}
         />
 
         <select
@@ -229,6 +244,7 @@ export function StudentsListFilters({
               className="input"
               value={accountFilter}
               onChange={(event) => onAccountFilterChange(event.target.value)}
+              aria-label={t('admin.studentsList.filters.account')}
             >
               <option value="">{t('admin.account.filterAll')}</option>
               <option value="has_account">{t('admin.account.filterHasAccount')}</option>
@@ -239,13 +255,8 @@ export function StudentsListFilters({
         </div>
       ) : null}
 
-      {hasActiveFilters ? (
+      {hasStructuredActive ? (
         <div className="students-list-filters__chips" aria-live="polite">
-          {debouncedChip(search) ? (
-            <span className="students-list-filters__chip">
-              {t('admin.studentsList.filters.chipSearch', { query: search.trim() })}
-            </span>
-          ) : null}
           {selectedCycleLabel ? (
             <button
               type="button"
@@ -300,10 +311,6 @@ export function StudentsListFilters({
       ) : null}
     </div>
   );
-}
-
-function debouncedChip(search: string): boolean {
-  return search.trim().length > 0;
 }
 
 function statusLabel(t: ReturnType<typeof useT>, status: string): string {

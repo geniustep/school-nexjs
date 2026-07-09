@@ -943,6 +943,16 @@
       "subtitleWithCount": "{total} alumnos en su ámbito",
       "resultsCount": "{count} resultados",
       "resetFilters": "Restablecer",
+      "clearSearch": "Borrar búsqueda",
+      "refetching": "Actualizando resultados…",
+      "noData": {
+        "title": "Aún no hay alumnos",
+        "description": "No hay alumnos registrados en su ámbito por ahora."
+      },
+      "noMatch": {
+        "title": "Sin resultados coincidentes",
+        "description": "Pruebe a ajustar la búsqueda o los filtros, o restablézcalos para ver todos los alumnos."
+      },
       "applyFilters": "Aplicar filtros",
       "columnStudent": "Alumno",
       "columnClassLevel": "Clase / Nivel",

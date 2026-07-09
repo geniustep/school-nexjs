@@ -1,6 +1,11 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
@@ -11,10 +16,11 @@ import { PageHeader, Badge } from '@/components/ui/primitives';
 import { AdminListActions } from '@/features/admin/admin-list-actions';
 import { CsvImportPanel } from '@/features/admin/csv-import-panel';
 import { studentClassLabel, studentLevelLabel } from '@/features/admin/students/utils/student-academic-labels';
-import { useDebouncedValue } from '@/features/admin/students/hooks/use-debounced-value';
+import { useStudentsListFilterState } from '@/features/admin/students/hooks/use-students-list-filter-state';
 import { useStudentsListView } from '@/features/admin/students/hooks/use-students-list-view';
 import { StudentsKanban } from '@/features/admin/students/components/students-kanban';
 import { StudentsListFilters } from '@/features/admin/students/components/students-list-filters';
+import { studentsListToApiParams } from '@/features/admin/students/utils/students-list-url';
 import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
@@ -25,7 +31,6 @@ import { statusLabel } from '@/lib/utils/labels';
 import { getStudentDisplayName } from '@/lib/utils/student';
 import type { Student } from '@/types/student';
 import type { Level } from '@/types/class';
-import type { ListParams } from '@/types/api';
 import '@/features/admin/students/student-360.css';
 
 function StudentAvatar({ name }: { name: string }) {
@@ -47,59 +52,59 @@ export default function AdminStudentsPage() {
     canImportStudents ||
     hasPermission(user, 'export_data') ||
     hasPermission(user, 'import_data');
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
-  const debouncedSearch = useDebouncedValue(search, 400);
-  const [cycleCode, setCycleCode] = useState('');
-  const [classId, setClassId] = useState('');
-  const [levelId, setLevelId] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [accountFilter, setAccountFilter] = useState('');
+  const {
+    search,
+    cycleCode,
+    levelId,
+    classId,
+    statusFilter,
+    accountFilter,
+    setSearch,
+    clearSearch,
+    setCycleCode,
+    setLevelId,
+    setClassId,
+    setStatusFilter,
+    setAccountFilter,
+    setPage,
+    resetFilters,
+    hasActiveQuery,
+    hasActiveFilters,
+    appliedQuery,
+  } = useStudentsListFilterState();
   const [importOpen, setImportOpen] = useState(false);
   const [view, setView] = useStudentsListView();
 
-  useEffect(() => {
-    setPage(1);
-  }, [debouncedSearch, cycleCode, classId, levelId, statusFilter, accountFilter]);
-
-  const params: ListParams = {
-    page,
-    page_size: 20,
-    search: debouncedSearch.trim() || undefined,
-    class_id: classId || undefined,
-    level_id: levelId || undefined,
-    status: statusFilter || undefined,
-    has_account:
-      accountFilter === 'has_account'
-        ? 'true'
-        : accountFilter === 'no_account'
-          ? 'false'
-          : undefined,
-    account_status: accountFilter === 'inactive_account' ? 'inactive' : undefined,
-  };
+  const params = useMemo(() => studentsListToApiParams(appliedQuery), [appliedQuery]);
   const state = useAdminResource<Student[]>(endpoints.admin.students, params);
   const classesState = useAdminResource<import('@/types/class').SchoolClass[]>(endpoints.admin.classes);
   const levelsState = useAdminResource<Level[]>(endpoints.admin.levels);
   const pg = state.meta?.pagination;
 
-  const hasActiveFilters = !!(
-    debouncedSearch ||
-    cycleCode ||
-    classId ||
-    levelId ||
-    statusFilter ||
-    accountFilter
+  const listEmptyState = hasActiveQuery ? (
+    <EmptyState
+      icon="🔍"
+      title={t('admin.studentsList.noMatch.title')}
+      description={t('admin.studentsList.noMatch.description')}
+      action={
+        <button type="button" className="btn btn--ghost btn--sm" onClick={resetFilters}>
+          {t('admin.studentsList.resetFilters')}
+        </button>
+      }
+    />
+  ) : (
+    <EmptyState
+      title={t('admin.studentsList.noData.title')}
+      description={t('admin.studentsList.noData.description')}
+      action={
+        canAddStudent ? (
+          <Link href="/admin/students/new" className="btn btn--primary btn--sm">
+            {t('admin.addStudent')}
+          </Link>
+        ) : undefined
+      }
+    />
   );
-
-  function resetFilters() {
-    setSearch('');
-    setCycleCode('');
-    setClassId('');
-    setLevelId('');
-    setStatusFilter('');
-    setAccountFilter('');
-    setPage(1);
-  }
 
   const columns: Column<Student>[] = useMemo(
     () => [
@@ -113,7 +118,7 @@ export default function AdminStudentsPage() {
             <div className="students-list__student-cell">
               <StudentAvatar name={name} />
               <div className="students-list__student-text">
-                <strong className="students-list__student-name" title={name}>
+                <strong className="students-list__student-name" title={name} dir="auto">
                   {name}
                 </strong>
                 {ref ? (
@@ -170,11 +175,7 @@ export default function AdminStudentsPage() {
     <div className="students-list-page">
       <PageHeader
         title={t('nav.students')}
-        subtitle={
-          pg
-            ? t('admin.studentsList.subtitleWithCount', { total: pg.total })
-            : t('admin.studentsListDesc')
-        }
+        subtitle={t('admin.studentsListDesc')}
         actions={
           canShowListActions ? (
             <div className="students-list__header-actions">
@@ -221,6 +222,7 @@ export default function AdminStudentsPage() {
           classes={classesState.data ?? []}
           hasActiveFilters={hasActiveFilters}
           onSearchChange={setSearch}
+          onSearchClear={clearSearch}
           onCycleCodeChange={setCycleCode}
           onLevelIdChange={setLevelId}
           onClassIdChange={setClassId}
@@ -251,32 +253,48 @@ export default function AdminStudentsPage() {
         </div>
       </div>
 
-      <ResourceView
-        state={state}
-        loadingLabel={t('common.loading')}
-        isEmpty={(d) => d.length === 0}
-        empty={<EmptyState title={t('empty.students')} description={t('admin.adjustSearch')} />}
+      {state.fetching ? (
+        <p className="students-list__fetching-hint" aria-live="polite">
+          {t('admin.studentsList.refetching')}
+        </p>
+      ) : null}
+
+      <div
+        className={state.fetching ? 'students-list__results students-list__results--fetching' : 'students-list__results'}
+        aria-busy={state.fetching || undefined}
       >
-        {(students) => (
-          <>
-            {view === 'kanban' ? (
-              <StudentsKanban students={students} />
-            ) : (
-              <div className="students-list__table">
-                <DataTable
-                  columns={columns}
-                  rows={students}
-                  rowKey={(s) => s.id}
-                  onRowClick={(s) => router.push(`/admin/students/${s.id}`)}
+        <ResourceView
+          state={state}
+          loadingLabel={t('common.loading')}
+          isEmpty={(d) => d.length === 0}
+          empty={listEmptyState}
+        >
+          {(students) => (
+            <>
+              {view === 'kanban' ? (
+                <StudentsKanban students={students} />
+              ) : (
+                <div className="students-list__table">
+                  <DataTable
+                    columns={columns}
+                    rows={students}
+                    rowKey={(s) => s.id}
+                    onRowClick={(s) => router.push(`/admin/students/${s.id}`)}
+                  />
+                </div>
+              )}
+              {pg ? (
+                <Pagination
+                  page={pg.page}
+                  totalPages={pg.total_pages}
+                  total={pg.total}
+                  onPage={setPage}
                 />
-              </div>
-            )}
-            {pg ? (
-              <Pagination page={pg.page} totalPages={pg.total_pages} total={pg.total} onPage={setPage} />
-            ) : null}
-          </>
-        )}
-      </ResourceView>
+              ) : null}
+            </>
+          )}
+        </ResourceView>
+      </div>
     </div>
   );
 }

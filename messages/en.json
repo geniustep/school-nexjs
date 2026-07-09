@@ -944,6 +944,16 @@
       "subtitleWithCount": "{total} pupils in your scope",
       "resultsCount": "{count} results",
       "resetFilters": "Reset filters",
+      "clearSearch": "Clear search",
+      "refetching": "Updating results…",
+      "noData": {
+        "title": "No pupils yet",
+        "description": "No pupils are registered in your scope yet."
+      },
+      "noMatch": {
+        "title": "No matching results",
+        "description": "Try adjusting search or filters, or reset them to show all pupils."
+      },
       "applyFilters": "Apply filters",
       "columnStudent": "Pupil",
       "columnClassLevel": "Class / Level",
