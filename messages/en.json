@@ -988,6 +988,20 @@
       }
     },
     "timetableDesc": "Manage timetable slots",
+    "timetableList": {
+      "filtersLabel": "Timetable filters",
+      "day": "Day",
+      "slotsCount": "{count} slots",
+      "resetFilters": "Reset filters",
+      "noData": {
+        "title": "No timetable slots yet",
+        "description": "Slots for the current school context will appear here."
+      },
+      "noMatch": {
+        "title": "No matching slots",
+        "description": "Try adjusting filters, or reset them to show all slots."
+      }
+    },
     "examsListDesc": "All exams",
     "examsList": {
       "subtitleWithCount": "{total} exams in your scope",

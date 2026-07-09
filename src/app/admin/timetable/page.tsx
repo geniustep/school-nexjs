@@ -1,5 +1,10 @@
 'use client';
 
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
 import { PageHeader } from '@/components/ui/primitives';
 import { RequireAdminPermission } from '@/components/admin/require-admin-permission';
 import { AdminTimetablePanel } from '@/features/admin/admin-timetable-panel';
@@ -10,10 +15,10 @@ export default function AdminTimetablePage() {
 
   return (
     <RequireAdminPermission permission="view_timetable">
-      <>
+      <div className="admin-workspace">
         <PageHeader title={t('timetable.title')} subtitle={t('admin.timetableDesc')} />
         <AdminTimetablePanel />
-      </>
+      </div>
     </RequireAdminPermission>
   );
 }

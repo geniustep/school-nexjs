@@ -1,0 +1,163 @@
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
+.admin-timetable-panel {
+  max-width: min(100%, 1200px);
+  margin-inline: auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.admin-timetable-panel__context {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+}
+
+.admin-timetable-panel__context-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.admin-timetable-panel__count {
+  font-size: 13px;
+  color: var(--c-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-timetable-panel__filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+  margin-block-end: 0;
+}
+
+.admin-timetable-panel__filter {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: min(100%, 160px);
+  flex: 1 1 160px;
+}
+
+.admin-timetable-panel__filter label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-text-muted);
+}
+
+.admin-timetable-panel__filter .input,
+.admin-timetable-panel__filter .select {
+  width: 100%;
+  min-width: 0;
+}
+
+.admin-timetable-panel__filter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-inline-start: auto;
+}
+
+.admin-timetable-panel__form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.admin-timetable-panel__form-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+}
+
+.admin-timetable-panel__form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.admin-timetable-panel__form-field label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-text);
+}
+
+.admin-timetable-panel__required {
+  color: var(--c-red, #dc2626);
+  margin-inline-start: 2px;
+}
+
+.admin-timetable-panel__form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding-block-start: 4px;
+}
+
+.admin-timetable-panel__table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.admin-timetable-panel__day,
+.admin-timetable-panel__name {
+  display: block;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-timetable-panel__time {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.admin-timetable-panel__room {
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-timetable-panel__row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.admin-timetable-panel__row-actions .btn {
+  min-block-size: 36px;
+}
+
+@media (max-width: 720px) {
+  .admin-timetable-panel__filter {
+    flex: 1 1 100%;
+  }
+
+  .admin-timetable-panel__filter-actions {
+    margin-inline-start: 0;
+    width: 100%;
+  }
+
+  .admin-timetable-panel__filter-actions .btn {
+    flex: 1 1 auto;
+  }
+
+  .admin-timetable-panel__day,
+  .admin-timetable-panel__name {
+    max-width: 140px;
+  }
+}

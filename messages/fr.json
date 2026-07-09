@@ -987,6 +987,20 @@
       }
     },
     "timetableDesc": "Gérer les créneaux horaires",
+    "timetableList": {
+      "filtersLabel": "Filtres de l'emploi du temps",
+      "day": "Jour",
+      "slotsCount": "{count} créneaux",
+      "resetFilters": "Réinitialiser les filtres",
+      "noData": {
+        "title": "Aucun créneau pour le moment",
+        "description": "Les créneaux du contexte scolaire actuel apparaîtront ici."
+      },
+      "noMatch": {
+        "title": "Aucun créneau correspondant",
+        "description": "Modifiez les filtres ou réinitialisez-les pour afficher tous les créneaux."
+      }
+    },
     "examsListDesc": "Tous les examens",
     "examsList": {
       "subtitleWithCount": "{total} examens dans votre périmètre",

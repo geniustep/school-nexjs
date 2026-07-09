@@ -988,6 +988,20 @@
       }
     },
     "timetableDesc": "إدارة حصص استعمال الزمن",
+    "timetableList": {
+      "filtersLabel": "فلاتر استعمال الزمن",
+      "day": "اليوم",
+      "slotsCount": "{count} حصة",
+      "resetFilters": "إعادة ضبط الفلاتر",
+      "noData": {
+        "title": "لا توجد حصص بعد",
+        "description": "ستظهر هنا حصص استعمال الزمن ضمن السياق الحالي للمدرسة."
+      },
+      "noMatch": {
+        "title": "لا توجد حصص مطابقة",
+        "description": "جرّب تعديل الفلاتر، أو أعد ضبطها لعرض كل الحصص."
+      }
+    },
     "examsListDesc": "كل الامتحانات",
     "examsList": {
       "subtitleWithCount": "{total} امتحانًا ضمن نطاقك",

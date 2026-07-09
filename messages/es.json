@@ -987,6 +987,20 @@
       }
     },
     "timetableDesc": "Gestionar franjas horarias",
+    "timetableList": {
+      "filtersLabel": "Filtros del horario",
+      "day": "Día",
+      "slotsCount": "{count} franjas",
+      "resetFilters": "Restablecer filtros",
+      "noData": {
+        "title": "Aún no hay franjas horarias",
+        "description": "Las franjas del contexto escolar actual aparecerán aquí."
+      },
+      "noMatch": {
+        "title": "No hay franjas coincidentes",
+        "description": "Prueba a ajustar los filtros o restablécelos para ver todas las franjas."
+      }
+    },
     "examsListDesc": "Todos los exámenes",
     "examsList": {
       "subtitleWithCount": "{total} exámenes en su ámbito",
