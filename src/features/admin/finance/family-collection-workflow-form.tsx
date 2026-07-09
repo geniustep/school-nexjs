@@ -238,21 +238,6 @@ export function FamilyCollectionWorkflowForm({
     setAllocationInputs(suggested);
   }, [canAutoSuggest, allocationSource, parsedAmount, openInstallments]);
 
-  useEffect(() => {
-    if (!context?.open_installments.length) return;
-    const summaries = buildFamilyStudentAllocationSummaries({
-      installments: context.open_installments,
-      allocationInputs,
-    });
-    setExpandedStudentIds((current) => {
-      if (current.size > 0) return current;
-      return resolveDefaultExpandedStudentIds({
-        summaries,
-        highlightStudentId: prefilledStudentId,
-      });
-    });
-  }, [context?.open_installments, allocationInputs, prefilledStudentId]);
-
   function buildQuery() {
     const query: Record<string, number> = {};
     if (activeSchoolId != null) query.active_school_id = activeSchoolId;
@@ -447,54 +432,7 @@ export function FamilyCollectionWorkflowForm({
 
         <FamilyCollectionWorkflowSteps t={t} />
 
-  return (
-    <form
-      className="finance-collection-workflow finance-family-collection-workflow"
-      onSubmit={(event) => {
-        event.preventDefault();
-        void handleSaveDraft(event);
-      }}
-    >
-      <div className="finance-collection-workflow__scroll">
-        <header className="finance-family-collection-header-summary">
-          <h4 className="finance-family-collection-header-summary__title">
-            {t('admin.finance.billingAccounts.familyCollection.headerSummaryTitle')}
-          </h4>
-          <dl className="finance-family-collection-header-summary__grid">
-            <div>
-              <dt>{t('admin.finance.payer')}</dt>
-              <dd dir="auto">{accountName?.trim() || t('common.dash')}</dd>
-            </div>
-            <div>
-              <dt>{t('admin.finance.quickPayment.amountLabel')}</dt>
-              <dd><FinanceMoney amount={parsedAmount} currency={currency} /></dd>
-            </div>
-            <div>
-              <dt>{t('admin.finance.paymentMethod')}</dt>
-              <dd>
-                {paymentMethod
-                  ? paymentMethodLabel(paymentMethod, t)
-                  : t('admin.finance.billingAccounts.familyCollection.paymentMethodPending')}
-              </dd>
-            </div>
-            <div>
-              <dt>{t('admin.finance.billingAccounts.familyCollection.preview.allocated')}</dt>
-              <dd><FinanceMoney amount={allocatedAmount} currency={currency} /></dd>
-            </div>
-            <div>
-              <dt>{t('admin.finance.billingAccounts.familyCollection.preview.unallocated')}</dt>
-              <dd><FinanceMoney amount={unallocatedAmount} currency={currency} /></dd>
-            </div>
-            <div>
-              <dt>{t('admin.finance.billingAccounts.columns.studentCount')}</dt>
-              <dd>{studentCount}</dd>
-            </div>
-          </dl>
-        </header>
-
-        <FamilyCollectionWorkflowSteps step={step} t={t} />
-
-        {suggestedAmount != null && suggestedAmount > 0 && step === 'edit' ? (
+        {suggestedAmount != null && suggestedAmount > 0 ? (
           <section
             className="finance-quick-payment-suggestion"
             aria-label={t('admin.finance.quickPayment.currentOverdueLabel')}

@@ -41,27 +41,6 @@ export interface FamilyChildCompactSummary {
   lines: FamilyChildAllocationLine[];
 }
 
-export type FamilyInstallmentFilter = 'all' | 'unallocated' | 'registration' | 'tuition' | 'overdue';
-
-export type FamilyCollectionConfirmBlockReason =
-  | 'not_in_review'
-  | 'preview_missing'
-  | 'preview_errors'
-  | 'missing_fields'
-  | 'cash_session_blocked'
-  | 'invalid_amount';
-
-export interface FamilyStudentAllocationSummary {
-  studentId: number;
-  studentName: string;
-  classLabel: string;
-  openTotal: number;
-  allocatedNow: number;
-  remainingAfter: number;
-  allocatedItemCount: number;
-  hasAllocations: boolean;
-}
-
 export function parseFamilyAllocationInputs(
   values: Record<number, string>,
 ): FamilyCollectionAllocationInput[] {
