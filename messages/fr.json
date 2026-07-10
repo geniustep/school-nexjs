@@ -7181,11 +7181,113 @@
       "backToStudentFees": "Retour aux créances",
       "backToCollections": "Retour aux encaissements",
       "receiptNumber": "Numéro de reçu",
+      "arrears": {
+        "hubTitle": "Centre de suivi des arriérés",
+        "hubDesc": "Suivre les familles en retard, enregistrer les contacts et promesses de paiement, et encaisser.",
+        "pageTitle": "Centre de suivi des arriérés",
+        "pageDesc": "Espace quotidien pour suivre les familles en retard et enregistrer contacts et promesses de paiement.",
+        "kpiSection": "Indicateurs des arriérés",
+        "searchPlaceholder": "Rechercher par nom ou référence…",
+        "emptyTitle": "Aucune famille en retard",
+        "emptyDesc": "Aucune famille en retard ne correspond au filtre actuel.",
+        "noMatch": {
+          "title": "Aucune famille en retard correspondante",
+          "description": "Essayez d’effacer la recherche ou l’onglet actif."
+        },
+        "refetching": "Mise à jour des résultats…",
+        "resultCount": "{total} familles",
+        "drawerTitle": "Suivi familial",
+        "drawerSubtitle": "Enregistrer un contact ou une promesse de paiement",
+        "summarySection": "Résumé familial",
+        "lastFollowupSection": "Dernier suivi",
+        "lastFollowupDate": "Date de suivi",
+        "contactFormTitle": "Enregistrer un contact",
+        "promiseFormTitle": "Enregistrer une promesse de paiement",
+        "contactSaved": "Contact enregistré avec succès.",
+        "promiseSaved": "Promesse de paiement enregistrée avec succès.",
+        "resolveSaved": "Suivi résolu.",
+        "kpis": {
+          "overdueFamilies": "Familles en retard",
+          "totalOverdue": "Total en retard",
+          "paymentPromises": "Promesses de paiement",
+          "todayFollowups": "Suivis du jour"
+        },
+        "tabs": {
+          "all": "Tous les arriérés",
+          "needsFollowup": "À suivre",
+          "paymentPromises": "Promesses de paiement",
+          "todayFollowup": "Suivi du jour",
+          "escalated": "Escaladés",
+          "resolved": "Résolus"
+        },
+        "columns": {
+          "family": "Famille / tuteur",
+          "studentCount": "Enfants",
+          "totalOverdue": "Total en retard",
+          "totalRemaining": "Total restant",
+          "oldestOverdue": "Plus ancien retard",
+          "followupStatus": "Statut de suivi",
+          "paymentPromise": "Promesse de paiement",
+          "nextFollowup": "Prochain suivi",
+          "assignedUser": "Personnel assigné",
+          "actions": "Actions"
+        },
+        "actions": {
+          "openAccount": "Ouvrir le compte",
+          "logContact": "Enregistrer un contact",
+          "logPromise": "Promesse de paiement",
+          "receivePayment": "Recevoir un paiement",
+          "resolveFollowup": "Résoudre le suivi"
+        },
+        "fields": {
+          "contactMethod": "Méthode de contact",
+          "contactResult": "Résultat du contact",
+          "contactNotes": "Notes",
+          "contactNotesPlaceholder": "Notes du contact…",
+          "nextFollowupDate": "Date du prochain suivi",
+          "promiseDate": "Date de la promesse",
+          "promiseAmount": "Montant de la promesse",
+          "promiseNotes": "Notes de la promesse"
+        },
+        "contactMethods": {
+          "phone": "Téléphone",
+          "whatsapp": "WhatsApp",
+          "sms": "SMS",
+          "email": "E-mail",
+          "in_person": "En personne"
+        },
+        "contactResults": {
+          "reached": "Joint",
+          "no_answer": "Pas de réponse",
+          "busy": "Occupé",
+          "wrong_number": "Mauvais numéro",
+          "callback_requested": "Rappel demandé"
+        },
+        "validation": {
+          "contactRequired": "Choisissez une méthode et un résultat de contact.",
+          "promiseDateRequired": "La date de la promesse est obligatoire.",
+          "promiseAmountRequired": "Le montant de la promesse est obligatoire et doit être supérieur à zéro."
+        },
+        "errors": {
+          "loadDetailFailed": "Impossible de charger le suivi familial.",
+          "contactFailed": "Impossible d’enregistrer le contact.",
+          "promiseFailed": "Impossible d’enregistrer la promesse de paiement.",
+          "resolveFailed": "Impossible de résoudre le suivi."
+        },
+        "followupApiUnavailable": "Les données de suivi sont indisponibles — les familles en retard sont affichées depuis les comptes payeurs."
+      },
       "billingAccounts": {
         "hubTitle": "Comptes payeurs",
         "hubDesc": "Synthèse unifiée des dues familiales, encaissements et reçus.",
         "pageTitle": "Comptes financiers des familles et payeurs",
         "pageDesc": "Parcourir les comptes payeurs et suivre les dues et encaissements de l'établissement.",
+        "noMatch": {
+          "title": "Aucun compte correspondant",
+          "description": "Essayez d’effacer la recherche ou les filtres."
+        },
+        "refetching": "Mise à jour des résultats…",
+        "resultCount": "{total} comptes",
+        "activeFilters": "Filtres actifs",
         "backToList": "Retour aux comptes payeurs",
         "detailSubtitle": "Espace compte payeur unifié",
         "searchPlaceholder": "Rechercher par nom ou référence…",
@@ -7598,6 +7700,12 @@
         "hubDesc": "Suivre les montants non affectés et ce qui est disponible, en attente ou bloqué.",
         "pageTitle": "Soldes financiers",
         "pageDesc": "Suivre les montants non affectés, leur règlement et ce qui peut être affecté aux créances.",
+        "noMatch": {
+          "title": "Aucun solde correspondant",
+          "description": "Essayez d’effacer la recherche ou les filtres."
+        },
+        "refetching": "Mise à jour des résultats…",
+        "resultCount": "{total} soldes",
         "detailTitle": "Détails des soldes non affectés",
         "backToList": "Retour aux soldes financiers",
         "backToAccount": "Retour au compte payeur",
@@ -7950,6 +8058,12 @@
         "emptyTitle": "Aucune échéance",
         "emptyFilteredTitle": "Aucune échéance pour ce filtre",
         "emptyDesc": "Ajustez les filtres ou retirez le filtre rapide.",
+        "noMatch": {
+          "title": "Aucune échéance correspondante",
+          "description": "Essayez d’effacer le filtre rapide ou la recherche."
+        },
+        "refetching": "Mise à jour des résultats…",
+        "resultCount": "{total} échéances",
         "showAll": "Toutes les échéances",
         "clearFilter": "Retirer le filtre",
         "activeFilterChip": "Filtre actif : {filter}",

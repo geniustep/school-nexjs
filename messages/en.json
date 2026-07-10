@@ -7178,11 +7178,113 @@
       "backToStudentFees": "Back to receivables",
       "backToCollections": "Back to collections",
       "receiptNumber": "Receipt number",
+      "arrears": {
+        "hubTitle": "Arrears follow-up center",
+        "hubDesc": "Track overdue families, log contacts and payment promises, and collect.",
+        "pageTitle": "Arrears follow-up center",
+        "pageDesc": "Daily workspace to follow overdue families and log contacts and payment promises.",
+        "kpiSection": "Arrears indicators",
+        "searchPlaceholder": "Search by name or reference…",
+        "emptyTitle": "No overdue families",
+        "emptyDesc": "No overdue families match the current filter.",
+        "noMatch": {
+          "title": "No matching overdue families",
+          "description": "Try clearing the search or active tab."
+        },
+        "refetching": "Updating results…",
+        "resultCount": "{total} families",
+        "drawerTitle": "Family follow-up",
+        "drawerSubtitle": "Log a contact or payment promise",
+        "summarySection": "Family summary",
+        "lastFollowupSection": "Last follow-up",
+        "lastFollowupDate": "Follow-up date",
+        "contactFormTitle": "Log contact",
+        "promiseFormTitle": "Log payment promise",
+        "contactSaved": "Contact logged successfully.",
+        "promiseSaved": "Payment promise logged successfully.",
+        "resolveSaved": "Follow-up resolved.",
+        "kpis": {
+          "overdueFamilies": "Overdue families",
+          "totalOverdue": "Total overdue",
+          "paymentPromises": "Payment promises",
+          "todayFollowups": "Today's follow-ups"
+        },
+        "tabs": {
+          "all": "All arrears",
+          "needsFollowup": "Needs follow-up",
+          "paymentPromises": "Payment promises",
+          "todayFollowup": "Today's follow-up",
+          "escalated": "Escalated",
+          "resolved": "Resolved"
+        },
+        "columns": {
+          "family": "Family / guardian",
+          "studentCount": "Children",
+          "totalOverdue": "Total overdue",
+          "totalRemaining": "Total remaining",
+          "oldestOverdue": "Oldest overdue",
+          "followupStatus": "Follow-up status",
+          "paymentPromise": "Payment promise",
+          "nextFollowup": "Next follow-up",
+          "assignedUser": "Assigned staff",
+          "actions": "Actions"
+        },
+        "actions": {
+          "openAccount": "Open account",
+          "logContact": "Log contact",
+          "logPromise": "Payment promise",
+          "receivePayment": "Receive payment",
+          "resolveFollowup": "Resolve follow-up"
+        },
+        "fields": {
+          "contactMethod": "Contact method",
+          "contactResult": "Contact result",
+          "contactNotes": "Notes",
+          "contactNotesPlaceholder": "Contact notes…",
+          "nextFollowupDate": "Next follow-up date",
+          "promiseDate": "Promise date",
+          "promiseAmount": "Promise amount",
+          "promiseNotes": "Promise notes"
+        },
+        "contactMethods": {
+          "phone": "Phone",
+          "whatsapp": "WhatsApp",
+          "sms": "SMS",
+          "email": "Email",
+          "in_person": "In person"
+        },
+        "contactResults": {
+          "reached": "Reached",
+          "no_answer": "No answer",
+          "busy": "Busy",
+          "wrong_number": "Wrong number",
+          "callback_requested": "Callback requested"
+        },
+        "validation": {
+          "contactRequired": "Choose a contact method and result.",
+          "promiseDateRequired": "Promise date is required.",
+          "promiseAmountRequired": "Promise amount is required and must be greater than zero."
+        },
+        "errors": {
+          "loadDetailFailed": "Could not load family follow-up.",
+          "contactFailed": "Could not log the contact.",
+          "promiseFailed": "Could not log the payment promise.",
+          "resolveFailed": "Could not resolve the follow-up."
+        },
+        "followupApiUnavailable": "Follow-up data is currently unavailable — overdue families are shown from payer accounts."
+      },
       "billingAccounts": {
         "hubTitle": "Payer accounts",
         "hubDesc": "Unified summary of family dues, collections, and receipts.",
         "pageTitle": "Family and payer financial accounts",
         "pageDesc": "Browse payer billing accounts and drill into dues and collections for the active school.",
+        "noMatch": {
+          "title": "No matching accounts",
+          "description": "Try clearing search or filters."
+        },
+        "refetching": "Updating results…",
+        "resultCount": "{total} accounts",
+        "activeFilters": "Active filters",
         "backToList": "Back to payer accounts",
         "detailSubtitle": "Unified billing account workspace",
         "searchPlaceholder": "Search by name or reference…",
@@ -7595,6 +7697,12 @@
         "hubDesc": "Track unallocated amounts and what is available, pending, or blocked.",
         "pageTitle": "Financial balances",
         "pageDesc": "Monitor unallocated amounts, settlement status, and what can be allocated to receivables.",
+        "noMatch": {
+          "title": "No matching balances",
+          "description": "Try clearing search or filters."
+        },
+        "refetching": "Updating results…",
+        "resultCount": "{total} balances",
         "detailTitle": "Unallocated balance details",
         "backToList": "Back to financial balances",
         "backToAccount": "Back to billing account",
@@ -7947,6 +8055,12 @@
         "emptyTitle": "No installments",
         "emptyFilteredTitle": "No installments match this filter",
         "emptyDesc": "Adjust filters or clear the quick filter.",
+        "noMatch": {
+          "title": "No matching installments",
+          "description": "Try clearing the quick filter or search."
+        },
+        "refetching": "Updating results…",
+        "resultCount": "{total} installments",
         "showAll": "Show all installments",
         "clearFilter": "Clear filter",
         "activeFilterChip": "Active filter: {filter}",

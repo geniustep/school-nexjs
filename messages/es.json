@@ -7181,11 +7181,113 @@
       "backToStudentFees": "Volver a adeudos",
       "backToCollections": "Volver a cobros",
       "receiptNumber": "Número de recibo",
+      "arrears": {
+        "hubTitle": "Centro de seguimiento de atrasos",
+        "hubDesc": "Seguir familias atrasadas, registrar contactos y promesas de pago, y cobrar.",
+        "pageTitle": "Centro de seguimiento de atrasos",
+        "pageDesc": "Espacio diario para seguir familias atrasadas y registrar contactos y promesas de pago.",
+        "kpiSection": "Indicadores de atrasos",
+        "searchPlaceholder": "Buscar por nombre o referencia…",
+        "emptyTitle": "No hay familias atrasadas",
+        "emptyDesc": "No hay familias atrasadas con el filtro actual.",
+        "noMatch": {
+          "title": "Ninguna familia atrasada coincide",
+          "description": "Pruebe a borrar la búsqueda o la pestaña activa."
+        },
+        "refetching": "Actualizando resultados…",
+        "resultCount": "{total} familias",
+        "drawerTitle": "Seguimiento familiar",
+        "drawerSubtitle": "Registrar un contacto o una promesa de pago",
+        "summarySection": "Resumen familiar",
+        "lastFollowupSection": "Último seguimiento",
+        "lastFollowupDate": "Fecha de seguimiento",
+        "contactFormTitle": "Registrar contacto",
+        "promiseFormTitle": "Registrar promesa de pago",
+        "contactSaved": "Contacto registrado correctamente.",
+        "promiseSaved": "Promesa de pago registrada correctamente.",
+        "resolveSaved": "Seguimiento resuelto.",
+        "kpis": {
+          "overdueFamilies": "Familias atrasadas",
+          "totalOverdue": "Total atrasado",
+          "paymentPromises": "Promesas de pago",
+          "todayFollowups": "Seguimientos de hoy"
+        },
+        "tabs": {
+          "all": "Todos los atrasos",
+          "needsFollowup": "Necesitan seguimiento",
+          "paymentPromises": "Promesas de pago",
+          "todayFollowup": "Seguimiento de hoy",
+          "escalated": "Escalados",
+          "resolved": "Resueltos"
+        },
+        "columns": {
+          "family": "Familia / tutor",
+          "studentCount": "Hijos",
+          "totalOverdue": "Total atrasado",
+          "totalRemaining": "Total restante",
+          "oldestOverdue": "Atraso más antiguo",
+          "followupStatus": "Estado de seguimiento",
+          "paymentPromise": "Promesa de pago",
+          "nextFollowup": "Próximo seguimiento",
+          "assignedUser": "Personal asignado",
+          "actions": "Acciones"
+        },
+        "actions": {
+          "openAccount": "Abrir cuenta",
+          "logContact": "Registrar contacto",
+          "logPromise": "Promesa de pago",
+          "receivePayment": "Recibir pago",
+          "resolveFollowup": "Resolver seguimiento"
+        },
+        "fields": {
+          "contactMethod": "Método de contacto",
+          "contactResult": "Resultado del contacto",
+          "contactNotes": "Notas",
+          "contactNotesPlaceholder": "Notas del contacto…",
+          "nextFollowupDate": "Fecha del próximo seguimiento",
+          "promiseDate": "Fecha de la promesa",
+          "promiseAmount": "Importe de la promesa",
+          "promiseNotes": "Notas de la promesa"
+        },
+        "contactMethods": {
+          "phone": "Teléfono",
+          "whatsapp": "WhatsApp",
+          "sms": "SMS",
+          "email": "Correo",
+          "in_person": "Presencial"
+        },
+        "contactResults": {
+          "reached": "Contactado",
+          "no_answer": "Sin respuesta",
+          "busy": "Ocupado",
+          "wrong_number": "Número incorrecto",
+          "callback_requested": "Solicitó devolución de llamada"
+        },
+        "validation": {
+          "contactRequired": "Elija un método y un resultado de contacto.",
+          "promiseDateRequired": "La fecha de la promesa es obligatoria.",
+          "promiseAmountRequired": "El importe de la promesa es obligatorio y debe ser mayor que cero."
+        },
+        "errors": {
+          "loadDetailFailed": "No se pudo cargar el seguimiento familiar.",
+          "contactFailed": "No se pudo registrar el contacto.",
+          "promiseFailed": "No se pudo registrar la promesa de pago.",
+          "resolveFailed": "No se pudo resolver el seguimiento."
+        },
+        "followupApiUnavailable": "Los datos de seguimiento no están disponibles — se muestran las familias atrasadas desde las cuentas de pagadores."
+      },
       "billingAccounts": {
         "hubTitle": "Cuentas de pagadores",
         "hubDesc": "Resumen unificado de deudas familiares, cobros y recibos.",
         "pageTitle": "Cuentas financieras de familias y pagadores",
         "pageDesc": "Consultar cuentas de pagadores y acceder a deudas y cobros del centro.",
+        "noMatch": {
+          "title": "Ninguna cuenta coincide",
+          "description": "Pruebe a borrar la búsqueda o los filtros."
+        },
+        "refetching": "Actualizando resultados…",
+        "resultCount": "{total} cuentas",
+        "activeFilters": "Filtros activos",
         "backToList": "Volver a cuentas de pagadores",
         "detailSubtitle": "Espacio unificado de cuenta de pagador",
         "searchPlaceholder": "Buscar por nombre o referencia…",
@@ -7598,6 +7700,12 @@
         "hubDesc": "Seguimiento de importes sin asignar y lo disponible, pendiente o bloqueado.",
         "pageTitle": "Saldos financieros",
         "pageDesc": "Seguimiento de importes sin asignar, su liquidación y lo que puede asignarse a deudas.",
+        "noMatch": {
+          "title": "Ningún saldo coincide",
+          "description": "Pruebe a borrar la búsqueda o los filtros."
+        },
+        "refetching": "Actualizando resultados…",
+        "resultCount": "{total} saldos",
         "detailTitle": "Detalle de saldos sin asignar",
         "backToList": "Volver a saldos financieros",
         "backToAccount": "Volver a la cuenta del pagador",
@@ -7950,6 +8058,12 @@
         "emptyTitle": "No hay cuotas",
         "emptyFilteredTitle": "No hay cuotas para este filtro",
         "emptyDesc": "Ajuste los filtros o quite el filtro rápido.",
+        "noMatch": {
+          "title": "Ninguna cuota coincide",
+          "description": "Pruebe a borrar el filtro rápido o la búsqueda."
+        },
+        "refetching": "Actualizando resultados…",
+        "resultCount": "{total} cuotas",
         "showAll": "Ver todas las cuotas",
         "clearFilter": "Quitar filtro",
         "activeFilterChip": "Filtro activo: {filter}",

@@ -1,0 +1,147 @@
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ *
+ * Shared list-chrome polish for receivable operations lists.
+ * Does not style money workflows (collection / apply-credit / follow-up drawers).
+ */
+
+.finance-receivable-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.finance-receivable-list__context {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.finance-receivable-list__result-count {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--c-text-muted, #64748b);
+}
+
+.finance-receivable-list__fetching {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--c-text-muted, #64748b);
+}
+
+.finance-receivable-list__results--fetching {
+  opacity: 0.72;
+  transition: opacity 120ms ease;
+}
+
+.finance-receivable-list__search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: min(100%, 220px);
+  flex: 1 1 220px;
+}
+
+.finance-receivable-list__search .input {
+  width: 100%;
+  padding-inline-end: 2rem;
+}
+
+.finance-receivable-list__search-clear {
+  position: absolute;
+  inset-inline-end: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--c-text-muted, #64748b);
+  cursor: pointer;
+  font-size: 1.125rem;
+  line-height: 1;
+}
+
+.finance-receivable-list__search-clear:hover {
+  background: color-mix(in srgb, var(--c-border, #e2e8f0) 60%, transparent);
+  color: var(--c-text, #0f172a);
+}
+
+.finance-receivable-list__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.finance-receivable-list__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--c-surface-2, #eef2f8);
+  border: 1px solid var(--c-border, #e2e8f0);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--c-text, #0f172a);
+}
+
+.finance-receivable-list__chip-clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--c-text-muted, #64748b);
+  cursor: pointer;
+  line-height: 1;
+}
+
+.finance-receivable-list__chip-clear:hover {
+  background: color-mix(in srgb, var(--c-border, #e2e8f0) 70%, transparent);
+  color: var(--c-text, #0f172a);
+}
+
+.finance-receivable-list__date {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.finance-receivable-list__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.finance-receivable-list__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.finance-receivable-list__tabs .btn.is-active {
+  background: color-mix(in srgb, var(--raqeem-primary, #243b6b) 12%, transparent);
+  color: var(--raqeem-primary, #243b6b);
+  font-weight: 650;
+}
+
+@media (max-width: 768px) {
+  .finance-receivable-list__toolbar {
+    align-items: stretch;
+  }
+
+  .finance-receivable-list__search {
+    flex: 1 1 100%;
+  }
+}

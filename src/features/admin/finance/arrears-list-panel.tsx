@@ -1,5 +1,10 @@
 'use client';
 
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { ApiErrorView } from '@/components/states/states';
@@ -12,9 +17,15 @@ import {
   ARREARS_FOLLOWUP_TABS,
   arrearsFollowupTabApiParam,
   arrearsFollowupTabLabelKey,
-  isArrearsFollowupTab,
 } from '@/features/admin/finance/arrears-filter-contracts';
 import type { ArrearsFollowupTab } from '@/types/finance-arrears';
+import {
+  ARREARS_PAGE_SIZE,
+  arrearsListHasActiveQuery,
+  formatArrearsListDate,
+  resolveArrearsFollowupTab,
+  resolveArrearsListEmptyVariant,
+} from '@/features/admin/finance/utils/arrears-list-present';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
@@ -30,6 +41,7 @@ import {
 } from '@/lib/utils/normalize-arrears';
 import type { ArrearsMergedRow } from '@/types/finance-arrears';
 import type { ListParams } from '@/types/api';
+import '@/features/admin/finance/receivable-lists.css';
 
 export type ArrearsListFilters = {
   tab: string;
@@ -85,7 +97,7 @@ function KpiCard({
         {amount != null ? (
           <FinanceMoney amount={amount} currency={currency} className="finance-billing-kpi__amount" />
         ) : (
-          value ?? '—'
+          <span dir="ltr">{value ?? '—'}</span>
         )}
       </strong>
     </div>
@@ -95,7 +107,7 @@ function KpiCard({
 export function ArrearsListPanel({ filters, onFiltersChange, returnTo = '/admin/finance/arrears' }: ArrearsListPanelProps) {
   const t = useT();
   const { formatDate } = useFormat();
-  const tabValid: ArrearsFollowupTab = isArrearsFollowupTab(filters.tab) ? filters.tab : 'all';
+  const tabValid = resolveArrearsFollowupTab(filters.tab);
 
   const [drawerFamilyId, setDrawerFamilyId] = useState<number | null>(null);
   const [drawerFamilyLabel, setDrawerFamilyLabel] = useState<string | undefined>();
@@ -103,7 +115,7 @@ export function ArrearsListPanel({ filters, onFiltersChange, returnTo = '/admin/
   const billingQuery: ListParams = useMemo(
     () => ({
       page: filters.page,
-      page_size: 20,
+      page_size: ARREARS_PAGE_SIZE,
       search: filters.search || undefined,
       has_overdue: 1,
       account_kind: 'family',
@@ -166,6 +178,10 @@ export function ArrearsListPanel({ filters, onFiltersChange, returnTo = '/admin/
 
   const loading = billingState.initialLoading;
   const error = billingState.error;
+  const isRefetching =
+    (billingState.fetching || followupState.fetching) && !billingState.initialLoading;
+  const hasActiveQuery = arrearsListHasActiveQuery(filters);
+  const emptyVariant = resolveArrearsListEmptyVariant({ hasActiveQuery });
 
   function reloadAll() {
     billingState.reload();
@@ -179,6 +195,14 @@ export function ArrearsListPanel({ filters, onFiltersChange, returnTo = '/admin/
 
   function setTab(next: ArrearsFollowupTab) {
     onFiltersChange({ tab: next === 'all' ? null : next, page: 1 });
+  }
+
+  function clearSearch() {
+    onFiltersChange({ search: null, page: 1 });
+  }
+
+  function resetQuery() {
+    onFiltersChange({ tab: null, search: null, page: 1 });
   }
 
   const columns: Column<ArrearsMergedRow>[] = useMemo(
@@ -203,7 +227,11 @@ export function ArrearsListPanel({ filters, onFiltersChange, returnTo = '/admin/
       {
         key: 'student_count',
         header: t('admin.finance.arrears.columns.studentCount'),
-        render: (row) => <span className="mono">{row.student_count ?? t('common.dash')}</span>,
+        render: (row) => (
+          <span className="mono" dir="ltr">
+            {row.student_count ?? t('common.dash')}
+          </span>
+        ),
       },
       {
         key: 'total_overdue',
@@ -228,7 +256,11 @@ export function ArrearsListPanel({ filters, onFiltersChange, returnTo = '/admin/
       {
         key: 'oldest_overdue',
         header: t('admin.finance.arrears.columns.oldestOverdue'),
-        render: (row) => formatDate(row.oldest_overdue_date) || t('common.dash'),
+        render: (row) => (
+          <span className="finance-receivable-list__date" dir="ltr">
+            {formatArrearsListDate(row.oldest_overdue_date, formatDate, t('common.dash'))}
+          </span>
+        ),
       },
       {
         key: 'followup_status',
@@ -248,7 +280,9 @@ export function ArrearsListPanel({ filters, onFiltersChange, returnTo = '/admin/
         render: (row) =>
           row.payment_promise_date || row.payment_promise_amount != null ? (
             <span className="finance-arrears-promise-cell">
-              {formatDate(row.payment_promise_date) || t('common.dash')}
+              <span className="finance-receivable-list__date" dir="ltr">
+                {formatArrearsListDate(row.payment_promise_date, formatDate, t('common.dash'))}
+              </span>
               {row.payment_promise_amount != null ? (
                 <>
                   {' · '}
@@ -265,7 +299,9 @@ export function ArrearsListPanel({ filters, onFiltersChange, returnTo = '/admin/
         header: t('admin.finance.arrears.columns.nextFollowup'),
         render: (row) =>
           row.next_followup_date ? (
-            <span className="finance-arrears-next-date">{formatDate(row.next_followup_date)}</span>
+            <span className="finance-arrears-next-date finance-receivable-list__date" dir="ltr">
+              {formatArrearsListDate(row.next_followup_date, formatDate, t('common.dash'))}
+            </span>
           ) : (
             t('common.dash')
           ),
@@ -324,9 +360,11 @@ export function ArrearsListPanel({ filters, onFiltersChange, returnTo = '/admin/
     return <ApiErrorView error={error} onRetry={reloadAll} />;
   }
 
+  const showEmpty = rows.length === 0 && !isRefetching;
+
   return (
-    <>
-      <section className="finance-arrears-kpis" aria-label={t('admin.finance.arrears.kpiSection')}>
+    <div className="finance-receivable-list finance-arrears-list">
+      <section className="finance-arrears-kpis finance-receivable-list__context" aria-label={t('admin.finance.arrears.kpiSection')}>
         <div className="finance-billing-kpis">
           <KpiCard
             label={t('admin.finance.arrears.kpis.overdueFamilies')}
@@ -352,13 +390,19 @@ export function ArrearsListPanel({ filters, onFiltersChange, returnTo = '/admin/
         </div>
       </section>
 
+      {pg ? (
+        <p className="finance-receivable-list__result-count" dir="ltr">
+          {t('admin.finance.arrears.resultCount', { total: pg.total })}
+        </p>
+      ) : null}
+
       {followupUnavailable ? (
         <p className="finance-billing-kind-filter-notice" role="status">
           {t('admin.finance.arrears.followupApiUnavailable')}
         </p>
       ) : null}
 
-      <div className="finance-cheque-quick-filters finance-cheque-quick-filters--compact finance-arrears-tabs">
+      <div className="finance-cheque-quick-filters finance-cheque-quick-filters--compact finance-arrears-tabs finance-receivable-list__tabs">
         <button
           type="button"
           className={`btn btn--ghost btn--sm${tabValid === 'all' ? ' is-active' : ''}`}
@@ -378,8 +422,24 @@ export function ArrearsListPanel({ filters, onFiltersChange, returnTo = '/admin/
         ))}
       </div>
 
+      {tabValid !== 'all' ? (
+        <div className="finance-receivable-list__chips">
+          <span className="finance-receivable-list__chip">
+            {t(arrearsFollowupTabLabelKey(tabValid))}
+            <button
+              type="button"
+              className="finance-receivable-list__chip-clear"
+              aria-label={t('common.clear')}
+              onClick={() => setTab('all')}
+            >
+              ×
+            </button>
+          </span>
+        </div>
+      ) : null}
+
       <form
-        className="toolbar finance-hub-filters"
+        className="toolbar finance-hub-filters finance-receivable-list__toolbar"
         onSubmit={(e) => {
           e.preventDefault();
           const fd = new FormData(e.currentTarget);
@@ -389,33 +449,70 @@ export function ArrearsListPanel({ filters, onFiltersChange, returnTo = '/admin/
           });
         }}
       >
-        <input
-          className="input"
-          name="search"
-          placeholder={t('admin.finance.arrears.searchPlaceholder')}
-          defaultValue={filters.search}
-        />
+        <div className="finance-receivable-list__search">
+          <input
+            className="input"
+            name="search"
+            placeholder={t('admin.finance.arrears.searchPlaceholder')}
+            defaultValue={filters.search}
+            dir="auto"
+          />
+          {filters.search ? (
+            <button
+              type="button"
+              className="finance-receivable-list__search-clear"
+              aria-label={t('common.clear')}
+              onClick={clearSearch}
+            >
+              ×
+            </button>
+          ) : null}
+        </div>
         <button type="submit" className="btn btn--primary btn--sm">
           {t('common.search')}
         </button>
-        {filters.search ? (
-          <button
-            type="button"
-            className="btn btn--ghost btn--sm"
-            onClick={() => onFiltersChange({ search: null, page: 1 })}
-          >
+        {hasActiveQuery ? (
+          <button type="button" className="btn btn--ghost btn--sm" onClick={resetQuery}>
             {t('common.clear')}
           </button>
         ) : null}
       </form>
 
-      {rows.length === 0 ? (
+      {isRefetching ? (
+        <p className="finance-receivable-list__fetching" aria-live="polite">
+          {t('admin.finance.arrears.refetching')}
+        </p>
+      ) : null}
+
+      {showEmpty ? (
         <EmptyState
-          title={t('admin.finance.arrears.emptyTitle')}
-          description={t('admin.finance.arrears.emptyDesc')}
+          title={
+            emptyVariant === 'no-match'
+              ? t('admin.finance.arrears.noMatch.title')
+              : t('admin.finance.arrears.emptyTitle')
+          }
+          description={
+            emptyVariant === 'no-match'
+              ? t('admin.finance.arrears.noMatch.description')
+              : t('admin.finance.arrears.emptyDesc')
+          }
+          action={
+            hasActiveQuery ? (
+              <button type="button" className="btn btn--ghost btn--sm" onClick={resetQuery}>
+                {t('common.clear')}
+              </button>
+            ) : undefined
+          }
         />
       ) : (
-        <>
+        <div
+          className={
+            isRefetching
+              ? 'finance-receivable-list__results finance-receivable-list__results--fetching'
+              : 'finance-receivable-list__results'
+          }
+          aria-busy={isRefetching || undefined}
+        >
           <div className="finance-arrears-desktop">
             <DataTable
               columns={columns}
@@ -454,7 +551,9 @@ export function ArrearsListPanel({ filters, onFiltersChange, returnTo = '/admin/
                   </div>
                   <div>
                     <dt>{t('admin.finance.arrears.columns.nextFollowup')}</dt>
-                    <dd>{formatDate(row.next_followup_date) || t('common.dash')}</dd>
+                    <dd className="finance-receivable-list__date" dir="ltr">
+                      {formatArrearsListDate(row.next_followup_date, formatDate, t('common.dash'))}
+                    </dd>
                   </div>
                 </dl>
                 <Link
@@ -472,12 +571,13 @@ export function ArrearsListPanel({ filters, onFiltersChange, returnTo = '/admin/
           {pg ? (
             <Pagination
               page={pg.page}
+              pageSize={pg.page_size ?? ARREARS_PAGE_SIZE}
               totalPages={pg.total_pages}
               total={pg.total}
               onPage={(page) => onFiltersChange({ page })}
             />
           ) : null}
-        </>
+        </div>
       )}
 
       <ArrearsFollowupDrawer
@@ -490,6 +590,6 @@ export function ArrearsListPanel({ filters, onFiltersChange, returnTo = '/admin/
         }}
         onSaved={reloadAll}
       />
-    </>
+    </div>
   );
 }

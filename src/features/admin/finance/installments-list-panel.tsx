@@ -1,5 +1,10 @@
 'use client';
 
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
 import Link from 'next/link';
 import { useMemo } from 'react';
 import { ApiErrorView } from '@/components/states/states';
@@ -11,12 +16,18 @@ import { BillingPartnerScopeChip } from '@/features/admin/finance/billing-partne
 import {
   INSTALLMENT_QUICK_FILTERS,
   installmentQuickFilterLabelKey,
-  installmentQuickFilterTitleKey,
-  isInstallmentQuickFilter,
   type InstallmentQuickFilter,
 } from '@/features/admin/finance/finance-filter-contracts';
 import { InstallmentStatusBadges } from '@/features/admin/student-finance/components/installment-status-badges';
 import { useAcademicYearOptions } from '@/features/admin/finance/use-finance-lookups';
+import {
+  formatInstallmentListDate,
+  INSTALLMENTS_PAGE_SIZE,
+  installmentQuickFilterChipLabelKey,
+  installmentsListHasActiveQuery,
+  resolveInstallmentQuickFilter,
+  resolveInstallmentsListEmptyVariant,
+} from '@/features/admin/finance/utils/installments-list-present';
 import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
@@ -25,6 +36,7 @@ import { parseFinanceQuickListResponse } from '@/lib/utils/finance-list-response
 import { buildStudentFinanceLink } from '@/lib/utils/finance-navigation';
 import type { FinanceInstallment } from '@/types/finance';
 import type { ListParams } from '@/types/api';
+import '@/features/admin/finance/receivable-lists.css';
 
 export type InstallmentsListFilters = {
   quick: string;
@@ -52,13 +64,13 @@ export function InstallmentsListPanel({ filters, onFiltersChange, returnTo }: In
   const { formatDate } = useFormat();
   const { options: yearOptions } = useAcademicYearOptions(null);
 
-  const quickValid = isInstallmentQuickFilter(filters.quick) ? filters.quick : '';
+  const quickValid = resolveInstallmentQuickFilter(filters.quick);
   const apiError = filters.quick && !quickValid && filters.quick !== '';
 
   const query: ListParams = useMemo(() => {
     const p: ListParams = {
       page: filters.page,
-      page_size: 20,
+      page_size: INSTALLMENTS_PAGE_SIZE,
       search: filters.search || undefined,
       academic_year_id: filters.academicYearId || undefined,
       class_id: filters.classId || undefined,
@@ -82,6 +94,11 @@ export function InstallmentsListPanel({ filters, onFiltersChange, returnTo }: In
   const applied = parsed.appliedFilters;
   const pg = state.meta?.pagination;
 
+  const hasActiveQuery = installmentsListHasActiveQuery(filters);
+  const emptyVariant = resolveInstallmentsListEmptyVariant({ hasActiveQuery });
+  const isRefetching = state.fetching && !state.initialLoading;
+  const quickChipKey = installmentQuickFilterChipLabelKey(quickValid);
+
   const columns: Column<FinanceInstallment>[] = useMemo(
     () => [
       {
@@ -101,7 +118,11 @@ export function InstallmentsListPanel({ filters, onFiltersChange, returnTo }: In
       {
         key: 'student_code',
         header: t('admin.finance.installments.columns.studentCode'),
-        render: (row) => <span className="mono">{row.student_code ?? t('common.dash')}</span>,
+        render: (row) => (
+          <span className="mono" dir="ltr">
+            {row.student_code ?? t('common.dash')}
+          </span>
+        ),
       },
       {
         key: 'class',
@@ -123,7 +144,11 @@ export function InstallmentsListPanel({ filters, onFiltersChange, returnTo }: In
       {
         key: 'due_date',
         header: t('admin.finance.installments.columns.dueDate'),
-        render: (row) => formatDate(row.due_date) || t('common.dash'),
+        render: (row) => (
+          <span className="finance-receivable-list__date" dir="ltr">
+            {formatInstallmentListDate(row.due_date, formatDate, t('common.dash'))}
+          </span>
+        ),
       },
       {
         key: 'total',
@@ -150,7 +175,9 @@ export function InstallmentsListPanel({ filters, onFiltersChange, returnTo }: In
         header: t('admin.finance.installments.columns.daysOverdue'),
         render: (row) =>
           row.days_overdue != null && row.days_overdue > 0 ? (
-            <span className="mono">{row.days_overdue}</span>
+            <span className="mono" dir="ltr">
+              {row.days_overdue}
+            </span>
           ) : (
             t('common.dash')
           ),
@@ -204,19 +231,26 @@ export function InstallmentsListPanel({ filters, onFiltersChange, returnTo }: In
     });
   }
 
-  const hasFilters = !!(
-    filters.search ||
-    filters.academicYearId ||
-    filters.classId ||
-    filters.levelId ||
-    filters.studentId ||
-    filters.dueDateFrom ||
-    filters.dueDateTo ||
-    quickValid
-  );
+  const listEmptyState =
+    emptyVariant === 'no-match' ? (
+      <EmptyState
+        title={t('admin.finance.installments.noMatch.title')}
+        description={t('admin.finance.installments.noMatch.description')}
+        action={
+          <button type="button" className="btn btn--ghost btn--sm" onClick={resetAll}>
+            {t('admin.finance.installments.showAll')}
+          </button>
+        }
+      />
+    ) : (
+      <EmptyState
+        title={t('admin.finance.installments.emptyTitle')}
+        description={t('admin.finance.installments.emptyDesc')}
+      />
+    );
 
   return (
-    <>
+    <div className="finance-receivable-list finance-installments-list">
       {filters.billingPartnerId ? (
         <BillingPartnerScopeChip
           billingPartnerId={filters.billingPartnerId}
@@ -230,24 +264,13 @@ export function InstallmentsListPanel({ filters, onFiltersChange, returnTo }: In
         />
       ) : null}
 
-      {quickValid ? (
-        <div className="finance-cheque-active-filter">
-          <span className="finance-cheque-active-filter__chip">
-            {t('admin.finance.installments.activeFilterChip', {
-              filter: t(installmentQuickFilterLabelKey(quickValid)),
-            })}
-          </span>
-          <button type="button" className="btn btn--ghost btn--sm" onClick={() => setQuick('')}>
-            {t('admin.finance.installments.clearFilter')}
-          </button>
-        </div>
-      ) : null}
-
       {summary ? (
-        <div className="finance-metrics-grid finance-installments-summary">
+        <div className="finance-metrics-grid finance-installments-summary finance-receivable-list__context">
           <div className="card finance-metric-card">
             <span className="muted">{t('admin.finance.installments.summaryCount')}</span>
-            <strong className="mono">{summary.total_count ?? pg?.total ?? 0}</strong>
+            <strong className="mono" dir="ltr">
+              {summary.total_count ?? pg?.total ?? 0}
+            </strong>
           </div>
           {summary.total_remaining != null ? (
             <div className="card finance-metric-card">
@@ -268,13 +291,21 @@ export function InstallmentsListPanel({ filters, onFiltersChange, returnTo }: In
           {applied?.as_of_date ? (
             <div className="card finance-metric-card">
               <span className="muted">{t('admin.finance.installments.asOfDate')}</span>
-              <strong>{formatDate(String(applied.as_of_date))}</strong>
+              <strong className="finance-receivable-list__date" dir="ltr">
+                {formatInstallmentListDate(String(applied.as_of_date), formatDate, t('common.dash'))}
+              </strong>
             </div>
           ) : null}
         </div>
       ) : null}
 
-      <div className="finance-cheque-quick-filters finance-cheque-quick-filters--compact">
+      {pg ? (
+        <p className="finance-receivable-list__result-count" dir="ltr">
+          {t('admin.finance.installments.resultCount', { total: pg.total })}
+        </p>
+      ) : null}
+
+      <div className="finance-cheque-quick-filters finance-cheque-quick-filters--compact finance-receivable-list__tabs">
         <button
           type="button"
           className={`btn btn--ghost btn--sm${!quickValid ? ' is-active' : ''}`}
@@ -294,8 +325,26 @@ export function InstallmentsListPanel({ filters, onFiltersChange, returnTo }: In
         ))}
       </div>
 
+      {quickChipKey ? (
+        <div className="finance-receivable-list__chips">
+          <span className="finance-receivable-list__chip">
+            {t('admin.finance.installments.activeFilterChip', {
+              filter: t(quickChipKey),
+            })}
+            <button
+              type="button"
+              className="finance-receivable-list__chip-clear"
+              aria-label={t('admin.finance.installments.clearFilter')}
+              onClick={() => setQuick('')}
+            >
+              ×
+            </button>
+          </span>
+        </div>
+      ) : null}
+
       <form
-        className="toolbar finance-hub-filters"
+        className="toolbar finance-hub-filters finance-receivable-list__toolbar"
         onSubmit={(e) => {
           e.preventDefault();
           const fd = new FormData(e.currentTarget);
@@ -312,12 +361,25 @@ export function InstallmentsListPanel({ filters, onFiltersChange, returnTo }: In
           });
         }}
       >
-        <input
-          className="input"
-          name="search"
-          placeholder={t('admin.finance.installments.searchPlaceholder')}
-          defaultValue={filters.search}
-        />
+        <div className="finance-receivable-list__search">
+          <input
+            className="input"
+            name="search"
+            placeholder={t('admin.finance.installments.searchPlaceholder')}
+            defaultValue={filters.search}
+            dir="auto"
+          />
+          {filters.search ? (
+            <button
+              type="button"
+              className="finance-receivable-list__search-clear"
+              aria-label={t('common.clear')}
+              onClick={() => onFiltersChange({ search: null, page: 1 })}
+            >
+              ×
+            </button>
+          ) : null}
+        </div>
         <select className="input" name="academic_year_id" defaultValue={filters.academicYearId}>
           <option value="">{t('admin.finance.installments.filters.allYears')}</option>
           {yearOptions.map((y) => (
@@ -331,18 +393,21 @@ export function InstallmentsListPanel({ filters, onFiltersChange, returnTo }: In
           name="class_id"
           placeholder={t('admin.finance.installments.filters.classId')}
           defaultValue={filters.classId}
+          dir="ltr"
         />
         <input
           className="input"
           name="level_id"
           placeholder={t('admin.finance.installments.filters.levelId')}
           defaultValue={filters.levelId}
+          dir="ltr"
         />
         <input
           className="input"
           name="student_id"
           placeholder={t('admin.finance.installments.filters.studentId')}
           defaultValue={filters.studentId}
+          dir="ltr"
         />
         <input
           className="input"
@@ -350,6 +415,7 @@ export function InstallmentsListPanel({ filters, onFiltersChange, returnTo }: In
           name="due_date_from"
           defaultValue={filters.dueDateFrom}
           aria-label={t('admin.finance.installments.filters.dueFrom')}
+          dir="ltr"
         />
         <input
           className="input"
@@ -357,52 +423,54 @@ export function InstallmentsListPanel({ filters, onFiltersChange, returnTo }: In
           name="due_date_to"
           defaultValue={filters.dueDateTo}
           aria-label={t('admin.finance.installments.filters.dueTo')}
+          dir="ltr"
         />
         <button type="submit" className="btn btn--ghost btn--sm">
           {t('admin.search')}
         </button>
-        {hasFilters ? (
+        {hasActiveQuery ? (
           <button type="button" className="btn btn--ghost btn--sm" onClick={resetAll}>
             {t('admin.finance.collections.resetFilters')}
           </button>
         ) : null}
       </form>
 
-      <ResourceView
-        state={{ ...state, data: rows as FinanceInstallment[] | null }}
-        loadingLabel={t('common.loading')}
-        empty={
-          <EmptyState
-            title={
-              quickValid
-                ? t('admin.finance.installments.emptyFilteredTitle')
-                : t('admin.finance.installments.emptyTitle')
-            }
-            description={t('admin.finance.installments.emptyDesc')}
-            action={
-              hasFilters ? (
-                <button type="button" className="btn btn--ghost btn--sm" onClick={resetAll}>
-                  {t('admin.finance.installments.showAll')}
-                </button>
-              ) : undefined
-            }
-          />
+      {isRefetching ? (
+        <p className="finance-receivable-list__fetching" aria-live="polite">
+          {t('admin.finance.installments.refetching')}
+        </p>
+      ) : null}
+
+      <div
+        className={
+          isRefetching
+            ? 'finance-receivable-list__results finance-receivable-list__results--fetching'
+            : 'finance-receivable-list__results'
         }
+        aria-busy={isRefetching || undefined}
       >
-        {(list) => (
-          <>
-            <DataTable columns={columns} rows={list} rowKey={(row) => row.id ?? `${row.student_id}-${row.due_date}`} />
-            {pg ? (
-              <Pagination
-                page={pg.page}
-                totalPages={pg.total_pages}
-                total={pg.total}
-                onPage={(p) => onFiltersChange({ page: p })}
-              />
-            ) : null}
-          </>
-        )}
-      </ResourceView>
-    </>
+        <ResourceView
+          state={{ ...state, data: rows as FinanceInstallment[] | null }}
+          loadingLabel={t('common.loading')}
+          isEmpty={(list) => list.length === 0}
+          empty={listEmptyState}
+        >
+          {(list) => (
+            <>
+              <DataTable columns={columns} rows={list} rowKey={(row) => row.id ?? `${row.student_id}-${row.due_date}`} />
+              {pg ? (
+                <Pagination
+                  page={pg.page}
+                  pageSize={pg.page_size ?? INSTALLMENTS_PAGE_SIZE}
+                  totalPages={pg.total_pages}
+                  total={pg.total}
+                  onPage={(p) => onFiltersChange({ page: p })}
+                />
+              ) : null}
+            </>
+          )}
+        </ResourceView>
+      </div>
+    </div>
   );
 }

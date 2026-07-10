@@ -1,5 +1,10 @@
 'use client';
 
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
 import Link from 'next/link';
 import { useMemo } from 'react';
 import { ApiErrorView } from '@/components/states/states';
@@ -15,6 +20,11 @@ import {
   type BillingAccountKindFilter,
 } from '@/features/admin/finance/billing-account-kind';
 import { useAcademicYearOptions } from '@/features/admin/finance/use-finance-lookups';
+import {
+  BILLING_ACCOUNTS_PAGE_SIZE,
+  billingAccountsListHasActiveQuery,
+  resolveBillingAccountsListEmptyVariant,
+} from '@/features/admin/finance/utils/billing-accounts-list-present';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
@@ -25,6 +35,7 @@ import {
 } from '@/lib/utils/normalize-billing-account';
 import type { BillingAccountListItem } from '@/types/finance-billing-account';
 import type { ListParams } from '@/types/api';
+import '@/features/admin/finance/receivable-lists.css';
 
 export type BillingAccountsListFilters = {
   search: string;
@@ -43,7 +54,7 @@ export function buildBillingAccountsListQuery(
   const accountKind = accountKindFilterToApiParam(filters.accountKind);
   return {
     page: filters.page,
-    page_size: 20,
+    page_size: BILLING_ACCOUNTS_PAGE_SIZE,
     search: filters.search || undefined,
     academic_year_id: filters.academicYearId || undefined,
     class_id: filters.classId || undefined,
@@ -110,6 +121,10 @@ export function BillingAccountsListPanel({
   );
   const pageCurrency = rows.find((row) => row.currency)?.currency;
 
+  const hasActiveQuery = billingAccountsListHasActiveQuery(filters);
+  const emptyVariant = resolveBillingAccountsListEmptyVariant({ hasActiveQuery });
+  const isRefetching = state.fetching && !state.initialLoading;
+
   const columns: Column<BillingAccountListItem>[] = useMemo(
     () => [
       {
@@ -132,13 +147,19 @@ export function BillingAccountsListPanel({
       {
         key: 'reference',
         header: t('admin.finance.billingAccounts.columns.reference'),
-        render: (row) => <span className="mono">{row.reference ?? t('common.dash')}</span>,
+        render: (row) => (
+          <span className="mono" dir="ltr">
+            {row.reference ?? t('common.dash')}
+          </span>
+        ),
       },
       {
         key: 'students',
         header: t('admin.finance.billingAccounts.columns.studentCount'),
         render: (row) => (
-          <span className="mono">{row.student_count ?? t('common.dash')}</span>
+          <span className="mono" dir="ltr">
+            {row.student_count ?? t('common.dash')}
+          </span>
         ),
       },
       {
@@ -235,16 +256,6 @@ export function BillingAccountsListPanel({
     [t, returnTo],
   );
 
-  const hasFilters = !!(
-    filters.search ||
-    filters.academicYearId ||
-    filters.classId ||
-    filters.levelId ||
-    filters.hasBalance ||
-    filters.hasOverdue ||
-    filters.accountKind !== 'all'
-  );
-
   function resetAll() {
     onFiltersChange({
       search: null,
@@ -259,37 +270,46 @@ export function BillingAccountsListPanel({
   }
 
   function emptyListTitle(): string {
-    switch (filters.accountKind) {
-      case 'family':
-        return t('admin.finance.billingAccounts.familyFilterEmptyTitle');
-      case 'individual':
-        return t('admin.finance.billingAccounts.individualFilterEmptyTitle');
-      case 'empty':
-        return t('admin.finance.billingAccounts.emptyKindFilterEmptyTitle');
-      default:
-        return t('admin.finance.billingAccounts.emptyListTitle');
+    if (emptyVariant === 'no-match') {
+      switch (filters.accountKind) {
+        case 'family':
+          return t('admin.finance.billingAccounts.familyFilterEmptyTitle');
+        case 'individual':
+          return t('admin.finance.billingAccounts.individualFilterEmptyTitle');
+        case 'empty':
+          return t('admin.finance.billingAccounts.emptyKindFilterEmptyTitle');
+        default:
+          return t('admin.finance.billingAccounts.noMatch.title');
+      }
     }
+    return t('admin.finance.billingAccounts.emptyListTitle');
   }
 
   function emptyListDescription(): string {
-    switch (filters.accountKind) {
-      case 'family':
-        return t('admin.finance.billingAccounts.familyFilterEmptyDesc');
-      case 'individual':
-        return t('admin.finance.billingAccounts.individualFilterEmptyDesc');
-      case 'empty':
-        return t('admin.finance.billingAccounts.emptyKindFilterEmptyDesc');
-      default:
-        return t('admin.finance.billingAccounts.emptyListDesc');
+    if (emptyVariant === 'no-match') {
+      switch (filters.accountKind) {
+        case 'family':
+          return t('admin.finance.billingAccounts.familyFilterEmptyDesc');
+        case 'individual':
+          return t('admin.finance.billingAccounts.individualFilterEmptyDesc');
+        case 'empty':
+          return t('admin.finance.billingAccounts.emptyKindFilterEmptyDesc');
+        default:
+          return t('admin.finance.billingAccounts.noMatch.description');
+      }
     }
+    return t('admin.finance.billingAccounts.emptyListDesc');
   }
 
   const errorMessage =
     state.error?.code != null ? t(billingAccountErrorMessageKey(state.error.code)) : undefined;
 
+  const showEmpty = !state.initialLoading && !state.error && rows.length === 0 && !isRefetching;
+  const showResults = !state.initialLoading && rows.length > 0;
+
   return (
-    <>
-      <header className="finance-billing-accounts-header">
+    <div className="finance-receivable-list finance-billing-accounts-list">
+      <header className="finance-billing-accounts-header finance-receivable-list__context">
         {activeSchool ? (
           <p className="muted finance-billing-accounts-school">
             {t('admin.finance.activeSchool')}: <strong dir="auto">{activeSchool.name}</strong>
@@ -303,7 +323,9 @@ export function BillingAccountsListPanel({
             {state.loading && !rows.length ? (
               <span className="finance-skeleton finance-skeleton--metric" aria-hidden />
             ) : (
-              <strong className="finance-billing-kpi__value mono">{totalCount}</strong>
+              <strong className="finance-billing-kpi__value mono" dir="ltr">
+                {totalCount}
+              </strong>
             )}
           </div>
           <div className="finance-billing-kpi finance-billing-kpi--blue">
@@ -331,6 +353,11 @@ export function BillingAccountsListPanel({
             </strong>
           </div>
         </div>
+        {pg ? (
+          <p className="finance-receivable-list__result-count" dir="ltr">
+            {t('admin.finance.billingAccounts.resultCount', { total: totalCount })}
+          </p>
+        ) : null}
         {rows.length > 0 ? (
           <p className="tiny muted finance-billing-accounts-hint">
             {t('admin.finance.billingAccounts.pageTotalsHint')}
@@ -339,7 +366,7 @@ export function BillingAccountsListPanel({
       </header>
 
       <form
-        className="toolbar finance-hub-filters finance-billing-accounts-filters"
+        className="toolbar finance-hub-filters finance-billing-accounts-filters finance-receivable-list__toolbar"
         onSubmit={(e) => {
           e.preventDefault();
           const fd = new FormData(e.currentTarget);
@@ -355,14 +382,25 @@ export function BillingAccountsListPanel({
           });
         }}
       >
-        <label className="finance-filter-field">
+        <label className="finance-filter-field finance-receivable-list__search">
           <span className="tiny muted">{t('common.search')}</span>
           <input
             className="input"
             name="search"
             defaultValue={filters.search}
             placeholder={t('admin.finance.billingAccounts.searchPlaceholder')}
+            dir="auto"
           />
+          {filters.search ? (
+            <button
+              type="button"
+              className="finance-receivable-list__search-clear"
+              aria-label={t('common.clear')}
+              onClick={() => onFiltersChange({ search: null, page: 1 })}
+            >
+              ×
+            </button>
+          ) : null}
         </label>
         <label className="finance-filter-field">
           <span className="tiny muted">{t('admin.finance.hub.filterAcademicYear')}</span>
@@ -377,11 +415,11 @@ export function BillingAccountsListPanel({
         </label>
         <label className="finance-filter-field">
           <span className="tiny muted">{t('admin.finance.billingAccounts.filters.class')}</span>
-          <input className="input" name="class_id" defaultValue={filters.classId} inputMode="numeric" />
+          <input className="input" name="class_id" defaultValue={filters.classId} inputMode="numeric" dir="ltr" />
         </label>
         <label className="finance-filter-field">
           <span className="tiny muted">{t('admin.finance.billingAccounts.filters.level')}</span>
-          <input className="input" name="level_id" defaultValue={filters.levelId} inputMode="numeric" />
+          <input className="input" name="level_id" defaultValue={filters.levelId} inputMode="numeric" dir="ltr" />
         </label>
         <label className="finance-filter-field">
           <span className="tiny muted">{t('admin.finance.billingAccounts.filters.accountKind')}</span>
@@ -405,13 +443,70 @@ export function BillingAccountsListPanel({
           <button type="submit" className="btn btn--primary btn--sm">
             {t('admin.studentsList.applyFilters')}
           </button>
-          {hasFilters ? (
+          {hasActiveQuery ? (
             <button type="button" className="btn btn--ghost btn--sm" onClick={resetAll}>
               {t('admin.studentsList.resetFilters')}
             </button>
           ) : null}
         </div>
       </form>
+
+      {hasActiveQuery ? (
+        <div className="finance-receivable-list__chips" aria-label={t('admin.finance.billingAccounts.activeFilters')}>
+          {filters.search ? (
+            <span className="finance-receivable-list__chip">
+              <span dir="auto">{filters.search}</span>
+              <button
+                type="button"
+                className="finance-receivable-list__chip-clear"
+                aria-label={t('common.clear')}
+                onClick={() => onFiltersChange({ search: null, page: 1 })}
+              >
+                ×
+              </button>
+            </span>
+          ) : null}
+          {filters.accountKind !== 'all' ? (
+            <span className="finance-receivable-list__chip">
+              {t(billingAccountKindLabelKey(filters.accountKind))}
+              <button
+                type="button"
+                className="finance-receivable-list__chip-clear"
+                aria-label={t('common.clear')}
+                onClick={() => onFiltersChange({ accountKind: 'all', page: 1 })}
+              >
+                ×
+              </button>
+            </span>
+          ) : null}
+          {filters.hasBalance ? (
+            <span className="finance-receivable-list__chip">
+              {t('admin.finance.billingAccounts.filters.hasBalance')}
+              <button
+                type="button"
+                className="finance-receivable-list__chip-clear"
+                aria-label={t('common.clear')}
+                onClick={() => onFiltersChange({ hasBalance: null, page: 1 })}
+              >
+                ×
+              </button>
+            </span>
+          ) : null}
+          {filters.hasOverdue ? (
+            <span className="finance-receivable-list__chip">
+              {t('admin.finance.billingAccounts.filters.hasOverdue')}
+              <button
+                type="button"
+                className="finance-receivable-list__chip-clear"
+                aria-label={t('common.clear')}
+                onClick={() => onFiltersChange({ hasOverdue: null, page: 1 })}
+              >
+                ×
+              </button>
+            </span>
+          ) : null}
+        </div>
+      ) : null}
 
       {state.error ? (
         <ApiErrorView
@@ -422,12 +517,35 @@ export function BillingAccountsListPanel({
 
       {state.initialLoading ? <LoadingState label={t('common.loading')} /> : null}
 
-      {!state.initialLoading && !state.error && rows.length === 0 ? (
-        <EmptyState title={emptyListTitle()} description={emptyListDescription()} />
+      {isRefetching ? (
+        <p className="finance-receivable-list__fetching" aria-live="polite">
+          {t('admin.finance.billingAccounts.refetching')}
+        </p>
       ) : null}
 
-      {!state.initialLoading && rows.length > 0 ? (
-        <>
+      {showEmpty ? (
+        <EmptyState
+          title={emptyListTitle()}
+          description={emptyListDescription()}
+          action={
+            hasActiveQuery ? (
+              <button type="button" className="btn btn--ghost btn--sm" onClick={resetAll}>
+                {t('admin.studentsList.resetFilters')}
+              </button>
+            ) : undefined
+          }
+        />
+      ) : null}
+
+      {showResults ? (
+        <div
+          className={
+            isRefetching
+              ? 'finance-receivable-list__results finance-receivable-list__results--fetching'
+              : 'finance-receivable-list__results'
+          }
+          aria-busy={isRefetching || undefined}
+        >
           <div className="finance-billing-accounts-table-wrap finance-billing-accounts-desktop">
             <DataTable
               columns={columns}
@@ -443,80 +561,84 @@ export function BillingAccountsListPanel({
             {rows.map((row) => {
               const kind = resolveBillingAccountKindFromRow(row);
               return (
-              <article key={row.billing_partner_id} className="card finance-billing-account-card">
-                <div className="finance-billing-account-card__head">
-                  <div className="finance-billing-account-card__identity">
-                    <strong dir="auto" className="finance-billing-account-name">
-                      {accountLabel(row)}
-                    </strong>
-                    <span className={billingAccountKindBadgeClass(kind)}>
-                      {t(billingAccountKindLabelKey(kind))}
-                    </span>
-                    {row.reference ? (
-                      <span className="mono tiny muted">{row.reference}</span>
+                <article key={row.billing_partner_id} className="card finance-billing-account-card">
+                  <div className="finance-billing-account-card__head">
+                    <div className="finance-billing-account-card__identity">
+                      <strong dir="auto" className="finance-billing-account-name">
+                        {accountLabel(row)}
+                      </strong>
+                      <span className={billingAccountKindBadgeClass(kind)}>
+                        {t(billingAccountKindLabelKey(kind))}
+                      </span>
+                      {row.reference ? (
+                        <span className="mono tiny muted" dir="ltr">
+                          {row.reference}
+                        </span>
+                      ) : null}
+                    </div>
+                    {row.status_label ?? row.status ? (
+                      <span className="finance-billing-account-card__status" dir="auto">
+                        {row.status_label ?? row.status}
+                      </span>
                     ) : null}
                   </div>
-                  {row.status_label ?? row.status ? (
-                    <span className="finance-billing-account-card__status" dir="auto">
-                      {row.status_label ?? row.status}
-                    </span>
-                  ) : null}
-                </div>
-                <dl className="finance-billing-account-card__metrics">
-                  <div>
-                    <dt>{t('admin.finance.billingAccounts.columns.totalDue')}</dt>
-                    <dd>
-                      <FinanceMoney amount={row.total_due} currency={row.currency} />
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>{t('admin.finance.billingAccounts.columns.remaining')}</dt>
-                    <dd>
-                      <FinanceMoney amount={row.total_remaining} currency={row.currency} />
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>{t('admin.finance.billingAccounts.columns.overdue')}</dt>
-                    <dd>
-                      <FinanceMoney amount={row.total_overdue} currency={row.currency} />
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>{t('admin.finance.billingAccounts.columns.studentCount')}</dt>
-                    <dd className="mono">{row.student_count ?? t('common.dash')}</dd>
-                  </div>
-                </dl>
-                <div className="finance-billing-account-card__actions row">
-                  <Link
-                    href={`/admin/finance/billing-accounts/${row.billing_partner_id}${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ''}`}
-                    className="btn btn--ghost btn--sm"
-                  >
-                    {t('admin.finance.billingAccounts.openAccount')}
-                  </Link>
-                  {kind === 'family' ? (
+                  <dl className="finance-billing-account-card__metrics">
+                    <div>
+                      <dt>{t('admin.finance.billingAccounts.columns.totalDue')}</dt>
+                      <dd>
+                        <FinanceMoney amount={row.total_due} currency={row.currency} />
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>{t('admin.finance.billingAccounts.columns.remaining')}</dt>
+                      <dd>
+                        <FinanceMoney amount={row.total_remaining} currency={row.currency} />
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>{t('admin.finance.billingAccounts.columns.overdue')}</dt>
+                      <dd>
+                        <FinanceMoney amount={row.total_overdue} currency={row.currency} />
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>{t('admin.finance.billingAccounts.columns.studentCount')}</dt>
+                      <dd className="mono" dir="ltr">
+                        {row.student_count ?? t('common.dash')}
+                      </dd>
+                    </div>
+                  </dl>
+                  <div className="finance-billing-account-card__actions row">
                     <Link
-                      href={`/admin/finance/billing-accounts/${row.billing_partner_id}?family_collect=1${returnTo ? `&returnTo=${encodeURIComponent(returnTo)}` : ''}`}
-                      className="btn btn--primary btn--sm"
+                      href={`/admin/finance/billing-accounts/${row.billing_partner_id}${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ''}`}
+                      className="btn btn--ghost btn--sm"
                     >
-                      {t('admin.finance.billingAccounts.receiveFamilyPayment')}
+                      {t('admin.finance.billingAccounts.openAccount')}
                     </Link>
-                  ) : null}
-                </div>
-              </article>
-            );
+                    {kind === 'family' ? (
+                      <Link
+                        href={`/admin/finance/billing-accounts/${row.billing_partner_id}?family_collect=1${returnTo ? `&returnTo=${encodeURIComponent(returnTo)}` : ''}`}
+                        className="btn btn--primary btn--sm"
+                      >
+                        {t('admin.finance.billingAccounts.receiveFamilyPayment')}
+                      </Link>
+                    ) : null}
+                  </div>
+                </article>
+              );
             })}
           </div>
           {pg ? (
             <Pagination
               page={pg.page}
-              pageSize={pg.page_size}
+              pageSize={pg.page_size ?? BILLING_ACCOUNTS_PAGE_SIZE}
               total={pg.total}
               totalPages={pg.total_pages}
               onPage={(page) => onFiltersChange({ page })}
             />
           ) : null}
-        </>
+        </div>
       ) : null}
-    </>
+    </div>
   );
 }
