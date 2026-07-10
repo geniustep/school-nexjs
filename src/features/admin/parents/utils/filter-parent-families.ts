@@ -86,16 +86,28 @@ function familyMatchesHideWithoutChildren(
   return family.children.length > 0;
 }
 
+export type FilterParentFamiliesOptions = {
+  /**
+   * When true and `search` is non-empty, skip local name/phone/email matching.
+   * Parents list always sends `search` to the Backend — local re-filtering would
+   * drop identity-document matches (masked list rows cannot match the raw query).
+   */
+  serverSearchAuthoritative?: boolean;
+};
+
 export function filterParentFamilies(
   families: ParentFamilyGroup[],
   filters: ParentFamilyFilters,
   search = '',
+  options?: FilterParentFamiliesOptions,
 ): ParentFamilyGroup[] {
   const hideWithoutChildren = filters.hideWithoutChildren !== false;
+  const skipLocalSearchMatch =
+    Boolean(options?.serverSearchAuthoritative) && Boolean(search.trim());
 
   return families.filter(
     (family) =>
-      familyMatchesSearch(family, search) &&
+      (skipLocalSearchMatch || familyMatchesSearch(family, search)) &&
       familyMatchesStatus(family, filters.status ?? '') &&
       familyMatchesAccount(family, filters.accountFilter ?? '') &&
       familyMatchesChildren(family, filters.childrenFilter) &&
