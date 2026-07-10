@@ -8140,6 +8140,12 @@
         "emptyServicesTitle": "Sin servicios",
         "emptyTariffsTitle": "Sin tarifas",
         "emptyDesc": "Aún no hay servicios configurados.",
+        "refetching": "Actualizando resultados…",
+        "resultCount": "{total} servicios",
+        "noMatch": {
+          "title": "No hay servicios coincidentes",
+          "description": "Prueba a borrar la búsqueda."
+        },
         "priorityHint": "Define el orden de este servicio al sugerir la asignación de pagos. No afecta a la asignación manual.",
         "tabs": {
           "services": "Servicios",

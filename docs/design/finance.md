@@ -80,7 +80,6 @@ Finance يحتوي:
 
 ### DEFER_PARALLEL_WORK
 
-- Services / Tariffs.
 - Collections family workflow.
 - Student Fees gateway touches linked to parallel student search/finance types.
 
@@ -254,20 +253,22 @@ Medium
 
 ```txt
 Fee Plans — ADOPTED
-reference: style(finance): adopt fee plans workspace design (origin/dev)
-Services/Tariffs — DEFER_PARALLEL_WORK
-Cluster 3 — PARTIAL COMPLETE
+Services/Tariffs — ADOPTED
+Cluster 3 — COMPLETE
 ```
 
 **assign wizard remains outside adopted scope.**
 
-التالي بعد هذه المرحلة:
+**deprecated `ServicesTariffsPanel` shim remains outside adopted scope.**
+
+المسار التالي:
 
 ```txt
-Reassess Services/Tariffs parallel status
+Cluster 4 — Collection Operations
+Status: REASSESS PARALLEL WORK BEFORE ADOPTION
 ```
 
-لا يُنقل Cluster 4 إلى NEXT تلقائيًا قبل هذا التقييم.
+لا تُعتبر Collections ready تلقائيًا.
 
 ---
 
@@ -401,15 +402,15 @@ Finance لم يعد مجالًا مجهولًا من ناحية التصميم.
 Coverage audit complete
 → Cluster 1 ADOPTED (60a52b5)
 → Cluster 2 ADOPTED (92f5d96)
-→ Cluster 3 PARTIAL COMPLETE (Fee Plans ADOPTED; Services/Tariffs deferred)
-→ Next: Reassess Services/Tariffs parallel status
+→ Cluster 3 COMPLETE (Fee Plans + Services/Tariffs ADOPTED)
+→ Next: Cluster 4 — Collection Operations (REASSESS PARALLEL WORK BEFORE ADOPTION)
 ```
 
 الحكم:
 
 ```txt
 Finance Design Adoption Roadmap = IN PROGRESS
-Cluster 3 = PARTIAL COMPLETE
+Cluster 3 = COMPLETE
 ```
 
 الاعتماد يتم فقط بعد تنفيذ cluster ونجاح QA ووجود marker مناسب داخل الكود.

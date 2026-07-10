@@ -87,20 +87,26 @@ export function FinanceServiceForm({
   }
 
   return (
-    <form className="card form-stack" onSubmit={onSubmit}>
-      <h3>
+    <form className="card form-stack finance-services-form" onSubmit={onSubmit}>
+      <h3 className="finance-services-form__title">
         {isEdit
           ? t('admin.finance.services.editServiceTitle')
           : t('admin.finance.services.createServiceTitle')}
       </h3>
       {error ? <p className="form-error">{error}</p> : null}
 
-      <label>
+      <label className="finance-services-form__field">
         {t('admin.finance.services.columns.name')}
-        <input className="input" required value={name} onChange={(e) => setName(e.target.value)} />
+        <input
+          className="input"
+          required
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          dir="auto"
+        />
       </label>
 
-      <label>
+      <label className="finance-services-form__field">
         {t('admin.finance.services.columns.serviceType')}
         <select
           className="input"
@@ -117,7 +123,7 @@ export function FinanceServiceForm({
         </select>
       </label>
 
-      <label>
+      <label className="finance-services-form__field">
         {t('admin.finance.services.columns.collectionPriority')}
         <select
           className="input"
@@ -131,10 +137,12 @@ export function FinanceServiceForm({
             </option>
           ))}
         </select>
-        <span className="tiny muted">{t('admin.finance.services.priorityHint')}</span>
+        <span className="tiny muted finance-services-form__hint">
+          {t('admin.finance.services.priorityHint')}
+        </span>
       </label>
 
-      <label>
+      <label className="finance-services-form__field">
         {t('academic.status')}
         <select
           className="input"
@@ -149,7 +157,7 @@ export function FinanceServiceForm({
       <details className="finance-collection-advanced">
         <summary>{t('admin.finance.services.advancedSettings')}</summary>
         <div className="finance-collection-advanced__body form-stack">
-          <label>
+          <label className="finance-services-form__field">
             {t('admin.finance.services.columns.code')}
             <input
               className="input mono"
@@ -159,19 +167,20 @@ export function FinanceServiceForm({
               onChange={(e) => setCode(e.target.value)}
             />
           </label>
-          <label>
+          <label className="finance-services-form__field">
             {t('common.description')}
             <textarea
               className="input"
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              dir="auto"
             />
           </label>
         </div>
       </details>
 
-      <div className="row" style={{ gap: 8 }}>
+      <div className="finance-services-form__actions">
         <button type="submit" className="btn btn--primary" disabled={submitting || refState.loading}>
           {submitting ? t('common.saving') : t('common.save')}
         </button>

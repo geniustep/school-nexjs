@@ -8140,6 +8140,12 @@
         "emptyServicesTitle": "Aucun service",
         "emptyTariffsTitle": "Aucun tarif",
         "emptyDesc": "Aucun service configuré.",
+        "refetching": "Mise à jour des résultats…",
+        "resultCount": "{total} services",
+        "noMatch": {
+          "title": "Aucun service correspondant",
+          "description": "Essayez d’effacer la recherche."
+        },
         "priorityHint": "Définit l'ordre de ce service lors de la suggestion de répartition. N'affecte pas la répartition manuelle.",
         "tabs": {
           "services": "Services",

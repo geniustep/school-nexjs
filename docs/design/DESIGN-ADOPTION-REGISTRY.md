@@ -145,7 +145,7 @@ error
 | Receipts list | `/admin/finance/receipts` | ADOPTED | Cluster 2 — `92f5d96` |
 | Cheques list | `/admin/finance/cheques` | ADOPTED | Cluster 2 — `92f5d96` |
 | Fee Plans list/workspace chrome | `/admin/finance/fee-plans` | ADOPTED | Cluster 3 partial — `origin/dev` @ `style(finance): adopt fee plans workspace design`; **assign wizard remains outside adopted scope** |
-| Services / Tariffs | `/admin/finance/services` | DEFER_PARALLEL_WORK | Reassess parallel status before closing Cluster 3 |
+| Services / Tariffs | `/admin/finance/services` | ADOPTED | Cluster 3 — `ServicesPanel` list/form chrome; deprecated `ServicesTariffsPanel` shim remains outside adopted scope |
 
 ---
 
@@ -167,7 +167,6 @@ Cluster execution proceeds separately
 
 الأسطح ذات العمل الموازي المثبت أثناء Audit:
 
-- Services / Tariffs.
 - Collections family workflow.
 - Student Fees gateway touches via student search/types.
 

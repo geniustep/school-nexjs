@@ -8140,6 +8140,12 @@
         "emptyServicesTitle": "No services",
         "emptyTariffsTitle": "No tariffs",
         "emptyDesc": "No services configured yet.",
+        "refetching": "Updating results…",
+        "resultCount": "{total} services",
+        "noMatch": {
+          "title": "No matching services",
+          "description": "Try clearing the search."
+        },
         "priorityHint": "Sets this service's order when suggesting payment allocation. Does not affect manual allocation.",
         "tabs": {
           "services": "Services",

@@ -8177,6 +8177,12 @@
         "emptyServicesTitle": "لا توجد خدمات",
         "emptyTariffsTitle": "لا توجد تعريفات",
         "emptyDesc": "لم يتم إعداد خدمات بعد.",
+        "refetching": "جاري تحديث النتائج…",
+        "resultCount": "{total} خدمة",
+        "noMatch": {
+          "title": "لا توجد خدمات مطابقة",
+          "description": "جرّب مسح البحث."
+        },
         "priorityHint": "تحدد ترتيب هذه الخدمة عند اقتراح توزيع الدفعات تلقائيًا. لا تؤثر على التوزيع اليدوي.",
         "tabs": {
           "services": "الخدمات",
