@@ -107,7 +107,10 @@ export default function AdminParentsPage() {
   );
 
   const families = useMemo(
-    () => filterParentFamilies(groupedFamilies, filterState, debouncedSearch),
+    () =>
+      filterParentFamilies(groupedFamilies, filterState, debouncedSearch, {
+        serverSearchAuthoritative: true,
+      }),
     [groupedFamilies, filterState, debouncedSearch],
   );
 
