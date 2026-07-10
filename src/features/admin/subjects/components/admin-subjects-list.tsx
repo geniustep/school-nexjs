@@ -1,5 +1,10 @@
 'use client';
 
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
 import Link from 'next/link';
 import { useMemo, useState, type CSSProperties } from 'react';
 import { cn } from '@/lib/utils/cn';
@@ -18,6 +23,8 @@ import {
   computeSubjectsOverview,
   filterSubjectsForList,
   groupSubjectsForList,
+  resolveSubjectsBrowserEmptyVariant,
+  subjectsBrowserHasActiveQuery,
   type SubjectTier,
 } from '../utils/subjects-list-utils';
 import '../admin-subjects.css';
@@ -56,7 +63,9 @@ function SubjectCard({
     <Link href={`/admin/subjects/${subject.id}`} className="admin-subjects-card">
       <div className="admin-subjects-card__head">
         <div className="admin-subjects-card__title-wrap">
-          <h3 className="admin-subjects-card__name">{meta.displayName}</h3>
+          <h3 className="admin-subjects-card__name" dir="auto" title={meta.displayName}>
+            {meta.displayName}
+          </h3>
           {meta.isDuplicateName ? (
             <span className="admin-subjects-card__dup-hint">{t('admin.subjectsList.duplicateHint')}</span>
           ) : null}
@@ -144,7 +153,15 @@ export function AdminSubjectsList({
   );
 
   const grouped = useMemo(() => groupSubjectsForList(filtered, levelsById), [filtered, levelsById]);
-  const hasActiveFilters = debouncedSearch.trim().length > 0 || !!tierFilter;
+  const hasActiveFilters = subjectsBrowserHasActiveQuery({
+    search,
+    tierFilter,
+  });
+  const hasActiveQuery = subjectsBrowserHasActiveQuery({
+    search: debouncedSearch,
+    tierFilter,
+  });
+  const emptyVariant = resolveSubjectsBrowserEmptyVariant({ hasActiveQuery });
 
   function resetFilters() {
     setSearch('');
@@ -157,7 +174,7 @@ export function AdminSubjectsList({
         <div className="admin-subjects-hero__glow" aria-hidden="true" />
         <div className="admin-subjects-hero__content">
           <div className="admin-subjects-hero__intro">
-            <span className="admin-subjects-hero__eyebrow">
+            <span className="admin-subjects-hero__eyebrow" dir="auto">
               {user.school?.name ?? t('admin.cmd.defaultSchool')}
             </span>
             <h1 className="admin-subjects-hero__title">{t('nav.subjects')}</h1>
@@ -201,28 +218,36 @@ export function AdminSubjectsList({
           <span className="admin-subjects-stat__icon" aria-hidden="true">
             📖
           </span>
-          <span className="admin-subjects-stat__value">{overview.subjectCount}</span>
+          <span className="admin-subjects-stat__value" dir="ltr">
+            {overview.subjectCount}
+          </span>
           <span className="admin-subjects-stat__label">{t('nav.subjects')}</span>
         </div>
         <div className="admin-subjects-stat">
           <span className="admin-subjects-stat__icon" aria-hidden="true">
             📚
           </span>
-          <span className="admin-subjects-stat__value">{overview.levelCount}</span>
+          <span className="admin-subjects-stat__value" dir="ltr">
+            {overview.levelCount}
+          </span>
           <span className="admin-subjects-stat__label">{t('nav.levels')}</span>
         </div>
         <div className="admin-subjects-stat">
           <span className="admin-subjects-stat__icon" aria-hidden="true">
             👨‍🏫
           </span>
-          <span className="admin-subjects-stat__value">{overview.withAssignmentsCount}</span>
+          <span className="admin-subjects-stat__value" dir="ltr">
+            {overview.withAssignmentsCount}
+          </span>
           <span className="admin-subjects-stat__label">{t('admin.subjectsList.withAssignments')}</span>
         </div>
         <div className="admin-subjects-stat">
           <span className="admin-subjects-stat__icon" aria-hidden="true">
             ⚑
           </span>
-          <span className="admin-subjects-stat__value">{overview.duplicateNameCount}</span>
+          <span className="admin-subjects-stat__value" dir="ltr">
+            {overview.duplicateNameCount}
+          </span>
           <span className="admin-subjects-stat__label">{t('admin.subjectsList.sharedNames')}</span>
         </div>
       </section>
@@ -240,13 +265,17 @@ export function AdminSubjectsList({
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t('admin.subjectsList.searchPlaceholder')}
               aria-label={t('common.search')}
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck={false}
+              dir="auto"
             />
             {search ? (
               <button
                 type="button"
                 className="admin-subjects-search__clear"
                 onClick={() => setSearch('')}
-                aria-label={t('common.clear')}
+                aria-label={t('admin.subjectsList.clearSearch')}
               >
                 ×
               </button>
@@ -254,7 +283,7 @@ export function AdminSubjectsList({
           </label>
           {hasActiveFilters ? (
             <button type="button" className="btn btn--ghost btn--sm" onClick={resetFilters}>
-              {t('admin.academicSetup.levelsFilterClear')}
+              {t('admin.subjectsList.resetFilters')}
             </button>
           ) : null}
         </div>
@@ -281,7 +310,24 @@ export function AdminSubjectsList({
       </section>
 
       {filtered.length === 0 ? (
-        <EmptyState icon="📖" title={t('admin.noSubjects')} />
+        emptyVariant === 'no-match' ? (
+          <EmptyState
+            icon="🔍"
+            title={t('admin.subjectsList.noMatch.title')}
+            description={t('admin.subjectsList.noMatch.description')}
+            action={
+              <button type="button" className="btn btn--ghost btn--sm" onClick={resetFilters}>
+                {t('admin.subjectsList.resetFilters')}
+              </button>
+            }
+          />
+        ) : (
+          <EmptyState
+            icon="📖"
+            title={t('admin.subjectsList.noData.title')}
+            description={t('admin.subjectsList.noData.description')}
+          />
+        )
       ) : (
         grouped.map((group) => {
           const visual = TIER_VISUAL[group.id];
@@ -295,7 +341,9 @@ export function AdminSubjectsList({
                   {visual.icon}
                 </span>
                 <div>
-                  <h2 className="admin-subjects-group__title">{tierTitle(group.id, t)}</h2>
+                  <h2 className="admin-subjects-group__title" dir="auto">
+                    {tierTitle(group.id, t)}
+                  </h2>
                   <p className="admin-subjects-group__count">
                     {t('admin.academicSetup.subjectsCount', { count: group.subjects.length })}
                   </p>

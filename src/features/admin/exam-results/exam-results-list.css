@@ -1,0 +1,152 @@
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
+.exam-results-list-page {
+  max-width: min(100%, 1200px);
+  margin-inline: auto;
+  width: 100%;
+}
+
+.exam-results-list__header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.exam-results-list-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.exam-results-list-filters__primary {
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) minmax(140px, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.exam-results-list-filters__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.exam-results-list-filters__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid color-mix(in srgb, var(--c-primary, #2563eb) 22%, var(--c-border, #e2e8f0));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--c-primary, #2563eb) 6%, #fff);
+  font-size: 0.75rem;
+  color: var(--text, #0f172a);
+}
+
+.exam-results-list-filters__chip--action {
+  cursor: pointer;
+  font: inherit;
+}
+
+.exam-results-list-filters__chip--action:hover {
+  background: color-mix(in srgb, var(--c-primary, #2563eb) 10%, #fff);
+}
+
+.exam-results-list__fetching-hint {
+  margin: 0 0 8px;
+  font-size: 0.75rem;
+  color: var(--c-text-muted, var(--muted));
+}
+
+.exam-results-list__results {
+  min-width: 0;
+}
+
+.exam-results-list__results--fetching {
+  opacity: 0.72;
+}
+
+.exam-results-list__student {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.exam-results-list__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 220px;
+}
+
+.exam-results-list__code {
+  font-size: 0.75rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 220px;
+}
+
+.exam-results-list__cell {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 180px;
+}
+
+.exam-results-list__score,
+.exam-results-list__date {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.exam-results-list__row-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.exam-results-list__view-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 36px;
+  block-size: 36px;
+  border-radius: var(--radius-sm, 8px);
+  color: var(--c-text-muted, #64748b);
+  text-decoration: none;
+}
+
+.exam-results-list__view-link:hover {
+  background: var(--c-surface-2, #eef2f8);
+  color: var(--c-text, #0f172a);
+}
+
+.exam-results-list__table {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 1024px) {
+  .exam-results-list-filters__primary {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .exam-results-list-filters__primary {
+    grid-template-columns: 1fr;
+  }
+
+  .exam-results-list__name,
+  .exam-results-list__code,
+  .exam-results-list__cell {
+    max-width: 160px;
+  }
+}

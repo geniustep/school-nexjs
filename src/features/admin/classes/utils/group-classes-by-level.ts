@@ -1,3 +1,8 @@
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
 import type { LevelGroup } from '@/features/admin/academic-setup/types';
 import {
   groupLevelsByCycle,
@@ -5,6 +10,22 @@ import {
   type GroupedLevelsByCycle,
 } from '@/features/admin/academic-setup/utils/group-and-sort-levels';
 import type { Level, SchoolClass } from '@/types/class';
+
+export type ClassesBrowserEmptyVariant = 'no-data' | 'no-match';
+
+export function classesBrowserHasActiveQuery(options: { search?: string }): boolean {
+  return !!options.search?.trim();
+}
+
+export function resolveClassesBrowserEmptyVariant(options: {
+  totalCount: number;
+  filteredCount: number;
+  hasActiveQuery: boolean;
+}): ClassesBrowserEmptyVariant {
+  if (options.totalCount === 0) return 'no-data';
+  if (options.filteredCount === 0 && options.hasActiveQuery) return 'no-match';
+  return 'no-data';
+}
 
 export interface ClassLevelBucket extends LevelGroup {
   classes: SchoolClass[];

@@ -1,5 +1,10 @@
 'use client';
 
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
 import Link from 'next/link';
 import { useMemo } from 'react';
 import { cn } from '@/lib/utils/cn';
@@ -134,17 +139,30 @@ export function AdminCommandDashboard({
         summary={scopedMode ? t('admin.cmd.scopedOperationsSummary') : t('admin.cmd.operationsSummary')}
         kpis={
           widgets.heroAttendance && hasAttendance ? (
-            <>
-              {ATT_KEYS.map((k) => (
-                <AdminHeroKpi
-                  key={k}
-                  label={t(`attendance.${k === 'left_early' ? 'leftEarly' : k}`)}
-                  value={att?.[k] ?? 0}
-                  tone={ATT_TONE[k]}
-                />
-              ))}
-              <AdminHeroKpi label={t('admin.totalRecorded')} value={totalRecorded} tone="none" />
-            </>
+            widgets.attendanceOperations ? (
+              <span className="admin-hero__kpi admin-hero__kpi--summary">
+                {pct != null ? (
+                  t('admin.cmd.presentRate', { pct: Math.round(pct) })
+                ) : (
+                  <>
+                    <strong>{totalRecorded}</strong>
+                    <span>{t('admin.totalRecorded')}</span>
+                  </>
+                )}
+              </span>
+            ) : (
+              <>
+                {ATT_KEYS.map((k) => (
+                  <AdminHeroKpi
+                    key={k}
+                    label={t(`attendance.${k === 'left_early' ? 'leftEarly' : k}`)}
+                    value={att?.[k] ?? 0}
+                    tone={ATT_TONE[k]}
+                  />
+                ))}
+                <AdminHeroKpi label={t('admin.totalRecorded')} value={totalRecorded} tone="none" />
+              </>
+            )
           ) : (
             <span className="admin-hero__kpi">
               {widgets.heroAttendance ? t('admin.cmd.attendanceUnavailable') : t('admin.cmd.attendanceNoAccess')}

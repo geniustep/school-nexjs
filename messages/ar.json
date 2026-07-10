@@ -798,6 +798,17 @@
         "student_code": "الرقم المدرسي"
       }
     },
+    "studentSearchPicker": {
+      "placeholder": "ابحث عن تلميذ…",
+      "minLengthHint": "أدخل {count} أحرف على الأقل للبحث.",
+      "loading": "جارٍ البحث…",
+      "empty": "لا يوجد تلاميذ مطابقون.",
+      "error": "تعذّر تحميل نتائج البحث.",
+      "matchedOnPrefix": "تطابق عبر: {field}",
+      "clearSearch": "مسح البحث",
+      "clearSelection": "إلغاء الاختيار",
+      "selectedLabel": "التلميذ المختار"
+    },
     "multiSchoolPortfolioPending": "ستتوفر نظرة عامة على كل المدارس عند جاهزية واجهة لوحة المحفظة.",
     "activeSchoolWorking": "تعمل حالياً على: {school}",
     "schoolFallback": "مدرسة #{id}",
@@ -935,15 +946,113 @@
     "academicCenter": "المركز الأكاديمي",
     "academicCenterDesc": "إدارة الواجبات والموارد واستعمال الزمن والامتحانات والنتائج",
     "homeworkListDesc": "كل الواجبات ضمن نطاقك",
+    "homeworksList": {
+      "subtitleWithCount": "{total} واجبًا ضمن نطاقك",
+      "resetFilters": "إعادة ضبط الفلاتر",
+      "clearSearch": "مسح البحث",
+      "refetching": "جاري تحديث النتائج…",
+      "noData": {
+        "title": "لا توجد واجبات بعد",
+        "description": "لم يُنشأ أي واجب ضمن نطاقك بعد."
+      },
+      "noMatch": {
+        "title": "لا توجد نتائج مطابقة",
+        "description": "جرّب تعديل البحث أو الفلاتر، أو أعد ضبطها لعرض كل الواجبات."
+      },
+      "filters": {
+        "chipSearch": "بحث: {query}",
+        "chipClass": "القسم: {className}",
+        "chipStatus": "الحالة: {status}"
+      }
+    },
+
     "resourcesListDesc": "كل الموارد المنشورة",
+    "resourcesList": {
+      "subtitleWithCount": "{total} موردًا ضمن نطاقك",
+      "resetFilters": "إعادة ضبط الفلاتر",
+      "clearType": "مسح فلتر النوع",
+      "typePlaceholder": "تصفية حسب النوع…",
+      "refetching": "جاري تحديث النتائج…",
+      "noData": {
+        "title": "لا توجد موارد بعد",
+        "description": "لم يُنشأ أي مورد تعليمي ضمن نطاقك بعد."
+      },
+      "noMatch": {
+        "title": "لا توجد موارد مطابقة",
+        "description": "جرّب تعديل الفلاتر، أو أعد ضبطها لعرض كل الموارد."
+      },
+      "filters": {
+        "chipClass": "القسم: {className}",
+        "chipStatus": "الحالة: {status}",
+        "chipType": "النوع: {type}"
+      }
+    },
     "timetableDesc": "إدارة حصص استعمال الزمن",
+    "timetableList": {
+      "filtersLabel": "فلاتر استعمال الزمن",
+      "day": "اليوم",
+      "slotsCount": "{count} حصة",
+      "resetFilters": "إعادة ضبط الفلاتر",
+      "noData": {
+        "title": "لا توجد حصص بعد",
+        "description": "ستظهر هنا حصص استعمال الزمن ضمن السياق الحالي للمدرسة."
+      },
+      "noMatch": {
+        "title": "لا توجد حصص مطابقة",
+        "description": "جرّب تعديل الفلاتر، أو أعد ضبطها لعرض كل الحصص."
+      }
+    },
     "examsListDesc": "كل الامتحانات",
+    "examsList": {
+      "subtitleWithCount": "{total} امتحانًا ضمن نطاقك",
+      "resetFilters": "إعادة ضبط الفلاتر",
+      "refetching": "جاري تحديث النتائج…",
+      "noData": {
+        "title": "لا توجد امتحانات بعد",
+        "description": "لم يُنشأ أي امتحان ضمن نطاقك بعد."
+      },
+      "noMatch": {
+        "title": "لا توجد امتحانات مطابقة",
+        "description": "جرّب تعديل الفلاتر، أو أعد ضبطها لعرض كل الامتحانات."
+      },
+      "filters": {
+        "chipClass": "القسم: {className}",
+        "chipStatus": "الحالة: {status}"
+      }
+    },
     "examResultsListDesc": "كل نتائج الامتحانات",
+    "examResultsList": {
+      "subtitleWithCount": "{total} نتيجة امتحان ضمن نطاقك",
+      "resetFilters": "إعادة ضبط الفلاتر",
+      "refetching": "جاري تحديث النتائج…",
+      "noData": {
+        "title": "لا توجد نتائج امتحانات بعد",
+        "description": "لم تُسجَّل أي نتيجة امتحان ضمن نطاقك بعد."
+      },
+      "noMatch": {
+        "title": "لا توجد نتائج مطابقة",
+        "description": "جرّب تعديل الفلاتر، أو أعد ضبطها لعرض كل نتائج الامتحانات."
+      },
+      "filters": {
+        "chipClass": "القسم: {className}",
+        "chipStatus": "الحالة: {status}"
+      }
+    },
     "studentsListDesc": "كل التلاميذ ضمن نطاقك",
     "studentsList": {
       "subtitleWithCount": "{total} تلميذ في نطاقك",
       "resultsCount": "{count} نتيجة",
       "resetFilters": "إعادة الضبط",
+      "clearSearch": "مسح البحث",
+      "refetching": "جاري تحديث النتائج…",
+      "noData": {
+        "title": "لا يوجد تلاميذ بعد",
+        "description": "لم يُسجَّل أي تلميذ ضمن نطاقك حاليًا."
+      },
+      "noMatch": {
+        "title": "لا توجد نتائج مطابقة",
+        "description": "جرّب تعديل البحث أو الفلاتر، أو أعد ضبطها لعرض كل التلاميذ."
+      },
       "applyFilters": "تطبيق الفلاتر",
       "columnStudent": "التلميذ",
       "columnClassLevel": "القسم / المستوى",
@@ -1350,8 +1459,27 @@
     "parentsListDesc": "إدارة أولياء الأمور",
     "parentsList": {
       "subtitleWithCount": "{total} ولي أمر في نطاقك",
-      "resultsCount": "{count} عائلة",
+      "resultsCount": "{count} عائلة في هذه الصفحة",
+      "paginationNote": "الترقيم حسب سجلات الأولياء ({total} إجمالي)",
       "resetFilters": "إعادة ضبط الفلاتر",
+      "clearSearch": "مسح البحث",
+      "refetching": "جارٍ تحديث النتائج…",
+      "childrenCount": "{count, plural, one {تلميذ واحد} two {تلميذان} few {# تلاميذ} many {# تلميذًا} other {# تلميذ}}",
+      "noData": {
+        "title": "لا يوجد أولياء أمور بعد",
+        "description": "لم يُسجَّل أي ولي أمر في نطاقك بعد."
+      },
+      "noMatch": {
+        "title": "لا توجد عائلات مطابقة",
+        "description": "جرّب تعديل البحث أو الفلاتر، أو أعد ضبطها لعرض كل العائلات."
+      },
+      "filters": {
+        "more": "فلاتر إضافية",
+        "hideMore": "إخفاء الفلاتر",
+        "chipStatus": "الحالة: {status}",
+        "chipRelationship": "صلة القرابة: {relationship}",
+        "chipShowGuardianOnly": "عرض الأولياء بدون تلاميذ"
+      },
       "guardiansTitle": "ولي الأمر",
       "filterChildren": "الأبناء",
       "filterChildrenAll": "كل الحالات",
@@ -1371,6 +1499,7 @@
       "pageSubtitle": "استعراض طاقم المدرسة والصلاحيات والتنبيهات التشغيلية.",
       "backToList": "العودة إلى قائمة الطاقم",
       "searchPlaceholder": "بحث بالاسم أو البريد أو اسم الدخول…",
+      "searchNoMatch": "لا يوجد طاقم يطابق البحث الحالي.",
       "emptyTitle": "لا يوجد طاقم",
       "emptyDesc": "لم تُرجع أي سجلات طاقم للمدرسة النشطة.",
       "userTypeLabel": "نوع المستخدم",
@@ -1695,13 +1824,33 @@
       "overviewLabel": "ملخص الأقسام",
       "activeClasses": "أقسام نشطة",
       "searchPlaceholder": "بحث في الأقسام أو المستويات…",
+      "clearSearch": "مسح البحث",
       "journeyHint": "مرتبة حسب المسار الدراسي من التعليم الأولي إلى الثانوي.",
       "journeyLabel": "المسار الدراسي",
-      "noMatch": "لا توجد أقسام تطابق البحث الحالي.",
+      "noData": {
+        "title": "لا توجد أقسام بعد",
+        "description": "لم يُنشأ أي قسم ضمن نطاقك بعد."
+      },
+      "noMatch": {
+        "title": "لا توجد أقسام مطابقة",
+        "description": "جرّب تعديل البحث، أو امسحه لعرض كل الأقسام."
+      },
       "studentCount": "{count} تلميذ",
       "levelMeta": "{classes} أقسام · {students} تلميذ"
     },
     "levelsListDesc": "إدارة المستويات",
+    "levelsBrowser": {
+      "resetFilters": "إعادة ضبط الفلاتر",
+      "clearSearch": "مسح البحث",
+      "noData": {
+        "title": "لا توجد مستويات بعد",
+        "description": "لم يُنشأ أي مستوى ضمن نطاقك بعد."
+      },
+      "noMatch": {
+        "title": "لا توجد مستويات مطابقة",
+        "description": "جرّب تعديل البحث أو الفلاتر، أو أعد ضبطها لعرض كل المستويات."
+      }
+    },
     "subjectsListDesc": "إدارة المواد",
     "subjectsList": {
       "subtitle": "استعرض المواد المفعّلة مع تمييز الرمز والمرحلة لتجنّب التكرار المربك",
@@ -1733,7 +1882,17 @@
       "detailDuplicateBanner": "هذا الاسم يُستخدم في {count} مواد — يُميَّز بالرمز والمرحلة",
       "detailWeeklyHours": "ساعات أسبوعية",
       "assignmentsCountLabel": "إسنادات التدريس",
-      "tierLabel": "المرحلة"
+      "tierLabel": "المرحلة",
+      "resetFilters": "إعادة ضبط الفلاتر",
+      "clearSearch": "مسح البحث",
+      "noData": {
+        "title": "لا توجد مواد بعد",
+        "description": "لم تُفعَّل أي مادة ضمن نطاقك بعد."
+      },
+      "noMatch": {
+        "title": "لا توجد مواد مطابقة",
+        "description": "جرّب تعديل البحث أو الفلاتر، أو أعد ضبطها لعرض كل المواد."
+      }
     },
     "settings": {
       "title": "الإعدادات",
@@ -3640,8 +3799,22 @@
         "showClosed": "إظهار الطلبات المغلقة",
         "hideConverted": "إخفاء المسجلين",
         "reset": "إعادة ضبط الفلاتر",
+        "clearSearch": "مسح البحث",
         "resultsCount": "{count} طلب ظاهر",
-        "hiddenConvertedCount": "{count} محوّل مخفي"
+        "hiddenConvertedCount": "{count} محوّل مخفي",
+        "chipSearch": "بحث: {query}",
+        "chipState": "الحالة: {state}",
+        "chipShowClosed": "الطلبات المغلقة ظاهرة",
+        "chipHideConvertedOff": "المسجّلون ظاهرون"
+      },
+      "refetching": "جاري تحديث النتائج…",
+      "noData": {
+        "title": "لا توجد طلبات بعد",
+        "description": "أنشئ طلب تسجيل جديد للبدء."
+      },
+      "noMatch": {
+        "title": "لا توجد نتائج مطابقة",
+        "description": "جرّب تعديل البحث أو الفلاتر، أو أعد ضبطها لعرض كل الطلبات."
       },
       "empty": {
         "title": "لا توجد طلبات",

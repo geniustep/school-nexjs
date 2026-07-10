@@ -1,5 +1,13 @@
 'use client';
 
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ *
+ * Admin operational timetable — DataTable + client filters + inline create/update.
+ * Scheduling semantics, payloads, conflict validation, and endpoints are unchanged.
+ */
+
 import { useMemo, useState } from 'react';
 import { api } from '@/lib/api/client';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
@@ -13,13 +21,19 @@ import { useToast } from '@/components/ui/toast';
 import { useT } from '@/features/i18n/locale-context';
 import { ConfirmActionButton } from '@/features/admin/confirm-action-button';
 import { endpoints } from '@/lib/api/endpoints';
-import { formatTimeRange } from '@/features/timetable/utils';
+import {
+  TIMETABLE_ADMIN_DAYS,
+  filterTimetableSlots,
+  presentTimetableDay,
+  presentTimetableTimeRange,
+  resolveTimetableEmptyVariant,
+  timetableHasActiveFilters,
+} from '@/features/admin/timetable/utils/timetable-list-present';
 import type { TimetableSlot } from '@/types/timetable';
 import type { Ref } from '@/types/api';
 import type { SchoolClass } from '@/types/class';
 import type { Teacher } from '@/types/teacher';
-
-const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as const;
+import '@/features/admin/timetable/admin-timetable.css';
 
 export function AdminTimetablePanel() {
   const user = useSession();
@@ -41,11 +55,33 @@ export function AdminTimetablePanel() {
   const [classId, setClassId] = useState('');
   const [subjectId, setSubjectId] = useState('');
   const [teacherId, setTeacherId] = useState('');
-  const [day, setDay] = useState<(typeof DAYS)[number]>('monday');
+  const [day, setDay] = useState<(typeof TIMETABLE_ADMIN_DAYS)[number]>('monday');
   const [startTime, setStartTime] = useState('08:30');
   const [endTime, setEndTime] = useState('10:00');
   const [room, setRoom] = useState('');
   const [editId, setEditId] = useState<number | null>(null);
+
+  const hasActiveFilters = timetableHasActiveFilters({
+    classFilter,
+    teacherFilter,
+    dayFilter,
+  });
+
+  function resetFilters() {
+    setClassFilter('');
+    setTeacherFilter('');
+    setDayFilter('');
+  }
+
+  function resetFormFields() {
+    setClassId('');
+    setSubjectId('');
+    setTeacherId('');
+    setDay('monday');
+    setStartTime('08:30');
+    setEndTime('10:00');
+    setRoom('');
+  }
 
   function startEdit(slot: TimetableSlot) {
     setEditId(slot.id);
@@ -57,6 +93,22 @@ export function AdminTimetablePanel() {
     setStartTime(slot.start_time ?? '08:30');
     setEndTime(slot.end_time ?? '10:00');
     setRoom(slot.room ?? '');
+  }
+
+  function cancelEdit() {
+    setEditId(null);
+    resetFormFields();
+  }
+
+  function toggleCreateForm() {
+    setShowForm((open) => {
+      const next = !open;
+      if (next) {
+        setEditId(null);
+        resetFormFields();
+      }
+      return next;
+    });
   }
 
   async function updateSlot(e: React.FormEvent) {
@@ -76,68 +128,12 @@ export function AdminTimetablePanel() {
     if (res.success) {
       toast.success(t('admin.saveSuccess'));
       setEditId(null);
+      resetFormFields();
       state.reload();
     } else {
       toast.error(res.error.message);
     }
   }
-
-  const filtered = useMemo(() => {
-    const rows = state.data ?? [];
-    return rows.filter((slot) => {
-      if (classFilter && String(slot.class?.id) !== classFilter) return false;
-      if (teacherFilter && String(slot.teacher?.id) !== teacherFilter) return false;
-      if (dayFilter && slot.day !== dayFilter) return false;
-      return true;
-    });
-  }, [state.data, classFilter, teacherFilter, dayFilter]);
-
-  const columns: Column<TimetableSlot>[] = [
-    {
-      key: 'day',
-      header: t('academic.date'),
-      render: (s) => s.day_label ?? s.day ?? t('common.dash'),
-    },
-    {
-      key: 'time',
-      header: t('academic.time'),
-      render: (s) => formatTimeRange(s.start_time, s.end_time),
-    },
-    { key: 'class', header: t('nav.classes'), render: (s) => s.class?.name ?? t('common.dash') },
-    {
-      key: 'subject',
-      header: t('academic.subject'),
-      render: (s) => s.subject?.name ?? t('common.dash'),
-    },
-    {
-      key: 'teacher',
-      header: t('academic.teacher'),
-      render: (s) => s.teacher?.name ?? t('common.dash'),
-    },
-    { key: 'room', header: t('academic.room'), render: (s) => s.room ?? t('common.dash') },
-    ...(canManage
-      ? [
-          {
-            key: 'actions',
-            header: t('admin.actions'),
-            render: (s: TimetableSlot) => (
-              <div className="row" style={{ gap: 6, flexWrap: 'wrap' }}>
-                <button type="button" className="btn btn--ghost btn--sm" onClick={() => startEdit(s)}>
-                  {t('common.edit')}
-                </button>
-                <ConfirmActionButton
-                  label={t('admin.archive')}
-                  confirmMessage={t('admin.confirmArchiveSlot')}
-                  path={endpoints.admin.timetableSlotArchive(s.id)}
-                  variant="danger"
-                  onSuccess={() => state.reload()}
-                />
-              </div>
-            ),
-          } as Column<TimetableSlot>,
-        ]
-      : []),
-  ];
 
   async function createSlot(e: React.FormEvent) {
     e.preventDefault();
@@ -159,111 +155,153 @@ export function AdminTimetablePanel() {
     if (res.success) {
       toast.success(t('admin.saveSuccess'));
       setShowForm(false);
+      resetFormFields();
       state.reload();
     } else {
       toast.error(res.error.message);
     }
   }
 
+  const filtered = useMemo(
+    () =>
+      filterTimetableSlots(state.data ?? [], {
+        classFilter,
+        teacherFilter,
+        dayFilter,
+      }),
+    [state.data, classFilter, teacherFilter, dayFilter],
+  );
+
+  const emptyVariant = resolveTimetableEmptyVariant({ hasActiveFilters });
+
+  const columns: Column<TimetableSlot>[] = [
+    {
+      key: 'day',
+      header: t('academic.date'),
+      render: (s) => (
+        <span className="admin-timetable-panel__day" dir="auto" title={presentTimetableDay(s, t, t('common.dash'))}>
+          {presentTimetableDay(s, t, t('common.dash'))}
+        </span>
+      ),
+    },
+    {
+      key: 'time',
+      header: t('academic.time'),
+      render: (s) => (
+        <span className="admin-timetable-panel__time mono" dir="ltr">
+          {presentTimetableTimeRange(s.start_time, s.end_time, t('common.dash'))}
+        </span>
+      ),
+    },
+    {
+      key: 'class',
+      header: t('nav.classes'),
+      render: (s) => (
+        <span className="admin-timetable-panel__name" dir="auto" title={s.class?.name ?? undefined}>
+          {s.class?.name ?? t('common.dash')}
+        </span>
+      ),
+    },
+    {
+      key: 'subject',
+      header: t('academic.subject'),
+      render: (s) => (
+        <span className="admin-timetable-panel__name" dir="auto" title={s.subject?.name ?? undefined}>
+          {s.subject?.name ?? t('common.dash')}
+        </span>
+      ),
+    },
+    {
+      key: 'teacher',
+      header: t('academic.teacher'),
+      render: (s) => (
+        <span className="admin-timetable-panel__name" dir="auto" title={s.teacher?.name ?? undefined}>
+          {s.teacher?.name ?? t('common.dash')}
+        </span>
+      ),
+    },
+    {
+      key: 'room',
+      header: t('academic.room'),
+      render: (s) => (
+        <span className="admin-timetable-panel__room" dir="auto">
+          {s.room ?? t('common.dash')}
+        </span>
+      ),
+    },
+    ...(canManage
+      ? [
+          {
+            key: 'actions',
+            header: t('admin.actions'),
+            render: (s: TimetableSlot) => (
+              <div className="admin-timetable-panel__row-actions">
+                <button
+                  type="button"
+                  className="btn btn--ghost btn--sm"
+                  onClick={() => startEdit(s)}
+                >
+                  {t('common.edit')}
+                </button>
+                <ConfirmActionButton
+                  label={t('admin.archive')}
+                  confirmMessage={t('admin.confirmArchiveSlot')}
+                  path={endpoints.admin.timetableSlotArchive(s.id)}
+                  variant="danger"
+                  onSuccess={() => state.reload()}
+                />
+              </div>
+            ),
+          } as Column<TimetableSlot>,
+        ]
+      : []),
+  ];
+
   const classes = classesState.data ?? [];
   const subjects = subjectsState.data ?? [];
   const teachers = teachersState.data ?? [];
 
-  return (
-    <>
-      <form
-        className="toolbar"
-        onSubmit={(e) => {
-          e.preventDefault();
-        }}
-      >
-        <select className="input" value={classFilter} onChange={(e) => setClassFilter(e.target.value)}>
-          <option value="">{t('admin.allClasses')}</option>
-          {classes.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-        <select
-          className="input"
-          value={teacherFilter}
-          onChange={(e) => setTeacherFilter(e.target.value)}
-        >
-          <option value="">{t('admin.allTeachers')}</option>
-          {teachers.map((te) => (
-            <option key={te.id} value={te.id}>
-              {te.name}
-            </option>
-          ))}
-        </select>
-        <select className="input" value={dayFilter} onChange={(e) => setDayFilter(e.target.value)}>
-          <option value="">{t('admin.allDays')}</option>
-          {DAYS.map((d) => (
-            <option key={d} value={d}>
-              {t(`days.${d}`)}
-            </option>
-          ))}
-        </select>
-        <button
-          type="button"
-          className="btn btn--primary btn--sm"
-          onClick={() => setShowForm((v) => !v)}
-        >
-          {showForm ? t('common.cancel') : t('admin.addSlot')}
-        </button>
-      </form>
+  const listEmpty =
+    emptyVariant === 'no-match' ? (
+      <EmptyState
+        icon="📅"
+        title={t('admin.timetableList.noMatch.title')}
+        description={t('admin.timetableList.noMatch.description')}
+        action={
+          <button type="button" className="btn btn--ghost btn--sm" onClick={resetFilters}>
+            {t('admin.timetableList.resetFilters')}
+          </button>
+        }
+      />
+    ) : (
+      <EmptyState
+        icon="📅"
+        title={t('admin.timetableList.noData.title')}
+        description={t('admin.timetableList.noData.description')}
+      />
+    );
 
-      {editId && (
-        <Card className="mb-2">
-          <SectionHead title={t('admin.editSlot')} />
-          <form className="col mt-2" style={{ gap: 12 }} onSubmit={updateSlot}>
-            <div className="row" style={{ gap: 12, flexWrap: 'wrap' }}>
-              <select className="input" value={classId} onChange={(e) => setClassId(e.target.value)}>
-                <option value="">{t('admin.selectClass')}</option>
-                {classes.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-              <select className="input" value={subjectId} onChange={(e) => setSubjectId(e.target.value)}>
-                <option value="">{t('admin.selectSubject')}</option>
-                {subjects.map((s) => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
-              </select>
-              <select className="input" value={teacherId} onChange={(e) => setTeacherId(e.target.value)}>
-                <option value="">{t('admin.selectTeacher')}</option>
-                {teachers.map((te) => (
-                  <option key={te.id} value={te.id}>{te.name}</option>
-                ))}
-              </select>
-              <select className="input" value={day} onChange={(e) => setDay(e.target.value as typeof day)}>
-                {DAYS.map((d) => (
-                  <option key={d} value={d}>{t(`days.${d}`)}</option>
-                ))}
-              </select>
-              <input className="input" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
-              <input className="input" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
-              <input className="input" placeholder={t('academic.room')} value={room} onChange={(e) => setRoom(e.target.value)} />
-            </div>
-            <div className="row" style={{ gap: 8 }}>
-              <button type="submit" className="btn btn--primary btn--sm" disabled={saving}>
-                {saving ? t('common.saving') : t('common.save')}
-              </button>
-              <button type="button" className="btn btn--ghost btn--sm" onClick={() => setEditId(null)}>
-                {t('common.cancel')}
-              </button>
-            </div>
-          </form>
-        </Card>
-      )}
+  function renderSlotForm(mode: 'create' | 'edit') {
+    const onSubmit = mode === 'create' ? createSlot : updateSlot;
+    const requireCore = mode === 'create';
 
-      {canManage && showForm && (
-        <Card className="mb-2">
-          <SectionHead title={t('admin.addSlot')} />
-          <form className="col mt-2" style={{ gap: 12 }} onSubmit={createSlot}>
-            <div className="row" style={{ gap: 12, flexWrap: 'wrap' }}>
-              <select className="input" value={classId} onChange={(e) => setClassId(e.target.value)} required>
+    return (
+      <Card className="admin-timetable-panel__form-card">
+        <SectionHead title={mode === 'create' ? t('admin.addSlot') : t('admin.editSlot')} />
+        <form className="admin-timetable-panel__form" onSubmit={onSubmit}>
+          <div className="admin-timetable-panel__form-grid">
+            <div className="admin-timetable-panel__form-field">
+              <label htmlFor={`timetable-${mode}-class`}>
+                {t('admin.selectClass')}
+                {requireCore ? <span className="admin-timetable-panel__required" aria-hidden>*</span> : null}
+              </label>
+              <select
+                id={`timetable-${mode}-class`}
+                className="input"
+                value={classId}
+                onChange={(e) => setClassId(e.target.value)}
+                required={requireCore}
+              >
                 <option value="">{t('admin.selectClass')}</option>
                 {classes.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -271,11 +309,19 @@ export function AdminTimetablePanel() {
                   </option>
                 ))}
               </select>
+            </div>
+
+            <div className="admin-timetable-panel__form-field">
+              <label htmlFor={`timetable-${mode}-subject`}>
+                {t('admin.selectSubject')}
+                {requireCore ? <span className="admin-timetable-panel__required" aria-hidden>*</span> : null}
+              </label>
               <select
+                id={`timetable-${mode}-subject`}
                 className="input"
                 value={subjectId}
                 onChange={(e) => setSubjectId(e.target.value)}
-                required
+                required={requireCore}
               >
                 <option value="">{t('admin.selectSubject')}</option>
                 {subjects.map((s) => (
@@ -284,11 +330,19 @@ export function AdminTimetablePanel() {
                   </option>
                 ))}
               </select>
+            </div>
+
+            <div className="admin-timetable-panel__form-field">
+              <label htmlFor={`timetable-${mode}-teacher`}>
+                {t('admin.selectTeacher')}
+                {requireCore ? <span className="admin-timetable-panel__required" aria-hidden>*</span> : null}
+              </label>
               <select
+                id={`timetable-${mode}-teacher`}
                 className="input"
                 value={teacherId}
                 onChange={(e) => setTeacherId(e.target.value)}
-                required
+                required={requireCore}
               >
                 <option value="">{t('admin.selectTeacher')}</option>
                 {teachers.map((te) => (
@@ -297,51 +351,182 @@ export function AdminTimetablePanel() {
                   </option>
                 ))}
               </select>
-              <select className="input" value={day} onChange={(e) => setDay(e.target.value as typeof day)}>
-                {DAYS.map((d) => (
+            </div>
+
+            <div className="admin-timetable-panel__form-field">
+              <label htmlFor={`timetable-${mode}-day`}>{t('admin.timetableList.day')}</label>
+              <select
+                id={`timetable-${mode}-day`}
+                className="input"
+                value={day}
+                onChange={(e) => setDay(e.target.value as typeof day)}
+              >
+                {TIMETABLE_ADMIN_DAYS.map((d) => (
                   <option key={d} value={d}>
                     {t(`days.${d}`)}
                   </option>
                 ))}
               </select>
+            </div>
+
+            <div className="admin-timetable-panel__form-field">
+              <label htmlFor={`timetable-${mode}-start`}>{t('academic.startTime')}</label>
               <input
+                id={`timetable-${mode}-start`}
                 className="input"
                 type="time"
+                dir="ltr"
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
               />
+            </div>
+
+            <div className="admin-timetable-panel__form-field">
+              <label htmlFor={`timetable-${mode}-end`}>{t('academic.endTime')}</label>
               <input
+                id={`timetable-${mode}-end`}
                 className="input"
                 type="time"
+                dir="ltr"
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
               />
+            </div>
+
+            <div className="admin-timetable-panel__form-field">
+              <label htmlFor={`timetable-${mode}-room`}>{t('academic.room')}</label>
               <input
+                id={`timetable-${mode}-room`}
                 className="input"
-                placeholder={t('academic.room')}
+                dir="auto"
                 value={room}
                 onChange={(e) => setRoom(e.target.value)}
+                placeholder={t('academic.room')}
               />
             </div>
+          </div>
+
+          <div className="admin-timetable-panel__form-actions">
             <button type="submit" className="btn btn--primary btn--sm" disabled={saving}>
               {saving ? t('common.saving') : t('common.save')}
             </button>
-          </form>
-        </Card>
-      )}
+            <button
+              type="button"
+              className="btn btn--ghost btn--sm"
+              disabled={saving}
+              onClick={() => {
+                if (mode === 'create') {
+                  setShowForm(false);
+                  resetFormFields();
+                } else {
+                  cancelEdit();
+                }
+              }}
+            >
+              {t('common.cancel')}
+            </button>
+          </div>
+        </form>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="admin-timetable-panel">
+      <div className="admin-timetable-panel__context">
+        <div className="admin-timetable-panel__context-meta">
+          <span className="admin-timetable-panel__count" dir="ltr">
+            {t('admin.timetableList.slotsCount', { count: filtered.length })}
+          </span>
+        </div>
+      </div>
+
+      <div className="admin-timetable-panel__filters toolbar" role="group" aria-label={t('admin.timetableList.filtersLabel')}>
+        <div className="admin-timetable-panel__filter">
+          <label htmlFor="timetable-filter-class">{t('nav.classes')}</label>
+          <select
+            id="timetable-filter-class"
+            className="input"
+            value={classFilter}
+            onChange={(e) => setClassFilter(e.target.value)}
+          >
+            <option value="">{t('admin.allClasses')}</option>
+            {classes.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="admin-timetable-panel__filter">
+          <label htmlFor="timetable-filter-teacher">{t('nav.teachers')}</label>
+          <select
+            id="timetable-filter-teacher"
+            className="input"
+            value={teacherFilter}
+            onChange={(e) => setTeacherFilter(e.target.value)}
+          >
+            <option value="">{t('admin.allTeachers')}</option>
+            {teachers.map((te) => (
+              <option key={te.id} value={te.id}>
+                {te.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="admin-timetable-panel__filter">
+          <label htmlFor="timetable-filter-day">{t('admin.timetableList.day')}</label>
+          <select
+            id="timetable-filter-day"
+            className="input"
+            value={dayFilter}
+            onChange={(e) => setDayFilter(e.target.value)}
+          >
+            <option value="">{t('admin.allDays')}</option>
+            {TIMETABLE_ADMIN_DAYS.map((d) => (
+              <option key={d} value={d}>
+                {t(`days.${d}`)}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="admin-timetable-panel__filter-actions">
+          {hasActiveFilters ? (
+            <button type="button" className="btn btn--ghost btn--sm" onClick={resetFilters}>
+              {t('admin.timetableList.resetFilters')}
+            </button>
+          ) : null}
+          {canManage ? (
+            <button
+              type="button"
+              className="btn btn--primary btn--sm"
+              onClick={toggleCreateForm}
+              aria-expanded={showForm}
+            >
+              {showForm ? t('common.cancel') : t('admin.addSlot')}
+            </button>
+          ) : null}
+        </div>
+      </div>
+
+      {editId ? renderSlotForm('edit') : null}
+      {canManage && showForm ? renderSlotForm('create') : null}
 
       <ResourceView
         state={state}
         loadingLabel={t('timetable.loadingWeek')}
         isEmpty={() => filtered.length === 0}
-        empty={<EmptyState icon="📅" title={t('empty.timetableWeek')} />}
+        empty={listEmpty}
       >
         {() => (
-          <Card pad={false}>
+          <Card pad={false} className="admin-timetable-panel__table-wrap">
             <DataTable columns={columns} rows={filtered} rowKey={(s) => s.id} />
           </Card>
         )}
       </ResourceView>
-    </>
+    </div>
   );
 }

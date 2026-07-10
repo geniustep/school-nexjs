@@ -1,5 +1,10 @@
 'use client';
 
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
 import Link from 'next/link';
 import { useMemo, type ReactNode } from 'react';
 import { cn } from '@/lib/utils/cn';
@@ -394,6 +399,7 @@ function ExecutiveDirectorView({
       hint?: string;
       tone?: ExecutiveTone;
       badge?: string;
+      badgeTone?: 'green' | 'amber' | 'slate';
       empty?: boolean;
       href?: string;
     };
@@ -475,6 +481,7 @@ function ExecutiveDirectorView({
     }
 
     if (widgets.financeSummary) {
+      const financeDetailPanelVisible = widgets.financeSummary;
       const financeLoading =
         executivePending ||
         (executiveAvailable
@@ -489,19 +496,21 @@ function ExecutiveDirectorView({
           hint: t('common.loading'),
         });
       } else if (executiveFinance) {
-        cards.push({
-          id: 'collected',
-          label: t('admin.executive.kpiCollected'),
-          value: (
-            <ExecutiveKpiMoney
-              amount={executiveFinance.collected_month}
-              currency={executiveFinance.currency}
-            />
-          ),
-          hint: t('admin.executive.kpiCollectedHint'),
-          tone: 'green',
-          href: '/admin/finance/collections',
-        });
+        if (!financeDetailPanelVisible) {
+          cards.push({
+            id: 'collected',
+            label: t('admin.executive.kpiCollected'),
+            value: (
+              <ExecutiveKpiMoney
+                amount={executiveFinance.collected_month}
+                currency={executiveFinance.currency}
+              />
+            ),
+            hint: t('admin.executive.kpiCollectedHint'),
+            tone: 'green',
+            href: '/admin/finance/collections',
+          });
+        }
         cards.push({
           id: 'overdue',
           label: t('admin.executive.kpiOverdue'),
@@ -529,7 +538,7 @@ function ExecutiveDirectorView({
           financeTotals.collections_amount ??
           financeTotals.total_collected_period ??
           financeTotals.total_collected;
-        if (collected != null) {
+        if (!financeDetailPanelVisible && collected != null) {
           cards.push({
             id: 'collected',
             label: t('admin.executive.kpiCollected'),
@@ -538,7 +547,7 @@ function ExecutiveDirectorView({
             tone: 'green',
             href: '/admin/finance/collections',
           });
-        } else {
+        } else if (!financeDetailPanelVisible) {
           cards.push({
             id: 'collected',
             label: t('admin.executive.kpiCollected'),
@@ -566,13 +575,15 @@ function ExecutiveDirectorView({
           href: overdue != null && overdue > 0 ? '/admin/finance/installments?status=overdue' : '/admin/finance',
         });
       } else if (executiveAvailable) {
-        cards.push({
-          id: 'collected',
-          label: t('admin.executive.kpiCollected'),
-          value: '—',
-          hint: t('admin.executive.financeUnavailable'),
-          empty: true,
-        });
+        if (!financeDetailPanelVisible) {
+          cards.push({
+            id: 'collected',
+            label: t('admin.executive.kpiCollected'),
+            value: '—',
+            hint: t('admin.executive.financeUnavailable'),
+            empty: true,
+          });
+        }
         cards.push({
           id: 'overdue',
           label: t('admin.executive.kpiOverdue'),
@@ -581,13 +592,15 @@ function ExecutiveDirectorView({
           empty: true,
         });
       } else {
-        cards.push({
-          id: 'collected',
-          label: t('admin.executive.kpiCollected'),
-          value: '—',
-          hint: t('admin.executive.financePendingActivation'),
-          empty: true,
-        });
+        if (!financeDetailPanelVisible) {
+          cards.push({
+            id: 'collected',
+            label: t('admin.executive.kpiCollected'),
+            value: '—',
+            hint: t('admin.executive.financePendingActivation'),
+            empty: true,
+          });
+        }
       }
     }
 
@@ -626,6 +639,7 @@ function ExecutiveDirectorView({
         : interventionCount > 0
           ? t('admin.executive.kpiInterventionActive')
           : t('admin.executive.kpiInterventionClear'),
+      badgeTone: executivePending ? 'slate' : interventionCount > 0 ? 'amber' : 'green',
       hint: executivePending ? t('common.loading') : t('admin.executive.kpiInterventionHint'),
     });
 
@@ -729,6 +743,7 @@ function ExecutiveDirectorView({
               value={card.value}
               hint={card.hint}
               badge={card.badge}
+              badgeTone={card.badgeTone}
               tone={card.tone ?? 'neutral'}
               href={card.href}
               empty={card.empty}

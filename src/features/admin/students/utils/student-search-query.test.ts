@@ -1,10 +1,13 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import {
   buildStudentSearchQueryParams,
+  buildStudentsListQueryParams,
   executeStudentSearchQuery,
   fetchStudentSearchHits,
+  normalizeStudentSearchQuery,
   parseStudentSearchSuggestion,
   shouldFetchStudentSearch,
+  STUDENT_LIST_PAGE_SIZE,
   STUDENT_SEARCH_MIN_QUERY_LENGTH,
   STUDENT_SEARCH_PAGE,
   STUDENT_SEARCH_PAGE_SIZE,
@@ -51,6 +54,45 @@ describe('shouldFetchStudentSearch', () => {
   it('allows fetch when query meets minimum length', () => {
     expect(shouldFetchStudentSearch('ab')).toBe(true);
     expect(shouldFetchStudentSearch('عبد')).toBe(true);
+  });
+});
+
+describe('buildStudentsListQueryParams', () => {
+  it('uses the same search param normalization as Spotlight', () => {
+    const params = buildStudentsListQueryParams({
+      search: '  ali  ',
+      classId: '9',
+      levelId: '5',
+      statusFilter: 'active',
+      accountFilter: 'inactive_account',
+      page: 2,
+    });
+
+    expect(params).toEqual({
+      page: 2,
+      page_size: STUDENT_LIST_PAGE_SIZE,
+      search: 'ali',
+      class_id: '9',
+      level_id: '5',
+      status: 'active',
+      account_status: 'inactive',
+    });
+    expect(normalizeStudentSearchQuery('  ali  ')).toBe(
+      buildStudentSearchQueryParams('  ali  ', 1).search,
+    );
+  });
+
+  it('omits empty search to match list semantics', () => {
+    expect(
+      buildStudentsListQueryParams({
+        search: '',
+        classId: '',
+        levelId: '',
+        statusFilter: '',
+        accountFilter: '',
+        page: 1,
+      }).search,
+    ).toBeUndefined();
   });
 });
 

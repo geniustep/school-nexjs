@@ -4,6 +4,8 @@ import {
   filterLevelsByCycle,
   filterLevelsForSearch,
   groupLevelsListByCycle,
+  levelsBrowserHasActiveQuery,
+  resolveLevelsBrowserEmptyVariant,
 } from './levels-list-utils';
 import type { Level } from '@/types/class';
 
@@ -58,5 +60,13 @@ describe('levels-list-utils', () => {
     const groups = groupLevelsListByCycle(levels);
     expect(groups).toHaveLength(2);
     expect(groups[0].levels[0].code).toBe('P1');
+  });
+
+  it('detects active query and separates no-data from no-match', () => {
+    expect(levelsBrowserHasActiveQuery({})).toBe(false);
+    expect(levelsBrowserHasActiveQuery({ search: 'p1' })).toBe(true);
+    expect(levelsBrowserHasActiveQuery({ cycleFilter: 'primary' })).toBe(true);
+    expect(resolveLevelsBrowserEmptyVariant({ hasActiveQuery: false })).toBe('no-data');
+    expect(resolveLevelsBrowserEmptyVariant({ hasActiveQuery: true })).toBe('no-match');
   });
 });

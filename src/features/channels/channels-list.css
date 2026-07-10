@@ -1,0 +1,101 @@
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
+.channels-list-page {
+  max-width: min(100%, 1200px);
+  margin-inline: auto;
+  width: 100%;
+}
+
+.channels-list__grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+}
+
+.channels-list__card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  text-align: start;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.channels-list__card:hover {
+  box-shadow: var(--shadow);
+  border-color: #bfdbfe;
+}
+
+.channels-list__card:focus-visible {
+  outline: 2px solid var(--c-primary);
+  outline-offset: 2px;
+}
+
+.channels-list__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-block-end: 8px;
+}
+
+.channels-list__name {
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.35;
+  min-width: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.channels-list__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-block-end: 8px;
+}
+
+.channels-list__description {
+  margin-block: 0 8px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.channels-list__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  margin-block-start: auto;
+}
+
+.channels-list__meta-count {
+  font-variant-numeric: tabular-nums;
+}
+
+.channels-list__meta-sep {
+  color: var(--c-text-faint, #94a3b8);
+}
+
+.channels-list__meta-activity {
+  min-width: 0;
+}
+
+@media (max-width: 720px) {
+  .channels-list__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .channels-list__card {
+    min-block-size: 44px;
+  }
+}

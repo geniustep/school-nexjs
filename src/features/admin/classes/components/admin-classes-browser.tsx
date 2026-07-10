@@ -1,5 +1,10 @@
 'use client';
 
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -12,9 +17,11 @@ import {
   normalizeCycleCode,
 } from '@/features/admin/academic-setup/utils/group-and-sort-levels';
 import {
+  classesBrowserHasActiveQuery,
   computeClassesOverview,
   filterClassesForSearch,
   groupClassesByCycle,
+  resolveClassesBrowserEmptyVariant,
   type GroupedClassesByCycle,
 } from '@/features/admin/classes/utils/group-classes-by-level';
 import { useLocale, useT } from '@/features/i18n/locale-context';
@@ -80,7 +87,9 @@ function ClassCard({
       onClick={() => onNavigate(cls.id)}
     >
       <div className="classes-browser__class-card-head">
-        <strong className="classes-browser__class-name">{label.primary}</strong>
+        <strong className="classes-browser__class-name" dir="auto" title={label.primary}>
+          {label.primary}
+        </strong>
         <Badge tone={isActive ? 'green' : 'slate'}>{statusLabel(t, cls.status)}</Badge>
       </div>
 
@@ -91,7 +100,9 @@ function ClassCard({
       ) : null}
 
       {cls.track?.name ? (
-        <span className="classes-browser__class-track">{cls.track.name}</span>
+        <span className="classes-browser__class-track" dir="auto" title={cls.track.name}>
+          {cls.track.name}
+        </span>
       ) : null}
 
       <div className="classes-browser__class-stats">
@@ -99,13 +110,13 @@ function ClassCard({
           <span className="classes-browser__class-students-icon" aria-hidden>
             👥
           </span>
-          <span className="mono">
+          <span className="mono" dir="ltr">
             {cls.student_count ?? 0}
             {cls.capacity ? ` / ${cls.capacity}` : ''}
           </span>
         </span>
         {cls.teachers?.length ? (
-          <span className="classes-browser__class-teachers mono">
+          <span className="classes-browser__class-teachers mono" dir="ltr">
             {cls.teachers.length} {t('nav.teachers')}
           </span>
         ) : null}
@@ -150,7 +161,12 @@ export function AdminClassesBrowser({
     [filteredClasses, grouped],
   );
 
-  const searchActive = debouncedSearch.trim().length > 0;
+  const searchActive = classesBrowserHasActiveQuery({ search: debouncedSearch });
+  const emptyVariant = resolveClassesBrowserEmptyVariant({
+    totalCount: classes.length,
+    filteredCount: filteredClasses.length,
+    hasActiveQuery: searchActive,
+  });
 
   useEffect(() => {
     const mq = window.matchMedia(MOBILE_MEDIA);
@@ -188,8 +204,14 @@ export function AdminClassesBrowser({
     });
   }
 
-  if (!classes.length) {
-    return <EmptyState icon="🏫" title={t('empty.classes')} />;
+  if (emptyVariant === 'no-data' && !classes.length) {
+    return (
+      <EmptyState
+        icon="🏫"
+        title={t('admin.classesBrowser.noData.title')}
+        description={t('admin.classesBrowser.noData.description')}
+      />
+    );
   }
 
   return (
@@ -197,19 +219,27 @@ export function AdminClassesBrowser({
       <div className="classes-browser__toolbar">
         <div className="classes-browser__overview" aria-label={t('admin.classesBrowser.overviewLabel')}>
           <div className="classes-browser__stat">
-            <span className="classes-browser__stat-value">{overview.classCount}</span>
+            <span className="classes-browser__stat-value" dir="ltr">
+              {overview.classCount}
+            </span>
             <span className="classes-browser__stat-label">{t('nav.classes')}</span>
           </div>
           <div className="classes-browser__stat">
-            <span className="classes-browser__stat-value">{overview.levelCount}</span>
+            <span className="classes-browser__stat-value" dir="ltr">
+              {overview.levelCount}
+            </span>
             <span className="classes-browser__stat-label">{t('nav.levels')}</span>
           </div>
           <div className="classes-browser__stat">
-            <span className="classes-browser__stat-value">{overview.studentCount}</span>
+            <span className="classes-browser__stat-value" dir="ltr">
+              {overview.studentCount}
+            </span>
             <span className="classes-browser__stat-label">{t('nav.students')}</span>
           </div>
           <div className="classes-browser__stat">
-            <span className="classes-browser__stat-value">{overview.activeCount}</span>
+            <span className="classes-browser__stat-value" dir="ltr">
+              {overview.activeCount}
+            </span>
             <span className="classes-browser__stat-label">{t('admin.classesBrowser.activeClasses')}</span>
           </div>
         </div>
@@ -225,13 +255,17 @@ export function AdminClassesBrowser({
             onChange={(event) => setSearch(event.target.value)}
             placeholder={t('admin.classesBrowser.searchPlaceholder')}
             aria-label={t('common.search')}
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
+            dir="auto"
           />
           {search ? (
             <button
               type="button"
               className="classes-browser__search-clear"
               onClick={() => setSearch('')}
-              aria-label={t('common.clear')}
+              aria-label={t('admin.classesBrowser.clearSearch')}
             >
               ×
             </button>
@@ -260,8 +294,8 @@ export function AdminClassesBrowser({
                   {visual.icon}
                 </span>
                 <span className="classes-browser__journey-copy">
-                  <strong>{cycleTitle(section.cycle, t)}</strong>
-                  <span>{section.classCount}</span>
+                  <strong dir="auto">{cycleTitle(section.cycle, t)}</strong>
+                  <span dir="ltr">{section.classCount}</span>
                 </span>
               </button>
             );
@@ -272,8 +306,15 @@ export function AdminClassesBrowser({
       {!grouped.length ? (
         <EmptyState
           icon="🔍"
-          title={t('admin.classesBrowser.noMatch')}
-          description={t('admin.academicSetup.levelsFilterEmpty')}
+          title={t('admin.classesBrowser.noMatch.title')}
+          description={t('admin.classesBrowser.noMatch.description')}
+          action={
+            searchActive ? (
+              <button type="button" className="btn btn--ghost btn--sm" onClick={() => setSearch('')}>
+                {t('admin.classesBrowser.clearSearch')}
+              </button>
+            ) : undefined
+          }
         />
       ) : (
         <div className="classes-browser__cycles">
@@ -306,7 +347,7 @@ export function AdminClassesBrowser({
                       {visual.icon}
                     </span>
                     <span className="classes-browser__cycle-copy">
-                      <strong className="classes-browser__cycle-title">
+                      <strong className="classes-browser__cycle-title" dir="auto">
                         {cycleTitle(section.cycle, t)}
                       </strong>
                       <span className="classes-browser__cycle-stats">
@@ -332,6 +373,8 @@ export function AdminClassesBrowser({
                               <Link
                                 href={`/admin/levels/${levelGroup.id}`}
                                 className="classes-browser__level-title"
+                                dir="auto"
+                                title={levelLabel.primary}
                                 onClick={(event) => event.stopPropagation()}
                               >
                                 {levelLabel.primary}

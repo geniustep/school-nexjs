@@ -1,5 +1,10 @@
 'use client';
 
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
 import {
   createContext,
   useCallback,
@@ -91,10 +96,16 @@ export function AdminStudentSpotlightTrigger({
       )}
       onClick={openAndFocus}
       aria-label={t('admin.spotlight.openButton')}
+      title={t('admin.spotlight.openButton')}
     >
-      <IconSearch size={18} />
+      <IconSearch size={18} aria-hidden="true" />
       {!isMobile ? (
-        <span className="student-spotlight-trigger__kbd">{t('admin.spotlight.shortcutLabel')}</span>
+        <>
+          <span className="student-spotlight-trigger__label">{t('admin.spotlight.openButton')}</span>
+          <span className="student-spotlight-trigger__kbd" aria-hidden="true">
+            {t('admin.spotlight.shortcutLabel')}
+          </span>
+        </>
       ) : null}
     </button>
   );

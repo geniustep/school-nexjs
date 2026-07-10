@@ -1,5 +1,10 @@
 'use client';
 
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
 import { Card } from '@/components/ui/primitives';
 import { useT } from '@/features/i18n/locale-context';
 import {

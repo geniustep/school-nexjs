@@ -1,3 +1,8 @@
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
 import {
   buildLevelsById,
   buildSubjectDisplayLabel,
@@ -7,6 +12,21 @@ import {
 } from '@/features/admin/academic-setup/utils/subject-display';
 import { classSubjectSourceLabel } from '@/features/admin/academic-setup/utils/class-display';
 import type { Subject } from '@/types/class';
+
+export type SubjectsBrowserEmptyVariant = 'no-data' | 'no-match';
+
+export function subjectsBrowserHasActiveQuery(options: {
+  search?: string;
+  tierFilter?: string;
+}): boolean {
+  return !!(options.search?.trim() || options.tierFilter);
+}
+
+export function resolveSubjectsBrowserEmptyVariant(options: {
+  hasActiveQuery: boolean;
+}): SubjectsBrowserEmptyVariant {
+  return options.hasActiveQuery ? 'no-match' : 'no-data';
+}
 
 export type SubjectTier = 'primary' | 'middle' | 'high' | 'other';
 

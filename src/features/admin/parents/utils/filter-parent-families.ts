@@ -116,3 +116,15 @@ export function hasActiveParentFamilyFilters(filters: ParentFamilyFilters, searc
     filters.language
   );
 }
+
+/** Families with no linked children hidden by the default-on toggle (no search override). */
+export function countHiddenGuardianOnlyFamilies(
+  families: ParentFamilyGroup[],
+  filters: ParentFamilyFilters,
+  search = '',
+): number {
+  if (filters.hideWithoutChildren === false) return 0;
+  if (search.trim()) return 0;
+  if (filters.childrenFilter === 'none') return 0;
+  return families.filter((family) => family.children.length === 0).length;
+}

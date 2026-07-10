@@ -1,3 +1,8 @@
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
 import type { Level } from '@/types/class';
 import {
   groupLevelsByCycle,
@@ -6,6 +11,21 @@ import {
   type GroupedLevelsByCycle,
 } from '@/features/admin/academic-setup/utils/group-and-sort-levels';
 import type { LevelGroup } from '@/features/admin/academic-setup/types';
+
+export type LevelsBrowserEmptyVariant = 'no-data' | 'no-match';
+
+export function levelsBrowserHasActiveQuery(options: {
+  search?: string;
+  cycleFilter?: string;
+}): boolean {
+  return !!(options.search?.trim() || options.cycleFilter);
+}
+
+export function resolveLevelsBrowserEmptyVariant(options: {
+  hasActiveQuery: boolean;
+}): LevelsBrowserEmptyVariant {
+  return options.hasActiveQuery ? 'no-match' : 'no-data';
+}
 
 function toLevelGroups(levels: Level[]): LevelGroup[] {
   return levels.map((level) => ({

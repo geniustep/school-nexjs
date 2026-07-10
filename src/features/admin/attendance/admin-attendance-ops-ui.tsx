@@ -1,5 +1,10 @@
 'use client';
 
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
 import type { CSSProperties, ReactNode } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils/cn';
@@ -206,17 +211,28 @@ export function AdminAttendanceFiltersCard({
         )}
       </div>
 
-      <div className="admin-att-toolbar__row">
-        <label className="admin-att-field">
+      <div className="admin-att-toolbar__context">
+        <label className="admin-att-field admin-att-field--primary">
           <span className="admin-att-field__label">{t('attendance.dateLabel')}</span>
-          <input
-            className="input"
-            type="date"
-            value={date}
-            onChange={(e) => onDateChange(e.target.value)}
-          />
+          <div className="admin-att-field__date-row">
+            <input
+              className="input"
+              type="date"
+              value={date}
+              dir="ltr"
+              onChange={(e) => onDateChange(e.target.value)}
+            />
+            <button
+              type="button"
+              className={cn('admin-att-quick-chip', isToday && 'admin-att-quick-chip--active')}
+              aria-pressed={isToday}
+              onClick={() => onDateChange(todayIso())}
+            >
+              {t('attendance.today')}
+            </button>
+          </div>
         </label>
-        <label className="admin-att-field">
+        <label className="admin-att-field admin-att-field--primary">
           <span className="admin-att-field__label">{t('nav.classes')}</span>
           <select className="select" value={classId} onChange={(e) => onClassChange(e.target.value)}>
             <option value="">{t('admin.allClasses')}</option>
@@ -227,7 +243,10 @@ export function AdminAttendanceFiltersCard({
             ))}
           </select>
         </label>
-        <label className="admin-att-field">
+      </div>
+
+      <div className="admin-att-toolbar__status">
+        <label className="admin-att-field admin-att-field--secondary">
           <span className="admin-att-field__label">{t('attendance.statusColumn')}</span>
           <select className="select" value={status} onChange={(e) => onStatusChange(e.target.value)}>
             <option value="">{t('admin.attendanceList.allStatuses')}</option>
@@ -238,30 +257,23 @@ export function AdminAttendanceFiltersCard({
             ))}
           </select>
         </label>
-      </div>
-
-      <div className="admin-att-toolbar__quick">
-        <button
-          type="button"
-          className={cn('admin-att-quick-chip', isToday && 'admin-att-quick-chip--active')}
-          onClick={() => onDateChange(todayIso())}
-        >
-          {t('attendance.today')}
-        </button>
-        {ATT_STATUSES.map((s) => (
-          <button
-            key={s}
-            type="button"
-            className={cn(
-              'admin-att-quick-chip',
-              `admin-att-quick-chip--${s}`,
-              status === s && 'admin-att-quick-chip--active',
-            )}
-            onClick={() => toggleStatus(s)}
-          >
-            {t(attendanceStatusLabelKey(s))}
-          </button>
-        ))}
+        <div className="admin-att-toolbar__quick" role="group" aria-label={t('attendance.statusColumn')}>
+          {ATT_STATUSES.map((s) => (
+            <button
+              key={s}
+              type="button"
+              className={cn(
+                'admin-att-quick-chip',
+                `admin-att-quick-chip--${s}`,
+                status === s && 'admin-att-quick-chip--active',
+              )}
+              aria-pressed={status === s}
+              onClick={() => toggleStatus(s)}
+            >
+              {t(attendanceStatusLabelKey(s))}
+            </button>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -288,13 +300,23 @@ export function AdminAttendanceCorrectionPanel({
   );
 }
 
+export function AdminAttendanceRefetchHint() {
+  const t = useT();
+
+  return (
+    <p className="admin-att-refetch-hint" aria-live="polite">
+      {t('admin.attendanceList.loading')}
+    </p>
+  );
+}
+
 export function AdminAttendanceEmptyFiltered({ onReset }: { onReset: () => void }) {
   const t = useT();
 
   return (
     <div className="admin-att-empty">
       <span className="admin-att-empty__icon" aria-hidden="true">
-        🗓️
+        🔍
       </span>
       <p className="admin-att-empty__title">{t('admin.attendanceOps.emptyFiltered')}</p>
       <p className="admin-att-empty__desc">{t('admin.attendanceOps.emptyFilteredDesc')}</p>
@@ -305,17 +327,36 @@ export function AdminAttendanceEmptyFiltered({ onReset }: { onReset: () => void 
   );
 }
 
+export function AdminAttendanceNoData() {
+  const t = useT();
+
+  return (
+    <div className="admin-att-empty">
+      <span className="admin-att-empty__icon" aria-hidden="true">
+        🗓️
+      </span>
+      <p className="admin-att-empty__title">{t('admin.attendanceList.empty')}</p>
+      <p className="admin-att-empty__desc">{t('admin.attendanceList.emptyDesc')}</p>
+    </div>
+  );
+}
+
 export function AdminAttendanceTableSection({
   title,
   count,
+  fetching,
   children,
 }: {
   title: string;
   count?: number;
+  fetching?: boolean;
   children: ReactNode;
 }) {
   return (
-    <section className="admin-att-table-section">
+    <section
+      className={cn('admin-att-table-section', fetching && 'admin-att-table-section--fetching')}
+      aria-busy={fetching || undefined}
+    >
       <div className="admin-att-table-section__head">
         <h2 className="admin-att-table-section__title">{title}</h2>
         {count != null && count > 0 ? (
@@ -338,7 +379,9 @@ export function AdminAttendanceStudentCell({ name }: { name: string }) {
       <span className="admin-att-student-cell__avatar" aria-hidden="true">
         {initial}
       </span>
-      <strong className="admin-att-student-cell__name">{name}</strong>
+      <strong className="admin-att-student-cell__name" dir="auto" title={name}>
+        {name}
+      </strong>
     </div>
   );
 }

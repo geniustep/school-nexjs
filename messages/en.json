@@ -798,6 +798,17 @@
         "student_code": "School number"
       }
     },
+    "studentSearchPicker": {
+      "placeholder": "Search for a student…",
+      "minLengthHint": "Type at least {count} characters to search.",
+      "loading": "Searching…",
+      "empty": "No matching students.",
+      "error": "Could not load search results.",
+      "matchedOnPrefix": "Matched via: {field}",
+      "clearSearch": "Clear search",
+      "clearSelection": "Clear selection",
+      "selectedLabel": "Selected student"
+    },
     "multiSchoolPortfolioPending": "A multi-school overview will be available when the portfolio dashboard API is ready.",
     "activeSchoolWorking": "Currently working on: {school}",
     "schoolFallback": "School #{id}",
@@ -935,15 +946,113 @@
     "academicCenter": "Academic center",
     "academicCenterDesc": "Manage homework, resources, timetable, exams and results",
     "homeworkListDesc": "All homework within your scope",
+    "homeworksList": {
+      "subtitleWithCount": "{total} homework items in your scope",
+      "resetFilters": "Reset filters",
+      "clearSearch": "Clear search",
+      "refetching": "Updating results…",
+      "noData": {
+        "title": "No homework yet",
+        "description": "No homework has been created in your scope yet."
+      },
+      "noMatch": {
+        "title": "No matching homework",
+        "description": "Try adjusting search or filters, or reset them to show all homework."
+      },
+      "filters": {
+        "chipSearch": "Search: {query}",
+        "chipClass": "Class: {className}",
+        "chipStatus": "Status: {status}"
+      }
+    },
+
     "resourcesListDesc": "All published resources",
+    "resourcesList": {
+      "subtitleWithCount": "{total} resources in your scope",
+      "resetFilters": "Reset filters",
+      "clearType": "Clear type filter",
+      "typePlaceholder": "Filter by type…",
+      "refetching": "Updating results…",
+      "noData": {
+        "title": "No resources yet",
+        "description": "No learning resources have been created in your scope yet."
+      },
+      "noMatch": {
+        "title": "No matching resources",
+        "description": "Try adjusting filters, or reset them to show all resources."
+      },
+      "filters": {
+        "chipClass": "Class: {className}",
+        "chipStatus": "Status: {status}",
+        "chipType": "Type: {type}"
+      }
+    },
     "timetableDesc": "Manage timetable slots",
+    "timetableList": {
+      "filtersLabel": "Timetable filters",
+      "day": "Day",
+      "slotsCount": "{count} slots",
+      "resetFilters": "Reset filters",
+      "noData": {
+        "title": "No timetable slots yet",
+        "description": "Slots for the current school context will appear here."
+      },
+      "noMatch": {
+        "title": "No matching slots",
+        "description": "Try adjusting filters, or reset them to show all slots."
+      }
+    },
     "examsListDesc": "All exams",
+    "examsList": {
+      "subtitleWithCount": "{total} exams in your scope",
+      "resetFilters": "Reset filters",
+      "refetching": "Updating results…",
+      "noData": {
+        "title": "No exams yet",
+        "description": "No exams have been created in your scope yet."
+      },
+      "noMatch": {
+        "title": "No matching exams",
+        "description": "Try adjusting filters, or reset them to show all exams."
+      },
+      "filters": {
+        "chipClass": "Class: {className}",
+        "chipStatus": "Status: {status}"
+      }
+    },
     "examResultsListDesc": "All exam results",
+    "examResultsList": {
+      "subtitleWithCount": "{total} exam results in your scope",
+      "resetFilters": "Reset filters",
+      "refetching": "Updating results…",
+      "noData": {
+        "title": "No exam results yet",
+        "description": "No exam results have been recorded in your scope yet."
+      },
+      "noMatch": {
+        "title": "No matching exam results",
+        "description": "Try adjusting filters, or reset them to show all exam results."
+      },
+      "filters": {
+        "chipClass": "Class: {className}",
+        "chipStatus": "Status: {status}"
+      }
+    },
     "studentsListDesc": "All pupils within your scope",
     "studentsList": {
       "subtitleWithCount": "{total} pupils in your scope",
       "resultsCount": "{count} results",
       "resetFilters": "Reset filters",
+      "clearSearch": "Clear search",
+      "refetching": "Updating results…",
+      "noData": {
+        "title": "No pupils yet",
+        "description": "No pupils are registered in your scope yet."
+      },
+      "noMatch": {
+        "title": "No matching results",
+        "description": "Try adjusting search or filters, or reset them to show all pupils."
+      },
       "applyFilters": "Apply filters",
       "columnStudent": "Pupil",
       "columnClassLevel": "Class / Level",
@@ -1350,8 +1459,27 @@
     "parentsListDesc": "Manage parents",
     "parentsList": {
       "subtitleWithCount": "{total} guardians in your scope",
-      "resultsCount": "{count} families",
+      "resultsCount": "{count} families on this page",
+      "paginationNote": "pagination by guardian records ({total} total)",
       "resetFilters": "Reset filters",
+      "clearSearch": "Clear search",
+      "refetching": "Updating results…",
+      "childrenCount": "{count, plural, one {# child} other {# children}}",
+      "noData": {
+        "title": "No guardians yet",
+        "description": "No guardians are registered in your scope yet."
+      },
+      "noMatch": {
+        "title": "No matching families",
+        "description": "Try adjusting search or filters, or reset them to show all families."
+      },
+      "filters": {
+        "more": "More filters",
+        "hideMore": "Hide filters",
+        "chipStatus": "Status: {status}",
+        "chipRelationship": "Relationship: {relationship}",
+        "chipShowGuardianOnly": "Showing guardians without pupils"
+      },
       "guardiansTitle": "Guardians",
       "filterChildren": "Children",
       "filterChildrenAll": "All cases",
@@ -1371,6 +1499,7 @@
       "pageSubtitle": "Review school staff, permissions, and operational warnings.",
       "backToList": "Back to staff list",
       "searchPlaceholder": "Search by name, email, or login…",
+      "searchNoMatch": "No staff members match your current search.",
       "emptyTitle": "No staff members",
       "emptyDesc": "No staff records were returned for the active school.",
       "userTypeLabel": "User type",
@@ -1695,13 +1824,33 @@
       "overviewLabel": "Classes overview",
       "activeClasses": "Active classes",
       "searchPlaceholder": "Search classes or levels…",
+      "clearSearch": "Clear search",
       "journeyHint": "Organized by academic path from preschool through secondary.",
       "journeyLabel": "Academic path",
-      "noMatch": "No classes match your current search.",
+      "noData": {
+        "title": "No classes yet",
+        "description": "No classes have been created in your scope yet."
+      },
+      "noMatch": {
+        "title": "No matching classes",
+        "description": "Try adjusting your search, or clear it to show all classes."
+      },
       "studentCount": "{count} students",
       "levelMeta": "{classes} classes · {students} students"
     },
     "levelsListDesc": "Manage levels",
+    "levelsBrowser": {
+      "resetFilters": "Reset filters",
+      "clearSearch": "Clear search",
+      "noData": {
+        "title": "No levels yet",
+        "description": "No levels have been created in your scope yet."
+      },
+      "noMatch": {
+        "title": "No matching levels",
+        "description": "Try adjusting search or filters, or reset them to show all levels."
+      }
+    },
     "subjectsListDesc": "Manage subjects",
     "subjectsList": {
       "subtitle": "Browse enabled subjects with code and cycle context to tell duplicates apart",
@@ -1733,7 +1882,17 @@
       "detailDuplicateBanner": "This name is used by {count} subjects — distinguished by code and cycle",
       "detailWeeklyHours": "Weekly hours",
       "assignmentsCountLabel": "Teaching assignments",
-      "tierLabel": "Cycle"
+      "tierLabel": "Cycle",
+      "resetFilters": "Reset filters",
+      "clearSearch": "Clear search",
+      "noData": {
+        "title": "No subjects yet",
+        "description": "No subjects have been enabled in your scope yet."
+      },
+      "noMatch": {
+        "title": "No matching subjects",
+        "description": "Try adjusting search or filters, or reset them to show all subjects."
+      }
     },
     "settings": {
       "title": "Settings",
@@ -3613,8 +3772,22 @@
         "showClosed": "Show closed requests",
         "hideConverted": "Hide registered",
         "reset": "Reset filters",
+        "clearSearch": "Clear search",
         "resultsCount": "{count} requests shown",
-        "hiddenConvertedCount": "{count} converted hidden"
+        "hiddenConvertedCount": "{count} converted hidden",
+        "chipSearch": "Search: {query}",
+        "chipState": "Status: {state}",
+        "chipShowClosed": "Closed requests shown",
+        "chipHideConvertedOff": "Registered shown"
+      },
+      "refetching": "Updating results…",
+      "noData": {
+        "title": "No requests yet",
+        "description": "Create a new admission request to get started."
+      },
+      "noMatch": {
+        "title": "No matching requests",
+        "description": "Try adjusting search or filters, or reset them to show all requests."
       },
       "empty": {
         "title": "No requests",

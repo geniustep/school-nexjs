@@ -1,8 +1,14 @@
 'use client';
 
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ResourceView } from '@/components/states/resource';
+import { EmptyState } from '@/components/states/states';
 import { Pagination } from '@/components/tables/data-table';
 import { InfoBanner } from '@/components/ui/primitives';
 import { cn } from '@/lib/utils/cn';
@@ -13,6 +19,7 @@ import { endpoints } from '@/lib/api/endpoints';
 import type { AdmissionListItem, AdmissionsDashboard } from '@/types/admission';
 import type { ListParams } from '@/types/api';
 import { useAdmissionsKanbanBoard } from '../hooks/use-admissions-kanban-board';
+import { useAdmissionsListView } from '../hooks/use-admissions-list-view';
 import { useAdmissionsSelection } from '../hooks/use-admissions-selection';
 import { useAdmissionsUiStageTableList } from '../hooks/use-admissions-ui-stage-table-list';
 import { AdmissionsBulkActionBar } from './admissions-bulk-action-bar';
@@ -36,15 +43,14 @@ import {
   filterAdmissionListItems,
   hasActiveAdmissionListFilters,
 } from '../utils/filter-admission-list-items';
+import { resolveAdmissionsListEmptyVariant } from '../utils/admissions-list-empty';
 import '../admissions.css';
-
-type ViewMode = 'kanban' | 'table';
 
 const TABLE_PAGE_SIZE = 25;
 
 export function AdmissionsListPage() {
   const t = useT();
-  const [view, setView] = useState<ViewMode>('kanban');
+  const [view, setView] = useAdmissionsListView();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [stateFilter, setStateFilter] = useState<AdmissionUiStage | ''>('');
@@ -207,13 +213,58 @@ export function AdmissionsListPage() {
     hideConverted,
   });
 
-  function resetFilters() {
+  const resetFilters = useCallback(() => {
     setSearch('');
     setStateFilter('');
     setShowClosed(false);
     setHideConverted(true);
     setPage(1);
-  }
+  }, []);
+
+  const clearSearch = useCallback(() => {
+    setSearch('');
+    setPage(1);
+  }, []);
+
+  const listEmptyVariant = useMemo(
+    () =>
+      resolveAdmissionsListEmptyVariant({
+        hasActiveFilters,
+        visibleCount: visibleSummary,
+        hiddenConvertedOnPage,
+      }),
+    [hasActiveFilters, visibleSummary, hiddenConvertedOnPage],
+  );
+
+  const listEmptyState = useMemo(() => {
+    if (listEmptyVariant === 'no-match') {
+      return (
+        <EmptyState
+          icon="🔍"
+          title={t('admin.admissions.noMatch.title')}
+          description={t('admin.admissions.noMatch.description')}
+          action={
+            <button type="button" className="btn btn--ghost btn--sm" onClick={resetFilters}>
+              {t('admin.admissions.filters.reset')}
+            </button>
+          }
+        />
+      );
+    }
+
+    return (
+      <EmptyState
+        icon="📋"
+        title={t('admin.admissions.noData.title')}
+        description={t('admin.admissions.noData.description')}
+        action={
+          <Link href="/admin/admissions/new" className="btn btn--primary btn--sm">
+            {t('admin.admissions.createButton')}
+          </Link>
+        }
+      />
+    );
+  }, [listEmptyVariant, resetFilters, t]);
 
   function retryDashboard() {
     setDashboardApiEnabled(true);
@@ -281,7 +332,20 @@ export function AdmissionsListPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             aria-label={t('admin.admissions.filters.search')}
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
           />
+          {search ? (
+            <button
+              type="button"
+              className="admissions-list-toolbar__search-clear"
+              onClick={clearSearch}
+              aria-label={t('admin.admissions.filters.clearSearch')}
+            >
+              <span aria-hidden="true">×</span>
+            </button>
+          ) : null}
         </div>
 
         <div
@@ -341,6 +405,21 @@ export function AdmissionsListPage() {
         <label
           className={cn(
             'admissions-toolbar-option admissions-list-toolbar__option',
+            showClosed && 'admissions-toolbar-option--on',
+          )}
+        >
+          <input
+            type="checkbox"
+            className="admissions-toolbar-option__input"
+            checked={showClosed}
+            onChange={(e) => setShowClosed(e.target.checked)}
+          />
+          <span>{t('admin.admissions.filters.showClosed')}</span>
+        </label>
+
+        <label
+          className={cn(
+            'admissions-toolbar-option admissions-list-toolbar__option',
             hideConverted && 'admissions-toolbar-option--on',
           )}
         >
@@ -364,6 +443,59 @@ export function AdmissionsListPage() {
         ) : null}
       </div>
 
+      {hasActiveFilters ? (
+        <div className="admissions-list-active-filters" aria-live="polite">
+          {debouncedSearch.trim() ? (
+            <button
+              type="button"
+              className="admissions-list-active-filters__chip"
+              onClick={clearSearch}
+            >
+              {t('admin.admissions.filters.chipSearch', { query: debouncedSearch.trim() })}
+              <span aria-hidden="true">×</span>
+            </button>
+          ) : null}
+          {stateFilter ? (
+            <button
+              type="button"
+              className="admissions-list-active-filters__chip"
+              onClick={() => setStateFilter('')}
+            >
+              {t('admin.admissions.filters.chipState', {
+                state: t(`admin.admissions.uiStages.${stateFilter}`),
+              })}
+              <span aria-hidden="true">×</span>
+            </button>
+          ) : null}
+          {showClosed && stateFilter !== CLOSED_UI_STAGE ? (
+            <button
+              type="button"
+              className="admissions-list-active-filters__chip"
+              onClick={() => setShowClosed(false)}
+            >
+              {t('admin.admissions.filters.chipShowClosed')}
+              <span aria-hidden="true">×</span>
+            </button>
+          ) : null}
+          {!hideConverted ? (
+            <button
+              type="button"
+              className="admissions-list-active-filters__chip"
+              onClick={() => setHideConverted(true)}
+            >
+              {t('admin.admissions.filters.chipHideConvertedOff')}
+              <span aria-hidden="true">×</span>
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+
+      {view === 'table' && tableState.fetching && !tableState.initialLoading ? (
+        <p className="admissions-list-refetching" aria-live="polite">
+          {t('admin.admissions.refetching')}
+        </p>
+      ) : null}
+
       {selectedCount > 0 ? (
         <AdmissionsBulkActionBar
           selectedItems={selectedItems}
@@ -378,6 +510,8 @@ export function AdmissionsListPage() {
           <div className="muted">{t('common.loading')}</div>
         ) : kanbanBoard.error ? (
           <div className="alert alert--error">{kanbanBoard.error.message}</div>
+        ) : visibleSummary === 0 ? (
+          listEmptyState
         ) : (
           <AdmissionsKanban
             columns={filteredKanbanGrouped}
@@ -391,21 +525,30 @@ export function AdmissionsListPage() {
           />
         )
       ) : (
-        <ResourceView
-          state={tableState}
-          isEmpty={() => filteredTableRows.length === 0}
-        >
-          {() => (
-            <AdmissionsTable
-              items={filteredTableRows}
-              selectionMode={selectionMode}
-              isSelected={isSelected}
-              onToggleSelect={toggle}
-              onToggleVisible={() => toggleVisible(tableVisibleIds)}
-              visibleSelectionState={tableVisibleSelection}
-            />
+        <div
+          className={cn(
+            'admissions-list-results',
+            tableState.fetching && !tableState.initialLoading && 'admissions-list-results--fetching',
           )}
-        </ResourceView>
+          aria-busy={tableState.fetching || undefined}
+        >
+          <ResourceView
+            state={tableState}
+            isEmpty={() => filteredTableRows.length === 0}
+            empty={listEmptyState}
+          >
+            {() => (
+              <AdmissionsTable
+                items={filteredTableRows}
+                selectionMode={selectionMode}
+                isSelected={isSelected}
+                onToggleSelect={toggle}
+                onToggleVisible={() => toggleVisible(tableVisibleIds)}
+                visibleSelectionState={tableVisibleSelection}
+              />
+            )}
+          </ResourceView>
+        </div>
       )}
 
       {!isListLoading ? (

@@ -557,17 +557,30 @@
   padding: 16px;
   border-radius: 12px;
   border: 1px solid var(--c-border);
+  background: var(--c-surface);
+  box-shadow: var(--shadow-sm);
   text-decoration: none;
   color: inherit;
   min-height: 120px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.settings-hub-card:hover {
+.settings-hub-card:hover,
+.settings-hub-card:focus-visible {
   border-color: var(--c-primary);
+  box-shadow: 0 0 0 1px var(--c-primary);
+  outline: none;
 }
 
 .settings-hub-card__icon {
   font-size: 28px;
+  line-height: 1;
+}
+
+.settings-hub-card p {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.35;
 }
 
 .academic-setup-filters {

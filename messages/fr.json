@@ -799,6 +799,17 @@
         "student_code": "Numéro scolaire"
       }
     },
+    "studentSearchPicker": {
+      "placeholder": "Rechercher un élève…",
+      "minLengthHint": "Saisissez au moins {count} caractères pour lancer la recherche.",
+      "loading": "Recherche…",
+      "empty": "Aucun élève correspondant.",
+      "error": "Impossible de charger les résultats.",
+      "matchedOnPrefix": "Correspondance via : {field}",
+      "clearSearch": "Effacer la recherche",
+      "clearSelection": "Effacer la sélection",
+      "selectedLabel": "Élève sélectionné"
+    },
     "multiSchoolPortfolioPending": "Une vue d'ensemble multi-établissements sera disponible lorsque l'API du tableau de bord portfolio sera prête.",
     "activeSchoolWorking": "Établissement actif : {school}",
     "schoolFallback": "École #{id}",
@@ -934,15 +945,113 @@
     "academicCenter": "Centre académique",
     "academicCenterDesc": "Gérer devoirs, ressources, emploi du temps, examens et résultats",
     "homeworkListDesc": "Tous les devoirs de votre périmètre",
+    "homeworksList": {
+      "subtitleWithCount": "{total} devoirs dans votre périmètre",
+      "resetFilters": "Réinitialiser les filtres",
+      "clearSearch": "Effacer la recherche",
+      "refetching": "Mise à jour des résultats…",
+      "noData": {
+        "title": "Aucun devoir pour le moment",
+        "description": "Aucun devoir n’a encore été créé dans votre périmètre."
+      },
+      "noMatch": {
+        "title": "Aucun devoir correspondant",
+        "description": "Modifiez la recherche ou les filtres, ou réinitialisez-les pour afficher tous les devoirs."
+      },
+      "filters": {
+        "chipSearch": "Recherche : {query}",
+        "chipClass": "Classe : {className}",
+        "chipStatus": "Statut : {status}"
+      }
+    },
+
     "resourcesListDesc": "Toutes les ressources publiées",
+    "resourcesList": {
+      "subtitleWithCount": "{total} ressources dans votre périmètre",
+      "resetFilters": "Réinitialiser les filtres",
+      "clearType": "Effacer le filtre de type",
+      "typePlaceholder": "Filtrer par type…",
+      "refetching": "Mise à jour des résultats…",
+      "noData": {
+        "title": "Aucune ressource pour le moment",
+        "description": "Aucune ressource pédagogique n’a encore été créée dans votre périmètre."
+      },
+      "noMatch": {
+        "title": "Aucune ressource correspondante",
+        "description": "Modifiez les filtres, ou réinitialisez-les pour afficher toutes les ressources."
+      },
+      "filters": {
+        "chipClass": "Classe : {className}",
+        "chipStatus": "Statut : {status}",
+        "chipType": "Type : {type}"
+      }
+    },
     "timetableDesc": "Gérer les créneaux horaires",
+    "timetableList": {
+      "filtersLabel": "Filtres de l'emploi du temps",
+      "day": "Jour",
+      "slotsCount": "{count} créneaux",
+      "resetFilters": "Réinitialiser les filtres",
+      "noData": {
+        "title": "Aucun créneau pour le moment",
+        "description": "Les créneaux du contexte scolaire actuel apparaîtront ici."
+      },
+      "noMatch": {
+        "title": "Aucun créneau correspondant",
+        "description": "Modifiez les filtres ou réinitialisez-les pour afficher tous les créneaux."
+      }
+    },
     "examsListDesc": "Tous les examens",
+    "examsList": {
+      "subtitleWithCount": "{total} examens dans votre périmètre",
+      "resetFilters": "Réinitialiser les filtres",
+      "refetching": "Mise à jour des résultats…",
+      "noData": {
+        "title": "Aucun examen pour le moment",
+        "description": "Aucun examen n’a encore été créé dans votre périmètre."
+      },
+      "noMatch": {
+        "title": "Aucun examen correspondant",
+        "description": "Modifiez les filtres, ou réinitialisez-les pour afficher tous les examens."
+      },
+      "filters": {
+        "chipClass": "Classe : {className}",
+        "chipStatus": "Statut : {status}"
+      }
+    },
     "examResultsListDesc": "Tous les résultats d'examens",
+    "examResultsList": {
+      "subtitleWithCount": "{total} résultats d’examens dans votre périmètre",
+      "resetFilters": "Réinitialiser les filtres",
+      "refetching": "Mise à jour des résultats…",
+      "noData": {
+        "title": "Aucun résultat d’examen pour le moment",
+        "description": "Aucun résultat d’examen n’a encore été enregistré dans votre périmètre."
+      },
+      "noMatch": {
+        "title": "Aucun résultat correspondant",
+        "description": "Modifiez les filtres, ou réinitialisez-les pour afficher tous les résultats."
+      },
+      "filters": {
+        "chipClass": "Classe : {className}",
+        "chipStatus": "Statut : {status}"
+      }
+    },
     "studentsListDesc": "Tous les élèves de votre périmètre",
     "studentsList": {
       "subtitleWithCount": "{total} élèves dans votre périmètre",
       "resultsCount": "{count} résultats",
       "resetFilters": "Réinitialiser",
+      "clearSearch": "Effacer la recherche",
+      "refetching": "Mise à jour des résultats…",
+      "noData": {
+        "title": "Aucun élève pour l'instant",
+        "description": "Aucun élève n'est enregistré dans votre périmètre pour le moment."
+      },
+      "noMatch": {
+        "title": "Aucun résultat correspondant",
+        "description": "Essayez d'ajuster la recherche ou les filtres, ou réinitialisez-les pour afficher tous les élèves."
+      },
       "applyFilters": "Appliquer les filtres",
       "columnStudent": "Élève",
       "columnClassLevel": "Classe / Niveau",
@@ -1349,8 +1458,27 @@
     "parentsListDesc": "Gérer les parents",
     "parentsList": {
       "subtitleWithCount": "{total} responsables dans votre périmètre",
-      "resultsCount": "{count} familles",
+      "resultsCount": "{count} familles sur cette page",
+      "paginationNote": "pagination par fiches responsables ({total} au total)",
       "resetFilters": "Réinitialiser les filtres",
+      "clearSearch": "Effacer la recherche",
+      "refetching": "Mise à jour des résultats…",
+      "childrenCount": "{count, plural, one {# enfant} other {# enfants}}",
+      "noData": {
+        "title": "Aucun responsable pour l'instant",
+        "description": "Aucun responsable n'est enregistré dans votre périmètre."
+      },
+      "noMatch": {
+        "title": "Aucune famille correspondante",
+        "description": "Essayez d'ajuster la recherche ou les filtres, ou réinitialisez-les pour tout afficher."
+      },
+      "filters": {
+        "more": "Plus de filtres",
+        "hideMore": "Masquer les filtres",
+        "chipStatus": "Statut : {status}",
+        "chipRelationship": "Lien : {relationship}",
+        "chipShowGuardianOnly": "Affichage des responsables sans élèves"
+      },
       "guardiansTitle": "Responsables",
       "filterChildren": "Enfants",
       "filterChildrenAll": "Tous les cas",
@@ -1370,6 +1498,7 @@
       "pageSubtitle": "Consulter le personnel, les permissions et les alertes opérationnelles.",
       "backToList": "Retour à la liste du personnel",
       "searchPlaceholder": "Rechercher par nom, e-mail ou identifiant…",
+      "searchNoMatch": "Aucun membre du personnel ne correspond à votre recherche.",
       "emptyTitle": "Aucun membre du personnel",
       "emptyDesc": "Aucun enregistrement du personnel pour l'école active.",
       "userTypeLabel": "Type d'utilisateur",
@@ -1694,13 +1823,33 @@
       "overviewLabel": "Vue d'ensemble des classes",
       "activeClasses": "Classes actives",
       "searchPlaceholder": "Rechercher des classes ou niveaux…",
+      "clearSearch": "Effacer la recherche",
       "journeyHint": "Organisées par parcours scolaire, de la maternelle au secondaire.",
       "journeyLabel": "Parcours scolaire",
-      "noMatch": "Aucune classe ne correspond à votre recherche.",
+      "noData": {
+        "title": "Aucune classe pour le moment",
+        "description": "Aucune classe n'a encore été créée dans votre périmètre."
+      },
+      "noMatch": {
+        "title": "Aucune classe correspondante",
+        "description": "Modifiez la recherche, ou effacez-la pour afficher toutes les classes."
+      },
       "studentCount": "{count} élèves",
       "levelMeta": "{classes} classes · {students} élèves"
     },
     "levelsListDesc": "Gérer les niveaux",
+    "levelsBrowser": {
+      "resetFilters": "Réinitialiser les filtres",
+      "clearSearch": "Effacer la recherche",
+      "noData": {
+        "title": "Aucun niveau pour le moment",
+        "description": "Aucun niveau n'a encore été créé dans votre périmètre."
+      },
+      "noMatch": {
+        "title": "Aucun niveau correspondant",
+        "description": "Modifiez la recherche ou les filtres, ou réinitialisez-les pour afficher tous les niveaux."
+      }
+    },
     "subjectsListDesc": "Gérer les matières",
     "subjectsList": {
       "subtitle": "Parcourez les matières actives avec code et cycle pour éviter la confusion",
@@ -1732,7 +1881,17 @@
       "detailDuplicateBanner": "Ce nom est utilisé par {count} matières — distingué par code et cycle",
       "detailWeeklyHours": "Heures hebdomadaires",
       "assignmentsCountLabel": "Affectations d'enseignement",
-      "tierLabel": "Cycle"
+      "tierLabel": "Cycle",
+      "resetFilters": "Réinitialiser les filtres",
+      "clearSearch": "Effacer la recherche",
+      "noData": {
+        "title": "Aucune matière pour le moment",
+        "description": "Aucune matière n'a encore été activée dans votre périmètre."
+      },
+      "noMatch": {
+        "title": "Aucune matière correspondante",
+        "description": "Modifiez la recherche ou les filtres, ou réinitialisez-les pour afficher toutes les matières."
+      }
     },
     "settings": {
       "title": "Paramètres",
@@ -3612,8 +3771,22 @@
         "showClosed": "Afficher les demandes fermées",
         "hideConverted": "Masquer inscrits",
         "reset": "Réinitialiser les filtres",
+        "clearSearch": "Effacer la recherche",
         "resultsCount": "{count} demandes affichées",
-        "hiddenConvertedCount": "{count} converties masquées"
+        "hiddenConvertedCount": "{count} converties masquées",
+        "chipSearch": "Recherche : {query}",
+        "chipState": "Statut : {state}",
+        "chipShowClosed": "Demandes fermées affichées",
+        "chipHideConvertedOff": "Inscrits affichés"
+      },
+      "refetching": "Mise à jour des résultats…",
+      "noData": {
+        "title": "Aucune demande pour l'instant",
+        "description": "Créez une nouvelle demande d'admission pour commencer."
+      },
+      "noMatch": {
+        "title": "Aucune demande correspondante",
+        "description": "Essayez d'ajuster la recherche ou les filtres, ou réinitialisez-les pour tout afficher."
       },
       "empty": {
         "title": "Aucune demande",

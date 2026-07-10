@@ -5,6 +5,8 @@ import {
   groupSubjectsForList,
   inferSubjectTier,
   resolveSubjectLevelLabels,
+  resolveSubjectsBrowserEmptyVariant,
+  subjectsBrowserHasActiveQuery,
 } from './subjects-list-utils';
 import type { Subject } from '@/types/class';
 
@@ -60,5 +62,15 @@ describe('filterSubjectsForList', () => {
     const midOnly = filterSubjectsForList(items, levels, '', 'middle');
     expect(midOnly).toHaveLength(1);
     expect(midOnly[0]?.code).toBe('MATH_MID');
+  });
+});
+
+describe('subjects browser empty variants', () => {
+  it('detects active query and separates no-data from no-match', () => {
+    expect(subjectsBrowserHasActiveQuery({})).toBe(false);
+    expect(subjectsBrowserHasActiveQuery({ search: 'math' })).toBe(true);
+    expect(subjectsBrowserHasActiveQuery({ tierFilter: 'primary' })).toBe(true);
+    expect(resolveSubjectsBrowserEmptyVariant({ hasActiveQuery: false })).toBe('no-data');
+    expect(resolveSubjectsBrowserEmptyVariant({ hasActiveQuery: true })).toBe('no-match');
   });
 });

@@ -1,5 +1,10 @@
 'use client';
 
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
 import { Suspense, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
@@ -10,14 +15,19 @@ import {
   AdminAttendanceCorrectionPanel,
   AdminAttendanceEmptyFiltered,
   AdminAttendanceFiltersCard,
+  AdminAttendanceNoData,
   AdminAttendanceOpsHeader,
+  AdminAttendanceRefetchHint,
   AdminAttendanceStatusBadge,
   AdminAttendanceStudentCell,
   AdminAttendanceTableSection,
   AdminAttendanceTodaySummary,
 } from '@/features/admin/attendance/admin-attendance-ops-ui';
 import {
+  ATTENDANCE_PAGE_SIZE,
+  hasActiveAttendanceFilters,
   isDefaultFilters,
+  resolveAttendanceListEmptyVariant,
   resolveInitialDate,
   todayIso,
 } from '@/features/admin/attendance/admin-attendance-utils';
@@ -56,7 +66,7 @@ function AdminAttendanceInner() {
 
   const state = useAdminResource<AttendanceRecord[]>(endpoints.admin.attendance, {
     page,
-    page_size: 20,
+    page_size: ATTENDANCE_PAGE_SIZE,
     date: date || undefined,
     status: status || undefined,
     class_id: classId || undefined,
@@ -70,6 +80,7 @@ function AdminAttendanceInner() {
 
   const dateLabel = date ? formatDateLocale(date) : formatDateLocale(todayIso());
 
+  const hasActiveFilters = hasActiveAttendanceFilters(date, status, classId);
   const showReset = !isDefaultFilters(date, status, classId);
 
   function resetFilters() {
@@ -96,7 +107,11 @@ function AdminAttendanceInner() {
       {
         key: 'class',
         header: t('nav.classes'),
-        render: (a) => <span className="admin-att-table__meta">{a.class?.name ?? t('common.dash')}</span>,
+        render: (a) => (
+          <span className="admin-att-table__meta" dir="auto">
+            {a.class?.name ?? t('common.dash')}
+          </span>
+        ),
       },
       {
         key: 'status',
@@ -106,18 +121,24 @@ function AdminAttendanceInner() {
       {
         key: 'date',
         header: t('admin.attendanceList.date'),
-        render: (a) => <span className="mono tiny">{formatDate(a.date)}</span>,
+        render: (a) => (
+          <span className="mono tiny" dir="ltr">
+            {formatDate(a.date)}
+          </span>
+        ),
       },
       {
         key: 'recorded_by',
         header: t('admin.attendanceList.recordedBy'),
-        render: (a) => a.recorded_by?.name ?? t('common.dash'),
+        render: (a) => (
+          <span dir="auto">{a.recorded_by?.name ?? t('common.dash')}</span>
+        ),
       },
       {
         key: 'note',
         header: t('attendance.note'),
         render: (a) => (
-          <span className="admin-att-table__note" title={a.note?.trim() || undefined}>
+          <span className="admin-att-table__note" dir="auto" title={a.note?.trim() || undefined}>
             {a.note?.trim() ? a.note : t('common.dash')}
           </span>
         ),
@@ -136,53 +157,78 @@ function AdminAttendanceInner() {
         showCorrect={showCorrect}
         onToggleCorrect={() => setShowCorrect((v) => !v)}
         onRefresh={() => state.reload()}
-        refreshing={state.loading && state.data !== null}
+        refreshing={state.fetching}
       />
 
+      <AdminAttendanceFiltersCard
+        date={date}
+        classId={classId}
+        status={status}
+        classes={classes}
+        onDateChange={(v) => resetTo(setDate, v)}
+        onClassChange={(v) => resetTo(setClassId, v)}
+        onStatusChange={(v) => resetTo(setStatus, v)}
+        onReset={resetFilters}
+        showReset={showReset}
+      />
+
+      {state.fetching && !state.initialLoading ? <AdminAttendanceRefetchHint /> : null}
+
       <ResourceView state={state} loadingLabel={t('admin.attendanceList.loading')}>
-        {(records) => (
-          <>
-            <AdminAttendanceTodaySummary records={records} listTotal={pg?.total} />
+        {(records) => {
+          const listEmptyVariant = resolveAttendanceListEmptyVariant({
+            hasActiveFilters,
+            recordCount: records.length,
+          });
 
-            <AdminAttendanceFiltersCard
-              date={date}
-              classId={classId}
-              status={status}
-              classes={classes}
-              onDateChange={(v) => resetTo(setDate, v)}
-              onClassChange={(v) => resetTo(setClassId, v)}
-              onStatusChange={(v) => resetTo(setStatus, v)}
-              onReset={resetFilters}
-              showReset={showReset}
-            />
+          return (
+            <>
+              <div
+                className={state.fetching ? 'admin-att-results admin-att-results--fetching' : 'admin-att-results'}
+                aria-busy={state.fetching || undefined}
+              >
+                {records.length > 0 ? (
+                  <AdminAttendanceTodaySummary records={records} listTotal={pg?.total} />
+                ) : null}
 
-            {canCorrect && (
-              <AdminAttendanceCorrectionPanel
-                open={showCorrect}
-                onSuccess={() => {
-                  setShowCorrect(false);
-                  state.reload();
-                }}
-              />
-            )}
-
-            {records.length === 0 && showReset ? (
-              <AdminAttendanceEmptyFiltered onReset={resetFilters} />
-            ) : records.length > 0 ? (
-              <AdminAttendanceTableSection title={t('admin.attendanceOps.tableTitle')} count={pg?.total}>
-                <DataTable columns={columns} rows={records} rowKey={(a) => a.id} />
-                {pg && (
-                  <Pagination
-                    page={pg.page}
-                    totalPages={pg.total_pages}
-                    total={pg.total}
-                    onPage={setPage}
+                {canCorrect ? (
+                  <AdminAttendanceCorrectionPanel
+                    open={showCorrect}
+                    onSuccess={() => {
+                      setShowCorrect(false);
+                      state.reload();
+                    }}
                   />
-                )}
-              </AdminAttendanceTableSection>
-            ) : null}
-          </>
-        )}
+                ) : null}
+
+                {listEmptyVariant === 'no-match' ? (
+                  <AdminAttendanceEmptyFiltered onReset={resetFilters} />
+                ) : null}
+
+                {listEmptyVariant === 'no-data' ? <AdminAttendanceNoData /> : null}
+
+                {records.length > 0 ? (
+                  <AdminAttendanceTableSection
+                    title={t('admin.attendanceOps.tableTitle')}
+                    count={pg?.total}
+                    fetching={state.fetching}
+                  >
+                    <DataTable columns={columns} rows={records} rowKey={(a) => a.id} />
+                    {pg ? (
+                      <Pagination
+                        page={pg.page}
+                        totalPages={pg.total_pages}
+                        total={pg.total}
+                        pageSize={ATTENDANCE_PAGE_SIZE}
+                        onPage={setPage}
+                      />
+                    ) : null}
+                  </AdminAttendanceTableSection>
+                ) : null}
+              </div>
+            </>
+          );
+        }}
       </ResourceView>
     </div>
   );

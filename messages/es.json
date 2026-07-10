@@ -799,6 +799,17 @@
         "student_code": "Número escolar"
       }
     },
+    "studentSearchPicker": {
+      "placeholder": "Buscar un alumno…",
+      "minLengthHint": "Escriba al menos {count} caracteres para buscar.",
+      "loading": "Buscando…",
+      "empty": "No hay alumnos coincidentes.",
+      "error": "No se pudieron cargar los resultados.",
+      "matchedOnPrefix": "Coincidencia vía: {field}",
+      "clearSearch": "Borrar búsqueda",
+      "clearSelection": "Quitar selección",
+      "selectedLabel": "Alumno seleccionado"
+    },
     "multiSchoolPortfolioPending": "La vista general multi-centro estará disponible cuando la API del panel portfolio esté lista.",
     "activeSchoolWorking": "Centro activo: {school}",
     "schoolFallback": "Escuela #{id}",
@@ -934,15 +945,113 @@
     "academicCenter": "Centro académico",
     "academicCenterDesc": "Gestionar tareas, recursos, horario, exámenes y resultados",
     "homeworkListDesc": "Todas las tareas de su ámbito",
+    "homeworksList": {
+      "subtitleWithCount": "{total} tareas en su ámbito",
+      "resetFilters": "Restablecer filtros",
+      "clearSearch": "Borrar búsqueda",
+      "refetching": "Actualizando resultados…",
+      "noData": {
+        "title": "Aún no hay tareas",
+        "description": "Todavía no se ha creado ninguna tarea en su ámbito."
+      },
+      "noMatch": {
+        "title": "No hay tareas coincidentes",
+        "description": "Pruebe a ajustar la búsqueda o los filtros, o restablézcalos para ver todas las tareas."
+      },
+      "filters": {
+        "chipSearch": "Búsqueda: {query}",
+        "chipClass": "Clase: {className}",
+        "chipStatus": "Estado: {status}"
+      }
+    },
+
     "resourcesListDesc": "Todos los recursos publicados",
+    "resourcesList": {
+      "subtitleWithCount": "{total} recursos en su ámbito",
+      "resetFilters": "Restablecer filtros",
+      "clearType": "Borrar filtro de tipo",
+      "typePlaceholder": "Filtrar por tipo…",
+      "refetching": "Actualizando resultados…",
+      "noData": {
+        "title": "Aún no hay recursos",
+        "description": "Todavía no se ha creado ningún recurso educativo en su ámbito."
+      },
+      "noMatch": {
+        "title": "No hay recursos coincidentes",
+        "description": "Pruebe a ajustar los filtros, o restablézcalos para ver todos los recursos."
+      },
+      "filters": {
+        "chipClass": "Clase: {className}",
+        "chipStatus": "Estado: {status}",
+        "chipType": "Tipo: {type}"
+      }
+    },
     "timetableDesc": "Gestionar franjas horarias",
+    "timetableList": {
+      "filtersLabel": "Filtros del horario",
+      "day": "Día",
+      "slotsCount": "{count} franjas",
+      "resetFilters": "Restablecer filtros",
+      "noData": {
+        "title": "Aún no hay franjas horarias",
+        "description": "Las franjas del contexto escolar actual aparecerán aquí."
+      },
+      "noMatch": {
+        "title": "No hay franjas coincidentes",
+        "description": "Prueba a ajustar los filtros o restablécelos para ver todas las franjas."
+      }
+    },
     "examsListDesc": "Todos los exámenes",
+    "examsList": {
+      "subtitleWithCount": "{total} exámenes en su ámbito",
+      "resetFilters": "Restablecer filtros",
+      "refetching": "Actualizando resultados…",
+      "noData": {
+        "title": "Aún no hay exámenes",
+        "description": "Todavía no se ha creado ningún examen en su ámbito."
+      },
+      "noMatch": {
+        "title": "No hay exámenes coincidentes",
+        "description": "Pruebe a ajustar los filtros, o restablézcalos para ver todos los exámenes."
+      },
+      "filters": {
+        "chipClass": "Clase: {className}",
+        "chipStatus": "Estado: {status}"
+      }
+    },
     "examResultsListDesc": "Todos los resultados de exámenes",
+    "examResultsList": {
+      "subtitleWithCount": "{total} resultados de exámenes en su ámbito",
+      "resetFilters": "Restablecer filtros",
+      "refetching": "Actualizando resultados…",
+      "noData": {
+        "title": "Aún no hay resultados de exámenes",
+        "description": "Todavía no se ha registrado ningún resultado de examen en su ámbito."
+      },
+      "noMatch": {
+        "title": "No hay resultados coincidentes",
+        "description": "Pruebe a ajustar los filtros, o restablézcalos para ver todos los resultados."
+      },
+      "filters": {
+        "chipClass": "Clase: {className}",
+        "chipStatus": "Estado: {status}"
+      }
+    },
     "studentsListDesc": "Todos los alumnos de su ámbito",
     "studentsList": {
       "subtitleWithCount": "{total} alumnos en su ámbito",
       "resultsCount": "{count} resultados",
       "resetFilters": "Restablecer",
+      "clearSearch": "Borrar búsqueda",
+      "refetching": "Actualizando resultados…",
+      "noData": {
+        "title": "Aún no hay alumnos",
+        "description": "No hay alumnos registrados en su ámbito por ahora."
+      },
+      "noMatch": {
+        "title": "Sin resultados coincidentes",
+        "description": "Pruebe a ajustar la búsqueda o los filtros, o restablézcalos para ver todos los alumnos."
+      },
       "applyFilters": "Aplicar filtros",
       "columnStudent": "Alumno",
       "columnClassLevel": "Clase / Nivel",
@@ -1349,8 +1458,27 @@
     "parentsListDesc": "Gestionar padres",
     "parentsList": {
       "subtitleWithCount": "{total} tutores en su ámbito",
-      "resultsCount": "{count} familias",
+      "resultsCount": "{count} familias en esta página",
+      "paginationNote": "paginación por registros de tutores ({total} en total)",
       "resetFilters": "Restablecer filtros",
+      "clearSearch": "Borrar búsqueda",
+      "refetching": "Actualizando resultados…",
+      "childrenCount": "{count, plural, one {# hijo} other {# hijos}}",
+      "noData": {
+        "title": "Aún no hay tutores",
+        "description": "No hay tutores registrados en su ámbito."
+      },
+      "noMatch": {
+        "title": "No hay familias coincidentes",
+        "description": "Pruebe a ajustar la búsqueda o los filtros, o restablézcalos para ver todas las familias."
+      },
+      "filters": {
+        "more": "Más filtros",
+        "hideMore": "Ocultar filtros",
+        "chipStatus": "Estado: {status}",
+        "chipRelationship": "Parentesco: {relationship}",
+        "chipShowGuardianOnly": "Mostrando tutores sin alumnos"
+      },
       "guardiansTitle": "Tutores",
       "filterChildren": "Hijos",
       "filterChildrenAll": "Todos los casos",
@@ -1370,6 +1498,7 @@
       "pageSubtitle": "Revisar personal escolar, permisos y alertas operativas.",
       "backToList": "Volver a la lista de personal",
       "searchPlaceholder": "Buscar por nombre, correo o usuario…",
+      "searchNoMatch": "Ningún miembro del personal coincide con la búsqueda actual.",
       "emptyTitle": "Sin personal",
       "emptyDesc": "No se devolvieron registros de personal para la escuela activa.",
       "userTypeLabel": "Tipo de usuario",
@@ -1694,13 +1823,33 @@
       "overviewLabel": "Resumen de clases",
       "activeClasses": "Clases activas",
       "searchPlaceholder": "Buscar clases o niveles…",
+      "clearSearch": "Borrar búsqueda",
       "journeyHint": "Organizadas por trayectoria académica, desde preescolar hasta secundaria.",
       "journeyLabel": "Trayectoria académica",
-      "noMatch": "Ninguna clase coincide con la búsqueda actual.",
+      "noData": {
+        "title": "Aún no hay clases",
+        "description": "Todavía no se ha creado ninguna clase en su ámbito."
+      },
+      "noMatch": {
+        "title": "No hay clases coincidentes",
+        "description": "Pruebe a ajustar la búsqueda, o bórrala para ver todas las clases."
+      },
       "studentCount": "{count} estudiantes",
       "levelMeta": "{classes} clases · {students} estudiantes"
     },
     "levelsListDesc": "Gestionar niveles",
+    "levelsBrowser": {
+      "resetFilters": "Restablecer filtros",
+      "clearSearch": "Borrar búsqueda",
+      "noData": {
+        "title": "Aún no hay niveles",
+        "description": "Todavía no se ha creado ningún nivel en su ámbito."
+      },
+      "noMatch": {
+        "title": "No hay niveles coincidentes",
+        "description": "Pruebe a ajustar la búsqueda o los filtros, o restablézcalos para ver todos los niveles."
+      }
+    },
     "subjectsListDesc": "Gestionar materias",
     "subjectsList": {
       "subtitle": "Consulte las materias activas con código y ciclo para distinguir duplicados",
@@ -1732,7 +1881,17 @@
       "detailDuplicateBanner": "Este nombre se usa en {count} materias — se distingue por código y ciclo",
       "detailWeeklyHours": "Horas semanales",
       "assignmentsCountLabel": "Asignaciones docentes",
-      "tierLabel": "Ciclo"
+      "tierLabel": "Ciclo",
+      "resetFilters": "Restablecer filtros",
+      "clearSearch": "Borrar búsqueda",
+      "noData": {
+        "title": "Aún no hay materias",
+        "description": "Todavía no se ha activado ninguna materia en su ámbito."
+      },
+      "noMatch": {
+        "title": "No hay materias coincidentes",
+        "description": "Pruebe a ajustar la búsqueda o los filtros, o restablézcalos para ver todas las materias."
+      }
     },
     "settings": {
       "title": "Ajustes",
@@ -3612,8 +3771,22 @@
         "showClosed": "Mostrar solicitudes cerradas",
         "hideConverted": "Ocultar registrados",
         "reset": "Restablecer filtros",
+        "clearSearch": "Borrar búsqueda",
         "resultsCount": "{count} solicitudes visibles",
-        "hiddenConvertedCount": "{count} convertidas ocultas"
+        "hiddenConvertedCount": "{count} convertidas ocultas",
+        "chipSearch": "Búsqueda: {query}",
+        "chipState": "Estado: {state}",
+        "chipShowClosed": "Solicitudes cerradas visibles",
+        "chipHideConvertedOff": "Registrados visibles"
+      },
+      "refetching": "Actualizando resultados…",
+      "noData": {
+        "title": "Aún no hay solicitudes",
+        "description": "Cree una nueva solicitud de admisión para comenzar."
+      },
+      "noMatch": {
+        "title": "No hay solicitudes coincidentes",
+        "description": "Pruebe a ajustar la búsqueda o los filtros, o restablézcalos para ver todas las solicitudes."
       },
       "empty": {
         "title": "Sin solicitudes",

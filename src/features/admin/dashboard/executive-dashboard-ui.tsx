@@ -1,7 +1,13 @@
 'use client';
 
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
 import type { ReactNode } from 'react';
 import Link from 'next/link';
+import { Badge, type Tone } from '@/components/ui/primitives';
 import { cn } from '@/lib/utils/cn';
 import { useLocale } from '@/features/i18n/locale-context';
 import { formatExecutiveKpiMoneyParts } from '@/features/admin/dashboard/executive-kpi-utils';
@@ -41,6 +47,7 @@ export function ExecutiveKpiCard({
   value,
   hint,
   badge,
+  badgeTone = 'slate',
   tone = 'neutral',
   href,
   empty,
@@ -49,6 +56,7 @@ export function ExecutiveKpiCard({
   value: ReactNode;
   hint?: string;
   badge?: string;
+  badgeTone?: Tone;
   tone?: ExecutiveTone;
   href?: string;
   empty?: boolean;
@@ -64,7 +72,7 @@ export function ExecutiveKpiCard({
     <>
       <div className="exec-kpi__top">
         <span className="exec-kpi__label">{label}</span>
-        {badge ? <span className="exec-kpi__badge">{badge}</span> : null}
+        {badge ? <Badge tone={badgeTone}>{badge}</Badge> : null}
       </div>
       <div className="exec-kpi__value">{value}</div>
       {hint ? <p className="exec-kpi__hint">{hint}</p> : null}

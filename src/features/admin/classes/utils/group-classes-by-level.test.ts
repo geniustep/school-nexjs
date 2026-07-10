@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest';
 import type { Level, SchoolClass } from '@/types/class';
 import {
   buildClassLevelGroups,
+  classesBrowserHasActiveQuery,
   computeClassesOverview,
   filterClassesForSearch,
   groupClassesByCycle,
+  resolveClassesBrowserEmptyVariant,
 } from './group-classes-by-level';
 
 const levels: Level[] = [
@@ -88,5 +90,25 @@ describe('groupClassesByCycle', () => {
     expect(groups).toHaveLength(1);
     expect(groups[0].id).toBe(99);
     expect(groups[0].classes).toHaveLength(1);
+  });
+
+  it('detects active search and separates no-data from no-match', () => {
+    expect(classesBrowserHasActiveQuery({})).toBe(false);
+    expect(classesBrowserHasActiveQuery({ search: '  ' })).toBe(false);
+    expect(classesBrowserHasActiveQuery({ search: 'p1' })).toBe(true);
+    expect(
+      resolveClassesBrowserEmptyVariant({
+        totalCount: 0,
+        filteredCount: 0,
+        hasActiveQuery: false,
+      }),
+    ).toBe('no-data');
+    expect(
+      resolveClassesBrowserEmptyVariant({
+        totalCount: 2,
+        filteredCount: 0,
+        hasActiveQuery: true,
+      }),
+    ).toBe('no-match');
   });
 });

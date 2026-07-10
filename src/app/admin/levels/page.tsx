@@ -1,5 +1,10 @@
 'use client';
 
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { ResourceView } from '@/components/states/resource';
 import { AdminLevelsList } from '@/features/admin/levels/components/admin-levels-list';
@@ -13,11 +18,7 @@ export default function AdminLevelsPage() {
 
   return (
     <div className="admin-workspace">
-      <ResourceView
-        state={state}
-        loadingLabel={t('common.loading')}
-        isEmpty={(d) => d.length === 0}
-      >
+      <ResourceView state={state} loadingLabel={t('common.loading')}>
         {(levels) => <AdminLevelsList levels={levels} />}
       </ResourceView>
     </div>

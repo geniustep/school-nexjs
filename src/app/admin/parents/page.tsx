@@ -1,6 +1,12 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
+import Link from 'next/link';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
@@ -9,23 +15,24 @@ import { PageHeader } from '@/components/ui/primitives';
 import { AdminListActions } from '@/features/admin/admin-list-actions';
 import { CsvImportPanel } from '@/features/admin/csv-import-panel';
 import { ParentsFamilyList } from '@/features/admin/parents/components/parents-family-list';
+import { ParentsListFilters } from '@/features/admin/parents/components/parents-list-filters';
 import {
+  countHiddenGuardianOnlyFamilies,
   filterParentFamilies,
   hasActiveParentFamilyFilters,
   type ParentFamilyFilters,
 } from '@/features/admin/parents/utils/filter-parent-families';
 import { groupParentsByFamily } from '@/features/admin/parents/utils/group-parents-by-family';
 import { normalizeParentListItems } from '@/features/admin/parents/utils/normalize-parent-profile';
+import { resolveParentsListEmptyVariant } from '@/features/admin/parents/utils/parents-list-empty';
 import { useDebouncedValue } from '@/features/admin/students/hooks/use-debounced-value';
-import {
-  RELATIONSHIP_TYPE_CODES,
-  relationshipTypeLabel,
-} from '@/features/admin/students/utils/relationship-types';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import type { ListParams } from '@/types/api';
 import type { Parent } from '@/types/parent';
 import '@/features/admin/parents/parents-list.css';
+
+const PARENTS_PAGE_SIZE = 50;
 
 export default function AdminParentsPage() {
   const t = useT();
@@ -39,6 +46,25 @@ export default function AdminParentsPage() {
   const [languageFilter, setLanguageFilter] = useState('');
   const [hideWithoutChildren, setHideWithoutChildren] = useState(true);
   const [importOpen, setImportOpen] = useState(false);
+
+  const filterState = useMemo(
+    (): ParentFamilyFilters => ({
+      status: statusFilter,
+      accountFilter,
+      childrenFilter,
+      hideWithoutChildren,
+      relationshipType: relationshipFilter,
+      language: languageFilter,
+    }),
+    [
+      statusFilter,
+      accountFilter,
+      childrenFilter,
+      hideWithoutChildren,
+      relationshipFilter,
+      languageFilter,
+    ],
+  );
 
   useEffect(() => {
     setPage(1);
@@ -54,7 +80,7 @@ export default function AdminParentsPage() {
 
   const params: ListParams = {
     page,
-    page_size: 50,
+    page_size: PARENTS_PAGE_SIZE,
     search: debouncedSearch.trim() || undefined,
     status: statusFilter || undefined,
     has_account:
@@ -68,49 +94,39 @@ export default function AdminParentsPage() {
   const state = useAdminResource<Parent[]>(endpoints.admin.parents, params);
   const pg = state.meta?.pagination;
 
-  const hasActiveFilters = hasActiveParentFamilyFilters(
-    {
-      status: statusFilter,
-      accountFilter,
-      childrenFilter,
-      hideWithoutChildren,
-      relationshipType: relationshipFilter,
-      language: languageFilter,
-    },
-    debouncedSearch,
-  );
+  const hasActiveFilters = hasActiveParentFamilyFilters(filterState, debouncedSearch);
 
   const normalizedParents = useMemo(
     () => normalizeParentListItems(state.data ?? []),
     [state.data],
   );
 
-  const families = useMemo(() => {
-    const grouped = groupParentsByFamily(normalizedParents);
-    return filterParentFamilies(
-      grouped,
-      {
-        status: statusFilter,
-        accountFilter,
-        childrenFilter,
-        hideWithoutChildren,
-        relationshipType: relationshipFilter,
-        language: languageFilter,
-      },
-      debouncedSearch,
-    );
-  }, [
-    normalizedParents,
-    debouncedSearch,
-    statusFilter,
-    accountFilter,
-    childrenFilter,
-    hideWithoutChildren,
-    relationshipFilter,
-    languageFilter,
-  ]);
+  const groupedFamilies = useMemo(
+    () => groupParentsByFamily(normalizedParents),
+    [normalizedParents],
+  );
 
-  function resetFilters() {
+  const families = useMemo(
+    () => filterParentFamilies(groupedFamilies, filterState, debouncedSearch),
+    [groupedFamilies, filterState, debouncedSearch],
+  );
+
+  const hiddenGuardianOnlyCount = useMemo(
+    () => countHiddenGuardianOnlyFamilies(groupedFamilies, filterState, debouncedSearch),
+    [groupedFamilies, filterState, debouncedSearch],
+  );
+
+  const listEmptyVariant = useMemo(
+    () =>
+      resolveParentsListEmptyVariant({
+        hasActiveFilters,
+        visibleFamilyCount: families.length,
+        hiddenGuardianOnlyCount,
+      }),
+    [hasActiveFilters, families.length, hiddenGuardianOnlyCount],
+  );
+
+  const resetFilters = useCallback(() => {
     setSearch('');
     setStatusFilter('');
     setAccountFilter('');
@@ -119,7 +135,37 @@ export default function AdminParentsPage() {
     setLanguageFilter('');
     setHideWithoutChildren(true);
     setPage(1);
-  }
+  }, []);
+
+  const clearSearch = useCallback(() => {
+    setSearch('');
+    setPage(1);
+  }, []);
+
+  const listEmptyState =
+    listEmptyVariant === 'no-match' ? (
+      <EmptyState
+        icon="🔍"
+        title={t('admin.parentsList.noMatch.title')}
+        description={t('admin.parentsList.noMatch.description')}
+        action={
+          <button type="button" className="btn btn--ghost btn--sm" onClick={resetFilters}>
+            {t('admin.parentsList.resetFilters')}
+          </button>
+        }
+      />
+    ) : (
+      <EmptyState
+        icon="👪"
+        title={t('admin.parentsList.noData.title')}
+        description={t('admin.parentsList.noData.description')}
+        action={
+          <Link href="/admin/parents/new" className="btn btn--primary btn--sm">
+            {t('admin.addParent')}
+          </Link>
+        }
+      />
+    );
 
   return (
     <div className="parents-list-page">
@@ -148,106 +194,68 @@ export default function AdminParentsPage() {
         <CsvImportPanel importPath={endpoints.admin.parentsImport} onDone={() => state.reload()} />
       ) : null}
 
-      <div className="parents-list__toolbar">
-        <input
-          className="input parents-list__search"
-          placeholder={t('admin.searchParents')}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          aria-label={t('admin.searchParents')}
-        />
-        <select
-          className="input"
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          aria-label={t('academic.status')}
-        >
-          <option value="">{t('admin.allStates')}</option>
-          <option value="active">{t('states.active')}</option>
-          <option value="suspended">{t('states.suspended')}</option>
-        </select>
-        <select
-          className="input"
-          value={accountFilter}
-          onChange={(e) => setAccountFilter(e.target.value)}
-          aria-label={t('admin.account.filterAll')}
-        >
-          <option value="">{t('admin.account.filterAll')}</option>
-          <option value="has_account">{t('admin.account.filterHasAccount')}</option>
-          <option value="no_account">{t('admin.account.filterNoAccount')}</option>
-        </select>
-        <select
-          className="input"
-          value={childrenFilter}
-          onChange={(e) => setChildrenFilter(e.target.value as ParentFamilyFilters['childrenFilter'])}
-          aria-label={t('admin.parentsList.filterChildren')}
-        >
-          <option value="">{t('admin.parentsList.filterChildrenAll')}</option>
-          <option value="has">{t('admin.parentsList.filterChildrenLinked')}</option>
-          <option value="none">{t('admin.parentsList.filterChildrenNone')}</option>
-        </select>
-        <select
-          className="input"
-          value={relationshipFilter}
-          onChange={(e) => setRelationshipFilter(e.target.value)}
-          aria-label={t('admin.parentsList.filterRelationship')}
-        >
-          <option value="">{t('admin.parentsList.filterRelationshipAll')}</option>
-          {RELATIONSHIP_TYPE_CODES.map((type) => (
-            <option key={type} value={type}>
-              {relationshipTypeLabel(t, type)}
-            </option>
-          ))}
-        </select>
-        <select
-          className="input"
-          value={languageFilter}
-          onChange={(e) => setLanguageFilter(e.target.value)}
-          aria-label={t('admin.preferredLanguage')}
-        >
-          <option value="">{t('admin.parentsList.filterLanguageAll')}</option>
-          <option value="ar">{t('admin.parentsList.languageAr')}</option>
-          <option value="fr">{t('admin.parentsList.languageFr')}</option>
-          <option value="en">{t('admin.parentsList.languageEn')}</option>
-        </select>
-        <label className="parents-list__toggle">
-          <input
-            type="checkbox"
-            checked={hideWithoutChildren}
-            onChange={(e) => setHideWithoutChildren(e.target.checked)}
-          />
-          <span>{t('admin.parentsList.hideWithoutChildren')}</span>
-        </label>
-        {hasActiveFilters ? (
-          <button type="button" className="btn btn--ghost btn--sm" onClick={resetFilters}>
-            {t('admin.parentsList.resetFilters')}
-          </button>
-        ) : null}
-      </div>
+      <ParentsListFilters
+        search={search}
+        statusFilter={statusFilter}
+        accountFilter={accountFilter}
+        childrenFilter={childrenFilter}
+        relationshipFilter={relationshipFilter}
+        languageFilter={languageFilter}
+        hideWithoutChildren={hideWithoutChildren}
+        hasActiveFilters={hasActiveFilters}
+        onSearchChange={setSearch}
+        onSearchClear={clearSearch}
+        onStatusFilterChange={setStatusFilter}
+        onAccountFilterChange={setAccountFilter}
+        onChildrenFilterChange={setChildrenFilter}
+        onRelationshipFilterChange={setRelationshipFilter}
+        onLanguageFilterChange={setLanguageFilter}
+        onHideWithoutChildrenChange={setHideWithoutChildren}
+        onReset={resetFilters}
+      />
+
+      {state.fetching ? (
+        <p className="parents-list__fetching-hint" aria-live="polite">
+          {t('admin.parentsList.refetching')}
+        </p>
+      ) : null}
 
       {!state.initialLoading && families.length > 0 ? (
-        <p className="parents-list__results">
+        <p
+          className={
+            state.fetching
+              ? 'parents-list__results parents-list__results--fetching'
+              : 'parents-list__results'
+          }
+          aria-busy={state.fetching || undefined}
+        >
           {t('admin.parentsList.resultsCount', { count: families.length })}
+          {pg ? (
+            <span className="parents-list__results-note">
+              {' '}
+              · {t('admin.parentsList.paginationNote', { total: pg.total })}
+            </span>
+          ) : null}
         </p>
       ) : null}
 
       <ResourceView
         state={state}
         loadingLabel={t('common.loading')}
-        isEmpty={() => families.length === 0}
-        empty={
-          <EmptyState
-            icon="👪"
-            title={t('empty.children')}
-            description={hasActiveFilters ? t('admin.adjustSearch') : undefined}
-          />
-        }
+        isEmpty={() => !state.loading && families.length === 0}
+        empty={listEmptyState}
       >
         {() => (
           <>
             <ParentsFamilyList families={families} />
             {pg ? (
-              <Pagination page={pg.page} totalPages={pg.total_pages} total={pg.total} onPage={setPage} />
+              <Pagination
+                page={pg.page}
+                totalPages={pg.total_pages}
+                total={pg.total}
+                pageSize={PARENTS_PAGE_SIZE}
+                onPage={setPage}
+              />
             ) : null}
           </>
         )}

@@ -1,8 +1,14 @@
 'use client';
 
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
 import { useMemo, useState, type CSSProperties } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils/cn';
+import { EmptyState } from '@/components/states/states';
 import { AdminListActions } from '@/features/admin/admin-list-actions';
 import { useDebouncedValue } from '@/features/admin/students/hooks/use-debounced-value';
 import {
@@ -19,6 +25,8 @@ import {
   filterLevelsByCycle,
   filterLevelsForSearch,
   groupLevelsListByCycle,
+  levelsBrowserHasActiveQuery,
+  resolveLevelsBrowserEmptyVariant,
   uniqueCycleCodes,
 } from '../utils/levels-list-utils';
 import '../admin-levels.css';
@@ -65,7 +73,9 @@ function LevelCard({ level }: { level: Level }) {
   return (
     <Link href={`/admin/levels/${level.id}`} className="admin-levels-card">
       <div className="admin-levels-card__head">
-        <h3 className="admin-levels-card__name">{label.primary}</h3>
+        <h3 className="admin-levels-card__name" dir="auto" title={label.primary}>
+          {label.primary}
+        </h3>
         {label.secondary ? (
           <span className="admin-levels-card__code mono" dir="ltr">
             {label.secondary}
@@ -109,7 +119,15 @@ export function AdminLevelsList({ levels }: { levels: Level[] }) {
   }, [levels, debouncedSearch, cycleFilter]);
 
   const grouped = useMemo(() => groupLevelsListByCycle(filtered), [filtered]);
-  const hasActiveFilters = debouncedSearch.trim().length > 0 || !!cycleFilter;
+  const hasActiveFilters = levelsBrowserHasActiveQuery({
+    search: search,
+    cycleFilter,
+  });
+  const hasActiveQuery = levelsBrowserHasActiveQuery({
+    search: debouncedSearch,
+    cycleFilter,
+  });
+  const emptyVariant = resolveLevelsBrowserEmptyVariant({ hasActiveQuery });
 
   function resetFilters() {
     setSearch('');
@@ -122,7 +140,7 @@ export function AdminLevelsList({ levels }: { levels: Level[] }) {
         <div className="admin-levels-hero__glow" aria-hidden="true" />
         <div className="admin-levels-hero__content">
           <div className="admin-levels-hero__intro">
-            <span className="admin-levels-hero__eyebrow">
+            <span className="admin-levels-hero__eyebrow" dir="auto">
               {user.school?.name ?? t('admin.cmd.defaultSchool')}
             </span>
             <h1 className="admin-levels-hero__title">{t('nav.levels')}</h1>
@@ -154,28 +172,36 @@ export function AdminLevelsList({ levels }: { levels: Level[] }) {
           <span className="admin-levels-stat__icon" aria-hidden="true">
             📚
           </span>
-          <span className="admin-levels-stat__value">{overview.levelCount}</span>
+          <span className="admin-levels-stat__value" dir="ltr">
+            {overview.levelCount}
+          </span>
           <span className="admin-levels-stat__label">{t('nav.levels')}</span>
         </div>
         <div className="admin-levels-stat">
           <span className="admin-levels-stat__icon" aria-hidden="true">
             🏫
           </span>
-          <span className="admin-levels-stat__value">{overview.classCount}</span>
+          <span className="admin-levels-stat__value" dir="ltr">
+            {overview.classCount}
+          </span>
           <span className="admin-levels-stat__label">{t('nav.classes')}</span>
         </div>
         <div className="admin-levels-stat">
           <span className="admin-levels-stat__icon" aria-hidden="true">
             📖
           </span>
-          <span className="admin-levels-stat__value">{overview.subjectCount}</span>
+          <span className="admin-levels-stat__value" dir="ltr">
+            {overview.subjectCount}
+          </span>
           <span className="admin-levels-stat__label">{t('nav.subjects')}</span>
         </div>
         <div className="admin-levels-stat">
           <span className="admin-levels-stat__icon" aria-hidden="true">
             ✓
           </span>
-          <span className="admin-levels-stat__value">{overview.activeCount}</span>
+          <span className="admin-levels-stat__value" dir="ltr">
+            {overview.activeCount}
+          </span>
           <span className="admin-levels-stat__label">{t('states.active')}</span>
         </div>
       </section>
@@ -193,13 +219,17 @@ export function AdminLevelsList({ levels }: { levels: Level[] }) {
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t('admin.academicSetup.levelsSearchPlaceholder')}
               aria-label={t('common.search')}
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck={false}
+              dir="auto"
             />
             {search ? (
               <button
                 type="button"
                 className="admin-levels-search__clear"
                 onClick={() => setSearch('')}
-                aria-label={t('common.clear')}
+                aria-label={t('admin.levelsBrowser.clearSearch')}
               >
                 ×
               </button>
@@ -207,7 +237,7 @@ export function AdminLevelsList({ levels }: { levels: Level[] }) {
           </label>
           {hasActiveFilters ? (
             <button type="button" className="btn btn--ghost btn--sm" onClick={resetFilters}>
-              {t('admin.academicSetup.levelsFilterClear')}
+              {t('admin.levelsBrowser.resetFilters')}
             </button>
           ) : null}
         </div>
@@ -246,24 +276,24 @@ export function AdminLevelsList({ levels }: { levels: Level[] }) {
       </section>
 
       {filtered.length === 0 ? (
-        <div className="admin-levels-empty">
-          <span className="admin-levels-empty__icon" aria-hidden="true">
-            🔍
-          </span>
-          <p className="admin-levels-empty__title">
-            {levels.length === 0 ? t('admin.noLevels') : t('admin.academicSetup.guided.noLevelsFilterMatch')}
-          </p>
-          <p className="admin-levels-empty__desc">
-            {levels.length === 0
-              ? t('admin.levelsListDesc')
-              : t('admin.academicSetup.levelsFilterEmpty')}
-          </p>
-          {hasActiveFilters ? (
-            <button type="button" className="btn btn--primary btn--sm" onClick={resetFilters}>
-              {t('admin.academicSetup.levelsFilterClear')}
-            </button>
-          ) : null}
-        </div>
+        emptyVariant === 'no-match' ? (
+          <EmptyState
+            icon="🔍"
+            title={t('admin.levelsBrowser.noMatch.title')}
+            description={t('admin.levelsBrowser.noMatch.description')}
+            action={
+              <button type="button" className="btn btn--ghost btn--sm" onClick={resetFilters}>
+                {t('admin.levelsBrowser.resetFilters')}
+              </button>
+            }
+          />
+        ) : (
+          <EmptyState
+            icon="📚"
+            title={t('admin.levelsBrowser.noData.title')}
+            description={t('admin.levelsBrowser.noData.description')}
+          />
+        )
       ) : (
         <>
           <div className="admin-levels-sections">
@@ -281,7 +311,9 @@ export function AdminLevelsList({ levels }: { levels: Level[] }) {
                         {visual.icon}
                       </span>
                       <div>
-                        <h2 className="admin-levels-cycle__title">{cycleTitle(cycle, t)}</h2>
+                        <h2 className="admin-levels-cycle__title" dir="auto">
+                          {cycleTitle(cycle, t)}
+                        </h2>
                         <p className="admin-levels-cycle__meta">
                           {t('admin.academicSetup.cycleGroupStats', {
                             levels: cycleLevels.length,
