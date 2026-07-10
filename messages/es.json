@@ -9559,6 +9559,14 @@
         "allLevels": "Todos los niveles",
         "searchPlaceholder": "Buscar por nombre o código…",
         "clearFilters": "Borrar filtros",
+        "activeFilters": "Filtros activos",
+        "refetching": "Actualizando resultados…",
+        "resultCount": "{total} planes",
+        "clientWindowHint": "La búsqueda y el filtro de ciclo se aplican dentro de los primeros {limit} planes cargados.",
+        "noMatch": {
+          "title": "No hay planes coincidentes",
+          "description": "Prueba a borrar la búsqueda o los filtros."
+        },
         "planLinesTitle": "Líneas del plan",
         "addLine": "Añadir línea",
         "editLine": "Editar línea",

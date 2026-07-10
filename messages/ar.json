@@ -9584,6 +9584,14 @@
         "allLevels": "كل المستويات",
         "searchPlaceholder": "بحث باسم الخطة أو الرمز…",
         "clearFilters": "مسح الفلاتر",
+        "activeFilters": "الفلاتر النشطة",
+        "refetching": "جاري تحديث النتائج…",
+        "resultCount": "{total} خطة",
+        "clientWindowHint": "البحث وفلتر الدورة يُطبَّقان ضمن أول {limit} خطة محمّلة.",
+        "noMatch": {
+          "title": "لا توجد خطط مطابقة",
+          "description": "جرّب مسح البحث أو الفلاتر."
+        },
         "planLinesTitle": "بنود الخطة",
         "addLine": "إضافة بند",
         "editLine": "تعديل البند",

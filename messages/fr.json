@@ -9560,6 +9560,14 @@
         "allLevels": "Tous les niveaux",
         "searchPlaceholder": "Rechercher par nom ou code…",
         "clearFilters": "Effacer les filtres",
+        "activeFilters": "Filtres actifs",
+        "refetching": "Mise à jour des résultats…",
+        "resultCount": "{total} plans",
+        "clientWindowHint": "La recherche et le filtre de cycle s’appliquent dans les {limit} premiers plans chargés.",
+        "noMatch": {
+          "title": "Aucun plan correspondant",
+          "description": "Essayez d’effacer la recherche ou les filtres."
+        },
         "planLinesTitle": "Lignes du plan",
         "addLine": "Ajouter une ligne",
         "editLine": "Modifier la ligne",

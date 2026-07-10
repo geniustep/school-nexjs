@@ -8,12 +8,17 @@ import { FinanceStatusBadge } from '@/features/admin/finance/finance-status-badg
 import { useAcademicYearOptions } from '@/features/admin/finance/use-finance-lookups';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
-import { feePlanState, refName } from '@/lib/utils/finance';
+import { refName } from '@/lib/utils/finance';
 import { resolveAcademicYearName } from '@/lib/utils/academic-years';
 import type { FeePlan } from '@/types/finance';
 import type { FeePlanScopeCycleGroup } from './fee-plan-level-scope';
 import { feePlanLevelScopeLabel, feePlanLineCount } from './fee-plan-normalizer';
 import { feePlanAllowsAction } from './normalize-fee-plan';
+import {
+  FEE_PLANS_LIST_PAGE_SIZE,
+  resolveFeePlanListState,
+  resolveFeePlanListUsageCount,
+} from './fee-plans-list-present';
 
 export function FeePlansList({
   rows,
@@ -65,7 +70,9 @@ export function FeePlansList({
         render: (row) => (
           <button type="button" className="fee-plans-list__name-link" onClick={() => onView(row)}>
             <strong dir="auto">{row.name}</strong>
-            <span className="fee-plans-list__code-chip mono">{row.code}</span>
+            <span className="fee-plans-list__code-chip mono" dir="ltr">
+              {row.code}
+            </span>
           </button>
         ),
       },
@@ -91,8 +98,23 @@ export function FeePlansList({
         key: 'lines',
         header: t('admin.finance.feePlansWorkspace.lineCount'),
         render: (row) => (
-          <span className="fee-plans-list__line-count">{feePlanLineCount(row)}</span>
+          <span className="fee-plans-list__line-count" dir="ltr">
+            {feePlanLineCount(row)}
+          </span>
         ),
+      },
+      {
+        key: 'usage',
+        header: t('admin.finance.feePlansWorkspace.usageStudentsLinked'),
+        render: (row) => {
+          const usageCount = resolveFeePlanListUsageCount(row);
+          if (usageCount == null) return t('common.dash');
+          return (
+            <span className="fee-plans-list__line-count" dir="ltr">
+              {usageCount}
+            </span>
+          );
+        },
       },
       {
         key: 'total',
@@ -102,7 +124,7 @@ export function FeePlansList({
       {
         key: 'state',
         header: t('academic.status'),
-        render: (row) => <FinanceStatusBadge state={feePlanState(row)} />,
+        render: (row) => <FinanceStatusBadge state={resolveFeePlanListState(row)} />,
       },
       {
         key: 'actions',
@@ -148,50 +170,68 @@ export function FeePlansList({
 
   return (
     <div className="fee-plans-workspace__list-wrap">
-      <div className="fee-plans-list__desktop fee-plans-workspace__table-wrap" data-testid="fee-plans-table">
+      <div
+        className="fee-plans-list__desktop fee-plans-workspace__table-wrap"
+        data-testid="fee-plans-table"
+      >
         <DataTable columns={columns} rows={rows} rowKey={(row) => row.id} onRowClick={onView} />
       </div>
       <div className="fee-plans-list__mobile" data-testid="fee-plans-cards">
-        {rows.map((row) => (
-          <article key={row.id} className="card fee-plan-card" onClick={() => onView(row)}>
-            <div className="fee-plan-card__head">
-              <div>
-                <h3 className="fee-plan-card__title" dir="auto">
-                  {row.name}
-                </h3>
-                <p className="fee-plans-list__code-chip fee-plan-card__code mono">{row.code}</p>
+        {rows.map((row) => {
+          const usageCount = resolveFeePlanListUsageCount(row);
+          return (
+            <article key={row.id} className="card fee-plan-card" onClick={() => onView(row)}>
+              <div className="fee-plan-card__head">
+                <div>
+                  <h3 className="fee-plan-card__title" dir="auto">
+                    {row.name}
+                  </h3>
+                  <p className="fee-plans-list__code-chip fee-plan-card__code mono" dir="ltr">
+                    {row.code}
+                  </p>
+                </div>
+                <FinanceStatusBadge state={resolveFeePlanListState(row)} />
               </div>
-              <FinanceStatusBadge state={feePlanState(row)} />
-            </div>
-            <dl className="fee-plan-card__stats">
-              <div className="fee-plan-card__stat">
-                <dt>{t('admin.finance.academicYear')}</dt>
-                <dd dir="auto">{academicYearLabel(row)}</dd>
-              </div>
-              <div className="fee-plan-card__stat">
-                <dt>{t('admin.finance.feePlansWorkspace.lineCount')}</dt>
-                <dd>{feePlanLineCount(row)}</dd>
-              </div>
-              <div className="fee-plan-card__stat">
-                <dt>{t('nav.levels')}</dt>
-                <dd className="fee-plan-level-scope-summary fee-plan-level-scope-summary--multiline" dir="auto">
-                  {feePlanLevelScopeLabel(row, scopeGroups, scopeLabels)}
-                </dd>
-              </div>
-              <div className="fee-plan-card__total">
-                <dt>{t('admin.finance.feePlansWorkspace.planTotal')}</dt>
-                <dd>
-                  <FinanceMoney amount={row.total_amount} currency={row.currency} />
-                </dd>
-              </div>
-            </dl>
-          </article>
-        ))}
+              <dl className="fee-plan-card__stats">
+                <div className="fee-plan-card__stat">
+                  <dt>{t('admin.finance.academicYear')}</dt>
+                  <dd dir="auto">{academicYearLabel(row)}</dd>
+                </div>
+                <div className="fee-plan-card__stat">
+                  <dt>{t('admin.finance.feePlansWorkspace.lineCount')}</dt>
+                  <dd dir="ltr">{feePlanLineCount(row)}</dd>
+                </div>
+                <div className="fee-plan-card__stat">
+                  <dt>{t('nav.levels')}</dt>
+                  <dd
+                    className="fee-plan-level-scope-summary fee-plan-level-scope-summary--multiline"
+                    dir="auto"
+                  >
+                    {feePlanLevelScopeLabel(row, scopeGroups, scopeLabels)}
+                  </dd>
+                </div>
+                {usageCount != null ? (
+                  <div className="fee-plan-card__stat">
+                    <dt>{t('admin.finance.feePlansWorkspace.usageStudentsLinked')}</dt>
+                    <dd dir="ltr">{usageCount}</dd>
+                  </div>
+                ) : null}
+                <div className="fee-plan-card__total">
+                  <dt>{t('admin.finance.feePlansWorkspace.planTotal')}</dt>
+                  <dd>
+                    <FinanceMoney amount={row.total_amount} currency={row.currency} />
+                  </dd>
+                </div>
+              </dl>
+            </article>
+          );
+        })}
       </div>
       {pagination && pagination.total > 0 ? (
         <div className="fee-plans-workspace__pagination">
           <Pagination
             page={pagination.page}
+            pageSize={FEE_PLANS_LIST_PAGE_SIZE}
             totalPages={pagination.total_pages}
             total={pagination.total}
             onPage={onPage}

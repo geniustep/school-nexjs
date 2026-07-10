@@ -100,12 +100,17 @@ export function FeePlansFilters({
               value={filters.search}
               onChange={(e) => onChange({ search: e.target.value })}
               aria-label={t('admin.search')}
+              dir="auto"
             />
             {filters.search ? (
               <button
                 type="button"
                 className="fee-plans-workspace__search-clear"
-                onClick={() => onChange({ search: '' })}
+                onClick={() => {
+                  const next = { ...filters, search: '' };
+                  onChange({ search: '' });
+                  onSearchSubmit(next);
+                }}
                 aria-label={t('common.clear')}
               >
                 ×

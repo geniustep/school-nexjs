@@ -9537,6 +9537,14 @@
         "allLevels": "All levels",
         "searchPlaceholder": "Search by plan name or code…",
         "clearFilters": "Clear filters",
+        "activeFilters": "Active filters",
+        "refetching": "Updating results…",
+        "resultCount": "{total} plans",
+        "clientWindowHint": "Search and cycle filters apply within the first {limit} loaded plans.",
+        "noMatch": {
+          "title": "No matching fee plans",
+          "description": "Try clearing search or filters."
+        },
         "planLinesTitle": "Plan lines",
         "addLine": "Add line",
         "editLine": "Edit line",

@@ -166,6 +166,7 @@ describe('fee plans workspace UI markers', () => {
     expect(source).not.toContain('showForm');
     expect(source).toContain('FeePlanDrawer');
     expect(source).toContain('isEmpty');
+    expect(source).toContain('@design-status adopted');
     expect(source).not.toContain('records 0');
   });
 });
