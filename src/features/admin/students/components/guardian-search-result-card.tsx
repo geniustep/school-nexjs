@@ -8,6 +8,7 @@ import { formatMoroccanPhoneDisplay } from '../utils/normalize-moroccan-phone';
 import { formatGuardianCandidateWarnings } from '../utils/guardian-candidate-presentation';
 import { formatRoleLabels, personProfileHref } from '../utils/person-role-presentation';
 import { isPersonArchived } from '../utils/guardian-profile-contract';
+import { resolveMaskedIdentityDocument } from '@/features/admin/parents/utils/identity-document';
 import type { PersonSearchResult } from '@/types/student-360';
 
 function ResultRowMenu({
@@ -84,6 +85,8 @@ export function GuardianSearchResultCard({
   const warningMessages = formatGuardianCandidateWarnings(t, person.warnings, {
     skipCodes: alreadyLinked ? ['already_linked_to_student'] : undefined,
   });
+  const maskedIdentity = resolveMaskedIdentityDocument(person);
+  const identityMatch = person.match_basis === 'identity_document';
 
   return (
     <article
@@ -108,6 +111,24 @@ export function GuardianSearchResultCard({
         {person.email ? (
           <span className="tiny" dir="ltr">
             {person.email}
+          </span>
+        ) : null}
+
+        {identityMatch ? (
+          <span className="tiny guardian-search-card__match">
+            {t('admin.identityDocument.matchViaIdentity')}
+            {maskedIdentity ? (
+              <>
+                {' '}
+                <span className="mono" dir="ltr">
+                  ({maskedIdentity})
+                </span>
+              </>
+            ) : null}
+          </span>
+        ) : maskedIdentity ? (
+          <span className="tiny mono" dir="ltr">
+            {maskedIdentity}
           </span>
         ) : null}
 

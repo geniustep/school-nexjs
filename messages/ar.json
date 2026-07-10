@@ -795,7 +795,8 @@
         "name": "الاسم",
         "guardian_phone": "هاتف ولي الأمر",
         "massar": "رقم مسار",
-        "student_code": "الرقم المدرسي"
+        "student_code": "الرقم المدرسي",
+        "guardian_identity": "وثيقة هوية ولي الأمر"
       }
     },
     "studentSearchPicker": {
@@ -3242,7 +3243,7 @@
         "classCreationFailed": "تعذر إنشاء القسم."
       }
     },
-    "searchParents": "بحث في الأولياء…",
+    "searchParents": "بحث بالاسم أو الهاتف أو وثيقة الهوية…",
     "allLevels": "كل المستويات",
     "selectLevel": "اختر المستوى",
     "gender": "الجنس",
@@ -7183,7 +7184,8 @@
       "billingPartyCustom": "جهة خاصة",
       "feePlansWorkspace": {
         "monthlyInstallmentCount": "عدد الدفعات الشهرية"
-      }
+      },
+      "searchByNamePhoneIdentity": "ابحث بالاسم أو الهاتف أو البريد أو وثيقة الهوية"
     },
     "academicYearIdOptional": "معرّف السنة الدراسية (اختياري)",
     "academicYearOptionalHint": "اتركه فارغًا إن لم تكن متأكدًا",
@@ -9856,6 +9858,38 @@
         "inactive": "الحساب غير نشط",
         "noAccount": "لا يوجد حساب",
         "unknown": "حالة الحساب غير متوفرة"
+      }
+    },
+    "identityDocument": {
+      "sectionTitle": "وثيقة الهوية",
+      "type": "نوع الوثيقة",
+      "typeNone": "بدون وثيقة",
+      "number": "رقم وثيقة الهوية",
+      "country": "بلد الإصدار",
+      "optionalHelp": "اختياري. يمكن حفظ ولي الأمر دون وثيقة هوية.",
+      "nationalIdHint": "البطاقة الوطنية (CIN) للمغرب.",
+      "nationalIdCountryHint": "البطاقة الوطنية صادرة في المغرب (MA).",
+      "countryRequiredHint": "مطلوب لهذا النوع (رمز الدولة، مثل FR).",
+      "countryOptionalHint": "اختياري — رمز الدولة (مثل MA).",
+      "clear": "مسح وثيقة الهوية",
+      "clearPending": "سيتم مسح وثيقة الهوية عند الحفظ.",
+      "undoClear": "التراجع عن المسح",
+      "duplicateExists": "يوجد ولي مسجل بنفس وثيقة الهوية.",
+      "useExisting": "استخدام الولي الموجود",
+      "openExisting": "فتح ملف الولي الموجود",
+      "maskedLabel": "وثيقة الهوية",
+      "matchViaIdentity": "تطابق عبر وثيقة الهوية",
+      "types": {
+        "national_id": "البطاقة الوطنية",
+        "passport": "جواز السفر",
+        "residence_card": "بطاقة الإقامة",
+        "other": "وثيقة أخرى"
+      },
+      "errors": {
+        "required": "وثيقة الهوية مطلوبة.",
+        "typeRequired": "اختر نوع الوثيقة.",
+        "numberRequired": "أدخل رقم الوثيقة.",
+        "countryRequired": "أدخل بلد الإصدار."
       }
     }
   }

@@ -2,6 +2,7 @@ import type { Parent, ParentChild, ParentAccountInfo, ParentGuardianProfile } fr
 import { getGuardianEmailPresentation } from '@/features/admin/students/utils/guardian-email-presentation';
 import { normalizeAllowedActionsFromRaw, normalizeRemovalImpactFromRaw } from '@/features/admin/students/utils/guardian-removal-shared';
 import { normalizeDeleteImpactFromRaw } from '@/features/admin/students/utils/guardian-delete-impact';
+import { readIdentityDocumentFields } from './identity-document';
 import {
   filterActiveRelationshipChild,
   hasRelationshipsContract,
@@ -275,6 +276,10 @@ export function normalizeParentProfile(data: unknown): Parent | null {
 
   const rootLogin = readNullableString(raw.login) ?? (person ? readNullableString(person.login) : null);
 
+  const identitySource = person ?? raw;
+  const identity = readIdentityDocumentFields(identitySource);
+  const rootIdentity = readIdentityDocumentFields(raw);
+
   return {
     id: raw.id,
     code: guardianCode,
@@ -296,6 +301,15 @@ export function normalizeParentProfile(data: unknown): Parent | null {
         (typeof raw.city === 'string' ? raw.city.trim() : null)) ||
       undefined,
     address: (person ? readAddress(person) : null) ?? readAddress(raw),
+    identity_document_type: identity.identity_document_type ?? rootIdentity.identity_document_type,
+    identity_document_number:
+      identity.identity_document_number ?? rootIdentity.identity_document_number,
+    identity_document_country:
+      identity.identity_document_country ?? rootIdentity.identity_document_country,
+    national_id_masked: identity.national_id_masked ?? rootIdentity.national_id_masked,
+    identity_document_number_masked:
+      identity.identity_document_number_masked ?? rootIdentity.identity_document_number_masked,
+    national_id: identity.national_id ?? rootIdentity.national_id,
     login: accountInfo?.login ?? rootLogin,
     user_id: accountInfo?.user_id ?? (typeof raw.user_id === 'number' ? raw.user_id : null),
     has_account: hasUserAccount,

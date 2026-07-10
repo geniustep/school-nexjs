@@ -4,6 +4,7 @@ import type { Student } from './student';
 export type StudentSearchMatchedOn =
   | 'name'
   | 'guardian_phone'
+  | 'guardian_identity'
   | 'massar'
   | 'student_code';
 

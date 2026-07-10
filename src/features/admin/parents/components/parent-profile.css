@@ -222,6 +222,95 @@
   color: #dc2626;
 }
 
+.identity-document-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.identity-document-fields__help {
+  margin: 0;
+}
+
+.identity-document-fields__grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.identity-document-fields__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.identity-document-fields__error {
+  color: #dc2626;
+}
+
+.identity-document-fields__clear {
+  align-self: flex-start;
+}
+
+.identity-document-fields__clear-banner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--c-surface-2, #eef2f8);
+  border-radius: 8px;
+}
+
+.identity-document-fields__clear-banner p {
+  margin: 0;
+}
+
+.identity-document-conflict {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: 8px;
+  background: var(--c-surface-2, #eef2f8);
+}
+
+.identity-document-conflict__title {
+  margin: 0;
+  font-weight: 600;
+}
+
+.identity-document-conflict__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.identity-document-conflict__item {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.identity-document-conflict__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.identity-document-conflict__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .parent-edit-form__checkbox {
   display: flex;
   gap: 8px;
@@ -568,7 +657,8 @@
     grid-template-columns: 1fr;
   }
 
-  .parent-edit-form__grid {
+  .parent-edit-form__grid,
+  .identity-document-fields__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -583,7 +673,8 @@
   }
 
   .parent-edit-form__grid,
-  .parent-edit-form__grid--prefs {
+  .parent-edit-form__grid--prefs,
+  .identity-document-fields__grid {
     grid-template-columns: 1fr;
   }
 

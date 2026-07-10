@@ -73,8 +73,7 @@
       "general_supervisor": "Surveillant général",
       "admin_staff": "Assistant administratif",
       "legacy_admin": "Administrateur",
-      "super_admin": "Super administrateur",
-      "pedagogical_director": "Directeur pédagogique"
+      "super_admin": "Super administrateur"
     }
   },
   "nav": {
@@ -796,7 +795,8 @@
         "name": "Nom",
         "guardian_phone": "Téléphone du responsable",
         "massar": "Numéro Massar",
-        "student_code": "Numéro scolaire"
+        "student_code": "Numéro scolaire",
+        "guardian_identity": "Document d’identité du responsable"
       }
     },
     "studentSearchPicker": {
@@ -830,7 +830,9 @@
       "attentionEmpty": "Rien ne nécessite votre intervention pour le moment.",
       "reports": "Rapports pédagogiques",
       "emptyWorkspace": "Commencez par le centre de travail ou le menu latéral.",
-      "metrics": { "attendanceToday": "Présences du jour" },
+      "metrics": {
+        "attendanceToday": "Présences du jour"
+      },
       "metricGroups": {
         "schoolLife": "Vie scolaire",
         "academicOrg": "Organisation académique",
@@ -3214,7 +3216,7 @@
         "classCreationFailed": "Impossible de créer la classe."
       }
     },
-    "searchParents": "Rechercher parents…",
+    "searchParents": "Rechercher par nom, téléphone ou document d’identité…",
     "allLevels": "Tous les niveaux",
     "selectLevel": "Choisir niveau",
     "gender": "Genre",
@@ -3929,7 +3931,10 @@
         "internalNotes": "Notes internes",
         "priority": "Priorité"
       },
-      "gender": { "male": "Garçon", "female": "Fille" },
+      "gender": {
+        "male": "Garçon",
+        "female": "Fille"
+      },
       "create": {
         "title": "Nouvelle demande d'inscription",
         "subtitle": "Créez une demande d'inscription initiale sans créer d'élève officiel.",
@@ -4248,7 +4253,9 @@
         "success": "Élève créé et lié à la demande d'admission.",
         "linkFailed": "L'élève a été créé, mais la liaison à la demande a échoué. Ouvrez le dossier élève pour continuer."
       },
-      "errors": { "notFound": "Demande introuvable." }
+      "errors": {
+        "notFound": "Demande introuvable."
+      }
     },
     "enrollmentIntake": {
       "admissionNotes": "Notes internes",
@@ -5928,14 +5935,14 @@
           "cancelFinancialImpact": "Un accord actif avec impact financier ne peut pas être annulé directement."
         },
         "noSpecialAgreementTitle": "Aucun accord financier pour cet élève.",
-        "noSpecialAgreementDesc": "Les frais scolaires et l'échéancier existent indépendamment. L'accord spécial sert aux remises, rééchelonnements ou conditions exceptionnelles.",
-        "createSpecialAgreement": "Créer un accord spécial",
-        "viewFeesAndSchedule": "Voir frais et échéancier",
-        "incompleteDraftTitle": "Brouillon d'accord incomplet",
-        "incompleteDraftDesc": "Ce brouillon n'est pas affiché comme accord actif tant qu'il n'est pas complété.",
-        "completeDraft": "Compléter le brouillon",
+        "noSpecialAgreementDesc": "School fee plan fees and payment schedule were created directly. Special agreements are only for discounts, custom schedules, or special terms.",
+        "createSpecialAgreement": "Create special agreement",
+        "viewFeesAndSchedule": "View fees and payment schedule",
+        "incompleteDraftTitle": "Incomplete agreement draft",
+        "incompleteDraftDesc": "This draft does not represent fees from the school plan.",
+        "completeDraft": "Complete draft",
         "emptyManualDraftBlockedHint": "Impossible de compléter un brouillon vide. Créez un accord à partir des frais actuels.",
-        "cancelDraft": "Annuler le brouillon",
+        "cancelDraft": "Cancel draft",
         "fromFees": {
           "title": "Créer un accord à partir des frais actuels",
           "description": "Crée un brouillon d'accord à partir des frais appliqués sans dupliquer les charges.",
@@ -6014,15 +6021,6 @@
             "save": "Enregistrer"
           }
         },
-        "noSpecialAgreementTitle": "Aucun accord financier pour cet élève.",
-        "noSpecialAgreementDesc": "School fee plan fees and payment schedule were created directly. Special agreements are only for discounts, custom schedules, or special terms.",
-        "viewFeesAndSchedule": "View fees and payment schedule",
-        "createSpecialAgreement": "Create special agreement",
-        "incompleteDraftTitle": "Incomplete agreement draft",
-        "incompleteDraftDesc": "This draft does not represent fees from the school plan.",
-        "completeDraft": "Complete draft",
-        "emptyManualDraftBlockedHint": "Impossible de compléter un brouillon vide. Créez un accord à partir des frais actuels.",
-        "cancelDraft": "Cancel draft",
         "openFinanceOverview": "Open financial overview",
         "openPaymentSchedule": "Open payment schedule"
       },
@@ -7149,7 +7147,8 @@
       "billingPartyCustom": "Custom party",
       "feePlansWorkspace": {
         "monthlyInstallmentCount": "Monthly installment count"
-      }
+      },
+      "searchByNamePhoneIdentity": "Rechercher par nom, téléphone, e-mail ou document d’identité"
     },
     "academicYearIdOptional": "ID année scolaire (optionnel)",
     "academicYearOptionalHint": "Laisser vide si inconnu",
@@ -8263,20 +8262,19 @@
             }
           },
           "reverse": {
-            "title": "Contre-passer l'encaissement",
-            "warning": "Cela ne supprime pas l'encaissement. Cela contre-passe l'effet financier et conserve le reçu pour audit.",
-            "reasonLabel": "Motif de la contre-passation",
-            "reasonPlaceholder": "Décrivez pourquoi cet encaissement est contre-passé…",
-            "reasonRequired": "Le motif de la contre-passation est obligatoire.",
-            "confirm": "Confirmer la contre-passation",
-            "success": "Encaissement contre-passé avec succès.",
-            "cancellationReason": "Motif de la contre-passation",
-            "cancelledAt": "Contre-passé le",
+            "title": "Contrepasser l'encaissement",
+            "warning": "Cette action ne supprime pas l'encaissement. Elle contrepasse l'effet financier et conserve le reçu pour audit.",
+            "reasonLabel": "Motif du contrepassage",
+            "reasonRequired": "Le motif du contrepassage est obligatoire.",
+            "confirm": "Confirmer le contrepassage",
+            "success": "Encaissement contrepassé avec succès.",
+            "cancellationReason": "Motif du contrepassage",
+            "cancelledAt": "Contrepassé le",
             "errors": {
-              "forbidden": "Vous n'avez pas la permission de contre-passer cet encaissement.",
+              "forbidden": "Vous n'avez pas la permission de contrepasser cet encaissement.",
               "notFound": "Encaissement introuvable.",
-              "cannotReverse": "Cet encaissement ne peut pas être contre-passé dans son état actuel.",
-              "generic": "Impossible de contre-passer l'encaissement. Veuillez réessayer."
+              "cannotReverse": "Cet encaissement ne peut pas être contrepassé dans son état actuel.",
+              "generic": "Impossible de contrepasser l'encaissement. Réessayez."
             }
           },
           "confirmMessage": "Confirmer et comptabiliser cet encaissement ?",
@@ -8308,22 +8306,6 @@
             "notAllowed": "Cet encaissement ne peut pas être annulé dans son état actuel."
           },
           "receiptState": "État du reçu",
-          "reverse": {
-            "title": "Contrepasser l'encaissement",
-            "warning": "Cette action ne supprime pas l'encaissement. Elle contrepasse l'effet financier et conserve le reçu pour audit.",
-            "reasonLabel": "Motif du contrepassage",
-            "reasonRequired": "Le motif du contrepassage est obligatoire.",
-            "confirm": "Confirmer le contrepassage",
-            "success": "Encaissement contrepassé avec succès.",
-            "cancellationReason": "Motif du contrepassage",
-            "cancelledAt": "Contrepassé le",
-            "errors": {
-              "forbidden": "Vous n'avez pas la permission de contrepasser cet encaissement.",
-              "notFound": "Encaissement introuvable.",
-              "cannotReverse": "Cet encaissement ne peut pas être contrepassé dans son état actuel.",
-              "generic": "Impossible de contrepasser l'encaissement. Réessayez."
-            }
-          },
           "timeline": {
             "draftCreated": "Brouillon créé",
             "confirmed": "Encaissement confirmé",
@@ -8461,13 +8443,13 @@
         "detailTitle": "Détail de l'encaissement",
         "chequeDetailTitle": "Détail du chèque",
         "paymentStepDesc": "Choisissez le mode et le montant, puis répartissez sur les créances.",
-        "stepPayment": "Paiement",
+        "stepPayment": "Mode de paiement",
         "stepAllocation": "Allocate payment",
         "continueToAllocation": "Continuer vers la répartition",
         "allocationTitle": "Répartir le montant",
         "allocationDesc": "Répartir le montant sur les échéances ouvertes.",
         "collectionAmount": "Montant de l'opération",
-        "allocatedAmount": "Montant réparti",
+        "allocatedAmount": "Montant affecté",
         "unallocatedAmount": "Montant non réparti",
         "selectedCount": "Créances sélectionnées",
         "allocationsCount": "Nombre de répartitions",
@@ -8557,7 +8539,6 @@
           "paid_paid": "Entièrement payé"
         },
         "dueToday": "Échéance du jour",
-        "allocatedAmount": "Montant affecté",
         "recordPayment": "Enregistrer un paiement",
         "flexiblePrepaymentIntro": "Saisissez le montant payé, prévisualisez sa répartition sur les échéances ouvertes, puis confirmez.",
         "paidAmountLabel": "Montant payé",
@@ -8595,7 +8576,6 @@
         "recordCollectionAction": "Enregistrer l'encaissement",
         "stepPaymentAndAmount": "Montant et mode de paiement",
         "stepSelectDues": "Choisir les échéances",
-        "stepPayment": "Mode de paiement",
         "stepPaymentMethod": "Mode de paiement",
         "stepReview": "Review and confirm",
         "selectDuesDesc": "Choose the installments you want to collect.",
@@ -9832,6 +9812,38 @@
         "inactive": "Compte inactif",
         "noAccount": "Aucun compte",
         "unknown": "Statut du compte indisponible"
+      }
+    },
+    "identityDocument": {
+      "sectionTitle": "Document d’identité",
+      "type": "Type de document",
+      "typeNone": "Aucun document",
+      "number": "Numéro du document",
+      "country": "Pays d’émission",
+      "optionalHelp": "Facultatif. Vous pouvez enregistrer le responsable sans document d’identité.",
+      "nationalIdHint": "Carte nationale d’identité (CIN) pour le Maroc.",
+      "nationalIdCountryHint": "La carte nationale est émise au Maroc (MA).",
+      "countryRequiredHint": "Obligatoire pour ce type (code pays ISO, ex. FR).",
+      "countryOptionalHint": "Code pays ISO facultatif (ex. MA).",
+      "clear": "Effacer le document d’identité",
+      "clearPending": "Le document d’identité sera effacé à l’enregistrement.",
+      "undoClear": "Annuler l’effacement",
+      "duplicateExists": "Un responsable est déjà enregistré avec le même document d’identité.",
+      "useExisting": "Utiliser le responsable existant",
+      "openExisting": "Ouvrir le responsable existant",
+      "maskedLabel": "Document d’identité",
+      "matchViaIdentity": "Correspondance via document d’identité",
+      "types": {
+        "national_id": "Carte nationale d’identité",
+        "passport": "Passeport",
+        "residence_card": "Carte de séjour",
+        "other": "Autre document"
+      },
+      "errors": {
+        "required": "Le document d’identité est obligatoire.",
+        "typeRequired": "Sélectionnez un type de document.",
+        "numberRequired": "Saisissez le numéro du document.",
+        "countryRequired": "Saisissez le pays d’émission."
       }
     }
   }

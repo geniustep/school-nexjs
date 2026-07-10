@@ -4,6 +4,7 @@ import { normalizeAllowedActionsFromRaw } from './guardian-removal-shared';
 import { normalizeDeleteImpactFromRaw } from './guardian-delete-impact';
 import { getGuardianEmailPresentation } from './guardian-email-presentation';
 import { isPersonArchived } from './guardian-profile-contract';
+import { readIdentityDocumentFields } from '@/features/admin/parents/utils/identity-document';
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === 'object' ? (value as Record<string, unknown>) : null;
@@ -130,6 +131,12 @@ export function normalizePersonSearchResult(data: unknown): PersonSearchResult |
     allowed_actions: allowedActions,
   });
 
+  const identity = readIdentityDocumentFields(raw);
+  const matchBasis =
+    typeof raw.match_basis === 'string' && raw.match_basis.trim()
+      ? raw.match_basis.trim()
+      : null;
+
   return {
     partner_id: raw.partner_id,
     person_id: typeof raw.person_id === 'number' ? raw.person_id : undefined,
@@ -150,12 +157,13 @@ export function normalizePersonSearchResult(data: unknown): PersonSearchResult |
     secondary_phone: typeof raw.secondary_phone === 'string' ? raw.secondary_phone : null,
     email: readEmail(raw),
     address: typeof raw.address === 'string' ? raw.address : null,
-    national_id:
-      typeof raw.national_id === 'string'
-        ? raw.national_id
-        : typeof raw.id_number === 'string'
-          ? raw.id_number
-          : null,
+    national_id: identity.national_id,
+    identity_document_type: identity.identity_document_type,
+    identity_document_number: identity.identity_document_number,
+    identity_document_country: identity.identity_document_country,
+    national_id_masked: identity.national_id_masked,
+    identity_document_number_masked: identity.identity_document_number_masked,
+    match_basis: matchBasis,
     children_count:
       typeof raw.children_count === 'number'
         ? raw.children_count

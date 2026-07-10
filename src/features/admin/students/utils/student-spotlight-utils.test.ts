@@ -89,6 +89,9 @@ describe('studentSpotlightMatchedOnLabelKey', () => {
     expect(studentSpotlightMatchedOnLabelKey('student_code')).toBe(
       'admin.spotlight.matchedOn.student_code',
     );
+    expect(studentSpotlightMatchedOnLabelKey('guardian_identity')).toBe(
+      'admin.spotlight.matchedOn.guardian_identity',
+    );
     expect(studentSpotlightMatchedOnLabelKey(undefined)).toBeNull();
   });
 });

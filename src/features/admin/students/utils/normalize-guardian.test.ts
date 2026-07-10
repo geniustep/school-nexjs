@@ -17,6 +17,7 @@ describe('normalizeGuardianSummary', () => {
     });
     expect(g).toEqual({
       id: 216,
+      code: null,
       guardian_id: 216,
       partner_id: undefined,
       person_id: undefined,
@@ -31,12 +32,18 @@ describe('normalizeGuardianSummary', () => {
       email: 'qa@example.test',
       address: null,
       national_id: null,
+      identity_document_type: null,
+      identity_document_number: null,
+      identity_document_country: null,
+      national_id_masked: null,
+      identity_document_number_masked: null,
       children_count: 2,
       existing_roles: undefined,
       role_labels: undefined,
       has_user: false,
       has_user_account: false,
       has_account: false,
+      account: null,
     });
   });
 

@@ -5,6 +5,7 @@
  * Billing responsibility: docs/contracts/SSC-API-2026.10.001.md
  * Guardian onboarding: docs/contracts/SSC-API-2026.11.001.md
  * Guardian password setup: docs/contracts/SSC-API-2026.12.001.md
+ * Guardian identity document: SSC-API-2026.07.003
  * Not wired to runtime checks — metadata only.
  */
 export const REQUIRED_BACKEND_CONTRACT = {
@@ -80,3 +81,22 @@ export type GuardianOnboardingBackendContract =
   typeof GUARDIAN_ONBOARDING_BACKEND_CONTRACT;
 export type GuardianPasswordBackendContract =
   typeof GUARDIAN_PASSWORD_BACKEND_CONTRACT;
+
+/** Guardian identity document UI/search; SSC-API-2026.07.003 / module 18.0.1.0.168+. */
+export const GUARDIAN_IDENTITY_DOCUMENT_BACKEND_CONTRACT = {
+  contractId: 'SSC-API-2026.07.003',
+  frontendRelease: 'school-nextjs-v2026.07.003',
+  backendModule: 'smart_school_connect',
+  backendMainCommit: null,
+  backendModuleVersion: '18.0.1.0.168',
+  minBackendVersion: '18.0.1.0.168',
+  maxBackendVersion: null,
+  compatibleBackend: 'smart_school_connect module 18.0.1.0.168+',
+  apiPrefix: '/api/v1',
+  source: 'dev-release',
+  notes:
+    'Guardian identity document (identity_document_type/number/country, national_id alias, national_id_masked, match_basis=identity_document, matched_on=guardian_identity, 409 guardian_identity_candidate_exists). No new endpoints.',
+} as const;
+
+export type GuardianIdentityDocumentBackendContract =
+  typeof GUARDIAN_IDENTITY_DOCUMENT_BACKEND_CONTRACT;
