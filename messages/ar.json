@@ -8228,6 +8228,13 @@
         "clearStudentFilter": "إزالة الفلتر",
         "summaryLine": "{total} تحصيل · {confirmed} مؤكدة · {draft} مسودة · {cancelled} ملغاة · {unknown} غير محددة",
         "resetFilters": "إعادة الضبط",
+        "refetching": "جاري تحديث النتائج…",
+        "resultCount": "{total} تحصيل",
+        "activeFilters": "فلاتر نشطة",
+        "noMatch": {
+          "title": "لا توجد تحصيلات مطابقة",
+          "description": "جرّب مسح البحث أو الفلاتر."
+        },
         "allMethods": "كل وسائل الأداء",
         "allocationNone": "غير موزع",
         "allocationFull": "موزع بالكامل",

@@ -146,6 +146,7 @@ error
 | Cheques list | `/admin/finance/cheques` | ADOPTED | Cluster 2 — `92f5d96` |
 | Fee Plans list/workspace chrome | `/admin/finance/fee-plans` | ADOPTED | Cluster 3 partial — `origin/dev` @ `style(finance): adopt fee plans workspace design`; **assign wizard remains outside adopted scope** |
 | Services / Tariffs | `/admin/finance/services` | ADOPTED | Cluster 3 — `ServicesPanel` list/form chrome; deprecated `ServicesTariffsPanel` shim remains outside adopted scope |
+| Collections list shell | `/admin/finance/collections` | ADOPTED | Cluster 4 partial — `CollectionsListPanel` list chrome only; **collection wizard / family allocation / review / reverse / discard workflows remain outside adopted scope** |
 
 ---
 

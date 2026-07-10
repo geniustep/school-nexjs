@@ -8191,6 +8191,13 @@
         "clearStudentFilter": "Retirer le filtre",
         "summaryLine": "{total} encaissements · {confirmed} confirmés · {draft} brouillon · {cancelled} annulés · {unknown} non précisés",
         "resetFilters": "Réinitialiser",
+        "refetching": "Mise à jour des résultats…",
+        "resultCount": "{total} encaissements",
+        "activeFilters": "Filtres actifs",
+        "noMatch": {
+          "title": "Aucun encaissement correspondant",
+          "description": "Essayez d'effacer la recherche ou les filtres."
+        },
         "allMethods": "Tous les modes",
         "allocationNone": "Non affecté",
         "allocationFull": "Entièrement affecté",

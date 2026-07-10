@@ -1,0 +1,79 @@
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ *
+ * List-chrome polish for Collections list shell.
+ * Does not style collection wizard, family allocation, review, or detail workflows.
+ */
+
+.finance-collections-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.finance-collections-list__summary {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--c-text-muted, #64748b);
+  font-variant-numeric: tabular-nums;
+}
+
+.finance-collections-list__toolbar {
+  margin-bottom: 0;
+}
+
+.finance-collections-list__table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.finance-collections-list__payer {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.finance-collections-list__payer-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.finance-collections-list__billing-account {
+  font-size: 0.75rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.finance-collections-list__date {
+  white-space: nowrap;
+}
+
+.finance-collections-list__reference {
+  font-size: 0.8125rem;
+  color: var(--c-text-muted, #64748b);
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+.finance-collections-list__open {
+  color: var(--c-text-muted, #64748b);
+  font-size: 1.1rem;
+  min-width: 28px;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .finance-collections-list .finance-receivable-list__toolbar {
+    align-items: stretch;
+  }
+
+  .finance-collections-list .finance-receivable-list__search {
+    flex: 1 1 100%;
+  }
+}

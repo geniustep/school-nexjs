@@ -8191,6 +8191,13 @@
         "clearStudentFilter": "Quitar filtro",
         "summaryLine": "{total} cobros · {confirmed} confirmados · {draft} borrador · {cancelled} cancelados · {unknown} sin especificar",
         "resetFilters": "Restablecer",
+        "refetching": "Actualizando resultados…",
+        "resultCount": "{total} cobros",
+        "activeFilters": "Filtros activos",
+        "noMatch": {
+          "title": "Ningún cobro coincide",
+          "description": "Pruebe a borrar la búsqueda o los filtros."
+        },
         "allMethods": "Todos los métodos",
         "allocationNone": "Sin asignar",
         "allocationFull": "Asignado por completo",

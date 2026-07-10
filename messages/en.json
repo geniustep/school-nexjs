@@ -8191,6 +8191,13 @@
         "clearStudentFilter": "Clear filter",
         "summaryLine": "{total} collections · {confirmed} confirmed · {draft} draft · {cancelled} cancelled · {unknown} unspecified",
         "resetFilters": "Reset",
+        "refetching": "Updating results…",
+        "resultCount": "{total} collections",
+        "activeFilters": "Active filters",
+        "noMatch": {
+          "title": "No matching collections",
+          "description": "Try clearing search or filters."
+        },
         "allMethods": "All payment methods",
         "allocationNone": "Unallocated",
         "allocationFull": "Fully allocated",

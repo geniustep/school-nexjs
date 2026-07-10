@@ -66,7 +66,7 @@ Finance يحتوي:
 | Services / Tariffs | `/admin/finance/services` | Catalog + inline form | Medium | Deferred until parallel work closes |
 | Receipts | `/admin/finance/receipts` | List + detail/drawer | Medium | Cluster 2 list shell |
 | Cheques | `/admin/finance/cheques` | List + lifecycle detail | High | Cluster 2 list shell only |
-| Collections | `/admin/finance/collections` | List + money wizard | High | Cluster 4 later |
+| Collections | `/admin/finance/collections` | List + money wizard | High | Cluster 4 list shell ADOPTED; wizard/workflows deferred |
 | Installments | `/admin/finance/installments` | List + quick filters + KPIs | Medium | Cluster 1 |
 | Agreements | `/admin/finance/agreements` | Scoped list + detail | High | Later / contract sensitive |
 | Fee Plans | `/admin/finance/fee-plans` | Workspace + assign wizard | Medium–High | Cluster 3 list/workspace chrome |
@@ -264,11 +264,18 @@ Cluster 3 — COMPLETE
 المسار التالي:
 
 ```txt
-Cluster 4 — Collection Operations
-Status: REASSESS PARALLEL WORK BEFORE ADOPTION
+Cluster 4 — PARTIAL COMPLETE
+Collections list shell — ADOPTED
+Collection wizard/workflows — DEFER_CONTRACT_OR_WORKFLOW
 ```
 
-لا تُعتبر Collections ready تلقائيًا.
+**Collection wizard / family allocation / review / reverse / discard workflows remain outside adopted scope.**
+
+المسار التالي:
+
+```txt
+Cluster 5 — Finance Shells assessment
+```
 
 ---
 
@@ -279,22 +286,21 @@ Status: REASSESS PARALLEL WORK BEFORE ADOPTION
 - Collections list.
 - لاحقًا مواءمة خفيفة للروابط مع Receipts/Cheques.
 
-### الحالة
+### حالة التنفيذ
 
 ```txt
-NOT READY NOW
+Collections list shell — ADOPTED
+Collection wizard/workflows — DEFER_CONTRACT_OR_WORKFLOW
+Cluster 4 — PARTIAL COMPLETE
 ```
 
-السبب:
+**Collection wizard / family allocation / review / reverse / discard workflows remain outside adopted scope.**
 
-- parallel family collection work.
-- money wizard complexity.
-- allocation.
-- cheques.
-- cash session gate.
-- reverse/discard semantics.
+المسار التالي:
 
-بعد استقرار العمل الموازي، يبدأ list chrome فقط في مرحلة منفصلة عن wizard.
+```txt
+Cluster 5 — Finance Shells assessment
+```
 
 ---
 
@@ -403,14 +409,15 @@ Coverage audit complete
 → Cluster 1 ADOPTED (60a52b5)
 → Cluster 2 ADOPTED (92f5d96)
 → Cluster 3 COMPLETE (Fee Plans + Services/Tariffs ADOPTED)
-→ Next: Cluster 4 — Collection Operations (REASSESS PARALLEL WORK BEFORE ADOPTION)
+→ Cluster 4 PARTIAL COMPLETE (Collections list shell ADOPTED)
+→ Next: Cluster 5 — Finance Shells assessment
 ```
 
 الحكم:
 
 ```txt
 Finance Design Adoption Roadmap = IN PROGRESS
-Cluster 3 = COMPLETE
+Cluster 4 = PARTIAL COMPLETE
 ```
 
 الاعتماد يتم فقط بعد تنفيذ cluster ونجاح QA ووجود marker مناسب داخل الكود.
