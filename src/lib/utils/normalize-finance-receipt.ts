@@ -228,9 +228,15 @@ export function receiptAllowsAction(receipt: FinanceReceipt | null | undefined, 
   return receipt.allowed_actions.includes(action);
 }
 
-export function buildReceiptPdfFilename(receipt: FinanceReceipt, lang: 'ar' | 'fr'): string {
+export type ReceiptPrintLayout = 'a4' | 'a5' | 'thermal_80mm';
+
+export function buildReceiptPdfFilename(
+  receipt: FinanceReceipt,
+  lang: 'ar' | 'fr',
+  layout: ReceiptPrintLayout = 'a4',
+): string {
   const number = (receipt.number ?? receipt.receipt_number ?? `receipt-${receipt.id}`)
     .replace(/[^\w\-./]+/g, '-')
     .replace(/\//g, '-');
-  return `receipt-${number}-${lang}.pdf`;
+  return `receipt-${number}-${lang}-${layout}.pdf`;
 }

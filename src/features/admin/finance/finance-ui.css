@@ -3306,6 +3306,70 @@
   align-items: flex-start;
 }
 
+.receipt-print-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(100%, 360px);
+}
+
+.receipt-print-panel--bar {
+  align-items: stretch;
+}
+
+.receipt-print-panel--stack {
+  width: 100%;
+  max-width: 360px;
+}
+
+.receipt-print-panel__row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.receipt-print-panel__label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted, #64748b);
+}
+
+.receipt-print-segmented {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 8px;
+  background: var(--surface-subtle, #f1f5f9);
+}
+
+.receipt-print-segmented__item {
+  flex: 1 1 auto;
+  min-width: fit-content;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.8125rem;
+  line-height: 1.2;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.receipt-print-segmented__item--active {
+  background: var(--surface, #fff);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.08);
+  font-weight: 600;
+}
+
+.receipt-print-panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .finance-receipts-actions-col {
   min-width: 9rem;
   width: 9rem;
