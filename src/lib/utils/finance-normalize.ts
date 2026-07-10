@@ -56,11 +56,19 @@ function enrichOverviewTotals(
     totalPaid ??
     normalizeMoneyValue(raw.total_collected);
 
+  const paidStudentsCount =
+    typeof nested.paid_students_count === 'number'
+      ? nested.paid_students_count
+      : typeof raw.paid_students_count === 'number'
+        ? raw.paid_students_count
+        : undefined;
+
   return {
     ...nested,
     confirmed_paid: confirmedPaid ?? undefined,
     total_paid: totalPaid ?? undefined,
     total_collected: totalCollected ?? undefined,
+    paid_students_count: paidStudentsCount,
   };
 }
 
@@ -90,6 +98,7 @@ export function normalizeFinanceOverview(data: AdminFinanceOverview | null | und
     total_remaining: raw.total_remaining ?? raw.remaining_amount,
     total_overdue: raw.total_overdue ?? raw.overdue_amount,
     students_with_balance: raw.students_with_balance,
+    paid_students_count: raw.paid_students_count,
     overdue_installments_count: raw.overdue_installments_count ?? raw.overdue_installments,
     cheques_pending_amount: raw.cheques_pending_amount ?? raw.pending_cheques,
     cheques_due_amount: raw.cheques_due_amount,

@@ -129,6 +129,7 @@
     "adminScopedContent": "المحتوى (نطاق محدود)",
     "adminScopedCommunication": "التواصل (نطاق محدود)",
     "examResultsNav": "نتائج الامتحانات",
+    "gradebooks": "دفاتر المراقبة المستمرة",
     "finance": "المالية",
     "financeSection": "المالية",
     "adminScopedFinance": "المالية (نطاق محدود)",
@@ -144,6 +145,9 @@
     "submitted": "مُسلَّم",
     "reviewed": "مُراجع",
     "active": "نشط",
+    "open": "مفتوح",
+    "validated": "معتمد",
+    "locked": "مقفل",
     "suspended": "موقوف"
   },
   "badges": {
@@ -1037,6 +1041,102 @@
       "filters": {
         "chipClass": "القسم: {className}",
         "chipStatus": "الحالة: {status}"
+      }
+    },
+    "gradebooks": {
+      "listTitle": "دفاتر المراقبة المستمرة",
+      "listSubtitle": "إدارة وإدخال نقط المراقبة المستمرة",
+      "detailTitle": "دفتر المراقبة المستمرة",
+      "backToList": "العودة إلى القائمة",
+      "academicYear": "السنة الدراسية",
+      "term": "الدورة",
+      "scheme": "المخطط التقييمي",
+      "teacherOptional": "الأستاذ (اختياري)",
+      "teacherOptionalHint": "يُشتق تلقائيًا إن تُرك فارغًا",
+      "allAcademicYears": "كل السنوات",
+      "allTerms": "كل الدورات",
+      "allSubjects": "كل المواد",
+      "resetFilters": "إعادة ضبط الفلاتر",
+      "lastHint": "آخر حالة",
+      "save": "حفظ ({count})",
+      "discard": "تجاهل التعديلات",
+      "saveSuccess": "تم حفظ {count} خلية",
+      "saveFailed": "تعذّر حفظ التعديلات",
+      "actionFailed": "تعذّر تنفيذ الإجراء",
+      "cellScoreHint": "الحد الأقصى {max}",
+      "cellScoreAria": "إدخال النقطة، الحد الأقصى {max}",
+      "list": {
+        "subtitleWithCount": "{total} دفتر ضمن نطاقك",
+        "noData": {
+          "title": "لا توجد دفاتر بعد",
+          "description": "أنشئ أول دفتر مراقبة مستمرة للبدء."
+        },
+        "noMatch": {
+          "title": "لا توجد دفاتر مطابقة",
+          "description": "جرّب تعديل الفلاتر أو أعد ضبطها."
+        }
+      },
+      "create": {
+        "title": "إنشاء دفتر",
+        "submit": "إنشاء",
+        "success": "تم إنشاء الدفتر",
+        "failed": "تعذّر إنشاء الدفتر",
+        "missingFields": "يرجى إكمال الحقول المطلوبة"
+      },
+      "completion": {
+        "label": "الإنجاز",
+        "summaryPercent": "الإنجاز: {percent}",
+        "summaryWithRemaining": "الإنجاز: {percent} — المتبقي: {remaining} خلية",
+        "studentsTotal": "{count} تلميذ",
+        "cellsTotal": "{count} خلية"
+      },
+      "lifecycle": {
+        "label": "مسار الدفتر"
+      },
+      "actions": {
+        "build_roster": "بناء القائمة",
+        "sync_roster": "مزامنة القائمة",
+        "open": "فتح",
+        "submit": "تقديم",
+        "validate": "اعتماد",
+        "publish": "نشر",
+        "lock": "قفل"
+      },
+      "confirm": {
+        "submit": "هل تريد تقديم هذا الدفتر؟ لن تتمكن من تعديل النقط بعد التقديم إلا إذا أعاده النظام.",
+        "validate": "هل تريد اعتماد هذا الدفتر؟",
+        "publish": "هل تريد نشر هذا الدفتر؟",
+        "lock": "قفل الدفتر إجراء نهائي. هل أنت متأكد؟"
+      },
+      "participation": {
+        "menu": "حالة المشاركة",
+        "not_entered": "غير مدخل",
+        "taken": "مأخوذ",
+        "absent": "غياب",
+        "absent_justified": "غياب مبرر",
+        "exempted": "إعفاء",
+        "not_graded": "غير منقط",
+        "short": {
+          "absent": "غ",
+          "absent_justified": "غم",
+          "exempted": "إ",
+          "not_graded": "نم"
+        }
+      },
+      "validation": {
+        "invalid": "قيمة غير صالحة",
+        "negative": "لا تُقبل قيمة سالبة",
+        "overMax": "الحد الأقصى {max}"
+      },
+      "empty": {
+        "noRoster": {
+          "title": "لا توجد قائمة تلاميذ",
+          "description": "ابنِ قائمة التلاميذ أولًا من الإجراءات المتاحة."
+        },
+        "notOpen": {
+          "title": "الدفتر غير مفتوح",
+          "description": "افتح الدفتر لبدء إدخال النقط."
+        }
       }
     },
     "studentsListDesc": "كل التلاميذ ضمن نطاقك",
@@ -7912,6 +8012,7 @@
           "custom": "فترة مخصصة"
         },
         "kpiTotalDue": "إجمالي المستحقات",
+        "kpiTotalDuePaidStudentsHint": "التلاميذ المؤدّون: {count}",
         "kpiCollected": "المبلغ المحصل",
         "kpiSettled": "المبلغ المسدد على المستحقات",
         "kpiConfirmedPaid": "إجمالي المحصل",

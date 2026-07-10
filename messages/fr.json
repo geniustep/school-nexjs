@@ -129,6 +129,7 @@
     "adminScopedContent": "Contenu (périmètre limité)",
     "adminScopedCommunication": "Communication (périmètre limité)",
     "examResultsNav": "Résultats d'examens",
+    "gradebooks": "Carnets de suivi continu",
     "finance": "Finances",
     "financeSection": "Finances",
     "adminScopedFinance": "Finances (périmètre limité)",
@@ -144,6 +145,9 @@
     "submitted": "Remis",
     "reviewed": "Revu",
     "active": "Actif",
+    "open": "Ouvert",
+    "validated": "Validé",
+    "locked": "Verrouillé",
     "suspended": "Suspendu"
   },
   "badges": {
@@ -1037,6 +1041,83 @@
       "filters": {
         "chipClass": "Classe : {className}",
         "chipStatus": "Statut : {status}"
+      }
+    },
+    "gradebooks": {
+      "listTitle": "Carnets de suivi continu",
+      "listSubtitle": "Gérer et saisir les notes de suivi continu",
+      "detailTitle": "Espace carnet",
+      "backToList": "Retour à la liste",
+      "academicYear": "Année scolaire",
+      "term": "Période",
+      "scheme": "Schéma d'évaluation",
+      "teacherOptional": "Enseignant (optionnel)",
+      "teacherOptionalHint": "Dérivé automatiquement si vide",
+      "allAcademicYears": "Toutes les années",
+      "allTerms": "Toutes les périodes",
+      "allSubjects": "Toutes les matières",
+      "resetFilters": "Réinitialiser les filtres",
+      "lastHint": "Dernier statut",
+      "save": "Enregistrer ({count})",
+      "discard": "Annuler les modifications",
+      "saveSuccess": "{count} cellules enregistrées",
+      "saveFailed": "Échec de l'enregistrement",
+      "actionFailed": "Action impossible",
+      "cellScoreHint": "Max {max}",
+      "cellScoreAria": "Saisir la note, max {max}",
+      "list": {
+        "subtitleWithCount": "{total} carnets dans votre périmètre",
+        "noData": { "title": "Aucun carnet", "description": "Créez votre premier carnet de suivi." },
+        "noMatch": { "title": "Aucun carnet correspondant", "description": "Ajustez les filtres." }
+      },
+      "create": {
+        "title": "Créer un carnet",
+        "submit": "Créer",
+        "success": "Carnet créé",
+        "failed": "Échec de création",
+        "missingFields": "Complétez les champs requis"
+      },
+      "completion": {
+        "label": "Avancement",
+        "summaryPercent": "Avancement : {percent}",
+        "summaryWithRemaining": "Avancement : {percent} — Restant : {remaining} cellules",
+        "studentsTotal": "{count} élèves",
+        "cellsTotal": "{count} cellules"
+      },
+      "lifecycle": { "label": "Cycle de vie" },
+      "actions": {
+        "build_roster": "Construire la liste",
+        "sync_roster": "Synchroniser la liste",
+        "open": "Ouvrir",
+        "submit": "Soumettre",
+        "validate": "Valider",
+        "publish": "Publier",
+        "lock": "Verrouiller"
+      },
+      "confirm": {
+        "submit": "Soumettre ce carnet ?",
+        "validate": "Valider ce carnet ?",
+        "publish": "Publier ce carnet ?",
+        "lock": "Le verrouillage est définitif. Confirmer ?"
+      },
+      "participation": {
+        "menu": "État de participation",
+        "not_entered": "Non saisi",
+        "taken": "Pris",
+        "absent": "Absent",
+        "absent_justified": "Absent justifié",
+        "exempted": "Dispensé",
+        "not_graded": "Non noté",
+        "short": { "absent": "A", "absent_justified": "AJ", "exempted": "E", "not_graded": "NG" }
+      },
+      "validation": {
+        "invalid": "Valeur invalide",
+        "negative": "Valeur négative interdite",
+        "overMax": "Maximum {max}"
+      },
+      "empty": {
+        "noRoster": { "title": "Aucune liste d'élèves", "description": "Construisez la liste d'abord." },
+        "notOpen": { "title": "Carnet non ouvert", "description": "Ouvrez le carnet pour saisir les notes." }
       }
     },
     "studentsListDesc": "Tous les élèves de votre périmètre",
@@ -7786,6 +7867,7 @@
           "custom": "Période personnalisée"
         },
         "kpiTotalDue": "Total dû",
+        "kpiTotalDuePaidStudentsHint": "Élèves ayant payé : {count}",
         "kpiCollected": "Montant encaissé",
         "kpiSettled": "Montant réglé sur les créances",
         "kpiConfirmedPaid": "Total encaissé",

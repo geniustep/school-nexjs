@@ -129,6 +129,7 @@
     "adminScopedContent": "Contenido (ámbito limitado)",
     "adminScopedCommunication": "Comunicación (ámbito limitado)",
     "examResultsNav": "Resultados de exámenes",
+    "gradebooks": "Cuadernos de evaluación continua",
     "finance": "Finanzas",
     "financeSection": "Finanzas",
     "adminScopedFinance": "Finanzas (ámbito limitado)",
@@ -144,6 +145,9 @@
     "submitted": "Entregado",
     "reviewed": "Revisado",
     "active": "Activo",
+    "open": "Abierto",
+    "validated": "Validado",
+    "locked": "Bloqueado",
     "suspended": "Suspendido"
   },
   "badges": {
@@ -1037,6 +1041,83 @@
       "filters": {
         "chipClass": "Clase: {className}",
         "chipStatus": "Estado: {status}"
+      }
+    },
+    "gradebooks": {
+      "listTitle": "Cuadernos de evaluación continua",
+      "listSubtitle": "Gestionar e introducir notas de seguimiento continuo",
+      "detailTitle": "Espacio de cuaderno",
+      "backToList": "Volver a la lista",
+      "academicYear": "Año académico",
+      "term": "Período",
+      "scheme": "Esquema de evaluación",
+      "teacherOptional": "Profesor (opcional)",
+      "teacherOptionalHint": "Se deriva automáticamente si se deja vacío",
+      "allAcademicYears": "Todos los años",
+      "allTerms": "Todos los períodos",
+      "allSubjects": "Todas las asignaturas",
+      "resetFilters": "Restablecer filtros",
+      "lastHint": "Último estado",
+      "save": "Guardar ({count})",
+      "discard": "Descartar cambios",
+      "saveSuccess": "Se guardaron {count} celdas",
+      "saveFailed": "No se pudieron guardar los cambios",
+      "actionFailed": "Acción fallida",
+      "cellScoreHint": "Máx {max}",
+      "cellScoreAria": "Introducir nota, máx {max}",
+      "list": {
+        "subtitleWithCount": "{total} cuadernos en su ámbito",
+        "noData": { "title": "Sin cuadernos", "description": "Cree su primer cuaderno de seguimiento." },
+        "noMatch": { "title": "Sin coincidencias", "description": "Ajuste los filtros." }
+      },
+      "create": {
+        "title": "Crear cuaderno",
+        "submit": "Crear",
+        "success": "Cuaderno creado",
+        "failed": "No se pudo crear",
+        "missingFields": "Complete los campos obligatorios"
+      },
+      "completion": {
+        "label": "Avance",
+        "summaryPercent": "Avance: {percent}",
+        "summaryWithRemaining": "Avance: {percent} — Restante: {remaining} celdas",
+        "studentsTotal": "{count} alumnos",
+        "cellsTotal": "{count} celdas"
+      },
+      "lifecycle": { "label": "Ciclo de vida" },
+      "actions": {
+        "build_roster": "Construir lista",
+        "sync_roster": "Sincronizar lista",
+        "open": "Abrir",
+        "submit": "Enviar",
+        "validate": "Validar",
+        "publish": "Publicar",
+        "lock": "Bloquear"
+      },
+      "confirm": {
+        "submit": "¿Enviar este cuaderno?",
+        "validate": "¿Validar este cuaderno?",
+        "publish": "¿Publicar este cuaderno?",
+        "lock": "Bloquear es definitivo. ¿Confirmar?"
+      },
+      "participation": {
+        "menu": "Estado de participación",
+        "not_entered": "No introducido",
+        "taken": "Tomado",
+        "absent": "Ausente",
+        "absent_justified": "Ausencia justificada",
+        "exempted": "Exento",
+        "not_graded": "Sin nota",
+        "short": { "absent": "A", "absent_justified": "AJ", "exempted": "E", "not_graded": "NG" }
+      },
+      "validation": {
+        "invalid": "Valor no válido",
+        "negative": "No se permiten valores negativos",
+        "overMax": "Máximo {max}"
+      },
+      "empty": {
+        "noRoster": { "title": "Sin lista de alumnos", "description": "Construya la lista primero." },
+        "notOpen": { "title": "Cuaderno no abierto", "description": "Abra el cuaderno para introducir notas." }
       }
     },
     "studentsListDesc": "Todos los alumnos de su ámbito",
@@ -7786,6 +7867,7 @@
           "custom": "Periodo personalizado"
         },
         "kpiTotalDue": "Total adeudado",
+        "kpiTotalDuePaidStudentsHint": "Alumnos que han pagado: {count}",
         "kpiCollected": "Importe cobrado",
         "kpiSettled": "Importe aplicado a adeudos",
         "kpiConfirmedPaid": "Total cobrado",

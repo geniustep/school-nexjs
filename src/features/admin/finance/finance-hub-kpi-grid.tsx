@@ -45,8 +45,10 @@ export function FinanceHubKpiGrid({
         value: totals?.total_due,
         href: financeDeepLinkHref('installmentsAll'),
         hint:
-          totals?.students_with_balance != null && totals.students_with_balance > 0
-            ? formatFinancePlural(t, locale, 'student', totals.students_with_balance)
+          totals?.paid_students_count != null && totals.paid_students_count > 0
+            ? t('admin.finance.hub.kpiTotalDuePaidStudentsHint', {
+                count: String(totals.paid_students_count),
+              })
             : null,
         alwaysShow: true,
       },
