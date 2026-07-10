@@ -8913,7 +8913,13 @@
       "receipts": {
         "title": "Recibos financieros",
         "subtitle": "Ver y descargar recibos oficiales de cobro",
-        "resultCount": "Resultados",
+        "resultCount": "{total} recibos",
+        "activeFilters": "Filtros activos",
+        "refetching": "Actualizando resultados…",
+        "noMatch": {
+          "title": "No hay recibos coincidentes",
+          "description": "Prueba a borrar la búsqueda o los filtros."
+        },
         "backToList": "Volver a recibos",
         "detailTitle": "Detalle del recibo",
         "openFullPage": "Abrir página completa",
@@ -9254,6 +9260,12 @@
         "empty": "No hay cheques",
         "emptyFilteredTitle": "No hay cheques {filter}",
         "emptyFilteredDesc": "No hay resultados para la escuela y los filtros activos.",
+        "noMatch": {
+          "title": "No hay cheques coincidentes",
+          "description": "Prueba a borrar el filtro rápido o la búsqueda."
+        },
+        "refetching": "Actualizando resultados…",
+        "resultCount": "{total} cheques",
         "showAllCheques": "Ver todos los cheques",
         "clearFilter": "Quitar filtro",
         "activeFilterChip": "Filtro activo: {filter}",

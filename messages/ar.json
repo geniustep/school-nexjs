@@ -8938,7 +8938,13 @@
       "receipts": {
         "title": "الإيصالات المالية",
         "subtitle": "عرض وتنزيل إيصالات التحصيل الرسمية",
-        "resultCount": "عدد النتائج",
+        "resultCount": "{total} إيصال",
+        "activeFilters": "الفلاتر النشطة",
+        "refetching": "جاري تحديث النتائج…",
+        "noMatch": {
+          "title": "لا توجد إيصالات مطابقة",
+          "description": "جرّب مسح البحث أو الفلاتر."
+        },
         "backToList": "العودة إلى الإيصالات",
         "detailTitle": "تفاصيل الإيصال",
         "openFullPage": "فتح صفحة كاملة",
@@ -9279,6 +9285,12 @@
         "empty": "لا توجد شيكات",
         "emptyFilteredTitle": "لا توجد شيكات {filter}",
         "emptyFilteredDesc": "لا توجد نتائج ضمن المدرسة والفترة المحددتين.",
+        "noMatch": {
+          "title": "لا توجد شيكات مطابقة",
+          "description": "جرّب مسح الفلتر السريع أو البحث."
+        },
+        "refetching": "جاري تحديث النتائج…",
+        "resultCount": "{total} شيك",
         "showAllCheques": "عرض كل الشيكات",
         "clearFilter": "إزالة الفلتر",
         "activeFilterChip": "الفلتر النشط: {filter}",

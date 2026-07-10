@@ -8913,7 +8913,13 @@
       "receipts": {
         "title": "Reçus financiers",
         "subtitle": "Consulter et télécharger les reçus officiels d'encaissement",
-        "resultCount": "Résultats",
+        "resultCount": "{total} reçus",
+        "activeFilters": "Filtres actifs",
+        "refetching": "Mise à jour des résultats…",
+        "noMatch": {
+          "title": "Aucun reçu correspondant",
+          "description": "Essayez d’effacer la recherche ou les filtres."
+        },
         "backToList": "Retour aux reçus",
         "detailTitle": "Détail du reçu",
         "openFullPage": "Ouvrir la page complète",
@@ -9255,6 +9261,12 @@
         "empty": "Aucun chèque",
         "emptyFilteredTitle": "Aucun chèque {filter}",
         "emptyFilteredDesc": "Aucun résultat pour l'école et les filtres actifs.",
+        "noMatch": {
+          "title": "Aucun chèque correspondant",
+          "description": "Essayez d’effacer le filtre rapide ou la recherche."
+        },
+        "refetching": "Mise à jour des résultats…",
+        "resultCount": "{total} chèques",
         "showAllCheques": "Afficher tous les chèques",
         "clearFilter": "Retirer le filtre",
         "activeFilterChip": "Filtre actif : {filter}",

@@ -1,0 +1,41 @@
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ *
+ * List-chrome polish for payment documents lists (receipts / cheques).
+ * Does not style reverse dialogs, PDF workflows, or cheque lifecycle hosts.
+ */
+
+.finance-payment-docs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.finance-payment-docs-list .finance-receivable-list__toolbar {
+  align-items: flex-end;
+}
+
+.finance-payment-docs-list__table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.finance-payment-docs-list__actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+@media (max-width: 768px) {
+  .finance-payment-docs-list .finance-receivable-list__toolbar {
+    align-items: stretch;
+  }
+
+  .finance-payment-docs-list .finance-filter-field,
+  .finance-payment-docs-list .finance-receivable-list__search {
+    flex: 1 1 100%;
+  }
+}

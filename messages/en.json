@@ -8891,7 +8891,13 @@
       "receipts": {
         "title": "Financial receipts",
         "subtitle": "View and download official collection receipts",
-        "resultCount": "Results",
+        "resultCount": "{total} receipts",
+        "activeFilters": "Active filters",
+        "refetching": "Updating results…",
+        "noMatch": {
+          "title": "No matching receipts",
+          "description": "Try clearing search or filters."
+        },
         "backToList": "Back to receipts",
         "detailTitle": "Receipt details",
         "openFullPage": "Open full page",
@@ -9232,6 +9238,12 @@
         "empty": "No cheques",
         "emptyFilteredTitle": "No {filter} cheques",
         "emptyFilteredDesc": "No results for the active school and filters.",
+        "noMatch": {
+          "title": "No matching cheques",
+          "description": "Try clearing the quick filter or search."
+        },
+        "refetching": "Updating results…",
+        "resultCount": "{total} cheques",
         "showAllCheques": "Show all cheques",
         "clearFilter": "Clear filter",
         "activeFilterChip": "Active filter: {filter}",
