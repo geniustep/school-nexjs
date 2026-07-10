@@ -477,6 +477,8 @@ export interface FinanceOverviewTotals {
   uncovered_amount?: number;
   pending_cheques?: number;
   students_with_balance?: number;
+  /** Distinct students with recognized paid_amount > 0 in overview scope. */
+  paid_students_count?: number;
   overdue_installments_count?: number;
   overdue_installments?: number;
   draft_agreements_count?: number;

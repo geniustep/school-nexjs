@@ -129,6 +129,7 @@
     "adminScopedContent": "Content (limited scope)",
     "adminScopedCommunication": "Communication (limited scope)",
     "examResultsNav": "Exam results",
+    "gradebooks": "Continuous assessment gradebooks",
     "finance": "Finance",
     "financeSection": "Finance",
     "adminScopedFinance": "Finance (scoped)",
@@ -144,6 +145,9 @@
     "submitted": "Submitted",
     "reviewed": "Reviewed",
     "active": "Active",
+    "open": "Open",
+    "validated": "Validated",
+    "locked": "Locked",
     "suspended": "Suspended"
   },
   "badges": {
@@ -1037,6 +1041,102 @@
       "filters": {
         "chipClass": "Class: {className}",
         "chipStatus": "Status: {status}"
+      }
+    },
+    "gradebooks": {
+      "listTitle": "Continuous assessment gradebooks",
+      "listSubtitle": "Manage and enter continuous assessment scores",
+      "detailTitle": "Gradebook workspace",
+      "backToList": "Back to list",
+      "academicYear": "Academic year",
+      "term": "Term",
+      "scheme": "Assessment scheme",
+      "teacherOptional": "Teacher (optional)",
+      "teacherOptionalHint": "Derived automatically if left empty",
+      "allAcademicYears": "All years",
+      "allTerms": "All terms",
+      "allSubjects": "All subjects",
+      "resetFilters": "Reset filters",
+      "lastHint": "Last status",
+      "save": "Save ({count})",
+      "discard": "Discard changes",
+      "saveSuccess": "Saved {count} cells",
+      "saveFailed": "Could not save changes",
+      "actionFailed": "Action failed",
+      "cellScoreHint": "Max {max}",
+      "cellScoreAria": "Enter score, max {max}",
+      "list": {
+        "subtitleWithCount": "{total} gradebooks in your scope",
+        "noData": {
+          "title": "No gradebooks yet",
+          "description": "Create your first continuous assessment gradebook to get started."
+        },
+        "noMatch": {
+          "title": "No matching gradebooks",
+          "description": "Try adjusting filters or reset them."
+        }
+      },
+      "create": {
+        "title": "Create gradebook",
+        "submit": "Create",
+        "success": "Gradebook created",
+        "failed": "Could not create gradebook",
+        "missingFields": "Please complete required fields"
+      },
+      "completion": {
+        "label": "Completion",
+        "summaryPercent": "Completion: {percent}",
+        "summaryWithRemaining": "Completion: {percent} — Remaining: {remaining} cells",
+        "studentsTotal": "{count} students",
+        "cellsTotal": "{count} cells"
+      },
+      "lifecycle": {
+        "label": "Gradebook lifecycle"
+      },
+      "actions": {
+        "build_roster": "Build roster",
+        "sync_roster": "Sync roster",
+        "open": "Open",
+        "submit": "Submit",
+        "validate": "Validate",
+        "publish": "Publish",
+        "lock": "Lock"
+      },
+      "confirm": {
+        "submit": "Submit this gradebook? You may not be able to edit scores afterward unless reopened.",
+        "validate": "Validate this gradebook?",
+        "publish": "Publish this gradebook?",
+        "lock": "Locking is final. Are you sure?"
+      },
+      "participation": {
+        "menu": "Participation state",
+        "not_entered": "Not entered",
+        "taken": "Taken",
+        "absent": "Absent",
+        "absent_justified": "Justified absence",
+        "exempted": "Exempted",
+        "not_graded": "Not graded",
+        "short": {
+          "absent": "A",
+          "absent_justified": "AJ",
+          "exempted": "E",
+          "not_graded": "NG"
+        }
+      },
+      "validation": {
+        "invalid": "Invalid value",
+        "negative": "Negative values are not allowed",
+        "overMax": "Maximum is {max}"
+      },
+      "empty": {
+        "noRoster": {
+          "title": "No student roster",
+          "description": "Build the roster first using available actions."
+        },
+        "notOpen": {
+          "title": "Gradebook not open",
+          "description": "Open the gradebook to start entering scores."
+        }
       }
     },
     "studentsListDesc": "All pupils within your scope",
@@ -7894,6 +7994,7 @@
           "custom": "Custom range"
         },
         "kpiTotalDue": "Total due",
+        "kpiTotalDuePaidStudentsHint": "Students who paid: {count}",
         "kpiCollected": "Amount collected",
         "kpiSettled": "Amount settled on receivables",
         "kpiConfirmedPaid": "Total collected",
