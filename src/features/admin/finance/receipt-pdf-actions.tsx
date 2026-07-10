@@ -2,10 +2,52 @@
 
 import { useCallback, useState } from 'react';
 import { useToast } from '@/components/ui/toast';
-import { useT } from '@/features/i18n/locale-context';
-import { downloadReceiptPdf } from '@/lib/api/finance-receipt';
+import { useLocale, useT } from '@/features/i18n/locale-context';
+import {
+  downloadReceiptPdf,
+  previewReceiptPdf,
+  type ReceiptPdfLang,
+} from '@/lib/api/finance-receipt';
 import { receiptAllowsAction } from '@/lib/utils/normalize-finance-receipt';
+import type { ReceiptPrintLayout } from '@/lib/utils/normalize-finance-receipt';
 import type { FinanceReceipt } from '@/types/finance';
+
+function defaultReceiptLang(locale: string): ReceiptPdfLang {
+  return locale === 'fr' ? 'fr' : 'ar';
+}
+
+function ReceiptPrintSegmentedControl<T extends string>({
+  options,
+  value,
+  onChange,
+  ariaLabel,
+}: {
+  options: Array<{ value: T; label: string; dir?: 'rtl' | 'ltr' | 'auto' }>;
+  value: T;
+  onChange: (value: T) => void;
+  ariaLabel: string;
+}) {
+  return (
+    <div className="receipt-print-segmented" role="tablist" aria-label={ariaLabel}>
+      {options.map((opt) => {
+        const active = opt.value === value;
+        return (
+          <button
+            key={opt.value}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            dir={opt.dir}
+            className={`receipt-print-segmented__item${active ? ' receipt-print-segmented__item--active' : ''}`}
+            onClick={() => onChange(opt.value)}
+          >
+            {opt.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 export function ReceiptPdfActions({
   receipt,
@@ -15,57 +57,94 @@ export function ReceiptPdfActions({
   layout?: 'bar' | 'stack';
 }) {
   const t = useT();
+  const { locale } = useLocale();
   const toast = useToast();
-  const [loadingLang, setLoadingLang] = useState<'ar' | 'fr' | null>(null);
+  const [lang, setLang] = useState<ReceiptPdfLang>(() => defaultReceiptLang(locale));
+  const [printLayout, setPrintLayout] = useState<ReceiptPrintLayout>('a4');
+  const [busyAction, setBusyAction] = useState<'preview' | 'download' | null>(null);
   const canDownload =
     receiptAllowsAction(receipt, 'download') || receiptAllowsAction(receipt, 'print');
 
-  const handleDownload = useCallback(
-    async (lang: 'ar' | 'fr') => {
-      if (loadingLang || !canDownload) return;
-      setLoadingLang(lang);
+  const runPdfAction = useCallback(
+    async (action: 'preview' | 'download') => {
+      if (busyAction || !canDownload) return;
+      setBusyAction(action);
       try {
-        const result = await downloadReceiptPdf(receipt, lang);
+        const result =
+          action === 'preview'
+            ? await previewReceiptPdf(receipt, lang, printLayout)
+            : await downloadReceiptPdf(receipt, lang, printLayout);
         if (!result.ok && result.message) {
           toast.error(t(result.message));
         }
       } finally {
-        setLoadingLang(null);
+        setBusyAction(null);
       }
     },
-    [canDownload, loadingLang, receipt, t, toast],
+    [busyAction, canDownload, lang, printLayout, receipt, t, toast],
   );
 
   if (!canDownload) return null;
 
-  const btnClass = 'btn btn--ghost btn--sm';
+  const langOptions: Array<{ value: ReceiptPdfLang; label: string; dir?: 'rtl' | 'ltr' }> = [
+    { value: 'ar', label: t('admin.finance.receipts.printLangAr'), dir: 'rtl' },
+    { value: 'fr', label: t('admin.finance.receipts.printLangFr'), dir: 'ltr' },
+  ];
+
+  const layoutOptions: Array<{ value: ReceiptPrintLayout; label: string; dir?: 'rtl' | 'ltr' }> = [
+    { value: 'a4', label: t('admin.finance.receipts.printLayoutA4'), dir: 'ltr' },
+    { value: 'a5', label: t('admin.finance.receipts.printLayoutA5'), dir: 'ltr' },
+    {
+      value: 'thermal_80mm',
+      label: t('admin.finance.receipts.printLayoutThermal'),
+      dir: locale === 'ar' ? 'rtl' : 'ltr',
+    },
+  ];
 
   return (
-    <div
-      className={`receipt-pdf-actions receipt-pdf-actions--${layout}`}
-    >
-      <button
-        type="button"
-        className={btnClass}
-        disabled={loadingLang != null}
-        onClick={() => void handleDownload('ar')}
-        aria-busy={loadingLang === 'ar'}
-      >
-        {loadingLang === 'ar'
-          ? t('admin.finance.receipts.downloading')
-          : t('admin.finance.receipts.downloadPdfAr')}
-      </button>
-      <button
-        type="button"
-        className={btnClass}
-        disabled={loadingLang != null}
-        onClick={() => void handleDownload('fr')}
-        aria-busy={loadingLang === 'fr'}
-      >
-        {loadingLang === 'fr'
-          ? t('admin.finance.receipts.downloading')
-          : t('admin.finance.receipts.downloadPdfFr')}
-      </button>
+    <div className={`receipt-print-panel receipt-print-panel--${layout}`}>
+      <div className="receipt-print-panel__row">
+        <span className="receipt-print-panel__label">{t('admin.finance.receipts.printLanguage')}</span>
+        <ReceiptPrintSegmentedControl
+          options={langOptions}
+          value={lang}
+          onChange={setLang}
+          ariaLabel={t('admin.finance.receipts.printLanguage')}
+        />
+      </div>
+      <div className="receipt-print-panel__row">
+        <span className="receipt-print-panel__label">{t('admin.finance.receipts.printLayout')}</span>
+        <ReceiptPrintSegmentedControl
+          options={layoutOptions}
+          value={printLayout}
+          onChange={setPrintLayout}
+          ariaLabel={t('admin.finance.receipts.printLayout')}
+        />
+      </div>
+      <div className="receipt-print-panel__actions">
+        <button
+          type="button"
+          className="btn btn--ghost btn--sm"
+          disabled={busyAction != null}
+          onClick={() => void runPdfAction('preview')}
+          aria-busy={busyAction === 'preview'}
+        >
+          {busyAction === 'preview'
+            ? t('admin.finance.receipts.previewing')
+            : t('admin.finance.receipts.previewReceipt')}
+        </button>
+        <button
+          type="button"
+          className="btn btn--primary btn--sm"
+          disabled={busyAction != null}
+          onClick={() => void runPdfAction('download')}
+          aria-busy={busyAction === 'download'}
+        >
+          {busyAction === 'download'
+            ? t('admin.finance.receipts.downloading')
+            : t('admin.finance.receipts.downloadPdf')}
+        </button>
+      </div>
     </div>
   );
 }

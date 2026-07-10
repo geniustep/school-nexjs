@@ -54,6 +54,6 @@ describe('normalize-finance-receipt', () => {
   it('builds readable pdf filenames', () => {
     expect(
       buildReceiptPdfFilename({ id: 6, number: 'PAY/2026/000008' } as never, 'ar'),
-    ).toBe('receipt-PAY-2026-000008-ar.pdf');
+    ).toBe('receipt-PAY-2026-000008-ar-a4.pdf');
   });
 });

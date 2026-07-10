@@ -11,8 +11,11 @@ import {
   buildReceiptPdfFilename,
   normalizeFinanceReceipt,
   receiptAllowsAction,
+  type ReceiptPrintLayout,
 } from '@/lib/utils/normalize-finance-receipt';
 import type { FinanceReceipt } from '@/types/finance';
+
+export type ReceiptPdfLang = 'ar' | 'fr';
 
 export type FinanceReceiptError =
   | 'forbidden'
@@ -31,7 +34,16 @@ export interface FinanceReceiptResult {
 /** Delay before revoking blob URLs so Chrome can finish loading the download. */
 export const PDF_BLOB_REVOKE_DELAY_MS = 30_000;
 
-const activeDownloads = new Set<string>();
+const activePdfRequests = new Set<string>();
+
+export function buildReceiptPdfPath(
+  receiptId: number | string,
+  lang: ReceiptPdfLang,
+  layout: ReceiptPrintLayout,
+): string {
+  const params = new URLSearchParams({ lang, print_layout: layout });
+  return `${endpoints.admin.financeReceiptPdf(receiptId)}?${params.toString()}`;
+}
 
 export function triggerBrowserPdfDownload(
   arrayBuffer: ArrayBuffer,
@@ -50,16 +62,15 @@ export function triggerBrowserPdfDownload(
   window.setTimeout(() => URL.revokeObjectURL(url), revokeDelayMs);
 }
 
-export async function downloadProtectedPdf(
+export async function fetchProtectedPdfBuffer(
   path: string,
-  filename: string,
-): Promise<FinanceReceiptResult> {
-  const lockKey = `${path}::${filename}`;
-  if (activeDownloads.has(lockKey)) {
+  lockKey = path,
+): Promise<FinanceReceiptResult & { buffer?: ArrayBuffer }> {
+  if (activePdfRequests.has(lockKey)) {
     return { ok: false, error: 'unknown', message: 'admin.finance.receipts.pdfDownloadInProgress' };
   }
 
-  activeDownloads.add(lockKey);
+  activePdfRequests.add(lockKey);
   try {
     const res = await fetch(`/api/odoo${path}`, {
       method: 'GET',
@@ -90,13 +101,42 @@ export async function downloadProtectedPdf(
       return { ok: false, error: 'not_pdf', message: 'admin.finance.receipts.pdfInvalidResponse' };
     }
 
-    triggerBrowserPdfDownload(arrayBuffer, filename);
-    return { ok: true };
+    return { ok: true, buffer: arrayBuffer };
   } catch {
     return { ok: false, error: 'network', message: 'admin.finance.receipts.pdfDownloadFailed' };
   } finally {
-    activeDownloads.delete(lockKey);
+    activePdfRequests.delete(lockKey);
   }
+}
+
+export function triggerBrowserPdfPreview(
+  arrayBuffer: ArrayBuffer,
+  revokeDelayMs = PDF_BLOB_REVOKE_DELAY_MS,
+): void {
+  const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
+  const url = URL.createObjectURL(blob);
+  const opened = window.open(url, '_blank', 'noopener,noreferrer');
+  if (!opened) {
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+  window.setTimeout(() => URL.revokeObjectURL(url), revokeDelayMs);
+}
+
+export async function downloadProtectedPdf(
+  path: string,
+  filename: string,
+): Promise<FinanceReceiptResult> {
+  const lockKey = `${path}::${filename}`;
+  const result = await fetchProtectedPdfBuffer(path, lockKey);
+  if (!result.ok || !result.buffer) return result;
+  triggerBrowserPdfDownload(result.buffer, filename);
+  return { ok: true };
 }
 
 /** Download collection receipt through BFF proxy (legacy shortcut). */
@@ -107,15 +147,37 @@ export async function downloadFinanceReceipt(
   return downloadProtectedPdf(endpoints.admin.financePaymentCollectionReceipt(collectionId), filename);
 }
 
+function receiptPdfAccessDenied(): FinanceReceiptResult {
+  return { ok: false, error: 'forbidden', message: 'errors.attachmentForbidden' };
+}
+
 export async function downloadReceiptPdf(
   receipt: FinanceReceipt,
-  lang: 'ar' | 'fr',
+  lang: ReceiptPdfLang,
+  layout: ReceiptPrintLayout = 'a4',
 ): Promise<FinanceReceiptResult> {
   if (!receiptAllowsAction(receipt, 'download') && !receiptAllowsAction(receipt, 'print')) {
-    return { ok: false, error: 'forbidden', message: 'errors.attachmentForbidden' };
+    return receiptPdfAccessDenied();
   }
-  const filename = buildReceiptPdfFilename(receipt, lang);
-  return downloadProtectedPdf(`${endpoints.admin.financeReceiptPdf(receipt.id)}?lang=${lang}`, filename);
+  const path = buildReceiptPdfPath(receipt.id, lang, layout);
+  const filename = buildReceiptPdfFilename(receipt, lang, layout);
+  return downloadProtectedPdf(path, filename);
+}
+
+export async function previewReceiptPdf(
+  receipt: FinanceReceipt,
+  lang: ReceiptPdfLang,
+  layout: ReceiptPrintLayout = 'a4',
+): Promise<FinanceReceiptResult> {
+  if (!receiptAllowsAction(receipt, 'download') && !receiptAllowsAction(receipt, 'print')) {
+    return receiptPdfAccessDenied();
+  }
+  const path = buildReceiptPdfPath(receipt.id, lang, layout);
+  const lockKey = `${path}::preview`;
+  const result = await fetchProtectedPdfBuffer(path, lockKey);
+  if (!result.ok || !result.buffer) return result;
+  triggerBrowserPdfPreview(result.buffer);
+  return { ok: true };
 }
 
 export async function fetchCollectionReceipt(collectionId: number): Promise<FinanceReceipt | null> {
@@ -142,4 +204,11 @@ export async function issueCollectionReceipt(collectionId: number): Promise<{
   return { receipt: normalizeFinanceReceipt(res.data), error: null };
 }
 
-export { receiptAllowsAction, buildReceiptPdfFilename, PDF_MAGIC, isPdfArrayBuffer, isPdfContentType };
+export {
+  receiptAllowsAction,
+  buildReceiptPdfFilename,
+  PDF_MAGIC,
+  isPdfArrayBuffer,
+  isPdfContentType,
+  type ReceiptPrintLayout,
+};

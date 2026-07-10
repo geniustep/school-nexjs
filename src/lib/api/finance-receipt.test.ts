@@ -4,7 +4,10 @@ import {
   isPdfContentType,
   PDF_MAGIC,
 } from '@/lib/api/odoo-binary-response';
-import { PDF_BLOB_REVOKE_DELAY_MS } from '@/lib/api/finance-receipt';
+import {
+  buildReceiptPdfPath,
+  PDF_BLOB_REVOKE_DELAY_MS,
+} from '@/lib/api/finance-receipt';
 import { buildReceiptPdfFilename } from '@/lib/utils/normalize-finance-receipt';
 
 describe('finance-receipt pdf download', () => {
@@ -15,10 +18,19 @@ describe('finance-receipt pdf download', () => {
   it('builds filenames without raw slashes from receipt numbers', () => {
     expect(
       buildReceiptPdfFilename({ id: 6, number: 'PAY/2026/000008' } as never, 'ar'),
-    ).toBe('receipt-PAY-2026-000008-ar.pdf');
+    ).toBe('receipt-PAY-2026-000008-ar-a4.pdf');
     expect(
-      buildReceiptPdfFilename({ id: 6, number: 'PAY/2026/000008' } as never, 'fr'),
-    ).toBe('receipt-PAY-2026-000008-fr.pdf');
+      buildReceiptPdfFilename({ id: 6, number: 'PAY/2026/000008' } as never, 'fr', 'thermal_80mm'),
+    ).toBe('receipt-PAY-2026-000008-fr-thermal_80mm.pdf');
+  });
+
+  it('passes lang and print_layout query params to the BFF path', () => {
+    expect(buildReceiptPdfPath(42, 'ar', 'a5')).toBe(
+      '/admin/finance/receipts/42/pdf?lang=ar&print_layout=a5',
+    );
+    expect(buildReceiptPdfPath(42, 'fr', 'thermal_80mm')).toBe(
+      '/admin/finance/receipts/42/pdf?lang=fr&print_layout=thermal_80mm',
+    );
   });
 
   it('rejects non-pdf content types before creating blobs', () => {
