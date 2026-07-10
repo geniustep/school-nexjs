@@ -1,5 +1,6 @@
 import type { GuardianAccountInfo, GuardianQuickCreateResponse, GuardianSummary } from '@/types/student-360';
 import { getGuardianEmailPresentation } from './guardian-email-presentation';
+import { readIdentityDocumentFields } from '@/features/admin/parents/utils/identity-document';
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === 'object' ? (value as Record<string, unknown>) : null;
@@ -104,6 +105,8 @@ export function normalizeGuardianSummary(data: unknown): GuardianSummary | null 
         }
       : null);
 
+  const identity = readIdentityDocumentFields(raw);
+
   return {
     id,
     code: typeof raw.code === 'string' && raw.code.trim() ? raw.code.trim() : null,
@@ -130,12 +133,12 @@ export function normalizeGuardianSummary(data: unknown): GuardianSummary | null 
         : typeof raw.linked_students_count === 'number'
           ? raw.linked_students_count
           : undefined,
-    national_id:
-      typeof raw.national_id === 'string'
-        ? raw.national_id
-        : typeof raw.id_number === 'string'
-          ? raw.id_number
-          : null,
+    national_id: identity.national_id,
+    identity_document_type: identity.identity_document_type,
+    identity_document_number: identity.identity_document_number,
+    identity_document_country: identity.identity_document_country,
+    national_id_masked: identity.national_id_masked,
+    identity_document_number_masked: identity.identity_document_number_masked,
     existing_roles: readStringList(raw.existing_roles),
     role_labels: readStringList(raw.role_labels),
     has_user: raw.has_user === true || hasUserAccount,

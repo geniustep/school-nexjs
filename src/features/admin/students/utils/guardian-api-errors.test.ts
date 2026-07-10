@@ -35,4 +35,18 @@ describe('mapGuardianApiError', () => {
     const result = mapGuardianApiError({ code: 'primary_guardian_conflict', message: '' }, t);
     expect(result.field).toBe('is_primary_contact');
   });
+
+  it('maps guardian_identity_candidate_exists', () => {
+    const result = mapGuardianApiError(
+      {
+        code: 'guardian_identity_candidate_exists',
+        message: '',
+        details: { candidate: { partner_id: 2, id: 2, name: 'X', national_id_masked: 'A*1' } },
+      },
+      t,
+    );
+    expect(result.duplicateField).toBe('national_id');
+    expect(result.message).toBe('admin.identityDocument.duplicateExists');
+    expect(result.matches?.[0]?.name).toBe('X');
+  });
 });

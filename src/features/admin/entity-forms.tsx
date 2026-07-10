@@ -20,6 +20,15 @@ import { buildAccountIdentityPayload } from '@/lib/account/account-utils';
 import { getStudentDisplayName } from '@/lib/utils/student';
 import { mapParentApiError } from '@/features/admin/parents/utils/map-parent-api-error';
 import { ParentEmployeeLinkSection } from '@/features/admin/parents/components/parent-employee-link-section';
+import { IdentityDocumentFields } from '@/features/admin/parents/components/identity-document-fields';
+import { IdentityDocumentConflictAlert } from '@/features/admin/parents/components/identity-document-conflict-alert';
+import {
+  buildIdentityDocumentCreatePayload,
+  emptyIdentityDocumentFormValues,
+  validateIdentityDocumentForm,
+  type IdentityDocumentFormValues,
+} from '@/features/admin/parents/utils/identity-document';
+import type { GuardianDuplicateMatch } from '@/types/student-360';
 import type { Ref } from '@/types/api';
 import type { SchoolClass } from '@/types/class';
 import type { Student } from '@/types/student';
@@ -30,6 +39,8 @@ import { TeacherSetupForm } from '@/features/admin/academic-setup/components/tea
 import { canManageTeachingAssignments } from '@/lib/permissions/academic-setup';
 import { useSession } from '@/features/auth/session-context';
 import { StudentForm } from '@/features/admin/students/components/student-form';
+import { useRouter } from 'next/navigation';
+import '@/features/admin/parents/components/parent-profile.css';
 
 export { StudentForm };
 
@@ -88,6 +99,7 @@ export function ParentForm({
 }) {
   const t = useT();
   const toast = useToast();
+  const router = useRouter();
   const isCreate = parent == null;
   const [employeeLinkMode, setEmployeeLinkMode] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -96,6 +108,13 @@ export function ParentForm({
   const [email, setEmail] = useState(parent?.email ?? '');
   const [preferredLanguage, setPreferredLanguage] = useState(parent?.preferred_language ?? 'ar');
   const [notificationOptIn, setNotificationOptIn] = useState(parent?.notification_opt_in ?? true);
+  const [identityDocument, setIdentityDocument] = useState<IdentityDocumentFormValues>(
+    emptyIdentityDocumentFormValues(),
+  );
+  const [identityErrors, setIdentityErrors] = useState<
+    ReturnType<typeof validateIdentityDocumentForm>
+  >({});
+  const [identityCandidates, setIdentityCandidates] = useState<GuardianDuplicateMatch[]>([]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -104,14 +123,24 @@ export function ParentForm({
       toast.error(t('errors.validationFailed'));
       return;
     }
+    const nextIdentityErrors = validateIdentityDocumentForm(identityDocument, t);
+    if (Object.keys(nextIdentityErrors).length > 0) {
+      setIdentityErrors(nextIdentityErrors);
+      toast.error(t('errors.validationFailed'));
+      return;
+    }
+
+    const identityPayload = buildIdentityDocumentCreatePayload(identityDocument);
     const payload = {
       name: name.trim(),
       phone: phone.trim() || undefined,
       email: email.trim() || undefined,
       preferred_language: preferredLanguage,
       notification_opt_in: notificationOptIn,
+      ...identityPayload,
     };
     setSaving(true);
+    setIdentityCandidates([]);
     const res = parent
       ? await api.post(endpoints.admin.parentUpdate(parent.id), payload)
       : await api.post(endpoints.admin.parents, payload);
@@ -120,7 +149,11 @@ export function ParentForm({
       toast.success(t('admin.parentProfile.saveSuccess'));
       onSaved((res.data as Parent).id);
     } else if (!res.success) {
-      toast.error(mapParentApiError(res.error, t));
+      const mapped = mapParentApiError(res.error, t);
+      toast.error(mapped.message);
+      if (mapped.identityConflict) {
+        setIdentityCandidates(mapped.candidates ?? []);
+      }
     }
   }
 
@@ -171,6 +204,26 @@ export function ParentForm({
           <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         </Field>
       </div>
+      {isCreate ? (
+        <div className="col" style={{ gap: 8 }}>
+          <span className="tiny muted">{t('admin.identityDocument.sectionTitle')}</span>
+          <IdentityDocumentFields
+            values={identityDocument}
+            errors={identityErrors}
+            onChange={(patch) => {
+              setIdentityErrors({});
+              setIdentityCandidates([]);
+              setIdentityDocument((prev) => ({ ...prev, ...patch }));
+            }}
+          />
+          {identityCandidates.length > 0 ? (
+            <IdentityDocumentConflictAlert
+              candidates={identityCandidates}
+              onSelectExisting={(candidate) => router.push(`/admin/parents/${candidate.id}`)}
+            />
+          ) : null}
+        </div>
+      ) : null}
       <div className="row" style={{ gap: 12, flexWrap: 'wrap' }}>
         <Field label={t('admin.preferredLanguage')}>
           <select className="input" value={preferredLanguage} onChange={(e) => setPreferredLanguage(e.target.value)}>

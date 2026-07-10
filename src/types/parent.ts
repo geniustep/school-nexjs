@@ -10,6 +10,7 @@ import type {
   GuardianRemovalImpact,
   RelationshipType,
 } from './student-360';
+import type { IdentityDocumentReadFields } from './identity-document';
 
 export type ParentRelation = 'father' | 'mother' | 'guardian' | string;
 
@@ -66,7 +67,7 @@ export interface ParentChild extends StudentNameFields {
   relationship?: ParentChildRelationship | null;
 }
 
-export interface Parent {
+export interface Parent extends IdentityDocumentReadFields {
   id: number;
   code?: string | null;
   name: string;

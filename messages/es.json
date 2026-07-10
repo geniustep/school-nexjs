@@ -73,8 +73,7 @@
       "general_supervisor": "Supervisor general",
       "admin_staff": "Asistente administrativo",
       "legacy_admin": "Administrador",
-      "super_admin": "Superadministrador",
-      "pedagogical_director": "Director pedagógico"
+      "super_admin": "Superadministrador"
     }
   },
   "nav": {
@@ -796,7 +795,8 @@
         "name": "Nombre",
         "guardian_phone": "Teléfono del tutor",
         "massar": "Número Massar",
-        "student_code": "Número escolar"
+        "student_code": "Número escolar",
+        "guardian_identity": "Documento de identidad del tutor"
       }
     },
     "studentSearchPicker": {
@@ -830,7 +830,9 @@
       "attentionEmpty": "No hay elementos que requieran su intervención ahora.",
       "reports": "Informes pedagógicos",
       "emptyWorkspace": "Empiece por el centro de trabajo o el menú lateral.",
-      "metrics": { "attendanceToday": "Asistencia de hoy" },
+      "metrics": {
+        "attendanceToday": "Asistencia de hoy"
+      },
       "metricGroups": {
         "schoolLife": "Vida escolar",
         "academicOrg": "Organización académica",
@@ -3214,7 +3216,7 @@
         "classCreationFailed": "No se pudo crear la clase."
       }
     },
-    "searchParents": "Buscar padres…",
+    "searchParents": "Buscar por nombre, teléfono o documento de identidad…",
     "allLevels": "Todos los niveles",
     "selectLevel": "Elegir nivel",
     "gender": "Género",
@@ -3929,7 +3931,10 @@
         "internalNotes": "Notas internas",
         "priority": "Prioridad"
       },
-      "gender": { "male": "Masculino", "female": "Femenino" },
+      "gender": {
+        "male": "Masculino",
+        "female": "Femenino"
+      },
       "create": {
         "title": "Nueva solicitud de inscripción",
         "subtitle": "Cree una solicitud de inscripción inicial sin crear un alumno oficial.",
@@ -4248,7 +4253,9 @@
         "success": "Alumno creado y vinculado a la solicitud de admisión.",
         "linkFailed": "El alumno se creó, pero falló la vinculación con la solicitud. Abra el perfil del alumno para continuar."
       },
-      "errors": { "notFound": "Solicitud no encontrada." }
+      "errors": {
+        "notFound": "Solicitud no encontrada."
+      }
     },
     "enrollmentIntake": {
       "admissionNotes": "Notas internas",
@@ -5928,14 +5935,14 @@
           "cancelFinancialImpact": "No se puede cancelar directamente un acuerdo activo con impacto financiero."
         },
         "noSpecialAgreementTitle": "No hay acuerdo financiero para este alumno.",
-        "noSpecialAgreementDesc": "Las tasas escolares y el calendario de pagos existen de forma independiente. El acuerdo especial se usa para descuentos, reprogramaciones o condiciones excepcionales.",
-        "createSpecialAgreement": "Crear acuerdo especial",
-        "viewFeesAndSchedule": "Ver tasas y calendario",
-        "incompleteDraftTitle": "Borrador de acuerdo incompleto",
-        "incompleteDraftDesc": "Este borrador no se muestra como acuerdo activo hasta completarlo.",
-        "completeDraft": "Completar borrador",
+        "noSpecialAgreementDesc": "School fee plan fees and payment schedule were created directly. Special agreements are only for discounts, custom schedules, or special terms.",
+        "createSpecialAgreement": "Create special agreement",
+        "viewFeesAndSchedule": "View fees and payment schedule",
+        "incompleteDraftTitle": "Incomplete agreement draft",
+        "incompleteDraftDesc": "This draft does not represent fees from the school plan.",
+        "completeDraft": "Complete draft",
         "emptyManualDraftBlockedHint": "No se puede completar un borrador vacío. Cree un acuerdo desde las tasas actuales.",
-        "cancelDraft": "Cancelar borrador",
+        "cancelDraft": "Cancel draft",
         "fromFees": {
           "title": "Crear acuerdo desde las tasas actuales",
           "description": "Crea un borrador de acuerdo desde las tasas aplicadas sin duplicar cargos.",
@@ -6014,15 +6021,6 @@
             "save": "Guardar"
           }
         },
-        "noSpecialAgreementTitle": "No hay acuerdo financiero para este alumno.",
-        "noSpecialAgreementDesc": "School fee plan fees and payment schedule were created directly. Special agreements are only for discounts, custom schedules, or special terms.",
-        "viewFeesAndSchedule": "View fees and payment schedule",
-        "createSpecialAgreement": "Create special agreement",
-        "incompleteDraftTitle": "Incomplete agreement draft",
-        "incompleteDraftDesc": "This draft does not represent fees from the school plan.",
-        "completeDraft": "Complete draft",
-        "emptyManualDraftBlockedHint": "No se puede completar un borrador vacío. Cree un acuerdo desde las tasas actuales.",
-        "cancelDraft": "Cancel draft",
         "openFinanceOverview": "Open financial overview",
         "openPaymentSchedule": "Open payment schedule"
       },
@@ -7149,7 +7147,8 @@
       "billingPartyCustom": "Custom party",
       "feePlansWorkspace": {
         "monthlyInstallmentCount": "Monthly installment count"
-      }
+      },
+      "searchByNamePhoneIdentity": "Buscar por nombre, teléfono, correo o documento de identidad"
     },
     "academicYearIdOptional": "ID año académico (opcional)",
     "academicYearOptionalHint": "Dejar vacío si se desconoce",
@@ -8150,9 +8149,8 @@
           },
           "reverse": {
             "title": "Revertir cobro",
-            "warning": "Esto no elimina el cobro. Revierte el efecto financiero y conserva el recibo para auditoría.",
+            "warning": "Esta acción no elimina el cobro. Revierte el efecto financiero y conserva el recibo para auditoría.",
             "reasonLabel": "Motivo de la reversión",
-            "reasonPlaceholder": "Describa por qué se revierte este cobro…",
             "reasonRequired": "El motivo de la reversión es obligatorio.",
             "confirm": "Confirmar reversión",
             "success": "Cobro revertido correctamente.",
@@ -8194,22 +8192,6 @@
             "notAllowed": "Este cobro no puede cancelarse en su estado actual."
           },
           "receiptState": "Estado del recibo",
-          "reverse": {
-            "title": "Revertir cobro",
-            "warning": "Esta acción no elimina el cobro. Revierte el efecto financiero y conserva el recibo para auditoría.",
-            "reasonLabel": "Motivo de la reversión",
-            "reasonRequired": "El motivo de la reversión es obligatorio.",
-            "confirm": "Confirmar reversión",
-            "success": "Cobro revertido correctamente.",
-            "cancellationReason": "Motivo de la reversión",
-            "cancelledAt": "Revertido el",
-            "errors": {
-              "forbidden": "No tiene permiso para revertir este cobro.",
-              "notFound": "Cobro no encontrado.",
-              "cannotReverse": "Este cobro no puede revertirse en su estado actual.",
-              "generic": "No se pudo revertir el cobro. Inténtelo de nuevo."
-            }
-          },
           "timeline": {
             "draftCreated": "Borrador creado",
             "confirmed": "Cobro confirmado",
@@ -8347,7 +8329,7 @@
         "detailTitle": "Detalle del cobro",
         "chequeDetailTitle": "Detalle del cheque",
         "paymentStepDesc": "Elija método e importe, luego asigne a deudas.",
-        "stepPayment": "Pago",
+        "stepPayment": "Método de pago",
         "stepAllocation": "Allocate payment",
         "continueToAllocation": "Continuar a asignación",
         "allocationTitle": "Asignar importe",
@@ -8443,7 +8425,6 @@
           "paid_paid": "Pagado por completo"
         },
         "dueToday": "Vence hoy",
-        "allocatedAmount": "Importe asignado",
         "recordPayment": "Registrar pago",
         "flexiblePrepaymentIntro": "Introduzca el importe pagado, previsualice su reparto en las cuotas abiertas y confirme.",
         "paidAmountLabel": "Importe pagado",
@@ -8481,7 +8462,6 @@
         "recordCollectionAction": "Registrar cobro",
         "stepPaymentAndAmount": "Importe y método de pago",
         "stepSelectDues": "Elegir adeudos",
-        "stepPayment": "Método de pago",
         "stepPaymentMethod": "Método de pago",
         "stepReview": "Review and confirm",
         "selectDuesDesc": "Choose the installments you want to collect.",
@@ -9697,6 +9677,38 @@
         "inactive": "Cuenta inactiva",
         "noAccount": "Sin cuenta",
         "unknown": "Estado de cuenta no disponible"
+      }
+    },
+    "identityDocument": {
+      "sectionTitle": "Documento de identidad",
+      "type": "Tipo de documento",
+      "typeNone": "Sin documento",
+      "number": "Número del documento",
+      "country": "País de emisión",
+      "optionalHelp": "Opcional. Puede guardar el tutor sin documento de identidad.",
+      "nationalIdHint": "Documento nacional de identidad (CIN) para Marruecos.",
+      "nationalIdCountryHint": "El documento nacional se emite en Marruecos (MA).",
+      "countryRequiredHint": "Obligatorio para este tipo (código ISO, p. ej. FR).",
+      "countryOptionalHint": "Código de país ISO opcional (p. ej. MA).",
+      "clear": "Borrar documento de identidad",
+      "clearPending": "El documento de identidad se borrará al guardar.",
+      "undoClear": "Deshacer borrado",
+      "duplicateExists": "Ya hay un tutor registrado con el mismo documento de identidad.",
+      "useExisting": "Usar tutor existente",
+      "openExisting": "Abrir tutor existente",
+      "maskedLabel": "Documento de identidad",
+      "matchViaIdentity": "Coincidencia por documento de identidad",
+      "types": {
+        "national_id": "Documento nacional de identidad",
+        "passport": "Pasaporte",
+        "residence_card": "Tarjeta de residencia",
+        "other": "Otro documento"
+      },
+      "errors": {
+        "required": "El documento de identidad es obligatorio.",
+        "typeRequired": "Seleccione un tipo de documento.",
+        "numberRequired": "Introduzca el número del documento.",
+        "countryRequired": "Introduzca el país de emisión."
       }
     }
   }

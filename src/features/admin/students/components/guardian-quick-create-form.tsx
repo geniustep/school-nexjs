@@ -5,7 +5,15 @@ import { api } from '@/lib/api/client';
 import { useToast } from '@/components/ui/toast';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
+import { IdentityDocumentFields } from '@/features/admin/parents/components/identity-document-fields';
+import {
+  emptyIdentityDocumentFormValues,
+  validateIdentityDocumentForm,
+  type IdentityDocumentFieldErrors,
+  type IdentityDocumentFormValues,
+} from '@/features/admin/parents/utils/identity-document';
 import { mapGuardianApiError } from '../utils/guardian-api-errors';
+import { buildGuardianQuickCreatePayload } from '../utils/guardian-quick-create-payload';
 import { normalizeGuardianList, normalizeGuardianQuickCreateResponse } from '../utils/normalize-guardian';
 import {
   formatMoroccanPhoneDisplay,
@@ -14,6 +22,7 @@ import {
 } from '../utils/normalize-moroccan-phone';
 import { GuardianDuplicateAlert } from './guardian-duplicate-alert';
 import type { GuardianDuplicateField, GuardianDuplicateMatch, GuardianSummary } from '@/types/student-360';
+import './guardian-flow.css';
 
 export interface GuardianCreateFormValues {
   firstName: string;
@@ -21,9 +30,9 @@ export interface GuardianCreateFormValues {
   phone: string;
   secondaryPhone: string;
   email: string;
-  nationalId: string;
   address: string;
   city: string;
+  identityDocument: IdentityDocumentFormValues;
 }
 
 export interface GuardianCreateFieldErrors {
@@ -90,7 +99,7 @@ function validateCreateForm(values: GuardianCreateFormValues, t: (k: string) => 
 function inferDuplicateFieldFromForm(values: GuardianCreateFormValues): GuardianDuplicateField {
   if (values.phone.trim()) return 'phone';
   if (values.email.trim()) return 'email';
-  if (values.nationalId.trim()) return 'national_id';
+  if (values.identityDocument.number.trim()) return 'national_id';
   return 'unknown';
 }
 
@@ -116,11 +125,12 @@ export function GuardianQuickCreateForm({
     phone: prefillIsPhone ? initialQuery : '',
     secondaryPhone: '',
     email: prefillIsEmail ? initialQuery : '',
-    nationalId: '',
     address: '',
     city: '',
+    identityDocument: emptyIdentityDocumentFormValues(),
   });
   const [fieldErrors, setFieldErrors] = useState<GuardianCreateFieldErrors>({});
+  const [identityErrors, setIdentityErrors] = useState<IdentityDocumentFieldErrors>({});
   const [saving, setSaving] = useState(false);
   const [duplicateField, setDuplicateField] = useState<GuardianDuplicateField | null>(null);
   const [matches, setMatches] = useState<GuardianDuplicateMatch[] | null>(null);
@@ -129,6 +139,7 @@ export function GuardianQuickCreateForm({
   function patch(partial: Partial<GuardianCreateFormValues>) {
     setValues((prev) => ({ ...prev, ...partial }));
     setFieldErrors({});
+    setIdentityErrors({});
     setDuplicateField(null);
     setMatches(null);
     setDuplicateLoadFailed(false);
@@ -141,7 +152,9 @@ export function GuardianQuickCreateForm({
     if (mapped.matches?.length) return mapped.matches;
     const q = formValues.phone.trim()
       ? moroccanPhoneSearchQuery(formValues.phone)
-      : formValues.email.trim().toLowerCase();
+      : formValues.email.trim()
+        ? formValues.email.trim().toLowerCase()
+        : formValues.identityDocument.number.trim();
     if (!q) return [];
     const res = await api.get(endpoints.admin.guardiansSearch, { q, page: 1, page_size: 5 });
     if (res.success) return normalizeGuardianList(res.data);
@@ -151,8 +164,10 @@ export function GuardianQuickCreateForm({
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     const errors = validateCreateForm(values, t);
-    if (Object.keys(errors).length > 0) {
+    const nextIdentityErrors = validateIdentityDocumentForm(values.identityDocument, t);
+    if (Object.keys(errors).length > 0 || Object.keys(nextIdentityErrors).length > 0) {
       setFieldErrors(errors);
+      setIdentityErrors(nextIdentityErrors);
       toast.error(t('errors.validationFailed'));
       return;
     }
@@ -162,16 +177,7 @@ export function GuardianQuickCreateForm({
     setMatches(null);
     setDuplicateLoadFailed(false);
 
-    const payload = {
-      name: buildFullName(values.firstName, values.lastName),
-      phone: moroccanPhoneSearchQuery(values.phone),
-      secondary_phone: values.secondaryPhone.trim()
-        ? moroccanPhoneSearchQuery(values.secondaryPhone)
-        : undefined,
-      email: values.email.trim().toLowerCase() || undefined,
-      address: [values.address.trim(), values.city.trim()].filter(Boolean).join(', ') || undefined,
-    };
-
+    const payload = buildGuardianQuickCreatePayload(values);
     const res = await api.post<unknown>(endpoints.admin.guardiansQuickCreate, payload);
     setSaving(false);
 
@@ -265,14 +271,6 @@ export function GuardianQuickCreateForm({
               autoComplete="email"
             />
           </Field>
-          <Field label={t('admin.student360.nationalId')}>
-            <input
-              className="input"
-              value={values.nationalId}
-              onChange={(e) => patch({ nationalId: e.target.value.trim() })}
-              dir="auto"
-            />
-          </Field>
           <Field label={t('admin.student360.address')}>
             <input className="input" value={values.address} onChange={(e) => patch({ address: e.target.value })} />
           </Field>
@@ -280,6 +278,20 @@ export function GuardianQuickCreateForm({
             <input className="input" value={values.city} onChange={(e) => patch({ city: e.target.value })} />
           </Field>
         </div>
+        <fieldset className="guardian-create-form__section">
+          <legend className="guardian-create-form__section-title">
+            {t('admin.identityDocument.sectionTitle')}
+          </legend>
+          <IdentityDocumentFields
+            values={values.identityDocument}
+            errors={identityErrors}
+            onChange={(identityPatch) =>
+              patch({
+                identityDocument: { ...values.identityDocument, ...identityPatch },
+              })
+            }
+          />
+        </fieldset>
       </details>
 
       {duplicateField && matches && matches.length > 0 ? (

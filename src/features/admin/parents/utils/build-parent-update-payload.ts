@@ -1,5 +1,14 @@
 /** Explicit person-only payload for POST /admin/parents/{id}/update — no relationship fields. */
 
+import type { IdentityDocumentWriteFields } from '@/types/identity-document';
+import type { Parent } from '@/types/parent';
+import {
+  buildIdentityDocumentUpdatePayload,
+  emptyIdentityDocumentFormValues,
+  identityDocumentFromEntity,
+  type IdentityDocumentFormValues,
+} from './identity-document';
+
 export interface ParentPersonFormValues {
   name: string;
   phone: string;
@@ -9,9 +18,10 @@ export interface ParentPersonFormValues {
   city: string;
   preferred_language: string;
   notification_opt_in: boolean;
+  identityDocument: IdentityDocumentFormValues;
 }
 
-export interface ParentUpdatePayload {
+export interface ParentUpdatePayload extends IdentityDocumentWriteFields {
   name: string;
   phone?: string;
   mobile?: string;
@@ -27,7 +37,10 @@ function trimOptional(value: string): string | undefined {
   return trimmed.length ? trimmed : undefined;
 }
 
-export function buildParentUpdatePayload(values: ParentPersonFormValues): ParentUpdatePayload {
+export function buildParentUpdatePayload(
+  values: ParentPersonFormValues,
+  initial?: ParentPersonFormValues,
+): ParentUpdatePayload {
   const payload: ParentUpdatePayload = {
     name: values.name.trim(),
     preferred_language: values.preferred_language || undefined,
@@ -46,20 +59,18 @@ export function buildParentUpdatePayload(values: ParentPersonFormValues): Parent
   if (street) payload.street = street;
   if (city) payload.city = city;
 
+  const identityPayload = buildIdentityDocumentUpdatePayload(
+    values.identityDocument,
+    initial?.identityDocument ?? emptyIdentityDocumentFormValues(),
+  );
+  if (identityPayload) {
+    Object.assign(payload, identityPayload);
+  }
+
   return payload;
 }
 
-export function parentToFormValues(parent: {
-  name: string;
-  phone: string | null;
-  mobile?: string | null;
-  email: string | null;
-  street?: string | null;
-  city?: string | null;
-  address?: string | null;
-  preferred_language?: string | null;
-  notification_opt_in?: boolean;
-}): ParentPersonFormValues {
+export function parentToFormValues(parent: Parent): ParentPersonFormValues {
   return {
     name: parent.name ?? '',
     phone: parent.phone ?? '',
@@ -69,6 +80,7 @@ export function parentToFormValues(parent: {
     city: parent.city ?? '',
     preferred_language: parent.preferred_language ?? 'ar',
     notification_opt_in: parent.notification_opt_in ?? true,
+    identityDocument: identityDocumentFromEntity(parent),
   };
 }
 
@@ -81,6 +93,10 @@ export function formValuesEqual(a: ParentPersonFormValues, b: ParentPersonFormVa
     a.street === b.street &&
     a.city === b.city &&
     a.preferred_language === b.preferred_language &&
-    a.notification_opt_in === b.notification_opt_in
+    a.notification_opt_in === b.notification_opt_in &&
+    a.identityDocument.type === b.identityDocument.type &&
+    a.identityDocument.number === b.identityDocument.number &&
+    a.identityDocument.country === b.identityDocument.country &&
+    a.identityDocument.clear === b.identityDocument.clear
   );
 }

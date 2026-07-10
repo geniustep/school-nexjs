@@ -144,7 +144,7 @@ export function GuardianSearchPanel({
   }, [debouncedQuery, studentId, activeSchoolId, includeArchived]);
 
   const description = labels?.description ?? t('admin.student360.searchExistingPersonDesc');
-  const placeholder = labels?.placeholder ?? t('admin.student360.searchByNamePhoneEmail');
+  const placeholder = labels?.placeholder ?? t('admin.student360.searchByNamePhoneIdentity');
   const emptyMessage =
     labels?.emptyMessage ??
     (includeArchived

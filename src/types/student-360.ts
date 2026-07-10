@@ -455,7 +455,13 @@ export interface GuardianSummary {
   secondary_phone?: string | null;
   email?: string | null;
   address?: string | null;
+  /** Alias for national_id document type — prefer identity_document_* for writes. */
   national_id?: string | null;
+  identity_document_type?: import('./identity-document').IdentityDocumentType | null;
+  identity_document_number?: string | null;
+  identity_document_country?: string | null;
+  national_id_masked?: string | null;
+  identity_document_number_masked?: string | null;
   children_count?: number;
   has_account?: boolean;
   has_user_account?: boolean;
@@ -487,6 +493,8 @@ export interface PersonSearchResult extends GuardianSummary {
   role_labels: string[];
   has_user_account: boolean;
   can_link_as_guardian: boolean;
+  /** Why this row matched — e.g. identity_document (SSC-API-2026.07.003). */
+  match_basis?: import('./identity-document').GuardianSearchMatchBasis | null;
   warnings?: GuardianCandidateWarning[];
   missing_contact_fields?: string[];
   already_guardian_of_student?: boolean;
@@ -699,6 +707,9 @@ export interface GuardianQuickCreatePayload {
   secondary_phone?: string;
   email?: string;
   address?: string;
+  identity_document_type?: import('./identity-document').IdentityDocumentType | null;
+  identity_document_number?: string | null;
+  identity_document_country?: string | null;
 }
 
 export interface GuardianQuickCreateResponse {

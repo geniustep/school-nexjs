@@ -25,6 +25,12 @@ import { GuardianRelationshipImpactAlert } from './guardian-relationship-impact-
 import { PersonSchoolIdentitySection } from './person-school-identity-section';
 import { GuardianContactRequiredSection } from './guardian-contact-required-section';
 import { mapGuardianApiError } from '../utils/guardian-api-errors';
+import { buildGuardianQuickCreatePayload } from '../utils/guardian-quick-create-payload';
+import {
+  emptyIdentityDocumentFormValues,
+  validateIdentityDocumentForm,
+} from '@/features/admin/parents/utils/identity-document';
+import { GuardianDuplicateAlert } from './guardian-duplicate-alert';
 import { resolveGuardianLinkBlockerMessage } from '../utils/guardian-candidate-presentation';
 import { canLinkPersonAsGuardian } from '../utils/guardian-profile-contract';
 import {
@@ -44,7 +50,6 @@ import {
 import { normalizeGuardianQuickCreateResponse } from '../utils/normalize-guardian';
 import {
   formatMoroccanPhoneDisplay,
-  moroccanPhoneSearchQuery,
 } from '../utils/normalize-moroccan-phone';
 import { isPersonSearchResult } from '../utils/normalize-person-search';
 import {
@@ -55,6 +60,8 @@ import {
 import { personHasLoginAccount } from '../utils/person-school-identity';
 import { isRelationshipActive } from '../utils/relationship-types';
 import type {
+  GuardianDuplicateField,
+  GuardianDuplicateMatch,
   GuardianRelationship,
   GuardianSummary,
   LinkPersonAsGuardianResponse,
@@ -89,6 +96,12 @@ export function GuardianAddDialog({
   const [linkResult, setLinkResult] = useState<LinkPersonAsGuardianResponse | null>(null);
   const [formValues, setFormValues] = useState<RelationshipFormValues>(DEFAULT_RELATIONSHIP_FORM);
   const [fieldError, setFieldError] = useState<string | null>(null);
+  const [identityConflictField, setIdentityConflictField] = useState<GuardianDuplicateField | null>(
+    null,
+  );
+  const [identityConflictMatches, setIdentityConflictMatches] = useState<GuardianDuplicateMatch[]>(
+    [],
+  );
   const [saving, setSaving] = useState(false);
   const [searchPrefill, setSearchPrefill] = useState('');
   const [accountDialogOpen, setAccountDialogOpen] = useState(false);
@@ -157,6 +170,8 @@ export function GuardianAddDialog({
     setLinkResult(null);
     setFormValues(DEFAULT_RELATIONSHIP_FORM);
     setFieldError(null);
+    setIdentityConflictField(null);
+    setIdentityConflictMatches([]);
     setSaving(false);
     setSearchPrefill('');
     setAccountDialogOpen(false);
@@ -207,18 +222,29 @@ export function GuardianAddDialog({
 
   async function createNewPersonGuardian(): Promise<GuardianSummary | null> {
     if (!newPersonDraft) return null;
-    const payload = {
-      name: [newPersonDraft.firstName.trim(), newPersonDraft.lastName.trim()].filter(Boolean).join(' '),
-      phone: moroccanPhoneSearchQuery(newPersonDraft.phone),
-      email: newPersonDraft.email.trim().toLowerCase() || undefined,
-    };
+    const payload = buildGuardianQuickCreatePayload({
+      firstName: newPersonDraft.firstName,
+      lastName: newPersonDraft.lastName,
+      phone: newPersonDraft.phone,
+      email: newPersonDraft.email,
+      identityDocument: newPersonDraft.identityDocument ?? emptyIdentityDocumentFormValues(),
+    });
     const res = await api.post<unknown>(endpoints.admin.guardiansQuickCreate, payload);
     if (!res.success) {
       const mapped = mapGuardianApiError(res.error, t);
       setFieldError(mapped.message);
+      if (mapped.duplicateField || mapped.matches?.length) {
+        setIdentityConflictField(mapped.duplicateField ?? 'national_id');
+        setIdentityConflictMatches(mapped.matches ?? []);
+      } else {
+        setIdentityConflictField(null);
+        setIdentityConflictMatches([]);
+      }
       toast.error(mapped.message);
       return null;
     }
+    setIdentityConflictField(null);
+    setIdentityConflictMatches([]);
     return normalizeGuardianQuickCreateResponse(res.data);
   }
 
@@ -361,7 +387,9 @@ export function GuardianAddDialog({
 
   const newPersonPhoneValid = useMemo(() => {
     if (!newPersonDraft) return false;
-    return Object.keys(validateNewPersonDraft(newPersonDraft, t)).length === 0;
+    if (Object.keys(validateNewPersonDraft(newPersonDraft, t)).length > 0) return false;
+    const identity = newPersonDraft.identityDocument ?? emptyIdentityDocumentFormValues();
+    return Object.keys(validateIdentityDocumentForm(identity, t)).length === 0;
   }, [newPersonDraft, t]);
 
   const existingPersonForContact =
@@ -516,6 +544,33 @@ export function GuardianAddDialog({
             />
 
             <GuardianRelationshipForm values={formValues} onChange={setFormValues} fieldError={fieldError} />
+
+            {identityConflictField && identityConflictMatches.length > 0 ? (
+              <GuardianDuplicateAlert
+                field={identityConflictField}
+                matches={identityConflictMatches}
+                onLinkExisting={(match) => {
+                  setIdentityConflictField(null);
+                  setIdentityConflictMatches([]);
+                  setFieldError(null);
+                  setIsNewPersonFlow(false);
+                  setNewPersonDraft(null);
+                  if (isPersonSearchResult(match)) {
+                    handleExistingPersonPicked(match);
+                  } else {
+                    setSelectedPerson(match);
+                    setStep('relationship');
+                  }
+                }}
+                onEditInput={() => {
+                  setIdentityConflictField(null);
+                  setIdentityConflictMatches([]);
+                  setFieldError(null);
+                  setStep('pick');
+                  setPickMode('new');
+                }}
+              />
+            ) : null}
 
             {pendingPrimaryConfirm && currentPrimary ? (
               <div className="guardian-primary-confirm" role="alert">

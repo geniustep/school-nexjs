@@ -3,6 +3,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
+import { IdentityDocumentFields } from '@/features/admin/parents/components/identity-document-fields';
+import {
+  emptyIdentityDocumentFormValues,
+  validateIdentityDocumentForm,
+  type IdentityDocumentFieldErrors,
+  type IdentityDocumentFormValues,
+} from '@/features/admin/parents/utils/identity-document';
 import { useDebouncedValue } from '../hooks/use-debounced-value';
 import { searchGuardianCandidatesForStudent } from '../utils/guardian-candidate-search';
 import {
@@ -18,6 +25,7 @@ export interface NewPersonDraft {
   lastName: string;
   phone: string;
   email: string;
+  identityDocument: IdentityDocumentFormValues;
 }
 
 export interface NewPersonFieldErrors {
@@ -63,6 +71,8 @@ function buildDuplicateQuery(draft: NewPersonDraft): string {
   if (phone) return moroccanPhoneSearchQuery(phone);
   const email = draft.email.trim();
   if (email) return email.toLowerCase();
+  const identityNumber = draft.identityDocument.number.trim();
+  if (identityNumber) return identityNumber;
   const name = buildFullName(draft.firstName, draft.lastName);
   return name.trim();
 }
@@ -108,8 +118,10 @@ export function GuardianNewPersonForm({
     lastName: '',
     phone: prefillIsPhone ? initialQuery : '',
     email: prefillIsEmail ? initialQuery : '',
+    identityDocument: emptyIdentityDocumentFormValues(),
   });
   const [fieldErrors, setFieldErrors] = useState<NewPersonFieldErrors>({});
+  const [identityErrors, setIdentityErrors] = useState<IdentityDocumentFieldErrors>({});
   const [duplicateCandidates, setDuplicateCandidates] = useState<PersonSearchResult[]>([]);
   const [duplicateDismissed, setDuplicateDismissed] = useState(false);
   const [duplicateLoading, setDuplicateLoading] = useState(false);
@@ -118,7 +130,7 @@ export function GuardianNewPersonForm({
 
   useEffect(() => {
     setDuplicateDismissed(false);
-  }, [draft.firstName, draft.lastName, draft.phone, draft.email]);
+  }, [draft.firstName, draft.lastName, draft.phone, draft.email, draft.identityDocument.number]);
 
   useEffect(() => {
     if (duplicateQuery.length < MIN_DUPLICATE_QUERY) {
@@ -146,13 +158,16 @@ export function GuardianNewPersonForm({
   function patch(partial: Partial<NewPersonDraft>) {
     setDraft((prev) => ({ ...prev, ...partial }));
     setFieldErrors({});
+    setIdentityErrors({});
   }
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
     const errors = validateNewPersonDraft(draft, t);
-    if (Object.keys(errors).length > 0) {
+    const nextIdentityErrors = validateIdentityDocumentForm(draft.identityDocument, t);
+    if (Object.keys(errors).length > 0 || Object.keys(nextIdentityErrors).length > 0) {
       setFieldErrors(errors);
+      setIdentityErrors(nextIdentityErrors);
       return;
     }
     onContinue(draft);
@@ -211,6 +226,21 @@ export function GuardianNewPersonForm({
           autoComplete="email"
         />
       </Field>
+
+      <fieldset className="guardian-create-form__section">
+        <legend className="guardian-create-form__section-title">
+          {t('admin.identityDocument.sectionTitle')}
+        </legend>
+        <IdentityDocumentFields
+          values={draft.identityDocument}
+          errors={identityErrors}
+          onChange={(identityPatch) =>
+            patch({
+              identityDocument: { ...draft.identityDocument, ...identityPatch },
+            })
+          }
+        />
+      </fieldset>
 
       {showDuplicates ? (
         <GuardianDuplicateSuggestions

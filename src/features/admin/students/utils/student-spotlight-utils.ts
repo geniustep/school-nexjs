@@ -3,6 +3,7 @@ import type { StudentSearchMatchedOn } from '@/types/student-search';
 const MATCHED_ON_LABEL_KEYS: Record<StudentSearchMatchedOn, string> = {
   name: 'admin.spotlight.matchedOn.name',
   guardian_phone: 'admin.spotlight.matchedOn.guardian_phone',
+  guardian_identity: 'admin.spotlight.matchedOn.guardian_identity',
   massar: 'admin.spotlight.matchedOn.massar',
   student_code: 'admin.spotlight.matchedOn.student_code',
 };

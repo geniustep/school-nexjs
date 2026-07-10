@@ -26,6 +26,12 @@ import { formatPersonContactLine } from '@/features/admin/students/components/gu
 import { GuardianAccountOnboardingPanel } from '@/features/admin/students/components/guardian-account-onboarding-panel';
 import { GuardianPasswordAssignAction } from '@/features/admin/account/guardian-password-assign-action';
 import { preferredLanguageLabel } from '../utils/normalize-parent-profile';
+import {
+  hasIdentityDocument,
+  identityDocumentTypeLabelKey,
+  resolveFullIdentityDocumentNumber,
+} from '../utils/identity-document';
+import { isIdentityDocumentType } from '@/types/identity-document';
 import { parentAccountPresentationSource } from '../utils/resolve-parent-account-presentation';
 import {
   canDeleteGuardianProfile,
@@ -241,6 +247,38 @@ export function ParentProfileView({
     return items;
   }, [parent, t, emailPresentation]);
 
+  const identityItems = useMemo(() => {
+    if (!hasIdentityDocument(parent)) return [];
+    const items: Array<{ label: string; value: React.ReactNode }> = [];
+    const type = parent.identity_document_type;
+    items.push({
+      label: t('admin.identityDocument.type'),
+      value: isIdentityDocumentType(type)
+        ? t(identityDocumentTypeLabelKey(type))
+        : t('common.dash'),
+    });
+    const fullNumber = resolveFullIdentityDocumentNumber(parent);
+    items.push({
+      label: t('admin.identityDocument.number'),
+      value: fullNumber ? (
+        <span className="mono" dir="ltr">
+          {fullNumber}
+        </span>
+      ) : (
+        t('common.dash')
+      ),
+    });
+    if (parent.identity_document_country?.trim()) {
+      items.push({
+        label: t('admin.identityDocument.country'),
+        value: (
+          <span dir="ltr">{parent.identity_document_country.trim().toUpperCase()}</span>
+        ),
+      });
+    }
+    return items;
+  }, [parent, t]);
+
   if (editing) {
     return (
       <ParentEditForm
@@ -347,6 +385,13 @@ export function ParentProfileView({
           <SectionHead title={t('admin.contact')} />
           <DefinitionList items={contactItems} />
         </Card>
+
+        {identityItems.length > 0 ? (
+          <Card>
+            <SectionHead title={t('admin.identityDocument.sectionTitle')} />
+            <DefinitionList items={identityItems} />
+          </Card>
+        ) : null}
 
         <Card className="parent-profile__account-card">
           <SectionHead title={t('admin.parentProfile.accountAndRoles')} />

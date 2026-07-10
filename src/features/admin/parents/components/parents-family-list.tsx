@@ -14,6 +14,7 @@ import { useT } from '@/features/i18n/locale-context';
 import { statusLabel } from '@/lib/utils/labels';
 import { getStudentDisplayName } from '@/lib/utils/student';
 import { ParentAccountIdentityInline } from './parent-account-identity-inline';
+import { resolveMaskedIdentityDocument } from '../utils/identity-document';
 
 export function ParentsFamilyList({ families }: { families: ParentFamilyGroup[] }) {
   const t = useT();
@@ -95,46 +96,59 @@ export function ParentsFamilyList({ families }: { families: ParentFamilyGroup[] 
                 {t('admin.parentsList.guardiansTitle')}:
               </span>
               <ul className="parents-family-card__guardian-lines">
-                {family.guardians.map(({ parent, relationshipType }, guardianIndex) => (
-                  <li key={`${parent.id}-${guardianIndex}`} className="parents-family-card__guardian-line">
-                    <span className="parents-family-card__guardian-role">
-                      {relationshipTypeLabel(t, relationshipType)}:
-                    </span>
-                    <div className="parents-family-card__guardian-content">
-                      <Link
-                        href={`/admin/parents/${parent.id}`}
-                        className="parents-family-card__guardian-name"
-                        dir="auto"
-                      >
-                        {parent.name}
-                      </Link>
-                      <span className="parents-family-card__guardian-meta">
-                        {parent.phone ?? parent.mobile ? (
-                          <span className="mono" dir="ltr">
-                            {parent.phone ?? parent.mobile}
-                          </span>
-                        ) : null}
-                        {parent.email ? (
-                          <span dir="ltr">{parent.email}</span>
-                        ) : null}
-                        <ParentAccountIdentityInline parent={parent} />
+                {family.guardians.map(({ parent, relationshipType }, guardianIndex) => {
+                  const maskedIdentity = resolveMaskedIdentityDocument(parent);
+                  return (
+                    <li
+                      key={`${parent.id}-${guardianIndex}`}
+                      className="parents-family-card__guardian-line"
+                    >
+                      <span className="parents-family-card__guardian-role">
+                        {relationshipTypeLabel(t, relationshipType)}:
                       </span>
-                    </div>
-                    <div className="parents-family-card__guardian-actions">
-                      <Badge tone={parent.status === 'active' ? 'green' : 'slate'}>
-                        {statusLabel(t, parent.status)}
-                      </Badge>
-                      <Link
-                        href={`/admin/parents/${parent.id}`}
-                        className="parents-family-card__view-link"
-                        aria-label={t('common.view')}
-                        title={t('common.view')}
-                      >
-                        <span aria-hidden="true">→</span>
-                      </Link>
-                    </div>
-                  </li>
-                ))}
+                      <div className="parents-family-card__guardian-content">
+                        <Link
+                          href={`/admin/parents/${parent.id}`}
+                          className="parents-family-card__guardian-name"
+                          dir="auto"
+                        >
+                          {parent.name}
+                        </Link>
+                        <span className="parents-family-card__guardian-meta">
+                          {parent.phone ?? parent.mobile ? (
+                            <span className="mono" dir="ltr">
+                              {parent.phone ?? parent.mobile}
+                            </span>
+                          ) : null}
+                          {parent.email ? <span dir="ltr">{parent.email}</span> : null}
+                          {maskedIdentity ? (
+                            <span
+                              className="mono"
+                              dir="ltr"
+                              title={t('admin.identityDocument.maskedLabel')}
+                            >
+                              {maskedIdentity}
+                            </span>
+                          ) : null}
+                          <ParentAccountIdentityInline parent={parent} />
+                        </span>
+                      </div>
+                      <div className="parents-family-card__guardian-actions">
+                        <Badge tone={parent.status === 'active' ? 'green' : 'slate'}>
+                          {statusLabel(t, parent.status)}
+                        </Badge>
+                        <Link
+                          href={`/admin/parents/${parent.id}`}
+                          className="parents-family-card__view-link"
+                          aria-label={t('common.view')}
+                          title={t('common.view')}
+                        >
+                          <span aria-hidden="true">→</span>
+                        </Link>
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           </div>

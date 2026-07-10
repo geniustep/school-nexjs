@@ -123,9 +123,18 @@ export function extractGuardianDuplicateMatches(
   details: Record<string, unknown> | undefined,
 ): GuardianDuplicateMatch[] | undefined {
   if (!details) return undefined;
-  const matches = details.matches;
-  if (!Array.isArray(matches)) return undefined;
-  return matches as GuardianDuplicateMatch[];
+  const buckets = [details.matches, details.candidates, details.candidate, details.guardian];
+  const out: GuardianDuplicateMatch[] = [];
+  for (const bucket of buckets) {
+    if (Array.isArray(bucket)) {
+      for (const item of bucket) {
+        if (item && typeof item === 'object') out.push(item as GuardianDuplicateMatch);
+      }
+    } else if (bucket && typeof bucket === 'object') {
+      out.push(bucket as GuardianDuplicateMatch);
+    }
+  }
+  return out.length ? out : undefined;
 }
 
 export function mapGuardianApiError(
@@ -154,6 +163,21 @@ export function mapGuardianApiError(
     case 'guardian_already_linked':
     case 'guardian_relation_already_exists':
       return { message: t('admin.student360.personAlreadyLinkedAsGuardian') };
+    case 'guardian_identity_candidate_exists': {
+      const candidates = extractGuardianDuplicateMatches(details);
+      const fromCandidate =
+        details?.candidate != null
+          ? [normalizeDuplicateMatch(details.candidate as GuardianDuplicateMatch)]
+          : [];
+      const matchesResolved = (candidates?.length ? candidates : fromCandidate).map((m) =>
+        normalizeDuplicateMatch(m),
+      );
+      return {
+        message: t('admin.identityDocument.duplicateExists'),
+        duplicateField: 'national_id',
+        matches: matchesResolved.length ? matchesResolved : undefined,
+      };
+    }
     case 'duplicate_person': {
       const duplicateField = inferDuplicateField(details, error.message);
       const messageKey =

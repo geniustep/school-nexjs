@@ -15,7 +15,14 @@ import {
   type ParentPersonFormValues,
 } from '../utils/build-parent-update-payload';
 import { mapParentApiError } from '../utils/map-parent-api-error';
+import {
+  validateIdentityDocumentForm,
+  type IdentityDocumentFieldErrors,
+} from '../utils/identity-document';
+import { IdentityDocumentFields } from './identity-document-fields';
+import { IdentityDocumentConflictAlert } from './identity-document-conflict-alert';
 import { ParentRelationshipsSection } from './parent-relationships-section';
+import type { GuardianDuplicateMatch } from '@/types/student-360';
 import type { Parent } from '@/types/parent';
 
 const LANGUAGE_CODES = ['ar', 'fr', 'en', 'es'] as const;
@@ -54,12 +61,16 @@ export function ParentEditForm({
   const initialValues = useMemo(() => parentToFormValues(parent), [parent]);
   const [values, setValues] = useState<ParentPersonFormValues>(initialValues);
   const [saving, setSaving] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof ParentPersonFormValues, string>>>({});
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<'name', string>>>({});
+  const [identityErrors, setIdentityErrors] = useState<IdentityDocumentFieldErrors>({});
+  const [identityCandidates, setIdentityCandidates] = useState<GuardianDuplicateMatch[]>([]);
   const nameRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setValues(initialValues);
     setFieldErrors({});
+    setIdentityErrors({});
+    setIdentityCandidates([]);
   }, [initialValues]);
 
   const hasAccount =
@@ -73,10 +84,11 @@ export function ParentEditForm({
     setFieldErrors((prev) => {
       const next = { ...prev };
       for (const key of Object.keys(partial) as (keyof ParentPersonFormValues)[]) {
-        delete next[key];
+        if (key === 'name') delete next.name;
       }
       return next;
     });
+    setIdentityCandidates([]);
   }
 
   async function submit(e: React.FormEvent) {
@@ -87,10 +99,19 @@ export function ParentEditForm({
       toast.error(t('errors.validationFailed'));
       return;
     }
+
+    const nextIdentityErrors = validateIdentityDocumentForm(values.identityDocument, t);
+    if (Object.keys(nextIdentityErrors).length > 0) {
+      setIdentityErrors(nextIdentityErrors);
+      toast.error(t('errors.validationFailed'));
+      return;
+    }
+
     if (!dirty || saving) return;
 
     setSaving(true);
-    const payload = buildParentUpdatePayload(values);
+    setIdentityCandidates([]);
+    const payload = buildParentUpdatePayload(values, initialValues);
     const res = await api.post(endpoints.admin.parentUpdate(parent.id), payload);
     setSaving(false);
 
@@ -101,8 +122,11 @@ export function ParentEditForm({
     }
 
     if (!res.success) {
-      const message = mapParentApiError(res.error, t);
-      toast.error(message);
+      const mapped = mapParentApiError(res.error, t);
+      toast.error(mapped.message);
+      if (mapped.identityConflict) {
+        setIdentityCandidates(mapped.candidates ?? []);
+      }
       if (!values.name.trim()) nameRef.current?.focus();
     }
   }
@@ -165,6 +189,24 @@ export function ParentEditForm({
               />
             </Field>
           </div>
+        </Card>
+
+        <Card className="parent-edit-form__section">
+          <SectionHead title={t('admin.identityDocument.sectionTitle')} />
+          <IdentityDocumentFields
+            values={values.identityDocument}
+            errors={identityErrors}
+            showClear
+            onChange={(identityPatch) => {
+              setIdentityErrors({});
+              patch({
+                identityDocument: { ...values.identityDocument, ...identityPatch },
+              });
+            }}
+          />
+          {identityCandidates.length > 0 ? (
+            <IdentityDocumentConflictAlert candidates={identityCandidates} />
+          ) : null}
         </Card>
 
         <Card className="parent-edit-form__section">

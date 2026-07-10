@@ -795,7 +795,8 @@
         "name": "Name",
         "guardian_phone": "Guardian phone",
         "massar": "Massar number",
-        "student_code": "School number"
+        "student_code": "School number",
+        "guardian_identity": "Guardian identity document"
       }
     },
     "studentSearchPicker": {
@@ -3215,7 +3216,7 @@
         "classCreationFailed": "Could not create the class."
       }
     },
-    "searchParents": "Search parents…",
+    "searchParents": "Search by name, phone, or identity document…",
     "allLevels": "All levels",
     "selectLevel": "Select level",
     "gender": "Gender",
@@ -7146,7 +7147,8 @@
       "billingPartyCustom": "Custom party",
       "feePlansWorkspace": {
         "monthlyInstallmentCount": "Monthly installment count"
-      }
+      },
+      "searchByNamePhoneIdentity": "Search by name, phone, email, or identity document"
     },
     "academicYearIdOptional": "Academic year ID (optional)",
     "academicYearOptionalHint": "Leave empty if unknown",
@@ -9674,6 +9676,38 @@
         "inactive": "Account inactive",
         "noAccount": "No account",
         "unknown": "Account status unavailable"
+      }
+    },
+    "identityDocument": {
+      "sectionTitle": "Identity document",
+      "type": "Document type",
+      "typeNone": "No document",
+      "number": "Document number",
+      "country": "Issuing country",
+      "optionalHelp": "Optional. You can save the guardian without an identity document.",
+      "nationalIdHint": "National ID (CIN) for Morocco.",
+      "nationalIdCountryHint": "National ID is issued in Morocco (MA).",
+      "countryRequiredHint": "Required for this document type (ISO country code, e.g. FR).",
+      "countryOptionalHint": "Optional ISO country code (e.g. MA).",
+      "clear": "Clear identity document",
+      "clearPending": "Identity document will be cleared when you save.",
+      "undoClear": "Undo clear",
+      "duplicateExists": "A guardian is already registered with the same identity document.",
+      "useExisting": "Use existing guardian",
+      "openExisting": "Open existing guardian",
+      "maskedLabel": "Identity document",
+      "matchViaIdentity": "Matched via identity document",
+      "types": {
+        "national_id": "National ID card",
+        "passport": "Passport",
+        "residence_card": "Residence card",
+        "other": "Other document"
+      },
+      "errors": {
+        "required": "Identity document is required.",
+        "typeRequired": "Select a document type.",
+        "numberRequired": "Enter the document number.",
+        "countryRequired": "Enter the issuing country."
       }
     }
   }
