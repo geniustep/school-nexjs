@@ -25,6 +25,9 @@ export const WORKFLOW_TONE: Record<string, WorkflowTone> = {
   submitted: 'blue',
   reviewed: 'green',
   active: 'green',
+  open: 'blue',
+  validated: 'green',
+  locked: 'amber',
 };
 
 export function titleCase(s: string): string {

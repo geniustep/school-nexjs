@@ -1063,6 +1063,7 @@
       "saveSuccess": "{count} cellules enregistrées",
       "saveFailed": "Échec de l'enregistrement",
       "actionFailed": "Action impossible",
+      "narrowHint": "La saisie est plus confortable sur un écran large. Faites défiler horizontalement pour voir toutes les cellules.",
       "cellScoreHint": "Max {max}",
       "cellScoreAria": "Saisir la note, max {max}",
       "list": {

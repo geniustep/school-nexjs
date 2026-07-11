@@ -1063,6 +1063,7 @@
       "saveSuccess": "Se guardaron {count} celdas",
       "saveFailed": "No se pudieron guardar los cambios",
       "actionFailed": "Acción fallida",
+      "narrowHint": "La introducción de notas es mejor en una pantalla ancha. Desplácese horizontalmente para ver todas las celdas.",
       "cellScoreHint": "Máx {max}",
       "cellScoreAria": "Introducir nota, máx {max}",
       "list": {

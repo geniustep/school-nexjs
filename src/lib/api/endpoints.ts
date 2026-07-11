@@ -216,6 +216,19 @@ export const endpoints = {
     examResultPublish: (id: number | string) => `/admin/exam-results/${id}/publish`,
     examResultArchive: (id: number | string) => `/admin/exam-results/${id}/archive`,
 
+    gradebooks: '/admin/assessment/gradebooks',
+    gradebook: (id: number | string) => `/admin/assessment/gradebooks/${id}`,
+    gradebookBuildRoster: (id: number | string) =>
+      `/admin/assessment/gradebooks/${id}/build-roster`,
+    gradebookSyncRoster: (id: number | string) =>
+      `/admin/assessment/gradebooks/${id}/sync-roster`,
+    gradebookOpen: (id: number | string) => `/admin/assessment/gradebooks/${id}/open`,
+    gradebookSubmit: (id: number | string) => `/admin/assessment/gradebooks/${id}/submit`,
+    gradebookValidate: (id: number | string) => `/admin/assessment/gradebooks/${id}/validate`,
+    gradebookPublish: (id: number | string) => `/admin/assessment/gradebooks/${id}/publish`,
+    gradebookLock: (id: number | string) => `/admin/assessment/gradebooks/${id}/lock`,
+    gradebookEntries: (id: number | string) => `/admin/assessment/gradebooks/${id}/entries`,
+
     channels: '/admin/channels',
     channel: (id: number | string) => `/admin/channels/${id}`,
     channelMessages: (id: number | string) => `/admin/channels/${id}/messages`,
@@ -421,6 +434,10 @@ export const endpoints = {
     examResults: (examId: number | string) => `/teacher/exams/${examId}/results`,
     examResultsInit: (examId: number | string) => `/teacher/exams/${examId}/results/init`,
     examResultUpdate: (id: number | string) => `/teacher/exam-results/${id}/update`,
+    gradebooks: '/teacher/assessment/gradebooks',
+    gradebook: (id: number | string) => `/teacher/assessment/gradebooks/${id}`,
+    gradebookEntries: (id: number | string) => `/teacher/assessment/gradebooks/${id}/entries`,
+    gradebookSubmit: (id: number | string) => `/teacher/assessment/gradebooks/${id}/submit`,
     timetable: '/teacher/timetable',
     timetableToday: '/teacher/timetable/today',
     timetableWeek: '/teacher/timetable/week',

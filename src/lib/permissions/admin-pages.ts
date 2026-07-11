@@ -74,6 +74,7 @@ export const ADMIN_PAGE_PERMISSION: Record<string, Permission> = {
   '/admin/resources': 'view_resources',
   '/admin/exams': 'view_exams',
   '/admin/exam-results': 'view_exam_results',
+  '/admin/academics/assessment/gradebooks': 'view_exams',
   '/admin/timetable': 'view_timetable',
   '/admin/finance': FINANCE_VIEW,
 };
@@ -101,6 +102,7 @@ export function permissionForAdminPath(pathname: string): Permission | null {
   if (base.startsWith('/admin/exam-results') || /\/admin\/exams\/\d+\/results/.test(base)) {
     return 'view_exam_results';
   }
+  if (base.startsWith('/admin/academics/assessment/gradebooks')) return 'view_exams';
   if (base.startsWith('/admin/exams')) return 'view_exams';
   if (base.startsWith('/admin/finance/cheques')) return FINANCE_VIEW_CHEQUES;
   if (base.startsWith('/admin/finance/cash-desk')) return FINANCE_VIEW_CASH_SESSIONS;
