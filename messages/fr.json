@@ -1585,7 +1585,10 @@
       "resetFilters": "Réinitialiser les filtres",
       "clearSearch": "Effacer la recherche",
       "refetching": "Mise à jour des résultats…",
-      "childrenCount": "{count, plural, one {# enfant} other {# enfants}}",
+      "childrenCount": {
+        "one": "1 enfant",
+        "other": "{count} enfants"
+      },
       "noData": {
         "title": "Aucun responsable pour l'instant",
         "description": "Aucun responsable n'est enregistré dans votre périmètre."

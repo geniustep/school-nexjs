@@ -10,14 +10,23 @@ import { Badge } from '@/components/ui/primitives';
 import { studentClassLabel, studentLevelLabel } from '@/features/admin/students/utils/student-academic-labels';
 import { relationshipTypeLabel } from '@/features/admin/students/utils/relationship-types';
 import type { ParentFamilyGroup } from '@/features/admin/parents/utils/group-parents-by-family';
-import { useT } from '@/features/i18n/locale-context';
+import { useLocale, type TranslateFn } from '@/features/i18n/locale-context';
+import type { Locale } from '@/lib/i18n/config';
+import { pluralForm } from '@/lib/i18n/count-plural';
 import { statusLabel } from '@/lib/utils/labels';
 import { getStudentDisplayName } from '@/lib/utils/student';
 import { ParentAccountIdentityInline } from './parent-account-identity-inline';
 import { resolveMaskedIdentityDocument } from '../utils/identity-document';
 
+function childrenCountLabel(t: TranslateFn, locale: Locale, count: number): string {
+  const form = pluralForm(count, locale);
+  const key = `admin.parentsList.childrenCount.${form}`;
+  if (form === 'one' || form === 'two') return t(key);
+  return t(key, { count });
+}
+
 export function ParentsFamilyList({ families }: { families: ParentFamilyGroup[] }) {
-  const t = useT();
+  const { t, locale } = useLocale();
 
   return (
     <div className="parents-family-list">
@@ -35,7 +44,7 @@ export function ParentsFamilyList({ families }: { families: ParentFamilyGroup[] 
                 {family.children.length > 0 ? (
                   <span className="parents-family-card__children-count">
                     {' '}
-                    ({t('admin.parentsList.childrenCount', { count: family.children.length })})
+                    ({childrenCountLabel(t, locale, family.children.length)})
                   </span>
                 ) : null}
                 :

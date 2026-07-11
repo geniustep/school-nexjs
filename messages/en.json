@@ -1585,7 +1585,10 @@
       "resetFilters": "Reset filters",
       "clearSearch": "Clear search",
       "refetching": "Updating results…",
-      "childrenCount": "{count, plural, one {# child} other {# children}}",
+      "childrenCount": {
+        "one": "1 child",
+        "other": "{count} children"
+      },
       "noData": {
         "title": "No guardians yet",
         "description": "No guardians are registered in your scope yet."

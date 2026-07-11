@@ -1585,7 +1585,13 @@
       "resetFilters": "إعادة ضبط الفلاتر",
       "clearSearch": "مسح البحث",
       "refetching": "جارٍ تحديث النتائج…",
-      "childrenCount": "{count, plural, one {تلميذ واحد} two {تلميذان} few {# تلاميذ} many {# تلميذًا} other {# تلميذ}}",
+      "childrenCount": {
+        "one": "تلميذ واحد",
+        "two": "تلميذان",
+        "few": "{count} تلاميذ",
+        "many": "{count} تلميذًا",
+        "other": "{count} تلميذ"
+      },
       "noData": {
         "title": "لا يوجد أولياء أمور بعد",
         "description": "لم يُسجَّل أي ولي أمر في نطاقك بعد."

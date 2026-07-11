@@ -1585,7 +1585,10 @@
       "resetFilters": "Restablecer filtros",
       "clearSearch": "Borrar búsqueda",
       "refetching": "Actualizando resultados…",
-      "childrenCount": "{count, plural, one {# hijo} other {# hijos}}",
+      "childrenCount": {
+        "one": "1 hijo",
+        "other": "{count} hijos"
+      },
       "noData": {
         "title": "Aún no hay tutores",
         "description": "No hay tutores registrados en su ámbito."
