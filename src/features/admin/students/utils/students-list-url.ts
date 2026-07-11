@@ -101,6 +101,12 @@ export function studentsListHasActiveQuery(state: Pick<
   );
 }
 
+/**
+ * Maps list URL state to GET /admin/students query params.
+ * `cycleCode` is intentionally omitted: the API ignores cycle* and only
+ * accepts `level_id`. Cycle-only filtering is handled client-side by
+ * expanding to the cycle's levels (see students-list-cycle-filter).
+ */
 export function studentsListToApiParams(state: StudentsListFilterValues) {
   const filters: StudentsListSearchFilters = {
     search: state.search,

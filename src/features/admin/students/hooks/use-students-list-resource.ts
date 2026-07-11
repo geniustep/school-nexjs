@@ -1,0 +1,196 @@
+'use client';
+
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useAdminResource } from '@/lib/hooks/use-admin-resource';
+import type { ResourceState } from '@/lib/hooks/use-resource';
+import { useAdminSession } from '@/features/auth/admin-session-context';
+import { api } from '@/lib/api/client';
+import { endpoints } from '@/lib/api/endpoints';
+import type { ApiErrorBody, ApiMeta } from '@/types/api';
+import type { Level } from '@/types/class';
+import type { Student } from '@/types/student';
+import {
+  STUDENTS_LIST_API_PAGE_SIZE_CAP,
+  collectCycleLevelIds,
+  mergeStudentsById,
+  paginateStudentsListClient,
+  studentsListUsesClientCycleFilter,
+} from '../utils/students-list-cycle-filter';
+import { studentsListToApiParams, type StudentsListFilterValues } from '../utils/students-list-url';
+import { buildStudentsListQueryParams } from '../utils/student-search-query';
+
+async function fetchAllStudentsForLevel(
+  levelId: number,
+  filters: StudentsListFilterValues,
+  activeSchoolId: number | null | undefined,
+): Promise<Student[]> {
+  const base = buildStudentsListQueryParams({
+    search: filters.search,
+    classId: filters.classId,
+    levelId: String(levelId),
+    statusFilter: filters.statusFilter,
+    accountFilter: filters.accountFilter,
+    page: 1,
+  });
+
+  const collected: Student[] = [];
+  let page = 1;
+  let totalPages = 1;
+
+  do {
+    const res = await api.get<Student[]>(endpoints.admin.students, {
+      ...base,
+      page,
+      page_size: STUDENTS_LIST_API_PAGE_SIZE_CAP,
+      active_school_id: activeSchoolId ?? undefined,
+    });
+    if (!res.success) {
+      throw new Error(res.error?.message ?? 'students_cycle_fetch_failed');
+    }
+    const chunk = Array.isArray(res.data) ? res.data : [];
+    collected.push(...chunk);
+    totalPages = Math.max(1, res.meta?.pagination?.total_pages ?? 1);
+    page += 1;
+  } while (page <= totalPages);
+
+  return collected;
+}
+
+/**
+ * Students list data source.
+ * Server path for normal filters; per-level merge when cycle is selected without level.
+ */
+export function useStudentsListResource(
+  filters: StudentsListFilterValues,
+  levels: Level[] | null,
+  levelsLoading: boolean,
+): ResourceState<Student[]> {
+  const { activeSchoolId, requiresActiveSchool, schools, switching } = useAdminSession();
+  const allowedSchoolIds = useMemo(() => schools.map((s) => s.id), [schools]);
+  const safeActiveSchoolId =
+    activeSchoolId != null && allowedSchoolIds.includes(activeSchoolId) ? activeSchoolId : null;
+  const pendingActiveSchool = requiresActiveSchool && safeActiveSchoolId == null;
+
+  const clientCycle = studentsListUsesClientCycleFilter(filters);
+  const cycleLevelIds = useMemo(
+    () => (clientCycle ? collectCycleLevelIds(levels ?? [], filters.cycleCode) : []),
+    [clientCycle, levels, filters.cycleCode],
+  );
+
+  const serverParams = useMemo(
+    () => (clientCycle ? undefined : studentsListToApiParams(filters)),
+    [clientCycle, filters],
+  );
+  const serverState = useAdminResource<Student[]>(
+    clientCycle || pendingActiveSchool ? null : endpoints.admin.students,
+    serverParams,
+  );
+
+  const [clientLoading, setClientLoading] = useState(false);
+  const [mergedRows, setMergedRows] = useState<Student[] | null>(null);
+  const [clientError, setClientError] = useState<ApiErrorBody | null>(null);
+  const [clientNonce, setClientNonce] = useState(0);
+
+  /** Fetch inputs only — page changes paginate locally without refetch. */
+  const clientFetchKey = useMemo(
+    () =>
+      JSON.stringify({
+        cycleCode: filters.cycleCode,
+        search: filters.search,
+        classId: filters.classId,
+        statusFilter: filters.statusFilter,
+        accountFilter: filters.accountFilter,
+        levelIds: cycleLevelIds,
+        schoolId: safeActiveSchoolId,
+        nonce: clientNonce,
+      }),
+    [
+      filters.cycleCode,
+      filters.search,
+      filters.classId,
+      filters.statusFilter,
+      filters.accountFilter,
+      cycleLevelIds,
+      safeActiveSchoolId,
+      clientNonce,
+    ],
+  );
+
+  useEffect(() => {
+    if (!clientCycle || pendingActiveSchool) return;
+    if (levelsLoading) return;
+
+    let active = true;
+    setClientLoading(true);
+    setClientError(null);
+
+    if (cycleLevelIds.length === 0) {
+      if (!active) return;
+      setMergedRows([]);
+      setClientLoading(false);
+      return;
+    }
+
+    (async () => {
+      try {
+        const groups = await Promise.all(
+          cycleLevelIds.map((levelId) =>
+            fetchAllStudentsForLevel(levelId, filters, safeActiveSchoolId),
+          ),
+        );
+        if (!active) return;
+        setMergedRows(mergeStudentsById(groups));
+        setClientError(null);
+      } catch {
+        if (!active) return;
+        setClientError({
+          code: 'server_error',
+          message: 'students_cycle_fetch_failed',
+        });
+        setMergedRows((prev) => prev);
+      } finally {
+        if (active) setClientLoading(false);
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+    // clientFetchKey captures filter/level/school inputs (page excluded).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clientCycle, pendingActiveSchool, levelsLoading, clientFetchKey]);
+
+  const clientPage = useMemo(() => {
+    if (mergedRows == null) {
+      return { rows: null as Student[] | null, meta: null as ApiMeta | null };
+    }
+    const { rows, pagination } = paginateStudentsListClient(mergedRows, filters.page);
+    return { rows, meta: { pagination } satisfies ApiMeta };
+  }, [mergedRows, filters.page]);
+
+  const reloadClient = useCallback(() => setClientNonce((n) => n + 1), []);
+
+  if (!clientCycle) {
+    const waiting = pendingActiveSchool || switching;
+    return {
+      ...serverState,
+      loading: serverState.loading || waiting,
+      initialLoading: (serverState.loading || waiting) && serverState.data === null,
+      fetching: serverState.fetching && !waiting,
+      reload: serverState.reload,
+    };
+  }
+
+  const waiting = pendingActiveSchool || switching || levelsLoading;
+  const loading = clientLoading || waiting;
+
+  return {
+    loading,
+    initialLoading: loading && clientPage.rows === null,
+    fetching: loading && clientPage.rows !== null,
+    data: clientPage.rows,
+    meta: clientPage.meta,
+    error: clientError,
+    reload: reloadClient,
+  };
+}

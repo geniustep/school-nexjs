@@ -17,10 +17,10 @@ import { AdminListActions } from '@/features/admin/admin-list-actions';
 import { CsvImportPanel } from '@/features/admin/csv-import-panel';
 import { studentClassLabel, studentLevelLabel } from '@/features/admin/students/utils/student-academic-labels';
 import { useStudentsListFilterState } from '@/features/admin/students/hooks/use-students-list-filter-state';
+import { useStudentsListResource } from '@/features/admin/students/hooks/use-students-list-resource';
 import { useStudentsListView } from '@/features/admin/students/hooks/use-students-list-view';
 import { StudentsKanban } from '@/features/admin/students/components/students-kanban';
 import { StudentsListFilters } from '@/features/admin/students/components/students-list-filters';
-import { studentsListToApiParams } from '@/features/admin/students/utils/students-list-url';
 import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
@@ -75,10 +75,9 @@ export default function AdminStudentsPage() {
   const [importOpen, setImportOpen] = useState(false);
   const [view, setView] = useStudentsListView();
 
-  const params = useMemo(() => studentsListToApiParams(appliedQuery), [appliedQuery]);
-  const state = useAdminResource<Student[]>(endpoints.admin.students, params);
   const classesState = useAdminResource<import('@/types/class').SchoolClass[]>(endpoints.admin.classes);
   const levelsState = useAdminResource<Level[]>(endpoints.admin.levels);
+  const state = useStudentsListResource(appliedQuery, levelsState.data, levelsState.loading);
   const pg = state.meta?.pagination;
 
   const listEmptyState = hasActiveQuery ? (

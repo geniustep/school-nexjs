@@ -75,7 +75,7 @@ describe('students-list-url', () => {
     ).toBe(true);
   });
 
-  it('maps URL state to API params without cycleCode', () => {
+  it('maps URL state to API params without cycleCode (API has no cycle filter)', () => {
     expect(
       studentsListToApiParams({
         search: 'ali',

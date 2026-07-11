@@ -46,7 +46,10 @@ export function buildStudentSearchQueryParams(
   };
 }
 
-/** List surface: same `search` semantics as Spotlight, plus structured filters + pagination. */
+/**
+ * List surface: same `search` semantics as Spotlight, plus structured filters + pagination.
+ * No `cycle` / `cycle_code` — Odoo ignores those; cycle-only lists expand via level_id.
+ */
 export function buildStudentsListQueryParams(
   filters: StudentsListSearchFilters,
 ): {
