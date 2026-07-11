@@ -8156,6 +8156,14 @@
         "notFound": "Agreement not found or not accessible.",
         "emptyTitle": "No financial agreements have been created for this school yet.",
         "emptyDesc": "Start from the student profile to create a new agreement.",
+        "noMatch": {
+          "title": "No matching agreements",
+          "description": "Try clearing search or filters."
+        },
+        "resultCount": "{total} agreements",
+        "activeFilters": "Active filters",
+        "resetFilters": "Reset",
+        "refetching": "Updating results…",
         "openStudent360": "Open student profile",
         "searchPlaceholder": "Search agreements…",
         "columns": {
@@ -9172,6 +9180,14 @@
         "sessionsSubtitle": "Previous cash desk sessions for the active school",
         "sessionsHistory": "Session history",
         "sessionsEmpty": "No previous cash sessions",
+        "sessionsNoMatch": {
+          "title": "No matching cash sessions",
+          "description": "Try clearing filters or adjusting the date range."
+        },
+        "sessionsResultCount": "{total} sessions",
+        "sessionsActiveFilters": "Active filters",
+        "sessionsResetFilters": "Reset",
+        "sessionsRefetching": "Updating results…",
         "backToDesk": "Back to cash desk",
         "sessionDetailSubtitle": "Cash session details",
         "loadingSession": "Loading cash session…",

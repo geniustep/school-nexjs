@@ -147,6 +147,8 @@ error
 | Fee Plans list/workspace chrome | `/admin/finance/fee-plans` | ADOPTED | Cluster 3 partial — `origin/dev` @ `style(finance): adopt fee plans workspace design`; **assign wizard remains outside adopted scope** |
 | Services / Tariffs | `/admin/finance/services` | ADOPTED | Cluster 3 — `ServicesPanel` list/form chrome; deprecated `ServicesTariffsPanel` shim remains outside adopted scope |
 | Collections list shell | `/admin/finance/collections` | ADOPTED | Cluster 4 partial — `CollectionsListPanel` list chrome only; **collection wizard / family allocation / review / reverse / discard workflows remain outside adopted scope** |
+| Cash Desk Sessions List | `/admin/finance/cash-desk/sessions` | ADOPTED | Cluster 5 partial — `CashDeskSessionsListPanel` list chrome only; **Cash Desk open/close/reopen / difference approval / collection gate / closure PDF remain outside adopted scope** |
+| Agreements list shell | `/admin/finance/agreements` | ADOPTED | Cluster 5 partial — `AgreementsListPanel` + `FinanceAgreementsSchoolPanel` list chrome only; **agreement detail / amendments / contract mutations remain outside adopted scope** |
 
 ---
 
@@ -186,6 +188,7 @@ Cluster execution proceeds separately
 
 ### 5.3 LOW_PRIORITY_ACCEPTABLE
 
+- Finance Hub (`/admin/finance`) — dashboard CSS layers not fully reviewed (`RAQEEM-DESIGN` §17).
 - detail/create secondary flows not currently high priority.
 - pages that are visually acceptable and best reviewed when their functional workflow is touched.
 

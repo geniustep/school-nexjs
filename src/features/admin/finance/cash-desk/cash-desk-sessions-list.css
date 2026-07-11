@@ -1,0 +1,43 @@
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ *
+ * List-chrome polish for Cash Desk sessions list shell.
+ * Does not style open/close/reopen workspace, detail, gate, or PDF flows.
+ */
+
+.cash-desk-sessions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cash-desk-sessions-list__toolbar {
+  margin-bottom: 0;
+}
+
+.cash-desk-sessions-list__table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.cash-desk-sessions-list__datetime {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.cash-desk-sessions-list__amount {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .cash-desk-sessions-list .finance-receivable-list__toolbar {
+    align-items: stretch;
+  }
+
+  .cash-desk-sessions-list .finance-overview-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

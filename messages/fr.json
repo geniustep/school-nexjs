@@ -8156,6 +8156,14 @@
         "notFound": "Accord introuvable ou inaccessible.",
         "emptyTitle": "Aucun accord financier n'a encore été créé.",
         "emptyDesc": "Commencez depuis le profil élève.",
+        "noMatch": {
+          "title": "Aucun accord correspondant",
+          "description": "Essayez d'effacer la recherche ou les filtres."
+        },
+        "resultCount": "{total} accords",
+        "activeFilters": "Filtres actifs",
+        "resetFilters": "Réinitialiser",
+        "refetching": "Mise à jour des résultats…",
         "openStudent360": "Ouvrir le profil élève",
         "searchPlaceholder": "Rechercher un accord…",
         "columns": {
@@ -9173,6 +9181,14 @@
         "sessionsSubtitle": "Sessions de caisse précédentes pour l'établissement actif",
         "sessionsHistory": "Historique",
         "sessionsEmpty": "Aucune session précédente",
+        "sessionsNoMatch": {
+          "title": "Aucune session correspondante",
+          "description": "Essayez d'effacer les filtres ou d'ajuster la période."
+        },
+        "sessionsResultCount": "{total} sessions",
+        "sessionsActiveFilters": "Filtres actifs",
+        "sessionsResetFilters": "Réinitialiser",
+        "sessionsRefetching": "Mise à jour des résultats…",
         "backToDesk": "Retour à la caisse",
         "sessionDetailSubtitle": "Détails de la session",
         "loadingSession": "Chargement de la session…",

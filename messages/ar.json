@@ -8193,6 +8193,14 @@
         "notFound": "الاتفاق غير موجود أو غير متاح.",
         "emptyTitle": "لم يتم إنشاء اتفاقات مالية في هذه المدرسة بعد.",
         "emptyDesc": "ابدأ من ملف التلميذ لإنشاء اتفاق جديد.",
+        "noMatch": {
+          "title": "لا توجد اتفاقات مطابقة",
+          "description": "جرّب مسح البحث أو الفلاتر."
+        },
+        "resultCount": "{total} اتفاق",
+        "activeFilters": "فلاتر نشطة",
+        "resetFilters": "إعادة الضبط",
+        "refetching": "جاري تحديث النتائج…",
         "openStudent360": "فتح ملف التلميذ",
         "searchPlaceholder": "بحث في الاتفاقات…",
         "columns": {
@@ -9219,6 +9227,14 @@
         "sessionsSubtitle": "جلسات الصندوق السابقة للمدرسة النشطة",
         "sessionsHistory": "سجل الجلسات",
         "sessionsEmpty": "لا توجد جلسات سابقة",
+        "sessionsNoMatch": {
+          "title": "لا توجد جلسات مطابقة",
+          "description": "جرّب مسح الفلاتر أو تعديل نطاق التاريخ."
+        },
+        "sessionsResultCount": "{total} جلسة",
+        "sessionsActiveFilters": "فلاتر نشطة",
+        "sessionsResetFilters": "إعادة الضبط",
+        "sessionsRefetching": "جاري تحديث النتائج…",
         "backToDesk": "العودة إلى الصندوق",
         "sessionDetailSubtitle": "تفاصيل جلسة الصندوق",
         "loadingSession": "جاري تحميل الجلسة…",

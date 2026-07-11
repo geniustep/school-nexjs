@@ -60,19 +60,19 @@ Finance يحتوي:
 
 | Surface | Route | Pattern | Risk | Current design direction |
 |---|---|---|---|---|
-| Finance Hub | `/admin/finance` | KPI/dashboard hub | Low | Later shell review |
+| Finance Hub | `/admin/finance` | KPI/dashboard hub | Low | LOW_PRIORITY_ACCEPTABLE — CSS layers unreviewed (`RAQEEM-DESIGN` §17) |
 | Billing Accounts | `/admin/finance/billing-accounts` | List + detail hub | Medium–High | Cluster 1 list-only |
 | Arrears | `/admin/finance/arrears` | List + tabs + follow-up | Medium | Cluster 1 chrome-only |
-| Services / Tariffs | `/admin/finance/services` | Catalog + inline form | Medium | Deferred until parallel work closes |
+| Services / Tariffs | `/admin/finance/services` | Catalog + inline form | Medium | Cluster 3 ADOPTED |
 | Receipts | `/admin/finance/receipts` | List + detail/drawer | Medium | Cluster 2 list shell |
 | Cheques | `/admin/finance/cheques` | List + lifecycle detail | High | Cluster 2 list shell only |
 | Collections | `/admin/finance/collections` | List + money wizard | High | Cluster 4 list shell ADOPTED; wizard/workflows deferred |
 | Installments | `/admin/finance/installments` | List + quick filters + KPIs | Medium | Cluster 1 |
-| Agreements | `/admin/finance/agreements` | Scoped list + detail | High | Later / contract sensitive |
+| Agreements | `/admin/finance/agreements` | Scoped list + detail | High | Cluster 5 list shell ADOPTED; detail/amendments deferred |
 | Fee Plans | `/admin/finance/fee-plans` | Workspace + assign wizard | Medium–High | Cluster 3 list/workspace chrome |
 | Credit Balances | `/admin/finance/credit-balances` | List + apply drawers | High | Cluster 1 list-only |
-| Cash Desk | `/admin/finance/cash-desk*` | Operational lifecycle workspace | High | Cluster 5 / later |
-| Student Fees gateway | `/admin/finance/student-fees` | Search gateway → Student 360 finance | Very High | Later |
+| Cash Desk | `/admin/finance/cash-desk*` | Operational lifecycle workspace | High | Cluster 5 sessions list ADOPTED; lifecycle deferred |
+| Student Fees gateway | `/admin/finance/student-fees` | Search gateway → Student 360 finance | Very High | DEFER_PARALLEL_WORK |
 
 ---
 
@@ -274,7 +274,7 @@ Collection wizard/workflows — DEFER_CONTRACT_OR_WORKFLOW
 المسار التالي:
 
 ```txt
-Cluster 5 — Finance Shells assessment
+Cluster 5 — Finance Shells assessment + safe adoption
 ```
 
 ---
@@ -299,28 +299,46 @@ Cluster 4 — PARTIAL COMPLETE
 المسار التالي:
 
 ```txt
-Cluster 5 — Finance Shells assessment
+Cluster 5 — Finance Shells assessment + safe adoption
 ```
 
 ---
 
 ## 9. Cluster 5 — Finance Shells
 
-يشمل عند الحاجة:
+### الصفحات
 
 - Finance Hub.
-- Cash Desk shell.
-- Student Fees gateway.
-- Agreements scoped shell.
+- Cash Desk sessions list (+ lifecycle workspace deferred).
+- Agreements scoped list (+ detail/amendments deferred).
+- Student Fees gateway (deferred parallel).
 
-هذه ليست أولوية list adoption الحالية.
+### حالة التنفيذ
 
-تحتاج مراحل domain-specific لأن بعضها:
+```txt
+Cluster 5 — PARTIAL COMPLETE
+```
 
-- dashboards.
-- lifecycle workspaces.
-- search-to-detail gateways.
-- scoped agreements.
+| Surface | Status |
+|---|---|
+| Finance Hub | LOW_PRIORITY_ACCEPTABLE |
+| Cash Desk Sessions List | ADOPTED |
+| Cash Desk lifecycle | DEFER_CONTRACT_OR_WORKFLOW |
+| Agreements list shell | ADOPTED |
+| Agreements detail/amendments | DEFER_CONTRACT_OR_WORKFLOW |
+| Student Fees Gateway | DEFER_PARALLEL_WORK |
+
+```txt
+Finance Design Adoption — SAFE SURFACES COMPLETE
+```
+
+لا يُفتح اعتماد workflows حساسة تلقائيًا بعد هذه المرحلة.
+
+المسار التالي (عند الحاجة فقط، خارج safe shells):
+
+```txt
+Deferred finance workflows / Student Fees parallel / Finance Hub CSS review
+```
 
 ---
 
@@ -410,14 +428,15 @@ Coverage audit complete
 → Cluster 2 ADOPTED (92f5d96)
 → Cluster 3 COMPLETE (Fee Plans + Services/Tariffs ADOPTED)
 → Cluster 4 PARTIAL COMPLETE (Collections list shell ADOPTED)
-→ Next: Cluster 5 — Finance Shells assessment
+→ Cluster 5 PARTIAL COMPLETE (Cash Desk Sessions List + Agreements list ADOPTED; Hub low-priority; Student Fees deferred)
+→ Finance Design Adoption — SAFE SURFACES COMPLETE
 ```
 
 الحكم:
 
 ```txt
-Finance Design Adoption Roadmap = IN PROGRESS
-Cluster 4 = PARTIAL COMPLETE
+Finance Design Adoption Roadmap = SAFE SURFACES COMPLETE
+Cluster 5 = PARTIAL COMPLETE
 ```
 
 الاعتماد يتم فقط بعد تنفيذ cluster ونجاح QA ووجود marker مناسب داخل الكود.

@@ -8156,6 +8156,14 @@
         "notFound": "Acuerdo no encontrado o no accesible.",
         "emptyTitle": "Aún no se han creado acuerdos financieros.",
         "emptyDesc": "Comience desde el perfil del alumno.",
+        "noMatch": {
+          "title": "No hay acuerdos coincidentes",
+          "description": "Pruebe a borrar la búsqueda o los filtros."
+        },
+        "resultCount": "{total} acuerdos",
+        "activeFilters": "Filtros activos",
+        "resetFilters": "Restablecer",
+        "refetching": "Actualizando resultados…",
         "openStudent360": "Abrir perfil del alumno",
         "searchPlaceholder": "Buscar acuerdos…",
         "columns": {
@@ -9172,6 +9180,14 @@
         "sessionsSubtitle": "Sesiones de caja anteriores del centro activo",
         "sessionsHistory": "Historial",
         "sessionsEmpty": "No hay sesiones anteriores",
+        "sessionsNoMatch": {
+          "title": "No hay sesiones coincidentes",
+          "description": "Pruebe a borrar los filtros o ajustar el rango de fechas."
+        },
+        "sessionsResultCount": "{total} sesiones",
+        "sessionsActiveFilters": "Filtros activos",
+        "sessionsResetFilters": "Restablecer",
+        "sessionsRefetching": "Actualizando resultados…",
         "backToDesk": "Volver a caja",
         "sessionDetailSubtitle": "Detalle de sesión",
         "loadingSession": "Cargando sesión…",

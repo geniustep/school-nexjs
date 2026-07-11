@@ -1,0 +1,45 @@
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ *
+ * List-chrome polish for Agreements list shell.
+ * Does not style agreement detail, amendments, or contract mutations.
+ */
+
+.finance-agreements-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.finance-agreements-list__toolbar {
+  margin-bottom: 0;
+}
+
+.finance-agreements-list__table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.finance-agreements-list__number {
+  font-variant-numeric: tabular-nums;
+}
+
+.finance-agreements-list__date {
+  white-space: nowrap;
+}
+
+.finance-agreements-list__amount {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .finance-agreements-list .finance-receivable-list__toolbar {
+    align-items: stretch;
+  }
+
+  .finance-agreements-list .finance-receivable-list__search {
+    flex: 1 1 100%;
+  }
+}
