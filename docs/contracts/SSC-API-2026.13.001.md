@@ -4,7 +4,7 @@ Compatibility metadata linking **school-nexjs** to Odoo `smart_school_connect`
 **Continuous Assessment Gradebook** admin (and teacher adapter) APIs. Human-readable
 source of truth; machine-readable mirror in `src/config/backend-contract.ts`.
 
-**Phase:** `NEXTJS-DEV-TO-MAIN-CONTINUOUS-ASSESSMENT-GRADEBOOK-RELEASE-1`
+**Phase:** `NEXTJS-TEACHER-GRADEBOOK-MAIN-RELEASE-BRANCH-1`
 **Last updated:** 2026-07-11
 
 ---
@@ -35,7 +35,10 @@ Documents Next.js adoption of the **Continuous Assessment Gradebook Workspace**:
 - Admin list + create + detail workspace (simple and composite grids)
 - Batch score/participation entry updates
 - Lifecycle actions (build/sync roster, open, submit, validate, publish, lock)
-- Teacher API adapters only (no dedicated teacher UI shell in this release)
+- Teacher Gradebook UI shell (list + detail) reusing the shared workspace with role-scoped actions (`edit_entries`, `submit`)
+- Teacher API adapters under `/teacher/assessment/gradebooks`
+
+Backend API requirements are unchanged from the admin Gradebook release; this frontend release adds Teacher UI only.
 
 ---
 
@@ -57,7 +60,7 @@ Prefix: `/api/v1`
 | `POST` | `/admin/assessment/gradebooks/{id}/publish` | Lifecycle |
 | `POST` | `/admin/assessment/gradebooks/{id}/lock` | Lifecycle |
 
-Teacher mirrors (adapters only): `/teacher/assessment/gradebooks` (+ `{id}`, `{id}/entries`, `{id}/submit`).
+Teacher endpoints (UI + adapters): `/teacher/assessment/gradebooks` (+ `{id}`, `{id}/entries`, `{id}/submit`).
 
 ---
 
@@ -83,5 +86,7 @@ Teacher mirrors (adapters only): `/teacher/assessment/gradebooks` (+ `{id}`, `{i
 | API adapters | `src/features/admin/gradebooks/api/gradebooks-api.ts` |
 | Normalize | `src/features/admin/gradebooks/utils/gradebook-normalize.ts` |
 | List / create | `src/features/admin/gradebooks/components/gradebooks-list-page.tsx` |
-| Detail workspace | `src/features/admin/gradebooks/components/gradebook-detail-workspace.tsx` |
-| Routes | `src/app/admin/academics/assessment/gradebooks/` |
+| Detail workspace (shared admin/teacher) | `src/features/admin/gradebooks/components/gradebook-detail-workspace.tsx` |
+| Admin routes | `src/app/admin/academics/assessment/gradebooks/` |
+| Teacher list / present | `src/features/teacher/gradebooks/` |
+| Teacher routes | `src/app/teacher/assessment/gradebooks/` |

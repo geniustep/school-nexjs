@@ -116,7 +116,7 @@ export const GRADEBOOK_BACKEND_CONTRACT = {
   apiPrefix: '/api/v1',
   source: 'main-release',
   notes:
-    'Continuous assessment gradebook admin workspace (list/create/detail, entries batch, lifecycle). Additive endpoints under /admin/assessment/gradebooks and teacher adapters. Breaking API changes: none. Backend upgrade required: yes (Odoo main with Gradebook API + create hotfix). Prior contract: SSC-API-2026.12.001.',
+    'Continuous assessment gradebook admin workspace (list/create/detail, entries batch, lifecycle) plus Teacher Gradebook UI (list/detail) reusing the shared workspace. Additive endpoints under /admin/assessment/gradebooks and /teacher/assessment/gradebooks. Breaking API changes: none. Backend upgrade required: yes (Odoo main with Gradebook API + create hotfix). Prior contract: SSC-API-2026.12.001.',
 } as const;
 
 export type GradebookBackendContract = typeof GRADEBOOK_BACKEND_CONTRACT;
