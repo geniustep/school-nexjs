@@ -15,7 +15,9 @@ import { AdmissionEditForm } from './admission-edit-form';
 import { AdmissionNextActionBox } from './admission-next-action-box';
 import { AdmissionExtraFieldsPanel } from './admission-extra-fields-panel';
 import { SiblingsInfoPanel } from './siblings-info-panel';
+import { AdmissionGuardiansDetails } from '@/features/admin/admissions/guardians';
 import { OverviewCard, OverviewRow } from './admission-overview-primitives';
+import { hasFamilyBatchLink } from '../utils/family-admission-visibility';
 import type { AdmissionDetail } from '@/types/admission';
 
 export function AdmissionOverviewTab({
@@ -32,6 +34,7 @@ export function AdmissionOverviewTab({
   const t = useT();
   const { formatDate } = useFormat();
   const [editing, setEditing] = useState(false);
+  const isFamilyChild = hasFamilyBatchLink(detail);
 
   useEffect(() => {
     if (!canEdit || editRequestSeq <= 0) return;
@@ -101,17 +104,23 @@ export function AdmissionOverviewTab({
           <OverviewRow label={t('admin.admissions.fields.massarCode')} value={detail.massar_code} dir="ltr" />
         </OverviewCard>
 
-        <OverviewCard title={t('admin.admissions.detail.guardian')}>
-          <OverviewRow label={t('admin.admissions.fields.guardianName')} value={detail.guardian_name} />
-          <OverviewRow label={t('admin.admissions.fields.guardianPhone')} value={detail.guardian_phone} dir="ltr" />
-          <OverviewRow
-            label={t('admin.admissions.fields.guardianWhatsapp')}
-            value={detail.guardian_whatsapp}
-            dir="ltr"
-          />
-          <OverviewRow label={t('admin.admissions.fields.guardianEmail')} value={detail.guardian_email} dir="ltr" />
-          <OverviewRow label={t('admin.admissions.fields.relationship')} value={detail.relationship} />
-        </OverviewCard>
+        {/* Family-batch guardians are rendered once in FamilyAdmissionFamilyPanel. */}
+        {!isFamilyChild ? (
+          <section className="card admissions-overview-card admissions-overview-card--full">
+            <AdmissionGuardiansDetails
+              mode="individual"
+              guardians={detail.guardians}
+              legacyFlat={{
+                guardian_name: detail.guardian_name,
+                guardian_phone: detail.guardian_phone,
+                guardian_whatsapp: detail.guardian_whatsapp,
+                guardian_email: detail.guardian_email,
+                relationship: detail.relationship,
+              }}
+              warnings={detail.warning_details ?? null}
+            />
+          </section>
+        ) : null}
 
         <OverviewCard title={t('admin.admissions.create.studySection')}>
           <OverviewRow label={t('admin.admissions.fields.academicYear')} value={refName(detail.academic_year)} />

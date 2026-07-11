@@ -35,9 +35,19 @@ export function normalizeFamilyBatchCreateData(
 
 export function normalizeFamilyBatchDetail(data: FamilyBatchDetail): FamilyBatchDetail {
   const applications = (data.applications ?? []).map(normalizeFamilyBatchApplication);
+  const rawReason = data.allowed_actions?.edit_guardians_reason;
+  const edit_guardians_reason = typeof rawReason === 'string' ? rawReason : null;
+
   return {
     ...data,
     application_count: data.application_count ?? applications.length,
     applications,
+    allowed_actions: data.allowed_actions
+      ? {
+          ...data.allowed_actions,
+          edit_guardians: data.allowed_actions.edit_guardians === true,
+          edit_guardians_reason,
+        }
+      : data.allowed_actions,
   };
 }

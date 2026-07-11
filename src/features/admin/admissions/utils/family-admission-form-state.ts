@@ -1,4 +1,8 @@
 import { todayIsoDate } from '@/features/admin/students/utils/student-profile';
+import {
+  createPrimaryGuardianDraft,
+  type GuardianDraft,
+} from '@/features/admin/admissions/guardians';
 
 export interface FamilyAdmissionChildFormState {
   localId: string;
@@ -20,12 +24,6 @@ export interface FamilyAdmissionChildFormState {
 }
 
 export interface FamilyAdmissionFamilyFormState {
-  guardian_id?: number;
-  guardian_name: string;
-  guardian_phone: string;
-  guardian_whatsapp: string;
-  guardian_email: string;
-  guardian_relationship: string;
   shared_address: string;
   notes: string;
   source_id?: number;
@@ -35,6 +33,7 @@ export interface FamilyAdmissionFamilyFormState {
 
 export interface FamilyAdmissionFormState {
   family: FamilyAdmissionFamilyFormState;
+  guardians: GuardianDraft[];
   children: FamilyAdmissionChildFormState[];
 }
 
@@ -73,16 +72,12 @@ export function emptyFamilyChildFormState(collapsed = false): FamilyAdmissionChi
 export function emptyFamilyAdmissionFormState(today = todayIsoDate()): FamilyAdmissionFormState {
   return {
     family: {
-      guardian_name: '',
-      guardian_phone: '',
-      guardian_whatsapp: '',
-      guardian_email: '',
-      guardian_relationship: '',
       shared_address: '',
       notes: '',
       first_contact_date: today,
     },
-    children: [emptyFamilyChildFormState(false), emptyFamilyChildFormState(true)],
+    guardians: [createPrimaryGuardianDraft()],
+    children: [emptyFamilyChildFormState(false), emptyFamilyChildFormState(false)],
   };
 }
 
@@ -92,7 +87,7 @@ export function addFamilyChild(
   if (state.children.length >= FAMILY_ADMISSION_MAX_CHILDREN) return state;
   return {
     ...state,
-    children: [...state.children, emptyFamilyChildFormState(true)],
+    children: [...state.children, emptyFamilyChildFormState(false)],
   };
 }
 
@@ -101,9 +96,15 @@ export function removeFamilyChild(
   localId: string,
 ): FamilyAdmissionFormState {
   if (state.children.length <= FAMILY_ADMISSION_MIN_CHILDREN) return state;
+  const children = state.children.filter((child) => child.localId !== localId);
+  const validKeys = new Set(children.map((c) => c.localId));
   return {
     ...state,
-    children: state.children.filter((child) => child.localId !== localId),
+    children,
+    guardians: state.guardians.map((g) => ({
+      ...g,
+      linkedChildClientKeys: g.linkedChildClientKeys.filter((k) => validKeys.has(k)),
+    })),
   };
 }
 

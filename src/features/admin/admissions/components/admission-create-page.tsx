@@ -12,7 +12,6 @@ import {
   EnrollmentIntakeAcademicFields,
   EnrollmentIntakeAdmissionExtrasFields,
   EnrollmentIntakeFollowUpFields,
-  EnrollmentIntakeGuardianFields,
   EnrollmentIntakeIdentityFields,
   EnrollmentIntakeRegistrationFields,
   EnrollmentIntakeSiblingsFields,
@@ -22,6 +21,11 @@ import {
   patchAdmissionFormFromIntake,
 } from '@/features/admin/enrollment-intake/mappers';
 import type { EnrollmentIntakePatch } from '@/features/admin/enrollment-intake/types';
+import {
+  AdmissionGuardiansSection,
+  validateGuardiansDraft,
+  type GuardianDraft,
+} from '@/features/admin/admissions/guardians';
 import { createAdmission } from '../api/admissions-api';
 import { useAdmissionOptions } from '../hooks/use-admission-options';
 import {
@@ -35,6 +39,7 @@ import {
 import {
   buildCreateAdmissionPayload,
   emptyAdmissionCreateForm,
+  syncLegacyGuardianFieldsFromDrafts,
   type AdmissionCreateFormState,
 } from '../utils/admission-create-payload';
 import { admissionApiErrorMessage } from '../utils/admission-errors';
@@ -92,6 +97,14 @@ export function AdmissionCreatePage() {
     setForm((prev) => ({ ...prev, ...patchAdmissionFormFromIntake(patch) }));
   }
 
+  function handleGuardiansChange(next: GuardianDraft[]) {
+    setForm((prev) => ({
+      ...prev,
+      guardians: next,
+      ...syncLegacyGuardianFieldsFromDrafts(next),
+    }));
+  }
+
   useEffect(() => {
     if (defaultsApplied || !admissionOptionsState.options) return;
     const sourceId = resolveDefaultAdmissionSourceId(admissionOptionsState.options.sources);
@@ -133,6 +146,12 @@ export function AdmissionCreatePage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (activeSchoolId == null) return;
+
+    const guardiansError = validateGuardiansDraft(form.guardians, { mode: 'individual' });
+    if (guardiansError) {
+      setError(t(guardiansError.messageKey));
+      return;
+    }
 
     if (form.has_siblings) {
       const siblingError = validateSiblingLinesLinkedStudents(form.sibling_lines, t);
@@ -260,18 +279,17 @@ export function AdmissionCreatePage() {
 
         <StudentCreateStyledSection
           icon="guardian"
-          title={t('admin.admissions.create.guardianSection')}
-          lead={t('admin.admissions.create.guardianSectionLead')}
+          title={t('admin.admissions.guardians.sectionTitle')}
+          lead={t('admin.admissions.guardians.sectionLead')}
           className="student-create-form__section--guardian"
         >
-          <EnrollmentIntakeGuardianFields
-            values={intakeValues}
-            onPatch={handleIntakePatch}
-            guardian={{
-              relationships: admissionOptionsState.options?.relationships ?? [],
-              relationshipsLoading: admissionOptionsState.loading,
-              relationshipLoadFailed,
-            }}
+          <AdmissionGuardiansSection
+            mode="individual"
+            guardians={form.guardians}
+            onChange={handleGuardiansChange}
+            relationships={admissionOptionsState.options?.relationships ?? []}
+            relationshipsLoading={admissionOptionsState.loading}
+            relationshipLoadFailed={relationshipLoadFailed}
           />
         </StudentCreateStyledSection>
 

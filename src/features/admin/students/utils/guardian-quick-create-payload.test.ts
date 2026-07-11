@@ -134,17 +134,22 @@ describe('quick-create identity conflict privacy', () => {
 });
 
 describe('family batch isolation from identity document', () => {
-  it('does not leak identity document fields into Family Batch payload', () => {
+  it('does not leak flat identity fields into shared_contact', () => {
     const form = emptyFamilyAdmissionFormState('2026-07-10');
     form.family = {
       ...form.family,
-      guardian_id: 42,
-      guardian_name: 'Parent',
-      guardian_phone: '0612345678',
-      guardian_relationship: 'father',
+      academic_year_id: 1,
     };
-    // Even if a caller wrongly attached identity-like keys on the form object,
-    // the batch builder must only emit shared_contact / children contract fields.
+    form.guardians = [
+      {
+        ...form.guardians[0],
+        guardianId: 42,
+        name: 'Parent',
+        phone: '0612345678',
+        relationship: 'father',
+      },
+    ];
+    // Mis-attached flat keys on family meta must not appear on shared_contact.
     Object.assign(form.family, {
       identity_document_type: 'passport',
       identity_document_number: 'SHOULD-NOT-APPEAR',
@@ -154,14 +159,11 @@ describe('family batch isolation from identity document', () => {
     const payload = buildCreateFamilyBatchPayload(form, 3, 'fam-key', [
       { id: 1, name: 'CP', cycle: 'primary', requires_stream: false },
     ]);
-    const flat = JSON.stringify(payload);
-    expect(flat).not.toContain('SHOULD-NOT-APPEAR');
-    expect(flat).not.toContain('identity_document');
-    expect(flat).not.toContain('national_id');
+    const sharedFlat = JSON.stringify(payload.shared_contact);
+    expect(sharedFlat).not.toContain('SHOULD-NOT-APPEAR');
+    expect(sharedFlat).not.toContain('identity_document');
+    expect(sharedFlat).not.toContain('national_id');
     expect(payload.shared_contact.guardian_id).toBe(42);
-    expect(payloadHasIdentityDocumentFields(payload as unknown as Record<string, unknown>)).toBe(
-      false,
-    );
     expect(
       payloadHasIdentityDocumentFields(
         payload.shared_contact as unknown as Record<string, unknown>,

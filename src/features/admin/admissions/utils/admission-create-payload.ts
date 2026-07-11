@@ -4,6 +4,12 @@ import type { SiblingLine } from '@/types/sibling-line';
 import { buildAdmissionChildFullName } from './admission-child-name';
 import { findAdmissionLevel } from './admission-options';
 import { buildSiblingLinesPayload } from './sibling-lines';
+import {
+  createPrimaryGuardianDraft,
+  deriveLegacyGuardianFields,
+  serializeGuardiansPayload,
+  type GuardianDraft,
+} from '@/features/admin/admissions/guardians';
 
 function composeResidenceAddress(form: AdmissionCreateFormState): string {
   const explicit = form.residence_address.trim();
@@ -44,10 +50,12 @@ export interface AdmissionCreateFormState {
   actual_join_date: string;
   is_repeating: boolean;
   registration_notes: string;
+  /** Derived from guardians[primary] for intake mapper compat. */
   guardian_name: string;
   guardian_phone: string;
   guardian_relationship: string;
   guardian_email: string;
+  guardians: GuardianDraft[];
   source_id?: number;
   first_contact_date: string;
   next_action: string;
@@ -55,7 +63,21 @@ export interface AdmissionCreateFormState {
   internal_notes: string;
 }
 
+export function syncLegacyGuardianFieldsFromDrafts(guardians: GuardianDraft[]): Pick<
+  AdmissionCreateFormState,
+  'guardian_name' | 'guardian_phone' | 'guardian_relationship' | 'guardian_email'
+> {
+  const legacy = deriveLegacyGuardianFields(guardians);
+  return {
+    guardian_name: legacy.guardian_name ?? '',
+    guardian_phone: legacy.guardian_phone ?? '',
+    guardian_relationship: legacy.guardian_relationship ?? '',
+    guardian_email: legacy.guardian_email ?? '',
+  };
+}
+
 export function emptyAdmissionCreateForm(today: string): AdmissionCreateFormState {
+  const guardians = [createPrimaryGuardianDraft()];
   return {
     child_first_name_ar: '',
     child_last_name_ar: '',
@@ -83,10 +105,8 @@ export function emptyAdmissionCreateForm(today: string): AdmissionCreateFormStat
     actual_join_date: today,
     is_repeating: false,
     registration_notes: '',
-    guardian_name: '',
-    guardian_phone: '',
-    guardian_relationship: '',
-    guardian_email: '',
+    guardians,
+    ...syncLegacyGuardianFieldsFromDrafts(guardians),
     first_contact_date: today,
     next_action: '',
     next_action_date: '',
@@ -108,6 +128,8 @@ export function buildCreateAdmissionPayload(
 
   const selectedLevel = findAdmissionLevel(levels, form.requested_level_id);
   const includeStream = Boolean(selectedLevel?.requires_stream && form.requested_stream_id);
+  const legacy = deriveLegacyGuardianFields(form.guardians);
+  const guardians = serializeGuardiansPayload(form.guardians, { mode: 'individual' });
 
   const payload: CreateAdmissionPayload = {
     school_id: schoolId,
@@ -139,10 +161,13 @@ export function buildCreateAdmissionPayload(
     actual_join_date: form.actual_join_date || undefined,
     is_repeating: form.is_repeating || undefined,
     registration_notes: form.registration_notes.trim() || undefined,
-    guardian_name: form.guardian_name.trim() || undefined,
-    guardian_phone: form.guardian_phone.trim() || undefined,
-    guardian_relationship: form.guardian_relationship || undefined,
-    guardian_email: form.guardian_email.trim() || undefined,
+    guardian_name: legacy.guardian_name,
+    guardian_phone: legacy.guardian_phone,
+    guardian_whatsapp: legacy.guardian_whatsapp,
+    guardian_relationship: legacy.guardian_relationship,
+    relationship: legacy.relationship,
+    guardian_email: legacy.guardian_email,
+    guardians,
     source_id: form.source_id,
     first_contact_date: form.first_contact_date || undefined,
     next_action: form.next_action.trim() || undefined,

@@ -77,16 +77,17 @@ describe('admissions intake academic UX alignment', () => {
   it('family batch payload keeps year id and omits class', () => {
     const form = emptyFamilyAdmissionFormState('2026-07-09');
     form.family = {
-      guardian_name: 'أحمد العلوي',
-      guardian_phone: '0612345678',
-      guardian_whatsapp: '',
-      guardian_email: '',
-      guardian_relationship: 'father',
       shared_address: 'الدار البيضاء',
       notes: '',
       source_id: 10,
       academic_year_id: 3,
       first_contact_date: '2026-07-09',
+    };
+    form.guardians[0] = {
+      ...form.guardians[0],
+      name: 'أحمد العلوي',
+      phone: '0612345678',
+      relationship: 'father',
     };
     form.children[0] = {
       ...form.children[0],

@@ -8,6 +8,7 @@ import type { FamilyAdmissionFormState } from '../utils/family-admission-form-st
 import { familyChildDisplayName } from '../utils/family-admission-child-intake';
 import { findAdmissionLevel } from '../utils/admission-options';
 import { admissionOptionId } from '../utils/admission-options';
+import { getPrimaryGuardian } from '@/features/admin/admissions/guardians';
 
 export function FamilyAdmissionReviewStep({
   form,
@@ -28,6 +29,7 @@ export function FamilyAdmissionReviewStep({
 }) {
   const t = useT();
   const family = form.family;
+  const primary = getPrimaryGuardian(form.guardians);
 
   const academicYearLabel = useMemo(() => {
     const year = academicYears.find((y) => y.id === family.academic_year_id);
@@ -55,28 +57,31 @@ export function FamilyAdmissionReviewStep({
             </button>
           </div>
           <div className="family-admission-review__hero">
-            <strong>{family.guardian_name || t('common.dash')}</strong>
+            <strong>{primary?.name || t('common.dash')}</strong>
             <span className="muted">
               {t('admin.admissions.family.reviewChildCount', { count: form.children.length })}
             </span>
+            <span className="muted">
+              {t('admin.admissions.guardians.reviewCount', { count: form.guardians.length })}
+            </span>
           </div>
           <dl className="family-admission-review__facts">
-            {family.guardian_phone ? (
+            {primary?.phone ? (
               <div>
                 <dt>{t('admin.admissions.fields.guardianPhone')}</dt>
-                <dd dir="ltr">{family.guardian_phone}</dd>
+                <dd dir="ltr">{primary.phone}</dd>
               </div>
             ) : null}
-            {family.guardian_whatsapp ? (
+            {primary?.whatsapp ? (
               <div>
                 <dt>{t('admin.admissions.fields.guardianWhatsapp')}</dt>
-                <dd dir="ltr">{family.guardian_whatsapp}</dd>
+                <dd dir="ltr">{primary.whatsapp}</dd>
               </div>
             ) : null}
-            {family.guardian_email ? (
+            {primary?.email ? (
               <div>
                 <dt>{t('admin.admissions.fields.guardianEmail')}</dt>
-                <dd dir="ltr">{family.guardian_email}</dd>
+                <dd dir="ltr">{primary.email}</dd>
               </div>
             ) : null}
             {family.shared_address ? (
@@ -104,6 +109,26 @@ export function FamilyAdmissionReviewStep({
               </div>
             ) : null}
           </dl>
+          <ul className="family-admission-review__guardians">
+            {form.guardians.map((g) => (
+              <li key={g.clientKey}>
+                <strong>{g.name || t('common.dash')}</strong>
+                {g.isPrimaryContact ? (
+                  <Badge tone="green">{t('admin.admissions.guardians.primaryBadge')}</Badge>
+                ) : null}
+                {g.isAccompanyingGuardian ? (
+                  <Badge tone="slate">{t('admin.admissions.guardians.accompanyingBadge')}</Badge>
+                ) : null}
+                {g.identityDocument.documentNumberMasked ? (
+                  <span className="muted tiny">
+                    {t('admin.admissions.guardians.identity.masked', {
+                      value: g.identityDocument.documentNumberMasked,
+                    })}
+                  </span>
+                ) : null}
+              </li>
+            ))}
+          </ul>
         </section>
 
         <section className="family-admission-review__section">
