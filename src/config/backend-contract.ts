@@ -5,6 +5,7 @@
  * Billing responsibility: docs/contracts/SSC-API-2026.10.001.md
  * Guardian onboarding: docs/contracts/SSC-API-2026.11.001.md
  * Guardian password setup: docs/contracts/SSC-API-2026.12.001.md
+ * Continuous assessment gradebook: docs/contracts/SSC-API-2026.13.001.md
  * Guardian identity document: SSC-API-2026.07.003
  * Not wired to runtime checks — metadata only.
  */
@@ -100,3 +101,22 @@ export const GUARDIAN_IDENTITY_DOCUMENT_BACKEND_CONTRACT = {
 
 export type GuardianIdentityDocumentBackendContract =
   typeof GUARDIAN_IDENTITY_DOCUMENT_BACKEND_CONTRACT;
+
+/** Continuous assessment gradebook workspace; requires Odoo Gradebook API + create hotfix. */
+export const GRADEBOOK_BACKEND_CONTRACT = {
+  contractId: 'SSC-API-2026.13.001',
+  frontendRelease: 'school-nextjs-v2026.13.001',
+  backendModule: 'smart_school_connect',
+  backendMainCommit: 'b2569736c78337b28260fd9682a93262ce4e4935',
+  backendModuleVersion: null,
+  minBackendVersion: null,
+  maxBackendVersion: null,
+  compatibleBackend:
+    'smart_school_connect Odoo main containing create hotfix b2569736c78337b28260fd9682a93262ce4e4935 (Gradebook API 012b4a98c9c9f64589a986a21d8665c49bdc9e68 is an ancestor)',
+  apiPrefix: '/api/v1',
+  source: 'main-release',
+  notes:
+    'Continuous assessment gradebook admin workspace (list/create/detail, entries batch, lifecycle). Additive endpoints under /admin/assessment/gradebooks and teacher adapters. Breaking API changes: none. Backend upgrade required: yes (Odoo main with Gradebook API + create hotfix). Prior contract: SSC-API-2026.12.001.',
+} as const;
+
+export type GradebookBackendContract = typeof GRADEBOOK_BACKEND_CONTRACT;
