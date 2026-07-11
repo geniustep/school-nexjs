@@ -970,7 +970,6 @@
         "chipStatus": "Status: {status}"
       }
     },
-
     "resourcesListDesc": "All published resources",
     "resourcesList": {
       "subtitleWithCount": "{total} resources in your scope",
@@ -4127,7 +4126,9 @@
           "idempotencyConflictHint": "Your entered data is preserved. Start a new family request if you need to submit different details.",
           "guardianSnapshotConflict": "Guardian details conflict with the linked profile. Clear the guardian link or match the saved profile.",
           "submitFailed": "Could not submit family registration requests."
-        }
+        },
+        "notes": "Family notes",
+        "notesHint": "Shared notes for the family batch"
       },
       "detail": {
         "summary": "Request summary",
@@ -4352,10 +4353,17 @@
         "prefillDecision": "Decision",
         "prefillOfferState": "Offer state",
         "success": "Student created and linked to the admission request.",
-        "linkFailed": "Student was created, but linking to the admission request failed. Open the student profile to continue."
+        "linkFailed": "Student was created, but linking to the admission request failed. Open the student profile to continue.",
+        "prefillMultiGuardianHint": "One contact guardian is prefilled from admission. You can add more guardians and choose the billing authority in this step."
       },
       "errors": {
         "notFound": "Admission request not found."
+      },
+      "modeChooser": {
+        "label": "Admission type",
+        "individual": "Individual application",
+        "family": "Family application (siblings)",
+        "individualHint": "For multiple siblings, use"
       }
     },
     "enrollmentIntake": {
@@ -5054,7 +5062,8 @@
           "provisionAccessLabel": "Create a login account for this guardian",
           "provisionAccessHint": "Optional — sent to the server only when enabled. A guardian relationship does not imply a login account.",
           "provisionAccessReview": "A login account will be requested for this guardian on save.",
-          "existingGuardianHint": "Existing guardian — will be linked without creating a duplicate profile."
+          "existingGuardianHint": "Existing guardian — will be linked without creating a duplicate profile.",
+          "incompleteFamilyMessage": "Billing responsibility cannot be determined automatically because family data is incomplete. Add a valid guardian to continue."
         },
         "finance": {
           "stagePlan": "Suggested plan",
@@ -7551,7 +7560,8 @@
               "dueDate": "Due date",
               "allocated": "Allocated amount"
             }
-          }
+          },
+          "backendPreviewTitle": "Backend allocation preview"
         },
         "columns": {
           "payer": "Payer",
@@ -9122,7 +9132,9 @@
           "allocationStatus": "Allocation status",
           "settlementStatus": "Settlement status",
           "collection": "Collection"
-        }
+        },
+        "multiStudentBadge": "Multi-student",
+        "noChildBreakdown": "No per-child breakdown in this receipt snapshot."
       },
       "cashDesk": {
         "title": "Daily cash desk",

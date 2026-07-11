@@ -83,6 +83,7 @@ describe('admissions intake academic UX alignment', () => {
       guardian_email: '',
       guardian_relationship: 'father',
       shared_address: 'الدار البيضاء',
+      notes: '',
       source_id: 10,
       academic_year_id: 3,
       first_contact_date: '2026-07-09',

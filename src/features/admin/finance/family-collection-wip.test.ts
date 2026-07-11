@@ -54,7 +54,7 @@ describe('family collection workflow form structure', () => {
   it('uses smart summary and direct confirmation', () => {
     expect(formSource).toContain('FamilyCollectionSmartSummary');
     expect(formSource).toContain('confirmFamilyCollection');
-    expect(formSource).not.toContain('FamilyCollectionReviewStep');
+    expect(formSource).toContain('FamilyCollectionReviewStep');
   });
 });
 

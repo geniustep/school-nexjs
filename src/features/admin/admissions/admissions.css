@@ -126,6 +126,22 @@
   flex-shrink: 0;
 }
 
+.admissions-mode-chooser {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.admissions-create-mode-hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.875rem;
+}
+
+.admissions-create-mode-hint a {
+  font-weight: 600;
+}
+
 .admissions-list-toolbar {
   display: flex;
   flex-wrap: wrap;

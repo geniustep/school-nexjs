@@ -18,6 +18,8 @@ import {
 import type { CollectionChequeFieldValues } from '@/features/admin/finance/collection-cheque-fields';
 import { filterCollectibleFamilyInstallments } from '@/features/admin/finance/family-installment-collectibility';
 import { FamilyCollectionManualEditor } from '@/features/admin/finance/family-collection-manual-editor';
+import { fetchFamilyCollectionBackendPreview } from '@/features/admin/finance/family-collection-backend-preview';
+import { FamilyCollectionReviewStep } from '@/features/admin/finance/family-collection-review-step';
 import { resolveFamilyCollectionReceiptId } from '@/features/admin/finance/family-collection-receipt-resolve';
 import { FamilyCollectionSmartSummary } from '@/features/admin/finance/family-collection-smart-summary';
 import { buildSuggestedFamilyAllocations } from '@/features/admin/finance/family-suggested-allocation-utils';
@@ -38,7 +40,7 @@ import { isCashJournal, paymentMethodRequiresCashSession } from '@/lib/utils/cas
 import { isChequePayment } from '@/lib/utils/cheque';
 import { normalizeFamilyCollectionConfirmResponse, normalizeFamilyCollectionCreateResponse, normalizeFamilyCollectionDetail } from '@/lib/utils/normalize-family-finance';
 import { confirmFamilyCollection, getFamilyCollectionById, getFamilyFinanceSummary, submitFamilyCollection, updateFamilyCollectionDraft } from '@/features/admin/student-finance/api/family-finance-api';
-import type { FamilyCollectionCreateResponse, FamilyCollectionDetail } from '@/types/family-finance';
+import type { FamilyCollectionCreateResponse, FamilyCollectionDetail, FamilyCollectionPreviewResponse } from '@/types/family-finance';
 import type { ApiErrorBody } from '@/types/api';
 import type { CashSession } from '@/types/finance-cash-desk';
 
@@ -129,6 +131,8 @@ export function FamilyCollectionWorkflowForm({
   const [checkingCashSession, setCheckingCashSession] = useState(false);
   const [accountStudentCount, setAccountStudentCount] = useState(0);
   const [manualEditorOpen, setManualEditorOpen] = useState(false);
+  const [backendPreview, setBackendPreview] = useState<FamilyCollectionPreviewResponse | null>(null);
+  const [previewing, setPreviewing] = useState(false);
   const [chequeNumber, setChequeNumber] = useState('');
   const [chequeBank, setChequeBank] = useState('');
   const [chequeBranch, setChequeBranch] = useState('');
@@ -300,6 +304,7 @@ export function FamilyCollectionWorkflowForm({
       installments: collectibleInstallments,
     });
     setAllocationInputs(suggested);
+    setBackendPreview(null);
   }, [canAutoSuggest, allocationSource, parsedAmount, collectibleInstallments]);
 
   useEffect(() => {
@@ -470,9 +475,37 @@ export function FamilyCollectionWorkflowForm({
   }
 
   async function handleConfirm() {
-    if (confirming || !confirmState.canConfirm) return;
+    if (confirming || previewing || !confirmState.canConfirm) return;
     setConfirming(true);
     setSubmitError(null);
+
+    const sanitizedInputs = sanitizeFamilyAllocationInputs({
+      values: allocationInputs,
+      installments: openInstallments,
+    });
+    const allocationLines = parseFamilyAllocationInputs(sanitizedInputs);
+
+    setPreviewing(true);
+    const previewResult = await fetchFamilyCollectionBackendPreview({
+      familyId,
+      amount: parsedAmount,
+      allocations: allocationLines,
+      query: buildQuery(),
+    });
+    setPreviewing(false);
+
+    if (!previewResult.ok) {
+      setConfirming(false);
+      setBackendPreview(null);
+      const previewMessage =
+        previewResult.errors?.filter(Boolean).join(' · ') ||
+        previewResult.message ||
+        t('admin.finance.billingAccounts.familyCollection.previewFailed');
+      setSubmitError(previewMessage);
+      return;
+    }
+
+    setBackendPreview(previewResult.preview);
 
     let collectionId = draftId;
     if (collectionId == null) {
@@ -694,6 +727,18 @@ export function FamilyCollectionWorkflowForm({
           />
         ) : null}
 
+        {backendPreview ? (
+          <FamilyCollectionReviewStep
+            amount={backendPreview.amount ?? parsedAmount}
+            allocated={backendPreview.allocated_amount ?? allocatedAmount}
+            unallocated={backendPreview.unallocated_amount ?? unallocatedAmount}
+            paymentMethod={paymentMethod}
+            currency={currency}
+            allocations={backendPreview.allocations}
+            installments={collectibleInstallments}
+          />
+        ) : null}
+
         <details className="finance-collection-advanced">
           <summary>{t('admin.finance.quickPayment.additionalDetails')}</summary>
           <div className="finance-collection-advanced__body">
@@ -755,10 +800,10 @@ export function FamilyCollectionWorkflowForm({
             <button
               type="button"
               className="btn btn--primary"
-              disabled={confirming || !confirmState.canConfirm}
+              disabled={confirming || previewing || !confirmState.canConfirm}
               onClick={() => void handleConfirm()}
             >
-              {confirming
+              {confirming || previewing
                 ? t('admin.finance.collections.submitting')
                 : t('admin.finance.billingAccounts.familyCollection.confirmAction')}
             </button>
@@ -782,6 +827,7 @@ export function FamilyCollectionWorkflowForm({
           onSave={(values) => {
             setAllocationInputs(values);
             setAllocationSource('manual');
+            setBackendPreview(null);
           }}
         />
       ) : null}

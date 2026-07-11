@@ -105,6 +105,7 @@ export function buildCreateFamilyBatchPayload(
     shared_contact: sharedContact,
     shared_address: sharedAddress || undefined,
     first_contact_date: family.first_contact_date || undefined,
+    notes: family.notes.trim() || undefined,
     children: form.children.map((child) =>
       buildFamilyBatchChildPayload(child, sharedAddress, levels),
     ),

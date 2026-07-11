@@ -180,6 +180,10 @@ export function AdmissionCreatePage() {
       <header className="student-create-page__header admissions-create-page__hero">
         <h1 className="student-create-page__title">{t('admin.admissions.create.title')}</h1>
         <p className="student-create-page__desc">{t('admin.admissions.create.subtitle')}</p>
+        <p className="admissions-create-mode-hint muted">
+          {t('admin.admissions.modeChooser.individualHint')}{' '}
+          <Link href="/admin/admissions/family/new">{t('admin.admissions.modeChooser.family')}</Link>
+        </p>
       </header>
 
       <form className="student-create-form admissions-create-form" onSubmit={handleSubmit} lang={locale}>

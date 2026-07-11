@@ -81,17 +81,17 @@ describe('family collection smart default direct confirm UX', () => {
     expect(Object.keys(suggested).length).toBeGreaterThan(0);
   });
 
-  it('C. does not POST when amount changes', () => {
-    expect(workflowSource).not.toContain('previewFamilyCollectionAllocation');
-    expect(workflowSource).not.toContain('runPreview');
-    expect(workflowSource).not.toMatch(/onAmountChange[\s\S]*previewFamilyCollectionAllocation/);
+  it('C. does not POST preview when amount changes', () => {
+    expect(workflowSource).toContain('fetchFamilyCollectionBackendPreview');
+    expect(workflowSource).not.toMatch(/onAmountChange[\s\S]*fetchFamilyCollectionBackendPreview/);
     expect(workflowSource).not.toMatch(/onAmountChange[\s\S]*submitFamilyCollection/);
+    expect(workflowSource).toMatch(/async function handleConfirm[\s\S]*fetchFamilyCollectionBackendPreview/);
   });
 
   it('D. uses compact child cards without installment table in primary flow', () => {
     expect(workflowSource).toContain('FamilyCollectionSmartSummary');
     expect(workflowSource).not.toContain('FamilyCollectionAllocationSection');
-    expect(workflowSource).not.toContain('FamilyCollectionReviewStep');
+    expect(workflowSource).toContain('FamilyCollectionReviewStep');
     expect(smartSummarySource).toContain('finance-family-smart-summary__card');
     expect(smartSummarySource).not.toContain('DataTable');
   });
@@ -118,7 +118,8 @@ describe('family collection smart default direct confirm UX', () => {
     expect(manualEditorSource).toContain('selectedStudentId');
   });
 
-  it('H. direct confirm persists draft then confirms', () => {
+  it('H. direct confirm previews then persists draft then confirms', () => {
+    expect(workflowSource).toContain('fetchFamilyCollectionBackendPreview');
     expect(workflowSource).toContain('if (collectionId == null)');
     expect(workflowSource).toContain('const saved = await persistDraft()');
     expect(workflowSource).toContain('confirmFamilyCollection');

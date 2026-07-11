@@ -85,6 +85,10 @@ export function ReceiptDetailView({
 
   const allocations = receipt.allocations ?? snapshot?.allocations ?? [];
   const children = receipt.children ?? snapshot?.children ?? [];
+  const isMultiStudent =
+    receipt.is_multi_student === true ||
+    snapshot?.is_multi_student === true ||
+    children.length > 1;
 
   return (
     <div className="receipt-details">
@@ -267,26 +271,73 @@ export function ReceiptDetailView({
         )}
       </section>
 
-      {children.length ? (
-        <section className="card receipt-details__section">
-          <h2>{t('admin.finance.receipts.sections.children')}</h2>
-          <div className="receipt-details__children">
-            {children.map((child, idx) => (
-              <article key={`${child.student_id ?? idx}-${idx}`} className="receipt-details__child">
-                <strong dir="auto">{child.student_name ?? `#${child.student_id ?? idx + 1}`}</strong>
-                <dl className="detail-list compact">
-                  <div>
-                    <dt>{t('admin.finance.receipts.fields.allocatedAmount')}</dt>
-                    <dd><FinanceMoney amount={child.allocated_amount} currency={receipt.currency} /></dd>
-                  </div>
-                  <div>
-                    <dt>{t('admin.finance.receipts.fields.unallocatedAmount')}</dt>
-                    <dd><FinanceMoney amount={child.unallocated_amount} currency={receipt.currency} /></dd>
-                  </div>
-                </dl>
-              </article>
-            ))}
-          </div>
+      {isMultiStudent || children.length > 0 ? (
+        <section className="card receipt-details__section" aria-label={t('admin.finance.receipts.sections.children')}>
+          <h2>
+            {t('admin.finance.receipts.sections.children')}
+            {isMultiStudent ? (
+              <span className="badge badge--blue receipt-details__multi-badge">
+                {t('admin.finance.receipts.multiStudentBadge')}
+              </span>
+            ) : null}
+          </h2>
+          {children.length ? (
+            <div className="receipt-details__children">
+              {children.map((child, idx) => {
+                const childAllocations = child.allocations ?? [];
+                const childTotal =
+                  child.allocated_amount ??
+                  childAllocations.reduce((sum, row) => sum + (row.amount ?? 0), 0);
+                return (
+                  <article key={`${child.student_id ?? idx}-${idx}`} className="receipt-details__child">
+                    <header className="receipt-details__child-head">
+                      <strong dir="auto">
+                        {child.student_name ?? `#${child.student_id ?? idx + 1}`}
+                      </strong>
+                      <FinanceMoney amount={childTotal} currency={receipt.currency} />
+                    </header>
+                    {childAllocations.length > 0 ? (
+                      <ul className="receipt-details__child-lines">
+                        {childAllocations.map((line, lineIdx) => (
+                          <li key={`${line.installment_id ?? line.id ?? lineIdx}-${lineIdx}`}>
+                            <span dir="auto">
+                              {line.description ?? line.label ?? t('common.dash')}
+                            </span>
+                            <FinanceMoney amount={line.amount} currency={receipt.currency} />
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                    <dl className="detail-list compact">
+                      <div>
+                        <dt>{t('admin.finance.receipts.fields.allocatedAmount')}</dt>
+                        <dd>
+                          <FinanceMoney amount={child.allocated_amount ?? childTotal} currency={receipt.currency} />
+                        </dd>
+                      </div>
+                      {child.unallocated_amount != null && child.unallocated_amount > 0 ? (
+                        <div>
+                          <dt>{t('admin.finance.receipts.fields.unallocatedAmount')}</dt>
+                          <dd>
+                            <FinanceMoney amount={child.unallocated_amount} currency={receipt.currency} />
+                          </dd>
+                        </div>
+                      ) : null}
+                    </dl>
+                  </article>
+                );
+              })}
+              <div className="receipt-details__children-grand-total">
+                <span>{t('admin.finance.receipts.fields.collectionAmount')}</span>
+                <FinanceMoney
+                  amount={receipt.collection_amount ?? receipt.allocated_amount}
+                  currency={receipt.currency}
+                />
+              </div>
+            </div>
+          ) : (
+            <p className="muted">{t('admin.finance.receipts.noChildBreakdown')}</p>
+          )}
         </section>
       ) : null}
     </div>
