@@ -67,6 +67,6 @@ export function teacherCannotSeeAdminActions(
   const visible = visibleGradebookLifecycleActions('teacher', allowed);
   return (
     visible.every((action) => action === 'submit') &&
-    !GRADEBOOK_ADMIN_ONLY_ACTIONS.some((action) => visible.includes(action))
+    !visible.some((action) => GRADEBOOK_ADMIN_ONLY_ACTIONS.includes(action))
   );
 }
