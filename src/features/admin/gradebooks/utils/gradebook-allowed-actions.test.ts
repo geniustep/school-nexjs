@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
   GRADEBOOK_LIFECYCLE_ACTIONS,
+  canEditGradebookEntries,
   hasGradebookAllowedAction,
   normalizeGradebookAllowedActions,
+  visibleGradebookLifecycleActions,
 } from './gradebook-allowed-actions';
 
 describe('gradebook-allowed-actions', () => {
@@ -21,5 +23,17 @@ describe('gradebook-allowed-actions', () => {
       'open',
       'lock',
     ]);
+  });
+
+  it('teacher catalog exposes submit only and gates edit_entries', () => {
+    const actions = {
+      edit_entries: true,
+      submit: true,
+      build_roster: true,
+      publish: true,
+    };
+    expect(visibleGradebookLifecycleActions('teacher', actions)).toEqual(['submit']);
+    expect(canEditGradebookEntries('teacher', actions)).toBe(true);
+    expect(canEditGradebookEntries('teacher', { submit: true })).toBe(false);
   });
 });

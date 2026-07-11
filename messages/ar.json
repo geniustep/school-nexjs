@@ -675,7 +675,27 @@
     "noResultsYet": "لا توجد نتائج بعد",
     "noAttendanceToday": "لا يوجد سجل حضور لليوم",
     "attendancePendingHint": "لم يُسجّل حضور هذا التلميذ بعد اليوم.",
-    "openClassHub": "مركز القسم"
+    "openClassHub": "مركز القسم",
+    "gradebooks": {
+      "listTitle": "دفاتر المراقبة المستمرة المسندة إليّ",
+      "listSubtitle": "الدفاتر المسندة إليك لإدخال النقط",
+      "detailTitle": "مساحة عمل دفتر المراقبة",
+      "list": {
+        "subtitleWithCount": "{total} دفتر مسند",
+        "noData": {
+          "title": "لا توجد دفاتر مسندة",
+          "description": "عندما يُسند إليك دفتر مراقبة مستمرة سيظهر هنا."
+        }
+      },
+      "empty": {
+        "noRoster": {
+          "description": "قائمة التلاميذ غير جاهزة بعد. تواصل مع إدارة المدرسة."
+        },
+        "notOpen": {
+          "description": "هذا الدفتر غير مفتوح للإدخال بعد. تواصل مع إدارة المدرسة."
+        }
+      }
+    }
   },
   "actions": {
     "attendance": "الحضور",

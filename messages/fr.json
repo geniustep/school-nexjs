@@ -675,7 +675,27 @@
     "noResultsYet": "Aucun résultat pour l'instant",
     "noAttendanceToday": "Aucun enregistrement de présence aujourd'hui",
     "attendancePendingHint": "La présence de cet élève n'a pas encore été enregistrée aujourd'hui.",
-    "openClassHub": "Hub de classe"
+    "openClassHub": "Hub de classe",
+    "gradebooks": {
+      "listTitle": "Mes carnets de suivi continu",
+      "listSubtitle": "Carnets qui vous sont assignés pour la saisie",
+      "detailTitle": "Espace de travail du carnet",
+      "list": {
+        "subtitleWithCount": "{total} carnets assignés",
+        "noData": {
+          "title": "Aucun carnet assigné",
+          "description": "Lorsqu'un carnet de suivi continu vous sera assigné, il apparaîtra ici."
+        }
+      },
+      "empty": {
+        "noRoster": {
+          "description": "La liste des élèves n'est pas encore prête. Contactez l'administration."
+        },
+        "notOpen": {
+          "description": "Ce carnet n'est pas encore ouvert à la saisie. Contactez l'administration."
+        }
+      }
+    }
   },
   "actions": {
     "attendance": "Présence",

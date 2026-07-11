@@ -675,7 +675,27 @@
     "noResultsYet": "Aún no hay resultados",
     "noAttendanceToday": "No hay registro de asistencia hoy",
     "attendancePendingHint": "La asistencia de este alumno aún no se ha registrado hoy.",
-    "openClassHub": "Hub de clase"
+    "openClassHub": "Hub de clase",
+    "gradebooks": {
+      "listTitle": "Mis cuadernos de evaluación continua",
+      "listSubtitle": "Cuadernos asignados para introducir notas",
+      "detailTitle": "Espacio de trabajo del cuaderno",
+      "list": {
+        "subtitleWithCount": "{total} cuadernos asignados",
+        "noData": {
+          "title": "No hay cuadernos asignados",
+          "description": "Cuando se te asigne un cuaderno de evaluación continua, aparecerá aquí."
+        }
+      },
+      "empty": {
+        "noRoster": {
+          "description": "La lista de alumnos aún no está lista. Contacta con la administración."
+        },
+        "notOpen": {
+          "description": "Este cuaderno aún no está abierto para la entrada. Contacta con la administración."
+        }
+      }
+    }
   },
   "actions": {
     "attendance": "Asistencia",

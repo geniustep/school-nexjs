@@ -13,9 +13,16 @@ import { PageHeader } from '@/components/ui/primitives';
 import { useToast } from '@/components/ui/toast';
 import { useT } from '@/features/i18n/locale-context';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
+import { useResource } from '@/lib/hooks/use-resource';
 import { endpoints } from '@/lib/api/endpoints';
-import type { GradebookDetail } from '@/types/gradebook';
-import { patchAdminGradebookEntries } from '../api/gradebooks-api';
+import type { ApiResponse } from '@/types/api';
+import type { GradebookDetail, GradebookLifecycleAction } from '@/types/gradebook';
+import {
+  patchAdminGradebookEntries,
+  patchTeacherGradebookEntries,
+  postAdminGradebookLifecycle,
+  submitTeacherGradebook,
+} from '../api/gradebooks-api';
 import { GradebookCompositeGrid } from './gradebook-composite-grid';
 import { GradebookDetailHeader } from './gradebook-detail-header';
 import { GradebookLifecycleActions } from './gradebook-lifecycle-actions';
@@ -32,9 +39,15 @@ import {
   type CellDraftValue,
 } from '../utils/gradebook-entry-draft';
 import { GRADEBOOK_LIST_STATES, formatCompletionSummary } from '../utils/gradebook-list-present';
-import { normalizeGradebookAllowedActions } from '../utils/gradebook-allowed-actions';
+import {
+  TEACHER_GRADEBOOK_LIFECYCLE_ACTIONS,
+  canEditGradebookEntries,
+  normalizeGradebookAllowedActions,
+} from '../utils/gradebook-allowed-actions';
 import { normalizeGradebookDetailPayload } from '../utils/gradebook-normalize';
 import '../gradebook-workspace.css';
+
+export type GradebookWorkspaceRole = 'admin' | 'teacher';
 
 function resolveDetailEmptyVariant(detail: GradebookDetail | null): 'loading' | 'no-roster' | 'not-open' | 'ready' | 'error' {
   if (!detail) return 'loading';
@@ -43,10 +56,27 @@ function resolveDetailEmptyVariant(detail: GradebookDetail | null): 'loading' | 
   return 'ready';
 }
 
-export function GradebookDetailWorkspace({ gradebookId }: { gradebookId: string }) {
+export function GradebookDetailWorkspace({
+  gradebookId,
+  role = 'admin',
+}: {
+  gradebookId: string;
+  role?: GradebookWorkspaceRole;
+}) {
   const t = useT();
   const toast = useToast();
-  const state = useAdminResource<GradebookDetail>(endpoints.admin.gradebook(gradebookId));
+  const isTeacher = role === 'teacher';
+  const listHref = isTeacher
+    ? '/teacher/assessment/gradebooks'
+    : '/admin/academics/assessment/gradebooks';
+  const detailPath = isTeacher
+    ? endpoints.teacher.gradebook(gradebookId)
+    : endpoints.admin.gradebook(gradebookId);
+
+  const adminState = useAdminResource<GradebookDetail>(isTeacher ? null : detailPath);
+  const teacherState = useResource<GradebookDetail>(isTeacher ? detailPath : null);
+  const state = isTeacher ? teacherState : adminState;
+
   const detail = useMemo(
     () => (state.data ? normalizeGradebookDetailPayload(state.data) : null),
     [state.data],
@@ -55,6 +85,9 @@ export function GradebookDetailWorkspace({ gradebookId }: { gradebookId: string 
   const [drafts, setDrafts] = useState(() => new Map<CellDraftKey, CellDraftValue>());
   const [saving, setSaving] = useState(false);
   const [completion, setCompletion] = useState(detail?.completion);
+  const [allowedActions, setAllowedActions] = useState(() =>
+    normalizeGradebookAllowedActions(detail?.allowed_actions),
+  );
 
   useEffect(() => {
     if (!detail) return;
@@ -67,17 +100,21 @@ export function GradebookDetailWorkspace({ gradebookId }: { gradebookId: string 
     setBaseline(nextBaseline);
     setDrafts(nextDrafts);
     setCompletion(detail.completion);
+    setAllowedActions(normalizeGradebookAllowedActions(detail.allowed_actions));
   }, [detail]);
 
   const dirtyCount = useMemo(() => countDirtyCells(baseline, drafts), [baseline, drafts]);
   const emptyVariant = resolveDetailEmptyVariant(detail);
+  const canEdit = canEditGradebookEntries(role, allowedActions);
 
   const getCellState = useCallback(
     (studentLineId: number, cellId: number) => {
       const key = cellDraftKey(studentLineId, cellId);
       const draft = drafts.get(key);
       const base = baseline.get(key);
-      if (draft && base) return { draft, editable: base.editable };
+      if (draft && base) {
+        return { draft, editable: canEdit && base.editable };
+      }
       const entry = findMatrixEntry(detail?.matrix ?? [], studentLineId, cellId);
       return {
         draft: entry ? defaultDraftForEntry(entry) : {
@@ -85,13 +122,14 @@ export function GradebookDetailWorkspace({ gradebookId }: { gradebookId: string 
           score_is_set: false,
           participation_state: 'not_entered' as const,
         },
-        editable: entry?.editable ?? false,
+        editable: canEdit && (entry?.editable ?? false),
       };
     },
-    [baseline, detail?.matrix, drafts],
+    [baseline, canEdit, detail?.matrix, drafts],
   );
 
   function handleDraftChange(studentLineId: number, cellId: number, value: CellDraftValue) {
+    if (!canEdit) return;
     const key = cellDraftKey(studentLineId, cellId);
     setDrafts((current) => {
       const next = new Map(current);
@@ -110,11 +148,13 @@ export function GradebookDetailWorkspace({ gradebookId }: { gradebookId: string 
   }
 
   async function saveChanges() {
-    if (!detail || dirtyCount === 0) return;
+    if (!detail || dirtyCount === 0 || !canEdit) return;
     const payload = buildBatchPayload(baseline, drafts);
     if (!payload.length) return;
     setSaving(true);
-    const res = await patchAdminGradebookEntries(detail.id, { entries: payload });
+    const res = isTeacher
+      ? await patchTeacherGradebookEntries(detail.id, { entries: payload })
+      : await patchAdminGradebookEntries(detail.id, { entries: payload });
     setSaving(false);
     if (!res.success) {
       toast.error(res.error.message || t('admin.gradebooks.saveFailed'));
@@ -131,19 +171,47 @@ export function GradebookDetailWorkspace({ gradebookId }: { gradebookId: string 
     toast.success(t('admin.gradebooks.saveSuccess', { count: payload.length }));
   }
 
+  function applyLifecycleDetail(next?: GradebookDetail) {
+    if (next) {
+      setAllowedActions(normalizeGradebookAllowedActions(next.allowed_actions));
+      if (next.completion) setCompletion(next.completion);
+    }
+    state.reload();
+  }
+
+  async function runTeacherLifecycle(
+    id: number,
+    action: GradebookLifecycleAction,
+  ): Promise<ApiResponse<GradebookDetail>> {
+    if (action === 'submit') return submitTeacherGradebook(id);
+    return {
+      success: false,
+      error: { message: t('admin.gradebooks.actionFailed'), code: 'forbidden' },
+      meta: {},
+    };
+  }
+
   const lifecycleSteps = GRADEBOOK_LIST_STATES;
   const currentState = detail?.context.state;
   const currentIndex = lifecycleSteps.indexOf(
     currentState as (typeof GRADEBOOK_LIST_STATES)[number],
   );
 
+  const titleKey = isTeacher ? 'teacher.gradebooks.detailTitle' : 'admin.gradebooks.detailTitle';
+  const noRosterDescKey = isTeacher
+    ? 'teacher.gradebooks.empty.noRoster.description'
+    : 'admin.gradebooks.empty.noRoster.description';
+  const notOpenDescKey = isTeacher
+    ? 'teacher.gradebooks.empty.notOpen.description'
+    : 'admin.gradebooks.empty.notOpen.description';
+
   return (
     <div className="admin-workspace gradebook-workspace">
       <PageHeader
-        title={t('admin.gradebooks.detailTitle')}
+        title={t(titleKey)}
         subtitle={detail?.context.subject?.name ?? undefined}
         actions={
-          <Link href="/admin/academics/assessment/gradebooks" className="btn btn--ghost btn--sm">
+          <Link href={listHref} className="btn btn--ghost btn--sm">
             {t('admin.gradebooks.backToList')}
           </Link>
         }
@@ -182,15 +250,23 @@ export function GradebookDetailWorkspace({ gradebookId }: { gradebookId: string 
 
             <GradebookLifecycleActions
               gradebookId={detail.id}
-              allowedActions={normalizeGradebookAllowedActions(detail.allowed_actions)}
-              onSuccess={() => state.reload()}
+              allowedActions={allowedActions}
+              actionCatalog={
+                isTeacher ? TEACHER_GRADEBOOK_LIFECYCLE_ACTIONS : undefined
+              }
+              runLifecycle={
+                isTeacher
+                  ? runTeacherLifecycle
+                  : (id, action) => postAdminGradebookLifecycle(id, action)
+              }
+              onSuccess={applyLifecycleDetail}
             />
 
             <div className="gradebook-save-bar toolbar">
               <button
                 type="button"
                 className="btn btn--primary btn--sm"
-                disabled={dirtyCount === 0 || saving}
+                disabled={!canEdit || dirtyCount === 0 || saving}
                 onClick={() => void saveChanges()}
               >
                 {saving ? t('common.saving') : t('admin.gradebooks.save', { count: dirtyCount })}
@@ -198,7 +274,7 @@ export function GradebookDetailWorkspace({ gradebookId }: { gradebookId: string 
               <button
                 type="button"
                 className="btn btn--ghost btn--sm"
-                disabled={dirtyCount === 0 || saving}
+                disabled={!canEdit || dirtyCount === 0 || saving}
                 onClick={discardChanges}
               >
                 {t('admin.gradebooks.discard')}
@@ -220,7 +296,7 @@ export function GradebookDetailWorkspace({ gradebookId }: { gradebookId: string 
               <EmptyState
                 icon="👥"
                 title={t('admin.gradebooks.empty.noRoster.title')}
-                description={t('admin.gradebooks.empty.noRoster.description')}
+                description={t(noRosterDescKey)}
               />
             ) : null}
 
@@ -228,7 +304,7 @@ export function GradebookDetailWorkspace({ gradebookId }: { gradebookId: string 
               <EmptyState
                 icon="📒"
                 title={t('admin.gradebooks.empty.notOpen.title')}
-                description={t('admin.gradebooks.empty.notOpen.description')}
+                description={t(notOpenDescKey)}
               />
             ) : null}
 
