@@ -294,15 +294,24 @@ export function AdmissionsListPage() {
           <p className="admissions-list-header__subtitle">{t('admin.admissions.subtitle')}</p>
         </div>
         <div className="admissions-list-header__actions">
-          <Link
-            href="/admin/admissions/family/new"
-            className="btn btn--ghost admissions-list-header__cta-secondary"
+          <div
+            className="admissions-mode-chooser"
+            role="group"
+            aria-label={t('admin.admissions.modeChooser.label')}
           >
-            {t('admin.admissions.family.createButton')}
-          </Link>
-          <Link href="/admin/admissions/new" className="btn btn--primary admissions-list-header__cta">
-            {t('admin.admissions.createButton')}
-          </Link>
+            <Link
+              href="/admin/admissions/new"
+              className="btn btn--primary admissions-list-header__cta"
+            >
+              {t('admin.admissions.modeChooser.individual')}
+            </Link>
+            <Link
+              href="/admin/admissions/family/new"
+              className="btn btn--ghost admissions-list-header__cta-secondary"
+            >
+              {t('admin.admissions.modeChooser.family')}
+            </Link>
+          </div>
         </div>
       </header>
 

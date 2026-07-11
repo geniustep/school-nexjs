@@ -169,7 +169,14 @@ export function StudentCreateBillingStep({
             )}
           </label>
         </div>
-        {guardianBillingMode && !multipleGuardians ? (
+        {guardianBillingMode && billingGuardianOptions.length === 0 ? (
+          <div className="student-create-form__cell student-create-form__cell--full">
+            <p className="student-create-form__notice" role="status">
+              {t('admin.student360.create.billingResponsibility.incompleteFamilyMessage')}
+            </p>
+          </div>
+        ) : null}
+        {guardianBillingMode && !multipleGuardians && billingGuardianOptions.length === 1 ? (
           <div className="student-create-form__cell student-create-form__cell--full">
             <p className="student-create-guardian-billing__link" role="status">
               {guardianName

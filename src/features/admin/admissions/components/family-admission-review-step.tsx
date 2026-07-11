@@ -97,6 +97,12 @@ export function FamilyAdmissionReviewStep({
                 <dd>{sourceLabel}</dd>
               </div>
             ) : null}
+            {family.notes.trim() ? (
+              <div>
+                <dt>{t('admin.admissions.family.notes')}</dt>
+                <dd dir="auto">{family.notes.trim()}</dd>
+              </div>
+            ) : null}
           </dl>
         </section>
 

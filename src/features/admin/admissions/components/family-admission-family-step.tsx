@@ -261,6 +261,21 @@ export function FamilyAdmissionFamilyStep({
               />
             </label>
           </div>
+
+          <div className="student-create-form__cell student-create-form__cell--full">
+            <label className="student-create-field">
+              <span className="student-create-field__label">
+                {t('admin.admissions.family.notes')}
+              </span>
+              <textarea
+                className="input"
+                rows={3}
+                value={family.notes}
+                onChange={(e) => onChange({ notes: e.target.value })}
+                placeholder={t('admin.admissions.family.notesHint')}
+              />
+            </label>
+          </div>
         </div>
       </div>
     </section>

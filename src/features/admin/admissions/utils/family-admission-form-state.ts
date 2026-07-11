@@ -27,6 +27,7 @@ export interface FamilyAdmissionFamilyFormState {
   guardian_email: string;
   guardian_relationship: string;
   shared_address: string;
+  notes: string;
   source_id?: number;
   academic_year_id?: number;
   first_contact_date: string;
@@ -38,7 +39,8 @@ export interface FamilyAdmissionFormState {
 }
 
 export const FAMILY_ADMISSION_MIN_CHILDREN = 2;
-export const FAMILY_ADMISSION_MAX_CHILDREN = 6;
+/** Soft UI cap — not a backend-imposed small limit. */
+export const FAMILY_ADMISSION_MAX_CHILDREN = 20;
 
 let childIdCounter = 0;
 
@@ -77,6 +79,7 @@ export function emptyFamilyAdmissionFormState(today = todayIsoDate()): FamilyAdm
       guardian_email: '',
       guardian_relationship: '',
       shared_address: '',
+      notes: '',
       first_contact_date: today,
     },
     children: [emptyFamilyChildFormState(false), emptyFamilyChildFormState(true)],

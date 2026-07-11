@@ -970,7 +970,6 @@
         "chipStatus": "Statut : {status}"
       }
     },
-
     "resourcesListDesc": "Toutes les ressources publiées",
     "resourcesList": {
       "subtitleWithCount": "{total} ressources dans votre périmètre",
@@ -1068,8 +1067,14 @@
       "cellScoreAria": "Saisir la note, max {max}",
       "list": {
         "subtitleWithCount": "{total} carnets dans votre périmètre",
-        "noData": { "title": "Aucun carnet", "description": "Créez votre premier carnet de suivi." },
-        "noMatch": { "title": "Aucun carnet correspondant", "description": "Ajustez les filtres." }
+        "noData": {
+          "title": "Aucun carnet",
+          "description": "Créez votre premier carnet de suivi."
+        },
+        "noMatch": {
+          "title": "Aucun carnet correspondant",
+          "description": "Ajustez les filtres."
+        }
       },
       "create": {
         "title": "Créer un carnet",
@@ -1085,7 +1090,9 @@
         "studentsTotal": "{count} élèves",
         "cellsTotal": "{count} cellules"
       },
-      "lifecycle": { "label": "Cycle de vie" },
+      "lifecycle": {
+        "label": "Cycle de vie"
+      },
       "actions": {
         "build_roster": "Construire la liste",
         "sync_roster": "Synchroniser la liste",
@@ -1109,7 +1116,12 @@
         "absent_justified": "Absent justifié",
         "exempted": "Dispensé",
         "not_graded": "Non noté",
-        "short": { "absent": "A", "absent_justified": "AJ", "exempted": "E", "not_graded": "NG" }
+        "short": {
+          "absent": "A",
+          "absent_justified": "AJ",
+          "exempted": "E",
+          "not_graded": "NG"
+        }
       },
       "validation": {
         "invalid": "Valeur invalide",
@@ -1117,8 +1129,14 @@
         "overMax": "Maximum {max}"
       },
       "empty": {
-        "noRoster": { "title": "Aucune liste d'élèves", "description": "Construisez la liste d'abord." },
-        "notOpen": { "title": "Carnet non ouvert", "description": "Ouvrez le carnet pour saisir les notes." }
+        "noRoster": {
+          "title": "Aucune liste d'élèves",
+          "description": "Construisez la liste d'abord."
+        },
+        "notOpen": {
+          "title": "Carnet non ouvert",
+          "description": "Ouvrez le carnet pour saisir les notes."
+        }
       }
     },
     "studentsListDesc": "Tous les élèves de votre périmètre",
@@ -4108,7 +4126,9 @@
           "idempotencyConflictHint": "Vos données saisies sont conservées. Créez une nouvelle demande familiale pour envoyer des données différentes.",
           "guardianSnapshotConflict": "Les données du responsable entrent en conflit avec le profil lié. Supprimez le lien ou alignez les données enregistrées.",
           "submitFailed": "Impossible d'envoyer les demandes d'inscription familiales."
-        }
+        },
+        "notes": "Notes familiales",
+        "notesHint": "Notes partagées pour le lot familial"
       },
       "detail": {
         "summary": "Résumé",
@@ -4333,10 +4353,17 @@
         "prefillDecision": "Décision",
         "prefillOfferState": "État de l'offre",
         "success": "Élève créé et lié à la demande d'admission.",
-        "linkFailed": "L'élève a été créé, mais la liaison à la demande a échoué. Ouvrez le dossier élève pour continuer."
+        "linkFailed": "L'élève a été créé, mais la liaison à la demande a échoué. Ouvrez le dossier élève pour continuer.",
+        "prefillMultiGuardianHint": "Un seul contact tuteur est prérempli depuis l’admission. Vous pouvez ajouter d’autres tuteurs et choisir le responsable de facturation ici."
       },
       "errors": {
         "notFound": "Demande introuvable."
+      },
+      "modeChooser": {
+        "label": "Type de demande",
+        "individual": "Demande individuelle",
+        "family": "Demande familiale (frères/sœurs)",
+        "individualHint": "Pour plusieurs frères/sœurs, utilisez"
       }
     },
     "enrollmentIntake": {
@@ -5035,7 +5062,8 @@
           "provisionAccessLabel": "Créer un compte de connexion pour ce tuteur",
           "provisionAccessHint": "Optionnel — envoyé au serveur uniquement si activé. Une relation de tuteur n'implique pas un compte de connexion.",
           "provisionAccessReview": "Un compte de connexion sera demandé pour ce tuteur à l'enregistrement.",
-          "existingGuardianHint": "Tuteur existant — sera lié sans créer de profil en double."
+          "existingGuardianHint": "Tuteur existant — sera lié sans créer de profil en double.",
+          "incompleteFamilyMessage": "La responsabilité de facturation ne peut pas être déterminée automatiquement car les données familiales sont incomplètes. Ajoutez un tuteur valide."
         },
         "finance": {
           "stagePlan": "Plan proposé",
@@ -7430,7 +7458,8 @@
               "dueDate": "Date d'échéance",
               "allocated": "Montant affecté"
             }
-          }
+          },
+          "backendPreviewTitle": "Aperçu serveur de la répartition"
         },
         "columns": {
           "payer": "Payeur",
@@ -8971,7 +9000,9 @@
           "allocationStatus": "État d'affectation",
           "settlementStatus": "État de règlement",
           "collection": "Encaissement"
-        }
+        },
+        "multiStudentBadge": "Plusieurs élèves",
+        "noChildBreakdown": "Aucune répartition par enfant dans cet instantané."
       },
       "cashDesk": {
         "title": "Caisse journalière",

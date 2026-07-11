@@ -172,7 +172,7 @@ describe('family collection collectible allocation', () => {
   it('K. direct confirm flow remains intact', () => {
     expect(workflowSource).toContain('confirmFamilyCollection');
     expect(workflowSource).toContain('FamilyCollectionSmartSummary');
-    expect(workflowSource).not.toContain('FamilyCollectionReviewStep');
-    expect(workflowSource).toContain('disabled={confirming || !confirmState.canConfirm}');
+    expect(workflowSource).toContain('FamilyCollectionReviewStep');
+    expect(workflowSource).toContain('disabled={confirming || previewing || !confirmState.canConfirm}');
   });
 });

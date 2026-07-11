@@ -905,6 +905,14 @@ export interface FinanceReceiptCheque {
   state?: string;
 }
 
+export interface FinanceReceiptChildBreakdown {
+  student_id?: number;
+  student_name?: string;
+  allocated_amount?: number;
+  unallocated_amount?: number;
+  allocations?: FinanceReceiptAllocation[];
+}
+
 export interface FinanceReceiptSnapshot {
   audit?: {
     source?: string;
@@ -931,13 +939,8 @@ export interface FinanceReceiptSnapshot {
   totals?: FinanceReceiptTotals;
   settlement?: FinanceReceiptSettlement;
   allocations?: FinanceReceiptAllocation[];
-  children?: Array<{
-    student_id?: number;
-    student_name?: string;
-    allocated_amount?: number;
-    unallocated_amount?: number;
-    allocations?: FinanceReceiptAllocation[];
-  }>;
+  children?: FinanceReceiptChildBreakdown[];
+  is_multi_student?: boolean;
 }
 
 export interface FinanceReceiptTotals {
@@ -975,13 +978,9 @@ export interface FinanceReceipt {
   snapshot?: FinanceReceiptSnapshot;
   totals?: FinanceReceiptTotals;
   allocations?: FinanceReceiptAllocation[];
-  children?: Array<{
-    student_id?: number;
-    student_name?: string;
-    allocated_amount?: number;
-    unallocated_amount?: number;
-    allocations?: FinanceReceiptAllocation[];
-  }>;
+  children?: FinanceReceiptChildBreakdown[];
+  /** Snapshot flag: family / multi-student receipt breakdown. */
+  is_multi_student?: boolean;
   cheque?: FinanceReceiptCheque;
   currency?: string;
 }

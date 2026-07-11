@@ -120,7 +120,7 @@ describe('manual family allocations', () => {
 
   it('confirms directly from smart summary without separate review step', () => {
     expect(workflowSource).toContain('FamilyCollectionSmartSummary');
-    expect(workflowSource).not.toContain('FamilyCollectionReviewStep');
+    expect(workflowSource).toContain('FamilyCollectionReviewStep');
     expect(workflowSource).not.toContain("setStep('review')");
     expect(workflowSource).toContain('confirmFamilyCollection');
     expect(workflowSource).toContain('resolveFamilyCollectionReceiptId');

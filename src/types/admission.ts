@@ -502,6 +502,8 @@ export interface CreateFamilyBatchPayload {
   shared_contact: FamilyBatchSharedContactPayload;
   shared_address?: string;
   first_contact_date?: string;
+  /** Shared family notes when supported by the batch contract. */
+  notes?: string;
   children: FamilyBatchChildPayload[];
 }
 

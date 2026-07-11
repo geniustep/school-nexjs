@@ -3,6 +3,7 @@ import type {
   FinanceReceipt,
   FinanceReceiptAllocation,
   FinanceReceiptCheque,
+  FinanceReceiptChildBreakdown,
   FinanceReceiptSnapshot,
   FinanceReceiptTotals,
 } from '@/types/finance';
@@ -43,6 +44,8 @@ function normalizeAllocation(raw: unknown): FinanceReceiptAllocation | null {
     id: typeof source.id === 'number' ? source.id : undefined,
     installment_id: typeof source.installment_id === 'number' ? source.installment_id : undefined,
     student_fee_id: typeof source.student_fee_id === 'number' ? source.student_fee_id : undefined,
+    student_id: typeof source.student_id === 'number' ? source.student_id : undefined,
+    student_name: typeof source.student_name === 'string' ? source.student_name : undefined,
     description:
       typeof source.description === 'string'
         ? source.description
@@ -57,6 +60,44 @@ function normalizeAllocation(raw: unknown): FinanceReceiptAllocation | null {
     is_partial: source.is_partial === true || (amount != null && remainingAfter != null && remainingAfter > 0),
     remaining_after_payment: remainingAfter,
   };
+}
+
+function normalizeReceiptChild(raw: unknown): FinanceReceiptChildBreakdown | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const source = raw as Record<string, unknown>;
+  const allocations = Array.isArray(source.allocations)
+    ? source.allocations
+        .map(normalizeAllocation)
+        .filter((row): row is FinanceReceiptAllocation => row != null)
+    : undefined;
+  const studentId =
+    typeof source.student_id === 'number'
+      ? source.student_id
+      : typeof source.id === 'number'
+        ? source.id
+        : undefined;
+  const studentName =
+    typeof source.student_name === 'string'
+      ? source.student_name
+      : typeof source.name === 'string'
+        ? source.name
+        : undefined;
+  if (studentId == null && !studentName && !allocations?.length) return null;
+  return {
+    student_id: studentId,
+    student_name: studentName,
+    allocated_amount: normalizeMoneyValue(source.allocated_amount) ?? undefined,
+    unallocated_amount: normalizeMoneyValue(source.unallocated_amount) ?? undefined,
+    allocations,
+  };
+}
+
+function normalizeReceiptChildren(raw: unknown): FinanceReceiptChildBreakdown[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const children = raw
+    .map(normalizeReceiptChild)
+    .filter((row): row is FinanceReceiptChildBreakdown => row != null);
+  return children.length ? children : undefined;
 }
 
 function normalizeTotals(raw: unknown): FinanceReceiptTotals | undefined {
@@ -137,6 +178,11 @@ function normalizeSnapshot(raw: unknown): FinanceReceiptSnapshot | undefined {
           .map(normalizeAllocation)
           .filter((row): row is FinanceReceiptAllocation => row != null)
       : undefined,
+    children: normalizeReceiptChildren(source.children),
+    is_multi_student:
+      source.is_multi_student === true ||
+      (Array.isArray(source.children) && source.children.length > 1) ||
+      undefined,
   };
 }
 
@@ -209,6 +255,14 @@ export function normalizeFinanceReceipt(raw: unknown): FinanceReceipt | null {
           .map(normalizeAllocation)
           .filter((row): row is FinanceReceiptAllocation => row != null)
       : snapshot?.allocations,
+    children:
+      normalizeReceiptChildren(source.children) ??
+      snapshot?.children,
+    is_multi_student:
+      source.is_multi_student === true ||
+      snapshot?.is_multi_student === true ||
+      ((normalizeReceiptChildren(source.children) ?? snapshot?.children)?.length ?? 0) > 1 ||
+      undefined,
     cheque: normalizeCheque(source.cheque) ?? snapshot?.cheque,
     currency:
       typeof source.currency === 'string'

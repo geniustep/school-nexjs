@@ -25,6 +25,9 @@ export function StudentCreatePrefillBanner({
           <p className="student-create-prefill__note">
             {t('admin.admissions.registration.prefillBannerDescription')}
           </p>
+          <p className="student-create-prefill__note student-create-prefill__note--secondary muted">
+            {t('admin.admissions.registration.prefillMultiGuardianHint')}
+          </p>
         </div>
 
         {(banner.decision || banner.offerState) ? (

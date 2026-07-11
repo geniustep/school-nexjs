@@ -51,6 +51,58 @@ describe('normalize-finance-receipt', () => {
     expect(receiptAllowsAction(receipt, 'issue')).toBe(false);
   });
 
+  it('preserves multi-student children snapshot breakdown', () => {
+    const receipt = normalizeFinanceReceipt({
+      id: 88,
+      number: 'PAY/2026/000100',
+      state: 'issued',
+      collection_amount: 5000,
+      allocated_amount: 5000,
+      is_multi_student: true,
+      snapshot: {
+        is_multi_student: true,
+        children: [
+          {
+            student_id: 1,
+            student_name: 'أحمد العلوي',
+            allocated_amount: 2500,
+            allocations: [
+              { description: 'التسجيل', amount: 1500 },
+              { description: 'قسط شتنبر', amount: 1000 },
+            ],
+          },
+          {
+            student_id: 2,
+            student_name: 'سلمى العلوي',
+            allocated_amount: 2500,
+            allocations: [
+              { description: 'التسجيل', amount: 1500 },
+              { description: 'قسط شتنبر', amount: 1000 },
+            ],
+          },
+        ],
+      },
+    });
+    expect(receipt?.is_multi_student).toBe(true);
+    expect(receipt?.children).toHaveLength(2);
+    expect(receipt?.children?.[0]?.student_name).toBe('أحمد العلوي');
+    expect(receipt?.children?.[0]?.allocations).toHaveLength(2);
+    expect(receipt?.children?.[1]?.allocated_amount).toBe(2500);
+  });
+
+  it('infers multi-student from children length when flag absent', () => {
+    const receipt = normalizeFinanceReceipt({
+      id: 89,
+      number: 'PAY/2026/000101',
+      children: [
+        { student_id: 10, student_name: 'A', allocated_amount: 100 },
+        { student_id: 11, student_name: 'B', allocated_amount: 200 },
+      ],
+    });
+    expect(receipt?.is_multi_student).toBe(true);
+    expect(receipt?.children?.[1]?.student_name).toBe('B');
+  });
+
   it('builds readable pdf filenames', () => {
     expect(
       buildReceiptPdfFilename({ id: 6, number: 'PAY/2026/000008' } as never, 'ar'),

@@ -39,6 +39,7 @@ function sampleForm() {
     guardian_email: 'ahmed@example.com',
     guardian_relationship: 'father',
     shared_address: 'الدار البيضاء',
+    notes: 'ملاحظات الأسرة',
     source_id: 10,
     academic_year_id: 1,
     first_contact_date: '2026-07-09',
@@ -72,6 +73,7 @@ describe('family admission payload contract', () => {
     expect(payload.shared_contact.guardian_name).toBe('أحمد العلوي');
     expect(payload.shared_contact.guardian_phone).toBe('0612345678');
     expect(payload.shared_contact.relationship).toBe('father');
+    expect(payload.notes).toBe('ملاحظات الأسرة');
   });
 
   it('uses children instead of applications', () => {
