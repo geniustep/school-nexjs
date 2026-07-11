@@ -156,6 +156,12 @@ function adminNav(user: CurrentUser): NavSection[] {
       pathname.startsWith('/admin/exam-results/') ||
       /\/admin\/exams\/\d+\/results/.test(pathname),
   });
+  pushIf(learningItems, canShowAdminNavPermission(user, 'view_exams'), {
+    labelKey: 'nav.gradebooks',
+    href: '/admin/academics/assessment/gradebooks',
+    icon: '📒',
+    isActive: (pathname) => pathname.startsWith('/admin/academics/assessment/gradebooks'),
+  });
   pushSection(sections, {
     groupId: 'learning',
     titleKey: scopedNavTitle(

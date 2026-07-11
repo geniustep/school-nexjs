@@ -1063,6 +1063,7 @@
       "saveSuccess": "Saved {count} cells",
       "saveFailed": "Could not save changes",
       "actionFailed": "Action failed",
+      "narrowHint": "Score entry works best on a wider screen. Scroll horizontally to review all cells.",
       "cellScoreHint": "Max {max}",
       "cellScoreAria": "Enter score, max {max}",
       "list": {
