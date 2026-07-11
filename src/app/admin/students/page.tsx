@@ -35,6 +35,7 @@ import { statusLabel } from '@/lib/utils/labels';
 import { getStudentDisplayName } from '@/lib/utils/student';
 import type { Student } from '@/types/student';
 import type { Level } from '@/types/class';
+import type { FeeType } from '@/types/finance';
 import '@/features/admin/students/student-360.css';
 
 function StudentAvatar({ name }: { name: string }) {
@@ -93,15 +94,12 @@ export default function AdminStudentsPage() {
   const pg = state.meta?.pagination;
 
   /** Align the service select with count cards (Backend-visible, non-empty set). */
-  const serviceFilterOptions = useMemo(() => {
+  const serviceFilterOptions = useMemo((): FeeType[] => {
     if (serviceCounts.initialLoading) return feeTypes;
-    const allowed = new Set(feeTypes.map((ft) => ft.id));
+    const byId = new Map(feeTypes.map((ft) => [ft.id, ft]));
     return serviceCounts.items
-      .filter((item) => allowed.size === 0 || allowed.has(item.service_id))
-      .map((item) => {
-        const fromFee = feeTypes.find((ft) => ft.id === item.service_id);
-        return fromFee ?? { id: item.service_id, name: item.name, code: item.code ?? undefined };
-      });
+      .map((item) => byId.get(item.service_id))
+      .filter((ft): ft is FeeType => ft != null);
   }, [feeTypes, serviceCounts.initialLoading, serviceCounts.items]);
 
   useEffect(() => {
