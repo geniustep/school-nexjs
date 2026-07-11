@@ -9,7 +9,12 @@ import { useState } from 'react';
 import { useToast } from '@/components/ui/toast';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { useT } from '@/features/i18n/locale-context';
-import type { GradebookAllowedActions, GradebookLifecycleAction } from '@/types/gradebook';
+import type { ApiResponse } from '@/types/api';
+import type {
+  GradebookAllowedActions,
+  GradebookDetail,
+  GradebookLifecycleAction,
+} from '@/types/gradebook';
 import {
   GRADEBOOK_LIFECYCLE_ACTIONS,
   GRADEBOOK_SENSITIVE_ACTIONS,
@@ -30,17 +35,24 @@ export function GradebookLifecycleActions({
   gradebookId,
   allowedActions,
   onSuccess,
+  actionCatalog = GRADEBOOK_LIFECYCLE_ACTIONS,
+  runLifecycle,
 }: {
   gradebookId: number;
   allowedActions: GradebookAllowedActions;
-  onSuccess: () => void;
+  onSuccess: (detail?: GradebookDetail) => void;
+  actionCatalog?: readonly GradebookLifecycleAction[];
+  runLifecycle?: (
+    id: number,
+    action: GradebookLifecycleAction,
+  ) => Promise<ApiResponse<GradebookDetail>>;
 }) {
   const t = useT();
   const toast = useToast();
   const [pendingAction, setPendingAction] = useState<GradebookLifecycleAction | null>(null);
   const [acting, setActing] = useState(false);
 
-  const visibleActions = GRADEBOOK_LIFECYCLE_ACTIONS.filter((action) =>
+  const visibleActions = actionCatalog.filter((action) =>
     hasGradebookAllowedAction(allowedActions, action),
   );
 
@@ -48,12 +60,14 @@ export function GradebookLifecycleActions({
 
   async function runAction(action: GradebookLifecycleAction) {
     setActing(true);
-    const res = await postAdminGradebookLifecycle(gradebookId, action);
+    const res = runLifecycle
+      ? await runLifecycle(gradebookId, action)
+      : await postAdminGradebookLifecycle(gradebookId, action);
     setActing(false);
     if (res.success) {
       toast.success(t('admin.actionSuccess'));
       setPendingAction(null);
-      onSuccess();
+      onSuccess(res.data);
       return;
     }
     toast.error(res.error.message || t('admin.gradebooks.actionFailed'));

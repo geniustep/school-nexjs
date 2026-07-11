@@ -675,7 +675,27 @@
     "noResultsYet": "No results yet",
     "noAttendanceToday": "No attendance record for today",
     "attendancePendingHint": "This pupil's attendance has not been recorded today yet.",
-    "openClassHub": "Class hub"
+    "openClassHub": "Class hub",
+    "gradebooks": {
+      "listTitle": "My continuous assessment gradebooks",
+      "listSubtitle": "Gradebooks assigned to you for score entry",
+      "detailTitle": "Gradebook workspace",
+      "list": {
+        "subtitleWithCount": "{total} assigned gradebooks",
+        "noData": {
+          "title": "No gradebooks assigned",
+          "description": "When a continuous assessment gradebook is assigned to you, it will appear here."
+        }
+      },
+      "empty": {
+        "noRoster": {
+          "description": "The student roster is not ready yet. Contact your school administration."
+        },
+        "notOpen": {
+          "description": "This gradebook is not open for entry yet. Contact your school administration."
+        }
+      }
+    }
   },
   "actions": {
     "attendance": "Attendance",

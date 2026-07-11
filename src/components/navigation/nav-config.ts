@@ -253,6 +253,12 @@ function teacherNav(): NavSection[] {
             pathname.startsWith('/teacher/exam-results/') ||
             /\/teacher\/exams\/\d+\/results/.test(pathname),
         },
+        {
+          labelKey: 'nav.gradebooks',
+          href: '/teacher/assessment/gradebooks',
+          icon: '📒',
+          isActive: (pathname) => pathname.startsWith('/teacher/assessment/gradebooks'),
+        },
         { labelKey: 'nav.submissions', href: '/teacher/submissions', icon: '📥' },
       ],
     },
