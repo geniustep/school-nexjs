@@ -136,6 +136,12 @@ error
 
 ## 4bis. Finance Design Adoption — الحالة الحالية
 
+```txt
+Finance Safe Surfaces: COMPLETE
+```
+
+هذا يعني إغلاق الأسطح الآمنة (list/shell chrome) فقط — وليس اعتماد كل Finance workflows.
+
 | Surface | Route | Status | Notes |
 |---|---|---|---|
 | Billing Accounts list | `/admin/finance/billing-accounts` | ADOPTED | Cluster 1 — `60a52b5` |
@@ -144,11 +150,13 @@ error
 | Credit Balances list | `/admin/finance/credit-balances` | ADOPTED | Cluster 1 — `60a52b5` |
 | Receipts list | `/admin/finance/receipts` | ADOPTED | Cluster 2 — `92f5d96` |
 | Cheques list | `/admin/finance/cheques` | ADOPTED | Cluster 2 — `92f5d96` |
-| Fee Plans list/workspace chrome | `/admin/finance/fee-plans` | ADOPTED | Cluster 3 partial — `origin/dev` @ `style(finance): adopt fee plans workspace design`; **assign wizard remains outside adopted scope** |
+| Fee Plans list/workspace chrome | `/admin/finance/fee-plans` | ADOPTED | Cluster 3 — assign wizard remains outside adopted scope |
 | Services / Tariffs | `/admin/finance/services` | ADOPTED | Cluster 3 — `ServicesPanel` list/form chrome; deprecated `ServicesTariffsPanel` shim remains outside adopted scope |
-| Collections list shell | `/admin/finance/collections` | ADOPTED | Cluster 4 partial — `CollectionsListPanel` list chrome only; **collection wizard / family allocation / review / reverse / discard workflows remain outside adopted scope** |
-| Cash Desk Sessions List | `/admin/finance/cash-desk/sessions` | ADOPTED | Cluster 5 partial — `CashDeskSessionsListPanel` list chrome only; **Cash Desk open/close/reopen / difference approval / collection gate / closure PDF remain outside adopted scope** |
-| Agreements list shell | `/admin/finance/agreements` | ADOPTED | Cluster 5 partial — `AgreementsListPanel` + `FinanceAgreementsSchoolPanel` list chrome only; **agreement detail / amendments / contract mutations remain outside adopted scope** |
+| Collections list shell | `/admin/finance/collections` | ADOPTED | Cluster 4 — list chrome only; wizard / family allocation / review / reverse / discard remain outside adopted scope |
+| Cash Desk Sessions List | `/admin/finance/cash-desk/sessions` | ADOPTED | Cluster 5 — list chrome only; open/close/reopen lifecycle remains outside adopted scope |
+| Agreements list shell | `/admin/finance/agreements` | ADOPTED | Cluster 5 — list chrome only; detail / amendments remain outside adopted scope |
+| Finance Hub | `/admin/finance` | LOW_PRIORITY_ACCEPTABLE | Not adopted |
+| Student Fees Gateway | `/admin/finance/student-fees` | DEFER_PARALLEL_WORK | Not adopted |
 
 ---
 
@@ -158,33 +166,22 @@ error
 
 #### Finance
 
-القطاع المالي كان يحتوي عملًا موازيًا أثناء إغلاق Core، لذلك لم يدخل في Core Adoption.
-
-الحالة الحالية:
-
-```txt
-Finance Core Audit completed
-Finance adoption roadmap defined
-Cluster execution proceeds separately
-```
-
-الأسطح ذات العمل الموازي المثبت أثناء Audit:
-
-- Collections family workflow.
-- Student Fees gateway touches via student search/types.
+- Student Fees Gateway (`/admin/finance/student-fees`) — coupling مع student search/finance types ما زال قائمًا.
 
 ### 5.2 DEFER_CONTRACT_OR_WORKFLOW
 
 - Academic Setup workflows.
 - School Branding.
-- Installments financial semantics beyond list chrome.
-- Agreements detail/amendments.
+- Collection Wizard.
+- Family Allocation/Review workflow.
+- Receipt reverse sensitive workflow.
+- Cheque lifecycle host/dialogs/transitions.
+- Credit Apply/Allocation drawers.
+- Cash Desk open/close/reopen lifecycle.
+- Agreement detail/amendments.
 - Fee Plan assign workflow.
-- Cash Desk lifecycle.
-- Student 360 finance.
-- Receipt reverse actions.
-- Cheque lifecycle transitions.
-- Credit apply/allocation workflows.
+- Student 360 finance workflows.
+- Installments financial semantics beyond list chrome.
 
 ### 5.3 LOW_PRIORITY_ACCEPTABLE
 
@@ -274,12 +271,13 @@ some local post-filtering
 
 ```txt
 Raqeem Design System Core = COMPLETE
+Finance Safe Surfaces = COMPLETE
 ```
 
-العمل المستقبلي ليس إعادة فتح Core، بل:
+العمل المستقبلي ليس إعادة فتح Core أو إعادة اعتماد الأسطح الآمنة، بل:
 
 ```txt
-Finance Design Adoption
+Deferred finance workflows (عند الحاجة فقط)
 → Academic Setup Design Adoption
 → School Branding Adoption
 → Detail/Create flows تدريجيًا عند لمسها
