@@ -1203,7 +1203,26 @@
         "chipCycle": "Ciclo: {cycle}",
         "chipLevel": "Nivel: {level}",
         "chipClass": "Clase: {className}",
-        "chipStatus": "Estado: {status}"
+        "chipStatus": "Estado: {status}",
+        "service": "Servicio",
+        "allServices": "Todos los servicios",
+        "servicePresence": "Estado del servicio",
+        "serviceHas": "Tiene el servicio",
+        "serviceNotHas": "No tiene el servicio",
+        "chipService": "Servicio: {service}",
+        "chipServicePresence": "Estado: {presence}"
+      },
+      "serviceCounts": {
+        "title": "Servicios asignados a los alumnos",
+        "hint": "Elija un servicio para ver los alumnos vinculados.",
+        "allStudents": "Todos los alumnos",
+        "selected": "Seleccionado",
+        "hasCountLabel": "Tienen este servicio: {count}",
+        "notHasFilterBadge": "Filtro actual: no tiene el servicio",
+        "showAll": "Mostrar todos los servicios ({count})",
+        "showLess": "Mostrar menos",
+        "error": "No se pudieron cargar los conteos de servicios. Puede seguir usando la lista.",
+        "retry": "Reintentar"
       }
     },
     "search": "Buscar",

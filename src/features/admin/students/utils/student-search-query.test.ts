@@ -94,6 +94,55 @@ describe('buildStudentsListQueryParams', () => {
       }).search,
     ).toBeUndefined();
   });
+
+  it('includes financial service filter contract params', () => {
+    expect(
+      buildStudentsListQueryParams({
+        search: '',
+        classId: '',
+        levelId: '3',
+        statusFilter: '',
+        accountFilter: '',
+        serviceId: '42',
+        servicePresence: 'has',
+        page: 1,
+      }),
+    ).toMatchObject({
+      service_id: '42',
+      service_presence: 'has',
+      level_id: '3',
+      page: 1,
+    });
+
+    expect(
+      buildStudentsListQueryParams({
+        search: '',
+        classId: '',
+        levelId: '',
+        statusFilter: '',
+        accountFilter: '',
+        serviceId: '42',
+        servicePresence: 'not_has',
+        page: 1,
+      }),
+    ).toMatchObject({
+      service_id: '42',
+      service_presence: 'not_has',
+    });
+
+    expect(
+      buildStudentsListQueryParams({
+        search: '',
+        classId: '',
+        levelId: '',
+        statusFilter: '',
+        accountFilter: '',
+        serviceId: '',
+        servicePresence: 'has',
+        page: 1,
+      }).service_id,
+    ).toBeUndefined();
+  });
 });
 
 describe('buildStudentSearchQueryParams', () => {

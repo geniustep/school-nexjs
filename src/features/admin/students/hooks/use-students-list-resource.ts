@@ -30,6 +30,8 @@ async function fetchAllStudentsForLevel(
     levelId: String(levelId),
     statusFilter: filters.statusFilter,
     accountFilter: filters.accountFilter,
+    serviceId: filters.serviceId,
+    servicePresence: filters.servicePresence,
     page: 1,
   });
 
@@ -100,6 +102,8 @@ export function useStudentsListResource(
         classId: filters.classId,
         statusFilter: filters.statusFilter,
         accountFilter: filters.accountFilter,
+        serviceId: filters.serviceId,
+        servicePresence: filters.servicePresence,
         levelIds: cycleLevelIds,
         schoolId: safeActiveSchoolId,
         nonce: clientNonce,
@@ -110,6 +114,8 @@ export function useStudentsListResource(
       filters.classId,
       filters.statusFilter,
       filters.accountFilter,
+      filters.serviceId,
+      filters.servicePresence,
       cycleLevelIds,
       safeActiveSchoolId,
       clientNonce,

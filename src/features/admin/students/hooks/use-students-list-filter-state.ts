@@ -94,6 +94,54 @@ export function useStudentsListFilterState() {
     [pushUrl],
   );
 
+  const setServiceId = useCallback(
+    (value: string) => {
+      const serviceId = value.trim();
+      if (!serviceId) {
+        pushUrl({ serviceId: '', servicePresence: '', page: 1 });
+        return;
+      }
+      pushUrl({
+        serviceId,
+        servicePresence: urlState.servicePresence || 'has',
+        page: 1,
+      });
+    },
+    [pushUrl, urlState.servicePresence],
+  );
+
+  /** Count-card select: always `has`. Second click on the active card clears the filter. */
+  const selectServiceHas = useCallback(
+    (value: string) => {
+      const serviceId = value.trim();
+      if (!serviceId) {
+        pushUrl({ serviceId: '', servicePresence: '', page: 1 });
+        return;
+      }
+      if (urlState.serviceId === serviceId) {
+        pushUrl({ serviceId: '', servicePresence: '', page: 1 });
+        return;
+      }
+      pushUrl({ serviceId, servicePresence: 'has', page: 1 });
+    },
+    [pushUrl, urlState.serviceId],
+  );
+
+  const clearServiceFilter = useCallback(() => {
+    pushUrl({ serviceId: '', servicePresence: '', page: 1 });
+  }, [pushUrl]);
+
+  const setServicePresence = useCallback(
+    (value: StudentsListFilterValues['servicePresence']) => {
+      if (!urlState.serviceId) return;
+      pushUrl({
+        servicePresence: value === 'not_has' ? 'not_has' : 'has',
+        page: 1,
+      });
+    },
+    [pushUrl, urlState.serviceId],
+  );
+
   const setPage = useCallback(
     (page: number) => {
       pushUrl({ page });
@@ -114,6 +162,8 @@ export function useStudentsListFilterState() {
       classId: urlState.classId,
       statusFilter: urlState.statusFilter,
       accountFilter: urlState.accountFilter,
+      serviceId: urlState.serviceId,
+      servicePresence: urlState.servicePresence,
       page: urlState.page,
     }),
     [urlState],
@@ -130,6 +180,8 @@ export function useStudentsListFilterState() {
         classId: urlState.classId,
         statusFilter: urlState.statusFilter,
         accountFilter: urlState.accountFilter,
+        serviceId: urlState.serviceId,
+        servicePresence: urlState.servicePresence,
       }),
     [searchDraft, urlState],
   );
@@ -142,6 +194,8 @@ export function useStudentsListFilterState() {
     classId: urlState.classId,
     statusFilter: urlState.statusFilter,
     accountFilter: urlState.accountFilter,
+    serviceId: urlState.serviceId,
+    servicePresence: urlState.servicePresence,
     page: urlState.page,
     setSearch,
     clearSearch,
@@ -150,6 +204,10 @@ export function useStudentsListFilterState() {
     setClassId,
     setStatusFilter,
     setAccountFilter,
+    setServiceId,
+    selectServiceHas,
+    clearServiceFilter,
+    setServicePresence,
     setPage,
     resetFilters,
     hasActiveQuery,

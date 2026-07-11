@@ -25,6 +25,7 @@ export const endpoints = {
 
     students: '/admin/students',
     studentsOptions: '/admin/students/options',
+    studentsFinancialServiceCounts: '/admin/students/financial-service-counts',
     student: (id: number | string) => `/admin/students/${id}`,
     studentOverview: (id: number | string) => `/admin/students/${id}/overview`,
     studentUpdate: (id: number | string) => `/admin/students/${id}/update`,

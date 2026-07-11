@@ -17,12 +17,16 @@ export const STUDENT_LIST_PAGE_SIZE = 20;
 
 export const ADMIN_STUDENTS_SEARCH_PATH = endpoints.admin.students;
 
+export type StudentsListServicePresenceFilter = 'has' | 'not_has' | '';
+
 export type StudentsListSearchFilters = {
   search: string;
   classId: string;
   levelId: string;
   statusFilter: string;
   accountFilter: string;
+  serviceId?: string;
+  servicePresence?: StudentsListServicePresenceFilter;
   page: number;
 };
 
@@ -61,9 +65,17 @@ export function buildStudentsListQueryParams(
   status?: string;
   has_account?: string;
   account_status?: string;
+  service_id?: string;
+  service_presence?: 'has' | 'not_has';
 } {
   const search = normalizeStudentSearchQuery(filters.search);
   const accountFilter = filters.accountFilter;
+  const serviceId = filters.serviceId?.trim() ?? '';
+  const hasService = /^\d+$/.test(serviceId);
+  const presence =
+    filters.servicePresence === 'not_has' || filters.servicePresence === 'has'
+      ? filters.servicePresence
+      : 'has';
 
   return {
     page: filters.page,
@@ -79,6 +91,8 @@ export function buildStudentsListQueryParams(
           ? 'false'
           : undefined,
     account_status: accountFilter === 'inactive_account' ? 'inactive' : undefined,
+    service_id: hasService ? serviceId : undefined,
+    service_presence: hasService ? presence : undefined,
   };
 }
 

@@ -17,9 +17,11 @@ import {
   sortCyclesForFilter,
   sortSchoolClassesForFilter,
 } from '../utils/students-list-filter-options';
+import type { StudentsListServicePresence } from '../utils/students-list-url';
 import { StudentsListSearchField } from './students-list-search-field';
 import { useT } from '@/features/i18n/locale-context';
 import type { Level, SchoolClass } from '@/types/class';
+import type { FeeType } from '@/types/finance';
 
 export type StudentsListFiltersState = {
   search: string;
@@ -28,6 +30,8 @@ export type StudentsListFiltersState = {
   classId: string;
   statusFilter: string;
   accountFilter: string;
+  serviceId: string;
+  servicePresence: StudentsListServicePresence | '';
 };
 
 export function StudentsListFilters({
@@ -37,8 +41,12 @@ export function StudentsListFilters({
   classId,
   statusFilter,
   accountFilter,
+  serviceId,
+  servicePresence,
   levels,
   classes,
+  feeTypes,
+  feeTypesLoading,
   hasActiveFilters,
   onSearchChange,
   onSearchClear,
@@ -47,10 +55,14 @@ export function StudentsListFilters({
   onClassIdChange,
   onStatusFilterChange,
   onAccountFilterChange,
+  onServiceIdChange,
+  onServicePresenceChange,
   onReset,
 }: StudentsListFiltersState & {
   levels: Level[];
   classes: SchoolClass[];
+  feeTypes: FeeType[];
+  feeTypesLoading?: boolean;
   hasActiveFilters: boolean;
   onSearchChange: (value: string) => void;
   onSearchClear: () => void;
@@ -59,6 +71,8 @@ export function StudentsListFilters({
   onClassIdChange: (value: string) => void;
   onStatusFilterChange: (value: string) => void;
   onAccountFilterChange: (value: string) => void;
+  onServiceIdChange: (value: string) => void;
+  onServicePresenceChange: (value: StudentsListServicePresence) => void;
   onReset: () => void;
 }) {
   const t = useT();
@@ -75,6 +89,17 @@ export function StudentsListFilters({
   const classesForLevel = useMemo(
     () => sortSchoolClassesForFilter(filterSchoolClassesByLevel(classes, levelId)),
     [classes, levelId],
+  );
+
+  const sortedFeeTypes = useMemo(
+    () =>
+      [...feeTypes].sort((a, b) => {
+        const seqA = a.sequence ?? Number.MAX_SAFE_INTEGER;
+        const seqB = b.sequence ?? Number.MAX_SAFE_INTEGER;
+        if (seqA !== seqB) return seqA - seqB;
+        return (a.name ?? '').localeCompare(b.name ?? '', undefined, { sensitivity: 'base' });
+      }),
+    [feeTypes],
   );
 
   useEffect(() => {
@@ -119,6 +144,12 @@ export function StudentsListFilters({
     return cls ? studentClassLabel(cls) : null;
   }, [classId, classesForLevel]);
 
+  const selectedServiceLabel = useMemo(() => {
+    if (!serviceId) return null;
+    const feeType = sortedFeeTypes.find((item) => String(item.id) === serviceId);
+    return feeType?.name?.trim() || null;
+  }, [serviceId, sortedFeeTypes]);
+
   function handleCycleChange(nextCycleCode: string) {
     onCycleCodeChange(nextCycleCode);
     if (levelId && !isLevelInCycle(levelId, levels, nextCycleCode)) {
@@ -134,13 +165,21 @@ export function StudentsListFilters({
     }
   }
 
+  function handleServiceChange(nextServiceId: string) {
+    onServiceIdChange(nextServiceId);
+  }
+
+  const effectivePresence: StudentsListServicePresence =
+    servicePresence === 'not_has' ? 'not_has' : 'has';
+
   const hasMoreActive = !!accountFilter;
   const hasStructuredActive = !!(
     cycleCode ||
     levelId ||
     classId ||
     statusFilter ||
-    accountFilter
+    accountFilter ||
+    serviceId
   );
 
   return (
@@ -214,6 +253,37 @@ export function StudentsListFilters({
           <option value="active">{t('states.active')}</option>
           <option value="suspended">{t('states.suspended')}</option>
         </select>
+
+        <select
+          className="input students-list-filters__service"
+          value={serviceId}
+          onChange={(event) => handleServiceChange(event.target.value)}
+          aria-label={t('admin.studentsList.filters.service')}
+          disabled={feeTypesLoading && sortedFeeTypes.length === 0}
+        >
+          <option value="">{t('admin.studentsList.filters.allServices')}</option>
+          {sortedFeeTypes.map((feeType) => (
+            <option key={feeType.id} value={feeType.id}>
+              {feeType.name}
+            </option>
+          ))}
+        </select>
+
+        {serviceId ? (
+          <select
+            className="input students-list-filters__service-presence"
+            value={effectivePresence}
+            onChange={(event) =>
+              onServicePresenceChange(
+                event.target.value === 'not_has' ? 'not_has' : 'has',
+              )
+            }
+            aria-label={t('admin.studentsList.filters.servicePresence')}
+          >
+            <option value="has">{t('admin.studentsList.filters.serviceHas')}</option>
+            <option value="not_has">{t('admin.studentsList.filters.serviceNotHas')}</option>
+          </select>
+        ) : null}
 
         <button
           type="button"
@@ -297,6 +367,30 @@ export function StudentsListFilters({
               <span aria-hidden="true">×</span>
             </button>
           ) : null}
+          {serviceId ? (
+            <button
+              type="button"
+              className="students-list-filters__chip students-list-filters__chip--action"
+              onClick={() => onServiceIdChange('')}
+            >
+              {t('admin.studentsList.filters.chipService', {
+                service: selectedServiceLabel ?? serviceId,
+              })}
+              <span aria-hidden="true">×</span>
+            </button>
+          ) : null}
+          {serviceId ? (
+            <button
+              type="button"
+              className="students-list-filters__chip students-list-filters__chip--action"
+              onClick={() => onServiceIdChange('')}
+            >
+              {t('admin.studentsList.filters.chipServicePresence', {
+                presence: servicePresenceLabel(t, effectivePresence),
+              })}
+              <span aria-hidden="true">×</span>
+            </button>
+          ) : null}
           {accountFilter ? (
             <button
               type="button"
@@ -317,6 +411,15 @@ function statusLabel(t: ReturnType<typeof useT>, status: string): string {
   if (status === 'active') return t('states.active');
   if (status === 'suspended') return t('states.suspended');
   return status;
+}
+
+function servicePresenceLabel(
+  t: ReturnType<typeof useT>,
+  presence: StudentsListServicePresence,
+): string {
+  return presence === 'not_has'
+    ? t('admin.studentsList.filters.serviceNotHas')
+    : t('admin.studentsList.filters.serviceHas');
 }
 
 function accountFilterLabel(t: ReturnType<typeof useT>, accountFilter: string): string {

@@ -1203,7 +1203,26 @@
         "chipCycle": "Cycle: {cycle}",
         "chipLevel": "Level: {level}",
         "chipClass": "Class: {className}",
-        "chipStatus": "Status: {status}"
+        "chipStatus": "Status: {status}",
+        "service": "Service",
+        "allServices": "All services",
+        "servicePresence": "Service status",
+        "serviceHas": "Has the service",
+        "serviceNotHas": "Does not have the service",
+        "chipService": "Service: {service}",
+        "chipServicePresence": "Status: {presence}"
+      },
+      "serviceCounts": {
+        "title": "Services assigned to students",
+        "hint": "Select a service to list students linked to it.",
+        "allStudents": "All students",
+        "selected": "Selected",
+        "hasCountLabel": "Have this service: {count}",
+        "notHasFilterBadge": "Current filter: does not have the service",
+        "showAll": "Show all services ({count})",
+        "showLess": "Show less",
+        "error": "Could not load service counts. You can still use the students list.",
+        "retry": "Retry"
       }
     },
     "search": "Search",

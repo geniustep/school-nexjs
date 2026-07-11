@@ -1203,7 +1203,26 @@
         "chipCycle": "السلك: {cycle}",
         "chipLevel": "المستوى: {level}",
         "chipClass": "القسم: {className}",
-        "chipStatus": "الحالة: {status}"
+        "chipStatus": "الحالة: {status}",
+        "service": "الخدمة",
+        "allServices": "كل الخدمات",
+        "servicePresence": "حالة الخدمة",
+        "serviceHas": "لديه الخدمة",
+        "serviceNotHas": "لا يملك الخدمة",
+        "chipService": "الخدمة: {service}",
+        "chipServicePresence": "الحالة: {presence}"
+      },
+      "serviceCounts": {
+        "title": "الخدمات المسندة للتلاميذ",
+        "hint": "اختر خدمة لعرض التلاميذ المرتبطين بها.",
+        "allStudents": "كل التلاميذ",
+        "selected": "محدد",
+        "hasCountLabel": "لديهم هذه الخدمة: {count}",
+        "notHasFilterBadge": "الفلتر الحالي: لا يملك الخدمة",
+        "showAll": "عرض كل الخدمات ({count})",
+        "showLess": "عرض أقل",
+        "error": "تعذّر تحميل أعداد الخدمات. يمكنك متابعة استخدام اللائحة.",
+        "retry": "إعادة المحاولة"
       }
     },
     "search": "بحث",

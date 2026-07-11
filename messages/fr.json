@@ -1203,7 +1203,26 @@
         "chipCycle": "Cycle : {cycle}",
         "chipLevel": "Niveau : {level}",
         "chipClass": "Classe : {className}",
-        "chipStatus": "Statut : {status}"
+        "chipStatus": "Statut : {status}",
+        "service": "Service",
+        "allServices": "Tous les services",
+        "servicePresence": "État du service",
+        "serviceHas": "A le service",
+        "serviceNotHas": "N'a pas le service",
+        "chipService": "Service : {service}",
+        "chipServicePresence": "État : {presence}"
+      },
+      "serviceCounts": {
+        "title": "Services attribués aux élèves",
+        "hint": "Choisissez un service pour afficher les élèves liés.",
+        "allStudents": "Tous les élèves",
+        "selected": "Sélectionné",
+        "hasCountLabel": "Ont ce service : {count}",
+        "notHasFilterBadge": "Filtre actuel : n’a pas le service",
+        "showAll": "Afficher tous les services ({count})",
+        "showLess": "Afficher moins",
+        "error": "Impossible de charger les effectifs par service. La liste reste utilisable.",
+        "retry": "Réessayer"
       }
     },
     "search": "Rechercher",

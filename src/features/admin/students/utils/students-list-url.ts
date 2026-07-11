@@ -7,6 +7,8 @@ type StudentsListRouter = {
   replace: (href: string, options?: { scroll?: boolean }) => void;
 };
 
+export type StudentsListServicePresence = 'has' | 'not_has';
+
 export type StudentsListFilterValues = {
   search: string;
   cycleCode: string;
@@ -14,6 +16,8 @@ export type StudentsListFilterValues = {
   classId: string;
   statusFilter: string;
   accountFilter: string;
+  serviceId: string;
+  servicePresence: StudentsListServicePresence | '';
   page: number;
 };
 
@@ -24,6 +28,8 @@ export const STUDENTS_LIST_DEFAULT_FILTERS: StudentsListFilterValues = {
   classId: '',
   statusFilter: '',
   accountFilter: '',
+  serviceId: '',
+  servicePresence: '',
   page: 1,
 };
 
@@ -34,6 +40,7 @@ const VALID_ACCOUNT_FILTERS = new Set([
   'no_account',
   'inactive_account',
 ]);
+const VALID_SERVICE_PRESENCE = new Set<StudentsListServicePresence>(['has', 'not_has']);
 
 function parsePage(raw: string | null): number {
   if (!raw || !/^\d+$/.test(raw)) return 1;
@@ -41,9 +48,26 @@ function parsePage(raw: string | null): number {
   return Number.isFinite(page) && page >= 1 ? page : 1;
 }
 
+function parseServiceId(raw: string | null): string {
+  if (!raw) return '';
+  const trimmed = raw.trim();
+  return /^\d+$/.test(trimmed) ? trimmed : '';
+}
+
+function parseServicePresence(raw: string | null): StudentsListServicePresence | '' {
+  if (!raw) return '';
+  return VALID_SERVICE_PRESENCE.has(raw as StudentsListServicePresence)
+    ? (raw as StudentsListServicePresence)
+    : '';
+}
+
 export function parseStudentsListUrl(searchParams: URLSearchParams): StudentsListFilterValues {
   const statusRaw = searchParams.get('status') ?? '';
   const accountRaw = searchParams.get('account') ?? '';
+  const serviceId = parseServiceId(searchParams.get('service_id'));
+  const presenceRaw = parseServicePresence(searchParams.get('service_presence'));
+  /** Presence without a service is incomplete — drop it from URL state. */
+  const servicePresence = serviceId ? presenceRaw || 'has' : '';
 
   return {
     search: searchParams.get('search')?.trim() ?? '',
@@ -52,6 +76,8 @@ export function parseStudentsListUrl(searchParams: URLSearchParams): StudentsLis
     classId: searchParams.get('class')?.trim() ?? '',
     statusFilter: VALID_STATUS_FILTERS.has(statusRaw) ? statusRaw : '',
     accountFilter: VALID_ACCOUNT_FILTERS.has(accountRaw) ? accountRaw : '',
+    serviceId,
+    servicePresence,
     page: parsePage(searchParams.get('page')),
   };
 }
@@ -59,6 +85,10 @@ export function parseStudentsListUrl(searchParams: URLSearchParams): StudentsLis
 export function buildStudentsListSearchParams(state: StudentsListFilterValues): URLSearchParams {
   const params = new URLSearchParams();
   const search = state.search.trim();
+  const serviceId = parseServiceId(state.serviceId);
+  const servicePresence = serviceId
+    ? parseServicePresence(state.servicePresence) || 'has'
+    : '';
 
   if (search) params.set('search', search);
   if (state.cycleCode) params.set('cycle', state.cycleCode);
@@ -66,6 +96,10 @@ export function buildStudentsListSearchParams(state: StudentsListFilterValues): 
   if (state.classId) params.set('class', state.classId);
   if (state.statusFilter) params.set('status', state.statusFilter);
   if (state.accountFilter) params.set('account', state.accountFilter);
+  if (serviceId) {
+    params.set('service_id', serviceId);
+    params.set('service_presence', servicePresence);
+  }
   if (state.page > 1) params.set('page', String(state.page));
 
   return params;
@@ -89,7 +123,14 @@ export function replaceStudentsListUrl(
 
 export function studentsListHasActiveQuery(state: Pick<
   StudentsListFilterValues,
-  'search' | 'cycleCode' | 'levelId' | 'classId' | 'statusFilter' | 'accountFilter'
+  | 'search'
+  | 'cycleCode'
+  | 'levelId'
+  | 'classId'
+  | 'statusFilter'
+  | 'accountFilter'
+  | 'serviceId'
+  | 'servicePresence'
 >): boolean {
   return !!(
     state.search.trim() ||
@@ -97,7 +138,8 @@ export function studentsListHasActiveQuery(state: Pick<
     state.levelId ||
     state.classId ||
     state.statusFilter ||
-    state.accountFilter
+    state.accountFilter ||
+    state.serviceId
   );
 }
 
@@ -114,6 +156,8 @@ export function studentsListToApiParams(state: StudentsListFilterValues) {
     levelId: state.levelId,
     statusFilter: state.statusFilter,
     accountFilter: state.accountFilter,
+    serviceId: state.serviceId,
+    servicePresence: state.servicePresence,
     page: state.page,
   };
   return buildStudentsListQueryParams(filters);

@@ -5,7 +5,7 @@
  * @design-status adopted
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
@@ -18,9 +18,13 @@ import { CsvImportPanel } from '@/features/admin/csv-import-panel';
 import { studentClassLabel, studentLevelLabel } from '@/features/admin/students/utils/student-academic-labels';
 import { useStudentsListFilterState } from '@/features/admin/students/hooks/use-students-list-filter-state';
 import { useStudentsListResource } from '@/features/admin/students/hooks/use-students-list-resource';
+import { useStudentsFinancialServiceCounts } from '@/features/admin/students/hooks/use-students-financial-service-counts';
+import { useStudentsListFeeTypeOptions } from '@/features/admin/students/hooks/use-students-list-fee-type-options';
 import { useStudentsListView } from '@/features/admin/students/hooks/use-students-list-view';
 import { StudentsKanban } from '@/features/admin/students/components/students-kanban';
 import { StudentsListFilters } from '@/features/admin/students/components/students-list-filters';
+import { StudentsFinancialServiceCountCards } from '@/features/admin/students/components/students-financial-service-count-cards';
+import { isStaleStudentsListServiceSelection } from '@/features/admin/students/utils/students-list-service-visibility';
 import { useSession } from '@/features/auth/session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
@@ -59,6 +63,8 @@ export default function AdminStudentsPage() {
     classId,
     statusFilter,
     accountFilter,
+    serviceId,
+    servicePresence,
     setSearch,
     clearSearch,
     setCycleCode,
@@ -66,6 +72,10 @@ export default function AdminStudentsPage() {
     setClassId,
     setStatusFilter,
     setAccountFilter,
+    setServiceId,
+    selectServiceHas,
+    clearServiceFilter,
+    setServicePresence,
     setPage,
     resetFilters,
     hasActiveQuery,
@@ -77,8 +87,43 @@ export default function AdminStudentsPage() {
 
   const classesState = useAdminResource<import('@/types/class').SchoolClass[]>(endpoints.admin.classes);
   const levelsState = useAdminResource<Level[]>(endpoints.admin.levels);
+  const { feeTypes, loading: feeTypesLoading } = useStudentsListFeeTypeOptions();
   const state = useStudentsListResource(appliedQuery, levelsState.data, levelsState.loading);
+  const serviceCounts = useStudentsFinancialServiceCounts(appliedQuery);
   const pg = state.meta?.pagination;
+
+  /** Align the service select with count cards (Backend-visible, non-empty set). */
+  const serviceFilterOptions = useMemo(() => {
+    if (serviceCounts.initialLoading) return feeTypes;
+    const allowed = new Set(feeTypes.map((ft) => ft.id));
+    return serviceCounts.items
+      .filter((item) => allowed.size === 0 || allowed.has(item.service_id))
+      .map((item) => {
+        const fromFee = feeTypes.find((ft) => ft.id === item.service_id);
+        return fromFee ?? { id: item.service_id, name: item.name, code: item.code ?? undefined };
+      });
+  }, [feeTypes, serviceCounts.initialLoading, serviceCounts.items]);
+
+  useEffect(() => {
+    if (!serviceId) return;
+    const feeTypesLoaded = !feeTypesLoading;
+    const countsLoaded = !serviceCounts.initialLoading;
+    if (!feeTypesLoaded && !countsLoaded) return;
+    const stale = isStaleStudentsListServiceSelection(serviceId, {
+      feeTypesLoaded,
+      feeTypeIds: feeTypes.map((ft) => ft.id),
+      countsLoaded,
+      countServiceIds: serviceCounts.items.map((item) => item.service_id),
+    });
+    if (stale) clearServiceFilter();
+  }, [
+    serviceId,
+    feeTypes,
+    feeTypesLoading,
+    serviceCounts.initialLoading,
+    serviceCounts.items,
+    clearServiceFilter,
+  ]);
 
   const listEmptyState = hasActiveQuery ? (
     <EmptyState
@@ -209,6 +254,19 @@ export default function AdminStudentsPage() {
         />
       ) : null}
 
+      <StudentsFinancialServiceCountCards
+        items={serviceCounts.items}
+        totalStudents={serviceCounts.totalStudents}
+        initialLoading={serviceCounts.initialLoading}
+        fetching={serviceCounts.fetching}
+        error={serviceCounts.error}
+        serviceId={serviceId}
+        servicePresence={servicePresence}
+        onSelectAll={clearServiceFilter}
+        onSelectService={selectServiceHas}
+        onRetry={serviceCounts.reload}
+      />
+
       <div className="students-list__toolbar-wrap">
         <StudentsListFilters
           search={search}
@@ -217,8 +275,12 @@ export default function AdminStudentsPage() {
           classId={classId}
           statusFilter={statusFilter}
           accountFilter={accountFilter}
+          serviceId={serviceId}
+          servicePresence={servicePresence}
           levels={levelsState.data ?? []}
           classes={classesState.data ?? []}
+          feeTypes={serviceFilterOptions}
+          feeTypesLoading={feeTypesLoading || serviceCounts.initialLoading}
           hasActiveFilters={hasActiveFilters}
           onSearchChange={setSearch}
           onSearchClear={clearSearch}
@@ -227,6 +289,8 @@ export default function AdminStudentsPage() {
           onClassIdChange={setClassId}
           onStatusFilterChange={setStatusFilter}
           onAccountFilterChange={setAccountFilter}
+          onServiceIdChange={setServiceId}
+          onServicePresenceChange={setServicePresence}
           onReset={resetFilters}
         />
 
