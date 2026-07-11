@@ -10,6 +10,12 @@ import {
 } from './admission-limited-patch';
 import { buildSiblingLinesPayload, normalizeSiblingLines } from './sibling-lines';
 import type { AdmissionCreateFormState } from './admission-create-payload';
+import {
+  deriveLegacyGuardianFields,
+  hydrateAdmissionGuardians,
+  serializeGuardiansPayload,
+} from '@/features/admin/admissions/guardians';
+import { syncLegacyGuardianFieldsFromDrafts } from './admission-create-payload';
 
 export interface AdmissionEditFormState extends AdmissionCreateFormState {
   guardian_whatsapp: string;
@@ -101,6 +107,18 @@ export function admissionDetailToEditForm(
     childLastNameAr = fromFullName.lastName;
   }
 
+  const guardians = hydrateAdmissionGuardians({
+    guardians: detail.guardians,
+    legacyFlat: {
+      guardian_name: detail.guardian_name,
+      guardian_phone: detail.guardian_phone,
+      guardian_whatsapp: detail.guardian_whatsapp,
+      guardian_email: detail.guardian_email,
+      relationship: detail.relationship,
+    },
+  });
+  const legacySync = syncLegacyGuardianFieldsFromDrafts(guardians);
+
   return {
     child_first_name_ar: childFirstNameAr,
     child_last_name_ar: childLastNameAr,
@@ -132,11 +150,12 @@ export function admissionDetailToEditForm(
     actual_join_date: '',
     is_repeating: false,
     registration_notes: '',
-    guardian_name: editFieldText(detail.guardian_name),
-    guardian_phone: editFieldText(detail.guardian_phone),
-    guardian_whatsapp: editFieldText(detail.guardian_whatsapp),
-    guardian_relationship: editFieldText(detail.relationship),
-    guardian_email: editFieldText(detail.guardian_email),
+    guardians,
+    guardian_name: legacySync.guardian_name,
+    guardian_phone: legacySync.guardian_phone,
+    guardian_whatsapp: editFieldText(detail.guardian_whatsapp) || (deriveLegacyGuardianFields(guardians).guardian_whatsapp ?? ''),
+    guardian_relationship: legacySync.guardian_relationship,
+    guardian_email: legacySync.guardian_email,
     source_id: resolveRefId(detail.source),
     first_contact_date: toDateInputValue(detail.first_contact_date),
     next_action: editFieldText(detail.next_action),
@@ -159,6 +178,21 @@ export function buildPatchAdmissionPayload(
   );
 
   const siblingLines = buildSiblingLinesPayload(form.sibling_lines);
+  // Keep primary guardian draft aligned with limited edit intake fields.
+  const syncedGuardians = form.guardians.map((g) =>
+    g.isPrimaryContact
+      ? {
+          ...g,
+          name: form.guardian_name.trim() || g.name,
+          phone: form.guardian_phone.trim() || g.phone,
+          whatsapp: form.guardian_whatsapp.trim() || g.whatsapp,
+          email: form.guardian_email.trim() || g.email,
+          relationship: form.guardian_relationship || g.relationship,
+        }
+      : g,
+  );
+  const legacy = deriveLegacyGuardianFields(syncedGuardians);
+  const guardians = serializeGuardiansPayload(syncedGuardians, { mode: 'individual' });
 
   const payload: PatchAdmissionPayload = {
     child_first_name_ar: form.child_first_name_ar.trim() || undefined,
@@ -177,10 +211,11 @@ export function buildPatchAdmissionPayload(
     academic_year_id: form.academic_year_id,
     source_id: form.source_id,
     requested_level_id: form.requested_level_id,
-    guardian_phone: form.guardian_phone.trim() || undefined,
-    guardian_whatsapp: form.guardian_whatsapp.trim() || undefined,
-    guardian_relationship: form.guardian_relationship || undefined,
-    relationship: form.guardian_relationship || undefined,
+    guardian_phone: legacy.guardian_phone || form.guardian_phone.trim() || undefined,
+    guardian_whatsapp: legacy.guardian_whatsapp || form.guardian_whatsapp.trim() || undefined,
+    guardian_relationship: legacy.guardian_relationship || form.guardian_relationship || undefined,
+    relationship: legacy.relationship || form.guardian_relationship || undefined,
+    guardians,
     next_action: form.next_action.trim() || undefined,
     next_action_date: form.next_action_date || undefined,
   };

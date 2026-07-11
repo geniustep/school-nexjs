@@ -7,6 +7,7 @@ import type {
   CreateFamilyBatchPayload,
   FamilyBatchCreateResponse,
   FamilyBatchDetail,
+  PatchFamilyBatchGuardiansPayload,
 } from '@/types/admission';
 import {
   normalizeFamilyBatchCreateData,
@@ -164,6 +165,47 @@ export async function fetchFamilyBatchDetail(
       credentials: 'same-origin',
       cache: 'no-store',
     });
+    const parsed = await parseWithStatus<FamilyBatchDetail>(res);
+    if (parsed.response.success && parsed.response.data) {
+      return {
+        ...parsed.response,
+        data: normalizeFamilyBatchDetail(parsed.response.data),
+      };
+    }
+    return parsed.response;
+  } catch {
+    return {
+      success: false,
+      error: {
+        code: 'network_error',
+        message: 'Could not reach the server. Please check your connection.',
+        details: {},
+      },
+      meta: {},
+    };
+  }
+}
+
+/**
+ * PATCH /admin/admissions/family-batches/{batch_id}/guardians
+ * Full replacement of guardian relationships for the family batch.
+ */
+export async function patchFamilyBatchGuardians(
+  batchId: number | string,
+  payload: PatchFamilyBatchGuardiansPayload,
+  query?: ListParams,
+): Promise<ApiResponse<FamilyBatchDetail>> {
+  try {
+    const res = await fetch(
+      buildUrl(endpoints.admin.admissionFamilyBatchGuardians(batchId), query),
+      {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        credentials: 'same-origin',
+        cache: 'no-store',
+        body: JSON.stringify(payload),
+      },
+    );
     const parsed = await parseWithStatus<FamilyBatchDetail>(res);
     if (parsed.response.success && parsed.response.data) {
       return {

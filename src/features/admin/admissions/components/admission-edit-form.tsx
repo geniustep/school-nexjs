@@ -15,7 +15,6 @@ import {
   EnrollmentIntakeAcademicFields,
   EnrollmentIntakeAdmissionExtrasFields,
   EnrollmentIntakeFollowUpFields,
-  EnrollmentIntakeGuardianFields,
   EnrollmentIntakeIdentityFields,
   EnrollmentIntakeSiblingsFields,
 } from '@/features/admin/enrollment-intake/enrollment-intake-fields';
@@ -24,6 +23,13 @@ import {
   patchAdmissionFormFromIntake,
 } from '@/features/admin/enrollment-intake/mappers';
 import type { EnrollmentIntakePatch } from '@/features/admin/enrollment-intake/types';
+import {
+  AdmissionGuardiansSection,
+  validateGuardiansDraft,
+  type GuardianDraft,
+} from '@/features/admin/admissions/guardians';
+import { syncLegacyGuardianFieldsFromDrafts } from '../utils/admission-create-payload';
+import { hasFamilyBatchLink } from '../utils/family-admission-visibility';
 import { patchAdmission } from '../api/admissions-api';
 import { useAdmissionOptions } from '../hooks/use-admission-options';
 import {
@@ -194,13 +200,29 @@ export function AdmissionEditForm({
     setForm((prev) => (prev ? { ...prev, ...patchEditFormFromIntake(patch) } : prev));
   }
 
-  function patchExtra(patch: Partial<AdmissionEditFormState>) {
-    setForm((prev) => (prev ? { ...prev, ...patch } : prev));
+  function handleGuardiansChange(next: GuardianDraft[]) {
+    setForm((prev) =>
+      prev
+        ? {
+            ...prev,
+            guardians: next,
+            ...syncLegacyGuardianFieldsFromDrafts(next),
+          }
+        : prev,
+    );
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (activeSchoolId == null || !form) return;
+
+    if (!hasFamilyBatchLink(detail)) {
+      const guardiansError = validateGuardiansDraft(form.guardians, { mode: 'individual' });
+      if (guardiansError) {
+        setError(t(guardiansError.messageKey));
+        return;
+      }
+    }
 
     if (form.has_siblings) {
       const siblingError = validateSiblingLinesLinkedStudents(form.sibling_lines, t);
@@ -306,35 +328,25 @@ export function AdmissionEditForm({
 
       <StudentCreateStyledSection
         icon="guardian"
-        title={t('admin.admissions.create.guardianSection')}
-        lead={t('admin.admissions.create.guardianSectionLead')}
+        title={t('admin.admissions.guardians.sectionTitle')}
+        lead={
+          hasFamilyBatchLink(detail)
+            ? t('admin.admissions.family.guardiansEdit.useFamilyEditor')
+            : t('admin.admissions.guardians.sectionLead')
+        }
         className="student-create-form__section--guardian"
       >
-        <EnrollmentIntakeGuardianFields
-          values={intakeValues}
-          onPatch={handleIntakePatch}
-          intakeContext="admissionEdit"
-          guardian={{
-            relationships: admissionOptionsState.options?.relationships ?? [],
-            relationshipsLoading: admissionOptionsState.loading,
-            relationshipLoadFailed,
-          }}
-        />
-        <div className="student-create-form__grid">
-          <div className="student-create-form__cell">
-            <label className="student-create-field">
-              <span className="student-create-field__label">
-                {t('admin.admissions.fields.guardianWhatsapp')}
-              </span>
-              <input
-                className="input"
-                dir="ltr"
-                value={form.guardian_whatsapp}
-                onChange={(e) => patchExtra({ guardian_whatsapp: e.target.value })}
-              />
-            </label>
-          </div>
-        </div>
+        {hasFamilyBatchLink(detail) ? null : (
+          <AdmissionGuardiansSection
+            mode="individual"
+            guardians={form.guardians}
+            onChange={handleGuardiansChange}
+            relationships={admissionOptionsState.options?.relationships ?? []}
+            relationshipsLoading={admissionOptionsState.loading}
+            relationshipLoadFailed={relationshipLoadFailed}
+            warnings={detail.warning_details ?? null}
+          />
+        )}
       </StudentCreateStyledSection>
 
       <StudentCreateStyledSection

@@ -115,6 +115,10 @@ export function FamilyAdmissionCreatePage() {
     setForm((prev) => ({ ...prev, family: { ...prev.family, ...patch } }));
   }
 
+  function patchGuardians(next: FamilyAdmissionFormState['guardians']) {
+    setForm((prev) => ({ ...prev, guardians: next }));
+  }
+
   function handleAddChild() {
     setForm((prev) => addFamilyChild(prev));
   }
@@ -143,11 +147,15 @@ export function FamilyAdmissionCreatePage() {
 
   function validateCurrentStep(): string | null {
     if (step === 'family') {
-      if (
-        !form.family.guardian_name.trim() ||
-        !form.family.guardian_phone.trim() ||
-        !form.family.academic_year_id
-      ) {
+      const validationError = validateFamilyAdmissionForm({
+        ...form,
+        // Only enforce family/guardian rules on this step; children may still be empty-ish.
+        children: form.children,
+      });
+      if (validationError?.code === 'family_missing_fields' || validationError?.code === 'guardians_invalid') {
+        return t(validationError.messageKey);
+      }
+      if (!form.family.academic_year_id) {
         return t('admin.admissions.family.errors.familyMissingFields');
       }
       return null;
@@ -303,14 +311,14 @@ export function FamilyAdmissionCreatePage() {
       <FamilyAdmissionSteps activeStep={step} />
 
       {lookupError ? (
-        <div className="alert alert--warning" role="status">
+        <div className="alert alert--warning family-admission-alert" role="status">
           {lookupError}
         </div>
       ) : null}
 
       {error ? (
-        <div className="alert alert--error" role="alert">
-          {error}
+        <div className="alert alert--error family-admission-alert family-admission-alert--error" role="alert">
+          <span className="family-admission-alert__text">{error}</span>
           {idempotencyConflict ? (
             <p className="family-admission-idempotency-hint">
               {t('admin.admissions.family.errors.idempotencyConflictHint')}
@@ -322,7 +330,10 @@ export function FamilyAdmissionCreatePage() {
       {step === 'family' ? (
         <FamilyAdmissionFamilyStep
           family={form.family}
-          onChange={patchFamily}
+          guardians={form.guardians}
+          children={form.children}
+          onChangeFamily={patchFamily}
+          onChangeGuardians={patchGuardians}
           academicYears={admissionOptions?.academic_years ?? []}
           sources={admissionOptions?.sources ?? []}
           relationships={admissionOptions?.relationships ?? []}

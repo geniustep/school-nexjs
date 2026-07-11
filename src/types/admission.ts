@@ -197,6 +197,9 @@ export interface AdmissionDetail extends SiblingsFieldsSource {
   guardian_whatsapp?: string | null;
   guardian_email?: string | null;
   relationship?: string | null;
+  /** Multi-guardian source of truth when present (Backend multi-guardian contract). */
+  guardians?: import('@/features/admin/admissions/guardians/types').AdmissionGuardianRead[] | null;
+  warning_details?: import('@/features/admin/admissions/guardians/types').AdmissionWarningDetail[] | null;
   school?: Ref | null;
   academic_year?: Ref | null;
   source?: Ref | null;
@@ -374,6 +377,8 @@ export interface CreateAdmissionPayload {
   guardian_email?: string;
   guardian_relationship?: string;
   relationship?: string;
+  /** Multi-guardian write contract — preferred source of truth. */
+  guardians?: import('@/features/admin/admissions/guardians/types').AdmissionGuardianWritePayload[];
   first_contact_date?: string;
   next_action?: string;
   next_action_date?: string;
@@ -410,6 +415,7 @@ export interface PatchAdmissionPayload {
   guardian_email?: string;
   guardian_relationship?: string;
   relationship?: string;
+  guardians?: import('@/features/admin/admissions/guardians/types').AdmissionGuardianWritePayload[];
   first_contact_date?: string;
   academic_year_id?: number;
   source_id?: number;
@@ -499,11 +505,14 @@ export interface CreateFamilyBatchPayload {
   school_id: number;
   academic_year_id?: number;
   source_id?: number;
+  /** Primary guardian projection only — derived from guardians[primary]. */
   shared_contact: FamilyBatchSharedContactPayload;
   shared_address?: string;
   first_contact_date?: string;
   /** Shared family notes when supported by the batch contract. */
   notes?: string;
+  /** Multi-guardian source of truth. */
+  guardians?: import('@/features/admin/admissions/guardians/types').AdmissionGuardianWritePayload[];
   children: FamilyBatchChildPayload[];
 }
 
@@ -540,6 +549,11 @@ export interface FamilyBatchSharedContact {
 }
 
 /** GET /admin/admissions/family-batches/<batch_id> */
+export interface FamilyBatchAllowedActions {
+  edit_guardians?: boolean;
+  edit_guardians_reason?: string | null;
+}
+
 export interface FamilyBatchDetail {
   batch_id: number;
   name?: string | null;
@@ -549,6 +563,16 @@ export interface FamilyBatchDetail {
   source_id?: number;
   shared_contact?: FamilyBatchSharedContact | null;
   shared_address?: string | null;
+  guardians?: import('@/features/admin/admissions/guardians/types').AdmissionGuardianRead[] | null;
+  warning_details?: import('@/features/admin/admissions/guardians/types').AdmissionWarningDetail[] | null;
+  /** Count of primary contacts in guardians[] (Backend may return 0|1). */
+  primary_count?: number | null;
+  allowed_actions?: FamilyBatchAllowedActions | null;
   application_count: number;
   applications: FamilyBatchApplicationSummary[];
 }
+
+/** PATCH /admin/admissions/family-batches/<batch_id>/guardians — full replacement. */
+export type PatchFamilyBatchGuardiansPayload = {
+  guardians: import('@/features/admin/admissions/guardians/types').AdmissionGuardianWritePayload[];
+};

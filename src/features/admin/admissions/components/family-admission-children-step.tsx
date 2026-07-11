@@ -113,7 +113,7 @@ export function FamilyAdmissionChildCard({
             genders={genders}
             nationalities={nationalities}
             requireArabicNames
-            intakeContext="admissionCreate"
+            intakeContext="familyChild"
           />
 
           <div className="student-create-form__grid">
@@ -149,7 +149,7 @@ export function FamilyAdmissionChildCard({
               values={intakeValues}
               onPatch={handleIntakePatch}
               academic={academic}
-              intakeContext="admissionCreate"
+              intakeContext="familyChild"
             />
           </div>
 
@@ -187,7 +187,15 @@ export function FamilyAdmissionChildCard({
             ) : null}
           </div>
         </div>
-      ) : null}
+      ) : (
+        <button
+          type="button"
+          className="family-admission-child-card__expand-hint"
+          onClick={onToggleCollapsed}
+        >
+          {t('admin.admissions.family.expandChildHint')}
+        </button>
+      )}
     </article>
   );
 }

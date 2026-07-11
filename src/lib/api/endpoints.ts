@@ -402,6 +402,8 @@ export const endpoints = {
     admissionFamilyBatches: '/admin/admissions/family-batches',
     admissionFamilyBatch: (batchId: number | string) =>
       `/admin/admissions/family-batches/${batchId}`,
+    admissionFamilyBatchGuardians: (batchId: number | string) =>
+      `/admin/admissions/family-batches/${batchId}/guardians`,
   },
 
   teacher: {

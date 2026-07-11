@@ -1,4 +1,4 @@
-.admissions-page {
+﻿.admissions-page {
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
@@ -732,7 +732,7 @@
   padding-inline: 0.1rem;
 }
 
-/* RTL: pipeline starts at inline-end (right) — «جديد» first on the right */
+/* RTL: pipeline starts at inline-end (right) â€” Â«Ø¬Ø¯ÙŠØ¯Â» first on the right */
 [dir='rtl'] .admissions-kanban,
 .admissions-kanban[data-dir='rtl'] {
   flex-direction: row-reverse;
@@ -1802,7 +1802,7 @@
   color: var(--muted);
 }
 
-/* Create admission — aligned with student-create layout */
+/* Create admission â€” aligned with student-create layout */
 .admissions-create-page {
   width: 100%;
   max-width: 920px;
@@ -2076,7 +2076,7 @@
     gap: 0;
   }
 
-  /* ── Detail page — mobile layout ── */
+  /* â”€â”€ Detail page â€” mobile layout â”€â”€ */
   .admissions-detail-shell {
     gap: 0.55rem;
     max-width: 100%;
@@ -2354,7 +2354,7 @@
     grid-template-columns: 1fr;
   }
 
-  /* ── List page — mobile layout ── */
+  /* â”€â”€ List page â€” mobile layout â”€â”€ */
   .admissions-list-page {
     gap: 0.55rem;
     padding-block-end: 1.25rem;
@@ -2729,7 +2729,7 @@
   width: auto;
 }
 
-/* NEXTJS-ADMISSIONS-CONVERTED-STUDENT-STATUS-UX-1 — converted status display */
+/* NEXTJS-ADMISSIONS-CONVERTED-STUDENT-STATUS-UX-1 â€” converted status display */
 .admissions-detail-header-card__converted {
   display: inline-flex;
   flex-direction: column;
@@ -2864,19 +2864,109 @@
   max-width: 100%;
 }
 
-/* Family admission wizard */
-.family-admission-page {
-  gap: 1rem;
+/* ---------------------------------------------------------------------------
+   Alerts (used across admissions; previously unstyled)
+--------------------------------------------------------------------------- */
+.alert {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.75rem 0.95rem;
+  border-radius: var(--radius-sm, 8px);
+  border: 1px solid var(--c-border, #e2e8f0);
+  background: var(--c-surface-2, #eef2f8);
+  color: var(--c-text-body, #334155);
+  font-size: 0.875rem;
+  line-height: 1.45;
 }
 
+.alert--error {
+  border-color: color-mix(in srgb, var(--c-red, #dc2626) 35%, var(--c-border, #e2e8f0));
+  background: var(--c-red-soft, #fef2f2);
+  color: var(--c-red, #dc2626);
+  font-weight: 600;
+}
+
+.alert--warning {
+  border-color: color-mix(in srgb, var(--c-amber, #d97706) 35%, var(--c-border, #e2e8f0));
+  background: var(--c-amber-soft, #fffbeb);
+  color: color-mix(in srgb, var(--c-amber, #d97706) 85%, #000);
+  font-weight: 550;
+}
+
+.alert--success {
+  border-color: color-mix(in srgb, var(--c-green, #16a34a) 35%, var(--c-border, #e2e8f0));
+  background: var(--c-green-soft, #ecfdf5);
+  color: color-mix(in srgb, var(--c-green, #16a34a) 88%, #000);
+  font-weight: 550;
+}
+
+/* ---------------------------------------------------------------------------
+   Family admission wizard
+--------------------------------------------------------------------------- */
+.family-admission-page {
+  --fam-accent: var(--raqeem-primary, #243b6b);
+  --fam-accent-soft: color-mix(in srgb, var(--fam-accent) 10%, #fff);
+  --fam-teal: var(--raqeem-secondary, #24a6a1);
+  --fam-teal-soft: color-mix(in srgb, var(--fam-teal) 12%, #fff);
+  width: 100%;
+  max-width: 920px;
+  margin-inline: auto;
+  gap: 1.15rem;
+  padding-inline: clamp(0.25rem, 2vw, 0.75rem);
+  padding-bottom: 2.75rem;
+}
+
+.family-admission-page .student-create-page__header {
+  margin-bottom: 0.15rem;
+}
+
+.family-admission-page .student-create-page__title {
+  letter-spacing: -0.01em;
+}
+
+.family-admission-page .student-create-page__desc {
+  max-width: 40rem;
+}
+
+.family-admission-page .student-create-field__error {
+  color: var(--c-red, #dc2626);
+  font-weight: 600;
+}
+
+.family-admission-page .student-create-field--invalid .input,
+.family-admission-page .student-create-field--invalid select,
+.family-admission-page .student-create-field--invalid textarea {
+  border-color: var(--c-red, #dc2626);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-red, #dc2626) 16%, transparent);
+}
+
+.family-admission-alert {
+  margin-block: 0.15rem;
+}
+
+.family-admission-alert--error,
+.family-admission-alert__text {
+  color: var(--c-red, #dc2626);
+}
+
+.family-admission-idempotency-hint {
+  margin: 0.15rem 0 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: color-mix(in srgb, var(--c-red, #dc2626) 72%, #64748b);
+  line-height: 1.45;
+}
+
+/* Steps */
 .family-admission-steps {
-  margin-block: 0.25rem 0.5rem;
+  margin-block: 0.15rem 0.35rem;
 }
 
 .family-admission-steps__list {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.5rem;
+  gap: 0.55rem;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -2885,70 +2975,219 @@
 .family-admission-steps__item {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
-  padding: 0.55rem 0.75rem;
-  border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 90%, transparent);
-  border-radius: var(--radius);
-  background: color-mix(in srgb, var(--surface-2, #f8fafc) 70%, white);
+  gap: 0.55rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 92%, transparent);
+  border-radius: calc(var(--radius) - 2px);
+  background: color-mix(in srgb, var(--c-surface, #fff) 88%, var(--c-surface-2, #eef2f8));
   font-size: 0.8125rem;
-  color: var(--c-text-muted, var(--muted));
+  color: var(--c-text-muted, #64748b);
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .family-admission-steps__item--active {
-  border-color: color-mix(in srgb, var(--c-blue, #2563eb) 35%, var(--c-border, #e2e8f0));
-  background: color-mix(in srgb, var(--c-blue-soft, #eff6ff) 55%, white);
-  color: var(--c-text, #0f172a);
-  font-weight: 600;
+  border-color: color-mix(in srgb, var(--fam-accent) 32%, var(--c-border, #e2e8f0));
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--fam-accent-soft) 80%, #fff) 0%,
+    #fff 100%
+  );
+  color: var(--fam-accent);
+  font-weight: 700;
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--fam-accent) 8%, transparent);
 }
 
 .family-admission-steps__item--done {
   color: var(--c-text, #0f172a);
+  border-color: color-mix(in srgb, var(--fam-teal) 28%, var(--c-border, #e2e8f0));
+  background: color-mix(in srgb, var(--fam-teal-soft) 55%, #fff);
 }
 
 .family-admission-steps__marker {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.35rem;
-  height: 1.35rem;
+  width: 1.45rem;
+  height: 1.45rem;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--c-border, #e2e8f0) 40%, white);
-  font-size: 0.75rem;
+  background: color-mix(in srgb, var(--c-border, #e2e8f0) 45%, #fff);
+  color: inherit;
+  font-size: 0.72rem;
   font-weight: 700;
+  flex-shrink: 0;
+}
+
+.family-admission-steps__item--active .family-admission-steps__marker {
+  background: var(--fam-accent);
+  color: #fff;
+}
+
+.family-admission-steps__item--done .family-admission-steps__marker {
+  background: var(--fam-teal);
+  color: #fff;
+}
+
+.family-admission-steps__label {
+  min-width: 0;
+  line-height: 1.25;
+}
+
+/* Step headers */
+.family-admission-step {
+  display: flex;
+  flex-direction: column;
+  gap: 0.95rem;
 }
 
 .family-admission-step__header {
-  margin-bottom: 0.75rem;
+  margin-bottom: 0;
+  padding: 0.15rem 0.1rem;
 }
 
 .family-admission-step__title {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--c-text, #0f172a);
+  letter-spacing: -0.01em;
 }
 
 .family-admission-step__lead {
-  margin: 0.35rem 0 0;
-  color: var(--c-text-muted, var(--muted));
+  margin: 0.4rem 0 0;
+  color: var(--c-text-muted, #64748b);
   font-size: 0.875rem;
-  line-height: 1.45;
+  line-height: 1.5;
   max-width: 42rem;
 }
 
+/* Cards */
 .family-admission-card,
 .family-admission-child-card,
 .family-admission-review__section,
 .family-admission-success,
 .family-admission-detail-panel {
-  border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 90%, transparent);
+  border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 88%, transparent);
   border-radius: var(--radius);
-  background: var(--surface, #fff);
-  padding: 0.85rem 1rem;
+  background: var(--c-surface, #fff);
+  padding: 1.05rem 1.15rem;
+  box-shadow: 0 1px 2px color-mix(in srgb, #0f172a 4%, transparent);
 }
 
+.family-admission-card .student-create-form__grid {
+  gap: 0.85rem 1rem;
+}
+
+.family-admission-guardian-linked {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem;
+  margin-bottom: 0.95rem;
+  padding: 0.65rem 0.8rem;
+  border-radius: calc(var(--radius) - 2px);
+  border: 1px solid color-mix(in srgb, var(--fam-teal) 22%, var(--c-border, #e2e8f0));
+  background: linear-gradient(135deg, var(--fam-teal-soft), #fff 70%);
+}
+
+.family-admission-guardian-linked__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.family-admission-guardian-linked__label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--fam-teal) 70%, #0f172a);
+}
+
+.family-admission-guardian-linked__identity {
+  font-size: 0.8125rem;
+}
+
+.family-admission-identity-note,
+.family-admission-secondary-guardian-note {
+  margin-bottom: 0.85rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: calc(var(--radius) - 2px);
+  border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 90%, transparent);
+  background: color-mix(in srgb, var(--c-surface-2, #eef2f8) 55%, #fff);
+}
+
+.family-admission-identity-note strong,
+.family-admission-secondary-guardian-note strong {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.8125rem;
+  color: var(--fam-accent);
+}
+
+.family-admission-identity-note p,
+.family-admission-secondary-guardian-note p {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--c-text-muted, #64748b);
+}
+
+.family-admission-child-card__expand-hint {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0.85rem 1.05rem 1rem;
+  border: none;
+  border-top: 1px dashed color-mix(in srgb, var(--fam-accent) 22%, var(--c-border, #e2e8f0));
+  background: color-mix(in srgb, var(--fam-accent-soft) 40%, #fff);
+  color: var(--fam-accent);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-align: start;
+  cursor: pointer;
+}
+
+.family-admission-child-card__expand-hint:hover {
+  background: var(--fam-accent-soft);
+}
+
+.family-admission-guardian-search-toggle {
+  margin-bottom: 0.75rem;
+}
+
+.family-admission-guardian-search {
+  margin-bottom: 0.95rem;
+  padding: 0.75rem;
+  border-radius: calc(var(--radius) - 2px);
+  border: 1px dashed color-mix(in srgb, var(--c-border, #e2e8f0) 90%, transparent);
+  background: color-mix(in srgb, var(--c-surface-2, #eef2f8) 45%, #fff);
+}
+
+/* Children cards */
 .family-admission-children-list {
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
+  gap: 0.85rem;
+}
+
+.family-admission-child-card {
+  padding: 0;
+  overflow: hidden;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.family-admission-child-card:not(.family-admission-child-card--collapsed) {
+  border-color: color-mix(in srgb, var(--fam-accent) 18%, var(--c-border, #e2e8f0));
+  box-shadow:
+    0 1px 2px color-mix(in srgb, #0f172a 4%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--fam-accent) 4%, transparent);
 }
 
 .family-admission-child-card__header {
@@ -2956,13 +3195,19 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
+  padding: 0.85rem 1.05rem;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--c-surface-2, #eef2f8) 65%, #fff) 0%,
+    #fff 100%
+  );
 }
 
 .family-admission-child-card__toggle {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.35rem 0.65rem;
+  gap: 0.4rem 0.7rem;
   flex: 1;
   min-width: 0;
   padding: 0;
@@ -2974,39 +3219,287 @@
   font: inherit;
 }
 
+.family-admission-child-card__toggle:hover .family-admission-child-card__title {
+  color: var(--fam-accent);
+}
+
 .family-admission-child-card__index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 4.5rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: var(--fam-accent-soft);
+  color: var(--fam-accent);
+  font-size: 0.75rem;
   font-weight: 700;
 }
 
 .family-admission-child-card__title {
-  font-weight: 600;
+  font-weight: 650;
+  color: var(--c-text, #0f172a);
+  transition: color 140ms ease;
 }
 
 .family-admission-child-card__level {
   font-size: 0.8125rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--fam-teal-soft) 70%, #fff);
+  color: color-mix(in srgb, var(--fam-teal) 75%, #0f172a);
+}
+
+.family-admission-child-card__chevron {
+  margin-inline-start: auto;
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.85rem;
+}
+
+.family-admission-child-card__remove {
+  flex-shrink: 0;
+  color: var(--c-red, #dc2626);
+}
+
+.family-admission-child-card__remove:hover {
+  background: var(--c-red-soft, #fef2f2);
 }
 
 .family-admission-child-card__body {
-  margin-top: 0.85rem;
-  padding-top: 0.85rem;
+  margin-top: 0;
+  padding: 0 1.05rem 1.1rem;
   border-top: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 85%, transparent);
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 1rem;
 }
 
+.family-admission-child-card__body .student-create-identity {
+  gap: 0.85rem;
+  padding-top: 0.95rem;
+}
+
+.family-admission-child-card__body .student-create-form__group {
+  margin: 0;
+  padding: 0.85rem 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 88%, transparent);
+  border-radius: calc(var(--radius) - 2px);
+  background: color-mix(in srgb, var(--c-surface-2, #eef2f8) 35%, #fff);
+}
+
+.family-admission-child-card__body .student-create-form__group-head {
+  margin-bottom: 0.75rem;
+  align-items: flex-start;
+}
+
+.family-admission-child-card__body .student-create-form__group-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.family-admission-child-card__body .student-create-form__group-title {
+  font-size: 0.875rem;
+  font-weight: 650;
+  color: var(--fam-accent);
+}
+
+.family-admission-child-card__body .student-create-form__group-lead {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--c-text-muted, #64748b);
+}
+
+.family-admission-child-card__body .student-create-form__group-icon {
+  background: var(--fam-accent-soft);
+  color: var(--fam-accent);
+}
+
+/* Academic hierarchy â€” primary focus */
 .family-admission-child-card__academic {
-  padding-top: 0.15rem;
+  padding-top: 0;
 }
 
 .family-admission-child-card__academic .enrollment-intake-academic--hierarchy,
-.enrollment-intake-academic--hierarchy {
+.family-admission-page .enrollment-intake-academic--hierarchy {
+  display: block;
   gap: 0;
 }
 
-.family-admission-child-card__academic .student-create-form__group,
+.family-admission-child-card__academic .enrollment-intake-academic--family-child .student-create-form__group,
+.family-admission-page .enrollment-intake-academic--family-child .student-create-form__group {
+  margin: 0;
+  padding: 1rem 1.05rem 1.1rem;
+  border: 1px solid color-mix(in srgb, var(--fam-accent) 22%, var(--c-border, #e2e8f0));
+  border-radius: var(--radius);
+  background:
+    linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--fam-accent-soft) 90%, #fff) 0%,
+      color-mix(in srgb, var(--c-surface-2, #eef2f8) 40%, #fff) 48%,
+      #fff 100%
+    );
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 70%, transparent);
+}
+
+.family-admission-child-card__academic .enrollment-intake-academic--family-child .student-create-form__group-head {
+  margin-bottom: 0.95rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px dashed color-mix(in srgb, var(--fam-accent) 18%, var(--c-border, #e2e8f0));
+}
+
+.family-admission-child-card__academic .enrollment-intake-academic--family-child .student-create-form__group-icon {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 10px;
+  background: var(--fam-accent);
+  color: #fff;
+  font-size: 0.85rem;
+}
+
+.family-admission-child-card__academic .enrollment-intake-academic--family-child .student-create-form__group-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--fam-accent);
+}
+
+.family-admission-child-card__academic .enrollment-intake-academic--family-child .student-create-form__group-lead {
+  margin: 0.15rem 0 0;
+  font-size: 0.8125rem;
+  color: color-mix(in srgb, var(--fam-accent) 55%, #64748b);
+  font-weight: 500;
+}
+
+.family-admission-child-card__academic .enrollment-intake-academic--family-child .student-create-form__grid,
+.family-admission-page .enrollment-intake-academic--family-child .student-create-form__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11.5rem), 1fr));
+  gap: 0.75rem 0.85rem;
+  align-items: start;
+}
+
+.family-admission-child-card__academic .enrollment-intake-academic--family-child .student-create-form__cell {
+  position: relative;
+  min-width: 0;
+  padding: 0.7rem 0.75rem;
+  border-radius: var(--radius-sm, 8px);
+  border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 90%, transparent);
+  background: color-mix(in srgb, #fff 92%, var(--c-surface-2, #eef2f8));
+}
+
+.family-admission-child-card__academic
+  .enrollment-intake-academic--family-child
+  .student-create-form__cell[data-field='cycleId'] {
+  border-color: color-mix(in srgb, var(--fam-accent) 28%, var(--c-border, #e2e8f0));
+  background: #fff;
+}
+
+.family-admission-child-card__academic
+  .enrollment-intake-academic--family-child
+  .student-create-form__cell[data-field='levelId'] {
+  border-color: color-mix(in srgb, var(--fam-teal) 28%, var(--c-border, #e2e8f0));
+}
+
+.family-admission-child-card__academic
+  .enrollment-intake-academic--family-child
+  .student-create-form__cell[data-field='streamId'] {
+  border-color: color-mix(in srgb, var(--raqeem-accent, #f2a541) 32%, var(--c-border, #e2e8f0));
+}
+
+.family-admission-child-card__academic .enrollment-intake-academic--family-child .student-create-field__label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
+  font-weight: 650;
+  color: var(--c-text, #0f172a);
+}
+
+.family-admission-child-card__academic
+  .enrollment-intake-academic--family-child
+  .student-create-form__cell[data-field='cycleId']
+  .student-create-field__label::before,
+.family-admission-child-card__academic
+  .enrollment-intake-academic--family-child
+  .student-create-form__cell[data-field='levelId']
+  .student-create-field__label::before,
+.family-admission-child-card__academic
+  .enrollment-intake-academic--family-child
+  .student-create-form__cell[data-field='streamId']
+  .student-create-field__label::before {
+  display: inline-flex;
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 999px;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 800;
+  line-height: 1.15rem;
+  text-align: center;
+  flex-shrink: 0;
+  color: #fff;
+}
+
+.family-admission-child-card__academic
+  .enrollment-intake-academic--family-child
+  .student-create-form__cell[data-field='cycleId']
+  .student-create-field__label::before {
+  content: '1';
+  background: var(--fam-accent);
+}
+
+.family-admission-child-card__academic
+  .enrollment-intake-academic--family-child
+  .student-create-form__cell[data-field='levelId']
+  .student-create-field__label::before {
+  content: '2';
+  background: var(--fam-teal);
+}
+
+.family-admission-child-card__academic
+  .enrollment-intake-academic--family-child
+  .student-create-form__cell[data-field='streamId']
+  .student-create-field__label::before {
+  content: '3';
+  background: color-mix(in srgb, var(--raqeem-accent, #f2a541) 88%, #b45309);
+}
+
+.family-admission-child-card__academic .enrollment-intake-academic--family-child .input,
+.family-admission-child-card__academic .enrollment-intake-academic--family-child select.input {
+  min-height: 2.55rem;
+  border-radius: calc(var(--radius-sm, 8px) - 1px);
+  font-weight: 500;
+}
+
+.family-admission-child-card__academic .enrollment-intake-academic--family-child select.input:disabled {
+  opacity: 0.62;
+  cursor: not-allowed;
+  background: color-mix(in srgb, var(--c-surface-2, #eef2f8) 70%, #fff);
+  border-style: dashed;
+}
+
+.family-admission-child-card__academic .enrollment-intake-academic--family-child select.input:not(:disabled):focus {
+  border-color: var(--fam-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--fam-accent) 16%, transparent);
+}
+
+.family-admission-child-card__academic .enrollment-intake-academic--family-child .student-create-field__hint,
+.family-admission-child-card__academic .enrollment-intake-academic--family-child .student-create-field__error {
+  margin-top: 0.35rem;
+}
+
+.family-admission-child-card__academic .enrollment-intake-academic--family-child .student-create-field__error {
+  color: var(--c-red, #dc2626);
+  font-weight: 600;
+}
+
+/* Keep non-family academic hierarchy readable on admissions create */
 .admissions-create-page .enrollment-intake-academic--hierarchy .student-create-form__group,
-.family-admission-page .enrollment-intake-academic--hierarchy .student-create-form__group {
+.family-admission-page .enrollment-intake-academic--hierarchy:not(.enrollment-intake-academic--family-child)
+  .student-create-form__group {
   margin: 0;
   padding: 0.75rem 0.85rem;
   border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 88%, transparent);
@@ -3014,53 +3507,83 @@
   background: color-mix(in srgb, var(--c-surface-2, #eef2f8) 55%, var(--c-surface, #fff));
 }
 
-.family-admission-child-card__academic .student-create-form__group-title,
 .admissions-create-page .enrollment-intake-academic--hierarchy .student-create-form__group-title,
-.family-admission-page .enrollment-intake-academic--hierarchy .student-create-form__group-title {
+.family-admission-page
+  .enrollment-intake-academic--hierarchy:not(.enrollment-intake-academic--family-child)
+  .student-create-form__group-title {
   font-size: 0.875rem;
   font-weight: 650;
   color: var(--raqeem-primary, #243b6b);
 }
 
-.family-admission-child-card__academic .student-create-form__grid,
 .admissions-create-page .enrollment-intake-academic--hierarchy .student-create-form__grid,
-.family-admission-page .enrollment-intake-academic--hierarchy .student-create-form__grid {
+.family-admission-page
+  .enrollment-intake-academic--hierarchy:not(.enrollment-intake-academic--family-child)
+  .student-create-form__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.65rem 0.85rem;
 }
 
-@media (max-width: 640px) {
-  .family-admission-child-card__academic .student-create-form__grid,
-  .admissions-create-page .enrollment-intake-academic--hierarchy .student-create-form__grid,
-  .family-admission-page .enrollment-intake-academic--hierarchy .student-create-form__grid {
-    grid-template-columns: 1fr;
-  }
-}
-
 .family-admission-child-card__address {
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
-  margin-top: 0.65rem;
+  gap: 0.65rem;
+  margin-top: 0.15rem;
+  padding: 0.85rem 0.9rem;
+  border-radius: calc(var(--radius) - 2px);
+  border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 88%, transparent);
+  background: color-mix(in srgb, var(--c-surface-2, #eef2f8) 30%, #fff);
+}
+
+.family-admission-child-card__inherited {
+  margin: 0;
+  padding: 0.45rem 0.6rem;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--fam-teal-soft) 50%, #fff);
+  border: 1px solid color-mix(in srgb, var(--fam-teal) 16%, transparent);
 }
 
 .family-admission-add-child {
-  margin-top: 0.65rem;
+  margin-top: 0.15rem;
+  align-self: flex-start;
+  border: 1px dashed color-mix(in srgb, var(--fam-accent) 28%, var(--c-border, #e2e8f0));
+  background: color-mix(in srgb, var(--fam-accent-soft) 55%, #fff);
+  color: var(--fam-accent);
+  font-weight: 600;
 }
 
+.family-admission-add-child:hover {
+  background: var(--fam-accent-soft);
+  border-style: solid;
+}
+
+/* Footer */
 .family-admission-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.65rem;
-  padding-top: 0.35rem;
+  gap: 0.75rem;
+  margin-top: 0.35rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 88%, transparent);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--c-surface-2, #eef2f8) 55%, #fff);
+  position: sticky;
+  bottom: 0.65rem;
+  z-index: 2;
+  box-shadow: 0 -6px 20px color-mix(in srgb, #0f172a 5%, transparent);
 }
 
+.family-admission-footer .btn--primary {
+  min-width: 8.5rem;
+}
+
+/* Review */
 .family-admission-review {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 0.95rem;
 }
 
 .family-admission-review__section-head {
@@ -3068,12 +3591,14 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  margin-bottom: 0.65rem;
+  margin-bottom: 0.75rem;
 }
 
 .family-admission-review__section-head h3 {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--fam-accent);
 }
 
 .family-admission-review__hero {
@@ -3081,23 +3606,30 @@
   flex-wrap: wrap;
   align-items: baseline;
   gap: 0.35rem 0.75rem;
-  margin-bottom: 0.65rem;
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 85%, transparent);
+}
+
+.family-admission-review__hero strong {
+  font-size: 1.05rem;
 }
 
 .family-admission-review__facts {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
-  gap: 0.45rem 0.85rem;
+  gap: 0.65rem 0.95rem;
   margin: 0;
 }
 
 .family-admission-review__facts dt {
   font-size: 0.75rem;
-  color: var(--c-text-muted, var(--muted));
+  color: var(--c-text-muted, #64748b);
 }
 
 .family-admission-review__facts dd {
-  margin: 0.1rem 0 0;
+  margin: 0.15rem 0 0;
+  font-weight: 550;
 }
 
 .family-admission-review__children {
@@ -3106,7 +3638,7 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
+  gap: 0.45rem;
 }
 
 .family-admission-review__child {
@@ -3114,36 +3646,55 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.65rem;
-  padding: 0.55rem 0;
-  border-top: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 85%, transparent);
+  padding: 0.7rem 0.75rem;
+  border-radius: calc(var(--radius) - 2px);
+  border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 88%, transparent);
+  background: color-mix(in srgb, var(--c-surface-2, #eef2f8) 35%, #fff);
 }
 
 .family-admission-review__child:first-child {
-  border-top: none;
-  padding-top: 0;
+  border-top: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 88%, transparent);
+  padding-top: 0.7rem;
 }
 
 .family-admission-review__child-main {
   display: flex;
   align-items: flex-start;
-  gap: 0.45rem;
+  gap: 0.55rem;
   min-width: 0;
 }
 
+.family-admission-review__child-index {
+  font-weight: 700;
+  color: var(--fam-accent);
+}
+
 .family-admission-review__child-level {
-  display: block;
+  display: inline-block;
+  margin-inline-start: 0.35rem;
   font-size: 0.8125rem;
 }
 
+.family-admission-review__submit-hint {
+  margin: 0.15rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+/* Success */
 .family-admission-success__title {
-  margin: 0 0 0.5rem;
+  margin: 0 0 0.55rem;
+  font-size: 1.15rem;
+  color: color-mix(in srgb, var(--c-green, #16a34a) 80%, #0f172a);
 }
 
 .family-admission-success__meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem 0.75rem;
+  gap: 0.45rem 0.75rem;
   margin-bottom: 0.85rem;
+  color: var(--c-text-muted, #64748b);
+  font-size: 0.875rem;
 }
 
 .family-admission-success__list {
@@ -3152,7 +3703,7 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
+  gap: 0.45rem;
 }
 
 .family-admission-success__item {
@@ -3160,8 +3711,10 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.65rem;
-  padding: 0.65rem 0;
-  border-top: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 85%, transparent);
+  padding: 0.7rem 0.75rem;
+  border-radius: calc(var(--radius) - 2px);
+  border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 88%, transparent);
+  background: color-mix(in srgb, var(--c-green-soft, #ecfdf5) 40%, #fff);
 }
 
 .family-admission-success__item-main {
@@ -3169,6 +3722,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 0.35rem 0.65rem;
+  min-width: 0;
 }
 
 .family-admission-success__actions {
@@ -3177,6 +3731,7 @@
   gap: 0.55rem;
 }
 
+/* Detail panel (admission detail sidebar) */
 .family-admission-detail-panel {
   margin-top: 0.35rem;
 }
@@ -3217,25 +3772,25 @@
   background: color-mix(in srgb, var(--c-blue-soft, #eff6ff) 45%, white);
 }
 
-.family-admission-guardian-linked {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.45rem;
-  margin-bottom: 0.75rem;
-  padding: 0.55rem 0.65rem;
-  border-radius: calc(var(--radius) - 2px);
-  background: color-mix(in srgb, var(--c-blue-soft, #eff6ff) 40%, white);
-}
-
-.family-admission-guardian-search {
-  margin-bottom: 0.75rem;
+@media (max-width: 860px) {
+  .family-admission-child-card__academic .enrollment-intake-academic--family-child .student-create-form__grid,
+  .family-admission-page .enrollment-intake-academic--family-child .student-create-form__grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 720px) {
+  .family-admission-page {
+    padding-inline: 0;
+  }
+
   .family-admission-steps__list {
     grid-template-columns: 1fr;
+  }
+
+  .family-admission-footer {
+    position: static;
+    box-shadow: none;
   }
 
   .family-admission-review__child,
@@ -3243,4 +3798,340 @@
     flex-direction: column;
     align-items: flex-start;
   }
+
+  .family-admission-child-card__header {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 640px) {
+  .admissions-create-page .enrollment-intake-academic--hierarchy .student-create-form__grid,
+  .family-admission-page
+    .enrollment-intake-academic--hierarchy:not(.enrollment-intake-academic--family-child)
+    .student-create-form__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Multi-guardian section */
+.admission-guardians-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.admission-guardians-section__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--raqeem-primary, #243b6b);
+}
+
+.admission-guardians-section__lead {
+  margin: 0.25rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--c-text-muted, #64748b);
+  line-height: 1.45;
+}
+
+.admission-guardians-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.admission-guardian-card {
+  border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 88%, transparent);
+  border-radius: var(--radius, 12px);
+  padding: 0.85rem 0.95rem;
+  background: var(--c-surface, #fff);
+}
+
+.admission-guardian-card--primary {
+  border-color: color-mix(in srgb, var(--raqeem-primary, #243b6b) 22%, var(--c-border, #e2e8f0));
+}
+
+.admission-guardian-card__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.admission-guardian-card__title {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.admission-guardian-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.admission-guardian-card__remove {
+  color: var(--c-red, #dc2626);
+}
+
+.admission-guardian-card__flags,
+.admission-guardian-card__children,
+.admission-guardian-card__child-picks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1rem;
+  margin-top: 0.65rem;
+}
+
+.admission-guardian-identity {
+  margin-top: 0.85rem;
+  border-top: 1px dashed color-mix(in srgb, var(--c-border, #e2e8f0) 90%, transparent);
+  padding-top: 0.65rem;
+}
+
+.admission-guardian-identity__toggle {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.35rem 0;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-weight: 650;
+  color: var(--raqeem-primary, #243b6b);
+  cursor: pointer;
+}
+
+.admission-guardian-identity__fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+  gap: 0.65rem 0.85rem;
+  margin-top: 0.55rem;
+}
+
+.admission-guardian-search {
+  margin-top: 0.55rem;
+  padding: 0.65rem;
+  border-radius: calc(var(--radius, 12px) - 2px);
+  border: 1px dashed color-mix(in srgb, var(--c-border, #e2e8f0) 90%, transparent);
+  background: color-mix(in srgb, var(--c-surface-2, #eef2f8) 45%, #fff);
+}
+
+.admission-guardians-add {
+  align-self: flex-start;
+}
+
+.admission-guardians-warnings {
+  list-style: none;
+  margin: 0;
+  padding: 0.65rem 0.75rem;
+  border-radius: var(--radius-sm, 8px);
+  border: 1px solid color-mix(in srgb, var(--c-amber, #d97706) 30%, var(--c-border, #e2e8f0));
+  background: var(--c-amber-soft, #fffbeb);
+  color: color-mix(in srgb, var(--c-amber, #d97706) 85%, #000);
+  font-size: 0.8125rem;
+}
+
+.admission-guardians-warnings__item + .admission-guardians-warnings__item {
+  margin-top: 0.35rem;
+}
+
+/* Read-only multi-guardian details */
+.admission-guardians-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.admission-guardians-details__header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.admission-guardians-details__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--raqeem-primary, #243b6b);
+}
+
+.admission-guardians-details__lead {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.admission-guardians-details__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.admission-guardian-details-card {
+  border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 88%, transparent);
+  border-radius: var(--radius, 12px);
+  padding: 0.75rem 0.85rem;
+  background: color-mix(in srgb, var(--c-surface-2, #eef2f8) 28%, #fff);
+}
+
+.admission-guardian-details-card--primary {
+  border-color: color-mix(in srgb, var(--raqeem-primary, #243b6b) 22%, var(--c-border, #e2e8f0));
+  background: var(--c-surface, #fff);
+}
+
+.admission-guardian-details-card__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.55rem;
+}
+
+.admission-guardian-details-card__title {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 650;
+  color: var(--c-text-muted, #64748b);
+}
+
+.admission-guardian-details-card__name {
+  margin: 0.15rem 0 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.admission-guardian-details-badges {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.admission-guardian-details-card__rows,
+.admission-guardian-details-identity__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.admission-guardian-details-card__warnings {
+  margin-top: 0.55rem;
+}
+
+.admission-guardian-details-identity {
+  margin-top: 0.7rem;
+  padding-top: 0.55rem;
+  border-top: 1px dashed color-mix(in srgb, var(--c-border, #e2e8f0) 90%, transparent);
+}
+
+.admission-guardian-details-identity__title {
+  margin: 0 0 0.45rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.admission-guardian-details-identity__empty,
+.admission-guardian-details-attachments__empty {
+  margin: 0.25rem 0 0;
+  font-size: 0.8125rem;
+}
+
+.admission-guardian-details-attachments {
+  margin-top: 0.5rem;
+}
+
+.admission-guardian-details-attachments__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.family-admission-detail-panel__guardians {
+  margin-top: 0.75rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 88%, transparent);
+}
+
+.family-admission-detail-panel__guardians-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.65rem;
+}
+
+.family-admission-detail-panel__edit-denied {
+  margin: 0;
+}
+
+.family-batch-guardians-edit-dialog {
+  width: min(52rem, calc(100vw - 2rem));
+  max-height: min(90vh, 52rem);
+  overflow: auto;
+  padding: 1.1rem 1.2rem 1.25rem;
+}
+
+.family-batch-guardians-edit-dialog__header h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1.1rem;
+}
+
+.family-batch-guardians-edit-dialog__header p {
+  margin: 0 0 0.85rem;
+}
+
+.family-batch-guardians-edit-dialog__form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.family-batch-guardians-edit-dialog__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 88%, transparent);
+}
+
+.family-admission-detail-panel__siblings {
+  margin-top: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 88%, transparent);
+}
+
+.family-admission-detail-panel__section-label {
+  margin: 0 0 0.55rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--raqeem-primary, #243b6b);
+}
+
+.family-admission-review__guardians {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.family-admission-review__guardians li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.55rem;
+}
+
+.family-admission-meta-grid {
+  margin-top: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 88%, transparent);
 }

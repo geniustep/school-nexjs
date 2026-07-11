@@ -7,6 +7,12 @@ import {
   isValidMassarCodeNormalized,
 } from '@/features/admin/students/utils/massar-code';
 import {
+  deriveSharedContactFromPrimary,
+  getPrimaryGuardian,
+  serializeGuardiansPayload,
+  validateGuardiansDraft,
+} from '@/features/admin/admissions/guardians';
+import {
   FAMILY_ADMISSION_MIN_CHILDREN,
   type FamilyAdmissionChildFormState,
   type FamilyAdmissionFamilyFormState,
@@ -17,7 +23,8 @@ export type FamilyAdmissionValidationErrorCode =
   | 'too_few_children'
   | 'child_missing_fields'
   | 'invalid_massar'
-  | 'family_missing_fields';
+  | 'family_missing_fields'
+  | 'guardians_invalid';
 
 export interface FamilyAdmissionValidationError {
   code: FamilyAdmissionValidationErrorCode;
@@ -82,20 +89,18 @@ export function buildCreateFamilyBatchPayload(
   schoolId: number,
   idempotencyKey: string,
   levels: AdmissionLevelOption[] = [],
+  options?: { childClientKeyToId?: Map<string, number> },
 ): CreateFamilyBatchPayload {
   const family = form.family;
   const sharedAddress = family.shared_address.trim();
+  const childKeysInOrder = form.children.map((c) => c.localId);
 
-  const sharedContact: CreateFamilyBatchPayload['shared_contact'] = {
-    guardian_name: family.guardian_name.trim() || undefined,
-    guardian_phone: family.guardian_phone.trim() || undefined,
-    guardian_whatsapp: family.guardian_whatsapp.trim() || undefined,
-    guardian_email: family.guardian_email.trim() || undefined,
-    relationship: family.guardian_relationship || undefined,
-  };
-  if (family.guardian_id != null && family.guardian_id > 0) {
-    sharedContact.guardian_id = family.guardian_id;
-  }
+  const sharedContact = deriveSharedContactFromPrimary(form.guardians);
+  const guardians = serializeGuardiansPayload(form.guardians, {
+    mode: 'family',
+    childClientKeysInOrder: childKeysInOrder,
+    childClientKeyToId: options?.childClientKeyToId,
+  });
 
   const payload: CreateFamilyBatchPayload = {
     idempotency_key: idempotencyKey,
@@ -106,12 +111,16 @@ export function buildCreateFamilyBatchPayload(
     shared_address: sharedAddress || undefined,
     first_contact_date: family.first_contact_date || undefined,
     notes: family.notes.trim() || undefined,
+    guardians,
     children: form.children.map((child) =>
       buildFamilyBatchChildPayload(child, sharedAddress, levels),
     ),
   };
 
-  for (const key of Object.keys(payload) as (keyof Omit<CreateFamilyBatchPayload, 'shared_contact' | 'children' | 'idempotency_key' | 'school_id'>)[]) {
+  for (const key of Object.keys(payload) as (keyof Omit<
+    CreateFamilyBatchPayload,
+    'shared_contact' | 'children' | 'guardians' | 'idempotency_key' | 'school_id'
+  >)[]) {
     const val = payload[key];
     if (val === '' || val === undefined) delete payload[key];
   }
@@ -137,7 +146,8 @@ function validateChild(
   child: FamilyAdmissionChildFormState,
   index: number,
 ): FamilyAdmissionValidationError | null {
-  if (!childHasName(child) || !child.birth_date || !child.gender || !child.requested_level_id) {
+  // Admissions create: name + level required; birth_date and gender are optional.
+  if (!childHasName(child) || !child.requested_level_id) {
     return {
       code: 'child_missing_fields',
       childIndex: index,
@@ -157,8 +167,10 @@ function validateChild(
   return null;
 }
 
-function validateFamily(family: FamilyAdmissionFamilyFormState): FamilyAdmissionValidationError | null {
-  if (!family.guardian_name.trim() || !family.guardian_phone.trim() || !family.academic_year_id) {
+function validateFamilyMeta(
+  family: FamilyAdmissionFamilyFormState,
+): FamilyAdmissionValidationError | null {
+  if (!family.academic_year_id) {
     return {
       code: 'family_missing_fields',
       messageKey: 'admin.admissions.family.errors.familyMissingFields',
@@ -177,8 +189,27 @@ export function validateFamilyAdmissionForm(
     };
   }
 
-  const familyError = validateFamily(form.family);
+  const familyError = validateFamilyMeta(form.family);
   if (familyError) return familyError;
+
+  const primary = getPrimaryGuardian(form.guardians);
+  if (!primary?.name.trim() || !primary.phone.trim()) {
+    return {
+      code: 'family_missing_fields',
+      messageKey: 'admin.admissions.family.errors.familyMissingFields',
+    };
+  }
+
+  const guardiansError = validateGuardiansDraft(form.guardians, {
+    mode: 'family',
+    childClientKeys: form.children.map((c) => c.localId),
+  });
+  if (guardiansError) {
+    return {
+      code: 'guardians_invalid',
+      messageKey: guardiansError.messageKey,
+    };
+  }
 
   for (let index = 0; index < form.children.length; index += 1) {
     const childError = validateChild(form.children[index], index);

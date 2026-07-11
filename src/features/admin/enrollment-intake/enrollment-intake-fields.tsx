@@ -55,11 +55,13 @@ function CreateField({
 function CreateFieldGroup({
   title,
   icon,
+  lead,
   layout = 'grid',
   children,
 }: {
   title: string;
   icon: string;
+  lead?: string;
   layout?: 'grid' | 'stack';
   children: React.ReactNode;
 }) {
@@ -69,7 +71,10 @@ function CreateFieldGroup({
         <span className="student-create-form__group-icon" aria-hidden="true">
           {icon}
         </span>
-        <h3 className="student-create-form__group-title">{title}</h3>
+        <div className="student-create-form__group-heading">
+          <h3 className="student-create-form__group-title">{title}</h3>
+          {lead ? <p className="student-create-form__group-lead">{lead}</p> : null}
+        </div>
       </div>
       {layout === 'stack' ? (
         <div className="student-create-form__group-stack">{children}</div>
@@ -119,8 +124,14 @@ export interface EnrollmentIntakeFollowUpOptions {
   sourcesLoading?: boolean;
 }
 
-/** Admission create keeps full intake; edit only exposes patchable overview fields. */
-export type EnrollmentIntakeContext = 'admissionCreate' | 'admissionEdit';
+/**
+ * Admission create keeps full intake; edit only exposes patchable overview fields.
+ * Family child cards only map a subset — hide fields that are not stored/sent.
+ */
+export type EnrollmentIntakeContext =
+  | 'admissionCreate'
+  | 'admissionEdit'
+  | 'familyChild';
 
 type IntakeProps = {
   values: EnrollmentIntakeValues;
@@ -150,7 +161,11 @@ export function EnrollmentIntakeIdentityFields({
   const t = useT();
   const isStudentCreate = variant === 'studentCreate';
   const isAdmissionEdit = intakeContext === 'admissionEdit';
+  const isFamilyChild = intakeContext === 'familyChild';
   const namesRequired = requireArabicNames && !isAdmissionEdit;
+  /** Admissions create: DOB/gender stay visible but optional (not student final create). */
+  const optionalPersonalHints =
+    !isStudentCreate && (intakeContext === 'admissionCreate' || intakeContext === 'familyChild');
   const fullNameAr = [values.firstNameAr.trim(), values.lastNameAr.trim()].filter(Boolean).join(' ');
   const fullNameFr = [values.firstNameFr.trim(), values.lastNameFr.trim()].filter(Boolean).join(' ');
   const localizedGenders = useMemo(
@@ -230,7 +245,10 @@ export function EnrollmentIntakeIdentityFields({
 
       {!isAdmissionEdit ? (
       <CreateFieldGroup title={t('admin.enrollmentIntake.groups.personal')} icon="◉">
-        <CreateField label={t('admin.gender')}>
+        <CreateField
+          label={t('admin.gender')}
+          hint={optionalPersonalHints ? t('admin.admissions.fields.optional') : undefined}
+        >
           <select
             className="input"
             value={values.gender}
@@ -245,7 +263,12 @@ export function EnrollmentIntakeIdentityFields({
             ))}
           </select>
         </CreateField>
-        <CreateField field="dateOfBirth" label={t('admin.dateOfBirth')} error={errors.birthDate}>
+        <CreateField
+          field="dateOfBirth"
+          label={t('admin.dateOfBirth')}
+          error={errors.birthDate}
+          hint={optionalPersonalHints ? t('admin.admissions.fields.optional') : undefined}
+        >
           <DatePickerInput
             value={values.birthDate}
             onChange={(birthDate) => onPatch({ birthDate })}
@@ -253,21 +276,25 @@ export function EnrollmentIntakeIdentityFields({
             presets={false}
           />
         </CreateField>
-        <CreateField label={t('admin.student360.birthPlace')}>
-          <input
-            className="input"
-            value={values.birthPlace}
-            onChange={(e) => onPatch({ birthPlace: e.target.value })}
-          />
-        </CreateField>
-        <CreateField label={t('admin.student360.nationality')}>
-          <StudentNationalitySelect
-            value={values.nationalityId}
-            options={nationalities}
-            disabled={optionsLoading}
-            onChange={(nationalityId) => onPatch({ nationalityId })}
-          />
-        </CreateField>
+        {!isFamilyChild ? (
+          <>
+            <CreateField label={t('admin.student360.birthPlace')}>
+              <input
+                className="input"
+                value={values.birthPlace}
+                onChange={(e) => onPatch({ birthPlace: e.target.value })}
+              />
+            </CreateField>
+            <CreateField label={t('admin.student360.nationality')}>
+              <StudentNationalitySelect
+                value={values.nationalityId}
+                options={nationalities}
+                disabled={optionsLoading}
+                onChange={(nationalityId) => onPatch({ nationalityId })}
+              />
+            </CreateField>
+          </>
+        ) : null}
       </CreateFieldGroup>
       ) : null}
 
@@ -336,7 +363,7 @@ export function EnrollmentIntakeIdentityFields({
         </CreateFieldGroup>
       ) : null}
 
-      {!isStudentCreate && !isAdmissionEdit ? (
+      {!isStudentCreate && !isAdmissionEdit && !isFamilyChild ? (
       <CreateFieldGroup
         title={t('admin.enrollmentIntake.groups.identifiers')}
         icon="#"
@@ -388,7 +415,7 @@ export function EnrollmentIntakeIdentityFields({
       </CreateFieldGroup>
       ) : null}
 
-      {!isStudentCreate && !isAdmissionEdit ? (
+      {!isStudentCreate && !isAdmissionEdit && !isFamilyChild ? (
       <CreateFieldGroup title={t('admin.enrollmentIntake.groups.adminDates')} icon="ت">
         <CreateField
           label={t('admin.admissionDate')}
@@ -529,8 +556,17 @@ export function EnrollmentIntakeAcademicFields({
   const showClassField =
     academic.showClass ?? (variant === 'studentCreate' && intakeContext !== 'admissionEdit');
 
+  const isFamilyChild = intakeContext === 'familyChild';
+  const academicLead = isFamilyChild
+    ? t('admin.admissions.family.academicHierarchyLead')
+    : undefined;
+
   const content = (
-    <CreateFieldGroup title={t('admin.enrollmentIntake.groups.academicStructure')} icon="◈">
+    <CreateFieldGroup
+      title={t('admin.enrollmentIntake.groups.academicStructure')}
+      icon="◈"
+      lead={academicLead}
+    >
         {showAcademicYear ? (
         <CreateField
           field="academicYearId"
@@ -632,6 +668,7 @@ export function EnrollmentIntakeAcademicFields({
         </CreateField>
         {showStream ? (
           <CreateField
+            field="streamId"
             layout={fieldLayout}
             label={t('admin.admissions.fields.stream')}
             error={errors.streamId}
@@ -692,7 +729,15 @@ export function EnrollmentIntakeAcademicFields({
   }
 
   return (
-    <div className="student-create-form__grid enrollment-intake-academic enrollment-intake-academic--hierarchy">
+    <div
+      className={[
+        'enrollment-intake-academic',
+        'enrollment-intake-academic--hierarchy',
+        isFamilyChild ? 'enrollment-intake-academic--family-child' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
       {content}
     </div>
   );

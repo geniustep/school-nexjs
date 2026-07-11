@@ -3,7 +3,12 @@ import {
   addFamilyChild,
   emptyFamilyAdmissionFormState,
   removeFamilyChild,
+  updateFamilyChild,
 } from './family-admission-form-state';
+import {
+  intakeFromFamilyChild,
+  patchFamilyChildFromIntake,
+} from './family-admission-child-intake';
 import {
   buildCreateFamilyBatchPayload,
   buildFamilyBatchChildPayload,
@@ -25,6 +30,12 @@ import {
   shouldShowFamilyBadge,
 } from './family-admission-visibility';
 
+import {
+  createPrimaryGuardianDraft,
+} from '@/features/admin/admissions/guardians';
+import { buildCreateAdmissionPayload, emptyAdmissionCreateForm } from './admission-create-payload';
+import frMessages from '../../../../../messages/fr.json';
+
 const levels = [
   { id: 77, name: 'CP', cycle: 'primary', requires_stream: false },
   { id: 2447, name: '2 APIC', cycle: 'middle_school', requires_stream: false },
@@ -33,17 +44,23 @@ const levels = [
 function sampleForm() {
   const form = emptyFamilyAdmissionFormState('2026-07-09');
   form.family = {
-    guardian_name: 'أحمد العلوي',
-    guardian_phone: '0612345678',
-    guardian_whatsapp: '0612345678',
-    guardian_email: 'ahmed@example.com',
-    guardian_relationship: 'father',
     shared_address: 'الدار البيضاء',
     notes: 'ملاحظات الأسرة',
     source_id: 10,
     academic_year_id: 1,
     first_contact_date: '2026-07-09',
   };
+  form.guardians = [
+    {
+      ...createPrimaryGuardianDraft(),
+      name: 'أحمد العلوي',
+      phone: '0612345678',
+      whatsapp: '0612345678',
+      email: 'ahmed@example.com',
+      relationship: 'father',
+      appliesToAllChildren: true,
+    },
+  ];
   form.children[0] = {
     ...form.children[0],
     child_first_name_ar: 'سلمى',
@@ -66,6 +83,72 @@ function sampleForm() {
   };
   return form;
 }
+
+describe('family admission child intake field mapping', () => {
+  it('maps every writable family-child intake field into child state', () => {
+    const patch = patchFamilyChildFromIntake({
+      firstNameAr: 'سلمى',
+      lastNameAr: 'العلوي',
+      firstNameFr: 'Salma',
+      lastNameFr: 'Alaoui',
+      gender: 'female',
+      birthDate: '2018-05-15',
+      massarCode: 'G123456789',
+      previousSchool: 'مدرسة سابقة',
+      cycleCode: 'primary',
+      levelId: '77',
+      streamId: '12',
+      residenceAddress: 'الرباط',
+      externalReference: 'EXT-1',
+    });
+
+    expect(patch).toEqual({
+      child_first_name_ar: 'سلمى',
+      child_last_name_ar: 'العلوي',
+      child_first_name_fr: 'Salma',
+      child_last_name_fr: 'Alaoui',
+      gender: 'female',
+      birth_date: '2018-05-15',
+      massar_code: 'G123456789',
+      previous_school: 'مدرسة سابقة',
+      requested_cycle_code: 'primary',
+      requested_level_id: 77,
+      requested_stream_id: 12,
+      residence_address: 'الرباط',
+      external_reference: 'EXT-1',
+    });
+  });
+
+  it('ignores intake fields that family children do not store', () => {
+    const patch = patchFamilyChildFromIntake({
+      birthPlace: 'فاس',
+      nationalityId: '1',
+      schoolNumber: '99',
+      code: 'STU-1',
+      admissionDate: '2026-07-01',
+    });
+    expect(patch).toEqual({});
+  });
+
+  it('round-trips mapped identity values through child state updates', () => {
+    let form = emptyFamilyAdmissionFormState();
+    const localId = form.children[0].localId;
+    const intakePatch = patchFamilyChildFromIntake({
+      firstNameAr: 'ياسين',
+      lastNameAr: 'العلوي',
+      gender: 'male',
+      birthDate: '2016-03-20',
+      massarCode: 'G111111111',
+    });
+    form = updateFamilyChild(form, localId, intakePatch);
+    const values = intakeFromFamilyChild(form.children[0]);
+    expect(values.firstNameAr).toBe('ياسين');
+    expect(values.lastNameAr).toBe('العلوي');
+    expect(values.gender).toBe('male');
+    expect(values.birthDate).toBe('2016-03-20');
+    expect(values.massarCode).toBe('G111111111');
+  });
+});
 
 describe('family admission payload contract', () => {
   it('includes shared_contact in create payload', () => {
@@ -118,7 +201,7 @@ describe('family admission payload contract', () => {
 
   it('puts guardian_id inside shared_contact when linked', () => {
     const form = sampleForm();
-    form.family.guardian_id = 42;
+    form.guardians[0] = { ...form.guardians[0], guardianId: 42 };
     const payload = buildCreateFamilyBatchPayload(form, 3, 'key', levels);
     expect(payload.shared_contact.guardian_id).toBe(42);
     expect('guardian_id' in payload).toBe(false);
@@ -126,12 +209,130 @@ describe('family admission payload contract', () => {
 
   it('requires at least two children', () => {
     const form = emptyFamilyAdmissionFormState();
-    form.family.guardian_name = 'Parent';
-    form.family.guardian_phone = '0612345678';
+    form.guardians[0] = {
+      ...form.guardians[0],
+      name: 'Parent',
+      phone: '0612345678',
+    };
     form.family.academic_year_id = 3;
     form.children = [form.children[0]];
 
     expect(validateFamilyAdmissionForm(form)?.code).toBe('too_few_children');
+  });
+
+  it('accepts children with name and level only (dob/gender optional)', () => {
+    const form = sampleForm();
+    form.children[0] = {
+      ...form.children[0],
+      gender: '',
+      birth_date: '',
+    };
+    form.children[1] = {
+      ...form.children[1],
+      gender: '',
+      birth_date: '',
+    };
+    expect(validateFamilyAdmissionForm(form)).toBeNull();
+  });
+
+  it('does not block when only birth_date is missing', () => {
+    const form = sampleForm();
+    form.children[0] = { ...form.children[0], birth_date: '' };
+    expect(validateFamilyAdmissionForm(form)).toBeNull();
+  });
+
+  it('does not block when only gender is missing', () => {
+    const form = sampleForm();
+    form.children[0] = { ...form.children[0], gender: '' };
+    expect(validateFamilyAdmissionForm(form)).toBeNull();
+  });
+
+  it('blocks when name is missing', () => {
+    const form = sampleForm();
+    form.children[0] = {
+      ...form.children[0],
+      child_first_name_ar: '',
+      child_last_name_ar: '',
+      child_first_name_fr: '',
+      child_last_name_fr: '',
+    };
+    const err = validateFamilyAdmissionForm(form);
+    expect(err?.code).toBe('child_missing_fields');
+    expect(err?.childIndex).toBe(0);
+  });
+
+  it('blocks when level is missing', () => {
+    const form = sampleForm();
+    form.children[1] = { ...form.children[1], requested_level_id: undefined };
+    const err = validateFamilyAdmissionForm(form);
+    expect(err?.code).toBe('child_missing_fields');
+    expect(err?.childIndex).toBe(1);
+  });
+
+  it('allows create when one of two children lacks dob and gender', () => {
+    const form = sampleForm();
+    form.children[1] = { ...form.children[1], gender: '', birth_date: '' };
+    expect(validateFamilyAdmissionForm(form)).toBeNull();
+    const payload = buildCreateFamilyBatchPayload(form, 3, 'key-opt', levels);
+    expect(payload.children).toHaveLength(2);
+    expect(payload.children[1].birth_date).toBeUndefined();
+    expect(payload.children[1].gender).toBeUndefined();
+    expect(payload.children[0].birth_date).toBe('2018-05-15');
+    expect(payload.children[0].gender).toBe('female');
+  });
+
+  it('omits empty optional dob/gender from child payload without placeholders', () => {
+    const child = {
+      ...emptyFamilyAdmissionFormState().children[0],
+      child_first_name_ar: 'نور',
+      requested_level_id: 77,
+      gender: '',
+      birth_date: '',
+    };
+    const payload = buildFamilyBatchChildPayload(child, '', levels);
+    expect(payload).not.toHaveProperty('birth_date');
+    expect(payload).not.toHaveProperty('gender');
+    expect(payload.requested_level_id).toBe(77);
+    expect(payload.child_first_name_ar).toBe('نور');
+  });
+
+  it('keeps provided dob and gender in child payload', () => {
+    const child = {
+      ...emptyFamilyAdmissionFormState().children[0],
+      child_first_name_ar: 'نور',
+      requested_level_id: 77,
+      gender: 'female',
+      birth_date: '2019-02-01',
+    };
+    const payload = buildFamilyBatchChildPayload(child, '', levels);
+    expect(payload.birth_date).toBe('2019-02-01');
+    expect(payload.gender).toBe('female');
+  });
+
+  it('French childMissingFields message no longer requires dob or gender', () => {
+    const msg = frMessages.admin.admissions.family.errors.childMissingFields;
+    expect(msg).toContain('nom ou niveau');
+    expect(msg.toLowerCase()).not.toContain('date de naissance');
+    expect(msg.toLowerCase()).not.toContain('genre');
+  });
+
+  it('individual admission create omits empty dob/gender without placeholders', () => {
+    const form = emptyAdmissionCreateForm();
+    form.child_first_name_ar = 'أحمد';
+    form.requested_level_id = 77;
+    form.gender = '';
+    form.birth_date = '';
+    form.guardians = [
+      {
+        ...createPrimaryGuardianDraft(),
+        name: 'ولي',
+        phone: '0611111111',
+      },
+    ];
+    const payload = buildCreateAdmissionPayload(form, 3, levels);
+    expect(payload).not.toHaveProperty('birth_date');
+    expect(payload).not.toHaveProperty('gender');
+    expect(payload.requested_level_id).toBe(77);
   });
 
   it('supports add/remove child behavior with minimum guard', () => {

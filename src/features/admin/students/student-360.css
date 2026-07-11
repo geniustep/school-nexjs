@@ -8095,6 +8095,21 @@
   margin-bottom: 14px;
 }
 
+.student-create-form__group-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.student-create-form__group-lead {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--c-text-muted);
+  font-weight: 500;
+}
+
 .student-create-form__group-icon {
   display: inline-flex;
   align-items: center;

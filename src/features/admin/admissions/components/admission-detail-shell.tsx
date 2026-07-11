@@ -48,6 +48,7 @@ import { AdmissionRejectionBanner } from './admission-rejection-banner';
 import { AdmissionReopenAction } from './admission-reopen-action';
 import { AdmissionPipelineStatus } from './admission-pipeline-status';
 import { OverviewEmptyValue } from './admission-overview-primitives';
+import { normalizeAdmissionGuardiansForDisplay } from '@/features/admin/admissions/guardians';
 import '../admissions.css';
 
 function isAuthError(code: string): boolean {
@@ -205,6 +206,22 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
     .filter(Boolean)
     .join(' — ');
 
+  const primaryGuardian =
+    normalizeAdmissionGuardiansForDisplay({
+      guardians: detail.guardians,
+      legacyFlat: {
+        guardian_name: detail.guardian_name,
+        guardian_phone: detail.guardian_phone,
+        guardian_whatsapp: detail.guardian_whatsapp,
+        guardian_email: detail.guardian_email,
+        relationship: detail.relationship,
+      },
+    }).find((g) => g.isPrimaryContact) ?? null;
+  const headerGuardianName =
+    cleanDisplayValue(primaryGuardian?.name) || cleanDisplayValue(detail.guardian_name);
+  const headerGuardianPhone =
+    cleanDisplayValue(primaryGuardian?.phone) || cleanDisplayValue(detail.guardian_phone);
+
   function renderTab(activeTab: AdmissionTabId) {
     switch (activeTab) {
       case 'overview':
@@ -332,15 +349,15 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
           <DetailFact
             icon="guardian"
             label={t('admin.admissions.card.guardian')}
-            value={cleanDisplayValue(detail.guardian_name)}
-            empty={!cleanDisplayValue(detail.guardian_name)}
+            value={headerGuardianName}
+            empty={!headerGuardianName}
           />
           <DetailFact
             icon="phone"
             label={t('admin.admissions.card.phone')}
-            value={cleanDisplayValue(detail.guardian_phone)}
+            value={headerGuardianPhone}
             dir="ltr"
-            empty={!cleanDisplayValue(detail.guardian_phone)}
+            empty={!headerGuardianPhone}
           />
           <DetailFact
             icon="level"
@@ -359,15 +376,6 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
         <AdmissionRegistrationActions detail={detail} />
       </header>
 
-      {hasFamilyBatchLink(detail) && detail.family_batch_id ? (
-        <FamilyAdmissionFamilyPanel
-          batchId={detail.family_batch_id}
-          currentAdmissionId={detail.id}
-          familyReference={detail.family_reference}
-          familySize={detail.family_size}
-        />
-      ) : null}
-
       <nav className="admissions-tabs" aria-label={t('admin.admissions.detail.tabs')}>
         {visibleTabs.map((tabId) => (
           <Link
@@ -381,6 +389,17 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
       </nav>
 
       <div className="admissions-detail-panel">{renderTab(tab)}</div>
+
+      {/* After current-child overview: guardians + siblings from batch (current child first). */}
+      {hasFamilyBatchLink(detail) && detail.family_batch_id ? (
+        <FamilyAdmissionFamilyPanel
+          batchId={detail.family_batch_id}
+          currentAdmissionId={detail.id}
+          familyReference={detail.family_reference}
+          familySize={detail.family_size}
+          onBatchUpdated={reload}
+        />
+      ) : null}
     </div>
   );
 }
