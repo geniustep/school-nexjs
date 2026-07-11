@@ -7,7 +7,7 @@ import {
   normalizeGradebookAllowedActions,
   visibleGradebookLifecycleActions,
 } from '@/features/admin/gradebooks/utils/gradebook-allowed-actions';
-import type { GradebookAllowedActions, GradebookDetail } from '@/types/gradebook';
+import type { GradebookAllowedActions, GradebookDetail, GradebookLifecycleAction } from '@/types/gradebook';
 
 export type TeacherGradebookListRow = {
   id: number;
@@ -65,8 +65,9 @@ export function teacherCannotSeeAdminActions(
   allowed: GradebookAllowedActions | string[] | undefined | null,
 ): boolean {
   const visible = visibleGradebookLifecycleActions('teacher', allowed);
+  const visibleSet = new Set<GradebookLifecycleAction>(visible);
   return (
     visible.every((action) => action === 'submit') &&
-    !visible.some((action) => GRADEBOOK_ADMIN_ONLY_ACTIONS.includes(action))
+    !GRADEBOOK_ADMIN_ONLY_ACTIONS.some((action) => visibleSet.has(action))
   );
 }
