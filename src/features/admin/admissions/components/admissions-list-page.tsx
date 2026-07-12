@@ -39,6 +39,12 @@ import {
   type AdmissionUiStage,
 } from '../utils/admission-ui-stage';
 import {
+  admissionOutcomeFilterLabelKey,
+  buildAdmissionOutcomeFilterQuery,
+  type AdmissionOutcomeFilter,
+} from '../utils/admission-status-display';
+import { normalizeAdmissionListItems } from '../utils/normalize-admission-record';
+import {
   countHiddenConvertedAdmissionListItems,
   filterAdmissionListItems,
   hasActiveAdmissionListFilters,
@@ -54,6 +60,7 @@ export function AdmissionsListPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [stateFilter, setStateFilter] = useState<AdmissionUiStage | ''>('');
+  const [outcomeFilter, setOutcomeFilter] = useState<AdmissionOutcomeFilter>('');
   const [showClosed, setShowClosed] = useState(false);
   const [hideConverted, setHideConverted] = useState(true);
   const debouncedSearch = useDebouncedValue(search, 400);
@@ -91,23 +98,29 @@ export function AdmissionsListPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch, stateFilter, view, showClosed, hideConverted]);
+  }, [debouncedSearch, stateFilter, outcomeFilter, view, showClosed, hideConverted]);
 
   useEffect(() => {
     clearSelection();
-  }, [debouncedSearch, stateFilter, showClosed, hideConverted, clearSelection]);
+  }, [debouncedSearch, stateFilter, outcomeFilter, showClosed, hideConverted, clearSelection]);
 
   useEffect(() => {
     if (stateFilter === CLOSED_UI_STAGE) setShowClosed(true);
   }, [stateFilter]);
+
+  const outcomeQuery = useMemo(
+    () => buildAdmissionOutcomeFilterQuery(outcomeFilter),
+    [outcomeFilter],
+  );
 
   const tableParams: ListParams = useMemo(
     () => ({
       page,
       page_size: TABLE_PAGE_SIZE,
       search: debouncedSearch.trim() || undefined,
+      ...outcomeQuery,
     }),
-    [page, debouncedSearch],
+    [page, debouncedSearch, outcomeQuery],
   );
 
   const tableStateDefault = useAdminResource<AdmissionListItem[]>(
@@ -120,6 +133,7 @@ export function AdmissionsListPage() {
     pageSize: TABLE_PAGE_SIZE,
     search: debouncedSearch.trim() || undefined,
     uiStageFilter: stateFilter || 'new',
+    extraQuery: outcomeQuery,
     enabled: view === 'table' && !!stateFilter,
   });
 
@@ -128,6 +142,7 @@ export function AdmissionsListPage() {
   const kanbanBoard = useAdmissionsKanbanBoard({
     columns: fetchRawStates,
     search: debouncedSearch.trim() || undefined,
+    extraQuery: outcomeQuery,
     enabled: view === 'kanban',
   });
 
@@ -146,12 +161,15 @@ export function AdmissionsListPage() {
   const tablePagination = tableState.meta?.pagination;
 
   const filteredTableRows = useMemo(() => {
-    const rows = filterAdmissionListItems(tableState.data ?? [], hideConverted);
+    const source = stateFilter
+      ? (tableState.data ?? [])
+      : normalizeAdmissionListItems(tableState.data ?? []);
+    const rows = filterAdmissionListItems(source, hideConverted);
     if (!showClosed) {
       return rows.filter((item) => resolveAdmissionUiStage(item) !== CLOSED_UI_STAGE);
     }
     return rows;
-  }, [tableState.data, hideConverted, showClosed]);
+  }, [tableState.data, hideConverted, showClosed, stateFilter]);
 
   const filteredKanbanGrouped = useMemo(() => {
     const uiColumns = groupKanbanColumnsByUiStage(kanbanBoard.grouped, kanbanDisplayStages);
@@ -211,14 +229,21 @@ export function AdmissionsListPage() {
     stateFilter,
     showClosed,
     hideConverted,
-  });
+  }) || Boolean(outcomeFilter);
 
   const resetFilters = useCallback(() => {
     setSearch('');
     setStateFilter('');
+    setOutcomeFilter('');
     setShowClosed(false);
     setHideConverted(true);
     setPage(1);
+  }, []);
+
+  const applyOutcomeFilter = useCallback((filter: AdmissionOutcomeFilter) => {
+    setOutcomeFilter(filter);
+    setPage(1);
+    if (filter === 'registered') setHideConverted(false);
   }, []);
 
   const clearSearch = useCallback(() => {
@@ -274,6 +299,7 @@ export function AdmissionsListPage() {
   function handleKpiClick(key: keyof AdmissionsDashboard) {
     if (key === 'total_open') {
       setStateFilter('');
+      setOutcomeFilter('');
       setShowClosed(false);
     }
   }
@@ -316,7 +342,12 @@ export function AdmissionsListPage() {
       </header>
 
       {dashboardData ? (
-        <AdmissionsDashboardSummary data={dashboardData} onKpiClick={handleKpiClick} />
+        <AdmissionsDashboardSummary
+          data={dashboardData}
+          onKpiClick={handleKpiClick}
+          activeOutcomeFilter={outcomeFilter}
+          onOutcomeFilterClick={applyOutcomeFilter}
+        />
       ) : dashboardState.loading && dashboardApiEnabled ? (
         <div className="muted">{t('common.loading')}</div>
       ) : dashboardState.error ? (
@@ -388,6 +419,29 @@ export function AdmissionsListPage() {
           >
             {t('admin.admissions.uiStages.in_evaluation')}
           </button>
+          <select
+            className="input admissions-list-toolbar__state"
+            value={outcomeFilter}
+            onChange={(e) => applyOutcomeFilter(e.target.value as AdmissionOutcomeFilter)}
+            aria-label={t('admin.admissions.filters.outcome')}
+          >
+            <option value="">{t('admin.admissions.filters.allOutcomes')}</option>
+            <option value="awaiting_registration">
+              {t('admin.admissions.registrationStatus.awaiting_registration')}
+            </option>
+            <option value="registered">
+              {t('admin.admissions.registrationStatus.registered')}
+            </option>
+            <option value="school_rejected">
+              {t('admin.admissions.schoolDecision.rejected')}
+            </option>
+            <option value="family_declined">
+              {t('admin.admissions.offerStates.familyDeclined')}
+            </option>
+            <option value="expired_offer">
+              {t('admin.admissions.offerStates.familyExpired')}
+            </option>
+          </select>
         </div>
 
         <div
@@ -472,6 +526,18 @@ export function AdmissionsListPage() {
             >
               {t('admin.admissions.filters.chipState', {
                 state: t(`admin.admissions.uiStages.${stateFilter}`),
+              })}
+              <span aria-hidden="true">×</span>
+            </button>
+          ) : null}
+          {outcomeFilter ? (
+            <button
+              type="button"
+              className="admissions-list-active-filters__chip"
+              onClick={() => applyOutcomeFilter('')}
+            >
+              {t('admin.admissions.filters.chipOutcome', {
+                outcome: t(admissionOutcomeFilterLabelKey(outcomeFilter) ?? ''),
               })}
               <span aria-hidden="true">×</span>
             </button>

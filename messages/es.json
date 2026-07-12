@@ -3921,7 +3921,10 @@
         "chipSearch": "Búsqueda: {query}",
         "chipState": "Estado: {state}",
         "chipShowClosed": "Solicitudes cerradas visibles",
-        "chipHideConvertedOff": "Registrados visibles"
+        "chipHideConvertedOff": "Registrados visibles",
+        "outcome": "Resultado de decisión / inscripción",
+        "allOutcomes": "Todos los resultados",
+        "chipOutcome": "Resultado: {outcome}"
       },
       "refetching": "Actualizando resultados…",
       "noData": {
@@ -4027,7 +4030,13 @@
         "today_appointments": "Citas de hoy",
         "overdue_next_actions": "Acciones atrasadas",
         "fallbackTitle": "Estadísticas estimadas",
-        "fallbackDescription": "No se pudo cargar el panel desde el servidor. Las cifras siguientes se calculan a partir de la lista mostrada."
+        "fallbackDescription": "No se pudo cargar el panel desde el servidor. Las cifras siguientes se calculan a partir de la lista mostrada.",
+        "outcomeGroup": "Resultados de decisión e inscripción",
+        "awaiting_registration_count": "Pendientes de inscripción",
+        "registered_count": "Inscritos",
+        "school_rejected_count": "Rechazados por el colegio",
+        "family_declined_count": "Oferta rechazada por la familia",
+        "expired_offer_count": "Ofertas caducadas"
       },
       "table": {
         "reference": "Referencia",
@@ -4199,7 +4208,9 @@
             "childNotInBatch": "Un tutor no puede vincularse a un niño fuera de este lote familiar.",
             "childrenRequired": "Seleccione al menos un niño, o aplique a todos los niños."
           }
-        }
+        },
+        "mixedOutcomes": "Los niños de este lote familiar tienen resultados mixtos.",
+        "uniformOutcomes": "Todos los niños comparten actualmente el mismo resultado."
       },
       "guardians": {
         "sectionTitle": "Tutores vinculados a la solicitud",
@@ -4432,7 +4443,12 @@
         "accepted": "Aceptada",
         "rejected": "Rechazada",
         "expired": "Expirada",
-        "cancelled": "Cancelada"
+        "cancelled": "Cancelada",
+        "declined": "Rechazada por la familia",
+        "familyDeclined": "La familia rechazó la oferta",
+        "familyExpired": "La oferta ha caducado",
+        "sentLabel": "Oferta enviada",
+        "acceptedFamily": "Aceptada por la familia"
       },
       "offers": {
         "create": "Crear oferta",
@@ -4494,7 +4510,9 @@
         "prefillOfferState": "Estado de la oferta",
         "success": "Alumno creado y vinculado a la solicitud de admisión.",
         "linkFailed": "El alumno se creó, pero falló la vinculación con la solicitud. Abra el perfil del alumno para continuar.",
-        "prefillMultiGuardianHint": "Se rellena un solo tutor desde la admisión. Puede añadir más tutores y elegir el responsable de facturación aquí."
+        "prefillMultiGuardianHint": "Se rellena un solo tutor desde la admisión. Puede añadir más tutores y elegir el responsable de facturación aquí.",
+        "awaitingMessage": "El colegio aceptó la solicitud, pero aún no se ha convertido en un alumno inscrito.",
+        "convertedAt": "Convertida el: {date}"
       },
       "errors": {
         "notFound": "Solicitud no encontrada."
@@ -4504,6 +4522,33 @@
         "individual": "Solicitud individual",
         "family": "Solicitud familiar (hermanos)",
         "individualHint": "Para varios hermanos, use"
+      },
+      "registrationStatus": {
+        "awaiting_registration": "Aceptada — pendiente de inscripción",
+        "registered": "Inscrita",
+        "not_applicable": "No aplicable"
+      },
+      "schoolDecision": {
+        "pending": "Decisión pendiente",
+        "accepted": "Decisión del colegio: aceptada",
+        "accepted_with_condition": "Aceptada con condiciones",
+        "rejected": "Rechazada por el colegio"
+      },
+      "outcomeSummary": {
+        "title": "Resumen de decisión e inscripción",
+        "schoolDecision": "Decisión del colegio",
+        "registration": "Estado de inscripción",
+        "offer": "Estado de la oferta",
+        "offerNone": "Sin oferta"
+      },
+      "statusWarnings": {
+        "sectionTitle": "Advertencias de calidad de datos",
+        "iconTitle": "Advertencia de calidad de datos",
+        "accepted_state_without_decision": "Estado aceptado sin decisión registrada",
+        "student_linked_state_mismatch": "Alumno vinculado con estado de solicitud inconsistente",
+        "registration_linked_without_student": "Flujo de inscripción vinculado sin alumno",
+        "rejected_decision_state_mismatch": "Decisión de rechazo con estado inconsistente",
+        "accepted_offer_application_state_mismatch": "Oferta aceptada con estado de solicitud inconsistente"
       }
     },
     "enrollmentIntake": {

@@ -7,6 +7,7 @@ import { createAdmissionDecision } from '../api/admissions-api';
 import { admissionApiErrorMessage } from '../utils/admission-errors';
 import { refName } from '../utils/admission-labels';
 import { isAdmissionRejected, resolveRejectionReason } from '../utils/admission-rejection';
+import { normalizeAdmissionDecision } from '../utils/normalize-admission-decision';
 import type { AdmissionDetail, DecisionType } from '@/types/admission';
 
 const DECISION_OPTIONS: DecisionType[] = [
@@ -28,7 +29,7 @@ export function AdmissionDecisionTab({
 }) {
   const t = useT();
   const { activeSchoolId } = useAdminSession();
-  const decision = detail.decision;
+  const decision = normalizeAdmissionDecision(detail);
   const rejected = isAdmissionRejected(detail);
   const [decisionValue, setDecisionValue] = useState<DecisionType>('accepted');
   const [decisionNotes, setDecisionNotes] = useState('');
@@ -73,7 +74,7 @@ export function AdmissionDecisionTab({
             <dt>{t('admin.admissions.decision.label')}</dt>
             <dd>
               {rejected
-                ? t('admin.admissions.rejection.status')
+                ? t('admin.admissions.schoolDecision.rejected')
                 : t(`admin.admissions.decisions.${decision.decision}`)}
             </dd>
             {rejected ? (

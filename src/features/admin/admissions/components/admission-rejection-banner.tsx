@@ -31,7 +31,7 @@ export function AdmissionRejectionBanner({
   return (
     <section className="admissions-rejection-banner" aria-live="polite">
       <div className="admissions-rejection-banner__header">
-        <Badge tone="red">{t('admin.admissions.rejection.status')}</Badge>
+        <Badge tone="red">{t('admin.admissions.schoolDecision.rejected')}</Badge>
         <AdmissionReopenAction detail={detail} onUpdated={onUpdated} />
       </div>
         <dl className="admissions-rejection-banner__dl">

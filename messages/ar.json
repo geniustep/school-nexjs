@@ -3951,7 +3951,10 @@
         "chipSearch": "بحث: {query}",
         "chipState": "الحالة: {state}",
         "chipShowClosed": "الطلبات المغلقة ظاهرة",
-        "chipHideConvertedOff": "المسجّلون ظاهرون"
+        "chipHideConvertedOff": "المسجّلون ظاهرون",
+        "outcome": "نتيجة القرار/التسجيل",
+        "allOutcomes": "كل النتائج",
+        "chipOutcome": "النتيجة: {outcome}"
       },
       "refetching": "جاري تحديث النتائج…",
       "noData": {
@@ -4057,7 +4060,13 @@
         "today_appointments": "مواعيد اليوم",
         "overdue_next_actions": "تحتاج متابعة",
         "fallbackTitle": "إحصائيات تقديرية",
-        "fallbackDescription": "تعذّر تحميل لوحة الإحصائيات من الخادم. الأرقام أدناه محسوبة من القائمة المعروضة حاليًا."
+        "fallbackDescription": "تعذّر تحميل لوحة الإحصائيات من الخادم. الأرقام أدناه محسوبة من القائمة المعروضة حاليًا.",
+        "outcomeGroup": "نتائج القرار والتسجيل",
+        "awaiting_registration_count": "بانتظار التسجيل",
+        "registered_count": "مسجلون",
+        "school_rejected_count": "مرفوضون من المدرسة",
+        "family_declined_count": "رفض الأسرة للعرض",
+        "expired_offer_count": "عروض منتهية"
       },
       "table": {
         "reference": "رقم الطلب",
@@ -4229,7 +4238,9 @@
             "childNotInBatch": "لا يمكن ربط ولي بطفل خارج هذه الدفعة العائلية.",
             "childrenRequired": "حدد طفلاً واحدًا على الأقل، أو فعّل الارتباط بجميع الأطفال."
           }
-        }
+        },
+        "mixedOutcomes": "قرارات مختلطة بين الأطفال في هذا الطلب العائلي.",
+        "uniformOutcomes": "جميع الأطفال في الحالة نفسها حاليًا."
       },
       "guardians": {
         "sectionTitle": "الأولياء المرتبطون بالطلب",
@@ -4462,7 +4473,12 @@
         "accepted": "مقبول",
         "rejected": "مرفوض",
         "expired": "منتهي",
-        "cancelled": "ملغى"
+        "cancelled": "ملغى",
+        "declined": "مرفوض من الأسرة",
+        "familyDeclined": "الأسرة رفضت العرض",
+        "familyExpired": "انتهت مهلة العرض",
+        "sentLabel": "العرض مرسل",
+        "acceptedFamily": "مقبول من الأسرة"
       },
       "offers": {
         "create": "إنشاء عرض",
@@ -4524,7 +4540,9 @@
         "prefillOfferState": "حالة العرض",
         "success": "تم إنشاء التلميذ وربطه بطلب التسجيل.",
         "linkFailed": "تم إنشاء التلميذ، لكن ربطه بطلب التسجيل فشل. افتح ملف التلميذ للمتابعة.",
-        "prefillMultiGuardianHint": "يُعبَّأ ولي اتصال واحد من طلب التسجيل. يمكنك إضافة أولياء آخرين واختيار مسؤول الفوترة في هذه الخطوة."
+        "prefillMultiGuardianHint": "يُعبَّأ ولي اتصال واحد من طلب التسجيل. يمكنك إضافة أولياء آخرين واختيار مسؤول الفوترة في هذه الخطوة.",
+        "awaitingMessage": "وافقت المدرسة على الطلب، لكن لم يتم تحويله إلى تلميذ مسجل بعد.",
+        "convertedAt": "تاريخ التحويل: {date}"
       },
       "errors": {
         "notFound": "طلب التسجيل غير موجود."
@@ -4534,6 +4552,33 @@
         "individual": "طلب فردي",
         "family": "طلب عائلي لعدة إخوة",
         "individualHint": "لتسجيل عدة إخوة دفعة واحدة استخدم"
+      },
+      "registrationStatus": {
+        "awaiting_registration": "مقبول — في انتظار التسجيل",
+        "registered": "مسجل",
+        "not_applicable": "غير منطبق حاليًا"
+      },
+      "schoolDecision": {
+        "pending": "قيد القرار",
+        "accepted": "قرار المدرسة: مقبول",
+        "accepted_with_condition": "مقبول بشروط",
+        "rejected": "مرفوض من المدرسة"
+      },
+      "outcomeSummary": {
+        "title": "ملخص القرار والتسجيل",
+        "schoolDecision": "قرار المدرسة",
+        "registration": "حالة التسجيل",
+        "offer": "حالة العرض",
+        "offerNone": "لا يوجد عرض"
+      },
+      "statusWarnings": {
+        "sectionTitle": "تحذيرات جودة البيانات",
+        "iconTitle": "تحذير جودة بيانات",
+        "accepted_state_without_decision": "حالة مقبول دون قرار مسجّل",
+        "student_linked_state_mismatch": "تلميذ مربوط مع حالة طلب غير متوافقة",
+        "registration_linked_without_student": "تدفق التسجيل مرتبط دون تلميذ",
+        "rejected_decision_state_mismatch": "قرار رفض مع حالة طلب غير متوافقة",
+        "accepted_offer_application_state_mismatch": "عرض مقبول مع حالة طلب غير متوافقة"
       }
     },
     "enrollmentIntake": {

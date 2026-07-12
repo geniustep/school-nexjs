@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { LoadingState } from '@/components/states/states';
-import { Badge } from '@/components/ui/primitives';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { fetchFamilyBatchDetail } from '../api/family-admissions-api';
@@ -18,7 +17,8 @@ import {
   orderFamilyBatchApplicationsForCurrentChild,
 } from '../utils/family-batch-current-child';
 import { canEditFamilyBatchGuardians } from '../utils/family-batch-guardians-edit';
-import { admissionUiStageTone, resolveAdmissionUiStage } from '../utils/admission-ui-stage';
+import { resolveFamilyBatchMixedSummary } from '../utils/admission-status-display';
+import { AdmissionStatusBadges } from './admission-status-badges';
 import { FamilyBatchGuardiansEditDialog } from './family-batch-guardians-edit-dialog';
 import type { FamilyBatchDetail } from '@/types/admission';
 
@@ -97,6 +97,11 @@ export function FamilyAdmissionFamilyPanel({
     [orderedApplications, currentAdmissionId],
   );
 
+  const mixedSummary = useMemo(
+    () => resolveFamilyBatchMixedSummary(orderedApplications),
+    [orderedApplications],
+  );
+
   const canEditGuardians = canEditFamilyBatchGuardians(detail?.allowed_actions);
   const editDeniedReasonRaw = detail?.allowed_actions?.edit_guardians_reason;
   const editDeniedReason =
@@ -165,21 +170,27 @@ export function FamilyAdmissionFamilyPanel({
             <p className="family-admission-detail-panel__section-label">
               {t('admin.admissions.family.siblingsInBatchSection')}
             </p>
+            {mixedSummary === 'mixed' ? (
+              <p className="tiny muted family-admission-detail-panel__mixed">
+                {t('admin.admissions.family.mixedOutcomes')}
+              </p>
+            ) : mixedSummary === 'uniform' && orderedApplications.length > 1 ? (
+              <p className="tiny muted family-admission-detail-panel__mixed">
+                {t('admin.admissions.family.uniformOutcomes')}
+              </p>
+            ) : null}
             {siblingApplications.length === 0 ? (
               <p className="muted">{t('admin.admissions.family.noSiblingsInBatch')}</p>
             ) : (
               <ul className="family-admission-detail-panel__list">
                 {siblingApplications.map((app) => {
                   const appRef = familyBatchApplicationReference(app);
-                  const uiStage = resolveAdmissionUiStage(app);
                   return (
                     <li key={app.id}>
                       <div className="family-admission-detail-panel__item-main">
                         <strong>{app.student_name}</strong>
                         <span className="mono">{appRef}</span>
-                        <Badge tone={admissionUiStageTone(uiStage)}>
-                          {t(`admin.admissions.uiStages.${uiStage}`)}
-                        </Badge>
+                        <AdmissionStatusBadges record={app} />
                       </div>
                       <Link
                         href={`/admin/admissions/${app.id}`}

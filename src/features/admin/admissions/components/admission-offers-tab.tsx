@@ -15,6 +15,7 @@ import {
 } from '../api/admissions-api';
 import { admissionApiErrorMessage } from '../utils/admission-errors';
 import { refName } from '../utils/admission-labels';
+import { formatOfferStateLabelKey } from '../utils/admission-status-display';
 import type { AdmissionDetail } from '@/types/admission';
 import type { Ref } from '@/types/api';
 import type { SchoolClass } from '@/types/class';
@@ -218,7 +219,14 @@ export function AdmissionOffersTab({
             <div key={offer.id} className="card card--compact">
               <div className="between">
                 <strong>{refName(offer.level) || t('admin.admissions.offers.offer')}</strong>
-                <Badge tone="slate">{offer.state}</Badge>
+                <Badge tone="slate">
+                  {(() => {
+                    const key = formatOfferStateLabelKey(offer.state);
+                    if (!key) return offer.state;
+                    const label = t(key);
+                    return label !== key ? label : offer.state;
+                  })()}
+                </Badge>
               </div>
               <dl className="admissions-dl">
                 <dt>{t('admin.admissions.fields.requestedClass')}</dt>

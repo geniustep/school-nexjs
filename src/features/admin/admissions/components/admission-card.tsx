@@ -15,10 +15,7 @@ import {
   resolveFamilyBadgeCount,
   shouldShowFamilyBadge,
 } from '../utils/family-admission-visibility';
-import {
-  admissionUiStageTone,
-  resolveAdmissionUiStage,
-} from '../utils/admission-ui-stage';
+import { AdmissionStatusBadges } from './admission-status-badges';
 import type { AdmissionListItem } from '@/types/admission';
 
 const DRAG_MIME = 'application/x-admission-id';
@@ -73,8 +70,6 @@ export function AdmissionCard({
   const previousSchool = cleanDisplayValue(item.previous_school ?? '');
   const siblingsSummary = cleanDisplayValue(item.siblings_summary ?? '');
   const hasSiblings = parseExtraFieldBool(item.has_siblings);
-  const uiStage = resolveAdmissionUiStage(item);
-  const showOfferAcceptedBadge = item.offer_state === 'accepted' && uiStage !== 'accepted';
   const dragEnabled = draggable && !selectionMode && !isSaving;
   const cardNavDisabled = selectionMode;
 
@@ -183,20 +178,13 @@ export function AdmissionCard({
         ) : null}
       </dl>
 
-      {(showStateBadge || item.duplicate_count > 0 || showOfferAcceptedBadge || overdue) && (
+      {(showStateBadge || item.duplicate_count > 0 || overdue) && (
         <div className="admission-card__status-row">
-          {showStateBadge ? (
-            <Badge tone={admissionUiStageTone(uiStage)}>
-              {t(`admin.admissions.uiStages.${uiStage}`)}
-            </Badge>
-          ) : null}
-          {(item.duplicate_count > 0 || showOfferAcceptedBadge || overdue) && (
+          {showStateBadge ? <AdmissionStatusBadges record={item} /> : null}
+          {(item.duplicate_count > 0 || overdue) && (
             <div className="admission-card__badges">
               {item.duplicate_count > 0 && (
                 <Badge tone="amber">{t('admin.admissions.badges.possibleDuplicate')}</Badge>
-              )}
-              {showOfferAcceptedBadge && (
-                <Badge tone="green">{t('admin.admissions.badges.offerAccepted')}</Badge>
               )}
               {overdue && <Badge tone="red">{t('admin.admissions.badges.overdue')}</Badge>}
             </div>

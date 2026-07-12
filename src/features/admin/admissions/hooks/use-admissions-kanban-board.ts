@@ -86,10 +86,13 @@ function columnFromResponse(
 export function useAdmissionsKanbanBoard({
   columns,
   search,
+  extraQuery,
   enabled = true,
 }: {
   columns: string[];
   search?: string;
+  /** Server-side outcome filters (registration_status, decision, offer_state, …). */
+  extraQuery?: Record<string, string | number | undefined>;
   enabled?: boolean;
 }) {
   const { activeSchoolId } = useAdminSession();
@@ -99,6 +102,23 @@ export function useAdmissionsKanbanBoard({
 
   const columnsKey = kanbanColumnsKey(columns);
   const searchKey = search?.trim() ?? '';
+  const extraQueryKey = useMemo(() => {
+    if (!extraQuery) return '';
+    return Object.entries(extraQuery)
+      .filter(([, v]) => v !== undefined && v !== null && v !== '')
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([k, v]) => `${k}=${v}`)
+      .join('&');
+  }, [extraQuery]);
+
+  const resolvedExtraQuery = useMemo(() => {
+    if (!extraQuery) return {};
+    const out: Record<string, string | number> = {};
+    for (const [k, v] of Object.entries(extraQuery)) {
+      if (v !== undefined && v !== null && v !== '') out[k] = v;
+    }
+    return out;
+  }, [extraQueryKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // Derive the column list from the stable string key, not the `columns`
@@ -139,6 +159,7 @@ export function useAdmissionsKanbanBoard({
             search: searchKey || undefined,
             page: 1,
             page_size: ADMISSIONS_KANBAN_COLUMN_PAGE_SIZE,
+            ...resolvedExtraQuery,
           });
           return { state, res };
         }),
@@ -157,7 +178,7 @@ export function useAdmissionsKanbanBoard({
     return () => {
       cancelled = true;
     };
-  }, [enabled, activeSchoolId, columnsKey, searchKey, nonce]);
+  }, [enabled, activeSchoolId, columnsKey, searchKey, extraQueryKey, nonce, resolvedExtraQuery]);
 
   const loadMore = useCallback(
     async (state: string) => {
@@ -180,6 +201,7 @@ export function useAdmissionsKanbanBoard({
         search: searchKey || undefined,
         page: nextPage,
         page_size: ADMISSIONS_KANBAN_COLUMN_PAGE_SIZE,
+        ...resolvedExtraQuery,
       });
 
       setColumnStates((prev) => ({
@@ -187,7 +209,7 @@ export function useAdmissionsKanbanBoard({
         [state]: columnFromResponse(state, res, nextPage, prev[state]?.items ?? []),
       }));
     },
-    [activeSchoolId, columnStates, searchKey],
+    [activeSchoolId, columnStates, searchKey, resolvedExtraQuery],
   );
 
   const reload = useCallback(() => setNonce((n) => n + 1), []);

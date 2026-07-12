@@ -18,7 +18,10 @@ import type {
   ReopenAdmissionPayload,
   AdmissionPrefillApiEnvelope,
 } from '@/types/admission';
-import { normalizeAdmissionDetail } from '../utils/admission-allowed-actions';
+import {
+  normalizeAdmissionDetail,
+  normalizeAdmissionListItems,
+} from '../utils/normalize-admission-record';
 import { unwrapAdmissionPrefill } from '../utils/admission-prefill-unwrap';
 
 export async function fetchAdmissionsDashboard(
@@ -30,7 +33,11 @@ export async function fetchAdmissionsDashboard(
 export async function fetchAdmissions(
   query?: ListParams,
 ): Promise<ApiResponse<AdmissionListItem[]>> {
-  return api.get<AdmissionListItem[]>(endpoints.admin.admissions, query);
+  const res = await api.get<AdmissionListItem[]>(endpoints.admin.admissions, query);
+  if (res.success && Array.isArray(res.data)) {
+    return { ...res, data: normalizeAdmissionListItems(res.data) };
+  }
+  return res;
 }
 
 export async function fetchAdmission(

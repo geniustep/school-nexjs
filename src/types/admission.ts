@@ -28,6 +28,31 @@ export type DecisionType =
   | 'rejected'
   | 'needs_reassessment';
 
+/** Backend-derived registration outcome — display/filter only, not a writable state. */
+export type AdmissionRegistrationStatus =
+  | 'awaiting_registration'
+  | 'registered'
+  | 'not_applicable';
+
+export type AdmissionOfferState =
+  | 'draft'
+  | 'sent'
+  | 'pending'
+  | 'accepted'
+  | 'declined'
+  | 'rejected'
+  | 'expired'
+  | 'cancelled'
+  | string;
+
+export type AdmissionStatusWarningCode =
+  | 'accepted_state_without_decision'
+  | 'student_linked_state_mismatch'
+  | 'registration_linked_without_student'
+  | 'rejected_decision_state_mismatch'
+  | 'accepted_offer_application_state_mismatch'
+  | string;
+
 export interface AdmissionsDashboard {
   total_open: number;
   new_count: number;
@@ -39,6 +64,12 @@ export interface AdmissionsDashboard {
   lost_count: number;
   today_appointments: number;
   overdue_next_actions: number;
+  /** Backend outcome counters — prefer these over legacy accepted_count for registration UX. */
+  awaiting_registration_count?: number;
+  registered_count?: number;
+  school_rejected_count?: number;
+  family_declined_count?: number;
+  expired_offer_count?: number;
 }
 
 export interface AdmissionListItem {
@@ -69,10 +100,19 @@ export interface AdmissionListItem {
    */
   student_id?: number | false | null;
   registration_flow_state?: AdmissionRegistrationFlowState | null;
+  /** Normalized nested decision — list may also carry flat decision string before normalize. */
+  decision?: AdmissionDecision | string | false | null;
+  decision_date?: string | false | null;
+  decision_notes?: string | false | null;
+  decision_user?: Ref | string | false | null;
+  registration_status?: AdmissionRegistrationStatus | null;
+  is_school_rejected?: boolean | null;
+  status_warnings?: AdmissionStatusWarningCode[] | null;
+  converted_at?: string | false | null;
   next_action: string | null;
   next_action_date: string | null;
   duplicate_count: number;
-  offer_state: string | null;
+  offer_state: AdmissionOfferState | false | null;
   assigned_user: Ref | string | null;
   priority: string | null;
 }
@@ -212,11 +252,23 @@ export interface AdmissionDetail extends SiblingsFieldsSource {
   internal_notes?: string | null;
   priority?: string | null;
   duplicate_count?: number;
-  offer_state?: string | null;
+  offer_state?: AdmissionOfferState | false | null;
   activities?: AdmissionActivity[];
   appointments?: AdmissionAppointment[];
   assessments?: AdmissionAssessment[];
-  decision?: AdmissionDecision | null;
+  /**
+   * After normalizeAdmissionDetail: always nested AdmissionDecision | null.
+   * Raw Odoo may send a flat string plus sibling decision_* fields.
+   */
+  decision?: AdmissionDecision | string | false | null;
+  decision_date?: string | false | null;
+  decision_notes?: string | false | null;
+  decision_user?: Ref | string | false | null;
+  conditions?: string | false | null;
+  registration_status?: AdmissionRegistrationStatus | null;
+  is_school_rejected?: boolean | null;
+  status_warnings?: AdmissionStatusWarningCode[] | null;
+  converted_at?: string | false | null;
   offers?: AdmissionOffer[];
   duplicates?: AdmissionDuplicate[];
   allowed_actions: AdmissionAllowedActions;
@@ -525,6 +577,17 @@ export interface FamilyBatchApplicationSummary {
   state: AdmissionState | string;
   requested_level_id?: number | null;
   requested_level?: Ref | string | null;
+  student_id?: number | false | null;
+  registration_flow_state?: AdmissionRegistrationFlowState | null;
+  decision?: AdmissionDecision | string | false | null;
+  decision_date?: string | false | null;
+  decision_notes?: string | false | null;
+  decision_user?: Ref | string | false | null;
+  registration_status?: AdmissionRegistrationStatus | null;
+  is_school_rejected?: boolean | null;
+  status_warnings?: AdmissionStatusWarningCode[] | null;
+  offer_state?: AdmissionOfferState | false | null;
+  converted_at?: string | false | null;
 }
 
 /** POST /admin/admissions/family-batches — create response envelope data */

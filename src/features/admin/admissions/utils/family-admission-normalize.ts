@@ -4,6 +4,10 @@ import type {
   FamilyBatchDetail,
 } from '@/types/admission';
 import { formatAdmissionReference } from './admission-labels';
+import {
+  normalizeFamilyBatchApplication as normalizeFamilyBatchApplicationOutcome,
+  normalizeFamilyBatchDetail as normalizeFamilyBatchDetailOutcome,
+} from './normalize-admission-record';
 
 export function familyBatchApplicationReference(
   app: Pick<FamilyBatchApplicationSummary, 'id' | 'name' | 'reference'>,
@@ -15,11 +19,12 @@ export function familyBatchApplicationReference(
 export function normalizeFamilyBatchApplication(
   raw: FamilyBatchApplicationSummary,
 ): FamilyBatchApplicationSummary {
-  return {
+  const withNames: FamilyBatchApplicationSummary = {
     ...raw,
     name: raw.name ?? raw.reference ?? null,
     reference: raw.reference ?? raw.name ?? null,
   };
+  return normalizeFamilyBatchApplicationOutcome(withNames);
 }
 
 export function normalizeFamilyBatchCreateData(
@@ -34,20 +39,23 @@ export function normalizeFamilyBatchCreateData(
 }
 
 export function normalizeFamilyBatchDetail(data: FamilyBatchDetail): FamilyBatchDetail {
-  const applications = (data.applications ?? []).map(normalizeFamilyBatchApplication);
-  const rawReason = data.allowed_actions?.edit_guardians_reason;
+  const withOutcome = normalizeFamilyBatchDetailOutcome(data);
+  const applications = (withOutcome.applications ?? []).map((app) =>
+    normalizeFamilyBatchApplication(app),
+  );
+  const rawReason = withOutcome.allowed_actions?.edit_guardians_reason;
   const edit_guardians_reason = typeof rawReason === 'string' ? rawReason : null;
 
   return {
-    ...data,
-    application_count: data.application_count ?? applications.length,
+    ...withOutcome,
+    application_count: withOutcome.application_count ?? applications.length,
     applications,
-    allowed_actions: data.allowed_actions
+    allowed_actions: withOutcome.allowed_actions
       ? {
-          ...data.allowed_actions,
-          edit_guardians: data.allowed_actions.edit_guardians === true,
+          ...withOutcome.allowed_actions,
+          edit_guardians: withOutcome.allowed_actions.edit_guardians === true,
           edit_guardians_reason,
         }
-      : data.allowed_actions,
+      : withOutcome.allowed_actions,
   };
 }
