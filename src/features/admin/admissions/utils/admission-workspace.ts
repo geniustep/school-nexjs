@@ -3,6 +3,14 @@
  * Uses Odoo GET /admin/admissions?workspace=<value> (server queue before pagination).
  */
 
+import {
+  AWAITING_DECISION_PROCESSING_STAGES,
+  FOLLOW_UP_PROCESSING_STAGES,
+  isFollowUpProcessingStage,
+  mapLegacyListStateParam,
+  type FollowUpProcessingStage,
+} from './admission-assessment-workflow-contract';
+
 export type AdmissionWorkspace =
   | 'follow_up'
   | 'awaiting_decision'
@@ -23,15 +31,21 @@ export const ADMISSION_WORKSPACE_COUNT_KEYS = {
   closed: 'closed_workspace_count',
 } as const satisfies Record<AdmissionWorkspace, string>;
 
-/** Manual follow-up stages available as optional AND filters inside follow_up. */
-export const FOLLOW_UP_WORKSPACE_STATES = [
+/**
+ * Follow-up kanban columns / optional AND filter (processing_stage).
+ * Legacy aliases contacted/qualified/visit_pending remain accepted via URL mapping.
+ */
+export const FOLLOW_UP_WORKSPACE_STATES = FOLLOW_UP_PROCESSING_STAGES;
+
+export type FollowUpWorkspaceState = FollowUpProcessingStage;
+
+/** @deprecated Prefer FOLLOW_UP_WORKSPACE_STATES (processing stages). */
+export const FOLLOW_UP_LEGACY_STATES = [
   'new',
   'contacted',
   'qualified',
   'visit_pending',
 ] as const;
-
-export type FollowUpWorkspaceState = (typeof FOLLOW_UP_WORKSPACE_STATES)[number];
 
 export type PostAcceptanceSubfilter = 'awaiting' | 'ready' | 'registered';
 
@@ -40,6 +54,8 @@ export type ClosedSubfilter = 'rejected' | 'lost' | 'cancelled' | 'duplicate';
 /** Empty string = full awaiting_decision queue (no extra AND filter). */
 export type AwaitingDecisionSubfilter =
   | ''
+  | 'assessment_in_progress'
+  | 'decision_ready'
   | 'under_review'
   | 'needs_reassessment'
   | 'waitlisted';
@@ -48,7 +64,7 @@ export type AdmissionListViewMode = 'kanban' | 'table';
 
 export type AdmissionWorkspaceListState = {
   workspace: AdmissionWorkspace;
-  /** Optional AND state inside follow_up — never a workspace default. */
+  /** Optional AND processing_stage inside follow_up — never a workspace default. */
   followStage: FollowUpWorkspaceState | '';
   /** Optional AND filter inside awaiting_decision — never defaults to under_review. */
   awaitingSub: AwaitingDecisionSubfilter;
@@ -58,6 +74,9 @@ export type AdmissionWorkspaceListState = {
   stage?: string;
   decision?: string;
   offerState?: string;
+  offerRequired?: string;
+  assessmentProgress?: string;
+  registrationReadiness?: string;
   registrationStatus?: string;
   search?: string;
   academicYearId?: string;
@@ -65,6 +84,11 @@ export type AdmissionWorkspaceListState = {
   sourceId?: string;
   page: number;
   view: AdmissionListViewMode;
+  /**
+   * Ephemeral: view to restore when clearing an operational KPI shortcut.
+   * Not synced to the URL.
+   */
+  resumeView?: AdmissionListViewMode;
 };
 
 export type AdmissionWorkspaceQuery = Record<string, string | number>;
@@ -97,12 +121,12 @@ export function isValidAdmissionWorkspace(
 export function parseFollowUpWorkspaceState(
   value: string | null | undefined,
 ): FollowUpWorkspaceState | '' {
-  if (
-    value &&
-    (FOLLOW_UP_WORKSPACE_STATES as readonly string[]).includes(value)
-  ) {
-    return value as FollowUpWorkspaceState;
-  }
+  if (!value) return '';
+  if (isFollowUpProcessingStage(value)) return value;
+  // Legacy URL aliases → processing stages
+  if (value === 'contacted' || value === 'visit_pending') return 'initial_follow_up';
+  if (value === 'qualified') return 'assessment_ready';
+  if (value === 'new') return 'new';
   return '';
 }
 
@@ -133,6 +157,8 @@ export function parseAwaitingDecisionSubfilter(
   value: string | null | undefined,
 ): AwaitingDecisionSubfilter {
   if (
+    value === 'assessment_in_progress' ||
+    value === 'decision_ready' ||
     value === 'under_review' ||
     value === 'needs_reassessment' ||
     value === 'waitlisted'
@@ -171,6 +197,9 @@ export function buildAdmissionWorkspaceQuery(
     | 'stage'
     | 'decision'
     | 'offerState'
+    | 'offerRequired'
+    | 'assessmentProgress'
+    | 'registrationReadiness'
     | 'registrationStatus'
   >,
 ): AdmissionWorkspacePreset {
@@ -183,7 +212,7 @@ export function buildAdmissionWorkspaceQuery(
         ...advanced,
       };
       const stage = parseFollowUpWorkspaceState(state.followStage);
-      if (stage) query.state = stage;
+      if (stage) query.processing_stage = stage;
       return {
         workspace: 'follow_up',
         query,
@@ -199,13 +228,18 @@ export function buildAdmissionWorkspaceQuery(
         ...advanced,
       };
       const sub = parseAwaitingDecisionSubfilter(state.awaitingSub);
-      if (sub === 'under_review') query.state = 'under_review';
+      if (sub === 'assessment_in_progress' || sub === 'decision_ready') {
+        query.processing_stage = sub;
+      } else if (sub === 'under_review') {
+        // Legacy alias — do not invent a processing_stage beyond decision_ready.
+        query.processing_stage = 'decision_ready';
+      }
       if (sub === 'needs_reassessment') query.decision = 'needs_reassessment';
       if (sub === 'waitlisted') query.decision = 'waitlisted';
       return {
         workspace: 'awaiting_decision',
         query,
-        kanbanColumns: ['under_review'],
+        kanbanColumns: [...AWAITING_DECISION_PROCESSING_STAGES],
         kanbanAllowed: true,
         defaultView: 'table',
         serverExpressible: true,
@@ -217,9 +251,14 @@ export function buildAdmissionWorkspaceQuery(
         workspace: 'post_acceptance',
         ...pickOfferAdvanced(advanced),
       };
-      if (postSub === 'ready') query.state = 'confirmed';
-      else if (postSub === 'registered') query.registration_status = 'registered';
-      else query.registration_status = 'awaiting_registration';
+      if (postSub === 'ready') {
+        query.registration_readiness = 'ready';
+      } else if (postSub === 'registered') {
+        query.registration_readiness = 'registered';
+        query.registration_status = 'registered';
+      } else {
+        query.registration_status = 'awaiting_registration';
+      }
       return {
         workspace: 'post_acceptance',
         query,
@@ -254,6 +293,10 @@ function pickOfferAdvanced(
 ): AdmissionWorkspaceQuery {
   const out: AdmissionWorkspaceQuery = {};
   if (advanced.offer_state) out.offer_state = advanced.offer_state;
+  if (advanced.offer_required != null) out.offer_required = advanced.offer_required;
+  if (advanced.registration_readiness) {
+    out.registration_readiness = advanced.registration_readiness;
+  }
   return out;
 }
 
@@ -265,6 +308,9 @@ export function sanitizeAdvancedFilters(
     | 'stage'
     | 'decision'
     | 'offerState'
+    | 'offerRequired'
+    | 'assessmentProgress'
+    | 'registrationReadiness'
     | 'registrationStatus'
     | 'followStage'
     | 'awaitingSub'
@@ -282,7 +328,7 @@ export function sanitizeAdvancedFilters(
     ) {
       // Owned by followStage when set.
     } else if (isAdvancedStageAllowed(state.workspace, state.stage)) {
-      out.state = state.stage;
+      out.processing_stage = state.stage;
     }
   }
 
@@ -301,6 +347,25 @@ export function sanitizeAdvancedFilters(
 
   if (allowed.offerState && state.offerState) {
     out.offer_state = state.offerState;
+  }
+
+  if (allowed.offerRequired && state.offerRequired) {
+    out.offer_required = state.offerRequired;
+  }
+
+  if (allowed.assessmentProgress && state.assessmentProgress) {
+    out.assessment_progress = state.assessmentProgress;
+  }
+
+  if (allowed.registrationReadiness && state.registrationReadiness) {
+    if (
+      state.workspace === 'post_acceptance' &&
+      (state.postSub === 'ready' || state.postSub === 'registered')
+    ) {
+      // Owned by postSub.
+    } else {
+      out.registration_readiness = state.registrationReadiness;
+    }
   }
 
   if (allowed.registrationStatus && state.registrationStatus) {
@@ -323,6 +388,9 @@ export type AdvancedFilterAvailability = {
   stage: boolean;
   decision: boolean;
   offerState: boolean;
+  offerRequired: boolean;
+  assessmentProgress: boolean;
+  registrationReadiness: boolean;
   registrationStatus: boolean;
   disabledReasonKey?: string;
 };
@@ -336,14 +404,20 @@ export function getWorkspaceAdvancedFilterAvailability(
         stage: true,
         decision: false,
         offerState: false,
+        offerRequired: false,
+        assessmentProgress: true,
+        registrationReadiness: false,
         registrationStatus: false,
         disabledReasonKey: 'admin.admissions.workspace.filtersDisabledFollowUp',
       };
     case 'awaiting_decision':
       return {
-        stage: false,
+        stage: true,
         decision: true,
         offerState: false,
+        offerRequired: false,
+        assessmentProgress: true,
+        registrationReadiness: false,
         registrationStatus: false,
         disabledReasonKey: 'admin.admissions.workspace.filtersDisabledAwaiting',
       };
@@ -352,6 +426,9 @@ export function getWorkspaceAdvancedFilterAvailability(
         stage: false,
         decision: false,
         offerState: true,
+        offerRequired: true,
+        assessmentProgress: false,
+        registrationReadiness: true,
         registrationStatus: false,
         disabledReasonKey: 'admin.admissions.workspace.filtersDisabledPost',
       };
@@ -360,6 +437,9 @@ export function getWorkspaceAdvancedFilterAvailability(
         stage: false,
         decision: false,
         offerState: true,
+        offerRequired: false,
+        assessmentProgress: false,
+        registrationReadiness: false,
         registrationStatus: false,
         disabledReasonKey: 'admin.admissions.workspace.filtersDisabledClosed',
       };
@@ -374,7 +454,11 @@ function isAdvancedStageAllowed(
     return (FOLLOW_UP_WORKSPACE_STATES as readonly string[]).includes(stage);
   }
   if (workspace === 'awaiting_decision') {
-    return stage === 'under_review';
+    return (
+      stage === 'assessment_in_progress' ||
+      stage === 'decision_ready' ||
+      stage === 'under_review'
+    );
   }
   return false;
 }
@@ -404,7 +488,11 @@ export function applyWorkspaceChange(
   prev: AdmissionWorkspaceListState,
   nextWorkspace: AdmissionWorkspace,
 ): AdmissionWorkspaceListState {
-  const view = resolveWorkspaceView(nextWorkspace, prev.view);
+  const preferred =
+    prev.resumeView && workspaceAllowsKanban(nextWorkspace)
+      ? prev.resumeView
+      : prev.view;
+  const view = resolveWorkspaceView(nextWorkspace, preferred);
   return {
     ...prev,
     workspace: nextWorkspace,
@@ -417,7 +505,11 @@ export function applyWorkspaceChange(
     stage: undefined,
     decision: undefined,
     offerState: undefined,
+    offerRequired: undefined,
+    assessmentProgress: undefined,
+    registrationReadiness: undefined,
     registrationStatus: undefined,
+    resumeView: undefined,
   };
 }
 
@@ -425,12 +517,22 @@ export function applyOperationalCard(
   prev: AdmissionWorkspaceListState,
   card: 'awaiting_registration' | 'ready_for_registration' | 'school_rejected',
 ): AdmissionWorkspaceListState {
+  // Re-clicking the active card clears the shortcut and restores the prior view.
+  if (resolveActiveOperationalCard(prev) === card) {
+    return applyWorkspaceChange(prev, 'follow_up');
+  }
+
+  const resumeView =
+    prev.resumeView ??
+    (workspaceAllowsKanban(prev.workspace) ? prev.view : 'kanban');
+
   if (card === 'awaiting_registration') {
     return {
       ...applyWorkspaceChange(prev, 'post_acceptance'),
       postSub: 'awaiting',
       page: 1,
       view: 'table',
+      resumeView,
     };
   }
   if (card === 'ready_for_registration') {
@@ -439,6 +541,7 @@ export function applyOperationalCard(
       postSub: 'ready',
       page: 1,
       view: 'table',
+      resumeView,
     };
   }
   return {
@@ -446,7 +549,24 @@ export function applyOperationalCard(
     closedSub: 'rejected',
     page: 1,
     view: 'table',
+    resumeView,
   };
+}
+
+/** Which operational KPI card is currently reflected by list state (or null). */
+export function resolveActiveOperationalCard(
+  state: Pick<AdmissionWorkspaceListState, 'workspace' | 'postSub' | 'closedSub'>,
+): 'awaiting_registration' | 'ready_for_registration' | 'school_rejected' | null {
+  if (state.workspace === 'post_acceptance' && state.postSub === 'awaiting') {
+    return 'awaiting_registration';
+  }
+  if (state.workspace === 'post_acceptance' && state.postSub === 'ready') {
+    return 'ready_for_registration';
+  }
+  if (state.workspace === 'closed' && state.closedSub === 'rejected') {
+    return 'school_rejected';
+  }
+  return null;
 }
 
 export function workspaceLabelKey(workspace: AdmissionWorkspace): string {
@@ -552,7 +672,7 @@ export function readAppliedWorkspaceFilter(
 export function parseWorkspaceListStateFromSearchParams(
   params: URLSearchParams,
 ): AdmissionWorkspaceListState {
-  const workspace = parseAdmissionWorkspace(params.get('workspace'));
+  let workspace = parseAdmissionWorkspace(params.get('workspace'));
   const preferredView =
     params.get('view') === 'table' || params.get('view') === 'kanban'
       ? (params.get('view') as AdmissionListViewMode)
@@ -561,6 +681,13 @@ export function parseWorkspaceListStateFromSearchParams(
   const registration = params.get('registration_status') || params.get('registration');
   const decision = params.get('decision');
   const state = params.get('state');
+  const processingStageParam =
+    params.get('processing_stage') || params.get('followStage') || '';
+
+  const legacyMap = mapLegacyListStateParam(state);
+  if (legacyMap.workspace) {
+    workspace = legacyMap.workspace;
+  }
 
   let postSub = parsePostAcceptanceSubfilter(params.get('postSub'));
   if (registration === 'registered') postSub = 'registered';
@@ -574,15 +701,23 @@ export function parseWorkspaceListStateFromSearchParams(
   }
 
   let followStage = parseFollowUpWorkspaceState(
-    params.get('followStage') || (workspace === 'follow_up' ? state : ''),
+    processingStageParam ||
+      (legacyMap.processingStage ?? '') ||
+      (workspace === 'follow_up' && !legacyMap.clearLegacyState ? state : ''),
   );
 
   let awaitingSub = parseAwaitingDecisionSubfilter(params.get('awaitingSub'));
   if (workspace === 'awaiting_decision') {
     if (decision === 'needs_reassessment' || decision === 'waitlisted') {
       awaitingSub = decision;
-    } else if (state === 'under_review') {
-      awaitingSub = 'under_review';
+    } else if (
+      processingStageParam === 'assessment_in_progress' ||
+      processingStageParam === 'decision_ready'
+    ) {
+      awaitingSub = processingStageParam;
+    } else if (state === 'under_review' || legacyMap.workspace === 'awaiting_decision') {
+      // under_review → awaiting_decision without inventing a sub-stage
+      awaitingSub = awaitingSub || '';
     }
   }
 
@@ -598,6 +733,9 @@ export function parseWorkspaceListStateFromSearchParams(
         ? undefined
         : decision || undefined,
     offerState: params.get('offer') || params.get('offer_state') || undefined,
+    offerRequired: params.get('offer_required') || undefined,
+    assessmentProgress: params.get('assessment_progress') || undefined,
+    registrationReadiness: params.get('registration_readiness') || undefined,
     registrationStatus: undefined,
     search: params.get('q') || params.get('search') || undefined,
     academicYearId: params.get('year') || params.get('academic_year_id') || undefined,
@@ -615,12 +753,24 @@ export function workspaceListStateToSearchParams(
   params.set('workspace', state.workspace);
 
   const preset = buildAdmissionWorkspaceQuery(state);
+  if (preset.query.processing_stage) {
+    params.set('processing_stage', String(preset.query.processing_stage));
+  }
   if (preset.query.state) params.set('state', String(preset.query.state));
   if (preset.query.decision) params.set('decision', String(preset.query.decision));
   if (preset.query.registration_status) {
     params.set('registration_status', String(preset.query.registration_status));
   }
+  if (preset.query.registration_readiness) {
+    params.set('registration_readiness', String(preset.query.registration_readiness));
+  }
   if (preset.query.offer_state) params.set('offer_state', String(preset.query.offer_state));
+  if (preset.query.offer_required != null) {
+    params.set('offer_required', String(preset.query.offer_required));
+  }
+  if (preset.query.assessment_progress) {
+    params.set('assessment_progress', String(preset.query.assessment_progress));
+  }
 
   if (state.search?.trim()) params.set('q', state.search.trim());
   if (state.academicYearId) params.set('year', state.academicYearId);
@@ -628,6 +778,15 @@ export function workspaceListStateToSearchParams(
   if (state.sourceId) params.set('source', state.sourceId);
   if (state.offerState && !preset.query.offer_state) {
     params.set('offer_state', state.offerState);
+  }
+  if (state.offerRequired && !preset.query.offer_required) {
+    params.set('offer_required', state.offerRequired);
+  }
+  if (state.assessmentProgress && !preset.query.assessment_progress) {
+    params.set('assessment_progress', state.assessmentProgress);
+  }
+  if (state.registrationReadiness && !preset.query.registration_readiness) {
+    params.set('registration_readiness', state.registrationReadiness);
   }
   if (state.page > 1) params.set('page', String(state.page));
   if (state.view !== 'kanban' && state.view !== resolveWorkspaceView(state.workspace, 'kanban')) {
@@ -648,6 +807,9 @@ export function hasManualContextOrAdvancedFilters(
       state.sourceId ||
       state.decision ||
       state.offerState ||
+      state.offerRequired ||
+      state.assessmentProgress ||
+      state.registrationReadiness ||
       state.registrationStatus ||
       state.stage ||
       state.followStage ||
@@ -655,14 +817,21 @@ export function hasManualContextOrAdvancedFilters(
   );
 }
 
-/** Extra query for kanban columns: workspace (+ context) without per-column state. */
+/** Extra query for kanban columns: workspace (+ context) without per-column stage. */
 export function buildKanbanWorkspaceExtraQuery(
   state: AdmissionWorkspaceListState,
 ): AdmissionWorkspaceQuery {
   const full = buildAdmissionListServerQuery(state);
   const out: AdmissionWorkspaceQuery = {};
   for (const [k, v] of Object.entries(full)) {
-    if (k === 'state' || k === 'page' || k === 'search') continue;
+    if (
+      k === 'state' ||
+      k === 'processing_stage' ||
+      k === 'page' ||
+      k === 'search'
+    ) {
+      continue;
+    }
     out[k] = v;
   }
   return out;

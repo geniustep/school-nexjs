@@ -334,11 +334,26 @@ export function resolveFamilyBatchMixedSummary(
 
 export function formatOfferStateLabelKey(offerState: string | null | undefined): string | null {
   if (!offerState) return null;
-  if (offerState === 'declined') return 'admin.admissions.offerStates.declined';
-  if (offerState === 'expired') return 'admin.admissions.offerStates.expired';
-  if (offerState === 'accepted') return 'admin.admissions.offerStates.acceptedFamily';
-  if (offerState === 'sent') return 'admin.admissions.offerStates.sentLabel';
-  return `admin.admissions.offerStates.${offerState}`;
+  const normalized = offerState.trim().toLowerCase();
+  if (!normalized || normalized === 'false') return null;
+  if (normalized === 'declined') return 'admin.admissions.offerStates.declined';
+  if (normalized === 'expired') return 'admin.admissions.offerStates.expired';
+  if (normalized === 'accepted') return 'admin.admissions.offerStates.acceptedFamily';
+  if (normalized === 'sent') return 'admin.admissions.offerStates.sentLabel';
+  if (normalized === 'not_applicable') return 'admin.admissions.offerStates.not_applicable';
+  return `admin.admissions.offerStates.${normalized}`;
+}
+
+/** Translate offer state for UI — never returns a raw i18n key. */
+export function translateOfferStateLabel(
+  offerState: string | null | undefined,
+  t: (key: string) => string,
+): string {
+  const key = formatOfferStateLabelKey(offerState);
+  if (!key) return t('admin.admissions.outcomeSummary.offerNone');
+  const translated = t(key);
+  if (translated !== key) return translated;
+  return t('admin.admissions.offerStates.not_applicable');
 }
 
 export type { AdmissionListItem };

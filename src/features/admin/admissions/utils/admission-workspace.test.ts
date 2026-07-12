@@ -87,12 +87,20 @@ describe('workspace server contract queries', () => {
     ).toEqual({ workspace: 'closed', decision: 'rejected' });
   });
 
-  it('follow_up + contacted sends AND', () => {
+  it('follow_up + initial_follow_up sends AND processing_stage', () => {
     expect(
       buildAdmissionWorkspaceQuery(
-        baseState({ followStage: 'contacted' }),
+        baseState({ followStage: 'initial_follow_up' }),
       ).query,
-    ).toEqual({ workspace: 'follow_up', state: 'contacted' });
+    ).toEqual({ workspace: 'follow_up', processing_stage: 'initial_follow_up' });
+  });
+
+  it('legacy contacted followStage maps to initial_follow_up', () => {
+    expect(
+      buildAdmissionWorkspaceQuery(
+        baseState({ followStage: 'contacted' as never }),
+      ).query,
+    ).toEqual({ workspace: 'follow_up', processing_stage: 'initial_follow_up' });
   });
 
   it('awaiting_decision + needs_reassessment sends AND', () => {
@@ -116,6 +124,7 @@ describe('workspace server contract queries', () => {
       ).query,
     ).toEqual({
       workspace: 'post_acceptance',
+      registration_readiness: 'registered',
       registration_status: 'registered',
     });
   });
@@ -132,7 +141,7 @@ describe('workspace server contract queries', () => {
     const ready = applyOperationalCard(baseState(), 'ready_for_registration');
     expect(buildAdmissionWorkspaceQuery(ready).query).toEqual({
       workspace: 'post_acceptance',
-      state: 'confirmed',
+      registration_readiness: 'ready',
     });
     const rejected = applyOperationalCard(baseState({ view: 'kanban' }), 'school_rejected');
     expect(rejected.view).toBe('table');
@@ -140,6 +149,38 @@ describe('workspace server contract queries', () => {
       workspace: 'closed',
       decision: 'rejected',
     });
+  });
+
+  it('re-clicking an active operational card clears back to follow_up', () => {
+    const ready = applyOperationalCard(baseState(), 'ready_for_registration');
+    expect(ready.workspace).toBe('post_acceptance');
+    expect(ready.postSub).toBe('ready');
+    const cleared = applyOperationalCard(ready, 'ready_for_registration');
+    expect(cleared.workspace).toBe('follow_up');
+    expect(cleared.postSub).toBe('awaiting');
+  });
+
+  it('clearing an operational card restores the previous kanban view', () => {
+    const ready = applyOperationalCard(
+      baseState({ view: 'kanban' }),
+      'ready_for_registration',
+    );
+    expect(ready.view).toBe('table');
+    expect(ready.resumeView).toBe('kanban');
+    const cleared = applyOperationalCard(ready, 'ready_for_registration');
+    expect(cleared.workspace).toBe('follow_up');
+    expect(cleared.view).toBe('kanban');
+    expect(cleared.resumeView).toBeUndefined();
+  });
+
+  it('clearing an operational card keeps table when that was the prior view', () => {
+    const ready = applyOperationalCard(
+      baseState({ view: 'table' }),
+      'ready_for_registration',
+    );
+    expect(ready.resumeView).toBe('table');
+    const cleared = applyOperationalCard(ready, 'ready_for_registration');
+    expect(cleared.view).toBe('table');
   });
 
   it('kanban extra query keeps workspace and drops column state', () => {

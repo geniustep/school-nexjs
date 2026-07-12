@@ -18,6 +18,14 @@ import { resolveFamilyBatchMixedSummary } from '../utils/admission-status-displa
 import { AdmissionStatusBadges } from './admission-status-badges';
 import { FamilyBatchGuardiansEditDialog } from './family-batch-guardians-edit-dialog';
 import { resolveAdmissionPrimaryAction } from '../utils/admission-primary-action';
+import {
+  assessmentProgressLabelKey,
+  processingStageLabelKey,
+  registrationReadinessLabelKey,
+  resolveAssessmentProgress,
+  resolveProcessingStage,
+  resolveRegistrationReadiness,
+} from '../utils/admission-assessment-workflow-contract';
 import { refName } from '../utils/admission-labels';
 import { buildAdmissionTabHref, type AdmissionTabId } from '../utils/admission-detail-tabs';
 import type { FamilyBatchApplicationSummary, FamilyBatchDetail } from '@/types/admission';
@@ -215,19 +223,47 @@ export function FamilyAdmissionFamilyPanel({
                   >
                     <div className="family-admission-detail-panel__item-main">
                       <div className="family-admission-detail-panel__child-title">
-                        <strong>{app.student_name}</strong>
+                        <strong className="family-admission-detail-panel__child-name">
+                          {app.student_name}
+                        </strong>
                         {isCurrent ? (
-                          <span className="tiny family-admission-detail-panel__current-tag">
+                          <span className="family-admission-detail-panel__current-tag">
                             {t('admin.admissions.family.currentChild')}
                           </span>
                         ) : null}
                       </div>
-                      <span className="mono">{appRef}</span>
-                      {levelLabel ? (
-                        <span className="tiny muted">{levelLabel}</span>
-                      ) : null}
-                      <AdmissionStatusBadges record={app} />
-                      <p className="tiny muted family-admission-detail-panel__child-next">
+                      <div className="family-admission-detail-panel__child-meta">
+                        <span className="mono family-admission-detail-panel__child-ref">
+                          {appRef}
+                        </span>
+                        {levelLabel ? (
+                          <span className="family-admission-detail-panel__child-level">
+                            {levelLabel}
+                          </span>
+                        ) : null}
+                      </div>
+                      <div className="family-admission-detail-panel__child-status">
+                        <AdmissionStatusBadges record={app} />
+                      </div>
+                      {(() => {
+                        const stage = resolveProcessingStage(app);
+                        const progress = resolveAssessmentProgress(app);
+                        const readiness = resolveRegistrationReadiness(app);
+                        return (
+                          <p className="muted tiny family-admission-detail-panel__child-workflow">
+                            {stage
+                              ? t(processingStageLabelKey(stage))
+                              : null}
+                            {progress
+                              ? ` · ${t(assessmentProgressLabelKey(progress))}`
+                              : null}
+                            {readiness
+                              ? ` · ${t(registrationReadinessLabelKey(readiness))}`
+                              : null}
+                          </p>
+                        );
+                      })()}
+                      <p className="family-admission-detail-panel__child-next">
                         {t(primary.descriptionKey)}
                       </p>
                     </div>

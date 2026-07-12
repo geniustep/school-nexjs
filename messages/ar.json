@@ -183,6 +183,7 @@
     "notFoundTitle": "غير موجود",
     "serverError": "حدث خطأ غير متوقع. حاول لاحقًا.",
     "serverErrorTitle": "حدث خطأ",
+    "badGateway": "تعذّر الوصول إلى الخادم مؤقتًا. حاول مرة أخرى بعد لحظات.",
     "loadFailed": "تعذر تحميل البيانات.",
     "loadFailedRetry": "تعذر تحميل البيانات. يرجى إعادة المحاولة.",
     "teacherLoadFailed": "تعذر تحميل بيانات الأستاذ.",
@@ -4185,6 +4186,8 @@
         "filterAwaitingAria": "عرض الطلبات المقبولة في انتظار التسجيل",
         "filterReadyAria": "عرض الطلبات الجاهزة للتسجيل",
         "filterRejectedAria": "عرض الطلبات المرفوضة من المدرسة",
+        "clearFilterAria": "إلغاء فلتر {label}",
+        "clearFilterHint": "انقر مرة أخرى لإلغاء الفلتر",
         "filterNewAria": "عرض الطلبات الجديدة"
       },
       "table": {
@@ -4363,6 +4366,8 @@
         "mixedOutcomes": "قرارات مختلطة بين الأطفال في هذا الطلب العائلي.",
         "uniformOutcomes": "جميع الأطفال في الحالة نفسها حاليًا.",
         "childrenInBatchSection": "أطفال الطلب العائلي",
+        "siblingsInfoInFamilyTab": "هذا طلب عائلي. لا تُعرض هنا حقول «معلومات الإخوة» المنفردة — الأطفال المرتبطون يظهرون في تبويب الأسرة.",
+        "openFamilyChildren": "عرض أطفال الطلب العائلي",
         "currentChild": "الطلب الحالي"
       },
       "guardians": {
@@ -4444,6 +4449,7 @@
         "detailedState": "الحالة التفصيلية",
         "tabs": "أقسام الطلب",
         "unspecified": "غير محدد",
+        "noneValue": "لا يوجد",
         "individualType": "فردي"
       },
       "tabs": {
@@ -4457,11 +4463,11 @@
         "summary": "الملخص",
         "family_data": "الأسرة والبيانات",
         "assessments_appointments": "التقييمات والمواعيد",
-        "offer_registration": "العرض والتسجيل",
+        "offer_registration": "القبول والتسجيل",
         "history": "السجل",
         "assessmentsSection": "التقييمات",
         "appointmentsSection": "المواعيد",
-        "offerSection": "العرض",
+        "offerSection": "عرض القبول",
         "registrationSection": "التسجيل"
       },
       "timeline": {
@@ -4609,7 +4615,10 @@
         "expired": "منتهي",
         "cancelled": "ملغى",
         "declined": "مرفوض من الأسرة",
-        "familyDeclined": "الأسرة رفضت العرض",
+        "not_applicable": "غير منطبق",
+        "not_created": "مطلوب ولم يُنشأ",
+        "withdrawn": "تم سحب عرض القبول",
+        "familyDeclined": "رفضت الأسرة عرض القبول",
         "familyExpired": "انتهت مهلة العرض",
         "sentLabel": "العرض مرسل",
         "acceptedFamily": "مقبول من الأسرة"
@@ -4655,7 +4664,14 @@
           "birthDateMissing": "تاريخ الميلاد غير محدد.",
           "genderMissing": "الجنس غير محدد.",
           "requestedLevelMissing": "المستوى المطلوب غير محدد.",
-          "academicYearMissing": "السنة الدراسية غير محددة."
+          "academicYearMissing": "السنة الدراسية غير محددة.",
+          "familyBatchGuardianBillingHint": "ولي من الطلب العائلي متاح؛ عند وجود أكثر من ولي سيتم ربطهم، أكّد مسؤول الفوترة صراحة أثناء التسجيل.",
+          "identityDocumentMissing": "وثيقة هوية ولي الأمر غير مكتملة.",
+          "identityDocumentRequired": "وثيقة هوية ولي الأمر مطلوبة.",
+          "identityDocumentMissingFor": "وثيقة الهوية ناقصة لـ {name}.",
+          "identityDocumentNumberMissingFor": "رقم وثيقة الهوية ناقص لـ {name}.",
+          "familyApplicationMultipleGuardians": "طلب التسجيل العائلي يتضمن أكثر من ولي أمر.",
+          "billingResponsibilityAtRegistrationStart": "يتم اختيار مسؤول الفوترة عند بدء التسجيل."
         }
       },
       "registration": {
@@ -4733,12 +4749,16 @@
       "journey": {
         "title": "مسار الطلب",
         "followUp": "المتابعة",
+        "assessment": "التقييم",
         "decision": "قرار المدرسة",
         "offer": "العرض",
+        "acceptance": "إجراءات القبول",
         "registration": "التسجيل",
         "pending": "قيد الانتظار",
         "decisionPending": "بانتظار القرار",
         "offerPending": "بانتظار إعداد العرض",
+        "offerRequired": "عرض القبول مطلوب",
+        "offerNotRequired": "لا يلزم عرض قبول",
         "notApplicable": "غير منطبق",
         "closed": "مغلق",
         "followUpComplete": "مكتملة",
@@ -4751,27 +4771,107 @@
           "closed": "مغلق"
         }
       },
+      "processingStages": {
+        "new": "جديد",
+        "initial_follow_up": "المتابعة الأولية",
+        "assessment_ready": "جاهز للتقييم",
+        "assessment_in_progress": "قيد التقييم",
+        "decision_ready": "بانتظار قرار المدرسة"
+      },
+      "assessmentProgress": {
+        "not_required": "غير مطلوب",
+        "not_started": "لم يبدأ",
+        "in_progress": "قيد التقييم",
+        "additional_required": "يحتاج تقييمًا إضافيًا",
+        "completed": "مكتمل",
+        "ready_for_decision": "جاهز للقرار"
+      },
+      "assessmentTypes": {
+        "written_test": "اختبار كتابي",
+        "oral_interview": "مقابلة شفوية",
+        "subject_teacher_assessment": "تقييم أستاذ المادة",
+        "administrative_interview": "لقاء إداري",
+        "placement_assessment": "تقييم تحديد المستوى",
+        "additional_assessment": "تقييم إضافي",
+        "other": "تقييم آخر"
+      },
+      "assessmentRecommendations": {
+        "no_result": "لم تسجل نتيجة",
+        "suitable": "مناسب",
+        "suitable_with_conditions": "مناسب بشروط",
+        "review_required": "يحتاج مراجعة",
+        "not_suitable": "غير مناسب",
+        "recommendationNote": "توصية المقيم وليست قرار المدرسة"
+      },
+      "assessmentSummary": {
+        "title": "ملخص التقييم",
+        "requiredCount": "التقييمات المطلوبة",
+        "completedCount": "المكتمل",
+        "openCount": "المفتوح",
+        "nextAssessment": "التقييم التالي",
+        "blocking": "تقييمات مانعة"
+      },
+      "registrationReadiness": {
+        "not_applicable": "غير منطبق",
+        "blocked": "متوقف",
+        "awaiting_offer_creation": "بانتظار إنشاء العرض",
+        "awaiting_offer_response": "بانتظار رد الأسرة",
+        "ready": "جاهز للتسجيل",
+        "registered": "مسجل"
+      },
+      "registrationRequirements": {
+        "blocking": "متطلبات مانعة",
+        "warning": "تحذيرات",
+        "information": "معلومات قبل التسجيل"
+      },
+      "acceptance": {
+        "beforeDecision": "لم يصدر قرار المدرسة بعد. ستظهر إجراءات القبول والتسجيل بعد اتخاذ القرار.",
+        "rejectedTitle": "تم رفض الطلب من المدرسة",
+        "rejectedBody": "تم رفض الطلب من المدرسة.",
+        "reopenHint": "يمكن إعادة فتح الطلب عند السماح.",
+        "acceptedDirectTitle": "قُبل الطلب ويمكن استكمال التسجيل مباشرة",
+        "acceptedDirectBody": "قُبل الطلب ويمكن استكمال التسجيل مباشرة.",
+        "directRegistrationHint": "لا تتطلب سياسة هذا الطلب عرض قبول منفصلًا.",
+        "offerRequiredTitle": "عرض القبول مطلوب",
+        "offerRequiredBody": "عرض القبول مطلوب قبل استكمال التسجيل.",
+        "offerDraftTitle": "عرض القبول في المسودة",
+        "awaitingFamilyTitle": "بانتظار رد الأسرة",
+        "awaitingFamilyBody": "تم إرسال عرض القبول وينتظر جواب الأسرة.",
+        "familyAcceptedTitle": "قبلت الأسرة عرض القبول",
+        "familyAcceptedBody": "قبلت الأسرة عرض القبول.",
+        "offerAcceptDoesNotRegister": "قبول العرض لا ينشئ سجل التلميذ تلقائيًا؛ يتم ذلك عبر استكمال التسجيل."
+      },
       "primaryAction": {
         "title": "الإجراء التالي",
         "moreActions": "المزيد من الإجراءات",
-        "changeStage": "تغيير مرحلة المتابعة",
+        "changeStage": "تغيير مرحلة المعالجة",
         "openStudent": "فتح ملف التلميذ",
         "openStudentDesc": "الطلب مسجّل. افتح ملف التلميذ لمتابعة المسار الدراسي.",
         "registeredNoLinkDesc": "الطلب مسجّل لكن رابط التلميذ غير متاح.",
         "continueRegistration": "استكمال تسجيل التلميذ",
-        "continueRegistrationDesc": "قبلت الأسرة العرض وأصبح الملف جاهزًا لإنشاء أو ربط سجل التلميذ.",
+        "continueRegistrationDesc": "الطلب جاهز لإنشاء أو ربط سجل التلميذ.",
         "readyNoPermissionDesc": "الملف جاهز للتسجيل لكن لا تتوفر صلاحية الاستكمال.",
         "linkStudent": "ربط تلميذ موجود",
         "acceptOffer": "تأكيد قبول الأسرة",
         "acceptOfferDesc": "العرض مرسل وينتظر جواب الأسرة.",
-        "createOffer": "إعداد العرض للأسرة",
-        "createOfferDesc": "وافقت المدرسة على الطلب، ويجب الآن إعداد العرض أو إرساله قبل استكمال التسجيل.",
+        "openOffer": "فتح عرض القبول",
+        "createOffer": "إنشاء عرض القبول",
+        "createOfferDesc": "وافقت المدرسة على الطلب، ويجب الآن إعداد عرض القبول قبل استكمال التسجيل.",
         "sendOffer": "إرسال العرض للأسرة",
         "sendOfferDesc": "يوجد عرض مسودة جاهز للإرسال إلى الأسرة.",
         "decide": "اتخاذ قرار المدرسة",
         "decideDesc": "الطلب جاهز لاتخاذ قرار المدرسة.",
         "openAssessments": "فتح التقييمات",
-        "openAssessmentsDesc": "الطلب يحتاج إعادة تقييم قبل اتخاذ القرار.",
+        "openAssessmentsDesc": "تابع التقييم التالي المطلوب لهذا الطلب.",
+        "scheduleAssessment": "إنشاء أو جدولة تقييم",
+        "scheduleAssessmentDesc": "الطلب جاهز للتقييم — أنشئ أو جدول التقييم المطلوب.",
+        "scheduleAppointment": "جدولة موعد",
+        "startInitialFollowUp": "بدء المتابعة الأولية",
+        "startInitialFollowUpDesc": "انقل الطلب إلى المتابعة الأولية بعد بدء التواصل.",
+        "advanceProcessingStage": "الانتقال للمرحلة التالية",
+        "advanceProcessingStageDesc": "حدّث مرحلة المعالجة بعد نشاط المتابعة.",
+        "recordFollowUp": "تسجيل نشاط متابعة",
+        "recordFollowUpDesc": "سجّل نشاط متابعة أو حدّث مرحلة المعالجة.",
         "markContacted": "تسجيل الاتصال",
         "markContactedDesc": "انقل الطلب إلى «تم الاتصال» بعد التواصل مع الأسرة.",
         "markQualified": "تأهيل الطلب",

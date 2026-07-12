@@ -15,7 +15,7 @@ import {
 } from '../api/admissions-api';
 import { admissionApiErrorMessage } from '../utils/admission-errors';
 import { refName } from '../utils/admission-labels';
-import { formatOfferStateLabelKey } from '../utils/admission-status-display';
+import { translateOfferStateLabel } from '../utils/admission-status-display';
 import type { AdmissionDetail } from '@/types/admission';
 import type { Ref } from '@/types/api';
 import type { SchoolClass } from '@/types/class';
@@ -24,10 +24,13 @@ export function AdmissionOffersTab({
   detail,
   allowedActions,
   onUpdated,
+  hideEmptyState = false,
 }: {
   detail: AdmissionDetail;
   allowedActions: AdmissionDetail['allowed_actions'];
   onUpdated: () => void;
+  /** When true, omit the «no offers» empty state (e.g. offer not applicable). */
+  hideEmptyState?: boolean;
 }) {
   const t = useT();
   const { activeSchoolId } = useAdminSession();
@@ -212,7 +215,9 @@ export function AdmissionOffersTab({
       )}
 
       {offers.length === 0 ? (
-        <EmptyState compact title={t('admin.admissions.offers.empty')} />
+        hideEmptyState ? null : (
+          <EmptyState compact title={t('admin.admissions.offers.empty')} />
+        )
       ) : (
         <div className="stack gap-sm">
           {offers.map((offer) => (
@@ -220,12 +225,7 @@ export function AdmissionOffersTab({
               <div className="between">
                 <strong>{refName(offer.level) || t('admin.admissions.offers.offer')}</strong>
                 <Badge tone="slate">
-                  {(() => {
-                    const key = formatOfferStateLabelKey(offer.state);
-                    if (!key) return offer.state;
-                    const label = t(key);
-                    return label !== key ? label : offer.state;
-                  })()}
+                  {translateOfferStateLabel(offer.state, t)}
                 </Badge>
               </div>
               <dl className="admissions-dl">

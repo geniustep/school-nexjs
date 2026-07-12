@@ -404,18 +404,21 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
       </header>
 
       <nav className="admissions-tabs" aria-label={t('admin.admissions.detail.tabs')}>
-        {ADMISSION_TABS.map((tabId) => (
-          <Link
-            key={tabId}
-            href={buildAdmissionTabHref(admissionId, tabId)}
-            aria-current={tab === tabId ? 'page' : undefined}
-          >
-            {t(`admin.admissions.tabs.${tabId}`)}
-          </Link>
-        ))}
+        <div className="admissions-tabs__track">
+          {ADMISSION_TABS.map((tabId) => (
+            <Link
+              key={tabId}
+              href={buildAdmissionTabHref(admissionId, tabId)}
+              aria-current={tab === tabId ? 'page' : undefined}
+              className="admissions-tabs__tab"
+            >
+              {t(`admin.admissions.tabs.${tabId}`)}
+            </Link>
+          ))}
+        </div>
       </nav>
 
-      <div className="admissions-detail-panel">{renderTab(tab)}</div>
+      <div className="admissions-detail-panel card">{renderTab(tab)}</div>
     </div>
   );
 }

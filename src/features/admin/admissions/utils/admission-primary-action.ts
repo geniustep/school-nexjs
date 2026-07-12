@@ -1,15 +1,25 @@
 /**
  * Central primary-action resolver for admission detail / family child rows.
- * Precedence is fixed; Backend allowed_actions gates every actionable result.
+ * Backend next_action / allowed_actions / readiness / assessment / processing win.
  */
 
-import type { AdmissionAllowedActions, AdmissionOfferState } from '@/types/admission';
+import type {
+  AdmissionAllowedActions,
+  AdmissionNextAction,
+  AdmissionOfferState,
+} from '@/types/admission';
+import {
+  admissionNextActionCode,
+  resolveAssessmentProgress,
+  resolveOfferRequired,
+  resolveOfferStateV185,
+  resolveProcessingStage,
+  resolveRegistrationReadiness,
+} from './admission-assessment-workflow-contract';
 import { hasAdmissionAllowedAction } from './admission-allowed-actions';
 import { isAdmissionManualStage } from './admission-stage-options';
 import {
   resolveIsSchoolRejected,
-  resolveOfferStateValue,
-  resolveRegistrationStatus,
   type AdmissionStatusFields,
 } from './admission-status-display';
 import { resolveAdmissionStudentId } from './admission-registration';
@@ -27,6 +37,10 @@ export type AdmissionPrimaryActionKey =
   | 'send_offer'
   | 'decide'
   | 'open_assessments'
+  | 'schedule_assessment'
+  | 'follow_up_start'
+  | 'follow_up_activity'
+  | 'follow_up_advance'
   | 'follow_up_contact'
   | 'follow_up_qualify'
   | 'follow_up_schedule_visit'
@@ -92,11 +106,17 @@ export type AdmissionPrimaryActionInput = AdmissionStatusFields & {
   student_id?: number | false | null;
   registration_flow_state?: string | null;
   admission_workspace?: string | null;
+  processing_stage?: string | null;
+  assessment_progress?: string | null;
+  assessment_summary?: { progress?: string | null } | null;
+  offer_required?: boolean | null;
+  offer_summary?: Record<string, unknown> | null;
+  registration_readiness?: string | null;
   allowed_actions?: AdmissionAllowedActions | string[] | null;
   offers?: Array<{ id?: number; state?: string | null }> | null;
   offer_state?: AdmissionOfferState | false | null;
   can_reopen?: boolean | null;
-  next_action?: string | null;
+  next_action?: AdmissionNextAction;
 };
 
 function actionsOf(input: AdmissionPrimaryActionInput) {
@@ -105,6 +125,10 @@ function actionsOf(input: AdmissionPrimaryActionInput) {
 
 function can(input: AdmissionPrimaryActionInput, key: string): boolean {
   return hasAdmissionAllowedAction(actionsOf(input), key);
+}
+
+function canChangeStage(input: AdmissionPrimaryActionInput): boolean {
+  return can(input, 'change_processing_stage') || can(input, 'change_state');
 }
 
 function decisionValue(input: AdmissionPrimaryActionInput): string | null {
@@ -121,10 +145,6 @@ function findOffer(
 ): { id?: number; state?: string | null } | null {
   const list = input.offers ?? [];
   return list.find((o) => states.includes(String(o.state ?? ''))) ?? null;
-}
-
-function resolveOfferState(input: AdmissionPrimaryActionInput): string | null {
-  return resolveOfferStateValue(input);
 }
 
 function hrefStudent(input: AdmissionPrimaryActionInput): string | null {
@@ -154,15 +174,19 @@ export function resolveAdmissionPrimaryAction(
   input: AdmissionPrimaryActionInput,
 ): AdmissionPrimaryAction {
   const studentId = resolveAdmissionStudentId(input.student_id);
-  const registration = resolveRegistrationStatus(input).status;
+  const readiness = resolveRegistrationReadiness(input);
+  const processing = resolveProcessingStage(input);
+  const assessmentProgress = resolveAssessmentProgress(input);
   const decision = decisionValue(input);
-  const offerState = resolveOfferState(input);
+  const offerRequired = resolveOfferRequired(input);
+  const offerState = resolveOfferStateV185(input);
   const state = String(input.state ?? '');
   const workspace = workspaceOf(input);
   const rejected = resolveIsSchoolRejected(input);
+  const nextCode = admissionNextActionCode(input.next_action ?? null);
 
   // 1. Registered
-  if (studentId != null || registration === 'registered') {
+  if (studentId != null || readiness === 'registered') {
     const href = hrefStudent(input);
     if (href) {
       return {
@@ -176,8 +200,8 @@ export function resolveAdmissionPrimaryAction(
     return readonlyAction('admin.admissions.primaryAction.registeredNoLinkDesc');
   }
 
-  // 2. Ready for registration (confirmed, no student)
-  if (state === 'confirmed') {
+  // 2. Ready for registration (Backend readiness wins; confirmed is legacy alias)
+  if (readiness === 'ready' || (state === 'confirmed' && readiness == null)) {
     if (can(input, 'get_prefill')) {
       return {
         key: 'continue_registration',
@@ -201,27 +225,67 @@ export function resolveAdmissionPrimaryAction(
     return readonlyAction('admin.admissions.primaryAction.readyNoPermissionDesc');
   }
 
-  // 3. Offer sent — family acceptance
-  const sentOffer = findOffer(input, ['sent', 'pending']);
-  if (
-    (offerState === 'sent' || offerState === 'pending' || sentOffer) &&
-    can(input, 'accept_offer')
-  ) {
+  // Rejected / closed before follow-up fallbacks (processing_stage may be absent)
+  if (rejected) {
     return {
-      key: 'accept_offer',
-      labelKey: 'admin.admissions.primaryAction.acceptOffer',
-      descriptionKey: 'admin.admissions.primaryAction.acceptOfferDesc',
-      intent: 'primary',
-      requiredAction: 'accept_offer',
-      target: { kind: 'dialog', dialog: 'accept_offer' },
+      key: 'view_rejection',
+      labelKey: 'admin.admissions.primaryAction.viewRejection',
+      descriptionKey: 'admin.admissions.primaryAction.viewRejectionDesc',
+      intent: 'danger',
+      target: { kind: 'tab', tab: 'decision' },
     };
   }
 
-  // 4. Accepted without completed offer flow
-  const acceptedDecision =
-    decision === 'accepted' || decision === 'accepted_with_condition';
-  if (acceptedDecision && state !== 'confirmed') {
-    if (can(input, 'create_offer') && (!offerState || offerState === 'cancelled')) {
+  if (state === 'lost' || state === 'cancelled' || state === 'duplicate') {
+    return readonlyAction('admin.admissions.primaryAction.closedDesc');
+  }
+
+  // 3. Awaiting offer response
+  if (
+    readiness === 'awaiting_offer_response' ||
+    offerState === 'sent' ||
+    findOffer(input, ['sent', 'pending'])
+  ) {
+    if (can(input, 'accept_offer')) {
+      return {
+        key: 'accept_offer',
+        labelKey: 'admin.admissions.primaryAction.acceptOffer',
+        descriptionKey: 'admin.admissions.primaryAction.acceptOfferDesc',
+        intent: 'primary',
+        requiredAction: 'accept_offer',
+        target: { kind: 'dialog', dialog: 'accept_offer' },
+      };
+    }
+    return {
+      key: 'accept_offer',
+      labelKey: 'admin.admissions.primaryAction.openOffer',
+      descriptionKey: 'admin.admissions.primaryAction.acceptOfferDesc',
+      intent: 'primary',
+      target: { kind: 'tab', tab: 'offer_registration' },
+      disabled: !can(input, 'accept_offer') && !can(input, 'decline_offer'),
+    };
+  }
+
+  // 4. Awaiting offer creation / draft send
+  if (
+    readiness === 'awaiting_offer_creation' ||
+    ((offerRequired === true || offerRequired == null) &&
+      (offerState === 'not_created' || !offerState) &&
+      (decision === 'accepted' || decision === 'accepted_with_condition'))
+  ) {
+    if (offerState === 'draft' || findOffer(input, ['draft'])) {
+      if (can(input, 'send_offer')) {
+        return {
+          key: 'send_offer',
+          labelKey: 'admin.admissions.primaryAction.sendOffer',
+          descriptionKey: 'admin.admissions.primaryAction.sendOfferDesc',
+          intent: 'primary',
+          requiredAction: 'send_offer',
+          target: { kind: 'tab', tab: 'offer_registration' },
+        };
+      }
+    }
+    if (can(input, 'create_offer')) {
       return {
         key: 'create_offer',
         labelKey: 'admin.admissions.primaryAction.createOffer',
@@ -231,10 +295,11 @@ export function resolveAdmissionPrimaryAction(
         target: { kind: 'tab', tab: 'offer_registration' },
       };
     }
-    if (
-      can(input, 'send_offer') &&
-      (offerState === 'draft' || findOffer(input, ['draft']))
-    ) {
+  }
+
+  // 5. Offer draft → send (when readiness did not classify as awaiting_offer_creation)
+  if (offerState === 'draft' || findOffer(input, ['draft'])) {
+    if (can(input, 'send_offer')) {
       return {
         key: 'send_offer',
         labelKey: 'admin.admissions.primaryAction.sendOffer',
@@ -244,28 +309,30 @@ export function resolveAdmissionPrimaryAction(
         target: { kind: 'tab', tab: 'offer_registration' },
       };
     }
-    if (can(input, 'get_prefill')) {
-      return {
-        key: 'continue_registration',
-        labelKey: 'admin.admissions.primaryAction.continueRegistration',
-        descriptionKey: 'admin.admissions.primaryAction.continueRegistrationDesc',
-        intent: 'primary',
-        requiredAction: 'get_prefill',
-        target: { kind: 'href', href: hrefContinue(input) },
-      };
-    }
   }
 
-  // 5. Needs school decision
-  const needsDecision =
+  // Accepted + offer not required → registration path already handled above via readiness.
+  const acceptedDecision =
+    decision === 'accepted' || decision === 'accepted_with_condition';
+  if (acceptedDecision && offerRequired === false && can(input, 'get_prefill')) {
+    return {
+      key: 'continue_registration',
+      labelKey: 'admin.admissions.primaryAction.continueRegistration',
+      descriptionKey: 'admin.admissions.primaryAction.continueRegistrationDesc',
+      intent: 'success',
+      requiredAction: 'get_prefill',
+      target: { kind: 'href', href: hrefContinue(input) },
+    };
+  }
+
+  // 6. Decision ready
+  if (
+    processing === 'decision_ready' ||
     workspace === 'awaiting_decision' ||
-    state === 'under_review' ||
     decision === 'needs_reassessment' ||
     decision === 'waitlisted' ||
-    (!decision &&
-      (state === 'under_review' || workspace === 'awaiting_decision'));
-
-  if (needsDecision) {
+    (!decision && (processing === 'decision_ready' || state === 'under_review'))
+  ) {
     if (can(input, 'decide')) {
       return {
         key: 'decide',
@@ -288,79 +355,106 @@ export function resolveAdmissionPrimaryAction(
     }
   }
 
-  // 6. Initial follow-up manual stages
-  if (isAdmissionManualStage(state) && can(input, 'change_state')) {
-    if (state === 'new') {
+  // 7. Assessment in progress — next assessment action
+  if (
+    processing === 'assessment_in_progress' ||
+    assessmentProgress === 'in_progress' ||
+    assessmentProgress === 'additional_required'
+  ) {
+    if (can(input, 'add_assessment') || can(input, 'update_assessment')) {
       return {
-        key: 'follow_up_contact',
-        labelKey: 'admin.admissions.primaryAction.markContacted',
-        descriptionKey: 'admin.admissions.primaryAction.markContactedDesc',
+        key: 'open_assessments',
+        labelKey: 'admin.admissions.primaryAction.openAssessments',
+        descriptionKey: 'admin.admissions.primaryAction.openAssessmentsDesc',
         intent: 'primary',
-        requiredAction: 'change_state',
-        suggestedState: 'contacted',
+        requiredAction: can(input, 'add_assessment') ? 'add_assessment' : 'update_assessment',
+        target: { kind: 'tab', tab: 'assessments_appointments' },
+      };
+    }
+  }
+
+  // 8. Assessment ready — create / schedule
+  if (processing === 'assessment_ready' || assessmentProgress === 'not_started') {
+    if (can(input, 'add_assessment')) {
+      return {
+        key: 'schedule_assessment',
+        labelKey: 'admin.admissions.primaryAction.scheduleAssessment',
+        descriptionKey: 'admin.admissions.primaryAction.scheduleAssessmentDesc',
+        intent: 'primary',
+        requiredAction: 'add_assessment',
+        target: { kind: 'tab', tab: 'assessments_appointments' },
+      };
+    }
+    if (can(input, 'schedule_appointment')) {
+      return {
+        key: 'schedule_assessment',
+        labelKey: 'admin.admissions.primaryAction.scheduleAppointment',
+        descriptionKey: 'admin.admissions.primaryAction.scheduleAssessmentDesc',
+        intent: 'primary',
+        requiredAction: 'schedule_appointment',
+        target: { kind: 'tab', tab: 'assessments_appointments' },
+      };
+    }
+  }
+
+  // 9. Initial follow-up
+  if (processing === 'initial_follow_up' || state === 'contacted' || state === 'visit_pending') {
+    if (canChangeStage(input)) {
+      return {
+        key: 'follow_up_advance',
+        labelKey: 'admin.admissions.primaryAction.advanceProcessingStage',
+        descriptionKey: 'admin.admissions.primaryAction.advanceProcessingStageDesc',
+        intent: 'primary',
+        requiredAction: can(input, 'change_processing_stage')
+          ? 'change_processing_stage'
+          : 'change_state',
+        suggestedState: 'assessment_ready',
         target: { kind: 'dialog', dialog: 'change_stage' },
       };
     }
-    if (state === 'contacted') {
+    if (can(input, 'edit') || can(input, 'schedule_appointment')) {
       return {
-        key: 'follow_up_qualify',
-        labelKey: 'admin.admissions.primaryAction.markQualified',
-        descriptionKey: 'admin.admissions.primaryAction.markQualifiedDesc',
+        key: 'follow_up_activity',
+        labelKey: 'admin.admissions.primaryAction.recordFollowUp',
+        descriptionKey: 'admin.admissions.primaryAction.recordFollowUpDesc',
         intent: 'primary',
-        requiredAction: 'change_state',
-        suggestedState: 'qualified',
-        target: { kind: 'dialog', dialog: 'change_stage' },
+        target: { kind: 'tab', tab: 'summary' },
       };
     }
-    if (state === 'qualified') {
+  }
+
+  // 10. New — only explicit new (do not treat missing processing_stage as new)
+  if (processing === 'new' || state === 'new') {
+    if (canChangeStage(input)) {
       return {
-        key: 'follow_up_schedule_visit',
-        labelKey: 'admin.admissions.primaryAction.markVisitPending',
-        descriptionKey: 'admin.admissions.primaryAction.markVisitPendingDesc',
+        key: 'follow_up_start',
+        labelKey: 'admin.admissions.primaryAction.startInitialFollowUp',
+        descriptionKey: 'admin.admissions.primaryAction.startInitialFollowUpDesc',
         intent: 'primary',
-        requiredAction: 'change_state',
-        suggestedState: 'visit_pending',
-        target: { kind: 'dialog', dialog: 'change_stage' },
-      };
-    }
-    if (state === 'visit_pending') {
-      return {
-        key: 'follow_up_complete_visit',
-        labelKey: 'admin.admissions.primaryAction.markUnderReview',
-        descriptionKey: 'admin.admissions.primaryAction.markUnderReviewDesc',
-        intent: 'primary',
-        requiredAction: 'change_state',
-        suggestedState: 'under_review',
+        requiredAction: can(input, 'change_processing_stage')
+          ? 'change_processing_stage'
+          : 'change_state',
+        suggestedState: 'initial_follow_up',
         target: { kind: 'dialog', dialog: 'change_stage' },
       };
     }
   }
 
-  // Also allow schedule_appointment as primary for visit_pending when change_state missing
-  if (state === 'visit_pending' && can(input, 'schedule_appointment')) {
+  // Legacy manual stage fallback (stale payloads without processing_stage)
+  if (isAdmissionManualStage(state) && canChangeStage(input) && !processing) {
     return {
-      key: 'follow_up_schedule_visit',
-      labelKey: 'admin.admissions.primaryAction.scheduleAppointment',
-      descriptionKey: 'admin.admissions.primaryAction.markVisitPendingDesc',
+      key: 'follow_up_start',
+      labelKey: 'admin.admissions.primaryAction.startInitialFollowUp',
+      descriptionKey: 'admin.admissions.primaryAction.startInitialFollowUpDesc',
       intent: 'primary',
-      requiredAction: 'schedule_appointment',
-      target: { kind: 'tab', tab: 'assessments_appointments' },
+      requiredAction: 'change_state',
+      suggestedState: 'initial_follow_up',
+      target: { kind: 'dialog', dialog: 'change_stage' },
     };
   }
 
-  // 7. Rejected / closed
-  if (rejected) {
-    return {
-      key: 'view_rejection',
-      labelKey: 'admin.admissions.primaryAction.viewRejection',
-      descriptionKey: 'admin.admissions.primaryAction.viewRejectionDesc',
-      intent: 'danger',
-      target: { kind: 'tab', tab: 'decision' },
-    };
-  }
-
-  if (state === 'lost' || state === 'cancelled' || state === 'duplicate') {
-    return readonlyAction('admin.admissions.primaryAction.closedDesc');
+  if (nextCode) {
+    return readonlyAction('admin.admissions.primaryAction.noActionDesc');
   }
 
   return readonlyAction('admin.admissions.primaryAction.noActionDesc');
@@ -373,25 +467,33 @@ export function resolveAdmissionSecondaryActions(
 ): AdmissionSecondaryAction[] {
   const out: AdmissionSecondaryAction[] = [];
   const state = String(input.state ?? '');
+  const processing = resolveProcessingStage(input);
   const rejected = resolveIsSchoolRejected(input);
   const studentId = resolveAdmissionStudentId(input.student_id);
+  const readiness = resolveRegistrationReadiness(input);
 
   function push(action: AdmissionSecondaryAction) {
     if (action.key === primary.key) return;
     if (
       action.requiredAction &&
-      !hasAdmissionAllowedAction(actionsOf(input), action.requiredAction)
+      !hasAdmissionAllowedAction(actionsOf(input), action.requiredAction) &&
+      !(
+        action.requiredAction === 'change_state' &&
+        hasAdmissionAllowedAction(actionsOf(input), 'change_processing_stage')
+      )
     ) {
       return;
     }
     out.push(action);
   }
 
-  if (isAdmissionManualStage(state) || can(input, 'change_state')) {
+  if (isAdmissionManualStage(processing) || isAdmissionManualStage(state) || canChangeStage(input)) {
     push({
       key: 'change_stage',
       labelKey: 'admin.admissions.primaryAction.changeStage',
-      requiredAction: 'change_state',
+      requiredAction: can(input, 'change_processing_stage')
+        ? 'change_processing_stage'
+        : 'change_state',
       target: { kind: 'dialog', dialog: 'change_stage' },
     });
   }
@@ -465,7 +567,7 @@ export function resolveAdmissionSecondaryActions(
       labelKey: 'admin.admissions.primaryAction.openStudent',
       target: { kind: 'href', href: `/admin/students/${studentId}` },
     });
-  } else if (state === 'confirmed') {
+  } else if (readiness === 'ready' || state === 'confirmed') {
     push({
       key: 'continue_registration',
       labelKey: 'admin.admissions.primaryAction.continueRegistration',

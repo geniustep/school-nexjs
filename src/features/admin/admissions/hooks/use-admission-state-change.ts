@@ -5,6 +5,7 @@ import { useToast } from '@/components/ui/toast';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { patchAdmission } from '../api/admissions-api';
+import { isFollowUpProcessingStage } from '../utils/admission-assessment-workflow-contract';
 import { admissionApiErrorMessage } from '../utils/admission-errors';
 
 export function useAdmissionStateChange(onSuccess?: () => void) {
@@ -20,11 +21,12 @@ export function useAdmissionStateChange(onSuccess?: () => void) {
       if (activeSchoolId == null) return false;
 
       setPendingIds((prev) => new Set(prev).add(admissionId));
-      const res = await patchAdmission(
-        admissionId,
-        { state },
-        { active_school_id: activeSchoolId },
-      );
+      const payload = isFollowUpProcessingStage(state)
+        ? { processing_stage: state }
+        : { state };
+      const res = await patchAdmission(admissionId, payload, {
+        active_school_id: activeSchoolId,
+      });
       setPendingIds((prev) => {
         const next = new Set(prev);
         next.delete(admissionId);

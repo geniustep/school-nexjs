@@ -183,6 +183,7 @@
     "notFoundTitle": "Non trouvé",
     "serverError": "Une erreur est survenue. Réessayez plus tard.",
     "serverErrorTitle": "Erreur",
+    "badGateway": "Le serveur est temporairement indisponible. Réessayez dans un instant.",
     "loadFailed": "Impossible de charger les données.",
     "loadFailedRetry": "Impossible de charger les données. Veuillez réessayer.",
     "teacherLoadFailed": "Impossible de charger les données de l'enseignant.",
@@ -4106,6 +4107,8 @@
         "filterAwaitingAria": "Afficher les demandes acceptées en attente d’inscription",
         "filterReadyAria": "Afficher les demandes prêtes pour l’inscription",
         "filterRejectedAria": "Afficher les demandes refusées par l’établissement",
+        "clearFilterAria": "Effacer le filtre {label}",
+        "clearFilterHint": "Cliquez à nouveau pour effacer ce filtre",
         "filterNewAria": "Afficher les nouvelles demandes",
         "infoGroup": "Indicateurs informatifs"
       },
@@ -4285,6 +4288,8 @@
         "uniformOutcomes": "Tous les enfants partagent actuellement le même résultat.",
         "badgeShort": "Familial",
         "childrenInBatchSection": "Enfants de la demande familiale",
+        "siblingsInfoInFamilyTab": "Demande familiale : les champs « frères et sœurs » individuels sont masqués ici. Les enfants liés apparaissent dans l’onglet Famille.",
+        "openFamilyChildren": "Voir les enfants de la demande",
         "currentChild": "Actuel"
       },
       "guardians": {
@@ -4366,6 +4371,7 @@
         "detailedState": "État détaillé",
         "tabs": "Sections",
         "unspecified": "Non précisé",
+        "noneValue": "Aucun",
         "individualType": "Individuelle"
       },
       "tabs": {
@@ -4379,11 +4385,11 @@
         "summary": "Résumé",
         "family_data": "Famille et données",
         "assessments_appointments": "Évaluations et rendez-vous",
-        "offer_registration": "Offre et inscription",
+        "offer_registration": "Admission et inscription",
         "history": "Historique",
         "assessmentsSection": "Évaluations",
         "appointmentsSection": "Rendez-vous",
-        "offerSection": "Offre",
+        "offerSection": "Offre d'admission",
         "registrationSection": "Inscription"
       },
       "timeline": {
@@ -4531,8 +4537,11 @@
         "expired": "Expirée",
         "cancelled": "Annulée",
         "declined": "Refusée par la famille",
-        "familyDeclined": "La famille a refusé l’offre",
-        "familyExpired": "Délai de l’offre expiré",
+        "not_applicable": "Non applicable",
+        "not_created": "Requis mais non créé",
+        "withdrawn": "Offre d'admission retirée",
+        "familyDeclined": "La famille a refusé l'offre d'admission",
+        "familyExpired": "Délai de l'offre expiré",
         "sentLabel": "Offre envoyée",
         "acceptedFamily": "Acceptée par la famille"
       },
@@ -4577,7 +4586,14 @@
           "birthDateMissing": "La date de naissance est manquante.",
           "genderMissing": "Le genre est manquant.",
           "requestedLevelMissing": "Le niveau demandé est manquant.",
-          "academicYearMissing": "L'année scolaire est manquante."
+          "academicYearMissing": "L'année scolaire est manquante.",
+          "familyBatchGuardianBillingHint": "Un tuteur du lot familial est disponible ; si plusieurs tuteurs seront liés, confirmez explicitement le responsable de facturation lors de l’inscription.",
+          "identityDocumentMissing": "La pièce d’identité du tuteur est incomplète.",
+          "identityDocumentRequired": "La pièce d’identité du tuteur est obligatoire.",
+          "identityDocumentMissingFor": "Pièce d’identité manquante pour {name}.",
+          "identityDocumentNumberMissingFor": "Numéro de pièce d’identité manquant pour {name}.",
+          "familyApplicationMultipleGuardians": "La demande familiale comporte plusieurs tuteurs.",
+          "billingResponsibilityAtRegistrationStart": "Le responsable de facturation est choisi au démarrage de l’inscription."
         }
       },
       "registration": {
@@ -4708,7 +4724,7 @@
         "registration": "Inscription",
         "pending": "En attente",
         "decisionPending": "En attente de décision",
-        "offerPending": "Offre à préparer",
+        "offerPending": "En attente de préparation de l'offre",
         "notApplicable": "Non applicable",
         "closed": "Fermée",
         "followUpComplete": "Terminé",
@@ -4719,29 +4735,33 @@
           "not_applicable": "Non applicable",
           "blocked": "Bloqué",
           "closed": "Fermée"
-        }
+        },
+        "assessment": "Évaluation",
+        "acceptance": "Étapes d'admission",
+        "offerRequired": "Offre d'admission requise",
+        "offerNotRequired": "Aucune offre d'admission requise"
       },
       "primaryAction": {
         "title": "Action suivante",
         "moreActions": "Autres actions",
-        "changeStage": "Changer l’étape de suivi",
+        "changeStage": "Changer l'étape de traitement",
         "openStudent": "Ouvrir le dossier élève",
         "openStudentDesc": "La demande est inscrite. Ouvrez le dossier élève.",
         "registeredNoLinkDesc": "Inscrite, mais le lien élève est indisponible.",
         "continueRegistration": "Poursuivre l’inscription",
-        "continueRegistrationDesc": "La famille a accepté l’offre. Créez ou liez le dossier élève.",
+        "continueRegistrationDesc": "La demande est prête pour créer ou lier le dossier élève.",
         "readyNoPermissionDesc": "Prête pour l’inscription, mais sans permission.",
         "linkStudent": "Lier un élève existant",
         "acceptOffer": "Confirmer l’acceptation familiale",
         "acceptOfferDesc": "L’offre a été envoyée et attend la réponse de la famille.",
-        "createOffer": "Préparer l’offre familiale",
-        "createOfferDesc": "L’école a accepté. Préparez ou envoyez l’offre avant l’inscription.",
+        "createOffer": "Créer l'offre d'admission",
+        "createOfferDesc": "L'école a accepté la demande. Préparez l'offre d'admission avant l'inscription.",
         "sendOffer": "Envoyer l’offre à la famille",
         "sendOfferDesc": "Une offre brouillon est prête à être envoyée.",
         "decide": "Prendre la décision de l’école",
         "decideDesc": "La demande est prête pour une décision.",
         "openAssessments": "Ouvrir les évaluations",
-        "openAssessmentsDesc": "Une réévaluation est nécessaire avant la décision.",
+        "openAssessmentsDesc": "Suivez la prochaine évaluation requise pour cette demande.",
         "markContacted": "Marquer comme contacté",
         "markContactedDesc": "Passez à Contacté après l’appel.",
         "markQualified": "Marquer comme qualifié",
@@ -4758,7 +4778,86 @@
         "reopen": "Rouvrir la demande",
         "reviewData": "Revoir les données",
         "openHistory": "Voir l’historique",
-        "readonly": "Aucune action requise"
+        "readonly": "Aucune action requise",
+        "openOffer": "Ouvrir l'offre d'admission",
+        "scheduleAssessment": "Créer ou planifier une évaluation",
+        "scheduleAssessmentDesc": "La demande est prête pour l'évaluation — créez ou planifiez l'évaluation requise.",
+        "startInitialFollowUp": "Démarrer le suivi initial",
+        "startInitialFollowUpDesc": "Passez au suivi initial après le début du contact.",
+        "advanceProcessingStage": "Passer à l'étape suivante",
+        "advanceProcessingStageDesc": "Mettez à jour l'étape de traitement après une activité de suivi.",
+        "recordFollowUp": "Enregistrer une activité de suivi",
+        "recordFollowUpDesc": "Enregistrez une activité de suivi ou mettez à jour l'étape de traitement."
+      },
+      "processingStages": {
+        "new": "Nouveau",
+        "initial_follow_up": "Suivi initial",
+        "assessment_ready": "Prêt pour l'évaluation",
+        "assessment_in_progress": "Évaluation en cours",
+        "decision_ready": "En attente de décision de l'école"
+      },
+      "assessmentProgress": {
+        "not_required": "Non requis",
+        "not_started": "Non commencé",
+        "in_progress": "En cours",
+        "additional_required": "Évaluation supplémentaire requise",
+        "completed": "Terminé",
+        "ready_for_decision": "Prêt pour la décision"
+      },
+      "assessmentTypes": {
+        "written_test": "Test écrit",
+        "oral_interview": "Entretien oral",
+        "subject_teacher_assessment": "Évaluation par l'enseignant de matière",
+        "administrative_interview": "Entretien administratif",
+        "placement_assessment": "Évaluation de placement",
+        "additional_assessment": "Évaluation supplémentaire",
+        "other": "Autre évaluation"
+      },
+      "assessmentRecommendations": {
+        "no_result": "Aucun résultat enregistré",
+        "suitable": "Adapté",
+        "suitable_with_conditions": "Adapté sous conditions",
+        "review_required": "Révision requise",
+        "not_suitable": "Non adapté",
+        "recommendationNote": "Recommandation de l'évaluateur, pas une décision de l'école"
+      },
+      "assessmentSummary": {
+        "title": "Résumé des évaluations",
+        "requiredCount": "Évaluations requises",
+        "completedCount": "Terminées",
+        "openCount": "Ouvertes",
+        "nextAssessment": "Prochaine évaluation",
+        "blocking": "Évaluations bloquantes"
+      },
+      "registrationReadiness": {
+        "not_applicable": "Non applicable",
+        "blocked": "Bloqué",
+        "awaiting_offer_creation": "En attente de création de l'offre",
+        "awaiting_offer_response": "En attente de réponse de la famille",
+        "ready": "Prêt pour l'inscription",
+        "registered": "Inscrit"
+      },
+      "registrationRequirements": {
+        "blocking": "Exigences bloquantes",
+        "warning": "Avertissements",
+        "information": "Informations avant l'inscription"
+      },
+      "acceptance": {
+        "beforeDecision": "Aucune décision de l'école pour l'instant. Les étapes d'admission et d'inscription apparaîtront après la décision.",
+        "rejectedTitle": "Demande refusée par l'école",
+        "rejectedBody": "La demande a été refusée par l'école.",
+        "reopenHint": "La demande peut être rouverte si autorisé.",
+        "acceptedDirectTitle": "Acceptée — l'inscription peut se poursuivre directement",
+        "acceptedDirectBody": "La demande a été acceptée et l'inscription peut se poursuivre directement.",
+        "directRegistrationHint": "La politique de cette demande ne requiert pas d'offre d'admission séparée.",
+        "offerRequiredTitle": "Offre d'admission requise",
+        "offerRequiredBody": "Une offre d'admission est requise avant de poursuivre l'inscription.",
+        "offerDraftTitle": "Offre d'admission en brouillon",
+        "awaitingFamilyTitle": "En attente de réponse de la famille",
+        "awaitingFamilyBody": "L'offre d'admission a été envoyée et attend la réponse de la famille.",
+        "familyAcceptedTitle": "La famille a accepté l'offre",
+        "familyAcceptedBody": "La famille a accepté l'offre d'admission.",
+        "offerAcceptDoesNotRegister": "L'acceptation de l'offre ne crée pas automatiquement le dossier élève ; l'inscription se fait via le processus dédié."
       }
     },
     "enrollmentIntake": {

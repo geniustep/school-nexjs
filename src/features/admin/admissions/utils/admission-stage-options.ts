@@ -1,7 +1,19 @@
-import type { AdmissionState } from '@/types/admission';
+import {
+  FOLLOW_UP_PROCESSING_STAGES,
+  isFollowUpProcessingStage,
+  type FollowUpProcessingStage,
+} from './admission-assessment-workflow-contract';
 import { isAdmissionConvertedToStudent } from './admission-registration';
 
-/** Manual follow-up stages only — never include derived/decision/offer outcomes. */
+/**
+ * Drag / manual processing-stage targets for follow_up kanban.
+ * Visit is an activity/appointment — not a processing stage.
+ */
+export const ADMISSION_MANUAL_PROCESSING_STAGES = FOLLOW_UP_PROCESSING_STAGES;
+
+export type AdmissionManualProcessingStage = FollowUpProcessingStage;
+
+/** @deprecated Legacy writable states — kept for compatibility history only. */
 export const ADMISSION_MANUAL_STAGES = [
   'new',
   'contacted',
@@ -12,16 +24,24 @@ export const ADMISSION_MANUAL_STAGES = [
 
 export type AdmissionManualStage = (typeof ADMISSION_MANUAL_STAGES)[number];
 
-export function getAdmissionManualStageOptions(): readonly AdmissionManualStage[] {
-  return ADMISSION_MANUAL_STAGES;
+export function getAdmissionManualStageOptions(): readonly AdmissionManualProcessingStage[] {
+  return ADMISSION_MANUAL_PROCESSING_STAGES;
 }
 
-export function isAdmissionManualStage(state: string | null | undefined): state is AdmissionManualStage {
-  return ADMISSION_MANUAL_STAGES.includes(String(state ?? '') as AdmissionManualStage);
+export function isAdmissionManualStage(
+  state: string | null | undefined,
+): state is AdmissionManualProcessingStage {
+  return isFollowUpProcessingStage(state);
 }
 
-/** Label key for a manual stage — always `admin.admissions.states.*`. */
-export function admissionManualStageLabelKey(stage: AdmissionManualStage): string {
+/** Label key for a processing stage — `admin.admissions.processingStages.*`. */
+export function admissionManualStageLabelKey(
+  stage: AdmissionManualProcessingStage | string,
+): string {
+  if (isFollowUpProcessingStage(stage) || stage === 'assessment_in_progress' || stage === 'decision_ready') {
+    return `admin.admissions.processingStages.${stage}`;
+  }
+  // Legacy compatibility labels (not canonical filter options).
   return `admin.admissions.states.${stage}`;
 }
 
@@ -33,18 +53,19 @@ export type ManualStageChangeReason =
 
 export interface ManualStageChangeDecision {
   apply: boolean;
-  targetState: AdmissionManualStage | null;
+  targetState: AdmissionManualProcessingStage | null;
   reason?: ManualStageChangeReason;
 }
 
 /**
- * Manual stage PATCH rules:
- * - only from a manual stage to another manual stage
- * - never from accepted/confirmed/lost/registered/etc.
+ * Processing-stage PATCH rules for follow_up drag:
+ * - only between new / initial_follow_up / assessment_ready
+ * - never into assessment_in_progress / decision_ready / acceptance states
  */
 export function evaluateManualStageChange(
   record: {
     state?: string | null;
+    processing_stage?: string | null;
     student_id?: number | false | null;
     registration_flow_state?: string | null;
   },
@@ -53,13 +74,18 @@ export function evaluateManualStageChange(
   if (isAdmissionConvertedToStudent(record)) {
     return { apply: false, targetState: null, reason: 'registered' };
   }
-  if (!isAdmissionManualStage(String(record.state ?? ''))) {
+  const current =
+    (isFollowUpProcessingStage(record.processing_stage)
+      ? record.processing_stage
+      : null) ??
+    (isFollowUpProcessingStage(record.state) ? record.state : null);
+  if (!current) {
     return { apply: false, targetState: null, reason: 'not_manual_current' };
   }
-  if (!isAdmissionManualStage(target)) {
+  if (!isFollowUpProcessingStage(target)) {
     return { apply: false, targetState: null, reason: 'invalid_target' };
   }
-  if (String(record.state) === target) {
+  if (current === target) {
     return { apply: false, targetState: null, reason: 'same_state' };
   }
   return { apply: true, targetState: target };
@@ -74,8 +100,10 @@ export function isDerivedOrTerminalAdmissionState(state: string | null | undefin
     value === 'confirmed' ||
     value === 'lost' ||
     value === 'cancelled' ||
-    value === 'duplicate'
+    value === 'duplicate' ||
+    value === 'assessment_in_progress' ||
+    value === 'decision_ready'
   );
 }
 
-export type { AdmissionState };
+export { isFollowUpProcessingStage };

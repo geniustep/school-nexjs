@@ -3,8 +3,27 @@
 import { useEffect } from 'react';
 import { authApi } from '@/lib/api/client';
 import { useT } from '@/features/i18n/locale-context';
-import { sanitizeUserFacingErrorMessage } from '@/lib/utils/user-facing-error';
+import {
+  resolveKnownApiErrorMessageKey,
+  sanitizeUserFacingErrorMessage,
+} from '@/lib/utils/user-facing-error';
 import type { ApiErrorBody } from '@/types/api';
+
+function localizedApiErrorMessage(
+  error: ApiErrorBody,
+  t: (key: string) => string,
+  fallbackKey: string,
+): string {
+  if (error.code === 'network_error') return t('errors.network');
+  const status = error.details?.status;
+  if (status === 502 || status === 503 || status === 504) return t('errors.badGateway');
+  const knownKey = resolveKnownApiErrorMessageKey(error.message);
+  if (knownKey) {
+    const translated = t(knownKey);
+    if (translated !== knownKey) return translated;
+  }
+  return sanitizeUserFacingErrorMessage(error.message, t(fallbackKey));
+}
 
 export function LoadingState({ label }: { label?: string }) {
   const t = useT();
@@ -118,10 +137,7 @@ export function ErrorState({
   onRetry?: () => void;
 }) {
   const t = useT();
-  const safeMessage = sanitizeUserFacingErrorMessage(
-    error.message,
-    t('errors.loadFailedRetry'),
-  );
+  const safeMessage = localizedApiErrorMessage(error, t, 'errors.loadFailedRetry');
   if (
     process.env.NODE_ENV === 'development' &&
     error.message?.trim() &&
@@ -156,10 +172,7 @@ export function ApiErrorView({
   onRetry?: () => void;
 }) {
   const t = useT();
-  const safeDescription = sanitizeUserFacingErrorMessage(
-    error.message,
-    t('errors.loadFailedRetry'),
-  );
+  const safeDescription = localizedApiErrorMessage(error, t, 'errors.loadFailedRetry');
 
   if (isStaleActiveSchoolMessage(error.message)) {
     return (

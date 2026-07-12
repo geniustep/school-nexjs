@@ -140,15 +140,16 @@ describe('resolveAdmissionPrimaryAction', () => {
     expect(action.key).toBe('open_assessments');
   });
 
-  it('10. new → follow-up contact', () => {
+  it('10. new → start initial follow-up', () => {
     const action = resolveAdmissionPrimaryAction({
       id: 10,
       state: 'new',
+      processing_stage: 'new',
       admission_workspace: 'follow_up',
       allowed_actions: ALL_ACTIONS,
     });
-    expect(action.key).toBe('follow_up_contact');
-    expect(action.suggestedState).toBe('contacted');
+    expect(action.key).toBe('follow_up_start');
+    expect(action.suggestedState).toBe('initial_follow_up');
   });
 
   it('11. rejected → view rejection', () => {
@@ -208,6 +209,7 @@ describe('resolveAdmissionPrimaryAction', () => {
     const action = resolveAdmissionPrimaryAction({
       id: 10,
       state: 'qualified',
+      processing_stage: 'assessment_ready',
       allowed_actions: ALL_ACTIONS,
     });
     expect(action).toBeTruthy();
@@ -228,13 +230,14 @@ describe('resolveAdmissionPrimaryAction', () => {
 });
 
 describe('resolveAdmissionJourneySteps', () => {
-  it('17. exposes four steps', () => {
+  it('17. exposes five steps', () => {
     const steps = resolveAdmissionJourneySteps({ state: 'new' });
-    expect(steps).toHaveLength(4);
+    expect(steps).toHaveLength(5);
     expect(steps.map((s) => s.id)).toEqual([
       'follow_up',
+      'assessment',
       'decision',
-      'offer',
+      'acceptance',
       'registration',
     ]);
   });
@@ -252,23 +255,24 @@ describe('resolveAdmissionJourneySteps', () => {
     expect(steps.find((s) => s.id === 'decision')?.status).toBe('complete');
   });
 
-  it('20. rejected makes offer and registration not applicable', () => {
+  it('20. rejected makes acceptance and registration not applicable', () => {
     const steps = resolveAdmissionJourneySteps({
       state: 'lost',
       decision: 'rejected',
       is_school_rejected: true,
     });
-    expect(steps.find((s) => s.id === 'offer')?.status).toBe('not_applicable');
+    expect(steps.find((s) => s.id === 'acceptance')?.status).toBe('not_applicable');
     expect(steps.find((s) => s.id === 'registration')?.status).toBe('not_applicable');
   });
 
-  it('21. offer sent makes offer current', () => {
+  it('21. offer sent makes acceptance current', () => {
     const steps = resolveAdmissionJourneySteps({
       state: 'offer_sent',
       decision: 'accepted',
       offer_state: 'sent',
+      offer_required: true,
     });
-    expect(steps.find((s) => s.id === 'offer')?.status).toBe('current');
+    expect(steps.find((s) => s.id === 'acceptance')?.status).toBe('current');
   });
 
   it('22. confirmed makes registration current/ready', () => {
@@ -307,14 +311,14 @@ describe('manual stages and tabs', () => {
     const stages = getAdmissionManualStageOptions();
     expect(stages).toEqual([
       'new',
-      'contacted',
-      'qualified',
-      'visit_pending',
-      'under_review',
+      'initial_follow_up',
+      'assessment_ready',
     ]);
     expect(stages).not.toContain('confirmed');
     expect(stages).not.toContain('registered');
     expect(stages).not.toContain('accepted');
+    expect(stages).not.toContain('visit_pending');
+    expect(stages).not.toContain('qualified');
   });
 
   it('30. six tabs or fewer', () => {

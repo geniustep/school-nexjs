@@ -15,7 +15,7 @@ import { useLocale, useT } from '@/features/i18n/locale-context';
 import { useAdmissionStateChange } from '../hooks/use-admission-state-change';
 import { useSynchronizedHorizontalScroll } from '../hooks/use-synchronized-horizontal-scroll';
 import type { AdmissionsKanbanColumn } from '../hooks/use-admissions-kanban-board';
-import { hasAdmissionAllowedAction } from '../utils/admission-allowed-actions';
+import { hasAdmissionAllowedAction, canChangeAdmissionProcessingStage } from '../utils/admission-allowed-actions';
 import {
   evaluateManualStageChange,
   isAdmissionManualStage,
@@ -24,6 +24,7 @@ import {
   isRawKanbanDropTarget,
   rawKanbanColumnClass,
 } from '../utils/admission-raw-kanban';
+import { processingStageLabelKey } from '../utils/admission-assessment-workflow-contract';
 import {
   AdmissionCard,
   admissionCardDragPayload,
@@ -96,7 +97,7 @@ export function AdmissionsRawStateKanban({
       const actions = (item as AdmissionListItem & {
         allowed_actions?: Parameters<typeof hasAdmissionAllowedAction>[0];
       }).allowed_actions;
-      if (actions != null && !hasAdmissionAllowedAction(actions, 'change_state')) {
+      if (actions != null && !canChangeAdmissionProcessingStage(actions)) {
         toast.show(t('admin.admissions.stateChange.failed'), 'info');
         return;
       }
@@ -115,7 +116,7 @@ export function AdmissionsRawStateKanban({
 
   const firstColumnLabel =
     columns[0] != null
-      ? t(`admin.admissions.states.${columns[0].state}`)
+      ? t(processingStageLabelKey(columns[0].state))
       : t('admin.admissions.kanban.boardLabel');
 
   const thumbTravel = Math.max(0, 1 - scrollMetrics.thumbRatio);
@@ -269,7 +270,7 @@ export function AdmissionsRawStateKanban({
                     )}
                     data-stage={column.state}
                     data-testid={`admissions-kanban-col-${column.state}`}
-                    aria-label={`${t(`admin.admissions.states.${column.state}`)} — ${countLabel}`}
+                    aria-label={`${t(processingStageLabelKey(column.state))} — ${countLabel}`}
                     onDragOver={(e) => {
                       if (!allowDrag || draggingId == null) return;
                       e.preventDefault();
@@ -300,7 +301,7 @@ export function AdmissionsRawStateKanban({
                     <header className="admissions-kanban__column-header">
                       <div className="admissions-kanban__column-heading">
                         <span className="admissions-kanban__column-title">
-                          {t(`admin.admissions.states.${column.state}`)}
+                          {t(processingStageLabelKey(column.state))}
                         </span>
                         <span
                           className="admissions-kanban__column-count"

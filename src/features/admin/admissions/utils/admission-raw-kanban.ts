@@ -1,20 +1,29 @@
-import { isAdmissionManualStage } from './admission-stage-options';
+import { isFollowUpProcessingStage } from './admission-assessment-workflow-contract';
 
 const RAW_COLUMN_STATES = [
   'new',
-  'contacted',
-  'qualified',
-  'visit_pending',
-  'under_review',
+  'initial_follow_up',
+  'assessment_ready',
+  'assessment_in_progress',
+  'decision_ready',
 ] as const;
 
+/** Drag targets: follow_up processing stages only. */
 export function isRawKanbanDropTarget(state: string): boolean {
-  return isAdmissionManualStage(state);
+  return isFollowUpProcessingStage(state);
 }
 
 export function rawKanbanColumnClass(state: string): string {
-  return RAW_COLUMN_STATES.includes(state as (typeof RAW_COLUMN_STATES)[number])
-    ? `admissions-kanban__column--state-${state}`
+  const normalized =
+    state === 'contacted' || state === 'visit_pending'
+      ? 'initial_follow_up'
+      : state === 'qualified'
+        ? 'assessment_ready'
+        : state === 'under_review'
+          ? 'decision_ready'
+          : state;
+  return RAW_COLUMN_STATES.includes(normalized as (typeof RAW_COLUMN_STATES)[number])
+    ? `admissions-kanban__column--state-${normalized}`
     : '';
 }
 

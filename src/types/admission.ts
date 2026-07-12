@@ -35,6 +35,8 @@ export type AdmissionRegistrationStatus =
   | 'not_applicable';
 
 export type AdmissionOfferState =
+  | 'not_applicable'
+  | 'not_created'
   | 'draft'
   | 'sent'
   | 'pending'
@@ -43,7 +45,92 @@ export type AdmissionOfferState =
   | 'rejected'
   | 'expired'
   | 'cancelled'
+  | 'withdrawn'
   | string;
+
+/** Odoo 18.0.1.0.185 processing stages (Backend source of truth). */
+export type AdmissionProcessingStage =
+  | 'new'
+  | 'initial_follow_up'
+  | 'assessment_ready'
+  | 'assessment_in_progress'
+  | 'decision_ready'
+  | string;
+
+export type AdmissionAssessmentProgress =
+  | 'not_required'
+  | 'not_started'
+  | 'in_progress'
+  | 'additional_required'
+  | 'completed'
+  | 'ready_for_decision'
+  | string;
+
+export type AdmissionRegistrationReadiness =
+  | 'not_applicable'
+  | 'blocked'
+  | 'awaiting_offer_creation'
+  | 'awaiting_offer_response'
+  | 'ready'
+  | 'registered'
+  | string;
+
+export type AdmissionRegistrationRequirementSeverity =
+  | 'blocking'
+  | 'warning'
+  | 'information'
+  | string;
+
+export type AdmissionRegistrationRequirement = {
+  code?: string | null;
+  key?: string | null;
+  severity?: AdmissionRegistrationRequirementSeverity | null;
+  level?: AdmissionRegistrationRequirementSeverity | null;
+  message?: string | null;
+  label?: string | null;
+  title?: string | null;
+  description?: string | null;
+  [key: string]: unknown;
+};
+
+export type AdmissionAssessmentSummary = {
+  progress?: AdmissionAssessmentProgress | null;
+  required_count?: number | null;
+  completed_count?: number | null;
+  open_count?: number | null;
+  optional_count?: number | null;
+  next_assessment?: Record<string, unknown> | null;
+  blocking_assessments?: Array<Record<string, unknown>> | null;
+  assessments?: Array<Record<string, unknown>> | null;
+  [key: string]: unknown;
+};
+
+export type AdmissionOfferSummary = {
+  required?: boolean | null;
+  offer_required?: boolean | null;
+  state?: string | null;
+  offer_state?: string | null;
+  offer_id?: number | null;
+  sent_at?: string | null;
+  deadline_date?: string | null;
+  expires_at?: string | null;
+  policy_note?: string | null;
+  reason?: string | null;
+  [key: string]: unknown;
+};
+
+export type AdmissionNextAction =
+  | string
+  | {
+      code?: string | null;
+      key?: string | null;
+      action?: string | null;
+      label?: string | null;
+      message?: string | null;
+      description?: string | null;
+      [key: string]: unknown;
+    }
+  | null;
 
 export type AdmissionStatusWarningCode =
   | 'accepted_state_without_decision'
@@ -106,6 +193,14 @@ export interface AdmissionListItem {
     | 'closed'
     | string
     | null;
+  /** Odoo 18.0.1.0.185 — Backend source of truth when present. */
+  processing_stage?: AdmissionProcessingStage | null;
+  assessment_progress?: AdmissionAssessmentProgress | null;
+  assessment_summary?: AdmissionAssessmentSummary | null;
+  offer_required?: boolean | null;
+  offer_summary?: AdmissionOfferSummary | null;
+  registration_readiness?: AdmissionRegistrationReadiness | null;
+  registration_requirements?: AdmissionRegistrationRequirement[] | null;
   /**
    * Linkage fields — optional on the list payload. Present only when the
    * backend serializes them; used to surface a "converted to student" badge.
@@ -122,7 +217,7 @@ export interface AdmissionListItem {
   is_school_rejected?: boolean | null;
   status_warnings?: AdmissionStatusWarningCode[] | null;
   converted_at?: string | false | null;
-  next_action: string | null;
+  next_action: AdmissionNextAction;
   next_action_date: string | null;
   duplicate_count: number;
   offer_state: AdmissionOfferState | false | null;
@@ -133,8 +228,10 @@ export interface AdmissionListItem {
 export interface AdmissionAllowedActions {
   edit?: boolean;
   change_state?: boolean;
+  change_processing_stage?: boolean;
   schedule_appointment?: boolean;
   add_assessment?: boolean;
+  update_assessment?: boolean;
   decide?: boolean;
   create_offer?: boolean;
   send_offer?: boolean;
@@ -143,6 +240,7 @@ export interface AdmissionAllowedActions {
   get_prefill?: boolean;
   link_student?: boolean;
   reopen?: boolean;
+  [key: string]: boolean | undefined;
 }
 
 export interface AdmissionRejection {
@@ -242,6 +340,13 @@ export interface AdmissionDetail extends SiblingsFieldsSource {
     | 'closed'
     | string
     | null;
+  processing_stage?: AdmissionProcessingStage | null;
+  assessment_progress?: AdmissionAssessmentProgress | null;
+  assessment_summary?: AdmissionAssessmentSummary | null;
+  offer_required?: boolean | null;
+  offer_summary?: AdmissionOfferSummary | null;
+  registration_readiness?: AdmissionRegistrationReadiness | null;
+  registration_requirements?: AdmissionRegistrationRequirement[] | null;
   student_id?: number | false | null;
   registration_flow_state?: AdmissionRegistrationFlowState | null;
   student_name: string;
@@ -267,7 +372,7 @@ export interface AdmissionDetail extends SiblingsFieldsSource {
   requested_level?: Ref | null;
   requested_class?: Ref | null;
   assigned_user?: Ref | null;
-  next_action?: string | null;
+  next_action?: AdmissionNextAction;
   next_action_date?: string | null;
   first_contact_date?: string | null;
   internal_notes?: string | null;
@@ -472,6 +577,7 @@ export interface PatchAdmissionPayload {
   assigned_user_id?: number;
   priority?: string;
   state?: string;
+  processing_stage?: string;
   /** Reimport upsert — student / guardian / academic fields */
   child_first_name_ar?: string;
   child_last_name_ar?: string;
@@ -603,6 +709,15 @@ export interface FamilyBatchApplicationSummary {
     | 'closed'
     | string
     | null;
+  processing_stage?: AdmissionProcessingStage | null;
+  assessment_progress?: AdmissionAssessmentProgress | null;
+  assessment_summary?: AdmissionAssessmentSummary | null;
+  offer_required?: boolean | null;
+  offer_summary?: AdmissionOfferSummary | null;
+  registration_readiness?: AdmissionRegistrationReadiness | null;
+  registration_requirements?: AdmissionRegistrationRequirement[] | null;
+  next_action?: AdmissionNextAction;
+  allowed_actions?: AdmissionAllowedActions | string[] | null;
   requested_level_id?: number | null;
   requested_level?: Ref | string | null;
   student_id?: number | false | null;

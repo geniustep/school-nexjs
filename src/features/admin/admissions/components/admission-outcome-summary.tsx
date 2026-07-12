@@ -6,7 +6,7 @@ import { useT } from '@/features/i18n/locale-context';
 import type { AdmissionDetail } from '@/types/admission';
 import { normalizeAdmissionDecision } from '../utils/normalize-admission-decision';
 import {
-  formatOfferStateLabelKey,
+  translateOfferStateLabel,
   normalizeStatusWarnings,
   resolveIsSchoolRejected,
   resolveOfferStateValue,
@@ -23,7 +23,6 @@ export function AdmissionOutcomeSummary({ detail }: { detail: AdmissionDetail })
   const registration = resolveRegistrationStatus(detail);
   const schoolRejected = resolveIsSchoolRejected(detail);
   const offer = resolveOfferStateValue(detail);
-  const offerKey = formatOfferStateLabelKey(offer);
   const warnings = normalizeStatusWarnings(detail.status_warnings);
   const registrationLabel = t(resolveRegistrationDisplayLabelKey(detail));
   const isReady =
@@ -71,7 +70,7 @@ export function AdmissionOutcomeSummary({ detail }: { detail: AdmissionDetail })
         <div className="admission-outcome-summary__cell">
           <span className="tiny muted">{t('admin.admissions.outcomeSummary.offer')}</span>
           <strong data-testid="outcome-offer">
-            {offerKey ? t(offerKey) : t('admin.admissions.outcomeSummary.offerNone')}
+            {translateOfferStateLabel(offer, t)}
           </strong>
         </div>
       </div>

@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
   containsInternalTechLeak,
+  isEnglishInfrastructureErrorMessage,
   isUnsafeUserFacingErrorMessage,
+  resolveKnownApiErrorMessageKey,
   sanitizeClientApiErrorMessage,
   sanitizeUserFacingErrorMessage,
 } from './user-facing-error';
@@ -30,5 +32,33 @@ describe('user-facing-error', () => {
   it('flags html and traceback as unsafe', () => {
     expect(isUnsafeUserFacingErrorMessage('<p>Odoo</p>')).toBe(true);
     expect(isUnsafeUserFacingErrorMessage('Traceback (most recent call last)')).toBe(true);
+  });
+
+  it('flags English bad-gateway / infra messages as unsafe', () => {
+    expect(
+      isEnglishInfrastructureErrorMessage(
+        'The web server reported a bad gateway error.',
+      ),
+    ).toBe(true);
+    expect(
+      isUnsafeUserFacingErrorMessage('The web server reported a bad gateway error.'),
+    ).toBe(true);
+    expect(
+      sanitizeUserFacingErrorMessage(
+        'The web server reported a bad gateway error.',
+        'تعذّر الوصول إلى الخادم مؤقتًا.',
+      ),
+    ).toBe('تعذّر الوصول إلى الخادم مؤقتًا.');
+  });
+
+  it('maps known English infra messages to i18n keys', () => {
+    expect(
+      resolveKnownApiErrorMessageKey('The web server reported a bad gateway error.'),
+    ).toBe('errors.badGateway');
+    expect(
+      resolveKnownApiErrorMessageKey(
+        'Could not reach the server. Please check your connection.',
+      ),
+    ).toBe('errors.network');
   });
 });

@@ -34,7 +34,9 @@ export function AdmissionsDashboardSummary({
           const value = Number(data[card.countKey] ?? 0);
           const active = resolveOperationalCardPressed(activeOperationalCard, card.id);
           const label = t(card.labelKey);
-          const aria = t(card.ariaFilterKey);
+          const aria = active
+            ? t('admin.admissions.dashboard.clearFilterAria', { label })
+            : t(card.ariaFilterKey);
 
           return (
             <button
@@ -47,6 +49,7 @@ export function AdmissionsDashboardSummary({
               )}
               aria-pressed={active}
               aria-label={aria}
+              title={active ? t('admin.admissions.dashboard.clearFilterHint') : undefined}
               data-testid={`admissions-kpi-${card.id}`}
               data-interactive="true"
               data-count-key={card.countKey}
@@ -55,6 +58,11 @@ export function AdmissionsDashboardSummary({
               <StatCard label={label} value={value} tone={card.tone} />
               {card.hintKey ? (
                 <span className="admissions-dashboard__kpi-hint">{t(card.hintKey)}</span>
+              ) : null}
+              {active ? (
+                <span className="admissions-dashboard__kpi-clear" aria-hidden="true">
+                  ×
+                </span>
               ) : null}
             </button>
           );

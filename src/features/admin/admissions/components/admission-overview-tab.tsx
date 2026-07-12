@@ -18,6 +18,7 @@ import { SiblingsInfoPanel } from './siblings-info-panel';
 import { AdmissionGuardiansDetails } from '@/features/admin/admissions/guardians';
 import { OverviewCard, OverviewRow } from './admission-overview-primitives';
 import { hasFamilyBatchLink } from '../utils/family-admission-visibility';
+import { buildAdmissionTabHref } from '../utils/admission-detail-tabs';
 import type { AdmissionDetail } from '@/types/admission';
 
 export function AdmissionOverviewTab({
@@ -129,7 +130,25 @@ export function AdmissionOverviewTab({
         </OverviewCard>
 
         <AdmissionExtraFieldsPanel detail={detail} />
-        <SiblingsInfoPanel detail={detail} />
+        {isFamilyChild ? (
+          <section className="card admissions-overview-card admissions-overview-card--full admissions-overview-family-pointer">
+            <h2 className="admissions-overview-card__title">
+              {t('admin.siblings.sectionTitle')}
+            </h2>
+            <p className="admissions-overview-family-pointer__text">
+              {t('admin.admissions.family.siblingsInfoInFamilyTab')}
+            </p>
+            <Link
+              href={buildAdmissionTabHref(detail.id, 'family_data')}
+              className="btn btn--ghost btn--sm"
+              data-testid="admissions-open-family-children"
+            >
+              {t('admin.admissions.family.openFamilyChildren')}
+            </Link>
+          </section>
+        ) : (
+          <SiblingsInfoPanel detail={detail} />
+        )}
 
         {(detail.duplicates?.length ?? 0) > 0 ? (
           <section className="card admissions-overview-card admissions-overview-card--full">

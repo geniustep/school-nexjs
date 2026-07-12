@@ -4,16 +4,16 @@ import { evaluateManualStageChange } from '@/features/admin/admissions/utils/adm
 import { evaluateKanbanDragStateChange } from '@/features/admin/admissions/utils/admission-kanban-drag';
 
 describe('runBulkStageChange', () => {
-  it('patches raw manual stages directly', async () => {
+  it('patches processing stages directly', async () => {
     const changeState = vi.fn(async (id: number, state: string) => {
       expect(id).toBe(10);
-      expect(state).toBe('contacted');
+      expect(state).toBe('initial_follow_up');
       return true;
     });
 
     const result = await runBulkStageChange(
-      [{ id: 10, record: { state: 'new' } }],
-      'contacted',
+      [{ id: 10, record: { processing_stage: 'new', state: 'new' } }],
+      'initial_follow_up',
       changeState,
     );
 
@@ -30,8 +30,8 @@ describe('runBulkStageChange', () => {
     const changeState = vi.fn(async () => true);
 
     const result = await runBulkStageChange(
-      [{ id: 3, record: { state: 'qualified' } }],
-      'qualified',
+      [{ id: 3, record: { processing_stage: 'assessment_ready' } }],
+      'assessment_ready',
       changeState,
     );
 
@@ -49,10 +49,10 @@ describe('runBulkStageChange', () => {
 
     const result = await runBulkStageChange(
       [
-        { id: 1, record: { state: 'new' } },
-        { id: 2, record: { state: 'new' } },
+        { id: 1, record: { processing_stage: 'new' } },
+        { id: 2, record: { processing_stage: 'new' } },
       ],
-      'contacted',
+      'initial_follow_up',
       changeState,
     );
 
@@ -70,7 +70,7 @@ describe('runBulkStageChange', () => {
         { id: 1, record: { state: 'accepted' } },
         { id: 2, record: { state: 'confirmed' } },
       ],
-      'under_review',
+      'assessment_ready',
       changeState,
     );
     expect(changeState).not.toHaveBeenCalled();
@@ -89,23 +89,28 @@ describe('runBulkStageChange', () => {
 });
 
 describe('manual stage helper parity', () => {
-  it('does not apply when already on target raw state', () => {
-    expect(evaluateManualStageChange({ state: 'qualified' }, 'qualified')).toEqual({
+  it('does not apply when already on target processing stage', () => {
+    expect(
+      evaluateManualStageChange(
+        { processing_stage: 'assessment_ready' },
+        'assessment_ready',
+      ),
+    ).toEqual({
       apply: false,
       targetState: null,
       reason: 'same_state',
     });
   });
 
-  it('maps contacted target without UI-stage indirection', async () => {
+  it('maps assessment_ready target without UI-stage indirection', async () => {
     const changeState = vi.fn(async (_id, state) => {
-      expect(state).toBe('under_review');
+      expect(state).toBe('assessment_ready');
       return true;
     });
 
     await runBulkStageChange(
-      [{ id: 7, record: { state: 'contacted' } }],
-      'under_review',
+      [{ id: 7, record: { processing_stage: 'initial_follow_up' } }],
+      'assessment_ready',
       changeState,
     );
 

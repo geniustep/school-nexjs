@@ -48,13 +48,11 @@ describe('getAdmissionDecisionOptions', () => {
 });
 
 describe('getAdmissionManualStageOptions', () => {
-  it('returns only the five manual follow-up stages', () => {
+  it('returns only the three follow-up processing stages', () => {
     expect([...getAdmissionManualStageOptions()]).toEqual([
       'new',
-      'contacted',
-      'qualified',
-      'visit_pending',
-      'under_review',
+      'initial_follow_up',
+      'assessment_ready',
     ]);
   });
 
@@ -70,38 +68,53 @@ describe('getAdmissionManualStageOptions', () => {
       'duplicate',
       'registered',
       'awaiting_registration',
+      'assessment_in_progress',
+      'decision_ready',
+      'qualified',
+      'visit_pending',
     ]) {
       expect(options).not.toContain(forbidden as never);
       expect(isAdmissionManualStage(forbidden)).toBe(false);
     }
   });
 
-  it('uses unified under_review label key', () => {
-    expect(admissionManualStageLabelKey('under_review')).toBe(
-      'admin.admissions.states.under_review',
+  it('uses processing-stage label keys', () => {
+    expect(admissionManualStageLabelKey('initial_follow_up')).toBe(
+      'admin.admissions.processingStages.initial_follow_up',
     );
   });
 });
 
 describe('evaluateManualStageChange', () => {
-  it('allows transition between manual stages', () => {
-    expect(evaluateManualStageChange({ state: 'new' }, 'contacted')).toEqual({
+  it('allows transition between processing stages', () => {
+    expect(
+      evaluateManualStageChange({ processing_stage: 'new' }, 'initial_follow_up'),
+    ).toEqual({
       apply: true,
-      targetState: 'contacted',
+      targetState: 'initial_follow_up',
     });
   });
 
   it('blocks transitions from accepted/confirmed/lost', () => {
     expect(evaluateManualStageChange({ state: 'accepted' }, 'new').apply).toBe(false);
-    expect(evaluateManualStageChange({ state: 'confirmed' }, 'under_review').apply).toBe(false);
-    expect(evaluateManualStageChange({ state: 'lost' }, 'contacted').apply).toBe(false);
+    expect(
+      evaluateManualStageChange({ state: 'confirmed' }, 'assessment_ready').apply,
+    ).toBe(false);
+    expect(
+      evaluateManualStageChange({ state: 'lost' }, 'initial_follow_up').apply,
+    ).toBe(false);
   });
 
   it('blocks registered and derived targets', () => {
     expect(
-      evaluateManualStageChange({ state: 'new', student_id: 9 }, 'contacted').reason,
+      evaluateManualStageChange(
+        { processing_stage: 'new', student_id: 9 },
+        'initial_follow_up',
+      ).reason,
     ).toBe('registered');
-    expect(evaluateManualStageChange({ state: 'new' }, 'confirmed').reason).toBe('invalid_target');
+    expect(evaluateManualStageChange({ processing_stage: 'new' }, 'confirmed').reason).toBe(
+      'invalid_target',
+    );
   });
 
   it('marks derived/terminal states', () => {
@@ -132,15 +145,15 @@ describe('bulk manual stage change', () => {
     const changeState = vi.fn(async () => true);
     const result = await runBulkStageChange(
       [
-        { id: 1, record: { state: 'new' } },
+        { id: 1, record: { processing_stage: 'new', state: 'new' } },
         { id: 2, record: { state: 'confirmed' } },
         { id: 3, record: { state: 'lost' } },
       ],
-      'contacted',
+      'initial_follow_up',
       changeState,
     );
     expect(changeState).toHaveBeenCalledTimes(1);
-    expect(changeState).toHaveBeenCalledWith(1, 'contacted');
+    expect(changeState).toHaveBeenCalledWith(1, 'initial_follow_up');
     expect(result.succeeded).toEqual([1]);
     expect(result.ineligible).toEqual([2, 3]);
   });

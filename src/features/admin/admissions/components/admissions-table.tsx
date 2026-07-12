@@ -19,7 +19,6 @@ import {
   shouldShowFamilyBadge,
 } from '../utils/family-admission-visibility';
 import { AdmissionStatusBadges } from './admission-status-badges';
-import { Badge } from '@/components/ui/primitives';
 import type { AdmissionListItem } from '@/types/admission';
 
 export function AdmissionsTable({
@@ -94,27 +93,41 @@ export function AdmissionsTable({
           const name = cleanDisplayValue(row.student_name);
           const externalRef = cleanDisplayValue(row.external_reference ?? '');
           const hasSiblings = parseExtraFieldBool(row.has_siblings);
+          const showFamily = shouldShowFamilyBadge(row);
+          const familyCount = showFamily ? resolveFamilyBadgeCount(row) : 0;
+
           return (
-            <Link href={`/admin/admissions/${row.id}`} className="admissions-table__student-link">
-              <strong dir="auto">{name || t('common.dash')}</strong>
+            <div className="admissions-table__student">
+              <Link
+                href={`/admin/admissions/${row.id}`}
+                className="admissions-table__student-name"
+              >
+                <span dir="auto">{name || t('common.dash')}</span>
+              </Link>
               {externalRef ? (
-                <span className="admissions-table__external-ref tiny muted mono" dir="ltr">
+                <span className="admissions-table__external-ref mono" dir="ltr">
                   {externalRef}
                 </span>
               ) : null}
-              {hasSiblings ? (
-                <span className="admissions-table__siblings-hint tiny muted">
-                  {t('admin.admissions.list.hasSiblingsBadge')}
-                </span>
+              {hasSiblings || showFamily ? (
+                <div className="admissions-table__student-meta">
+                  {hasSiblings && !showFamily ? (
+                    <span className="admissions-table__meta-chip">
+                      {t('admin.admissions.list.hasSiblingsBadge')}
+                    </span>
+                  ) : null}
+                  {showFamily ? (
+                    <span
+                      className="admissions-table__meta-chip admissions-table__meta-chip--family"
+                      title={t('admin.admissions.family.badge', { count: familyCount })}
+                    >
+                      <span>{t('admin.admissions.family.badgeShort')}</span>
+                      <span className="admissions-table__meta-count">{familyCount}</span>
+                    </span>
+                  ) : null}
+                </div>
               ) : null}
-              {shouldShowFamilyBadge(row) ? (
-                <Badge tone="blue">
-                  {t('admin.admissions.family.badge', {
-                    count: resolveFamilyBadgeCount(row),
-                  })}
-                </Badge>
-              ) : null}
-            </Link>
+            </div>
           );
         },
       },

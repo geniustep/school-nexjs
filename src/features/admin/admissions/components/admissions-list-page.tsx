@@ -34,10 +34,10 @@ import {
   buildAdmissionListServerQuery,
   buildAdmissionWorkspaceQuery,
   buildKanbanWorkspaceExtraQuery,
-  getWorkspaceAdvancedFilterAvailability,
   hasManualContextOrAdvancedFilters,
   parseWorkspaceListStateFromSearchParams,
   readAppliedWorkspaceFilter,
+  resolveActiveOperationalCard,
   workspaceListStateToSearchParams,
   ADMISSION_WORKSPACE_COUNT_KEYS,
   type AdmissionWorkspace,
@@ -47,38 +47,14 @@ import {
   type PostAcceptanceSubfilter,
   type AwaitingDecisionSubfilter,
 } from '../utils/admission-workspace';
-import { getAdmissionManualStageOptions } from '../utils/admission-stage-options';
-import { getAdmissionDecisionOptions } from '../utils/admission-decision-options';
-import type { AdmissionsOperationalCardId } from '../utils/admissions-dashboard-cards';
+import {
+  ADMISSIONS_OPERATIONAL_CARDS,
+  type AdmissionsOperationalCardId,
+} from '../utils/admissions-dashboard-cards';
 import { normalizeAdmissionListItems } from '../utils/normalize-admission-record';
 import '../admissions.css';
 
 const TABLE_PAGE_SIZE = 25;
-
-const OFFER_STATE_OPTIONS = [
-  '',
-  'draft',
-  'sent',
-  'accepted',
-  'declined',
-  'expired',
-  'cancelled',
-] as const;
-
-function resolveActiveOperationalCard(
-  state: AdmissionWorkspaceListState,
-): AdmissionsOperationalCardId | null {
-  if (state.workspace === 'post_acceptance' && state.postSub === 'awaiting') {
-    return 'awaiting_registration';
-  }
-  if (state.workspace === 'post_acceptance' && state.postSub === 'ready') {
-    return 'ready_for_registration';
-  }
-  if (state.workspace === 'closed' && state.closedSub === 'rejected') {
-    return 'school_rejected';
-  }
-  return null;
-}
 
 export function AdmissionsListPage() {
   const t = useT();
@@ -92,7 +68,6 @@ export function AdmissionsListPage() {
       new URLSearchParams(searchParams?.toString() ?? ''),
     ),
   );
-  const [advancedOpen, setAdvancedOpen] = useState(false);
   const [searchInput, setSearchInput] = useState(listState.search ?? '');
   const debouncedSearch = useDebouncedValue(searchInput, 400);
 
@@ -303,10 +278,6 @@ export function AdmissionsListPage() {
   );
 
   const activeOperationalCard = resolveActiveOperationalCard(listState);
-  const filterAvailability = useMemo(
-    () => getWorkspaceAdvancedFilterAvailability(listState.workspace),
-    [listState.workspace],
-  );
 
   return (
     <div className="admissions-page admissions-list-page" data-testid="admissions-list-page">
@@ -337,11 +308,12 @@ export function AdmissionsListPage() {
         </div>
       </header>
 
-      <nav
-        className="admissions-workspace-tabs"
-        aria-label={t('admin.admissions.workspace.navLabel')}
-        data-testid="admissions-workspace-tabs"
-      >
+      <div className="admissions-filter-deck" data-testid="admissions-filter-deck">
+        <nav
+          className="admissions-workspace-tabs"
+          aria-label={t('admin.admissions.workspace.navLabel')}
+          data-testid="admissions-workspace-tabs"
+        >
         <div className="admissions-workspace-tabs__scroller" role="tablist">
           {ADMISSION_WORKSPACES.map((workspace) => {
             const selected = listState.workspace === workspace;
@@ -520,7 +492,7 @@ export function AdmissionsListPage() {
                 })
               }
             >
-              {t(`admin.admissions.states.${stage}`)}
+              {t(`admin.admissions.processingStages.${stage}`)}
             </button>
           ))}
         </div>
@@ -536,7 +508,8 @@ export function AdmissionsListPage() {
           {(
             [
               ['', 'admin.admissions.workspace.allInWorkspace'],
-              ['under_review', 'admin.admissions.states.under_review'],
+              ['assessment_in_progress', 'admin.admissions.processingStages.assessment_in_progress'],
+              ['decision_ready', 'admin.admissions.processingStages.decision_ready'],
               ['needs_reassessment', 'admin.admissions.decisions.needs_reassessment'],
               ['waitlisted', 'admin.admissions.decisions.waitlisted'],
             ] as const
@@ -652,129 +625,6 @@ export function AdmissionsListPage() {
           ))}
         </select>
 
-        <div className="admissions-list-toolbar__advanced-wrap">
-          <button
-            type="button"
-            className="btn btn--ghost btn--sm"
-            aria-expanded={advancedOpen}
-            data-testid="admissions-advanced-filters-toggle"
-            onClick={() => setAdvancedOpen((v) => !v)}
-          >
-            {t('admin.admissions.workspace.advancedFilters')}
-          </button>
-          {advancedOpen ? (
-            <div
-              className="admissions-advanced-filters"
-              data-testid="admissions-advanced-filters"
-              role="dialog"
-              aria-label={t('admin.admissions.workspace.advancedFilters')}
-            >
-              {filterAvailability.disabledReasonKey ? (
-                <p className="tiny muted admissions-advanced-filters__note">
-                  {t(filterAvailability.disabledReasonKey)}
-                </p>
-              ) : null}
-
-              {filterAvailability.stage ? (
-                <label className="admissions-advanced-filters__field">
-                  <span>{t('admin.admissions.workspace.followUpStage')}</span>
-                  <select
-                    className="input"
-                    value={
-                      listState.workspace === 'follow_up'
-                        ? listState.followStage
-                        : listState.stage ?? ''
-                    }
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (listState.workspace === 'follow_up') {
-                        patchListState({
-                          followStage: value as FollowUpWorkspaceState,
-                          page: 1,
-                        });
-                      } else {
-                        patchListState({
-                          stage: value || undefined,
-                          page: 1,
-                        });
-                      }
-                    }}
-                    data-testid="admissions-advanced-stage"
-                  >
-                    {getAdmissionManualStageOptions()
-                      .filter((s) =>
-                        listState.workspace === 'follow_up'
-                          ? (FOLLOW_UP_WORKSPACE_STATES as readonly string[]).includes(s)
-                          : s === 'under_review',
-                      )
-                      .map((stage) => (
-                        <option key={stage} value={stage}>
-                          {t(`admin.admissions.states.${stage}`)}
-                        </option>
-                      ))}
-                  </select>
-                </label>
-              ) : (
-                <p className="tiny muted">{t('admin.admissions.workspace.stageFilterUnavailable')}</p>
-              )}
-
-              {filterAvailability.decision ? (
-                <label className="admissions-advanced-filters__field">
-                  <span>{t('admin.admissions.workspace.schoolDecision')}</span>
-                  <select
-                    className="input"
-                    value={listState.decision ?? ''}
-                    onChange={(e) =>
-                      patchListState({
-                        decision: e.target.value || undefined,
-                        page: 1,
-                      })
-                    }
-                    data-testid="admissions-advanced-decision"
-                  >
-                    <option value="">{t('admin.admissions.filters.allDecisions')}</option>
-                    {getAdmissionDecisionOptions().map((decision) => (
-                      <option key={decision} value={decision}>
-                        {t(`admin.admissions.decisions.${decision}`)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              ) : null}
-
-              {filterAvailability.offerState ? (
-                <label className="admissions-advanced-filters__field">
-                  <span>{t('admin.admissions.workspace.offerState')}</span>
-                  <select
-                    className="input"
-                    value={listState.offerState ?? ''}
-                    onChange={(e) =>
-                      patchListState({
-                        offerState: e.target.value || undefined,
-                        page: 1,
-                      })
-                    }
-                    data-testid="admissions-advanced-offer"
-                  >
-                    <option value="">{t('admin.admissions.filters.allOfferStates')}</option>
-                    {OFFER_STATE_OPTIONS.filter(Boolean).map((value) => (
-                      <option key={value} value={value}>
-                        {t(`admin.admissions.offerStates.${value}`)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              ) : null}
-
-              {!filterAvailability.registrationStatus ? (
-                <p className="tiny muted">
-                  {t('admin.admissions.workspace.registrationFilterViaSub')}
-                </p>
-              ) : null}
-            </div>
-          ) : null}
-        </div>
-
         <div
           className="admissions-view-toggle"
           role="group"
@@ -818,12 +668,26 @@ export function AdmissionsListPage() {
         ) : null}
       </div>
 
-      {hasManualFilters ? (
+      {hasManualFilters || activeOperationalCard ? (
         <div
           className="admissions-list-active-filters"
           aria-live="polite"
           data-testid="admissions-active-filters"
         >
+          {activeOperationalCard ? (
+            <button
+              type="button"
+              className="admissions-list-active-filters__chip admissions-list-active-filters__chip--operational"
+              data-testid="chip-operational"
+              onClick={() => handleOperationalCard(activeOperationalCard)}
+            >
+              {t(
+                ADMISSIONS_OPERATIONAL_CARDS.find((c) => c.id === activeOperationalCard)
+                  ?.labelKey ?? 'admin.admissions.filters.chipOutcome',
+              )}
+              <span aria-hidden="true">×</span>
+            </button>
+          ) : null}
           {listState.search?.trim() ? (
             <button
               type="button"
@@ -915,6 +779,7 @@ export function AdmissionsListPage() {
           ) : null}
         </div>
       ) : null}
+      </div>
 
       {view === 'table' && tableState.fetching && !tableState.initialLoading ? (
         <p className="admissions-list-refetching" aria-live="polite">

@@ -41,7 +41,7 @@ function baseState(
 }
 
 describe('workspace kanban availability', () => {
-  it('1. follow_up allows kanban with four columns', () => {
+  it('1. follow_up allows kanban with three processing-stage columns', () => {
     const q = buildAdmissionWorkspaceQuery(baseState({ workspace: 'follow_up' }));
     expect(q.kanbanAllowed).toBe(true);
     expect(q.kanbanColumns).toEqual([...FOLLOW_UP_WORKSPACE_STATES]);
@@ -60,25 +60,24 @@ describe('workspace kanban availability', () => {
     ).toBe(false);
   });
 
-  it('4-5. each follow_up column query sends workspace + state (no client split)', () => {
+  it('4-5. each follow_up column query sends workspace + processing_stage (no client split)', () => {
     for (const state of FOLLOW_UP_WORKSPACE_STATES) {
       const extra = buildKanbanWorkspaceExtraQuery(
         baseState({ workspace: 'follow_up' }),
       );
       expect(extra).toMatchObject({ workspace: 'follow_up' });
-      // column state is applied by the board hook per request, not by splitting a full list
       expect(extra).not.toHaveProperty('state');
+      expect(extra).not.toHaveProperty('processing_stage');
       void state;
     }
-    expect(FOLLOW_UP_WORKSPACE_STATES).toHaveLength(4);
+    expect(FOLLOW_UP_WORKSPACE_STATES).toHaveLength(3);
   });
 
-  it('7. four base columns are the follow_up set', () => {
+  it('7. three base columns are the follow_up processing stages', () => {
     expect([...FOLLOW_UP_WORKSPACE_STATES]).toEqual([
       'new',
-      'contacted',
-      'qualified',
-      'visit_pending',
+      'initial_follow_up',
+      'assessment_ready',
     ]);
   });
 });
@@ -86,11 +85,10 @@ describe('workspace kanban availability', () => {
 describe('column accents and labels', () => {
   it('8-9. each column has a distinct class; color is not the only signal', () => {
     const classes = FOLLOW_UP_WORKSPACE_STATES.map((s) => rawKanbanColumnClass(s));
-    expect(new Set(classes).size).toBe(4);
+    expect(new Set(classes).size).toBe(3);
     for (const state of FOLLOW_UP_WORKSPACE_STATES) {
       expect(rawKanbanColumnClass(state)).toContain(state);
-      // accessible label comes from states.* translation keys, not color alone
-      expect(`admin.admissions.states.${state}`).toMatch(/states\./);
+      expect(`admin.admissions.processingStages.${state}`).toMatch(/processingStages\./);
     }
   });
 });
@@ -139,6 +137,9 @@ describe('drag / drop targets', () => {
     ).toBe(false);
     expect(
       evaluateManualStageChange({ state: 'new' }, 'contacted').apply,
+    ).toBe(false);
+    expect(
+      evaluateManualStageChange({ processing_stage: 'new' }, 'initial_follow_up').apply,
     ).toBe(true);
   });
 });
