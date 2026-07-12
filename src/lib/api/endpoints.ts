@@ -232,6 +232,8 @@ export const endpoints = {
     gradebookResults: (id: number | string) => `/admin/assessment/gradebooks/${id}/results`,
     classMultiSubjectResults: (classId: number | string) =>
       `/admin/assessment/classes/${classId}/results`,
+    studentMultiSubjectResults: (studentId: number | string) =>
+      `/admin/assessment/students/${studentId}/results`,
 
     channels: '/admin/channels',
     channel: (id: number | string) => `/admin/channels/${id}`,

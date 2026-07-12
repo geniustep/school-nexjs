@@ -1,0 +1,161 @@
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
+.student-academic-results-tab {
+  display: grid;
+  gap: 16px;
+}
+
+.student-academic-results-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.student-academic-results-filters__label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-text-muted);
+  margin-bottom: 4px;
+}
+
+.student-academic-results-section-title {
+  margin: 0 0 12px;
+  font-size: 1rem;
+  font-weight: 650;
+  color: var(--c-text);
+}
+
+.student-academic-results-meta-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-text-muted);
+  margin-bottom: 4px;
+}
+
+.student-academic-results-context__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px 16px;
+  margin: 0;
+}
+
+.student-academic-results-context__grid dt {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-text-muted);
+}
+
+.student-academic-results-context__grid dd {
+  margin: 4px 0 0;
+  font-weight: 600;
+}
+
+.student-academic-results-content {
+  display: grid;
+  gap: 16px;
+}
+
+.student-academic-results-coverage__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px 16px;
+}
+
+.student-academic-results-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.student-academic-result-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.student-academic-result-card__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+.student-academic-result-card__score {
+  font-size: 1.35rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.student-academic-result-card__score.is-provisional {
+  color: var(--c-warning, #b45309);
+}
+
+.student-academic-result-card__score.is-missing {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--c-text-muted);
+}
+
+.student-academic-result-card__link {
+  margin-top: 8px;
+  display: inline-flex;
+}
+
+.student-academic-results-warnings__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.student-academic-results-warnings__head .student-academic-results-section-title {
+  margin-bottom: 0;
+}
+
+.student-academic-results-warnings__count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-text-muted);
+}
+
+.student-academic-results-warnings__list {
+  display: grid;
+  gap: 12px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.student-academic-results-warnings__item {
+  padding: 12px;
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+  background: var(--c-surface-2, var(--c-surface));
+}
+
+.student-academic-results-warnings__item p {
+  margin: 6px 0 0;
+}
+
+.student-academic-results-warnings__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-top: 8px;
+}
+
+@media (max-width: 640px) {
+  .student-academic-results-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
