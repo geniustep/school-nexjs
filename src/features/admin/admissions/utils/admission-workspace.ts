@@ -503,7 +503,7 @@ export function resolveAdmissionWorkspaceFromRecord(record: {
 function decisionValue(
   decision: { decision?: string | null } | string | false | null | undefined,
 ): string | null {
-  if (!decision || decision === false) return null;
+  if (decision === false || decision == null) return null;
   if (typeof decision === 'string') return decision;
   return decision.decision ?? null;
 }

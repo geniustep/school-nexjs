@@ -40,17 +40,26 @@ export const ADMISSIONS_OPERATIONAL_CARDS: {
 ];
 
 /** @deprecated Use ADMISSIONS_OPERATIONAL_CARDS — kept for older tests during migration. */
-export const ADMISSIONS_MAIN_DASHBOARD_CARDS = [
+export const ADMISSIONS_MAIN_DASHBOARD_CARDS: Array<{
+  id: string;
+  countKey: DashboardKey;
+  labelKey: string;
+  tone: 'blue' | 'amber' | 'green' | 'red';
+  interactive: boolean;
+  filter?: AdmissionsOperationalCardId;
+  ariaFilterKey?: string;
+  hintKey?: string;
+}> = [
   {
-    id: 'active' as const,
-    countKey: 'total_open' as DashboardKey,
+    id: 'active',
+    countKey: 'total_open',
     labelKey: 'admin.admissions.dashboard.total_open',
-    tone: 'blue' as const,
+    tone: 'blue',
     interactive: false,
   },
   ...ADMISSIONS_OPERATIONAL_CARDS.map((card) => ({
     ...card,
-    interactive: true as const,
+    interactive: true,
     filter: card.id,
   })),
 ];

@@ -966,26 +966,30 @@ export function AdmissionsListPage() {
             empty={listEmptyState}
             isEmpty={(data) => !data || (Array.isArray(data) && data.length === 0)}
           >
-            <AdmissionsTable
-              items={tableRows}
-              onUpdated={reloadCurrentView}
-              selectionMode={selectionMode}
-              isSelected={isSelected}
-              onToggleSelect={toggle}
-              onToggleVisible={() => toggleVisible(tableRows.map((r) => r.id))}
-              visibleSelectionState={visibleSelectionState(
-                tableRows.map((r) => r.id),
-              )}
-            />
-            {tablePagination && tablePagination.total_pages > 1 ? (
-              <Pagination
-                page={tablePagination.page}
-                totalPages={tablePagination.total_pages}
-                pageSize={tablePagination.page_size}
-                total={tablePagination.total}
-                onPage={(page) => patchListState({ page })}
-              />
-            ) : null}
+            {(data) => (
+              <>
+                <AdmissionsTable
+                  items={data}
+                  onUpdated={reloadCurrentView}
+                  selectionMode={selectionMode}
+                  isSelected={isSelected}
+                  onToggleSelect={toggle}
+                  onToggleVisible={() => toggleVisible(data.map((r) => r.id))}
+                  visibleSelectionState={visibleSelectionState(
+                    data.map((r) => r.id),
+                  )}
+                />
+                {tablePagination && tablePagination.total_pages > 1 ? (
+                  <Pagination
+                    page={tablePagination.page}
+                    totalPages={tablePagination.total_pages}
+                    pageSize={tablePagination.page_size}
+                    total={tablePagination.total}
+                    onPage={(page) => patchListState({ page })}
+                  />
+                ) : null}
+              </>
+            )}
           </ResourceView>
         </div>
       )}
