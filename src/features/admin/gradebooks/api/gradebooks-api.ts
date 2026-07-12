@@ -12,12 +12,16 @@ import type {
   BatchEntryUpdateResponse,
   CreateGradebookPayload,
   GradebookDetail,
+  GradebookResults,
   GradebookSummary,
 } from '@/types/gradebook';
 import {
   normalizeBatchEntryUpdateResponse,
   normalizeGradebookDetailPayload,
 } from '../utils/gradebook-normalize';
+import { normalizeGradebookResultsPayload } from '../utils/gradebook-results-present';
+
+export type GradebookWorkspaceApiRole = 'admin' | 'teacher';
 
 export async function fetchAdminGradebooks(
   query?: ListParams,
@@ -124,6 +128,23 @@ export async function submitTeacherGradebook(
   const res = await api.post<GradebookDetail>(endpoints.teacher.gradebookSubmit(id), undefined, query);
   if (res.success && res.data) {
     return { ...res, data: normalizeGradebookDetailPayload(res.data) };
+  }
+  return res;
+}
+
+/** Role-aware Results adapter — selects admin or teacher endpoint only. */
+export async function getGradebookResults(params: {
+  role: GradebookWorkspaceApiRole;
+  gradebookId: number | string;
+  query?: ListParams;
+}): Promise<ApiResponse<GradebookResults>> {
+  const path =
+    params.role === 'teacher'
+      ? endpoints.teacher.gradebookResults(params.gradebookId)
+      : endpoints.admin.gradebookResults(params.gradebookId);
+  const res = await api.get<GradebookResults>(path, params.query);
+  if (res.success && res.data) {
+    return { ...res, data: normalizeGradebookResultsPayload(res.data) };
   }
   return res;
 }

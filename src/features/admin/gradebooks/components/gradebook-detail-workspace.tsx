@@ -26,6 +26,7 @@ import {
 import { GradebookCompositeGrid } from './gradebook-composite-grid';
 import { GradebookDetailHeader } from './gradebook-detail-header';
 import { GradebookLifecycleActions } from './gradebook-lifecycle-actions';
+import { GradebookResultsView } from './gradebook-results-view';
 import { GradebookSimpleGrid } from './gradebook-simple-grid';
 import {
   applySavedEntries,
@@ -84,6 +85,7 @@ export function GradebookDetailWorkspace({
   const [baseline, setBaseline] = useState(() => buildBaselineMap(detail?.matrix ?? []));
   const [drafts, setDrafts] = useState(() => new Map<CellDraftKey, CellDraftValue>());
   const [saving, setSaving] = useState(false);
+  const [workspaceView, setWorkspaceView] = useState<'entries' | 'results'>('entries');
   const [completion, setCompletion] = useState(detail?.completion);
   const [allowedActions, setAllowedActions] = useState(() =>
     normalizeGradebookAllowedActions(detail?.allowed_actions),
@@ -262,6 +264,41 @@ export function GradebookDetailWorkspace({
               onSuccess={applyLifecycleDetail}
             />
 
+            <div
+              className="gradebook-view-toggle"
+              role="tablist"
+              aria-label={t('admin.gradebooks.viewToggle.label')}
+            >
+              <button
+                type="button"
+                role="tab"
+                aria-selected={workspaceView === 'entries'}
+                className={`gradebook-view-toggle__item${workspaceView === 'entries' ? ' is-active' : ''}`}
+                onClick={() => setWorkspaceView('entries')}
+              >
+                {t('admin.gradebooks.viewToggle.entries')}
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={workspaceView === 'results'}
+                className={`gradebook-view-toggle__item${workspaceView === 'results' ? ' is-active' : ''}`}
+                onClick={() => setWorkspaceView('results')}
+                data-testid="gradebook-results-tab"
+              >
+                {t('admin.gradebooks.viewToggle.results')}
+              </button>
+            </div>
+
+            {workspaceView === 'results' ? (
+              <GradebookResultsView
+                gradebookId={detail.id}
+                role={role}
+                roster={detail.roster}
+                structure={detail.structure}
+              />
+            ) : (
+              <>
             <div className="gradebook-save-bar toolbar">
               <button
                 type="button"
@@ -325,6 +362,8 @@ export function GradebookDetailWorkspace({
                 />
               )
             ) : null}
+              </>
+            )}
           </>
           ) : null
         }

@@ -281,3 +281,103 @@
     display: block;
   }
 }
+
+.gradebook-view-toggle {
+  display: inline-flex;
+  gap: 4px;
+  margin: 8px 0 14px;
+  padding: 4px;
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
+  background: var(--c-surface-2);
+}
+
+.gradebook-view-toggle__item {
+  border: none;
+  background: transparent;
+  color: var(--c-text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.gradebook-view-toggle__item.is-active {
+  background: var(--c-surface);
+  color: var(--c-text);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+.gradebook-results__summary {
+  margin-bottom: 14px;
+}
+
+.gradebook-results__summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px 16px;
+}
+
+.gradebook-results__summary-note {
+  margin-top: 10px;
+}
+
+.gradebook-result-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid var(--c-border);
+  background: var(--c-surface-2);
+  white-space: nowrap;
+}
+
+.gradebook-result-status.is-complete {
+  color: #067647;
+  border-color: #abefc6;
+  background: #ecfdf3;
+}
+
+.gradebook-result-status.is-partial {
+  color: #b54708;
+  border-color: #fedf89;
+  background: #fffaeb;
+}
+
+.gradebook-result-status.is-blocked {
+  color: #b42318;
+  border-color: #fecdca;
+  background: #fef3f2;
+}
+
+.gradebook-result-status.is-available {
+  color: var(--c-text-muted);
+}
+
+.gradebook-result-value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.gradebook-result-value.is-provisional {
+  font-weight: 500;
+}
+
+.gradebook-result-missing {
+  color: var(--c-text-muted);
+}
+
+.gradebook-result-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 88px;
+}
+
+.gradebook-results-table .gradebook-grid__student-col {
+  z-index: 5;
+}

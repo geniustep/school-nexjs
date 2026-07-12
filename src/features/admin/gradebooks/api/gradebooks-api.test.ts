@@ -4,6 +4,7 @@ import { endpoints } from '@/lib/api/endpoints';
 import {
   fetchAdminGradebook,
   fetchTeacherGradebook,
+  getGradebookResults,
   patchAdminGradebookEntries,
   patchTeacherGradebookEntries,
   postAdminGradebookLifecycle,
@@ -181,5 +182,62 @@ describe('gradebooks-api adapters', () => {
       undefined,
     );
     expect(res.success && res.data?.allowed_actions).toEqual({ edit_entries: false });
+  });
+
+  it('selects admin Results endpoint for admin role', async () => {
+    mockApi.get.mockResolvedValueOnce({
+      success: true,
+      data: {
+        gradebook_id: 223,
+        state: 'open',
+        mode: 'simple',
+        scheme_id: 129,
+        scheme_version: 1,
+        students: [],
+      },
+      meta: {},
+    });
+
+    const res = await getGradebookResults({ role: 'admin', gradebookId: 223 });
+    expect(mockApi.get).toHaveBeenCalledWith(endpoints.admin.gradebookResults(223), undefined);
+    expect(res.success && res.data?.gradebook_id).toBe(223);
+  });
+
+  it('selects teacher Results endpoint for teacher role', async () => {
+    mockApi.get.mockResolvedValueOnce({
+      success: true,
+      data: {
+        gradebook_id: 223,
+        state: 'open',
+        mode: 'simple',
+        scheme_id: 129,
+        scheme_version: 1,
+        students: [
+          {
+            student_line_id: 240,
+            student_id: 1705,
+            cells: [],
+            slots: [],
+            aggregate: {
+              status: 'available',
+              score: null,
+              max_score: null,
+              normalized_score: null,
+              completed_cells: 0,
+              expected_cells: 2,
+              included_cells: 0,
+              missing_cells: 2,
+              blocking_cells: 0,
+            },
+          },
+        ],
+      },
+      meta: {},
+    });
+
+    const res = await getGradebookResults({ role: 'teacher', gradebookId: 223 });
+    expect(mockApi.get).toHaveBeenCalledWith(endpoints.teacher.gradebookResults(223), undefined);
+    expect(res.success && res.data?.students).toHaveLength(1);
+    expect(res.success && res.data?.students[0]?.aggregate.missing_cells).toBe(2);
   });
 });

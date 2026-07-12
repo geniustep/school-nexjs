@@ -171,3 +171,75 @@ export interface GradebookSchemeOption extends Ref {
 export interface GradebookTermOption extends Ref {
   academic_year_id?: number;
 }
+
+/** Aggregation / slot status values returned by Results API. */
+export type GradebookResultStatus =
+  | 'available'
+  | 'complete'
+  | 'partial'
+  | 'not_computable'
+  | string;
+
+/** Cell-level result row from GET …/gradebooks/{id}/results. */
+export interface GradebookCellResult {
+  cell_id: number;
+  slot_id: number;
+  component_id?: number | null;
+  score: number | null;
+  score_is_set: boolean;
+  participation_state: ParticipationState | string;
+  max_score: number;
+  normalized_score: number | null;
+  included_in_aggregation: boolean;
+}
+
+/** Slot-level aggregate from Results API. */
+export interface GradebookSlotResult {
+  slot_id: number;
+  weight?: number | null;
+  status: GradebookResultStatus;
+  score: number | null;
+  max_score: number | null;
+  normalized_score: number | null;
+  completed_cells: number;
+  expected_cells: number;
+  included_cells: number;
+  missing_cells: number;
+  blocking_cells: number;
+  reason?: string | null;
+}
+
+/** Student-level aggregate from Results API. */
+export interface GradebookStudentAggregate {
+  status: GradebookResultStatus;
+  score: number | null;
+  max_score: number | null;
+  normalized_score: number | null;
+  completed_cells: number;
+  expected_cells: number;
+  included_cells: number;
+  missing_cells: number;
+  blocking_cells: number;
+  reason?: string | null;
+}
+
+export interface GradebookStudentResult {
+  student_line_id: number;
+  student_id: number;
+  cells: GradebookCellResult[];
+  slots: GradebookSlotResult[];
+  aggregate: GradebookStudentAggregate;
+}
+
+/**
+ * Payload of admin/teacher Results endpoints.
+ * No gradebook-level summary object is returned by the live contract.
+ */
+export interface GradebookResults {
+  gradebook_id: number;
+  state: GradebookState | string;
+  mode: GradebookStructureMode | string;
+  scheme_id?: number | null;
+  scheme_version?: number | null;
+  students: GradebookStudentResult[];
+}

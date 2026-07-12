@@ -1157,6 +1157,41 @@
           "title": "Carnet non ouvert",
           "description": "Ouvrez le carnet pour saisir les notes."
         }
+      },
+      "viewToggle": {
+        "label": "Vue du carnet",
+        "entries": "Saisie des notes",
+        "results": "Résultats"
+      },
+      "results": {
+        "loading": "Chargement des résultats…",
+        "narrowHint": "Faites défiler horizontalement pour consulter les résultats par slot.",
+        "noScore": "Pas de note",
+        "normalized": "Normalisé : {value}",
+        "partialHint": "Résultat partiel — non définitif",
+        "notComputableHint": "Non calculable en raison de l'état de participation",
+        "summary": {
+          "students": "Élèves",
+          "note": "Le résumé ne compte que les statuts d'agrégation renvoyés par le serveur."
+        },
+        "status": {
+          "available": "Disponible",
+          "complete": "Complet",
+          "partial": "Partiel",
+          "not_computable": "Non calculable",
+          "unknown": "Statut inconnu"
+        },
+        "columns": {
+          "student": "Élève",
+          "status": "Statut",
+          "aggregate": "Agrégat",
+          "completed": "Complété / attendu",
+          "missing": "Manquant"
+        },
+        "empty": {
+          "title": "Aucun résultat",
+          "description": "Le serveur n'a encore renvoyé aucun résultat d'agrégation pour ce carnet."
+        }
       }
     },
     "studentsListDesc": "Tous les élèves de votre périmètre",

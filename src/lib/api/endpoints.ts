@@ -229,6 +229,7 @@ export const endpoints = {
     gradebookPublish: (id: number | string) => `/admin/assessment/gradebooks/${id}/publish`,
     gradebookLock: (id: number | string) => `/admin/assessment/gradebooks/${id}/lock`,
     gradebookEntries: (id: number | string) => `/admin/assessment/gradebooks/${id}/entries`,
+    gradebookResults: (id: number | string) => `/admin/assessment/gradebooks/${id}/results`,
 
     channels: '/admin/channels',
     channel: (id: number | string) => `/admin/channels/${id}`,
@@ -440,6 +441,7 @@ export const endpoints = {
     gradebooks: '/teacher/assessment/gradebooks',
     gradebook: (id: number | string) => `/teacher/assessment/gradebooks/${id}`,
     gradebookEntries: (id: number | string) => `/teacher/assessment/gradebooks/${id}/entries`,
+    gradebookResults: (id: number | string) => `/teacher/assessment/gradebooks/${id}/results`,
     gradebookSubmit: (id: number | string) => `/teacher/assessment/gradebooks/${id}/submit`,
     timetable: '/teacher/timetable',
     timetableToday: '/teacher/timetable/today',

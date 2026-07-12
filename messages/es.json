@@ -1157,6 +1157,41 @@
           "title": "Cuaderno no abierto",
           "description": "Abra el cuaderno para introducir notas."
         }
+      },
+      "viewToggle": {
+        "label": "Vista del cuaderno",
+        "entries": "Introducción de notas",
+        "results": "Resultados"
+      },
+      "results": {
+        "loading": "Cargando resultados…",
+        "narrowHint": "Desplácese horizontalmente para revisar los resultados por ranura.",
+        "noScore": "Sin nota",
+        "normalized": "Normalizado: {value}",
+        "partialHint": "Resultado parcial — no final",
+        "notComputableHint": "No calculable por el estado de participación",
+        "summary": {
+          "students": "Alumnos",
+          "note": "El resumen solo cuenta los estados de agregación devueltos por el servidor."
+        },
+        "status": {
+          "available": "Disponible",
+          "complete": "Completo",
+          "partial": "Parcial",
+          "not_computable": "No calculable",
+          "unknown": "Estado desconocido"
+        },
+        "columns": {
+          "student": "Alumno",
+          "status": "Estado",
+          "aggregate": "Agregado",
+          "completed": "Completado / esperado",
+          "missing": "Faltante"
+        },
+        "empty": {
+          "title": "Sin resultados",
+          "description": "El servidor aún no ha devuelto resultados de agregación para este cuaderno."
+        }
       }
     },
     "studentsListDesc": "Todos los alumnos de su ámbito",

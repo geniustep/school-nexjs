@@ -1157,6 +1157,41 @@
           "title": "Gradebook not open",
           "description": "Open the gradebook to start entering scores."
         }
+      },
+      "viewToggle": {
+        "label": "Gradebook view",
+        "entries": "Score entry",
+        "results": "Results"
+      },
+      "results": {
+        "loading": "Loading results…",
+        "narrowHint": "Scroll horizontally to review slot results.",
+        "noScore": "No score",
+        "normalized": "Normalized: {value}",
+        "partialHint": "Partial result — not final",
+        "notComputableHint": "Not computable due to participation state",
+        "summary": {
+          "students": "Students",
+          "note": "Summary counts come only from aggregation statuses returned by the server."
+        },
+        "status": {
+          "available": "Available",
+          "complete": "Complete",
+          "partial": "Partial",
+          "not_computable": "Not computable",
+          "unknown": "Unknown status"
+        },
+        "columns": {
+          "student": "Student",
+          "status": "Status",
+          "aggregate": "Aggregate",
+          "completed": "Completed / expected",
+          "missing": "Missing"
+        },
+        "empty": {
+          "title": "No results",
+          "description": "The server returned no aggregation results for this gradebook yet."
+        }
       }
     },
     "studentsListDesc": "All pupils within your scope",

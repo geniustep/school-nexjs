@@ -6,6 +6,7 @@
  * Guardian onboarding: docs/contracts/SSC-API-2026.11.001.md
  * Guardian password setup: docs/contracts/SSC-API-2026.12.001.md
  * Continuous assessment gradebook: docs/contracts/SSC-API-2026.13.001.md
+ * Continuous assessment gradebook results: docs/contracts/SSC-API-2026.14.001.md
  * Guardian identity document: SSC-API-2026.07.003
  * Not wired to runtime checks — metadata only.
  */
@@ -120,3 +121,22 @@ export const GRADEBOOK_BACKEND_CONTRACT = {
 } as const;
 
 export type GradebookBackendContract = typeof GRADEBOOK_BACKEND_CONTRACT;
+
+/** Continuous assessment gradebook Results view; requires Odoo Results API. */
+export const GRADEBOOK_RESULTS_BACKEND_CONTRACT = {
+  contractId: 'SSC-API-2026.14.001',
+  frontendRelease: 'school-nextjs-v2026.14.001',
+  backendModule: 'smart_school_connect',
+  backendMainCommit: '16189fedee43b3a4f8cab7cceba8697023d81f5f',
+  backendModuleVersion: null,
+  minBackendVersion: null,
+  maxBackendVersion: null,
+  compatibleBackend:
+    'smart_school_connect Odoo main containing Results API commit 16189fedee43b3a4f8cab7cceba8697023d81f5f or an equivalent descendant',
+  apiPrefix: '/api/v1',
+  source: 'dev-release',
+  notes:
+    'Continuous assessment gradebook Results View inside shared Gradebook Detail Workspace (admin + teacher). Additive GET …/gradebooks/{id}/results endpoints. No frontend formula recalculation. Breaking API changes: none. Backend upgrade required: yes for environments without 16189fed or descendant. school runtime already aligned; nibras/alwah not upgraded or verified in this phase. Prior contract: SSC-API-2026.13.001.',
+} as const;
+
+export type GradebookResultsBackendContract = typeof GRADEBOOK_RESULTS_BACKEND_CONTRACT;
