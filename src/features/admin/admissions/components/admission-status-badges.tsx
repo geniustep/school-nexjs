@@ -13,6 +13,7 @@ import { shouldShowFamilyBadge } from '../utils/family-admission-visibility';
 export function AdmissionStatusBadges({
   record,
   showWarningIcon = true,
+  hideUiStagePrimary = false,
 }: {
   record: AdmissionStatusFields &
     AdmissionUiStageSource & {
@@ -20,15 +21,21 @@ export function AdmissionStatusBadges({
       family_size?: number | null;
     };
   showWarningIcon?: boolean;
+  /** Skip primary badge when it only restates the pipeline ui_stage (Kanban column). */
+  hideUiStagePrimary?: boolean;
 }) {
   const t = useT();
   const includeFamily = shouldShowFamilyBadge(record);
   const includeWarning =
     showWarningIcon && !includeFamily && hasAdmissionStatusWarnings(record);
-  const badges = resolveAdmissionStatusBadges(record, {
+  let badges = resolveAdmissionStatusBadges(record, {
     includeFamily,
     includeWarning,
   });
+
+  if (hideUiStagePrimary) {
+    badges = badges.filter((badge) => !badge.key.startsWith('primary:ui_stage'));
+  }
 
   if (badges.length === 0) return null;
 

@@ -12,15 +12,27 @@ import {
 } from '../utils/family-admissions-analytics';
 import { AdmissionGuardiansDetails } from '@/features/admin/admissions/guardians';
 import { familyBatchApplicationReference } from '../utils/family-admission-normalize';
-import {
-  familyBatchSiblingApplications,
-  orderFamilyBatchApplicationsForCurrentChild,
-} from '../utils/family-batch-current-child';
+import { orderFamilyBatchApplicationsForCurrentChild } from '../utils/family-batch-current-child';
 import { canEditFamilyBatchGuardians } from '../utils/family-batch-guardians-edit';
 import { resolveFamilyBatchMixedSummary } from '../utils/admission-status-display';
 import { AdmissionStatusBadges } from './admission-status-badges';
 import { FamilyBatchGuardiansEditDialog } from './family-batch-guardians-edit-dialog';
-import type { FamilyBatchDetail } from '@/types/admission';
+import { resolveAdmissionPrimaryAction } from '../utils/admission-primary-action';
+import { refName } from '../utils/admission-labels';
+import { buildAdmissionTabHref, type AdmissionTabId } from '../utils/admission-detail-tabs';
+import type { FamilyBatchApplicationSummary, FamilyBatchDetail } from '@/types/admission';
+import { cn } from '@/lib/utils/cn';
+
+function childPrimaryHref(
+  app: FamilyBatchApplicationSummary,
+  primaryTarget: ReturnType<typeof resolveAdmissionPrimaryAction>['target'],
+): string {
+  if (primaryTarget.kind === 'href') return primaryTarget.href;
+  if (primaryTarget.kind === 'tab') {
+    return buildAdmissionTabHref(String(app.id), primaryTarget.tab as AdmissionTabId);
+  }
+  return `/admin/admissions/${app.id}`;
+}
 
 export function FamilyAdmissionFamilyPanel({
   batchId,
@@ -92,11 +104,6 @@ export function FamilyAdmissionFamilyPanel({
     [detail, currentAdmissionId],
   );
 
-  const siblingApplications = useMemo(
-    () => familyBatchSiblingApplications(orderedApplications, currentAdmissionId),
-    [orderedApplications, currentAdmissionId],
-  );
-
   const mixedSummary = useMemo(
     () => resolveFamilyBatchMixedSummary(orderedApplications),
     [orderedApplications],
@@ -117,7 +124,7 @@ export function FamilyAdmissionFamilyPanel({
   }
 
   return (
-    <aside className="family-admission-detail-panel">
+    <aside className="family-admission-detail-panel" data-testid="family-admission-panel">
       <header className="family-admission-detail-panel__header">
         <h3>{t('admin.admissions.family.detailPanelTitle')}</h3>
         {reference ? <span className="mono">{reference}</span> : null}
@@ -132,6 +139,22 @@ export function FamilyAdmissionFamilyPanel({
           <p className="family-admission-detail-panel__size muted">
             {t('admin.admissions.family.detailPanelSize', { count: size })}
           </p>
+
+          {mixedSummary === 'mixed' ? (
+            <p
+              className="tiny family-admission-detail-panel__mixed"
+              data-testid="family-outcomes-mixed"
+            >
+              {t('admin.admissions.family.mixedOutcomes')}
+            </p>
+          ) : mixedSummary === 'uniform' && orderedApplications.length > 1 ? (
+            <p
+              className="tiny muted family-admission-detail-panel__mixed"
+              data-testid="family-outcomes-unified"
+            >
+              {t('admin.admissions.family.uniformOutcomes')}
+            </p>
+          ) : null}
 
           <div className="family-admission-detail-panel__guardians-toolbar">
             {canEditGuardians ? (
@@ -168,42 +191,73 @@ export function FamilyAdmissionFamilyPanel({
 
           <div className="family-admission-detail-panel__siblings">
             <p className="family-admission-detail-panel__section-label">
-              {t('admin.admissions.family.siblingsInBatchSection')}
+              {t('admin.admissions.family.childrenInBatchSection')}
             </p>
-            {mixedSummary === 'mixed' ? (
-              <p className="tiny muted family-admission-detail-panel__mixed">
-                {t('admin.admissions.family.mixedOutcomes')}
-              </p>
-            ) : mixedSummary === 'uniform' && orderedApplications.length > 1 ? (
-              <p className="tiny muted family-admission-detail-panel__mixed">
-                {t('admin.admissions.family.uniformOutcomes')}
-              </p>
-            ) : null}
-            {siblingApplications.length === 0 ? (
-              <p className="muted">{t('admin.admissions.family.noSiblingsInBatch')}</p>
-            ) : (
-              <ul className="family-admission-detail-panel__list">
-                {siblingApplications.map((app) => {
-                  const appRef = familyBatchApplicationReference(app);
-                  return (
-                    <li key={app.id}>
-                      <div className="family-admission-detail-panel__item-main">
+            <ul className="family-admission-detail-panel__list">
+              {orderedApplications.map((app) => {
+                const appRef = familyBatchApplicationReference(app);
+                const isCurrent = app.id === currentAdmissionId;
+                const primary = resolveAdmissionPrimaryAction({
+                  ...app,
+                  id: app.id,
+                });
+                const href = childPrimaryHref(app, primary.target);
+                const levelLabel = refName(app.requested_level);
+                return (
+                  <li
+                    key={app.id}
+                    className={cn(
+                      'family-admission-detail-panel__child',
+                      isCurrent && 'family-admission-detail-panel__child--current',
+                    )}
+                    data-testid={`family-child-row-${app.id}`}
+                    data-current={isCurrent ? 'true' : undefined}
+                  >
+                    <div className="family-admission-detail-panel__item-main">
+                      <div className="family-admission-detail-panel__child-title">
                         <strong>{app.student_name}</strong>
-                        <span className="mono">{appRef}</span>
-                        <AdmissionStatusBadges record={app} />
+                        {isCurrent ? (
+                          <span className="tiny family-admission-detail-panel__current-tag">
+                            {t('admin.admissions.family.currentChild')}
+                          </span>
+                        ) : null}
                       </div>
-                      <Link
-                        href={`/admin/admissions/${app.id}`}
-                        className="btn btn--ghost btn--sm"
-                        onClick={() => trackFamilySiblingLinkClicked()}
-                      >
-                        {t('admin.admissions.family.openApplication')}
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
+                      <span className="mono">{appRef}</span>
+                      {levelLabel ? (
+                        <span className="tiny muted">{levelLabel}</span>
+                      ) : null}
+                      <AdmissionStatusBadges record={app} />
+                      <p className="tiny muted family-admission-detail-panel__child-next">
+                        {t(primary.descriptionKey)}
+                      </p>
+                    </div>
+                    <div className="family-admission-detail-panel__child-actions">
+                      {!primary.disabled ? (
+                        <Link
+                          href={href}
+                          className="btn btn--primary btn--sm"
+                          onClick={() => {
+                            if (!isCurrent) trackFamilySiblingLinkClicked();
+                          }}
+                          data-testid={`family-child-primary-${app.id}`}
+                        >
+                          {t(primary.labelKey)}
+                        </Link>
+                      ) : null}
+                      {!isCurrent ? (
+                        <Link
+                          href={`/admin/admissions/${app.id}`}
+                          className="btn btn--ghost btn--sm"
+                          onClick={() => trackFamilySiblingLinkClicked()}
+                        >
+                          {t('admin.admissions.family.openApplication')}
+                        </Link>
+                      ) : null}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
           </div>
 
           <FamilyBatchGuardiansEditDialog

@@ -132,6 +132,7 @@ export interface AdmissionListItem {
 
 export interface AdmissionAllowedActions {
   edit?: boolean;
+  change_state?: boolean;
   schedule_appointment?: boolean;
   add_assessment?: boolean;
   decide?: boolean;

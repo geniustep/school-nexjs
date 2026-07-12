@@ -4006,7 +4006,10 @@
         "scrollForward": "Scroll to later stages",
         "boardLabel": "Admission pipeline board",
         "loadMore": "Load more",
-        "loadingMore": "Loading…"
+        "loadingMore": "Loading…",
+        "horizontalScroll": "Scroll the applications board horizontally",
+        "columnCount": "{count} applications",
+        "noDragHint": "Drag and drop is not available in this workspace — use the table or detail page to decide."
       },
       "card": {
         "guardian": "Guardian",
@@ -4039,7 +4042,9 @@
         "selectItem": "Select {name}",
         "selectVisible": "Select visible requests",
         "openDetail": "Open",
-        "modeHint": "Selection mode — click a card to select or deselect. Drag is disabled."
+        "modeHint": "Selection mode — click a card to select or deselect. Drag is disabled.",
+        "selectColumnVisible": "Select all visible applications in this column",
+        "deselectItem": "Deselect application"
       },
       "bulk": {
         "selectedCount": "{count} selected",
@@ -4278,7 +4283,9 @@
         },
         "mixedOutcomes": "Children in this family batch have mixed outcomes.",
         "uniformOutcomes": "All children currently share the same outcome.",
-        "badgeShort": "Family"
+        "badgeShort": "Family",
+        "childrenInBatchSection": "Children in this family application",
+        "currentChild": "Current"
       },
       "guardians": {
         "sectionTitle": "Guardians on this request",
@@ -4358,7 +4365,8 @@
         "pipelineStage": "Pipeline stage",
         "detailedState": "Detailed state",
         "tabs": "Request sections",
-        "unspecified": "Not specified"
+        "unspecified": "Not specified",
+        "individualType": "Individual"
       },
       "tabs": {
         "overview": "Overview",
@@ -4367,7 +4375,16 @@
         "assessments": "Assessments",
         "decision": "Decision",
         "offers": "Offers",
-        "prefill": "Registration-ready data"
+        "prefill": "Registration-ready data",
+        "summary": "Summary",
+        "family_data": "Family & data",
+        "assessments_appointments": "Assessments & appointments",
+        "offer_registration": "Offer & registration",
+        "history": "History",
+        "assessmentsSection": "Assessments",
+        "appointmentsSection": "Appointments",
+        "offerSection": "Offer",
+        "registrationSection": "Registration"
       },
       "timeline": {
         "addActivity": "Add note / follow-up",
@@ -4619,7 +4636,8 @@
         "student_linked_state_mismatch": "Linked student with mismatched application state",
         "registration_linked_without_student": "Registration flow linked without a student",
         "rejected_decision_state_mismatch": "Rejected decision with mismatched application state",
-        "accepted_offer_application_state_mismatch": "Accepted offer with mismatched application state"
+        "accepted_offer_application_state_mismatch": "Accepted offer with mismatched application state",
+        "compactTitle": "{count} issues or warnings before registration"
       },
       "actions": {
         "menu": "Application actions",
@@ -4681,6 +4699,66 @@
           "filteredDescription": "No results in this workspace with the current filters."
         },
         "allInWorkspace": "All in this workspace"
+      },
+      "journey": {
+        "title": "Application journey",
+        "followUp": "Follow-up",
+        "decision": "School decision",
+        "offer": "Offer",
+        "registration": "Registration",
+        "pending": "Pending",
+        "decisionPending": "Awaiting decision",
+        "offerPending": "Offer not ready yet",
+        "notApplicable": "Not applicable",
+        "closed": "Closed",
+        "followUpComplete": "Complete",
+        "status": {
+          "complete": "Complete",
+          "current": "Current",
+          "pending": "Pending",
+          "not_applicable": "Not applicable",
+          "blocked": "Blocked",
+          "closed": "Closed"
+        }
+      },
+      "primaryAction": {
+        "title": "Next action",
+        "moreActions": "More actions",
+        "changeStage": "Change follow-up stage",
+        "openStudent": "Open student profile",
+        "openStudentDesc": "This application is registered. Open the student profile to continue.",
+        "registeredNoLinkDesc": "Registered, but the student link is unavailable.",
+        "continueRegistration": "Continue student registration",
+        "continueRegistrationDesc": "The family accepted the offer. Create or link the student record.",
+        "readyNoPermissionDesc": "Ready for registration, but you do not have permission to continue.",
+        "linkStudent": "Link existing student",
+        "acceptOffer": "Confirm family acceptance",
+        "acceptOfferDesc": "The offer was sent and is waiting for the family response.",
+        "createOffer": "Prepare the family offer",
+        "createOfferDesc": "The school accepted the application. Prepare or send the offer before registration.",
+        "sendOffer": "Send offer to family",
+        "sendOfferDesc": "A draft offer is ready to send to the family.",
+        "decide": "Make school decision",
+        "decideDesc": "This application is ready for a school decision.",
+        "openAssessments": "Open assessments",
+        "openAssessmentsDesc": "This application needs reassessment before a decision.",
+        "markContacted": "Mark as contacted",
+        "markContactedDesc": "Move the application to Contacted after reaching the family.",
+        "markQualified": "Mark as qualified",
+        "markQualifiedDesc": "Move the application to Qualified after the initial check.",
+        "markVisitPending": "Schedule or confirm visit",
+        "markVisitPendingDesc": "Plan a visit or move to Visit pending.",
+        "markUnderReview": "Complete visit and move to under review",
+        "markUnderReviewDesc": "After the visit, move the application to Under review.",
+        "scheduleAppointment": "Schedule appointment",
+        "viewRejection": "View rejection reason",
+        "viewRejectionDesc": "The school rejected this application. Review the reason or reopen if allowed.",
+        "closedDesc": "This application is closed. No operational action is required.",
+        "noActionDesc": "No action is required right now.",
+        "reopen": "Reopen application",
+        "reviewData": "Review data",
+        "openHistory": "View history",
+        "readonly": "No action required"
       }
     },
     "enrollmentIntake": {

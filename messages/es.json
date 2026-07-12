@@ -4006,7 +4006,10 @@
         "scrollForward": "Desplazar a etapas siguientes",
         "boardLabel": "Tablero de etapas de admisión",
         "loadMore": "Ver más",
-        "loadingMore": "Cargando…"
+        "loadingMore": "Cargando…",
+        "horizontalScroll": "Desplazar el tablero de solicitudes horizontalmente",
+        "columnCount": "{count} solicitudes",
+        "noDragHint": "Arrastrar y soltar no está disponible en este espacio — use la tabla o el detalle para decidir."
       },
       "card": {
         "guardian": "Tutor",
@@ -4039,7 +4042,9 @@
         "selectItem": "Seleccionar {name}",
         "selectVisible": "Seleccionar solicitudes visibles",
         "openDetail": "Abrir",
-        "modeHint": "Modo selección — haz clic en una tarjeta para seleccionar o deseleccionar. El arrastre está desactivado."
+        "modeHint": "Modo selección — haz clic en una tarjeta para seleccionar o deseleccionar. El arrastre está desactivado.",
+        "selectColumnVisible": "Seleccionar todas las solicitudes visibles de esta columna",
+        "deselectItem": "Anular selección de la solicitud"
       },
       "bulk": {
         "selectedCount": "{count} seleccionado(s)",
@@ -4278,7 +4283,9 @@
         },
         "mixedOutcomes": "Los niños de este lote familiar tienen resultados mixtos.",
         "uniformOutcomes": "Todos los niños comparten actualmente el mismo resultado.",
-        "badgeShort": "Familiar"
+        "badgeShort": "Familiar",
+        "childrenInBatchSection": "Niños de la solicitud familiar",
+        "currentChild": "Actual"
       },
       "guardians": {
         "sectionTitle": "Tutores vinculados a la solicitud",
@@ -4358,7 +4365,8 @@
         "pipelineStage": "Etapa operativa",
         "detailedState": "Estado detallado",
         "tabs": "Secciones",
-        "unspecified": "Sin especificar"
+        "unspecified": "Sin especificar",
+        "individualType": "Individual"
       },
       "tabs": {
         "overview": "Resumen",
@@ -4367,7 +4375,16 @@
         "assessments": "Evaluaciones",
         "decision": "Decisión",
         "offers": "Ofertas",
-        "prefill": "Datos listos"
+        "prefill": "Datos listos",
+        "summary": "Resumen",
+        "family_data": "Familia y datos",
+        "assessments_appointments": "Evaluaciones y citas",
+        "offer_registration": "Oferta e inscripción",
+        "history": "Historial",
+        "assessmentsSection": "Evaluaciones",
+        "appointmentsSection": "Citas",
+        "offerSection": "Oferta",
+        "registrationSection": "Inscripción"
       },
       "timeline": {
         "addActivity": "Añadir nota / seguimiento",
@@ -4619,7 +4636,8 @@
         "student_linked_state_mismatch": "Alumno vinculado con estado de solicitud inconsistente",
         "registration_linked_without_student": "Flujo de inscripción vinculado sin alumno",
         "rejected_decision_state_mismatch": "Decisión de rechazo con estado inconsistente",
-        "accepted_offer_application_state_mismatch": "Oferta aceptada con estado de solicitud inconsistente"
+        "accepted_offer_application_state_mismatch": "Oferta aceptada con estado de solicitud inconsistente",
+        "compactTitle": "{count} problemas o avisos antes de la inscripción"
       },
       "actions": {
         "menu": "Acciones de la solicitud",
@@ -4681,6 +4699,66 @@
           "filteredDescription": "No hay resultados en este espacio con los filtros actuales."
         },
         "allInWorkspace": "Todo en este espacio"
+      },
+      "journey": {
+        "title": "Recorrido de la solicitud",
+        "followUp": "Seguimiento",
+        "decision": "Decisión de la escuela",
+        "offer": "Oferta",
+        "registration": "Inscripción",
+        "pending": "Pendiente",
+        "decisionPending": "Esperando decisión",
+        "offerPending": "Oferta por preparar",
+        "notApplicable": "No aplica",
+        "closed": "Cerrada",
+        "followUpComplete": "Completo",
+        "status": {
+          "complete": "Completo",
+          "current": "Actual",
+          "pending": "Pendiente",
+          "not_applicable": "No aplica",
+          "blocked": "Bloqueado",
+          "closed": "Cerrada"
+        }
+      },
+      "primaryAction": {
+        "title": "Siguiente acción",
+        "moreActions": "Más acciones",
+        "changeStage": "Cambiar etapa de seguimiento",
+        "openStudent": "Abrir ficha del alumno",
+        "openStudentDesc": "La solicitud está inscrita. Abra la ficha del alumno.",
+        "registeredNoLinkDesc": "Inscrita, pero el enlace del alumno no está disponible.",
+        "continueRegistration": "Continuar inscripción",
+        "continueRegistrationDesc": "La familia aceptó la oferta. Cree o vincule el alumno.",
+        "readyNoPermissionDesc": "Lista para inscripción, pero sin permiso.",
+        "linkStudent": "Vincular alumno existente",
+        "acceptOffer": "Confirmar aceptación familiar",
+        "acceptOfferDesc": "La oferta fue enviada y espera la respuesta familiar.",
+        "createOffer": "Preparar oferta familiar",
+        "createOfferDesc": "La escuela aceptó. Prepare o envíe la oferta antes de inscribir.",
+        "sendOffer": "Enviar oferta a la familia",
+        "sendOfferDesc": "Hay un borrador listo para enviar.",
+        "decide": "Tomar decisión escolar",
+        "decideDesc": "La solicitud está lista para una decisión.",
+        "openAssessments": "Abrir evaluaciones",
+        "openAssessmentsDesc": "Se necesita reevaluación antes de decidir.",
+        "markContacted": "Marcar como contactado",
+        "markContactedDesc": "Pase a Contactado tras hablar con la familia.",
+        "markQualified": "Marcar como cualificado",
+        "markQualifiedDesc": "Pase a Cualificado tras la comprobación.",
+        "markVisitPending": "Programar/confirmar visita",
+        "markVisitPendingDesc": "Planifique una visita o pase a Visita pendiente.",
+        "markUnderReview": "Completar visita y pasar a en estudio",
+        "markUnderReviewDesc": "Tras la visita, pase a En estudio.",
+        "scheduleAppointment": "Programar cita",
+        "viewRejection": "Ver motivo del rechazo",
+        "viewRejectionDesc": "La escuela rechazó. Revise el motivo o reabra si está permitido.",
+        "closedDesc": "Solicitud cerrada. No hay acción operativa.",
+        "noActionDesc": "No hay acción requerida ahora.",
+        "reopen": "Reabrir solicitud",
+        "reviewData": "Revisar datos",
+        "openHistory": "Ver historial",
+        "readonly": "Sin acción requerida"
       }
     },
     "enrollmentIntake": {

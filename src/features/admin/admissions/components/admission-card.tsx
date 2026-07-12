@@ -9,9 +9,6 @@ import {
   isOverdueNextAction,
   refName,
 } from '../utils/admission-labels';
-import { resolveAdmissionPrimaryDisplay } from '../utils/admission-status-display';
-import { normalizeAdmissionDecision } from '../utils/normalize-admission-decision';
-import { shouldShowFamilyBadge } from '../utils/family-admission-visibility';
 import { AdmissionStatusBadges } from './admission-status-badges';
 import { AdmissionListActionsMenu } from './admission-list-actions-menu';
 import type { AdmissionListItem } from '@/types/admission';
@@ -32,6 +29,7 @@ export function AdmissionCard({
   item,
   draggable = false,
   showStateBadge = true,
+  hideUiStagePrimary = false,
   isDragging = false,
   isSaving = false,
   onDragStart,
@@ -45,6 +43,8 @@ export function AdmissionCard({
   item: AdmissionListItem;
   draggable?: boolean;
   showStateBadge?: boolean;
+  /** Hide primary badge when it only restates the Kanban column stage. */
+  hideUiStagePrimary?: boolean;
   isDragging?: boolean;
   isSaving?: boolean;
   onDragStart?: (event: React.DragEvent<HTMLDivElement>) => void;
@@ -61,16 +61,19 @@ export function AdmissionCard({
   const reference = formatAdmissionReference(item.id, item.reference);
   const studentName = cleanDisplayValue(item.student_name);
   const levelName = refName(item.requested_level);
-  const isFamily = shouldShowFamilyBadge(item);
-  const decision = normalizeAdmissionDecision(item)?.decision;
-  const primary = resolveAdmissionPrimaryDisplay(item);
-  const stageOrDecisionLine =
-    primary.kind === 'ui_stage'
-      ? t(`admin.admissions.states.${String(item.state ?? 'new')}`)
-      : decision
-        ? t(`admin.admissions.decisions.${decision}`)
-        : t(primary.labelKey);
+  const guardianName = cleanDisplayValue(item.guardian_name);
+  const guardianPhone = cleanDisplayValue(item.guardian_phone);
   const dragEnabled = draggable && !selectionMode && !isSaving;
+  const displayName = studentName || t('common.dash');
+
+  function isInteractiveDragSource(target: EventTarget | null): boolean {
+    if (!(target instanceof Element)) return false;
+    return Boolean(
+      target.closest(
+        'input, button, a, label, .admission-card__select, .admission-card__actions, .admission-card__open-detail',
+      ),
+    );
+  }
 
   function handleCardClick(event: React.MouseEvent) {
     if (!selectionMode || !onToggleSelect) return;
@@ -84,82 +87,126 @@ export function AdmissionCard({
     onToggleSelect?.();
   }
 
-  const mainContent = (
-    <>
-      {selectable ? (
-        <label
-          className="admission-card__select"
-          onClick={(event) => event.stopPropagation()}
-        >
-          <input
-            type="checkbox"
-            className="admission-card__select-input"
-            checked={selected}
-            aria-label={t('admin.admissions.selection.selectItem', {
-              name: studentName || reference,
-            })}
-            onChange={handleCheckboxChange}
-          />
-        </label>
-      ) : null}
+  function handleDragStart(event: React.DragEvent<HTMLDivElement>) {
+    if (!dragEnabled || isInteractiveDragSource(event.target)) {
+      event.preventDefault();
+      return;
+    }
+    onDragStart?.(event);
+  }
 
-      {draggable && !selectionMode ? (
-        <span
-          className="admission-card__drag-handle"
-          aria-hidden="true"
-          title={t('admin.admissions.kanban.dragHint')}
-        >
-          ⋮⋮
-        </span>
-      ) : null}
-
-      {selectionMode ? (
-        <Link
-          href={href}
-          className="admission-card__open-detail"
-          onClick={(event) => event.stopPropagation()}
-        >
-          {t('admin.admissions.selection.openDetail')}
-        </Link>
-      ) : null}
-
-      <div className="admission-card__title" dir="auto">
-        {studentName || t('common.dash')}
+  const toolbar = (
+    <div className="admission-card__toolbar">
+      <div className="admission-card__toolbar-start">
+        {draggable && !selectionMode ? (
+          <span
+            className="admission-card__drag-handle"
+            aria-hidden="true"
+            title={t('admin.admissions.kanban.dragHint')}
+          >
+            ⋮⋮
+          </span>
+        ) : null}
+        {selectionMode ? (
+          <Link
+            href={href}
+            className="admission-card__open-detail"
+            onClick={(event) => event.stopPropagation()}
+          >
+            {t('admin.admissions.selection.openDetail')}
+          </Link>
+        ) : null}
       </div>
-
-      <div className="admission-card__meta admission-card__meta--compact">
-        <span className="admission-card__reference mono tiny">{reference}</span>
-        {levelName ? <span className="tiny muted">{levelName}</span> : null}
-        <span className="tiny muted">
-          {isFamily
-            ? t('admin.admissions.workspace.requestTypeFamily')
-            : t('admin.admissions.workspace.requestTypeIndividual')}
-        </span>
+      <div className="admission-card__toolbar-end">
+        {selectable ? (
+          <label
+            className="admission-card__select"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <input
+              type="checkbox"
+              className="admission-card__select-input"
+              checked={selected}
+              aria-label={t(
+                selected
+                  ? 'admin.admissions.selection.deselectItem'
+                  : 'admin.admissions.selection.selectItem',
+                { name: displayName },
+              )}
+              onChange={handleCheckboxChange}
+            />
+          </label>
+        ) : null}
+        {!selectionMode ? (
+          <div
+            className="admission-card__actions"
+            onClick={(event) => event.stopPropagation()}
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <AdmissionListActionsMenu
+              admissionId={item.id}
+              onUpdated={onUpdated}
+              compact
+            />
+          </div>
+        ) : null}
       </div>
-
-      <p className="admission-card__stage-line tiny muted">{stageOrDecisionLine}</p>
-
-      {showStateBadge ? (
-        <div className="admission-card__status-row">
-          <AdmissionStatusBadges record={item} />
-        </div>
-      ) : null}
-    </>
+    </div>
   );
 
-  const footer = (
-    <div className="admission-card__footer">
-      {!selectionMode ? (
-        <div
-          className="admission-card__actions"
-          onClick={(event) => event.stopPropagation()}
-          onMouseDown={(event) => event.stopPropagation()}
-        >
-          <AdmissionListActionsMenu admissionId={item.id} onUpdated={onUpdated} />
-        </div>
-      ) : (
-        <span className="tiny muted">{overdue ? t('admin.admissions.badges.overdue') : null}</span>
-      )}
+  const body = (
+    <div className="admission-card__body">
+      <h3 className="admission-card__title" dir="auto">
+        {displayName}
+      </h3>
+
+      {levelName ? (
+        <p className="admission-card__level" dir="auto">
+          {levelName}
+        </p>
+      ) : null}
+
+      {guardianName || guardianPhone ? (
+        <dl className="admission-card__details">
+          {guardianName ? (
+            <div className="admission-card__detail">
+              <dt>{t('admin.admissions.card.guardian')}</dt>
+              <dd>
+                <span className="admission-card__detail-value" dir="auto">
+                  {guardianName}
+                </span>
+              </dd>
+            </div>
+          ) : null}
+          {guardianPhone ? (
+            <div className="admission-card__detail">
+              <dt>{t('admin.admissions.card.phone')}</dt>
+              <dd>
+                <span className="admission-card__detail-value admission-card__phone" dir="ltr">
+                  {guardianPhone}
+                </span>
+              </dd>
+            </div>
+          ) : null}
+        </dl>
+      ) : null}
+
+      <div className="admission-card__status-row">
+        {showStateBadge ? (
+          <AdmissionStatusBadges
+            record={item}
+            hideUiStagePrimary={hideUiStagePrimary}
+          />
+        ) : null}
+        {overdue && selectionMode ? (
+          <span className="admission-card__overdue-tag">
+            {t('admin.admissions.badges.overdue')}
+          </span>
+        ) : null}
+      </div>
+
+      {/* Visually hidden reference for a11y / tests — not shown as #id clutter */}
+      <span className="admission-card__sr-ref">{reference}</span>
     </div>
   );
 
@@ -179,8 +226,8 @@ export function AdmissionCard({
         data-testid={`admission-card-${item.id}`}
         onClick={handleCardClick}
       >
-        {mainContent}
-        {footer}
+        {toolbar}
+        {body}
       </div>
     );
   }
@@ -190,13 +237,13 @@ export function AdmissionCard({
       className={cardClassName}
       data-testid={`admission-card-${item.id}`}
       draggable={dragEnabled}
-      onDragStart={dragEnabled ? onDragStart : undefined}
+      onDragStart={dragEnabled ? handleDragStart : undefined}
       onDragEnd={dragEnabled ? onDragEnd : undefined}
     >
+      {toolbar}
       <Link href={href} className="admission-card__link">
-        {mainContent}
+        {body}
       </Link>
-      {footer}
     </div>
   );
 }

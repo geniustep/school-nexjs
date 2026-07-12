@@ -12,7 +12,6 @@ import {
 } from '@/components/states/states';
 import { Badge } from '@/components/ui/primitives';
 import { useSession } from '@/features/auth/session-context';
-import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { useAdmissionDetail } from '../hooks/use-admission-detail';
 import {
@@ -20,7 +19,6 @@ import {
   formatAdmissionReference,
   refName,
 } from '../utils/admission-labels';
-import { admissionUiStageTone } from '../utils/admission-ui-stage';
 import {
   ADMISSION_TABS,
   buildAdmissionTabHref,
@@ -28,28 +26,29 @@ import {
   type AdmissionTabId,
 } from '../utils/admission-detail-tabs';
 import {
-  canChangeAdmissionState,
   canEditAdmissionDetail,
   hasAdmissionAllowedAction,
 } from '../utils/admission-allowed-actions';
 import { isAdmissionConvertedToStudent } from '../utils/admission-registration';
-import { isAdmissionRejected, canReopenAdmission } from '../utils/admission-rejection';
 import { AdmissionOverviewTab } from './admission-overview-tab';
 import { AdmissionTimelineTab } from './admission-timeline-tab';
-import { AdmissionAppointmentsTab } from './admission-appointments-tab';
-import { AdmissionAssessmentsTab } from './admission-assessments-tab';
 import { AdmissionDecisionTab } from './admission-decision-tab';
-import { AdmissionOffersTab } from './admission-offers-tab';
-import { AdmissionPrefillTab } from './admission-prefill-tab';
-import { AdmissionRegistrationActions } from './admission-registration-actions';
+import { AdmissionAssessmentsAppointmentsTab } from './admission-assessments-appointments-tab';
+import { AdmissionOfferRegistrationTab } from './admission-offer-registration-tab';
 import { FamilyAdmissionFamilyPanel } from './family-admission-family-panel';
 import { hasFamilyBatchLink } from '../utils/family-admission-visibility';
 import { AdmissionRejectionBanner } from './admission-rejection-banner';
-import { AdmissionOutcomeSummary } from './admission-outcome-summary';
-import { AdmissionReopenAction } from './admission-reopen-action';
-import { AdmissionPipelineStatus } from './admission-pipeline-status';
+import { AdmissionJourneyStrip } from './admission-journey-strip';
+import { AdmissionPrimaryActionPanel } from './admission-primary-action-panel';
 import { OverviewEmptyValue } from './admission-overview-primitives';
-import { normalizeAdmissionGuardiansForDisplay } from '@/features/admin/admissions/guardians';
+import {
+  AdmissionGuardiansDetails,
+  normalizeAdmissionGuardiansForDisplay,
+} from '@/features/admin/admissions/guardians';
+import {
+  normalizeStatusWarnings,
+  statusWarningLabelKey,
+} from '../utils/admission-status-display';
 import '../admissions.css';
 
 function isAuthError(code: string): boolean {
@@ -60,7 +59,7 @@ function isForbiddenError(code: string): boolean {
   return code === 'forbidden' || code === 'permission_denied';
 }
 
-type FactIcon = 'guardian' | 'phone' | 'level' | 'action';
+type FactIcon = 'guardian' | 'phone' | 'level' | 'family';
 
 function FactGlyph({ icon }: { icon: FactIcon }) {
   const common = {
@@ -95,11 +94,13 @@ function FactGlyph({ icon }: { icon: FactIcon }) {
           <path d="M7 11v4c0 1.5 2.5 3 5 3s5-1.5 5-3v-4" />
         </svg>
       );
-    case 'action':
+    case 'family':
       return (
         <svg {...common}>
-          <rect x="4" y="5" width="16" height="16" rx="2" />
-          <path d="M4 9h16M9 3v4M15 3v4" />
+          <circle cx="9" cy="8" r="2.5" />
+          <circle cx="16" cy="9" r="2" />
+          <path d="M3 19a6 6 0 0 1 12 0" />
+          <path d="M13 19a5 5 0 0 1 8 0" />
         </svg>
       );
     default:
@@ -150,16 +151,50 @@ function studentInitials(name: string): string {
   return initials || '—';
 }
 
+function AdmissionWarningsCompact({
+  warnings,
+  admissionId,
+}: {
+  warnings: string[];
+  admissionId: string;
+}) {
+  const t = useT();
+  if (warnings.length === 0) return null;
+  const top = warnings.slice(0, 2);
+  return (
+    <div
+      className="admission-warnings-compact"
+      role="status"
+      data-testid="admission-warnings-compact"
+    >
+      <p className="admission-warnings-compact__title">
+        {t('admin.admissions.statusWarnings.compactTitle', { count: warnings.length })}
+      </p>
+      <ul>
+        {top.map((code) => {
+          const key = statusWarningLabelKey(code);
+          const label = t(key);
+          return <li key={code}>{label !== key ? label : code}</li>;
+        })}
+      </ul>
+      <Link
+        href={buildAdmissionTabHref(admissionId, 'family_data')}
+        className="btn btn--ghost btn--sm"
+      >
+        {t('admin.admissions.primaryAction.reviewData')}
+      </Link>
+    </div>
+  );
+}
+
 export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
   const t = useT();
-  const { formatDate } = useFormat();
   const router = useRouter();
   const searchParams = useSearchParams();
   const user = useSession();
   const { loading, data, error, reload } = useAdmissionDetail(admissionId);
   const searchTab = searchParams.get('tab');
-  const showPrefill = hasAdmissionAllowedAction(data?.allowed_actions, 'get_prefill');
-  const tab = parseAdmissionTab(searchTab, showPrefill);
+  const tab = parseAdmissionTab(searchTab);
   const [editRequestSeq, setEditRequestSeq] = useState(0);
   const [pendingEditRequest, setPendingEditRequest] = useState(false);
 
@@ -169,15 +204,15 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
   }, [data, searchTab, tab, admissionId, router]);
 
   useEffect(() => {
-    if (!pendingEditRequest || tab !== 'overview') return;
+    if (!pendingEditRequest || tab !== 'summary') return;
     setEditRequestSeq((seq) => seq + 1);
     setPendingEditRequest(false);
   }, [pendingEditRequest, tab]);
 
   function requestLimitedEdit() {
-    if (tab !== 'overview') {
+    if (tab !== 'summary') {
       setPendingEditRequest(true);
-      router.push(buildAdmissionTabHref(admissionId, 'overview'), { scroll: false });
+      router.push(buildAdmissionTabHref(admissionId, 'summary'), { scroll: false });
       return;
     }
     setEditRequestSeq((seq) => seq + 1);
@@ -199,13 +234,9 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
   const detail = data;
   const actions = detail.allowed_actions ?? {};
   const canEdit = canEditAdmissionDetail(actions, user);
-  const canChangeState = canChangeAdmissionState(actions);
   const convertedToStudent = isAdmissionConvertedToStudent(detail);
-  const rejected = isAdmissionRejected(detail);
-  const visibleTabs = showPrefill ? ADMISSION_TABS : ADMISSION_TABS.filter((id) => id !== 'prefill');
-  const nextActionParts = [detail.next_action, detail.next_action_date ? formatDate(detail.next_action_date) : '']
-    .filter(Boolean)
-    .join(' — ');
+  const isFamily = hasFamilyBatchLink(detail);
+  const warnings = normalizeStatusWarnings(detail.status_warnings);
 
   const primaryGuardian =
     normalizeAdmissionGuardiansForDisplay({
@@ -225,7 +256,7 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
 
   function renderTab(activeTab: AdmissionTabId) {
     switch (activeTab) {
-      case 'overview':
+      case 'summary':
         return (
           <AdmissionOverviewTab
             detail={detail}
@@ -234,21 +265,39 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
             onUpdated={reload}
           />
         );
-      case 'timeline':
-        return <AdmissionTimelineTab detail={detail} onUpdated={reload} />;
-      case 'appointments':
+      case 'family_data':
         return (
-          <AdmissionAppointmentsTab
-            detail={detail}
-            canCreate={Boolean(actions.schedule_appointment)}
-            onUpdated={reload}
-          />
+          <div className="admission-family-data-tab" data-testid="admission-tab-family-data">
+            {isFamily && detail.family_batch_id ? (
+              <FamilyAdmissionFamilyPanel
+                batchId={detail.family_batch_id}
+                currentAdmissionId={detail.id}
+                familyReference={detail.family_reference}
+                familySize={detail.family_size}
+                onBatchUpdated={reload}
+              />
+            ) : (
+              <AdmissionGuardiansDetails
+                mode="individual"
+                guardians={detail.guardians}
+                sharedContact={null}
+                legacyFlat={{
+                  guardian_name: detail.guardian_name,
+                  guardian_phone: detail.guardian_phone,
+                  guardian_whatsapp: detail.guardian_whatsapp,
+                  guardian_email: detail.guardian_email,
+                  relationship: detail.relationship,
+                }}
+              />
+            )}
+          </div>
         );
-      case 'assessments':
+      case 'assessments_appointments':
         return (
-          <AdmissionAssessmentsTab
+          <AdmissionAssessmentsAppointmentsTab
             detail={detail}
-            canCreate={Boolean(actions.add_assessment)}
+            canCreateAppointment={hasAdmissionAllowedAction(actions, 'schedule_appointment')}
+            canCreateAssessment={hasAdmissionAllowedAction(actions, 'add_assessment')}
             onUpdated={reload}
           />
         );
@@ -256,20 +305,14 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
         return (
           <AdmissionDecisionTab
             detail={detail}
-            canDecide={Boolean(actions.decide)}
+            canDecide={hasAdmissionAllowedAction(actions, 'decide')}
             onUpdated={reload}
           />
         );
-      case 'offers':
-        return (
-          <AdmissionOffersTab
-            detail={detail}
-            allowedActions={actions}
-            onUpdated={reload}
-          />
-        );
-      case 'prefill':
-        return <AdmissionPrefillTab admissionId={admissionId} enabled={showPrefill} />;
+      case 'offer_registration':
+        return <AdmissionOfferRegistrationTab detail={detail} onUpdated={reload} />;
+      case 'history':
+        return <AdmissionTimelineTab detail={detail} onUpdated={reload} />;
       default:
         return null;
     }
@@ -282,16 +325,9 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
           <Link href="/admin/admissions" className="btn btn--ghost btn--sm admissions-detail-header-card__back">
             {t('admin.admissions.backToList')}
           </Link>
-          {canEdit ? (
-            <div className="admissions-detail-header-card__header-actions">
-              <button
-                type="button"
-                className="btn btn--primary btn--sm"
-                data-testid="admission-edit-request"
-                onClick={requestLimitedEdit}
-              >
-                {t('admin.admissions.editRequest')}
-              </button>
+          {convertedToStudent ? (
+            <div className="admissions-detail-header-card__converted">
+              <Badge tone="green">{t('admin.admissions.registration.convertedStatus')}</Badge>
             </div>
           ) : null}
         </div>
@@ -311,42 +347,14 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
               <span className="admissions-detail-header-card__ref mono">
                 {formatAdmissionReference(detail.id, detail.reference)}
               </span>
-              {convertedToStudent ? (
-                <div className="admissions-detail-header-card__converted">
-                  <Badge tone="green">
-                    {t('admin.admissions.registration.convertedStatus')}
-                  </Badge>
-                  <Badge tone={admissionUiStageTone('registered')}>
-                    {t('admin.admissions.uiStages.registered')}
-                  </Badge>
-                  <span className="admissions-detail-header-card__converted-note tiny muted">
-                    {t('admin.admissions.registration.preConversionState', {
-                      state: t(`admin.admissions.states.${detail.state}`),
-                    })}
-                  </span>
-                </div>
-              ) : (
-                <AdmissionPipelineStatus
-                  record={detail}
-                  admissionId={detail.id}
-                  canChangeState={canChangeState}
-                  onChanged={reload}
-                  rejected={rejected}
-                />
-              )}
+              <Badge tone={isFamily ? 'blue' : 'slate'}>
+                {isFamily
+                  ? t('admin.admissions.family.badgeShort')
+                  : t('admin.admissions.detail.individualType')}
+              </Badge>
             </div>
           </div>
         </div>
-
-        <AdmissionRejectionBanner detail={detail} onUpdated={reload} />
-
-        <AdmissionOutcomeSummary detail={detail} />
-
-        {!rejected && canReopenAdmission(detail) ? (
-          <div className="admissions-reopen-action">
-            <AdmissionReopenAction detail={detail} onUpdated={reload} className="btn btn--primary btn--sm" />
-          </div>
-        ) : null}
 
         <div className="admissions-detail-header-card__facts">
           <DetailFact
@@ -368,19 +376,35 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
             value={refName(detail.requested_level)}
             empty={!refName(detail.requested_level)}
           />
-          <DetailFact
-            icon="action"
-            label={t('admin.admissions.nextAction')}
-            value={nextActionParts}
-            empty={!nextActionParts}
-          />
+          {isFamily ? (
+            <DetailFact
+              icon="family"
+              label={t('admin.admissions.family.detailPanelTitle')}
+              value={
+                detail.family_reference
+                  ? String(detail.family_reference)
+                  : t('admin.admissions.family.badgeShort')
+              }
+            />
+          ) : null}
         </div>
 
-        <AdmissionRegistrationActions detail={detail} />
+        <AdmissionRejectionBanner detail={detail} onUpdated={reload} />
+
+        <AdmissionJourneyStrip record={detail} />
+
+        <AdmissionPrimaryActionPanel
+          detail={detail}
+          admissionId={admissionId}
+          onUpdated={reload}
+          onRequestEdit={canEdit ? requestLimitedEdit : undefined}
+        />
+
+        <AdmissionWarningsCompact warnings={warnings} admissionId={admissionId} />
       </header>
 
       <nav className="admissions-tabs" aria-label={t('admin.admissions.detail.tabs')}>
-        {visibleTabs.map((tabId) => (
+        {ADMISSION_TABS.map((tabId) => (
           <Link
             key={tabId}
             href={buildAdmissionTabHref(admissionId, tabId)}
@@ -392,17 +416,6 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
       </nav>
 
       <div className="admissions-detail-panel">{renderTab(tab)}</div>
-
-      {/* After current-child overview: guardians + siblings from batch (current child first). */}
-      {hasFamilyBatchLink(detail) && detail.family_batch_id ? (
-        <FamilyAdmissionFamilyPanel
-          batchId={detail.family_batch_id}
-          currentAdmissionId={detail.id}
-          familyReference={detail.family_reference}
-          familySize={detail.family_size}
-          onBatchUpdated={reload}
-        />
-      ) : null}
     </div>
   );
 }

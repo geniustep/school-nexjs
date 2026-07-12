@@ -235,11 +235,6 @@ export function AdmissionsListPage() {
     return source.filter((item) => selectedIds.has(item.id));
   }, [view, tableRows, kanbanBoard.grouped, selectedIds]);
 
-  const visibleSummary =
-    view === 'kanban'
-      ? kanbanBoard.grouped.reduce((sum, col) => sum + col.items.length, 0)
-      : tableRows.length;
-
   const hasManualFilters = hasManualContextOrAdvancedFilters(listState);
 
   function patchListState(patch: Partial<AdmissionWorkspaceListState>) {
@@ -938,11 +933,21 @@ export function AdmissionsListPage() {
 
       {view === 'kanban' && kanbanEnabled ? (
         kanbanBoard.initialLoading ? (
-          <div className="muted">{t('common.loading')}</div>
+          <div
+            className="admissions-kanban-skeleton"
+            data-testid="admissions-kanban-skeleton"
+            aria-busy="true"
+            aria-label={t('common.loading')}
+          >
+            {(workspacePreset.kanbanColumns.length
+              ? workspacePreset.kanbanColumns
+              : ['new', 'contacted', 'qualified', 'visit_pending']
+            ).map((state) => (
+              <div key={state} className="admissions-kanban-skeleton__column" />
+            ))}
+          </div>
         ) : kanbanBoard.error ? (
           <div className="alert alert--error">{kanbanBoard.error.message}</div>
-        ) : visibleSummary === 0 ? (
-          listEmptyState
         ) : (
           <AdmissionsRawStateKanban
             columns={kanbanBoard.grouped}

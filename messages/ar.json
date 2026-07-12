@@ -4084,7 +4084,10 @@
         "scrollForward": "التمرير للمراحل التالية",
         "boardLabel": "لوحة مراحل طلبات التسجيل",
         "loadMore": "عرض المزيد",
-        "loadingMore": "جاري التحميل…"
+        "loadingMore": "جاري التحميل…",
+        "horizontalScroll": "تمرير لوحة الطلبات أفقيًا",
+        "columnCount": "{count} طلب",
+        "noDragHint": "السحب والإفلات غير متاح في هذه المساحة — استخدم الجدول أو التفاصيل لاتخاذ القرار."
       },
       "card": {
         "guardian": "ولي الأمر",
@@ -4117,7 +4120,9 @@
         "selectItem": "تحديد {name}",
         "selectVisible": "تحديد الطلبات الظاهرة",
         "openDetail": "فتح",
-        "modeHint": "وضع التحديد — انقر على البطاقة للتحديد أو إلغائه. السحب معطّل."
+        "modeHint": "وضع التحديد — انقر على البطاقة للتحديد أو إلغائه. السحب معطّل.",
+        "selectColumnVisible": "تحديد جميع الطلبات الظاهرة في هذا العمود",
+        "deselectItem": "إلغاء تحديد الطلب"
       },
       "bulk": {
         "selectedCount": "{count} محدّد",
@@ -4356,7 +4361,9 @@
           }
         },
         "mixedOutcomes": "قرارات مختلطة بين الأطفال في هذا الطلب العائلي.",
-        "uniformOutcomes": "جميع الأطفال في الحالة نفسها حاليًا."
+        "uniformOutcomes": "جميع الأطفال في الحالة نفسها حاليًا.",
+        "childrenInBatchSection": "أطفال الطلب العائلي",
+        "currentChild": "الطلب الحالي"
       },
       "guardians": {
         "sectionTitle": "الأولياء المرتبطون بالطلب",
@@ -4436,7 +4443,8 @@
         "pipelineStage": "المرحلة التشغيلية",
         "detailedState": "الحالة التفصيلية",
         "tabs": "أقسام الطلب",
-        "unspecified": "غير محدد"
+        "unspecified": "غير محدد",
+        "individualType": "فردي"
       },
       "tabs": {
         "overview": "نظرة عامة",
@@ -4445,7 +4453,16 @@
         "assessments": "التقييمات",
         "decision": "القرار",
         "offers": "العروض",
-        "prefill": "بيانات جاهزة للتسجيل"
+        "prefill": "بيانات جاهزة للتسجيل",
+        "summary": "الملخص",
+        "family_data": "الأسرة والبيانات",
+        "assessments_appointments": "التقييمات والمواعيد",
+        "offer_registration": "العرض والتسجيل",
+        "history": "السجل",
+        "assessmentsSection": "التقييمات",
+        "appointmentsSection": "المواعيد",
+        "offerSection": "العرض",
+        "registrationSection": "التسجيل"
       },
       "timeline": {
         "addActivity": "إضافة ملاحظة / متابعة",
@@ -4697,7 +4714,8 @@
         "student_linked_state_mismatch": "تلميذ مربوط مع حالة طلب غير متوافقة",
         "registration_linked_without_student": "تدفق التسجيل مرتبط دون تلميذ",
         "rejected_decision_state_mismatch": "قرار رفض مع حالة طلب غير متوافقة",
-        "accepted_offer_application_state_mismatch": "عرض مقبول مع حالة طلب غير متوافقة"
+        "accepted_offer_application_state_mismatch": "عرض مقبول مع حالة طلب غير متوافقة",
+        "compactTitle": "توجد {count} مشكلة أو تحذير قبل التسجيل"
       },
       "actions": {
         "menu": "إجراءات الطلب",
@@ -4711,6 +4729,66 @@
         "reopen": "إعادة فتح الطلب",
         "noSentOffer": "لا يوجد عرض مرسل يمكن قبوله.",
         "makeDecision": "اتخاذ قرار المدرسة"
+      },
+      "journey": {
+        "title": "مسار الطلب",
+        "followUp": "المتابعة",
+        "decision": "قرار المدرسة",
+        "offer": "العرض",
+        "registration": "التسجيل",
+        "pending": "قيد الانتظار",
+        "decisionPending": "بانتظار القرار",
+        "offerPending": "بانتظار إعداد العرض",
+        "notApplicable": "غير منطبق",
+        "closed": "مغلق",
+        "followUpComplete": "مكتملة",
+        "status": {
+          "complete": "مكتمل",
+          "current": "الحالي",
+          "pending": "معلق",
+          "not_applicable": "غير منطبق",
+          "blocked": "موقوف",
+          "closed": "مغلق"
+        }
+      },
+      "primaryAction": {
+        "title": "الإجراء التالي",
+        "moreActions": "المزيد من الإجراءات",
+        "changeStage": "تغيير مرحلة المتابعة",
+        "openStudent": "فتح ملف التلميذ",
+        "openStudentDesc": "الطلب مسجّل. افتح ملف التلميذ لمتابعة المسار الدراسي.",
+        "registeredNoLinkDesc": "الطلب مسجّل لكن رابط التلميذ غير متاح.",
+        "continueRegistration": "استكمال تسجيل التلميذ",
+        "continueRegistrationDesc": "قبلت الأسرة العرض وأصبح الملف جاهزًا لإنشاء أو ربط سجل التلميذ.",
+        "readyNoPermissionDesc": "الملف جاهز للتسجيل لكن لا تتوفر صلاحية الاستكمال.",
+        "linkStudent": "ربط تلميذ موجود",
+        "acceptOffer": "تأكيد قبول الأسرة",
+        "acceptOfferDesc": "العرض مرسل وينتظر جواب الأسرة.",
+        "createOffer": "إعداد العرض للأسرة",
+        "createOfferDesc": "وافقت المدرسة على الطلب، ويجب الآن إعداد العرض أو إرساله قبل استكمال التسجيل.",
+        "sendOffer": "إرسال العرض للأسرة",
+        "sendOfferDesc": "يوجد عرض مسودة جاهز للإرسال إلى الأسرة.",
+        "decide": "اتخاذ قرار المدرسة",
+        "decideDesc": "الطلب جاهز لاتخاذ قرار المدرسة.",
+        "openAssessments": "فتح التقييمات",
+        "openAssessmentsDesc": "الطلب يحتاج إعادة تقييم قبل اتخاذ القرار.",
+        "markContacted": "تسجيل الاتصال",
+        "markContactedDesc": "انقل الطلب إلى «تم الاتصال» بعد التواصل مع الأسرة.",
+        "markQualified": "تأهيل الطلب",
+        "markQualifiedDesc": "انقل الطلب إلى «مؤهل» بعد التحقق الأولي.",
+        "markVisitPending": "جدولة/تأكيد الزيارة",
+        "markVisitPendingDesc": "حدّد زيارة أو انقل الطلب إلى «بانتظار الزيارة».",
+        "markUnderReview": "إكمال الزيارة ونقل الطلب لقيد الدراسة",
+        "markUnderReviewDesc": "بعد إكمال الزيارة انقل الطلب إلى «قيد الدراسة».",
+        "scheduleAppointment": "جدولة موعد",
+        "viewRejection": "عرض سبب الرفض",
+        "viewRejectionDesc": "تم رفض الطلب من المدرسة. راجع السبب أو أعد فتح الطلب عند توفر الصلاحية.",
+        "closedDesc": "الطلب مغلق ولا يوجد إجراء تشغيلي مطلوب.",
+        "noActionDesc": "لا يوجد إجراء مطلوب حاليًا.",
+        "reopen": "إعادة فتح الطلب",
+        "reviewData": "مراجعة البيانات",
+        "openHistory": "عرض السجل",
+        "readonly": "لا يوجد إجراء مطلوب"
       }
     },
     "enrollmentIntake": {
