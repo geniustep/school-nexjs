@@ -35,7 +35,7 @@ export function ExecutiveKpiMoney({
   if (!parts) return <>—</>;
 
   return (
-    <span className="exec-kpi__money" dir="ltr">
+    <span className="exec-kpi__money finance-amount" dir="ltr">
       <span className="exec-kpi__money-amount">{parts.amount}</span>
       <span className="exec-kpi__money-currency">{parts.currency}</span>
     </span>
@@ -245,7 +245,7 @@ export function ExecutiveMetricTile({
   return (
     <div className={cn('exec-metric-tile', warn && 'exec-metric-tile--warn')}>
       <span className="exec-metric-tile__label">{label}</span>
-      <strong className="exec-metric-tile__value">{value}</strong>
+      <strong className="exec-metric-tile__value exec-metric-tile__value--numeric">{value}</strong>
     </div>
   );
 }
