@@ -75,6 +75,10 @@ export function normalizeAdmissionListItem(item: AdmissionListItem): AdmissionLi
   return {
     ...item,
     ...normalized,
+    admission_workspace:
+      typeof (item as { admission_workspace?: unknown }).admission_workspace === 'string'
+        ? (item as { admission_workspace: string }).admission_workspace
+        : (item as { admission_workspace?: string | null }).admission_workspace ?? null,
     decision: normalized.decision,
     registration_status: normalized.registration_status as AdmissionListItem['registration_status'],
     is_school_rejected: normalized.is_school_rejected,

@@ -4,61 +4,37 @@ import { StatCard } from '@/components/ui/primitives';
 import { cn } from '@/lib/utils/cn';
 import { useT } from '@/features/i18n/locale-context';
 import type { AdmissionsDashboard } from '@/types/admission';
-import type { AdmissionOutcomeFilter } from '../utils/admission-status-display';
 import {
-  ADMISSIONS_MAIN_DASHBOARD_CARDS,
-  resolveDashboardOutcomeClick,
-  shouldShowOfferIndicator,
+  ADMISSIONS_INFO_INDICATORS,
+  ADMISSIONS_OPERATIONAL_CARDS,
+  resolveOperationalCardPressed,
+  type AdmissionsOperationalCardId,
 } from '../utils/admissions-dashboard-cards';
 
 export function AdmissionsDashboardSummary({
   data,
-  activeOutcomeFilter = '',
-  onOutcomeFilterClick,
-  onNewFilterClick,
+  activeOperationalCard = null,
+  onOperationalCardClick,
 }: {
   data: AdmissionsDashboard;
-  activeOutcomeFilter?: AdmissionOutcomeFilter;
-  onOutcomeFilterClick?: (filter: AdmissionOutcomeFilter) => void;
-  onNewFilterClick?: () => void;
+  activeOperationalCard?: AdmissionsOperationalCardId | null;
+  onOperationalCardClick?: (card: AdmissionsOperationalCardId) => void;
 }) {
   const t = useT();
-  const familyDeclined = Number(data.family_declined_count ?? 0);
-  const expiredOffer = Number(data.expired_offer_count ?? 0);
-  const newCount = Number(data.new_count ?? 0);
-  const overdue = Number(data.overdue_next_actions ?? 0);
-  const todayAppointments = Number(data.today_appointments ?? 0);
 
   return (
     <div className="admissions-dashboard-stack" data-testid="admissions-dashboard">
       <div
-        className="admissions-dashboard admissions-dashboard--main"
+        className="admissions-dashboard admissions-dashboard--main admissions-dashboard--operational"
         role="group"
         aria-label={t('admin.admissions.dashboard.mainGroup')}
         data-testid="admissions-dashboard-main"
       >
-        {ADMISSIONS_MAIN_DASHBOARD_CARDS.map((card) => {
+        {ADMISSIONS_OPERATIONAL_CARDS.map((card) => {
           const value = Number(data[card.countKey] ?? 0);
-          const active = Boolean(card.filter && activeOutcomeFilter === card.filter);
+          const active = resolveOperationalCardPressed(activeOperationalCard, card.id);
           const label = t(card.labelKey);
-          const aria =
-            card.ariaFilterKey != null ? t(card.ariaFilterKey) : label;
-
-          if (!card.interactive || !card.filter) {
-            return (
-              <div
-                key={card.id}
-                className={cn(
-                  'admissions-dashboard__kpi',
-                  'admissions-dashboard__kpi--info',
-                )}
-                data-testid={`admissions-kpi-${card.id}`}
-                data-interactive="false"
-              >
-                <StatCard label={label} value={value} tone={card.tone} />
-              </div>
-            );
-          }
+          const aria = t(card.ariaFilterKey);
 
           return (
             <button
@@ -74,11 +50,7 @@ export function AdmissionsDashboardSummary({
               data-testid={`admissions-kpi-${card.id}`}
               data-interactive="true"
               data-count-key={card.countKey}
-              onClick={() =>
-                onOutcomeFilterClick?.(
-                  resolveDashboardOutcomeClick(activeOutcomeFilter, card.filter!),
-                )
-              }
+              onClick={() => onOperationalCardClick?.(card.id)}
             >
               <StatCard label={label} value={value} tone={card.tone} />
               {card.hintKey ? (
@@ -90,98 +62,25 @@ export function AdmissionsDashboardSummary({
       </div>
 
       <div
-        className="admissions-dashboard admissions-dashboard--secondary"
+        className="admissions-dashboard admissions-dashboard--info"
         role="group"
-        aria-label={t('admin.admissions.dashboard.secondaryGroup')}
-        data-testid="admissions-dashboard-secondary"
+        aria-label={t('admin.admissions.dashboard.infoGroup')}
+        data-testid="admissions-dashboard-info"
       >
-        <button
-          type="button"
-          className={cn(
-            'admissions-dashboard__indicator',
-            'admissions-dashboard__indicator--clickable',
-          )}
-          aria-label={t('admin.admissions.dashboard.filterNewAria')}
-          data-testid="admissions-indicator-new"
-          onClick={() => onNewFilterClick?.()}
-        >
-          <span className="admissions-dashboard__indicator-label">
-            {t('admin.admissions.dashboard.new_count')}
-          </span>
-          <span className="admissions-dashboard__indicator-value">{newCount}</span>
-        </button>
-
-        <div
-          className="admissions-dashboard__indicator admissions-dashboard__indicator--info"
-          data-testid="admissions-indicator-overdue"
-          data-interactive="false"
-        >
-          <span className="admissions-dashboard__indicator-label">
-            {t('admin.admissions.dashboard.overdue_next_actions')}
-          </span>
-          <span className="admissions-dashboard__indicator-value">{overdue}</span>
-        </div>
-
-        <div
-          className="admissions-dashboard__indicator admissions-dashboard__indicator--info"
-          data-testid="admissions-indicator-today"
-          data-interactive="false"
-        >
-          <span className="admissions-dashboard__indicator-label">
-            {t('admin.admissions.dashboard.today_appointments')}
-          </span>
-          <span className="admissions-dashboard__indicator-value">{todayAppointments}</span>
-        </div>
-
-        {shouldShowOfferIndicator(familyDeclined) ? (
-          <button
-            type="button"
-            className={cn(
-              'admissions-dashboard__indicator',
-              'admissions-dashboard__indicator--clickable',
-              activeOutcomeFilter === 'family_declined' &&
-                'admissions-dashboard__indicator--active',
-            )}
-            aria-pressed={activeOutcomeFilter === 'family_declined'}
-            aria-label={t('admin.admissions.offerStates.familyDeclined')}
-            data-testid="admissions-indicator-declined"
-            onClick={() =>
-              onOutcomeFilterClick?.(
-                resolveDashboardOutcomeClick(activeOutcomeFilter, 'family_declined'),
-              )
-            }
-          >
-            <span className="admissions-dashboard__indicator-label">
-              {t('admin.admissions.offerStates.familyDeclined')}
-            </span>
-            <span className="admissions-dashboard__indicator-value">{familyDeclined}</span>
-          </button>
-        ) : null}
-
-        {shouldShowOfferIndicator(expiredOffer) ? (
-          <button
-            type="button"
-            className={cn(
-              'admissions-dashboard__indicator',
-              'admissions-dashboard__indicator--clickable',
-              activeOutcomeFilter === 'expired_offer' &&
-                'admissions-dashboard__indicator--active',
-            )}
-            aria-pressed={activeOutcomeFilter === 'expired_offer'}
-            aria-label={t('admin.admissions.offerStates.familyExpired')}
-            data-testid="admissions-indicator-expired"
-            onClick={() =>
-              onOutcomeFilterClick?.(
-                resolveDashboardOutcomeClick(activeOutcomeFilter, 'expired_offer'),
-              )
-            }
-          >
-            <span className="admissions-dashboard__indicator-label">
-              {t('admin.admissions.offerStates.familyExpired')}
-            </span>
-            <span className="admissions-dashboard__indicator-value">{expiredOffer}</span>
-          </button>
-        ) : null}
+        {ADMISSIONS_INFO_INDICATORS.map((item) => {
+          const value = Number(data[item.countKey] ?? 0);
+          return (
+            <div
+              key={item.id}
+              className="admissions-dashboard__indicator admissions-dashboard__indicator--info"
+              data-testid={`admissions-indicator-${item.id}`}
+              data-interactive="false"
+            >
+              <span className="admissions-dashboard__indicator-label">{t(item.labelKey)}</span>
+              <span className="admissions-dashboard__indicator-value">{value}</span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

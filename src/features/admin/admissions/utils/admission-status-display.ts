@@ -196,13 +196,16 @@ export function resolveAdmissionPrimaryDisplay(
   };
 }
 
+/**
+ * List/card badges: primary status + at most one secondary (family or warning only).
+ * Callers may pass `includeFamily` / `includeWarning` for the secondary slot.
+ */
 export function resolveAdmissionStatusBadges(
   record: AdmissionStatusFields & AdmissionUiStageSource,
+  options?: { includeFamily?: boolean; includeWarning?: boolean },
 ): AdmissionStatusBadge[] {
   const badges: AdmissionStatusBadge[] = [];
   const primary = resolveAdmissionPrimaryDisplay(record);
-  const decision = normalizeAdmissionDecision(record)?.decision ?? null;
-  const offer = resolveOfferStateValue(record);
 
   badges.push({
     key: `primary:${primary.kind}`,
@@ -211,63 +214,23 @@ export function resolveAdmissionStatusBadges(
     priority: 1,
   });
 
-  if (
-    primary.kind !== 'school_rejected' &&
-    primary.kind !== 'ready_for_registration' &&
-    primary.kind !== 'awaiting_registration' &&
-    decision === 'accepted'
-  ) {
+  if (options?.includeFamily) {
     badges.push({
-      key: 'decision:accepted',
-      labelKey: 'admin.admissions.schoolDecision.accepted',
-      tone: 'green',
-      priority: 2,
-    });
-  } else if (primary.kind !== 'school_rejected' && decision === 'accepted_with_condition') {
-    badges.push({
-      key: 'decision:accepted_with_condition',
-      labelKey: 'admin.admissions.schoolDecision.accepted_with_condition',
-      tone: 'amber',
-      priority: 2,
-    });
-  }
-
-  if (offer === 'declined') {
-    badges.push({
-      key: 'offer:declined',
-      labelKey: 'admin.admissions.offerStates.familyDeclined',
-      tone: 'red',
-      priority: 3,
-    });
-  } else if (offer === 'expired') {
-    badges.push({
-      key: 'offer:expired',
-      labelKey: 'admin.admissions.offerStates.familyExpired',
-      tone: 'amber',
-      priority: 3,
-    });
-  } else if (offer === 'sent' || offer === 'pending') {
-    badges.push({
-      key: 'offer:sent',
-      labelKey: 'admin.admissions.offerStates.sentLabel',
+      key: 'family',
+      labelKey: 'admin.admissions.family.badgeShort',
       tone: 'blue',
-      priority: 3,
+      priority: 2,
     });
-  } else if (
-    offer === 'accepted' &&
-    primary.kind !== 'awaiting_registration' &&
-    primary.kind !== 'ready_for_registration' &&
-    primary.kind !== 'registered'
-  ) {
+  } else if (options?.includeWarning && hasAdmissionStatusWarnings(record)) {
     badges.push({
-      key: 'offer:accepted',
-      labelKey: 'admin.admissions.badges.offerAccepted',
-      tone: 'green',
-      priority: 3,
+      key: 'warning',
+      labelKey: 'admin.admissions.statusWarnings.iconTitle',
+      tone: 'amber',
+      priority: 2,
     });
   }
 
-  return badges.sort((a, b) => a.priority - b.priority).slice(0, 3);
+  return badges.sort((a, b) => a.priority - b.priority).slice(0, 2);
 }
 
 export function buildAdmissionOutcomeFilterQuery(

@@ -3999,7 +3999,66 @@
         "allOfferStates": "كل حالات العرض",
         "groups": "فلاتر الطلبات",
         "includingClosed": "يشمل الطلبات المغلقة",
-        "chipOffer": "العرض: {offer}"
+        "chipOffer": "العرض: {offer}",
+        "academicYear": "السنة الدراسية",
+        "allAcademicYears": "كل السنوات",
+        "level": "المستوى",
+        "allLevels": "كل المستويات",
+        "source": "المصدر",
+        "allSources": "كل المصادر",
+        "allDecisions": "كل القرارات",
+        "chipYear": "السنة: {year}",
+        "chipLevel": "المستوى: {level}",
+        "chipSource": "المصدر: {source}",
+        "chipDecision": "قرار المدرسة: {decision}"
+      },
+      "workspace": {
+        "navLabel": "مساحات عمل القبولات",
+        "follow_up": "المتابعة الأولية",
+        "awaiting_decision": "بانتظار قرار المدرسة",
+        "post_acceptance": "بعد القبول",
+        "closed": "المرفوضة والمغلقة",
+        "advancedFilters": "فلاتر إضافية",
+        "followUpStage": "مرحلة المتابعة",
+        "schoolDecision": "قرار المدرسة",
+        "offerState": "حالة العرض",
+        "registrationStatus": "حالة التسجيل",
+        "followStageLabel": "مرحلة المتابعة",
+        "awaitingSubLabel": "تصنيف قرار المدرسة",
+        "postSubLabel": "نتائج ما بعد القبول",
+        "closedSubLabel": "تصنيف المغلقة",
+        "closedOther": "مغلق لأسباب أخرى",
+        "closedOtherLost": "تعذر الاستكمال",
+        "kanbanDisabled": "اللوحة غير متاحة في هذه المساحة — يُعرض الجدول.",
+        "stageFilterUnavailable": "فلتر المرحلة غير متاح في هذه المساحة.",
+        "registrationFilterViaSub": "حالة التسجيل تُختار من التصنيف الفرعي أعلاه.",
+        "filtersDisabledFollowUp": "في المتابعة الأولية تتاح مرحلة المتابعة فقط.",
+        "filtersDisabledAwaiting": "في بانتظار القرار يتاح قرار المدرسة فقط.",
+        "filtersDisabledPost": "بعد القبول تتاح حالة العرض؛ التسجيل عبر التصنيف الفرعي.",
+        "filtersDisabledClosed": "في المغلقة تتاح حالة العرض؛ النوع عبر التصنيف الفرعي.",
+        "clearAdvancedFilters": "إزالة الفلاتر الإضافية",
+        "requestTypeIndividual": "فردي",
+        "requestTypeFamily": "عائلي",
+        "empty": {
+          "follow_up": {
+            "title": "لا توجد طلبات في المتابعة الأولية",
+            "description": "الطلبات الجديدة ومرحلة الاتصال والزيارة تظهر هنا."
+          },
+          "awaiting_decision": {
+            "title": "لا توجد طلبات بانتظار قرار المدرسة",
+            "description": "طلبات قيد الدراسة أو التي تحتاج إعادة تقييم تظهر هنا."
+          },
+          "post_acceptance": {
+            "title": "لا توجد طلبات بعد القبول ضمن هذا التصنيف",
+            "description": "غيّر التصنيف الفرعي أو أزل الفلاتر الإضافية."
+          },
+          "closed": {
+            "title": "لا توجد طلبات مرفوضة أو مغلقة ضمن هذا التصنيف",
+            "description": "رفض المدرسة منفصل عن الإلغاء والتكرار وتعذر الاستكمال."
+          },
+          "filteredDescription": "لا نتائج ضمن هذه المساحة مع الفلاتر الحالية."
+        },
+        "allInWorkspace": "كل الطلبات في المساحة"
       },
       "refetching": "جاري تحديث النتائج…",
       "noData": {
@@ -4116,6 +4175,7 @@
         "expired_offer_count": "عروض منتهية",
         "mainGroup": "البطاقات الرئيسية",
         "secondaryGroup": "مؤشرات ثانوية",
+        "infoGroup": "مؤشرات معلوماتية",
         "readyHint": "قبلت الأسرة العرض",
         "filterAwaitingAria": "عرض الطلبات المقبولة في انتظار التسجيل",
         "filterReadyAria": "عرض الطلبات الجاهزة للتسجيل",
@@ -4257,6 +4317,7 @@
         "backToList": "العودة إلى طلبات التسجيل",
         "createAnother": "إنشاء طلب عائلي جديد",
         "badge": "إخوة · {count} طلبات مرتبطة",
+        "badgeShort": "عائلي",
         "detailPanelTitle": "دفعة عائلية",
         "detailPanelSize": "{count} طلبات إخوة",
         "detailPanelError": "تعذّر تحميل تفاصيل الدفعة العائلية.",

@@ -3969,7 +3969,18 @@
         "allOfferStates": "Todos los estados de oferta",
         "groups": "Filtros de admisiones",
         "includingClosed": "Incluye solicitudes cerradas",
-        "chipOffer": "Oferta: {offer}"
+        "chipOffer": "Oferta: {offer}",
+        "academicYear": "Año académico",
+        "allAcademicYears": "Todos los años",
+        "level": "Nivel",
+        "allLevels": "Todos los niveles",
+        "source": "Fuente",
+        "allSources": "Todas las fuentes",
+        "allDecisions": "Todas las decisiones",
+        "chipYear": "Año: {year}",
+        "chipLevel": "Nivel: {level}",
+        "chipSource": "Fuente: {source}",
+        "chipDecision": "Decisión: {decision}"
       },
       "refetching": "Actualizando resultados…",
       "noData": {
@@ -4090,7 +4101,8 @@
         "filterAwaitingAria": "Mostrar solicitudes aceptadas en espera de inscripción",
         "filterReadyAria": "Mostrar solicitudes listas para inscripción",
         "filterRejectedAria": "Mostrar solicitudes rechazadas por el centro",
-        "filterNewAria": "Mostrar solicitudes nuevas"
+        "filterNewAria": "Mostrar solicitudes nuevas",
+        "infoGroup": "Indicadores informativos"
       },
       "table": {
         "reference": "Referencia",
@@ -4265,7 +4277,8 @@
           }
         },
         "mixedOutcomes": "Los niños de este lote familiar tienen resultados mixtos.",
-        "uniformOutcomes": "Todos los niños comparten actualmente el mismo resultado."
+        "uniformOutcomes": "Todos los niños comparten actualmente el mismo resultado.",
+        "badgeShort": "Familiar"
       },
       "guardians": {
         "sectionTitle": "Tutores vinculados a la solicitud",
@@ -4590,7 +4603,7 @@
         "pending": "Decisión pendiente",
         "accepted": "Decisión del colegio: aceptada",
         "accepted_with_condition": "Aceptada con condiciones",
-        "rejected": "Rechazado por el centro"
+        "rejected": "Rechazado por el colegio"
       },
       "outcomeSummary": {
         "title": "Resumen de decisión e inscripción",
@@ -4620,6 +4633,54 @@
         "reopen": "Reabrir solicitud",
         "noSentOffer": "No hay una oferta enviada para aceptar.",
         "makeDecision": "Tomar decisión del centro"
+      },
+      "workspace": {
+        "navLabel": "Espacios de admisiones",
+        "follow_up": "Seguimiento inicial",
+        "awaiting_decision": "En espera de decisión",
+        "post_acceptance": "Tras la aceptación",
+        "closed": "Rechazadas y cerradas",
+        "advancedFilters": "Filtros adicionales",
+        "followUpStage": "Etapa de seguimiento",
+        "schoolDecision": "Decisión del colegio",
+        "offerState": "Estado de la oferta",
+        "registrationStatus": "Estado de inscripción",
+        "followStageLabel": "Etapa de seguimiento",
+        "awaitingSubLabel": "Cola de decisión",
+        "postSubLabel": "Resultados tras aceptación",
+        "closedSubLabel": "Categorías cerradas",
+        "closedOther": "Cerrado por otros motivos",
+        "closedOtherLost": "No se pudo completar",
+        "kanbanDisabled": "El tablero no está disponible en este espacio — se muestra la tabla.",
+        "stageFilterUnavailable": "El filtro de etapa no está disponible en este espacio.",
+        "registrationFilterViaSub": "El estado de inscripción se elige con el subfiltro de arriba.",
+        "filtersDisabledFollowUp": "En seguimiento inicial solo está disponible la etapa.",
+        "filtersDisabledAwaiting": "En espera de decisión solo está disponible la decisión.",
+        "filtersDisabledPost": "Tras la aceptación, la oferta es filtrable; la inscripción usa el subfiltro.",
+        "filtersDisabledClosed": "En cerradas, la oferta es filtrable; la categoría usa el subfiltro.",
+        "clearAdvancedFilters": "Quitar filtros adicionales",
+        "requestTypeIndividual": "Individual",
+        "requestTypeFamily": "Familiar",
+        "empty": {
+          "follow_up": {
+            "title": "No hay solicitudes en seguimiento inicial",
+            "description": "Las nuevas y las de contacto/visita aparecen aquí."
+          },
+          "awaiting_decision": {
+            "title": "No hay solicitudes en espera de decisión",
+            "description": "Las que están en estudio o necesitan reevaluación aparecen aquí."
+          },
+          "post_acceptance": {
+            "title": "No hay solicitudes tras aceptación en esta categoría",
+            "description": "Cambie el subfiltro o quite los filtros adicionales."
+          },
+          "closed": {
+            "title": "No hay solicitudes rechazadas o cerradas en esta categoría",
+            "description": "El rechazo escolar es distinto de anulado, duplicado y lost."
+          },
+          "filteredDescription": "No hay resultados en este espacio con los filtros actuales."
+        },
+        "allInWorkspace": "Todo en este espacio"
       }
     },
     "enrollmentIntake": {

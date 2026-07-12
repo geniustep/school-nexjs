@@ -3969,7 +3969,18 @@
         "allOfferStates": "Tous les états d’offre",
         "groups": "Filtres des admissions",
         "includingClosed": "Inclut les demandes fermées",
-        "chipOffer": "Offre : {offer}"
+        "chipOffer": "Offre : {offer}",
+        "academicYear": "Année scolaire",
+        "allAcademicYears": "Toutes les années",
+        "level": "Niveau",
+        "allLevels": "Tous les niveaux",
+        "source": "Source",
+        "allSources": "Toutes les sources",
+        "allDecisions": "Toutes les décisions",
+        "chipYear": "Année : {year}",
+        "chipLevel": "Niveau : {level}",
+        "chipSource": "Source : {source}",
+        "chipDecision": "Décision : {decision}"
       },
       "refetching": "Mise à jour des résultats…",
       "noData": {
@@ -4090,7 +4101,8 @@
         "filterAwaitingAria": "Afficher les demandes acceptées en attente d’inscription",
         "filterReadyAria": "Afficher les demandes prêtes pour l’inscription",
         "filterRejectedAria": "Afficher les demandes refusées par l’établissement",
-        "filterNewAria": "Afficher les nouvelles demandes"
+        "filterNewAria": "Afficher les nouvelles demandes",
+        "infoGroup": "Indicateurs informatifs"
       },
       "table": {
         "reference": "Référence",
@@ -4265,7 +4277,8 @@
           }
         },
         "mixedOutcomes": "Les enfants de ce dossier familial ont des résultats mixtes.",
-        "uniformOutcomes": "Tous les enfants partagent actuellement le même résultat."
+        "uniformOutcomes": "Tous les enfants partagent actuellement le même résultat.",
+        "badgeShort": "Familial"
       },
       "guardians": {
         "sectionTitle": "Responsables liés à la demande",
@@ -4620,6 +4633,54 @@
         "reopen": "Rouvrir la demande",
         "noSentOffer": "Aucune offre envoyée n’est disponible.",
         "makeDecision": "Prendre la décision de l’établissement"
+      },
+      "workspace": {
+        "navLabel": "Espaces de travail admissions",
+        "follow_up": "Suivi initial",
+        "awaiting_decision": "En attente de décision",
+        "post_acceptance": "Après acceptation",
+        "closed": "Refusées et clôturées",
+        "advancedFilters": "Filtres supplémentaires",
+        "followUpStage": "Étape de suivi",
+        "schoolDecision": "Décision de l’établissement",
+        "offerState": "État de l’offre",
+        "registrationStatus": "État d’inscription",
+        "followStageLabel": "Étape de suivi",
+        "awaitingSubLabel": "File de décision",
+        "postSubLabel": "Résultats après acceptation",
+        "closedSubLabel": "Catégories clôturées",
+        "closedOther": "Clôturé pour d’autres raisons",
+        "closedOtherLost": "Impossible de finaliser",
+        "kanbanDisabled": "Le tableau Kanban est indisponible ici — affichage en liste.",
+        "stageFilterUnavailable": "Le filtre d’étape est indisponible dans cet espace.",
+        "registrationFilterViaSub": "L’état d’inscription se choisit via le sous-filtre ci-dessus.",
+        "filtersDisabledFollowUp": "En suivi initial, seule l’étape de suivi est disponible.",
+        "filtersDisabledAwaiting": "En attente de décision, seul le filtre de décision est disponible.",
+        "filtersDisabledPost": "Après acceptation, l’offre est filtrable ; l’inscription passe par le sous-filtre.",
+        "filtersDisabledClosed": "Dans les clôturées, l’offre est filtrable ; la catégorie passe par le sous-filtre.",
+        "clearAdvancedFilters": "Effacer les filtres supplémentaires",
+        "requestTypeIndividual": "Individuel",
+        "requestTypeFamily": "Familial",
+        "empty": {
+          "follow_up": {
+            "title": "Aucune demande en suivi initial",
+            "description": "Les nouvelles demandes et le suivi visite/contact apparaissent ici."
+          },
+          "awaiting_decision": {
+            "title": "Aucune demande en attente de décision",
+            "description": "Les dossiers en étude ou à réévaluer apparaissent ici."
+          },
+          "post_acceptance": {
+            "title": "Aucune demande après acceptation dans cette catégorie",
+            "description": "Changez le sous-filtre ou effacez les filtres supplémentaires."
+          },
+          "closed": {
+            "title": "Aucune demande refusée ou clôturée dans cette catégorie",
+            "description": "Le refus scolaire est distinct de l’annulation, du doublon et du lost."
+          },
+          "filteredDescription": "Aucun résultat dans cet espace avec les filtres actuels."
+        },
+        "allInWorkspace": "Tout dans cet espace"
       }
     },
     "enrollmentIntake": {

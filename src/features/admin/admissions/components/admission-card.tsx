@@ -1,20 +1,17 @@
 'use client';
 
 import Link from 'next/link';
-import { Badge } from '@/components/ui/primitives';
 import { cn } from '@/lib/utils/cn';
-import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import {
   cleanDisplayValue,
   formatAdmissionReference,
   isOverdueNextAction,
+  refName,
 } from '../utils/admission-labels';
-import { parseExtraFieldBool } from '../utils/admission-extra-fields';
-import {
-  resolveFamilyBadgeCount,
-  shouldShowFamilyBadge,
-} from '../utils/family-admission-visibility';
+import { resolveAdmissionPrimaryDisplay } from '../utils/admission-status-display';
+import { normalizeAdmissionDecision } from '../utils/normalize-admission-decision';
+import { shouldShowFamilyBadge } from '../utils/family-admission-visibility';
 import { AdmissionStatusBadges } from './admission-status-badges';
 import { AdmissionListActionsMenu } from './admission-list-actions-menu';
 import type { AdmissionListItem } from '@/types/admission';
@@ -59,20 +56,20 @@ export function AdmissionCard({
   onUpdated?: () => void;
 }) {
   const t = useT();
-  const { formatDate } = useFormat();
   const overdue = isOverdueNextAction(item.next_action_date);
   const href = `/admin/admissions/${item.id}`;
   const reference = formatAdmissionReference(item.id, item.reference);
   const studentName = cleanDisplayValue(item.student_name);
-  const guardianName = cleanDisplayValue(item.guardian_name);
-  const guardianPhone = cleanDisplayValue(item.guardian_phone);
-  const nextAction = cleanDisplayValue(item.next_action);
-  const nextActionDate = item.next_action_date ? formatDate(item.next_action_date) : '';
-  const nextActionLine = [nextAction, nextActionDate].filter(Boolean).join(' — ');
-  const externalReference = cleanDisplayValue(item.external_reference ?? '');
-  const previousSchool = cleanDisplayValue(item.previous_school ?? '');
-  const siblingsSummary = cleanDisplayValue(item.siblings_summary ?? '');
-  const hasSiblings = parseExtraFieldBool(item.has_siblings);
+  const levelName = refName(item.requested_level);
+  const isFamily = shouldShowFamilyBadge(item);
+  const decision = normalizeAdmissionDecision(item)?.decision;
+  const primary = resolveAdmissionPrimaryDisplay(item);
+  const stageOrDecisionLine =
+    primary.kind === 'ui_stage'
+      ? t(`admin.admissions.states.${String(item.state ?? 'new')}`)
+      : decision
+        ? t(`admin.admissions.decisions.${decision}`)
+        : t(primary.labelKey);
   const dragEnabled = draggable && !selectionMode && !isSaving;
 
   function handleCardClick(event: React.MouseEvent) {
@@ -130,77 +127,28 @@ export function AdmissionCard({
         {studentName || t('common.dash')}
       </div>
 
-      {(externalReference || previousSchool || hasSiblings || siblingsSummary) && (
-        <div className="admission-card__meta">
-          {externalReference ? <Badge tone="slate">{externalReference}</Badge> : null}
-          {previousSchool ? (
-            <span className="admission-card__previous-school tiny muted">{previousSchool}</span>
-          ) : null}
-          {siblingsSummary ? (
-            <span className="admission-card__siblings-summary tiny muted">{siblingsSummary}</span>
-          ) : null}
-          {hasSiblings && !siblingsSummary ? (
-            <Badge tone="blue">{t('admin.admissions.list.hasSiblingsBadge')}</Badge>
-          ) : null}
-          {shouldShowFamilyBadge(item) ? (
-            <Badge tone="blue">
-              {t('admin.admissions.family.badge', {
-                count: resolveFamilyBadgeCount(item),
-              })}
-            </Badge>
-          ) : null}
-        </div>
-      )}
+      <div className="admission-card__meta admission-card__meta--compact">
+        <span className="admission-card__reference mono tiny">{reference}</span>
+        {levelName ? <span className="tiny muted">{levelName}</span> : null}
+        <span className="tiny muted">
+          {isFamily
+            ? t('admin.admissions.workspace.requestTypeFamily')
+            : t('admin.admissions.workspace.requestTypeIndividual')}
+        </span>
+      </div>
 
-      <dl className="admission-card__details">
-        {guardianName ? (
-          <div className="admission-card__detail">
-            <dt>{t('admin.admissions.card.guardian')}</dt>
-            <dd className="admission-card__detail-value">{guardianName}</dd>
-          </div>
-        ) : null}
-        {guardianPhone ? (
-          <div className="admission-card__detail">
-            <dt>{t('admin.admissions.card.phone')}</dt>
-            <dd className="admission-card__detail-value" dir="ltr">
-              {guardianPhone}
-            </dd>
-          </div>
-        ) : null}
-        {nextActionLine ? (
-          <div className="admission-card__detail">
-            <dt>{t('admin.admissions.nextAction')}</dt>
-            <dd
-              className={cn(
-                'admission-card__detail-value',
-                overdue && 'admission-card__detail--overdue',
-              )}
-            >
-              {nextActionLine}
-            </dd>
-          </div>
-        ) : null}
-      </dl>
+      <p className="admission-card__stage-line tiny muted">{stageOrDecisionLine}</p>
 
-      {(showStateBadge || item.duplicate_count > 0 || overdue) && (
+      {showStateBadge ? (
         <div className="admission-card__status-row">
-          {showStateBadge ? <AdmissionStatusBadges record={item} /> : null}
-          {(item.duplicate_count > 0 || overdue) && (
-            <div className="admission-card__badges">
-              {item.duplicate_count > 0 && (
-                <Badge tone="amber">{t('admin.admissions.badges.possibleDuplicate')}</Badge>
-              )}
-              {overdue && <Badge tone="red">{t('admin.admissions.badges.overdue')}</Badge>}
-            </div>
-          )}
+          <AdmissionStatusBadges record={item} />
         </div>
-      )}
+      ) : null}
     </>
   );
 
   const footer = (
     <div className="admission-card__footer">
-      <span className="admission-card__reference mono">{reference}</span>
       {!selectionMode ? (
         <div
           className="admission-card__actions"
@@ -209,7 +157,9 @@ export function AdmissionCard({
         >
           <AdmissionListActionsMenu admissionId={item.id} onUpdated={onUpdated} />
         </div>
-      ) : null}
+      ) : (
+        <span className="tiny muted">{overdue ? t('admin.admissions.badges.overdue') : null}</span>
+      )}
     </div>
   );
 
@@ -222,43 +172,31 @@ export function AdmissionCard({
     selectionMode && 'admission-card--selection-mode',
   );
 
-  const card = selectionMode ? (
+  if (selectionMode) {
+    return (
+      <div
+        className={cardClassName}
+        data-testid={`admission-card-${item.id}`}
+        onClick={handleCardClick}
+      >
+        {mainContent}
+        {footer}
+      </div>
+    );
+  }
+
+  return (
     <div
       className={cardClassName}
-      role="button"
-      tabIndex={0}
-      onClick={handleCardClick}
-      onKeyDown={(event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          onToggleSelect?.();
-        }
-      }}
+      data-testid={`admission-card-${item.id}`}
+      draggable={dragEnabled}
+      onDragStart={dragEnabled ? onDragStart : undefined}
+      onDragEnd={dragEnabled ? onDragEnd : undefined}
     >
-      {mainContent}
-      {footer}
-    </div>
-  ) : (
-    <div className={cardClassName}>
-      <Link href={href} draggable={false} className="admission-card__body-link">
+      <Link href={href} className="admission-card__link">
         {mainContent}
       </Link>
       {footer}
     </div>
   );
-
-  if (!dragEnabled) return card;
-
-  return (
-    <div
-      className={cn('admission-card-wrap', isDragging && 'admission-card-wrap--dragging')}
-      draggable
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
-    >
-      {card}
-    </div>
-  );
 }
-
-export { DRAG_MIME as ADMISSION_CARD_DRAG_MIME };

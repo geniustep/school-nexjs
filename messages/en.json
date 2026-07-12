@@ -3969,7 +3969,18 @@
         "allOfferStates": "All offer statuses",
         "groups": "Admission filters",
         "includingClosed": "Includes closed applications",
-        "chipOffer": "Offer: {offer}"
+        "chipOffer": "Offer: {offer}",
+        "academicYear": "Academic year",
+        "allAcademicYears": "All years",
+        "level": "Level",
+        "allLevels": "All levels",
+        "source": "Source",
+        "allSources": "All sources",
+        "allDecisions": "All decisions",
+        "chipYear": "Year: {year}",
+        "chipLevel": "Level: {level}",
+        "chipSource": "Source: {source}",
+        "chipDecision": "School decision: {decision}"
       },
       "refetching": "Updating results…",
       "noData": {
@@ -4090,7 +4101,8 @@
         "filterAwaitingAria": "Show accepted applications awaiting registration",
         "filterReadyAria": "Show applications ready for registration",
         "filterRejectedAria": "Show school-rejected applications",
-        "filterNewAria": "Show new applications"
+        "filterNewAria": "Show new applications",
+        "infoGroup": "Informational indicators"
       },
       "table": {
         "reference": "Reference",
@@ -4265,7 +4277,8 @@
           }
         },
         "mixedOutcomes": "Children in this family batch have mixed outcomes.",
-        "uniformOutcomes": "All children currently share the same outcome."
+        "uniformOutcomes": "All children currently share the same outcome.",
+        "badgeShort": "Family"
       },
       "guardians": {
         "sectionTitle": "Guardians on this request",
@@ -4620,6 +4633,54 @@
         "reopen": "Reopen application",
         "noSentOffer": "No sent offer is available to accept.",
         "makeDecision": "Record school decision"
+      },
+      "workspace": {
+        "navLabel": "Admissions workspaces",
+        "follow_up": "Initial follow-up",
+        "awaiting_decision": "Awaiting school decision",
+        "post_acceptance": "After acceptance",
+        "closed": "Rejected and closed",
+        "advancedFilters": "More filters",
+        "followUpStage": "Follow-up stage",
+        "schoolDecision": "School decision",
+        "offerState": "Offer status",
+        "registrationStatus": "Registration status",
+        "followStageLabel": "Follow-up stage",
+        "awaitingSubLabel": "Decision queue",
+        "postSubLabel": "Post-acceptance outcomes",
+        "closedSubLabel": "Closed categories",
+        "closedOther": "Closed for other reasons",
+        "closedOtherLost": "Could not complete",
+        "kanbanDisabled": "Board view is unavailable in this workspace — table is shown.",
+        "stageFilterUnavailable": "Stage filter is unavailable in this workspace.",
+        "registrationFilterViaSub": "Registration status is selected via the subfilter above.",
+        "filtersDisabledFollowUp": "In initial follow-up only the follow-up stage is available.",
+        "filtersDisabledAwaiting": "In awaiting decision only the school decision filter is available.",
+        "filtersDisabledPost": "After acceptance, offer status is available; registration uses the subfilter.",
+        "filtersDisabledClosed": "In closed workspace, offer status is available; category uses the subfilter.",
+        "clearAdvancedFilters": "Clear additional filters",
+        "requestTypeIndividual": "Individual",
+        "requestTypeFamily": "Family",
+        "empty": {
+          "follow_up": {
+            "title": "No applications in initial follow-up",
+            "description": "New, contacted, and visit-pending applications appear here."
+          },
+          "awaiting_decision": {
+            "title": "No applications awaiting school decision",
+            "description": "Under-study and needs-reassessment applications appear here."
+          },
+          "post_acceptance": {
+            "title": "No post-acceptance applications in this category",
+            "description": "Change the subfilter or clear additional filters."
+          },
+          "closed": {
+            "title": "No rejected or closed applications in this category",
+            "description": "School rejection is separate from cancelled, duplicate, and lost."
+          },
+          "filteredDescription": "No results in this workspace with the current filters."
+        },
+        "allInWorkspace": "All in this workspace"
       }
     },
     "enrollmentIntake": {

@@ -155,7 +155,8 @@ describe('registration / rejection display', () => {
         registration_status: 'not_applicable',
       }),
     );
-    expect(badges.some((b) => b.key === 'offer:declined')).toBe(true);
+    expect(badges).toHaveLength(1);
+    expect(badges[0].key).toBe('primary:ui_stage');
     expect(badges.some((b) => b.key === 'primary:school_rejected')).toBe(false);
   });
 

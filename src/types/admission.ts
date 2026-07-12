@@ -70,6 +70,11 @@ export interface AdmissionsDashboard {
   school_rejected_count?: number;
   family_declined_count?: number;
   expired_offer_count?: number;
+  /** Workspace queue counters from dashboard (not derived from list rows). */
+  follow_up_workspace_count?: number;
+  awaiting_decision_workspace_count?: number;
+  post_acceptance_workspace_count?: number;
+  closed_workspace_count?: number;
 }
 
 export interface AdmissionListItem {
@@ -93,6 +98,14 @@ export interface AdmissionListItem {
   siblings_summary?: string | null;
   sibling_lines?: SiblingLine[] | null;
   state: AdmissionState | string;
+  /** Backend workspace queue assignment — prefer over local inference. */
+  admission_workspace?:
+    | 'follow_up'
+    | 'awaiting_decision'
+    | 'post_acceptance'
+    | 'closed'
+    | string
+    | null;
   /**
    * Linkage fields — optional on the list payload. Present only when the
    * backend serializes them; used to surface a "converted to student" badge.
@@ -221,6 +234,13 @@ export interface AdmissionDetail extends SiblingsFieldsSource {
   family_reference?: string | null;
   family_size?: number | null;
   state: AdmissionState | string;
+  admission_workspace?:
+    | 'follow_up'
+    | 'awaiting_decision'
+    | 'post_acceptance'
+    | 'closed'
+    | string
+    | null;
   student_id?: number | false | null;
   registration_flow_state?: AdmissionRegistrationFlowState | null;
   student_name: string;
@@ -575,6 +595,13 @@ export interface FamilyBatchApplicationSummary {
   reference?: string | null;
   student_name: string;
   state: AdmissionState | string;
+  admission_workspace?:
+    | 'follow_up'
+    | 'awaiting_decision'
+    | 'post_acceptance'
+    | 'closed'
+    | string
+    | null;
   requested_level_id?: number | null;
   requested_level?: Ref | string | null;
   student_id?: number | false | null;
