@@ -18,18 +18,17 @@ import {
 } from '../utils/admission-registration';
 import { canReopenAdmission } from '../utils/admission-rejection';
 import { resolveRegistrationStatus } from '../utils/admission-status-display';
-import type { AdmissionDetail, AdmissionState } from '@/types/admission';
+import {
+  admissionManualStageLabelKey,
+  evaluateManualStageChange,
+  getAdmissionManualStageOptions,
+  isAdmissionManualStage,
+  type AdmissionManualStage,
+} from '../utils/admission-stage-options';
+import { normalizeAdmissionDecision } from '../utils/normalize-admission-decision';
+import type { AdmissionDetail } from '@/types/admission';
 import { AdmissionDecisionDialog } from './admission-decision-dialog';
 import { AdmissionReopenDialog } from './admission-reopen-dialog';
-
-/** Follow-up stages only — never PATCH confirmed/registered/derived statuses. */
-const FOLLOW_UP_STATES: AdmissionState[] = [
-  'new',
-  'contacted',
-  'qualified',
-  'visit_pending',
-  'under_review',
-];
 
 export function AdmissionListActionsMenu({
   admissionId,
@@ -111,16 +110,17 @@ export function AdmissionListActionsMenu({
     toast.error(admissionApiErrorMessage(res.error, t));
   }
 
-  async function handleFollowUpState(state: AdmissionState) {
+  async function handleFollowUpState(state: AdmissionManualStage) {
     if (!detail || activeSchoolId == null || busy) return;
-    if (String(detail.state) === state) {
+    const decision = evaluateManualStageChange(detail, state);
+    if (!decision.apply || !decision.targetState) {
       setOpen(false);
       return;
     }
     setBusy(true);
     const res = await patchAdmission(
       detail.id,
-      { state },
+      { state: decision.targetState },
       { active_school_id: activeSchoolId },
     );
     setBusy(false);
@@ -136,8 +136,12 @@ export function AdmissionListActionsMenu({
   const canDecide = hasAdmissionAllowedAction(actions, 'decide');
   const canAcceptOffer = hasAdmissionAllowedAction(actions, 'accept_offer');
   const canChangeState =
-    hasAdmissionAllowedAction(actions, 'change_state') ||
-    hasAdmissionAllowedAction(actions, 'edit');
+    (hasAdmissionAllowedAction(actions, 'change_state') ||
+      hasAdmissionAllowedAction(actions, 'edit')) &&
+    detail != null &&
+    isAdmissionManualStage(String(detail.state));
+  const stageOptions = getAdmissionManualStageOptions();
+  const currentDecision = detail ? normalizeAdmissionDecision(detail) : null;
   const registration = detail ? resolveRegistrationStatus(detail) : null;
   const showContinue =
     detail != null &&
@@ -177,17 +181,23 @@ export function AdmissionListActionsMenu({
           ) : null}
 
           {canDecide ? (
-            <button
-              type="button"
-              role="menuitem"
-              className="admissions-row-actions__item"
-              onClick={() => {
-                setOpen(false);
-                setDecisionOpen(true);
-              }}
-            >
-              {t('admin.admissions.actions.recordDecision')}
-            </button>
+            <div className="admissions-row-actions__submenu" role="group">
+              <span className="admissions-row-actions__label">
+                {t('admin.admissions.actions.makeDecision')}
+              </span>
+              <button
+                type="button"
+                role="menuitem"
+                className="admissions-row-actions__item"
+                data-testid="admission-actions-open-decision"
+                onClick={() => {
+                  setOpen(false);
+                  setDecisionOpen(true);
+                }}
+              >
+                {t('admin.admissions.actions.recordDecision')}
+              </button>
+            </div>
           ) : null}
 
           {canChangeState ? (
@@ -195,7 +205,7 @@ export function AdmissionListActionsMenu({
               <span className="admissions-row-actions__label">
                 {t('admin.admissions.actions.changeFollowUp')}
               </span>
-              {FOLLOW_UP_STATES.map((state) => (
+              {stageOptions.map((state) => (
                 <button
                   key={state}
                   type="button"
@@ -204,7 +214,7 @@ export function AdmissionListActionsMenu({
                   disabled={busy || String(detail?.state) === state}
                   onClick={() => void handleFollowUpState(state)}
                 >
-                  {t(`admin.admissions.states.${state}`)}
+                  {t(admissionManualStageLabelKey(state))}
                 </button>
               ))}
             </div>
@@ -296,6 +306,9 @@ export function AdmissionListActionsMenu({
         open={decisionOpen}
         onClose={() => setDecisionOpen(false)}
         onSuccess={afterSuccess}
+        initialDecision={currentDecision?.decision}
+        initialNotes={currentDecision?.decision_notes}
+        initialConditions={currentDecision?.conditions}
       />
       <AdmissionReopenDialog
         admissionId={admissionId}

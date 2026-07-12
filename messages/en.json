@@ -4037,14 +4037,16 @@
         "stageChangeSuccess": "{count} requests updated.",
         "stageChangePartial": "{success} updated, {failed} failed — failed requests remain selected.",
         "stageChangeSkipped": "No selected requests needed a stage change.",
-        "stageChangeFailed": "Could not update selected requests."
+        "stageChangeFailed": "Could not update selected requests.",
+        "stageChangeIneligible": "{count} applications cannot use a manual stage change",
+        "stageChangeIneligibleNote": "{count} ineligible application(s) were left unchanged."
       },
       "states": {
         "new": "New",
         "contacted": "Contacted",
         "qualified": "Qualified",
-        "visit_pending": "Visit requested",
-        "under_review": "Under review",
+        "visit_pending": "Visit pending",
+        "under_review": "Under study",
         "accepted": "Accepted",
         "waitlisted": "Waitlisted",
         "offer_sent": "Offer sent",
@@ -4056,7 +4058,7 @@
       "uiStages": {
         "new": "New",
         "in_follow_up": "In follow-up",
-        "in_evaluation": "In evaluation",
+        "in_evaluation": "Under study",
         "accepted": "Accepted",
         "ready_for_registration": "Ready to register",
         "registered": "Registered",
@@ -4462,16 +4464,17 @@
         "current": "Current decision",
         "label": "Decision",
         "by": "By",
-        "conditions": "Conditions",
+        "conditions": "Admission conditions",
         "none": "No decision yet",
-        "formTitle": "Make a decision",
-        "submit": "Record decision"
+        "formTitle": "Record school decision",
+        "submit": "Record decision",
+        "conditionsRequired": "Enter admission conditions"
       },
       "decisions": {
         "accepted": "Accepted",
         "accepted_with_condition": "Accepted with conditions",
         "waitlisted": "Waitlisted",
-        "rejected": "Rejected",
+        "rejected": "Rejected by the school",
         "needs_reassessment": "Needs reassessment"
       },
       "rejection": {
@@ -4614,7 +4617,8 @@
         "openPrefill": "Open registration prefill",
         "linkExistingStudent": "Link existing student",
         "reopen": "Reopen application",
-        "noSentOffer": "No sent offer is available to accept."
+        "noSentOffer": "No sent offer is available to accept.",
+        "makeDecision": "Record school decision"
       }
     },
     "enrollmentIntake": {

@@ -4037,14 +4037,16 @@
         "stageChangeSuccess": "{count} demande(s) mise(s) à jour.",
         "stageChangePartial": "{success} réussie(s), {failed} échouée(s) — les demandes en échec restent sélectionnées.",
         "stageChangeSkipped": "Aucune demande sélectionnée ne nécessitait un changement d'étape.",
-        "stageChangeFailed": "Impossible de mettre à jour les demandes sélectionnées."
+        "stageChangeFailed": "Impossible de mettre à jour les demandes sélectionnées.",
+        "stageChangeIneligible": "{count} demandes ne peuvent pas changer d’étape manuellement",
+        "stageChangeIneligibleNote": "{count} demande(s) non éligible(s) n’ont pas été modifiées."
       },
       "states": {
         "new": "Nouveau",
         "contacted": "Contacté",
         "qualified": "Qualifié",
-        "visit_pending": "Visite demandée",
-        "under_review": "En cours d'examen",
+        "visit_pending": "Visite en attente",
+        "under_review": "À l’étude",
         "accepted": "Accepté",
         "waitlisted": "Liste d'attente",
         "offer_sent": "Offre envoyée",
@@ -4056,7 +4058,7 @@
       "uiStages": {
         "new": "Nouveau",
         "in_follow_up": "En cours de suivi",
-        "in_evaluation": "En évaluation",
+        "in_evaluation": "À l’étude",
         "accepted": "Accepté",
         "ready_for_registration": "Prêt à inscrire",
         "registered": "Inscrit",
@@ -4462,17 +4464,18 @@
         "current": "Décision actuelle",
         "label": "Décision",
         "by": "Par",
-        "conditions": "Conditions",
+        "conditions": "Conditions d’admission",
         "none": "Pas encore de décision",
-        "formTitle": "Prendre une décision",
-        "submit": "Enregistrer"
+        "formTitle": "Décision de l’établissement",
+        "submit": "Enregistrer",
+        "conditionsRequired": "Saisissez les conditions d’admission"
       },
       "decisions": {
         "accepted": "Accepté",
         "accepted_with_condition": "Accepté sous conditions",
-        "waitlisted": "Liste d'attente",
-        "rejected": "Refusé",
-        "needs_reassessment": "Réévaluation nécessaire"
+        "waitlisted": "Liste d’attente",
+        "rejected": "Refusé par l’établissement",
+        "needs_reassessment": "Nécessite une réévaluation"
       },
       "rejection": {
         "status": "Refusé",
@@ -4614,7 +4617,8 @@
         "openPrefill": "Ouvrir le préremplissage",
         "linkExistingStudent": "Lier un élève existant",
         "reopen": "Rouvrir la demande",
-        "noSentOffer": "Aucune offre envoyée n’est disponible."
+        "noSentOffer": "Aucune offre envoyée n’est disponible.",
+        "makeDecision": "Prendre la décision de l’établissement"
       }
     },
     "enrollmentIntake": {

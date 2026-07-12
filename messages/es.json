@@ -4037,14 +4037,16 @@
         "stageChangeSuccess": "{count} solicitud(es) actualizada(s).",
         "stageChangePartial": "{success} correcta(s), {failed} fallida(s) — las fallidas siguen seleccionadas.",
         "stageChangeSkipped": "Ninguna solicitud seleccionada necesitaba cambio de etapa.",
-        "stageChangeFailed": "No se pudieron actualizar las solicitudes seleccionadas."
+        "stageChangeFailed": "No se pudieron actualizar las solicitudes seleccionadas.",
+        "stageChangeIneligible": "{count} solicitudes no admiten cambio manual de etapa",
+        "stageChangeIneligibleNote": "Se dejaron sin cambios {count} solicitud(es) no elegibles."
       },
       "states": {
         "new": "Nueva",
-        "contacted": "Contactada",
-        "qualified": "Calificada",
-        "visit_pending": "Visita solicitada",
-        "under_review": "En revisión",
+        "contacted": "Contactado",
+        "qualified": "Cualificado",
+        "visit_pending": "Visita pendiente",
+        "under_review": "En estudio",
         "accepted": "Aceptada",
         "waitlisted": "Lista de espera",
         "offer_sent": "Oferta enviada",
@@ -4056,7 +4058,7 @@
       "uiStages": {
         "new": "Nueva",
         "in_follow_up": "En seguimiento",
-        "in_evaluation": "En evaluación",
+        "in_evaluation": "En estudio",
         "accepted": "Aceptada",
         "ready_for_registration": "Lista para inscribir",
         "registered": "Inscrita",
@@ -4462,17 +4464,18 @@
         "current": "Decisión actual",
         "label": "Decisión",
         "by": "Por",
-        "conditions": "Condiciones",
+        "conditions": "Condiciones de admisión",
         "none": "Sin decisión aún",
-        "formTitle": "Tomar decisión",
-        "submit": "Registrar"
+        "formTitle": "Decisión del centro",
+        "submit": "Registrar",
+        "conditionsRequired": "Introduzca las condiciones de admisión"
       },
       "decisions": {
-        "accepted": "Aceptada",
-        "accepted_with_condition": "Aceptada con condiciones",
+        "accepted": "Aceptado",
+        "accepted_with_condition": "Aceptado con condiciones",
         "waitlisted": "Lista de espera",
-        "rejected": "Rechazada",
-        "needs_reassessment": "Requiere reevaluación"
+        "rejected": "Rechazado por el centro",
+        "needs_reassessment": "Necesita reevaluación"
       },
       "rejection": {
         "status": "Rechazada",
@@ -4614,7 +4617,8 @@
         "openPrefill": "Abrir datos precargados",
         "linkExistingStudent": "Vincular alumno existente",
         "reopen": "Reabrir solicitud",
-        "noSentOffer": "No hay una oferta enviada para aceptar."
+        "noSentOffer": "No hay una oferta enviada para aceptar.",
+        "makeDecision": "Tomar decisión del centro"
       }
     },
     "enrollmentIntake": {

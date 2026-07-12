@@ -5,31 +5,37 @@ import { useAdminSession } from '@/features/auth/admin-session-context';
 import { useT } from '@/features/i18n/locale-context';
 import { createAdmissionDecision } from '../api/admissions-api';
 import { admissionApiErrorMessage } from '../utils/admission-errors';
-import type { DecisionType } from '@/types/admission';
-
-const DECISION_OPTIONS: DecisionType[] = [
-  'accepted',
-  'accepted_with_condition',
-  'waitlisted',
-  'needs_reassessment',
-  'rejected',
-];
+import {
+  admissionDecisionLabelKey,
+  decisionRequiresConditions,
+  decisionRequiresRejectionReason,
+  getAdmissionDecisionOptions,
+  isAdmissionDecisionOption,
+  type AdmissionDecisionOption,
+} from '../utils/admission-decision-options';
 
 export function AdmissionDecisionDialog({
   admissionId,
   open,
   onClose,
   onSuccess,
+  initialDecision,
+  initialNotes,
+  initialConditions,
 }: {
   admissionId: number;
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  initialDecision?: string | null;
+  initialNotes?: string | null;
+  initialConditions?: string | null;
 }) {
   const t = useT();
   const titleId = useId();
   const { activeSchoolId } = useAdminSession();
-  const [decisionValue, setDecisionValue] = useState<DecisionType>('accepted');
+  const options = getAdmissionDecisionOptions();
+  const [decisionValue, setDecisionValue] = useState<AdmissionDecisionOption>('accepted');
   const [decisionNotes, setDecisionNotes] = useState('');
   const [conditions, setConditions] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -37,12 +43,18 @@ export function AdmissionDecisionDialog({
 
   useEffect(() => {
     if (!open) return;
-    setDecisionValue('accepted');
-    setDecisionNotes('');
-    setConditions('');
+    if (initialDecision && isAdmissionDecisionOption(initialDecision)) {
+      setDecisionValue(initialDecision);
+      setDecisionNotes(initialNotes ?? '');
+      setConditions(initialConditions ?? '');
+    } else {
+      setDecisionValue('accepted');
+      setDecisionNotes('');
+      setConditions('');
+    }
     setError(null);
     setSubmitting(false);
-  }, [open, admissionId]);
+  }, [open, admissionId, initialDecision, initialNotes, initialConditions]);
 
   useEffect(() => {
     if (!open) return;
@@ -58,8 +70,12 @@ export function AdmissionDecisionDialog({
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (activeSchoolId == null || submitting) return;
-    if (decisionValue === 'rejected' && !decisionNotes.trim()) {
+    if (decisionRequiresRejectionReason(decisionValue) && !decisionNotes.trim()) {
       setError(t('admin.admissions.rejection.reasonRequired'));
+      return;
+    }
+    if (decisionRequiresConditions(decisionValue) && !conditions.trim()) {
+      setError(t('admin.admissions.decision.conditionsRequired'));
       return;
     }
     setSubmitting(true);
@@ -69,7 +85,9 @@ export function AdmissionDecisionDialog({
       {
         decision: decisionValue,
         decision_notes: decisionNotes.trim() || undefined,
-        conditions: conditions.trim() || undefined,
+        conditions: decisionRequiresConditions(decisionValue)
+          ? conditions.trim()
+          : conditions.trim() || undefined,
       },
       { active_school_id: activeSchoolId },
     );
@@ -82,6 +100,9 @@ export function AdmissionDecisionDialog({
     onClose();
   }
 
+  const needsReason = decisionRequiresRejectionReason(decisionValue);
+  const needsConditions = decisionRequiresConditions(decisionValue);
+
   return (
     <div className="modal-backdrop" role="presentation" onClick={onClose}>
       <div
@@ -90,45 +111,49 @@ export function AdmissionDecisionDialog({
         aria-modal="true"
         aria-labelledby={titleId}
         onClick={(e) => e.stopPropagation()}
+        data-testid="admission-decision-dialog"
       >
-        <h2 id={titleId}>{t('admin.admissions.actions.recordDecision')}</h2>
+        <h2 id={titleId}>{t('admin.admissions.actions.makeDecision')}</h2>
         <form className="admissions-inline-form" onSubmit={submit}>
           {error ? <div className="alert alert--error">{error}</div> : null}
           <div className="field">
             <label htmlFor={`decision-dialog-${admissionId}`}>
-              {t('admin.admissions.decision.label')}
+              {t('admin.admissions.actions.makeDecision')}
             </label>
             <select
               id={`decision-dialog-${admissionId}`}
               className="input"
               value={decisionValue}
-              onChange={(e) => setDecisionValue(e.target.value as DecisionType)}
+              data-testid="admission-decision-dialog-select"
+              onChange={(e) => setDecisionValue(e.target.value as AdmissionDecisionOption)}
             >
-              {DECISION_OPTIONS.map((opt) => (
+              {options.map((opt) => (
                 <option key={opt} value={opt}>
-                  {t(`admin.admissions.decisions.${opt}`)}
+                  {t(admissionDecisionLabelKey(opt))}
                 </option>
               ))}
             </select>
           </div>
-          {decisionValue === 'accepted_with_condition' ? (
+          {needsConditions ? (
             <div className="field">
               <label htmlFor={`decision-conditions-${admissionId}`}>
-                {t('admin.admissions.decision.conditions')}
+                {t('admin.admissions.decision.conditions')} *
               </label>
               <textarea
                 id={`decision-conditions-${admissionId}`}
                 className="input"
                 rows={2}
                 value={conditions}
+                required
+                data-testid="admission-decision-dialog-conditions"
                 onChange={(e) => setConditions(e.target.value)}
               />
             </div>
           ) : null}
           <div className="field">
             <label htmlFor={`decision-notes-${admissionId}`}>
-              {decisionValue === 'rejected'
-                ? t('admin.admissions.rejection.reason')
+              {needsReason
+                ? `${t('admin.admissions.rejection.reason')} *`
                 : t('common.note')}
             </label>
             <textarea
@@ -137,7 +162,8 @@ export function AdmissionDecisionDialog({
               rows={3}
               value={decisionNotes}
               onChange={(e) => setDecisionNotes(e.target.value)}
-              required={decisionValue === 'rejected'}
+              required={needsReason}
+              data-testid="admission-decision-dialog-notes"
             />
           </div>
           <div className="confirmation-dialog__actions">
