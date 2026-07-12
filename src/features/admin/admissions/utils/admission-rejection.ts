@@ -1,6 +1,7 @@
 import type { AdmissionDetail } from '@/types/admission';
 import { hasAdmissionAllowedAction } from './admission-allowed-actions';
 import { refName } from './admission-labels';
+import { normalizeAdmissionDecision } from './normalize-admission-decision';
 
 function isLinkedAdmission(
   detail: Pick<AdmissionDetail, 'student_id' | 'registration_flow_state'>,
@@ -12,36 +13,43 @@ function isLinkedAdmission(
 
 /** True only when the backend marks an administrative rejection — not every `lost` state. */
 export function isAdmissionRejected(
-  detail: Pick<AdmissionDetail, 'rejection' | 'decision'>,
+  detail: Pick<AdmissionDetail, 'rejection' | 'decision' | 'is_school_rejected'>,
 ): boolean {
+  if (detail.is_school_rejected === true) return true;
   if (detail.rejection?.is_rejected === true) return true;
-  return detail.decision?.decision === 'rejected';
+  const decision = detail.decision;
+  if (decision && typeof decision === 'object' && decision.decision === 'rejected') return true;
+  if (typeof decision === 'string' && decision.trim() === 'rejected') return true;
+  return false;
 }
 
 export function resolveRejectionReason(
-  detail: Pick<AdmissionDetail, 'rejection' | 'lost_reason' | 'decision'>,
+  detail: Pick<AdmissionDetail, 'rejection' | 'lost_reason' | 'decision' | 'decision_notes'>,
 ): string {
   const fromRejection = detail.rejection?.reason?.trim();
   if (fromRejection) return fromRejection;
   const lostReason = detail.lost_reason?.trim();
   if (lostReason) return lostReason;
-  return detail.decision?.decision_notes?.trim() ?? '';
+  const nested = normalizeAdmissionDecision(detail);
+  return nested?.decision_notes?.trim() ?? '';
 }
 
 export function resolveRejectionDecidedAt(
-  detail: Pick<AdmissionDetail, 'rejection' | 'decision'>,
+  detail: Pick<AdmissionDetail, 'rejection' | 'decision' | 'decision_date'>,
 ): string | null {
   const fromRejection = detail.rejection?.decided_at?.trim();
   if (fromRejection) return fromRejection;
-  return detail.decision?.decision_date?.trim() ?? null;
+  const nested = normalizeAdmissionDecision(detail);
+  return nested?.decision_date?.trim() ?? null;
 }
 
 export function resolveRejectionDecidedBy(
-  detail: Pick<AdmissionDetail, 'rejection' | 'decision'>,
+  detail: Pick<AdmissionDetail, 'rejection' | 'decision' | 'decision_user'>,
 ): string {
   const fromRejection = refName(detail.rejection?.decided_by ?? null);
   if (fromRejection) return fromRejection;
-  return refName(detail.decision?.decision_user ?? null);
+  const nested = normalizeAdmissionDecision(detail);
+  return refName(nested?.decision_user ?? null);
 }
 
 export function canReopenAdmission(detail: AdmissionDetail): boolean {

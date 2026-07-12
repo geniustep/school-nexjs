@@ -3921,7 +3921,10 @@
         "chipSearch": "Search: {query}",
         "chipState": "Status: {state}",
         "chipShowClosed": "Closed requests shown",
-        "chipHideConvertedOff": "Registered shown"
+        "chipHideConvertedOff": "Registered shown",
+        "outcome": "Decision / registration outcome",
+        "allOutcomes": "All outcomes",
+        "chipOutcome": "Outcome: {outcome}"
       },
       "refetching": "Updating results…",
       "noData": {
@@ -4027,7 +4030,13 @@
         "today_appointments": "Today's appointments",
         "overdue_next_actions": "Overdue actions",
         "fallbackTitle": "Estimated statistics",
-        "fallbackDescription": "The statistics dashboard could not be loaded from the server. The figures below are computed from the list currently shown."
+        "fallbackDescription": "The statistics dashboard could not be loaded from the server. The figures below are computed from the list currently shown.",
+        "outcomeGroup": "Decision and registration outcomes",
+        "awaiting_registration_count": "Awaiting registration",
+        "registered_count": "Registered",
+        "school_rejected_count": "Rejected by school",
+        "family_declined_count": "Family declined offer",
+        "expired_offer_count": "Expired offers"
       },
       "table": {
         "reference": "Reference",
@@ -4199,7 +4208,9 @@
             "childNotInBatch": "A guardian cannot be linked to a child outside this family batch.",
             "childrenRequired": "Select at least one child, or apply to all children."
           }
-        }
+        },
+        "mixedOutcomes": "Children in this family batch have mixed outcomes.",
+        "uniformOutcomes": "All children currently share the same outcome."
       },
       "guardians": {
         "sectionTitle": "Guardians on this request",
@@ -4432,7 +4443,12 @@
         "accepted": "Accepted",
         "rejected": "Rejected",
         "expired": "Expired",
-        "cancelled": "Cancelled"
+        "cancelled": "Cancelled",
+        "declined": "Declined by family",
+        "familyDeclined": "Family declined the offer",
+        "familyExpired": "Offer expired",
+        "sentLabel": "Offer sent",
+        "acceptedFamily": "Accepted by family"
       },
       "offers": {
         "create": "Create offer",
@@ -4494,7 +4510,9 @@
         "prefillOfferState": "Offer state",
         "success": "Student created and linked to the admission request.",
         "linkFailed": "Student was created, but linking to the admission request failed. Open the student profile to continue.",
-        "prefillMultiGuardianHint": "One contact guardian is prefilled from admission. You can add more guardians and choose the billing authority in this step."
+        "prefillMultiGuardianHint": "One contact guardian is prefilled from admission. You can add more guardians and choose the billing authority in this step.",
+        "awaitingMessage": "The school accepted this application, but it has not been converted to a registered student yet.",
+        "convertedAt": "Converted at: {date}"
       },
       "errors": {
         "notFound": "Admission request not found."
@@ -4504,6 +4522,33 @@
         "individual": "Individual application",
         "family": "Family application (siblings)",
         "individualHint": "For multiple siblings, use"
+      },
+      "registrationStatus": {
+        "awaiting_registration": "Accepted — awaiting registration",
+        "registered": "Registered",
+        "not_applicable": "Not applicable"
+      },
+      "schoolDecision": {
+        "pending": "Decision pending",
+        "accepted": "School decision: accepted",
+        "accepted_with_condition": "Accepted with conditions",
+        "rejected": "Rejected by school"
+      },
+      "outcomeSummary": {
+        "title": "Decision and registration summary",
+        "schoolDecision": "School decision",
+        "registration": "Registration status",
+        "offer": "Offer status",
+        "offerNone": "No offer"
+      },
+      "statusWarnings": {
+        "sectionTitle": "Data quality warnings",
+        "iconTitle": "Data quality warning",
+        "accepted_state_without_decision": "Accepted state without a recorded decision",
+        "student_linked_state_mismatch": "Linked student with mismatched application state",
+        "registration_linked_without_student": "Registration flow linked without a student",
+        "rejected_decision_state_mismatch": "Rejected decision with mismatched application state",
+        "accepted_offer_application_state_mismatch": "Accepted offer with mismatched application state"
       }
     },
     "enrollmentIntake": {

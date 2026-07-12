@@ -1,4 +1,4 @@
-import type { AdmissionAllowedActions, AdmissionDetail } from '@/types/admission';
+import type { AdmissionAllowedActions } from '@/types/admission';
 import { hasUserCapability } from '@/lib/permissions/academic-capabilities';
 import type { CurrentUser } from '@/types/user';
 
@@ -45,13 +45,4 @@ export function canChangeAdmissionState(
 ): boolean {
   if (hasAdmissionAllowedAction(actions, 'change_state')) return true;
   return hasAdmissionAllowedAction(actions, 'decide');
-}
-
-export function normalizeAdmissionDetail(detail: AdmissionDetail): AdmissionDetail {
-  return {
-    ...detail,
-    allowed_actions: normalizeAdmissionAllowedActions(
-      detail.allowed_actions as AdmissionAllowedActions | string[] | undefined,
-    ),
-  };
 }

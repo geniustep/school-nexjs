@@ -45,6 +45,7 @@ import { AdmissionRegistrationActions } from './admission-registration-actions';
 import { FamilyAdmissionFamilyPanel } from './family-admission-family-panel';
 import { hasFamilyBatchLink } from '../utils/family-admission-visibility';
 import { AdmissionRejectionBanner } from './admission-rejection-banner';
+import { AdmissionOutcomeSummary } from './admission-outcome-summary';
 import { AdmissionReopenAction } from './admission-reopen-action';
 import { AdmissionPipelineStatus } from './admission-pipeline-status';
 import { OverviewEmptyValue } from './admission-overview-primitives';
@@ -338,6 +339,8 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
         </div>
 
         <AdmissionRejectionBanner detail={detail} onUpdated={reload} />
+
+        <AdmissionOutcomeSummary detail={detail} />
 
         {!rejected && canReopenAdmission(detail) ? (
           <div className="admissions-reopen-action">

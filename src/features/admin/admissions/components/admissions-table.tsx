@@ -17,7 +17,7 @@ import {
   resolveFamilyBadgeCount,
   shouldShowFamilyBadge,
 } from '../utils/family-admission-visibility';
-import { admissionUiStageTone, resolveAdmissionUiStage } from '../utils/admission-ui-stage';
+import { AdmissionStatusBadges } from './admission-status-badges';
 import { Badge } from '@/components/ui/primitives';
 import type { AdmissionListItem } from '@/types/admission';
 
@@ -142,14 +142,7 @@ export function AdmissionsTable({
       {
         key: 'state',
         header: t('admin.admissions.table.state'),
-        render: (row) => {
-          const uiStage = resolveAdmissionUiStage(row);
-          return (
-            <Badge tone={admissionUiStageTone(uiStage)}>
-              {t(`admin.admissions.uiStages.${uiStage}`)}
-            </Badge>
-          );
-        },
+        render: (row) => <AdmissionStatusBadges record={row} />,
       },
       {
         key: 'next_action',

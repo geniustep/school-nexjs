@@ -30,12 +30,14 @@ export function useAdmissionsUiStageTableList({
   pageSize,
   search,
   uiStageFilter,
+  extraQuery,
   enabled = true,
 }: {
   page: number;
   pageSize: number;
   search?: string;
   uiStageFilter: AdmissionUiStage;
+  extraQuery?: Record<string, string | number | undefined>;
   enabled?: boolean;
 }) {
   const { activeSchoolId } = useAdminSession();
@@ -51,6 +53,23 @@ export function useAdmissionsUiStageTableList({
 
   const searchKey = search?.trim() ?? '';
   const rawStatesKey = rawStates.join(',');
+  const extraQueryKey = useMemo(() => {
+    if (!extraQuery) return '';
+    return Object.entries(extraQuery)
+      .filter(([, v]) => v !== undefined && v !== null && v !== '')
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([k, v]) => `${k}=${v}`)
+      .join('&');
+  }, [extraQuery]);
+
+  const resolvedExtraQuery = useMemo(() => {
+    if (!extraQuery) return {};
+    const out: Record<string, string | number> = {};
+    for (const [k, v] of Object.entries(extraQuery)) {
+      if (v !== undefined && v !== null && v !== '') out[k] = v;
+    }
+    return out;
+  }, [extraQueryKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!enabled || activeSchoolId == null) {
@@ -71,6 +90,7 @@ export function useAdmissionsUiStageTableList({
             search: searchKey || undefined,
             page: 1,
             page_size: FETCH_PAGE_SIZE,
+            ...resolvedExtraQuery,
           }),
         ),
       );
@@ -96,7 +116,16 @@ export function useAdmissionsUiStageTableList({
     return () => {
       cancelled = true;
     };
-  }, [enabled, activeSchoolId, uiStageFilter, rawStatesKey, searchKey, nonce]);
+  }, [
+    enabled,
+    activeSchoolId,
+    uiStageFilter,
+    rawStatesKey,
+    searchKey,
+    extraQueryKey,
+    nonce,
+    resolvedExtraQuery,
+  ]);
 
   const reload = useCallback(() => setNonce((n) => n + 1), []);
 
