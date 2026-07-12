@@ -4,6 +4,7 @@
 
 import type { AdmissionDetail } from '@/types/admission';
 import {
+  asAdmissionWorkflowFields,
   partitionRegistrationRequirements,
   resolveOfferRequired,
   resolveOfferStateV185,
@@ -34,8 +35,9 @@ export function resolveAcceptanceRegistrationMode(
   const rejected = resolveIsSchoolRejected(detail);
   const accepted =
     decision === 'accepted' || decision === 'accepted_with_condition';
-  const offerRequired = resolveOfferRequired(detail);
-  const offer = resolveOfferStateV185(detail);
+  const fields = asAdmissionWorkflowFields(detail);
+  const offerRequired = resolveOfferRequired(fields);
+  const offer = resolveOfferStateV185(fields);
 
   if (rejected || decision === 'rejected') return 'rejected';
   if (!accepted && !decision) return 'before_decision';

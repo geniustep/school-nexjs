@@ -35,7 +35,7 @@ export function AdmissionsBulkActionBar({
   const toast = useToast();
   const { activeSchoolId } = useAdminSession();
   const stageOptions = getAdmissionManualStageOptions();
-  const [targetStage, setTargetStage] = useState<AdmissionManualStage>('contacted');
+  const [targetStage, setTargetStage] = useState<AdmissionManualStage>('initial_follow_up');
   const [applying, setApplying] = useState(false);
 
   const eligibleCount = useMemo(

@@ -390,55 +390,64 @@ export type AdmissionWorkflowFieldsSource = {
   readiness?: Record<string, unknown> | null;
   decision?: AdmissionDecision | string | false | null;
   student_id?: number | false | null;
-  [key: string]: unknown;
 };
+
+/** Accept list/detail/family payloads without index-signature assignability fights. */
+export function asAdmissionWorkflowFields(
+  source: object,
+): AdmissionWorkflowFieldsSource {
+  return source as AdmissionWorkflowFieldsSource;
+}
 
 /**
  * Resolve processing_stage with Backend priority and legacy fallback.
  * Does not invent assessment_in_progress from local heuristics beyond legacy map.
  */
 export function resolveProcessingStage(
-  source: AdmissionWorkflowFieldsSource,
+  source: AdmissionWorkflowFieldsSource | object,
 ): AdmissionProcessingStage | null {
-  const fromBackend = parseAdmissionProcessingStage(source.processing_stage);
+  const fields = asAdmissionWorkflowFields(source);
+  const fromBackend = parseAdmissionProcessingStage(fields.processing_stage);
   if (fromBackend) return fromBackend;
-  return parseAdmissionProcessingStage(source.state);
+  return parseAdmissionProcessingStage(fields.state);
 }
 
 export function resolveAssessmentProgress(
-  source: AdmissionWorkflowFieldsSource,
+  source: AdmissionWorkflowFieldsSource | object,
 ): AdmissionAssessmentProgress | null {
-  const fromBackend = parseAdmissionAssessmentProgress(source.assessment_progress);
+  const fields = asAdmissionWorkflowFields(source);
+  const fromBackend = parseAdmissionAssessmentProgress(fields.assessment_progress);
   if (fromBackend) return fromBackend;
   const summaryProgress = parseAdmissionAssessmentProgress(
-    source.assessment_summary?.progress,
+    fields.assessment_summary?.progress,
   );
   if (summaryProgress) return summaryProgress;
   return null;
 }
 
 export function resolveRegistrationReadiness(
-  source: AdmissionWorkflowFieldsSource,
+  source: AdmissionWorkflowFieldsSource | object,
 ): AdmissionRegistrationReadiness | null {
+  const fields = asAdmissionWorkflowFields(source);
   const fromBackend = parseAdmissionRegistrationReadiness(
-    source.registration_readiness,
+    fields.registration_readiness,
   );
   if (fromBackend) return fromBackend;
 
   // Temporary legacy fallback only when Backend omits the field.
   const studentId =
-    typeof source.student_id === 'number' && source.student_id > 0
-      ? source.student_id
+    typeof fields.student_id === 'number' && fields.student_id > 0
+      ? fields.student_id
       : null;
-  if (studentId != null || source.registration_status === 'registered') {
+  if (studentId != null || fields.registration_status === 'registered') {
     return 'registered';
   }
-  if (source.registration_status === 'awaiting_registration') {
-    const state = String(source.state ?? '');
+  if (fields.registration_status === 'awaiting_registration') {
+    const state = String(fields.state ?? '');
     // Legacy confirmed = registration-ready after offer acceptance.
     if (state === 'confirmed') return 'ready';
-    const offerRequired = parseOfferRequired(source.offer_required, source.offer_state);
-    const offer = resolveOfferStateV185(source);
+    const offerRequired = parseOfferRequired(fields.offer_required, fields.offer_state);
+    const offer = resolveOfferStateV185(fields);
     if (offerRequired === false || offer === 'not_applicable' || offer === 'accepted') {
       return 'ready';
     }
@@ -453,16 +462,19 @@ export function resolveRegistrationReadiness(
     }
     return 'ready';
   }
-  if (source.registration_status === 'not_applicable') {
+  if (fields.registration_status === 'not_applicable') {
     return 'not_applicable';
   }
   return null;
 }
 
-export function resolveOfferRequired(source: AdmissionWorkflowFieldsSource): boolean | null {
-  const fromField = parseOfferRequired(source.offer_required, source.offer_state);
+export function resolveOfferRequired(
+  source: AdmissionWorkflowFieldsSource | object,
+): boolean | null {
+  const fields = asAdmissionWorkflowFields(source);
+  const fromField = parseOfferRequired(fields.offer_required, fields.offer_state);
   if (fromField != null) return fromField;
-  const summary = source.offer_summary;
+  const summary = fields.offer_summary;
   if (summary) {
     const fromSummary = parseOfferRequired(
       summary.offer_required ?? summary.required,
@@ -474,13 +486,14 @@ export function resolveOfferRequired(source: AdmissionWorkflowFieldsSource): boo
 }
 
 export function resolveOfferStateV185(
-  source: AdmissionWorkflowFieldsSource,
+  source: AdmissionWorkflowFieldsSource | object,
 ): string | null {
+  const fields = asAdmissionWorkflowFields(source);
   const summaryState = parseAdmissionOfferStateV185(
-    source.offer_summary?.offer_state ?? source.offer_summary?.state,
+    fields.offer_summary?.offer_state ?? fields.offer_summary?.state,
   );
   if (summaryState) return summaryState;
-  return parseAdmissionOfferStateV185(source.offer_state);
+  return parseAdmissionOfferStateV185(fields.offer_state);
 }
 
 export function partitionRegistrationRequirements(

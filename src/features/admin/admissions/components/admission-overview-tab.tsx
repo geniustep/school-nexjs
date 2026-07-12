@@ -139,7 +139,7 @@ export function AdmissionOverviewTab({
               {t('admin.admissions.family.siblingsInfoInFamilyTab')}
             </p>
             <Link
-              href={buildAdmissionTabHref(detail.id, 'family_data')}
+              href={buildAdmissionTabHref(String(detail.id), 'family_data')}
               className="btn btn--ghost btn--sm"
               data-testid="admissions-open-family-children"
             >

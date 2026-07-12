@@ -635,12 +635,10 @@ describe('registration requirements + family independence', () => {
     expect(childA.registration_readiness).not.toBe(childB.registration_readiness);
 
     const pA = resolveAdmissionPrimaryAction({
-      id: childA.id,
       ...childA,
       allowed_actions: ALL_ACTIONS,
     });
     const pB = resolveAdmissionPrimaryAction({
-      id: childB.id,
       ...childB,
       decision: {
         decision: 'accepted',

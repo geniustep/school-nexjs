@@ -8,6 +8,7 @@ import type {
 } from '@/types/admission';
 import { normalizeAdmissionAllowedActions } from './admission-allowed-actions';
 import {
+  asAdmissionWorkflowFields,
   normalizeAdmissionAssessmentSummary,
   normalizeAdmissionNextAction,
   normalizeAdmissionOfferSummary,
@@ -82,13 +83,13 @@ export function normalizeAdmissionOutcomeFields<T extends Record<string, unknown
   );
   const next_action = normalizeAdmissionNextAction(raw.next_action);
 
-  const workflowSource = {
+  const workflowSource = asAdmissionWorkflowFields({
     ...raw,
     assessment_summary,
     offer_summary,
     registration_status: registration.status,
     student_id: raw.student_id,
-  };
+  });
 
   const processing_stage =
     parseAdmissionProcessingStage(raw.processing_stage) ??

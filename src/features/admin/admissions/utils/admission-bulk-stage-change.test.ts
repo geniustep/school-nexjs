@@ -30,7 +30,7 @@ describe('runBulkStageChange', () => {
     const changeState = vi.fn(async () => true);
 
     const result = await runBulkStageChange(
-      [{ id: 3, record: { processing_stage: 'assessment_ready' } }],
+      [{ id: 3, record: { processing_stage: 'assessment_ready', state: 'qualified' } }],
       'assessment_ready',
       changeState,
     );
@@ -49,8 +49,8 @@ describe('runBulkStageChange', () => {
 
     const result = await runBulkStageChange(
       [
-        { id: 1, record: { processing_stage: 'new' } },
-        { id: 2, record: { processing_stage: 'new' } },
+        { id: 1, record: { processing_stage: 'new', state: 'new' } },
+        { id: 2, record: { processing_stage: 'new', state: 'new' } },
       ],
       'initial_follow_up',
       changeState,
@@ -109,7 +109,7 @@ describe('manual stage helper parity', () => {
     });
 
     await runBulkStageChange(
-      [{ id: 7, record: { processing_stage: 'initial_follow_up' } }],
+      [{ id: 7, record: { processing_stage: 'initial_follow_up', state: 'contacted' } }],
       'assessment_ready',
       changeState,
     );

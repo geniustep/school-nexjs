@@ -279,7 +279,7 @@ describe('URL and workspace navigation', () => {
         levelId: '2',
         sourceId: '3',
         decision: 'rejected',
-        followStage: 'contacted',
+        followStage: 'initial_follow_up',
       }),
       'closed',
     );

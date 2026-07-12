@@ -215,7 +215,7 @@ export function resolveAdmissionJourneySteps(
   if (rejected || readiness === 'not_applicable') {
     regStatus = 'not_applicable';
     regValue = 'admin.admissions.journey.notApplicable';
-  } else if (registered || readiness === 'registered') {
+  } else if (registered) {
     regStatus = 'complete';
     regValue = 'admin.admissions.registrationReadiness.registered';
   } else if (readiness === 'blocked') {

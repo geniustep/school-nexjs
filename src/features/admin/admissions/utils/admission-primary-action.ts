@@ -331,7 +331,7 @@ export function resolveAdmissionPrimaryAction(
     workspace === 'awaiting_decision' ||
     decision === 'needs_reassessment' ||
     decision === 'waitlisted' ||
-    (!decision && (processing === 'decision_ready' || state === 'under_review'))
+    (!decision && state === 'under_review')
   ) {
     if (can(input, 'decide')) {
       return {

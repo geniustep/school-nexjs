@@ -9,6 +9,7 @@ import { isAdmissionConvertedToStudent } from './admission-registration';
 
 export type AdmissionKanbanDragRecord = {
   state: AdmissionState | string;
+  processing_stage?: string | null;
   student_id?: number | false | null;
   registration_flow_state?: string | null;
 };

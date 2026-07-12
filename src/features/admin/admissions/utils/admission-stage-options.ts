@@ -22,7 +22,8 @@ export const ADMISSION_MANUAL_STAGES = [
   'under_review',
 ] as const;
 
-export type AdmissionManualStage = (typeof ADMISSION_MANUAL_STAGES)[number];
+/** Canonical manual/drag targets are processing stages (Odoo 185). */
+export type AdmissionManualStage = AdmissionManualProcessingStage;
 
 export function getAdmissionManualStageOptions(): readonly AdmissionManualProcessingStage[] {
   return ADMISSION_MANUAL_PROCESSING_STAGES;
