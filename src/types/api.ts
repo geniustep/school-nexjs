@@ -10,6 +10,7 @@ export interface Pagination {
 
 export interface ApiMeta {
   pagination?: Pagination;
+  applied_filters?: Record<string, unknown>;
   [key: string]: unknown;
 }
 

@@ -4,25 +4,23 @@ import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/primitives';
 import { cn } from '@/lib/utils/cn';
 import { useT } from '@/features/i18n/locale-context';
-import type { AdmissionKanbanDragRecord, DraggableAdmissionUiStage } from '../utils/admission-kanban-drag';
-import { evaluateKanbanDragStateChange } from '../utils/admission-kanban-drag';
+import type { AdmissionKanbanDragRecord } from '../utils/admission-kanban-drag';
 import { useAdmissionStateChange } from '../hooks/use-admission-state-change';
 import { admissionStateTone } from '../utils/admission-labels';
 import {
+  admissionManualStageLabelKey,
+  evaluateManualStageChange,
+  getAdmissionManualStageOptions,
+  isAdmissionManualStage,
+  type AdmissionManualStage,
+} from '../utils/admission-stage-options';
+import {
+  resolveAdmissionPrimaryDisplay,
+} from '../utils/admission-status-display';
+import {
   admissionUiStageTone,
-  CLOSED_UI_STAGE,
-  REGISTERED_UI_STAGE,
   resolveAdmissionUiStage,
-  type AdmissionUiStage,
 } from '../utils/admission-ui-stage';
-
-const CHANGEABLE_UI_STAGES: DraggableAdmissionUiStage[] = [
-  'new',
-  'in_follow_up',
-  'in_evaluation',
-  'accepted',
-  'ready_for_registration',
-];
 
 export function AdmissionUiStageSelect({
   record,
@@ -38,43 +36,61 @@ export function AdmissionUiStageSelect({
   disabled?: boolean;
 }) {
   const t = useT();
-  const uiStage = resolveAdmissionUiStage(record);
+  const options = getAdmissionManualStageOptions();
+  const rawState = String(record.state ?? '');
+  const manual = isAdmissionManualStage(rawState);
   const { changeState, isPending } = useAdmissionStateChange(onChanged);
-  const [current, setCurrent] = useState<AdmissionUiStage>(uiStage);
+  const [current, setCurrent] = useState<AdmissionManualStage>(
+    manual ? rawState : 'new',
+  );
   const saving = isPending(admissionId);
 
   useEffect(() => {
-    setCurrent(uiStage);
-  }, [uiStage]);
+    if (isAdmissionManualStage(rawState)) setCurrent(rawState);
+  }, [rawState]);
 
-  async function handleChange(nextStage: AdmissionUiStage) {
-    if (nextStage === current || saving || disabled) return;
-
-    const decision = evaluateKanbanDragStateChange(record, nextStage);
+  async function handleChange(next: AdmissionManualStage) {
+    if (next === current || saving || disabled) return;
+    const decision = evaluateManualStageChange(record, next);
     if (!decision.apply || !decision.targetState) {
-      setCurrent(uiStage);
+      if (isAdmissionManualStage(rawState)) setCurrent(rawState);
       return;
     }
-
     const previous = current;
-    setCurrent(nextStage);
+    setCurrent(next);
     const ok = await changeState(admissionId, decision.targetState);
     if (!ok) setCurrent(previous);
   }
 
-  if (uiStage === REGISTERED_UI_STAGE) {
+  if (!manual) {
+    const primary = resolveAdmissionPrimaryDisplay(record);
+    const uiStage = resolveAdmissionUiStage(record);
+    let label: string;
+    if (
+      primary.kind === 'ready_for_registration' ||
+      primary.kind === 'registered' ||
+      primary.kind === 'school_rejected' ||
+      primary.kind === 'awaiting_registration'
+    ) {
+      label = t(primary.labelKey);
+    } else {
+      const stateKey = `admin.admissions.states.${rawState}`;
+      const stateLabel = t(stateKey);
+      label =
+        stateLabel !== stateKey ? stateLabel : t(`admin.admissions.uiStages.${uiStage}`);
+    }
     return (
-      <Badge tone={admissionUiStageTone(REGISTERED_UI_STAGE)}>
-        {t('admin.admissions.uiStages.registered')}
-      </Badge>
-    );
-  }
-
-  if (uiStage === CLOSED_UI_STAGE) {
-    return (
-      <Badge tone={admissionUiStageTone(CLOSED_UI_STAGE)}>
-        {t('admin.admissions.uiStages.closed')}
-      </Badge>
+      <span data-testid="admission-current-stage-badge">
+        <Badge
+          tone={
+            primary.kind === 'ui_stage'
+              ? admissionUiStageTone(uiStage)
+              : primary.tone
+          }
+        >
+          {label}
+        </Badge>
+      </span>
     );
   }
 
@@ -84,11 +100,12 @@ export function AdmissionUiStageSelect({
       value={current}
       disabled={disabled || saving}
       aria-label={t('admin.admissions.detail.pipelineStage')}
-      onChange={(e) => void handleChange(e.target.value as AdmissionUiStage)}
+      data-testid="admission-manual-stage-select"
+      onChange={(e) => void handleChange(e.target.value as AdmissionManualStage)}
     >
-      {CHANGEABLE_UI_STAGES.map((stage) => (
+      {options.map((stage) => (
         <option key={stage} value={stage}>
-          {t(`admin.admissions.uiStages.${stage}`)}
+          {t(admissionManualStageLabelKey(stage))}
         </option>
       ))}
     </select>

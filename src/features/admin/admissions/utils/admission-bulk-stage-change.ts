@@ -1,5 +1,8 @@
-import type { AdmissionKanbanDragRecord, DraggableAdmissionUiStage } from './admission-kanban-drag';
-import { evaluateKanbanDragStateChange } from './admission-kanban-drag';
+import type { AdmissionKanbanDragRecord } from './admission-kanban-drag';
+import {
+  evaluateManualStageChange,
+  type AdmissionManualStage,
+} from './admission-stage-options';
 
 export interface BulkStageChangeItem {
   id: number;
@@ -10,6 +13,7 @@ export interface BulkStageChangeResult {
   succeeded: number[];
   failed: number[];
   skipped: number[];
+  ineligible: number[];
 }
 
 export type BulkStageChangeFn = (admissionId: number, state: string) => Promise<boolean>;
@@ -33,23 +37,28 @@ async function runWithConcurrency<T>(
   await Promise.all(workers);
 }
 
-/** Applies the same UI-stage transition mapping as Kanban drag, sequentially with bounded concurrency. */
+/** Bulk manual follow-up stage change — never patches decision/derived states. */
 export async function runBulkStageChange(
   items: BulkStageChangeItem[],
-  targetStage: DraggableAdmissionUiStage,
+  targetStage: AdmissionManualStage,
   changeState: BulkStageChangeFn,
   options?: { concurrency?: number },
 ): Promise<BulkStageChangeResult> {
   const succeeded: number[] = [];
   const failed: number[] = [];
   const skipped: number[] = [];
+  const ineligible: number[] = [];
 
   const planned = items.map((item) => {
-    const decision = evaluateKanbanDragStateChange(item.record, targetStage);
+    const decision = evaluateManualStageChange(item.record, targetStage);
     return { item, decision };
   });
 
   for (const { item, decision } of planned) {
+    if (decision.reason === 'not_manual_current' || decision.reason === 'registered') {
+      ineligible.push(item.id);
+      continue;
+    }
     if (!decision.apply || !decision.targetState) {
       skipped.push(item.id);
     }
@@ -59,7 +68,7 @@ export async function runBulkStageChange(
     (entry) => entry.decision.apply && entry.decision.targetState,
   ) as Array<{
     item: BulkStageChangeItem;
-    decision: { apply: true; targetState: string };
+    decision: { apply: true; targetState: AdmissionManualStage };
   }>;
 
   await runWithConcurrency(
@@ -72,5 +81,5 @@ export async function runBulkStageChange(
     },
   );
 
-  return { succeeded, failed, skipped };
+  return { succeeded, failed, skipped, ineligible };
 }

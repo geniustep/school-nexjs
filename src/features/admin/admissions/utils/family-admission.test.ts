@@ -317,7 +317,7 @@ describe('family admission payload contract', () => {
   });
 
   it('individual admission create omits empty dob/gender without placeholders', () => {
-    const form = emptyAdmissionCreateForm();
+    const form = emptyAdmissionCreateForm('2026-07-11');
     form.child_first_name_ar = 'أحمد';
     form.requested_level_id = 77;
     form.gender = '';

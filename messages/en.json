@@ -134,7 +134,8 @@
     "financeSection": "Finance",
     "adminScopedFinance": "Finance (scoped)",
     "settings": "Settings",
-    "classResults": "Class results"
+    "classResults": "Class results",
+    "diagnosticAssessment": "Diagnostic assessment"
   },
   "states": {
     "draft": "Draft",
@@ -149,7 +150,8 @@
     "open": "Open",
     "validated": "Validated",
     "locked": "Locked",
-    "suspended": "Suspended"
+    "suspended": "Suspended",
+    "confirmed": "Confirmed"
   },
   "badges": {
     "current": "Current",
@@ -183,6 +185,7 @@
     "notFoundTitle": "Not found",
     "serverError": "Something went wrong. Please try again later.",
     "serverErrorTitle": "Something went wrong",
+    "badGateway": "The server is temporarily unavailable. Please try again in a moment.",
     "loadFailed": "Unable to load data.",
     "loadFailedRetry": "Unable to load data. Please try again.",
     "teacherLoadFailed": "Unable to load teacher details.",
@@ -694,6 +697,16 @@
         },
         "notOpen": {
           "description": "This gradebook is not open for entry yet. Contact your school administration."
+        }
+      }
+    },
+    "diagnosticAssessment": {
+      "listTitle": "Diagnostic assessment",
+      "listSubtitle": "Campaigns assigned to you for diagnostic entry",
+      "list": {
+        "noData": {
+          "title": "No assigned campaigns",
+          "description": "When a campaign is created for your class and subject it will appear here."
         }
       }
     }
@@ -3955,12 +3968,32 @@
         "resultsCount": "{count} requests shown",
         "hiddenConvertedCount": "{count} converted hidden",
         "chipSearch": "Search: {query}",
-        "chipState": "Status: {state}",
+        "chipState": "Stage: {state}",
         "chipShowClosed": "Closed requests shown",
         "chipHideConvertedOff": "Registered shown",
         "outcome": "Decision / registration outcome",
         "allOutcomes": "All outcomes",
-        "chipOutcome": "Outcome: {outcome}"
+        "chipOutcome": "Outcome: {outcome}",
+        "stage": "Application stage",
+        "allStages": "All stages",
+        "registrationOutcome": "Registration outcome",
+        "allRegistrationOutcomes": "All registration outcomes",
+        "offerState": "Offer status",
+        "allOfferStates": "All offer statuses",
+        "groups": "Admission filters",
+        "includingClosed": "Includes closed applications",
+        "chipOffer": "Offer: {offer}",
+        "academicYear": "Academic year",
+        "allAcademicYears": "All years",
+        "level": "Level",
+        "allLevels": "All levels",
+        "source": "Source",
+        "allSources": "All sources",
+        "allDecisions": "All decisions",
+        "chipYear": "Year: {year}",
+        "chipLevel": "Level: {level}",
+        "chipSource": "Source: {source}",
+        "chipDecision": "School decision: {decision}"
       },
       "refetching": "Updating results…",
       "noData": {
@@ -3986,7 +4019,10 @@
         "scrollForward": "Scroll to later stages",
         "boardLabel": "Admission pipeline board",
         "loadMore": "Load more",
-        "loadingMore": "Loading…"
+        "loadingMore": "Loading…",
+        "horizontalScroll": "Scroll the applications board horizontally",
+        "columnCount": "{count} applications",
+        "noDragHint": "Drag and drop is not available in this workspace — use the table or detail page to decide."
       },
       "card": {
         "guardian": "Guardian",
@@ -4019,7 +4055,9 @@
         "selectItem": "Select {name}",
         "selectVisible": "Select visible requests",
         "openDetail": "Open",
-        "modeHint": "Selection mode — click a card to select or deselect. Drag is disabled."
+        "modeHint": "Selection mode — click a card to select or deselect. Drag is disabled.",
+        "selectColumnVisible": "Select all visible applications in this column",
+        "deselectItem": "Deselect application"
       },
       "bulk": {
         "selectedCount": "{count} selected",
@@ -4029,14 +4067,16 @@
         "stageChangeSuccess": "{count} requests updated.",
         "stageChangePartial": "{success} updated, {failed} failed — failed requests remain selected.",
         "stageChangeSkipped": "No selected requests needed a stage change.",
-        "stageChangeFailed": "Could not update selected requests."
+        "stageChangeFailed": "Could not update selected requests.",
+        "stageChangeIneligible": "{count} applications cannot use a manual stage change",
+        "stageChangeIneligibleNote": "{count} ineligible application(s) were left unchanged."
       },
       "states": {
         "new": "New",
         "contacted": "Contacted",
         "qualified": "Qualified",
-        "visit_pending": "Visit requested",
-        "under_review": "Under review",
+        "visit_pending": "Visit pending",
+        "under_review": "Under study",
         "accepted": "Accepted",
         "waitlisted": "Waitlisted",
         "offer_sent": "Offer sent",
@@ -4048,14 +4088,14 @@
       "uiStages": {
         "new": "New",
         "in_follow_up": "In follow-up",
-        "in_evaluation": "In evaluation",
+        "in_evaluation": "Under study",
         "accepted": "Accepted",
         "ready_for_registration": "Ready to register",
         "registered": "Registered",
         "closed": "Closed"
       },
       "dashboard": {
-        "total_open": "Open requests",
+        "total_open": "Active applications",
         "new_count": "New requests",
         "visit_pending_count": "Pending visits",
         "under_review_count": "Under review",
@@ -4072,7 +4112,17 @@
         "registered_count": "Registered",
         "school_rejected_count": "Rejected by school",
         "family_declined_count": "Family declined offer",
-        "expired_offer_count": "Expired offers"
+        "expired_offer_count": "Expired offers",
+        "mainGroup": "Main cards",
+        "secondaryGroup": "Secondary indicators",
+        "readyHint": "The family accepted the offer",
+        "filterAwaitingAria": "Show accepted applications awaiting registration",
+        "filterReadyAria": "Show applications ready for registration",
+        "filterRejectedAria": "Show school-rejected applications",
+        "clearFilterAria": "Clear filter {label}",
+        "clearFilterHint": "Click again to clear this filter",
+        "filterNewAria": "Show new applications",
+        "infoGroup": "Informational indicators"
       },
       "table": {
         "reference": "Reference",
@@ -4083,7 +4133,8 @@
         "level": "Level",
         "state": "Status",
         "nextAction": "Next action",
-        "assigned": "Assigned"
+        "assigned": "Assigned",
+        "actions": "Actions"
       },
       "fields": {
         "studentName": "Child name",
@@ -4246,7 +4297,12 @@
           }
         },
         "mixedOutcomes": "Children in this family batch have mixed outcomes.",
-        "uniformOutcomes": "All children currently share the same outcome."
+        "uniformOutcomes": "All children currently share the same outcome.",
+        "badgeShort": "Family",
+        "childrenInBatchSection": "Children in this family application",
+        "siblingsInfoInFamilyTab": "This is a family application. Individual sibling fields are hidden here — related children appear in the Family tab.",
+        "openFamilyChildren": "View family children",
+        "currentChild": "Current"
       },
       "guardians": {
         "sectionTitle": "Guardians on this request",
@@ -4326,7 +4382,9 @@
         "pipelineStage": "Pipeline stage",
         "detailedState": "Detailed state",
         "tabs": "Request sections",
-        "unspecified": "Not specified"
+        "unspecified": "Not specified",
+        "noneValue": "None",
+        "individualType": "Individual"
       },
       "tabs": {
         "overview": "Overview",
@@ -4335,7 +4393,16 @@
         "assessments": "Assessments",
         "decision": "Decision",
         "offers": "Offers",
-        "prefill": "Registration-ready data"
+        "prefill": "Registration-ready data",
+        "summary": "Summary",
+        "family_data": "Family & data",
+        "assessments_appointments": "Assessments & appointments",
+        "offer_registration": "Acceptance & registration",
+        "history": "History",
+        "assessmentsSection": "Assessments",
+        "appointmentsSection": "Appointments",
+        "offerSection": "Acceptance offer",
+        "registrationSection": "Registration"
       },
       "timeline": {
         "addActivity": "Add note / follow-up",
@@ -4446,16 +4513,17 @@
         "current": "Current decision",
         "label": "Decision",
         "by": "By",
-        "conditions": "Conditions",
+        "conditions": "Admission conditions",
         "none": "No decision yet",
-        "formTitle": "Make a decision",
-        "submit": "Record decision"
+        "formTitle": "Record school decision",
+        "submit": "Record decision",
+        "conditionsRequired": "Enter admission conditions"
       },
       "decisions": {
         "accepted": "Accepted",
         "accepted_with_condition": "Accepted with conditions",
         "waitlisted": "Waitlisted",
-        "rejected": "Rejected",
+        "rejected": "Rejected by the school",
         "needs_reassessment": "Needs reassessment"
       },
       "rejection": {
@@ -4481,8 +4549,11 @@
         "expired": "Expired",
         "cancelled": "Cancelled",
         "declined": "Declined by family",
-        "familyDeclined": "Family declined the offer",
-        "familyExpired": "Offer expired",
+        "not_applicable": "Not applicable",
+        "not_created": "Required but not created",
+        "withdrawn": "Acceptance offer withdrawn",
+        "familyDeclined": "Family declined the acceptance offer",
+        "familyExpired": "Offer deadline expired",
         "sentLabel": "Offer sent",
         "acceptedFamily": "Accepted by family"
       },
@@ -4527,7 +4598,14 @@
           "birthDateMissing": "Birth date is missing.",
           "genderMissing": "Gender is missing.",
           "requestedLevelMissing": "Requested level is missing.",
-          "academicYearMissing": "Academic year is missing."
+          "academicYearMissing": "Academic year is missing.",
+          "familyBatchGuardianBillingHint": "A family-batch guardian is available; if multiple guardians will be linked, confirm the billing authority explicitly during registration.",
+          "identityDocumentMissing": "Guardian identity document is incomplete.",
+          "identityDocumentRequired": "Guardian identity document is required.",
+          "identityDocumentMissingFor": "Identity document is missing for {name}.",
+          "identityDocumentNumberMissingFor": "Identity document number is missing for {name}.",
+          "familyApplicationMultipleGuardians": "Family application has multiple guardians.",
+          "billingResponsibilityAtRegistrationStart": "Billing responsibility is selected when registration starts."
         }
       },
       "registration": {
@@ -4547,8 +4625,9 @@
         "success": "Student created and linked to the admission request.",
         "linkFailed": "Student was created, but linking to the admission request failed. Open the student profile to continue.",
         "prefillMultiGuardianHint": "One contact guardian is prefilled from admission. You can add more guardians and choose the billing authority in this step.",
-        "awaitingMessage": "The school accepted this application, but it has not been converted to a registered student yet.",
-        "convertedAt": "Converted at: {date}"
+        "awaitingMessage": "The school accepted the application, but registration is not completed yet.",
+        "convertedAt": "Converted at: {date}",
+        "readyMessage": "The family accepted the offer, and the file is ready to complete student registration."
       },
       "errors": {
         "notFound": "Admission request not found."
@@ -4562,7 +4641,8 @@
       "registrationStatus": {
         "awaiting_registration": "Accepted — awaiting registration",
         "registered": "Registered",
-        "not_applicable": "Not applicable"
+        "not_applicable": "Not applicable",
+        "ready_for_registration": "Ready for registration"
       },
       "schoolDecision": {
         "pending": "Decision pending",
@@ -4584,7 +4664,212 @@
         "student_linked_state_mismatch": "Linked student with mismatched application state",
         "registration_linked_without_student": "Registration flow linked without a student",
         "rejected_decision_state_mismatch": "Rejected decision with mismatched application state",
-        "accepted_offer_application_state_mismatch": "Accepted offer with mismatched application state"
+        "accepted_offer_application_state_mismatch": "Accepted offer with mismatched application state",
+        "compactTitle": "{count} issues or warnings before registration"
+      },
+      "actions": {
+        "menu": "Application actions",
+        "recordDecision": "Record school decision",
+        "changeFollowUp": "Change follow-up stage",
+        "acceptFamilyOffer": "Confirm family acceptance",
+        "acceptOfferSuccess": "Family acceptance confirmed; the application is ready for registration.",
+        "continueRegistration": "Continue student registration",
+        "openPrefill": "Open registration prefill",
+        "linkExistingStudent": "Link existing student",
+        "reopen": "Reopen application",
+        "noSentOffer": "No sent offer is available to accept.",
+        "makeDecision": "Record school decision"
+      },
+      "workspace": {
+        "navLabel": "Admissions workspaces",
+        "follow_up": "Initial follow-up",
+        "awaiting_decision": "Awaiting school decision",
+        "post_acceptance": "After acceptance",
+        "closed": "Rejected and closed",
+        "advancedFilters": "More filters",
+        "followUpStage": "Follow-up stage",
+        "schoolDecision": "School decision",
+        "offerState": "Offer status",
+        "registrationStatus": "Registration status",
+        "followStageLabel": "Follow-up stage",
+        "awaitingSubLabel": "Decision queue",
+        "postSubLabel": "Post-acceptance outcomes",
+        "closedSubLabel": "Closed categories",
+        "closedOther": "Closed for other reasons",
+        "closedOtherLost": "Could not complete",
+        "kanbanDisabled": "Board view is unavailable in this workspace — table is shown.",
+        "stageFilterUnavailable": "Stage filter is unavailable in this workspace.",
+        "registrationFilterViaSub": "Registration status is selected via the subfilter above.",
+        "filtersDisabledFollowUp": "In initial follow-up only the follow-up stage is available.",
+        "filtersDisabledAwaiting": "In awaiting decision only the school decision filter is available.",
+        "filtersDisabledPost": "After acceptance, offer status is available; registration uses the subfilter.",
+        "filtersDisabledClosed": "In closed workspace, offer status is available; category uses the subfilter.",
+        "clearAdvancedFilters": "Clear additional filters",
+        "requestTypeIndividual": "Individual",
+        "requestTypeFamily": "Family",
+        "empty": {
+          "follow_up": {
+            "title": "No applications in initial follow-up",
+            "description": "New, contacted, and visit-pending applications appear here."
+          },
+          "awaiting_decision": {
+            "title": "No applications awaiting school decision",
+            "description": "Under-study and needs-reassessment applications appear here."
+          },
+          "post_acceptance": {
+            "title": "No post-acceptance applications in this category",
+            "description": "Change the subfilter or clear additional filters."
+          },
+          "closed": {
+            "title": "No rejected or closed applications in this category",
+            "description": "School rejection is separate from cancelled, duplicate, and lost."
+          },
+          "filteredDescription": "No results in this workspace with the current filters."
+        },
+        "allInWorkspace": "All in this workspace"
+      },
+      "journey": {
+        "title": "Application journey",
+        "followUp": "Follow-up",
+        "assessment": "Assessment",
+        "decision": "School decision",
+        "offer": "Offer",
+        "acceptance": "Acceptance steps",
+        "registration": "Registration",
+        "pending": "Pending",
+        "decisionPending": "Awaiting decision",
+        "offerPending": "Awaiting offer preparation",
+        "offerRequired": "Acceptance offer required",
+        "offerNotRequired": "No acceptance offer required",
+        "notApplicable": "Not applicable",
+        "closed": "Closed",
+        "followUpComplete": "Complete",
+        "status": {
+          "complete": "Complete",
+          "current": "Current",
+          "pending": "Pending",
+          "not_applicable": "Not applicable",
+          "blocked": "Blocked",
+          "closed": "Closed"
+        }
+      },
+      "processingStages": {
+        "new": "New",
+        "initial_follow_up": "Initial follow-up",
+        "assessment_ready": "Ready for assessment",
+        "assessment_in_progress": "Assessment in progress",
+        "decision_ready": "Awaiting school decision"
+      },
+      "assessmentProgress": {
+        "not_required": "Not required",
+        "not_started": "Not started",
+        "in_progress": "In progress",
+        "additional_required": "Additional assessment required",
+        "completed": "Completed",
+        "ready_for_decision": "Ready for decision"
+      },
+      "assessmentTypes": {
+        "written_test": "Written test",
+        "oral_interview": "Oral interview",
+        "subject_teacher_assessment": "Subject teacher assessment",
+        "administrative_interview": "Administrative interview",
+        "placement_assessment": "Placement assessment",
+        "additional_assessment": "Additional assessment",
+        "other": "Other assessment"
+      },
+      "assessmentRecommendations": {
+        "no_result": "No result recorded",
+        "suitable": "Suitable",
+        "suitable_with_conditions": "Suitable with conditions",
+        "review_required": "Review required",
+        "not_suitable": "Not suitable",
+        "recommendationNote": "Evaluator recommendation, not a school decision"
+      },
+      "assessmentSummary": {
+        "title": "Assessment summary",
+        "requiredCount": "Required assessments",
+        "completedCount": "Completed",
+        "openCount": "Open",
+        "nextAssessment": "Next assessment",
+        "blocking": "Blocking assessments"
+      },
+      "registrationReadiness": {
+        "not_applicable": "Not applicable",
+        "blocked": "Blocked",
+        "awaiting_offer_creation": "Awaiting offer creation",
+        "awaiting_offer_response": "Awaiting family response",
+        "ready": "Ready for registration",
+        "registered": "Registered"
+      },
+      "registrationRequirements": {
+        "blocking": "Blocking requirements",
+        "warning": "Warnings",
+        "information": "Pre-registration information"
+      },
+      "acceptance": {
+        "beforeDecision": "No school decision yet. Acceptance and registration steps will appear after the decision is made.",
+        "rejectedTitle": "Application rejected by the school",
+        "rejectedBody": "The application was rejected by the school.",
+        "reopenHint": "The application can be reopened if allowed.",
+        "acceptedDirectTitle": "Accepted — registration can proceed directly",
+        "acceptedDirectBody": "The application was accepted and registration can proceed directly.",
+        "directRegistrationHint": "This application's policy does not require a separate acceptance offer.",
+        "offerRequiredTitle": "Acceptance offer required",
+        "offerRequiredBody": "An acceptance offer is required before registration can proceed.",
+        "offerDraftTitle": "Acceptance offer in draft",
+        "awaitingFamilyTitle": "Awaiting family response",
+        "awaitingFamilyBody": "The acceptance offer was sent and is awaiting the family's response.",
+        "familyAcceptedTitle": "Family accepted the offer",
+        "familyAcceptedBody": "The family accepted the acceptance offer.",
+        "offerAcceptDoesNotRegister": "Accepting the offer does not automatically create the student record; registration is completed separately."
+      },
+      "primaryAction": {
+        "title": "Next action",
+        "moreActions": "More actions",
+        "changeStage": "Change processing stage",
+        "openStudent": "Open student profile",
+        "openStudentDesc": "This application is registered. Open the student profile to continue.",
+        "registeredNoLinkDesc": "Registered, but the student link is unavailable.",
+        "continueRegistration": "Continue student registration",
+        "continueRegistrationDesc": "The application is ready to create or link the student record.",
+        "readyNoPermissionDesc": "Ready for registration, but you do not have permission to continue.",
+        "linkStudent": "Link existing student",
+        "acceptOffer": "Confirm family acceptance",
+        "acceptOfferDesc": "The offer was sent and is waiting for the family response.",
+        "openOffer": "Open acceptance offer",
+        "createOffer": "Create acceptance offer",
+        "createOfferDesc": "The school accepted the application. Prepare the acceptance offer before registration.",
+        "sendOffer": "Send offer to family",
+        "sendOfferDesc": "A draft offer is ready to send to the family.",
+        "decide": "Make school decision",
+        "decideDesc": "This application is ready for a school decision.",
+        "openAssessments": "Open assessments",
+        "openAssessmentsDesc": "Follow the next required assessment for this application.",
+        "scheduleAssessment": "Create or schedule assessment",
+        "scheduleAssessmentDesc": "The application is ready for assessment — create or schedule the required assessment.",
+        "scheduleAppointment": "Schedule appointment",
+        "startInitialFollowUp": "Start initial follow-up",
+        "startInitialFollowUpDesc": "Move the application to initial follow-up after starting contact.",
+        "advanceProcessingStage": "Advance to next stage",
+        "advanceProcessingStageDesc": "Update the processing stage after follow-up activity.",
+        "recordFollowUp": "Record follow-up activity",
+        "recordFollowUpDesc": "Record a follow-up activity or update the processing stage.",
+        "markContacted": "Mark as contacted",
+        "markContactedDesc": "Move the application to Contacted after reaching the family.",
+        "markQualified": "Mark as qualified",
+        "markQualifiedDesc": "Move the application to Qualified after the initial check.",
+        "markVisitPending": "Schedule or confirm visit",
+        "markVisitPendingDesc": "Plan a visit or move to Visit pending.",
+        "markUnderReview": "Complete visit and move to under review",
+        "markUnderReviewDesc": "After the visit, move the application to Under review.",
+        "viewRejection": "View rejection reason",
+        "viewRejectionDesc": "The school rejected this application. Review the reason or reopen if allowed.",
+        "closedDesc": "This application is closed. No operational action is required.",
+        "noActionDesc": "No action is required right now.",
+        "reopen": "Reopen application",
+        "reviewData": "Review data",
+        "openHistory": "View history",
+        "readonly": "No action required"
       }
     },
     "enrollmentIntake": {
@@ -10398,6 +10683,109 @@
           "title": "No subjects",
           "description": "The roster is present, but no subject columns were returned."
         }
+      }
+    },
+    "diagnosticAssessment": {
+      "listTitle": "Diagnostic assessment",
+      "listSubtitle": "Diagnostic campaigns independent of exams and averages",
+      "detailTitle": "Diagnostic assessment campaign",
+      "detailSubtitle": "Fast entry for an entire class",
+      "academicYear": "Academic year",
+      "assessmentDate": "Assessment date",
+      "state": "Status",
+      "completion": "Completion",
+      "resetFilters": "Reset filters",
+      "columns": {
+        "campaign": "Campaign"
+      },
+      "filters": {
+        "allYears": "All years",
+        "allClasses": "All classes",
+        "allSubjects": "All subjects",
+        "allStates": "All statuses"
+      },
+      "states": {
+        "draft": "Draft",
+        "confirmed": "Confirmed"
+      },
+      "participation": {
+        "not_entered": "Not entered",
+        "scored": "Scored",
+        "absent": "Absent",
+        "absent_justified": "Justified absence",
+        "incomplete": "Incomplete"
+      },
+      "list": {
+        "noData": {
+          "title": "No campaigns yet",
+          "description": "Create a diagnostic campaign for a class and subject to begin."
+        },
+        "noMatch": {
+          "title": "No matching campaigns",
+          "description": "Try adjusting filters or reset them."
+        }
+      },
+      "create": {
+        "open": "New campaign",
+        "title": "Create diagnostic campaign",
+        "submit": "Create campaign",
+        "name": "Campaign title",
+        "namePlaceholder": "e.g. Diagnostic — start of year",
+        "notes": "Campaign notes",
+        "rosterHint": "Class students are loaded automatically from active enrollments on create.",
+        "missingFields": "Academic year, class and subject are required.",
+        "success": "Campaign created and roster loaded.",
+        "failed": "Could not create the campaign."
+      },
+      "detail": {
+        "notFound": {
+          "title": "Campaign not found",
+          "description": "Could not load this campaign."
+        },
+        "noRoster": {
+          "title": "Empty roster",
+          "description": "Build or sync the roster from active enrollments."
+        }
+      },
+      "grid": {
+        "student": "Student",
+        "score": "Score (1–10)",
+        "phrase": "Phrase",
+        "participation": "Participation",
+        "note": "Teacher note",
+        "notePlaceholder": "Free note…",
+        "clearScore": "Clear"
+      },
+      "stats": {
+        "completion": "Completion",
+        "average": "Average",
+        "resolved": "Resolved",
+        "scored": "Scored",
+        "absent": "Absent",
+        "notEntered": "Not entered",
+        "distribution": "Score distribution"
+      },
+      "actions": {
+        "buildRoster": "Build roster",
+        "syncRoster": "Sync roster",
+        "confirm": "Confirm campaign",
+        "resetToDraft": "Reset to draft",
+        "confirmSuccess": "Campaign confirmed.",
+        "resetSuccess": "Campaign reset to draft.",
+        "build_rosterSuccess": "Roster built.",
+        "sync_rosterSuccess": "Roster synced."
+      },
+      "save": {
+        "dirtyCount": "{count} unsaved change(s)",
+        "discard": "Discard",
+        "success": "Changes saved.",
+        "failed": "Could not save changes."
+      },
+      "print": {
+        "open": "Print",
+        "action": "Print grid",
+        "subtitle": "Diagnostic assessment grid",
+        "failed": "Could not load print payload."
       }
     }
   }

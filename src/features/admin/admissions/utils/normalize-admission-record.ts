@@ -1,10 +1,27 @@
 import type {
   AdmissionDetail,
   AdmissionListItem,
+  AdmissionNextAction,
+  AdmissionRegistrationRequirement,
   FamilyBatchApplicationSummary,
   FamilyBatchDetail,
 } from '@/types/admission';
 import { normalizeAdmissionAllowedActions } from './admission-allowed-actions';
+import {
+  asAdmissionWorkflowFields,
+  normalizeAdmissionAssessmentSummary,
+  normalizeAdmissionNextAction,
+  normalizeAdmissionOfferSummary,
+  normalizeAdmissionRegistrationRequirements,
+  parseAdmissionAssessmentProgress,
+  parseAdmissionProcessingStage,
+  parseAdmissionRegistrationReadiness,
+  parseOfferRequired,
+  resolveAssessmentProgress,
+  resolveOfferRequired,
+  resolveProcessingStage,
+  resolveRegistrationReadiness,
+} from './admission-assessment-workflow-contract';
 import {
   normalizeStatusWarnings,
   resolveIsSchoolRejected,
@@ -33,6 +50,14 @@ export function normalizeAdmissionOutcomeFields<T extends Record<string, unknown
   status_warnings: string[];
   offer_state: string | null;
   converted_at: string | null;
+  processing_stage: string | null;
+  assessment_progress: string | null;
+  assessment_summary: ReturnType<typeof normalizeAdmissionAssessmentSummary>;
+  offer_required: boolean | null;
+  offer_summary: ReturnType<typeof normalizeAdmissionOfferSummary>;
+  registration_readiness: string | null;
+  registration_requirements: AdmissionRegistrationRequirement[];
+  next_action: AdmissionNextAction;
 } {
   const decision = normalizeAdmissionDecision(raw);
   const status_warnings = normalizeStatusWarnings(raw.status_warnings);
@@ -51,6 +76,34 @@ export function normalizeAdmissionOutcomeFields<T extends Record<string, unknown
     rejection: raw.rejection as { is_rejected?: boolean } | null,
   });
 
+  const assessment_summary = normalizeAdmissionAssessmentSummary(raw.assessment_summary);
+  const offer_summary = normalizeAdmissionOfferSummary(raw.offer_summary);
+  const registration_requirements = normalizeAdmissionRegistrationRequirements(
+    raw.registration_requirements,
+  );
+  const next_action = normalizeAdmissionNextAction(raw.next_action);
+
+  const workflowSource = asAdmissionWorkflowFields({
+    ...raw,
+    assessment_summary,
+    offer_summary,
+    registration_status: registration.status,
+    student_id: raw.student_id,
+  });
+
+  const processing_stage =
+    parseAdmissionProcessingStage(raw.processing_stage) ??
+    resolveProcessingStage(workflowSource);
+  const assessment_progress =
+    parseAdmissionAssessmentProgress(raw.assessment_progress) ??
+    resolveAssessmentProgress(workflowSource);
+  const registration_readiness =
+    parseAdmissionRegistrationReadiness(raw.registration_readiness) ??
+    resolveRegistrationReadiness(workflowSource);
+  const offer_required =
+    parseOfferRequired(raw.offer_required, raw.offer_state) ??
+    resolveOfferRequired(workflowSource);
+
   return {
     ...raw,
     decision,
@@ -65,6 +118,14 @@ export function normalizeAdmissionOutcomeFields<T extends Record<string, unknown
     student_id:
       resolveAdmissionStudentId(raw.student_id) ??
       (raw.student_id === false ? false : raw.student_id),
+    processing_stage,
+    assessment_progress,
+    assessment_summary,
+    offer_required,
+    offer_summary,
+    registration_readiness,
+    registration_requirements,
+    next_action,
   };
 }
 
@@ -75,12 +136,24 @@ export function normalizeAdmissionListItem(item: AdmissionListItem): AdmissionLi
   return {
     ...item,
     ...normalized,
+    admission_workspace:
+      typeof (item as { admission_workspace?: unknown }).admission_workspace === 'string'
+        ? (item as { admission_workspace: string }).admission_workspace
+        : (item as { admission_workspace?: string | null }).admission_workspace ?? null,
     decision: normalized.decision,
     registration_status: normalized.registration_status as AdmissionListItem['registration_status'],
     is_school_rejected: normalized.is_school_rejected,
     status_warnings: normalized.status_warnings,
     offer_state: normalized.offer_state,
     converted_at: normalized.converted_at,
+    processing_stage: normalized.processing_stage,
+    assessment_progress: normalized.assessment_progress,
+    assessment_summary: normalized.assessment_summary,
+    offer_required: normalized.offer_required,
+    offer_summary: normalized.offer_summary,
+    registration_readiness: normalized.registration_readiness,
+    registration_requirements: normalized.registration_requirements,
+    next_action: normalized.next_action,
   };
 }
 
@@ -102,6 +175,14 @@ export function normalizeAdmissionDetail(detail: AdmissionDetail): AdmissionDeta
     status_warnings: normalized.status_warnings,
     offer_state: normalized.offer_state,
     converted_at: normalized.converted_at,
+    processing_stage: normalized.processing_stage,
+    assessment_progress: normalized.assessment_progress,
+    assessment_summary: normalized.assessment_summary,
+    offer_required: normalized.offer_required,
+    offer_summary: normalized.offer_summary,
+    registration_readiness: normalized.registration_readiness,
+    registration_requirements: normalized.registration_requirements,
+    next_action: normalized.next_action,
     allowed_actions: normalizeAdmissionAllowedActions(
       detail.allowed_actions as Parameters<typeof normalizeAdmissionAllowedActions>[0],
     ),
@@ -124,6 +205,14 @@ export function normalizeFamilyBatchApplication(
     status_warnings: normalized.status_warnings,
     offer_state: normalized.offer_state,
     converted_at: normalized.converted_at,
+    processing_stage: normalized.processing_stage,
+    assessment_progress: normalized.assessment_progress,
+    assessment_summary: normalized.assessment_summary,
+    offer_required: normalized.offer_required,
+    offer_summary: normalized.offer_summary,
+    registration_readiness: normalized.registration_readiness,
+    registration_requirements: normalized.registration_requirements,
+    next_action: normalized.next_action,
   };
 }
 

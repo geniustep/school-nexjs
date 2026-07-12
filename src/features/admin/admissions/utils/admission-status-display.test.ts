@@ -96,6 +96,18 @@ describe('registration / rejection display', () => {
     expect(primary.kind).toBe('registered');
   });
 
+  it('shows ready_for_registration when state is confirmed and not registered', () => {
+    const primary = resolveAdmissionPrimaryDisplay(
+      baseList({
+        state: 'confirmed',
+        registration_status: 'awaiting_registration',
+        decision: 'accepted',
+      }),
+    );
+    expect(primary.kind).toBe('ready_for_registration');
+    expect(primary.labelKey).toContain('ready_for_registration');
+  });
+
   it('shows school rejected from is_school_rejected', () => {
     const primary = resolveAdmissionPrimaryDisplay(
       baseList({
@@ -143,7 +155,8 @@ describe('registration / rejection display', () => {
         registration_status: 'not_applicable',
       }),
     );
-    expect(badges.some((b) => b.key === 'offer:declined')).toBe(true);
+    expect(badges).toHaveLength(1);
+    expect(badges[0].key).toBe('primary:ui_stage');
     expect(badges.some((b) => b.key === 'primary:school_rejected')).toBe(false);
   });
 

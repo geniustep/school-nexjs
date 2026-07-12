@@ -235,6 +235,28 @@ export const endpoints = {
     studentMultiSubjectResults: (studentId: number | string) =>
       `/admin/assessment/students/${studentId}/results`,
 
+    diagnosticAssessments: '/admin/assessment/diagnostic',
+    diagnosticAssessment: (id: number | string) => `/admin/assessment/diagnostic/${id}`,
+    diagnosticAssessmentBuildRoster: (id: number | string) =>
+      `/admin/assessment/diagnostic/${id}/build-roster`,
+    diagnosticAssessmentSyncRoster: (id: number | string) =>
+      `/admin/assessment/diagnostic/${id}/sync-roster`,
+    diagnosticAssessmentLines: (id: number | string) =>
+      `/admin/assessment/diagnostic/${id}/lines`,
+    diagnosticAssessmentConfirm: (id: number | string) =>
+      `/admin/assessment/diagnostic/${id}/confirm`,
+    diagnosticAssessmentResetToDraft: (id: number | string) =>
+      `/admin/assessment/diagnostic/${id}/reset-to-draft`,
+    diagnosticAssessmentSummary: (id: number | string) =>
+      `/admin/assessment/diagnostic/${id}/summary`,
+    diagnosticAssessmentPrint: (id: number | string) =>
+      `/admin/assessment/diagnostic/${id}/print`,
+    diagnosticAssessmentClassSummary: (classId: number | string) =>
+      `/admin/assessment/diagnostic/classes/${classId}/summary`,
+    diagnosticAssessmentStudentSummary: (studentId: number | string) =>
+      `/admin/assessment/diagnostic/students/${studentId}/summary`,
+    diagnosticAssessmentScoreScale: '/admin/assessment/diagnostic/score-scale',
+
     channels: '/admin/channels',
     channel: (id: number | string) => `/admin/channels/${id}`,
     channelMessages: (id: number | string) => `/admin/channels/${id}/messages`,
@@ -447,6 +469,17 @@ export const endpoints = {
     gradebookEntries: (id: number | string) => `/teacher/assessment/gradebooks/${id}/entries`,
     gradebookResults: (id: number | string) => `/teacher/assessment/gradebooks/${id}/results`,
     gradebookSubmit: (id: number | string) => `/teacher/assessment/gradebooks/${id}/submit`,
+    diagnosticAssessments: '/teacher/assessment/diagnostic',
+    diagnosticAssessment: (id: number | string) => `/teacher/assessment/diagnostic/${id}`,
+    diagnosticAssessmentLines: (id: number | string) =>
+      `/teacher/assessment/diagnostic/${id}/lines`,
+    diagnosticAssessmentConfirm: (id: number | string) =>
+      `/teacher/assessment/diagnostic/${id}/confirm`,
+    diagnosticAssessmentSummary: (id: number | string) =>
+      `/teacher/assessment/diagnostic/${id}/summary`,
+    diagnosticAssessmentPrint: (id: number | string) =>
+      `/teacher/assessment/diagnostic/${id}/print`,
+    diagnosticAssessmentScoreScale: '/teacher/assessment/diagnostic/score-scale',
     timetable: '/teacher/timetable',
     timetableToday: '/teacher/timetable/today',
     timetableWeek: '/teacher/timetable/week',

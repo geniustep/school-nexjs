@@ -39,10 +39,19 @@ export function canEditAdmissionDetail(
   return hasUserCapability(user, ADMISSION_UPDATE_LIMITED_CAPABILITY);
 }
 
-/** Full state transitions — not granted by admission.update_limited alone. */
+/** Full state / processing-stage transitions — not granted by admission.update_limited alone. */
 export function canChangeAdmissionState(
   actions: AdmissionAllowedActions | string[] | undefined | null,
 ): boolean {
+  if (hasAdmissionAllowedAction(actions, 'change_processing_stage')) return true;
   if (hasAdmissionAllowedAction(actions, 'change_state')) return true;
   return hasAdmissionAllowedAction(actions, 'decide');
+}
+
+export function canChangeAdmissionProcessingStage(
+  actions: AdmissionAllowedActions | string[] | undefined | null,
+): boolean {
+  if (hasAdmissionAllowedAction(actions, 'change_processing_stage')) return true;
+  // Temporary compatibility while Backend still gates via change_state.
+  return hasAdmissionAllowedAction(actions, 'change_state');
 }

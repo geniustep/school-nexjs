@@ -9,6 +9,7 @@ import { isAdmissionConvertedToStudent } from './admission-registration';
 
 export type AdmissionKanbanDragRecord = {
   state: AdmissionState | string;
+  processing_stage?: string | null;
   student_id?: number | false | null;
   registration_flow_state?: string | null;
 };
@@ -16,17 +17,13 @@ export type AdmissionKanbanDragRecord = {
 export type DraggableAdmissionUiStage =
   | 'new'
   | 'in_follow_up'
-  | 'in_evaluation'
-  | 'accepted'
-  | 'ready_for_registration';
+  | 'in_evaluation';
 
 /** Canonical raw state applied when dropping onto a UI stage column. */
 export const UI_STAGE_DRAG_TARGET_STATE: Record<DraggableAdmissionUiStage, AdmissionState> = {
   new: 'new',
   in_follow_up: 'contacted',
   in_evaluation: 'under_review',
-  accepted: 'accepted',
-  ready_for_registration: 'confirmed',
 };
 
 export type KanbanDragDecisionReason =
@@ -42,7 +39,12 @@ export interface KanbanDragDecision {
 }
 
 export function isUiStageDropTarget(stage: AdmissionUiStage): boolean {
-  return stage !== REGISTERED_UI_STAGE && stage !== CLOSED_UI_STAGE;
+  return (
+    stage !== REGISTERED_UI_STAGE &&
+    stage !== CLOSED_UI_STAGE &&
+    stage !== 'accepted' &&
+    stage !== 'ready_for_registration'
+  );
 }
 
 export function isAdmissionKanbanDraggable(record: AdmissionKanbanDragRecord): boolean {

@@ -1,21 +1,16 @@
 'use client';
 
 import Link from 'next/link';
-import { Badge } from '@/components/ui/primitives';
 import { cn } from '@/lib/utils/cn';
-import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import {
   cleanDisplayValue,
   formatAdmissionReference,
   isOverdueNextAction,
+  refName,
 } from '../utils/admission-labels';
-import { parseExtraFieldBool } from '../utils/admission-extra-fields';
-import {
-  resolveFamilyBadgeCount,
-  shouldShowFamilyBadge,
-} from '../utils/family-admission-visibility';
 import { AdmissionStatusBadges } from './admission-status-badges';
+import { AdmissionListActionsMenu } from './admission-list-actions-menu';
 import type { AdmissionListItem } from '@/types/admission';
 
 const DRAG_MIME = 'application/x-admission-id';
@@ -34,6 +29,7 @@ export function AdmissionCard({
   item,
   draggable = false,
   showStateBadge = true,
+  hideUiStagePrimary = false,
   isDragging = false,
   isSaving = false,
   onDragStart,
@@ -42,10 +38,13 @@ export function AdmissionCard({
   selected = false,
   selectionMode = false,
   onToggleSelect,
+  onUpdated,
 }: {
   item: AdmissionListItem;
   draggable?: boolean;
   showStateBadge?: boolean;
+  /** Hide primary badge when it only restates the Kanban column stage. */
+  hideUiStagePrimary?: boolean;
   isDragging?: boolean;
   isSaving?: boolean;
   onDragStart?: (event: React.DragEvent<HTMLDivElement>) => void;
@@ -54,24 +53,27 @@ export function AdmissionCard({
   selected?: boolean;
   selectionMode?: boolean;
   onToggleSelect?: () => void;
+  onUpdated?: () => void;
 }) {
   const t = useT();
-  const { formatDate } = useFormat();
   const overdue = isOverdueNextAction(item.next_action_date);
   const href = `/admin/admissions/${item.id}`;
   const reference = formatAdmissionReference(item.id, item.reference);
   const studentName = cleanDisplayValue(item.student_name);
+  const levelName = refName(item.requested_level);
   const guardianName = cleanDisplayValue(item.guardian_name);
   const guardianPhone = cleanDisplayValue(item.guardian_phone);
-  const nextAction = cleanDisplayValue(item.next_action);
-  const nextActionDate = item.next_action_date ? formatDate(item.next_action_date) : '';
-  const nextActionLine = [nextAction, nextActionDate].filter(Boolean).join(' — ');
-  const externalReference = cleanDisplayValue(item.external_reference ?? '');
-  const previousSchool = cleanDisplayValue(item.previous_school ?? '');
-  const siblingsSummary = cleanDisplayValue(item.siblings_summary ?? '');
-  const hasSiblings = parseExtraFieldBool(item.has_siblings);
   const dragEnabled = draggable && !selectionMode && !isSaving;
-  const cardNavDisabled = selectionMode;
+  const displayName = studentName || t('common.dash');
+
+  function isInteractiveDragSource(target: EventTarget | null): boolean {
+    if (!(target instanceof Element)) return false;
+    return Boolean(
+      target.closest(
+        'input, button, a, label, .admission-card__select, .admission-card__actions, .admission-card__open-detail',
+      ),
+    );
+  }
 
   function handleCardClick(event: React.MouseEvent) {
     if (!selectionMode || !onToggleSelect) return;
@@ -85,117 +87,127 @@ export function AdmissionCard({
     onToggleSelect?.();
   }
 
-  const cardBody = (
-    <>
-      {selectable ? (
-        <label
-          className="admission-card__select"
-          onClick={(event) => event.stopPropagation()}
-        >
-          <input
-            type="checkbox"
-            className="admission-card__select-input"
-            checked={selected}
-            aria-label={t('admin.admissions.selection.selectItem', {
-              name: studentName || reference,
-            })}
-            onChange={handleCheckboxChange}
-          />
-        </label>
-      ) : null}
+  function handleDragStart(event: React.DragEvent<HTMLDivElement>) {
+    if (!dragEnabled || isInteractiveDragSource(event.target)) {
+      event.preventDefault();
+      return;
+    }
+    onDragStart?.(event);
+  }
 
-      {draggable && !selectionMode ? (
-        <span className="admission-card__drag-handle" aria-hidden="true" title={t('admin.admissions.kanban.dragHint')}>
-          ⋮⋮
-        </span>
-      ) : null}
-
-      {selectionMode ? (
-        <Link
-          href={href}
-          className="admission-card__open-detail"
-          onClick={(event) => event.stopPropagation()}
-        >
-          {t('admin.admissions.selection.openDetail')}
-        </Link>
-      ) : null}
-
-      <div className="admission-card__title" dir="auto">
-        {studentName || t('common.dash')}
+  const toolbar = (
+    <div className="admission-card__toolbar">
+      <div className="admission-card__toolbar-start">
+        {draggable && !selectionMode ? (
+          <span
+            className="admission-card__drag-handle"
+            aria-hidden="true"
+            title={t('admin.admissions.kanban.dragHint')}
+          >
+            ⋮⋮
+          </span>
+        ) : null}
+        {selectionMode ? (
+          <Link
+            href={href}
+            className="admission-card__open-detail"
+            onClick={(event) => event.stopPropagation()}
+          >
+            {t('admin.admissions.selection.openDetail')}
+          </Link>
+        ) : null}
       </div>
-
-      {(externalReference || previousSchool || hasSiblings || siblingsSummary) && (
-        <div className="admission-card__meta">
-          {externalReference ? (
-            <Badge tone="slate">{externalReference}</Badge>
-          ) : null}
-          {previousSchool ? (
-            <span className="admission-card__previous-school tiny muted">{previousSchool}</span>
-          ) : null}
-          {siblingsSummary ? (
-            <span className="admission-card__siblings-summary tiny muted">{siblingsSummary}</span>
-          ) : null}
-          {hasSiblings && !siblingsSummary ? (
-            <Badge tone="blue">{t('admin.admissions.list.hasSiblingsBadge')}</Badge>
-          ) : null}
-          {shouldShowFamilyBadge(item) ? (
-            <Badge tone="blue">
-              {t('admin.admissions.family.badge', {
-                count: resolveFamilyBadgeCount(item),
-              })}
-            </Badge>
-          ) : null}
-        </div>
-      )}
-
-      <dl className="admission-card__details">
-        {guardianName ? (
-          <div className="admission-card__detail">
-            <dt>{t('admin.admissions.card.guardian')}</dt>
-            <dd className="admission-card__detail-value">{guardianName}</dd>
-          </div>
-        ) : null}
-        {guardianPhone ? (
-          <div className="admission-card__detail">
-            <dt>{t('admin.admissions.card.phone')}</dt>
-            <dd className="admission-card__detail-value" dir="ltr">
-              {guardianPhone}
-            </dd>
-          </div>
-        ) : null}
-        {nextActionLine ? (
-          <div className="admission-card__detail">
-            <dt>{t('admin.admissions.nextAction')}</dt>
-            <dd
-              className={cn(
-                'admission-card__detail-value',
-                overdue && 'admission-card__detail--overdue',
+      <div className="admission-card__toolbar-end">
+        {selectable ? (
+          <label
+            className="admission-card__select"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <input
+              type="checkbox"
+              className="admission-card__select-input"
+              checked={selected}
+              aria-label={t(
+                selected
+                  ? 'admin.admissions.selection.deselectItem'
+                  : 'admin.admissions.selection.selectItem',
+                { name: displayName },
               )}
-            >
-              {nextActionLine}
-            </dd>
+              onChange={handleCheckboxChange}
+            />
+          </label>
+        ) : null}
+        {!selectionMode ? (
+          <div
+            className="admission-card__actions"
+            onClick={(event) => event.stopPropagation()}
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <AdmissionListActionsMenu
+              admissionId={item.id}
+              onUpdated={onUpdated}
+              compact
+            />
           </div>
         ) : null}
-      </dl>
+      </div>
+    </div>
+  );
 
-      {(showStateBadge || item.duplicate_count > 0 || overdue) && (
-        <div className="admission-card__status-row">
-          {showStateBadge ? <AdmissionStatusBadges record={item} /> : null}
-          {(item.duplicate_count > 0 || overdue) && (
-            <div className="admission-card__badges">
-              {item.duplicate_count > 0 && (
-                <Badge tone="amber">{t('admin.admissions.badges.possibleDuplicate')}</Badge>
-              )}
-              {overdue && <Badge tone="red">{t('admin.admissions.badges.overdue')}</Badge>}
+  const body = (
+    <div className="admission-card__body">
+      <h3 className="admission-card__title" dir="auto">
+        {displayName}
+      </h3>
+
+      {levelName ? (
+        <p className="admission-card__level" dir="auto">
+          {levelName}
+        </p>
+      ) : null}
+
+      {guardianName || guardianPhone ? (
+        <dl className="admission-card__details">
+          {guardianName ? (
+            <div className="admission-card__detail">
+              <dt>{t('admin.admissions.card.guardian')}</dt>
+              <dd>
+                <span className="admission-card__detail-value" dir="auto">
+                  {guardianName}
+                </span>
+              </dd>
             </div>
-          )}
-        </div>
-      )}
+          ) : null}
+          {guardianPhone ? (
+            <div className="admission-card__detail">
+              <dt>{t('admin.admissions.card.phone')}</dt>
+              <dd>
+                <span className="admission-card__detail-value admission-card__phone" dir="ltr">
+                  {guardianPhone}
+                </span>
+              </dd>
+            </div>
+          ) : null}
+        </dl>
+      ) : null}
 
-      <div className="admission-card__footer">
-        <span className="admission-card__reference mono">{reference}</span>
+      <div className="admission-card__status-row">
+        {showStateBadge ? (
+          <AdmissionStatusBadges
+            record={item}
+            hideUiStagePrimary={hideUiStagePrimary}
+          />
+        ) : null}
+        {overdue && selectionMode ? (
+          <span className="admission-card__overdue-tag">
+            {t('admin.admissions.badges.overdue')}
+          </span>
+        ) : null}
       </div>
-    </>
+
+      {/* Visually hidden reference for a11y / tests — not shown as #id clutter */}
+      <span className="admission-card__sr-ref">{reference}</span>
+    </div>
   );
 
   const cardClassName = cn(
@@ -207,39 +219,31 @@ export function AdmissionCard({
     selectionMode && 'admission-card--selection-mode',
   );
 
-  const card = cardNavDisabled ? (
-    <div
-      className={cardClassName}
-      role="button"
-      tabIndex={0}
-      onClick={handleCardClick}
-      onKeyDown={(event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          onToggleSelect?.();
-        }
-      }}
-    >
-      {cardBody}
-    </div>
-  ) : (
-    <Link href={href} draggable={false} className={cardClassName}>
-      {cardBody}
-    </Link>
-  );
-
-  if (!dragEnabled) return card;
+  if (selectionMode) {
+    return (
+      <div
+        className={cardClassName}
+        data-testid={`admission-card-${item.id}`}
+        onClick={handleCardClick}
+      >
+        {toolbar}
+        {body}
+      </div>
+    );
+  }
 
   return (
     <div
-      className={cn('admission-card-wrap', isDragging && 'admission-card-wrap--dragging')}
-      draggable
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
+      className={cardClassName}
+      data-testid={`admission-card-${item.id}`}
+      draggable={dragEnabled}
+      onDragStart={dragEnabled ? handleDragStart : undefined}
+      onDragEnd={dragEnabled ? onDragEnd : undefined}
     >
-      {card}
+      {toolbar}
+      <Link href={href} className="admission-card__link">
+        {body}
+      </Link>
     </div>
   );
 }
-
-export { DRAG_MIME as ADMISSION_CARD_DRAG_MIME };

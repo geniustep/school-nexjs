@@ -14,7 +14,15 @@ import type {
 } from './types';
 
 function asString(value: unknown): string {
-  return typeof value === 'string' ? value : value == null ? '' : String(value);
+  if (value == null || value === false) return '';
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    // Odoo empty False may arrive as the literal string "false".
+    if (!trimmed || trimmed.toLowerCase() === 'false') return '';
+    return trimmed;
+  }
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value);
+  return '';
 }
 
 function asOptionalNumber(value: unknown): number | undefined {

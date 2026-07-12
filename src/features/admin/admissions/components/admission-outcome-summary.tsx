@@ -6,10 +6,11 @@ import { useT } from '@/features/i18n/locale-context';
 import type { AdmissionDetail } from '@/types/admission';
 import { normalizeAdmissionDecision } from '../utils/normalize-admission-decision';
 import {
-  formatOfferStateLabelKey,
+  translateOfferStateLabel,
   normalizeStatusWarnings,
   resolveIsSchoolRejected,
   resolveOfferStateValue,
+  resolveRegistrationDisplayLabelKey,
   resolveRegistrationStatus,
   statusWarningLabelKey,
 } from '../utils/admission-status-display';
@@ -22,8 +23,12 @@ export function AdmissionOutcomeSummary({ detail }: { detail: AdmissionDetail })
   const registration = resolveRegistrationStatus(detail);
   const schoolRejected = resolveIsSchoolRejected(detail);
   const offer = resolveOfferStateValue(detail);
-  const offerKey = formatOfferStateLabelKey(offer);
   const warnings = normalizeStatusWarnings(detail.status_warnings);
+  const registrationLabel = t(resolveRegistrationDisplayLabelKey(detail));
+  const isReady =
+    registration.status !== 'registered' && String(detail.state) === 'confirmed';
+  const isAwaiting =
+    registration.status === 'awaiting_registration' && !isReady;
 
   let decisionLabel = t('admin.admissions.schoolDecision.pending');
   if (schoolRejected) {
@@ -34,16 +39,16 @@ export function AdmissionOutcomeSummary({ detail }: { detail: AdmissionDetail })
     decisionLabel = translated !== key ? translated : decision.decision;
   }
 
-  const registrationLabel = t(
-    `admin.admissions.registrationStatus.${registration.status}`,
-  );
-
   return (
-    <section className="admission-outcome-summary" aria-label={t('admin.admissions.outcomeSummary.title')}>
+    <section
+      className="admission-outcome-summary"
+      aria-label={t('admin.admissions.outcomeSummary.title')}
+      data-testid="admission-outcome-summary"
+    >
       <div className="admission-outcome-summary__grid">
         <div className="admission-outcome-summary__cell">
           <span className="tiny muted">{t('admin.admissions.outcomeSummary.schoolDecision')}</span>
-          <strong>{decisionLabel}</strong>
+          <strong data-testid="outcome-school-decision">{decisionLabel}</strong>
           {decision?.decision_date ? (
             <span className="tiny muted">{formatDate(decision.decision_date)}</span>
           ) : null}
@@ -53,7 +58,7 @@ export function AdmissionOutcomeSummary({ detail }: { detail: AdmissionDetail })
         </div>
         <div className="admission-outcome-summary__cell">
           <span className="tiny muted">{t('admin.admissions.outcomeSummary.registration')}</span>
-          <strong>{registrationLabel}</strong>
+          <strong data-testid="outcome-registration">{registrationLabel}</strong>
           {detail.converted_at ? (
             <span className="tiny muted">
               {t('admin.admissions.registration.convertedAt', {
@@ -64,13 +69,21 @@ export function AdmissionOutcomeSummary({ detail }: { detail: AdmissionDetail })
         </div>
         <div className="admission-outcome-summary__cell">
           <span className="tiny muted">{t('admin.admissions.outcomeSummary.offer')}</span>
-          <strong>
-            {offerKey ? t(offerKey) : t('admin.admissions.outcomeSummary.offerNone')}
+          <strong data-testid="outcome-offer">
+            {translateOfferStateLabel(offer, t)}
           </strong>
         </div>
       </div>
 
-      {registration.status === 'awaiting_registration' ? (
+      {isReady ? (
+        <InfoBanner
+          tone="green"
+          title={t('admin.admissions.registrationStatus.ready_for_registration')}
+          description={t('admin.admissions.registration.readyMessage')}
+        />
+      ) : null}
+
+      {isAwaiting ? (
         <InfoBanner
           tone="amber"
           title={t('admin.admissions.registrationStatus.awaiting_registration')}

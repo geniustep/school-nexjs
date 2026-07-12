@@ -19,6 +19,7 @@ import type {
   AdmissionWarningDetail,
 } from './types';
 import { OverviewEmptyValue, OverviewRow } from '../components/admission-overview-primitives';
+import { relationshipTypeLabel } from '@/features/admin/students/utils/relationship-types';
 
 function attachmentMetaFromId(id: number, name: string): AttachmentMeta {
   const preview = resolveGuardianIdentityAttachmentPreviewUrl(id);
@@ -240,27 +241,27 @@ function GuardianDetailsCard({
       <div className="admission-guardian-details-card__rows">
         <OverviewRow
           label={t('admin.admissions.fields.relationship')}
-          value={guardian.relationship || null}
+          value={
+            guardian.relationship
+              ? relationshipTypeLabel(t, guardian.relationship)
+              : null
+          }
         />
         <OverviewRow
           label={t('admin.admissions.fields.guardianPhone')}
           value={guardian.phone || null}
           dir="ltr"
         />
-        {guardian.whatsapp ? (
-          <OverviewRow
-            label={t('admin.admissions.fields.guardianWhatsapp')}
-            value={guardian.whatsapp}
-            dir="ltr"
-          />
-        ) : null}
-        {guardian.email ? (
-          <OverviewRow
-            label={t('admin.admissions.fields.guardianEmail')}
-            value={guardian.email}
-            dir="ltr"
-          />
-        ) : null}
+        <OverviewRow
+          label={t('admin.admissions.fields.guardianWhatsapp')}
+          value={guardian.whatsapp || null}
+          dir="ltr"
+        />
+        <OverviewRow
+          label={t('admin.admissions.fields.guardianEmail')}
+          value={guardian.email || null}
+          dir="ltr"
+        />
         {showChildrenLinks ? (
           <OverviewRow
             label={t('admin.admissions.guardians.details.childrenLink')}

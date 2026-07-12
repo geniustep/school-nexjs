@@ -155,7 +155,7 @@ export function useAdmissionsKanbanBoard({
         activeColumns.map(async (state) => {
           const res = await fetchAdmissions({
             active_school_id: activeSchoolId,
-            state,
+            processing_stage: state,
             search: searchKey || undefined,
             page: 1,
             page_size: ADMISSIONS_KANBAN_COLUMN_PAGE_SIZE,
@@ -197,7 +197,7 @@ export function useAdmissionsKanbanBoard({
       const nextPage = current.page + 1;
       const res = await fetchAdmissions({
         active_school_id: activeSchoolId,
-        state,
+        processing_stage: state,
         search: searchKey || undefined,
         page: nextPage,
         page_size: ADMISSIONS_KANBAN_COLUMN_PAGE_SIZE,

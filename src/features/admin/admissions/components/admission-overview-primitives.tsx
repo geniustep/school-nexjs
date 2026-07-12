@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { useT } from '@/features/i18n/locale-context';
 
 export function OverviewCard({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -12,12 +13,20 @@ export function OverviewCard({ title, children }: { title: string; children: Rea
 }
 
 export function OverviewEmptyValue() {
-  return <span className="admissions-overview-value--empty" aria-hidden="true">—</span>;
+  const t = useT();
+  return (
+    <span className="admissions-overview-value--empty">
+      {t('admin.admissions.detail.noneValue')}
+    </span>
+  );
 }
 
 function isEmptyValue(value: ReactNode): boolean {
   if (value == null || value === false) return true;
-  if (typeof value === 'string') return !value.trim();
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return !trimmed || trimmed.toLowerCase() === 'false';
+  }
   return false;
 }
 

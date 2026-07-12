@@ -10,16 +10,13 @@ import {
   runBulkStageChange,
   type BulkStageChangeItem,
 } from '../utils/admission-bulk-stage-change';
-import type { DraggableAdmissionUiStage } from '../utils/admission-kanban-drag';
+import {
+  admissionManualStageLabelKey,
+  getAdmissionManualStageOptions,
+  isAdmissionManualStage,
+  type AdmissionManualStage,
+} from '../utils/admission-stage-options';
 import type { AdmissionListItem } from '@/types/admission';
-
-const BULK_STAGE_OPTIONS: DraggableAdmissionUiStage[] = [
-  'new',
-  'in_follow_up',
-  'in_evaluation',
-  'accepted',
-  'ready_for_registration',
-];
 
 export function AdmissionsBulkActionBar({
   selectedItems,
@@ -37,8 +34,15 @@ export function AdmissionsBulkActionBar({
   const t = useT();
   const toast = useToast();
   const { activeSchoolId } = useAdminSession();
-  const [targetStage, setTargetStage] = useState<DraggableAdmissionUiStage>('in_follow_up');
+  const stageOptions = getAdmissionManualStageOptions();
+  const [targetStage, setTargetStage] = useState<AdmissionManualStage>('initial_follow_up');
   const [applying, setApplying] = useState(false);
+
+  const eligibleCount = useMemo(
+    () => selectedItems.filter((item) => isAdmissionManualStage(String(item.state))).length,
+    [selectedItems],
+  );
+  const ineligibleCount = selectedItems.length - eligibleCount;
 
   const bulkItems: BulkStageChangeItem[] = useMemo(
     () =>
@@ -68,16 +72,35 @@ export function AdmissionsBulkActionBar({
 
   async function handleApplyStageChange() {
     if (applying || bulkItems.length === 0 || activeSchoolId == null) return;
+    if (eligibleCount === 0) {
+      toast.error(
+        t('admin.admissions.bulk.stageChangeIneligible', { count: ineligibleCount }),
+      );
+      return;
+    }
 
     setApplying(true);
     const result = await runBulkStageChange(bulkItems, targetStage, changeStateSilent);
     setApplying(false);
 
-    const { succeeded, failed, skipped } = result;
+    const { succeeded, failed, skipped, ineligible } = result;
+
+    if (ineligible.length > 0 && succeeded.length === 0 && failed.length === 0) {
+      toast.error(
+        t('admin.admissions.bulk.stageChangeIneligible', { count: ineligible.length }),
+      );
+      return;
+    }
 
     if (failed.length === 0 && succeeded.length > 0) {
+      const extra =
+        ineligible.length > 0
+          ? ` ${t('admin.admissions.bulk.stageChangeIneligibleNote', {
+              count: ineligible.length,
+            })}`
+          : '';
       toast.success(
-        t('admin.admissions.bulk.stageChangeSuccess', { count: succeeded.length }),
+        `${t('admin.admissions.bulk.stageChangeSuccess', { count: succeeded.length })}${extra}`,
       );
       onClearSelection();
       onUpdated?.();
@@ -110,21 +133,27 @@ export function AdmissionsBulkActionBar({
         <span className="admissions-bulk-bar__count">
           {t('admin.admissions.bulk.selectedCount', { count: selectedItems.length })}
         </span>
+        {ineligibleCount > 0 ? (
+          <span className="tiny muted">
+            {t('admin.admissions.bulk.stageChangeIneligible', { count: ineligibleCount })}
+          </span>
+        ) : null}
       </div>
 
       <div className="admissions-bulk-bar__actions">
         <label className="admissions-bulk-bar__field">
-          <span className="tiny muted">{t('admin.admissions.bulk.changeStage')}</span>
+          <span className="tiny muted">{t('admin.admissions.actions.changeFollowUp')}</span>
           <select
             className="input admissions-bulk-bar__select"
             value={targetStage}
             disabled={applying}
-            aria-label={t('admin.admissions.bulk.changeStage')}
-            onChange={(e) => setTargetStage(e.target.value as DraggableAdmissionUiStage)}
+            aria-label={t('admin.admissions.actions.changeFollowUp')}
+            data-testid="admissions-bulk-stage-select"
+            onChange={(e) => setTargetStage(e.target.value as AdmissionManualStage)}
           >
-            {BULK_STAGE_OPTIONS.map((stage) => (
+            {stageOptions.map((stage) => (
               <option key={stage} value={stage}>
-                {t(`admin.admissions.uiStages.${stage}`)}
+                {t(admissionManualStageLabelKey(stage))}
               </option>
             ))}
           </select>
@@ -133,7 +162,7 @@ export function AdmissionsBulkActionBar({
         <button
           type="button"
           className="btn btn--primary btn--sm"
-          disabled={applying || selectedItems.length === 0}
+          disabled={applying || selectedItems.length === 0 || eligibleCount === 0}
           onClick={() => void handleApplyStageChange()}
         >
           {applying ? t('common.loading') : t('admin.admissions.bulk.applyStageChange')}

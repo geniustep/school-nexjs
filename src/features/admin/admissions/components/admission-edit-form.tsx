@@ -224,7 +224,7 @@ export function AdmissionEditForm({
       }
     }
 
-    if (form.has_siblings) {
+    if (!hasFamilyBatchLink(detail) && form.has_siblings) {
       const siblingError = validateSiblingLinesLinkedStudents(form.sibling_lines, t);
       if (siblingError) {
         setError(siblingError);
@@ -291,14 +291,16 @@ export function AdmissionEditForm({
         <EnrollmentIntakeAdmissionExtrasFields values={intakeValues} onPatch={handleIntakePatch} />
       </StudentCreateStyledSection>
 
-      <StudentCreateStyledSection
-        icon="siblings"
-        title={t('admin.siblings.sectionTitle')}
-        lead={t('admin.admissions.create.siblingsSectionLead')}
-        className="student-create-form__section--siblings"
-      >
-        <EnrollmentIntakeSiblingsFields values={intakeValues} onPatch={handleIntakePatch} />
-      </StudentCreateStyledSection>
+      {hasFamilyBatchLink(detail) ? null : (
+        <StudentCreateStyledSection
+          icon="siblings"
+          title={t('admin.siblings.sectionTitle')}
+          lead={t('admin.admissions.create.siblingsSectionLead')}
+          className="student-create-form__section--siblings"
+        >
+          <EnrollmentIntakeSiblingsFields values={intakeValues} onPatch={handleIntakePatch} />
+        </StudentCreateStyledSection>
+      )}
 
       <StudentCreateStyledSection
         icon="enrollment"

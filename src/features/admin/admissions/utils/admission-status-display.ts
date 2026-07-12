@@ -4,6 +4,7 @@ import type {
   AdmissionOfferState,
   AdmissionRegistrationStatus,
   AdmissionStatusWarningCode,
+  AdmissionState,
 } from '@/types/admission';
 import { resolveAdmissionStudentId } from './admission-registration';
 import { normalizeAdmissionDecision } from './normalize-admission-decision';
@@ -12,11 +13,13 @@ import {
   type AdmissionUiStage,
   type AdmissionUiStageSource,
 } from './admission-ui-stage';
+import { CLOSED_KANBAN_STATES } from './admission-labels';
 
-/** Server-side outcome filters — never PATCH state. */
+/** Server-side outcome / quick filters — never PATCH as application state. */
 export type AdmissionOutcomeFilter =
   | ''
   | 'awaiting_registration'
+  | 'ready_for_registration'
   | 'registered'
   | 'school_rejected'
   | 'family_declined'
@@ -25,12 +28,12 @@ export type AdmissionOutcomeFilter =
 export type AdmissionPrimaryDisplayKind =
   | 'registered'
   | 'school_rejected'
+  | 'ready_for_registration'
   | 'awaiting_registration'
   | 'ui_stage';
 
 export interface AdmissionPrimaryDisplay {
   kind: AdmissionPrimaryDisplayKind;
-  /** i18n key under admin.admissions.* */
   labelKey: string;
   tone: 'green' | 'red' | 'amber' | 'blue' | 'slate';
   uiStage?: AdmissionUiStage;
@@ -77,9 +80,6 @@ export function resolveIsSchoolRejected(record: AdmissionStatusFields): boolean 
   return decision === 'rejected';
 }
 
-/**
- * Prefer backend registration_status; limited fallback for older payloads only.
- */
 export function resolveRegistrationStatus(
   record: AdmissionStatusFields,
 ): { status: AdmissionRegistrationStatus; usedLegacyFallback: boolean } {
@@ -109,12 +109,31 @@ export function resolveRegistrationStatus(
   }
 
   const state = String(record.state ?? '');
-  if ((state === 'accepted' || state === 'confirmed' || state === 'offer_sent') &&
-      resolveAdmissionStudentId(record.student_id) == null) {
+  if (
+    (state === 'accepted' || state === 'confirmed' || state === 'offer_sent') &&
+    resolveAdmissionStudentId(record.student_id) == null
+  ) {
     return { status: 'awaiting_registration', usedLegacyFallback: true };
   }
 
   return { status: 'not_applicable', usedLegacyFallback: true };
+}
+
+/** Registration label for detail/family: registered > ready(confirmed) > awaiting > n/a. */
+export function resolveRegistrationDisplayLabelKey(
+  record: AdmissionStatusFields,
+): string {
+  const { status } = resolveRegistrationStatus(record);
+  if (status === 'registered') {
+    return 'admin.admissions.registrationStatus.registered';
+  }
+  if (String(record.state ?? '') === 'confirmed') {
+    return 'admin.admissions.registrationStatus.ready_for_registration';
+  }
+  if (status === 'awaiting_registration') {
+    return 'admin.admissions.registrationStatus.awaiting_registration';
+  }
+  return 'admin.admissions.registrationStatus.not_applicable';
 }
 
 export function resolveAdmissionPrimaryDisplay(
@@ -136,6 +155,15 @@ export function resolveAdmissionPrimaryDisplay(
       kind: 'school_rejected',
       labelKey: 'admin.admissions.schoolDecision.rejected',
       tone: 'red',
+      usedLegacyFallback,
+    };
+  }
+
+  if (String(record.state ?? '') === 'confirmed') {
+    return {
+      kind: 'ready_for_registration',
+      labelKey: 'admin.admissions.registrationStatus.ready_for_registration',
+      tone: 'green',
       usedLegacyFallback,
     };
   }
@@ -168,14 +196,16 @@ export function resolveAdmissionPrimaryDisplay(
   };
 }
 
-/** Priority: registration/rejection → school decision → offer (when functionally distinct). */
+/**
+ * List/card badges: primary status + at most one secondary (family or warning only).
+ * Callers may pass `includeFamily` / `includeWarning` for the secondary slot.
+ */
 export function resolveAdmissionStatusBadges(
   record: AdmissionStatusFields & AdmissionUiStageSource,
+  options?: { includeFamily?: boolean; includeWarning?: boolean },
 ): AdmissionStatusBadge[] {
   const badges: AdmissionStatusBadge[] = [];
   const primary = resolveAdmissionPrimaryDisplay(record);
-  const decision = normalizeAdmissionDecision(record)?.decision ?? null;
-  const offer = resolveOfferStateValue(record);
 
   badges.push({
     key: `primary:${primary.kind}`,
@@ -184,61 +214,23 @@ export function resolveAdmissionStatusBadges(
     priority: 1,
   });
 
-  if (primary.kind !== 'school_rejected' && decision === 'accepted') {
+  if (options?.includeFamily) {
     badges.push({
-      key: 'decision:accepted',
-      labelKey: 'admin.admissions.schoolDecision.accepted',
-      tone: 'green',
-      priority: 2,
-    });
-  } else if (primary.kind !== 'school_rejected' && decision === 'accepted_with_condition') {
-    badges.push({
-      key: 'decision:accepted_with_condition',
-      labelKey: 'admin.admissions.schoolDecision.accepted_with_condition',
-      tone: 'amber',
-      priority: 2,
-    });
-  }
-
-  if (offer === 'declined') {
-    badges.push({
-      key: 'offer:declined',
-      labelKey: 'admin.admissions.offerStates.familyDeclined',
-      tone: 'red',
-      priority: 3,
-    });
-  } else if (offer === 'expired') {
-    badges.push({
-      key: 'offer:expired',
-      labelKey: 'admin.admissions.offerStates.familyExpired',
-      tone: 'amber',
-      priority: 3,
-    });
-  } else if (offer === 'sent' || offer === 'pending') {
-    badges.push({
-      key: 'offer:sent',
-      labelKey: 'admin.admissions.offerStates.sentLabel',
+      key: 'family',
+      labelKey: 'admin.admissions.family.badgeShort',
       tone: 'blue',
-      priority: 3,
+      priority: 2,
     });
-  } else if (offer === 'accepted' && primary.kind !== 'awaiting_registration' && primary.kind !== 'registered') {
+  } else if (options?.includeWarning && hasAdmissionStatusWarnings(record)) {
     badges.push({
-      key: 'offer:accepted',
-      labelKey: 'admin.admissions.badges.offerAccepted',
-      tone: 'green',
-      priority: 3,
+      key: 'warning',
+      labelKey: 'admin.admissions.statusWarnings.iconTitle',
+      tone: 'amber',
+      priority: 2,
     });
   }
 
-  // Avoid stacking decision:accepted when primary already says awaiting (accepted awaiting).
-  const filtered =
-    primary.kind === 'awaiting_registration'
-      ? badges.filter((b) => b.key !== 'decision:accepted' && b.key !== 'decision:accepted_with_condition')
-      : badges;
-
-  return filtered
-    .sort((a, b) => a.priority - b.priority)
-    .slice(0, 3);
+  return badges.sort((a, b) => a.priority - b.priority).slice(0, 2);
 }
 
 export function buildAdmissionOutcomeFilterQuery(
@@ -247,6 +239,8 @@ export function buildAdmissionOutcomeFilterQuery(
   switch (filter) {
     case 'awaiting_registration':
       return { registration_status: 'awaiting_registration' };
+    case 'ready_for_registration':
+      return { state: 'confirmed' };
     case 'registered':
       return { registration_status: 'registered' };
     case 'school_rejected':
@@ -260,10 +254,38 @@ export function buildAdmissionOutcomeFilterQuery(
   }
 }
 
+/** Outcome filters that must include closed applications. */
+export function outcomeFilterNeedsClosed(filter: AdmissionOutcomeFilter): boolean {
+  return (
+    filter === 'school_rejected' ||
+    filter === 'family_declined' ||
+    filter === 'expired_offer'
+  );
+}
+
+/** Raw kanban states to fetch when an outcome filter is active. */
+export function rawStatesForOutcomeFilter(
+  filter: AdmissionOutcomeFilter,
+  fallback: AdmissionState[],
+): AdmissionState[] {
+  switch (filter) {
+    case 'ready_for_registration':
+      return ['confirmed'];
+    case 'school_rejected':
+    case 'family_declined':
+    case 'expired_offer':
+      return [...fallback.filter((s) => !CLOSED_KANBAN_STATES.includes(s)), ...CLOSED_KANBAN_STATES];
+    default:
+      return fallback;
+  }
+}
+
 export function admissionOutcomeFilterLabelKey(filter: AdmissionOutcomeFilter): string | null {
   switch (filter) {
     case 'awaiting_registration':
       return 'admin.admissions.registrationStatus.awaiting_registration';
+    case 'ready_for_registration':
+      return 'admin.admissions.registrationStatus.ready_for_registration';
     case 'registered':
       return 'admin.admissions.registrationStatus.registered';
     case 'school_rejected':
@@ -277,17 +299,12 @@ export function admissionOutcomeFilterLabelKey(filter: AdmissionOutcomeFilter): 
   }
 }
 
-export const ADMISSION_STATUS_WARNING_CODES: AdmissionStatusWarningCode[] = [
-  'accepted_state_without_decision',
-  'student_linked_state_mismatch',
-  'registration_linked_without_student',
-  'rejected_decision_state_mismatch',
-  'accepted_offer_application_state_mismatch',
-];
+export const MAIN_DASHBOARD_CARD_FILTERS: Exclude<
+  AdmissionOutcomeFilter,
+  '' | 'registered' | 'family_declined' | 'expired_offer'
+>[] = ['awaiting_registration', 'ready_for_registration', 'school_rejected'];
 
-export function normalizeStatusWarnings(
-  value: unknown,
-): AdmissionStatusWarningCode[] {
+export function normalizeStatusWarnings(value: unknown): AdmissionStatusWarningCode[] {
   if (!Array.isArray(value)) return [];
   return value
     .map((item) => String(item).trim())
@@ -302,26 +319,41 @@ export function hasAdmissionStatusWarnings(record: AdmissionStatusFields): boole
   return normalizeStatusWarnings(record.status_warnings).length > 0;
 }
 
-/** Client-only summary of mixed sibling outcomes — never sent to backend. */
 export function resolveFamilyBatchMixedSummary(
   applications: AdmissionStatusFields[],
 ): 'uniform' | 'mixed' | 'empty' {
   if (applications.length === 0) return 'empty';
   const keys = applications.map((app) => {
-    const primary = resolveAdmissionPrimaryDisplay(app as AdmissionStatusFields & AdmissionUiStageSource);
+    const primary = resolveAdmissionPrimaryDisplay(
+      app as AdmissionStatusFields & AdmissionUiStageSource,
+    );
     return primary.kind === 'ui_stage' ? `ui:${primary.uiStage}` : primary.kind;
   });
-  const unique = new Set(keys);
-  return unique.size <= 1 ? 'uniform' : 'mixed';
+  return new Set(keys).size <= 1 ? 'uniform' : 'mixed';
 }
 
 export function formatOfferStateLabelKey(offerState: string | null | undefined): string | null {
   if (!offerState) return null;
-  if (offerState === 'declined') return 'admin.admissions.offerStates.declined';
-  if (offerState === 'expired') return 'admin.admissions.offerStates.expired';
-  if (offerState === 'accepted') return 'admin.admissions.offerStates.acceptedFamily';
-  if (offerState === 'sent') return 'admin.admissions.offerStates.sentLabel';
-  return `admin.admissions.offerStates.${offerState}`;
+  const normalized = offerState.trim().toLowerCase();
+  if (!normalized || normalized === 'false') return null;
+  if (normalized === 'declined') return 'admin.admissions.offerStates.declined';
+  if (normalized === 'expired') return 'admin.admissions.offerStates.expired';
+  if (normalized === 'accepted') return 'admin.admissions.offerStates.acceptedFamily';
+  if (normalized === 'sent') return 'admin.admissions.offerStates.sentLabel';
+  if (normalized === 'not_applicable') return 'admin.admissions.offerStates.not_applicable';
+  return `admin.admissions.offerStates.${normalized}`;
+}
+
+/** Translate offer state for UI — never returns a raw i18n key. */
+export function translateOfferStateLabel(
+  offerState: string | null | undefined,
+  t: (key: string) => string,
+): string {
+  const key = formatOfferStateLabelKey(offerState);
+  if (!key) return t('admin.admissions.outcomeSummary.offerNone');
+  const translated = t(key);
+  if (translated !== key) return translated;
+  return t('admin.admissions.offerStates.not_applicable');
 }
 
 export type { AdmissionListItem };

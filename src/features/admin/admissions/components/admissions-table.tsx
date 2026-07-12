@@ -12,17 +12,18 @@ import {
   refName,
 } from '../utils/admission-labels';
 import { AdmissionCard } from './admission-card';
+import { AdmissionListActionsMenu } from './admission-list-actions-menu';
 import { parseExtraFieldBool } from '../utils/admission-extra-fields';
 import {
   resolveFamilyBadgeCount,
   shouldShowFamilyBadge,
 } from '../utils/family-admission-visibility';
 import { AdmissionStatusBadges } from './admission-status-badges';
-import { Badge } from '@/components/ui/primitives';
 import type { AdmissionListItem } from '@/types/admission';
 
 export function AdmissionsTable({
   items,
+  onUpdated,
   selectionMode = false,
   isSelected,
   onToggleSelect,
@@ -92,27 +93,41 @@ export function AdmissionsTable({
           const name = cleanDisplayValue(row.student_name);
           const externalRef = cleanDisplayValue(row.external_reference ?? '');
           const hasSiblings = parseExtraFieldBool(row.has_siblings);
+          const showFamily = shouldShowFamilyBadge(row);
+          const familyCount = showFamily ? resolveFamilyBadgeCount(row) : 0;
+
           return (
-            <Link href={`/admin/admissions/${row.id}`} className="admissions-table__student-link">
-              <strong dir="auto">{name || t('common.dash')}</strong>
+            <div className="admissions-table__student">
+              <Link
+                href={`/admin/admissions/${row.id}`}
+                className="admissions-table__student-name"
+              >
+                <span dir="auto">{name || t('common.dash')}</span>
+              </Link>
               {externalRef ? (
-                <span className="admissions-table__external-ref tiny muted mono" dir="ltr">
+                <span className="admissions-table__external-ref mono" dir="ltr">
                   {externalRef}
                 </span>
               ) : null}
-              {hasSiblings ? (
-                <span className="admissions-table__siblings-hint tiny muted">
-                  {t('admin.admissions.list.hasSiblingsBadge')}
-                </span>
+              {hasSiblings || showFamily ? (
+                <div className="admissions-table__student-meta">
+                  {hasSiblings && !showFamily ? (
+                    <span className="admissions-table__meta-chip">
+                      {t('admin.admissions.list.hasSiblingsBadge')}
+                    </span>
+                  ) : null}
+                  {showFamily ? (
+                    <span
+                      className="admissions-table__meta-chip admissions-table__meta-chip--family"
+                      title={t('admin.admissions.family.badge', { count: familyCount })}
+                    >
+                      <span>{t('admin.admissions.family.badgeShort')}</span>
+                      <span className="admissions-table__meta-count">{familyCount}</span>
+                    </span>
+                  ) : null}
+                </div>
               ) : null}
-              {shouldShowFamilyBadge(row) ? (
-                <Badge tone="blue">
-                  {t('admin.admissions.family.badge', {
-                    count: resolveFamilyBadgeCount(row),
-                  })}
-                </Badge>
-              ) : null}
-            </Link>
+            </div>
           );
         },
       },
@@ -161,8 +176,16 @@ export function AdmissionsTable({
         header: t('admin.admissions.table.assigned'),
         render: (row) => refName(row.assigned_user) || t('common.dash'),
       },
+      {
+        key: 'actions',
+        header: t('admin.admissions.table.actions'),
+        className: 'admissions-table__actions-cell',
+        render: (row) => (
+          <AdmissionListActionsMenu admissionId={row.id} onUpdated={onUpdated} />
+        ),
+      },
     ],
-    [formatDate, t, isSelected, onToggleSelect, onToggleVisible, visibleSelectionState],
+    [formatDate, t, isSelected, onToggleSelect, onToggleVisible, visibleSelectionState, onUpdated],
   );
 
   return (
@@ -180,6 +203,7 @@ export function AdmissionsTable({
             selected={isSelected?.(item.id) ?? false}
             selectionMode={selectionMode}
             onToggleSelect={() => onToggleSelect?.(item.id)}
+            onUpdated={onUpdated}
           />
         ))}
       </div>

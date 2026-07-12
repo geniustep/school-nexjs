@@ -36,23 +36,24 @@ export const REGISTERED_UI_STAGE: AdmissionUiStage = 'registered';
 
 export const ALL_UI_STAGES: AdmissionUiStage[] = [...ACTIVE_UI_STAGES, CLOSED_UI_STAGE];
 
-/** Kanban column list from toolbar filters — hides empty registered/closed columns when appropriate. */
+/** Kanban column list from toolbar filters — closed only when explicitly needed. */
 export function resolveKanbanDisplayStages(options: {
-  showClosed: boolean;
-  hideConverted: boolean;
+  includeClosed?: boolean;
+  /** @deprecated Use includeClosed — kept for older call sites during migration. */
+  showClosed?: boolean;
+  /** @deprecated Registered column is always shown; hideConverted no longer applies. */
+  hideConverted?: boolean;
   stateFilter?: AdmissionUiStage | '';
 }): AdmissionUiStage[] {
   const showClosedColumn =
-    options.showClosed || options.stateFilter === CLOSED_UI_STAGE;
+    options.includeClosed === true ||
+    options.showClosed === true ||
+    options.stateFilter === CLOSED_UI_STAGE;
 
-  let stages = ACTIVE_UI_STAGES.filter(
-    (stage) => !(options.hideConverted && stage === REGISTERED_UI_STAGE),
-  );
-
+  const stages = [...ACTIVE_UI_STAGES];
   if (showClosedColumn) {
-    stages = [...stages, CLOSED_UI_STAGE];
+    return [...stages, CLOSED_UI_STAGE];
   }
-
   return stages;
 }
 

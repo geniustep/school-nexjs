@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { AdmissionsListPage } from '@/features/admin/admissions/components/admissions-list-page';
 
 /**
@@ -6,5 +7,9 @@ import { AdmissionsListPage } from '@/features/admin/admissions/components/admis
  */
 
 export default function AdminAdmissionsPage() {
-  return <AdmissionsListPage />;
+  return (
+    <Suspense fallback={<div className="muted">…</div>}>
+      <AdmissionsListPage />
+    </Suspense>
+  );
 }

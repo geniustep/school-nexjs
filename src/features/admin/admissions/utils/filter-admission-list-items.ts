@@ -1,39 +1,57 @@
 import type { AdmissionListItem } from '@/types/admission';
-import { isAdmissionConvertedToStudent } from './admission-registration';
+import { CLOSED_UI_STAGE, resolveAdmissionUiStage } from './admission-ui-stage';
+import { outcomeFilterNeedsClosed, type AdmissionOutcomeFilter } from './admission-status-display';
 
+/** @deprecated Client-side hideConverted after pagination is removed from the list UI. */
 export function filterAdmissionListItems(
   items: AdmissionListItem[],
-  hideConverted: boolean,
+  _hideConverted?: boolean,
 ): AdmissionListItem[] {
-  if (!hideConverted) return items;
-  return items.filter((item) => !isAdmissionConvertedToStudent(item));
+  return items;
 }
 
 export function countVisibleAdmissionListItems(
   items: AdmissionListItem[],
-  hideConverted: boolean,
+  _hideConverted?: boolean,
 ): number {
-  return filterAdmissionListItems(items, hideConverted).length;
+  return items.length;
 }
 
 export function countHiddenConvertedAdmissionListItems(
-  items: AdmissionListItem[],
-  hideConverted: boolean,
+  _items: AdmissionListItem[],
+  _hideConverted?: boolean,
 ): number {
-  if (!hideConverted) return 0;
-  return items.filter((item) => isAdmissionConvertedToStudent(item)).length;
+  return 0;
+}
+
+/** Exclude closed applications unless an explicit closed-targeting filter is active. */
+export function filterClosedAdmissionListItems(
+  items: AdmissionListItem[],
+  includeClosed: boolean,
+): AdmissionListItem[] {
+  if (includeClosed) return items;
+  return items.filter((item) => resolveAdmissionUiStage(item) !== CLOSED_UI_STAGE);
+}
+
+export function shouldIncludeClosedAdmissions(options: {
+  outcomeFilter?: AdmissionOutcomeFilter;
+  stateFilter?: string;
+}): boolean {
+  if (options.stateFilter === CLOSED_UI_STAGE) return true;
+  if (options.outcomeFilter && outcomeFilterNeedsClosed(options.outcomeFilter)) return true;
+  return false;
 }
 
 export function hasActiveAdmissionListFilters(options: {
   search?: string;
   stateFilter?: string;
-  showClosed?: boolean;
-  hideConverted?: boolean;
+  outcomeFilter?: string;
+  offerStateFilter?: string;
 }): boolean {
   return !!(
     options.search?.trim() ||
     options.stateFilter ||
-    options.showClosed ||
-    options.hideConverted === false
+    options.outcomeFilter ||
+    options.offerStateFilter
   );
 }

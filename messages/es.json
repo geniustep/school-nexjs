@@ -134,7 +134,8 @@
     "financeSection": "Finanzas",
     "adminScopedFinance": "Finanzas (ámbito limitado)",
     "settings": "Configuración",
-    "classResults": "Resultados de clases"
+    "classResults": "Resultados de clases",
+    "diagnosticAssessment": "Evaluación diagnóstica"
   },
   "states": {
     "draft": "Borrador",
@@ -149,7 +150,8 @@
     "open": "Abierto",
     "validated": "Validado",
     "locked": "Bloqueado",
-    "suspended": "Suspendido"
+    "suspended": "Suspendido",
+    "confirmed": "Confirmado"
   },
   "badges": {
     "current": "Actual",
@@ -183,6 +185,7 @@
     "notFoundTitle": "No encontrado",
     "serverError": "Ocurrió un error. Inténtalo más tarde.",
     "serverErrorTitle": "Error",
+    "badGateway": "El servidor no está disponible temporalmente. Inténtalo de nuevo en un momento.",
     "loadFailed": "No se pudieron cargar los datos.",
     "loadFailedRetry": "No se pudieron cargar los datos. Inténtelo de nuevo.",
     "teacherLoadFailed": "No se pudieron cargar los datos del profesor.",
@@ -694,6 +697,16 @@
         },
         "notOpen": {
           "description": "Este cuaderno aún no está abierto para la entrada. Contacta con la administración."
+        }
+      }
+    },
+    "diagnosticAssessment": {
+      "listTitle": "Evaluación diagnóstica",
+      "listSubtitle": "Campañas asignadas para capturar resultados",
+      "list": {
+        "noData": {
+          "title": "Sin campañas asignadas",
+          "description": "Cuando se cree una campaña para su clase y materia aparecerá aquí."
         }
       }
     }
@@ -3955,12 +3968,32 @@
         "resultsCount": "{count} solicitudes visibles",
         "hiddenConvertedCount": "{count} convertidas ocultas",
         "chipSearch": "Búsqueda: {query}",
-        "chipState": "Estado: {state}",
+        "chipState": "Etapa: {state}",
         "chipShowClosed": "Solicitudes cerradas visibles",
         "chipHideConvertedOff": "Registrados visibles",
         "outcome": "Resultado de decisión / inscripción",
         "allOutcomes": "Todos los resultados",
-        "chipOutcome": "Resultado: {outcome}"
+        "chipOutcome": "Resultado: {outcome}",
+        "stage": "Etapa de la solicitud",
+        "allStages": "Todas las etapas",
+        "registrationOutcome": "Resultado de inscripción",
+        "allRegistrationOutcomes": "Todos los resultados de inscripción",
+        "offerState": "Estado de la oferta",
+        "allOfferStates": "Todos los estados de oferta",
+        "groups": "Filtros de admisiones",
+        "includingClosed": "Incluye solicitudes cerradas",
+        "chipOffer": "Oferta: {offer}",
+        "academicYear": "Año académico",
+        "allAcademicYears": "Todos los años",
+        "level": "Nivel",
+        "allLevels": "Todos los niveles",
+        "source": "Fuente",
+        "allSources": "Todas las fuentes",
+        "allDecisions": "Todas las decisiones",
+        "chipYear": "Año: {year}",
+        "chipLevel": "Nivel: {level}",
+        "chipSource": "Fuente: {source}",
+        "chipDecision": "Decisión: {decision}"
       },
       "refetching": "Actualizando resultados…",
       "noData": {
@@ -3986,7 +4019,10 @@
         "scrollForward": "Desplazar a etapas siguientes",
         "boardLabel": "Tablero de etapas de admisión",
         "loadMore": "Ver más",
-        "loadingMore": "Cargando…"
+        "loadingMore": "Cargando…",
+        "horizontalScroll": "Desplazar el tablero de solicitudes horizontalmente",
+        "columnCount": "{count} solicitudes",
+        "noDragHint": "Arrastrar y soltar no está disponible en este espacio — use la tabla o el detalle para decidir."
       },
       "card": {
         "guardian": "Tutor",
@@ -4019,7 +4055,9 @@
         "selectItem": "Seleccionar {name}",
         "selectVisible": "Seleccionar solicitudes visibles",
         "openDetail": "Abrir",
-        "modeHint": "Modo selección — haz clic en una tarjeta para seleccionar o deseleccionar. El arrastre está desactivado."
+        "modeHint": "Modo selección — haz clic en una tarjeta para seleccionar o deseleccionar. El arrastre está desactivado.",
+        "selectColumnVisible": "Seleccionar todas las solicitudes visibles de esta columna",
+        "deselectItem": "Anular selección de la solicitud"
       },
       "bulk": {
         "selectedCount": "{count} seleccionado(s)",
@@ -4029,14 +4067,16 @@
         "stageChangeSuccess": "{count} solicitud(es) actualizada(s).",
         "stageChangePartial": "{success} correcta(s), {failed} fallida(s) — las fallidas siguen seleccionadas.",
         "stageChangeSkipped": "Ninguna solicitud seleccionada necesitaba cambio de etapa.",
-        "stageChangeFailed": "No se pudieron actualizar las solicitudes seleccionadas."
+        "stageChangeFailed": "No se pudieron actualizar las solicitudes seleccionadas.",
+        "stageChangeIneligible": "{count} solicitudes no admiten cambio manual de etapa",
+        "stageChangeIneligibleNote": "Se dejaron sin cambios {count} solicitud(es) no elegibles."
       },
       "states": {
         "new": "Nueva",
-        "contacted": "Contactada",
-        "qualified": "Calificada",
-        "visit_pending": "Visita solicitada",
-        "under_review": "En revisión",
+        "contacted": "Contactado",
+        "qualified": "Cualificado",
+        "visit_pending": "Visita pendiente",
+        "under_review": "En estudio",
         "accepted": "Aceptada",
         "waitlisted": "Lista de espera",
         "offer_sent": "Oferta enviada",
@@ -4048,14 +4088,14 @@
       "uiStages": {
         "new": "Nueva",
         "in_follow_up": "En seguimiento",
-        "in_evaluation": "En evaluación",
+        "in_evaluation": "En estudio",
         "accepted": "Aceptada",
         "ready_for_registration": "Lista para inscribir",
         "registered": "Inscrita",
         "closed": "Cerrada"
       },
       "dashboard": {
-        "total_open": "Solicitudes abiertas",
+        "total_open": "Solicitudes activas",
         "new_count": "Solicitudes nuevas",
         "visit_pending_count": "Visitas pendientes",
         "under_review_count": "En revisión",
@@ -4072,7 +4112,17 @@
         "registered_count": "Inscritos",
         "school_rejected_count": "Rechazados por el colegio",
         "family_declined_count": "Oferta rechazada por la familia",
-        "expired_offer_count": "Ofertas caducadas"
+        "expired_offer_count": "Ofertas caducadas",
+        "mainGroup": "Tarjetas principales",
+        "secondaryGroup": "Indicadores secundarios",
+        "readyHint": "La familia aceptó la oferta",
+        "filterAwaitingAria": "Mostrar solicitudes aceptadas en espera de inscripción",
+        "filterReadyAria": "Mostrar solicitudes listas para inscripción",
+        "filterRejectedAria": "Mostrar solicitudes rechazadas por el centro",
+        "clearFilterAria": "Quitar filtro {label}",
+        "clearFilterHint": "Haz clic de nuevo para quitar este filtro",
+        "filterNewAria": "Mostrar solicitudes nuevas",
+        "infoGroup": "Indicadores informativos"
       },
       "table": {
         "reference": "Referencia",
@@ -4083,7 +4133,8 @@
         "level": "Nivel",
         "state": "Estado",
         "nextAction": "Próxima acción",
-        "assigned": "Responsable"
+        "assigned": "Responsable",
+        "actions": "Acciones"
       },
       "fields": {
         "studentName": "Nombre del alumno",
@@ -4246,7 +4297,12 @@
           }
         },
         "mixedOutcomes": "Los niños de este lote familiar tienen resultados mixtos.",
-        "uniformOutcomes": "Todos los niños comparten actualmente el mismo resultado."
+        "uniformOutcomes": "Todos los niños comparten actualmente el mismo resultado.",
+        "badgeShort": "Familiar",
+        "childrenInBatchSection": "Niños de la solicitud familiar",
+        "siblingsInfoInFamilyTab": "Esta es una solicitud familiar. Los campos individuales de hermanos se ocultan aquí; los niños vinculados aparecen en la pestaña Familia.",
+        "openFamilyChildren": "Ver niños de la solicitud",
+        "currentChild": "Actual"
       },
       "guardians": {
         "sectionTitle": "Tutores vinculados a la solicitud",
@@ -4326,7 +4382,9 @@
         "pipelineStage": "Etapa operativa",
         "detailedState": "Estado detallado",
         "tabs": "Secciones",
-        "unspecified": "Sin especificar"
+        "unspecified": "Sin especificar",
+        "noneValue": "Ninguno",
+        "individualType": "Individual"
       },
       "tabs": {
         "overview": "Resumen",
@@ -4335,7 +4393,16 @@
         "assessments": "Evaluaciones",
         "decision": "Decisión",
         "offers": "Ofertas",
-        "prefill": "Datos listos"
+        "prefill": "Datos listos",
+        "summary": "Resumen",
+        "family_data": "Familia y datos",
+        "assessments_appointments": "Evaluaciones y citas",
+        "offer_registration": "Admisión y registro",
+        "history": "Historial",
+        "assessmentsSection": "Evaluaciones",
+        "appointmentsSection": "Citas",
+        "offerSection": "Oferta de admisión",
+        "registrationSection": "Inscripción"
       },
       "timeline": {
         "addActivity": "Añadir nota / seguimiento",
@@ -4446,17 +4513,18 @@
         "current": "Decisión actual",
         "label": "Decisión",
         "by": "Por",
-        "conditions": "Condiciones",
+        "conditions": "Condiciones de admisión",
         "none": "Sin decisión aún",
-        "formTitle": "Tomar decisión",
-        "submit": "Registrar"
+        "formTitle": "Decisión del centro",
+        "submit": "Registrar",
+        "conditionsRequired": "Introduzca las condiciones de admisión"
       },
       "decisions": {
-        "accepted": "Aceptada",
-        "accepted_with_condition": "Aceptada con condiciones",
+        "accepted": "Aceptado",
+        "accepted_with_condition": "Aceptado con condiciones",
         "waitlisted": "Lista de espera",
-        "rejected": "Rechazada",
-        "needs_reassessment": "Requiere reevaluación"
+        "rejected": "Rechazado por el centro",
+        "needs_reassessment": "Necesita reevaluación"
       },
       "rejection": {
         "status": "Rechazada",
@@ -4481,8 +4549,11 @@
         "expired": "Expirada",
         "cancelled": "Cancelada",
         "declined": "Rechazada por la familia",
-        "familyDeclined": "La familia rechazó la oferta",
-        "familyExpired": "La oferta ha caducado",
+        "not_applicable": "No aplicable",
+        "not_created": "Requerida pero no creada",
+        "withdrawn": "Oferta de admisión retirada",
+        "familyDeclined": "La familia rechazó la oferta de admisión",
+        "familyExpired": "Plazo de la oferta vencido",
         "sentLabel": "Oferta enviada",
         "acceptedFamily": "Aceptada por la familia"
       },
@@ -4527,7 +4598,14 @@
           "birthDateMissing": "Falta la fecha de nacimiento.",
           "genderMissing": "Falta el género.",
           "requestedLevelMissing": "Falta el nivel solicitado.",
-          "academicYearMissing": "Falta el año académico."
+          "academicYearMissing": "Falta el año académico.",
+          "familyBatchGuardianBillingHint": "Hay un tutor del lote familiar disponible; si se vincularán varios tutores, confirme explícitamente el responsable de facturación durante el registro.",
+          "identityDocumentMissing": "El documento de identidad del tutor está incompleto.",
+          "identityDocumentRequired": "El documento de identidad del tutor es obligatorio.",
+          "identityDocumentMissingFor": "Falta el documento de identidad de {name}.",
+          "identityDocumentNumberMissingFor": "Falta el número de documento de identidad de {name}.",
+          "familyApplicationMultipleGuardians": "La solicitud familiar tiene varios tutores.",
+          "billingResponsibilityAtRegistrationStart": "La responsabilidad de facturación se elige al iniciar el registro."
         }
       },
       "registration": {
@@ -4547,8 +4625,9 @@
         "success": "Alumno creado y vinculado a la solicitud de admisión.",
         "linkFailed": "El alumno se creó, pero falló la vinculación con la solicitud. Abra el perfil del alumno para continuar.",
         "prefillMultiGuardianHint": "Se rellena un solo tutor desde la admisión. Puede añadir más tutores y elegir el responsable de facturación aquí.",
-        "awaitingMessage": "El colegio aceptó la solicitud, pero aún no se ha convertido en un alumno inscrito.",
-        "convertedAt": "Convertida el: {date}"
+        "awaitingMessage": "El centro aceptó la solicitud, pero la inscripción aún no se ha completado.",
+        "convertedAt": "Convertida el: {date}",
+        "readyMessage": "La familia aceptó la oferta y el expediente está listo para completar la inscripción."
       },
       "errors": {
         "notFound": "Solicitud no encontrada."
@@ -4560,15 +4639,16 @@
         "individualHint": "Para varios hermanos, use"
       },
       "registrationStatus": {
-        "awaiting_registration": "Aceptada — pendiente de inscripción",
-        "registered": "Inscrita",
-        "not_applicable": "No aplicable"
+        "awaiting_registration": "Aceptado — en espera de inscripción",
+        "registered": "Inscrito",
+        "not_applicable": "No aplicable",
+        "ready_for_registration": "Listo para inscripción"
       },
       "schoolDecision": {
         "pending": "Decisión pendiente",
         "accepted": "Decisión del colegio: aceptada",
         "accepted_with_condition": "Aceptada con condiciones",
-        "rejected": "Rechazada por el colegio"
+        "rejected": "Rechazado por el colegio"
       },
       "outcomeSummary": {
         "title": "Resumen de decisión e inscripción",
@@ -4584,7 +4664,212 @@
         "student_linked_state_mismatch": "Alumno vinculado con estado de solicitud inconsistente",
         "registration_linked_without_student": "Flujo de inscripción vinculado sin alumno",
         "rejected_decision_state_mismatch": "Decisión de rechazo con estado inconsistente",
-        "accepted_offer_application_state_mismatch": "Oferta aceptada con estado de solicitud inconsistente"
+        "accepted_offer_application_state_mismatch": "Oferta aceptada con estado de solicitud inconsistente",
+        "compactTitle": "{count} problemas o avisos antes de la inscripción"
+      },
+      "actions": {
+        "menu": "Acciones de la solicitud",
+        "recordDecision": "Registrar decisión del centro",
+        "changeFollowUp": "Cambiar etapa de seguimiento",
+        "acceptFamilyOffer": "Confirmar aceptación de la familia",
+        "acceptOfferSuccess": "Aceptación familiar confirmada; la solicitud está lista para inscripción.",
+        "continueRegistration": "Completar inscripción del alumno",
+        "openPrefill": "Abrir datos precargados",
+        "linkExistingStudent": "Vincular alumno existente",
+        "reopen": "Reabrir solicitud",
+        "noSentOffer": "No hay una oferta enviada para aceptar.",
+        "makeDecision": "Tomar decisión del centro"
+      },
+      "workspace": {
+        "navLabel": "Espacios de admisiones",
+        "follow_up": "Seguimiento inicial",
+        "awaiting_decision": "En espera de decisión",
+        "post_acceptance": "Tras la aceptación",
+        "closed": "Rechazadas y cerradas",
+        "advancedFilters": "Filtros adicionales",
+        "followUpStage": "Etapa de seguimiento",
+        "schoolDecision": "Decisión del colegio",
+        "offerState": "Estado de la oferta",
+        "registrationStatus": "Estado de inscripción",
+        "followStageLabel": "Etapa de seguimiento",
+        "awaitingSubLabel": "Cola de decisión",
+        "postSubLabel": "Resultados tras aceptación",
+        "closedSubLabel": "Categorías cerradas",
+        "closedOther": "Cerrado por otros motivos",
+        "closedOtherLost": "No se pudo completar",
+        "kanbanDisabled": "El tablero no está disponible en este espacio — se muestra la tabla.",
+        "stageFilterUnavailable": "El filtro de etapa no está disponible en este espacio.",
+        "registrationFilterViaSub": "El estado de inscripción se elige con el subfiltro de arriba.",
+        "filtersDisabledFollowUp": "En seguimiento inicial solo está disponible la etapa.",
+        "filtersDisabledAwaiting": "En espera de decisión solo está disponible la decisión.",
+        "filtersDisabledPost": "Tras la aceptación, la oferta es filtrable; la inscripción usa el subfiltro.",
+        "filtersDisabledClosed": "En cerradas, la oferta es filtrable; la categoría usa el subfiltro.",
+        "clearAdvancedFilters": "Quitar filtros adicionales",
+        "requestTypeIndividual": "Individual",
+        "requestTypeFamily": "Familiar",
+        "empty": {
+          "follow_up": {
+            "title": "No hay solicitudes en seguimiento inicial",
+            "description": "Las nuevas y las de contacto/visita aparecen aquí."
+          },
+          "awaiting_decision": {
+            "title": "No hay solicitudes en espera de decisión",
+            "description": "Las que están en estudio o necesitan reevaluación aparecen aquí."
+          },
+          "post_acceptance": {
+            "title": "No hay solicitudes tras aceptación en esta categoría",
+            "description": "Cambie el subfiltro o quite los filtros adicionales."
+          },
+          "closed": {
+            "title": "No hay solicitudes rechazadas o cerradas en esta categoría",
+            "description": "El rechazo escolar es distinto de anulado, duplicado y lost."
+          },
+          "filteredDescription": "No hay resultados en este espacio con los filtros actuales."
+        },
+        "allInWorkspace": "Todo en este espacio"
+      },
+      "journey": {
+        "title": "Recorrido de la solicitud",
+        "followUp": "Seguimiento",
+        "assessment": "Evaluación",
+        "decision": "Decisión de la escuela",
+        "offer": "Oferta",
+        "acceptance": "Pasos de admisión",
+        "registration": "Inscripción",
+        "pending": "Pendiente",
+        "decisionPending": "Esperando decisión",
+        "offerPending": "En espera de preparación de la oferta",
+        "offerRequired": "Oferta de admisión requerida",
+        "offerNotRequired": "No se requiere oferta de admisión",
+        "notApplicable": "No aplica",
+        "closed": "Cerrada",
+        "followUpComplete": "Completo",
+        "status": {
+          "complete": "Completo",
+          "current": "Actual",
+          "pending": "Pendiente",
+          "not_applicable": "No aplica",
+          "blocked": "Bloqueado",
+          "closed": "Cerrada"
+        }
+      },
+      "processingStages": {
+        "new": "Nueva",
+        "initial_follow_up": "Seguimiento inicial",
+        "assessment_ready": "Lista para evaluación",
+        "assessment_in_progress": "Evaluación en curso",
+        "decision_ready": "En espera de decisión escolar"
+      },
+      "assessmentProgress": {
+        "not_required": "No requerida",
+        "not_started": "No iniciada",
+        "in_progress": "En curso",
+        "additional_required": "Evaluación adicional requerida",
+        "completed": "Completada",
+        "ready_for_decision": "Lista para decisión"
+      },
+      "assessmentTypes": {
+        "written_test": "Examen escrito",
+        "oral_interview": "Entrevista oral",
+        "subject_teacher_assessment": "Evaluación del profesor de asignatura",
+        "administrative_interview": "Entrevista administrativa",
+        "placement_assessment": "Evaluación de nivel",
+        "additional_assessment": "Evaluación adicional",
+        "other": "Otra evaluación"
+      },
+      "assessmentRecommendations": {
+        "no_result": "Sin resultado registrado",
+        "suitable": "Adecuado",
+        "suitable_with_conditions": "Adecuado con condiciones",
+        "review_required": "Revisión requerida",
+        "not_suitable": "No adecuado",
+        "recommendationNote": "Recomendación del evaluador, no decisión escolar"
+      },
+      "assessmentSummary": {
+        "title": "Resumen de evaluaciones",
+        "requiredCount": "Evaluaciones requeridas",
+        "completedCount": "Completadas",
+        "openCount": "Abiertas",
+        "nextAssessment": "Siguiente evaluación",
+        "blocking": "Evaluaciones bloqueantes"
+      },
+      "registrationReadiness": {
+        "not_applicable": "No aplica",
+        "blocked": "Bloqueado",
+        "awaiting_offer_creation": "En espera de creación de oferta",
+        "awaiting_offer_response": "En espera de respuesta familiar",
+        "ready": "Listo para inscripción",
+        "registered": "Inscrito"
+      },
+      "registrationRequirements": {
+        "blocking": "Requisitos bloqueantes",
+        "warning": "Advertencias",
+        "information": "Información previa a la inscripción"
+      },
+      "acceptance": {
+        "beforeDecision": "Aún no hay decisión escolar. Los pasos de admisión e inscripción aparecerán tras la decisión.",
+        "rejectedTitle": "Solicitud rechazada por la escuela",
+        "rejectedBody": "La solicitud fue rechazada por la escuela.",
+        "reopenHint": "La solicitud puede reabrirse si está permitido.",
+        "acceptedDirectTitle": "Aceptada — la inscripción puede continuar directamente",
+        "acceptedDirectBody": "La solicitud fue aceptada y la inscripción puede continuar directamente.",
+        "directRegistrationHint": "La política de esta solicitud no requiere una oferta de admisión separada.",
+        "offerRequiredTitle": "Oferta de admisión requerida",
+        "offerRequiredBody": "Se requiere una oferta de admisión antes de continuar la inscripción.",
+        "offerDraftTitle": "Oferta de admisión en borrador",
+        "awaitingFamilyTitle": "En espera de respuesta familiar",
+        "awaitingFamilyBody": "La oferta de admisión fue enviada y espera la respuesta de la familia.",
+        "familyAcceptedTitle": "La familia aceptó la oferta",
+        "familyAcceptedBody": "La familia aceptó la oferta de admisión.",
+        "offerAcceptDoesNotRegister": "Aceptar la oferta no crea automáticamente la ficha del alumno; la inscripción se completa por separado."
+      },
+      "primaryAction": {
+        "title": "Siguiente acción",
+        "moreActions": "Más acciones",
+        "changeStage": "Cambiar etapa de procesamiento",
+        "openStudent": "Abrir ficha del alumno",
+        "openStudentDesc": "La solicitud está inscrita. Abra la ficha del alumno.",
+        "registeredNoLinkDesc": "Inscrita, pero el enlace del alumno no está disponible.",
+        "continueRegistration": "Continuar inscripción",
+        "continueRegistrationDesc": "La solicitud está lista para crear o vincular la ficha del alumno.",
+        "readyNoPermissionDesc": "Lista para inscripción, pero sin permiso.",
+        "linkStudent": "Vincular alumno existente",
+        "acceptOffer": "Confirmar aceptación familiar",
+        "acceptOfferDesc": "La oferta fue enviada y espera la respuesta familiar.",
+        "openOffer": "Abrir oferta de admisión",
+        "createOffer": "Crear oferta de admisión",
+        "createOfferDesc": "La escuela aceptó la solicitud. Prepare la oferta de admisión antes de inscribir.",
+        "sendOffer": "Enviar oferta a la familia",
+        "sendOfferDesc": "Hay un borrador listo para enviar.",
+        "decide": "Tomar decisión escolar",
+        "decideDesc": "La solicitud está lista para una decisión.",
+        "openAssessments": "Abrir evaluaciones",
+        "openAssessmentsDesc": "Siga la siguiente evaluación requerida para esta solicitud.",
+        "scheduleAssessment": "Crear o programar evaluación",
+        "scheduleAssessmentDesc": "La solicitud está lista para evaluación — cree o programe la evaluación requerida.",
+        "scheduleAppointment": "Programar cita",
+        "startInitialFollowUp": "Iniciar seguimiento inicial",
+        "startInitialFollowUpDesc": "Pase al seguimiento inicial tras iniciar el contacto.",
+        "advanceProcessingStage": "Avanzar a la siguiente etapa",
+        "advanceProcessingStageDesc": "Actualice la etapa de procesamiento tras una actividad de seguimiento.",
+        "recordFollowUp": "Registrar actividad de seguimiento",
+        "recordFollowUpDesc": "Registre una actividad de seguimiento o actualice la etapa de procesamiento.",
+        "markContacted": "Marcar como contactado",
+        "markContactedDesc": "Pase a Contactado tras hablar con la familia.",
+        "markQualified": "Marcar como cualificado",
+        "markQualifiedDesc": "Pase a Cualificado tras la comprobación.",
+        "markVisitPending": "Programar/confirmar visita",
+        "markVisitPendingDesc": "Planifique una visita o pase a Visita pendiente.",
+        "markUnderReview": "Completar visita y pasar a en estudio",
+        "markUnderReviewDesc": "Tras la visita, pase a En estudio.",
+        "viewRejection": "Ver motivo del rechazo",
+        "viewRejectionDesc": "La escuela rechazó. Revise el motivo o reabra si está permitido.",
+        "closedDesc": "Solicitud cerrada. No hay acción operativa.",
+        "noActionDesc": "No hay acción requerida ahora.",
+        "reopen": "Reabrir solicitud",
+        "reviewData": "Revisar datos",
+        "openHistory": "Ver historial",
+        "readonly": "Sin acción requerida"
       }
     },
     "enrollmentIntake": {
@@ -10399,6 +10684,109 @@
           "title": "Sin asignaturas",
           "description": "La lista está presente, pero no se devolvieron columnas de asignatura."
         }
+      }
+    },
+    "diagnosticAssessment": {
+      "listTitle": "Evaluación diagnóstica",
+      "listSubtitle": "Campañas independientes de exámenes y promedios",
+      "detailTitle": "Campaña de evaluación diagnóstica",
+      "detailSubtitle": "Captura rápida para toda la clase",
+      "academicYear": "Año académico",
+      "assessmentDate": "Fecha de evaluación",
+      "state": "Estado",
+      "completion": "Avance",
+      "resetFilters": "Restablecer filtros",
+      "columns": {
+        "campaign": "Campaña"
+      },
+      "filters": {
+        "allYears": "Todos los años",
+        "allClasses": "Todas las clases",
+        "allSubjects": "Todas las materias",
+        "allStates": "Todos los estados"
+      },
+      "states": {
+        "draft": "Borrador",
+        "confirmed": "Confirmado"
+      },
+      "participation": {
+        "not_entered": "Sin capturar",
+        "scored": "Calificado",
+        "absent": "Ausente",
+        "absent_justified": "Ausencia justificada",
+        "incomplete": "Incompleto"
+      },
+      "list": {
+        "noData": {
+          "title": "Aún no hay campañas",
+          "description": "Cree una campaña para una clase y materia."
+        },
+        "noMatch": {
+          "title": "Sin campañas coincidentes",
+          "description": "Ajuste o restablezca los filtros."
+        }
+      },
+      "create": {
+        "open": "Nueva campaña",
+        "title": "Crear campaña diagnóstica",
+        "submit": "Crear",
+        "name": "Título",
+        "namePlaceholder": "ej. Diagnóstico — inicio de año",
+        "notes": "Notas",
+        "rosterHint": "Los alumnos se cargan automáticamente desde las inscripciones activas.",
+        "missingFields": "Año, clase y materia son obligatorios.",
+        "success": "Campaña creada y lista cargada.",
+        "failed": "No se pudo crear la campaña."
+      },
+      "detail": {
+        "notFound": {
+          "title": "Campaña no encontrada",
+          "description": "No se pudo cargar esta campaña."
+        },
+        "noRoster": {
+          "title": "Lista vacía",
+          "description": "Construya o sincronice la lista desde inscripciones activas."
+        }
+      },
+      "grid": {
+        "student": "Alumno",
+        "score": "Nota (1–10)",
+        "phrase": "Frase",
+        "participation": "Participación",
+        "note": "Nota del docente",
+        "notePlaceholder": "Nota libre…",
+        "clearScore": "Borrar"
+      },
+      "stats": {
+        "completion": "Avance",
+        "average": "Promedio",
+        "resolved": "Resueltos",
+        "scored": "Calificados",
+        "absent": "Ausentes",
+        "notEntered": "Sin capturar",
+        "distribution": "Distribución"
+      },
+      "actions": {
+        "buildRoster": "Construir lista",
+        "syncRoster": "Sincronizar",
+        "confirm": "Confirmar",
+        "resetToDraft": "Volver a borrador",
+        "confirmSuccess": "Campaña confirmada.",
+        "resetSuccess": "Campaña en borrador.",
+        "build_rosterSuccess": "Lista construida.",
+        "sync_rosterSuccess": "Lista sincronizada."
+      },
+      "save": {
+        "dirtyCount": "{count} cambio(s) sin guardar",
+        "discard": "Descartar",
+        "success": "Guardado.",
+        "failed": "No se pudo guardar."
+      },
+      "print": {
+        "open": "Imprimir",
+        "action": "Imprimir cuadrícula",
+        "subtitle": "Cuadrícula de evaluación diagnóstica",
+        "failed": "No se pudo cargar la impresión."
       }
     }
   }

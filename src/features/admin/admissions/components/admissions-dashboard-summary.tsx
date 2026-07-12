@@ -4,145 +4,89 @@ import { StatCard } from '@/components/ui/primitives';
 import { cn } from '@/lib/utils/cn';
 import { useT } from '@/features/i18n/locale-context';
 import type { AdmissionsDashboard } from '@/types/admission';
-import type { AdmissionOutcomeFilter } from '../utils/admission-status-display';
-
-type DashboardKey = keyof AdmissionsDashboard;
-
-/** Core daily KPIs — pipeline stages live in Kanban columns. */
-const DASHBOARD_ITEMS: {
-  key: DashboardKey;
-  tone: 'blue' | 'amber' | 'red' | 'green';
-  filterable?: boolean;
-}[] = [
-  { key: 'total_open', tone: 'blue', filterable: true },
-  { key: 'new_count', tone: 'blue' },
-  { key: 'overdue_next_actions', tone: 'red' },
-  { key: 'today_appointments', tone: 'amber' },
-];
-
-/** Outcome cards — values come only from backend dashboard counters. */
-const OUTCOME_CARDS: {
-  filter: Exclude<AdmissionOutcomeFilter, ''>;
-  countKey: DashboardKey;
-  tone: 'amber' | 'green' | 'red' | 'blue';
-  secondary?: boolean;
-}[] = [
-  {
-    filter: 'awaiting_registration',
-    countKey: 'awaiting_registration_count',
-    tone: 'amber',
-  },
-  {
-    filter: 'registered',
-    countKey: 'registered_count',
-    tone: 'green',
-  },
-  {
-    filter: 'school_rejected',
-    countKey: 'school_rejected_count',
-    tone: 'red',
-  },
-  {
-    filter: 'family_declined',
-    countKey: 'family_declined_count',
-    tone: 'red',
-    secondary: true,
-  },
-  {
-    filter: 'expired_offer',
-    countKey: 'expired_offer_count',
-    tone: 'amber',
-    secondary: true,
-  },
-];
+import {
+  ADMISSIONS_INFO_INDICATORS,
+  ADMISSIONS_OPERATIONAL_CARDS,
+  resolveOperationalCardPressed,
+  type AdmissionsOperationalCardId,
+} from '../utils/admissions-dashboard-cards';
 
 export function AdmissionsDashboardSummary({
   data,
-  onKpiClick,
-  activeOutcomeFilter = '',
-  onOutcomeFilterClick,
+  activeOperationalCard = null,
+  onOperationalCardClick,
 }: {
   data: AdmissionsDashboard;
-  onKpiClick?: (key: DashboardKey) => void;
-  activeOutcomeFilter?: AdmissionOutcomeFilter;
-  onOutcomeFilterClick?: (filter: AdmissionOutcomeFilter) => void;
+  activeOperationalCard?: AdmissionsOperationalCardId | null;
+  onOperationalCardClick?: (card: AdmissionsOperationalCardId) => void;
 }) {
   const t = useT();
 
   return (
-    <div className="admissions-dashboard-stack">
-      <div className="admissions-dashboard">
-        {DASHBOARD_ITEMS.map(({ key, tone, filterable }) => {
-          const card = (
-            <StatCard
-              label={t(`admin.admissions.dashboard.${key}`)}
-              value={data[key] ?? 0}
-              tone={tone}
-            />
-          );
-
-          if (filterable && onKpiClick) {
-            return (
-              <button
-                key={key}
-                type="button"
-                className={cn(
-                  'admissions-dashboard__kpi-btn',
-                  `admissions-dashboard__kpi-btn--${tone}`,
-                )}
-                onClick={() => onKpiClick(key)}
-                aria-label={t(`admin.admissions.dashboard.${key}`)}
-              >
-                {card}
-              </button>
-            );
-          }
+    <div className="admissions-dashboard-stack" data-testid="admissions-dashboard">
+      <div
+        className="admissions-dashboard admissions-dashboard--main admissions-dashboard--operational"
+        role="group"
+        aria-label={t('admin.admissions.dashboard.mainGroup')}
+        data-testid="admissions-dashboard-main"
+      >
+        {ADMISSIONS_OPERATIONAL_CARDS.map((card) => {
+          const value = Number(data[card.countKey] ?? 0);
+          const active = resolveOperationalCardPressed(activeOperationalCard, card.id);
+          const label = t(card.labelKey);
+          const aria = active
+            ? t('admin.admissions.dashboard.clearFilterAria', { label })
+            : t(card.ariaFilterKey);
 
           return (
-            <div key={key} className="admissions-dashboard__kpi">
-              {card}
-            </div>
+            <button
+              key={card.id}
+              type="button"
+              className={cn(
+                'admissions-dashboard__kpi-btn',
+                `admissions-dashboard__kpi-btn--${card.tone}`,
+                active && 'admissions-dashboard__kpi-btn--active',
+              )}
+              aria-pressed={active}
+              aria-label={aria}
+              title={active ? t('admin.admissions.dashboard.clearFilterHint') : undefined}
+              data-testid={`admissions-kpi-${card.id}`}
+              data-interactive="true"
+              data-count-key={card.countKey}
+              onClick={() => onOperationalCardClick?.(card.id)}
+            >
+              <StatCard label={label} value={value} tone={card.tone} />
+              {card.hintKey ? (
+                <span className="admissions-dashboard__kpi-hint">{t(card.hintKey)}</span>
+              ) : null}
+              {active ? (
+                <span className="admissions-dashboard__kpi-clear" aria-hidden="true">
+                  ×
+                </span>
+              ) : null}
+            </button>
           );
         })}
       </div>
 
       <div
-        className="admissions-dashboard admissions-dashboard--outcomes"
+        className="admissions-dashboard admissions-dashboard--info"
         role="group"
-        aria-label={t('admin.admissions.dashboard.outcomeGroup')}
+        aria-label={t('admin.admissions.dashboard.infoGroup')}
+        data-testid="admissions-dashboard-info"
       >
-        {OUTCOME_CARDS.map(({ filter, countKey, tone, secondary }) => {
-          const value = Number(data[countKey] ?? 0);
-          const active = activeOutcomeFilter === filter;
-          const labelKey =
-            filter === 'awaiting_registration'
-              ? 'admin.admissions.registrationStatus.awaiting_registration'
-              : filter === 'registered'
-                ? 'admin.admissions.registrationStatus.registered'
-                : filter === 'school_rejected'
-                  ? 'admin.admissions.schoolDecision.rejected'
-                  : filter === 'family_declined'
-                    ? 'admin.admissions.offerStates.familyDeclined'
-                    : 'admin.admissions.offerStates.familyExpired';
-
+        {ADMISSIONS_INFO_INDICATORS.map((item) => {
+          const value = Number(data[item.countKey] ?? 0);
           return (
-            <button
-              key={filter}
-              type="button"
-              className={cn(
-                'admissions-dashboard__kpi-btn',
-                `admissions-dashboard__kpi-btn--${tone}`,
-                secondary && 'admissions-dashboard__kpi-btn--secondary',
-                active && 'admissions-dashboard__kpi-btn--active',
-              )}
-              aria-pressed={active}
-              onClick={() =>
-                onOutcomeFilterClick?.(active ? '' : filter)
-              }
-              aria-label={t(labelKey)}
+            <div
+              key={item.id}
+              className="admissions-dashboard__indicator admissions-dashboard__indicator--info"
+              data-testid={`admissions-indicator-${item.id}`}
+              data-interactive="false"
             >
-              <StatCard label={t(labelKey)} value={value} tone={tone} />
-            </button>
+              <span className="admissions-dashboard__indicator-label">{t(item.labelKey)}</span>
+              <span className="admissions-dashboard__indicator-value">{value}</span>
+            </div>
           );
         })}
       </div>
