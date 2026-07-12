@@ -3984,12 +3984,21 @@
         "resultsCount": "{count} طلب ظاهر",
         "hiddenConvertedCount": "{count} محوّل مخفي",
         "chipSearch": "بحث: {query}",
-        "chipState": "الحالة: {state}",
+        "chipState": "المرحلة: {state}",
         "chipShowClosed": "الطلبات المغلقة ظاهرة",
         "chipHideConvertedOff": "المسجّلون ظاهرون",
         "outcome": "نتيجة القرار/التسجيل",
         "allOutcomes": "كل النتائج",
-        "chipOutcome": "النتيجة: {outcome}"
+        "chipOutcome": "النتيجة: {outcome}",
+        "stage": "مرحلة الطلب",
+        "allStages": "كل المراحل",
+        "registrationOutcome": "نتيجة التسجيل",
+        "allRegistrationOutcomes": "كل نتائج التسجيل",
+        "offerState": "حالة العرض",
+        "allOfferStates": "كل حالات العرض",
+        "groups": "فلاتر الطلبات",
+        "includingClosed": "يشمل الطلبات المغلقة",
+        "chipOffer": "العرض: {offer}"
       },
       "refetching": "جاري تحديث النتائج…",
       "noData": {
@@ -4101,7 +4110,14 @@
         "registered_count": "مسجلون",
         "school_rejected_count": "مرفوضون من المدرسة",
         "family_declined_count": "رفض الأسرة للعرض",
-        "expired_offer_count": "عروض منتهية"
+        "expired_offer_count": "عروض منتهية",
+        "mainGroup": "البطاقات الرئيسية",
+        "secondaryGroup": "مؤشرات ثانوية",
+        "readyHint": "قبلت الأسرة العرض",
+        "filterAwaitingAria": "عرض الطلبات المقبولة في انتظار التسجيل",
+        "filterReadyAria": "عرض الطلبات الجاهزة للتسجيل",
+        "filterRejectedAria": "عرض الطلبات المرفوضة من المدرسة",
+        "filterNewAria": "عرض الطلبات الجديدة"
       },
       "table": {
         "reference": "رقم الطلب",
@@ -4112,7 +4128,8 @@
         "level": "المستوى",
         "state": "الحالة",
         "nextAction": "الإجراء القادم",
-        "assigned": "المسؤول"
+        "assigned": "المسؤول",
+        "actions": "إجراءات"
       },
       "fields": {
         "studentName": "اسم الطفل",
@@ -4576,8 +4593,9 @@
         "success": "تم إنشاء التلميذ وربطه بطلب التسجيل.",
         "linkFailed": "تم إنشاء التلميذ، لكن ربطه بطلب التسجيل فشل. افتح ملف التلميذ للمتابعة.",
         "prefillMultiGuardianHint": "يُعبَّأ ولي اتصال واحد من طلب التسجيل. يمكنك إضافة أولياء آخرين واختيار مسؤول الفوترة في هذه الخطوة.",
-        "awaitingMessage": "وافقت المدرسة على الطلب، لكن لم يتم تحويله إلى تلميذ مسجل بعد.",
-        "convertedAt": "تاريخ التحويل: {date}"
+        "awaitingMessage": "وافقت المدرسة على الطلب، لكن التسجيل لم يُستكمل بعد.",
+        "convertedAt": "تاريخ التحويل: {date}",
+        "readyMessage": "قبلت الأسرة العرض، وأصبح الملف جاهزًا لاستكمال تسجيل التلميذ."
       },
       "errors": {
         "notFound": "طلب التسجيل غير موجود."
@@ -4591,7 +4609,8 @@
       "registrationStatus": {
         "awaiting_registration": "مقبول — في انتظار التسجيل",
         "registered": "مسجل",
-        "not_applicable": "غير منطبق حاليًا"
+        "not_applicable": "غير منطبق",
+        "ready_for_registration": "جاهز للتسجيل"
       },
       "schoolDecision": {
         "pending": "قيد القرار",
@@ -4614,6 +4633,18 @@
         "registration_linked_without_student": "تدفق التسجيل مرتبط دون تلميذ",
         "rejected_decision_state_mismatch": "قرار رفض مع حالة طلب غير متوافقة",
         "accepted_offer_application_state_mismatch": "عرض مقبول مع حالة طلب غير متوافقة"
+      },
+      "actions": {
+        "menu": "إجراءات الطلب",
+        "recordDecision": "تسجيل قرار المدرسة",
+        "changeFollowUp": "تغيير مرحلة المتابعة",
+        "acceptFamilyOffer": "تأكيد قبول الأسرة",
+        "acceptOfferSuccess": "تم تأكيد قبول الأسرة وأصبح الطلب جاهزًا للتسجيل.",
+        "continueRegistration": "استكمال تسجيل التلميذ",
+        "openPrefill": "فتح بيانات التسجيل المسبق",
+        "linkExistingStudent": "ربط التلميذ الموجود",
+        "reopen": "إعادة فتح الطلب",
+        "noSentOffer": "لا يوجد عرض مرسل يمكن قبوله."
       }
     },
     "enrollmentIntake": {

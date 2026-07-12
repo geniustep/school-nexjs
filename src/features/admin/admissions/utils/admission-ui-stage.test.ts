@@ -79,27 +79,17 @@ describe('itemMatchesUiStageFilter', () => {
 });
 
 describe('resolveKanbanDisplayStages', () => {
-  it('hides registered column when hideConverted is enabled', () => {
-    const stages = resolveKanbanDisplayStages({ showClosed: false, hideConverted: true });
-    expect(stages).not.toContain('registered');
+  it('always shows registered column', () => {
+    const stages = resolveKanbanDisplayStages({ includeClosed: false });
+    expect(stages).toContain('registered');
     expect(stages).toContain('ready_for_registration');
   });
 
-  it('shows registered column when hideConverted is disabled', () => {
-    const stages = resolveKanbanDisplayStages({ showClosed: false, hideConverted: false });
-    expect(stages).toContain('registered');
-    expect(stages).not.toContain('closed');
-  });
-
-  it('shows closed only when showClosed or closed filter is active', () => {
+  it('shows closed only when includeClosed or closed filter is active', () => {
+    expect(resolveKanbanDisplayStages({ includeClosed: false })).not.toContain('closed');
+    expect(resolveKanbanDisplayStages({ includeClosed: true })).toContain('closed');
     expect(
-      resolveKanbanDisplayStages({ showClosed: false, hideConverted: true, stateFilter: '' }),
-    ).not.toContain('closed');
-    expect(
-      resolveKanbanDisplayStages({ showClosed: true, hideConverted: true, stateFilter: '' }),
-    ).toContain('closed');
-    expect(
-      resolveKanbanDisplayStages({ showClosed: false, hideConverted: true, stateFilter: 'closed' }),
+      resolveKanbanDisplayStages({ includeClosed: false, stateFilter: 'closed' }),
     ).toContain('closed');
   });
 });

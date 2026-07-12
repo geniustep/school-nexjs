@@ -17,8 +17,6 @@ const BULK_STAGE_OPTIONS: DraggableAdmissionUiStage[] = [
   'new',
   'in_follow_up',
   'in_evaluation',
-  'accepted',
-  'ready_for_registration',
 ];
 
 export function AdmissionsBulkActionBar({

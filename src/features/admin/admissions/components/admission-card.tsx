@@ -16,6 +16,7 @@ import {
   shouldShowFamilyBadge,
 } from '../utils/family-admission-visibility';
 import { AdmissionStatusBadges } from './admission-status-badges';
+import { AdmissionListActionsMenu } from './admission-list-actions-menu';
 import type { AdmissionListItem } from '@/types/admission';
 
 const DRAG_MIME = 'application/x-admission-id';
@@ -42,6 +43,7 @@ export function AdmissionCard({
   selected = false,
   selectionMode = false,
   onToggleSelect,
+  onUpdated,
 }: {
   item: AdmissionListItem;
   draggable?: boolean;
@@ -54,6 +56,7 @@ export function AdmissionCard({
   selected?: boolean;
   selectionMode?: boolean;
   onToggleSelect?: () => void;
+  onUpdated?: () => void;
 }) {
   const t = useT();
   const { formatDate } = useFormat();
@@ -71,7 +74,6 @@ export function AdmissionCard({
   const siblingsSummary = cleanDisplayValue(item.siblings_summary ?? '');
   const hasSiblings = parseExtraFieldBool(item.has_siblings);
   const dragEnabled = draggable && !selectionMode && !isSaving;
-  const cardNavDisabled = selectionMode;
 
   function handleCardClick(event: React.MouseEvent) {
     if (!selectionMode || !onToggleSelect) return;
@@ -85,7 +87,7 @@ export function AdmissionCard({
     onToggleSelect?.();
   }
 
-  const cardBody = (
+  const mainContent = (
     <>
       {selectable ? (
         <label
@@ -105,7 +107,11 @@ export function AdmissionCard({
       ) : null}
 
       {draggable && !selectionMode ? (
-        <span className="admission-card__drag-handle" aria-hidden="true" title={t('admin.admissions.kanban.dragHint')}>
+        <span
+          className="admission-card__drag-handle"
+          aria-hidden="true"
+          title={t('admin.admissions.kanban.dragHint')}
+        >
           ⋮⋮
         </span>
       ) : null}
@@ -126,9 +132,7 @@ export function AdmissionCard({
 
       {(externalReference || previousSchool || hasSiblings || siblingsSummary) && (
         <div className="admission-card__meta">
-          {externalReference ? (
-            <Badge tone="slate">{externalReference}</Badge>
-          ) : null}
+          {externalReference ? <Badge tone="slate">{externalReference}</Badge> : null}
           {previousSchool ? (
             <span className="admission-card__previous-school tiny muted">{previousSchool}</span>
           ) : null}
@@ -191,11 +195,22 @@ export function AdmissionCard({
           )}
         </div>
       )}
-
-      <div className="admission-card__footer">
-        <span className="admission-card__reference mono">{reference}</span>
-      </div>
     </>
+  );
+
+  const footer = (
+    <div className="admission-card__footer">
+      <span className="admission-card__reference mono">{reference}</span>
+      {!selectionMode ? (
+        <div
+          className="admission-card__actions"
+          onClick={(event) => event.stopPropagation()}
+          onMouseDown={(event) => event.stopPropagation()}
+        >
+          <AdmissionListActionsMenu admissionId={item.id} onUpdated={onUpdated} />
+        </div>
+      ) : null}
+    </div>
   );
 
   const cardClassName = cn(
@@ -207,7 +222,7 @@ export function AdmissionCard({
     selectionMode && 'admission-card--selection-mode',
   );
 
-  const card = cardNavDisabled ? (
+  const card = selectionMode ? (
     <div
       className={cardClassName}
       role="button"
@@ -220,12 +235,16 @@ export function AdmissionCard({
         }
       }}
     >
-      {cardBody}
+      {mainContent}
+      {footer}
     </div>
   ) : (
-    <Link href={href} draggable={false} className={cardClassName}>
-      {cardBody}
-    </Link>
+    <div className={cardClassName}>
+      <Link href={href} draggable={false} className="admission-card__body-link">
+        {mainContent}
+      </Link>
+      {footer}
+    </div>
   );
 
   if (!dragEnabled) return card;

@@ -461,6 +461,7 @@ export function AdmissionsKanban({
                             selected={isSelected?.(item.id) ?? false}
                             selectionMode={selectionMode}
                             onToggleSelect={() => onToggleSelect?.(item.id)}
+                            onUpdated={onUpdated}
                             onDragStart={(event) => {
                               event.dataTransfer.setData(
                                 'application/x-admission-id',
