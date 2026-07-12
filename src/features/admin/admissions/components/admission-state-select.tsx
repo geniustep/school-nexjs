@@ -1,49 +1,71 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { Badge } from '@/components/ui/primitives';
 import { cn } from '@/lib/utils/cn';
 import { useT } from '@/features/i18n/locale-context';
-import type { AdmissionState } from '@/types/admission';
 import { useAdmissionStateChange } from '../hooks/use-admission-state-change';
-import { ACTIVE_KANBAN_STATES, ALL_KANBAN_STATES, CLOSED_KANBAN_STATES } from '../utils/admission-labels';
+import {
+  admissionManualStageLabelKey,
+  evaluateManualStageChange,
+  getAdmissionManualStageOptions,
+  isAdmissionManualStage,
+  type AdmissionManualStage,
+} from '../utils/admission-stage-options';
+import { resolveAdmissionPrimaryDisplay } from '../utils/admission-status-display';
 
+/** Restricted state select — manual follow-up stages only. */
 export function AdmissionStateSelect({
   admissionId,
   value,
   onChanged,
-  includeClosedStates = false,
   className,
   disabled,
+  studentId,
+  registrationFlowState,
 }: {
   admissionId: number;
   value: string;
   onChanged?: () => void;
+  /** @deprecated Closed states are never offered as manual transitions. */
   includeClosedStates?: boolean;
   className?: string;
   disabled?: boolean;
+  studentId?: number | false | null;
+  registrationFlowState?: string | null;
 }) {
   const t = useT();
+  const options = getAdmissionManualStageOptions();
   const { changeState, isPending } = useAdmissionStateChange(onChanged);
-  const [current, setCurrent] = useState(value);
+  const manual = isAdmissionManualStage(value);
+  const [current, setCurrent] = useState<AdmissionManualStage>(manual ? value : 'new');
   const saving = isPending(admissionId);
+  const record = {
+    state: value,
+    student_id: studentId,
+    registration_flow_state: registrationFlowState,
+  };
 
   useEffect(() => {
-    setCurrent(value);
+    if (isAdmissionManualStage(value)) setCurrent(value);
   }, [value]);
 
-  const options = useMemo(() => {
-    if (includeClosedStates) return ALL_KANBAN_STATES;
-    const closed = CLOSED_KANBAN_STATES.includes(value as AdmissionState)
-      ? [value as AdmissionState]
-      : [];
-    return [...ACTIVE_KANBAN_STATES, ...closed.filter((s) => !ACTIVE_KANBAN_STATES.includes(s))];
-  }, [includeClosedStates, value]);
+  if (!manual) {
+    const primary = resolveAdmissionPrimaryDisplay(record);
+    const label =
+      primary.kind === 'ui_stage'
+        ? t(`admin.admissions.states.${value}`)
+        : t(primary.labelKey);
+    return <Badge tone={primary.tone}>{label}</Badge>;
+  }
 
   async function handleChange(next: string) {
     if (next === current || saving || disabled) return;
+    const decision = evaluateManualStageChange(record, next);
+    if (!decision.apply || !decision.targetState) return;
     const previous = current;
-    setCurrent(next);
-    const ok = await changeState(admissionId, next);
+    setCurrent(decision.targetState);
+    const ok = await changeState(admissionId, decision.targetState);
     if (!ok) setCurrent(previous);
   }
 
@@ -52,12 +74,13 @@ export function AdmissionStateSelect({
       className={cn('input admission-state-select', className)}
       value={current}
       disabled={disabled || saving}
-      aria-label={t('admin.admissions.stateChange.label')}
+      aria-label={t('admin.admissions.actions.changeFollowUp')}
+      data-testid="admission-state-select"
       onChange={(e) => void handleChange(e.target.value)}
     >
       {options.map((state) => (
         <option key={state} value={state}>
-          {t(`admin.admissions.states.${state}`)}
+          {t(admissionManualStageLabelKey(state))}
         </option>
       ))}
     </select>

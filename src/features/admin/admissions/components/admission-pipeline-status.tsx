@@ -3,8 +3,13 @@
 import { Badge } from '@/components/ui/primitives';
 import { cn } from '@/lib/utils/cn';
 import { useT } from '@/features/i18n/locale-context';
-import { admissionUiStageTone, resolveAdmissionUiStage } from '../utils/admission-ui-stage';
 import type { AdmissionKanbanDragRecord } from '../utils/admission-kanban-drag';
+import {
+  admissionManualStageLabelKey,
+  isAdmissionManualStage,
+} from '../utils/admission-stage-options';
+import { resolveAdmissionPrimaryDisplay } from '../utils/admission-status-display';
+import { admissionUiStageTone, resolveAdmissionUiStage } from '../utils/admission-ui-stage';
 import {
   AdmissionDetailedStateBadge,
   AdmissionUiStageSelect,
@@ -26,7 +31,34 @@ export function AdmissionPipelineStatus({
   rejected?: boolean;
 }) {
   const t = useT();
-  const uiStage = resolveAdmissionUiStage(record);
+  const showManualSelect =
+    canChangeState && isAdmissionManualStage(String(record.state));
+
+  let readOnlyLabel: string | null = null;
+  if (!showManualSelect) {
+    const primary = resolveAdmissionPrimaryDisplay(record);
+    if (
+      primary.kind === 'ready_for_registration' ||
+      primary.kind === 'registered' ||
+      primary.kind === 'school_rejected' ||
+      primary.kind === 'awaiting_registration'
+    ) {
+      readOnlyLabel = t(primary.labelKey);
+    } else if (isAdmissionManualStage(String(record.state))) {
+      readOnlyLabel = t(
+        admissionManualStageLabelKey(
+          String(record.state) as Parameters<typeof admissionManualStageLabelKey>[0],
+        ),
+      );
+    } else {
+      const stateKey = `admin.admissions.states.${record.state}`;
+      const stateLabel = t(stateKey);
+      readOnlyLabel =
+        stateLabel !== stateKey
+          ? stateLabel
+          : t(`admin.admissions.uiStages.${resolveAdmissionUiStage(record)}`);
+    }
+  }
 
   return (
     <div className={cn('admissions-pipeline-status', className)}>
@@ -34,7 +66,7 @@ export function AdmissionPipelineStatus({
         <span className="admissions-pipeline-status__label tiny muted">
           {t('admin.admissions.detail.pipelineStage')}
         </span>
-        {canChangeState ? (
+        {showManualSelect ? (
           <AdmissionUiStageSelect
             record={record}
             admissionId={admissionId}
@@ -42,8 +74,14 @@ export function AdmissionPipelineStatus({
             className="admission-ui-stage-select--detail"
           />
         ) : (
-          <Badge tone={admissionUiStageTone(uiStage)}>
-            {t(`admin.admissions.uiStages.${uiStage}`)}
+          <Badge
+            tone={
+              resolveAdmissionPrimaryDisplay(record).kind === 'ui_stage'
+                ? admissionUiStageTone(resolveAdmissionUiStage(record))
+                : resolveAdmissionPrimaryDisplay(record).tone
+            }
+          >
+            {readOnlyLabel}
           </Badge>
         )}
       </div>

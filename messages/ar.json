@@ -4068,14 +4068,16 @@
         "stageChangeSuccess": "تم تحديث {count} طلبًا.",
         "stageChangePartial": "نجح {success} وفشل {failed} — الطلبات الفاشلة تبقى محدّدة.",
         "stageChangeSkipped": "لا توجد طلبات محدّدة تحتاج تغيير مرحلة.",
-        "stageChangeFailed": "تعذر تحديث الطلبات المحدّدة."
+        "stageChangeFailed": "تعذر تحديث الطلبات المحدّدة.",
+        "stageChangeIneligible": "{count} طلب غير قابل لتغيير المرحلة اليدوية",
+        "stageChangeIneligibleNote": "وتُرك {count} طلبًا غير مؤهل."
       },
       "states": {
         "new": "جديد",
-        "contacted": "تم التواصل",
+        "contacted": "تم الاتصال",
         "qualified": "مؤهل",
-        "visit_pending": "زيارة مطلوبة",
-        "under_review": "قيد المراجعة",
+        "visit_pending": "زيارة معلقة",
+        "under_review": "قيد الدراسة",
         "accepted": "مقبول",
         "waitlisted": "قائمة انتظار",
         "offer_sent": "عرض مرسل",
@@ -4087,7 +4089,7 @@
       "uiStages": {
         "new": "جديد",
         "in_follow_up": "قيد المتابعة",
-        "in_evaluation": "في التقييم",
+        "in_evaluation": "قيد الدراسة",
         "accepted": "مقبول",
         "ready_for_registration": "جاهز للتسجيل",
         "registered": "مسجل",
@@ -4491,18 +4493,19 @@
       },
       "decision": {
         "current": "القرار الحالي",
-        "label": "القرار",
+        "label": "اتخاذ القرار",
         "by": "بواسطة",
-        "conditions": "الشروط",
+        "conditions": "شروط القبول",
         "none": "لم يُتخذ قرار بعد",
-        "formTitle": "اتخاذ قرار",
-        "submit": "تسجيل القرار"
+        "formTitle": "اتخاذ قرار المدرسة",
+        "submit": "تسجيل القرار",
+        "conditionsRequired": "أدخل شروط القبول"
       },
       "decisions": {
         "accepted": "مقبول",
         "accepted_with_condition": "مقبول بشروط",
         "waitlisted": "قائمة انتظار",
-        "rejected": "مرفوض",
+        "rejected": "مرفوض من المدرسة",
         "needs_reassessment": "يحتاج إعادة تقييم"
       },
       "rejection": {
@@ -4645,7 +4648,8 @@
         "openPrefill": "فتح بيانات التسجيل المسبق",
         "linkExistingStudent": "ربط التلميذ الموجود",
         "reopen": "إعادة فتح الطلب",
-        "noSentOffer": "لا يوجد عرض مرسل يمكن قبوله."
+        "noSentOffer": "لا يوجد عرض مرسل يمكن قبوله.",
+        "makeDecision": "اتخاذ قرار المدرسة"
       }
     },
     "enrollmentIntake": {
