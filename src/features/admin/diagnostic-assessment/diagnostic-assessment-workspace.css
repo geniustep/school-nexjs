@@ -1,0 +1,252 @@
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
+.diagnostic-workspace .diagnostic-list-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.diagnostic-header__meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px 16px;
+}
+
+.diagnostic-header__label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-text-muted);
+  margin-bottom: 4px;
+}
+
+.diagnostic-header__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--c-border);
+}
+
+.diagnostic-header__stat strong {
+  display: block;
+  font-size: 1.1rem;
+}
+
+.diagnostic-header__stat span {
+  font-size: 12px;
+  color: var(--c-text-muted);
+}
+
+.diagnostic-actions-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin: 12px 0;
+}
+
+.diagnostic-save-bar {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--c-bg);
+  padding-block: 8px;
+  margin-bottom: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.diagnostic-distribution {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 16px;
+}
+
+.diagnostic-distribution__chip {
+  min-width: 2.4rem;
+  text-align: center;
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--c-border);
+  background: var(--c-surface);
+  font-size: 12px;
+}
+
+.diagnostic-distribution__chip strong {
+  display: block;
+}
+
+.diagnostic-grid-wrap {
+  overflow: auto;
+  max-width: 100%;
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
+  background: var(--c-surface);
+}
+
+.diagnostic-grid {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 860px;
+}
+
+.diagnostic-grid th,
+.diagnostic-grid td {
+  border-bottom: 1px solid var(--c-border);
+  padding: 8px 10px;
+  vertical-align: middle;
+  text-align: start;
+}
+
+.diagnostic-grid thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--c-surface);
+  font-size: 12px;
+  color: var(--c-text-muted);
+}
+
+.diagnostic-grid__student {
+  position: sticky;
+  inset-inline-start: 0;
+  z-index: 1;
+  background: var(--c-surface);
+  min-width: 160px;
+}
+
+.diagnostic-grid thead .diagnostic-grid__student {
+  z-index: 3;
+}
+
+.diagnostic-grid__seq {
+  width: 48px;
+  color: var(--c-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.diagnostic-grid__phrase {
+  min-width: 120px;
+  max-width: 180px;
+  font-size: 13px;
+  color: var(--c-text-muted);
+}
+
+.diagnostic-score-pad {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.diagnostic-score-pad__btn {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 6px;
+  border: 1px solid var(--c-border);
+  background: var(--c-bg);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.diagnostic-score-pad__btn.is-active {
+  border-color: var(--raqeem-primary);
+  background: color-mix(in srgb, var(--raqeem-primary) 16%, transparent);
+  color: var(--raqeem-primary);
+}
+
+.diagnostic-score-pad__btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.diagnostic-note-input {
+  min-width: 140px;
+  width: 100%;
+}
+
+.diagnostic-print {
+  background: #fff;
+  color: #111;
+}
+
+.diagnostic-print__sheet {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.diagnostic-print__title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+
+.diagnostic-print__meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 8px 16px;
+  margin: 12px 0 16px;
+  font-size: 13px;
+}
+
+.diagnostic-print__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.diagnostic-print__table th,
+.diagnostic-print__table td {
+  border: 1px solid #333;
+  padding: 6px 8px;
+  vertical-align: top;
+}
+
+.diagnostic-print__table th {
+  background: #f3f3f3;
+}
+
+.diagnostic-print__legend {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 4px 10px;
+  margin-top: 16px;
+  font-size: 11px;
+}
+
+.diagnostic-print-toolbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+@media print {
+  .diagnostic-print-toolbar,
+  .app-shell-nav,
+  .sidebar,
+  .topbar,
+  .no-print {
+    display: none !important;
+  }
+
+  .diagnostic-print__sheet {
+    max-width: none;
+    padding: 0;
+  }
+
+  .diagnostic-print__table th,
+  .diagnostic-print__table td {
+    border-color: #000;
+  }
+}

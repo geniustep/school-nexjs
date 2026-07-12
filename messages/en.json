@@ -134,7 +134,8 @@
     "financeSection": "Finance",
     "adminScopedFinance": "Finance (scoped)",
     "settings": "Settings",
-    "classResults": "Class results"
+    "classResults": "Class results",
+    "diagnosticAssessment": "Diagnostic assessment"
   },
   "states": {
     "draft": "Draft",
@@ -149,7 +150,8 @@
     "open": "Open",
     "validated": "Validated",
     "locked": "Locked",
-    "suspended": "Suspended"
+    "suspended": "Suspended",
+    "confirmed": "Confirmed"
   },
   "badges": {
     "current": "Current",
@@ -695,6 +697,16 @@
         },
         "notOpen": {
           "description": "This gradebook is not open for entry yet. Contact your school administration."
+        }
+      }
+    },
+    "diagnosticAssessment": {
+      "listTitle": "Diagnostic assessment",
+      "listSubtitle": "Campaigns assigned to you for diagnostic entry",
+      "list": {
+        "noData": {
+          "title": "No assigned campaigns",
+          "description": "When a campaign is created for your class and subject it will appear here."
         }
       }
     }
@@ -10671,6 +10683,109 @@
           "title": "No subjects",
           "description": "The roster is present, but no subject columns were returned."
         }
+      }
+    },
+    "diagnosticAssessment": {
+      "listTitle": "Diagnostic assessment",
+      "listSubtitle": "Diagnostic campaigns independent of exams and averages",
+      "detailTitle": "Diagnostic assessment campaign",
+      "detailSubtitle": "Fast entry for an entire class",
+      "academicYear": "Academic year",
+      "assessmentDate": "Assessment date",
+      "state": "Status",
+      "completion": "Completion",
+      "resetFilters": "Reset filters",
+      "columns": {
+        "campaign": "Campaign"
+      },
+      "filters": {
+        "allYears": "All years",
+        "allClasses": "All classes",
+        "allSubjects": "All subjects",
+        "allStates": "All statuses"
+      },
+      "states": {
+        "draft": "Draft",
+        "confirmed": "Confirmed"
+      },
+      "participation": {
+        "not_entered": "Not entered",
+        "scored": "Scored",
+        "absent": "Absent",
+        "absent_justified": "Justified absence",
+        "incomplete": "Incomplete"
+      },
+      "list": {
+        "noData": {
+          "title": "No campaigns yet",
+          "description": "Create a diagnostic campaign for a class and subject to begin."
+        },
+        "noMatch": {
+          "title": "No matching campaigns",
+          "description": "Try adjusting filters or reset them."
+        }
+      },
+      "create": {
+        "open": "New campaign",
+        "title": "Create diagnostic campaign",
+        "submit": "Create campaign",
+        "name": "Campaign title",
+        "namePlaceholder": "e.g. Diagnostic — start of year",
+        "notes": "Campaign notes",
+        "rosterHint": "Class students are loaded automatically from active enrollments on create.",
+        "missingFields": "Academic year, class and subject are required.",
+        "success": "Campaign created and roster loaded.",
+        "failed": "Could not create the campaign."
+      },
+      "detail": {
+        "notFound": {
+          "title": "Campaign not found",
+          "description": "Could not load this campaign."
+        },
+        "noRoster": {
+          "title": "Empty roster",
+          "description": "Build or sync the roster from active enrollments."
+        }
+      },
+      "grid": {
+        "student": "Student",
+        "score": "Score (1–10)",
+        "phrase": "Phrase",
+        "participation": "Participation",
+        "note": "Teacher note",
+        "notePlaceholder": "Free note…",
+        "clearScore": "Clear"
+      },
+      "stats": {
+        "completion": "Completion",
+        "average": "Average",
+        "resolved": "Resolved",
+        "scored": "Scored",
+        "absent": "Absent",
+        "notEntered": "Not entered",
+        "distribution": "Score distribution"
+      },
+      "actions": {
+        "buildRoster": "Build roster",
+        "syncRoster": "Sync roster",
+        "confirm": "Confirm campaign",
+        "resetToDraft": "Reset to draft",
+        "confirmSuccess": "Campaign confirmed.",
+        "resetSuccess": "Campaign reset to draft.",
+        "build_rosterSuccess": "Roster built.",
+        "sync_rosterSuccess": "Roster synced."
+      },
+      "save": {
+        "dirtyCount": "{count} unsaved change(s)",
+        "discard": "Discard",
+        "success": "Changes saved.",
+        "failed": "Could not save changes."
+      },
+      "print": {
+        "open": "Print",
+        "action": "Print grid",
+        "subtitle": "Diagnostic assessment grid",
+        "failed": "Could not load print payload."
       }
     }
   }

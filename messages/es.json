@@ -134,7 +134,8 @@
     "financeSection": "Finanzas",
     "adminScopedFinance": "Finanzas (ámbito limitado)",
     "settings": "Configuración",
-    "classResults": "Resultados de clases"
+    "classResults": "Resultados de clases",
+    "diagnosticAssessment": "Evaluación diagnóstica"
   },
   "states": {
     "draft": "Borrador",
@@ -149,7 +150,8 @@
     "open": "Abierto",
     "validated": "Validado",
     "locked": "Bloqueado",
-    "suspended": "Suspendido"
+    "suspended": "Suspendido",
+    "confirmed": "Confirmado"
   },
   "badges": {
     "current": "Actual",
@@ -695,6 +697,16 @@
         },
         "notOpen": {
           "description": "Este cuaderno aún no está abierto para la entrada. Contacta con la administración."
+        }
+      }
+    },
+    "diagnosticAssessment": {
+      "listTitle": "Evaluación diagnóstica",
+      "listSubtitle": "Campañas asignadas para capturar resultados",
+      "list": {
+        "noData": {
+          "title": "Sin campañas asignadas",
+          "description": "Cuando se cree una campaña para su clase y materia aparecerá aquí."
         }
       }
     }
@@ -10672,6 +10684,109 @@
           "title": "Sin asignaturas",
           "description": "La lista está presente, pero no se devolvieron columnas de asignatura."
         }
+      }
+    },
+    "diagnosticAssessment": {
+      "listTitle": "Evaluación diagnóstica",
+      "listSubtitle": "Campañas independientes de exámenes y promedios",
+      "detailTitle": "Campaña de evaluación diagnóstica",
+      "detailSubtitle": "Captura rápida para toda la clase",
+      "academicYear": "Año académico",
+      "assessmentDate": "Fecha de evaluación",
+      "state": "Estado",
+      "completion": "Avance",
+      "resetFilters": "Restablecer filtros",
+      "columns": {
+        "campaign": "Campaña"
+      },
+      "filters": {
+        "allYears": "Todos los años",
+        "allClasses": "Todas las clases",
+        "allSubjects": "Todas las materias",
+        "allStates": "Todos los estados"
+      },
+      "states": {
+        "draft": "Borrador",
+        "confirmed": "Confirmado"
+      },
+      "participation": {
+        "not_entered": "Sin capturar",
+        "scored": "Calificado",
+        "absent": "Ausente",
+        "absent_justified": "Ausencia justificada",
+        "incomplete": "Incompleto"
+      },
+      "list": {
+        "noData": {
+          "title": "Aún no hay campañas",
+          "description": "Cree una campaña para una clase y materia."
+        },
+        "noMatch": {
+          "title": "Sin campañas coincidentes",
+          "description": "Ajuste o restablezca los filtros."
+        }
+      },
+      "create": {
+        "open": "Nueva campaña",
+        "title": "Crear campaña diagnóstica",
+        "submit": "Crear",
+        "name": "Título",
+        "namePlaceholder": "ej. Diagnóstico — inicio de año",
+        "notes": "Notas",
+        "rosterHint": "Los alumnos se cargan automáticamente desde las inscripciones activas.",
+        "missingFields": "Año, clase y materia son obligatorios.",
+        "success": "Campaña creada y lista cargada.",
+        "failed": "No se pudo crear la campaña."
+      },
+      "detail": {
+        "notFound": {
+          "title": "Campaña no encontrada",
+          "description": "No se pudo cargar esta campaña."
+        },
+        "noRoster": {
+          "title": "Lista vacía",
+          "description": "Construya o sincronice la lista desde inscripciones activas."
+        }
+      },
+      "grid": {
+        "student": "Alumno",
+        "score": "Nota (1–10)",
+        "phrase": "Frase",
+        "participation": "Participación",
+        "note": "Nota del docente",
+        "notePlaceholder": "Nota libre…",
+        "clearScore": "Borrar"
+      },
+      "stats": {
+        "completion": "Avance",
+        "average": "Promedio",
+        "resolved": "Resueltos",
+        "scored": "Calificados",
+        "absent": "Ausentes",
+        "notEntered": "Sin capturar",
+        "distribution": "Distribución"
+      },
+      "actions": {
+        "buildRoster": "Construir lista",
+        "syncRoster": "Sincronizar",
+        "confirm": "Confirmar",
+        "resetToDraft": "Volver a borrador",
+        "confirmSuccess": "Campaña confirmada.",
+        "resetSuccess": "Campaña en borrador.",
+        "build_rosterSuccess": "Lista construida.",
+        "sync_rosterSuccess": "Lista sincronizada."
+      },
+      "save": {
+        "dirtyCount": "{count} cambio(s) sin guardar",
+        "discard": "Descartar",
+        "success": "Guardado.",
+        "failed": "No se pudo guardar."
+      },
+      "print": {
+        "open": "Imprimir",
+        "action": "Imprimir cuadrícula",
+        "subtitle": "Cuadrícula de evaluación diagnóstica",
+        "failed": "No se pudo cargar la impresión."
       }
     }
   }

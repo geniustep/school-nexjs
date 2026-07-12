@@ -163,6 +163,12 @@ function adminNav(user: CurrentUser): NavSection[] {
     isActive: (pathname) => pathname.startsWith('/admin/academics/assessment/gradebooks'),
   });
   pushIf(learningItems, canShowAdminNavPermission(user, 'view_exams'), {
+    labelKey: 'nav.diagnosticAssessment',
+    href: '/admin/academics/assessment/diagnostic',
+    icon: '📝',
+    isActive: (pathname) => pathname.startsWith('/admin/academics/assessment/diagnostic'),
+  });
+  pushIf(learningItems, canShowAdminNavPermission(user, 'view_exams'), {
     labelKey: 'nav.classResults',
     href: '/admin/academics/assessment/class-results',
     icon: '📈',
@@ -264,6 +270,12 @@ function teacherNav(): NavSection[] {
           href: '/teacher/assessment/gradebooks',
           icon: '📒',
           isActive: (pathname) => pathname.startsWith('/teacher/assessment/gradebooks'),
+        },
+        {
+          labelKey: 'nav.diagnosticAssessment',
+          href: '/teacher/assessment/diagnostic',
+          icon: '📝',
+          isActive: (pathname) => pathname.startsWith('/teacher/assessment/diagnostic'),
         },
         { labelKey: 'nav.submissions', href: '/teacher/submissions', icon: '📥' },
       ],

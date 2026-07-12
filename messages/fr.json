@@ -134,7 +134,8 @@
     "financeSection": "Finances",
     "adminScopedFinance": "Finances (périmètre limité)",
     "settings": "Paramètres",
-    "classResults": "Résultats des classes"
+    "classResults": "Résultats des classes",
+    "diagnosticAssessment": "Évaluation diagnostique"
   },
   "states": {
     "draft": "Brouillon",
@@ -149,7 +150,8 @@
     "open": "Ouvert",
     "validated": "Validé",
     "locked": "Verrouillé",
-    "suspended": "Suspendu"
+    "suspended": "Suspendu",
+    "confirmed": "Confirmé"
   },
   "badges": {
     "current": "En cours",
@@ -695,6 +697,16 @@
         },
         "notOpen": {
           "description": "Ce carnet n'est pas encore ouvert à la saisie. Contactez l'administration."
+        }
+      }
+    },
+    "diagnosticAssessment": {
+      "listTitle": "Évaluation diagnostique",
+      "listSubtitle": "Campagnes qui vous sont assignées",
+      "list": {
+        "noData": {
+          "title": "Aucune campagne assignée",
+          "description": "Lorsqu’une campagne est créée pour votre classe et matière, elle apparaîtra ici."
         }
       }
     }
@@ -10673,6 +10685,109 @@
           "title": "Aucune matière",
           "description": "La liste est présente, mais aucune colonne matière n'a été renvoyée."
         }
+      }
+    },
+    "diagnosticAssessment": {
+      "listTitle": "Évaluation diagnostique",
+      "listSubtitle": "Campagnes indépendantes des examens et moyennes",
+      "detailTitle": "Campagne d’évaluation diagnostique",
+      "detailSubtitle": "Saisie rapide pour une classe entière",
+      "academicYear": "Année scolaire",
+      "assessmentDate": "Date d’évaluation",
+      "state": "Statut",
+      "completion": "Avancement",
+      "resetFilters": "Réinitialiser les filtres",
+      "columns": {
+        "campaign": "Campagne"
+      },
+      "filters": {
+        "allYears": "Toutes les années",
+        "allClasses": "Toutes les classes",
+        "allSubjects": "Toutes les matières",
+        "allStates": "Tous les statuts"
+      },
+      "states": {
+        "draft": "Brouillon",
+        "confirmed": "Confirmé"
+      },
+      "participation": {
+        "not_entered": "Non saisi",
+        "scored": "Noté",
+        "absent": "Absent",
+        "absent_justified": "Absence justifiée",
+        "incomplete": "Incomplet"
+      },
+      "list": {
+        "noData": {
+          "title": "Aucune campagne",
+          "description": "Créez une campagne pour une classe et une matière."
+        },
+        "noMatch": {
+          "title": "Aucune campagne correspondante",
+          "description": "Modifiez ou réinitialisez les filtres."
+        }
+      },
+      "create": {
+        "open": "Nouvelle campagne",
+        "title": "Créer une campagne diagnostique",
+        "submit": "Créer",
+        "name": "Titre",
+        "namePlaceholder": "ex. Diagnostique — début d’année",
+        "notes": "Notes",
+        "rosterHint": "Les élèves sont chargés automatiquement depuis les inscriptions actives.",
+        "missingFields": "Année, classe et matière sont obligatoires.",
+        "success": "Campagne créée et liste chargée.",
+        "failed": "Création impossible."
+      },
+      "detail": {
+        "notFound": {
+          "title": "Campagne introuvable",
+          "description": "Impossible de charger cette campagne."
+        },
+        "noRoster": {
+          "title": "Liste vide",
+          "description": "Construisez ou synchronisez la liste depuis les inscriptions actives."
+        }
+      },
+      "grid": {
+        "student": "Élève",
+        "score": "Note (1–10)",
+        "phrase": "Phrase",
+        "participation": "Participation",
+        "note": "Note enseignant",
+        "notePlaceholder": "Note libre…",
+        "clearScore": "Effacer"
+      },
+      "stats": {
+        "completion": "Avancement",
+        "average": "Moyenne",
+        "resolved": "Traité",
+        "scored": "Notés",
+        "absent": "Absents",
+        "notEntered": "Non saisis",
+        "distribution": "Répartition"
+      },
+      "actions": {
+        "buildRoster": "Construire la liste",
+        "syncRoster": "Synchroniser",
+        "confirm": "Confirmer",
+        "resetToDraft": "Revenir au brouillon",
+        "confirmSuccess": "Campagne confirmée.",
+        "resetSuccess": "Campagne remise en brouillon.",
+        "build_rosterSuccess": "Liste construite.",
+        "sync_rosterSuccess": "Liste synchronisée."
+      },
+      "save": {
+        "dirtyCount": "{count} modification(s) non enregistrée(s)",
+        "discard": "Annuler",
+        "success": "Enregistré.",
+        "failed": "Échec de l’enregistrement."
+      },
+      "print": {
+        "open": "Imprimer",
+        "action": "Imprimer la grille",
+        "subtitle": "Grille d’évaluation diagnostique",
+        "failed": "Chargement impression impossible."
       }
     }
   }

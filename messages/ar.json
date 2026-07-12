@@ -130,6 +130,7 @@
     "adminScopedCommunication": "التواصل (نطاق محدود)",
     "examResultsNav": "نتائج الامتحانات",
     "gradebooks": "دفاتر المراقبة المستمرة",
+    "diagnosticAssessment": "التقويم التشخيصي",
     "finance": "المالية",
     "financeSection": "المالية",
     "adminScopedFinance": "المالية (نطاق محدود)",
@@ -138,6 +139,7 @@
   },
   "states": {
     "draft": "مسودة",
+    "confirmed": "مؤكد",
     "published": "منشور",
     "closed": "مغلق",
     "archived": "مؤرشف",
@@ -697,6 +699,16 @@
           "description": "هذا الدفتر غير مفتوح للإدخال بعد. تواصل مع إدارة المدرسة."
         }
       }
+    },
+    "diagnosticAssessment": {
+      "listTitle": "التقويم التشخيصي",
+      "listSubtitle": "الحملات المسندة إليك لإدخال التقويم التشخيصي",
+      "list": {
+        "noData": {
+          "title": "لا توجد حملات مسندة",
+          "description": "عندما تُنشأ حملة لقسمك ومادتك ستظهر هنا."
+        }
+      }
     }
   },
   "actions": {
@@ -1194,6 +1206,109 @@
           "title": "لا توجد نتائج",
           "description": "لم يُرجع الخادم نتائج تجميع لهذا الدفتر بعد."
         }
+      }
+    },
+    "diagnosticAssessment": {
+      "listTitle": "التقويم التشخيصي",
+      "listSubtitle": "حملات تقويم تشخيصي مستقلة عن الامتحانات والمعدلات",
+      "detailTitle": "حملة التقويم التشخيصي",
+      "detailSubtitle": "إدخال سريع لنتائج القسم كاملاً",
+      "academicYear": "السنة الدراسية",
+      "assessmentDate": "تاريخ التقويم",
+      "state": "الحالة",
+      "completion": "الإنجاز",
+      "resetFilters": "إعادة ضبط الفلاتر",
+      "columns": {
+        "campaign": "الحملة"
+      },
+      "filters": {
+        "allYears": "كل السنوات",
+        "allClasses": "كل الأقسام",
+        "allSubjects": "كل المواد",
+        "allStates": "كل الحالات"
+      },
+      "states": {
+        "draft": "مسودة",
+        "confirmed": "مؤكد"
+      },
+      "participation": {
+        "not_entered": "لم يُدخل",
+        "scored": "نقطة",
+        "absent": "غائب",
+        "absent_justified": "غائب مبرر",
+        "incomplete": "غير مكتمل"
+      },
+      "list": {
+        "noData": {
+          "title": "لا توجد حملات بعد",
+          "description": "أنشئ حملة تقويم تشخيصي لقسم ومادة للبدء."
+        },
+        "noMatch": {
+          "title": "لا توجد حملات مطابقة",
+          "description": "جرّب تعديل الفلاتر أو أعد ضبطها."
+        }
+      },
+      "create": {
+        "open": "حملة جديدة",
+        "title": "إنشاء حملة تقويم تشخيصي",
+        "submit": "إنشاء الحملة",
+        "name": "عنوان الحملة",
+        "namePlaceholder": "مثال: تقويم تشخيصي — بداية السنة",
+        "notes": "ملاحظات الحملة",
+        "rosterHint": "يُحمَّل تلاميذ القسم تلقائيًا من التسجيلات النشطة عند الإنشاء.",
+        "missingFields": "السنة والقسم والمادة مطلوبة.",
+        "success": "تم إنشاء الحملة وتحميل اللائحة.",
+        "failed": "تعذّر إنشاء الحملة."
+      },
+      "detail": {
+        "notFound": {
+          "title": "الحملة غير موجودة",
+          "description": "تعذّر تحميل هذه الحملة."
+        },
+        "noRoster": {
+          "title": "لائحة التلاميذ فارغة",
+          "description": "ابنِ أو زامن اللائحة من التسجيلات النشطة."
+        }
+      },
+      "grid": {
+        "student": "التلميذ",
+        "score": "الدرجة (1–10)",
+        "phrase": "العبارة",
+        "participation": "المشاركة",
+        "note": "ملاحظة الأستاذ",
+        "notePlaceholder": "ملاحظة حرة…",
+        "clearScore": "مسح"
+      },
+      "stats": {
+        "completion": "نسبة الإنجاز",
+        "average": "المتوسط",
+        "resolved": "المعالَج",
+        "scored": "بنقطة",
+        "absent": "غياب",
+        "notEntered": "لم يُدخل",
+        "distribution": "توزيع الدرجات"
+      },
+      "actions": {
+        "buildRoster": "بناء اللائحة",
+        "syncRoster": "مزامنة اللائحة",
+        "confirm": "تأكيد الحملة",
+        "resetToDraft": "إعادة إلى مسودة",
+        "confirmSuccess": "تم تأكيد الحملة.",
+        "resetSuccess": "أُعيدت الحملة إلى المسودة.",
+        "build_rosterSuccess": "تم بناء اللائحة.",
+        "sync_rosterSuccess": "تمت مزامنة اللائحة."
+      },
+      "save": {
+        "dirtyCount": "{count} تعديل غير محفوظ",
+        "discard": "تجاهل",
+        "success": "تم حفظ التعديلات.",
+        "failed": "تعذّر حفظ التعديلات."
+      },
+      "print": {
+        "open": "طباعة",
+        "action": "طباعة الشبكة",
+        "subtitle": "شبكة التقويم التشخيصي",
+        "failed": "تعذّر تحميل حمولة الطباعة."
       }
     },
     "studentsListDesc": "كل التلاميذ ضمن نطاقك",
