@@ -12,6 +12,7 @@ import type {
   StudentCreateFinanceFormState,
 } from '@/types/student-enrollment-finance';
 import { formatFinanceCurrency } from '../utils/student-finance-format';
+import { StudentFinanceMoney } from './student-finance-money';
 import {
   enrollmentPlanLineAmountParts,
   enrollmentPlanLinePricingModeKey,
@@ -106,7 +107,6 @@ export function StudentCreateFinancePlanPicker({
   onSelectPlan: (planId: number) => void;
 }) {
   const t = useT();
-  const { locale } = useLocale();
   const plans = suggest.eligible_plans ?? [];
   if (plans.length <= 1 && suggest.allowed_actions?.select_other_plan !== true) return null;
 
@@ -139,8 +139,11 @@ export function StudentCreateFinancePlanPicker({
                   </span>
                 ) : null}
                 {plan.summary?.expected_total != null ? (
-                  <span className="student-create-finance-plan-picker__total mono">
-                    {formatFinanceCurrency(plan.summary.expected_total, suggest.currency, locale)}
+                  <span className="student-create-finance-plan-picker__total">
+                    <StudentFinanceMoney
+                      amount={plan.summary.expected_total}
+                      currency={suggest.currency}
+                    />
                   </span>
                 ) : null}
               </button>
@@ -177,10 +180,12 @@ export function StudentCreateFinancePlanLines({
                 <h4 dir="auto">{line.fee_type_name}</h4>
                 <span className="student-create-finance-lines__mode">{t(modeKey)}</span>
               </header>
-              <p className="student-create-finance-lines__amount mono">
-                {parts.primary != null
-                  ? formatFinanceCurrency(parts.primary, currency, locale)
-                  : t('common.dash')}
+              <p className="student-create-finance-lines__amount">
+                {parts.primary != null ? (
+                  <StudentFinanceMoney amount={parts.primary} currency={currency} />
+                ) : (
+                  t('common.dash')
+                )}
               </p>
               {parts.installmentCount != null &&
               parts.installmentCount > 1 &&
@@ -221,7 +226,6 @@ export function StudentCreateFinanceSummary({
   currency: FeePlanSuggestResult['currency'];
 }) {
   const t = useT();
-  const { locale } = useLocale();
   const rows = financialSummaryRows(summary, lines);
   if (rows.length === 0) return null;
 
@@ -232,7 +236,9 @@ export function StudentCreateFinanceSummary({
         {rows.map((row) => (
           <div key={row.key} className="student-create-finance-summary__row">
             <dt>{t(`admin.student360.create.finance.summary.${row.key}`)}</dt>
-            <dd className="mono">{formatFinanceCurrency(row.value, currency, locale)}</dd>
+            <dd>
+              <StudentFinanceMoney amount={row.value} currency={currency} />
+            </dd>
           </div>
         ))}
       </dl>
@@ -252,7 +258,6 @@ export function StudentCreateFinancePreview({
   currency: FeePlanSuggestResult['currency'];
 }) {
   const t = useT();
-  const { locale } = useLocale();
 
   return (
     <section className="student-create-finance-preview student-create-finance-card student-create-finance-card--preview" aria-live="polite">
@@ -264,25 +269,33 @@ export function StudentCreateFinancePreview({
           {preview.original_total != null ? (
             <div className="student-create-finance-summary__row">
               <dt>{t('admin.student360.create.finance.preview.originalTotal')}</dt>
-              <dd className="mono">{formatFinanceCurrency(preview.original_total, currency, locale)}</dd>
+              <dd>
+                <StudentFinanceMoney amount={preview.original_total} currency={currency} />
+              </dd>
             </div>
           ) : null}
           {preview.discount_total != null ? (
             <div className="student-create-finance-summary__row">
               <dt>{t('admin.student360.create.finance.preview.discountTotal')}</dt>
-              <dd className="mono">{formatFinanceCurrency(preview.discount_total, currency, locale)}</dd>
+              <dd>
+                <StudentFinanceMoney amount={preview.discount_total} currency={currency} />
+              </dd>
             </div>
           ) : null}
           {preview.final_total != null ? (
             <div className="student-create-finance-summary__row student-create-finance-summary__row--emphasis">
               <dt>{t('admin.student360.create.finance.preview.finalTotal')}</dt>
-              <dd className="mono">{formatFinanceCurrency(preview.final_total, currency, locale)}</dd>
+              <dd>
+                <StudentFinanceMoney amount={preview.final_total} currency={currency} />
+              </dd>
             </div>
           ) : null}
           {preview.monthly_due_total != null ? (
             <div className="student-create-finance-summary__row">
               <dt>{t('admin.student360.create.finance.preview.monthlyAfterCustomization')}</dt>
-              <dd className="mono">{formatFinanceCurrency(preview.monthly_due_total, currency, locale)}</dd>
+              <dd>
+                <StudentFinanceMoney amount={preview.monthly_due_total} currency={currency} />
+              </dd>
             </div>
           ) : null}
         </dl>

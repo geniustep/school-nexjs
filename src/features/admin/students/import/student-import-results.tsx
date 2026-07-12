@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { Badge } from '@/components/ui/primitives';
+import { IdentifierText } from '@/components/ui/numeric-text';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
 import { useT } from '@/features/i18n/locale-context';
 import type { StudentImportExecutionState } from './student-import-server-types';
@@ -54,7 +55,12 @@ export function StudentImportResultsPanel({
     {
       key: 'school_number',
       header: t('admin.student360.schoolNumber'),
-      render: (row) => <span className="mono">{row.school_number ?? t('common.dash')}</span>,
+      render: (row) =>
+        row.school_number ? (
+          <IdentifierText>{row.school_number}</IdentifierText>
+        ) : (
+          t('common.dash')
+        ),
     },
     {
       key: 'status',

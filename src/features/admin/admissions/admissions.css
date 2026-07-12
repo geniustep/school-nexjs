@@ -1087,6 +1087,7 @@
 }
 
 .admission-card__phone {
+  white-space: nowrap;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.01em;
   unicode-bidi: isolate;
@@ -1564,6 +1565,23 @@
   font-size: 0.8rem;
   word-break: break-word;
   overflow-wrap: anywhere;
+}
+
+.admissions-overview-row__value .mono,
+.admissions-overview-row__value .numeric-text,
+.admissions-overview-row__value .finance-amount,
+.admissions-overview-row__value .phone-text,
+.admissions-overview-row__value .identifier-text,
+.admissions-overview-row__value [dir='ltr'],
+.admissions-detail-fact__value .mono,
+.admissions-detail-fact__value .numeric-text,
+.admissions-detail-fact__value .phone-text,
+.admissions-detail-fact__value .identifier-text,
+.admissions-detail-fact__value [dir='ltr'] {
+  white-space: nowrap;
+  word-break: normal;
+  overflow-wrap: normal;
+  unicode-bidi: isolate;
 }
 
 .admissions-overview-value--empty {

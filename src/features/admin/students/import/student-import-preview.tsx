@@ -1,6 +1,7 @@
 'use client';
 
 import { Badge } from '@/components/ui/primitives';
+import { IdentifierText } from '@/components/ui/numeric-text';
 import { DataTable, type Column } from '@/components/tables/data-table';
 import { useT } from '@/features/i18n/locale-context';
 import type { StudentImportPreviewFilter, StudentImportRowResult } from './student-import-types';
@@ -43,7 +44,12 @@ export function StudentImportPreview({
     {
       key: 'school_number',
       header: t('admin.student360.schoolNumber'),
-      render: (row) => <span className="mono">{row.normalized.school_number ?? t('common.dash')}</span>,
+      render: (row) =>
+        row.normalized.school_number ? (
+          <IdentifierText>{row.normalized.school_number}</IdentifierText>
+        ) : (
+          t('common.dash')
+        ),
     },
     {
       key: 'school',

@@ -3,6 +3,7 @@
 import { useLocale } from '@/features/i18n/locale-context';
 import { formatFinanceCurrency } from '../utils/student-finance-format';
 import type { StudentFinanceCurrency } from '@/types/student-finance';
+import { cn } from '@/lib/utils/cn';
 
 export function StudentFinanceMoney({
   amount,
@@ -15,8 +16,8 @@ export function StudentFinanceMoney({
 }) {
   const { locale } = useLocale();
   return (
-    <span className={className ?? 'mono finance-amount'} style={{ fontVariantNumeric: 'tabular-nums' }}>
+    <bdi className={cn('mono finance-amount', className)} dir="ltr">
       {formatFinanceCurrency(amount, currency, locale)}
-    </span>
+    </bdi>
   );
 }

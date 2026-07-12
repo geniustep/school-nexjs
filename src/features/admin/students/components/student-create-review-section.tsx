@@ -1,12 +1,12 @@
 'use client';
 
-import { useLocale, useT } from '@/features/i18n/locale-context';
+import { useT } from '@/features/i18n/locale-context';
 import { useFormat } from '@/features/i18n/use-format';
 import { buildFullNamePreview, hasStudentMassarCode } from '../utils/student-profile';
-import { formatFinanceCurrency } from '../utils/student-finance-format';
 import { buildEnrollmentFinanceReviewModel, enrollmentFinancePreviewStatus } from '../utils/enrollment-finance-review';
 import { formatCustomizationReason, getFeePlanSuggestPendingReason, resolveFeePlanSuggestEmptyMessage, selectedFinancePeriods } from '../utils/student-enrollment-finance';
 import { resolveBillingResponsibilitySelectionLabel } from '../utils/student-create-billing-responsibility';
+import { StudentFinanceMoney } from './student-finance-money';
 import type { PersonSearchResult } from '@/types/student-360';
 import type {
   EnrollmentPlanPreviewResult,
@@ -81,7 +81,6 @@ export function StudentCreateReviewSection({
   schoolId?: number | null;
 }) {
   const t = useT();
-  const { locale } = useLocale();
   const { formatDate } = useFormat();
   const fullName = buildFullNamePreview(profileState.firstName, profileState.lastName);
   const massarMissing = !hasStudentMassarCode(profileState);
@@ -296,8 +295,11 @@ export function StudentCreateReviewSection({
                         ? t('admin.student360.create.finance.preview.finalTotal')
                         : t('admin.student360.create.review.totalDue')}
                     </span>
-                    <span className="student-create-review-finance-hero__total-value mono">
-                      {formatFinanceCurrency(financeReview.finalTotal, suggest.currency, locale)}
+                    <span className="student-create-review-finance-hero__total-value">
+                      <StudentFinanceMoney
+                        amount={financeReview.finalTotal}
+                        currency={suggest.currency}
+                      />
                     </span>
                   </p>
                 ) : null}
@@ -311,24 +313,30 @@ export function StudentCreateReviewSection({
                   {showPreviewTotals && financeReview.customized && financeReview.originalTotal != null ? (
                     <div className="student-create-review-totals__row">
                       <dt>{t('admin.student360.create.finance.preview.originalTotal')}</dt>
-                      <dd className="mono">
-                        {formatFinanceCurrency(financeReview.originalTotal, suggest.currency, locale)}
+                      <dd>
+                        <StudentFinanceMoney
+                          amount={financeReview.originalTotal}
+                          currency={suggest.currency}
+                        />
                       </dd>
                     </div>
                   ) : null}
                   {showPreviewTotals && financeReview.customized && financeReview.discountTotal != null ? (
                     <div className="student-create-review-totals__row">
                       <dt>{t('admin.student360.create.finance.preview.discountTotal')}</dt>
-                      <dd className="mono">
-                        {formatFinanceCurrency(financeReview.discountTotal, suggest.currency, locale)}
+                      <dd>
+                        <StudentFinanceMoney
+                          amount={financeReview.discountTotal}
+                          currency={suggest.currency}
+                        />
                       </dd>
                     </div>
                   ) : null}
                   {summaryRows.map((row) => (
                     <div key={row.key} className="student-create-review-totals__row">
                       <dt>{t(`admin.student360.create.finance.summary.${row.key}`)}</dt>
-                      <dd className="mono">
-                        {formatFinanceCurrency(row.value, suggest.currency, locale)}
+                      <dd>
+                        <StudentFinanceMoney amount={row.value} currency={suggest.currency} />
                       </dd>
                     </div>
                   ))}
@@ -339,8 +347,11 @@ export function StudentCreateReviewSection({
                           ? t('admin.student360.create.finance.preview.monthlyAfterCustomization')
                           : t('admin.student360.create.review.expectedMonthlyInstallment')}
                       </dt>
-                      <dd className="mono">
-                        {formatFinanceCurrency(financeReview.monthlyInstallment, suggest.currency, locale)}
+                      <dd>
+                        <StudentFinanceMoney
+                          amount={financeReview.monthlyInstallment}
+                          currency={suggest.currency}
+                        />
                       </dd>
                     </div>
                   ) : null}

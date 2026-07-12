@@ -5,13 +5,13 @@ import { useCallback, useEffect, useState } from 'react';
 import { SetupDrawer } from '@/features/admin/academic-setup/components/setup-drawer';
 import { LoadingState } from '@/components/states/states';
 import { useToast } from '@/components/ui/toast';
-import { useT, useLocale } from '@/features/i18n/locale-context';
+import { useT } from '@/features/i18n/locale-context';
 import { FinanceMoney } from '@/features/admin/finance/finance-money';
 import {
   StudentCreateFinanceCustomization,
   StudentCreateFinancePlanPicker,
 } from '@/features/admin/students/components/student-create-finance-panels';
-import { formatFinanceCurrency } from '@/features/admin/students/utils/student-finance-format';
+import { StudentFinanceMoney } from '@/features/admin/students/components/student-finance-money';
 import {
   candidatePlanLevelNames,
   candidatePlanScopeSummary,
@@ -88,7 +88,6 @@ function CandidateCard({
   onOpenAgreements?: () => void;
 }) {
   const t = useT();
-  const { locale } = useLocale();
   const [showLevelDetails, setShowLevelDetails] = useState(false);
   const total = candidatePlanTotal(candidate);
   const currency = candidate.currency ? { name: candidate.currency, symbol: candidate.currency } : null;
@@ -124,7 +123,9 @@ function CandidateCard({
         {total != null ? (
           <div>
             <dt>{t(tk('total'))}</dt>
-            <dd className="mono">{formatFinanceCurrency(total, currency, locale)}</dd>
+            <dd>
+              <StudentFinanceMoney amount={total} currency={currency} />
+            </dd>
           </div>
         ) : null}
         {shortScope ? (
@@ -266,7 +267,6 @@ function AssignPlanVerificationChecklist({
   studentLabel?: string | null;
 }) {
   const t = useT();
-  const { locale } = useLocale();
 
   return (
     <div className="assign-finance-plan__verification card">
@@ -293,7 +293,9 @@ function AssignPlanVerificationChecklist({
         {total != null ? (
           <div>
             <dt>{t(tk('total'))}</dt>
-            <dd className="mono">{formatFinanceCurrency(total, currency, locale)}</dd>
+            <dd>
+              <StudentFinanceMoney amount={total} currency={currency} />
+            </dd>
           </div>
         ) : null}
         {installmentCount != null ? (
@@ -556,7 +558,6 @@ function AssignPreviewBody({
   onDismissVerification: () => void;
 }) {
   const t = useT();
-  const { locale } = useLocale();
 
   if (!assignPlanSafe) {
     return (
@@ -842,12 +843,11 @@ function AssignPreviewBody({
             {suggest.plan_lines.map((line) => (
               <li key={line.line_id} className="afp-plan-lines__item">
                 <span dir="auto">{line.fee_type_name}</span>
-                <span className="mono">
-                  {formatFinanceCurrency(
-                    line.total_amount ?? line.amount ?? line.base_amount,
-                    suggest.currency,
-                    locale,
-                  )}
+                <span>
+                  <StudentFinanceMoney
+                    amount={line.total_amount ?? line.amount ?? line.base_amount}
+                    currency={suggest.currency}
+                  />
                 </span>
               </li>
             ))}

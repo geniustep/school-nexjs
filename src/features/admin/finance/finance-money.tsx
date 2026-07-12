@@ -2,6 +2,7 @@
 
 import { useLocale } from '@/features/i18n/locale-context';
 import { formatFinanceMoney, resolveFinanceCurrency } from '@/lib/i18n/format-money';
+import { cn } from '@/lib/utils/cn';
 
 export function FinanceMoney({
   amount,
@@ -16,11 +17,7 @@ export function FinanceMoney({
   const resolvedCurrency = resolveFinanceCurrency(currency);
 
   return (
-    <bdi
-      className={className ?? 'mono finance-amount'}
-      style={{ fontVariantNumeric: 'tabular-nums', unicodeBidi: 'isolate' }}
-      dir="ltr"
-    >
+    <bdi className={cn('mono finance-amount', className)} dir="ltr">
       {formatFinanceMoney(amount, resolvedCurrency, locale)}
     </bdi>
   );

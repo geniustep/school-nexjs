@@ -580,6 +580,11 @@
 }
 
 .admin-subject-detail-fact__value.mono {
+  white-space: nowrap;
+  word-break: normal;
+  overflow-wrap: normal;
+  unicode-bidi: isolate;
+  direction: ltr;
   font-family: var(--font-mono, ui-monospace, monospace);
 }
 

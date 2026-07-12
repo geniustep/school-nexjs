@@ -1,9 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { useLocale, useT } from '@/features/i18n/locale-context';
+import { useT } from '@/features/i18n/locale-context';
 import { useFormat } from '@/features/i18n/use-format';
-import { formatFinanceCurrency } from '../utils/student-finance-format';
+import { StudentFinanceMoney } from './student-finance-money';
 import {
   candidatePlanScopeSummary,
   candidatePlanTotal,
@@ -95,7 +95,6 @@ function CandidatePlanCard({
   onUse: (planId: number) => void;
 }) {
   const t = useT();
-  const { locale } = useLocale();
   const total = candidatePlanTotal(candidate);
   const currency = candidate.currency ? { name: candidate.currency, symbol: candidate.currency } : null;
   const scope = candidatePlanScopeSummary(candidate);
@@ -127,7 +126,9 @@ function CandidatePlanCard({
         {total != null ? (
           <div>
             <dt>{t('admin.student360.create.finance.candidateTotal')}</dt>
-            <dd className="mono">{formatFinanceCurrency(total, currency, locale)}</dd>
+            <dd>
+              <StudentFinanceMoney amount={total} currency={currency} />
+            </dd>
           </div>
         ) : null}
         {scope ? (
@@ -199,7 +200,6 @@ export function StudentCreateFeePlanSection({
   onRetry?: () => void;
 }) {
   const t = useT();
-  const { locale } = useLocale();
   const { formatDate } = useFormat();
 
   if (!levelSelected) {
@@ -413,11 +413,10 @@ export function StudentCreateFeePlanSection({
                 {t('admin.student360.create.finance.totalDue')}
               </span>
               <span className="student-create-fee-plan__total-value">
-                {formatFinanceCurrency(
-                  summary?.expected_total ?? suggest.total_due ?? 0,
-                  suggest.currency,
-                  locale,
-                )}
+                <StudentFinanceMoney
+                  amount={summary?.expected_total ?? suggest.total_due ?? 0}
+                  currency={suggest.currency}
+                />
               </span>
             </p>
           ) : null}
@@ -488,8 +487,8 @@ export function StudentCreateFeePlanSection({
                     {t('admin.student360.create.finance.dueOn', { date: dueLabel })}
                   </span>
                   {period.amount != null ? (
-                    <span className="student-create-fee-plan__period-amount mono">
-                      {formatFinanceCurrency(period.amount, suggest.currency, locale)}
+                    <span className="student-create-fee-plan__period-amount">
+                      <StudentFinanceMoney amount={period.amount} currency={suggest.currency} />
                     </span>
                   ) : null}
                 </span>

@@ -36,6 +36,15 @@ export function PageHeader({
   );
 }
 
+function isStandaloneNumericValue(value: ReactNode): value is string | number {
+  if (typeof value === 'number' && Number.isFinite(value)) return true;
+  if (typeof value !== 'string') return false;
+  const trimmed = value.trim();
+  if (!trimmed) return false;
+  // Standalone counts, percentages, compact codes — not prose.
+  return /^[\d\s.,/%+\-–—]+$/.test(trimmed);
+}
+
 export function StatCard({
   label,
   value,
@@ -47,13 +56,21 @@ export function StatCard({
   icon?: ReactNode;
   tone?: StatTone;
 }) {
+  const displayValue = isStandaloneNumericValue(value) ? (
+    <bdi className="numeric-text" dir="ltr">
+      {value}
+    </bdi>
+  ) : (
+    value
+  );
+
   return (
     <div className={cn('card stat-card', tone !== 'none' && `stat-card--${tone}`)}>
       <div className="stat-card__label">
         {icon && <span>{icon}</span>}
         {label}
       </div>
-      <div className="stat-card__value">{value}</div>
+      <div className="stat-card__value">{displayValue}</div>
     </div>
   );
 }

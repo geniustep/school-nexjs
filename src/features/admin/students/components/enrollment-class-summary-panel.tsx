@@ -1,6 +1,7 @@
 'use client';
 
 import { formatAcademicClassLabel } from '@/features/admin/academic-setup/utils/format-academic-label';
+import { NumericText } from '@/components/ui/numeric-text';
 import { useLocale, useT } from '@/features/i18n/locale-context';
 import { statusLabel } from '@/lib/utils/labels';
 import { useSchoolClassSummary } from '../hooks/use-school-class-summary';
@@ -72,30 +73,40 @@ export function EnrollmentClassSummaryPanel({
       <dl className="enrollment-class-summary__stats">
         <div className="enrollment-class-summary__stat">
           <dt>{t('admin.student360.create.classSummary.students')}</dt>
-          <dd className="mono">{students}</dd>
+          <dd>
+            <NumericText>{students}</NumericText>
+          </dd>
         </div>
         {hasCapacity ? (
           <>
             <div className="enrollment-class-summary__stat">
               <dt>{t('admin.capacity')}</dt>
-              <dd className="mono">{capacity}</dd>
+              <dd>
+                <NumericText>{capacity}</NumericText>
+              </dd>
             </div>
             <div className="enrollment-class-summary__stat">
               <dt>{t('admin.student360.create.classSummary.availableSeats')}</dt>
-              <dd className={`mono${isFull ? ' enrollment-class-summary__warn' : ''}`}>{availableSeats}</dd>
+              <dd className={isFull ? 'enrollment-class-summary__warn' : undefined}>
+                <NumericText>{availableSeats}</NumericText>
+              </dd>
             </div>
           </>
         ) : null}
         {data.teachers?.length ? (
           <div className="enrollment-class-summary__stat">
             <dt>{t('nav.teachers')}</dt>
-            <dd className="mono">{data.teachers.length}</dd>
+            <dd>
+              <NumericText>{data.teachers.length}</NumericText>
+            </dd>
           </div>
         ) : null}
         {subjectsCount != null && subjectsCount > 0 ? (
           <div className="enrollment-class-summary__stat">
             <dt>{t('nav.subjects')}</dt>
-            <dd className="mono">{subjectsCount}</dd>
+            <dd>
+              <NumericText>{subjectsCount}</NumericText>
+            </dd>
           </div>
         ) : null}
         <div className="enrollment-class-summary__stat">

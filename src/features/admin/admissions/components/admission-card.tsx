@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { cn } from '@/lib/utils/cn';
+import { PhoneText } from '@/components/ui/numeric-text';
 import { useT } from '@/features/i18n/locale-context';
 import {
   cleanDisplayValue,
@@ -182,8 +183,8 @@ export function AdmissionCard({
             <div className="admission-card__detail">
               <dt>{t('admin.admissions.card.phone')}</dt>
               <dd>
-                <span className="admission-card__detail-value admission-card__phone" dir="ltr">
-                  {guardianPhone}
+                <span className="admission-card__detail-value admission-card__phone">
+                  <PhoneText>{guardianPhone}</PhoneText>
                 </span>
               </dd>
             </div>

@@ -58,8 +58,9 @@
 /* ── KPI metrics ── */
 .fee-plans-workspace__metrics {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr));
   gap: 0.65rem;
+  min-width: 0;
 }
 
 .fee-plans-workspace__kpi {
@@ -74,6 +75,8 @@
   box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
   text-align: start;
   cursor: pointer;
+  min-width: 0;
+  container-type: inline-size;
   transition:
     border-color 0.15s ease,
     box-shadow 0.15s ease,
@@ -100,12 +103,15 @@
 }
 
 .fee-plans-workspace__kpi-value {
-  font-size: 1.35rem;
+  font-size: clamp(1rem, 0.8rem + 4cqi, 1.35rem);
   font-weight: 800;
   line-height: 1.1;
   color: var(--c-text, #0f172a);
   font-variant-numeric: tabular-nums;
   direction: ltr;
+  unicode-bidi: isolate;
+  white-space: nowrap;
+  max-width: 100%;
 }
 
 .fee-plans-workspace__kpi--confirmed.is-active .fee-plans-workspace__kpi-value {

@@ -932,7 +932,16 @@
   word-break: break-word;
 }
 
-.student-360-field__value .mono {
+.student-360-field__value .mono,
+.student-360-field__value .numeric-text,
+.student-360-field__value .finance-amount,
+.student-360-field__value .phone-text,
+.student-360-field__value .identifier-text,
+.student-360-field__value .date-text {
+  white-space: nowrap;
+  word-break: normal;
+  overflow-wrap: normal;
+  unicode-bidi: isolate;
   font-variant-numeric: tabular-nums;
 }
 
@@ -2534,6 +2543,9 @@
   border-radius: 12px;
   border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 92%, transparent);
   background: var(--surface, #fff);
+  min-width: 0;
+  container-type: inline-size;
+  container-name: student-finance-exec-summary;
 }
 
 .student-finance-exec-summary__head {
@@ -2557,8 +2569,27 @@
 
 .student-finance-exec-summary__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+  grid-template-columns: 1fr;
   gap: 10px;
+  min-width: 0;
+}
+
+@container student-finance-exec-summary (min-width: 280px) {
+  .student-finance-exec-summary__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container student-finance-exec-summary (min-width: 520px) {
+  .student-finance-exec-summary__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@container student-finance-exec-summary (min-width: 720px) {
+  .student-finance-exec-summary__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
 .student-finance-exec-summary__kpi {
@@ -2569,12 +2600,24 @@
   border-radius: 10px;
   border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 88%, transparent);
   background: var(--surface-2, #f8fafc);
+  min-width: 0;
+  container-type: inline-size;
 }
 
 .student-finance-exec-summary__kpi-value {
-  font-size: 1.05rem;
+  font-size: clamp(0.78rem, 0.6rem + 4.5cqi, 1.05rem);
   line-height: 1.25;
   font-weight: 600;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.student-finance-exec-summary__kpi-value .finance-amount,
+.student-finance-exec-summary__kpi-value .numeric-text {
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  max-width: 100%;
 }
 
 .student-finance-exec-summary__kpi-value--green {
@@ -2589,12 +2632,7 @@
   font-size: 0.74rem;
   line-height: 1.35;
   color: var(--text-muted, #64748b);
-}
-
-@media (max-width: 720px) {
-  .student-finance-exec-summary__grid {
-    grid-template-columns: 1fr 1fr;
-  }
+  overflow-wrap: break-word;
 }
 
 .student-finance-parallel-draft-banner__number {
@@ -3511,7 +3549,14 @@
   font-family: var(--font-mono, ui-monospace, monospace);
   font-size: 0.78rem;
   line-height: 1.35;
-  word-break: break-word;
+  white-space: nowrap;
+  word-break: normal;
+  overflow-wrap: normal;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  unicode-bidi: isolate;
+  direction: ltr;
 }
 
 .student-finance-operations-history__cell-amount {
@@ -4006,16 +4051,26 @@
 
 .student-finance-overview__cards {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
   gap: 12px;
   margin-top: 16px;
+  min-width: 0;
 }
 
 .student-finance-overview__metric-value {
   display: inline-flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: baseline;
   gap: 4px;
+  max-width: 100%;
+  min-width: 0;
+  font-size: clamp(0.8rem, 0.65rem + 3cqi, 1.05rem);
+}
+
+.student-finance-overview__metric-value .finance-amount,
+.student-finance-overview__metric-value .numeric-text {
+  font-size: inherit;
+  max-width: 100%;
 }
 
 .student-finance-overview__actions {
@@ -11708,12 +11763,15 @@
 }
 
 .student-activity-metric__value {
-  font-size: 0.9rem;
+  font-size: clamp(0.78rem, 0.65rem + 3.5cqi, 0.9rem);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1.25;
   color: var(--text, #0f172a);
-  word-break: break-word;
+  white-space: nowrap;
+  word-break: normal;
+  overflow-wrap: normal;
+  max-width: 100%;
 }
 
 .student-activity-card__empty {
