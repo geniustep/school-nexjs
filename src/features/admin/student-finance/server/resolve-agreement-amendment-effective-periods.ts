@@ -2,7 +2,6 @@ import 'server-only';
 
 import { cookies } from 'next/headers';
 import { config } from '@/lib/config';
-import { getStoredTenantSlug } from '@/lib/api/odoo-backend';
 import { odooApiFetch } from '@/lib/api/odoo-server';
 import { endpoints } from '@/lib/api/endpoints';
 import type { ApiResponse } from '@/types/api';
@@ -26,20 +25,52 @@ type OdooEffectivePeriodRecord = {
   due_date?: string;
 };
 
-const PERIOD_CACHE = new Map<string, AgreementAmendmentPeriodOption[]>();
+type TenantBoundFetch = {
+  sessionId: string;
+  tenant: string;
+  backendBaseUrl: string;
+  host?: string | null;
+};
 
-function cacheKey(tenant: string | undefined, academicYearId: number): string {
-  return `${tenant ?? 'default'}:ay:${academicYearId}`;
+const PERIOD_CACHE = new Map<string, AgreementAmendmentPeriodOption[]>();
+const PERIOD_CACHE_MAX = 64;
+
+function cacheKey(parts: {
+  tenant: string;
+  userId: number;
+  activeSchoolId: number | null;
+  academicYearId: number;
+}): string {
+  // userId only — never raw session tokens.
+  return [
+    parts.tenant,
+    `u:${parts.userId}`,
+    `s:${parts.activeSchoolId ?? 'none'}`,
+    `ay:${parts.academicYearId}`,
+  ].join('|');
+}
+
+function periodCacheSet(key: string, value: AgreementAmendmentPeriodOption[]): void {
+  if (PERIOD_CACHE.size >= PERIOD_CACHE_MAX) {
+    const oldest = PERIOD_CACHE.keys().next().value;
+    if (oldest !== undefined) PERIOD_CACHE.delete(oldest);
+  }
+  PERIOD_CACHE.set(key, value);
 }
 
 async function fetchOdooAgreement(
   agreementId: number,
-  sessionId: string | null,
-  tenant?: string,
+  opts: TenantBoundFetch,
 ): Promise<FinancialAgreement | null> {
   const result = await odooApiFetch<FinancialAgreement>(
     endpoints.admin.financialAgreement(agreementId),
-    { method: 'GET', sessionId, tenant },
+    {
+      method: 'GET',
+      sessionId: opts.sessionId,
+      tenant: opts.tenant,
+      backendBaseUrl: opts.backendBaseUrl,
+      host: opts.host,
+    },
   );
   if (result.kind !== 'json' || !result.body.success || !result.body.data) return null;
   return result.body.data;
@@ -47,15 +78,21 @@ async function fetchOdooAgreement(
 
 async function fetchOdooAcademicYearDates(
   academicYearId: number,
-  sessionId: string | null,
-  tenant?: string,
+  opts: TenantBoundFetch,
 ): Promise<{ date_start?: string; date_end?: string } | null> {
-  const result = await odooApiFetch<{ items?: Array<{ id: number; date_start?: string; date_end?: string }> }>(
-    endpoints.admin.financeAcademicYears,
-    { method: 'GET', sessionId, tenant, query: { page: '1', page_size: '100' } },
-  );
+  const result = await odooApiFetch<{
+    items?: Array<{ id: number; date_start?: string; date_end?: string }>;
+  }>(endpoints.admin.financeAcademicYears, {
+    method: 'GET',
+    sessionId: opts.sessionId,
+    tenant: opts.tenant,
+    backendBaseUrl: opts.backendBaseUrl,
+    host: opts.host,
+    query: { page: '1', page_size: '100' },
+  });
   if (result.kind !== 'json' || !result.body.success) return null;
-  const items = result.body.data?.items ?? (Array.isArray(result.body.data) ? result.body.data : []);
+  const items =
+    result.body.data?.items ?? (Array.isArray(result.body.data) ? result.body.data : []);
   const match = items.find((item) => item.id === academicYearId);
   return match ?? null;
 }
@@ -63,14 +100,15 @@ async function fetchOdooAcademicYearDates(
 async function tryFetchOdooEffectivePeriodsList(
   studentId: number,
   agreementId: number,
-  sessionId: string | null,
-  tenant?: string,
+  opts: TenantBoundFetch,
 ): Promise<AgreementAmendmentPeriodOption[] | null> {
   const path = endpoints.admin.studentFinanceAgreementAmendmentEffectivePeriods(studentId);
   const result = await odooApiFetch<unknown>(path, {
     method: 'GET',
-    sessionId,
-    tenant,
+    sessionId: opts.sessionId,
+    tenant: opts.tenant,
+    backendBaseUrl: opts.backendBaseUrl,
+    host: opts.host,
     query: { agreement_id: String(agreementId) },
   });
   if (result.kind !== 'json' || !result.body.success) return null;
@@ -83,9 +121,7 @@ async function probeBillingPeriodId(input: {
   agreementId: number;
   periodId: number;
   line: AgreementAmendmentRequestPayload['line'];
-  sessionId: string | null;
-  tenant?: string;
-}): Promise<OdooEffectivePeriodRecord | null> {
+} & TenantBoundFetch): Promise<OdooEffectivePeriodRecord | null> {
   const payload: AgreementAmendmentRequestPayload = {
     agreement_id: input.agreementId,
     operation_type: 'modify_line',
@@ -100,6 +136,8 @@ async function probeBillingPeriodId(input: {
     method: 'POST',
     sessionId: input.sessionId,
     tenant: input.tenant,
+    backendBaseUrl: input.backendBaseUrl,
+    host: input.host,
     body: payload,
   });
   if (result.kind !== 'json' || !result.body.success || !result.body.data?.effective_period?.id) {
@@ -113,9 +151,7 @@ async function discoverBillingPeriodsViaPreviewProbe(input: {
   agreementId: number;
   academicYearId: number;
   line: AgreementAmendmentRequestPayload['line'];
-  sessionId: string | null;
-  tenant?: string;
-}): Promise<AgreementAmendmentPeriodOption[]> {
+} & TenantBoundFetch): Promise<AgreementAmendmentPeriodOption[]> {
   const { start, end } = scanRangeForAcademicYear(input.academicYearId);
   const ids = Array.from({ length: end - start + 1 }, (_, index) => start + index);
   const batchSize = 20;
@@ -132,6 +168,8 @@ async function discoverBillingPeriodsViaPreviewProbe(input: {
           line: input.line,
           sessionId: input.sessionId,
           tenant: input.tenant,
+          backendBaseUrl: input.backendBaseUrl,
+          host: input.host,
         });
         if (!period?.id) return null;
         return {
@@ -162,12 +200,23 @@ async function discoverBillingPeriodsViaPreviewProbe(input: {
 export async function resolveAgreementAmendmentEffectivePeriods(input: {
   studentId: number;
   agreementId: number;
+  /** Required: tenant code from Host runtime (never guessed). */
+  tenant: string;
+  /** Required: backend from Tenant runtime config (no ODOO_BASE_URL fallback). */
+  backendBaseUrl: string;
+  host?: string | null;
+  /** Authenticated user id — required for cache isolation. */
+  userId: number;
+  /** Trusted active school from session (nullable when unset). */
+  activeSchoolId?: number | null;
 }): Promise<ApiResponse<AgreementAmendmentPeriodOption[]>> {
   const store = await cookies();
   const sessionId = store.get(config.sessionCookieName)?.value ?? null;
-  const tenant = await getStoredTenantSlug();
+  const tenant = input.tenant.trim();
+  const backendBaseUrl = input.backendBaseUrl.trim().replace(/\/$/, '');
+  const userId = input.userId;
 
-  if (!sessionId) {
+  if (!sessionId || !tenant || !backendBaseUrl || !Number.isFinite(userId) || userId <= 0) {
     return {
       success: false,
       error: { code: 'unauthorized', message: 'Session required.', details: {} },
@@ -175,17 +224,23 @@ export async function resolveAgreementAmendmentEffectivePeriods(input: {
     };
   }
 
+  const fetchOpts: TenantBoundFetch = {
+    sessionId,
+    tenant,
+    backendBaseUrl,
+    host: input.host,
+  };
+
   const listed = await tryFetchOdooEffectivePeriodsList(
     input.studentId,
     input.agreementId,
-    sessionId,
-    tenant ?? undefined,
+    fetchOpts,
   );
   if (listed?.length) {
     return { success: true, data: listed, meta: { source: 'odoo_list' } };
   }
 
-  const agreement = await fetchOdooAgreement(input.agreementId, sessionId, tenant ?? undefined);
+  const agreement = await fetchOdooAgreement(input.agreementId, fetchOpts);
   if (!agreement?.academic_year_id) {
     return {
       success: false,
@@ -198,7 +253,12 @@ export async function resolveAgreementAmendmentEffectivePeriods(input: {
     };
   }
 
-  const key = cacheKey(tenant ?? undefined, agreement.academic_year_id);
+  const key = cacheKey({
+    tenant,
+    userId,
+    activeSchoolId: input.activeSchoolId ?? null,
+    academicYearId: agreement.academic_year_id,
+  });
   const cached = PERIOD_CACHE.get(key);
   if (cached?.length) {
     return { success: true, data: cached, meta: { source: 'cache' } };
@@ -217,15 +277,14 @@ export async function resolveAgreementAmendmentEffectivePeriods(input: {
     };
   }
 
-  await fetchOdooAcademicYearDates(agreement.academic_year_id, sessionId, tenant ?? undefined);
+  await fetchOdooAcademicYearDates(agreement.academic_year_id, fetchOpts);
 
   const discovered = await discoverBillingPeriodsViaPreviewProbe({
     studentId: input.studentId,
     agreementId: input.agreementId,
     academicYearId: agreement.academic_year_id,
     line: bootstrapLine,
-    sessionId,
-    tenant: tenant ?? undefined,
+    ...fetchOpts,
   });
 
   if (!discovered.length) {
@@ -240,7 +299,7 @@ export async function resolveAgreementAmendmentEffectivePeriods(input: {
     };
   }
 
-  PERIOD_CACHE.set(key, discovered);
+  periodCacheSet(key, discovered);
   return { success: true, data: discovered, meta: { source: 'preview_probe' } };
 }
 

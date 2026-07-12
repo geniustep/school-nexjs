@@ -85,7 +85,30 @@ describe('resolveTenantFromHost', () => {
 });
 
 describe('getHostFromHeaders', () => {
-  it('prefers x-forwarded-host over host', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('uses Host and ignores spoofed X-Forwarded-Host on official tenant hosts', () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    const hdrs = new Headers({
+      'x-forwarded-host': 'nibras.raqeem.ma',
+      host: 'school.raqeem.ma',
+    });
+    expect(getHostFromHeaders(hdrs)).toBe('school.raqeem.ma');
+  });
+
+  it('ignores X-Forwarded-Host in production even on localhost Host', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    const hdrs = new Headers({
+      'x-forwarded-host': 'nibras.raqeem.ma',
+      host: 'localhost:3000',
+    });
+    expect(getHostFromHeaders(hdrs)).toBe('localhost');
+  });
+
+  it('allows allowlisted X-Forwarded-Host only for local fallback Host in development', () => {
+    vi.stubEnv('NODE_ENV', 'development');
     const hdrs = new Headers({
       'x-forwarded-host': 'nibras.raqeem.ma',
       host: 'localhost:3000',
@@ -95,6 +118,15 @@ describe('getHostFromHeaders', () => {
 
   it('falls back to host when x-forwarded-host is absent', () => {
     expect(getHostFromHeaders(hostHeaders('school.raqeem.ma'))).toBe('school.raqeem.ma');
+  });
+
+  it('rejects unknown XFH on localhost (fail-closed allowlist)', () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    const hdrs = new Headers({
+      'x-forwarded-host': 'unknown.raqeem.ma',
+      host: 'localhost:3000',
+    });
+    expect(getHostFromHeaders(hdrs)).toBe('localhost');
   });
 });
 

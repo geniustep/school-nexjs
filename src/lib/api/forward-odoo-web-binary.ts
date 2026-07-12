@@ -4,17 +4,26 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { config } from '@/lib/config';
 import { tenantBackendNotConfiguredResponse } from '@/lib/api/odoo-backend';
+import {
+  assertUrlStaysUnderPathPrefix,
+  canonicalizeBffPathSegments,
+  unsafeBffPathErrorBody,
+} from '@/lib/api/safe-bff-path';
 import { guardTenantFromServerHeaders } from '@/lib/auth/tenant-guard';
 import { resolveTenantRuntimeConfigFromServerHeaders } from '@/lib/tenant';
 
-/** Allowed Odoo web subpaths for same-origin proxy (session-scoped). */
-const ALLOWED_WEB_PREFIXES = ['image/'] as const;
+/** Allowed first segment for Odoo web binary proxy (exact match after canonicalization). */
+const ODOO_WEB_IMAGE_ROOT = 'image';
 
-function isAllowedOdooWebPath(path: string): boolean {
-  return ALLOWED_WEB_PREFIXES.some((prefix) => path.startsWith(prefix));
+function forbiddenPathResponse() {
+  return NextResponse.json(unsafeBffPathErrorBody('forbidden'), { status: 403 });
 }
 
-/** Forward GET /web/{path} to Odoo with the active session cookie. */
+function invalidPathResponse() {
+  return NextResponse.json(unsafeBffPathErrorBody('invalid_path'), { status: 400 });
+}
+
+/** Forward GET /web/image/... to Odoo with the active session cookie. */
 export async function forwardOdooWebBinary(pathSegments: string[]): Promise<NextResponse> {
   const tenantGuard = await guardTenantFromServerHeaders();
   if (!tenantGuard.ok) return tenantGuard.response;
@@ -30,12 +39,26 @@ export async function forwardOdooWebBinary(pathSegments: string[]): Promise<Next
     );
   }
 
-  const path = pathSegments.map((segment) => decodeURIComponent(segment)).join('/');
-  if (!path || !isAllowedOdooWebPath(path)) {
-    return NextResponse.json(
-      { success: false, error: { code: 'forbidden', message: 'Path not allowed.' } },
-      { status: 403 },
-    );
+  const canonical = canonicalizeBffPathSegments(pathSegments);
+  if (!canonical.ok) {
+    return invalidPathResponse();
+  }
+
+  if (canonical.segments[0] !== ODOO_WEB_IMAGE_ROOT) {
+    return forbiddenPathResponse();
+  }
+
+  // Deny technical namespaces anywhere under the image tree.
+  const denied = new Set([
+    'dataset',
+    'call_kw',
+    'jsonrpc',
+    'xmlrpc',
+    'session',
+    'web',
+  ]);
+  if (canonical.segments.some((s) => denied.has(s.toLowerCase()))) {
+    return forbiddenPathResponse();
   }
 
   const store = await cookies();
@@ -48,7 +71,14 @@ export async function forwardOdooWebBinary(pathSegments: string[]): Promise<Next
   }
 
   const baseUrl = runtime.config.backendBaseUrl;
-  const url = `${baseUrl}/web/${path}`;
+  // Build with encoded segments only — never join raw user input.
+  const webRelative = canonical.segments.map((s) => encodeURIComponent(s)).join('/');
+  const url = `${baseUrl.replace(/\/$/, '')}/web/${webRelative}`;
+
+  const prefixCheck = assertUrlStaysUnderPathPrefix(url, baseUrl, '/web/image');
+  if (!prefixCheck.ok) {
+    return forbiddenPathResponse();
+  }
 
   let res: Response;
   try {

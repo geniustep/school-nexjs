@@ -4,10 +4,13 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { config } from '@/lib/config';
 import { tenantBackendNotConfiguredResponse } from '@/lib/api/odoo-backend';
+import { canonicalizeBffPathSegments } from '@/lib/api/safe-bff-path';
 import { guardTenantFromServerHeaders } from '@/lib/auth/tenant-guard';
 import { resolveTenantRuntimeConfigFromServerHeaders } from '@/lib/tenant';
 
 export type AttachmentBinaryKind = 'download' | 'preview' | 'thumbnail';
+
+const PRIVATE_NO_STORE = 'private, no-store, max-age=0';
 
 export async function forwardAttachmentBinary(
   id: string,
@@ -27,11 +30,19 @@ export async function forwardAttachmentBinary(
     );
   }
 
+  const idCheck = canonicalizeBffPathSegments([id]);
+  if (!idCheck.ok || idCheck.segments.length !== 1) {
+    return NextResponse.json(
+      { success: false, error: { code: 'invalid_path', message: 'Invalid attachment id.' } },
+      { status: 400 },
+    );
+  }
+
   const store = await cookies();
   const sessionId = store.get(config.sessionCookieName)?.value ?? null;
   const baseUrl = runtime.config.backendBaseUrl;
 
-  const url = `${baseUrl}${config.apiPrefix}/attachments/${encodeURIComponent(id)}/${kind}`;
+  const url = `${baseUrl}${config.apiPrefix}/attachments/${encodeURIComponent(idCheck.segments[0])}/${kind}`;
 
   let res: Response;
   try {
@@ -75,10 +86,12 @@ export async function forwardAttachmentBinary(
   const headers = new Headers();
   const contentType = res.headers.get('content-type');
   const disposition = res.headers.get('content-disposition');
-  const cacheControl = res.headers.get('cache-control');
   if (contentType) headers.set('Content-Type', contentType);
   if (disposition) headers.set('Content-Disposition', disposition);
-  if (cacheControl) headers.set('Cache-Control', cacheControl);
+  // Private attachments: never inherit public/shared cache from upstream.
+  headers.set('Cache-Control', PRIVATE_NO_STORE);
+  headers.set('Pragma', 'no-cache');
+  headers.set('Expires', '0');
 
   return new NextResponse(buffer, { status: 200, headers });
 }

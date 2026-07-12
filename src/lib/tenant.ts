@@ -20,11 +20,38 @@ export function normalizeHost(raw: string | null | undefined): string | null {
   return withoutPort.toLowerCase().replace(/\.$/, '');
 }
 
-/** Read host from x-forwarded-host, then host. */
+/**
+ * Whether X-Forwarded-Host may override Host.
+ * Production: never trust client XFH (Host wins).
+ * Development: only when Host is a local/preview fallback host and XFH maps to an
+ * allowlisted / resolvable tenant (mobile LAN testing).
+ *
+ * VERIFY_REQUIRED — VERCEL_FORWARDED_HOST_RUNTIME: platform Host vs XFH behavior
+ * is not asserted by production smoke in this remediation; conservative Host-first
+ * policy applies whenever NODE_ENV === 'production'.
+ */
+export function shouldTrustXForwardedHost(
+  host: string | null,
+  forwardedHost: string | null,
+): boolean {
+  if (!host || !forwardedHost) return false;
+  if (process.env.NODE_ENV === 'production') return false;
+  if (!isFallbackHost(host)) return false;
+  const resolved = resolveTenantRuntimeConfigFromHost(forwardedHost);
+  return resolved.ok;
+}
+
+/**
+ * Trusted host resolution: Host is primary.
+ * X-Forwarded-Host is used only under shouldTrustXForwardedHost (dev fallback hosts).
+ */
 export function getHostFromHeaders(hdrs: Headers): string | null {
-  const forwarded = hdrs.get('x-forwarded-host');
-  if (forwarded) return normalizeHost(forwarded);
-  return normalizeHost(hdrs.get('host'));
+  const host = normalizeHost(hdrs.get('host'));
+  const forwarded = normalizeHost(hdrs.get('x-forwarded-host'));
+  if (shouldTrustXForwardedHost(host, forwarded)) {
+    return forwarded;
+  }
+  return host;
 }
 
 /** Private LAN IPv4 (192.168/16) — dev-only for mobile testing over local network. */

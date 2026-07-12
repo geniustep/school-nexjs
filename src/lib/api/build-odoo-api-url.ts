@@ -7,6 +7,12 @@
 //   - never embed /api/v1 inside path; never use financial_overview (underscore)
 //   - BFF proxy receives path without /api/v1; odooApiFetch adds it here
 
+import {
+  assertUrlStaysUnderPathPrefix,
+  canonicalizeBffPathSegments,
+  type SafeBffPathResult,
+} from '@/lib/api/safe-bff-path';
+
 export function normalizeOdooApiPath(path: string): string {
   const trimmed = path.trim();
   if (!trimmed) return '/';
@@ -41,7 +47,29 @@ export function buildOdooApiUrl(
   return `${base}${prefix}${normalizedPath}${buildOdooQueryString(query)}`;
 }
 
-/** Browser → BFF proxy path (no /api/v1). */
+/**
+ * Browser → BFF proxy path from catch-all segments.
+ * Rejects traversal / encoded separators; encodes each safe segment.
+ */
 export function buildBffProxyPath(segments: string[]): string {
-  return '/' + segments.map(encodeURIComponent).join('/');
+  const result = canonicalizeBffPathSegments(segments);
+  if (!result.ok) {
+    throw new Error(`Unsafe BFF path segments: ${result.reason}`);
+  }
+  return result.path;
+}
+
+/** Validate catch-all segments without throwing (route handlers). */
+export function tryBuildBffProxyPath(segments: string[]): SafeBffPathResult {
+  return canonicalizeBffPathSegments(segments);
+}
+
+/** Confirm a built School API URL remains under `{base}/api/v1`. */
+export function assertOdooApiUrlUnderV1Prefix(
+  finalUrl: string,
+  backendBaseUrl: string,
+  apiPrefix: string = '/api/v1',
+): { ok: true } | { ok: false; reason: string } {
+  const prefix = apiPrefix.startsWith('/') ? apiPrefix : `/${apiPrefix}`;
+  return assertUrlStaysUnderPathPrefix(finalUrl, backendBaseUrl, prefix);
 }

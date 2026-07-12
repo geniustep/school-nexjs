@@ -207,6 +207,10 @@ export function normalizeMeUser(raw: CurrentUser): CurrentUser {
     effective_capabilities: Array.isArray(raw.effective_capabilities)
       ? raw.effective_capabilities.filter((c): c is string => typeof c === 'string')
       : undefined,
+    school_access_suspended:
+      (raw as { school_access_suspended?: unknown }).school_access_suspended === true
+        ? true
+        : undefined,
     school_ids,
     schools,
     scopes,

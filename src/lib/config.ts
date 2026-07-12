@@ -3,9 +3,12 @@
 export const config = {
   /** Base URL of the Odoo backend (no trailing slash). */
   odooBaseUrl: (process.env.ODOO_BASE_URL ?? 'http://localhost:8069').replace(/\/$/, ''),
-  /** Odoo database fallback for localhost / Vercel preview only (not *.raqeem.ma). */
-  odooDb: process.env.ODOO_DB ?? 'alwah',
-  /** Root domain for tenant subdomain extraction, e.g. raqeem.ma → alwah.raqeem.ma. */
+  /**
+   * Odoo database fallback for localhost / Vercel preview only (not *.raqeem.ma).
+   * Default is `school` (never `alwah`). In production, prefer an explicit ODOO_DB.
+   */
+  odooDb: resolveOdooDbFallback(),
+  /** Root domain for tenant subdomain extraction, e.g. raqeem.ma → school.raqeem.ma. */
   tenantRootDomain: process.env.TENANT_ROOT_DOMAIN ?? 'raqeem.ma',
   /** API v1 prefix. Frozen — see API_REPORT.md. */
   apiPrefix: '/api/v1',
@@ -17,6 +20,22 @@ export const config = {
   /** Odoo's own session cookie name. */
   odooSessionCookieName: 'session_id',
 };
+
+/** Development/test default tenant DB — never falls back to alwah. */
+export function resolveOdooDbFallback(
+  envValue: string | undefined = process.env.ODOO_DB,
+  nodeEnv: string | undefined = process.env.NODE_ENV,
+): string {
+  const explicit = envValue?.trim();
+  if (explicit) return explicit;
+  if (nodeEnv === 'production') {
+    // Fail-safe: production must not silently bind a wrong official tenant.
+    // Empty string causes tenant resolution to fail closed on missing_fallback_db
+    // for localhost/preview; production *.raqeem.ma uses the registry instead.
+    return '';
+  }
+  return 'school';
+}
 
 export function isProd(): boolean {
   return process.env.NODE_ENV === 'production';

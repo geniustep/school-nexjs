@@ -9,9 +9,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { config } from '@/lib/config';
-import { buildBffProxyPath } from '@/lib/api/build-odoo-api-url';
+import {
+  assertOdooApiUrlUnderV1Prefix,
+  buildOdooApiUrl,
+  tryBuildBffProxyPath,
+} from '@/lib/api/build-odoo-api-url';
+import {
+  assertBffRoutePolicy,
+  shouldBindActiveSchoolInBody,
+} from '@/lib/api/bff-route-policy';
+import {
+  activeSchoolBodyMismatchResponse,
+  bindActiveSchoolJsonBody,
+} from '@/lib/api/bind-active-school-body';
+import {
+  assertMutationOrigin,
+  mutationOriginForbiddenBody,
+} from '@/lib/api/mutation-origin';
 import { getStoredTenantSlug, tenantBackendNotConfiguredResponse } from '@/lib/api/odoo-backend';
 import { odooApiFetch } from '@/lib/api/odoo-server';
+import { unsafeBffPathErrorBody } from '@/lib/api/safe-bff-path';
 import { getCurrentUser } from '@/lib/api/server';
 import { getActiveSchoolCookie, setActiveSchoolCookieValue } from '@/lib/auth/active-school';
 import { guardTenantFromRequest } from '@/lib/auth/tenant-guard';
@@ -20,6 +37,12 @@ import { shouldUseTeacherWorkspace } from '@/lib/auth/teacher-workspace';
 import { getHostFromHeaders, resolveTenantRuntimeConfigFromRequest } from '@/lib/tenant';
 
 export const dynamic = 'force-dynamic';
+
+function pathPolicyResponse(reason: string) {
+  const status = reason === 'method_not_allowed' ? 405 : 404;
+  const code = reason === 'method_not_allowed' ? 'method_not_allowed' : 'invalid_path';
+  return NextResponse.json(unsafeBffPathErrorBody(code), { status });
+}
 
 async function handle(request: NextRequest, segments: string[]) {
   const runtime = resolveTenantRuntimeConfigFromRequest(request);
@@ -42,32 +65,63 @@ async function handle(request: NextRequest, segments: string[]) {
   const tenantGuard = await guardTenantFromRequest(request);
   if (!tenantGuard.ok) return tenantGuard.response;
 
+  const pathResult = tryBuildBffProxyPath(segments);
+  if (!pathResult.ok) {
+    return NextResponse.json(unsafeBffPathErrorBody('invalid_path'), { status: 400 });
+  }
+  const path = pathResult.path;
+
+  const method = request.method.toUpperCase();
+  const policy = assertBffRoutePolicy(path, method);
+  if (!policy.ok) {
+    return pathPolicyResponse(policy.reason);
+  }
+
+  const originCheck = assertMutationOrigin(request, method);
+  if (!originCheck.ok) {
+    return NextResponse.json(mutationOriginForbiddenBody(), { status: 403 });
+  }
+
+  // Defense: ensure the would-be upstream URL cannot escape /api/v1.
+  const previewUrl = buildOdooApiUrl(
+    runtime.config.backendBaseUrl,
+    config.apiPrefix,
+    path,
+  );
+  const prefixOk = assertOdooApiUrlUnderV1Prefix(
+    previewUrl,
+    runtime.config.backendBaseUrl,
+    config.apiPrefix,
+  );
+  if (!prefixOk.ok) {
+    return NextResponse.json(unsafeBffPathErrorBody('invalid_path'), { status: 400 });
+  }
+
   const store = await cookies();
   const sessionId = store.get(config.sessionCookieName)?.value ?? null;
   const tenant = await getStoredTenantSlug();
   const host = getHostFromHeaders(request.headers);
 
-  const path = buildBffProxyPath(segments);
   const query: Record<string, string> = {};
   request.nextUrl.searchParams.forEach((value, key) => {
     query[key] = value;
   });
 
-  if (path.startsWith('/admin/')) {
+  let activeSchoolId: number | null | undefined;
+  if (path.startsWith('/admin/') || shouldBindActiveSchoolInBody(path, method)) {
     const user = await getCurrentUser();
-    const activeId = user?.active_school_id;
-    if (activeId) {
-      query.active_school_id = String(activeId);
+    activeSchoolId = user?.active_school_id;
+    if (path.startsWith('/admin/') && activeSchoolId) {
+      query.active_school_id = String(activeSchoolId);
       const cookieId = await getActiveSchoolCookie();
-      if (cookieId !== activeId) {
-        await setActiveSchoolCookieValue(activeId);
+      if (cookieId !== activeSchoolId) {
+        await setActiveSchoolCookieValue(activeSchoolId);
       }
     }
   }
 
   let body: unknown;
   let formData: FormData | undefined;
-  const method = request.method.toUpperCase();
   const contentType = request.headers.get('content-type') ?? '';
   if (method !== 'GET' && method !== 'HEAD') {
     if (contentType.includes('multipart/form-data')) {
@@ -77,6 +131,18 @@ async function handle(request: NextRequest, segments: string[]) {
         body = await request.json();
       } catch {
         body = undefined;
+      }
+
+      if (shouldBindActiveSchoolInBody(path, method) && !formData) {
+        const bound = bindActiveSchoolJsonBody(body, activeSchoolId, {
+          injectActiveSchoolId: true,
+        });
+        if (!bound.ok) {
+          return NextResponse.json(activeSchoolBodyMismatchResponse(bound.reason), {
+            status: 422,
+          });
+        }
+        body = bound.body;
       }
     }
   }

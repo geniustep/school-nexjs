@@ -68,6 +68,12 @@ export interface CurrentUser {
   scope_type?: ScopeType;
   scopes_count?: number;
   is_super_admin?: boolean;
+  /**
+   * When GET /me returns this flag from Backend — admin workspace is blocked.
+   * Optional; absence means Odoo Admin API 403 remains the authority
+   * (CONTRACT_FIELD_NOT_EXPOSED — ODOO_403_REMAINS_AUTHORITY).
+   */
+  school_access_suspended?: boolean;
 }
 
 export interface MeResponse {

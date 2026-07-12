@@ -1,4 +1,4 @@
-import { hasAnyPermission } from '@/lib/permissions/permissions';
+import { hasAnyPermission, hasPermission } from '@/lib/permissions/permissions';
 import type { CurrentUser } from '@/types/user';
 import { FINANCE_VIEW, FINANCE_VIEW_CASH_SESSIONS, FINANCE_VIEW_CHEQUES } from '@/lib/permissions/finance';
 import { ADMISSION_VIEW } from '@/lib/permissions/admission';
@@ -56,7 +56,7 @@ export const ADMIN_ACADEMIC_HUB_LINKS: readonly AdminAcademicHubLink[] = [
 
 export function adminAcademicHubLinksForUser(user: CurrentUser | null): AdminAcademicHubLink[] {
   if (!user) return [];
-  return ADMIN_ACADEMIC_HUB_LINKS.filter((link) => user.permissions?.includes(link.permission));
+  return ADMIN_ACADEMIC_HUB_LINKS.filter((link) => hasPermission(user, link.permission));
 }
 
 export const ADMIN_PAGE_PERMISSION: Record<string, Permission> = {
