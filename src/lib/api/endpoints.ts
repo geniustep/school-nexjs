@@ -230,6 +230,8 @@ export const endpoints = {
     gradebookLock: (id: number | string) => `/admin/assessment/gradebooks/${id}/lock`,
     gradebookEntries: (id: number | string) => `/admin/assessment/gradebooks/${id}/entries`,
     gradebookResults: (id: number | string) => `/admin/assessment/gradebooks/${id}/results`,
+    classMultiSubjectResults: (classId: number | string) =>
+      `/admin/assessment/classes/${classId}/results`,
 
     channels: '/admin/channels',
     channel: (id: number | string) => `/admin/channels/${id}`,

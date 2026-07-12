@@ -133,7 +133,8 @@
     "finance": "Finanzas",
     "financeSection": "Finanzas",
     "adminScopedFinance": "Finanzas (ámbito limitado)",
-    "settings": "Configuración"
+    "settings": "Configuración",
+    "classResults": "Resultados de clases"
   },
   "states": {
     "draft": "Borrador",
@@ -10216,6 +10217,91 @@
         "typeRequired": "Seleccione un tipo de documento.",
         "numberRequired": "Introduzca el número del documento.",
         "countryRequired": "Introduzca el país de emisión."
+      }
+    },
+    "classResults": {
+      "title": "Resultados multi-materia por clase",
+      "subtitle": "Resultados de evaluación continua de solo lectura por clase y materia",
+      "subtitleWithClass": "Clase {className} — resultados multi-materia de solo lectura",
+      "loading": "Cargando resultados de clase…",
+      "filters": {
+        "academicYear": "Año académico",
+        "term": "Periodo",
+        "class": "Clase",
+        "selectAcademicYear": "Seleccionar año académico",
+        "selectTerm": "Seleccionar periodo",
+        "selectClass": "Seleccionar clase",
+        "reset": "Restablecer"
+      },
+      "coverage": {
+        "title": "Cobertura",
+        "gradebooks": "Cuadernos",
+        "subjects": "Asignaturas",
+        "roster": "Lista",
+        "studentsWithAllSubjects": "Alumnos con todas las asignaturas",
+        "studentsWithMissingSubjects": "Alumnos con asignaturas faltantes",
+        "warnings": "Avisos",
+        "gradebooksByState": "Cuadernos por estado"
+      },
+      "warnings": {
+        "title": "Avisos",
+        "empty": "No hay avisos para esta clase/periodo.",
+        "subjectCode": "Código de asignatura",
+        "gradebookId": "ID del cuaderno",
+        "studentId": "ID del alumno",
+        "codes": {
+          "duplicate_subject_gradebooks": "Cuadernos duplicados de asignatura",
+          "configured_subject_without_gradebook": "Asignatura configurada sin cuaderno",
+          "student_not_in_gradebook_roster": "Alumno ausente de la lista del cuaderno",
+          "unknown": "Aviso"
+        }
+      },
+      "status": {
+        "available": "Disponible",
+        "complete": "Completo",
+        "partial": "Parcial",
+        "not_computable": "No calculable",
+        "not_available": "No disponible",
+        "unknown": "Estado desconocido"
+      },
+      "reasons": {
+        "student_not_in_gradebook_roster": "No está en la lista del cuaderno",
+        "participation_state_blocks_aggregation": "Bloqueado por el estado de participación"
+      },
+      "cell": {
+        "notAvailable": "No disponible",
+        "noScore": "Sin nota",
+        "completion": "Completado / esperado: {value}",
+        "missingCells": "Celdas faltantes: {count}",
+        "partialHint": "Parcial — no es un resultado final",
+        "notComputableHint": "No calculable",
+        "normalized": "Normalizado: {value}",
+        "gradebookState": "Cuaderno: {state}"
+      },
+      "matrix": {
+        "title": "Matriz alumno × asignatura",
+        "student": "Alumno",
+        "sequence": "Sec. {value}",
+        "openGradebook": "Abrir cuaderno",
+        "narrowHint": "Desplácese horizontalmente para ver todas las asignaturas. La columna del alumno permanece fija."
+      },
+      "empty": {
+        "noContext": {
+          "title": "Seleccione año, periodo y clase",
+          "description": "Elija un año académico, luego un periodo y una clase para cargar los resultados."
+        },
+        "noGradebooks": {
+          "title": "Sin cuadernos de asignatura",
+          "description": "Esta clase tiene lista, pero no se devolvieron cuadernos de asignatura para el periodo seleccionado."
+        },
+        "emptyRoster": {
+          "title": "Lista vacía",
+          "description": "El servidor no devolvió matrículas activas para esta clase."
+        },
+        "noSubjects": {
+          "title": "Sin asignaturas",
+          "description": "La lista está presente, pero no se devolvieron columnas de asignatura."
+        }
       }
     }
   }

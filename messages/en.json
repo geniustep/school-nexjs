@@ -133,7 +133,8 @@
     "finance": "Finance",
     "financeSection": "Finance",
     "adminScopedFinance": "Finance (scoped)",
-    "settings": "Settings"
+    "settings": "Settings",
+    "classResults": "Class results"
   },
   "states": {
     "draft": "Draft",
@@ -10215,6 +10216,91 @@
         "typeRequired": "Select a document type.",
         "numberRequired": "Enter the document number.",
         "countryRequired": "Enter the issuing country."
+      }
+    },
+    "classResults": {
+      "title": "Class multi-subject results",
+      "subtitle": "Read-only continuous assessment results by class across subjects",
+      "subtitleWithClass": "Class {className} — read-only multi-subject results",
+      "loading": "Loading class results…",
+      "filters": {
+        "academicYear": "Academic year",
+        "term": "Term",
+        "class": "Class",
+        "selectAcademicYear": "Select academic year",
+        "selectTerm": "Select term",
+        "selectClass": "Select class",
+        "reset": "Reset selection"
+      },
+      "coverage": {
+        "title": "Coverage",
+        "gradebooks": "Gradebooks",
+        "subjects": "Subjects",
+        "roster": "Roster",
+        "studentsWithAllSubjects": "Students with all subjects",
+        "studentsWithMissingSubjects": "Students with missing subjects",
+        "warnings": "Warnings",
+        "gradebooksByState": "Gradebooks by state"
+      },
+      "warnings": {
+        "title": "Warnings",
+        "empty": "No warnings returned for this class/term.",
+        "subjectCode": "Subject code",
+        "gradebookId": "Gradebook ID",
+        "studentId": "Student ID",
+        "codes": {
+          "duplicate_subject_gradebooks": "Duplicate subject gradebooks",
+          "configured_subject_without_gradebook": "Configured subject without gradebook",
+          "student_not_in_gradebook_roster": "Student not in gradebook roster",
+          "unknown": "Warning"
+        }
+      },
+      "status": {
+        "available": "Available",
+        "complete": "Complete",
+        "partial": "Partial",
+        "not_computable": "Not computable",
+        "not_available": "Not available",
+        "unknown": "Unknown status"
+      },
+      "reasons": {
+        "student_not_in_gradebook_roster": "Not present in the gradebook roster",
+        "participation_state_blocks_aggregation": "Blocked by participation state"
+      },
+      "cell": {
+        "notAvailable": "Not available",
+        "noScore": "No score",
+        "completion": "Completed / expected: {value}",
+        "missingCells": "Missing cells: {count}",
+        "partialHint": "Partial — not a final result",
+        "notComputableHint": "Not computable",
+        "normalized": "Normalized: {value}",
+        "gradebookState": "Gradebook: {state}"
+      },
+      "matrix": {
+        "title": "Student × subject matrix",
+        "student": "Student",
+        "sequence": "Seq. {value}",
+        "openGradebook": "Open gradebook",
+        "narrowHint": "Scroll horizontally to review all subjects. The student column stays fixed."
+      },
+      "empty": {
+        "noContext": {
+          "title": "Select year, term, and class",
+          "description": "Choose an academic year, then a term, then a class to load multi-subject results."
+        },
+        "noGradebooks": {
+          "title": "No subject gradebooks",
+          "description": "This class has a roster, but no subject gradebooks were returned for the selected term."
+        },
+        "emptyRoster": {
+          "title": "Empty roster",
+          "description": "The server returned no active enrollments for this class."
+        },
+        "noSubjects": {
+          "title": "No subjects",
+          "description": "The roster is present, but no subject columns were returned."
+        }
       }
     }
   }
