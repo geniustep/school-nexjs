@@ -1,0 +1,212 @@
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
+.class-results-workspace .class-results-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+  margin-bottom: 16px;
+}
+
+.class-results-filters__label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-text-muted);
+  margin-bottom: 4px;
+}
+
+.class-results-section-title {
+  margin: 0 0 12px;
+  font-size: 1rem;
+  font-weight: 650;
+  color: var(--c-text);
+}
+
+.class-results-meta-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-text-muted);
+  margin-bottom: 4px;
+}
+
+.class-results-content {
+  display: grid;
+  gap: 16px;
+}
+
+.class-results-coverage__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px 16px;
+}
+
+.class-results-coverage__states {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--c-border);
+}
+
+.class-results-coverage__state-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.class-results-warnings__list {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.class-results-warnings__item {
+  padding: 12px;
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+  background: var(--c-surface-2, var(--c-surface));
+}
+
+.class-results-warnings__item p {
+  margin: 6px 0 0;
+}
+
+.class-results-warnings__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-top: 8px;
+}
+
+.class-results-matrix__header {
+  margin-bottom: 12px;
+}
+
+.class-results-matrix__scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+}
+
+.class-results-table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--c-bg);
+}
+
+.class-results-table th,
+.class-results-table td {
+  border-bottom: 1px solid var(--c-border);
+  border-inline-end: 1px solid var(--c-border);
+  padding: 10px 12px;
+  vertical-align: top;
+  text-align: start;
+  background: var(--c-bg);
+}
+
+.class-results-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--c-surface);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.class-results-table__student-col {
+  position: sticky;
+  inset-inline-start: 0;
+  z-index: 3;
+  min-width: 180px;
+  background: var(--c-surface);
+}
+
+.class-results-table thead .class-results-table__student-col {
+  z-index: 4;
+}
+
+.class-results-table__subject-head {
+  display: grid;
+  gap: 8px;
+  min-width: 160px;
+}
+
+.class-results-student {
+  display: grid;
+  gap: 2px;
+}
+
+.class-results-student__name {
+  font-weight: 600;
+}
+
+.class-results-cell {
+  display: grid;
+  gap: 4px;
+  min-width: 140px;
+}
+
+.class-results-cell__score {
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.class-results-cell__score.is-provisional {
+  font-style: italic;
+}
+
+.class-results-missing {
+  color: var(--c-text-muted);
+}
+
+.class-results-status {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 650;
+  border: 1px solid var(--c-border);
+}
+
+.class-results-status.is-complete {
+  background: color-mix(in srgb, var(--raqeem-primary, #0f766e) 12%, transparent);
+  border-color: color-mix(in srgb, var(--raqeem-primary, #0f766e) 35%, var(--c-border));
+}
+
+.class-results-status.is-partial {
+  background: color-mix(in srgb, #b45309 12%, transparent);
+  border-color: color-mix(in srgb, #b45309 35%, var(--c-border));
+}
+
+.class-results-status.is-blocked {
+  background: color-mix(in srgb, #b91c1c 10%, transparent);
+  border-color: color-mix(in srgb, #b91c1c 30%, var(--c-border));
+}
+
+.class-results-status.is-available {
+  background: var(--c-surface-2, var(--c-surface));
+}
+
+@media (max-width: 720px) {
+  .class-results-workspace .class-results-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .class-results-table__student-col {
+    min-width: 140px;
+  }
+}

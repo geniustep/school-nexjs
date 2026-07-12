@@ -133,7 +133,8 @@
     "finance": "المالية",
     "financeSection": "المالية",
     "adminScopedFinance": "المالية (نطاق محدود)",
-    "settings": "الإعدادات"
+    "settings": "الإعدادات",
+    "classResults": "نتائج الأقسام"
   },
   "states": {
     "draft": "مسودة",
@@ -10297,6 +10298,91 @@
         "typeRequired": "اختر نوع الوثيقة.",
         "numberRequired": "أدخل رقم الوثيقة.",
         "countryRequired": "أدخل بلد الإصدار."
+      }
+    },
+    "classResults": {
+      "title": "نتائج الأقسام متعددة المواد",
+      "subtitle": "عرض للقراءة فقط لنتائج المراقبة المستمرة حسب القسم عبر المواد",
+      "subtitleWithClass": "القسم {className} — نتائج متعددة المواد للقراءة فقط",
+      "loading": "جاري تحميل نتائج القسم…",
+      "filters": {
+        "academicYear": "السنة الدراسية",
+        "term": "الدورة",
+        "class": "القسم",
+        "selectAcademicYear": "اختر السنة الدراسية",
+        "selectTerm": "اختر الدورة",
+        "selectClass": "اختر القسم",
+        "reset": "إعادة التعيين"
+      },
+      "coverage": {
+        "title": "التغطية",
+        "gradebooks": "دفاتر المواد",
+        "subjects": "المواد",
+        "roster": "اللائحة",
+        "studentsWithAllSubjects": "تلاميذ بجميع المواد",
+        "studentsWithMissingSubjects": "تلاميذ بمواد ناقصة",
+        "warnings": "التحذيرات",
+        "gradebooksByState": "الدفاتر حسب الحالة"
+      },
+      "warnings": {
+        "title": "التحذيرات",
+        "empty": "لا توجد تحذيرات لهذا القسم/الدورة.",
+        "subjectCode": "رمز المادة",
+        "gradebookId": "معرّف الدفتر",
+        "studentId": "معرّف التلميذ",
+        "codes": {
+          "duplicate_subject_gradebooks": "دفاتر مكررة لنفس المادة",
+          "configured_subject_without_gradebook": "مادة مهيأة بدون دفتر",
+          "student_not_in_gradebook_roster": "التلميذ غير موجود في لائحة الدفتر",
+          "unknown": "تحذير"
+        }
+      },
+      "status": {
+        "available": "متاح",
+        "complete": "مكتمل",
+        "partial": "جزئي",
+        "not_computable": "غير قابل للحساب",
+        "not_available": "غير متاح",
+        "unknown": "حالة غير معروفة"
+      },
+      "reasons": {
+        "student_not_in_gradebook_roster": "غير موجود في لائحة الدفتر",
+        "participation_state_blocks_aggregation": "محظور بسبب حالة المشاركة"
+      },
+      "cell": {
+        "notAvailable": "غير متاح",
+        "noScore": "لا درجة",
+        "completion": "المكتمل / المتوقع: {value}",
+        "missingCells": "خلايا ناقصة: {count}",
+        "partialHint": "جزئي — ليس نتيجة نهائية",
+        "notComputableHint": "غير قابل للحساب",
+        "normalized": "مطبّع: {value}",
+        "gradebookState": "الدفتر: {state}"
+      },
+      "matrix": {
+        "title": "مصفوفة التلميذ × المادة",
+        "student": "التلميذ",
+        "sequence": "تسلسل {value}",
+        "openGradebook": "فتح الدفتر",
+        "narrowHint": "مرّر أفقياً لمراجعة كل المواد. عمود التلميذ يبقى ثابتاً."
+      },
+      "empty": {
+        "noContext": {
+          "title": "اختر السنة والدورة والقسم",
+          "description": "اختر السنة الدراسية ثم الدورة ثم القسم لتحميل النتائج متعددة المواد."
+        },
+        "noGradebooks": {
+          "title": "لا توجد دفاتر مواد",
+          "description": "القسم يحتوي على لائحة، لكن لم تُرجع دفاتر مواد للدورة المحددة."
+        },
+        "emptyRoster": {
+          "title": "لائحة فارغة",
+          "description": "لم يُرجع الخادم أي تسجيلات نشطة لهذا القسم."
+        },
+        "noSubjects": {
+          "title": "لا توجد مواد",
+          "description": "اللائحة موجودة، لكن لم تُرجع أعمدة مواد."
+        }
       }
     }
   }

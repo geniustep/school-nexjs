@@ -133,7 +133,8 @@
     "finance": "Finances",
     "financeSection": "Finances",
     "adminScopedFinance": "Finances (périmètre limité)",
-    "settings": "Paramètres"
+    "settings": "Paramètres",
+    "classResults": "Résultats des classes"
   },
   "states": {
     "draft": "Brouillon",
@@ -10248,6 +10249,91 @@
         "typeRequired": "Sélectionnez un type de document.",
         "numberRequired": "Saisissez le numéro du document.",
         "countryRequired": "Saisissez le pays d’émission."
+      }
+    },
+    "classResults": {
+      "title": "Résultats multi-matières par classe",
+      "subtitle": "Résultats de contrôle continu en lecture seule par classe et par matière",
+      "subtitleWithClass": "Classe {className} — résultats multi-matières en lecture seule",
+      "loading": "Chargement des résultats de classe…",
+      "filters": {
+        "academicYear": "Année scolaire",
+        "term": "Période",
+        "class": "Classe",
+        "selectAcademicYear": "Choisir l'année scolaire",
+        "selectTerm": "Choisir la période",
+        "selectClass": "Choisir la classe",
+        "reset": "Réinitialiser"
+      },
+      "coverage": {
+        "title": "Couverture",
+        "gradebooks": "Carnets",
+        "subjects": "Matières",
+        "roster": "Liste",
+        "studentsWithAllSubjects": "Élèves avec toutes les matières",
+        "studentsWithMissingSubjects": "Élèves avec matières manquantes",
+        "warnings": "Avertissements",
+        "gradebooksByState": "Carnets par état"
+      },
+      "warnings": {
+        "title": "Avertissements",
+        "empty": "Aucun avertissement pour cette classe / période.",
+        "subjectCode": "Code matière",
+        "gradebookId": "ID carnet",
+        "studentId": "ID élève",
+        "codes": {
+          "duplicate_subject_gradebooks": "Carnets en double pour une matière",
+          "configured_subject_without_gradebook": "Matière configurée sans carnet",
+          "student_not_in_gradebook_roster": "Élève absent de la liste du carnet",
+          "unknown": "Avertissement"
+        }
+      },
+      "status": {
+        "available": "Disponible",
+        "complete": "Complet",
+        "partial": "Partiel",
+        "not_computable": "Non calculable",
+        "not_available": "Non disponible",
+        "unknown": "Statut inconnu"
+      },
+      "reasons": {
+        "student_not_in_gradebook_roster": "Absent de la liste du carnet",
+        "participation_state_blocks_aggregation": "Bloqué par l'état de participation"
+      },
+      "cell": {
+        "notAvailable": "Non disponible",
+        "noScore": "Pas de note",
+        "completion": "Complété / attendu : {value}",
+        "missingCells": "Cellules manquantes : {count}",
+        "partialHint": "Partiel — résultat non définitif",
+        "notComputableHint": "Non calculable",
+        "normalized": "Normalisé : {value}",
+        "gradebookState": "Carnet : {state}"
+      },
+      "matrix": {
+        "title": "Matrice élève × matière",
+        "student": "Élève",
+        "sequence": "Séquence {value}",
+        "openGradebook": "Ouvrir le carnet",
+        "narrowHint": "Faites défiler horizontalement pour voir toutes les matières. La colonne élève reste fixe."
+      },
+      "empty": {
+        "noContext": {
+          "title": "Choisir année, période et classe",
+          "description": "Sélectionnez une année scolaire, puis une période, puis une classe pour charger les résultats."
+        },
+        "noGradebooks": {
+          "title": "Aucun carnet de matière",
+          "description": "Cette classe a une liste, mais aucun carnet de matière n'a été renvoyé pour la période sélectionnée."
+        },
+        "emptyRoster": {
+          "title": "Liste vide",
+          "description": "Le serveur n'a renvoyé aucune inscription active pour cette classe."
+        },
+        "noSubjects": {
+          "title": "Aucune matière",
+          "description": "La liste est présente, mais aucune colonne matière n'a été renvoyée."
+        }
       }
     }
   }
