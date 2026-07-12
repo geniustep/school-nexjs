@@ -1,0 +1,478 @@
+/* Official admin sidebar (adopted Focus Navigation).
+ * Scoped via [data-sidebar-variant="admin"] / .sidebar--focus-v2
+ */
+
+.app-shell--admin:has([data-sidebar-variant='admin']) {
+  --sidebar-w: clamp(284px, 20vw, 300px);
+  --focus-v2-ink: #0f172a;
+  --focus-v2-muted: #64748b;
+  --focus-v2-rail: var(--admin-accent, var(--raqeem-primary));
+  --focus-v2-soft: color-mix(in srgb, var(--admin-accent, var(--raqeem-primary)) 10%, #fff);
+  --focus-v2-soft-strong: color-mix(in srgb, var(--admin-accent, var(--raqeem-primary)) 16%, #fff);
+  --focus-v2-line: color-mix(in srgb, var(--c-border) 70%, transparent);
+}
+
+.app-shell--admin.app-shell--focus-v2-collapsed:has([data-sidebar-variant='admin']),
+.app-shell--admin.app-shell--focus-collapsed:has([data-sidebar-variant='admin']) {
+  --sidebar-w: 72px;
+}
+
+@media (min-width: 901px) and (max-width: 1100px) {
+  .app-shell--admin:has([data-sidebar-variant='admin']):not(.app-shell--focus-v2-collapsed):not(
+      .app-shell--focus-collapsed
+    ) {
+    --sidebar-w: clamp(268px, 25vw, 288px);
+  }
+}
+
+@media (max-width: 900px) {
+  .app-shell--admin:has([data-sidebar-variant='admin']),
+  .app-shell--admin.app-shell--focus-v2-collapsed:has([data-sidebar-variant='admin']),
+  .app-shell--admin.app-shell--focus-collapsed:has([data-sidebar-variant='admin']) {
+    --sidebar-w: min(88vw, 360px);
+  }
+
+  .sidebar--focus-v2 .focus-v2__collapse-btn {
+    display: none;
+  }
+}
+
+/* ——— Shell ——— */
+.sidebar--focus-v2 {
+  background: #ffffff;
+  border-inline-end: 1px solid var(--focus-v2-line);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  box-shadow: 4px 0 24px rgba(15, 42, 68, 0.04);
+}
+
+[dir='rtl'] .sidebar--focus-v2 {
+  box-shadow: -4px 0 24px rgba(15, 42, 68, 0.04);
+}
+
+/* ——— Sticky identity header (brand plane, not Classic gray profile strip) ——— */
+.sidebar--focus-v2 .focus-v2__header {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 12px 14px;
+  background:
+    linear-gradient(
+      165deg,
+      color-mix(in srgb, var(--admin-accent, var(--raqeem-primary)) 92%, #0b1220) 0%,
+      color-mix(in srgb, var(--admin-accent, var(--raqeem-primary)) 78%, #1e3a5f) 100%
+    );
+  color: #f8fafc;
+  border-block-end: none;
+}
+
+.sidebar--focus-v2 .focus-v2__brand-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 38px;
+}
+
+.sidebar--focus-v2 .focus-v2__brand {
+  min-width: 0;
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  max-width: calc(100% - 44px);
+  padding: 5px 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.sidebar--focus-v2 .focus-v2__brand .brand-logo__full {
+  height: 30px;
+  max-width: 100%;
+}
+
+.sidebar--focus-v2 .focus-v2__brand .brand-logo__mark {
+  width: 26px;
+  height: 26px;
+}
+
+.sidebar--focus-v2 .focus-v2__collapse-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.sidebar--focus-v2 .focus-v2__collapse-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.sidebar--focus-v2 .focus-v2__collapse-btn:focus-visible {
+  outline: 2px solid var(--raqeem-accent);
+  outline-offset: 2px;
+}
+
+.sidebar--focus-v2 .focus-v2__identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.sidebar--focus-v2 .focus-v2__identity--collapsed {
+  justify-content: center;
+  padding: 6px;
+}
+
+.sidebar--focus-v2 .focus-v2__identity .avatar {
+  width: 38px;
+  height: 38px;
+  font-size: 13px;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35);
+}
+
+.sidebar--focus-v2 .focus-v2__identity-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sidebar--focus-v2 .focus-v2__school {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: rgba(248, 250, 252, 0.72);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar--focus-v2 .focus-v2__user {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar--focus-v2 .focus-v2__role {
+  font-size: 11px;
+  font-weight: 650;
+  color: #fde68a;
+  width: fit-content;
+}
+
+.sidebar--focus-v2 .focus-v2__scope {
+  margin: 0;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: rgba(248, 250, 252, 0.78);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+/* ——— Navigation body: flat, no card stack ——— */
+.sidebar--focus-v2 .focus-v2__nav {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding: 14px 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #fff;
+}
+
+.sidebar--focus-v2 .focus-v2__nav-eyebrow {
+  margin: 0 4px 0;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--focus-v2-muted);
+}
+
+/* Groups = typography units, not gray cards */
+.sidebar--focus-v2 .focus-v2__group {
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.sidebar--focus-v2 .focus-v2__group--open.focus-v2__group--active,
+.sidebar--focus-v2 .focus-v2__group--active {
+  background: transparent;
+  padding-block: 2px 6px;
+  border-radius: 12px;
+  background: var(--focus-v2-soft);
+  padding-inline: 4px;
+}
+
+.sidebar--focus-v2 .focus-v2__group:not(.focus-v2__group--active) {
+  background: transparent;
+}
+
+.sidebar--focus-v2 .focus-v2__group-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 46px;
+  padding: 8px 9px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--focus-v2-ink);
+  cursor: pointer;
+  font-size: 14.5px;
+  font-weight: 650;
+  line-height: 1.35;
+  text-align: start;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.sidebar--focus-v2 .focus-v2__group-toggle:hover {
+  background: color-mix(in srgb, var(--c-surface-2) 65%, transparent);
+}
+
+.sidebar--focus-v2 .focus-v2__group-toggle:focus-visible {
+  outline: 2px solid var(--focus-v2-rail);
+  outline-offset: 2px;
+}
+
+.sidebar--focus-v2 .focus-v2__group-toggle--has-active {
+  color: var(--focus-v2-rail);
+}
+
+.sidebar--focus-v2 .focus-v2__group-toggle--open {
+  color: var(--focus-v2-ink);
+}
+
+.sidebar--focus-v2 .focus-v2__group--active .focus-v2__group-toggle {
+  color: var(--focus-v2-rail);
+}
+
+.sidebar--focus-v2 .focus-v2__group-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--c-surface-2) 90%, #fff);
+  font-size: 1.05rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.sidebar--focus-v2 .focus-v2__group--active .focus-v2__group-icon {
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(15, 42, 68, 0.08);
+}
+
+.sidebar--focus-v2 .focus-v2__group-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar--focus-v2 .focus-v2__group-chevron {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  opacity: 0.75;
+  transition: transform 0.18s ease;
+  color: var(--focus-v2-muted);
+}
+
+.sidebar--focus-v2 .focus-v2__group-toggle--open .focus-v2__group-chevron {
+  transform: rotate(180deg);
+  color: var(--focus-v2-rail);
+}
+
+/* Nested destination list under the domain title */
+.sidebar--focus-v2 .focus-v2__items {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 2px 2px 6px;
+  margin-inline-start: 0.45rem;
+  border-inline-start: 2px solid color-mix(in srgb, var(--focus-v2-rail) 22%, transparent);
+  padding-inline-start: 0.65rem;
+}
+
+.sidebar--focus-v2 .focus-v2__group--active .focus-v2__items {
+  border-inline-start-color: color-mix(in srgb, var(--focus-v2-rail) 45%, transparent);
+}
+
+.sidebar--focus-v2 .focus-v2__items--closed {
+  display: none;
+}
+
+.sidebar--focus-v2 .focus-v2__items--rail {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.sidebar--focus-v2 .focus-v2__link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.35;
+  text-decoration: none;
+  border: none;
+  border-inline-start: none;
+  transition: background 0.12s ease, color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.sidebar--focus-v2 .focus-v2__link:hover {
+  background: var(--focus-v2-soft);
+  color: var(--focus-v2-ink);
+}
+
+.sidebar--focus-v2 .focus-v2__link:focus-visible {
+  outline: 2px solid var(--focus-v2-rail);
+  outline-offset: 2px;
+}
+
+.sidebar--focus-v2 .focus-v2__link-icon {
+  width: 1.15rem;
+  min-width: 1.15rem;
+  font-size: 1.1rem;
+  line-height: 1;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.sidebar--focus-v2 .focus-v2__link-label {
+  min-width: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* Active destination: solid surface + accent rail (not Classic soft strip alone) */
+.sidebar--focus-v2 .focus-v2__link--active {
+  background: var(--focus-v2-soft-strong);
+  color: var(--focus-v2-rail);
+  font-weight: 700;
+  box-shadow: inset 3px 0 0 var(--focus-v2-rail);
+}
+
+[dir='rtl'] .sidebar--focus-v2 .focus-v2__link--active {
+  box-shadow: inset -3px 0 0 var(--focus-v2-rail);
+}
+
+/* ——— Footer ——— */
+.sidebar--focus-v2 .focus-v2__footer {
+  flex-shrink: 0;
+  margin-block-start: 0;
+  border-block-start: 1px solid var(--focus-v2-line);
+  background: #fbfcfe;
+  padding-block: 10px;
+}
+
+/* ——— Collapsed rail ——— */
+.sidebar--focus-v2.sidebar--focus-v2-collapsed .focus-v2__header {
+  padding: 10px 6px 12px;
+}
+
+.sidebar--focus-v2.sidebar--focus-v2-collapsed .focus-v2__brand-row {
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar--focus-v2.sidebar--focus-v2-collapsed .focus-v2__nav {
+  padding: 10px 6px 12px;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.sidebar--focus-v2.sidebar--focus-v2-collapsed .focus-v2__group--active {
+  padding-inline: 2px;
+  background: var(--focus-v2-soft);
+}
+
+.sidebar--focus-v2.sidebar--focus-v2-collapsed .focus-v2__group-toggle {
+  justify-content: center;
+  min-height: 44px;
+  padding: 6px;
+}
+
+.sidebar--focus-v2.sidebar--focus-v2-collapsed .focus-v2__group-icon {
+  width: 2rem;
+  height: 2rem;
+}
+
+.sidebar--focus-v2.sidebar--focus-v2-collapsed .focus-v2__link {
+  justify-content: center;
+  min-height: 44px;
+  padding: 6px;
+  box-shadow: none;
+}
+
+.sidebar--focus-v2.sidebar--focus-v2-collapsed .focus-v2__link--active {
+  box-shadow: none;
+  outline: 2px solid color-mix(in srgb, var(--focus-v2-rail) 45%, transparent);
+  outline-offset: 0;
+}
+
+.sidebar--focus-v2.sidebar--focus-v2-collapsed .focus-v2__footer {
+  padding: 8px 6px;
+  align-items: center;
+}
+
+.sidebar--focus-v2.sidebar--focus-v2-collapsed .sidebar__footer-logout {
+  width: 100%;
+  min-height: 38px;
+  padding-inline: 4px;
+  font-size: 11px;
+}
+
+.sidebar--focus-v2 .focus-v2__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

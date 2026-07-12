@@ -50,7 +50,8 @@ AppShell → sidebar + topbar + content
 | العنصر | Classes | الملف |
 |--------|---------|-------|
 | Shell | `app-shell`, `app-shell--admin`, `app-shell--teacher` | `src/components/layout/app-shell.tsx` |
-| Sidebar | `sidebar`, `sidebar--admin`, `sidebar--open` | `globals.css` |
+| Sidebar | `sidebar`, `sidebar--admin`, `sidebar--focus-v2`, `sidebar--open` | `admin-sidebar.css` + `globals.css` |
+| Admin sidebar width | Focus adopted: `clamp(284px, 20vw, 300px)`; collapsed rail `72px` | `src/app/admin-sidebar.css` |
 | Topbar | `topbar`, `topbar__title` | `globals.css` |
 | Content | `content`, `content--admin` (max-width 1280px) | `globals.css` |
 | Portal wiring | `PortalLayout` | `src/components/layout/portal-layout.tsx` |
@@ -491,6 +492,8 @@ document.documentElement.dir = localeDir(locale); // ar → rtl, else ltr
   - `[dir='rtl'] .confirmation-dialog__actions`
 - **Bi-directional content:** `dir="auto"` على أسماء/ref numbers
 - **Numbers/money/dates:** `dir="ltr"` على `.exec-kpi__money`, date picker controls
+- **Standalone numeric units (amounts, phones, codes, dates):** use `NumericText` / `MoneyText` / `IdentifierText` / `PhoneText` / `DateText` (`@/components/ui/numeric-text`) or `.finance-amount` / `.numeric-text` — `white-space: nowrap` + LTR isolation + `tabular-nums`. Containers adapt (scroll/clamp); never `break-all` / `overflow-wrap: anywhere` on money.
+- **Dense money KPI grids (e.g. executive finance summary `.exec-metric-grid`):** `container-type: inline-size` + container-query reflow + `clamp(..., cqi, ...)` fluid type. Keep amount nowrap; never clip with `overflow: hidden` or scroll the KPI tile horizontally.
 
 ### Default
 
@@ -504,7 +507,8 @@ SSR: `lang="ar" dir="rtl"` في `src/app/layout.tsx`
 
 | Breakpoint | السلوك |
 |------------|--------|
-| **≤900px** | Sidebar → drawer, content padding 12px, topbar 56px, mobile sheets |
+| **≤900px** | Sidebar → drawer (`--sidebar-w: min(86vw, 320px)` for admin), content padding 12px, topbar 56px, mobile sheets |
+| 901–1100px | Admin sidebar slightly tighter (`clamp(264px, 24vw, 288px)`), nav link 13.5px |
 | ≤1023px | Login stacked |
 | ≤599px | Login mobile tweaks |
 

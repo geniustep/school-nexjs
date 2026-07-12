@@ -9,12 +9,14 @@ export function SignOutButton({
   className,
   size = 'default',
   block = false,
+  title,
 }: {
   loggingOut: boolean;
   onClick: () => void;
   className?: string;
   size?: 'default' | 'sm';
   block?: boolean;
+  title?: string;
 }) {
   const t = useT();
 
@@ -32,6 +34,7 @@ export function SignOutButton({
       disabled={loggingOut}
       aria-busy={loggingOut}
       aria-live="polite"
+      title={title}
     >
       <span className="sign-out-btn__inner">
         {loggingOut ? (

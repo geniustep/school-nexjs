@@ -12,7 +12,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils/cn';
 import { authApi } from '@/lib/api/client';
 import { navForUser } from '@/components/navigation/nav-config';
-import { AdminSidebarNav } from '@/components/navigation/admin-sidebar-nav';
+import { AdminSidebarHost } from '@/components/navigation/admin-sidebar-host';
 import { Avatar } from '@/components/ui/primitives';
 import { LocaleSwitcher } from '@/components/i18n/locale-switcher';
 import { SchoolSwitcher } from '@/components/admin/school-switcher';
@@ -71,6 +71,7 @@ export function AppShell({
   const router = useRouter();
   const { mainDrawerOpen, setMainDrawerOpen } = useMobileNavCoordinator();
   const [loggingOut, setLoggingOut] = useState(false);
+  const [adminSidebarCollapsed, setAdminSidebarCollapsed] = useState(false);
   const sections = navForUser(user);
   const t = useT();
   const scopeDesc = scopeDescription(user, t);
@@ -109,101 +110,107 @@ export function AppShell({
         'app-shell',
         isTeacher && 'app-shell--teacher',
         isAdmin && 'app-shell--admin',
+        isAdmin &&
+          adminSidebarCollapsed &&
+          'app-shell--focus-collapsed app-shell--focus-v2-collapsed',
       )}
     >
-      {mainDrawerOpen && (
-        <button
-          type="button"
-          className="scrim"
-          aria-label={t('common.close')}
-          onClick={() => setMainDrawerOpen(false)}
+      {isAdmin ? (
+        <AdminSidebarHost
+          user={user}
+          sections={sections}
+          roleLabel={roleLabel}
+          scopeDesc={scopeDesc}
+          mainDrawerOpen={mainDrawerOpen}
+          setMainDrawerOpen={setMainDrawerOpen}
+          loggingOut={loggingOut}
+          onLogout={logout}
+          onCollapsedChange={setAdminSidebarCollapsed}
         />
-      )}
-      <aside
-        id="admin-sidebar"
-        className={cn(
-          'sidebar',
-          isTeacher && 'sidebar--teacher',
-          isAdmin && 'sidebar--admin',
-          mainDrawerOpen && 'sidebar--open',
-        )}
-        aria-hidden={!mainDrawerOpen ? undefined : false}
-      >
-        <div className="sidebar__brand">
-          <BrandLogo variant="full" />
-        </div>
-
-        {(isTeacher || isAdmin) && (
-          <div className="sidebar__profile">
-            <Avatar name={user.name} />
-            <div className="sidebar__profile-info">
-              <span className="sidebar__profile-name">{user.name}</span>
-              <span className="sidebar__profile-role">{roleLabel}</span>
-              {user.school && (
-                <span className="sidebar__profile-school">
-                  {formatSchoolLabel(user.school, t)}
-                </span>
-              )}
-            </div>
-          </div>
-        )}
-
-        <nav id="admin-sidebar-nav" className="sidebar__nav" aria-label={t('nav.main')}>
-          {isAdmin ? (
-            <AdminSidebarNav
-              sections={sections}
-              onNavigate={() => setMainDrawerOpen(false)}
+      ) : (
+        <>
+          {mainDrawerOpen && (
+            <button
+              type="button"
+              className="scrim"
+              aria-label={t('common.close')}
+              onClick={() => setMainDrawerOpen(false)}
             />
-          ) : (
-            sections.map((section, i) => (
-              <div key={i}>
-                {section.titleKey && (
-                  <div className="nav-section-title">{t(section.titleKey)}</div>
-                )}
-                {section.items.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn('nav-link', linkActive(item.href, item) && 'nav-link--active')}
-                    aria-current={linkActive(item.href, item) ? 'page' : undefined}
-                    onClick={() => setMainDrawerOpen(false)}
-                  >
-                    <span className="nav-link__icon" aria-hidden="true">{item.icon}</span>
-                    {t(item.labelKey)}
-                  </Link>
-                ))}
-              </div>
-            ))
           )}
-        </nav>
+          <aside
+            id="admin-sidebar"
+            className={cn(
+              'sidebar',
+              isTeacher && 'sidebar--teacher',
+              mainDrawerOpen && 'sidebar--open',
+            )}
+            aria-hidden={!mainDrawerOpen ? undefined : false}
+          >
+            <div className="sidebar__brand">
+              <BrandLogo variant="full" />
+            </div>
 
-        {scopeDesc && !isTeacher && (
-          <div className="sidebar__scope">
-            <span className="sidebar__scope-label">{t('admin.limitedAccess')}</span>
-            <span className="sidebar__scope-desc">{scopeDesc}</span>
-          </div>
-        )}
+            {isTeacher && (
+              <div className="sidebar__profile">
+                <Avatar name={user.name} />
+                <div className="sidebar__profile-info">
+                  <span className="sidebar__profile-name">{user.name}</span>
+                  <span className="sidebar__profile-role">{roleLabel}</span>
+                  {user.school && (
+                    <span className="sidebar__profile-school">
+                      {formatSchoolLabel(user.school, t)}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
 
-        {isTeacher && (
-          <div className="sidebar__scope sidebar__scope--teacher">
-            <span className="sidebar__scope-label">{t('teacher.workspaceTitle')}</span>
-            <span className="sidebar__scope-desc">{t('teacher.workspaceSidebarDesc')}</span>
-          </div>
-        )}
+            <nav id="admin-sidebar-nav" className="sidebar__nav" aria-label={t('nav.main')}>
+              {sections.map((section, i) => (
+                <div key={i}>
+                  {section.titleKey && (
+                    <div className="nav-section-title">{t(section.titleKey)}</div>
+                  )}
+                  {section.items.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={cn('nav-link', linkActive(item.href, item) && 'nav-link--active')}
+                      aria-current={linkActive(item.href, item) ? 'page' : undefined}
+                      onClick={() => setMainDrawerOpen(false)}
+                    >
+                      <span className="nav-link__icon" aria-hidden="true">
+                        {item.icon}
+                      </span>
+                      {t(item.labelKey)}
+                    </Link>
+                  ))}
+                </div>
+              ))}
+            </nav>
 
-        <div className="sidebar__footer sidebar__footer--mobile">
-          <div className="sidebar__footer-field">
-            <span className="sidebar__footer-label">{t('common.language')}</span>
-            <LocaleSwitcher />
-          </div>
-          <SignOutButton
-            loggingOut={loggingOut}
-            onClick={logout}
-            className="sidebar__footer-logout"
-            block
-          />
-        </div>
-      </aside>
+            {isTeacher && (
+              <div className="sidebar__scope sidebar__scope--teacher">
+                <span className="sidebar__scope-label">{t('teacher.workspaceTitle')}</span>
+                <span className="sidebar__scope-desc">{t('teacher.workspaceSidebarDesc')}</span>
+              </div>
+            )}
+
+            <div className="sidebar__footer sidebar__footer--mobile">
+              <div className="sidebar__footer-field">
+                <span className="sidebar__footer-label">{t('common.language')}</span>
+                <LocaleSwitcher />
+              </div>
+              <SignOutButton
+                loggingOut={loggingOut}
+                onClick={logout}
+                className="sidebar__footer-logout"
+                block
+              />
+            </div>
+          </aside>
+        </>
+      )}
 
       <div className="main">
         <header className={cn('topbar', isTeacher && 'topbar--teacher', 'admin-mobile-header')}>
@@ -218,9 +225,7 @@ export function AppShell({
             >
               <IconMenu size={20} />
             </button>
-            <span className="topbar__title admin-mobile-header__title">
-              {topbarTitle}
-            </span>
+            <span className="topbar__title admin-mobile-header__title">{topbarTitle}</span>
           </div>
           <div className="topbar__right topbar__right--desktop">
             {isAdmin && <AdminStudentSpotlightTrigger variant="desktop" />}
