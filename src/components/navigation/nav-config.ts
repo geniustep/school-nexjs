@@ -121,6 +121,11 @@ function adminNav(user: CurrentUser): NavSection[] {
     href: '/admin/timetable',
     icon: '📅',
   });
+  pushIf(academicItems, canShowAdminNavPermission(user, 'view_timetable'), {
+    labelKey: 'nav.academicCalendars',
+    href: '/admin/academic-calendars',
+    icon: '🗓️',
+  });
   pushSection(sections, {
     groupId: 'academic',
     defaultOpen: true,
@@ -343,6 +348,7 @@ export const ADMIN_NAV_BY_PERMISSION: { permission: Permission; href: string; la
   { permission: 'view_exams', href: '/admin/exams', labelKey: 'nav.exams' },
   { permission: 'view_exam_results', href: '/admin/exam-results', labelKey: 'nav.examResultsNav' },
   { permission: 'view_timetable', href: '/admin/timetable', labelKey: 'nav.timetable' },
+  { permission: 'view_timetable', href: '/admin/academic-calendars', labelKey: 'nav.academicCalendars' },
   { permission: FINANCE_VIEW, href: '/admin/finance', labelKey: 'nav.finance' },
 ];
 

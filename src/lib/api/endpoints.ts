@@ -199,6 +199,24 @@ export const endpoints = {
     timetableSlotUpdate: (id: number | string) => `/admin/timetable/slots/${id}/update`,
     timetableSlotArchive: (id: number | string) => `/admin/timetable/slots/${id}/archive`,
 
+    academicCalendars: '/admin/academic-calendars',
+    academicCalendar: (id: number | string) => `/admin/academic-calendars/${id}`,
+    academicCalendarEvents: (id: number | string) => `/admin/academic-calendars/${id}/events`,
+    academicCalendarEvent: (calendarId: number | string, eventId: number | string) =>
+      `/admin/academic-calendars/${calendarId}/events/${eventId}`,
+    academicCalendarSubmitReview: (id: number | string) =>
+      `/admin/academic-calendars/${id}/submit-review`,
+    academicCalendarResetToDraft: (id: number | string) =>
+      `/admin/academic-calendars/${id}/reset-to-draft`,
+    academicCalendarPublish: (id: number | string) => `/admin/academic-calendars/${id}/publish`,
+    academicCalendarDuplicate: (id: number | string) =>
+      `/admin/academic-calendars/${id}/duplicate`,
+    academicCalendarArchive: (id: number | string) => `/admin/academic-calendars/${id}/archive`,
+    /** Query: academic_year_id (required), school_id?, date_from?, date_to?, include_provisional? */
+    academicCalendarEffectiveEvents: '/admin/academic-calendars/effective-events',
+    /** Query: date (required), calendar_id? or academic_year_id?, include_provisional? */
+    academicCalendarClosureContext: '/admin/academic-calendars/closure-context',
+
     exams: '/admin/exams',
     examsExport: '/admin/exams/export',
     exam: (id: number | string) => `/admin/exams/${id}`,

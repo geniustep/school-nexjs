@@ -30,6 +30,7 @@ export type AdminAcademicHubLink = {
     | 'nav.homework'
     | 'nav.resources'
     | 'nav.timetable'
+    | 'nav.academicCalendars'
     | 'nav.exams'
     | 'nav.results'
     | 'nav.classes'
@@ -42,6 +43,12 @@ export const ADMIN_ACADEMIC_HUB_LINKS: readonly AdminAcademicHubLink[] = [
   { href: '/admin/homeworks', icon: '📝', labelKey: 'nav.homework', permission: 'view_homeworks' },
   { href: '/admin/resources', icon: '📚', labelKey: 'nav.resources', permission: 'view_resources' },
   { href: '/admin/timetable', icon: '📅', labelKey: 'nav.timetable', permission: 'view_timetable' },
+  {
+    href: '/admin/academic-calendars',
+    icon: '🗓️',
+    labelKey: 'nav.academicCalendars',
+    permission: 'view_timetable',
+  },
   { href: '/admin/exams', icon: '📋', labelKey: 'nav.exams', permission: 'view_exams' },
   {
     href: '/admin/exam-results',
@@ -78,6 +85,7 @@ export const ADMIN_PAGE_PERMISSION: Record<string, Permission> = {
   '/admin/academics/assessment/diagnostic': 'view_exams',
   '/admin/academics/assessment/class-results': 'view_exams',
   '/admin/timetable': 'view_timetable',
+  '/admin/academic-calendars': 'view_timetable',
   '/admin/finance': FINANCE_VIEW,
 };
 
@@ -101,6 +109,7 @@ export function permissionForAdminPath(pathname: string): Permission | null {
   if (base.startsWith('/admin/homeworks')) return 'view_homeworks';
   if (base.startsWith('/admin/resources')) return 'view_resources';
   if (base.startsWith('/admin/timetable')) return 'view_timetable';
+  if (base.startsWith('/admin/academic-calendars')) return 'view_timetable';
   if (base.startsWith('/admin/exam-results') || /\/admin\/exams\/\d+\/results/.test(base)) {
     return 'view_exam_results';
   }

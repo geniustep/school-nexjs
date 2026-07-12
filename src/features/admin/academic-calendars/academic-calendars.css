@@ -1,0 +1,284 @@
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
+.academic-calendars-page {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.academic-calendars-page__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 0;
+}
+
+.academic-calendars-page__toolbar .spacer {
+  flex: 1 1 auto;
+  min-width: 8px;
+}
+
+.academic-calendars-page__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.academic-calendars-page__title-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.academic-calendars-page__title-cell strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.academic-calendar-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.academic-calendar-detail__breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  font-size: 13px;
+  color: var(--c-text-muted);
+}
+
+.academic-calendar-detail__breadcrumb a {
+  color: var(--c-text-muted);
+  text-decoration: none;
+}
+
+.academic-calendar-detail__breadcrumb a:hover {
+  color: var(--c-primary);
+}
+
+.academic-calendar-detail__breadcrumb-sep {
+  opacity: 0.5;
+}
+
+.academic-calendar-detail__header-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.academic-calendar-detail__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.academic-calendar-detail__summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.academic-calendar-detail__summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+}
+
+.academic-calendar-detail__summary-item span {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--c-text-muted);
+}
+
+.academic-calendar-detail__summary-item strong {
+  font-size: 18px;
+  font-weight: 650;
+  color: var(--c-text);
+}
+
+.academic-calendar-detail__section-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.academic-calendar-detail__section-head h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.academic-calendar-detail__section-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.academic-calendar-form__flags {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 4px 0 10px;
+}
+
+.academic-calendar-detail__event-name {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.academic-calendar-detail__event-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.academic-calendar-detail__warnings {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.academic-calendar-detail__dl {
+  display: grid;
+  grid-template-columns: minmax(120px, 180px) 1fr;
+  gap: 8px 12px;
+  margin: 0;
+}
+
+.academic-calendar-detail__dl dt {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-text-muted);
+}
+
+.academic-calendar-detail__dl dd {
+  margin: 0;
+  font-size: 14px;
+}
+
+.academic-calendar-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.academic-calendar-form .field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 0;
+}
+
+.academic-calendar-form .field label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.academic-calendar-form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 900px) {
+  .academic-calendar-form__row {
+    grid-template-columns: 1fr;
+  }
+
+  .academic-calendar-detail__dl {
+    grid-template-columns: 1fr;
+    gap: 2px 0;
+  }
+
+  .academic-calendar-detail__dl dt {
+    margin-top: 6px;
+  }
+}
+
+/* Dialog chrome (shared ConfirmationDialog classes — scoped import avoided) */
+.academic-calendars-page .modal-backdrop,
+.academic-calendar-detail .modal-backdrop,
+.admin-workspace .modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.academic-calendars-page .modal-panel,
+.academic-calendar-detail .modal-panel,
+.admin-workspace .modal-panel {
+  width: min(480px, 100%);
+  max-height: 90vh;
+  overflow: auto;
+}
+
+.academic-calendars-page .modal-panel--wide,
+.academic-calendar-detail .modal-panel--wide,
+.admin-workspace .modal-panel--wide {
+  width: min(640px, 100%);
+}
+
+.academic-calendars-page .modal-panel--form,
+.academic-calendar-detail .modal-panel--form,
+.admin-workspace .modal-panel--form {
+  width: min(720px, 100%);
+}
+
+.academic-calendars-page .confirmation-dialog,
+.academic-calendar-detail .confirmation-dialog,
+.admin-workspace .confirmation-dialog {
+  padding: 20px;
+}
+
+.academic-calendars-page .confirmation-dialog h3,
+.academic-calendar-detail .confirmation-dialog h3,
+.admin-workspace .confirmation-dialog h3 {
+  margin: 0 0 4px;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.academic-calendars-page .confirmation-dialog__body,
+.academic-calendar-detail .confirmation-dialog__body,
+.admin-workspace .confirmation-dialog__body {
+  margin: 12px 0 16px;
+}
+
+.academic-calendars-page .confirmation-dialog__actions,
+.academic-calendar-detail .confirmation-dialog__actions,
+.admin-workspace .confirmation-dialog__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

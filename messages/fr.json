@@ -82,6 +82,7 @@
     "myClasses": "Mes classes",
     "attendance": "Présence",
     "timetable": "Emploi du temps",
+    "academicCalendars": "Calendrier et congés",
     "channels": "Canaux",
     "myChildren": "Mes enfants",
     "myProfile": "Mon profil",
@@ -145,6 +146,8 @@
     "done": "Terminé",
     "cancelled": "Annulé",
     "submitted": "Remis",
+    "under_review": "En revue",
+    "in_review": "En revue",
     "reviewed": "Revu",
     "active": "Actif",
     "open": "Ouvert",
@@ -1026,6 +1029,172 @@
       }
     },
     "timetableDesc": "Gérer les créneaux horaires",
+    "academicCalendars": {
+      "title": "Calendrier scolaire et congés",
+      "subtitle": "Gérer les calendriers par année scolaire, congés et fermetures",
+      "detailBreadcrumb": "Fil d’Ariane calendrier",
+      "backToList": "Retour aux calendriers",
+      "detailSubtitle": "Année scolaire : {year}",
+      "versionLabel": "Version {version}",
+      "warningsCount": "{count} alerte(s)",
+      "warningTitle": "Alerte serveur",
+      "studyDaysUnreliableTitle": "Jours d’étude non fiables",
+      "studyDaysUnreliableDesc": "Le serveur indique que le calcul des jours d’étude n’est pas fiable pour le moment. Les valeurs sont affichées telles quelles.",
+      "provisional": "Provisoire",
+      "confirmed": "Confirmé",
+      "eventsWithProvisional": "{total} événement(s) · {provisional} provisoire(s)",
+      "columns": {
+        "name": "Calendrier",
+        "academicYear": "Année scolaire",
+        "state": "État",
+        "version": "Version",
+        "events": "Événements",
+        "period": "Période",
+        "event": "Événement",
+        "scope": "Portée",
+        "impact": "Impact",
+        "confirmation": "Confirmation",
+        "affectedStudyDays": "Jours d’étude touchés"
+      },
+      "fields": {
+        "name": "Nom du calendrier",
+        "academicYear": "Année scolaire",
+        "notes": "Notes",
+        "eventName": "Nom de l’événement",
+        "eventType": "Type",
+        "scope": "Portée",
+        "dateFrom": "Date de début",
+        "dateTo": "Date de fin",
+        "dayPart": "Partie du jour",
+        "status": "Statut de l’événement"
+      },
+      "filters": {
+        "searchPlaceholder": "Rechercher un calendrier…",
+        "yearAll": "Toutes les années",
+        "stateAll": "Tous les états",
+        "reset": "Réinitialiser"
+      },
+      "states": {
+        "draft": "Brouillon",
+        "under_review": "En revue",
+        "in_review": "En revue",
+        "published": "Publié",
+        "archived": "Archivé"
+      },
+      "eventTypes": {
+        "inter_term_break": "Vacances intermédiaires",
+        "national_holiday": "Fête nationale",
+        "school_closure": "Fermeture de l’établissement",
+        "mid_year_break": "Vacances de mi-année",
+        "religious_holiday": "Fête religieuse"
+      },
+      "scopeTypes": {
+        "school": "Toute l’école",
+        "cycle": "Cycle",
+        "level": "Niveau",
+        "class": "Classe"
+      },
+      "summary": {
+        "studyDays": "Jours d’étude",
+        "provisionalEvents": "Événements provisoires",
+        "calendarDays": "Jours calendaires",
+        "studyDaysUnreliableValue": "Non fiable",
+        "events": "Événements",
+        "confirmedEvents": "Événements confirmés"
+      },
+      "list": {
+        "noData": {
+          "title": "Aucun calendrier",
+          "description": "Créez un calendrier scolaire pour gérer congés et fermetures."
+        },
+        "noMatch": {
+          "title": "Aucun résultat",
+          "description": "Modifiez ou réinitialisez les filtres."
+        }
+      },
+      "create": {
+        "open": "Nouveau calendrier",
+        "title": "Créer un calendrier",
+        "submit": "Créer",
+        "namePlaceholder": "Ex. : Calendrier scolaire 2026–2027",
+        "missingFields": "Le nom et l’année scolaire sont requis.",
+        "success": "Calendrier créé."
+      },
+      "edit": {
+        "title": "Modifier le calendrier",
+        "success": "Modifications enregistrées."
+      },
+      "lifecycle": {
+        "submitReview": "Envoyer en revue",
+        "submitReviewConfirm": "Envoyer ce calendrier en revue ?",
+        "submit_reviewSuccess": "Calendrier envoyé en revue.",
+        "resetToDraft": "Remettre en brouillon",
+        "resetToDraftConfirm": "Remettre ce calendrier en brouillon ?",
+        "reset_to_draftSuccess": "Calendrier remis en brouillon.",
+        "publish": "Publier",
+        "publishConfirm": "Publier ce calendrier ?",
+        "publishSuccess": "Calendrier publié.",
+        "duplicate": "Dupliquer en brouillon",
+        "duplicateHint": "Crée une nouvelle version brouillon sans modifier l’actuelle.",
+        "duplicateSuccess": "Brouillon dupliqué créé.",
+        "archive": "Archiver",
+        "archiveConfirm": "Archiver ce calendrier ?",
+        "archiveSuccess": "Calendrier archivé."
+      },
+      "events": {
+        "title": "Congés et fermetures",
+        "createOpen": "Ajouter un événement",
+        "createTitle": "Ajouter un congé ou une fermeture",
+        "editTitle": "Modifier l’événement",
+        "createSubmit": "Ajouter",
+        "editSubmit": "Enregistrer",
+        "createSuccess": "Événement ajouté.",
+        "editSuccess": "Événement mis à jour.",
+        "deleteTitle": "Supprimer l’événement",
+        "deleteConfirm": "Supprimer « {name} » ? Uniquement pour les brouillons.",
+        "deleteSuccess": "Événement supprimé.",
+        "missingFields": "Le nom et la date de début sont requis.",
+        "emptyTitle": "Aucun événement",
+        "emptyDesc": "Ajoutez un congé ou une fermeture."
+      },
+      "effectiveEvents": {
+        "title": "Événements effectifs (confirmés et provisoires)",
+        "empty": "Aucun événement effectif renvoyé par le serveur.",
+        "includeProvisional": "Inclure les provisoires",
+        "missingYear": "Impossible de charger les événements effectifs sans année scolaire."
+      },
+      "closureContext": {
+        "title": "Contexte de fermeture et impact",
+        "empty": "Aucun contexte de fermeture disponible.",
+        "date": "Date de requête",
+        "includeProvisional": "Inclure les événements provisoires",
+        "missingDate": "Choisissez une date pour le contexte de fermeture.",
+        "isClosed": "Fermé ?",
+        "closedYes": "Oui",
+        "closedNo": "Non",
+        "kind": "Type de fermeture",
+        "causingEvent": "Événement causal",
+        "provisionalOnlyTitle": "Fermeture provisoire uniquement",
+        "provisionalOnlyDesc": "La fermeture à cette date repose sur des événements provisoires non confirmés."
+      },
+      "dayParts": {
+        "full_day": "Journée entière",
+        "morning": "Matin",
+        "afternoon": "Après-midi"
+      },
+      "impactFlags": {
+        "schoolClosed": "Établissement fermé",
+        "blocksTimetable": "Bloque l’emploi du temps",
+        "blocksAttendance": "Bloque la présence",
+        "blocksExams": "Bloque les examens",
+        "affectsServices": "Affecte les services"
+      },
+      "closureKinds": {
+        "none": "Aucune fermeture",
+        "full": "Fermeture totale",
+        "partial": "Fermeture partielle"
+      }
+    },
     "timetableList": {
       "filtersLabel": "Filtres de l'emploi du temps",
       "day": "Jour",

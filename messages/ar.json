@@ -82,6 +82,7 @@
     "myClasses": "أقسامي",
     "attendance": "الحضور",
     "timetable": "استعمال الزمن",
+    "academicCalendars": "التقويم والعطل",
     "channels": "القنوات",
     "myChildren": "أبنائي",
     "myProfile": "ملفي",
@@ -146,6 +147,8 @@
     "done": "منتهٍ",
     "cancelled": "ملغى",
     "submitted": "مُسلَّم",
+    "under_review": "قيد المراجعة",
+    "in_review": "قيد المراجعة",
     "reviewed": "مُراجع",
     "active": "نشط",
     "open": "مفتوح",
@@ -1026,6 +1029,172 @@
       }
     },
     "timetableDesc": "إدارة حصص استعمال الزمن",
+    "academicCalendars": {
+      "title": "التقويم المدرسي والعطل",
+      "subtitle": "إدارة تقاويم السنوات الدراسية والعطل والإغلاقات",
+      "detailBreadcrumb": "مسار التقويم المدرسي",
+      "backToList": "العودة إلى التقاويم",
+      "detailSubtitle": "السنة الدراسية: {year}",
+      "versionLabel": "الإصدار {version}",
+      "warningsCount": "{count} تحذير",
+      "warningTitle": "تحذير من الخادم",
+      "studyDaysUnreliableTitle": "أيام الدراسة غير موثوقة",
+      "studyDaysUnreliableDesc": "الخادم يشير إلى أن احتساب أيام الدراسة غير موثوق حالياً. تُعرض القيم كما وصلت دون إعادة حساب محلي.",
+      "provisional": "مؤقت",
+      "confirmed": "مؤكد",
+      "eventsWithProvisional": "{total} حدث · {provisional} مؤقت",
+      "columns": {
+        "name": "التقويم",
+        "academicYear": "السنة الدراسية",
+        "state": "الحالة",
+        "version": "الإصدار",
+        "events": "الأحداث",
+        "period": "الفترة",
+        "event": "الحدث",
+        "scope": "النطاق",
+        "impact": "الأثر",
+        "confirmation": "التأكيد",
+        "affectedStudyDays": "أيام الدراسة المتأثرة"
+      },
+      "fields": {
+        "name": "اسم التقويم",
+        "academicYear": "السنة الدراسية",
+        "notes": "ملاحظات",
+        "eventName": "اسم الحدث",
+        "eventType": "نوع الحدث",
+        "scope": "النطاق",
+        "dateFrom": "من تاريخ",
+        "dateTo": "إلى تاريخ",
+        "dayPart": "جزء اليوم",
+        "status": "حالة الحدث"
+      },
+      "filters": {
+        "searchPlaceholder": "بحث في التقاويم…",
+        "yearAll": "كل السنوات",
+        "stateAll": "كل الحالات",
+        "reset": "إعادة ضبط الفلاتر"
+      },
+      "states": {
+        "draft": "مسودة",
+        "under_review": "قيد المراجعة",
+        "in_review": "قيد المراجعة",
+        "published": "منشور",
+        "archived": "مؤرشف"
+      },
+      "eventTypes": {
+        "inter_term_break": "عطلة بين الفترات",
+        "national_holiday": "عطلة وطنية",
+        "school_closure": "إغلاق المؤسسة",
+        "mid_year_break": "عطلة منتصف السنة",
+        "religious_holiday": "عطلة دينية"
+      },
+      "scopeTypes": {
+        "school": "المدرسة كاملة",
+        "cycle": "سلك",
+        "level": "مستوى",
+        "class": "قسم"
+      },
+      "summary": {
+        "studyDays": "أيام الدراسة",
+        "provisionalEvents": "أحداث مؤقتة",
+        "calendarDays": "أيام التقويم",
+        "studyDaysUnreliableValue": "غير موثوق",
+        "events": "الأحداث",
+        "confirmedEvents": "أحداث مؤكدة"
+      },
+      "list": {
+        "noData": {
+          "title": "لا توجد تقاويم بعد",
+          "description": "أنشئ تقويماً مدرسياً للسنة الدراسية للبدء بإدارة العطل والإغلاقات."
+        },
+        "noMatch": {
+          "title": "لا توجد نتائج مطابقة",
+          "description": "جرّب تعديل الفلاتر أو أعد ضبطها."
+        }
+      },
+      "create": {
+        "open": "تقويم جديد",
+        "title": "إنشاء تقويم مدرسي",
+        "submit": "إنشاء التقويم",
+        "namePlaceholder": "مثال: التقويم المدرسي 2026–2027",
+        "missingFields": "الاسم والسنة الدراسية مطلوبان.",
+        "success": "تم إنشاء التقويم."
+      },
+      "edit": {
+        "title": "تعديل التقويم",
+        "success": "تم حفظ التعديلات."
+      },
+      "lifecycle": {
+        "submitReview": "إرسال للمراجعة",
+        "submitReviewConfirm": "إرسال هذا التقويم للمراجعة؟ لن يمكن تعديل أحداث المسودة حتى إعادته.",
+        "submit_reviewSuccess": "تم إرسال التقويم للمراجعة.",
+        "resetToDraft": "إعادة إلى المسودة",
+        "resetToDraftConfirm": "إعادة هذا التقويم إلى حالة المسودة؟",
+        "reset_to_draftSuccess": "تمت إعادة التقويم إلى المسودة.",
+        "publish": "نشر التقويم",
+        "publishConfirm": "نشر هذا التقويم؟ سيصبح المرجع المعتمد لهذه السنة.",
+        "publishSuccess": "تم نشر التقويم.",
+        "duplicate": "نسخ إلى مسودة",
+        "duplicateHint": "يُنشئ نسخة مسودة جديدة يمكن تعديلها دون المساس بالنسخة الحالية.",
+        "duplicateSuccess": "تم إنشاء مسودة منسوخة.",
+        "archive": "أرشفة",
+        "archiveConfirm": "أرشفة هذا التقويم؟",
+        "archiveSuccess": "تمت أرشفة التقويم."
+      },
+      "events": {
+        "title": "أحداث العطل والإغلاق",
+        "createOpen": "إضافة حدث",
+        "createTitle": "إضافة عطلة أو إغلاق",
+        "editTitle": "تعديل الحدث",
+        "createSubmit": "إضافة الحدث",
+        "editSubmit": "حفظ الحدث",
+        "createSuccess": "تمت إضافة الحدث.",
+        "editSuccess": "تم تحديث الحدث.",
+        "deleteTitle": "حذف الحدث",
+        "deleteConfirm": "حذف الحدث «{name}»؟ متاح لأحداث المسودة فقط.",
+        "deleteSuccess": "تم حذف الحدث.",
+        "missingFields": "اسم الحدث وتاريخ البداية مطلوبان.",
+        "emptyTitle": "لا توجد أحداث",
+        "emptyDesc": "أضف عطلة أو إغلاقاً لهذا التقويم."
+      },
+      "effectiveEvents": {
+        "title": "الأحداث الفعلية (مؤكدة ومؤقتة)",
+        "empty": "لا توجد أحداث فعلية معروضة من الخادم.",
+        "includeProvisional": "تضمين المؤقت",
+        "missingYear": "لا يمكن تحميل الأحداث الفعّالة بدون سنة دراسية."
+      },
+      "closureContext": {
+        "title": "سياق الإغلاق والأثر",
+        "empty": "لا يتوفر سياق إغلاق من الخادم حالياً.",
+        "date": "تاريخ الاستعلام",
+        "includeProvisional": "تضمين الأحداث المؤقتة",
+        "missingDate": "اختر تاريخًا لاستعلام سياق الإغلاق.",
+        "isClosed": "مغلق؟",
+        "closedYes": "نعم",
+        "closedNo": "لا",
+        "kind": "نوع الإغلاق",
+        "causingEvent": "الحدث المسبب",
+        "provisionalOnlyTitle": "إغلاق مؤقت فقط",
+        "provisionalOnlyDesc": "الإغلاق في هذا التاريخ يعتمد على أحداث مؤقتة غير مؤكدة."
+      },
+      "dayParts": {
+        "full_day": "يوم كامل",
+        "morning": "صباحًا",
+        "afternoon": "بعد الظهر"
+      },
+      "impactFlags": {
+        "schoolClosed": "المؤسسة مغلقة",
+        "blocksTimetable": "يمنع الجدول",
+        "blocksAttendance": "يمنع الحضور",
+        "blocksExams": "يمنع الامتحانات",
+        "affectsServices": "يؤثر على الخدمات"
+      },
+      "closureKinds": {
+        "none": "لا إغلاق",
+        "full": "إغلاق كامل",
+        "partial": "إغلاق جزئي"
+      }
+    },
     "timetableList": {
       "filtersLabel": "فلاتر استعمال الزمن",
       "day": "اليوم",
@@ -4995,7 +5164,6 @@
         "markVisitPendingDesc": "حدّد زيارة أو انقل الطلب إلى «بانتظار الزيارة».",
         "markUnderReview": "إكمال الزيارة ونقل الطلب لقيد الدراسة",
         "markUnderReviewDesc": "بعد إكمال الزيارة انقل الطلب إلى «قيد الدراسة».",
-        "scheduleAppointment": "جدولة موعد",
         "viewRejection": "عرض سبب الرفض",
         "viewRejectionDesc": "تم رفض الطلب من المدرسة. راجع السبب أو أعد فتح الطلب عند توفر الصلاحية.",
         "closedDesc": "الطلب مغلق ولا يوجد إجراء تشغيلي مطلوب.",

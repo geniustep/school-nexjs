@@ -23,6 +23,8 @@ export const WORKFLOW_TONE: Record<string, WorkflowTone> = {
   cancelled: 'red',
   archived: 'slate',
   submitted: 'blue',
+  under_review: 'blue',
+  in_review: 'blue',
   reviewed: 'green',
   active: 'green',
   open: 'blue',

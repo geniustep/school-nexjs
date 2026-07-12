@@ -82,6 +82,7 @@
     "myClasses": "My classes",
     "attendance": "Attendance",
     "timetable": "Timetable",
+    "academicCalendars": "Calendar and holidays",
     "channels": "Channels",
     "myChildren": "My children",
     "myProfile": "My profile",
@@ -145,6 +146,8 @@
     "done": "Done",
     "cancelled": "Cancelled",
     "submitted": "Submitted",
+    "under_review": "Under review",
+    "in_review": "Under review",
     "reviewed": "Reviewed",
     "active": "Active",
     "open": "Open",
@@ -1026,6 +1029,172 @@
       }
     },
     "timetableDesc": "Manage timetable slots",
+    "academicCalendars": {
+      "title": "School calendar and holidays",
+      "subtitle": "Manage academic-year calendars, holidays, and closures",
+      "detailBreadcrumb": "Calendar breadcrumb",
+      "backToList": "Back to calendars",
+      "detailSubtitle": "Academic year: {year}",
+      "versionLabel": "Version {version}",
+      "warningsCount": "{count} warning(s)",
+      "warningTitle": "Backend warning",
+      "studyDaysUnreliableTitle": "Study days unreliable",
+      "studyDaysUnreliableDesc": "The backend reports that study-day totals are not reliable right now. Values are shown as received without local recalculation.",
+      "provisional": "Provisional",
+      "confirmed": "Confirmed",
+      "eventsWithProvisional": "{total} event(s) · {provisional} provisional",
+      "columns": {
+        "name": "Calendar",
+        "academicYear": "Academic year",
+        "state": "State",
+        "version": "Version",
+        "events": "Events",
+        "period": "Period",
+        "event": "Event",
+        "scope": "Scope",
+        "impact": "Impact",
+        "confirmation": "Confirmation",
+        "affectedStudyDays": "Affected study days"
+      },
+      "fields": {
+        "name": "Calendar name",
+        "academicYear": "Academic year",
+        "notes": "Notes",
+        "eventName": "Event name",
+        "eventType": "Event type",
+        "scope": "Scope",
+        "dateFrom": "From date",
+        "dateTo": "To date",
+        "dayPart": "Day part",
+        "status": "Event status"
+      },
+      "filters": {
+        "searchPlaceholder": "Search calendars…",
+        "yearAll": "All years",
+        "stateAll": "All states",
+        "reset": "Reset filters"
+      },
+      "states": {
+        "draft": "Draft",
+        "under_review": "Under review",
+        "in_review": "Under review",
+        "published": "Published",
+        "archived": "Archived"
+      },
+      "eventTypes": {
+        "inter_term_break": "Inter-term break",
+        "national_holiday": "National holiday",
+        "school_closure": "School closure",
+        "mid_year_break": "Mid-year break",
+        "religious_holiday": "Religious holiday"
+      },
+      "scopeTypes": {
+        "school": "Whole school",
+        "cycle": "Cycle",
+        "level": "Level",
+        "class": "Class"
+      },
+      "summary": {
+        "studyDays": "Study days",
+        "provisionalEvents": "Provisional events",
+        "calendarDays": "Calendar days",
+        "studyDaysUnreliableValue": "Unreliable",
+        "events": "Events",
+        "confirmedEvents": "Confirmed events"
+      },
+      "list": {
+        "noData": {
+          "title": "No calendars yet",
+          "description": "Create a school calendar for an academic year to manage holidays and closures."
+        },
+        "noMatch": {
+          "title": "No matching results",
+          "description": "Try adjusting or resetting filters."
+        }
+      },
+      "create": {
+        "open": "New calendar",
+        "title": "Create school calendar",
+        "submit": "Create calendar",
+        "namePlaceholder": "e.g. School calendar 2026–2027",
+        "missingFields": "Name and academic year are required.",
+        "success": "Calendar created."
+      },
+      "edit": {
+        "title": "Edit calendar",
+        "success": "Changes saved."
+      },
+      "lifecycle": {
+        "submitReview": "Submit for review",
+        "submitReviewConfirm": "Submit this calendar for review?",
+        "submit_reviewSuccess": "Calendar submitted for review.",
+        "resetToDraft": "Reset to draft",
+        "resetToDraftConfirm": "Reset this calendar to draft?",
+        "reset_to_draftSuccess": "Calendar reset to draft.",
+        "publish": "Publish",
+        "publishConfirm": "Publish this calendar?",
+        "publishSuccess": "Calendar published.",
+        "duplicate": "Duplicate as draft",
+        "duplicateHint": "Creates a new draft copy without changing the current version.",
+        "duplicateSuccess": "Draft copy created.",
+        "archive": "Archive",
+        "archiveConfirm": "Archive this calendar?",
+        "archiveSuccess": "Calendar archived."
+      },
+      "events": {
+        "title": "Holidays and closures",
+        "createOpen": "Add event",
+        "createTitle": "Add holiday or closure",
+        "editTitle": "Edit event",
+        "createSubmit": "Add event",
+        "editSubmit": "Save event",
+        "createSuccess": "Event added.",
+        "editSuccess": "Event updated.",
+        "deleteTitle": "Delete event",
+        "deleteConfirm": "Delete \"{name}\"? Draft events only.",
+        "deleteSuccess": "Event deleted.",
+        "missingFields": "Event name and start date are required.",
+        "emptyTitle": "No events",
+        "emptyDesc": "Add a holiday or closure to this calendar."
+      },
+      "effectiveEvents": {
+        "title": "Effective events (confirmed and provisional)",
+        "empty": "No effective events returned by the backend.",
+        "includeProvisional": "Include provisional",
+        "missingYear": "Cannot load effective events without an academic year."
+      },
+      "closureContext": {
+        "title": "Closure context and impact",
+        "empty": "No closure context available from the backend.",
+        "date": "Query date",
+        "includeProvisional": "Include provisional events",
+        "missingDate": "Choose a date for closure context.",
+        "isClosed": "Closed?",
+        "closedYes": "Yes",
+        "closedNo": "No",
+        "kind": "Closure kind",
+        "causingEvent": "Causing event",
+        "provisionalOnlyTitle": "Provisional closure only",
+        "provisionalOnlyDesc": "Closure on this date depends on unconfirmed provisional events."
+      },
+      "dayParts": {
+        "full_day": "Full day",
+        "morning": "Morning",
+        "afternoon": "Afternoon"
+      },
+      "impactFlags": {
+        "schoolClosed": "School closed",
+        "blocksTimetable": "Blocks timetable",
+        "blocksAttendance": "Blocks attendance",
+        "blocksExams": "Blocks exams",
+        "affectsServices": "Affects services"
+      },
+      "closureKinds": {
+        "none": "No closure",
+        "full": "Full closure",
+        "partial": "Partial closure"
+      }
+    },
     "timetableList": {
       "filtersLabel": "Timetable filters",
       "day": "Day",
