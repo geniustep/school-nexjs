@@ -4687,6 +4687,7 @@
       "tabs": {
         "overview": "Overview",
         "enrollment": "Enrollment",
+        "academic": "Academic results",
         "guardians": "Guardians",
         "documents": "Documents",
         "health": "Health",
@@ -4709,6 +4710,10 @@
         "enrollment": {
           "title": "Enrollment",
           "description": "View the current enrollment and prior academic history for this student."
+        },
+        "academic": {
+          "title": "Academic results",
+          "description": "Read-only continuous assessment results across subjects for a selected year and term."
         },
         "guardians": {
           "title": "Guardians & contacts",
@@ -4891,6 +4896,98 @@
         "title": "Performance summary",
         "emptyTitle": "No performance data yet",
         "emptyDesc": "Attendance and exam results will appear here when available from the system."
+      },
+      "academic": {
+        "loading": "Loading subject results…",
+        "filters": {
+          "academicYear": "Academic year",
+          "term": "Term",
+          "selectAcademicYear": "Select academic year",
+          "selectTerm": "Select term"
+        },
+        "context": {
+          "title": "Academic context",
+          "academicYear": "Academic year",
+          "term": "Term",
+          "class": "Class",
+          "level": "Level"
+        },
+        "coverage": {
+          "title": "Data coverage",
+          "subjects_count": "Subjects",
+          "available_subjects": "Available subjects",
+          "complete_subjects": "Complete subjects",
+          "partial_subjects": "Partial subjects",
+          "not_computable_subjects": "Not computable",
+          "not_available_subjects": "Not available",
+          "missing_subjects": "Missing subjects"
+        },
+        "results": {
+          "title": "Subject results",
+          "notAvailable": "Not available",
+          "noScore": "No score",
+          "partialHint": "Partial — not a final result",
+          "notComputableHint": "Not computable",
+          "normalized": "Normalized: {value}",
+          "completion": "Completed / expected: {value}",
+          "missingCells": "Missing cells: {count}",
+          "gradebookState": "Gradebook state: {state}",
+          "openGradebook": "Open gradebook"
+        },
+        "status": {
+          "available": "Available",
+          "complete": "Complete",
+          "partial": "Partial",
+          "not_computable": "Not computable",
+          "not_available": "Not available",
+          "unknown": "Unknown status"
+        },
+        "reasons": {
+          "student_not_in_gradebook_roster": "Student is not on the subject gradebook roster",
+          "student_not_enrolled_for_academic_year": "Student is not enrolled for this academic year",
+          "participation_state_blocks_aggregation": "Blocked by participation state"
+        },
+        "warnings": {
+          "title": "Warnings",
+          "empty": "No warnings for this context.",
+          "summary": "{count} warning(s)",
+          "expand": "Show all warnings",
+          "collapse": "Collapse details",
+          "subjectCode": "Subject code",
+          "gradebookId": "Gradebook ID",
+          "codes": {
+            "duplicate_subject_gradebooks": "Duplicate gradebooks for the same subject",
+            "configured_subject_without_gradebook": "Configured subject without a gradebook",
+            "student_not_in_gradebook_roster": "Student not on gradebook roster",
+            "student_not_enrolled_for_academic_year": "Student not enrolled for academic year",
+            "unknown": "Warning"
+          }
+        },
+        "empty": {
+          "noYear": {
+            "title": "Select an academic year",
+            "description": "Choose the academic year, then the term, to view subject results."
+          },
+          "noTerm": {
+            "title": "Select a term",
+            "description": "Choose a term to load continuous assessment results."
+          },
+          "noEnrollment": {
+            "title": "No enrollment for this year",
+            "description": "The student is not enrolled for the selected academic year. Subject results cannot be shown."
+          },
+          "noGradebooks": {
+            "title": "No subject gradebooks",
+            "description": "The class has no subject gradebooks for this term, or no results were returned."
+          },
+          "resultsEmpty": {
+            "title": "No subject results",
+            "description": "No subject results were returned for this academic context."
+          },
+          "warningsOnly": {
+            "description": "No subject results to display; only warnings are available for this context."
+          }
+        }
       },
       "overview": {
         "loading": "Loading summary…",

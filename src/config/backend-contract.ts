@@ -8,6 +8,7 @@
  * Continuous assessment gradebook: docs/contracts/SSC-API-2026.13.001.md
  * Continuous assessment gradebook results: docs/contracts/SSC-API-2026.14.001.md
  * Class multi-subject results: docs/contracts/SSC-API-2026.15.001.md
+ * Student multi-subject assessment summary: docs/contracts/SSC-API-2026.16.001.md
  * Guardian identity document: SSC-API-2026.07.003
  * Not wired to runtime checks — metadata only.
  */
@@ -161,3 +162,23 @@ export const CLASS_MULTI_SUBJECT_RESULTS_BACKEND_CONTRACT = {
 
 export type ClassMultiSubjectResultsBackendContract =
   typeof CLASS_MULTI_SUBJECT_RESULTS_BACKEND_CONTRACT;
+
+/** Student 360 multi-subject continuous assessment summary; requires Odoo student Results API. */
+export const STUDENT_MULTI_SUBJECT_RESULTS_BACKEND_CONTRACT = {
+  contractId: 'SSC-API-2026.16.001',
+  frontendRelease: 'school-nextjs-v2026.16.001',
+  backendModule: 'smart_school_connect',
+  backendMainCommit: '04eab51208601562f85f5ae3c770537a1d0ee21d',
+  backendModuleVersion: null,
+  minBackendVersion: null,
+  maxBackendVersion: null,
+  compatibleBackend:
+    'smart_school_connect Odoo main containing Student Multi-Subject Results API commit 04eab51208601562f85f5ae3c770537a1d0ee21d or an equivalent descendant',
+  apiPrefix: '/api/v1',
+  source: 'dev-release',
+  notes:
+    'Student 360 Academic multi-subject assessment summary (year/term selectors, coverage, warnings, subject result cards). Additive GET /admin/assessment/students/{student_id}/results. No frontend recalculation, overall average, or ranking. Breaking API changes: none. Backend upgrade required: yes for environments without 04eab512 or descendant. school runtime already aligned and verified; nibras/alwah not upgraded or verified in this phase. Prior contract: SSC-API-2026.15.001.',
+} as const;
+
+export type StudentMultiSubjectResultsBackendContract =
+  typeof STUDENT_MULTI_SUBJECT_RESULTS_BACKEND_CONTRACT;

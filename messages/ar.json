@@ -4717,6 +4717,7 @@
       "tabs": {
         "overview": "نظرة عامة",
         "enrollment": "التسجيل الدراسي",
+        "academic": "النتائج الأكاديمية",
         "guardians": "أولياء الأمر",
         "documents": "الوثائق",
         "health": "الملف الصحي",
@@ -4739,6 +4740,10 @@
         "enrollment": {
           "title": "التسجيل الدراسي",
           "description": "عرض التسجيل الحالي والسجل الدراسي السابق للتلميذ."
+        },
+        "academic": {
+          "title": "النتائج الأكاديمية",
+          "description": "نتائج المراقبة المستمرة عبر المواد لسنة ودورة محددتين — للقراءة فقط."
         },
         "guardians": {
           "title": "أولياء الأمر والأوصياء",
@@ -4921,6 +4926,98 @@
         "title": "ملخص الأداء",
         "emptyTitle": "لا تتوفر بيانات أداء بعد",
         "emptyDesc": "ستظهر نسبة الحضور ونتائج الامتحانات هنا عند توفرها من النظام."
+      },
+      "academic": {
+        "loading": "جارٍ تحميل نتائج المواد…",
+        "filters": {
+          "academicYear": "السنة الدراسية",
+          "term": "الدورة",
+          "selectAcademicYear": "اختر السنة الدراسية",
+          "selectTerm": "اختر الدورة"
+        },
+        "context": {
+          "title": "السياق الأكاديمي",
+          "academicYear": "السنة الدراسية",
+          "term": "الدورة",
+          "class": "القسم",
+          "level": "المستوى"
+        },
+        "coverage": {
+          "title": "تغطية البيانات",
+          "subjects_count": "المواد",
+          "available_subjects": "مواد متاحة",
+          "complete_subjects": "مواد مكتملة",
+          "partial_subjects": "مواد جزئية",
+          "not_computable_subjects": "غير قابلة للحساب",
+          "not_available_subjects": "غير متاحة",
+          "missing_subjects": "مواد ناقصة"
+        },
+        "results": {
+          "title": "نتائج المواد",
+          "notAvailable": "غير متاح",
+          "noScore": "لا درجة",
+          "partialHint": "جزئي — نتيجة غير نهائية",
+          "notComputableHint": "غير قابل للحساب",
+          "normalized": "مطبّع: {value}",
+          "completion": "المكتمل / المتوقع: {value}",
+          "missingCells": "خلايا ناقصة: {count}",
+          "gradebookState": "حالة الدفتر: {state}",
+          "openGradebook": "فتح دفتر المادة"
+        },
+        "status": {
+          "available": "متاح",
+          "complete": "مكتمل",
+          "partial": "جزئي",
+          "not_computable": "غير قابل للحساب",
+          "not_available": "غير متاح",
+          "unknown": "حالة غير معروفة"
+        },
+        "reasons": {
+          "student_not_in_gradebook_roster": "التلميذ غير موجود في لائحة دفتر المادة",
+          "student_not_enrolled_for_academic_year": "التلميذ غير مسجّل لهذه السنة الدراسية",
+          "participation_state_blocks_aggregation": "محظور بسبب حالة المشاركة"
+        },
+        "warnings": {
+          "title": "التحذيرات",
+          "empty": "لا توجد تحذيرات لهذا السياق.",
+          "summary": "{count} تحذير",
+          "expand": "عرض كل التحذيرات",
+          "collapse": "طي التفاصيل",
+          "subjectCode": "رمز المادة",
+          "gradebookId": "معرّف الدفتر",
+          "codes": {
+            "duplicate_subject_gradebooks": "دفاتر مكررة لنفس المادة",
+            "configured_subject_without_gradebook": "مادة مهيأة بدون دفتر",
+            "student_not_in_gradebook_roster": "التلميذ غير موجود في لائحة الدفتر",
+            "student_not_enrolled_for_academic_year": "التلميذ غير مسجّل للسنة الدراسية",
+            "unknown": "تحذير"
+          }
+        },
+        "empty": {
+          "noYear": {
+            "title": "اختر السنة الدراسية",
+            "description": "حدد السنة الدراسية ثم الدورة لعرض نتائج المواد."
+          },
+          "noTerm": {
+            "title": "اختر الدورة",
+            "description": "حدد الدورة الدراسية لتحميل نتائج المراقبة المستمرة."
+          },
+          "noEnrollment": {
+            "title": "لا تسجيل لهذه السنة",
+            "description": "التلميذ غير مسجّل للسنة الدراسية المحددة. لا يمكن عرض نتائج المواد."
+          },
+          "noGradebooks": {
+            "title": "لا توجد دفاتر مواد",
+            "description": "القسم لا يملك دفاتر مواد للدورة المحددة، أو لم تُرجع أي نتائج."
+          },
+          "resultsEmpty": {
+            "title": "لا نتائج مواد",
+            "description": "لم تُرجع نتائج مواد لهذا السياق الأكاديمي."
+          },
+          "warningsOnly": {
+            "description": "لا توجد نتائج مواد للعرض؛ تظهر التحذيرات فقط لهذا السياق."
+          }
+        }
       },
       "overview": {
         "loading": "جارٍ تحميل الملخص…",

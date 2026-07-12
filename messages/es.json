@@ -4687,6 +4687,7 @@
       "tabs": {
         "overview": "Resumen",
         "enrollment": "Matrícula",
+        "academic": "Resultados académicos",
         "guardians": "Tutores",
         "documents": "Documentos",
         "health": "Salud",
@@ -4709,6 +4710,10 @@
         "enrollment": {
           "title": "Matrícula",
           "description": "Consulte la matrícula actual y el historial académico."
+        },
+        "academic": {
+          "title": "Resultados académicos",
+          "description": "Resultados de evaluación continua por materias para un año y periodo — solo lectura."
         },
         "guardians": {
           "title": "Tutores y contactos",
@@ -4891,6 +4896,98 @@
         "title": "Resumen de rendimiento",
         "emptyTitle": "Sin datos de rendimiento",
         "emptyDesc": "La asistencia y los resultados aparecerán aquí cuando estén disponibles."
+      },
+      "academic": {
+        "loading": "Cargando resultados por materia…",
+        "filters": {
+          "academicYear": "Año académico",
+          "term": "Periodo",
+          "selectAcademicYear": "Seleccionar año académico",
+          "selectTerm": "Seleccionar periodo"
+        },
+        "context": {
+          "title": "Contexto académico",
+          "academicYear": "Año académico",
+          "term": "Periodo",
+          "class": "Clase",
+          "level": "Nivel"
+        },
+        "coverage": {
+          "title": "Cobertura de datos",
+          "subjects_count": "Materias",
+          "available_subjects": "Materias disponibles",
+          "complete_subjects": "Materias completas",
+          "partial_subjects": "Materias parciales",
+          "not_computable_subjects": "No calculables",
+          "not_available_subjects": "No disponibles",
+          "missing_subjects": "Materias faltantes"
+        },
+        "results": {
+          "title": "Resultados por materia",
+          "notAvailable": "No disponible",
+          "noScore": "Sin nota",
+          "partialHint": "Parcial — resultado no final",
+          "notComputableHint": "No calculable",
+          "normalized": "Normalizado: {value}",
+          "completion": "Completado / esperado: {value}",
+          "missingCells": "Celdas faltantes: {count}",
+          "gradebookState": "Estado del cuaderno: {state}",
+          "openGradebook": "Abrir cuaderno"
+        },
+        "status": {
+          "available": "Disponible",
+          "complete": "Completo",
+          "partial": "Parcial",
+          "not_computable": "No calculable",
+          "not_available": "No disponible",
+          "unknown": "Estado desconocido"
+        },
+        "reasons": {
+          "student_not_in_gradebook_roster": "El alumno no está en la lista del cuaderno de la materia",
+          "student_not_enrolled_for_academic_year": "El alumno no está matriculado para este año académico",
+          "participation_state_blocks_aggregation": "Bloqueado por el estado de participación"
+        },
+        "warnings": {
+          "title": "Advertencias",
+          "empty": "No hay advertencias para este contexto.",
+          "summary": "{count} advertencia(s)",
+          "expand": "Mostrar todas las advertencias",
+          "collapse": "Contraer detalles",
+          "subjectCode": "Código de materia",
+          "gradebookId": "ID del cuaderno",
+          "codes": {
+            "duplicate_subject_gradebooks": "Cuadernos duplicados para la misma materia",
+            "configured_subject_without_gradebook": "Materia configurada sin cuaderno",
+            "student_not_in_gradebook_roster": "Alumno ausente de la lista del cuaderno",
+            "student_not_enrolled_for_academic_year": "Alumno no matriculado para el año académico",
+            "unknown": "Advertencia"
+          }
+        },
+        "empty": {
+          "noYear": {
+            "title": "Seleccione el año académico",
+            "description": "Elija el año y luego el periodo para ver los resultados."
+          },
+          "noTerm": {
+            "title": "Seleccione el periodo",
+            "description": "Elija un periodo para cargar los resultados de evaluación continua."
+          },
+          "noEnrollment": {
+            "title": "Sin matrícula para este año",
+            "description": "El alumno no está matriculado para el año seleccionado. No se pueden mostrar resultados."
+          },
+          "noGradebooks": {
+            "title": "Sin cuadernos de materia",
+            "description": "La clase no tiene cuadernos para este periodo, o no se devolvieron resultados."
+          },
+          "resultsEmpty": {
+            "title": "Sin resultados de materia",
+            "description": "No se devolvieron resultados de materia para este contexto."
+          },
+          "warningsOnly": {
+            "description": "No hay resultados de materia; solo hay advertencias para este contexto."
+          }
+        }
       },
       "overview": {
         "loading": "Cargando resumen…",

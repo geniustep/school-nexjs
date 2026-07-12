@@ -4687,6 +4687,7 @@
       "tabs": {
         "overview": "Aperçu",
         "enrollment": "Inscription",
+        "academic": "Résultats académiques",
         "guardians": "Responsables",
         "documents": "Documents",
         "health": "Santé",
@@ -4709,6 +4710,10 @@
         "enrollment": {
           "title": "Inscription",
           "description": "Consultez l'inscription actuelle et l'historique scolaire."
+        },
+        "academic": {
+          "title": "Résultats académiques",
+          "description": "Résultats de contrôle continu multi-matières pour une année et une période — lecture seule."
         },
         "guardians": {
           "title": "Responsables et contacts",
@@ -4891,6 +4896,98 @@
         "title": "Résumé de performance",
         "emptyTitle": "Aucune donnée de performance",
         "emptyDesc": "L'assiduité et les résultats apparaîtront ici lorsqu'ils seront disponibles."
+      },
+      "academic": {
+        "loading": "Chargement des résultats par matière…",
+        "filters": {
+          "academicYear": "Année scolaire",
+          "term": "Période",
+          "selectAcademicYear": "Choisir l'année scolaire",
+          "selectTerm": "Choisir la période"
+        },
+        "context": {
+          "title": "Contexte académique",
+          "academicYear": "Année scolaire",
+          "term": "Période",
+          "class": "Classe",
+          "level": "Niveau"
+        },
+        "coverage": {
+          "title": "Couverture des données",
+          "subjects_count": "Matières",
+          "available_subjects": "Matières disponibles",
+          "complete_subjects": "Matières complètes",
+          "partial_subjects": "Matières partielles",
+          "not_computable_subjects": "Non calculables",
+          "not_available_subjects": "Non disponibles",
+          "missing_subjects": "Matières manquantes"
+        },
+        "results": {
+          "title": "Résultats par matière",
+          "notAvailable": "Non disponible",
+          "noScore": "Pas de note",
+          "partialHint": "Partiel — résultat non final",
+          "notComputableHint": "Non calculable",
+          "normalized": "Normalisé : {value}",
+          "completion": "Complété / attendu : {value}",
+          "missingCells": "Cellules manquantes : {count}",
+          "gradebookState": "État du carnet : {state}",
+          "openGradebook": "Ouvrir le carnet"
+        },
+        "status": {
+          "available": "Disponible",
+          "complete": "Complet",
+          "partial": "Partiel",
+          "not_computable": "Non calculable",
+          "not_available": "Non disponible",
+          "unknown": "Statut inconnu"
+        },
+        "reasons": {
+          "student_not_in_gradebook_roster": "L'élève n'est pas sur la liste du carnet de la matière",
+          "student_not_enrolled_for_academic_year": "L'élève n'est pas inscrit pour cette année scolaire",
+          "participation_state_blocks_aggregation": "Bloqué par l'état de participation"
+        },
+        "warnings": {
+          "title": "Avertissements",
+          "empty": "Aucun avertissement pour ce contexte.",
+          "summary": "{count} avertissement(s)",
+          "expand": "Afficher tous les avertissements",
+          "collapse": "Réduire les détails",
+          "subjectCode": "Code matière",
+          "gradebookId": "ID carnet",
+          "codes": {
+            "duplicate_subject_gradebooks": "Carnets en double pour la même matière",
+            "configured_subject_without_gradebook": "Matière configurée sans carnet",
+            "student_not_in_gradebook_roster": "Élève absent de la liste du carnet",
+            "student_not_enrolled_for_academic_year": "Élève non inscrit pour l'année scolaire",
+            "unknown": "Avertissement"
+          }
+        },
+        "empty": {
+          "noYear": {
+            "title": "Choisir l'année scolaire",
+            "description": "Sélectionnez l'année puis la période pour afficher les résultats."
+          },
+          "noTerm": {
+            "title": "Choisir la période",
+            "description": "Sélectionnez une période pour charger les résultats de contrôle continu."
+          },
+          "noEnrollment": {
+            "title": "Pas d'inscription pour cette année",
+            "description": "L'élève n'est pas inscrit pour l'année sélectionnée. Les résultats ne peuvent pas être affichés."
+          },
+          "noGradebooks": {
+            "title": "Aucun carnet de matière",
+            "description": "La classe n'a pas de carnets pour cette période, ou aucun résultat n'a été renvoyé."
+          },
+          "resultsEmpty": {
+            "title": "Aucun résultat matière",
+            "description": "Aucun résultat matière n'a été renvoyé pour ce contexte."
+          },
+          "warningsOnly": {
+            "description": "Aucun résultat matière à afficher ; seuls les avertissements sont disponibles."
+          }
+        }
       },
       "overview": {
         "loading": "Chargement du résumé…",

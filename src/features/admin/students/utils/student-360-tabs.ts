@@ -2,6 +2,7 @@
 export const STUDENT_360_TAB_ORDER = [
   'overview',
   'enrollment',
+  'academic',
   'guardians',
   'finance',
   'health',
