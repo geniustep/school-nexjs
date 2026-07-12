@@ -96,6 +96,18 @@ describe('registration / rejection display', () => {
     expect(primary.kind).toBe('registered');
   });
 
+  it('shows ready_for_registration when state is confirmed and not registered', () => {
+    const primary = resolveAdmissionPrimaryDisplay(
+      baseList({
+        state: 'confirmed',
+        registration_status: 'awaiting_registration',
+        decision: 'accepted',
+      }),
+    );
+    expect(primary.kind).toBe('ready_for_registration');
+    expect(primary.labelKey).toContain('ready_for_registration');
+  });
+
   it('shows school rejected from is_school_rejected', () => {
     const primary = resolveAdmissionPrimaryDisplay(
       baseList({

@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
-  countHiddenConvertedAdmissionListItems,
   filterAdmissionListItems,
+  countHiddenConvertedAdmissionListItems,
+  filterClosedAdmissionListItems,
+  hasActiveAdmissionListFilters,
+  shouldIncludeClosedAdmissions,
 } from '@/features/admin/admissions/utils/filter-admission-list-items';
 import type { AdmissionListItem } from '@/types/admission';
 
@@ -25,24 +28,28 @@ function makeItem(id: number, studentId?: number | false | null): AdmissionListI
 }
 
 describe('filterAdmissionListItems', () => {
-  it('hides converted admissions by default', () => {
+  it('does not hide registered admissions client-side (pagination-safe)', () => {
     const items = [makeItem(1), makeItem(2, 100)];
-    expect(filterAdmissionListItems(items, true)).toEqual([items[0]]);
+    expect(filterAdmissionListItems(items, true)).toEqual(items);
+    expect(countHiddenConvertedAdmissionListItems(items, true)).toBe(0);
   });
 
-  it('keeps converted admissions when hideConverted is disabled', () => {
-    const items = [makeItem(1), makeItem(2, 100)];
-    expect(filterAdmissionListItems(items, false)).toEqual(items);
+  it('excludes closed unless includeClosed is true', () => {
+    const items = [
+      makeItem(1),
+      { ...makeItem(2), state: 'lost' as const },
+    ];
+    expect(filterClosedAdmissionListItems(items, false)).toHaveLength(1);
+    expect(filterClosedAdmissionListItems(items, true)).toHaveLength(2);
   });
 
-  it('still hides converted admissions during search unless filter is cleared', () => {
-    const items = [makeItem(1), makeItem(2, 100)];
-    expect(filterAdmissionListItems(items, true)).toEqual([items[0]]);
+  it('includes closed automatically for rejected outcome', () => {
+    expect(shouldIncludeClosedAdmissions({ outcomeFilter: 'school_rejected' })).toBe(true);
   });
 
-  it('counts hidden converted rows', () => {
-    const items = [makeItem(1), makeItem(2, 100), makeItem(3, 200)];
-    expect(countHiddenConvertedAdmissionListItems(items, true)).toBe(2);
-    expect(countHiddenConvertedAdmissionListItems(items, false)).toBe(0);
+  it('tracks active filters without showClosed / registered-visible chips', () => {
+    expect(hasActiveAdmissionListFilters({ search: 'a' })).toBe(true);
+    expect(hasActiveAdmissionListFilters({ outcomeFilter: 'registered' })).toBe(true);
+    expect(hasActiveAdmissionListFilters({})).toBe(false);
   });
 });

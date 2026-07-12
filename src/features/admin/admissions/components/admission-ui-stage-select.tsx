@@ -20,8 +20,6 @@ const CHANGEABLE_UI_STAGES: DraggableAdmissionUiStage[] = [
   'new',
   'in_follow_up',
   'in_evaluation',
-  'accepted',
-  'ready_for_registration',
 ];
 
 export function AdmissionUiStageSelect({

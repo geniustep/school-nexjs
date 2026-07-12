@@ -13,7 +13,13 @@ describe('admissions outcome dashboard contracts', () => {
     expect(Object.keys(query)).not.toContain('state');
   });
 
-  it('registered card does not mutate writable state', () => {
+  it('ready card uses state=confirmed not registration_status=registered', () => {
+    const query = buildAdmissionOutcomeFilterQuery('ready_for_registration');
+    expect(query).toEqual({ state: 'confirmed' });
+    expect(query).not.toHaveProperty('registration_status');
+  });
+
+  it('registered filter does not mutate writable state', () => {
     const query = buildAdmissionOutcomeFilterQuery('registered');
     expect(query).toEqual({ registration_status: 'registered' });
     expect(query).not.toHaveProperty('state');

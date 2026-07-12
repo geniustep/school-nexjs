@@ -3954,12 +3954,21 @@
         "resultsCount": "{count} demandes affichées",
         "hiddenConvertedCount": "{count} converties masquées",
         "chipSearch": "Recherche : {query}",
-        "chipState": "Statut : {state}",
+        "chipState": "Étape : {state}",
         "chipShowClosed": "Demandes fermées affichées",
         "chipHideConvertedOff": "Inscrits affichés",
         "outcome": "Résultat décision / inscription",
         "allOutcomes": "Tous les résultats",
-        "chipOutcome": "Résultat : {outcome}"
+        "chipOutcome": "Résultat : {outcome}",
+        "stage": "Étape de la demande",
+        "allStages": "Toutes les étapes",
+        "registrationOutcome": "Résultat d’inscription",
+        "allRegistrationOutcomes": "Tous les résultats d’inscription",
+        "offerState": "État de l’offre",
+        "allOfferStates": "Tous les états d’offre",
+        "groups": "Filtres des admissions",
+        "includingClosed": "Inclut les demandes fermées",
+        "chipOffer": "Offre : {offer}"
       },
       "refetching": "Mise à jour des résultats…",
       "noData": {
@@ -4054,7 +4063,7 @@
         "closed": "Fermé"
       },
       "dashboard": {
-        "total_open": "Demandes ouvertes",
+        "total_open": "Demandes actives",
         "new_count": "Nouvelles demandes",
         "visit_pending_count": "Visites en attente",
         "under_review_count": "En cours d'examen",
@@ -4071,7 +4080,14 @@
         "registered_count": "Inscrits",
         "school_rejected_count": "Refusés par l’établissement",
         "family_declined_count": "Offre refusée par la famille",
-        "expired_offer_count": "Offres expirées"
+        "expired_offer_count": "Offres expirées",
+        "mainGroup": "Cartes principales",
+        "secondaryGroup": "Indicateurs secondaires",
+        "readyHint": "La famille a accepté l’offre",
+        "filterAwaitingAria": "Afficher les demandes acceptées en attente d’inscription",
+        "filterReadyAria": "Afficher les demandes prêtes pour l’inscription",
+        "filterRejectedAria": "Afficher les demandes refusées par l’établissement",
+        "filterNewAria": "Afficher les nouvelles demandes"
       },
       "table": {
         "reference": "Référence",
@@ -4082,7 +4098,8 @@
         "level": "Niveau",
         "state": "Statut",
         "nextAction": "Prochaine action",
-        "assigned": "Responsable"
+        "assigned": "Responsable",
+        "actions": "Actions"
       },
       "fields": {
         "studentName": "Nom de l'enfant",
@@ -4481,7 +4498,7 @@
         "cancelled": "Annulée",
         "declined": "Refusée par la famille",
         "familyDeclined": "La famille a refusé l’offre",
-        "familyExpired": "L’offre a expiré",
+        "familyExpired": "Délai de l’offre expiré",
         "sentLabel": "Offre envoyée",
         "acceptedFamily": "Acceptée par la famille"
       },
@@ -4546,8 +4563,9 @@
         "success": "Élève créé et lié à la demande d'admission.",
         "linkFailed": "L'élève a été créé, mais la liaison à la demande a échoué. Ouvrez le dossier élève pour continuer.",
         "prefillMultiGuardianHint": "Un seul contact tuteur est prérempli depuis l’admission. Vous pouvez ajouter d’autres tuteurs et choisir le responsable de facturation ici.",
-        "awaitingMessage": "L’établissement a accepté la demande, mais elle n’a pas encore été convertie en élève inscrit.",
-        "convertedAt": "Converti le : {date}"
+        "awaitingMessage": "L’établissement a accepté la demande, mais l’inscription n’est pas encore terminée.",
+        "convertedAt": "Converti le : {date}",
+        "readyMessage": "La famille a accepté l’offre ; le dossier est prêt pour finaliser l’inscription."
       },
       "errors": {
         "notFound": "Demande introuvable."
@@ -4561,7 +4579,8 @@
       "registrationStatus": {
         "awaiting_registration": "Accepté — en attente d’inscription",
         "registered": "Inscrit",
-        "not_applicable": "Non applicable"
+        "not_applicable": "Non applicable",
+        "ready_for_registration": "Prêt pour l’inscription"
       },
       "schoolDecision": {
         "pending": "Décision en attente",
@@ -4584,6 +4603,18 @@
         "registration_linked_without_student": "Flux d’inscription lié sans élève",
         "rejected_decision_state_mismatch": "Décision de refus avec un état incohérent",
         "accepted_offer_application_state_mismatch": "Offre acceptée avec un état de demande incohérent"
+      },
+      "actions": {
+        "menu": "Actions de la demande",
+        "recordDecision": "Enregistrer la décision de l’établissement",
+        "changeFollowUp": "Modifier l’étape de suivi",
+        "acceptFamilyOffer": "Confirmer l’acceptation de la famille",
+        "acceptOfferSuccess": "Acceptation de la famille confirmée ; la demande est prête pour l’inscription.",
+        "continueRegistration": "Finaliser l’inscription de l’élève",
+        "openPrefill": "Ouvrir le préremplissage",
+        "linkExistingStudent": "Lier un élève existant",
+        "reopen": "Rouvrir la demande",
+        "noSentOffer": "Aucune offre envoyée n’est disponible."
       }
     },
     "enrollmentIntake": {

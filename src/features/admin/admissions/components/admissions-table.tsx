@@ -12,6 +12,7 @@ import {
   refName,
 } from '../utils/admission-labels';
 import { AdmissionCard } from './admission-card';
+import { AdmissionListActionsMenu } from './admission-list-actions-menu';
 import { parseExtraFieldBool } from '../utils/admission-extra-fields';
 import {
   resolveFamilyBadgeCount,
@@ -23,6 +24,7 @@ import type { AdmissionListItem } from '@/types/admission';
 
 export function AdmissionsTable({
   items,
+  onUpdated,
   selectionMode = false,
   isSelected,
   onToggleSelect,
@@ -161,8 +163,16 @@ export function AdmissionsTable({
         header: t('admin.admissions.table.assigned'),
         render: (row) => refName(row.assigned_user) || t('common.dash'),
       },
+      {
+        key: 'actions',
+        header: t('admin.admissions.table.actions'),
+        className: 'admissions-table__actions-cell',
+        render: (row) => (
+          <AdmissionListActionsMenu admissionId={row.id} onUpdated={onUpdated} />
+        ),
+      },
     ],
-    [formatDate, t, isSelected, onToggleSelect, onToggleVisible, visibleSelectionState],
+    [formatDate, t, isSelected, onToggleSelect, onToggleVisible, visibleSelectionState, onUpdated],
   );
 
   return (
@@ -180,6 +190,7 @@ export function AdmissionsTable({
             selected={isSelected?.(item.id) ?? false}
             selectionMode={selectionMode}
             onToggleSelect={() => onToggleSelect?.(item.id)}
+            onUpdated={onUpdated}
           />
         ))}
       </div>
