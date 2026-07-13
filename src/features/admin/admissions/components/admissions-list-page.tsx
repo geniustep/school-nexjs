@@ -37,6 +37,7 @@ import {
   hasManualContextOrAdvancedFilters,
   parseWorkspaceListStateFromSearchParams,
   readAppliedWorkspaceFilter,
+  resetLevelIfIncompatibleWithCycle,
   resolveActiveOperationalCard,
   workspaceListStateToSearchParams,
   ADMISSION_WORKSPACE_COUNT_KEYS,
@@ -47,6 +48,16 @@ import {
   type PostAcceptanceSubfilter,
   type AwaitingDecisionSubfilter,
 } from '../utils/admission-workspace';
+import {
+  filterAdmissionCyclesByLevels,
+  filterLevelsByCycle,
+} from '../utils/admission-options';
+import {
+  buildAdmissionSourceFilterOptions,
+  resolveSourceFilterSelectValue,
+  sourceFilterChipLabel,
+} from '../utils/admission-source-filter';
+import { ADMISSION_KANBAN_PRESENTATION_COLUMNS } from '../utils/admission-kanban-presentation';
 import {
   ADMISSIONS_OPERATIONAL_CARDS,
   type AdmissionsOperationalCardId,
@@ -189,6 +200,7 @@ export function AdmissionsListPage() {
     listState.closedSub,
     listState.search,
     listState.academicYearId,
+    listState.cycleCode,
     listState.levelId,
     listState.sourceId,
     clearSelection,
@@ -212,6 +224,35 @@ export function AdmissionsListPage() {
 
   const hasManualFilters = hasManualContextOrAdvancedFilters(listState);
 
+  const trackOptions = useMemo(
+    () =>
+      filterAdmissionCyclesByLevels(
+        admissionOptions?.cycles ?? [],
+        admissionOptions?.levels ?? [],
+      ),
+    [admissionOptions?.cycles, admissionOptions?.levels],
+  );
+
+  const levelOptions = useMemo(() => {
+    const allLevels = admissionOptions?.levels ?? [];
+    if (!listState.cycleCode?.trim()) return allLevels;
+    return filterLevelsByCycle(allLevels, listState.cycleCode);
+  }, [admissionOptions?.levels, listState.cycleCode]);
+
+  const sourceFilterOptions = useMemo(
+    () =>
+      buildAdmissionSourceFilterOptions(
+        admissionOptions?.sources ?? [],
+        t('admin.admissions.filters.directVisit'),
+      ),
+    [admissionOptions?.sources, t],
+  );
+
+  const sourceSelectValue = resolveSourceFilterSelectValue(
+    sourceFilterOptions,
+    listState.sourceId,
+  );
+
   function patchListState(patch: Partial<AdmissionWorkspaceListState>) {
     setListState((prev) => ({ ...prev, ...patch }));
   }
@@ -230,12 +271,24 @@ export function AdmissionsListPage() {
       ...prev,
       search: undefined,
       academicYearId: undefined,
+      cycleCode: undefined,
       levelId: undefined,
       sourceId: undefined,
       stage: undefined,
       decision: undefined,
       offerState: undefined,
       registrationStatus: undefined,
+      page: 1,
+    }));
+  }
+
+  function handleTrackChange(nextCycleCode: string) {
+    const cycleCode = nextCycleCode || undefined;
+    const levels = admissionOptions?.levels ?? [];
+    setListState((prev) => ({
+      ...prev,
+      cycleCode,
+      levelId: resetLevelIfIncompatibleWithCycle(prev.levelId, cycleCode, levels),
       page: 1,
     }));
   }
@@ -537,6 +590,81 @@ export function AdmissionsListPage() {
       ) : null}
 
       <div className="admissions-list-toolbar">
+        <select
+          className="input admissions-list-toolbar__state"
+          value={listState.academicYearId ?? ''}
+          onChange={(e) =>
+            patchListState({
+              academicYearId: e.target.value || undefined,
+              page: 1,
+            })
+          }
+          aria-label={t('admin.admissions.filters.academicYear')}
+          data-testid="admissions-filter-year"
+        >
+          <option value="">{t('admin.admissions.filters.allAcademicYears')}</option>
+          {(admissionOptions?.academic_years ?? []).map((year) => (
+            <option key={year.id} value={String(year.id)}>
+              {year.name}
+            </option>
+          ))}
+        </select>
+
+        <select
+          className="input admissions-list-toolbar__state"
+          value={listState.cycleCode ?? ''}
+          onChange={(e) => handleTrackChange(e.target.value)}
+          aria-label={t('admin.admissions.filters.track')}
+          data-testid="admissions-filter-track"
+        >
+          <option value="">{t('admin.admissions.filters.allTracks')}</option>
+          {trackOptions.map((cycle) => (
+            <option key={cycle.code} value={cycle.code}>
+              {cycle.name}
+            </option>
+          ))}
+        </select>
+
+        <select
+          className="input admissions-list-toolbar__state"
+          value={listState.levelId ?? ''}
+          onChange={(e) =>
+            patchListState({
+              levelId: e.target.value || undefined,
+              page: 1,
+            })
+          }
+          aria-label={t('admin.admissions.filters.level')}
+          data-testid="admissions-filter-level"
+        >
+          <option value="">{t('admin.admissions.filters.allLevels')}</option>
+          {levelOptions.map((level) => (
+            <option key={level.id} value={String(level.id)}>
+              {level.name}
+            </option>
+          ))}
+        </select>
+
+        <select
+          className="input admissions-list-toolbar__state"
+          value={sourceSelectValue}
+          onChange={(e) =>
+            patchListState({
+              sourceId: e.target.value || undefined,
+              page: 1,
+            })
+          }
+          aria-label={t('admin.admissions.filters.source')}
+          data-testid="admissions-filter-source"
+        >
+          <option value="">{t('admin.admissions.filters.allSources')}</option>
+          {sourceFilterOptions.map((source) => (
+            <option key={source.value} value={source.value}>
+              {source.label}
+            </option>
+          ))}
+        </select>
+
         <div className="admissions-list-toolbar__search-wrap">
           <input
             className="input admissions-list-toolbar__search"
@@ -564,66 +692,6 @@ export function AdmissionsListPage() {
             </button>
           ) : null}
         </div>
-
-        <select
-          className="input admissions-list-toolbar__state"
-          value={listState.academicYearId ?? ''}
-          onChange={(e) =>
-            patchListState({
-              academicYearId: e.target.value || undefined,
-              page: 1,
-            })
-          }
-          aria-label={t('admin.admissions.filters.academicYear')}
-          data-testid="admissions-filter-year"
-        >
-          <option value="">{t('admin.admissions.filters.allAcademicYears')}</option>
-          {(admissionOptions?.academic_years ?? []).map((year) => (
-            <option key={year.id} value={String(year.id)}>
-              {year.name}
-            </option>
-          ))}
-        </select>
-
-        <select
-          className="input admissions-list-toolbar__state"
-          value={listState.levelId ?? ''}
-          onChange={(e) =>
-            patchListState({
-              levelId: e.target.value || undefined,
-              page: 1,
-            })
-          }
-          aria-label={t('admin.admissions.filters.level')}
-          data-testid="admissions-filter-level"
-        >
-          <option value="">{t('admin.admissions.filters.allLevels')}</option>
-          {(admissionOptions?.levels ?? []).map((level) => (
-            <option key={level.id} value={String(level.id)}>
-              {level.name}
-            </option>
-          ))}
-        </select>
-
-        <select
-          className="input admissions-list-toolbar__state"
-          value={listState.sourceId ?? ''}
-          onChange={(e) =>
-            patchListState({
-              sourceId: e.target.value || undefined,
-              page: 1,
-            })
-          }
-          aria-label={t('admin.admissions.filters.source')}
-          data-testid="admissions-filter-source"
-        >
-          <option value="">{t('admin.admissions.filters.allSources')}</option>
-          {(admissionOptions?.sources ?? []).map((source) => (
-            <option key={source.id} value={String(source.id)}>
-              {source.label}
-            </option>
-          ))}
-        </select>
 
         <div
           className="admissions-view-toggle"
@@ -719,6 +787,21 @@ export function AdmissionsListPage() {
               <span aria-hidden="true">×</span>
             </button>
           ) : null}
+          {listState.cycleCode ? (
+            <button
+              type="button"
+              className="admissions-list-active-filters__chip"
+              data-testid="chip-track"
+              onClick={() => handleTrackChange('')}
+            >
+              {t('admin.admissions.filters.chipTrack', {
+                track:
+                  trackOptions.find((c) => c.code === listState.cycleCode)?.name ??
+                  listState.cycleCode,
+              })}
+              <span aria-hidden="true">×</span>
+            </button>
+          ) : null}
           {listState.levelId ? (
             <button
               type="button"
@@ -743,10 +826,11 @@ export function AdmissionsListPage() {
               onClick={() => patchListState({ sourceId: undefined, page: 1 })}
             >
               {t('admin.admissions.filters.chipSource', {
-                source:
-                  admissionOptions?.sources.find(
-                    (s) => String(s.id) === listState.sourceId,
-                  )?.label ?? listState.sourceId,
+                source: sourceFilterChipLabel(
+                  sourceFilterOptions,
+                  listState.sourceId,
+                  listState.sourceId,
+                ),
               })}
               <span aria-hidden="true">×</span>
             </button>
@@ -804,9 +888,9 @@ export function AdmissionsListPage() {
             aria-busy="true"
             aria-label={t('common.loading')}
           >
-            {(workspacePreset.kanbanColumns.length
-              ? workspacePreset.kanbanColumns
-              : ['new', 'contacted', 'qualified', 'visit_pending']
+            {(ADMISSION_KANBAN_PRESENTATION_COLUMNS.length
+              ? ADMISSION_KANBAN_PRESENTATION_COLUMNS.map((col) => col.id)
+              : ['new', 'initial_follow_up', 'assessment', 'decision']
             ).map((state) => (
               <div key={state} className="admissions-kanban-skeleton__column" />
             ))}

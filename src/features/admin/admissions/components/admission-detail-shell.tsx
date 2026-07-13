@@ -40,6 +40,7 @@ import { hasFamilyBatchLink } from '../utils/family-admission-visibility';
 import { AdmissionRejectionBanner } from './admission-rejection-banner';
 import { AdmissionJourneyStrip } from './admission-journey-strip';
 import { AdmissionPrimaryActionPanel } from './admission-primary-action-panel';
+import { AdmissionStudentConversionAction } from './admission-student-conversion-action';
 import { OverviewEmptyValue } from './admission-overview-primitives';
 import {
   AdmissionGuardiansDetails,
@@ -325,6 +326,7 @@ export function AdmissionDetailShell({ admissionId }: { admissionId: string }) {
           <Link href="/admin/admissions" className="btn btn--ghost btn--sm admissions-detail-header-card__back">
             {t('admin.admissions.backToList')}
           </Link>
+          <AdmissionStudentConversionAction detail={detail} />
           {convertedToStudent ? (
             <div className="admissions-detail-header-card__converted">
               <Badge tone="green">{t('admin.admissions.registration.convertedStatus')}</Badge>

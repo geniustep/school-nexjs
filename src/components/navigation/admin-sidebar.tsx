@@ -105,11 +105,14 @@ export function AdminSidebar({
   const toggleGroup = useCallback(
     (groupId: string) => {
       if (collapsed) {
-        setCollapsed(false);
-        writeAdminSidebarCollapsed(false);
-        onCollapsedChange?.(false);
+        // Rail mode: reveal this group's icons without expanding the sidebar.
         setOpenGroups((prev) => {
-          const next = { ...prev, [groupId]: true };
+          const closing = !!prev[groupId];
+          const next: Record<string, boolean> = {};
+          sections.forEach((section, index) => {
+            const id = sectionGroupId(section, index);
+            next[id] = id === groupId ? !closing : false;
+          });
           writeAdminSidebarGroups(next);
           return next;
         });
@@ -121,7 +124,7 @@ export function AdminSidebar({
         return next;
       });
     },
-    [collapsed, onCollapsedChange],
+    [collapsed, sections],
   );
 
   const toggleCollapsed = useCallback(() => {
@@ -198,7 +201,7 @@ export function AdminSidebar({
           const hasTitle = !!section.titleKey;
           const activeInSection = sectionHasActiveLink(pathname, section);
           const isOpen = !hasTitle || (openGroups[groupId] ?? false);
-          const groupIcon = section.items[0]?.icon ?? '•';
+          const groupIcon = section.icon ?? section.items[0]?.icon ?? '•';
 
           return (
             <section
@@ -242,7 +245,7 @@ export function AdminSidebar({
                   'focus-v2__items',
                   (!hasTitle || isOpen) && !collapsed
                     ? 'focus-v2__items--open'
-                    : collapsed && activeInSection
+                    : collapsed && (!hasTitle || isOpen)
                       ? 'focus-v2__items--rail'
                       : 'focus-v2__items--closed',
                 )}
@@ -250,8 +253,8 @@ export function AdminSidebar({
                 {section.items.map((item) => {
                   const active = isNavLinkActive(pathname, item.href, item);
                   const label = t(item.labelKey);
-                  if (collapsed && hasTitle && !activeInSection) return null;
-                  if (collapsed && hasTitle && activeInSection && !active) return null;
+                  // Collapsed rail: show every destination of the opened group only.
+                  if (collapsed && hasTitle && !isOpen) return null;
                   return (
                     <Link
                       key={item.href}

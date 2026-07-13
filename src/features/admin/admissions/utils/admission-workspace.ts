@@ -4,12 +4,12 @@
  */
 
 import {
-  AWAITING_DECISION_PROCESSING_STAGES,
   FOLLOW_UP_PROCESSING_STAGES,
   isFollowUpProcessingStage,
   mapLegacyListStateParam,
   type FollowUpProcessingStage,
 } from './admission-assessment-workflow-contract';
+import { admissionKanbanFetchStages } from './admission-kanban-presentation';
 
 export type AdmissionWorkspace =
   | 'follow_up'
@@ -80,6 +80,11 @@ export type AdmissionWorkspaceListState = {
   registrationStatus?: string;
   search?: string;
   academicYearId?: string;
+  /**
+   * Academic cycle / track code from admissions options (`cycles[].code`).
+   * Cascades level options; sent as `requested_cycle_code` when set.
+   */
+  cycleCode?: string;
   levelId?: string;
   sourceId?: string;
   page: number;
@@ -216,7 +221,8 @@ export function buildAdmissionWorkspaceQuery(
       return {
         workspace: 'follow_up',
         query,
-        kanbanColumns: [...FOLLOW_UP_WORKSPACE_STATES],
+        // Four presentation columns (assessment stages merged visually).
+        kanbanColumns: admissionKanbanFetchStages(),
         kanbanAllowed: true,
         defaultView: 'kanban',
         serverExpressible: true,
@@ -239,7 +245,7 @@ export function buildAdmissionWorkspaceQuery(
       return {
         workspace: 'awaiting_decision',
         query,
-        kanbanColumns: [...AWAITING_DECISION_PROCESSING_STAGES],
+        kanbanColumns: admissionKanbanFetchStages(),
         kanbanAllowed: true,
         defaultView: 'table',
         serverExpressible: true,
@@ -252,7 +258,9 @@ export function buildAdmissionWorkspaceQuery(
         ...pickOfferAdvanced(advanced),
       };
       if (postSub === 'ready') {
-        query.registration_readiness = 'ready';
+        // Align with dashboard confirmed_count + outcome filter + UI label
+        // (جاهز للتسجيل = state confirmed, not registration_readiness alone).
+        query.state = 'confirmed';
       } else if (postSub === 'registered') {
         query.registration_readiness = 'registered';
         query.registration_status = 'registered';
@@ -362,7 +370,7 @@ export function sanitizeAdvancedFilters(
       state.workspace === 'post_acceptance' &&
       (state.postSub === 'ready' || state.postSub === 'registered')
     ) {
-      // Owned by postSub.
+      // Owned by postSub (ready → state=confirmed; registered → readiness).
     } else {
       out.registration_readiness = state.registrationReadiness;
     }
@@ -586,9 +594,26 @@ export function buildContextQuery(state: AdmissionWorkspaceListState): Admission
   const out: AdmissionWorkspaceQuery = {};
   if (state.search?.trim()) out.search = state.search.trim();
   if (state.academicYearId) out.academic_year_id = Number(state.academicYearId) || state.academicYearId;
+  // Existing create/edit field — used as list filter when supported by Backend.
+  if (state.cycleCode?.trim()) out.requested_cycle_code = state.cycleCode.trim();
   if (state.levelId) out.requested_level_id = Number(state.levelId) || state.levelId;
   if (state.sourceId) out.source_id = Number(state.sourceId) || state.sourceId;
   return out;
+}
+
+/**
+ * When the selected level no longer belongs to the selected cycle/track, clear it.
+ */
+export function resetLevelIfIncompatibleWithCycle(
+  levelId: string | undefined,
+  cycleCode: string | undefined,
+  levels: Array<{ id: number; cycle: string }>,
+): string | undefined {
+  if (!levelId) return undefined;
+  if (!cycleCode?.trim()) return levelId;
+  const level = levels.find((item) => String(item.id) === levelId);
+  if (!level) return undefined;
+  return level.cycle === cycleCode.trim() ? levelId : undefined;
 }
 
 export function buildAdmissionListServerQuery(
@@ -689,10 +714,16 @@ export function parseWorkspaceListStateFromSearchParams(
     workspace = legacyMap.workspace;
   }
 
+  const readinessParam = params.get('registration_readiness');
   let postSub = parsePostAcceptanceSubfilter(params.get('postSub'));
   if (registration === 'registered') postSub = 'registered';
   else if (registration === 'awaiting_registration') postSub = 'awaiting';
-  else if (state === 'confirmed' && workspace === 'post_acceptance') postSub = 'ready';
+  else if (
+    workspace === 'post_acceptance' &&
+    (state === 'confirmed' || readinessParam === 'ready')
+  ) {
+    postSub = 'ready';
+  }
 
   let closedSub = parseClosedSubfilter(params.get('closedSub'));
   if (decision === 'rejected') closedSub = 'rejected';
@@ -735,10 +766,19 @@ export function parseWorkspaceListStateFromSearchParams(
     offerState: params.get('offer') || params.get('offer_state') || undefined,
     offerRequired: params.get('offer_required') || undefined,
     assessmentProgress: params.get('assessment_progress') || undefined,
-    registrationReadiness: params.get('registration_readiness') || undefined,
+    // Ready is owned by postSub (state=confirmed); do not keep as advanced filter.
+    registrationReadiness:
+      postSub === 'ready' && readinessParam === 'ready'
+        ? undefined
+        : readinessParam || undefined,
     registrationStatus: undefined,
     search: params.get('q') || params.get('search') || undefined,
     academicYearId: params.get('year') || params.get('academic_year_id') || undefined,
+    cycleCode:
+      params.get('cycle') ||
+      params.get('track') ||
+      params.get('requested_cycle_code') ||
+      undefined,
     levelId: params.get('level') || params.get('requested_level_id') || undefined,
     sourceId: params.get('source') || params.get('source_id') || undefined,
     page: Math.max(1, Number(params.get('page')) || 1),
@@ -774,6 +814,7 @@ export function workspaceListStateToSearchParams(
 
   if (state.search?.trim()) params.set('q', state.search.trim());
   if (state.academicYearId) params.set('year', state.academicYearId);
+  if (state.cycleCode?.trim()) params.set('cycle', state.cycleCode.trim());
   if (state.levelId) params.set('level', state.levelId);
   if (state.sourceId) params.set('source', state.sourceId);
   if (state.offerState && !preset.query.offer_state) {
@@ -803,6 +844,7 @@ export function hasManualContextOrAdvancedFilters(
   return Boolean(
     state.search?.trim() ||
       state.academicYearId ||
+      state.cycleCode?.trim() ||
       state.levelId ||
       state.sourceId ||
       state.decision ||
@@ -817,7 +859,11 @@ export function hasManualContextOrAdvancedFilters(
   );
 }
 
-/** Extra query for kanban columns: workspace (+ context) without per-column stage. */
+/**
+ * Extra query for kanban columns: context filters without per-column stage.
+ * Omits `workspace` so the four-column pipeline can load assessment + decision
+ * stages together (presentation grouping; Backend enums unchanged).
+ */
 export function buildKanbanWorkspaceExtraQuery(
   state: AdmissionWorkspaceListState,
 ): AdmissionWorkspaceQuery {
@@ -828,7 +874,8 @@ export function buildKanbanWorkspaceExtraQuery(
       k === 'state' ||
       k === 'processing_stage' ||
       k === 'page' ||
-      k === 'search'
+      k === 'search' ||
+      k === 'workspace'
     ) {
       continue;
     }

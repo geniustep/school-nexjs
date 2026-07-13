@@ -174,10 +174,16 @@ describe('API contract + normalization', () => {
 });
 
 describe('workspaces and kanban', () => {
-  it('11-13. follow_up uses processing_stage columns; awaiting has assessment columns', () => {
+  it('11-13. follow_up and awaiting use four-column presentation fetch stages', () => {
     const follow = buildAdmissionWorkspaceQuery(baseState({ workspace: 'follow_up' }));
     expect(follow.query.workspace).toBe('follow_up');
-    expect(follow.kanbanColumns).toEqual([...FOLLOW_UP_PROCESSING_STAGES]);
+    expect(follow.kanbanColumns).toEqual([
+      'new',
+      'initial_follow_up',
+      'assessment_ready',
+      'assessment_in_progress',
+      'decision_ready',
+    ]);
     expect(FOLLOW_UP_WORKSPACE_STATES).toEqual([
       'new',
       'initial_follow_up',
@@ -188,16 +194,19 @@ describe('workspaces and kanban', () => {
       baseState({ workspace: 'awaiting_decision' }),
     );
     expect(awaiting.kanbanColumns).toEqual([
+      'new',
+      'initial_follow_up',
+      'assessment_ready',
       'assessment_in_progress',
       'decision_ready',
     ]);
   });
 
-  it('14-15. no client split; column extra query omits processing_stage', () => {
+  it('14-15. no client split; column extra query omits workspace and processing_stage', () => {
     const extra = buildKanbanWorkspaceExtraQuery(
       baseState({ workspace: 'follow_up', followStage: 'new' }),
     );
-    expect(extra).toMatchObject({ workspace: 'follow_up' });
+    expect(extra).not.toHaveProperty('workspace');
     expect(extra).not.toHaveProperty('processing_stage');
     expect(extra).not.toHaveProperty('state');
   });

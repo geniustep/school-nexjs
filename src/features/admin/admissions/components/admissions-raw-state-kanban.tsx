@@ -4,8 +4,8 @@
  * @raqeem-design docs/design/RAQEEM-DESIGN.md
  * @design-status adopted
  *
- * Follow-up Kanban: polished scroll rails + multi-select + column accents.
- * Data remains one server query per column (workspace + state) — no client split.
+ * Four-column presentation Kanban. Backend processing_stage values are unchanged;
+ * assessment_ready + assessment_in_progress share one visible column.
  */
 
 import { useCallback, useMemo, useState } from 'react';
@@ -15,16 +15,22 @@ import { useLocale, useT } from '@/features/i18n/locale-context';
 import { useAdmissionStateChange } from '../hooks/use-admission-state-change';
 import { useSynchronizedHorizontalScroll } from '../hooks/use-synchronized-horizontal-scroll';
 import type { AdmissionsKanbanColumn } from '../hooks/use-admissions-kanban-board';
-import { hasAdmissionAllowedAction, canChangeAdmissionProcessingStage } from '../utils/admission-allowed-actions';
+import {
+  hasAdmissionAllowedAction,
+  canChangeAdmissionProcessingStage,
+} from '../utils/admission-allowed-actions';
 import {
   evaluateManualStageChange,
   isAdmissionManualStage,
 } from '../utils/admission-stage-options';
+import { isRawKanbanDropTarget, rawKanbanColumnClass } from '../utils/admission-raw-kanban';
 import {
-  isRawKanbanDropTarget,
-  rawKanbanColumnClass,
-} from '../utils/admission-raw-kanban';
-import { processingStageLabelKey } from '../utils/admission-assessment-workflow-contract';
+  groupKanbanColumnsForPresentation,
+  presentationColumnDropStage,
+  resolveAdmissionProcessingStageBadgeKey,
+  type AdmissionKanbanPresentationColumn,
+  type AdmissionKanbanPresentationColumnId,
+} from '../utils/admission-kanban-presentation';
 import {
   AdmissionCard,
   admissionCardDragPayload,
@@ -49,7 +55,7 @@ export function AdmissionsRawStateKanban({
   selectionMode?: boolean;
   isSelected?: (id: number) => boolean;
   onToggleSelect?: (id: number) => void;
-  /** When false (e.g. awaiting_decision), cards are not draggable. */
+  /** When false (e.g. awaiting_decision workspace chrome), cards are not draggable. */
   allowDrag?: boolean;
 }) {
   const t = useT();
@@ -57,11 +63,18 @@ export function AdmissionsRawStateKanban({
   const { dir } = useLocale();
   const { changeState, isPending } = useAdmissionStateChange();
   const [draggingId, setDraggingId] = useState<number | null>(null);
-  const [dropTarget, setDropTarget] = useState<string | null>(null);
+  const [dropTarget, setDropTarget] = useState<AdmissionKanbanPresentationColumnId | null>(
+    null,
+  );
+
+  const presentationColumns = useMemo(
+    () => groupKanbanColumnsForPresentation(columns),
+    [columns],
+  );
 
   const columnsKey = useMemo(
-    () => columns.map((col) => col.state).join(','),
-    [columns],
+    () => presentationColumns.map((col) => col.id).join(','),
+    [presentationColumns],
   );
 
   const {
@@ -76,8 +89,8 @@ export function AdmissionsRawStateKanban({
   } = useSynchronizedHorizontalScroll({ dir, resetKey: columnsKey });
 
   const allItems = useMemo(
-    () => columns.flatMap((col) => col.items),
-    [columns],
+    () => presentationColumns.flatMap((col) => col.items),
+    [presentationColumns],
   );
 
   const findItem = useCallback(
@@ -86,8 +99,9 @@ export function AdmissionsRawStateKanban({
   );
 
   const handleDrop = useCallback(
-    async (targetState: string, admissionId: number) => {
-      if (!allowDrag || !isRawKanbanDropTarget(targetState)) {
+    async (columnId: AdmissionKanbanPresentationColumnId, admissionId: number) => {
+      const targetState = presentationColumnDropStage(columnId);
+      if (!allowDrag || !targetState || !isRawKanbanDropTarget(targetState)) {
         toast.show(t('admin.admissions.kanban.dropBlockedClosed'), 'info');
         return;
       }
@@ -115,8 +129,8 @@ export function AdmissionsRawStateKanban({
   );
 
   const firstColumnLabel =
-    columns[0] != null
-      ? t(processingStageLabelKey(columns[0].state))
+    presentationColumns[0] != null
+      ? t(presentationColumns[0].labelKey)
       : t('admin.admissions.kanban.boardLabel');
 
   const thumbTravel = Math.max(0, 1 - scrollMetrics.thumbRatio);
@@ -188,10 +202,17 @@ export function AdmissionsRawStateKanban({
     );
   }
 
+  function columnAccentClass(column: AdmissionKanbanPresentationColumn): string {
+    if (column.id === 'assessment') return 'admissions-kanban__column--state-assessment_ready';
+    if (column.id === 'decision') return 'admissions-kanban__column--state-decision_ready';
+    return rawKanbanColumnClass(column.id);
+  }
+
   return (
     <div
       className="admissions-kanban-outer admissions-kanban-outer--raw"
       data-testid="admissions-raw-kanban"
+      data-presentation-columns="4"
     >
       <div className="admissions-kanban-board">
         <div className="admissions-kanban-board__head">
@@ -245,45 +266,47 @@ export function AdmissionsRawStateKanban({
             data-testid="admissions-kanban-scroll-content"
           >
             <div
-              className="admissions-kanban admissions-kanban--raw"
+              className="admissions-kanban admissions-kanban--raw admissions-kanban--presentation-4"
               data-pipeline-start={firstColumnLabel}
               data-dir={dir}
             >
-              {columns.map((column, index) => {
-                const droppable = allowDrag && isRawKanbanDropTarget(column.state);
-                const isDropTarget = dropTarget === column.state && droppable;
+              {presentationColumns.map((column, index) => {
+                const dropStage = presentationColumnDropStage(column.id);
+                const droppable =
+                  allowDrag && dropStage != null && isRawKanbanDropTarget(dropStage);
+                const isDropTarget = dropTarget === column.id && droppable;
                 const countLabel = t('admin.admissions.kanban.columnCount', {
                   count: column.total,
                 });
 
                 return (
                   <section
-                    key={column.state}
+                    key={column.id}
                     className={cn(
                       'admissions-kanban__column',
-                      rawKanbanColumnClass(column.state),
+                      columnAccentClass(column),
                       index === 0 && 'admissions-kanban__column--first',
                       isDropTarget && 'admissions-kanban__column--drop-target',
                       !droppable &&
                         draggingId != null &&
                         'admissions-kanban__column--drop-blocked',
                     )}
-                    data-stage={column.state}
-                    data-testid={`admissions-kanban-col-${column.state}`}
-                    aria-label={`${t(processingStageLabelKey(column.state))} — ${countLabel}`}
+                    data-stage={column.id}
+                    data-testid={`admissions-kanban-col-${column.id}`}
+                    aria-label={`${t(column.labelKey)} — ${countLabel}`}
                     onDragOver={(e) => {
                       if (!allowDrag || draggingId == null) return;
                       e.preventDefault();
                       if (droppable) {
                         e.dataTransfer.dropEffect = 'move';
-                        setDropTarget(column.state);
+                        setDropTarget(column.id);
                         return;
                       }
                       e.dataTransfer.dropEffect = 'none';
                     }}
                     onDragLeave={(e) => {
                       if (e.currentTarget.contains(e.relatedTarget as Node | null)) return;
-                      setDropTarget((cur) => (cur === column.state ? null : cur));
+                      setDropTarget((cur) => (cur === column.id ? null : cur));
                     }}
                     onDrop={(e) => {
                       if (!allowDrag) return;
@@ -295,17 +318,17 @@ export function AdmissionsRawStateKanban({
                         toast.show(t('admin.admissions.kanban.dropBlockedClosed'), 'info');
                         return;
                       }
-                      void handleDrop(column.state, id);
+                      void handleDrop(column.id, id);
                     }}
                   >
                     <header className="admissions-kanban__column-header">
                       <div className="admissions-kanban__column-heading">
                         <span className="admissions-kanban__column-title">
-                          {t(processingStageLabelKey(column.state))}
+                          {t(column.labelKey)}
                         </span>
                         <span
                           className="admissions-kanban__column-count"
-                          data-testid={`admissions-kanban-count-${column.state}`}
+                          data-testid={`admissions-kanban-count-${column.id}`}
                           title={countLabel}
                         >
                           {column.loading && column.items.length === 0 ? '…' : column.total}
@@ -325,11 +348,16 @@ export function AdmissionsRawStateKanban({
                             allowDrag &&
                             !selectionMode &&
                             isAdmissionManualStage(String(item.state));
+                          const subStageKey =
+                            column.id === 'assessment'
+                              ? resolveAdmissionProcessingStageBadgeKey(item)
+                              : null;
                           return (
                             <AdmissionCard
                               key={item.id}
                               item={item}
                               hideUiStagePrimary
+                              processingStageHintKey={subStageKey}
                               draggable={draggable}
                               isDragging={draggingId === item.id}
                               isSaving={isPending(item.id)}
@@ -354,12 +382,12 @@ export function AdmissionsRawStateKanban({
                           );
                         })
                       )}
-                      {column.hasMore ? (
+                      {column.hasMore && column.loadMoreStage ? (
                         <button
                           type="button"
                           className="btn btn--ghost btn--sm admissions-kanban__load-more"
                           disabled={column.loadingMore}
-                          onClick={() => onLoadMore?.(column.state)}
+                          onClick={() => onLoadMore?.(column.loadMoreStage!)}
                         >
                           {column.loadingMore
                             ? t('admin.admissions.kanban.loadingMore')

@@ -141,7 +141,7 @@ describe('workspace server contract queries', () => {
     const ready = applyOperationalCard(baseState(), 'ready_for_registration');
     expect(buildAdmissionWorkspaceQuery(ready).query).toEqual({
       workspace: 'post_acceptance',
-      registration_readiness: 'ready',
+      state: 'confirmed',
     });
     const rejected = applyOperationalCard(baseState({ view: 'kanban' }), 'school_rejected');
     expect(rejected.view).toBe('table');
@@ -183,12 +183,13 @@ describe('workspace server contract queries', () => {
     expect(cleared.view).toBe('table');
   });
 
-  it('kanban extra query keeps workspace and drops column state', () => {
+  it('kanban extra query omits workspace for four-column pipeline and drops column state', () => {
     const extra = buildKanbanWorkspaceExtraQuery(
       baseState({ followStage: 'new', search: 'x', page: 2 }),
     );
-    expect(extra.workspace).toBe('follow_up');
+    expect(extra).not.toHaveProperty('workspace');
     expect(extra).not.toHaveProperty('state');
+    expect(extra).not.toHaveProperty('processing_stage');
     expect(extra).not.toHaveProperty('page');
     expect(extra).not.toHaveProperty('search');
   });
@@ -268,6 +269,33 @@ describe('URL and workspace navigation', () => {
     expect(restored.academicYearId).toBe('12');
     expect(restored.levelId).toBe('3');
     expect(restored.sourceId).toBe('9');
+  });
+
+  it('ready subfilter round-trips via state=confirmed (not lost to awaiting default)', () => {
+    const state = baseState({
+      workspace: 'post_acceptance',
+      postSub: 'ready',
+      view: 'table',
+    });
+    const params = workspaceListStateToSearchParams(state);
+    expect(params.get('state')).toBe('confirmed');
+    expect(params.get('registration_readiness')).toBeNull();
+    const restored = parseWorkspaceListStateFromSearchParams(params);
+    expect(restored.postSub).toBe('ready');
+    expect(workspaceListStateToSearchParams(restored).toString()).toBe(params.toString());
+  });
+
+  it('legacy registration_readiness=ready URL still restores ready subfilter', () => {
+    const params = new URLSearchParams({
+      workspace: 'post_acceptance',
+      registration_readiness: 'ready',
+    });
+    const restored = parseWorkspaceListStateFromSearchParams(params);
+    expect(restored.postSub).toBe('ready');
+    expect(buildAdmissionWorkspaceQuery(restored).query).toEqual({
+      workspace: 'post_acceptance',
+      state: 'confirmed',
+    });
   });
 
   it('changing workspace resets page and clears conflicting filters', () => {

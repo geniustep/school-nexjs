@@ -1,7 +1,8 @@
 import type { AdmissionDetail, AdmissionState } from '@/types/admission';
 import { hasAdmissionAllowedAction } from './admission-allowed-actions';
-import { shouldBlockStudentConversion } from './admission-rejection';
+import { shouldBlockStudentConversion, isAdmissionTerminal } from './admission-rejection';
 import { formatAdmissionReference } from './admission-labels';
+import { resolveProcessingStage } from './admission-assessment-workflow-contract';
 
 const CLOSED_REGISTRATION_STATES = new Set<AdmissionState>(['lost', 'cancelled', 'duplicate']);
 
@@ -45,8 +46,60 @@ export function canContinueStudentRegistration(detail: AdmissionDetail): boolean
   return true;
 }
 
+/**
+ * Convert-to-student at any processing stage (opens existing student create + prefill).
+ * Does not create the student; does not mutate admission stage on click.
+ * Linked admissions must use open-student instead (no duplicate conversion).
+ */
+export function canConvertAdmissionToStudentAnyStage(
+  detail: Pick<
+    AdmissionDetail,
+    | 'student_id'
+    | 'registration_flow_state'
+    | 'state'
+    | 'is_terminal'
+    | 'can_link_student'
+    | 'allowed_actions'
+  >,
+): boolean {
+  if (isAdmissionLinkedRecord(detail)) return false;
+  if (isAdmissionTerminal(detail)) return false;
+  if (CLOSED_REGISTRATION_STATES.has(detail.state as AdmissionState)) return false;
+  if (detail.can_link_student === false) return false;
+  return true;
+}
+
+/** Non-blocking hint when converting before readiness / late pipeline stages. */
+export function shouldShowEarlyStudentConversionHint(
+  detail: Pick<
+    AdmissionDetail,
+    | 'processing_stage'
+    | 'state'
+    | 'registration_readiness'
+    | 'student_id'
+    | 'registration_flow_state'
+  >,
+): boolean {
+  if (isAdmissionLinkedRecord(detail)) return false;
+  const readiness = String(detail.registration_readiness ?? '').trim();
+  if (readiness === 'ready' || readiness === 'registered') return false;
+  const stage = resolveProcessingStage(detail);
+  return (
+    stage === 'new' ||
+    stage === 'initial_follow_up' ||
+    stage === 'assessment_ready' ||
+    stage === 'assessment_in_progress' ||
+    stage === 'decision_ready' ||
+    !stage
+  );
+}
+
 export function buildContinueRegistrationHref(admissionId: number | string): string {
   return `/admin/students/new?admission_id=${admissionId}`;
+}
+
+export function buildOpenStudentHref(studentId: number): string {
+  return `/admin/students/${studentId}`;
 }
 
 export function admissionDisplayReference(detail: Pick<AdmissionDetail, 'id' | 'reference' | 'name'>): string {

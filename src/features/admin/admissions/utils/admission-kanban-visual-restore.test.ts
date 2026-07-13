@@ -20,6 +20,7 @@ import {
   parseWorkspaceListStateFromSearchParams,
   type AdmissionWorkspaceListState,
 } from './admission-workspace';
+import { admissionKanbanFetchStages } from './admission-kanban-presentation';
 import {
   evaluateManualStageChange,
   getAdmissionManualStageOptions,
@@ -41,10 +42,10 @@ function baseState(
 }
 
 describe('workspace kanban availability', () => {
-  it('1. follow_up allows kanban with three processing-stage columns', () => {
+  it('1. follow_up allows kanban with four-column presentation fetch stages', () => {
     const q = buildAdmissionWorkspaceQuery(baseState({ workspace: 'follow_up' }));
     expect(q.kanbanAllowed).toBe(true);
-    expect(q.kanbanColumns).toEqual([...FOLLOW_UP_WORKSPACE_STATES]);
+    expect(q.kanbanColumns).toEqual(admissionKanbanFetchStages());
   });
 
   it('2. post_acceptance does not allow kanban', () => {
@@ -60,20 +61,20 @@ describe('workspace kanban availability', () => {
     ).toBe(false);
   });
 
-  it('4-5. each follow_up column query sends workspace + processing_stage (no client split)', () => {
+  it('4-5. kanban extra query omits workspace for pipeline board (no client split)', () => {
     for (const state of FOLLOW_UP_WORKSPACE_STATES) {
       const extra = buildKanbanWorkspaceExtraQuery(
         baseState({ workspace: 'follow_up' }),
       );
-      expect(extra).toMatchObject({ workspace: 'follow_up' });
+      expect(extra).not.toHaveProperty('workspace');
       expect(extra).not.toHaveProperty('state');
       expect(extra).not.toHaveProperty('processing_stage');
       void state;
     }
-    expect(FOLLOW_UP_WORKSPACE_STATES).toHaveLength(3);
+    expect(admissionKanbanFetchStages()).toHaveLength(5);
   });
 
-  it('7. three base columns are the follow_up processing stages', () => {
+  it('7. follow_up subfilter stages remain the three processing stages', () => {
     expect([...FOLLOW_UP_WORKSPACE_STATES]).toEqual([
       'new',
       'initial_follow_up',

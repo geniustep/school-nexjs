@@ -1180,6 +1180,25 @@
   gap: 0.5rem;
 }
 
+.admission-student-conversion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-inline-start: auto;
+}
+
+.admission-student-conversion .info-banner {
+  flex: 1 1 12rem;
+  max-width: 22rem;
+}
+
+.admission-card__substage {
+  margin: 0.15rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.3;
+}
+
 .admissions-detail-header-card__back {
   font-size: 0.8125rem;
   background: color-mix(in srgb, var(--c-surface, #fff) 75%, transparent);

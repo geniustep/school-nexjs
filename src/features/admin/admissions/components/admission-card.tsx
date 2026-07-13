@@ -31,6 +31,7 @@ export function AdmissionCard({
   draggable = false,
   showStateBadge = true,
   hideUiStagePrimary = false,
+  processingStageHintKey = null,
   isDragging = false,
   isSaving = false,
   onDragStart,
@@ -46,6 +47,8 @@ export function AdmissionCard({
   showStateBadge?: boolean;
   /** Hide primary badge when it only restates the Kanban column stage. */
   hideUiStagePrimary?: boolean;
+  /** Small sub-stage label (e.g. assessment_ready inside the Assessment column). */
+  processingStageHintKey?: string | null;
   isDragging?: boolean;
   isSaving?: boolean;
   onDragStart?: (event: React.DragEvent<HTMLDivElement>) => void;
@@ -164,6 +167,16 @@ export function AdmissionCard({
       {levelName ? (
         <p className="admission-card__level" dir="auto">
           {levelName}
+        </p>
+      ) : null}
+
+      {processingStageHintKey ? (
+        <p
+          className="admission-card__substage muted tiny"
+          data-testid="admission-card-processing-stage-hint"
+          dir="auto"
+        >
+          {t(processingStageHintKey)}
         </p>
       ) : null}
 
