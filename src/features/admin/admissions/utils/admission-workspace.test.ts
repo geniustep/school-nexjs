@@ -54,6 +54,7 @@ function baseState(
     awaitingSub: '',
     postSub: 'awaiting',
     closedSub: 'rejected',
+    hideConverted: true,
     page: 1,
     view: 'kanban',
     ...patch,
@@ -142,6 +143,7 @@ describe('workspace server contract queries', () => {
     expect(buildAdmissionWorkspaceQuery(ready).query).toEqual({
       workspace: 'post_acceptance',
       state: 'confirmed',
+      registration_status: 'awaiting_registration',
     });
     const rejected = applyOperationalCard(baseState({ view: 'kanban' }), 'school_rejected');
     expect(rejected.view).toBe('table');
@@ -279,6 +281,8 @@ describe('URL and workspace navigation', () => {
     });
     const params = workspaceListStateToSearchParams(state);
     expect(params.get('state')).toBe('confirmed');
+    expect(params.get('postSub')).toBe('ready');
+    expect(params.get('registration_status')).toBe('awaiting_registration');
     expect(params.get('registration_readiness')).toBeNull();
     const restored = parseWorkspaceListStateFromSearchParams(params);
     expect(restored.postSub).toBe('ready');
@@ -295,7 +299,19 @@ describe('URL and workspace navigation', () => {
     expect(buildAdmissionWorkspaceQuery(restored).query).toEqual({
       workspace: 'post_acceptance',
       state: 'confirmed',
+      registration_status: 'awaiting_registration',
     });
+  });
+
+  it('hideConverted defaults on and show_registered URL turns it off', () => {
+    expect(parseWorkspaceListStateFromSearchParams(new URLSearchParams()).hideConverted).toBe(
+      true,
+    );
+    const shown = parseWorkspaceListStateFromSearchParams(
+      new URLSearchParams({ show_registered: '1' }),
+    );
+    expect(shown.hideConverted).toBe(false);
+    expect(workspaceListStateToSearchParams(shown).get('show_registered')).toBe('1');
   });
 
   it('changing workspace resets page and clears conflicting filters', () => {

@@ -4,6 +4,7 @@ import {
   countHiddenConvertedAdmissionListItems,
   filterClosedAdmissionListItems,
   hasActiveAdmissionListFilters,
+  resolveEffectiveHideConverted,
   shouldIncludeClosedAdmissions,
 } from '@/features/admin/admissions/utils/filter-admission-list-items';
 import type { AdmissionListItem } from '@/types/admission';
@@ -28,10 +29,16 @@ function makeItem(id: number, studentId?: number | false | null): AdmissionListI
 }
 
 describe('filterAdmissionListItems', () => {
-  it('does not hide registered admissions client-side (pagination-safe)', () => {
+  it('hides registered admissions by default', () => {
     const items = [makeItem(1), makeItem(2, 100)];
-    expect(filterAdmissionListItems(items, true)).toEqual(items);
-    expect(countHiddenConvertedAdmissionListItems(items, true)).toBe(0);
+    expect(filterAdmissionListItems(items, true)).toEqual([makeItem(1)]);
+    expect(countHiddenConvertedAdmissionListItems(items, true)).toBe(1);
+  });
+
+  it('keeps registered admissions when hideConverted is off', () => {
+    const items = [makeItem(1), makeItem(2, 100)];
+    expect(filterAdmissionListItems(items, false)).toEqual(items);
+    expect(countHiddenConvertedAdmissionListItems(items, false)).toBe(0);
   });
 
   it('excludes closed unless includeClosed is true', () => {
@@ -47,9 +54,26 @@ describe('filterAdmissionListItems', () => {
     expect(shouldIncludeClosedAdmissions({ outcomeFilter: 'school_rejected' })).toBe(true);
   });
 
-  it('tracks active filters without showClosed / registered-visible chips', () => {
+  it('tracks show-registered as an active filter', () => {
     expect(hasActiveAdmissionListFilters({ search: 'a' })).toBe(true);
     expect(hasActiveAdmissionListFilters({ outcomeFilter: 'registered' })).toBe(true);
+    expect(hasActiveAdmissionListFilters({ hideConverted: false })).toBe(true);
     expect(hasActiveAdmissionListFilters({})).toBe(false);
+  });
+
+  it('forces show registered inside post_acceptance registered subfilter', () => {
+    expect(
+      resolveEffectiveHideConverted({
+        hideConverted: true,
+        workspace: 'post_acceptance',
+        postSub: 'registered',
+      }),
+    ).toBe(false);
+    expect(
+      resolveEffectiveHideConverted({
+        hideConverted: true,
+        workspace: 'follow_up',
+      }),
+    ).toBe(true);
   });
 });

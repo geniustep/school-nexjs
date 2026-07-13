@@ -63,6 +63,7 @@ describe('track/level filter workspace helpers', () => {
       postSub: 'awaiting',
       closedSub: 'rejected',
       cycleCode: 'primary',
+      hideConverted: true,
       page: 1,
       view: 'kanban',
     };

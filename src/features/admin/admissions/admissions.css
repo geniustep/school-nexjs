@@ -4637,111 +4637,108 @@
   margin: 0 0 0.45rem;
 }
 
-/* ── Filter deck: one composition for workspace → KPIs → info → tools ── */
+/* ── Filter deck: 4-band composition (workspaces → KPIs → info → tools) ── */
 .admissions-filter-deck {
-  --afd-ink: var(--c-primary, #243b6b);
-  --afd-ink-soft: color-mix(in srgb, var(--afd-ink) 9%, white);
-  --afd-line: color-mix(in srgb, var(--c-border, #e2e8f0) 82%, transparent);
-  --afd-track: color-mix(in srgb, var(--c-slate-soft, #f1f5f9) 78%, white);
-  --afd-radius: calc(var(--radius, 0.5rem) + 0.2rem);
+  --afd-ink: var(--raqeem-primary, var(--c-primary, #243b6b));
+  --afd-teal: var(--raqeem-secondary, #24a6a1);
+  --afd-accent: var(--raqeem-accent, #f2a541);
+  --afd-ink-soft: color-mix(in srgb, var(--afd-ink) 8%, white);
+  --afd-line: color-mix(in srgb, var(--c-border, #e2e8f0) 88%, transparent);
+  --afd-track: color-mix(in srgb, var(--c-surface-2, #eef2f8) 70%, white);
+  --afd-radius: calc(var(--radius, 0.5rem) + 0.15rem);
   display: flex;
   flex-direction: column;
   gap: 0;
   min-width: 0;
   border: 1px solid var(--afd-line);
   border-radius: var(--afd-radius);
+  background: var(--c-surface, #fff);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, #fff 80%, transparent) inset,
+    0 8px 24px color-mix(in srgb, var(--afd-ink) 6%, transparent);
+  overflow: hidden;
+}
+
+.admissions-filter-deck__band {
+  margin: 0;
+  min-width: 0;
+  padding: 0.7rem 0.9rem;
+}
+
+.admissions-filter-deck__band--workspaces {
+  padding: 0.55rem 0.65rem;
   background:
     linear-gradient(
-      165deg,
-      color-mix(in srgb, var(--afd-ink) 4.5%, white) 0%,
-      var(--c-surface, #fff) 38%,
-      color-mix(in srgb, var(--c-slate-soft, #f8fafc) 55%, white) 100%
+      135deg,
+      color-mix(in srgb, var(--afd-ink) 94%, #0b1224) 0%,
+      color-mix(in srgb, var(--afd-ink) 82%, var(--afd-teal) 18%) 100%
     );
-  box-shadow:
-    0 1px 0 color-mix(in srgb, #fff 70%, transparent) inset,
-    0 10px 28px color-mix(in srgb, #0f172a 5.5%, transparent);
+  border-block-end: 1px solid color-mix(in srgb, #0b1224 22%, transparent);
 }
 
-.admissions-filter-deck > :first-child {
-  border-start-start-radius: inherit;
-  border-start-end-radius: inherit;
+.admissions-filter-deck__band--insights {
+  padding: 0.7rem 0.9rem 0.55rem;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--afd-ink) 3.5%, white) 0%,
+      var(--c-surface, #fff) 100%
+    );
+  border-block-end: 1px solid var(--afd-line);
 }
 
-.admissions-filter-deck > :last-child {
-  border-end-start-radius: inherit;
-  border-end-end-radius: inherit;
+.admissions-filter-deck__band--sub {
+  padding: 0.45rem 0.9rem;
+  background: color-mix(in srgb, var(--afd-track) 65%, white);
+  border-block-end: 1px solid var(--afd-line);
 }
 
-.admissions-filter-deck > .admissions-workspace-tabs,
-.admissions-filter-deck > .admissions-dashboard-stack,
-.admissions-filter-deck > .admissions-dashboard-fallback,
-.admissions-filter-deck > .admissions-subfilters,
-.admissions-filter-deck > .admissions-list-toolbar,
-.admissions-filter-deck > .admissions-list-active-filters,
-.admissions-filter-deck > .muted {
-  margin: 0;
-  padding: 0.7rem 0.85rem;
-}
-
-.admissions-filter-deck > .admissions-workspace-tabs {
-  padding-block: 0.75rem 0.55rem;
-}
-
-.admissions-filter-deck > .admissions-dashboard-stack {
-  padding-block: 0.35rem 0.65rem;
-  border-block-start: 1px solid color-mix(in srgb, var(--afd-line) 70%, transparent);
-}
-
-.admissions-filter-deck > .admissions-subfilters {
-  padding-block: 0.45rem 0.55rem;
-  border-block-start: 1px dashed color-mix(in srgb, var(--afd-line) 85%, transparent);
-  background: color-mix(in srgb, var(--afd-track) 55%, transparent);
-}
-
-.admissions-filter-deck > .admissions-list-toolbar {
-  border: 0;
-  border-radius: 0;
-  border-block-start: 1px solid var(--afd-line);
-  background: color-mix(in srgb, var(--c-surface, #fff) 88%, var(--afd-track));
-  box-shadow: none;
-  padding: 0.65rem 0.85rem 0.75rem;
+.admissions-filter-deck__band--tools {
+  padding: 0.65rem 0.9rem 0.75rem;
+  background: color-mix(in srgb, var(--afd-track) 40%, white);
 }
 
 .admissions-filter-deck > .admissions-list-active-filters {
-  padding-block: 0.35rem 0.7rem;
-  border-block-start: 1px solid color-mix(in srgb, var(--afd-line) 60%, transparent);
-  background: color-mix(in srgb, var(--afd-ink) 3.5%, white);
+  margin: 0;
+  padding: 0.4rem 0.9rem 0.7rem;
+  border-block-start: 1px solid var(--afd-line);
+  background: color-mix(in srgb, var(--afd-ink) 3%, white);
 }
 
-/* Workspace: segmented rail */
+.admissions-filter-deck > .muted,
+.admissions-filter-deck > .admissions-dashboard-fallback {
+  margin: 0;
+  padding: 0.75rem 0.9rem;
+}
+
+/* Band 1 — workspace mode switcher */
 .admissions-workspace-tabs {
   min-width: 0;
 }
 
 .admissions-workspace-tabs__scroller {
   display: flex;
-  gap: 0.3rem;
+  gap: 0.25rem;
   overflow-x: auto;
-  padding: 0.28rem;
+  padding: 0.2rem;
   scrollbar-width: thin;
-  border-radius: calc(var(--afd-radius, var(--radius, 0.5rem)) - 0.15rem);
-  background: var(--afd-track, color-mix(in srgb, var(--c-slate-soft, #f1f5f9) 78%, white));
-  box-shadow: inset 0 1px 2px color-mix(in srgb, #0f172a 4%, transparent);
+  border-radius: calc(var(--afd-radius) - 0.2rem);
+  background: color-mix(in srgb, #0b1224 22%, transparent);
 }
 
 .admissions-workspace-tabs__tab {
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.45rem;
   flex: 1 1 auto;
   justify-content: center;
-  min-height: 2.45rem;
+  min-height: 2.55rem;
   border: 1px solid transparent;
   background: transparent;
-  color: var(--c-text-muted, #64748b);
+  color: color-mix(in srgb, #fff 72%, transparent);
   border-radius: calc(var(--radius, 0.5rem) - 0.05rem);
-  padding: 0.4rem 0.85rem;
+  padding: 0.4rem 0.8rem;
   font-size: 0.8125rem;
   font-weight: 500;
   white-space: nowrap;
@@ -4754,62 +4751,66 @@
     transform 0.18s ease;
 }
 
+.admissions-workspace-tabs__label {
+  min-width: 0;
+}
+
 .admissions-workspace-tabs__tab:hover {
-  color: var(--c-text, #0f172a);
-  background: color-mix(in srgb, white 72%, transparent);
+  color: #fff;
+  background: color-mix(in srgb, #fff 10%, transparent);
 }
 
 .admissions-workspace-tabs__tab:focus-visible {
-  outline: 2px solid var(--afd-ink, var(--c-primary, #243b6b));
+  outline: 2px solid color-mix(in srgb, #fff 80%, transparent);
   outline-offset: 2px;
 }
 
 .admissions-workspace-tabs__tab--active {
-  background: var(--c-surface, #fff);
-  color: var(--afd-ink, var(--c-primary, #243b6b));
-  border-color: color-mix(in srgb, var(--afd-ink, #243b6b) 14%, transparent);
-  font-weight: 650;
+  background: #fff;
+  color: var(--afd-ink);
+  border-color: transparent;
+  font-weight: 700;
   box-shadow:
-    0 1px 0 color-mix(in srgb, #fff 80%, transparent),
-    0 4px 12px color-mix(in srgb, var(--afd-ink, #243b6b) 12%, transparent);
+    0 1px 0 color-mix(in srgb, #fff 90%, transparent),
+    0 6px 16px color-mix(in srgb, #0b1224 28%, transparent);
 }
 
 .admissions-workspace-tabs__count {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 1.45rem;
+  min-width: 1.5rem;
   height: 1.35rem;
-  margin-inline-start: 0;
   padding-inline: 0.4rem;
   border-radius: 999px;
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.01em;
-  opacity: 1;
-  background: color-mix(in srgb, var(--c-text, #0f172a) 7%, transparent);
+  font-variant-numeric: tabular-nums;
+  background: color-mix(in srgb, #fff 16%, transparent);
   color: inherit;
 }
 
 .admissions-workspace-tabs__tab--active .admissions-workspace-tabs__count {
-  background: color-mix(in srgb, var(--afd-ink, #243b6b) 14%, white);
-  color: var(--afd-ink, #243b6b);
+  background: color-mix(in srgb, var(--afd-ink) 12%, white);
+  color: var(--afd-ink);
 }
 
-/* Dashboard stack inside deck */
+/* Band 2+3 — operational KPIs + info ribbon */
 .admissions-dashboard-stack {
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
+  gap: 0.55rem;
 }
 
 .admissions-dashboard--operational {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.55rem;
+  gap: 0.5rem;
 }
 
 .admissions-filter-deck .admissions-dashboard__kpi-btn {
+  position: relative;
   border-radius: calc(var(--radius, 0.5rem) + 0.05rem);
   transition:
     transform 0.16s ease,
@@ -4817,19 +4818,15 @@
 }
 
 .admissions-filter-deck .admissions-dashboard__kpi-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 18px color-mix(in srgb, #0f172a 8%, transparent);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--afd-ink) 8%, transparent);
 }
 
 .admissions-filter-deck .admissions-dashboard__kpi-btn--active {
   outline: none;
   box-shadow:
-    0 0 0 2px color-mix(in srgb, var(--afd-ink, #243b6b) 55%, transparent),
-    0 8px 18px color-mix(in srgb, var(--afd-ink, #243b6b) 12%, transparent);
-}
-
-.admissions-filter-deck .admissions-dashboard__kpi-btn {
-  position: relative;
+    0 0 0 2px color-mix(in srgb, var(--afd-ink) 50%, transparent),
+    0 8px 18px color-mix(in srgb, var(--afd-ink) 12%, transparent);
 }
 
 .admissions-dashboard__kpi-clear {
@@ -4842,8 +4839,8 @@
   width: 1.25rem;
   height: 1.25rem;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--afd-ink, #243b6b) 12%, white);
-  color: var(--afd-ink, #243b6b);
+  background: color-mix(in srgb, var(--afd-ink) 12%, white);
+  color: var(--afd-ink);
   font-size: 0.95rem;
   font-weight: 700;
   line-height: 1;
@@ -4851,13 +4848,13 @@
 }
 
 .admissions-filter-deck .admissions-dashboard .stat-card {
-  min-height: 4.1rem;
-  padding: 0.65rem 0.75rem;
+  min-height: 3.85rem;
+  padding: 0.6rem 0.75rem;
   border-radius: inherit;
-  border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 75%, transparent);
+  border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 80%, transparent);
   border-inline-start-width: 3px;
-  background: color-mix(in srgb, var(--c-surface, #fff) 94%, transparent);
-  box-shadow: 0 1px 0 color-mix(in srgb, #fff 65%, transparent) inset;
+  background: var(--c-surface, #fff);
+  box-shadow: none;
   transition: border-color 0.16s ease, background 0.16s ease;
 }
 
@@ -4869,48 +4866,48 @@
 }
 
 .admissions-filter-deck .admissions-dashboard .stat-card__value {
-  font-size: 1.55rem;
+  font-size: 1.5rem;
   font-weight: 750;
   letter-spacing: -0.02em;
   line-height: 1.1;
+  font-variant-numeric: tabular-nums;
   color: var(--c-text, #0f172a);
 }
 
 .admissions-filter-deck .admissions-dashboard__kpi-hint {
-  margin-top: 0.15rem;
+  margin-top: 0.1rem;
   padding-inline: 0.75rem;
   font-size: 0.65rem;
   color: var(--c-muted, #64748b);
 }
 
 .admissions-filter-deck .admissions-dashboard__kpi-btn--amber .stat-card {
-  border-inline-start-color: color-mix(in srgb, var(--c-amber, #d97706) 70%, #f59e0b);
+  border-inline-start-color: var(--afd-accent);
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--c-amber-soft, #fef3c7) 55%, white),
-    white 70%
+    color-mix(in srgb, var(--afd-accent) 14%, white),
+    white 72%
   );
 }
 
 .admissions-filter-deck .admissions-dashboard__kpi-btn--green .stat-card {
-  border-inline-start-color: color-mix(in srgb, var(--c-green, #16a34a) 75%, #22c55e);
+  border-inline-start-color: color-mix(in srgb, var(--afd-teal) 70%, #16a34a);
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--c-green-soft, #dcfce7) 60%, white),
-    white 70%
+    color-mix(in srgb, var(--afd-teal) 12%, white),
+    white 72%
   );
 }
 
 .admissions-filter-deck .admissions-dashboard__kpi-btn--red .stat-card {
-  border-inline-start-color: color-mix(in srgb, var(--c-red, #dc2626) 70%, #ef4444);
+  border-inline-start-color: color-mix(in srgb, var(--c-red, #dc2626) 75%, #ef4444);
   background: linear-gradient(
     135deg,
     color-mix(in srgb, var(--c-red-soft, #fee2e2) 55%, white),
-    white 70%
+    white 72%
   );
 }
 
-/* Info ribbon: compact metrics, not loose chip islands */
 .admissions-dashboard--info {
   display: flex;
   flex-wrap: wrap;
@@ -4918,21 +4915,21 @@
   gap: 0;
   padding: 0;
   border-radius: calc(var(--radius, 0.5rem) - 0.05rem);
-  border: 1px solid color-mix(in srgb, var(--afd-line, #e2e8f0) 90%, transparent);
-  background: color-mix(in srgb, var(--c-surface, #fff) 80%, var(--afd-track, #f1f5f9));
+  border: 1px solid var(--afd-line);
+  background: color-mix(in srgb, var(--afd-track) 55%, white);
   overflow: hidden;
 }
 
 .admissions-filter-deck .admissions-dashboard__indicator--info {
   flex: 1 1 8.5rem;
   display: inline-flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
   gap: 0.65rem;
   margin: 0;
-  padding: 0.45rem 0.75rem;
+  padding: 0.5rem 0.8rem;
   border: 0;
-  border-inline-end: 1px solid color-mix(in srgb, var(--afd-line, #e2e8f0) 85%, transparent);
+  border-inline-end: 1px solid var(--afd-line);
   border-radius: 0;
   background: transparent;
   font-size: 0.75rem;
@@ -4951,10 +4948,10 @@
 }
 
 .admissions-filter-deck .admissions-dashboard__indicator-value {
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 750;
   font-variant-numeric: tabular-nums;
-  color: var(--afd-ink, #243b6b);
+  color: var(--afd-ink);
 }
 
 /* Subfilters rail */
@@ -4967,7 +4964,7 @@
 
 .admissions-subfilters__btn {
   border: 1px solid transparent;
-  background: color-mix(in srgb, var(--c-surface, #fff) 70%, transparent);
+  background: var(--c-surface, #fff);
   border-radius: 999px;
   padding: 0.32rem 0.8rem;
   font-size: 0.78rem;
@@ -4983,15 +4980,15 @@
 
 .admissions-subfilters__btn:hover {
   color: var(--c-text, #0f172a);
-  border-color: color-mix(in srgb, var(--afd-ink, #243b6b) 16%, transparent);
+  border-color: color-mix(in srgb, var(--afd-ink) 16%, transparent);
 }
 
 .admissions-subfilters__btn--active {
-  background: var(--afd-ink, var(--c-primary, #243b6b));
+  background: var(--afd-ink);
   border-color: transparent;
   color: #fff;
   font-weight: 650;
-  box-shadow: 0 4px 10px color-mix(in srgb, var(--afd-ink, #243b6b) 22%, transparent);
+  box-shadow: 0 4px 10px color-mix(in srgb, var(--afd-ink) 22%, transparent);
 }
 
 .admissions-subfilters__divider {
@@ -4999,38 +4996,108 @@
   opacity: 0.75;
 }
 
-/* Toolbar polish inside deck */
+/* Band 4 — tools: filters cluster + actions cluster */
+.admissions-filter-deck .admissions-list-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem 0.85rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.admissions-list-toolbar__filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  flex: 1 1 18rem;
+  min-width: 0;
+}
+
+.admissions-list-toolbar__actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.45rem;
+  flex: 0 1 auto;
+  margin-inline-start: auto;
+}
+
+.admissions-filter-deck .admissions-list-toolbar__search-wrap {
+  flex: 1 1 11rem;
+  min-width: 9.5rem;
+  max-width: 16rem;
+}
+
 .admissions-filter-deck .admissions-list-toolbar__search,
 .admissions-filter-deck .admissions-list-toolbar__state {
-  border-color: color-mix(in srgb, var(--afd-line, #e2e8f0) 90%, transparent);
+  border-color: var(--afd-line);
   background: var(--c-surface, #fff);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .admissions-filter-deck .admissions-list-toolbar__search:focus,
 .admissions-filter-deck .admissions-list-toolbar__state:focus {
-  border-color: color-mix(in srgb, var(--afd-ink, #243b6b) 40%, transparent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--afd-ink, #243b6b) 12%, transparent);
+  border-color: color-mix(in srgb, var(--afd-ink) 40%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--afd-ink) 12%, transparent);
   outline: none;
 }
 
+.admissions-filter-deck .admissions-list-toolbar__reset {
+  margin-inline-start: 0;
+}
+
 .admissions-filter-deck .admissions-view-toggle {
-  background: var(--afd-track, #f1f5f9);
-  border-color: color-mix(in srgb, var(--afd-line, #e2e8f0) 90%, transparent);
+  background: var(--c-surface, #fff);
+  border-color: var(--afd-line);
 }
 
 .admissions-filter-deck .admissions-view-toggle button[aria-pressed='true'] {
-  background: var(--afd-ink, var(--c-primary, #243b6b));
-  box-shadow: 0 2px 6px color-mix(in srgb, var(--afd-ink, #243b6b) 28%, transparent);
+  background: var(--afd-ink);
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--afd-ink) 28%, transparent);
+}
+
+.admissions-filter-deck .admissions-toolbar-option {
+  background: var(--c-surface, #fff);
+  border-color: var(--afd-line);
+}
+
+.admissions-filter-deck .admissions-toolbar-option--on {
+  border-color: color-mix(in srgb, var(--afd-teal) 35%, var(--afd-line));
+  background: color-mix(in srgb, var(--afd-teal) 10%, white);
+  color: var(--afd-ink);
+}
+
+@media (max-width: 960px) {
+  .admissions-filter-deck .admissions-list-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admissions-list-toolbar__actions {
+    justify-content: flex-start;
+    margin-inline-start: 0;
+  }
+
+  .admissions-filter-deck .admissions-list-toolbar__search-wrap {
+    flex: 1 1 100%;
+    max-width: none;
+  }
 }
 
 @media (max-width: 720px) {
-  .admissions-filter-deck > .admissions-workspace-tabs,
-  .admissions-filter-deck > .admissions-dashboard-stack,
-  .admissions-filter-deck > .admissions-subfilters,
-  .admissions-filter-deck > .admissions-list-toolbar,
+  .admissions-filter-deck__band,
   .admissions-filter-deck > .admissions-list-active-filters {
     padding-inline: 0.65rem;
+  }
+
+  .admissions-filter-deck__band--workspaces {
+    padding-inline: 0.45rem;
   }
 
   .admissions-workspace-tabs__tab {
@@ -5045,7 +5112,7 @@
   .admissions-filter-deck .admissions-dashboard__indicator--info {
     flex: 1 1 calc(50% - 1px);
     border-inline-end: 0;
-    border-block-end: 1px solid color-mix(in srgb, var(--afd-line, #e2e8f0) 85%, transparent);
+    border-block-end: 1px solid var(--afd-line);
   }
 
   .admissions-filter-deck .admissions-dashboard__indicator--info:nth-last-child(-n + 2) {

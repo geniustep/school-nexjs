@@ -87,6 +87,11 @@ export type AdmissionWorkspaceListState = {
   cycleCode?: string;
   levelId?: string;
   sourceId?: string;
+  /**
+   * Default true: hide applications already converted to a student.
+   * Cleared automatically while postSub=registered.
+   */
+  hideConverted: boolean;
   page: number;
   view: AdmissionListViewMode;
   /**
@@ -258,9 +263,11 @@ export function buildAdmissionWorkspaceQuery(
         ...pickOfferAdvanced(advanced),
       };
       if (postSub === 'ready') {
-        // Align with dashboard confirmed_count + outcome filter + UI label
-        // (جاهز للتسجيل = state confirmed, not registration_readiness alone).
+        // Align with dashboard confirmed_count + outcome filter + UI label.
+        // Also keep registration_status=awaiting so already-registered
+        // (confirmed + linked) stay out of this queue.
         query.state = 'confirmed';
+        query.registration_status = 'awaiting_registration';
       } else if (postSub === 'registered') {
         query.registration_readiness = 'registered';
         query.registration_status = 'registered';
@@ -379,7 +386,9 @@ export function sanitizeAdvancedFilters(
   if (allowed.registrationStatus && state.registrationStatus) {
     if (
       state.workspace === 'post_acceptance' &&
-      (state.postSub === 'awaiting' || state.postSub === 'registered')
+      (state.postSub === 'awaiting' ||
+        state.postSub === 'ready' ||
+        state.postSub === 'registered')
     ) {
       // Owned by postSub.
     } else if (
@@ -538,6 +547,7 @@ export function applyOperationalCard(
     return {
       ...applyWorkspaceChange(prev, 'post_acceptance'),
       postSub: 'awaiting',
+      hideConverted: true,
       page: 1,
       view: 'table',
       resumeView,
@@ -547,6 +557,7 @@ export function applyOperationalCard(
     return {
       ...applyWorkspaceChange(prev, 'post_acceptance'),
       postSub: 'ready',
+      hideConverted: true,
       page: 1,
       view: 'table',
       resumeView,
@@ -715,15 +726,28 @@ export function parseWorkspaceListStateFromSearchParams(
   }
 
   const readinessParam = params.get('registration_readiness');
-  let postSub = parsePostAcceptanceSubfilter(params.get('postSub'));
-  if (registration === 'registered') postSub = 'registered';
-  else if (registration === 'awaiting_registration') postSub = 'awaiting';
-  else if (
-    workspace === 'post_acceptance' &&
-    (state === 'confirmed' || readinessParam === 'ready')
-  ) {
-    postSub = 'ready';
+  const postSubParam = params.get('postSub');
+  let postSub = parsePostAcceptanceSubfilter(postSubParam);
+  // Prefer explicit postSub; only infer from legacy query params when absent.
+  if (!postSubParam) {
+    if (registration === 'registered') postSub = 'registered';
+    else if (
+      workspace === 'post_acceptance' &&
+      (state === 'confirmed' || readinessParam === 'ready')
+    ) {
+      postSub = 'ready';
+    } else if (registration === 'awaiting_registration') {
+      postSub = 'awaiting';
+    }
   }
+
+  const hideConvertedParam = params.get('hide_converted') ?? params.get('show_registered');
+  const hideConverted =
+    hideConvertedParam === '0' ||
+    hideConvertedParam === 'false' ||
+    params.get('show_registered') === '1'
+      ? false
+      : true;
 
   let closedSub = parseClosedSubfilter(params.get('closedSub'));
   if (decision === 'rejected') closedSub = 'rejected';
@@ -781,6 +805,7 @@ export function parseWorkspaceListStateFromSearchParams(
       undefined,
     levelId: params.get('level') || params.get('requested_level_id') || undefined,
     sourceId: params.get('source') || params.get('source_id') || undefined,
+    hideConverted,
     page: Math.max(1, Number(params.get('page')) || 1),
     view: resolveWorkspaceView(workspace, preferredView),
   };
@@ -791,6 +816,19 @@ export function workspaceListStateToSearchParams(
 ): URLSearchParams {
   const params = new URLSearchParams();
   params.set('workspace', state.workspace);
+
+  if (state.workspace === 'post_acceptance') {
+    params.set('postSub', state.postSub);
+  }
+  if (state.workspace === 'closed') {
+    params.set('closedSub', state.closedSub);
+  }
+  if (state.workspace === 'follow_up' && state.followStage) {
+    params.set('followStage', state.followStage);
+  }
+  if (state.workspace === 'awaiting_decision' && state.awaitingSub) {
+    params.set('awaitingSub', state.awaitingSub);
+  }
 
   const preset = buildAdmissionWorkspaceQuery(state);
   if (preset.query.processing_stage) {
@@ -817,6 +855,10 @@ export function workspaceListStateToSearchParams(
   if (state.cycleCode?.trim()) params.set('cycle', state.cycleCode.trim());
   if (state.levelId) params.set('level', state.levelId);
   if (state.sourceId) params.set('source', state.sourceId);
+  // Default is hide; only persist the non-default (show registered).
+  if (state.hideConverted === false) {
+    params.set('show_registered', '1');
+  }
   if (state.offerState && !preset.query.offer_state) {
     params.set('offer_state', state.offerState);
   }
@@ -855,7 +897,8 @@ export function hasManualContextOrAdvancedFilters(
       state.registrationStatus ||
       state.stage ||
       state.followStage ||
-      state.awaitingSub,
+      state.awaitingSub ||
+      state.hideConverted === false,
   );
 }
 

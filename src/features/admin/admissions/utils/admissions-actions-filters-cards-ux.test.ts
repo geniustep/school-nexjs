@@ -86,10 +86,10 @@ describe('NEXTJS-ADMISSIONS-ACTIONS-FILTERS-CARDS-UX-2 contracts', () => {
     ).toBe(true);
   });
 
-  it('hideRegistered is not applied client-side after pagination', () => {
+  it('hideRegistered defaults on client-side after fetch', () => {
     const items = [makeItem({ id: 1 }), makeItem({ id: 2, student_id: 99 })];
-    expect(filterAdmissionListItems(items, true)).toEqual(items);
-    expect(countHiddenConvertedAdmissionListItems(items, true)).toBe(0);
+    expect(filterAdmissionListItems(items, true)).toHaveLength(1);
+    expect(countHiddenConvertedAdmissionListItems(items, true)).toBe(1);
   });
 
   it('default list excludes closed unless rejected filter is active', () => {
@@ -133,7 +133,7 @@ describe('NEXTJS-ADMISSIONS-ACTIONS-FILTERS-CARDS-UX-2 contracts', () => {
     expect(primary.kind).not.toBe('school_rejected');
   });
 
-  it('active filters do not track showClosed or registered-visible chip', () => {
+  it('active filters track show-registered but not showClosed chip alone', () => {
     expect(
       hasActiveAdmissionListFilters({
         search: '',
@@ -149,6 +149,7 @@ describe('NEXTJS-ADMISSIONS-ACTIONS-FILTERS-CARDS-UX-2 contracts', () => {
         outcomeFilter: 'school_rejected',
       }),
     ).toBe(true);
+    expect(hasActiveAdmissionListFilters({ hideConverted: false })).toBe(true);
   });
 
   it('kanban always shows registered column; closed only when needed', () => {
