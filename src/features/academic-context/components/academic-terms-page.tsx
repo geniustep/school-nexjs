@@ -201,7 +201,7 @@ export function AcademicTermsPage() {
     <div className="col" style={{ gap: 16 }}>
       <PageHeader
         title={t('academicContext.terms.title')}
-        description={t('academicContext.terms.description')}
+        subtitle={t('academicContext.terms.description')}
       />
 
       <div className="toolbar" style={{ gap: 8, flexWrap: 'wrap' }}>

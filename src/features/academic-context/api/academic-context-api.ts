@@ -34,7 +34,13 @@ function toQuery(params?: AcademicContextOptionsQuery): ListParams | undefined {
   ];
   for (const [key, value] of entries) {
     if (value === undefined || value === null || value === '') continue;
-    query[key] = value as string | number | boolean;
+    if (typeof value === 'boolean') {
+      query[key] = String(value);
+      continue;
+    }
+    if (typeof value === 'string' || typeof value === 'number') {
+      query[key] = value;
+    }
   }
   return query;
 }
