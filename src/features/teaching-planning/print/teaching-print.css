@@ -1,0 +1,310 @@
+/**
+ * Teaching Planning print styles — namespaced under .teaching-print.
+ * Screen UI is unchanged; print rules apply only under this root / @media print.
+ */
+
+.teaching-print {
+  --teaching-print-ink: #111;
+  --teaching-print-muted: #444;
+  --teaching-print-border: #222;
+  color: var(--teaching-print-ink);
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1rem 1.25rem 2rem;
+}
+
+.teaching-print__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.teaching-print__sheet {
+  background: #fff;
+  border: 1px solid #d8d8d8;
+  padding: 1.25rem 1.5rem;
+}
+
+.teaching-print__header {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  border-bottom: 2px solid var(--teaching-print-border);
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.teaching-print__logo {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.teaching-print__brand {
+  min-width: 0;
+  flex: 1;
+}
+
+.teaching-print__school {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.teaching-print__doc-title {
+  margin: 0.25rem 0 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.teaching-print__generated {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  color: var(--teaching-print-muted);
+}
+
+.teaching-print__status-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  align-items: center;
+  margin: 0.75rem 0 1rem;
+}
+
+.teaching-print__status {
+  display: inline-block;
+  border: 1.5px solid var(--teaching-print-border);
+  padding: 0.15rem 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: none;
+}
+
+.teaching-print__status--draft {
+  border-style: dashed;
+}
+
+.teaching-print__status--voided,
+.teaching-print__status--superseded {
+  text-decoration: underline;
+}
+
+.teaching-print__watermark {
+  border: 2px dashed #666;
+  color: #333;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 0.35rem 0.75rem;
+  text-align: center;
+  margin-bottom: 0.75rem;
+}
+
+.teaching-print__meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.5rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.teaching-print__meta dt {
+  font-weight: 600;
+  color: var(--teaching-print-muted);
+  font-size: 0.75rem;
+  margin: 0;
+}
+
+.teaching-print__meta dd {
+  margin: 0.1rem 0 0;
+}
+
+.teaching-print__section {
+  margin: 1rem 0;
+  break-inside: avoid;
+}
+
+.teaching-print__section-title {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  border-bottom: 1px solid #999;
+  padding-bottom: 0.25rem;
+  break-after: avoid;
+}
+
+.teaching-print__prose {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  margin: 0.25rem 0 0.75rem;
+  font-size: 0.9rem;
+}
+
+.teaching-print__table-wrap {
+  width: 100%;
+  overflow: visible;
+}
+
+.teaching-print__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.teaching-print__table th,
+.teaching-print__table td {
+  border: 1px solid var(--teaching-print-border);
+  padding: 0.3rem 0.4rem;
+  vertical-align: top;
+  text-align: start;
+}
+
+.teaching-print__table thead {
+  display: table-header-group;
+}
+
+.teaching-print__table tr {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.teaching-print__table th {
+  background: #f0f0f0;
+  font-weight: 700;
+}
+
+.teaching-print__group-head {
+  margin: 0.75rem 0 0.35rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  break-after: avoid;
+}
+
+.teaching-print__footer {
+  margin-top: 1.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #999;
+  font-size: 0.75rem;
+  color: var(--teaching-print-muted);
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.teaching-print__signature {
+  margin-top: 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  break-inside: avoid;
+}
+
+.teaching-print__signature-line {
+  border-top: 1px solid #000;
+  margin-top: 2.5rem;
+  padding-top: 0.35rem;
+  font-size: 0.8rem;
+}
+
+.teaching-print__warning {
+  border: 2px solid #000;
+  padding: 0.6rem 0.75rem;
+  margin: 0.75rem 0;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.teaching-print__filters {
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+}
+
+.teaching-print__filters ul {
+  margin: 0.35rem 0 0;
+  padding-inline-start: 1.25rem;
+}
+
+.teaching-print__compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin: 0.75rem 0;
+}
+
+.teaching-print__compare-box {
+  border: 1px solid var(--teaching-print-border);
+  padding: 0.5rem 0.65rem;
+}
+
+.teaching-print__compare-box h4 {
+  margin: 0 0 0.35rem;
+  font-size: 0.85rem;
+}
+
+.teaching-print--landscape .teaching-print__sheet {
+  max-width: none;
+}
+
+.teaching-print__ltr {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm;
+  }
+
+  @page teaching-print-landscape {
+    size: A4 landscape;
+    margin: 10mm;
+  }
+
+  .teaching-print--landscape {
+    page: teaching-print-landscape;
+  }
+
+  .teaching-print__toolbar,
+  .teaching-print .no-print,
+  .app-shell-nav,
+  .sidebar,
+  .topbar,
+  .admin-sidebar,
+  .teacher-nav,
+  nav.no-print {
+    display: none !important;
+  }
+
+  .teaching-print {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    color: #000;
+  }
+
+  .teaching-print__sheet {
+    border: none;
+    padding: 0;
+    max-width: none;
+  }
+
+  .teaching-print__table th {
+    background: #eee !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  a[href]::after {
+    content: none !important;
+  }
+
+  .teaching-print__section-title,
+  .teaching-print__group-head {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+}

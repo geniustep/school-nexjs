@@ -59,7 +59,8 @@
       "next": "Suivant",
       "range": "Affichage de {from} à {to} sur {total}",
       "totalRecords": "{total} enregistrement(s)"
-    }
+    },
+    "select": "Sélectionner…"
   },
   "roles": {
     "admin": "Administrateur",
@@ -136,7 +137,8 @@
     "adminScopedFinance": "Finances (périmètre limité)",
     "settings": "Paramètres",
     "classResults": "Résultats des classes",
-    "diagnosticAssessment": "Évaluation diagnostique"
+    "diagnosticAssessment": "Évaluation diagnostique",
+    "teachingPlanning": "Planification pédagogique"
   },
   "states": {
     "draft": "Brouillon",
@@ -154,7 +156,8 @@
     "validated": "Validé",
     "locked": "Verrouillé",
     "suspended": "Suspendu",
-    "confirmed": "Confirmé"
+    "confirmed": "Confirmé",
+    "approved": "Approuvé"
   },
   "badges": {
     "current": "En cours",
@@ -348,6 +351,135 @@
     "examDate": "Date d'examen",
     "startTime": "Heure de début",
     "endTime": "Heure de fin"
+  },
+  "academicContext": {
+    "fields": {
+      "academicYear": "Année scolaire",
+      "cycle": "Cycle",
+      "level": "Niveau",
+      "track": "Filière",
+      "teachingLanguage": "Langue d'enseignement",
+      "subject": "Matière",
+      "offering": "Offre pédagogique",
+      "reference": "Référence ou manuel de la matière",
+      "term": "Période",
+      "class": "Classe"
+    },
+    "placeholders": {
+      "academicYear": "Sélectionner l'année scolaire",
+      "cycle": "Sélectionner le cycle",
+      "level": "Sélectionner le niveau",
+      "track": "Sélectionner la filière",
+      "teachingLanguage": "Sélectionner la langue d'enseignement",
+      "subject": "Sélectionner la matière",
+      "offering": "Sélectionner l'offre pédagogique",
+      "offeringRequired": "Sélectionner une offre pédagogique",
+      "reference": "Sélectionner la référence",
+      "term": "Sélectionner la période",
+      "class": "Sélectionner la classe"
+    },
+    "hints": {
+      "chooseCycleFirst": "Choisissez d'abord le cycle",
+      "chooseLevelFirst": "Choisissez d'abord le niveau",
+      "chooseLevelOrClassFirst": "Choisissez d'abord un niveau ou une classe",
+      "chooseSubjectFirst": "Choisissez d'abord la matière",
+      "chooseOfferingFirst": "Choisissez d'abord l'offre pédagogique",
+      "chooseYearFirst": "Choisissez d'abord l'année scolaire",
+      "noSubjectsForLevel": "Aucune matière activée pour ce niveau",
+      "ambiguousOfferings": "Plusieurs offres pédagogiques existent pour cette matière",
+      "legacyMissingOffering": "Affectation heritee sans offre pedagogique — optionnelle tant qu il n y a pas d ambiguite."
+    },
+    "language": {
+      "chooseLevelSubjectFirst": "Choisissez d'abord le niveau et la matière",
+      "noneConfigured": "Aucune langue d'enseignement n'est configurée pour ce contexte académique",
+      "completeOfferingOrReference": "Complétez la configuration de l'offre pédagogique ou liez une référence approuvée",
+      "derivedFromOffering": "Langue d'enseignement définie depuis l'offre pédagogique : {language}",
+      "openOfferings": "Ouvrir les offres",
+      "openReferences": "Ouvrir les références",
+      "contractIncomplete": "Les options de langue d'enseignement sont incomplètes pour ce contexte"
+    },
+    "reference": {
+      "incomplete": "Cette référence a un contexte incomplet"
+    },
+    "subjectSource": {
+      "level": "Depuis le niveau",
+      "track": "Depuis la filière",
+      "class": "Depuis la classe",
+      "offering": "Depuis l'offre"
+    },
+    "subjectAmbiguous": "Plusieurs offres pédagogiques ({count}) existent pour cette matière",
+    "terms": {
+      "title": "Périodes",
+      "description": "Configurer les périodes académiques pour l'année sélectionnée",
+      "code": "Code",
+      "sequence": "Ordre",
+      "dates": "Dates",
+      "state": "État",
+      "active": "Active",
+      "initialize": "Initialiser les périodes",
+      "initializeSubmit": "Créer les périodes",
+      "initializeSuccess": "Périodes initialisées avec succès",
+      "initializeYearReadonly": "Année scolaire",
+      "datesRequiredExplicit": "Les dates des périodes doivent être définies explicitement",
+      "empty": "Aucune période pour le moment",
+      "emptyManageHint": "Initialisez les périodes pour cette année scolaire pour continuer",
+      "emptyReadonlyHint": "Aucune période n’est configurée pour cette année scolaire",
+      "term1Name": "Nom de la période 1",
+      "term1Start": "Début de la période 1",
+      "term1End": "Fin de la période 1",
+      "term2Name": "Nom de la période 2",
+      "term2Start": "Début de la période 2",
+      "term2End": "Fin de la période 2",
+      "preview": "Aperçu"
+    },
+    "errors": {
+      "academic_context_school_mismatch": "Le contexte académique ne correspond pas à l’établissement actif",
+      "academic_context_year_mismatch": "Le contexte académique ne correspond pas à l’année sélectionnée",
+      "academic_context_cycle_level_mismatch": "Le niveau sélectionné n’appartient pas à ce cycle",
+      "academic_context_level_track_mismatch": "La filière sélectionnée n’appartient pas à ce niveau",
+      "academic_context_subject_not_available": "Cette matière n’est pas disponible dans le contexte actuel",
+      "academic_context_offering_required": "Une offre pédagogique est requise",
+      "academic_context_offering_ambiguous": "Plusieurs offres pédagogiques correspondent à cette matière — veuillez en choisir une",
+      "academic_context_offering_mismatch": "L’offre pédagogique ne correspond pas au contexte sélectionné",
+      "academic_context_reference_mismatch": "La référence ne correspond pas à l’offre sélectionnée",
+      "academic_year_not_found": "Année scolaire introuvable",
+      "academic_year_school_mismatch": "L’année scolaire n’appartient pas à l’établissement actif",
+      "term_dates_invalid": "Les dates de période sont invalides",
+      "term_dates_outside_academic_year": "Les dates de période sont hors de l’année scolaire",
+      "term_dates_overlap": "Les dates de périodes se chevauchent",
+      "terms_partially_initialized": "Les périodes ne sont que partiellement initialisées",
+      "terms_configuration_conflict": "Conflit de configuration des périodes avec les données existantes",
+      "assignment_teaching_offering_mismatch": "L’affectation ne correspond pas à l’offre pédagogique sélectionnée",
+      "timetable_teaching_offering_mismatch": "L’entrée d’emploi du temps ne correspond pas à l’offre pédagogique sélectionnée",
+      "exam_term_year_mismatch": "La période de l’examen ne correspond pas à l’année scolaire",
+      "exam_teaching_offering_mismatch": "L’examen ne correspond pas à l’offre pédagogique sélectionnée",
+      "gradebook_term_year_mismatch": "La période du carnet de notes ne correspond pas à l’année scolaire",
+      "gradebook_teaching_offering_mismatch": "Le carnet de notes ne correspond pas à l’offre pédagogique sélectionnée",
+      "teaching_reference_context_incomplete": "Le contexte de la référence pédagogique est incomplet",
+      "academic_language_options_incomplete": "Les options de langue d’enseignement sont incomplètes pour ce contexte académique"
+    },
+    "warnings": {},
+    "a11y": {
+      "levelCleared": "Niveau effacé",
+      "subjectCleared": "Matière effacée",
+      "offeringCleared": "Offre pédagogique effacée",
+      "termCleared": "Période effacée"
+    },
+    "loading": "Chargement du contexte académique…",
+    "refetching": "Mise à jour du contexte académique…",
+    "permissionDenied": "Vous n’avez pas l’autorisation de consulter le contexte académique",
+    "teacherScope": {
+      "title": "Votre contexte académique assigné",
+      "subtitle": "Matières, offres et références issues uniquement de vos affectations.",
+      "emptyTitle": "Aucune affectation",
+      "emptyDescription": "Aucune matière ni offre n’est encore disponible pour vos affectations."
+    },
+    "codes": {
+      "academicCode": "Code académique",
+      "levelAlias": "Abréviation du niveau",
+      "legacyCode": "Ancien code",
+      "recommendedDisplayCode": "Code d’affichage recommandé pour l’offre"
+    }
   },
   "timetable": {
     "title": "Emploi du temps",
@@ -711,6 +843,284 @@
           "title": "Aucune campagne assignée",
           "description": "Lorsqu’une campagne est créée pour votre classe et matière, elle apparaîtra ici."
         }
+      }
+    },
+    "jathatha": {
+      "title": "Jathatha",
+      "todaySessions": "Séances du jour",
+      "weekSessions": "Séances datées de la semaine",
+      "emptyToday": "Aucune séance aujourd’hui.",
+      "emptyWeek": "Aucune séance datée cette semaine.",
+      "current": "Séance en cours",
+      "next": "Séance suivante",
+      "notTeachable": "Non enseignable",
+      "prepare": "Préparer la jathatha",
+      "continue": "Continuer la préparation",
+      "review": "Revoir la jathatha",
+      "view": "Voir la jathatha",
+      "open": "Ouvrir la jathatha",
+      "create": "Créer la jathatha",
+      "createCorrection": "Créer une révision de correction",
+      "markReady": "Marquer prête",
+      "resetDraft": "Repasser en brouillon",
+      "void": "Annuler la jathatha",
+      "confirm": "Confirmer la jathatha",
+      "correction": "Correction",
+      "confirmImmutable": "Cette révision sera figée pour la séance et ne pourra plus être modifiée directement après confirmation.",
+      "reasonRequired": "Motif requis",
+      "revision": "Révision {number}",
+      "revisions": "Historique des révisions",
+      "editor": "Éditer la jathatha",
+      "overview": "Aperçu",
+      "session": "Séance",
+      "sessionContext": "Contexte de séance",
+      "context": "Résoudre le contexte jathatha",
+      "approvedReference": "Jathatha de référence approuvée",
+      "distributionLine": "Ligne de distribution",
+      "sessionTemplate": "Modèle de séance",
+      "recommended": "Recommandé",
+      "detailLevel": "Niveau de détail",
+      "detail": {
+        "compact": "Compact",
+        "standard": "Standard",
+        "detailed": "Détaillé"
+      },
+      "session_objective": "Objectif de séance",
+      "materials": "Supports",
+      "class_adaptation": "Adaptation de classe",
+      "quick_assessment": "Évaluation rapide",
+      "fallback_plan": "Plan de repli",
+      "teacher_notes": "Notes enseignant",
+      "attachmentsReadOnly": "Les pièces jointes suivent les droits de l’état actuel.",
+      "readiness": "Préparation",
+      "weeklySlotPreview": "Créneau hebdomadaire — séance datée non créée",
+      "weeklySlotPreviewDescription": "Les créneaux hebdomadaires sont un aperçu d’emploi du temps, pas des séances datées prêtes pour la jathatha.",
+      "saveSuccess": "Jathatha enregistrée."
+    },
+    "delivery": {
+      "tab": "Livraison",
+      "title": "Livraison réelle",
+      "open": "Ouvrir la livraison",
+      "register": "Enregistrer la livraison",
+      "continue": "Continuer la livraison",
+      "view": "Voir la livraison",
+      "createDraft": "Créer un brouillon de livraison",
+      "createCorrection": "Créer une révision de correction",
+      "void": "Annuler la fiche de livraison",
+      "confirm": "Confirmer la livraison",
+      "correction": "Correction",
+      "saveSuccess": "Livraison enregistrée.",
+      "editor": "Modifier la livraison",
+      "context": "Résoudre le contexte de livraison",
+      "contextTitle": "Contexte de livraison",
+      "jathathaSummary": "Jathatha",
+      "plannedLine": "Élément prévu",
+      "deliveredLine": "Élément livré",
+      "noPlannedLine": "Aucun élément prévu",
+      "progressSummary": "Progression",
+      "deliveredLineSelect": "Sélectionner l’élément livré",
+      "lineCompletedWarning": "Cet élément est déjà marqué comme terminé.",
+      "completionState": "État d’achèvement",
+      "completionPercent": "Pourcentage d’achèvement",
+      "deviationType": "Type d’écart",
+      "deviationReason": "Motif de l’écart",
+      "deviationWarning": "L’élément livré diffère de l’élément prévu — un motif d’écart est requis.",
+      "actualStart": "Début réel",
+      "actualEnd": "Fin réelle",
+      "actualDuration": "Durée réelle (min)",
+      "attachmentIds": "Identifiants des pièces jointes",
+      "immutableNotice": "Cette révision est verrouillée et ne peut pas être modifiée.",
+      "confirmEffects": "La confirmation génère une entrée du journal de classe et met à jour l’avancement pédagogique. Cette action ne peut pas être annulée directement.",
+      "reasonRequired": "Motif requis",
+      "revisions": "Historique des révisions",
+      "effects": "Effets",
+      "viewJournal": "Voir l’entrée du journal",
+      "viewProgress": "Voir l’avancement pédagogique",
+      "minutes": "min",
+      "journalAvailable": "Entrée de journal disponible",
+      "delivered_title": "Titre livré",
+      "content_summary": "Résumé du contenu",
+      "objective_achievement_summary": "Réalisation de l’objectif",
+      "actual_pages_label": "Pages couvertes",
+      "assessment_summary": "Résumé de l’évaluation",
+      "difficulties_observed": "Difficultés observées",
+      "remediation_action": "Action de remédiation",
+      "next_step": "Prochaine étape",
+      "teacher_notes": "Notes de l’enseignant",
+      "journal_text": "Texte du journal",
+      "correctionBanner": "L’administration a demandé une correction pour cette fiche de livraison.",
+      "reviewedMark": "Revu par l’administration",
+      "confirmTitle": "Confirmer la livraison",
+      "voidTitle": "Annuler la fiche de livraison",
+      "voidWarning": "L’annulation de cette fiche est définitive et supprimera ses effets sur le journal de classe et l’avancement pédagogique.",
+      "completionStates": {
+        "completed": "Terminé",
+        "partial": "Partiel",
+        "not_completed": "Non terminé"
+      },
+      "completion": {
+        "completed": "Terminé",
+        "partial": "Partiel",
+        "not_completed": "Non terminé"
+      },
+      "deviation": {
+        "none": "Aucun écart",
+        "reordered": "Réordonné",
+        "support_needed": "Soutien nécessaire",
+        "assessment_adjustment": "Ajustement d’évaluation",
+        "class_pace": "Rythme de classe",
+        "calendar_disruption": "Perturbation du calendrier",
+        "teacher_decision": "Décision de l’enseignant",
+        "other": "Autre"
+      },
+      "fields": {
+        "delivered_title": "Titre livré",
+        "content_summary": "Résumé du contenu",
+        "objective_achievement_summary": "Réalisation de l’objectif",
+        "actual_pages_label": "Pages couvertes",
+        "assessment_summary": "Résumé de l’évaluation",
+        "difficulties_observed": "Difficultés observées",
+        "remediation_action": "Action de remédiation",
+        "next_step": "Prochaine étape",
+        "teacher_notes": "Notes de l’enseignant",
+        "journal_text": "Texte du journal"
+      },
+      "activities": {
+        "title": "Activités",
+        "add": "Ajouter une activité",
+        "empty": "Aucune activité pour le moment.",
+        "moveUp": "Monter",
+        "moveDown": "Descendre",
+        "name": "Nom de l’activité",
+        "resultState": "Résultat",
+        "duration": "Durée (min)",
+        "percent": "% d’achèvement",
+        "notes": "Notes",
+        "addedNoSource": "Ajoutée sans activité source.",
+        "remove": "Supprimer"
+      },
+      "activityResults": {
+        "completed": "Terminée",
+        "partial": "Partielle",
+        "skipped": "Ignorée",
+        "added": "Ajoutée"
+      },
+      "activityResult": {
+        "completed": "Terminée",
+        "partial": "Partielle",
+        "skipped": "Ignorée",
+        "added": "Ajoutée"
+      },
+      "readiness": {
+        "title": "Préparation",
+        "ready": "Prêt",
+        "notReady": "Pas prêt",
+        "flag": {
+          "occurrence_ready": "Séance prête",
+          "occurrence_finished": "Séance terminée",
+          "assignment_ready": "Affectation prête",
+          "offering_ready": "Parcours prêt",
+          "distribution_ready": "Distribution prête",
+          "delivered_line_ready": "Élément livré prêt",
+          "completion_ready": "Achèvement prêt",
+          "content_ready": "Contenu prêt",
+          "duration_valid": "Durée valide",
+          "deviation_ready": "Écart clarifié"
+        }
+      },
+      "readinessFlags": {
+        "occurrence_ready": "Séance prête",
+        "occurrence_finished": "Séance terminée",
+        "assignment_ready": "Affectation prête",
+        "offering_ready": "Parcours prêt",
+        "distribution_ready": "Distribution prête",
+        "delivered_line_ready": "Élément livré prêt",
+        "completion_ready": "Achèvement prêt",
+        "content_ready": "Contenu prêt",
+        "duration_valid": "Durée valide",
+        "deviation_ready": "Écart clarifié",
+        "ready_for_confirmation": "Prêt pour confirmation"
+      },
+      "states": {
+        "draft": "Brouillon",
+        "confirmed": "Confirmé",
+        "corrected": "Corrigé",
+        "superseded": "Remplacé",
+        "voided": "Annulé"
+      },
+      "reviewStates": {
+        "not_reviewed": "Non revu",
+        "reviewed": "Revu",
+        "correction_requested": "Correction demandée"
+      },
+      "errors": {
+        "delivery_occurrence_required": "Une séance est requise.",
+        "delivery_occurrence_not_teachable": "La séance n’est pas enseignable.",
+        "delivery_occurrence_not_started": "La séance n’a pas encore commencé.",
+        "delivery_occurrence_not_finished": "La séance n’est pas encore terminée.",
+        "delivery_assignment_required": "Une affectation d’enseignement est requise.",
+        "delivery_offering_required": "Un parcours d’enseignement est requis.",
+        "delivery_offering_not_active": "Le parcours d’enseignement n’est pas actif.",
+        "delivery_active_distribution_required": "Une distribution annuelle active est requise.",
+        "delivery_delivered_line_required": "Un élément de distribution livré est requis.",
+        "delivery_delivered_line_mismatch": "L’élément livré n’appartient pas à la distribution active.",
+        "delivery_completion_invalid": "L’état ou le pourcentage d’achèvement est invalide.",
+        "delivery_content_required": "Le contenu livré est requis.",
+        "delivery_duration_invalid": "La durée réelle est invalide.",
+        "delivery_deviation_reason_required": "Un motif d’écart est requis.",
+        "delivery_current_revision_exists": "Une révision courante existe déjà pour cette livraison.",
+        "delivery_revision_conflict": "Cette révision est en conflit avec une révision plus récente.",
+        "delivery_immutable": "Cette fiche de livraison est verrouillée et ne peut pas être modifiée.",
+        "delivery_correction_reason_required": "Un motif de correction est requis.",
+        "delivery_void_reason_required": "Un motif d’annulation est requis.",
+        "delivery_review_state_invalid": "L’état de revue est invalide.",
+        "delivery_scope_mismatch": "Cette fiche de livraison est hors de votre périmètre d’enseignement."
+      }
+    },
+    "classJournal": {
+      "tab": "Journal",
+      "title": "Journal pédagogique de classe",
+      "subtitle": "Journal généré et en lecture seule à partir des livraisons confirmées",
+      "open": "Ouvrir l’entrée de journal",
+      "empty": "Aucune entrée de journal pour le moment.",
+      "distributionLine": "Élément de distribution",
+      "content": "Contenu",
+      "sourceDelivery": "Livraison source",
+      "revisionLineage": "Filiation des révisions",
+      "states": {
+        "current": "Actuelle",
+        "superseded": "Remplacée",
+        "voided": "Annulée"
+      },
+      "readOnlyNotice": "Cette entrée de journal est en lecture seule et générée automatiquement à partir d’une fiche de livraison confirmée."
+    },
+    "teachingProgress": {
+      "tab": "Avancement",
+      "title": "Avancement pédagogique",
+      "subtitle": "Suivre les séances livrées par rapport au plan",
+      "open": "Ouvrir l’avancement pédagogique",
+      "empty": "Aucune ligne d’avancement pour le moment.",
+      "summaryTitle": "Résumé de l’avancement",
+      "coverage": "Couverture",
+      "plannedLines": "Lignes prévues",
+      "startedLines": "Lignes démarrées",
+      "completedLines": "Lignes terminées",
+      "delayedLines": "Lignes en retard",
+      "classesNeedingAttention": "Classes nécessitant une attention",
+      "lastDelivery": "Dernière livraison",
+      "delayed": "En retard",
+      "stats": "Statistiques",
+      "plannedSessions": "Séances prévues",
+      "delivered": "Livré",
+      "remaining": "Restant",
+      "contributingDeliveries": "Livraisons contributrices",
+      "plannedDates": "Dates prévues",
+      "statuses": {
+        "not_started": "Non démarré",
+        "in_progress": "En cours",
+        "completed": "Terminé",
+        "delayed": "En retard",
+        "overdelivered": "Sur-livré"
       }
     }
   },
@@ -2377,7 +2787,8 @@
         "subjects": "Matières et filières",
         "teachers": "Enseignants",
         "staff": "Personnel",
-        "assignments": "Affectations pédagogiques"
+        "assignments": "Affectations pédagogiques",
+        "terms": "Périodes"
       },
       "cards": {
         "classes": "Niveaux et classes",
@@ -4162,7 +4573,11 @@
         "chipYear": "Année : {year}",
         "chipLevel": "Niveau : {level}",
         "chipSource": "Source : {source}",
-        "chipDecision": "Décision : {decision}"
+        "chipDecision": "Décision : {decision}",
+        "track": "Filière",
+        "allTracks": "Toutes les filières",
+        "chipTrack": "Filière : {track}",
+        "directVisit": "Visite directe"
       },
       "refetching": "Mise à jour des résultats…",
       "noData": {
@@ -4796,7 +5211,9 @@
         "prefillMultiGuardianHint": "Un seul contact tuteur est prérempli depuis l’admission. Vous pouvez ajouter d’autres tuteurs et choisir le responsable de facturation ici.",
         "awaitingMessage": "L’établissement a accepté la demande, mais l’inscription n’est pas encore terminée.",
         "convertedAt": "Converti le : {date}",
-        "readyMessage": "La famille a accepté l’offre ; le dossier est prêt pour finaliser l’inscription."
+        "readyMessage": "La famille a accepté l’offre ; le dossier est prêt pour finaliser l’inscription.",
+        "convertToStudent": "Convertir en élève",
+        "convertIncompleteHint": "L’inscription de l’élève s’ouvrira et les données manquantes pourront être complétées avant l’enregistrement."
       },
       "errors": {
         "notFound": "Demande introuvable."
@@ -4975,7 +5392,7 @@
         "initial_follow_up": "Suivi initial",
         "assessment_ready": "Prêt pour l'évaluation",
         "assessment_in_progress": "Évaluation en cours",
-        "decision_ready": "En attente de décision de l'école"
+        "decision_ready": "En attente de décision de l’administration"
       },
       "assessmentProgress": {
         "not_required": "Non requis",
@@ -5039,6 +5456,12 @@
         "familyAcceptedTitle": "La famille a accepté l'offre",
         "familyAcceptedBody": "La famille a accepté l'offre d'admission.",
         "offerAcceptDoesNotRegister": "L'acceptation de l'offre ne crée pas automatiquement le dossier élève ; l'inscription se fait via le processus dédié."
+      },
+      "kanbanColumns": {
+        "new": "Nouveau",
+        "initial_follow_up": "Suivi initial",
+        "assessment": "Évaluation",
+        "decision": "En attente de décision de l’administration"
       }
     },
     "enrollmentIntake": {
@@ -10958,6 +11381,975 @@
         "subtitle": "Grille d’évaluation diagnostique",
         "failed": "Chargement impression impossible."
       }
-    }
+    },
+    "teachingPlanning": {
+      "hub": {
+        "title": "Planification pédagogique",
+        "subtitle": "Références, parcours d’enseignement, préparation et liens d’affectation",
+        "offeringsTitle": "Parcours d’enseignement",
+        "offeringsDesc": "Construire et approuver les parcours d’enseignement par année",
+        "referencesTitle": "Références pédagogiques",
+        "referencesDesc": "Catalogue des livres et guides approuvés utilisés par les parcours",
+        "distributionTitle": "Distribution annuelle",
+        "distributionDesc": "Planifier les éléments d’enseignement ordonnés sur l’année pour un parcours",
+        "sequencesTitle": "Séquences didactiques",
+        "sequencesDesc": "Concevoir des plans de leçon réutilisables faits de modèles de séance",
+        "jathathaTitle": "Jathathas de référence",
+        "jathathaDesc": "Gérer les fiches de référence, activités, phases et cycle d’approbation",
+        "progressTitle": "Avancement pédagogique",
+        "progressDesc": "Suivre les séances réalisées par rapport au plan",
+        "comingSoon": "À venir",
+        "manageHint": "Vous pouvez créer et gérer références et parcours selon vos capacités.",
+        "viewHint": "Accès en lecture. Les actions de cycle suivent les autorisations du serveur.",
+        "referenceJathathaTitle": "Jathathas de référence",
+        "referenceJathathaDesc": "Gérer les fiches de référence, activités, phases et cycle d’approbation",
+        "teacherJathathaReviewTitle": "Revue des jathathas enseignants",
+        "teacherJathathaReviewDesc": "Revoir les jathathas enseignants et demander une correction sans modifier le contenu",
+        "actualDeliveryTitle": "Revue des livraisons réelles",
+        "actualDeliveryDesc": "Revoir les fiches de livraison confirmées soumises par les enseignants et demander des corrections",
+        "classJournalTitle": "Journal pédagogique de classe",
+        "classJournalDesc": "Journal généré et en lecture seule des séances de classe confirmées",
+        "eyebrow": "Opérations académiques",
+        "backToAcademic": "Retour au centre académique",
+        "workflowTitle": "Parcours recommandé",
+        "openSurface": "Ouvrir",
+        "ctaCreateOffering": "Nouveau parcours",
+        "ctaOpenOfferings": "Ouvrir les parcours",
+        "ctaOpenDistributions": "Ouvrir les distributions",
+        "workflow": {
+          "plan": "Planifier parcours et distribution annuelle",
+          "jathatha": "Préparer et revoir les fiches de leçon",
+          "delivery": "Suivre la réalisation et la progression"
+        },
+        "sections": {
+          "featuredTitle": "Commencer ici",
+          "featuredDesc": "Les deux entrées principales pour construire et ordonner les parcours.",
+          "planTitle": "Bibliothèque de planification",
+          "planDesc": "Références, séquences et ressources de planification.",
+          "jathathaTitle": "Fiches de leçon",
+          "jathathaDesc": "Modèles de référence et revue des jathathas enseignants.",
+          "deliveryTitle": "Réalisation et suivi",
+          "deliveryDesc": "Livraison confirmée, journal de classe et progression."
+        }
+      },
+      "columns": {
+        "name": "Référence",
+        "displayName": "Parcours",
+        "academicYear": "Année scolaire",
+        "level": "Niveau",
+        "subject": "Matière",
+        "language": "Langue",
+        "state": "État",
+        "offeringCount": "Parcours",
+        "readiness": "Préparation",
+        "coverage": "Couverture",
+        "levelAndSubject": "Niveau / Matière"
+      },
+      "fields": {
+        "name": "Titre",
+        "school": "École",
+        "academicYear": "Année scolaire",
+        "level": "Niveau",
+        "subject": "Matière",
+        "teachingLanguage": "Langue d’enseignement",
+        "teachingLanguageIdPlaceholder": "—",
+        "reference": "Référence pédagogique",
+        "publisher": "Éditeur",
+        "edition": "Édition",
+        "versionLabel": "Libellé de version",
+        "referenceCode": "Code référence",
+        "isbn": "ISBN",
+        "notes": "Notes",
+        "resetReason": "Motif de réinitialisation",
+        "effectiveFrom": "Effectif depuis",
+        "effectiveTo": "Effectif jusqu’à",
+        "approvedAt": "Approuvé le",
+        "archivedAt": "Archivé le"
+      },
+      "filters": {
+        "searchPlaceholder": "Rechercher…",
+        "stateAll": "Tous les états",
+        "levelAll": "Tous les niveaux",
+        "subjectAll": "Toutes les matières",
+        "yearAll": "Toutes les années",
+        "languageAll": "Toutes les langues",
+        "referenceAll": "Sans référence",
+        "reset": "Réinitialiser",
+        "clearSearch": "Effacer la recherche",
+        "more": "Plus de filtres",
+        "hideMore": "Masquer les filtres",
+        "chipSearch": "Recherche : {query}",
+        "chipYear": "Année : {year}",
+        "chipState": "Statut : {status}",
+        "chipLevel": "Niveau : {level}",
+        "chipSubject": "Matière : {subject}"
+      },
+      "validation": {
+        "requiredFields": "Veuillez renseigner les champs obligatoires.",
+        "resetReasonRequired": "Un motif de réinitialisation est requis."
+      },
+      "blockers": {
+        "annual_distribution_required": "La distribution annuelle est encore requise",
+        "identity_incomplete": "Identité incomplète",
+        "teaching_offering_reference_required": "Référence pédagogique approuvée requise",
+        "teaching_offering_reference_not_approved": "La référence n’est pas approuvée",
+        "teaching_offering_duplicate": "Un autre parcours approuvé existe pour ce périmètre",
+        "distribution_has_no_lines": "La distribution n’a pas encore de lignes d’enseignement",
+        "distribution_sequences_unresolved": "Certaines lignes référencent des séquences non résolues",
+        "distribution_dates_invalid": "Les dates des lignes sont invalides ou mal ordonnées",
+        "distribution_not_ready_for_activation": "La distribution n’est pas prête pour activation",
+        "distribution_already_active": "Une autre distribution est déjà active pour ce parcours",
+        "offering_not_approved": "Le parcours d’enseignement n’est pas encore approuvé",
+        "sequence_not_approved": "Une séquence didactique référencée n’est pas approuvée"
+      },
+      "readiness": {
+        "title": "Préparation et bloqueurs d’activation",
+        "identityReady": "Identité",
+        "referenceReady": "Référence",
+        "assignmentsReady": "Affectations",
+        "distributionReady": "Distribution annuelle",
+        "readyForApproval": "Prêt pour approbation",
+        "readyForActivation": "Prêt pour activation",
+        "readyYes": "Prêt",
+        "readyNo": "Pas prêt"
+      },
+      "lifecycle": {
+        "submitForReview": "Soumettre à revue",
+        "approve": "Approuver",
+        "resetToDraft": "Repasser en brouillon",
+        "resetToDraftSuccess": "Repassé en brouillon.",
+        "archive": "Archiver",
+        "archiveConfirm": "Archiver «{name}» ?",
+        "delete": "Supprimer",
+        "deleteConfirm": "Supprimer le brouillon «{name}» ? Action irréversible.",
+        "duplicate": "Dupliquer",
+        "duplicateVersion": "Dupliquer la version",
+        "submitSuccess": "Soumis à revue.",
+        "approveSuccess": "Approuvé.",
+        "archiveSuccess": "Archivé.",
+        "deleteSuccess": "Supprimé.",
+        "duplicateSuccess": "Dupliqué.",
+        "duplicateVersionSuccess": "Version dupliquée.",
+        "submitForReviewSuccess": "Soumis à revue."
+      },
+      "references": {
+        "title": "Références pédagogiques",
+        "subtitle": "Livres et guides pédagogiques liés aux parcours",
+        "detailBreadcrumb": "Fil d’Ariane référence",
+        "backToList": "Retour aux références",
+        "detailSubtitle": "{level} · {subject}",
+        "createTitle": "Créer une référence",
+        "editTitle": "Modifier la référence",
+        "create": {
+          "open": "Nouvelle référence"
+        },
+        "editSuccess": "Référence enregistrée.",
+        "createSuccess": "Référence créée.",
+        "noLanguageOptions": "Aucune langue d'enseignement n'est configurée pour ce contexte académique. Complétez une offre pédagogique ou liez une référence approuvée.",
+        "list": {
+          "noData": {
+            "title": "Aucune référence encore",
+            "description": "Créez une référence pédagogique à lier aux parcours."
+          },
+          "noMatch": {
+            "title": "Aucun résultat",
+            "description": "Essayez d’ajuster ou de réinitialiser les filtres."
+          }
+        },
+        "subtitleWithCount": "{total} références dans votre périmètre",
+        "refetching": "Mise à jour des résultats…"
+      },
+      "offerings": {
+        "title": "Parcours d’enseignement",
+        "subtitle": "Parcours d’enseignement, préparation et liens d’affectation",
+        "detailBreadcrumb": "Fil d’Ariane parcours",
+        "backToList": "Retour aux parcours",
+        "detailSubtitle": "{year} · {level} · {subject}",
+        "createTitle": "Créer un parcours",
+        "editTitle": "Modifier le parcours",
+        "create": {
+          "open": "Nouveau parcours"
+        },
+        "editSuccess": "Parcours enregistré.",
+        "createSuccess": "Parcours créé.",
+        "noLanguageOptions": "Aucune langue d'enseignement n'est configurée. Complétez la configuration de l'offre pédagogique ou liez une référence approuvée.",
+        "distributionRequiredTitle": "Distribution annuelle encore requise",
+        "distributionRequiredDesc": "Le Backend signale distribution_ready=false et bloque l’activation tant qu’une distribution annuelle n’est pas approuvée et active.",
+        "comingSoonDesc": "Les éditeurs Annual Distribution et Didactic Sequence sont hors périmètre de cette étape.",
+        "activate": "Activer",
+        "activateConfirm": "Activer le parcours «{name}» ? Il devient le parcours d’enseignement actif.",
+        "activateSuccess": "Parcours activé.",
+        "activeBadge": "Actif",
+        "distributionSectionTitle": "Distribution annuelle",
+        "openDistributions": "Ouvrir les distributions",
+        "activeDistribution": "Distribution active",
+        "noActiveDistribution": "Aucune distribution active",
+        "distributionCount": "Distributions",
+        "distributionSectionHint": "L’approbation et l’activation d’une distribution annuelle satisfont la readiness. Cela ne crée jamais de créneaux d’emploi du temps.",
+        "noReferenceTitle": "Aucune référence liée",
+        "noReferenceDesc": "Liez une Teaching Reference approuvée avant l’approbation si le Backend l’exige.",
+        "sections": {
+          "overview": "Aperçu",
+          "reference": "Référence",
+          "assignments": "Affectations liées"
+        },
+        "list": {
+          "noData": {
+            "title": "Aucun parcours encore",
+            "description": "Créez un parcours pour un niveau, une matière, une langue et une année."
+          },
+          "noMatch": {
+            "title": "Aucun résultat",
+            "description": "Essayez d’ajuster ou de réinitialiser les filtres."
+          }
+        },
+        "subtitleWithCount": "{total} parcours dans votre périmètre",
+        "refetching": "Mise à jour des résultats…",
+        "coverage": {
+          "classes": "classes",
+          "teachers": "enseignants"
+        },
+        "dialog": {
+          "identitySection": "Identité du parcours",
+          "datesSection": "Période de validité",
+          "notesSection": "Notes"
+        }
+      },
+      "assignments": {
+        "link": "Lier",
+        "unlink": "Délier",
+        "linkOpen": "Lier une affectation",
+        "linkTitle": "Lier une affectation existante",
+        "linkHint": "Utilise teaching-assignments existants. Ne crée pas d’affectation parallèle.",
+        "linkSuccess": "Affectation liée.",
+        "unlinkSuccess": "Affectation déliée.",
+        "unlinkTitle": "Délier l’affectation",
+        "unlinkConfirm": "Retirer le lien Teaching Offering de cette affectation ?",
+        "emptyTitle": "Aucune affectation liée",
+        "emptyDesc": "Liez des affectations compatibles depuis la config académique sans les recréer.",
+        "openAcademicSetup": "Ouvrir les affectations",
+        "noCandidatesTitle": "Aucune affectation compatible",
+        "noCandidatesDesc": "Aucune affectation active ne correspond à ce périmètre, ou elles sont déjà liées."
+      },
+      "sequences": {
+        "title": "Séquences didactiques",
+        "subtitle": "Plans de leçon et d’unité faits de modèles de séance — pas une Jathatha",
+        "detailBreadcrumb": "Fil d’Ariane de la séquence",
+        "backToList": "Retour aux séquences",
+        "detailSubtitle": "{level} · {subject}",
+        "createTitle": "Créer une séquence didactique",
+        "editTitle": "Modifier la séquence didactique",
+        "editSuccess": "Séquence enregistrée.",
+        "createSuccess": "Séquence créée.",
+        "expectedTotalBadge": "{count} séances prévues",
+        "create": {
+          "open": "Nouvelle séquence"
+        },
+        "columns": {
+          "name": "Séquence",
+          "expectedSessions": "Séances prévues",
+          "templates": "Modèles"
+        },
+        "sections": {
+          "overview": "Aperçu"
+        },
+        "fields": {
+          "unit": "Unité",
+          "lesson": "Leçon",
+          "objectives": "Objectifs",
+          "prerequisites": "Prérequis",
+          "conceptsAndSkills": "Concepts et compétences",
+          "pages": "Pages",
+          "completionCriteria": "Critères d’achèvement",
+          "supportActivities": "Activités de soutien"
+        },
+        "validation": {
+          "templateNameRequired": "Chaque modèle de séance doit avoir un nom."
+        },
+        "templates": {
+          "title": "Modèles de séance",
+          "hint": "Ce sont des modèles planifiés, pas des séances programmées ou réalisées.",
+          "readHint": "Modèles de séance ordonnés que l’enseignant prévoit de mener.",
+          "empty": "Aucun modèle de séance.",
+          "expectedTotal": "{count} séances prévues",
+          "add": "Ajouter un modèle",
+          "remove": "Supprimer",
+          "name": "Nom du modèle",
+          "sessionType": "Type de séance",
+          "expectedSessions": "Séances prévues",
+          "objective": "Objectif",
+          "pages": "Pages",
+          "active": "Actif",
+          "inactive": "Inactif",
+          "completionCriteria": "Critères d’achèvement",
+          "supportNotes": "Notes de soutien",
+          "sessionsShort": "séances"
+        },
+        "list": {
+          "noData": {
+            "title": "Aucune séquence didactique",
+            "description": "Créez un plan de leçon fait de modèles de séance à réutiliser."
+          },
+          "noMatch": {
+            "title": "Aucun résultat",
+            "description": "Ajustez ou réinitialisez les filtres."
+          }
+        },
+        "subtitleWithCount": "{total} séquences dans votre périmètre",
+        "refetching": "Mise à jour des résultats…"
+      },
+      "sessionTypes": {
+        "construction": "Construction",
+        "practice": "Entraînement",
+        "consolidation": "Consolidation",
+        "assessment": "Évaluation",
+        "support": "Soutien",
+        "support_impact_assessment": "Évaluation d’impact du soutien",
+        "focused_remediation": "Remédiation ciblée",
+        "enrichment": "Enrichissement",
+        "synthesis": "Synthèse",
+        "project": "Projet",
+        "experiment": "Expérience",
+        "review": "Révision",
+        "other": "Autre"
+      },
+      "itemTypes": {
+        "sequence": "Séquence didactique",
+        "assessment": "Évaluation",
+        "support": "Soutien",
+        "synthesis": "Synthèse",
+        "project": "Projet",
+        "review": "Révision",
+        "other": "Autre"
+      },
+      "distributions": {
+        "title": "Distributions annuelles",
+        "subtitle": "Plans d’enseignement ordonnés sur l’année par parcours — pas l’emploi du temps",
+        "detailBreadcrumb": "Fil d’Ariane de la distribution",
+        "backToList": "Retour aux distributions",
+        "createTitle": "Créer une distribution annuelle",
+        "editTitle": "Modifier la distribution annuelle",
+        "editSuccess": "Distribution enregistrée.",
+        "activeBadge": "Active",
+        "activate": "Activer",
+        "activateConfirm": "Activer la distribution «{name}» ? Elle devient le plan actif du parcours.",
+        "activateSuccess": "Distribution activée.",
+        "lineCount": "{count} lignes",
+        "sessionCount": "{count} séances",
+        "linesWord": "lignes",
+        "sequencesWord": "séquences",
+        "sessionsWord": "séances",
+        "create": {
+          "open": "Nouvelle distribution"
+        },
+        "columns": {
+          "name": "Distribution",
+          "period": "Période",
+          "totals": "Totaux"
+        },
+        "fields": {
+          "offering": "Parcours d’enseignement",
+          "offeringPlaceholder": "Choisir un parcours",
+          "name": "Nom",
+          "namePlaceholder": "Optionnel — un nom est généré si laissé vide",
+          "periodLabel": "Libellé de période",
+          "dateStart": "Date de début",
+          "dateEnd": "Date de fin"
+        },
+        "validation": {
+          "offeringRequired": "Choisissez un parcours d’enseignement."
+        },
+        "tabs": {
+          "overview": "Aperçu",
+          "lines": "Lignes",
+          "timeline": "Chronologie",
+          "batch": "Lot",
+          "versions": "Versions"
+        },
+        "readiness": {
+          "hasLines": "Contient des lignes",
+          "sequencesResolved": "Séquences résolues",
+          "datesValid": "Dates valides"
+        },
+        "list": {
+          "noData": {
+            "title": "Aucune distribution annuelle",
+            "description": "Créez une distribution pour un parcours d’enseignement approuvé."
+          },
+          "noMatch": {
+            "title": "Aucun résultat",
+            "description": "Ajustez ou réinitialisez les filtres."
+          }
+        },
+        "subtitleWithCount": "{total} distributions dans votre périmètre",
+        "refetching": "Mise à jour des résultats…",
+        "dialog": {
+          "identitySection": "Identité de la distribution",
+          "datesSection": "Dates de période",
+          "notesSection": "Notes"
+        }
+      },
+      "lines": {
+        "itemType": "Type d’élément",
+        "sequence": "Séquence",
+        "selectSequence": "Choisir une séquence",
+        "name": "Nom",
+        "periodLabel": "Libellé de période",
+        "sessionCount": "Nombre de séances",
+        "dateStart": "Date de début",
+        "dateEnd": "Date de fin",
+        "externalReference": "Référence externe",
+        "notes": "Notes",
+        "add": "Ajouter une ligne",
+        "remove": "Supprimer",
+        "save": "Enregistrer les lignes",
+        "saveSuccess": "Lignes enregistrées.",
+        "emptyTitle": "Aucune ligne",
+        "emptyDesc": "Ajoutez des lignes d’enseignement ou collez-les dans l’onglet Lot.",
+        "readOnlyTitle": "Lignes en lecture seule",
+        "readOnlyDesc": "Vous ne pouvez pas modifier les lignes dans cet état ou sans autorisation."
+      },
+      "batch": {
+        "title": "Collage par lot",
+        "hint": "Collez des lignes depuis un tableur, validez avec le Backend, puis appliquez. Brouillon uniquement.",
+        "pasteLabel": "Coller les lignes (TSV)",
+        "pastePlaceholder": "type  nom  période  début  fin  séances",
+        "parse": "Analyser les lignes",
+        "mode": "Mode d’application",
+        "modes": {
+          "append": "Ajouter",
+          "replace": "Remplacer",
+          "upsert": "Fusionner"
+        },
+        "validate": "Valider",
+        "apply": "Appliquer",
+        "validTitle": "{count} lignes valides",
+        "invalidTitle": "{count} lignes en erreur",
+        "rowStatus": "Statut",
+        "rowOk": "OK",
+        "rowPending": "Non validée",
+        "applySuccess": "Lot appliqué.",
+        "appliedWithErrors": "Appliqué avec des erreurs — vérifiez les lignes.",
+        "unavailableTitle": "Lot indisponible",
+        "draftOnlyDesc": "L’édition par lot n’est disponible que pour un brouillon.",
+        "summaryCreated": "{count} créées",
+        "summaryUpdated": "{count} mises à jour",
+        "summarySkipped": "{count} ignorées",
+        "summaryErrors": "{count} erreurs"
+      },
+      "timeline": {
+        "instructionalItem": "Élément d’enseignement",
+        "calendarMarker": "Repère de calendrier",
+        "instructionalBreak": "Pause d’enseignement",
+        "marker": "Repère",
+        "emptyTitle": "Aucune entrée de chronologie",
+        "emptyDesc": "Ajoutez des lignes et des repères de calendrier pour bâtir la chronologie combinée."
+      },
+      "reorder": {
+        "moveUp": "Monter",
+        "moveDown": "Descendre"
+      },
+      "versions": {
+        "notLatest": "Pas la dernière version",
+        "isLatest": "Dernière version",
+        "activeVersion": "Version active",
+        "replacementVersion": "Version de remplacement",
+        "supersededBy": "Remplacée par"
+      },
+      "teacher": {
+        "distributionsTitle": "Distributions annuelles",
+        "distributionsSubtitle": "Vue en lecture seule des plans d’enseignement annuels",
+        "distributionsEmptyTitle": "Aucune distribution disponible",
+        "distributionsEmptyDesc": "Les distributions actives de vos classes apparaîtront ici.",
+        "backToDistributions": "Retour aux distributions",
+        "notActiveTitle": "Pas le plan actif",
+        "notActiveDesc": "Cette distribution n’est pas active pour le parcours.",
+        "openDistributions": "Distribution annuelle"
+      },
+      "errors": {
+        "invalid_row": "Ligne invalide",
+        "duplicate_order": "Valeur d’ordre en double",
+        "unknown_sequence": "Séquence inconnue ou non résolue",
+        "invalid_date_range": "Plage de dates invalide",
+        "session_count_negative": "Le nombre de séances ne peut pas être négatif",
+        "item_type_invalid": "Type d’élément inconnu"
+      },
+      "states": {
+        "draft": "Brouillon",
+        "under_review": "En revue",
+        "approved": "Approuvé",
+        "archived": "Archivé",
+        "active": "Active"
+      },
+      "jathatha": {
+        "sequence": "Séquence",
+        "template": "Modèle de séance",
+        "sessionType": "Type de séance",
+        "detailLevel": "Niveau de détail",
+        "context": "Contexte de séance",
+        "minutes": "min",
+        "correctionRequested": "Correction demandée",
+        "approvedBy": "Approuvé par",
+        "versionHistory": "Historique des versions",
+        "selectReference": "Choisir la référence",
+        "selectSequence": "Choisir la séquence",
+        "selectTemplate": "Choisir le modèle (optionnel)",
+        "detailLevels": {
+          "compact": "Compact",
+          "standard": "Standard",
+          "detailed": "Détaillé"
+        },
+        "activityTypes": {
+          "situation": "Situation",
+          "exercise": "Exercice",
+          "discussion": "Discussion",
+          "experiment": "Expérience",
+          "assessment": "Évaluation",
+          "support": "Soutien",
+          "project": "Projet",
+          "institutionalization": "Institutionnalisation",
+          "other": "Autre"
+        },
+        "phaseTypes": {
+          "didactic_contract": "Contrat didactique",
+          "action": "Action",
+          "formulation": "Formulation",
+          "discussion": "Discussion",
+          "validation": "Validation",
+          "institutionalization": "Institutionnalisation",
+          "practice": "Pratique",
+          "assessment": "Évaluation",
+          "support": "Soutien",
+          "synthesis": "Synthèse",
+          "custom": "Personnalisé"
+        },
+        "referenceStates": {
+          "draft": "Brouillon",
+          "under_review": "En revue",
+          "approved": "Approuvé",
+          "archived": "Archivé"
+        },
+        "teacherStates": {
+          "draft": "Brouillon",
+          "ready": "Prête",
+          "confirmed": "Confirmée",
+          "corrected": "Corrigée",
+          "superseded": "Remplacée",
+          "voided": "Annulée"
+        },
+        "reviewStates": {
+          "not_reviewed": "Non revue",
+          "reviewed": "Revue",
+          "correction_requested": "Correction demandée"
+        },
+        "validation": {
+          "requiredContext": "Le nom, la référence et la séquence sont requis."
+        },
+        "fields": {
+          "external_reference": "Référence externe",
+          "objectives": "Objectifs",
+          "prerequisites": "Prérequis",
+          "materials_summary": "Résumé des supports",
+          "pages": "Pages",
+          "quick_assessment_plan": "Évaluation rapide",
+          "fallback_plan": "Plan de repli",
+          "expected_difficulties": "Difficultés attendues",
+          "general_guidance": "Consignes générales",
+          "correction_elements": "Éléments de correction",
+          "support_activities": "Activités de soutien",
+          "notes": "Notes",
+          "session_objective": "Objectif de séance",
+          "materials": "Supports",
+          "class_adaptation": "Adaptation de classe",
+          "quick_assessment": "Évaluation rapide",
+          "teacher_notes": "Notes enseignant"
+        },
+        "columns": {
+          "name": "Nom",
+          "activities": "Activités / phases",
+          "duration": "Durée prévue",
+          "approvedAt": "Approuvé le",
+          "session": "Séance",
+          "teacher": "Enseignant",
+          "class": "Classe",
+          "offering": "Offre",
+          "distributionLine": "Ligne de distribution",
+          "reviewState": "État de revue",
+          "revision": "Révision",
+          "correction": "Correction",
+          "actions": "Actions",
+          "subject": "Matière",
+          "sequence": "Séquence",
+          "template": "Modèle de séance"
+        },
+        "list": {
+          "empty": "Aucune jathatha trouvée."
+        },
+        "activities": {
+          "title": "Activités",
+          "add": "Ajouter une activité",
+          "empty": "Aucune activité pour le moment.",
+          "expand": "Développer",
+          "collapse": "Réduire",
+          "name": "Nom de l’activité",
+          "type": "Type d’activité",
+          "duration": "Durée (min)",
+          "objective": "Objectif partiel",
+          "instructions": "Consignes",
+          "materials": "Supports",
+          "source": "Activité source",
+          "moveUp": "Monter",
+          "moveDown": "Descendre",
+          "remove": "Supprimer"
+        },
+        "phases": {
+          "title": "Phases",
+          "add": "Ajouter une phase",
+          "type": "Type de phase",
+          "instruction": "Consigne",
+          "teacherActivity": "Activité enseignant",
+          "durationExceedsActivity": "La durée des phases dépasse celle de l’activité."
+        },
+        "readiness": {
+          "title": "Préparation",
+          "ready": "Prête",
+          "notReady": "Non prête",
+          "blockers": "Blocages",
+          "warnings": "Avertissements"
+        },
+        "reference": {
+          "create": "Créer une jathatha de référence",
+          "createTitle": "Créer une jathatha de référence",
+          "editTitle": "Modifier la jathatha de référence",
+          "backToList": "Retour aux jathathas de référence"
+        },
+        "review": {
+          "open": "Ouvrir la revue",
+          "all": "Tous les états de revue",
+          "markReviewed": "Marquer comme revue",
+          "requestCorrection": "Demander une correction",
+          "reasonRequired": "Un motif de correction est requis.",
+          "reasonLabel": "Motif de la demande de correction",
+          "readOnlyNotice": "Le contenu de la jathatha enseignant est en lecture seule.",
+          "marked": "Marquée comme revue.",
+          "correctionRequested": "Correction demandée.",
+          "backToList": "Retour à la revue des jathathas enseignants",
+          "title": "Revue de jathatha enseignant"
+        },
+        "lifecycle": {
+          "submit_for_reviewSuccess": "Soumise pour revue.",
+          "approveSuccess": "Approuvée.",
+          "duplicate_versionSuccess": "Nouvelle version créée.",
+          "archiveConfirm": "Archiver « {name} » ?",
+          "deleteConfirm": "Supprimer « {name} » ?"
+        },
+        "errors": {
+          "unknown": "L’opération n’a pas pu être effectuée.",
+          "reference_jathatha_duplicate_approved": "Erreur backend : reference_jathatha_duplicate_approved",
+          "reference_jathatha_context_mismatch": "Erreur backend : reference_jathatha_context_mismatch",
+          "reference_jathatha_template_required": "Erreur backend : reference_jathatha_template_required",
+          "reference_jathatha_template_mismatch": "Erreur backend : reference_jathatha_template_mismatch",
+          "reference_jathatha_immutable": "Erreur backend : reference_jathatha_immutable",
+          "reference_jathatha_in_use": "Erreur backend : reference_jathatha_in_use",
+          "jathatha_occurrence_required": "Erreur backend : jathatha_occurrence_required",
+          "jathatha_occurrence_not_teachable": "Erreur backend : jathatha_occurrence_not_teachable",
+          "jathatha_assignment_required": "Erreur backend : jathatha_assignment_required",
+          "jathatha_assignment_ambiguous": "Erreur backend : jathatha_assignment_ambiguous",
+          "jathatha_offering_required": "Erreur backend : jathatha_offering_required",
+          "jathatha_offering_not_active": "Erreur backend : jathatha_offering_not_active",
+          "jathatha_active_distribution_required": "Erreur backend : jathatha_active_distribution_required",
+          "jathatha_distribution_line_required": "Erreur backend : jathatha_distribution_line_required",
+          "jathatha_distribution_line_mismatch": "Erreur backend : jathatha_distribution_line_mismatch",
+          "jathatha_sequence_template_required": "Erreur backend : jathatha_sequence_template_required",
+          "jathatha_sequence_template_mismatch": "Erreur backend : jathatha_sequence_template_mismatch",
+          "jathatha_reference_not_approved": "Erreur backend : jathatha_reference_not_approved",
+          "jathatha_current_revision_exists": "Erreur backend : jathatha_current_revision_exists",
+          "jathatha_revision_conflict": "Erreur backend : jathatha_revision_conflict",
+          "jathatha_not_ready": "Erreur backend : jathatha_not_ready",
+          "jathatha_duration_invalid": "Erreur backend : jathatha_duration_invalid",
+          "jathatha_duration_exceeds_occurrence": "Erreur backend : jathatha_duration_exceeds_occurrence",
+          "jathatha_immutable": "Erreur backend : jathatha_immutable",
+          "jathatha_correction_reason_required": "Erreur backend : jathatha_correction_reason_required",
+          "jathatha_void_reason_required": "Erreur backend : jathatha_void_reason_required",
+          "jathatha_review_state_invalid": "Erreur backend : jathatha_review_state_invalid",
+          "jathatha_scope_mismatch": "Erreur backend : jathatha_scope_mismatch"
+        },
+        "correctionReason": "Motif de correction",
+        "revisions": "Historique des révisions"
+      },
+      "delivery": {
+        "columns": {
+          "session": "Séance",
+          "plannedLine": "Élément prévu",
+          "deliveredLine": "Élément livré",
+          "completion": "Réalisation",
+          "deviation": "Écart"
+        },
+        "completionStates": {
+          "completed": "Terminé",
+          "partial": "Partiel",
+          "not_completed": "Non terminé"
+        },
+        "deviationTypes": {
+          "none": "Aucun écart",
+          "reordered": "Réordonné",
+          "support_needed": "Soutien nécessaire",
+          "assessment_adjustment": "Ajustement d’évaluation",
+          "class_pace": "Rythme de classe",
+          "calendar_disruption": "Perturbation du calendrier",
+          "teacher_decision": "Décision de l’enseignant",
+          "other": "Autre"
+        },
+        "activityResultStates": {
+          "completed": "Terminée",
+          "partial": "Partielle",
+          "skipped": "Ignorée",
+          "added": "Ajoutée"
+        },
+        "filters": {
+          "reviewAll": "Tous les états de revue",
+          "deviationAll": "Tous les types d’écart"
+        },
+        "list": {
+          "empty": "Aucune fiche de livraison trouvée."
+        },
+        "review": {
+          "open": "Revoir",
+          "title": "Revue de livraison réelle",
+          "backToList": "Retour à la revue des livraisons réelles",
+          "markReviewed": "Marquer comme revu",
+          "marked": "Livraison marquée comme revue.",
+          "requestCorrection": "Demander une correction",
+          "correctionRequested": "Correction demandée.",
+          "reasonRequired": "Un motif de correction est requis."
+        },
+        "context": {
+          "title": "Contexte"
+        },
+        "comparison": {
+          "title": "Prévu vs livré",
+          "planned": "Prévu",
+          "delivered": "Livré"
+        },
+        "content": {
+          "title": "Contenu livré"
+        },
+        "fields": {
+          "contentSummary": "Résumé du contenu",
+          "objectiveAchievementSummary": "Réalisation de l’objectif",
+          "actualPagesLabel": "Pages couvertes",
+          "assessmentSummary": "Résumé de l’évaluation",
+          "difficultiesObserved": "Difficultés observées",
+          "remediationAction": "Action de remédiation",
+          "nextStep": "Prochaine étape",
+          "teacherNotes": "Notes de l’enseignant",
+          "journalText": "Texte du journal",
+          "correctionReason": "Motif de correction",
+          "voidReason": "Motif d’annulation",
+          "plannedSessions": "Séances prévues",
+          "plannedWindow": "Fenêtre prévue",
+          "actualDuration": "Durée réelle (min)",
+          "coveragePercent": "Couverture",
+          "deliveredUnits": "Unités livrées",
+          "remainingUnits": "Unités restantes"
+        },
+        "activities": {
+          "title": "Activités",
+          "empty": "Aucune activité enregistrée."
+        },
+        "revisions": {
+          "title": "Historique des révisions",
+          "correction": "Correction"
+        },
+        "journal": {
+          "title": "Entrée du journal de classe",
+          "linked": "Ouvrir l’entrée de journal liée",
+          "none": "Aucune entrée de journal générée pour l’instant."
+        },
+        "progressImpact": {
+          "title": "Impact sur la progression"
+        }
+      },
+      "classJournal": {
+        "states": {
+          "current": "Actuelle",
+          "superseded": "Remplacée",
+          "voided": "Annulée"
+        },
+        "list": {
+          "empty": "Aucune entrée de journal trouvée."
+        },
+        "backToList": "Retour au journal pédagogique de classe",
+        "detailTitle": "Entrée du journal de classe",
+        "content": {
+          "title": "Contenu du journal"
+        },
+        "source": {
+          "title": "Livraison source",
+          "open": "Ouvrir la livraison source"
+        },
+        "supersedes": "Voir l’entrée remplacée",
+        "fingerprint": "Empreinte"
+      },
+      "progress": {
+        "subtitle": "Suivre les séances livrées par rapport au plan",
+        "backToList": "Retour à la progression pédagogique",
+        "detailTitle": "Ligne de progression pédagogique",
+        "columns": {
+          "item": "Élément",
+          "coverage": "Couverture",
+          "delivered": "Livré",
+          "status": "Statut",
+          "delayed": "En retard"
+        },
+        "statuses": {
+          "not_started": "Non démarré",
+          "in_progress": "En cours",
+          "completed": "Terminé",
+          "delayed": "En retard",
+          "overdelivered": "Sur-livré"
+        },
+        "delayed": "En retard",
+        "filters": {
+          "statusAll": "Tous les statuts"
+        },
+        "stats": {
+          "coverage": "Couverture",
+          "planned": "Lignes prévues",
+          "started": "Lignes démarrées",
+          "completed": "Lignes terminées",
+          "delayed": "Lignes en retard"
+        },
+        "attention": {
+          "title": "Classes nécessitant une attention"
+        },
+        "lastDelivery": {
+          "title": "Dernière livraison"
+        },
+        "list": {
+          "empty": "Aucune ligne de progression pédagogique trouvée."
+        },
+        "fields": {
+          "remainingUnits": "Unités restantes"
+        },
+        "contributingDeliveries": {
+          "title": "Livraisons contributives",
+          "empty": "Aucune livraison contributive enregistrée."
+        },
+        "plannedDates": {
+          "title": "Dates prévues"
+        }
+      },
+      "backToHub": "Retour à la planification pédagogique",
+      "print": {
+        "action": "Imprimer",
+        "actionAllFiltered": "Imprimer tous les filtrés",
+        "actionCurrentPage": "Imprimer la page actuelle",
+        "preview": "Aperçu avant impression",
+        "back": "Retour",
+        "documentStatus": "État du document",
+        "draftWatermark": "BROUILLON",
+        "generatedOn": "Généré le",
+        "printedBy": "Imprimé par",
+        "revision": "Révision",
+        "signatureReview": "Signature / revue",
+        "pageFooter": "Document imprimable A4",
+        "brandingUnavailable": "Nom de l’école indisponible",
+        "error": "Erreur d’impression",
+        "noData": "Aucune donnée imprimable",
+        "appliedFilters": "Filtres appliqués",
+        "noFilters": "Aucun filtre supplémentaire",
+        "scope": "Portée d’impression",
+        "scopeCurrentPage": "Page actuelle",
+        "scopeAllFiltered": "Tous les enregistrements filtrés",
+        "tooManyRecords": "Trop d’enregistrements ({total}). Affichage des {max} premiers uniquement.",
+        "narrowFilters": "Restreignez la période ou les filtres puis réessayez.",
+        "plannedWindow": "Fenêtre planifiée",
+        "expectedDuration": "Durée prévue (min)",
+        "actualDuration": "Durée réelle (min)",
+        "ungroupedPeriod": "Sans libellé de période",
+        "activities": "Activités",
+        "phase": "Phase",
+        "duration": "Durée (min)",
+        "teacherActivity": "Activité enseignant",
+        "learnerActivity": "Activité élève",
+        "revisionHistory": "Historique des révisions",
+        "correctionReason": "Motif de correction",
+        "sourceReferenceJathatha": "Jathatha de référence source",
+        "plannedVsDelivered": "Prévu vs réalisé",
+        "planned": "Prévu",
+        "delivered": "Réalisé",
+        "deviation": "Écart",
+        "resultState": "Résultat",
+        "progressLines": "Lignes de progression",
+        "readiness": {
+          "title": "Préparation",
+          "ready": "Prêt",
+          "notReady": "Non prêt",
+          "hasLines": "Lignes présentes",
+          "sequencesResolved": "Séquences résolues",
+          "datesValid": "Dates valides",
+          "readyForApproval": "Prêt pour approbation",
+          "readyForActivation": "Prêt pour activation"
+        },
+        "documents": {
+          "annualDistribution": "Répartition annuelle",
+          "referenceJathatha": "Jathatha de référence",
+          "teacherJathatha": "Jathatha enseignant",
+          "actualDelivery": "Livraison réelle",
+          "classJournal": "Journal de classe",
+          "classJournalReport": "Rapport du journal de classe",
+          "teachingProgress": "Progression pédagogique",
+          "teachingProgressReport": "Rapport de synthèse de progression"
+        },
+        "documentStates": {
+          "draft": "Brouillon",
+          "ready": "Prêt",
+          "confirmed": "Confirmé",
+          "corrected": "Corrigé",
+          "superseded": "Remplacé",
+          "voided": "Annulé",
+          "reviewed": "Revu",
+          "correction_requested": "Correction demandée",
+          "approved": "Approuvé",
+          "archived": "Archivé",
+          "under_review": "En revue",
+          "active": "Actif",
+          "current": "Courant"
+        },
+        "fields": {
+          "track": "Filière",
+          "objectives": "Objectifs",
+          "prerequisites": "Prérequis",
+          "materials_summary": "Ressources",
+          "pages": "Pages",
+          "quick_assessment_plan": "Évaluation",
+          "fallback_plan": "Différenciation / soutien",
+          "expected_difficulties": "Difficultés attendues",
+          "support_activities": "Activités de soutien",
+          "general_guidance": "Conseils",
+          "notes": "Notes",
+          "session_objective": "Objectifs",
+          "materials": "Ressources",
+          "class_adaptation": "Différenciation / soutien",
+          "quick_assessment": "Évaluation",
+          "teacher_notes": "Notes",
+          "content_summary": "Résumé du contenu",
+          "objective_achievement_summary": "Atteinte des objectifs",
+          "actual_pages_label": "Pages",
+          "assessment_summary": "Évaluation",
+          "difficulties_observed": "Difficultés",
+          "remediation_action": "Remédiation",
+          "next_step": "Prochaine étape",
+          "journal_text": "Texte du journal",
+          "correction_reason": "Motif de correction",
+          "void_reason": "Motif d’annulation",
+          "delivered_title": "Titre livré",
+          "deviation_reason": "Motif d’écart"
+        }
+      }
+    },
+    "teachingPlanningHubDesc": "Références pédagogiques, parcours d’enseignement et readiness",
+    "noActiveSchoolDesc": "Sélectionnez une école active pour continuer."
   }
 }

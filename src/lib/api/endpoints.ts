@@ -145,11 +145,112 @@ export const endpoints = {
     setupReadiness: '/admin/setup/readiness',
     setupAcademicInitialize: '/admin/setup/academic/initialize',
 
+    /** Hierarchical academic filter options — GET only. */
+    academicContextOptions: '/admin/academic-context/options',
+    academicYearTerms: (academicYearId: number | string) =>
+      `/admin/academic-years/${academicYearId}/terms`,
+    academicYearTermsInitialize: (academicYearId: number | string) =>
+      `/admin/academic-years/${academicYearId}/terms/initialize`,
+
     teachingAssignments: '/admin/teaching-assignments',
     teachingAssignment: (id: number | string) => `/admin/teaching-assignments/${id}`,
     teachingAssignmentUpdate: (id: number | string) =>
       `/admin/teaching-assignments/${id}/update`,
     teachingAssignmentSuggestions: '/admin/teaching-assignments/suggestions',
+
+    teachingReferences: '/admin/teaching-references',
+    teachingReference: (id: number | string) => `/admin/teaching-references/${id}`,
+    teachingReferenceSubmitForReview: (id: number | string) =>
+      `/admin/teaching-references/${id}/submit-for-review`,
+    teachingReferenceApprove: (id: number | string) =>
+      `/admin/teaching-references/${id}/approve`,
+    teachingReferenceResetToDraft: (id: number | string) =>
+      `/admin/teaching-references/${id}/reset-to-draft`,
+    teachingReferenceArchive: (id: number | string) =>
+      `/admin/teaching-references/${id}/archive`,
+    teachingReferenceDuplicateVersion: (id: number | string) =>
+      `/admin/teaching-references/${id}/duplicate-version`,
+
+    teachingOfferings: '/admin/teaching-offerings',
+    teachingOffering: (id: number | string) => `/admin/teaching-offerings/${id}`,
+    teachingOfferingSubmitForReview: (id: number | string) =>
+      `/admin/teaching-offerings/${id}/submit-for-review`,
+    teachingOfferingApprove: (id: number | string) =>
+      `/admin/teaching-offerings/${id}/approve`,
+    teachingOfferingResetToDraft: (id: number | string) =>
+      `/admin/teaching-offerings/${id}/reset-to-draft`,
+    teachingOfferingArchive: (id: number | string) =>
+      `/admin/teaching-offerings/${id}/archive`,
+    teachingOfferingDuplicate: (id: number | string) =>
+      `/admin/teaching-offerings/${id}/duplicate`,
+    teachingOfferingActivate: (id: number | string) =>
+      `/admin/teaching-offerings/${id}/activate`,
+
+    didacticSequences: '/admin/didactic-sequences',
+    didacticSequence: (id: number | string) => `/admin/didactic-sequences/${id}`,
+    didacticSequenceSubmitForReview: (id: number | string) =>
+      `/admin/didactic-sequences/${id}/submit-for-review`,
+    didacticSequenceApprove: (id: number | string) =>
+      `/admin/didactic-sequences/${id}/approve`,
+    didacticSequenceResetToDraft: (id: number | string) =>
+      `/admin/didactic-sequences/${id}/reset-to-draft`,
+    didacticSequenceArchive: (id: number | string) =>
+      `/admin/didactic-sequences/${id}/archive`,
+    didacticSequenceDuplicateVersion: (id: number | string) =>
+      `/admin/didactic-sequences/${id}/duplicate-version`,
+
+    annualDistributions: '/admin/annual-distributions',
+    annualDistribution: (id: number | string) => `/admin/annual-distributions/${id}`,
+    annualDistributionSubmitForReview: (id: number | string) =>
+      `/admin/annual-distributions/${id}/submit-for-review`,
+    annualDistributionApprove: (id: number | string) =>
+      `/admin/annual-distributions/${id}/approve`,
+    annualDistributionResetToDraft: (id: number | string) =>
+      `/admin/annual-distributions/${id}/reset-to-draft`,
+    annualDistributionArchive: (id: number | string) =>
+      `/admin/annual-distributions/${id}/archive`,
+    annualDistributionDuplicateVersion: (id: number | string) =>
+      `/admin/annual-distributions/${id}/duplicate-version`,
+    annualDistributionActivate: (id: number | string) =>
+      `/admin/annual-distributions/${id}/activate`,
+    annualDistributionTimeline: (id: number | string) =>
+      `/admin/annual-distributions/${id}/timeline`,
+    annualDistributionLinesValidateBatch: (id: number | string) =>
+      `/admin/annual-distributions/${id}/lines/validate-batch`,
+    annualDistributionLinesApplyBatch: (id: number | string) =>
+      `/admin/annual-distributions/${id}/lines/apply-batch`,
+
+    referenceJathathas: '/admin/reference-jathathas',
+    referenceJathatha: (id: number | string) => `/admin/reference-jathathas/${id}`,
+    referenceJathathaSubmitForReview: (id: number | string) =>
+      `/admin/reference-jathathas/${id}/submit-for-review`,
+    referenceJathathaApprove: (id: number | string) =>
+      `/admin/reference-jathathas/${id}/approve`,
+    referenceJathathaResetToDraft: (id: number | string) =>
+      `/admin/reference-jathathas/${id}/reset-to-draft`,
+    referenceJathathaArchive: (id: number | string) =>
+      `/admin/reference-jathathas/${id}/archive`,
+    referenceJathathaDuplicateVersion: (id: number | string) =>
+      `/admin/reference-jathathas/${id}/duplicate-version`,
+
+    teacherJathathasAdmin: '/admin/teacher-jathathas',
+    teacherJathathaAdmin: (id: number | string) => `/admin/teacher-jathathas/${id}`,
+    teacherJathathaMarkReviewed: (id: number | string) =>
+      `/admin/teacher-jathathas/${id}/mark-reviewed`,
+    teacherJathathaRequestCorrection: (id: number | string) =>
+      `/admin/teacher-jathathas/${id}/request-correction`,
+
+    actualDeliveries: '/admin/actual-deliveries',
+    actualDelivery: (id: number | string) => `/admin/actual-deliveries/${id}`,
+    actualDeliveryMarkReviewed: (id: number | string) =>
+      `/admin/actual-deliveries/${id}/mark-reviewed`,
+    actualDeliveryRequestCorrection: (id: number | string) =>
+      `/admin/actual-deliveries/${id}/request-correction`,
+    classJournal: '/admin/class-journal',
+    classJournalEntry: (id: number | string) => `/admin/class-journal/${id}`,
+    teachingProgressLines: '/admin/teaching-progress-lines',
+    teachingProgressLine: (id: number | string) => `/admin/teaching-progress-lines/${id}`,
+    teachingProgressSummary: '/admin/teaching-progress-summary',
 
     staff: '/admin/staff',
     staffMember: (id: number | string) => `/admin/staff/${id}`,
@@ -454,6 +555,8 @@ export const endpoints = {
 
   teacher: {
     dashboard: '/teacher/dashboard',
+    /** Assignment-scoped academic filter options — GET only. */
+    academicContextOptions: '/teacher/academic-context/options',
     classes: '/teacher/classes',
     classStudents: (classId: number | string) => `/teacher/classes/${classId}/students`,
     classSubjects: (classId: number | string) => `/teacher/classes/${classId}/subjects`,
@@ -501,6 +604,38 @@ export const endpoints = {
     timetable: '/teacher/timetable',
     timetableToday: '/teacher/timetable/today',
     timetableWeek: '/teacher/timetable/week',
+    annualDistributions: '/teacher/annual-distributions',
+    annualDistribution: (id: number | string) => `/teacher/annual-distributions/${id}`,
+    annualDistributionTimeline: (id: number | string) =>
+      `/teacher/annual-distributions/${id}/timeline`,
+    didacticSequences: '/teacher/didactic-sequences',
+    didacticSequence: (id: number | string) => `/teacher/didactic-sequences/${id}`,
+    sessionOccurrences: '/teacher/session-occurrences',
+    sessionOccurrence: (id: number | string) => `/teacher/session-occurrences/${id}`,
+    sessionOccurrenceJathathaContext: (id: number | string) =>
+      `/teacher/session-occurrences/${id}/jathatha-context`,
+    sessionOccurrenceDeliveryContext: (id: number | string) =>
+      `/teacher/session-occurrences/${id}/delivery-context`,
+    jathathas: '/teacher/jathathas',
+    jathatha: (id: number | string) => `/teacher/jathathas/${id}`,
+    jathathaMarkReady: (id: number | string) => `/teacher/jathathas/${id}/mark-ready`,
+    jathathaResetToDraft: (id: number | string) => `/teacher/jathathas/${id}/reset-to-draft`,
+    jathathaConfirm: (id: number | string) => `/teacher/jathathas/${id}/confirm`,
+    jathathaCreateCorrection: (id: number | string) =>
+      `/teacher/jathathas/${id}/create-correction`,
+    jathathaVoid: (id: number | string) => `/teacher/jathathas/${id}/void`,
+    actualDeliveries: '/teacher/actual-deliveries',
+    actualDelivery: (id: number | string) => `/teacher/actual-deliveries/${id}`,
+    actualDeliveryConfirm: (id: number | string) =>
+      `/teacher/actual-deliveries/${id}/confirm`,
+    actualDeliveryCreateCorrection: (id: number | string) =>
+      `/teacher/actual-deliveries/${id}/create-correction`,
+    actualDeliveryVoid: (id: number | string) => `/teacher/actual-deliveries/${id}/void`,
+    classJournal: '/teacher/class-journal',
+    classJournalEntry: (id: number | string) => `/teacher/class-journal/${id}`,
+    teachingProgress: '/teacher/teaching-progress',
+    teachingProgressLine: (id: number | string) => `/teacher/teaching-progress/${id}`,
+    teachingProgressSummary: '/teacher/teaching-progress-summary',
   },
 
   attachments: {

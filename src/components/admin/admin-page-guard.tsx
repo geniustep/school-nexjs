@@ -10,6 +10,8 @@ import { RequireSchoolBrandingSettingsAccess } from '@/features/admin/school-bra
 import { isAdminAcademicPath, permissionForAdminPath } from '@/lib/permissions/admin-pages';
 import { isAcademicSetupPath } from '@/lib/permissions/academic-setup';
 import { isSchoolBrandingSettingsPath } from '@/lib/permissions/school-branding-settings';
+import { isTeachingPlanningPath } from '@/lib/permissions/teaching-planning';
+import { RequireTeachingPlanningAccess } from '@/features/admin/teaching-planning/components/require-teaching-planning';
 
 /** Enforces view_* permission for the current /admin route (direct URL access). */
 export function AdminPageGuard({ children }: { children: ReactNode }) {
@@ -26,6 +28,9 @@ export function AdminPageGuard({ children }: { children: ReactNode }) {
   }
   if (isAdminAcademicPath(pathname)) {
     return <RequireAdminAcademicHub>{children}</RequireAdminAcademicHub>;
+  }
+  if (isTeachingPlanningPath(pathname)) {
+    return <RequireTeachingPlanningAccess>{children}</RequireTeachingPlanningAccess>;
   }
   if (base.startsWith('/admin/staff')) {
     return <RequireStaffCenterAccess>{children}</RequireStaffCenterAccess>;

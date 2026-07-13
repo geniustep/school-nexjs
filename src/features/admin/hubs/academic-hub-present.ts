@@ -13,6 +13,7 @@ const ACADEMIC_HUB_DESC_BY_HREF: Readonly<Record<string, string>> = {
   '/admin/homeworks': 'admin.homeworkListDesc',
   '/admin/resources': 'admin.resourcesListDesc',
   '/admin/timetable': 'admin.timetableDesc',
+  '/admin/teaching-planning': 'admin.teachingPlanningHubDesc',
   '/admin/exams': 'admin.examsListDesc',
   '/admin/exam-results': 'admin.examResultsListDesc',
   '/admin/classes': 'admin.classesListDesc',

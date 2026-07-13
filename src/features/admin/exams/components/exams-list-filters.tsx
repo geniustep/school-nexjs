@@ -6,51 +6,91 @@
  */
 
 import { EXAM_LIST_STATES } from '@/features/admin/exams/utils/exams-list-present';
+import { AcademicContextFilters } from '@/features/academic-context';
+import {
+  EMPTY_ACADEMIC_CONTEXT_SELECTION,
+} from '@/features/academic-context/utils/academic-context-reset';
 import { useT } from '@/features/i18n/locale-context';
+import { useEffect, useState } from 'react';
+import type { AcademicContextSelection } from '@/types/academic-context';
 import type { SchoolClass } from '@/types/class';
 
 export function ExamsListFilters({
   classId,
+  academicYearId,
+  termId,
   stateFilter,
   classes,
   hasActiveFilters,
   onClassIdChange,
+  onAcademicYearIdChange,
+  onTermIdChange,
   onStateFilterChange,
   onReset,
 }: {
   classId: string;
+  academicYearId?: string;
+  termId?: string;
   stateFilter: string;
   classes: SchoolClass[];
   hasActiveFilters: boolean;
   onClassIdChange: (value: string) => void;
+  onAcademicYearIdChange?: (value: string) => void;
+  onTermIdChange?: (value: string) => void;
   onStateFilterChange: (value: string) => void;
   onReset: () => void;
 }) {
   const t = useT();
+  const [selection, setSelection] = useState<AcademicContextSelection>({
+    ...EMPTY_ACADEMIC_CONTEXT_SELECTION,
+    classId,
+    academicYearId: academicYearId ?? '',
+    termId: termId ?? '',
+  });
+
+  useEffect(() => {
+    setSelection((prev) => ({
+      ...prev,
+      classId,
+      academicYearId: academicYearId ?? '',
+      termId: termId ?? '',
+    }));
+  }, [classId, academicYearId, termId]);
 
   const selectedClassLabel = classId
     ? (classes.find((item) => String(item.id) === classId)?.name ?? null)
     : null;
-
   const selectedStateLabel = stateFilter ? t(`states.${stateFilter}`) : null;
 
   return (
     <div className="exams-list-filters">
-      <div className="exams-list-filters__primary">
-        <select
-          className="input exams-list-filters__class"
-          value={classId}
-          onChange={(event) => onClassIdChange(event.target.value)}
-          aria-label={t('nav.classes')}
-        >
-          <option value="">{t('admin.allClasses')}</option>
-          {classes.map((cls) => (
-            <option key={cls.id} value={cls.id}>
-              {cls.name}
-            </option>
-          ))}
-        </select>
+      <AcademicContextFilters
+        scope="exam"
+        layout="compact"
+        selection={selection}
+        onSelectionChange={(next) => {
+          setSelection(next);
+          if (next.classId !== classId) onClassIdChange(next.classId);
+          if (onAcademicYearIdChange && next.academicYearId !== (academicYearId ?? '')) {
+            onAcademicYearIdChange(next.academicYearId);
+          }
+          if (onTermIdChange && next.termId !== (termId ?? '')) {
+            onTermIdChange(next.termId);
+          }
+        }}
+        showAcademicYear
+        showTerm
+        showCycle={false}
+        showLevel={false}
+        showTrack={false}
+        showClass
+        showSubject={false}
+        showTeachingLanguage={false}
+        showOffering={false}
+        showReference={false}
+      />
 
+      <div className="exams-list-filters__primary">
         <select
           className="input exams-list-filters__state"
           value={stateFilter}

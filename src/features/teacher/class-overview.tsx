@@ -220,6 +220,11 @@ export function ClassOverview({ classId }: { classId: number }) {
             icon="📋"
             label={t('actions.exams')}
           />
+          <TeacherQuickChip
+            href="/teacher/teaching-planning/distributions"
+            icon="🗓️"
+            label={t('admin.teachingPlanning.teacher.openDistributions')}
+          />
         </div>
       </TeacherWorkspaceCard>
     </div>

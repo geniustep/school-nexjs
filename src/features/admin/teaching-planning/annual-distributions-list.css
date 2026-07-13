@@ -1,0 +1,268 @@
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
+.annual-distributions-list-page {
+  max-width: min(100%, 1200px);
+  margin-inline: auto;
+  width: 100%;
+}
+
+.annual-distributions-list__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-block-end: 10px;
+  padding: 6px 10px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: var(--radius-sm, 8px);
+  background: var(--c-surface, #fff);
+  color: var(--c-text, #0f172a);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  width: fit-content;
+}
+
+.annual-distributions-list__back:hover {
+  background: var(--c-surface-2, #eef2f8);
+  border-color: color-mix(in srgb, var(--c-primary, #243b6b) 28%, var(--c-border, #e2e8f0));
+  color: var(--c-primary, #243b6b);
+}
+
+.annual-distributions-list__back-icon {
+  display: inline-flex;
+  line-height: 1;
+  font-size: 1rem;
+}
+
+[dir='rtl'] .annual-distributions-list__back-icon {
+  transform: scaleX(-1);
+}
+
+.annual-distributions-list__header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.annual-distributions-list-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.annual-distributions-list-filters__primary {
+  display: grid;
+  grid-template-columns: minmax(220px, 2fr) minmax(130px, 1fr) minmax(130px, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.annual-distributions-list-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.annual-distributions-list-search__icon {
+  position: absolute;
+  inset-inline-start: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--c-text-muted, #64748b);
+  pointer-events: none;
+}
+
+.annual-distributions-list-search__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.annual-distributions-list-search__input {
+  width: 100%;
+  min-width: 0;
+  padding-inline-start: 2.25rem;
+  padding-inline-end: 2rem;
+}
+
+.annual-distributions-list-search__clear {
+  position: absolute;
+  inset-inline-end: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: var(--radius-sm, 8px);
+  background: transparent;
+  color: var(--c-text-muted, #64748b);
+  cursor: pointer;
+  font-size: 1.125rem;
+  line-height: 1;
+}
+
+.annual-distributions-list-search__clear:hover {
+  background: color-mix(in srgb, var(--c-border, #e2e8f0) 60%, transparent);
+  color: var(--c-text, #0f172a);
+}
+
+.annual-distributions-list-filters__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.annual-distributions-list-filters__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid color-mix(in srgb, var(--c-primary, #243b6b) 22%, var(--c-border, #e2e8f0));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--c-primary, #243b6b) 6%, #fff);
+  font-size: 12px;
+  color: var(--c-text, #0f172a);
+}
+
+.annual-distributions-list-filters__chip--action {
+  cursor: pointer;
+  font: inherit;
+}
+
+.annual-distributions-list-filters__chip--action:hover {
+  background: color-mix(in srgb, var(--c-primary, #243b6b) 10%, #fff);
+}
+
+.annual-distributions-list__fetching-hint {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: var(--c-text-muted, #64748b);
+}
+
+.annual-distributions-list__results {
+  min-width: 0;
+}
+
+.annual-distributions-list__results--fetching {
+  opacity: 0.72;
+}
+
+.annual-distributions-list__table {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.annual-distributions-list__identity {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  max-width: 320px;
+}
+
+.annual-distributions-list__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.annual-distributions-list__offering {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  color: var(--c-text-muted, #64748b);
+}
+
+.annual-distributions-list__period {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  max-width: 160px;
+}
+
+.annual-distributions-list__period-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.annual-distributions-list__year {
+  font-size: 12px;
+  color: var(--c-text-muted, #64748b);
+}
+
+.annual-distributions-list__totals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.annual-distributions-list__state {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.annual-distributions-list__row-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.annual-distributions-list__view-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 36px;
+  block-size: 36px;
+  border-radius: var(--radius-sm, 8px);
+  color: var(--c-text-muted, #64748b);
+  text-decoration: none;
+}
+
+.annual-distributions-list__view-link:hover {
+  background: var(--c-surface-2, #eef2f8);
+  color: var(--c-text, #0f172a);
+}
+
+@media (max-width: 1024px) {
+  .annual-distributions-list-filters__primary {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .annual-distributions-list-search {
+    grid-column: 1 / -1;
+  }
+
+  .annual-distributions-list__identity {
+    max-width: 240px;
+  }
+}
+
+@media (max-width: 640px) {
+  .annual-distributions-list-filters__primary {
+    grid-template-columns: 1fr;
+  }
+
+  .annual-distributions-list__identity,
+  .annual-distributions-list__period {
+    max-width: 180px;
+  }
+}

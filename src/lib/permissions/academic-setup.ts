@@ -40,7 +40,7 @@ export function canViewAcademicSetup(user: CurrentUser | null): boolean {
 
 export function canViewAcademicSetupSection(
   user: CurrentUser | null,
-  section: 'classes' | 'subjects' | 'teachers' | 'staff' | 'assignments' | 'overview',
+  section: 'classes' | 'subjects' | 'teachers' | 'staff' | 'assignments' | 'overview' | 'terms',
 ): boolean {
   if (!canViewAcademicSetup(user)) return false;
   switch (section) {
@@ -51,6 +51,8 @@ export function canViewAcademicSetupSection(
       return hasPermission(user, 'view_teachers');
     case 'assignments':
       return hasPermission(user, 'view_classes') && hasPermission(user, 'view_teachers');
+    case 'terms':
+      return hasPermission(user, 'view_classes');
     case 'staff':
     case 'overview':
       return true;

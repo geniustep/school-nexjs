@@ -52,6 +52,7 @@ export async function createTeachingAssignment(payload: {
   weekly_hours?: number;
   role?: string;
   notes?: string;
+  teaching_offering_id?: number;
 }) {
   return api.post<TeachingAssignment>(endpoints.admin.teachingAssignments, payload);
 }
@@ -64,6 +65,7 @@ export async function updateTeachingAssignment(
     role: string;
     notes: string;
     active: boolean;
+    teaching_offering_id: number | null | false;
   }>,
 ) {
   return api.post<TeachingAssignment>(endpoints.admin.teachingAssignmentUpdate(id), payload);

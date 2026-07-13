@@ -12,12 +12,10 @@ import { ResourceView } from '@/components/states/resource';
 import { EmptyState } from '@/components/states/states';
 import { DataTable, Pagination, type Column } from '@/components/tables/data-table';
 import { PageHeader } from '@/components/ui/primitives';
-import { useAcademicYearOptions } from '@/features/admin/finance/use-finance-lookups';
 import { useT } from '@/features/i18n/locale-context';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { endpoints } from '@/lib/api/endpoints';
-import type { ListParams, Ref } from '@/types/api';
-import type { SchoolClass } from '@/types/class';
+import type { ListParams } from '@/types/api';
 import type { GradebookSummary } from '@/types/gradebook';
 import {
   formatCompletionPercent,
@@ -36,13 +34,13 @@ export function GradebooksListPage() {
   const [termId, setTermId] = useState('');
   const [classId, setClassId] = useState('');
   const [subjectId, setSubjectId] = useState('');
+  const [offeringId, setOfferingId] = useState('');
   const [stateFilter, setStateFilter] = useState('');
   const [createOpen, setCreateOpen] = useState(false);
-  const { options: academicYearOptions } = useAcademicYearOptions();
 
   useEffect(() => {
     setPage(1);
-  }, [academicYearId, termId, classId, subjectId, stateFilter]);
+  }, [academicYearId, termId, classId, subjectId, offeringId, stateFilter]);
 
   const hasActiveQuery = gradebooksListHasActiveQuery({
     academicYearId,
@@ -59,20 +57,19 @@ export function GradebooksListPage() {
     term_id: termId || undefined,
     class_id: classId || undefined,
     subject_id: subjectId || undefined,
+    teaching_offering_id: offeringId || undefined,
     state: stateFilter || undefined,
   };
 
   const state = useAdminResource<GradebookSummary[]>(endpoints.admin.gradebooks, params);
-  const classesState = useAdminResource<SchoolClass[]>(endpoints.admin.classes);
-  const subjectsState = useAdminResource<Ref[]>(endpoints.admin.subjects);
   const pg = state.meta?.pagination;
-  const terms = (state.meta?.terms as Ref[] | undefined) ?? [];
 
   const resetFilters = useCallback(() => {
     setAcademicYearId('');
     setTermId('');
     setClassId('');
     setSubjectId('');
+    setOfferingId('');
     setStateFilter('');
     setPage(1);
   }, []);
@@ -182,16 +179,17 @@ export function GradebooksListPage() {
         termId={termId}
         classId={classId}
         subjectId={subjectId}
+        offeringId={offeringId}
         stateFilter={stateFilter}
-        academicYears={academicYearOptions}
-        terms={terms}
-        classes={classesState.data ?? []}
-        subjects={subjectsState.data ?? []}
         hasActiveFilters={hasActiveQuery}
-        onAcademicYearIdChange={setAcademicYearId}
+        onAcademicYearIdChange={(value) => {
+          setAcademicYearId(value);
+          setTermId('');
+        }}
         onTermIdChange={setTermId}
         onClassIdChange={setClassId}
         onSubjectIdChange={setSubjectId}
+        onOfferingIdChange={setOfferingId}
         onStateFilterChange={setStateFilter}
         onReset={resetFilters}
       />

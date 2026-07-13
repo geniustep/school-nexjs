@@ -1,0 +1,38 @@
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * @design-status adopted
+ */
+
+.teacher-assignment-scope {
+  margin-block: 12px;
+  padding: 12px;
+  border: 1px solid var(--c-border, #e5e7eb);
+  border-radius: 8px;
+}
+
+.teacher-assignment-scope__title {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.teacher-assignment-scope__groups {
+  display: grid;
+  gap: 12px;
+  margin-block-start: 10px;
+}
+
+.teacher-assignment-scope__list {
+  margin: 4px 0 0;
+  padding-inline-start: 1.2em;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+}
+
+@media (min-width: 720px) {
+  .teacher-assignment-scope__groups {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

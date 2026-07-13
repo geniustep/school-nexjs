@@ -59,7 +59,8 @@
       "next": "Next",
       "range": "Showing {from}–{to} of {total}",
       "totalRecords": "{total} record(s)"
-    }
+    },
+    "select": "Select…"
   },
   "roles": {
     "admin": "Administrator",
@@ -136,7 +137,8 @@
     "adminScopedFinance": "Finance (scoped)",
     "settings": "Settings",
     "classResults": "Class results",
-    "diagnosticAssessment": "Diagnostic assessment"
+    "diagnosticAssessment": "Diagnostic assessment",
+    "teachingPlanning": "Pedagogical planning"
   },
   "states": {
     "draft": "Draft",
@@ -154,7 +156,8 @@
     "validated": "Validated",
     "locked": "Locked",
     "suspended": "Suspended",
-    "confirmed": "Confirmed"
+    "confirmed": "Confirmed",
+    "approved": "Approved"
   },
   "badges": {
     "current": "Current",
@@ -348,6 +351,135 @@
     "examDate": "Exam date",
     "startTime": "Start time",
     "endTime": "End time"
+  },
+  "academicContext": {
+    "fields": {
+      "academicYear": "Academic year",
+      "cycle": "Cycle",
+      "level": "Level",
+      "track": "Track",
+      "teachingLanguage": "Teaching language",
+      "subject": "Subject",
+      "offering": "Teaching offering",
+      "reference": "Subject reference or textbook",
+      "term": "Term",
+      "class": "Class"
+    },
+    "placeholders": {
+      "academicYear": "Select academic year",
+      "cycle": "Select cycle",
+      "level": "Select level",
+      "track": "Select track",
+      "teachingLanguage": "Select teaching language",
+      "subject": "Select subject",
+      "offering": "Select teaching offering",
+      "offeringRequired": "Select a teaching offering",
+      "reference": "Select reference",
+      "term": "Select term",
+      "class": "Select class"
+    },
+    "hints": {
+      "chooseCycleFirst": "Choose the cycle first",
+      "chooseLevelFirst": "Choose the level first",
+      "chooseLevelOrClassFirst": "Choose a level or class first",
+      "chooseSubjectFirst": "Choose the subject first",
+      "chooseOfferingFirst": "Choose the teaching offering first",
+      "chooseYearFirst": "Choose the academic year first",
+      "noSubjectsForLevel": "No subjects enabled for this level",
+      "ambiguousOfferings": "Several teaching offerings exist for this subject",
+      "legacyMissingOffering": "Legacy assignment without teaching offering — optional until ambiguity requires one."
+    },
+    "language": {
+      "chooseLevelSubjectFirst": "Choose level and subject first",
+      "noneConfigured": "No teaching language is configured for this academic context",
+      "completeOfferingOrReference": "Complete the teaching offering setup or link an approved reference",
+      "derivedFromOffering": "Teaching language is set from the teaching offering: {language}",
+      "openOfferings": "Open offerings",
+      "openReferences": "Open references",
+      "contractIncomplete": "Academic language options are incomplete for this context"
+    },
+    "reference": {
+      "incomplete": "This reference has incomplete context"
+    },
+    "subjectSource": {
+      "level": "From level",
+      "track": "From track",
+      "class": "From class",
+      "offering": "From offering"
+    },
+    "subjectAmbiguous": "Several teaching offerings ({count}) exist for this subject",
+    "terms": {
+      "title": "Terms",
+      "description": "Configure academic terms for the selected year",
+      "code": "Code",
+      "sequence": "Sequence",
+      "dates": "Dates",
+      "state": "State",
+      "active": "Active",
+      "initialize": "Initialize terms",
+      "initializeSubmit": "Create terms",
+      "initializeSuccess": "Terms initialized successfully",
+      "initializeYearReadonly": "Academic year",
+      "datesRequiredExplicit": "Term dates must be set explicitly",
+      "empty": "No terms yet",
+      "emptyManageHint": "Initialize terms for this academic year to continue",
+      "emptyReadonlyHint": "No terms are configured for this academic year",
+      "term1Name": "Term 1 name",
+      "term1Start": "Term 1 start",
+      "term1End": "Term 1 end",
+      "term2Name": "Term 2 name",
+      "term2Start": "Term 2 start",
+      "term2End": "Term 2 end",
+      "preview": "Preview"
+    },
+    "errors": {
+      "academic_context_school_mismatch": "Academic context does not match the active school",
+      "academic_context_year_mismatch": "Academic context does not match the selected year",
+      "academic_context_cycle_level_mismatch": "The selected level does not belong to this cycle",
+      "academic_context_level_track_mismatch": "The selected track does not belong to this level",
+      "academic_context_subject_not_available": "This subject is not available in the current context",
+      "academic_context_offering_required": "A teaching offering is required",
+      "academic_context_offering_ambiguous": "Several teaching offerings match this subject — please select one",
+      "academic_context_offering_mismatch": "The teaching offering does not match the selected context",
+      "academic_context_reference_mismatch": "The reference does not match the selected offering",
+      "academic_year_not_found": "Academic year not found",
+      "academic_year_school_mismatch": "Academic year does not belong to the active school",
+      "term_dates_invalid": "Term dates are invalid",
+      "term_dates_outside_academic_year": "Term dates fall outside the academic year",
+      "term_dates_overlap": "Term dates overlap",
+      "terms_partially_initialized": "Terms are only partially initialized",
+      "terms_configuration_conflict": "Terms configuration conflicts with existing data",
+      "assignment_teaching_offering_mismatch": "The assignment does not match the selected teaching offering",
+      "timetable_teaching_offering_mismatch": "The timetable entry does not match the selected teaching offering",
+      "exam_term_year_mismatch": "The exam term does not match the academic year",
+      "exam_teaching_offering_mismatch": "The exam does not match the selected teaching offering",
+      "gradebook_term_year_mismatch": "The gradebook term does not match the academic year",
+      "gradebook_teaching_offering_mismatch": "The gradebook does not match the selected teaching offering",
+      "teaching_reference_context_incomplete": "The teaching reference context is incomplete",
+      "academic_language_options_incomplete": "Teaching language options are incomplete for this academic context"
+    },
+    "warnings": {},
+    "a11y": {
+      "levelCleared": "Level cleared",
+      "subjectCleared": "Subject cleared",
+      "offeringCleared": "Teaching offering cleared",
+      "termCleared": "Term cleared"
+    },
+    "loading": "Loading academic context…",
+    "refetching": "Updating academic context…",
+    "permissionDenied": "You do not have permission to view academic context",
+    "teacherScope": {
+      "title": "Your assigned academic context",
+      "subtitle": "Subjects, offerings, and references from your teaching assignments only.",
+      "emptyTitle": "No teaching assignments",
+      "emptyDescription": "No subjects or offerings are available for your assignments yet."
+    },
+    "codes": {
+      "academicCode": "Academic code",
+      "levelAlias": "Level short code",
+      "legacyCode": "Legacy code",
+      "recommendedDisplayCode": "Recommended offering code"
+    }
   },
   "timetable": {
     "title": "Timetable",
@@ -711,6 +843,284 @@
           "title": "No assigned campaigns",
           "description": "When a campaign is created for your class and subject it will appear here."
         }
+      }
+    },
+    "jathatha": {
+      "title": "Jathatha",
+      "todaySessions": "Today’s sessions",
+      "weekSessions": "Dated week sessions",
+      "emptyToday": "No sessions today.",
+      "emptyWeek": "No dated sessions this week.",
+      "current": "Current session",
+      "next": "Next session",
+      "notTeachable": "Not teachable",
+      "prepare": "Prepare jathatha",
+      "continue": "Continue preparation",
+      "review": "Review jathatha",
+      "view": "View jathatha",
+      "open": "Open jathatha",
+      "create": "Create jathatha",
+      "createCorrection": "Create correction revision",
+      "markReady": "Mark ready",
+      "resetDraft": "Reset to draft",
+      "void": "Void jathatha",
+      "confirm": "Confirm jathatha",
+      "correction": "Correction",
+      "confirmImmutable": "This revision will be locked for the session and cannot be edited directly after confirmation.",
+      "reasonRequired": "Reason required",
+      "revision": "Revision {number}",
+      "revisions": "Revision history",
+      "editor": "Edit jathatha",
+      "overview": "Overview",
+      "session": "Session",
+      "sessionContext": "Session context",
+      "context": "Resolve jathatha context",
+      "approvedReference": "Approved reference jathatha",
+      "distributionLine": "Distribution line",
+      "sessionTemplate": "Session template",
+      "recommended": "Recommended",
+      "detailLevel": "Detail level",
+      "detail": {
+        "compact": "Compact",
+        "standard": "Standard",
+        "detailed": "Detailed"
+      },
+      "session_objective": "Session objective",
+      "materials": "Materials",
+      "class_adaptation": "Class adaptation",
+      "quick_assessment": "Quick assessment",
+      "fallback_plan": "Fallback plan",
+      "teacher_notes": "Teacher notes",
+      "attachmentsReadOnly": "Attachments follow the current state permissions.",
+      "readiness": "Readiness",
+      "weeklySlotPreview": "Weekly slot — dated session not created",
+      "weeklySlotPreviewDescription": "Weekly slots are timetable previews only — not dated jathatha-ready sessions.",
+      "saveSuccess": "Jathatha saved."
+    },
+    "delivery": {
+      "tab": "Delivery",
+      "title": "Actual Delivery",
+      "open": "Open delivery",
+      "register": "Register delivery",
+      "continue": "Continue delivery",
+      "view": "View delivery",
+      "createDraft": "Create delivery draft",
+      "createCorrection": "Create correction revision",
+      "void": "Void delivery record",
+      "confirm": "Confirm delivery",
+      "correction": "Correction",
+      "saveSuccess": "Delivery saved.",
+      "editor": "Edit delivery",
+      "context": "Resolve delivery context",
+      "contextTitle": "Delivery context",
+      "jathathaSummary": "Jathatha",
+      "plannedLine": "Planned item",
+      "deliveredLine": "Delivered item",
+      "noPlannedLine": "No planned item",
+      "progressSummary": "Progress",
+      "deliveredLineSelect": "Select the delivered item",
+      "lineCompletedWarning": "This item is already marked as completed.",
+      "completionState": "Completion state",
+      "completionPercent": "Completion percentage",
+      "deviationType": "Deviation type",
+      "deviationReason": "Deviation reason",
+      "deviationWarning": "The delivered item differs from the planned item — a deviation reason is required.",
+      "actualStart": "Actual start",
+      "actualEnd": "Actual end",
+      "actualDuration": "Actual duration (min)",
+      "attachmentIds": "Attachment IDs",
+      "immutableNotice": "This revision is locked and cannot be edited.",
+      "confirmEffects": "Confirming will generate a class journal entry and update teaching progress. This cannot be undone directly.",
+      "reasonRequired": "Reason required",
+      "revisions": "Revision history",
+      "effects": "Effects",
+      "viewJournal": "View journal entry",
+      "viewProgress": "View teaching progress",
+      "minutes": "min",
+      "journalAvailable": "Journal entry available",
+      "delivered_title": "Delivered title",
+      "content_summary": "Content summary",
+      "objective_achievement_summary": "Objective achievement",
+      "actual_pages_label": "Pages covered",
+      "assessment_summary": "Assessment summary",
+      "difficulties_observed": "Difficulties observed",
+      "remediation_action": "Remediation action",
+      "next_step": "Next step",
+      "teacher_notes": "Teacher notes",
+      "journal_text": "Journal text",
+      "correctionBanner": "The administration requested a correction for this delivery record.",
+      "reviewedMark": "Reviewed by administration",
+      "confirmTitle": "Confirm delivery",
+      "voidTitle": "Void delivery record",
+      "voidWarning": "Voiding this record is final and will remove its effects on the class journal and teaching progress.",
+      "completionStates": {
+        "completed": "Completed",
+        "partial": "Partial",
+        "not_completed": "Not completed"
+      },
+      "completion": {
+        "completed": "Completed",
+        "partial": "Partial",
+        "not_completed": "Not completed"
+      },
+      "deviation": {
+        "none": "No deviation",
+        "reordered": "Reordered",
+        "support_needed": "Support needed",
+        "assessment_adjustment": "Assessment adjustment",
+        "class_pace": "Class pace",
+        "calendar_disruption": "Calendar disruption",
+        "teacher_decision": "Teacher decision",
+        "other": "Other"
+      },
+      "fields": {
+        "delivered_title": "Delivered title",
+        "content_summary": "Content summary",
+        "objective_achievement_summary": "Objective achievement",
+        "actual_pages_label": "Pages covered",
+        "assessment_summary": "Assessment summary",
+        "difficulties_observed": "Difficulties observed",
+        "remediation_action": "Remediation action",
+        "next_step": "Next step",
+        "teacher_notes": "Teacher notes",
+        "journal_text": "Journal text"
+      },
+      "activities": {
+        "title": "Activities",
+        "add": "Add activity",
+        "empty": "No activities yet.",
+        "moveUp": "Move up",
+        "moveDown": "Move down",
+        "name": "Activity name",
+        "resultState": "Result",
+        "duration": "Duration (min)",
+        "percent": "Completion %",
+        "notes": "Notes",
+        "addedNoSource": "Added without a source activity.",
+        "remove": "Remove"
+      },
+      "activityResults": {
+        "completed": "Completed",
+        "partial": "Partial",
+        "skipped": "Skipped",
+        "added": "Added"
+      },
+      "activityResult": {
+        "completed": "Completed",
+        "partial": "Partial",
+        "skipped": "Skipped",
+        "added": "Added"
+      },
+      "readiness": {
+        "title": "Readiness",
+        "ready": "Ready",
+        "notReady": "Not ready",
+        "flag": {
+          "occurrence_ready": "Session ready",
+          "occurrence_finished": "Session finished",
+          "assignment_ready": "Assignment ready",
+          "offering_ready": "Offering ready",
+          "distribution_ready": "Distribution ready",
+          "delivered_line_ready": "Delivered item ready",
+          "completion_ready": "Completion ready",
+          "content_ready": "Content ready",
+          "duration_valid": "Duration valid",
+          "deviation_ready": "Deviation ready"
+        }
+      },
+      "readinessFlags": {
+        "occurrence_ready": "Session ready",
+        "occurrence_finished": "Session finished",
+        "assignment_ready": "Assignment ready",
+        "offering_ready": "Offering ready",
+        "distribution_ready": "Distribution ready",
+        "delivered_line_ready": "Delivered item ready",
+        "completion_ready": "Completion ready",
+        "content_ready": "Content ready",
+        "duration_valid": "Duration valid",
+        "deviation_ready": "Deviation ready",
+        "ready_for_confirmation": "Ready for confirmation"
+      },
+      "states": {
+        "draft": "Draft",
+        "confirmed": "Confirmed",
+        "corrected": "Corrected",
+        "superseded": "Superseded",
+        "voided": "Voided"
+      },
+      "reviewStates": {
+        "not_reviewed": "Not reviewed",
+        "reviewed": "Reviewed",
+        "correction_requested": "Correction requested"
+      },
+      "errors": {
+        "delivery_occurrence_required": "A session occurrence is required.",
+        "delivery_occurrence_not_teachable": "The session occurrence is not teachable.",
+        "delivery_occurrence_not_started": "The session occurrence has not started yet.",
+        "delivery_occurrence_not_finished": "The session occurrence has not finished yet.",
+        "delivery_assignment_required": "A teaching assignment is required.",
+        "delivery_offering_required": "A teaching offering is required.",
+        "delivery_offering_not_active": "The teaching offering is not active.",
+        "delivery_active_distribution_required": "An active annual distribution is required.",
+        "delivery_delivered_line_required": "A delivered distribution line is required.",
+        "delivery_delivered_line_mismatch": "The delivered line does not belong to the active distribution.",
+        "delivery_completion_invalid": "The completion state or percentage is invalid.",
+        "delivery_content_required": "Delivered content is required.",
+        "delivery_duration_invalid": "The actual duration is invalid.",
+        "delivery_deviation_reason_required": "A deviation reason is required.",
+        "delivery_current_revision_exists": "A current revision already exists for this delivery.",
+        "delivery_revision_conflict": "This revision conflicts with a newer one.",
+        "delivery_immutable": "This delivery record is locked and cannot be edited.",
+        "delivery_correction_reason_required": "A correction reason is required.",
+        "delivery_void_reason_required": "A void reason is required.",
+        "delivery_review_state_invalid": "The review state is invalid.",
+        "delivery_scope_mismatch": "This delivery record is outside your teaching scope."
+      }
+    },
+    "classJournal": {
+      "tab": "Journal",
+      "title": "Class Teaching Journal",
+      "subtitle": "Read-only journal generated from confirmed deliveries",
+      "open": "Open journal entry",
+      "empty": "No journal entries yet.",
+      "distributionLine": "Distribution line",
+      "content": "Content",
+      "sourceDelivery": "Source delivery",
+      "revisionLineage": "Revision lineage",
+      "states": {
+        "current": "Current",
+        "superseded": "Superseded",
+        "voided": "Voided"
+      },
+      "readOnlyNotice": "This journal entry is read-only and generated automatically from a confirmed delivery record."
+    },
+    "teachingProgress": {
+      "tab": "Progress",
+      "title": "Teaching Progress",
+      "subtitle": "Track delivered sessions against the plan",
+      "open": "Open teaching progress",
+      "empty": "No teaching progress lines yet.",
+      "summaryTitle": "Progress summary",
+      "coverage": "Coverage",
+      "plannedLines": "Planned lines",
+      "startedLines": "Started lines",
+      "completedLines": "Completed lines",
+      "delayedLines": "Delayed lines",
+      "classesNeedingAttention": "Classes needing attention",
+      "lastDelivery": "Last delivery",
+      "delayed": "Delayed",
+      "stats": "Statistics",
+      "plannedSessions": "Planned sessions",
+      "delivered": "Delivered",
+      "remaining": "Remaining",
+      "contributingDeliveries": "Contributing deliveries",
+      "plannedDates": "Planned dates",
+      "statuses": {
+        "not_started": "Not started",
+        "in_progress": "In progress",
+        "completed": "Completed",
+        "delayed": "Delayed",
+        "overdelivered": "Overdelivered"
       }
     }
   },
@@ -2377,7 +2787,8 @@
         "subjects": "Subjects & tracks",
         "teachers": "Teachers",
         "staff": "Staff",
-        "assignments": "Teaching assignments"
+        "assignments": "Teaching assignments",
+        "terms": "Terms"
       },
       "cards": {
         "classes": "Levels & classes",
@@ -4162,7 +4573,11 @@
         "chipYear": "Year: {year}",
         "chipLevel": "Level: {level}",
         "chipSource": "Source: {source}",
-        "chipDecision": "School decision: {decision}"
+        "chipDecision": "School decision: {decision}",
+        "track": "Track",
+        "allTracks": "All tracks",
+        "chipTrack": "Track: {track}",
+        "directVisit": "Direct visit"
       },
       "refetching": "Updating results…",
       "noData": {
@@ -4796,7 +5211,9 @@
         "prefillMultiGuardianHint": "One contact guardian is prefilled from admission. You can add more guardians and choose the billing authority in this step.",
         "awaitingMessage": "The school accepted the application, but registration is not completed yet.",
         "convertedAt": "Converted at: {date}",
-        "readyMessage": "The family accepted the offer, and the file is ready to complete student registration."
+        "readyMessage": "The family accepted the offer, and the file is ready to complete student registration.",
+        "convertToStudent": "Convert to student",
+        "convertIncompleteHint": "Student registration will open and missing data can be completed before saving."
       },
       "errors": {
         "notFound": "Admission request not found."
@@ -4927,7 +5344,7 @@
         "initial_follow_up": "Initial follow-up",
         "assessment_ready": "Ready for assessment",
         "assessment_in_progress": "Assessment in progress",
-        "decision_ready": "Awaiting school decision"
+        "decision_ready": "Awaiting admin decision"
       },
       "assessmentProgress": {
         "not_required": "Not required",
@@ -5039,6 +5456,12 @@
         "reviewData": "Review data",
         "openHistory": "View history",
         "readonly": "No action required"
+      },
+      "kanbanColumns": {
+        "new": "New",
+        "initial_follow_up": "Initial follow-up",
+        "assessment": "Assessment",
+        "decision": "Awaiting admin decision"
       }
     },
     "enrollmentIntake": {
@@ -10956,6 +11379,975 @@
         "subtitle": "Diagnostic assessment grid",
         "failed": "Could not load print payload."
       }
-    }
+    },
+    "teachingPlanning": {
+      "hub": {
+        "title": "Pedagogical planning",
+        "subtitle": "Teaching references, offerings, readiness, and assignment links",
+        "offeringsTitle": "Teaching Offerings",
+        "offeringsDesc": "Build and approve subject teaching paths for a school year",
+        "referencesTitle": "Teaching References",
+        "referencesDesc": "Catalog approved books and teacher guides used by offerings",
+        "distributionTitle": "Annual Distribution",
+        "distributionDesc": "Plan the year-long ordered instructional items for an offering",
+        "sequencesTitle": "Didactic Sequences",
+        "sequencesDesc": "Design reusable lesson plans made of session templates",
+        "jathathaTitle": "Reference Jathathas",
+        "jathathaDesc": "Manage reference lesson sheets, activities, phases, and approval lifecycle",
+        "progressTitle": "Teaching Progress",
+        "progressDesc": "Track delivered sessions against the plan",
+        "comingSoon": "Coming later",
+        "manageHint": "You can create and manage references and offerings according to your capabilities.",
+        "viewHint": "You have view access. Lifecycle actions follow Backend allowed_actions.",
+        "referenceJathathaTitle": "Reference Jathathas",
+        "referenceJathathaDesc": "Manage reference lesson sheets, activities, phases, and approval lifecycle",
+        "teacherJathathaReviewTitle": "Teacher Jathatha review",
+        "teacherJathathaReviewDesc": "Review teacher jathathas and request correction without editing their content",
+        "actualDeliveryTitle": "Actual Delivery Review",
+        "actualDeliveryDesc": "Review confirmed delivery records submitted by teachers and request corrections",
+        "classJournalTitle": "Class Teaching Journal",
+        "classJournalDesc": "Read-only generated journal of confirmed classroom sessions",
+        "eyebrow": "Academic operations",
+        "backToAcademic": "Back to academic center",
+        "workflowTitle": "Recommended flow",
+        "openSurface": "Open",
+        "ctaCreateOffering": "New teaching offering",
+        "ctaOpenOfferings": "Open offerings",
+        "ctaOpenDistributions": "Open distributions",
+        "workflow": {
+          "plan": "Plan offerings & year distribution",
+          "jathatha": "Prepare and review lesson sheets",
+          "delivery": "Follow delivery and progress"
+        },
+        "sections": {
+          "featuredTitle": "Start here",
+          "featuredDesc": "The two primary surfaces for building and sequencing teaching paths.",
+          "planTitle": "Planning library",
+          "planDesc": "References, sequences, and supporting planning assets.",
+          "jathathaTitle": "Lesson sheets",
+          "jathathaDesc": "Reference templates and teacher jathatha review.",
+          "deliveryTitle": "Delivery & follow-up",
+          "deliveryDesc": "Confirmed delivery, class journal, and teaching progress."
+        }
+      },
+      "columns": {
+        "name": "Reference",
+        "displayName": "Offering",
+        "academicYear": "Academic year",
+        "level": "Level",
+        "subject": "Subject",
+        "language": "Language",
+        "state": "State",
+        "offeringCount": "Offerings",
+        "readiness": "Readiness",
+        "coverage": "Coverage",
+        "levelAndSubject": "Level / Subject"
+      },
+      "fields": {
+        "name": "Title",
+        "school": "School",
+        "academicYear": "Academic year",
+        "level": "Level",
+        "subject": "Subject",
+        "teachingLanguage": "Teaching language",
+        "teachingLanguageIdPlaceholder": "—",
+        "reference": "Teaching Reference",
+        "publisher": "Publisher",
+        "edition": "Edition",
+        "versionLabel": "Version label",
+        "referenceCode": "Reference code",
+        "isbn": "ISBN",
+        "notes": "Notes",
+        "resetReason": "Reset reason",
+        "effectiveFrom": "Effective from",
+        "effectiveTo": "Effective to",
+        "approvedAt": "Approved at",
+        "archivedAt": "Archived at"
+      },
+      "filters": {
+        "searchPlaceholder": "Search…",
+        "stateAll": "All states",
+        "levelAll": "All levels",
+        "subjectAll": "All subjects",
+        "yearAll": "All years",
+        "languageAll": "All languages",
+        "referenceAll": "No reference",
+        "reset": "Reset filters",
+        "clearSearch": "Clear search",
+        "more": "More filters",
+        "hideMore": "Hide filters",
+        "chipSearch": "Search: {query}",
+        "chipYear": "Year: {year}",
+        "chipState": "Status: {status}",
+        "chipLevel": "Level: {level}",
+        "chipSubject": "Subject: {subject}"
+      },
+      "validation": {
+        "requiredFields": "Please fill all required fields.",
+        "resetReasonRequired": "A reset reason is required."
+      },
+      "blockers": {
+        "annual_distribution_required": "Annual distribution is still required",
+        "identity_incomplete": "Identity incomplete",
+        "teaching_offering_reference_required": "Approved teaching reference required",
+        "teaching_offering_reference_not_approved": "Teaching reference is not approved",
+        "teaching_offering_duplicate": "Another approved offering exists for this scope",
+        "distribution_has_no_lines": "The distribution has no instructional lines yet",
+        "distribution_sequences_unresolved": "Some lines reference unresolved sequences",
+        "distribution_dates_invalid": "Line dates are invalid or out of order",
+        "distribution_not_ready_for_activation": "The distribution is not ready for activation",
+        "distribution_already_active": "Another distribution is already active for this offering",
+        "offering_not_approved": "The teaching offering is not approved yet",
+        "sequence_not_approved": "A referenced didactic sequence is not approved"
+      },
+      "readiness": {
+        "title": "Readiness & activation blockers",
+        "identityReady": "Identity",
+        "referenceReady": "Reference",
+        "assignmentsReady": "Assignments",
+        "distributionReady": "Annual distribution",
+        "readyForApproval": "Ready for approval",
+        "readyForActivation": "Ready for activation",
+        "readyYes": "Ready",
+        "readyNo": "Not ready"
+      },
+      "lifecycle": {
+        "submitForReview": "Submit for review",
+        "approve": "Approve",
+        "resetToDraft": "Reset to draft",
+        "resetToDraftSuccess": "Reset to draft.",
+        "archive": "Archive",
+        "archiveConfirm": "Archive «{name}»?",
+        "delete": "Delete",
+        "deleteConfirm": "Delete draft «{name}»? This cannot be undone.",
+        "duplicate": "Duplicate",
+        "duplicateVersion": "Duplicate version",
+        "submitSuccess": "Submitted for review.",
+        "approveSuccess": "Approved.",
+        "archiveSuccess": "Archived.",
+        "deleteSuccess": "Deleted.",
+        "duplicateSuccess": "Duplicated.",
+        "duplicateVersionSuccess": "Version duplicated.",
+        "submitForReviewSuccess": "Submitted for review."
+      },
+      "references": {
+        "title": "Teaching References",
+        "subtitle": "Pedagogical books and guides linked to offerings",
+        "detailBreadcrumb": "Reference breadcrumb",
+        "backToList": "Back to references",
+        "detailSubtitle": "{level} · {subject}",
+        "createTitle": "Create teaching reference",
+        "editTitle": "Edit teaching reference",
+        "create": {
+          "open": "New reference"
+        },
+        "editSuccess": "Reference saved.",
+        "createSuccess": "Reference created.",
+        "noLanguageOptions": "No teaching language is configured for this academic context. Complete a teaching offering or link an approved reference.",
+        "list": {
+          "noData": {
+            "title": "No teaching references yet",
+            "description": "Create a pedagogical reference to attach to teaching offerings."
+          },
+          "noMatch": {
+            "title": "No matching results",
+            "description": "Try adjusting or resetting filters."
+          }
+        },
+        "subtitleWithCount": "{total} teaching references in your scope",
+        "refetching": "Updating results…"
+      },
+      "offerings": {
+        "title": "Teaching Offerings",
+        "subtitle": "Subject teaching paths, readiness, and assignment links",
+        "detailBreadcrumb": "Offering breadcrumb",
+        "backToList": "Back to offerings",
+        "detailSubtitle": "{year} · {level} · {subject}",
+        "createTitle": "Create teaching offering",
+        "editTitle": "Edit teaching offering",
+        "create": {
+          "open": "New offering"
+        },
+        "editSuccess": "Offering saved.",
+        "createSuccess": "Offering created.",
+        "noLanguageOptions": "No teaching language is configured. Complete the teaching offering setup or link an approved reference.",
+        "distributionRequiredTitle": "Annual distribution still required",
+        "distributionRequiredDesc": "Backend readiness marks distribution_ready=false and blocks activation until an annual distribution is approved and active.",
+        "comingSoonDesc": "Annual Distribution and Didactic Sequence editors are out of scope for this stage.",
+        "activate": "Activate",
+        "activateConfirm": "Activate offering «{name}»? This makes it the active teaching path.",
+        "activateSuccess": "Offering activated.",
+        "activeBadge": "Active",
+        "distributionSectionTitle": "Annual distribution",
+        "openDistributions": "Open distributions",
+        "activeDistribution": "Active distribution",
+        "noActiveDistribution": "No active distribution yet",
+        "distributionCount": "Distributions",
+        "distributionSectionHint": "Approving and activating an annual distribution satisfies distribution readiness. It never creates timetable slots.",
+        "noReferenceTitle": "No reference linked",
+        "noReferenceDesc": "Link an approved Teaching Reference before approval when required by Backend.",
+        "sections": {
+          "overview": "Overview",
+          "reference": "Reference",
+          "assignments": "Linked assignments"
+        },
+        "list": {
+          "noData": {
+            "title": "No teaching offerings yet",
+            "description": "Create a teaching offering for a level, subject, language, and year."
+          },
+          "noMatch": {
+            "title": "No matching results",
+            "description": "Try adjusting or resetting filters."
+          }
+        },
+        "subtitleWithCount": "{total} offerings in your scope",
+        "refetching": "Updating results…",
+        "coverage": {
+          "classes": "classes",
+          "teachers": "teachers"
+        },
+        "dialog": {
+          "identitySection": "Offering identity",
+          "datesSection": "Effective period",
+          "notesSection": "Notes"
+        }
+      },
+      "assignments": {
+        "link": "Link",
+        "unlink": "Unlink",
+        "linkOpen": "Link assignment",
+        "linkTitle": "Link existing assignment",
+        "linkHint": "Uses current teaching-assignments. Does not create a parallel assignment.",
+        "linkSuccess": "Assignment linked.",
+        "unlinkSuccess": "Assignment unlinked.",
+        "unlinkTitle": "Unlink assignment",
+        "unlinkConfirm": "Remove the teaching offering link from this assignment?",
+        "emptyTitle": "No linked assignments",
+        "emptyDesc": "Link compatible class assignments from academic setup without recreating them.",
+        "openAcademicSetup": "Open teaching assignments",
+        "noCandidatesTitle": "No compatible assignments",
+        "noCandidatesDesc": "No active assignment matches this offering scope, or all matching ones are already linked."
+      },
+      "sequences": {
+        "title": "Didactic Sequences",
+        "subtitle": "Lesson and unit plans built from session templates — not a Jathatha",
+        "detailBreadcrumb": "Sequence breadcrumb",
+        "backToList": "Back to sequences",
+        "detailSubtitle": "{level} · {subject}",
+        "createTitle": "Create didactic sequence",
+        "editTitle": "Edit didactic sequence",
+        "editSuccess": "Sequence saved.",
+        "createSuccess": "Sequence created.",
+        "expectedTotalBadge": "{count} expected sessions",
+        "create": {
+          "open": "New sequence"
+        },
+        "columns": {
+          "name": "Sequence",
+          "expectedSessions": "Expected sessions",
+          "templates": "Templates"
+        },
+        "sections": {
+          "overview": "Overview"
+        },
+        "fields": {
+          "unit": "Unit",
+          "lesson": "Lesson",
+          "objectives": "Objectives",
+          "prerequisites": "Prerequisites",
+          "conceptsAndSkills": "Concepts and skills",
+          "pages": "Pages",
+          "completionCriteria": "Completion criteria",
+          "supportActivities": "Support activities"
+        },
+        "validation": {
+          "templateNameRequired": "Each session template needs a name."
+        },
+        "templates": {
+          "title": "Session templates",
+          "hint": "These are planned templates, not scheduled or delivered sessions.",
+          "readHint": "Ordered session templates the teacher expects to run.",
+          "empty": "No session templates yet.",
+          "expectedTotal": "{count} expected sessions",
+          "add": "Add template",
+          "remove": "Remove",
+          "name": "Template name",
+          "sessionType": "Session type",
+          "expectedSessions": "Expected sessions",
+          "objective": "Objective",
+          "pages": "Pages",
+          "active": "Active",
+          "inactive": "Inactive",
+          "completionCriteria": "Completion criteria",
+          "supportNotes": "Support notes",
+          "sessionsShort": "sessions"
+        },
+        "list": {
+          "noData": {
+            "title": "No didactic sequences yet",
+            "description": "Create a lesson plan of session templates to reuse across distributions."
+          },
+          "noMatch": {
+            "title": "No matching results",
+            "description": "Try adjusting or resetting filters."
+          }
+        },
+        "subtitleWithCount": "{total} sequences in your scope",
+        "refetching": "Updating results…"
+      },
+      "sessionTypes": {
+        "construction": "Construction",
+        "practice": "Practice",
+        "consolidation": "Consolidation",
+        "assessment": "Assessment",
+        "support": "Support",
+        "support_impact_assessment": "Support impact assessment",
+        "focused_remediation": "Focused remediation",
+        "enrichment": "Enrichment",
+        "synthesis": "Synthesis",
+        "project": "Project",
+        "experiment": "Experiment",
+        "review": "Review",
+        "other": "Other"
+      },
+      "itemTypes": {
+        "sequence": "Didactic sequence",
+        "assessment": "Assessment",
+        "support": "Support",
+        "synthesis": "Synthesis",
+        "project": "Project",
+        "review": "Review",
+        "other": "Other"
+      },
+      "distributions": {
+        "title": "Annual Distributions",
+        "subtitle": "Year-long ordered instructional plans per offering — not the timetable",
+        "detailBreadcrumb": "Distribution breadcrumb",
+        "backToList": "Back to distributions",
+        "createTitle": "Create annual distribution",
+        "editTitle": "Edit annual distribution",
+        "editSuccess": "Distribution saved.",
+        "activeBadge": "Active",
+        "activate": "Activate",
+        "activateConfirm": "Activate distribution «{name}»? It becomes the offering's active plan.",
+        "activateSuccess": "Distribution activated.",
+        "lineCount": "{count} lines",
+        "sessionCount": "{count} sessions",
+        "linesWord": "lines",
+        "sequencesWord": "sequences",
+        "sessionsWord": "sessions",
+        "create": {
+          "open": "New distribution"
+        },
+        "columns": {
+          "name": "Distribution",
+          "period": "Period",
+          "totals": "Totals"
+        },
+        "fields": {
+          "offering": "Teaching offering",
+          "offeringPlaceholder": "Select an offering",
+          "name": "Name",
+          "namePlaceholder": "Optional — a name is generated when left blank",
+          "periodLabel": "Period label",
+          "dateStart": "Start date",
+          "dateEnd": "End date"
+        },
+        "validation": {
+          "offeringRequired": "Choose a teaching offering."
+        },
+        "tabs": {
+          "overview": "Overview",
+          "lines": "Lines",
+          "timeline": "Timeline",
+          "batch": "Batch",
+          "versions": "Versions"
+        },
+        "readiness": {
+          "hasLines": "Has lines",
+          "sequencesResolved": "Sequences resolved",
+          "datesValid": "Dates valid"
+        },
+        "list": {
+          "noData": {
+            "title": "No annual distributions yet",
+            "description": "Create a distribution for an approved teaching offering."
+          },
+          "noMatch": {
+            "title": "No matching results",
+            "description": "Try adjusting or resetting filters."
+          }
+        },
+        "subtitleWithCount": "{total} distributions in your scope",
+        "refetching": "Updating results…",
+        "dialog": {
+          "identitySection": "Distribution identity",
+          "datesSection": "Period dates",
+          "notesSection": "Notes"
+        }
+      },
+      "lines": {
+        "itemType": "Item type",
+        "sequence": "Sequence",
+        "selectSequence": "Select a sequence",
+        "name": "Name",
+        "periodLabel": "Period label",
+        "sessionCount": "Session count",
+        "dateStart": "Start date",
+        "dateEnd": "End date",
+        "externalReference": "External reference",
+        "notes": "Notes",
+        "add": "Add line",
+        "remove": "Remove",
+        "save": "Save lines",
+        "saveSuccess": "Lines saved.",
+        "emptyTitle": "No lines yet",
+        "emptyDesc": "Add instructional lines or paste them in the Batch tab.",
+        "readOnlyTitle": "Read-only lines",
+        "readOnlyDesc": "You cannot edit lines in the current state or without permission."
+      },
+      "batch": {
+        "title": "Batch paste",
+        "hint": "Paste rows from a spreadsheet, validate against the Backend, then apply. Draft only.",
+        "pasteLabel": "Paste rows (TSV)",
+        "pastePlaceholder": "item_type  name  period  start  end  sessions",
+        "parse": "Parse rows",
+        "mode": "Apply mode",
+        "modes": {
+          "append": "Append",
+          "replace": "Replace",
+          "upsert": "Upsert"
+        },
+        "validate": "Validate",
+        "apply": "Apply",
+        "validTitle": "{count} rows are valid",
+        "invalidTitle": "{count} rows have errors",
+        "rowStatus": "Status",
+        "rowOk": "OK",
+        "rowPending": "Not validated",
+        "applySuccess": "Batch applied.",
+        "appliedWithErrors": "Applied with some errors — review the rows.",
+        "unavailableTitle": "Batch unavailable",
+        "draftOnlyDesc": "Batch editing is only available while the distribution is a draft.",
+        "summaryCreated": "{count} created",
+        "summaryUpdated": "{count} updated",
+        "summarySkipped": "{count} skipped",
+        "summaryErrors": "{count} errors"
+      },
+      "timeline": {
+        "instructionalItem": "Instructional item",
+        "calendarMarker": "Calendar marker",
+        "instructionalBreak": "Instructional break",
+        "marker": "Marker",
+        "emptyTitle": "No timeline entries",
+        "emptyDesc": "Add lines and calendar markers to build the combined timeline."
+      },
+      "reorder": {
+        "moveUp": "Move up",
+        "moveDown": "Move down"
+      },
+      "versions": {
+        "notLatest": "Not the latest version",
+        "isLatest": "Latest version",
+        "activeVersion": "Active version",
+        "replacementVersion": "Replacement version",
+        "supersededBy": "Superseded by"
+      },
+      "teacher": {
+        "distributionsTitle": "Annual distributions",
+        "distributionsSubtitle": "Read-only view of the year-long instructional plans",
+        "distributionsEmptyTitle": "No distributions available",
+        "distributionsEmptyDesc": "Active distributions for your classes will appear here.",
+        "backToDistributions": "Back to distributions",
+        "notActiveTitle": "Not the active plan",
+        "notActiveDesc": "This distribution is not currently active for the offering.",
+        "openDistributions": "Annual distribution"
+      },
+      "errors": {
+        "invalid_row": "Invalid row",
+        "duplicate_order": "Duplicate order value",
+        "unknown_sequence": "Unknown or unresolved sequence",
+        "invalid_date_range": "Invalid date range",
+        "session_count_negative": "Session count cannot be negative",
+        "item_type_invalid": "Unknown item type"
+      },
+      "states": {
+        "draft": "Draft",
+        "under_review": "Under review",
+        "approved": "Approved",
+        "archived": "Archived",
+        "active": "Active"
+      },
+      "jathatha": {
+        "sequence": "Sequence",
+        "template": "Session template",
+        "sessionType": "Session type",
+        "detailLevel": "Detail level",
+        "context": "Session context",
+        "minutes": "min",
+        "correctionRequested": "Correction requested",
+        "approvedBy": "Approved by",
+        "versionHistory": "Version history",
+        "selectReference": "Select reference",
+        "selectSequence": "Select sequence",
+        "selectTemplate": "Select session template (optional)",
+        "detailLevels": {
+          "compact": "Compact",
+          "standard": "Standard",
+          "detailed": "Detailed"
+        },
+        "activityTypes": {
+          "situation": "Situation",
+          "exercise": "Exercise",
+          "discussion": "Discussion",
+          "experiment": "Experiment",
+          "assessment": "Assessment",
+          "support": "Support",
+          "project": "Project",
+          "institutionalization": "Institutionalization",
+          "other": "Other"
+        },
+        "phaseTypes": {
+          "didactic_contract": "Didactic contract",
+          "action": "Action",
+          "formulation": "Formulation",
+          "discussion": "Discussion",
+          "validation": "Validation",
+          "institutionalization": "Institutionalization",
+          "practice": "Practice",
+          "assessment": "Assessment",
+          "support": "Support",
+          "synthesis": "Synthesis",
+          "custom": "Custom"
+        },
+        "referenceStates": {
+          "draft": "Draft",
+          "under_review": "Under review",
+          "approved": "Approved",
+          "archived": "Archived"
+        },
+        "teacherStates": {
+          "draft": "Draft",
+          "ready": "Ready",
+          "confirmed": "Confirmed",
+          "corrected": "Corrected",
+          "superseded": "Superseded",
+          "voided": "Voided"
+        },
+        "reviewStates": {
+          "not_reviewed": "Not reviewed",
+          "reviewed": "Reviewed",
+          "correction_requested": "Correction requested"
+        },
+        "validation": {
+          "requiredContext": "Name, reference, and sequence are required."
+        },
+        "fields": {
+          "external_reference": "External reference",
+          "objectives": "Objectives",
+          "prerequisites": "Prerequisites",
+          "materials_summary": "Materials summary",
+          "pages": "Pages",
+          "quick_assessment_plan": "Quick assessment plan",
+          "fallback_plan": "Fallback plan",
+          "expected_difficulties": "Expected difficulties",
+          "general_guidance": "General guidance",
+          "correction_elements": "Correction elements",
+          "support_activities": "Support activities",
+          "notes": "Notes",
+          "session_objective": "Session objective",
+          "materials": "Materials",
+          "class_adaptation": "Class adaptation",
+          "quick_assessment": "Quick assessment",
+          "teacher_notes": "Teacher notes"
+        },
+        "columns": {
+          "name": "Name",
+          "activities": "Activities / phases",
+          "duration": "Planned duration",
+          "approvedAt": "Approved at",
+          "session": "Session",
+          "teacher": "Teacher",
+          "class": "Class",
+          "offering": "Offering",
+          "distributionLine": "Distribution line",
+          "reviewState": "Review state",
+          "revision": "Revision",
+          "correction": "Correction",
+          "actions": "Actions",
+          "subject": "Subject",
+          "sequence": "Sequence",
+          "template": "Session template"
+        },
+        "list": {
+          "empty": "No jathathas found."
+        },
+        "activities": {
+          "title": "Activities",
+          "add": "Add activity",
+          "empty": "No activities yet.",
+          "expand": "Expand",
+          "collapse": "Collapse",
+          "name": "Activity name",
+          "type": "Activity type",
+          "duration": "Duration (min)",
+          "objective": "Partial objective",
+          "instructions": "Instructions",
+          "materials": "Materials",
+          "source": "Source activity",
+          "moveUp": "Move up",
+          "moveDown": "Move down",
+          "remove": "Remove"
+        },
+        "phases": {
+          "title": "Phases",
+          "add": "Add phase",
+          "type": "Phase type",
+          "instruction": "Instruction",
+          "teacherActivity": "Teacher activity",
+          "durationExceedsActivity": "Phase durations exceed the activity duration."
+        },
+        "readiness": {
+          "title": "Readiness",
+          "ready": "Ready",
+          "notReady": "Not ready",
+          "blockers": "Blockers",
+          "warnings": "Warnings"
+        },
+        "reference": {
+          "create": "Create reference jathatha",
+          "createTitle": "Create reference jathatha",
+          "editTitle": "Edit reference jathatha",
+          "backToList": "Back to reference jathathas"
+        },
+        "review": {
+          "open": "Open review",
+          "all": "All review states",
+          "markReviewed": "Mark reviewed",
+          "requestCorrection": "Request correction",
+          "reasonRequired": "A correction reason is required.",
+          "reasonLabel": "Correction request reason",
+          "readOnlyNotice": "Teacher jathatha content is read-only — admin cannot edit it.",
+          "marked": "Marked as reviewed.",
+          "correctionRequested": "Correction requested.",
+          "backToList": "Back to teacher jathatha review",
+          "title": "Teacher jathatha review"
+        },
+        "lifecycle": {
+          "submit_for_reviewSuccess": "Submitted for review.",
+          "approveSuccess": "Approved.",
+          "duplicate_versionSuccess": "Duplicate version created.",
+          "archiveConfirm": "Archive “{name}”?",
+          "deleteConfirm": "Delete “{name}”?"
+        },
+        "errors": {
+          "unknown": "The operation could not be completed.",
+          "reference_jathatha_duplicate_approved": "Backend error: reference_jathatha_duplicate_approved",
+          "reference_jathatha_context_mismatch": "Backend error: reference_jathatha_context_mismatch",
+          "reference_jathatha_template_required": "Backend error: reference_jathatha_template_required",
+          "reference_jathatha_template_mismatch": "Backend error: reference_jathatha_template_mismatch",
+          "reference_jathatha_immutable": "Backend error: reference_jathatha_immutable",
+          "reference_jathatha_in_use": "Backend error: reference_jathatha_in_use",
+          "jathatha_occurrence_required": "Backend error: jathatha_occurrence_required",
+          "jathatha_occurrence_not_teachable": "Backend error: jathatha_occurrence_not_teachable",
+          "jathatha_assignment_required": "Backend error: jathatha_assignment_required",
+          "jathatha_assignment_ambiguous": "Backend error: jathatha_assignment_ambiguous",
+          "jathatha_offering_required": "Backend error: jathatha_offering_required",
+          "jathatha_offering_not_active": "Backend error: jathatha_offering_not_active",
+          "jathatha_active_distribution_required": "Backend error: jathatha_active_distribution_required",
+          "jathatha_distribution_line_required": "Backend error: jathatha_distribution_line_required",
+          "jathatha_distribution_line_mismatch": "Backend error: jathatha_distribution_line_mismatch",
+          "jathatha_sequence_template_required": "Backend error: jathatha_sequence_template_required",
+          "jathatha_sequence_template_mismatch": "Backend error: jathatha_sequence_template_mismatch",
+          "jathatha_reference_not_approved": "Backend error: jathatha_reference_not_approved",
+          "jathatha_current_revision_exists": "Backend error: jathatha_current_revision_exists",
+          "jathatha_revision_conflict": "Backend error: jathatha_revision_conflict",
+          "jathatha_not_ready": "Backend error: jathatha_not_ready",
+          "jathatha_duration_invalid": "Backend error: jathatha_duration_invalid",
+          "jathatha_duration_exceeds_occurrence": "Backend error: jathatha_duration_exceeds_occurrence",
+          "jathatha_immutable": "Backend error: jathatha_immutable",
+          "jathatha_correction_reason_required": "Backend error: jathatha_correction_reason_required",
+          "jathatha_void_reason_required": "Backend error: jathatha_void_reason_required",
+          "jathatha_review_state_invalid": "Backend error: jathatha_review_state_invalid",
+          "jathatha_scope_mismatch": "Backend error: jathatha_scope_mismatch"
+        },
+        "correctionReason": "Correction reason",
+        "revisions": "Revision history"
+      },
+      "delivery": {
+        "columns": {
+          "session": "Session",
+          "plannedLine": "Planned item",
+          "deliveredLine": "Delivered item",
+          "completion": "Completion",
+          "deviation": "Deviation"
+        },
+        "completionStates": {
+          "completed": "Completed",
+          "partial": "Partial",
+          "not_completed": "Not completed"
+        },
+        "deviationTypes": {
+          "none": "No deviation",
+          "reordered": "Reordered",
+          "support_needed": "Support needed",
+          "assessment_adjustment": "Assessment adjustment",
+          "class_pace": "Class pace",
+          "calendar_disruption": "Calendar disruption",
+          "teacher_decision": "Teacher decision",
+          "other": "Other"
+        },
+        "activityResultStates": {
+          "completed": "Completed",
+          "partial": "Partial",
+          "skipped": "Skipped",
+          "added": "Added"
+        },
+        "filters": {
+          "reviewAll": "All review states",
+          "deviationAll": "All deviation types"
+        },
+        "list": {
+          "empty": "No delivery records found."
+        },
+        "review": {
+          "open": "Review",
+          "title": "Actual delivery review",
+          "backToList": "Back to Actual Delivery Review",
+          "markReviewed": "Mark reviewed",
+          "marked": "Delivery marked as reviewed.",
+          "requestCorrection": "Request correction",
+          "correctionRequested": "Correction requested.",
+          "reasonRequired": "A correction reason is required."
+        },
+        "context": {
+          "title": "Context"
+        },
+        "comparison": {
+          "title": "Planned vs delivered",
+          "planned": "Planned",
+          "delivered": "Delivered"
+        },
+        "content": {
+          "title": "Delivered content"
+        },
+        "fields": {
+          "contentSummary": "Content summary",
+          "objectiveAchievementSummary": "Objective achievement",
+          "actualPagesLabel": "Pages covered",
+          "assessmentSummary": "Assessment summary",
+          "difficultiesObserved": "Difficulties observed",
+          "remediationAction": "Remediation action",
+          "nextStep": "Next step",
+          "teacherNotes": "Teacher notes",
+          "journalText": "Journal text",
+          "correctionReason": "Correction reason",
+          "voidReason": "Void reason",
+          "plannedSessions": "Planned sessions",
+          "plannedWindow": "Planned window",
+          "actualDuration": "Actual duration (min)",
+          "coveragePercent": "Coverage",
+          "deliveredUnits": "Delivered units",
+          "remainingUnits": "Remaining units"
+        },
+        "activities": {
+          "title": "Activities",
+          "empty": "No activities recorded."
+        },
+        "revisions": {
+          "title": "Revision history",
+          "correction": "Correction"
+        },
+        "journal": {
+          "title": "Class journal entry",
+          "linked": "Open linked journal entry",
+          "none": "No journal entry generated yet."
+        },
+        "progressImpact": {
+          "title": "Progress impact"
+        }
+      },
+      "classJournal": {
+        "states": {
+          "current": "Current",
+          "superseded": "Superseded",
+          "voided": "Voided"
+        },
+        "list": {
+          "empty": "No journal entries found."
+        },
+        "backToList": "Back to Class Teaching Journal",
+        "detailTitle": "Class journal entry",
+        "content": {
+          "title": "Journal content"
+        },
+        "source": {
+          "title": "Source delivery",
+          "open": "Open source delivery"
+        },
+        "supersedes": "View superseded entry",
+        "fingerprint": "Fingerprint"
+      },
+      "progress": {
+        "subtitle": "Track delivered sessions against the plan",
+        "backToList": "Back to Teaching Progress",
+        "detailTitle": "Teaching progress line",
+        "columns": {
+          "item": "Item",
+          "coverage": "Coverage",
+          "delivered": "Delivered",
+          "status": "Status",
+          "delayed": "Delayed"
+        },
+        "statuses": {
+          "not_started": "Not started",
+          "in_progress": "In progress",
+          "completed": "Completed",
+          "delayed": "Delayed",
+          "overdelivered": "Overdelivered"
+        },
+        "delayed": "Delayed",
+        "filters": {
+          "statusAll": "All statuses"
+        },
+        "stats": {
+          "coverage": "Coverage",
+          "planned": "Planned lines",
+          "started": "Started lines",
+          "completed": "Completed lines",
+          "delayed": "Delayed lines"
+        },
+        "attention": {
+          "title": "Classes needing attention"
+        },
+        "lastDelivery": {
+          "title": "Last delivery"
+        },
+        "list": {
+          "empty": "No teaching progress lines found."
+        },
+        "fields": {
+          "remainingUnits": "Remaining units"
+        },
+        "contributingDeliveries": {
+          "title": "Contributing deliveries",
+          "empty": "No contributing deliveries recorded."
+        },
+        "plannedDates": {
+          "title": "Planned dates"
+        }
+      },
+      "backToHub": "Back to pedagogical planning",
+      "print": {
+        "action": "Print",
+        "actionAllFiltered": "Print all filtered",
+        "actionCurrentPage": "Print current page",
+        "preview": "Print preview",
+        "back": "Back",
+        "documentStatus": "Document status",
+        "draftWatermark": "DRAFT",
+        "generatedOn": "Generated on",
+        "printedBy": "Printed by",
+        "revision": "Revision",
+        "signatureReview": "Signature / review",
+        "pageFooter": "A4 printable document",
+        "brandingUnavailable": "School name unavailable",
+        "error": "Print error",
+        "noData": "No printable data",
+        "appliedFilters": "Applied filters",
+        "noFilters": "No extra filters applied",
+        "scope": "Print scope",
+        "scopeCurrentPage": "Current page",
+        "scopeAllFiltered": "All filtered records",
+        "tooManyRecords": "Too many records ({total}). Showing the first {max} only.",
+        "narrowFilters": "Narrow the date range or filters and try again.",
+        "plannedWindow": "Planned window",
+        "expectedDuration": "Expected duration (min)",
+        "actualDuration": "Actual duration (min)",
+        "ungroupedPeriod": "Without period label",
+        "activities": "Activities",
+        "phase": "Phase",
+        "duration": "Duration (min)",
+        "teacherActivity": "Teacher activity",
+        "learnerActivity": "Learner activity",
+        "revisionHistory": "Revision history",
+        "correctionReason": "Correction reason",
+        "sourceReferenceJathatha": "Source reference jathatha",
+        "plannedVsDelivered": "Planned vs delivered",
+        "planned": "Planned",
+        "delivered": "Delivered",
+        "deviation": "Deviation",
+        "resultState": "Result",
+        "progressLines": "Progress lines",
+        "readiness": {
+          "title": "Readiness",
+          "ready": "Ready",
+          "notReady": "Not ready",
+          "hasLines": "Has lines",
+          "sequencesResolved": "Sequences resolved",
+          "datesValid": "Dates valid",
+          "readyForApproval": "Ready for approval",
+          "readyForActivation": "Ready for activation"
+        },
+        "documents": {
+          "annualDistribution": "Annual Distribution",
+          "referenceJathatha": "Reference Jathatha",
+          "teacherJathatha": "Teacher Jathatha",
+          "actualDelivery": "Actual Delivery",
+          "classJournal": "Class Teaching Journal",
+          "classJournalReport": "Class Teaching Journal report",
+          "teachingProgress": "Teaching Progress",
+          "teachingProgressReport": "Teaching Progress summary report"
+        },
+        "documentStates": {
+          "draft": "Draft",
+          "ready": "Ready",
+          "confirmed": "Confirmed",
+          "corrected": "Corrected",
+          "superseded": "Superseded",
+          "voided": "Voided",
+          "reviewed": "Reviewed",
+          "correction_requested": "Correction requested",
+          "approved": "Approved",
+          "archived": "Archived",
+          "under_review": "Under review",
+          "active": "Active",
+          "current": "Current"
+        },
+        "fields": {
+          "track": "Track",
+          "objectives": "Objectives",
+          "prerequisites": "Prerequisites",
+          "materials_summary": "Resources",
+          "pages": "Pages",
+          "quick_assessment_plan": "Assessment",
+          "fallback_plan": "Differentiation / support",
+          "expected_difficulties": "Expected difficulties",
+          "support_activities": "Support activities",
+          "general_guidance": "Guidance",
+          "notes": "Notes",
+          "session_objective": "Objectives",
+          "materials": "Resources",
+          "class_adaptation": "Differentiation / support",
+          "quick_assessment": "Assessment",
+          "teacher_notes": "Notes",
+          "content_summary": "Content summary",
+          "objective_achievement_summary": "Objective achievement",
+          "actual_pages_label": "Pages",
+          "assessment_summary": "Assessment",
+          "difficulties_observed": "Difficulties",
+          "remediation_action": "Remediation",
+          "next_step": "Next step",
+          "journal_text": "Journal text",
+          "correction_reason": "Correction reason",
+          "void_reason": "Void reason",
+          "delivered_title": "Delivered title",
+          "deviation_reason": "Deviation reason"
+        }
+      }
+    },
+    "teachingPlanningHubDesc": "Pedagogical references, teaching offerings, and readiness",
+    "noActiveSchoolDesc": "Select an active school to continue."
   }
 }

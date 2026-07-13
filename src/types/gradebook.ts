@@ -143,6 +143,7 @@ export interface CreateGradebookPayload {
   subject_id: number;
   scheme_id: number;
   teacher_id?: number;
+  teaching_offering_id?: number | null;
 }
 
 export interface BatchEntryUpdateItem {

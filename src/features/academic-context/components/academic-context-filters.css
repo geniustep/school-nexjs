@@ -1,0 +1,97 @@
+/* Local Academic Context filter layout — does not restyle global form controls. */
+
+.academic-context-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.academic-context-filters__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 0.75rem 1rem;
+}
+
+.academic-context-filters--compact .academic-context-filters__grid {
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.5rem 0.75rem;
+}
+
+.academic-context-filters__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.academic-context-filters__label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.academic-context-filters__required {
+  margin-inline-start: 0.25rem;
+  color: var(--color-danger, #b42318);
+}
+
+.academic-context-filters__select {
+  width: 100%;
+  max-width: 100%;
+}
+
+.academic-context-filters__hint,
+.academic-context-filters__refetch,
+.academic-context-filters__loading {
+  margin: 0;
+  font-size: 0.75rem;
+  opacity: 0.85;
+}
+
+.academic-context-filters__error,
+.academic-context-filters__warning {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--color-danger, #b42318);
+}
+
+.academic-context-filters__readonly {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-subtle, rgba(0, 0, 0, 0.12));
+  border-radius: 0.375rem;
+  background: var(--surface-muted, rgba(0, 0, 0, 0.03));
+}
+
+.academic-context-filters__data-quality {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px dashed var(--border-subtle, rgba(0, 0, 0, 0.18));
+  border-radius: 0.375rem;
+}
+
+.academic-context-filters__cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.academic-context-filters__warnings {
+  margin: 0;
+  padding-inline-start: 1.1rem;
+  font-size: 0.75rem;
+}
+
+.academic-context-filters--denied,
+.academic-context-filters--contract {
+  padding: 0.75rem 1rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--border-subtle, rgba(0, 0, 0, 0.12));
+}
+
+@media (max-width: 640px) {
+  .academic-context-filters__grid {
+    grid-template-columns: 1fr;
+  }
+}

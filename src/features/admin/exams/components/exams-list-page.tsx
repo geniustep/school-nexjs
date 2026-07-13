@@ -48,19 +48,23 @@ export function ExamsListPage() {
 
   const [page, setPage] = useState(1);
   const [classId, setClassId] = useState(() => readInitialClassId(searchParams));
+  const [academicYearId, setAcademicYearId] = useState('');
+  const [termId, setTermId] = useState('');
   const [stateFilter, setStateFilter] = useState('');
 
   useEffect(() => {
     setPage(1);
-  }, [classId, stateFilter]);
+  }, [classId, academicYearId, termId, stateFilter]);
 
-  const hasActiveQuery = examsListHasActiveQuery({ classId, stateFilter });
+  const hasActiveQuery = examsListHasActiveQuery({ classId, stateFilter }) || Boolean(academicYearId || termId);
   const hasActiveFilters = hasActiveQuery;
 
   const params: ListParams = {
     page,
     page_size: EXAMS_PAGE_SIZE,
     class_id: classId || undefined,
+    academic_year_id: academicYearId || undefined,
+    term_id: termId || undefined,
     state: stateFilter || undefined,
   };
 
@@ -78,6 +82,8 @@ export function ExamsListPage() {
 
   const resetFilters = useCallback(() => {
     setClassId('');
+    setAcademicYearId('');
+    setTermId('');
     setStateFilter('');
     setPage(1);
   }, []);
@@ -139,6 +145,18 @@ export function ExamsListPage() {
         header: t('academic.subject'),
         render: (e) => {
           const label = e.subject?.name ?? t('common.dash');
+          return (
+            <span className="exams-list__cell" dir="auto" title={label}>
+              {label}
+            </span>
+          );
+        },
+      },
+      {
+        key: 'term',
+        header: t('academicContext.fields.term'),
+        render: (e) => {
+          const label = e.term?.name ?? t('common.dash');
           return (
             <span className="exams-list__cell" dir="auto" title={label}>
               {label}
@@ -248,10 +266,17 @@ export function ExamsListPage() {
 
       <ExamsListFilters
         classId={classId}
+        academicYearId={academicYearId}
+        termId={termId}
         stateFilter={stateFilter}
         classes={classesState.data ?? []}
         hasActiveFilters={hasActiveFilters}
         onClassIdChange={setClassId}
+        onAcademicYearIdChange={(value) => {
+          setAcademicYearId(value);
+          setTermId('');
+        }}
+        onTermIdChange={setTermId}
         onStateFilterChange={setStateFilter}
         onReset={resetFilters}
       />

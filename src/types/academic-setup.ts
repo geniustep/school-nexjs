@@ -36,6 +36,8 @@ export interface TeachingAssignment {
   active: boolean;
   warnings?: ApiWarning[];
   notes?: string | null;
+  teaching_offering_id?: number | null;
+  teaching_offering?: { id: number; display_name: string; state: string } | null;
 }
 
 export type AssignmentSuggestionLabel =

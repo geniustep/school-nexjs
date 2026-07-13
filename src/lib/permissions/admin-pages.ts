@@ -2,6 +2,7 @@ import { hasAnyPermission, hasPermission } from '@/lib/permissions/permissions';
 import type { CurrentUser } from '@/types/user';
 import { FINANCE_VIEW, FINANCE_VIEW_CASH_SESSIONS, FINANCE_VIEW_CHEQUES } from '@/lib/permissions/finance';
 import { ADMISSION_VIEW } from '@/lib/permissions/admission';
+import { canViewTeachingPlanning } from '@/lib/permissions/teaching-planning';
 import type { Permission } from '@/types/permissions';
 
 /** Any one of these grants access to `/admin/academic` (hub, not a single view_*). */
@@ -20,7 +21,9 @@ export function isAdminAcademicPath(pathname: string): boolean {
 }
 
 export function canAccessAdminAcademic(user: CurrentUser | null): boolean {
-  return hasAnyPermission(user, [...ADMIN_ACADEMIC_HUB_PERMISSIONS]);
+  return (
+    hasAnyPermission(user, [...ADMIN_ACADEMIC_HUB_PERMISSIONS]) || canViewTeachingPlanning(user)
+  );
 }
 
 export type AdminAcademicHubLink = {
@@ -31,12 +34,13 @@ export type AdminAcademicHubLink = {
     | 'nav.resources'
     | 'nav.timetable'
     | 'nav.academicCalendars'
+    | 'nav.teachingPlanning'
     | 'nav.exams'
     | 'nav.results'
     | 'nav.classes'
     | 'nav.levels'
     | 'nav.subjects';
-  permission: Permission;
+  permission: Permission | null;
 };
 
 export const ADMIN_ACADEMIC_HUB_LINKS: readonly AdminAcademicHubLink[] = [
@@ -48,6 +52,12 @@ export const ADMIN_ACADEMIC_HUB_LINKS: readonly AdminAcademicHubLink[] = [
     icon: '🗓️',
     labelKey: 'nav.academicCalendars',
     permission: 'view_timetable',
+  },
+  {
+    href: '/admin/teaching-planning',
+    icon: '📘',
+    labelKey: 'nav.teachingPlanning',
+    permission: null,
   },
   { href: '/admin/exams', icon: '📋', labelKey: 'nav.exams', permission: 'view_exams' },
   {
@@ -63,7 +73,10 @@ export const ADMIN_ACADEMIC_HUB_LINKS: readonly AdminAcademicHubLink[] = [
 
 export function adminAcademicHubLinksForUser(user: CurrentUser | null): AdminAcademicHubLink[] {
   if (!user) return [];
-  return ADMIN_ACADEMIC_HUB_LINKS.filter((link) => hasPermission(user, link.permission));
+  return ADMIN_ACADEMIC_HUB_LINKS.filter((link) => {
+    if (link.href === '/admin/teaching-planning') return canViewTeachingPlanning(user);
+    return link.permission != null && hasPermission(user, link.permission);
+  });
 }
 
 export const ADMIN_PAGE_PERMISSION: Record<string, Permission> = {

@@ -59,7 +59,8 @@
       "next": "التالي",
       "range": "عرض {from}–{to} من أصل {total}",
       "totalRecords": "{total} سجل"
-    }
+    },
+    "select": "اختر…"
   },
   "roles": {
     "admin": "مدير",
@@ -136,7 +137,8 @@
     "financeSection": "المالية",
     "adminScopedFinance": "المالية (نطاق محدود)",
     "settings": "الإعدادات",
-    "classResults": "نتائج الأقسام"
+    "classResults": "نتائج الأقسام",
+    "teachingPlanning": "التخطيط البيداغوجي"
   },
   "states": {
     "draft": "مسودة",
@@ -154,7 +156,8 @@
     "open": "مفتوح",
     "validated": "معتمد",
     "locked": "مقفل",
-    "suspended": "موقوف"
+    "suspended": "موقوف",
+    "approved": "معتمد"
   },
   "badges": {
     "current": "الحالية",
@@ -348,6 +351,135 @@
     "examDate": "تاريخ الامتحان",
     "startTime": "وقت البداية",
     "endTime": "وقت النهاية"
+  },
+  "academicContext": {
+    "fields": {
+      "academicYear": "السنة الدراسية",
+      "cycle": "السلك",
+      "level": "المستوى",
+      "track": "المسلك",
+      "teachingLanguage": "لغة التدريس",
+      "subject": "المادة",
+      "offering": "العرض التعليمي",
+      "reference": "المرجع أو كتاب المادة",
+      "term": "الدورة",
+      "class": "القسم"
+    },
+    "placeholders": {
+      "academicYear": "اختر السنة الدراسية",
+      "cycle": "اختر السلك",
+      "level": "اختر المستوى",
+      "track": "اختر المسلك",
+      "teachingLanguage": "اختر لغة التدريس",
+      "subject": "اختر المادة",
+      "offering": "اختر العرض التعليمي",
+      "offeringRequired": "اختر العرض التعليمي",
+      "reference": "اختر المرجع",
+      "term": "اختر الدورة",
+      "class": "اختر القسم"
+    },
+    "hints": {
+      "chooseCycleFirst": "اختر السلك أولًا",
+      "chooseLevelFirst": "اختر المستوى أولًا",
+      "chooseLevelOrClassFirst": "اختر المستوى أو القسم أولًا",
+      "chooseSubjectFirst": "اختر المادة أولًا",
+      "chooseOfferingFirst": "اختر العرض التعليمي أولًا",
+      "chooseYearFirst": "اختر السنة الدراسية أولًا",
+      "noSubjectsForLevel": "لا توجد مواد مفعّلة لهذا المستوى",
+      "ambiguousOfferings": "توجد عدة عروض تعليمية لهذه المادة",
+      "legacyMissingOffering": "إسناد قديم بلا عرض تعليمي — اختياري ما لم يتطلب الالتباس اختيارًا."
+    },
+    "language": {
+      "chooseLevelSubjectFirst": "اختر المستوى والمادة أولًا",
+      "noneConfigured": "لا توجد لغة تدريس مهيأة لهذا السياق الأكاديمي",
+      "completeOfferingOrReference": "أكمل إعداد العرض التعليمي أو اربط مرجعًا معتمدًا",
+      "derivedFromOffering": "لغة التدريس محددة من العرض التعليمي: {language}",
+      "openOfferings": "فتح العروض التعليمية",
+      "openReferences": "فتح المراجع",
+      "contractIncomplete": "خيارات لغة التدريس غير مكتملة لهذا السياق"
+    },
+    "reference": {
+      "incomplete": "هذا المرجع غير مكتمل السياق"
+    },
+    "subjectSource": {
+      "level": "من المستوى",
+      "track": "من المسلك",
+      "class": "من القسم",
+      "offering": "من العرض التعليمي"
+    },
+    "subjectAmbiguous": "توجد عدة عروض تعليمية ({count}) لهذه المادة",
+    "terms": {
+      "title": "الدورات",
+      "description": "تهيئة الدورات الدراسية للسنة المحددة",
+      "code": "الرمز",
+      "sequence": "الترتيب",
+      "dates": "التواريخ",
+      "state": "الحالة",
+      "active": "نشط",
+      "initialize": "تهيئة الدورات",
+      "initializeSubmit": "إنشاء الدورات",
+      "initializeSuccess": "تمت تهيئة الدورات بنجاح",
+      "initializeYearReadonly": "السنة الدراسية",
+      "datesRequiredExplicit": "تواريخ الدورات يجب أن تُحدد صراحة",
+      "empty": "لا توجد دورات بعد",
+      "emptyManageHint": "قم بتهيئة الدورات لهذه السنة الدراسية للمتابعة",
+      "emptyReadonlyHint": "لا توجد دورات مهيأة لهذه السنة الدراسية",
+      "term1Name": "اسم الدورة 1",
+      "term1Start": "بداية الدورة 1",
+      "term1End": "نهاية الدورة 1",
+      "term2Name": "اسم الدورة 2",
+      "term2Start": "بداية الدورة 2",
+      "term2End": "نهاية الدورة 2",
+      "preview": "معاينة"
+    },
+    "errors": {
+      "academic_context_school_mismatch": "السياق الأكاديمي لا يطابق المدرسة النشطة",
+      "academic_context_year_mismatch": "السياق الأكاديمي لا يطابق السنة المحددة",
+      "academic_context_cycle_level_mismatch": "المستوى المحدد لا ينتمي إلى هذا السلك",
+      "academic_context_level_track_mismatch": "المسلك المحدد لا ينتمي إلى هذا المستوى",
+      "academic_context_subject_not_available": "هذه المادة غير متاحة في السياق الحالي",
+      "academic_context_offering_required": "العرض التعليمي مطلوب",
+      "academic_context_offering_ambiguous": "توجد عدة عروض تعليمية لهذه المادة — يُرجى اختيار واحد",
+      "academic_context_offering_mismatch": "العرض التعليمي لا يطابق السياق المحدد",
+      "academic_context_reference_mismatch": "المرجع لا يطابق العرض التعليمي المحدد",
+      "academic_year_not_found": "السنة الدراسية غير موجودة",
+      "academic_year_school_mismatch": "السنة الدراسية لا تنتمي إلى المدرسة النشطة",
+      "term_dates_invalid": "تواريخ الدورة غير صالحة",
+      "term_dates_outside_academic_year": "تواريخ الدورة خارج السنة الدراسية",
+      "term_dates_overlap": "تواريخ الدورات متداخلة",
+      "terms_partially_initialized": "الدورات مهيأة جزئيًا فقط",
+      "terms_configuration_conflict": "تعارض في تهيئة الدورات مع البيانات الحالية",
+      "assignment_teaching_offering_mismatch": "التوزيع لا يطابق العرض التعليمي المحدد",
+      "timetable_teaching_offering_mismatch": "الحصة في الجدول لا تطابق العرض التعليمي المحدد",
+      "exam_term_year_mismatch": "دورة الامتحان لا تطابق السنة الدراسية",
+      "exam_teaching_offering_mismatch": "الامتحان لا يطابق العرض التعليمي المحدد",
+      "gradebook_term_year_mismatch": "دورة دفتر العلامات لا تطابق السنة الدراسية",
+      "gradebook_teaching_offering_mismatch": "دفتر العلامات لا يطابق العرض التعليمي المحدد",
+      "teaching_reference_context_incomplete": "سياق المرجع التعليمي غير مكتمل",
+      "academic_language_options_incomplete": "خيارات لغة التدريس غير مكتملة لهذا السياق الأكاديمي"
+    },
+    "warnings": {},
+    "a11y": {
+      "levelCleared": "تم مسح المستوى",
+      "subjectCleared": "تم مسح المادة",
+      "offeringCleared": "تم مسح العرض التعليمي",
+      "termCleared": "تم مسح الدورة"
+    },
+    "loading": "جاري تحميل السياق الأكاديمي…",
+    "refetching": "جاري تحديث السياق الأكاديمي…",
+    "permissionDenied": "ليس لديك صلاحية عرض السياق الأكاديمي",
+    "teacherScope": {
+      "title": "سياقك الأكاديمي المسند",
+      "subtitle": "المواد والعروض والمراجع من إسناداتك التدريسية فقط.",
+      "emptyTitle": "لا توجد إسنادات تدريسية",
+      "emptyDescription": "لا تتوفر مواد أو عروض ضمن إسناداتك بعد."
+    },
+    "codes": {
+      "academicCode": "رمز أكاديمي",
+      "levelAlias": "اختصار المستوى",
+      "legacyCode": "رمز قديم",
+      "recommendedDisplayCode": "الرمز المقترح للعرض"
+    }
   },
   "timetable": {
     "title": "استعمال الزمن",
@@ -711,6 +843,284 @@
           "title": "لا توجد حملات مسندة",
           "description": "عندما تُنشأ حملة لقسمك ومادتك ستظهر هنا."
         }
+      }
+    },
+    "jathatha": {
+      "title": "الجذاذة",
+      "todaySessions": "حصص اليوم",
+      "weekSessions": "حصص الأسبوع المؤرخة",
+      "emptyToday": "لا حصص اليوم.",
+      "emptyWeek": "لا حصص مؤرخة لهذا الأسبوع.",
+      "current": "الحصة الحالية",
+      "next": "الحصة التالية",
+      "notTeachable": "غير قابلة للتدريس",
+      "prepare": "إعداد الجذاذة",
+      "continue": "متابعة الإعداد",
+      "review": "مراجعة الجذاذة",
+      "view": "عرض الجذاذة",
+      "open": "فتح الجذاذة",
+      "create": "إنشاء الجذاذة",
+      "createCorrection": "إنشاء نسخة تصحيح",
+      "markReady": "إعلان الجاهزية",
+      "resetDraft": "إعادة إلى مسودة",
+      "void": "إلغاء الجذاذة",
+      "confirm": "تأكيد الجذاذة",
+      "correction": "نسخة تصحيح",
+      "confirmImmutable": "سيتم تثبيت هذه النسخة للحصة ولن يمكن تعديلها مباشرة بعد التأكيد.",
+      "reasonRequired": "السبب مطلوب",
+      "revision": "المراجعة {number}",
+      "revisions": "سجل المراجعات",
+      "editor": "تحرير الجذاذة",
+      "overview": "نظرة عامة",
+      "session": "الحصة",
+      "sessionContext": "سياق الحصة",
+      "context": "حل سياق الجذاذة",
+      "approvedReference": "الجذاذة المرجعية المعتمدة",
+      "distributionLine": "عنصر التوزيع",
+      "sessionTemplate": "قالب الحصة",
+      "recommended": "موصى به",
+      "detailLevel": "مستوى التفاصيل",
+      "detail": {
+        "compact": "مختصر",
+        "standard": "قياسي",
+        "detailed": "تفصيلي"
+      },
+      "session_objective": "هدف الحصة",
+      "materials": "المواد والوسائل",
+      "class_adaptation": "تكييف القسم",
+      "quick_assessment": "تقويم سريع",
+      "fallback_plan": "خطة بديلة",
+      "teacher_notes": "ملاحظات الأستاذ",
+      "attachmentsReadOnly": "المرفقات تُدار وفق صلاحيات الحالة الحالية.",
+      "readiness": "الجاهزية",
+      "weeklySlotPreview": "خانة أسبوعية — لم تُنشأ الحصة المؤرخة",
+      "weeklySlotPreviewDescription": "الخانة الأسبوعية معاينة للجدول فقط وليست حصة مؤرخة جاهزة للجذاذة.",
+      "saveSuccess": "تم حفظ الجذاذة."
+    },
+    "delivery": {
+      "tab": "التنفيذ",
+      "title": "التنفيذ الفعلي",
+      "open": "فتح سجل التنفيذ",
+      "register": "تسجيل التنفيذ",
+      "continue": "متابعة التنفيذ",
+      "view": "عرض التنفيذ",
+      "createDraft": "إنشاء مسودة تنفيذ",
+      "createCorrection": "إنشاء نسخة تصحيح",
+      "void": "إبطال سجل التنفيذ",
+      "confirm": "تأكيد التنفيذ",
+      "correction": "تصحيح",
+      "saveSuccess": "تم حفظ التنفيذ.",
+      "editor": "تحرير التنفيذ",
+      "context": "تحديد سياق التنفيذ",
+      "contextTitle": "سياق التنفيذ",
+      "jathathaSummary": "الجذاذة",
+      "plannedLine": "العنصر المخطط",
+      "deliveredLine": "العنصر المنفذ فعليًا",
+      "noPlannedLine": "لا يوجد عنصر مخطط",
+      "progressSummary": "التقدم",
+      "deliveredLineSelect": "اختر العنصر المنفذ فعليًا من العناصر المتبقية",
+      "lineCompletedWarning": "هذا العنصر مُعلَّم كمكتمل مسبقًا.",
+      "completionState": "حالة الإتمام",
+      "completionPercent": "نسبة الإنجاز",
+      "deviationType": "نوع الانحراف عن التخطيط",
+      "deviationReason": "سبب الانحراف",
+      "deviationWarning": "العنصر المنفذ فعليًا يختلف عن العنصر المخطط — يلزم تحديد سبب الانحراف عن التخطيط.",
+      "actualStart": "البداية الفعلية",
+      "actualEnd": "النهاية الفعلية",
+      "actualDuration": "المدة الفعلية (دقيقة)",
+      "attachmentIds": "معرّفات المرفقات",
+      "immutableNotice": "هذه النسخة مقفلة ولا يمكن تعديلها.",
+      "confirmEffects": "سيؤدي التأكيد إلى إنشاء قيد دفتر القسم وتحديث تقدم التدريس. لا يمكن التراجع عن هذا مباشرة.",
+      "reasonRequired": "السبب مطلوب",
+      "revisions": "سجل النسخ",
+      "effects": "الآثار",
+      "viewJournal": "عرض قيد الدفتر",
+      "viewProgress": "عرض تقدم التدريس",
+      "minutes": "دقيقة",
+      "journalAvailable": "قيد الدفتر متاح",
+      "delivered_title": "العنوان المنفذ",
+      "content_summary": "ملخص المحتوى",
+      "objective_achievement_summary": "تحقيق الهدف",
+      "actual_pages_label": "الصفحات المُغطاة",
+      "assessment_summary": "ملخص التقييم",
+      "difficulties_observed": "الصعوبات المُلاحظة",
+      "remediation_action": "إجراء الدعم",
+      "next_step": "الخطوة التالية",
+      "teacher_notes": "ملاحظات الأستاذ",
+      "journal_text": "نص الدفتر",
+      "correctionBanner": "تم طلب تصحيح لسجل التنفيذ هذا من الإدارة.",
+      "reviewedMark": "تمت مراجعة التنفيذ من الإدارة",
+      "confirmTitle": "تأكيد التنفيذ",
+      "voidTitle": "إبطال سجل التنفيذ",
+      "voidWarning": "إبطال هذا السجل نهائي ولا يمكن التراجع عنه، وسيُزيل أثره على قيد دفتر القسم وتقدم التدريس.",
+      "completionStates": {
+        "completed": "مكتمل",
+        "partial": "منجز جزئيًا",
+        "not_completed": "لم يُنجز"
+      },
+      "completion": {
+        "completed": "مكتمل",
+        "partial": "منجز جزئيًا",
+        "not_completed": "لم يُنجز"
+      },
+      "deviation": {
+        "none": "بدون انحراف",
+        "reordered": "أعيد ترتيبه",
+        "support_needed": "يحتاج دعمًا",
+        "assessment_adjustment": "تعديل التقييم",
+        "class_pace": "وتيرة الفصل",
+        "calendar_disruption": "اضطراب في التقويم",
+        "teacher_decision": "قرار الأستاذ",
+        "other": "أخرى"
+      },
+      "fields": {
+        "delivered_title": "العنوان المنفذ",
+        "content_summary": "ملخص المحتوى",
+        "objective_achievement_summary": "تحقيق الهدف",
+        "actual_pages_label": "الصفحات المُغطاة",
+        "assessment_summary": "ملخص التقييم",
+        "difficulties_observed": "الصعوبات المُلاحظة",
+        "remediation_action": "إجراء الدعم",
+        "next_step": "الخطوة التالية",
+        "teacher_notes": "ملاحظات الأستاذ",
+        "journal_text": "نص الدفتر"
+      },
+      "activities": {
+        "title": "الأنشطة",
+        "add": "إضافة نشاط",
+        "empty": "لا توجد أنشطة بعد.",
+        "moveUp": "نقل للأعلى",
+        "moveDown": "نقل للأسفل",
+        "name": "اسم النشاط",
+        "resultState": "نتيجة النشاط",
+        "duration": "المدة (دقيقة)",
+        "percent": "نسبة الإتمام",
+        "notes": "ملاحظات",
+        "addedNoSource": "أُضيف بدون نشاط مصدر.",
+        "remove": "حذف"
+      },
+      "activityResults": {
+        "completed": "مكتملة",
+        "partial": "جزئية",
+        "skipped": "متجاوزة",
+        "added": "مضافة"
+      },
+      "activityResult": {
+        "completed": "مكتملة",
+        "partial": "جزئية",
+        "skipped": "متجاوزة",
+        "added": "مضافة"
+      },
+      "readiness": {
+        "title": "الجاهزية",
+        "ready": "جاهز",
+        "notReady": "غير جاهز",
+        "flag": {
+          "occurrence_ready": "الحصة جاهزة",
+          "occurrence_finished": "الحصة منتهية",
+          "assignment_ready": "الإسناد جاهز",
+          "offering_ready": "المسار جاهز",
+          "distribution_ready": "التوزيع جاهز",
+          "delivered_line_ready": "العنصر المنفذ جاهز",
+          "completion_ready": "الإتمام جاهز",
+          "content_ready": "المحتوى جاهز",
+          "duration_valid": "المدة صحيحة",
+          "deviation_ready": "الانحراف موضّح"
+        }
+      },
+      "readinessFlags": {
+        "occurrence_ready": "الحصة جاهزة",
+        "occurrence_finished": "الحصة منتهية",
+        "assignment_ready": "الإسناد جاهز",
+        "offering_ready": "المسار جاهز",
+        "distribution_ready": "التوزيع جاهز",
+        "delivered_line_ready": "العنصر المنفذ جاهز",
+        "completion_ready": "الإتمام جاهز",
+        "content_ready": "المحتوى جاهز",
+        "duration_valid": "المدة صحيحة",
+        "deviation_ready": "الانحراف موضّح",
+        "ready_for_confirmation": "جاهز للتأكيد"
+      },
+      "states": {
+        "draft": "مسودة",
+        "confirmed": "مؤكد",
+        "corrected": "مُصحَّح",
+        "superseded": "مُستبدَل",
+        "voided": "مُبطَل"
+      },
+      "reviewStates": {
+        "not_reviewed": "غير مُراجَع",
+        "reviewed": "تمت المراجعة",
+        "correction_requested": "طلب تصحيح"
+      },
+      "errors": {
+        "delivery_occurrence_required": "الحصة مطلوبة.",
+        "delivery_occurrence_not_teachable": "الحصة غير قابلة للتنفيذ.",
+        "delivery_occurrence_not_started": "لم تبدأ الحصة بعد.",
+        "delivery_occurrence_not_finished": "لم تنتهِ الحصة بعد.",
+        "delivery_assignment_required": "الإسناد التدريسي مطلوب.",
+        "delivery_offering_required": "مسار التدريس مطلوب.",
+        "delivery_offering_not_active": "مسار التدريس غير نشط.",
+        "delivery_active_distribution_required": "التوزيع السنوي النشط مطلوب.",
+        "delivery_delivered_line_required": "عنصر التوزيع المنفذ فعليًا مطلوب.",
+        "delivery_delivered_line_mismatch": "العنصر المنفذ فعليًا لا ينتمي إلى التوزيع النشط.",
+        "delivery_completion_invalid": "حالة الإتمام أو نسبته غير صحيحة.",
+        "delivery_content_required": "محتوى التنفيذ مطلوب.",
+        "delivery_duration_invalid": "المدة الفعلية غير صحيحة.",
+        "delivery_deviation_reason_required": "سبب الانحراف مطلوب.",
+        "delivery_current_revision_exists": "توجد نسخة حالية لهذا التنفيذ.",
+        "delivery_revision_conflict": "هذه النسخة تتعارض مع نسخة أحدث.",
+        "delivery_immutable": "سجل التنفيذ هذا مقفل ولا يمكن تعديله.",
+        "delivery_correction_reason_required": "سبب التصحيح مطلوب.",
+        "delivery_void_reason_required": "سبب الإبطال مطلوب.",
+        "delivery_review_state_invalid": "حالة المراجعة غير صحيحة.",
+        "delivery_scope_mismatch": "سجل التنفيذ هذا خارج نطاق تدريسك."
+      }
+    },
+    "classJournal": {
+      "tab": "الدفتر",
+      "title": "دفتر القسم",
+      "subtitle": "دفتر مُولَّد للقراءة فقط من سجلات التنفيذ المؤكدة",
+      "open": "فتح قيد دفتر القسم",
+      "empty": "لا توجد قيود دفتر بعد.",
+      "distributionLine": "عنصر التوزيع",
+      "content": "المحتوى",
+      "sourceDelivery": "التنفيذ المصدر",
+      "revisionLineage": "سلسلة النسخ",
+      "states": {
+        "current": "حالي",
+        "superseded": "مُستبدَل",
+        "voided": "مُبطَل"
+      },
+      "readOnlyNotice": "قيد الدفتر هذا للقراءة فقط ويُنشأ تلقائيًا من سجل تنفيذ مؤكد."
+    },
+    "teachingProgress": {
+      "tab": "التقدم",
+      "title": "تقدم التدريس",
+      "subtitle": "تتبع الحصص المنفذة مقارنة بالخطة",
+      "open": "فتح تقدم التدريس",
+      "empty": "لا توجد سطور تقدم بعد.",
+      "summaryTitle": "ملخص التقدم",
+      "coverage": "التغطية",
+      "plannedLines": "السطور المخططة",
+      "startedLines": "السطور المبدوءة",
+      "completedLines": "السطور المكتملة",
+      "delayedLines": "السطور المتأخرة",
+      "classesNeedingAttention": "الفصول التي تحتاج إلى اهتمام",
+      "lastDelivery": "آخر تنفيذ",
+      "delayed": "متأخر",
+      "stats": "الإحصاءات",
+      "plannedSessions": "عدد الحصص المخطط لها",
+      "delivered": "الوحدات المنجزة",
+      "remaining": "الوحدات المتبقية",
+      "contributingDeliveries": "التنفيذات المساهمة",
+      "plannedDates": "التواريخ المخططة",
+      "statuses": {
+        "not_started": "لم يبدأ",
+        "in_progress": "قيد التنفيذ",
+        "completed": "مكتمل",
+        "delayed": "متأخر",
+        "overdelivered": "تجاوز التنفيذ"
       }
     }
   },
@@ -2483,7 +2893,8 @@
         "subjects": "المواد والشعب",
         "teachers": "الأساتذة",
         "staff": "الطاقم",
-        "assignments": "توزيع التدريس"
+        "assignments": "توزيع التدريس",
+        "terms": "الدورات"
       },
       "cards": {
         "classes": "المستويات والأقسام",
@@ -4295,7 +4706,11 @@
         "chipYear": "السنة: {year}",
         "chipLevel": "المستوى: {level}",
         "chipSource": "المصدر: {source}",
-        "chipDecision": "قرار المدرسة: {decision}"
+        "chipDecision": "قرار المدرسة: {decision}",
+        "track": "المسلك",
+        "allTracks": "كل المسالك",
+        "chipTrack": "المسلك: {track}",
+        "directVisit": "زيارة مباشرة"
       },
       "workspace": {
         "navLabel": "مساحات عمل القبولات",
@@ -4977,7 +5392,9 @@
         "prefillMultiGuardianHint": "يُعبَّأ ولي اتصال واحد من طلب التسجيل. يمكنك إضافة أولياء آخرين واختيار مسؤول الفوترة في هذه الخطوة.",
         "awaitingMessage": "وافقت المدرسة على الطلب، لكن التسجيل لم يُستكمل بعد.",
         "convertedAt": "تاريخ التحويل: {date}",
-        "readyMessage": "قبلت الأسرة العرض، وأصبح الملف جاهزًا لاستكمال تسجيل التلميذ."
+        "readyMessage": "قبلت الأسرة العرض، وأصبح الملف جاهزًا لاستكمال تسجيل التلميذ.",
+        "convertToStudent": "تحويل إلى تلميذ",
+        "convertIncompleteHint": "سيتم فتح تسجيل التلميذ ويمكن استكمال البيانات الناقصة قبل الحفظ."
       },
       "errors": {
         "notFound": "طلب التسجيل غير موجود."
@@ -5060,7 +5477,7 @@
         "initial_follow_up": "المتابعة الأولية",
         "assessment_ready": "جاهز للتقييم",
         "assessment_in_progress": "قيد التقييم",
-        "decision_ready": "بانتظار قرار المدرسة"
+        "decision_ready": "بانتظار قرار الإدارة"
       },
       "assessmentProgress": {
         "not_required": "غير مطلوب",
@@ -5172,6 +5589,12 @@
         "reviewData": "مراجعة البيانات",
         "openHistory": "عرض السجل",
         "readonly": "لا يوجد إجراء مطلوب"
+      },
+      "kanbanColumns": {
+        "new": "جديد",
+        "initial_follow_up": "المتابعة الأولية",
+        "assessment": "التقييم",
+        "decision": "بانتظار قرار الإدارة"
       }
     },
     "enrollmentIntake": {
@@ -11007,6 +11430,975 @@
           "description": "اللائحة موجودة، لكن لم تُرجع أعمدة مواد."
         }
       }
-    }
+    },
+    "teachingPlanning": {
+      "hub": {
+        "title": "التخطيط البيداغوجي",
+        "subtitle": "المراجع البيداغوجية ومسارات التدريس والجاهزية وربط الإسنادات",
+        "offeringsTitle": "مسارات التدريس",
+        "offeringsDesc": "بناء واعتماد مسارات تدريس المواد لسنة دراسية",
+        "referencesTitle": "المراجع البيداغوجية",
+        "referencesDesc": "كتالوج الكتب وأدلة الأستاذ المعتمدة لمسارات التدريس",
+        "distributionTitle": "التوزيع السنوي",
+        "distributionDesc": "تخطيط عناصر التوزيع المرتبة على مدار السنة لمسار التدريس",
+        "sequencesTitle": "السلاسل الديداكتيكية",
+        "sequencesDesc": "تصميم سلاسل ديداكتيكية قابلة لإعادة الاستخدام من قوالب الحصص",
+        "jathathaTitle": "الجذاذات المرجعية",
+        "jathathaDesc": "إدارة الجذاذات المرجعية والأنشطة والمراحل ودورة الاعتماد",
+        "progressTitle": "تقدّم التدريس",
+        "progressDesc": "تتبّع الحصص المُنجزة مقابل الخطة",
+        "comingSoon": "لاحقًا",
+        "manageHint": "يمكنك إنشاء وإدارة المراجع والمسارات وفق صلاحياتك.",
+        "viewHint": "لديك صلاحية العرض. إجراءات دورة الحياة تتبع allowed_actions من Backend.",
+        "referenceJathathaTitle": "الجذاذات المرجعية",
+        "referenceJathathaDesc": "إدارة الجذاذات المرجعية والأنشطة والمراحل ودورة الاعتماد",
+        "teacherJathathaReviewTitle": "مراجعة جذاذات الأساتذة",
+        "teacherJathathaReviewDesc": "مراجعة جذاذات الأساتذة وطلب التصحيح دون تعديل محتواها",
+        "actualDeliveryTitle": "مراجعة التسليم الفعلي",
+        "actualDeliveryDesc": "مراجعة سجلات التسليم المؤكدة التي يقدمها الأساتذة وطلب التصحيح",
+        "classJournalTitle": "دفتر النصوص الصفي",
+        "classJournalDesc": "دفتر مُولّد للقراءة فقط لحصص الفصل المؤكدة",
+        "eyebrow": "العمليات الأكاديمية",
+        "backToAcademic": "العودة إلى المركز الأكاديمي",
+        "workflowTitle": "المسار الموصى به",
+        "openSurface": "فتح",
+        "ctaCreateOffering": "مسار تدريس جديد",
+        "ctaOpenOfferings": "فتح المسارات",
+        "ctaOpenDistributions": "فتح التوزيعات",
+        "workflow": {
+          "plan": "خطط المسارات والتوزيع السنوي",
+          "jathatha": "حضّر وراجع جذاذات الدروس",
+          "delivery": "تابع الإنجاز والتقدم"
+        },
+        "sections": {
+          "featuredTitle": "ابدأ من هنا",
+          "featuredDesc": "المدخلان الرئيسيان لبناء مسارات التدريس وترتيبها على مدار السنة.",
+          "planTitle": "مكتبة التخطيط",
+          "planDesc": "المراجع والسلاسل الديداكتيكية وموارد التخطيط الداعمة.",
+          "jathathaTitle": "جذاذات الدروس",
+          "jathathaDesc": "قوالب المرجع ومراجعة جذاذات الأساتذة.",
+          "deliveryTitle": "الإنجاز والمتابعة",
+          "deliveryDesc": "التسليم المؤكد ودفتر القسم وتقدّم التدريس."
+        }
+      },
+      "columns": {
+        "name": "المرجع",
+        "displayName": "المسار",
+        "academicYear": "السنة الدراسية",
+        "level": "المستوى",
+        "subject": "المادة",
+        "language": "لغة التدريس",
+        "state": "الحالة",
+        "offeringCount": "المسارات",
+        "readiness": "الجاهزية",
+        "coverage": "التغطية",
+        "levelAndSubject": "المستوى / المادة"
+      },
+      "fields": {
+        "name": "العنوان",
+        "school": "المدرسة",
+        "academicYear": "السنة الدراسية",
+        "level": "المستوى",
+        "subject": "المادة",
+        "teachingLanguage": "لغة التدريس",
+        "teachingLanguageIdPlaceholder": "—",
+        "reference": "المرجع البيداغوجي",
+        "publisher": "الناشر",
+        "edition": "الطبعة",
+        "versionLabel": "تسمية الإصدار",
+        "referenceCode": "رمز المرجع",
+        "isbn": "ISBN",
+        "notes": "ملاحظات",
+        "resetReason": "سبب الإعادة إلى مسودة",
+        "effectiveFrom": "ساري من",
+        "effectiveTo": "ساري إلى",
+        "approvedAt": "تاريخ الاعتماد",
+        "archivedAt": "تاريخ الأرشفة"
+      },
+      "filters": {
+        "searchPlaceholder": "بحث…",
+        "stateAll": "كل الحالات",
+        "levelAll": "كل المستويات",
+        "subjectAll": "كل المواد",
+        "yearAll": "كل السنوات",
+        "languageAll": "كل اللغات",
+        "referenceAll": "بدون مرجع",
+        "reset": "إعادة ضبط الفلاتر",
+        "clearSearch": "مسح البحث",
+        "more": "المزيد من عوامل التصفية",
+        "hideMore": "إخفاء عوامل التصفية",
+        "chipSearch": "بحث: {query}",
+        "chipYear": "السنة: {year}",
+        "chipState": "الحالة: {status}",
+        "chipLevel": "المستوى: {level}",
+        "chipSubject": "المادة: {subject}"
+      },
+      "validation": {
+        "requiredFields": "يرجى تعبئة الحقول المطلوبة.",
+        "resetReasonRequired": "سبب الإعادة إلى المسودة مطلوب."
+      },
+      "blockers": {
+        "annual_distribution_required": "التوزيع السنوي ما زال مطلوبًا",
+        "identity_incomplete": "الهوية غير مكتملة",
+        "teaching_offering_reference_required": "مرجع بيداغوجي معتمد مطلوب",
+        "teaching_offering_reference_not_approved": "المرجع البيداغوجي غير معتمد",
+        "teaching_offering_duplicate": "يوجد مسار معتمد آخر لنفس النطاق",
+        "distribution_has_no_lines": "لا تحتوي التوزيعة على أي بنود تدريس بعد",
+        "distribution_sequences_unresolved": "بعض البنود تشير إلى مقاطع غير محلولة",
+        "distribution_dates_invalid": "تواريخ البنود غير صالحة أو غير مرتبة",
+        "distribution_not_ready_for_activation": "التوزيعة غير جاهزة للتفعيل",
+        "distribution_already_active": "توجد توزيعة أخرى مفعّلة بالفعل لهذا المسار",
+        "offering_not_approved": "مسار التدريس غير معتمد بعد",
+        "sequence_not_approved": "أحد المقاطع التعليمية المشار إليها غير معتمد"
+      },
+      "readiness": {
+        "title": "الجاهزية وعوائق التفعيل",
+        "identityReady": "الهوية",
+        "referenceReady": "المرجع",
+        "assignmentsReady": "الإسنادات",
+        "distributionReady": "التوزيع السنوي",
+        "readyForApproval": "جاهز للاعتماد",
+        "readyForActivation": "جاهز للتفعيل",
+        "readyYes": "جاهز",
+        "readyNo": "غير جاهز"
+      },
+      "lifecycle": {
+        "submitForReview": "إرسال للمراجعة",
+        "approve": "اعتماد",
+        "resetToDraft": "إعادة إلى مسودة",
+        "resetToDraftSuccess": "أُعيد إلى مسودة.",
+        "archive": "أرشفة",
+        "archiveConfirm": "أرشفة «{name}»؟",
+        "delete": "حذف",
+        "deleteConfirm": "حذف المسودة «{name}»؟ لا يمكن التراجع.",
+        "duplicate": "نسخ",
+        "duplicateVersion": "إنشاء إصدار جديد",
+        "submitSuccess": "أُرسل للمراجعة.",
+        "approveSuccess": "تم الاعتماد.",
+        "archiveSuccess": "تمت الأرشفة.",
+        "deleteSuccess": "تم الحذف.",
+        "duplicateSuccess": "تم النسخ.",
+        "duplicateVersionSuccess": "تم إنشاء إصدار جديد.",
+        "submitForReviewSuccess": "أُرسل للمراجعة."
+      },
+      "references": {
+        "title": "المراجع البيداغوجية",
+        "subtitle": "الكتب والأدلة البيداغوجية المرتبطة بالمسارات",
+        "detailBreadcrumb": "مسار المرجع",
+        "backToList": "العودة إلى المراجع",
+        "detailSubtitle": "{level} · {subject}",
+        "createTitle": "إنشاء مرجع بيداغوجي",
+        "editTitle": "تعديل المرجع البيداغوجي",
+        "create": {
+          "open": "مرجع جديد"
+        },
+        "editSuccess": "تم حفظ المرجع.",
+        "createSuccess": "تم إنشاء المرجع.",
+        "noLanguageOptions": "لا توجد لغة تدريس مهيأة لهذا السياق الأكاديمي. أكمل إعداد العرض التعليمي أو اربط مرجعًا معتمدًا.",
+        "list": {
+          "noData": {
+            "title": "لا توجد مراجع بعد",
+            "description": "أنشئ مرجعًا بيداغوجيًا لربطه بمسارات التدريس."
+          },
+          "noMatch": {
+            "title": "لا توجد نتائج مطابقة",
+            "description": "جرّب تعديل الفلاتر أو إعادة ضبطها."
+          }
+        },
+        "subtitleWithCount": "{total} مرجع تدريس في نطاقك",
+        "refetching": "جارٍ تحديث النتائج…"
+      },
+      "offerings": {
+        "title": "مسارات التدريس",
+        "subtitle": "مسارات تدريس المواد والجاهزية وربط الإسنادات",
+        "detailBreadcrumb": "مسار الـ Offering",
+        "backToList": "العودة إلى المسارات",
+        "detailSubtitle": "{year} · {level} · {subject}",
+        "createTitle": "إنشاء مسار تدريس",
+        "editTitle": "تعديل مسار تدريس",
+        "create": {
+          "open": "مسار جديد"
+        },
+        "editSuccess": "تم حفظ المسار.",
+        "createSuccess": "تم إنشاء المسار.",
+        "noLanguageOptions": "لا توجد لغة تدريس مهيأة. أكمل إعداد العرض التعليمي أو اربط مرجعًا معتمدًا.",
+        "distributionRequiredTitle": "التوزيع السنوي ما زال مطلوبًا",
+        "distributionRequiredDesc": "Backend يضع distribution_ready=false ويمنع التفعيل إلى أن تُسلَّم مرحلة Annual Distribution.",
+        "comingSoonDesc": "محررات Annual Distribution و Didactic Sequence خارج نطاق هذه المرحلة.",
+        "activate": "تفعيل",
+        "activateConfirm": "تفعيل المسار «{name}»؟ يصبح مسار التدريس المفعّل.",
+        "activateSuccess": "تم تفعيل المسار.",
+        "activeBadge": "مفعّل",
+        "distributionSectionTitle": "التوزيع السنوي",
+        "openDistributions": "فتح التوزيعات",
+        "activeDistribution": "التوزيعة المفعّلة",
+        "noActiveDistribution": "لا توجد توزيعة مفعّلة بعد",
+        "distributionCount": "التوزيعات",
+        "distributionSectionHint": "اعتماد وتفعيل توزيع سنوي يحقّق جاهزية التوزيع. ولا ينشئ أبدًا حصص جدول زمني.",
+        "noReferenceTitle": "لا يوجد مرجع مرتبط",
+        "noReferenceDesc": "اربط Teaching Reference معتمدًا قبل الاعتماد عندما يطلبه Backend.",
+        "sections": {
+          "overview": "نظرة عامة",
+          "reference": "المرجع",
+          "assignments": "الإسنادات المرتبطة"
+        },
+        "list": {
+          "noData": {
+            "title": "لا توجد مسارات بعد",
+            "description": "أنشئ مسار تدريس لمستوى ومادة ولغة وسنة."
+          },
+          "noMatch": {
+            "title": "لا توجد نتائج مطابقة",
+            "description": "جرّب تعديل الفلاتر أو إعادة ضبطها."
+          }
+        },
+        "subtitleWithCount": "{total} مسار تدريس في نطاقك",
+        "refetching": "جارٍ تحديث النتائج…",
+        "coverage": {
+          "classes": "أقسام",
+          "teachers": "أساتذة"
+        },
+        "dialog": {
+          "identitySection": "هوية المسار",
+          "datesSection": "فترة السريان",
+          "notesSection": "ملاحظات"
+        }
+      },
+      "assignments": {
+        "link": "ربط",
+        "unlink": "فك الربط",
+        "linkOpen": "ربط إسناد",
+        "linkTitle": "ربط إسناد قائم",
+        "linkHint": "يستخدم الإسنادات الحالية. لا ينشئ Assignment موازيًا.",
+        "linkSuccess": "تم ربط الإسناد.",
+        "unlinkSuccess": "تم فك ربط الإسناد.",
+        "unlinkTitle": "فك ربط الإسناد",
+        "unlinkConfirm": "إزالة ربط Teaching Offering من هذا الإسناد؟",
+        "emptyTitle": "لا توجد إسنادات مرتبطة",
+        "emptyDesc": "اربط إسنادات متوافقة من الإعداد الأكاديمي دون إعادة إنشائها.",
+        "openAcademicSetup": "فتح توزيع التدريس",
+        "noCandidatesTitle": "لا توجد إسنادات متوافقة",
+        "noCandidatesDesc": "لا يوجد إسناد نشط يطابق نطاق المسار، أو كلها مرتبطة مسبقًا."
+      },
+      "sequences": {
+        "title": "السلاسل الديداكتيكية",
+        "subtitle": "السلاسل الديداكتيكية وقوالب الحصص المرتبطة بالمراجع",
+        "detailBreadcrumb": "مسار التنقل للمقطع",
+        "backToList": "العودة إلى المقاطع",
+        "detailSubtitle": "{level} · {subject}",
+        "createTitle": "إنشاء سلسلة ديداكتيكية",
+        "editTitle": "تعديل السلسلة الديداكتيكية",
+        "editSuccess": "تم حفظ المقطع.",
+        "createSuccess": "تم إنشاء المقطع.",
+        "expectedTotalBadge": "{count} حصص متوقعة",
+        "create": {
+          "open": "إنشاء سلسلة ديداكتيكية"
+        },
+        "columns": {
+          "name": "المقطع",
+          "expectedSessions": "الحصص المتوقعة",
+          "templates": "النماذج"
+        },
+        "sections": {
+          "overview": "نظرة عامة"
+        },
+        "fields": {
+          "unit": "الوحدة",
+          "lesson": "الدرس",
+          "objectives": "الأهداف",
+          "prerequisites": "المتطلبات السابقة",
+          "conceptsAndSkills": "المفاهيم والمهارات",
+          "pages": "الصفحات",
+          "completionCriteria": "معايير الإنجاز",
+          "supportActivities": "أنشطة الدعم"
+        },
+        "validation": {
+          "templateNameRequired": "كل نموذج حصة يحتاج إلى اسم."
+        },
+        "templates": {
+          "title": "قوالب الحصص",
+          "hint": "هذه قوالب حصص مخططة، وليست حصصًا فعلية أو مُنجزة.",
+          "readHint": "قوالب حصص مرتبة يُعتزم تنفيذها.",
+          "empty": "لا توجد قوالب حصص بعد.",
+          "expectedTotal": "عدد الحصص المتوقع: {count}",
+          "add": "إضافة قالب حصة",
+          "remove": "إزالة",
+          "name": "اسم قالب الحصة",
+          "sessionType": "نوع الحصة",
+          "expectedSessions": "عدد الحصص المتوقع",
+          "objective": "الهدف",
+          "pages": "الصفحات",
+          "active": "نشط",
+          "inactive": "غير نشط",
+          "completionCriteria": "معايير الإنجاز",
+          "supportNotes": "ملاحظات الدعم",
+          "sessionsShort": "حصص"
+        },
+        "list": {
+          "noData": {
+            "title": "لا توجد سلاسل ديداكتيكية بعد",
+            "description": "أنشئ سلسلة ديداكتيكية مرتبطة بمرجع معتمد."
+          },
+          "noMatch": {
+            "title": "لا توجد نتائج مطابقة",
+            "description": "جرّب تعديل الفلاتر أو إعادة ضبطها."
+          }
+        },
+        "subtitleWithCount": "{total} سلسلة ديداكتيكية في نطاقك",
+        "refetching": "جارٍ تحديث النتائج…"
+      },
+      "sessionTypes": {
+        "construction": "بناء",
+        "practice": "تدريب",
+        "consolidation": "ترسيخ",
+        "assessment": "تقويم",
+        "support": "دعم",
+        "support_impact_assessment": "تقويم أثر الدعم",
+        "focused_remediation": "معالجة مركّزة",
+        "enrichment": "إغناء",
+        "synthesis": "تركيب",
+        "project": "مشروع",
+        "experiment": "تجربة",
+        "review": "مراجعة",
+        "other": "أخرى"
+      },
+      "itemTypes": {
+        "sequence": "مقطع تعليمي",
+        "assessment": "تقويم",
+        "support": "دعم",
+        "synthesis": "تركيب",
+        "project": "مشروع",
+        "review": "مراجعة",
+        "other": "أخرى"
+      },
+      "distributions": {
+        "title": "التوزيعات السنوية",
+        "subtitle": "خطط تدريس مرتبة على مدار السنة لكل مسار — وليست الجدول الزمني",
+        "detailBreadcrumb": "مسار التنقل للتوزيعة",
+        "backToList": "العودة إلى التوزيعات",
+        "createTitle": "إنشاء توزيع سنوي",
+        "editTitle": "تعديل التوزيع السنوي",
+        "editSuccess": "تم حفظ التوزيعة.",
+        "activeBadge": "مفعّلة",
+        "activate": "تفعيل",
+        "activateConfirm": "تفعيل التوزيعة «{name}»؟ تصبح الخطة المفعّلة للمسار.",
+        "activateSuccess": "تم تفعيل التوزيعة.",
+        "lineCount": "{count} بنود",
+        "sessionCount": "{count} حصص",
+        "linesWord": "عناصر التوزيع",
+        "sequencesWord": "مقاطع",
+        "sessionsWord": "حصص",
+        "create": {
+          "open": "إنشاء توزيع سنوي"
+        },
+        "columns": {
+          "name": "التوزيعة",
+          "period": "الفترة",
+          "totals": "الإجماليات"
+        },
+        "fields": {
+          "offering": "مسار التدريس",
+          "offeringPlaceholder": "اختر مسارًا",
+          "name": "الاسم",
+          "namePlaceholder": "اختياري — يُولَّد اسم عند تركه فارغًا",
+          "periodLabel": "وسم الفترة",
+          "dateStart": "تاريخ البدء",
+          "dateEnd": "تاريخ الانتهاء"
+        },
+        "validation": {
+          "offeringRequired": "اختر مسار تدريس."
+        },
+        "tabs": {
+          "overview": "نظرة عامة",
+          "lines": "عناصر التوزيع",
+          "timeline": "الخط الزمني",
+          "batch": "الاستيراد الجماعي",
+          "versions": "الإصدارات"
+        },
+        "readiness": {
+          "hasLines": "يحتوي على بنود",
+          "sequencesResolved": "المقاطع محلولة",
+          "datesValid": "التواريخ صالحة"
+        },
+        "list": {
+          "noData": {
+            "title": "لا توجد توزيعات سنوية بعد",
+            "description": "أنشئ توزيعة لمسار تدريس معتمد."
+          },
+          "noMatch": {
+            "title": "لا توجد نتائج مطابقة",
+            "description": "جرّب تعديل الفلاتر أو إعادة ضبطها."
+          }
+        },
+        "subtitleWithCount": "{total} توزيع سنوي في نطاقك",
+        "refetching": "جارٍ تحديث النتائج…",
+        "dialog": {
+          "identitySection": "هوية التوزيع",
+          "datesSection": "تواريخ الفترة",
+          "notesSection": "ملاحظات"
+        }
+      },
+      "lines": {
+        "itemType": "نوع العنصر",
+        "sequence": "السلسلة الديداكتيكية",
+        "selectSequence": "اختر سلسلة ديداكتيكية",
+        "name": "الاسم",
+        "periodLabel": "وسم الفترة",
+        "sessionCount": "عدد الحصص",
+        "dateStart": "تاريخ البدء",
+        "dateEnd": "تاريخ الانتهاء",
+        "externalReference": "مرجع خارجي",
+        "notes": "ملاحظات",
+        "add": "إضافة بند",
+        "remove": "إزالة",
+        "save": "حفظ البنود",
+        "saveSuccess": "تم حفظ البنود.",
+        "emptyTitle": "لا توجد بنود بعد",
+        "emptyDesc": "أضف عناصر التوزيع أو الصقها في تبويب الاستيراد الجماعي.",
+        "readOnlyTitle": "بنود للعرض فقط",
+        "readOnlyDesc": "لا يمكنك تعديل البنود في الحالة الحالية أو دون صلاحية."
+      },
+      "batch": {
+        "title": "الاستيراد الجماعي",
+        "hint": "أضف صفوفًا أو الصق جدولًا، نفّذ التحقق الجماعي عبر Backend ثم تطبيق الصفوف. للمسودة فقط.",
+        "pasteLabel": "لصق الصفوف (TSV)",
+        "pastePlaceholder": "النوع  الاسم  الفترة  البدء  الانتهاء  الحصص",
+        "parse": "تحليل الصفوف",
+        "mode": "وضع التطبيق",
+        "modes": {
+          "append": "إلحاق",
+          "replace": "استبدال",
+          "upsert": "تحديث أو إنشاء"
+        },
+        "validate": "التحقق الجماعي",
+        "apply": "تطبيق الصفوف",
+        "validTitle": "{count} صفوف صالحة",
+        "invalidTitle": "{count} صفوف بها أخطاء",
+        "rowStatus": "الحالة",
+        "rowOk": "سليم",
+        "rowPending": "لم يُتحقق منه",
+        "applySuccess": "تم تطبيق الدفعة.",
+        "appliedWithErrors": "طُبّقت مع بعض الأخطاء — راجع الصفوف.",
+        "unavailableTitle": "الدفعة غير متاحة",
+        "draftOnlyDesc": "تحرير الدفعة متاح فقط عندما تكون التوزيعة مسودة.",
+        "summaryCreated": "{count} أُنشئت",
+        "summaryUpdated": "{count} حُدّثت",
+        "summarySkipped": "{count} تُخطّيت",
+        "summaryErrors": "{count} أخطاء"
+      },
+      "timeline": {
+        "instructionalItem": "عنصر تعليمي",
+        "calendarMarker": "علامة التقويم",
+        "instructionalBreak": "توقف تدريسي",
+        "marker": "علامة التقويم",
+        "emptyTitle": "لا توجد عناصر في الخط الزمني",
+        "emptyDesc": "أضف عناصر التوزيع وعلامات التقويم لبناء الخط الزمني."
+      },
+      "reorder": {
+        "moveUp": "تحريك لأعلى",
+        "moveDown": "تحريك لأسفل"
+      },
+      "versions": {
+        "notLatest": "ليست الإصدار الأحدث",
+        "isLatest": "الإصدار الأحدث",
+        "activeVersion": "الإصدار المفعّل",
+        "replacementVersion": "إصدار الاستبدال",
+        "supersededBy": "استُبدل بـ"
+      },
+      "teacher": {
+        "distributionsTitle": "التوزيعات السنوية",
+        "distributionsSubtitle": "عرض للقراءة فقط لخطط التدريس السنوية",
+        "distributionsEmptyTitle": "لا توجد توزيعات متاحة",
+        "distributionsEmptyDesc": "ستظهر هنا التوزيعات المفعّلة لأقسامك.",
+        "backToDistributions": "العودة إلى التوزيعات",
+        "notActiveTitle": "ليست الخطة المفعّلة",
+        "notActiveDesc": "هذه التوزيعة غير مفعّلة حاليًا لهذا المسار.",
+        "openDistributions": "التوزيع السنوي"
+      },
+      "errors": {
+        "invalid_row": "صف غير صالح",
+        "duplicate_order": "قيمة ترتيب مكررة",
+        "unknown_sequence": "مقطع غير معروف أو غير محلول",
+        "invalid_date_range": "نطاق تواريخ غير صالح",
+        "session_count_negative": "لا يمكن أن يكون عدد الحصص سالبًا",
+        "item_type_invalid": "نوع عنصر غير معروف"
+      },
+      "states": {
+        "draft": "مسودة",
+        "under_review": "قيد المراجعة",
+        "approved": "معتمد",
+        "archived": "مؤرشف",
+        "active": "مفعّل"
+      },
+      "jathatha": {
+        "sequence": "السلسلة",
+        "template": "قالب الحصة",
+        "sessionType": "نوع الحصة",
+        "detailLevel": "مستوى التفاصيل",
+        "context": "سياق الحصة",
+        "minutes": "دقيقة",
+        "correctionRequested": "طلب تصحيح",
+        "approvedBy": "اعتمدها",
+        "versionHistory": "سجل الإصدارات",
+        "selectReference": "اختر المرجع",
+        "selectSequence": "اختر السلسلة",
+        "selectTemplate": "اختر قالب الحصة (اختياري)",
+        "detailLevels": {
+          "compact": "مختصر",
+          "standard": "قياسي",
+          "detailed": "تفصيلي"
+        },
+        "activityTypes": {
+          "situation": "وضعية",
+          "exercise": "تمرين",
+          "discussion": "نقاش",
+          "experiment": "تجربة",
+          "assessment": "تقويم",
+          "support": "دعم",
+          "project": "مشروع",
+          "institutionalization": "مأسسة",
+          "other": "أخرى"
+        },
+        "phaseTypes": {
+          "didactic_contract": "عقد ديداكتيكي",
+          "action": "فعل",
+          "formulation": "صياغة",
+          "discussion": "نقاش",
+          "validation": "تحقق",
+          "institutionalization": "مأسسة",
+          "practice": "تطبيق",
+          "assessment": "تقويم",
+          "support": "دعم",
+          "synthesis": "تركيب",
+          "custom": "مخصص"
+        },
+        "referenceStates": {
+          "draft": "مسودة",
+          "under_review": "قيد المراجعة",
+          "approved": "معتمد",
+          "archived": "مؤرشف"
+        },
+        "teacherStates": {
+          "draft": "مسودة",
+          "ready": "جاهزة",
+          "confirmed": "مؤكدة",
+          "corrected": "مصححة",
+          "superseded": "مستبدلة",
+          "voided": "ملغاة"
+        },
+        "reviewStates": {
+          "not_reviewed": "غير مراجعة",
+          "reviewed": "تمت المراجعة",
+          "correction_requested": "طلب تصحيح"
+        },
+        "validation": {
+          "requiredContext": "الاسم والمرجع والسلسلة مطلوبة."
+        },
+        "fields": {
+          "external_reference": "مرجع خارجي",
+          "objectives": "الأهداف",
+          "prerequisites": "المتطلبات السابقة",
+          "materials_summary": "ملخص الوسائل",
+          "pages": "الصفحات",
+          "quick_assessment_plan": "تقويم سريع",
+          "fallback_plan": "خطة بديلة",
+          "expected_difficulties": "صعوبات متوقعة",
+          "general_guidance": "توجيه عام",
+          "correction_elements": "عناصر التصحيح",
+          "support_activities": "أنشطة الدعم",
+          "notes": "ملاحظات",
+          "session_objective": "هدف الحصة",
+          "materials": "المواد والوسائل",
+          "class_adaptation": "تكييف القسم",
+          "quick_assessment": "تقويم سريع",
+          "teacher_notes": "ملاحظات الأستاذ"
+        },
+        "columns": {
+          "name": "الاسم",
+          "activities": "أنشطة / مراحل",
+          "duration": "المدة المخططة",
+          "approvedAt": "تاريخ الاعتماد",
+          "session": "الحصة",
+          "teacher": "الأستاذ",
+          "class": "القسم",
+          "offering": "مسار التدريس",
+          "distributionLine": "عنصر التوزيع",
+          "reviewState": "حالة المراجعة",
+          "revision": "المراجعة",
+          "correction": "التصحيح",
+          "actions": "الإجراءات",
+          "subject": "المادة",
+          "sequence": "السلسلة",
+          "template": "قالب الحصة"
+        },
+        "list": {
+          "empty": "لا توجد جذاذات."
+        },
+        "activities": {
+          "title": "الأنشطة",
+          "add": "إضافة نشاط",
+          "empty": "لا أنشطة بعد.",
+          "expand": "توسيع",
+          "collapse": "طي",
+          "name": "اسم النشاط",
+          "type": "نوع النشاط",
+          "duration": "المدة (دقيقة)",
+          "objective": "الهدف الجزئي",
+          "instructions": "التعليمات",
+          "materials": "الوسائل",
+          "source": "مصدر النشاط",
+          "moveUp": "تحريك لأعلى",
+          "moveDown": "تحريك لأسفل",
+          "remove": "حذف"
+        },
+        "phases": {
+          "title": "المراحل",
+          "add": "إضافة مرحلة",
+          "type": "نوع المرحلة",
+          "instruction": "التعليمة",
+          "teacherActivity": "نشاط الأستاذ",
+          "durationExceedsActivity": "مجموع مدد المراحل يتجاوز مدة النشاط."
+        },
+        "readiness": {
+          "title": "الجاهزية",
+          "ready": "جاهزة",
+          "notReady": "غير جاهزة",
+          "blockers": "عوائق",
+          "warnings": "تحذيرات"
+        },
+        "reference": {
+          "create": "إنشاء جذاذة مرجعية",
+          "createTitle": "إنشاء جذاذة مرجعية",
+          "editTitle": "تعديل الجذاذة المرجعية",
+          "backToList": "العودة إلى الجذاذات المرجعية"
+        },
+        "review": {
+          "open": "فتح المراجعة",
+          "all": "كل حالات المراجعة",
+          "markReviewed": "تمت المراجعة",
+          "requestCorrection": "طلب تصحيح",
+          "reasonRequired": "سبب طلب التصحيح مطلوب.",
+          "reasonLabel": "سبب طلب التصحيح",
+          "readOnlyNotice": "محتوى جذاذة الأستاذ للعرض فقط — لا يمكن تعديله من الإدارة.",
+          "marked": "تمت وسم المراجعة.",
+          "correctionRequested": "تم طلب التصحيح.",
+          "backToList": "العودة إلى مراجعة جذاذات الأساتذة",
+          "title": "مراجعة جذاذة الأستاذ"
+        },
+        "lifecycle": {
+          "submit_for_reviewSuccess": "أُرسلت للمراجعة.",
+          "approveSuccess": "تم الاعتماد.",
+          "duplicate_versionSuccess": "تم إنشاء نسخة جديدة.",
+          "archiveConfirm": "أرشفة «{name}»؟",
+          "deleteConfirm": "حذف «{name}»؟"
+        },
+        "errors": {
+          "unknown": "تعذر تنفيذ العملية.",
+          "reference_jathatha_duplicate_approved": "خطأ Backend: reference_jathatha_duplicate_approved",
+          "reference_jathatha_context_mismatch": "خطأ Backend: reference_jathatha_context_mismatch",
+          "reference_jathatha_template_required": "خطأ Backend: reference_jathatha_template_required",
+          "reference_jathatha_template_mismatch": "خطأ Backend: reference_jathatha_template_mismatch",
+          "reference_jathatha_immutable": "خطأ Backend: reference_jathatha_immutable",
+          "reference_jathatha_in_use": "خطأ Backend: reference_jathatha_in_use",
+          "jathatha_occurrence_required": "خطأ Backend: jathatha_occurrence_required",
+          "jathatha_occurrence_not_teachable": "خطأ Backend: jathatha_occurrence_not_teachable",
+          "jathatha_assignment_required": "خطأ Backend: jathatha_assignment_required",
+          "jathatha_assignment_ambiguous": "خطأ Backend: jathatha_assignment_ambiguous",
+          "jathatha_offering_required": "خطأ Backend: jathatha_offering_required",
+          "jathatha_offering_not_active": "خطأ Backend: jathatha_offering_not_active",
+          "jathatha_active_distribution_required": "خطأ Backend: jathatha_active_distribution_required",
+          "jathatha_distribution_line_required": "خطأ Backend: jathatha_distribution_line_required",
+          "jathatha_distribution_line_mismatch": "خطأ Backend: jathatha_distribution_line_mismatch",
+          "jathatha_sequence_template_required": "خطأ Backend: jathatha_sequence_template_required",
+          "jathatha_sequence_template_mismatch": "خطأ Backend: jathatha_sequence_template_mismatch",
+          "jathatha_reference_not_approved": "خطأ Backend: jathatha_reference_not_approved",
+          "jathatha_current_revision_exists": "خطأ Backend: jathatha_current_revision_exists",
+          "jathatha_revision_conflict": "خطأ Backend: jathatha_revision_conflict",
+          "jathatha_not_ready": "خطأ Backend: jathatha_not_ready",
+          "jathatha_duration_invalid": "خطأ Backend: jathatha_duration_invalid",
+          "jathatha_duration_exceeds_occurrence": "خطأ Backend: jathatha_duration_exceeds_occurrence",
+          "jathatha_immutable": "خطأ Backend: jathatha_immutable",
+          "jathatha_correction_reason_required": "خطأ Backend: jathatha_correction_reason_required",
+          "jathatha_void_reason_required": "خطأ Backend: jathatha_void_reason_required",
+          "jathatha_review_state_invalid": "خطأ Backend: jathatha_review_state_invalid",
+          "jathatha_scope_mismatch": "خطأ Backend: jathatha_scope_mismatch"
+        },
+        "correctionReason": "سبب التصحيح",
+        "revisions": "سجل المراجعات"
+      },
+      "delivery": {
+        "columns": {
+          "session": "الحصة",
+          "plannedLine": "العنصر المخطط",
+          "deliveredLine": "العنصر المُسلَّم",
+          "completion": "الإتمام",
+          "deviation": "الانحراف"
+        },
+        "completionStates": {
+          "completed": "مكتمل",
+          "partial": "جزئي",
+          "not_completed": "غير مكتمل"
+        },
+        "deviationTypes": {
+          "none": "بدون انحراف",
+          "reordered": "أعيد ترتيبه",
+          "support_needed": "يحتاج دعمًا",
+          "assessment_adjustment": "تعديل التقييم",
+          "class_pace": "وتيرة الفصل",
+          "calendar_disruption": "اضطراب في التقويم",
+          "teacher_decision": "قرار الأستاذ",
+          "other": "أخرى"
+        },
+        "activityResultStates": {
+          "completed": "مكتملة",
+          "partial": "جزئية",
+          "skipped": "متجاوزة",
+          "added": "مضافة"
+        },
+        "filters": {
+          "reviewAll": "جميع حالات المراجعة",
+          "deviationAll": "جميع أنواع الانحراف"
+        },
+        "list": {
+          "empty": "لم يتم العثور على سجلات تسليم."
+        },
+        "review": {
+          "open": "مراجعة",
+          "title": "مراجعة التسليم الفعلي",
+          "backToList": "الرجوع إلى مراجعة التسليم الفعلي",
+          "markReviewed": "وضع علامة تمت المراجعة",
+          "marked": "تم وضع علامة على التسليم كمُراجَع.",
+          "requestCorrection": "طلب تصحيح",
+          "correctionRequested": "تم طلب التصحيح.",
+          "reasonRequired": "سبب التصحيح مطلوب."
+        },
+        "context": {
+          "title": "السياق"
+        },
+        "comparison": {
+          "title": "المخطط مقابل المُسلَّم",
+          "planned": "المخطط",
+          "delivered": "المُسلَّم"
+        },
+        "content": {
+          "title": "المحتوى المُسلَّم"
+        },
+        "fields": {
+          "contentSummary": "ملخص المحتوى",
+          "objectiveAchievementSummary": "تحقيق الهدف",
+          "actualPagesLabel": "الصفحات المُغطاة",
+          "assessmentSummary": "ملخص التقييم",
+          "difficultiesObserved": "الصعوبات المُلاحظة",
+          "remediationAction": "إجراء الدعم",
+          "nextStep": "الخطوة التالية",
+          "teacherNotes": "ملاحظات الأستاذ",
+          "journalText": "نص الدفتر",
+          "correctionReason": "سبب التصحيح",
+          "voidReason": "سبب الإلغاء",
+          "plannedSessions": "الحصص المخطط لها",
+          "plannedWindow": "النافذة المخطط لها",
+          "actualDuration": "المدة الفعلية (دقيقة)",
+          "coveragePercent": "التغطية",
+          "deliveredUnits": "الوحدات المُسلَّمة",
+          "remainingUnits": "الوحدات المتبقية"
+        },
+        "activities": {
+          "title": "الأنشطة",
+          "empty": "لا توجد أنشطة مسجلة."
+        },
+        "revisions": {
+          "title": "سجل المراجعات",
+          "correction": "تصحيح"
+        },
+        "journal": {
+          "title": "قيد دفتر النصوص",
+          "linked": "فتح قيد الدفتر المرتبط",
+          "none": "لم يتم إنشاء قيد دفتر بعد."
+        },
+        "progressImpact": {
+          "title": "الأثر على التقدم"
+        }
+      },
+      "classJournal": {
+        "states": {
+          "current": "حالي",
+          "superseded": "مُستبدَل",
+          "voided": "مُلغى"
+        },
+        "list": {
+          "empty": "لم يتم العثور على قيود دفتر."
+        },
+        "backToList": "الرجوع إلى دفتر النصوص الصفي",
+        "detailTitle": "قيد دفتر النصوص",
+        "content": {
+          "title": "محتوى الدفتر"
+        },
+        "source": {
+          "title": "التسليم المصدر",
+          "open": "فتح التسليم المصدر"
+        },
+        "supersedes": "عرض القيد المُستبدَل",
+        "fingerprint": "البصمة"
+      },
+      "progress": {
+        "subtitle": "تتبع الحصص المُسلَّمة مقارنة بالخطة",
+        "backToList": "الرجوع إلى التقدم البيداغوجي",
+        "detailTitle": "سطر التقدم البيداغوجي",
+        "columns": {
+          "item": "العنصر",
+          "coverage": "التغطية",
+          "delivered": "المُسلَّم",
+          "status": "الحالة",
+          "delayed": "متأخر"
+        },
+        "statuses": {
+          "not_started": "لم يبدأ",
+          "in_progress": "قيد التنفيذ",
+          "completed": "مكتمل",
+          "delayed": "متأخر",
+          "overdelivered": "تجاوز التسليم"
+        },
+        "delayed": "متأخر",
+        "filters": {
+          "statusAll": "جميع الحالات"
+        },
+        "stats": {
+          "coverage": "التغطية",
+          "planned": "السطور المخطط لها",
+          "started": "السطور المبدوءة",
+          "completed": "السطور المكتملة",
+          "delayed": "السطور المتأخرة"
+        },
+        "attention": {
+          "title": "الفصول التي تحتاج إلى اهتمام"
+        },
+        "lastDelivery": {
+          "title": "آخر تسليم"
+        },
+        "list": {
+          "empty": "لم يتم العثور على سطور تقدم بيداغوجي."
+        },
+        "fields": {
+          "remainingUnits": "الوحدات المتبقية"
+        },
+        "contributingDeliveries": {
+          "title": "التسليمات المساهمة",
+          "empty": "لا توجد تسليمات مساهمة مسجلة."
+        },
+        "plannedDates": {
+          "title": "التواريخ المخطط لها"
+        }
+      },
+      "backToHub": "العودة إلى التخطيط البيداغوجي",
+      "print": {
+        "action": "طباعة",
+        "actionAllFiltered": "طباعة كل النتائج المصفّاة",
+        "actionCurrentPage": "طباعة الصفحة الحالية",
+        "preview": "معاينة الطباعة",
+        "back": "رجوع",
+        "documentStatus": "حالة الوثيقة",
+        "draftWatermark": "مسودة",
+        "generatedOn": "تم التوليد في",
+        "printedBy": "طُبعت بواسطة",
+        "revision": "مراجعة",
+        "signatureReview": "توقيع / مراجعة",
+        "pageFooter": "وثيقة قابلة للطباعة A4",
+        "brandingUnavailable": "اسم المدرسة غير متوفر",
+        "error": "خطأ في الطباعة",
+        "noData": "لا توجد بيانات قابلة للطباعة",
+        "appliedFilters": "الفلاتر المطبّقة",
+        "noFilters": "لا توجد فلاتر إضافية",
+        "scope": "نطاق الطباعة",
+        "scopeCurrentPage": "الصفحة الحالية",
+        "scopeAllFiltered": "كل السجلات المصفّاة",
+        "tooManyRecords": "عدد السجلات كبير جدًا ({total}). يُعرض أول {max} فقط.",
+        "narrowFilters": "ضيّق التاريخ أو الفلاتر ثم أعد المحاولة.",
+        "plannedWindow": "النافذة المخططة",
+        "expectedDuration": "المدة المتوقعة (د)",
+        "actualDuration": "المدة الفعلية (د)",
+        "ungroupedPeriod": "بدون تسمية فترة",
+        "activities": "الأنشطة",
+        "phase": "مرحلة",
+        "duration": "المدة (د)",
+        "teacherActivity": "نشاط الأستاذ",
+        "learnerActivity": "نشاط المتعلم",
+        "revisionHistory": "سجل المراجعات",
+        "correctionReason": "سبب التصحيح",
+        "sourceReferenceJathatha": "الجذاذة المرجعية المصدر",
+        "plannedVsDelivered": "المخطط مقابل المنفّذ",
+        "planned": "المخطط",
+        "delivered": "المنفّذ",
+        "deviation": "الانحراف",
+        "resultState": "النتيجة",
+        "progressLines": "خطوط التقدم",
+        "readiness": {
+          "title": "الجاهزية",
+          "ready": "جاهز",
+          "notReady": "غير جاهز",
+          "hasLines": "يحتوي خطوطًا",
+          "sequencesResolved": "التسلسلات محلولة",
+          "datesValid": "التواريخ صالحة",
+          "readyForApproval": "جاهز للاعتماد",
+          "readyForActivation": "جاهز للتفعيل"
+        },
+        "documents": {
+          "annualDistribution": "التوزيع السنوي",
+          "referenceJathatha": "جذاذة مرجعية",
+          "teacherJathatha": "جذاذة الأستاذ",
+          "actualDelivery": "التسليم الفعلي",
+          "classJournal": "دفتر النصوص",
+          "classJournalReport": "تقرير دفتر النصوص",
+          "teachingProgress": "تقدم التدريس",
+          "teachingProgressReport": "تقرير ملخص تقدم التدريس"
+        },
+        "documentStates": {
+          "draft": "مسودة",
+          "ready": "جاهز",
+          "confirmed": "مثبّت",
+          "corrected": "مصحَّح",
+          "superseded": "نسخة مستبدلة",
+          "voided": "ملغى",
+          "reviewed": "تمت المراجعة",
+          "correction_requested": "طُلب تصحيح",
+          "approved": "معتمد",
+          "archived": "مؤرشف",
+          "under_review": "قيد المراجعة",
+          "active": "نشط",
+          "current": "حالي"
+        },
+        "fields": {
+          "track": "المسار",
+          "objectives": "الأهداف",
+          "prerequisites": "المتطلبات السابقة",
+          "materials_summary": "الموارد",
+          "pages": "الصفحات",
+          "quick_assessment_plan": "التقويم",
+          "fallback_plan": "التفريق / الدعم",
+          "expected_difficulties": "الصعوبات المتوقعة",
+          "support_activities": "أنشطة الدعم",
+          "general_guidance": "التوجيهات",
+          "notes": "ملاحظات",
+          "session_objective": "الأهداف",
+          "materials": "الموارد",
+          "class_adaptation": "التفريق / الدعم",
+          "quick_assessment": "التقويم",
+          "teacher_notes": "ملاحظات",
+          "content_summary": "ملخص المحتوى",
+          "objective_achievement_summary": "تحقق الأهداف",
+          "actual_pages_label": "الصفحات",
+          "assessment_summary": "التقويم",
+          "difficulties_observed": "الصعوبات",
+          "remediation_action": "المعالجة",
+          "next_step": "الخطوة التالية",
+          "journal_text": "نص الدفتر",
+          "correction_reason": "سبب التصحيح",
+          "void_reason": "سبب الإلغاء",
+          "delivered_title": "عنوان المنفّذ",
+          "deviation_reason": "سبب الانحراف"
+        }
+      }
+    },
+    "teachingPlanningHubDesc": "المراجع البيداغوجية ومسارات التدريس والجاهزية",
+    "noActiveSchoolDesc": "اختر مدرسة نشطة للمتابعة."
   }
 }

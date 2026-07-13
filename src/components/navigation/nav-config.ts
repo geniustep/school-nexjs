@@ -10,6 +10,7 @@ import { ADMISSION_VIEW } from '@/lib/permissions/admission';
 import { isConfiguredAdmin } from '@/lib/permissions/scope';
 import { shouldUseTeacherWorkspace } from '@/lib/auth/teacher-workspace';
 import { shouldUsePedagogicalNav } from '@/lib/admin/pedagogical-dashboard';
+import { canViewTeachingPlanning } from '@/lib/permissions/teaching-planning';
 
 export interface NavItem {
   labelKey: string;
@@ -125,6 +126,11 @@ function adminNav(user: CurrentUser): NavSection[] {
     labelKey: 'nav.academicCalendars',
     href: '/admin/academic-calendars',
     icon: '🗓️',
+  });
+  pushIf(academicItems, canViewTeachingPlanning(user), {
+    labelKey: 'nav.teachingPlanning',
+    href: '/admin/teaching-planning',
+    icon: '📘',
   });
   pushSection(sections, {
     groupId: 'academic',

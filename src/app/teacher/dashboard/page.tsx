@@ -22,6 +22,7 @@ import { useFormat } from '@/features/i18n/use-format';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
 import { formatTimeRange } from '@/features/timetable/utils';
+import { TeacherTodaySessions } from '@/features/teacher/jathatha/components/teacher-today-sessions';
 import type { TeacherDashboard } from '@/types/dashboard';
 
 function pendingForClass(d: TeacherDashboard, classId: number): number {
@@ -202,6 +203,8 @@ export default function TeacherDashboardPage() {
               </div>
             </TeacherWorkspaceCard>
           )}
+
+          <TeacherTodaySessions />
 
           <TeacherSection
             title={t('nav.myClasses')}

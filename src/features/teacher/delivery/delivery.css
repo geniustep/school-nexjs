@@ -1,0 +1,74 @@
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ * Minimal styles for Teacher Actual Delivery / Class Journal / Teaching Progress UI.
+ */
+
+.delivery-context-step__planned {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.delivery-activities {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.delivery-activities__list {
+  display: grid;
+  gap: 0.6rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.delivery-activities__row {
+  border: 1px solid var(--c-border);
+  border-radius: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.delivery-activities__head {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.delivery-activities__order {
+  font-weight: 600;
+  min-width: 1.5rem;
+}
+
+.delivery-readiness__flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+}
+
+.delivery-readiness__flag {
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+
+.delivery-readiness__flag--ok {
+  color: var(--c-success, #16a34a);
+}
+
+.delivery-readiness__flag--pending {
+  opacity: 0.6;
+}
+
+.delivery-editor__compare {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.6rem 1.25rem;
+  align-items: start;
+}
+
+.delivery-progress-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  align-items: center;
+}

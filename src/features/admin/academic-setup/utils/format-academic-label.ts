@@ -8,12 +8,21 @@ export type AcademicLabelParts = {
 
 export type AcademicLevelLabelSource = Pick<
   Level,
-  'name' | 'code' | 'display_name' | 'moroccan_display_alias'
+  'name' | 'code' | 'display_name' | 'display_alias' | 'academic_code' | 'moroccan_display_alias'
 >;
 
 export type AcademicClassLabelSource = Pick<
   SchoolClass,
-  'name' | 'code' | 'display_name' | 'display_alias' | 'section_name' | 'level' | 'track'
+  | 'name'
+  | 'code'
+  | 'display_name'
+  | 'display_alias'
+  | 'section_name'
+  | 'academic_code'
+  | 'recommended_display_code'
+  | 'code_status'
+  | 'level'
+  | 'track'
 >;
 
 function nonEmpty(value: string | null | undefined): string | null {
@@ -133,19 +142,24 @@ export function formatAcademicLevelLabel(
 
   const code = nonEmpty(level.code ?? null);
   const name = nonEmpty(level.name ?? null);
-  const alias = nonEmpty(level.moroccan_display_alias ?? null);
+  const alias =
+    nonEmpty(level.display_alias ?? null) ??
+    nonEmpty(level.moroccan_display_alias ?? null);
   const display = nonEmpty(level.display_name ?? null);
+  const academicCode = nonEmpty(level.academic_code ?? null);
 
   const primary =
     alias ??
     (display && display !== code ? display : null) ??
     (name && name !== code ? name : null) ??
+    academicCode ??
     code ??
     name ??
     '—';
 
   let secondary: string | null = null;
-  if (code && code !== primary) secondary = code;
+  if (academicCode && academicCode !== primary) secondary = academicCode;
+  else if (code && code !== primary) secondary = code;
   else if (name && name !== primary) secondary = name;
 
   return { primary, secondary };

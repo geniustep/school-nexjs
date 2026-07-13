@@ -9,6 +9,7 @@ export const SETUP_SECTION_ROUTES: Record<string, string> = {
   tracks: '/admin/settings/academic-setup/subjects',
   staff: '/admin/settings/academic-setup/staff',
   subjects: '/admin/settings/academic-setup/subjects',
+  terms: '/admin/settings/academic-setup/terms',
 };
 
 export function setupSectionHref(

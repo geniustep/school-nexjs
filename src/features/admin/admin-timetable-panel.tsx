@@ -8,7 +8,7 @@
  * Scheduling semantics, payloads, conflict validation, and endpoints are unchanged.
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { api } from '@/lib/api/client';
 import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { useSession } from '@/features/auth/session-context';
@@ -20,6 +20,7 @@ import { DataTable, type Column } from '@/components/tables/data-table';
 import { useToast } from '@/components/ui/toast';
 import { useT } from '@/features/i18n/locale-context';
 import { ConfirmActionButton } from '@/features/admin/confirm-action-button';
+import { useAcademicContextOptions } from '@/features/academic-context';
 import { endpoints } from '@/lib/api/endpoints';
 import {
   TIMETABLE_ADMIN_DAYS,
@@ -30,7 +31,6 @@ import {
   timetableHasActiveFilters,
 } from '@/features/admin/timetable/utils/timetable-list-present';
 import type { TimetableSlot } from '@/types/timetable';
-import type { Ref } from '@/types/api';
 import type { SchoolClass } from '@/types/class';
 import type { Teacher } from '@/types/teacher';
 import '@/features/admin/timetable/admin-timetable.css';
@@ -42,7 +42,6 @@ export function AdminTimetablePanel() {
   const canManage = hasPermission(user, 'manage_timetable');
   const state = useAdminResource<TimetableSlot[]>(endpoints.admin.timetable);
   const classesState = useAdminResource<SchoolClass[]>(endpoints.admin.classes);
-  const subjectsState = useAdminResource<Ref[]>(endpoints.admin.subjects);
   const teachersState = useAdminResource<Teacher[]>(endpoints.admin.teachers, {
     page_size: 100,
   });
@@ -54,12 +53,44 @@ export function AdminTimetablePanel() {
   const [saving, setSaving] = useState(false);
   const [classId, setClassId] = useState('');
   const [subjectId, setSubjectId] = useState('');
+  const [offeringId, setOfferingId] = useState('');
   const [teacherId, setTeacherId] = useState('');
   const [day, setDay] = useState<(typeof TIMETABLE_ADMIN_DAYS)[number]>('monday');
   const [startTime, setStartTime] = useState('08:30');
   const [endTime, setEndTime] = useState('10:00');
   const [room, setRoom] = useState('');
   const [editId, setEditId] = useState<number | null>(null);
+
+  const context = useAcademicContextOptions({
+    scope: 'timetable',
+    enabled: Boolean(classId),
+    initialSelection: { classId },
+  });
+
+  useEffect(() => {
+    if (context.selection.classId !== classId) {
+      context.setField('class', classId);
+    }
+    // Only sync class → context; avoid loops on subject.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional class-driven sync
+  }, [classId]);
+
+  useEffect(() => {
+    if (!classId) {
+      setSubjectId('');
+      setOfferingId('');
+      return;
+    }
+    if (subjectId && context.selection.subjectId !== subjectId) {
+      context.setField('subject', subjectId);
+    }
+    // Re-apply subject after class sync so offerings load for edit/create.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- subject sync after class
+  }, [classId, subjectId]);
+
+  const subjects = context.options?.subjects ?? [];
+  const offerings = context.options?.offerings ?? [];
+  const selectedOffering = offerings.find((o) => String(o.id) === offeringId) ?? null;
 
   const hasActiveFilters = timetableHasActiveFilters({
     classFilter,
@@ -76,6 +107,7 @@ export function AdminTimetablePanel() {
   function resetFormFields() {
     setClassId('');
     setSubjectId('');
+    setOfferingId('');
     setTeacherId('');
     setDay('monday');
     setStartTime('08:30');
@@ -88,6 +120,12 @@ export function AdminTimetablePanel() {
     setShowForm(false);
     setClassId(String(slot.class?.id ?? ''));
     setSubjectId(String(slot.subject?.id ?? ''));
+    setOfferingId(
+      String(
+        (slot as TimetableSlot & { teaching_offering_id?: number | null }).teaching_offering_id ??
+          '',
+      ),
+    );
     setTeacherId(String(slot.teacher?.id ?? ''));
     setDay((slot.day as typeof day) ?? 'monday');
     setStartTime(slot.start_time ?? '08:30');
@@ -118,6 +156,7 @@ export function AdminTimetablePanel() {
     const res = await api.post(endpoints.admin.timetableSlotUpdate(editId), {
       class_id: classId ? Number(classId) : undefined,
       subject_id: subjectId ? Number(subjectId) : undefined,
+      teaching_offering_id: offeringId ? Number(offeringId) : undefined,
       teacher_id: teacherId ? Number(teacherId) : undefined,
       day,
       start_time: startTime,
@@ -145,6 +184,7 @@ export function AdminTimetablePanel() {
     const res = await api.post(endpoints.admin.timetableSlots, {
       class_id: Number(classId),
       subject_id: Number(subjectId),
+      teaching_offering_id: offeringId ? Number(offeringId) : undefined,
       teacher_id: Number(teacherId),
       day,
       start_time: startTime,
@@ -258,7 +298,6 @@ export function AdminTimetablePanel() {
   ];
 
   const classes = classesState.data ?? [];
-  const subjects = subjectsState.data ?? [];
   const teachers = teachersState.data ?? [];
 
   const listEmpty =
@@ -299,7 +338,11 @@ export function AdminTimetablePanel() {
                 id={`timetable-${mode}-class`}
                 className="input"
                 value={classId}
-                onChange={(e) => setClassId(e.target.value)}
+                onChange={(e) => {
+                  setClassId(e.target.value);
+                  setSubjectId('');
+                  setOfferingId('');
+                }}
                 required={requireCore}
               >
                 <option value="">{t('admin.selectClass')}</option>
@@ -320,16 +363,98 @@ export function AdminTimetablePanel() {
                 id={`timetable-${mode}-subject`}
                 className="input"
                 value={subjectId}
-                onChange={(e) => setSubjectId(e.target.value)}
+                onChange={(e) => {
+                  setSubjectId(e.target.value);
+                  setOfferingId('');
+                  context.setField('subject', e.target.value);
+                }}
                 required={requireCore}
+                disabled={!classId}
               >
-                <option value="">{t('admin.selectSubject')}</option>
+                <option value="">
+                  {classId
+                    ? t('admin.selectSubject')
+                    : t('academicContext.hints.chooseLevelOrClassFirst')}
+                </option>
                 {subjects.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.name}
                   </option>
                 ))}
               </select>
+            </div>
+
+            <div className="admin-timetable-panel__form-field">
+              <label htmlFor={`timetable-${mode}-offering`}>
+                {t('academicContext.fields.offering')}
+              </label>
+              <select
+                id={`timetable-${mode}-offering`}
+                className="input"
+                value={offeringId}
+                onChange={(e) => {
+                  setOfferingId(e.target.value);
+                  context.setField('offering', e.target.value);
+                }}
+                disabled={!subjectId}
+              >
+                <option value="">
+                  {offerings.length > 1
+                    ? t('academicContext.placeholders.offeringRequired')
+                    : t('academicContext.placeholders.offering')}
+                </option>
+                {offerings.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {o.display_label || o.name}
+                  </option>
+                ))}
+              </select>
+              {classId && context.loading ? (
+                <p className="admin-timetable-panel__context-status" role="status">
+                  {t('academicContext.loading')}
+                </p>
+              ) : null}
+              {classId && context.permissionDenied ? (
+                <p className="admin-timetable-panel__context-status" role="status">
+                  {t('academicContext.permissionDenied')}
+                </p>
+              ) : null}
+              {classId && context.error ? (
+                <p className="admin-timetable-panel__context-status" role="alert">
+                  {context.error.message}
+                </p>
+              ) : null}
+              {editId && !offeringId ? (
+                <p className="admin-timetable-panel__context-status" role="status">
+                  {t('academicContext.hints.legacyMissingOffering')}
+                </p>
+              ) : null}
+              {selectedOffering ? (
+                <div
+                  className="admin-timetable-panel__offering-context"
+                  role="status"
+                  aria-live="polite"
+                >
+                  {selectedOffering.teaching_language?.name ? (
+                    <p dir="auto">
+                      {t('academicContext.language.derivedFromOffering', {
+                        language: selectedOffering.teaching_language.name,
+                      })}
+                    </p>
+                  ) : null}
+                  {selectedOffering.track?.name ? (
+                    <p dir="auto">
+                      {t('academicContext.fields.track')}: {selectedOffering.track.name}
+                    </p>
+                  ) : null}
+                  {selectedOffering.teaching_reference?.name ? (
+                    <p dir="auto">
+                      {t('academicContext.fields.reference')}:{' '}
+                      {selectedOffering.teaching_reference.name}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
 
             <div className="admin-timetable-panel__form-field">

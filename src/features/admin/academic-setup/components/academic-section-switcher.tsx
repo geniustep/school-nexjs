@@ -14,6 +14,7 @@ export const ACADEMIC_NAV_ITEMS = [
   { href: '/admin/settings/academic-setup', key: 'overview', section: 'overview' as const, exact: true },
   { href: '/admin/settings/academic-setup/classes', key: 'classes', section: 'classes' as const },
   { href: '/admin/settings/academic-setup/subjects', key: 'subjects', section: 'subjects' as const },
+  { href: '/admin/settings/academic-setup/terms', key: 'terms', section: 'terms' as const },
   { href: '/admin/settings/academic-setup/teachers', key: 'teachers', section: 'teachers' as const },
   { href: '/admin/settings/academic-setup/staff', key: 'staff', section: 'staff' as const },
   { href: '/admin/settings/academic-setup/assignments', key: 'assignments', section: 'assignments' as const },

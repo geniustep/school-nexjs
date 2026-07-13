@@ -1,0 +1,465 @@
+/**
+ * @raqeem-design docs/design/RAQEEM-DESIGN.md
+ */
+
+.teaching-planning-page__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-end;
+  margin-block: 1rem;
+}
+
+.teaching-planning-page__filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+}
+
+.teaching-planning-page__title-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.teaching-planning-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.teaching-planning-page__checklist {
+  display: grid;
+  gap: 0.75rem;
+  margin-block: 1rem;
+}
+
+.teaching-planning-page__checklist-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+.teaching-planning-page__meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 0.75rem 1.25rem;
+  margin-block: 1rem;
+}
+
+.teaching-planning-page__meta-grid dt {
+  font-size: 0.75rem;
+  opacity: 0.75;
+}
+
+.teaching-planning-page__meta-grid dd {
+  margin: 0.15rem 0 0;
+}
+
+/*
+ * ConfirmationDialog chrome — finance-ui.css is not loaded on teaching-planning
+ * routes, so modal classes must be provided here (same approach as academic calendars).
+ */
+.admin-workspace .modal-backdrop,
+.teaching-planning-page .modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.admin-workspace .modal-panel,
+.teaching-planning-page .modal-panel {
+  width: min(480px, 100%);
+  max-height: 90vh;
+  overflow: auto;
+}
+
+.admin-workspace .modal-panel--wide,
+.teaching-planning-page .modal-panel--wide {
+  width: min(640px, 100%);
+}
+
+.admin-workspace .modal-panel--form,
+.teaching-planning-page .modal-panel--form {
+  width: min(720px, 100%);
+}
+
+.admin-workspace .confirmation-dialog,
+.teaching-planning-page .confirmation-dialog {
+  padding: 20px;
+}
+
+.admin-workspace .confirmation-dialog h3,
+.teaching-planning-page .confirmation-dialog h3 {
+  margin: 0 0 4px;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--c-text, #0f172a);
+}
+
+.admin-workspace .confirmation-dialog__body,
+.teaching-planning-page .confirmation-dialog__body {
+  margin: 12px 0 16px;
+}
+
+.admin-workspace .confirmation-dialog__actions,
+.teaching-planning-page .confirmation-dialog__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+  justify-content: flex-end;
+}
+
+[dir='rtl'] .admin-workspace .confirmation-dialog__actions,
+[dir='rtl'] .teaching-planning-page .confirmation-dialog__actions {
+  flex-direction: row-reverse;
+}
+
+.teaching-planning-dialog {
+  display: grid;
+  gap: 14px;
+}
+
+.teaching-planning-dialog__section {
+  display: grid;
+  gap: 12px;
+}
+
+.teaching-planning-dialog__section-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--c-text-muted, #64748b);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.teaching-planning-dialog__row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 14px;
+}
+
+.teaching-planning-dialog .field {
+  margin-bottom: 0;
+}
+
+.teaching-planning-dialog label {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-text, #0f172a);
+}
+
+.teaching-planning-dialog .input,
+.teaching-planning-dialog .select,
+.teaching-planning-dialog .textarea,
+.teaching-planning-dialog input:not([type='checkbox']):not([type='radio']),
+.teaching-planning-dialog select,
+.teaching-planning-dialog textarea {
+  width: 100%;
+  min-width: 0;
+}
+
+.teaching-planning-dialog__school {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: var(--radius-sm, 8px);
+  background: var(--c-surface-2, #eef2f8);
+}
+
+.teaching-planning-dialog__school-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-text-muted, #64748b);
+}
+
+.teaching-planning-dialog__school-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-text, #0f172a);
+}
+
+@media (max-width: 640px) {
+  .teaching-planning-dialog__row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.teaching-planning-hub__coming {
+  opacity: 0.7;
+}
+
+/* Session templates + distribution lines editors (reorder is keyboard-accessible, not drag-only) */
+.tp-templates,
+.tp-lines {
+  display: grid;
+  gap: 0.85rem;
+  margin-block: 0.75rem;
+}
+
+.tp-templates__title {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.tp-templates__list,
+.tp-templates__read,
+.tp-lines__list,
+.tp-lines__read {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.tp-templates__item,
+.tp-lines__item {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 0.75rem;
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.12));
+  border-radius: 0.5rem;
+}
+
+.tp-templates__reorder {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.tp-templates__order {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 999px;
+  background: var(--surface-muted, rgba(0, 0, 0, 0.06));
+  font-variant-numeric: tabular-nums;
+  /* order value is a code/number: keep it LTR regardless of page direction */
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.tp-templates__fields,
+.tp-lines__fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 0.5rem 0.75rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.tp-templates__checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.tp-templates__read-item,
+.tp-lines__read-item {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+}
+
+.tp-templates__read-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Combined timeline: instructional item vs calendar marker distinguished by icon + text + badge (never colour alone) */
+.tp-timeline {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.tp-timeline__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.tp-timeline__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+}
+
+.tp-timeline__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.tp-timeline__item {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.12));
+  border-radius: 0.5rem;
+}
+
+.tp-timeline__item--instructional {
+  border-inline-start: 3px solid var(--tone-blue, #2563eb);
+}
+
+.tp-timeline__item--marker {
+  border-inline-start: 3px solid var(--tone-amber, #d97706);
+}
+
+.tp-timeline__icon {
+  font-size: 1.1rem;
+  line-height: 1.4;
+}
+
+.tp-timeline__body {
+  min-width: 0;
+  flex: 1;
+}
+
+.tp-timeline__head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Batch paste workspace */
+.tp-batch {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.tp-batch__paste,
+.tp-batch__mode {
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.875rem;
+}
+
+.tp-batch__paste textarea {
+  min-height: 8rem;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  /* pasted rows are tab-separated codes/dates: keep LTR */
+  direction: ltr;
+}
+
+.tp-batch__table-wrap {
+  overflow-x: auto;
+}
+
+.tp-batch__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tp-batch__table th,
+.tp-batch__table td {
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid var(--border, rgba(0, 0, 0, 0.1));
+  text-align: start;
+  vertical-align: top;
+}
+
+.tp-batch__row--error {
+  background: var(--tone-red-soft, rgba(220, 38, 38, 0.08));
+}
+
+.tp-batch__row-errors {
+  display: block;
+  color: var(--tone-red, #dc2626);
+  font-size: 0.75rem;
+}
+
+.tp-batch__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+}
+
+/* Jathatha activities and phases: controls remain usable without drag and drop. */
+.jathatha-editor,
+.jathatha-editor__body,
+.jathatha-editor__list,
+.jathatha-editor__phases {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.jathatha-editor__list,
+.jathatha-editor__phases {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.jathatha-editor__activity,
+.jathatha-editor__phase {
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.12));
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+}
+
+.jathatha-editor__head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.jathatha-editor__order {
+  direction: ltr;
+  unicode-bidi: isolate;
+  font-variant-numeric: tabular-nums;
+  min-width: 1.5rem;
+}
+
+.jathatha-editor__warning {
+  color: var(--tone-amber, #b45309);
+  margin: 0;
+}
+
+/*
+ * Actual Delivery Review — planned vs delivered comparison.
+ * Semantic guard: this is a side-by-side read-only comparison; it never
+ * becomes an editable form (admin does not edit delivery content).
+ */
+.delivery-compare {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1rem;
+}
+
+.delivery-compare__col {
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.12));
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+}
+
+.delivery-compare__col h4 {
+  margin: 0 0 0.5rem;
+}
