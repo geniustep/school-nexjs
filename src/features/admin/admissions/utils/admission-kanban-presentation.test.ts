@@ -25,7 +25,7 @@ function col(
   };
 }
 
-function item(id: number, processing_stage: string): AdmissionListItem {
+function item(id: number, application_status: string): AdmissionListItem {
   return {
     id,
     student_name: `S${id}`,
@@ -34,7 +34,7 @@ function item(id: number, processing_stage: string): AdmissionListItem {
     source: null,
     requested_level: null,
     state: 'new',
-    processing_stage,
+    application_status,
     next_action: null,
     next_action_date: null,
     duplicate_count: 0,
@@ -44,43 +44,37 @@ function item(id: number, processing_stage: string): AdmissionListItem {
   } as AdmissionListItem;
 }
 
-describe('four-column kanban presentation', () => {
-  it('exposes exactly four visible columns', () => {
-    expect(ADMISSION_KANBAN_PRESENTATION_COLUMNS).toHaveLength(4);
+describe('application_status kanban presentation', () => {
+  it('exposes three follow_up application_status columns', () => {
+    expect(ADMISSION_KANBAN_PRESENTATION_COLUMNS).toHaveLength(3);
     expect(ADMISSION_KANBAN_PRESENTATION_COLUMNS.map((c) => c.id)).toEqual([
       'new',
-      'initial_follow_up',
-      'assessment',
-      'decision',
+      'follow_up',
+      'in_assessment',
     ]);
   });
 
-  it('fetches both assessment backend stages and groups them', () => {
-    expect(admissionKanbanFetchStages()).toEqual([
-      'new',
-      'initial_follow_up',
-      'assessment_ready',
-      'assessment_in_progress',
-      'decision_ready',
+  it('fetches application_status columns without processing_stage merge', () => {
+    expect(admissionKanbanFetchStages()).toEqual(['new', 'follow_up', 'in_assessment']);
+    expect(admissionKanbanFetchStages('awaiting_decision')).toEqual([
+      'decision_pending',
+      'waitlisted',
     ]);
 
     const grouped = groupKanbanColumnsForPresentation([
       col('new', [item(1, 'new')], 1),
-      col('initial_follow_up', [], 0),
-      col('assessment_ready', [item(2, 'assessment_ready')], 2),
-      col('assessment_in_progress', [item(3, 'assessment_in_progress')], 3),
-      col('decision_ready', [item(4, 'decision_ready')], 1),
+      col('follow_up', [item(2, 'follow_up')], 1),
+      col('in_assessment', [item(3, 'in_assessment')], 2),
     ]);
 
-    expect(grouped).toHaveLength(4);
-    const assessment = grouped.find((c) => c.id === 'assessment')!;
-    expect(assessment.items.map((i) => i.id).sort()).toEqual([2, 3]);
-    expect(assessment.total).toBe(5);
-    expect(grouped.find((c) => c.id === 'decision')?.total).toBe(1);
+    expect(grouped).toHaveLength(3);
+    expect(grouped.map((c) => c.id)).toEqual(['new', 'follow_up', 'in_assessment']);
+    expect(grouped.find((c) => c.id === 'in_assessment')?.total).toBe(2);
   });
 
-  it('maps assessment drop to assessment_ready without coercing in_progress', () => {
-    expect(presentationColumnDropStage('assessment')).toBe('assessment_ready');
-    expect(presentationColumnDropStage('decision')).toBeNull();
+  it('disables drop targets for modern application_status boards', () => {
+    expect(presentationColumnDropStage('follow_up')).toBeNull();
+    expect(presentationColumnDropStage('in_assessment')).toBeNull();
+    expect(presentationColumnDropStage('decision_pending')).toBeNull();
   });
 });

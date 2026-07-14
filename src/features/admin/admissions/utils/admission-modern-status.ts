@@ -53,3 +53,73 @@ export function statusesForWorkspace(workspace: string | null | undefined): stri
       return [];
   }
 }
+
+/** Server param for one or more official statuses (comma-separated, no legacy fields). */
+export function formatApplicationStatusParam(
+  statuses: readonly string[] | null | undefined,
+): string | undefined {
+  const unique = [...new Set((statuses ?? []).map((s) => s.trim()).filter(Boolean))];
+  if (unique.length === 0) return undefined;
+  return unique.join(',');
+}
+
+/** Operational shortcut: drop `registered` only — never `ready_for_registration`. */
+export function applyHideConvertedStatuses(
+  statuses: readonly string[],
+  hideConverted: boolean,
+): string[] {
+  if (!hideConverted) return [...statuses];
+  return statuses.filter((status) => status !== 'registered');
+}
+
+export function isFollowUpApplicationStatus(
+  value: string | null | undefined,
+): value is 'new' | 'follow_up' | 'in_assessment' {
+  return value === 'new' || value === 'follow_up' || value === 'in_assessment';
+}
+
+export function isAwaitingApplicationStatus(
+  value: string | null | undefined,
+): value is 'decision_pending' | 'waitlisted' {
+  return value === 'decision_pending' || value === 'waitlisted';
+}
+
+/**
+ * Map legacy processing_stage / followStage URL values → official application_status.
+ */
+export function mapLegacyFollowStageToApplicationStatus(
+  value: string | null | undefined,
+): 'new' | 'follow_up' | 'in_assessment' | '' {
+  if (!value) return '';
+  if (isFollowUpApplicationStatus(value)) return value;
+  if (value === 'initial_follow_up' || value === 'contacted' || value === 'visit_pending') {
+    return 'follow_up';
+  }
+  if (
+    value === 'assessment_ready' ||
+    value === 'assessment_in_progress' ||
+    value === 'qualified'
+  ) {
+    return 'in_assessment';
+  }
+  return '';
+}
+
+/**
+ * Map legacy awaiting subfilters → official application_status.
+ */
+export function mapLegacyAwaitingSubToApplicationStatus(
+  value: string | null | undefined,
+): 'decision_pending' | 'waitlisted' | '' {
+  if (!value) return '';
+  if (isAwaitingApplicationStatus(value)) return value;
+  if (
+    value === 'decision_ready' ||
+    value === 'under_review' ||
+    value === 'needs_reassessment'
+  ) {
+    return 'decision_pending';
+  }
+  // assessment_in_progress belongs in follow_up workspace — drop as awaiting sub.
+  return '';
+}

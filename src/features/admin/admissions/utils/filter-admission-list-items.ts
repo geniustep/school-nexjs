@@ -1,7 +1,21 @@
 import type { AdmissionListItem } from '@/types/admission';
-import { isAdmissionConvertedToStudent } from './admission-registration';
+import {
+  isRegisteredApplicationStatus,
+  resolveApplicationStatus,
+} from './admission-modern-status';
 import { CLOSED_UI_STAGE, resolveAdmissionUiStage } from './admission-ui-stage';
 import { outcomeFilterNeedsClosed, type AdmissionOutcomeFilter } from './admission-status-display';
+
+/**
+ * Defensive visibility check for hideConverted.
+ * Hides only `application_status=registered` — never readiness or student_id alone.
+ * Prefer server-side exclusion via application_status query; avoid post-pagination use.
+ */
+export function isHiddenConvertedAdmissionItem(
+  item: Pick<AdmissionListItem, 'application_status'> | null | undefined,
+): boolean {
+  return isRegisteredApplicationStatus(resolveApplicationStatus(item));
+}
 
 /** Hide converted/registered applications when the default filter is on. */
 export function filterAdmissionListItems(
@@ -9,7 +23,7 @@ export function filterAdmissionListItems(
   hideConverted = true,
 ): AdmissionListItem[] {
   if (!hideConverted) return items;
-  return items.filter((item) => !isAdmissionConvertedToStudent(item));
+  return items.filter((item) => !isHiddenConvertedAdmissionItem(item));
 }
 
 export function countVisibleAdmissionListItems(
@@ -24,7 +38,7 @@ export function countHiddenConvertedAdmissionListItems(
   hideConverted = true,
 ): number {
   if (!hideConverted) return 0;
-  return items.filter((item) => isAdmissionConvertedToStudent(item)).length;
+  return items.filter((item) => isHiddenConvertedAdmissionItem(item)).length;
 }
 
 /** Exclude closed applications unless an explicit closed-targeting filter is active. */
@@ -64,14 +78,18 @@ export function hasActiveAdmissionListFilters(options: {
 
 /**
  * Effective hide-registered flag for the current workspace view.
- * The "registered" post-acceptance subfilter must always show linked admissions.
+ * Explicit registered queues must always show application_status=registered.
  */
 export function resolveEffectiveHideConverted(options: {
   hideConverted?: boolean;
   workspace?: string;
   postSub?: string;
+  closedSub?: string;
 }): boolean {
   if (options.workspace === 'post_acceptance' && options.postSub === 'registered') {
+    return false;
+  }
+  if (options.workspace === 'closed' && options.closedSub === 'registered') {
     return false;
   }
   return options.hideConverted !== false;

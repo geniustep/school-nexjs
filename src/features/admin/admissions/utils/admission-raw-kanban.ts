@@ -1,30 +1,34 @@
-import { isFollowUpProcessingStage } from './admission-assessment-workflow-contract';
+import { isFollowUpApplicationStatus } from './admission-modern-status';
 
 const RAW_COLUMN_STATES = [
   'new',
-  'initial_follow_up',
-  'assessment_ready',
-  'assessment_in_progress',
-  'decision_ready',
+  'follow_up',
+  'in_assessment',
+  'decision_pending',
+  'waitlisted',
 ] as const;
 
-/** Drag targets: follow_up processing stages only. */
+/** Drag targets: follow_up application_status columns only (drag disabled in UI). */
 export function isRawKanbanDropTarget(state: string): boolean {
-  return isFollowUpProcessingStage(state);
+  return isFollowUpApplicationStatus(state);
 }
 
 export function rawKanbanColumnClass(state: string): string {
   const normalized =
-    state === 'contacted' || state === 'visit_pending'
-      ? 'initial_follow_up'
-      : state === 'qualified'
-        ? 'assessment_ready'
-        : state === 'under_review'
-          ? 'decision_ready'
+    state === 'contacted' ||
+    state === 'visit_pending' ||
+    state === 'initial_follow_up'
+      ? 'follow_up'
+      : state === 'qualified' ||
+          state === 'assessment_ready' ||
+          state === 'assessment_in_progress'
+        ? 'in_assessment'
+        : state === 'under_review' || state === 'decision_ready'
+          ? 'decision_pending'
           : state;
   return RAW_COLUMN_STATES.includes(normalized as (typeof RAW_COLUMN_STATES)[number])
     ? `admissions-kanban__column--state-${normalized}`
-    : '';
+    : `admissions-kanban__column--state-${normalized || 'unknown'}`;
 }
 
 export { RAW_COLUMN_STATES };

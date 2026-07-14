@@ -16,6 +16,7 @@ import {
   parseWorkspaceListStateFromSearchParams,
   readAppliedWorkspaceFilter,
   resolveAdmissionWorkspaceFromRecord,
+  resolveWorkspaceApplicationStatuses,
   resolveWorkspaceView,
   workspaceForcesTable,
   workspaceListStateToSearchParams,
@@ -25,6 +26,7 @@ import {
   ADMISSIONS_INFO_INDICATORS,
   ADMISSIONS_OPERATIONAL_CARDS,
 } from './admissions-dashboard-cards';
+import { APPLICATION_STATUS_VALUES } from './admission-modern-status';
 
 const require = createRequire(import.meta.url);
 const messagesRoot = path.resolve(__dirname, '../../../../../messages');
@@ -35,6 +37,7 @@ function loadMessages(lang: string) {
         workspace: Record<string, string>;
         schoolDecision: Record<string, string>;
         states: Record<string, string>;
+        applicationStatus: Record<string, string>;
       };
     };
   };
@@ -61,95 +64,135 @@ function baseState(
   };
 }
 
-describe('workspace server contract queries', () => {
-  it('follow_up sends workspace without default state', () => {
+describe('workspace server contract queries (application_status)', () => {
+  it('follow_up sends workspace aggregation without legacy drivers (multi-status via workspace)', () => {
     const query = buildAdmissionWorkspaceQuery(baseState()).query;
     expect(query).toEqual({ workspace: 'follow_up' });
+    expect(query).not.toHaveProperty('application_status');
     expect(query).not.toHaveProperty('state');
+    expect(query).not.toHaveProperty('processing_stage');
+    expect(query).not.toHaveProperty('decision');
+    expect(query).not.toHaveProperty('registration_readiness');
   });
 
-  it('awaiting_decision sends workspace without default under_review', () => {
+  it('awaiting_decision uses workspace aggregation without processing_stage', () => {
     const query = buildAdmissionWorkspaceQuery(
       baseState({ workspace: 'awaiting_decision' }),
     ).query;
-    expect(query).toEqual({ workspace: 'awaiting_decision' });
-    expect(query).not.toHaveProperty('state');
+    expect(query).toEqual({
+      workspace: 'awaiting_decision',
+    });
   });
 
-  it('post_acceptance and closed always include workspace', () => {
+  it('post_acceptance and closed always include application_status (no workspace widening)', () => {
     expect(
       buildAdmissionWorkspaceQuery(baseState({ workspace: 'post_acceptance' })).query,
     ).toEqual({
-      workspace: 'post_acceptance',
-      registration_status: 'awaiting_registration',
+      application_status: 'accepted',
     });
     expect(
       buildAdmissionWorkspaceQuery(baseState({ workspace: 'closed' })).query,
-    ).toEqual({ workspace: 'closed', decision: 'rejected' });
+    ).toEqual({ application_status: 'rejected' });
   });
 
-  it('follow_up + initial_follow_up sends AND processing_stage', () => {
+  it('follow_up + follow_up status ANDs workspace + application_status', () => {
     expect(
       buildAdmissionWorkspaceQuery(
-        baseState({ followStage: 'initial_follow_up' }),
+        baseState({ followStage: 'follow_up' }),
       ).query,
-    ).toEqual({ workspace: 'follow_up', processing_stage: 'initial_follow_up' });
+    ).toEqual({ workspace: 'follow_up', application_status: 'follow_up' });
   });
 
-  it('legacy contacted followStage maps to initial_follow_up', () => {
+  it('legacy contacted followStage maps to follow_up application_status', () => {
     expect(
       buildAdmissionWorkspaceQuery(
         baseState({ followStage: 'contacted' as never }),
       ).query,
-    ).toEqual({ workspace: 'follow_up', processing_stage: 'initial_follow_up' });
+    ).toEqual({ workspace: 'follow_up', application_status: 'follow_up' });
   });
 
-  it('awaiting_decision + needs_reassessment sends AND', () => {
+  it('awaiting_decision + waitlisted ANDs workspace + application_status', () => {
     expect(
       buildAdmissionWorkspaceQuery(
         baseState({
           workspace: 'awaiting_decision',
-          awaitingSub: 'needs_reassessment',
+          awaitingSub: 'waitlisted',
         }),
       ).query,
     ).toEqual({
       workspace: 'awaiting_decision',
-      decision: 'needs_reassessment',
+      application_status: 'waitlisted',
     });
   });
 
-  it('post_acceptance + registered sends AND', () => {
+  it('post_acceptance + registered sends application_status=registered', () => {
     expect(
       buildAdmissionWorkspaceQuery(
         baseState({ workspace: 'post_acceptance', postSub: 'registered' }),
       ).query,
     ).toEqual({
-      workspace: 'post_acceptance',
-      registration_readiness: 'registered',
-      registration_status: 'registered',
+      application_status: 'registered',
     });
   });
 
-  it('closed + rejected sends AND', () => {
+  it('closed + rejected / closed / registered use application_status only', () => {
     expect(
       buildAdmissionWorkspaceQuery(
         baseState({ workspace: 'closed', closedSub: 'rejected' }),
       ).query,
-    ).toEqual({ workspace: 'closed', decision: 'rejected' });
+    ).toEqual({ application_status: 'rejected' });
+    expect(
+      buildAdmissionWorkspaceQuery(
+        baseState({ workspace: 'closed', closedSub: 'closed' }),
+      ).query,
+    ).toEqual({ application_status: 'closed' });
+    expect(
+      buildAdmissionWorkspaceQuery(
+        baseState({
+          workspace: 'closed',
+          closedSub: 'registered',
+          hideConverted: true,
+        }),
+      ).query,
+    ).toEqual({
+      application_status: 'registered',
+    });
   });
 
-  it('ready and rejected cards include workspace', () => {
-    const ready = applyOperationalCard(baseState(), 'ready_for_registration');
+  it('ready and rejected cards send application_status only (no workspace / legacy parity)', () => {
+    const ready = applyOperationalCard(
+      baseState({ page: 4, academicYearId: '1', search: 'x', levelId: '9' }),
+      'ready_for_registration',
+    );
+    expect(ready.page).toBe(1);
+    expect(ready.academicYearId).toBeUndefined();
+    expect(ready.search).toBeUndefined();
+    expect(ready.levelId).toBeUndefined();
     expect(buildAdmissionWorkspaceQuery(ready).query).toEqual({
-      workspace: 'post_acceptance',
-      state: 'confirmed',
-      registration_status: 'awaiting_registration',
+      application_status: 'ready_for_registration',
     });
-    const rejected = applyOperationalCard(baseState({ view: 'kanban' }), 'school_rejected');
+    expect(buildAdmissionWorkspaceQuery(ready).query).not.toHaveProperty('workspace');
+    expect(buildAdmissionWorkspaceQuery(ready).query).not.toHaveProperty('state');
+    const rejected = applyOperationalCard(baseState({ view: 'kanban', cycleCode: 'primary' }), 'school_rejected');
     expect(rejected.view).toBe('table');
+    expect(rejected.cycleCode).toBeUndefined();
     expect(buildAdmissionWorkspaceQuery(rejected).query).toEqual({
-      workspace: 'closed',
-      decision: 'rejected',
+      application_status: 'rejected',
+    });
+  });
+
+  it('awaiting KPI maps to accepted without leftover structured filters', () => {
+    const awaiting = applyOperationalCard(
+      baseState({ academicYearId: '7', sourceId: '3', page: 2 }),
+      'awaiting_registration',
+    );
+    expect(awaiting.postSub).toBe('awaiting');
+    expect(awaiting.academicYearId).toBeUndefined();
+    expect(awaiting.sourceId).toBeUndefined();
+    expect(buildAdmissionListServerQuery(awaiting)).toEqual({
+      application_status: 'accepted',
+      hide_registered: 1,
+      page: 1,
     });
   });
 
@@ -185,13 +228,14 @@ describe('workspace server contract queries', () => {
     expect(cleared.view).toBe('table');
   });
 
-  it('kanban extra query omits workspace for four-column pipeline and drops column state', () => {
+  it('kanban extra query omits workspace and application_status', () => {
     const extra = buildKanbanWorkspaceExtraQuery(
       baseState({ followStage: 'new', search: 'x', page: 2 }),
     );
     expect(extra).not.toHaveProperty('workspace');
     expect(extra).not.toHaveProperty('state');
     expect(extra).not.toHaveProperty('processing_stage');
+    expect(extra).not.toHaveProperty('application_status');
     expect(extra).not.toHaveProperty('page');
     expect(extra).not.toHaveProperty('search');
   });
@@ -201,7 +245,31 @@ describe('workspace server contract queries', () => {
       baseState({ workspace: 'post_acceptance', page: 3 }),
     );
     expect(query.page).toBe(3);
-    expect(query.workspace).toBe('post_acceptance');
+    expect(query.application_status).toBe('accepted');
+    expect(query).not.toHaveProperty('workspace');
+  });
+
+  it('accepted ≠ ready_for_registration ≠ registered', () => {
+    expect(resolveWorkspaceApplicationStatuses(baseState({ workspace: 'post_acceptance', postSub: 'awaiting' }))).toEqual([
+      'accepted',
+    ]);
+    expect(resolveWorkspaceApplicationStatuses(baseState({ workspace: 'post_acceptance', postSub: 'ready' }))).toEqual([
+      'ready_for_registration',
+    ]);
+    expect(resolveWorkspaceApplicationStatuses(baseState({ workspace: 'post_acceptance', postSub: 'registered' }))).toEqual([
+      'registered',
+    ]);
+  });
+
+  it('hideConverted never strips ready_for_registration', () => {
+    const q = buildAdmissionWorkspaceQuery(
+      baseState({
+        workspace: 'post_acceptance',
+        postSub: 'ready',
+        hideConverted: true,
+      }),
+    ).query;
+    expect(q.application_status).toBe('ready_for_registration');
   });
 });
 
@@ -259,7 +327,9 @@ describe('URL and workspace navigation', () => {
     });
     const params = workspaceListStateToSearchParams(state);
     expect(params.get('workspace')).toBe('post_acceptance');
-    expect(params.get('registration_status')).toBe('registered');
+    expect(params.get('postSub')).toBe('registered');
+    expect(params.get('application_status')).toBe('registered');
+    expect(params.get('registration_status')).toBeNull();
     expect(params.get('q')).toBe('sara');
     expect(params.get('year')).toBe('12');
     expect(params.get('level')).toBe('3');
@@ -273,17 +343,17 @@ describe('URL and workspace navigation', () => {
     expect(restored.sourceId).toBe('9');
   });
 
-  it('ready subfilter round-trips via state=confirmed (not lost to awaiting default)', () => {
+  it('ready subfilter round-trips via postSub + application_status', () => {
     const state = baseState({
       workspace: 'post_acceptance',
       postSub: 'ready',
       view: 'table',
     });
     const params = workspaceListStateToSearchParams(state);
-    expect(params.get('state')).toBe('confirmed');
+    expect(params.get('state')).toBeNull();
     expect(params.get('postSub')).toBe('ready');
-    expect(params.get('registration_status')).toBe('awaiting_registration');
-    expect(params.get('registration_readiness')).toBeNull();
+    expect(params.get('application_status')).toBe('ready_for_registration');
+    expect(params.get('registration_status')).toBeNull();
     const restored = parseWorkspaceListStateFromSearchParams(params);
     expect(restored.postSub).toBe('ready');
     expect(workspaceListStateToSearchParams(restored).toString()).toBe(params.toString());
@@ -297,9 +367,7 @@ describe('URL and workspace navigation', () => {
     const restored = parseWorkspaceListStateFromSearchParams(params);
     expect(restored.postSub).toBe('ready');
     expect(buildAdmissionWorkspaceQuery(restored).query).toEqual({
-      workspace: 'post_acceptance',
-      state: 'confirmed',
-      registration_status: 'awaiting_registration',
+      application_status: 'ready_for_registration',
     });
   });
 
@@ -323,7 +391,7 @@ describe('URL and workspace navigation', () => {
         levelId: '2',
         sourceId: '3',
         decision: 'rejected',
-        followStage: 'initial_follow_up',
+        followStage: 'follow_up',
       }),
       'closed',
     );
@@ -355,6 +423,20 @@ describe('URL and workspace navigation', () => {
     expect(FOLLOW_UP_WORKSPACE_STATES).not.toContain('under_review');
     expect(awaitingDecisionExcludesNew()).toBe(true);
   });
+
+  it('maps legacy lost/cancelled/duplicate to closed application_status', () => {
+    for (const legacy of ['lost', 'cancelled', 'duplicate']) {
+      const restored = parseWorkspaceListStateFromSearchParams(
+        new URLSearchParams({ workspace: 'closed', closedSub: legacy }),
+      );
+      expect(restored.closedSub).toBe('closed');
+      expect(buildAdmissionWorkspaceQuery(restored).query).toEqual({
+        application_status: 'closed',
+      });
+      expect(buildAdmissionWorkspaceQuery(restored).query).not.toHaveProperty('state');
+      expect(buildAdmissionWorkspaceQuery(restored).query).not.toHaveProperty('workspace');
+    }
+  });
 });
 
 describe('counters', () => {
@@ -363,9 +445,9 @@ describe('counters', () => {
     expect(ADMISSION_WORKSPACE_COUNT_KEYS.closed).toBe('closed_workspace_count');
     expect(ADMISSIONS_OPERATIONAL_CARDS).toHaveLength(3);
     expect(ADMISSIONS_OPERATIONAL_CARDS.map((c) => c.countKey)).toEqual([
-      'awaiting_registration_count',
-      'confirmed_count',
-      'school_rejected_count',
+      'application_status_accepted_count',
+      'application_status_ready_for_registration_count',
+      'application_status_rejected_count',
     ]);
     expect(ADMISSIONS_INFO_INDICATORS).toHaveLength(4);
     expect(ADMISSION_WORKSPACES).toHaveLength(4);
@@ -373,7 +455,7 @@ describe('counters', () => {
 });
 
 describe('workspace i18n', () => {
-  it('has workspace labels in four locales', () => {
+  it('has workspace labels and application_status labels in four locales', () => {
     for (const messages of [ar, en, fr, es]) {
       const ws = messages.admin.admissions.workspace;
       for (const key of ADMISSION_WORKSPACES) {
@@ -381,6 +463,9 @@ describe('workspace i18n', () => {
       }
       expect(ws.advancedFilters).toBeTruthy();
       expect(ws.allInWorkspace).toBeTruthy();
+      for (const status of APPLICATION_STATUS_VALUES) {
+        expect(messages.admin.admissions.applicationStatus[status]).toBeTruthy();
+      }
     }
     expect(ar.admin.admissions.workspace.follow_up).toBe('المتابعة الأولية');
     expect(fr.admin.admissions.workspace.awaiting_decision).toBe(

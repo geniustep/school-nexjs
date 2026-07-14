@@ -4685,6 +4685,7 @@
       },
       "actionErrors": {
         "FAMILY_APPROVAL_REQUIRES_ACCEPTED_DECISION": "يجب قبول الطلب قبل تسجيل موافقة الأسرة.",
+        "familyApprovalStatusNotAdvanced": "تم حفظ موافقة الأسرة لكن الحالة بقيت «{status}» بدل «جاهز للتسجيل». تحتاج Backend تصحيح انتقال الحالة.",
         "not_ready_for_registration": "الطلب غير جاهز للتسجيل.",
         "invalid_action": "هذا الإجراء غير متاح حاليًا.", "conflict": "تم تحديث الطلب في مكان آخر. حدّث الصفحة وحاول مجددًا."
       },
@@ -4917,7 +4918,7 @@
         "mainGroup": "البطاقات الرئيسية",
         "secondaryGroup": "مؤشرات ثانوية",
         "infoGroup": "مؤشرات معلوماتية",
-        "readyHint": "قبلت الأسرة العرض",
+        "readyHint": "حالة جاهز للتسجيل فقط — ليست المقبولة بانتظار التأكيد",
         "filterAwaitingAria": "عرض الطلبات المقبولة في انتظار التسجيل",
         "filterReadyAria": "عرض الطلبات الجاهزة للتسجيل",
         "filterRejectedAria": "عرض الطلبات المرفوضة من المدرسة",

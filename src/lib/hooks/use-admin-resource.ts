@@ -1,7 +1,11 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useResource, type ResourceState } from '@/lib/hooks/use-resource';
+import {
+  useResource,
+  type ResourceState,
+  type UseResourceOptions,
+} from '@/lib/hooks/use-resource';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import type { ListParams } from '@/types/api';
 
@@ -12,6 +16,7 @@ function isAdminApiPath(path: string | null): boolean {
 export function useAdminResource<T>(
   path: string | null,
   query?: ListParams,
+  options?: UseResourceOptions,
 ): ResourceState<T> {
   const { activeSchoolId, requiresActiveSchool, schools, switching } = useAdminSession();
   const allowedSchoolIds = useMemo(() => schools.map((s) => s.id), [schools]);
@@ -28,7 +33,7 @@ export function useAdminResource<T>(
 
   const effectivePath = pendingActiveSchool ? null : path;
 
-  const state = useResource<T>(effectivePath, mergedQuery);
+  const state = useResource<T>(effectivePath, mergedQuery, options);
 
   return useMemo(() => {
     const waiting = pendingActiveSchool || switching;

@@ -19,6 +19,7 @@ import {
   isModernActionAllowed,
   resolvePrimaryNextActionCode,
   resolveStudentNavigation,
+  shouldShowConvertToStudentAction,
 } from '../utils/admission-modern-actions';
 import { resolveApplicationStatus } from '../utils/admission-modern-status';
 import { buildContinueRegistrationHref } from '../utils/admission-registration';
@@ -29,7 +30,11 @@ import { AdmissionModernDecisionDialog } from './admission-modern-decision-dialo
 import { AdmissionReopenDialog } from './admission-reopen-dialog';
 
 type MenuCoords = { top: number; left: number };
-type DecisionAction = 'accept' | 'reject' | 'record_family_approval';
+type DecisionAction =
+  | 'accept'
+  | 'reject'
+  | 'record_family_approval'
+  | 'accept_and_record_family_approval';
 
 function computeMenuCoords(trigger: HTMLElement, menuEl?: HTMLElement | null): MenuCoords {
   const rect = trigger.getBoundingClientRect();
@@ -182,9 +187,11 @@ export function AdmissionListActionsMenu({
   async function runSimpleAction(action: string) {
     if (activeSchoolId == null || busy) return;
     setBusy(true);
+    const needsConfirm =
+      action === 'record_family_approval' || action === 'accept_and_record_family_approval';
     const res = await executeAdmissionAction(
       admissionId,
-      { action },
+      { action, ...(needsConfirm ? { confirmed: true } : {}) },
       { active_school_id: activeSchoolId },
     );
     setBusy(false);
@@ -233,7 +240,8 @@ export function AdmissionListActionsMenu({
     modern &&
     isModernActionAllowed(seed?.modern_allowed_actions, 'accept_and_record_family_approval');
   const canConvert =
-    modern && isModernActionAllowed(seed?.modern_allowed_actions, 'convert_to_student');
+    modern &&
+    (shouldShowConvertToStudentAction(seed ?? {}) || primaryCode === 'convert_to_student');
   const canReopen = modern && isModernActionAllowed(seed?.modern_allowed_actions, 'reopen');
   const canClose = modern && isModernActionAllowed(seed?.modern_allowed_actions, 'close');
 

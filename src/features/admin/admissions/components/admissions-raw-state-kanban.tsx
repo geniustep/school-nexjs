@@ -203,8 +203,6 @@ export function AdmissionsRawStateKanban({
   }
 
   function columnAccentClass(column: AdmissionKanbanPresentationColumn): string {
-    if (column.id === 'assessment') return 'admissions-kanban__column--state-assessment_ready';
-    if (column.id === 'decision') return 'admissions-kanban__column--state-decision_ready';
     return rawKanbanColumnClass(column.id);
   }
 
@@ -212,7 +210,7 @@ export function AdmissionsRawStateKanban({
     <div
       className="admissions-kanban-outer admissions-kanban-outer--raw"
       data-testid="admissions-raw-kanban"
-      data-presentation-columns="4"
+      data-presentation-columns={String(presentationColumns.length)}
     >
       <div className="admissions-kanban-board">
         <div className="admissions-kanban-board__head">

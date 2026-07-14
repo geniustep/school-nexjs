@@ -42,7 +42,7 @@ function baseState(
 }
 
 describe('workspace kanban availability', () => {
-  it('1. follow_up allows kanban with four-column presentation fetch stages', () => {
+  it('1. follow_up allows kanban with application_status columns', () => {
     const q = buildAdmissionWorkspaceQuery(baseState({ workspace: 'follow_up' }));
     expect(q.kanbanAllowed).toBe(true);
     expect(q.kanbanColumns).toEqual(admissionKanbanFetchStages());
@@ -61,7 +61,7 @@ describe('workspace kanban availability', () => {
     ).toBe(false);
   });
 
-  it('4-5. kanban extra query omits workspace for pipeline board (no client split)', () => {
+  it('4-5. kanban extra query omits workspace and application_status', () => {
     for (const state of FOLLOW_UP_WORKSPACE_STATES) {
       const extra = buildKanbanWorkspaceExtraQuery(
         baseState({ workspace: 'follow_up' }),
@@ -69,16 +69,17 @@ describe('workspace kanban availability', () => {
       expect(extra).not.toHaveProperty('workspace');
       expect(extra).not.toHaveProperty('state');
       expect(extra).not.toHaveProperty('processing_stage');
+      expect(extra).not.toHaveProperty('application_status');
       void state;
     }
-    expect(admissionKanbanFetchStages()).toHaveLength(5);
+    expect(admissionKanbanFetchStages()).toHaveLength(3);
   });
 
-  it('7. follow_up subfilter stages remain the three processing stages', () => {
+  it('7. follow_up subfilter statuses are official application_status values', () => {
     expect([...FOLLOW_UP_WORKSPACE_STATES]).toEqual([
       'new',
-      'initial_follow_up',
-      'assessment_ready',
+      'follow_up',
+      'in_assessment',
     ]);
   });
 });
@@ -89,7 +90,7 @@ describe('column accents and labels', () => {
     expect(new Set(classes).size).toBe(3);
     for (const state of FOLLOW_UP_WORKSPACE_STATES) {
       expect(rawKanbanColumnClass(state)).toContain(state);
-      expect(`admin.admissions.processingStages.${state}`).toMatch(/processingStages\./);
+      expect(`admin.admissions.applicationStatus.${state}`).toMatch(/applicationStatus\./);
     }
   });
 });
@@ -117,8 +118,8 @@ describe('synchronized horizontal scroll helpers', () => {
 });
 
 describe('drag / drop targets', () => {
-  it('31-35. manual stages only; derived states blocked', () => {
-    for (const stage of getAdmissionManualStageOptions()) {
+  it('31-35. follow_up application_status columns are drop targets; others blocked', () => {
+    for (const stage of FOLLOW_UP_WORKSPACE_STATES) {
       expect(isRawKanbanDropTarget(stage)).toBe(true);
     }
     for (const blocked of [
@@ -129,6 +130,8 @@ describe('drag / drop targets', () => {
       'lost',
       'cancelled',
       'duplicate',
+      'decision_pending',
+      'initial_follow_up',
     ]) {
       expect(isRawKanbanDropTarget(blocked)).toBe(false);
     }
@@ -142,6 +145,9 @@ describe('drag / drop targets', () => {
     expect(
       evaluateManualStageChange({ processing_stage: 'new' }, 'initial_follow_up').apply,
     ).toBe(true);
+    // Manual stage options remain processing-stage based for legacy actions —
+    // kanban UI keeps allowDrag=false.
+    expect(getAdmissionManualStageOptions().length).toBeGreaterThan(0);
   });
 });
 

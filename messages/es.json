@@ -4536,7 +4536,7 @@
         "at": "Fecha"
       },
       "contactResults": { "reached": "Reached", "no_answer": "No answer", "wrong_number": "Wrong number", "call_later": "Call later", "family_interested": "Family interested", "family_not_interested": "Family not interested", "appointment_scheduled": "Appointment scheduled", "information_sent": "Information sent", "other": "Other" },
-      "actionErrors": { "FAMILY_APPROVAL_REQUIRES_ACCEPTED_DECISION": "Accept the application before recording family approval.", "not_ready_for_registration": "The application is not ready for registration.", "invalid_action": "This action is not currently available.", "conflict": "The application was updated elsewhere." },
+      "actionErrors": { "FAMILY_APPROVAL_REQUIRES_ACCEPTED_DECISION": "Accept the application before recording family approval.", "familyApprovalStatusNotAdvanced": "Se guardó la aprobación familiar pero el estado siguió siendo «{status}» en lugar de listo para el registro. Hay que corregir la transición de estado en el backend.", "not_ready_for_registration": "The application is not ready for registration.", "invalid_action": "This action is not currently available.", "conflict": "The application was updated elsewhere." },
       "actionValidation": { "nextActionDateRequired": "A follow-up date is required.", "appointmentDateRequired": "An appointment date and time is required.", "noteRequired": "A note is required.", "rejectionReasonRequired": "A rejection reason is required." },
       "title": "Admisiones",
       "subtitle": "Gestión de solicitudes de ingreso",

@@ -85,6 +85,38 @@ describe('admission modern contract', () => {
     ).toBe(false);
   });
 
+  it('shows convert when primary or modern_allowed_actions allow it for any unregistered status', async () => {
+    const {
+      shouldShowConvertToStudentAction,
+      resolveDetailPrimaryActionCode,
+    } = await import('./admission-modern-actions');
+    expect(
+      shouldShowConvertToStudentAction({
+        application_status: 'ready_for_registration',
+        modern_allowed_actions: [{ code: 'convert_to_student', allowed: true }],
+      }),
+    ).toBe(true);
+    expect(
+      resolveDetailPrimaryActionCode({
+        application_status: 'ready_for_registration',
+        primary_next_action: 'convert_to_student',
+        modern_allowed_actions: [],
+      }),
+    ).toBe('convert_to_student');
+    expect(
+      shouldShowConvertToStudentAction({
+        application_status: 'accepted',
+        modern_allowed_actions: [{ code: 'convert_to_student', allowed: true }],
+      }),
+    ).toBe(true);
+    expect(
+      shouldShowConvertToStudentAction({
+        application_status: 'new',
+        modern_allowed_actions: [{ code: 'convert_to_student', allowed: true }],
+      }),
+    ).toBe(true);
+  });
+
   it('excludes start_registration and link_existing_student from daily actions', () => {
     expect(
       filterDailyModernActions([

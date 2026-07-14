@@ -7,17 +7,49 @@ import type { AdmissionsDashboard } from '@/types/admission';
 import {
   ADMISSIONS_INFO_INDICATORS,
   ADMISSIONS_OPERATIONAL_CARDS,
+  resolveInfoIndicatorCount,
+  resolveOperationalCardDisplayCount,
   resolveOperationalCardPressed,
   type AdmissionsOperationalCardId,
 } from '../utils/admissions-dashboard-cards';
 
+export function AdmissionsDashboardSkeleton() {
+  return (
+    <div
+      className="admissions-dashboard-stack admissions-dashboard-stack--skeleton"
+      data-testid="admissions-dashboard-skeleton"
+      aria-busy="true"
+      aria-hidden="true"
+    >
+      <div className="admissions-dashboard admissions-dashboard--main admissions-dashboard--operational">
+        {ADMISSIONS_OPERATIONAL_CARDS.map((card) => (
+          <div
+            key={card.id}
+            className={cn(
+              'admissions-dashboard__kpi-btn',
+              'admissions-dashboard__kpi-btn--skeleton',
+              `admissions-dashboard__kpi-btn--${card.tone}`,
+            )}
+          >
+            <span className="admissions-dashboard__skeleton-bar admissions-dashboard__skeleton-bar--label" />
+            <span className="admissions-dashboard__skeleton-bar admissions-dashboard__skeleton-bar--value" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function AdmissionsDashboardSummary({
   data,
   activeOperationalCard = null,
+  activeListTotal = null,
   onOperationalCardClick,
 }: {
   data: AdmissionsDashboard;
   activeOperationalCard?: AdmissionsOperationalCardId | null;
+  /** List pagination.total while an operational filter is active (ready parity). */
+  activeListTotal?: number | null;
   onOperationalCardClick?: (card: AdmissionsOperationalCardId) => void;
 }) {
   const t = useT();
@@ -31,7 +63,10 @@ export function AdmissionsDashboardSummary({
         data-testid="admissions-dashboard-main"
       >
         {ADMISSIONS_OPERATIONAL_CARDS.map((card) => {
-          const value = Number(data[card.countKey] ?? 0);
+          const value = resolveOperationalCardDisplayCount(data, card, {
+            activeCard: activeOperationalCard,
+            activeListTotal,
+          });
           const active = resolveOperationalCardPressed(activeOperationalCard, card.id);
           const label = t(card.labelKey);
           const aria = active
@@ -53,6 +88,7 @@ export function AdmissionsDashboardSummary({
               data-testid={`admissions-kpi-${card.id}`}
               data-interactive="true"
               data-count-key={card.countKey}
+              data-application-status={card.applicationStatus}
               onClick={() => onOperationalCardClick?.(card.id)}
             >
               <StatCard label={label} value={value} tone={card.tone} />
@@ -76,7 +112,7 @@ export function AdmissionsDashboardSummary({
         data-testid="admissions-dashboard-info"
       >
         {ADMISSIONS_INFO_INDICATORS.map((item) => {
-          const value = Number(data[item.countKey] ?? 0);
+          const value = resolveInfoIndicatorCount(data, item);
           return (
             <div
               key={item.id}

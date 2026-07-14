@@ -25,6 +25,7 @@ import {
   normalizeAdmissionListItems,
 } from '../utils/normalize-admission-record';
 import { unwrapAdmissionPrefill } from '../utils/admission-prefill-unwrap';
+import { notifyAdmissionsQueriesInvalidated } from '../utils/admission-list-invalidate';
 
 export async function fetchAdmissionsDashboard(
   query?: ListParams,
@@ -75,6 +76,10 @@ export async function executeAdmissionAction(
 ): Promise<ApiResponse<AdmissionDetail>> {
   const res = await api.post<AdmissionDetail>(endpoints.admin.admissionActions(id), payload, query);
   if (res.success && res.data) {
+    notifyAdmissionsQueriesInvalidated({
+      reason: String(payload.action ?? ''),
+      admissionId: id,
+    });
     return { ...res, data: normalizeAdmissionDetail(res.data) };
   }
   return res;

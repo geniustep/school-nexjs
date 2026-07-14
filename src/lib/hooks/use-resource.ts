@@ -19,15 +19,25 @@ export interface ResourceState<T> {
   reload: () => void;
 }
 
+export type UseResourceOptions = {
+  /**
+   * When false, clear data+meta as soon as path/query changes so the UI cannot
+   * flash a previous filter's rows or pagination.total. Default true.
+   */
+  keepPreviousData?: boolean;
+};
+
 export function useResource<T>(
   path: string | null,
   query?: ListParams,
+  options?: UseResourceOptions,
 ): ResourceState<T> {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<T | null>(null);
   const [meta, setMeta] = useState<ApiMeta | null>(null);
   const [error, setError] = useState<ApiErrorBody | null>(null);
   const [nonce, setNonce] = useState(0);
+  const keepPreviousData = options?.keepPreviousData !== false;
 
   // Serialise query so the effect re-runs when any param changes.
   const queryKey = query ? JSON.stringify(query) : '';
@@ -36,12 +46,17 @@ export function useResource<T>(
     if (!path) {
       setLoading(false);
       setData(null);
+      setMeta(null);
       setError(null);
       return;
     }
     let active = true;
     setLoading(true);
     setError(null);
+    if (!keepPreviousData) {
+      setData(null);
+      setMeta(null);
+    }
     api.get<T>(path, query).then((res) => {
       if (!active) return;
       if (res.success) {
@@ -50,8 +65,9 @@ export function useResource<T>(
         setError(null);
       } else {
         setError(res.error);
-        // Keep stale data during refetch errors so lists do not flash empty.
-        setData((prev) => prev);
+        // Keep stale data during refetch errors so lists do not flash empty
+        // (only meaningful when keepPreviousData is on).
+        if (keepPreviousData) setData((prev) => prev);
       }
       setLoading(false);
     });
@@ -59,7 +75,7 @@ export function useResource<T>(
       active = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [path, queryKey, nonce]);
+  }, [path, queryKey, nonce, keepPreviousData]);
 
   const reload = useCallback(() => setNonce((n) => n + 1), []);
 

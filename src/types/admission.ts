@@ -248,6 +248,19 @@ export interface AdmissionsDashboard {
   school_rejected_count?: number;
   family_declined_count?: number;
   expired_offer_count?: number;
+  /** Official application_status tallies (prefer over legacy confirmed_count / outcome proxies). */
+  ready_for_registration_count?: number;
+  application_status_counts?: Partial<Record<string, number>>;
+  application_status_new_count?: number;
+  application_status_follow_up_count?: number;
+  application_status_in_assessment_count?: number;
+  application_status_decision_pending_count?: number;
+  application_status_accepted_count?: number;
+  application_status_ready_for_registration_count?: number;
+  application_status_registered_count?: number;
+  application_status_waitlisted_count?: number;
+  application_status_rejected_count?: number;
+  application_status_closed_count?: number;
   /** Workspace queue counters from dashboard (not derived from list rows). */
   follow_up_workspace_count?: number;
   awaiting_decision_workspace_count?: number;

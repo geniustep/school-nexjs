@@ -9,7 +9,10 @@ import {
 } from '@/features/admin/admissions/utils/filter-admission-list-items';
 import type { AdmissionListItem } from '@/types/admission';
 
-function makeItem(id: number, studentId?: number | false | null): AdmissionListItem {
+function makeItem(
+  id: number,
+  patch: Partial<AdmissionListItem> = {},
+): AdmissionListItem {
   return {
     id,
     student_name: `Student ${id}`,
@@ -24,19 +27,37 @@ function makeItem(id: number, studentId?: number | false | null): AdmissionListI
     offer_state: null,
     assigned_user: null,
     priority: null,
-    student_id: studentId,
+    student_id: false,
+    ...patch,
   };
 }
 
 describe('filterAdmissionListItems', () => {
-  it('hides registered admissions by default', () => {
-    const items = [makeItem(1), makeItem(2, 100)];
-    expect(filterAdmissionListItems(items, true)).toEqual([makeItem(1)]);
+  it('hides only application_status=registered when hideConverted is on', () => {
+    const items = [
+      makeItem(1, { application_status: 'accepted' }),
+      makeItem(2, { application_status: 'ready_for_registration' }),
+      makeItem(3, { application_status: 'registered' }),
+      makeItem(4, { application_status: 'accepted', student_id: 100 }),
+    ];
+    const visible = filterAdmissionListItems(items, true);
+    expect(visible.map((i) => i.id)).toEqual([1, 2, 4]);
     expect(countHiddenConvertedAdmissionListItems(items, true)).toBe(1);
   });
 
+  it('does not hide ready_for_registration or student_id alone', () => {
+    const items = [
+      makeItem(1, { application_status: 'ready_for_registration', student_id: 55 }),
+      makeItem(2, { application_status: 'accepted', student_id: 66 }),
+    ];
+    expect(filterAdmissionListItems(items, true)).toEqual(items);
+  });
+
   it('keeps registered admissions when hideConverted is off', () => {
-    const items = [makeItem(1), makeItem(2, 100)];
+    const items = [
+      makeItem(1, { application_status: 'new' }),
+      makeItem(2, { application_status: 'registered' }),
+    ];
     expect(filterAdmissionListItems(items, false)).toEqual(items);
     expect(countHiddenConvertedAdmissionListItems(items, false)).toBe(0);
   });
@@ -61,12 +82,19 @@ describe('filterAdmissionListItems', () => {
     expect(hasActiveAdmissionListFilters({})).toBe(false);
   });
 
-  it('forces show registered inside post_acceptance registered subfilter', () => {
+  it('forces show registered inside post_acceptance and closed registered subfilters', () => {
     expect(
       resolveEffectiveHideConverted({
         hideConverted: true,
         workspace: 'post_acceptance',
         postSub: 'registered',
+      }),
+    ).toBe(false);
+    expect(
+      resolveEffectiveHideConverted({
+        hideConverted: true,
+        workspace: 'closed',
+        closedSub: 'registered',
       }),
     ).toBe(false);
     expect(

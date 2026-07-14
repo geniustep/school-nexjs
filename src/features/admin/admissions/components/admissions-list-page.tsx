@@ -22,7 +22,7 @@ import type { ListParams } from '@/types/api';
 import { useAdmissionOptions } from '../hooks/use-admission-options';
 import { useAdmissionsKanbanBoard } from '../hooks/use-admissions-kanban-board';
 import { useAdmissionsSelection } from '../hooks/use-admissions-selection';
-import { AdmissionsDashboardSummary } from './admissions-dashboard-summary';
+import { AdmissionsDashboardSummary, AdmissionsDashboardSkeleton } from './admissions-dashboard-summary';
 import { AdmissionsRawStateKanban } from './admissions-raw-state-kanban';
 import { AdmissionsTable } from './admissions-table';
 import {
@@ -59,14 +59,22 @@ import {
 import { ADMISSION_KANBAN_PRESENTATION_COLUMNS } from '../utils/admission-kanban-presentation';
 import {
   countHiddenConvertedAdmissionListItems,
-  filterAdmissionListItems,
   resolveEffectiveHideConverted,
 } from '../utils/filter-admission-list-items';
 import {
   ADMISSIONS_OPERATIONAL_CARDS,
+  resolveTrustedActiveListTotal,
   type AdmissionsOperationalCardId,
 } from '../utils/admissions-dashboard-cards';
+import {
+  ADMISSIONS_QUERIES_INVALIDATED_EVENT,
+} from '../utils/admission-list-invalidate';
+import {
+  areAdmissionsFiltersReady,
+  buildAdmissionsDashboardQuery,
+} from '../utils/admission-list-ssot';
 import { normalizeAdmissionListItems } from '../utils/normalize-admission-record';
+import { useAdminSession } from '@/features/auth/admin-session-context';
 import '../admissions.css';
 
 const TABLE_PAGE_SIZE = 25;
@@ -77,7 +85,21 @@ export function AdmissionsListPage() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { options: admissionOptions } = useAdmissionOptions();
+  const {
+    activeSchoolId,
+    requiresActiveSchool,
+    schools,
+    switching,
+  } = useAdminSession();
+  const allowedSchoolIds = useMemo(() => schools.map((s) => s.id), [schools]);
+  const filtersReady = areAdmissionsFiltersReady({
+    switching,
+    requiresActiveSchool,
+    activeSchoolId,
+    allowedSchoolIds,
+  });
 
+  // URL is the single source of filter truth — parse once on init (no default→fetch→hydrate).
   const [listState, setListState] = useState<AdmissionWorkspaceListState>(() =>
     parseWorkspaceListStateFromSearchParams(
       new URLSearchParams(searchParams?.toString() ?? ''),
@@ -156,24 +178,37 @@ export function AdmissionsListPage() {
   );
 
   const view = listState.view;
-  const tableEnabled = view === 'table';
-  const kanbanEnabled = view === 'kanban' && workspacePreset.kanbanAllowed;
+  const tableEnabled = filtersReady && view === 'table';
+  const kanbanEnabled =
+    filtersReady && view === 'kanban' && workspacePreset.kanbanAllowed;
 
+  // Single source of truth: never keep prior filter rows/totals while the next
+  // list request is in flight (avoids KPI/list flash of wrong counts).
   const tableState = useAdminResource<AdmissionListItem[]>(
     tableEnabled ? endpoints.admin.admissions : null,
     tableParams,
+    { keepPreviousData: false },
   );
 
   const kanbanBoard = useAdmissionsKanbanBoard({
     columns: workspacePreset.kanbanColumns,
     search: listState.search?.trim() || undefined,
+    // Context only — each column sends its own application_status (Backend honors it).
     extraQuery: buildKanbanWorkspaceExtraQuery(listState),
+    partitionByApplicationStatus: false,
     enabled: kanbanEnabled,
   });
 
+  const dashboardQuery = useMemo(
+    () => buildAdmissionsDashboardQuery(listState),
+    [listState],
+  );
+
   const [dashboardApiEnabled, setDashboardApiEnabled] = useState(true);
   const dashboardState = useAdminResource<AdmissionsDashboard>(
-    dashboardApiEnabled ? endpoints.admin.admissionsDashboard : null,
+    filtersReady && dashboardApiEnabled ? endpoints.admin.admissionsDashboard : null,
+    dashboardQuery,
+    { keepPreviousData: false },
   );
 
   useEffect(() => {
@@ -217,23 +252,19 @@ export function AdmissionsListPage() {
     hideConverted: listState.hideConverted,
     workspace: listState.workspace,
     postSub: listState.postSub,
+    closedSub: listState.closedSub,
   });
 
+  // Prefer server domains for hide-registered and application_status — no
+  // client post-pagination shrinking of the page (SSOT: pagination.total wins).
   const tableRows = useMemo(() => {
     if (!tableState.data) return [];
-    return filterAdmissionListItems(
-      normalizeAdmissionListItems(tableState.data),
-      effectiveHideConverted,
-    );
-  }, [tableState.data, effectiveHideConverted]);
+    return normalizeAdmissionListItems(tableState.data);
+  }, [tableState.data]);
 
   const kanbanColumns = useMemo(() => {
-    if (!effectiveHideConverted) return kanbanBoard.grouped;
-    return kanbanBoard.grouped.map((column) => {
-      const items = filterAdmissionListItems(column.items, true);
-      return { ...column, items, total: items.length };
-    });
-  }, [kanbanBoard.grouped, effectiveHideConverted]);
+    return kanbanBoard.grouped;
+  }, [kanbanBoard.grouped]);
 
   const hiddenConvertedOnPage = useMemo(() => {
     const source =
@@ -324,10 +355,29 @@ export function AdmissionsListPage() {
     dashboardState.reload();
   }
 
+  const reloadCurrentViewRef = useRef(reloadCurrentView);
+  reloadCurrentViewRef.current = reloadCurrentView;
+
+  // After family approval / status actions (list or detail), refresh list + counts.
+  useEffect(() => {
+    const onInvalidate = () => {
+      reloadCurrentViewRef.current();
+    };
+    window.addEventListener(ADMISSIONS_QUERIES_INVALIDATED_EVENT, onInvalidate);
+    return () => {
+      window.removeEventListener(ADMISSIONS_QUERIES_INVALIDATED_EVENT, onInvalidate);
+    };
+  }, []);
+
   function retryDashboard() {
     setDashboardApiEnabled(true);
     dashboardState.reload();
   }
+
+  const bootstrapping = !filtersReady;
+  const dashboardBootLoading =
+    bootstrapping ||
+    (dashboardApiEnabled && dashboardState.initialLoading && !dashboardData);
 
   const emptyTitle = t(`admin.admissions.workspace.empty.${listState.workspace}.title`);
   const emptyDescription = hasManualFilters
@@ -353,6 +403,16 @@ export function AdmissionsListPage() {
   );
 
   const activeOperationalCard = resolveActiveOperationalCard(listState);
+  const trustedActiveListTotal = resolveTrustedActiveListTotal({
+    activeCard: activeOperationalCard,
+    serverApplicationStatus:
+      typeof serverQuery.application_status === 'string'
+        ? serverQuery.application_status
+        : null,
+    paginationTotal: tablePagination?.total ?? null,
+    listSettled: tableEnabled && !tableState.loading,
+    view,
+  });
 
   return (
     <div className="admissions-page admissions-list-page" data-testid="admissions-list-page">
@@ -430,11 +490,14 @@ export function AdmissionsListPage() {
             <AdmissionsDashboardSummary
               data={dashboardData}
               activeOperationalCard={activeOperationalCard}
+              activeListTotal={trustedActiveListTotal}
               onOperationalCardClick={handleOperationalCard}
             />
           </div>
-        ) : dashboardState.loading && dashboardApiEnabled ? (
-          <div className="admissions-filter-deck__band muted">{t('common.loading')}</div>
+        ) : dashboardBootLoading ? (
+          <div className="admissions-filter-deck__band admissions-filter-deck__band--insights">
+            <AdmissionsDashboardSkeleton />
+          </div>
         ) : dashboardState.error ? (
           <div className="admissions-filter-deck__band admissions-dashboard-fallback">
             <InfoBanner
@@ -458,8 +521,8 @@ export function AdmissionsListPage() {
           {(
             [
               ['awaiting', 'admin.admissions.registrationStatus.awaiting_registration'],
-              ['ready', 'admin.admissions.registrationStatus.ready_for_registration'],
-              ['registered', 'admin.admissions.registrationStatus.registered'],
+              ['ready', 'admin.admissions.applicationStatus.ready_for_registration'],
+              ['registered', 'admin.admissions.applicationStatus.registered'],
             ] as const
           ).map(([value, labelKey]) => (
             <button
@@ -493,26 +556,11 @@ export function AdmissionsListPage() {
           aria-label={t('admin.admissions.workspace.closedSubLabel')}
           data-testid="admissions-closed-subfilters"
         >
-          <button
-            type="button"
-            className={cn(
-              'admissions-subfilters__btn',
-              listState.closedSub === 'rejected' && 'admissions-subfilters__btn--active',
-            )}
-            aria-pressed={listState.closedSub === 'rejected'}
-            data-testid="admissions-closed-sub-rejected"
-            onClick={() => patchListState({ closedSub: 'rejected', page: 1 })}
-          >
-            {t('admin.admissions.schoolDecision.rejected')}
-          </button>
-          <span className="admissions-subfilters__divider muted tiny">
-            {t('admin.admissions.workspace.closedOther')}
-          </span>
           {(
             [
-              ['lost', 'admin.admissions.states.lost'],
-              ['cancelled', 'admin.admissions.states.cancelled'],
-              ['duplicate', 'admin.admissions.states.duplicate'],
+              ['rejected', 'admin.admissions.applicationStatus.rejected'],
+              ['closed', 'admin.admissions.applicationStatus.closed'],
+              ['registered', 'admin.admissions.applicationStatus.registered'],
             ] as const
           ).map(([value, labelKey]) => (
             <button
@@ -527,6 +575,7 @@ export function AdmissionsListPage() {
               onClick={() =>
                 patchListState({
                   closedSub: value as ClosedSubfilter,
+                  hideConverted: value === 'registered' ? false : listState.hideConverted,
                   page: 1,
                 })
               }
@@ -573,7 +622,7 @@ export function AdmissionsListPage() {
                 })
               }
             >
-              {t(`admin.admissions.processingStages.${stage}`)}
+              {t(`admin.admissions.applicationStatus.${stage}`)}
             </button>
           ))}
         </div>
@@ -589,10 +638,8 @@ export function AdmissionsListPage() {
           {(
             [
               ['', 'admin.admissions.workspace.allInWorkspace'],
-              ['assessment_in_progress', 'admin.admissions.processingStages.assessment_in_progress'],
-              ['decision_ready', 'admin.admissions.processingStages.decision_ready'],
-              ['needs_reassessment', 'admin.admissions.decisions.needs_reassessment'],
-              ['waitlisted', 'admin.admissions.decisions.waitlisted'],
+              ['decision_pending', 'admin.admissions.applicationStatus.decision_pending'],
+              ['waitlisted', 'admin.admissions.applicationStatus.waitlisted'],
             ] as const
           ).map(([value, labelKey]) => (
             <button
@@ -705,6 +752,7 @@ export function AdmissionsListPage() {
               autoComplete="off"
               autoCorrect="off"
               spellCheck={false}
+              dir="auto"
               data-testid="admissions-filter-search"
             />
             {searchInput ? (
@@ -951,8 +999,8 @@ export function AdmissionsListPage() {
         </div>
       ) : null}
 
-      {view === 'kanban' && kanbanEnabled ? (
-        kanbanBoard.initialLoading ? (
+      {view === 'kanban' && workspacePreset.kanbanAllowed ? (
+        !filtersReady || kanbanBoard.initialLoading ? (
           <div
             className="admissions-kanban-skeleton"
             data-testid="admissions-kanban-skeleton"
@@ -961,7 +1009,7 @@ export function AdmissionsListPage() {
           >
             {(ADMISSION_KANBAN_PRESENTATION_COLUMNS.length
               ? ADMISSION_KANBAN_PRESENTATION_COLUMNS.map((col) => col.id)
-              : ['new', 'initial_follow_up', 'assessment', 'decision']
+              : ['new', 'follow_up', 'in_assessment']
             ).map((state) => (
               <div key={state} className="admissions-kanban-skeleton__column" />
             ))}
@@ -983,49 +1031,61 @@ export function AdmissionsListPage() {
         <div
           className={cn(
             'admissions-table-wrap',
-            tableState.initialLoading && 'admissions-table-wrap--loading',
+            'admissions-list-results',
+            (bootstrapping || tableState.initialLoading) && 'admissions-table-wrap--loading',
+            tableState.fetching && 'admissions-list-results--fetching',
           )}
+          aria-busy={bootstrapping || tableState.loading || undefined}
+          data-testid="admissions-table-results"
         >
-          <ResourceView
-            state={tableState}
-            empty={listEmptyState}
-            isEmpty={() => tableRows.length === 0}
-          >
-            {() => (
-              <>
-                <AdmissionsTable
-                  items={tableRows}
-                  onUpdated={reloadCurrentView}
-                  selectionMode={selectionMode}
-                  isSelected={isSelected}
-                  onToggleSelect={toggle}
-                  onToggleVisible={() => toggleVisible(tableRows.map((r) => r.id))}
-                  visibleSelectionState={visibleSelectionState(
-                    tableRows.map((r) => r.id),
-                  )}
-                />
-                {tablePagination && tablePagination.total_pages > 1 ? (
-                  <Pagination
-                    page={tablePagination.page}
-                    totalPages={tablePagination.total_pages}
-                    pageSize={tablePagination.page_size}
-                    total={tablePagination.total}
-                    onPage={(page) => patchListState({ page })}
+          {bootstrapping ? (
+            <div
+              className="admissions-list-boot-skeleton"
+              data-testid="admissions-list-boot-skeleton"
+              aria-busy="true"
+            />
+          ) : (
+            <ResourceView
+              state={tableState}
+              empty={listEmptyState}
+              isEmpty={() => tableRows.length === 0}
+            >
+              {() => (
+                <>
+                  <AdmissionsTable
+                    items={tableRows}
+                    onUpdated={reloadCurrentView}
+                    selectionMode={selectionMode}
+                    isSelected={isSelected}
+                    onToggleSelect={toggle}
+                    onToggleVisible={() => toggleVisible(tableRows.map((r) => r.id))}
+                    visibleSelectionState={visibleSelectionState(
+                      tableRows.map((r) => r.id),
+                    )}
                   />
-                ) : null}
-                {effectiveHideConverted && hiddenConvertedOnPage > 0 ? (
-                  <p
-                    className="admissions-list-footer__stat admissions-list-footer__stat--muted"
-                    data-testid="admissions-hidden-converted-count"
-                  >
-                    {t('admin.admissions.filters.hiddenConvertedCount', {
-                      count: hiddenConvertedOnPage,
-                    })}
-                  </p>
-                ) : null}
-              </>
-            )}
-          </ResourceView>
+                  {tablePagination && tablePagination.total_pages > 1 ? (
+                    <Pagination
+                      page={tablePagination.page}
+                      totalPages={tablePagination.total_pages}
+                      pageSize={tablePagination.page_size}
+                      total={tablePagination.total}
+                      onPage={(page) => patchListState({ page })}
+                    />
+                  ) : null}
+                  {effectiveHideConverted && hiddenConvertedOnPage > 0 ? (
+                    <p
+                      className="admissions-list-footer__stat admissions-list-footer__stat--muted"
+                      data-testid="admissions-hidden-converted-count"
+                    >
+                      {t('admin.admissions.filters.hiddenConvertedCount', {
+                        count: hiddenConvertedOnPage,
+                      })}
+                    </p>
+                  ) : null}
+                </>
+              )}
+            </ResourceView>
+          )}
         </div>
       )}
 

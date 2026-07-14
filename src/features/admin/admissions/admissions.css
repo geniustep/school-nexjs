@@ -765,6 +765,26 @@
   --kanban-accent: #6366f1;
 }
 
+.admissions-kanban__column[data-stage='follow_up'],
+.admissions-kanban__column--state-follow_up {
+  --kanban-accent: #0ea5e9;
+}
+
+.admissions-kanban__column[data-stage='in_assessment'],
+.admissions-kanban__column--state-in_assessment {
+  --kanban-accent: #14b8a6;
+}
+
+.admissions-kanban__column[data-stage='decision_pending'],
+.admissions-kanban__column--state-decision_pending {
+  --kanban-accent: #1d4ed8;
+}
+
+.admissions-kanban__column[data-stage='waitlisted'],
+.admissions-kanban__column--state-waitlisted {
+  --kanban-accent: #d97706;
+}
+
 .admissions-kanban__column[data-stage='initial_follow_up'],
 .admissions-kanban__column--state-initial_follow_up {
   --kanban-accent: #0ea5e9;
@@ -5141,6 +5161,53 @@
   gap: 0.85rem;
   overflow: hidden;
   padding: 0.35rem 0;
+}
+
+.admissions-dashboard__kpi-btn--skeleton {
+  pointer-events: none;
+  min-height: 4.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  justify-content: center;
+  padding: 0.85rem 1rem;
+}
+
+.admissions-dashboard__skeleton-bar {
+  display: block;
+  border-radius: 0.35rem;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--c-border, #e2e8f0) 40%, white) 0%,
+    color-mix(in srgb, var(--c-border, #e2e8f0) 14%, white) 50%,
+    color-mix(in srgb, var(--c-border, #e2e8f0) 40%, white) 100%
+  );
+  background-size: 200% 100%;
+  animation: admissions-kanban-skeleton-shine 1.2s ease-in-out infinite;
+}
+
+.admissions-dashboard__skeleton-bar--label {
+  height: 0.7rem;
+  width: 55%;
+}
+
+.admissions-dashboard__skeleton-bar--value {
+  height: 1.35rem;
+  width: 32%;
+}
+
+.admissions-list-boot-skeleton {
+  min-height: 12rem;
+  border-radius: var(--radius, 0.5rem);
+  border: 1px solid var(--c-border, #e2e8f0);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--c-border, #e2e8f0) 35%, white) 0%,
+    color-mix(in srgb, var(--c-border, #e2e8f0) 12%, white) 50%,
+    color-mix(in srgb, var(--c-border, #e2e8f0) 35%, white) 100%
+  );
+  background-size: 200% 100%;
+  animation: admissions-kanban-skeleton-shine 1.2s ease-in-out infinite;
 }
 
 .admissions-kanban-skeleton__column {

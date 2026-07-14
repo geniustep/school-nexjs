@@ -3,10 +3,16 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAdminSession } from '@/features/auth/admin-session-context';
 import { fetchAdmissions } from '../api/admissions-api';
+import {
+  filterKanbanItemsByApplicationStatus,
+  partitionKanbanItemsByApplicationStatus,
+} from '../utils/admission-kanban-status-partition';
 import type { AdmissionListItem } from '@/types/admission';
 import type { ApiErrorBody, ApiResponse, Pagination } from '@/types/api';
 
 export const ADMISSIONS_KANBAN_COLUMN_PAGE_SIZE = 30;
+/** Workspace-scoped board fetch — covers typical follow_up / awaiting_decision queues. */
+export const ADMISSIONS_KANBAN_BOARD_PAGE_SIZE = 100;
 
 /**
  * Stable fetch key for a set of kanban columns. The board effect keys off this
@@ -45,11 +51,32 @@ function dedupeById(items: AdmissionListItem[]): AdmissionListItem[] {
   return out;
 }
 
+function columnFromFilteredItems(
+  state: string,
+  items: AdmissionListItem[],
+  page: number,
+  hasMore: boolean,
+  error: ApiErrorBody | null = null,
+): AdmissionsKanbanColumn {
+  return {
+    state,
+    items,
+    total: items.length,
+    page,
+    hasMore,
+    loading: false,
+    loadingMore: false,
+    error,
+  };
+}
+
 function columnFromResponse(
   state: string,
   res: ApiResponse<AdmissionListItem[]>,
   page: number,
   previousItems: AdmissionListItem[],
+  /** When true, drop rows whose application_status ≠ column id. */
+  enforceApplicationStatus: boolean,
 ): AdmissionsKanbanColumn {
   if (!res.success) {
     return {
@@ -65,8 +92,15 @@ function columnFromResponse(
   }
 
   const pagination = res.meta?.pagination as Pagination | undefined;
-  const merged = dedupeById(page > 1 ? [...previousItems, ...res.data] : res.data);
-  const total = pagination?.total ?? merged.length;
+  const rawMerged = dedupeById(page > 1 ? [...previousItems, ...res.data] : res.data);
+  const merged = enforceApplicationStatus
+    ? filterKanbanItemsByApplicationStatus(rawMerged, state)
+    : rawMerged;
+  // When Backend ignores application_status, server total is misleading —
+  // prefer filtered length until a later page can add more matching rows.
+  const total = enforceApplicationStatus
+    ? merged.length
+    : (pagination?.total ?? merged.length);
   const hasMore = pagination
     ? pagination.page < pagination.total_pages
     : res.data.length >= ADMISSIONS_KANBAN_COLUMN_PAGE_SIZE;
@@ -83,20 +117,50 @@ function columnFromResponse(
   };
 }
 
+function partitionBoardIntoColumns(
+  columns: string[],
+  boardItems: AdmissionListItem[],
+  page: number,
+  hasMore: boolean,
+  error: ApiErrorBody | null,
+): Record<string, AdmissionsKanbanColumn> {
+  const parts = partitionKanbanItemsByApplicationStatus(boardItems, columns);
+  const next: Record<string, AdmissionsKanbanColumn> = {};
+  for (const state of columns) {
+    next[state] = columnFromFilteredItems(
+      state,
+      parts[state] ?? [],
+      page,
+      hasMore,
+      error,
+    );
+  }
+  return next;
+}
+
 export function useAdmissionsKanbanBoard({
   columns,
   search,
   extraQuery,
+  /**
+   * When true: one workspace-scoped fetch (extraQuery.workspace), then partition
+   * by application_status. Required while Backend ignores column application_status.
+   */
+  partitionByApplicationStatus = false,
   enabled = true,
 }: {
   columns: string[];
   search?: string;
-  /** Server-side outcome filters (registration_status, decision, offer_state, …). */
+  /** Server-side board scope / context filters. */
   extraQuery?: Record<string, string | number | undefined>;
+  partitionByApplicationStatus?: boolean;
   enabled?: boolean;
 }) {
   const { activeSchoolId } = useAdminSession();
   const [columnStates, setColumnStates] = useState<Record<string, AdmissionsKanbanColumn>>({});
+  const [boardItems, setBoardItems] = useState<AdmissionListItem[]>([]);
+  const [boardPage, setBoardPage] = useState(0);
+  const [boardHasMore, setBoardHasMore] = useState(false);
   const [initialLoading, setInitialLoading] = useState(enabled);
   const [nonce, setNonce] = useState(0);
 
@@ -121,12 +185,13 @@ export function useAdmissionsKanbanBoard({
   }, [extraQueryKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    // Derive the column list from the stable string key, not the `columns`
-    // prop, so a new-but-equal array reference does not re-trigger the effect.
     const activeColumns = columnsKey ? columnsKey.split(',') : [];
     if (!enabled || activeSchoolId == null || activeColumns.length === 0) {
       setInitialLoading(false);
       setColumnStates({});
+      setBoardItems([]);
+      setBoardPage(0);
+      setBoardHasMore(false);
       return;
     }
 
@@ -151,11 +216,43 @@ export function useAdmissionsKanbanBoard({
     );
 
     void (async () => {
+      if (partitionByApplicationStatus) {
+        const res = await fetchAdmissions({
+          active_school_id: activeSchoolId,
+          search: searchKey || undefined,
+          page: 1,
+          page_size: ADMISSIONS_KANBAN_BOARD_PAGE_SIZE,
+          ...resolvedExtraQuery,
+        });
+        if (cancelled) return;
+        if (!res.success) {
+          setBoardItems([]);
+          setBoardPage(1);
+          setBoardHasMore(false);
+          setColumnStates(
+            partitionBoardIntoColumns(activeColumns, [], 1, false, res.error),
+          );
+          setInitialLoading(false);
+          return;
+        }
+        const pagination = res.meta?.pagination as Pagination | undefined;
+        const items = dedupeById(res.data);
+        const hasMore = pagination
+          ? pagination.page < pagination.total_pages
+          : res.data.length >= ADMISSIONS_KANBAN_BOARD_PAGE_SIZE;
+        setBoardItems(items);
+        setBoardPage(1);
+        setBoardHasMore(hasMore);
+        setColumnStates(partitionBoardIntoColumns(activeColumns, items, 1, hasMore, null));
+        setInitialLoading(false);
+        return;
+      }
+
       const results = await Promise.all(
         activeColumns.map(async (state) => {
           const res = await fetchAdmissions({
             active_school_id: activeSchoolId,
-            processing_stage: state,
+            application_status: state,
             search: searchKey || undefined,
             page: 1,
             page_size: ADMISSIONS_KANBAN_COLUMN_PAGE_SIZE,
@@ -169,7 +266,7 @@ export function useAdmissionsKanbanBoard({
 
       const next: Record<string, AdmissionsKanbanColumn> = {};
       for (const { state, res } of results) {
-        next[state] = columnFromResponse(state, res, 1, []);
+        next[state] = columnFromResponse(state, res, 1, [], true);
       }
       setColumnStates(next);
       setInitialLoading(false);
@@ -178,11 +275,71 @@ export function useAdmissionsKanbanBoard({
     return () => {
       cancelled = true;
     };
-  }, [enabled, activeSchoolId, columnsKey, searchKey, extraQueryKey, nonce, resolvedExtraQuery]);
+  }, [
+    enabled,
+    activeSchoolId,
+    columnsKey,
+    searchKey,
+    extraQueryKey,
+    nonce,
+    resolvedExtraQuery,
+    partitionByApplicationStatus,
+  ]);
 
   const loadMore = useCallback(
     async (state: string) => {
       if (activeSchoolId == null) return;
+
+      if (partitionByApplicationStatus) {
+        if (!boardHasMore) return;
+        const anyLoading = Object.values(columnStates).some((c) => c.loadingMore);
+        if (anyLoading) return;
+
+        setColumnStates((prev) => {
+          const next = { ...prev };
+          for (const col of columnsKey.split(',')) {
+            if (!next[col]) continue;
+            next[col] = { ...next[col], loadingMore: true };
+          }
+          return next;
+        });
+
+        const nextPage = boardPage + 1;
+        const res = await fetchAdmissions({
+          active_school_id: activeSchoolId,
+          search: searchKey || undefined,
+          page: nextPage,
+          page_size: ADMISSIONS_KANBAN_BOARD_PAGE_SIZE,
+          ...resolvedExtraQuery,
+        });
+
+        if (!res.success) {
+          setColumnStates((prev) =>
+            partitionBoardIntoColumns(
+              columnsKey.split(','),
+              boardItems,
+              boardPage,
+              false,
+              res.error,
+            ),
+          );
+          return;
+        }
+
+        const pagination = res.meta?.pagination as Pagination | undefined;
+        const merged = dedupeById([...boardItems, ...res.data]);
+        const hasMore = pagination
+          ? pagination.page < pagination.total_pages
+          : res.data.length >= ADMISSIONS_KANBAN_BOARD_PAGE_SIZE;
+        setBoardItems(merged);
+        setBoardPage(nextPage);
+        setBoardHasMore(hasMore);
+        setColumnStates(
+          partitionBoardIntoColumns(columnsKey.split(','), merged, nextPage, hasMore, null),
+        );
+        return;
+      }
+
       const current = columnStates[state];
       if (!current || current.loadingMore || !current.hasMore) return;
 
@@ -197,7 +354,7 @@ export function useAdmissionsKanbanBoard({
       const nextPage = current.page + 1;
       const res = await fetchAdmissions({
         active_school_id: activeSchoolId,
-        processing_stage: state,
+        application_status: state,
         search: searchKey || undefined,
         page: nextPage,
         page_size: ADMISSIONS_KANBAN_COLUMN_PAGE_SIZE,
@@ -206,10 +363,20 @@ export function useAdmissionsKanbanBoard({
 
       setColumnStates((prev) => ({
         ...prev,
-        [state]: columnFromResponse(state, res, nextPage, prev[state]?.items ?? []),
+        [state]: columnFromResponse(state, res, nextPage, prev[state]?.items ?? [], true),
       }));
     },
-    [activeSchoolId, columnStates, searchKey, resolvedExtraQuery],
+    [
+      activeSchoolId,
+      boardHasMore,
+      boardItems,
+      boardPage,
+      columnStates,
+      columnsKey,
+      partitionByApplicationStatus,
+      resolvedExtraQuery,
+      searchKey,
+    ],
   );
 
   const reload = useCallback(() => setNonce((n) => n + 1), []);

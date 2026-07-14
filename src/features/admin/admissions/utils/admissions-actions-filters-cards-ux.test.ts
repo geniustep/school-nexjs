@@ -86,8 +86,11 @@ describe('NEXTJS-ADMISSIONS-ACTIONS-FILTERS-CARDS-UX-2 contracts', () => {
     ).toBe(true);
   });
 
-  it('hideRegistered defaults on client-side after fetch', () => {
-    const items = [makeItem({ id: 1 }), makeItem({ id: 2, student_id: 99 })];
+  it('hideRegistered helper hides only application_status=registered', () => {
+    const items = [
+      makeItem({ id: 1, application_status: 'new' }),
+      makeItem({ id: 2, application_status: 'registered', student_id: 99 }),
+    ];
     expect(filterAdmissionListItems(items, true)).toHaveLength(1);
     expect(countHiddenConvertedAdmissionListItems(items, true)).toBe(1);
   });

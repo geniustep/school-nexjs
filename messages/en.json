@@ -4546,6 +4546,7 @@
       },
       "actionErrors": {
         "FAMILY_APPROVAL_REQUIRES_ACCEPTED_DECISION": "Accept the application before recording family approval.",
+        "familyApprovalStatusNotAdvanced": "Family approval was saved but status stayed “{status}” instead of ready for registration. Backend status transition needs a fix.",
         "not_ready_for_registration": "The application is not ready for registration.",
         "invalid_action": "This action is not currently available.", "conflict": "The application was updated elsewhere. Refresh and try again."
       },
@@ -4729,7 +4730,7 @@
         "expired_offer_count": "Expired offers",
         "mainGroup": "Main cards",
         "secondaryGroup": "Secondary indicators",
-        "readyHint": "The family accepted the offer",
+        "readyHint": "Ready-for-registration status only — not accepted-awaiting",
         "filterAwaitingAria": "Show accepted applications awaiting registration",
         "filterReadyAria": "Show applications ready for registration",
         "filterRejectedAria": "Show school-rejected applications",

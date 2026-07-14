@@ -174,40 +174,31 @@ describe('API contract + normalization', () => {
 });
 
 describe('workspaces and kanban', () => {
-  it('11-13. follow_up and awaiting use four-column presentation fetch stages', () => {
+  it('11-13. follow_up and awaiting use application_status kanban columns', () => {
     const follow = buildAdmissionWorkspaceQuery(baseState({ workspace: 'follow_up' }));
     expect(follow.query.workspace).toBe('follow_up');
-    expect(follow.kanbanColumns).toEqual([
-      'new',
-      'initial_follow_up',
-      'assessment_ready',
-      'assessment_in_progress',
-      'decision_ready',
-    ]);
+    expect(follow.query.application_status).toBeUndefined();
+    expect(follow.kanbanColumns).toEqual(['new', 'follow_up', 'in_assessment']);
     expect(FOLLOW_UP_WORKSPACE_STATES).toEqual([
       'new',
-      'initial_follow_up',
-      'assessment_ready',
+      'follow_up',
+      'in_assessment',
     ]);
 
     const awaiting = buildAdmissionWorkspaceQuery(
       baseState({ workspace: 'awaiting_decision' }),
     );
-    expect(awaiting.kanbanColumns).toEqual([
-      'new',
-      'initial_follow_up',
-      'assessment_ready',
-      'assessment_in_progress',
-      'decision_ready',
-    ]);
+    expect(awaiting.kanbanColumns).toEqual(['decision_pending', 'waitlisted']);
+    expect(awaiting.query.application_status).toBeUndefined();
   });
 
-  it('14-15. no client split; column extra query omits workspace and processing_stage', () => {
+  it('14-15. kanban extra query omits workspace and application_status', () => {
     const extra = buildKanbanWorkspaceExtraQuery(
       baseState({ workspace: 'follow_up', followStage: 'new' }),
     );
     expect(extra).not.toHaveProperty('workspace');
     expect(extra).not.toHaveProperty('processing_stage');
+    expect(extra).not.toHaveProperty('application_status');
     expect(extra).not.toHaveProperty('state');
   });
 
@@ -221,9 +212,9 @@ describe('workspaces and kanban', () => {
   it('19-22. column colors distinct; drag rules', () => {
     const classes = FOLLOW_UP_WORKSPACE_STATES.map((s) => rawKanbanColumnClass(s));
     expect(new Set(classes).size).toBe(3);
-    expect(isRawKanbanDropTarget('assessment_in_progress')).toBe(false);
-    expect(isRawKanbanDropTarget('decision_ready')).toBe(false);
-    expect(isRawKanbanDropTarget('initial_follow_up')).toBe(true);
+    expect(isRawKanbanDropTarget('in_assessment')).toBe(true);
+    expect(isRawKanbanDropTarget('decision_pending')).toBe(false);
+    expect(isRawKanbanDropTarget('follow_up')).toBe(true);
     expect(
       evaluateManualStageChange(
         { processing_stage: 'new' },
@@ -262,7 +253,7 @@ describe('processing stages + legacy URL', () => {
       new URLSearchParams('state=contacted'),
     );
     expect(parsed.workspace).toBe('follow_up');
-    expect(parsed.followStage).toBe('initial_follow_up');
+    expect(parsed.followStage).toBe('follow_up');
     const under = parseWorkspaceListStateFromSearchParams(
       new URLSearchParams('state=under_review'),
     );

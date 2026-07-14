@@ -14,9 +14,9 @@ import { buildAdmissionTabHref, type AdmissionTabId } from '../utils/admission-d
 import {
   filterDailyModernActions,
   hasModernContract,
-  isModernActionAllowed,
-  resolvePrimaryNextActionCode,
+  resolveDetailPrimaryActionCode,
   resolveStudentNavigation,
+  shouldShowConvertToStudentAction,
 } from '../utils/admission-modern-actions';
 import { resolveApplicationStatus } from '../utils/admission-modern-status';
 import { buildContinueRegistrationHref } from '../utils/admission-registration';
@@ -25,7 +25,11 @@ import { AdmissionQuickFollowUpDialog } from './admission-quick-follow-up-dialog
 import { AdmissionModernDecisionDialog } from './admission-modern-decision-dialogs';
 import { AdmissionReopenDialog } from './admission-reopen-dialog';
 
-type DecisionAction = 'accept' | 'reject' | 'record_family_approval';
+type DecisionAction =
+  | 'accept'
+  | 'reject'
+  | 'record_family_approval'
+  | 'accept_and_record_family_approval';
 
 function actionLabelKey(code: string): string {
   switch (code) {
@@ -80,14 +84,18 @@ export function AdmissionPrimaryActionPanel({
   const modern = hasModernContract(detail);
   const status = resolveApplicationStatus(detail);
   const registered = status === 'registered';
-  const primaryCode = resolvePrimaryNextActionCode(detail.primary_next_action);
+  const primaryCode = resolveDetailPrimaryActionCode(detail);
   const daily = filterDailyModernActions(detail.modern_allowed_actions);
   const studentNav = resolveStudentNavigation(detail.navigation, detail.student_id);
+  const convertAllowed = shouldShowConvertToStudentAction(detail);
   const secondary = daily.filter(
     (action) =>
       action.code !== primaryCode &&
       action.code !== 'link_existing_student' &&
-      action.code !== 'start_registration',
+      action.code !== 'start_registration' &&
+      // Dedicated convert CTA already rendered — do not bury a duplicate in overflow.
+      !(convertAllowed && action.code === 'convert_to_student') &&
+      !(primaryCode === 'convert_to_student' && action.code === 'convert_to_student'),
   );
 
   useEffect(() => {
@@ -139,7 +147,12 @@ export function AdmissionPrimaryActionPanel({
       setFollowUpOpen(true);
       return;
     }
-    if (primaryCode === 'accept' || primaryCode === 'reject' || primaryCode === 'record_family_approval') {
+    if (
+      primaryCode === 'accept' ||
+      primaryCode === 'reject' ||
+      primaryCode === 'record_family_approval' ||
+      primaryCode === 'accept_and_record_family_approval'
+    ) {
       setDecisionAction(primaryCode);
       return;
     }
@@ -184,10 +197,9 @@ export function AdmissionPrimaryActionPanel({
     );
   }
 
-  const primaryAllowed =
-    primaryCode != null &&
-    (isModernActionAllowed(detail.modern_allowed_actions, primaryCode) ||
-      daily.some((a) => a.code === primaryCode));
+  const primaryAllowed = primaryCode != null;
+  const showConvertFallback =
+    convertAllowed && primaryCode !== 'convert_to_student';
 
   return (
     <div
@@ -201,7 +213,11 @@ export function AdmissionPrimaryActionPanel({
             type="button"
             className="btn btn--primary"
             disabled={busy}
-            data-testid="admission-primary-action-button"
+            data-testid={
+              primaryCode === 'convert_to_student'
+                ? 'admission-convert-to-student-primary'
+                : 'admission-primary-action-button'
+            }
             onClick={openPrimary}
           >
             {t(actionLabelKey(primaryCode))}
@@ -213,6 +229,18 @@ export function AdmissionPrimaryActionPanel({
           {t('admin.admissions.primaryAction.noActionDesc')}
         </p>
       )}
+
+      {showConvertFallback ? (
+        <button
+          type="button"
+          className="btn btn--secondary btn--sm"
+          disabled={busy}
+          data-testid="admission-convert-to-student-secondary"
+          onClick={() => void runAction('convert_to_student')}
+        >
+          {t(actionLabelKey('convert_to_student'))}
+        </button>
+      ) : null}
 
       {secondary.length > 0 ? (
         <div className="admission-primary-action-panel__more">
@@ -241,10 +269,12 @@ export function AdmissionPrimaryActionPanel({
                     else if (
                       action.code === 'accept' ||
                       action.code === 'reject' ||
-                      action.code === 'record_family_approval'
+                      action.code === 'record_family_approval' ||
+                      action.code === 'accept_and_record_family_approval'
                     ) {
                       setDecisionAction(action.code);
                     } else if (action.code === 'reopen') setReopenOpen(true);
+                    else if (action.code === 'convert_to_student') void runAction('convert_to_student');
                     else void runAction(action.code);
                   }}
                 >
