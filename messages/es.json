@@ -4669,7 +4669,8 @@
         "stageChangeSkipped": "Ninguna solicitud seleccionada necesitaba cambio de etapa.",
         "stageChangeFailed": "No se pudieron actualizar las solicitudes seleccionadas.",
         "stageChangeIneligible": "{count} solicitudes no admiten cambio manual de etapa",
-        "stageChangeIneligibleNote": "Se dejaron sin cambios {count} solicitud(es) no elegibles."
+        "stageChangeIneligibleNote": "Se dejaron sin cambios {count} solicitud(es) no elegibles.",
+        "manualStageDisabled": "El cambio manual de etapa ya no está disponible — use acciones de seguimiento."
       },
       "states": {
         "new": "Nueva",
@@ -5009,6 +5010,7 @@
         "activityType": "Tipo",
         "submit": "Añadir",
         "empty": "Sin actividades",
+        "system": "Automático",
         "systemMessages": {
           "statusChanged": "Estado cambiado de {from} a {to}.",
           "linkedToStudent": "Solicitud convertida en alumno oficial: {student}.",
@@ -5284,9 +5286,14 @@
         "reopen": "Reabrir solicitud",
         "noSentOffer": "No hay una oferta enviada para aceptar.",
         "makeDecision": "Tomar decisión del centro",
-        "logContact": "Log contact", "accept": "Accept", "reject": "Reject",
-        "recordFamilyApproval": "Record family approval", "convertToStudent": "Convert to student",
-        "close": "Close application"
+        "logContact": "Registrar seguimiento",
+        "accept": "Aceptar",
+        "reject": "Rechazar",
+        "recordFamilyApproval": "Registrar aprobación familiar",
+        "acceptAndRecordFamilyApproval": "Aceptar y registrar aprobación familiar",
+        "convertToStudent": "Convertir en alumno",
+        "waitlist": "Lista de espera",
+        "close": "Cerrar solicitud"
       },
       "workspace": {
         "navLabel": "Espacios de admisiones",

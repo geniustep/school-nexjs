@@ -72,17 +72,17 @@ const RAW_STATE_TO_UI_STAGE: Partial<Record<AdmissionState, AdmissionUiStage>> =
   duplicate: 'closed',
 };
 
-export type AdmissionUiStageSource = Pick<
-  AdmissionListItem,
-  | 'state'
-  | 'student_id'
-  | 'registration_flow_state'
-  | 'registration_readiness'
-  | 'registration_status'
-  | 'offer_required'
-  | 'offer_state'
-  | 'offer_summary'
->;
+/** Accepts list or detail payloads — optional fields may be undefined on detail. */
+export type AdmissionUiStageSource = {
+  state?: AdmissionListItem['state'] | null;
+  student_id?: AdmissionListItem['student_id'];
+  registration_flow_state?: AdmissionListItem['registration_flow_state'];
+  registration_readiness?: AdmissionListItem['registration_readiness'];
+  registration_status?: AdmissionListItem['registration_status'];
+  offer_required?: AdmissionListItem['offer_required'];
+  offer_state?: AdmissionListItem['offer_state'] | undefined;
+  offer_summary?: AdmissionListItem['offer_summary'];
+};
 
 /** Maps a list item to its display stage. Registered overrides any raw state. */
 export function resolveAdmissionUiStage(item: AdmissionUiStageSource): AdmissionUiStage {
