@@ -42,23 +42,30 @@ function baseState(
 }
 
 describe('workspace kanban availability', () => {
-  it('1. follow_up allows kanban with application_status columns', () => {
-    const q = buildAdmissionWorkspaceQuery(baseState({ workspace: 'follow_up' }));
+  it('1. status-nav all allows kanban with primary columns including accepted/ready', () => {
+    const q = buildAdmissionWorkspaceQuery(baseState({ statusFilter: '' }));
     expect(q.kanbanAllowed).toBe(true);
-    expect(q.kanbanColumns).toEqual(admissionKanbanFetchStages());
+    expect(q.kanbanColumns).toContain('new');
+    expect(q.kanbanColumns).toContain('accepted');
+    expect(q.kanbanColumns).toContain('ready_for_registration');
+    expect(q.kanbanColumns).not.toContain('after_acceptance');
+    expect(q.kanbanColumns).not.toEqual(admissionKanbanFetchStages());
   });
 
-  it('2. post_acceptance does not allow kanban', () => {
-    expect(
-      buildAdmissionWorkspaceQuery(baseState({ workspace: 'post_acceptance' }))
-        .kanbanAllowed,
-    ).toBe(false);
+  it('2. accepted filter allows kanban with a single accepted column', () => {
+    const q = buildAdmissionWorkspaceQuery(
+      baseState({ statusFilter: 'accepted' }),
+    );
+    expect(q.kanbanAllowed).toBe(true);
+    expect(q.kanbanColumns).toEqual(['accepted']);
   });
 
-  it('3. closed does not allow kanban', () => {
-    expect(
-      buildAdmissionWorkspaceQuery(baseState({ workspace: 'closed' })).kanbanAllowed,
-    ).toBe(false);
+  it('3. ready_for_registration filter allows kanban with a single ready column', () => {
+    const q = buildAdmissionWorkspaceQuery(
+      baseState({ statusFilter: 'ready_for_registration' }),
+    );
+    expect(q.kanbanAllowed).toBe(true);
+    expect(q.kanbanColumns).toEqual(['ready_for_registration']);
   });
 
   it('4-5. kanban extra query omits workspace and application_status', () => {

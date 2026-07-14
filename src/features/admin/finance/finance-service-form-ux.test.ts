@@ -55,10 +55,11 @@ describe('buildFinanceServiceFormPayload', () => {
     active: true,
     code: ' TUI ',
     description: ' Main tuition ',
+    selectableInAdmissions: false,
   };
 
-  it('builds create/edit payload without hidden backend flags', () => {
-    const payload = buildFinanceServiceFormPayload(baseValues);
+  it('builds create payload without hidden backend flags', () => {
+    const payload = buildFinanceServiceFormPayload(baseValues, 'create');
     expect(payload).toEqual({
       name: 'Tuition',
       category: 'tuition',
@@ -66,20 +67,32 @@ describe('buildFinanceServiceFormPayload', () => {
       active: true,
       code: 'TUI',
       description: 'Main tuition',
+      selectable_in_admissions: false,
     });
     expect(payload).not.toHaveProperty('requires_subscription');
     expect(payload).not.toHaveProperty('requires_usage_tracking');
   });
 
-  it('preserves backend-only flags by omitting them on edit saves', () => {
+  it('defaults selectable_in_admissions to false on create values', () => {
     const payload = buildFinanceServiceFormPayload({
       ...baseValues,
-      name: 'Updated tuition',
-      priorityLevel: 'last',
-    });
-    expect(payload.name).toBe('Updated tuition');
-    expect(payload.allocation_priority_level).toBe('last');
+      selectableInAdmissions: false,
+    }, 'create');
+    expect(payload.selectable_in_admissions).toBe(false);
+  });
+
+  it('update payload sends only selectable_in_admissions (Runtime write surface)', () => {
+    const payload = buildFinanceServiceFormPayload(
+      {
+        ...baseValues,
+        selectableInAdmissions: true,
+        name: 'Updated tuition',
+        priorityLevel: 'last',
+      },
+      'update',
+    );
+    expect(payload).toEqual({ selectable_in_admissions: true });
+    expect(Object.keys(payload)).not.toContain('name');
     expect(Object.keys(payload)).not.toContain('requires_subscription');
-    expect(Object.keys(payload)).not.toContain('requires_usage_tracking');
   });
 });

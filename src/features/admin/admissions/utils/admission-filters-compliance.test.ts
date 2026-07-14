@@ -261,25 +261,31 @@ describe('admissions filters compliance matrix', () => {
     expect(extra).not.toHaveProperty('processing_stage');
   });
 
-  it('M. URL round-trip for each workspace', () => {
-    for (const workspace of [
-      'follow_up',
-      'awaiting_decision',
-      'post_acceptance',
-      'closed',
+  it('M. URL round-trip for status-nav statuses (no workspace bands)', () => {
+    for (const statusFilter of [
+      '',
+      'new',
+      'accepted',
+      'ready_for_registration',
+      'rejected',
     ] as const) {
       const state = baseState({
-        workspace,
-        view: workspace === 'follow_up' ? 'kanban' : 'table',
-        postSub: workspace === 'post_acceptance' ? 'ready' : 'awaiting',
-        closedSub: workspace === 'closed' ? 'closed' : 'rejected',
+        statusFilter,
+        view: statusFilter ? 'table' : 'kanban',
       });
       const params = workspaceListStateToSearchParams(state);
       const restored = parseWorkspaceListStateFromSearchParams(params);
-      expect(restored.workspace).toBe(workspace);
+      expect(restored.statusFilter).toBe(statusFilter);
+      expect(params.get('workspace')).toBeNull();
+      expect(params.get('postSub')).toBeNull();
       expect(params.get('processing_stage')).toBeNull();
       expect(params.get('state')).toBeNull();
       expect(params.get('decision')).toBeNull();
+      if (statusFilter) {
+        expect(params.get('application_status')).toBe(statusFilter);
+      } else {
+        expect(params.get('application_status')).toBeNull();
+      }
     }
   });
 

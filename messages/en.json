@@ -4525,10 +4525,21 @@
       "title": "Admissions",
       "subtitle": "Manage intake and enrollment requests",
       "applicationStatus": {
-        "new": "New", "follow_up": "Follow-up", "in_assessment": "In assessment",
-        "decision_pending": "Decision pending", "accepted": "Accepted",
-        "ready_for_registration": "Ready for registration", "registered": "Converted to student",
-        "waitlisted": "Waitlisted", "rejected": "Rejected", "closed": "Closed"
+        "new": "New",
+        "follow_up": "Follow-up",
+        "in_assessment": "In assessment",
+        "decision_pending": "Decision pending",
+        "accepted": "Accepted",
+        "ready_for_registration": "Ready for registration",
+        "registered": "Converted to student",
+        "waitlisted": "Waitlisted",
+        "rejected": "Rejected",
+        "closed": "Closed"
+      },
+      "statusNav": {
+        "navLabel": "Application status",
+        "allApplications": "All applications",
+        "more": "More"
       },
       "lastAction": {
         "none": "No follow-up recorded",
@@ -4539,16 +4550,22 @@
         "at": "Date"
       },
       "contactResults": {
-        "reached": "Reached", "no_answer": "No answer", "wrong_number": "Wrong number",
-        "call_later": "Call later", "family_interested": "Family interested",
-        "family_not_interested": "Family not interested", "appointment_scheduled": "Appointment scheduled",
-        "information_sent": "Information sent", "other": "Other"
+        "reached": "Reached",
+        "no_answer": "No answer",
+        "wrong_number": "Wrong number",
+        "call_later": "Call later",
+        "family_interested": "Family interested",
+        "family_not_interested": "Family not interested",
+        "appointment_scheduled": "Appointment scheduled",
+        "information_sent": "Information sent",
+        "other": "Other"
       },
       "actionErrors": {
         "FAMILY_APPROVAL_REQUIRES_ACCEPTED_DECISION": "Accept the application before recording family approval.",
         "familyApprovalStatusNotAdvanced": "Family approval was saved but status stayed “{status}” instead of ready for registration. Backend status transition needs a fix.",
         "not_ready_for_registration": "The application is not ready for registration.",
-        "invalid_action": "This action is not currently available.", "conflict": "The application was updated elsewhere. Refresh and try again."
+        "invalid_action": "This action is not currently available.",
+        "conflict": "The application was updated elsewhere. Refresh and try again."
       },
       "requestedServices": {
         "title": "Requested school services",
@@ -4590,8 +4607,10 @@
         }
       },
       "actionValidation": {
-        "nextActionDateRequired": "A follow-up date is required.", "appointmentDateRequired": "An appointment date and time is required.",
-        "noteRequired": "A note is required.", "rejectionReasonRequired": "A rejection reason is required."
+        "nextActionDateRequired": "A follow-up date is required.",
+        "appointmentDateRequired": "An appointment date and time is required.",
+        "noteRequired": "A note is required.",
+        "rejectionReasonRequired": "A rejection reason is required."
       },
       "createButton": "New request",
       "backToList": "Back to list",
@@ -4647,7 +4666,10 @@
         "allTracks": "All tracks",
         "chipTrack": "Track: {track}",
         "directVisit": "Direct visit",
-        "servicesFilter": "Requested services",
+        "servicesFilter": "Services",
+        "servicesFilterCount": "Services ({count})",
+        "servicesFilterApply": "Apply",
+        "servicesFilterClear": "Clear",
         "allServices": "All services",
         "chipService": "Service: {service}",
         "chipWithServices": "With requested services",
@@ -5342,7 +5364,7 @@
         "continueRegistration": "Continue student registration",
         "openPrefill": "Open registration prefill",
         "linkExistingStudent": "Link existing student",
-        "reopen": "Reopen application",
+        "reopen": "Reopen",
         "noSentOffer": "No sent offer is available to accept.",
         "makeDecision": "Record school decision",
         "logContact": "Log follow-up",
@@ -5351,7 +5373,6 @@
         "recordFamilyApproval": "Record family approval",
         "acceptAndRecordFamilyApproval": "Accept and record family approval",
         "convertToStudent": "Convert to student",
-        "reopen": "Reopen",
         "waitlist": "Waitlist",
         "close": "Close application"
       },
@@ -9554,6 +9575,10 @@
           "description": "Try clearing the search."
         },
         "priorityHint": "Sets this service's order when suggesting payment allocation. Does not affect manual allocation.",
+        "selectableInAdmissions": "Available in admissions requests",
+        "selectableInAdmissionsHint": "Allows this service to appear among services families can request during admissions. It does not activate the service or create fees.",
+        "availableInAdmissions": "Available in admissions requests",
+        "notAvailableInAdmissions": "Not available in admissions requests",
         "tabs": {
           "services": "Services",
           "tariffs": "Tariffs"
@@ -9571,6 +9596,7 @@
           "collectionPriority": "Collection priority",
           "requiresSubscription": "Requires subscription",
           "requiresUsageTracking": "Requires usage tracking",
+          "selectableInAdmissions": "Admissions requests",
           "service": "Service",
           "academicYear": "Academic year",
           "commitmentType": "Commitment type",

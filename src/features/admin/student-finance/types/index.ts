@@ -438,6 +438,11 @@ export interface FinanceServiceCatalogItem {
   sequence?: number | null;
   allocation_priority_level?: 'first' | 'normal' | 'last' | string | null;
   allocation_priority_weight?: number | null;
+  /**
+   * When true, service appears in admissions requested-services catalog.
+   * Does not activate the service or create fees.
+   */
+  selectable_in_admissions?: boolean;
   /** Present on some Odoo service catalog responses — never inferred locally. */
   commitment_type?: string;
   pricing_unit?: string;

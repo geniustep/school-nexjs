@@ -314,7 +314,7 @@ describe('admission_workspace field priority', () => {
 });
 
 describe('URL and workspace navigation', () => {
-  it('persists workspace in URL and restores context filters', () => {
+  it('persists workspace in URL and restores context filters (legacy state without statusFilter)', () => {
     const state = baseState({
       workspace: 'post_acceptance',
       postSub: 'registered',
@@ -335,37 +335,36 @@ describe('URL and workspace navigation', () => {
     expect(params.get('level')).toBe('3');
     expect(params.get('source')).toBe('9');
     const restored = parseWorkspaceListStateFromSearchParams(params);
-    expect(restored.workspace).toBe('post_acceptance');
-    expect(restored.postSub).toBe('registered');
+    // Status-nav parse: maps to statusFilter, strips year/source/workspace bands.
+    expect(restored.statusFilter).toBe('registered');
     expect(restored.search).toBe('sara');
-    expect(restored.academicYearId).toBe('12');
     expect(restored.levelId).toBe('3');
-    expect(restored.sourceId).toBe('9');
+    expect(restored.academicYearId).toBeUndefined();
+    expect(restored.sourceId).toBeUndefined();
   });
 
-  it('ready subfilter round-trips via postSub + application_status', () => {
+  it('ready subfilter round-trips via application_status status-nav', () => {
     const state = baseState({
-      workspace: 'post_acceptance',
-      postSub: 'ready',
+      statusFilter: 'ready_for_registration',
       view: 'table',
     });
     const params = workspaceListStateToSearchParams(state);
     expect(params.get('state')).toBeNull();
-    expect(params.get('postSub')).toBe('ready');
+    expect(params.get('workspace')).toBeNull();
     expect(params.get('application_status')).toBe('ready_for_registration');
     expect(params.get('registration_status')).toBeNull();
     const restored = parseWorkspaceListStateFromSearchParams(params);
-    expect(restored.postSub).toBe('ready');
+    expect(restored.statusFilter).toBe('ready_for_registration');
     expect(workspaceListStateToSearchParams(restored).toString()).toBe(params.toString());
   });
 
-  it('legacy registration_readiness=ready URL still restores ready subfilter', () => {
+  it('legacy registration_readiness=ready URL still restores ready statusFilter', () => {
     const params = new URLSearchParams({
       workspace: 'post_acceptance',
       registration_readiness: 'ready',
     });
     const restored = parseWorkspaceListStateFromSearchParams(params);
-    expect(restored.postSub).toBe('ready');
+    expect(restored.statusFilter).toBe('ready_for_registration');
     expect(buildAdmissionWorkspaceQuery(restored).query).toEqual({
       application_status: 'ready_for_registration',
     });
@@ -407,8 +406,12 @@ describe('URL and workspace navigation', () => {
 
   it('does not expose workspace as a manual chip signal', () => {
     expect(hasManualContextOrAdvancedFilters(baseState())).toBe(false);
-    expect(hasManualContextOrAdvancedFilters(baseState({ academicYearId: '1' }))).toBe(
+    expect(hasManualContextOrAdvancedFilters(baseState({ cycleCode: 'prim' }))).toBe(
       true,
+    );
+    // year/source stripped from status-nav UI — no longer manual-filter signals
+    expect(hasManualContextOrAdvancedFilters(baseState({ academicYearId: '1' }))).toBe(
+      false,
     );
   });
 
@@ -429,7 +432,7 @@ describe('URL and workspace navigation', () => {
       const restored = parseWorkspaceListStateFromSearchParams(
         new URLSearchParams({ workspace: 'closed', closedSub: legacy }),
       );
-      expect(restored.closedSub).toBe('closed');
+      expect(restored.statusFilter).toBe('closed');
       expect(buildAdmissionWorkspaceQuery(restored).query).toEqual({
         application_status: 'closed',
       });

@@ -8,6 +8,7 @@ import {
 } from '@/features/admin/finance/finance-service-priority';
 import { useFinanceReferenceData } from '@/features/admin/finance/use-finance-lookups';
 import { resolveReferenceLabel } from '@/features/admin/student-finance/utils/reference-labels';
+import { notifyAdmissionsQueriesInvalidated } from '@/features/admin/admissions/utils/admission-list-invalidate';
 import { useT } from '@/features/i18n/locale-context';
 import { api } from '@/lib/api/client';
 import { endpoints } from '@/lib/api/endpoints';
@@ -32,6 +33,7 @@ export function FinanceServiceForm({
   const [category, setCategory] = useState('');
   const [priorityLevel, setPriorityLevel] = useState('normal');
   const [active, setActive] = useState(true);
+  const [selectableInAdmissions, setSelectableInAdmissions] = useState(false);
   const [description, setDescription] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -43,6 +45,7 @@ export function FinanceServiceForm({
       setCategory('');
       setPriorityLevel('normal');
       setActive(true);
+      setSelectableInAdmissions(false);
       setDescription('');
       return;
     }
@@ -51,6 +54,7 @@ export function FinanceServiceForm({
     setCategory(service.category ?? '');
     setPriorityLevel(normalizeCollectionPriorityLevel(service.allocation_priority_level));
     setActive(service.active !== false);
+    setSelectableInAdmissions(service.selectable_in_admissions === true);
     setDescription(service.description?.trim() ?? '');
   }, [service]);
 
@@ -65,14 +69,18 @@ export function FinanceServiceForm({
     setSubmitting(true);
     setError(null);
 
-    const payload = buildFinanceServiceFormPayload({
-      name,
-      category,
-      priorityLevel,
-      active,
-      code,
-      description,
-    });
+    const payload = buildFinanceServiceFormPayload(
+      {
+        name,
+        category,
+        priorityLevel,
+        active,
+        code,
+        description,
+        selectableInAdmissions,
+      },
+      isEdit ? 'update' : 'create',
+    );
 
     const res = isEdit
       ? await api.patch<FinanceServiceCatalogItem>(endpoints.admin.financeService(service.id), payload)
@@ -83,6 +91,7 @@ export function FinanceServiceForm({
       setError(res.error.message);
       return;
     }
+    notifyAdmissionsQueriesInvalidated({ reason: 'finance-service-selectable' });
     onDone();
   }
 
@@ -152,6 +161,21 @@ export function FinanceServiceForm({
           <option value="active">{t('admin.finance.states.active')}</option>
           <option value="inactive">{t('admin.finance.states.inactive')}</option>
         </select>
+      </label>
+
+      <label className="finance-services-form__field finance-services-form__toggle">
+        <span className="finance-services-form__toggle-row">
+          <input
+            type="checkbox"
+            checked={selectableInAdmissions}
+            onChange={(e) => setSelectableInAdmissions(e.target.checked)}
+            data-testid="finance-service-selectable-in-admissions"
+          />
+          <span>{t('admin.finance.services.selectableInAdmissions')}</span>
+        </span>
+        <span className="tiny muted finance-services-form__hint">
+          {t('admin.finance.services.selectableInAdmissionsHint')}
+        </span>
       </label>
 
       <details className="finance-collection-advanced">

@@ -96,12 +96,10 @@ describe('ready_for_registration operational filter', () => {
   it('5-7. URL persists ready filter; page resets; reload restores', () => {
     const ready = applyOperationalCard(baseState({ page: 3, search: 'مريم' }), 'ready_for_registration');
     const params = workspaceListStateToSearchParams(ready);
-    expect(params.get('workspace')).toBe('post_acceptance');
-    expect(params.get('postSub')).toBe('ready');
     expect(params.get('application_status')).toBe('ready_for_registration');
     expect(params.get('page')).toBeNull();
     const restored = parseWorkspaceListStateFromSearchParams(params);
-    expect(restored.postSub).toBe('ready');
+    expect(restored.statusFilter).toBe('ready_for_registration');
     expect(buildAdmissionWorkspaceQuery(restored).query).toEqual({
       application_status: 'ready_for_registration',
     });

@@ -47,7 +47,7 @@ describe('admission requested-services dashboard parity', () => {
   it('card click helpers produce the same list query keys as URL filters', () => {
     const serviceState = applyRequestedServiceIdFilter(baseState(), '21');
     expect(buildAdmissionListServerQuery(serviceState)).toMatchObject({
-      requested_service_id: 21,
+      requested_service_ids: '21',
     });
     expect(buildAdmissionListServerQuery(serviceState)).not.toHaveProperty(
       'has_requested_services',
@@ -65,7 +65,7 @@ describe('admission requested-services dashboard parity', () => {
     });
 
     const cleared = clearRequestedServicesFilters(serviceState);
-    expect(buildAdmissionListServerQuery(cleared)).not.toHaveProperty('requested_service_id');
+    expect(buildAdmissionListServerQuery(cleared)).not.toHaveProperty('requested_service_ids');
     expect(buildAdmissionListServerQuery(cleared)).not.toHaveProperty('has_requested_services');
   });
 });

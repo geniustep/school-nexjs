@@ -227,3 +227,14 @@ export function shouldBindActiveSchoolInBody(path: string, method: string): bool
   const family = pathname.split('/')[2] ?? '';
   return BIND_ACTIVE_SCHOOL_ADMIN_FAMILIES.has(family);
 }
+
+/**
+ * Whether to inject active_school_id into the JSON body.
+ * School is already forwarded as a query param for /admin/*; some Odoo
+ * finance catalog writes reject active_school_id as an unsupported field.
+ */
+export function shouldInjectActiveSchoolIdInBody(path: string): boolean {
+  const pathname = normalizePolicyPath(path);
+  if (/^\/admin\/finance\/services(?:\/|$)/.test(pathname)) return false;
+  return true;
+}

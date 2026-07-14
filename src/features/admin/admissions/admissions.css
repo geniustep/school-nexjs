@@ -6208,3 +6208,237 @@
 .admissions-create-requested-services-hint {
   margin: 0 0 0.75rem;
 }
+
+/* ── Stage 9: compact status-nav + toolbar (max 3 layers) ── */
+.admissions-list-header--compact {
+  align-items: flex-end;
+  gap: 0.75rem;
+  margin-bottom: 0.65rem;
+}
+
+.admissions-list-header--compact .admissions-list-header__subtitle {
+  display: none;
+}
+
+.admissions-list-header__count {
+  margin: 0.15rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--c-text-muted, #64748b);
+}
+
+.admissions-filter-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-bottom: 0.75rem;
+  min-width: 0;
+}
+
+.admissions-status-nav {
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 88%, transparent);
+  border-radius: calc(var(--radius, 0.5rem) + 0.05rem);
+  background: var(--c-surface, #fff);
+  padding: 0.35rem;
+}
+
+.admissions-status-nav__scroller {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  min-width: 0;
+}
+
+.admissions-status-nav__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 0 0 auto;
+  min-height: 2rem;
+  padding: 0.25rem 0.65rem;
+  border: 1px solid transparent;
+  border-radius: calc(var(--radius, 0.5rem) - 0.05rem);
+  background: transparent;
+  color: var(--c-text, #0f172a);
+  font-size: 0.78125rem;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.admissions-status-nav__chip:hover {
+  background: color-mix(in srgb, var(--c-surface-2, #eef2f8) 70%, white);
+}
+
+.admissions-status-nav__chip:focus-visible {
+  outline: 2px solid var(--c-primary, #243b6b);
+  outline-offset: 2px;
+}
+
+.admissions-status-nav__chip--active {
+  background: color-mix(in srgb, var(--c-primary, #243b6b) 10%, white);
+  border-color: color-mix(in srgb, var(--c-primary, #243b6b) 28%, transparent);
+  font-weight: 700;
+}
+
+.admissions-status-nav__chip--emphasis {
+  font-weight: 600;
+}
+
+.admissions-status-nav__chip--emphasis.admissions-status-nav__chip--active {
+  background: color-mix(in srgb, var(--raqeem-secondary, #24a6a1) 14%, white);
+  border-color: color-mix(in srgb, var(--raqeem-secondary, #24a6a1) 40%, transparent);
+}
+
+.admissions-status-nav__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.15rem;
+  padding-inline: 0.3rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--c-surface-2, #eef2f8) 80%, white);
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.admissions-status-nav__more {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex: 0 0 auto;
+}
+
+.admissions-status-nav__more-panel,
+.admissions-status-nav__more-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.admissions-status-nav__more-panel {
+  position: absolute;
+  inset-inline-start: 0;
+  top: calc(100% + 0.25rem);
+  z-index: 20;
+  flex-wrap: wrap;
+  max-width: min(22rem, 80vw);
+  padding: 0.4rem;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: var(--radius, 0.5rem);
+  background: var(--c-surface, #fff);
+  box-shadow: 0 8px 24px color-mix(in srgb, #0b1224 12%, transparent);
+}
+
+.admissions-list-toolbar--compact {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 0.75rem;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 88%, transparent);
+  border-radius: calc(var(--radius, 0.5rem) + 0.05rem);
+  background: color-mix(in srgb, var(--c-surface-2, #eef2f8) 35%, white);
+}
+
+.admissions-list-toolbar--compact .admissions-list-toolbar__filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+  flex: 1 1 18rem;
+}
+
+.admissions-list-toolbar--compact .admissions-list-toolbar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.admissions-list-toolbar--compact .admissions-list-toolbar__search-wrap {
+  flex: 1 1 10rem;
+  max-width: 16rem;
+}
+
+.admissions-list-toolbar--compact .admissions-list-toolbar__state,
+.admissions-services-filter__button {
+  min-height: 2.15rem;
+  max-width: 11rem;
+  font-size: 0.8125rem;
+}
+
+.admissions-services-filter {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.admissions-services-filter__button--active {
+  border-color: color-mix(in srgb, var(--c-primary, #243b6b) 35%, transparent);
+  font-weight: 600;
+}
+
+.admissions-services-filter__panel {
+  position: absolute;
+  inset-inline-start: 0;
+  top: calc(100% + 0.3rem);
+  z-index: 30;
+  width: min(18rem, 86vw);
+  padding: 0.55rem;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: var(--radius, 0.5rem);
+  background: var(--c-surface, #fff);
+  box-shadow: 0 10px 28px color-mix(in srgb, #0b1224 14%, transparent);
+}
+
+.admissions-services-filter__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 14rem;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.admissions-services-filter__option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  padding: 0.3rem 0.2rem;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.admissions-services-filter__status {
+  margin: 0.25rem 0 0.55rem;
+  font-size: 0.8125rem;
+}
+
+.admissions-services-filter__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  margin-top: 0.55rem;
+  padding-top: 0.45rem;
+  border-block-start: 1px solid var(--c-border, #e2e8f0);
+}
+
+@media (max-width: 900px) {
+  .admissions-list-toolbar--compact .admissions-list-toolbar__search-wrap {
+    max-width: none;
+    flex-basis: 100%;
+  }
+
+  .admissions-services-filter__button,
+  .admissions-list-toolbar--compact .admissions-list-toolbar__state {
+    max-width: none;
+  }
+}

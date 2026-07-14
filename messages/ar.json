@@ -4669,6 +4669,11 @@
         "rejected": "مرفوض",
         "closed": "مغلق"
       },
+      "statusNav": {
+        "navLabel": "حالة الطلب",
+        "allApplications": "جميع الطلبات",
+        "more": "المزيد"
+      },
       "lastAction": {
         "none": "لا توجد متابعة مسجلة",
         "by": "بواسطة {name}",
@@ -4678,16 +4683,22 @@
         "at": "التاريخ"
       },
       "contactResults": {
-        "reached": "تم التواصل", "no_answer": "لا جواب", "wrong_number": "رقم خاطئ",
-        "call_later": "الاتصال لاحقًا", "family_interested": "الأسرة مهتمة",
-        "family_not_interested": "الأسرة غير مهتمة", "appointment_scheduled": "تم تحديد موعد",
-        "information_sent": "تم إرسال المعلومات", "other": "أخرى"
+        "reached": "تم التواصل",
+        "no_answer": "لا جواب",
+        "wrong_number": "رقم خاطئ",
+        "call_later": "الاتصال لاحقًا",
+        "family_interested": "الأسرة مهتمة",
+        "family_not_interested": "الأسرة غير مهتمة",
+        "appointment_scheduled": "تم تحديد موعد",
+        "information_sent": "تم إرسال المعلومات",
+        "other": "أخرى"
       },
       "actionErrors": {
         "FAMILY_APPROVAL_REQUIRES_ACCEPTED_DECISION": "يجب قبول الطلب قبل تسجيل موافقة الأسرة.",
         "familyApprovalStatusNotAdvanced": "تم حفظ موافقة الأسرة لكن الحالة بقيت «{status}» بدل «جاهز للتسجيل». تحتاج Backend تصحيح انتقال الحالة.",
         "not_ready_for_registration": "الطلب غير جاهز للتسجيل.",
-        "invalid_action": "هذا الإجراء غير متاح حاليًا.", "conflict": "تم تحديث الطلب في مكان آخر. حدّث الصفحة وحاول مجددًا."
+        "invalid_action": "هذا الإجراء غير متاح حاليًا.",
+        "conflict": "تم تحديث الطلب في مكان آخر. حدّث الصفحة وحاول مجددًا."
       },
       "requestedServices": {
         "title": "الخدمات المطلوبة",
@@ -4729,8 +4740,10 @@
         }
       },
       "actionValidation": {
-        "nextActionDateRequired": "تاريخ المتابعة مطلوب.", "appointmentDateRequired": "تاريخ ووقت الموعد مطلوب.",
-        "noteRequired": "الملاحظة مطلوبة.", "rejectionReasonRequired": "سبب الرفض مطلوب."
+        "nextActionDateRequired": "تاريخ المتابعة مطلوب.",
+        "appointmentDateRequired": "تاريخ ووقت الموعد مطلوب.",
+        "noteRequired": "الملاحظة مطلوبة.",
+        "rejectionReasonRequired": "سبب الرفض مطلوب."
       },
       "createButton": "طلب تسجيل جديد",
       "backToList": "العودة إلى القائمة",
@@ -4786,7 +4799,10 @@
         "allTracks": "كل المسالك",
         "chipTrack": "المسلك: {track}",
         "directVisit": "زيارة مباشرة",
-        "servicesFilter": "الخدمات المطلوبة",
+        "servicesFilter": "الخدمات",
+        "servicesFilterCount": "الخدمات ({count})",
+        "servicesFilterApply": "تطبيق",
+        "servicesFilterClear": "مسح",
         "allServices": "كل الخدمات",
         "chipService": "خدمة: {service}",
         "chipWithServices": "بطلبات خدمات",
@@ -5529,7 +5545,7 @@
         "continueRegistration": "استكمال تسجيل التلميذ",
         "openPrefill": "فتح بيانات التسجيل المسبق",
         "linkExistingStudent": "ربط التلميذ الموجود",
-        "reopen": "إعادة فتح الطلب",
+        "reopen": "إعادة فتح",
         "noSentOffer": "لا يوجد عرض مرسل يمكن قبوله.",
         "makeDecision": "اتخاذ قرار المدرسة",
         "logContact": "تسجيل متابعة",
@@ -5538,7 +5554,6 @@
         "recordFamilyApproval": "تسجيل موافقة الأسرة",
         "acceptAndRecordFamilyApproval": "قبول مع موافقة الأسرة",
         "convertToStudent": "تحويل إلى تلميذ",
-        "reopen": "إعادة فتح",
         "waitlist": "قائمة الانتظار",
         "close": "إغلاق الطلب"
       },
@@ -9703,6 +9718,10 @@
           "description": "جرّب مسح البحث."
         },
         "priorityHint": "تحدد ترتيب هذه الخدمة عند اقتراح توزيع الدفعات تلقائيًا. لا تؤثر على التوزيع اليدوي.",
+        "selectableInAdmissions": "متاح في طلبات التسجيل",
+        "selectableInAdmissionsHint": "يسمح بظهور هذه الخدمة ضمن الخدمات التي يمكن للأسرة طلبها أثناء التسجيل. لا يؤدي ذلك إلى تفعيل الخدمة أو إنشاء رسوم.",
+        "availableInAdmissions": "متاح في طلبات التسجيل",
+        "notAvailableInAdmissions": "غير متاح في طلبات التسجيل",
         "tabs": {
           "services": "الخدمات",
           "tariffs": "التعريفات"
@@ -9720,6 +9739,7 @@
           "collectionPriority": "أولوية التحصيل",
           "requiresSubscription": "يتطلب اشتراكًا",
           "requiresUsageTracking": "يتطلب تتبع استخدام",
+          "selectableInAdmissions": "متاح في التسجيل",
           "service": "الخدمة",
           "academicYear": "السنة الدراسية",
           "commitmentType": "نوع الالتزام",

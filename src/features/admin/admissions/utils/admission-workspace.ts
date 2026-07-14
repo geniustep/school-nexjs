@@ -70,8 +70,36 @@ export type AwaitingDecisionSubfilter = '' | 'decision_pending' | 'waitlisted';
 
 export type AdmissionListViewMode = 'kanban' | 'table';
 
+/**
+ * Primary status-nav chips ('' = all applications).
+ * Accepted + ready_for_registration stay visible with stronger emphasis in UI.
+ */
+export const ADMISSION_STATUS_NAV_PRIMARY = [
+  '',
+  'new',
+  'follow_up',
+  'in_assessment',
+  'decision_pending',
+  'accepted',
+  'ready_for_registration',
+] as const;
+
+/** Overflow / "More" statuses for the status nav. */
+export const ADMISSION_STATUS_NAV_MORE = [
+  'registered',
+  'waitlisted',
+  'rejected',
+  'closed',
+] as const;
+
 export type AdmissionWorkspaceListState = {
   workspace: AdmissionWorkspace;
+  /**
+   * Status-nav filter. When set (including `''` = all), list/query use
+   * application_status instead of workspace aggregation.
+   * Undefined only for legacy unit-test / helper paths.
+   */
+  statusFilter?: string;
   /** Optional AND processing_stage inside follow_up — never a workspace default. */
   followStage: FollowUpWorkspaceState | '';
   /** Optional AND filter inside awaiting_decision — never defaults to under_review. */
@@ -87,6 +115,7 @@ export type AdmissionWorkspaceListState = {
   registrationReadiness?: string;
   registrationStatus?: string;
   search?: string;
+  /** @deprecated Stripped from URL/UI — kept optional for legacy helpers only. */
   academicYearId?: string;
   /**
    * Academic cycle / track code from admissions options (`cycles[].code`).
@@ -94,6 +123,7 @@ export type AdmissionWorkspaceListState = {
    */
   cycleCode?: string;
   levelId?: string;
+  /** @deprecated Stripped from URL/UI — kept optional for legacy helpers only. */
   sourceId?: string;
   /**
    * Default true: hide applications already converted to a student.
@@ -101,13 +131,17 @@ export type AdmissionWorkspaceListState = {
    */
   hideConverted: boolean;
   /**
-   * Filter by a specific requested school service id (URL/API id as string).
-   * Mutually exclusive with hasRequestedServices.
+   * @deprecated Prefer requestedServiceIds. Kept for applyRequestedServiceIdFilter helpers.
    */
   requestedServiceId?: string;
   /**
+   * Multi-select requested school service ids (numeric strings).
+   * Mutually exclusive with hasRequestedServices.
+   */
+  requestedServiceIds?: string[];
+  /**
    * Filter by presence/absence of any requested school services.
-   * Mutually exclusive with requestedServiceId.
+   * Mutually exclusive with requestedServiceIds / requestedServiceId.
    */
   hasRequestedServices?: 'true' | 'false';
   page: number;
@@ -118,6 +152,48 @@ export type AdmissionWorkspaceListState = {
    */
   resumeView?: AdmissionListViewMode;
 };
+
+/** Sorted unique numeric-string CSV for requested_service_ids. */
+export function normalizeRequestedServiceIdsCsv(
+  ids: readonly string[] | string | null | undefined,
+): string {
+  const raw = Array.isArray(ids)
+    ? ids
+    : typeof ids === 'string'
+      ? ids.split(',')
+      : [];
+  const unique = [
+    ...new Set(raw.map((id) => String(id).trim()).filter(Boolean)),
+  ];
+  unique.sort((a, b) => {
+    const na = Number(a);
+    const nb = Number(b);
+    if (Number.isFinite(na) && Number.isFinite(nb) && na !== nb) return na - nb;
+    return a.localeCompare(b);
+  });
+  return unique.join(',');
+}
+
+export function parseRequestedServiceIdsList(
+  ids: readonly string[] | string | null | undefined,
+): string[] | undefined {
+  const csv = normalizeRequestedServiceIdsCsv(ids);
+  if (!csv) return undefined;
+  return csv.split(',');
+}
+
+/** Kanban columns for status-nav: single status, or primary band without ''. */
+export function resolveStatusNavKanbanColumns(statusFilter: string): string[] {
+  const trimmed = statusFilter.trim();
+  if (trimmed) return [trimmed];
+  return ADMISSION_STATUS_NAV_PRIMARY.filter((s) => s !== '');
+}
+
+function isStatusNavMode(
+  state: Pick<AdmissionWorkspaceListState, 'statusFilter'>,
+): boolean {
+  return typeof state.statusFilter === 'string';
+}
 
 export type AdmissionWorkspaceQuery = Record<string, string | number>;
 
@@ -238,6 +314,7 @@ export function buildAdmissionWorkspaceQuery(
   state: Pick<
     AdmissionWorkspaceListState,
     | 'workspace'
+    | 'statusFilter'
     | 'followStage'
     | 'awaitingSub'
     | 'postSub'
@@ -252,6 +329,23 @@ export function buildAdmissionWorkspaceQuery(
     | 'hideConverted'
   >,
 ): AdmissionWorkspacePreset {
+  // Status-nav mode: exact application_status (or all) — kanban always allowed.
+  if (isStatusNavMode(state)) {
+    const statusFilter = state.statusFilter ?? '';
+    const query: AdmissionWorkspaceQuery = {};
+    if (statusFilter.trim()) {
+      query.application_status = statusFilter.trim();
+    }
+    return {
+      workspace: state.workspace,
+      query,
+      kanbanColumns: resolveStatusNavKanbanColumns(statusFilter),
+      kanbanAllowed: true,
+      defaultView: 'kanban',
+      serverExpressible: true,
+    };
+  }
+
   const advanced = sanitizeAdvancedFilters(state);
   const hideConverted = resolveEffectiveHideConverted({
     hideConverted: state.hideConverted,
@@ -526,6 +620,7 @@ export function applyOperationalCard(
       ...applyWorkspaceChange(prev, 'post_acceptance'),
       ...clearedContext,
       postSub: 'awaiting',
+      statusFilter: 'accepted',
       hideConverted: true,
       page: 1,
       view: 'table',
@@ -537,6 +632,7 @@ export function applyOperationalCard(
       ...applyWorkspaceChange(prev, 'post_acceptance'),
       ...clearedContext,
       postSub: 'ready',
+      statusFilter: 'ready_for_registration',
       hideConverted: true,
       page: 1,
       view: 'table',
@@ -547,6 +643,7 @@ export function applyOperationalCard(
     ...applyWorkspaceChange(prev, 'closed'),
     ...clearedContext,
     closedSub: 'rejected',
+    statusFilter: 'rejected',
     hideConverted: true,
     page: 1,
     view: 'table',
@@ -594,19 +691,27 @@ export function awaitingDecisionExcludesNew(): boolean {
   return !(statusesForWorkspace('awaiting_decision') as readonly string[]).includes('new');
 }
 
-/** Context filters preserved across workspace changes. */
+/** Context filters preserved across workspace / status-nav changes. */
 export function buildContextQuery(state: AdmissionWorkspaceListState): AdmissionWorkspaceQuery {
   const out: AdmissionWorkspaceQuery = {};
   if (state.search?.trim()) out.search = state.search.trim();
-  if (state.academicYearId) out.academic_year_id = Number(state.academicYearId) || state.academicYearId;
-  // Existing create/edit field — used as list filter when supported by Backend.
+  // year/source intentionally omitted from list context (status-nav UI).
+  if (!isStatusNavMode(state) && state.academicYearId) {
+    out.academic_year_id = Number(state.academicYearId) || state.academicYearId;
+  }
   if (state.cycleCode?.trim()) out.requested_cycle_code = state.cycleCode.trim();
   if (state.levelId) out.requested_level_id = Number(state.levelId) || state.levelId;
-  if (state.sourceId) out.source_id = Number(state.sourceId) || state.sourceId;
-  if (state.requestedServiceId?.trim()) {
-    const trimmed = state.requestedServiceId.trim();
-    const asNumber = Number(trimmed);
-    out.requested_service_id = Number.isFinite(asNumber) ? asNumber : trimmed;
+  if (!isStatusNavMode(state) && state.sourceId) {
+    out.source_id = Number(state.sourceId) || state.sourceId;
+  }
+
+  const multiIds =
+    parseRequestedServiceIdsList(state.requestedServiceIds) ??
+    parseRequestedServiceIdsList(
+      state.requestedServiceId?.trim() ? [state.requestedServiceId.trim()] : undefined,
+    );
+  if (multiIds?.length) {
+    out.requested_service_ids = normalizeRequestedServiceIdsCsv(multiIds);
   } else if (state.hasRequestedServices === 'true' || state.hasRequestedServices === 'false') {
     out.has_requested_services = state.hasRequestedServices;
   }
@@ -620,16 +725,56 @@ export function applyRequestedServiceIdFilter(
   prev: AdmissionWorkspaceListState,
   serviceId: string | undefined,
 ): AdmissionWorkspaceListState {
+  const id = serviceId?.trim() || undefined;
   return {
     ...prev,
-    requestedServiceId: serviceId?.trim() || undefined,
+    requestedServiceId: id,
+    requestedServiceIds: id ? [id] : undefined,
     hasRequestedServices: undefined,
     page: 1,
   };
 }
 
+/** Multi-select requested service ids (clears hasRequestedServices + single id). */
+export function applyRequestedServiceIdsFilter(
+  prev: AdmissionWorkspaceListState,
+  ids: string[],
+): AdmissionWorkspaceListState {
+  const normalized = parseRequestedServiceIdsList(ids);
+  return {
+    ...prev,
+    requestedServiceIds: normalized,
+    requestedServiceId: undefined,
+    hasRequestedServices: undefined,
+    page: 1,
+  };
+}
+
+/** Exact application_status filter for status-nav ('' = all). */
+export function applyApplicationStatusFilter(
+  prev: AdmissionWorkspaceListState,
+  status: string,
+): AdmissionWorkspaceListState {
+  const statusFilter = status.trim();
+  return {
+    ...prev,
+    statusFilter,
+    page: 1,
+    followStage: '',
+    awaitingSub: '',
+    postSub: 'awaiting',
+    closedSub: 'rejected',
+    hideConverted:
+      statusFilter === 'registered'
+        ? false
+        : prev.statusFilter === 'registered'
+          ? true
+          : prev.hideConverted,
+  };
+}
+
 /**
- * Set has_requested_services filter (clears requestedServiceId).
+ * Set has_requested_services filter (clears requestedServiceId / ids).
  */
 export function applyHasRequestedServicesFilter(
   prev: AdmissionWorkspaceListState,
@@ -639,6 +784,7 @@ export function applyHasRequestedServicesFilter(
     ...prev,
     hasRequestedServices: value === 'true' || value === 'false' ? value : undefined,
     requestedServiceId: undefined,
+    requestedServiceIds: undefined,
     page: 1,
   };
 }
@@ -650,6 +796,7 @@ export function clearRequestedServicesFilters(
   return {
     ...prev,
     requestedServiceId: undefined,
+    requestedServiceIds: undefined,
     hasRequestedServices: undefined,
     page: 1,
   };
@@ -697,6 +844,19 @@ export function resetLevelIfIncompatibleWithCycle(
 export function buildAdmissionListServerQuery(
   state: AdmissionWorkspaceListState,
 ): AdmissionWorkspaceQuery {
+  // Status-nav: context + hide_registered + page; exact application_status when set.
+  // No workspace aggregation (accepted ≠ ready_for_registration).
+  if (isStatusNavMode(state)) {
+    const query: AdmissionWorkspaceQuery = {
+      ...buildContextQuery(state),
+      ...buildRegisteredVisibilityQuery(state),
+      page: state.page,
+    };
+    const status = state.statusFilter?.trim();
+    if (status) query.application_status = status;
+    return query;
+  }
+
   const preset = buildAdmissionWorkspaceQuery(state);
   return {
     ...preset.query,
@@ -773,10 +933,42 @@ export function readAppliedWorkspaceFilter(
   return isValidAdmissionWorkspace(String(value ?? '')) ? (value as AdmissionWorkspace) : null;
 }
 
+function resolveStatusFilterFromLegacyWorkspaceParams(input: {
+  workspaceParam: string | null;
+  workspace: AdmissionWorkspace;
+  postSub: PostAcceptanceSubfilter;
+  followStage: FollowUpWorkspaceState | '';
+  awaitingSub: AwaitingDecisionSubfilter;
+  closedSub: ClosedSubfilter;
+  applicationStatusParam: string | null;
+}): string {
+  const explicit = input.applicationStatusParam?.trim();
+  if (explicit) return explicit;
+
+  const rawWorkspace = input.workspaceParam;
+  const isPostAcceptance =
+    rawWorkspace === 'post_acceptance' ||
+    rawWorkspace === 'after_acceptance' ||
+    input.workspace === 'post_acceptance';
+  if (isPostAcceptance) {
+    if (input.postSub === 'ready') return 'ready_for_registration';
+    if (input.postSub === 'registered') return 'registered';
+    return 'accepted';
+  }
+
+  if (input.followStage) return input.followStage;
+  if (input.awaitingSub) return input.awaitingSub;
+  if (input.workspace === 'closed') return input.closedSub;
+  return '';
+}
+
 export function parseWorkspaceListStateFromSearchParams(
   params: URLSearchParams,
 ): AdmissionWorkspaceListState {
-  let workspace = parseAdmissionWorkspace(params.get('workspace'));
+  const workspaceParam = params.get('workspace');
+  let workspace = parseAdmissionWorkspace(
+    workspaceParam === 'after_acceptance' ? 'post_acceptance' : workspaceParam,
+  );
   const preferredView =
     params.get('view') === 'table' || params.get('view') === 'kanban'
       ? (params.get('view') as AdmissionListViewMode)
@@ -800,7 +992,7 @@ export function parseWorkspaceListStateFromSearchParams(
   if (!postSubParam) {
     if (registration === 'registered') postSub = 'registered';
     else if (
-      workspace === 'post_acceptance' &&
+      (workspace === 'post_acceptance' || workspaceParam === 'after_acceptance') &&
       (state === 'confirmed' || readinessParam === 'ready')
     ) {
       postSub = 'ready';
@@ -858,58 +1050,111 @@ export function parseWorkspaceListStateFromSearchParams(
     }
   }
 
+  const requestedServiceIdsParam = params.get('requested_service_ids')?.trim();
   const requestedServiceIdParam =
     params.get('requested_service_id')?.trim() || undefined;
+  const requestedServiceIds =
+    parseRequestedServiceIdsList(requestedServiceIdsParam) ??
+    (requestedServiceIdParam ? [requestedServiceIdParam] : undefined);
+
   const hasRequestedServicesParam = params.get('has_requested_services');
   const hasRequestedServices:
     | 'true'
     | 'false'
-    | undefined = requestedServiceIdParam
+    | undefined = requestedServiceIds?.length
     ? undefined
     : hasRequestedServicesParam === 'true' || hasRequestedServicesParam === 'false'
       ? hasRequestedServicesParam
       : undefined;
 
-  return {
+  const statusFilter = resolveStatusFilterFromLegacyWorkspaceParams({
+    workspaceParam,
     workspace,
+    postSub,
     followStage,
     awaitingSub,
-    postSub,
     closedSub,
+    applicationStatusParam: params.get('application_status'),
+  });
+
+  // Ambiguous workspace tabs are cleared from query/drivers — benign default.
+  // Status-nav owns filtering; keep follow_up only as a type placeholder.
+  const effectiveWorkspace: AdmissionWorkspace = 'follow_up';
+
+  const resolvedHideConverted =
+    statusFilter === 'registered' ? false : hideConverted;
+
+  return {
+    workspace: effectiveWorkspace,
+    statusFilter,
+    followStage: '',
+    awaitingSub: '',
+    postSub: 'awaiting',
+    closedSub: 'rejected',
     stage: params.get('stage') || undefined,
-    decision:
-      workspace === 'closed' && closedSub === 'rejected'
-        ? undefined
-        : decision || undefined,
+    decision: decision || undefined,
     offerState: params.get('offer') || params.get('offer_state') || undefined,
     offerRequired: params.get('offer_required') || undefined,
     assessmentProgress: params.get('assessment_progress') || undefined,
-    // Ready is owned by postSub (state=confirmed); do not keep as advanced filter.
-    registrationReadiness:
-      postSub === 'ready' && readinessParam === 'ready'
-        ? undefined
-        : readinessParam || undefined,
+    registrationReadiness: readinessParam || undefined,
     registrationStatus: undefined,
     search: params.get('q') || params.get('search') || undefined,
-    academicYearId: params.get('year') || params.get('academic_year_id') || undefined,
+    // year/source stripped from list UI state
+    academicYearId: undefined,
     cycleCode:
       params.get('cycle') ||
       params.get('track') ||
       params.get('requested_cycle_code') ||
       undefined,
     levelId: params.get('level') || params.get('requested_level_id') || undefined,
-    sourceId: params.get('source') || params.get('source_id') || undefined,
-    requestedServiceId: requestedServiceIdParam,
+    sourceId: undefined,
+    // Mirror single-id for History helpers that still read requestedServiceId.
+    requestedServiceId:
+      requestedServiceIds?.length === 1 ? requestedServiceIds[0] : undefined,
+    requestedServiceIds,
     hasRequestedServices,
-    hideConverted,
+    hideConverted: resolvedHideConverted,
     page: Math.max(1, Number(params.get('page')) || 1),
-    view: resolveWorkspaceView(workspace, preferredView),
+    // Status-nav never forces table for post_acceptance paths.
+    view: preferredView,
   };
 }
 
 export function workspaceListStateToSearchParams(
   state: AdmissionWorkspaceListState,
 ): URLSearchParams {
+  // Status-nav serialize: no workspace/year/source/legacy service id.
+  if (isStatusNavMode(state)) {
+    const params = new URLSearchParams();
+    if (state.statusFilter?.trim()) {
+      params.set('application_status', state.statusFilter.trim());
+    }
+    if (state.search?.trim()) params.set('q', state.search.trim());
+    if (state.cycleCode?.trim()) params.set('cycle', state.cycleCode.trim());
+    if (state.levelId) params.set('level', state.levelId);
+    const idsCsv = normalizeRequestedServiceIdsCsv(
+      state.requestedServiceIds ??
+        (state.requestedServiceId?.trim() ? [state.requestedServiceId.trim()] : []),
+    );
+    if (idsCsv) {
+      params.set('requested_service_ids', idsCsv);
+    } else if (
+      state.hasRequestedServices === 'true' ||
+      state.hasRequestedServices === 'false'
+    ) {
+      params.set('has_requested_services', state.hasRequestedServices);
+    }
+    if (state.hideConverted === false) {
+      params.set('show_registered', '1');
+    }
+    if (state.page > 1) params.set('page', String(state.page));
+    if (state.view === 'table') params.set('view', 'table');
+    else if (state.view === 'kanban') {
+      // Default is kanban — omit to keep URLs short unless explicitly needed for round-trip.
+    }
+    return params;
+  }
+
   const params = new URLSearchParams();
   params.set('workspace', state.workspace);
 
@@ -947,8 +1192,12 @@ export function workspaceListStateToSearchParams(
   if (state.cycleCode?.trim()) params.set('cycle', state.cycleCode.trim());
   if (state.levelId) params.set('level', state.levelId);
   if (state.sourceId) params.set('source', state.sourceId);
-  if (state.requestedServiceId?.trim()) {
-    params.set('requested_service_id', state.requestedServiceId.trim());
+  const legacyIdsCsv = normalizeRequestedServiceIdsCsv(
+    state.requestedServiceIds ??
+      (state.requestedServiceId?.trim() ? [state.requestedServiceId.trim()] : []),
+  );
+  if (legacyIdsCsv) {
+    params.set('requested_service_ids', legacyIdsCsv);
   } else if (state.hasRequestedServices === 'true' || state.hasRequestedServices === 'false') {
     params.set('has_requested_services', state.hasRequestedServices);
   }
@@ -979,11 +1228,10 @@ export function hasManualContextOrAdvancedFilters(
 ): boolean {
   return Boolean(
     state.search?.trim() ||
-      state.academicYearId ||
       state.cycleCode?.trim() ||
       state.levelId ||
-      state.sourceId ||
       state.requestedServiceId?.trim() ||
+      (state.requestedServiceIds && state.requestedServiceIds.length > 0) ||
       state.hasRequestedServices === 'true' ||
       state.hasRequestedServices === 'false' ||
       state.decision ||

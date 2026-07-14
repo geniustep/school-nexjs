@@ -17,6 +17,7 @@ import {
 import {
   assertBffRoutePolicy,
   shouldBindActiveSchoolInBody,
+  shouldInjectActiveSchoolIdInBody,
 } from '@/lib/api/bff-route-policy';
 import {
   activeSchoolBodyMismatchResponse,
@@ -135,7 +136,7 @@ async function handle(request: NextRequest, segments: string[]) {
 
       if (shouldBindActiveSchoolInBody(path, method) && !formData) {
         const bound = bindActiveSchoolJsonBody(body, activeSchoolId, {
-          injectActiveSchoolId: true,
+          injectActiveSchoolId: shouldInjectActiveSchoolIdInBody(path),
         });
         if (!bound.ok) {
           return NextResponse.json(activeSchoolBodyMismatchResponse(bound.reason), {

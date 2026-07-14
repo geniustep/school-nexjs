@@ -112,6 +112,24 @@ export function ServicesPanel({
           <FinanceStatusBadge state={row.active === false ? 'inactive' : 'active'} />
         ),
       },
+      {
+        key: 'selectable_in_admissions',
+        header: t('admin.finance.services.columns.selectableInAdmissions'),
+        render: (row) => (
+          <span
+            className={
+              row.selectable_in_admissions
+                ? 'finance-services-list__admissions-flag finance-services-list__admissions-flag--yes'
+                : 'finance-services-list__admissions-flag finance-services-list__admissions-flag--no'
+            }
+            data-testid="finance-service-admissions-availability"
+          >
+            {row.selectable_in_admissions
+              ? t('admin.finance.services.availableInAdmissions')
+              : t('admin.finance.services.notAvailableInAdmissions')}
+          </span>
+        ),
+      },
       ...(canManage
         ? [
             {

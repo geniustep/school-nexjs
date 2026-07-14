@@ -5,17 +5,23 @@ export type FinanceServiceFormValues = {
   active: boolean;
   code: string;
   description: string;
+  selectableInAdmissions: boolean;
 };
 
-/** Visible service form fields only — hidden backend flags stay server-owned on create/update. */
-export function buildFinanceServiceFormPayload(values: FinanceServiceFormValues): {
-  name: string;
-  category?: string;
-  allocation_priority_level: string;
-  active: boolean;
-  code?: string;
-  description?: string;
-} {
+/**
+ * Create payload — full visible service fields.
+ * Update payload — Runtime write surface currently accepts only
+ * `selectable_in_admissions` (other keys return unsupported-field 422).
+ */
+export function buildFinanceServiceFormPayload(
+  values: FinanceServiceFormValues,
+  mode: 'create' | 'update' = 'create',
+): Record<string, unknown> {
+  if (mode === 'update') {
+    return {
+      selectable_in_admissions: Boolean(values.selectableInAdmissions),
+    };
+  }
   return {
     name: values.name.trim(),
     category: values.category || undefined,
@@ -23,5 +29,6 @@ export function buildFinanceServiceFormPayload(values: FinanceServiceFormValues)
     active: values.active,
     code: values.code.trim() || undefined,
     description: values.description.trim() || undefined,
+    selectable_in_admissions: Boolean(values.selectableInAdmissions),
   };
 }

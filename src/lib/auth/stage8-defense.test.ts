@@ -9,7 +9,10 @@ import { hasPermission } from '@/lib/permissions/permissions';
 import { resolveOdooDbFallback } from '@/lib/config';
 import { bindActiveSchoolJsonBody } from '@/lib/api/bind-active-school-body';
 import { assertMutationOrigin } from '@/lib/api/mutation-origin';
-import { shouldBindActiveSchoolInBody } from '@/lib/api/bff-route-policy';
+import {
+  shouldBindActiveSchoolInBody,
+  shouldInjectActiveSchoolIdInBody,
+} from '@/lib/api/bff-route-policy';
 import type { CurrentUser } from '@/types/user';
 
 function admin(partial: Partial<CurrentUser> = {}): CurrentUser {
@@ -81,6 +84,12 @@ describe('F-NX-06 active school body binding', () => {
     expect(shouldBindActiveSchoolInBody('/admin/finance/fee-plans', 'GET')).toBe(false);
     expect(shouldBindActiveSchoolInBody('/teacher/classes', 'POST')).toBe(false);
     expect(shouldBindActiveSchoolInBody('/admin/finance/fee-plans', 'POST')).toBe(true);
+  });
+
+  it('does not inject active_school_id into finance services catalog body', () => {
+    expect(shouldInjectActiveSchoolIdInBody('/admin/finance/services')).toBe(false);
+    expect(shouldInjectActiveSchoolIdInBody('/admin/finance/services/4083')).toBe(false);
+    expect(shouldInjectActiveSchoolIdInBody('/admin/finance/fee-plans')).toBe(true);
   });
 });
 

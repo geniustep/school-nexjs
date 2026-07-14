@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   applyHasRequestedServicesFilter,
   applyRequestedServiceIdFilter,
+  applyRequestedServiceIdsFilter,
   buildAdmissionListServerQuery,
   clearRequestedServicesFilters,
   hasManualContextOrAdvancedFilters,
@@ -15,6 +16,7 @@ function baseState(
 ): AdmissionWorkspaceListState {
   return {
     workspace: 'follow_up',
+    statusFilter: '',
     followStage: '',
     awaitingSub: '',
     postSub: 'awaiting',
@@ -27,17 +29,22 @@ function baseState(
 }
 
 describe('admission requested-services list filters', () => {
-  it('parses and serializes requested_service_id with mutual exclusion', () => {
+  it('parses and serializes requested_service_ids with mutual exclusion', () => {
     const parsed = parseWorkspaceListStateFromSearchParams(
       new URLSearchParams('requested_service_id=12&has_requested_services=true'),
     );
-    expect(parsed.requestedServiceId).toBe('12');
+    expect(parsed.requestedServiceIds).toEqual(['12']);
     expect(parsed.hasRequestedServices).toBeUndefined();
 
     const params = workspaceListStateToSearchParams(
-      baseState({ requestedServiceId: '12', hasRequestedServices: 'true', page: 1 }),
+      baseState({
+        requestedServiceIds: ['12'],
+        hasRequestedServices: 'true',
+        page: 1,
+      }),
     );
-    expect(params.get('requested_service_id')).toBe('12');
+    expect(params.get('requested_service_ids')).toBe('12');
+    expect(params.get('requested_service_id')).toBeNull();
     expect(params.get('has_requested_services')).toBeNull();
   });
 
@@ -46,7 +53,7 @@ describe('admission requested-services list filters', () => {
       new URLSearchParams('has_requested_services=true'),
     );
     expect(withServices.hasRequestedServices).toBe('true');
-    expect(withServices.requestedServiceId).toBeUndefined();
+    expect(withServices.requestedServiceIds).toBeUndefined();
 
     const without = parseWorkspaceListStateFromSearchParams(
       new URLSearchParams('has_requested_services=false'),
@@ -61,41 +68,54 @@ describe('admission requested-services list filters', () => {
     );
     expect(byId).toMatchObject({
       requestedServiceId: '7',
+      requestedServiceIds: ['7'],
       hasRequestedServices: undefined,
       page: 1,
     });
 
+    const byIds = applyRequestedServiceIdsFilter(
+      baseState({ hasRequestedServices: 'false', page: 2 }),
+      ['11', '10'],
+    );
+    expect(byIds.requestedServiceIds).toEqual(['10', '11']);
+    expect(byIds.hasRequestedServices).toBeUndefined();
+
     const byPresence = applyHasRequestedServicesFilter(
-      baseState({ requestedServiceId: '7', page: 2 }),
+      baseState({ requestedServiceIds: ['7'], page: 2 }),
       'false',
     );
     expect(byPresence).toMatchObject({
       requestedServiceId: undefined,
+      requestedServiceIds: undefined,
       hasRequestedServices: 'false',
       page: 1,
     });
 
     const cleared = clearRequestedServicesFilters(
-      baseState({ requestedServiceId: '7', hasRequestedServices: 'true', page: 5 }),
+      baseState({
+        requestedServiceIds: ['7'],
+        hasRequestedServices: 'true',
+        page: 5,
+      }),
     );
-    expect(cleared.requestedServiceId).toBeUndefined();
+    expect(cleared.requestedServiceIds).toBeUndefined();
     expect(cleared.hasRequestedServices).toBeUndefined();
     expect(cleared.page).toBe(1);
   });
 
-  it('builds list query for service id or presence, never both', () => {
+  it('builds list query for service ids or presence, never both', () => {
     expect(
-      buildAdmissionListServerQuery(baseState({ requestedServiceId: '15', page: 1 })),
-    ).toMatchObject({ requested_service_id: 15 });
+      buildAdmissionListServerQuery(baseState({ requestedServiceIds: ['15'], page: 1 })),
+    ).toMatchObject({ requested_service_ids: '15' });
 
     expect(
       buildAdmissionListServerQuery(
-        baseState({ requestedServiceId: '15', hasRequestedServices: 'true', page: 1 }),
+        baseState({ requestedServiceIds: ['15'], hasRequestedServices: 'true', page: 1 }),
       ),
-    ).toMatchObject({ requested_service_id: 15 });
+    ).toMatchObject({ requested_service_ids: '15' });
     expect(
       buildAdmissionListServerQuery(
-        baseState({ requestedServiceId: '15', hasRequestedServices: 'true', page: 1 }),
+        baseState({ requestedServiceIds: ['15'], hasRequestedServices: 'true', page: 1 }),
       ),
     ).not.toHaveProperty('has_requested_services');
 
@@ -106,7 +126,7 @@ describe('admission requested-services list filters', () => {
 
   it('counts service filters as manual filters and chip-clear uses clear helper', () => {
     expect(
-      hasManualContextOrAdvancedFilters(baseState({ requestedServiceId: '3' })),
+      hasManualContextOrAdvancedFilters(baseState({ requestedServiceIds: ['3'] })),
     ).toBe(true);
     expect(
       hasManualContextOrAdvancedFilters(baseState({ hasRequestedServices: 'false' })),
@@ -114,9 +134,11 @@ describe('admission requested-services list filters', () => {
     expect(hasManualContextOrAdvancedFilters(baseState())).toBe(false);
 
     const afterChipClear = clearRequestedServicesFilters(
-      baseState({ requestedServiceId: '3', page: 2 }),
+      baseState({ requestedServiceIds: ['3'], page: 2 }),
     );
-    expect(afterChipClear.requestedServiceId).toBeUndefined();
-    expect(workspaceListStateToSearchParams(afterChipClear).get('requested_service_id')).toBeNull();
+    expect(afterChipClear.requestedServiceIds).toBeUndefined();
+    expect(
+      workspaceListStateToSearchParams(afterChipClear).get('requested_service_ids'),
+    ).toBeNull();
   });
 });

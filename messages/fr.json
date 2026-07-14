@@ -4523,9 +4523,21 @@
     },
     "admissions": {
       "applicationStatus": {
-        "new": "New", "follow_up": "Follow-up", "in_assessment": "In assessment",
-        "decision_pending": "Decision pending", "accepted": "Accepted", "ready_for_registration": "Ready for registration",
-        "registered": "Registered", "waitlisted": "Waitlisted", "rejected": "Rejected", "closed": "Closed"
+        "new": "New",
+        "follow_up": "Follow-up",
+        "in_assessment": "In assessment",
+        "decision_pending": "Decision pending",
+        "accepted": "Accepted",
+        "ready_for_registration": "Ready for registration",
+        "registered": "Registered",
+        "waitlisted": "Waitlisted",
+        "rejected": "Rejected",
+        "closed": "Closed"
+      },
+      "statusNav": {
+        "navLabel": "Statut de la demande",
+        "allApplications": "Toutes les demandes",
+        "more": "Plus"
       },
       "lastAction": {
         "none": "Aucun suivi enregistré",
@@ -4535,8 +4547,24 @@
         "actor": "Personnel",
         "at": "Date"
       },
-      "contactResults": { "reached": "Reached", "no_answer": "No answer", "wrong_number": "Wrong number", "call_later": "Call later", "family_interested": "Family interested", "family_not_interested": "Family not interested", "appointment_scheduled": "Appointment scheduled", "information_sent": "Information sent", "other": "Other" },
-      "actionErrors": { "FAMILY_APPROVAL_REQUIRES_ACCEPTED_DECISION": "Accept the application before recording family approval.", "familyApprovalStatusNotAdvanced": "L'approbation familiale a été enregistrée mais le statut est resté « {status} » au lieu de prêt pour l'inscription. La transition de statut côté backend doit être corrigée.", "not_ready_for_registration": "The application is not ready for registration.", "invalid_action": "This action is not currently available.", "conflict": "The application was updated elsewhere." },
+      "contactResults": {
+        "reached": "Reached",
+        "no_answer": "No answer",
+        "wrong_number": "Wrong number",
+        "call_later": "Call later",
+        "family_interested": "Family interested",
+        "family_not_interested": "Family not interested",
+        "appointment_scheduled": "Appointment scheduled",
+        "information_sent": "Information sent",
+        "other": "Other"
+      },
+      "actionErrors": {
+        "FAMILY_APPROVAL_REQUIRES_ACCEPTED_DECISION": "Accept the application before recording family approval.",
+        "familyApprovalStatusNotAdvanced": "L'approbation familiale a été enregistrée mais le statut est resté « {status} » au lieu de prêt pour l'inscription. La transition de statut côté backend doit être corrigée.",
+        "not_ready_for_registration": "The application is not ready for registration.",
+        "invalid_action": "This action is not currently available.",
+        "conflict": "The application was updated elsewhere."
+      },
       "requestedServices": {
         "title": "Services scolaires demandés",
         "description": "Sélectionnez les services demandés par la famille avec cette candidature (facultatif).",
@@ -4576,7 +4604,12 @@
           "unknown": "Impossible de mettre à jour les services scolaires demandés."
         }
       },
-      "actionValidation": { "nextActionDateRequired": "A follow-up date is required.", "appointmentDateRequired": "An appointment date and time is required.", "noteRequired": "A note is required.", "rejectionReasonRequired": "A rejection reason is required." },
+      "actionValidation": {
+        "nextActionDateRequired": "A follow-up date is required.",
+        "appointmentDateRequired": "An appointment date and time is required.",
+        "noteRequired": "A note is required.",
+        "rejectionReasonRequired": "A rejection reason is required."
+      },
       "title": "Admissions",
       "subtitle": "Gestion des demandes d'inscription",
       "createButton": "Nouvelle demande",
@@ -4633,7 +4666,10 @@
         "allTracks": "Toutes les filières",
         "chipTrack": "Filière : {track}",
         "directVisit": "Visite directe",
-        "servicesFilter": "Services demandés",
+        "servicesFilter": "Services",
+        "servicesFilterCount": "Services ({count})",
+        "servicesFilterApply": "Appliquer",
+        "servicesFilterClear": "Effacer",
         "allServices": "Tous les services",
         "chipService": "Service : {service}",
         "chipWithServices": "Avec services demandés",
@@ -9539,6 +9575,10 @@
           "description": "Essayez d’effacer la recherche."
         },
         "priorityHint": "Définit l'ordre de ce service lors de la suggestion de répartition. N'affecte pas la répartition manuelle.",
+        "selectableInAdmissions": "Disponible dans les demandes d’admission",
+        "selectableInAdmissionsHint": "Permet d’afficher ce service parmi ceux que la famille peut demander lors de l’inscription. Cela n’active pas le service et ne crée pas de frais.",
+        "availableInAdmissions": "Disponible dans les demandes d’admission",
+        "notAvailableInAdmissions": "Non disponible dans les demandes d’admission",
         "tabs": {
           "services": "Services",
           "tariffs": "Tarifs"
@@ -9556,6 +9596,7 @@
           "collectionPriority": "Priorité d'encaissement",
           "requiresSubscription": "Abonnement requis",
           "requiresUsageTracking": "Suivi d'usage requis",
+          "selectableInAdmissions": "Demandes d’admission",
           "service": "Service",
           "academicYear": "Année scolaire",
           "commitmentType": "Type d'engagement",
