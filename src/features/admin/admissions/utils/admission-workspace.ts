@@ -100,6 +100,16 @@ export type AdmissionWorkspaceListState = {
    * Cleared automatically while postSub=registered.
    */
   hideConverted: boolean;
+  /**
+   * Filter by a specific requested school service id (URL/API id as string).
+   * Mutually exclusive with hasRequestedServices.
+   */
+  requestedServiceId?: string;
+  /**
+   * Filter by presence/absence of any requested school services.
+   * Mutually exclusive with requestedServiceId.
+   */
+  hasRequestedServices?: 'true' | 'false';
   page: number;
   view: AdmissionListViewMode;
   /**
@@ -593,7 +603,56 @@ export function buildContextQuery(state: AdmissionWorkspaceListState): Admission
   if (state.cycleCode?.trim()) out.requested_cycle_code = state.cycleCode.trim();
   if (state.levelId) out.requested_level_id = Number(state.levelId) || state.levelId;
   if (state.sourceId) out.source_id = Number(state.sourceId) || state.sourceId;
+  if (state.requestedServiceId?.trim()) {
+    const trimmed = state.requestedServiceId.trim();
+    const asNumber = Number(trimmed);
+    out.requested_service_id = Number.isFinite(asNumber) ? asNumber : trimmed;
+  } else if (state.hasRequestedServices === 'true' || state.hasRequestedServices === 'false') {
+    out.has_requested_services = state.hasRequestedServices;
+  }
   return out;
+}
+
+/**
+ * Set filter to a specific requested service id (clears hasRequestedServices).
+ */
+export function applyRequestedServiceIdFilter(
+  prev: AdmissionWorkspaceListState,
+  serviceId: string | undefined,
+): AdmissionWorkspaceListState {
+  return {
+    ...prev,
+    requestedServiceId: serviceId?.trim() || undefined,
+    hasRequestedServices: undefined,
+    page: 1,
+  };
+}
+
+/**
+ * Set has_requested_services filter (clears requestedServiceId).
+ */
+export function applyHasRequestedServicesFilter(
+  prev: AdmissionWorkspaceListState,
+  value: 'true' | 'false' | undefined,
+): AdmissionWorkspaceListState {
+  return {
+    ...prev,
+    hasRequestedServices: value === 'true' || value === 'false' ? value : undefined,
+    requestedServiceId: undefined,
+    page: 1,
+  };
+}
+
+/** Clear both requested-services list filters. */
+export function clearRequestedServicesFilters(
+  prev: AdmissionWorkspaceListState,
+): AdmissionWorkspaceListState {
+  return {
+    ...prev,
+    requestedServiceId: undefined,
+    hasRequestedServices: undefined,
+    page: 1,
+  };
 }
 
 /**
@@ -799,6 +858,18 @@ export function parseWorkspaceListStateFromSearchParams(
     }
   }
 
+  const requestedServiceIdParam =
+    params.get('requested_service_id')?.trim() || undefined;
+  const hasRequestedServicesParam = params.get('has_requested_services');
+  const hasRequestedServices:
+    | 'true'
+    | 'false'
+    | undefined = requestedServiceIdParam
+    ? undefined
+    : hasRequestedServicesParam === 'true' || hasRequestedServicesParam === 'false'
+      ? hasRequestedServicesParam
+      : undefined;
+
   return {
     workspace,
     followStage,
@@ -828,6 +899,8 @@ export function parseWorkspaceListStateFromSearchParams(
       undefined,
     levelId: params.get('level') || params.get('requested_level_id') || undefined,
     sourceId: params.get('source') || params.get('source_id') || undefined,
+    requestedServiceId: requestedServiceIdParam,
+    hasRequestedServices,
     hideConverted,
     page: Math.max(1, Number(params.get('page')) || 1),
     view: resolveWorkspaceView(workspace, preferredView),
@@ -874,6 +947,11 @@ export function workspaceListStateToSearchParams(
   if (state.cycleCode?.trim()) params.set('cycle', state.cycleCode.trim());
   if (state.levelId) params.set('level', state.levelId);
   if (state.sourceId) params.set('source', state.sourceId);
+  if (state.requestedServiceId?.trim()) {
+    params.set('requested_service_id', state.requestedServiceId.trim());
+  } else if (state.hasRequestedServices === 'true' || state.hasRequestedServices === 'false') {
+    params.set('has_requested_services', state.hasRequestedServices);
+  }
   // Default is hide; only persist the non-default (show registered).
   if (state.hideConverted === false) {
     params.set('show_registered', '1');
@@ -905,6 +983,9 @@ export function hasManualContextOrAdvancedFilters(
       state.cycleCode?.trim() ||
       state.levelId ||
       state.sourceId ||
+      state.requestedServiceId?.trim() ||
+      state.hasRequestedServices === 'true' ||
+      state.hasRequestedServices === 'false' ||
       state.decision ||
       state.offerState ||
       state.offerRequired ||

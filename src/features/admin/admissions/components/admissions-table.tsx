@@ -20,6 +20,7 @@ import {
 } from '../utils/family-admission-visibility';
 import { AdmissionStatusBadges } from './admission-status-badges';
 import { AdmissionLastActionSummary } from './admission-last-action-summary';
+import { AdmissionRequestedServicesChips } from './admission-requested-services-chips';
 import { resolvePrimaryNextActionCode } from '../utils/admission-modern-actions';
 import type { AdmissionListItem } from '@/types/admission';
 
@@ -155,6 +156,18 @@ export function AdmissionsTable({
         key: 'requested_level',
         header: t('admin.admissions.table.level'),
         render: (row) => refName(row.requested_level) || t('common.dash'),
+      },
+      {
+        key: 'requested_services',
+        header: t('admin.admissions.table.requestedServices'),
+        render: (row) => (
+          <AdmissionRequestedServicesChips
+            services={row.requested_services}
+            maxVisible={2}
+            compact
+            emptyLabel={t('admin.admissions.requestedServices.tableNone')}
+          />
+        ),
       },
       {
         key: 'state',

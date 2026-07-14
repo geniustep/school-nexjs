@@ -16,6 +16,7 @@ import { AdmissionNextActionBox } from './admission-next-action-box';
 import { AdmissionExtraFieldsPanel } from './admission-extra-fields-panel';
 import { SiblingsInfoPanel } from './siblings-info-panel';
 import { AdmissionGuardiansDetails } from '@/features/admin/admissions/guardians';
+import { AdmissionRequestedServicesSection } from './admission-requested-services-section';
 import { OverviewCard, OverviewRow } from './admission-overview-primitives';
 import { hasFamilyBatchLink } from '../utils/family-admission-visibility';
 import { buildAdmissionTabHref } from '../utils/admission-detail-tabs';
@@ -128,6 +129,12 @@ export function AdmissionOverviewTab({
           <OverviewRow label={t('admin.admissions.fields.requestedLevel')} value={refName(detail.requested_level)} />
           <OverviewRow label={t('admin.admissions.fields.requestedClass')} value={refName(detail.requested_class)} />
         </OverviewCard>
+
+        <AdmissionRequestedServicesSection
+          detail={detail}
+          canEdit={canEdit}
+          onUpdated={onUpdated}
+        />
 
         <AdmissionExtraFieldsPanel detail={detail} />
         {isFamilyChild ? (

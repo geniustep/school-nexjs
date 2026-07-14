@@ -4,6 +4,7 @@ import type { SiblingLine } from '@/types/sibling-line';
 import { buildAdmissionChildFullName } from './admission-child-name';
 import { findAdmissionLevel } from './admission-options';
 import { buildSiblingLinesPayload } from './sibling-lines';
+import { dedupeRequestedServiceIds } from './admission-requested-services';
 import {
   createPrimaryGuardianDraft,
   deriveLegacyGuardianFields,
@@ -61,6 +62,7 @@ export interface AdmissionCreateFormState {
   next_action: string;
   next_action_date: string;
   internal_notes: string;
+  requested_service_ids: number[];
 }
 
 export function syncLegacyGuardianFieldsFromDrafts(guardians: GuardianDraft[]): Pick<
@@ -111,6 +113,7 @@ export function emptyAdmissionCreateForm(today: string): AdmissionCreateFormStat
     next_action: '',
     next_action_date: '',
     internal_notes: '',
+    requested_service_ids: [],
   };
 }
 
@@ -179,6 +182,9 @@ export function buildCreateAdmissionPayload(
     const val = payload[key];
     if (val === '' || val === undefined) delete payload[key];
   }
+
+  // Always include requested_service_ids (including []) — never strip empty array.
+  payload.requested_service_ids = dedupeRequestedServiceIds(form.requested_service_ids);
 
   return payload;
 }

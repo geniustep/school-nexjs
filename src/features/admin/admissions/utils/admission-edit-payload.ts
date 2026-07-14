@@ -16,6 +16,7 @@ import {
   serializeGuardiansPayload,
 } from '@/features/admin/admissions/guardians';
 import { syncLegacyGuardianFieldsFromDrafts } from './admission-create-payload';
+import { normalizeRequestedServiceIds } from './admission-requested-services';
 
 export interface AdmissionEditFormState extends AdmissionCreateFormState {
   guardian_whatsapp: string;
@@ -162,6 +163,9 @@ export function admissionDetailToEditForm(
     next_action_date: toDateInputValue(detail.next_action_date),
     internal_notes: editFieldText(detail.internal_notes),
     priority: editFieldText(detail.priority),
+    requested_service_ids: normalizeRequestedServiceIds(
+      detail.requested_service_ids ?? detail.requested_services,
+    ),
   };
 }
 

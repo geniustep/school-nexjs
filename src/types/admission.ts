@@ -231,6 +231,20 @@ export type AdmissionStatusWarningCode =
   | 'accepted_offer_application_state_mismatch'
   | string;
 
+export interface AdmissionRequestedService {
+  id: number;
+  code: string;
+  name: string;
+  active: boolean;
+}
+
+export interface AdmissionRequestedServiceCount {
+  service_id: number;
+  code?: string | null;
+  name: string;
+  count: number;
+}
+
 export interface AdmissionsDashboard {
   total_open: number;
   new_count: number;
@@ -266,6 +280,10 @@ export interface AdmissionsDashboard {
   awaiting_decision_workspace_count?: number;
   post_acceptance_workspace_count?: number;
   closed_workspace_count?: number;
+  /** Requested school services dashboard tallies. */
+  requested_service_counts?: AdmissionRequestedServiceCount[] | null;
+  any_requested_services_count?: number | null;
+  no_requested_services_count?: number | null;
 }
 
 export interface AdmissionListItem {
@@ -336,6 +354,9 @@ export interface AdmissionListItem {
   navigation?: AdmissionNavigation | null;
   warnings?: Array<string | Record<string, unknown>> | null;
   blocking_reasons?: AdmissionBlockingReason[] | null;
+  requested_services?: AdmissionRequestedService[] | null;
+  requested_service_ids?: number[] | null;
+  has_requested_services?: boolean | null;
 }
 
 export interface AdmissionAllowedActions {
@@ -528,6 +549,9 @@ export interface AdmissionDetail extends SiblingsFieldsSource {
   navigation?: AdmissionNavigation | null;
   warnings?: Array<string | Record<string, unknown>> | null;
   blocking_reasons?: AdmissionBlockingReason[] | null;
+  requested_services?: AdmissionRequestedService[] | null;
+  requested_service_ids?: number[] | null;
+  has_requested_services?: boolean | null;
 }
 
 export interface AdmissionPrefill {
@@ -683,6 +707,7 @@ export interface CreateAdmissionPayload {
   next_action?: string;
   next_action_date?: string;
   internal_notes?: string;
+  requested_service_ids?: number[];
 }
 
 export interface PatchAdmissionPayload {
@@ -723,6 +748,7 @@ export interface PatchAdmissionPayload {
   requested_level_id?: number;
   requested_stream_id?: number;
   requested_class_id?: number;
+  requested_service_ids?: number[];
 }
 
 export interface CreateActivityPayload {

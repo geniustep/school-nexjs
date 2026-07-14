@@ -4550,6 +4550,45 @@
         "not_ready_for_registration": "The application is not ready for registration.",
         "invalid_action": "This action is not currently available.", "conflict": "The application was updated elsewhere. Refresh and try again."
       },
+      "requestedServices": {
+        "title": "Requested school services",
+        "description": "Select services the family asked for with this application (optional).",
+        "hintNoFinance": "Initial preferences only — this does not create invoices or finance plans.",
+        "catalogLoading": "Loading services…",
+        "catalogError": "Could not load the school services catalog.",
+        "catalogEmpty": "No school services are available for this school yet.",
+        "catalogRetry": "Retry",
+        "noneSelected": "No services selected",
+        "archived": "Archived",
+        "edit": "Edit",
+        "save": "Save",
+        "cancel": "Cancel",
+        "saved": "Requested services saved.",
+        "lockedAfterRegistration": "Services locked after registration",
+        "lockedNote": "Requested school services cannot be changed after the application is linked to a student or registered.",
+        "selectAllServicesFilter": "All services",
+        "withServices": "With requested services",
+        "withoutServices": "Without requested services",
+        "chipService": "Service: {service}",
+        "chipWithServices": "With requested services",
+        "chipWithoutServices": "Without requested services",
+        "tableColumn": "Requested services",
+        "tableNone": "None",
+        "moreCount": "+{count}",
+        "kanbanNone": "No services",
+        "dashboardTitle": "Requested services",
+        "dashboardAny": "Any requested service",
+        "dashboardNone": "No requested services",
+        "dashboardError": "Could not show requested-services statistics.",
+        "dashboardRetry": "Retry",
+        "errors": {
+          "admission_requested_service_not_found": "One or more requested school services were not found.",
+          "admission_requested_service_inactive": "One or more requested school services are inactive.",
+          "admission_requested_service_wrong_school": "One or more requested school services do not belong to this school.",
+          "admission_requested_services_locked_after_registration": "Requested school services cannot be changed after registration.",
+          "unknown": "Could not update requested school services."
+        }
+      },
       "actionValidation": {
         "nextActionDateRequired": "A follow-up date is required.", "appointmentDateRequired": "An appointment date and time is required.",
         "noteRequired": "A note is required.", "rejectionReasonRequired": "A rejection reason is required."
@@ -4607,7 +4646,12 @@
         "track": "Track",
         "allTracks": "All tracks",
         "chipTrack": "Track: {track}",
-        "directVisit": "Direct visit"
+        "directVisit": "Direct visit",
+        "servicesFilter": "Requested services",
+        "allServices": "All services",
+        "chipService": "Service: {service}",
+        "chipWithServices": "With requested services",
+        "chipWithoutServices": "Without requested services"
       },
       "refetching": "Updating results…",
       "noData": {
@@ -4746,6 +4790,7 @@
         "phone": "Phone",
         "source": "Source",
         "level": "Level",
+        "requestedServices": "Requested services",
         "state": "Status",
         "nextAction": "Next action",
         "assigned": "Assigned",

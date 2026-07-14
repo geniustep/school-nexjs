@@ -7,6 +7,7 @@ import type {
   AdmissionDetail,
   AdmissionListItem,
   AdmissionPrefill,
+  AdmissionRequestedService,
   AdmissionsDashboard,
   CreateActivityPayload,
   CreateAdmissionPayload,
@@ -24,6 +25,10 @@ import {
   normalizeAdmissionDetail,
   normalizeAdmissionListItems,
 } from '../utils/normalize-admission-record';
+import {
+  dedupeRequestedServiceIds,
+  normalizeAdmissionRequestedServices,
+} from '../utils/admission-requested-services';
 import { unwrapAdmissionPrefill } from '../utils/admission-prefill-unwrap';
 import { notifyAdmissionsQueriesInvalidated } from '../utils/admission-list-invalidate';
 
@@ -31,6 +36,25 @@ export async function fetchAdmissionsDashboard(
   query?: ListParams,
 ): Promise<ApiResponse<AdmissionsDashboard>> {
   return api.get<AdmissionsDashboard>(endpoints.admin.admissionsDashboard, query);
+}
+
+export async function fetchAdmissionRequestedServices(
+  query?: ListParams,
+): Promise<ApiResponse<{ items: AdmissionRequestedService[] }>> {
+  const res = await api.get<{ items: AdmissionRequestedService[] }>(
+    endpoints.admin.admissionsRequestedServices,
+    query,
+  );
+  if (res.success && res.data) {
+    return {
+      ...res,
+      data: {
+        ...res.data,
+        items: normalizeAdmissionRequestedServices(res.data.items),
+      },
+    };
+  }
+  return res;
 }
 
 export async function fetchAdmissions(
@@ -67,6 +91,23 @@ export async function patchAdmission(
   query?: ListParams,
 ): Promise<ApiResponse<AdmissionDetail>> {
   return api.patch<AdmissionDetail>(endpoints.admin.admission(id), payload, query);
+}
+
+export async function patchAdmissionRequestedServices(
+  id: number | string,
+  requested_service_ids: number[],
+  query?: ListParams,
+): Promise<ApiResponse<AdmissionDetail>> {
+  const ids = dedupeRequestedServiceIds(requested_service_ids);
+  const res = await patchAdmission(id, { requested_service_ids: ids }, query);
+  if (res.success && res.data) {
+    notifyAdmissionsQueriesInvalidated({
+      reason: 'requested_services',
+      admissionId: id,
+    });
+    return { ...res, data: normalizeAdmissionDetail(res.data) };
+  }
+  return res;
 }
 
 export async function executeAdmissionAction(

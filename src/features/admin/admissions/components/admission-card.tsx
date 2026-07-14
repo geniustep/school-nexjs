@@ -13,6 +13,7 @@ import {
 import { AdmissionStatusBadges } from './admission-status-badges';
 import { AdmissionListActionsMenu } from './admission-list-actions-menu';
 import { AdmissionLastActionSummary } from './admission-last-action-summary';
+import { AdmissionRequestedServicesChips } from './admission-requested-services-chips';
 import { resolvePrimaryNextActionCode } from '../utils/admission-modern-actions';
 import type { AdmissionListItem } from '@/types/admission';
 
@@ -171,6 +172,16 @@ export function AdmissionCard({
         <p className="admission-card__level" dir="auto">
           {levelName}
         </p>
+      ) : null}
+
+      {(item.requested_services?.length ?? 0) > 0 ? (
+        <div className="admission-card__requested-services">
+          <AdmissionRequestedServicesChips
+            services={item.requested_services}
+            maxVisible={2}
+            compact
+          />
+        </div>
       ) : null}
 
       {processingStageHintKey ? (

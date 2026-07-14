@@ -530,6 +530,7 @@ export const endpoints = {
 
     admissions: '/admin/admissions',
     admissionsDashboard: '/admin/admissions/dashboard',
+    admissionsRequestedServices: '/admin/admissions/requested-services',
     admissionsOptions: '/admin/admissions/options',
     admission: (id: number | string) => `/admin/admissions/${id}`,
     admissionActions: (id: number | string) => `/admin/admissions/${id}/actions`,

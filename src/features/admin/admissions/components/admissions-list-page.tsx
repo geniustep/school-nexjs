@@ -17,22 +17,17 @@ import { useAdminResource } from '@/lib/hooks/use-admin-resource';
 import { useDebouncedValue } from '@/features/admin/students/hooks/use-debounced-value';
 import { useT } from '@/features/i18n/locale-context';
 import { endpoints } from '@/lib/api/endpoints';
-import type { AdmissionListItem, AdmissionsDashboard } from '@/types/admission';
-import type { ListParams } from '@/types/api';
-import { useAdmissionOptions } from '../hooks/use-admission-options';
-import { useAdmissionsKanbanBoard } from '../hooks/use-admissions-kanban-board';
-import { useAdmissionsSelection } from '../hooks/use-admissions-selection';
-import { AdmissionsDashboardSummary, AdmissionsDashboardSkeleton } from './admissions-dashboard-summary';
-import { AdmissionsRawStateKanban } from './admissions-raw-state-kanban';
-import { AdmissionsTable } from './admissions-table';
 import {
   ADMISSION_WORKSPACES,
   FOLLOW_UP_WORKSPACE_STATES,
+  applyHasRequestedServicesFilter,
   applyOperationalCard,
+  applyRequestedServiceIdFilter,
   applyWorkspaceChange,
   buildAdmissionListServerQuery,
   buildAdmissionWorkspaceQuery,
   buildKanbanWorkspaceExtraQuery,
+  clearRequestedServicesFilters,
   hasManualContextOrAdvancedFilters,
   parseWorkspaceListStateFromSearchParams,
   readAppliedWorkspaceFilter,
@@ -74,7 +69,19 @@ import {
   buildAdmissionsDashboardQuery,
 } from '../utils/admission-list-ssot';
 import { normalizeAdmissionListItems } from '../utils/normalize-admission-record';
+import {
+  normalizeAdmissionRequestedServices,
+} from '../utils/admission-requested-services';
 import { useAdminSession } from '@/features/auth/admin-session-context';
+import { AdmissionsDashboardSummary, AdmissionsDashboardSkeleton } from './admissions-dashboard-summary';
+import { AdmissionsRequestedServicesCountCards } from './admissions-requested-services-count-cards';
+import { AdmissionsRawStateKanban } from './admissions-raw-state-kanban';
+import { AdmissionsTable } from './admissions-table';
+import type { AdmissionListItem, AdmissionRequestedService, AdmissionsDashboard } from '@/types/admission';
+import type { ListParams } from '@/types/api';
+import { useAdmissionOptions } from '../hooks/use-admission-options';
+import { useAdmissionsKanbanBoard } from '../hooks/use-admissions-kanban-board';
+import { useAdmissionsSelection } from '../hooks/use-admissions-selection';
 import '../admissions.css';
 
 const TABLE_PAGE_SIZE = 25;
@@ -242,8 +249,23 @@ export function AdmissionsListPage() {
     listState.cycleCode,
     listState.levelId,
     listState.sourceId,
+    listState.requestedServiceId,
+    listState.hasRequestedServices,
     clearSelection,
   ]);
+
+  const servicesCatalogState = useAdminResource<{ items?: AdmissionRequestedService[] } | AdmissionRequestedService[]>(
+    filtersReady ? endpoints.admin.admissionsRequestedServices : null,
+    {},
+    { keepPreviousData: false },
+  );
+
+  const requestedServicesCatalog = useMemo(() => {
+    const raw = servicesCatalogState.data;
+    if (!raw) return [] as AdmissionRequestedService[];
+    const items = Array.isArray(raw) ? raw : raw.items;
+    return normalizeAdmissionRequestedServices(items);
+  }, [servicesCatalogState.data]);
 
   const dashboardData = dashboardState.data ?? null;
   const tablePagination = tableState.meta?.pagination;
@@ -319,20 +341,49 @@ export function AdmissionsListPage() {
 
   function clearManualFilters() {
     setSearchInput('');
-    setListState((prev) => ({
-      ...prev,
-      search: undefined,
-      academicYearId: undefined,
-      cycleCode: undefined,
-      levelId: undefined,
-      sourceId: undefined,
-      stage: undefined,
-      decision: undefined,
-      offerState: undefined,
-      registrationStatus: undefined,
-      hideConverted: true,
-      page: 1,
-    }));
+    setListState((prev) =>
+      clearRequestedServicesFilters({
+        ...prev,
+        search: undefined,
+        academicYearId: undefined,
+        cycleCode: undefined,
+        levelId: undefined,
+        sourceId: undefined,
+        stage: undefined,
+        decision: undefined,
+        offerState: undefined,
+        registrationStatus: undefined,
+        hideConverted: true,
+        page: 1,
+      }),
+    );
+  }
+
+  function servicesFilterSelectValue(): string {
+    if (listState.requestedServiceId?.trim()) {
+      return `service:${listState.requestedServiceId.trim()}`;
+    }
+    if (listState.hasRequestedServices === 'true') return 'with';
+    if (listState.hasRequestedServices === 'false') return 'without';
+    return '';
+  }
+
+  function handleServicesFilterChange(raw: string) {
+    if (!raw) {
+      setListState((prev) => clearRequestedServicesFilters(prev));
+      return;
+    }
+    if (raw === 'with') {
+      setListState((prev) => applyHasRequestedServicesFilter(prev, 'true'));
+      return;
+    }
+    if (raw === 'without') {
+      setListState((prev) => applyHasRequestedServicesFilter(prev, 'false'));
+      return;
+    }
+    if (raw.startsWith('service:')) {
+      setListState((prev) => applyRequestedServiceIdFilter(prev, raw.slice('service:'.length)));
+    }
   }
 
   function handleTrackChange(nextCycleCode: string) {
@@ -493,10 +544,35 @@ export function AdmissionsListPage() {
               activeListTotal={trustedActiveListTotal}
               onOperationalCardClick={handleOperationalCard}
             />
+            <AdmissionsRequestedServicesCountCards
+              requestedServiceCounts={dashboardData.requested_service_counts}
+              anyRequestedServicesCount={dashboardData.any_requested_services_count}
+              noRequestedServicesCount={dashboardData.no_requested_services_count}
+              activeRequestedServiceId={listState.requestedServiceId}
+              activeHasRequestedServices={listState.hasRequestedServices}
+              onSelectService={(id) =>
+                setListState((prev) => applyRequestedServiceIdFilter(prev, String(id)))
+              }
+              onSelectAny={() =>
+                setListState((prev) => applyHasRequestedServicesFilter(prev, 'true'))
+              }
+              onSelectNone={() =>
+                setListState((prev) => applyHasRequestedServicesFilter(prev, 'false'))
+              }
+              onClear={() => setListState((prev) => clearRequestedServicesFilters(prev))}
+              onRetry={retryDashboard}
+            />
           </div>
         ) : dashboardBootLoading ? (
           <div className="admissions-filter-deck__band admissions-filter-deck__band--insights">
             <AdmissionsDashboardSkeleton />
+            <AdmissionsRequestedServicesCountCards
+              loading
+              onSelectService={() => undefined}
+              onSelectAny={() => undefined}
+              onSelectNone={() => undefined}
+              onClear={() => undefined}
+            />
           </div>
         ) : dashboardState.error ? (
           <div className="admissions-filter-deck__band admissions-dashboard-fallback">
@@ -508,6 +584,14 @@ export function AdmissionsListPage() {
             <button type="button" className="btn btn--ghost btn--sm" onClick={retryDashboard}>
               {t('common.retry')}
             </button>
+            <AdmissionsRequestedServicesCountCards
+              error
+              onSelectService={() => undefined}
+              onSelectAny={() => undefined}
+              onSelectNone={() => undefined}
+              onClear={() => undefined}
+              onRetry={retryDashboard}
+            />
           </div>
         ) : null}
 
@@ -741,6 +825,23 @@ export function AdmissionsListPage() {
             ))}
           </select>
 
+          <select
+            className="input admissions-list-toolbar__state"
+            value={servicesFilterSelectValue()}
+            onChange={(e) => handleServicesFilterChange(e.target.value)}
+            aria-label={t('admin.admissions.filters.servicesFilter')}
+            data-testid="admissions-filter-requested-services"
+          >
+            <option value="">{t('admin.admissions.filters.allServices')}</option>
+            <option value="with">{t('admin.admissions.requestedServices.withServices')}</option>
+            <option value="without">{t('admin.admissions.requestedServices.withoutServices')}</option>
+            {requestedServicesCatalog.map((service) => (
+              <option key={service.id} value={`service:${service.id}`}>
+                {service.name}
+              </option>
+            ))}
+          </select>
+
           <div className="admissions-list-toolbar__search-wrap">
             <input
               className="input admissions-list-toolbar__search"
@@ -936,6 +1037,44 @@ export function AdmissionsListPage() {
                   listState.sourceId,
                 ),
               })}
+              <span aria-hidden="true">×</span>
+            </button>
+          ) : null}
+          {listState.requestedServiceId?.trim() ? (
+            <button
+              type="button"
+              className="admissions-list-active-filters__chip"
+              data-testid="chip-requested-service"
+              onClick={() => setListState((prev) => clearRequestedServicesFilters(prev))}
+            >
+              {t('admin.admissions.filters.chipService', {
+                service:
+                  requestedServicesCatalog.find(
+                    (s) => String(s.id) === listState.requestedServiceId?.trim(),
+                  )?.name ?? listState.requestedServiceId.trim(),
+              })}
+              <span aria-hidden="true">×</span>
+            </button>
+          ) : null}
+          {listState.hasRequestedServices === 'true' ? (
+            <button
+              type="button"
+              className="admissions-list-active-filters__chip"
+              data-testid="chip-with-requested-services"
+              onClick={() => setListState((prev) => clearRequestedServicesFilters(prev))}
+            >
+              {t('admin.admissions.filters.chipWithServices')}
+              <span aria-hidden="true">×</span>
+            </button>
+          ) : null}
+          {listState.hasRequestedServices === 'false' ? (
+            <button
+              type="button"
+              className="admissions-list-active-filters__chip"
+              data-testid="chip-without-requested-services"
+              onClick={() => setListState((prev) => clearRequestedServicesFilters(prev))}
+            >
+              {t('admin.admissions.filters.chipWithoutServices')}
               <span aria-hidden="true">×</span>
             </button>
           ) : null}

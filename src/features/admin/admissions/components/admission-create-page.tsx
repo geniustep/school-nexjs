@@ -26,6 +26,7 @@ import {
   validateGuardiansDraft,
   type GuardianDraft,
 } from '@/features/admin/admissions/guardians';
+import { AdmissionRequestedServicesPicker } from './admission-requested-services-picker';
 import { createAdmission } from '../api/admissions-api';
 import { useAdmissionOptions } from '../hooks/use-admission-options';
 import {
@@ -274,6 +275,22 @@ export function AdmissionCreatePage() {
             onPatch={handleIntakePatch}
             registrationTypes={studentOptionsState.options?.registrationTypes ?? []}
             optionsLoading={studentOptionsState.loading}
+          />
+        </StudentCreateStyledSection>
+
+        <StudentCreateStyledSection
+          icon="enrollment"
+          title={t('admin.admissions.requestedServices.title')}
+          lead={t('admin.admissions.requestedServices.description')}
+          className="student-create-form__section--requested-services"
+        >
+          <p className="muted tiny admissions-create-requested-services-hint">
+            {t('admin.admissions.requestedServices.hintNoFinance')}
+          </p>
+          <AdmissionRequestedServicesPicker
+            selectedIds={form.requested_service_ids}
+            onChange={(ids) => setForm((prev) => ({ ...prev, requested_service_ids: ids }))}
+            disabled={submitting}
           />
         </StudentCreateStyledSection>
 

@@ -30,6 +30,11 @@ import {
 import { normalizeAdmissionDecision } from './normalize-admission-decision';
 import { resolveAdmissionStudentId } from './admission-registration';
 import { normalizeModernAllowedActions } from './admission-modern-actions';
+import {
+  normalizeAdmissionRequestedServices,
+  normalizeHasRequestedServices,
+  normalizeRequestedServiceIds,
+} from './admission-requested-services';
 
 function cleanOptionalText(value: unknown): string | null {
   if (value === false || value == null) return null;
@@ -39,6 +44,24 @@ function cleanOptionalText(value: unknown): string | null {
 
 function cleanOfferState(value: unknown): string | null {
   return cleanOptionalText(value);
+}
+
+function normalizeRequestedServicesFields(raw: Record<string, unknown>): {
+  requested_services: ReturnType<typeof normalizeAdmissionRequestedServices>;
+  requested_service_ids: number[];
+  has_requested_services: boolean;
+} {
+  const requested_services = normalizeAdmissionRequestedServices(raw.requested_services);
+  let requested_service_ids = normalizeRequestedServiceIds(raw.requested_service_ids);
+  if (requested_service_ids.length === 0 && requested_services.length > 0) {
+    requested_service_ids = requested_services.map((service) => service.id);
+  }
+  const has_requested_services = normalizeHasRequestedServices(
+    raw.has_requested_services,
+    requested_services,
+    requested_service_ids,
+  );
+  return { requested_services, requested_service_ids, has_requested_services };
 }
 
 /** Shared outcome field normalization for list/detail/family child payloads. */
@@ -144,9 +167,9 @@ export function normalizeAdmissionOutcomeFields<T extends Record<string, unknown
 }
 
 export function normalizeAdmissionListItem(item: AdmissionListItem): AdmissionListItem {
-  const normalized = normalizeAdmissionOutcomeFields(
-    item as AdmissionListItem & Record<string, unknown>,
-  );
+  const raw = item as AdmissionListItem & Record<string, unknown>;
+  const normalized = normalizeAdmissionOutcomeFields(raw);
+  const requested = normalizeRequestedServicesFields(raw);
   return {
     ...item,
     ...normalized,
@@ -177,6 +200,9 @@ export function normalizeAdmissionListItem(item: AdmissionListItem): AdmissionLi
     navigation: normalized.navigation as AdmissionListItem['navigation'],
     warnings: normalized.warnings as AdmissionListItem['warnings'],
     blocking_reasons: normalized.blocking_reasons as AdmissionListItem['blocking_reasons'],
+    requested_services: requested.requested_services,
+    requested_service_ids: requested.requested_service_ids,
+    has_requested_services: requested.has_requested_services,
   };
 }
 
@@ -186,9 +212,9 @@ export function normalizeAdmissionListItems(items: AdmissionListItem[]): Admissi
 
 /** Full detail normalize: decision flattening + allowed_actions map. */
 export function normalizeAdmissionDetail(detail: AdmissionDetail): AdmissionDetail {
-  const normalized = normalizeAdmissionOutcomeFields(
-    detail as AdmissionDetail & Record<string, unknown>,
-  );
+  const raw = detail as AdmissionDetail & Record<string, unknown>;
+  const normalized = normalizeAdmissionOutcomeFields(raw);
+  const requested = normalizeRequestedServicesFields(raw);
   return {
     ...detail,
     ...normalized,
@@ -215,6 +241,9 @@ export function normalizeAdmissionDetail(detail: AdmissionDetail): AdmissionDeta
     navigation: normalized.navigation as AdmissionDetail['navigation'],
     warnings: normalized.warnings as AdmissionDetail['warnings'],
     blocking_reasons: normalized.blocking_reasons as AdmissionDetail['blocking_reasons'],
+    requested_services: requested.requested_services,
+    requested_service_ids: requested.requested_service_ids,
+    has_requested_services: requested.has_requested_services,
     allowed_actions: normalizeAdmissionAllowedActions(
       detail.allowed_actions as Parameters<typeof normalizeAdmissionAllowedActions>[0],
     ),

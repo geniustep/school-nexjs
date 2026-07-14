@@ -6016,3 +6016,195 @@
   align-items: center;
   margin-bottom: 0.75rem;
 }
+
+/* Requested school services — picker, chips, dashboard counts */
+.admission-requested-services-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.admission-requested-services-picker__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admission-requested-services-picker__card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--c-border, #e2e8f0);
+  border-radius: var(--radius-sm, 0.4rem);
+  background: color-mix(in srgb, var(--c-surface, #fff) 92%, var(--c-border, #e2e8f0));
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.admission-requested-services-picker__card:hover {
+  border-color: color-mix(in srgb, var(--primary, var(--c-primary)) 35%, var(--c-border, #e2e8f0));
+}
+
+.admission-requested-services-picker__card:has(:focus-visible) {
+  outline: 2px solid var(--primary, var(--c-primary));
+  outline-offset: 2px;
+}
+
+.admission-requested-services-picker__card--selected {
+  border-color: color-mix(in srgb, var(--primary, var(--c-primary)) 45%, var(--c-border, #e2e8f0));
+  background: color-mix(in srgb, var(--primary, var(--c-primary)) 8%, white);
+}
+
+.admission-requested-services-picker__card--archived {
+  opacity: 0.72;
+}
+
+.admission-requested-services-picker__card--disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.admission-requested-services-picker__input {
+  margin-block: 0.15rem;
+  flex-shrink: 0;
+}
+
+.admission-requested-services-picker__name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.admission-requested-services-picker__archived {
+  flex-shrink: 0;
+}
+
+.admission-requested-services-picker__skeleton {
+  height: 2.75rem;
+  border-radius: var(--radius-sm, 0.4rem);
+  border: 1px solid var(--c-border, #e2e8f0);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--c-border, #e2e8f0) 35%, white) 0%,
+    color-mix(in srgb, var(--c-border, #e2e8f0) 12%, white) 50%,
+    color-mix(in srgb, var(--c-border, #e2e8f0) 35%, white) 100%
+  );
+  background-size: 200% 100%;
+  animation: admissions-kanban-skeleton-shine 1.2s ease-in-out infinite;
+}
+
+.admission-requested-services-picker--loading {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: 0.5rem;
+}
+
+.admission-requested-services-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admission-requested-services-chips--empty {
+  display: inline;
+  font-size: 0.8125rem;
+  color: var(--c-text-muted, var(--muted));
+}
+
+.admission-requested-services-chips--compact .admission-requested-services-chips__chip,
+.admission-requested-services-chips--compact .admission-requested-services-chips__more {
+  font-size: 0.6875rem;
+  min-height: 1.35rem;
+  padding: 0.1rem 0.4rem;
+}
+
+.admission-requested-services-chips__chip,
+.admission-requested-services-chips__more {
+  display: inline-flex;
+  align-items: center;
+  max-width: 10rem;
+  min-height: 1.55rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 80%, transparent);
+  background: color-mix(in srgb, var(--c-border, #e2e8f0) 12%, white);
+  color: var(--c-text, #0f172a);
+  font-size: 0.75rem;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admission-requested-services-chips__chip--archived {
+  opacity: 0.7;
+  text-decoration: line-through;
+}
+
+.admission-requested-services-chips__more {
+  font-variant-numeric: tabular-nums;
+  color: var(--c-text-muted, var(--muted));
+}
+
+.admission-requested-services-section__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.admission-requested-services-section__hint {
+  margin: 0 0 0.65rem;
+}
+
+.admission-requested-services-section__editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.admission-requested-services-section__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.admissions-requested-services-counts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: 0.55rem;
+  margin-top: 0.65rem;
+}
+
+.admissions-requested-services-counts--error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.65rem;
+}
+
+.admissions-requested-services-counts .admissions-dashboard__kpi-btn {
+  width: 100%;
+  min-height: 4rem;
+}
+
+.admission-card__requested-services {
+  margin-top: 0.35rem;
+}
+
+.admissions-create-requested-services-hint {
+  margin: 0 0 0.75rem;
+}

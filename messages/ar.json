@@ -4689,6 +4689,45 @@
         "not_ready_for_registration": "الطلب غير جاهز للتسجيل.",
         "invalid_action": "هذا الإجراء غير متاح حاليًا.", "conflict": "تم تحديث الطلب في مكان آخر. حدّث الصفحة وحاول مجددًا."
       },
+      "requestedServices": {
+        "title": "الخدمات المطلوبة",
+        "description": "حدد الخدمات التي أبدت الأسرة رغبتها فيها.",
+        "hintNoFinance": "الاختيار لا يعني تفعيل الخدمة أو إنشاء رسوم.",
+        "catalogLoading": "جارٍ تحميل الخدمات…",
+        "catalogError": "تعذر تحميل الخدمات.",
+        "catalogEmpty": "لا توجد خدمات متاحة لهذه المدرسة حاليًا.",
+        "catalogRetry": "إعادة المحاولة",
+        "noneSelected": "لم تُحدد خدمات إضافية",
+        "archived": "خدمة مؤرشفة",
+        "edit": "تعديل الخدمات",
+        "save": "حفظ الخدمات",
+        "cancel": "إلغاء",
+        "saved": "تم تحديث الخدمات.",
+        "lockedAfterRegistration": "لا يمكن تعديل الخدمات بعد التحويل",
+        "lockedNote": "الطلب حُوّل إلى تلميذ. إدارة الخدمات الفعلية تتم لاحقًا من ملف التلميذ. تبقى الخدمات التاريخية ظاهرة هنا للقراءة فقط.",
+        "selectAllServicesFilter": "كل الخدمات",
+        "withServices": "طلبات بخدمات",
+        "withoutServices": "بدون خدمات",
+        "chipService": "الخدمة: {service}",
+        "chipWithServices": "الخدمات: توجد خدمات",
+        "chipWithoutServices": "الخدمات: بدون خدمات",
+        "tableColumn": "الخدمات المطلوبة",
+        "tableNone": "بدون خدمات إضافية",
+        "moreCount": "+{count}",
+        "kanbanNone": "بدون خدمات إضافية",
+        "dashboardTitle": "الخدمات المطلوبة",
+        "dashboardAny": "طلبات بخدمات",
+        "dashboardNone": "بدون خدمات",
+        "dashboardError": "تعذر تحميل أعداد الخدمات.",
+        "dashboardRetry": "إعادة المحاولة",
+        "errors": {
+          "admission_requested_service_not_found": "الخدمة لم تعد متاحة. حدّث القائمة وحاول مجددًا.",
+          "admission_requested_service_inactive": "هذه الخدمة مؤرشفة ولا يمكن إضافتها إلى طلب جديد.",
+          "admission_requested_service_wrong_school": "الخدمة لا تنتمي إلى المدرسة النشطة.",
+          "admission_requested_services_locked_after_registration": "لا يمكن تعديل الخدمات بعد تحويل الطلب إلى تلميذ.",
+          "unknown": "تعذر تحديث الخدمات المطلوبة."
+        }
+      },
       "actionValidation": {
         "nextActionDateRequired": "تاريخ المتابعة مطلوب.", "appointmentDateRequired": "تاريخ ووقت الموعد مطلوب.",
         "noteRequired": "الملاحظة مطلوبة.", "rejectionReasonRequired": "سبب الرفض مطلوب."
@@ -4746,7 +4785,12 @@
         "track": "المسلك",
         "allTracks": "كل المسالك",
         "chipTrack": "المسلك: {track}",
-        "directVisit": "زيارة مباشرة"
+        "directVisit": "زيارة مباشرة",
+        "servicesFilter": "الخدمات المطلوبة",
+        "allServices": "كل الخدمات",
+        "chipService": "خدمة: {service}",
+        "chipWithServices": "بطلبات خدمات",
+        "chipWithoutServices": "بدون خدمات"
       },
       "workspace": {
         "navLabel": "مساحات عمل القبولات",
@@ -4933,6 +4977,7 @@
         "phone": "الهاتف",
         "source": "المصدر",
         "level": "المستوى",
+        "requestedServices": "الخدمات المطلوبة",
         "state": "الحالة",
         "nextAction": "الإجراء القادم",
         "assigned": "المسؤول",
